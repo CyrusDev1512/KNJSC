@@ -84,22 +84,7 @@ kim-ngan-jsc/
 │   │       ├── test_link_type_check.py
 │   │       └── test_dynamic_query.py
 │   │
-│   ├── reports/                           báo cáo hằng ngày và tổng hợp
-│   │   ├── models.py                      DailyReport, ReportTemplate
-│   │   ├── services/
-│   │   │   ├── daily_service.py           nộp, khoá sau khi nộp
-│   │   │   └── summary_service.py         bốn cách nhóm, bộ lọc
-│   │   ├── aggregations.py                phép tính dựa trên nhãn ý nghĩa
-│   │   ├── forms.py
-│   │   ├── views.py
-│   │   ├── urls.py
-│   │   ├── tasks.py                       xuất báo cáo lớn chạy nền
-│   │   ├── migrations/
-│   │   └── tests/
-│   │       ├── test_daily_lock.py
-│   │       └── test_summary_scope.py
-│   │
-│   ├── orders/                            đơn hàng và luồng sang vận đơn
+│   ├── crm/                               khách hàng, đơn hàng, luồng sang vận đơn
 │   │   ├── models.py                      Order, OrderLine, Product, ProductGroup,
 │   │   │                                  Customer, OrderTableLink
 │   │   ├── services/
@@ -114,6 +99,21 @@ kim-ngan-jsc/
 │   │       ├── test_order_lock.py
 │   │       ├── test_dispatch_atomic.py
 │   │       └── test_repeat_customer.py
+│   │
+│   ├── reports/                           báo cáo hằng ngày và tổng hợp
+│   │   ├── models.py                      DailyReport, ReportTemplate
+│   │   ├── services/
+│   │   │   ├── daily_service.py           nộp, khoá sau khi nộp
+│   │   │   └── summary_service.py         bốn cách nhóm, bộ lọc
+│   │   ├── aggregations.py                phép tính dựa trên nhãn ý nghĩa
+│   │   ├── forms.py
+│   │   ├── views.py
+│   │   ├── urls.py
+│   │   ├── tasks.py                       xuất báo cáo lớn chạy nền
+│   │   ├── migrations/
+│   │   └── tests/
+│   │       ├── test_daily_lock.py
+│   │       └── test_summary_scope.py
 │   │
 │   ├── dashboard/                         tổng quan
 │   │   ├── services/
@@ -133,8 +133,8 @@ kim-ngan-jsc/
 │   │   ├── core/
 │   │   ├── org/
 │   │   ├── forms_builder/
+│   │   ├── crm/
 │   │   ├── reports/
-│   │   ├── orders/
 │   │   └── dashboard/
 │   │
 │   ├── static/
@@ -188,12 +188,15 @@ kim-ngan-jsc/
 │   ├── 05-huong-dan-va-van-hanh.md
 │   ├── kien-truc.md
 │   ├── backlog.md
+│   ├── cau-truc-thu-muc.md
+│   ├── so-do-kien-truc.html
 │   ├── quyet-dinh/
 │   │   ├── README.md
-│   │   ├── 001-chon-django-va-htmx.md
-│   │   ├── 002-khong-dung-thu-vien-bang-tinh.md
+│   │   ├── 001-bang-dong-luu-dang-json.md
+│   │   ├── 002-khong-nhung-thu-vien-bang-tinh.md
 │   │   ├── 003-tach-cap-bac-va-bo-phan.md
-│   │   └── 004-bang-dong-dung-jsonfield.md
+│   │   ├── 004-crm-la-module-tach-sau.md
+│   │   └── 005-chon-django.md
 │   └── tham-khao/
 │       ├── CRM_Tan.xlsx
 │       ├── vandon-mau.xlsx
@@ -214,13 +217,13 @@ kim-ngan-jsc/
 | `core` | Không sở hữu dữ liệu nghiệp vụ | Không gọi ai |
 | `org` | Bộ phận, team, cấp bậc, tài khoản | `core` |
 | `forms_builder` | Định nghĩa biểu mẫu, bảng, bản ghi động | `core`, `org` |
+| `crm` | Khách hàng, đơn hàng, sản phẩm | `core`, `org`, `forms_builder` |
 | `reports` | Báo cáo hằng ngày | `core`, `org`, `forms_builder` |
-| `orders` | Đơn hàng, sản phẩm, khách hàng | `core`, `org`, `forms_builder` |
 | `dashboard` | Không sở hữu, chỉ đọc | Tất cả |
 
 **Quy tắc phụ thuộc:** module chỉ gọi module nằm trên nó trong bảng. Không có vòng.
 
-`orders` cần ghi sang bảng động, nên nó gọi `forms_builder` — không phải ngược lại.
+`crm` cần ghi sang bảng động, nên nó gọi `forms_builder` — không phải ngược lại.
 
 ---
 
@@ -283,13 +286,14 @@ Ba tệp ở gốc là ba thứ dễ hỏng nhất và không thuộc module nà
 
 ---
 
-## Bốn quyết định đã ghi sẵn trong `docs/quyet-dinh/`
+## Năm quyết định đã ghi sẵn trong `docs/quyet-dinh/`
 
 | Tệp | Nội dung |
 |---|---|
-| `001-chon-django-va-htmx.md` | Vì sao Django, vì sao không dùng framework giao diện riêng |
-| `002-khong-dung-thu-vien-bang-tinh.md` | Vì sao không nhúng Univer — dữ liệu cần cấu trúc |
+| `001-bang-dong-luu-dang-json.md` | Vì sao JSONField cộng cột tách riêng cho nhãn ý nghĩa |
+| `002-khong-nhung-thu-vien-bang-tinh.md` | Vì sao không nhúng thư viện bảng tính — dữ liệu cần cấu trúc |
 | `003-tach-cap-bac-va-bo-phan.md` | Vì sao hai cột riêng, không gộp thành `role` |
-| `004-bang-dong-dung-jsonfield.md` | Vì sao JSONField cộng cột tách cho nhãn ý nghĩa |
+| `004-crm-la-module-tach-sau.md` | Vì sao `crm` là module trong monolith, tách khi đạt điều kiện |
+| `005-chon-django.md` | Vì sao Django, vì sao HTMX thay vì framework giao diện riêng |
 
-Bốn tệp này viết ngay khi tạo repo, không đợi.
+Năm tệp này viết ngay khi tạo repo, không đợi.

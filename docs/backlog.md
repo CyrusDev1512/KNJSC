@@ -31,7 +31,6 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | K1 | Bảng dữ liệu cho phép gõ công thức tự do tới mức nào — chỉ cột tính sẵn, chọn phép tính từ danh sách, hay gõ cú pháp đầy đủ | Cao | Phân tích tệp vận đơn thật |
 | K2 | Tạo biểu mẫu thì tự sinh bảng mới, hay luôn phải chọn bảng có sẵn | Trung bình | Bàn thiết kế |
 | K3 | Danh sách nhãn ý nghĩa cuối cùng cho cột trong bảng tự tạo | Cao | Bàn thiết kế |
-| K4 | Khung ứng dụng cụ thể sẽ dùng | Chặn | Chưa bàn |
 | K5 | Có nên đặt ngưỡng tỉ lệ bao phủ kiểm thử không | Thấp | Bàn tài liệu |
 | K6 | Công cụ đo hiệu năng khi kiểm 50 người dùng đồng thời | Thấp | Bàn tài liệu |
 
@@ -64,6 +63,7 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | Q4 | Có tích hợp với phần mềm kế toán không | Không, ít nhất trong phase 1 | (điền) |
 | Q5 | Ứng dụng di động | Không làm bản cài đặt, chỉ cần giao diện dùng được trên điện thoại | (điền) |
 | Q6 | Trợ lý AI | Không làm trong phase 1 | (điền) |
+| Q7 | Khung ứng dụng | Django 5.2 + PostgreSQL 16 + HTMX + Celery/Redis + Docker Compose — ADR-005 | (điền) |
 
 ---
 

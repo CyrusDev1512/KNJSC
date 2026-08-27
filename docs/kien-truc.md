@@ -201,10 +201,10 @@ kim-ngan-jsc/
 ├── app/
 │   ├── core/                 ← xác thực, phân quyền, nhật ký, sao lưu
 │   ├── org/                  ← bộ phận, team, cấp bậc, tài khoản
-│   ├── forms/                ← định nghĩa trường, biểu mẫu, bảng động
+│   ├── forms_builder/        ← định nghĩa trường, biểu mẫu, bảng động
+│   ├── crm/                  ← khách hàng, đơn hàng, luồng ghi sang bảng
 │   ├── reports/              ← báo cáo hằng ngày, báo cáo tổng hợp
-│   ├── orders/               ← đơn hàng, sản phẩm, luồng ghi sang bảng
-│   └── ui/                   ← giao diện chung, thành phần dùng lại
+│   └── dashboard/            ← tổng quan, chỉ đọc
 │
 ├── config/                   ← cấu hình, không đưa lên kho mã nguồn
 ├── deploy/
@@ -373,7 +373,7 @@ Nếu để sheet ghi ngược thì mất cấu trúc dữ liệu, và quay lạ
 | Đăng nhập | Trong ứng dụng, không có SSO riêng |
 | Repo | Một repo, sáu module trong `app/` |
 | Nguồn nhân sự | Module `org` |
-| Nguồn đơn hàng | Module `orders`, bảng cố định |
+| Nguồn đơn hàng | Module `crm`, bảng cố định |
 | Bảng vận đơn | Bảng động, nhận bản sao từ đơn hàng |
 | Kanban, đa thị trường | Không phải sản phẩm riêng — là cấu hình của biểu mẫu và bảng |
 | CRM | Module trong monolith ở giai đoạn đầu, tách thành app riêng khi đạt điều kiện |
@@ -383,13 +383,12 @@ Nếu để sheet ghi ngược thì mất cấu trúc dữ liệu, và quay lạ
 
 ---
 
-## Bốn điểm chưa quyết
+## Ba điểm chưa quyết
 
 | # | Nội dung | Chặn giai đoạn nào |
 |---|---|---|
-| 1 | Khung ứng dụng cụ thể | Giai đoạn 1 |
-| 2 | Bảng dữ liệu: cột tính sẵn, chọn phép tính, hay gõ công thức tự do | Giai đoạn 3 |
-| 3 | Tạo biểu mẫu tự sinh bảng, hay luôn chọn bảng có sẵn | Giai đoạn 3 |
-| 4 | Danh sách nhãn ý nghĩa cuối cùng | Giai đoạn 3 và 6 |
+| 1 | Bảng dữ liệu: cột tính sẵn, chọn phép tính, hay gõ công thức tự do | Giai đoạn 3 |
+| 2 | Tạo biểu mẫu tự sinh bảng, hay luôn chọn bảng có sẵn | Giai đoạn 3 |
+| 3 | Danh sách nhãn ý nghĩa cuối cùng | Giai đoạn 3 và 6 |
 
-Điểm 1 chặn ngay. Ba điểm còn lại chặn giai đoạn 3, còn thời gian để hỏi người dùng.
+Khung ứng dụng đã chốt ở ADR-005: Django 5.2. Ba điểm còn lại đều chặn giai đoạn 3, còn thời gian để hỏi người dùng.

@@ -95,7 +95,11 @@ Trong tình huống nào thì nên xem lại quyết định này.
 
 | Số | Tiêu đề | Trạng thái | Ngày |
 |---|---|---|---|
-| 001 | (chưa có) | | |
+| 001 | Bảng động lưu dạng JSON, tách cột riêng cho trường có nhãn ý nghĩa | Đã áp dụng | (điền) |
+| 002 | Không nhúng thư viện bảng tính, dùng bảng dữ liệu có cột tính | Đã áp dụng | (điền) |
+| 003 | Cấp bậc và bộ phận là hai cột riêng | Đã áp dụng | (điền) |
+| 004 | CRM là module trong monolith, tách thành ứng dụng riêng khi đạt điều kiện | Đã áp dụng | (điền) |
+| 005 | Chọn Django làm khung ứng dụng | Đã áp dụng | (điền) |
 
 ---
 
@@ -108,4 +112,3 @@ Những điểm sẽ cần ghi lại khi chốt. Chi tiết ở `../backlog.md`.
 | Cách triển khai bảng dữ liệu và công thức | K1 |
 | Tạo biểu mẫu thì tự sinh bảng hay chọn bảng có sẵn | K2 |
 | Danh sách nhãn ý nghĩa cho cột | K3 |
-| Khung ứng dụng | K4 |

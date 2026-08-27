@@ -15,6 +15,7 @@ Thư mục này chứa toàn bộ tài liệu của dự án.
 | Cách dùng và cách vận hành | `05-huong-dan-va-van-hanh.md` |
 | Kiến trúc tổng thể, lộ trình | `kien-truc.md` |
 | Sơ đồ dạng hình | `so-do-kien-truc.html` |
+| Cấu trúc thư mục mã nguồn | `cau-truc-thu-muc.md` |
 | Vì sao chọn cách làm này | `quyet-dinh/` |
 | Còn việc gì chưa quyết | `backlog.md` |
 
@@ -33,6 +34,7 @@ docs/
 ├── 05-huong-dan-va-van-hanh.md      phần A cho người dùng, phần B cho người vận hành
 │
 ├── kien-truc.md                     kiến trúc tổng thể, lộ trình tám giai đoạn
+├── cau-truc-thu-muc.md              cây thư mục mã nguồn, sáu module
 ├── so-do-kien-truc.html             năm sơ đồ dạng hình
 ├── backlog.md                       phát hiện và câu hỏi chưa quyết
 │
@@ -41,7 +43,8 @@ docs/
 │   ├── 001-bang-dong-luu-dang-json.md
 │   ├── 002-khong-nhung-thu-vien-bang-tinh.md
 │   ├── 003-tach-cap-bac-va-bo-phan.md
-│   └── 004-crm-la-module-tach-sau.md
+│   ├── 004-crm-la-module-tach-sau.md
+│   └── 005-chon-django.md
 │
 └── tham-khao/                       dữ liệu và tệp gốc từ khách hàng
     ├── CRM_Tan.xlsx
@@ -85,11 +88,12 @@ Sửa tài liệu mỗi lần nghĩ ra gì đó là cách nhanh nhất biến n�
 |---|---|---|
 | `01-tong-quan-san-pham.md` | 0.1 | Bản nháp |
 | `02-yeu-cau-san-pham.md` | 0.1 | Bản nháp |
-| `03-thiet-ke-ky-thuat.md` | 0.1 | Bản nháp, còn 4 điểm chưa quyết |
+| `03-thiet-ke-ky-thuat.md` | 0.1 | Bản nháp, còn 2 điểm chưa quyết |
 | `04-tieu-chi-nghiem-thu.md` | 0.1 | Bản nháp |
 | `05-huong-dan-va-van-hanh.md` | 0.1 | Bản nháp |
 | `kien-truc.md` | 0.1 | Bản nháp |
-| `quyet-dinh/001` tới `004` | — | Đã áp dụng |
+| `cau-truc-thu-muc.md` | 0.1 | Bản nháp |
+| `quyet-dinh/001` tới `005` | — | Đã áp dụng |
 | `backlog.md` | 0.1 | Cập nhật liên tục |
 
 ---
@@ -98,8 +102,7 @@ Sửa tài liệu mỗi lần nghĩ ra gì đó là cách nhanh nhất biến n�
 
 | # | Nội dung | Chặn giai đoạn |
 |---|---|---|
-| 1 | Khung ứng dụng cụ thể | 1 |
-| 2 | Danh sách nhãn ý nghĩa cuối cùng | 3 và 6 |
-| 3 | Tạo biểu mẫu tự sinh bảng hay luôn chọn bảng có sẵn | 3 |
+| 1 | Danh sách nhãn ý nghĩa cuối cùng | 3 và 6 |
+| 2 | Tạo biểu mẫu tự sinh bảng hay luôn chọn bảng có sẵn | 3 |
 
 Chi tiết ở `backlog.md`.

@@ -162,7 +162,9 @@ kim-ngan-jsc/
 ├── app/                   mã nguồn ứng dụng
 ├── config/                cấu hình, không đưa lên kho mã nguồn
 ├── deploy/                tệp triển khai
-└── scripts/               công cụ hỗ trợ
+├── scripts/               công cụ hỗ trợ
+├── tests/                 kiểm thử xuyên module
+└── storage/               tệp tải lên, tệp xuất, bản sao lưu — không đưa lên kho
 ```
 
 **Không đưa lên kho mã nguồn:** tệp cấu hình, tệp cơ sở dữ liệu, bản sao lưu,

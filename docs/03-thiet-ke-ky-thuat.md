@@ -39,10 +39,12 @@ Nếu quy tắc nằm lẫn trong tầng xử lý thì phải viết lại, và 
 
 | Thành phần | Công nghệ | Lý do |
 |---|---|---|
-| Khung ứng dụng | (chốt sau) | Có sẵn xác thực, phân quyền, lớp truy cập dữ liệu |
-| Cơ sở dữ liệu | PostgreSQL | Ràng buộc toàn vẹn, giao dịch, chịu nhiều người ghi |
+| Khung ứng dụng | Django 5.2 | Có sẵn xác thực, phân quyền, lớp truy cập dữ liệu — ADR-005 |
+| Cơ sở dữ liệu | PostgreSQL 16 | Ràng buộc toàn vẹn, giao dịch, chịu nhiều người ghi |
+| Giao diện | HTMX | Hệ thống nội bộ không cần ứng dụng một trang — ADR-005 |
+| Tác vụ nền | Celery với Redis | Nhập tệp lớn, xuất báo cáo lớn, sao lưu — ADR-005 |
 | Đóng gói | Docker Compose | Chạy giống nhau trên mọi máy |
-| Bảng dữ liệu | (chốt sau — xem `quyet-dinh/`) | |
+| Bảng dữ liệu | Bảng có cột tính, không nhúng thư viện bảng tính | Dữ liệu phải có cấu trúc để thống kê được — ADR-002 |
 
 ### 1.3. Sơ đồ triển khai
 

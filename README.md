@@ -75,6 +75,9 @@ Manager   →  toàn bộ bộ phận
 | `03-thiet-ke-ky-thuat.md` | Bản nháp 0.1 |
 | `04-tieu-chi-nghiem-thu.md` | Bản nháp 0.1 |
 | `05-huong-dan-va-van-hanh.md` | Bản nháp 0.1 |
+| `kien-truc.md` | Bản nháp 0.1 |
+| `cau-truc-thu-muc.md` | Bản nháp 0.1 |
+| `so-do-kien-truc.html` | Bản nháp 0.1 |
 | `backlog.md` | Bản nháp 0.1 |
 | `quyet-dinh/README.md` | Bản nháp 0.1 |
 
@@ -123,12 +126,17 @@ kim-ngan-jsc/
 │   ├── 03-thiet-ke-ky-thuat.md
 │   ├── 04-tieu-chi-nghiem-thu.md
 │   ├── 05-huong-dan-va-van-hanh.md
+│   ├── kien-truc.md
+│   ├── cau-truc-thu-muc.md
+│   ├── so-do-kien-truc.html
 │   ├── backlog.md
 │   └── quyet-dinh/
 ├── app/                             mã nguồn ứng dụng
 ├── config/                          cấu hình, không đưa lên kho mã nguồn
 ├── deploy/                          tệp triển khai
-└── scripts/                         công cụ hỗ trợ
+├── scripts/                         công cụ hỗ trợ
+├── tests/                           kiểm thử xuyên module
+└── storage/                         tệp tải lên, tệp xuất, bản sao lưu — không đưa lên kho
 ```
 
 ---
