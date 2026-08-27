@@ -109,6 +109,5 @@ Những điểm sẽ cần ghi lại khi chốt. Chi tiết ở `../backlog.md`.
 
 | Nội dung | Mã trong backlog |
 |---|---|
-| Cách triển khai bảng dữ liệu và công thức | K1 |
 | Tạo biểu mẫu thì tự sinh bảng hay chọn bảng có sẵn | K2 |
 | Danh sách nhãn ý nghĩa cho cột | K3 |

@@ -97,7 +97,7 @@ Manager   →  toàn bộ bộ phận
 |---|---|---|
 | 1 | Đăng nhập và phân quyền | Ba bộ phận, ba cấp bậc, điều hướng sau đăng nhập |
 | 2 | Báo cáo hằng ngày | Biểu mẫu riêng cho từng bộ phận |
-| 3 | Báo cáo tổng hợp | Thống kê Marketing, Sale, Chăm sóc khách hàng |
+| 3 | Báo cáo tổng hợp | Bốn cách nhóm: tổng hợp, theo nhân viên, theo sản phẩm, theo thị trường |
 | 4 | Lên đơn | Biểu mẫu tạo đơn, đơn chảy sang bảng vận đơn |
 | 5 | Bảng tính | Bảng dữ liệu có công thức, lọc, sắp xếp, nhập xuất Excel |
 | 6 | Quản lý biểu mẫu và bảng | Quản lý tự tạo biểu mẫu và bảng cho từng thị trường |

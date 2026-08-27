@@ -373,5 +373,9 @@ Tác vụ dọn dẹp chạy nền theo lịch, ghi lại kết quả mỗi lầ
 |---|---|---|
 | 1 | Tạo biểu mẫu thì tự sinh bảng hay luôn chọn bảng có sẵn | Mục 4.3 |
 | 2 | Danh sách nhãn ý nghĩa cuối cùng | Mục 2.5 |
+| 3 | Lịch nộp báo cáo có bắt buộc đúng giờ không | Có cần tác vụ nền theo lịch hay không |
+
+Nguồn đầy đủ và cập nhật: `backlog.md`. Danh sách ở đây chỉ là bản tóm.
+
 
 Các quyết định này khi chốt sẽ được ghi vào `quyet-dinh/` kèm lý do.

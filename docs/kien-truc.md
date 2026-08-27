@@ -387,8 +387,12 @@ Nếu để sheet ghi ngược thì mất cấu trúc dữ liệu, và quay lạ
 
 | # | Nội dung | Chặn giai đoạn nào |
 |---|---|---|
-| 1 | Bảng dữ liệu: cột tính sẵn, chọn phép tính, hay gõ công thức tự do | Giai đoạn 3 |
-| 2 | Tạo biểu mẫu tự sinh bảng, hay luôn chọn bảng có sẵn | Giai đoạn 3 |
-| 3 | Danh sách nhãn ý nghĩa cuối cùng | Giai đoạn 3 và 6 |
+| 1 | Tạo biểu mẫu tự sinh bảng, hay luôn chọn bảng có sẵn | Giai đoạn 3 |
+| 2 | Danh sách nhãn ý nghĩa cuối cùng | Giai đoạn 3 và 6 |
+| 3 | Lịch nộp báo cáo có bắt buộc đúng giờ không | Giai đoạn 4 |
 
-Khung ứng dụng đã chốt ở ADR-005: Django 5.2. Ba điểm còn lại đều chặn giai đoạn 3, còn thời gian để hỏi người dùng.
+Đã chốt và không còn nằm trong danh sách này: khung ứng dụng ở ADR-005, cách làm bảng dữ liệu
+ở ADR-002, cách thống kê bảng tự tạo ở ADR-001.
+
+Nguồn đầy đủ và cập nhật: `backlog.md`. Danh sách ở đây chỉ là bản tóm.
+

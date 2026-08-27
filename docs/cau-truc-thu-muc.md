@@ -251,21 +251,15 @@ storage/             tệp người dùng, bản sao lưu, tệp xuất
 app/staticfiles/     sinh ra khi triển khai
 ```
 
-Nội dung `.gitignore`:
+Nội dung đầy đủ xem thẳng ở `.gitignore` tại gốc repo — không chép lại vào đây, vì bản chép
+tay sẽ lệch với tệp thật ngay lần sửa sau. Bốn nhóm quan trọng nhất trong đó:
 
-```gitignore
-config/.env
-!config/.env.example
-storage/
-staticfiles/
-*.pyc
-__pycache__/
-.venv/
-*.sqlite3
-*.pgdump
-.pytest_cache/
-.coverage
-```
+| Nhóm | Chặn gì |
+|---|---|
+| Khoá bí mật | `config/.env`, `*.key`, `*.pem`, `secrets.*` |
+| Dữ liệu và bản sao lưu | `storage/`, `*.sqlite3`, `*.db`, `*.pgdump`, `*.sql`, `*.dump` |
+| Tệp bảng tính | `*.xlsx`, `*.csv` — **trừ** `docs/tham-khao/` được mở lại để commit tệp mẫu của khách hàng |
+| Tệp sinh ra | `__pycache__/`, `.venv/`, `staticfiles/`, `.pytest_cache/` |
 
 ---
 

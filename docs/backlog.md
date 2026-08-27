@@ -28,7 +28,6 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 
 | # | Nội dung | Mức | Nguồn |
 |---|---|---|---|
-| K1 | Bảng dữ liệu cho phép gõ công thức tự do tới mức nào — chỉ cột tính sẵn, chọn phép tính từ danh sách, hay gõ cú pháp đầy đủ | Cao | Phân tích tệp vận đơn thật |
 | K2 | Tạo biểu mẫu thì tự sinh bảng mới, hay luôn phải chọn bảng có sẵn | Trung bình | Bàn thiết kế |
 | K3 | Danh sách nhãn ý nghĩa cuối cùng cho cột trong bảng tự tạo | Cao | Bàn thiết kế |
 | K5 | Có nên đặt ngưỡng tỉ lệ bao phủ kiểm thử không | Thấp | Bàn tài liệu |
@@ -64,6 +63,8 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | Q5 | Ứng dụng di động | Không làm bản cài đặt, chỉ cần giao diện dùng được trên điện thoại | (điền) |
 | Q6 | Trợ lý AI | Không làm trong phase 1 | (điền) |
 | Q7 | Khung ứng dụng | Django 5.2 + PostgreSQL 16 + HTMX + Celery/Redis + Docker Compose — ADR-005 | (điền) |
+| Q8 | Mức độ công thức trên bảng dữ liệu | Cột tính, chọn phép tính từ danh sách khoảng mười hai phép, không gõ cú pháp — ADR-002 | (điền) |
+| Q9 | Cách thống kê trên bảng do người dùng tự tạo | Gán nhãn ý nghĩa cho cột, cột có nhãn tách ra cột riêng có chỉ mục — ADR-001 | (điền) |
 
 ---
 

@@ -167,6 +167,9 @@ Những điểm sau cần thống nhất trước khi triển khai. Chi tiết �
 
 | # | Nội dung | Ảnh hưởng |
 |---|---|---|
-| 1 | Bảng tính cho phép người dùng gõ công thức tự do tới mức nào | Độ phức tạp và thời gian triển khai |
-| 2 | Biểu mẫu tạo mới thì tự sinh bảng, hay luôn phải chọn bảng có sẵn | Cách vận hành hằng ngày |
+| 1 | Biểu mẫu tạo mới thì tự sinh bảng, hay luôn phải chọn bảng có sẵn | Cách vận hành hằng ngày |
+| 2 | Danh sách nhãn ý nghĩa cuối cùng cho cột trong bảng tự tạo | Báo cáo tổng hợp bao phủ được tới đâu |
 | 3 | Lịch nộp báo cáo có bắt buộc đúng giờ không | Có cần cơ chế nhắc và chặn hay không |
+
+Nguồn đầy đủ và cập nhật: `backlog.md`. Danh sách ở đây chỉ là bản tóm.
+

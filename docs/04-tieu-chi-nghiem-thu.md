@@ -222,6 +222,6 @@ Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ 
 
 | # | Nội dung | Ảnh hưởng |
 |---|---|---|
-| 1 | Tiêu chí cho công thức trên bảng | Bổ sung khi chốt mục 11 của `02-yeu-cau-san-pham.md` |
+| 1 | Tiêu chí cho cột tính trên bảng | Phương án đã chốt ở ADR-002 — còn phải viết tiêu chí cho mười hai phép tính |
 | 2 | Số lượng bài kiểm thử tự động tối thiểu | Có nên đặt ngưỡng tỉ lệ bao phủ không |
 | 3 | Công cụ đo hiệu năng khi kiểm AC-10.1 | Chưa chọn |

@@ -187,10 +187,16 @@ Những mục sau ảnh hưởng tới phạm vi và cần thống nhất trư�
 
 | # | Nội dung | Phương án | Ảnh hưởng |
 |---|---|---|---|
-| 1 | Mức độ công thức trên bảng — FR-7.8 | Chỉ cột tính sẵn / Cho gõ công thức tự do / Kết hợp cả hai | Độ phức tạp và thời gian triển khai |
-| 2 | Tạo biểu mẫu thì tự sinh bảng mới, hay luôn phải chọn bảng có sẵn | Tự sinh có tuỳ chọn / Luôn chọn | Cách vận hành hằng ngày |
+| 1 | Tạo biểu mẫu thì tự sinh bảng mới, hay luôn phải chọn bảng có sẵn | Tự sinh có tuỳ chọn / Luôn chọn | Cách vận hành hằng ngày |
+| 2 | Danh sách nhãn ý nghĩa cuối cùng cho cột trong bảng tự tạo | Giữ bảy nhãn của ADR-001 / Mở rộng thêm | Báo cáo tổng hợp bao phủ được tới đâu |
 | 3 | Lịch nộp báo cáo có bắt buộc đúng giờ không | Chỉ ghi nhận / Nhắc nhở / Chặn nộp muộn | Có cần tác vụ chạy nền hay không |
-| 4 | Cách thống kê trên bảng do người dùng tự tạo | Gán nhãn ý nghĩa cho trường / Không thống kê | Báo cáo tổng hợp có bao phủ được dữ liệu tự tạo hay không |
+
+**FR-7.8 đã được chốt ở ADR-002:** bảng dữ liệu có cột tính, người dùng chọn phép tính từ
+danh sách khoảng mười hai phép, không gõ cú pháp. Cách thống kê trên bảng tự tạo đã chốt ở
+ADR-001: gán nhãn ý nghĩa cho cột.
+
+Nguồn đầy đủ và cập nhật: `backlog.md`. Danh sách ở đây chỉ là bản tóm.
+
 
 ---
 

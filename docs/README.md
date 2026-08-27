@@ -30,7 +30,7 @@ docs/
 ├── 01-tong-quan-san-pham.md         cho người quyết định phạm vi
 ├── 02-yeu-cau-san-pham.md           48 yêu cầu có mã, kiểm chứng được
 ├── 03-thiet-ke-ky-thuat.md          cho người phát triển và AI viết mã
-├── 04-tieu-chi-nghiem-thu.md        58 tiêu chí, tham chiếu ngược tới yêu cầu
+├── 04-tieu-chi-nghiem-thu.md        64 tiêu chí, tham chiếu ngược tới yêu cầu
 ├── 05-huong-dan-va-van-hanh.md      phần A cho người dùng, phần B cho người vận hành
 │
 ├── kien-truc.md                     kiến trúc tổng thể, lộ trình tám giai đoạn
@@ -102,7 +102,8 @@ Sửa tài liệu mỗi lần nghĩ ra gì đó là cách nhanh nhất biến n�
 
 | # | Nội dung | Chặn giai đoạn |
 |---|---|---|
-| 1 | Danh sách nhãn ý nghĩa cuối cùng | 3 và 6 |
-| 2 | Tạo biểu mẫu tự sinh bảng hay luôn chọn bảng có sẵn | 3 |
+| 1 | Tạo biểu mẫu tự sinh bảng hay luôn chọn bảng có sẵn | 3 |
+| 2 | Danh sách nhãn ý nghĩa cuối cùng | 3 và 6 |
+| 3 | Lịch nộp báo cáo có bắt buộc đúng giờ không | 4 |
 
 Chi tiết ở `backlog.md`.
