@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sơ đồ kiến trúc — Kim Ngân JSC</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16233A;--ink2:#48576E;--muted:#8794A6;
+  --teal:#0B5D5D;--teal-lt:#E8F2F1;--teal-bd:#7FB6B6;
+  --purple:#534AB7;--purple-lt:#EEEDFE;--purple-bd:#AFA9EC;
+  --amber:#9A6A1F;--amber-lt:#FBF3E4;--amber-bd:#EF9F27;
+  --coral:#993C1D;--coral-lt:#FAECE7;--coral-bd:#F0997B;
+  --bg:#FCFCFB;--panel:#F5F7F8;--line:#E4E8EC;--line2:#CBD3DA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);
+  font-family:'Be Vietnam Pro',system-ui,sans-serif;
+  font-size:14px;line-height:1.6;font-weight:300;
+  -webkit-font-smoothing:antialiased;padding:0 0 70px}
+.wrap{max-width:960px;margin:0 auto;padding:0 26px}
+header{padding:50px 0 24px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--teal);font-weight:500;margin-bottom:14px}
+h1{font-size:32px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:8px}
+.lede{color:var(--ink2);font-size:15.5px;max-width:560px}
+section{padding:42px 0;border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:none}
+.snum{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);
+  letter-spacing:.14em;font-weight:500;margin-bottom:9px}
+h2{font-size:22px;font-weight:700;letter-spacing:-.4px;margin-bottom:8px}
+.sub{color:var(--ink2);font-size:14px;margin-bottom:24px;max-width:600px}
+.note{border-left:3px solid var(--teal);padding:12px 0 12px 16px;margin:22px 0 0;
+  background:linear-gradient(90deg,var(--teal-lt),transparent 78%);font-size:13.5px}
+.note b{color:var(--teal)}
+svg{display:block;width:100%;height:auto}
+.bx{fill:#fff;stroke:var(--line2);stroke-width:1}
+.bx-teal{fill:var(--teal-lt);stroke:var(--teal-bd);stroke-width:1}
+.bx-pur{fill:var(--purple-lt);stroke:var(--purple-bd);stroke-width:1}
+.bx-amb{fill:var(--amber-lt);stroke:var(--amber-bd);stroke-width:1}
+.bx-cor{fill:var(--coral-lt);stroke:var(--coral-bd);stroke-width:1}
+.bx-gray{fill:var(--panel);stroke:var(--line2);stroke-width:1}
+.t{font-family:'Be Vietnam Pro',sans-serif;font-size:13px;font-weight:600;fill:var(--ink)}
+.t-teal{fill:var(--teal)}.t-pur{fill:var(--purple)}.t-amb{fill:var(--amber)}.t-cor{fill:var(--coral)}
+.s{font-family:'Be Vietnam Pro',sans-serif;font-size:11px;font-weight:300;fill:var(--ink2)}
+.m{font-family:'IBM Plex Mono',monospace;font-size:10.5px;fill:var(--muted)}
+.ln{stroke:var(--line2);stroke-width:1.4;fill:none}
+.ln-d{stroke:var(--line2);stroke-width:1.4;fill:none;stroke-dasharray:5 4}
+.lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--muted)}
+@media(max-width:640px){.wrap{padding:0 16px}h1{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+<div class="eyebrow">Kim Ngân JSC · Phase 1</div>
+<h1>Sơ đồ kiến trúc</h1>
+<p class="lede">Sơ đồ đầu là toàn bộ hệ thống trên một trang. Bốn sơ đồ sau phóng to từng phần.</p>
+</header>
+
+<section>
+<div class="snum">00</div>
+<h2>Toàn bộ hệ thống</h2>
+<p class="sub">Một trang duy nhất: người dùng, chức năng, module, dữ liệu và hạ tầng.</p>
+
+<svg viewBox="0 0 920 690" role="img" aria-label="Sơ đồ tổng thể toàn bộ hệ thống Kim Ngân JSC">
+<defs><marker id="ar0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="#CBD3DA" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+
+<rect class="bx-gray" x="20" y="14" width="880" height="76" rx="10"/>
+<text class="m" x="38" y="34">NGƯỜI DÙNG</text>
+<rect class="bx-pur" x="40" y="42" width="270" height="36" rx="6"/>
+<text class="t t-pur" x="175" y="59" text-anchor="middle">SALE</text>
+<text class="s" x="175" y="72" text-anchor="middle">Staff · Leader · Manager</text>
+<rect class="bx-amb" x="325" y="42" width="270" height="36" rx="6"/>
+<text class="t t-amb" x="460" y="59" text-anchor="middle">MARKETING</text>
+<text class="s" x="460" y="72" text-anchor="middle">Staff · Leader · Manager</text>
+<rect class="bx-cor" x="610" y="42" width="270" height="36" rx="6"/>
+<text class="t t-cor" x="745" y="59" text-anchor="middle">VẬN ĐƠN</text>
+<text class="s" x="745" y="72" text-anchor="middle">Staff · Leader · Manager</text>
+
+<line class="ln" x1="460" y1="90" x2="460" y2="112" marker-end="url(#ar0)"/>
+
+<rect class="bx-teal" x="290" y="116" width="340" height="42" rx="8"/>
+<text class="t t-teal" x="460" y="134" text-anchor="middle">Đăng nhập và phân quyền</text>
+<text class="s" x="460" y="150" text-anchor="middle">bộ phận × cấp bậc → điều hướng tới màn hình phù hợp</text>
+
+<line class="ln" x1="460" y1="158" x2="460" y2="180" marker-end="url(#ar0)"/>
+
+<rect class="bx-gray" x="20" y="184" width="880" height="164" rx="10"/>
+<text class="m" x="38" y="204">MÀN HÌNH CHỨC NĂNG</text>
+
+<rect class="bx" x="40" y="214" width="196" height="56" rx="6"/>
+<text class="t" x="138" y="234" text-anchor="middle">Tổng quan</text>
+<text class="s" x="138" y="251" text-anchor="middle">số liệu theo phạm vi</text>
+<text class="s" x="138" y="264" text-anchor="middle">của người xem</text>
+
+<rect class="bx" x="248" y="214" width="196" height="56" rx="6"/>
+<text class="t" x="346" y="234" text-anchor="middle">Báo cáo hằng ngày</text>
+<text class="s" x="346" y="251" text-anchor="middle">biểu mẫu riêng</text>
+<text class="s" x="346" y="264" text-anchor="middle">từng bộ phận</text>
+
+<rect class="bx" x="456" y="214" width="196" height="56" rx="6"/>
+<text class="t" x="554" y="234" text-anchor="middle">Báo cáo tổng hợp</text>
+<text class="s" x="554" y="251" text-anchor="middle">bốn cách nhóm</text>
+<text class="s" x="554" y="264" text-anchor="middle">lọc thời gian, sản phẩm</text>
+
+<rect class="bx-pur" x="664" y="214" width="196" height="56" rx="6"/>
+<text class="t t-pur" x="762" y="234" text-anchor="middle">Lên đơn</text>
+<text class="s" x="762" y="251" text-anchor="middle">khách · sản phẩm · giá</text>
+<text class="s" x="762" y="264" text-anchor="middle">nhiều dòng sản phẩm</text>
+
+<rect class="bx-cor" x="40" y="278" width="196" height="56" rx="6"/>
+<text class="t t-cor" x="138" y="298" text-anchor="middle">Bảng dữ liệu</text>
+<text class="s" x="138" y="315" text-anchor="middle">lọc · sắp xếp · phân trang</text>
+<text class="s" x="138" y="328" text-anchor="middle">nhập xuất Excel</text>
+
+<rect class="bx-teal" x="248" y="278" width="196" height="56" rx="6"/>
+<text class="t t-teal" x="346" y="298" text-anchor="middle">Quản lý biểu mẫu</text>
+<text class="s" x="346" y="315" text-anchor="middle">tạo biểu mẫu và bảng</text>
+<text class="s" x="346" y="328" text-anchor="middle">nối biểu mẫu với bảng</text>
+
+<rect class="bx" x="456" y="278" width="196" height="56" rx="6"/>
+<text class="t" x="554" y="298" text-anchor="middle">Quản trị</text>
+<text class="s" x="554" y="315" text-anchor="middle">tài khoản · bộ phận</text>
+<text class="s" x="554" y="328" text-anchor="middle">team · cấp bậc</text>
+
+<rect class="bx" x="664" y="278" width="196" height="56" rx="6"/>
+<text class="t" x="762" y="298" text-anchor="middle">Nhật ký</text>
+<text class="s" x="762" y="315" text-anchor="middle">ai làm gì, lúc nào</text>
+<text class="s" x="762" y="328" text-anchor="middle">chỉ ghi thêm</text>
+
+<path class="ln-d" d="M762 270 L762 200 Q762 192 750 192 L150 192 Q138 192 138 200 L138 210" marker-end="url(#ar0)"/>
+<rect fill="#FCFCFB" x="380" y="184" width="180" height="16"/>
+<text class="lbl" x="470" y="196" text-anchor="middle">đơn chảy sang bảng, một chiều</text>
+
+<line class="ln" x1="460" y1="348" x2="460" y2="370" marker-end="url(#ar0)"/>
+
+<rect class="bx-gray" x="20" y="374" width="880" height="150" rx="10"/>
+<text class="m" x="38" y="394">MODULE TRONG MÃ NGUỒN</text>
+
+<rect class="bx-pur" x="40" y="404" width="196" height="46" rx="6"/>
+<text class="t t-pur" x="138" y="422" text-anchor="middle">crm</text>
+<text class="s" x="138" y="440" text-anchor="middle">khách · đơn · sản phẩm</text>
+
+<rect class="bx-amb" x="248" y="404" width="196" height="46" rx="6"/>
+<text class="t t-amb" x="346" y="422" text-anchor="middle">reports</text>
+<text class="s" x="346" y="440" text-anchor="middle">báo cáo ngày và tổng hợp</text>
+
+<rect class="bx" x="456" y="404" width="196" height="46" rx="6"/>
+<text class="t" x="554" y="422" text-anchor="middle">dashboard</text>
+<text class="s" x="554" y="440" text-anchor="middle">chỉ đọc, không sở hữu</text>
+
+<rect class="bx-teal" x="664" y="404" width="196" height="46" rx="6"/>
+<text class="t t-teal" x="762" y="422" text-anchor="middle">forms_builder</text>
+<text class="s" x="762" y="440" text-anchor="middle">biểu mẫu và bảng động</text>
+
+<rect class="bx" x="40" y="458" width="404" height="26" rx="6"/>
+<text class="s" x="242" y="475" text-anchor="middle">org &#160;·&#160; bộ phận · team · cấp bậc · tài khoản</text>
+
+<rect class="bx-gray" x="456" y="458" width="404" height="26" rx="6"/>
+<text class="s" x="658" y="475" text-anchor="middle">core &#160;·&#160; xác thực · phân quyền · nhật ký · sao lưu</text>
+
+<text class="lbl" x="40" y="504">Chiều gọi: dashboard → crm, reports → forms_builder → org → core. Không có vòng ngược.</text>
+
+<line class="ln" x1="460" y1="524" x2="460" y2="546" marker-end="url(#ar0)"/>
+
+<rect class="bx-gray" x="20" y="550" width="880" height="124" rx="10"/>
+<text class="m" x="38" y="570">DỮ LIỆU VÀ HẠ TẦNG</text>
+
+<rect class="bx-pur" x="40" y="580" width="404" height="76" rx="6"/>
+<text class="t t-pur" x="242" y="600" text-anchor="middle">PostgreSQL</text>
+<line x1="60" y1="610" x2="424" y2="610" stroke="#AFA9EC" stroke-width="0.8"/>
+<text class="s" x="242" y="628" text-anchor="middle">Bảng cố định: người dùng, đơn hàng, báo cáo, nhật ký</text>
+<text class="s" x="242" y="646" text-anchor="middle">Bảng động: dữ liệu do người dùng tự tạo, lưu dạng JSON</text>
+
+<rect class="bx" x="456" y="580" width="196" height="76" rx="6"/>
+<text class="t" x="554" y="600" text-anchor="middle">Tác vụ nền</text>
+<line x1="476" y1="610" x2="632" y2="610" stroke="#CBD3DA" stroke-width="0.8"/>
+<text class="s" x="554" y="628" text-anchor="middle">nhập tệp lớn · xuất báo cáo</text>
+<text class="s" x="554" y="646" text-anchor="middle">sao lưu · dọn dẹp</text>
+
+<rect class="bx" x="664" y="580" width="196" height="76" rx="6"/>
+<text class="t" x="762" y="600" text-anchor="middle">Lưu trữ tệp</text>
+<line x1="684" y1="610" x2="840" y2="610" stroke="#CBD3DA" stroke-width="0.8"/>
+<text class="s" x="762" y="628" text-anchor="middle">tệp tải lên · tệp xuất ra</text>
+<text class="s" x="762" y="646" text-anchor="middle">bản sao lưu</text>
+</svg>
+
+<div class="note">
+<b>Đọc từ trên xuống.</b> Người dùng → đăng nhập và phân quyền → màn hình chức năng → module mã nguồn → dữ liệu và hạ tầng. Bốn sơ đồ tiếp theo phóng to từng phần.
+</div>
+</section>
+
+<section>
+<div class="snum">01</div>
+<h2>Ai làm gì</h2>
+<p class="sub">Ba bộ phận, ba cấp bậc. Sau khi đăng nhập, mỗi người vào thẳng phần việc của mình.</p>
+
+<svg viewBox="0 0 900 400" role="img" aria-label="Sơ đồ ba bộ phận Sale, Marketing, Vận đơn và các chức năng của từng bộ phận">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="#CBD3DA" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+
+<rect class="bx-gray" x="340" y="10" width="220" height="48" rx="8"/>
+<text class="t" x="450" y="30" text-anchor="middle">Nhân sự đăng nhập</text>
+<text class="s" x="450" y="47" text-anchor="middle">email và mật khẩu</text>
+
+<line class="ln" x1="450" y1="58" x2="450" y2="82" marker-end="url(#ar)"/>
+
+<rect class="bx-teal" x="310" y="86" width="280" height="52" rx="8"/>
+<text class="t t-teal" x="450" y="106" text-anchor="middle">Phân quyền</text>
+<text class="s" x="450" y="124" text-anchor="middle">bộ phận × cấp bậc → điều hướng</text>
+
+<path class="ln" d="M450 138 L450 158 Q450 168 435 168 L165 168 Q150 168 150 178 L150 196" marker-end="url(#ar)"/>
+<line class="ln" x1="450" y1="138" x2="450" y2="196" marker-end="url(#ar)"/>
+<path class="ln" d="M450 138 L450 158 Q450 168 465 168 L735 168 Q750 168 750 178 L750 196" marker-end="url(#ar)"/>
+
+<rect class="bx-pur" x="30" y="200" width="240" height="130" rx="8"/>
+<text class="t t-pur" x="150" y="224" text-anchor="middle">SALE</text>
+<line x1="50" y1="238" x2="250" y2="238" stroke="#AFA9EC" stroke-width="0.8"/>
+<text class="s" x="150" y="260" text-anchor="middle">Nộp báo cáo hằng ngày</text>
+<text class="s" x="150" y="282" text-anchor="middle">Lên đơn</text>
+<text class="s" x="150" y="304" text-anchor="middle">Xem đơn của mình</text>
+
+<rect class="bx-amb" x="330" y="200" width="240" height="130" rx="8"/>
+<text class="t t-amb" x="450" y="224" text-anchor="middle">MARKETING</text>
+<line x1="350" y1="238" x2="550" y2="238" stroke="#EF9F27" stroke-width="0.8"/>
+<text class="s" x="450" y="260" text-anchor="middle">Nộp báo cáo hằng ngày</text>
+<text class="s" x="450" y="282" text-anchor="middle">Bảng dữ liệu</text>
+<text class="s" x="450" y="304" text-anchor="middle">Báo cáo tổng hợp</text>
+
+<rect class="bx-cor" x="630" y="200" width="240" height="130" rx="8"/>
+<text class="t t-cor" x="750" y="224" text-anchor="middle">VẬN ĐƠN</text>
+<line x1="650" y1="238" x2="850" y2="238" stroke="#F0997B" stroke-width="0.8"/>
+<text class="s" x="750" y="260" text-anchor="middle">Nộp báo cáo hằng ngày</text>
+<text class="s" x="750" y="282" text-anchor="middle">Bảng vận đơn</text>
+<text class="s" x="750" y="304" text-anchor="middle">Cập nhật trạng thái giao</text>
+
+<path class="ln-d" d="M150 330 L150 360 Q150 372 165 372 L735 372 Q750 372 750 360 L750 330" marker-end="url(#ar)"/>
+<rect fill="#FCFCFB" x="370" y="362" width="160" height="20"/>
+<text class="lbl" x="450" y="376" text-anchor="middle">đơn chảy một chiều</text>
+</svg>
+
+<div class="note">
+<b>Ba cấp bậc.</b> Staff thấy dữ liệu của mình · Leader thấy team mình phụ trách · Manager thấy toàn bộ bộ phận.
+</div>
+</section>
+
+<section>
+<div class="snum">02</div>
+<h2>Sáu module trong mã nguồn</h2>
+<p class="sub">Mũi tên chỉ chiều gọi. Module trên gọi module dưới, không có vòng ngược.</p>
+
+<svg viewBox="0 0 900 470" role="img" aria-label="Sơ đồ sáu module và chiều phụ thuộc giữa chúng">
+<rect class="bx-gray" x="290" y="10" width="320" height="54" rx="8"/>
+<text class="t" x="450" y="32" text-anchor="middle">dashboard</text>
+<text class="s" x="450" y="50" text-anchor="middle">tổng quan · chỉ đọc, không sở hữu dữ liệu</text>
+
+<path class="ln" d="M370 64 L370 82 Q370 92 355 92 L215 92 Q200 92 200 102 L200 118" marker-end="url(#ar)"/>
+<path class="ln" d="M530 64 L530 82 Q530 92 545 92 L685 92 Q700 92 700 102 L700 118" marker-end="url(#ar)"/>
+
+<rect class="bx-pur" x="70" y="122" width="260" height="78" rx="8"/>
+<text class="t t-pur" x="200" y="146" text-anchor="middle">crm</text>
+<line x1="90" y1="158" x2="310" y2="158" stroke="#AFA9EC" stroke-width="0.8"/>
+<text class="s" x="200" y="178" text-anchor="middle">khách hàng · đơn hàng · sản phẩm</text>
+
+<rect class="bx-amb" x="570" y="122" width="260" height="78" rx="8"/>
+<text class="t t-amb" x="700" y="146" text-anchor="middle">reports</text>
+<line x1="590" y1="158" x2="810" y2="158" stroke="#EF9F27" stroke-width="0.8"/>
+<text class="s" x="700" y="178" text-anchor="middle">báo cáo ngày · báo cáo tổng hợp</text>
+
+<path class="ln" d="M200 200 L200 224 Q200 234 215 234 L435 234 Q450 234 450 244 L450 258" marker-end="url(#ar)"/>
+<path class="ln" d="M700 200 L700 224 Q700 234 685 234 L465 234 Q450 234 450 244 L450 258" marker-end="url(#ar)"/>
+
+<rect class="bx-teal" x="290" y="262" width="320" height="78" rx="8"/>
+<text class="t t-teal" x="450" y="286" text-anchor="middle">forms_builder</text>
+<line x1="310" y1="298" x2="590" y2="298" stroke="#7FB6B6" stroke-width="0.8"/>
+<text class="s" x="450" y="318" text-anchor="middle">biểu mẫu và bảng do người dùng tự tạo</text>
+
+<line class="ln" x1="450" y1="340" x2="450" y2="368" marker-end="url(#ar)"/>
+
+<rect class="bx" x="290" y="372" width="320" height="46" rx="8"/>
+<text class="t" x="450" y="390" text-anchor="middle">org</text>
+<text class="s" x="450" y="407" text-anchor="middle">bộ phận · team · cấp bậc · tài khoản</text>
+
+<line class="ln" x1="450" y1="418" x2="450" y2="436" marker-end="url(#ar)"/>
+
+<rect class="bx-gray" x="150" y="440" width="600" height="24" rx="6"/>
+<text class="t" x="450" y="456" text-anchor="middle">core &#160;·&#160; <tspan class="s">xác thực · phân quyền · nhật ký · sao lưu</tspan></text>
+</svg>
+
+<div class="note">
+<b>Vì sao crm gọi forms_builder.</b> Khi Sale lưu đơn, hệ thống ghi một dòng sang bảng vận đơn — mà bảng đó do người dùng tự tạo. Không có chiều ngược lại.
+</div>
+</section>
+
+<section>
+<div class="snum">03</div>
+<h2>Luồng lên đơn</h2>
+<p class="sub">Một chiều. Sửa trên bảng vận đơn không cập nhật ngược lại đơn hàng.</p>
+
+<svg viewBox="0 0 900 300" role="img" aria-label="Sơ đồ luồng từ khi Sale điền biểu mẫu tới khi ghi nhật ký">
+<rect class="bx-pur" x="30" y="30" width="180" height="60" rx="8"/>
+<text class="t t-pur" x="120" y="54" text-anchor="middle">Sale điền biểu mẫu</text>
+<text class="s" x="120" y="72" text-anchor="middle">khách · sản phẩm · giá</text>
+
+<line class="ln" x1="210" y1="60" x2="248" y2="60" marker-end="url(#ar)"/>
+
+<rect class="bx" x="252" y="30" width="180" height="60" rx="8"/>
+<text class="t" x="342" y="54" text-anchor="middle">Kiểm dữ liệu</text>
+<text class="s" x="342" y="72" text-anchor="middle">bắt buộc · kiểu · giới hạn</text>
+
+<line class="ln" x1="432" y1="60" x2="470" y2="60" marker-end="url(#ar)"/>
+
+<rect class="bx-teal" x="474" y="30" width="180" height="60" rx="8"/>
+<text class="t t-teal" x="564" y="54" text-anchor="middle">Lưu đơn hàng</text>
+<text class="s" x="564" y="72" text-anchor="middle">Order + các OrderLine</text>
+
+<line class="ln" x1="654" y1="60" x2="692" y2="60" marker-end="url(#ar)"/>
+
+<rect class="bx-teal" x="696" y="30" width="180" height="60" rx="8"/>
+<text class="t t-teal" x="786" y="54" text-anchor="middle">Tra bảng đích</text>
+<text class="s" x="786" y="72" text-anchor="middle">biểu mẫu ghi vào bảng nào</text>
+
+<path class="ln" d="M786 90 L786 112 Q786 124 770 124 L136 124 Q120 124 120 136 L120 156" marker-end="url(#ar)"/>
+
+<rect class="bx-cor" x="30" y="160" width="180" height="60" rx="8"/>
+<text class="t t-cor" x="120" y="184" text-anchor="middle">Tạo bản ghi</text>
+<text class="s" x="120" y="202" text-anchor="middle">một dòng trên bảng vận đơn</text>
+
+<line class="ln" x1="210" y1="190" x2="248" y2="190" marker-end="url(#ar)"/>
+
+<rect class="bx-cor" x="252" y="160" width="180" height="60" rx="8"/>
+<text class="t t-cor" x="342" y="184" text-anchor="middle">Lưu mã liên kết</text>
+<text class="s" x="342" y="202" text-anchor="middle">đơn ↔ bản ghi</text>
+
+<line class="ln" x1="432" y1="190" x2="470" y2="190" marker-end="url(#ar)"/>
+
+<rect class="bx" x="474" y="160" width="180" height="60" rx="8"/>
+<text class="t" x="564" y="184" text-anchor="middle">Ghi nhật ký</text>
+<text class="s" x="564" y="202" text-anchor="middle">ai · lúc nào · đơn nào</text>
+
+<rect class="bx-gray" x="30" y="248" width="846" height="38" rx="6"/>
+<text class="s" x="453" y="271" text-anchor="middle">Toàn bộ trong một giao dịch — nếu bước tạo bản ghi thất bại thì đơn hàng cũng không được lưu</text>
+</svg>
+
+<div class="note">
+<b>Vì sao lưu mã liên kết.</b> Phase 1 chỉ một chiều. Nhưng có mã này thì sau muốn làm hai chiều không phải chuyển đổi dữ liệu cũ.
+</div>
+</section>
+
+<section>
+<div class="snum">04</div>
+<h2>Khi nào tách CRM</h2>
+<p class="sub">Không tách theo lịch. Tách khi đo được một trong bốn dấu hiệu.</p>
+
+<svg viewBox="0 0 900 340" role="img" aria-label="Sơ đồ so sánh kiến trúc trước và sau khi tách CRM">
+<text class="m" x="30" y="20">GIAI ĐOẠN ĐẦU</text>
+
+<rect class="bx-gray" x="30" y="32" width="370" height="150" rx="10"/>
+<text class="t" x="50" y="56">Một máy chủ</text>
+<rect class="bx" x="50" y="70" width="150" height="30" rx="6"/>
+<text class="s" x="125" y="90" text-anchor="middle">Reverse proxy</text>
+<rect class="bx-teal" x="50" y="106" width="150" height="30" rx="6"/>
+<text class="s" x="125" y="126" text-anchor="middle">Ứng dụng KNJSC</text>
+<rect class="bx" x="50" y="142" width="150" height="30" rx="6"/>
+<text class="s" x="125" y="162" text-anchor="middle">Tác vụ nền</text>
+<rect class="bx-pur" x="215" y="70" width="165" height="102" rx="6"/>
+<text class="s" x="297" y="115" text-anchor="middle">PostgreSQL</text>
+<text class="m" x="297" y="133" text-anchor="middle">knjsc_db</text>
+
+<text class="m" x="430" y="112">──▶</text>
+
+<text class="m" x="500" y="20">KHI ĐẠT ĐIỀU KIỆN</text>
+
+<rect class="bx-gray" x="500" y="32" width="370" height="150" rx="10"/>
+<text class="t" x="520" y="56">Hai máy chủ</text>
+<rect class="bx-teal" x="520" y="70" width="155" height="46" rx="6"/>
+<text class="s" x="597" y="90" text-anchor="middle">Ứng dụng chính</text>
+<text class="m" x="597" y="106" text-anchor="middle">org · reports · forms</text>
+<rect class="bx-cor" x="520" y="122" width="155" height="46" rx="6"/>
+<text class="s" x="597" y="142" text-anchor="middle">Ứng dụng CRM</text>
+<text class="m" x="597" y="158" text-anchor="middle">khách · đơn · bảng tính</text>
+<rect class="bx-pur" x="690" y="70" width="160" height="98" rx="6"/>
+<text class="s" x="770" y="113" text-anchor="middle">PostgreSQL</text>
+<text class="m" x="770" y="131" text-anchor="middle">tách sau, nếu cần</text>
+
+<rect class="bx-amb" x="30" y="200" width="840" height="120" rx="10"/>
+<text class="t t-amb" x="50" y="226">Bốn dấu hiệu để tách</text>
+<line x1="50" y1="238" x2="850" y2="238" stroke="#EF9F27" stroke-width="0.8"/>
+<text class="s" x="50" y="260">CPU máy chủ vượt 70% liên tục trong giờ làm việc</text>
+<text class="s" x="50" y="282">Thao tác của bộ phận khác chậm đi khi CRM chạy nặng</text>
+<text class="s" x="470" y="260">Tác vụ nền của CRM chiếm hết hàng đợi</text>
+<text class="s" x="470" y="282">CRM cần lịch cập nhật riêng, khác nhịp phần còn lại</text>
+<text class="m" x="50" y="306">Không có dấu hiệu nào thì để nguyên — tách sớm tốn hơn không tách</text>
+</svg>
+
+<div class="note">
+<b>Chuẩn bị từ đầu.</b> Module crm không truy vấn trực tiếp bảng của module khác, không có khoá ngoại cứng sang module khác. Nhờ vậy lần tách sau chỉ là đổi lời gọi hàm thành gọi API.
+</div>
+</section>
+
+</div>
+</body>
+</html>

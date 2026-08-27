@@ -1,0 +1,227 @@
+# Tiêu chí nghiệm thu
+
+| Mục | Nội dung |
+|---|---|
+| Dự án | Kim Ngân JSC — Hệ thống vận hành nội bộ |
+| Giai đoạn | Phase 1 |
+| Phiên bản tài liệu | 0.1 — bản nháp |
+| Ngày | (điền ngày) |
+| Người viết | (điền tên) |
+| Tài liệu liên quan | `02-yeu-cau-san-pham.md` · `03-thiet-ke-ky-thuat.md` |
+
+> Tài liệu này định nghĩa **thế nào là xong**.
+> Mỗi tiêu chí có mã riêng và tham chiếu ngược tới yêu cầu ở `02-yeu-cau-san-pham.md`.
+
+---
+
+## Cách đọc
+
+```
+AC-x.y     Tiêu chí nghiệm thu
+FR-x.y     Yêu cầu chức năng tương ứng
+Tự động    Có bài kiểm thử tự động, chạy mỗi lần sửa mã
+Thủ công   Người kiểm tra bằng tay trước mỗi lần bàn giao
+```
+
+**Quy ước:** mỗi tiêu chí tự động phải có một hàm kiểm thử trong mã nguồn, và
+docstring của hàm đó ghi mã tiêu chí. Ví dụ:
+
+```
+def test_staff_khong_xem_duoc_du_lieu_nguoi_khac():
+    """AC-3.1 — Staff chỉ xem được dữ liệu do chính mình tạo"""
+```
+
+Nhờ vậy tìm được hai chiều: từ tài liệu ra mã, và từ mã về tài liệu.
+
+---
+
+## 1. Tài khoản và phiên đăng nhập
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-1.1 | Gọi mọi đường dẫn khi chưa đăng nhập thì bị chuyển về trang đăng nhập | FR-1.1 | Tự động |
+| AC-1.2 | Đăng nhập sai 5 lần liên tiếp thì lần thứ 6 bị từ chối, kể cả khi nhập đúng | FR-1.2 | Tự động |
+| AC-1.3 | Tài khoản bị khoá tự mở lại sau 15 phút | FR-1.2 | Tự động |
+| AC-1.4 | Phiên không thao tác quá 60 phút thì yêu cầu tiếp theo bị từ chối | FR-1.3 | Tự động |
+| AC-1.5 | Người dùng mới đăng nhập lần đầu bị buộc đổi mật khẩu trước khi làm gì khác | FR-1.4 | Tự động |
+| AC-1.6 | Quản trị viên khoá tài khoản đang mở phiên thì yêu cầu tiếp theo của người đó bị từ chối ngay | FR-1.5 | Tự động |
+| AC-1.7 | Sale đăng nhập vào thẳng màn hình lên đơn, Vận đơn vào thẳng bảng vận đơn | FR-1.6 | Thủ công |
+
+---
+
+## 2. Cơ cấu tổ chức
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-2.1 | Tạo được bộ phận mới, hiển thị trong danh sách | FR-2.1 | Tự động |
+| AC-2.2 | Tạo được nhiều team trong một bộ phận | FR-2.2 | Tự động |
+| AC-2.3 | Gán người dùng vào bộ phận, team và cấp bậc, thay đổi có hiệu lực ngay | FR-2.3 | Tự động |
+| AC-2.4 | Thêm team mới không cần khởi động lại hệ thống | FR-2.4 | Thủ công |
+
+---
+
+## 3. Phân quyền
+
+Đây là nhóm quan trọng nhất. Mỗi tiêu chí kiểm cả hai chiều: được phép và bị từ chối.
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-3.1 | Staff chỉ thấy bản ghi do chính mình tạo, không thấy của người cùng team | FR-3.1 | Tự động |
+| AC-3.2 | Leader thấy toàn bộ bản ghi của team mình | FR-3.2 | Tự động |
+| AC-3.3 | Leader không thấy bản ghi của team khác cùng bộ phận | FR-3.2 | Tự động |
+| AC-3.4 | Manager thấy toàn bộ bản ghi của bộ phận mình | FR-3.3 | Tự động |
+| AC-3.5 | Manager không thấy bản ghi của bộ phận khác | FR-3.4 | Tự động |
+| AC-3.6 | Truy cập dữ liệu ngoài phạm vi trả về lỗi từ chối, không phải danh sách rỗng | FR-3.5 | Tự động |
+| AC-3.7 | Gọi thẳng đường dẫn không qua giao diện vẫn bị kiểm quyền | FR-3.6 | Tự động |
+
+### Ma trận kiểm chéo
+
+Mỗi ô là một bài kiểm thử. Chín vai trò nhân với các đường dẫn chính.
+
+| Đường dẫn | Staff Sale | Leader Sale | Manager Sale | Staff Vận đơn | Chưa đăng nhập |
+|---|---|---|---|---|---|
+| Báo cáo của chính mình | Vào được | Vào được | Vào được | Vào được | Chuyển đăng nhập |
+| Báo cáo người cùng team | Từ chối | Vào được | Vào được | Từ chối | Chuyển đăng nhập |
+| Báo cáo team khác cùng bộ phận | Từ chối | Từ chối | Vào được | Từ chối | Chuyển đăng nhập |
+| Báo cáo bộ phận khác | Từ chối | Từ chối | Từ chối | Từ chối | Chuyển đăng nhập |
+| Màn hình lên đơn | Vào được | Vào được | Vào được | Từ chối | Chuyển đăng nhập |
+| Bảng vận đơn | Từ chối | Từ chối | Từ chối | Vào được | Chuyển đăng nhập |
+| Quản lý biểu mẫu | Từ chối | Từ chối | Vào được | Từ chối | Chuyển đăng nhập |
+
+---
+
+## 4. Báo cáo hằng ngày
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-4.1 | Mỗi bộ phận thấy biểu mẫu riêng của mình, không thấy biểu mẫu bộ phận khác | FR-4.1 | Tự động |
+| AC-4.2 | Nộp báo cáo thì thời điểm nộp được ghi lại chính xác | FR-4.2 | Tự động |
+| AC-4.3 | Người dùng xem lại được danh sách báo cáo cũ của mình | FR-4.3 | Tự động |
+| AC-4.4 | Báo cáo đã nộp không sửa được, kể cả khi gọi thẳng đường dẫn sửa | FR-4.4 | Tự động |
+| AC-4.5 | Leader xem được báo cáo của người trong team | FR-4.5 | Tự động |
+
+---
+
+## 5. Báo cáo tổng hợp
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-5.1 | Bốn cách nhóm đều cho ra số liệu đúng khi đối chiếu với dữ liệu gốc | FR-5.1 | Tự động |
+| AC-5.2 | Lọc theo khoảng thời gian trả về đúng số bản ghi trong khoảng đó | FR-5.2 | Tự động |
+| AC-5.3 | Lọc theo sản phẩm trả về đúng số bản ghi | FR-5.3 | Tự động |
+| AC-5.4 | Dòng tổng cộng bằng đúng tổng các dòng chi tiết | FR-5.4 | Tự động |
+| AC-5.5 | Leader chỉ thấy số liệu của team mình trong báo cáo tổng hợp | FR-5.5 | Tự động |
+| AC-5.6 | Tệp xuất ra mở được bằng Excel, số liệu khớp với màn hình | FR-5.6 | Thủ công |
+
+---
+
+## 6. Lên đơn
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-6.1 | Tạo đơn thiếu trường bắt buộc thì bị từ chối, dữ liệu đã nhập không mất | FR-6.1 | Tự động |
+| AC-6.2 | Đơn có 5 sản phẩm lưu được đầy đủ, không mất dòng nào | FR-6.2 | Tự động |
+| AC-6.3 | Lưu đơn xong thì bảng vận đơn có thêm đúng một dòng tương ứng | FR-6.3 | Tự động |
+| AC-6.4 | Mã liên kết giữa đơn và dòng trên bảng được lưu và tra cứu được | FR-6.4 | Tự động |
+| AC-6.5 | Nếu ghi sang bảng vận đơn thất bại thì đơn hàng cũng không được lưu | FR-6.3 | Tự động |
+| AC-6.6 | Người tạo đơn xem lại được đơn cũ của mình | FR-6.5 | Tự động |
+| AC-6.7 | Đơn đã lưu không sửa được, kể cả khi gọi thẳng đường dẫn sửa | FR-6.6 | Tự động |
+| AC-6.8 | Nhập đơn với số điện thoại đã có thì hệ thống báo khách đã mua trước đó | FR-6.7 | Tự động |
+
+---
+
+## 7. Bảng dữ liệu
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-7.1 | Bảng 50.000 bản ghi tải trang đầu dưới 2 giây | FR-7.1 · NFR-1 | Tự động |
+| AC-7.2 | Lọc theo cột trả về đúng số bản ghi | FR-7.2 | Tự động |
+| AC-7.3 | Sắp xếp theo cột cho ra thứ tự đúng, cả tăng và giảm | FR-7.3 | Tự động |
+| AC-7.4 | Người không có quyền sửa thì không sửa được ô, kể cả gọi thẳng đường dẫn | FR-7.4 | Tự động |
+| AC-7.5 | Nhập tệp Excel 2.000 dòng hoàn tất dưới 60 giây | FR-7.5 · NFR-3 | Tự động |
+| AC-7.6 | Tệp Excel có dòng lỗi thì các dòng hợp lệ vẫn được nhập, dòng lỗi được liệt kê | FR-7.5 | Tự động |
+| AC-7.7 | **Xuất ra tệp Excel rồi nhập lại chính tệp đó thì không phát sinh lỗi** | FR-7.7 | Tự động |
+| AC-7.8 | Tệp vượt 10 MB bị từ chối với thông báo rõ ràng | NFR-11 | Tự động |
+| AC-7.9 | Tệp không đúng định dạng cho phép bị từ chối | NFR-12 | Tự động |
+
+---
+
+## 8. Quản lý biểu mẫu và bảng
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-8.1 | Manager tạo biểu mẫu mới, biểu mẫu xuất hiện cho người được phân quyền | FR-8.1 | Thủ công |
+| AC-8.2 | Trường đánh dấu bắt buộc thì không gửi được nếu bỏ trống | FR-8.2 | Tự động |
+| AC-8.3 | Dữ liệu từ biểu mẫu ghi đúng vào bảng đích đã chọn | FR-8.3 | Tự động |
+| AC-8.4 | Người không được phân quyền không thấy biểu mẫu đó | FR-8.4 | Tự động |
+| AC-8.5 | Sửa biểu mẫu không làm mất dữ liệu đã nhập trước đó | FR-8.5 | Tự động |
+| AC-8.6 | Nối trường kiểu chữ vào cột kiểu số thì bị chặn với thông báo rõ ràng | FR-8.6 | Tự động |
+
+---
+
+## 9. Quy tắc nghiệp vụ
+
+| Mã | Tiêu chí | Quy tắc | Loại |
+|---|---|---|---|
+| AC-9.1 | Xoá bản ghi thì bản ghi vẫn còn trong cơ sở dữ liệu, chỉ đánh dấu đã xoá | BR-4 | Tự động |
+| AC-9.2 | Mọi thao tác thay đổi dữ liệu sinh một dòng trong nhật ký hoạt động | BR-5 | Tự động |
+| AC-9.3 | Không có đường nào sửa hoặc xoá được bản ghi nhật ký | BR-6 | Tự động |
+| AC-9.4 | Thời gian hiển thị theo giờ Việt Nam, dữ liệu lưu theo giờ quốc tế | BR-7 | Tự động |
+| AC-9.5 | Cộng 1.000 dòng tiền cho kết quả chính xác tuyệt đối, không sai số | BR-8 | Tự động |
+
+---
+
+## 10. Hiệu năng và vận hành
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-10.1 | 50 người dùng thao tác đồng thời, không có yêu cầu nào quá 3 giây | NFR-2 | Thủ công |
+| AC-10.2 | Màn hình danh sách chạy không quá 10 lệnh truy vấn | Q2 | Tự động |
+| AC-10.3 | Gặp lỗi thì hiện thông báo tiếng Việt, không hiện trang trắng | NFR-6 | Thủ công |
+| AC-10.4 | Giao diện dùng được trên điện thoại và máy tính bảng | NFR-7 | Thủ công |
+| AC-10.5 | Phục hồi thành công từ bản sao lưu trên môi trường thử | NFR-10 | Thủ công |
+| AC-10.6 | Bản sao lưu tự động chỉ giữ tối đa 30 bản gần nhất | NFR-15 | Tự động |
+| AC-10.7 | Đọc trực tiếp cơ sở dữ liệu không thấy mật khẩu dạng đọc được | NFR-4 | Tự động |
+
+---
+
+## 11. Kiểm thử thủ công trước bàn giao
+
+Những việc máy không tự làm được, người phải kiểm bằng tay.
+
+| # | Việc | Ghi chú |
+|---|---|---|
+| 1 | Cài đặt từ đầu trên máy sạch, chạy tới màn hình đăng nhập | |
+| 2 | Ba vai trò đăng nhập, chạy trọn quy trình của mình | Sale, Marketing, Vận đơn |
+| 3 | Nhập tệp Excel thật của công ty, không chỉnh sửa trước | |
+| 4 | Xuất báo cáo, mở bằng Excel, đối chiếu số liệu | |
+| 5 | Thử trên điện thoại và máy tính bảng thật | |
+| 6 | Phục hồi từ bản sao lưu trên môi trường thử | |
+| 7 | Ngắt mạng giữa chừng, kiểm thông báo lỗi | |
+
+---
+
+## 12. Điều kiện coi là hoàn thành phase 1
+
+| # | Điều kiện |
+|---|---|
+| 1 | Toàn bộ tiêu chí đánh dấu **Tự động** đều có bài kiểm thử và đều đạt |
+| 2 | Ma trận kiểm chéo phân quyền ở mục 3 được kiểm đầy đủ, cả trường hợp cho phép và từ chối |
+| 3 | Toàn bộ danh sách kiểm thủ công ở mục 11 đã thực hiện và đạt |
+| 4 | Đã phục hồi thành công ít nhất một lần từ bản sao lưu |
+| 5 | Tệp Excel thật của công ty nhập được mà không cần chỉnh sửa thủ công |
+| 6 | Ba vai trò đã chạy trọn quy trình trên dữ liệu thật |
+| 7 | Tài liệu hướng dẫn sử dụng và vận hành đã bàn giao |
+
+**Không bỏ qua** các tiêu chí thuộc mục 3 và mục 9 với lý do sẽ sửa sau.
+Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ thì không thu hồi được.
+
+---
+
+## 13. Nội dung chưa quyết định
+
+| # | Nội dung | Ảnh hưởng |
+|---|---|---|
+| 1 | Tiêu chí cho công thức trên bảng | Bổ sung khi chốt mục 11 của `02-yeu-cau-san-pham.md` |
+| 2 | Số lượng bài kiểm thử tự động tối thiểu | Có nên đặt ngưỡng tỉ lệ bao phủ không |
+| 3 | Công cụ đo hiệu năng khi kiểm AC-10.1 | Chưa chọn |
