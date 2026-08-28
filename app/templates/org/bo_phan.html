@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block tieu_de %}Bộ phận và team · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Bộ phận và team{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Module org · ADR-003</div>
+    <h1>Bộ phận và team</h1>
+    <p>Thêm bộ phận mới chỉ là thêm một dòng dữ liệu, không phải sửa mã nguồn.</p>
+  </div>
+  <div class="hanh-dong"><a class="nut" href="{% url 'nhan_su' %}">Nhân sự</a></div>
+</div>
+
+<div class="luoi luoi-2">
+
+  {# ── Bộ phận ────────────────────────────────────────────────── #}
+  <div class="doc">
+    <div class="the">
+      <div class="the-dau"><h2>Bộ phận</h2></div>
+      <div class="bang-cuon">
+        <table class="bang">
+          <thead><tr><th>Tên</th><th>Mã</th><th class="phai">Team</th><th class="phai">Nhân sự</th><th>Trạng thái</th></tr></thead>
+          <tbody>
+            {% for bp in pt_bo_phan.trang %}
+              <tr>
+                <td><b>{{ bp.name }}</b></td>
+                <td class="ma-o">{{ bp.code }}</td>
+                <td class="tien">{{ bp.so_team }}</td>
+                <td class="tien">{{ bp.so_nguoi }}</td>
+                <td>
+                  {% if bp.is_active %}<span class="chip chip-tot"><i></i>Hoạt động</span>
+                  {% else %}<span class="chip chip-nhat"><i></i>Ngừng dùng</span>{% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5">{% include "components/rong.html" with rong_tieu_de="Chưa có bộ phận nào" %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% include "components/phan_trang.html" with page_obj=pt_bo_phan.page_obj moi_trang=pt_bo_phan.moi_trang cac_co_trang=pt_bo_phan.cac_co_trang ten_don_vi=pt_bo_phan.ten_don_vi tham_so=pt_bo_phan.tham_so tham_so_co=pt_bo_phan.tham_so_co %}
+    </div>
+
+    <div class="the">
+      <div class="the-dau"><h2>Thêm bộ phận</h2></div>
+      <form class="the-than bm" method="post">
+        {% csrf_token %}
+        {% for truong in form_bo_phan %}
+          <div class="truong {% if truong.errors %}co-loi{% endif %}">
+            <label for="{{ truong.id_for_label }}">{{ truong.label }}</label>
+            {{ truong|safe }}
+            {% for loi in truong.errors %}<span class="loi-truong">{{ loi }}</span>{% endfor %}
+          </div>
+        {% endfor %}
+        <button class="nut nut-chinh" type="submit" name="tao_bo_phan" value="1">Tạo bộ phận</button>
+      </form>
+    </div>
+  </div>
+
+  {# ── Team ───────────────────────────────────────────────────── #}
+  <div class="doc">
+    <div class="the">
+      <div class="the-dau"><h2>Team</h2></div>
+      <div class="bang-cuon">
+        <table class="bang">
+          <thead><tr><th>Tên</th><th>Bộ phận</th><th>Trưởng nhóm</th><th class="phai">Thành viên</th></tr></thead>
+          <tbody>
+            {% for tm in pt_team.trang %}
+              <tr>
+                <td><b>{{ tm.name }}</b></td>
+                <td>{{ tm.department }}</td>
+                <td>{{ tm.leader.profile.full_name|default:"chưa có" }}</td>
+                <td class="tien">{{ tm.so_nguoi }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4">{% include "components/rong.html" with rong_tieu_de="Chưa có team nào" %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% include "components/phan_trang.html" with page_obj=pt_team.page_obj moi_trang=pt_team.moi_trang cac_co_trang=pt_team.cac_co_trang ten_don_vi=pt_team.ten_don_vi tham_so=pt_team.tham_so tham_so_co=pt_team.tham_so_co %}
+    </div>
+
+    <div class="the">
+      <div class="the-dau"><h2>Thêm team</h2></div>
+      <form class="the-than bm" method="post">
+        {% csrf_token %}
+        {% for truong in form_team %}
+          <div class="truong {% if truong.errors %}co-loi{% endif %}">
+            <label for="{{ truong.id_for_label }}">{{ truong.label }}</label>
+            {{ truong|safe }}
+            {% for loi in truong.errors %}<span class="loi-truong">{{ loi }}</span>{% endfor %}
+          </div>
+        {% endfor %}
+        <span class="goi-y">Chỉ người có cấp bậc Trưởng nhóm mới chọn được làm leader.</span>
+        <button class="nut nut-chinh" type="submit" name="tao_team" value="1">Tạo team</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll(".bm input, .bm select").forEach(function (o) {
+    if (o.type !== "checkbox" && o.type !== "hidden") o.classList.add("o-nhap");
+  });
+</script>
+
+{% endblock %}

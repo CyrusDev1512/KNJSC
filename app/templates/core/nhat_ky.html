@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block tieu_de %}Nhật ký hoạt động · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Nhật ký hoạt động{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">BR-6 · chỉ ghi thêm</div>
+    <h1>Nhật ký hoạt động</h1>
+    <p>
+      Không ai sửa hay xoá được bản ghi ở đây, kể cả quản trị viên. Thời điểm lưu
+      theo giờ quốc tế, hiển thị theo giờ Việt Nam.
+    </p>
+  </div>
+</div>
+
+<div class="bang-hop">
+  <form class="loc" method="get">
+    <div class="truong o-tim">
+      <label for="tim">Tìm kiếm</label>
+      <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Người thực hiện hoặc đối tượng">
+    </div>
+    <div class="truong">
+      <label for="hanh_dong">Hành động</label>
+      <select class="o-nhap" id="hanh_dong" name="hanh_dong">
+        <option value="">Tất cả</option>
+        {% for gt, nhan in cac_hanh_dong %}
+          <option value="{{ gt }}" {% if gt == hanh_dong %}selected{% endif %}>{{ nhan }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="loc-nut">
+      <a class="nut nut-nho" href="{% url 'nhat_ky' %}">Xoá lọc</a>
+      <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
+    </div>
+  </form>
+
+  <div class="bang-cuon">
+    <table class="bang bang-rong" style="min-width:900px">
+      <thead>
+        <tr><th>Thời điểm</th><th>Người thực hiện</th><th>Hành động</th>
+            <th>Đối tượng</th><th>Chi tiết</th><th>Địa chỉ IP</th></tr>
+      </thead>
+      <tbody>
+        {% for dong in trang %}
+          <tr>
+            <td class="ma-o">{{ dong.created_at|date:"d.m.Y H:i:s" }}</td>
+            <td>{{ dong.actor_label|default:"—" }}</td>
+            <td>
+              <span class="chip {% if dong.action == 'denied' or dong.action == 'login_failed' %}chip-xau{% elif dong.action == 'permission' %}chip-cho{% elif dong.action == 'create' %}chip-tot{% else %}chip-nhat{% endif %}">
+                <i></i>{{ dong.get_action_display }}
+              </span>
+            </td>
+            <td class="ma-o">{{ dong.target_type }}{% if dong.target_id %} · {{ dong.target_id|truncatechars:30 }}{% endif %}</td>
+            <td class="mo-nhat">{{ dong.detail|default:"—" }}</td>
+            <td class="ma-o">{{ dong.ip_address|default:"—" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6">
+            {% include "components/rong.html" with rong_tieu_de="Chưa có bản ghi nào" rong_mo_ta="Hoạt động của người trong phạm vi của bạn sẽ hiện ở đây." %}
+          </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% include "components/phan_trang.html" %}
+</div>
+
+<div class="bao bao-xau">
+  <span class="bao-ic">!</span>
+  <div>
+    <b>Không ghi dữ liệu nhạy cảm vào nhật ký</b>
+    <p>Mật khẩu, số thẻ, thông tin cá nhân đầy đủ đều bị lược bỏ trước khi ghi, kể cả khi gỡ lỗi.</p>
+  </div>
+</div>
+
+{% endblock %}

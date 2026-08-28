@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block tieu_de %}Nhân sự · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Nhân sự{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Module org · ADR-003</div>
+    <h1>Nhân sự và tài khoản</h1>
+    <p>Danh sách đã lọc theo phạm vi quyền của bạn. Bộ phận và cấp bậc là hai cột riêng.</p>
+  </div>
+  {% if duoc_sua %}
+    <div class="hanh-dong">
+      <a class="nut" href="{% url 'bo_phan' %}">Bộ phận và team</a>
+      <a class="nut nut-chinh" href="{% url 'nhan_su_moi' %}">Tạo tài khoản</a>
+    </div>
+  {% endif %}
+</div>
+
+<div class="bang-hop">
+  <form class="loc" method="get">
+    <div class="truong o-tim">
+      <label for="tim">Tìm kiếm</label>
+      <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Họ tên, tên đăng nhập, email">
+    </div>
+    <div class="truong">
+      <label for="cap_bac">Cấp bậc</label>
+      <select class="o-nhap" id="cap_bac" name="cap_bac">
+        <option value="">Tất cả</option>
+        {% for gt, nhan in cac_cap_bac %}
+          <option value="{{ gt }}" {% if gt == cap_bac %}selected{% endif %}>{{ nhan }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="truong">
+      <label for="trang_thai">Trạng thái</label>
+      <select class="o-nhap" id="trang_thai" name="trang_thai">
+        <option value="">Tất cả</option>
+        <option value="hoat-dong" {% if trang_thai == "hoat-dong" %}selected{% endif %}>Hoạt động</option>
+        <option value="bi-khoa" {% if trang_thai == "bi-khoa" %}selected{% endif %}>Bị khoá</option>
+      </select>
+    </div>
+    <div class="loc-nut">
+      <a class="nut nut-nho" href="{% url 'nhan_su' %}">Xoá lọc</a>
+      <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
+    </div>
+  </form>
+
+  {% if trang %}
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead>
+          <tr>
+            <th>Họ tên</th><th>Tên đăng nhập</th><th>Bộ phận</th><th>Team</th>
+            <th>Cấp bậc</th><th>Đăng nhập cuối</th><th>Trạng thái</th>
+            {% if duoc_sua %}<th></th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for ho_so in trang %}
+            <tr>
+              <td>{{ ho_so.full_name|default:"—" }}</td>
+              <td class="ma-o">{{ ho_so.user.username }}</td>
+              <td>{{ ho_so.department|default:"—" }}</td>
+              <td class="ma-o">{{ ho_so.team|default:"—" }}</td>
+              <td>
+                <span class="chip {% if ho_so.rank == 'admin' %}chip-nhan{% elif ho_so.rank == 'manager' %}chip-nhan{% else %}chip-nhat{% endif %}">
+                  <i></i>{{ ho_so.get_rank_display }}
+                </span>
+              </td>
+              <td class="ma-o">{{ ho_so.last_login_at|date:"d.m H:i"|default:"chưa" }}</td>
+              <td>
+                {% if ho_so.user.is_active %}
+                  <span class="chip chip-tot"><i></i>Hoạt động</span>
+                {% else %}
+                  <span class="chip chip-xau"><i></i>Bị khoá</span>
+                {% endif %}
+              </td>
+              {% if duoc_sua %}
+                <td class="phai">
+                  <div class="hang" style="gap:var(--sp-2);justify-content:flex-end">
+                    <a class="nut nut-nho" href="{% url 'nhan_su_sua' ho_so.pk %}">Sửa</a>
+                    {% if ho_so.user_id != user.pk %}
+                      <form method="post" action="{% url 'nhan_su_doi_trang_thai' ho_so.pk %}">
+                        {% csrf_token %}
+                        <button class="nut nut-nho {% if ho_so.user.is_active %}nut-nguy{% endif %}" type="submit">
+                          {% if ho_so.user.is_active %}Khoá{% else %}Mở khoá{% endif %}
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr><td colspan="8">
+              {% include "components/rong.html" with rong_tieu_de="Không tìm thấy ai" rong_mo_ta="Thử bỏ bớt điều kiện lọc." %}
+            </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "components/phan_trang.html" %}
+  {% endif %}
+</div>
+
+{% endblock %}

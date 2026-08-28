@@ -1,0 +1,46 @@
+{% comment %}
+Phân trang dùng chung. Mặc định 25 dòng (quy tắc 1).
+
+Cần: page_obj. Tuỳ chọn: ten_don_vi, và tham_so / tham_so_co để một màn hình
+có hai bảng phân trang độc lập nhau.
+{% endcomment %}
+{% with p=tham_so|default:"trang" pc=tham_so_co|default:"moi_trang" %}
+<div class="phan-trang">
+  <span>
+    Hiện <b class="so">{{ page_obj.start_index }}–{{ page_obj.end_index }}</b>
+    trên <b class="so">{{ page_obj.paginator.count }}</b> {{ ten_don_vi|default:"dòng" }}
+  </span>
+
+  <label class="hang nho" style="gap:var(--sp-2)">
+    Mỗi trang
+    <select class="o-nhap" style="width:auto;padding:2px var(--sp-2)"
+            onchange="location.search = '?{{ pc }}=' + this.value">
+      {% for co in cac_co_trang %}
+        <option value="{{ co }}" {% if co == moi_trang %}selected{% endif %}>{{ co }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <div class="trang-nut">
+    {% if page_obj.has_previous %}
+      <a href="?{{ p }}={{ page_obj.previous_page_number }}&{{ pc }}={{ moi_trang }}" aria-label="Trang trước">‹</a>
+    {% else %}
+      <span class="mo">‹</span>
+    {% endif %}
+
+    {% for so in page_obj.paginator.page_range %}
+      {% if so == page_obj.number %}
+        <span class="hien-tai">{{ so }}</span>
+      {% elif so <= 2 or so > page_obj.paginator.num_pages|add:"-2" or so >= page_obj.number|add:"-1" and so <= page_obj.number|add:"1" %}
+        <a href="?{{ p }}={{ so }}&{{ pc }}={{ moi_trang }}">{{ so }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <a href="?{{ p }}={{ page_obj.next_page_number }}&{{ pc }}={{ moi_trang }}" aria-label="Trang sau">›</a>
+    {% else %}
+      <span class="mo">›</span>
+    {% endif %}
+  </div>
+</div>
+{% endwith %}

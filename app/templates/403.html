@@ -1,0 +1,25 @@
+{% extends "base_tran.html" %}
+{% block tieu_de %}Không có quyền truy cập · Kim Ngân JSC{% endblock %}
+
+{% block ngoai_khung %}
+<div style="min-height:100vh;display:grid;place-items:center;padding:var(--sp-5)">
+  <div class="the" style="width:100%;max-width:520px;padding:var(--sp-6)">
+    <div class="nhan-nho" style="color:var(--critical)">Lỗi 403 · FR-3.5</div>
+    <h1 style="font-size:var(--fs-2xl);font-weight:800;letter-spacing:-.025em;margin:var(--sp-2) 0 var(--sp-3)">
+      Bạn không có quyền truy cập
+    </h1>
+    <p style="color:var(--ink-2);margin:0 0 var(--sp-4)">
+      {{ exception|default:"Dữ liệu này nằm ngoài phạm vi quyền của bạn." }}
+    </p>
+    <div class="bao bao-nhan">
+      <span class="bao-ic">i</span>
+      <div>
+        <b>Hệ thống trả lỗi từ chối, không trả danh sách rỗng</b>
+        <p>Lần truy cập này đã được ghi vào nhật ký hoạt động.</p>
+      </div>
+    </div>
+    <hr class="ke">
+    <a class="nut nut-chinh" href="/">Về Tổng quan</a>
+  </div>
+</div>
+{% endblock %}

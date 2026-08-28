@@ -1,0 +1,26 @@
+{% load static %}<!doctype html>
+{% comment %}
+Khung trần: không có thanh điều hướng.
+
+Dùng cho các màn hình mà người dùng không được đi đâu khác — đăng nhập,
+buộc đổi mật khẩu, và trang từ chối truy cập.
+{% endcomment %}
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block tieu_de %}Kim Ngân JSC{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<script>
+  try { var n = localStorage.getItem("knjsc-nen"); if (n) document.documentElement.dataset.theme = n; } catch (e) {}
+</script>
+{% block dau_trang %}{% endblock %}
+</head>
+<body>
+{% block ngoai_khung %}{% endblock %}
+</body>
+</html>

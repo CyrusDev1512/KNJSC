@@ -1,0 +1,97 @@
+{% load static %}<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block tieu_de %}Kim Ngân JSC{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<script>
+  /* Đặt nền trước khi vẽ để tránh nháy sáng */
+  try { var n = localStorage.getItem("knjsc-nen"); if (n) document.documentElement.dataset.theme = n; } catch (e) {}
+</script>
+{% block dau_trang %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<div class="app">
+
+  <aside class="nav" id="thanh-ben">
+    <div class="nav-dau">
+      <a class="nav-hieu" href="{% url 'tong_quan' %}">
+        <span>KN</span>
+        <div>Kim Ngân JSC<small>Hệ thống vận hành</small></div>
+      </a>
+    </div>
+
+    <nav class="nav-than" aria-label="Điều hướng chính">
+      {% for nhom in nav_groups %}
+        <div class="nav-nhom">{{ nhom.label }}</div>
+        {% for muc in nhom.items %}
+          <a class="nav-muc" href="{% url muc.url_name %}"
+             {% if muc.code == nav_current %}aria-current="page"{% endif %}>{{ muc.label }}</a>
+        {% endfor %}
+      {% endfor %}
+    </nav>
+
+    <div class="nav-chan">
+      <div class="ma nho">Phase 1 · giai đoạn 2</div>
+    </div>
+  </aside>
+
+  <div class="chinh">
+    <div class="topbar">
+      <button class="nut nut-nho nut-nav" type="button" id="nut-nav" aria-label="Mở điều hướng">☰</button>
+      <div class="duong-dan">
+        <span>Kim Ngân JSC</span><span>/</span><b>{% block ten_trang %}{% endblock %}</b>
+      </div>
+      <div class="topbar-phai">
+        <button class="nut nut-nho" type="button" id="nut-nen" title="Đổi nền sáng tối">Nền</button>
+        <div class="nguoi-dung">
+          <div class="avatar">{{ profile.full_name|default:user.get_username|first|upper }}</div>
+          <div>
+            <b>{{ profile.full_name|default:user.get_username }}</b>
+            <small>{{ profile.get_rank_display }}{% if profile.department %} · {{ profile.department }}{% endif %}</small>
+          </div>
+        </div>
+        <form method="post" action="{% url 'dang_xuat' %}">
+          {% csrf_token %}
+          <button class="nut nut-nho" type="submit">Đăng xuất</button>
+        </form>
+      </div>
+    </div>
+
+    <main class="noi-dung doc">
+      {% if messages %}
+        {% for tin in messages %}
+          <div class="bao {% if tin.tags == 'error' %}bao-xau{% elif tin.tags == 'warning' %}bao-cho{% else %}bao-tot{% endif %}">
+            <span class="bao-ic">{% if tin.tags == 'error' %}!{% else %}✓{% endif %}</span>
+            <div><b>{{ tin }}</b></div>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {% block noi_dung %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<script>
+  document.getElementById("nut-nen").addEventListener("click", function () {
+    var toi = document.documentElement.dataset.theme === "dark";
+    document.documentElement.dataset.theme = toi ? "light" : "dark";
+    try { localStorage.setItem("knjsc-nen", toi ? "light" : "dark"); } catch (e) {}
+  });
+  document.getElementById("nut-nav").addEventListener("click", function () {
+    document.getElementById("thanh-ben").classList.toggle("mo");
+  });
+</script>
+
+{% endif %}
+
+</body>
+</html>

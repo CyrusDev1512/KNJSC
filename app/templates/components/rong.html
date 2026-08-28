@@ -1,0 +1,11 @@
+{% comment %}
+Trạng thái rỗng. Cần: rong_tieu_de, rong_mo_ta. Tuỳ chọn: rong_bieu_tuong.
+
+Lưu ý: màn hình rỗng chỉ dùng khi thật sự không có dữ liệu. Người dùng ra
+ngoài phạm vi quyền thì phải trả lỗi 403, không hiện màn hình này (FR-3.5).
+{% endcomment %}
+<div class="rong">
+  <div class="bieu-tuong ma">{{ rong_bieu_tuong|default:"▤" }}</div>
+  <h3>{{ rong_tieu_de|default:"Chưa có dữ liệu" }}</h3>
+  <p>{{ rong_mo_ta|default:"Khi có bản ghi đầu tiên, nó sẽ hiện ở đây." }}</p>
+</div>

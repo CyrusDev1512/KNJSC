@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block tieu_de %}Tổng quan · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Tổng quan{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Giai đoạn 2</div>
+    <h1>Chào {{ profile.full_name|default:user.get_username }}</h1>
+    <p>
+      Phạm vi đang xem: <b>{{ profile.get_rank_display }}</b>{% if profile.department %}
+      bộ phận <b>{{ profile.department }}</b>{% endif %}. Số liệu dưới đây đã lọc theo phạm vi đó.
+    </p>
+  </div>
+</div>
+
+{# ── Ô số liệu ─────────────────────────────────────────────── #}
+<div class="luoi luoi-4">
+  {% if nhan_su.ok %}
+    <div class="o-so">
+      <div class="nhan">Nhân sự trong phạm vi</div>
+      <div class="gia-tri">{{ nhan_su.data.tong }}</div>
+      <div class="phu">{{ nhan_su.data.hoat_dong }} đang hoạt động</div>
+    </div>
+    <div class="o-so">
+      <div class="nhan">Tài khoản bị khoá</div>
+      <div class="gia-tri">{{ nhan_su.data.bi_khoa }}</div>
+      <div class="phu">{% if nhan_su.data.bi_khoa %}Cần xem lại{% else %}Không có{% endif %}</div>
+    </div>
+  {% else %}
+    <div class="o-so">
+      <div class="nhan">Nhân sự</div>
+      <div class="gia-tri" style="font-size:var(--fs-lg);color:var(--ink-3)">Tạm chưa khả dụng</div>
+    </div>
+  {% endif %}
+
+  {% if co_cau.ok %}
+    <div class="o-so">
+      <div class="nhan">Bộ phận</div>
+      <div class="gia-tri">{{ co_cau.data.so_bo_phan }}</div>
+      <div class="phu">Trong phạm vi của bạn</div>
+    </div>
+    <div class="o-so">
+      <div class="nhan">Team</div>
+      <div class="gia-tri">{{ co_cau.data.so_team }}</div>
+      <div class="phu">Mỗi team một trưởng nhóm</div>
+    </div>
+  {% endif %}
+</div>
+
+<div class="luoi luoi-2">
+
+  {# ── Hoạt động gần đây ─────────────────────────────────────── #}
+  <div class="the">
+    <div class="the-dau">
+      <h2>Hoạt động gần đây</h2>
+      {% if perms_nhat_ky %}<div class="phai"><a class="nut nut-nho" href="{% url 'nhat_ky' %}">Mở nhật ký</a></div>{% endif %}
+    </div>
+    {% if hoat_dong.ok %}
+      {% if hoat_dong.data %}
+        <div class="bang-cuon">
+          <table class="bang">
+            <thead><tr><th>Thời điểm</th><th>Người</th><th>Hành động</th><th>Đối tượng</th></tr></thead>
+            <tbody>
+              {% for dong in hoat_dong.data %}
+                <tr>
+                  <td class="ma-o">{{ dong.created_at|date:"d.m H:i" }}</td>
+                  <td>{{ dong.actor_label|default:"—" }}</td>
+                  <td>{{ dong.get_action_display }}</td>
+                  <td class="ma-o">{{ dong.target_type }}{% if dong.target_id %} · {{ dong.target_id|truncatechars:24 }}{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        {% include "components/rong.html" with rong_tieu_de="Chưa có hoạt động nào" rong_mo_ta="Thao tác trong phạm vi của bạn sẽ hiện ở đây." %}
+      {% endif %}
+    {% else %}
+      <div class="rong">
+        <div class="bieu-tuong ma">!</div>
+        <h3>Nhật ký tạm thời chưa khả dụng</h3>
+        <p>Các phần khác của Tổng quan vẫn hoạt động bình thường.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  {# ── Bảng dữ liệu: cố tình lỗi để thấy cách chịu lỗi ───────── #}
+  <div class="the">
+    <div class="the-dau">
+      <h2>Bảng dữ liệu</h2>
+      {% if not bang_dong.ok %}
+        <div class="phai"><span class="chip chip-xau"><i></i>Tạm chưa khả dụng</span></div>
+      {% endif %}
+    </div>
+    <div class="rong">
+      <div class="bieu-tuong ma">▤</div>
+      <h3>Dữ liệu bảng tạm thời chưa khả dụng</h3>
+      <p>
+        Module bảng động thuộc giai đoạn 3, chưa có. Khối này hỏng nhưng
+        Tổng quan vẫn chạy — đó là điều kiện bắt buộc trong kiến trúc.
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
