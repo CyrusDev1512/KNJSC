@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bảng tính · Kim Ngân JSC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="static/tokens.css">
+<link rel="stylesheet" href="static/main.css">
+<link rel="stylesheet" href="static/bang-tinh.css">
+<script src="static/layout.js" defer></script>
+<script src="static/bang-tinh.js" defer></script>
+</head>
+<body data-trang="bang-tinh" data-tieu-de="Bảng tính">
+<div class="app">
+  <div class="chinh">
+    <div class="bt-khung">
+
+      <!-- ── Đầu trang tính ── -->
+      <div class="bt-dau">
+        <a class="bt-ve" href="bang-tinh.html" title="Về danh sách bảng tính">←</a>
+        <div class="bt-bieu-tuong">▦</div>
+        <input id="bt-ten" value="Vận đơn tháng 8" spellcheck="false" aria-label="Tên bảng tính">
+        <span id="bt-trang-thai">Đã lưu</span>
+        <div class="day hang">
+          <button class="nut nut-nho" type="button" id="bt-nhap">Nhập Excel</button>
+          <button class="nut nut-nho" type="button" id="bt-xuat">Tải xuống</button>
+        </div>
+      </div>
+
+      <!-- ── Thanh công cụ ── -->
+      <div class="bt-cong-cu" role="toolbar" aria-label="Công cụ bảng tính">
+        <button class="bt-nut" id="bt-hoan-tac" title="Hoàn tác (Ctrl+Z)">↶</button>
+        <button class="bt-nut" id="bt-lam-lai" title="Làm lại (Ctrl+Y)">↷</button>
+        <span class="bt-ngan"></span>
+
+        <select class="bt-chon" id="bt-dinh-dang" title="Định dạng số" aria-label="Định dạng số">
+          <option value="">Tự động</option>
+          <option value="so">Số 1.234,56</option>
+          <option value="pt">Phần trăm %</option>
+          <option value="vnd">Tiền ₫ (VND)</option>
+          <option value="usd">Tiền $ (USD)</option>
+          <option value="van">Văn bản</option>
+        </select>
+        <select class="bt-chon" id="bt-co-chu" title="Cỡ chữ" aria-label="Cỡ chữ">
+          <option value="">12,5</option>
+          <option>10</option><option>11</option><option>14</option>
+          <option>16</option><option>18</option><option>22</option>
+        </select>
+        <span class="bt-ngan"></span>
+
+        <button class="bt-nut" id="bt-dam" title="Đậm (Ctrl+B)" aria-pressed="false"><b>B</b></button>
+        <button class="bt-nut" id="bt-nghieng" title="Nghiêng (Ctrl+I)" aria-pressed="false"><i>I</i></button>
+        <button class="bt-nut" id="bt-gach" title="Gạch chân (Ctrl+U)" aria-pressed="false"><u>U</u></button>
+        <button class="bt-nut" id="bt-xoa-ngang" title="Gạch ngang" aria-pressed="false"><s>S</s></button>
+
+        <span class="bt-mau-hop">
+          <button class="bt-nut" id="bt-mau-chu" title="Màu chữ">
+            <b>A</b><span class="bt-mau-vach" id="bt-vach-chu" style="background:#d03b3b"></span>
+          </button>
+          <div class="bt-bang-mau" id="bang-mau-chu"></div>
+        </span>
+        <span class="bt-mau-hop">
+          <button class="bt-nut" id="bt-mau-nen" title="Màu nền">
+            ▧<span class="bt-mau-vach" id="bt-vach-nen" style="background:#fde68a"></span>
+          </button>
+          <div class="bt-bang-mau" id="bang-mau-nen"></div>
+        </span>
+        <span class="bt-ngan"></span>
+
+        <button class="bt-nut" id="bt-trai" title="Căn trái">⇤</button>
+        <button class="bt-nut" id="bt-giua" title="Căn giữa">↔</button>
+        <button class="bt-nut" id="bt-phai" title="Căn phải">⇥</button>
+        <button class="bt-nut" id="bt-xuong-dong" title="Xuống dòng trong ô" aria-pressed="false">↵</button>
+        <span class="bt-ngan"></span>
+        <button class="bt-nut" id="bt-xoa-dinh-dang" title="Xoá định dạng" style="font-size:12px">Xoá ĐD</button>
+      </div>
+
+      <!-- ── Thanh công thức ── -->
+      <div class="bt-fx">
+        <input id="bt-o-hien-tai" value="A1" spellcheck="false" title="Ô hiện tại — gõ địa chỉ để nhảy tới">
+        <div class="bt-fx-nhan">fx</div>
+        <input id="bt-cong-thuc" spellcheck="false" autocomplete="off"
+               placeholder="Nhập giá trị hoặc công thức, ví dụ =SUM(C2:C8)">
+      </div>
+
+      <!-- ── Nhắc ranh giới kiến trúc ── -->
+      <div class="bao bao-nhan" id="bt-bao-nguon" hidden
+           style="border-radius:0;border-left:0;border-right:0;border-top:0">
+        <span class="bao-ic">⛓</span>
+        <div>
+          <b>Trang này đọc từ bảng <span class="bt-nguon-ten ma">—</span></b>
+          <p>Cột <span class="bt-nguon-cot ma">—</span> là bản sao chỉ đọc. Tính toán ở các cột bên phải — kết quả không ghi ngược về bảng gốc.</p>
+        </div>
+      </div>
+
+      <!-- ── Lưới ── -->
+      <div class="bt-luoi-hop" id="bt-luoi-hop" tabindex="0">
+        <table class="bt-luoi" id="bt-luoi"></table>
+        <input id="bt-o-nhap" spellcheck="false" autocomplete="off">
+      </div>
+
+      <!-- ── Chân trang ── -->
+      <div class="bt-chan">
+        <button class="bt-nut" id="bt-them-trang" title="Thêm trang tính">+</button>
+        <div class="bt-tabs" id="bt-tabs"></div>
+        <button class="bt-tab" id="bt-them-dong">+50 dòng</button>
+        <div class="bt-thong-ke" id="bt-thong-ke"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   DỮ LIỆU MẪU
+   Trang "Báo cáo MKT" dùng số liệu thật lấy từ ảnh báo cáo Marketing
+   của bản KN Demo — đơn vị tiền là VND, không phải USD.
+   ══════════════════════════════════════════════════════════════════ */
+
+const TIEN  = { dd: "vnd" };
+const PT    = { dd: "pt" };
+const DAU   = { d: true, mn: "#e8e8f2", cc: "center" };
+const TONG  = { d: true, mn: "#dcf3dc" };
+
+function dungTrang(ten, hang, kieuCot, them) {
+  const t = { ten, o: {}, dong: 60, ...them };
+  hang.forEach((h, d) => h.forEach((v, c) => {
+    if (v === null || v === "") return;
+    const a = String.fromCharCode(65 + c) + (d + 1);
+    t.o[a] = { v };
+    const s = d === 0 ? DAU : (kieuCot && kieuCot[c]);
+    if (s) t.o[a].s = { ...s };
+  }));
+  return t;
+}
+
+/* ── Trang 1: Vận đơn, nối với bảng cố định ──
+   Cột A–I là bản sao chỉ đọc từ bảng van_don. Cột J trở đi là vùng
+   người dùng tự tính — đọc được từ vùng khoá, nhưng không ghi ngược. */
+const vanDon = dungTrang("Vận đơn",
+  [
+    ["Mã đơn", "Ngày", "Sản phẩm", "Quốc gia", "SL", "Giá tiền", "PTTT", "Trạng thái", "Nhân viên", "Thành tiền", "Ghi chú của tôi"],
+    ["DH-2608-0047", "28.08", "Máy massage HM-200", "Hoa Kỳ", 2, 1875000, "Thẻ", "Chờ xử lý", "Trần Văn Dũng", "=E2*F2", "",
+      "Tổng thành tiền", "=SUM(J2:J8)"],
+    ["DH-2608-0046", "28.08", "Đèn ngủ LS-12", "Hoa Kỳ", 1, 1062500, "PayPal", "Đang giao", "Nguyễn Thị Hà", "=E3*F3", "",
+      "Số đơn đã giao", "=COUNTIF(H2:H8;\"Đã giao\")"],
+    ["DH-2608-0045", "27.08", "Bộ dao bếp 6 món", "Canada", 3, 2225000, "Thẻ", "Đã giao", "Trần Văn Dũng", "=E4*F4", "",
+      "Doanh số đã giao", "=SUMIF(H2:H8;\"Đã giao\";J2:J8)"],
+    ["DH-2608-0044", "27.08", "Máy massage HM-200", "Hoa Kỳ", 1, 1875000, "COD", "Hoàn hàng", "Nguyễn Thị Hà", "=E5*F5", "",
+      "Đơn trung bình", "=AVERAGE(J2:J8)"],
+    ["DH-2608-0043", "27.08", "Đèn ngủ LS-12", "Úc", 4, 1062500, "Thẻ", "Đang giao", "Ngô Thanh Sơn", "=E6*F6", ""],
+    ["DH-2608-0042", "26.08", "Bộ dao bếp 6 món", "Hoa Kỳ", 1, 2225000, "PayPal", "Đã giao", "Trần Văn Dũng", "=E7*F7", ""],
+    ["DH-2608-0041", "26.08", "Máy massage HM-200", "Hoa Kỳ", 2, 1875000, "Thẻ", "Đang giao", "Hoàng Văn Tú", "=E8*F8", ""]
+  ],
+  { 5: TIEN, 9: TIEN },
+  { nguon: "van_don", cot_khoa: 9 }
+);
+["L2", "L3", "L4", "L5"].forEach(a => { vanDon.o[a].s = { d: true }; });
+["M2", "M4", "M5"].forEach(a => { vanDon.o[a].s = { ...TONG, dd: "vnd" }; });
+vanDon.o.M3.s = { ...TONG };
+
+/* ── Trang 2: Báo cáo MKT, số liệu thật từ KN Demo ── */
+const mkt = dungTrang("Báo cáo MKT",
+  [
+    ["STT", "Marketing", "Số Mess", "CPQC", "Số Đơn", "DS Chốt", "Tỉ lệ chốt", "Giá Mess", "CPS", "%CP/DS", "Giá TB Đơn"],
+    [1, "Nguyễn Quang Minh",   4303, 438446060, 291, 1425942850, "=E2/C2", "=D2/C2", "=D2/E2", "=D2/F2", "=F2/E2"],
+    [2, "Nguyễn Đức Anh",      1191, 119374580,  95,  439602500, "=E3/C3", "=D3/C3", "=D3/E3", "=D3/F3", "=F3/E3"],
+    [3, "Nguyễn Văn Quang",     816,  65863980,  41,  180858500, "=E4/C4", "=D4/C4", "=D4/E4", "=D4/F4", "=F4/E4"],
+    [4, "Nguyễn Danh Nam",     1865, 190591700, 139,  671069600, "=E5/C5", "=D5/C5", "=D5/E5", "=D5/F5", "=F5/E5"],
+    [5, "Hoàng Tuấn Cường",    1175, 120019380,  79,  369959000, "=E6/C6", "=D6/C6", "=D6/E6", "=D6/F6", "=F6/E6"],
+    [6, "Nguyễn Việt Khánh",   2241, 209348100, 127,  644844000, "=E7/C7", "=D7/C7", "=D7/E7", "=D7/F7", "=F7/E7"],
+    [7, "Nguyễn Thành Nguyên",  292,  22001460,   7,   37306500, "=E8/C8", "=D8/C8", "=D8/E8", "=D8/F8", "=F8/E8"],
+    ["", "TỔNG CỘNG", "=SUM(C2:C8)", "=SUM(D2:D8)", "=SUM(E2:E8)", "=SUM(F2:F8)",
+     "=E9/C9", "=D9/C9", "=D9/E9", "=D9/F9", "=F9/E9"]
+  ],
+  { 3: TIEN, 5: TIEN, 6: PT, 7: TIEN, 8: TIEN, 9: PT, 10: TIEN }
+);
+"ABCDEFGHIJK".split("").forEach(c => {
+  const a = c + "9";
+  mkt.o[a] = mkt.o[a] || { v: "" };
+  const cu = mkt.o[a].s || {};
+  mkt.o[a].s = { ...cu, ...TONG };
+});
+
+/* ══ KHỞI ĐỘNG ═════════════════════════════════════════════════ */
+document.addEventListener("DOMContentLoaded", () => {
+  if (!document.getElementById("bt-luoi")) return;   /* bị chặn quyền */
+
+  TL = { ten: "Vận đơn tháng 8", hien: 0, trang: [vanDon, mkt] };
+  try {
+    const luu = localStorage.getItem("knjsc-bang-tinh");
+    if (luu) { const x = JSON.parse(luu); if (x && x.trang && x.trang.length) TL = x; }
+  } catch (e) { /* bỏ qua, dùng dữ liệu mẫu */ }
+
+  document.getElementById("bt-ten").value = TL.ten;
+  ve();
+  capNhatNutHoanTac();
+
+  const hop = document.getElementById("bt-luoi-hop");
+  const nhap = document.getElementById("bt-o-nhap");
+
+  /* ── Chọn ô bằng chuột ── */
+  hop.addEventListener("mousedown", e => {
+    const td = e.target.closest("td[data-d]");
+    if (!td) return;
+    if (dangSua) dongSua(true);
+    hienTai = { d: +td.dataset.d, c: +td.dataset.c };
+    if (!e.shiftKey) neo = { ...hienTai };
+    dangKeo = true;
+    toSang();
+    hop.focus();
+    e.preventDefault();
+  });
+  hop.addEventListener("mouseover", e => {
+    if (!dangKeo) return;
+    const td = e.target.closest("td[data-d]");
+    if (td) { hienTai = { d: +td.dataset.d, c: +td.dataset.c }; toSang(); }
+  });
+  document.addEventListener("mouseup", () => { dangKeo = false; });
+  hop.addEventListener("dblclick", e => { if (e.target.closest("td[data-d]")) moSua(); });
+
+  /* Bấm đầu cột hoặc đầu dòng để chọn cả cột, cả dòng */
+  hop.addEventListener("click", e => {
+    const thC = e.target.closest("thead th[data-cot]");
+    if (thC) { const c = +thC.dataset.cot; neo = { d: 0, c }; hienTai = { d: trangHien().dong - 1, c }; toSang(); return; }
+    const thD = e.target.closest("tbody th[data-dong]");
+    if (thD) { const d = +thD.dataset.dong; neo = { d, c: 0 }; hienTai = { d, c: SO_COT - 1 }; toSang(); }
+  });
+
+  /* ── Bàn phím ── */
+  hop.addEventListener("keydown", e => {
+    if (dangSua) return;
+    const ctrl = e.ctrlKey || e.metaKey;
+    if (ctrl) {
+      const k = e.key.toLowerCase();
+      if (k === "z") { e.preventDefault(); return hoanTac(); }
+      if (k === "y") { e.preventDefault(); return lamLai(); }
+      if (k === "b") { e.preventDefault(); return apDinhDang(s => s.d = !s.d); }
+      if (k === "i") { e.preventDefault(); return apDinhDang(s => s.n = !s.n); }
+      if (k === "u") { e.preventDefault(); return apDinhDang(s => s.g = !s.g); }
+      return;
+    }
+    switch (e.key) {
+      case "ArrowUp":    e.preventDefault(); return chuyenO(-1, 0, e.shiftKey);
+      case "ArrowDown":  e.preventDefault(); return chuyenO(1, 0, e.shiftKey);
+      case "ArrowLeft":  e.preventDefault(); return chuyenO(0, -1, e.shiftKey);
+      case "ArrowRight": e.preventDefault(); return chuyenO(0, 1, e.shiftKey);
+      case "Tab":        e.preventDefault(); return chuyenO(0, e.shiftKey ? -1 : 1, false);
+      case "Enter":      e.preventDefault(); return moSua();
+      case "F2":         e.preventDefault(); return moSua();
+      case "Delete":
+      case "Backspace":  e.preventDefault(); return xoaNoiDung();
+      case "Home":       e.preventDefault(); hienTai.c = 0; neo = { ...hienTai }; return toSang();
+    }
+    /* Gõ ký tự bất kỳ thì mở ô nhập luôn, giống Excel */
+    if (e.key.length === 1 && !e.altKey) { e.preventDefault(); moSua(e.key); }
+  });
+
+  nhap.addEventListener("keydown", e => {
+    if (e.key === "Enter")  { e.preventDefault(); dongSua(true); chuyenO(1, 0, false); }
+    if (e.key === "Tab")    { e.preventDefault(); dongSua(true); chuyenO(0, e.shiftKey ? -1 : 1, false); }
+    if (e.key === "Escape") { e.preventDefault(); dongSua(false); }
+  });
+  nhap.addEventListener("blur", () => { if (dangSua) dongSua(true); });
+
+  /* ── Thanh công thức ── */
+  const ct = document.getElementById("bt-cong-thuc");
+  ct.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (khoaO(trangHien(), hienTai.d, hienTai.c)) {
+      nhac("Cột này chỉ đọc, lấy từ bảng " + trangHien().nguon + ".");
+      return;
+    }
+    ghiNho();
+    datO(trangHien(), hienTai.d, hienTai.c, ct.value);
+    ve(); danhDauChuaLuu(); hop.focus();
+  });
+
+  const oht = document.getElementById("bt-o-hien-tai");
+  oht.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const a = tachDiaChi(oht.value);
+    if (a && a.d >= 0 && a.d < trangHien().dong && a.c >= 0 && a.c < SO_COT) {
+      hienTai = { d: a.d, c: a.c }; neo = { ...hienTai }; toSang(); hop.focus();
+    } else nhac("Không có ô nào tên là " + oht.value);
+  });
+
+  /* ── Thanh công cụ ── */
+  const gan = (id, fn) => document.getElementById(id).addEventListener("click", fn);
+  gan("bt-hoan-tac", hoanTac);
+  gan("bt-lam-lai", lamLai);
+  gan("bt-dam", () => apDinhDang(s => s.d = !s.d));
+  gan("bt-nghieng", () => apDinhDang(s => s.n = !s.n));
+  gan("bt-gach", () => apDinhDang(s => s.g = !s.g));
+  gan("bt-xoa-ngang", () => apDinhDang(s => s.ng = !s.ng));
+  gan("bt-trai", () => apDinhDang(s => s.cc = "trai"));
+  gan("bt-giua", () => apDinhDang(s => s.cc = "giua"));
+  gan("bt-phai", () => apDinhDang(s => s.cc = "phai"));
+  gan("bt-xuong-dong", () => apDinhDang(s => s.cx = !s.cx));
+  gan("bt-xoa-dinh-dang", () => apDinhDang(s => Object.keys(s).forEach(k => delete s[k])));
+  gan("bt-xuat", xuatCsv);
+  gan("bt-nhap", () => nhac("Bản thật đọc .xlsx bằng openpyxl, chạy nền nếu tệp lớn."));
+
+  document.getElementById("bt-dinh-dang").addEventListener("change", e =>
+    apDinhDang(s => { if (e.target.value) s.dd = e.target.value; else delete s.dd; }));
+  document.getElementById("bt-co-chu").addEventListener("change", e =>
+    apDinhDang(s => { if (e.target.value) s.cs = +e.target.value; else delete s.cs; }));
+
+  /* ── Bảng chọn màu ── */
+  const MAU = ["#15151c", "#4a4a58", "#83838f", "#d03b3b", "#ec835a", "#fab219", "#0ca30c", "#3a37a3",
+               "#ffffff", "#f6f6fa", "#e8e8f2", "#fbeaea", "#fcece5", "#fdf3dc", "#dcf3dc", "#ecebf9"];
+  function dungBangMau(hopId, nutId, vachId, khoa) {
+    const bang = document.getElementById(hopId);
+    bang.innerHTML = MAU.map(m => `<button class="bt-mau" data-mau="${m}" style="background:${m}" title="${m}"></button>`).join("")
+      + `<button class="bt-mau bt-mau-xoa nut nut-nho" data-mau="">Bỏ màu</button>`;
+    document.getElementById(nutId).addEventListener("click", e => {
+      e.stopPropagation();
+      document.querySelectorAll(".bt-bang-mau").forEach(b => { if (b !== bang) b.classList.remove("mo"); });
+      bang.classList.toggle("mo");
+    });
+    bang.addEventListener("click", e => {
+      const b = e.target.closest("[data-mau]");
+      if (!b) return;
+      const m = b.dataset.mau;
+      apDinhDang(s => { if (m) s[khoa] = m; else delete s[khoa]; });
+      if (m) document.getElementById(vachId).style.background = m;
+      bang.classList.remove("mo");
+    });
+  }
+  dungBangMau("bang-mau-chu", "bt-mau-chu", "bt-vach-chu", "mc");
+  dungBangMau("bang-mau-nen", "bt-mau-nen", "bt-vach-nen", "mn");
+  document.addEventListener("click", () =>
+    document.querySelectorAll(".bt-bang-mau").forEach(b => b.classList.remove("mo")));
+
+  /* ── Trang tính ── */
+  document.getElementById("bt-tabs").addEventListener("click", e => {
+    const b = e.target.closest("[data-trang]");
+    if (!b) return;
+    TL.hien = +b.dataset.trang;
+    hienTai = { d: 0, c: 0 }; neo = { d: 0, c: 0 };
+    ve();
+  });
+  gan("bt-them-trang", () => {
+    ghiNho();
+    TL.trang.push({ ten: "Trang " + (TL.trang.length + 1), o: {}, dong: SO_DONG_DAU });
+    TL.hien = TL.trang.length - 1;
+    hienTai = { d: 0, c: 0 }; neo = { d: 0, c: 0 };
+    ve(); danhDauChuaLuu();
+  });
+  gan("bt-them-dong", () => { trangHien().dong += 50; ve(); danhDauChuaLuu(); });
+
+  document.getElementById("bt-ten").addEventListener("input", e => {
+    TL.ten = e.target.value; danhDauChuaLuu();
+  });
+
+  hop.focus();
+});
+</script>
+</body>
+</html>

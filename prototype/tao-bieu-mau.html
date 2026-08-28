@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trình tạo biểu mẫu · Kim Ngân JSC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="static/tokens.css">
+<link rel="stylesheet" href="static/main.css">
+<style>
+  .truong-ds { display: flex; flex-direction: column; }
+  .truong-muc {
+    display: grid; grid-template-columns: 18px minmax(0,1fr) auto; gap: var(--sp-3);
+    align-items: center; padding: var(--sp-3) var(--sp-4);
+    border-top: 1px solid var(--rule); cursor: pointer; background: none;
+    border-left: 0; border-right: 0; border-bottom: 0; font: inherit; text-align: left; color: inherit;
+    width: 100%;
+  }
+  .truong-muc:first-child { border-top: 0; }
+  .truong-muc:hover { background: var(--surface-2); }
+  .truong-muc[aria-current="true"] { background: var(--accent-soft); }
+  .truong-muc[aria-current="true"] .tm-ten { color: var(--accent); font-weight: 600; }
+  .tm-keo { color: var(--ink-3); font-family: var(--font-ma); cursor: grab; }
+  .tm-ten { font-size: var(--fs-md); }
+  .tm-ten small { display: block; font-family: var(--font-ma); font-size: var(--fs-xs); color: var(--ink-3); }
+  .xem-truoc {
+    background: var(--surface-2); border: 1px dashed var(--rule-strong);
+    border-radius: var(--r-md); padding: var(--sp-4);
+  }
+</style>
+<script src="static/layout.js" defer></script>
+</head>
+<body data-trang="tao-bieu-mau" data-tieu-de="Trình tạo biểu mẫu">
+<div class="app">
+  <div class="chinh">
+    <main class="noi-dung doc">
+
+      <div class="trang-dau">
+        <div>
+          <div class="nhan-nho">Giai đoạn rủi ro nhất · FR-8.x</div>
+          <h1>Trình tạo biểu mẫu</h1>
+          <p>Người dùng tự định nghĩa trường, rồi nối biểu mẫu với bảng đích. Kiểu dữ liệu hai bên phải khớp nhau.</p>
+        </div>
+        <div class="hanh-dong">
+          <button class="nut" type="button">Xem trước</button>
+          <button class="nut nut-chinh" type="button">Lưu biểu mẫu</button>
+        </div>
+      </div>
+
+      <div class="bao bao-cho">
+        <span class="bao-ic">?</span>
+        <div>
+          <b>Ba điểm trong màn hình này còn chờ quyết định</b>
+          <p>Danh sách nhãn ý nghĩa (K3), tạo biểu mẫu có tự sinh bảng mới không (K2), và ai được thêm trường (câu hỏi B3). Bảy nhãn dưới đây là đề xuất, chưa chốt.</p>
+        </div>
+      </div>
+
+      <div class="luoi luoi-3cot">
+
+        <!-- ── Cột trái: danh sách trường ── -->
+        <div class="the">
+          <div class="the-dau">
+            <h2>Trường</h2>
+            <div class="phai"><button class="nut nut-nho nut-chinh" type="button">+ Thêm</button></div>
+          </div>
+          <div class="truong-ds">
+            <button class="truong-muc" type="button"><span class="tm-keo">⠿</span><span class="tm-ten">Ngày<small>report_date · Ngày</small></span><span class="chip chip-nhat"><i></i>Bắt buộc</span></button>
+            <button class="truong-muc" type="button" aria-current="true"><span class="tm-keo">⠿</span><span class="tm-ten">Số Mess<small>message_count · Số lượng</small></span><span class="chip chip-nhat"><i></i>Bắt buộc</span></button>
+            <button class="truong-muc" type="button"><span class="tm-keo">⠿</span><span class="tm-ten">CPQC<small>ad_cost · Tiền</small></span><span class="chip chip-nhat"><i></i>Bắt buộc</span></button>
+            <button class="truong-muc" type="button"><span class="tm-keo">⠿</span><span class="tm-ten">Số đơn<small>order_count · Số lượng</small></span><span class="chip chip-nhat"><i></i>Bắt buộc</span></button>
+            <button class="truong-muc" type="button"><span class="tm-keo">⠿</span><span class="tm-ten">Doanh số<small>gross_sales · Tiền</small></span><span class="chip chip-nhat"><i></i>Bắt buộc</span></button>
+            <button class="truong-muc" type="button"><span class="tm-keo">⠿</span><span class="tm-ten">CPO<small>cpo · Tiền · cột tính</small></span><span class="chip chip-nhan"><i></i>Tính sẵn</span></button>
+            <button class="truong-muc" type="button"><span class="tm-keo">⠿</span><span class="tm-ten">AOV<small>aov · Tiền · cột tính</small></span><span class="chip chip-nhan"><i></i>Tính sẵn</span></button>
+          </div>
+          <div class="the-chan nho mo-nhat">7 trường · kéo để đổi thứ tự</div>
+        </div>
+
+        <!-- ── Cột giữa: thuộc tính trường đang chọn ── -->
+        <div class="doc">
+          <div class="the">
+            <div class="the-dau"><h2>Thuộc tính trường</h2></div>
+            <div class="the-than bm">
+              <div class="bm-hang-2">
+                <div class="truong">
+                  <label for="t-nhan">Nhãn hiển thị <span class="bat-buoc">*</span></label>
+                  <input class="o-nhap" id="t-nhan" value="Số Mess">
+                  <span class="goi-y">Tiếng Việt, người dùng nhìn thấy</span>
+                </div>
+                <div class="truong">
+                  <label for="t-ma">Tên kỹ thuật <span class="bat-buoc">*</span></label>
+                  <input class="o-nhap ma" id="t-ma" value="message_count">
+                  <span class="goi-y">Tiếng Anh, dùng trong cơ sở dữ liệu</span>
+                </div>
+              </div>
+
+              <div class="bm-hang-2">
+                <div class="truong">
+                  <label for="t-kieu">Kiểu dữ liệu <span class="bat-buoc">*</span></label>
+                  <select class="o-nhap" id="t-kieu">
+                    <option>Số nguyên</option><option>Số thập phân</option><option>Chữ ngắn</option>
+                    <option>Chữ dài</option><option>Ngày</option><option>Ngày giờ</option>
+                    <option>Đúng sai</option><option>Chọn một</option><option>Chọn nhiều</option>
+                  </select>
+                </div>
+                <div class="truong">
+                  <label for="t-nghia">Nhãn ý nghĩa</label>
+                  <select class="o-nhap" id="t-nghia">
+                    <option>Không gán</option>
+                    <option>Ngày — lọc theo thời gian</option>
+                    <option selected>Số lượng — cộng được</option>
+                    <option>Tiền — cộng được, dùng số thập phân chính xác</option>
+                    <option>Tỉ lệ — không cộng, tính trung bình có trọng số</option>
+                    <option>Người — nhóm theo nhân viên</option>
+                    <option>Sản phẩm — nhóm theo sản phẩm</option>
+                    <option>Thị trường — nhóm theo thị trường</option>
+                  </select>
+                  <span class="goi-y">Nhãn quyết định báo cáo tổng hợp tính được gì trên cột này</span>
+                </div>
+              </div>
+
+              <div class="bm-hang">
+                <div class="truong">
+                  <label for="t-bb">Bắt buộc nhập</label>
+                  <select class="o-nhap" id="t-bb"><option>Có</option><option>Không</option></select>
+                </div>
+                <div class="truong">
+                  <label for="t-chi-muc">Có chỉ mục</label>
+                  <select class="o-nhap" id="t-chi-muc"><option>Có</option><option>Không</option></select>
+                  <span class="goi-y">Cột dùng để lọc hoặc tìm kiếm bắt buộc có chỉ mục</span>
+                </div>
+                <div class="truong">
+                  <label for="t-mac-dinh">Giá trị mặc định</label>
+                  <input class="o-nhap" id="t-mac-dinh" placeholder="Để trống nếu không có">
+                </div>
+              </div>
+
+              <div class="truong">
+                <label for="t-goi-y">Câu gợi ý dưới ô nhập</label>
+                <input class="o-nhap" id="t-goi-y" placeholder="Không bắt buộc">
+              </div>
+            </div>
+          </div>
+
+          <div class="the">
+            <div class="the-dau"><h2>Xem trước</h2></div>
+            <div class="the-than">
+              <div class="xem-truoc bm">
+                <div class="bm-hang">
+                  <div class="truong"><label>Ngày <span class="bat-buoc">*</span></label><input class="o-nhap" type="date" value="2026-08-28"></div>
+                  <div class="truong"><label>Số Mess <span class="bat-buoc">*</span></label><input class="o-nhap tien" value="1.240"></div>
+                  <div class="truong"><label>CPQC <span class="bat-buoc">*</span></label><input class="o-nhap tien" value="2.480,00"></div>
+                </div>
+                <div class="bm-hang">
+                  <div class="truong"><label>Số đơn <span class="bat-buoc">*</span></label><input class="o-nhap tien" value="248"></div>
+                  <div class="truong"><label>Doanh số <span class="bat-buoc">*</span></label><input class="o-nhap tien" value="18.600,00"></div>
+                  <div class="truong"><label>CPO</label><input class="o-nhap tinh" value="10,00" readonly><span class="goi-y ct">CPQC / Số đơn</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Cột phải: nối với bảng đích ── -->
+        <div class="doc">
+          <div class="the">
+            <div class="the-dau"><h2>Bảng đích</h2></div>
+            <div class="the-than bm">
+              <div class="truong">
+                <label for="b-dich">Ghi vào bảng</label>
+                <select class="o-nhap" id="b-dich">
+                  <option selected>Báo cáo Marketing</option>
+                  <option>Báo cáo Sale</option>
+                  <option>Bảng vận đơn</option>
+                  <option>+ Tạo bảng mới từ biểu mẫu này</option>
+                </select>
+                <span class="goi-y">Tuỳ chọn cuối phụ thuộc câu hỏi K2</span>
+              </div>
+              <div class="bao bao-tot">
+                <span class="bao-ic">✓</span>
+                <div>
+                  <b>7 trên 7 trường khớp kiểu</b>
+                  <p>Nối được. Nếu lệch kiểu thì hệ thống chặn lưu và chỉ ra trường nào lệch.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="the">
+            <div class="the-dau"><h2>Phân quyền biểu mẫu</h2></div>
+            <div class="the-than bm">
+              <div class="truong">
+                <label for="q-dien">Ai được điền</label>
+                <select class="o-nhap" id="q-dien"><option>Bộ phận Marketing</option><option>Mọi bộ phận</option><option>Chọn riêng</option></select>
+              </div>
+              <div class="truong">
+                <label for="q-xem">Ai được xem bảng</label>
+                <select class="o-nhap" id="q-xem"><option>Theo phạm vi cấp bậc</option><option>Chọn riêng từng bảng</option></select>
+                <span class="goi-y">Câu hỏi B1 đang chờ chốt</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+/* Chọn trường bên trái — bản thật sẽ nạp thuộc tính bằng HTMX */
+document.querySelectorAll(".truong-muc").forEach(nut => {
+  nut.addEventListener("click", () => {
+    document.querySelectorAll(".truong-muc").forEach(x => x.setAttribute("aria-current", "false"));
+    nut.setAttribute("aria-current", "true");
+    const ten = nut.querySelector(".tm-ten").childNodes[0].textContent.trim();
+    const phu = nut.querySelector("small").textContent.split("·").map(s => s.trim());
+    document.getElementById("t-nhan").value = ten;
+    document.getElementById("t-ma").value = phu[0] || "";
+  });
+});
+</script>
+</body>
+</html>

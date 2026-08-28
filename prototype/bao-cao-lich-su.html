@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lịch sử báo cáo · Kim Ngân JSC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="static/tokens.css">
+<link rel="stylesheet" href="static/main.css">
+<script src="static/layout.js" defer></script>
+</head>
+<body data-trang="bao-cao-lich-su" data-tieu-de="Lịch sử báo cáo">
+<div class="app">
+  <div class="chinh">
+    <main class="noi-dung doc">
+
+      <div class="trang-dau">
+        <div>
+          <div class="nhan-nho">FR-4.3 · FR-4.4</div>
+          <h1>Lịch sử báo cáo</h1>
+          <p>Staff thấy báo cáo của mình. Leader thấy cả team. Manager thấy cả bộ phận. Danh sách dưới đây đã lọc sẵn theo phạm vi.</p>
+        </div>
+        <div class="hanh-dong"><button class="nut" type="button">Xuất Excel</button></div>
+      </div>
+
+      <div class="bang-hop">
+        <div class="loc">
+          <div class="truong o-tim">
+            <label for="h-tim">Tìm theo người nộp</label>
+            <input class="o-nhap" id="h-tim" placeholder="Tên nhân viên">
+          </div>
+          <div class="truong">
+            <label for="h-tu">Từ ngày</label>
+            <input class="o-nhap" type="date" id="h-tu" value="2026-08-01">
+          </div>
+          <div class="truong">
+            <label for="h-den">Đến ngày</label>
+            <input class="o-nhap" type="date" id="h-den" value="2026-08-28">
+          </div>
+          <div class="truong">
+            <label for="h-tt">Trạng thái</label>
+            <select class="o-nhap" id="h-tt"><option>Tất cả</option><option>Đã nộp</option><option>Nộp muộn</option><option>Chưa nộp</option></select>
+          </div>
+          <div class="loc-nut">
+            <button class="nut nut-nho" type="button">Xoá lọc</button>
+            <button class="nut nut-nho nut-chinh" type="button">Lọc</button>
+          </div>
+        </div>
+
+        <div class="bang-cuon">
+          <table class="bang">
+            <thead>
+              <tr>
+                <th class="sap-xep">Ngày <span class="mui">↕</span></th>
+                <th class="sap-xep">Người nộp <span class="mui">↕</span></th>
+                <th>Bộ phận</th><th>Team</th>
+                <th>Thời điểm nộp</th>
+                <th class="phai sap-xep">Doanh số <span class="mui">↕</span></th>
+                <th>Trạng thái</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="ma-o">28.08.2026</td><td>Trần Văn Dũng</td><td>Sale</td><td class="ma-o">Sale 1</td><td class="ma-o">17:42</td><td class="tien">$6.240</td><td><span class="chip chip-tot"><i></i>Đã nộp</span></td><td class="phai"><a class="nut nut-nho" href="#">Xem</a></td></tr>
+              <tr><td class="ma-o">28.08.2026</td><td>Nguyễn Thị Hà</td><td>Sale</td><td class="ma-o">Sale 1</td><td class="ma-o">—</td><td class="tien">—</td><td><span class="chip chip-cho"><i></i>Chưa nộp</span></td><td class="phai"><a class="nut nut-nho" href="bao-cao-ngay.html">Nộp</a></td></tr>
+              <tr><td class="ma-o">27.08.2026</td><td>Trần Văn Dũng</td><td>Sale</td><td class="ma-o">Sale 1</td><td class="ma-o">16:58</td><td class="tien">$5.812</td><td><span class="chip chip-tot"><i></i>Đã nộp</span></td><td class="phai"><a class="nut nut-nho" href="#">Xem</a></td></tr>
+              <tr><td class="ma-o">27.08.2026</td><td>Nguyễn Thị Hà</td><td>Sale</td><td class="ma-o">Sale 1</td><td class="ma-o">21:14</td><td class="tien">$4.106</td><td><span class="chip chip-lo"><i></i>Nộp muộn</span></td><td class="phai"><a class="nut nut-nho" href="#">Xem</a></td></tr>
+              <tr><td class="ma-o">26.08.2026</td><td>Trần Văn Dũng</td><td>Sale</td><td class="ma-o">Sale 1</td><td class="ma-o">17:20</td><td class="tien">$6.980</td><td><span class="chip chip-tot"><i></i>Đã nộp</span></td><td class="phai"><a class="nut nut-nho" href="#">Xem</a></td></tr>
+              <tr><td class="ma-o">26.08.2026</td><td>Nguyễn Thị Hà</td><td>Sale</td><td class="ma-o">Sale 1</td><td class="ma-o">17:05</td><td class="tien">$5.240</td><td><span class="chip chip-tot"><i></i>Đã nộp</span></td><td class="phai"><a class="nut nut-nho" href="#">Xem</a></td></tr>
+              <tr><td class="ma-o">25.08.2026</td><td>Trần Văn Dũng</td><td>Sale</td><td class="ma-o">Sale 1</td><td class="ma-o">17:36</td><td class="tien">$4.288</td><td><span class="chip chip-tot"><i></i>Đã nộp</span></td><td class="phai"><a class="nut nut-nho" href="#">Xem</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="phan-trang">
+          <span>Hiện <b class="so">1–25</b> trên <b class="so">54</b> dòng</span>
+          <div class="trang-nut"><span class="mo">‹</span><span class="hien-tai">1</span><a href="#">2</a><a href="#">3</a><a href="#">›</a></div>
+        </div>
+      </div>
+
+      <div class="bao bao-nhan">
+        <span class="bao-ic">i</span>
+        <div>
+          <b>Nộp muộn hiện chỉ được ghi nhận, không bị chặn</b>
+          <p>Có chặn nộp muộn hay không là câu hỏi C8, chưa chốt.</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nộp báo cáo ngày · Kim Ngân JSC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="static/tokens.css">
+<link rel="stylesheet" href="static/main.css">
+<script src="static/layout.js" defer></script>
+</head>
+<body data-trang="bao-cao-ngay" data-tieu-de="Nộp báo cáo ngày">
+<div class="app">
+  <div class="chinh">
+    <main class="noi-dung doc">
+
+      <div class="trang-dau">
+        <div>
+          <div class="nhan-nho">Báo cáo hằng ngày · FR-4.1</div>
+          <h1>Nộp báo cáo ngày</h1>
+          <p>Biểu mẫu đổi theo bộ phận. Ô nền chàm là cột tính sẵn, hệ thống tự tính, không gõ tay.</p>
+        </div>
+        <div class="hanh-dong">
+          <a class="nut" href="bao-cao-lich-su.html">Xem báo cáo cũ</a>
+        </div>
+      </div>
+
+      <div class="bao bao-cho">
+        <span class="bao-ic">!</span>
+        <div>
+          <b>Nộp rồi thì không sửa lại được</b>
+          <p>Mỗi ngày một báo cáo. Nhập sai thì phải nhờ Manager mở khoá, và việc mở khoá có ghi nhật ký.</p>
+        </div>
+      </div>
+
+      <div class="the">
+        <div class="tab-thanh" data-tab-nhom="bm" role="tablist">
+          <button class="tab" data-tab="mkt" role="tab" aria-selected="true">Marketing · 13 trường</button>
+          <button class="tab" data-tab="sale" role="tab" aria-selected="false">Sale · 8 trường</button>
+          <button class="tab" data-tab="cskh" role="tab" aria-selected="false">CSKH · chưa chốt</button>
+        </div>
+
+        <div data-tab-noi-dung="bm">
+
+          <!-- ── Biểu mẫu Marketing, theo sheet BC MKT ── -->
+          <div data-tab-ten="mkt">
+            <form class="the-than bm">
+              <div class="bm-hang">
+                <div class="truong">
+                  <label for="m-ngay">Ngày <span class="ky-thuat">report_date</span></label>
+                  <input class="o-nhap" type="date" id="m-ngay" value="2026-08-28">
+                </div>
+                <div class="truong">
+                  <label for="m-marketer">Marketer <span class="ky-thuat">marketer</span></label>
+                  <input class="o-nhap" id="m-marketer" value="Phạm Minh Anh" readonly>
+                  <span class="goi-y">Lấy từ tài khoản đăng nhập</span>
+                </div>
+              </div>
+
+              <hr class="ke">
+              <div class="nhan-nho">Số liệu nhập tay</div>
+
+              <div class="bm-hang">
+                <div class="truong">
+                  <label for="m-mess">Số Mess <span class="ky-thuat">message_count</span></label>
+                  <input class="o-nhap tien" id="m-mess" value="1.240">
+                </div>
+                <div class="truong">
+                  <label for="m-cpqc">CPQC <span class="ky-thuat">ad_cost</span></label>
+                  <input class="o-nhap tien" id="m-cpqc" value="2.480,00">
+                  <span class="goi-y">Đơn vị USD, lưu dạng số thập phân chính xác</span>
+                </div>
+                <div class="truong">
+                  <label for="m-don">Số đơn <span class="ky-thuat">order_count</span></label>
+                  <input class="o-nhap tien" id="m-don" value="248">
+                </div>
+              </div>
+
+              <div class="bm-hang">
+                <div class="truong">
+                  <label for="m-ds">Doanh số <span class="ky-thuat">gross_sales</span></label>
+                  <input class="o-nhap tien" id="m-ds" value="18.600,00">
+                </div>
+                <div class="truong">
+                  <label for="m-dt">Doanh thu <span class="ky-thuat">net_revenue</span></label>
+                  <input class="o-nhap tien" id="m-dt" value="16.740,00">
+                </div>
+                <div class="truong">
+                  <label for="m-hd">Hóa đơn <span class="ky-thuat">invoice_count</span></label>
+                  <input class="o-nhap tien" id="m-hd" value="231">
+                </div>
+              </div>
+
+              <hr class="ke">
+              <div class="nhan-nho">Cột tính sẵn · hệ thống tự tính</div>
+
+              <div class="bm-hang">
+                <div class="truong">
+                  <label for="m-cpo">CPO <span class="ky-thuat">cpo</span></label>
+                  <input class="o-nhap tinh" id="m-cpo" value="10,00" readonly>
+                  <span class="goi-y ct">CPQC / Số đơn</span>
+                </div>
+                <div class="truong">
+                  <label for="m-gm">Giá Mess <span class="ky-thuat">cost_per_message</span></label>
+                  <input class="o-nhap tinh" id="m-gm" value="2,00" readonly>
+                  <span class="goi-y ct">CPQC / Số Mess</span>
+                </div>
+                <div class="truong">
+                  <label for="m-cpqc-ds">CPQC / Doanh số <span class="ky-thuat">ad_cost_ratio</span></label>
+                  <input class="o-nhap tinh" id="m-cpqc-ds" value="0,133" readonly>
+                  <span class="goi-y ct">CPQC / Doanh số</span>
+                </div>
+              </div>
+
+              <div class="bm-hang">
+                <div class="truong co-loi">
+                  <label for="m-hd-dt">Hóa đơn / Doanh thu <span class="ky-thuat">invoice_ratio</span></label>
+                  <input class="o-nhap tinh" id="m-hd-dt" value="0,200" readonly>
+                  <span class="loi-truong">Công thức trong tệp gốc là Giá Mess / CPO, không khớp tên cột. Cần chốt lại — câu hỏi C5.</span>
+                </div>
+                <div class="truong">
+                  <label for="m-aov">AOV <span class="ky-thuat">aov</span></label>
+                  <input class="o-nhap tinh" id="m-aov" value="75,00" readonly>
+                  <span class="goi-y ct">Doanh số / Số đơn</span>
+                </div>
+                <div class="truong"></div>
+              </div>
+
+              <div class="truong">
+                <label for="m-ghi">Ghi chú <span class="ky-thuat">note</span></label>
+                <textarea class="o-nhap" id="m-ghi" placeholder="Không bắt buộc"></textarea>
+              </div>
+            </form>
+
+            <div class="the-chan">
+              <span class="nho mo-nhat">Lưu theo giờ quốc tế, hiển thị theo giờ Việt Nam</span>
+              <div class="day hang">
+                <button class="nut" type="button">Lưu nháp</button>
+                <button class="nut nut-chinh" type="button">Nộp báo cáo</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Biểu mẫu Sale, theo sheet BC SALE ── -->
+          <div data-tab-ten="sale" hidden>
+            <form class="the-than bm">
+              <div class="bm-hang">
+                <div class="truong">
+                  <label for="s-ngay">Ngày <span class="ky-thuat">report_date</span></label>
+                  <input class="o-nhap" type="date" id="s-ngay" value="2026-08-28">
+                </div>
+                <div class="truong">
+                  <label for="s-sp">Sản phẩm <span class="ky-thuat">product</span></label>
+                  <select class="o-nhap" id="s-sp">
+                    <option>Máy massage cầm tay HM-200</option>
+                    <option>Đèn ngủ cảm ứng LS-12</option>
+                    <option>Bộ dao bếp inox 6 món</option>
+                  </select>
+                </div>
+                <div class="truong">
+                  <label for="s-ngay-don">Ngày ra đơn <span class="ky-thuat">order_date</span></label>
+                  <input class="o-nhap" type="date" id="s-ngay-don" value="2026-08-28">
+                </div>
+              </div>
+
+              <hr class="ke">
+              <div class="nhan-nho">Số liệu nhập tay</div>
+
+              <div class="bm-hang">
+                <div class="truong">
+                  <label for="s-mess">Số Mess <span class="ky-thuat">message_count</span></label>
+                  <input class="o-nhap tien" id="s-mess" value="420">
+                </div>
+                <div class="truong">
+                  <label for="s-don">Số đơn <span class="ky-thuat">order_count</span></label>
+                  <input class="o-nhap tien" id="s-don" value="78">
+                </div>
+                <div class="truong">
+                  <label for="s-ds">Doanh số <span class="ky-thuat">gross_sales</span></label>
+                  <input class="o-nhap tien" id="s-ds" value="5.850,00">
+                </div>
+                <div class="truong">
+                  <label for="s-dt">Doanh thu <span class="ky-thuat">net_revenue</span></label>
+                  <input class="o-nhap tien" id="s-dt" value="5.265,00">
+                </div>
+              </div>
+
+              <hr class="ke">
+              <div class="nhan-nho">Cột tính sẵn</div>
+
+              <div class="bm-hang">
+                <div class="truong">
+                  <label for="s-tlc">Tỉ lệ chốt <span class="ky-thuat">close_rate</span></label>
+                  <input class="o-nhap tinh" id="s-tlc" value="18,57%" readonly>
+                  <span class="goi-y ct">Số đơn / Số Mess</span>
+                </div>
+                <div class="truong"></div><div class="truong"></div>
+              </div>
+            </form>
+
+            <div class="the-chan">
+              <span class="nho mo-nhat">8 trường theo sheet BC SALE</span>
+              <div class="day hang">
+                <button class="nut" type="button">Lưu nháp</button>
+                <button class="nut nut-chinh" type="button">Nộp báo cáo</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── CSKH: có đặc tả nhưng chưa chốt phạm vi ── -->
+          <div data-tab-ten="cskh" hidden>
+            <div class="rong">
+              <div class="bieu-tuong ma">?</div>
+              <h3>Vai trò CSKH chưa được chốt cho phase 1</h3>
+              <p>
+                Sheet CSKH trong tệp khách hàng có đủ 8 trường, giống hệt BC SALE.
+                Nhưng phase 1 hiện chỉ có ba bộ phận Sale, Marketing, Vận đơn.
+                Đây là câu hỏi B5 đang chờ trả lời.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+</body>
+</html>

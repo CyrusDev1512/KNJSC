@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lên đơn · Kim Ngân JSC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="static/tokens.css">
+<link rel="stylesheet" href="static/main.css">
+<script src="static/layout.js" defer></script>
+</head>
+<body data-trang="len-don" data-tieu-de="Lên đơn">
+<div class="app">
+  <div class="chinh">
+    <main class="noi-dung doc">
+
+      <div class="trang-dau">
+        <div>
+          <div class="nhan-nho">Đơn hàng · FR-6.1</div>
+          <h1>Lên đơn</h1>
+          <p>Lưu đơn xong hệ thống ghi một bản sao sang bảng vận đơn. Ghi một chiều, sửa bên đó không cập nhật ngược lại.</p>
+        </div>
+      </div>
+
+      <div class="luoi luoi-phu">
+
+        <div class="doc">
+
+          <!-- ── Khách hàng ── -->
+          <div class="the">
+            <div class="the-dau"><h2>Khách hàng</h2></div>
+            <div class="the-than bm">
+              <div class="bm-hang">
+                <div class="truong">
+                  <label for="k-ten">Tên khách <span class="bat-buoc">*</span> <span class="ky-thuat">customer_name</span></label>
+                  <input class="o-nhap" id="k-ten" value="Michael Chen">
+                </div>
+                <div class="truong">
+                  <label for="k-sdt">Số điện thoại <span class="bat-buoc">*</span> <span class="ky-thuat">phone</span></label>
+                  <input class="o-nhap ma" id="k-sdt" value="+1 408 555 0142">
+                  <span class="goi-y">Cột này có chỉ mục, dùng để nhận diện khách mua lại</span>
+                </div>
+              </div>
+              <div class="bm-hang">
+                <div class="truong">
+                  <label for="k-fb">Facebook <span class="ky-thuat">facebook</span></label>
+                  <input class="o-nhap" id="k-fb" value="fb.com/mchen.sj">
+                </div>
+                <div class="truong">
+                  <label for="k-email">Email <span class="ky-thuat">email</span></label>
+                  <input class="o-nhap" type="email" id="k-email" value="mchen@example.com">
+                </div>
+              </div>
+
+              <div class="bao bao-tot">
+                <span class="bao-ic">✓</span>
+                <div>
+                  <b>Khách mua lại</b>
+                  <p>Số điện thoại này đã có 2 đơn trước: DH-2507-0188 và DH-2606-0021. Tổng đã mua $214,00.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Địa chỉ tách năm cấp, theo tệp thật ── -->
+          <div class="the">
+            <div class="the-dau">
+              <h2>Địa chỉ giao hàng</h2>
+              <div class="phai"><span class="chip chip-nhan"><i></i>Chưa có trong tài liệu · C3</span></div>
+            </div>
+            <div class="the-than bm">
+              <div class="bm-hang">
+                <div class="truong">
+                  <label for="d-qg">Quốc gia <span class="bat-buoc">*</span> <span class="ky-thuat">country</span></label>
+                  <select class="o-nhap" id="d-qg"><option>Hoa Kỳ</option><option>Canada</option><option>Úc</option></select>
+                </div>
+                <div class="truong">
+                  <label for="d-bang">Bang <span class="ky-thuat">state</span></label>
+                  <input class="o-nhap" id="d-bang" value="California">
+                </div>
+                <div class="truong">
+                  <label for="d-tp">Thành phố <span class="ky-thuat">city</span></label>
+                  <input class="o-nhap" id="d-tp" value="San Jose">
+                </div>
+                <div class="truong">
+                  <label for="d-zip">Zipcode <span class="ky-thuat">zipcode</span></label>
+                  <input class="o-nhap ma" id="d-zip" value="95112">
+                </div>
+              </div>
+              <div class="truong">
+                <label for="d-chi-tiet">Chi tiết số nhà, đường <span class="ky-thuat">address_line</span></label>
+                <input class="o-nhap" id="d-chi-tiet" value="1842 Alum Rock Ave, Apt 5B">
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Dòng sản phẩm ── -->
+          <div class="the">
+            <div class="the-dau">
+              <h2>Sản phẩm</h2>
+              <div class="phai"><button class="nut nut-nho" type="button" id="them-dong">Thêm dòng</button></div>
+            </div>
+            <div class="bang-cuon">
+              <table class="bang" id="bang-dong">
+                <thead>
+                  <tr>
+                    <th style="width:46%">Sản phẩm</th>
+                    <th class="phai" style="width:110px">Số lượng</th>
+                    <th class="phai" style="width:150px">Đơn giá</th>
+                    <th class="phai" style="width:150px">Thành tiền</th>
+                    <th style="width:52px"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><select class="o-nhap"><option>Máy massage cầm tay HM-200</option><option>Đèn ngủ cảm ứng LS-12</option><option>Bộ dao bếp inox 6 món</option></select></td>
+                    <td><input class="o-nhap tien" value="2"></td>
+                    <td><input class="o-nhap tien" value="75,00"></td>
+                    <td class="tien">$150,00</td>
+                    <td class="giua"><button class="nut nut-nho nut-nguy" type="button" aria-label="Xoá dòng">×</button></td>
+                  </tr>
+                  <tr>
+                    <td><select class="o-nhap"><option selected>Đèn ngủ cảm ứng LS-12</option><option>Máy massage cầm tay HM-200</option><option>Bộ dao bếp inox 6 món</option></select></td>
+                    <td><input class="o-nhap tien" value="1"></td>
+                    <td><input class="o-nhap tien" value="42,50"></td>
+                    <td class="tien">$42,50</td>
+                    <td class="giua"><button class="nut nut-nho nut-nguy" type="button" aria-label="Xoá dòng">×</button></td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="3">Tổng cộng</td>
+                    <td class="tien">$192,50</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- ── Thanh toán và người bán ── -->
+          <div class="the">
+            <div class="the-dau">
+              <h2>Thanh toán và người bán</h2>
+              <div class="phai"><span class="chip chip-nhan"><i></i>Bốn trường thuộc câu hỏi C6</span></div>
+            </div>
+            <div class="the-than bm">
+              <div class="bm-hang">
+                <div class="truong">
+                  <label for="t-pttt">Phương thức thanh toán <span class="ky-thuat">payment_method</span></label>
+                  <select class="o-nhap" id="t-pttt"><option>Thẻ</option><option>PayPal</option><option>COD</option></select>
+                </div>
+                <div class="truong">
+                  <label for="t-tien-te">Loại tiền tệ <span class="ky-thuat">currency</span></label>
+                  <select class="o-nhap" id="t-tien-te"><option>USD</option><option>CAD</option><option>AUD</option></select>
+                </div>
+                <div class="truong">
+                  <label for="t-nguoi-ban">Người bán <span class="ky-thuat">seller</span></label>
+                  <input class="o-nhap" id="t-nguoi-ban" value="Trần Văn Dũng" readonly>
+                </div>
+                <div class="truong">
+                  <label for="t-don-vi-phu">Đơn vị phụ <span class="ky-thuat">sub_unit</span></label>
+                  <input class="o-nhap" id="t-don-vi-phu" placeholder="Không bắt buộc">
+                </div>
+              </div>
+              <div class="truong">
+                <label for="t-ghi">Ghi chú <span class="ky-thuat">note</span></label>
+                <textarea class="o-nhap" id="t-ghi" placeholder="Không bắt buộc"></textarea>
+              </div>
+            </div>
+            <div class="the-chan">
+              <span class="nho mo-nhat">Số tiền lưu dạng thập phân chính xác — BR-8</span>
+              <div class="day hang">
+                <button class="nut" type="button">Huỷ</button>
+                <button class="nut nut-chinh" type="button">Lưu đơn và ghi sang vận đơn</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Cột phải: tóm tắt ── -->
+        <div class="doc">
+          <div class="the">
+            <div class="the-dau"><h2>Tóm tắt</h2></div>
+            <div class="the-than doc" style="gap:var(--sp-3)">
+              <div class="hang"><span class="mo-nhat">Số dòng sản phẩm</span><b class="day so">2</b></div>
+              <div class="hang"><span class="mo-nhat">Tổng số lượng</span><b class="day so">3</b></div>
+              <div class="hang"><span class="mo-nhat">Loại tiền tệ</span><b class="day ma">USD</b></div>
+              <hr class="ke" style="margin:0">
+              <div class="hang"><b>Tổng cộng</b><b class="day ma" style="font-size:var(--fs-xl)">$192,50</b></div>
+            </div>
+          </div>
+
+          <div class="the">
+            <div class="the-dau"><h2>Sau khi lưu</h2></div>
+            <div class="the-than nho doc" style="gap:var(--sp-3)">
+              <div>Đơn được khoá, chỉ Manager mở lại được.</div>
+              <div>Một bản sao ghi sang <a href="bang-van-don.html">bảng vận đơn</a> trong cùng một giao dịch.</div>
+              <div>Mã liên kết giữa đơn và bản ghi được lưu lại để tra ngược.</div>
+              <div class="mo-nhat">Sáu trường Facebook, Email, Quốc gia, Đơn vị phụ, Loại tiền tệ, Người bán hiện chưa có cột tương ứng bên bảng vận đơn.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+/* Thêm dòng sản phẩm — bản thật sẽ dùng HTMX trả về một mảnh giao diện */
+document.getElementById("them-dong").addEventListener("click", () => {
+  const than = document.querySelector("#bang-dong tbody");
+  const dong = than.rows[0].cloneNode(true);
+  dong.querySelectorAll("input").forEach(o => { o.value = ""; });
+  dong.querySelector("td.tien").textContent = "$0,00";
+  than.appendChild(dong);
+});
+
+document.querySelector("#bang-dong").addEventListener("click", e => {
+  const nut = e.target.closest(".nut-nguy");
+  const than = document.querySelector("#bang-dong tbody");
+  if (nut && than.rows.length > 1) nut.closest("tr").remove();
+});
+</script>
+</body>
+</html>

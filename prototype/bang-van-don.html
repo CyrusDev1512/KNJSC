@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bảng vận đơn · Kim Ngân JSC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="static/tokens.css">
+<link rel="stylesheet" href="static/main.css">
+<script src="static/layout.js" defer></script>
+</head>
+<body data-trang="bang-van-don" data-tieu-de="Bảng vận đơn">
+<div class="app">
+  <div class="chinh">
+    <main class="noi-dung doc">
+
+      <div class="trang-dau">
+        <div>
+          <div class="nhan-nho">Bảng động · nhận bản sao một chiều từ đơn hàng</div>
+          <h1>Bảng vận đơn</h1>
+          <p>Bấm tiêu đề cột để sắp xếp. Ô có viền khi trỏ vào là ô sửa được tại chỗ.</p>
+        </div>
+        <div class="hanh-dong">
+          <button class="nut" type="button">Nhập Excel</button>
+          <button class="nut" type="button">Xuất Excel</button>
+          <button class="nut nut-chinh" type="button">Thêm cột</button>
+        </div>
+      </div>
+
+      <div class="bang-hop">
+
+        <!-- Thanh lọc: mọi cột dùng để lọc đều phải có chỉ mục (quy tắc 9) -->
+        <div class="loc">
+          <div class="truong o-tim">
+            <label for="l-tim">Tìm kiếm</label>
+            <input class="o-nhap" id="l-tim" placeholder="Mã đơn, tên khách, số điện thoại">
+          </div>
+          <div class="truong">
+            <label for="l-quoc-gia">Quốc gia</label>
+            <select class="o-nhap" id="l-quoc-gia">
+              <option>Tất cả</option><option>Hoa Kỳ</option><option>Canada</option><option>Úc</option>
+            </select>
+          </div>
+          <div class="truong">
+            <label for="l-vc">Trạng thái vận chuyển</label>
+            <select class="o-nhap" id="l-vc">
+              <option>Tất cả</option><option>Chờ xử lý</option><option>Đang giao</option>
+              <option>Đã giao</option><option>Hoàn hàng</option>
+            </select>
+          </div>
+          <div class="truong">
+            <label for="l-tt">Trạng thái thanh toán</label>
+            <select class="o-nhap" id="l-tt">
+              <option>Tất cả</option><option>Đã thanh toán</option><option>Chờ thanh toán</option><option>Thất bại</option>
+            </select>
+          </div>
+          <div class="truong">
+            <label for="l-tu">Từ ngày</label>
+            <input class="o-nhap" type="date" id="l-tu" value="2026-08-01">
+          </div>
+          <div class="loc-nut">
+            <button class="nut nut-nho" type="button">Xoá lọc</button>
+            <button class="nut nut-nho nut-chinh" type="button">Lọc</button>
+          </div>
+        </div>
+
+        <div class="bang-cuon">
+          <table class="bang bang-rong" style="min-width:1720px">
+            <thead>
+              <tr>
+                <th class="sap-xep">Mã đơn <span class="mui">↕</span></th>
+                <th class="sap-xep">Ngày <span class="mui">↕</span></th>
+                <th>Sản phẩm</th>
+                <th>Quốc gia</th>
+                <th>Bang</th>
+                <th>Thành phố</th>
+                <th>Zipcode</th>
+                <th class="phai sap-xep">SL <span class="mui">↕</span></th>
+                <th class="phai sap-xep">Giá tiền <span class="mui">↕</span></th>
+                <th>PTTT</th>
+                <th>SALE / CSKH</th>
+                <th>Trạng thái vận chuyển</th>
+                <th>Ngày thanh toán</th>
+                <th>Trạng thái thanh toán</th>
+                <th class="phai">Số tiền TT</th>
+                <th>Bill</th>
+                <th>Black list</th>
+                <th>Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="ma-o">DH-2608-0047</td><td class="ma-o">28.08</td>
+                <td>Máy massage cầm tay HM-200</td><td>Hoa Kỳ</td><td>California</td><td>San Jose</td><td class="ma-o">95112</td>
+                <td class="tien">2</td><td class="tien">$150,00</td><td>Thẻ</td><td>Trần Văn Dũng</td>
+                <td><span class="chip chip-cho"><i></i>Chờ xử lý</span></td>
+                <td class="ma-o">—</td><td><span class="chip chip-cho"><i></i>Chờ thanh toán</span></td>
+                <td class="tien">—</td><td class="ma-o">—</td><td></td>
+                <td class="o-sua cho-xuong" contenteditable="true"></td>
+              </tr>
+              <tr>
+                <td class="ma-o">DH-2608-0046</td><td class="ma-o">28.08</td>
+                <td>Đèn ngủ cảm ứng LS-12</td><td>Hoa Kỳ</td><td>Texas</td><td>Austin</td><td class="ma-o">73301</td>
+                <td class="tien">1</td><td class="tien">$42,50</td><td>PayPal</td><td>Nguyễn Thị Hà</td>
+                <td><span class="chip chip-nhan"><i></i>Đang giao</span></td>
+                <td class="ma-o">28.08</td><td><span class="chip chip-tot"><i></i>Đã thanh toán</span></td>
+                <td class="tien">$42,50</td><td class="ma-o">BILL-8841</td><td></td>
+                <td class="o-sua cho-xuong" contenteditable="true"></td>
+              </tr>
+              <tr>
+                <td class="ma-o">DH-2608-0045</td><td class="ma-o">27.08</td>
+                <td>Bộ dao bếp inox 6 món</td><td>Canada</td><td>Ontario</td><td>Toronto</td><td class="ma-o">M5H 2N2</td>
+                <td class="tien">3</td><td class="tien">$267,00</td><td>Thẻ</td><td>Trần Văn Dũng</td>
+                <td><span class="chip chip-tot"><i></i>Đã giao</span></td>
+                <td class="ma-o">27.08</td><td><span class="chip chip-tot"><i></i>Đã thanh toán</span></td>
+                <td class="tien">$267,00</td><td class="ma-o">BILL-8836</td><td></td>
+                <td class="o-sua cho-xuong" contenteditable="true">Khách yêu cầu giao giờ hành chính</td>
+              </tr>
+              <tr>
+                <td class="ma-o">DH-2608-0044</td><td class="ma-o">27.08</td>
+                <td>Máy massage cầm tay HM-200</td><td>Hoa Kỳ</td><td>Florida</td><td>Miami</td><td class="ma-o">33101</td>
+                <td class="tien">1</td><td class="tien">$75,00</td><td>COD</td><td>Nguyễn Thị Hà</td>
+                <td><span class="chip chip-xau"><i></i>Hoàn hàng</span></td>
+                <td class="ma-o">—</td><td><span class="chip chip-xau"><i></i>Thất bại</span></td>
+                <td class="tien">—</td><td class="ma-o">—</td>
+                <td><span class="chip chip-xau"><i></i>Có</span></td>
+                <td class="o-sua cho-xuong" contenteditable="true">Từ chối nhận hàng lần 2</td>
+              </tr>
+              <tr>
+                <td class="ma-o">DH-2608-0043</td><td class="ma-o">27.08</td>
+                <td>Đèn ngủ cảm ứng LS-12</td><td>Úc</td><td>Victoria</td><td>Melbourne</td><td class="ma-o">3000</td>
+                <td class="tien">4</td><td class="tien">$170,00</td><td>Thẻ</td><td>Ngô Thanh Sơn</td>
+                <td><span class="chip chip-nhan"><i></i>Đang giao</span></td>
+                <td class="ma-o">26.08</td><td><span class="chip chip-tot"><i></i>Đã thanh toán</span></td>
+                <td class="tien">$170,00</td><td class="ma-o">BILL-8829</td><td></td>
+                <td class="o-sua cho-xuong" contenteditable="true"></td>
+              </tr>
+              <tr>
+                <td class="ma-o">DH-2608-0042</td><td class="ma-o">26.08</td>
+                <td>Bộ dao bếp inox 6 món</td><td>Hoa Kỳ</td><td>New York</td><td>Brooklyn</td><td class="ma-o">11201</td>
+                <td class="tien">1</td><td class="tien">$89,00</td><td>PayPal</td><td>Trần Văn Dũng</td>
+                <td><span class="chip chip-tot"><i></i>Đã giao</span></td>
+                <td class="ma-o">26.08</td><td><span class="chip chip-tot"><i></i>Đã thanh toán</span></td>
+                <td class="tien">$89,00</td><td class="ma-o">BILL-8822</td><td></td>
+                <td class="o-sua cho-xuong" contenteditable="true"></td>
+              </tr>
+              <tr>
+                <td class="ma-o">DH-2608-0041</td><td class="ma-o">26.08</td>
+                <td>Máy massage cầm tay HM-200</td><td>Hoa Kỳ</td><td>Illinois</td><td>Chicago</td><td class="ma-o">60601</td>
+                <td class="tien">2</td><td class="tien">$150,00</td><td>Thẻ</td><td>Hoàng Văn Tú</td>
+                <td><span class="chip chip-nhan"><i></i>Đang giao</span></td>
+                <td class="ma-o">26.08</td><td><span class="chip chip-tot"><i></i>Đã thanh toán</span></td>
+                <td class="tien">$150,00</td><td class="ma-o">BILL-8817</td><td></td>
+                <td class="o-sua cho-xuong" contenteditable="true"></td>
+              </tr>
+              <tr>
+                <td class="ma-o">DH-2608-0040</td><td class="ma-o">25.08</td>
+                <td>Đèn ngủ cảm ứng LS-12</td><td>Canada</td><td>Quebec</td><td>Montreal</td><td class="ma-o">H2Y 1C6</td>
+                <td class="tien">2</td><td class="tien">$85,00</td><td>Thẻ</td><td>Nguyễn Thị Hà</td>
+                <td><span class="chip chip-tot"><i></i>Đã giao</span></td>
+                <td class="ma-o">25.08</td><td><span class="chip chip-tot"><i></i>Đã thanh toán</span></td>
+                <td class="tien">$85,00</td><td class="ma-o">BILL-8810</td><td></td>
+                <td class="o-sua cho-xuong" contenteditable="true">Khách mua lại lần 3</td>
+              </tr>
+              <tr>
+                <td class="ma-o">DH-2608-0039</td><td class="ma-o">25.08</td>
+                <td>Bộ dao bếp inox 6 món</td><td>Hoa Kỳ</td><td>Washington</td><td>Seattle</td><td class="ma-o">98101</td>
+                <td class="tien">1</td><td class="tien">$89,00</td><td>COD</td><td>Ngô Thanh Sơn</td>
+                <td><span class="chip chip-cho"><i></i>Chờ xử lý</span></td>
+                <td class="ma-o">—</td><td><span class="chip chip-cho"><i></i>Chờ thanh toán</span></td>
+                <td class="tien">—</td><td class="ma-o">—</td><td></td>
+                <td class="o-sua cho-xuong" contenteditable="true"></td>
+              </tr>
+              <tr>
+                <td class="ma-o">DH-2608-0038</td><td class="ma-o">24.08</td>
+                <td>Máy massage cầm tay HM-200</td><td>Hoa Kỳ</td><td>Arizona</td><td>Phoenix</td><td class="ma-o">85001</td>
+                <td class="tien">5</td><td class="tien">$375,00</td><td>Thẻ</td><td>Trần Văn Dũng</td>
+                <td><span class="chip chip-tot"><i></i>Đã giao</span></td>
+                <td class="ma-o">24.08</td><td><span class="chip chip-tot"><i></i>Đã thanh toán</span></td>
+                <td class="tien">$375,00</td><td class="ma-o">BILL-8801</td><td></td>
+                <td class="o-sua cho-xuong" contenteditable="true">Đơn sỉ</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Phân trang mặc định 25 dòng (quy tắc 1, Q4) -->
+        <div class="phan-trang">
+          <span>Hiện <b class="so">1–25</b> trên <b class="so">318</b> dòng</span>
+          <label class="hang nho" style="gap:var(--sp-2)">
+            Mỗi trang
+            <select class="o-nhap" style="width:auto;padding:2px var(--sp-2)">
+              <option selected>25</option><option>50</option><option>100</option>
+            </select>
+          </label>
+          <div class="trang-nut">
+            <span class="mo">‹</span>
+            <span class="hien-tai">1</span>
+            <a href="#">2</a><a href="#">3</a><a href="#">…</a><a href="#">13</a>
+            <a href="#">›</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="bao bao-nhan">
+        <span class="bao-ic">i</span>
+        <div>
+          <b>Bốn cột trong bảng này chưa có yêu cầu tương ứng</b>
+          <p>Trạng thái vận chuyển, khối thanh toán, Black list và địa chỉ tách năm cấp đều có trong tệp thật nhưng chưa có FR. Đây là các câu hỏi C1 tới C4.</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+</body>
+</html>

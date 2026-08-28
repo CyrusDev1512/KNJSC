@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ma trận phân quyền · Kim Ngân JSC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="static/tokens.css">
+<link rel="stylesheet" href="static/main.css">
+<style>
+  .mt td, .mt th { text-align: center; }
+  .mt td:first-child, .mt th:first-child {
+    text-align: left; position: sticky; left: 0; z-index: 2;
+    background: var(--surface); border-right: 1px solid var(--rule-strong);
+    min-width: 250px;
+  }
+  .mt thead th:first-child { background: var(--surface-2); z-index: 3; }
+  .mt tbody tr:hover td:first-child { background: var(--surface-2); }
+  .mt .nhom-bp { font-size: var(--fs-xs); color: var(--ink-3); font-weight: 400; display: block; }
+  .o-ok  { color: var(--good); font-family: var(--font-ma); font-weight: 700; }
+  .o-khong { color: var(--critical); font-family: var(--font-ma); font-weight: 700; }
+  .o-mot { color: var(--warn); font-family: var(--font-ma); font-weight: 700; }
+  .o-hoi { color: var(--ink-3); font-family: var(--font-ma); font-weight: 700; }
+</style>
+<script src="static/layout.js" defer></script>
+</head>
+<body data-trang="phan-quyen" data-tieu-de="Ma trận phân quyền">
+<div class="app">
+  <div class="chinh">
+    <main class="noi-dung doc">
+
+      <div class="trang-dau">
+        <div>
+          <div class="nhan-nho">AC-3.1 tới AC-3.7 · mỗi ô là một bài kiểm thử</div>
+          <h1>Ma trận phân quyền</h1>
+          <p>Đủ chín vai trò cộng Admin và trạng thái chưa đăng nhập. Đổi vai trò ở thanh trên để thử ngay trên giao diện thật.</p>
+        </div>
+      </div>
+
+      <div class="bao bao-cho">
+        <span class="bao-ic">?</span>
+        <div>
+          <b>Bảng thứ hai là đề xuất, chưa có trong tài liệu</b>
+          <p>Tài liệu hiện chỉ định nghĩa quyền xem. Quyền Thêm, Sửa, Xoá là các câu hỏi A2 và A3 đang chờ trả lời.</p>
+        </div>
+      </div>
+
+      <div class="the">
+        <div class="the-dau">
+          <h2>Quyền xem</h2>
+          <div class="phai hang">
+            <span class="nho"><b class="o-ok">✓</b> vào được</span>
+            <span class="nho"><b class="o-mot">◐</b> chỉ phần của mình</span>
+            <span class="nho"><b class="o-khong">✕</b> từ chối</span>
+          </div>
+        </div>
+        <div class="bang-cuon">
+          <table class="bang mt bang-rong" style="min-width:1180px">
+            <thead>
+              <tr>
+                <th>Đường dẫn</th>
+                <th>Staff<span class="nhom-bp">Sale</span></th>
+                <th>Leader<span class="nhom-bp">Sale</span></th>
+                <th>Manager<span class="nhom-bp">Sale</span></th>
+                <th>Staff<span class="nhom-bp">Marketing</span></th>
+                <th>Leader<span class="nhom-bp">Marketing</span></th>
+                <th>Manager<span class="nhom-bp">Marketing</span></th>
+                <th>Staff<span class="nhom-bp">Vận đơn</span></th>
+                <th>Leader<span class="nhom-bp">Vận đơn</span></th>
+                <th>Manager<span class="nhom-bp">Vận đơn</span></th>
+                <th>Admin<span class="nhom-bp">Quản trị</span></th>
+                <th>Chưa<span class="nhom-bp">đăng nhập</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Tổng quan</td>
+                <td class="o-ok">✓</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-ok">✓</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-ok">✓</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-ok">✓</td><td class="o-khong">✕</td></tr>
+              <tr><td>Báo cáo của chính mình</td>
+                <td class="o-ok">✓</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-ok">✓</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-ok">✓</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td></tr>
+              <tr><td>Báo cáo người cùng team</td>
+                <td class="o-khong">✕</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-khong">✕</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-khong">✕</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-ok">✓</td><td class="o-khong">✕</td></tr>
+              <tr><td>Báo cáo team khác cùng bộ phận</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-ok">✓</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-ok">✓</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-ok">✓</td>
+                <td class="o-ok">✓</td><td class="o-khong">✕</td></tr>
+              <tr><td>Báo cáo bộ phận khác</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-khong">✕</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-khong">✕</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-khong">✕</td>
+                <td class="o-ok">✓</td><td class="o-khong">✕</td></tr>
+              <tr><td>Báo cáo tổng hợp</td>
+                <td class="o-khong">✕</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-khong">✕</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-khong">✕</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-ok">✓</td><td class="o-khong">✕</td></tr>
+              <tr><td>Màn hình lên đơn</td>
+                <td class="o-ok">✓</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-khong">✕</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-khong">✕</td>
+                <td class="o-ok">✓</td><td class="o-khong">✕</td></tr>
+              <tr><td>Bảng vận đơn <span class="nhom-bp">câu hỏi B2 — Sale có xem đơn mình tạo không</span></td>
+                <td class="o-hoi">?</td><td class="o-hoi">?</td><td class="o-hoi">?</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-khong">✕</td>
+                <td class="o-ok">✓</td><td class="o-ok">✓</td><td class="o-ok">✓</td>
+                <td class="o-ok">✓</td><td class="o-khong">✕</td></tr>
+              <tr><td>Quản lý biểu mẫu và bảng</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-ok">✓</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-ok">✓</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-ok">✓</td>
+                <td class="o-ok">✓</td><td class="o-khong">✕</td></tr>
+              <tr><td>Nhật ký hoạt động</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-ok">✓</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-ok">✓</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-ok">✓</td>
+                <td class="o-ok">✓</td><td class="o-khong">✕</td></tr>
+              <tr><td>Quản lý nhân sự</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-khong">✕</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-khong">✕</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-khong">✕</td>
+                <td class="o-ok">✓</td><td class="o-khong">✕</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="the-chan nho mo-nhat">
+          Cột Chưa đăng nhập chuyển về màn hình đăng nhập, không trả danh sách rỗng.
+        </div>
+      </div>
+
+      <div class="the">
+        <div class="the-dau">
+          <h2>Quyền Thêm, Sửa, Xoá</h2>
+          <div class="phai"><span class="chip chip-cho"><i></i>Đề xuất, chờ chốt</span></div>
+        </div>
+        <div class="bang-cuon">
+          <table class="bang mt bang-rong" style="min-width:820px">
+            <thead>
+              <tr>
+                <th>Đối tượng</th>
+                <th>Staff</th><th>Leader</th><th>Manager</th><th>Admin</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Báo cáo của chính mình <span class="nhom-bp">trước khi nộp</span></td>
+                <td class="o-ok">Thêm · Sửa</td><td class="o-ok">Thêm · Sửa</td><td class="o-ok">Thêm · Sửa</td><td class="o-khong">✕</td></tr>
+              <tr><td>Báo cáo của cấp dưới</td>
+                <td class="o-khong">✕</td><td class="o-mot">Chỉ xem</td><td class="o-mot">Mở khoá</td><td class="o-khong">✕</td></tr>
+              <tr><td>Đơn hàng <span class="nhom-bp">sau khi lưu là khoá</span></td>
+                <td class="o-ok">Thêm</td><td class="o-ok">Thêm</td><td class="o-ok">Thêm · Mở khoá</td><td class="o-khong">✕</td></tr>
+              <tr><td>Dòng trong bảng vận đơn</td>
+                <td class="o-ok">Sửa</td><td class="o-ok">Sửa</td><td class="o-ok">Sửa · Xoá</td><td class="o-khong">✕</td></tr>
+              <tr><td>Cột trong bảng động</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-ok">Thêm · Sửa</td><td class="o-ok">Thêm · Sửa</td></tr>
+              <tr><td>Biểu mẫu và bảng</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-ok">Thêm · Sửa · Xoá</td><td class="o-ok">Thêm · Sửa · Xoá</td></tr>
+              <tr><td>Tài khoản nhân sự</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-ok">Thêm · Sửa · Khoá</td></tr>
+              <tr><td>Bản ghi nhật ký</td>
+                <td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-khong">✕</td><td class="o-khong">✕</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="the-chan nho mo-nhat">
+          Xoá luôn là đánh dấu, không xoá cứng — BR-4. Không ai sửa được nhật ký, kể cả Admin — BR-6.
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+</body>
+</html>

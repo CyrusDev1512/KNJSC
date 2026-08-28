@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bản dựng giao diện · Kim Ngân JSC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="static/tokens.css">
+<link rel="stylesheet" href="static/main.css">
+<style>
+  .cong { max-width: 880px; margin: 0 auto; padding: var(--sp-7) var(--sp-5) var(--sp-8); }
+  .hieu { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-6); }
+  .hieu span {
+    width: 38px; height: 38px; border-radius: var(--r-md); background: var(--brass); color: #fff;
+    font-family: var(--font-ma); font-weight: 600; display: grid; place-items: center;
+  }
+  .hieu b { font-size: var(--fs-xl); font-weight: 800; letter-spacing: -.025em; display: block; }
+  .hieu small { font-family: var(--font-ma); font-size: var(--fs-xs); letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-3); }
+  .ds { display: grid; gap: 1px; background: var(--rule);
+    border: 1px solid var(--rule); border-radius: var(--r-md); overflow: hidden; }
+  .ds a {
+    background: var(--surface); padding: var(--sp-3) var(--sp-4); text-decoration: none;
+    display: grid; grid-template-columns: 210px minmax(0,1fr) auto; gap: var(--sp-4);
+    align-items: baseline; color: var(--ink);
+  }
+  .ds a:hover { background: var(--surface-2); }
+  .ds b { font-weight: 600; }
+  .ds .mo-ta { color: var(--ink-2); font-size: var(--fs-sm); }
+  .ds .ma-gd { font-family: var(--font-ma); font-size: var(--fs-xs); color: var(--ink-3); }
+</style>
+<script>
+  /* Giữ nền sáng tối người dùng đã chọn ở các màn hình khác */
+  try { const n = localStorage.getItem("knjsc-nen"); if (n) document.documentElement.dataset.theme = n; } catch (e) {}
+</script>
+</head>
+<body>
+<div class="cong">
+
+  <div class="hieu">
+    <span>KN</span>
+    <div><b>Kim Ngân JSC</b><small>Bản dựng giao diện · Phase 1</small></div>
+  </div>
+
+  <h1 style="font-size:var(--fs-2xl);font-weight:800;letter-spacing:-.025em;margin:0 0 var(--sp-2)">
+    Mười màn hình còn lại
+  </h1>
+  <div class="bao bao-nhan" style="margin:0 0 var(--sp-5);max-width:64ch">
+    <span class="bao-ic">→</span>
+    <div>
+      <b>Năm màn hình đã chuyển sang ứng dụng thật</b>
+      <p>Đăng nhập, Tổng quan, Nhân sự, Nhật ký hoạt động và màn hình từ chối giờ chạy
+      bằng dữ liệu thật ở <b>http://127.0.0.1:8020/</b>. Bản tĩnh của chúng đã xoá.</p>
+    </div>
+  </div>
+
+  <p style="color:var(--ink-2);max-width:64ch;margin:0 0 var(--sp-5)">
+    Chỉ có HTML và CSS, chưa nối cơ sở dữ liệu. Dùng ô <b>Xem theo vai trò</b> ở thanh trên
+    để đổi giữa chín vai trò cộng Admin — điều hướng và quyền vào từng màn hình đổi theo.
+  </p>
+
+  <div class="ds">
+    <a href="bao-cao-ngay.html"><b>Nộp báo cáo ngày</b><span class="mo-ta">13 trường Marketing, 8 trường Sale, cột tính sẵn</span><span class="ma-gd">GĐ 4</span></a>
+    <a href="bao-cao-lich-su.html"><b>Lịch sử báo cáo</b><span class="mo-ta">Lọc, phân trang 25 dòng, trạng thái nộp</span><span class="ma-gd">GĐ 4</span></a>
+    <a href="bao-cao-tong-hop.html"><b>Báo cáo tổng hợp</b><span class="mo-ta">Bốn cách nhóm, dòng tổng cộng, xuất Excel</span><span class="ma-gd">GĐ 6</span></a>
+    <a href="len-don.html"><b>Lên đơn</b><span class="mo-ta">Nhiều dòng sản phẩm, địa chỉ năm cấp, khách mua lại</span><span class="ma-gd">GĐ 5</span></a>
+    <a href="bang-van-don.html"><b>Bảng vận đơn</b><span class="mo-ta">18 cột, lọc, sắp xếp, sửa từng ô</span><span class="ma-gd">GĐ 3 · 5</span></a>
+    <a href="quan-ly-bieu-mau.html"><b>Quản lý biểu mẫu</b><span class="mo-ta">Danh sách biểu mẫu và bảng động</span><span class="ma-gd">GĐ 3</span></a>
+    <a href="tao-bieu-mau.html"><b>Trình tạo biểu mẫu</b><span class="mo-ta">Định nghĩa trường, nhãn ý nghĩa, nối bảng đích</span><span class="ma-gd">GĐ 3</span></a>
+    <a href="bang-tinh.html"><b>Bảng tính</b><span class="mo-ta">Danh sách bảng tính, phân biệt với bảng dữ liệu</span><span class="ma-gd">GĐ 5</span></a>
+    <a href="bang-tinh-chi-tiet.html"><b>Bảng tính — lưới</b><span class="mo-ta">Công thức, định dạng, nhiều trang, cột nguồn chỉ đọc</span><span class="ma-gd">GĐ 5</span></a>
+    <a href="phan-quyen.html"><b>Ma trận phân quyền</b><span class="mo-ta">Đủ 9 vai trò, cộng bảng Thêm Sửa Xoá đề xuất</span><span class="ma-gd">GĐ 1</span></a>
+  </div>
+
+  <p style="color:var(--ink-3);font-size:var(--fs-sm);margin-top:var(--sp-5);max-width:64ch">
+    Nhãn hiển thị tiếng Việt, tên kỹ thuật tiếng Anh, theo quy ước đặt tên trong CLAUDE.md.
+    Các chỗ còn chờ quyết định đều được đánh dấu ngay trên màn hình kèm mã câu hỏi.
+  </p>
+</div>
+</body>
+</html>
