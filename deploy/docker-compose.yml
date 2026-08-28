@@ -1,0 +1,79 @@
+# Máy cá nhân. Chạy từ thư mục gốc kho mã:
+#   docker compose -f deploy/docker-compose.yml up -d
+name: knjsc
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-knjsc_db}
+      POSTGRES_USER: ${POSTGRES_USER:-knjsc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-knjsc}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-knjsc} -d ${POSTGRES_DB:-knjsc_db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "5433:5432"
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        INSTALL_DEV: "1"
+    command: python manage.py runserver 0.0.0.0:8000
+    environment: &moi_truong
+      DJANGO_SETTINGS_MODULE: knjsc.settings.dev
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-khoa-may-ca-nhan-khong-dung-tren-may-chu}
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0,web
+      POSTGRES_DB: ${POSTGRES_DB:-knjsc_db}
+      POSTGRES_USER: ${POSTGRES_USER:-knjsc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-knjsc}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      REDIS_URL: redis://redis:6379/0
+      RUN_MIGRATIONS: "1"
+    volumes:
+      - ../app:/app
+      - ../storage:/storage
+    ports:
+      - "8020:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        INSTALL_DEV: "1"
+    command: celery -A knjsc worker -l info
+    environment:
+      <<: *moi_truong
+      RUN_MIGRATIONS: "0"
+    volumes:
+      - ../app:/app
+      - ../storage:/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  db_data:
