@@ -34,6 +34,10 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | K4 | Khung ứng dụng cụ thể sẽ dùng | Chặn | Chưa bàn |
 | K5 | Có nên đặt ngưỡng tỉ lệ bao phủ kiểm thử không | Thấp | Bàn tài liệu |
 | K6 | Công cụ đo hiệu năng khi kiểm 50 người dùng đồng thời | Thấp | Bàn tài liệu |
+| K7 | Đổi khoảng 60 định danh tiếng Việt trong mã Python sang tiếng Anh theo quy ước CLAUDE.md, gồm cả tên ràng buộc `team_unique_trong_bo_phan` đã vào PostgreSQL | Trung bình | Rà soát GĐ 1–2 |
+| K8 | `docs/03` mục 2.1 đòi mọi bảng có cột "người sửa"; `ScopedModel` mới có `created_by`, chưa có `updated_by` | Thấp | Rà soát GĐ 1–2 |
+| K9 | Chưa có trang lỗi 404 và 500 bằng tiếng Việt — NFR-6 mới đạt một phần | Trung bình | Rà soát GĐ 1–2 |
+| K10 | Quy tắc Q3 "chỉ lấy cột cần hiển thị" chưa áp ở màn hình nào | Thấp | Rà soát GĐ 1–2 |
 
 ### 1.2. Nghiệp vụ
 
@@ -43,6 +47,10 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | N2 | Nhân viên vận đơn có tự thêm cột vào bảng không | Thấp | Đã hỏi, trả lời là không |
 | N3 | Vai trò Chăm sóc khách hàng có thuộc phase 1 không | Trung bình | Tệp vận đơn có cột CSKH, phase 1 chưa có vai trò này |
 | N4 | Sáu trường trong biểu mẫu lên đơn không có trong bảng vận đơn — Facebook, Email, Quốc gia, Đơn vị phụ, Loại tiền tệ, Người bán | Trung bình | Đối chiếu biểu mẫu và tệp thật |
+| N5 | Thị trường thật là những nước nào — `README.md` ghi Canada và Philippines, `CRM_Tân.xlsx` ghi hàng đi US | Cao | Rà soát GĐ 1–2 |
+| N6 | Chăm sóc khách hàng có trong phase 1 không — `README.md` xếp vào phạm vi, `docs/02` mục 12 để ngỏ. Trùng với N3 nhưng nay có thêm chứng cứ vênh giữa hai tài liệu | Cao | Rà soát GĐ 1–2 |
+| N7 | BR-1 nói mỗi người thuộc đúng một bộ phận, nhưng Admin hiện không thuộc bộ phận nào. Giữ nguyên hay bắt Admin cũng phải có bộ phận | Trung bình | Rà soát GĐ 1–2 |
+| N8 | Bảy nhãn ý nghĩa: `docs/03` mục 2.5 ghi Ngày, Khách hàng, Số điện thoại, Doanh thu, Người bán, Sản phẩm, Trạng thái. Bản dựng giao diện lại đề xuất Ngày, Số lượng, Tiền, Tỉ lệ, Người, Sản phẩm, Thị trường. Chốt danh sách nào | Cao | Rà soát GĐ 1–2 |
 
 ### 1.3. Vận hành
 
@@ -115,3 +123,4 @@ Những câu chưa có đáp án, cần hỏi trực tiếp người sử dụng
 | Ngày | Nội dung |
 |---|---|
 | (điền) | Tạo tài liệu |
+| 28.08.2026 | Rà soát Giai đoạn 1 và 2 — 19 phát hiện. Sửa 18, hoãn K7. Thêm K7–K10 và N5–N8 |

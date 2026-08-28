@@ -1,0 +1,1074 @@
+<title>Tiến độ Kim Ngân JSC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<!--
+  ══════════════════════════════════════════════════════════════════════
+  PHIẾU TIẾN ĐỘ — KIM NGÂN JSC
+  ══════════════════════════════════════════════════════════════════════
+
+  CÁCH CẬP NHẬT: chỉ sửa khối DATA ngay bên dưới. Mọi phần trăm trên
+  trang đều tính lại từ đó, không có số nào gõ tay.
+
+    tt: 'xong'  việc đã hoàn thiện        → tính 1 điểm
+        'dang'  đang làm dở               → tính 0,5 điểm
+        'chua'  chưa bắt đầu              → tính 0 điểm
+
+  Tiến độ tổng = tổng của (trọng số giai đoạn × tỉ lệ việc xong trong
+  giai đoạn đó). Trọng số chín giai đoạn cộng lại bằng 100.
+
+  Nguồn: docs/kien-truc.md (lộ trình), docs/EXAMPLE/CRM_ Tân.xlsx (phạm vi
+  khách hàng), docs/02-yeu-cau-san-pham.md (mã FR), docs/backlog.md.
+  ══════════════════════════════════════════════════════════════════════
+-->
+
+<style>
+:root {
+  color-scheme: light;
+  --plane:        #f2f2f6;
+  --surface:      #fbfbfd;
+  --surface-2:    #f6f6fa;
+  --ink:          #15151c;
+  --ink-2:        #4a4a58;
+  --ink-3:        #83838f;
+  --rule:         #e3e3ec;
+  --rule-strong:  #c9c9d6;
+  --accent:       #3a37a3;
+  --accent-soft:  #ecebf9;
+  --brass:        #9a7228;
+  --st-xong:      #0ca30c;
+  --st-dang:      #fab219;
+  --st-chan:      #d03b3b;
+  --hatch:        rgba(21,21,28,0.13);
+  --shadow:       0 1px 2px rgba(21,21,40,0.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --plane:       #0b0b10;
+    --surface:     #16161e;
+    --surface-2:   #1c1c26;
+    --ink:         #f1f1f6;
+    --ink-2:       #b6b6c4;
+    --ink-3:       #8a8a99;
+    --rule:        #2a2a36;
+    --rule-strong: #3b3b4a;
+    --accent:      #9a97ee;
+    --accent-soft: #1f1e39;
+    --brass:       #c9a458;
+    --hatch:       rgba(241,241,246,0.16);
+    --shadow:      0 1px 2px rgba(0,0,0,0.4);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --plane:       #0b0b10;
+  --surface:     #16161e;
+  --surface-2:   #1c1c26;
+  --ink:         #f1f1f6;
+  --ink-2:       #b6b6c4;
+  --ink-3:       #8a8a99;
+  --rule:        #2a2a36;
+  --rule-strong: #3b3b4a;
+  --accent:      #9a97ee;
+  --accent-soft: #1f1e39;
+  --brass:       #c9a458;
+  --hatch:       rgba(241,241,246,0.16);
+  --shadow:      0 1px 2px rgba(0,0,0,0.4);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--plane);
+  color: var(--ink);
+  font-family: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono {
+  font-family: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+}
+
+/* ── Đầu trang ─────────────────────────────────────────── */
+.masthead { padding: 44px 0 0; }
+.eyebrow {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.masthead h1 {
+  font-size: clamp(28px, 4.4vw, 42px);
+  font-weight: 800;
+  letter-spacing: -0.028em;
+  line-height: 1.1;
+  margin: 10px 0 0;
+  text-wrap: balance;
+}
+.brass-rule {
+  height: 2px;
+  margin: 20px 0 0;
+  background: linear-gradient(90deg, var(--brass) 0 88px, var(--rule) 88px);
+}
+.masthead .sub {
+  margin: 14px 0 0;
+  max-width: 63ch;
+  color: var(--ink-2);
+}
+
+/* ── Băng tổng ─────────────────────────────────────────── */
+.hero {
+  margin-top: 34px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  box-shadow: var(--shadow);
+  padding: 28px 28px 24px;
+}
+.hero-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px 44px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.figure-block { display: flex; align-items: baseline; gap: 10px; }
+.figure {
+  font-size: clamp(52px, 9vw, 82px);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 0.9;
+  color: var(--ink);
+}
+.figure-unit { font-size: 28px; font-weight: 600; color: var(--ink-3); }
+.figure-cap { margin-top: 8px; color: var(--ink-2); font-size: 13.5px; }
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.tile { background: var(--surface); padding: 12px 16px; min-width: 118px; }
+.tile-lab {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 10px; font-weight: 500; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.tile-val {
+  font-size: 21px; font-weight: 600; letter-spacing: -0.02em;
+  margin-top: 3px; font-variant-numeric: tabular-nums;
+}
+.tile-val small { font-size: 13px; font-weight: 500; color: var(--ink-3); }
+
+/* ── Thước đo chín giai đoạn ───────────────────────────── */
+.meter-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin: 30px 0 9px; gap: 16px; flex-wrap: wrap;
+}
+.meter {
+  display: flex; gap: 2px; height: 42px;
+  border-radius: 3px; overflow: hidden;
+}
+.seg {
+  position: relative; background: var(--surface-2);
+  border: 0; padding: 0; cursor: pointer; overflow: hidden;
+  font: inherit; color: inherit;
+  transition: filter .12s ease;
+}
+.seg::before {
+  content: ""; position: absolute; inset: 0;
+  background: repeating-linear-gradient(45deg,
+    var(--hatch) 0 1px, transparent 1px 6px);
+  opacity: .55;
+}
+.seg-fill {
+  position: absolute; inset: 0 auto 0 0;
+  background: var(--st-xong);
+}
+.seg-num {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 11px; font-weight: 600; color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+/* nền riêng để số vẫn đọc được khi nằm trên vạch đã xong */
+.seg-num b {
+  background: var(--surface); border-radius: 2px;
+  padding: 1px 5px; font-weight: 600;
+}
+.seg:hover, .seg:focus-visible { filter: brightness(0.94); outline: none; }
+.seg:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+.meter-legend {
+  display: flex; flex-wrap: wrap; gap: 6px 20px;
+  margin-top: 10px; font-size: 12.5px; color: var(--ink-2);
+}
+.lg { display: inline-flex; align-items: center; gap: 7px; }
+.lg i {
+  width: 11px; height: 11px; border-radius: 2px; flex: none;
+  display: inline-block;
+}
+.lg-hatch {
+  background: var(--surface-2);
+  background-image: repeating-linear-gradient(45deg,
+    var(--hatch) 0 1px, transparent 1px 5px);
+  border: 1px solid var(--rule-strong);
+}
+
+/* ── Phần ──────────────────────────────────────────────── */
+.section { margin-top: 62px; }
+.section-head { border-top: 2px solid var(--ink); padding-top: 14px; }
+.section-head h2 {
+  font-size: 24px; font-weight: 800; letter-spacing: -0.022em;
+  margin: 6px 0 0; text-wrap: balance;
+}
+.section-head p { margin: 8px 0 0; max-width: 66ch; color: var(--ink-2); font-size: 14px; }
+
+/* ── Hàng giai đoạn ────────────────────────────────────── */
+.phase {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  margin-top: 10px;
+  box-shadow: var(--shadow);
+}
+.phase-btn {
+  width: 100%; background: none; border: 0; padding: 14px 16px;
+  display: grid; gap: 4px 16px; align-items: center;
+  grid-template-columns: 44px minmax(0,1fr) 96px 108px 62px 18px;
+  cursor: pointer; font: inherit; color: inherit; text-align: left;
+  border-radius: 3px;
+}
+.phase-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.phase-id {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 12px; font-weight: 600; color: var(--ink-3);
+  border: 1px solid var(--rule-strong); border-radius: 2px;
+  padding: 2px 0; text-align: center;
+}
+.phase-name { font-weight: 600; letter-spacing: -0.012em; min-width: 0; }
+.phase-mod {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 11.5px; font-weight: 400; color: var(--ink-3); margin-left: 8px;
+}
+.phase-weight {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums;
+}
+.bar { height: 7px; background: var(--surface-2); border-radius: 4px; overflow: hidden; border: 1px solid var(--rule); }
+.bar > span { display: block; height: 100%; background: var(--st-xong); border-radius: 4px 0 0 4px; }
+.phase-pct {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 13px; font-weight: 600; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.chev { color: var(--ink-3); transition: transform .15s ease; justify-self: center; }
+.phase[open-state="1"] .chev { transform: rotate(90deg); }
+
+.tasks { display: none; padding: 2px 16px 14px 60px; }
+.phase[open-state="1"] .tasks { display: block; }
+.task {
+  display: grid; grid-template-columns: 20px minmax(0,1fr) auto;
+  gap: 10px; align-items: baseline;
+  padding: 7px 0; border-top: 1px solid var(--rule);
+  font-size: 14px;
+}
+.task:first-child { border-top: 0; }
+.tick {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 13px; font-weight: 600; line-height: 1.4;
+}
+.tick.xong { color: var(--st-xong); }
+.tick.dang { color: var(--st-dang); }
+.tick.chua { color: var(--ink-3); }
+.task-txt.done { color: var(--ink-3); }
+.task-note {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 11px; color: var(--ink-3); white-space: nowrap;
+}
+.task-flag {
+  display: inline-block; margin-left: 8px;
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.05em;
+  color: var(--st-chan); border: 1px solid currentColor;
+  border-radius: 2px; padding: 0 5px; vertical-align: 1px;
+}
+
+/* ── Bộ lọc ────────────────────────────────────────────── */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 4px; }
+.fbtn {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 12px; font-weight: 500;
+  background: var(--surface); color: var(--ink-2);
+  border: 1px solid var(--rule-strong); border-radius: 2px;
+  padding: 5px 11px; cursor: pointer;
+}
+.fbtn:hover { border-color: var(--ink-3); }
+.fbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.fbtn[aria-pressed="true"] {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+:root[data-theme="dark"] .fbtn[aria-pressed="true"],
+:root:not([data-theme="light"]) .fbtn[aria-pressed="true"] { color: var(--plane); }
+
+/* ── Bảng ──────────────────────────────────────────────── */
+.tablebox {
+  overflow-x: auto; margin-top: 12px;
+  border: 1px solid var(--rule); border-radius: 3px;
+  background: var(--surface); box-shadow: var(--shadow);
+}
+table { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 14px; }
+thead th {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.11em;
+  text-transform: uppercase; color: var(--ink-3);
+  text-align: left; padding: 11px 14px;
+  border-bottom: 1px solid var(--rule-strong); white-space: nowrap;
+}
+tbody td { padding: 10px 14px; border-top: 1px solid var(--rule); vertical-align: top; }
+tbody tr.grp td {
+  background: var(--surface-2); font-weight: 600;
+  letter-spacing: -0.012em; border-top: 1px solid var(--rule-strong);
+}
+tbody tr.grp .cell-ref { font-weight: 400; }
+td.cell-ref {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 11.5px; color: var(--ink-3); white-space: nowrap;
+}
+td.cell-gd {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 12px; color: var(--ink-2); white-space: nowrap;
+}
+td.cell-note { color: var(--ink-2); font-size: 13px; }
+.row-ngoai .cell-name { color: var(--ink-3); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 500; white-space: nowrap; color: var(--ink-2);
+}
+.chip i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.chip .glyph {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-weight: 600; font-size: 12px;
+}
+.chip.xong  { color: var(--ink); } .chip.xong i  { background: var(--st-xong); }
+.chip.dang  { color: var(--ink); } .chip.dang i  { background: var(--st-dang); }
+.chip.chua  i { background: var(--ink-3); }
+.chip.chan  { color: var(--ink); } .chip.chan i  { background: var(--st-chan); }
+.chip.ngoai i {
+  border-radius: 2px; background: var(--surface-2);
+  background-image: repeating-linear-gradient(45deg, var(--hatch) 0 1px, transparent 1px 4px);
+  border: 1px solid var(--rule-strong);
+}
+
+/* ── Thẻ trường dữ liệu ────────────────────────────────── */
+.sheets { display: grid; grid-template-columns: repeat(auto-fit, minmax(288px, 1fr)); gap: 14px; margin-top: 14px; }
+.sheet {
+  background: var(--surface); border: 1px solid var(--rule);
+  border-radius: 3px; padding: 16px 18px 18px; box-shadow: var(--shadow);
+}
+.sheet h3 {
+  margin: 0; font-size: 15.5px; font-weight: 600; letter-spacing: -0.012em;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+}
+.sheet h3 span {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 11px; font-weight: 500; color: var(--ink-3);
+}
+.sheet-lab {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--ink-3);
+  margin: 14px 0 7px; padding-top: 10px; border-top: 1px solid var(--rule);
+}
+.fields { display: flex; flex-wrap: wrap; gap: 5px; }
+.f {
+  font-size: 12.5px; padding: 2px 8px;
+  border: 1px solid var(--rule-strong); border-radius: 2px; color: var(--ink-2);
+}
+.f.calc { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.f.gap { border-style: dashed; border-color: var(--st-chan); color: var(--st-chan); }
+.sheet-foot { margin-top: 12px; font-size: 12.5px; color: var(--ink-3); }
+
+/* ── Danh sách khoảng trống ────────────────────────────── */
+.gaps { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 1px; background: var(--rule);
+        border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+.gaps li {
+  background: var(--surface); padding: 13px 16px;
+  display: grid; grid-template-columns: 40px minmax(0,1fr) 120px; gap: 14px; align-items: baseline;
+}
+.gap-id {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 11.5px; font-weight: 600; color: var(--st-chan);
+}
+.gap-id.low { color: var(--ink-3); }
+.gap-txt { font-size: 14px; }
+.gap-txt b { font-weight: 600; }
+.gap-src {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 11px; color: var(--ink-3); text-align: right;
+}
+
+/* ── Chân trang ────────────────────────────────────────── */
+footer {
+  margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--rule);
+  font-size: 12.5px; color: var(--ink-3);
+}
+footer code {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 12px; color: var(--ink-2);
+}
+
+/* ── Chú giải nổi ──────────────────────────────────────── */
+#tip {
+  position: fixed; z-index: 40; pointer-events: none; opacity: 0;
+  transform: translate(-50%, -100%);
+  background: var(--ink); color: var(--plane);
+  border-radius: 3px; padding: 8px 11px; font-size: 12.5px; line-height: 1.45;
+  max-width: 250px; box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+  transition: opacity .1s ease;
+}
+#tip b { font-weight: 600; }
+#tip .t-pct {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+@media (max-width: 720px) {
+  .phase-btn { grid-template-columns: 40px minmax(0,1fr) 56px 18px; }
+  .phase-weight, .bar { display: none; }
+  .tasks { padding-left: 20px; }
+  .gaps li { grid-template-columns: 34px minmax(0,1fr); }
+  .gap-src { grid-column: 2; text-align: left; }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">Phiếu tiến độ · Phase 1</div>
+    <h1>Tiến độ Kim Ngân JSC</h1>
+    <div class="brass-rule"></div>
+    <p class="sub">
+      Dự án đi được bao nhiêu phần trăm, và hạng mục nào trong
+      <span class="mono">CRM_ Tân.xlsx</span> đã xong.
+    </p>
+  </header>
+
+  <!-- ══ BĂNG TỔNG ══ -->
+  <section class="hero" aria-labelledby="h-tong">
+    <h2 id="h-tong" class="eyebrow" style="margin:0">Tiến độ tổng của cả dự án</h2>
+    <div class="hero-top" style="margin-top:12px">
+      <div>
+        <div class="figure-block">
+          <span class="figure" id="f-pct">0</span>
+          <span class="figure-unit">%</span>
+        </div>
+        <div class="figure-cap" id="f-cap"></div>
+      </div>
+      <div class="tiles">
+        <div class="tile">
+          <div class="tile-lab">Việc đã xong</div>
+          <div class="tile-val" id="t-viec"></div>
+        </div>
+        <div class="tile">
+          <div class="tile-lab">Hạng mục CRM_Tân</div>
+          <div class="tile-val" id="t-crm"></div>
+        </div>
+        <div class="tile">
+          <div class="tile-lab">Giai đoạn kế tiếp</div>
+          <div class="tile-val" id="t-gd"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="meter-head">
+      <div class="eyebrow">Chín giai đoạn — bề rộng bằng trọng số</div>
+      <div class="eyebrow" id="m-hint">Trỏ vào một đoạn để xem chi tiết</div>
+    </div>
+    <div class="meter" id="meter" role="group" aria-label="Thước tiến độ chín giai đoạn"></div>
+    <div class="meter-legend">
+      <span class="lg"><i style="background:var(--st-xong)"></i> Đã xong</span>
+      <span class="lg"><i style="background:var(--st-dang)"></i> Đang làm</span>
+      <span class="lg"><i class="lg-hatch"></i> Chưa bắt đầu</span>
+      <span class="lg" style="color:var(--ink-3)">Trọng số cộng lại bằng 100</span>
+    </div>
+  </section>
+
+  <!-- ══ PHẦN 1 — LỘ TRÌNH ══ -->
+  <section class="section" aria-labelledby="h-lotrinh">
+    <div class="section-head">
+      <div class="eyebrow">Phần 1</div>
+      <h2 id="h-lotrinh">Lộ trình thi công</h2>
+      <p>Giai đoạn 1 là phần đang tới lượt. Bảy giai đoạn sau tạm ẩn.</p>
+    </div>
+    <div id="phases"></div>
+    <button class="fbtn" id="btn-an" type="button" aria-expanded="false"
+            aria-controls="phases-an" style="margin-top:10px"></button>
+    <div id="phases-an" hidden></div>
+  </section>
+
+  <!-- ══ PHẦN 2 — PHẠM VI CRM_TÂN ══ -->
+  <section class="section" aria-labelledby="h-crm">
+    <div class="section-head">
+      <div class="eyebrow">Phần 2</div>
+      <h2 id="h-crm">Hạng mục ghi trong CRM_Tân</h2>
+      <p>Giữ nguyên thứ tự và ô gốc trong tệp, đối chiếu với phạm vi phase 1.</p>
+    </div>
+    <div class="filters" role="group" aria-label="Lọc hạng mục">
+      <button class="fbtn" data-f="tat-ca" aria-pressed="true">Tất cả</button>
+      <button class="fbtn" data-f="trong" aria-pressed="false">Trong phase 1</button>
+      <button class="fbtn" data-f="ngoai" aria-pressed="false">Ngoài phạm vi</button>
+      <button class="fbtn" data-f="chan" aria-pressed="false">Chưa quyết</button>
+    </div>
+    <div class="tablebox">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:52px">Ô</th>
+            <th>Hạng mục</th>
+            <th style="width:150px">Trạng thái</th>
+            <th style="width:96px">Giai đoạn</th>
+            <th>Ghi chú</th>
+          </tr>
+        </thead>
+        <tbody id="crm-body"></tbody>
+      </table>
+    </div>
+    <p class="meter-legend" style="margin-top:12px">
+      <span class="lg"><i style="background:var(--st-xong)"></i> Đã hoàn thiện</span>
+      <span class="lg"><i style="background:var(--ink-3)"></i> Chưa làm, có trong phase 1</span>
+      <span class="lg"><i style="border-radius:2px;background:var(--surface-2);background-image:repeating-linear-gradient(45deg,var(--hatch) 0 1px,transparent 1px 4px);border:1px solid var(--rule-strong)"></i> Ngoài phạm vi phase 1</span>
+      <span class="lg"><i style="background:var(--st-chan)"></i> Chưa quyết</span>
+    </p>
+  </section>
+
+  <!-- ══ PHẦN 3 — TRƯỜNG DỮ LIỆU ══ -->
+  <section class="section" aria-labelledby="h-truong">
+    <div class="section-head">
+      <div class="eyebrow">Phần 3</div>
+      <h2 id="h-truong">Trường dữ liệu bốn sheet</h2>
+      <p>Viền chàm là cột tính từ cột khác. Viền đỏ nét đứt là trường chưa có trong tài liệu.</p>
+    </div>
+    <div class="sheets" id="sheets"></div>
+  </section>
+
+  <!-- ══ PHẦN 4 — KHOẢNG TRỐNG ══ -->
+  <section class="section" aria-labelledby="h-gap">
+    <div class="section-head">
+      <div class="eyebrow">Phần 4</div>
+      <h2 id="h-gap">Điểm cần quyết</h2>
+      <p>Mã đỏ phải có đáp án trước khi giai đoạn tương ứng khởi động.</p>
+    </div>
+    <ul class="gaps" id="gaps"></ul>
+  </section>
+
+  <footer>
+    Nguồn: <code>kien-truc.md</code> · <code>02-yeu-cau-san-pham.md</code> ·
+    <code>backlog.md</code> · <code>CRM_ Tân.xlsx</code>.
+    Cập nhật bằng cách sửa khối <code>DATA</code> ở đầu tệp
+    <code>docs/dashboard-tien-do.html</code>.
+  </footer>
+</div>
+
+<div id="tip" role="status" aria-live="polite"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   DATA — chỉ sửa ở đây
+   ══════════════════════════════════════════════════════════════════ */
+
+const GIAI_DOAN = [
+  {
+    id: 0, ten: "Tài liệu và quyết định", mod: "docs/", trongSo: 6,
+    viec: [
+      { t: "01-tong-quan-san-pham.md — phạm vi và đối tượng", tt: "xong" },
+      { t: "02-yeu-cau-san-pham.md — 48 yêu cầu có mã", tt: "xong" },
+      { t: "03-thiet-ke-ky-thuat.md — mô hình dữ liệu và phân quyền", tt: "xong" },
+      { t: "04-tieu-chi-nghiem-thu.md — 58 tiêu chí nghiệm thu", tt: "xong" },
+      { t: "05-huong-dan-va-van-hanh.md — hướng dẫn dùng và vận hành", tt: "xong" },
+      { t: "kien-truc.md — lộ trình tám giai đoạn", tt: "xong" },
+      { t: "cau-truc-thu-muc.md — cây thư mục tới từng tệp", tt: "xong" },
+      { t: "so-do-kien-truc.html — năm sơ đồ", tt: "xong" },
+      { t: "backlog.md — phát hiện, rủi ro, câu hỏi", tt: "xong" },
+      { t: "Nhật ký quyết định ADR-001 tới ADR-005", tt: "xong" },
+      { t: "CLAUDE.md — quy tắc cho AI viết mã", tt: "xong" },
+      { t: ".gitignore và khung thư mục repo", tt: "xong" },
+      { t: "Đồng bộ trạng thái K4 sau khi ADR-005 chốt Django", tt: "chua", note: "3 tệp" },
+      { t: "Sửa danh mục ADR trong docs/README.md và cau-truc-thu-muc.md", tt: "chua" },
+      { t: "Chốt danh sách sáu module trong app/", tt: "xong", note: "7 module" }
+    ]
+  },
+  {
+    id: 1, ten: "Nền móng", mod: "core", trongSo: 14,
+    viec: [
+      { t: "Tạo dự án Django, tách settings base / dev / prod", tt: "xong" },
+      { t: "requirements.txt và requirements-dev.txt", tt: "xong" },
+      { t: "Dockerfile và docker-compose: web, worker, redis, postgres", tt: "xong" },
+      { t: "config/.env.example và nạp biến môi trường", tt: "xong" },
+      { t: "Cấu trúc dữ liệu lõi: TimestampedModel, SoftDeleteModel", tt: "xong", note: "BR-4" },
+      { t: "Đăng nhập, đăng xuất, khoá 15 phút sau 5 lần sai", tt: "xong", note: "FR-1.1 · FR-1.2" },
+      { t: "Middleware: hết phiên, buộc đổi mật khẩu, chặn cache", tt: "xong" },
+      { t: "core/scope.py — hàm phạm vi duy nhất của toàn hệ thống", tt: "xong", note: "FR-3.x" },
+      { t: "core/permissions.py — kiểm quyền bộ phận nhân cấp bậc", tt: "xong" },
+      { t: "Custom Manager áp phạm vi cho mọi model có quyền", tt: "xong", note: "quy tắc 11" },
+      { t: "core/audit.py — nhật ký hoạt động chỉ ghi thêm", tt: "xong", note: "BR-6" },
+      { t: "core/pagination.py — phân trang mặc định 25 dòng", tt: "xong", note: "quy tắc 1" },
+      { t: "core/exceptions.py — trả lỗi từ chối, không trả danh sách rỗng", tt: "xong", note: "quy tắc 8" },
+      { t: "Khung kiểm thử: pytest, conftest.py, dữ liệu mẫu", tt: "xong" },
+      { t: "Kiểm thử phân quyền ba cấp, cả cho phép và từ chối", tt: "xong", note: "AC nhóm 3" },
+      { t: "Django Admin, chỉ dành cho quản trị viên", tt: "xong", note: "quy tắc 12" },
+      { t: "Celery và Redis chạy được một tác vụ mẫu", tt: "xong" }
+    ]
+  },
+  {
+    id: 2, ten: "Cơ cấu tổ chức và giao diện chung", mod: "org · ui", trongSo: 10,
+    viec: [
+      { t: "Model Department, Team, Position, UserProfile", tt: "xong" },
+      { t: "Tệp chuyển đổi cấu trúc, chạy xuôi và ngược đều được", tt: "xong", note: "quy tắc 4" },
+      { t: "Quản lý tài khoản: tạo, khoá, đặt lại mật khẩu", tt: "xong" },
+      { t: "Gán người vào bộ phận và team", tt: "xong" },
+      { t: "base.html và thanh điều hướng chung", tt: "xong" },
+      { t: "Thành phần dùng lại: bảng, phân trang, thanh lọc, trạng thái rỗng", tt: "xong" },
+      { t: "tokens.css — màu, cỡ chữ, khoảng cách", tt: "xong" },
+      { t: "Điều hướng sau đăng nhập theo bộ phận", tt: "chua", note: "chờ GĐ 4–5" },
+      { t: "Màn hình Tổng quan, vẫn chạy khi bảng động lỗi", tt: "xong" },
+      { t: "Kiểm thử phạm vi quyền trên org", tt: "xong" }
+    ]
+  },
+  {
+    id: 3, ten: "Biểu mẫu và bảng động", mod: "forms_builder", trongSo: 20, rui_ro: true,
+    viec: [
+      { t: "FieldDef — tên, kiểu dữ liệu, nhãn ý nghĩa", tt: "chua" },
+      { t: "meaning.py — chốt danh sách nhãn ý nghĩa", tt: "chua", chan: "K3" },
+      { t: "FormDef và trình tạo biểu mẫu", tt: "chua", note: "FR-8.x" },
+      { t: "TableDef, ColumnDef và trình tạo bảng", tt: "chua" },
+      { t: "FormTableLink — nối biểu mẫu với bảng đích, kiểm kiểu", tt: "chua", chan: "K2" },
+      { t: "DataRecord — JSONField cộng cột tách cho nhãn ý nghĩa", tt: "chua", note: "ADR-001" },
+      { t: "Chỉ mục GIN trên cột JSON dùng để lọc", tt: "chua", note: "quy tắc 12" },
+      { t: "query.py — dựng truy vấn động, lọc và sắp xếp", tt: "chua" },
+      { t: "Bảng dữ liệu: hiển thị và phân trang 25 dòng", tt: "chua", note: "Q4" },
+      { t: "Bảng dữ liệu: lọc và tìm kiếm, cột lọc có chỉ mục", tt: "chua", note: "quy tắc 9" },
+      { t: "Bảng dữ liệu: sửa từng ô bằng HTMX", tt: "chua" },
+      { t: "Cột tính sẵn — bảy công thức đã tìm thấy trong tệp thật", tt: "chua", chan: "K1" },
+      { t: "Phân quyền theo từng bảng", tt: "chua" },
+      { t: "Kiểm thử: kiểm kiểu khi nối, truy vấn động, phạm vi quyền", tt: "chua" }
+    ]
+  },
+  {
+    id: 4, ten: "Báo cáo hằng ngày", mod: "reports", trongSo: 10,
+    viec: [
+      { t: "Model DailyReport và ReportTemplate", tt: "chua" },
+      { t: "Biểu mẫu báo cáo Marketing — 13 trường theo sheet BC MKT", tt: "chua" },
+      { t: "Biểu mẫu báo cáo Sale — 8 trường theo sheet BC SALE", tt: "chua" },
+      { t: "Biểu mẫu báo cáo CSKH — sheet có sẵn nhưng phase 1 chưa có vai trò này", tt: "chua", chan: "N3" },
+      { t: "Ghi nhận thời điểm nộp: lưu giờ quốc tế, hiện giờ Việt Nam", tt: "chua", note: "quy tắc 5" },
+      { t: "Khoá báo cáo sau khi nộp, chỉ sửa một lần", tt: "chua" },
+      { t: "Xem lại báo cáo cũ", tt: "chua" },
+      { t: "Leader và Manager xem báo cáo cấp dưới", tt: "chua", note: "FR-4.x" },
+      { t: "Kiểm thử khoá sau nộp và phạm vi quyền báo cáo", tt: "chua" }
+    ]
+  },
+  {
+    id: 5, ten: "Lên đơn và vận đơn", mod: "orders", trongSo: 13,
+    viec: [
+      { t: "Product và ProductGroup — danh mục sản phẩm", tt: "chua" },
+      { t: "Customer — khách hàng, chỉ mục trên số điện thoại", tt: "chua" },
+      { t: "Order và OrderLine — một đơn nhiều dòng sản phẩm", tt: "chua", note: "FR-6.1" },
+      { t: "Số tiền lưu dạng thập phân chính xác, không dùng số thực", tt: "chua", note: "BR-8" },
+      { t: "Biểu mẫu lên đơn, địa chỉ tách năm cấp", tt: "chua", chan: "G3" },
+      { t: "Khoá đơn sau khi lưu", tt: "chua" },
+      { t: "dispatch_service — ghi một chiều sang bảng vận đơn, một giao dịch", tt: "chua" },
+      { t: "OrderTableLink — lưu mã liên kết giữa đơn và bản ghi", tt: "chua" },
+      { t: "Phát hiện khách mua lại theo số điện thoại", tt: "chua" },
+      { t: "Trạng thái vận chuyển và khối thông tin thanh toán", tt: "chua", chan: "G2" },
+      { t: "BLACK LIST — có trong tệp thật, chưa có yêu cầu", tt: "chua", chan: "G1" },
+      { t: "Kiểm thử: khoá đơn, ghi sang bảng nguyên vẹn, khách mua lại", tt: "chua" }
+    ]
+  },
+  {
+    id: 6, ten: "Báo cáo tổng hợp", mod: "reports", trongSo: 9,
+    viec: [
+      { t: "aggregations.py — phép tính dựa trên nhãn ý nghĩa", tt: "chua" },
+      { t: "Thống kê tổng hợp", tt: "chua" },
+      { t: "Thống kê theo nhân viên", tt: "chua" },
+      { t: "Thống kê theo sản phẩm", tt: "chua" },
+      { t: "Thống kê theo thị trường", tt: "chua" },
+      { t: "Lọc theo khoảng thời gian và theo sản phẩm", tt: "chua", note: "FR-5.x" },
+      { t: "Dòng tổng cộng", tt: "chua" },
+      { t: "Xuất Excel từ màn hình báo cáo", tt: "chua" },
+      { t: "Kiểm thử phạm vi quyền trên báo cáo tổng hợp", tt: "chua" }
+    ]
+  },
+  {
+    id: 7, ten: "Nhập xuất và tác vụ nền", mod: "core", trongSo: 8,
+    viec: [
+      { t: "core/excel.py — đọc và ghi bằng openpyxl", tt: "chua" },
+      { t: "Nhập tệp Excel, báo lỗi theo từng dòng", tt: "chua" },
+      { t: "Xuất tệp Excel", tt: "chua" },
+      { t: "Tác vụ nền cho tệp lớn, có báo tiến độ", tt: "chua" },
+      { t: "Sao lưu tự động hằng đêm, giữ 30 bản", tt: "chua" },
+      { t: "Cảnh báo khi sao lưu thất bại — không được im lặng", tt: "chua" },
+      { t: "Dọn dẹp tệp xuất sau 24 giờ", tt: "chua" },
+      { t: "Kiểm thử xuất rồi nhập lại", tt: "chua" }
+    ]
+  },
+  {
+    id: 8, ten: "Đưa lên máy chủ và hoàn thiện", mod: "deploy", trongSo: 10,
+    viec: [
+      { t: "Giao diện dùng được trên điện thoại và máy tính bảng", tt: "chua" },
+      { t: "Tối ưu: chỉ mục, gộp truy vấn, đếm số lệnh mỗi màn hình", tt: "chua", note: "quy tắc 2" },
+      { t: "Cài máy chủ, reverse proxy, kết nối mã hoá, tên miền", tt: "chua" },
+      { t: "seed_perf.py — sinh 50.000 bản ghi giả", tt: "chua" },
+      { t: "Kiểm thử tải với 50 người dùng đồng thời", tt: "chua" },
+      { t: "Thử phục hồi từ bản sao lưu", tt: "chua", note: "R6" },
+      { t: "Sổ tay vận hành đủ để người khác tiếp nhận", tt: "chua", note: "R2" },
+      { t: "Chuyển dữ liệu thật", tt: "chua" },
+      { t: "Đào tạo người dùng", tt: "chua" }
+    ]
+  }
+];
+
+/* Hạng mục ghi trong CRM_ Tân.xlsx — sheet "Hệ thống phần mềm- AI Agent".
+   pv: 'trong' | 'ngoai' | 'mot_phan' | 'chan'   ·   tt: 'xong' | 'dang' | 'chua' */
+const CRM = [
+  { nhom: "1.0 — Agent Sale, CSKH", o: "B2" },
+  { o: "B2", ten: "Agent Sale, CSKH", pv: "ngoai", tt: "chua", gd: "—", ghi: "Trợ lý AI — Q6" },
+
+  { nhom: "2.0 — Hệ thống CRM", o: "B3" },
+  { o: "C4", ten: "All in one", pv: "trong", tt: "chua", gd: "GĐ 1–8", ghi: "Một ứng dụng, một cơ sở dữ liệu" },
+  { o: "C5", ten: "Có Mobile App", pv: "mot_phan", tt: "chua", gd: "GĐ 8", ghi: "Chỉ làm giao diện điện thoại — Q5" },
+
+  { nhom: "Hệ thống vận hành mảng kinh doanh", o: "C6" },
+  { o: "D7", ten: "Báo cáo MKT: tổng hợp, sản phẩm, thị trường, ngày", pv: "trong", tt: "chua", gd: "GĐ 4 · 6", ghi: "13 trường, sheet BC MKT" },
+  { o: "D8", ten: "Báo cáo SALE: tổng hợp, sản phẩm, thị trường, ngày", pv: "trong", tt: "chua", gd: "GĐ 4 · 6", ghi: "8 trường, sheet BC SALE" },
+  { o: "D9", ten: "Vận đơn: lên đơn, theo dõi đơn", pv: "trong", tt: "chua", gd: "GĐ 5", ghi: "8 trường chưa có yêu cầu" },
+
+  { nhom: "Hệ thống vận hành mảng nhân sự", o: "C11" },
+  { o: "D12", ten: "Đánh giá năng lực, xếp hạng, thăng tiến", pv: "ngoai", tt: "chua", gd: "—", ghi: "Q3" },
+  { o: "D13", ten: "Đào tạo", pv: "ngoai", tt: "chua", gd: "—", ghi: "Q3" },
+  { o: "D14", ten: "Chấm công, nghỉ phép", pv: "ngoai", tt: "chua", gd: "—", ghi: "Q3" },
+  { o: "D15", ten: "Bảo hiểm", pv: "ngoai", tt: "chua", gd: "—", ghi: "Q3" },
+
+  { nhom: "Hệ thống vận hành mảng kế toán", o: "C17" },
+  { o: "D18", ten: "Thống kê MKT", pv: "trong", tt: "chua", gd: "GĐ 6", ghi: "Trùng báo cáo tổng hợp" },
+  { o: "D19", ten: "Thống kê theo sản phẩm", pv: "trong", tt: "chua", gd: "GĐ 6", ghi: "Trùng báo cáo tổng hợp" },
+  { o: "D20", ten: "Thống kê theo thị trường", pv: "trong", tt: "chua", gd: "GĐ 6", ghi: "Trùng báo cáo tổng hợp" },
+  { o: "D21", ten: "Thống kê tổng hợp", pv: "trong", tt: "chua", gd: "GĐ 6", ghi: "Trùng báo cáo tổng hợp" },
+  { o: "D22", ten: "Xuất file Excel", pv: "trong", tt: "chua", gd: "GĐ 6 · 7", ghi: "Đối chiếu kế toán thì ngoài phạm vi" },
+
+  { nhom: "Vận hành kho", o: "C23" },
+  { o: "D24", ten: "Hàng đang sản xuất", pv: "ngoai", tt: "chua", gd: "—", ghi: "Q3" },
+  { o: "D25", ten: "Hàng vận chuyển Trung Quốc, Việt Nam sang Mỹ", pv: "ngoai", tt: "chua", gd: "—", ghi: "Q3" },
+  { o: "D26", ten: "Hàng tồn kho", pv: "ngoai", tt: "chua", gd: "—", ghi: "Q3" },
+  { o: "D27", ten: "Hàng xuất kho", pv: "ngoai", tt: "chua", gd: "—", ghi: "Q3" },
+
+  { nhom: "Phân quyền", o: "C28" },
+  { o: "D29", ten: "Theo bộ phận", pv: "trong", tt: "chua", gd: "GĐ 1", ghi: "Custom Manager — ADR-003" },
+  { o: "D30", ten: "Theo vị trí", pv: "trong", tt: "chua", gd: "GĐ 1", ghi: "Staff · Leader · Manager" },
+  { o: "D31", ten: "Chức năng: Thêm, Sửa, Xóa", pv: "trong", tt: "chua", gd: "GĐ 1", ghi: "Xoá là đánh dấu — BR-4" },
+  { o: "D32", ten: "Admin có được tự thêm trường dữ liệu không", pv: "chan", tt: "chua", gd: "GĐ 3", ghi: "Chưa có đáp án — K2, K3" },
+
+  { nhom: "Có đặc tả nhưng không nằm trong danh mục", o: "sheet 4" },
+  { o: "CSKH", ten: "Chăm sóc khách hàng — 8 trường, 4 thống kê", pv: "chan", tt: "chua", gd: "GĐ 4", ghi: "Phase 1 chưa có vai trò này — N3" }
+];
+
+const SHEETS = [
+  {
+    ten: "BC MKT", o: "sheet 2", nguoi: "Nhân viên Marketing nhập",
+    input: [
+      { n: "Ngày" }, { n: "Marketer" }, { n: "Số Mess" }, { n: "CPQC" }, { n: "Số đơn" },
+      { n: "Doanh số" }, { n: "Doanh thu" }, { n: "Hóa đơn" },
+      { n: "CPO", calc: "CPQC / Số đơn" },
+      { n: "Giá Mess", calc: "CPQC / Số Mess" },
+      { n: "CPQC/Doanh số", calc: "CPQC / Doanh số" },
+      { n: "Hóa đơn/Doanh thu", calc: "ô M5 = Giá Mess / CPO — không khớp nhãn" },
+      { n: "AOV", calc: "Doanh số / Số đơn" }
+    ],
+    output: ["Thống kê tổng hợp", "Thống kê theo MKT", "Thống kê theo sản phẩm", "Thống kê theo thị trường"],
+    foot: "13 trường, 5 là công thức."
+  },
+  {
+    ten: "BC SALE", o: "sheet 3", nguoi: "Nhân viên Sale nhập",
+    input: [
+      { n: "Ngày" }, { n: "Sản phẩm" }, { n: "Số Mess" }, { n: "Số đơn" }, { n: "Doanh số" },
+      { n: "Tỉ lệ chốt", calc: "Số đơn / Số Mess" },
+      { n: "Doanh thu" }, { n: "Ngày ra đơn" }
+    ],
+    output: ["Thống kê tổng hợp", "Thống kê theo SALE", "Thống kê theo sản phẩm", "Thống kê theo thị trường"],
+    foot: "8 trường, 1 là công thức."
+  },
+  {
+    ten: "CSKH", o: "sheet 4", nguoi: "Nhân viên CSKH nhập",
+    input: [
+      { n: "Ngày" }, { n: "Sản phẩm" }, { n: "Số Mess" }, { n: "Số đơn" }, { n: "Doanh số" },
+      { n: "Tỉ lệ chốt", calc: "Số đơn / Số Mess" },
+      { n: "Doanh thu" }, { n: "Ngày ra đơn" }
+    ],
+    output: ["Thống kê tổng hợp", "Thống kê theo SALE", "Thống kê theo sản phẩm", "Thống kê theo thị trường"],
+    foot: "Giống hệt BC SALE. Phase 1 chưa có vai trò CSKH — N3."
+  },
+  {
+    ten: "Vận đơn", o: "sheet 5", nguoi: "Sale lên đơn, Vận đơn xử lý",
+    input: [
+      { n: "Ngày" }, { n: "Sản phẩm" },
+      { n: "Quốc gia", gap: true }, { n: "Bang", gap: true }, { n: "Thành phố", gap: true },
+      { n: "Zipcode", gap: true }, { n: "Chi tiết số nhà, đường", gap: true },
+      { n: "Số lượng sản phẩm" }, { n: "Giá tiền" }, { n: "PTTT" },
+      { n: "SALE/CSKH" }, { n: "Ghi chú" }
+    ],
+    input2Lab: "Vận hành đơn — khối thêm",
+    input2: [
+      { n: "Trạng thái vận chuyển", gap: true },
+      { n: "Ngày thanh toán", gap: true }, { n: "Trạng thái thanh toán", gap: true },
+      { n: "Số tiền thanh toán", gap: true }, { n: "Bill", gap: true },
+      { n: "PTTT thanh toán", gap: true }, { n: "Ghi chú thanh toán", gap: true },
+      { n: "BLACK LIST", gap: true }
+    ],
+    output: ["Tổng hợp", "Theo nhân viên", "Theo sản phẩm", "Theo thị trường"],
+    foot: "8 trường viền đỏ chưa có trong tài liệu."
+  }
+];
+
+const GAPS = [
+  { id: "L1", txt: "<b>Tên sáu module lệch nhau giữa ba tài liệu.</b> Chốt trước khi tạo package Django.", src: "chặn GĐ 1" },
+  { id: "G7", txt: "<b>Admin có được tự thêm trường dữ liệu không.</b> Khách tự ghi câu hỏi, chưa có đáp án.", src: "ô D32 · K2 · K3" },
+  { id: "G1", txt: "<b>BLACK LIST</b> có cột riêng trong sheet Vận đơn, không có trong yêu cầu nào.", src: "ô U5 · B8" },
+  { id: "G2", txt: "<b>Khối thông tin thanh toán</b> — ngày, trạng thái, số tiền, bill. Tài liệu chỉ có phương thức.", src: "ô O5–T6" },
+  { id: "G3", txt: "<b>Địa chỉ tách năm cấp</b> — chưa có trong mô hình dữ liệu. Ảnh hưởng thống kê thị trường.", src: "ô E3–I3" },
+  { id: "G4", txt: "<b>Trạng thái vận chuyển</b> — chưa định nghĩa tập trạng thái và ai được đổi.", src: "ô N5" },
+  { id: "G5", txt: "<b>Vai trò CSKH</b> — sheet đặc tả đầy đủ, phase 1 chỉ có ba bộ phận.", src: "backlog N3" },
+  { id: "G6", txt: "<b>Công thức lệch nhãn</b> — ô M5 tính <span class='mono'>Giá Mess / CPO</span>, nhãn ghi <span class='mono'>Hóa đơn/Doanh thu</span>.", src: "BC MKT · M5" },
+  { id: "G8", txt: "<b>Sáu trường lên đơn</b> không có trong bảng vận đơn — ghi một chiều sẽ mất.", src: "backlog N4" },
+  { id: "L2", txt: "ADR-005 đã chốt Django nhưng backlog vẫn để K4 ở mức <b>Chặn</b>.", src: "3 tệp", low: true },
+  { id: "L3", txt: "Danh mục ADR trong <span class='mono'>docs/README.md</span> và <span class='mono'>cau-truc-thu-muc.md</span> ghi sai tên tệp.", src: "2 tệp", low: true },
+  { id: "L4", txt: "Tệp Excel nằm ở <span class='mono'>docs/EXAMPLE/</span>, tài liệu và <span class='mono'>.gitignore</span> chỉ định <span class='mono'>docs/tham-khao/</span>.", src: ".gitignore", low: true }
+];
+
+/* ══════════════════════════════════════════════════════════════════
+   TÍNH TOÁN — không sửa từ đây trở xuống trừ khi đổi cách tính
+   ══════════════════════════════════════════════════════════════════ */
+
+const DIEM = { xong: 1, dang: 0.5, chua: 0 };
+const so = n => n.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+GIAI_DOAN.forEach(g => {
+  g.diem = g.viec.reduce((s, v) => s + DIEM[v.tt], 0);
+  g.tong = g.viec.length;
+  g.ti = g.tong ? g.diem / g.tong : 0;
+  g.xong = g.viec.filter(v => v.tt === "xong").length;
+});
+
+const TONG_TRONG_SO = GIAI_DOAN.reduce((s, g) => s + g.trongSo, 0);
+const TIEN_DO = GIAI_DOAN.reduce((s, g) => s + g.trongSo * g.ti, 0) / TONG_TRONG_SO * 100;
+const VIEC_TONG = GIAI_DOAN.reduce((s, g) => s + g.tong, 0);
+const VIEC_XONG = GIAI_DOAN.reduce((s, g) => s + g.xong, 0);
+
+const CRM_LEAF = CRM.filter(r => !r.nhom);
+const CRM_XONG = CRM_LEAF.filter(r => r.tt === "xong").length;
+const CRM_TRONG = CRM_LEAF.filter(r => r.pv === "trong" || r.pv === "mot_phan").length;
+/* Giai đoạn thi công kế tiếp — bỏ qua GĐ 0 vì đó là phần tài liệu */
+const GD_KE_TIEP = GIAI_DOAN.find(g => g.id >= 1 && g.ti < 1);
+
+/* ── Băng tổng ── */
+document.getElementById("f-pct").textContent = so(Math.round(TIEN_DO * 10) / 10);
+document.getElementById("f-cap").textContent =
+  `Tính theo trọng số chín giai đoạn. Phần đã xong nằm ở tài liệu — mã nguồn chưa bắt đầu.`;
+document.getElementById("t-viec").innerHTML = `${VIEC_XONG} <small>/ ${VIEC_TONG}</small>`;
+document.getElementById("t-crm").innerHTML = `${CRM_XONG} <small>/ ${CRM_LEAF.length}</small>`;
+document.getElementById("t-gd").innerHTML =
+  GD_KE_TIEP ? `GĐ ${GD_KE_TIEP.id} <small>${esc(GD_KE_TIEP.mod)}</small>` : "Xong";
+
+/* ── Thước đo ── */
+const tip = document.getElementById("tip");
+function showTip(el, html) {
+  tip.innerHTML = html;
+  const r = el.getBoundingClientRect();
+  tip.style.left = Math.min(Math.max(r.left + r.width / 2, 130), window.innerWidth - 130) + "px";
+  tip.style.top = (r.top - 10) + "px";
+  tip.style.opacity = "1";
+}
+function hideTip() { tip.style.opacity = "0"; }
+
+const meter = document.getElementById("meter");
+GIAI_DOAN.forEach(g => {
+  const b = document.createElement("button");
+  b.className = "seg";
+  b.style.flex = g.trongSo;
+  b.type = "button";
+  b.innerHTML =
+    `<span class="seg-fill" style="width:${(g.ti * 100).toFixed(1)}%"></span>` +
+    `<span class="seg-num"><b>${g.id}</b></span>`;
+  b.setAttribute("aria-label",
+    `Giai đoạn ${g.id}, ${g.ten}, trọng số ${g.trongSo}, xong ${Math.round(g.ti * 100)} phần trăm`);
+  const html = `<b>GĐ ${g.id} · ${esc(g.ten)}</b><br>` +
+    `<span class="t-pct">${g.xong}/${g.tong} việc · trọng số ${g.trongSo} · ${Math.round(g.ti * 100)}%</span>`;
+  b.addEventListener("mouseenter", () => showTip(b, html));
+  b.addEventListener("focus", () => showTip(b, html));
+  b.addEventListener("mouseleave", hideTip);
+  b.addEventListener("blur", hideTip);
+  b.addEventListener("click", () => {
+    const el = document.getElementById("gd-" + g.id);
+    if (!el) return;
+    if (el.getAttribute("open-state") !== "1") el.querySelector(".phase-btn").click();
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+  meter.appendChild(b);
+});
+
+/* ── Lộ trình ── */
+const MO = new Set([1]);
+try {
+  const luu = localStorage.getItem("knjsc-mo");
+  if (luu) { MO.clear(); JSON.parse(luu).forEach(x => MO.add(x)); }
+} catch (e) { /* trình duyệt chặn lưu — vẫn chạy bình thường */ }
+
+const TICK = { xong: "✓", dang: "◐", chua: "○" };
+const phasesEl = document.getElementById("phases");
+const anEl = document.getElementById("phases-an");
+const HIEN_TOI_GD = 1;   /* hiện GĐ 0 và GĐ 1, phần sau ẩn */
+
+GIAI_DOAN.forEach(g => {
+  const wrap = document.createElement("div");
+  wrap.className = "phase";
+  wrap.id = "gd-" + g.id;
+  const mo = MO.has(g.id);
+  wrap.setAttribute("open-state", mo ? "1" : "0");
+
+  const viecHtml = g.viec.map(v => `
+    <div class="task">
+      <span class="tick ${v.tt}" aria-hidden="true">${TICK[v.tt]}</span>
+      <span class="task-txt${v.tt === "xong" ? " done" : ""}">${esc(v.t)}${
+        v.chan ? `<span class="task-flag">${esc(v.chan)}</span>` : ""}</span>
+      <span class="task-note">${v.note ? esc(v.note) : ""}</span>
+    </div>`).join("");
+
+  wrap.innerHTML = `
+    <button class="phase-btn" type="button" aria-expanded="${mo}" aria-controls="t-${g.id}">
+      <span class="phase-id">GĐ ${g.id}</span>
+      <span class="phase-name">${esc(g.ten)}<span class="phase-mod">${esc(g.mod)}</span>${
+        g.rui_ro ? `<span class="task-flag">RỦI RO CAO</span>` : ""}</span>
+      <span class="phase-weight">trọng số ${g.trongSo}</span>
+      <span class="bar"><span style="width:${(g.ti * 100).toFixed(1)}%"></span></span>
+      <span class="phase-pct">${g.xong}/${g.tong}</span>
+      <span class="chev" aria-hidden="true">›</span>
+    </button>
+    <div class="tasks" id="t-${g.id}">${viecHtml}</div>`;
+
+  wrap.querySelector(".phase-btn").addEventListener("click", e => {
+    const dang = wrap.getAttribute("open-state") === "1";
+    wrap.setAttribute("open-state", dang ? "0" : "1");
+    e.currentTarget.setAttribute("aria-expanded", String(!dang));
+    if (dang) MO.delete(g.id); else MO.add(g.id);
+    try { localStorage.setItem("knjsc-mo", JSON.stringify([...MO])); } catch (err) { /* bỏ qua */ }
+  });
+
+  /* Tạm ẩn các giai đoạn sau module đầu — đổi HIEN_TOI_GD để hiện thêm */
+  (g.id <= HIEN_TOI_GD ? phasesEl : anEl).appendChild(wrap);
+});
+
+/* Nút mở các giai đoạn đang ẩn */
+const btnAn = document.getElementById("btn-an");
+const soAn = GIAI_DOAN.filter(g => g.id > HIEN_TOI_GD).length;
+btnAn.textContent = `Hiện ${soAn} giai đoạn sau`;
+btnAn.addEventListener("click", () => {
+  const dangAn = anEl.hasAttribute("hidden");
+  if (dangAn) anEl.removeAttribute("hidden"); else anEl.setAttribute("hidden", "");
+  btnAn.setAttribute("aria-expanded", String(dangAn));
+  btnAn.textContent = dangAn ? `Ẩn ${soAn} giai đoạn sau` : `Hiện ${soAn} giai đoạn sau`;
+});
+
+/* ── Bảng CRM ── */
+const NHAN = {
+  trong:    { cls: "chua",  txt: "Chưa làm" },
+  mot_phan: { cls: "chua",  txt: "Chưa làm, một phần" },
+  ngoai:    { cls: "ngoai", txt: "Ngoài phạm vi" },
+  chan:     { cls: "chan",  txt: "Chưa quyết" }
+};
+const crmBody = document.getElementById("crm-body");
+
+function veCRM(loc) {
+  crmBody.innerHTML = "";
+  let hienNhom = null;
+  CRM.forEach(r => {
+    if (r.nhom) { hienNhom = r; return; }
+    const hop =
+      loc === "tat-ca" ||
+      (loc === "trong" && (r.pv === "trong" || r.pv === "mot_phan")) ||
+      (loc === "ngoai" && r.pv === "ngoai") ||
+      (loc === "chan" && r.pv === "chan");
+    if (!hop) return;
+
+    if (hienNhom) {
+      const tr = document.createElement("tr");
+      tr.className = "grp";
+      tr.innerHTML = `<td class="cell-ref">${esc(hienNhom.o)}</td><td colspan="4">${esc(hienNhom.nhom)}</td>`;
+      crmBody.appendChild(tr);
+      hienNhom = null;
+    }
+
+    const n = r.tt === "xong" ? { cls: "xong", txt: "Đã hoàn thiện" } : NHAN[r.pv];
+    const tr = document.createElement("tr");
+    if (r.pv === "ngoai") tr.className = "row-ngoai";
+    tr.innerHTML =
+      `<td class="cell-ref">${esc(r.o)}</td>` +
+      `<td class="cell-name">${esc(r.ten)}</td>` +
+      `<td><span class="chip ${n.cls}"><i></i>${esc(n.txt)}</span></td>` +
+      `<td class="cell-gd">${esc(r.gd)}</td>` +
+      `<td class="cell-note">${esc(r.ghi)}</td>`;
+    crmBody.appendChild(tr);
+  });
+}
+veCRM("tat-ca");
+
+document.querySelectorAll(".fbtn").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".fbtn").forEach(x => x.setAttribute("aria-pressed", "false"));
+    b.setAttribute("aria-pressed", "true");
+    veCRM(b.dataset.f);
+  });
+});
+
+/* ── Thẻ sheet ── */
+const truong = f =>
+  `<span class="f${f.calc ? " calc" : ""}${f.gap ? " gap" : ""}"${
+    f.calc ? ` title="${esc(f.calc)}"` : ""}>${esc(f.n)}</span>`;
+
+document.getElementById("sheets").innerHTML = SHEETS.map(s => `
+  <div class="sheet">
+    <h3>${esc(s.ten)} <span>${esc(s.o)}</span></h3>
+    <div style="font-size:13px;color:var(--ink-3);margin-top:2px">${esc(s.nguoi)}</div>
+    <div class="sheet-lab">Input — trường nhập</div>
+    <div class="fields">${s.input.map(truong).join("")}</div>
+    ${s.input2 ? `<div class="sheet-lab">${esc(s.input2Lab)}</div>
+      <div class="fields">${s.input2.map(truong).join("")}</div>` : ""}
+    <div class="sheet-lab">Output — thống kê</div>
+    <div class="fields">${s.output.map(o => `<span class="f">${esc(o)}</span>`).join("")}</div>
+    <div class="sheet-foot">${esc(s.foot)}</div>
+  </div>`).join("");
+
+/* ── Khoảng trống ── */
+document.getElementById("gaps").innerHTML = GAPS.map(g => `
+  <li><span class="gap-id${g.low ? " low" : ""}">${g.id}</span><span class="gap-txt">${g.txt}</span><span class="gap-src">${g.src}</span></li>`).join("");
+</script>
