@@ -95,7 +95,13 @@ Trong tình huống nào thì nên xem lại quyết định này.
 
 | Số | Tiêu đề | Trạng thái | Ngày |
 |---|---|---|---|
-| 001 | (chưa có) | | |
+| 001 | Bảng động lưu dạng JSON, cộng cột tách cho nhãn ý nghĩa | Đã áp dụng | (điền) |
+| 002 | Không nhúng thư viện bảng tính bên ngoài | Đã áp dụng | (điền) |
+| 003 | Cấp bậc và bộ phận là hai cột riêng | Đã áp dụng | (điền) |
+| 004 | CRM là module trong monolith, tách thành ứng dụng riêng khi đạt điều kiện | Đã áp dụng | (điền) |
+| 005 | Chọn Django làm khung ứng dụng | Đã áp dụng | (điền) |
+| 006 | Bảng dữ liệu chỉ có cột tính sẵn, công thức tự do tách sang Bảng tính | Đã áp dụng | 29.08.2026 |
+| 007 | Biểu mẫu luôn chọn bảng có sẵn, và chốt bảy nhãn ý nghĩa | Đã áp dụng | 29.08.2026 |
 
 ---
 

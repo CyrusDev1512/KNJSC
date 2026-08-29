@@ -28,10 +28,6 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 
 | # | Nội dung | Mức | Nguồn |
 |---|---|---|---|
-| K1 | Bảng dữ liệu cho phép gõ công thức tự do tới mức nào — chỉ cột tính sẵn, chọn phép tính từ danh sách, hay gõ cú pháp đầy đủ | Cao | Phân tích tệp vận đơn thật |
-| K2 | Tạo biểu mẫu thì tự sinh bảng mới, hay luôn phải chọn bảng có sẵn | Trung bình | Bàn thiết kế |
-| K3 | Danh sách nhãn ý nghĩa cuối cùng cho cột trong bảng tự tạo | Cao | Bàn thiết kế |
-| K4 | Khung ứng dụng cụ thể sẽ dùng | Chặn | Chưa bàn |
 | K5 | Có nên đặt ngưỡng tỉ lệ bao phủ kiểm thử không | Thấp | Bàn tài liệu |
 | K6 | Công cụ đo hiệu năng khi kiểm 50 người dùng đồng thời | Thấp | Bàn tài liệu |
 | K7 | Đổi khoảng 60 định danh tiếng Việt trong mã Python sang tiếng Anh theo quy ước CLAUDE.md, gồm cả tên ràng buộc `team_unique_trong_bo_phan` đã vào PostgreSQL | Trung bình | Rà soát GĐ 1–2 |
@@ -50,7 +46,6 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | N5 | Thị trường thật là những nước nào — `README.md` ghi Canada và Philippines, `CRM_Tân.xlsx` ghi hàng đi US | Cao | Rà soát GĐ 1–2 |
 | N6 | Chăm sóc khách hàng có trong phase 1 không — `README.md` xếp vào phạm vi, `docs/02` mục 12 để ngỏ. Trùng với N3 nhưng nay có thêm chứng cứ vênh giữa hai tài liệu | Cao | Rà soát GĐ 1–2 |
 | N7 | BR-1 nói mỗi người thuộc đúng một bộ phận, nhưng Admin hiện không thuộc bộ phận nào. Giữ nguyên hay bắt Admin cũng phải có bộ phận | Trung bình | Rà soát GĐ 1–2 |
-| N8 | Bảy nhãn ý nghĩa: `docs/03` mục 2.5 ghi Ngày, Khách hàng, Số điện thoại, Doanh thu, Người bán, Sản phẩm, Trạng thái. Bản dựng giao diện lại đề xuất Ngày, Số lượng, Tiền, Tỉ lệ, Người, Sản phẩm, Thị trường. Chốt danh sách nào | Cao | Rà soát GĐ 1–2 |
 
 ### 1.3. Vận hành
 
@@ -72,6 +67,13 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | Q4 | Có tích hợp với phần mềm kế toán không | Không, ít nhất trong phase 1 | (điền) |
 | Q5 | Ứng dụng di động | Không làm bản cài đặt, chỉ cần giao diện dùng được trên điện thoại | (điền) |
 | Q6 | Trợ lý AI | Không làm trong phase 1 | (điền) |
+| Q7 | Khung ứng dụng | Django 5.2, PostgreSQL 16, HTMX, Celery với Redis, Docker Compose — ADR-005 | 28.08.2026 |
+| Q8 | Danh sách module trong `app/` | Bảy module: core, org, forms_builder, reports, orders, dashboard, crm | 28.08.2026 |
+| Q9 | Quản trị viên trong mô hình bộ phận × cấp bậc | Cấp bậc thứ tư tên Admin, phạm vi mọi bộ phận, có tất cả các quyền | 28.08.2026 |
+| Q10 | Loại tiền tệ | Phase 1 dùng VND và USD, mỗi số tiền lưu kèm loại tiền, không quy đổi khi lưu | 28.08.2026 |
+| Q11 | Mức độ công thức trên bảng — K1, FR-7.8 | Bảng dữ liệu chỉ có cột tính sẵn; gõ công thức tự do tách sang màn hình Bảng tính, không ghi ngược — ADR-006 | 29.08.2026 |
+| Q12 | Bảng đích khi tạo biểu mẫu — K2 | Luôn chọn bảng có sẵn, không tự sinh bảng mới — ADR-007 | 29.08.2026 |
+| Q13 | Bảy nhãn ý nghĩa — K3 và N8 | Theo `docs/03` mục 2.5: Ngày, Khách hàng, Số điện thoại, Doanh thu, Người bán, Sản phẩm, Trạng thái — ADR-007 | 29.08.2026 |
 
 ---
 
@@ -124,3 +126,4 @@ Những câu chưa có đáp án, cần hỏi trực tiếp người sử dụng
 |---|---|
 | (điền) | Tạo tài liệu |
 | 28.08.2026 | Rà soát Giai đoạn 1 và 2 — 19 phát hiện. Sửa 18, hoãn K7. Thêm K7–K10 và N5–N8 |
+| 29.08.2026 | Chốt K1, K2, K3 và N8 — gỡ hết điểm chặn Giai đoạn 3. Ghi ADR-006 và ADR-007 |
