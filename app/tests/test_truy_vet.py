@@ -146,3 +146,69 @@ def test_moi_tieu_chi_hoan_deu_ghi_ly_do(ma):
     assert len(ly_do) > 10 and ("Giai đoạn" in ly_do or "backlog" in ly_do), (
         f"{ma} hoãn nhưng lý do không rõ: {ly_do!r}"
     )
+
+
+# ══ BACKLOG — MỤC 0 PHẢI KHỚP PHẦN CHI TIẾT ═══════════════════════
+#
+# `docs/backlog.md` mục 0 là bản tóm mọi thứ còn nợ, để không phải lục cả tài
+# liệu. Bản tóm và phần chi tiết nằm cùng một tệp, nhưng vẫn lệch được — và
+# tài liệu lệch thì tệ hơn không có tài liệu.
+
+CAC_NOI_CO_BACKLOG = [
+    GOC.parent / "docs" / "backlog.md",
+    Path("/docs") / "backlog.md",
+]
+TEP_BACKLOG = next((p for p in CAC_NOI_CO_BACKLOG if p.exists()), CAC_NOI_CO_BACKLOG[0])
+
+MA_TRONG_BACKLOG = re.compile(r"\b([KNVH]\d+)\b")
+
+
+def _backlog():
+    if not TEP_BACKLOG.exists():
+        return "", ""
+    noi_dung = TEP_BACKLOG.read_text(encoding="utf-8")
+    dau = noi_dung.find("## 0. Còn nợ")
+    cuoi = noi_dung.find("## 1. Chờ quyết định")
+    if dau < 0 or cuoi < 0:
+        return "", noi_dung
+    return noi_dung[dau:cuoi], noi_dung[cuoi:]
+
+
+TOM_TAT, CHI_TIET = _backlog()
+
+
+def test_doc_duoc_backlog():
+    """Bài đối chiếu chỉ có nghĩa khi đọc được `docs/backlog.md` mục 0"""
+    assert TEP_BACKLOG.exists(), f"Không tìm thấy {TEP_BACKLOG}"
+    assert TOM_TAT, "Không tìm thấy mục 0 trong backlog"
+
+
+def test_moi_ma_trong_tom_tat_deu_co_o_phan_chi_tiet():
+    """Mục 0 chỉ được nhắc tới mã có thật ở phần chi tiết bên dưới
+
+    Đỏ nghĩa là bản tóm nhắc một mã đã bị gỡ, hoặc gõ sai — người đọc tra
+    xuống dưới sẽ không thấy gì.
+    """
+    trong_tom_tat = set(MA_TRONG_BACKLOG.findall(TOM_TAT))
+    trong_chi_tiet = set(MA_TRONG_BACKLOG.findall(CHI_TIET))
+
+    thieu = sorted(trong_tom_tat - trong_chi_tiet)
+    assert not thieu, (
+        "Mục 0 nhắc tới mã không có ở phần chi tiết: " + ", ".join(thieu)
+    )
+
+
+def test_moi_lo_hong_ky_thuat_deu_len_ban_tom():
+    """Mọi mục K trong phần chi tiết phải xuất hiện ở bản tóm mục 0
+
+    Đây là điều làm bản tóm đáng tin: bỏ sót một mục là đỏ, nên "một chỗ duy
+    nhất" giữ được lời hứa.
+    """
+    ky_thuat = CHI_TIET[CHI_TIET.find("### 1.1"):CHI_TIET.find("### 1.2")]
+    trong_chi_tiet = set(re.findall(r"^\| (K\d+) \|", ky_thuat, re.MULTILINE))
+    trong_tom_tat = set(MA_TRONG_BACKLOG.findall(TOM_TAT))
+
+    bo_sot = sorted(trong_chi_tiet - trong_tom_tat)
+    assert not bo_sot, (
+        "Lỗ hổng kỹ thuật chưa lên bản tóm mục 0: " + ", ".join(bo_sot)
+    )

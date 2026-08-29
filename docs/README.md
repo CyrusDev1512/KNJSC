@@ -14,6 +14,7 @@ Thư mục này chứa toàn bộ tài liệu của dự án.
 | Thế nào là xong | `04-tieu-chi-nghiem-thu.md` |
 | Cách dùng và cách vận hành | `05-huong-dan-va-van-hanh.md` |
 | Kiểm thử thế nào, ai kiểm | `06-ke-hoach-kiem-thu.md` |
+| **Còn nợ những gì** | `backlog.md` mục 0 |
 | Kiến trúc tổng thể, lộ trình | `kien-truc.md` |
 | Sơ đồ dạng hình | `so-do-kien-truc.html` |
 | Vì sao chọn cách làm này | `quyet-dinh/` |

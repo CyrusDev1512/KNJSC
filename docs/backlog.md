@@ -22,6 +22,99 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 
 ---
 
+## 0. Còn nợ những gì — xem ở đây trước
+
+Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của người dùng lẫn việc
+của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
+tóm để không phải lục.
+
+> Cập nhật ngày 29.08.2026, sau khi xong Giai đoạn 5 và lập kế hoạch kiểm thử.
+
+### A · Nghiệm thu — việc của anh/chị
+
+**Chưa có gì được nghiệm thu.** Giai đoạn 0 tới 5 đều đã giao và 779 bài kiểm
+thử tự động đều đạt, nhưng anh/chị **chưa trực tiếp thử màn hình nào**. Phần
+trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải *đã nghiệm thu*.
+
+**Sáu việc làm được ngay bây giờ:**
+
+| ☐ | Việc | Mã |
+|---|---|---|
+| ☐ | Thêm team mới, dùng ngay không khởi động lại | `AC-2.4` |
+| ☐ | Mở trên điện thoại và máy tính bảng thật | `AC-10.4` |
+| ☐ | Cài từ đầu trên máy sạch, chạy tới màn hình đăng nhập | `docs/04` mục 11.1 |
+| ☐ | Ba vai trò đăng nhập, chạy trọn quy trình của mình | `docs/04` mục 11.2 |
+| ☐ | Thử trên điện thoại và máy tính bảng thật | `docs/04` mục 11.5 |
+| ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | `docs/04` mục 11.7 |
+
+**Tám việc chưa làm được, và vì sao:**
+
+| Việc | Mã | Chờ |
+|---|---|---|
+| Đăng nhập vào thẳng màn hình của bộ phận mình | `AC-1.7` | Tính năng chưa làm — **K18** |
+| Xuất báo cáo, mở bằng Excel, đối chiếu số | `AC-5.6` · mục 11.4 | Giai đoạn 6 và 7 |
+| 50 người thao tác đồng thời | `AC-10.1` | Chưa chọn công cụ đo — **K6** |
+| Gặp lỗi hiện thông báo tiếng Việt, không trang trắng | `AC-10.3` | Trang 404 và 500 chưa làm — **K9** |
+| Phục hồi từ bản sao lưu | `AC-10.5` · mục 11.6 | Giai đoạn 8 |
+| Nhập tệp Excel thật của công ty | mục 11.3 | Giai đoạn 7 |
+
+### B · Câu hỏi chờ anh/chị quyết
+
+Sáu câu này **chặn việc thật**, không phải bàn cho vui:
+
+| # | Câu hỏi | Chặn gì |
+|---|---|---|
+| **V4** | Mốc nào thì nghiệm thu toàn diện | Cả mục A ở trên |
+| **V2** | Ai vận hành hằng ngày sau bàn giao | **K17** — có nên dựng chạy kiểm thử tự động không |
+| **V1** | Máy chủ đặt ở đâu | Giai đoạn 8 |
+| **N1** | Nộp báo cáo có bắt buộc đúng giờ không | **K16** — cột Trạng thái trên Lịch sử báo cáo |
+| **N3** · **N6** | Chăm sóc khách hàng có trong phase 1 không | Biểu mẫu báo cáo CSKH ở Giai đoạn 4 |
+| **N7** | Quản trị viên có phải thuộc một bộ phận không | BR-1 đang mâu thuẫn với mã |
+
+Còn sáu câu **H1 tới H6** cần hỏi trực tiếp người dùng cuối, không phải anh/chị
+trả lời thay — xem mục 5.
+
+### C · Lỗ hổng kỹ thuật đã biết
+
+Không cái nào chặn triển khai. Xếp theo mức.
+
+| # | Nội dung | Mức |
+|---|---|---|
+| **K18** | Điều hướng sau đăng nhập theo bộ phận — FR-1.6, nay đã đủ màn hình đích để làm | Trung bình |
+| **K9** | Chưa có trang lỗi 404 và 500 tiếng Việt | Trung bình |
+| **K7** | Khoảng 60 định danh tiếng Việt trong mã Python, trái quy ước `CLAUDE.md` | Trung bình |
+| **K13** | Cấp quyền đi hai cơ chế song song, xem lại có gộp được không | Trung bình |
+| **K16** | Cột Trạng thái trên Lịch sử báo cáo — chờ **N1** | Trung bình |
+| **K17** | Chưa có gì chạy kiểm thử tự động khi đẩy mã — chờ **V2** | Trung bình |
+| **K6** | Chưa chọn công cụ đo tải | Thấp |
+| **K8** | `ScopedModel` chưa có cột "người sửa" | Thấp |
+| **K10** | Quy tắc Q3 chưa áp ở màn hình nào | Thấp |
+| **K14** | Nhánh Staff trong `apply_scope` không đọc phạm vi cấp thêm | Thấp |
+
+### D · Tiêu chí nghiệm thu chưa có bài kiểm
+
+12 tiêu chí đánh dấu *Tự động* nhưng chưa viết được, tất cả vì tính năng chưa
+xây. Danh sách này nằm trong `app/tests/test_truy_vet.py`, biến `HOAN`, và
+**có bài kiểm bắt phải ghi lý do** — không giấu được.
+
+| Tiêu chí | Chờ |
+|---|---|
+| `AC-5.1` → `AC-5.5` | Báo cáo tổng hợp — Giai đoạn 6 |
+| `AC-7.5` → `AC-7.9` | Nhập xuất Excel — Giai đoạn 7 |
+| `AC-7.1` | 50.000 bản ghi dưới 2 giây, cần `seed_perf.py` — Giai đoạn 8 |
+| `AC-10.6` | Sao lưu tự động — Giai đoạn 8 |
+
+### E · Màn hình chưa có
+
+Còn **2 trên 10** màn hình của bản dựng ở `prototype/`. Chi tiết ở mục 6.
+
+| Màn hình | Giai đoạn |
+|---|---|
+| Báo cáo tổng hợp | 6 |
+| Bảng tính | 7 |
+
+---
+
 ## 1. Chờ quyết định
 
 ### 1.1. Kỹ thuật
@@ -35,8 +128,9 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | K10 | Quy tắc Q3 "chỉ lấy cột cần hiển thị" chưa áp ở màn hình nào | Thấp | Rà soát GĐ 1–2 |
 | K13 | `core/scope.py _granted_scope` vẫn trả về rỗng. Cấp quyền theo bảng và biểu mẫu đi đường riêng ở `forms_builder/services/grant_service.py` — hai cơ chế song song, nên xem lại có gộp được không | Trung bình | GĐ 3B |
 | K14 | Nhánh Staff trong `apply_scope` không đọc `department_ids` lẫn `team_ids`, nên cấp thêm cả một bộ phận cho Staff không có tác dụng | Thấp | GĐ 3B |
-| K17 | Chưa có gì chạy kiểm thử tự động khi đẩy mã lên kho. Người dùng chốt chưa dựng vì **V2** còn để ngỏ ai vận hành sau bàn giao | Trung bình | Kế hoạch kiểm thử |
 | K16 | Cột **Trạng thái** trên Lịch sử báo cáo (Đã nộp · Nộp muộn · Chưa nộp) chưa làm được vì chưa chốt **N1** — lịch nộp báo cáo có bắt buộc đúng giờ không. Không có hạn nộp thì không tính được thế nào là muộn | Trung bình | Đối chiếu 8010 |
+| K17 | Chưa có gì chạy kiểm thử tự động khi đẩy mã lên kho. Người dùng chốt chưa dựng vì **V2** còn để ngỏ ai vận hành sau bàn giao | Trung bình | Kế hoạch kiểm thử |
+| K18 | Điều hướng sau đăng nhập theo bộ phận — FR-1.6, `AC-1.7`. Hoãn từ Giai đoạn 2 vì chưa có màn hình đích; nay Giai đoạn 4 và 5 đã xong nên làm được | Trung bình | Rà soát Giai đoạn 5 |
 
 ### 1.2. Nghiệp vụ
 

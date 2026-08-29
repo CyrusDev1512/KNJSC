@@ -7,6 +7,9 @@
 | Ngày | 29.08.2026 |
 | Tài liệu liên quan | `04-tieu-chi-nghiem-thu.md` · `backlog.md` mục V4, V5 |
 
+> **Danh sách mọi thứ còn nợ nằm ở `backlog.md` mục 0** — cả việc kiểm thử lẫn
+> mọi thứ khác. Tài liệu này chỉ nói *kiểm bằng cách nào*.
+>
 > Tài liệu này trả lời: **kiểm cái gì, bằng cách nào, ai kiểm, và thế nào là đạt.**
 > `docs/04` định nghĩa *thế nào là xong*; tài liệu này định nghĩa *làm sao biết
 > là đã xong*.
@@ -32,7 +35,7 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Bài kiểm thử tự động | **748**, tất cả đạt |
+| Bài kiểm thử tự động | **782**, tất cả đạt |
 | Bao phủ dòng mã | 83% |
 | Tiêu chí nghiệm thu trong `docs/04` | 47 — 40 tự động, 7 thủ công |
 | Tiêu chí tự động đã có bài kiểm | 28 trên 40 |
@@ -112,7 +115,7 @@ Chạy trước mỗi lần bàn giao. Máy không làm được những việc 
 
 | ☐ | Mã | Việc | Tài khoản | Đạt khi |
 |---|---|---|---|---|
-| ☐ | `AC-1.7` | Đăng nhập vào thẳng màn hình của bộ phận mình | `sale.staff`, `vd.staff` | Sale vào Lên đơn, Vận đơn vào Bảng vận đơn |
+| ☐ | `AC-1.7` | Đăng nhập vào thẳng màn hình của bộ phận mình | — | **Chưa chạy được** — tính năng chưa làm, backlog **K18** |
 | ☐ | `AC-2.4` | Thêm team mới, dùng ngay không khởi động lại | `quantri` | Team mới hiện ở ô chọn trong cùng phiên |
 | ☐ | `AC-5.6` | Xuất báo cáo, mở bằng Excel, đối chiếu số | — | **Chưa chạy được** — Giai đoạn 6 và 7 |
 | ☐ | `AC-10.1` | 50 người thao tác đồng thời | — | **Chưa chạy được** — chưa chọn công cụ, backlog K6 |
@@ -132,7 +135,7 @@ Chạy trước mỗi lần bàn giao. Máy không làm được những việc 
 | ☐ | Phục hồi từ bản sao lưu | **Chưa** — Giai đoạn 8 |
 | ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | Chạy được, chưa thử |
 
-**Bốn trong mười bốn việc chưa chạy được** vì tính năng chưa có. Ghi rõ ở đây
+**Tám trong mười bốn việc chưa chạy được** vì tính năng chưa có. Ghi rõ ở đây
 thay vì để trống — không phải bỏ sót.
 
 ---
