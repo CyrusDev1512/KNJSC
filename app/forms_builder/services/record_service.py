@@ -16,6 +16,7 @@ from django.db import transaction
 from core.audit import record
 from core.constants import AuditAction
 from core.exceptions import BusinessError
+from core.money import parse_money
 
 from ..meaning import FieldType
 from ..models import DataRecord
@@ -44,8 +45,10 @@ def parse_value(column, raw):
         if kieu == FieldType.INTEGER:
             return int(str(raw).replace(".", "").replace(",", "").replace(" ", ""))
         if kieu in (FieldType.DECIMAL, FieldType.MONEY):
-            # Tiền và số thập phân luôn qua Decimal, không qua float (BR-8)
-            return str(Decimal(str(raw).replace(" ", "").replace(",", "")))
+            # Tiền và số thập phân luôn qua Decimal, không qua float (BR-8).
+            # Đọc theo tập quán Việt Nam để nhận lại được đúng thứ màn hình
+            # đang hiện — xem core.money.parse_money
+            return str(parse_money(raw))
         if kieu == FieldType.DATE:
             if isinstance(raw, (date, datetime)):
                 return raw.strftime("%Y-%m-%d")

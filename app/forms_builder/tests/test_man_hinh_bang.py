@@ -89,7 +89,11 @@ def test_admin_thay_bang_cua_moi_bo_phan(bang_sale, bang_mkt_khac, nguoi_dung):
 # ══ Màn hình danh sách bảng ════════════════════════════════════════
 
 def test_staff_vao_duoc_danh_sach_bang(client, bang_sale, nguoi_dung):
-    """AC-7.1 — Màn hình danh sách bảng có phân trang, mặc định 25 dòng"""
+    """FR-7.1 — Màn hình danh sách bảng có phân trang, mặc định 25 dòng
+
+    Không phải AC-7.1: tiêu chí đó đòi 50.000 bản ghi tải dưới 2 giây, cần
+    seed_perf.py của Giai đoạn 8. Bài này chỉ kiểm phân trang.
+    """
     client.force_login(nguoi_dung["staff_sale_1"])
     kq = client.get("/bang/")
     assert kq.status_code == 200

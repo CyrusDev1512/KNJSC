@@ -32,6 +32,16 @@ def test_staff_khong_xem_duoc_du_lieu_nguoi_khac():
 ```
 
 Nhờ vậy tìm được hai chiều: từ tài liệu ra mã, và từ mã về tài liệu.
+Bài `app/tests/test_truy_vet.py` kiểm điều này tự động, nên quy ước không
+trôi được: tiêu chí Tự động nào chưa có bài kiểm là đỏ ngay.
+
+**Mã ở đầu docstring mới tính.** Nhắc tới một mã ở giữa lời giải thích chỉ là
+chú thích, không phải lời khẳng định bài đó kiểm tiêu chí này.
+
+**Bài kiểm ghi mã quy tắc thay vì mã tiêu chí là hợp lệ.** Nhiều bài kiểm quy
+tắc nghiệp vụ (`BR-`), yêu cầu chức năng (`FR-`), quyết định kiến trúc (`ADR-`)
+hoặc quy tắc trong `CLAUDE.md` — chúng không tương ứng tiêu chí nghiệm thu nào,
+và đó là chuyện bình thường.
 
 ---
 
@@ -154,7 +164,7 @@ Mỗi ô là một bài kiểm thử. Chín vai trò nhân với các đường 
 
 | Mã | Tiêu chí | Yêu cầu | Loại |
 |---|---|---|---|
-| AC-8.1 | Manager tạo biểu mẫu mới, biểu mẫu xuất hiện cho người được phân quyền | FR-8.1 | Thủ công |
+| AC-8.1 | Manager tạo biểu mẫu mới, biểu mẫu xuất hiện cho người được phân quyền | FR-8.1 | Tự động |
 | AC-8.2 | Trường đánh dấu bắt buộc thì không gửi được nếu bỏ trống | FR-8.2 | Tự động |
 | AC-8.3 | Dữ liệu từ biểu mẫu ghi đúng vào bảng đích đã chọn | FR-8.3 | Tự động |
 | AC-8.4 | Người không được phân quyền không thấy biểu mẫu đó | FR-8.4 | Tự động |
@@ -182,6 +192,9 @@ Mỗi ô là một bài kiểm thử. Chín vai trò nhân với các đường 
 | AC-10.1 | 50 người dùng thao tác đồng thời, không có yêu cầu nào quá 3 giây | NFR-2 | Thủ công |
 | AC-10.2 | Màn hình danh sách chạy không quá 10 lệnh truy vấn | Q2 | Tự động |
 | AC-10.3 | Gặp lỗi thì hiện thông báo tiếng Việt, không hiện trang trắng | NFR-6 | Thủ công |
+
+> `AC-10.3` giữ **Thủ công** vì phần trang lỗi 404 và 500 chưa làm (backlog **K9**).
+> Phần lỗi nhập liệu đã có bài kiểm tự động, ghi mã `NFR-6` trong docstring.
 | AC-10.4 | Giao diện dùng được trên điện thoại và máy tính bảng | NFR-7 | Thủ công |
 | AC-10.5 | Phục hồi thành công từ bản sao lưu trên môi trường thử | NFR-10 | Thủ công |
 | AC-10.6 | Bản sao lưu tự động chỉ giữ tối đa 30 bản gần nhất | NFR-15 | Tự động |

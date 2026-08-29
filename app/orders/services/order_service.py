@@ -17,6 +17,7 @@ from django.utils import timezone
 from core.audit import record
 from core.constants import AuditAction, Currency
 from core.exceptions import BusinessError
+from core.money import parse_money
 
 from ..constants import Market, PaymentMethod
 from ..models import Customer, Order, OrderLine, Product
@@ -55,7 +56,7 @@ def customer_notice(phone):
 def _tien(gia_tri, ten_o):
     """Đổi chuỗi người dùng gõ sang Decimal — BR-8, không qua số thực."""
     try:
-        return Decimal(str(gia_tri).replace(" ", "").replace(",", ""))
+        return parse_money(gia_tri)
     except (InvalidOperation, TypeError, ValueError):
         raise BusinessError(f"Giá trị {gia_tri} ở ô {ten_o} không phải số tiền.")
 

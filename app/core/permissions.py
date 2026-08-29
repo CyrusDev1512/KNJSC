@@ -35,11 +35,42 @@ def in_department(user, department_id):
     return scope.all_departments or department_id in scope.department_ids
 
 
+def in_departments(user, codes):
+    """Người này có thuộc một trong các bộ phận đó không.
+
+    `codes` là tuple tên kỹ thuật của bộ phận, hoặc None nghĩa là không giới
+    hạn. Quản trị viên luôn đúng.
+
+    Dùng cho màn hình chỉ thuộc về một bộ phận — ví dụ Lên đơn là của Sale,
+    theo ma trận kiểm chéo ở `docs/04` mục 3.
+    """
+    if not codes:
+        return True
+    if is_admin(user):
+        return True
+    ho_so = getattr(user, "profile", None)
+    bo_phan = getattr(ho_so, "department", None)
+    return bo_phan is not None and bo_phan.code in codes
+
+
 def assert_rank(user, minimum, request=None):
     """Chặn nếu cấp bậc thấp hơn mức yêu cầu."""
     if not has_rank(user, minimum):
         record_denied(user, getattr(request, "path", ""), request)
         raise OutOfScopeError()
+
+
+def assert_departments(user, codes, request=None):
+    """Chặn nếu người này không thuộc bộ phận được phép vào màn hình.
+
+    Kiểm ở máy chủ, không phải chỉ ẩn mục trên thanh điều hướng — nguyên tắc
+    P1 và FR-3.6. Gọi thẳng đường dẫn vẫn phải bị chặn.
+    """
+    if not in_departments(user, codes):
+        record_denied(user, getattr(request, "path", ""), request)
+        raise OutOfScopeError(
+            "Màn hình này chỉ dành cho bộ phận khác."
+        )
 
 
 def assert_can_view(user, obj, request=None):

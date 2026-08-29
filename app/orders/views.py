@@ -13,6 +13,8 @@ from django.views.decorators.http import require_POST
 
 from core.constants import Currency
 from core.exceptions import BusinessError
+from core.navigation import SALES_ONLY
+from core.permissions import assert_departments
 from core.pagination import PAGE_SIZES, page_size, paginate
 
 from .constants import Market, PaymentMethod
@@ -52,6 +54,9 @@ def _doc_cac_dong(request):
 def len_don(request):
     """Lên một đơn hàng mới — FR-6.1, FR-6.2, FR-6.3."""
     request.nav_current = "len_don"
+    # Lên đơn là chức năng của Sale — ma trận kiểm chéo `docs/04` mục 3 ghi rõ
+    # Vận đơn bị từ chối. Kiểm ở máy chủ, không chỉ ẩn mục trên thanh bên (P1)
+    assert_departments(request.user, SALES_ONLY, request)
 
     du_lieu = request.POST if request.method == "POST" else {}
     loi = []
@@ -110,6 +115,7 @@ def kiem_khach(request):
 def don_hang(request):
     """Danh sách đơn trong phạm vi quyền — FR-6.5."""
     request.nav_current = "don_hang"
+    assert_departments(request.user, SALES_ONLY, request)
 
     ds = order_service.orders_of(request.user)
     tim = request.GET.get("tim", "").strip()

@@ -300,8 +300,14 @@ def _loi_dau_tien(form):
 
 @login_required
 def bieu_mau(request):
-    """Danh sách biểu mẫu và thư viện định nghĩa trường."""
+    """Danh sách biểu mẫu và thư viện định nghĩa trường.
+
+    Đây là màn hình **quản lý**, không phải chỗ nhân viên vào điền. Ma trận
+    kiểm chéo `docs/04` mục 3 ghi rõ chỉ Manager trở lên vào được.
+    Nhân viên điền biểu mẫu qua màn hình Nộp báo cáo ngày.
+    """
     request.nav_current = "bieu_mau"
+    assert_rank(request.user, Rank.MANAGER, request)
 
     ds = (FormDef.objects.in_scope(request.user)
           .select_related("department", "table", "created_by", "created_by__profile")

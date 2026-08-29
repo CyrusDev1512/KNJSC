@@ -9,7 +9,11 @@ quyền phải kiểm ở máy chủ. Ẩn ở đây chỉ để đỡ rối m�
 from dataclasses import dataclass, field
 
 from .constants import Rank
-from .permissions import has_rank
+from .permissions import has_rank, in_departments
+
+#: Lên đơn là chức năng của bộ phận Sale — `docs/04` mục 3 ghi rõ Vận đơn
+#: bị từ chối ở màn hình này.
+SALES_ONLY = ("sale",)
 
 
 @dataclass(frozen=True)
@@ -18,6 +22,10 @@ class NavItem:
     label: str
     url_name: str
     min_rank: str = Rank.STAFF
+    #: Tên kỹ thuật của các bộ phận vào được. None nghĩa là mọi bộ phận.
+    #: Dùng cho màn hình chỉ thuộc về một bộ phận, ví dụ Lên đơn là của Sale
+    #: — xem ma trận kiểm chéo ở `docs/04` mục 3.
+    departments: tuple = None
 
 
 @dataclass(frozen=True)
@@ -39,12 +47,12 @@ NAVIGATION = (
         NavItem("bao_cao_lich_su", "Lịch sử báo cáo", "bao_cao_lich_su"),
     )),
     NavGroup("Đơn hàng", (
-        NavItem("len_don", "Lên đơn", "len_don"),
-        NavItem("don_hang", "Đơn hàng", "don_hang"),
+        NavItem("len_don", "Lên đơn", "len_don", departments=SALES_ONLY),
+        NavItem("don_hang", "Đơn hàng", "don_hang", departments=SALES_ONLY),
     )),
     NavGroup("Dữ liệu", (
         NavItem("bang", "Bảng dữ liệu", "bang"),
-        NavItem("bieu_mau", "Biểu mẫu", "bieu_mau"),
+        NavItem("bieu_mau", "Biểu mẫu", "bieu_mau", Rank.MANAGER),
     )),
     NavGroup("Quản trị", (
         NavItem("nhat_ky", "Nhật ký hoạt động", "nhat_ky", Rank.MANAGER),
@@ -57,7 +65,10 @@ def visible_navigation(user):
     """Các nhóm và mục người này được vào. Nhóm rỗng thì bỏ luôn."""
     ket_qua = []
     for group in NAVIGATION:
-        items = [m for m in group.items if has_rank(user, m.min_rank)]
+        items = [
+            m for m in group.items
+            if has_rank(user, m.min_rank) and in_departments(user, m.departments)
+        ]
         if items:
             ket_qua.append({"label": group.label, "items": items})
     return ket_qua

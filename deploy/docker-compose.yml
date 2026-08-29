@@ -48,6 +48,8 @@ services:
     volumes:
       - ../app:/app
       - ../storage:/storage
+      # Chỉ đọc: bài kiểm truy vết đọc docs/04 để đối chiếu mã tiêu chí
+      - ../docs:/docs:ro
     ports:
       - "8020:8000"
     depends_on:

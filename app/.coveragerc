@@ -1,0 +1,28 @@
+# Cấu hình đo bao phủ kiểm thử.
+#
+# Đo để **biết chỗ hổng**, không phải để đạt một con số. Backlog K5 chốt
+# 29.08.2026: không đặt ngưỡng chặn, vì ngưỡng đẻ ra bài kiểm viết cho đủ số
+# chứ không bắt được lỗi gì.
+
+[run]
+source = .
+branch = True
+omit =
+    */migrations/*
+    */tests/*
+    tests/*
+    manage.py
+    knjsc/settings/*
+    knjsc/wsgi.py
+    knjsc/asgi.py
+    knjsc/celery.py
+
+[report]
+show_missing = True
+skip_covered = True
+exclude_lines =
+    pragma: khong do
+    def __str__
+    def __repr__
+    raise NotImplementedError
+    if TYPE_CHECKING:
