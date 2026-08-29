@@ -160,7 +160,7 @@ svg{display:block;width:100%;height:auto}
 <text class="s" x="242" y="475" text-anchor="middle">org &#160;·&#160; bộ phận · team · cấp bậc · tài khoản</text>
 
 <rect class="bx-gray" x="456" y="458" width="404" height="26" rx="6"/>
-<text class="s" x="658" y="475" text-anchor="middle">core &#160;·&#160; xác thực · phân quyền · nhật ký · sao lưu</text>
+<text class="s" x="658" y="475" text-anchor="middle">core &#160;·&#160; xác thực · phạm vi quyền · nhật ký · sao lưu</text>
 
 <text class="lbl" x="40" y="504">Chiều gọi: dashboard → crm, reports → forms_builder → org → core. Không có vòng ngược.</text>
 
@@ -248,29 +248,36 @@ svg{display:block;width:100%;height:auto}
 
 <section>
 <div class="snum">02</div>
-<h2>Sáu module trong mã nguồn</h2>
+<h2>Bảy module trong mã nguồn</h2>
 <p class="sub">Mũi tên chỉ chiều gọi. Module trên gọi module dưới, không có vòng ngược.</p>
 
-<svg viewBox="0 0 900 470" role="img" aria-label="Sơ đồ sáu module và chiều phụ thuộc giữa chúng">
+<svg viewBox="0 0 900 470" role="img" aria-label="Sơ đồ bảy module và chiều phụ thuộc giữa chúng">
 <rect class="bx-gray" x="290" y="10" width="320" height="54" rx="8"/>
 <text class="t" x="450" y="32" text-anchor="middle">dashboard</text>
 <text class="s" x="450" y="50" text-anchor="middle">tổng quan · chỉ đọc, không sở hữu dữ liệu</text>
 
-<path class="ln" d="M370 64 L370 82 Q370 92 355 92 L215 92 Q200 92 200 102 L200 118" marker-end="url(#ar)"/>
-<path class="ln" d="M530 64 L530 82 Q530 92 545 92 L685 92 Q700 92 700 102 L700 118" marker-end="url(#ar)"/>
+<path class="ln" d="M370 64 L370 82 Q370 92 355 92 L180 92 Q165 92 165 102 L165 118" marker-end="url(#ar)"/>
+<line class="ln" x1="450" y1="64" x2="450" y2="118" marker-end="url(#ar)"/>
+<path class="ln" d="M530 64 L530 82 Q530 92 545 92 L720 92 Q735 92 735 102 L735 118" marker-end="url(#ar)"/>
 
-<rect class="bx-pur" x="70" y="122" width="260" height="78" rx="8"/>
-<text class="t t-pur" x="200" y="146" text-anchor="middle">crm</text>
-<line x1="90" y1="158" x2="310" y2="158" stroke="#AFA9EC" stroke-width="0.8"/>
-<text class="s" x="200" y="178" text-anchor="middle">khách hàng · đơn hàng · sản phẩm</text>
+<rect class="bx-cor" x="40" y="122" width="250" height="78" rx="8"/>
+<text class="t t-cor" x="165" y="146" text-anchor="middle">orders</text>
+<line x1="60" y1="158" x2="270" y2="158" stroke="#E08A6B" stroke-width="0.8"/>
+<text class="s" x="165" y="178" text-anchor="middle">đơn hàng · dòng sản phẩm · danh mục</text>
 
-<rect class="bx-amb" x="570" y="122" width="260" height="78" rx="8"/>
-<text class="t t-amb" x="700" y="146" text-anchor="middle">reports</text>
-<line x1="590" y1="158" x2="810" y2="158" stroke="#EF9F27" stroke-width="0.8"/>
-<text class="s" x="700" y="178" text-anchor="middle">báo cáo ngày · báo cáo tổng hợp</text>
+<rect class="bx-pur" x="325" y="122" width="250" height="78" rx="8"/>
+<text class="t t-pur" x="450" y="146" text-anchor="middle">crm</text>
+<line x1="345" y1="158" x2="555" y2="158" stroke="#AFA9EC" stroke-width="0.8"/>
+<text class="s" x="450" y="178" text-anchor="middle">khách hàng · bảng tính, tách app sau</text>
 
-<path class="ln" d="M200 200 L200 224 Q200 234 215 234 L435 234 Q450 234 450 244 L450 258" marker-end="url(#ar)"/>
-<path class="ln" d="M700 200 L700 224 Q700 234 685 234 L465 234 Q450 234 450 244 L450 258" marker-end="url(#ar)"/>
+<rect class="bx-amb" x="610" y="122" width="250" height="78" rx="8"/>
+<text class="t t-amb" x="735" y="146" text-anchor="middle">reports</text>
+<line x1="630" y1="158" x2="840" y2="158" stroke="#EF9F27" stroke-width="0.8"/>
+<text class="s" x="735" y="178" text-anchor="middle">báo cáo ngày · báo cáo tổng hợp</text>
+
+<path class="ln" d="M165 200 L165 224 Q165 234 180 234 L435 234 Q450 234 450 244 L450 258" marker-end="url(#ar)"/>
+<line class="ln" x1="450" y1="200" x2="450" y2="258" marker-end="url(#ar)"/>
+<path class="ln" d="M735 200 L735 224 Q735 234 720 234 L465 234 Q450 234 450 244 L450 258" marker-end="url(#ar)"/>
 
 <rect class="bx-teal" x="290" y="262" width="320" height="78" rx="8"/>
 <text class="t t-teal" x="450" y="286" text-anchor="middle">forms_builder</text>
@@ -286,11 +293,11 @@ svg{display:block;width:100%;height:auto}
 <line class="ln" x1="450" y1="418" x2="450" y2="436" marker-end="url(#ar)"/>
 
 <rect class="bx-gray" x="150" y="440" width="600" height="24" rx="6"/>
-<text class="t" x="450" y="456" text-anchor="middle">core &#160;·&#160; <tspan class="s">xác thực · phân quyền · nhật ký · sao lưu</tspan></text>
+<text class="t" x="450" y="456" text-anchor="middle">core &#160;·&#160; <tspan class="s">xác thực · phạm vi quyền · nhật ký · sao lưu</tspan></text>
 </svg>
 
 <div class="note">
-<b>Vì sao crm gọi forms_builder.</b> Khi Sale lưu đơn, hệ thống ghi một dòng sang bảng vận đơn — mà bảng đó do người dùng tự tạo. Không có chiều ngược lại.
+<b>Vì sao orders gọi forms_builder.</b> Khi Sale lưu đơn, hệ thống ghi một dòng sang bảng vận đơn — mà bảng đó do người dùng tự tạo. Không có chiều ngược lại.
 </div>
 </section>
 
