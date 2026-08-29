@@ -252,7 +252,10 @@ def test_cong_mot_nghin_dong_tien_khong_sai_so():
 
 # ══ AC-10.2 · Màn hình danh sách không quá 10 lệnh truy vấn ════════
 
-@pytest.mark.parametrize("duong_dan", ["/nhan-su/", "/nhat-ky/", "/bo-phan/"])
+@pytest.mark.parametrize(
+    "duong_dan",
+    ["/nhan-su/", "/nhat-ky/", "/bo-phan/", "/bang/", "/ma-tran-quyen/"],
+)
 def test_man_hinh_danh_sach_khong_qua_muoi_lenh_truy_van(
     client, nguoi_dung, django_assert_max_num_queries, duong_dan,
 ):

@@ -73,6 +73,7 @@ Nhờ vậy tìm được hai chiều: từ tài liệu ra mã, và từ mã v�
 | AC-3.5 | Manager không thấy bản ghi của bộ phận khác | FR-3.4 | Tự động |
 | AC-3.6 | Truy cập dữ liệu ngoài phạm vi trả về lỗi từ chối, không phải danh sách rỗng | FR-3.5 | Tự động |
 | AC-3.7 | Gọi thẳng đường dẫn không qua giao diện vẫn bị kiểm quyền | FR-3.6 | Tự động |
+| AC-3.8 | Quản trị viên thấy dữ liệu của mọi bộ phận | FR-3.3 · cấp bậc thứ tư | Tự động |
 
 ### Ma trận kiểm chéo
 
@@ -143,6 +144,9 @@ Mỗi ô là một bài kiểm thử. Chín vai trò nhân với các đường 
 | AC-7.7 | **Xuất ra tệp Excel rồi nhập lại chính tệp đó thì không phát sinh lỗi** | FR-7.7 | Tự động |
 | AC-7.8 | Tệp vượt 10 MB bị từ chối với thông báo rõ ràng | NFR-11 | Tự động |
 | AC-7.9 | Tệp không đúng định dạng cho phép bị từ chối | NFR-12 | Tự động |
+| AC-7.10 | Cột tính sẵn cho ra đúng kết quả, đối chiếu với số liệu thật của khách hàng | FR-7.8 · ADR-006 | Tự động |
+| AC-7.11 | Chia cho không hoặc thiếu toán hạng thì cột tính sẵn để trống, không hỏng cả dòng | FR-7.8 · ADR-006 | Tự động |
+| AC-7.12 | Đổi công thức của một cột thì bản ghi cũ được tính lại, không còn giữ số cũ | FR-7.8 · ADR-006 | Tự động |
 
 ---
 
@@ -222,6 +226,6 @@ Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ 
 
 | # | Nội dung | Ảnh hưởng |
 |---|---|---|
-| 1 | Tiêu chí cho công thức trên bảng | Bổ sung khi chốt mục 11 của `02-yeu-cau-san-pham.md` |
+| 1 | ~~Tiêu chí cho công thức trên bảng~~ | Đã chốt 29.08.2026 — ADR-006, thành AC-7.10 tới AC-7.12 |
 | 2 | Số lượng bài kiểm thử tự động tối thiểu | Có nên đặt ngưỡng tỉ lệ bao phủ không |
 | 3 | Công cụ đo hiệu năng khi kiểm AC-10.1 | Chưa chọn |

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block tieu_de %}Cột · {{ bang.name }} · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Cột của {{ bang.name }}{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Module forms_builder · ADR-001 · ADR-006 · ADR-007</div>
+    <h1>Cột của bảng {{ bang.name }}</h1>
+    <p>Cột mang nhãn ý nghĩa được tách sang cột riêng có chỉ mục. Cột tính sẵn chọn phép tính, không gõ công thức.</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut" href="{% url 'bang' %}">Danh sách bảng</a>
+    <a class="nut nut-chinh" href="{% url 'bang_xem' bang.code %}">Xem dữ liệu</a>
+  </div>
+</div>
+
+<div class="luoi luoi-2cot">
+
+  <div class="the">
+    <div class="the-dau">
+      <h2>Cột đã có</h2>
+      <div class="phai nho mo-nhat">{{ cac_cot|length }} cột</div>
+    </div>
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead>
+          <tr><th class="phai">#</th><th>Nhãn hiển thị</th><th>Tên kỹ thuật</th>
+              <th>Kiểu</th><th>Nhãn ý nghĩa</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for c in cac_cot %}
+            <tr {% if dang_sua and dang_sua.pk == c.pk %}class="hien-tai"{% endif %}>
+              <td class="tien">{{ c.order }}</td>
+              <td>
+                {{ c.name }}
+                {% if c.required %}<span class="chip chip-nhat"><i></i>Bắt buộc</span>{% endif %}
+                {% if c.is_computed %}<span class="chip chip-nhan"><i></i>Tính sẵn</span>{% endif %}
+              </td>
+              <td class="ma-o">{{ c.code }}</td>
+              <td class="nho">{{ c.get_field_type_display }}</td>
+              <td class="nho">
+                {% if c.meaning %}{{ c.get_meaning_display }}<br><span class="ma-o nho">{{ c.storage_column }}</span>
+                {% else %}<span class="mo-nhat">— trong JSON —</span>{% endif %}
+              </td>
+              <td class="phai">
+                <div class="hang" style="gap:var(--sp-2);justify-content:flex-end">
+                  <a class="nut nut-nho" href="?cot={{ c.pk }}">Sửa</a>
+                  <form method="post" action="{% url 'bang_xoa_cot' bang.code c.pk %}">
+                    {% csrf_token %}
+                    <button class="nut nut-nho nut-nguy" type="submit">Bỏ</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6">
+              {% include "components/rong.html" with rong_tieu_de="Bảng chưa có cột nào" rong_mo_ta="Thêm cột đầu tiên ở khung bên cạnh." %}
+            </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="the">
+    <div class="the-dau">
+      <h2>{% if dang_sua %}Sửa cột {{ dang_sua.name }}{% else %}Thêm cột{% endif %}</h2>
+      {% if dang_sua %}<div class="phai"><a class="nut nut-nho" href="{% url 'bang_cot' bang.code %}">Thêm cột mới</a></div>{% endif %}
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="bao bao-xau" style="margin:var(--sp-4)">
+        <span class="bao-ic">!</span>
+        <div>
+          <b>Chưa lưu được</b>
+          {% for loi in form.non_field_errors %}<p>{{ loi }}</p>{% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <form class="the-than bm" method="post" id="bm-cot">
+      {% csrf_token %}
+      {% for truong in form %}
+        <div class="truong {% if truong.errors %}co-loi{% endif %}">
+          <label for="{{ truong.id_for_label }}">
+            {{ truong.label }}{% if truong.field.required %} <span class="bat-buoc">*</span>{% endif %}
+            <span class="ky-thuat">{{ truong.name }}</span>
+          </label>
+          {{ truong|safe }}
+          {% if truong.help_text %}<span class="goi-y">{{ truong.help_text }}</span>{% endif %}
+          {% for loi in truong.errors %}<span class="loi-truong">{{ loi }}</span>{% endfor %}
+        </div>
+      {% endfor %}
+    </form>
+    <div class="the-chan">
+      <span class="nho mo-nhat">Đổi công thức thì bản ghi cũ được tính lại</span>
+      <div class="day hang">
+        <button class="nut nut-chinh" type="submit" form="bm-cot">Lưu cột</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll(".bm input, .bm select, .bm textarea").forEach(function (o) {
+    if (o.type !== "checkbox" && o.type !== "hidden") o.classList.add("o-nhap");
+  });
+</script>
+
+{% endblock %}

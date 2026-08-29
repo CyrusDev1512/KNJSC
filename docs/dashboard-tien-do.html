@@ -659,20 +659,22 @@ const GIAI_DOAN = [
   {
     id: 3, ten: "Biểu mẫu và bảng động", mod: "forms_builder", trongSo: 20, rui_ro: true,
     viec: [
-      { t: "FieldDef — tên, kiểu dữ liệu, nhãn ý nghĩa", tt: "chua" },
-      { t: "meaning.py — chốt danh sách nhãn ý nghĩa", tt: "chua", chan: "K3" },
-      { t: "FormDef và trình tạo biểu mẫu", tt: "chua", note: "FR-8.x" },
-      { t: "TableDef, ColumnDef và trình tạo bảng", tt: "chua" },
-      { t: "FormTableLink — nối biểu mẫu với bảng đích, kiểm kiểu", tt: "chua", chan: "K2" },
-      { t: "DataRecord — JSONField cộng cột tách cho nhãn ý nghĩa", tt: "chua", note: "ADR-001" },
-      { t: "Chỉ mục GIN trên cột JSON dùng để lọc", tt: "chua", note: "quy tắc 12" },
-      { t: "query.py — dựng truy vấn động, lọc và sắp xếp", tt: "chua" },
-      { t: "Bảng dữ liệu: hiển thị và phân trang 25 dòng", tt: "chua", note: "Q4" },
-      { t: "Bảng dữ liệu: lọc và tìm kiếm, cột lọc có chỉ mục", tt: "chua", note: "quy tắc 9" },
-      { t: "Bảng dữ liệu: sửa từng ô bằng HTMX", tt: "chua" },
-      { t: "Cột tính sẵn — bảy công thức đã tìm thấy trong tệp thật", tt: "chua", chan: "K1" },
-      { t: "Phân quyền theo từng bảng", tt: "chua" },
-      { t: "Kiểm thử: kiểm kiểu khi nối, truy vấn động, phạm vi quyền", tt: "chua" }
+      { t: "ColumnDef — tên, kiểu dữ liệu, nhãn ý nghĩa", tt: "xong" },
+      { t: "meaning.py — bảy nhãn ý nghĩa đã chốt", tt: "xong", note: "ADR-007" },
+      { t: "TableDef, ColumnDef và màn hình tạo bảng", tt: "xong", note: "FR-8.1" },
+      { t: "DataRecord — JSONField cộng cột tách cho nhãn ý nghĩa", tt: "xong", note: "ADR-001" },
+      { t: "Chỉ mục GIN trên cột JSON dùng để lọc", tt: "xong", note: "quy tắc 12" },
+      { t: "query.py — dựng truy vấn động, lọc và sắp xếp", tt: "xong" },
+      { t: "Cột tính sẵn — bảy công thức trong tệp thật", tt: "xong", note: "ADR-006" },
+      { t: "Tầng dịch vụ: tạo bảng, thêm cột, thêm và sửa bản ghi", tt: "xong", note: "BR-5" },
+      { t: "Bảng dữ liệu: hiển thị và phân trang 25 dòng", tt: "xong", note: "Q4" },
+      { t: "Bảng dữ liệu: lọc và tìm kiếm, cột lọc có chỉ mục", tt: "xong", note: "quy tắc 9" },
+      { t: "Bảng dữ liệu: sửa từng ô bằng HTMX", tt: "xong", note: "FR-7.4" },
+      { t: "Ma trận phân quyền, bản chỉ đọc sinh từ mã nguồn", tt: "xong" },
+      { t: "FormDef và trình tạo biểu mẫu", tt: "chua", note: "phần 3B · FR-8.2" },
+      { t: "FormTableLink — nối biểu mẫu với bảng đích, kiểm kiểu", tt: "chua", note: "phần 3B · FR-8.6" },
+      { t: "Phân quyền theo từng bảng và từng biểu mẫu", tt: "chua", note: "phần 3B · FR-8.4" },
+      { t: "Kiểm thử: truy vấn động, phạm vi quyền, sửa ô", tt: "dang", note: "45 bài, còn phần 3B" }
     ]
   },
   {

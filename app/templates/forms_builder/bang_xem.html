@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block tieu_de %}{{ bang.name }} · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}{{ bang.name }}{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">FR-7.1 tới FR-7.4 · {{ bang.department }}</div>
+    <h1>{{ bang.name }}</h1>
+    <p>{{ bang.description|default:"Danh sách đã lọc theo phạm vi quyền của bạn." }}</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut" href="{% url 'bang' %}">Danh sách bảng</a>
+    {% if duoc_sua %}<a class="nut" href="{% url 'bang_cot' bang.code %}">Sửa cột</a>{% endif %}
+  </div>
+</div>
+
+<div class="bang-hop">
+  {# Chỉ cột mang nhãn ý nghĩa mới cho lọc — cột đó có chỉ mục (quy tắc 9) #}
+  <form class="loc" method="get">
+    <div class="truong o-tim">
+      <label for="tim">Tìm kiếm</label>
+      <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Khách hàng, số điện thoại, người bán, sản phẩm">
+    </div>
+    {% for o in cac_cot_loc %}
+      <div class="truong">
+        <label for="f_{{ o.cot.code }}">{{ o.cot.name }}</label>
+        <input class="o-nhap" id="f_{{ o.cot.code }}" name="f_{{ o.cot.code }}"
+               value="{{ o.gia_tri }}" placeholder="{{ o.cot.get_field_type_display }}">
+      </div>
+    {% endfor %}
+    <div class="loc-nut">
+      <a class="nut nut-nho" href="{% url 'bang_xem' bang.code %}">Xoá lọc</a>
+      <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
+    </div>
+  </form>
+
+  <div class="bang-cuon">
+    <table class="bang">
+      <thead>
+        <tr>
+          {% for c in cac_cot %}
+            <th class="sap-xep {% if c.field_type == 'money' or c.field_type == 'integer' or c.field_type == 'decimal' %}phai{% endif %}">
+              <a href="?sap={{ c.code }}{% if sap_xep == c.code and not giam_dan %}&chieu=giam{% endif %}">
+                {{ c.name }}
+                <span class="mui">{% if sap_xep == c.code %}{% if giam_dan %}↓{% else %}↑{% endif %}{% else %}↕{% endif %}</span>
+              </a>
+            </th>
+          {% endfor %}
+          <th>Người tạo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ban_ghi, cac_o in cac_dong %}
+          <tr>
+            {% for cot, gia_tri in cac_o %}
+              {% include "forms_builder/_o.html" %}
+            {% endfor %}
+            <td class="nho">{{ ban_ghi.created_by.username|default:"—" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="{{ cac_cot|length|add:1 }}">
+            {% include "components/rong.html" with rong_tieu_de="Chưa có dòng nào" rong_mo_ta="Bảng đã tạo nhưng chưa có dữ liệu. Biểu mẫu nhập liệu sẽ có ở phần 3B." %}
+          </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% include "components/phan_trang.html" %}
+</div>
+
+{% if duoc_sua %}
+  <p class="nho mo-nhat" style="margin-top:var(--sp-3)">
+    Bấm vào ô để sửa, nhấn Enter hoặc bấm ra ngoài để lưu. Cột tính sẵn không sửa tay được.
+  </p>
+{% endif %}
+
+{% endblock %}
+
+{% block cuoi_trang %}
+<script>
+  /* Ô trên bảng: Enter hoặc rời ô thì bắn sự kiện "sua" cho HTMX gửi đi.
+     Không gửi khi giá trị không đổi — tránh ghi nhật ký rác. */
+  document.addEventListener("focusin", function (e) {
+    if (e.target.matches(".o-trong-bang")) e.target.dataset.goc = e.target.value;
+  });
+  function gui(o) {
+    if (o.value === o.dataset.goc) return;
+    o.dataset.goc = o.value;
+    o.closest("td").dispatchEvent(new Event("sua"));
+  }
+  document.addEventListener("focusout", function (e) {
+    if (e.target.matches(".o-trong-bang")) gui(e.target);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target.matches(".o-trong-bang")) {
+      e.preventDefault();
+      e.target.blur();
+    }
+  });
+</script>
+{% endblock %}

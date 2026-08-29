@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block tieu_de %}Bảng dữ liệu · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Bảng dữ liệu{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Module forms_builder · FR-8.1 · ADR-001</div>
+    <h1>Bảng dữ liệu</h1>
+    <p>Bảng do người dùng tự tạo. Cột mang nhãn ý nghĩa được tách ra cột riêng có chỉ mục.</p>
+  </div>
+  {% if duoc_sua %}
+    <div class="hanh-dong">
+      <a class="nut nut-chinh" href="{% url 'bang_moi' %}">Tạo bảng</a>
+    </div>
+  {% endif %}
+</div>
+
+<div class="bang-hop">
+  <form class="loc" method="get">
+    <div class="truong o-tim">
+      <label for="tim">Tìm kiếm</label>
+      <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Tên bảng">
+    </div>
+    <div class="loc-nut">
+      <a class="nut nut-nho" href="{% url 'bang' %}">Xoá lọc</a>
+      <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
+    </div>
+  </form>
+
+  <div class="bang-cuon">
+    <table class="bang">
+      <thead>
+        <tr>
+          <th>Tên bảng</th><th>Tên kỹ thuật</th><th>Bộ phận sở hữu</th>
+          <th class="phai">Số cột</th><th class="phai">Số dòng</th>
+          <th>Trạng thái</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in trang %}
+          <tr>
+            <td><a href="{% url 'bang_xem' b.code %}">{{ b.name }}</a></td>
+            <td class="ma-o">{{ b.code }}</td>
+            <td>{{ b.department }}</td>
+            <td class="tien">{{ b.so_cot }}</td>
+            <td class="tien">{{ b.so_dong }}</td>
+            <td>
+              {% if b.is_active %}
+                <span class="chip chip-tot"><i></i>Đang dùng</span>
+              {% else %}
+                <span class="chip chip-nhat"><i></i>Ngừng dùng</span>
+              {% endif %}
+            </td>
+            <td class="phai">
+              <div class="hang" style="gap:var(--sp-2);justify-content:flex-end">
+                <a class="nut nut-nho" href="{% url 'bang_xem' b.code %}">Xem</a>
+                {% if duoc_sua %}
+                  <a class="nut nut-nho" href="{% url 'bang_cot' b.code %}">Cột</a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7">
+            {% include "components/rong.html" with rong_tieu_de="Chưa có bảng nào" rong_mo_ta="Quản lý tạo bảng trước, rồi mới nhập dữ liệu vào." %}
+          </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% include "components/phan_trang.html" %}
+</div>
+
+{% endblock %}

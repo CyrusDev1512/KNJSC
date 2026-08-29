@@ -1,0 +1,22 @@
+{% comment %}
+Một ô trên bảng dữ liệu. Dùng cả khi vẽ bảng lần đầu lẫn khi HTMX trả về sau
+khi sửa — nên chỉ có đúng một nơi quyết định ô trông thế nào.
+
+Cần: bang, ban_ghi, cot, gia_tri, duoc_sua.
+{% endcomment %}
+{% if cot.is_computed %}
+  {# Cột tính sẵn không sửa tay được — ADR-006 #}
+  <td class="tien o-tinh" title="Cột tính sẵn, không sửa tay">{{ gia_tri|default:"—" }}</td>
+{% elif duoc_sua %}
+  <td class="o-sua"
+      hx-post="{% url 'bang_sua_o' bang.code ban_ghi.pk cot.code %}"
+      hx-trigger="sua"
+      hx-swap="outerHTML"
+      hx-include="this"
+      data-ma="{{ cot.code }}">
+    <input class="o-trong-bang" name="gia_tri" value="{{ gia_tri|default:'' }}"
+           aria-label="{{ cot.name }}">
+  </td>
+{% else %}
+  <td>{{ gia_tri|default:"—" }}</td>
+{% endif %}

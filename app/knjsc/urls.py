@@ -10,4 +10,5 @@ urlpatterns = [
     path("", include("core.urls")),
     path("", include("org.urls")),
     path("", include("dashboard.urls")),
+    path("", include("forms_builder.urls")),
 ]

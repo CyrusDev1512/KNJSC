@@ -50,7 +50,7 @@ def test_manager_khong_thay_bo_phan_khac(nguoi_dung):
 
 
 def test_admin_thay_tat_ca(nguoi_dung):
-    """AC-3.4 — Admin thấy toàn bộ hồ sơ ở mọi bộ phận"""
+    """AC-3.8 — Admin thấy toàn bộ hồ sơ ở mọi bộ phận"""
     thay = ten(UserProfile.objects.in_scope(nguoi_dung["admin"]))
     assert len(thay) == UserProfile.objects.count()
 
@@ -145,9 +145,13 @@ def test_thanh_dieu_huong_an_muc_ngoai_quyen(nguoi_dung):
     def cac_ma(user):
         return {m.code for nhom in visible_navigation(user) for m in nhom["items"]}
 
-    assert cac_ma(nguoi_dung["staff_sale_1"]) == {"tong_quan"}
+    # Staff chỉ vào được hai mục không đòi cấp bậc
+    assert cac_ma(nguoi_dung["staff_sale_1"]) == {"tong_quan", "bang"}
+    assert "nhan_su" not in cac_ma(nguoi_dung["staff_sale_1"])
     assert "nhan_su" in cac_ma(nguoi_dung["leader_sale_1"])
     assert "nhat_ky" in cac_ma(nguoi_dung["manager_sale"])
+    assert "ma_tran_quyen" in cac_ma(nguoi_dung["manager_sale"])
+    assert "ma_tran_quyen" not in cac_ma(nguoi_dung["leader_sale_1"])
     assert "bo_phan" not in cac_ma(nguoi_dung["manager_sale"])
     assert "bo_phan" in cac_ma(nguoi_dung["admin"])
 

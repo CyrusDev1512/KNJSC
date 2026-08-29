@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block tieu_de %}Ma trận phân quyền · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Ma trận phân quyền{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">AC-3.1 tới AC-3.8 · chỉ đọc</div>
+    <h1>Ma trận phân quyền</h1>
+    <p>Sinh thẳng từ mã nguồn, không chép tay — sửa quyền ở một chỗ là bảng này đổi theo.</p>
+  </div>
+</div>
+
+<div class="bang-hop">
+  <div class="bang-cuon">
+    <table class="bang">
+      <thead>
+        <tr>
+          <th>Màn hình</th>
+          {% for ma, nhan in cac_cap %}<th class="phai">{{ nhan }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for hang in cac_hang %}
+          {% if hang.la_nhom %}
+            <tr class="grp"><td colspan="{{ cac_cap|length|add:1 }}"><b>{{ hang.nhan }}</b></td></tr>
+          {% else %}
+            <tr>
+              <td>{{ hang.nhan }} <span class="ma-o nho">{{ hang.duong_dan }}</span></td>
+              {% for duoc in hang.cac_o %}
+                <td class="phai">
+                  {% if duoc %}<span class="o-ok">✓</span>{% else %}<span class="o-khong">✕</span>{% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="bao bao-cho" style="margin-top:var(--sp-4)">
+  <span class="bao-ic">?</span>
+  <div>
+    <b>Bảng này chỉ nói quyền vào màn hình</b>
+    <p>
+      Trong một màn hình, ai thấy dòng nào còn phụ thuộc phạm vi theo cấp bậc:
+      nhân viên thấy bản ghi của mình, trưởng nhóm thấy cả team, quản lý thấy cả
+      bộ phận. Phần đó áp ở tầng truy cập dữ liệu, không ở đây.
+    </p>
+  </div>
+</div>
+
+<style>
+  .o-ok { color: var(--good); font-family: var(--font-ma); font-weight: 700; }
+  .o-khong { color: var(--critical); font-family: var(--font-ma); font-weight: 700; }
+  tr.grp td { background: var(--surface-2); }
+</style>
+
+{% endblock %}

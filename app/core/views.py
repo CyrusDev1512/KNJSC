@@ -9,9 +9,10 @@ from django.db.models import Q
 from django.shortcuts import render
 from django.urls import reverse_lazy
 
-from .constants import AuditAction, Rank
+from .constants import AuditAction, Rank, rank_level
 from .forms import LoginForm
 from .models import AuditLog
+from .navigation import NAVIGATION
 from .pagination import PAGE_SIZES, page_size, paginate
 from .permissions import assert_rank
 from .services import auth_service
@@ -90,4 +91,30 @@ def nhat_ky(request):
         "ten_don_vi": "bản ghi",
         "hanh_dong": hanh_dong, "tim": tim,
         "cac_hanh_dong": AuditAction.choices,
+    })
+
+
+@login_required
+def ma_tran_quyen(request):
+    """Bảng tra "ai xem được gì", chỉ đọc.
+
+    Sinh thẳng từ `navigation.NAVIGATION` và `constants.RANK_LEVEL` nên không
+    bao giờ lệch với mã thật — sửa quyền ở một chỗ là bảng này đổi theo.
+    """
+    request.nav_current = "ma_tran_quyen"
+    assert_rank(request.user, Rank.MANAGER, request)
+
+    cac_cap = list(Rank.choices)
+    cac_hang = []
+    for nhom in NAVIGATION:
+        cac_hang.append({"la_nhom": True, "nhan": nhom.label})
+        for muc in nhom.items:
+            can = rank_level(muc.min_rank)
+            cac_hang.append({
+                "la_nhom": False, "nhan": muc.label, "duong_dan": muc.url_name,
+                "cac_o": [rank_level(ma) >= can for ma, _ in cac_cap],
+            })
+
+    return render(request, "core/ma_tran_quyen.html", {
+        "cac_cap": cac_cap, "cac_hang": cac_hang,
     })

@@ -93,7 +93,7 @@ def test_sua_ban_ghi_thi_cot_tach_cap_nhat_theo(bang_mkt, nguoi_dung):
 # ══ Cột tính sẵn — ADR-006 ═════════════════════════════════════════
 
 def test_cot_tinh_san_tinh_dung_theo_so_lieu_that(bang_mkt, nguoi_dung):
-    """AC-7.8 — Cột tính sẵn cho ra đúng số liệu trong tệp thật của khách hàng
+    """AC-7.10 — Cột tính sẵn cho ra đúng số liệu trong tệp thật của khách hàng
 
     Dòng đầu sheet BC MKT: CPQC 438.446.060, Số đơn 291, Số Mess 4.303.
     Bản của khách hàng ra CPO = 1.506.687 và tỉ lệ chốt = 6,76%.
@@ -108,14 +108,14 @@ def test_cot_tinh_san_tinh_dung_theo_so_lieu_that(bang_mkt, nguoi_dung):
 
 
 def test_chia_cho_khong_thi_de_trong_khong_no(bang_mkt, nguoi_dung):
-    """AC-7.8 — Chia cho không thì để trống, không làm hỏng cả dòng"""
+    """AC-7.11 — Chia cho không thì để trống, không làm hỏng cả dòng"""
     bg = tao_ban_ghi(bang_mkt, nguoi_dung["staff_mkt"], cpqc="1000", so_don=0)
     bg.refresh_from_db()
     assert bg.data["cpo"] is None
 
 
 def test_thieu_toan_hang_thi_de_trong(bang_mkt, nguoi_dung):
-    """AC-7.8 — Thiếu một toán hạng thì để trống chứ không hiện số sai"""
+    """AC-7.11 — Thiếu một toán hạng thì để trống chứ không hiện số sai"""
     bg = tao_ban_ghi(bang_mkt, nguoi_dung["staff_mkt"], cpqc="1000")
     bg.refresh_from_db()
     assert bg.data["cpo"] is None
@@ -261,7 +261,7 @@ def test_ban_ghi_van_theo_pham_vi_quyen(bang_mkt, departments, nguoi_dung):
 
 
 def test_admin_thay_moi_ban_ghi(bang_mkt, nguoi_dung):
-    """AC-3.4 — Admin thấy bản ghi của mọi bảng"""
+    """AC-3.8 — Quản trị viên thấy bản ghi của mọi bảng"""
     tao_ban_ghi(bang_mkt, nguoi_dung["staff_mkt"], so_mess=1)
     assert DataRecord.objects.in_scope(nguoi_dung["admin"]).count() == 1
 
@@ -277,14 +277,17 @@ def test_xoa_ban_ghi_la_danh_dau(bang_mkt, nguoi_dung):
 # ══ Bảy nhãn ý nghĩa ═══════════════════════════════════════════════
 
 def test_bay_nhan_dung_theo_adr_007():
-    """AC-8.2 — Bảy nhãn ý nghĩa đúng danh sách đã chốt ở ADR-007"""
+    """ADR-007 — Bảy nhãn ý nghĩa đúng danh sách đã chốt, theo docs/03 mục 2.5"""
     assert [m.value for m in Meaning] == [
         "date", "customer", "phone", "revenue", "seller", "product", "status",
     ]
 
 
 def test_nhan_biet_phep_tinh_nao_lam_duoc():
-    """AC-5.1 — Nhãn quyết định báo cáo tổng hợp tính được gì trên cột"""
+    """ADR-007 — Nhãn quyết định báo cáo tổng hợp tính được gì trên cột
+
+    Tiêu chí AC-5.1 thuộc Giai đoạn 6; bài này chỉ chốt bảng ánh xạ.
+    """
     assert can_sum(Meaning.REVENUE)
     assert not can_sum(Meaning.STATUS)
     assert can_group(Meaning.PRODUCT)

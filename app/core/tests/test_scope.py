@@ -55,7 +55,7 @@ def test_manager_khong_xem_duoc_bo_phan_khac(nguoi_dung, probes):
 
 
 def test_admin_xem_duoc_moi_bo_phan(nguoi_dung, probes):
-    """AC-3.4 — Admin có tất cả các quyền, xem được mọi bộ phận"""
+    """AC-3.8 — Admin có tất cả các quyền, xem được mọi bộ phận"""
     thay = tieu_de(ScopeProbe.objects.in_scope(nguoi_dung["admin"]))
     assert len(thay) == len(probes)
 

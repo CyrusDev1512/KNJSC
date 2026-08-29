@@ -19,6 +19,7 @@ from django.db import models
 from core.models import ScopedModel, TimestampedModel
 from core.money import MONEY_DECIMAL_PLACES, MONEY_MAX_DIGITS
 
+from .managers import AllTableDefManager, TableDefManager
 from .meaning import COLUMN_OF, FieldType, Meaning, allows
 
 CODE_HELP = "Tên kỹ thuật, tiếng Anh, dùng làm khoá trong cơ sở dữ liệu."
@@ -49,6 +50,11 @@ class TableDef(ScopedModel):
     SCOPE_OWNER_FIELD = "created_by"
     SCOPE_TEAM_FIELD = None          # bảng thuộc về bộ phận, không thuộc team
     SCOPE_DEPARTMENT_FIELD = "department"
+
+    # Định nghĩa bảng thì cả bộ phận nhìn thấy; phạm vi theo cấp bậc áp ở
+    # `DataRecord`, nơi có dữ liệu thật. Lý do đầy đủ ở forms_builder/managers.py
+    objects = TableDefManager()
+    all_objects = AllTableDefManager()
 
     name = models.CharField("Tên bảng", max_length=120)
     code = models.SlugField("Tên kỹ thuật", max_length=60, unique=True, help_text=CODE_HELP)
@@ -114,6 +120,13 @@ class ColumnDef(TimestampedModel):
         ordering = ["table", "order", "id"]
         constraints = [
             models.UniqueConstraint(fields=["table", "code"], name="column_code_unique_per_table"),
+            # Mỗi nhãn ý nghĩa chỉ được gán cho một cột trong mỗi bảng. Hai cột
+            # cùng mang nhãn Doanh thu thì `sync_indexed_columns` ghi đè lẫn
+            # nhau và số liệu mất âm thầm — xem meaning.UNIQUE_PER_TABLE
+            models.UniqueConstraint(
+                fields=["table", "meaning"], name="column_meaning_unique_per_table",
+                condition=~models.Q(meaning=""),
+            ),
         ]
 
     def __str__(self):
@@ -136,6 +149,18 @@ class ColumnDef(TimestampedModel):
                     "kieu": FieldType(self.field_type).label,
                 },
             )
+
+        if self.meaning:
+            trung = (
+                ColumnDef.objects.filter(table_id=self.table_id, meaning=self.meaning)
+                .exclude(pk=self.pk)
+                .first()
+            )
+            if trung is not None:
+                loi["meaning"] = ValidationError(
+                    'Nhãn %(nhan)s đã gán cho cột "%(cot)s" trong bảng này.',
+                    params={"nhan": Meaning(self.meaning).label, "cot": trung.name},
+                )
 
         if self.is_computed:
             if not self.compute_op:
@@ -283,11 +308,20 @@ class DataRecord(ScopedModel):
         màn hình vẫn hiện đúng — kiểu lỗi khó phát hiện nhất.
         """
         columns = columns if columns is not None else self.table.columns.all()
+        con_dung = set()
         for cot in columns:
             dich = COLUMN_OF.get(cot.meaning) if cot.meaning else None
             if not dich:
                 continue
             setattr(self, dich, _normalise(self.data.get(cot.code), dich))
+            con_dung.add(dich)
+
+        # Nhãn không còn cột nào mang thì cột tách phải trả về rỗng. Bỏ bước
+        # này thì gỡ cột Doanh thu xong, val_revenue vẫn giữ số cũ và báo cáo
+        # tổng hợp vẫn cộng nó vào
+        for dich in COLUMN_OF.values():
+            if dich not in con_dung:
+                setattr(self, dich, _normalise(None, dich))
         return self
 
     def save(self, *args, **kwargs):

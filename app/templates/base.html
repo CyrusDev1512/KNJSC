@@ -18,7 +18,8 @@
 <body>
 
 {% if user.is_authenticated %}
-<div class="app">
+{# Thẻ chống giả mạo cho mọi yêu cầu HTMX, khai một lần thay vì rải vào từng ô #}
+<div class="app" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
   <aside class="nav" id="thanh-ben">
     <div class="nav-dau">
@@ -90,6 +91,9 @@
     document.getElementById("thanh-ben").classList.toggle("mo");
   });
 </script>
+
+<script src="{% static 'js/htmx.min.js' %}" defer></script>
+{% block cuoi_trang %}{% endblock %}
 
 {% endif %}
 
