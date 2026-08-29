@@ -190,10 +190,13 @@ kim-ngan-jsc/
 │   ├── backlog.md
 │   ├── quyet-dinh/
 │   │   ├── README.md
-│   │   ├── 001-chon-django-va-htmx.md
-│   │   ├── 002-khong-dung-thu-vien-bang-tinh.md
+│   │   ├── 001-bang-dong-luu-dang-json.md
+│   │   ├── 002-khong-nhung-thu-vien-bang-tinh.md
 │   │   ├── 003-tach-cap-bac-va-bo-phan.md
-│   │   └── 004-bang-dong-dung-jsonfield.md
+│   │   ├── 004-crm-la-module-tach-sau.md
+│   │   ├── 005-chon-django.md
+│   │   ├── 006-cong-thuc-tren-bang.md
+│   │   └── 007-bang-dich-va-nhan-y-nghia.md
 │   └── tham-khao/
 │       ├── CRM_Tan.xlsx
 │       ├── vandon-mau.xlsx
@@ -207,7 +210,7 @@ kim-ngan-jsc/
 
 ---
 
-## Sáu module trong `app/`
+## Bảy module trong `app/`
 
 | Module | Sở hữu dữ liệu gì | Gọi vào ai |
 |---|---|---|
@@ -216,6 +219,7 @@ kim-ngan-jsc/
 | `forms_builder` | Định nghĩa biểu mẫu, bảng, bản ghi động | `core`, `org` |
 | `reports` | Báo cáo hằng ngày | `core`, `org`, `forms_builder` |
 | `orders` | Đơn hàng, sản phẩm, khách hàng | `core`, `org`, `forms_builder` |
+| `crm` | Khách hàng, và về sau là bảng tính | `core`, `org`, `forms_builder` |
 | `dashboard` | Không sở hữu, chỉ đọc | Tất cả |
 
 **Quy tắc phụ thuộc:** module chỉ gọi module nằm trên nó trong bảng. Không có vòng.
@@ -287,9 +291,12 @@ Ba tệp ở gốc là ba thứ dễ hỏng nhất và không thuộc module nà
 
 | Tệp | Nội dung |
 |---|---|
-| `001-chon-django-va-htmx.md` | Vì sao Django, vì sao không dùng framework giao diện riêng |
-| `002-khong-dung-thu-vien-bang-tinh.md` | Vì sao không nhúng Univer — dữ liệu cần cấu trúc |
+| `001-bang-dong-luu-dang-json.md` | Vì sao bảng động lưu JSON, cộng cột tách cho nhãn ý nghĩa |
+| `002-khong-nhung-thu-vien-bang-tinh.md` | Vì sao không nhúng thư viện bảng tính — dữ liệu cần cấu trúc |
 | `003-tach-cap-bac-va-bo-phan.md` | Vì sao hai cột riêng, không gộp thành `role` |
-| `004-bang-dong-dung-jsonfield.md` | Vì sao JSONField cộng cột tách cho nhãn ý nghĩa |
+| `004-crm-la-module-tach-sau.md` | Vì sao `crm` là module trong monolith, tách sau khi đo được |
+| `005-chon-django.md` | Vì sao Django, vì sao HTMX thay vì khung giao diện riêng |
+| `006-cong-thuc-tren-bang.md` | Vì sao bảng dữ liệu chỉ có cột tính sẵn |
+| `007-bang-dich-va-nhan-y-nghia.md` | Vì sao luôn chọn bảng có sẵn, và bảy nhãn ý nghĩa |
 
 Bốn tệp này viết ngay khi tạo repo, không đợi.

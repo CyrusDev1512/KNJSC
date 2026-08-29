@@ -29,42 +29,50 @@ Bản phác thảo để bàn. Mọi phần đều có thể đổi.
        └────────────── đơn chảy một chiều ──────────────────┘
 ```
 
-### Sáu module trong mã nguồn
+### Bảy module trong mã nguồn
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  dashboard          tổng quan, chỉ đọc                  │
-└────────────────────────┬────────────────────────────────┘
-                         │
-     ┌───────────────────┼───────────────────┐
-     │                   │                   │
-┌────▼─────┐      ┌──────▼──────┐     ┌──────▼──────┐
-│  crm     │      │  reports    │     │             │
-│  khách   │      │  báo cáo    │     │             │
-│  đơn hàng│      │  thống kê   │     │             │
-└────┬─────┘      └──────┬──────┘     │             │
-     │                   │            │             │
-     └─────────┬─────────┘            │             │
-               │                      │             │
-     ┌─────────▼──────────┐           │             │
-     │  forms_builder     │           │             │
-     │  biểu mẫu và bảng  │           │             │
-     │  do người dùng tạo │           │             │
-     └─────────┬──────────┘           │             │
-               │                      │             │
-     ┌─────────▼──────────┐           │             │
-     │  org               │◄──────────┘             │
-     │  bộ phận · team    │                         │
-     │  cấp bậc · tài khoản│                        │
-     └─────────┬──────────┘                         │
-               │                                    │
-     ┌─────────▼──────────────────────────────────▼─┐
+┌──────────────────────────────────────────────────────────────┐
+│  dashboard        tổng quan, chỉ đọc, không sở hữu dữ liệu   │
+└───────────────────────────┬──────────────────────────────────┘
+                            │
+     ┌──────────────┬───────┴───────┬──────────────┐
+     │              │               │              │
+┌────▼─────┐  ┌─────▼─────┐  ┌──────▼──────┐       │
+│  orders  │  │  crm      │  │  reports    │       │
+│  đơn hàng│  │  khách    │  │  báo cáo    │       │
+│  sản phẩm│  │  bảng tính│  │  thống kê   │       │
+└────┬─────┘  └─────┬─────┘  └──────┬──────┘       │
+     │              │               │              │
+     └──────────────┴───────┬───────┘              │
+                            │                      │
+              ┌─────────────▼──────────┐           │
+              │  forms_builder         │           │
+              │  biểu mẫu và bảng      │           │
+              │  do người dùng tạo     │           │
+              └─────────────┬──────────┘           │
+                            │                      │
+              ┌─────────────▼──────────┐           │
+              │  org                   │◄──────────┘
+              │  bộ phận · team        │
+              │  cấp bậc · tài khoản   │
+              └─────────────┬──────────┘
+                            │
+     ┌──────────────────────▼───────────────────────┐
      │  core                                        │
-     │  xác thực · phân quyền · nhật ký · sao lưu   │
+     │  xác thực · phạm vi quyền · nhật ký · sao lưu│
      └──────────────────────────────────────────────┘
 ```
 
 **Mũi tên chỉ chiều gọi.** Module trên gọi module dưới. Không có vòng ngược.
+
+`orders` và `crm` là hai module riêng. `orders` giữ đơn hàng và sản phẩm;
+`crm` giữ khách hàng, và về sau là màn hình bảng tính (ADR-004, ADR-006).
+Tách ra vì `crm` sẽ thành ứng dụng riêng khi đo được điều kiện ở cuối tài
+liệu này, còn `orders` thì ở lại.
+
+Giao diện dùng chung không thành module riêng — nó nằm ở `app/templates/`
+và `app/static/`, vì không sở hữu dữ liệu nào.
 
 ### Tác vụ chạy nền
 
@@ -201,10 +209,11 @@ kim-ngan-jsc/
 ├── app/
 │   ├── core/                 ← xác thực, phân quyền, nhật ký, sao lưu
 │   ├── org/                  ← bộ phận, team, cấp bậc, tài khoản
-│   ├── forms/                ← định nghĩa trường, biểu mẫu, bảng động
+│   ├── forms_builder/        ← định nghĩa trường, biểu mẫu, bảng động
 │   ├── reports/              ← báo cáo hằng ngày, báo cáo tổng hợp
 │   ├── orders/               ← đơn hàng, sản phẩm, luồng ghi sang bảng
-│   └── ui/                   ← giao diện chung, thành phần dùng lại
+│   ├── crm/                  ← khách hàng, và về sau là bảng tính
+│   └── dashboard/            ← tổng quan, chỉ đọc
 │
 ├── config/                   ← cấu hình, không đưa lên kho mã nguồn
 ├── deploy/
@@ -218,7 +227,10 @@ kim-ngan-jsc/
 └── README.md
 ```
 
-**Sáu module trong `app/`.** Mỗi module tự chứa mô hình dữ liệu, tầng dịch vụ và giao diện của nó.
+**Bảy module trong `app/`.** Mỗi module tự chứa mô hình dữ liệu, tầng dịch vụ và giao diện của nó.
+
+Giao diện dùng chung không thành module riêng mà nằm ở `app/templates/` và
+`app/static/`, vì nó không sở hữu dữ liệu nào.
 
 `core` là module duy nhất được các module khác gọi vào. Các module còn lại **không gọi trực tiếp nhau** — đi qua tầng dịch vụ.
 
@@ -371,7 +383,7 @@ Nếu để sheet ghi ngược thì mất cấu trúc dữ liệu, và quay lạ
 | Hệ thống | Một ứng dụng, modular monolith |
 | Cơ sở dữ liệu | Một PostgreSQL, một database |
 | Đăng nhập | Trong ứng dụng, không có SSO riêng |
-| Repo | Một repo, sáu module trong `app/` |
+| Repo | Một repo, bảy module trong `app/` |
 | Nguồn nhân sự | Module `org` |
 | Nguồn đơn hàng | Module `orders`, bảng cố định |
 | Bảng vận đơn | Bảng động, nhận bản sao từ đơn hàng |

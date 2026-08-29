@@ -41,7 +41,10 @@ docs/
 │   ├── 001-bang-dong-luu-dang-json.md
 │   ├── 002-khong-nhung-thu-vien-bang-tinh.md
 │   ├── 003-tach-cap-bac-va-bo-phan.md
-│   └── 004-crm-la-module-tach-sau.md
+│   ├── 004-crm-la-module-tach-sau.md
+│   ├── 005-chon-django.md
+│   ├── 006-cong-thuc-tren-bang.md
+│   └── 007-bang-dich-va-nhan-y-nghia.md
 │
 └── tham-khao/                       dữ liệu và tệp gốc từ khách hàng
     ├── CRM_Tan.xlsx

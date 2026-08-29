@@ -39,10 +39,10 @@ Nếu quy tắc nằm lẫn trong tầng xử lý thì phải viết lại, và 
 
 | Thành phần | Công nghệ | Lý do |
 |---|---|---|
-| Khung ứng dụng | (chốt sau) | Có sẵn xác thực, phân quyền, lớp truy cập dữ liệu |
+| Khung ứng dụng | Django 5.2 | Có sẵn xác thực, phân quyền, lớp truy cập dữ liệu — ADR-005 |
 | Cơ sở dữ liệu | PostgreSQL | Ràng buộc toàn vẹn, giao dịch, chịu nhiều người ghi |
 | Đóng gói | Docker Compose | Chạy giống nhau trên mọi máy |
-| Bảng dữ liệu | (chốt sau — xem `quyet-dinh/`) | |
+| Bảng dữ liệu | Tự viết, chỉ cột tính sẵn | Không nhúng thư viện ngoài — ADR-002, ADR-006 |
 
 ### 1.3. Sơ đồ triển khai
 
