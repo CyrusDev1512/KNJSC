@@ -20,6 +20,18 @@ không hỏi lại người dùng những gì họ đã trả lời.
 `docs/backlog.md` mục 2 là nhật ký quyết định — mỗi dòng một câu đã chốt, kèm
 ngày. Đọc nó trước khi hỏi lại người dùng bất cứ điều gì.
 
+### Dựng dữ liệu mẫu trên máy mới
+
+Cơ sở dữ liệu không theo kho mã. Máy mới `docker compose up` xong là hệ thống
+trống trơn, **không có tài khoản nào để đăng nhập**. Chạy lệnh này trước:
+
+```
+docker compose -f deploy/docker-compose.yml exec web python manage.py du_lieu_mau
+```
+
+Ra 12 tài khoản ba bộ phận bốn cấp bậc, bảng Báo cáo Marketing với số liệu
+thật, biểu mẫu và sản phẩm. Mật khẩu in ra cuối lệnh. Chạy lại nhiều lần được.
+
 ### Chạy kiểm thử
 
 ```

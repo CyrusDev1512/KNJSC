@@ -132,7 +132,7 @@ Chạy trước mỗi lần bàn giao. Máy không làm được những việc 
 
 | ☐ | Việc | Trạng thái |
 |---|---|---|
-| ☐ | Cài từ đầu trên máy sạch, tới màn hình đăng nhập | Chạy được, chưa thử |
+| ☐ | Cài từ đầu trên máy sạch, tới màn hình đăng nhập | Chạy được — `manage.py du_lieu_mau`, có bài kiểm tự động |
 | ☐ | Ba vai trò chạy trọn quy trình của mình | Chạy được — có bài tự động tương ứng, nhưng người vẫn phải bấm thử |
 | ☐ | Nhập tệp Excel thật, không chỉnh sửa trước | **Chưa** — Giai đoạn 7 |
 | ☐ | Xuất báo cáo, mở bằng Excel, đối chiếu | **Chưa** — Giai đoạn 6 và 7 |

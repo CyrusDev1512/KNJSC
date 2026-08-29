@@ -167,7 +167,6 @@ kim-ngan-jsc/
 │   ├── deploy.sh                          cập nhật lên máy chủ
 │   ├── backup.sh                          sao lưu thủ công
 │   ├── restore.sh                         phục hồi
-│   ├── seed_demo.py                       dữ liệu mẫu để xem
 │   └── seed_perf.py                       sinh 50.000 bản ghi để đo hiệu năng
 │
 ├── storage/                               KHÔNG đưa lên kho mã nguồn
