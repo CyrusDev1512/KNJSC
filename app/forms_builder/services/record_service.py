@@ -94,7 +94,11 @@ def create_record(table, values, *, actor=None, request=None, columns=None):
     ho_so = getattr(actor, "profile", None)
     ban_ghi = DataRecord(
         table=table, data=du_lieu, created_by=actor,
-        department=getattr(ho_so, "department", None) or table.department,
+        # Dòng thuộc về bộ phận **sở hữu bảng**, không phải bộ phận người ghi.
+        # Hai cái này trùng nhau ở mọi bảng báo cáo, nhưng khác nhau ở bảng
+        # vận đơn: Sale lên đơn, dòng phải thuộc về Vận đơn để họ thấy mà đi
+        # giao. Lấy theo người ghi là bộ phận đích không thấy gì cả.
+        department=table.department,
         team=getattr(ho_so, "team", None),
     )
     ban_ghi.apply_computed_columns(columns)

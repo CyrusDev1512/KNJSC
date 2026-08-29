@@ -44,8 +44,6 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | N1 | Lịch nộp báo cáo có bắt buộc đúng giờ không — chỉ ghi nhận, nhắc nhở, hay chặn nộp muộn | Trung bình | Bàn phạm vi |
 | N2 | Nhân viên vận đơn có tự thêm cột vào bảng không | Thấp | Đã hỏi, trả lời là không |
 | N3 | Vai trò Chăm sóc khách hàng có thuộc phase 1 không | Trung bình | Tệp vận đơn có cột CSKH, phase 1 chưa có vai trò này |
-| N4 | Sáu trường trong biểu mẫu lên đơn không có trong bảng vận đơn — Facebook, Email, Quốc gia, Đơn vị phụ, Loại tiền tệ, Người bán | Trung bình | Đối chiếu biểu mẫu và tệp thật |
-| N5 | Thị trường thật là những nước nào — `README.md` ghi Canada và Philippines, `CRM_Tân.xlsx` ghi hàng đi US | Cao | Rà soát GĐ 1–2 |
 | N6 | Chăm sóc khách hàng có trong phase 1 không — `README.md` xếp vào phạm vi, `docs/02` mục 12 để ngỏ. Trùng với N3 nhưng nay có thêm chứng cứ vênh giữa hai tài liệu | Cao | Rà soát GĐ 1–2 |
 | N7 | BR-1 nói mỗi người thuộc đúng một bộ phận, nhưng Admin hiện không thuộc bộ phận nào. Giữ nguyên hay bắt Admin cũng phải có bộ phận | Trung bình | Rà soát GĐ 1–2 |
 
@@ -57,6 +55,7 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | V2 | Ai chịu trách nhiệm vận hành hằng ngày sau khi bàn giao | Cao | Chưa chốt |
 | V3 | Kênh gửi thông báo nếu làm tính năng nhắc nộp báo cáo | Thấp | Phụ thuộc N1 |
 | V4 | **Mốc nào thì nghiệm thu toàn diện.** Hiện quá ít màn hình để đánh giá được giao diện và trải nghiệm — người dùng không nghiệm thu từng phần nữa, dồn về một đợt. Đề xuất mốc: hết Giai đoạn 5, khi một bộ phận làm trọn được việc hằng ngày. Chờ người dùng chốt | Cao | Người dùng, 29.08.2026 |
+| V5 | **Kế hoạch kiểm thử và nghiệm thu chưa lập.** Người dùng chốt để sau, làm cùng lúc với đợt nghiệm thu ở V4. Nội dung cần có: ai kiểm, kiểm trên dữ liệu nào, bao lâu, tiêu chí nào coi là đạt, và xử lý thế nào khi không đạt | Cao | Người dùng, 29.08.2026 |
 
 ---
 
@@ -86,6 +85,11 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | Q20 | K11 và K12 | Đã xong ở 3B: màn hình điền biểu mẫu, và quyền sửa ô tính qua `grant_service.can_edit_record` | 29.08.2026 |
 | Q21 | Nội dung báo cáo hằng ngày lưu ở đâu | Trong `DataRecord` do biểu mẫu sinh ra; `DailyReport` chỉ giữ ai nộp, ngày nào, lúc nào — ADR-008 | 29.08.2026 |
 | Q22 | Dựng vỏ hết màn hình trước hay làm từng giai đoạn | Làm từng giai đoạn, mỗi màn hình chạy thật rồi mới sang màn tiếp | 29.08.2026 |
+| Q23 | Thị trường thật — N5 | Ba nước: Hoa Kỳ, Canada, Philippines. Ô chọn cố định, khai một chỗ trong `orders/constants.py` | 29.08.2026 |
+| Q24 | Sáu trường không có trong bảng vận đơn — N4 | Thêm sáu cột vào bảng vận đơn. Vận đơn cần liên lạc được với khách khi giao hỏng | 29.08.2026 |
+| Q25 | BLACK LIST — G1 | Cờ đánh dấu trên khách hàng kèm lý do. Lên đơn cho khách trong danh sách đen thì **cảnh báo, không chặn** — chưa có yêu cầu nào cho chặn | 29.08.2026 |
+| Q26 | Trạng thái vận chuyển và thanh toán — G2 | Bộ phận Vận đơn sửa thẳng trên bảng, dùng lại chức năng sửa ô của Giai đoạn 3. Không viết màn hình riêng | 29.08.2026 |
+| Q27 | Dòng trên bảng động thuộc bộ phận nào | Bộ phận **sở hữu bảng**, không phải bộ phận người ghi. Thêm cờ `is_shared` cho bảng là hàng đợi việc chung | 29.08.2026 |
 
 ---
 
@@ -133,11 +137,26 @@ Những câu chưa có đáp án, cần hỏi trực tiếp người sử dụng
 
 ---
 
-## 6. Hiện trạng màn hình — chưa đủ để nghiệm thu
+## 6. Hiện trạng màn hình — chưa nghiệm thu
 
 Người dùng nêu ngày 29.08.2026: **hiện quá thiếu màn hình để đánh giá được
 giao diện và trải nghiệm.** Không nghiệm thu từng phần nữa; dồn về một đợt
-kiểm thử toàn diện khi đủ màn hình. Mốc cụ thể xem **V4**.
+kiểm thử toàn diện khi đủ màn hình. Mốc cụ thể xem **V4**, kế hoạch kiểm thử
+xem **V5** — cả hai đều chưa chốt.
+
+> **Chưa có gì được nghiệm thu.** Giai đoạn 0 tới 4 đều đã giao và đã chạy
+> kiểm thử tự động, nhưng **người dùng chưa trực tiếp thử màn hình nào**. Mọi
+> phần trăm trong `dashboard-tien-do.html` là tiến độ *đã làm*, không phải
+> tiến độ *đã nghiệm thu*. Hai con số đó có thể lệch nhau, và chỉ đóng lại
+> được sau đợt kiểm thử ở V4.
+
+| Giai đoạn | Đã giao | Người dùng đã thử |
+|---|---|---|
+| 0 · Tài liệu và quyết định | ✓ | — |
+| 1 · Nền móng | ✓ | Chưa |
+| 2 · Cơ cấu tổ chức và giao diện chung | ✓ | Chưa |
+| 3 · Biểu mẫu và bảng động | ✓ | Chưa |
+| 4 · Báo cáo hằng ngày | ✓ | Chưa |
 
 Bản dựng giao diện tĩnh ở `prototype/` là chuẩn để đối chiếu. Nó có 10 màn
 hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp dần.
@@ -150,7 +169,7 @@ hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp d�
 | Trình tạo biểu mẫu | 3B | Đã có |
 | Nộp báo cáo ngày | 4 | Đã có |
 | Lịch sử báo cáo | 4 | Đã có |
-| Lên đơn | 5 | Chưa |
+| Lên đơn | 5 | Đã có |
 | Báo cáo tổng hợp | 6 | Chưa |
 | Bảng tính | 7 | Chưa — Q15 |
 | Bảng tính, màn hình chi tiết | 7 | Chưa — Q15 |
@@ -181,4 +200,7 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 29.08.2026 | Xong Giai đoạn 3 phần A. Chốt Q14 tới Q17. Thêm AC-3.8, AC-7.10 tới AC-7.12 vào `docs/04`. Mở K11 và K12 |
 | 29.08.2026 | Người dùng nêu: quá thiếu màn hình để nghiệm thu. Hoãn nghiệm thu tới một đợt toàn diện — mở V4 và R7, thêm mục 6 theo dõi hiện trạng màn hình |
 | 29.08.2026 | Xong Giai đoạn 4 — báo cáo hằng ngày. Chốt Q21 và Q22. Ghi ADR-008 |
+| 29.08.2026 | Xong Giai đoạn 5 — lên đơn và vận đơn. Chốt thêm Q27 sau khi chạy thử tay phát hiện Vận đơn không thấy dòng nào |
+| 29.08.2026 | Bàn Giai đoạn 5. Chốt Q23 tới Q26 — gỡ N4, N5, G1, G2 |
+| 29.08.2026 | Người dùng xác nhận chưa thử màn hình nào, chưa nghiệm thu được. Kế hoạch kiểm thử cũng để sau — mở V5, ghi bảng đã giao / đã thử vào mục 6 |
 | 29.08.2026 | Xong Giai đoạn 3 phần B, khép lại Giai đoạn 3. Chốt Q18 tới Q20, đóng K11 và K12, mở K13 và K14. Bỏ model `Position` khỏi tài liệu vì nó không tồn tại |

@@ -696,18 +696,19 @@ const GIAI_DOAN = [
   {
     id: 5, ten: "Lên đơn và vận đơn", mod: "orders", trongSo: 13,
     viec: [
-      { t: "Product và ProductGroup — danh mục sản phẩm", tt: "chua" },
-      { t: "Customer — khách hàng, chỉ mục trên số điện thoại", tt: "chua" },
-      { t: "Order và OrderLine — một đơn nhiều dòng sản phẩm", tt: "chua", note: "FR-6.1" },
-      { t: "Số tiền lưu dạng thập phân chính xác, không dùng số thực", tt: "chua", note: "BR-8" },
-      { t: "Biểu mẫu lên đơn, địa chỉ tách năm cấp", tt: "chua", chan: "G3" },
-      { t: "Khoá đơn sau khi lưu", tt: "chua" },
-      { t: "dispatch_service — ghi một chiều sang bảng vận đơn, một giao dịch", tt: "chua" },
-      { t: "OrderTableLink — lưu mã liên kết giữa đơn và bản ghi", tt: "chua" },
-      { t: "Phát hiện khách mua lại theo số điện thoại", tt: "chua" },
-      { t: "Trạng thái vận chuyển và khối thông tin thanh toán", tt: "chua", chan: "G2" },
-      { t: "BLACK LIST — có trong tệp thật, chưa có yêu cầu", tt: "chua", chan: "G1" },
-      { t: "Kiểm thử: khoá đơn, ghi sang bảng nguyên vẹn, khách mua lại", tt: "chua" }
+      { t: "Product và ProductGroup — danh mục sản phẩm", tt: "xong" },
+      { t: "Customer — khách hàng, chỉ mục trên số điện thoại", tt: "xong", note: "FR-6.7" },
+      { t: "Order và OrderLine — một đơn nhiều dòng sản phẩm", tt: "xong", note: "FR-6.1 · FR-6.2" },
+      { t: "Số tiền lưu dạng thập phân chính xác", tt: "xong", note: "BR-8" },
+      { t: "Biểu mẫu lên đơn, địa chỉ tách năm cấp", tt: "xong", note: "Q23" },
+      { t: "Khoá đơn sau khi lưu — chặn ở ba tầng", tt: "xong", note: "BR-3" },
+      { t: "dispatch_service — ghi một chiều sang bảng vận đơn, một giao dịch", tt: "xong", note: "AC-6.5" },
+      { t: "Lưu mã liên kết giữa đơn và bản ghi", tt: "xong", note: "FR-6.4" },
+      { t: "Phát hiện khách mua lại theo số điện thoại", tt: "xong", note: "FR-6.7" },
+      { t: "Trạng thái vận chuyển và thanh toán, Vận đơn sửa trên bảng", tt: "xong", note: "Q26" },
+      { t: "Bảng dùng chung — cả bộ phận Vận đơn thấy mọi dòng", tt: "xong" },
+      { t: "BLACK LIST — cờ trên khách hàng, cảnh báo không chặn", tt: "xong", note: "Q25" },
+      { t: "Kiểm thử: khoá đơn, ghi sang bảng nguyên vẹn, khách mua lại", tt: "xong", note: "30 bài" }
     ]
   },
   {

@@ -115,15 +115,23 @@ class DataRecordQuerySet(ScopedQuerySet):
         theo_cap_bac = apply_scope(
             self, user, owner="created_by", team="team", department="department",
         )
-        if get_user_scope(user).all_departments:
+        scope = get_user_scope(user)
+        if scope.all_departments:
             return theo_cap_bac
 
+        them = Q(pk__in=[])
+
+        # Bảng dùng chung: cả bộ phận sở hữu thấy mọi dòng, không phân biệt
+        # cấp bậc. Bảng vận đơn là hàng đợi việc chung — nhân viên Vận đơn
+        # không tạo dòng nào nên phạm vi theo cấp bậc sẽ cho họ thấy rỗng
+        if scope.department_ids:
+            them |= Q(table__is_shared=True, table__department_id__in=scope.department_ids)
+
         duoc_cap = _cap_them(user, GrantAction.VIEW) | _cap_them(user, GrantAction.EDIT)
-        if not duoc_cap:
-            return theo_cap_bac
-        return self.filter(
-            Q(pk__in=theo_cap_bac.values("pk")) | Q(table_id__in=duoc_cap)
-        )
+        if duoc_cap:
+            them |= Q(table_id__in=duoc_cap)
+
+        return self.filter(Q(pk__in=theo_cap_bac.values("pk")) | them)
 
 
 class DataRecordManager(models.Manager.from_queryset(DataRecordQuerySet)):

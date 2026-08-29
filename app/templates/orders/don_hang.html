@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block tieu_de %}Đơn hàng · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Đơn hàng{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">FR-6.5 · đã lọc theo phạm vi quyền</div>
+    <h1>Đơn đã lên</h1>
+    <p>Nhân viên thấy đơn của mình, trưởng nhóm thấy cả team, quản lý thấy cả bộ phận.</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut nut-chinh" href="{% url 'len_don' %}">Lên đơn</a>
+  </div>
+</div>
+
+<div class="bang-hop">
+  <form class="loc" method="get">
+    <div class="truong o-tim">
+      <label for="tim">Tìm theo số điện thoại</label>
+      <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Số điện thoại khách">
+    </div>
+    <div class="truong">
+      <label for="thi_truong">Quốc gia</label>
+      <select class="o-nhap" id="thi_truong" name="thi_truong">
+        <option value="">Tất cả</option>
+        {% for gt, nhan in cac_thi_truong %}
+          <option value="{{ gt }}" {% if gt == thi_truong %}selected{% endif %}>{{ nhan }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="loc-nut">
+      <a class="nut nut-nho" href="{% url 'don_hang' %}">Xoá lọc</a>
+      <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
+    </div>
+  </form>
+
+  <div class="bang-cuon">
+    <table class="bang">
+      <thead>
+        <tr>
+          <th>Mã đơn</th><th>Ngày</th><th>Khách hàng</th><th>Số điện thoại</th>
+          <th>Quốc gia</th><th class="phai">Tổng tiền</th><th>Người bán</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for don in trang %}
+          <tr>
+            <td class="ma-o">{{ don.code }}</td>
+            <td class="ma-o">{{ don.created_at|date:"d.m" }}</td>
+            <td>
+              {{ don.customer.name }}
+              {% if don.customer.is_blacklisted %}<span class="chip chip-xau"><i></i>Danh sách đen</span>{% endif %}
+            </td>
+            <td class="ma-o">{{ don.customer.phone }}</td>
+            <td class="nho">{{ don.get_market_display }}</td>
+            <td class="tien">{{ don.total }} {{ don.currency }}</td>
+            <td class="nho">{{ don.seller.profile.full_name|default:don.seller.username|default:"—" }}</td>
+            <td class="phai"><a class="nut nut-nho" href="{% url 'don_xem' don.code %}">Xem</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8">
+            {% include "components/rong.html" with rong_tieu_de="Chưa có đơn nào" rong_mo_ta="Đơn đã lên sẽ hiện ở đây, đã lọc theo phạm vi quyền của bạn." %}
+          </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% include "components/phan_trang.html" %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block tieu_de %}Đơn {{ don.code }} · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Đơn {{ don.code }}{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">BR-3 · chỉ đọc</div>
+    <h1>{{ don.code }}</h1>
+    <p>Lên lúc {{ don.created_at|date:"H:i d.m.Y" }} giờ Việt Nam, bởi {{ don.created_by.profile.full_name|default:don.created_by.username }}.</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut" href="{% url 'don_hang' %}">Quay lại</a>
+    {% if don.record %}
+      <a class="nut" href="{% url 'bang_xem' don.record.table.code %}">Xem trên bảng vận đơn</a>
+    {% endif %}
+    {% if duoc_bo %}
+      <form method="post" action="{% url 'don_bo' don.code %}">
+        {% csrf_token %}
+        <button class="nut nut-nguy" type="submit">Bỏ đơn này</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="bao bao-cho">
+  <span class="bao-ic">!</span>
+  <div>
+    <b>Đơn đã lưu không sửa được</b>
+    <p>
+      Quy tắc BR-3. Trạng thái vận chuyển và thanh toán do bộ phận Vận đơn cập
+      nhật thẳng trên bảng vận đơn, không sửa ở đây.
+    </p>
+  </div>
+</div>
+
+<div class="luoi luoi-2cot">
+
+  <div class="the">
+    <div class="the-dau"><h2>Sản phẩm</h2></div>
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead>
+          <tr><th>Sản phẩm</th><th class="phai">Số lượng</th>
+              <th class="phai">Đơn giá</th><th class="phai">Thành tiền</th></tr>
+        </thead>
+        <tbody>
+          {% for dong in cac_dong %}
+            <tr>
+              <td>{{ dong.product.name }}<small class="ma-o">{{ dong.product.code }}</small></td>
+              <td class="tien">{{ dong.quantity }}</td>
+              <td class="tien">{{ dong.unit_price }}</td>
+              <td class="tien">{{ dong.line_total }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" class="phai"><b>Tổng</b></td>
+            <td class="tien"><b>{{ don.total }} {{ don.currency }}</b></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="doc">
+    <div class="the">
+      <div class="the-dau"><h2>Khách hàng</h2></div>
+      <div class="the-than">
+        {% if don.customer.is_blacklisted %}
+          <div class="bao bao-xau" style="margin-bottom:var(--sp-3)">
+            <span class="bao-ic">!</span>
+            <div>
+              <b>Khách trong danh sách đen</b>
+              <p>{{ don.customer.blacklist_reason|default:"Không ghi lý do." }}</p>
+            </div>
+          </div>
+        {% endif %}
+        <table class="bang">
+          <tbody>
+            <tr><td>Tên khách</td><td class="phai">{{ don.customer.name }}</td></tr>
+            <tr><td>Số điện thoại</td><td class="phai ma-o">{{ don.customer.phone }}</td></tr>
+            <tr><td>Facebook</td><td class="phai">{{ don.customer.facebook|default:"—" }}</td></tr>
+            <tr><td>Email</td><td class="phai">{{ don.customer.email|default:"—" }}</td></tr>
+            <tr><td>Số đơn đã mua</td><td class="phai tien">{{ don.customer.order_count }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="the">
+      <div class="the-dau"><h2>Giao hàng và thanh toán</h2></div>
+      <div class="the-than">
+        <table class="bang">
+          <tbody>
+            <tr><td>Quốc gia</td><td class="phai">{{ don.get_market_display }}</td></tr>
+            <tr><td>Bang</td><td class="phai">{{ don.state|default:"—" }}</td></tr>
+            <tr><td>Thành phố</td><td class="phai">{{ don.city|default:"—" }}</td></tr>
+            <tr><td>Mã bưu chính</td><td class="phai ma-o">{{ don.zipcode|default:"—" }}</td></tr>
+            <tr><td>Số nhà, đường</td><td class="phai">{{ don.address_line|default:"—" }}</td></tr>
+            <tr><td>Phương thức thanh toán</td><td class="phai">{{ don.get_payment_method_display }}</td></tr>
+            <tr><td>Đơn vị phụ</td><td class="phai">{{ don.sub_unit|default:"—" }}</td></tr>
+            <tr><td>Ghi chú</td><td class="phai">{{ don.note|default:"—" }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="the-chan">
+        <span class="nho mo-nhat">
+          Dòng trên bảng vận đơn:
+          {% if don.record %}<span class="ma-o">#{{ don.record_id }}</span>{% else %}chưa có{% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,29 @@
+{% comment %}
+Lời nhắc về khách hàng, hiện ngay khi gõ xong số điện thoại.
+
+Hai lời nhắc có thể cùng xuất hiện: khách mua lại (FR-6.7) và khách trong
+danh sách đen (backlog Q25). Danh sách đen chỉ **cảnh báo, không chặn** —
+người quyết định, không phải hệ thống.
+
+Cần: nhac_khach.
+{% endcomment %}
+<div id="nhac-khach">
+  {% if nhac_khach.danh_sach_den %}
+    <div class="bao bao-xau">
+      <span class="bao-ic">!</span>
+      <div>
+        <b>Khách này đang trong danh sách đen</b>
+        <p>{{ nhac_khach.ly_do|default:"Không ghi lý do." }} — vẫn lên đơn được, anh/chị tự cân nhắc.</p>
+      </div>
+    </div>
+  {% endif %}
+  {% if nhac_khach.mua_lai %}
+    <div class="bao bao-tot">
+      <span class="bao-ic">✓</span>
+      <div>
+        <b>Khách mua lại — đã có {{ nhac_khach.so_don_cu }} đơn trước đó</b>
+        <p>{{ nhac_khach.customer.name }}{% if nhac_khach.customer.email %} · {{ nhac_khach.customer.email }}{% endif %}</p>
+      </div>
+    </div>
+  {% endif %}
+</div>

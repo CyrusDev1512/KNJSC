@@ -68,6 +68,14 @@ class TableDef(ScopedModel):
         on_delete=models.PROTECT, related_name="tables", db_index=True,
     )
     is_active = models.BooleanField("Đang dùng", default=True, db_index=True)
+    is_shared = models.BooleanField(
+        "Bảng dùng chung", default=False, db_index=True,
+        help_text=(
+            "Mọi người trong bộ phận sở hữu thấy mọi dòng, không phân biệt cấp bậc. "
+            "Dùng cho bảng là hàng đợi việc chung như bảng vận đơn. "
+            "Bảng báo cáo thì để tắt, giữ phạm vi theo cấp bậc."
+        ),
+    )
 
     class Meta:
         verbose_name = "Bảng dữ liệu"

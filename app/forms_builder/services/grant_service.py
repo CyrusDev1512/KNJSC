@@ -121,6 +121,11 @@ def can_edit_record(user, record_obj):
     cung_bo_phan = ho_so.department_id == record_obj.table.department_id
     if cung_bo_phan and ho_so.rank in (Rank.MANAGER, Rank.ADMIN):
         return True
+    # Bảng dùng chung là hàng đợi việc của cả bộ phận: ai trong bộ phận đó
+    # cũng sửa được. Bảng vận đơn là ví dụ — nhân viên Vận đơn không tạo dòng
+    # nào nhưng chính họ là người cập nhật trạng thái giao hàng
+    if cung_bo_phan and record_obj.table.is_shared:
+        return True
     return record_obj.table_id in granted_table_ids(user, GrantAction.EDIT)
 
 

@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block tieu_de %}Lên đơn · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Lên đơn{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">FR-6.1 → FR-6.4 · FR-6.7</div>
+    <h1>Lên đơn</h1>
+    <p>Lưu xong đơn tự chảy sang bảng vận đơn. Đơn đã lưu không sửa được — BR-3.</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut" href="{% url 'don_hang' %}">Đơn đã lên</a>
+  </div>
+</div>
+
+{% if loi %}
+  <div class="bao bao-xau">
+    <span class="bao-ic">!</span>
+    <div>
+      <b>Chưa lưu được</b>
+      {% for cau in loi %}<p>{{ cau }}</p>{% endfor %}
+      <p class="nho mo-nhat">Dữ liệu đã nhập vẫn còn nguyên bên dưới.</p>
+    </div>
+  </div>
+{% endif %}
+
+<form method="post" id="bm-don">
+  {% csrf_token %}
+
+  <div class="luoi luoi-2cot">
+
+    <div class="doc">
+      <div class="the">
+        <div class="the-dau"><h2>Khách hàng</h2></div>
+        <div class="the-than bm">
+          <div class="truong">
+            <label for="phone">Số điện thoại <span class="bat-buoc">*</span></label>
+            <input class="o-nhap" id="phone" name="phone" value="{{ d.phone|default:'' }}"
+                   hx-get="{% url 'kiem_khach' %}" hx-trigger="change, keyup changed delay:600ms"
+                   hx-target="#nhac-khach" hx-swap="outerHTML" hx-include="this">
+            <span class="goi-y">Hệ thống tự nhận ra khách đã mua trước đó</span>
+          </div>
+          {% include "orders/_nhac_khach.html" %}
+          <div class="truong">
+            <label for="customer_name">Tên khách <span class="bat-buoc">*</span></label>
+            <input class="o-nhap" id="customer_name" name="customer_name" value="{{ d.customer_name|default:'' }}">
+          </div>
+          <div class="bm-hang-2">
+            <div class="truong">
+              <label for="facebook">Facebook</label>
+              <input class="o-nhap" id="facebook" name="facebook" value="{{ d.facebook|default:'' }}">
+            </div>
+            <div class="truong">
+              <label for="email">Email</label>
+              <input class="o-nhap" id="email" name="email" value="{{ d.email|default:'' }}">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="the">
+        <div class="the-dau"><h2>Địa chỉ giao hàng</h2></div>
+        <div class="the-than bm">
+          <div class="bm-hang-2">
+            <div class="truong">
+              <label for="market">Quốc gia</label>
+              <select class="o-nhap" id="market" name="market">
+                {% for gt, nhan in cac_thi_truong %}
+                  <option value="{{ gt }}" {% if gt == d.market %}selected{% endif %}>{{ nhan }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="truong">
+              <label for="state">Bang</label>
+              <input class="o-nhap" id="state" name="state" value="{{ d.state|default:'' }}">
+            </div>
+          </div>
+          <div class="bm-hang-2">
+            <div class="truong">
+              <label for="city">Thành phố</label>
+              <input class="o-nhap" id="city" name="city" value="{{ d.city|default:'' }}">
+            </div>
+            <div class="truong">
+              <label for="zipcode">Mã bưu chính</label>
+              <input class="o-nhap ma" id="zipcode" name="zipcode" value="{{ d.zipcode|default:'' }}">
+            </div>
+          </div>
+          <div class="truong">
+            <label for="address_line">Chi tiết số nhà, đường</label>
+            <input class="o-nhap" id="address_line" name="address_line" value="{{ d.address_line|default:'' }}">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc">
+      <div class="the">
+        <div class="the-dau">
+          <h2>Sản phẩm</h2>
+          <div class="phai"><button class="nut nut-nho" type="button" id="them-dong">+ Thêm dòng</button></div>
+        </div>
+        <div class="bang-cuon">
+          <table class="bang" id="bang-dong">
+            <thead>
+              <tr><th>Sản phẩm</th><th class="phai">Số lượng</th><th class="phai">Đơn giá</th><th></th></tr>
+            </thead>
+            <tbody>
+              {% for dong in cac_dong %}
+                <tr class="dong-sp">
+                  <td>
+                    <select class="o-nhap o-sp" name="sp_{{ forloop.counter0 }}">
+                      <option value="">— chọn sản phẩm —</option>
+                      {% for sp in cac_san_pham %}
+                        <option value="{{ sp.code }}" {% if sp.code == dong.product %}selected{% endif %}>{{ sp.name }}</option>
+                      {% endfor %}
+                    </select>
+                  </td>
+                  <td class="phai"><input class="o-nhap tien o-sl" name="sl_{{ forloop.counter0 }}" value="{{ dong.quantity|default:'1' }}"></td>
+                  <td class="phai"><input class="o-nhap tien o-gia" name="gia_{{ forloop.counter0 }}" value="{{ dong.unit_price|default:'' }}"></td>
+                  <td class="phai"><button class="nut nut-nho nut-nguy bo-dong" type="button">Bỏ</button></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="the-chan">
+          <span class="nho mo-nhat">Một đơn nhiều dòng sản phẩm — FR-6.2</span>
+          <div class="day"><b>Tạm tính: <span id="tam-tinh" class="tien">0</span></b></div>
+        </div>
+      </div>
+
+      <div class="the">
+        <div class="the-dau"><h2>Thanh toán và người bán</h2></div>
+        <div class="the-than bm">
+          <div class="bm-hang-2">
+            <div class="truong">
+              <label for="payment_method">Phương thức thanh toán</label>
+              <select class="o-nhap" id="payment_method" name="payment_method">
+                {% for gt, nhan in cac_pttt %}
+                  <option value="{{ gt }}" {% if gt == d.payment_method %}selected{% endif %}>{{ nhan }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="truong">
+              <label for="currency">Loại tiền tệ</label>
+              <select class="o-nhap" id="currency" name="currency">
+                {% for gt, nhan in cac_loai_tien %}
+                  <option value="{{ gt }}" {% if gt == d.currency %}selected{% endif %}>{{ nhan }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="bm-hang-2">
+            <div class="truong">
+              <label for="sub_unit">Đơn vị phụ</label>
+              <input class="o-nhap" id="sub_unit" name="sub_unit" value="{{ d.sub_unit|default:'' }}">
+            </div>
+            <div class="truong">
+              <label>Người bán</label>
+              <input class="o-nhap" value="{{ user.profile.full_name|default:user.username }}" disabled>
+              <span class="goi-y">Chính là bạn, hệ thống tự ghi</span>
+            </div>
+          </div>
+          <div class="truong">
+            <label for="note">Ghi chú</label>
+            <input class="o-nhap" id="note" name="note" value="{{ d.note|default:'' }}">
+          </div>
+        </div>
+        <div class="the-chan">
+          <span class="nho mo-nhat">Lưu xong là khoá, và tự sinh một dòng trên bảng vận đơn</span>
+          <div class="day hang">
+            <button class="nut nut-chinh" type="submit" form="bm-don">Lưu đơn</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</form>
+
+<script>
+  /* Thêm và bỏ dòng sản phẩm. Tên ô đánh số lại sau mỗi thay đổi để
+     máy chủ đọc được liền mạch. */
+  var than = document.querySelector("#bang-dong tbody");
+
+  function danhSoLai() {
+    than.querySelectorAll("tr.dong-sp").forEach(function (tr, i) {
+      tr.querySelector(".o-sp").name = "sp_" + i;
+      tr.querySelector(".o-sl").name = "sl_" + i;
+      tr.querySelector(".o-gia").name = "gia_" + i;
+    });
+  }
+
+  function tamTinh() {
+    var tong = 0;
+    than.querySelectorAll("tr.dong-sp").forEach(function (tr) {
+      var sl = parseFloat(tr.querySelector(".o-sl").value) || 0;
+      var gia = parseFloat(String(tr.querySelector(".o-gia").value).replace(/[, ]/g, "")) || 0;
+      tong += sl * gia;
+    });
+    document.getElementById("tam-tinh").textContent = tong.toLocaleString("vi-VN",
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  document.getElementById("them-dong").addEventListener("click", function () {
+    var moi = than.querySelector("tr.dong-sp").cloneNode(true);
+    moi.querySelectorAll("input").forEach(function (o) { o.value = o.classList.contains("o-sl") ? "1" : ""; });
+    moi.querySelector(".o-sp").selectedIndex = 0;
+    than.appendChild(moi);
+    danhSoLai();
+  });
+
+  than.addEventListener("click", function (e) {
+    if (!e.target.classList.contains("bo-dong")) return;
+    if (than.querySelectorAll("tr.dong-sp").length <= 1) return;   // giữ lại một dòng
+    e.target.closest("tr").remove();
+    danhSoLai();
+    tamTinh();
+  });
+
+  than.addEventListener("input", tamTinh);
+  tamTinh();
+</script>
+
+{% endblock %}

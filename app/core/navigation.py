@@ -38,6 +38,10 @@ NAVIGATION = (
         NavItem("bao_cao_ngay", "Nộp báo cáo ngày", "bao_cao_ngay"),
         NavItem("bao_cao_lich_su", "Lịch sử báo cáo", "bao_cao_lich_su"),
     )),
+    NavGroup("Đơn hàng", (
+        NavItem("len_don", "Lên đơn", "len_don"),
+        NavItem("don_hang", "Đơn hàng", "don_hang"),
+    )),
     NavGroup("Dữ liệu", (
         NavItem("bang", "Bảng dữ liệu", "bang"),
         NavItem("bieu_mau", "Biểu mẫu", "bieu_mau"),
