@@ -304,7 +304,7 @@ def bieu_mau(request):
     request.nav_current = "bieu_mau"
 
     ds = (FormDef.objects.in_scope(request.user)
-          .select_related("department", "table", "created_by")
+          .select_related("department", "table", "created_by", "created_by__profile")
           .annotate(so_truong=Count("fields", distinct=True))
           .order_by("name"))
 
@@ -419,7 +419,8 @@ def truong_moi(request):
         d = form.cleaned_data
         form_service.create_field_def(
             name=d["name"], code=d["code"], field_type=d["field_type"],
-            meaning=d["meaning"], hint=d["hint"], department=ho_so.department,
+            meaning=d["meaning"], hint=d["hint"],
+            default_value=d["default_value"], department=ho_so.department,
             actor=request.user, request=request,
         )
         messages.success(request, f"Đã thêm trường {d['name']} vào thư viện.")
@@ -508,5 +509,7 @@ def bieu_mau_dien(request, code):
 
     return render(request, "forms_builder/bieu_mau_dien.html", {
         "bm": bm, "cac_truong": cac_truong, "du_lieu": du_lieu, "loi": loi,
-        "cac_o": [(t, du_lieu.get(t.field.code, "")) for t in cac_truong],
+        # Chưa nhập gì thì điền sẵn giá trị mặc định của định nghĩa trường
+        "cac_o": [(t, du_lieu.get(t.field.code) or t.field.default_value)
+                  for t in cac_truong],
     })

@@ -40,7 +40,8 @@
       <thead>
         <tr>
           <th>Ngày báo cáo</th><th>Biểu mẫu</th><th>Người nộp</th>
-          <th>Bộ phận</th><th>Team</th><th>Nộp lúc</th><th></th>
+          <th>Bộ phận</th><th>Team</th><th class="phai">Doanh số</th>
+          <th>Nộp lúc</th><th></th>
         </tr>
       </thead>
       <tbody>
@@ -51,6 +52,9 @@
             <td>{{ bc.created_by.profile.full_name|default:bc.created_by.username }}</td>
             <td class="nho">{{ bc.department }}</td>
             <td class="nho">{{ bc.team|default:"—" }}</td>
+            {# Đọc thẳng cột tách của nhãn Doanh thu — đây là chỗ bảy nhãn
+               ý nghĩa của Giai đoạn 3 bắt đầu trả công #}
+            <td class="tien">{{ bc.record.val_revenue|default:"—" }}</td>
             {# Lưu giờ quốc tế, hiện giờ Việt Nam — BR-7, quy tắc 5 #}
             <td class="ma-o">{{ bc.submitted_at|date:"d.m H:i" }}</td>
             <td class="phai">
@@ -58,7 +62,7 @@
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="7">
+          <tr><td colspan="8">
             {% include "components/rong.html" with rong_tieu_de="Chưa có báo cáo nào" rong_mo_ta="Báo cáo đã nộp sẽ hiện ở đây, đã lọc theo phạm vi quyền của bạn." %}
           </td></tr>
         {% endfor %}

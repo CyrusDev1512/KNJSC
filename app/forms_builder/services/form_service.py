@@ -63,11 +63,11 @@ def update_form(form, changes, *, actor=None, request=None):
 
 @transaction.atomic
 def create_field_def(*, name, code, field_type, department, meaning="", hint="",
-                     actor=None, request=None):
+                     default_value="", actor=None, request=None):
     """Thêm một định nghĩa trường vào thư viện dùng chung của bộ phận."""
     truong = FieldDef(
-        name=name, code=code, field_type=field_type,
-        meaning=meaning, hint=hint, department=department,
+        name=name, code=code, field_type=field_type, meaning=meaning,
+        hint=hint, default_value=default_value, department=department,
     )
     truong.full_clean()
     truong.save()
@@ -88,7 +88,7 @@ def update_field_def(field_def, changes, *, actor=None, request=None):
     ghi vào cột sai kiểu.
     """
     da_doi, doi_kieu = [], False
-    for ten in ("name", "field_type", "meaning", "hint"):
+    for ten in ("name", "field_type", "meaning", "hint", "default_value"):
         if ten not in changes:
             continue
         cu, moi = getattr(field_def, ten), changes[ten]

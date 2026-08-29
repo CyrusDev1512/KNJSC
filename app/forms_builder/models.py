@@ -393,6 +393,10 @@ class FieldDef(TimestampedModel):
         "Nhãn ý nghĩa", max_length=20, choices=Meaning.choices, blank=True, db_index=True,
     )
     hint = models.CharField("Câu gợi ý dưới ô nhập", max_length=200, blank=True)
+    default_value = models.CharField(
+        "Giá trị mặc định", max_length=200, blank=True,
+        help_text="Điền sẵn vào ô khi mở biểu mẫu. Để trống nếu không có.",
+    )
     department = models.ForeignKey(
         "org.Department", verbose_name="Bộ phận",
         on_delete=models.PROTECT, related_name="field_defs", db_index=True,

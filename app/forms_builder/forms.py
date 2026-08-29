@@ -143,11 +143,11 @@ class FieldDefForm(forms.ModelForm):
 
     class Meta:
         model = FieldDef
-        fields = ["name", "code", "field_type", "meaning", "hint"]
+        fields = ["name", "code", "field_type", "meaning", "hint", "default_value"]
         labels = {
             "name": "Nhãn hiển thị", "code": "Tên kỹ thuật",
             "field_type": "Kiểu dữ liệu", "meaning": "Nhãn ý nghĩa",
-            "hint": "Câu gợi ý dưới ô nhập",
+            "hint": "Câu gợi ý dưới ô nhập", "default_value": "Giá trị mặc định",
         }
         help_texts = {
             "name": "Tiếng Việt, người dùng nhìn thấy.",

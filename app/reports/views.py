@@ -75,7 +75,9 @@ def bao_cao_ngay(request):
     da_nop = bool(bm) and daily_service.already_submitted(bm, request.user, ngay)
     return render(request, "reports/bao_cao_ngay.html", {
         "cac_bieu_mau": cac_bieu_mau, "bm": bm, "ngay": ngay,
-        "cac_o": [(t, du_lieu.get(t.field.code, "")) for t in cac_truong],
+        # Chưa nhập gì thì điền sẵn giá trị mặc định của định nghĩa trường
+        "cac_o": [(t, du_lieu.get(t.field.code) or t.field.default_value)
+                  for t in cac_truong],
         "loi": loi, "da_nop": da_nop,
         "cac_cot_tinh": bm.table.computed_columns() if bm else [],
     })

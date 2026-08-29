@@ -35,7 +35,8 @@
       <thead>
         <tr>
           <th>Tên biểu mẫu</th><th>Tên kỹ thuật</th><th>Bộ phận</th>
-          <th class="phai">Số trường</th><th>Bảng đích</th><th>Trạng thái</th><th></th>
+          <th class="phai">Số trường</th><th>Bảng đích</th><th>Người tạo</th>
+          <th>Cập nhật</th><th>Trạng thái</th><th></th>
         </tr>
       </thead>
       <tbody>
@@ -46,6 +47,8 @@
             <td>{{ bm.department }}</td>
             <td class="tien">{{ bm.so_truong }}</td>
             <td class="ma-o">{{ bm.table.code }}</td>
+            <td class="nho">{{ bm.created_by.profile.full_name|default:bm.created_by.username|default:"—" }}</td>
+            <td class="ma-o">{{ bm.updated_at|date:"d.m H:i" }}</td>
             <td>
               {% if bm.is_active %}
                 <span class="chip chip-tot"><i></i>Đang dùng</span>
@@ -63,7 +66,7 @@
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="7">
+          <tr><td colspan="9">
             {% include "components/rong.html" with rong_tieu_de="Chưa có biểu mẫu nào" rong_mo_ta="Tạo bảng trước, rồi tạo biểu mẫu ghi vào bảng đó." %}
           </td></tr>
         {% endfor %}

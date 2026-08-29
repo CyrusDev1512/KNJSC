@@ -92,6 +92,16 @@
         {% empty %}
           <p class="mo-nhat">Biểu mẫu này chưa có trường nào. Quản lý cần thêm trường trước.</p>
         {% endfor %}
+
+        {# Cột tính sẵn hiện ngay tại chỗ, nền chàm, không gõ được — ADR-006.
+           Để người nộp thấy trước hệ thống sẽ tính ra gì, không phải đoán. #}
+        {% for c in cac_cot_tinh %}
+          <div class="truong">
+            <label>{{ c.name }} <span class="ky-thuat">{{ c.code }}</span></label>
+            <input class="o-nhap o-tinh" value="hệ thống tự tính" readonly>
+            <span class="goi-y ct">{{ c.compute_left }} {{ c.get_compute_op_display }} {{ c.compute_right }}</span>
+          </div>
+        {% endfor %}
       </div>
       <div class="the-chan">
         <span class="nho mo-nhat">Nộp xong là khoá, không sửa được — BR-2</span>
@@ -102,19 +112,6 @@
     </div>
   </form>
 
-  {% if cac_cot_tinh %}
-    <div class="the" style="max-width:860px;margin-top:var(--sp-4)">
-      <div class="the-dau"><h2>Hệ thống tự tính</h2></div>
-      <div class="the-than">
-        <p class="nho mo-nhat">Những cột này tính từ số liệu bạn nhập, không cần gõ:</p>
-        <div class="hang" style="gap:var(--sp-2);flex-wrap:wrap">
-          {% for c in cac_cot_tinh %}
-            <span class="chip chip-nhan"><i></i>{{ c.name }}</span>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-  {% endif %}
 {% else %}
   {% include "components/rong.html" with rong_tieu_de="Bộ phận bạn chưa có biểu mẫu báo cáo" rong_mo_ta="Quản lý cần tạo biểu mẫu ở màn hình Biểu mẫu trước." %}
 {% endif %}
