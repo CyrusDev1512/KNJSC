@@ -328,11 +328,33 @@ table.bang-rong td, table.bang-rong th { white-space: nowrap; }
 table.bang-rong td.cho-xuong { white-space: normal; min-width: 200px; }
 
 /* Ô sửa được tại chỗ */
-.o-sua { cursor: text; border-radius: var(--r-sm); }
+.o-sua { cursor: text; border-radius: var(--r-sm); padding: 0; }
 .o-sua:hover { box-shadow: inset 0 0 0 1px var(--rule-strong); background: var(--surface); }
-.o-sua:focus {
-  outline: none; background: var(--surface);
+.o-sua:focus-within {
+  background: var(--surface);
   box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+/* Ô nhập nằm gọn trong ô bảng: không viền riêng, không đổi chiều cao dòng */
+.o-trong-bang {
+  width: 100%; border: 0; background: transparent; color: inherit;
+  font: inherit; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm);
+}
+.o-trong-bang:focus { outline: none; }
+
+/* Cột tính sẵn: nền chàm nhạt, con trỏ báo không sửa được — ADR-006 */
+.o-tinh {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  cursor: not-allowed;
+}
+
+/* Ô sửa hỏng: hiện lý do ngay tại chỗ thay vì im lặng bỏ qua */
+.o-loi {
+  background: var(--critical-soft);
+  color: var(--critical);
+  font-size: var(--fs-xs);
 }
 
 /* ══ THANH LỌC ═══════════════════════════════════════════════════ */
