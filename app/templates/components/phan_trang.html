@@ -13,7 +13,8 @@ có hai bảng phân trang độc lập nhau.
 
   <label class="hang nho" style="gap:var(--sp-2)">
     Mỗi trang
-    <select class="o-nhap" style="width:auto;padding:2px var(--sp-2)"
+    <select class="o-nhap" aria-label="Số dòng mỗi trang"
+            style="width:auto;padding:2px var(--sp-2)"
             onchange="location.search = '?{{ pc }}=' + this.value">
       {% for co in cac_co_trang %}
         <option value="{{ co }}" {% if co == moi_trang %}selected{% endif %}>{{ co }}</option>

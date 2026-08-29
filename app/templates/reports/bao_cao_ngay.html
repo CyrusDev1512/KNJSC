@@ -41,7 +41,7 @@
 
     <div class="the" style="max-width:860px">
       <div class="the-than bm">
-        <div class="bm-hang-2">
+        <div class="bm-hang bm-hang-2">
           <div class="truong">
             <label for="bieu-mau">Biểu mẫu</label>
             <select class="o-nhap" id="bieu-mau" name="bieu_mau"
@@ -97,8 +97,9 @@
            Để người nộp thấy trước hệ thống sẽ tính ra gì, không phải đoán. #}
         {% for c in cac_cot_tinh %}
           <div class="truong">
-            <label>{{ c.name }} <span class="ky-thuat">{{ c.code }}</span></label>
-            <input class="o-nhap o-tinh" value="hệ thống tự tính" readonly>
+            <label for="tinh-{{ c.code }}">{{ c.name }} <span class="ky-thuat">{{ c.code }}</span></label>
+            <input class="o-nhap o-tinh" id="tinh-{{ c.code }}"
+                   value="hệ thống tự tính" readonly>
             <span class="goi-y ct">{{ c.compute_left }} {{ c.get_compute_op_display }} {{ c.compute_right }}</span>
           </div>
         {% endfor %}

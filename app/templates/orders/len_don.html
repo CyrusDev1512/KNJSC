@@ -37,7 +37,7 @@
       <div class="the">
         <div class="the-dau"><h2>Khách hàng</h2></div>
         <div class="the-than bm">
-          <div class="bm-hang-2">
+          <div class="bm-hang bm-hang-2">
             <div class="truong">
               <label for="phone">Số điện thoại <span class="bat-buoc">*</span></label>
               <input class="o-nhap ma" id="phone" name="phone" value="{{ d.phone|default:'' }}"
@@ -51,7 +51,7 @@
             </div>
           </div>
           {% include "orders/_nhac_khach.html" %}
-          <div class="bm-hang-2">
+          <div class="bm-hang bm-hang-2">
             <div class="truong">
               <label for="facebook">Facebook</label>
               <input class="o-nhap" id="facebook" name="facebook" value="{{ d.facebook|default:'' }}"
@@ -118,15 +118,20 @@
               {% for dong in cac_dong %}
                 <tr class="dong-sp">
                   <td>
-                    <select class="o-nhap o-sp" name="sp_{{ forloop.counter0 }}">
+                    <select class="o-nhap o-sp" name="sp_{{ forloop.counter0 }}"
+                            aria-label="Sản phẩm dòng {{ forloop.counter }}">
                       <option value="">— chọn sản phẩm —</option>
                       {% for sp in cac_san_pham %}
                         <option value="{{ sp.code }}" {% if sp.code == dong.product %}selected{% endif %}>{{ sp.name }}</option>
                       {% endfor %}
                     </select>
                   </td>
-                  <td class="phai"><input class="o-nhap tien o-sl" name="sl_{{ forloop.counter0 }}" value="{{ dong.quantity|default:'1' }}"></td>
-                  <td class="phai"><input class="o-nhap tien o-gia" name="gia_{{ forloop.counter0 }}" value="{{ dong.unit_price|default:'' }}" placeholder="0,00"></td>
+                  <td class="phai"><input class="o-nhap tien o-sl" name="sl_{{ forloop.counter0 }}"
+                             value="{{ dong.quantity|default:'1' }}"
+                             aria-label="Số lượng dòng {{ forloop.counter }}"></td>
+                  <td class="phai"><input class="o-nhap tien o-gia" name="gia_{{ forloop.counter0 }}"
+                             value="{{ dong.unit_price|default:'' }}" placeholder="0,00"
+                             aria-label="Đơn giá dòng {{ forloop.counter }}"></td>
                   <td class="phai tien o-thanh-tien">0,00</td>
                   <td class="phai"><button class="nut nut-nho nut-nguy bo-dong" type="button">Bỏ</button></td>
                 </tr>
@@ -166,7 +171,7 @@
               <span class="goi-y">Chính là bạn, hệ thống tự ghi</span>
             </div>
           </div>
-          <div class="bm-hang-2">
+          <div class="bm-hang bm-hang-2">
             <div class="truong">
               <label for="sub_unit">Đơn vị phụ</label>
               <input class="o-nhap" id="sub_unit" name="sub_unit" value="{{ d.sub_unit|default:'' }}"

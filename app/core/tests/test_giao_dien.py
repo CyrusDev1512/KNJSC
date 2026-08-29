@@ -89,3 +89,157 @@ def test_moi_lop_css_dung_trong_template_deu_ton_tai(tep):
         "Khai trong static/css/main.css, hoặc thêm vào MOC_JAVASCRIPT nếu chỉ "
         "dùng cho JavaScript."
     )
+
+
+# ══ TRẢI NGHIỆM DÙNG ═══════════════════════════════════════════════
+#
+# Những lỗi dưới đây Django không bao giờ báo: trang vẫn trả 200, chỉ người
+# dùng thấy giao diện khó dùng hoặc hỏng. Kiểm ở mức tệp vì không có thư viện
+# trình duyệt nào trong dự án.
+
+#: Trang không cần khối nội dung riêng, kèm lý do
+KHONG_CAN_NOI_DUNG = {
+    "base.html": "chính là bộ khung, không phải trang",
+    "base_tran.html": "bộ khung trần cho trang chưa đăng nhập",
+}
+
+#: Loại ô nhập không cần nhãn
+KHONG_CAN_NHAN = {"hidden", "submit", "button", "checkbox", "radio"}
+
+
+def _mo_ta_tep(tep):
+    return str(tep.relative_to(GOC))
+
+
+@pytest.mark.parametrize("tep", CAC_TEMPLATE, ids=lambda p: p.name)
+def test_moi_o_nhap_deu_co_nhan(tep):
+    """NFR-7 — Mọi ô nhập phải có nhãn đi kèm
+
+    Ô không nhãn thì người dùng không biết gõ gì vào, và trình đọc màn hình
+    cũng không đọc được. Nhãn nối bằng `for` trỏ tới `id` của ô.
+    """
+    noi_dung = tep.read_text(encoding="utf-8")
+    co_nhan = set(re.findall(r'<label[^>]*\bfor="([^"]+)"', noi_dung))
+
+    thieu = []
+    for the in re.findall(r"<(?:input|select|textarea)\b[^>]*>", noi_dung):
+        loai = re.search(r'\btype="([^"]+)"', the)
+        if loai and loai.group(1) in KHONG_CAN_NHAN:
+            continue
+        if "aria-label" in the or "{{ truong" in the:
+            continue                        # Django tự sinh nhãn ở vòng lặp form
+        ma = re.search(r'\bid="([^"]+)"', the)
+        if ma is None or ma.group(1) not in co_nhan:
+            thieu.append(the[:70])
+
+    assert not thieu, (
+        f"{_mo_ta_tep(tep)} có ô nhập không nhãn:\n  " + "\n  ".join(thieu)
+    )
+
+
+@pytest.mark.parametrize("tep", CAC_TEMPLATE, ids=lambda p: p.name)
+def test_moi_bang_deu_co_tieu_de_cot(tep):
+    """NFR-7 — Mọi bảng phải có tiêu đề cột
+
+    Bảng không có `<thead>` thì người dùng không biết cột nào là gì, và dòng
+    đầu tiên bị đọc nhầm thành tiêu đề.
+    """
+    noi_dung = tep.read_text(encoding="utf-8")
+    so_bang = noi_dung.count("<table")
+    so_dau = noi_dung.count("<thead")
+    assert so_bang == 0 or so_dau >= so_bang, (
+        f"{_mo_ta_tep(tep)} có {so_bang} bảng nhưng chỉ {so_dau} khối tiêu đề cột"
+    )
+
+
+@pytest.mark.parametrize("tep", CAC_TEMPLATE, ids=lambda p: p.name)
+def test_moi_trang_deu_co_tieu_de_rieng(tep):
+    """NFR-7 — Mỗi trang có tiêu đề riêng trên thẻ trình duyệt
+
+    Mở nhiều thẻ mà tiêu đề giống nhau thì không biết thẻ nào là thẻ nào.
+    """
+    if tep.name in KHONG_CAN_NOI_DUNG or tep.name.startswith("_"):
+        return
+    noi_dung = tep.read_text(encoding="utf-8")
+    if "{% extends" not in noi_dung:
+        return                              # mảnh ghép, không phải trang
+    assert "{% block tieu_de %}" in noi_dung, (
+        f"{_mo_ta_tep(tep)} chưa đặt tiêu đề trang"
+    )
+
+
+@pytest.mark.parametrize("tep", CAC_TEMPLATE, ids=lambda p: p.name)
+def test_moi_bieu_mau_gui_di_deu_co_the_chong_gia_mao(tep):
+    """FR-3.6 — Mọi biểu mẫu gửi đi phải có thẻ chống giả mạo
+
+    Thiếu thẻ thì Django chặn ở máy chủ và người dùng nhận lỗi 403 khó hiểu.
+    """
+    noi_dung = tep.read_text(encoding="utf-8")
+    so_gui = len(re.findall(r'<form[^>]*method="post"', noi_dung, re.IGNORECASE))
+    so_the = noi_dung.count("{% csrf_token %}")
+    assert so_gui == 0 or so_the >= so_gui, (
+        f"{_mo_ta_tep(tep)} có {so_gui} biểu mẫu gửi đi nhưng chỉ {so_the} thẻ chống giả mạo"
+    )
+
+
+@pytest.mark.parametrize("tep", CAC_TEMPLATE, ids=lambda p: p.name)
+def test_nut_khong_hoan_tac_duoc_deu_bao_mau(tep):
+    """NFR-7 — Nút xoá, bỏ, thu quyền phải mang lớp cảnh báo
+
+    Bấm nhầm những nút này thì không hoàn tác được, nên chúng phải trông khác
+    nút thường.
+    """
+    noi_dung = tep.read_text(encoding="utf-8")
+    nguy_hiem = ("Xoá", ">Bỏ", "Bỏ ", ">Thu<", "Thu quyền", "Khoá")
+
+    thieu = []
+    for the in re.findall(r"<button\b[^>]*>[^<]*", noi_dung):
+        if not any(tu in the for tu in nguy_hiem):
+            continue
+        if "nut-nguy" not in the:
+            thieu.append(the.strip()[:70])
+
+    assert not thieu, (
+        f"{_mo_ta_tep(tep)} có nút không hoàn tác được nhưng chưa báo màu:\n  "
+        + "\n  ".join(thieu)
+    )
+
+
+#: Lớp bổ nghĩa và lớp gốc bắt buộc đi kèm.
+#:
+#: Những lớp này **không tự đứng một mình được** — chúng chỉ chỉnh một thuộc
+#: tính của lớp gốc. Dùng thiếu lớp gốc thì trình duyệt bỏ qua lặng lẽ, trang
+#: vẫn trả 200, chỉ bố cục sai.
+#:
+#: Đã xảy ra thật: `bm-hang-2` dùng một mình ở bốn chỗ nên ô nhập xếp dọc
+#: thay vì hai cột, suốt từ Giai đoạn 4 tới Giai đoạn 5.
+LOP_BO_NGHIA = {
+    "luoi-2": "luoi", "luoi-3": "luoi", "luoi-4": "luoi",
+    "luoi-3cot": "luoi", "luoi-phu": "luoi",
+    "bm-hang-2": "bm-hang",
+    "nut-chinh": "nut", "nut-nho": "nut", "nut-nguy": "nut", "nut-nav": "nut",
+    "chip-tot": "chip", "chip-xau": "chip", "chip-nhat": "chip",
+    "chip-nhan": "chip", "chip-cho": "chip",
+}
+
+
+@pytest.mark.parametrize("tep", CAC_TEMPLATE, ids=lambda p: p.name)
+def test_lop_bo_nghia_luon_di_kem_lop_goc(tep):
+    """NFR-7 — Lớp bổ nghĩa phải đi kèm lớp gốc, không đứng một mình
+
+    Thiếu lớp gốc thì trình duyệt bỏ qua và bố cục sai âm thầm — Django vẫn
+    trả 200 nên không bài kiểm nào khác thấy.
+    """
+    noi_dung = tep.read_text(encoding="utf-8")
+
+    thieu = []
+    for cum in re.findall(r'class="([^"]*)"', noi_dung):
+        cac_lop = set(cum.split())
+        for bo_nghia, goc in LOP_BO_NGHIA.items():
+            if bo_nghia in cac_lop and goc not in cac_lop:
+                thieu.append(f'class="{cum}" — thiếu .{goc}')
+
+    assert not thieu, (
+        f"{_mo_ta_tep(tep)} dùng lớp bổ nghĩa thiếu lớp gốc:\n  "
+        + "\n  ".join(sorted(set(thieu)))
+    )

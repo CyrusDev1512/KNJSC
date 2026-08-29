@@ -168,14 +168,40 @@ def test_thanh_dieu_huong_an_muc_ngoai_quyen(nguoi_dung):
 # ══ Tổng quan chịu lỗi ═════════════════════════════════════════
 
 def test_tong_quan_van_chay_khi_mot_khoi_loi(nguoi_dung):
-    """kien-truc.md, mục chịu lỗi — Một khối lỗi thì các khối còn lại vẫn hiện"""
+    """kien-truc.md, mục chịu lỗi — Một khối lỗi thì các khối còn lại vẫn hiện
+
+    Giả lập khối bảng động hỏng. Trước đây khối này **cố tình** hỏng thật vì
+    module forms_builder chưa có; nay nó chạy được, nên phải giả lập — không
+    thì tính chất chịu lỗi mất người canh.
+    """
+    from unittest import mock
+
     from dashboard.services import dashboard_service
 
-    kq = dashboard_service.tong_quan(nguoi_dung["manager_sale"])
-    assert kq["bang_dong"]["ok"] is False      # khối này cố tình lỗi
+    with mock.patch.object(
+        dashboard_service, "_bang_dong", side_effect=RuntimeError("hỏng giả lập")
+    ):
+        kq = dashboard_service.tong_quan(nguoi_dung["manager_sale"])
+
+    assert kq["bang_dong"]["ok"] is False      # khối hỏng
     assert kq["nhan_su"]["ok"] is True         # các khối khác vẫn chạy
     assert kq["co_cau"]["ok"] is True
     assert kq["hoat_dong"]["ok"] is True
+
+
+def test_tong_quan_hien_bang_dong_khi_binh_thuong(nguoi_dung, departments):
+    """kien-truc.md — Khối bảng động chạy thật, không còn báo chưa khả dụng"""
+    from dashboard.services import dashboard_service
+    from forms_builder.models import TableDef
+
+    TableDef.objects.create(
+        name="Bảng thử", code="bang_thu_tq",
+        department=departments["sale"], created_by=nguoi_dung["manager_sale"],
+    )
+    kq = dashboard_service.tong_quan(nguoi_dung["manager_sale"])
+
+    assert kq["bang_dong"]["ok"] is True
+    assert kq["bang_dong"]["data"]["so_bang"] == 1
 
 
 def test_tong_quan_vao_duoc_voi_moi_cap_bac(client, nguoi_dung):

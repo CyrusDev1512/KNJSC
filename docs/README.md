@@ -13,6 +13,7 @@ Thư mục này chứa toàn bộ tài liệu của dự án.
 | Làm thế nào — kiến trúc, mô hình dữ liệu | `03-thiet-ke-ky-thuat.md` |
 | Thế nào là xong | `04-tieu-chi-nghiem-thu.md` |
 | Cách dùng và cách vận hành | `05-huong-dan-va-van-hanh.md` |
+| Kiểm thử thế nào, ai kiểm | `06-ke-hoach-kiem-thu.md` |
 | Kiến trúc tổng thể, lộ trình | `kien-truc.md` |
 | Sơ đồ dạng hình | `so-do-kien-truc.html` |
 | Vì sao chọn cách làm này | `quyet-dinh/` |
@@ -29,8 +30,9 @@ docs/
 ├── 01-tong-quan-san-pham.md         cho người quyết định phạm vi
 ├── 02-yeu-cau-san-pham.md           48 yêu cầu có mã, kiểm chứng được
 ├── 03-thiet-ke-ky-thuat.md          cho người phát triển và AI viết mã
-├── 04-tieu-chi-nghiem-thu.md        58 tiêu chí, tham chiếu ngược tới yêu cầu
+├── 04-tieu-chi-nghiem-thu.md        47 tiêu chí, tham chiếu ngược tới yêu cầu
 ├── 05-huong-dan-va-van-hanh.md      phần A cho người dùng, phần B cho người vận hành
+├── 06-ke-hoach-kiem-thu.md          bảy tầng kiểm thử, danh sách kiểm thủ công
 │
 ├── kien-truc.md                     kiến trúc tổng thể, lộ trình tám giai đoạn
 ├── so-do-kien-truc.html             năm sơ đồ dạng hình

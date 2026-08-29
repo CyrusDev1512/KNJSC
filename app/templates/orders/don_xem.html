@@ -79,6 +79,7 @@
           </div>
         {% endif %}
         <table class="bang">
+          <thead><tr><th>Mục</th><th class="phai">Giá trị</th></tr></thead>
           <tbody>
             <tr><td>Tên khách</td><td class="phai">{{ don.customer.name }}</td></tr>
             <tr><td>Số điện thoại</td><td class="phai ma-o">{{ don.customer.phone }}</td></tr>
@@ -94,6 +95,7 @@
       <div class="the-dau"><h2>Giao hàng và thanh toán</h2></div>
       <div class="the-than">
         <table class="bang">
+          <thead><tr><th>Mục</th><th class="phai">Giá trị</th></tr></thead>
           <tbody>
             <tr><td>Quốc gia</td><td class="phai">{{ don.get_market_display }}</td></tr>
             <tr><td>Bang</td><td class="phai">{{ don.state|default:"—" }}</td></tr>

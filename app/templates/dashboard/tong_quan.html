@@ -6,7 +6,7 @@
 
 <div class="trang-dau">
   <div>
-    <div class="nhan-nho">Giai đoạn 2</div>
+    <div class="nhan-nho">Phase 1</div>
     <h1>Chào {{ profile.full_name|default:user.get_username }}</h1>
     <p>
       Phạm vi đang xem: <b>{{ profile.get_rank_display }}</b>{% if profile.department %}
@@ -92,16 +92,41 @@
       <h2>Bảng dữ liệu</h2>
       {% if not bang_dong.ok %}
         <div class="phai"><span class="chip chip-xau"><i></i>Tạm chưa khả dụng</span></div>
+      {% else %}
+        <div class="phai nho mo-nhat">
+          {{ bang_dong.data.so_bang }} bảng · {{ bang_dong.data.so_dong }} dòng
+        </div>
       {% endif %}
     </div>
-    <div class="rong">
-      <div class="bieu-tuong ma">▤</div>
-      <h3>Dữ liệu bảng tạm thời chưa khả dụng</h3>
-      <p>
-        Module bảng động thuộc giai đoạn 3, chưa có. Khối này hỏng nhưng
-        Tổng quan vẫn chạy — đó là điều kiện bắt buộc trong kiến trúc.
-      </p>
-    </div>
+    {% if bang_dong.ok %}
+      <div class="bang-cuon">
+        <table class="bang">
+          <thead><tr><th>Tên bảng</th><th>Bộ phận</th><th class="phai">Số dòng</th></tr></thead>
+          <tbody>
+            {% for b in bang_dong.data.cac_bang %}
+              <tr>
+                <td><a href="{% url 'bang_xem' b.code %}">{{ b.name }}</a></td>
+                <td class="nho">{{ b.department }}</td>
+                <td class="tien">{{ b.so_dong }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3">
+                {% include "components/rong.html" with rong_tieu_de="Chưa có bảng nào" rong_mo_ta="Quản lý tạo bảng ở màn hình Bảng dữ liệu." %}
+              </td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="rong">
+        <div class="bieu-tuong ma">▤</div>
+        <h3>Dữ liệu bảng tạm thời chưa khả dụng</h3>
+        <p>
+          Khối này hỏng nhưng Tổng quan vẫn chạy — đó là điều kiện bắt buộc
+          trong kiến trúc.
+        </p>
+      </div>
+    {% endif %}
   </div>
 </div>
 

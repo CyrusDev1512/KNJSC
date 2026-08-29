@@ -9,6 +9,8 @@ try lớn — một lỗi không kéo cả màn hình xuống.
 """
 import logging
 
+from django.db.models import Count
+
 from core.models import AuditLog
 from core.scope import get_user_scope
 
@@ -62,12 +64,25 @@ def _hoat_dong_gan_day(user):
 
 
 def _bang_dong(user):
-    """Khối bảng dữ liệu do người dùng tạo.
+    """Khối bảng dữ liệu do người dùng tạo, trong phạm vi quyền.
 
-    Module forms_builder chưa có model nào — giai đoạn 3 mới làm. Ở đây cố
-    tình báo chưa khả dụng để thấy được cách màn hình chịu lỗi.
+    Nhập muộn để `dashboard` không phụ thuộc cứng vào `forms_builder`:
+    `kien-truc.md` đòi Tổng quan vẫn chạy khi một khối hỏng, nên khối này
+    phải hỏng được mà không kéo cả trang theo.
     """
-    raise NotImplementedError("Module forms_builder chưa có ở giai đoạn 2")
+    from forms_builder.models import DataRecord, TableDef
+
+    bang = list(
+        TableDef.objects.in_scope(user)
+        .select_related("department")
+        .annotate(so_dong=Count("records", distinct=True))
+        .order_by("-updated_at")[:5]
+    )
+    return {
+        "cac_bang": bang,
+        "so_bang": TableDef.objects.in_scope(user).count(),
+        "so_dong": DataRecord.objects.in_scope(user).count(),
+    }
 
 
 def tong_quan(user):

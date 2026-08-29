@@ -28,7 +28,6 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 
 | # | Nội dung | Mức | Nguồn |
 |---|---|---|---|
-| K5 | Có nên đặt ngưỡng tỉ lệ bao phủ kiểm thử không | Thấp | Bàn tài liệu |
 | K6 | Công cụ đo hiệu năng khi kiểm 50 người dùng đồng thời | Thấp | Bàn tài liệu |
 | K7 | Đổi khoảng 60 định danh tiếng Việt trong mã Python sang tiếng Anh theo quy ước CLAUDE.md, gồm cả tên ràng buộc `team_unique_trong_bo_phan` đã vào PostgreSQL | Trung bình | Rà soát GĐ 1–2 |
 | K8 | `docs/03` mục 2.1 đòi mọi bảng có cột "người sửa"; `ScopedModel` mới có `created_by`, chưa có `updated_by` | Thấp | Rà soát GĐ 1–2 |
@@ -36,6 +35,7 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | K10 | Quy tắc Q3 "chỉ lấy cột cần hiển thị" chưa áp ở màn hình nào | Thấp | Rà soát GĐ 1–2 |
 | K13 | `core/scope.py _granted_scope` vẫn trả về rỗng. Cấp quyền theo bảng và biểu mẫu đi đường riêng ở `forms_builder/services/grant_service.py` — hai cơ chế song song, nên xem lại có gộp được không | Trung bình | GĐ 3B |
 | K14 | Nhánh Staff trong `apply_scope` không đọc `department_ids` lẫn `team_ids`, nên cấp thêm cả một bộ phận cho Staff không có tác dụng | Thấp | GĐ 3B |
+| K17 | Chưa có gì chạy kiểm thử tự động khi đẩy mã lên kho. Người dùng chốt chưa dựng vì **V2** còn để ngỏ ai vận hành sau bàn giao | Trung bình | Kế hoạch kiểm thử |
 | K16 | Cột **Trạng thái** trên Lịch sử báo cáo (Đã nộp · Nộp muộn · Chưa nộp) chưa làm được vì chưa chốt **N1** — lịch nộp báo cáo có bắt buộc đúng giờ không. Không có hạn nộp thì không tính được thế nào là muộn | Trung bình | Đối chiếu 8010 |
 
 ### 1.2. Nghiệp vụ
@@ -93,6 +93,10 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | Q27 | Dòng trên bảng động thuộc bộ phận nào | Bộ phận **sở hữu bảng**, không phải bộ phận người ghi. Thêm cờ `is_shared` cho bảng là hàng đợi việc chung | 29.08.2026 |
 | Q28 | Ô "Có chỉ mục" trong bản dựng — K15 | Bỏ. Chỉ mục suy ra từ nhãn ý nghĩa, không phải lựa chọn của người dùng — ADR-001 | 29.08.2026 |
 | Q29 | Cột "Chỉ mục GIN" trên danh sách bảng | Bỏ. Mọi bảng động đều có chỉ mục GIN trên cột JSON, hiện lên không nói thêm được gì | 29.08.2026 |
+| Q30 | Ngưỡng bao phủ kiểm thử — K5 | Đo bằng `pytest-cov` để biết chỗ hổng, **không đặt ngưỡng chặn**. Ngưỡng đẻ ra bài kiểm viết cho đủ số | 29.08.2026 |
+| Q31 | Kiểm giao diện tự động tới đâu | Ở mức HTML, không thêm thư viện trình duyệt. Phần cần trình duyệt thật thì bấm tay | 29.08.2026 |
+| Q32 | Ai vào được màn hình Lên đơn | Chỉ bộ phận Sale, theo ma trận kiểm chéo `docs/04` mục 3. Thêm bộ lọc bộ phận cho `NavItem` và `assert_departments` | 29.08.2026 |
+| Q33 | Ai vào được màn hình Quản lý biểu mẫu | Manager trở lên. Nhân viên điền biểu mẫu qua màn hình Nộp báo cáo ngày | 29.08.2026 |
 
 ---
 
@@ -203,6 +207,7 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 29.08.2026 | Xong Giai đoạn 3 phần A. Chốt Q14 tới Q17. Thêm AC-3.8, AC-7.10 tới AC-7.12 vào `docs/04`. Mở K11 và K12 |
 | 29.08.2026 | Người dùng nêu: quá thiếu màn hình để nghiệm thu. Hoãn nghiệm thu tới một đợt toàn diện — mở V4 và R7, thêm mục 6 theo dõi hiện trạng màn hình |
 | 29.08.2026 | Xong Giai đoạn 4 — báo cáo hằng ngày. Chốt Q21 và Q22. Ghi ADR-008 |
+| 29.08.2026 | Lập kế hoạch kiểm thử toàn diện — `docs/06`. Từ 249 lên **779 bài đạt**, bao phủ 83%. Thêm bốn tầng: tệp chuyển đổi, kiểm khói, ma trận 35 ô, truy vết. Tìm ra 4 lỗi phân quyền, 1 lỗi tiền, 3 lỗi giao diện. Chốt Q30 tới Q33, đóng K5 và K15, mở K17 |
 | 29.08.2026 | Đối chiếu toàn bộ 8020 với 8010 theo từng trường. Bổ sung: cột Doanh số ở Lịch sử báo cáo, cột Người tạo và Cập nhật ở Quản lý biểu mẫu, Giá trị mặc định cho định nghĩa trường, cột tính sẵn hiện ngay trên biểu mẫu. Làm K15 thành bài kiểm thật. Chốt Q28 Q29, mở K16 |
 | 29.08.2026 | Người dùng đối chiếu màn Lên đơn với bản dựng: thiếu cột Thành tiền, khối Tóm tắt, khối Sau khi lưu. Phát hiện thêm `.luoi-2cot` không tồn tại nên bốn màn hình hiện một cột, và ba lớp `.o-tinh` `.o-loi` `.o-trong-bang` chưa có kiểu dáng. Đã bổ sung hết, mở K15 |
 | 29.08.2026 | Xong Giai đoạn 5 — lên đơn và vận đơn. Chốt thêm Q27 sau khi chạy thử tay phát hiện Vận đơn không thấy dòng nào |
