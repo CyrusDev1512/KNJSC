@@ -34,6 +34,10 @@ NAVIGATION = (
         NavItem("nhan_su", "Nhân sự", "nhan_su", Rank.LEADER),
         NavItem("bo_phan", "Bộ phận và team", "bo_phan", Rank.ADMIN),
     )),
+    NavGroup("Báo cáo", (
+        NavItem("bao_cao_ngay", "Nộp báo cáo ngày", "bao_cao_ngay"),
+        NavItem("bao_cao_lich_su", "Lịch sử báo cáo", "bao_cao_lich_su"),
+    )),
     NavGroup("Dữ liệu", (
         NavItem("bang", "Bảng dữ liệu", "bang"),
         NavItem("bieu_mau", "Biểu mẫu", "bieu_mau"),

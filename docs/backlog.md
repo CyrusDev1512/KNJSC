@@ -84,6 +84,8 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | Q18 | Cấu trúc trường biểu mẫu | Bốn bảng đúng `docs/03` mục 2.2: FieldDef, FormDef, FormField, FormTableLink | 29.08.2026 |
 | Q19 | Mức chi tiết của phân quyền — FR-8.4 | Cấp thêm cho từng người hoặc từng team, cộng vào phạm vi cấp bậc | 29.08.2026 |
 | Q20 | K11 và K12 | Đã xong ở 3B: màn hình điền biểu mẫu, và quyền sửa ô tính qua `grant_service.can_edit_record` | 29.08.2026 |
+| Q21 | Nội dung báo cáo hằng ngày lưu ở đâu | Trong `DataRecord` do biểu mẫu sinh ra; `DailyReport` chỉ giữ ai nộp, ngày nào, lúc nào — ADR-008 | 29.08.2026 |
+| Q22 | Dựng vỏ hết màn hình trước hay làm từng giai đoạn | Làm từng giai đoạn, mỗi màn hình chạy thật rồi mới sang màn tiếp | 29.08.2026 |
 
 ---
 
@@ -146,8 +148,8 @@ hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp d�
 | Ma trận phân quyền | 3A | Đã có, bản chỉ đọc |
 | Quản lý biểu mẫu | 3B | Đã có |
 | Trình tạo biểu mẫu | 3B | Đã có |
-| Nộp báo cáo ngày | 4 | Chưa |
-| Lịch sử báo cáo | 4 | Chưa |
+| Nộp báo cáo ngày | 4 | Đã có |
+| Lịch sử báo cáo | 4 | Đã có |
 | Lên đơn | 5 | Chưa |
 | Báo cáo tổng hợp | 6 | Chưa |
 | Bảng tính | 7 | Chưa — Q15 |
@@ -178,4 +180,5 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 29.08.2026 | Chốt K1, K2, K3 và N8 — gỡ hết điểm chặn Giai đoạn 3. Ghi ADR-006 và ADR-007 |
 | 29.08.2026 | Xong Giai đoạn 3 phần A. Chốt Q14 tới Q17. Thêm AC-3.8, AC-7.10 tới AC-7.12 vào `docs/04`. Mở K11 và K12 |
 | 29.08.2026 | Người dùng nêu: quá thiếu màn hình để nghiệm thu. Hoãn nghiệm thu tới một đợt toàn diện — mở V4 và R7, thêm mục 6 theo dõi hiện trạng màn hình |
+| 29.08.2026 | Xong Giai đoạn 4 — báo cáo hằng ngày. Chốt Q21 và Q22. Ghi ADR-008 |
 | 29.08.2026 | Xong Giai đoạn 3 phần B, khép lại Giai đoạn 3. Chốt Q18 tới Q20, đóng K11 và K12, mở K13 và K14. Bỏ model `Position` khỏi tài liệu vì nó không tồn tại |

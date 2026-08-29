@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block tieu_de %}Báo cáo {{ bao_cao.report_date|date:"d.m.Y" }} · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Báo cáo {{ bao_cao.report_date|date:"d.m.Y" }}{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">BR-2 · chỉ đọc</div>
+    <h1>{{ bao_cao.form.name }}</h1>
+    <p>Báo cáo cho ngày {{ bao_cao.report_date|date:"d.m.Y" }}, nộp lúc {{ bao_cao.submitted_at|date:"H:i d.m.Y" }} giờ Việt Nam.</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut" href="{% url 'bao_cao_lich_su' %}">Quay lại</a>
+    {% if duoc_bo %}
+      <form method="post" action="{% url 'bao_cao_bo' bao_cao.pk %}">
+        {% csrf_token %}
+        <button class="nut nut-nguy" type="submit">Bỏ báo cáo này</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="bao bao-cho">
+  <span class="bao-ic">!</span>
+  <div>
+    <b>Báo cáo đã nộp không sửa được</b>
+    <p>
+      Quy tắc BR-2. Nộp nhầm thì bỏ bản này rồi nộp lại — bản cũ vẫn giữ trong
+      cơ sở dữ liệu và trong nhật ký hoạt động, không mất dấu vết.
+    </p>
+  </div>
+</div>
+
+<div class="the" style="max-width:760px">
+  <div class="the-dau">
+    <h2>Nội dung</h2>
+    <div class="phai nho mo-nhat">Ghi vào bảng {{ bao_cao.form.table.name }}</div>
+  </div>
+  <div class="bang-cuon">
+    <table class="bang">
+      <thead><tr><th>Trường</th><th class="phai">Giá trị</th></tr></thead>
+      <tbody>
+        {% for cot, gia_tri in cac_dong %}
+          <tr>
+            <td>
+              {{ cot.name }}
+              {% if cot.is_computed %}<span class="chip chip-nhan"><i></i>Tự tính</span>{% endif %}
+              <small class="ma-o">{{ cot.code }}</small>
+            </td>
+            <td class="phai {% if cot.field_type == 'money' or cot.field_type == 'integer' or cot.field_type == 'decimal' %}tien{% endif %}">
+              {{ gia_tri|default:"—" }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="the-chan">
+    <span class="nho mo-nhat">
+      Người nộp: {{ bao_cao.created_by.profile.full_name|default:bao_cao.created_by.username }}
+      · {{ bao_cao.department }}{% if bao_cao.team %} · {{ bao_cao.team }}{% endif %}
+    </span>
+  </div>
+</div>
+
+{% endblock %}

@@ -681,15 +681,16 @@ const GIAI_DOAN = [
   {
     id: 4, ten: "Báo cáo hằng ngày", mod: "reports", trongSo: 10,
     viec: [
-      { t: "Model DailyReport và ReportTemplate", tt: "chua" },
-      { t: "Biểu mẫu báo cáo Marketing — 13 trường theo sheet BC MKT", tt: "chua" },
-      { t: "Biểu mẫu báo cáo Sale — 8 trường theo sheet BC SALE", tt: "chua" },
-      { t: "Biểu mẫu báo cáo CSKH — sheet có sẵn nhưng phase 1 chưa có vai trò này", tt: "chua", chan: "N3" },
-      { t: "Ghi nhận thời điểm nộp: lưu giờ quốc tế, hiện giờ Việt Nam", tt: "chua", note: "quy tắc 5" },
-      { t: "Khoá báo cáo sau khi nộp, chỉ sửa một lần", tt: "chua" },
-      { t: "Xem lại báo cáo cũ", tt: "chua" },
-      { t: "Leader và Manager xem báo cáo cấp dưới", tt: "chua", note: "FR-4.x" },
-      { t: "Kiểm thử khoá sau nộp và phạm vi quyền báo cáo", tt: "chua" }
+      { t: "DailyReport — bọc quanh biểu mẫu của Giai đoạn 3", tt: "xong", note: "ADR-008" },
+      { t: "Màn hình nộp báo cáo, biểu mẫu đổi theo bộ phận", tt: "xong", note: "FR-4.1" },
+      { t: "Ghi nhận thời điểm nộp: lưu giờ quốc tế, hiện giờ Việt Nam", tt: "xong", note: "quy tắc 5" },
+      { t: "Khoá báo cáo sau khi nộp — chặn ở ba tầng", tt: "xong", note: "BR-2 · FR-4.4" },
+      { t: "Màn hình lịch sử báo cáo, lọc theo người và khoảng ngày", tt: "xong", note: "FR-4.3" },
+      { t: "Xem lại nội dung một báo cáo, kèm cột tính sẵn", tt: "xong" },
+      { t: "Bỏ báo cáo đã nộp rồi nộp lại — xoá mềm", tt: "xong", note: "BR-4" },
+      { t: "Leader và Manager xem báo cáo cấp dưới", tt: "xong", note: "FR-4.5" },
+      { t: "Kiểm thử khoá sau nộp và phạm vi quyền báo cáo", tt: "xong", note: "21 bài" },
+      { t: "Biểu mẫu báo cáo CSKH — phase 1 chưa có vai trò này", tt: "chua", chan: "N3" }
     ]
   },
   {

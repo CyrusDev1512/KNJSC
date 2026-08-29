@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block tieu_de %}Nộp báo cáo ngày · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Nộp báo cáo ngày{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Báo cáo hằng ngày · FR-4.1 · FR-4.2</div>
+    <h1>Nộp báo cáo ngày</h1>
+    <p>Biểu mẫu đổi theo bộ phận. Cột tính sẵn hệ thống tự tính, không gõ tay.</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut" href="{% url 'bao_cao_lich_su' %}">Xem báo cáo cũ</a>
+  </div>
+</div>
+
+{% if loi %}
+  <div class="bao bao-xau">
+    <span class="bao-ic">!</span>
+    <div>
+      <b>Chưa nộp được</b>
+      {% for cau in loi %}<p>{{ cau }}</p>{% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+{% if da_nop %}
+  <div class="bao bao-cho">
+    <span class="bao-ic">✓</span>
+    <div>
+      <b>Bạn đã nộp biểu mẫu này cho ngày {{ ngay|date:"d.m.Y" }}</b>
+      <p>Báo cáo đã nộp thì không sửa được — BR-2. Nộp nhầm thì vào Lịch sử báo cáo, bỏ bản cũ rồi nộp lại.</p>
+    </div>
+  </div>
+{% endif %}
+
+{% if bm %}
+  <form method="post" id="bm-bao-cao">
+    {% csrf_token %}
+
+    <div class="the" style="max-width:860px">
+      <div class="the-than bm">
+        <div class="bm-hang-2">
+          <div class="truong">
+            <label for="bieu-mau">Biểu mẫu</label>
+            <select class="o-nhap" id="bieu-mau" name="bieu_mau"
+                    onchange="location.search='?bieu_mau='+this.value+'&ngay={{ ngay|date:'Y-m-d' }}'">
+              {% for f in cac_bieu_mau %}
+                <option value="{{ f.code }}" {% if f.pk == bm.pk %}selected{% endif %}>{{ f.name }}</option>
+              {% endfor %}
+            </select>
+            <span class="goi-y">Ghi vào bảng {{ bm.table.name }}</span>
+          </div>
+          <div class="truong">
+            <label for="ngay-bao-cao">Báo cáo cho ngày <span class="bat-buoc">*</span></label>
+            <input class="o-nhap" type="date" id="ngay-bao-cao" name="ngay_bao_cao"
+                   value="{{ ngay|date:'Y-m-d' }}">
+            <span class="goi-y">Thời điểm nộp hệ thống tự ghi, theo giờ Việt Nam</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="the" style="max-width:860px;margin-top:var(--sp-4)">
+      <div class="the-dau"><h2>Nội dung báo cáo</h2></div>
+      <div class="the-than bm">
+        {% for t, gia_tri in cac_o %}
+          <div class="truong">
+            <label for="o-{{ t.field.code }}">
+              {{ t.field.name }}{% if t.required %} <span class="bat-buoc">*</span>{% endif %}
+              <span class="ky-thuat">{{ t.field.code }}</span>
+            </label>
+            {% if t.field.field_type == "long_text" %}
+              <textarea class="o-nhap" id="o-{{ t.field.code }}" name="{{ t.field.code }}" rows="3">{{ gia_tri }}</textarea>
+            {% elif t.field.field_type == "date" %}
+              <input class="o-nhap" type="date" id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
+            {% elif t.field.field_type == "datetime" %}
+              <input class="o-nhap" type="datetime-local" id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
+            {% elif t.field.field_type == "boolean" %}
+              <select class="o-nhap" id="o-{{ t.field.code }}" name="{{ t.field.code }}">
+                <option value="">— chọn —</option>
+                <option value="co" {% if gia_tri == "co" %}selected{% endif %}>Có</option>
+                <option value="khong" {% if gia_tri == "khong" %}selected{% endif %}>Không</option>
+              </select>
+            {% else %}
+              <input class="o-nhap {% if t.field.field_type == 'money' or t.field.field_type == 'integer' or t.field.field_type == 'decimal' %}tien{% endif %}"
+                     id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
+            {% endif %}
+            {% if t.field.hint %}<span class="goi-y">{{ t.field.hint }}</span>{% endif %}
+          </div>
+        {% empty %}
+          <p class="mo-nhat">Biểu mẫu này chưa có trường nào. Quản lý cần thêm trường trước.</p>
+        {% endfor %}
+      </div>
+      <div class="the-chan">
+        <span class="nho mo-nhat">Nộp xong là khoá, không sửa được — BR-2</span>
+        <div class="day hang">
+          <button class="nut nut-chinh" type="submit" form="bm-bao-cao">Nộp báo cáo</button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {% if cac_cot_tinh %}
+    <div class="the" style="max-width:860px;margin-top:var(--sp-4)">
+      <div class="the-dau"><h2>Hệ thống tự tính</h2></div>
+      <div class="the-than">
+        <p class="nho mo-nhat">Những cột này tính từ số liệu bạn nhập, không cần gõ:</p>
+        <div class="hang" style="gap:var(--sp-2);flex-wrap:wrap">
+          {% for c in cac_cot_tinh %}
+            <span class="chip chip-nhan"><i></i>{{ c.name }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% else %}
+  {% include "components/rong.html" with rong_tieu_de="Bộ phận bạn chưa có biểu mẫu báo cáo" rong_mo_ta="Quản lý cần tạo biểu mẫu ở màn hình Biểu mẫu trước." %}
+{% endif %}
+
+<script>
+  document.querySelectorAll(".bm input, .bm select, .bm textarea").forEach(function (o) {
+    if (o.type !== "checkbox" && o.type !== "hidden") o.classList.add("o-nhap");
+  });
+</script>
+
+{% endblock %}

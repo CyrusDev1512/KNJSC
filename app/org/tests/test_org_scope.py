@@ -145,8 +145,17 @@ def test_thanh_dieu_huong_an_muc_ngoai_quyen(nguoi_dung):
     def cac_ma(user):
         return {m.code for nhom in visible_navigation(user) for m in nhom["items"]}
 
-    # Staff chỉ vào được các mục không đòi cấp bậc
-    assert cac_ma(nguoi_dung["staff_sale_1"]) == {"tong_quan", "bang", "bieu_mau"}
+    # Staff thấy đúng những mục không đòi cấp bậc — suy ra từ chính NAVIGATION
+    # thay vì chép tay, để thêm màn hình mới không phải sửa bài kiểm thử này.
+    # Vẫn bắt được rò rỉ: mục nào đòi cấp bậc mà Staff thấy được là đỏ ngay.
+    from core.constants import Rank
+    from core.navigation import NAVIGATION
+
+    khong_doi_cap_bac = {
+        m.code for nhom in NAVIGATION for m in nhom.items
+        if m.min_rank == Rank.STAFF
+    }
+    assert cac_ma(nguoi_dung["staff_sale_1"]) == khong_doi_cap_bac
     assert "nhan_su" not in cac_ma(nguoi_dung["staff_sale_1"])
     assert "nhan_su" in cac_ma(nguoi_dung["leader_sale_1"])
     assert "nhat_ky" in cac_ma(nguoi_dung["manager_sale"])

@@ -102,6 +102,7 @@ Trong tình huống nào thì nên xem lại quyết định này.
 | 005 | Chọn Django làm khung ứng dụng | Đã áp dụng | (điền) |
 | 006 | Bảng dữ liệu chỉ có cột tính sẵn, công thức tự do tách sang Bảng tính | Đã áp dụng | 29.08.2026 |
 | 007 | Biểu mẫu luôn chọn bảng có sẵn, và chốt bảy nhãn ý nghĩa | Đã áp dụng | 29.08.2026 |
+| 008 | Báo cáo hằng ngày bọc quanh biểu mẫu, không tự giữ nội dung | Đã áp dụng | 29.08.2026 |
 
 ---
 

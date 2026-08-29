@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block tieu_de %}Lịch sử báo cáo · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Lịch sử báo cáo{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">FR-4.3 · FR-4.4 · FR-4.5</div>
+    <h1>Lịch sử báo cáo</h1>
+    <p>Nhân viên thấy báo cáo của mình. Trưởng nhóm thấy cả team. Quản lý thấy cả bộ phận. Danh sách đã lọc sẵn theo phạm vi.</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut nut-chinh" href="{% url 'bao_cao_ngay' %}">Nộp báo cáo</a>
+  </div>
+</div>
+
+<div class="bang-hop">
+  <form class="loc" method="get">
+    <div class="truong o-tim">
+      <label for="tim">Tìm theo người nộp</label>
+      <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Tên nhân viên">
+    </div>
+    <div class="truong">
+      <label for="tu">Từ ngày</label>
+      <input class="o-nhap" type="date" id="tu" name="tu" value="{{ tu }}">
+    </div>
+    <div class="truong">
+      <label for="den">Đến ngày</label>
+      <input class="o-nhap" type="date" id="den" name="den" value="{{ den }}">
+    </div>
+    <div class="loc-nut">
+      <a class="nut nut-nho" href="{% url 'bao_cao_lich_su' %}">Xoá lọc</a>
+      <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
+    </div>
+  </form>
+
+  <div class="bang-cuon">
+    <table class="bang">
+      <thead>
+        <tr>
+          <th>Ngày báo cáo</th><th>Biểu mẫu</th><th>Người nộp</th>
+          <th>Bộ phận</th><th>Team</th><th>Nộp lúc</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bc in trang %}
+          <tr>
+            <td class="ma-o">{{ bc.report_date|date:"d.m.Y" }}</td>
+            <td>{{ bc.form.name }}</td>
+            <td>{{ bc.created_by.profile.full_name|default:bc.created_by.username }}</td>
+            <td class="nho">{{ bc.department }}</td>
+            <td class="nho">{{ bc.team|default:"—" }}</td>
+            {# Lưu giờ quốc tế, hiện giờ Việt Nam — BR-7, quy tắc 5 #}
+            <td class="ma-o">{{ bc.submitted_at|date:"d.m H:i" }}</td>
+            <td class="phai">
+              <a class="nut nut-nho" href="{% url 'bao_cao_xem' bc.pk %}">Xem</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7">
+            {% include "components/rong.html" with rong_tieu_de="Chưa có báo cáo nào" rong_mo_ta="Báo cáo đã nộp sẽ hiện ở đây, đã lọc theo phạm vi quyền của bạn." %}
+          </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% include "components/phan_trang.html" %}
+</div>
+
+{% endblock %}
