@@ -1,7 +1,12 @@
 # Bản dựng giao diện — Kim Ngân JSC
 
-Mười lăm màn hình HTML và CSS tĩnh. Chưa nối cơ sở dữ liệu, chưa có Django.
-Mục đích là nhìn thấy và bàn về giao diện trước khi viết mã thật.
+Mười màn hình HTML và CSS tĩnh, cộng một trang danh mục. Chưa nối cơ sở dữ
+liệu, chưa có Django. Mục đích là nhìn thấy và bàn về giao diện trước khi viết
+mã thật.
+
+**Năm màn hình đã chuyển sang ứng dụng Django thật** nên không còn ở đây:
+đăng nhập, tổng quan, nhân sự, nhật ký hoạt động, và màn hình từ chối. Mở
+chúng ở `http://127.0.0.1:8020/`.
 
 ---
 
@@ -26,11 +31,11 @@ Cổng 8000 trên máy này đang có một ứng dụng Django khác, nên dùn
 | Đổi gì | Quan sát ở đâu |
 |---|---|
 | Mục nào trong điều hướng bị khoá | Thanh bên trái |
-| Số liệu lọc theo phạm vi nào | Dòng mô tả dưới tiêu đề Tổng quan |
 | Gọi thẳng đường dẫn có bị chặn không | Gõ thẳng `bang-van-don.html` khi đang là Sale |
 
-Điểm cuối là AC-3.7. Bản dựng này chuyển sang màn hình từ chối chứ không
-trả danh sách rỗng, đúng như FR-3.5.
+Điểm thứ hai là AC-3.7. Bản dựng này hiện thông báo từ chối ngay tại chỗ chứ
+không trả danh sách rỗng, đúng như FR-3.5. Bản thật của màn hình 403 nằm ở
+ứng dụng Django.
 
 ---
 
@@ -39,8 +44,6 @@ trả danh sách rỗng, đúng như FR-3.5.
 | Tệp | Màn hình | Giai đoạn |
 |---|---|---|
 | `index.html` | Danh mục màn hình | — |
-| `dang-nhap.html` | Đăng nhập | 1 |
-| `tong-quan.html` | Tổng quan | 2 |
 | `bao-cao-ngay.html` | Nộp báo cáo ngày | 4 |
 | `bao-cao-lich-su.html` | Lịch sử báo cáo | 4 |
 | `bao-cao-tong-hop.html` | Báo cáo tổng hợp | 6 |
@@ -48,12 +51,9 @@ trả danh sách rỗng, đúng như FR-3.5.
 | `bang-van-don.html` | Bảng vận đơn | 3 · 5 |
 | `quan-ly-bieu-mau.html` | Quản lý biểu mẫu và bảng | 3 |
 | `tao-bieu-mau.html` | Trình tạo biểu mẫu | 3 |
-| `nhan-su.html` | Nhân sự và tài khoản | 2 |
 | `bang-tinh.html` | Danh sách bảng tính | 5 |
 | `bang-tinh-chi-tiet.html` | Bảng tính — engine tự viết | 5 |
-| `nhat-ky.html` | Nhật ký hoạt động | 1 |
 | `phan-quyen.html` | Ma trận phân quyền | 1 |
-| `tu-choi.html` | Màn hình từ chối, lỗi 403 | 1 |
 
 ---
 
@@ -110,7 +110,10 @@ Mọi chỗ chưa chốt đều được đánh dấu ngay trên màn hình, kè
 
 Bảy nhãn ý nghĩa trong trình tạo biểu mẫu là **đề xuất**, chưa chốt:
 Ngày, Số lượng, Tiền, Tỉ lệ, Người, Sản phẩm, Thị trường.
-Bảy nhãn này đủ để dựng bốn cách nhóm của báo cáo tổng hợp.
+
+Lưu ý: `docs/03-thiet-ke-ky-thuat.md` mục 2.5 ghi một danh sách **khác** —
+Ngày, Khách hàng, Số điện thoại, Doanh thu, Người bán, Sản phẩm, Trạng thái.
+Hai danh sách chưa thống nhất, đã ghi vào backlog dưới mã **N8**.
 
 
 ---
