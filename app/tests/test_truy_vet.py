@@ -212,3 +212,89 @@ def test_moi_lo_hong_ky_thuat_deu_len_ban_tom():
     assert not bo_sot, (
         "Lỗ hổng kỹ thuật chưa lên bản tóm mục 0: " + ", ".join(bo_sot)
     )
+
+
+# ══ CON SỐ TRONG TÀI LIỆU PHẢI KHỚP THỰC TẾ ═══════════════════════
+#
+# Văn xuôi không có gì canh gác, nên số trong tài liệu trôi rất nhanh. Đã xảy
+# ra thật: `docs/06` ghi 47 tiêu chí trong khi `docs/04` có 68, và ghi "28 trên
+# 40 đã có bài kiểm" trong khi thực tế là 49 trên 61 — tệp viết hôm trước, hôm
+# sau đã sai.
+#
+# Chỉ canh những con số **đổi hiếm và có nghĩa**. Số bài kiểm thử thì đổi mỗi
+# lần thêm bài nên cố ý không ghi cứng vào tài liệu.
+
+TEP_KE_HOACH = next(
+    (p for p in [GOC.parent / "docs" / "06-ke-hoach-kiem-thu.md",
+                 Path("/docs") / "06-ke-hoach-kiem-thu.md"] if p.exists()),
+    GOC.parent / "docs" / "06-ke-hoach-kiem-thu.md",
+)
+
+
+def _so_trong(mau, noi_dung):
+    tim = re.search(mau, noi_dung)
+    return int(tim.group(1)) if tim else None
+
+
+def test_so_tieu_chi_ghi_trong_ke_hoach_khop_docs_04():
+    """docs/06 phải ghi đúng số tiêu chí có thật trong docs/04"""
+    assert TEP_KE_HOACH.exists(), f"Không tìm thấy {TEP_KE_HOACH}"
+    noi_dung = TEP_KE_HOACH.read_text(encoding="utf-8")
+
+    tu_dong = sum(1 for _, loai in TIEU_CHI.values() if loai == "Tự động")
+    thu_cong = sum(1 for _, loai in TIEU_CHI.values() if loai == "Thủ công")
+
+    ghi_tong = _so_trong(r"Tiêu chí nghiệm thu trong `docs/04`.*?\*\*(\d+)\*\*", noi_dung)
+    ghi_tu_dong = _so_trong(r"\*\*(\d+)\*\* — \d+ tự động", noi_dung) or _so_trong(
+        r"\*\*\d+\*\* — (\d+) tự động", noi_dung)
+
+    assert ghi_tong == len(TIEU_CHI), (
+        f"docs/06 ghi {ghi_tong} tiêu chí, docs/04 có {len(TIEU_CHI)}"
+    )
+    assert f"{tu_dong} tự động" in noi_dung, (
+        f"docs/06 chưa ghi đúng số tiêu chí tự động — thực tế {tu_dong}"
+    )
+    assert f"{thu_cong} thủ công" in noi_dung, (
+        f"docs/06 chưa ghi đúng số tiêu chí thủ công — thực tế {thu_cong}"
+    )
+
+
+def test_so_tieu_chi_da_co_bai_kiem_ghi_dung():
+    """docs/06 phải ghi đúng số tiêu chí đã có bài kiểm
+
+    Đỏ nghĩa là viết thêm bài kiểm cho một tiêu chí mà quên cập nhật tài liệu,
+    hoặc ngược lại.
+    """
+    noi_dung = TEP_KE_HOACH.read_text(encoding="utf-8")
+    tu_dong = sum(1 for _, loai in TIEU_CHI.values() if loai == "Tự động")
+    da_co = sum(
+        1 for ma, (_, loai) in TIEU_CHI.items()
+        if loai == "Tự động" and ma in DA_KIEM
+    )
+    assert f"**{da_co} trên {tu_dong}**" in noi_dung, (
+        f"docs/06 chưa ghi đúng — thực tế {da_co} trên {tu_dong} tiêu chí tự động "
+        "đã có bài kiểm"
+    )
+
+
+def test_so_tieu_chi_hoan_ghi_dung():
+    """docs/06 phải ghi đúng số tiêu chí còn hoãn"""
+    noi_dung = TEP_KE_HOACH.read_text(encoding="utf-8")
+    assert f"**{len(HOAN)}**, đều thuộc" in noi_dung, (
+        f"docs/06 chưa ghi đúng — thực tế còn {len(HOAN)} tiêu chí hoãn"
+    )
+
+
+def test_da_co_cong_hoan_bang_tong_tu_dong():
+    """Đã kiểm + còn hoãn phải bằng đúng tổng tiêu chí tự động
+
+    Lệch nghĩa là có tiêu chí rơi ra ngoài cả hai nhóm — không ai kiểm, cũng
+    không ai ghi nhận là hoãn.
+    """
+    tu_dong = {ma for ma, (_, loai) in TIEU_CHI.items() if loai == "Tự động"}
+    da_co = {ma for ma in tu_dong if ma in DA_KIEM}
+    hoan = {ma for ma in tu_dong if ma in HOAN}
+
+    roi_ra = sorted(tu_dong - da_co - hoan)
+    assert not roi_ra, f"Tiêu chí không ai kiểm mà cũng không ghi hoãn: {roi_ra}"
+    assert len(da_co) + len(hoan) == len(tu_dong)

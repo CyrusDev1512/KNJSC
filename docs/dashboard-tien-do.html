@@ -520,7 +520,7 @@ footer code {
     <div class="section-head">
       <div class="eyebrow">Phần 1</div>
       <h2 id="h-lotrinh">Lộ trình thi công</h2>
-      <p>Giai đoạn 1 là phần đang tới lượt. Bảy giai đoạn sau tạm ẩn.</p>
+      <p>Giai đoạn 0 tới 5 đã xong. Giai đoạn 6 là phần đang tới lượt.</p>
     </div>
     <div id="phases"></div>
     <button class="fbtn" id="btn-an" type="button" aria-expanded="false"
@@ -605,7 +605,7 @@ const GIAI_DOAN = [
       { t: "01-tong-quan-san-pham.md — phạm vi và đối tượng", tt: "xong" },
       { t: "02-yeu-cau-san-pham.md — 48 yêu cầu có mã", tt: "xong" },
       { t: "03-thiet-ke-ky-thuat.md — mô hình dữ liệu và phân quyền", tt: "xong" },
-      { t: "04-tieu-chi-nghiem-thu.md — 58 tiêu chí nghiệm thu", tt: "xong" },
+      { t: "04-tieu-chi-nghiem-thu.md — 68 tiêu chí nghiệm thu", tt: "xong" },
       { t: "05-huong-dan-va-van-hanh.md — hướng dẫn dùng và vận hành", tt: "xong" },
       { t: "kien-truc.md — lộ trình tám giai đoạn", tt: "xong" },
       { t: "cau-truc-thu-muc.md — cây thư mục tới từng tệp", tt: "xong" },
@@ -899,7 +899,8 @@ const GD_KE_TIEP = GIAI_DOAN.find(g => g.id >= 1 && g.ti < 1);
 /* ── Băng tổng ── */
 document.getElementById("f-pct").textContent = so(Math.round(TIEN_DO * 10) / 10);
 document.getElementById("f-cap").textContent =
-  `Tính theo trọng số chín giai đoạn. Phần đã xong nằm ở tài liệu — mã nguồn chưa bắt đầu.`;
+  `Tính theo trọng số chín giai đoạn. Đây là tiến độ <b>đã làm</b>, không phải `
+  + `<b>đã nghiệm thu</b> — xem backlog mục 0.`;
 document.getElementById("t-viec").innerHTML = `${VIEC_XONG} <small>/ ${VIEC_TONG}</small>`;
 document.getElementById("t-crm").innerHTML = `${CRM_XONG} <small>/ ${CRM_LEAF.length}</small>`;
 document.getElementById("t-gd").innerHTML =
@@ -952,7 +953,9 @@ try {
 const TICK = { xong: "✓", dang: "◐", chua: "○" };
 const phasesEl = document.getElementById("phases");
 const anEl = document.getElementById("phases-an");
-const HIEN_TOI_GD = 1;   /* hiện GĐ 0 và GĐ 1, phần sau ẩn */
+/* Hiện tới giai đoạn đang làm; phần chưa tới lượt thì ẩn cho đỡ rối.
+   Đổi số này mỗi khi xong một giai đoạn. */
+const HIEN_TOI_GD = 6;
 
 GIAI_DOAN.forEach(g => {
   const wrap = document.createElement("div");

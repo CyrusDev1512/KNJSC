@@ -13,6 +13,19 @@
 >
 > Nếu bạn chỉ dùng hệ thống thì đọc phần A là đủ.
 
+> ## ⚠ Tài liệu này viết trước, một phần chưa chạy được
+>
+> Cập nhật 29.08.2026 — xong Giai đoạn 5. Những mục dưới đây **mô tả tính năng
+> chưa xây xong**, đọc để biết hướng chứ đừng đi thử:
+>
+> | Mục | Chờ |
+> |---|---|
+> | **A4 · Nhập từ tệp Excel** và **Xuất ra tệp Excel** | Giai đoạn 7 |
+> | **A5 · Báo cáo tổng hợp** — trọn mục | Giai đoạn 6 |
+> | **B · Sao lưu và phục hồi** | Giai đoạn 8 |
+>
+> Danh sách đầy đủ những gì đã chạy và chưa chạy nằm ở `backlog.md` **mục 0**.
+
 ---
 
 # PHẦN A — HƯỚNG DẪN SỬ DỤNG
@@ -119,6 +132,8 @@ Nếu bạn không có quyền sửa cột đó, ô sẽ không cho nhập.
 
 ### Nhập từ tệp Excel
 
+> **Chưa làm — Giai đoạn 7.** Mô tả dưới đây là dự kiến.
+
 1. Bấm **Nhập tệp**
 2. Chọn tệp Excel từ máy
 3. Xem trước dữ liệu, kiểm tra cột có khớp không
@@ -130,6 +145,8 @@ Nếu tệp có dòng lỗi, hệ thống vẫn nhập các dòng hợp lệ và
 
 ### Xuất ra tệp Excel
 
+> **Chưa làm — Giai đoạn 7.** Mô tả dưới đây là dự kiến.
+
 Bấm **Xuất tệp**. Hệ thống tạo tệp và tải về máy.
 
 Tệp xuất ra nhập lại được vào hệ thống mà không cần chỉnh sửa.
@@ -137,6 +154,8 @@ Tệp xuất ra nhập lại được vào hệ thống mà không cần chỉnh
 ---
 
 ## A5. Báo cáo tổng hợp
+
+> **Chưa làm — Giai đoạn 6.** Mô tả dưới đây là dự kiến.
 
 ### Xem báo cáo
 

@@ -30,8 +30,8 @@ tóm để không phải lục.
 
 > Cập nhật ngày 29.08.2026, sau khi xong Giai đoạn 5 và lập kế hoạch kiểm thử.
 
-**Đang ở đâu:** xong Giai đoạn 0 tới 5 và kế hoạch kiểm thử. 782 bài kiểm thử
-tự động đạt, bao phủ 83%. Còn Giai đoạn 6, 7, 8.
+**Đang ở đâu:** xong Giai đoạn 0 tới 5 và kế hoạch kiểm thử. Bao phủ khoảng
+83%. Còn Giai đoạn 6, 7, 8.
 
 **Việc tiếp theo:** Giai đoạn 6 — báo cáo tổng hợp. Đây là chỗ bảy nhãn ý nghĩa
 của Giai đoạn 3 được dùng đến: bốn cách nhóm, lọc theo thời gian và sản phẩm,
@@ -39,8 +39,8 @@ dòng tổng cộng. Gỡ luôn năm tiêu chí `AC-5.1` tới `AC-5.5` trong m�
 
 ### A · Nghiệm thu — việc của anh/chị
 
-**Chưa có gì được nghiệm thu.** Giai đoạn 0 tới 5 đều đã giao và 779 bài kiểm
-thử tự động đều đạt, nhưng anh/chị **chưa trực tiếp thử màn hình nào**. Phần
+**Chưa có gì được nghiệm thu.** Giai đoạn 0 tới 5 đều đã giao và toàn bộ bài
+kiểm thử tự động đều đạt, nhưng anh/chị **chưa trực tiếp thử màn hình nào**. Phần
 trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải *đã nghiệm thu*.
 
 **Sáu việc làm được ngay bây giờ:**
@@ -54,7 +54,7 @@ trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải
 | ☐ | Thử trên điện thoại và máy tính bảng thật | `docs/04` mục 11.5 |
 | ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | `docs/04` mục 11.7 |
 
-**Tám việc chưa làm được, và vì sao:**
+**Sáu việc chưa làm được, và vì sao:**
 
 | Việc | Mã | Chờ |
 |---|---|---|
@@ -252,7 +252,7 @@ giao diện và trải nghiệm.** Không nghiệm thu từng phần nữa; dồ
 kiểm thử toàn diện khi đủ màn hình. Mốc cụ thể xem **V4**, kế hoạch kiểm thử
 xem **V5** — cả hai đều chưa chốt.
 
-> **Chưa có gì được nghiệm thu.** Giai đoạn 0 tới 4 đều đã giao và đã chạy
+> **Chưa có gì được nghiệm thu.** Giai đoạn 0 tới 5 đều đã giao và đã chạy
 > kiểm thử tự động, nhưng **người dùng chưa trực tiếp thử màn hình nào**. Mọi
 > phần trăm trong `dashboard-tien-do.html` là tiến độ *đã làm*, không phải
 > tiến độ *đã nghiệm thu*. Hai con số đó có thể lệch nhau, và chỉ đóng lại
@@ -265,6 +265,7 @@ xem **V5** — cả hai đều chưa chốt.
 | 2 · Cơ cấu tổ chức và giao diện chung | ✓ | Chưa |
 | 3 · Biểu mẫu và bảng động | ✓ | Chưa |
 | 4 · Báo cáo hằng ngày | ✓ | Chưa |
+| 5 · Lên đơn và vận đơn | ✓ | Chưa |
 
 Bản dựng giao diện tĩnh ở `prototype/` là chuẩn để đối chiếu. Nó có 10 màn
 hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp dần.
@@ -308,6 +309,7 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 29.08.2026 | Xong Giai đoạn 3 phần A. Chốt Q14 tới Q17. Thêm AC-3.8, AC-7.10 tới AC-7.12 vào `docs/04`. Mở K11 và K12 |
 | 29.08.2026 | Người dùng nêu: quá thiếu màn hình để nghiệm thu. Hoãn nghiệm thu tới một đợt toàn diện — mở V4 và R7, thêm mục 6 theo dõi hiện trạng màn hình |
 | 29.08.2026 | Xong Giai đoạn 4 — báo cáo hằng ngày. Chốt Q21 và Q22. Ghi ADR-008 |
+| 29.08.2026 | Cho một tác nhân đóng vai phiên mới đọc kho mã, tìm ra 11 chỗ tài liệu sai hoặc thiếu. Sửa hết: bảng tiến độ báo "mã nguồn chưa bắt đầu" và chỉ hiện tới GĐ 1; số tiêu chí ghi 47 và 58 trong khi thật là 68; `docs/06` ghi 28/40 trong khi thật là 49/61; mục 6 kẹt ở GĐ 4; `docs/05` tả tính năng chưa có như đã chạy; thiếu ADR-008; K1–K4 vẫn ghi là đang chờ. Thêm bốn bài canh con số |
 | 29.08.2026 | Lập kế hoạch kiểm thử toàn diện — `docs/06`. Từ 249 lên **779 bài đạt**, bao phủ 83%. Thêm bốn tầng: tệp chuyển đổi, kiểm khói, ma trận 35 ô, truy vết. Tìm ra 4 lỗi phân quyền, 1 lỗi tiền, 3 lỗi giao diện. Chốt Q30 tới Q33, đóng K5 và K15, mở K17 |
 | 29.08.2026 | Đối chiếu toàn bộ 8020 với 8010 theo từng trường. Bổ sung: cột Doanh số ở Lịch sử báo cáo, cột Người tạo và Cập nhật ở Quản lý biểu mẫu, Giá trị mặc định cho định nghĩa trường, cột tính sẵn hiện ngay trên biểu mẫu. Làm K15 thành bài kiểm thật. Chốt Q28 Q29, mở K16 |
 | 29.08.2026 | Người dùng đối chiếu màn Lên đơn với bản dựng: thiếu cột Thành tiền, khối Tóm tắt, khối Sau khi lưu. Phát hiện thêm `.luoi-2cot` không tồn tại nên bốn màn hình hiện một cột, và ba lớp `.o-tinh` `.o-loi` `.o-trong-bang` chưa có kiểu dáng. Đã bổ sung hết, mở K15 |

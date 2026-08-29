@@ -108,11 +108,16 @@ Trong tình huống nào thì nên xem lại quyết định này.
 
 ## Quyết định đang chờ
 
-Những điểm sẽ cần ghi lại khi chốt. Chi tiết ở `../backlog.md`.
+Những điểm sẽ cần ghi lại khi chốt. Chi tiết ở `../backlog.md` **mục 0**.
 
-| Nội dung | Mã trong backlog |
+Bốn điểm từng nằm ở đây đều đã chốt và đã có mục quyết định riêng:
+
+| Nội dung cũ | Đã chốt ở |
 |---|---|
-| Cách triển khai bảng dữ liệu và công thức | K1 |
-| Tạo biểu mẫu thì tự sinh bảng hay chọn bảng có sẵn | K2 |
-| Danh sách nhãn ý nghĩa cho cột | K3 |
-| Khung ứng dụng | K4 |
+| ~~Cách triển khai bảng dữ liệu và công thức~~ — K1 | ADR-006, backlog Q11 |
+| ~~Tạo biểu mẫu thì tự sinh bảng hay chọn bảng có sẵn~~ — K2 | ADR-007, backlog Q12 |
+| ~~Danh sách nhãn ý nghĩa cho cột~~ — K3 | ADR-007, backlog Q13 |
+| ~~Khung ứng dụng~~ — K4 | ADR-005, backlog Q7 |
+
+Hiện **không còn điểm nào chờ ghi thành mục quyết định**. Danh sách việc chưa
+xong nằm ở `../backlog.md` mục 0.

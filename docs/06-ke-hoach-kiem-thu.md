@@ -35,11 +35,16 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Bài kiểm thử tự động | **782**, tất cả đạt |
-| Bao phủ dòng mã | 83% |
-| Tiêu chí nghiệm thu trong `docs/04` | 47 — 40 tự động, 7 thủ công |
-| Tiêu chí tự động đã có bài kiểm | 28 trên 40 |
-| Tiêu chí tự động còn hoãn | 12, đều thuộc Giai đoạn 6 tới 8 |
+| Tiêu chí nghiệm thu trong `docs/04` | **68** — 61 tự động, 7 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **49 trên 61** |
+| Tiêu chí tự động còn hoãn | **12**, đều thuộc Giai đoạn 6 tới 8 |
+| Bao phủ dòng mã | khoảng 83% |
+
+Ba con số đầu **có bài kiểm canh** — `app/tests/test_truy_vet.py` đọc chính
+`docs/04` và đối chiếu với mã, nên chúng không trôi được.
+
+Số bài kiểm thử thì đổi mỗi lần thêm bài, nên **không ghi cứng ở đây** — chạy
+lệnh dưới để biết số hiện tại.
 
 Chạy toàn bộ:
 
