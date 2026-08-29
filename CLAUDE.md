@@ -4,6 +4,43 @@
 
 ---
 
+## Bắt đầu một phiên mới — đọc bốn chỗ này trước
+
+**Lịch sử hội thoại không theo kho mã.** Đổi máy là mất, và điều đó không sao:
+mọi thứ cần biết đều đã ghi vào `docs/`. Bốn chỗ dưới đây đủ để làm tiếp mà
+không hỏi lại người dùng những gì họ đã trả lời.
+
+| Đọc | Trả lời câu gì |
+|---|---|
+| `docs/backlog.md` **mục 0** | **Còn nợ những gì** — bản tóm mọi việc chưa xong, cả của người dùng lẫn của mã |
+| `docs/dashboard-tien-do.html` | Đã làm tới đâu, giai đoạn nào xong |
+| `docs/quyet-dinh/` | Vì sao làm thế. **Đừng quyết lại những gì đã chốt** |
+| `docs/06-ke-hoach-kiem-thu.md` | Kiểm thử ra sao, việc nào người phải bấm tay |
+
+`docs/backlog.md` mục 2 là nhật ký quyết định — mỗi dòng một câu đã chốt, kèm
+ngày. Đọc nó trước khi hỏi lại người dùng bất cứ điều gì.
+
+### Chạy kiểm thử
+
+```
+docker compose -f deploy/docker-compose.yml run --rm -e RUN_MIGRATIONS=0 web pytest
+```
+
+Kèm đo bao phủ thì thêm `--cov`. Bỏ bài chạy chậm thì thêm `-m "not cham"`.
+
+**Đừng chạy `migrate ... zero` trên cơ sở dữ liệu phát triển** — nó xoá bảng
+thật. Bài kiểm thử tự lo việc đó trên cơ sở dữ liệu riêng.
+
+### Đã thoả thuận với người dùng
+
+| Thoả thuận | Vì sao |
+|---|---|
+| **Không dừng lại xin nghiệm thu từng giai đoạn.** Cứ chạy kiểm thử, báo cáo kết quả thật, rồi làm tiếp | Người dùng chốt dồn nghiệm thu về một đợt — backlog **V4** và **V5** |
+| Làm từng giai đoạn cho chạy thật, không dựng vỏ hết màn hình trước | Backlog **Q22** |
+| Mỗi lượt xong thì cập nhật `docs/backlog.md` và bảng tiến độ | Không thì phiên sau không biết đang ở đâu |
+
+---
+
 ## Dự án là gì
 
 Hệ thống vận hành nội bộ cho công ty thương mại điện tử xuyên biên giới.

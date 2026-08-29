@@ -30,6 +30,13 @@ tóm để không phải lục.
 
 > Cập nhật ngày 29.08.2026, sau khi xong Giai đoạn 5 và lập kế hoạch kiểm thử.
 
+**Đang ở đâu:** xong Giai đoạn 0 tới 5 và kế hoạch kiểm thử. 782 bài kiểm thử
+tự động đạt, bao phủ 83%. Còn Giai đoạn 6, 7, 8.
+
+**Việc tiếp theo:** Giai đoạn 6 — báo cáo tổng hợp. Đây là chỗ bảy nhãn ý nghĩa
+của Giai đoạn 3 được dùng đến: bốn cách nhóm, lọc theo thời gian và sản phẩm,
+dòng tổng cộng. Gỡ luôn năm tiêu chí `AC-5.1` tới `AC-5.5` trong mục D.
+
 ### A · Nghiệm thu — việc của anh/chị
 
 **Chưa có gì được nghiệm thu.** Giai đoạn 0 tới 5 đều đã giao và 779 bài kiểm
