@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block tieu_de %}{{ bm.name }} · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}{{ bm.name }}{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">FR-8.2 · FR-8.3 · ghi vào bảng {{ bm.table.name }}</div>
+    <h1>{{ bm.name }}</h1>
+    <p>{{ bm.description|default:"Điền rồi gửi. Dòng mới sẽ hiện ngay trên bảng dữ liệu." }}</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut" href="{% url 'bang_xem' bm.table.code %}">Xem bảng</a>
+  </div>
+</div>
+
+{% if loi %}
+  <div class="bao bao-xau">
+    <span class="bao-ic">!</span>
+    <div>
+      <b>Chưa gửi được</b>
+      {% for cau in loi %}<p>{{ cau }}</p>{% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+{% if cac_o %}
+  <div class="the" style="max-width:760px">
+    <form class="the-than bm" method="post" id="bm-dien">
+      {% csrf_token %}
+      {% for t, gia_tri in cac_o %}
+        <div class="truong">
+          <label for="o-{{ t.field.code }}">
+            {{ t.field.name }}{% if t.required %} <span class="bat-buoc">*</span>{% endif %}
+            <span class="ky-thuat">{{ t.field.code }}</span>
+          </label>
+          {% if t.field.field_type == "long_text" %}
+            <textarea class="o-nhap" id="o-{{ t.field.code }}" name="{{ t.field.code }}" rows="3">{{ gia_tri }}</textarea>
+          {% elif t.field.field_type == "date" %}
+            <input class="o-nhap" type="date" id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
+          {% elif t.field.field_type == "datetime" %}
+            <input class="o-nhap" type="datetime-local" id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
+          {% elif t.field.field_type == "boolean" %}
+            <select class="o-nhap" id="o-{{ t.field.code }}" name="{{ t.field.code }}">
+              <option value="">— chọn —</option>
+              <option value="co" {% if gia_tri == "co" %}selected{% endif %}>Có</option>
+              <option value="khong" {% if gia_tri == "khong" %}selected{% endif %}>Không</option>
+            </select>
+          {% else %}
+            <input class="o-nhap {% if t.field.field_type == 'money' or t.field.field_type == 'integer' or t.field.field_type == 'decimal' %}tien{% endif %}"
+                   id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
+          {% endif %}
+          {% if t.field.hint %}<span class="goi-y">{{ t.field.hint }}</span>{% endif %}
+          {% if not t.link %}<span class="goi-y">Trường này chưa nối cột, dữ liệu sẽ không được lưu.</span>{% endif %}
+        </div>
+      {% endfor %}
+    </form>
+    <div class="the-chan">
+      <span class="nho mo-nhat">Cột tính sẵn của bảng sẽ tự tính sau khi lưu</span>
+      <div class="day hang">
+        <button class="nut nut-chinh" type="submit" form="bm-dien">Gửi</button>
+      </div>
+    </div>
+  </div>
+{% else %}
+  {% include "components/rong.html" with rong_tieu_de="Biểu mẫu chưa có trường nào" rong_mo_ta="Quản lý cần thêm trường trước khi dùng được biểu mẫu này." %}
+{% endif %}
+
+{% endblock %}

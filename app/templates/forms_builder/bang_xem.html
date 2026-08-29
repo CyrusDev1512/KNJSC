@@ -52,10 +52,10 @@
         </tr>
       </thead>
       <tbody>
-        {% for ban_ghi, cac_o in cac_dong %}
+        {% for ban_ghi, cac_o, sua_duoc_dong in cac_dong %}
           <tr>
             {% for cot, gia_tri in cac_o %}
-              {% include "forms_builder/_o.html" %}
+              {% include "forms_builder/_o.html" with duoc_sua=sua_duoc_dong %}
             {% endfor %}
             <td class="nho">{{ ban_ghi.created_by.username|default:"—" }}</td>
           </tr>

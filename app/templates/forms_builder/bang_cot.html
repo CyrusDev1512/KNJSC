@@ -104,6 +104,48 @@
 
 </div>
 
+<div class="the" style="margin-top:var(--sp-5);max-width:760px">
+  <div class="the-dau"><h2>Ai xem được bảng này</h2></div>
+  <form class="the-than bm" method="post" action="{% url 'bang_cap_quyen' bang.code %}" id="bm-quyen">
+    {% csrf_token %}
+    <p class="nho mo-nhat">
+      Người trong bộ phận {{ bang.department }} đã thấy bảng này theo phạm vi cấp bậc.
+      Cấp thêm ở đây cho người ngoài bộ phận — FR-3.4.
+      Cấp hoặc thu quyền đều làm phiên đang mở của người đó mất hiệu lực ngay.
+    </p>
+    {% for truong in form_quyen %}
+      <div class="truong">
+        <label for="{{ truong.id_for_label }}">{{ truong.label }}</label>
+        {{ truong|safe }}
+      </div>
+    {% endfor %}
+    <button class="nut nut-nho nut-chinh" type="submit">Cấp quyền</button>
+  </form>
+
+  {% if cac_quyen %}
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead><tr><th>Cấp cho</th><th>Được làm gì</th><th>Người cấp</th><th></th></tr></thead>
+        <tbody>
+          {% for q in cac_quyen %}
+            <tr>
+              <td>{{ q.user.username|default:q.team }}</td>
+              <td class="nho">{{ q.get_action_display }}</td>
+              <td class="nho">{{ q.granted_by.username|default:"—" }}</td>
+              <td class="phai">
+                <form method="post" action="{% url 'bang_thu_quyen' bang.code q.pk %}">
+                  {% csrf_token %}
+                  <button class="nut nut-nho nut-nguy" type="submit">Thu</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+
 <script>
   document.querySelectorAll(".bm input, .bm select, .bm textarea").forEach(function (o) {
     if (o.type !== "checkbox" && o.type !== "hidden") o.classList.add("o-nhap");

@@ -18,16 +18,40 @@ bảng do chính mình tạo — mà Leader thì không được tạo bảng (F
 đó cho Manager). Kết quả là Leader thấy danh sách rỗng.
 """
 from django.db import models
+from django.db.models import Q
 
-from core.managers import ScopedQuerySet, apply_department_scope
+from core.managers import ScopedQuerySet, apply_department_scope, apply_scope
+from core.scope import get_user_scope
+
+
+def _cap_them(user, action):
+    """Khoá chính các bảng người này được cấp quyền riêng — FR-3.4, FR-8.4.
+
+    Nhập muộn để tránh vòng nhập: `grant_service` cần `models`, mà `models`
+    cần tệp này.
+    """
+    from .services import grant_service
+
+    return grant_service.granted_table_ids(user, action)
 
 
 class TableDefQuerySet(ScopedQuerySet):
     """Giữ nguyên xoá mềm và `can_view` của `ScopedQuerySet`, chỉ đổi `in_scope`."""
 
     def in_scope(self, user):
-        """Mọi cấp bậc thấy bảng của bộ phận mình. Quản trị viên thấy tất cả."""
-        return apply_department_scope(self, user, field="department_id")
+        """Bảng của bộ phận mình, cộng bảng được cấp quyền xem riêng."""
+        from .models import GrantAction
+
+        trong_bo_phan = apply_department_scope(self, user, field="department_id")
+        if get_user_scope(user).all_departments:
+            return trong_bo_phan
+
+        duoc_cap = _cap_them(user, GrantAction.VIEW)
+        if not duoc_cap:
+            return trong_bo_phan
+        return self.filter(
+            Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
+        )
 
 
 class TableDefManager(models.Manager.from_queryset(TableDefQuerySet)):
@@ -39,3 +63,75 @@ class TableDefManager(models.Manager.from_queryset(TableDefQuerySet)):
 
 class AllTableDefManager(models.Manager.from_queryset(TableDefQuerySet)):
     """Gồm cả bảng đã xoá. Dùng cho tệp chuyển đổi dữ liệu và kiểm thử."""
+
+
+class FormDefQuerySet(ScopedQuerySet):
+    """Biểu mẫu cũng không có cột team, nên dính đúng cái bẫy của bảng."""
+
+    def in_scope(self, user):
+        """Biểu mẫu của bộ phận mình, cộng biểu mẫu được cấp quyền điền.
+
+        Phải cộng phần được cấp quyền ngay ở đây: view lấy biểu mẫu qua
+        `in_scope` **trước** khi gọi `can_fill`, nên thiếu nhánh này thì người
+        được cấp quyền nhận 404 và không bao giờ tới được phép kiểm kia.
+        """
+        from .models import GrantAction
+        from .services import grant_service
+
+        trong_bo_phan = apply_department_scope(self, user, field="department_id")
+        if get_user_scope(user).all_departments:
+            return trong_bo_phan
+
+        duoc_cap = grant_service.granted_form_ids(user, GrantAction.FILL)
+        if not duoc_cap:
+            return trong_bo_phan
+        return self.filter(
+            Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
+        )
+
+
+class FormDefManager(models.Manager.from_queryset(FormDefQuerySet)):
+    """Loại sẵn biểu mẫu đã đánh dấu xoá."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
+
+
+class AllFormDefManager(models.Manager.from_queryset(FormDefQuerySet)):
+    """Gồm cả biểu mẫu đã xoá."""
+
+
+class DataRecordQuerySet(ScopedQuerySet):
+    """Bản ghi vẫn theo phạm vi cấp bậc, cộng thêm bảng được cấp quyền riêng.
+
+    Khác `TableDef` ở chỗ đây là dữ liệu thật, nên phần theo cấp bậc giữ nguyên
+    như cũ: nhân viên thấy dòng của mình, trưởng nhóm thấy team, quản lý thấy
+    cả bộ phận. Cấp quyền chỉ **cộng thêm**, không thay thế.
+    """
+
+    def in_scope(self, user):
+        from .models import GrantAction
+
+        theo_cap_bac = apply_scope(
+            self, user, owner="created_by", team="team", department="department",
+        )
+        if get_user_scope(user).all_departments:
+            return theo_cap_bac
+
+        duoc_cap = _cap_them(user, GrantAction.VIEW) | _cap_them(user, GrantAction.EDIT)
+        if not duoc_cap:
+            return theo_cap_bac
+        return self.filter(
+            Q(pk__in=theo_cap_bac.values("pk")) | Q(table_id__in=duoc_cap)
+        )
+
+
+class DataRecordManager(models.Manager.from_queryset(DataRecordQuerySet)):
+    """Loại sẵn bản ghi đã đánh dấu xoá."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
+
+
+class AllDataRecordManager(models.Manager.from_queryset(DataRecordQuerySet)):
+    """Gồm cả bản ghi đã xoá."""

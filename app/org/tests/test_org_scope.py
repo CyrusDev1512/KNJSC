@@ -145,8 +145,8 @@ def test_thanh_dieu_huong_an_muc_ngoai_quyen(nguoi_dung):
     def cac_ma(user):
         return {m.code for nhom in visible_navigation(user) for m in nhom["items"]}
 
-    # Staff chỉ vào được hai mục không đòi cấp bậc
-    assert cac_ma(nguoi_dung["staff_sale_1"]) == {"tong_quan", "bang"}
+    # Staff chỉ vào được các mục không đòi cấp bậc
+    assert cac_ma(nguoi_dung["staff_sale_1"]) == {"tong_quan", "bang", "bieu_mau"}
     assert "nhan_su" not in cac_ma(nguoi_dung["staff_sale_1"])
     assert "nhan_su" in cac_ma(nguoi_dung["leader_sale_1"])
     assert "nhat_ky" in cac_ma(nguoi_dung["manager_sale"])

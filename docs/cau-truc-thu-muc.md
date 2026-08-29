@@ -49,7 +49,7 @@ kim-ngan-jsc/
 │   │       └── test_audit.py
 │   │
 │   ├── org/                               tổ chức và tài khoản
-│   │   ├── models.py                      Department, Team, Position, UserProfile
+│   │   ├── models.py                      Department, Team, UserProfile
 │   │   ├── services/
 │   │   │   ├── account_service.py         tạo, khoá, đặt lại mật khẩu
 │   │   │   └── org_service.py             bộ phận, team, gán người

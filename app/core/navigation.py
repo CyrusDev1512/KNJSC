@@ -36,6 +36,7 @@ NAVIGATION = (
     )),
     NavGroup("Dữ liệu", (
         NavItem("bang", "Bảng dữ liệu", "bang"),
+        NavItem("bieu_mau", "Biểu mẫu", "bieu_mau"),
     )),
     NavGroup("Quản trị", (
         NavItem("nhat_ky", "Nhật ký hoạt động", "nhat_ky", Rank.MANAGER),

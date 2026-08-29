@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block tieu_de %}Biểu mẫu · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Biểu mẫu{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Module forms_builder · FR-8.x · ADR-007</div>
+    <h1>Quản lý biểu mẫu và bảng</h1>
+    <p>Biểu mẫu là nơi nhập. Bảng là nơi dữ liệu nằm. Một biểu mẫu ghi vào đúng một bảng đích.</p>
+  </div>
+  {% if duoc_sua %}
+    <div class="hanh-dong">
+      <a class="nut" href="{% url 'truong_moi' %}">Thêm trường</a>
+      <a class="nut nut-chinh" href="{% url 'bieu_mau_moi' %}">Tạo biểu mẫu</a>
+    </div>
+  {% endif %}
+</div>
+
+<div class="bang-hop">
+  <form class="loc" method="get">
+    <div class="truong o-tim">
+      <label for="tim">Tìm kiếm</label>
+      <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Tên biểu mẫu">
+    </div>
+    <div class="loc-nut">
+      <a class="nut nut-nho" href="{% url 'bieu_mau' %}">Xoá lọc</a>
+      <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
+    </div>
+  </form>
+
+  <div class="bang-cuon">
+    <table class="bang">
+      <thead>
+        <tr>
+          <th>Tên biểu mẫu</th><th>Tên kỹ thuật</th><th>Bộ phận</th>
+          <th class="phai">Số trường</th><th>Bảng đích</th><th>Trạng thái</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bm in trang %}
+          <tr>
+            <td>{{ bm.name }}</td>
+            <td class="ma-o">{{ bm.code }}</td>
+            <td>{{ bm.department }}</td>
+            <td class="tien">{{ bm.so_truong }}</td>
+            <td class="ma-o">{{ bm.table.code }}</td>
+            <td>
+              {% if bm.is_active %}
+                <span class="chip chip-tot"><i></i>Đang dùng</span>
+              {% else %}
+                <span class="chip chip-nhat"><i></i>Ngừng dùng</span>
+              {% endif %}
+            </td>
+            <td class="phai">
+              <div class="hang" style="gap:var(--sp-2);justify-content:flex-end">
+                <a class="nut nut-nho nut-chinh" href="{% url 'bieu_mau_dien' bm.code %}">Điền</a>
+                {% if duoc_sua %}
+                  <a class="nut nut-nho" href="{% url 'bieu_mau_sua' bm.code %}">Sửa</a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7">
+            {% include "components/rong.html" with rong_tieu_de="Chưa có biểu mẫu nào" rong_mo_ta="Tạo bảng trước, rồi tạo biểu mẫu ghi vào bảng đó." %}
+          </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% include "components/phan_trang.html" %}
+</div>
+
+<div class="the" style="margin-top:var(--sp-5)">
+  <div class="the-dau">
+    <h2>Thư viện định nghĩa trường</h2>
+    <div class="phai nho mo-nhat">Khai một lần, dùng lại cho nhiều biểu mẫu</div>
+  </div>
+  <div class="bang-cuon">
+    <table class="bang">
+      <thead>
+        <tr><th>Nhãn hiển thị</th><th>Tên kỹ thuật</th><th>Kiểu dữ liệu</th>
+            <th>Nhãn ý nghĩa</th><th>Bộ phận</th></tr>
+      </thead>
+      <tbody>
+        {% for t in thu_vien %}
+          <tr>
+            <td>{{ t.name }}</td>
+            <td class="ma-o">{{ t.code }}</td>
+            <td class="nho">{{ t.get_field_type_display }}</td>
+            <td class="nho">{% if t.meaning %}{{ t.get_meaning_display }}{% else %}<span class="mo-nhat">—</span>{% endif %}</td>
+            <td class="nho">{{ t.department }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5">
+            {% include "components/rong.html" with rong_tieu_de="Thư viện còn trống" rong_mo_ta="Thêm định nghĩa trường trước khi dựng biểu mẫu." %}
+          </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

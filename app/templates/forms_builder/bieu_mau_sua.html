@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block tieu_de %}{{ bm.name }} · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Trình tạo biểu mẫu{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">FR-8.2 · FR-8.3 · FR-8.6</div>
+    <h1>{{ bm.name }}</h1>
+    <p>Ghi vào bảng <span class="ma-o">{{ bm.table.code }}</span>. Kiểu dữ liệu hai bên phải khớp nhau.</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut" href="{% url 'bieu_mau' %}">Danh sách</a>
+    <a class="nut nut-chinh" href="{% url 'bieu_mau_dien' bm.code %}">Điền thử</a>
+  </div>
+</div>
+
+{% if loi_noi %}
+  <div class="bao bao-xau">
+    <span class="bao-ic">!</span>
+    <div>
+      <b>Có liên kết lệch kiểu</b>
+      {% for cau in loi_noi %}<p>{{ cau }}</p>{% endfor %}
+    </div>
+  </div>
+{% elif da_noi == tong_truong and tong_truong %}
+  <div class="bao bao-tot">
+    <span class="bao-ic">✓</span>
+    <div>
+      <b>{{ da_noi }} trên {{ tong_truong }} trường khớp kiểu</b>
+      <p>Nối được. Nếu lệch kiểu thì hệ thống chặn lưu và chỉ ra trường nào lệch.</p>
+    </div>
+  </div>
+{% endif %}
+
+<div class="luoi luoi-2cot">
+
+  <div class="the">
+    <div class="the-dau">
+      <h2>Trường trong biểu mẫu</h2>
+      <div class="phai nho mo-nhat">{{ cac_truong|length }} trường</div>
+    </div>
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead>
+          <tr><th class="phai">#</th><th>Nhãn hiển thị</th><th>Kiểu</th>
+              <th>Ghi vào cột</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for t in cac_truong %}
+            <tr {% if dang_sua and dang_sua.pk == t.pk %}class="hien-tai"{% endif %}>
+              <td class="tien">{{ t.order }}</td>
+              <td>
+                {{ t.field.name }}
+                {% if t.required %}<span class="chip chip-nhat"><i></i>Bắt buộc</span>{% endif %}
+                <small class="ma-o">{{ t.field.code }}</small>
+              </td>
+              <td class="nho">{{ t.field.get_field_type_display }}</td>
+              <td class="nho">
+                {% if t.link %}<span class="ma-o">{{ t.link.column.code }}</span>
+                {% else %}<span class="mo-nhat">chưa nối</span>{% endif %}
+              </td>
+              <td class="phai">
+                <div class="hang" style="gap:var(--sp-2);justify-content:flex-end">
+                  <a class="nut nut-nho" href="?truong={{ t.pk }}">Sửa</a>
+                  <form method="post" action="{% url 'bieu_mau_bo_truong' bm.code t.pk %}">
+                    {% csrf_token %}
+                    <button class="nut nut-nho nut-nguy" type="submit">Bỏ</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5">
+              {% include "components/rong.html" with rong_tieu_de="Biểu mẫu chưa có trường nào" rong_mo_ta="Thêm trường ở khung bên cạnh." %}
+            </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="doc">
+    <div class="the">
+      <div class="the-dau">
+        <h2>{% if dang_sua %}Sửa trường{% else %}Thêm trường{% endif %}</h2>
+        <div class="phai"><a class="nut nut-nho" href="{% url 'truong_moi' %}?ve={{ bm.code }}">+ Trường mới</a></div>
+      </div>
+      <form class="the-than bm" method="post" id="bm-truong">
+        {% csrf_token %}
+        {% for truong in form %}
+          <div class="truong {% if truong.errors %}co-loi{% endif %}">
+            <label for="{{ truong.id_for_label }}">
+              {{ truong.label }}{% if truong.field.required %} <span class="bat-buoc">*</span>{% endif %}
+            </label>
+            {{ truong|safe }}
+            {% if truong.help_text %}<span class="goi-y">{{ truong.help_text }}</span>{% endif %}
+            {% for loi in truong.errors %}<span class="loi-truong">{{ loi }}</span>{% endfor %}
+          </div>
+        {% endfor %}
+      </form>
+      <div class="the-chan">
+        <span class="nho mo-nhat">Cột tính sẵn không nhận dữ liệu nhập tay</span>
+        <div class="day hang">
+          {% if dang_sua %}<a class="nut" href="{% url 'bieu_mau_sua' bm.code %}">Thêm mới</a>{% endif %}
+          <button class="nut nut-chinh" type="submit" form="bm-truong">Lưu</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="the">
+      <div class="the-dau"><h2>Phân quyền biểu mẫu</h2></div>
+      <form class="the-than bm" method="post" action="{% url 'bieu_mau_cap_quyen' bm.code %}" id="bm-quyen">
+        {% csrf_token %}
+        <p class="nho mo-nhat">
+          Người trong bộ phận {{ bm.department }} điền được sẵn. Cấp thêm ở đây cho người ngoài bộ phận.
+        </p>
+        {% for truong in form_quyen %}
+          <div class="truong">
+            <label for="{{ truong.id_for_label }}">{{ truong.label }}</label>
+            {{ truong|safe }}
+          </div>
+        {% endfor %}
+        <button class="nut nut-nho nut-chinh" type="submit">Cấp quyền</button>
+      </form>
+
+      {% if cac_quyen %}
+        <div class="bang-cuon">
+          <table class="bang">
+            <thead><tr><th>Cấp cho</th><th>Được làm gì</th><th></th></tr></thead>
+            <tbody>
+              {% for q in cac_quyen %}
+                <tr>
+                  <td>{{ q.user.username|default:q.team }}</td>
+                  <td class="nho">{{ q.get_action_display }}</td>
+                  <td class="phai">
+                    <form method="post" action="{% url 'bieu_mau_thu_quyen' bm.code q.pk %}">
+                      {% csrf_token %}
+                      <button class="nut nut-nho nut-nguy" type="submit">Thu</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll(".bm input, .bm select, .bm textarea").forEach(function (o) {
+    if (o.type !== "checkbox" && o.type !== "hidden") o.classList.add("o-nhap");
+  });
+</script>
+
+{% endblock %}

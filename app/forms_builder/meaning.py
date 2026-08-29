@@ -100,6 +100,33 @@ HINTS = {
 #: Doanh thu thì hệ thống không biết cộng cột nào.
 UNIQUE_PER_TABLE = True
 
+#: Kiểu của trường biểu mẫu nối được vào kiểu nào của cột bảng — FR-8.6.
+#:
+#: Chỉ cho nới rộng an toàn, theo đúng một chiều: số nguyên đổ vào ô số thập
+#: phân thì không mất gì, ngược lại thì mất phần lẻ. Chữ đổ vào ô số thì hỏng
+#: hẳn, phải chặn — đó là trường hợp AC-8.6 kiểm.
+#:
+#: Khai ở một chỗ duy nhất (quy tắc 7). Thêm kiểu mới là phải bổ sung ở đây,
+#: không thì mặc định nó chỉ nối được vào chính nó.
+TYPE_COMPATIBLE = {
+    FieldType.INTEGER: {FieldType.INTEGER, FieldType.DECIMAL, FieldType.MONEY},
+    FieldType.DECIMAL: {FieldType.DECIMAL, FieldType.MONEY},
+    FieldType.MONEY: {FieldType.MONEY, FieldType.DECIMAL},
+    FieldType.TEXT: {FieldType.TEXT, FieldType.LONG_TEXT},
+    FieldType.LONG_TEXT: {FieldType.LONG_TEXT},
+    FieldType.DATE: {FieldType.DATE, FieldType.DATETIME},
+    FieldType.DATETIME: {FieldType.DATETIME},
+    FieldType.BOOLEAN: {FieldType.BOOLEAN},
+    FieldType.CHOICE: {FieldType.CHOICE, FieldType.TEXT, FieldType.LONG_TEXT},
+}
+
+
+def type_fits(field_type, column_type):
+    """Trường kiểu này có ghi vào cột kiểu kia được không — FR-8.6."""
+    if field_type == column_type:
+        return True
+    return column_type in TYPE_COMPATIBLE.get(field_type, set())
+
 
 def column_of(meaning):
     """Cột vật lý ứng với một nhãn. Không có nhãn thì trả None."""

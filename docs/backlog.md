@@ -34,8 +34,8 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | K8 | `docs/03` mục 2.1 đòi mọi bảng có cột "người sửa"; `ScopedModel` mới có `created_by`, chưa có `updated_by` | Thấp | Rà soát GĐ 1–2 |
 | K9 | Chưa có trang lỗi 404 và 500 bằng tiếng Việt — NFR-6 mới đạt một phần | Trung bình | Rà soát GĐ 1–2 |
 | K10 | Quy tắc Q3 "chỉ lấy cột cần hiển thị" chưa áp ở màn hình nào | Thấp | Rà soát GĐ 1–2 |
-| K11 | Bảng động chưa có ô nhập liệu riêng — hiện chỉ sửa được ô trên bảng, thêm dòng phải qua tầng dịch vụ. Chờ trình tạo biểu mẫu ở phần 3B | Trung bình | GĐ 3A |
-| K12 | Ai được sửa ô trên bảng: hiện là Manager trở lên, hoặc chính người tạo dòng. Chưa có phân quyền riêng theo từng bảng | Trung bình | GĐ 3A |
+| K13 | `core/scope.py _granted_scope` vẫn trả về rỗng. Cấp quyền theo bảng và biểu mẫu đi đường riêng ở `forms_builder/services/grant_service.py` — hai cơ chế song song, nên xem lại có gộp được không | Trung bình | GĐ 3B |
+| K14 | Nhánh Staff trong `apply_scope` không đọc `department_ids` lẫn `team_ids`, nên cấp thêm cả một bộ phận cho Staff không có tác dụng | Thấp | GĐ 3B |
 
 ### 1.2. Nghiệp vụ
 
@@ -81,6 +81,9 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 | Q15 | Màn hình Bảng tính xếp vào giai đoạn nào | Giai đoạn 7, làm chung với nhập xuất Excel | 29.08.2026 |
 | Q16 | Có làm màn hình Ma trận phân quyền không | Có, bản chỉ đọc sinh thẳng từ mã nguồn — làm trong 3A | 29.08.2026 |
 | Q17 | Ai thấy định nghĩa bảng | Cả bộ phận, mọi cấp bậc. Phạm vi theo cấp bậc chỉ áp cho bản ghi trong bảng | 29.08.2026 |
+| Q18 | Cấu trúc trường biểu mẫu | Bốn bảng đúng `docs/03` mục 2.2: FieldDef, FormDef, FormField, FormTableLink | 29.08.2026 |
+| Q19 | Mức chi tiết của phân quyền — FR-8.4 | Cấp thêm cho từng người hoặc từng team, cộng vào phạm vi cấp bậc | 29.08.2026 |
+| Q20 | K11 và K12 | Đã xong ở 3B: màn hình điền biểu mẫu, và quyền sửa ô tính qua `grant_service.can_edit_record` | 29.08.2026 |
 
 ---
 
@@ -141,8 +144,8 @@ hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp d�
 |---|---|---|
 | Bảng vận đơn — bảng dữ liệu chung | 3A | Đã có, dưới tên `/bang/<mã>/` |
 | Ma trận phân quyền | 3A | Đã có, bản chỉ đọc |
-| Quản lý biểu mẫu | 3B | Chưa |
-| Trình tạo biểu mẫu | 3B | Chưa |
+| Quản lý biểu mẫu | 3B | Đã có |
+| Trình tạo biểu mẫu | 3B | Đã có |
 | Nộp báo cáo ngày | 4 | Chưa |
 | Lịch sử báo cáo | 4 | Chưa |
 | Lên đơn | 5 | Chưa |
@@ -154,7 +157,7 @@ hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp d�
 
 | # | Nội dung | Giai đoạn xử lý |
 |---|---|---|
-| 1 | Bảng động chưa có chỗ thêm dòng mới trên giao diện — K11 | 3B |
+| 1 | ~~Bảng động chưa có chỗ thêm dòng mới~~ — xong ở 3B, màn hình điền biểu mẫu | — |
 | 2 | Chưa có trang lỗi 404 và 500 tiếng Việt — K9 | Chưa xếp |
 | 3 | Giao diện chưa kiểm trên điện thoại và máy tính bảng — NFR-7, AC-10.4 | 8 |
 | 4 | Điều hướng sau đăng nhập theo bộ phận — FR-1.6 | Chờ màn hình đích của 4 và 5 |
@@ -175,3 +178,4 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 29.08.2026 | Chốt K1, K2, K3 và N8 — gỡ hết điểm chặn Giai đoạn 3. Ghi ADR-006 và ADR-007 |
 | 29.08.2026 | Xong Giai đoạn 3 phần A. Chốt Q14 tới Q17. Thêm AC-3.8, AC-7.10 tới AC-7.12 vào `docs/04`. Mở K11 và K12 |
 | 29.08.2026 | Người dùng nêu: quá thiếu màn hình để nghiệm thu. Hoãn nghiệm thu tới một đợt toàn diện — mở V4 và R7, thêm mục 6 theo dõi hiện trạng màn hình |
+| 29.08.2026 | Xong Giai đoạn 3 phần B, khép lại Giai đoạn 3. Chốt Q18 tới Q20, đóng K11 và K12, mở K13 và K14. Bỏ model `Position` khỏi tài liệu vì nó không tồn tại |

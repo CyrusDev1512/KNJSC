@@ -11,6 +11,7 @@ Hai tầng phạm vi khác nhau, đừng lẫn:
 """
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -19,12 +20,18 @@ from django.views.decorators.http import require_POST
 from core.constants import Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import PAGE_SIZES, page_size, paginate
-from core.permissions import assert_rank, has_rank
+from core.permissions import assert_rank, has_rank, is_admin
 
 from . import query
-from .forms import ColumnForm, TableForm
-from .models import ColumnDef, DataRecord, TableDef
-from .services import record_service, table_service
+from .forms import (
+    ColumnForm, FieldDefForm, FormFieldForm, FormForm, GrantForm, TableForm,
+)
+from .models import (
+    ColumnDef, DataRecord, FieldDef, FormDef, FormField, Grant, TableDef,
+)
+from .services import (
+    form_service, grant_service, link_service, record_service, table_service,
+)
 
 
 def _phan_trang(request, queryset, ten_don_vi="dòng", param="trang", size_param="moi_trang"):
@@ -127,6 +134,8 @@ def bang_cot(request, code):
     return render(request, "forms_builder/bang_cot.html", {
         "bang": bang_hien, "form": form, "dang_sua": dang_sua,
         "cac_cot": bang_hien.columns.order_by("order", "id"),
+        "form_quyen": GrantForm(cho_bang=True),
+        "cac_quyen": grant_service.grants_of_table(bang_hien),
     })
 
 
@@ -188,8 +197,12 @@ def bang_xem(request, code):
         ],
         "tim": tim, "sap_xep": sap_xep, "giam_dan": giam_dan,
         "duoc_sua": _duoc_sua_bang(request.user),
+        # Quyền sửa tính theo **từng dòng**: người tạo dòng sửa được dòng của
+        # mình, quản lý sửa cả bảng, và có thể có quyền cấp riêng
         "cac_dong": [
-            (bg, query.read_row(bg, cac_cot)) for bg in boi_canh["page_obj"]
+            (bg, query.read_row(bg, cac_cot),
+             grant_service.can_edit_record(request.user, bg))
+            for bg in boi_canh["page_obj"]
         ],
     })
     return render(request, "forms_builder/bang_xem.html", boi_canh)
@@ -210,7 +223,7 @@ def bang_sua_o(request, code, pk, ma_cot):
         DataRecord.objects.in_scope(request.user).select_related("table"),
         pk=pk, table=bang_hien,
     )
-    if not _duoc_sua_bang(request.user) and ban_ghi.created_by_id != request.user.pk:
+    if not grant_service.can_edit_record(request.user, ban_ghi):
         raise OutOfScopeError("Bạn không có quyền sửa dòng này.")
 
     cac_cot = list(bang_hien.columns.order_by("order", "id"))
@@ -229,4 +242,271 @@ def bang_sua_o(request, code, pk, ma_cot):
         "bang": bang_hien, "ban_ghi": ban_ghi, "cot": cot,
         "gia_tri": ban_ghi.data.get(ma_cot),
         "duoc_sua": True,
+    })
+
+
+@login_required
+@require_POST
+def bang_cap_quyen(request, code):
+    """Cấp quyền xem hoặc sửa một bảng cho người ngoài bộ phận — FR-8.4."""
+    assert_rank(request.user, Rank.MANAGER, request)
+    bang_hien = _lay_bang(request, code)
+
+    form = GrantForm(request.POST, cho_bang=True)
+    if form.is_valid():
+        d = form.cleaned_data
+        try:
+            grant_service.grant(
+                table=bang_hien, user=d["user"], team=d["team"],
+                action=d["action"], actor=request.user, request=request,
+            )
+            messages.success(request, "Đã cấp quyền. Phiên đang mở của người đó đã bị đăng xuất.")
+        except ValidationError as loi:
+            messages.error(request, link_service.validation_message(loi))
+    else:
+        messages.error(request, _loi_dau_tien(form))
+    return redirect("bang_cot", code=code)
+
+
+@login_required
+@require_POST
+def bang_thu_quyen(request, code, pk):
+    """Thu hồi một quyền đã cấp trên bảng."""
+    assert_rank(request.user, Rank.MANAGER, request)
+    bang_hien = _lay_bang(request, code)
+    quyen = get_object_or_404(Grant, pk=pk, table=bang_hien)
+    grant_service.revoke(quyen, actor=request.user, request=request)
+    messages.success(request, "Đã thu quyền.")
+    return redirect("bang_cot", code=code)
+
+
+# ══ QUẢN LÝ BIỂU MẪU ══════════════════════════════════════════════
+
+def _lay_bieu_mau(request, code):
+    """Lấy biểu mẫu trong phạm vi quyền. Ngoài phạm vi thì 404."""
+    return get_object_or_404(
+        FormDef.objects.in_scope(request.user).select_related("department", "table"),
+        code=code,
+    )
+
+
+def _loi_dau_tien(form):
+    """Câu lỗi đầu tiên của một biểu mẫu, để đưa vào thanh thông báo."""
+    for ds in form.errors.values():
+        if ds:
+            return ds[0]
+    return "Dữ liệu chưa hợp lệ."
+
+
+@login_required
+def bieu_mau(request):
+    """Danh sách biểu mẫu và thư viện định nghĩa trường."""
+    request.nav_current = "bieu_mau"
+
+    ds = (FormDef.objects.in_scope(request.user)
+          .select_related("department", "table", "created_by")
+          .annotate(so_truong=Count("fields", distinct=True))
+          .order_by("name"))
+
+    tim = request.GET.get("tim", "").strip()
+    if tim:
+        ds = ds.filter(name__icontains=tim)
+
+    ho_so = getattr(request.user, "profile", None)
+    thu_vien = FieldDef.objects.all()
+    if not is_admin(request.user) and ho_so is not None:
+        thu_vien = thu_vien.filter(department=ho_so.department)
+
+    boi_canh = {
+        "tim": tim,
+        "duoc_sua": _duoc_sua_bang(request.user),
+        "thu_vien": thu_vien.select_related("department").order_by("name"),
+    }
+    boi_canh.update(_phan_trang(request, ds, "biểu mẫu"))
+    return render(request, "forms_builder/bieu_mau.html", boi_canh)
+
+
+@login_required
+def bieu_mau_moi(request):
+    """Tạo biểu mẫu mới, chọn bảng đích — FR-8.1, FR-8.3."""
+    request.nav_current = "bieu_mau"
+    assert_rank(request.user, Rank.MANAGER, request)
+
+    ho_so = getattr(request.user, "profile", None)
+    form = FormForm(request.POST or None, department=getattr(ho_so, "department", None))
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        moi = form_service.create_form(
+            name=d["name"], code=d["code"], description=d["description"],
+            department=ho_so.department, table=d["table"],
+            actor=request.user, request=request,
+        )
+        messages.success(request, f"Đã tạo biểu mẫu {moi.name}. Giờ thêm trường cho nó.")
+        return redirect("bieu_mau_sua", code=moi.code)
+
+    return render(request, "forms_builder/bieu_mau_form.html", {
+        "form": form, "tieu_de": "Tạo biểu mẫu", "la_tao_moi": True,
+    })
+
+
+@login_required
+def bieu_mau_sua(request, code):
+    """Trình tạo biểu mẫu: thêm trường, nối cột đích, phân quyền."""
+    request.nav_current = "bieu_mau"
+    assert_rank(request.user, Rank.MANAGER, request)
+    bm = _lay_bieu_mau(request, code)
+
+    sua_pk = request.GET.get("truong")
+    dang_sua = None
+    if sua_pk:
+        dang_sua = get_object_or_404(
+            FormField.objects.select_related("field", "link"),
+            pk=sua_pk, form=bm,
+        )
+
+    form = FormFieldForm(request.POST or None, form_def=bm, instance=dang_sua)
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        try:
+            if dang_sua:
+                form_service.update_field(
+                    dang_sua, {"required": d["required"], "column": d["column"]},
+                    actor=request.user, request=request,
+                )
+                messages.success(request, f"Đã sửa trường {dang_sua.field.name}.")
+            else:
+                truong = form_service.add_field(
+                    bm, d["field"], column=d["column"], required=d["required"],
+                    actor=request.user, request=request,
+                )
+                messages.success(request, f"Đã thêm trường {truong.field.name}.")
+            return redirect("bieu_mau_sua", code=bm.code)
+        except ValidationError as loi:
+            messages.error(request, link_service.validation_message(loi))
+
+    cac_truong = list(bm.ordered_fields())
+    da_noi, tong, loi_noi = link_service.summary(bm, cac_truong)
+    return render(request, "forms_builder/bieu_mau_sua.html", {
+        "bm": bm, "form": form, "dang_sua": dang_sua, "cac_truong": cac_truong,
+        "da_noi": da_noi, "tong_truong": tong, "loi_noi": loi_noi,
+        "form_quyen": GrantForm(cho_bang=False),
+        "cac_quyen": grant_service.grants_of_form(bm),
+    })
+
+
+@login_required
+@require_POST
+def bieu_mau_bo_truong(request, code, pk):
+    """Bỏ một trường khỏi biểu mẫu. Không đụng tới dữ liệu đã nhập — FR-8.5."""
+    assert_rank(request.user, Rank.MANAGER, request)
+    bm = _lay_bieu_mau(request, code)
+    truong = get_object_or_404(FormField, pk=pk, form=bm)
+    ten = truong.field.name
+    form_service.remove_field(truong, actor=request.user, request=request)
+    messages.success(request, f"Đã bỏ trường {ten}. Dữ liệu đã nhập vẫn còn nguyên.")
+    return redirect("bieu_mau_sua", code=code)
+
+
+@login_required
+def truong_moi(request):
+    """Thêm một định nghĩa trường vào thư viện dùng chung của bộ phận."""
+    request.nav_current = "bieu_mau"
+    assert_rank(request.user, Rank.MANAGER, request)
+
+    ho_so = getattr(request.user, "profile", None)
+    form = FieldDefForm(request.POST or None, department=getattr(ho_so, "department", None))
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        form_service.create_field_def(
+            name=d["name"], code=d["code"], field_type=d["field_type"],
+            meaning=d["meaning"], hint=d["hint"], department=ho_so.department,
+            actor=request.user, request=request,
+        )
+        messages.success(request, f"Đã thêm trường {d['name']} vào thư viện.")
+        quay_ve = request.GET.get("ve")
+        if quay_ve:
+            return redirect("bieu_mau_sua", code=quay_ve)
+        return redirect("bieu_mau")
+
+    return render(request, "forms_builder/truong_form.html", {
+        "form": form, "tieu_de": "Thêm định nghĩa trường",
+        "quay_ve": request.GET.get("ve", ""),
+    })
+
+
+@login_required
+@require_POST
+def bieu_mau_cap_quyen(request, code):
+    """Cấp quyền điền biểu mẫu cho người ngoài bộ phận — FR-8.4."""
+    assert_rank(request.user, Rank.MANAGER, request)
+    bm = _lay_bieu_mau(request, code)
+
+    form = GrantForm(request.POST, cho_bang=False)
+    if form.is_valid():
+        d = form.cleaned_data
+        try:
+            grant_service.grant(
+                form=bm, user=d["user"], team=d["team"], action=d["action"],
+                actor=request.user, request=request,
+            )
+            messages.success(request, "Đã cấp quyền điền biểu mẫu.")
+        except ValidationError as loi:
+            messages.error(request, link_service.validation_message(loi))
+    else:
+        messages.error(request, _loi_dau_tien(form))
+    return redirect("bieu_mau_sua", code=code)
+
+
+@login_required
+@require_POST
+def bieu_mau_thu_quyen(request, code, pk):
+    """Thu hồi quyền điền biểu mẫu."""
+    assert_rank(request.user, Rank.MANAGER, request)
+    bm = _lay_bieu_mau(request, code)
+    quyen = get_object_or_404(Grant, pk=pk, form=bm)
+    grant_service.revoke(quyen, actor=request.user, request=request)
+    messages.success(request, "Đã thu quyền.")
+    return redirect("bieu_mau_sua", code=code)
+
+
+# ══ ĐIỀN BIỂU MẪU ═════════════════════════════════════════════════
+
+@login_required
+def bieu_mau_dien(request, code):
+    """Nhập một dòng dữ liệu qua biểu mẫu — FR-8.2, FR-8.3.
+
+    Đây là chỗ khiến bảng động dùng được thật. Quyền kiểm ở máy chủ **trước**
+    khi đọc dữ liệu (P1, FR-3.6): gọi thẳng đường dẫn vẫn bị chặn.
+    """
+    request.nav_current = "bieu_mau"
+    bm = _lay_bieu_mau(request, code)
+
+    if not grant_service.can_fill(request.user, bm):
+        raise OutOfScopeError("Bạn không được phân quyền điền biểu mẫu này.")
+    if not bm.is_active:
+        raise OutOfScopeError("Biểu mẫu này đã ngừng dùng.")
+
+    cac_truong = list(bm.ordered_fields())
+    du_lieu, loi = {}, []
+
+    if request.method == "POST":
+        du_lieu = {t.field.code: request.POST.get(t.field.code, "").strip()
+                   for t in cac_truong}
+        thieu = form_service.missing_required(bm, du_lieu, cac_truong)
+        if thieu:
+            loi.append("Chưa điền các trường bắt buộc: " + ", ".join(thieu))
+        else:
+            try:
+                record_service.create_record(
+                    bm.table, form_service.values_by_column(bm, du_lieu, cac_truong),
+                    actor=request.user, request=request,
+                )
+                messages.success(request, "Đã lưu một dòng vào bảng " + bm.table.name)
+                return redirect("bieu_mau_dien", code=bm.code)
+            except BusinessError as e:
+                loi.append(str(e))
+
+    return render(request, "forms_builder/bieu_mau_dien.html", {
+        "bm": bm, "cac_truong": cac_truong, "du_lieu": du_lieu, "loi": loi,
+        "cac_o": [(t, du_lieu.get(t.field.code, "")) for t in cac_truong],
     })
