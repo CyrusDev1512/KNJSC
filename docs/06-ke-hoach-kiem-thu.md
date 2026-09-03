@@ -36,8 +36,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 | | Số |
 |---|---|
 | Tiêu chí nghiệm thu trong `docs/04` | **67** — 61 tự động, 6 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **49 trên 61** |
-| Tiêu chí tự động còn hoãn | **12**, đều thuộc Giai đoạn 6 tới 8 |
+| Tiêu chí tự động đã có bài kiểm | **53 trên 61** |
+| Tiêu chí tự động còn hoãn | **8**, đều thuộc Giai đoạn 7 và 8 — trừ `AC-5.1` chờ chốt backlog N9 |
 | Bao phủ dòng mã | khoảng 83% |
 
 Ba con số đầu **có bài kiểm canh** — `app/tests/test_truy_vet.py` đọc chính
@@ -99,13 +99,13 @@ Ba trong bốn lỗi đó **không sập trang, không báo lỗi, không làm b
 
 ## Tiêu chí còn hoãn
 
-12 tiêu chí tự động chưa có bài kiểm, tất cả vì tính năng chưa xây. Danh sách
-này nằm trong `tests/test_truy_vet.py`, biến `HOAN`, và **rỗng dần theo tiến độ**
+8 tiêu chí tự động chưa có bài kiểm. Danh sách này nằm trong
+`tests/test_truy_vet.py`, biến `HOAN`, và **rỗng dần theo tiến độ**
 — thêm mã vào đó bắt buộc ghi lý do và giai đoạn.
 
 | Tiêu chí | Chờ |
 |---|---|
-| `AC-5.1` → `AC-5.5` | Báo cáo tổng hợp — Giai đoạn 6 |
+| `AC-5.1` | Bốn cách nhóm mới chạy ba — tab thị trường chờ chốt nguồn số liệu, backlog **N9** và **Q36** |
 | `AC-7.5` → `AC-7.9` | Nhập xuất Excel — Giai đoạn 7 |
 | `AC-7.1` | 50.000 bản ghi dưới 2 giây, cần `seed_perf.py` — Giai đoạn 8 |
 | `AC-10.6` | Sao lưu tự động — Giai đoạn 8 |
@@ -121,7 +121,7 @@ Chạy trước mỗi lần bàn giao. Máy không làm được những việc 
 | ☐ | Mã | Việc | Tài khoản | Đạt khi |
 |---|---|---|---|---|
 | ☐ | `AC-2.4` | Thêm team mới, dùng ngay không khởi động lại | `quantri` | Team mới hiện ở ô chọn trong cùng phiên |
-| ☐ | `AC-5.6` | Xuất báo cáo, mở bằng Excel, đối chiếu số | — | **Chưa chạy được** — Giai đoạn 6 và 7 |
+| ☐ | `AC-5.6` | Xuất báo cáo, mở bằng Excel, đối chiếu số | `mkt.manager` | Chạy được với báo cáo tổng hợp (GĐ 6); xuất bảng thô chờ GĐ 7 |
 | ☐ | `AC-10.1` | 50 người thao tác đồng thời | — | **Chưa chạy được** — chưa chọn công cụ, backlog K6 |
 | ☐ | `AC-10.3` | Gặp lỗi hiện thông báo tiếng Việt, không trang trắng | bất kỳ | Gõ đường dẫn sai → trang 404 tiếng Việt. **Chưa làm** — backlog K9 |
 | ☐ | `AC-10.4` | Dùng được trên điện thoại và máy tính bảng | bất kỳ | Mở trên máy thật, không tràn ngang, bấm được |
@@ -134,12 +134,12 @@ Chạy trước mỗi lần bàn giao. Máy không làm được những việc 
 | ☐ | Cài từ đầu trên máy sạch, tới màn hình đăng nhập | Chạy được — `manage.py du_lieu_mau`, có bài kiểm tự động |
 | ☐ | Ba vai trò chạy trọn quy trình của mình | Chạy được — có bài tự động tương ứng, nhưng người vẫn phải bấm thử |
 | ☐ | Nhập tệp Excel thật, không chỉnh sửa trước | **Chưa** — Giai đoạn 7 |
-| ☐ | Xuất báo cáo, mở bằng Excel, đối chiếu | **Chưa** — Giai đoạn 6 và 7 |
+| ☐ | Xuất báo cáo, mở bằng Excel, đối chiếu | Chạy được từ màn hình Báo cáo tổng hợp, chưa thử |
 | ☐ | Thử trên điện thoại và máy tính bảng thật | Chạy được, chưa thử |
 | ☐ | Phục hồi từ bản sao lưu | **Chưa** — Giai đoạn 8 |
 | ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | Chạy được, chưa thử |
 
-**Bảy trong mười ba việc chưa chạy được** vì tính năng chưa có. Ghi rõ ở đây
+**Năm trong mười ba việc chưa chạy được** vì tính năng chưa có. Ghi rõ ở đây
 thay vì để trống — không phải bỏ sót. `AC-1.7` từng nằm ở bảng trên nhưng đã
 bỏ theo **Q34** — không cần điều hướng sau đăng nhập nữa.
 
@@ -147,9 +147,9 @@ bỏ theo **Q34** — không cần điều hướng sau đăng nhập nữa.
 
 ## Khi nào nghiệm thu
 
-Backlog **V4** để ngỏ mốc, đề xuất **hết Giai đoạn 5**. Backlog mục 6 ghi rõ:
-Giai đoạn 0 tới 5 đều đã giao và đã chạy kiểm thử tự động, nhưng **người dùng
-chưa trực tiếp thử màn hình nào**.
+Backlog **V4** để ngỏ mốc, đề xuất **hết Giai đoạn 5** — mốc đó nay đã qua.
+Backlog mục 6 ghi rõ: Giai đoạn 0 tới 6 đều đã giao và đã chạy kiểm thử tự
+động, nhưng **người dùng chưa trực tiếp thử màn hình nào**.
 
 Phần trăm trong `dashboard-tien-do.html` là tiến độ **đã làm**, không phải
 **đã nghiệm thu**. Hai con số đó có thể lệch nhau.
@@ -164,7 +164,7 @@ mã kiểm tự động:
 | 6 · Ba vai trò chạy trọn quy trình | `tests/test_luong_ba_bo_phan.py` |
 
 Bốn điều còn lại — phục hồi sao lưu, nhập tệp Excel thật, dữ liệu thật, bàn
-giao tài liệu — cần người làm và cần Giai đoạn 6 tới 8.
+giao tài liệu — cần người làm và cần Giai đoạn 7 và 8.
 
 ---
 

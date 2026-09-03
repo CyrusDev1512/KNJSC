@@ -33,11 +33,7 @@ TEP_TIEU_CHI = next((p for p in CAC_NOI_CO_THE if p.exists()), CAC_NOI_CO_THE[0]
 #: **Đây là danh sách việc còn lại, không phải chỗ giấu lỗi.** Thêm mã vào đây
 #: phải ghi rõ vì sao chưa làm được và chờ giai đoạn nào. Rỗng dần theo tiến độ.
 HOAN = {
-    "AC-5.1": "Báo cáo tổng hợp — Giai đoạn 6",
-    "AC-5.2": "Báo cáo tổng hợp — Giai đoạn 6",
-    "AC-5.3": "Báo cáo tổng hợp — Giai đoạn 6",
-    "AC-5.4": "Báo cáo tổng hợp — Giai đoạn 6",
-    "AC-5.5": "Báo cáo tổng hợp — Giai đoạn 6",
+    "AC-5.1": "Tab thị trường hoãn — chưa chốt nguồn số liệu, backlog N9 và Q36",
     "AC-7.1": "Cần seed_perf.py sinh 50.000 bản ghi — Giai đoạn 8",
     "AC-7.5": "Nhập tệp Excel — Giai đoạn 7",
     "AC-7.6": "Nhập tệp Excel — Giai đoạn 7",

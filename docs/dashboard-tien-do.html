@@ -520,7 +520,8 @@ footer code {
     <div class="section-head">
       <div class="eyebrow">Phần 1</div>
       <h2 id="h-lotrinh">Lộ trình thi công</h2>
-      <p>Giai đoạn 0 tới 5 đã xong. Giai đoạn 6 là phần đang tới lượt.</p>
+      <p>Giai đoạn 0 tới 6 đã xong — riêng cách nhóm theo thị trường của GĐ 6
+        chờ chốt N9. Giai đoạn 7 là phần đang tới lượt.</p>
     </div>
     <div id="phases"></div>
     <button class="fbtn" id="btn-an" type="button" aria-expanded="false"
@@ -651,7 +652,6 @@ const GIAI_DOAN = [
       { t: "base.html và thanh điều hướng chung", tt: "xong" },
       { t: "Thành phần dùng lại: bảng, phân trang, thanh lọc, trạng thái rỗng", tt: "xong" },
       { t: "tokens.css — màu, cỡ chữ, khoảng cách", tt: "xong" },
-      { t: "Điều hướng sau đăng nhập theo bộ phận", tt: "chua", note: "chờ GĐ 4–5" },
       { t: "Màn hình Tổng quan, vẫn chạy khi bảng động lỗi", tt: "xong" },
       { t: "Kiểm thử phạm vi quyền trên org", tt: "xong" }
     ]
@@ -714,15 +714,15 @@ const GIAI_DOAN = [
   {
     id: 6, ten: "Báo cáo tổng hợp", mod: "reports", trongSo: 9,
     viec: [
-      { t: "aggregations.py — phép tính dựa trên nhãn ý nghĩa", tt: "chua" },
-      { t: "Thống kê tổng hợp", tt: "chua" },
-      { t: "Thống kê theo nhân viên", tt: "chua" },
-      { t: "Thống kê theo sản phẩm", tt: "chua" },
-      { t: "Thống kê theo thị trường", tt: "chua" },
-      { t: "Lọc theo khoảng thời gian và theo sản phẩm", tt: "chua", note: "FR-5.x" },
-      { t: "Dòng tổng cộng", tt: "chua" },
-      { t: "Xuất Excel từ màn hình báo cáo", tt: "chua" },
-      { t: "Kiểm thử phạm vi quyền trên báo cáo tổng hợp", tt: "chua" }
+      { t: "aggregations.py — phép tính dựa trên nhãn ý nghĩa", tt: "xong" },
+      { t: "Thống kê tổng hợp theo ngày", tt: "xong" },
+      { t: "Thống kê theo nhân viên", tt: "xong" },
+      { t: "Thống kê theo sản phẩm, kèm cột Tỉ trọng", tt: "xong" },
+      { t: "Thống kê theo thị trường — hoãn theo Q36, chờ chốt nguồn số liệu", tt: "chua", chan: "N9" },
+      { t: "Lọc theo khoảng thời gian và theo sản phẩm", tt: "xong", note: "FR-5.2 · FR-5.3" },
+      { t: "Dòng tổng cộng, cột tính sẵn tính lại trên tổng", tt: "xong", note: "FR-5.4" },
+      { t: "Xuất Excel từ màn hình báo cáo, ghi nhật ký P5", tt: "xong", note: "FR-5.6" },
+      { t: "Kiểm thử phạm vi quyền trên báo cáo tổng hợp", tt: "xong", note: "AC-5.2 tới AC-5.5" }
     ]
   },
   {
@@ -765,8 +765,8 @@ const CRM = [
   { o: "C5", ten: "Có Mobile App", pv: "mot_phan", tt: "chua", gd: "GĐ 8", ghi: "Chỉ làm giao diện điện thoại — Q5" },
 
   { nhom: "Hệ thống vận hành mảng kinh doanh", o: "C6" },
-  { o: "D7", ten: "Báo cáo MKT: tổng hợp, sản phẩm, thị trường, ngày", pv: "trong", tt: "chua", gd: "GĐ 4 · 6", ghi: "13 trường, sheet BC MKT" },
-  { o: "D8", ten: "Báo cáo SALE: tổng hợp, sản phẩm, thị trường, ngày", pv: "trong", tt: "chua", gd: "GĐ 4 · 6", ghi: "8 trường, sheet BC SALE" },
+  { o: "D7", ten: "Báo cáo MKT: tổng hợp, sản phẩm, thị trường, ngày", pv: "trong", tt: "dang", gd: "GĐ 4 · 6", ghi: "13 trường, sheet BC MKT — còn thống kê thị trường, N9" },
+  { o: "D8", ten: "Báo cáo SALE: tổng hợp, sản phẩm, thị trường, ngày", pv: "trong", tt: "dang", gd: "GĐ 4 · 6", ghi: "8 trường, sheet BC SALE — còn thống kê thị trường, N9" },
   { o: "D9", ten: "Vận đơn: lên đơn, theo dõi đơn", pv: "trong", tt: "chua", gd: "GĐ 5", ghi: "8 trường chưa có yêu cầu" },
 
   { nhom: "Hệ thống vận hành mảng nhân sự", o: "C11" },
@@ -776,11 +776,11 @@ const CRM = [
   { o: "D15", ten: "Bảo hiểm", pv: "ngoai", tt: "chua", gd: "—", ghi: "Q3" },
 
   { nhom: "Hệ thống vận hành mảng kế toán", o: "C17" },
-  { o: "D18", ten: "Thống kê MKT", pv: "trong", tt: "chua", gd: "GĐ 6", ghi: "Trùng báo cáo tổng hợp" },
-  { o: "D19", ten: "Thống kê theo sản phẩm", pv: "trong", tt: "chua", gd: "GĐ 6", ghi: "Trùng báo cáo tổng hợp" },
-  { o: "D20", ten: "Thống kê theo thị trường", pv: "trong", tt: "chua", gd: "GĐ 6", ghi: "Trùng báo cáo tổng hợp" },
-  { o: "D21", ten: "Thống kê tổng hợp", pv: "trong", tt: "chua", gd: "GĐ 6", ghi: "Trùng báo cáo tổng hợp" },
-  { o: "D22", ten: "Xuất file Excel", pv: "trong", tt: "chua", gd: "GĐ 6 · 7", ghi: "Đối chiếu kế toán thì ngoài phạm vi" },
+  { o: "D18", ten: "Thống kê MKT", pv: "trong", tt: "xong", gd: "GĐ 6", ghi: "Báo cáo tổng hợp, lọc theo nguồn số liệu" },
+  { o: "D19", ten: "Thống kê theo sản phẩm", pv: "trong", tt: "xong", gd: "GĐ 6", ghi: "Báo cáo tổng hợp, tab Theo sản phẩm" },
+  { o: "D20", ten: "Thống kê theo thị trường", pv: "trong", tt: "chua", gd: "GĐ 6", ghi: "Hoãn theo Q36 — chờ chốt nguồn, N9" },
+  { o: "D21", ten: "Thống kê tổng hợp", pv: "trong", tt: "xong", gd: "GĐ 6", ghi: "Báo cáo tổng hợp, tab Tổng hợp theo ngày" },
+  { o: "D22", ten: "Xuất file Excel", pv: "trong", tt: "dang", gd: "GĐ 6 · 7", ghi: "Xuất báo cáo tổng hợp đã chạy; bảng thô chờ GĐ 7" },
 
   { nhom: "Vận hành kho", o: "C23" },
   { o: "D24", ten: "Hàng đang sản xuất", pv: "ngoai", tt: "chua", gd: "—", ghi: "Q3" },
@@ -893,8 +893,11 @@ const VIEC_XONG = GIAI_DOAN.reduce((s, g) => s + g.xong, 0);
 const CRM_LEAF = CRM.filter(r => !r.nhom);
 const CRM_XONG = CRM_LEAF.filter(r => r.tt === "xong").length;
 const CRM_TRONG = CRM_LEAF.filter(r => r.pv === "trong" || r.pv === "mot_phan").length;
-/* Giai đoạn thi công kế tiếp — bỏ qua GĐ 0 vì đó là phần tài liệu */
-const GD_KE_TIEP = GIAI_DOAN.find(g => g.id >= 1 && g.ti < 1);
+/* Giai đoạn thi công kế tiếp — bỏ qua GĐ 0 vì đó là phần tài liệu, và bỏ
+   qua việc có cờ `chan` (đang chờ quyết định, không phải việc làm được ngay)
+   để giai đoạn kẹt một câu hỏi không giữ mãi nhãn "kế tiếp" */
+const GD_KE_TIEP = GIAI_DOAN.find(
+  g => g.id >= 1 && g.viec.some(v => v.tt !== "xong" && !v.chan));
 
 /* ── Băng tổng ── */
 document.getElementById("f-pct").textContent = so(Math.round(TIEN_DO * 10) / 10);
@@ -955,7 +958,7 @@ const phasesEl = document.getElementById("phases");
 const anEl = document.getElementById("phases-an");
 /* Hiện tới giai đoạn đang làm; phần chưa tới lượt thì ẩn cho đỡ rối.
    Đổi số này mỗi khi xong một giai đoạn. */
-const HIEN_TOI_GD = 6;
+const HIEN_TOI_GD = 7;
 
 GIAI_DOAN.forEach(g => {
   const wrap = document.createElement("div");

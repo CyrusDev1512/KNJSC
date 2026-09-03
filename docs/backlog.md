@@ -28,15 +28,16 @@ Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của 
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
 tóm để không phải lục.
 
-> Cập nhật ngày 03.09.2026, sau khi chốt Q34 — bỏ K18, và người dùng chốt K9
-> chưa phải lúc.
+> Cập nhật ngày 03.09.2026, sau khi xong Giai đoạn 6 — báo cáo tổng hợp.
+> Chốt Q35 và Q36, mở N9 và N10.
 
-**Đang ở đâu:** xong Giai đoạn 0 tới 5 và kế hoạch kiểm thử. Bao phủ khoảng
-83%. Còn Giai đoạn 6, 7, 8.
+**Đang ở đâu:** xong Giai đoạn 0 tới 6. Báo cáo tổng hợp chạy ba cách nhóm
+(ngày, nhân viên, sản phẩm) kèm lọc, dòng tổng cộng và xuất Excel; cách nhóm
+theo thị trường hoãn chờ **N9**. Còn Giai đoạn 7, 8.
 
-**Việc tiếp theo:** Giai đoạn 6 — báo cáo tổng hợp. Đây là chỗ bảy nhãn ý nghĩa
-của Giai đoạn 3 được dùng đến: bốn cách nhóm, lọc theo thời gian và sản phẩm,
-dòng tổng cộng. Gỡ luôn năm tiêu chí `AC-5.1` tới `AC-5.5` trong mục D.
+**Việc tiếp theo:** Giai đoạn 7 — nhập xuất Excel trên bảng dữ liệu, màn hình
+Bảng tính (Q15), tác vụ nền và sao lưu. Gỡ các tiêu chí `AC-7.5` tới `AC-7.9`
+trong mục D.
 
 ### A · Nghiệm thu — việc của anh/chị
 
@@ -44,7 +45,7 @@ dòng tổng cộng. Gỡ luôn năm tiêu chí `AC-5.1` tới `AC-5.5` trong m�
 kiểm thử tự động đều đạt, nhưng anh/chị **chưa trực tiếp thử màn hình nào**. Phần
 trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải *đã nghiệm thu*.
 
-**Sáu việc làm được ngay bây giờ:**
+**Bảy việc làm được ngay bây giờ:**
 
 | ☐ | Việc | Mã |
 |---|---|---|
@@ -54,12 +55,12 @@ trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải
 | ☐ | Ba vai trò đăng nhập, chạy trọn quy trình của mình | `docs/04` mục 11.2 |
 | ☐ | Thử trên điện thoại và máy tính bảng thật | `docs/04` mục 11.5 |
 | ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | `docs/04` mục 11.7 |
+| ☐ | Xuất báo cáo tổng hợp, mở bằng Excel, đối chiếu số | `AC-5.6` · mục 11.4 |
 
-**Năm việc chưa làm được, và vì sao:**
+**Bốn việc chưa làm được, và vì sao:**
 
 | Việc | Mã | Chờ |
 |---|---|---|
-| Xuất báo cáo, mở bằng Excel, đối chiếu số | `AC-5.6` · mục 11.4 | Giai đoạn 6 và 7 |
 | 50 người thao tác đồng thời | `AC-10.1` | Chưa chọn công cụ đo — **K6** |
 | Gặp lỗi hiện thông báo tiếng Việt, không trang trắng | `AC-10.3` | Trang 404 và 500 chưa làm — **K9** |
 | Phục hồi từ bản sao lưu | `AC-10.5` · mục 11.6 | Giai đoạn 8 |
@@ -79,7 +80,8 @@ Sáu câu này **chặn việc thật**, không phải bàn cho vui:
 | **N7** | Quản trị viên có phải thuộc một bộ phận không | BR-1 đang mâu thuẫn với mã |
 
 Còn sáu câu **H1 tới H6** cần hỏi trực tiếp người dùng cuối, không phải anh/chị
-trả lời thay — xem mục 5.
+trả lời thay — xem mục 5. Hai câu **N9** và **N10** anh/chị đã chốt hoãn ngày
+03.09.2026 — hỏi lại sau, không chặn gì.
 
 ### C · Lỗ hổng kỹ thuật đã biết
 
@@ -99,24 +101,23 @@ Không cái nào chặn triển khai. Xếp theo mức.
 
 ### D · Tiêu chí nghiệm thu chưa có bài kiểm
 
-12 tiêu chí đánh dấu *Tự động* nhưng chưa viết được, tất cả vì tính năng chưa
-xây. Danh sách này nằm trong `app/tests/test_truy_vet.py`, biến `HOAN`, và
+8 tiêu chí đánh dấu *Tự động* nhưng chưa viết được. Danh sách này nằm trong
+`app/tests/test_truy_vet.py`, biến `HOAN`, và
 **có bài kiểm bắt phải ghi lý do** — không giấu được.
 
 | Tiêu chí | Chờ |
 |---|---|
-| `AC-5.1` → `AC-5.5` | Báo cáo tổng hợp — Giai đoạn 6 |
+| `AC-5.1` | Bốn cách nhóm mới chạy ba — tab thị trường chờ **N9** |
 | `AC-7.5` → `AC-7.9` | Nhập xuất Excel — Giai đoạn 7 |
 | `AC-7.1` | 50.000 bản ghi dưới 2 giây, cần `seed_perf.py` — Giai đoạn 8 |
 | `AC-10.6` | Sao lưu tự động — Giai đoạn 8 |
 
 ### E · Màn hình chưa có
 
-Còn **2 trên 10** màn hình của bản dựng ở `prototype/`. Chi tiết ở mục 6.
+Còn **1 trên 10** màn hình của bản dựng ở `prototype/`. Chi tiết ở mục 6.
 
 | Màn hình | Giai đoạn |
 |---|---|
-| Báo cáo tổng hợp | 6 |
 | Bảng tính | 7 |
 
 ---
@@ -146,6 +147,8 @@ Còn **2 trên 10** màn hình của bản dựng ở `prototype/`. Chi tiết �
 | N3 | Vai trò Chăm sóc khách hàng có thuộc phase 1 không | Trung bình | Tệp vận đơn có cột CSKH, phase 1 chưa có vai trò này |
 | N6 | Chăm sóc khách hàng có trong phase 1 không — `README.md` xếp vào phạm vi, `docs/02` mục 12 để ngỏ. Trùng với N3 nhưng nay có thêm chứng cứ vênh giữa hai tài liệu | Cao | Rà soát GĐ 1–2 |
 | N7 | BR-1 nói mỗi người thuộc đúng một bộ phận, nhưng Admin hiện không thuộc bộ phận nào. Giữ nguyên hay bắt Admin cũng phải có bộ phận | Trung bình | Rà soát GĐ 1–2 |
+| N9 | Cách nhóm theo thị trường của báo cáo tổng hợp lấy số liệu từ đâu — cột Quốc gia bảng vận đơn chưa có nhãn ý nghĩa (ADR-007 để ngỏ); ba đường: thêm nhãn thứ tám kèm tệp chuyển đổi, lấy từ đơn hàng, hay nhóm cột JSON. Người dùng chốt 03.09.2026: **chưa quan trọng, hỏi lại sau**. Tab vẫn hiện kèm ghi chú — Q36 | Trung bình | Kế hoạch GĐ 6 |
+| N10 | Có tách loại tiền VND và USD khi cộng doanh thu không — bảng động chưa lưu loại tiền theo dòng có nhãn (Q10 lưu kèm loại tiền chỉ áp cho đơn hàng). GĐ 6 chọn cách đơn giản nhất: cộng thẳng `val_revenue`, không kèm ký hiệu tiền. Hỏi lại cùng lúc với N9 | Thấp | Kế hoạch GĐ 6 |
 
 ### 1.3. Vận hành
 
@@ -197,6 +200,8 @@ Còn **2 trên 10** màn hình của bản dựng ở `prototype/`. Chi tiết �
 | Q32 | Ai vào được màn hình Lên đơn | Chỉ bộ phận Sale, theo ma trận kiểm chéo `docs/04` mục 3. Thêm bộ lọc bộ phận cho `NavItem` và `assert_departments` | 29.08.2026 |
 | Q33 | Ai vào được màn hình Quản lý biểu mẫu | Manager trở lên. Nhân viên điền biểu mẫu qua màn hình Nộp báo cáo ngày | 29.08.2026 |
 | Q34 | Điều hướng sau đăng nhập theo bộ phận — K18, FR-1.6, `AC-1.7` | **Bỏ.** Tất cả đăng nhập đều vào trang tổng quan chung, không nhảy thẳng vào chỗ làm việc — phân quyền đã ẩn các tính năng ngoài phận sự nên không cần | 03.09.2026 |
+| Q35 | Nguồn số liệu của báo cáo tổng hợp | Chọn đúng **một** bảng trong phạm vi quyền qua ô "Nguồn số liệu" (thay ô "Bộ phận" của bản dựng). Không cộng gộp nhiều bảng — doanh số trên Báo cáo Marketing và Bảng vận đơn ghi cùng một khoản bán, cộng lẫn là đếm trùng | 03.09.2026 |
+| Q36 | Cách nhóm theo thị trường | **Hoãn** — người dùng chốt chưa quan trọng, hỏi lại sau (N9). Màn hình giữ tab Theo thị trường kèm ghi chú chờ chốt nguồn, không có bảng số; `AC-5.1` giữ trong danh sách hoãn | 03.09.2026 |
 
 ---
 
@@ -265,6 +270,7 @@ xem **V5** — cả hai đều chưa chốt.
 | 3 · Biểu mẫu và bảng động | ✓ | Chưa |
 | 4 · Báo cáo hằng ngày | ✓ | Chưa |
 | 5 · Lên đơn và vận đơn | ✓ | Chưa |
+| 6 · Báo cáo tổng hợp | ✓ | Chưa |
 
 Bản dựng giao diện tĩnh ở `prototype/` là chuẩn để đối chiếu. Nó có 10 màn
 hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp dần.
@@ -278,7 +284,7 @@ hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp d�
 | Nộp báo cáo ngày | 4 | Đã có |
 | Lịch sử báo cáo | 4 | Đã có |
 | Lên đơn | 5 | Đã có |
-| Báo cáo tổng hợp | 6 | Chưa |
+| Báo cáo tổng hợp | 6 | Đã có — tab Theo thị trường treo ghi chú chờ N9, Q36 |
 | Bảng tính | 7 | Chưa — Q15 |
 | Bảng tính, màn hình chi tiết | 7 | Chưa — Q15 |
 
@@ -318,3 +324,4 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 29.08.2026 | Người dùng xác nhận chưa thử màn hình nào, chưa nghiệm thu được. Kế hoạch kiểm thử cũng để sau — mở V5, ghi bảng đã giao / đã thử vào mục 6 |
 | 29.08.2026 | Xong Giai đoạn 3 phần B, khép lại Giai đoạn 3. Chốt Q18 tới Q20, đóng K11 và K12, mở K13 và K14. Bỏ model `Position` khỏi tài liệu vì nó không tồn tại |
 | 03.09.2026 | Chốt Q34 — bỏ K18: tất cả đăng nhập vào trang tổng quan chung, phân quyền đã ẩn tính năng ngoài phận sự. Gạch FR-1.6 và AC-1.7 khỏi `docs/02` và `docs/04`, còn 67 tiêu chí. K9 (trang lỗi 404 và 500) người dùng chốt chưa phải lúc, giữ trong backlog |
+| 03.09.2026 | Xong Giai đoạn 6 — báo cáo tổng hợp: `reports/aggregations.py` dịch nhãn ý nghĩa sang phép tính, màn hình ba cách nhóm kèm lọc, dòng tổng cộng, bốn ô số và xuất Excel có ghi nhật ký (P5). Chốt Q35 (ô chọn một bảng nguồn) và Q36 (hoãn tab thị trường), mở N9 và N10. Gỡ `AC-5.2` tới `AC-5.5` khỏi HOAN — còn 8 tiêu chí hoãn, 53 trên 61 đã có bài kiểm. Sửa luôn: phân trang giữ tham số lọc (`qs_loc`), đệm phạm vi quyền theo lượt yêu cầu để màn hình đứng dưới trần 10 lệnh truy vấn |

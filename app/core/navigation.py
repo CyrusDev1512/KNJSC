@@ -45,6 +45,8 @@ NAVIGATION = (
     NavGroup("Báo cáo", (
         NavItem("bao_cao_ngay", "Nộp báo cáo ngày", "bao_cao_ngay"),
         NavItem("bao_cao_lich_su", "Lịch sử báo cáo", "bao_cao_lich_su"),
+        # Mọi cấp bậc, mọi bộ phận — FR-5.5 lọc bằng phạm vi, không bằng cấp bậc
+        NavItem("bao_cao_tong_hop", "Báo cáo tổng hợp", "bao_cao_tong_hop"),
     )),
     NavGroup("Đơn hàng", (
         NavItem("len_don", "Lên đơn", "len_don", departments=SALES_ONLY),

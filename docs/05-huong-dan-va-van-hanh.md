@@ -15,13 +15,13 @@
 
 > ## ⚠ Tài liệu này viết trước, một phần chưa chạy được
 >
-> Cập nhật 29.08.2026 — xong Giai đoạn 5. Những mục dưới đây **mô tả tính năng
+> Cập nhật 03.09.2026 — xong Giai đoạn 6. Những mục dưới đây **mô tả tính năng
 > chưa xây xong**, đọc để biết hướng chứ đừng đi thử:
 >
 > | Mục | Chờ |
 > |---|---|
 > | **A4 · Nhập từ tệp Excel** và **Xuất ra tệp Excel** | Giai đoạn 7 |
-> | **A5 · Báo cáo tổng hợp** — trọn mục | Giai đoạn 6 |
+> | **A5 · Báo cáo tổng hợp** — riêng cách nhóm **Theo thị trường** | Chờ chốt backlog N9 |
 > | **B · Sao lưu và phục hồi** | Giai đoạn 8 |
 >
 > Danh sách đầy đủ những gì đã chạy và chưa chạy nằm ở `backlog.md` **mục 0**.
@@ -45,13 +45,10 @@
 
 ### Sau khi đăng nhập
 
-Hệ thống đưa bạn tới màn hình phù hợp với bộ phận của mình:
-
-| Bộ phận | Màn hình đầu tiên |
-|---|---|
-| Sale | Lên đơn |
-| Marketing | Bảng dữ liệu |
-| Vận đơn | Bảng vận đơn |
+Mọi người đều vào **trang Tổng quan** (Q34 — 03.09.2026). Thanh bên trái chỉ
+hiện những mục thuộc phận sự của bạn; việc của bộ phận nào thì bấm vào mục
+tương ứng — Sale vào **Lên đơn**, Marketing vào **Nộp báo cáo ngày**, Vận đơn
+vào **Bảng dữ liệu**.
 
 ---
 
@@ -155,29 +152,38 @@ Tệp xuất ra nhập lại được vào hệ thống mà không cần chỉnh
 
 ## A5. Báo cáo tổng hợp
 
-> **Chưa làm — Giai đoạn 6.** Mô tả dưới đây là dự kiến.
-
 ### Xem báo cáo
 
-1. Vào mục **Báo cáo tổng hợp**
-2. Chọn khoảng thời gian
-3. Chọn cách nhóm số liệu
+1. Vào mục **Báo cáo · Báo cáo tổng hợp**
+2. Chọn **Nguồn số liệu** — một bảng trong phạm vi quyền của bạn, ví dụ Báo
+   cáo Marketing hay Bảng vận đơn. Mỗi lần xem một bảng, số liệu không lẫn
+   nguồn (Q35)
+3. Chọn khoảng thời gian — mặc định từ đầu tháng tới hôm nay
+4. Chọn cách nhóm bằng các thẻ phía trên bảng
 
 | Cách nhóm | Cho biết |
 |---|---|
-| Tổng hợp | Số liệu chung toàn bộ |
+| Tổng hợp | Số liệu từng ngày và cả kỳ |
 | Theo nhân viên | Ai làm được bao nhiêu |
-| Theo sản phẩm | Sản phẩm nào bán chạy |
-| Theo thị trường | Thị trường nào hiệu quả |
+| Theo sản phẩm | Sản phẩm nào bán chạy, kèm tỉ trọng |
+| Theo thị trường | **Đang hoãn** — chờ chốt nguồn số liệu, backlog N9 |
+
+Số liệu đã lọc sẵn theo phạm vi quyền: nhân viên thấy phần của mình, trưởng
+nhóm thấy cả team, quản lý thấy cả bộ phận. Dòng cuối bảng là **tổng cộng**;
+các cột tính sẵn như CPO hay tỉ lệ chốt được tính lại trên tổng, không phải
+cộng dồn từng dòng.
 
 ### Bộ lọc
 
-Bên trái màn hình có các bộ lọc: khoảng thời gian, sản phẩm.
-Chọn nhiều điều kiện thì chúng cộng dồn với nhau.
+Các bộ lọc phía trên bảng: khoảng thời gian, sản phẩm.
+Chọn nhiều điều kiện thì chúng cộng dồn với nhau. Điền cả hai ô ngày rồi bấm
+**Áp dụng** thì bốn ô số đầu trang hiện thêm chênh lệch so với kỳ liền trước.
 
 ### Xuất báo cáo
 
-Bấm **Xuất Excel**. Tệp tải về chứa đúng số liệu đang hiển thị trên màn hình.
+Bấm **Xuất Excel**. Tệp tải về chứa đúng số liệu đang hiển thị trên màn hình,
+kể cả dòng tổng cộng. Mọi lần xuất đều được ghi vào nhật ký hoạt động
+(nguyên tắc P5).
 
 ---
 
