@@ -5,6 +5,9 @@ name: knjsc
 services:
   db:
     image: postgres:16-alpine
+    # Tự bật lại khi mở máy hay khởi động Docker Desktop — khỏi phải
+    # `up` lại bằng tay sau mỗi lần tắt máy
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-knjsc_db}
       POSTGRES_USER: ${POSTGRES_USER:-knjsc}
@@ -21,6 +24,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -33,6 +37,7 @@ services:
       dockerfile: deploy/Dockerfile
       args:
         INSTALL_DEV: "1"
+    restart: unless-stopped
     command: python manage.py runserver 0.0.0.0:8000
     environment: &moi_truong
       DJANGO_SETTINGS_MODULE: knjsc.settings.dev
@@ -64,6 +69,7 @@ services:
       dockerfile: deploy/Dockerfile
       args:
         INSTALL_DEV: "1"
+    restart: unless-stopped
     command: celery -A knjsc worker -l info
     environment:
       <<: *moi_truong
