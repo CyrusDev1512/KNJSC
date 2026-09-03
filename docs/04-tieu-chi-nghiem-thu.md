@@ -87,7 +87,7 @@ và đó là chuyện bình thường.
 
 ### Ma trận kiểm chéo
 
-Mỗi ô là một bài kiểm thử. Chín vai trò nhân với các đường dẫn chính.
+Mỗi ô là một bài kiểm thử. Năm vai trò nhân với chín đường dẫn chính — 45 ô, thêm hai dòng ngày 03.09.2026 (nhập tệp và Bảng tính).
 
 | Đường dẫn | Staff Sale | Leader Sale | Manager Sale | Staff Vận đơn | Chưa đăng nhập |
 |---|---|---|---|---|---|
@@ -98,6 +98,8 @@ Mỗi ô là một bài kiểm thử. Chín vai trò nhân với các đường 
 | Màn hình lên đơn | Vào được | Vào được | Vào được | Từ chối | Chuyển đăng nhập |
 | Bảng vận đơn | Từ chối | Từ chối | Từ chối | Vào được | Chuyển đăng nhập |
 | Quản lý biểu mẫu | Từ chối | Từ chối | Vào được | Từ chối | Chuyển đăng nhập |
+| Nhập tệp vào bảng của Sale | Từ chối | Từ chối | Vào được | Từ chối | Chuyển đăng nhập |
+| Bảng tính vận đơn | Từ chối | Từ chối | Từ chối | Vào được | Chuyển đăng nhập |
 
 ---
 

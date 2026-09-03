@@ -174,7 +174,7 @@ def frozen_style(frozen):
 
 
 #: Bề rộng cột "Trùng" đứng trước mọi cột cố định
-DUPLICATE_COLUMN_WIDTH = 56
+DUPLICATE_COLUMN_WIDTH = 72
 
 
 def header_columns(columns, filters=None):

@@ -17,7 +17,9 @@
   background: var(--surface);
   z-index: 2;
   box-shadow: 1px 0 0 var(--rule);
+  box-sizing: border-box;
 }
+.luoi-vd .o-trung-th { padding-left: var(--sp-2); padding-right: var(--sp-2); }
 .luoi-vd thead th.co-dinh { z-index: 4; background: var(--surface-2); }
 .luoi-vd tbody tr:hover td.co-dinh { background: var(--surface-2); }
 .luoi-vd td, .luoi-vd th { max-width: 320px; }

@@ -123,28 +123,43 @@ Vào mục **Đơn của tôi**. Danh sách hiện các đơn bạn đã tạo.
 
 ### Sửa dữ liệu
 
-Bấm đúp vào ô cần sửa, nhập giá trị mới, bấm ra ngoài để lưu.
+Bấm vào ô cần sửa, gõ giá trị mới, nhấn Enter hoặc bấm ra ngoài để lưu. Cột
+tính sẵn (nền chàm nhạt) không sửa tay được.
 
-Nếu bạn không có quyền sửa cột đó, ô sẽ không cho nhập.
+Nếu bạn không có quyền sửa dòng đó, ô không cho nhập. **Riêng bảng vận đơn
+chỉ xem ở đây** — có dòng báo và nút **Mở Bảng tính**; sửa ở đó (mục A8).
 
 ### Nhập từ tệp Excel
 
-> **Chưa làm — Giai đoạn 7.** Mô tả dưới đây là dự kiến.
+Ai làm được: quản lý trở lên của bộ phận sở hữu bảng, hoặc người được cấp
+quyền *Sửa* trên bảng.
 
-1. Bấm **Nhập tệp**
-2. Chọn tệp Excel từ máy
-3. Xem trước dữ liệu, kiểm tra cột có khớp không
-4. Bấm **Xác nhận nhập**
+1. Bấm **Nhập tệp**, chọn tệp `.xlsx` hoặc `.csv` từ máy, bấm **Tải lên và xem trước**
+2. Màn hình xem trước cho biết cột nào trong tệp khớp cột nào của bảng, cột
+   nào bị bỏ qua (và vì sao), kèm năm dòng đầu để đối chiếu
+3. Bấm **Xác nhận nhập** — từ lúc này mới ghi vào bảng
+4. Trang **Tác vụ nền** hiện tiến độ, tự cập nhật mỗi hai giây; xong thì ghi
+   số dòng đã nhập và **liệt kê từng dòng lỗi theo số hàng trong tệp Excel**
+   để bạn mở tệp sửa đúng chỗ
 
-**Giới hạn:** tệp tối đa 10 MB, tối đa 5.000 dòng mỗi lần.
+Tệp không cần chỉnh sửa trước: hệ thống tự tìm hàng tiêu đề trong 10 hàng
+đầu, hiểu tên cột tiếng Anh của tệp cũ (Name, Phone, Add…), đổi số điện thoại
+Excel lưu dạng số về chữ, đọc ngày kiểu `14/10/2023`. Ô danh sách (trạng thái)
+chỉ nhận giá trị trong danh sách, không phân biệt hoa thường.
 
-Nếu tệp có dòng lỗi, hệ thống vẫn nhập các dòng hợp lệ và liệt kê dòng bị bỏ qua.
+**Giới hạn:** tệp tối đa 10 MB, tối đa 5.000 dòng mỗi lần. Tệp đổi đuôi (ví
+dụ `.exe` đổi thành `.xlsx`) bị từ chối ngay.
+
+Dòng lỗi không chặn dòng hợp lệ: 5 dòng có 2 dòng lỗi thì 3 dòng vẫn vào.
 
 ### Xuất ra tệp Excel
 
-> **Chưa làm — Giai đoạn 7.** Mô tả dưới đây là dự kiến.
+Bấm **Xuất tệp**. Tệp mang **đúng những gì đang hiện** — bộ lọc, tìm kiếm,
+sắp xếp đi theo — và chỉ gồm dòng trong phạm vi quyền của bạn.
 
-Bấm **Xuất tệp**. Hệ thống tạo tệp và tải về máy.
+Dưới 2.000 dòng thì tải về ngay. Lớn hơn thì hệ thống xuất ở nền và báo; tệp
+sẵn sàng thì tải ở trang **Tác vụ nền**, giữ 24 giờ rồi tự dọn. Trần 50.000
+dòng một lần — quá thì thu hẹp bộ lọc.
 
 Tệp xuất ra nhập lại được vào hệ thống mà không cần chỉnh sửa.
 
@@ -225,8 +240,58 @@ Cột nào dùng để thống kê thì gán **nhãn ý nghĩa** — ví dụ c�
 | Không thấy mục nào đó trong menu | Bạn chưa được cấp quyền, liên hệ quản lý |
 | Không thấy dữ liệu của người khác | Đúng như thiết kế, mỗi cấp bậc có phạm vi riêng |
 | Hệ thống tự đăng xuất | Do không thao tác quá một tiếng, đăng nhập lại |
-| Nhập tệp báo lỗi | Kiểm tra kích thước dưới 10 MB và số dòng dưới 5.000 |
+| Nhập tệp báo lỗi | Kiểm tra kích thước dưới 10 MB và số dòng dưới 5.000; đuôi tệp phải đúng nội dung |
+| Nhập xong báo "dòng lỗi" | Mở trang Tác vụ nền, xem bảng dòng lỗi theo số hàng Excel, sửa tệp rồi nhập lại phần đó |
+| Không sửa được ô trên bảng vận đơn | Đúng như thiết kế — bảng vận đơn sửa ở Bảng tính (mục A8) |
+| Bảng tính báo "không có trong danh sách" | Ô đó chỉ nhận giá trị trong danh sách chọn — chọn từ ô xổ xuống |
 | Lỡ nhập sai đơn đã lưu | Báo quản lý, không tự sửa được |
+
+---
+
+## A8. Bảng tính vận đơn — dành cho Vận đơn
+
+Địa chỉ riêng: **`http://localhost:8021/bang-tinh/`** (trên máy chủ sẽ là một
+subdomain). Cùng tài khoản với hệ thống chính. Chỉ bộ phận Vận đơn và quản trị
+viên vào được; người khác gọi thẳng đường dẫn cũng bị từ chối.
+
+Đây là nơi **làm việc** trên bảng vận đơn, dựng theo đúng tệp Excel bộ phận
+đang dùng: mỗi sản phẩm một cột số lượng, trạng thái chọn từ danh sách, cột
+Trùng đếm số điện thoại trùng, đơn Hủy tô đỏ, bốn cột đầu và hàng tiêu đề đứng
+yên khi cuộn.
+
+### Lọc
+
+| Việc | Cách làm |
+|---|---|
+| Lọc một cột | Bấm **▾** cạnh tên cột. Cột chữ ngắn và cột chọn: tích các giá trị (kèm số dòng), có ô tìm để thu hẹp. Cột số và ngày: từ – đến. Ghi chú: chứa chữ. Mọi cột: Chỉ ô trống / Chỉ ô có giá trị |
+| Lọc nhiều cột | Lọc cột thứ hai thì cộng dồn với cột thứ nhất; mỗi bộ lọc là một chip phía trên, bấm **×** để bỏ đúng lọc đó |
+| Chỉ số điện thoại trùng | Tích ô **Chỉ số điện thoại trùng** |
+| Tìm nhanh | Ô tìm ở đầu — tìm trong tên khách, số điện thoại, người bán, sản phẩm |
+| Sắp xếp | Bấm tên cột; bấm lần nữa để đảo |
+| Chia sẻ đúng bộ lọc | Chép địa chỉ trên thanh trình duyệt — bộ lọc nằm trong đó |
+
+Dòng "Đang hiện x trên y vận đơn" thay cho công thức đếm trong tệp cũ. Mỗi
+trang 100 dòng.
+
+### Sửa
+
+| Việc | Cách làm |
+|---|---|
+| Sửa một ô | Bấm vào ô, hoặc đi tới ô bằng phím rồi **Enter** |
+| Ô trạng thái, thanh toán, đối soát | Chọn từ danh sách — chọn xong là lưu ngay |
+| Ô nhân viên vận đơn | Gợi ý danh sách tài khoản bộ phận, nhưng gõ mã khác vẫn được |
+| Ghi chú nhiều dòng | Gõ Enter để xuống dòng, **Ctrl+Enter** để lưu |
+| Huỷ | **Esc** |
+| Di chuyển | Mũi tên bốn hướng, **Tab** sang ô kế, **Shift+Tab** lùi lại |
+
+Mỗi lần sửa ghi một dòng nhật ký (ai, lúc nào, giá trị cũ → mới). Giá trị
+ngoài danh sách bị từ chối kèm lý do ngay tại ô.
+
+### Nhập và xuất
+
+Nút **Nhập tệp** mở luồng nhập của Bảng dữ liệu (mục A4) cho bảng vận đơn —
+tệp Excel cũ của bộ phận nhập được không cần sửa. Nút **Xuất Excel** xuất đúng
+lưới đang lọc.
 
 ---
 
@@ -264,9 +329,13 @@ và tệp cấu hình.
 
 ## B3. Việc hằng ngày
 
-1. Mở hệ thống, đăng nhập, kiểm màn hình chính hiện đủ số liệu
-2. Kiểm bản sao lưu đêm qua có được tạo không
-3. Nếu hệ thống không mở được, xem mục B5
+1. Mở hệ thống, đăng nhập `quantri`, kiểm màn hình chính hiện đủ số liệu
+2. Nhìn ô **Sao lưu đêm qua** trên Tổng quan: chip xanh "Thành công" kèm giờ
+   là được; chip đỏ thì mở Tác vụ nền đọc lý do, chạy lại `scripts/backup.sh`
+   và xem mục B7. Người vận hành cũng nhận thư khi sao lưu hỏng (biến
+   `OPERATOR_EMAILS`)
+3. Nhìn ô **Tác vụ nền**: có tác vụ "kẹt" nghĩa là worker không chạy — xem B5
+4. Nếu hệ thống không mở được, xem mục B5
 
 Mất khoảng hai phút. **Đừng bỏ qua bước kiểm bản sao lưu** — sao lưu hỏng thường
 im lặng, chỉ phát hiện khi cần dùng thì đã muộn.
@@ -332,13 +401,31 @@ chạy, hoặc xoá vùng lưu cơ sở dữ liệu. Cả ba đều có thể l�
 
 ## B8. Sao lưu
 
-| Mục | Quy định |
-|---|---|
-| Tần suất | Mỗi ngày một lần, tự động |
-| Thời gian giữ | 30 ngày, tối đa 30 bản gần nhất |
-| Nơi lưu | Ít nhất một bản ở nơi khác máy chủ chính |
-| Mã hoá | Bản sao lưu mã hoá trước khi rời khỏi máy chủ |
-| Thử phục hồi | Mỗi quý một lần |
+| Mục | Quy định | Cách làm |
+|---|---|---|
+| Tần suất | Mỗi ngày một lần, tự động | Service `beat` chạy lúc **02:00**, ra tệp `storage/backups/knjsc-<ngày>-<giờ>.dump` |
+| Thời gian giữ | 30 ngày, tối đa 30 bản gần nhất | Tự xoá bản cũ hơn bản thứ 30 |
+| Nơi lưu | Ít nhất một bản ở nơi khác máy chủ chính | Đặt biến `BACKUP_DIR` trỏ sang ổ khác, hoặc chép thư mục `storage/backups/` đi mỗi ngày |
+| Mã hoá | Bản sao lưu mã hoá trước khi rời khỏi máy chủ | Chưa có trong hệ thống — mã hoá khi chép ra ngoài (Giai đoạn 8) |
+| Thử phục hồi | Mỗi quý một lần | Xem dưới |
+
+**Sao lưu ngay bây giờ:** `scripts/backup.sh` (Windows: chạy lệnh trong tệp
+đó bằng PowerShell). Trước mỗi lần cập nhật hệ thống nên chạy một lần.
+
+**Phục hồi — đè lên dữ liệu hiện tại:**
+
+```
+scripts/restore.sh                          # chỉ liệt kê các bản, không làm gì
+scripts/restore.sh --toi-chac-chan          # phục hồi bản mới nhất
+scripts/restore.sh knjsc-20260903-020000.dump --toi-chac-chan
+```
+
+Script dừng worker, beat và Bảng tính trong lúc phục hồi rồi bật lại. Không
+có cờ `--toi-chac-chan` thì không bao giờ ghi gì. Mỗi lần phục hồi ghi một
+dòng nhật ký.
+
+**Bản sao lưu chưa từng được phục hồi thử thì chưa được tính là bản sao lưu.**
+Mỗi quý: sao lưu, sửa một ô, phục hồi, kiểm ô đó trở về giá trị cũ.
 
 ---
 
@@ -355,3 +442,34 @@ Khi người vận hành nghỉ hoặc chuyển việc, bàn giao đủ những 
 
 **Cách kiểm bàn giao đã đủ chưa:** người tiếp nhận tự làm được một lần phục hồi
 trên môi trường thử mà không cần hỏi ai. Làm được nghĩa là bàn giao đủ.
+
+---
+
+## B10. Thư mục `storage/` và các dịch vụ
+
+`storage/` nằm cạnh kho mã, **không** đưa lên git, là thứ duy nhất ngoài cơ sở
+dữ liệu cần giữ:
+
+| Thư mục | Chứa gì | Dọn |
+|---|---|---|
+| `storage/backups/` | Bản sao lưu `pg_dump` | Tự giữ 30 bản |
+| `storage/exports/` | Tệp Excel xuất ở nền | Tự xoá sau 24 giờ (03:00) |
+| `storage/uploads/imports/` | Tệp đang chờ nhập | Xoá sau khi nhập xong, hoặc sau 24 giờ nếu bỏ dở |
+| `storage/e2e/` | Ảnh chụp màn hình của bài kiểm trình duyệt | Xoá tay khi muốn |
+
+Container chạy bằng uid 1000; trên máy Linux thư mục phải ghi được bởi uid đó
+(backlog K21). Lúc khởi động, `entrypoint.sh` in cảnh báo nếu không ghi được.
+
+Sáu dịch vụ trong `docker-compose.yml`:
+
+| Dịch vụ | Việc | Cổng |
+|---|---|---|
+| `db` | PostgreSQL 16 | 5433 (ra ngoài) |
+| `redis` | Hàng đợi | — |
+| `web` | Hệ thống chính | **8020** |
+| `bangtinh` | Bảng tính vận đơn — cùng mã, cùng cơ sở dữ liệu, cấu hình `knjsc.settings.bangtinh` | **8021** |
+| `worker` | Chạy nhập tệp, xuất tệp, sao lưu | — |
+| `beat` | Bấm giờ: sao lưu 02:00, dọn tệp 03:00, canh tác vụ kẹt mỗi 15 phút | — |
+
+Không có `worker` thì nhập tệp treo ở "Chờ xử lý" và sau 15 phút bị đánh dấu
+kẹt; không có `beat` thì không có gì tự chạy đêm.

@@ -114,7 +114,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-7.5 | Hệ thống phải cho phép nhập dữ liệu từ tệp Excel |
 | FR-7.6 | Hệ thống phải cho phép xuất dữ liệu ra tệp Excel |
 | FR-7.7 | Tệp xuất ra phải nhập lại được vào hệ thống mà không phát sinh lỗi |
-| FR-7.8 | Hệ thống phải hỗ trợ công thức tính toán trên bảng — *phạm vi cụ thể xem mục 11* |
+| FR-7.8 | Hệ thống phải hỗ trợ công thức tính toán trên bảng — *phạm vi cụ thể xem mục 11*. Đã chốt: cột tính sẵn trên Bảng dữ liệu (ADR-006) và **Bảng tính vận đơn** là lưới làm việc theo tệp thật, không có công thức tự do (ADR-009) |
 
 ---
 

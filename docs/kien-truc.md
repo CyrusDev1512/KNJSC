@@ -301,13 +301,15 @@ Giao diện dùng chung không thành module riêng mà nằm ở `app/templates
 └── Xuất Excel
 ```
 
-### Giai đoạn 7 — Nhập xuất và tác vụ nền
+### Giai đoạn 7 — Nhập xuất, sao lưu, Bảng tính vận đơn
 
 ```
-├── Nhập tệp Excel
-├── Xuất tệp Excel
-├── Tác vụ nền cho tệp lớn
-└── Sao lưu tự động và dọn dẹp
+├── Nhập tệp Excel bốn bước, xem trước, tiến độ, dòng lỗi theo hàng Excel
+├── Xuất tệp Excel kèm bộ lọc; tệp lớn chạy nền
+├── Tác vụ nền có theo dõi (BackgroundJob), đánh dấu kẹt
+├── Sao lưu pg_dump hằng đêm, giữ 30 bản, phục hồi có xác nhận; service beat
+├── Bảng tính vận đơn theo tệp thật — dịch vụ bangtinh cổng 8021 (ADR-009)
+└── Kiểm thử toàn diện: Playwright, Locust, 50.000 dòng, ma trận 45 ô
 ```
 
 ### Giai đoạn 8 — Đưa lên máy chủ và hoàn thiện
@@ -315,8 +317,8 @@ Giao diện dùng chung không thành module riêng mà nằm ở `app/templates
 ```
 ├── Giao diện điện thoại và máy tính bảng
 ├── Tối ưu: phân trang, chỉ mục, gộp truy vấn
-├── Cài đặt máy chủ, kết nối mã hoá, tên miền
-├── Kiểm thử tải với dữ liệu giả
+├── Cài đặt máy chủ, kết nối mã hoá, tên miền; subdomain cho Bảng tính
+├── Đo tải trên máy chủ thật (kịch bản Locust đã có từ GĐ 7)
 ├── Thử phục hồi từ bản sao lưu
 └── Chuyển dữ liệu thật, đào tạo người dùng
 ```

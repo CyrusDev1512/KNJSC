@@ -218,7 +218,7 @@ kim-ngan-jsc/
 | `forms_builder` | Định nghĩa biểu mẫu, bảng, bản ghi động | `core`, `org` |
 | `reports` | Báo cáo hằng ngày | `core`, `org`, `forms_builder` |
 | `orders` | Đơn hàng, sản phẩm, khách hàng | `core`, `org`, `forms_builder` |
-| `crm` | Khách hàng, và về sau là bảng tính | `core`, `org`, `forms_builder` |
+| `crm` | Bảng tính vận đơn — lưới làm việc trên bảng `van_don`, chạy được thành dịch vụ riêng (ADR-009) | `core`, `org`, `forms_builder`, `orders` |
 | `dashboard` | Không sở hữu, chỉ đọc | Tất cả |
 
 **Quy tắc phụ thuộc:** module chỉ gọi module nằm trên nó trong bảng. Không có vòng.
@@ -247,7 +247,7 @@ Nhờ vậy tác vụ nền và giao diện dùng chung một luật. Không có
 
 ```
 config/.env          mật khẩu cơ sở dữ liệu, khoá bí mật
-storage/             tệp người dùng, bản sao lưu, tệp xuất
+storage/             tệp tải lên, tệp xuất, bản sao lưu, ảnh chụp e2e
 app/staticfiles/     sinh ra khi triển khai
 ```
 

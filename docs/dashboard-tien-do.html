@@ -738,7 +738,7 @@ const GIAI_DOAN = [
       { t: "Kiểm thử xuất rồi nhập lại", tt: "xong" },
       { t: "Bảng tính vận đơn theo tệp thật — lọc cột, sửa ô, Lọc trùng, dịch vụ bangtinh cổng 8021", tt: "xong", note: "ADR-009" },
       { t: "Tám trạng thái vận đơn, tiền tệ CAD/PHP, mỗi sản phẩm một cột số lượng", tt: "xong", note: "Q39–Q41" },
-      { t: "Kiểm thử trình duyệt thật (Playwright), đo tải (Locust), seed_perf 50.000 dòng", tt: "chua", note: "7D" }
+      { t: "Kiểm thử toàn diện: Playwright, Locust, seed_perf 50.000 dòng, ma trận 45 ô, docs/07", tt: "xong", note: "7D" }
     ]
   },
   {
@@ -747,8 +747,8 @@ const GIAI_DOAN = [
       { t: "Giao diện dùng được trên điện thoại và máy tính bảng", tt: "chua" },
       { t: "Tối ưu: chỉ mục, gộp truy vấn, đếm số lệnh mỗi màn hình", tt: "chua", note: "quy tắc 2" },
       { t: "Cài máy chủ, reverse proxy, kết nối mã hoá, tên miền", tt: "chua" },
-      { t: "seed_perf.py — sinh 50.000 bản ghi giả", tt: "chua" },
-      { t: "Kiểm thử tải với 50 người dùng đồng thời", tt: "chua" },
+      { t: "Đo tải 50 người trên máy chủ thật (kịch bản Locust có từ GĐ 7)", tt: "chua" },
+      { t: "Subdomain cho Bảng tính, phiên đăng nhập dùng chung", tt: "chua", note: "ADR-009" },
       { t: "Thử phục hồi từ bản sao lưu", tt: "chua", note: "R6" },
       { t: "Sổ tay vận hành đủ để người khác tiếp nhận", tt: "chua", note: "R2" },
       { t: "Chuyển dữ liệu thật", tt: "chua" },
@@ -770,7 +770,7 @@ const CRM = [
   { nhom: "Hệ thống vận hành mảng kinh doanh", o: "C6" },
   { o: "D7", ten: "Báo cáo MKT: tổng hợp, sản phẩm, thị trường, ngày", pv: "trong", tt: "dang", gd: "GĐ 4 · 6", ghi: "13 trường, sheet BC MKT — còn thống kê thị trường, N9" },
   { o: "D8", ten: "Báo cáo SALE: tổng hợp, sản phẩm, thị trường, ngày", pv: "trong", tt: "dang", gd: "GĐ 4 · 6", ghi: "8 trường, sheet BC SALE — còn thống kê thị trường, N9" },
-  { o: "D9", ten: "Vận đơn: lên đơn, theo dõi đơn", pv: "trong", tt: "chua", gd: "GĐ 5", ghi: "8 trường chưa có yêu cầu" },
+  { o: "D9", ten: "Vận đơn: lên đơn, theo dõi đơn", pv: "trong", tt: "xong", gd: "GĐ 5 · 7", ghi: "Lên đơn (GĐ 5) và Bảng tính vận đơn theo tệp thật (GĐ 7C)" },
 
   { nhom: "Hệ thống vận hành mảng nhân sự", o: "C11" },
   { o: "D12", ten: "Đánh giá năng lực, xếp hạng, thăng tiến", pv: "ngoai", tt: "chua", gd: "—", ghi: "Q3" },
@@ -961,7 +961,7 @@ const phasesEl = document.getElementById("phases");
 const anEl = document.getElementById("phases-an");
 /* Hiện tới giai đoạn đang làm; phần chưa tới lượt thì ẩn cho đỡ rối.
    Đổi số này mỗi khi xong một giai đoạn. */
-const HIEN_TOI_GD = 7;
+const HIEN_TOI_GD = 8;
 
 GIAI_DOAN.forEach(g => {
   const wrap = document.createElement("div");

@@ -33,6 +33,27 @@
 
   var HUONG = { ArrowRight: [0, 1], ArrowLeft: [0, -1], ArrowDown: [1, 0], ArrowUp: [-1, 0] };
 
+  // Cột cố định: máy chủ ước lượng `left` theo bề rộng khai sẵn, nhưng bề
+  // rộng thật do trình duyệt quyết — đo lại rồi đặt đúng, không thì cột trôi
+  // vài px khi cuộn. Chạy lúc tải trang và khi đổi cỡ cửa sổ.
+  function canhCotCoDinh() {
+    var hang = LUOI.querySelector("thead tr");
+    if (!hang) return;
+    var trai = 0;
+    Array.prototype.forEach.call(hang.children, function (th, i) {
+      if (!th.classList.contains("co-dinh")) return;
+      var rong = th.getBoundingClientRect().width;
+      var cot = LUOI.querySelectorAll("tr > *:nth-child(" + (i + 1) + ")");
+      Array.prototype.forEach.call(cot, function (o) { o.style.left = trai + "px"; });
+      trai += rong;
+    });
+  }
+  canhCotCoDinh();
+  window.addEventListener("resize", canhCotCoDinh);
+  document.body.addEventListener("htmx:afterSwap", function (e) {
+    if (e.detail.target && e.detail.target.tagName === "TD") canhCotCoDinh();
+  });
+
   document.addEventListener("keydown", function (e) {
     var td = e.target.closest && e.target.closest("td[tabindex], td.dang-sua");
     if (!td || !LUOI.contains(td)) return;

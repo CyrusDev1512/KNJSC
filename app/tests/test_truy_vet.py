@@ -34,8 +34,6 @@ TEP_TIEU_CHI = next((p for p in CAC_NOI_CO_THE if p.exists()), CAC_NOI_CO_THE[0]
 #: phải ghi rõ vì sao chưa làm được và chờ giai đoạn nào. Rỗng dần theo tiến độ.
 HOAN = {
     "AC-5.1": "Tab thị trường hoãn — chưa chốt nguồn số liệu, backlog N9 và Q36",
-    "AC-7.1": "Cần seed_perf.py sinh 50.000 bản ghi — Giai đoạn 7D",
-    "AC-11.10": "Bàn phím trên lưới cần trình duyệt thật (Playwright) — Giai đoạn 7D",
 }
 
 DONG_TIEU_CHI = re.compile(

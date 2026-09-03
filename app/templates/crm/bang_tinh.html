@@ -66,7 +66,7 @@
     <table class="bang bang-rong">
       <thead>
         <tr>
-          <th class="co-dinh o-trung-th" style="left:0;min-width:56px" title="Số dòng cùng số điện thoại">Trùng</th>
+          <th class="co-dinh o-trung-th" style="left:0;min-width:72px;max-width:72px" title="Số dòng cùng số điện thoại">Trùng</th>
           {% for h in cac_tieu_de %}
             <th class="{{ h.lop }}" {% if h.style %}style="{{ h.style }}"{% endif %} data-cot="{{ h.cot.code }}"
                 {% if luoi.sort == h.cot.code %}aria-sort="{% if luoi.descending %}descending{% else %}ascending{% endif %}"{% endif %}>
@@ -87,7 +87,7 @@
       <tbody>
         {% for d in cac_dong %}
           <tr class="{{ d.lop }}" data-dong="{{ d.ban_ghi.pk }}">
-            <td class="{{ d.lop_trung }}" style="left:0;min-width:56px">{% if d.so_trung > 1 %}{{ d.so_trung }}{% else %}—{% endif %}</td>
+            <td class="{{ d.lop_trung }}" style="left:0;min-width:72px;max-width:72px">{% if d.so_trung > 1 %}{{ d.so_trung }}{% else %}—{% endif %}</td>
             {% for o in d.cac_o %}
               {% include "crm/_o.html" with ban_ghi=d.ban_ghi duoc_sua=d.sua cot=o.cot gia_tri=o.gia_tri lop=o.lop style=o.style %}
             {% endfor %}
