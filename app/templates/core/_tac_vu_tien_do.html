@@ -1,0 +1,57 @@
+{% comment %}
+Mảnh tiến độ của một tác vụ. HTMX hỏi lại mỗi 2 giây chừng nào chưa xong; xong
+thì mảnh không còn hx-trigger nên tự ngừng. Cần: job, da_xong.
+{% endcomment %}
+<div id="tien-do" class="the"
+     {% if not da_xong %}hx-get="{% url 'tac_vu_tien_do' job.pk %}" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}>
+  <div class="the-dau">
+    <h2>Tiến độ</h2>
+    <div class="phai">{% include "core/_chip_tac_vu.html" with j=job %}</div>
+  </div>
+  <div class="the-than tien-do">
+    <div class="tien-do-thanh {% if job.status == 'done' %}xong{% elif job.status == 'failed' or job.status == 'stale' %}hong{% endif %}">
+      <span style="width:{{ job.percent }}%"></span>
+    </div>
+    <div class="tien-do-so">
+      {% if job.total %}{{ job.progress }} / {{ job.total }} dòng · {% endif %}{{ job.percent }}%
+      {% if job.status == "pending" %} · Đang chờ worker nhận việc{% endif %}
+      {% if job.status == "draft" %} · Chưa xác nhận{% endif %}
+    </div>
+
+    {% if job.error %}
+      <div class="bao bao-xau"><span class="bao-ic">!</span><div><b>Không hoàn tất</b><p>{{ job.error }}</p></div></div>
+    {% endif %}
+
+    {% if job.status == "done" %}
+      {% if job.kind == "import" %}
+        <div class="bao bao-tot"><span class="bao-ic">✓</span>
+          <div><b>Đã nhập {{ job.summary.created }} dòng</b>
+            <p>{% if job.summary.error_count %}Bỏ qua {{ job.summary.error_count }} dòng lỗi — liệt kê bên dưới theo số hàng trong tệp.{% else %}Không có dòng lỗi.{% endif %}</p></div>
+        </div>
+      {% elif job.result_path %}
+        <div class="bao bao-tot"><span class="bao-ic">✓</span>
+          <div><b>Tệp đã sẵn sàng</b><p>Giữ trong 24 giờ rồi tự dọn.</p></div>
+        </div>
+        <div><a class="nut nut-chinh" href="{% url 'tac_vu_tai' job.pk %}">Tải tệp</a></div>
+      {% elif job.kind == "backup" %}
+        <div class="bao bao-tot"><span class="bao-ic">✓</span><div><b>Sao lưu thành công</b><p>{{ job.summary.file_name }} · {{ job.summary.size }}</p></div></div>
+      {% endif %}
+    {% endif %}
+
+    {% if job.summary.errors %}
+      <div class="bang-cuon">
+        <table class="bang">
+          <thead><tr><th>Hàng trong tệp</th><th>Lỗi</th></tr></thead>
+          <tbody>
+            {% for so, loi in job.summary.errors %}
+              <tr><td class="ma-o">{{ so }}</td><td>{{ loi }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if job.summary.error_count > job.summary.errors|length %}
+        <p class="nho mo-nhat">Chỉ hiện {{ job.summary.errors|length }} dòng lỗi đầu tiên trên tổng {{ job.summary.error_count }}.</p>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>

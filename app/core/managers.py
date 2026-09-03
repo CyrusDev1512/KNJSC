@@ -144,3 +144,23 @@ class ScopedManager(models.Manager.from_queryset(ScopedQuerySet)):
 
 class AllObjectsManager(models.Manager.from_queryset(ScopedQuerySet)):
     """Lấy mọi bản ghi kể cả đã đánh dấu xoá. Dùng cho tệp chuyển đổi và quản trị."""
+
+
+class BackgroundJobQuerySet(models.QuerySet):
+    """Tác vụ nền: ai tạo thì thấy tác vụ của mình, Admin thấy tất cả.
+
+    Không có bộ phận hay team — một tác vụ là việc của một người, và người
+    vận hành (Admin) cần thấy hết để biết hàng đợi có kẹt không.
+    """
+
+    def in_scope(self, user):
+        scope = get_user_scope(user)
+        if scope.all_departments:
+            return self
+        return self.filter(created_by_id=scope.user_id)
+
+    def active(self):
+        """Tác vụ chưa kết thúc — đang chờ hoặc đang chạy."""
+        from .constants import JobStatus
+
+        return self.filter(status__in=(JobStatus.PENDING, JobStatus.RUNNING))

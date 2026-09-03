@@ -45,8 +45,16 @@ def _granted_scope(profile):
     return frozenset(), frozenset()
 
 
+#: Tên thuộc tính giữ bộ nhớ đệm trên đối tượng người dùng của một lượt yêu cầu.
+#: Cùng khuôn với `grant_service.CACHE_ATTR`: mỗi lượt yêu cầu Django nạp một
+#: đối tượng user mới nên đệm tự hết hạn theo lượt. Không đệm thì mỗi lần
+#: `in_scope` là một lần đọc lại team của Leader, và màn hình gọi vài queryset
+#: có phạm vi sẽ vượt trần 10 lệnh của AC-10.2.
+CACHE_ATTR = "_knjsc_scope"
+
+
 def get_user_scope(user):
-    """Tính phạm vi quyền của một người dùng.
+    """Tính phạm vi quyền của một người dùng. Đệm theo lượt yêu cầu.
 
     Cấp bậc quyết định phạm vi rộng bao nhiêu, bộ phận quyết định phạm vi
     ở đâu (ADR-003).
@@ -56,6 +64,18 @@ def get_user_scope(user):
         Manager  toàn bộ bộ phận của mình
         Admin    tất cả các bộ phận
     """
+    da_co = getattr(user, CACHE_ATTR, None) if user is not None else None
+    if da_co is not None:
+        return da_co
+    scope = _compute_user_scope(user)
+    try:
+        setattr(user, CACHE_ATTR, scope)
+    except AttributeError:      # đối tượng người dùng ẩn danh không gán được
+        pass
+    return scope
+
+
+def _compute_user_scope(user):
     if user is None or not getattr(user, "is_authenticated", False):
         raise NoProfileError("Cần đăng nhập để xem dữ liệu.")
 

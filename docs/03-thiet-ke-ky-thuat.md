@@ -262,6 +262,55 @@ Hệ thống kiểm tra tương thích kiểu dữ liệu    ← FR-8.6
 Phân quyền: ai điền biểu mẫu, ai xem bảng
 ```
 
+### 4.4. Nhập tệp Excel vào bảng — FR-7.5
+
+```
+Kiểm cỡ (≤ 10 MB), loại thật của tệp (chữ ký đầu tệp so với đuôi)   ← S7, AC-7.8, AC-7.9
+    ↓
+Đọc tối đa 5.000 dòng; dò hàng tiêu đề trong 10 hàng đầu
+    ↓
+Ánh xạ cột: tên cột → bí danh (Name, Phone, "SL <sản phẩm>"…) → cột bảng
+    ↓
+Lưu tệp vào storage/uploads/imports/, tạo tác vụ *Chờ xác nhận*  ← chưa ghi gì
+    ↓
+Người dùng xem trước, bấm Xác nhận → tác vụ *Chờ xử lý* → hàng đợi Celery
+    ↓
+Worker: đọc lại tệp, ép kiểu từng ô, ghi theo lô 500 (bulk_create),
+        gọi tay cột tính sẵn và cột tách, báo tiến độ, gom dòng lỗi
+    ↓
+Một dòng nhật ký IMPORT; tệp tạm xoá
+```
+
+Dòng lỗi **không** chặn dòng hợp lệ (AC-7.6); số hàng báo lỗi là số hàng thật
+trong Excel. Cột kiểu *Chọn một* có sổ danh sách (`choice_registry`) thì giá
+trị phải nằm trong sổ — nhập không phân biệt hoa thường.
+
+Tác vụ *Chờ xử lý* quá 15 phút không ai nhận → đánh dấu **kẹt**, ghi nhật
+ký, thư cho người vận hành (worker không chạy).
+
+### 4.5. Xuất tệp Excel — FR-7.6, ADR-002
+
+Cùng bộ đọc bộ lọc với màn hình bảng (`query.read_filters`), nên tệp xuất là
+**đúng thứ đang hiện**. Ghi nhật ký EXPORT trước khi trả tệp (P5). Dưới
+2.000 dòng trả ngay; lớn hơn chạy nền, tệp ở `storage/exports/` 24 giờ; trần
+50.000 dòng. Tiêu đề là tên cột, giá trị giữ kiểu (Decimal, ngày thật) để nhập
+lại được (AC-7.7).
+
+### 4.6. Bảng tính vận đơn — ADR-009
+
+Không có model. Lưới là một cách nhìn lên `DataRecord` của bảng `van_don`:
+
+| Việc | Cách làm |
+|---|---|
+| Phạm vi | `DataRecord.objects.in_scope(user)` — bảng dùng chung nên cả bộ phận thấy mọi dòng |
+| Lọc, sắp xếp | `forms_builder.query` — toán tử `trong`, `chua`, `lon_bang`/`nho_bang`, `rong`/`co`; cột JSON số nguyên được ép kiểu để so được |
+| Lọc trùng | Cột ảo: `Subquery` đếm dòng cùng `val_phone` trong bảng; số trống không tính |
+| Thứ tự cột | `dispatch_service.GRID_ORDER`, cột `sl_*` chèn sau thông tin khách |
+| Danh sách chọn | `forms_builder.choice_registry` — `crm` đăng ký lúc khởi động; *chặt* với trạng thái, *gợi ý* với nhân viên |
+| Sửa ô | `record_service.update_cell` — cùng đường với Bảng dữ liệu; `can_edit_record` trả False khi bảng nằm trong `GRID_ONLY_TABLES` |
+| Dịch vụ riêng | `knjsc/settings/bangtinh.py`: URLconf thu hẹp, `GRID_ONLY_TABLES` rỗng; container `bangtinh` cổng 8021; tương lai subdomain với `SESSION_COOKIE_DOMAIN` |
+| Trạng thái lưới | Trên URL (`f_<cột>`, `sap`, `chieu`, `trung`); không lưu máy chủ |
+
 ---
 
 ## 5. Quy tắc viết truy vấn
@@ -350,6 +399,14 @@ Không phải để tăng tốc, mà để hệ thống không sập vì đầu 
 
 **Bản sao lưu chưa từng được phục hồi thử thì chưa được tính là bản sao lưu.**
 
+**Cách làm (Giai đoạn 7B):** `core/services/backup_service.py` chạy
+`pg_dump --format=custom` lúc 02:00 qua Celery beat; mật khẩu đi qua
+`PGPASSWORD`, không nằm trên dòng lệnh; ghi `.part` rồi đổi tên, kiểm chữ ký
+`PGDMP` và cỡ tối thiểu; giữ 30 bản trong `BACKUP_DIR`. Mỗi lần chạy là một
+`BackgroundJob` loại BACKUP và một dòng nhật ký BACKUP; thất bại → thư cho
+`ADMINS`. Phục hồi bằng `pg_restore --clean` qua lệnh `phuc_hoi --toi-chac-chan`.
+Mã hoá bản sao lưu khi chép ra ngoài máy chủ để Giai đoạn 8.
+
 ---
 
 ## 9. Dọn dẹp tự động
@@ -358,6 +415,8 @@ Không phải để tăng tốc, mà để hệ thống không sập vì đầu 
 |---|---|---|
 | Bản sao lưu tự động | 30 ngày, tối đa 30 bản | NFR-15 |
 | Tệp tạm sinh ra khi xuất dữ liệu | 24 giờ | NFR-16 |
+| Tệp tải lên chờ nhập mà người dùng bỏ dở | 24 giờ, tác vụ đóng lại | NFR-16 |
+| Tác vụ nền chờ quá 15 phút không ai nhận | Đánh dấu kẹt, báo người vận hành | kien-truc.md |
 | Nhật ký hoạt động | 24 tháng | NFR-17 |
 | Phiên đăng nhập đã hết hạn | Xoá hằng ngày | |
 

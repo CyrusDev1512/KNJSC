@@ -130,4 +130,71 @@
   </div>
 </div>
 
+{# ── Sao lưu — chỉ Admin, Giai đoạn 7 ─────────────────────── #}
+{% if sao_luu %}
+<div class="the" style="margin-top:var(--sp-4)">
+  <div class="the-dau">
+    <h2>Sao lưu đêm qua</h2>
+    {% if sao_luu.ok %}
+      <div class="phai">
+        {% with j=sao_luu.data.job %}
+          {% if not j %}<span class="chip chip-xau"><i></i>Chưa từng sao lưu</span>
+          {% elif j.status == "done" %}<span class="chip chip-tot"><i></i>Thành công {{ j.finished_at|date:"H:i d.m" }}</span>
+          {% else %}<span class="chip chip-xau"><i></i>{{ j.get_status_display }} {{ j.created_at|date:"H:i d.m" }}</span>{% endif %}
+        {% endwith %}
+        <span class="chip chip-nhat"><i></i>{{ sao_luu.data.so_ban }} bản đang giữ</span>
+        <a class="nut nut-nho" href="{% url 'tac_vu' %}?trang_thai=failed">Xem tác vụ</a>
+      </div>
+    {% else %}
+      <div class="phai"><span class="chip chip-xau"><i></i>Tạm chưa khả dụng</span></div>
+    {% endif %}
+  </div>
+  {% if sao_luu.ok %}
+    <div class="the-than">
+      {% if sao_luu.data.job and sao_luu.data.job.status != "done" %}
+        <div class="bao bao-xau"><span class="bao-ic">!</span><div><b>Lần gần nhất không thành</b><p>{{ sao_luu.data.job.error|default:"Chưa có lý do" }}</p></div></div>
+      {% endif %}
+      <p class="nho mo-nhat">
+        {% if sao_luu.data.moi_nhat %}Bản mới nhất: <span class="ma-o">{{ sao_luu.data.moi_nhat }}</span> trong{% else %}Thư mục{% endif %}
+        <span class="ma-o">{{ sao_luu.data.thu_muc }}</span>. Tự chạy lúc 02:00 mỗi đêm, giữ tối đa 30 bản; chạy tay bằng <span class="ma-o">scripts/backup.sh</span>.
+      </p>
+    </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ── Tác vụ nền — Giai đoạn 7 ──────────────────────────────── #}
+<div class="the" style="margin-top:var(--sp-4)">
+  <div class="the-dau">
+    <h2>Tác vụ nền</h2>
+    {% if tac_vu.ok %}
+      <div class="phai">
+        {% if tac_vu.data.ket %}<span class="chip chip-xau"><i></i>{{ tac_vu.data.ket }} kẹt</span>{% endif %}
+        <span class="chip chip-cho"><i></i>{{ tac_vu.data.cho }} chờ</span>
+        <span class="chip chip-nhan"><i></i>{{ tac_vu.data.chay }} đang chạy</span>
+        <a class="nut nut-nho" href="{% url 'tac_vu' %}">Xem</a>
+      </div>
+    {% else %}
+      <div class="phai"><span class="chip chip-xau"><i></i>Tạm chưa khả dụng</span></div>
+    {% endif %}
+  </div>
+  {% if tac_vu.ok and tac_vu.data.gan_day %}
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead><tr><th>Lúc</th><th>Việc</th><th>Trạng thái</th><th class="phai">Tiến độ</th></tr></thead>
+        <tbody>
+          {% for j in tac_vu.data.gan_day %}
+            <tr>
+              <td class="ma-o">{{ j.created_at|date:"d.m H:i" }}</td>
+              <td><a href="{% url 'tac_vu_xem' j.pk %}">{{ j.title|default:j.get_kind_display }}</a></td>
+              <td>{% include "core/_chip_tac_vu.html" %}</td>
+              <td class="tien">{{ j.percent }}%</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+
 {% endblock %}

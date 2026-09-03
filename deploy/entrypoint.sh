@@ -22,6 +22,17 @@ except Exception:
   done
 fi
 
+# Thư mục tệp (tải lên, xuất, sao lưu) phải ghi được, không thì nhập tệp và
+# sao lưu hỏng ngay lần đầu mà không ai biết vì sao. Chỉ cảnh báo, không dừng:
+# dịch vụ vẫn lên được để người vận hành sửa quyền — backlog K21.
+KHO="${STORAGE_DIR:-/storage}"
+for tm in "$KHO" "$KHO/uploads" "$KHO/exports" "$KHO/backups"; do
+  mkdir -p "$tm" 2>/dev/null || true
+  if [ ! -w "$tm" ]; then
+    echo "CANH BAO: khong ghi duoc vao $tm — nhap tep va sao luu se hong. Kiem quyen thu muc storage/ (uid 1000)." >&2
+  fi
+done
+
 if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
   python manage.py migrate --noinput
 fi

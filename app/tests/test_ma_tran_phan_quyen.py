@@ -1,7 +1,7 @@
 """Ma trận kiểm chéo phân quyền — `docs/04` mục 3.
 
-Tài liệu có một bảng 7 đường dẫn × 5 vai trò, mỗi ô ghi rõ *Vào được* hay
-*Từ chối*. Mục 12 điều 2 bắt kiểm đủ cả 35 ô, và ghi thêm:
+Tài liệu có một bảng 9 đường dẫn × 5 vai trò, mỗi ô ghi rõ *Vào được* hay
+*Từ chối*. Mục 13 điều 2 bắt kiểm đủ cả 45 ô, và ghi thêm:
 
 > **Không bỏ qua** các tiêu chí thuộc mục 3 và mục 9 với lý do sẽ sửa sau.
 > Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ thì không thu hồi được.
@@ -37,7 +37,7 @@ CAC_VAI_TRO = [
     ("Chưa đăng nhập", None),
 ]
 
-#: Bảy dòng của bảng, chép đúng `docs/04` mục 3.
+#: Chín dòng của bảng, chép đúng `docs/04` mục 3.
 MA_TRAN = {
     "Báo cáo của chính mình": {
         "staff_sale_1": VAO_DUOC, "leader_sale_1": VAO_DUOC,
@@ -66,6 +66,15 @@ MA_TRAN = {
     "Quản lý biểu mẫu": {
         "staff_sale_1": TU_CHOI, "leader_sale_1": TU_CHOI,
         "manager_sale": VAO_DUOC, "staff_vd": TU_CHOI, None: CHUYEN_DANG_NHAP,
+    },
+    # Hai dòng thêm 03.09.2026 — nhập tệp (Q45) và Bảng tính (AC-11.4)
+    "Nhập tệp vào bảng của Sale": {
+        "staff_sale_1": TU_CHOI, "leader_sale_1": TU_CHOI,
+        "manager_sale": VAO_DUOC, "staff_vd": TU_CHOI, None: CHUYEN_DANG_NHAP,
+    },
+    "Bảng tính vận đơn": {
+        "staff_sale_1": TU_CHOI, "leader_sale_1": TU_CHOI,
+        "manager_sale": TU_CHOI, "staff_vd": VAO_DUOC, None: CHUYEN_DANG_NHAP,
     },
 }
 
@@ -128,6 +137,10 @@ def duong_dan(departments, teams, nguoi_dung):
         "Màn hình lên đơn": "/len-don/",
         "Bảng vận đơn": "/bang/van_don/",
         "Quản lý biểu mẫu": "/bieu-mau/",
+        # Bảng của Manager Sale: Staff và Leader cùng bộ phận thấy bảng nhưng
+        # không được nhập; Vận đơn không thấy bảng
+        "Nhập tệp vào bảng của Sale": "/bang/bang_manager_sale/nhap/",
+        "Bảng tính vận đơn": "/bang-tinh/",
     }
 
 
@@ -150,7 +163,7 @@ def test_ma_tran_kiem_cheo(client, nguoi_dung, duong_dan,
                            dong, ten_vai_tro, ma_vai_tro, mong_doi):
     """AC-3.1 tới AC-3.8 — Một ô trong ma trận kiểm chéo, `docs/04` mục 3
 
-    Mục 12 điều 2 đòi kiểm đủ 35 ô, cả chiều cho phép lẫn chiều từ chối.
+    Mục 13 điều 2 đòi kiểm đủ 45 ô, cả chiều cho phép lẫn chiều từ chối.
     """
     if ma_vai_tro is not None:
         client.force_login(nguoi_dung[ma_vai_tro])
@@ -171,6 +184,6 @@ def test_ma_tran_kiem_cheo(client, nguoi_dung, duong_dan,
     )
 
 
-def test_ma_tran_du_ba_muoi_lam_o():
-    """Mục 12 điều 2 — Bảng phải đủ 7 đường dẫn × 5 vai trò"""
-    assert len(CAC_O) == 35, f"Ma trận có {len(CAC_O)} ô, tài liệu ghi 35"
+def test_ma_tran_du_bon_muoi_lam_o():
+    """Mục 13 điều 2 — Bảng phải đủ 9 đường dẫn × 5 vai trò"""
+    assert len(CAC_O) == 45, f"Ma trận có {len(CAC_O)} ô, tài liệu ghi 45"

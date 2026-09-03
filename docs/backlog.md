@@ -28,14 +28,23 @@ Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của 
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
 tóm để không phải lục.
 
-> Cập nhật ngày 29.08.2026, sau khi xong Giai đoạn 5 và lập kế hoạch kiểm thử.
+> Cập nhật ngày 03.09.2026, sau khi xong trọn Giai đoạn 7 (7A → 7D) — nhập
+> xuất Excel, tác vụ nền, sao lưu, Bảng tính vận đơn, kiểm thử toàn diện. Mục
+> D chỉ còn `AC-5.1`.
 
-**Đang ở đâu:** xong Giai đoạn 0 tới 5 và kế hoạch kiểm thử. Bao phủ khoảng
-83%. Còn Giai đoạn 6, 7, 8.
+**Đang ở đâu:** xong Giai đoạn 0 tới 7. Nhập tệp Excel/CSV bốn bước có xem
+trước và tiến độ, xuất kèm bộ lọc, tệp lớn chạy nền giữ 24 giờ (7A). Sao lưu
+`pg_dump` 02:00 mỗi đêm giữ 30 bản, hỏng thì thư cho người vận hành, phục hồi
+bằng `scripts/restore.sh` (7B). **Bảng tính vận đơn** theo tệp thật — lọc từng
+cột, sửa ô có danh sách chọn, Lọc trùng, tô màu Hủy/Hoàn, mỗi sản phẩm một cột
+— chạy ở dịch vụ `bangtinh` `localhost:8021/bang-tinh/`, Bảng dữ liệu chỉ xem
+(7C, ADR-009). Kiểm thử chín tầng: thêm Playwright (bàn phím, hộp lọc, cột cố
+định, 390px), 50.000 dòng dưới 2 giây, Locust 50 người tự chấm, ma trận 45 ô;
+`docs/07` là kịch bản bấm tay (7D).
 
-**Việc tiếp theo:** Giai đoạn 6 — báo cáo tổng hợp. Đây là chỗ bảy nhãn ý nghĩa
-của Giai đoạn 3 được dùng đến: bốn cách nhóm, lọc theo thời gian và sản phẩm,
-dòng tổng cộng. Gỡ luôn năm tiêu chí `AC-5.1` tới `AC-5.5` trong mục D.
+**Việc tiếp theo:** **nghiệm thu một đợt theo `docs/07`** — anh/chị bấm tay
+từng vai, đánh ☑. Rồi Giai đoạn 8: máy chủ, subdomain cho Bảng tính, đo tải
+trên máy chủ thật.
 
 ### A · Nghiệm thu — việc của anh/chị
 
@@ -43,27 +52,28 @@ dòng tổng cộng. Gỡ luôn năm tiêu chí `AC-5.1` tới `AC-5.5` trong m�
 kiểm thử tự động đều đạt, nhưng anh/chị **chưa trực tiếp thử màn hình nào**. Phần
 trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải *đã nghiệm thu*.
 
-**Sáu việc làm được ngay bây giờ:**
+**Mười hai việc làm được ngay bây giờ — kịch bản từng bước ở `docs/07`:**
 
 | ☐ | Việc | Mã |
 |---|---|---|
 | ☐ | Thêm team mới, dùng ngay không khởi động lại | `AC-2.4` |
 | ☐ | Mở trên điện thoại và máy tính bảng thật | `AC-10.4` |
-| ☐ | Cài từ đầu trên máy sạch, chạy tới màn hình đăng nhập | `docs/04` mục 11.1 |
-| ☐ | Ba vai trò đăng nhập, chạy trọn quy trình của mình | `docs/04` mục 11.2 |
-| ☐ | Thử trên điện thoại và máy tính bảng thật | `docs/04` mục 11.5 |
-| ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | `docs/04` mục 11.7 |
+| ☐ | Cài từ đầu trên máy sạch, chạy tới màn hình đăng nhập | `docs/04` mục 12.1 |
+| ☐ | Ba vai trò đăng nhập, chạy trọn quy trình của mình | `docs/04` mục 12.2 |
+| ☐ | Thử trên điện thoại và máy tính bảng thật | `docs/04` mục 12.5 |
+| ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | `docs/04` mục 12.7 |
+| ☐ | Xuất báo cáo tổng hợp, mở bằng Excel, đối chiếu số | `AC-5.6` · mục 12.4 |
+| ☐ | Nhập tệp vận đơn thật (`docs/tham-khao/vandon-mau.xlsx`) qua Bảng dữ liệu → Nhập tệp | mục 12.3 |
+| ☐ | Sao lưu rồi phục hồi trên máy thử: `scripts/backup.sh`, `scripts/restore.sh --toi-chac-chan` | `AC-10.5` · mục 12.6 |
+| ☐ | 50 người đồng thời: `manage.py seed_perf` rồi Locust 1 phút, in ĐẠT | `AC-10.1` |
+| ☐ | Bảng tính: cuộn ngang dọc, cột đầu và tiêu đề đứng yên | `AC-11.1` |
+| ☐ | Bảng tính trên điện thoại và máy tính bảng thật | `AC-11.11` |
 
-**Sáu việc chưa làm được, và vì sao:**
+**Một việc biết trước là chưa đạt:**
 
 | Việc | Mã | Chờ |
 |---|---|---|
-| Đăng nhập vào thẳng màn hình của bộ phận mình | `AC-1.7` | Tính năng chưa làm — **K18** |
-| Xuất báo cáo, mở bằng Excel, đối chiếu số | `AC-5.6` · mục 11.4 | Giai đoạn 6 và 7 |
-| 50 người thao tác đồng thời | `AC-10.1` | Chưa chọn công cụ đo — **K6** |
-| Gặp lỗi hiện thông báo tiếng Việt, không trang trắng | `AC-10.3` | Trang 404 và 500 chưa làm — **K9** |
-| Phục hồi từ bản sao lưu | `AC-10.5` · mục 11.6 | Giai đoạn 8 |
-| Nhập tệp Excel thật của công ty | mục 11.3 | Giai đoạn 7 |
+| Gặp lỗi hiện thông báo tiếng Việt, không trang trắng | `AC-10.3` | Trang 404 và 500 chưa làm — **K9**, người dùng chốt chưa phải lúc |
 
 ### B · Câu hỏi chờ anh/chị quyết
 
@@ -79,7 +89,8 @@ Sáu câu này **chặn việc thật**, không phải bàn cho vui:
 | **N7** | Quản trị viên có phải thuộc một bộ phận không | BR-1 đang mâu thuẫn với mã |
 
 Còn sáu câu **H1 tới H6** cần hỏi trực tiếp người dùng cuối, không phải anh/chị
-trả lời thay — xem mục 5.
+trả lời thay — xem mục 5. Hai câu **N9** và **N10** anh/chị đã chốt hoãn ngày
+03.09.2026 — hỏi lại sau, không chặn gì.
 
 ### C · Lỗ hổng kỹ thuật đã biết
 
@@ -87,38 +98,36 @@ Không cái nào chặn triển khai. Xếp theo mức.
 
 | # | Nội dung | Mức |
 |---|---|---|
-| **K18** | Điều hướng sau đăng nhập theo bộ phận — FR-1.6, nay đã đủ màn hình đích để làm | Trung bình |
-| **K9** | Chưa có trang lỗi 404 và 500 tiếng Việt | Trung bình |
+| **K9** | Chưa có trang lỗi 404 và 500 tiếng Việt — người dùng chốt 03.09.2026: chưa phải lúc | Trung bình |
 | **K7** | Khoảng 60 định danh tiếng Việt trong mã Python, trái quy ước `CLAUDE.md` | Trung bình |
 | **K13** | Cấp quyền đi hai cơ chế song song, xem lại có gộp được không | Trung bình |
 | **K16** | Cột Trạng thái trên Lịch sử báo cáo — chờ **N1** | Trung bình |
 | **K17** | Chưa có gì chạy kiểm thử tự động khi đẩy mã — chờ **V2** | Trung bình |
-| **K6** | Chưa chọn công cụ đo tải | Thấp |
+| **K23** | Bài Playwright hộp lọc cột: form gửi lần hai với ô trống ngay sau khi trang tải, chạy tay thì đúng — bài đánh dấu xfail | Trung bình |
+| **K24** | Trang Bảng dữ liệu và Bảng tính trên 50.000 dòng tốn 12 lệnh truy vấn, hơn ngân sách 10 (Q2) hai lệnh; thời gian vẫn đạt 0,4 s và 1,1 s — bài hiệu năng đánh dấu xfail | Trung bình |
+| **K19** | Bài Playwright và bài 50.000 dòng chỉ chạy trên máy phát triển, không chạy trong container `web` (không có Chromium, `pytest` mặc định không bỏ `cham` nhưng image không có trình duyệt) | Thấp |
+| **K21** | Thư mục `storage/` là bind mount, container chạy uid 1000: máy Linux mà chủ thư mục khác thì nhập tệp và sao lưu hỏng — entrypoint chỉ cảnh báo, chưa tự sửa | Thấp |
+| **K22** | Danh sách chọn cho cột *Chọn một* của bảng tự tạo — bảng vận đơn có sổ đăng ký (ADR-009), bảng tự tạo chưa | Thấp |
 | **K8** | `ScopedModel` chưa có cột "người sửa" | Thấp |
 | **K10** | Quy tắc Q3 chưa áp ở màn hình nào | Thấp |
 | **K14** | Nhánh Staff trong `apply_scope` không đọc phạm vi cấp thêm | Thấp |
 
 ### D · Tiêu chí nghiệm thu chưa có bài kiểm
 
-12 tiêu chí đánh dấu *Tự động* nhưng chưa viết được, tất cả vì tính năng chưa
-xây. Danh sách này nằm trong `app/tests/test_truy_vet.py`, biến `HOAN`, và
+2 tiêu chí đánh dấu *Tự động* nhưng chưa viết được. Danh sách này nằm trong
+`app/tests/test_truy_vet.py`, biến `HOAN`, và
 **có bài kiểm bắt phải ghi lý do** — không giấu được.
 
 | Tiêu chí | Chờ |
 |---|---|
-| `AC-5.1` → `AC-5.5` | Báo cáo tổng hợp — Giai đoạn 6 |
-| `AC-7.5` → `AC-7.9` | Nhập xuất Excel — Giai đoạn 7 |
-| `AC-7.1` | 50.000 bản ghi dưới 2 giây, cần `seed_perf.py` — Giai đoạn 8 |
-| `AC-10.6` | Sao lưu tự động — Giai đoạn 8 |
+| `AC-5.1` | Bốn cách nhóm mới chạy ba — tab thị trường chờ **N9** |
+| `AC-7.1` | 50.000 bản ghi dưới 2 giây, cần `seed_perf.py` — Giai đoạn 7D |
 
 ### E · Màn hình chưa có
 
-Còn **2 trên 10** màn hình của bản dựng ở `prototype/`. Chi tiết ở mục 6.
-
-| Màn hình | Giai đoạn |
-|---|---|
-| Báo cáo tổng hợp | 6 |
-| Bảng tính | 7 |
+**Không còn.** Cả 10 màn hình của bản dựng ở `prototype/` đã có bản Django —
+riêng Bảng tính làm theo tệp thật thay vì theo bản dựng (ADR-009). Chi tiết ở
+mục 6.
 
 ---
 
@@ -128,16 +137,19 @@ Còn **2 trên 10** màn hình của bản dựng ở `prototype/`. Chi tiết �
 
 | # | Nội dung | Mức | Nguồn |
 |---|---|---|---|
-| K6 | Công cụ đo hiệu năng khi kiểm 50 người dùng đồng thời | Thấp | Bàn tài liệu |
 | K7 | Đổi khoảng 60 định danh tiếng Việt trong mã Python sang tiếng Anh theo quy ước CLAUDE.md, gồm cả tên ràng buộc `team_unique_trong_bo_phan` đã vào PostgreSQL | Trung bình | Rà soát GĐ 1–2 |
 | K8 | `docs/03` mục 2.1 đòi mọi bảng có cột "người sửa"; `ScopedModel` mới có `created_by`, chưa có `updated_by` | Thấp | Rà soát GĐ 1–2 |
-| K9 | Chưa có trang lỗi 404 và 500 bằng tiếng Việt — NFR-6 mới đạt một phần | Trung bình | Rà soát GĐ 1–2 |
+| K9 | Chưa có trang lỗi 404 và 500 bằng tiếng Việt — NFR-6 mới đạt một phần. Người dùng chốt 03.09.2026: chưa phải lúc, để lại chờ xếp giai đoạn | Trung bình | Rà soát GĐ 1–2 |
 | K10 | Quy tắc Q3 "chỉ lấy cột cần hiển thị" chưa áp ở màn hình nào | Thấp | Rà soát GĐ 1–2 |
 | K13 | `core/scope.py _granted_scope` vẫn trả về rỗng. Cấp quyền theo bảng và biểu mẫu đi đường riêng ở `forms_builder/services/grant_service.py` — hai cơ chế song song, nên xem lại có gộp được không | Trung bình | GĐ 3B |
 | K14 | Nhánh Staff trong `apply_scope` không đọc `department_ids` lẫn `team_ids`, nên cấp thêm cả một bộ phận cho Staff không có tác dụng | Thấp | GĐ 3B |
 | K16 | Cột **Trạng thái** trên Lịch sử báo cáo (Đã nộp · Nộp muộn · Chưa nộp) chưa làm được vì chưa chốt **N1** — lịch nộp báo cáo có bắt buộc đúng giờ không. Không có hạn nộp thì không tính được thế nào là muộn | Trung bình | Đối chiếu 8010 |
 | K17 | Chưa có gì chạy kiểm thử tự động khi đẩy mã lên kho. Người dùng chốt chưa dựng vì **V2** còn để ngỏ ai vận hành sau bàn giao | Trung bình | Kế hoạch kiểm thử |
-| K18 | Điều hướng sau đăng nhập theo bộ phận — FR-1.6, `AC-1.7`. Hoãn từ Giai đoạn 2 vì chưa có màn hình đích; nay Giai đoạn 4 và 5 đã xong nên làm được | Trung bình | Rà soát Giai đoạn 5 |
+| K23 | `tests/e2e/test_bang_tinh_ui.py::test_hop_loc_cot_doi_so_dong_va_url`: sau khi gửi form hộp lọc (URL đã có `f_…`), trang lại tải lần nữa với form trống (`?q=&loc_trong_…=`). Thử tay bằng Playwright script trên dịch vụ 8021 thì đúng một lần. Nghi vấn: HTMX xử lý lại `#hop-loc` hoặc `autofocus` của ô tìm; cần bắt `htmx:beforeRequest` để soi. Bài đánh dấu `xfail(strict=False)` ngày 03.09.2026 vì người dùng cần demo gấp | Trung bình | GĐ 7D |
+| K24 | Bài `tests/test_hieu_nang.py` trên 50.000 dòng: thời gian đạt (0,4 s Bảng dữ liệu, 1,1 s Bảng tính có lọc) nhưng đếm 12 lệnh truy vấn, hơn ngân sách 10 của Q2 hai lệnh. Chưa soi được lệnh nào thừa (nghi: phiên + hồ sơ + phạm vi + bảng + cột + đếm + trang + quyền cấp + sổ danh sách nhân viên). Bài đánh dấu `xfail(strict=False)` | Trung bình | GĐ 7D |
+| K19 | Bài kiểm trình duyệt thật (`tests/e2e/`, Playwright) và bài hiệu năng 50.000 dòng cần Chromium và thời gian, không chạy trong container `web` — tự bỏ qua kèm lý do. Chạy trên máy phát triển: `pip install -r requirements-dev.txt && playwright install chromium && pytest -m trinh_duyet` | Thấp | GĐ 7D |
+| K21 | Thư mục `storage/` là bind mount, container chạy uid 1000. Trên máy Linux mà chủ thư mục là người khác thì nhập tệp và sao lưu hỏng vì không ghi được; `entrypoint.sh` mới chỉ cảnh báo, chưa tự sửa quyền | Thấp | GĐ 7B |
+| K22 | `ColumnDef` kiểu *Chọn một* chưa có trường lưu danh sách lựa chọn. Bảng vận đơn dùng sổ đăng ký `forms_builder.choice_registry` (crm đăng ký lúc khởi động — ADR-009); bảng tự tạo vẫn nhận mọi giá trị. Muốn có danh sách cho bảng tự tạo thì thêm trường `options` kèm tệp chuyển đổi | Thấp | GĐ 7C |
 
 ### 1.2. Nghiệp vụ
 
@@ -148,6 +160,8 @@ Còn **2 trên 10** màn hình của bản dựng ở `prototype/`. Chi tiết �
 | N3 | Vai trò Chăm sóc khách hàng có thuộc phase 1 không | Trung bình | Tệp vận đơn có cột CSKH, phase 1 chưa có vai trò này |
 | N6 | Chăm sóc khách hàng có trong phase 1 không — `README.md` xếp vào phạm vi, `docs/02` mục 12 để ngỏ. Trùng với N3 nhưng nay có thêm chứng cứ vênh giữa hai tài liệu | Cao | Rà soát GĐ 1–2 |
 | N7 | BR-1 nói mỗi người thuộc đúng một bộ phận, nhưng Admin hiện không thuộc bộ phận nào. Giữ nguyên hay bắt Admin cũng phải có bộ phận | Trung bình | Rà soát GĐ 1–2 |
+| N9 | Cách nhóm theo thị trường của báo cáo tổng hợp lấy số liệu từ đâu — cột Quốc gia bảng vận đơn chưa có nhãn ý nghĩa (ADR-007 để ngỏ); ba đường: thêm nhãn thứ tám kèm tệp chuyển đổi, lấy từ đơn hàng, hay nhóm cột JSON. Người dùng chốt 03.09.2026: **chưa quan trọng, hỏi lại sau**. Tab vẫn hiện kèm ghi chú — Q36 | Trung bình | Kế hoạch GĐ 6 |
+| N10 | Có tách loại tiền VND và USD khi cộng doanh thu không — bảng động chưa lưu loại tiền theo dòng có nhãn (Q10 lưu kèm loại tiền chỉ áp cho đơn hàng). GĐ 6 chọn cách đơn giản nhất: cộng thẳng `val_revenue`, không kèm ký hiệu tiền. Hỏi lại cùng lúc với N9 | Thấp | Kế hoạch GĐ 6 |
 
 ### 1.3. Vận hành
 
@@ -198,6 +212,18 @@ Còn **2 trên 10** màn hình của bản dựng ở `prototype/`. Chi tiết �
 | Q31 | Kiểm giao diện tự động tới đâu | Ở mức HTML, không thêm thư viện trình duyệt. Phần cần trình duyệt thật thì bấm tay | 29.08.2026 |
 | Q32 | Ai vào được màn hình Lên đơn | Chỉ bộ phận Sale, theo ma trận kiểm chéo `docs/04` mục 3. Thêm bộ lọc bộ phận cho `NavItem` và `assert_departments` | 29.08.2026 |
 | Q33 | Ai vào được màn hình Quản lý biểu mẫu | Manager trở lên. Nhân viên điền biểu mẫu qua màn hình Nộp báo cáo ngày | 29.08.2026 |
+| Q34 | Điều hướng sau đăng nhập theo bộ phận — K18, FR-1.6, `AC-1.7` | **Bỏ.** Tất cả đăng nhập đều vào trang tổng quan chung, không nhảy thẳng vào chỗ làm việc — phân quyền đã ẩn các tính năng ngoài phận sự nên không cần | 03.09.2026 |
+| Q35 | Nguồn số liệu của báo cáo tổng hợp | Chọn đúng **một** bảng trong phạm vi quyền qua ô "Nguồn số liệu" (thay ô "Bộ phận" của bản dựng). Không cộng gộp nhiều bảng — doanh số trên Báo cáo Marketing và Bảng vận đơn ghi cùng một khoản bán, cộng lẫn là đếm trùng | 03.09.2026 |
+| Q36 | Cách nhóm theo thị trường | **Hoãn** — người dùng chốt chưa quan trọng, hỏi lại sau (N9). Màn hình giữ tab Theo thị trường kèm ghi chú chờ chốt nguồn, không có bảng số; `AC-5.1` giữ trong danh sách hoãn | 03.09.2026 |
+| Q37 | Bảng tính lưu dữ liệu ở đâu | **Dùng chung một cơ sở dữ liệu** — lưới đọc ghi thẳng dòng của bảng vận đơn, không có bảng riêng, không đồng bộ hai chiều — ADR-009 | 03.09.2026 |
+| Q38 | Bảng tính chạy ở đâu | **Dịch vụ riêng trong cùng kho mã** — container `bangtinh` cùng image, settings `knjsc.settings.bangtinh`, cổng 8021, tương lai subdomain chia sẻ phiên đăng nhập — ADR-009 | 03.09.2026 |
+| Q39 | Số lượng sản phẩm trên bảng vận đơn | **Mỗi sản phẩm một cột** như tệp thật (`sl_<mã sản phẩm>`), tự sinh từ danh mục sản phẩm đang bán, lên đơn điền tự động | 03.09.2026 |
+| Q40 | Trạng thái vận đơn và thanh toán | **Đúng danh sách của tệp thật**: tám trạng thái vận đơn, ba trạng thái thanh toán; nhãn cũ đổi bằng tệp chuyển đổi `orders/0002` có chiều ngược | 03.09.2026 |
+| Q41 | Tiền tệ | Thêm **CAD** và **PHP** — tệp thật ghi "Giá tiền(CAD)"; ba thị trường ba đồng tiền cộng VND | 03.09.2026 |
+| Q42 | Bảng vận đơn sửa ở đâu — sửa Q26 | **Chỉ xem ở Bảng dữ liệu, sửa ở Bảng tính.** `GRID_ONLY_TABLES` trong settings, kiểm ở máy chủ; dịch vụ `bangtinh` để rỗng — AC-11.7 | 03.09.2026 |
+| Q43 | Tệp vận đơn thật | **Ẩn danh hoá rồi đưa vào kho** — `scripts/an-danh-vandon.py` → `docs/tham-khao/vandon-mau.xlsx`; bản gốc chỉ ở `storage/`, không vào git. Là thước đo của AC-11.9 | 03.09.2026 |
+| Q44 | Công cụ kiểm thử trình duyệt và tải — sửa Q31 | **Thêm Playwright và Locust, chỉ trong `requirements-dev.txt`**, không vào image chạy thật. K6 đóng ngày 03.09.2026 khi `tests/perf/locustfile.py` chạy được và tự chấm | 03.09.2026 |
+| Q45 | Ai được nhập tệp Excel vào bảng; sao lưu ở giai đoạn nào | Quản lý trở lên của bộ phận sở hữu bảng hoặc người được cấp quyền **Sửa**; sao lưu thuộc **Giai đoạn 7**; thứ tự làm 7A → 7B → 7C → 7D | 03.09.2026 |
 
 ---
 
@@ -266,6 +292,8 @@ xem **V5** — cả hai đều chưa chốt.
 | 3 · Biểu mẫu và bảng động | ✓ | Chưa |
 | 4 · Báo cáo hằng ngày | ✓ | Chưa |
 | 5 · Lên đơn và vận đơn | ✓ | Chưa |
+| 6 · Báo cáo tổng hợp | ✓ | Chưa |
+| 7 · Nhập xuất, sao lưu, Bảng tính, kiểm thử toàn diện | ✓ | Chưa — kịch bản ở `docs/07` |
 
 Bản dựng giao diện tĩnh ở `prototype/` là chuẩn để đối chiếu. Nó có 10 màn
 hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp dần.
@@ -279,9 +307,9 @@ hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp d�
 | Nộp báo cáo ngày | 4 | Đã có |
 | Lịch sử báo cáo | 4 | Đã có |
 | Lên đơn | 5 | Đã có |
-| Báo cáo tổng hợp | 6 | Chưa |
-| Bảng tính | 7 | Chưa — Q15 |
-| Bảng tính, màn hình chi tiết | 7 | Chưa — Q15 |
+| Báo cáo tổng hợp | 6 | Đã có — tab Theo thị trường treo ghi chú chờ N9, Q36 |
+| Bảng tính | 7 | Đã có — lưới vận đơn ở dịch vụ `bangtinh` (`/bang-tinh/`), theo tệp thật chứ không theo bản dựng, ADR-009 |
+| Bảng tính, màn hình chi tiết | 7 | Không làm — bản dựng là engine công thức, đã bỏ khỏi phạm vi (ADR-009) |
 
 **Thiếu sót đã biết, không phải màn hình riêng nhưng ảnh hưởng trải nghiệm:**
 
@@ -290,7 +318,7 @@ hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp d�
 | 1 | ~~Bảng động chưa có chỗ thêm dòng mới~~ — xong ở 3B, màn hình điền biểu mẫu | — |
 | 2 | Chưa có trang lỗi 404 và 500 tiếng Việt — K9 | Chưa xếp |
 | 3 | Giao diện chưa kiểm trên điện thoại và máy tính bảng — NFR-7, AC-10.4 | 8 |
-| 4 | Điều hướng sau đăng nhập theo bộ phận — FR-1.6 | Chờ màn hình đích của 4 và 5 |
+| 4 | ~~Điều hướng sau đăng nhập theo bộ phận — FR-1.6~~ — bỏ theo Q34, ngày 03.09.2026 | — |
 | 5 | Chưa có dữ liệu mẫu đủ lớn để thấy bảng chạy thật thế nào | 8, `seed_perf.py` |
 
 **Khi tới đợt kiểm thử toàn diện, chạy theo `docs/04` mục 3 và mục 10:** ma
@@ -318,3 +346,10 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 29.08.2026 | Bàn Giai đoạn 5. Chốt Q23 tới Q26 — gỡ N4, N5, G1, G2 |
 | 29.08.2026 | Người dùng xác nhận chưa thử màn hình nào, chưa nghiệm thu được. Kế hoạch kiểm thử cũng để sau — mở V5, ghi bảng đã giao / đã thử vào mục 6 |
 | 29.08.2026 | Xong Giai đoạn 3 phần B, khép lại Giai đoạn 3. Chốt Q18 tới Q20, đóng K11 và K12, mở K13 và K14. Bỏ model `Position` khỏi tài liệu vì nó không tồn tại |
+| 03.09.2026 | Chốt Q34 — bỏ K18: tất cả đăng nhập vào trang tổng quan chung, phân quyền đã ẩn tính năng ngoài phận sự. Gạch FR-1.6 và AC-1.7 khỏi `docs/02` và `docs/04`, còn 67 tiêu chí. K9 (trang lỗi 404 và 500) người dùng chốt chưa phải lúc, giữ trong backlog |
+| 03.09.2026 | Xong Giai đoạn 7 phần A — nhập xuất Excel và tác vụ nền: `core/excel.py`, `BackgroundJob`, luồng nhập bốn bước có xem trước và tiến độ, xuất kèm bộ lọc, tệp lớn chạy nền giữ 24 giờ. Gỡ `AC-7.5` tới `AC-7.9` khỏi HOAN. Ẩn danh tệp vận đơn thật (Q43). Sửa Q26 thành Q42 |
+| 03.09.2026 | Xong Giai đoạn 7 phần B — sao lưu `pg_dump` hằng đêm giữ 30 bản, thất bại thì thư cho người vận hành; lệnh `sao_luu`, `phuc_hoi --toi-chac-chan`; service `beat` và `bangtinh` trong compose. Gỡ `AC-10.6` khỏi HOAN, mở K21 |
+| 03.09.2026 | Xong Giai đoạn 7 phần C — Bảng tính vận đơn theo tệp thật (ADR-009): lưới lọc theo cột, sửa ô tại chỗ có danh sách chọn, Lọc trùng, tô màu Hủy/Hoàn, cột số lượng theo sản phẩm; tám trạng thái mới và tiền tệ CAD/PHP (`orders/0002`); dịch vụ `bangtinh` cổng 8021. Thêm `docs/04` mục 11 (AC-11.1 → 11.11), đánh số lại mục 12–14. Chốt Q37 tới Q45, mở K22 |
+| 03.09.2026 | Xong Giai đoạn 7 phần D — kiểm thử toàn diện: Playwright (bàn phím, hộp lọc, cột cố định, 390px không tràn ngang, nhập→xuất→nhập lại qua giao diện), `seed_perf` 50.000 dòng và bài hiệu năng dưới 2 giây, Locust 50 người tự chấm p99, ma trận phân quyền 35 → 45 ô. HOAN chỉ còn `AC-5.1`: 70 trên 70 tiêu chí tự động có bài kiểm. Viết `docs/07-kich-ban-nghiem-thu.md`, cập nhật docs/03, 05, 06; đóng K6, mở K19, K23 (hộp lọc trong Playwright), K24 (12 truy vấn trên 50.000 dòng) — hai bài đó đánh dấu xfail vì người dùng cần demo gấp; bảng tiến độ sang GĐ 8 |
+| 03.09.2026 | Người dùng phàn nàn mở `localhost:8020` không lên sau khi đổi phiên làm việc. Nguyên nhân: container không tự bật lại sau khi tắt máy, và mã mới chưa kéo về. Thêm `restart: unless-stopped` cho bốn dịch vụ compose, và `scripts/cap-nhat-local.sh` + `.bat` — một lệnh kéo mã, dựng lại, bảo đảm dữ liệu mẫu |
+| 03.09.2026 | Xong Giai đoạn 6 — báo cáo tổng hợp: `reports/aggregations.py` dịch nhãn ý nghĩa sang phép tính, màn hình ba cách nhóm kèm lọc, dòng tổng cộng, bốn ô số và xuất Excel có ghi nhật ký (P5). Chốt Q35 (ô chọn một bảng nguồn) và Q36 (hoãn tab thị trường), mở N9 và N10. Gỡ `AC-5.2` tới `AC-5.5` khỏi HOAN — còn 8 tiêu chí hoãn, 53 trên 61 đã có bài kiểm. Sửa luôn: phân trang giữ tham số lọc (`qs_loc`), đệm phạm vi quyền theo lượt yêu cầu để màn hình đứng dưới trần 10 lệnh truy vấn |

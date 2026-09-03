@@ -1,0 +1,6 @@
+{% comment %}Chip trạng thái tác vụ. Cần: j (BackgroundJob).{% endcomment %}
+{% if j.status == "done" %}<span class="chip chip-tot"><i></i>{{ j.get_status_display }}</span>
+{% elif j.status == "failed" or j.status == "stale" %}<span class="chip chip-xau"><i></i>{{ j.get_status_display }}</span>
+{% elif j.status == "running" %}<span class="chip chip-nhan"><i></i>{{ j.get_status_display }}</span>
+{% elif j.status == "draft" %}<span class="chip chip-nhat"><i></i>{{ j.get_status_display }}</span>
+{% else %}<span class="chip chip-cho"><i></i>{{ j.get_status_display }}</span>{% endif %}

@@ -37,6 +37,9 @@ class Currency(models.TextChoices):
 
     VND = "VND", "Việt Nam đồng"
     USD = "USD", "Đô la Mỹ"
+    # Hai thị trường còn lại — tệp vận đơn thật ghi "Giá tiền(CAD)" (Q41)
+    CAD = "CAD", "Đô la Canada"
+    PHP = "PHP", "Peso Philippines"
 
 
 # Số chữ số thập phân theo tập quán từng loại tiền, dùng khi hiển thị
@@ -57,3 +60,84 @@ class AuditAction(models.TextChoices):
     IMPORT = "import", "Nhập dữ liệu"
     PERMISSION = "permission", "Đổi quyền"
     DENIED = "denied", "Từ chối truy cập"
+    BACKUP = "backup", "Sao lưu"
+
+
+# ══ NHẬP XUẤT TỆP VÀ TÁC VỤ NỀN — Giai đoạn 7 ══════════════════════
+#
+# Con số lấy từ docs/02 mục 10 (NFR-11 tới NFR-16) và docs/03 mục 6.3, 8, 9.
+# Khai ở đây một chỗ; settings chỉ đọc lại, không viết cứng lần hai.
+
+UPLOAD_MAX_BYTES = 10 * 1024 * 1024     # NFR-11 — 10 MB mỗi tệp tải lên
+IMPORT_MAX_ROWS = 5_000                  # NFR-13 — trần cứng mỗi lần nhập
+IMPORT_PERF_ROWS = 2_000                 # NFR-3  — mốc đo: 2.000 dòng dưới 60 giây
+IMPORT_PERF_SECONDS = 60
+EXPORT_SYNC_MAX_ROWS = 2_000             # trên mức này thì xuất chạy nền
+EXPORT_FILE_TTL_HOURS = 24               # NFR-16 — tệp xuất giữ 24 giờ
+BACKUP_KEEP = 30                         # NFR-15 — giữ tối đa 30 bản sao lưu
+JOB_STALE_MINUTES = 15                   # chờ quá lâu nghĩa là worker không chạy
+IMPORT_ERROR_LIST_MAX = 200              # số dòng lỗi lưu chi tiết vào tác vụ
+HEADER_SCAN_ROWS = 10                    # dò hàng tiêu đề trong bấy nhiêu hàng đầu
+GRID_PAGE_SIZE = 100                     # Bảng tính vận đơn — dòng mỗi trang
+GRID_FROZEN_COLUMNS = 4
+GRID_FILTER_OPTIONS_MAX = 200            # số giá trị tối đa trong hộp lọc một cột                  # số cột đầu cố định khi cuộn ngang
+PERF_TABLE_ROWS = 50_000                 # AC-7.1 — 50.000 bản ghi tải trang đầu
+PERF_PAGE_SECONDS = 2                    # ... dưới 2 giây
+
+
+class FileKind(models.TextChoices):
+    """Loại tệp được phép tải lên — NFR-12. Kiểm bằng đầu tệp, không tin đuôi (S7)."""
+
+    XLSX = "xlsx", "Excel"
+    CSV = "csv", "CSV"
+    JPG = "jpg", "Ảnh JPG"
+    PNG = "png", "Ảnh PNG"
+
+
+#: Chữ ký đầu tệp. CSV không có chữ ký — nhận khi đọc được dạng chữ và không
+#: chứa byte 0 (xem `core.excel.sniff_kind`).
+FILE_MAGIC = {
+    FileKind.XLSX: (b"PK\x03\x04",),
+    FileKind.JPG: (b"\xff\xd8\xff",),
+    FileKind.PNG: (b"\x89PNG\r\n\x1a\n",),
+}
+
+#: Đuôi tệp ứng với mỗi loại, để đối chiếu đuôi khai báo với loại thật.
+FILE_EXTENSIONS = {
+    FileKind.XLSX: (".xlsx",),
+    FileKind.CSV: (".csv",),
+    FileKind.JPG: (".jpg", ".jpeg"),
+    FileKind.PNG: (".png",),
+}
+
+#: Loại tệp nhận được ở luồng nhập dữ liệu vào bảng
+IMPORT_FILE_KINDS = (FileKind.XLSX, FileKind.CSV)
+
+
+class JobKind(models.TextChoices):
+    """Loại tác vụ nền."""
+
+    IMPORT = "import", "Nhập tệp"
+    EXPORT = "export", "Xuất tệp"
+    BACKUP = "backup", "Sao lưu"
+    CLEANUP = "cleanup", "Dọn dẹp"
+
+
+class JobStatus(models.TextChoices):
+    """Vòng đời một tác vụ nền.
+
+    DRAFT là bước xem trước của luồng nhập — người dùng chưa xác nhận nên chưa
+    có gì được ghi. STALE nghĩa là chờ quá lâu mà không ai nhận: worker chết,
+    và hệ thống phải nói ra chứ không im lặng (kien-truc.md).
+    """
+
+    DRAFT = "draft", "Chờ xác nhận"
+    PENDING = "pending", "Chờ xử lý"
+    RUNNING = "running", "Đang chạy"
+    DONE = "done", "Xong"
+    FAILED = "failed", "Thất bại"
+    STALE = "stale", "Kẹt — worker không chạy"
+
+
+#: Trạng thái đã kết thúc — trang tiến độ ngừng hỏi lại khi gặp một trong số này
+JOB_FINISHED = (JobStatus.DONE, JobStatus.FAILED, JobStatus.STALE)

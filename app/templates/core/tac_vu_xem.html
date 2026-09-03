@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block tieu_de %}Tác vụ #{{ job.pk }} · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Tác vụ #{{ job.pk }}{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">{{ job.get_kind_display }} · tạo lúc {{ job.created_at|date:"H:i d.m.Y" }}</div>
+    <h1>{{ job.title|default:job.get_kind_display }}</h1>
+    <p>Anh/chị có thể làm việc khác, trang này tự cập nhật. Chờ quá 15 phút mà chưa chạy thì quản trị viên đã được cảnh báo.</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut" href="{% url 'tac_vu' %}">Mọi tác vụ</a>
+    {% if job.target_type == "table" %}<a class="nut" href="{% url 'bang_xem' job.target_id %}">Mở bảng</a>{% endif %}
+  </div>
+</div>
+
+{% include "core/_tac_vu_tien_do.html" %}
+
+{% endblock %}

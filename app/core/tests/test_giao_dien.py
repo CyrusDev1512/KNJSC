@@ -17,7 +17,10 @@ import pytest
 
 GOC = Path(__file__).resolve().parent.parent.parent
 THU_MUC_TEMPLATE = GOC / "templates"
-CAC_TEP_CSS = [GOC / "static" / "css" / "main.css", GOC / "static" / "css" / "tokens.css"]
+CAC_TEP_CSS = [
+    GOC / "static" / "css" / "main.css", GOC / "static" / "css" / "tokens.css",
+    GOC / "static" / "css" / "bang-tinh.css",
+]
 
 #: Lớp chỉ dùng làm móc cho JavaScript, cố ý không có kiểu dáng.
 #: Thêm vào đây phải kèm lý do, không phải chỗ để giấu lỗi gõ sai.

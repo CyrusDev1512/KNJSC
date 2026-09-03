@@ -14,6 +14,7 @@ Thư mục này chứa toàn bộ tài liệu của dự án.
 | Thế nào là xong | `04-tieu-chi-nghiem-thu.md` |
 | Cách dùng và cách vận hành | `05-huong-dan-va-van-hanh.md` |
 | Kiểm thử thế nào, ai kiểm | `06-ke-hoach-kiem-thu.md` |
+| Kịch bản bấm tay để nghiệm thu | `07-kich-ban-nghiem-thu.md` |
 | **Còn nợ những gì** | `backlog.md` mục 0 |
 | Kiến trúc tổng thể, lộ trình | `kien-truc.md` |
 | Sơ đồ dạng hình | `so-do-kien-truc.html` |
@@ -31,9 +32,10 @@ docs/
 ├── 01-tong-quan-san-pham.md         cho người quyết định phạm vi
 ├── 02-yeu-cau-san-pham.md           48 yêu cầu có mã, kiểm chứng được
 ├── 03-thiet-ke-ky-thuat.md          cho người phát triển và AI viết mã
-├── 04-tieu-chi-nghiem-thu.md        68 tiêu chí, tham chiếu ngược tới yêu cầu
+├── 04-tieu-chi-nghiem-thu.md        78 tiêu chí, tham chiếu ngược tới yêu cầu
 ├── 05-huong-dan-va-van-hanh.md      phần A cho người dùng, phần B cho người vận hành
-├── 06-ke-hoach-kiem-thu.md          bảy tầng kiểm thử, danh sách kiểm thủ công
+├── 06-ke-hoach-kiem-thu.md          chín tầng kiểm thử, danh sách kiểm thủ công
+├── 07-kich-ban-nghiem-thu.md        kịch bản bấm tay từng vai, đợt nghiệm thu
 │
 ├── kien-truc.md                     kiến trúc tổng thể, lộ trình tám giai đoạn
 ├── so-do-kien-truc.html             năm sơ đồ dạng hình
@@ -48,11 +50,12 @@ docs/
 │   ├── 005-chon-django.md
 │   ├── 006-cong-thuc-tren-bang.md
 │   ├── 007-bang-dich-va-nhan-y-nghia.md
-│   └── 008-bao-cao-boc-quanh-bieu-mau.md
+│   ├── 008-bao-cao-boc-quanh-bieu-mau.md
+│   └── 009-bang-tinh-la-noi-lam-viec-cua-van-don.md
 │
 └── tham-khao/                       dữ liệu và tệp gốc từ khách hàng
     ├── CRM_Tan.xlsx
-    ├── vandon-mau.xlsx
+    ├── vandon-mau.xlsx                  tệp vận đơn thật đã ẩn danh — thước đo AC-11.9
     └── kn-demo/                     ảnh chụp giao diện đã duyệt
 ```
 

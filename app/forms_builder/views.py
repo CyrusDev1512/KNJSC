@@ -12,14 +12,19 @@ Hai tầng phạm vi khác nhau, đừng lẫn:
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.http import Http404
 from django.db.models import Count
+from io import BytesIO
+
+from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from core.constants import Rank
+from core.constants import IMPORT_MAX_ROWS, UPLOAD_MAX_BYTES, JobStatus, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import PAGE_SIZES, page_size, paginate
+from core.audit import record_denied
 from core.permissions import assert_rank, has_rank, is_admin
 
 from . import query
@@ -30,7 +35,8 @@ from .models import (
     ColumnDef, DataRecord, FieldDef, FormDef, FormField, Grant, TableDef,
 )
 from .services import (
-    form_service, grant_service, link_service, record_service, table_service,
+    export_service, form_service, grant_service, import_service, link_service,
+    record_service, table_service,
 )
 
 
@@ -155,16 +161,8 @@ def bang_xoa_cot(request, code, pk):
 # ══ MÀN HÌNH BẢNG DỮ LIỆU ═════════════════════════════════════════
 
 def _doc_bo_loc(request, cac_cot):
-    """Đọc tham số lọc trên đường dẫn, chỉ nhận cột có thật."""
-    ma_cot = {c.code for c in cac_cot}
-    bo_loc = {}
-    for khoa, gia_tri in request.GET.items():
-        if not khoa.startswith("f_") or not gia_tri.strip():
-            continue
-        ten = khoa[2:]
-        if ten.partition("__")[0] in ma_cot:
-            bo_loc[ten] = gia_tri.strip()
-    return bo_loc
+    """Đọc tham số lọc trên đường dẫn — bộ đọc chung với xuất tệp và Bảng tính."""
+    return query.read_filters(request.GET, cac_cot)
 
 
 @login_required
@@ -197,6 +195,10 @@ def bang_xem(request, code):
         ],
         "tim": tim, "sap_xep": sap_xep, "giam_dan": giam_dan,
         "duoc_sua": _duoc_sua_bang(request.user),
+        "duoc_nhap": grant_service.can_import(request.user, bang_hien),
+        # Bảng chỉ xem ở đây, sửa ở Bảng tính — ADR-009
+        "chi_xem": grant_service.is_grid_only(bang_hien),
+        "bang_tinh_url": settings.BANGTINH_URL,
         # Quyền sửa tính theo **từng dòng**: người tạo dòng sửa được dòng của
         # mình, quản lý sửa cả bảng, và có thể có quyền cấp riêng
         "cac_dong": [
@@ -243,6 +245,102 @@ def bang_sua_o(request, code, pk, ma_cot):
         "gia_tri": ban_ghi.data.get(ma_cot),
         "duoc_sua": True,
     })
+
+
+# ══ NHẬP VÀ XUẤT TỆP — FR-7.5 tới FR-7.7 ═════════════════════════
+
+def _bang_duoc_nhap(request, code):
+    """Bảng trong phạm vi VÀ người này được nhập vào nó. Ngoài quyền → 403,
+    ghi nhật ký từ chối (quy tắc 8, AC-3.6) — kể cả khi chỉ mở trang chọn tệp."""
+    bang_hien = _lay_bang(request, code)
+    if not grant_service.can_import(request.user, bang_hien):
+        record_denied(request.user, request.path, request)
+        raise OutOfScopeError("Bạn không có quyền nhập dữ liệu vào bảng này.")
+    return bang_hien
+
+
+@login_required
+def bang_nhap(request, code):
+    """Bước 1 của luồng nhập: chọn tệp. POST → kiểm tệp, ánh xạ cột, sang xem trước."""
+    request.nav_current = "bang"
+    bang_hien = _bang_duoc_nhap(request, code)
+    if request.method == "POST":
+        tep = request.FILES.get("tep")
+        if tep is None:
+            messages.error(request, "Chưa chọn tệp nào.")
+        else:
+            try:
+                job = import_service.prepare(bang_hien, tep, actor=request.user, request=request)
+                return redirect("bang_nhap_xem_truoc", code=code, pk=job.pk)
+            except BusinessError as loi:
+                messages.error(request, str(loi))
+    return render(request, "forms_builder/bang_nhap.html", {
+        "bang": bang_hien,
+        "gioi_han_mb": UPLOAD_MAX_BYTES // (1024 * 1024), "gioi_han_dong": IMPORT_MAX_ROWS,
+    })
+
+
+@login_required
+def bang_nhap_xem_truoc(request, code, pk):
+    """Bước 2: xem cột nào khớp cột nào trước khi ghi. Tác vụ phải là của mình."""
+    request.nav_current = "bang"
+    bang_hien = _bang_duoc_nhap(request, code)
+    job = import_service.job_for(request.user, pk, table=bang_hien)
+    if job is None:
+        raise Http404
+    if job.status != JobStatus.DRAFT:
+        return redirect("tac_vu_xem", pk=job.pk)
+    tom_tat = job.summary
+    return render(request, "forms_builder/bang_nhap_xem_truoc.html", {
+        "bang": bang_hien, "job": job,
+        "mapping": tom_tat.get("mapping", []), "ignored": tom_tat.get("ignored", []),
+        "sample": tom_tat.get("sample", []),
+        "so_dong_hien_co": import_service.record_count(bang_hien),
+    })
+
+
+@login_required
+@require_POST
+def bang_nhap_xac_nhan(request, code, pk):
+    """Bước 3: xác nhận — từ đây mới bắt đầu ghi, và ghi ở tác vụ nền."""
+    bang_hien = _bang_duoc_nhap(request, code)
+    job = import_service.job_for(request.user, pk, table=bang_hien)
+    if job is None:
+        raise Http404
+    try:
+        import_service.confirm(job, actor=request.user, request=request)
+    except BusinessError as loi:
+        messages.error(request, str(loi))
+    return redirect("tac_vu_xem", pk=job.pk)
+
+
+@login_required
+def bang_xuat(request, code):
+    """Xuất bảng ra Excel đúng như đang hiện, kèm bộ lọc — FR-7.6, ADR-002.
+
+    Ai xem được bảng thì xuất được; chỉ ra những dòng trong phạm vi của mình
+    vì queryset đi qua `in_scope`.
+    """
+    bang_hien = _lay_bang(request, code)
+    try:
+        loai, ket_qua = export_service.export(request.user, bang_hien, request.GET, request=request)
+    except BusinessError as loi:
+        messages.error(request, str(loi))
+        return redirect("bang_xem", code=code)
+    if loai == "job":
+        messages.info(
+            request,
+            f"Bảng có {ket_qua.total} dòng nên đang xuất ở tác vụ nền. "
+            "Tệp sẵn sàng thì tải ở trang này, giữ trong 24 giờ.",
+        )
+        return redirect("tac_vu_xem", pk=ket_qua.pk)
+    dem = BytesIO()
+    ket_qua.save(dem)
+    phan_hoi = HttpResponse(dem.getvalue(), content_type=export_service.XLSX_MIME)
+    phan_hoi["Content-Disposition"] = (
+        f'attachment; filename="{export_service.file_name(bang_hien)}"'
+    )
+    return phan_hoi
 
 
 @login_required

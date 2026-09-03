@@ -8,9 +8,10 @@ from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.utils import timezone
 
-from .constants import AuditAction
+from .constants import AuditAction, JobKind, JobStatus
 from .managers import (
-    AllObjectsManager, AuditQuerySet, ScopedManager, SoftDeleteQuerySet,
+    AllObjectsManager, AuditQuerySet, BackgroundJobQuerySet, ScopedManager,
+    SoftDeleteQuerySet,
 )
 
 
@@ -135,3 +136,96 @@ class AuditLog(TimestampedModel):
 
     def delete(self, *args, **kwargs):
         raise RuntimeError("Không được xoá bản ghi nhật ký hoạt động (BR-6).")
+
+
+class BackgroundJob(TimestampedModel):
+    """Một tác vụ nền: nhập tệp, xuất tệp, sao lưu, dọn dẹp.
+
+    Người dùng bấm nhập tệp thì được trả lời ngay "Đang xử lý", rồi theo dõi
+    ở đây — không bị treo màn hình (kien-truc.md). Tác vụ chờ quá
+    `JOB_STALE_MINUTES` mà không ai nhận thì bị đánh dấu kẹt và người vận
+    hành được báo: worker chết không được im lặng.
+
+    Đối tượng liên quan (bảng nào, tệp nào) ghi bằng chuỗi `target_type` /
+    `target_id` như nhật ký — core không trỏ khoá ngoại sang module nghiệp vụ.
+    Đường dẫn tệp lưu **tương đối** so với `STORAGE_DIR`, để đổi ổ đĩa không
+    phải sửa dữ liệu.
+    """
+
+    kind = models.CharField("Loại", max_length=12, choices=JobKind.choices, db_index=True)
+    status = models.CharField(
+        "Trạng thái", max_length=12, choices=JobStatus.choices,
+        default=JobStatus.DRAFT, db_index=True,
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name="Người tạo",
+        null=True, blank=True, on_delete=models.SET_NULL, related_name="+", db_index=True,
+    )
+    title = models.CharField("Mô tả", max_length=200, blank=True)
+    target_type = models.CharField("Loại đối tượng", max_length=80, blank=True, db_index=True)
+    target_id = models.CharField("Mã đối tượng", max_length=80, blank=True, db_index=True)
+    input_path = models.CharField("Tệp đầu vào", max_length=300, blank=True)
+    result_path = models.CharField("Tệp kết quả", max_length=300, blank=True)
+    progress = models.PositiveIntegerField("Đã xử lý", default=0)
+    total = models.PositiveIntegerField("Tổng số", default=0)
+    #: Ánh xạ cột, số dòng vào, danh sách dòng lỗi, cảnh báo — tuỳ loại tác vụ
+    summary = models.JSONField("Tóm tắt", default=dict, blank=True)
+    #: Thông báo lỗi tiếng Việt cho người dùng; không chứa đường dẫn hay dữ liệu nhạy cảm
+    error = models.TextField("Lỗi", blank=True)
+    started_at = models.DateTimeField("Bắt đầu lúc", null=True, blank=True)
+    finished_at = models.DateTimeField("Kết thúc lúc", null=True, blank=True)
+
+    objects = BackgroundJobQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = "Tác vụ nền"
+        verbose_name_plural = "Tác vụ nền"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["status", "-created_at"], name="job_status_time_idx"),
+            models.Index(fields=["created_by", "-created_at"], name="job_owner_time_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} #{self.pk} · {self.get_status_display()}"
+
+    # ── Vòng đời ─────────────────────────────────────────────────────
+    @property
+    def is_finished(self):
+        return self.status in (JobStatus.DONE, JobStatus.FAILED, JobStatus.STALE)
+
+    @property
+    def percent(self):
+        """Phần trăm đã xử lý, 0 tới 100. Chưa biết tổng thì 0."""
+        if not self.total:
+            return 100 if self.status == JobStatus.DONE else 0
+        return min(100, round(self.progress * 100 / self.total))
+
+    def mark_running(self):
+        self.status = JobStatus.RUNNING
+        self.started_at = timezone.now()
+        self.save(update_fields=["status", "started_at", "updated_at"])
+
+    def set_progress(self, done, total=None):
+        """Cập nhật tiến độ. Chỉ ghi hai cột, không ghi đè phần khác."""
+        self.progress = done
+        if total is not None:
+            self.total = total
+        self.save(update_fields=["progress", "total", "updated_at"])
+
+    def mark_done(self, summary=None, result_path=""):
+        self.status = JobStatus.DONE
+        self.finished_at = timezone.now()
+        if summary is not None:
+            self.summary = {**self.summary, **summary}
+        if result_path:
+            self.result_path = result_path
+        self.save(update_fields=["status", "finished_at", "summary", "result_path", "updated_at"])
+
+    def mark_failed(self, message, summary=None):
+        self.status = JobStatus.FAILED
+        self.finished_at = timezone.now()
+        self.error = str(message)[:2000]
+        if summary is not None:
+            self.summary = {**self.summary, **summary}
+        self.save(update_fields=["status", "finished_at", "error", "summary", "updated_at"])

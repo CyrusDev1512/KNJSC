@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block tieu_de %}Xem trước nhập · {{ bang.name }} · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Xem trước{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">FR-7.5 · Bước 2 trên 4</div>
+    <h1>Xem trước: {{ job.summary.file_name }}</h1>
+    <p>Sheet <b>{{ job.summary.sheet }}</b>, tiêu đề ở hàng <b>{{ job.summary.header_row }}</b>,
+      <b>{{ job.total }}</b> dòng dữ liệu sẽ được thêm vào bảng {{ bang.name }} (hiện có {{ so_dong_hien_co }} dòng).</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut nut-nguy" href="{% url 'bang_xem' bang.code %}">Huỷ</a>
+    <form method="post" action="{% url 'bang_nhap_xac_nhan' bang.code job.pk %}">
+      {% csrf_token %}
+      <button class="nut nut-chinh" type="submit">Xác nhận nhập</button>
+    </form>
+  </div>
+</div>
+
+{% if ignored %}
+  <div class="bao bao-cho">
+    <span class="bao-ic">!</span>
+    <div>
+      <b>{{ ignored|length }} cột trong tệp sẽ bị bỏ qua</b>
+      <p>{% for o in ignored %}<b>{{ o.cot_tep }}</b> — {{ o.ly_do }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+    </div>
+  </div>
+{% endif %}
+
+<div class="luoi luoi-2">
+  <div class="the">
+    <div class="the-dau"><h2>Cột khớp</h2></div>
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead><tr><th>Cột trong tệp</th><th>→ Cột của bảng</th></tr></thead>
+        <tbody>
+          {% for m in mapping %}
+            <tr><td>{{ m.cot_tep }}</td><td><b>{{ m.cot_bang }}</b> <span class="ma-o">{{ m.code }}</span></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="the">
+    <div class="the-dau"><h2>Năm dòng đầu</h2></div>
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead><tr>{% for m in mapping %}<th>{{ m.cot_bang }}</th>{% endfor %}</tr></thead>
+        <tbody>
+          {% for hang in sample %}
+            <tr>{% for o in hang %}<td class="nho">{{ o|default:"—" }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<p class="nho mo-nhat" style="margin-top:var(--sp-3)">
+  Dòng lỗi không chặn dòng hợp lệ: các dòng đúng vẫn được nhập, dòng lỗi được liệt kê kèm số hàng trong tệp.
+  Việc nhập chạy ở tác vụ nền — anh/chị theo dõi tiến độ ở bước tiếp theo.
+</p>
+
+{% endblock %}
