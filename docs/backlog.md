@@ -28,16 +28,17 @@ Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của 
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
 tóm để không phải lục.
 
-> Cập nhật ngày 03.09.2026, sau khi xong Giai đoạn 6 — báo cáo tổng hợp.
-> Chốt Q35 và Q36, mở N9 và N10.
+> Cập nhật ngày 03.09.2026, sau khi xong phần 7A của Giai đoạn 7 — nhập xuất
+> Excel và tác vụ nền. Đã gỡ `AC-7.5` tới `AC-7.9` khỏi mục D.
 
-**Đang ở đâu:** xong Giai đoạn 0 tới 6. Báo cáo tổng hợp chạy ba cách nhóm
-(ngày, nhân viên, sản phẩm) kèm lọc, dòng tổng cộng và xuất Excel; cách nhóm
-theo thị trường hoãn chờ **N9**. Còn Giai đoạn 7, 8.
+**Đang ở đâu:** xong Giai đoạn 0 tới 6 và phần 7A. Bảng dữ liệu nhập được tệp
+Excel/CSV qua bốn bước (chọn tệp → xem trước → xác nhận → tác vụ nền có tiến
+độ), xuất đúng thứ đang hiện kèm bộ lọc, tệp lớn xuất ở nền và giữ 24 giờ.
+Tệp vận đơn thật đã ẩn danh ở `docs/tham-khao/vandon-mau.xlsx`.
 
-**Việc tiếp theo:** Giai đoạn 7 — nhập xuất Excel trên bảng dữ liệu, màn hình
-Bảng tính (Q15), tác vụ nền và sao lưu. Gỡ các tiêu chí `AC-7.5` tới `AC-7.9`
-trong mục D.
+**Việc tiếp theo:** 7B sao lưu và hạ tầng (beat, dịch vụ `bangtinh`), 7C Bảng
+tính vận đơn theo tệp thật, 7D kiểm thử toàn diện — kế hoạch đã duyệt ngày
+03.09.2026, xem mục 2.
 
 ### A · Nghiệm thu — việc của anh/chị
 
@@ -101,14 +102,13 @@ Không cái nào chặn triển khai. Xếp theo mức.
 
 ### D · Tiêu chí nghiệm thu chưa có bài kiểm
 
-8 tiêu chí đánh dấu *Tự động* nhưng chưa viết được. Danh sách này nằm trong
+3 tiêu chí đánh dấu *Tự động* nhưng chưa viết được. Danh sách này nằm trong
 `app/tests/test_truy_vet.py`, biến `HOAN`, và
 **có bài kiểm bắt phải ghi lý do** — không giấu được.
 
 | Tiêu chí | Chờ |
 |---|---|
 | `AC-5.1` | Bốn cách nhóm mới chạy ba — tab thị trường chờ **N9** |
-| `AC-7.5` → `AC-7.9` | Nhập xuất Excel — Giai đoạn 7 |
 | `AC-7.1` | 50.000 bản ghi dưới 2 giây, cần `seed_perf.py` — Giai đoạn 8 |
 | `AC-10.6` | Sao lưu tự động — Giai đoạn 8 |
 

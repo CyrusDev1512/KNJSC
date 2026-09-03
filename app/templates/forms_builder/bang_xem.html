@@ -13,8 +13,22 @@
   <div class="hanh-dong">
     <a class="nut" href="{% url 'bang' %}">Danh sách bảng</a>
     {% if duoc_sua %}<a class="nut" href="{% url 'bang_cot' bang.code %}">Sửa cột</a>{% endif %}
+    {% if duoc_nhap %}<a class="nut" href="{% url 'bang_nhap' bang.code %}">Nhập tệp</a>{% endif %}
+    {# Xuất đúng thứ đang hiện: mang theo bộ lọc, tìm kiếm, sắp xếp — ADR-002 #}
+    <a class="nut" href="{% url 'bang_xuat' bang.code %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Xuất tệp</a>
+    {% if chi_xem %}<a class="nut nut-chinh" href="{{ bang_tinh_url }}">Mở Bảng tính</a>{% endif %}
   </div>
 </div>
+
+{% if chi_xem %}
+  <div class="bao bao-nhan">
+    <span class="bao-ic">i</span>
+    <div>
+      <b>Bảng này chỉ xem ở đây</b>
+      <p>Bộ phận Vận đơn làm việc và sửa dữ liệu ở <a href="{{ bang_tinh_url }}">Bảng tính</a> — một nơi sửa duy nhất (ADR-009).</p>
+    </div>
+  </div>
+{% endif %}
 
 <div class="bang-hop">
   {# Chỉ cột mang nhãn ý nghĩa mới cho lọc — cột đó có chỉ mục (quy tắc 9) #}

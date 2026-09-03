@@ -25,8 +25,17 @@ CELERY_TASK_EAGER_PROPAGATES = True
 # minh được gì về hệ thống thật.
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
-# Tệp tải lên trong lúc kiểm ghi vào thư mục tạm, không đụng storage/uploads thật
-MEDIA_ROOT = tempfile.mkdtemp(prefix="knjsc-kiem-thu-")
+# Mọi thứ ghi ra đĩa trong lúc kiểm — tệp tải lên, tệp xuất, bản sao lưu —
+# vào một thư mục tạm riêng, không đụng storage/ thật
+from pathlib import Path  # noqa: E402
+
+STORAGE_DIR = Path(tempfile.mkdtemp(prefix="knjsc-kiem-thu-"))
+MEDIA_ROOT = STORAGE_DIR / "uploads"
+EXPORT_DIR = STORAGE_DIR / "exports"
+BACKUP_DIR = STORAGE_DIR / "backups"
+
+# Có một người vận hành để bài kiểm chứng minh cảnh báo được gửi đi thật
+ADMINS = [("Người vận hành", "van-hanh@kiem-thu.local")]
 
 # Thư điện tử giữ trong bộ nhớ, không gửi đi đâu cả
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"

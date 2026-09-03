@@ -35,11 +35,6 @@ TEP_TIEU_CHI = next((p for p in CAC_NOI_CO_THE if p.exists()), CAC_NOI_CO_THE[0]
 HOAN = {
     "AC-5.1": "Tab thị trường hoãn — chưa chốt nguồn số liệu, backlog N9 và Q36",
     "AC-7.1": "Cần seed_perf.py sinh 50.000 bản ghi — Giai đoạn 8",
-    "AC-7.5": "Nhập tệp Excel — Giai đoạn 7",
-    "AC-7.6": "Nhập tệp Excel — Giai đoạn 7",
-    "AC-7.7": "Xuất rồi nhập lại tệp Excel — Giai đoạn 7",
-    "AC-7.8": "Giới hạn kích thước tệp tải lên — Giai đoạn 7",
-    "AC-7.9": "Kiểm định dạng tệp tải lên — Giai đoạn 7",
     "AC-10.6": "Sao lưu tự động — Giai đoạn 8",
 }
 

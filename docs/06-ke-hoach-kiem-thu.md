@@ -36,8 +36,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 | | Số |
 |---|---|
 | Tiêu chí nghiệm thu trong `docs/04` | **67** — 61 tự động, 6 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **53 trên 61** |
-| Tiêu chí tự động còn hoãn | **8**, đều thuộc Giai đoạn 7 và 8 — trừ `AC-5.1` chờ chốt backlog N9 |
+| Tiêu chí tự động đã có bài kiểm | **58 trên 61** |
+| Tiêu chí tự động còn hoãn | **3**, đều thuộc Giai đoạn 7 và 8 — trừ `AC-5.1` chờ chốt backlog N9 |
 | Bao phủ dòng mã | khoảng 83% |
 
 Ba con số đầu **có bài kiểm canh** — `app/tests/test_truy_vet.py` đọc chính
@@ -99,14 +99,13 @@ Ba trong bốn lỗi đó **không sập trang, không báo lỗi, không làm b
 
 ## Tiêu chí còn hoãn
 
-8 tiêu chí tự động chưa có bài kiểm. Danh sách này nằm trong
+3 tiêu chí tự động chưa có bài kiểm. Danh sách này nằm trong
 `tests/test_truy_vet.py`, biến `HOAN`, và **rỗng dần theo tiến độ**
 — thêm mã vào đó bắt buộc ghi lý do và giai đoạn.
 
 | Tiêu chí | Chờ |
 |---|---|
 | `AC-5.1` | Bốn cách nhóm mới chạy ba — tab thị trường chờ chốt nguồn số liệu, backlog **N9** và **Q36** |
-| `AC-7.5` → `AC-7.9` | Nhập xuất Excel — Giai đoạn 7 |
 | `AC-7.1` | 50.000 bản ghi dưới 2 giây, cần `seed_perf.py` — Giai đoạn 8 |
 | `AC-10.6` | Sao lưu tự động — Giai đoạn 8 |
 

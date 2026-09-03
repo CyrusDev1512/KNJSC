@@ -492,3 +492,14 @@ hr.ke { border: 0; border-top: 1px solid var(--rule); margin: var(--sp-4) 0; }
   .nut-nav { display: inline-flex !important; }
 }
 .nut-nav { display: none; }
+
+/* ── Tác vụ nền: thanh tiến độ — Giai đoạn 7 ───────────────────── */
+.tien-do { display: flex; flex-direction: column; gap: var(--sp-2); }
+.tien-do-thanh {
+  height: 10px; border-radius: 999px; background: var(--surface-2);
+  border: 1px solid var(--rule); overflow: hidden;
+}
+.tien-do-thanh > span { display: block; height: 100%; background: var(--accent); transition: width .4s; }
+.tien-do-thanh.xong > span { background: var(--good); }
+.tien-do-thanh.hong > span { background: var(--critical); }
+.tien-do-so { font-family: var(--font-ma); font-size: var(--fs-sm); color: var(--ink-2); }

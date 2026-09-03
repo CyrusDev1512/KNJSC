@@ -130,4 +130,38 @@
   </div>
 </div>
 
+{# ── Tác vụ nền — Giai đoạn 7 ──────────────────────────────── #}
+<div class="the" style="margin-top:var(--sp-4)">
+  <div class="the-dau">
+    <h2>Tác vụ nền</h2>
+    {% if tac_vu.ok %}
+      <div class="phai">
+        {% if tac_vu.data.ket %}<span class="chip chip-xau"><i></i>{{ tac_vu.data.ket }} kẹt</span>{% endif %}
+        <span class="chip chip-cho"><i></i>{{ tac_vu.data.cho }} chờ</span>
+        <span class="chip chip-nhan"><i></i>{{ tac_vu.data.chay }} đang chạy</span>
+        <a class="nut nut-nho" href="{% url 'tac_vu' %}">Xem</a>
+      </div>
+    {% else %}
+      <div class="phai"><span class="chip chip-xau"><i></i>Tạm chưa khả dụng</span></div>
+    {% endif %}
+  </div>
+  {% if tac_vu.ok and tac_vu.data.gan_day %}
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead><tr><th>Lúc</th><th>Việc</th><th>Trạng thái</th><th class="phai">Tiến độ</th></tr></thead>
+        <tbody>
+          {% for j in tac_vu.data.gan_day %}
+            <tr>
+              <td class="ma-o">{{ j.created_at|date:"d.m H:i" }}</td>
+              <td><a href="{% url 'tac_vu_xem' j.pk %}">{{ j.title|default:j.get_kind_display }}</a></td>
+              <td>{% include "core/_chip_tac_vu.html" %}</td>
+              <td class="tien">{{ j.percent }}%</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+
 {% endblock %}

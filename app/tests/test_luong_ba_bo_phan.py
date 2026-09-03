@@ -22,6 +22,7 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from django.test import override_settings
 
 from core.constants import AuditAction
 from core.models import AuditLog
@@ -143,10 +144,12 @@ def test_mot_ngay_cua_cong_ty(client, departments, teams, nguoi_dung):
         "Vận đơn không thấy dòng do Sale lên — cả tính năng vô dụng"
     )
 
-    kq = client.post(
-        f"/bang/{bang_vd.code}/o/{don.record_id}/trang_thai_vc/",
-        {"gia_tri": "Đang giao"},
-    )
+    # Ở Bảng dữ liệu chỉ xem (ADR-009); cập nhật là việc của Bảng tính — dịch
+    # vụ `bangtinh` chạy cùng mã với `GRID_ONLY_TABLES` rỗng
+    duong_dan = f"/bang/{bang_vd.code}/o/{don.record_id}/trang_thai_vc/"
+    assert client.post(duong_dan, {"gia_tri": "Đang giao"}).status_code == 403
+    with override_settings(GRID_ONLY_TABLES=set()):
+        kq = client.post(duong_dan, {"gia_tri": "Đang giao"})
     assert kq.status_code == 200
     don.record.refresh_from_db()
     assert don.record.data["trang_thai_vc"] == "Đang giao"

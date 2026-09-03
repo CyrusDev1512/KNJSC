@@ -28,7 +28,14 @@ OPERATORS = {
     "nho_hon": "lt",
     "nho_bang": "lte",
     "trong": "in",
+    # Hai phép đặc biệt, không phải tra cứu Django: ô trống và ô có giá trị
+    "rong": "blank",
+    "co": "nonblank",
 }
+
+#: Giá trị của phép "trong" là danh sách; trên đường dẫn là nhiều tham số
+#: cùng tên (`f_cot__trong=a&f_cot__trong=b`)
+LIST_OPERATORS = {"trong"}
 
 #: Cột tách nhận được phép so sánh số; cột JSON thì so sánh chuỗi là chính,
 #: vì giá trị trong JSON không có kiểu ổn định.
@@ -88,6 +95,14 @@ def apply_filters(queryset, column_map, filters):
         duong_dan = column_map.path(code)
         if not duong_dan or not phep:
             continue
+        if phep in ("blank", "nonblank"):
+            trong = Q(**{f"{duong_dan}__isnull": True}) | Q(**{duong_dan: ""})
+            queryset = queryset.filter(trong) if phep == "blank" else queryset.exclude(trong)
+            continue
+        if phep == "in":
+            gia_tri = [v for v in (gia_tri if isinstance(gia_tri, (list, tuple)) else [gia_tri]) if v != ""]
+            if not gia_tri:
+                continue
         # So sánh số chỉ có nghĩa trên cột tách; trên JSON thì so chuỗi
         if phep in NUMERIC_OPERATORS and not column_map.is_indexed(code):
             phep = "exact"
@@ -96,6 +111,36 @@ def apply_filters(queryset, column_map, filters):
         except (FieldError, ValueError, TypeError):
             continue
     return queryset
+
+
+def read_filters(params, columns):
+    """Đọc bộ lọc từ tham số đường dẫn: `f_<cột>` hoặc `f_<cột>__<phép>`.
+
+    Chỉ nhận cột có thật; phép "trong" gom nhiều tham số cùng tên thành danh
+    sách. Dùng chung cho màn hình bảng, xuất tệp và Bảng tính — một chỗ đọc
+    duy nhất để xuất ra đúng thứ đang hiện (ADR-002).
+    """
+    ma_cot = {c.code for c in columns}
+    bo_loc = {}
+    lay_nhieu = getattr(params, "getlist", None)
+    for khoa in params.keys():
+        if not khoa.startswith("f_"):
+            continue
+        ten = khoa[2:]
+        code, _, phep = ten.partition("__")
+        if code not in ma_cot:
+            continue
+        if phep in LIST_OPERATORS and lay_nhieu:
+            gia_tri = [v.strip() for v in lay_nhieu(khoa) if v.strip()]
+            if gia_tri:
+                bo_loc[ten] = gia_tri
+            continue
+        gia_tri = params.get(khoa)
+        if isinstance(gia_tri, (list, tuple)):
+            gia_tri = gia_tri[0] if gia_tri else ""
+        if gia_tri is not None and str(gia_tri).strip():
+            bo_loc[ten] = str(gia_tri).strip()
+    return bo_loc
 
 
 def apply_search(queryset, column_map, term):
