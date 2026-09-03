@@ -1,0 +1,17 @@
+{% comment %}
+Một ô trên Bảng tính. Dùng khi vẽ lưới, khi HTMX trả về sau khi lưu, và khi
+huỷ sửa — một nơi duy nhất quyết định ô trông thế nào.
+
+Cần: ban_ghi, cot, gia_tri, duoc_sua, lop (lớp CSS tính sẵn ở grid_service.cell_class),
+style (cột cố định).
+{% endcomment %}
+{% if duoc_sua and not cot.is_computed %}
+  <td class="{{lop}}" {% if style %}style="{{ style }}"{% endif %}
+      tabindex="0" data-dong="{{ ban_ghi.pk }}" data-cot="{{ cot.code }}"
+      data-sua-url="{% url 'bang_tinh_o' ban_ghi.pk cot.code %}"
+      hx-get="{% url 'bang_tinh_o' ban_ghi.pk cot.code %}" hx-trigger="click" hx-swap="outerHTML"
+      title="{{ cot.name }} — bấm hoặc Enter để sửa">{{ gia_tri|default_if_none:"" }}</td>
+{% else %}
+  <td class="{{lop}}" {% if style %}style="{{ style }}"{% endif %}
+      data-dong="{{ ban_ghi.pk }}" data-cot="{{ cot.code }}" tabindex="0">{{ gia_tri|default_if_none:"" }}</td>
+{% endif %}

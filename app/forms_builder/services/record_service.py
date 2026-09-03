@@ -19,6 +19,7 @@ from core.constants import AuditAction
 from core.exceptions import BusinessError
 from core.money import parse_money
 
+from .. import choice_registry
 from ..meaning import FieldType
 from ..models import DataRecord
 
@@ -44,8 +45,18 @@ def parse_value(column, raw):
         if kieu in (FieldType.TEXT, FieldType.LONG_TEXT, FieldType.CHOICE):
             # Excel hay tự đổi số điện thoại thành số thực: 7788599010.0
             if isinstance(raw, float) and raw.is_integer():
-                return str(int(raw))
-            return str(raw)
+                raw = str(int(raw))
+            raw = str(raw)
+            if kieu == FieldType.CHOICE:
+                # Cột có sổ danh sách thì chỉ nhận giá trị trong sổ, và đưa
+                # về đúng nhãn ("Đã Thanh Toán" → "Đã thanh toán")
+                raw, hop_le = choice_registry.normalise(column.table.code, column.code, raw)
+                if not hop_le:
+                    raise BusinessError(
+                        f'Giá trị "{raw}" không có trong danh sách của cột "{column.name}". '
+                        "Chọn: " + ", ".join(choice_registry.options_for(column.table.code, column.code))
+                    )
+            return raw
         if kieu == FieldType.INTEGER:
             if isinstance(raw, bool):
                 raise ValueError(raw)

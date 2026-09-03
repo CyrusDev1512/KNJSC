@@ -8,12 +8,17 @@ quyền phải kiểm ở máy chủ. Ẩn ở đây chỉ để đỡ rối m�
 """
 from dataclasses import dataclass, field
 
+from django.conf import settings
+from django.urls import NoReverseMatch, reverse
+
 from .constants import Rank
 from .permissions import has_rank, in_departments
 
 #: Lên đơn là chức năng của bộ phận Sale — `docs/04` mục 3 ghi rõ Vận đơn
 #: bị từ chối ở màn hình này.
 SALES_ONLY = ("sale",)
+#: Bảng tính là chỗ làm việc của bộ phận Vận đơn — AC-11.4
+WAYBILL_ONLY = ("van-don",)
 
 
 @dataclass(frozen=True)
@@ -26,6 +31,22 @@ class NavItem:
     #: Dùng cho màn hình chỉ thuộc về một bộ phận, ví dụ Lên đơn là của Sale
     #: — xem ma trận kiểm chéo ở `docs/04` mục 3.
     departments: tuple = None
+    #: Tên biến settings chứa địa chỉ ngoài. Có giá trị thì mục này trỏ ra
+    #: dịch vụ khác (Bảng tính chạy riêng — ADR-009); rỗng thì dùng url_name.
+    external_setting: str = ""
+
+    def href(self):
+        """Địa chỉ thật của mục, hoặc None nếu dịch vụ hiện tại không có nó.
+
+        Dịch vụ `bangtinh` dùng URLconf thu hẹp: mục nào không có ở đó thì
+        thanh bên không vẽ — thay vì nổ NoReverseMatch trên mọi trang.
+        """
+        if self.external_setting and getattr(settings, self.external_setting, ""):
+            return getattr(settings, self.external_setting)
+        try:
+            return reverse(self.url_name)
+        except NoReverseMatch:
+            return None
 
 
 @dataclass(frozen=True)
@@ -54,6 +75,8 @@ NAVIGATION = (
     )),
     NavGroup("Dữ liệu", (
         NavItem("bang", "Bảng dữ liệu", "bang"),
+        NavItem("bang_tinh", "Bảng tính", "bang_tinh", departments=WAYBILL_ONLY,
+                external_setting="BANGTINH_URL"),
         NavItem("bieu_mau", "Biểu mẫu", "bieu_mau", Rank.MANAGER),
         NavItem("tac_vu", "Tác vụ nền", "tac_vu"),
     )),
@@ -69,8 +92,10 @@ def visible_navigation(user):
     ket_qua = []
     for group in NAVIGATION:
         items = [
-            m for m in group.items
+            {"code": m.code, "label": m.label, "href": href}
+            for m in group.items
             if has_rank(user, m.min_rank) and in_departments(user, m.departments)
+            and (href := m.href())
         ]
         if items:
             ket_qua.append({"label": group.label, "items": items})

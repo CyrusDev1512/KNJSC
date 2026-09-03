@@ -40,6 +40,8 @@ LIST_OPERATORS = {"trong"}
 #: Cột tách nhận được phép so sánh số; cột JSON thì so sánh chuỗi là chính,
 #: vì giá trị trong JSON không có kiểu ổn định.
 NUMERIC_OPERATORS = {"gt", "gte", "lt", "lte"}
+#: Kiểu cột JSON mà phép so sánh khoảng vẫn đúng
+JSON_RANGE_TYPES = {"integer", "date", "datetime"}
 
 
 class ColumnMap:
@@ -103,14 +105,31 @@ def apply_filters(queryset, column_map, filters):
             gia_tri = [v for v in (gia_tri if isinstance(gia_tri, (list, tuple)) else [gia_tri]) if v != ""]
             if not gia_tri:
                 continue
-        # So sánh số chỉ có nghĩa trên cột tách; trên JSON thì so chuỗi
-        if phep in NUMERIC_OPERATORS and not column_map.is_indexed(code):
-            phep = "exact"
+        cot = column_map.by_code.get(code)
+        if not column_map.is_indexed(code):
+            # Giá trị trong JSON giữ kiểu lúc lưu: số nguyên là số thật, nên
+            # tham số chuỗi trên URL phải ép về số mới khớp được
+            gia_tri = _ep_kieu_json(cot, gia_tri)
+            # So sánh khoảng trên JSON chỉ tin được với số nguyên (jsonb so số)
+            # và ngày ISO (so chuỗi đúng thứ tự); còn lại rơi về so bằng
+            if phep in NUMERIC_OPERATORS and cot.field_type not in JSON_RANGE_TYPES:
+                phep = "exact"
         try:
             queryset = queryset.filter(**{f"{duong_dan}__{phep}": gia_tri})
         except (FieldError, ValueError, TypeError):
             continue
     return queryset
+
+
+def _ep_kieu_json(cot, gia_tri):
+    if cot is None or cot.field_type != "integer":
+        return gia_tri
+    def _mot(v):
+        try:
+            return int(str(v).strip())
+        except (ValueError, TypeError):
+            return v
+    return [_mot(v) for v in gia_tri] if isinstance(gia_tri, list) else _mot(gia_tri)
 
 
 def read_filters(params, columns):

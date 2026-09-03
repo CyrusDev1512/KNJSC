@@ -198,7 +198,7 @@ def test_bo_phan_van_don_thay_don_cua_sale(bang_van_don, san_pham, nguoi_dung):
 
 
 def test_van_don_sua_duoc_trang_thai_tren_bang(client, bang_van_don, san_pham, nguoi_dung):
-    """Q26 (sửa theo ADR-009) — Bảng vận đơn chỉ xem ở Bảng dữ liệu, sửa ở Bảng tính; đơn gốc vẫn khoá
+    """AC-11.7 — Bảng vận đơn không sửa được ô ở Bảng dữ liệu, chỉ sửa ở Bảng tính; đơn gốc vẫn khoá
 
     Q26 sửa ngày 03.09.2026 (ADR-009): Bảng dữ liệu là nơi xem, Bảng tính là
     nơi Vận đơn làm việc. Dịch vụ `bangtinh` dùng cùng mã nhưng
@@ -249,12 +249,12 @@ def test_bang_khong_dung_chung_van_theo_cap_bac(departments, nguoi_dung):
     assert not DataRecord.objects.in_scope(nguoi_dung["staff_sale_2"]).filter(pk=bg.pk).exists()
 
 
-def test_trang_thai_ban_dau_la_cho_xu_ly(bang_van_don, san_pham, nguoi_dung):
-    """Q26 — Dòng mới sinh ra ở trạng thái Chờ xử lý, Vận đơn tự sửa sau"""
+def test_trang_thai_ban_dau_la_da_len_don(bang_van_don, san_pham, nguoi_dung):
+    """Q26 — Dòng mới sinh ra ở trạng thái Đã lên đơn, Vận đơn tự sửa sau (nhãn theo tệp thật, Q40)"""
     don = _len_don(nguoi_dung["staff_sale_1"], san_pham)
-    assert don.record.data["trang_thai_vc"] == "Chờ xử lý"
-    assert don.record.data["trang_thai_tt"] == "Chờ thanh toán"
-    assert don.record.val_status == "Chờ xử lý"    # cột tách có chỉ mục
+    assert don.record.data["trang_thai_vc"] == "Đã lên đơn"
+    assert don.record.data["trang_thai_tt"] == "Chưa thanh toán"
+    assert don.record.val_status == "Đã lên đơn"    # cột tách có chỉ mục
 
 
 # ══ Khoá sau khi lưu — FR-6.6, BR-3 ════════════════════════════════

@@ -1,0 +1,33 @@
+{% comment %}
+Trình sửa một ô, theo kiểu cột: danh sách → chọn; chữ dài → nhiều dòng; ngày →
+lịch; số → ô số. Enter (hoặc chọn xong) thì lưu; Esc thì huỷ (JS gọi lại ô
+hiển thị). Cần: ban_ghi, cot, gia_tri, danh_sach, chat, lop_sua. Tuỳ chọn: loi.
+{% endcomment %}
+<td class="{{lop_sua}}"
+    data-dong="{{ ban_ghi.pk }}" data-cot="{{ cot.code }}"
+    data-hien-url="{% url 'bang_tinh_o' ban_ghi.pk cot.code %}?hien=1">
+  <form class="o-sua-form" hx-post="{% url 'bang_tinh_o' ban_ghi.pk cot.code %}" hx-target="closest td" hx-swap="outerHTML">
+    {% csrf_token %}
+    {% if cot.field_type == "choice" and danh_sach and chat %}
+      <select class="o-trong-bang" name="gia_tri" aria-label="{{ cot.name }}" autofocus onchange="this.form.requestSubmit()">
+        <option value="">— trống —</option>
+        {% for t in danh_sach %}<option value="{{ t }}" {% if t == gia_tri %}selected{% endif %}>{{ t }}</option>{% endfor %}
+      </select>
+    {% elif cot.field_type == "choice" and danh_sach %}
+      <input class="o-trong-bang" name="gia_tri" list="ds-{{ cot.code }}" value="{{ gia_tri|default_if_none:'' }}" aria-label="{{ cot.name }}" autofocus autocomplete="off">
+      <datalist id="ds-{{ cot.code }}">{% for t in danh_sach %}<option value="{{ t }}">{% endfor %}</datalist>
+    {% elif cot.field_type == "long_text" %}
+      <textarea class="o-trong-bang" name="gia_tri" rows="3" aria-label="{{ cot.name }}" autofocus>{{ gia_tri|default_if_none:"" }}</textarea>
+    {% elif cot.field_type == "date" %}
+      <input class="o-trong-bang" type="date" name="gia_tri" value="{{ gia_tri|default_if_none:'' }}" aria-label="{{ cot.name }}" autofocus>
+    {% elif cot.field_type == "integer" %}
+      <input class="o-trong-bang" type="number" step="1" name="gia_tri" value="{{ gia_tri|default_if_none:'' }}" aria-label="{{ cot.name }}" autofocus>
+    {% elif cot.field_type == "money" or cot.field_type == "decimal" %}
+      <input class="o-trong-bang" type="text" inputmode="decimal" name="gia_tri" value="{{ gia_tri|default_if_none:'' }}" aria-label="{{ cot.name }}" autofocus>
+    {% else %}
+      <input class="o-trong-bang" type="text" name="gia_tri" value="{{ gia_tri|default_if_none:'' }}" aria-label="{{ cot.name }}" autofocus>
+    {% endif %}
+    <button class="nut nut-nho nut-chinh" type="submit" aria-label="Lưu ô {{ cot.name }}">Lưu</button>
+    {% if loi %}<div class="o-loi-chu">{{ loi }}</div>{% endif %}
+  </form>
+</td>

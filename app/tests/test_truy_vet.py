@@ -1,6 +1,6 @@
 """Truy vết hai chiều giữa `docs/04` và mã kiểm thử.
 
-`docs/04` mục 12 điều 1 nói điều kiện hoàn thành phase 1 là *"toàn bộ tiêu chí
+`docs/04` mục 13 điều 1 nói điều kiện hoàn thành phase 1 là *"toàn bộ tiêu chí
 đánh dấu Tự động đều có bài kiểm thử và đều đạt"*. Tệp này biến điều kiện đó
 thành mã chạy được, thay vì phải rà bằng mắt mỗi lần.
 
@@ -35,6 +35,7 @@ TEP_TIEU_CHI = next((p for p in CAC_NOI_CO_THE if p.exists()), CAC_NOI_CO_THE[0]
 HOAN = {
     "AC-5.1": "Tab thị trường hoãn — chưa chốt nguồn số liệu, backlog N9 và Q36",
     "AC-7.1": "Cần seed_perf.py sinh 50.000 bản ghi — Giai đoạn 7D",
+    "AC-11.10": "Bàn phím trên lưới cần trình duyệt thật (Playwright) — Giai đoạn 7D",
 }
 
 DONG_TIEU_CHI = re.compile(
@@ -82,7 +83,7 @@ def test_doc_duoc_tai_lieu_tieu_chi():
 
 
 def test_moi_tieu_chi_tu_dong_deu_co_bai_kiem():
-    """docs/04 mục 12 điều 1 — Mọi tiêu chí Tự động đều có bài kiểm thử
+    """docs/04 mục 13 điều 1 — Mọi tiêu chí Tự động đều có bài kiểm thử
 
     Đây là điều kiện hoàn thành phase 1, viết thành mã chạy được. Đỏ nghĩa là
     có tiêu chí đã hứa tự động hoá nhưng chưa ai viết bài kiểm.

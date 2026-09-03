@@ -75,7 +75,13 @@ HEADER_ALIASES = {
     "nội dung - mã chuyển khoản": "bill",
     "đối soát kế toán": "doi_soat",
     "ghi chú": "ghi_chu",
+    # Tệp thật gõ sai tên một sản phẩm; giữ bí danh để nhập không cần sửa tệp
+    "kem chống nắnng": "sl_kem_chong_nang",
 }
+
+#: Tiêu đề cột số lượng trong tệp thật là "SL <tên sản phẩm>" hoặc chỉ tên
+#: sản phẩm; cột trong bảng mang đúng tên sản phẩm. Bỏ tiền tố rồi khớp lại.
+QUANTITY_PREFIXES = ("sl ", "số lượng ")
 
 
 class Mapping:
@@ -112,6 +118,11 @@ def map_columns(headers, columns):
             continue
         chuan = excel.normalise_label(nhan)
         cot = theo_ten.get(chuan) or theo_code.get(HEADER_ALIASES.get(chuan, ""))
+        if cot is None:
+            for tien_to in QUANTITY_PREFIXES:
+                if chuan.startswith(tien_to):
+                    cot = theo_ten.get(chuan[len(tien_to):].strip())
+                    break
         if cot is None:
             ket_qua.ignored.append((str(nhan).strip(), "không có cột này trong bảng"))
             continue

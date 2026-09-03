@@ -260,8 +260,11 @@ def find_header_row(rows, expected_labels):
     return tot_nhat, diem_tot
 
 
+#: Ngày kiểu Việt Nam, có hoặc không kèm giờ. Dấu gạch chéo cho phép gõ đúp
+#: (`1/12//2023`) — tệp thật có hai dòng như vậy, và tệp thật phải nhập được
+#: mà không chỉnh sửa (docs/04 mục 13 điều 5).
 _NGAY_GIO = re.compile(
-    r"^\s*(?:(\d{1,2}):(\d{2})(?::(\d{2}))?\s+)?(\d{1,2})/(\d{1,2})/(\d{4})"
+    r"^\s*(?:(\d{1,2}):(\d{2})(?::(\d{2}))?\s+)?(\d{1,2})/+(\d{1,2})/+(\d{4})"
     r"(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?\s*$"
 )
 

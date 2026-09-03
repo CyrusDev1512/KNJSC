@@ -26,7 +26,7 @@ chỉ làm con số đẹp. Mỗi tầng dưới đây đều đã được th�
 29.08.2026: có đo bao phủ để biết chỗ hổng, nhưng **không đặt ngưỡng chặn** —
 ngưỡng đẻ ra bài kiểm viết cho đủ số chứ không bắt được lỗi.
 
-**Không bỏ qua phân quyền.** `docs/04` mục 12: *lỗi phân quyền dẫn tới rò rỉ dữ
+**Không bỏ qua phân quyền.** `docs/04` mục 13: *lỗi phân quyền dẫn tới rò rỉ dữ
 liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 ---
@@ -35,9 +35,9 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **67** — 61 tự động, 6 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **59 trên 61** |
-| Tiêu chí tự động còn hoãn | **2**, đều thuộc Giai đoạn 7 — trừ `AC-5.1` chờ chốt backlog N9 |
+| Tiêu chí nghiệm thu trong `docs/04` | **78** — 70 tự động, 8 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **67 trên 70** |
+| Tiêu chí tự động còn hoãn | **3**, đều thuộc Giai đoạn 7D — trừ `AC-5.1` chờ chốt backlog N9 |
 | Bao phủ dòng mã | khoảng 83% |
 
 Ba con số đầu **có bài kiểm canh** — `app/tests/test_truy_vet.py` đọc chính
@@ -76,7 +76,7 @@ Bỏ qua các bài chạy chậm khi cần vòng lặp nhanh: `pytest -m "not ch
 
 Cộng một tầng thứ tám không nằm trong danh sách: **truy vết**
 (`tests/test_truy_vet.py`) đọc `docs/04` và khẳng định mọi tiêu chí tự động đều
-có bài kiểm. Đây là `docs/04` mục 12 điều 1 viết thành mã chạy được.
+có bài kiểm. Đây là `docs/04` mục 13 điều 1 viết thành mã chạy được.
 
 ---
 
@@ -99,7 +99,7 @@ Ba trong bốn lỗi đó **không sập trang, không báo lỗi, không làm b
 
 ## Tiêu chí còn hoãn
 
-2 tiêu chí tự động chưa có bài kiểm. Danh sách này nằm trong
+3 tiêu chí tự động chưa có bài kiểm. Danh sách này nằm trong
 `tests/test_truy_vet.py`, biến `HOAN`, và **rỗng dần theo tiến độ**
 — thêm mã vào đó bắt buộc ghi lý do và giai đoạn.
 
@@ -107,6 +107,7 @@ Ba trong bốn lỗi đó **không sập trang, không báo lỗi, không làm b
 |---|---|
 | `AC-5.1` | Bốn cách nhóm mới chạy ba — tab thị trường chờ chốt nguồn số liệu, backlog **N9** và **Q36** |
 | `AC-7.1` | 50.000 bản ghi dưới 2 giây, cần `seed_perf.py` — Giai đoạn 7D |
+| `AC-11.10` | Bàn phím trên Bảng tính, cần trình duyệt thật (Playwright) — Giai đoạn 7D |
 
 ---
 
@@ -125,7 +126,7 @@ Chạy trước mỗi lần bàn giao. Máy không làm được những việc 
 | ☐ | `AC-10.4` | Dùng được trên điện thoại và máy tính bảng | bất kỳ | Mở trên máy thật, không tràn ngang, bấm được |
 | ☐ | `AC-10.5` | Phục hồi từ bản sao lưu | người vận hành | `scripts/backup.sh` rồi `scripts/restore.sh --toi-chac-chan` trên máy thử; đăng nhập lại thấy đủ dữ liệu |
 
-### Bảy việc ở `docs/04` mục 11
+### Bảy việc ở `docs/04` mục 12
 
 | ☐ | Việc | Trạng thái |
 |---|---|---|
@@ -152,7 +153,7 @@ Backlog mục 6 ghi rõ: Giai đoạn 0 tới 6 đều đã giao và đã chạy
 Phần trăm trong `dashboard-tien-do.html` là tiến độ **đã làm**, không phải
 **đã nghiệm thu**. Hai con số đó có thể lệch nhau.
 
-Điều kiện hoàn thành phase 1 nằm ở `docs/04` mục 12, bảy điều. Ba điều đã có
+Điều kiện hoàn thành phase 1 nằm ở `docs/04` mục 13, bảy điều. Ba điều đã có
 mã kiểm tự động:
 
 | Điều | Kiểm bằng |

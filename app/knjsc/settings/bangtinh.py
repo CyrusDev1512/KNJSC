@@ -22,3 +22,6 @@ else:
     from .dev import *  # noqa: F401,F403
 
 GRID_ONLY_TABLES = set()
+ROOT_URLCONF = "knjsc.urls_bangtinh"
+# Ở chính dịch vụ này, mục "Bảng tính" trên thanh bên là liên kết trong
+BANGTINH_URL = ""

@@ -155,6 +155,8 @@ EXPORT_MAX_ROWS = 50_000        # NFR-14
 GRID_ONLY_TABLES = set(env_list("GRID_ONLY_TABLES", "van_don"))
 # Địa chỉ dịch vụ Bảng tính — chạy riêng, tương lai là subdomain
 BANGTINH_URL = env("BANGTINH_URL", "http://localhost:8021/bang-tinh/")
+# Địa chỉ dịch vụ chính — Bảng tính liên kết ngược về Bảng dữ liệu và Nhập tệp
+MAIN_APP_URL = env("MAIN_APP_URL", "http://localhost:8020/")
 
 # ── Tác vụ nền ──────────────────────────────────────────────────────
 CELERY_BROKER_URL = env("REDIS_URL", "redis://localhost:6379/0")

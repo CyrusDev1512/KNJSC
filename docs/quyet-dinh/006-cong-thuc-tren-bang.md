@@ -63,7 +63,7 @@ Manager gõ `=B15` vào một ô. Staff mở bảng đó và thấy kết quả 
 trị của dòng 15, dòng nằm ngoài phạm vi quyền của họ. Muốn chặn thì phải tính
 lại công thức riêng cho từng người xem, vừa chậm vừa phức tạp.
 
-`04-tieu-chi-nghiem-thu.md` mục 12: *"Không bỏ qua tiêu chí phân quyền với lý do
+`04-tieu-chi-nghiem-thu.md` mục 13: *"Không bỏ qua tiêu chí phân quyền với lý do
 sẽ sửa sau — dữ liệu đã lộ thì không thu hồi được."*
 
 ### Báo cáo tổng hợp không đọc được công thức tự do

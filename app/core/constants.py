@@ -37,6 +37,9 @@ class Currency(models.TextChoices):
 
     VND = "VND", "Việt Nam đồng"
     USD = "USD", "Đô la Mỹ"
+    # Hai thị trường còn lại — tệp vận đơn thật ghi "Giá tiền(CAD)" (Q41)
+    CAD = "CAD", "Đô la Canada"
+    PHP = "PHP", "Peso Philippines"
 
 
 # Số chữ số thập phân theo tập quán từng loại tiền, dùng khi hiển thị
@@ -76,7 +79,8 @@ JOB_STALE_MINUTES = 15                   # chờ quá lâu nghĩa là worker kh�
 IMPORT_ERROR_LIST_MAX = 200              # số dòng lỗi lưu chi tiết vào tác vụ
 HEADER_SCAN_ROWS = 10                    # dò hàng tiêu đề trong bấy nhiêu hàng đầu
 GRID_PAGE_SIZE = 100                     # Bảng tính vận đơn — dòng mỗi trang
-GRID_FROZEN_COLUMNS = 4                  # số cột đầu cố định khi cuộn ngang
+GRID_FROZEN_COLUMNS = 4
+GRID_FILTER_OPTIONS_MAX = 200            # số giá trị tối đa trong hộp lọc một cột                  # số cột đầu cố định khi cuộn ngang
 PERF_TABLE_ROWS = 50_000                 # AC-7.1 — 50.000 bản ghi tải trang đầu
 PERF_PAGE_SECONDS = 2                    # ... dưới 2 giây
 

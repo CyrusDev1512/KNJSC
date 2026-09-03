@@ -23,7 +23,7 @@ from django.db import connection
 from django.db.migrations.loader import MigrationLoader
 
 #: App có tệp chuyển đổi của chính dự án. Không đụng tới app của Django.
-CAC_APP = ["core", "org", "forms_builder", "reports", "orders"]
+CAC_APP = ["core", "org", "forms_builder", "reports", "orders", "crm"]
 
 
 @pytest.mark.django_db

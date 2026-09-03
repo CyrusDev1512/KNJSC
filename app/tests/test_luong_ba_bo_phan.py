@@ -1,6 +1,6 @@
 """Luồng làm việc xuyên suốt ba bộ phận — một ngày của công ty.
 
-`docs/04` mục 12 điều 6 đòi *"ba vai trò đã chạy trọn quy trình trên dữ liệu
+`docs/04` mục 13 điều 6 đòi *"ba vai trò đã chạy trọn quy trình trên dữ liệu
 thật"*. Bài này chạy trọn quy trình đó bằng mã, đi qua HTTP như người dùng
 thật, không gọi tắt tầng dịch vụ.
 
@@ -46,7 +46,7 @@ def _lay_the(client, duong_dan):
 
 
 def test_mot_ngay_cua_cong_ty(client, departments, teams, nguoi_dung):
-    """docs/04 mục 12 điều 6 — Ba vai trò chạy trọn quy trình của mình
+    """docs/04 mục 13 điều 6 — Ba vai trò chạy trọn quy trình của mình
 
     Đây là bài dài nhất trong bộ kiểm thử, và cố ý như vậy: nó kiểm chỗ nối
     giữa ba module, không kiểm từng module.
