@@ -377,6 +377,12 @@ chạy, hoặc xoá vùng lưu cơ sở dữ liệu. Cả ba đều có thể l�
 
 ## B6. Cập nhật hệ thống
 
+**Máy cá nhân — một lệnh:** `scripts\cap-nhat-local.bat` (Windows, bấm đúp hoặc gõ
+trong cmd) hoặc `./scripts/cap-nhat-local.sh` (macOS, Linux). Script tự mở Docker
+Desktop và chờ nó sẵn sàng, kéo mã mới, dựng lại sáu container, nạp dữ liệu mẫu, in
+`docker compose ps` rồi mở trình duyệt vào `localhost:8020` và `localhost:8021/bang-tinh/`.
+Dừng ở bước nào thì in rõ bước đó — chụp màn hình gửi người viết mã là đủ để sửa.
+
 1. **Tạo bản sao lưu mới trước khi làm gì**
 2. Chép bản sao lưu đó ra một nơi khác
 3. Lấy mã nguồn mới
