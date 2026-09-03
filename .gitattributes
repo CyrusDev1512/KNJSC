@@ -1,0 +1,4 @@
+# Tệp chạy trong container Linux phải giữ xuống dòng LF, kể cả khi checkout trên Windows
+*.sh text eol=lf
+*.py text eol=lf
+*.bat text eol=crlf
