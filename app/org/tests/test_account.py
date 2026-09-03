@@ -31,8 +31,8 @@ def test_thong_bao_loi_khong_lo_tai_khoan_co_ton_tai_khong(client, nguoi_dung):
     """AC-1.1 — Thông báo lỗi giống nhau dù email có tồn tại hay không"""
     co = client.post("/dang-nhap/", {"username": "staff_sale_1", "password": "sai"})
     khong = client.post("/dang-nhap/", {"username": "khong_ton_tai", "password": "sai"})
-    assert "Email hoặc mật khẩu không đúng" in co.content.decode()
-    assert "Email hoặc mật khẩu không đúng" in khong.content.decode()
+    assert "Tên đăng nhập hoặc mật khẩu không đúng" in co.content.decode()
+    assert "Tên đăng nhập hoặc mật khẩu không đúng" in khong.content.decode()
 
 
 def test_khoa_tam_sau_nam_lan_dang_nhap_sai(client, nguoi_dung, settings):

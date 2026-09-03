@@ -13,12 +13,12 @@ class LoginForm(AuthenticationForm):
     """
 
     error_messages = {
-        "invalid_login": "Email hoặc mật khẩu không đúng.",
+        "invalid_login": "Tên đăng nhập hoặc mật khẩu không đúng.",
         "inactive": "Tài khoản đã bị khoá. Liên hệ quản trị viên.",
     }
 
     username = forms.CharField(
-        label="Email", widget=forms.TextInput(attrs={"autofocus": True, "autocomplete": "username"}),
+        label="Tên đăng nhập", widget=forms.TextInput(attrs={"autofocus": True, "autocomplete": "username"}),
     )
     password = forms.CharField(
         label="Mật khẩu", strip=False,
