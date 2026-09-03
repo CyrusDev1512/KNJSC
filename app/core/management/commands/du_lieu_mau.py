@@ -128,6 +128,7 @@ class Command(BaseCommand):
         self.mat_khau = o["mat_khau"]
         self.da_tao = {"bộ phận": 0, "team": 0, "tài khoản": 0,
                        "bảng": 0, "biểu mẫu": 0, "sản phẩm": 0, "dòng dữ liệu": 0}
+        self.dat_lai_mat_khau = 0
 
         bo_phan = self._bo_phan()
         team = self._team(bo_phan)
@@ -171,8 +172,19 @@ class Command(BaseCommand):
         User = get_user_model()
         ket_qua = {}
         for ten_dn, ho_ten, cap_bac, ma_bp, ten_team, doi_mk in TAI_KHOAN:
-            co_san = User.objects.filter(username=ten_dn).first()
+            co_san = User.objects.filter(username=ten_dn).select_related("profile").first()
             if co_san is not None:
+                # Tài khoản mẫu đã có từ lần chạy trước: đặt lại đúng mật khẩu
+                # in ra cuối lệnh và mở khoá — không thì màn hình in một mật
+                # khẩu mà cơ sở dữ liệu giữ một mật khẩu khác, đăng nhập hỏng
+                # mà không ai hiểu vì sao (03.09.2026, máy Windows của người dùng)
+                ho_so = getattr(co_san, "profile", None)
+                if ho_so is not None:
+                    account_service.reset_password(ho_so, self.mat_khau)
+                    account_service.unlock_account(ho_so)
+                    ho_so.must_change_password = doi_mk
+                    ho_so.save(update_fields=["must_change_password"])
+                    self.dat_lai_mat_khau += 1
                 ket_qua[ten_dn] = co_san
                 continue
 
@@ -284,6 +296,9 @@ class Command(BaseCommand):
         da = ", ".join(f"{v} {k}" for k, v in self.da_tao.items() if v)
         self.stdout.write(self.style.SUCCESS(
             "Da tao: " + (da if da else "khong co gi moi, du lieu da day du")))
+        if self.dat_lai_mat_khau:
+            self.stdout.write(
+                f"Da dat lai mat khau va mo khoa {self.dat_lai_mat_khau} tai khoan mau co san")
         self.stdout.write(
             f"Hien co: {TableDef.objects.count()} bang, "
             f"{DataRecord.objects.count()} dong, {len(nguoi)} tai khoan")
