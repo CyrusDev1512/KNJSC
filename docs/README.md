@@ -31,7 +31,7 @@ docs/
 ├── 01-tong-quan-san-pham.md         cho người quyết định phạm vi
 ├── 02-yeu-cau-san-pham.md           48 yêu cầu có mã, kiểm chứng được
 ├── 03-thiet-ke-ky-thuat.md          cho người phát triển và AI viết mã
-├── 04-tieu-chi-nghiem-thu.md        68 tiêu chí, tham chiếu ngược tới yêu cầu
+├── 04-tieu-chi-nghiem-thu.md        67 tiêu chí, tham chiếu ngược tới yêu cầu
 ├── 05-huong-dan-va-van-hanh.md      phần A cho người dùng, phần B cho người vận hành
 ├── 06-ke-hoach-kiem-thu.md          bảy tầng kiểm thử, danh sách kiểm thủ công
 │

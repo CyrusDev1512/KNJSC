@@ -35,7 +35,7 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **68** — 61 tự động, 7 thủ công |
+| Tiêu chí nghiệm thu trong `docs/04` | **67** — 61 tự động, 6 thủ công |
 | Tiêu chí tự động đã có bài kiểm | **49 trên 61** |
 | Tiêu chí tự động còn hoãn | **12**, đều thuộc Giai đoạn 6 tới 8 |
 | Bao phủ dòng mã | khoảng 83% |
@@ -120,7 +120,6 @@ Chạy trước mỗi lần bàn giao. Máy không làm được những việc 
 
 | ☐ | Mã | Việc | Tài khoản | Đạt khi |
 |---|---|---|---|---|
-| ☐ | `AC-1.7` | Đăng nhập vào thẳng màn hình của bộ phận mình | — | **Chưa chạy được** — tính năng chưa làm, backlog **K18** |
 | ☐ | `AC-2.4` | Thêm team mới, dùng ngay không khởi động lại | `quantri` | Team mới hiện ở ô chọn trong cùng phiên |
 | ☐ | `AC-5.6` | Xuất báo cáo, mở bằng Excel, đối chiếu số | — | **Chưa chạy được** — Giai đoạn 6 và 7 |
 | ☐ | `AC-10.1` | 50 người thao tác đồng thời | — | **Chưa chạy được** — chưa chọn công cụ, backlog K6 |
@@ -140,8 +139,9 @@ Chạy trước mỗi lần bàn giao. Máy không làm được những việc 
 | ☐ | Phục hồi từ bản sao lưu | **Chưa** — Giai đoạn 8 |
 | ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | Chạy được, chưa thử |
 
-**Tám trong mười bốn việc chưa chạy được** vì tính năng chưa có. Ghi rõ ở đây
-thay vì để trống — không phải bỏ sót.
+**Bảy trong mười ba việc chưa chạy được** vì tính năng chưa có. Ghi rõ ở đây
+thay vì để trống — không phải bỏ sót. `AC-1.7` từng nằm ở bảng trên nhưng đã
+bỏ theo **Q34** — không cần điều hướng sau đăng nhập nữa.
 
 ---
 

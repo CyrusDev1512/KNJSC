@@ -36,7 +36,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-1.3 | Hệ thống phải đóng phiên khi người dùng không thao tác quá 60 phút |
 | FR-1.4 | Hệ thống phải buộc người dùng đổi mật khẩu trong lần đăng nhập đầu tiên |
 | FR-1.5 | Khi quản trị viên khoá tài khoản hoặc thay đổi quyền, phiên đang mở của người đó phải mất hiệu lực ngay |
-| FR-1.6 | Sau khi đăng nhập, hệ thống phải đưa người dùng tới màn hình phù hợp với bộ phận và cấp bậc của họ |
+| FR-1.6 | ~~Sau khi đăng nhập, hệ thống phải đưa người dùng tới màn hình phù hợp với bộ phận và cấp bậc của họ~~ **Bỏ theo Q34** — mọi người vào trang tổng quan chung, phân quyền đã ẩn tính năng ngoài phận sự |
 
 ---
 

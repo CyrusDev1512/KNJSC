@@ -55,7 +55,7 @@ và đó là chuyện bình thường.
 | AC-1.4 | Phiên không thao tác quá 60 phút thì yêu cầu tiếp theo bị từ chối | FR-1.3 | Tự động |
 | AC-1.5 | Người dùng mới đăng nhập lần đầu bị buộc đổi mật khẩu trước khi làm gì khác | FR-1.4 | Tự động |
 | AC-1.6 | Quản trị viên khoá tài khoản đang mở phiên thì yêu cầu tiếp theo của người đó bị từ chối ngay | FR-1.5 | Tự động |
-| AC-1.7 | Sale đăng nhập vào thẳng màn hình lên đơn, Vận đơn vào thẳng bảng vận đơn | FR-1.6 | Thủ công |
+| AC-1.7 | ~~Sale đăng nhập vào thẳng màn hình lên đơn, Vận đơn vào thẳng bảng vận đơn~~ **Bỏ theo Q34** — mọi người vào trang tổng quan chung | FR-1.6 | Bỏ |
 
 ---
 

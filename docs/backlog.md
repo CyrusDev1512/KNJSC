@@ -28,7 +28,8 @@ Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của 
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
 tóm để không phải lục.
 
-> Cập nhật ngày 29.08.2026, sau khi xong Giai đoạn 5 và lập kế hoạch kiểm thử.
+> Cập nhật ngày 03.09.2026, sau khi chốt Q34 — bỏ K18, và người dùng chốt K9
+> chưa phải lúc.
 
 **Đang ở đâu:** xong Giai đoạn 0 tới 5 và kế hoạch kiểm thử. Bao phủ khoảng
 83%. Còn Giai đoạn 6, 7, 8.
@@ -54,11 +55,10 @@ trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải
 | ☐ | Thử trên điện thoại và máy tính bảng thật | `docs/04` mục 11.5 |
 | ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | `docs/04` mục 11.7 |
 
-**Sáu việc chưa làm được, và vì sao:**
+**Năm việc chưa làm được, và vì sao:**
 
 | Việc | Mã | Chờ |
 |---|---|---|
-| Đăng nhập vào thẳng màn hình của bộ phận mình | `AC-1.7` | Tính năng chưa làm — **K18** |
 | Xuất báo cáo, mở bằng Excel, đối chiếu số | `AC-5.6` · mục 11.4 | Giai đoạn 6 và 7 |
 | 50 người thao tác đồng thời | `AC-10.1` | Chưa chọn công cụ đo — **K6** |
 | Gặp lỗi hiện thông báo tiếng Việt, không trang trắng | `AC-10.3` | Trang 404 và 500 chưa làm — **K9** |
@@ -87,8 +87,7 @@ Không cái nào chặn triển khai. Xếp theo mức.
 
 | # | Nội dung | Mức |
 |---|---|---|
-| **K18** | Điều hướng sau đăng nhập theo bộ phận — FR-1.6, nay đã đủ màn hình đích để làm | Trung bình |
-| **K9** | Chưa có trang lỗi 404 và 500 tiếng Việt | Trung bình |
+| **K9** | Chưa có trang lỗi 404 và 500 tiếng Việt — người dùng chốt 03.09.2026: chưa phải lúc | Trung bình |
 | **K7** | Khoảng 60 định danh tiếng Việt trong mã Python, trái quy ước `CLAUDE.md` | Trung bình |
 | **K13** | Cấp quyền đi hai cơ chế song song, xem lại có gộp được không | Trung bình |
 | **K16** | Cột Trạng thái trên Lịch sử báo cáo — chờ **N1** | Trung bình |
@@ -131,13 +130,12 @@ Còn **2 trên 10** màn hình của bản dựng ở `prototype/`. Chi tiết �
 | K6 | Công cụ đo hiệu năng khi kiểm 50 người dùng đồng thời | Thấp | Bàn tài liệu |
 | K7 | Đổi khoảng 60 định danh tiếng Việt trong mã Python sang tiếng Anh theo quy ước CLAUDE.md, gồm cả tên ràng buộc `team_unique_trong_bo_phan` đã vào PostgreSQL | Trung bình | Rà soát GĐ 1–2 |
 | K8 | `docs/03` mục 2.1 đòi mọi bảng có cột "người sửa"; `ScopedModel` mới có `created_by`, chưa có `updated_by` | Thấp | Rà soát GĐ 1–2 |
-| K9 | Chưa có trang lỗi 404 và 500 bằng tiếng Việt — NFR-6 mới đạt một phần | Trung bình | Rà soát GĐ 1–2 |
+| K9 | Chưa có trang lỗi 404 và 500 bằng tiếng Việt — NFR-6 mới đạt một phần. Người dùng chốt 03.09.2026: chưa phải lúc, để lại chờ xếp giai đoạn | Trung bình | Rà soát GĐ 1–2 |
 | K10 | Quy tắc Q3 "chỉ lấy cột cần hiển thị" chưa áp ở màn hình nào | Thấp | Rà soát GĐ 1–2 |
 | K13 | `core/scope.py _granted_scope` vẫn trả về rỗng. Cấp quyền theo bảng và biểu mẫu đi đường riêng ở `forms_builder/services/grant_service.py` — hai cơ chế song song, nên xem lại có gộp được không | Trung bình | GĐ 3B |
 | K14 | Nhánh Staff trong `apply_scope` không đọc `department_ids` lẫn `team_ids`, nên cấp thêm cả một bộ phận cho Staff không có tác dụng | Thấp | GĐ 3B |
 | K16 | Cột **Trạng thái** trên Lịch sử báo cáo (Đã nộp · Nộp muộn · Chưa nộp) chưa làm được vì chưa chốt **N1** — lịch nộp báo cáo có bắt buộc đúng giờ không. Không có hạn nộp thì không tính được thế nào là muộn | Trung bình | Đối chiếu 8010 |
 | K17 | Chưa có gì chạy kiểm thử tự động khi đẩy mã lên kho. Người dùng chốt chưa dựng vì **V2** còn để ngỏ ai vận hành sau bàn giao | Trung bình | Kế hoạch kiểm thử |
-| K18 | Điều hướng sau đăng nhập theo bộ phận — FR-1.6, `AC-1.7`. Hoãn từ Giai đoạn 2 vì chưa có màn hình đích; nay Giai đoạn 4 và 5 đã xong nên làm được | Trung bình | Rà soát Giai đoạn 5 |
 
 ### 1.2. Nghiệp vụ
 
@@ -198,6 +196,7 @@ Còn **2 trên 10** màn hình của bản dựng ở `prototype/`. Chi tiết �
 | Q31 | Kiểm giao diện tự động tới đâu | Ở mức HTML, không thêm thư viện trình duyệt. Phần cần trình duyệt thật thì bấm tay | 29.08.2026 |
 | Q32 | Ai vào được màn hình Lên đơn | Chỉ bộ phận Sale, theo ma trận kiểm chéo `docs/04` mục 3. Thêm bộ lọc bộ phận cho `NavItem` và `assert_departments` | 29.08.2026 |
 | Q33 | Ai vào được màn hình Quản lý biểu mẫu | Manager trở lên. Nhân viên điền biểu mẫu qua màn hình Nộp báo cáo ngày | 29.08.2026 |
+| Q34 | Điều hướng sau đăng nhập theo bộ phận — K18, FR-1.6, `AC-1.7` | **Bỏ.** Tất cả đăng nhập đều vào trang tổng quan chung, không nhảy thẳng vào chỗ làm việc — phân quyền đã ẩn các tính năng ngoài phận sự nên không cần | 03.09.2026 |
 
 ---
 
@@ -290,7 +289,7 @@ hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp d�
 | 1 | ~~Bảng động chưa có chỗ thêm dòng mới~~ — xong ở 3B, màn hình điền biểu mẫu | — |
 | 2 | Chưa có trang lỗi 404 và 500 tiếng Việt — K9 | Chưa xếp |
 | 3 | Giao diện chưa kiểm trên điện thoại và máy tính bảng — NFR-7, AC-10.4 | 8 |
-| 4 | Điều hướng sau đăng nhập theo bộ phận — FR-1.6 | Chờ màn hình đích của 4 và 5 |
+| 4 | ~~Điều hướng sau đăng nhập theo bộ phận — FR-1.6~~ — bỏ theo Q34, ngày 03.09.2026 | — |
 | 5 | Chưa có dữ liệu mẫu đủ lớn để thấy bảng chạy thật thế nào | 8, `seed_perf.py` |
 
 **Khi tới đợt kiểm thử toàn diện, chạy theo `docs/04` mục 3 và mục 10:** ma
@@ -318,3 +317,4 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 29.08.2026 | Bàn Giai đoạn 5. Chốt Q23 tới Q26 — gỡ N4, N5, G1, G2 |
 | 29.08.2026 | Người dùng xác nhận chưa thử màn hình nào, chưa nghiệm thu được. Kế hoạch kiểm thử cũng để sau — mở V5, ghi bảng đã giao / đã thử vào mục 6 |
 | 29.08.2026 | Xong Giai đoạn 3 phần B, khép lại Giai đoạn 3. Chốt Q18 tới Q20, đóng K11 và K12, mở K13 và K14. Bỏ model `Position` khỏi tài liệu vì nó không tồn tại |
+| 03.09.2026 | Chốt Q34 — bỏ K18: tất cả đăng nhập vào trang tổng quan chung, phân quyền đã ẩn tính năng ngoài phận sự. Gạch FR-1.6 và AC-1.7 khỏi `docs/02` và `docs/04`, còn 67 tiêu chí. K9 (trang lỗi 404 và 500) người dùng chốt chưa phải lúc, giữ trong backlog |
