@@ -26,4 +26,4 @@ docker compose -f deploy/docker-compose.yml up -d --build
 docker compose -f deploy/docker-compose.yml exec web python manage.py du_lieu_mau
 
 echo
-echo "Xong — mở http://localhost:8020"
+echo "Xong — mở http://localhost:8020 (hệ thống) và http://localhost:8021/bang-tinh/ (Bảng tính, vận đơn)"

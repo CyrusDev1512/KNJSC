@@ -99,6 +99,20 @@ def _tac_vu(user):
     }
 
 
+def _sao_luu():
+    """Khối sao lưu — chỉ Admin. Đêm qua có bản không, còn bao nhiêu bản."""
+    from core.services import backup_service
+
+    job = backup_service.last_backup()
+    cac_ban = backup_service.list_backups()
+    return {
+        "job": job,
+        "so_ban": len(cac_ban),
+        "moi_nhat": cac_ban[0].name if cac_ban else "",
+        "thu_muc": str(backup_service.backup_dir()),
+    }
+
+
 def tong_quan(user):
     """Toàn bộ số liệu của màn hình Tổng quan."""
     scope = get_user_scope(user)
@@ -110,4 +124,5 @@ def tong_quan(user):
         "hoat_dong": _khoi("hoat_dong", lambda: _hoat_dong_gan_day(user)),
         "bang_dong": _khoi("bang_dong", lambda: _bang_dong(user)),
         "tac_vu": _khoi("tac_vu", lambda: _tac_vu(user)),
+        "sao_luu": _khoi("sao_luu", _sao_luu) if scope.is_admin else None,
     }

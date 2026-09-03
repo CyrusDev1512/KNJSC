@@ -9,23 +9,14 @@ from datetime import datetime, timedelta
 
 from celery import shared_task
 from django.conf import settings
-from django.core.mail import mail_admins
 from django.utils import timezone
 
+from .alerts import bao_nguoi_van_hanh  # noqa: F401 — tác vụ khác dùng lại
 from .audit import record
 from .constants import EXPORT_FILE_TTL_HOURS, JOB_STALE_MINUTES, AuditAction, JobStatus
 from .models import BackgroundJob
 
 logger = logging.getLogger(__name__)
-
-
-def bao_nguoi_van_hanh(tieu_de, noi_dung):
-    """Gửi thư cho người vận hành. Không có địa chỉ hay gửi hỏng thì chỉ ghi
-    nhật ký ứng dụng — không được làm hỏng tác vụ đang chạy."""
-    try:
-        mail_admins(tieu_de, noi_dung, fail_silently=True)
-    except Exception:  # pragma: khong do
-        logger.exception("Không gửi được thư cảnh báo")
 
 
 @shared_task(name="core.kiem_tra_hang_doi")
@@ -101,7 +92,7 @@ def don_tep_xuat_qua_han():
 
 @shared_task(name="core.sao_luu_hang_dem")
 def sao_luu_hang_dem():
-    """Sao lưu tự động mỗi đêm — NFR-19. Thân thật ở `backup_service` (7B)."""
+    """Sao lưu tự động mỗi đêm — NFR-19, AC-10.6. Thân thật ở `backup_service`."""
     from .services import backup_service
 
     job = backup_service.run_backup()

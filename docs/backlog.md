@@ -28,17 +28,20 @@ Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của 
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
 tóm để không phải lục.
 
-> Cập nhật ngày 03.09.2026, sau khi xong phần 7A của Giai đoạn 7 — nhập xuất
-> Excel và tác vụ nền. Đã gỡ `AC-7.5` tới `AC-7.9` khỏi mục D.
+> Cập nhật ngày 03.09.2026, sau khi xong phần 7A và 7B của Giai đoạn 7 —
+> nhập xuất Excel, tác vụ nền, sao lưu. Đã gỡ `AC-7.5` tới `AC-7.9` và
+> `AC-10.6` khỏi mục D.
 
-**Đang ở đâu:** xong Giai đoạn 0 tới 6 và phần 7A. Bảng dữ liệu nhập được tệp
-Excel/CSV qua bốn bước (chọn tệp → xem trước → xác nhận → tác vụ nền có tiến
-độ), xuất đúng thứ đang hiện kèm bộ lọc, tệp lớn xuất ở nền và giữ 24 giờ.
-Tệp vận đơn thật đã ẩn danh ở `docs/tham-khao/vandon-mau.xlsx`.
+**Đang ở đâu:** xong Giai đoạn 0 tới 6, phần 7A và 7B. Bảng dữ liệu nhập được
+tệp Excel/CSV qua bốn bước (chọn tệp → xem trước → xác nhận → tác vụ nền có
+tiến độ), xuất đúng thứ đang hiện kèm bộ lọc, tệp lớn xuất ở nền và giữ 24
+giờ. Sao lưu `pg_dump` lúc 02:00 mỗi đêm qua service `beat`, giữ 30 bản, hỏng
+thì thư cho người vận hành; phục hồi bằng `scripts/restore.sh`. Compose có
+thêm service `bangtinh` (cổng 8021) chờ 7C. Tệp vận đơn thật đã ẩn danh ở
+`docs/tham-khao/vandon-mau.xlsx`.
 
-**Việc tiếp theo:** 7B sao lưu và hạ tầng (beat, dịch vụ `bangtinh`), 7C Bảng
-tính vận đơn theo tệp thật, 7D kiểm thử toàn diện — kế hoạch đã duyệt ngày
-03.09.2026, xem mục 2.
+**Việc tiếp theo:** 7C Bảng tính vận đơn theo tệp thật, 7D kiểm thử toàn diện
+— kế hoạch đã duyệt ngày 03.09.2026, xem mục 2.
 
 ### A · Nghiệm thu — việc của anh/chị
 
@@ -46,7 +49,7 @@ tính vận đơn theo tệp thật, 7D kiểm thử toàn diện — kế hoạ
 kiểm thử tự động đều đạt, nhưng anh/chị **chưa trực tiếp thử màn hình nào**. Phần
 trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải *đã nghiệm thu*.
 
-**Bảy việc làm được ngay bây giờ:**
+**Chín việc làm được ngay bây giờ:**
 
 | ☐ | Việc | Mã |
 |---|---|---|
@@ -57,15 +60,15 @@ trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải
 | ☐ | Thử trên điện thoại và máy tính bảng thật | `docs/04` mục 11.5 |
 | ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | `docs/04` mục 11.7 |
 | ☐ | Xuất báo cáo tổng hợp, mở bằng Excel, đối chiếu số | `AC-5.6` · mục 11.4 |
+| ☐ | Nhập tệp vận đơn thật (`docs/tham-khao/vandon-mau.xlsx`) qua Bảng dữ liệu → Nhập tệp | mục 11.3 |
+| ☐ | Sao lưu rồi phục hồi trên máy thử: `scripts/backup.sh`, `scripts/restore.sh --toi-chac-chan` | `AC-10.5` · mục 11.6 |
 
-**Bốn việc chưa làm được, và vì sao:**
+**Hai việc chưa làm được, và vì sao:**
 
 | Việc | Mã | Chờ |
 |---|---|---|
 | 50 người thao tác đồng thời | `AC-10.1` | Chưa chọn công cụ đo — **K6** |
 | Gặp lỗi hiện thông báo tiếng Việt, không trang trắng | `AC-10.3` | Trang 404 và 500 chưa làm — **K9** |
-| Phục hồi từ bản sao lưu | `AC-10.5` · mục 11.6 | Giai đoạn 8 |
-| Nhập tệp Excel thật của công ty | mục 11.3 | Giai đoạn 7 |
 
 ### B · Câu hỏi chờ anh/chị quyết
 
@@ -96,21 +99,21 @@ Không cái nào chặn triển khai. Xếp theo mức.
 | **K16** | Cột Trạng thái trên Lịch sử báo cáo — chờ **N1** | Trung bình |
 | **K17** | Chưa có gì chạy kiểm thử tự động khi đẩy mã — chờ **V2** | Trung bình |
 | **K6** | Chưa chọn công cụ đo tải | Thấp |
+| **K21** | Thư mục `storage/` là bind mount, container chạy uid 1000: máy Linux mà chủ thư mục khác thì nhập tệp và sao lưu hỏng — entrypoint chỉ cảnh báo, chưa tự sửa | Thấp |
 | **K8** | `ScopedModel` chưa có cột "người sửa" | Thấp |
 | **K10** | Quy tắc Q3 chưa áp ở màn hình nào | Thấp |
 | **K14** | Nhánh Staff trong `apply_scope` không đọc phạm vi cấp thêm | Thấp |
 
 ### D · Tiêu chí nghiệm thu chưa có bài kiểm
 
-3 tiêu chí đánh dấu *Tự động* nhưng chưa viết được. Danh sách này nằm trong
+2 tiêu chí đánh dấu *Tự động* nhưng chưa viết được. Danh sách này nằm trong
 `app/tests/test_truy_vet.py`, biến `HOAN`, và
 **có bài kiểm bắt phải ghi lý do** — không giấu được.
 
 | Tiêu chí | Chờ |
 |---|---|
 | `AC-5.1` | Bốn cách nhóm mới chạy ba — tab thị trường chờ **N9** |
-| `AC-7.1` | 50.000 bản ghi dưới 2 giây, cần `seed_perf.py` — Giai đoạn 8 |
-| `AC-10.6` | Sao lưu tự động — Giai đoạn 8 |
+| `AC-7.1` | 50.000 bản ghi dưới 2 giây, cần `seed_perf.py` — Giai đoạn 7D |
 
 ### E · Màn hình chưa có
 

@@ -20,5 +20,5 @@ docker compose -f deploy/docker-compose.yml up -d --build
 docker compose -f deploy/docker-compose.yml exec web python manage.py du_lieu_mau
 
 echo.
-echo Xong - mo http://localhost:8020
+echo Xong - mo http://localhost:8020 (he thong) va http://localhost:8021/bang-tinh/ (Bang tinh, van don)
 pause
