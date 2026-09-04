@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block tieu_de %}Báo cáo tổng hợp · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Báo cáo tổng hợp{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Thống kê · FR-5.x · bốn cách nhóm</div>
+    <h1>Báo cáo tổng hợp</h1>
+    <p>Số liệu đã lọc theo phạm vi quyền của <b>{{ profile.get_rank_display }}</b>{% if profile.department %}
+      bộ phận <b>{{ profile.department }}</b>{% endif %}.</p>
+  </div>
+  <div class="hanh-dong">
+    {% if bang and not hoan_thi_truong and kq.ok %}
+      <a class="nut" href="{% url 'bao_cao_tong_hop_xuat' %}?{{ qs }}">Xuất Excel</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if o_so %}
+<div class="luoi luoi-4">
+  {% for o in o_so %}
+    <div class="o-so">
+      <div class="nhan">{{ o.nhan }}</div>
+      <div class="gia-tri">{{ o.gia_tri }}</div>
+      {% if o.phu %}
+        <div class="phu">
+          {% if o.phu.chieu %}<span class="{{ o.phu.chieu }}">{{ o.phu.text }}</span>
+          {% else %}{{ o.phu.text }}{% endif %}
+          so với kỳ trước
+        </div>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="bang-hop">
+  <form class="loc" method="get">
+    <input type="hidden" name="nhom" value="{{ tab }}">
+    {% if bang %}
+      <div class="truong">
+        <label for="f-nguon">Nguồn số liệu</label>
+        <select class="o-nhap" id="f-nguon" name="nguon">
+          {% for b in cac_bang %}
+            <option value="{{ b.code }}" {% if b.code == bang.code %}selected{% endif %}>{{ b.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    {% endif %}
+    <div class="truong">
+      <label for="f-tu">Từ ngày</label>
+      <input class="o-nhap" type="date" id="f-tu" name="tu" value="{{ tu|date:'Y-m-d' }}">
+    </div>
+    <div class="truong">
+      <label for="f-den">Đến ngày</label>
+      <input class="o-nhap" type="date" id="f-den" name="den" value="{{ den|date:'Y-m-d' }}">
+    </div>
+    <div class="truong">
+      <label for="f-sp">Sản phẩm</label>
+      <select class="o-nhap" id="f-sp" name="sp">
+        <option value="">Tất cả sản phẩm</option>
+        {% for ten in cac_san_pham %}
+          <option value="{{ ten }}" {% if ten == sp %}selected{% endif %}>{{ ten }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="loc-nut">
+      {# Thẻ liên kết chứ không phải nút — giữ lại bảng nguồn và tab đang xem #}
+      <a class="nut nut-nho" href="{% url 'bao_cao_tong_hop' %}?nhom={{ tab }}{% if bang %}&nguon={{ bang.code }}{% endif %}">Xoá lọc</a>
+      <button class="nut nut-nho nut-chinh" type="submit">Áp dụng</button>
+    </div>
+  </form>
+
+  <div class="tab-thanh" role="tablist">
+    {% for t in cac_tab %}
+      <a class="tab" role="tab" href="{{ t.url }}"
+         aria-selected="{% if t.ma == tab %}true{% else %}false{% endif %}">{{ t.nhan }}</a>
+    {% endfor %}
+  </div>
+
+  {% if hoan_thi_truong %}
+    {# Q36 — người dùng hoãn ngày 03.09.2026, chờ chốt nguồn số liệu ở N9 #}
+    <div class="bao bao-cho" style="margin:var(--sp-4) var(--sp-4) 0">
+      <span class="bao-ic">?</span>
+      <div>
+        <b>Chưa chốt nguồn số liệu cho cách nhóm theo thị trường</b>
+        <p>Cột Quốc gia trên bảng vận đơn chưa có nhãn ý nghĩa nên hệ thống chưa
+          thống kê được. Đã hoãn ngày 03.09.2026 — câu hỏi N9 trong backlog.</p>
+      </div>
+    </div>
+    <div style="padding:var(--sp-4)"></div>
+  {% elif not bang %}
+    {% include "components/rong.html" with rong_tieu_de="Chưa có bảng nguồn nào" rong_mo_ta="Bạn chưa có bảng dữ liệu nào có cột mang nhãn ý nghĩa trong phạm vi quyền. Tạo bảng và gán nhãn cột ở màn hình Bảng dữ liệu." %}
+  {% elif not kq.ok %}
+    <div class="bao bao-cho" style="margin:var(--sp-4) var(--sp-4) 0">
+      <span class="bao-ic">?</span>
+      <div>
+        <b>Bảng nguồn thiếu cột để nhóm theo cách này</b>
+        <p>Bảng {{ bang.name }} chưa có cột mang nhãn ý nghĩa tương ứng. Gán nhãn
+          cho cột ở màn hình Bảng dữ liệu rồi quay lại đây.</p>
+      </div>
+    </div>
+    <div style="padding:var(--sp-4)"></div>
+  {% else %}
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead>
+          <tr>
+            <th>{{ kq.group_label }}</th>
+            {% for c in kq.columns %}<th class="phai">{{ c.label }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in cac_dong %}
+            <tr>
+              {% if kq.group_is_date %}<td class="ma-o">{{ d.nhom }}</td>
+              {% else %}<td>{{ d.nhom }}</td>{% endif %}
+              {% for o in d.cells %}<td class="tien">{{ o }}</td>{% endfor %}
+            </tr>
+          {% empty %}
+            <tr><td colspan="{{ kq.columns|length|add:1 }}">
+              {% include "components/rong.html" with rong_tieu_de="Không có dòng nào trong khoảng lọc" rong_mo_ta="Nới khoảng ngày hoặc bỏ bớt bộ lọc rồi thử lại." %}
+            </td></tr>
+          {% endfor %}
+        </tbody>
+        {% if cac_dong %}
+        <tfoot>
+          <tr>
+            <td>Tổng cộng · {{ page_obj.paginator.count }} {{ kq.unit }}</td>
+            {% for o in dong_tong %}<td class="tien">{{ o }}</td>{% endfor %}
+          </tr>
+        </tfoot>
+        {% endif %}
+      </table>
+    </div>
+
+    <p class="nho mo-nhat" style="margin:var(--sp-2) var(--sp-4)">
+      Mọi lần xuất Excel đều ghi vào nhật ký — nguyên tắc P5.
+    </p>
+    {% include "components/phan_trang.html" %}
+  {% endif %}
+</div>
+
+{% endblock %}

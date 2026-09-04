@@ -1,7 +1,7 @@
 """Kiểm thử lệnh dựng dữ liệu mẫu.
 
 Lệnh này là thứ duy nhất biến một máy trống thành một hệ thống dùng được —
-`docs/04` mục 11 việc số 1: *"Cài đặt từ đầu trên máy sạch, chạy tới màn hình
+`docs/04` mục 12 việc số 1: *"Cài đặt từ đầu trên máy sạch, chạy tới màn hình
 đăng nhập"*. Hỏng lặng lẽ thì người mở máy mới không đăng nhập được, và cũng
 không biết vì sao.
 
@@ -45,7 +45,7 @@ def _chay(**tuy_chon):
 
 
 def test_may_trong_chay_xong_thi_dang_nhap_duoc(client):
-    """docs/04 mục 11.1 — Cài từ đầu trên máy sạch, chạy tới màn hình đăng nhập
+    """docs/04 mục 12.1 — Cài từ đầu trên máy sạch, chạy tới màn hình đăng nhập
 
     Đây là bài quan trọng nhất của tệp: không có nó thì người mở máy mới nhận
     một hệ thống không có tài khoản nào.

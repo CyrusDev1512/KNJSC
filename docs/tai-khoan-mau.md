@@ -68,8 +68,8 @@ Cơ sở dữ liệu không theo kho mã, máy mới dựng xong là trống. Ch
 hai cách:
 
 ```
-scripts\bat.cmd                       Windows — tự làm hết
-sh scripts/bat.sh                     Mac, Linux — tự làm hết
+scripts\cap-nhat-local.bat          Windows — tự làm hết
+./scripts/cap-nhat-local.sh         Mac, Linux — tự làm hết
 ```
 
 hoặc chỉ nạp tài khoản khi container đã chạy:

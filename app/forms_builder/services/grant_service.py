@@ -16,6 +16,7 @@ Hai loại câu hỏi, hai cách trả lời khác nhau:
 - *Ai điền biểu mẫu nào* — phép kiểm ở view, dùng `can_fill`. Không phải chuyện
   queryset, và phải chạy **trước** khi đọc dữ liệu (P1, FR-3.6)
 """
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 
@@ -103,12 +104,41 @@ def can_fill(user, form):
     return form.pk in granted_form_ids(user, GrantAction.FILL)
 
 
+def can_import(user, table):
+    """Người này nhập được tệp vào bảng kia không — FR-7.5, backlog Q38.
+
+    Nhập là tạo hàng nghìn dòng một lúc nên nghiêm hơn sửa ô: quản lý trở
+    lên trong bộ phận sở hữu bảng, hoặc người/team được cấp quyền **sửa**
+    trên bảng đó. Admin luôn được.
+    """
+    if is_admin(user):
+        return True
+    ho_so = getattr(user, "profile", None)
+    if ho_so is None:
+        return False
+    if ho_so.department_id == table.department_id and ho_so.rank in (Rank.MANAGER, Rank.ADMIN):
+        return True
+    return table.pk in granted_table_ids(user, GrantAction.EDIT)
+
+
+def is_grid_only(table):
+    """Bảng chỉ xem ở màn hình Bảng dữ liệu, sửa ở Bảng tính — ADR-009.
+
+    Đọc từ settings để dịch vụ `bangtinh` (danh sách rỗng) vẫn sửa được
+    cùng một bảng; kiểm ở máy chủ, không phải chỉ ẩn nút.
+    """
+    return table.code in getattr(settings, "GRID_ONLY_TABLES", ())
+
+
 def can_edit_record(user, record_obj):
     """Người này sửa được dòng dữ liệu kia không — FR-7.4.
 
     Ba đường: quản lý trở lên trong bộ phận sở hữu bảng, hoặc chính người tạo
-    dòng, hoặc có cấp quyền sửa trên bảng đó.
+    dòng, hoặc có cấp quyền sửa trên bảng đó. Bảng chỉ xem (ADR-009) thì
+    không ai sửa được ở đây, kể cả Admin — chỗ sửa là Bảng tính.
     """
+    if is_grid_only(record_obj.table):
+        return False
     if is_admin(user):
         return True
     if record_obj.created_by_id == getattr(user, "pk", None):

@@ -4,7 +4,7 @@ Cơ sở dữ liệu không theo kho mã. Không có lệnh này thì `docker co
 trên máy mới cho ra hệ thống trống trơn — **không có tài khoản nào để đăng
 nhập**, kể cả quản trị viên.
 
-Đây là việc số 1 trong danh sách kiểm thủ công ở `docs/04` mục 11:
+Đây là việc số 1 trong danh sách kiểm thủ công ở `docs/04` mục 12:
 *"Cài đặt từ đầu trên máy sạch, chạy tới màn hình đăng nhập"*.
 
     docker compose -f deploy/docker-compose.yml exec web python manage.py du_lieu_mau
@@ -93,6 +93,16 @@ SAN_PHAM = [
     ("Máy massage cầm tay HM-200", "hm200"),
     ("Đèn ngủ cảm ứng", "den_ngu"),
     ("Nồi chiên không dầu 5L", "noi_chien"),
+    # Bảy sản phẩm của tệp vận đơn Canada thật — mỗi sản phẩm một cột số lượng
+    # trên bảng vận đơn (Q39). Tên phải khớp tiêu đề cột trong tệp để nhập
+    # `docs/tham-khao/vandon-mau.xlsx` không cần chỉnh sửa.
+    ("Retinol Cream", "retinol-cream"),
+    ("Retinol Serum", "retinol-serum"),
+    ("Vitamin C Cream", "vitamin-c-cream"),
+    ("Vitamin C Serum", "vitamin-c-serum"),
+    ("Kem Chống Nắng", "kem-chong-nang"),
+    ("Sữa Rửa Mặt", "sua-rua-mat"),
+    ("Retinol Eye Serum", "retinol-eye-serum"),
 ]
 
 
@@ -124,9 +134,9 @@ class Command(BaseCommand):
         bo_phan = self._bo_phan()
         team = self._team(bo_phan)
         nguoi = self._tai_khoan(bo_phan, team)
+        self._san_pham()                     # trước bảng vận đơn: cột sl_* theo sản phẩm
         self._bang_van_don(nguoi["quantri"])
         self._bao_cao_marketing(bo_phan, nguoi)
-        self._san_pham()
 
         self._bao_cao_ket_qua(nguoi)
 

@@ -23,11 +23,11 @@ ngày. Đọc nó trước khi hỏi lại người dùng bất cứ điều gì
 ### Bật hệ thống trên máy mới — một lệnh
 
 ```
-scripts\bat.cmd        Windows (hoặc nháy đúp tệp)
-sh scripts/bat.sh      Mac và Linux
+scripts\cap-nhat-local.bat   Windows (hoặc nháy đúp tệp)
+./scripts/cap-nhat-local.sh  Mac và Linux
 ```
 
-Lệnh tự mở Docker Desktop nếu chưa chạy, dựng container, đợi web lên, nạp dữ
+Lệnh tự mở Docker Desktop nếu chưa chạy, kéo mã mới, dựng container, đợi web lên, nạp dữ
 liệu mẫu rồi mở trình duyệt ở `http://127.0.0.1:8020/`. Chạy lại nhiều lần được.
 
 Bên trong nó chỉ là hai lệnh dưới đây, muốn làm tay thì làm:

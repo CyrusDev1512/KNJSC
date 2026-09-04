@@ -1,12 +1,7 @@
 @echo off
-rem Bật hệ thống trên máy cá nhân bằng một lệnh (Windows).
-rem Mac và Linux dùng scripts/bat.sh.
-rem
-rem   scripts\bat.cmd      (hoặc nháy đúp vào tệp này)
-rem
-rem Làm lần lượt: mở Docker Desktop nếu chưa chạy, dựng các container, đợi
-rem web sẵn sàng, nạp dữ liệu mẫu (12 tài khoản, chạy lại không sao), rồi mở
-rem trình duyệt ở http://127.0.0.1:8020/
+rem Ban Windows cua cap-nhat-local.sh — bam dup la chay, chay lai nhieu lan duoc.
+rem Mo Docker Desktop neu chua chay, keo ma moi, dung lai docker compose,
+rem doi web len, bao dam co du lieu mau, mo trinh duyet.
 setlocal
 cd /d "%~dp0.."
 set "COMPOSE=docker compose -f deploy\docker-compose.yml"
@@ -41,7 +36,12 @@ goto :doi_docker
 
 :docker_ok
 echo Docker da san sang.
-echo Dang dung cac container ...
+if not "%~1"=="" (
+  git fetch origin
+  git checkout %~1
+)
+git pull
+
 %COMPOSE% up -d --build
 if errorlevel 1 goto :loi
 
@@ -53,19 +53,16 @@ curl -s -o nul %DIA_CHI% >nul 2>&1
 if not errorlevel 1 goto :web_ok
 set /a DEM+=1
 if %DEM% geq 60 (
-  echo Web khong len sau 2 phut. Xem nhat ky bang:
-  echo   %COMPOSE% logs web --tail 50
+  echo Web khong len sau 2 phut. Xem nhat ky bang: %COMPOSE% logs web --tail 50
   goto :loi
 )
 goto :doi_web
 
 :web_ok
-echo Nap du lieu mau ...
 %COMPOSE% exec -T web python manage.py du_lieu_mau
-
-echo Mo trinh duyet ...
 start "" %DIA_CHI%
-echo Xong. Dang nhap tai %DIA_CHI%
+echo.
+echo Xong - mo http://localhost:8020 (he thong) va http://localhost:8021/bang-tinh/ (Bang tinh, van don)
 pause
 exit /b 0
 

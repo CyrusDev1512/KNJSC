@@ -8,6 +8,11 @@ mã thật.
 đăng nhập, tổng quan, nhân sự, nhật ký hoạt động, và màn hình từ chối. Mở
 chúng ở `http://127.0.0.1:8020/`.
 
+**Hai màn hình Bảng tính (`bang-tinh.html`, `bang-tinh-chi-tiet.html`) chỉ
+còn là tư liệu.** Ngày 03.09.2026 người dùng chốt Bảng tính là lưới làm việc
+của bộ phận Vận đơn dựng theo tệp Excel thật, không phải engine công thức —
+ADR-009. Bản thật ở `http://localhost:8021/bang-tinh/`.
+
 ---
 
 ## Chạy

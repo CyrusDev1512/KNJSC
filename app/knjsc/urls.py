@@ -13,4 +13,5 @@ urlpatterns = [
     path("", include("forms_builder.urls")),
     path("", include("reports.urls")),
     path("", include("orders.urls")),
+    path("", include("crm.urls")),
 ]

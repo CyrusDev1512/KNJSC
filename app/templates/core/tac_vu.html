@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block tieu_de %}Tác vụ nền · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Tác vụ nền{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Nhập tệp · Xuất tệp · Sao lưu · Dọn dẹp</div>
+    <h1>Tác vụ nền</h1>
+    <p>Việc nặng chạy ở đây để màn hình không bị treo. Tệp xuất giữ 24 giờ rồi tự dọn.</p>
+  </div>
+</div>
+
+{% if so_ket %}
+  <div class="bao bao-xau">
+    <span class="bao-ic">!</span>
+    <div><b>{{ so_ket }} tác vụ đang kẹt</b><p>Worker không chạy. Quản trị viên đã được cảnh báo — kiểm dịch vụ <span class="ma">worker</span> trong docker compose.</p></div>
+  </div>
+{% endif %}
+
+<div class="bang-hop">
+  <form class="loc" method="get">
+    <div class="truong">
+      <label for="trang_thai">Trạng thái</label>
+      <select class="o-nhap" id="trang_thai" name="trang_thai">
+        <option value="">Tất cả</option>
+        {% for ma, nhan in cac_trang_thai %}
+          <option value="{{ ma }}" {% if ma == trang_thai %}selected{% endif %}>{{ nhan }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="loc-nut">
+      <a class="nut nut-nho" href="{% url 'tac_vu' %}">Xoá lọc</a>
+      <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
+    </div>
+  </form>
+
+  <div class="bang-cuon">
+    <table class="bang">
+      <thead><tr><th>Lúc</th><th>Loại</th><th>Việc</th><th>Người</th><th>Trạng thái</th><th class="phai">Tiến độ</th><th></th></tr></thead>
+      <tbody>
+        {% for j in trang %}
+          <tr>
+            <td class="ma-o">{{ j.created_at|date:"d.m H:i" }}</td>
+            <td class="nho">{{ j.get_kind_display }}</td>
+            <td>{{ j.title|default:"—" }}</td>
+            <td class="nho">{{ j.created_by.username|default:"hệ thống" }}</td>
+            <td>{% include "core/_chip_tac_vu.html" %}</td>
+            <td class="tien">{{ j.percent }}%</td>
+            <td class="phai"><a class="nut nut-nho" href="{% url 'tac_vu_xem' j.pk %}">Xem</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7">
+            {% include "components/rong.html" with rong_tieu_de="Chưa có tác vụ nào" rong_mo_ta="Nhập tệp hoặc xuất bảng lớn sẽ hiện ở đây." %}
+          </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "components/phan_trang.html" with qs_loc=qs_loc %}
+</div>
+
+{% endblock %}

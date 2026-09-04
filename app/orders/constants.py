@@ -28,20 +28,48 @@ class PaymentMethod(models.TextChoices):
 
 
 class ShippingStatus(models.TextChoices):
-    """Trạng thái vận chuyển. Bộ phận Vận đơn sửa thẳng trên bảng — Q26."""
+    """Trạng thái vận đơn — **đúng tám giá trị của tệp thật** (Q40, ADR-009).
 
-    PENDING = "pending", "Chờ xử lý"
-    SHIPPING = "shipping", "Đang giao"
-    DELIVERED = "delivered", "Đã giao"
-    RETURNED = "returned", "Hoàn hàng"
+    Bộ phận Vận đơn cập nhật trên Bảng tính. Bảng vận đơn lưu *nhãn* (chuỗi
+    tiếng Việt) chứ không lưu mã, để tệp Excel xuất ra và nhập lại đều đọc
+    được bằng mắt. Đổi nhãn là đổi dữ liệu — phải có tệp chuyển đổi.
+    """
+
+    DA_LEN_DON = "da_len_don", "Đã lên đơn"
+    HUY_TRUOC_GIAO = "huy_truoc_giao", "Hủy trước giao"
+    HUY_SAU_GIAO = "huy_sau_giao", "Hủy sau giao"
+    DANG_GIAO = "dang_giao", "Đang giao"
+    DA_NHAN_HANG = "da_nhan_hang", "Đã nhận hàng"
+    HEN_LAI = "hen_lai", "Hẹn lại"
+    KHACH_VANG = "khach_vang", "Khách vắng"
+    HOAN_DON = "hoan_don", "Hoàn đơn"
 
 
 class PaymentStatus(models.TextChoices):
-    """Trạng thái thanh toán."""
+    """Trạng thái thanh toán — ba giá trị của tệp thật (Q40)."""
 
-    UNPAID = "unpaid", "Chờ thanh toán"
+    UNPAID = "unpaid", "Chưa thanh toán"
     PAID = "paid", "Đã thanh toán"
-    FAILED = "failed", "Thất bại"
+    PARTIAL = "partial", "Thanh toán 1 phần"
+
+
+class Reconciliation(models.TextChoices):
+    """Đối soát kế toán — tệp thật chỉ đánh dấu một giá trị khi tiền đã về."""
+
+    DA_VE_TK = "da_ve_tk", "Đã về TK"
+
+
+#: Nhãn cũ (trước 03.09.2026) → nhãn mới, cho tệp chuyển đổi dữ liệu và cho
+#: tệp Excel cũ nhập lại. Nhãn không có trong bảng này giữ nguyên.
+LEGACY_SHIPPING_LABELS = {
+    "Chờ xử lý": ShippingStatus.DA_LEN_DON.label,
+    "Đã giao": ShippingStatus.DA_NHAN_HANG.label,
+    "Hoàn hàng": ShippingStatus.HOAN_DON.label,
+}
+LEGACY_PAYMENT_LABELS = {
+    "Chờ thanh toán": PaymentStatus.UNPAID.label,
+    "Thất bại": PaymentStatus.UNPAID.label,
+}
 
 
 #: Tên kỹ thuật của bảng vận đơn. Đơn hàng ghi một chiều sang bảng này.

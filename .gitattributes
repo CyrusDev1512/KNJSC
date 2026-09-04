@@ -1,1 +1,1 @@
-scripts/*.cmd text eol=crlf
+scripts/*.bat text eol=crlf

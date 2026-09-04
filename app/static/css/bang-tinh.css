@@ -1,0 +1,93 @@
+/* ══ BẢNG TÍNH VẬN ĐƠN — lưới làm việc của bộ phận Vận đơn (ADR-009) ═══
+   Chỉ nạp ở màn hình Bảng tính. Kiểu chung (bảng, nút, chip) vẫn ở main.css;
+   ở đây chỉ có những gì lưới cần thêm: cột cố định, ô sửa, hộp lọc, màu dòng. */
+
+/* Khung lưới: cao theo màn hình, cuộn cả hai chiều; tiêu đề và cột đầu đứng yên */
+.luoi-vd {
+  max-height: calc(100vh - var(--topbar-h) - 250px);
+  min-height: 320px;
+  overflow: auto;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.luoi-vd table.bang thead th { z-index: 3; }
+.luoi-vd .co-dinh {
+  position: sticky;
+  background: var(--surface);
+  z-index: 2;
+  box-shadow: 1px 0 0 var(--rule);
+  box-sizing: border-box;
+}
+.luoi-vd .o-trung-th { padding-left: var(--sp-2); padding-right: var(--sp-2); }
+.luoi-vd thead th.co-dinh { z-index: 4; background: var(--surface-2); }
+.luoi-vd tbody tr:hover td.co-dinh { background: var(--surface-2); }
+.luoi-vd td, .luoi-vd th { max-width: 320px; }
+.luoi-vd td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.luoi-vd td.o-ghi-chu { white-space: pre-wrap; min-width: 220px; max-width: 360px; }
+.luoi-vd td.o-xem { color: var(--ink-2); }
+.luoi-vd td:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* Tiêu đề: tên cột + nút lọc */
+.th-hang { display: inline-flex; align-items: center; gap: var(--sp-1); }
+.nut-loc {
+  border: 0; background: transparent; color: var(--ink-3); cursor: pointer;
+  font: inherit; padding: 0 3px; border-radius: var(--r-sm); line-height: 1;
+}
+.nut-loc:hover, .nut-loc.dang-loc { color: var(--accent); background: var(--accent-soft); }
+.o-trung-th { text-align: center; }
+
+/* Cột Lọc trùng và màu dòng — như tệp thật tô đỏ đơn Hủy */
+.o-trung { color: var(--critical); font-weight: 700; background: var(--critical-soft); }
+tr.dong-xau td { background: var(--critical-soft); }
+tr.dong-xau td.co-dinh { background: var(--critical-soft); }
+tr.dong-tot td.co-dinh { box-shadow: inset 3px 0 0 var(--good), 1px 0 0 var(--rule); }
+
+/* Ô đang sửa: nổi lên, không cắt nội dung */
+.luoi-vd td.dang-sua { overflow: visible; white-space: normal; padding: 0; min-width: 180px; }
+.o-sua-form { display: flex; gap: var(--sp-1); align-items: stretch; padding: 2px; position: relative; }
+.o-sua-form .o-trong-bang {
+  min-width: 12ch; background: var(--surface);
+  box-shadow: inset 0 0 0 2px var(--accent); border-radius: var(--r-sm);
+}
+.o-sua-form textarea.o-trong-bang { min-width: 26ch; resize: vertical; }
+.o-loi-chu {
+  position: absolute; left: 0; top: 100%; z-index: 5;
+  background: var(--critical-soft); color: var(--critical); border: 1px solid var(--critical);
+  padding: var(--sp-1) var(--sp-2); font-size: var(--fs-xs); border-radius: var(--r-sm);
+  max-width: 320px; white-space: normal;
+}
+
+/* Thanh lọc và chip đang lọc */
+.thanh-loc { display: flex; flex-direction: column; gap: var(--sp-2); }
+.chip-loc-hang { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.chip-loc { text-decoration: none; cursor: pointer; }
+.chip-loc:hover { background: var(--critical-soft); color: var(--critical); }
+.dem-dong { margin: var(--sp-2) 0; }
+
+/* Hộp lọc một cột — nổi cạnh tiêu đề */
+.loc-cot-hop {
+  position: absolute; z-index: 30; min-width: 260px; max-width: 340px;
+  background: var(--surface); border: 1px solid var(--rule-strong);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-2); padding: var(--sp-3);
+}
+.loc-cot { display: flex; flex-direction: column; gap: var(--sp-2); }
+.loc-cot-dau { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2); }
+.loc-cot-ds { max-height: 260px; overflow: auto; border: 1px solid var(--rule); border-radius: var(--r-sm); }
+.loc-cot-muc {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 4px var(--sp-2); font-size: var(--fs-sm); cursor: pointer;
+}
+.loc-cot-muc:hover { background: var(--surface-2); }
+.loc-cot-gt { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.loc-cot-so { font-family: var(--font-ma); font-size: var(--fs-xs); color: var(--ink-3); }
+.loc-cot-khoang { display: grid; grid-template-columns: auto 1fr; gap: var(--sp-1) var(--sp-2); align-items: center; }
+.loc-cot-trong { display: flex; flex-direction: column; border-top: 1px solid var(--rule); padding-top: var(--sp-2); }
+.loc-cot-nut { display: flex; justify-content: space-between; gap: var(--sp-2); }
+
+/* Điện thoại và máy tính bảng: lưới cao hơn, cột cố định chỉ giữ cột đầu */
+@media (max-width: 720px) {
+  .luoi-vd { max-height: calc(100vh - var(--topbar-h) - 180px); }
+  .luoi-vd .co-dinh:not(:first-child) { position: static; box-shadow: none; }
+  .loc-cot-hop { left: var(--sp-2) !important; right: var(--sp-2); max-width: none; }
+}

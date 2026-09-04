@@ -1,0 +1,52 @@
+{% comment %}
+Hộp lọc của một cột — như hộp lọc Excel. Gửi GET về lưới; mọi tham số khác
+được chép lại (`giu`) để bộ lọc cộng dồn. Cần: cot, loai, tuy_chon, dang_chon,
+tu, den, chua, rong, co, q, giu.
+{% endcomment %}
+<form class="loc-cot" method="get" action="{% url 'bang_tinh' %}" data-cot="{{ cot.code }}">
+  {% for k, v in giu %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+  <div class="loc-cot-dau">
+    <b>{{ cot.name }}</b>
+    <button class="nut nut-nho" type="button" aria-label="Đóng hộp lọc" onclick="document.getElementById('hop-loc').hidden = true">×</button>
+  </div>
+
+  {% if loai == "danh_sach" %}
+    <label class="nhan-nho" for="loc-q-{{ cot.code }}">Tìm trong danh sách</label>
+    <input class="o-nhap" id="loc-q-{{ cot.code }}" name="q" value="{{ q }}" placeholder="Gõ để thu hẹp" autocomplete="off"
+           hx-get="{% url 'bang_tinh_loc_cot' cot.code %}" hx-trigger="keyup changed delay:300ms" hx-target="#hop-loc" hx-swap="innerHTML" hx-include="closest form">
+    <div class="loc-cot-ds">
+      {% for gia_tri, so in tuy_chon %}
+        <label class="loc-cot-muc">
+          <input type="checkbox" name="f_{{ cot.code }}__trong" value="{{ gia_tri }}" {% if gia_tri in dang_chon %}checked{% endif %}>
+          <span class="loc-cot-gt">{{ gia_tri|default:"(trống)" }}</span>
+          <span class="loc-cot-so">{{ so }}</span>
+        </label>
+      {% empty %}
+        <div class="nho mo-nhat">Không có giá trị nào.</div>
+      {% endfor %}
+    </div>
+  {% elif loai == "khoang" %}
+    <div class="loc-cot-khoang">
+      <label for="loc-tu-{{ cot.code }}">Từ</label>
+      <input class="o-nhap" id="loc-tu-{{ cot.code }}" name="f_{{ cot.code }}__lon_bang" value="{{ tu }}" {% if cot.field_type == 'date' %}type="date"{% else %}inputmode="decimal"{% endif %}>
+      <label for="loc-den-{{ cot.code }}">Đến</label>
+      <input class="o-nhap" id="loc-den-{{ cot.code }}" name="f_{{ cot.code }}__nho_bang" value="{{ den }}" {% if cot.field_type == 'date' %}type="date"{% else %}inputmode="decimal"{% endif %}>
+    </div>
+  {% else %}
+    <label class="nhan-nho" for="loc-chua-{{ cot.code }}">Chứa chữ</label>
+    <input class="o-nhap" id="loc-chua-{{ cot.code }}" name="f_{{ cot.code }}__chua" value="{{ chua }}" placeholder="Một phần nội dung">
+  {% endif %}
+
+  <div class="loc-cot-trong">
+    <label class="loc-cot-muc"><input type="radio" name="loc_trong_{{ cot.code }}" value="" {% if not rong and not co %}checked{% endif %} onchange="this.form.querySelector('[name=f_{{ cot.code }}__rong]').disabled = true; this.form.querySelector('[name=f_{{ cot.code }}__co]').disabled = true"> Bất kỳ</label>
+    <label class="loc-cot-muc"><input type="radio" name="loc_trong_{{ cot.code }}" value="rong" {% if rong %}checked{% endif %} onchange="this.form.querySelector('[name=f_{{ cot.code }}__rong]').disabled = false; this.form.querySelector('[name=f_{{ cot.code }}__co]').disabled = true"> Chỉ ô trống</label>
+    <label class="loc-cot-muc"><input type="radio" name="loc_trong_{{ cot.code }}" value="co" {% if co %}checked{% endif %} onchange="this.form.querySelector('[name=f_{{ cot.code }}__rong]').disabled = true; this.form.querySelector('[name=f_{{ cot.code }}__co]').disabled = false"> Chỉ ô có giá trị</label>
+    <input type="hidden" name="f_{{ cot.code }}__rong" value="1" {% if not rong %}disabled{% endif %}>
+    <input type="hidden" name="f_{{ cot.code }}__co" value="1" {% if not co %}disabled{% endif %}>
+  </div>
+
+  <div class="loc-cot-nut">
+    <a class="nut nut-nho" href="?{% for k, v in giu %}{{ k|urlencode }}={{ v|urlencode }}{% if not forloop.last %}&{% endif %}{% endfor %}">Bỏ lọc cột này</a>
+    <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
+  </div>
+</form>

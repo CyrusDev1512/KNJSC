@@ -2,3 +2,6 @@
 pytest==8.3.4
 pytest-django==4.9.0
 pytest-cov==6.0.0
+# Chỉ cho kiểm thử — không vào image chạy thật (backlog Q44)
+playwright==1.56.0
+locust==2.41.5

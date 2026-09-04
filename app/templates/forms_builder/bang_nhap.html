@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block tieu_de %}Nhập tệp vào {{ bang.name }} · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Nhập tệp{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">FR-7.5 · Bước 1 trên 4</div>
+    <h1>Nhập tệp vào bảng {{ bang.name }}</h1>
+    <p>Chọn tệp Excel hoặc CSV. Hệ thống đọc tiêu đề cột, ghép với cột của bảng và cho anh/chị xem trước — chưa ghi gì cho tới khi bấm xác nhận.</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut" href="{% url 'bang_xem' bang.code %}">Về bảng</a>
+  </div>
+</div>
+
+<div class="the">
+  <div class="the-than">
+    <form method="post" enctype="multipart/form-data" class="bm">
+      {% csrf_token %}
+      <div class="truong">
+        <label for="tep">Tệp Excel (.xlsx) hoặc CSV</label>
+        <input class="o-nhap" type="file" id="tep" name="tep" accept=".xlsx,.csv" required>
+      </div>
+      <p class="nho mo-nhat">
+        Tối đa {{ gioi_han_mb }} MB và {{ gioi_han_dong }} dòng mỗi lần. Tiêu đề cột trong tệp phải trùng tên cột của bảng
+        (không phân biệt hoa thường); hệ thống tự tìm hàng tiêu đề trong 10 hàng đầu.
+        Cột không khớp bị bỏ qua và được liệt kê ở bước xem trước.
+      </p>
+      <div class="loc-nut">
+        <button class="nut nut-chinh" type="submit">Tải lên và xem trước</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="the">
+  <div class="the-dau"><h2>Cột của bảng</h2></div>
+  <div class="bang-cuon">
+    <table class="bang">
+      <thead><tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th></tr></thead>
+      <tbody>
+        {% for c in bang.columns.all %}
+          <tr>
+            <td>{{ c.name }}{% if c.is_computed %} <span class="chip chip-nhat"><i></i>tính sẵn</span>{% endif %}</td>
+            <td class="nho">{{ c.get_field_type_display }}</td>
+            <td class="nho">{% if c.required %}Có{% else %}—{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

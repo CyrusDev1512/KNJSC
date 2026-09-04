@@ -8,6 +8,7 @@ tính lại bảy cột tách `val_*` trong bộ nhớ, nhưng `update_fields` c
 `data` xuống cơ sở dữ liệu. Kết quả: JSON một đằng, cột tách một nẻo — màn hình
 vẫn hiện đúng còn lọc và thống kê thì sai.
 """
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
@@ -18,6 +19,7 @@ from core.constants import AuditAction
 from core.exceptions import BusinessError
 from core.money import parse_money
 
+from .. import choice_registry
 from ..meaning import FieldType
 from ..models import DataRecord
 
@@ -41,10 +43,35 @@ def parse_value(column, raw):
     kieu = column.field_type
     try:
         if kieu in (FieldType.TEXT, FieldType.LONG_TEXT, FieldType.CHOICE):
-            return str(raw)
+            # Excel hay tự đổi số điện thoại thành số thực: 7788599010.0
+            if isinstance(raw, float) and raw.is_integer():
+                raw = str(int(raw))
+            raw = str(raw)
+            if kieu == FieldType.CHOICE:
+                # Cột có sổ danh sách thì chỉ nhận giá trị trong sổ, và đưa
+                # về đúng nhãn ("Đã Thanh Toán" → "Đã thanh toán")
+                raw, hop_le = choice_registry.normalise(column.table.code, column.code, raw)
+                if not hop_le:
+                    raise BusinessError(
+                        f'Giá trị "{raw}" không có trong danh sách của cột "{column.name}". '
+                        "Chọn: " + ", ".join(choice_registry.options_for(column.table.code, column.code))
+                    )
+            return raw
         if kieu == FieldType.INTEGER:
+            if isinstance(raw, bool):
+                raise ValueError(raw)
+            if isinstance(raw, (int, float, Decimal)):
+                # Ô Excel là số thật: 3.0 là 3, còn 3.5 thì không phải số nguyên
+                so = Decimal(str(raw))
+                if so != so.to_integral_value():
+                    raise ValueError(raw)
+                return int(so)
             return int(str(raw).replace(".", "").replace(",", "").replace(" ", ""))
         if kieu in (FieldType.DECIMAL, FieldType.MONEY):
+            # Số thật từ Excel nhận nguyên trạng — đưa "1234.567" qua
+            # parse_money sẽ bị hiểu là 1.234.567 theo tập quán Việt Nam.
+            if isinstance(raw, (int, float, Decimal)) and not isinstance(raw, bool):
+                return str(Decimal(str(raw)))
             # Tiền và số thập phân luôn qua Decimal, không qua float (BR-8).
             # Đọc theo tập quán Việt Nam để nhận lại được đúng thứ màn hình
             # đang hiện — xem core.money.parse_money
@@ -113,6 +140,83 @@ def create_record(table, values, *, actor=None, request=None, columns=None):
         detail=f"Thêm dòng vào bảng {table.code}", request=request,
     )
     return ban_ghi
+
+
+@dataclass
+class BulkResult:
+    """Kết quả nhập hàng loạt: số dòng đã vào và danh sách (số dòng, lỗi)."""
+
+    created: int = 0
+    errors: list = field(default_factory=list)
+
+
+def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
+                        batch=500, on_progress=None, row_numbers=None):
+    """Thêm nhiều dòng một lượt — nền của nhập tệp Excel (FR-7.5) và seed.
+
+    Khác `create_record` ở ba chỗ, cố ý:
+
+    - **Dòng lỗi không chặn dòng sau** (AC-7.6): lỗi thu vào `errors` kèm số
+      dòng, dòng hợp lệ vẫn vào. `row_numbers` cho biết số hàng thật trong
+      tệp để người dùng tìm lại được; không có thì đếm từ 1.
+    - **Ghi theo lô** bằng `bulk_create`, mỗi lô một giao dịch. `bulk_create`
+      không gọi `save()`, nên cột tính sẵn và cột tách phải gọi tay ở đây —
+      quên là lọc và thống kê sai âm thầm (xem cảnh báo đầu tệp).
+    - **Một dòng nhật ký** tóm tắt cho cả lượt, không mỗi dòng một dòng nhật
+      ký — 5.000 dòng nhật ký cho một lần bấm nhập là che mất mọi thứ khác.
+    """
+    columns = columns if columns is not None else list(table.columns.all())
+    ho_so = getattr(actor, "profile", None)
+    team = getattr(ho_so, "team", None)
+    ket_qua = BulkResult()
+    lo = []
+
+    def ghi_lo():
+        if not lo:
+            return
+        with transaction.atomic():
+            DataRecord.objects.bulk_create(lo)
+        ket_qua.created += len(lo)
+        lo.clear()
+
+    for i, values in enumerate(rows):
+        so_dong = row_numbers[i] if row_numbers else i + 1
+        try:
+            du_lieu = {}
+            for cot in columns:
+                if cot.is_computed:
+                    continue
+                gia_tri = values.get(cot.code)
+                if gia_tri in (None, ""):
+                    continue
+                du_lieu[cot.code] = parse_value(cot, gia_tri)
+            thieu = _thieu_bat_buoc(columns, du_lieu)
+            if thieu:
+                raise BusinessError("Thiếu cột bắt buộc: " + ", ".join(thieu))
+        except BusinessError as loi:
+            ket_qua.errors.append((so_dong, str(loi)))
+            continue
+
+        ban_ghi = DataRecord(
+            table=table, data=du_lieu, created_by=actor,
+            department=table.department, team=team,
+        )
+        ban_ghi.apply_computed_columns(columns)
+        ban_ghi.sync_indexed_columns(columns)
+        lo.append(ban_ghi)
+        if len(lo) >= batch:
+            ghi_lo()
+            if on_progress:
+                on_progress(i + 1)
+    ghi_lo()
+
+    record(
+        AuditAction.IMPORT, actor=actor, target=table,
+        detail=(f"Nhập {ket_qua.created} dòng vào bảng {table.code}"
+                + (f", bỏ qua {len(ket_qua.errors)} dòng lỗi" if ket_qua.errors else "")),
+        request=request,
+    )
+    return ket_qua
 
 
 @transaction.atomic

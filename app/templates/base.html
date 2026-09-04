@@ -33,14 +33,14 @@
       {% for nhom in nav_groups %}
         <div class="nav-nhom">{{ nhom.label }}</div>
         {% for muc in nhom.items %}
-          <a class="nav-muc" href="{% url muc.url_name %}"
+          <a class="nav-muc" href="{{ muc.href }}"
              {% if muc.code == nav_current %}aria-current="page"{% endif %}>{{ muc.label }}</a>
         {% endfor %}
       {% endfor %}
     </nav>
 
     <div class="nav-chan">
-      <div class="ma nho">Phase 1 · giai đoạn 5</div>
+      <div class="ma nho">Phase 1 · giai đoạn 7</div>
     </div>
   </aside>
 

@@ -5,12 +5,17 @@ name: knjsc
 services:
   db:
     image: postgres:16-alpine
+    # Tự bật lại khi mở máy hay khởi động Docker Desktop — khỏi phải
+    # `up` lại bằng tay sau mỗi lần tắt máy
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-knjsc_db}
       POSTGRES_USER: ${POSTGRES_USER:-knjsc}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-knjsc}
     volumes:
       - db_data:/var/lib/postgresql/data
+      # Chỉ đọc: để phục hồi được từ ngay trong container db khi cần
+      - ../storage/backups:/backups:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-knjsc} -d ${POSTGRES_DB:-knjsc_db}"]
       interval: 5s
@@ -21,6 +26,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -33,6 +39,7 @@ services:
       dockerfile: deploy/Dockerfile
       args:
         INSTALL_DEV: "1"
+    restart: unless-stopped
     command: python manage.py runserver 0.0.0.0:8000
     environment: &moi_truong
       DJANGO_SETTINGS_MODULE: knjsc.settings.dev
@@ -45,6 +52,9 @@ services:
       POSTGRES_PORT: "5432"
       REDIS_URL: redis://redis:6379/0
       RUN_MIGRATIONS: "1"
+      STORAGE_DIR: /storage
+      # Thư cảnh báo sao lưu hỏng, tác vụ kẹt — điền địa chỉ thật khi lên máy chủ
+      OPERATOR_EMAILS: ${OPERATOR_EMAILS:-}
     volumes:
       - ../app:/app
       - ../storage:/storage
@@ -64,6 +74,7 @@ services:
       dockerfile: deploy/Dockerfile
       args:
         INSTALL_DEV: "1"
+    restart: unless-stopped
     command: celery -A knjsc worker -l info
     environment:
       <<: *moi_truong
@@ -71,6 +82,53 @@ services:
     volumes:
       - ../app:/app
       - ../storage:/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Lịch định kỳ: sao lưu 02:00, dọn tệp 03:00, canh tác vụ kẹt mỗi 15 phút
+  # (CELERY_BEAT_SCHEDULE). Không có service này thì không có gì tự chạy.
+  beat:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        INSTALL_DEV: "1"
+    restart: unless-stopped
+    command: celery -A knjsc beat -l info --schedule /tmp/celerybeat-schedule
+    environment:
+      <<: *moi_truong
+      RUN_MIGRATIONS: "0"
+    volumes:
+      - ../app:/app
+      - ../storage:/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Bảng tính — dịch vụ riêng cho bộ phận Vận đơn (ADR-009). Cùng mã, cùng cơ
+  # sở dữ liệu, cổng 8021; tương lai đứng sau subdomain riêng.
+  bangtinh:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        INSTALL_DEV: "1"
+    restart: unless-stopped
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      <<: *moi_truong
+      DJANGO_SETTINGS_MODULE: knjsc.settings.bangtinh
+      RUN_MIGRATIONS: "0"
+    volumes:
+      - ../app:/app
+      - ../storage:/storage
+    ports:
+      - "8021:8000"
     depends_on:
       db:
         condition: service_healthy

@@ -3,15 +3,20 @@
 View chỉ nhận yêu cầu, kiểm quyền, gọi tầng dịch vụ, trả kết quả. Quy tắc
 nghiệp vụ nằm ở services/, không nằm ở đây (điều cấm 2).
 """
+from pathlib import Path
+
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.shortcuts import render
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 
-from .constants import AuditAction, Rank, rank_level
+from .constants import JOB_FINISHED, AuditAction, JobStatus, Rank, rank_level
 from .forms import LoginForm
-from .models import AuditLog
+from .models import AuditLog, BackgroundJob
 from .navigation import NAVIGATION
 from .pagination import PAGE_SIZES, page_size, paginate
 from .permissions import assert_rank
@@ -118,3 +123,58 @@ def ma_tran_quyen(request):
     return render(request, "core/ma_tran_quyen.html", {
         "cac_cap": cac_cap, "cac_hang": cac_hang,
     })
+
+
+# ══ TÁC VỤ NỀN — Giai đoạn 7 ═══════════════════════════════════════
+
+def _tac_vu_cua_toi(request, pk):
+    """Tác vụ trong phạm vi người xem. Của người khác → 404, không phải rỗng."""
+    return get_object_or_404(
+        BackgroundJob.objects.in_scope(request.user).select_related("created_by"), pk=pk,
+    )
+
+
+@login_required
+def tac_vu(request):
+    """Danh sách tác vụ nền của mình; Admin thấy hết để biết hàng đợi có kẹt không."""
+    request.nav_current = "tac_vu"
+    ds = BackgroundJob.objects.in_scope(request.user).select_related("created_by")
+    trang_thai = request.GET.get("trang_thai", "")
+    if trang_thai:
+        ds = ds.filter(status=trang_thai)
+    trang = paginate(request, ds)
+    return render(request, "core/tac_vu.html", {
+        "page_obj": trang, "trang": trang,
+        "moi_trang": page_size(request), "cac_co_trang": PAGE_SIZES,
+        "ten_don_vi": "tác vụ", "trang_thai": trang_thai,
+        "cac_trang_thai": JobStatus.choices,
+        "so_ket": BackgroundJob.objects.in_scope(request.user).filter(status=JobStatus.STALE).count(),
+    })
+
+
+@login_required
+def tac_vu_xem(request, pk):
+    """Một tác vụ: tiến độ, kết quả, danh sách dòng lỗi, nút tải tệp."""
+    request.nav_current = "tac_vu"
+    job = _tac_vu_cua_toi(request, pk)
+    return render(request, "core/tac_vu_xem.html", {"job": job, "da_xong": job.is_finished})
+
+
+@login_required
+def tac_vu_tien_do(request, pk):
+    """Mảnh HTML cho HTMX hỏi lại mỗi 2 giây. Xong thì mảnh không còn
+    `hx-trigger` nên trình duyệt tự ngừng hỏi."""
+    job = _tac_vu_cua_toi(request, pk)
+    return render(request, "core/_tac_vu_tien_do.html", {"job": job, "da_xong": job.is_finished})
+
+
+@login_required
+def tac_vu_tai(request, pk):
+    """Tải tệp kết quả. Tệp đã bị dọn sau 24 giờ thì nói rõ, không trả 500."""
+    job = _tac_vu_cua_toi(request, pk)
+    duong_dan = Path(settings.STORAGE_DIR) / job.result_path if job.result_path else None
+    if job.status != JobStatus.DONE or duong_dan is None or not duong_dan.exists():
+        messages.error(request, "Tệp đã quá 24 giờ và được dọn, hoặc tác vụ chưa xong. Hãy xuất lại.")
+        return redirect("tac_vu_xem", pk=pk)
+    ten = job.summary.get("file_name") or duong_dan.name
+    return FileResponse(open(duong_dan, "rb"), as_attachment=True, filename=ten)

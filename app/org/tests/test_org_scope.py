@@ -143,7 +143,7 @@ def test_thanh_dieu_huong_an_muc_ngoai_quyen(nguoi_dung):
     from core.navigation import visible_navigation
 
     def cac_ma(user):
-        return {m.code for nhom in visible_navigation(user) for m in nhom["items"]}
+        return {m["code"] for nhom in visible_navigation(user) for m in nhom["items"]}
 
     # Staff thấy đúng những mục không đòi cấp bậc — suy ra từ chính NAVIGATION
     # thay vì chép tay, để thêm màn hình mới không phải sửa bài kiểm thử này.
@@ -151,9 +151,11 @@ def test_thanh_dieu_huong_an_muc_ngoai_quyen(nguoi_dung):
     from core.constants import Rank
     from core.navigation import NAVIGATION
 
+    # Mục giới hạn bộ phận (Lên đơn của Sale, Bảng tính của Vận đơn) chỉ tính
+    # khi bộ phận khớp — Staff Sale không được thấy Bảng tính
     khong_doi_cap_bac = {
         m.code for nhom in NAVIGATION for m in nhom.items
-        if m.min_rank == Rank.STAFF
+        if m.min_rank == Rank.STAFF and (m.departments is None or "sale" in m.departments)
     }
     assert cac_ma(nguoi_dung["staff_sale_1"]) == khong_doi_cap_bac
     assert "nhan_su" not in cac_ma(nguoi_dung["staff_sale_1"])

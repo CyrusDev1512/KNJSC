@@ -127,7 +127,15 @@ STATIC_URL = "/static/"
 STATIC_ROOT = REPO_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
 MEDIA_URL = "/media/"
-MEDIA_ROOT = REPO_DIR / "storage" / "uploads"
+# Thư mục thật trên máy, người vận hành lấy được không cần biết Docker
+# (docs/03 mục 1). Trong container `REPO_DIR` là `/`, nên STORAGE_DIR là
+# `/storage` — khớp bind mount của docker compose.
+STORAGE_DIR = Path(env("STORAGE_DIR", str(REPO_DIR / "storage")))
+MEDIA_ROOT = STORAGE_DIR / "uploads"
+EXPORT_DIR = STORAGE_DIR / "exports"            # tệp xuất, dọn sau 24 giờ — NFR-16
+# Bản sao lưu. Đặt biến BACKUP_DIR trỏ sang ổ khác để có bản ở nơi khác
+# máy chủ chính — NFR-20
+BACKUP_DIR = Path(env("BACKUP_DIR", str(STORAGE_DIR / "backups")))
 
 # ── Phiên đăng nhập ─────────────────────────────────────────────────
 SESSION_COOKIE_HTTPONLY = True
@@ -140,13 +148,47 @@ SESSION_IDLE_TIMEOUT_SECONDS = int(env("SESSION_IDLE_TIMEOUT_SECONDS", "3600"))
 PAGE_SIZE_DEFAULT = 25          # quy tắc 1
 LOGIN_MAX_FAILED = 5            # FR-1.2
 LOGIN_LOCK_MINUTES = 15         # FR-1.2
-EXPORT_MAX_ROWS = 50_000
+EXPORT_MAX_ROWS = 50_000        # NFR-14
+
+# Bảng chỉ xem ở màn hình Bảng dữ liệu, sửa ở Bảng tính (ADR-009). Dịch vụ
+# `bangtinh` để rỗng để chính nó sửa được.
+GRID_ONLY_TABLES = set(env_list("GRID_ONLY_TABLES", "van_don"))
+# Địa chỉ dịch vụ Bảng tính — chạy riêng, tương lai là subdomain
+BANGTINH_URL = env("BANGTINH_URL", "http://localhost:8021/bang-tinh/")
+# Địa chỉ dịch vụ chính — Bảng tính liên kết ngược về Bảng dữ liệu và Nhập tệp
+MAIN_APP_URL = env("MAIN_APP_URL", "http://localhost:8020/")
 
 # ── Tác vụ nền ──────────────────────────────────────────────────────
 CELERY_BROKER_URL = env("REDIS_URL", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", False)
+# Lịch định kỳ — docs/03 mục 8 và 9. Giờ theo CELERY_TIMEZONE (Việt Nam).
+# Cần service `beat` trong docker compose thì lịch mới chạy.
+from celery.schedules import crontab  # noqa: E402
+
+CELERY_BEAT_SCHEDULE = {
+    "sao-luu-hang-dem": {
+        "task": "core.sao_luu_hang_dem",
+        "schedule": crontab(hour=2, minute=0),
+    },
+    "don-tep-xuat-qua-han": {
+        "task": "core.don_tep_xuat_qua_han",
+        "schedule": crontab(hour=3, minute=0),
+    },
+    "danh-dau-tac-vu-ket": {
+        "task": "core.danh_dau_tac_vu_ket",
+        "schedule": crontab(minute="*/15"),
+    },
+}
+
+# ── Cảnh báo cho người vận hành ─────────────────────────────────────
+# Sao lưu hỏng, tác vụ kẹt → gửi thư tới đây. Không có địa chỉ thì vẫn ghi
+# nhật ký, nhưng "không được im lặng" chỉ đúng khi điền biến này.
+ADMINS = [(dc, dc) for dc in env_list("OPERATOR_EMAILS", "")]
+EMAIL_BACKEND = env("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "knjsc@localhost")
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # ── Nhật ký ứng dụng ────────────────────────────────────────────────
 # Không ghi dữ liệu nhạy cảm vào đây, kể cả khi gỡ lỗi.

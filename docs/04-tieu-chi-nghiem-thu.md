@@ -55,7 +55,7 @@ và đó là chuyện bình thường.
 | AC-1.4 | Phiên không thao tác quá 60 phút thì yêu cầu tiếp theo bị từ chối | FR-1.3 | Tự động |
 | AC-1.5 | Người dùng mới đăng nhập lần đầu bị buộc đổi mật khẩu trước khi làm gì khác | FR-1.4 | Tự động |
 | AC-1.6 | Quản trị viên khoá tài khoản đang mở phiên thì yêu cầu tiếp theo của người đó bị từ chối ngay | FR-1.5 | Tự động |
-| AC-1.7 | Sale đăng nhập vào thẳng màn hình lên đơn, Vận đơn vào thẳng bảng vận đơn | FR-1.6 | Thủ công |
+| AC-1.7 | ~~Sale đăng nhập vào thẳng màn hình lên đơn, Vận đơn vào thẳng bảng vận đơn~~ **Bỏ theo Q34** — mọi người vào trang tổng quan chung | FR-1.6 | Bỏ |
 
 ---
 
@@ -87,7 +87,7 @@ và đó là chuyện bình thường.
 
 ### Ma trận kiểm chéo
 
-Mỗi ô là một bài kiểm thử. Chín vai trò nhân với các đường dẫn chính.
+Mỗi ô là một bài kiểm thử. Năm vai trò nhân với chín đường dẫn chính — 45 ô, thêm hai dòng ngày 03.09.2026 (nhập tệp và Bảng tính).
 
 | Đường dẫn | Staff Sale | Leader Sale | Manager Sale | Staff Vận đơn | Chưa đăng nhập |
 |---|---|---|---|---|---|
@@ -98,6 +98,8 @@ Mỗi ô là một bài kiểm thử. Chín vai trò nhân với các đường 
 | Màn hình lên đơn | Vào được | Vào được | Vào được | Từ chối | Chuyển đăng nhập |
 | Bảng vận đơn | Từ chối | Từ chối | Từ chối | Vào được | Chuyển đăng nhập |
 | Quản lý biểu mẫu | Từ chối | Từ chối | Vào được | Từ chối | Chuyển đăng nhập |
+| Nhập tệp vào bảng của Sale | Từ chối | Từ chối | Vào được | Từ chối | Chuyển đăng nhập |
+| Bảng tính vận đơn | Từ chối | Từ chối | Từ chối | Vào được | Chuyển đăng nhập |
 
 ---
 
@@ -202,7 +204,30 @@ Mỗi ô là một bài kiểm thử. Chín vai trò nhân với các đường 
 
 ---
 
-## 11. Kiểm thử thủ công trước bàn giao
+## 11. Bảng tính vận đơn
+
+Lưới làm việc của bộ phận Vận đơn trên bảng vận đơn, dựng theo tệp thật
+`MITA Vận đơn CSKH Nội bộ CANADA.xlsx` (bản ẩn danh: `docs/tham-khao/vandon-mau.xlsx`)
+— ADR-009, backlog Q38 tới Q45. Chạy ở dịch vụ riêng (`bangtinh`, cổng 8021);
+Bảng dữ liệu là nơi **xem**, Bảng tính là nơi **sửa**.
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-11.1 | Lưới hiện đủ cột của bảng vận đơn; bốn cột đầu và hàng tiêu đề đứng yên khi cuộn | FR-7.8 | Thủ công |
+| AC-11.2 | Lọc theo từng cột — danh sách giá trị kèm số đếm, chứa chữ, khoảng số hoặc ngày, ô trống — nhiều cột cộng dồn, số dòng đúng | FR-7.8 | Tự động |
+| AC-11.3 | Sửa ô tại chỗ đúng kiểu cột; ô danh sách chỉ nhận giá trị trong danh sách, giá trị lạ bị từ chối kèm lý do; mỗi lần sửa ghi một dòng nhật ký | FR-7.4 · BR-5 | Tự động |
+| AC-11.4 | Người ngoài bộ phận Vận đơn (không phải quản trị viên) bị từ chối ở mọi đường dẫn của Bảng tính, kể cả gọi thẳng | FR-3.6 | Tự động |
+| AC-11.5 | Cột Lọc trùng đếm đúng số dòng cùng số điện thoại và tô màu khi lớn hơn 1; lọc được "chỉ số trùng" | FR-7.8 | Tự động |
+| AC-11.6 | Dòng Hủy trước giao, Hủy sau giao, Hoàn đơn được tô màu | FR-7.8 | Tự động |
+| AC-11.7 | Bảng vận đơn không sửa được ô ở Bảng dữ liệu; cùng đường dẫn đó ở Bảng tính thì sửa được | FR-7.4 | Tự động |
+| AC-11.8 | Mỗi sản phẩm đang bán có một cột số lượng trên bảng vận đơn; lên đơn điền tự động số lượng, địa chỉ và lần mua | FR-6.3 · FR-6.7 | Tự động |
+| AC-11.9 | Nhập tệp vận đơn thật (ẩn danh) không chỉnh sửa: mọi dòng vào, không dòng lỗi, trạng thái và thanh toán khớp danh sách, điện thoại là chuỗi | FR-7.5 | Tự động |
+| AC-11.10 | Bàn phím: mũi tên và Tab đi giữa các ô, Enter sửa, Esc huỷ, chọn giá trị danh sách thì ô cập nhật không tải lại trang | FR-7.8 | Tự động |
+| AC-11.11 | Bảng tính dùng được trên điện thoại và máy tính bảng | NFR-8 | Thủ công |
+
+---
+
+## 12. Kiểm thử thủ công trước bàn giao
 
 Những việc máy không tự làm được, người phải kiểm bằng tay.
 
@@ -218,13 +243,13 @@ Những việc máy không tự làm được, người phải kiểm bằng tay
 
 ---
 
-## 12. Điều kiện coi là hoàn thành phase 1
+## 13. Điều kiện coi là hoàn thành phase 1
 
 | # | Điều kiện |
 |---|---|
 | 1 | Toàn bộ tiêu chí đánh dấu **Tự động** đều có bài kiểm thử và đều đạt |
 | 2 | Ma trận kiểm chéo phân quyền ở mục 3 được kiểm đầy đủ, cả trường hợp cho phép và từ chối |
-| 3 | Toàn bộ danh sách kiểm thủ công ở mục 11 đã thực hiện và đạt |
+| 3 | Toàn bộ danh sách kiểm thủ công ở mục 12 đã thực hiện và đạt |
 | 4 | Đã phục hồi thành công ít nhất một lần từ bản sao lưu |
 | 5 | Tệp Excel thật của công ty nhập được mà không cần chỉnh sửa thủ công |
 | 6 | Ba vai trò đã chạy trọn quy trình trên dữ liệu thật |
@@ -235,10 +260,10 @@ Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ 
 
 ---
 
-## 13. Nội dung chưa quyết định
+## 14. Nội dung chưa quyết định
 
 | # | Nội dung | Ảnh hưởng |
 |---|---|---|
 | 1 | ~~Tiêu chí cho công thức trên bảng~~ | Đã chốt 29.08.2026 — ADR-006, thành AC-7.10 tới AC-7.12 |
 | 2 | Số lượng bài kiểm thử tự động tối thiểu | Có nên đặt ngưỡng tỉ lệ bao phủ không |
-| 3 | Công cụ đo hiệu năng khi kiểm AC-10.1 | Chưa chọn |
+| 3 | ~~Công cụ đo hiệu năng khi kiểm AC-10.1~~ | Đã chốt 03.09.2026 — Locust, chỉ dùng khi kiểm thử (backlog Q44, K6 đóng) |
