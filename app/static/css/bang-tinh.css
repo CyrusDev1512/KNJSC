@@ -584,24 +584,61 @@ body.bt-dang-keo { cursor: crosshair; }
 .luoi-vd td.dd-nen-m40, .luoi-vd tr.dong-xau td.dd-nen-m40, .luoi-vd td.co-dinh.dd-nen-m40 { background: #fbcfe8; }
 /* ══ HẾT SINH ══ */
 
-/* ── 5. Hộp nổi: lọc một cột, ẩn/hiện cột ─────────────────────────────── */
-.loc-cot-hop, .bt-an-cot-hop {
+/* ── 5. Hộp nổi: lọc một cột (dáng #fltp của demo, 256px), ẩn/hiện cột, menu chuột phải, toast ── */
+.loc-cot-hop, .bt-an-cot-hop, .bt-ctx, .bt-toast {
   position: absolute; z-index: 30; padding: 10px;
   background: var(--bt-hop-nen); color: var(--bt-hop-chu);
   border: 1px solid var(--bt-hop-vien); border-radius: 10px; box-shadow: var(--bt-hop-bong);
 }
-.loc-cot-hop { min-width: 256px; max-width: 340px; }
+.loc-cot-hop { width: 256px; max-width: calc(100vw - 16px); }
 .bt-an-cot-hop { min-width: 220px; max-height: 320px; overflow: auto; padding: 6px; }
-.loc-cot { display: flex; flex-direction: column; gap: 8px; }
+.loc-cot { display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; }
 .loc-cot-dau { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.loc-cot-meta { font-size: 12px; color: var(--bt-nhat); }
+.loc-cot-meta b { color: var(--bt-hop-chu); }
+.loc-cot-dong { border: 0; background: transparent; color: var(--bt-nhat); font: inherit; font-size: 16px; line-height: 1; cursor: pointer; padding: 0 4px; }
+.loc-cot-dong:hover { color: var(--bt-hop-chu); }
+.loc-cot-tim { font-size: 12.5px; padding: 5px 8px; background: var(--bt-sel-nen); color: var(--bt-sel-chu); border-color: var(--bt-sel-vien); }
 .loc-cot-ds { max-height: 250px; overflow: auto; border: 1px solid var(--bt-hop-vien); border-radius: 4px; }
 .loc-cot-muc { display: flex; align-items: center; gap: 8px; padding: 4px 8px; font-size: 12.5px; cursor: pointer; }
 .loc-cot-muc:hover { background: var(--bt-hop-hover); }
 .loc-cot-gt { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .loc-cot-so { font-family: var(--font-ma); font-size: 11px; color: var(--bt-nhat); }
+.loc-cot-rong { padding: 8px; }
+.loc-cot-them > summary { cursor: pointer; font-size: 12px; color: var(--bt-nhat); }
+.loc-cot-them > summary:hover { color: var(--bt-hop-chu); }
+.loc-cot-them[open] > summary { margin-bottom: 6px; }
 .loc-cot-khoang { display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; align-items: center; }
-.loc-cot-trong { display: flex; flex-direction: column; border-top: 1px solid var(--bt-ngan); padding-top: 8px; }
-.loc-cot-nut { display: flex; justify-content: space-between; gap: 8px; }
+.loc-cot-trong { display: flex; flex-direction: column; border-top: 1px solid var(--bt-ngan); margin-top: 6px; padding-top: 6px; }
+.loc-cot-nut { display: flex; flex-wrap: wrap; gap: 6px; }
+.loc-cot-nut-phu {
+  padding: 4px 8px; border-radius: 6px; border: 1px solid var(--bt-hop-vien); background: transparent; color: var(--bt-hop-chu);
+  font: inherit; font-size: 12px; cursor: pointer; text-decoration: none;
+}
+.loc-cot-nut-phu:hover { background: var(--bt-hop-hover); }
+.loc-cot-ap-dung {
+  margin-left: auto; padding: 4px 12px; border-radius: 6px; border: 0;
+  background: var(--bt-vang-gradient); color: var(--bt-vang-muc); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+/* Menu chuột phải: nhãn theo demo, mục xoá màu đỏ theo luật nút nguy */
+.bt-ctx { position: fixed; z-index: 60; min-width: 220px; padding: 6px; display: flex; flex-direction: column; }
+.bt-ctx-muc, .bt-ctx .nut.nut-nguy {
+  display: block; width: 100%; padding: 7px 12px; text-align: left; white-space: nowrap;
+  border: 0; border-radius: 6px; background: transparent; color: var(--bt-hop-chu);
+  font: inherit; font-size: 13px; cursor: pointer;
+}
+.bt-ctx-muc:hover, .bt-ctx .nut.nut-nguy:hover { background: var(--bt-hop-hover); color: var(--bt-tb-hover-chu); }
+.bt-ctx .nut.nut-nguy { color: #e5484d; }
+.bt-ctx .nut.nut-nguy:hover { background: rgba(229, 72, 77, .12); color: #ff6b70; }
+.bt-ctx-muc:disabled, .bt-ctx .nut.nut-nguy:disabled { opacity: .4; cursor: default; }
+.bt-ctx-muc:disabled:hover, .bt-ctx .nut.nut-nguy:disabled:hover { background: transparent; }
+.bt-ctx-ngan { height: 1px; margin: 4px 6px; background: var(--bt-ngan); }
+.bt-ctx-so-hang, .bt-ctx-so-cot { font-weight: 700; }
+/* Toast: "Có dữ liệu mới" ở giữa đáy, tự tắt */
+.bt-toast {
+  position: fixed; left: 50%; bottom: 52px; transform: translateX(-50%); z-index: 60;
+  padding: 8px 16px; border-radius: 99px; font-size: 13px; white-space: nowrap;
+}
 .bt-an-cot-muc { display: flex; align-items: center; gap: 8px; padding: 4px 8px; font-size: 12.5px; cursor: pointer; }
 .bt-an-cot-muc:hover { background: var(--bt-hop-hover); }
 

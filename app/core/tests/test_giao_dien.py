@@ -34,6 +34,8 @@ MOC_JAVASCRIPT = {
     # Bảng tính theo mẫu KN Demo (ADR-011): nút ⋯ mở hộp "việc khác" — kiểu
     # dáng lấy từ .bt-tb, lớp này chỉ để JS biết mở hộp nào
     "bt-khac",
+    # Hộp lọc cột theo mẫu demo: hai nút chỉ đảo ô chọn trong danh sách
+    "loc-chon-tat-ca", "loc-bo-chon",
 }
 
 #: Mảnh cú pháp Django lọt vào thuộc tính class khi có điều kiện bên trong

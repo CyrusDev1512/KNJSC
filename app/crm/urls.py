@@ -21,4 +21,9 @@ urlpatterns = [
     path("bang-tinh/<slug:code>/dong-moi/", views.bang_tinh_dong_moi, name="bang_tinh_dong_moi"),
     path("bang-tinh/<slug:code>/dinh-dang/", views.bang_tinh_dinh_dang, name="bang_tinh_dinh_dang"),
     path("bang-tinh/<slug:code>/luu-o/", views.bang_tinh_luu_o, name="bang_tinh_luu_o"),
+    path("bang-tinh/<slug:code>/xoa-dong/", views.bang_tinh_xoa_dong, name="bang_tinh_xoa_dong"),
+    path("bang-tinh/<slug:code>/khoi-phuc-dong/", views.bang_tinh_khoi_phuc_dong, name="bang_tinh_khoi_phuc_dong"),
+    path("bang-tinh/<slug:code>/them-cot/", views.bang_tinh_them_cot, name="bang_tinh_them_cot"),
+    path("bang-tinh/<slug:code>/xoa-cot/", views.bang_tinh_xoa_cot, name="bang_tinh_xoa_cot"),
+    path("bang-tinh/<slug:code>/moi-nhat/", views.bang_tinh_moi_nhat, name="bang_tinh_moi_nhat"),
 ]

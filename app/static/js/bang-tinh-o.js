@@ -221,6 +221,14 @@
 
   // ── CHUỘT ──
   LUOI.addEventListener("mousedown", function (e) {
+    if (e.button === 2) {                          // chuột phải trong vùng chọn: giữ vùng khi ô nhận con trỏ
+      var tdp = e.target.closest("td"), vp = tdp && LUOI.contains(tdp) ? viTri(tdp) : null;
+      if (vp && vung && vp.r >= vung.r1 && vp.r <= vung.r2 && vp.c >= vung.c1 && vp.c <= vung.c2) {
+        giu_vung = true;
+        setTimeout(function () { giu_vung = false; }, 0);
+      }
+      return;
+    }
     if (e.button !== 0) return;
     if (e.target.closest(".nut-loc, .bt-keo-cot, .o-khoa-loc, .bt-tay-keo")) return;
     var so = e.target.closest("tbody th.bt-so-dong");
@@ -662,6 +670,9 @@
     capNhatNutHoanTac();
   }
   function apBuoc(b, nguoc) {
+    if (b.loai === "xoa_dong") {
+      return window.KNJSC_BTO && window.KNJSC_BTO.apXoaDong ? window.KNJSC_BTO.apXoaDong(b, nguoc) : Promise.resolve(false);
+    }
     if (b.loai === "gia_tri") {
       var items = b.cac.map(function (o) { return { khoa: o.khoa, cot: o.cot, gt: nguoc ? o.cu : o.moi }; });
       return luuO(items, { khong_ghi: true });
@@ -719,8 +730,274 @@
   window.addEventListener("resize", function () { if (vung) datTay(); });
 
   window.KNJSC_BTO = {
-    cacODangChon: cacODangChon, boChon: boChon, ghiDinhDang: ghiDinhDang, veLai: veSau,
+    cacODangChon: cacODangChon, boChon: boChon, ghiDinhDang: ghiDinhDang, ghiBuoc: ghiBuoc, veLai: veSau,
     vung: function () { return vung; }, dan: dan, saoChep: saoChep, xoaNoiDung: xoaNoiDung,
     hoanTac: hoanTacDi, lamLai: lamLaiDi, chonTatCa: chonTatCa,
   };
+})();
+
+/* ── MENU CHUỘT PHẢI, XOÁ / KHÔI PHỤC DÒNG, CHÈN / BỎ CỘT, TỰ CẬP NHẬT (ADR-011) ──
+   Xoá dòng và cột đi qua fetch (không cần thay ô), phản hồi JSON; lỗi 400 là
+   mảnh _bao_loi.html đổ vào #bt-loi. Hoàn tác xoá dòng gọi khoi-phuc-dong và
+   đặt lại dòng đúng chỗ cũ. Lưới hỏi moi-nhat mỗi vài giây; có gì mới thì nạp
+   lại phần thân bảng và báo bằng toast — như demo. */
+(function () {
+  "use strict";
+  var BT = window.KNJSC_BT, BTO = window.KNJSC_BTO;
+  if (!BT || !BTO) return;
+  var LUOI = BT.LUOI;
+  var CTX = document.getElementById("bt-ctx");
+  var TOAST = document.getElementById("bt-toast");
+  var QUAN_LY_COT = LUOI.dataset.quanLyCot === "1";
+  var DUOC_THEM = LUOI.dataset.themDong === "1";
+  var URL = {
+    xoa: LUOI.dataset.xoaDongUrl, khoiPhuc: LUOI.dataset.khoiPhucUrl,
+    themCot: LUOI.dataset.themCotUrl, xoaCot: LUOI.dataset.xoaCotUrl, moiNhat: LUOI.dataset.moiNhatUrl,
+  };
+
+  function csrf() {
+    try { return JSON.parse(document.querySelector(".app[hx-headers]").getAttribute("hx-headers"))["X-CSRFToken"]; } catch (e) { return ""; }
+  }
+  function goi(url, du_lieu) {
+    var body = new URLSearchParams();
+    Object.keys(du_lieu).forEach(function (k) {
+      [].concat(du_lieu[k]).forEach(function (v) { body.append(k, v); });
+    });
+    return fetch(url, { method: "POST", credentials: "same-origin", body: body,
+                        headers: { "X-CSRFToken": csrf(), "HX-Current-URL": location.href } })
+      .then(function (r) { return r.text().then(function (chu) { return { status: r.status, chu: chu }; }); })
+      .catch(function () { return { status: 0, chu: "" }; });
+  }
+  function hienLoi(kq, mac_dinh) {
+    if (kq.status === 400 && kq.chu.indexOf("bt-loi") >= 0) {
+      var hop = document.getElementById("bt-loi");
+      if (hop) { hop.outerHTML = kq.chu; return; }
+    }
+    if (kq.status === 403) BT.baoLoi("Không có quyền", mac_dinh || "Bạn không làm được việc này với dòng hay cột đã chọn.");
+    else BT.baoLoi("Chưa làm được", mac_dinh || "Máy chủ không trả lời được — thử lại sau.");
+  }
+  function toast(chu) {
+    if (!TOAST) return;
+    TOAST.textContent = chu;
+    TOAST.hidden = false;
+    clearTimeout(toast.hen);
+    toast.hen = setTimeout(function () { TOAST.hidden = true; }, 3500);
+  }
+  function hang() {
+    return Array.prototype.filter.call(LUOI.querySelectorAll("tbody tr"), function (tr) { return !tr.classList.contains("bt-dong-rong"); });
+  }
+  function chuCotTai(c) {
+    var th = LUOI.querySelector("thead tr.bt-hang-chu");
+    return th && th.children[c] ? th.children[c] : null;
+  }
+
+  // ── Menu ──
+  function anCtx() { if (CTX) CTX.hidden = true; }
+  function datMuc(lenh, bat, ly_do) {
+    var nut = CTX.querySelector('[data-lenh="' + lenh + '"]');
+    if (!nut) return;
+    nut.disabled = !bat;
+    nut.title = bat ? "" : (ly_do || "");
+  }
+  LUOI.addEventListener("contextmenu", function (e) {
+    if (!CTX) return;
+    var td = e.target.closest("td");
+    if (!td || !LUOI.contains(td) || td.classList.contains("dang-sua")) return;
+    e.preventDefault();
+    var vung = BTO.vung();
+    var H = hang();
+    var r = H.indexOf(td.parentElement), c = Array.prototype.indexOf.call(td.parentElement.children, td);
+    if (!vung || r < vung.r1 || r > vung.r2 || c < vung.c1 || c > vung.c2) {
+      td.focus({ preventScroll: true });                // chuột phải ngoài vùng: dời ô hiện tại
+      vung = BTO.vung();
+    }
+    if (!vung) return;
+    var nR = vung.r2 - vung.r1 + 1, nC = vung.c2 - vung.c1 + 1;
+    Array.prototype.forEach.call(CTX.querySelectorAll(".bt-ctx-so-hang"), function (o) { o.textContent = nR; });
+    Array.prototype.forEach.call(CTX.querySelectorAll(".bt-ctx-so-cot"), function (o) { o.textContent = nC; });
+    var co_dong_that = false, dong_khong_sua = false, co_cot_that = false;
+    for (var i = vung.r1; i <= vung.r2; i++) {
+      var tr = H[i];
+      if (!tr || !tr.dataset.dong) continue;
+      co_dong_that = true;
+      if (!tr.querySelector("td.o-sua")) dong_khong_sua = true;
+    }
+    for (var k = vung.c1; k <= vung.c2; k++) { var th = chuCotTai(k); if (th && th.dataset.cot) co_cot_that = true; }
+    datMuc("them-hang", DUOC_THEM, "Bạn không thêm được dòng vào bảng này");
+    datMuc("xoa-hang", co_dong_that && !dong_khong_sua && !!URL.xoa, co_dong_that ? "Có dòng bạn không sửa được" : "Chưa chọn dòng thật nào");
+    datMuc("them-cot-trai", QUAN_LY_COT, "Chỉ quản lý của bộ phận sở hữu bảng mới thêm cột");
+    datMuc("them-cot-phai", QUAN_LY_COT, "Chỉ quản lý của bộ phận sở hữu bảng mới thêm cột");
+    datMuc("xoa-cot", QUAN_LY_COT && co_cot_that, QUAN_LY_COT ? "Chưa chọn cột thật nào" : "Chỉ quản lý của bộ phận sở hữu bảng mới bỏ cột");
+    datMuc("dan", true);
+    CTX.hidden = false;
+    var w = CTX.offsetWidth, h = CTX.offsetHeight;
+    CTX.style.left = Math.max(4, Math.min(e.clientX, window.innerWidth - w - 8)) + "px";
+    CTX.style.top = Math.max(4, Math.min(e.clientY, window.innerHeight - h - 8)) + "px";
+  });
+  document.addEventListener("mousedown", function (e) { if (CTX && !CTX.hidden && !CTX.contains(e.target)) anCtx(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") anCtx(); });
+  LUOI.addEventListener("scroll", anCtx);
+  if (CTX) CTX.addEventListener("click", function (e) {
+    var nut = e.target.closest("[data-lenh]");
+    if (!nut || nut.disabled) return;
+    var lenh = nut.dataset.lenh;
+    anCtx();
+    var vung = BTO.vung();
+    if (!vung) return;
+    if (lenh === "cat") BTO.saoChep(true);
+    else if (lenh === "chep") BTO.saoChep(false);
+    else if (lenh === "dan") danTuMenu();
+    else if (lenh === "them-hang") BT.themDongTrong(vung.r2 - vung.r1 + 1);
+    else if (lenh === "xoa-hang") xoaHang(vung);
+    else if (lenh === "them-cot-trai") themCot(vung, "trai");
+    else if (lenh === "them-cot-phai") themCot(vung, "phai");
+    else if (lenh === "xoa-cot") xoaCot(vung);
+    else if (lenh === "xoa-noi-dung") BTO.xoaNoiDung();
+    else if (lenh === "xoa-dinh-dang") BT.guiDinhDang({ xoa: "1" });
+  });
+  function danTuMenu() {
+    var o = document.activeElement;
+    if (!o || !LUOI.contains(o)) { var oc = LUOI.querySelector("td.o-hien"); if (oc) oc.focus({ preventScroll: true }); }
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      navigator.clipboard.readText().then(function (chu) { BTO.dan(chu); })
+        .catch(function () { BT.baoLoi("Không đọc được clipboard", "Trình duyệt không cho đọc clipboard — dùng Ctrl+V."); });
+    } else {
+      BT.baoLoi("Không đọc được clipboard", "Trình duyệt không cho đọc clipboard — dùng Ctrl+V.");
+    }
+  }
+
+  // ── Xoá dòng và khôi phục (hoàn tác) ──
+  function xoaHang(vung) {
+    var H = hang(), pks = [], vi_tri = null, trong = [];
+    for (var r = vung.r1; r <= vung.r2; r++) {
+      var tr = H[r];
+      if (!tr) continue;
+      if (tr.dataset.dong) { pks.push(tr.dataset.dong); if (vi_tri === null) vi_tri = r; }
+      else if (tr.classList.contains("dong-moi")) trong.push(tr);
+    }
+    if (!pks.length) {
+      trong.forEach(function (tr) { tr.remove(); });
+      BT.apBoCuc();
+      return;
+    }
+    if (!window.confirm("Xoá " + pks.length + " dòng? Dòng chỉ bị đánh dấu xoá — Ctrl+Z ngay sau đó để khôi phục, hoặc khôi phục ở Bảng dữ liệu.")) return;
+    BT.datTrangThai("Đang lưu…", "dang-luu");
+    goi(URL.xoa, { pk: pks }).then(function (kq) {
+      if (kq.status !== 200) { BT.datTrangThai("⚠ Chưa xoá được", "loi-luu"); hienLoi(kq, "Bạn không xoá được một trong các dòng đã chọn."); return; }
+      pks.forEach(function (pk) { var tr = LUOI.querySelector('tbody tr[data-dong="' + pk + '"]'); if (tr) tr.remove(); });
+      trong.forEach(function (tr) { tr.remove(); });
+      BT.datTrangThai("✓ Đã xoá " + pks.length + " dòng", "da-luu");
+      BTO.ghiBuoc({ loai: "xoa_dong", pks: pks, vi_tri: vi_tri });
+      BT.apBoCuc();
+      BTO.boChon();
+    });
+  }
+  // bang-tinh-o.js gọi khi hoàn tác / làm lại một bước xoá dòng
+  BTO.apXoaDong = function (b, nguoc) {
+    if (!nguoc) {
+      return goi(URL.xoa, { pk: b.pks }).then(function (kq) {
+        if (kq.status !== 200) { hienLoi(kq); return false; }
+        b.pks.forEach(function (pk) { var tr = LUOI.querySelector('tbody tr[data-dong="' + pk + '"]'); if (tr) tr.remove(); });
+        BT.apBoCuc();
+        return true;
+      });
+    }
+    return goi(URL.khoiPhuc, { pk: b.pks }).then(function (kq) {
+      if (kq.status !== 200) { hienLoi(kq, "Không khôi phục được dòng đã xoá."); return false; }
+      var mau = document.createElement("template");
+      mau.innerHTML = "<table><tbody>" + kq.chu + "</tbody></table>";
+      var cac = Array.prototype.slice.call(mau.content.querySelectorAll("tr"));
+      var tbody = LUOI.querySelector("tbody");
+      var H = hang();
+      var truoc = (b.vi_tri !== null && H[b.vi_tri]) ? H[b.vi_tri] : (LUOI.querySelector("tbody tr.dong-moi") || null);
+      cac.forEach(function (tr) { tbody.insertBefore(tr, truoc); htmx.process(tr); });
+      BT.apBoCuc();
+      BT.datTrangThai("✓ Đã khôi phục " + cac.length + " dòng", "da-luu");
+      return true;
+    });
+  };
+
+  // ── Chèn / bỏ cột (Manager) ──
+  function maCotTai(c) { var th = chuCotTai(c); return th && th.dataset.cot ? th.dataset.cot : ""; }
+  function themCot(vung, ben) {
+    var so = vung.c2 - vung.c1 + 1;
+    var canh = ben === "trai" ? maCotTai(vung.c1) : maCotTai(vung.c2);
+    if (!canh) {                                   // đang chọn cột trống: chèn cuối
+      var ma = ""; for (var k = vung.c1; k >= 1; k--) { ma = maCotTai(k); if (ma) break; }
+      canh = ma; ben = "phai";
+    }
+    BT.datTrangThai("Đang lưu…", "dang-luu");
+    goi(URL.themCot, { canh: canh, ben: ben, so: so }).then(function (kq) {
+      if (kq.status !== 200) { BT.datTrangThai("⚠ Chưa thêm được cột", "loi-luu"); hienLoi(kq, "Chỉ quản lý của bộ phận sở hữu bảng mới thêm cột."); return; }
+      location.reload();
+    });
+  }
+  function xoaCot(vung) {
+    var ma = [];
+    for (var k = vung.c1; k <= vung.c2; k++) { var m = maCotTai(k); if (m) ma.push(m); }
+    if (!ma.length) return;
+    var ten = ma.map(function (m) { var th = LUOI.querySelector('thead tr.bt-hang-ten th[data-cot="' + m + '"] .bt-sap'); return th ? th.textContent.replace(/[↑↓]\s*$/, "").trim() : m; });
+    if (!window.confirm("Bỏ " + ma.length + " cột (" + ten.join(", ") + ") khỏi bảng? Giá trị đã nhập vẫn nằm trong bản ghi; đặt lại đúng mã cột ở Sửa cột thì hiện lại.")) return;
+    BT.datTrangThai("Đang lưu…", "dang-luu");
+    goi(URL.xoaCot, { cot: ma }).then(function (kq) {
+      if (kq.status !== 200) { BT.datTrangThai("⚠ Chưa bỏ được cột", "loi-luu"); hienLoi(kq, "Chỉ quản lý của bộ phận sở hữu bảng mới bỏ cột."); return; }
+      location.reload();
+    });
+  }
+
+  // ── Tự cập nhật khi người khác sửa ──
+  var MOC = null, dang_nap = false;
+  function ranh() {
+    if (document.hidden || dang_nap) return false;
+    if (LUOI.querySelector("td.dang-sua") || document.body.classList.contains("bt-dang-keo") || LUOI.classList.contains("bt-dang-chon")) return false;
+    var o = document.activeElement;
+    if (o && o.classList && o.classList.contains("o-moi-nhap") && o.value) return false;   // đang gõ dòng trống
+    if (LUOI.querySelector("tr.dong-moi[data-dang-luu]")) return false;
+    return true;
+  }
+  function hoiMoiNhat() {
+    if (!URL.moiNhat || !ranh()) return;
+    fetch(URL.moiNhat, { credentials: "same-origin", headers: { "Accept": "application/json" } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d) return;
+        var moc = d.moc + "|" + d.so;
+        if (MOC === null) { MOC = moc; return; }
+        if (moc === MOC) return;
+        MOC = moc;
+        if (String(d.cot) !== String(LUOI.dataset.soCot)) { location.reload(); return; }
+        napLaiThan();
+      })
+      .catch(function () {});
+  }
+  function napLaiThan() {
+    if (!ranh()) return;
+    dang_nap = true;
+    var vung = BTO.vung();
+    htmx.ajax("GET", location.href, { target: "#luoi-vd tbody", select: "#luoi-vd tbody", swap: "outerHTML", source: LUOI })
+      .then(function () {
+        dang_nap = false;
+        BT.apBoCuc();
+        if (vung) BTO.veLai();
+        toast("📥 Có dữ liệu mới — bảng vừa tự cập nhật");
+      }, function () { dang_nap = false; });
+  }
+  var GIAY = parseInt(LUOI.dataset.giayHoi || "8", 10);
+  if (URL.moiNhat && GIAY > 0) setInterval(hoiMoiNhat, GIAY * 1000);
+
+  // ── Hộp lọc: Chọn tất cả / Bỏ chọn; chọn hết thì gửi như không lọc ──
+  document.addEventListener("click", function (e) {
+    var nut = e.target.closest && e.target.closest(".loc-chon-tat-ca, .loc-bo-chon");
+    if (!nut) return;
+    var form = nut.closest("form");
+    Array.prototype.forEach.call(form.querySelectorAll('.loc-cot-ds input[type=checkbox]'), function (o) {
+      o.checked = nut.classList.contains("loc-chon-tat-ca");
+    });
+  });
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    if (!form.classList || !form.classList.contains("loc-cot")) return;
+    var cac = Array.prototype.slice.call(form.querySelectorAll('.loc-cot-ds input[type=checkbox]'));
+    if (cac.length && cac.every(function (o) { return o.checked; })) cac.forEach(function (o) { o.checked = false; });
+  });
 })();

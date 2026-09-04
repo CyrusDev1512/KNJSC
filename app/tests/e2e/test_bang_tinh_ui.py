@@ -368,3 +368,70 @@ def test_hoan_tac_va_lam_lai(live_server, trang, dang_nhap, du_lieu, nguoi_dung)
         trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d1}\"] td[data-cot=\"ten_khach\"]') || {{classList: {{contains: () => false}}}}).classList.contains('dd-dam')")
         trang.keyboard.press("Control+z")
         trang.wait_for_function(f"!(document.querySelector('tbody tr[data-dong=\"{d1}\"] td[data-cot=\"ten_khach\"]') || {{classList: {{contains: () => false}}}}).classList.contains('dd-dam')")
+
+
+def test_o_dia_chi_thanh_cong_thuc_va_bam_dup(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
+    """AC-11.25 — Ô địa chỉ hiện địa chỉ ô đang chọn, gõ địa chỉ + Enter thì nhảy tới; ô giá trị hiện giá trị thô, Enter ở đó lưu rồi xuống dòng; bấm một lần chỉ chọn, bấm đúp mới mở sửa; rời ô đang sửa mà đã đổi thì lưu"""
+    with override_settings(GRID_ONLY_TABLES=set()):
+        dang_nhap(trang, nguoi_dung["staff_vd"])
+        trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
+        trang.wait_for_load_state("networkidle")
+        d1, d2 = [d.pk for d in du_lieu["dong"][:2]]
+        o1 = trang.locator(f'tbody tr[data-dong="{d1}"] td[data-cot="ten_khach"]')
+        o1.click()
+        assert trang.locator("td.dang-sua").count() == 0                       # bấm một lần: chỉ chọn
+        dia_chi = trang.locator("#bt-dia-chi").input_value()
+        assert dia_chi[0].isalpha() and dia_chi[-1].isdigit() and dia_chi.endswith("2")   # hàng tên cột là 1, dữ liệu từ 2
+        assert trang.locator("#bt-cong-thuc").input_value() == "Nguyễn An"
+
+        # Gõ địa chỉ của ô dòng 3 cùng cột rồi Enter: con trỏ nhảy tới đó
+        chu = dia_chi[:-1]
+        trang.fill("#bt-dia-chi", f"{chu}3")
+        trang.keyboard.press("Enter")
+        trang.wait_for_function(f"document.activeElement && document.activeElement.dataset.dong === '{d2}' && document.activeElement.dataset.cot === 'ten_khach'")
+        assert trang.locator("#bt-cong-thuc").input_value() == "Trần Bình"
+
+        # Sửa ở ô giá trị: Enter lưu rồi con trỏ xuống dòng dưới
+        trang.fill("#bt-cong-thuc", "Trần Bình B")
+        trang.keyboard.press("Enter")
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d2}\"] td[data-cot=\"ten_khach\"]') || {{dataset: {{}}}}).dataset.goc === 'Trần Bình B'")
+        trang.wait_for_function(f"document.activeElement && document.activeElement.dataset.dong !== '{d2}' && document.activeElement.dataset.cot === 'ten_khach'")
+
+        # Bấm đúp mở sửa; gõ rồi bấm sang ô khác thì lưu
+        o1.dblclick()
+        trang.wait_for_selector("td.dang-sua input:not([type=hidden])")
+        trang.keyboard.press("Control+a"); trang.keyboard.type("Nguyễn An A")
+        trang.locator(f'tbody tr[data-dong="{d1}"] td[data-cot="dia_chi"]').click()
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d1}\"] td[data-cot=\"ten_khach\"]') || {{dataset: {{}}}}).dataset.goc === 'Nguyễn An A'")
+
+
+def test_menu_chuot_phai_xoa_hang_va_hoan_tac(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
+    """AC-11.21 — Chuột phải lên vùng hai dòng: menu hiện Xoá 2 hàng; xác nhận thì hai dòng biến khỏi lưới và bị đánh dấu xoá; Ctrl+Z khôi phục cả hai về chỗ cũ; mục chèn cột mờ với Staff"""
+    from forms_builder.models import DataRecord
+    with override_settings(GRID_ONLY_TABLES=set()):
+        dang_nhap(trang, nguoi_dung["staff_vd"])
+        trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
+        trang.wait_for_load_state("networkidle")
+        bang = du_lieu["bang"]
+        d1, d2, d3 = [d.pk for d in du_lieu["dong"][:3]]
+        o_a = trang.locator(f'tbody tr[data-dong="{d2}"] td[data-cot="ten_khach"]')
+        o_b = trang.locator(f'tbody tr[data-dong="{d3}"] td[data-cot="ten_khach"]')
+        o_a.click()
+        o_b.click(modifiers=["Shift"])
+        o_b.click(button="right")
+        menu = trang.locator("#bt-ctx")
+        assert menu.is_visible()
+        assert menu.locator('[data-lenh="xoa-hang"]').inner_text().strip() == "Xoá 2 hàng"
+        assert menu.locator('[data-lenh="them-cot-trai"]').is_disabled()       # Staff không thêm cột
+        trang.once("dialog", lambda d: d.accept())
+        menu.locator('[data-lenh="xoa-hang"]').click()
+        trang.wait_for_function(f"!document.querySelector('tbody tr[data-dong=\"{d2}\"]') && !document.querySelector('tbody tr[data-dong=\"{d3}\"]')")
+        assert DataRecord.objects.filter(pk__in=[d2, d3]).count() == 0
+        assert DataRecord.all_objects.filter(pk__in=[d2, d3], deleted_at__isnull=False).count() == 2
+
+        trang.keyboard.press("Control+z")
+        trang.wait_for_function(f"document.querySelector('tbody tr[data-dong=\"{d2}\"]') && document.querySelector('tbody tr[data-dong=\"{d3}\"]')")
+        assert DataRecord.objects.filter(pk__in=[d2, d3]).count() == 2
+        thu_tu = trang.locator("tbody tr[data-dong]").evaluate_all("els => els.map(e => e.dataset.dong)")
+        assert thu_tu[:3] == [str(d1), str(d2), str(d3)]                      # về đúng chỗ cũ
+        chup(trang, "bang-tinh-menu-chuot-phai")

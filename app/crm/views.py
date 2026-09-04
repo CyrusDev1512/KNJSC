@@ -12,19 +12,27 @@ from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponse, QueryDict
+from django.core.exceptions import ValidationError
+from django.db.models import Count, Max
+from django.http import Http404, HttpResponse, JsonResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST, require_http_methods
 
 from core.audit import record_denied
-from core.constants import GRID_FORMAT_CELLS_MAX, GRID_PAGE_SIZE, GRID_PASTE_CELLS_MAX, Rank
+from core.constants import (
+    GRID_FILTER_OPTIONS_MAX, GRID_FORMAT_CELLS_MAX, GRID_INSERT_COLUMNS_MAX, GRID_PAGE_SIZE,
+    GRID_PASTE_CELLS_MAX, GRID_POLL_SECONDS, Rank,
+)
 from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import PAGE_SIZES, page_size, paginate
 from core.permissions import assert_rank, has_rank
 from forms_builder.models import DataRecord, Folder, TableDef
-from forms_builder.services import export_service, folder_service, grant_service, record_service
+from forms_builder.services import (
+    export_service, folder_service, grant_service, record_service, table_service,
+)
 from orders.constants import WAYBILL_TABLE_CODE
+from orders.services import dispatch_service
 
 from .services import grid_service, sidebar_service
 
@@ -127,6 +135,8 @@ def bang_tinh_xem(request, code):
         "chi_xem": grant_service.is_grid_only(bang),
         "duoc_them_dong": duoc_them,
         "duoc_sua_cot": has_rank(request.user, Rank.MANAGER),
+        "duoc_quan_ly_cot": has_rank(request.user, Rank.MANAGER) and grant_service.can_manage_columns(request.user, bang),
+        "giay_hoi": GRID_POLL_SECONDS,
         "duoc_nhap": grant_service.can_import(request.user, bang),
         "bang_du_lieu_url": _ngoai(f"/bang/{bang.code}/"),
         "nhap_url": _ngoai(f"/bang/{bang.code}/nhap/"),
@@ -149,9 +159,12 @@ def bang_tinh_loc_cot(request, code, ma_cot):
     q = (request.GET.get("q") or "").strip()
     bo_loc = {k: request.GET.getlist(k) for k in request.GET.keys() if k.startswith(f"f_{ma_cot}")}
     dang_chon = set(bo_loc.get(f"f_{ma_cot}__trong", []))
+    tuy_chon = grid_service.filter_options(request.user, bang, cot, q)
     return render(request, "crm/_loc_cot.html", {
         "bang": bang, "cot": cot, "loai": loai, "q": q,
-        "tuy_chon": grid_service.filter_options(request.user, bang, cot, q) if loai == "danh_sach" else [],
+        "tuy_chon": [(gt, so) for gt, so in tuy_chon if gt != ""],
+        "so_trong": next((so for gt, so in tuy_chon if gt == ""), 0),
+        "tran": GRID_FILTER_OPTIONS_MAX,
         "dang_chon": dang_chon,
         "tu": request.GET.get(f"f_{ma_cot}__lon_bang", ""),
         "den": request.GET.get(f"f_{ma_cot}__nho_bang", ""),
@@ -457,6 +470,149 @@ def bang_tinh_luu_o(request, code):
                 "style": grid_service.frozen_style(cd, offset=lech),
             }, request))
     return HttpResponse("".join(manh_dong + manh))
+
+
+def _cac_pk(raw):
+    """Danh sách pk hợp lệ, không trùng, từ tham số lặp."""
+    ket_qua = []
+    for x in raw:
+        if str(x).isdigit() and int(x) not in ket_qua:
+            ket_qua.append(int(x))
+    return ket_qua
+
+
+def _bao_loi(request, loi, status=400):
+    return render(request, "crm/_bao_loi.html", {"loi": loi}, status=status)
+
+
+@login_required
+@require_POST
+def bang_tinh_xoa_dong(request, code):
+    """Xoá mềm các dòng đã chọn — menu chuột phải (ADR-011, BR-4).
+
+    Quyền = quyền sửa dòng (`can_delete_record`, Q52), kiểm từng dòng: một dòng
+    không được thì 403 cả gói, có nhật ký. Trả JSON các pk đã xoá.
+    """
+    bang = _bang(request, code)
+    pks = _cac_pk(request.POST.getlist("pk"))
+    if not pks:
+        return _bao_loi(request, "Chưa chọn dòng nào để xoá.")
+    if len(pks) > GRID_PASTE_CELLS_MAX:
+        return _bao_loi(request, f"Chỉ xoá tối đa {GRID_PASTE_CELLS_MAX} dòng một lần.")
+    cac = list(DataRecord.objects.in_scope(request.user).select_related("table").filter(table=bang, pk__in=pks))
+    if len(cac) != len(pks) or any(not grant_service.can_delete_record(request.user, r) for r in cac):
+        record_denied(request.user, request.path, request)
+        raise OutOfScopeError("Bạn không xoá được một trong các dòng đã chọn.")
+    with transaction.atomic():
+        for r in cac:
+            record_service.delete_record(r, actor=request.user, request=request)
+    return JsonResponse({"da_xoa": [r.pk for r in cac]})
+
+
+@login_required
+@require_POST
+def bang_tinh_khoi_phuc_dong(request, code):
+    """Khôi phục dòng vừa xoá mềm — hoàn tác của xoá dòng (ADR-011). Cùng
+    quyền với xoá; trả các `<tr>` để lưới đặt lại đúng chỗ."""
+    bang = _bang(request, code)
+    pks = _cac_pk(request.POST.getlist("pk"))
+    if not pks:
+        return _bao_loi(request, "Không có dòng nào để khôi phục.")
+    cac = list(DataRecord.all_objects.select_related("table").filter(table=bang, pk__in=pks, deleted_at__isnull=False))
+    if len(cac) != len(pks) or any(not grant_service.can_delete_record(request.user, r) for r in cac):
+        record_denied(request.user, request.path, request)
+        raise OutOfScopeError("Bạn không khôi phục được một trong các dòng này.")
+    with transaction.atomic():
+        for r in cac:
+            record_service.restore_record(r, actor=request.user, request=request)
+    vd = grid_service.is_waybill(bang)
+    cac_cot = grid_service.display_columns(bang)
+    ds = DataRecord.objects.in_scope(request.user).select_related("table", "created_by").filter(pk__in=pks)
+    if vd:
+        ds = ds.annotate(so_trung=grid_service.duplicate_count(bang))
+    theo_pk = {r.pk: r for r in ds}
+    boi_canh = {
+        "bang": bang, "la_van_don": vd, "cac_cot": cac_cot, "qs_giu": _qs_hien_tai(request),
+        "cac_cot_trong": grid_service.filler_letters(len(cac_cot), offset=1 if vd else 0),
+    }
+    return HttpResponse("".join(
+        render_to_string("crm/_dong.html", {
+            **boi_canh, "d": grid_service.row_context(theo_pk[pk], cac_cot, request.user, waybill=vd),
+        }, request) for pk in pks if pk in theo_pk
+    ))
+
+
+def _kiem_quan_ly_cot(request, bang):
+    assert_rank(request.user, Rank.MANAGER, request)
+    if not grant_service.can_manage_columns(request.user, bang):
+        record_denied(request.user, request.path, request)
+        raise OutOfScopeError("Chỉ quản lý của bộ phận sở hữu bảng mới thêm hay bỏ cột.")
+
+
+@login_required
+@require_POST
+def bang_tinh_them_cot(request, code):
+    """Chèn N cột chữ ngắn cạnh cột đang chọn — menu chuột phải, Manager của
+    bộ phận sở hữu hoặc Admin (ADR-011). Trả JSON mã cột mới; lưới tải lại."""
+    bang = _bang(request, code)
+    _kiem_quan_ly_cot(request, bang)
+    try:
+        so = max(1, min(int(request.POST.get("so") or 1), GRID_INSERT_COLUMNS_MAX))
+    except ValueError:
+        so = 1
+    canh = request.POST.get("canh") or None
+    if canh and not bang.columns.filter(code=canh).exists():
+        return _bao_loi(request, "Cột đứng cạnh không còn trong bảng — tải lại trang.")
+    try:
+        moi = table_service.insert_columns(
+            bang, count=so, anchor=canh, after=request.POST.get("ben") != "trai",
+            actor=request.user, request=request,
+        )
+    except (BusinessError, ValidationError) as e:
+        return _bao_loi(request, str(e))
+    return JsonResponse({"da_them": [c.code for c in moi]})
+
+
+@login_required
+@require_POST
+def bang_tinh_xoa_cot(request, code):
+    """Bỏ các cột đã chọn — menu chuột phải, Manager của bộ phận sở hữu hoặc
+    Admin. Giá trị đã nhập vẫn nằm trong bản ghi (BR-4); cột khoá, cột là vế
+    của cột tính sẵn và cột hệ thống của bảng vận đơn thì từ chối."""
+    bang = _bang(request, code)
+    _kiem_quan_ly_cot(request, bang)
+    ma = [m for m in dict.fromkeys(request.POST.getlist("cot")) if m]
+    if not ma:
+        return _bao_loi(request, "Chưa chọn cột nào để bỏ.")
+    cac = list(bang.columns.filter(code__in=ma))
+    if len(cac) != len(ma):
+        return _bao_loi(request, "Có cột không còn trong bảng — tải lại trang.")
+    for c in cac:
+        ly_do = table_service.removable_reason(c)
+        if not ly_do and grid_service.is_waybill(bang) and (
+            c.code in dispatch_service.GRID_ORDER or c.code.startswith(dispatch_service.PRODUCT_COLUMN_PREFIX)
+        ):
+            ly_do = f'"{c.name}" là cột theo tệp vận đơn thật, hệ thống quản lý.'
+        if ly_do:
+            return _bao_loi(request, ly_do)
+    with transaction.atomic():
+        for c in cac:
+            table_service.remove_column(c, actor=request.user, request=request)
+    return JsonResponse({"da_bo": ma})
+
+
+@login_required
+def bang_tinh_moi_nhat(request, code):
+    """Mốc mới nhất của bảng trong phạm vi người xem — lưới hỏi mỗi
+    `GRID_POLL_SECONDS` giây để tự cập nhật khi người khác sửa (ADR-011).
+    Chỉ có thời điểm, số dòng và số cột — không có dữ liệu."""
+    bang = _bang(request, code)
+    tong = DataRecord.objects.in_scope(request.user).filter(table=bang).aggregate(moc=Max("updated_at"), so=Count("id"))
+    return JsonResponse({
+        "moc": tong["moc"].isoformat() if tong["moc"] else "",
+        "so": tong["so"],
+        "cot": bang.columns.count(),
+    })
 
 
 # ── Thư mục chứa bảng — ADR-010 ───────────────────────────────────

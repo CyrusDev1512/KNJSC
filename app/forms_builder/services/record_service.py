@@ -317,6 +317,21 @@ def update_cells(cells, *, actor=None, request=None, columns=None):
 
 
 @transaction.atomic
+def restore_record(ban_ghi, *, actor=None, request=None):
+    """Khôi phục một dòng đã xoá mềm — hoàn tác xoá trên Bảng tính (ADR-011)."""
+    if ban_ghi.deleted_at is None:
+        return ban_ghi
+    ban_ghi.deleted_at = None
+    ban_ghi.deleted_by = None
+    ban_ghi.save(update_fields=["deleted_at", "deleted_by", "updated_at"], skip_sync=True)
+    record(
+        AuditAction.UPDATE, actor=actor, target=ban_ghi,
+        detail=f"Khôi phục dòng đã xoá của bảng {ban_ghi.table.code}", request=request,
+    )
+    return ban_ghi
+
+
+@transaction.atomic
 def delete_record(ban_ghi, *, actor=None, request=None):
     """Xoá một dòng. Đánh dấu chứ không xoá khỏi cơ sở dữ liệu (BR-4)."""
     ma_bang = ban_ghi.table.code

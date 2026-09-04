@@ -29,7 +29,11 @@ Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chú
 
   <div class="bt-chinh">
     <div class="bang-cuon luoi-vd" id="luoi-vd" data-co-dinh="{{ so_cot_co_dinh }}" data-bang="{{ bang.code }}" data-dong-dau="{{ dong_dau }}"
-         data-luu-o-url="{% url 'bang_tinh_luu_o' bang.code %}" data-them-dong="{% if duoc_them_dong %}1{% endif %}">
+         data-luu-o-url="{% url 'bang_tinh_luu_o' bang.code %}" data-them-dong="{% if duoc_them_dong %}1{% endif %}"
+         data-xoa-dong-url="{% url 'bang_tinh_xoa_dong' bang.code %}" data-khoi-phuc-url="{% url 'bang_tinh_khoi_phuc_dong' bang.code %}"
+         data-them-cot-url="{% url 'bang_tinh_them_cot' bang.code %}" data-xoa-cot-url="{% url 'bang_tinh_xoa_cot' bang.code %}"
+         data-moi-nhat-url="{% url 'bang_tinh_moi_nhat' bang.code %}" data-quan-ly-cot="{% if duoc_quan_ly_cot %}1{% endif %}"
+         data-so-cot="{{ cac_cot|length }}" data-giay-hoi="{{ giay_hoi }}">
       <table class="{{lop_luoi}}">
         <thead>
           <tr class="bt-hang-chu">
@@ -95,6 +99,7 @@ Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chú
 
 {# Hộp lọc một cột: HTMX đổ vào đây, JS đặt vị trí cạnh chữ cột #}
 <div id="hop-loc" class="loc-cot-hop" hidden></div>
+{% include "crm/_ctx.html" %}
 
 {% endblock %}
 
