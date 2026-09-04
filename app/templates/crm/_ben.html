@@ -3,24 +3,79 @@ Thanh bên trái của Bảng tính — ADR-010: danh sách bảng, chọn nhanh
 ngày, từ ngày / đến ngày, sản phẩm. Không tham số mới: ngày viết vào
 `f_<cột ngày>__lon_bang` và `__nho_bang`, sản phẩm vào `f_<cột>__trong` hoặc
 `sp`. Khối nào bảng không có cột tương ứng thì không vẽ.
-Cần: bang, cac_bang, ben (sidebar_service.context).
+Cần: bang, cay (folder_service.tree), cac_thu_muc, duoc_quan_ly_thu_muc, ben
+(sidebar_service.context).
 {% endcomment %}
 <aside class="bt-ben" id="bt-ben" aria-label="Bộ lọc và danh sách bảng">
   <button class="nut nut-nho bt-thu-ben" type="button" title="Thu gọn hoặc mở thanh bên" aria-label="Thu gọn thanh bên">‹</button>
 
   <section class="bt-ben-muc">
-    <h2 class="bt-ben-tieu-de">Bảng</h2>
+    <div class="bt-ben-dau">
+      <h2 class="bt-ben-tieu-de">Bảng</h2>
+      {% if duoc_quan_ly_thu_muc %}<button class="nut nut-nho bt-thu-muc-moi" type="button" aria-expanded="false" aria-controls="bt-form-thu-muc">+ Thư mục</button>{% endif %}
+    </div>
+    {% if duoc_quan_ly_thu_muc %}
+      <form id="bt-form-thu-muc" class="bt-ben-form" method="post" action="{% url 'thu_muc_moi' %}" hidden>
+        {% csrf_token %}
+        <input type="hidden" name="ve" value="{{ bang.code }}">
+        <label for="bt-ten-thu-muc">Tên thư mục mới</label>
+        <input class="o-nhap" id="bt-ten-thu-muc" name="name" maxlength="120" required autocomplete="off">
+        <button class="nut nut-nho nut-chinh" type="submit">Tạo thư mục</button>
+      </form>
+    {% endif %}
     <ul class="bt-cay">
-      {% for b in cac_bang %}
+      {% for thu_muc, cac_bang_tm in cay %}
         <li class="bt-cay-muc">
-          {% if b.pk == bang.pk %}
-            <a class="bt-cay-bang dang-mo" href="{% url 'bang_tinh_xem' b.code %}" aria-current="page">{{ b.name }}</a>
-          {% else %}
-            <a class="bt-cay-bang" href="{% url 'bang_tinh_xem' b.code %}">{{ b.name }}</a>
+          {% if thu_muc %}
+            <div class="bt-cay-thu-muc">
+              <span class="bt-cay-ten">▸ {{ thu_muc.name }}</span>
+              {% if duoc_quan_ly_thu_muc and thu_muc.department_id == bang.department_id %}
+                <details class="bt-cay-sua">
+                  <summary aria-label="Sửa thư mục {{ thu_muc.name }}">⋯</summary>
+                  <form class="bt-ben-form" method="post" action="{% url 'thu_muc_sua' thu_muc.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="ve" value="{{ bang.code }}">
+                    <label for="bt-tm-{{ thu_muc.pk }}">Tên</label>
+                    <input class="o-nhap" id="bt-tm-{{ thu_muc.pk }}" name="name" value="{{ thu_muc.name }}" maxlength="120" required>
+                    <button class="nut nut-nho" type="submit">Đổi tên</button>
+                  </form>
+                  <form method="post" action="{% url 'thu_muc_xoa' thu_muc.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="ve" value="{{ bang.code }}">
+                    <button class="nut nut-nho nut-nguy" type="submit">Xoá thư mục</button>
+                  </form>
+                </details>
+              {% endif %}
+            </div>
+          {% elif cay|length > 1 %}
+            <div class="bt-cay-thu-muc"><span class="bt-cay-ten mo-nhat">Không thư mục</span></div>
           {% endif %}
+          <ul class="bt-cay-con">
+            {% for b in cac_bang_tm %}
+              <li>
+                {% if b.pk == bang.pk %}
+                  <a class="bt-cay-bang dang-mo" href="{% url 'bang_tinh_xem' b.code %}" aria-current="page">{{ b.name }}</a>
+                {% else %}
+                  <a class="bt-cay-bang" href="{% url 'bang_tinh_xem' b.code %}">{{ b.name }}</a>
+                {% endif %}
+              </li>
+            {% empty %}
+              <li class="bt-cay-rong nho mo-nhat">Trống</li>
+            {% endfor %}
+          </ul>
         </li>
       {% endfor %}
     </ul>
+    {% if duoc_quan_ly_thu_muc %}
+      <form class="bt-ben-form" method="post" action="{% url 'bang_tinh_chuyen_thu_muc' bang.code %}">
+        {% csrf_token %}
+        <label for="bt-chuyen">Bảng này ở thư mục</label>
+        <select class="o-nhap" id="bt-chuyen" name="folder" onchange="this.form.requestSubmit()">
+          <option value="">— không thư mục —</option>
+          {% for t in cac_thu_muc %}<option value="{{ t.pk }}" {% if t.pk == bang.folder_id %}selected{% endif %}>{{ t.name }}</option>{% endfor %}
+        </select>
+      </form>
+    {% endif %}
   </section>
 
   {% if ben.cot_ngay %}

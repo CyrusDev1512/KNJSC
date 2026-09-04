@@ -231,6 +231,7 @@ dịch vụ chính và sửa ở dịch vụ riêng (`bangtinh`, cổng 8021); b
 | AC-11.14 | Lưới thừa dòng trống cho người có quyền thêm; gõ vào rồi rời đi là thành bản ghi thật thuộc bộ phận sở hữu bảng; lỗi thì báo lý do và giữ giá trị đã gõ; không quyền thì không có dòng trống và gửi thẳng bị từ chối có ghi nhật ký | FR-7.4 · FR-3.6 | Tự động |
 | AC-11.15 | Định dạng ô — đậm, màu nền, cỡ chữ, căn lề — lưu vào cơ sở dữ liệu, người khác mở cũng thấy; chỉ nhận giá trị trong sổ đóng; quyền bằng quyền sửa ô, kiểm ở máy chủ; mỗi lần đổi ghi nhật ký | FR-7.4 · BR-5 | Tự động |
 | AC-11.16 | Mỗi bảng một cột khoá do Manager đặt trong Sửa cột; ô cột khoá có nút lọc theo giá trị, cộng dồn với bộ lọc đang bật; cột tính sẵn không làm khoá được | FR-7.2 · FR-8.5 | Tự động |
+| AC-11.17 | Thư mục chứa bảng: Manager của bộ phận tạo, đổi tên, xoá (xoá mềm, bảng về không thư mục) và xếp bảng vào thư mục cùng bộ phận; Staff, Leader và Manager bộ phận khác bị từ chối; thanh bên chỉ hiện thư mục trong phạm vi; trùng tên báo lỗi | FR-8.1 · FR-3.6 · BR-4 | Tự động |
 | AC-11.18 | Mọi ô trên lưới có viền như Excel; thanh công cụ đủ mục (nhập, xuất, thêm dòng, thêm cột, thư mục, định dạng, lọc theo ô, ẩn cột); ẩn cột nhớ trên trình duyệt; thanh bên thu gọn được | FR-7.8 | Thủ công |
 
 ---

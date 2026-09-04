@@ -247,3 +247,16 @@ tr.dong-tot td.co-dinh { box-shadow: inset 3px 0 0 var(--good), 1px 0 0 var(--ru
 .bt-chon { width: auto; padding: 2px var(--sp-2); }
 .bt-loi { margin-bottom: var(--sp-2); }
 .bt-loi:empty { display: none; }
+
+/* ══ ADR-010 — thư mục chứa bảng trong thanh bên (Giai đoạn C) ═════════ */
+.bt-ben-dau { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.bt-cay-thu-muc { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-1); padding: 2px var(--sp-1); }
+.bt-cay-ten { font-size: var(--fs-sm); font-weight: 600; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bt-cay-con { list-style: none; margin: 0; padding: 0 0 var(--sp-1) var(--sp-3); display: flex; flex-direction: column; gap: 2px; }
+.bt-cay-rong { padding: 2px var(--sp-2); }
+.bt-cay-sua { position: relative; }
+.bt-cay-sua > summary { list-style: none; cursor: pointer; padding: 0 6px; border-radius: var(--r-sm); color: var(--ink-3); }
+.bt-cay-sua > summary::-webkit-details-marker { display: none; }
+.bt-cay-sua > summary:hover { background: var(--surface-2); color: var(--ink); }
+.bt-cay-sua[open] > summary { background: var(--accent-soft); color: var(--accent); }
+.bt-cay-sua > form { margin-top: var(--sp-1); padding: var(--sp-2); background: var(--surface-2); border-radius: var(--r-sm); }

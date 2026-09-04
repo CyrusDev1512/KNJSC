@@ -184,8 +184,22 @@
 
   // ── Thanh công cụ ──
   document.addEventListener("click", function (e) {
-    var nut = e.target.closest && e.target.closest(".bt-them-dong, .bt-loc-o, .bt-an-cot, .bt-thu-ben");
+    var nut = e.target.closest && e.target.closest(".bt-them-dong, .bt-loc-o, .bt-an-cot, .bt-thu-ben, .bt-thu-muc-moi");
     if (!nut) return;
+    if (nut.classList.contains("bt-thu-muc-moi")) {
+      var form = document.getElementById("bt-form-thu-muc");
+      if (!form) return;
+      if (BO_CUC && BO_CUC.classList.contains("thu-gon")) {
+        BO_CUC.classList.remove("thu-gon");
+        nho("knjsc-bt-ben", null);
+      }
+      form.hidden = !form.hidden;
+      Array.prototype.forEach.call(document.querySelectorAll(".bt-thu-muc-moi"), function (n) {
+        n.setAttribute("aria-expanded", form.hidden ? "false" : "true");
+      });
+      if (!form.hidden) form.querySelector("input[name=name]").focus();
+      return;
+    }
     if (nut.classList.contains("bt-them-dong")) {
       var o = LUOI.querySelector("tr.dong-moi input");
       if (o) { o.focus(); o.scrollIntoView({ block: "nearest" }); }

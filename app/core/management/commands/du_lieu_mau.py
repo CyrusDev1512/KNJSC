@@ -137,6 +137,7 @@ class Command(BaseCommand):
         self._san_pham()                     # trước bảng vận đơn: cột sl_* theo sản phẩm
         self._bang_van_don(nguoi["quantri"])
         self._bao_cao_marketing(bo_phan, nguoi)
+        self._thu_muc(nguoi)
 
         self._bao_cao_ket_qua(nguoi)
 
@@ -213,6 +214,28 @@ class Command(BaseCommand):
         bang = dispatch_service.ensure_waybill_table(actor=quan_tri)
         self.da_tao["bảng"] += int(not da_co)
         return bang
+
+    @transaction.atomic
+    def _thu_muc(self, nguoi):
+        """Mỗi bộ phận một thư mục chứa bảng của mình — để thanh bên Bảng tính
+        có cây mà xem (ADR-010). Chạy lại được: đã có thì thôi."""
+        from forms_builder.models import Folder, TableDef
+        from forms_builder.services import folder_service
+        from orders.constants import WAYBILL_TABLE_CODE
+
+        for ten, ma_bang, ten_dn in (("Vận đơn 2026", WAYBILL_TABLE_CODE, "vd.manager"),
+                                     ("Báo cáo 2026", "bao_cao_mkt", "mkt.manager")):
+            bang = TableDef.objects.filter(code=ma_bang).select_related("department").first()
+            if bang is None:
+                continue
+            thu_muc = Folder.objects.filter(department=bang.department, name=ten).first()
+            if thu_muc is None:
+                thu_muc = folder_service.create_folder(
+                    name=ten, department=bang.department, actor=nguoi[ten_dn])
+                self.da_tao.setdefault("thư mục", 0)
+                self.da_tao["thư mục"] += 1
+            if bang.folder_id is None:
+                folder_service.move_table(bang, thu_muc, actor=nguoi[ten_dn])
 
     @transaction.atomic
     def _bao_cao_marketing(self, bo_phan, nguoi):

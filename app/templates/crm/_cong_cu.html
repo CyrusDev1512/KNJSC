@@ -14,7 +14,7 @@ sua_cot_url, bang_du_lieu_url.
   <div class="bt-nhom">
     {% if duoc_them_dong %}<button class="nut nut-nho bt-them-dong" type="button" title="Đưa con trỏ tới dòng trống cuối lưới">Thêm dòng</button>{% endif %}
     {% if duoc_sua_cot %}<a class="nut nut-nho" href="{{ sua_cot_url }}">Thêm cột</a>{% endif %}
-    <button class="nut nut-nho" type="button" disabled title="Giai đoạn sau">Thư mục mới</button>
+    {% if duoc_quan_ly_thu_muc %}<button class="nut nut-nho bt-thu-muc-moi" type="button" aria-expanded="false" aria-controls="bt-form-thu-muc">Thư mục mới</button>{% else %}<button class="nut nut-nho" type="button" disabled title="Chỉ quản lý của bộ phận mới tạo thư mục">Thư mục mới</button>{% endif %}
   </div>
   <span class="bt-ngan"></span>
   <div class="bt-nhom bt-dinh-dang" data-url="{% url 'bang_tinh_dinh_dang' bang.code %}">

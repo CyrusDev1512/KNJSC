@@ -130,6 +130,17 @@ def is_grid_only(table):
     return table.code in getattr(settings, "GRID_ONLY_TABLES", ())
 
 
+def can_manage_folders(user, department):
+    """Ai tạo, đổi tên, xoá thư mục và xếp bảng vào thư mục — ADR-010:
+    Admin, hoặc Manager của chính bộ phận đó."""
+    if is_admin(user):
+        return True
+    ho_so = getattr(user, "profile", None)
+    if ho_so is None:
+        return False
+    return ho_so.department_id == getattr(department, "pk", department) and ho_so.rank == Rank.MANAGER
+
+
 def can_create_record(user, table):
     """Người này thêm được dòng thẳng trên lưới Bảng tính không — ADR-010.
 

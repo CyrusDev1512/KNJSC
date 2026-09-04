@@ -21,6 +21,7 @@ from core.models import ScopedModel, SoftDeleteModel, TimestampedModel
 from core.money import MONEY_DECIMAL_PLACES, MONEY_MAX_DIGITS
 
 from .managers import (
+    AllFolderManager, FolderManager,
     AllDataRecordManager, AllFormDefManager, AllTableDefManager,
     DataRecordManager, FormDefManager, TableDefManager,
 )
@@ -46,6 +47,44 @@ class ComputeOp(models.TextChoices):
     PERCENT = "percent", "Phần trăm — A ÷ B × 100"
 
 
+# ══ THƯ MỤC ═══════════════════════════════════════════════════════
+
+class Folder(ScopedModel):
+    """Thư mục chứa bảng — ADR-010. Phẳng, không lồng nhau; thuộc về một bộ
+    phận; Manager của bộ phận đó tạo, đổi tên, xoá (xoá mềm, bảng trong đó về
+    "không thư mục"). Chỉ để sắp xếp thanh bên Bảng tính, không ảnh hưởng
+    phạm vi quyền."""
+
+    SCOPE_OWNER_FIELD = "created_by"
+    SCOPE_TEAM_FIELD = None
+    SCOPE_DEPARTMENT_FIELD = "department"
+
+    objects = FolderManager()
+    all_objects = AllFolderManager()
+
+    name = models.CharField("Tên thư mục", max_length=120)
+    department = models.ForeignKey(
+        "org.Department", verbose_name="Bộ phận", on_delete=models.PROTECT,
+        related_name="folders", db_index=True,
+    )
+    order = models.PositiveSmallIntegerField("Thứ tự", default=0)
+
+    class Meta:
+        verbose_name = "Thư mục"
+        verbose_name_plural = "Thư mục"
+        ordering = ["department", "order", "name"]
+        constraints = [
+            # Trong một bộ phận không hai thư mục đang dùng cùng tên
+            models.UniqueConstraint(
+                fields=["department", "name"], name="folder_name_unique_per_department",
+                condition=models.Q(deleted_at__isnull=True),
+            ),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
 # ══ ĐỊNH NGHĨA BẢNG ═══════════════════════════════════════════════
 
 class TableDef(ScopedModel):
@@ -69,6 +108,11 @@ class TableDef(ScopedModel):
     department = models.ForeignKey(
         "org.Department", verbose_name="Bộ phận sở hữu",
         on_delete=models.PROTECT, related_name="tables", db_index=True,
+    )
+    # Thư mục chứa bảng — ADR-010. Xoá thư mục thì bảng về "không thư mục"
+    folder = models.ForeignKey(
+        Folder, verbose_name="Thư mục", null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="tables", db_index=True,
     )
     is_active = models.BooleanField("Đang dùng", default=True, db_index=True)
     is_shared = models.BooleanField(

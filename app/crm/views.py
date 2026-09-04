@@ -20,9 +20,9 @@ from core.audit import record_denied
 from core.constants import GRID_FORMAT_CELLS_MAX, GRID_PAGE_SIZE, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import PAGE_SIZES, page_size, paginate
-from core.permissions import has_rank
-from forms_builder.models import DataRecord, TableDef
-from forms_builder.services import export_service, grant_service, record_service
+from core.permissions import assert_rank, has_rank
+from forms_builder.models import DataRecord, Folder, TableDef
+from forms_builder.services import export_service, folder_service, grant_service, record_service
 from orders.constants import WAYBILL_TABLE_CODE
 
 from .services import grid_service, sidebar_service
@@ -87,7 +87,11 @@ def bang_tinh_xem(request, code):
     ]
     vd = luoi.is_waybill
     duoc_them = grant_service.can_create_record(request.user, bang)
+    cay = folder_service.tree(request.user)
     return render(request, "crm/bang_tinh.html", {
+        "cay": cay,
+        "cac_thu_muc": [t for t, _ in cay if t is not None and t.department_id == bang.department_id],
+        "duoc_quan_ly_thu_muc": grant_service.can_manage_folders(request.user, bang.department),
         "bang": bang, "luoi": luoi, "cac_cot": luoi.columns, "la_van_don": vd,
         "cac_tieu_de": grid_service.header_columns(luoi.columns, luoi.filters, waybill=vd),
         "cac_dong": grid_service.rows(trang.object_list, luoi.columns, request.user, waybill=vd),
@@ -107,7 +111,7 @@ def bang_tinh_xem(request, code):
         "so_cot_co_dinh": len(grid_service.frozen_columns(luoi.columns, waybill=vd)),
         "cot_khoa": luoi.key_column,
         "ben": sidebar_service.context(request.user, bang, luoi.columns, request.GET),
-        "cac_bang": _cac_bang(request.user),
+        "cac_bang": [b for _, cac in cay for b in cac],
     })
 
 
@@ -309,6 +313,88 @@ def bang_tinh_dinh_dang(request, code):
             "style": grid_service.frozen_style(cd, offset=lech),
         }, request))
     return HttpResponse("".join(manh))
+
+
+# ── Thư mục chứa bảng — ADR-010 ───────────────────────────────────
+
+def _kiem_quan_ly_thu_muc(request, department):
+    """Manager của bộ phận đó hoặc Admin; không thì 403 có ghi nhật ký."""
+    assert_rank(request.user, Rank.MANAGER, request)
+    if not grant_service.can_manage_folders(request.user, department):
+        record_denied(request.user, request.path, request)
+        raise OutOfScopeError("Chỉ quản lý của bộ phận này mới sắp xếp được thư mục.")
+
+
+def _thu_muc(request, pk):
+    return get_object_or_404(Folder.objects.in_scope(request.user).select_related("department"), pk=pk)
+
+
+def _ve(request):
+    """Quay về bảng đang mở (tham số `ve`), hoặc bảng mặc định."""
+    ma = request.POST.get("ve", "")
+    if ma and _cac_bang(request.user).filter(code=ma).exists():
+        return redirect("bang_tinh_xem", code=ma)
+    return redirect("bang_tinh")
+
+
+@login_required
+@require_POST
+def thu_muc_moi(request):
+    """Tạo thư mục trong bộ phận của bảng đang mở."""
+    bang = _bang(request, request.POST.get("ve", ""))
+    _kiem_quan_ly_thu_muc(request, bang.department)
+    try:
+        thu_muc = folder_service.create_folder(
+            name=request.POST.get("name", ""), department=bang.department,
+            actor=request.user, request=request,
+        )
+    except BusinessError as loi:
+        messages.error(request, str(loi))
+    else:
+        messages.success(request, f"Đã tạo thư mục {thu_muc.name}.")
+    return _ve(request)
+
+
+@login_required
+@require_POST
+def thu_muc_sua(request, pk):
+    thu_muc = _thu_muc(request, pk)
+    _kiem_quan_ly_thu_muc(request, thu_muc.department)
+    try:
+        folder_service.rename_folder(thu_muc, request.POST.get("name", ""), actor=request.user, request=request)
+    except BusinessError as loi:
+        messages.error(request, str(loi))
+    else:
+        messages.success(request, f"Đã đổi tên thư mục thành {thu_muc.name}.")
+    return _ve(request)
+
+
+@login_required
+@require_POST
+def thu_muc_xoa(request, pk):
+    thu_muc = _thu_muc(request, pk)
+    _kiem_quan_ly_thu_muc(request, thu_muc.department)
+    ten = thu_muc.name
+    so_bang = folder_service.delete_folder(thu_muc, actor=request.user, request=request)
+    messages.success(request, f"Đã xoá thư mục {ten}; {so_bang} bảng về không thư mục.")
+    return _ve(request)
+
+
+@login_required
+@require_POST
+def bang_tinh_chuyen_thu_muc(request, code):
+    """Xếp bảng đang mở vào một thư mục cùng bộ phận (rỗng = bỏ ra ngoài)."""
+    bang = _bang(request, code)
+    _kiem_quan_ly_thu_muc(request, bang.department)
+    ma_thu_muc = request.POST.get("folder", "")
+    thu_muc = _thu_muc(request, ma_thu_muc) if ma_thu_muc else None
+    try:
+        folder_service.move_table(bang, thu_muc, actor=request.user, request=request)
+    except BusinessError as loi:
+        messages.error(request, str(loi))
+    else:
+        messages.success(request, f"Bảng {bang.name} giờ ở {thu_muc.name if thu_muc else 'không thư mục'}.")
+    return redirect("bang_tinh_xem", code=bang.code)
 
 
 @login_required

@@ -9,7 +9,12 @@ from . import views
 
 urlpatterns = [
     path("bang-tinh/", views.bang_tinh, name="bang_tinh"),
+    # Thư mục đứng trước `<slug:code>` để "thu-muc" không bị hiểu là mã bảng
+    path("bang-tinh/thu-muc/moi/", views.thu_muc_moi, name="thu_muc_moi"),
+    path("bang-tinh/thu-muc/<int:pk>/sua/", views.thu_muc_sua, name="thu_muc_sua"),
+    path("bang-tinh/thu-muc/<int:pk>/xoa/", views.thu_muc_xoa, name="thu_muc_xoa"),
     path("bang-tinh/<slug:code>/", views.bang_tinh_xem, name="bang_tinh_xem"),
+    path("bang-tinh/<slug:code>/chuyen-thu-muc/", views.bang_tinh_chuyen_thu_muc, name="bang_tinh_chuyen_thu_muc"),
     path("bang-tinh/<slug:code>/loc/<slug:ma_cot>/", views.bang_tinh_loc_cot, name="bang_tinh_loc_cot"),
     path("bang-tinh/<slug:code>/o/<int:pk>/<slug:ma_cot>/", views.bang_tinh_o, name="bang_tinh_o"),
     path("bang-tinh/<slug:code>/xuat/", views.bang_tinh_xuat, name="bang_tinh_xuat"),
