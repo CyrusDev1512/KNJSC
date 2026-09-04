@@ -48,6 +48,9 @@ Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.
 `tao_bang_van_don` ngay sau `migrate`, vì bảng này là bảng động (quyết định
 001) nên `migrate` không sinh ra nó. Thiếu bảng thì màn hình Bảng tính trả 404.
 
+**Bảng tính** (`/bang-tinh/<mã bảng>/`) là lưới kiểu Excel cho mọi bảng trong
+phạm vi quyền — ADR-010. Bảng vận đơn sửa ở cổng 8021, xem ở 8020 (ADR-009).
+
 ### Chạy kiểm thử
 
 ```

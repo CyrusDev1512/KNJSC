@@ -54,7 +54,7 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 
 | ☐ | Bước | Đạt khi | Mã |
 |---|---|---|---|
-| ☐ | Đăng nhập, nhìn thanh bên | Có Lên đơn, Đơn hàng, Bảng dữ liệu; **không** có Bảng tính, Nhân sự, Nhật ký | AC-3.6 |
+| ☐ | Đăng nhập, nhìn thanh bên | Có Lên đơn, Đơn hàng, Bảng dữ liệu, Bảng tính (mở bảng của Sale, không thấy bảng vận đơn); **không** có Nhân sự, Nhật ký | AC-3.6, AC-11.12 |
 | ☐ | Lên đơn cho khách mới, thị trường Canada, 2 sản phẩm, tiền CAD | Đơn lưu, mã `DH-…`, tổng tiền đúng | AC-6.1, AC-6.2 |
 | ☐ | Mở Bảng dữ liệu → Bảng vận đơn | Thấy dòng vừa lên: đủ tên khách, số điện thoại, **số lượng từng sản phẩm** ở đúng cột, Quốc gia Canada, Loại tiền CAD, trạng thái "Đã lên đơn" | AC-6.3, AC-11.8 |
 | ☐ | Bấm vào một ô trên bảng vận đơn | Ô **không** sửa được, có dòng báo "Bảng này chỉ xem ở đây" và nút Mở Bảng tính | AC-11.7 |
@@ -73,6 +73,12 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 | ☐ | Mở Bảng dữ liệu → Báo cáo Marketing → **Nhập tệp**, chọn chính tệp vừa xuất | Xem trước ghi đúng cột khớp cột; Xác nhận → tác vụ chạy, "Không có dòng lỗi" | AC-7.7 |
 | ☐ | Nhập một tệp `.exe` đổi đuôi `.xlsx` (tạo bằng cách đổi tên bất kỳ tệp nào) | Bị từ chối ngay, thông báo tiếng Việt | AC-7.9 |
 | ☐ | Tắt wifi giữa lúc bấm Lọc, rồi bật lại | Trình duyệt báo mất mạng, bật lại bấm lại thì chạy tiếp, không mất dữ liệu đã lưu | mục 12.7 |
+| ☐ | `mkt.manager` vào **Bảng tính** trên thanh bên (`localhost:8020/bang-tinh/`) | Mở bảng Báo cáo Marketing; mọi ô có viền; thanh công cụ đủ: Nhập, Xuất Excel, Thêm dòng, Thêm cột, Thư mục mới, B, Màu nền, Cỡ, căn lề, Gỡ định dạng, Lọc theo ô này, Bỏ mọi lọc, Ẩn/hiện cột | **AC-11.12**, **AC-11.18** |
+| ☐ | Thanh bên trái: bấm **Hôm qua**, rồi gõ Từ ngày / Đến ngày, rồi tích hai sản phẩm và Áp dụng | Số dòng đổi theo, chip lọc hiện ở trên; Xuất Excel khi đang lọc ra đúng số dòng đó | AC-11.13 |
+| ☐ | Gõ vào dòng trống cuối lưới: ngày, marketer, sản phẩm; nhấn Enter | Dòng thành dòng thật ngay, không tải lại trang; vẫn còn dòng trống để gõ tiếp; gõ ngày sai thì ô đỏ kèm lý do, giá trị đã gõ còn nguyên | AC-11.14 |
+| ☐ | Bấm một ô, Shift+bấm ô khác để chọn vùng, bấm **B** rồi **Màu nền → vàng**, chọn **Cỡ 16**, căn giữa | Cả vùng đổi ngay; đăng nhập `mkt.staff` mở cùng bảng thấy y hệt; Gỡ định dạng thì về như cũ | **AC-11.15** |
+| ☐ | Bấm **Thư mục mới**, đặt tên, rồi chọn thư mục đó ở ô "Bảng này ở thư mục" | Cây bên trái có thư mục chứa bảng; `mkt.staff` thấy cây nhưng không có nút tạo; đổi tên, xoá thư mục thì bảng về không thư mục | AC-11.17 |
+| ☐ | Ẩn hai cột bằng **Ẩn/hiện cột**, tải lại trang; thu gọn thanh bên | Cột vẫn ẩn, thanh bên vẫn gọn (nhớ trên trình duyệt) | AC-11.18 |
 
 ### 3.3. Vận đơn — `vd.staff`
 
@@ -93,6 +99,9 @@ Mở `http://localhost:8021/bang-tinh/`. Đây là màn hình làm việc của 
 | ☐ | Sau khi nhập, lọc cột Nhân viên vận đơn | Danh sách có PHUONGVH, TIENNLT… kèm số dòng | AC-11.2 |
 | ☐ | Bấm Xuất Excel khi đang lọc, mở bằng Excel | Chỉ có các dòng đang lọc, tiêu đề là tên cột tiếng Việt, ngày là ngày thật | AC-7.7, ADR-002 |
 | ☐ | Mở lưới trên điện thoại (hoặc thu cửa sổ còn 400px) | Không tràn ngang cả trang, lưới cuộn trong khung, bấm được ô | **AC-11.11**, AC-10.4 |
+| ☐ | Bấm **⌕** cạnh một Mã đơn | Lưới còn đúng đơn đó, chip lọc "Mã đơn = …" ở trên, bộ lọc cũ vẫn giữ | AC-11.16 |
+| ☐ | Gõ vào dòng trống cuối lưới một vận đơn mới (mã, tên khách, số điện thoại), Enter | Dòng thật xuất hiện, cột Trùng tính ngay nếu trùng số; ở `localhost:8020/bang-tinh/van_don/` thì **không** có dòng trống (chỉ xem) | AC-11.14, AC-11.7 |
+| ☐ | Tô nền đỏ một ô Ghi chú ở 8021, rồi mở cùng bảng ở 8020 bằng `quantri` | Ô đỏ ở cả hai nơi; ở 8020 nút định dạng không làm gì (bảng chỉ xem) | AC-11.15 |
 
 ### 3.4. Quản trị — `quantri`
 
