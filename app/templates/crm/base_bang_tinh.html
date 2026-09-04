@@ -7,9 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-<link rel="stylesheet" href="{% static 'css/main.css' %}">
-<link rel="stylesheet" href="{% static 'css/bang-tinh.css' %}">
+<link rel="stylesheet" href="{% static 'css/tokens.css' %}?v={{ phien_ban_tinh }}">
+<link rel="stylesheet" href="{% static 'css/main.css' %}?v={{ phien_ban_tinh }}">
+<link rel="stylesheet" href="{% static 'css/bang-tinh.css' %}?v={{ phien_ban_tinh }}">
 <script>
   /* Đặt nền trước khi vẽ để tránh nháy sáng */
   try { var n = localStorage.getItem("knjsc-nen"); if (n) document.documentElement.dataset.theme = n; } catch (e) {}
@@ -84,7 +84,7 @@ bảng, ô đổi bảng, nút nền, người dùng và một menu ☰ dẫn v�
   });
 </script>
 
-<script src="{% static 'js/htmx.min.js' %}" defer></script>
+<script src="{% static 'js/htmx.min.js' %}?v={{ phien_ban_tinh }}" defer></script>
 {% block cuoi_trang %}{% endblock %}
 {% endif %}
 </body>
