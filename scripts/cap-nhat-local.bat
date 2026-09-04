@@ -59,6 +59,10 @@ if %DEM% geq 60 (
 goto :doi_web
 
 :web_ok
+rem Ma moi vao container qua thu muc gan ngoai, container khong dung lai nen
+rem migrate trong entrypoint khong chay lai - goi tuong minh
+%COMPOSE% exec -T web python manage.py migrate --noinput
+%COMPOSE% exec -T web python manage.py tao_bang_van_don
 %COMPOSE% exec -T web python manage.py du_lieu_mau
 start "" %DIA_CHI%
 echo.
