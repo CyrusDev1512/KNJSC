@@ -41,7 +41,8 @@ docker compose -f deploy/docker-compose.yml exec web python manage.py du_lieu_ma
 xong là hệ thống trống, **không có tài khoản nào để đăng nhập**. `du_lieu_mau`
 tạo 12 tài khoản ba bộ phận bốn cấp bậc, bảng Báo cáo Marketing với số liệu
 thật, biểu mẫu và sản phẩm. Mật khẩu in ra cuối lệnh. Tài khoản `quantri` vào
-được cả trang quản trị Django ở `/quan-tri/`.
+được cả trang quản trị Django ở `/quan-tri/`. Danh sách đầy đủ 12 tài khoản
+kèm mật khẩu ở `docs/tai-khoan-mau.md`.
 
 Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.sh` gọi
 `tao_bang_van_don` ngay sau `migrate`, vì bảng này là bảng động (quyết định
