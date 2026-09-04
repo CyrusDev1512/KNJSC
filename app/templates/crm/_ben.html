@@ -1,0 +1,69 @@
+{% comment %}
+Thanh bên trái của Bảng tính — ADR-010: danh sách bảng, chọn nhanh khoảng
+ngày, từ ngày / đến ngày, sản phẩm. Không tham số mới: ngày viết vào
+`f_<cột ngày>__lon_bang` và `__nho_bang`, sản phẩm vào `f_<cột>__trong` hoặc
+`sp`. Khối nào bảng không có cột tương ứng thì không vẽ.
+Cần: bang, cac_bang, ben (sidebar_service.context).
+{% endcomment %}
+<aside class="bt-ben" id="bt-ben" aria-label="Bộ lọc và danh sách bảng">
+  <button class="nut nut-nho bt-thu-ben" type="button" title="Thu gọn hoặc mở thanh bên" aria-label="Thu gọn thanh bên">‹</button>
+
+  <section class="bt-ben-muc">
+    <h2 class="bt-ben-tieu-de">Bảng</h2>
+    <ul class="bt-cay">
+      {% for b in cac_bang %}
+        <li class="bt-cay-muc">
+          {% if b.pk == bang.pk %}
+            <a class="bt-cay-bang dang-mo" href="{% url 'bang_tinh_xem' b.code %}" aria-current="page">{{ b.name }}</a>
+          {% else %}
+            <a class="bt-cay-bang" href="{% url 'bang_tinh_xem' b.code %}">{{ b.name }}</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  {% if ben.cot_ngay %}
+    <section class="bt-ben-muc">
+      <h2 class="bt-ben-tieu-de">Chọn nhanh</h2>
+      <div class="bt-chon-nhanh">
+        {% for ma, nhan, qs, bat, lop in ben.chon_nhanh %}
+          <a class="{{lop}}" href="?{{ qs }}"{% if bat %} aria-current="true"{% endif %}>{{ nhan }}</a>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="bt-ben-muc">
+      <h2 class="bt-ben-tieu-de">Khoảng ngày</h2>
+      <form class="bt-ben-form" method="get" action="{% url 'bang_tinh_xem' bang.code %}">
+        {% for k, v in ben.giu_ngay %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+        <label for="bt-tu">Từ ngày</label>
+        <input class="o-nhap" type="date" id="bt-tu" name="{{ ben.k_tu }}" value="{{ ben.tu }}">
+        <label for="bt-den">Đến ngày</label>
+        <input class="o-nhap" type="date" id="bt-den" name="{{ ben.k_den }}" value="{{ ben.den }}">
+        <button class="nut nut-nho nut-chinh" type="submit">Áp dụng</button>
+      </form>
+    </section>
+  {% endif %}
+
+  {% if ben.san_pham.kind %}
+    <section class="bt-ben-muc">
+      <h2 class="bt-ben-tieu-de">Sản phẩm</h2>
+      <form class="bt-ben-form" method="get" action="{% url 'bang_tinh_xem' bang.code %}">
+        {% for k, v in ben.giu_san_pham %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+        <label class="bt-ben-chon"><input type="checkbox" class="bt-tat-ca"> <span class="bt-ben-nhan">Tất cả</span></label>
+        <div class="bt-ben-ds">
+          {% for gt, nhan, so, chon in ben.san_pham.items %}
+            <label class="bt-ben-chon">
+              <input type="checkbox" name="{{ ben.san_pham.param }}" value="{{ gt }}"{% if chon %} checked{% endif %}>
+              <span class="bt-ben-nhan">{{ nhan }}</span>
+              {% if so is not None %}<span class="bt-ben-so">{{ so }}</span>{% endif %}
+            </label>
+          {% empty %}
+            <div class="nho mo-nhat">Chưa có sản phẩm nào.</div>
+          {% endfor %}
+        </div>
+        <button class="nut nut-nho nut-chinh" type="submit">Áp dụng</button>
+      </form>
+    </section>
+  {% endif %}
+</aside>

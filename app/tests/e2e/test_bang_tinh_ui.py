@@ -157,3 +157,26 @@ def test_cot_dau_va_tieu_de_dung_yen_khi_cuon(live_server, trang, dang_nhap, du_
     assert sau["thuong"] < truoc["thuong"] - 500, "cột thường phải trôi theo cuộn"
     assert sau["coDinh"] >= truoc["khung"], "cột cố định vẫn nằm trong khung nhìn"
     chup(trang, "bang-tinh-cuon-ngang")
+
+
+def test_dong_trong_thanh_dong_that_va_loc_theo_o_khoa(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
+    """AC-11.14 — Gõ vào dòng trống rồi nhấn Enter thì dòng thật xuất hiện không tải lại trang; AC-11.16 — bấm ⌕ ở ô Mã đơn thì lưới lọc còn đúng dòng đó"""
+    with override_settings(GRID_ONLY_TABLES=set()):
+        dang_nhap(trang, nguoi_dung["staff_vd"])
+        trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
+        so_dong_truoc = trang.locator("tbody tr[data-dong]").count()
+        assert trang.locator("tr.dong-moi").count() >= 1
+
+        o = trang.locator("tr.dong-moi").first.locator('input[name="ma_don"]')
+        o.fill("DH-MOI")
+        trang.locator("tr.dong-moi").first.locator('input[name="ten_khach"]').fill("Khách gõ tay")
+        trang.keyboard.press("Enter")
+        trang.wait_for_selector('td[data-cot="ten_khach"]:has-text("Khách gõ tay")')
+        assert trang.locator("tbody tr[data-dong]").count() == so_dong_truoc + 1
+        assert trang.locator("tr.dong-moi").count() >= 1          # vẫn còn dòng trống để gõ tiếp
+        assert "/bang-tinh/van_don/?sap=ma_don" in trang.url      # không tải lại trang
+
+        # ⌕ ở ô Mã đơn lọc theo giá trị đó
+        trang.locator('td[data-cot="ma_don"]:has-text("DH-1") .o-khoa-loc').click()
+        trang.wait_for_url("**/bang-tinh/van_don/?*f_ma_don=DH-1*")
+        assert trang.locator("tbody tr[data-dong]").count() == 1

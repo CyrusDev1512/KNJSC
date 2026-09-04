@@ -1,0 +1,34 @@
+{% comment %}
+Thanh công cụ của Bảng tính — ADR-010. Mọi nút là liên kết hoặc nút thật; nút
+của giai đoạn sau để `disabled` kèm lời giải thích, không giả vờ chạy.
+Cần: bang, qs_giu, duoc_nhap, nhap_url, duoc_them_dong, duoc_sua_cot,
+sua_cot_url, bang_du_lieu_url.
+{% endcomment %}
+<div class="bt-cong-cu" role="toolbar" aria-label="Công cụ bảng tính">
+  <div class="bt-nhom">
+    {% if duoc_nhap %}<a class="nut nut-nho" href="{{ nhap_url }}">Nhập Excel</a>{% endif %}
+    <a class="nut nut-nho" href="{% url 'bang_tinh_xuat' bang.code %}{% if qs_giu %}?{{ qs_giu }}{% endif %}" title="Xuất đúng lưới đang hiện, kèm bộ lọc">Xuất Excel</a>
+  </div>
+  <span class="bt-ngan"></span>
+  <div class="bt-nhom">
+    {% if duoc_them_dong %}<button class="nut nut-nho bt-them-dong" type="button" title="Đưa con trỏ tới dòng trống cuối lưới">Thêm dòng</button>{% endif %}
+    {% if duoc_sua_cot %}<a class="nut nut-nho" href="{{ sua_cot_url }}">Thêm cột</a>{% endif %}
+    <button class="nut nut-nho" type="button" disabled title="Giai đoạn sau">Thư mục mới</button>
+  </div>
+  <span class="bt-ngan"></span>
+  <div class="bt-nhom bt-dinh-dang">
+    <button class="nut nut-nho" type="button" disabled title="Giai đoạn sau"><b>B</b></button>
+    <button class="nut nut-nho" type="button" disabled title="Giai đoạn sau">Màu nền</button>
+    <button class="nut nut-nho" type="button" disabled title="Giai đoạn sau">Cỡ chữ</button>
+    <button class="nut nut-nho" type="button" disabled title="Giai đoạn sau">Căn lề</button>
+    <button class="nut nut-nho" type="button" disabled title="Giai đoạn sau">Gỡ định dạng</button>
+  </div>
+  <span class="bt-ngan"></span>
+  <div class="bt-nhom">
+    <button class="nut nut-nho bt-loc-o" type="button" title="Lọc lưới theo giá trị của ô đang chọn">Lọc theo ô này</button>
+    <a class="nut nut-nho" href="{% url 'bang_tinh_xem' bang.code %}">Bỏ mọi lọc</a>
+    <button class="nut nut-nho bt-an-cot" type="button" aria-expanded="false" aria-controls="bt-an-cot-hop">Ẩn/hiện cột</button>
+  </div>
+  <a class="nut nut-nho bt-cuoi" href="{{ bang_du_lieu_url }}">Bảng dữ liệu</a>
+</div>
+<div id="bt-an-cot-hop" class="bt-an-cot-hop" hidden></div>

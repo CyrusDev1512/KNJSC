@@ -83,7 +83,7 @@ class NguoiVanDon(HttpUser):
 
     @task(2)
     def hop_loc(self):
-        self.client.get("/bang-tinh/loc/trang_thai_vc/", name="/bang-tinh/loc/<cot>/")
+        self.client.get("/bang-tinh/van_don/loc/trang_thai_vc/", name="/bang-tinh/van_don/loc/<cot>/")
 
     @task(1)
     def sua_o(self):
@@ -93,7 +93,7 @@ class NguoiVanDon(HttpUser):
         token = self.client.cookies.get("csrftoken", "")
         self.client.post(duong, {"gia_tri": random.choice(TRANG_THAI), "csrfmiddlewaretoken": token},
                          headers={"Referer": self.client.base_url + "/bang-tinh/", "X-CSRFToken": token},
-                         name="/bang-tinh/o/<pk>/<cot>/ [POST]")
+                         name="/bang-tinh/van_don/o/<pk>/<cot>/ [POST]")
 
 
 class NguoiMarketing(HttpUser):

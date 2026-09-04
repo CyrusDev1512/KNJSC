@@ -26,6 +26,9 @@ from .managers import (
 )
 from .meaning import COLUMN_OF, FieldType, Meaning, allows, type_fits
 
+#: Kiểu dữ liệu được làm cột khoá — chuỗi ngắn hoặc số nguyên, thứ so bằng được
+KEY_TYPES = (FieldType.TEXT, FieldType.INTEGER)
+
 CODE_HELP = "Tên kỹ thuật, tiếng Anh, dùng làm khoá trong cơ sở dữ liệu."
 
 
@@ -116,6 +119,12 @@ class ColumnDef(TimestampedModel):
     )
     required = models.BooleanField("Bắt buộc nhập", default=False)
     order = models.PositiveSmallIntegerField("Thứ tự", default=0)
+    # Cột khoá: giá trị nhận diện dòng (mã đơn, mã khách). Trên Bảng tính bấm
+    # ô này là lọc được theo giá trị đó — ADR-010. Mỗi bảng tối đa một cột.
+    is_key = models.BooleanField(
+        "Cột khoá", default=False,
+        help_text="Giá trị nhận diện dòng; bấm ô này trên Bảng tính để lọc nhanh. Mỗi bảng một cột.",
+    )
 
     # ── Cột tính sẵn — ADR-006 ──
     is_computed = models.BooleanField("Là cột tính sẵn", default=False)
@@ -138,6 +147,11 @@ class ColumnDef(TimestampedModel):
             models.UniqueConstraint(
                 fields=["table", "meaning"], name="column_meaning_unique_per_table",
                 condition=~models.Q(meaning=""),
+            ),
+            # Mỗi bảng một cột khoá — ADR-010
+            models.UniqueConstraint(
+                fields=["table"], name="column_key_unique_per_table",
+                condition=models.Q(is_key=True),
             ),
         ]
 
@@ -173,6 +187,25 @@ class ColumnDef(TimestampedModel):
                     'Nhãn %(nhan)s đã gán cho cột "%(cot)s" trong bảng này.',
                     params={"nhan": Meaning(self.meaning).label, "cot": trung.name},
                 )
+
+        if self.is_key:
+            if self.is_computed:
+                loi["is_key"] = ValidationError("Cột tính sẵn không làm cột khoá được.")
+            elif self.field_type not in KEY_TYPES:
+                loi["is_key"] = ValidationError(
+                    "Cột khoá phải là kiểu Chữ ngắn hoặc Số nguyên."
+                )
+            else:
+                khoa_khac = (
+                    ColumnDef.objects.filter(table_id=self.table_id, is_key=True)
+                    .exclude(pk=self.pk)
+                    .first()
+                )
+                if khoa_khac is not None:
+                    loi["is_key"] = ValidationError(
+                        'Bảng đã có cột khoá "%(cot)s". Bỏ khoá ở cột đó trước.',
+                        params={"cot": khoa_khac.name},
+                    )
 
         if self.is_computed:
             if not self.compute_op:
@@ -263,6 +296,10 @@ class DataRecord(ScopedModel):
         related_name="records", db_index=True,
     )
     data = models.JSONField("Dữ liệu", default=dict, blank=True)
+    # Định dạng từng ô — ADR-010: `{"<mã cột>": {"b": 1, "bg": "vang", "fs": 12, "al": "c"}}`.
+    # Khoá và giá trị nằm trong sổ đóng `record_service.STYLE_SCHEMA`. Không
+    # lọc theo cột này nên không cần chỉ mục GIN.
+    style = models.JSONField("Định dạng ô", default=dict, blank=True)
 
     department = models.ForeignKey(
         "org.Department", verbose_name="Bộ phận",

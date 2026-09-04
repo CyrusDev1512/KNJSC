@@ -91,3 +91,112 @@ tr.dong-tot td.co-dinh { box-shadow: inset 3px 0 0 var(--good), 1px 0 0 var(--ru
   .luoi-vd .co-dinh:not(:first-child) { position: static; box-shadow: none; }
   .loc-cot-hop { left: var(--sp-2) !important; right: var(--sp-2); max-width: none; }
 }
+
+/* ══ ADR-010 — lưới cho mọi bảng: viền kiểu Excel, thanh bên, thanh công cụ,
+   dòng trống, cột khoá ═══════════════════════════════════════════════════ */
+
+/* Viền mọi ô, cả dọc lẫn ngang. Dùng `separate` để ô cố định (sticky) vẫn
+   giữ viền của mình khi cuộn; `collapse` làm viền dính vào ô kế bên và biến mất. */
+.luoi-vd table.bang { border-collapse: separate; border-spacing: 0; }
+.luoi-vd table.bang th, .luoi-vd table.bang td {
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  border-top: 0;
+}
+.luoi-vd table.bang thead th { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule-strong); }
+.luoi-vd table.bang tr > :first-child { border-left: 1px solid var(--rule); }
+.luoi-vd .co-dinh { box-shadow: none; }
+.luoi-vd tbody td { background: var(--surface); }
+.luoi-vd tbody tr:hover td { background: var(--surface-2); }
+
+.bt-dau { margin-bottom: var(--sp-2); }
+
+/* Bố cục: thanh bên trái + lưới. Thu gọn thì thanh bên chỉ còn nút mở. */
+.bt-bo-cuc { display: flex; gap: var(--sp-3); align-items: flex-start; }
+.bt-chinh { flex: 1 1 0; min-width: 0; }
+.bt-ben {
+  flex: 0 0 240px; position: relative;
+  display: flex; flex-direction: column; gap: var(--sp-3);
+  padding: var(--sp-3); padding-top: var(--sp-5);
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md);
+  max-height: calc(100vh - var(--topbar-h) - 120px); overflow: auto;
+}
+.bt-thu-ben { position: absolute; top: var(--sp-1); right: var(--sp-1); }
+.bt-bo-cuc.thu-gon .bt-ben { flex-basis: 34px; padding: var(--sp-1); overflow: hidden; }
+.bt-bo-cuc.thu-gon .bt-ben > .bt-ben-muc { display: none; }
+.bt-bo-cuc.thu-gon .bt-thu-ben { position: static; }
+.bt-ben-muc { display: flex; flex-direction: column; gap: var(--sp-2); }
+.bt-ben-tieu-de {
+  margin: 0; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--ink-3);
+}
+.bt-ben-form { display: flex; flex-direction: column; gap: var(--sp-1); }
+.bt-ben-form label { font-size: var(--fs-sm); color: var(--ink-2); }
+.bt-ben-ds { max-height: 220px; overflow: auto; border: 1px solid var(--rule); border-radius: var(--r-sm); }
+.bt-ben-chon {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 3px var(--sp-2); font-size: var(--fs-sm); cursor: pointer;
+}
+.bt-ben-chon:hover { background: var(--surface-2); }
+.bt-ben-nhan { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bt-ben-so { font-family: var(--font-ma); font-size: var(--fs-xs); color: var(--ink-3); }
+.bt-chon-nhanh { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+.bt-chon-nhanh .chip { text-decoration: none; cursor: pointer; }
+
+/* Danh sách bảng trong thanh bên (Giai đoạn C thêm thư mục) */
+.bt-cay { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.bt-cay-muc { margin: 0; }
+.bt-cay-bang {
+  display: block; padding: 4px var(--sp-2); border-radius: var(--r-sm);
+  text-decoration: none; color: var(--ink); font-size: var(--fs-sm);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bt-cay-bang:hover { background: var(--surface-2); }
+.bt-cay-bang.dang-mo { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+/* Thanh công cụ */
+.bt-cong-cu {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-3);
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md);
+}
+.bt-nhom { display: inline-flex; align-items: center; gap: var(--sp-1); }
+.bt-ngan { width: 1px; height: 22px; background: var(--rule); }
+.bt-cuoi { margin-left: auto; }
+.bt-cong-cu .nut[disabled] { opacity: .45; cursor: not-allowed; }
+.bt-cong-cu .nut[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+
+/* Ẩn/hiện cột — popover nhỏ, trạng thái nhớ trên trình duyệt */
+.bt-an-cot-hop {
+  position: absolute; z-index: 30; min-width: 220px; max-height: 320px; overflow: auto;
+  background: var(--surface); border: 1px solid var(--rule-strong);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-2); padding: var(--sp-2);
+}
+.bt-an-cot-muc {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 3px var(--sp-2); font-size: var(--fs-sm); cursor: pointer;
+}
+.bt-an-cot-muc:hover { background: var(--surface-2); }
+
+/* Dòng trống cuối lưới */
+.luoi-vd tr.dong-moi td { background: var(--surface-3); }
+.luoi-vd td.o-moi { padding: 0; }
+.luoi-vd td.o-moi.o-tinh { background: var(--surface-2); }
+.o-moi-nhap { min-width: 8ch; padding: 4px var(--sp-2); background: transparent; }
+.o-moi-nhap:focus { background: var(--surface); box-shadow: inset 0 0 0 2px var(--accent); }
+.luoi-vd tr.dong-moi-loi td:first-child { position: relative; overflow: visible; }
+.luoi-vd tr.dong-moi td.o-loi { background: var(--critical-soft); }
+
+/* Cột khoá: tiêu đề in đậm, ô có nút ⌕ lọc theo giá trị */
+.luoi-vd th.th-khoa { font-weight: 800; }
+.o-khoa-loc {
+  margin-left: var(--sp-1); text-decoration: none; color: var(--ink-3);
+  font-size: var(--fs-xs); border-radius: var(--r-sm); padding: 0 3px;
+}
+.o-khoa-loc:hover { color: var(--accent); background: var(--accent-soft); }
+.luoi-vd td.o-khoa { font-family: var(--font-ma); }
+
+@media (max-width: 720px) {
+  .bt-bo-cuc { flex-direction: column; }
+  .bt-ben { flex-basis: auto; width: 100%; max-height: none; }
+}

@@ -130,6 +130,26 @@ def is_grid_only(table):
     return table.code in getattr(settings, "GRID_ONLY_TABLES", ())
 
 
+def can_create_record(user, table):
+    """Người này thêm được dòng thẳng trên lưới Bảng tính không — ADR-010.
+
+    Dòng trống cuối lưới là chỗ gõ bản ghi mới, nên quyền rộng như "ai làm
+    việc trên bảng này": cùng bộ phận sở hữu bảng (mọi cấp bậc), hoặc có cấp
+    quyền **sửa**, hoặc Admin. Bảng chỉ xem ở dịch vụ này (ADR-009) thì không,
+    cùng luật với `can_edit_record`.
+    """
+    if is_grid_only(table):
+        return False
+    if is_admin(user):
+        return True
+    ho_so = getattr(user, "profile", None)
+    if ho_so is None:
+        return False
+    if ho_so.department_id == table.department_id:
+        return True
+    return table.pk in granted_table_ids(user, GrantAction.EDIT)
+
+
 def can_edit_record(user, record_obj):
     """Người này sửa được dòng dữ liệu kia không — FR-7.4.
 

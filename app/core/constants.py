@@ -80,7 +80,11 @@ IMPORT_ERROR_LIST_MAX = 200              # số dòng lỗi lưu chi tiết vào
 HEADER_SCAN_ROWS = 10                    # dò hàng tiêu đề trong bấy nhiêu hàng đầu
 GRID_PAGE_SIZE = 100                     # Bảng tính vận đơn — dòng mỗi trang
 GRID_FROZEN_COLUMNS = 4
-GRID_FILTER_OPTIONS_MAX = 200            # số giá trị tối đa trong hộp lọc một cột                  # số cột đầu cố định khi cuộn ngang
+GRID_FILTER_OPTIONS_MAX = 200            # số giá trị tối đa trong hộp lọc một cột
+GRID_FROZEN_COLUMNS_GENERIC = 1          # bảng thường: cố định một cột đầu — ADR-010
+GRID_FROZEN_WIDTH_DEFAULT = 160          # ... rộng bấy nhiêu px
+GRID_SPARE_ROWS = 5                      # dòng trống cuối lưới để gõ bản ghi mới
+GRID_FORMAT_CELLS_MAX = 500              # số ô tối đa định dạng trong một lần
 PERF_TABLE_ROWS = 50_000                 # AC-7.1 — 50.000 bản ghi tải trang đầu
 PERF_PAGE_SECONDS = 2                    # ... dưới 2 giây
 

@@ -1,29 +1,37 @@
-"""Lưới làm việc của bộ phận Vận đơn trên bảng vận đơn — ADR-009.
+"""Lưới làm việc kiểu Excel trên bảng động — ADR-009, mở rộng cho mọi bảng ở ADR-010.
 
-Không có model riêng. Lưới là một cách nhìn khác lên `DataRecord` của bảng
-`van_don`: đọc qua `in_scope` (quy tắc 11), lọc và sắp xếp bằng đúng bộ dựng
-truy vấn của màn hình bảng (`forms_builder.query`), cộng thêm ba thứ tệp thật
-có mà màn hình bảng không có:
+Không có model riêng. Lưới là một cách nhìn khác lên `DataRecord` của một
+bảng: đọc qua `in_scope` (quy tắc 11), lọc và sắp xếp bằng đúng bộ dựng truy
+vấn của màn hình bảng (`forms_builder.query`), cộng thêm những thứ Excel có mà
+màn hình bảng không có:
 
-- **Lọc trùng** — cột ảo đếm số dòng cùng số điện thoại, tô màu khi > 1.
-- **Lọc theo từng cột** — danh sách giá trị kèm số đếm, khoảng số/ngày,
-  ô trống, cộng dồn nhiều cột; trạng thái lọc nằm trên URL (`f_<cột>`).
-- **Thứ tự cột theo tệp** — thông tin khách, số lượng từng sản phẩm, tiền,
-  trạng thái — không theo thứ tự tạo cột.
+- **Lọc theo từng cột** — danh sách giá trị kèm số đếm, khoảng số/ngày, ô
+  trống, cộng dồn nhiều cột; trạng thái lọc nằm trên URL (`f_<cột>`).
+- **Dòng trống cuối lưới** để gõ bản ghi mới, **cột khoá** bấm là lọc.
+- **Định dạng ô** đọc từ `DataRecord.style` (Giai đoạn B).
+
+Riêng **bảng vận đơn** giữ ba thứ theo tệp thật (ADR-009), bật theo
+`is_waybill`: cột Lọc trùng đếm số điện thoại, thứ tự cột theo tệp, tô màu
+dòng theo trạng thái, và lọc "có sản phẩm" trên các cột `sl_<mã>`.
 
 Trạng thái lưới (bộ lọc, sắp xếp) sống trên URL để chia sẻ được bằng cách
 chép đường dẫn; độ rộng cột và cột ẩn do trình duyệt nhớ (localStorage).
 """
 from dataclasses import dataclass, field
 
-from django.db.models import Case, Count, F, IntegerField, OuterRef, Subquery, Value, When
+from django.db.models import Case, Count, F, IntegerField, OuterRef, Q, Subquery, Value, When
 from django.db.models.fields.json import KeyTextTransform
+from django.http import QueryDict
 
-from core.constants import GRID_FILTER_OPTIONS_MAX, GRID_FROZEN_COLUMNS
+from core.constants import (
+    GRID_FILTER_OPTIONS_MAX, GRID_FROZEN_COLUMNS, GRID_FROZEN_COLUMNS_GENERIC,
+    GRID_FROZEN_WIDTH_DEFAULT, GRID_SPARE_ROWS,
+)
 from forms_builder import choice_registry, query
 from forms_builder.meaning import FieldType
 from forms_builder.models import DataRecord
 from forms_builder.services import grant_service
+from orders.constants import WAYBILL_TABLE_CODE
 from orders.services import dispatch_service
 
 from .. import choices
@@ -42,6 +50,17 @@ FILTER_KIND = {
     FieldType.DATE: "khoang", FieldType.DATETIME: "khoang",
 }
 
+#: Tham số không phải bộ lọc — không chép vào biểu mẫu lọc, không thành chip
+SYSTEM_PARAMS = {"trang", "moi_trang"}
+
+#: Tham số lọc "có sản phẩm" của bảng vận đơn — nhiều giá trị cùng tên
+PRODUCT_PARAM = "sp"
+
+NUMERIC_TYPES = {FieldType.MONEY, FieldType.INTEGER, FieldType.DECIMAL}
+
+#: Bề rộng cột "Trùng" đứng trước mọi cột cố định của bảng vận đơn
+DUPLICATE_COLUMN_WIDTH = 72
+
 
 @dataclass
 class Grid:
@@ -54,16 +73,49 @@ class Grid:
     descending: bool = False
     duplicates_only: bool = False
     chips: list = field(default_factory=list)
+    is_waybill: bool = False
+    key_column: object = None
+    products: list = field(default_factory=list)
 
 
 def waybill_table():
     return dispatch_service.waybill_table()
 
 
+def is_waybill(table):
+    """Bảng vận đơn có thêm luật riêng theo tệp thật — ADR-009."""
+    return table.code == WAYBILL_TABLE_CODE
+
+
+def key_column(columns):
+    """Cột khoá của bảng, hoặc None."""
+    return next((c for c in columns if c.is_key), None)
+
+
+def params_without(params, exclude=()):
+    """Các cặp `(khoá, giá trị)` của mọi tham số **trừ** hệ thống và `exclude`
+    — để một bộ lọc mới cộng dồn với bộ lọc cũ."""
+    return [
+        (k, v) for k in params.keys()
+        if k not in SYSTEM_PARAMS and k not in exclude
+        for v in params.getlist(k)
+    ]
+
+
+def qs_without(params, exclude=()):
+    """Chuỗi truy vấn của `params_without` — chip "bỏ lọc" bỏ đúng một cái."""
+    q = QueryDict("", mutable=True)
+    for k, v in params_without(params, exclude):
+        q.appendlist(k, v)
+    return q.urlencode()
+
+
 def display_columns(table, columns=None):
-    """Cột theo thứ tự của tệp thật; cột sản phẩm chèn vào chỗ đánh dấu;
-    cột lạ xếp cuối theo thứ tự tạo."""
+    """Cột theo thứ tự hiển thị. Bảng vận đơn: theo tệp thật, cột sản phẩm
+    chèn vào chỗ đánh dấu, cột lạ xếp cuối. Bảng khác: theo thứ tự tạo cột."""
     columns = list(columns if columns is not None else table.columns.order_by("order", "id"))
+    if not is_waybill(table):
+        return columns
     thu_tu = {ma: i for i, ma in enumerate(dispatch_service.GRID_ORDER)}
     cho_san_pham = thu_tu["__san_pham__"]
     cuoi = len(thu_tu) + 1
@@ -78,11 +130,15 @@ def display_columns(table, columns=None):
     return sorted(columns, key=khoa)
 
 
-def frozen_columns(columns):
+def frozen_columns(columns, *, waybill=True):
     """Các cột cố định bên trái khi cuộn ngang, kèm vị trí `left` (px)."""
+    if waybill:
+        cap = zip(columns[:GRID_FROZEN_COLUMNS], choices.FROZEN_WIDTHS)
+    else:
+        cap = [(c, GRID_FROZEN_WIDTH_DEFAULT) for c in columns[:GRID_FROZEN_COLUMNS_GENERIC]]
     ket_qua = []
     trai = 0
-    for cot, rong in zip(columns[:GRID_FROZEN_COLUMNS], choices.FROZEN_WIDTHS):
+    for cot, rong in cap:
         ket_qua.append((cot.code, trai, rong))
         trai += rong
     return ket_qua
@@ -102,9 +158,32 @@ def duplicate_count(table):
     )
 
 
+def product_columns_of(columns):
+    """Các cột số lượng theo sản phẩm (`sl_<mã>`) trong bảng vận đơn."""
+    return [c for c in columns if dispatch_service.is_product_column(c.code)]
+
+
+def read_products(params, columns):
+    """Mã cột sản phẩm đang chọn trên URL (`sp=sl_a&sp=sl_b`), chỉ nhận cột có thật."""
+    co_that = {c.code for c in product_columns_of(columns)}
+    lay = getattr(params, "getlist", None)
+    gia_tri = lay(PRODUCT_PARAM) if lay else [params.get(PRODUCT_PARAM)]
+    return [v for v in gia_tri if v in co_that]
+
+
+def product_any_of(codes):
+    """Dòng có **ít nhất một** trong các sản phẩm — số lượng lớn hơn 0.
+    Giá trị số nguyên trong JSON được lưu là số thật nên so được với 0."""
+    dieu_kien = Q()
+    for ma in codes:
+        dieu_kien |= Q(**{f"data__{ma}__gt": 0})
+    return dieu_kien
+
+
 def build_grid(user, params, *, table=None):
     """Queryset của lưới đúng như URL mô tả — chưa cắt trang."""
     table = table or waybill_table()
+    van_don = is_waybill(table)
     columns = display_columns(table)
     bo_loc = query.read_filters(params, columns)
     tim = (params.get("tim") or "").strip()
@@ -114,19 +193,33 @@ def build_grid(user, params, *, table=None):
         DataRecord.objects.in_scope(user), table,
         filters=bo_loc, search=tim, sort=sap, descending=giam, columns=columns,
     )
-    ds = ds.annotate(so_trung=duplicate_count(table))
-    chi_trung = params.get("trung") == "1"
-    if chi_trung:
-        ds = ds.filter(so_trung__gt=1)
+    chi_trung = False
+    san_pham = []
+    if van_don:
+        ds = ds.annotate(so_trung=duplicate_count(table))
+        chi_trung = params.get("trung") == "1"
+        if chi_trung:
+            ds = ds.filter(so_trung__gt=1)
+        san_pham = read_products(params, columns)
+        if san_pham:
+            ds = ds.filter(product_any_of(san_pham))
     ds = ds.select_related("table", "created_by")
     return Grid(
         table=table, columns=columns, queryset=ds, filters=bo_loc, search=tim,
         sort=sap, descending=giam, duplicates_only=chi_trung,
-        chips=filter_chips(bo_loc, columns),
+        chips=filter_chips(bo_loc, columns, san_pham),
+        is_waybill=van_don, key_column=key_column(columns), products=san_pham,
     )
 
 
-def filter_chips(bo_loc, columns):
+def export_queryset(user, table, params):
+    """Cách dựng queryset cho `export_service` — đúng lưới đang hiện, kể cả
+    hai bộ lọc riêng của lưới (`trung`, `sp`) mà bộ đọc chung không biết."""
+    luoi = build_grid(user, params, table=table)
+    return luoi.queryset, luoi.columns, luoi.filters
+
+
+def filter_chips(bo_loc, columns, products=()):
     """Mỗi bộ lọc đang bật thành một chip `(khoá tham số, nhãn)`."""
     ten = {c.code: c.name for c in columns}
     chips = []
@@ -140,13 +233,13 @@ def filter_chips(bo_loc, columns):
         else:
             mo_ta = f"{nhan_phep} {gia_tri}"
         chips.append((f"f_{khoa}", f"{ten.get(code, code)} {mo_ta}"))
+    if products:
+        ten_sp = [ten.get(ma, ma) for ma in products]
+        chips.append((PRODUCT_PARAM, "Sản phẩm " + ", ".join(ten_sp[:3]) + (" …" if len(ten_sp) > 3 else "")))
     return chips
 
 
-NUMERIC_TYPES = {FieldType.MONEY, FieldType.INTEGER, FieldType.DECIMAL}
-
-
-def cell_class(column, frozen=None, editable=True, editing=False, error=False):
+def cell_class(column, frozen=None, editable=True, editing=False, error=False, style=None):
     """Lớp CSS của một ô — tính ở đây để template chỉ in ra, vì bài quét lớp
     CSS (`test_giao_dien`) không đọc được điều kiện Django trong thuộc tính."""
     lop = ["o-sua" if editable and not column.is_computed else "o-xem"]
@@ -162,24 +255,30 @@ def cell_class(column, frozen=None, editable=True, editing=False, error=False):
         lop.append("tien")
     if column.is_computed:
         lop.append("o-tinh")
+    if column.is_key:
+        lop.append("o-khoa")
+    if style:
+        lop.extend(style_classes(style))
     return " ".join(lop)
 
 
-def frozen_style(frozen):
-    """Thuộc tính style của cột cố định: `left` cộng bề rộng cột Lọc trùng."""
+def frozen_style(frozen, *, offset=0):
+    """Thuộc tính style của cột cố định: `left` cộng bề rộng các cột đứng
+    trước nó (cột Trùng của bảng vận đơn)."""
     if not frozen:
         return ""
     trai, rong = frozen
-    return f"left:{trai + DUPLICATE_COLUMN_WIDTH}px;min-width:{rong}px;max-width:{rong}px"
+    return f"left:{trai + offset}px;min-width:{rong}px;max-width:{rong}px"
 
 
-#: Bề rộng cột "Trùng" đứng trước mọi cột cố định
-DUPLICATE_COLUMN_WIDTH = 72
+def _co_dinh(columns, waybill):
+    return {ma: (trai, rong) for ma, trai, rong in frozen_columns(columns, waybill=waybill)}
 
 
-def header_columns(columns, filters=None):
+def header_columns(columns, filters=None, *, waybill=True):
     """Tiêu đề cột cho template: cột, style cố định, lớp, có đang lọc không."""
-    co_dinh = {ma: (trai, rong) for ma, trai, rong in frozen_columns(columns)}
+    co_dinh = _co_dinh(columns, waybill)
+    lech = DUPLICATE_COLUMN_WIDTH if waybill else 0
     dang_loc = {k.partition("__")[0] for k in (filters or {})}
     ket_qua = []
     for c in columns:
@@ -189,35 +288,105 @@ def header_columns(columns, filters=None):
             lop.append("co-dinh")
         if c.field_type in NUMERIC_TYPES:
             lop.append("phai")
+        if c.is_key:
+            lop.append("th-khoa")
         ket_qua.append({
-            "cot": c, "style": frozen_style(cd), "lop": " ".join(lop),
+            "cot": c, "style": frozen_style(cd, offset=lech), "lop": " ".join(lop),
             "lop_nut_loc": "nut-loc dang-loc" if c.code in dang_loc else "nut-loc",
         })
     return ket_qua
 
 
-def rows(records, columns, user):
-    """Dòng cho template: ô theo thứ tự cột, lớp màu, số trùng, sửa được không."""
-    co_dinh = {ma: (trai, rong) for ma, trai, rong in frozen_columns(columns)}
+def row_context(record, columns, user, *, waybill=True, co_dinh=None):
+    """Một dòng cho template: ô theo thứ tự cột, lớp màu, số trùng, sửa được không."""
+    co_dinh = co_dinh if co_dinh is not None else _co_dinh(columns, waybill)
+    lech = DUPLICATE_COLUMN_WIDTH if waybill else 0
+    sua = grant_service.can_edit_record(user, record)
+    so_trung = getattr(record, "so_trung", 0) or 0
+    kieu = record.style or {}
+    return {
+        "ban_ghi": record,
+        "cac_o": [
+            {"cot": c, "gia_tri": record.data.get(c.code),
+             "id": f"o-{record.pk}-{c.code}",
+             "lop": cell_class(c, co_dinh.get(c.code), sua, style=kieu.get(c.code)),
+             "style": frozen_style(co_dinh.get(c.code), offset=lech)}
+            for c in columns
+        ],
+        "sua": sua,
+        "lop": choices.row_class(record.data.get("trang_thai_vc")) if waybill else "",
+        "so_trung": so_trung,
+        "lop_trung": "co-dinh tien o-trung" if so_trung > 1 else "co-dinh tien",
+    }
+
+
+def rows(records, columns, user, *, waybill=True):
+    co_dinh = _co_dinh(columns, waybill)
+    return [row_context(r, columns, user, waybill=waybill, co_dinh=co_dinh) for r in records]
+
+
+def spare_rows(columns, n=GRID_SPARE_ROWS, *, waybill=True, values=None, error_column=None):
+    """`n` dòng trống cuối lưới để gõ bản ghi mới — như Excel luôn thừa dòng.
+    `values` và `error_column` dùng khi vẽ lại một dòng bị từ chối."""
+    co_dinh = _co_dinh(columns, waybill)
+    lech = DUPLICATE_COLUMN_WIDTH if waybill else 0
+    values = values or {}
     ket_qua = []
-    for r in records:
-        sua = grant_service.can_edit_record(user, r)
-        so_trung = getattr(r, "so_trung", 0) or 0
-        ket_qua.append({
-            "ban_ghi": r,
-            "cac_o": [
-                {"cot": c, "gia_tri": r.data.get(c.code),
-                 "lop": cell_class(c, co_dinh.get(c.code), sua),
-                 "style": frozen_style(co_dinh.get(c.code))}
-                for c in columns
-            ],
-            "sua": sua,
-            "lop": choices.row_class(r.data.get("trang_thai_vc")),
-            "so_trung": so_trung,
-            "lop_trung": "co-dinh tien o-trung" if so_trung > 1 else "co-dinh tien",
-        })
+    for i in range(n):
+        cac_o = []
+        for c in columns:
+            cd = co_dinh.get(c.code)
+            lop = ["o-moi"]
+            if cd:
+                lop.append("co-dinh")
+            if c.field_type in NUMERIC_TYPES:
+                lop.append("tien")
+            if c.is_computed:
+                lop.append("o-tinh")
+            if error_column == c.code and i == 0:
+                lop.append("o-loi")
+            cac_o.append({
+                "cot": c, "lop": " ".join(lop), "style": frozen_style(cd, offset=lech),
+                "gia_tri": values.get(c.code, "") if i == 0 else "",
+            })
+        ket_qua.append({"stt": i + 1, "cac_o": cac_o})
     return ket_qua
 
+
+# ── Định dạng ô — Giai đoạn B ─────────────────────────────────────
+
+#: Khoá → giá trị → lớp CSS. Lớp là cố định để bài quét CSS kiểm được, và để
+#: không có CSS tự do nào từ dữ liệu lọt vào trang.
+STYLE_CLASSES = {
+    "b": {1: "dd-dam"},
+    "bg": {
+        "vang": "dd-nen-vang", "xanh": "dd-nen-xanh", "do": "dd-nen-do",
+        "luc": "dd-nen-luc", "xam": "dd-nen-xam", "cam": "dd-nen-cam",
+    },
+    "fs": {10: "dd-co-10", 11: "dd-co-11", 12: "dd-co-12", 14: "dd-co-14", 16: "dd-co-16", 18: "dd-co-18"},
+    "al": {"l": "dd-can-trai", "c": "dd-can-giua", "r": "dd-can-phai"},
+}
+
+
+def style_classes(style):
+    """Lớp CSS của một bộ định dạng ô; khoá hoặc giá trị lạ bị bỏ qua."""
+    if not isinstance(style, dict):
+        return []
+    lop = []
+    for khoa, gia_tri in style.items():
+        bang = STYLE_CLASSES.get(khoa)
+        if bang is None:
+            continue
+        try:
+            ten = bang.get(int(gia_tri) if khoa in ("b", "fs") else gia_tri)
+        except (TypeError, ValueError):
+            ten = None
+        if ten:
+            lop.append(ten)
+    return lop
+
+
+# ── Lọc theo cột ──────────────────────────────────────────────────
 
 def filter_kind(column):
     return FILTER_KIND.get(column.field_type, "chua")
