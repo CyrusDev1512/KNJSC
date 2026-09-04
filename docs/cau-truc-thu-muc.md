@@ -195,7 +195,11 @@ kim-ngan-jsc/
 │   │   ├── 004-crm-la-module-tach-sau.md
 │   │   ├── 005-chon-django.md
 │   │   ├── 006-cong-thuc-tren-bang.md
-│   │   └── 007-bang-dich-va-nhan-y-nghia.md
+│   │   ├── 007-bang-dich-va-nhan-y-nghia.md
+│   │   ├── 008-bao-cao-boc-quanh-bieu-mau.md
+│   │   ├── 009-bang-tinh-la-noi-lam-viec-cua-van-don.md
+│   │   ├── 010-bang-tinh-cho-moi-bang-va-dinh-dang-o.md
+│   │   └── 011-bang-tinh-theo-mau-kn-demo.md
 │   └── tham-khao/
 │       ├── CRM_Tan.xlsx
 │       ├── vandon-mau.xlsx
@@ -297,5 +301,9 @@ Ba tệp ở gốc là ba thứ dễ hỏng nhất và không thuộc module nà
 | `005-chon-django.md` | Vì sao Django, vì sao HTMX thay vì khung giao diện riêng |
 | `006-cong-thuc-tren-bang.md` | Vì sao bảng dữ liệu chỉ có cột tính sẵn |
 | `007-bang-dich-va-nhan-y-nghia.md` | Vì sao luôn chọn bảng có sẵn, và bảy nhãn ý nghĩa |
+| `008-bao-cao-boc-quanh-bieu-mau.md` | Vì sao báo cáo hằng ngày bọc quanh biểu mẫu, không tự giữ nội dung |
+| `009-bang-tinh-la-noi-lam-viec-cua-van-don.md` | Vì sao Bảng tính là lưới của Vận đơn theo tệp thật, chạy thành dịch vụ riêng |
+| `010-bang-tinh-cho-moi-bang-va-dinh-dang-o.md` | Vì sao lưới mở cho mọi bảng, định dạng ô lưu cơ sở dữ liệu dạng sổ đóng, thư mục phẳng |
+| `011-bang-tinh-theo-mau-kn-demo.md` | Vì sao nhìn và thao tác theo KN Demo mà không nhúng mã demo; bảng "không làm" |
 
 Bốn tệp này viết ngay khi tạo repo, không đợi.

@@ -28,8 +28,9 @@ Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của 
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
 tóm để không phải lục.
 
-> Cập nhật ngày 04.09.2026, sau khi xong Giai đoạn 7 phần E — Bảng tính cho
-> mọi bảng, định dạng ô, cột khoá, thư mục (ADR-010). Mục D chỉ còn `AC-5.1`.
+> Cập nhật ngày 04.09.2026, sau khi xong Giai đoạn 7 phần F — Bảng tính nhìn
+> và thao tác như bảng tính KN Demo (ADR-011), trên nhánh
+> `claude/bang-tinh-nhu-kn-demo` xếp chồng lên nhánh 7E. Mục D chỉ còn `AC-5.1`.
 
 **Đang ở đâu:** xong Giai đoạn 0 tới 7. Nhập tệp Excel/CSV bốn bước có xem
 trước và tiến độ, xuất kèm bộ lọc, tệp lớn chạy nền giữ 24 giờ (7A). Sao lưu
@@ -43,12 +44,17 @@ cột, sửa ô có danh sách chọn, Lọc trùng, tô màu Hủy/Hoàn, mỗi
 `/bang-tinh/<mã bảng>/` cho bảng nào trong phạm vi; viền ô như Excel, dòng
 trống cuối lưới gõ là thành bản ghi; định dạng ô (đậm, nền, cỡ, căn) lưu vào
 cơ sở dữ liệu; cột khoá bấm ⌕ là lọc; thanh lọc bên trái (chọn nhanh, khoảng
-ngày, sản phẩm); thanh công cụ; thư mục chứa bảng. 85 tiêu chí, 75 trên 76
-tự động có bài kiểm.
+ngày, sản phẩm); thanh công cụ; thư mục chứa bảng. **Bảng tính như KN Demo**
+(7F, ADR-011): khung tối viền vàng, thanh công thức có ô địa chỉ, số dòng,
+chữ cột tới Z, chân trang có tab; kéo chọn vùng, dán từ Excel, kéo điền, hoàn
+tác, menu chuột phải (xoá/khôi phục dòng, Manager chèn/xoá cột), 40 màu và
+định dạng số, hộp lọc theo giá trị, tự cập nhật khi người khác sửa. 94 tiêu
+chí, 83 trên 84 tự động có bài kiểm.
 
-**Việc tiếp theo:** **nghiệm thu một đợt theo `docs/07`** — anh/chị bấm tay
-từng vai, đánh ☑ (đã thêm các bước của 7E). Rồi Giai đoạn 8: máy chủ,
-subdomain cho Bảng tính, đo tải trên máy chủ thật.
+**Việc tiếp theo:** gộp PR #4 (nhánh 7E) rồi PR #5 (nhánh 7F, đổi base về
+`main`); **nghiệm thu một đợt theo `docs/07`** — anh/chị bấm tay từng vai,
+đánh ☑ (đã thêm các bước của 7E và 7F). Rồi Giai đoạn 8: máy chủ, subdomain
+cho Bảng tính, đo tải trên máy chủ thật.
 
 ### A · Nghiệm thu — việc của anh/chị
 
@@ -56,7 +62,7 @@ subdomain cho Bảng tính, đo tải trên máy chủ thật.
 kiểm thử tự động đều đạt, nhưng anh/chị **chưa trực tiếp thử màn hình nào**. Phần
 trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải *đã nghiệm thu*.
 
-**Mười hai việc làm được ngay bây giờ — kịch bản từng bước ở `docs/07`:**
+**Mười bốn việc làm được ngay bây giờ — kịch bản từng bước ở `docs/07`:**
 
 | ☐ | Việc | Mã |
 |---|---|---|
@@ -73,6 +79,7 @@ trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải
 | ☐ | Bảng tính: cuộn ngang dọc, cột đầu và tiêu đề đứng yên | `AC-11.1` |
 | ☐ | Bảng tính trên điện thoại và máy tính bảng thật | `AC-11.11` |
 | ☐ | Bảng tính: mọi ô có viền, thanh công cụ đủ mục, ẩn cột nhớ được, thanh bên thu gọn được | `AC-11.18` |
+| ☐ | Bảng tính đặt cạnh ảnh `docs/tham-khao/kn-demo/`: khung, thanh công thức, số dòng, chữ cột, cột trống, chân trang, ⛶; kéo chọn vùng, dán từ Excel, chuột phải | `AC-11.27` |
 
 **Một việc biết trước là chưa đạt:**
 
@@ -234,6 +241,9 @@ mục 6.
 | Q48 | Cột khoá | `ColumnDef.is_key`, mỗi bảng một cột, Manager đặt trong Sửa cột, bảng vận đơn lấy Mã đơn; ô cột khoá có nút ⌕ lọc theo giá trị — AC-11.16 | 04.09.2026 |
 | Q49 | Định dạng ô lưu ở đâu — sửa ADR-002 phần "Mất gì" | **Cơ sở dữ liệu** (`DataRecord.style`), mọi người cùng thấy; sổ giá trị đóng (đậm, sáu màu nền, cỡ 10–18, căn lề), không nhận CSS tự do; quyền bằng quyền sửa ô — AC-11.15, ADR-010 | 04.09.2026 |
 | Q50 | "Tạo folder" nghĩa là gì | **Thư mục chứa bảng**, phẳng, thuộc bộ phận, model ở `forms_builder` (không ở `crm` vì ADR-004); Manager bộ phận quản lý; chỉ sắp xếp thanh bên, không ảnh hưởng phạm vi — AC-11.17 | 04.09.2026 |
+| Q51 | Bảng tính nhìn và thao tác thế nào | **Y hệt bảng tính KN Demo** về cách nhìn và cách thao tác (ảnh `docs/tham-khao/kn-demo/`), trên nền dữ liệu KNJSC giữ nguyên; làm trên nhánh riêng `claude/bang-tinh-nhu-kn-demo`; bảng "không làm" ghi ở ADR-011 (công thức, tab là trang, chèn hàng giữa, chiều cao dòng, cột trống gõ được) | 04.09.2026 |
+| Q52 | Ai xoá được dòng trên lưới | **Đúng bằng quyền sửa dòng** — `grant_service.can_delete_record` gọi `can_edit_record`, đặt tên riêng để sau này tách được mà không phải đổi mô hình quyền; xoá là xoá mềm, Ctrl+Z khôi phục — AC-11.21, ADR-011 | 04.09.2026 |
+| Q53 | Bấm một lần vào ô là gì | **Chọn ô**, không mở sửa; bấm đúp, Enter, F2 hoặc gõ chữ mới sửa — như demo và Excel, không thế thì không kéo chọn vùng được; thay cách "bấm ô là sửa" của ADR-009 — AC-11.25, ADR-011 | 04.09.2026 |
 
 ---
 
@@ -251,6 +261,8 @@ Những thứ đáng làm nhưng chưa tới lượt.
 | S6 | Nhiều người cùng sửa một bảng theo thời gian thực | Phức tạp, cần đánh giá lại nhu cầu |
 | S7 | Thư mục lồng nhau trên Bảng tính | Chưa ai cần; thêm sau chỉ là FK `parent` trên `Folder` — ADR-010 |
 | S8 | Xuất Excel mang theo định dạng ô (đậm, màu nền) | `export_service.build_workbook` chưa đọc `DataRecord.style`; làm khi có người hỏi |
+| S9 | Kéo đổi chiều cao dòng trên Bảng tính | Dòng đổi chỗ khi sắp xếp và phân trang nên chiều cao theo chỉ số dòng vô nghĩa; nếu cần thì lưu theo bản ghi như `style` — ADR-011 |
+| S10 | Công thức gõ ở thanh công thức của Bảng tính | Ô `fx` đã có, gõ `=` đang báo chưa hỗ trợ; chờ "cách thứ ba" người dùng nói tới sau ADR-006; khi có thì cắm vào đúng chỗ này — ADR-011 |
 
 ---
 
@@ -320,8 +332,8 @@ hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp d�
 | Lịch sử báo cáo | 4 | Đã có |
 | Lên đơn | 5 | Đã có |
 | Báo cáo tổng hợp | 6 | Đã có — tab Theo thị trường treo ghi chú chờ N9, Q36 |
-| Bảng tính | 7 | Đã có — lưới cho **mọi bảng** ở `/bang-tinh/<mã>/` (ADR-010): viền ô, dòng trống, cột khoá, thanh lọc bên trái, thanh công cụ, định dạng ô, thư mục; bảng vận đơn vẫn sửa ở dịch vụ `bangtinh` (ADR-009) |
-| Bảng tính, màn hình chi tiết | 7 | Không làm engine công thức (ADR-009); phần thanh công cụ định dạng của bản dựng đã có lại dưới dạng sổ đóng (ADR-010) |
+| Bảng tính | 7 | Đã có — lưới cho **mọi bảng** ở `/bang-tinh/<mã>/` (ADR-010): viền ô, dòng trống, cột khoá, thanh lọc bên trái, thanh công cụ, định dạng ô, thư mục; bảng vận đơn vẫn sửa ở dịch vụ `bangtinh` (ADR-009); nhìn và thao tác như bảng tính KN Demo — chọn vùng, dán từ Excel, kéo điền, chuột phải, hoàn tác, hộp lọc giá trị, tự cập nhật (ADR-011, nhánh `claude/bang-tinh-nhu-kn-demo`) |
+| Bảng tính, màn hình chi tiết | 7 | Không làm engine công thức (ADR-009); phần thanh công cụ định dạng của bản dựng đã có lại dưới dạng sổ đóng (ADR-010); thanh công cụ và thanh công thức theo KN Demo (ADR-011), công thức chờ S10 |
 
 **Thiếu sót đã biết, không phải màn hình riêng nhưng ảnh hưởng trải nghiệm:**
 
@@ -374,3 +386,4 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 04.09.2026 | Người dùng gửi gói KN Demo (`Kim_Ngan_DEMO.rar`), chốt *"tạo nhánh riêng và làm cái view y hệt như ảnh"*. Nhánh `claude/bang-tinh-nhu-kn-demo` tách từ đầu nhánh 7E. Đọc trọn mã demo: bảng tính JSON tự viết, công thức tính ở trình duyệt, tự lưu cả tài liệu, không phân trang — KNJSC chỉ lấy cách nhìn và thao tác (ảnh ở `docs/tham-khao/kn-demo/`). Giai đoạn 1 (ADR-011): khung tối viền vàng 48px, thanh công cụ đúng thứ tự demo, thanh công thức có ô địa chỉ `A1`, cột số dòng 46px, hàng chữ cột có nút ▼ và mép kéo, hàng tên cột là hàng 1 (vận đơn xanh, bảng khác vàng), cột trống tới Z, chân trang có tab bảng và `+100 dòng`, trạng thái lưu, nút ⛶ toàn màn hình, bấm một lần là chọn / bấm đúp hoặc gõ chữ là sửa, thanh bên ẩn mặc định. Sổ định dạng mở rộng theo demo: nghiêng, gạch chân, gạch ngang, xuống dòng, viền, bảng 40 màu chữ và nền (`m01…m40`, CSS sinh bằng `scripts/sinh-css-mau.py`), cỡ 10–28, định dạng số. Sửa nhân tiện: `tests/test_hieu_nang.py` để lại bộ phận và bảng giả trong cơ sở dữ liệu kiểm thử (xoá mềm vẫn chiếm tên unique) làm mọi bài chạy sau đỏ khi chạy cả bộ kể cả `cham` — dọn thật ở teardown |
 | 04.09.2026 | Giai đoạn 2 của ADR-011 trên nhánh `claude/bang-tinh-nhu-kn-demo`: kéo chuột chọn vùng (ô địa chỉ hiện `C3:F7`, số dòng và chữ cột tô sáng, thống kê Tổng · TB · Số ô), bấm số dòng chọn hàng, chữ cột chọn cột, góc chọn cả trang; Shift+mũi tên, Ctrl+A; cắt/chép/dán qua clipboard hệ thống (TSV — dán từ Excel được, dán nội bộ mang theo định dạng, lặp khối khi vùng là bội số, tràn xuống dòng trống thì tạo bản ghi); tay kéo điền bốn hướng (số cách đều thì tiếp chuỗi, không thì lặp khối); Delete xoá nội dung; hoàn tác/làm lại 100 bước phía trình duyệt (giá trị và định dạng). Máy chủ: `record_service.update_cells` + `POST luu-o/` được cả hoặc không gì, `CellError` chỉ đúng ô, quyền kiểm từng dòng, ngoài phạm vi 403 có nhật ký; AC-11.19, AC-11.20. Ba lỗi ngầm của htmx 2 gặp trên đường: (1) `afterRequest` bắn trước khi thay ô — phải chờ `afterSettle`; (2) phần tử mới trùng id với phần tử cũ thì trong lúc settle mang tạm thuộc tính cũ — trình sửa ô không được mang id; (3) `processNode` chạy sau settle 20ms nên `requestSubmit()` sớm hơn là trình duyệt tự nộp biểu mẫu — `guiSua` chờ hết `htmx-settling`. Và: mảnh HTML có `<td>` đứng trước `<tr>` thì trình duyệt bỏ `<tr>` — phản hồi luu-o trả dòng trước ô |
 | 04.09.2026 | Giai đoạn 3 của ADR-011: menu chuột phải đúng nhãn demo (Cắt · Sao chép · Dán · Chèn N hàng trống · Xoá N hàng · Chèn N cột trái/phải · Xoá N cột · Xoá nội dung · Xoá định dạng; mục không có quyền mờ đi); xoá dòng là xoá mềm sau hộp xác nhận, Ctrl+Z khôi phục về chỗ cũ (`xoa-dong/`, `khoi-phuc-dong/`, `record_service.restore_record`, quyền `can_delete_record` = quyền sửa dòng — Q52); Manager của bộ phận sở hữu chèn/bỏ cột ngay trên lưới (`them-cot/`, `xoa-cot/`, `table_service.insert_columns`, `removable_reason`; cột khoá, vế cột tính sẵn, cột hệ thống vận đơn thì giữ; `can_manage_columns`); hộp lọc cột theo demo (tên cột · số giá trị, ô tìm, danh sách giá trị kèm số cho mọi kiểu cột, Điều kiện khác gập, Chọn tất cả · Không chọn · Xóa lọc · Áp dụng); lưới hỏi `moi-nhat/` mỗi `GRID_POLL_SECONDS` giây khi rảnh, có gì mới thì nạp lại thân bảng và toast. AC-11.21 → AC-11.26, 93 tiêu chí, 83 trên 84 tự động có bài kiểm. Nhãn "Bỏ chọn" của demo đổi thành "Không chọn" vì luật nút nguy (test_giao_dien) bắt chữ "Bỏ"; các mục Xoá trong menu mang `nut-nguy` (chữ đỏ) theo cùng luật |
+| 04.09.2026 | Giai đoạn 4 của ADR-011 — tài liệu: viết `quyet-dinh/011-bang-tinh-theo-mau-kn-demo.md` (kèm bảng "không làm"), thêm 009/010/011 vào danh sách ADR; `docs/02` FR-7.9 → FR-7.12; `docs/03` §4.6 thêm các dòng lưu nhiều ô, xoá/khôi phục dòng, chèn/bỏ cột, hộp lọc giá trị, tự cập nhật, hoàn tác, cột trống, hai tệp JS; `docs/04` AC-11.27 (thủ công, đối chiếu ảnh) — 94 tiêu chí; `docs/05` A8 viết lại theo giao diện mới; `docs/06` bảng thủ công thêm AC-11.18 (thiếu từ 7E) và AC-11.27; `docs/07` thêm bước dán từ Excel, kéo điền, chuột phải xoá hàng, chèn cột, hộp lọc, tự cập nhật, và sửa các bước cũ theo giao diện mới (bấm đúp mới sửa, Nhập tệp trong ⋯, Tải Excel ở thanh trên, Bộ lọc mở thanh bên); chốt Q51 → Q53, mở S9, S10; dashboard 7F |
