@@ -279,13 +279,43 @@ def _hien(gia_tri):
 #: dùng (an toàn), và giao diện dịch từng giá trị sang một lớp CSS cố định
 #: (`crm.services.grid_service.STYLE_CLASSES`). Muốn thêm màu hay cỡ chữ thì
 #: thêm ở cả hai chỗ.
+#: Bảng 40 màu chữ và nền (theo bảng màu của KN Demo — ADR-011). Giá trị lưu
+#: là khoá `m01`…`m40`; mã màu chỉ nằm ở đây và trong khối CSS sinh từ đây
+#: (`scripts/sinh-css-mau.py`), không bao giờ vào dữ liệu hay trang.
+PALETTE = (
+    ("m01", "#000000"), ("m02", "#334155"), ("m03", "#64748b"), ("m04", "#94a3b8"),
+    ("m05", "#cbd5e1"), ("m06", "#e2e8f0"), ("m07", "#f1f5f9"), ("m08", "#ffffff"),
+    ("m09", "#7f1d1d"), ("m10", "#b91c1c"), ("m11", "#ef4444"), ("m12", "#f97316"),
+    ("m13", "#f59e0b"), ("m14", "#eab308"), ("m15", "#84cc16"), ("m16", "#22c55e"),
+    ("m17", "#14b8a6"), ("m18", "#06b6d4"), ("m19", "#3b82f6"), ("m20", "#3370ff"),
+    ("m21", "#6366f1"), ("m22", "#8b5cf6"), ("m23", "#a855f7"), ("m24", "#d946ef"),
+    ("m25", "#ec4899"), ("m26", "#f43f5e"), ("m27", "#fecaca"), ("m28", "#fed7aa"),
+    ("m29", "#fde68a"), ("m30", "#fef08a"), ("m31", "#d9f99d"), ("m32", "#bbf7d0"),
+    ("m33", "#99f6e4"), ("m34", "#a5f3fc"), ("m35", "#bfdbfe"), ("m36", "#c7d2fe"),
+    ("m37", "#ddd6fe"), ("m38", "#e9d5ff"), ("m39", "#f5d0fe"), ("m40", "#fbcfe8"),
+)
+PALETTE_KEYS = frozenset(k for k, _ in PALETTE)
+#: Sáu tên màu nền của ADR-010 vẫn nhận — dữ liệu cũ không phải chuyển đổi
+BG_LEGACY = frozenset({"vang", "xanh", "do", "luc", "xam", "cam"})
+#: Khoá bật/tắt: chỉ có giá trị 1 (bật); gửi rỗng là tắt
+STYLE_ON = frozenset({"b", "i", "u", "st", "wr", "bd"})
 STYLE_SCHEMA = {
     "b": {1},                                             # in đậm
-    "bg": {"vang", "xanh", "do", "luc", "xam", "cam"},    # màu nền
-    "fs": {10, 11, 12, 14, 16, 18},                       # cỡ chữ (px)
+    "i": {1},                                             # nghiêng
+    "u": {1},                                             # gạch chân
+    "st": {1},                                            # gạch ngang
+    "wr": {1},                                            # xuống dòng trong ô
+    "bd": {1},                                            # kẻ viền ô
+    "bg": BG_LEGACY | PALETTE_KEYS,                       # màu nền
+    "c": PALETTE_KEYS,                                    # màu chữ
+    "fs": {10, 11, 12, 13, 14, 16, 18, 20, 24, 28},       # cỡ chữ (px); 13 là cỡ lưới
     "al": {"l", "c", "r"},                                # căn lề
+    "fmt": {"num", "pct", "usd", "vnd", "text"},          # định dạng số khi hiển thị
 }
-STYLE_LABELS = {"b": "đậm", "bg": "nền", "fs": "cỡ", "al": "căn"}
+STYLE_LABELS = {
+    "b": "đậm", "i": "nghiêng", "u": "gạch chân", "st": "gạch ngang", "wr": "xuống dòng",
+    "bd": "viền", "bg": "nền", "c": "màu chữ", "fs": "cỡ", "al": "căn", "fmt": "định dạng số",
+}
 #: Gửi lên với giá trị này nghĩa là **bỏ** thuộc tính đó
 STYLE_EMPTY = (None, "", 0, "0", False)
 
@@ -301,7 +331,7 @@ def normalise_style(raw):
             raise BusinessError(f'Định dạng "{khoa}" không có trong sổ.')
         if gia_tri in STYLE_EMPTY:
             continue
-        if khoa in ("b", "fs"):
+        if khoa in STYLE_ON or khoa == "fs":
             try:
                 gia_tri = int(gia_tri)
             except (TypeError, ValueError):

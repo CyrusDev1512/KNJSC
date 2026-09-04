@@ -53,11 +53,18 @@ def test_normalise_style_chi_nhan_gia_tri_trong_so():
     """AC-11.15 — Sổ định dạng đóng: khoá hay giá trị lạ bị từ chối, giá trị rỗng nghĩa là bỏ, số được ép kiểu"""
     assert record_service.normalise_style({"b": "1", "bg": "vang", "fs": "14", "al": "c"}) == {"b": 1, "bg": "vang", "fs": 14, "al": "c"}
     assert record_service.normalise_style({"b": "", "bg": "", "fs": "0"}) == {}
-    for xau in ({"bg": "#ff0000"}, {"fs": "13"}, {"al": "justify"}, {"color": "red"}, {"b": "x"}):
+    for xau in ({"bg": "#ff0000"}, {"fs": "15"}, {"al": "justify"}, {"color": "red"}, {"b": "x"},
+                {"c": "#000000"}, {"c": "m41"}, {"fmt": "eur"}, {"i": "2"}):
         with pytest.raises(BusinessError):
             record_service.normalise_style(xau)
     with pytest.raises(BusinessError):
         record_service.normalise_style("b=1")
+    # Sổ mở rộng theo mẫu KN Demo (ADR-011): bật/tắt, bảng 40 màu, cỡ 13, định dạng số
+    assert record_service.normalise_style(
+        {"i": "1", "u": "1", "st": "1", "wr": "1", "bd": "1", "c": "m11", "bg": "m40", "fs": "13", "fmt": "vnd"}
+    ) == {"i": 1, "u": 1, "st": 1, "wr": 1, "bd": 1, "c": "m11", "bg": "m40", "fs": 13, "fmt": "vnd"}
+    assert record_service.normalise_style({"i": "", "c": "", "fmt": ""}) == {}
+    assert len(record_service.PALETTE) == 40 and len(record_service.PALETTE_KEYS) == 40
 
 
 # ══ Lưu và cùng thấy — AC-11.15 ════════════════════════════════════

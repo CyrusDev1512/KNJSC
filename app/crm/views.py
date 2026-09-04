@@ -60,6 +60,14 @@ def _ngoai(duong_dan):
     return settings.MAIN_APP_URL.rstrip("/") + duong_dan
 
 
+def _so_dong(raw):
+    """Số dòng (kiểu Excel) mà trình duyệt gửi kèm dòng trống; thiếu hay sai thì 0."""
+    try:
+        return max(0, int(raw or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
 def _qs_hien_tai(request):
     """Chuỗi lọc của trang đang mở, đọc từ URL mà HTMX gửi kèm — để ô trả về
     sau khi sửa vẫn mang liên kết lọc đúng bộ lọc hiện tại."""
@@ -88,14 +96,28 @@ def bang_tinh_xem(request, code):
     vd = luoi.is_waybill
     duoc_them = grant_service.can_create_record(request.user, bang)
     cay = folder_service.tree(request.user)
+    # Số dòng như Excel (ADR-011): hàng tên cột là 1, dữ liệu của trang từ 2
+    dong_dau = (trang.start_index() or 1) + 1      # trang rỗng: dòng trống vẫn từ 2
+    cac_dong = grid_service.rows(trang.object_list, luoi.columns, request.user, waybill=vd, start=dong_dau)
+    cac_cot_trong = grid_service.filler_letters(len(luoi.columns), offset=1 if vd else 0)
     return render(request, "crm/bang_tinh.html", {
         "cay": cay,
         "cac_thu_muc": [t for t, _ in cay if t is not None and t.department_id == bang.department_id],
         "duoc_quan_ly_thu_muc": grant_service.can_manage_folders(request.user, bang.department),
         "bang": bang, "luoi": luoi, "cac_cot": luoi.columns, "la_van_don": vd,
         "cac_tieu_de": grid_service.header_columns(luoi.columns, luoi.filters, waybill=vd),
-        "cac_dong": grid_service.rows(trang.object_list, luoi.columns, request.user, waybill=vd),
-        "cac_dong_trong": grid_service.spare_rows(luoi.columns, waybill=vd) if duoc_them else [],
+        "cac_dong": cac_dong,
+        "cac_dong_trong": (
+            grid_service.spare_rows(luoi.columns, waybill=vd, start=dong_dau + len(cac_dong))
+            if duoc_them else []
+        ),
+        "cac_cot_trong": cac_cot_trong,
+        # Lớp của bảng tính ở đây vì bài quét CSS không đọc điều kiện Django trong class
+        "lop_luoi": "bang bang-rong bt-luoi bt-luoi-xanh" if vd else "bang bang-rong bt-luoi",
+        "so_cot_luoi": 1 + (1 if vd else 0) + len(luoi.columns) + len(cac_cot_trong),
+        "dong_dau": dong_dau,
+        "style_trung": grid_service.duplicate_style(),
+        "bang_mau": record_service.PALETTE,
         "page_obj": trang, "moi_trang": page_size(request, default=GRID_PAGE_SIZE),
         "cac_co_trang": PAGE_SIZES, "ten_don_vi": "vận đơn" if vd else "dòng",
         "qs_loc": ("&" + qs_loc) if qs_loc else "",
@@ -108,6 +130,7 @@ def bang_tinh_xem(request, code):
         "bang_du_lieu_url": _ngoai(f"/bang/{bang.code}/"),
         "nhap_url": _ngoai(f"/bang/{bang.code}/nhap/"),
         "sua_cot_url": _ngoai(f"/bang/{bang.code}/cot/"),
+        "tao_bang_url": _ngoai("/bang/moi/"),
         "so_cot_co_dinh": len(grid_service.frozen_columns(luoi.columns, waybill=vd)),
         "cot_khoa": luoi.key_column,
         "ben": sidebar_service.context(request.user, bang, luoi.columns, request.GET),
@@ -159,11 +182,12 @@ def bang_tinh_o(request, code, pk, ma_cot):
         raise Http404
     co_dinh = dict((ma, (trai, rong)) for ma, trai, rong in grid_service.frozen_columns(cac_cot, waybill=vd))
     cd = co_dinh.get(ma_cot)
-    lech = grid_service.DUPLICATE_COLUMN_WIDTH if vd else 0
+    lech = grid_service.left_offset(vd)
     kieu = (ban_ghi.style or {}).get(ma_cot)
     boi_canh = {
         "bang": bang, "ban_ghi": ban_ghi, "cot": cot, "qs_giu": _qs_hien_tai(request),
         "gia_tri": ban_ghi.data.get(ma_cot), "duoc_sua": True,
+        "hien": grid_service.display_value(cot, ban_ghi.data.get(ma_cot), kieu),
         "lop": grid_service.cell_class(cot, cd, True, style=kieu),
         "style": grid_service.frozen_style(cd, offset=lech),
         "lop_sua": grid_service.cell_class(cot, cd, True, editing=True),
@@ -186,6 +210,7 @@ def bang_tinh_o(request, code, pk, ma_cot):
             boi_canh["lop_sua"] = grid_service.cell_class(cot, cd, True, editing=True, error=True)
             return render(request, "crm/_o_sua.html", _boi_canh_sua(bang, cot, boi_canh), status=400)
         boi_canh["gia_tri"] = ban_ghi.data.get(ma_cot)
+        boi_canh["hien"] = grid_service.display_value(cot, boi_canh["gia_tri"], kieu)
         return render(request, "crm/_o.html", boi_canh)
 
     return render(request, "crm/_o_sua.html", _boi_canh_sua(bang, cot, boi_canh))
@@ -216,7 +241,11 @@ def bang_tinh_dong_moi(request, code):
         for c in cac_cot if not c.is_computed
     }
     da_dien = {k: v for k, v in gia_tri.items() if v != ""}
-    boi_canh = {"bang": bang, "la_van_don": vd, "cac_cot": cac_cot}
+    boi_canh = {
+        "bang": bang, "la_van_don": vd, "cac_cot": cac_cot,
+        "cac_cot_trong": grid_service.filler_letters(len(cac_cot), offset=1 if vd else 0),
+    }
+    stt = _so_dong(request.POST.get("_stt"))
 
     loi = ""
     if not da_dien:
@@ -236,16 +265,16 @@ def bang_tinh_dong_moi(request, code):
             moi = ds.first() or ban_ghi
             html = render_to_string("crm/_dong.html", {
                 **boi_canh, "qs_giu": _qs_hien_tai(request),
-                "d": grid_service.row_context(moi, cac_cot, request.user, waybill=vd),
+                "d": grid_service.row_context(moi, cac_cot, request.user, waybill=vd, stt=stt),
             }, request) + render_to_string("crm/_dong_moi.html", {
-                **boi_canh, "dong": grid_service.spare_rows(cac_cot, 1, waybill=vd)[0],
+                **boi_canh, "dong": grid_service.spare_rows(cac_cot, 1, waybill=vd, start=stt + 1)[0],
                 "lop_dong": "dong-moi",
             }, request)
             return HttpResponse(html)
 
     # Tô ô của cột được nhắc tên trong lời báo lỗi, nếu có
     cot_loi = next((c.code for c in cac_cot if c.name and c.name in loi), None)
-    dong = grid_service.spare_rows(cac_cot, 1, waybill=vd, values=gia_tri, error_column=cot_loi)[0]
+    dong = grid_service.spare_rows(cac_cot, 1, waybill=vd, values=gia_tri, error_column=cot_loi, start=stt)[0]
     return render(request, "crm/_dong_moi.html", {
         **boi_canh, "dong": dong, "loi": loi, "lop_dong": "dong-moi dong-moi-loi",
     }, status=400)
@@ -299,7 +328,7 @@ def bang_tinh_dinh_dang(request, code):
         return render(request, "crm/_bao_loi.html", {"loi": str(e)}, status=400)
 
     co_dinh = dict((ma, (trai, rong)) for ma, trai, rong in grid_service.frozen_columns(cac_cot, waybill=vd))
-    lech = grid_service.DUPLICATE_COLUMN_WIDTH if vd else 0
+    lech = grid_service.left_offset(vd)
     qs_giu = _qs_hien_tai(request)
     manh = []
     for ban_ghi, ma in cells:
@@ -308,6 +337,7 @@ def bang_tinh_dinh_dang(request, code):
         sua = grant_service.can_edit_record(request.user, ban_ghi)
         manh.append(render_to_string("crm/_o.html", {
             "bang": bang, "ban_ghi": ban_ghi, "cot": cot, "gia_tri": ban_ghi.data.get(ma),
+            "hien": grid_service.display_value(cot, ban_ghi.data.get(ma), (ban_ghi.style or {}).get(ma)),
             "duoc_sua": sua, "qs_giu": qs_giu, "oob": True,
             "lop": grid_service.cell_class(cot, cd, sua, style=(ban_ghi.style or {}).get(ma)),
             "style": grid_service.frozen_style(cd, offset=lech),

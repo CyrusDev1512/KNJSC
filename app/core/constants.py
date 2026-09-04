@@ -85,6 +85,10 @@ GRID_FROZEN_COLUMNS_GENERIC = 1          # bảng thường: cố định một 
 GRID_FROZEN_WIDTH_DEFAULT = 160          # ... rộng bấy nhiêu px
 GRID_SPARE_ROWS = 5                      # dòng trống cuối lưới để gõ bản ghi mới
 GRID_FORMAT_CELLS_MAX = 500              # số ô tối đa định dạng trong một lần
+GRID_MIN_COLUMNS = 26                    # lưới luôn có chữ cột tới Z, thiếu thì thêm cột trống — ADR-011
+GRID_FILLER_COLUMNS = 2                  # ... và ít nhất hai cột trống sau cột cuối
+GRID_ROW_NUMBER_WIDTH = 46               # cột số dòng bên trái (px)
+GRID_SPARE_ROWS_MAX = 2000               # "+100 dòng" không vượt quá bấy nhiêu dòng trống
 PERF_TABLE_ROWS = 50_000                 # AC-7.1 — 50.000 bản ghi tải trang đầu
 PERF_PAGE_SECONDS = 2                    # ... dưới 2 giây
 

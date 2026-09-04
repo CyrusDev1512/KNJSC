@@ -196,13 +196,13 @@ def test_chon_vung_va_dinh_dang_o(live_server, trang, dang_nhap, du_lieu, nguoi_
         trang.click(".bt-dinh-dang .bt-dd[data-dd=b]")
         trang.wait_for_function("document.querySelectorAll('td.dd-dam').length === 4")
         assert "sap=ma_don" in trang.url
-        trang.click(".bt-mo-mau")
-        trang.click(".bt-mau-vang")
-        trang.wait_for_function("document.querySelectorAll('td.dd-nen-vang').length === 4")
+        trang.click('[aria-controls="bt-bang-mau-nen"]')
+        trang.click("#bt-bang-mau-nen .bt-mau-m30")           # vàng nhạt trong bảng 40 màu (ADR-011)
+        trang.wait_for_function("document.querySelectorAll('td.dd-nen-m30').length === 4")
 
         trang.reload()
         trang.wait_for_load_state("networkidle")
-        assert trang.locator("td.dd-dam.dd-nen-vang").count() == 4
+        assert trang.locator("td.dd-dam.dd-nen-m30").count() == 4
 
         trang.locator('tbody tr[data-dong] td[data-cot="ten_khach"]').nth(0).focus()
         trang.keyboard.press("Control+b")
@@ -217,7 +217,8 @@ def test_keo_do_rong_va_thu_tu_cot_nho_tren_trinh_duyet(live_server, trang, dang
         assert trang.locator("aside.nav").count() == 0
         assert trang.locator(".bt-chu-cot").all_inner_texts()[:3] == ["A", "B", "C"]
 
-        th = trang.locator('thead th[data-cot="dia_chi"]')
+        # Hàng chữ cột A B C mang mép kéo độ rộng và cũng kéo thả được (ADR-011)
+        th = trang.locator('thead tr.bt-hang-chu th[data-cot="dia_chi"]')
         th.scroll_into_view_if_needed()
         rong_truoc = th.bounding_box()["width"]
         tay = th.locator(".bt-keo-cot").bounding_box()
@@ -228,20 +229,21 @@ def test_keo_do_rong_va_thu_tu_cot_nho_tren_trinh_duyet(live_server, trang, dang
         assert th.bounding_box()["width"] > rong_truoc + 60
 
         # Kéo Thành phố ra trước Địa chỉ (cả hai không cố định, đang hiện trên màn hình)
-        trang.locator('thead th[data-cot="thanh_pho"]').drag_to(
-            trang.locator('thead th[data-cot="dia_chi"]'), target_position={"x": 5, "y": 20})
-        thu_tu = trang.locator("thead th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        trang.locator('thead tr.bt-hang-chu th[data-cot="thanh_pho"]').drag_to(
+            trang.locator('thead tr.bt-hang-chu th[data-cot="dia_chi"]'), target_position={"x": 5, "y": 12})
+        thu_tu = trang.locator("thead tr.bt-hang-chu th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
         assert thu_tu.index("thanh_pho") < thu_tu.index("dia_chi")
         dong = trang.locator("tbody tr[data-dong]").first.locator("td[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
         assert dong == thu_tu
 
         trang.reload()
         trang.wait_for_load_state("networkidle")
-        thu_tu2 = trang.locator("thead th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        thu_tu2 = trang.locator("thead tr.bt-hang-chu th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
         assert thu_tu2 == thu_tu
-        assert trang.locator('thead th[data-cot="dia_chi"]').bounding_box()["width"] > rong_truoc + 60
+        assert trang.locator('thead tr.bt-hang-chu th[data-cot="dia_chi"]').bounding_box()["width"] > rong_truoc + 60
 
+        trang.click(".bt-khac")                           # Đặt lại cột nằm trong hộp ⋯ (ADR-011)
         trang.click(".bt-dat-lai-cot")
         trang.wait_for_load_state("networkidle")
-        thu_tu3 = trang.locator("thead th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        thu_tu3 = trang.locator("thead tr.bt-hang-chu th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
         assert thu_tu3.index("dia_chi") < thu_tu3.index("thanh_pho")

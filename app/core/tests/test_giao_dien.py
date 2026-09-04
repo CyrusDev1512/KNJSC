@@ -31,6 +31,9 @@ MOC_JAVASCRIPT = {
     # Bảng tính (ADR-010): nút và ô chỉ để JS bắt, không có kiểu riêng
     "bt-tat-ca", "bt-them-dong", "bt-loc-o", "bt-an-cot", "bt-thu-ben",
     "bt-dinh-dang", "o-moi-nhap", "bt-dd", "bt-mo-mau", "bt-mau-bo", "bt-thu-muc-moi", "bt-dat-lai-cot",
+    # Bảng tính theo mẫu KN Demo (ADR-011): nút ⋯ mở hộp "việc khác" — kiểu
+    # dáng lấy từ .bt-tb, lớp này chỉ để JS biết mở hộp nào
+    "bt-khac",
 }
 
 #: Mảnh cú pháp Django lọt vào thuộc tính class khi có điều kiện bên trong
