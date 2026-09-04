@@ -55,6 +55,10 @@ until curl -s -o /dev/null "$DIA_CHI" 2>/dev/null; do
   sleep 2
 done
 
+# Mã mới vào container qua thư mục gắn ngoài, container không dựng lại nên
+# entrypoint (và migrate trong đó) không chạy lại — phải gọi tường minh
+$COMPOSE exec -T web python manage.py migrate --noinput
+$COMPOSE exec -T web python manage.py tao_bang_van_don
 $COMPOSE exec -T web python manage.py du_lieu_mau
 
 case "$(uname -s)" in
