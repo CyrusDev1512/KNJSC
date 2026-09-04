@@ -1,0 +1,91 @@
+{% load static %}<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block tieu_de %}Bảng tính · Kim Ngân JSC{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" href="{% static 'css/bang-tinh.css' %}">
+<script>
+  /* Đặt nền trước khi vẽ để tránh nháy sáng */
+  try { var n = localStorage.getItem("knjsc-nen"); if (n) document.documentElement.dataset.theme = n; } catch (e) {}
+</script>
+{% block dau_trang %}{% endblock %}
+</head>
+<body class="bt-than">
+{% comment %}
+Khung riêng của Bảng tính — ADR-010: không thanh bên hệ thống, không tiêu đề
+trang; cả màn hình là lưới, như mở một tệp bảng tính. Thanh trên chỉ còn tên
+bảng, ô đổi bảng, nút nền, người dùng và một menu ☰ dẫn về các màn hình khác.
+{% endcomment %}
+{% if user.is_authenticated %}
+<div class="app bt-toan-man" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+
+  <header class="bt-thanh-tren">
+    <a class="bt-hieu" href="{% url 'tong_quan' %}" title="Về hệ thống"><span>KN</span></a>
+    <details class="bt-menu">
+      <summary class="nut nut-nho" aria-label="Mở điều hướng">☰</summary>
+      <nav class="bt-menu-hop" aria-label="Điều hướng chính">
+        {% for nhom in nav_groups %}
+          <div class="nav-nhom">{{ nhom.label }}</div>
+          {% for muc in nhom.items %}
+            <a class="nav-muc" href="{{ muc.href }}" {% if muc.code == nav_current %}aria-current="page"{% endif %}>{{ muc.label }}</a>
+          {% endfor %}
+        {% endfor %}
+      </nav>
+    </details>
+    <div class="bt-ten">
+      <span class="nhan-nho">Bảng tính</span>
+      {% block ten_bang %}{% endblock %}
+    </div>
+    <div class="topbar-phai">
+      <button class="nut nut-nho" type="button" id="nut-nen" title="Đổi nền sáng tối">Nền</button>
+      <div class="nguoi-dung">
+        <div class="avatar">{{ profile.full_name|default:user.get_username|first|upper }}</div>
+        <div>
+          <b>{{ profile.full_name|default:user.get_username }}</b>
+          <small>{{ profile.get_rank_display }}{% if profile.department %} · {{ profile.department }}{% endif %}</small>
+        </div>
+      </div>
+      <form method="post" action="{% url 'dang_xuat' %}">
+        {% csrf_token %}
+        <button class="nut nut-nho" type="submit">Đăng xuất</button>
+      </form>
+    </div>
+  </header>
+
+  {% if messages %}
+    <div class="bt-tin">
+      {% for tin in messages %}
+        <div class="bao {% if tin.tags == 'error' %}bao-xau{% elif tin.tags == 'warning' %}bao-cho{% else %}bao-tot{% endif %}">
+          <span class="bao-ic">{% if tin.tags == 'error' %}!{% else %}✓{% endif %}</span>
+          <div><b>{{ tin }}</b></div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% block noi_dung %}{% endblock %}
+</div>
+
+<script>
+  document.getElementById("nut-nen").addEventListener("click", function () {
+    var toi = document.documentElement.dataset.theme === "dark";
+    document.documentElement.dataset.theme = toi ? "light" : "dark";
+    try { localStorage.setItem("knjsc-nen", toi ? "light" : "dark"); } catch (e) {}
+  });
+  document.addEventListener("click", function (e) {
+    var menu = document.querySelector(".bt-menu");
+    if (menu && menu.open && !menu.contains(e.target)) menu.open = false;
+  });
+</script>
+
+<script src="{% static 'js/htmx.min.js' %}" defer></script>
+{% block cuoi_trang %}{% endblock %}
+{% endif %}
+</body>
+</html>

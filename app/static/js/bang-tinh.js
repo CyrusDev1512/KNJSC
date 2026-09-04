@@ -276,6 +276,7 @@
         if (!o.checked) moi.push(th.dataset.cot);
         nho(KHOA_AN_COT, JSON.stringify(moi));
         apAnCot();
+        danhChuCot();
       });
       nhan.appendChild(o);
       nhan.appendChild(document.createTextNode(" " + (th.querySelector("a") ? th.querySelector("a").textContent.replace(/[↑↓↕]\s*$/, "").trim() : th.dataset.cot)));
@@ -285,10 +286,155 @@
     HOP_AN_COT.style.top = (window.scrollY + r.bottom + 4) + "px";
     HOP_AN_COT.style.left = (window.scrollX + r.left) + "px";
   }
-  apAnCot();
+  // ── Chữ cột A B C, kéo đổi độ rộng, kéo thả đổi thứ tự — nhớ theo bảng ──
+  var KHOA_RONG = "knjsc-bt-rong-" + MA_BANG;
+  var KHOA_THU_TU = "knjsc-bt-thu-tu-" + MA_BANG;
+  var SO_CO_DINH = parseInt(LUOI.dataset.coDinh || "0", 10);
+  function docJSON(khoa, mac_dinh) {
+    try { return JSON.parse(doc(khoa)) || mac_dinh; } catch (e) { return mac_dinh; }
+  }
+  function chuCot(i) {
+    var chu = "";
+    i += 1;
+    while (i > 0) { var du = (i - 1) % 26; chu = String.fromCharCode(65 + du) + chu; i = Math.floor((i - 1) / 26); }
+    return chu;
+  }
+  function danhChuCot() {
+    var i = 0;
+    Array.prototype.forEach.call(LUOI.querySelectorAll("thead th[data-cot]"), function (th) {
+      var o = th.querySelector(".bt-chu-cot");
+      if (!o) return;
+      if (th.hidden) return;
+      o.textContent = chuCot(i++);
+    });
+  }
+  function datRong(ma, px) {
+    Array.prototype.forEach.call(LUOI.querySelectorAll('[data-cot="' + ma + '"]'), function (o) {
+      o.style.width = px + "px"; o.style.minWidth = px + "px"; o.style.maxWidth = px + "px";
+    });
+  }
+  function apRong() {
+    var r = docJSON(KHOA_RONG, {});
+    Object.keys(r).forEach(function (ma) { datRong(ma, r[ma]); });
+  }
+  function thuTuHienTai() {
+    return Array.prototype.map.call(LUOI.querySelectorAll("thead th[data-cot]"), function (th) { return th.dataset.cot; });
+  }
+  function apThuTu() {
+    var luu = docJSON(KHOA_THU_TU, null);
+    if (!luu || !luu.length) return;
+    var hien = thuTuHienTai();
+    var thu_tu = luu.filter(function (m) { return hien.indexOf(m) >= 0; })
+      .concat(hien.filter(function (m) { return luu.indexOf(m) < 0; }));
+    // Cột cố định luôn đứng đầu, đúng thứ tự gốc
+    var co_dinh = hien.slice(0, SO_CO_DINH);
+    thu_tu = co_dinh.concat(thu_tu.filter(function (m) { return co_dinh.indexOf(m) < 0; }));
+    Array.prototype.forEach.call(LUOI.querySelectorAll("tr"), function (tr) {
+      var theo_ma = {};
+      Array.prototype.forEach.call(tr.children, function (o) { if (o.dataset.cot) theo_ma[o.dataset.cot] = o; });
+      if (!Object.keys(theo_ma).length) return;          // dòng "không có dòng nào"
+      thu_tu.forEach(function (ma) { if (theo_ma[ma]) tr.appendChild(theo_ma[ma]); });
+    });
+  }
+  function apBoCuc() {
+    apThuTu();
+    apRong();
+    apAnCot();          // gọi luôn canhCotCoDinh()
+    danhChuCot();
+  }
+  apBoCuc();
   document.body.addEventListener("htmx:afterSwap", function (e) {
     var t = e.detail.target;
-    if (t && t.tagName === "TR") apAnCot();
+    if (t && t.tagName === "TR") apBoCuc();
+  });
+
+  // Kéo mép phải tiêu đề để đổi độ rộng
+  var KEO_RONG = null;
+  document.addEventListener("mousedown", function (e) {
+    var tay = e.target.closest && e.target.closest(".bt-keo-cot");
+    if (!tay || !LUOI.contains(tay)) return;
+    var th = tay.closest("th");
+    e.preventDefault();
+    KEO_RONG = { ma: th.dataset.cot, x: e.clientX, rong: th.getBoundingClientRect().width, th: th };
+    th.classList.add("bt-dang-keo-rong");
+    document.body.style.cursor = "col-resize";
+  });
+  document.addEventListener("mousemove", function (e) {
+    if (!KEO_RONG) return;
+    var moi = Math.max(48, Math.round(KEO_RONG.rong + e.clientX - KEO_RONG.x));
+    datRong(KEO_RONG.ma, moi);
+    KEO_RONG.moi = moi;
+  });
+  document.addEventListener("mouseup", function () {
+    if (!KEO_RONG) return;
+    if (KEO_RONG.moi) {
+      var r = docJSON(KHOA_RONG, {});
+      r[KEO_RONG.ma] = KEO_RONG.moi;
+      nho(KHOA_RONG, JSON.stringify(r));
+      canhCotCoDinh();
+    }
+    KEO_RONG.th.classList.remove("bt-dang-keo-rong");
+    document.body.style.cursor = "";
+    KEO_RONG = null;
+  });
+
+  // Kéo thả tiêu đề để đổi thứ tự cột (cột cố định đứng yên)
+  var KEO_COT = null;
+  Array.prototype.forEach.call(LUOI.querySelectorAll("thead th[data-cot]"), function (th) {
+    if (!th.classList.contains("co-dinh")) th.setAttribute("draggable", "true");
+  });
+  LUOI.addEventListener("dragstart", function (e) {
+    var th = e.target.closest && e.target.closest("thead th[data-cot]");
+    if (!th || KEO_RONG) { e.preventDefault(); return; }
+    KEO_COT = th.dataset.cot;
+    th.classList.add("bt-dang-keo");
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", KEO_COT); } catch (err) {}
+  });
+  function xoaDauTha() {
+    Array.prototype.forEach.call(LUOI.querySelectorAll("th.bt-tha-truoc, th.bt-tha-sau"), function (o) {
+      o.classList.remove("bt-tha-truoc", "bt-tha-sau");
+    });
+  }
+  LUOI.addEventListener("dragover", function (e) {
+    if (!KEO_COT) return;
+    var th = e.target.closest && e.target.closest("thead th[data-cot]");
+    if (!th || th.classList.contains("co-dinh")) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    var r = th.getBoundingClientRect();
+    xoaDauTha();
+    th.classList.add(e.clientX < r.left + r.width / 2 ? "bt-tha-truoc" : "bt-tha-sau");
+  });
+  LUOI.addEventListener("dragleave", function (e) {
+    var th = e.target.closest && e.target.closest("thead th[data-cot]");
+    if (th) th.classList.remove("bt-tha-truoc", "bt-tha-sau");
+  });
+  LUOI.addEventListener("drop", function (e) {
+    if (!KEO_COT) return;
+    var th = e.target.closest && e.target.closest("thead th[data-cot]");
+    if (!th || th.classList.contains("co-dinh") || th.dataset.cot === KEO_COT) { xoaDauTha(); return; }
+    e.preventDefault();
+    var truoc = th.classList.contains("bt-tha-truoc");
+    var thu_tu = thuTuHienTai().filter(function (m) { return m !== KEO_COT; });
+    var i = thu_tu.indexOf(th.dataset.cot) + (truoc ? 0 : 1);
+    thu_tu.splice(Math.max(i, SO_CO_DINH), 0, KEO_COT);
+    nho(KHOA_THU_TU, JSON.stringify(thu_tu));
+    xoaDauTha();
+    apBoCuc();
+  });
+  LUOI.addEventListener("dragend", function () {
+    Array.prototype.forEach.call(LUOI.querySelectorAll("th.bt-dang-keo"), function (o) { o.classList.remove("bt-dang-keo"); });
+    xoaDauTha();
+    KEO_COT = null;
+  });
+
+  // Đặt lại độ rộng, thứ tự, cột ẩn
+  document.addEventListener("click", function (e) {
+    var nut = e.target.closest && e.target.closest(".bt-dat-lai-cot");
+    if (!nut) return;
+    nho(KHOA_RONG, null); nho(KHOA_THU_TU, null); nho(KHOA_AN_COT, null);
+    location.reload();
   });
   document.addEventListener("click", function (e) {
     if (!HOP_AN_COT || HOP_AN_COT.hidden) return;

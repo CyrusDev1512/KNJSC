@@ -252,11 +252,18 @@ Cột nào dùng để thống kê thì gán **nhãn ý nghĩa** — ví dụ c�
 
 ## A8. Bảng tính — lưới kiểu Excel cho mọi bảng
 
-Mục **Bảng tính** trên thanh bên mở lưới kiểu Excel cho bảng của bộ phận bạn:
-mọi ô có viền, bấm ô là sửa, cuối lưới luôn thừa dòng trống để gõ bản ghi mới.
-Thanh bên trái liệt kê các bảng theo thư mục; bấm tên bảng để đổi bảng. Bạn
-chỉ thấy bảng trong phạm vi của mình; gọi thẳng đường dẫn bảng khác cũng bị
-từ chối.
+Mục **Bảng tính** trên thanh bên mở một trang **toàn màn hình riêng**, như mở
+một tệp bảng tính: không còn thanh bên hệ thống, lưới chiếm hết cửa sổ. Thanh
+trên có tên bảng, ô đổi bảng, nút Nền và tên bạn; nút **☰** mở menu về Tổng
+quan, Bảng dữ liệu và các màn hình khác. Mọi ô có viền, cột đánh chữ A B C,
+bấm ô là sửa, cuối lưới luôn thừa dòng trống để gõ bản ghi mới. Thanh bên trái
+liệt kê các bảng theo thư mục. Bạn chỉ thấy bảng trong phạm vi của mình; gọi
+thẳng đường dẫn bảng khác cũng bị từ chối.
+
+**Cột:** kéo mép phải của tiêu đề để đổi độ rộng; kéo thả tiêu đề sang chỗ
+khác để đổi thứ tự (cột đứng yên khi cuộn không đổi được); **Ẩn/hiện cột** để
+giấu cột; **Đặt lại cột** để về mặc định. Ba thứ này nhớ trên trình duyệt của
+bạn, không ảnh hưởng người khác.
 
 **Riêng bộ phận Vận đơn:** bảng vận đơn sửa ở địa chỉ riêng
 **`http://localhost:8021/bang-tinh/`** (trên máy chủ sẽ là một subdomain), cùng
@@ -275,7 +282,7 @@ hàng tiêu đề đứng yên khi cuộn.
 | Thư mục mới | Tạo thư mục trong thanh bên (Manager) |
 | **B** · Màu nền · Cỡ · ⇤ ↔ ⇥ · Gỡ định dạng | Định dạng ô đang chọn — xem "Định dạng" |
 | Lọc theo ô này | Lọc lưới theo giá trị của ô đang chọn |
-| Ẩn/hiện cột | Tích cột muốn ẩn; nhớ trên trình duyệt của bạn |
+| Ẩn/hiện cột · Đặt lại cột | Tích cột muốn ẩn; đặt lại độ rộng, thứ tự và cột ẩn về mặc định |
 
 ### Thanh bên trái
 

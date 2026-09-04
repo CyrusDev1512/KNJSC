@@ -207,3 +207,41 @@ def test_chon_vung_va_dinh_dang_o(live_server, trang, dang_nhap, du_lieu, nguoi_
         trang.locator('tbody tr[data-dong] td[data-cot="ten_khach"]').nth(0).focus()
         trang.keyboard.press("Control+b")
         trang.wait_for_function("document.querySelectorAll('td.dd-dam').length === 3")
+
+
+def test_keo_do_rong_va_thu_tu_cot_nho_tren_trinh_duyet(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
+    """AC-11.18 — Trang Bảng tính không có thanh bên hệ thống; cột có chữ A B C; kéo mép tiêu đề đổi độ rộng, kéo thả tiêu đề đổi thứ tự ở cả tiêu đề lẫn dòng; tải lại vẫn giữ; Đặt lại cột về mặc định"""
+    with override_settings(GRID_ONLY_TABLES=set()):
+        dang_nhap(trang, nguoi_dung["staff_vd"])
+        trang.goto(live_server.url + "/bang-tinh/van_don/")
+        assert trang.locator("aside.nav").count() == 0
+        assert trang.locator(".bt-chu-cot").all_inner_texts()[:3] == ["A", "B", "C"]
+
+        th = trang.locator('thead th[data-cot="dia_chi"]')
+        th.scroll_into_view_if_needed()
+        rong_truoc = th.bounding_box()["width"]
+        tay = th.locator(".bt-keo-cot").bounding_box()
+        trang.mouse.move(tay["x"] + tay["width"] / 2, tay["y"] + tay["height"] / 2)
+        trang.mouse.down()
+        trang.mouse.move(tay["x"] + 100, tay["y"] + 10, steps=6)
+        trang.mouse.up()
+        assert th.bounding_box()["width"] > rong_truoc + 60
+
+        # Kéo Thành phố ra trước Địa chỉ (cả hai không cố định, đang hiện trên màn hình)
+        trang.locator('thead th[data-cot="thanh_pho"]').drag_to(
+            trang.locator('thead th[data-cot="dia_chi"]'), target_position={"x": 5, "y": 20})
+        thu_tu = trang.locator("thead th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        assert thu_tu.index("thanh_pho") < thu_tu.index("dia_chi")
+        dong = trang.locator("tbody tr[data-dong]").first.locator("td[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        assert dong == thu_tu
+
+        trang.reload()
+        trang.wait_for_load_state("networkidle")
+        thu_tu2 = trang.locator("thead th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        assert thu_tu2 == thu_tu
+        assert trang.locator('thead th[data-cot="dia_chi"]').bounding_box()["width"] > rong_truoc + 60
+
+        trang.click(".bt-dat-lai-cot")
+        trang.wait_for_load_state("networkidle")
+        thu_tu3 = trang.locator("thead th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        assert thu_tu3.index("dia_chi") < thu_tu3.index("thanh_pho")

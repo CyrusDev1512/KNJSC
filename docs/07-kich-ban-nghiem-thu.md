@@ -78,7 +78,9 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 | ☐ | Gõ vào dòng trống cuối lưới: ngày, marketer, sản phẩm; nhấn Enter | Dòng thành dòng thật ngay, không tải lại trang; vẫn còn dòng trống để gõ tiếp; gõ ngày sai thì ô đỏ kèm lý do, giá trị đã gõ còn nguyên | AC-11.14 |
 | ☐ | Bấm một ô, Shift+bấm ô khác để chọn vùng, bấm **B** rồi **Màu nền → vàng**, chọn **Cỡ 16**, căn giữa | Cả vùng đổi ngay; đăng nhập `mkt.staff` mở cùng bảng thấy y hệt; Gỡ định dạng thì về như cũ | **AC-11.15** |
 | ☐ | Bấm **Thư mục mới**, đặt tên, rồi chọn thư mục đó ở ô "Bảng này ở thư mục" | Cây bên trái có thư mục chứa bảng; `mkt.staff` thấy cây nhưng không có nút tạo; đổi tên, xoá thư mục thì bảng về không thư mục | AC-11.17 |
-| ☐ | Ẩn hai cột bằng **Ẩn/hiện cột**, tải lại trang; thu gọn thanh bên | Cột vẫn ẩn, thanh bên vẫn gọn (nhớ trên trình duyệt) | AC-11.18 |
+| ☐ | Ẩn hai cột bằng **Ẩn/hiện cột**, tải lại trang; thu gọn thanh bên | Cột vẫn ẩn, thanh bên vẫn gọn (nhớ trên trình duyệt); chữ cột A B C đánh lại theo cột đang hiện | AC-11.18 |
+| ☐ | Kéo mép phải tiêu đề một cột sang phải; kéo thả tiêu đề cột Sản phẩm ra trước Marketer; tải lại | Cột rộng ra, thứ tự đổi ở cả tiêu đề lẫn mọi dòng; tải lại vẫn giữ; **Đặt lại cột** thì về mặc định | AC-11.18 |
+| ☐ | Nhìn cả trang Bảng tính | Không có thanh bên hệ thống; thanh trên chỉ có tên bảng, ô đổi bảng, nút Nền, tên mình; ☰ mở được menu về Tổng quan, Bảng dữ liệu | AC-11.18 |
 
 ### 3.3. Vận đơn — `vd.staff`
 

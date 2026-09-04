@@ -78,8 +78,17 @@ mục cũ (quy tắc 1 của thư mục này).
    thanh bên, **không** ảnh hưởng phạm vi quyền. Không lồng thư mục — chưa có
    nhu cầu, ghi ở backlog mục 3.
 7. **Thanh công cụ** đủ mục: nhập, xuất Excel, thêm dòng, thêm cột, thư mục
-   mới, định dạng, lọc theo ô, bỏ lọc, ẩn/hiện cột. Ẩn cột và thu gọn thanh bên
-   nhớ trên trình duyệt (như ADR-009 mục 8), không lên máy chủ.
+   mới, định dạng, lọc theo ô, bỏ lọc, ẩn/hiện cột, đặt lại cột.
+8. **Trang toàn màn hình riêng.** Bảng tính không nằm trong khung hệ thống
+   (`base.html`) mà có khung riêng `crm/base_bang_tinh.html`: không thanh bên
+   điều hướng, thanh trên mỏng, lưới chiếm hết cửa sổ; menu ☰ dẫn về các màn
+   hình khác. Cùng khung cho cả 8020 và 8021, nên nhánh subdomain sau này
+   (ADR-009) không phải làm lại giao diện.
+9. **Cột như Excel, nhớ trên trình duyệt.** Chữ cột A B C; kéo mép tiêu đề
+   đổi độ rộng; kéo thả tiêu đề đổi thứ tự (cột cố định đứng yên); ẩn cột.
+   Cả ba nhớ trong localStorage theo mã bảng (như ADR-009 mục 8), không lên
+   máy chủ — mỗi người sắp lưới theo ý mình mà không đụng người khác; thứ tự
+   "chính thức" vẫn là `ColumnDef.order` do Manager đặt.
 
 ---
 

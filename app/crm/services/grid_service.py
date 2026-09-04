@@ -275,13 +275,25 @@ def _co_dinh(columns, waybill):
     return {ma: (trai, rong) for ma, trai, rong in frozen_columns(columns, waybill=waybill)}
 
 
+def column_letter(i):
+    """Chữ cột kiểu Excel: 0 → A, 25 → Z, 26 → AA."""
+    chu = ""
+    i += 1
+    while i:
+        i, du = divmod(i - 1, 26)
+        chu = chr(65 + du) + chu
+    return chu
+
+
 def header_columns(columns, filters=None, *, waybill=True):
-    """Tiêu đề cột cho template: cột, style cố định, lớp, có đang lọc không."""
+    """Tiêu đề cột cho template: cột, chữ cột A B C, style cố định, lớp, có
+    đang lọc không. Chữ cột tính lại ở trình duyệt khi người dùng ẩn hay kéo
+    đổi thứ tự cột."""
     co_dinh = _co_dinh(columns, waybill)
     lech = DUPLICATE_COLUMN_WIDTH if waybill else 0
     dang_loc = {k.partition("__")[0] for k in (filters or {})}
     ket_qua = []
-    for c in columns:
+    for i, c in enumerate(columns):
         cd = co_dinh.get(c.code)
         lop = ["sap-xep"]
         if cd:
@@ -291,7 +303,8 @@ def header_columns(columns, filters=None, *, waybill=True):
         if c.is_key:
             lop.append("th-khoa")
         ket_qua.append({
-            "cot": c, "style": frozen_style(cd, offset=lech), "lop": " ".join(lop),
+            "cot": c, "chu": column_letter(i),
+            "style": frozen_style(cd, offset=lech), "lop": " ".join(lop),
             "lop_nut_loc": "nut-loc dang-loc" if c.code in dang_loc else "nut-loc",
         })
     return ket_qua
