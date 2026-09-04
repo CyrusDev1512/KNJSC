@@ -89,6 +89,7 @@ GRID_MIN_COLUMNS = 26                    # lưới luôn có chữ cột tới Z
 GRID_FILLER_COLUMNS = 2                  # ... và ít nhất hai cột trống sau cột cuối
 GRID_ROW_NUMBER_WIDTH = 46               # cột số dòng bên trái (px)
 GRID_SPARE_ROWS_MAX = 2000               # "+100 dòng" không vượt quá bấy nhiêu dòng trống
+GRID_PASTE_CELLS_MAX = 2000              # số ô tối đa lưu trong một lần dán / kéo điền / hoàn tác
 PERF_TABLE_ROWS = 50_000                 # AC-7.1 — 50.000 bản ghi tải trang đầu
 PERF_PAGE_SECONDS = 2                    # ... dưới 2 giây
 

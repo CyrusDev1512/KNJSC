@@ -371,6 +371,15 @@
   background: #b8952b; border: 1.5px solid #fffdf8; border-radius: 2px;
   box-shadow: 0 0 0 1px rgba(184, 149, 43, .45);
 }
+/* Đang kéo chọn hay kéo điền: không bôi chữ; ô nguồn đã cắt viền chạy; ô đích khi điền viền đứt */
+.luoi-vd.bt-dang-chon, body.bt-dang-keo .luoi-vd { user-select: none; }
+body.bt-dang-keo { cursor: crosshair; }
+.luoi-vd td.o-cat::after { border: 2px dashed #b8952b; }
+.luoi-vd td.o-dien::after { background: rgba(168, 155, 116, .12); }
+.luoi-vd td.o-dien-t::after { border-top: 2px dashed #a89b74; }
+.luoi-vd td.o-dien-b::after { border-bottom: 2px dashed #a89b74; }
+.luoi-vd td.o-dien-l::after { border-left: 2px dashed #a89b74; }
+.luoi-vd td.o-dien-r::after { border-right: 2px dashed #a89b74; }
 
 /* Cột trống bên phải: chỉ để lưới đủ chữ tới Z, không sửa được */
 .luoi-vd td.o-trong-cot { background: var(--surface); cursor: default; }

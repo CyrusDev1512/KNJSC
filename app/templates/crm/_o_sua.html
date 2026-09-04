@@ -4,10 +4,11 @@ lịch; số → ô số. Enter (hoặc chọn xong) thì lưu; Esc thì huỷ (
 hiển thị); rời ô mà đã đổi thì cũng lưu (ADR-011). Nút Lưu chỉ hiện trên màn
 hình cảm ứng. Cần: ban_ghi, cot, gia_tri, danh_sach, chat, lop_sua. Tuỳ chọn: loi.
 {% endcomment %}
-<td class="{{lop_sua}}" id="o-{{ ban_ghi.pk }}-{{ cot.code }}"
+{# Không đặt id trùng ô hiển thị: htmx sẽ gán tạm thuộc tính cũ lên ô mới trong lúc settle #}
+<td class="{{lop_sua}}"
     data-dong="{{ ban_ghi.pk }}" data-cot="{{ cot.code }}" data-goc="{{ gia_tri|default_if_none:'' }}"
     data-hien-url="{% url 'bang_tinh_o' bang.code ban_ghi.pk cot.code %}?hien=1">
-  <form class="o-sua-form" hx-post="{% url 'bang_tinh_o' bang.code ban_ghi.pk cot.code %}" hx-target="closest td" hx-swap="outerHTML">
+  <form class="o-sua-form" hx-post="{% url 'bang_tinh_o' bang.code ban_ghi.pk cot.code %}" hx-target="closest td" hx-swap="outerHTML" onsubmit="return false">
     {% csrf_token %}
     {% if cot.field_type == "choice" and danh_sach and chat %}
       <select class="o-trong-bang" name="gia_tri" aria-label="{{ cot.name }}" autofocus onchange="this.form.requestSubmit()">

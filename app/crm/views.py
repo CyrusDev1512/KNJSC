@@ -10,6 +10,7 @@ from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.contrib import messages
+from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
@@ -17,7 +18,7 @@ from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST, require_http_methods
 
 from core.audit import record_denied
-from core.constants import GRID_FORMAT_CELLS_MAX, GRID_PAGE_SIZE, Rank
+from core.constants import GRID_FORMAT_CELLS_MAX, GRID_PAGE_SIZE, GRID_PASTE_CELLS_MAX, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import PAGE_SIZES, page_size, paginate
 from core.permissions import assert_rank, has_rank
@@ -343,6 +344,119 @@ def bang_tinh_dinh_dang(request, code):
             "style": grid_service.frozen_style(cd, offset=lech),
         }, request))
     return HttpResponse("".join(manh))
+
+
+@login_required
+@require_POST
+def bang_tinh_luu_o(request, code):
+    """Lưu nhiều ô một lần — dán, kéo điền, xoá nội dung, hoàn tác (ADR-011).
+
+    Tham số lặp ghép theo chỉ số: `o=<pk>:<mã cột>` hoặc `o=moi-<số dòng>:<mã
+    cột>` (ô trên dòng trống) và `gt=<giá trị>`. Được cả hoặc không gì: một ô
+    sai thì 400 nêu đúng ô, không ô nào đổi. Quyền kiểm ở máy chủ từng dòng
+    (`can_edit_record`; dòng mới `can_create_record`), ngoài quyền → 403 có
+    nhật ký. Trả các ô đã vẽ lại (hx-swap-oob) và dòng thật thay cho dòng trống.
+    """
+    bang = _bang(request, code)
+    vd = grid_service.is_waybill(bang)
+    cac_cot = grid_service.display_columns(bang)
+    theo_ma = {c.code: c for c in cac_cot}
+    o = request.POST.getlist("o")
+    gt = request.POST.getlist("gt")
+    if not o or len(o) != len(gt):
+        return render(request, "crm/_bao_loi.html", {"loi": "Chưa có ô nào để lưu."}, status=400)
+    if len(o) > GRID_PASTE_CELLS_MAX:
+        return render(request, "crm/_bao_loi.html",
+                      {"loi": f"Chỉ lưu tối đa {GRID_PASTE_CELLS_MAX} ô một lần — dán thành nhiều đợt."}, status=400)
+
+    co_san, dong_moi = {}, {}
+    for muc, raw in zip(o, gt):
+        pk, _, ma = muc.partition(":")
+        cot = theo_ma.get(ma)
+        if cot is None or cot.is_computed:
+            continue                                  # cột lạ hay cột tính sẵn: bỏ qua
+        if pk.isdigit():
+            co_san.setdefault(int(pk), []).append((ma, raw))
+        elif pk.startswith("moi-") and pk[4:].isdigit():
+            dong_moi.setdefault(pk, {})[ma] = raw
+    if not co_san and not dong_moi:
+        return render(request, "crm/_bao_loi.html",
+                      {"loi": "Không có ô nào lưu được — cột tính sẵn và cột trống thì bỏ qua."}, status=400)
+
+    ban_ghi_theo_pk = {
+        r.pk: r for r in DataRecord.objects.in_scope(request.user)
+        .select_related("table").filter(table=bang, pk__in=set(co_san))
+    }
+    if set(co_san) - set(ban_ghi_theo_pk):
+        # Dòng không có trong phạm vi (hoặc đã xoá): từ chối, không im lặng (quy tắc 8)
+        record_denied(request.user, request.path, request)
+        raise OutOfScopeError("Có dòng ngoài phạm vi của bạn hoặc đã bị xoá — tải lại trang rồi dán lại.")
+    for r in ban_ghi_theo_pk.values():
+        if not grant_service.can_edit_record(request.user, r):
+            record_denied(request.user, request.path, request)
+            raise OutOfScopeError("Bạn không sửa được dòng này.")
+    if dong_moi and not grant_service.can_create_record(request.user, bang):
+        record_denied(request.user, request.path, request)
+        raise OutOfScopeError("Bạn không thêm được dòng vào bảng này.")
+
+    cells = [(ban_ghi_theo_pk[pk], ma, raw) for pk, cac in co_san.items() for ma, raw in cac]
+    da_tao = []
+    try:
+        with transaction.atomic():
+            record_service.update_cells(cells, actor=request.user, request=request, columns=cac_cot)
+            for khoa, gia_tri in dong_moi.items():
+                da_dien = {k: v.strip() for k, v in gia_tri.items() if v is not None and v.strip() != ""}
+                if not da_dien:
+                    continue                          # dòng dán toàn ô trống thì không tạo
+                try:
+                    ban_ghi = record_service.create_record(
+                        bang, da_dien, actor=request.user, request=request, columns=cac_cot,
+                    )
+                except BusinessError as e:
+                    raise record_service.CellError(str(e), pk=khoa, code=next(iter(da_dien))) from e
+                da_tao.append((khoa, ban_ghi))
+    except record_service.CellError as e:
+        return render(request, "crm/_bao_loi.html", {"loi": str(e), "o": f"{e.pk}:{e.column}"}, status=400)
+    except BusinessError as e:
+        return render(request, "crm/_bao_loi.html", {"loi": str(e)}, status=400)
+
+    # Vẽ lại: dòng thật thay cho dòng trống đã gõ, rồi ô vừa dán và cột tính
+    # sẵn của dòng đó (có thể đổi theo). **Dòng phải đứng trước ô**: trình duyệt
+    # phân tích mảnh HTML gặp `<td>` rồi mới tới `<tr>` thì bỏ luôn thẻ `<tr>`.
+    co_dinh = dict((ma, (trai, rong)) for ma, trai, rong in grid_service.frozen_columns(cac_cot, waybill=vd))
+    lech = grid_service.left_offset(vd)
+    qs_giu = _qs_hien_tai(request)
+    tinh_san = [c.code for c in cac_cot if c.is_computed]
+    manh_dong, manh = [], []
+    if da_tao:
+        ds = (DataRecord.objects.in_scope(request.user)
+              .select_related("table", "created_by").filter(pk__in=[r.pk for _, r in da_tao]))
+        if vd:
+            ds = ds.annotate(so_trung=grid_service.duplicate_count(bang))
+        theo_pk = {r.pk: r for r in ds}
+        cac_cot_trong = grid_service.filler_letters(len(cac_cot), offset=1 if vd else 0)
+        for khoa, ban_ghi in da_tao:
+            moi = theo_pk.get(ban_ghi.pk, ban_ghi)
+            manh_dong.append(render_to_string("crm/_dong.html", {
+                "bang": bang, "la_van_don": vd, "cac_cot": cac_cot, "cac_cot_trong": cac_cot_trong,
+                "qs_giu": qs_giu, "oob_id": "dong-" + khoa,
+                "d": grid_service.row_context(moi, cac_cot, request.user, waybill=vd, stt=_so_dong(khoa[4:])),
+            }, request))
+    for pk, cac in co_san.items():
+        ban_ghi = ban_ghi_theo_pk[pk]
+        sua = grant_service.can_edit_record(request.user, ban_ghi)
+        for ma in list(dict.fromkeys([m for m, _ in cac] + tinh_san)):
+            cot = theo_ma[ma]
+            cd = co_dinh.get(ma)
+            kieu = (ban_ghi.style or {}).get(ma)
+            manh.append(render_to_string("crm/_o.html", {
+                "bang": bang, "ban_ghi": ban_ghi, "cot": cot, "gia_tri": ban_ghi.data.get(ma),
+                "hien": grid_service.display_value(cot, ban_ghi.data.get(ma), kieu),
+                "duoc_sua": sua, "qs_giu": qs_giu, "oob": True,
+                "lop": grid_service.cell_class(cot, cd, sua, style=kieu),
+                "style": grid_service.frozen_style(cd, offset=lech),
+            }, request))
+    return HttpResponse("".join(manh_dong + manh))
 
 
 # ── Thư mục chứa bảng — ADR-010 ───────────────────────────────────

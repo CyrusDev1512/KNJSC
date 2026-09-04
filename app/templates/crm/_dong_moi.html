@@ -6,7 +6,7 @@ trả về dòng thật kèm một dòng trống mới, hoặc trả lại dòng
 Cần: bang, dong (grid_service.spare_rows), la_van_don, lop_dong ("dong-moi" hoặc
 "dong-moi dong-moi-loi"), cac_cot_trong. Tuỳ chọn: loi.
 {% endcomment %}
-<tr class="{{lop_dong}}" id="dong-moi-{{ dong.stt }}" data-stt="{{ dong.stt }}"
+<tr class="{{lop_dong}}" id="dong-moi-{{ dong.stt }}" data-stt="{{ dong.stt }}" data-moi="moi-{{ dong.stt }}"
     hx-post="{% url 'bang_tinh_dong_moi' bang.code %}" hx-trigger="luu-dong" hx-include="this" hx-swap="outerHTML">
   <th class="bt-so-dong co-dinh" scope="row" style="left:0">{{ dong.stt }}</th>
   {% if la_van_don %}<td class="co-dinh tien o-moi" style="{{ dong.style_trung }}">+</td>{% endif %}

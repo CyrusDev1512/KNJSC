@@ -81,15 +81,33 @@
     if (!td.dataset.hienUrl) return;
     htmx.ajax("GET", td.dataset.hienUrl, { target: td, swap: "outerHTML" });
   }
-  // Gửi ô đang sửa lên máy chủ, mỗi ô một lần dù Enter và rời ô cùng xảy ra
+  // Gửi ô đang sửa lên máy chủ, mỗi ô một lần dù Enter và rời ô cùng xảy ra.
+  // htmx chỉ nối hx-post của biểu mẫu sau khi "settle" (20ms sau swap); gửi
+  // sớm hơn là trình duyệt tự nộp biểu mẫu và tải lại trang — nên chờ.
   function guiSua(td) {
     if (td.dataset.dangLuu === "1") return;
+    if (td.classList.contains("htmx-settling") || td.classList.contains("htmx-added")) {
+      setTimeout(function () { guiSua(td); }, 30);
+      return;
+    }
     td.dataset.dangLuu = "1";
     var form = td.querySelector("form");
     if (form) form.requestSubmit();
   }
 
   var HUONG = { ArrowRight: [0, 1], ArrowLeft: [0, -1], ArrowDown: [1, 0], ArrowUp: [-1, 0] };
+
+  // Sau swap `outerHTML`, htmx 2 đưa phần tử **cũ** (đã rời DOM) vào e.detail.target;
+  // phần tử mới lấy qua e.detail.elt nếu cùng loại thẻ, không thì tìm theo id.
+  // Lưu ý: phần tử mới **trùng id** với phần tử cũ thì trong lúc "settle" htmx tạm
+  // gán thuộc tính cũ lên nó (để CSS chuyển cảnh) — nên trình sửa ô không mang id.
+  function phanTuMoi(e, the) {
+    var t = e.detail && e.detail.target;
+    if (!t || t.isConnected) return t;
+    var elt = e.detail.elt;
+    if (elt && elt.isConnected && elt.tagName === the) return elt;
+    return (t.id && document.getElementById(t.id)) || t;
+  }
 
   // ── Cột cố định: máy chủ ước lượng `left`, trình duyệt đo lại cho đúng ──
   function canhCotCoDinh() {
@@ -119,9 +137,12 @@
       if (th) th.textContent = so;
       if (tr.classList.contains("dong-moi")) {
         tr.dataset.stt = so;
+        tr.dataset.moi = "moi-" + so;
         tr.id = "dong-moi-" + so;
         var an = tr.querySelector("input[name=_stt]");
         if (an) an.value = so;
+      } else if (tr.id && tr.id.indexOf("dong-moi-") === 0) {
+        tr.removeAttribute("id");                    // dòng trống vừa thành dòng thật (dán)
       }
     });
   }
@@ -191,7 +212,7 @@
   // Sau khi máy chủ trả ô mới: đưa con trỏ vào ô sửa (kèm ký tự vừa gõ), hoặc
   // về ô vừa lưu / ô kế bên theo hướng đã nhấn
   document.body.addEventListener("htmx:afterSwap", function (e) {
-    var td = e.detail.target;
+    var td = phanTuMoi(e, "TD");
     if (!td || td.tagName !== "TD") return;
     if (td.classList.contains("dang-sua")) {
       var o = td.querySelector("select, textarea, input:not([type=hidden])");
@@ -199,7 +220,7 @@
       o.focus();
       if (GO_SAN && GO_SAN.dong === td.dataset.dong && GO_SAN.cot === td.dataset.cot && o.tagName !== "SELECT" && o.type !== "date") {
         o.value = GO_SAN.chu;
-        if (o.setSelectionRange) o.setSelectionRange(o.value.length, o.value.length);
+        try { if (o.setSelectionRange) o.setSelectionRange(o.value.length, o.value.length); } catch (err) {}  // ô số không có con trỏ chữ
       } else if (o.select && o.type !== "date") {
         o.select();
       }
@@ -256,7 +277,7 @@
     if (!laGhi(e)) return;
     var xhr = e.detail.xhr;
     if (e.detail.successful) datTrangThai("✓ Đã lưu " + gioPhut(), "da-luu");
-    else if (xhr && xhr.status === 400) datTrangThai("⚠ Chưa lưu được — xem lý do tại ô", "loi-luu");
+    else if (xhr && xhr.status === 400) datTrangThai("⚠ Chưa lưu được — xem lời báo", "loi-luu");
     else datTrangThai("⚠ Lỗi lưu — thử lại", "loi-luu");
   });
 
@@ -288,7 +309,7 @@
     }, 60);
   });
   document.body.addEventListener("htmx:afterSwap", function (e) {
-    var t = e.detail.target;
+    var t = phanTuMoi(e, "TR");
     if (!t || t.tagName !== "TR") return;
     var yeu_cau = e.detail.requestConfig && e.detail.requestConfig.elt;
     var sau = yeu_cau && yeu_cau.dataset ? yeu_cau.dataset.sauKhiLuu : "";
@@ -765,6 +786,7 @@
   }
   function boChon() {
     CHON_SAU_SWAP = [];                          // bỏ chọn rồi thì ô vẽ lại không được chọn lại
+    if (window.KNJSC_BTO) { window.KNJSC_BTO.boChon(); return; }
     moi("td.o-chon", function (o) { o.classList.remove("o-chon", "o-chon-t", "o-chon-b", "o-chon-l", "o-chon-r"); });
   }
   function chonVung(a, b) {
@@ -788,7 +810,8 @@
     }
   }
   function cacODangChon() {
-    var chon = Array.prototype.slice.call(LUOI.querySelectorAll("td.o-chon"));
+    var chon = window.KNJSC_BTO ? window.KNJSC_BTO.cacODangChon()
+                                : Array.prototype.slice.call(LUOI.querySelectorAll("td.o-chon"));
     if (chon.length) return chon;
     return O_CUOI && LUOI.contains(O_CUOI) ? [O_CUOI] : [];
   }
@@ -799,6 +822,7 @@
   LUOI.addEventListener("mousedown", function (e) {
     var td = oDuLieu(e.target);
     if (!td) return;
+    if (window.KNJSC_BTO) { O_NEO = td; O_CUOI = td; return; }   // bang-tinh-o.js lo chọn vùng
     if (e.shiftKey && O_NEO) { e.preventDefault(); chonVung(O_NEO, td); O_CUOI = td; return; }
     if (e.ctrlKey || e.metaKey) { e.preventDefault(); td.classList.toggle("o-chon"); O_NEO = td; O_CUOI = td; return; }
     boChon();
@@ -826,22 +850,27 @@
     if (td) { e.preventDefault(); batTat(khoa); }
   });
   function guiDinhDang(dd) {
-    if (!NHOM_DD) return;
     var cac = cacODangChon();
     if (!cac.length) {
       baoLoi("Chưa chọn ô nào", "Bấm vào một ô, kéo hoặc Shift+bấm để chọn vùng, rồi mới định dạng.");
       return;
     }
+    return guiDinhDangCho(cac, dd, true);
+  }
+  // Gửi định dạng cho đúng các ô cho trước; `ghi` = nhớ để hoàn tác (bang-tinh-o.js)
+  function guiDinhDangCho(cac, dd, ghi) {
+    if (!NHOM_DD || !cac.length) return Promise.resolve();
     baoLoi("");
+    if (ghi && window.KNJSC_BTO) window.KNJSC_BTO.ghiDinhDang(cac, dd);
     CHON_SAU_SWAP = cac.map(function (o) { return o.id; });
     var gia_tri = Object.assign({ o: cac.map(function (o) { return o.dataset.dong + ":" + o.dataset.cot; }) }, dd);
-    htmx.ajax("POST", NHOM_DD.dataset.url, { source: NHOM_DD, values: gia_tri, swap: "none", target: LUOI })
+    return htmx.ajax("POST", NHOM_DD.dataset.url, { source: NHOM_DD, values: gia_tri, swap: "none", target: LUOI })
       .then(function () { setTimeout(chonLai, 30); });
   }
   // Ô được vẽ lại (oob) là phần tử mới, mất .o-chon — đánh dấu lại theo id
   function chonLai() {
     if (!CHON_SAU_SWAP.length) return;
-    CHON_SAU_SWAP.forEach(function (id) {
+    if (!window.KNJSC_BTO) CHON_SAU_SWAP.forEach(function (id) {
       var o = document.getElementById(id);
       if (o && CHON_SAU_SWAP.length > 1) o.classList.add("o-chon");
     });
@@ -854,6 +883,7 @@
   });
   document.body.addEventListener("htmx:oobAfterSwap", function (e) {
     var t = e.detail && e.detail.target;
+    if (window.KNJSC_BTO) return;
     if (t && t.id && CHON_SAU_SWAP.length > 1 && CHON_SAU_SWAP.indexOf(t.id) >= 0) {
       var moi_ = document.getElementById(t.id);
       if (moi_) moi_.classList.add("o-chon");
@@ -901,4 +931,13 @@
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && HOP && !HOP.hidden) HOP.hidden = true;
   });
+
+  // Cầu nối cho bang-tinh-o.js (chọn vùng, clipboard, kéo điền, hoàn tác)
+  window.KNJSC_BT = {
+    LUOI: LUOI, oCanh: oCanh, toiO: toiO, moSua: moSua, huySua: huySua, baoLoi: baoLoi,
+    themDongTrong: themDongTrong, danhSoDong: danhSoDong, apBoCuc: apBoCuc,
+    capNhatThanhCT: capNhatThanhCT, dongBoCongCu: dongBoCongCu, diaChi: diaChi,
+    guiDinhDang: guiDinhDang, guiDinhDangCho: guiDinhDangCho, datTrangThai: datTrangThai,
+    oHien: function () { return O_HIEN; },
+  };
 })();

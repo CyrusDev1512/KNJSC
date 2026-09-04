@@ -28,7 +28,8 @@ Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chú
   {% include "crm/_ben.html" %}
 
   <div class="bt-chinh">
-    <div class="bang-cuon luoi-vd" id="luoi-vd" data-co-dinh="{{ so_cot_co_dinh }}" data-bang="{{ bang.code }}" data-dong-dau="{{ dong_dau }}">
+    <div class="bang-cuon luoi-vd" id="luoi-vd" data-co-dinh="{{ so_cot_co_dinh }}" data-bang="{{ bang.code }}" data-dong-dau="{{ dong_dau }}"
+         data-luu-o-url="{% url 'bang_tinh_luu_o' bang.code %}" data-them-dong="{% if duoc_them_dong %}1{% endif %}">
       <table class="{{lop_luoi}}">
         <thead>
           <tr class="bt-hang-chu">
@@ -99,4 +100,5 @@ Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chú
 
 {% block cuoi_trang %}
 <script src="{% static 'js/bang-tinh.js' %}?v={{ phien_ban_tinh }}" defer></script>
+<script src="{% static 'js/bang-tinh-o.js' %}?v={{ phien_ban_tinh }}" defer></script>
 {% endblock %}
