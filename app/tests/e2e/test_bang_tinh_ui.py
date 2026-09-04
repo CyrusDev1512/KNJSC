@@ -180,3 +180,30 @@ def test_dong_trong_thanh_dong_that_va_loc_theo_o_khoa(live_server, trang, dang_
         trang.locator('td[data-cot="ma_don"]:has-text("DH-1") .o-khoa-loc').click()
         trang.wait_for_url("**/bang-tinh/van_don/?*f_ma_don=DH-1*")
         assert trang.locator("tbody tr[data-dong]").count() == 1
+
+
+def test_chon_vung_va_dinh_dang_o(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
+    """AC-11.15 — Ctrl+bấm rồi Shift+bấm chọn một vùng, bấm B thì cả vùng in đậm tại chỗ không tải lại trang; tải lại trang định dạng vẫn còn; Ctrl+B trên ô đã đậm thì bỏ đậm"""
+    with override_settings(GRID_ONLY_TABLES=set()):
+        dang_nhap(trang, nguoi_dung["staff_vd"])
+        trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
+        o_dau = trang.locator('tbody tr[data-dong] td[data-cot="ten_khach"]').nth(0)
+        o_cuoi = trang.locator('tbody tr[data-dong] td[data-cot="so_dien_thoai"]').nth(1)
+        o_dau.click(modifiers=["Control"])
+        assert trang.locator("td.dang-sua").count() == 0            # Ctrl+bấm không mở sửa
+        o_cuoi.click(modifiers=["Shift"])
+        assert trang.locator("td.o-chon").count() == 4
+        trang.click(".bt-dinh-dang .bt-dd[data-dd=b]")
+        trang.wait_for_function("document.querySelectorAll('td.dd-dam').length === 4")
+        assert "sap=ma_don" in trang.url
+        trang.click(".bt-mo-mau")
+        trang.click(".bt-mau-vang")
+        trang.wait_for_function("document.querySelectorAll('td.dd-nen-vang').length === 4")
+
+        trang.reload()
+        trang.wait_for_load_state("networkidle")
+        assert trang.locator("td.dd-dam.dd-nen-vang").count() == 4
+
+        trang.locator('tbody tr[data-dong] td[data-cot="ten_khach"]').nth(0).focus()
+        trang.keyboard.press("Control+b")
+        trang.wait_for_function("document.querySelectorAll('td.dd-dam').length === 3")

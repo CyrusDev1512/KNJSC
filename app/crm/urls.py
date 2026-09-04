@@ -14,4 +14,5 @@ urlpatterns = [
     path("bang-tinh/<slug:code>/o/<int:pk>/<slug:ma_cot>/", views.bang_tinh_o, name="bang_tinh_o"),
     path("bang-tinh/<slug:code>/xuat/", views.bang_tinh_xuat, name="bang_tinh_xuat"),
     path("bang-tinh/<slug:code>/dong-moi/", views.bang_tinh_dong_moi, name="bang_tinh_dong_moi"),
+    path("bang-tinh/<slug:code>/dinh-dang/", views.bang_tinh_dinh_dang, name="bang_tinh_dinh_dang"),
 ]

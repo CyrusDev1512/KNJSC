@@ -17,7 +17,7 @@ from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST, require_http_methods
 
 from core.audit import record_denied
-from core.constants import GRID_PAGE_SIZE, Rank
+from core.constants import GRID_FORMAT_CELLS_MAX, GRID_PAGE_SIZE, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import PAGE_SIZES, page_size, paginate
 from core.permissions import has_rank
@@ -245,6 +245,70 @@ def bang_tinh_dong_moi(request, code):
     return render(request, "crm/_dong_moi.html", {
         **boi_canh, "dong": dong, "loi": loi, "lop_dong": "dong-moi dong-moi-loi",
     }, status=400)
+
+
+@login_required
+@require_POST
+def bang_tinh_dinh_dang(request, code):
+    """Định dạng một hay nhiều ô: đậm, màu nền, cỡ chữ, căn lề — ADR-010.
+
+    Tham số: `o=<pk>:<mã cột>` (lặp), `b`, `bg`, `fs`, `al` theo sổ
+    `record_service.STYLE_SCHEMA`; `xoa=1` bỏ hết định dạng. Quyền = quyền sửa
+    ô (`can_edit_record`), kiểm từng dòng ở máy chủ. Trả các ô đã vẽ lại dưới
+    dạng hx-swap-oob để lưới cập nhật tại chỗ; sai → 400 kèm lời báo.
+    """
+    bang = _bang(request, code)
+    vd = grid_service.is_waybill(bang)
+    cac_cot = grid_service.display_columns(bang)
+    theo_ma = {c.code: c for c in cac_cot}
+
+    o_da_chon = []
+    for muc in request.POST.getlist("o"):
+        pk, _, ma = muc.partition(":")
+        if pk.isdigit() and ma in theo_ma:
+            o_da_chon.append((int(pk), ma))
+    loi = ""
+    if not o_da_chon:
+        loi = "Chưa chọn ô nào. Bấm vào một ô, hoặc Shift+bấm để chọn nhiều ô."
+    elif len(o_da_chon) > GRID_FORMAT_CELLS_MAX:
+        loi = f"Chỉ định dạng tối đa {GRID_FORMAT_CELLS_MAX} ô một lần."
+    if loi:
+        return render(request, "crm/_bao_loi.html", {"loi": loi}, status=400)
+
+    ban_ghi_theo_pk = {
+        r.pk: r for r in DataRecord.objects.in_scope(request.user)
+        .select_related("table").filter(table=bang, pk__in={pk for pk, _ in o_da_chon})
+    }
+    for r in ban_ghi_theo_pk.values():
+        if not grant_service.can_edit_record(request.user, r):
+            record_denied(request.user, request.path, request)
+            raise OutOfScopeError("Bạn không sửa được dòng này nên không định dạng được.")
+
+    xoa = request.POST.get("xoa") == "1"
+    style = {} if xoa else {k: request.POST.get(k) for k in record_service.STYLE_SCHEMA if k in request.POST}
+    cells = [(ban_ghi_theo_pk[pk], ma) for pk, ma in o_da_chon if pk in ban_ghi_theo_pk]
+    try:
+        record_service.update_styles(
+            cells, style, actor=request.user, request=request, columns=cac_cot, replace=xoa,
+        )
+    except BusinessError as e:
+        return render(request, "crm/_bao_loi.html", {"loi": str(e)}, status=400)
+
+    co_dinh = dict((ma, (trai, rong)) for ma, trai, rong in grid_service.frozen_columns(cac_cot, waybill=vd))
+    lech = grid_service.DUPLICATE_COLUMN_WIDTH if vd else 0
+    qs_giu = _qs_hien_tai(request)
+    manh = []
+    for ban_ghi, ma in cells:
+        cot = theo_ma[ma]
+        cd = co_dinh.get(ma)
+        sua = grant_service.can_edit_record(request.user, ban_ghi)
+        manh.append(render_to_string("crm/_o.html", {
+            "bang": bang, "ban_ghi": ban_ghi, "cot": cot, "gia_tri": ban_ghi.data.get(ma),
+            "duoc_sua": sua, "qs_giu": qs_giu, "oob": True,
+            "lop": grid_service.cell_class(cot, cd, sua, style=(ban_ghi.style or {}).get(ma)),
+            "style": grid_service.frozen_style(cd, offset=lech),
+        }, request))
+    return HttpResponse("".join(manh))
 
 
 @login_required

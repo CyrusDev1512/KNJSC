@@ -284,6 +284,133 @@
     if (nut) nut.setAttribute("aria-expanded", "false");
   });
 
+  // ── Chọn ô và định dạng (Giai đoạn B) ──
+  // Ô "đang chọn": các ô mang .o-chon (Shift+bấm chọn vùng chữ nhật, Ctrl+bấm
+  // thêm từng ô), không có thì là ô vừa được đưa con trỏ vào. Nút trên thanh
+  // công cụ lấy con trỏ khi bấm, nên phải nhớ ô cuối cùng bằng tay.
+  var O_CUOI = null;
+  var O_NEO = null;
+  var CHON_SAU_SWAP = [];
+  var NHOM_DD = document.querySelector(".bt-dinh-dang");
+
+  function oDuLieu(el) {
+    var td = el && el.closest && el.closest("td[data-dong][data-cot]");
+    return td && LUOI.contains(td) && !td.classList.contains("o-moi") ? td : null;
+  }
+  function boChon() {
+    CHON_SAU_SWAP = [];                          // bỏ chọn rồi thì ô vẽ lại không được chọn lại
+    Array.prototype.forEach.call(LUOI.querySelectorAll("td.o-chon"), function (o) { o.classList.remove("o-chon"); });
+  }
+  function chonVung(a, b) {
+    var ha = a.parentElement, hb = b.parentElement;
+    var hang = Array.prototype.slice.call(LUOI.querySelectorAll("tbody tr[data-dong]"));
+    var ia = hang.indexOf(ha), ib = hang.indexOf(hb);
+    var ca = Array.prototype.indexOf.call(ha.children, a), cb = Array.prototype.indexOf.call(hb.children, b);
+    if (ia < 0 || ib < 0) return;
+    var r1 = Math.min(ia, ib), r2 = Math.max(ia, ib), c1 = Math.min(ca, cb), c2 = Math.max(ca, cb);
+    boChon();
+    for (var r = r1; r <= r2; r++) {
+      for (var c = c1; c <= c2; c++) {
+        var o = hang[r].children[c];
+        if (o && o.dataset.cot && !o.hidden) o.classList.add("o-chon");
+      }
+    }
+  }
+  function cacODangChon() {
+    var chon = Array.prototype.slice.call(LUOI.querySelectorAll("td.o-chon"));
+    if (chon.length) return chon;
+    return O_CUOI && LUOI.contains(O_CUOI) ? [O_CUOI] : [];
+  }
+  LUOI.addEventListener("focusin", function (e) {
+    var td = oDuLieu(e.target);
+    if (td) O_CUOI = td;
+  });
+  LUOI.addEventListener("mousedown", function (e) {
+    var td = oDuLieu(e.target);
+    if (!td) return;
+    if (e.shiftKey && O_NEO) { e.preventDefault(); chonVung(O_NEO, td); O_CUOI = td; return; }
+    if (e.ctrlKey || e.metaKey) { e.preventDefault(); td.classList.toggle("o-chon"); O_NEO = td; O_CUOI = td; return; }
+    boChon();
+    O_NEO = td;
+    O_CUOI = td;
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && LUOI.querySelector("td.o-chon")) boChon();
+    if ((e.ctrlKey || e.metaKey) && (e.key === "b" || e.key === "B") && NHOM_DD) {
+      var td = oDuLieu(e.target);
+      if (td) { e.preventDefault(); guiDinhDang({ b: dangDam(cacODangChon()) ? "" : "1" }); }
+    }
+  });
+  function dangDam(cac) {
+    return cac.length > 0 && cac.every(function (o) { return o.classList.contains("dd-dam"); });
+  }
+  function guiDinhDang(dd) {
+    if (!NHOM_DD) return;
+    var cac = cacODangChon();
+    var loi = document.getElementById("bt-loi");
+    if (!cac.length) {
+      if (loi) loi.innerHTML = '<div class="bao bao-xau"><span class="bao-ic">!</span><div><b>Chưa chọn ô nào</b><p>Bấm vào một ô, Shift+bấm để chọn vùng, rồi mới định dạng.</p></div></div>';
+      return;
+    }
+    if (loi) loi.innerHTML = "";
+    CHON_SAU_SWAP = cac.map(function (o) { return o.id; });
+    var gia_tri = Object.assign({ o: cac.map(function (o) { return o.dataset.dong + ":" + o.dataset.cot; }) }, dd);
+    htmx.ajax("POST", NHOM_DD.dataset.url, { source: NHOM_DD, values: gia_tri, swap: "none", target: LUOI })
+      .then(function () { setTimeout(chonLai, 30); });
+  }
+  // Ô được vẽ lại (oob) là phần tử mới, mất .o-chon — đánh dấu lại theo id
+  function chonLai() {
+    if (!CHON_SAU_SWAP.length) return;
+    CHON_SAU_SWAP.forEach(function (id) {
+      var o = document.getElementById(id);
+      if (o && CHON_SAU_SWAP.length > 1) o.classList.add("o-chon");
+    });
+    O_CUOI = document.getElementById(CHON_SAU_SWAP[CHON_SAU_SWAP.length - 1]) || O_CUOI;
+  }
+  document.body.addEventListener("htmx:afterSettle", function (e) {
+    var cfg = e.detail && e.detail.requestConfig;
+    if (cfg && cfg.elt === NHOM_DD) chonLai();
+  });
+  document.body.addEventListener("htmx:oobAfterSwap", function (e) {
+    var t = e.detail && e.detail.target;
+    if (t && t.id && CHON_SAU_SWAP.length > 1 && CHON_SAU_SWAP.indexOf(t.id) >= 0) {
+      var moi = document.getElementById(t.id);
+      if (moi) moi.classList.add("o-chon");
+    }
+  });
+  document.addEventListener("click", function (e) {
+    var nut = e.target.closest && e.target.closest(".bt-dd, .bt-mo-mau");
+    if (!nut || nut.tagName === "SELECT") return;
+    var bang_mau = document.getElementById("bt-bang-mau");
+    if (nut.classList.contains("bt-mo-mau")) {
+      var mo = bang_mau.hidden;
+      bang_mau.hidden = !mo;
+      nut.setAttribute("aria-expanded", mo ? "true" : "false");
+      return;
+    }
+    var loai = nut.dataset.dd;
+    if (bang_mau) { bang_mau.hidden = true; }
+    if (loai === "xoa") { guiDinhDang({ xoa: "1" }); return; }
+    if (loai === "b") { guiDinhDang({ b: dangDam(cacODangChon()) ? "" : "1" }); return; }
+    var dd = {};
+    dd[loai] = nut.dataset.giaTri || "";
+    guiDinhDang(dd);
+  });
+  document.addEventListener("change", function (e) {
+    var chon = e.target.closest && e.target.closest("select.bt-dd");
+    if (!chon) return;
+    guiDinhDang({ fs: chon.value });
+    chon.value = "";
+  });
+  document.addEventListener("click", function (e) {
+    var bang_mau = document.getElementById("bt-bang-mau");
+    if (!bang_mau || bang_mau.hidden) return;
+    if (e.target.closest(".bt-mau-hop")) return;
+    bang_mau.hidden = true;
+  });
+  // Lỗi 400 của định dạng: vẫn swap (oob) để hiện lời báo
+  // (đã bật chung ở htmx:beforeSwap phía trên)
+
   // ── Hộp lọc một cột: đặt ngay dưới nút ▾ vừa bấm ──
   document.body.addEventListener("htmx:afterSwap", function (e) {
     if (e.detail.target !== HOP) return;

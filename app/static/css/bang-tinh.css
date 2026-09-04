@@ -200,3 +200,50 @@ tr.dong-tot td.co-dinh { box-shadow: inset 3px 0 0 var(--good), 1px 0 0 var(--ru
   .bt-bo-cuc { flex-direction: column; }
   .bt-ben { flex-basis: auto; width: 100%; max-height: none; }
 }
+
+/* ══ ADR-010 — định dạng ô lưu trong cơ sở dữ liệu (Giai đoạn B) ═══════
+   Mỗi giá trị trong record_service.STYLE_SCHEMA là một lớp cố định ở đây;
+   không có CSS nào sinh từ dữ liệu người dùng. Viết đủ độ ưu tiên để thắng
+   màu dòng (tr.dong-xau), ô cố định (.co-dinh) và tô khi trỏ (tr:hover). */
+.luoi-vd td.dd-dam { font-weight: 700; }
+.luoi-vd td.dd-nen-vang, .luoi-vd tbody tr:hover td.dd-nen-vang, .luoi-vd tr.dong-xau td.dd-nen-vang { background: var(--warn-soft); }
+.luoi-vd td.dd-nen-xanh, .luoi-vd tbody tr:hover td.dd-nen-xanh, .luoi-vd tr.dong-xau td.dd-nen-xanh { background: var(--accent-soft); }
+.luoi-vd td.dd-nen-do,   .luoi-vd tbody tr:hover td.dd-nen-do,   .luoi-vd tr.dong-xau td.dd-nen-do   { background: var(--critical-soft); }
+.luoi-vd td.dd-nen-luc,  .luoi-vd tbody tr:hover td.dd-nen-luc,  .luoi-vd tr.dong-xau td.dd-nen-luc  { background: var(--good-soft); }
+.luoi-vd td.dd-nen-xam,  .luoi-vd tbody tr:hover td.dd-nen-xam,  .luoi-vd tr.dong-xau td.dd-nen-xam  { background: var(--surface-2); }
+.luoi-vd td.dd-nen-cam,  .luoi-vd tbody tr:hover td.dd-nen-cam,  .luoi-vd tr.dong-xau td.dd-nen-cam  { background: var(--serious-soft); }
+.luoi-vd td.dd-co-10 { font-size: 10px; }
+.luoi-vd td.dd-co-11 { font-size: 11px; }
+.luoi-vd td.dd-co-12 { font-size: 12px; }
+.luoi-vd td.dd-co-14 { font-size: 14px; }
+.luoi-vd td.dd-co-16 { font-size: 16px; }
+.luoi-vd td.dd-co-18 { font-size: 18px; }
+.luoi-vd td.dd-can-trai { text-align: left; }
+.luoi-vd td.dd-can-giua { text-align: center; }
+.luoi-vd td.dd-can-phai { text-align: right; }
+
+/* Ô đang chọn để định dạng (bấm, Shift+bấm chọn vùng, Ctrl+bấm thêm ô) */
+.luoi-vd td.o-chon, .luoi-vd tbody tr:hover td.o-chon { box-shadow: inset 0 0 0 2px var(--accent); }
+.luoi-vd td.o-chon:not([class*="dd-nen-"]) { background: var(--accent-soft); }
+
+/* Bảng màu nền và ô chọn cỡ chữ trên thanh công cụ */
+.bt-mau-hop { position: relative; }
+.bt-bang-mau {
+  position: absolute; top: 100%; left: 0; z-index: 30; margin-top: 4px;
+  display: grid; grid-template-columns: repeat(3, 30px); gap: 6px; padding: var(--sp-2);
+  background: var(--surface); border: 1px solid var(--rule-strong);
+  border-radius: var(--r-md); box-shadow: var(--shadow-2);
+}
+.bt-bang-mau .nut { grid-column: 1 / -1; }
+.bt-mau { width: 30px; height: 30px; border-radius: var(--r-sm); border: 1px solid var(--rule); cursor: pointer; }
+.bt-mau:hover { box-shadow: 0 0 0 2px var(--accent); }
+.bt-mau-vang { background: var(--warn-soft); }
+.bt-mau-xanh { background: var(--accent-soft); }
+.bt-mau-do { background: var(--critical-soft); }
+.bt-mau-luc { background: var(--good-soft); }
+.bt-mau-xam { background: var(--surface-2); }
+.bt-mau-cam { background: var(--serious-soft); }
+.bt-co-chu { display: inline-flex; align-items: center; gap: var(--sp-1); }
+.bt-chon { width: auto; padding: 2px var(--sp-2); }
+.bt-loi { margin-bottom: var(--sp-2); }
+.bt-loi:empty { display: none; }
