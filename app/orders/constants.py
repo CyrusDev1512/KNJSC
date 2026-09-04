@@ -47,5 +47,7 @@ class PaymentStatus(models.TextChoices):
 #: Tên kỹ thuật của bảng vận đơn. Đơn hàng ghi một chiều sang bảng này.
 WAYBILL_TABLE_CODE = "van_don"
 
-#: Tên kỹ thuật của bộ phận sở hữu bảng vận đơn
+#: Tên kỹ thuật và tên hiển thị của bộ phận sở hữu bảng vận đơn. Lệnh
+#: `tao_bang_van_don` tự tạo bộ phận này trên máy sạch nếu chưa có.
 WAYBILL_DEPARTMENT_CODE = "van-don"
+WAYBILL_DEPARTMENT_NAME = "Vận đơn"

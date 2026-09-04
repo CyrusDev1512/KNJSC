@@ -25,15 +25,17 @@ from django.db import transaction
 from django.utils import timezone
 
 from core.constants import Currency, Rank
+from orders.constants import WAYBILL_DEPARTMENT_CODE, WAYBILL_DEPARTMENT_NAME
 
 #: Mật khẩu chung cho mọi tài khoản mẫu. Chỉ dùng ở máy phát triển.
 MAT_KHAU_MAU = "MatKhauTam-2026"
 
-#: Ba bộ phận. Tên kỹ thuật phải khớp `orders.constants.WAYBILL_DEPARTMENT_CODE`.
+#: Ba bộ phận. Bộ phận Vận đơn lấy tên từ `orders.constants` để khớp với
+#: lệnh `tao_bang_van_don`.
 BO_PHAN = [
     ("Sale", "sale"),
     ("Marketing", "marketing"),
-    ("Vận đơn", "van-don"),
+    (WAYBILL_DEPARTMENT_NAME, WAYBILL_DEPARTMENT_CODE),
 ]
 
 #: Hai team, đều thuộc Sale — đủ để thử phạm vi quyền của Leader.

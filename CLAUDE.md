@@ -20,17 +20,32 @@ không hỏi lại người dùng những gì họ đã trả lời.
 `docs/backlog.md` mục 2 là nhật ký quyết định — mỗi dòng một câu đã chốt, kèm
 ngày. Đọc nó trước khi hỏi lại người dùng bất cứ điều gì.
 
-### Dựng dữ liệu mẫu trên máy mới
-
-Cơ sở dữ liệu không theo kho mã. Máy mới `docker compose up` xong là hệ thống
-trống trơn, **không có tài khoản nào để đăng nhập**. Chạy lệnh này trước:
+### Bật hệ thống trên máy mới — một lệnh
 
 ```
+scripts\bat.cmd        Windows (hoặc nháy đúp tệp)
+sh scripts/bat.sh      Mac và Linux
+```
+
+Lệnh tự mở Docker Desktop nếu chưa chạy, dựng container, đợi web lên, nạp dữ
+liệu mẫu rồi mở trình duyệt ở `http://127.0.0.1:8020/`. Chạy lại nhiều lần được.
+
+Bên trong nó chỉ là hai lệnh dưới đây, muốn làm tay thì làm:
+
+```
+docker compose -f deploy/docker-compose.yml up -d
 docker compose -f deploy/docker-compose.yml exec web python manage.py du_lieu_mau
 ```
 
-Ra 12 tài khoản ba bộ phận bốn cấp bậc, bảng Báo cáo Marketing với số liệu
-thật, biểu mẫu và sản phẩm. Mật khẩu in ra cuối lệnh. Chạy lại nhiều lần được.
+**Vì sao cần lệnh thứ hai.** Cơ sở dữ liệu không theo kho mã, nên máy mới dựng
+xong là hệ thống trống, **không có tài khoản nào để đăng nhập**. `du_lieu_mau`
+tạo 12 tài khoản ba bộ phận bốn cấp bậc, bảng Báo cáo Marketing với số liệu
+thật, biểu mẫu và sản phẩm. Mật khẩu in ra cuối lệnh. Tài khoản `quantri` vào
+được cả trang quản trị Django ở `/quan-tri/`.
+
+Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.sh` gọi
+`tao_bang_van_don` ngay sau `migrate`, vì bảng này là bảng động (quyết định
+001) nên `migrate` không sinh ra nó. Thiếu bảng thì màn hình Bảng tính trả 404.
 
 ### Chạy kiểm thử
 
