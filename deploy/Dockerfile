@@ -21,7 +21,10 @@ RUN pip install -r requirements.txt \
 
 COPY app/ /app/
 COPY deploy/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Bỏ dấu CR nếu tệp bị checkout kiểu Windows (CRLF): "#!/bin/sh\r" làm Linux
+# báo "exec /entrypoint.sh: no such file or directory" — không phụ thuộc vào
+# cấu hình git của máy dựng image
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 # Không chạy bằng quyền quản trị. /storage là bind mount từ máy chủ; tạo sẵn
 # các thư mục con với đúng chủ sở hữu để lần chạy đầu không hỏng vì quyền ghi
