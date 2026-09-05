@@ -53,11 +53,18 @@ def test_normalise_style_chi_nhan_gia_tri_trong_so():
     """AC-11.15 — Sổ định dạng đóng: khoá hay giá trị lạ bị từ chối, giá trị rỗng nghĩa là bỏ, số được ép kiểu"""
     assert record_service.normalise_style({"b": "1", "bg": "vang", "fs": "14", "al": "c"}) == {"b": 1, "bg": "vang", "fs": 14, "al": "c"}
     assert record_service.normalise_style({"b": "", "bg": "", "fs": "0"}) == {}
-    for xau in ({"bg": "#ff0000"}, {"fs": "13"}, {"al": "justify"}, {"color": "red"}, {"b": "x"}):
+    for xau in ({"bg": "#ff0000"}, {"fs": "15"}, {"al": "justify"}, {"color": "red"}, {"b": "x"},
+                {"c": "#000000"}, {"c": "m41"}, {"fmt": "eur"}, {"i": "2"}):
         with pytest.raises(BusinessError):
             record_service.normalise_style(xau)
     with pytest.raises(BusinessError):
         record_service.normalise_style("b=1")
+    # Sổ mở rộng theo mẫu KN Demo (ADR-011): bật/tắt, bảng 40 màu, cỡ 13, định dạng số
+    assert record_service.normalise_style(
+        {"i": "1", "u": "1", "st": "1", "wr": "1", "bd": "1", "c": "m11", "bg": "m40", "fs": "13", "fmt": "vnd"}
+    ) == {"i": 1, "u": 1, "st": 1, "wr": 1, "bd": 1, "c": "m11", "bg": "m40", "fs": 13, "fmt": "vnd"}
+    assert record_service.normalise_style({"i": "", "c": "", "fmt": ""}) == {}
+    assert len(record_service.PALETTE) == 40 and len(record_service.PALETTE_KEYS) == 40
 
 
 # ══ Lưu và cùng thấy — AC-11.15 ════════════════════════════════════
@@ -164,3 +171,40 @@ def test_dinh_dang_theo_quyen_sua_o(client, bang_sale, bang_vd, nguoi_dung):
     dong.refresh_from_db()
     assert dong.style == {"ten_khach": {"bg": "luc"}}
     assert DataRecord.objects.get(pk=dong.pk).val_customer == "X"
+
+
+# ══ Sổ định dạng mở rộng theo demo — AC-11.23 ══════════════════════
+
+def test_dinh_dang_mo_rong_va_dinh_dang_so(client, bang_sale, nguoi_dung):
+    """AC-11.23 — Nghiêng, gạch chân, gạch ngang, xuống dòng, viền, màu chữ và màu nền từ bảng 40 màu, cỡ 10–28 và định dạng số (num/pct/usd/vnd/text) lưu được và dịch sang lớp CSS cố định; ô số hiện theo định dạng, giá trị thô giữ nguyên trong `data-goc`"""
+    from crm.services import grid_service
+    nv = nguoi_dung["staff_sale_1"]
+    ColumnDef.objects.create(table=bang_sale, name="Tiền", code="tien", field_type=FieldType.MONEY, order=9)
+    d = _dong(bang_sale, nv, khach="A", tien="1234.5")
+    client.force_login(nv)
+    kq = client.post(f"/bang-tinh/{bang_sale.code}/dinh-dang/", {
+        "o": _o((d, "tien")), "i": "1", "u": "1", "st": "1", "wr": "1", "bd": "1",
+        "c": "m11", "bg": "m30", "fs": "20", "fmt": "usd",
+    })
+    assert kq.status_code == 200
+    html = kq.content.decode()
+    for lop in ("dd-nghieng", "dd-gach-chan", "dd-gach-ngang", "dd-xuong-dong", "dd-vien",
+                "dd-chu-m11", "dd-nen-m30", "dd-co-20", "dd-dinh-usd"):
+        assert lop in html, lop
+    assert ">$1,234.50<" in html and 'data-goc="1234.5"' in html
+    d.refresh_from_db()
+    assert d.style["tien"]["fmt"] == "usd" and d.style["tien"]["c"] == "m11"
+    cot = bang_sale.columns.get(code="tien")
+    assert grid_service.display_value(cot, "1234.5", {"fmt": "num"}) == "1,234.50"
+    assert grid_service.display_value(cot, "0.125", {"fmt": "pct"}) == "12.50%"
+    assert grid_service.display_value(cot, "1234567", {"fmt": "vnd"}) == "1.234.567 ₫"
+    assert grid_service.display_value(cot, "-5", {"fmt": "usd"}) == "-$5.00"
+    assert grid_service.display_value(cot, "abc", {"fmt": "num"}) == "abc"
+    assert grid_service.display_value(cot, "7", {"fmt": "text"}) == "7"
+    assert grid_service.display_value(cot, "7", None) == "7"
+    assert set(grid_service.style_classes({"c": "m40", "bg": "vang", "fmt": "pct", "fs": 13})) == {
+        "dd-chu-m40", "dd-nen-vang", "dd-dinh-phan-tram", "dd-co-13",
+    }
+    # Giá trị ngoài sổ vẫn bị từ chối (sổ đóng — ADR-010 giữ nguyên)
+    assert client.post(f"/bang-tinh/{bang_sale.code}/dinh-dang/", {"o": _o((d, "tien")), "c": "#ff0000"}).status_code == 400
+    assert client.post(f"/bang-tinh/{bang_sale.code}/dinh-dang/", {"o": _o((d, "tien")), "fmt": "eur"}).status_code == 400

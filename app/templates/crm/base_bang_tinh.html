@@ -11,51 +11,55 @@
 <link rel="stylesheet" href="{% static 'css/main.css' %}?v={{ phien_ban_tinh }}">
 <link rel="stylesheet" href="{% static 'css/bang-tinh.css' %}?v={{ phien_ban_tinh }}">
 <script>
-  /* Đặt nền trước khi vẽ để tránh nháy sáng */
-  try { var n = localStorage.getItem("knjsc-nen"); if (n) document.documentElement.dataset.theme = n; } catch (e) {}
+  /* Nền đặt trước khi vẽ để tránh nháy. Chưa chọn nền bao giờ thì trang này
+     tối như một bảng tính (ADR-011) — không ghi lại lựa chọn hộ người dùng. */
+  (function () {
+    var n = null;
+    try { n = localStorage.getItem("knjsc-nen"); } catch (e) {}
+    document.documentElement.dataset.theme = n || "dark";
+  })();
 </script>
 {% block dau_trang %}{% endblock %}
 </head>
 <body class="bt-than">
 {% comment %}
-Khung riêng của Bảng tính — ADR-010: không thanh bên hệ thống, không tiêu đề
-trang; cả màn hình là lưới, như mở một tệp bảng tính. Thanh trên chỉ còn tên
-bảng, ô đổi bảng, nút nền, người dùng và một menu ☰ dẫn về các màn hình khác.
+Khung riêng của Bảng tính — ADR-010, dáng theo bảng tính KN Demo — ADR-011:
+thanh trên 48px (về hệ thống, tên bảng, trạng thái lưu, Tải Excel, toàn màn
+hình, tài khoản), thanh công cụ, thanh công thức, lưới chiếm hết phần còn
+lại, chân trang có tab bảng. Không thanh bên hệ thống; điều hướng nằm trong
+menu tài khoản.
 {% endcomment %}
 {% if user.is_authenticated %}
 <div class="app bt-toan-man" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
   <header class="bt-thanh-tren">
-    <a class="bt-hieu" href="{% url 'tong_quan' %}" title="Về hệ thống"><span>KN</span></a>
+    <a class="bt-ve" href="{% url 'tong_quan' %}" title="Về hệ thống" aria-label="Về hệ thống">←</a>
+    <span class="bt-hieu" aria-hidden="true">▦</span>
+    <div class="bt-ten">{% block ten_bang %}{% endblock %}</div>
+    <span class="bt-trang-thai" id="bt-trang-thai" aria-live="polite">Đã lưu</span>
+    <span class="bt-gian"></span>
+    {% block thanh_tren_phai %}{% endblock %}
+    <button class="bt-nut-tren bt-toan-man-nut" type="button" id="bt-toan-man-nut" title="Phóng toàn màn hình — Esc để thoát" aria-label="Toàn màn hình">⛶</button>
     <details class="bt-menu">
-      <summary class="nut nut-nho" aria-label="Mở điều hướng">☰</summary>
-      <nav class="bt-menu-hop" aria-label="Điều hướng chính">
+      <summary class="bt-avatar" title="{{ profile.full_name|default:user.get_username }}" aria-label="Tài khoản và điều hướng">{{ profile.full_name|default:user.get_username|first|upper }}</summary>
+      <nav class="bt-menu-hop" aria-label="Tài khoản và điều hướng">
+        <div class="bt-menu-nguoi">
+          <b>{{ profile.full_name|default:user.get_username }}</b>
+          <small>{{ profile.get_rank_display }}{% if profile.department %} · {{ profile.department }}{% endif %}</small>
+        </div>
+        <button class="nav-muc bt-menu-nut" type="button" id="nut-nen">Nền sáng / tối</button>
         {% for nhom in nav_groups %}
           <div class="nav-nhom">{{ nhom.label }}</div>
           {% for muc in nhom.items %}
             <a class="nav-muc" href="{{ muc.href }}" {% if muc.code == nav_current %}aria-current="page"{% endif %}>{{ muc.label }}</a>
           {% endfor %}
         {% endfor %}
+        <form method="post" action="{% url 'dang_xuat' %}">
+          {% csrf_token %}
+          <button class="nav-muc bt-menu-nut" type="submit">Đăng xuất</button>
+        </form>
       </nav>
     </details>
-    <div class="bt-ten">
-      <span class="nhan-nho">Bảng tính</span>
-      {% block ten_bang %}{% endblock %}
-    </div>
-    <div class="topbar-phai">
-      <button class="nut nut-nho" type="button" id="nut-nen" title="Đổi nền sáng tối">Nền</button>
-      <div class="nguoi-dung">
-        <div class="avatar">{{ profile.full_name|default:user.get_username|first|upper }}</div>
-        <div>
-          <b>{{ profile.full_name|default:user.get_username }}</b>
-          <small>{{ profile.get_rank_display }}{% if profile.department %} · {{ profile.department }}{% endif %}</small>
-        </div>
-      </div>
-      <form method="post" action="{% url 'dang_xuat' %}">
-        {% csrf_token %}
-        <button class="nut nut-nho" type="submit">Đăng xuất</button>
-      </form>
-    </div>
   </header>
 
   {% if messages %}
@@ -81,6 +85,11 @@ bảng, ô đổi bảng, nút nền, người dùng và một menu ☰ dẫn v�
   document.addEventListener("click", function (e) {
     var menu = document.querySelector(".bt-menu");
     if (menu && menu.open && !menu.contains(e.target)) menu.open = false;
+  });
+  document.getElementById("bt-toan-man-nut").addEventListener("click", function () {
+    var goc = document.documentElement;
+    if (document.fullscreenElement) { if (document.exitFullscreen) document.exitFullscreen(); return; }
+    if (goc.requestFullscreen) goc.requestFullscreen().catch(function () {});
   });
 </script>
 

@@ -103,6 +103,9 @@ Trong tình huống nào thì nên xem lại quyết định này.
 | 006 | Bảng dữ liệu chỉ có cột tính sẵn, công thức tự do tách sang Bảng tính | Đã áp dụng | 29.08.2026 |
 | 007 | Biểu mẫu luôn chọn bảng có sẵn, và chốt bảy nhãn ý nghĩa | Đã áp dụng | 29.08.2026 |
 | 008 | Báo cáo hằng ngày bọc quanh biểu mẫu, không tự giữ nội dung | Đã áp dụng | 29.08.2026 |
+| 009 | Bảng tính là lưới làm việc của bộ phận Vận đơn, chạy thành dịch vụ riêng | Đã áp dụng | 03.09.2026 |
+| 010 | Bảng tính cho mọi bảng, có định dạng ô, cột khoá và thư mục | Đã áp dụng | 04.09.2026 |
+| 011 | Bảng tính nhìn và thao tác theo bảng tính KN Demo | Đã áp dụng | 04.09.2026 |
 
 ---
 

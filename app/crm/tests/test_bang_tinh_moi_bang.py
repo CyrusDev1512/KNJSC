@@ -113,10 +113,10 @@ def test_moi_bang_trong_pham_vi_mo_duoc_o_bang_tinh(client, bang_sale, bang_mkt,
     # Thanh công cụ theo quyền: Manager thêm cột và nhập tệp, Staff thì không; ai cũng xuất được
     client.force_login(nguoi_dung["manager_sale"])
     html = client.get("/bang-tinh/don_sale/").content.decode()
-    assert "Thêm cột" in html and "Nhập Excel" in html and "Xuất Excel" in html
+    assert "Thêm cột" in html and "Nhập Excel" in html and "Tải Excel" in html
     client.force_login(nguoi_dung["staff_sale_1"])
     html = client.get("/bang-tinh/don_sale/").content.decode()
-    assert "Thêm cột" not in html and "Nhập Excel" not in html and "Xuất Excel" in html
+    assert "Thêm cột" not in html and "Nhập Excel" not in html and "Tải Excel" in html
     assert "Thêm dòng" in html                       # cùng bộ phận thì thêm dòng được
     assert 'class="bt-ben"' in html and 'class="bt-cong-cu"' in html
 

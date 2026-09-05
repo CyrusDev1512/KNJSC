@@ -52,8 +52,15 @@ def du_lieu_lon(django_db_setup, django_db_blocker):
         nhom.delete()
         for u in (admin, nv, sale_nv):
             u.delete()
-        vd.delete()
-        sale.delete()
+        # Dọn thật (không xoá mềm) vì đây là dữ liệu dựng riêng cho bài đo, ghi
+        # thẳng ngoài giao dịch của pytest: bảng vận đơn giả giữ bộ phận bằng
+        # PROTECT, và bộ phận xoá mềm vẫn chiếm tên "Sale" (unique) làm mọi bài
+        # chạy sau không tạo lại được bộ phận.
+        from forms_builder.models import TableDef
+        for bang in TableDef.all_objects.filter(department__in=[sale, vd]):
+            bang.hard_delete()
+        vd.hard_delete()
+        sale.hard_delete()
 
 
 def _bam_gio(client, duong_dan, django_assert_max_num_queries):

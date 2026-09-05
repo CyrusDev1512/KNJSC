@@ -50,6 +50,11 @@ Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.
 
 **Bảng tính** (`/bang-tinh/<mã bảng>/`) là lưới kiểu Excel cho mọi bảng trong
 phạm vi quyền — ADR-010. Bảng vận đơn sửa ở cổng 8021, xem ở 8020 (ADR-009).
+Nhìn và thao tác theo bảng tính KN Demo — ADR-011: giao diện lưới nằm ở hai
+tệp `app/static/js/bang-tinh.js` (trang: thanh bên, cột, thanh công thức, sửa
+một ô) và `bang-tinh-o.js` (ô: chọn vùng, clipboard, kéo điền, hoàn tác, menu
+chuột phải, tự cập nhật). Bảng 40 màu sinh CSS bằng `scripts/sinh-css-mau.py`,
+đừng gõ tay.
 
 ### Chạy kiểm thử
 

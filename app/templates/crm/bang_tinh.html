@@ -3,87 +3,64 @@
 {% block tieu_de %}{{ bang.name }} · Bảng tính · Kim Ngân JSC{% endblock %}
 {% block ten_bang %}
   <h1 class="bt-tieu-de">{{ bang.name }}</h1>
-  <label class="bt-doi-bang">
-    <span class="nho">Bảng</span>
-    <select class="o-nhap bt-chon" aria-label="Đổi bảng" onchange="if (this.value) location.href = this.value">
-      {% for b in cac_bang %}
-        <option value="{% url 'bang_tinh_xem' b.code %}" {% if b.pk == bang.pk %}selected{% endif %}>{{ b.name }}</option>
-      {% endfor %}
-    </select>
-  </label>
   {% if chi_xem %}<span class="chip chip-nhat">Chỉ xem ở đây</span>{% endif %}
+{% endblock %}
+{% block thanh_tren_phai %}
+  <a class="bt-nut-tren bt-nut-vang" href="{% url 'bang_tinh_xuat' bang.code %}{% if qs_giu %}?{{ qs_giu }}{% endif %}" title="Xuất đúng lưới đang hiện, kèm bộ lọc">⬇ Tải Excel</a>
 {% endblock %}
 
 {% block noi_dung %}
-
+{% comment %}
+Lưới như một sheet (ADR-011): hàng chữ cột A B C có nút lọc ▼ và mép kéo độ
+rộng; hàng tên cột là hàng 1; dữ liệu từ hàng 2, số nối tiếp qua trang; cột
+trống bên phải cho đủ chữ tới Z; dòng trống cuối lưới. Cột số dòng và cột
+Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chúng.
+{% endcomment %}
 {% include "crm/_cong_cu.html" %}
 
-<div class="bt-bo-cuc" id="bt-bo-cuc">
+<div class="bt-thanh-ct">
+  <input class="bt-dia-chi" id="bt-dia-chi" value="A1" aria-label="Ô hiện tại — gõ địa chỉ để nhảy tới" title="Ô hiện tại — gõ địa chỉ như B7 để nhảy tới" autocomplete="off" spellcheck="false">
+  <span class="bt-fx" aria-hidden="true">fx</span>
+  <input class="bt-cong-thuc" id="bt-cong-thuc" placeholder="Nhập giá trị cho ô đang chọn" aria-label="Giá trị ô đang chọn" autocomplete="off" spellcheck="false">
+</div>
+
+<div class="bt-bo-cuc thu-gon" id="bt-bo-cuc">
   {% include "crm/_ben.html" %}
 
   <div class="bt-chinh">
-    <div class="thanh-loc bt-thanh-loc">
-      <form class="loc" method="get" action="{% url 'bang_tinh_xem' bang.code %}">
-        <div class="truong o-tim">
-          <label for="tim" class="nho">Tìm nhanh</label>
-          <input class="o-nhap" id="tim" name="tim" value="{{ luoi.search }}" placeholder="Tìm trên các cột có nhãn ý nghĩa">
-        </div>
-        {% for k, v in luoi.filters.items %}
-          {% if v|length and v.0 and v != v.0 %}{# danh sách: nhiều tham số cùng tên #}
-            {% for gt in v %}<input type="hidden" name="f_{{ k }}" value="{{ gt }}">{% endfor %}
-          {% else %}
-            <input type="hidden" name="f_{{ k }}" value="{{ v }}">
-          {% endif %}
-        {% endfor %}
-        {% for ma in luoi.products %}<input type="hidden" name="sp" value="{{ ma }}">{% endfor %}
-        {% if luoi.sort %}<input type="hidden" name="sap" value="{{ luoi.sort }}">{% endif %}
-        {% if luoi.descending %}<input type="hidden" name="chieu" value="giam">{% endif %}
-        {% if la_van_don %}
-          <label class="hang nho" for="trung" style="gap:var(--sp-2)">
-            <input type="checkbox" id="trung" name="trung" value="1" {% if luoi.duplicates_only %}checked{% endif %} onchange="this.form.requestSubmit()">
-            Chỉ số điện thoại trùng
-          </label>
-        {% endif %}
-        <div class="loc-nut">
-          <button class="nut nut-nho nut-chinh" type="submit">Áp dụng</button>
-        </div>
-        <span class="dem-dong nho mo-nhat">
-          <b class="so">{{ page_obj.start_index }}–{{ page_obj.end_index }}</b> trên
-          <b class="so">{{ page_obj.paginator.count }}</b> {{ ten_don_vi }}{% if chips or luoi.search or luoi.duplicates_only %} đã lọc{% endif %}
-          · {{ cac_cot|length }} cột
-        </span>
-      </form>
-      {% if chips %}
-        <div class="chip-loc-hang">
-          {% for nhan, bo_url in chips %}
-            <a class="chip chip-nhan chip-loc" href="{{ bo_url }}" title="Bỏ lọc này">{{ nhan }} ×</a>
-          {% endfor %}
-        </div>
-      {% endif %}
-    </div>
-
-    <div class="bang-cuon luoi-vd" id="luoi-vd" data-co-dinh="{{ so_cot_co_dinh }}" data-bang="{{ bang.code }}">
-      <table class="bang bang-rong">
+    <div class="bang-cuon luoi-vd" id="luoi-vd" data-co-dinh="{{ so_cot_co_dinh }}" data-bang="{{ bang.code }}" data-dong-dau="{{ dong_dau }}"
+         data-luu-o-url="{% url 'bang_tinh_luu_o' bang.code %}" data-them-dong="{% if duoc_them_dong %}1{% endif %}"
+         data-xoa-dong-url="{% url 'bang_tinh_xoa_dong' bang.code %}" data-khoi-phuc-url="{% url 'bang_tinh_khoi_phuc_dong' bang.code %}"
+         data-them-cot-url="{% url 'bang_tinh_them_cot' bang.code %}" data-xoa-cot-url="{% url 'bang_tinh_xoa_cot' bang.code %}"
+         data-moi-nhat-url="{% url 'bang_tinh_moi_nhat' bang.code %}" data-quan-ly-cot="{% if duoc_quan_ly_cot %}1{% endif %}"
+         data-so-cot="{{ cac_cot|length }}" data-giay-hoi="{{ giay_hoi }}">
+      <table class="{{lop_luoi}}">
         <thead>
-          <tr>
-            {% if la_van_don %}<th class="co-dinh o-trung-th" style="left:0;min-width:72px;max-width:72px" title="Số dòng cùng số điện thoại">Trùng</th>{% endif %}
+          <tr class="bt-hang-chu">
+            <th class="bt-goc co-dinh" id="bt-goc" title="Chọn cả trang" style="left:0"></th>
+            {% if la_van_don %}<th class="bt-chu co-dinh" style="{{ style_trung }}"><span class="bt-chu-cot">A</span></th>{% endif %}
             {% for h in cac_tieu_de %}
-              <th class="{{ h.lop }}" {% if h.style %}style="{{ h.style }}"{% endif %} data-cot="{{ h.cot.code }}"
-                  {% if luoi.sort == h.cot.code %}aria-sort="{% if luoi.descending %}descending{% else %}ascending{% endif %}"{% endif %}>
-                <span class="bt-chu-cot" aria-hidden="true">{{ h.chu }}</span>
-                <span class="th-hang">
-                  <a href="?{{ qs_giu }}{% if qs_giu %}&{% endif %}sap={{ h.cot.code }}{% if luoi.sort == h.cot.code and not luoi.descending %}&chieu=giam{% endif %}" title="Sắp xếp theo {{ h.cot.name }}">
-                    {{ h.cot.name }}
-                    <span class="mui">{% if luoi.sort == h.cot.code %}{% if luoi.descending %}↓{% else %}↑{% endif %}{% else %}↕{% endif %}</span>
-                  </a>
-                  <button class="{{ h.lop_nut_loc }}" type="button"
-                          hx-get="{% url 'bang_tinh_loc_cot' bang.code h.cot.code %}{% if qs_giu %}?{{ qs_giu }}{% endif %}"
-                          hx-target="#hop-loc" hx-swap="innerHTML"
-                          aria-label="Lọc cột {{ h.cot.name }}">▾</button>
-                </span>
+              <th class="{{ h.lop_chu }}" {% if h.style %}style="{{ h.style }}"{% endif %} data-cot="{{ h.cot.code }}">
+                <span class="bt-chu-cot">{{ h.chu }}</span>
+                <button class="{{ h.lop_nut_loc }}" type="button"
+                        hx-get="{% url 'bang_tinh_loc_cot' bang.code h.cot.code %}{% if qs_giu %}?{{ qs_giu }}{% endif %}"
+                        hx-target="#hop-loc" hx-swap="innerHTML"
+                        aria-label="Lọc cột {{ h.cot.name }}">▼</button>
                 <span class="bt-keo-cot" title="Kéo để đổi độ rộng cột"></span>
               </th>
             {% endfor %}
+            {% for chu in cac_cot_trong %}<th class="bt-chu bt-chu-trong" data-trong="{{ forloop.counter }}"><span class="bt-chu-cot">{{ chu }}</span></th>{% endfor %}
+          </tr>
+          <tr class="bt-hang-ten">
+            <th class="bt-so-dong co-dinh" style="left:0">1</th>
+            {% if la_van_don %}<th class="bt-ten-cot co-dinh o-trung-th" style="{{ style_trung }}" title="Số dòng cùng số điện thoại">Lọc trùng</th>{% endif %}
+            {% for h in cac_tieu_de %}
+              <th class="bt-ten-cot {{ h.lop }}" {% if h.style %}style="{{ h.style }}"{% endif %} data-cot="{{ h.cot.code }}"
+                  {% if luoi.sort == h.cot.code %}aria-sort="{% if luoi.descending %}descending{% else %}ascending{% endif %}"{% endif %}>
+                <a class="bt-sap" href="?{{ qs_giu }}{% if qs_giu %}&{% endif %}sap={{ h.cot.code }}{% if luoi.sort == h.cot.code and not luoi.descending %}&chieu=giam{% endif %}" title="Sắp xếp theo {{ h.cot.name }}">{{ h.cot.name }}<span class="mui">{% if luoi.sort == h.cot.code %}{% if luoi.descending %}↓{% else %}↑{% endif %}{% endif %}</span></a>
+              </th>
+            {% endfor %}
+            {% for chu in cac_cot_trong %}<th class="bt-ten-trong" data-trong="{{ forloop.counter }}"></th>{% endfor %}
           </tr>
         </thead>
         <tbody>
@@ -91,7 +68,7 @@
             {% include "crm/_dong.html" %}
           {% endfor %}
           {% if not cac_dong and not cac_dong_trong %}
-            <tr><td colspan="{{ cac_cot|length|add:1 }}">
+            <tr class="bt-dong-rong"><td colspan="{{ so_cot_luoi }}">
               {% include "components/rong.html" with rong_tieu_de="Không có dòng nào" rong_mo_ta="Chưa có dòng nào khớp bộ lọc. Bỏ bớt lọc, hoặc nhập tệp ở Bảng dữ liệu." %}
             </td></tr>
           {% endif %}
@@ -100,19 +77,33 @@
           {% endfor %}
         </tbody>
       </table>
-    </div>
-
-    <div class="bt-chan">
-      {% include "components/phan_trang.html" %}
+      <div class="bt-tay-keo" id="bt-tay-keo" hidden></div>
     </div>
   </div>
 </div>
 
-{# Hộp lọc một cột: HTMX đổ vào đây, JS đặt vị trí cạnh tiêu đề #}
+<footer class="bt-chan">
+  {% if duoc_sua_cot %}<a class="bt-tab-them" href="{{ tao_bang_url }}" title="Thêm bảng mới (mở Bảng dữ liệu)" aria-label="Thêm bảng">+</a>{% endif %}
+  <div class="bt-tabs">
+    {% for b in cac_bang %}<a class="bt-tab{% if b.pk == bang.pk %} on{% endif %}" href="{% url 'bang_tinh_xem' b.code %}"{% if b.pk == bang.pk %} aria-current="page"{% endif %}>{{ b.name }}</a>{% endfor %}
+  </div>
+  {% if duoc_them_dong %}<button class="bt-them-100" type="button" title="Thêm 100 dòng trống để gõ">+100 dòng</button>{% endif %}
+  <span class="bt-loc-tt">{% if chips %}🔽 Đang lọc {{ chips|length }} cột{% elif luoi.search or luoi.duplicates_only %}🔽 Đang lọc{% endif %}</span>
+  <nav class="bt-trang" aria-label="Phân trang">
+    {% if page_obj.has_previous %}<a href="?trang={{ page_obj.previous_page_number }}{{ qs_loc }}" aria-label="Trang trước">‹</a>{% else %}<span class="mo">‹</span>{% endif %}
+    <span class="bt-trang-so"><b class="so">{{ page_obj.start_index }}–{{ page_obj.end_index }}</b> / <b class="so">{{ page_obj.paginator.count }}</b> {{ ten_don_vi }}</span>
+    {% if page_obj.has_next %}<a href="?trang={{ page_obj.next_page_number }}{{ qs_loc }}" aria-label="Trang sau">›</a>{% else %}<span class="mo">›</span>{% endif %}
+  </nav>
+  <span class="bt-chon-tt" id="bt-chon-tt"></span>
+</footer>
+
+{# Hộp lọc một cột: HTMX đổ vào đây, JS đặt vị trí cạnh chữ cột #}
 <div id="hop-loc" class="loc-cot-hop" hidden></div>
+{% include "crm/_ctx.html" %}
 
 {% endblock %}
 
 {% block cuoi_trang %}
 <script src="{% static 'js/bang-tinh.js' %}?v={{ phien_ban_tinh }}" defer></script>
+<script src="{% static 'js/bang-tinh-o.js' %}?v={{ phien_ban_tinh }}" defer></script>
 {% endblock %}

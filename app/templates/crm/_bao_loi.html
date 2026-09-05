@@ -1,4 +1,5 @@
 {% comment %}
 Lời báo lỗi của thanh công cụ Bảng tính, HTMX đổ vào #bt-loi (oob). Cần: loi.
+Tuỳ chọn: o — ô bị từ chối (`<pk>:<mã cột>`), JS đổi thành địa chỉ như Excel.
 {% endcomment %}
-<div id="bt-loi" class="bt-loi" hx-swap-oob="true"><div class="bao bao-xau"><span class="bao-ic">!</span><div><b>Chưa làm được</b><p>{{ loi }}</p></div></div></div>
+<div id="bt-loi" class="bt-loi" hx-swap-oob="true"><div class="bao bao-xau"{% if o %} data-o="{{ o }}"{% endif %}><span class="bao-ic">!</span><div><b>Chưa làm được</b><p>{{ loi }}</p></div></div></div>

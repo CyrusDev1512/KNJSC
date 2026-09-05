@@ -320,3 +320,26 @@ def test_nhap_tep_van_don_that_khong_chinh_sua(departments, nguoi_dung):
     assert any(d.data.get("sl_kem_chong_nang") for d in dong), "cột gõ sai tên trong tệp vẫn vào đúng cột"
     assert any(d.val_date == date(2023, 10, 14) for d in dong), "chuỗi '0:58 14/10/2023' phải thành ngày"
     assert sum(1 for d in dong if d.data.get("ngay_tt")) > 50
+
+
+# ══ Hộp lọc theo giá trị như demo — AC-11.24 ═══════════════════════
+
+@SUA_DUOC
+def test_hop_loc_cot_theo_gia_tri_nhu_demo(client, bang_vd, du_lieu, nguoi_dung):
+    """AC-11.24 — Hộp lọc cột hiện tên cột và số giá trị, ô tìm, danh sách giá trị kèm số dòng cho mọi kiểu cột (kể cả số và ngày), điều kiện khác gập lại, bốn nút Chọn tất cả · Bỏ chọn · Xóa lọc · Áp dụng; giá trị chọn gửi lên `f_<cột>__trong` và lọc đúng"""
+    client.force_login(nguoi_dung["staff_vd"])
+    kq = client.get("/bang-tinh/van_don/loc/ten_khach/")
+    assert kq.status_code == 200
+    html = kq.content.decode()
+    assert "Lọc cột <b>Tên khách</b>" in html and "giá trị" in html
+    assert 'placeholder="Tìm giá trị..."' in html
+    assert 'name="f_ten_khach__trong"' in html and "loc-cot-so" in html
+    for nhan in ("Chọn tất cả", "Không chọn", "Xóa lọc", "Áp dụng", "Điều kiện khác"):
+        assert nhan in html, nhan
+    # Cột ngày (kiểu khoảng) cũng có danh sách giá trị, và khoảng ở "Điều kiện khác"
+    kq = client.get("/bang-tinh/van_don/loc/ngay/")
+    html = kq.content.decode()
+    assert 'name="f_ngay__trong"' in html and 'name="f_ngay__lon_bang"' in html
+    # Chọn hai giá trị: lưới còn đúng các dòng mang giá trị đó (Nguyễn An có hai dòng)
+    kq = client.get("/bang-tinh/van_don/", {"f_ten_khach__trong": ["Nguyễn An", "Trần Bình"]})
+    assert kq.status_code == 200 and kq.context["page_obj"].paginator.count == 3

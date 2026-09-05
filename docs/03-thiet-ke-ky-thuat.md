@@ -296,11 +296,12 @@ Cùng bộ đọc bộ lọc với màn hình bảng (`query.read_filters`), nê
 50.000 dòng. Tiêu đề là tên cột, giá trị giữ kiểu (Decimal, ngày thật) để nhập
 lại được (AC-7.7).
 
-### 4.6. Bảng tính — ADR-009, ADR-010
+### 4.6. Bảng tính — ADR-009, ADR-010, ADR-011
 
 Lưới kiểu Excel cho **mọi bảng** trong phạm vi quyền (`/bang-tinh/<mã>/`),
-dựng đầu tiên cho bảng `van_don`. Là một cách nhìn lên `DataRecord`; phần
-riêng của vận đơn bật theo `grid_service.is_waybill`:
+dựng đầu tiên cho bảng `van_don`, nhìn và thao tác như bảng tính KN Demo
+(ADR-011). Là một cách nhìn lên `DataRecord`; phần riêng của vận đơn bật theo
+`grid_service.is_waybill`:
 
 | Việc | Cách làm |
 |---|---|
@@ -314,11 +315,19 @@ riêng của vận đơn bật theo `grid_service.is_waybill`:
 | Trạng thái lưới | Trên URL (`f_<cột>`, `sap`, `chieu`, `trung`, `sp`); không lưu máy chủ |
 | Phạm vi bảng | `TableDef.objects.in_scope(user)` — ngoài phạm vi 404; `/bang-tinh/` mở `van_don` nếu thấy, không thì bảng đầu tiên |
 | Dòng trống | `GRID_SPARE_ROWS` dòng cuối lưới; POST `dong-moi/` → `record_service.create_record`; quyền `grant_service.can_create_record` |
-| Định dạng ô | `DataRecord.style` JSON, sổ đóng `record_service.STYLE_SCHEMA`; `update_styles` ghi bằng `update_fields`; POST `dinh-dang/` trả ô hx-swap-oob; lớp CSS cố định `dd-*` |
+| Định dạng ô | `DataRecord.style` JSON, sổ đóng `record_service.STYLE_SCHEMA` (đậm, nghiêng, gạch chân, gạch ngang, xuống dòng, viền, màu chữ và nền từ `PALETTE` 40 màu `m01…m40`, cỡ 10–28, căn lề, định dạng số); `update_styles` ghi bằng `update_fields`; POST `dinh-dang/` trả ô hx-swap-oob; lớp CSS cố định `dd-*`, khối 80 lớp màu sinh bằng `scripts/sinh-css-mau.py`; định dạng số chỉ đổi cách hiện (`grid_service.display_value`, `Decimal`), `data-goc` giữ giá trị thô |
 | Cột khoá | `ColumnDef.is_key`, ràng buộc một cột/bảng; ô có liên kết `?f_<cột>=<giá trị>` |
 | Thanh bên trái | `crm/services/sidebar_service.py` — chọn nhanh và khoảng ngày viết vào `f_<Ngày>__lon_bang/__nho_bang`; sản phẩm vào `f_<Sản phẩm>__trong` hoặc `sp=` (vận đơn) |
 | Xuất đúng lưới | `export_service.QUERYSET_BUILDERS` — `crm` đăng ký builder `grid` lúc khởi động |
 | Thư mục | `forms_builder.Folder` (phẳng, theo bộ phận, xoá mềm), `TableDef.folder`; `folder_service.tree` hai truy vấn; quyền `can_manage_folders` |
+| Lưu nhiều ô | POST `luu-o/` (`o=<pk hoặc moi-<stt>>:<cột>` + `gt` ghép theo chỉ số) → `record_service.update_cells`: một giao dịch, được cả hoặc không; `CellError` chỉ đúng ô → 400 `_bao_loi.html` có `data-o`; ô của dòng trống gộp thành `create_record`; quyền kiểm từng dòng (`can_edit_record`, `can_create_record`), ngoài phạm vi 403 có nhật ký; trần `GRID_PASTE_CELLS_MAX`; một dòng nhật ký cho cả gói; phản hồi trả `<tr>` oob trước `<td>` oob vì trình duyệt bỏ `<tr>` đứng sau `<td>` |
+| Xoá, khôi phục dòng | POST `xoa-dong/` → `delete_record` (xoá mềm); POST `khoi-phuc-dong/` → `restore_record` trên `DataRecord.all_objects`; quyền `grant_service.can_delete_record` = quyền sửa dòng (Q52); dòng trống chỉ bỏ ở trình duyệt |
+| Chèn, bỏ cột trên lưới | POST `them-cot/` → `table_service.insert_columns` (cột chữ ngắn "Cột mới k", đánh lại `order`); POST `xoa-cot/` → `remove_column`, từ chối theo `removable_reason` (cột khoá, vế của cột tính sẵn) và cột hệ thống vận đơn; quyền `can_manage_columns` = Admin hoặc Manager bộ phận sở hữu, kèm `assert_rank(MANAGER)` |
+| Hộp lọc giá trị | `grid_service.filter_options` cho mọi kiểu cột (giá trị kèm số dòng, trần `GRID_FILTER_OPTIONS_MAX`); ô tìm gọi lại `loc-cot/` với `q=`; áp dụng gửi `f_<cột>__trong`; Điều kiện khác gửi `__lon_bang`/`__nho_bang`, `__chua`, `__rong`/`__co` như trước |
+| Tự cập nhật | GET `moi-nhat/` trả `{moc, so, cot}` trên `DataRecord.objects.in_scope` (không có dữ liệu); JS hỏi mỗi `GRID_POLL_SECONDS` giây khi rảnh, khác thì nạp lại `tbody` qua `htmx.ajax` với `select`, đổi số cột thì tải lại trang |
+| Hoàn tác, làm lại | Phía trình duyệt, 100 bước, mỗi bước gọi lại `luu-o/`, `dinh-dang/` hoặc `khoi-phuc-dong/`; không có bảng lịch sử ở máy chủ, nhật ký vẫn ghi từng lần đổi |
+| Cột trống, dòng trống | Chữ cột nối tiếp tới `GRID_MIN_COLUMNS` (tối thiểu `GRID_FILLER_COLUMNS`), ô `o-trong-cot` không có `data-cot` nên không lưu; `+100 dòng` nhân bản dòng trống phía trình duyệt tới `GRID_SPARE_ROWS_MAX`; số dòng nối tiếp qua trang từ `page_obj.start_index` |
+| Hai tệp JS | `static/js/bang-tinh.js` — trang: thanh bên, cột (rộng, thứ tự, ẩn), thanh công thức, sửa một ô, trạng thái lưu; `static/js/bang-tinh-o.js` — ô: chọn vùng, clipboard TSV, kéo điền, hoàn tác, menu chuột phải, tự cập nhật. ES5, không bước dựng |
 
 ---
 

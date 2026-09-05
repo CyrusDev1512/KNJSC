@@ -18,19 +18,20 @@ Trạng thái lưới (bộ lọc, sắp xếp) sống trên URL để chia sẻ
 chép đường dẫn; độ rộng cột và cột ẩn do trình duyệt nhớ (localStorage).
 """
 from dataclasses import dataclass, field
+from decimal import Decimal, InvalidOperation
 
 from django.db.models import Case, Count, F, IntegerField, OuterRef, Q, Subquery, Value, When
 from django.db.models.fields.json import KeyTextTransform
 from django.http import QueryDict
 
 from core.constants import (
-    GRID_FILTER_OPTIONS_MAX, GRID_FROZEN_COLUMNS, GRID_FROZEN_COLUMNS_GENERIC,
-    GRID_FROZEN_WIDTH_DEFAULT, GRID_SPARE_ROWS,
+    GRID_FILLER_COLUMNS, GRID_FILTER_OPTIONS_MAX, GRID_FROZEN_COLUMNS, GRID_FROZEN_COLUMNS_GENERIC,
+    GRID_FROZEN_WIDTH_DEFAULT, GRID_MIN_COLUMNS, GRID_ROW_NUMBER_WIDTH, GRID_SPARE_ROWS,
 )
 from forms_builder import choice_registry, query
 from forms_builder.meaning import FieldType
 from forms_builder.models import DataRecord
-from forms_builder.services import grant_service
+from forms_builder.services import grant_service, record_service
 from orders.constants import WAYBILL_TABLE_CODE
 from orders.services import dispatch_service
 
@@ -60,6 +61,50 @@ NUMERIC_TYPES = {FieldType.MONEY, FieldType.INTEGER, FieldType.DECIMAL}
 
 #: Bề rộng cột "Trùng" đứng trước mọi cột cố định của bảng vận đơn
 DUPLICATE_COLUMN_WIDTH = 72
+
+
+def left_offset(waybill):
+    """Cột cố định phải chừa chỗ cho cột số dòng (ADR-011) và, ở bảng vận đơn,
+    cột Lọc trùng đứng trước nó."""
+    return GRID_ROW_NUMBER_WIDTH + (DUPLICATE_COLUMN_WIDTH if waybill else 0)
+
+
+def duplicate_style():
+    """Thuộc tính style của cột Lọc trùng: dính ngay sau cột số dòng."""
+    return (f"left:{GRID_ROW_NUMBER_WIDTH}px;width:{DUPLICATE_COLUMN_WIDTH}px;"
+            f"min-width:{DUPLICATE_COLUMN_WIDTH}px;max-width:{DUPLICATE_COLUMN_WIDTH}px")
+
+
+def filler_letters(n_real, *, offset=0):
+    """Chữ của các cột trống bên phải để lưới luôn trông như một sheet đủ chữ
+    tới Z (ADR-011): nối tiếp sau `n_real` cột thật (đứng sau `offset` cột
+    không có mã như cột Lọc trùng), ít nhất `GRID_FILLER_COLUMNS` cột."""
+    dau = n_real + offset
+    cuoi = max(GRID_MIN_COLUMNS, dau + GRID_FILLER_COLUMNS)
+    return [column_letter(i) for i in range(dau, cuoi)]
+
+
+def display_value(column, value, style=None):
+    """Chữ hiện trong ô: giá trị thô, hoặc số đã định dạng theo `fmt` của ô
+    (ADR-011). Tính bằng `Decimal` (BR-8); giá trị không phải số thì giữ nguyên."""
+    fmt = (style or {}).get("fmt")
+    if not fmt or value in (None, "") or isinstance(value, bool):
+        return value
+    if fmt == "text":
+        return str(value)
+    try:
+        so = Decimal(str(value))
+    except InvalidOperation:
+        return value
+    if fmt == "num":
+        return f"{so:,.2f}"
+    if fmt == "pct":
+        return f"{so * 100:,.2f}%"
+    if fmt == "usd":
+        return ("-" if so < 0 else "") + f"${abs(so):,.2f}"
+    if fmt == "vnd":
+        return f"{so:,.0f}".replace(",", ".") + " ₫"
+    return value
 
 
 @dataclass
@@ -268,7 +313,8 @@ def frozen_style(frozen, *, offset=0):
     if not frozen:
         return ""
     trai, rong = frozen
-    return f"left:{trai + offset}px;min-width:{rong}px;max-width:{rong}px"
+    # `width` cho bố cục bảng cố định (table-layout: fixed) đọc được bề rộng cột
+    return f"left:{trai + offset}px;width:{rong}px;min-width:{rong}px;max-width:{rong}px"
 
 
 def _co_dinh(columns, waybill):
@@ -287,40 +333,46 @@ def column_letter(i):
 
 def header_columns(columns, filters=None, *, waybill=True):
     """Tiêu đề cột cho template: cột, chữ cột A B C, style cố định, lớp, có
-    đang lọc không. Chữ cột tính lại ở trình duyệt khi người dùng ẩn hay kéo
+    đang lọc không. Bảng vận đơn có cột Lọc trùng là chữ A nên chữ cột thật
+    bắt đầu từ B. Chữ cột tính lại ở trình duyệt khi người dùng ẩn hay kéo
     đổi thứ tự cột."""
     co_dinh = _co_dinh(columns, waybill)
-    lech = DUPLICATE_COLUMN_WIDTH if waybill else 0
+    lech = left_offset(waybill)
     dang_loc = {k.partition("__")[0] for k in (filters or {})}
     ket_qua = []
     for i, c in enumerate(columns):
         cd = co_dinh.get(c.code)
         lop = ["sap-xep"]
+        lop_chu = ["bt-chu"]
         if cd:
             lop.append("co-dinh")
+            lop_chu.append("co-dinh")
         if c.field_type in NUMERIC_TYPES:
             lop.append("phai")
         if c.is_key:
             lop.append("th-khoa")
         ket_qua.append({
-            "cot": c, "chu": column_letter(i),
-            "style": frozen_style(cd, offset=lech), "lop": " ".join(lop),
+            "cot": c, "chu": column_letter(i + (1 if waybill else 0)),
+            "style": frozen_style(cd, offset=lech), "lop": " ".join(lop), "lop_chu": " ".join(lop_chu),
             "lop_nut_loc": "nut-loc dang-loc" if c.code in dang_loc else "nut-loc",
         })
     return ket_qua
 
 
-def row_context(record, columns, user, *, waybill=True, co_dinh=None):
-    """Một dòng cho template: ô theo thứ tự cột, lớp màu, số trùng, sửa được không."""
+def row_context(record, columns, user, *, waybill=True, co_dinh=None, stt=None):
+    """Một dòng cho template: ô theo thứ tự cột, lớp màu, số trùng, sửa được
+    không, số dòng `stt` (hàng tên cột là 1, dữ liệu từ 2 — ADR-011)."""
     co_dinh = co_dinh if co_dinh is not None else _co_dinh(columns, waybill)
-    lech = DUPLICATE_COLUMN_WIDTH if waybill else 0
+    lech = left_offset(waybill)
     sua = grant_service.can_edit_record(user, record)
     so_trung = getattr(record, "so_trung", 0) or 0
     kieu = record.style or {}
     return {
         "ban_ghi": record,
+        "stt": stt,
         "cac_o": [
             {"cot": c, "gia_tri": record.data.get(c.code),
+             "hien": display_value(c, record.data.get(c.code), kieu.get(c.code)),
              "id": f"o-{record.pk}-{c.code}",
              "lop": cell_class(c, co_dinh.get(c.code), sua, style=kieu.get(c.code)),
              "style": frozen_style(co_dinh.get(c.code), offset=lech)}
@@ -330,19 +382,25 @@ def row_context(record, columns, user, *, waybill=True, co_dinh=None):
         "lop": choices.row_class(record.data.get("trang_thai_vc")) if waybill else "",
         "so_trung": so_trung,
         "lop_trung": "co-dinh tien o-trung" if so_trung > 1 else "co-dinh tien",
+        "style_trung": duplicate_style(),
     }
 
 
-def rows(records, columns, user, *, waybill=True):
+def rows(records, columns, user, *, waybill=True, start=2):
+    """Các dòng của một trang; số dòng bắt đầu từ `start` (trang đầu: 2)."""
     co_dinh = _co_dinh(columns, waybill)
-    return [row_context(r, columns, user, waybill=waybill, co_dinh=co_dinh) for r in records]
+    return [
+        row_context(r, columns, user, waybill=waybill, co_dinh=co_dinh, stt=start + i)
+        for i, r in enumerate(records)
+    ]
 
 
-def spare_rows(columns, n=GRID_SPARE_ROWS, *, waybill=True, values=None, error_column=None):
+def spare_rows(columns, n=GRID_SPARE_ROWS, *, waybill=True, values=None, error_column=None, start=1):
     """`n` dòng trống cuối lưới để gõ bản ghi mới — như Excel luôn thừa dòng.
-    `values` và `error_column` dùng khi vẽ lại một dòng bị từ chối."""
+    `values` và `error_column` dùng khi vẽ lại một dòng bị từ chối; `start` là
+    số dòng của dòng trống đầu tiên."""
     co_dinh = _co_dinh(columns, waybill)
-    lech = DUPLICATE_COLUMN_WIDTH if waybill else 0
+    lech = left_offset(waybill)
     values = values or {}
     ket_qua = []
     for i in range(n):
@@ -362,7 +420,7 @@ def spare_rows(columns, n=GRID_SPARE_ROWS, *, waybill=True, values=None, error_c
                 "cot": c, "lop": " ".join(lop), "style": frozen_style(cd, offset=lech),
                 "gia_tri": values.get(c.code, "") if i == 0 else "",
             })
-        ket_qua.append({"stt": i + 1, "cac_o": cac_o})
+        ket_qua.append({"stt": start + i, "cac_o": cac_o, "style_trung": duplicate_style()})
     return ket_qua
 
 
@@ -372,12 +430,23 @@ def spare_rows(columns, n=GRID_SPARE_ROWS, *, waybill=True, values=None, error_c
 #: không có CSS tự do nào từ dữ liệu lọt vào trang.
 STYLE_CLASSES = {
     "b": {1: "dd-dam"},
+    "i": {1: "dd-nghieng"},
+    "u": {1: "dd-gach-chan"},
+    "st": {1: "dd-gach-ngang"},
+    "wr": {1: "dd-xuong-dong"},
+    "bd": {1: "dd-vien"},
     "bg": {
         "vang": "dd-nen-vang", "xanh": "dd-nen-xanh", "do": "dd-nen-do",
         "luc": "dd-nen-luc", "xam": "dd-nen-xam", "cam": "dd-nen-cam",
+        **{k: f"dd-nen-{k}" for k in record_service.PALETTE_KEYS},
     },
-    "fs": {10: "dd-co-10", 11: "dd-co-11", 12: "dd-co-12", 14: "dd-co-14", 16: "dd-co-16", 18: "dd-co-18"},
+    "c": {k: f"dd-chu-{k}" for k in record_service.PALETTE_KEYS},
+    "fs": {n: f"dd-co-{n}" for n in sorted(record_service.STYLE_SCHEMA["fs"])},
     "al": {"l": "dd-can-trai", "c": "dd-can-giua", "r": "dd-can-phai"},
+    "fmt": {
+        "num": "dd-dinh-so", "pct": "dd-dinh-phan-tram", "usd": "dd-dinh-usd",
+        "vnd": "dd-dinh-vnd", "text": "dd-dinh-chu",
+    },
 }
 
 
@@ -391,7 +460,7 @@ def style_classes(style):
         if bang is None:
             continue
         try:
-            ten = bang.get(int(gia_tri) if khoa in ("b", "fs") else gia_tri)
+            ten = bang.get(int(gia_tri) if khoa in record_service.STYLE_ON or khoa == "fs" else gia_tri)
         except (TypeError, ValueError):
             ten = None
         if ten:

@@ -209,7 +209,9 @@ Mỗi ô là một bài kiểm thử. Năm vai trò nhân với chín đường 
 Lưới làm việc kiểu Excel. Dựng đầu tiên cho bộ phận Vận đơn theo tệp thật
 `MITA Vận đơn CSKH Nội bộ CANADA.xlsx` (bản ẩn danh: `docs/tham-khao/vandon-mau.xlsx`)
 — ADR-009, backlog Q38 tới Q45 — rồi mở cho **mọi bảng dữ liệu** ở
-`/bang-tinh/<mã bảng>/` — ADR-010, Q46 tới Q50. Bảng vận đơn vẫn chỉ xem ở
+`/bang-tinh/<mã bảng>/` — ADR-010, Q46 tới Q50 — rồi **nhìn và thao tác như
+bảng tính KN Demo** (ảnh ở `docs/tham-khao/kn-demo/`) — ADR-011, Q51 tới Q53.
+Bảng vận đơn vẫn chỉ xem ở
 dịch vụ chính và sửa ở dịch vụ riêng (`bangtinh`, cổng 8021); bảng khác sửa
 được ở cả hai.
 
@@ -233,6 +235,15 @@ dịch vụ chính và sửa ở dịch vụ riêng (`bangtinh`, cổng 8021); b
 | AC-11.16 | Mỗi bảng một cột khoá do Manager đặt trong Sửa cột; ô cột khoá có nút lọc theo giá trị, cộng dồn với bộ lọc đang bật; cột tính sẵn không làm khoá được | FR-7.2 · FR-8.5 | Tự động |
 | AC-11.17 | Thư mục chứa bảng: Manager của bộ phận tạo, đổi tên, xoá (xoá mềm, bảng về không thư mục) và xếp bảng vào thư mục cùng bộ phận; Staff, Leader và Manager bộ phận khác bị từ chối; thanh bên chỉ hiện thư mục trong phạm vi; trùng tên báo lỗi | FR-8.1 · FR-3.6 · BR-4 | Tự động |
 | AC-11.18 | Bảng tính mở thành trang toàn màn hình riêng (không thanh bên hệ thống, lưới chiếm hết cửa sổ, menu ☰ dẫn về các màn hình khác); mọi ô có viền như Excel; cột có chữ A B C; kéo mép tiêu đề đổi được độ rộng, kéo thả tiêu đề đổi được thứ tự cột; thanh công cụ đủ mục (nhập, xuất, thêm dòng, thêm cột, thư mục, định dạng, lọc theo ô, ẩn cột, đặt lại cột); độ rộng, thứ tự, cột ẩn và thanh bên thu gọn nhớ trên trình duyệt | FR-7.8 | Thủ công |
+| AC-11.19 | Dán nhiều ô (kể cả chữ tab từ Excel), kéo tay điền, xoá nội dung vùng chọn đi qua một đường dẫn lưu nhiều ô, được cả hoặc không gì: một ô sai thì 400 nêu đúng ô và không ô nào đổi; ô tràn xuống dòng trống thành bản ghi mới thuộc bộ phận sở hữu bảng; cột tính sẵn và cột trống bị bỏ qua, cột tính sẵn tính lại; quyền kiểm từng dòng ở máy chủ (Staff chỉ dòng của mình, Leader không sửa dòng người khác, Manager và Admin cả bộ phận, bảng chỉ xem thì 403) có ghi nhật ký từ chối; tối đa `GRID_PASTE_CELLS_MAX` ô một lần | FR-7.4 · FR-7.8 | Tự động |
+| AC-11.20 | Hoàn tác (Ctrl+Z, nút ↶) trả lại giá trị cũ của các ô vừa dán, điền, sửa hay xoá nội dung; làm lại (Ctrl+Y) áp lại; ngăn xếp phía trình duyệt tối đa 100 bước, tải lại trang là hết | FR-7.4 | Tự động |
+| AC-11.21 | Menu chuột phải có Cắt · Sao chép · Dán · Chèn N hàng trống · Xoá N hàng · Chèn N cột bên trái/phải · Xoá N cột · Xoá nội dung · Xoá định dạng (N theo vùng đang chọn, mục không có quyền mờ đi); Xoá hàng chỉ đánh dấu xoá (BR-4) sau hộp xác nhận, quyền = quyền sửa dòng kiểm từng dòng ở máy chủ (dòng người khác 403 có nhật ký, cả gói không xoá); Ctrl+Z ngay sau đó khôi phục đúng dòng về chỗ cũ, có nhật ký | FR-7.4 · BR-4 | Tự động |
+| AC-11.22 | Manager của bộ phận sở hữu bảng (hoặc Admin) chèn N cột chữ ngắn bên trái hay bên phải cột đang chọn ngay trên lưới, thứ tự cột đánh lại theo vị trí mới; bỏ cột xoá định nghĩa nhưng giữ giá trị trong bản ghi; cột khoá, cột là vế của cột tính sẵn và cột hệ thống của bảng vận đơn bị từ chối; Staff, Leader 403 có nhật ký, Manager bộ phận khác 404 | FR-7.8 · BR-4 | Tự động |
+| AC-11.23 | Sổ định dạng ô mở rộng theo mẫu demo mà vẫn là sổ đóng: nghiêng, gạch chân, gạch ngang, xuống dòng, viền, màu chữ và màu nền từ bảng 40 màu `m01…m40`, cỡ chữ 10–28, định dạng số (số, phần trăm, USD, VND, văn bản) hiện đúng trên ô số bằng `Decimal` mà giá trị thô không đổi; giá trị ngoài sổ vẫn bị từ chối | FR-7.8 · BR-8 | Tự động |
+| AC-11.24 | Hộp lọc cột như demo: tên cột và số giá trị, ô tìm, danh sách giá trị kèm số dòng cho mọi kiểu cột, mục gập Điều kiện khác (khoảng hay chứa chữ, ô trống / có giá trị), bốn nút Chọn tất cả · Không chọn · Xóa lọc · Áp dụng; giá trị chọn gửi lên `f_<cột>__trong` và cộng dồn với bộ lọc khác | FR-7.2 | Tự động |
+| AC-11.25 | Ô địa chỉ hiện `A1` hay `C3:F7` theo ô và vùng đang chọn, gõ địa chỉ + Enter thì nhảy tới ô đó; ô giá trị trên thanh công thức hiện giá trị thô, Enter lưu rồi xuống dòng; bấm một lần chỉ chọn ô, bấm đúp hoặc gõ chữ mới mở sửa với đúng ký tự vừa gõ; rời ô đang sửa mà đã đổi thì lưu | FR-7.4 | Tự động |
+| AC-11.26 | Lưới hỏi máy chủ mốc mới nhất (thời điểm sửa gần nhất, số dòng, số cột — trong phạm vi người xem, không có dữ liệu) mỗi vài giây khi rảnh; người khác sửa thì thân bảng tự nạp lại và hiện báo Có dữ liệu mới; đổi số cột thì tải lại trang; bộ phận khác 404 | FR-7.1 | Tự động |
+| AC-11.27 | Nhìn và thao tác như bảng tính KN Demo, đối chiếu ảnh `docs/tham-khao/kn-demo/`: khung tối viền vàng, thanh công cụ đúng thứ tự demo, thanh công thức có ô địa chỉ, cột số dòng, chữ cột A B C có nút ▼, hàng tên cột là hàng 1, cột trống tới Z, ô 25px có viền, chân trang có tab bảng và `+100 dòng`, nút ⛶ phóng toàn màn hình, trạng thái lưu ở thanh trên; kéo chuột chọn vùng thấy viền vàng và tay kéo điền | FR-7.9 · FR-7.12 | Thủ công |
 
 ---
 

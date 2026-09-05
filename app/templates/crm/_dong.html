@@ -1,11 +1,14 @@
 {% comment %}
 Một dòng thật trên lưới. Dùng khi vẽ lưới và khi dòng trống vừa thành bản ghi
-(HTMX trả về) — một mẫu duy nhất. Cần: bang, d (grid_service.row_context),
-la_van_don, qs_giu.
+(HTMX trả về) — một mẫu duy nhất. Cột số dòng và cột Lọc trùng không có
+`data-cot`. Cần: bang, d (grid_service.row_context), la_van_don, qs_giu,
+cac_cot_trong. Tuỳ chọn: oob_id — thay dòng trống mang id đó tại chỗ (dán).
 {% endcomment %}
-<tr class="{{ d.lop }}" data-dong="{{ d.ban_ghi.pk }}">
-  {% if la_van_don %}<td class="{{ d.lop_trung }}" style="left:0;min-width:72px;max-width:72px">{% if d.so_trung > 1 %}{{ d.so_trung }}{% else %}—{% endif %}</td>{% endif %}
+<tr class="{{ d.lop }}" data-dong="{{ d.ban_ghi.pk }}"{% if oob_id %} id="{{ oob_id }}" hx-swap-oob="outerHTML"{% endif %}>
+  <th class="bt-so-dong co-dinh" scope="row" style="left:0">{{ d.stt|default_if_none:"" }}</th>
+  {% if la_van_don %}<td class="{{ d.lop_trung }}" style="{{ d.style_trung }}">{% if d.so_trung > 1 %}{{ d.so_trung }}{% else %}—{% endif %}</td>{% endif %}
   {% for o in d.cac_o %}
-    {% include "crm/_o.html" with ban_ghi=d.ban_ghi duoc_sua=d.sua cot=o.cot gia_tri=o.gia_tri lop=o.lop style=o.style %}
+    {% include "crm/_o.html" with ban_ghi=d.ban_ghi duoc_sua=d.sua cot=o.cot gia_tri=o.gia_tri hien=o.hien lop=o.lop style=o.style %}
   {% endfor %}
+  {% for chu in cac_cot_trong %}<td class="o-trong-cot" tabindex="0" data-trong="{{ forloop.counter }}" title="Cột chưa có — quản lý thêm cột bằng menu chuột phải"></td>{% endfor %}
 </tr>

@@ -196,13 +196,13 @@ def test_chon_vung_va_dinh_dang_o(live_server, trang, dang_nhap, du_lieu, nguoi_
         trang.click(".bt-dinh-dang .bt-dd[data-dd=b]")
         trang.wait_for_function("document.querySelectorAll('td.dd-dam').length === 4")
         assert "sap=ma_don" in trang.url
-        trang.click(".bt-mo-mau")
-        trang.click(".bt-mau-vang")
-        trang.wait_for_function("document.querySelectorAll('td.dd-nen-vang').length === 4")
+        trang.click('[aria-controls="bt-bang-mau-nen"]')
+        trang.click("#bt-bang-mau-nen .bt-mau-m30")           # vàng nhạt trong bảng 40 màu (ADR-011)
+        trang.wait_for_function("document.querySelectorAll('td.dd-nen-m30').length === 4")
 
         trang.reload()
         trang.wait_for_load_state("networkidle")
-        assert trang.locator("td.dd-dam.dd-nen-vang").count() == 4
+        assert trang.locator("td.dd-dam.dd-nen-m30").count() == 4
 
         trang.locator('tbody tr[data-dong] td[data-cot="ten_khach"]').nth(0).focus()
         trang.keyboard.press("Control+b")
@@ -217,7 +217,8 @@ def test_keo_do_rong_va_thu_tu_cot_nho_tren_trinh_duyet(live_server, trang, dang
         assert trang.locator("aside.nav").count() == 0
         assert trang.locator(".bt-chu-cot").all_inner_texts()[:3] == ["A", "B", "C"]
 
-        th = trang.locator('thead th[data-cot="dia_chi"]')
+        # Hàng chữ cột A B C mang mép kéo độ rộng và cũng kéo thả được (ADR-011)
+        th = trang.locator('thead tr.bt-hang-chu th[data-cot="dia_chi"]')
         th.scroll_into_view_if_needed()
         rong_truoc = th.bounding_box()["width"]
         tay = th.locator(".bt-keo-cot").bounding_box()
@@ -228,20 +229,209 @@ def test_keo_do_rong_va_thu_tu_cot_nho_tren_trinh_duyet(live_server, trang, dang
         assert th.bounding_box()["width"] > rong_truoc + 60
 
         # Kéo Thành phố ra trước Địa chỉ (cả hai không cố định, đang hiện trên màn hình)
-        trang.locator('thead th[data-cot="thanh_pho"]').drag_to(
-            trang.locator('thead th[data-cot="dia_chi"]'), target_position={"x": 5, "y": 20})
-        thu_tu = trang.locator("thead th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        trang.locator('thead tr.bt-hang-chu th[data-cot="thanh_pho"]').drag_to(
+            trang.locator('thead tr.bt-hang-chu th[data-cot="dia_chi"]'), target_position={"x": 5, "y": 12})
+        thu_tu = trang.locator("thead tr.bt-hang-chu th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
         assert thu_tu.index("thanh_pho") < thu_tu.index("dia_chi")
         dong = trang.locator("tbody tr[data-dong]").first.locator("td[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
         assert dong == thu_tu
 
         trang.reload()
         trang.wait_for_load_state("networkidle")
-        thu_tu2 = trang.locator("thead th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        thu_tu2 = trang.locator("thead tr.bt-hang-chu th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
         assert thu_tu2 == thu_tu
-        assert trang.locator('thead th[data-cot="dia_chi"]').bounding_box()["width"] > rong_truoc + 60
+        assert trang.locator('thead tr.bt-hang-chu th[data-cot="dia_chi"]').bounding_box()["width"] > rong_truoc + 60
 
+        trang.click(".bt-khac")                           # Đặt lại cột nằm trong hộp ⋯ (ADR-011)
         trang.click(".bt-dat-lai-cot")
         trang.wait_for_load_state("networkidle")
-        thu_tu3 = trang.locator("thead th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        thu_tu3 = trang.locator("thead tr.bt-hang-chu th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
         assert thu_tu3.index("dia_chi") < thu_tu3.index("thanh_pho")
+
+
+# ══ Chọn vùng, dán, kéo điền, hoàn tác — ADR-011 ═══════════════════
+
+def _gia_tri(trang, dong, cot):
+    return trang.locator(f'tbody tr[data-dong="{dong}"] td[data-cot="{cot}"]').get_attribute("data-goc")
+
+
+def test_keo_chon_vung_dan_tu_excel_va_keo_dien(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
+    """AC-11.19 — Kéo chuột chọn vùng thì ô địa chỉ hiện `C3:D4`; dán chữ có tab và xuống dòng (như chép từ Excel) vào ô đang chọn thì các ô bên cạnh và bên dưới nhận đúng giá trị, tràn xuống dòng trống thì thành bản ghi mới; kéo tay điền từ hai số cách đều thì tiếp chuỗi; Delete xoá nội dung vùng chọn"""
+    from forms_builder.models import DataRecord
+    with override_settings(GRID_ONLY_TABLES=set()):
+        dang_nhap(trang, nguoi_dung["staff_vd"])
+        trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
+        trang.wait_for_load_state("networkidle")
+        bang = du_lieu["bang"]
+        d1, d2, d3, d4 = [d.pk for d in du_lieu["dong"]]
+
+        # Kéo chuột từ Tên khách dòng 1 tới Số điện thoại dòng 2: vùng 2×2, địa chỉ có dấu hai chấm
+        o_a = trang.locator(f'tbody tr[data-dong="{d1}"] td[data-cot="ten_khach"]')
+        o_b = trang.locator(f'tbody tr[data-dong="{d2}"] td[data-cot="so_dien_thoai"]')
+        ha, hb = o_a.bounding_box(), o_b.bounding_box()
+        trang.mouse.move(ha["x"] + 10, ha["y"] + 10)
+        trang.mouse.down()
+        trang.mouse.move(hb["x"] + 10, hb["y"] + 10, steps=5)
+        trang.mouse.up()
+        assert trang.locator("td.o-chon").count() == 4
+        assert ":" in trang.locator("#bt-dia-chi").input_value()
+
+        # Dán 5 dòng × 2 cột từ ô Tên khách dòng 1: bốn dòng thật đổi, dòng thứ năm tràn xuống dòng trống
+        so_dong_truoc = trang.locator("tbody tr[data-dong]").count()
+        o_a.click()
+        trang.evaluate("""() => {
+          const dt = new DataTransfer();
+          dt.setData('text/plain', 'Khách A\\t0900000001\\nKhách B\\t0900000002\\nKhách C\\t0900000003\\nKhách D\\t0900000004\\nKhách E\\t0900000005');
+          document.activeElement.dispatchEvent(new ClipboardEvent('paste', {clipboardData: dt, bubbles: true, cancelable: true}));
+        }""")
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d1}\"] td[data-cot=\"ten_khach\"]') || {{dataset: {{}}}}).dataset.goc === 'Khách A'")
+        assert _gia_tri(trang, d2, "so_dien_thoai") == "0900000002"
+        assert DataRecord.objects.filter(table=bang, data__ten_khach="Khách E").exists()   # tràn xuống dòng trống
+        trang.wait_for_function(f"document.querySelectorAll('tbody tr[data-dong]').length === {so_dong_truoc + 1}")
+        assert "sap=ma_don" in trang.url                                                    # không tải lại trang
+
+        # Kéo tay điền: hai ô Số điện thoại 1, 2 → điền xuống hai dòng nữa được 3, 4
+        o1 = trang.locator(f'tbody tr[data-dong="{d1}"] td[data-cot="so_dien_thoai"]')
+        o2 = trang.locator(f'tbody tr[data-dong="{d2}"] td[data-cot="so_dien_thoai"]')
+        # Gõ chữ trên ô hiển thị là mở sửa với đúng ký tự đó, Enter lưu
+        o1.click(); trang.keyboard.type("1")
+        trang.wait_for_function("(document.querySelector('td.dang-sua input:not([type=hidden])') || {}).value === '1'")
+        trang.keyboard.press("Enter")
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d1}\"] td[data-cot=\"so_dien_thoai\"]') || {{dataset: {{}}}}).dataset.goc === '1'")
+        o2.click(); trang.keyboard.type("2")
+        trang.wait_for_function("(document.querySelector('td.dang-sua input:not([type=hidden])') || {}).value === '2'")
+        trang.keyboard.press("Enter")
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d2}\"] td[data-cot=\"so_dien_thoai\"]') || {{dataset: {{}}}}).dataset.goc === '2'")
+        o1.click()
+        o2.click(modifiers=["Shift"])
+        tay = trang.locator("#bt-tay-keo")
+        assert tay.is_visible()
+        t = tay.bounding_box()
+        o4 = trang.locator(f'tbody tr[data-dong="{d4}"] td[data-cot="so_dien_thoai"]').bounding_box()
+        trang.mouse.move(t["x"] + 4, t["y"] + 4)
+        trang.mouse.down()
+        trang.mouse.move(o4["x"] + 10, o4["y"] + 10, steps=6)
+        trang.mouse.up()
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d4}\"] td[data-cot=\"so_dien_thoai\"]') || {{dataset: {{}}}}).dataset.goc === '4'")
+        assert _gia_tri(trang, d3, "so_dien_thoai") == "3"
+
+        # Delete xoá nội dung vùng chọn (ghi chú hai dòng)
+        g1 = trang.locator(f'tbody tr[data-dong="{d1}"] td[data-cot="ghi_chu"]')
+        g1.scroll_into_view_if_needed()
+        g1.click(); trang.keyboard.type("t")
+        trang.wait_for_function("(document.querySelector('td.dang-sua textarea') || {}).value === 't'")
+        trang.keyboard.press("Control+Enter")
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d1}\"] td[data-cot=\"ghi_chu\"]') || {{dataset: {{}}}}).dataset.goc === 't'")
+        g1.click()
+        trang.keyboard.press("Delete")
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d1}\"] td[data-cot=\"ghi_chu\"]') || {{dataset: {{}}}}).dataset.goc === ''")
+        chup(trang, "bang-tinh-dan-va-dien")
+
+
+def test_hoan_tac_va_lam_lai(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
+    """AC-11.20 — Ctrl+Z trả lại giá trị cũ của các ô vừa dán và của vùng vừa xoá nội dung; Ctrl+Y áp lại; nút ↶ ↷ bật tắt theo ngăn xếp; Ctrl+Z sau khi in đậm thì bỏ đậm"""
+    with override_settings(GRID_ONLY_TABLES=set()):
+        dang_nhap(trang, nguoi_dung["staff_vd"])
+        trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
+        trang.wait_for_load_state("networkidle")
+        d1, d2 = [d.pk for d in du_lieu["dong"][:2]]
+        assert trang.locator("#bt-hoan-tac").is_disabled()
+
+        o_a = trang.locator(f'tbody tr[data-dong="{d1}"] td[data-cot="ten_khach"]')
+        o_a.click()
+        trang.evaluate("""() => {
+          const dt = new DataTransfer();
+          dt.setData('text/plain', 'Mới 1\\nMới 2');
+          document.activeElement.dispatchEvent(new ClipboardEvent('paste', {clipboardData: dt, bubbles: true, cancelable: true}));
+        }""")
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d2}\"] td[data-cot=\"ten_khach\"]') || {{dataset: {{}}}}).dataset.goc === 'Mới 2'")
+        trang.wait_for_function("!document.getElementById('bt-hoan-tac').disabled")   # ghi bước sau khi lưới lắng
+
+        trang.keyboard.press("Control+z")
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d1}\"] td[data-cot=\"ten_khach\"]') || {{dataset: {{}}}}).dataset.goc === 'Nguyễn An'")
+        assert _gia_tri(trang, d2, "ten_khach") == "Trần Bình"
+        trang.wait_for_function("!document.getElementById('bt-lam-lai').disabled")
+        trang.keyboard.press("Control+y")
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d1}\"] td[data-cot=\"ten_khach\"]') || {{dataset: {{}}}}).dataset.goc === 'Mới 1'")
+
+        # Xoá nội dung rồi hoàn tác bằng nút
+        o_a.click()
+        trang.locator(f'tbody tr[data-dong="{d2}"] td[data-cot="ten_khach"]').click(modifiers=["Shift"])
+        trang.keyboard.press("Delete")
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d2}\"] td[data-cot=\"ten_khach\"]') || {{dataset: {{}}}}).dataset.goc === ''")
+        trang.click("#bt-hoan-tac")
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d2}\"] td[data-cot=\"ten_khach\"]') || {{dataset: {{}}}}).dataset.goc === 'Mới 2'")
+
+        # Định dạng: in đậm rồi Ctrl+Z bỏ đậm
+        o_a.click()
+        trang.click(".bt-dinh-dang .bt-dd[data-dd=b]")
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d1}\"] td[data-cot=\"ten_khach\"]') || {{classList: {{contains: () => false}}}}).classList.contains('dd-dam')")
+        trang.keyboard.press("Control+z")
+        trang.wait_for_function(f"!(document.querySelector('tbody tr[data-dong=\"{d1}\"] td[data-cot=\"ten_khach\"]') || {{classList: {{contains: () => false}}}}).classList.contains('dd-dam')")
+
+
+def test_o_dia_chi_thanh_cong_thuc_va_bam_dup(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
+    """AC-11.25 — Ô địa chỉ hiện địa chỉ ô đang chọn, gõ địa chỉ + Enter thì nhảy tới; ô giá trị hiện giá trị thô, Enter ở đó lưu rồi xuống dòng; bấm một lần chỉ chọn, bấm đúp mới mở sửa; rời ô đang sửa mà đã đổi thì lưu"""
+    with override_settings(GRID_ONLY_TABLES=set()):
+        dang_nhap(trang, nguoi_dung["staff_vd"])
+        trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
+        trang.wait_for_load_state("networkidle")
+        d1, d2 = [d.pk for d in du_lieu["dong"][:2]]
+        o1 = trang.locator(f'tbody tr[data-dong="{d1}"] td[data-cot="ten_khach"]')
+        o1.click()
+        assert trang.locator("td.dang-sua").count() == 0                       # bấm một lần: chỉ chọn
+        dia_chi = trang.locator("#bt-dia-chi").input_value()
+        assert dia_chi[0].isalpha() and dia_chi[-1].isdigit() and dia_chi.endswith("2")   # hàng tên cột là 1, dữ liệu từ 2
+        assert trang.locator("#bt-cong-thuc").input_value() == "Nguyễn An"
+
+        # Gõ địa chỉ của ô dòng 3 cùng cột rồi Enter: con trỏ nhảy tới đó
+        chu = dia_chi[:-1]
+        trang.fill("#bt-dia-chi", f"{chu}3")
+        trang.keyboard.press("Enter")
+        trang.wait_for_function(f"document.activeElement && document.activeElement.dataset.dong === '{d2}' && document.activeElement.dataset.cot === 'ten_khach'")
+        assert trang.locator("#bt-cong-thuc").input_value() == "Trần Bình"
+
+        # Sửa ở ô giá trị: Enter lưu rồi con trỏ xuống dòng dưới
+        trang.fill("#bt-cong-thuc", "Trần Bình B")
+        trang.keyboard.press("Enter")
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d2}\"] td[data-cot=\"ten_khach\"]') || {{dataset: {{}}}}).dataset.goc === 'Trần Bình B'")
+        trang.wait_for_function(f"document.activeElement && document.activeElement.dataset.dong !== '{d2}' && document.activeElement.dataset.cot === 'ten_khach'")
+
+        # Bấm đúp mở sửa; gõ rồi bấm sang ô khác thì lưu
+        o1.dblclick()
+        trang.wait_for_selector("td.dang-sua input:not([type=hidden])")
+        trang.keyboard.press("Control+a"); trang.keyboard.type("Nguyễn An A")
+        trang.locator(f'tbody tr[data-dong="{d1}"] td[data-cot="dia_chi"]').click()
+        trang.wait_for_function(f"(document.querySelector('tbody tr[data-dong=\"{d1}\"] td[data-cot=\"ten_khach\"]') || {{dataset: {{}}}}).dataset.goc === 'Nguyễn An A'")
+
+
+def test_menu_chuot_phai_xoa_hang_va_hoan_tac(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
+    """AC-11.21 — Chuột phải lên vùng hai dòng: menu hiện Xoá 2 hàng; xác nhận thì hai dòng biến khỏi lưới và bị đánh dấu xoá; Ctrl+Z khôi phục cả hai về chỗ cũ; mục chèn cột mờ với Staff"""
+    from forms_builder.models import DataRecord
+    with override_settings(GRID_ONLY_TABLES=set()):
+        dang_nhap(trang, nguoi_dung["staff_vd"])
+        trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
+        trang.wait_for_load_state("networkidle")
+        bang = du_lieu["bang"]
+        d1, d2, d3 = [d.pk for d in du_lieu["dong"][:3]]
+        o_a = trang.locator(f'tbody tr[data-dong="{d2}"] td[data-cot="ten_khach"]')
+        o_b = trang.locator(f'tbody tr[data-dong="{d3}"] td[data-cot="ten_khach"]')
+        o_a.click()
+        o_b.click(modifiers=["Shift"])
+        o_b.click(button="right")
+        menu = trang.locator("#bt-ctx")
+        assert menu.is_visible()
+        assert menu.locator('[data-lenh="xoa-hang"]').inner_text().strip() == "Xoá 2 hàng"
+        assert menu.locator('[data-lenh="them-cot-trai"]').is_disabled()       # Staff không thêm cột
+        trang.once("dialog", lambda d: d.accept())
+        menu.locator('[data-lenh="xoa-hang"]').click()
+        trang.wait_for_function(f"!document.querySelector('tbody tr[data-dong=\"{d2}\"]') && !document.querySelector('tbody tr[data-dong=\"{d3}\"]')")
+        assert DataRecord.objects.filter(pk__in=[d2, d3]).count() == 0
+        assert DataRecord.all_objects.filter(pk__in=[d2, d3], deleted_at__isnull=False).count() == 2
+
+        trang.keyboard.press("Control+z")
+        trang.wait_for_function(f"document.querySelector('tbody tr[data-dong=\"{d2}\"]') && document.querySelector('tbody tr[data-dong=\"{d3}\"]')")
+        assert DataRecord.objects.filter(pk__in=[d2, d3]).count() == 2
+        thu_tu = trang.locator("tbody tr[data-dong]").evaluate_all("els => els.map(e => e.dataset.dong)")
+        assert thu_tu[:3] == [str(d1), str(d2), str(d3)]                      # về đúng chỗ cũ
+        chup(trang, "bang-tinh-menu-chuot-phai")
