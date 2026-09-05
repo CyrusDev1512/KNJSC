@@ -65,6 +65,24 @@ class AllTableDefManager(models.Manager.from_queryset(TableDefQuerySet)):
     """Gồm cả bảng đã xoá. Dùng cho tệp chuyển đổi dữ liệu và kiểm thử."""
 
 
+class FolderQuerySet(ScopedQuerySet):
+    """Thư mục thuộc về bộ phận, cả bộ phận nhìn thấy — như định nghĩa bảng.
+    Không có cấp quyền riêng: người ngoài bộ phận được cấp quyền xem một bảng
+    thì thấy bảng đó ở mục "không thư mục" của mình."""
+
+    def in_scope(self, user):
+        return apply_department_scope(self, user, field="department_id")
+
+
+class FolderManager(models.Manager.from_queryset(FolderQuerySet)):
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
+
+
+class AllFolderManager(models.Manager.from_queryset(FolderQuerySet)):
+    """Gồm cả thư mục đã xoá."""
+
+
 class FormDefQuerySet(ScopedQuerySet):
     """Biểu mẫu cũng không có cột team, nên dính đúng cái bẫy của bảng."""
 

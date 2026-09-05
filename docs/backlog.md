@@ -28,9 +28,8 @@ Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của 
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
 tóm để không phải lục.
 
-> Cập nhật ngày 03.09.2026, sau khi xong trọn Giai đoạn 7 (7A → 7D) — nhập
-> xuất Excel, tác vụ nền, sao lưu, Bảng tính vận đơn, kiểm thử toàn diện. Mục
-> D chỉ còn `AC-5.1`.
+> Cập nhật ngày 04.09.2026, sau khi xong Giai đoạn 7 phần E — Bảng tính cho
+> mọi bảng, định dạng ô, cột khoá, thư mục (ADR-010). Mục D chỉ còn `AC-5.1`.
 
 **Đang ở đâu:** xong Giai đoạn 0 tới 7. Nhập tệp Excel/CSV bốn bước có xem
 trước và tiến độ, xuất kèm bộ lọc, tệp lớn chạy nền giữ 24 giờ (7A). Sao lưu
@@ -40,11 +39,16 @@ cột, sửa ô có danh sách chọn, Lọc trùng, tô màu Hủy/Hoàn, mỗi
 — chạy ở dịch vụ `bangtinh` `localhost:8021/bang-tinh/`, Bảng dữ liệu chỉ xem
 (7C, ADR-009). Kiểm thử chín tầng: thêm Playwright (bàn phím, hộp lọc, cột cố
 định, 390px), 50.000 dòng dưới 2 giây, Locust 50 người tự chấm, ma trận 45 ô;
-`docs/07` là kịch bản bấm tay (7D).
+`docs/07` là kịch bản bấm tay (7D). **Bảng tính cho mọi bảng** (7E, ADR-010):
+`/bang-tinh/<mã bảng>/` cho bảng nào trong phạm vi; viền ô như Excel, dòng
+trống cuối lưới gõ là thành bản ghi; định dạng ô (đậm, nền, cỡ, căn) lưu vào
+cơ sở dữ liệu; cột khoá bấm ⌕ là lọc; thanh lọc bên trái (chọn nhanh, khoảng
+ngày, sản phẩm); thanh công cụ; thư mục chứa bảng. 85 tiêu chí, 75 trên 76
+tự động có bài kiểm.
 
 **Việc tiếp theo:** **nghiệm thu một đợt theo `docs/07`** — anh/chị bấm tay
-từng vai, đánh ☑. Rồi Giai đoạn 8: máy chủ, subdomain cho Bảng tính, đo tải
-trên máy chủ thật.
+từng vai, đánh ☑ (đã thêm các bước của 7E). Rồi Giai đoạn 8: máy chủ,
+subdomain cho Bảng tính, đo tải trên máy chủ thật.
 
 ### A · Nghiệm thu — việc của anh/chị
 
@@ -68,6 +72,7 @@ trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải
 | ☐ | 50 người đồng thời: `manage.py seed_perf` rồi Locust 1 phút, in ĐẠT | `AC-10.1` |
 | ☐ | Bảng tính: cuộn ngang dọc, cột đầu và tiêu đề đứng yên | `AC-11.1` |
 | ☐ | Bảng tính trên điện thoại và máy tính bảng thật | `AC-11.11` |
+| ☐ | Bảng tính: mọi ô có viền, thanh công cụ đủ mục, ẩn cột nhớ được, thanh bên thu gọn được | `AC-11.18` |
 
 **Một việc biết trước là chưa đạt:**
 
@@ -224,6 +229,11 @@ mục 6.
 | Q43 | Tệp vận đơn thật | **Ẩn danh hoá rồi đưa vào kho** — `scripts/an-danh-vandon.py` → `docs/tham-khao/vandon-mau.xlsx`; bản gốc chỉ ở `storage/`, không vào git. Là thước đo của AC-11.9 | 03.09.2026 |
 | Q44 | Công cụ kiểm thử trình duyệt và tải — sửa Q31 | **Thêm Playwright và Locust, chỉ trong `requirements-dev.txt`**, không vào image chạy thật. K6 đóng ngày 03.09.2026 khi `tests/perf/locustfile.py` chạy được và tự chấm | 03.09.2026 |
 | Q45 | Ai được nhập tệp Excel vào bảng; sao lưu ở giai đoạn nào | Quản lý trở lên của bộ phận sở hữu bảng hoặc người được cấp quyền **Sửa**; sao lưu thuộc **Giai đoạn 7**; thứ tự làm 7A → 7B → 7C → 7D | 03.09.2026 |
+| Q46 | Bảng tính áp cho bảng nào — sửa ADR-009 mục 1 | **Mọi bảng trong phạm vi quyền** ở `/bang-tinh/<mã>/`; `/bang-tinh/` mặc định mở bảng vận đơn; ngoài phạm vi 404 như Bảng dữ liệu; phần riêng của vận đơn bật theo `is_waybill`; luật hai dịch vụ giữ nguyên — ADR-010 | 04.09.2026 |
+| Q47 | Ai thêm được dòng thẳng trên lưới (dòng trống cuối lưới) | Cùng bộ phận sở hữu bảng (mọi cấp), hoặc cấp quyền Sửa, hoặc Admin — `can_create_record`; bảng chỉ xem ở dịch vụ này thì không — AC-11.14 | 04.09.2026 |
+| Q48 | Cột khoá | `ColumnDef.is_key`, mỗi bảng một cột, Manager đặt trong Sửa cột, bảng vận đơn lấy Mã đơn; ô cột khoá có nút ⌕ lọc theo giá trị — AC-11.16 | 04.09.2026 |
+| Q49 | Định dạng ô lưu ở đâu — sửa ADR-002 phần "Mất gì" | **Cơ sở dữ liệu** (`DataRecord.style`), mọi người cùng thấy; sổ giá trị đóng (đậm, sáu màu nền, cỡ 10–18, căn lề), không nhận CSS tự do; quyền bằng quyền sửa ô — AC-11.15, ADR-010 | 04.09.2026 |
+| Q50 | "Tạo folder" nghĩa là gì | **Thư mục chứa bảng**, phẳng, thuộc bộ phận, model ở `forms_builder` (không ở `crm` vì ADR-004); Manager bộ phận quản lý; chỉ sắp xếp thanh bên, không ảnh hưởng phạm vi — AC-11.17 | 04.09.2026 |
 
 ---
 
@@ -239,6 +249,8 @@ Những thứ đáng làm nhưng chưa tới lượt.
 | S4 | Kênh báo sự cố cho nhân viên không có tài khoản | Biểu mẫu công khai, người quản lý xử lý |
 | S5 | Bảng tổng hợp dạng xoay chiều | Chưa rõ nhu cầu thật |
 | S6 | Nhiều người cùng sửa một bảng theo thời gian thực | Phức tạp, cần đánh giá lại nhu cầu |
+| S7 | Thư mục lồng nhau trên Bảng tính | Chưa ai cần; thêm sau chỉ là FK `parent` trên `Folder` — ADR-010 |
+| S8 | Xuất Excel mang theo định dạng ô (đậm, màu nền) | `export_service.build_workbook` chưa đọc `DataRecord.style`; làm khi có người hỏi |
 
 ---
 
@@ -293,7 +305,7 @@ xem **V5** — cả hai đều chưa chốt.
 | 4 · Báo cáo hằng ngày | ✓ | Chưa |
 | 5 · Lên đơn và vận đơn | ✓ | Chưa |
 | 6 · Báo cáo tổng hợp | ✓ | Chưa |
-| 7 · Nhập xuất, sao lưu, Bảng tính, kiểm thử toàn diện | ✓ | Chưa — kịch bản ở `docs/07` |
+| 7 · Nhập xuất, sao lưu, Bảng tính, kiểm thử toàn diện, Bảng tính mọi bảng | ✓ | Chưa — kịch bản ở `docs/07` |
 
 Bản dựng giao diện tĩnh ở `prototype/` là chuẩn để đối chiếu. Nó có 10 màn
 hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp dần.
@@ -308,8 +320,8 @@ hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp d�
 | Lịch sử báo cáo | 4 | Đã có |
 | Lên đơn | 5 | Đã có |
 | Báo cáo tổng hợp | 6 | Đã có — tab Theo thị trường treo ghi chú chờ N9, Q36 |
-| Bảng tính | 7 | Đã có — lưới vận đơn ở dịch vụ `bangtinh` (`/bang-tinh/`), theo tệp thật chứ không theo bản dựng, ADR-009 |
-| Bảng tính, màn hình chi tiết | 7 | Không làm — bản dựng là engine công thức, đã bỏ khỏi phạm vi (ADR-009) |
+| Bảng tính | 7 | Đã có — lưới cho **mọi bảng** ở `/bang-tinh/<mã>/` (ADR-010): viền ô, dòng trống, cột khoá, thanh lọc bên trái, thanh công cụ, định dạng ô, thư mục; bảng vận đơn vẫn sửa ở dịch vụ `bangtinh` (ADR-009) |
+| Bảng tính, màn hình chi tiết | 7 | Không làm engine công thức (ADR-009); phần thanh công cụ định dạng của bản dựng đã có lại dưới dạng sổ đóng (ADR-010) |
 
 **Thiếu sót đã biết, không phải màn hình riêng nhưng ảnh hưởng trải nghiệm:**
 
@@ -353,3 +365,9 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 03.09.2026 | Xong Giai đoạn 7 phần D — kiểm thử toàn diện: Playwright (bàn phím, hộp lọc, cột cố định, 390px không tràn ngang, nhập→xuất→nhập lại qua giao diện), `seed_perf` 50.000 dòng và bài hiệu năng dưới 2 giây, Locust 50 người tự chấm p99, ma trận phân quyền 35 → 45 ô. HOAN chỉ còn `AC-5.1`: 70 trên 70 tiêu chí tự động có bài kiểm. Viết `docs/07-kich-ban-nghiem-thu.md`, cập nhật docs/03, 05, 06; đóng K6, mở K19, K23 (hộp lọc trong Playwright), K24 (12 truy vấn trên 50.000 dòng) — hai bài đó đánh dấu xfail vì người dùng cần demo gấp; bảng tiến độ sang GĐ 8 |
 | 03.09.2026 | Người dùng phàn nàn mở `localhost:8020` không lên sau khi đổi phiên làm việc. Nguyên nhân: container không tự bật lại sau khi tắt máy, và mã mới chưa kéo về. Thêm `restart: unless-stopped` cho bốn dịch vụ compose, và `scripts/cap-nhat-local.sh` + `.bat` — một lệnh kéo mã, dựng lại, bảo đảm dữ liệu mẫu |
 | 03.09.2026 | Xong Giai đoạn 6 — báo cáo tổng hợp: `reports/aggregations.py` dịch nhãn ý nghĩa sang phép tính, màn hình ba cách nhóm kèm lọc, dòng tổng cộng, bốn ô số và xuất Excel có ghi nhật ký (P5). Chốt Q35 (ô chọn một bảng nguồn) và Q36 (hoãn tab thị trường), mở N9 và N10. Gỡ `AC-5.2` tới `AC-5.5` khỏi HOAN — còn 8 tiêu chí hoãn, 53 trên 61 đã có bài kiểm. Sửa luôn: phân trang giữ tham số lọc (`qs_loc`), đệm phạm vi quyền theo lượt yêu cầu để màn hình đứng dưới trần 10 lệnh truy vấn |
+| 04.09.2026 | Người dùng dựng ở máy nhà, gặp lần lượt: Docker chưa mở nên 8020 không lên; gõ `/bangtinh` thiếu gạch nên 404; rồi màn hình Bảng tính 404 vì "Chưa có bảng vận đơn". Người dùng hỏi đúng: *vì sao đã viết mã rồi mà còn phải chạy lệnh tay?* Chốt: bảng vận đơn là bảng động nên `migrate` không sinh ra, nhưng mã đòi nó tồn tại, vậy `entrypoint.sh` phải tự gọi `tao_bang_van_don` sau `migrate`. Lệnh này giờ tự tạo bộ phận Vận đơn trên máy sạch (trước đó chạy trên máy sạch thì đổ lỗi thiếu bộ phận — phát hiện khi thử thật). Gộp vào `scripts/cap-nhat-local.sh` và `.bat` phần tự mở Docker Desktop, đợi web lên và mở trình duyệt — một lệnh là chạy. `du_lieu_mau` vẫn phải chạy tay vì tài khoản mẫu không được tự sinh trên máy chủ thật |
+| 04.09.2026 | Người dùng gửi ảnh Lumi OMS, yêu cầu Bảng tính như CRM chuyên biệt. Chốt bốn câu (Q46 → Q50) rồi làm Giai đoạn 7 phần E, ADR-010: lưới cho mọi bảng (A), định dạng ô lưu DB (B), thư mục chứa bảng (C). Thêm `forms_builder/0006` (`is_key`, `style`) và `0007` (`Folder`, `TableDef.folder`); `export_service` có sổ builder để Bảng tính xuất đúng lưới kể cả `trung=` và `sp=` (lỗ hổng cũ: xuất bỏ qua `trung=1`). Phát hiện và sửa lỗi tiềm ẩn: màn hình Sửa cột không lưu thay đổi vì ModelForm đã ghi vào instance trước khi dịch vụ so cũ với mới. AC-11.12 → 11.18; 85 tiêu chí. Ngân sách truy vấn `/bang-tinh/<mã>/` đặt 14 (thanh bên thêm hai lệnh trên K24). Bài Playwright thêm hai: dòng trống + ⌕, chọn vùng + định dạng |
+| 04.09.2026 | Người dùng kéo nhánh về máy nhà, mở 8021 gặp `column forms_builder_tabledef.folder_id does not exist`: mã mới vào container qua bind mount nên container không dựng lại, `migrate` trong entrypoint không chạy. Sửa `cap-nhat-local.sh` và `.bat` gọi tường minh `migrate` và `tao_bang_van_don` sau `up` |
+| 04.09.2026 | Trên Windows, cả bốn container `Restarting` với `exec /entrypoint.sh: no such file or directory`: git checkout đổi `entrypoint.sh` sang CRLF, `#!/bin/sh\r` không có trình thông dịch. Sửa hai tầng: `.gitattributes` giữ LF cho `.sh .py .html .css .js` (gộp ý từ nhánh `claude/project-status-progress-7ajcqg`), và Dockerfile `sed -i 's/\r$//'` trước `chmod` để image dựng đúng dù git cấu hình thế nào |
+| 04.09.2026 | Người dùng cập nhật xong vẫn thấy Bảng tính vỡ bố cục: trình duyệt dùng `bang-tinh.css` cũ trong bộ đệm (cùng tên với tệp đã có trên `main`). Thêm `?v=<mốc sửa tệp tĩnh>` vào mọi đường dẫn CSS và JS (`core/context_processors.PHIEN_BAN_TINH`) — đổi mã là trình duyệt tự tải mới, không phải Ctrl+F5 |
+| 04.09.2026 | Người dùng thêm hai yêu cầu: (1) kéo đổi độ rộng từng cột và tự quyết thứ tự cột A B C; (2) Bảng tính phải là một trang toàn màn hình khác hẳn, chức năng chính là lưới. Làm ngay trong 7E: khung riêng `crm/base_bang_tinh.html` (không thanh bên hệ thống, menu ☰), chữ cột A B C, kéo mép tiêu đề đổi rộng, kéo thả tiêu đề đổi thứ tự, nút Đặt lại cột — ba thứ nhớ trên trình duyệt theo mã bảng (ADR-010 mục 8, 9). Sửa AC-11.18 |

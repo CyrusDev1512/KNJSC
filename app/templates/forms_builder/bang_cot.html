@@ -37,6 +37,7 @@
                 {{ c.name }}
                 {% if c.required %}<span class="chip chip-nhat"><i></i>Bắt buộc</span>{% endif %}
                 {% if c.is_computed %}<span class="chip chip-nhan"><i></i>Tính sẵn</span>{% endif %}
+                {% if c.is_key %}<span class="chip chip-tot"><i></i>Khoá</span>{% endif %}
               </td>
               <td class="ma-o">{{ c.code }}</td>
               <td class="nho">{{ c.get_field_type_display }}</td>

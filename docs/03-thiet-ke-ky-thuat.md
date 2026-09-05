@@ -296,9 +296,11 @@ Cùng bộ đọc bộ lọc với màn hình bảng (`query.read_filters`), nê
 50.000 dòng. Tiêu đề là tên cột, giá trị giữ kiểu (Decimal, ngày thật) để nhập
 lại được (AC-7.7).
 
-### 4.6. Bảng tính vận đơn — ADR-009
+### 4.6. Bảng tính — ADR-009, ADR-010
 
-Không có model. Lưới là một cách nhìn lên `DataRecord` của bảng `van_don`:
+Lưới kiểu Excel cho **mọi bảng** trong phạm vi quyền (`/bang-tinh/<mã>/`),
+dựng đầu tiên cho bảng `van_don`. Là một cách nhìn lên `DataRecord`; phần
+riêng của vận đơn bật theo `grid_service.is_waybill`:
 
 | Việc | Cách làm |
 |---|---|
@@ -309,7 +311,14 @@ Không có model. Lưới là một cách nhìn lên `DataRecord` của bảng `
 | Danh sách chọn | `forms_builder.choice_registry` — `crm` đăng ký lúc khởi động; *chặt* với trạng thái, *gợi ý* với nhân viên |
 | Sửa ô | `record_service.update_cell` — cùng đường với Bảng dữ liệu; `can_edit_record` trả False khi bảng nằm trong `GRID_ONLY_TABLES` |
 | Dịch vụ riêng | `knjsc/settings/bangtinh.py`: URLconf thu hẹp, `GRID_ONLY_TABLES` rỗng; container `bangtinh` cổng 8021; tương lai subdomain với `SESSION_COOKIE_DOMAIN` |
-| Trạng thái lưới | Trên URL (`f_<cột>`, `sap`, `chieu`, `trung`); không lưu máy chủ |
+| Trạng thái lưới | Trên URL (`f_<cột>`, `sap`, `chieu`, `trung`, `sp`); không lưu máy chủ |
+| Phạm vi bảng | `TableDef.objects.in_scope(user)` — ngoài phạm vi 404; `/bang-tinh/` mở `van_don` nếu thấy, không thì bảng đầu tiên |
+| Dòng trống | `GRID_SPARE_ROWS` dòng cuối lưới; POST `dong-moi/` → `record_service.create_record`; quyền `grant_service.can_create_record` |
+| Định dạng ô | `DataRecord.style` JSON, sổ đóng `record_service.STYLE_SCHEMA`; `update_styles` ghi bằng `update_fields`; POST `dinh-dang/` trả ô hx-swap-oob; lớp CSS cố định `dd-*` |
+| Cột khoá | `ColumnDef.is_key`, ràng buộc một cột/bảng; ô có liên kết `?f_<cột>=<giá trị>` |
+| Thanh bên trái | `crm/services/sidebar_service.py` — chọn nhanh và khoảng ngày viết vào `f_<Ngày>__lon_bang/__nho_bang`; sản phẩm vào `f_<Sản phẩm>__trong` hoặc `sp=` (vận đơn) |
+| Xuất đúng lưới | `export_service.QUERYSET_BUILDERS` — `crm` đăng ký builder `grid` lúc khởi động |
+| Thư mục | `forms_builder.Folder` (phẳng, theo bộ phận, xoá mềm), `TableDef.folder`; `folder_service.tree` hai truy vấn; quyền `can_manage_folders` |
 
 ---
 

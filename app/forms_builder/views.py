@@ -128,9 +128,13 @@ def bang_cot(request, code):
     if request.method == "POST" and form.is_valid():
         d = form.cleaned_data
         if dang_sua:
+            # ModelForm đã ghi giá trị mới vào `dang_sua` lúc kiểm, nên đưa
+            # bản gốc từ cơ sở dữ liệu vào dịch vụ — không thì dịch vụ so
+            # "cũ với mới" thấy giống nhau và lặng lẽ không lưu gì
+            goc = ColumnDef.objects.get(pk=dang_sua.pk)
             table_service.update_column(
-                dang_sua, d, actor=request.user, request=request)
-            messages.success(request, f"Đã sửa cột {dang_sua.name}.")
+                goc, d, actor=request.user, request=request)
+            messages.success(request, f"Đã sửa cột {goc.name}.")
         else:
             cot = table_service.add_column(
                 bang_hien, actor=request.user, request=request, **d)

@@ -35,6 +35,10 @@ done
 
 if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
   python manage.py migrate --noinput
+  # Bảng vận đơn là bảng động (quyết định 001) nên migrate không sinh ra nó.
+  # Máy sạch mà thiếu bảng này thì màn hình Bảng tính trả 404. Lệnh chạy
+  # lại nhiều lần được, đã có thì chỉ bổ sung cột còn thiếu.
+  python manage.py tao_bang_van_don
 fi
 
 exec "$@"

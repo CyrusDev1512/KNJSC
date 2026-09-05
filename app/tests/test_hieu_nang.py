@@ -89,7 +89,7 @@ def test_bang_tinh_50000_dong_co_loc_duoi_2_giay(client, du_lieu_lon, django_ass
             django_assert_max_num_queries,
         )
         assert mat < PERF_PAGE_SECONDS, f"lưới có lọc mất {mat:.2f}s"
-        mat = _bam_gio(client, "/bang-tinh/loc/trang_thai_vc/", django_assert_max_num_queries)
+        mat = _bam_gio(client, "/bang-tinh/van_don/loc/trang_thai_vc/", django_assert_max_num_queries)
         assert mat < PERF_PAGE_SECONDS, f"hộp lọc cột mất {mat:.2f}s"
         mat = _bam_gio(client, "/bang-tinh/?trung=1", django_assert_max_num_queries)
         assert mat < PERF_PAGE_SECONDS, f"lọc chỉ số trùng mất {mat:.2f}s"

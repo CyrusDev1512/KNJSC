@@ -204,19 +204,21 @@ Mỗi ô là một bài kiểm thử. Năm vai trò nhân với chín đường 
 
 ---
 
-## 11. Bảng tính vận đơn
+## 11. Bảng tính
 
-Lưới làm việc của bộ phận Vận đơn trên bảng vận đơn, dựng theo tệp thật
+Lưới làm việc kiểu Excel. Dựng đầu tiên cho bộ phận Vận đơn theo tệp thật
 `MITA Vận đơn CSKH Nội bộ CANADA.xlsx` (bản ẩn danh: `docs/tham-khao/vandon-mau.xlsx`)
-— ADR-009, backlog Q38 tới Q45. Chạy ở dịch vụ riêng (`bangtinh`, cổng 8021);
-Bảng dữ liệu là nơi **xem**, Bảng tính là nơi **sửa**.
+— ADR-009, backlog Q38 tới Q45 — rồi mở cho **mọi bảng dữ liệu** ở
+`/bang-tinh/<mã bảng>/` — ADR-010, Q46 tới Q50. Bảng vận đơn vẫn chỉ xem ở
+dịch vụ chính và sửa ở dịch vụ riêng (`bangtinh`, cổng 8021); bảng khác sửa
+được ở cả hai.
 
 | Mã | Tiêu chí | Yêu cầu | Loại |
 |---|---|---|---|
 | AC-11.1 | Lưới hiện đủ cột của bảng vận đơn; bốn cột đầu và hàng tiêu đề đứng yên khi cuộn | FR-7.8 | Thủ công |
 | AC-11.2 | Lọc theo từng cột — danh sách giá trị kèm số đếm, chứa chữ, khoảng số hoặc ngày, ô trống — nhiều cột cộng dồn, số dòng đúng | FR-7.8 | Tự động |
 | AC-11.3 | Sửa ô tại chỗ đúng kiểu cột; ô danh sách chỉ nhận giá trị trong danh sách, giá trị lạ bị từ chối kèm lý do; mỗi lần sửa ghi một dòng nhật ký | FR-7.4 · BR-5 | Tự động |
-| AC-11.4 | Người ngoài bộ phận Vận đơn (không phải quản trị viên) bị từ chối ở mọi đường dẫn của Bảng tính, kể cả gọi thẳng | FR-3.6 | Tự động |
+| AC-11.4 | Người ngoài phạm vi bảng vận đơn (không phải quản trị viên) bị từ chối ở mọi đường dẫn Bảng tính của bảng đó, kể cả gọi thẳng và gửi POST | FR-3.6 | Tự động |
 | AC-11.5 | Cột Lọc trùng đếm đúng số dòng cùng số điện thoại và tô màu khi lớn hơn 1; lọc được "chỉ số trùng" | FR-7.8 | Tự động |
 | AC-11.6 | Dòng Hủy trước giao, Hủy sau giao, Hoàn đơn được tô màu | FR-7.8 | Tự động |
 | AC-11.7 | Bảng vận đơn không sửa được ô ở Bảng dữ liệu; cùng đường dẫn đó ở Bảng tính thì sửa được | FR-7.4 | Tự động |
@@ -224,6 +226,13 @@ Bảng dữ liệu là nơi **xem**, Bảng tính là nơi **sửa**.
 | AC-11.9 | Nhập tệp vận đơn thật (ẩn danh) không chỉnh sửa: mọi dòng vào, không dòng lỗi, trạng thái và thanh toán khớp danh sách, điện thoại là chuỗi | FR-7.5 | Tự động |
 | AC-11.10 | Bàn phím: mũi tên và Tab đi giữa các ô, Enter sửa, Esc huỷ, chọn giá trị danh sách thì ô cập nhật không tải lại trang | FR-7.8 | Tự động |
 | AC-11.11 | Bảng tính dùng được trên điện thoại và máy tính bảng | NFR-8 | Thủ công |
+| AC-11.12 | Bảng nào trong phạm vi quyền cũng mở được ở `/bang-tinh/<mã>/`; ngoài phạm vi bị từ chối; `/bang-tinh/` mở bảng vận đơn nếu thấy, không thì bảng đầu tiên trong phạm vi; thanh công cụ hiện nút theo quyền | FR-7.1 · FR-3.6 | Tự động |
+| AC-11.13 | Thanh lọc bên trái: chọn nhanh (hôm nay, hôm qua, 7 ngày, tháng này, tháng trước) và từ ngày / đến ngày viết vào bộ lọc cột Ngày; sản phẩm đánh dấu chọn lọc "có một trong"; xuất Excel ra đúng số dòng của lưới đang lọc | FR-7.2 · FR-5.2 · FR-5.3 · FR-7.6 | Tự động |
+| AC-11.14 | Lưới thừa dòng trống cho người có quyền thêm; gõ vào rồi rời đi là thành bản ghi thật thuộc bộ phận sở hữu bảng; lỗi thì báo lý do và giữ giá trị đã gõ; không quyền thì không có dòng trống và gửi thẳng bị từ chối có ghi nhật ký | FR-7.4 · FR-3.6 | Tự động |
+| AC-11.15 | Định dạng ô — đậm, màu nền, cỡ chữ, căn lề — lưu vào cơ sở dữ liệu, người khác mở cũng thấy; chỉ nhận giá trị trong sổ đóng; quyền bằng quyền sửa ô, kiểm ở máy chủ; mỗi lần đổi ghi nhật ký | FR-7.4 · BR-5 | Tự động |
+| AC-11.16 | Mỗi bảng một cột khoá do Manager đặt trong Sửa cột; ô cột khoá có nút lọc theo giá trị, cộng dồn với bộ lọc đang bật; cột tính sẵn không làm khoá được | FR-7.2 · FR-8.5 | Tự động |
+| AC-11.17 | Thư mục chứa bảng: Manager của bộ phận tạo, đổi tên, xoá (xoá mềm, bảng về không thư mục) và xếp bảng vào thư mục cùng bộ phận; Staff, Leader và Manager bộ phận khác bị từ chối; thanh bên chỉ hiện thư mục trong phạm vi; trùng tên báo lỗi | FR-8.1 · FR-3.6 · BR-4 | Tự động |
+| AC-11.18 | Bảng tính mở thành trang toàn màn hình riêng (không thanh bên hệ thống, lưới chiếm hết cửa sổ, menu ☰ dẫn về các màn hình khác); mọi ô có viền như Excel; cột có chữ A B C; kéo mép tiêu đề đổi được độ rộng, kéo thả tiêu đề đổi được thứ tự cột; thanh công cụ đủ mục (nhập, xuất, thêm dòng, thêm cột, thư mục, định dạng, lọc theo ô, ẩn cột, đặt lại cột); độ rộng, thứ tự, cột ẩn và thanh bên thu gọn nhớ trên trình duyệt | FR-7.8 | Thủ công |
 
 ---
 

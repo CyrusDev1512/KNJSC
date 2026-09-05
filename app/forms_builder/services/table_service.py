@@ -60,7 +60,7 @@ def update_table(table, changes, *, actor=None, request=None):
 
 #: Trường của cột mà người dùng sửa được
 COLUMN_FIELDS = (
-    "name", "code", "field_type", "meaning", "required", "order",
+    "name", "code", "field_type", "meaning", "required", "order", "is_key",
     "is_computed", "compute_op", "compute_left", "compute_right", "compute_decimals",
 )
 

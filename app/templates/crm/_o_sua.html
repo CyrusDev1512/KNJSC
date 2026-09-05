@@ -5,8 +5,8 @@ hiển thị). Cần: ban_ghi, cot, gia_tri, danh_sach, chat, lop_sua. Tuỳ ch�
 {% endcomment %}
 <td class="{{lop_sua}}"
     data-dong="{{ ban_ghi.pk }}" data-cot="{{ cot.code }}"
-    data-hien-url="{% url 'bang_tinh_o' ban_ghi.pk cot.code %}?hien=1">
-  <form class="o-sua-form" hx-post="{% url 'bang_tinh_o' ban_ghi.pk cot.code %}" hx-target="closest td" hx-swap="outerHTML">
+    data-hien-url="{% url 'bang_tinh_o' bang.code ban_ghi.pk cot.code %}?hien=1">
+  <form class="o-sua-form" hx-post="{% url 'bang_tinh_o' bang.code ban_ghi.pk cot.code %}" hx-target="closest td" hx-swap="outerHTML">
     {% csrf_token %}
     {% if cot.field_type == "choice" and danh_sach and chat %}
       <select class="o-trong-bang" name="gia_tri" aria-label="{{ cot.name }}" autofocus onchange="this.form.requestSubmit()">

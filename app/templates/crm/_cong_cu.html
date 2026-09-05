@@ -1,0 +1,57 @@
+{% comment %}
+Thanh công cụ của Bảng tính — ADR-010. Mọi nút là liên kết hoặc nút thật; nút
+của giai đoạn sau để `disabled` kèm lời giải thích, không giả vờ chạy.
+Nhóm Định dạng gửi POST tới bang_tinh_dinh_dang cho các ô đang chọn (JS).
+Cần: bang, qs_giu, duoc_nhap, nhap_url, duoc_them_dong, duoc_sua_cot,
+sua_cot_url, bang_du_lieu_url.
+{% endcomment %}
+<div class="bt-cong-cu" role="toolbar" aria-label="Công cụ bảng tính">
+  <div class="bt-nhom">
+    {% if duoc_nhap %}<a class="nut nut-nho" href="{{ nhap_url }}">Nhập Excel</a>{% endif %}
+    <a class="nut nut-nho" href="{% url 'bang_tinh_xuat' bang.code %}{% if qs_giu %}?{{ qs_giu }}{% endif %}" title="Xuất đúng lưới đang hiện, kèm bộ lọc">Xuất Excel</a>
+  </div>
+  <span class="bt-ngan"></span>
+  <div class="bt-nhom">
+    {% if duoc_them_dong %}<button class="nut nut-nho bt-them-dong" type="button" title="Đưa con trỏ tới dòng trống cuối lưới">Thêm dòng</button>{% endif %}
+    {% if duoc_sua_cot %}<a class="nut nut-nho" href="{{ sua_cot_url }}">Thêm cột</a>{% endif %}
+    {% if duoc_quan_ly_thu_muc %}<button class="nut nut-nho bt-thu-muc-moi" type="button" aria-expanded="false" aria-controls="bt-form-thu-muc">Thư mục mới</button>{% else %}<button class="nut nut-nho" type="button" disabled title="Chỉ quản lý của bộ phận mới tạo thư mục">Thư mục mới</button>{% endif %}
+  </div>
+  <span class="bt-ngan"></span>
+  <div class="bt-nhom bt-dinh-dang" data-url="{% url 'bang_tinh_dinh_dang' bang.code %}">
+    <button class="nut nut-nho bt-dd" type="button" data-dd="b" title="In đậm ô đang chọn (Ctrl+B)" aria-label="In đậm"><b>B</b></button>
+    <div class="bt-mau-hop">
+      <button class="nut nut-nho bt-mo-mau" type="button" aria-expanded="false" aria-controls="bt-bang-mau" title="Màu nền ô đang chọn">Màu nền ▾</button>
+      <div id="bt-bang-mau" class="bt-bang-mau" hidden>
+        <button class="bt-mau bt-mau-vang bt-dd" type="button" data-dd="bg" data-gia-tri="vang" aria-label="Nền vàng"></button>
+        <button class="bt-mau bt-mau-xanh bt-dd" type="button" data-dd="bg" data-gia-tri="xanh" aria-label="Nền xanh"></button>
+        <button class="bt-mau bt-mau-do bt-dd" type="button" data-dd="bg" data-gia-tri="do" aria-label="Nền đỏ"></button>
+        <button class="bt-mau bt-mau-luc bt-dd" type="button" data-dd="bg" data-gia-tri="luc" aria-label="Nền lục"></button>
+        <button class="bt-mau bt-mau-xam bt-dd" type="button" data-dd="bg" data-gia-tri="xam" aria-label="Nền xám"></button>
+        <button class="bt-mau bt-mau-cam bt-dd" type="button" data-dd="bg" data-gia-tri="cam" aria-label="Nền cam"></button>
+        <button class="nut nut-nho bt-dd bt-mau-bo" type="button" data-dd="bg" data-gia-tri="" title="Không tô màu nền">Không màu</button>
+      </div>
+    </div>
+    <label class="bt-co-chu">
+      <span class="nho">Cỡ</span>
+      <select class="o-nhap bt-chon bt-dd" data-dd="fs" aria-label="Cỡ chữ ô đang chọn">
+        <option value="">Mặc định</option>
+        <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+        <option value="14">14</option><option value="16">16</option><option value="18">18</option>
+      </select>
+    </label>
+    <button class="nut nut-nho bt-dd" type="button" data-dd="al" data-gia-tri="l" title="Căn trái" aria-label="Căn trái">⇤</button>
+    <button class="nut nut-nho bt-dd" type="button" data-dd="al" data-gia-tri="c" title="Căn giữa" aria-label="Căn giữa">↔</button>
+    <button class="nut nut-nho bt-dd" type="button" data-dd="al" data-gia-tri="r" title="Căn phải" aria-label="Căn phải">⇥</button>
+    <button class="nut nut-nho bt-dd" type="button" data-dd="xoa" title="Gỡ mọi định dạng của ô đang chọn">Gỡ định dạng</button>
+  </div>
+  <span class="bt-ngan"></span>
+  <div class="bt-nhom">
+    <button class="nut nut-nho bt-loc-o" type="button" title="Lọc lưới theo giá trị của ô đang chọn">Lọc theo ô này</button>
+    <a class="nut nut-nho" href="{% url 'bang_tinh_xem' bang.code %}">Bỏ mọi lọc</a>
+    <button class="nut nut-nho bt-an-cot" type="button" aria-expanded="false" aria-controls="bt-an-cot-hop">Ẩn/hiện cột</button>
+    <button class="nut nut-nho bt-dat-lai-cot" type="button" title="Đặt lại độ rộng, thứ tự và cột ẩn về mặc định">Đặt lại cột</button>
+  </div>
+  <a class="nut nut-nho bt-cuoi" href="{{ bang_du_lieu_url }}">Bảng dữ liệu</a>
+</div>
+<div id="bt-an-cot-hop" class="bt-an-cot-hop" hidden></div>
+<div id="bt-loi" class="bt-loi"></div>

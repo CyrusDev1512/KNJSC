@@ -1,17 +1,19 @@
 {% comment %}
-Một ô trên Bảng tính. Dùng khi vẽ lưới, khi HTMX trả về sau khi lưu, và khi
-huỷ sửa — một nơi duy nhất quyết định ô trông thế nào.
+Một ô trên Bảng tính. Dùng khi vẽ lưới, khi HTMX trả về sau khi lưu, khi huỷ
+sửa và khi đổi định dạng — một nơi duy nhất quyết định ô trông thế nào.
 
-Cần: ban_ghi, cot, gia_tri, duoc_sua, lop (lớp CSS tính sẵn ở grid_service.cell_class),
-style (cột cố định).
+Cần: bang, ban_ghi, cot, gia_tri, duoc_sua, lop (lớp CSS tính sẵn ở
+grid_service.cell_class), style (cột cố định). Tuỳ chọn: qs_giu — bộ lọc đang
+bật, để liên kết ⌕ của cột khoá cộng dồn thay vì xoá lọc cũ; oob — vẽ lại ô tại
+chỗ sau khi định dạng (hx-swap-oob).
 {% endcomment %}
 {% if duoc_sua and not cot.is_computed %}
-  <td class="{{lop}}" {% if style %}style="{{ style }}"{% endif %}
+  <td class="{{lop}}" id="o-{{ ban_ghi.pk }}-{{ cot.code }}" {% if style %}style="{{ style }}"{% endif %}{% if oob %} hx-swap-oob="outerHTML"{% endif %}
       tabindex="0" data-dong="{{ ban_ghi.pk }}" data-cot="{{ cot.code }}"
-      data-sua-url="{% url 'bang_tinh_o' ban_ghi.pk cot.code %}"
-      hx-get="{% url 'bang_tinh_o' ban_ghi.pk cot.code %}" hx-trigger="click" hx-swap="outerHTML"
-      title="{{ cot.name }} — bấm hoặc Enter để sửa">{{ gia_tri|default_if_none:"" }}</td>
+      data-sua-url="{% url 'bang_tinh_o' bang.code ban_ghi.pk cot.code %}"
+      hx-get="{% url 'bang_tinh_o' bang.code ban_ghi.pk cot.code %}" hx-trigger="click[!event.shiftKey&&!event.ctrlKey&&!event.metaKey&&!event.target.closest('.o-khoa-loc')]" hx-swap="outerHTML"
+      title="{{ cot.name }} — bấm hoặc Enter để sửa">{{ gia_tri|default_if_none:"" }}{% if cot.is_key and gia_tri %}<a class="o-khoa-loc" href="{% url 'bang_tinh_xem' bang.code %}?{% if qs_giu %}{{ qs_giu }}&{% endif %}f_{{ cot.code }}={{ gia_tri|urlencode }}" title="Lọc theo giá trị này">⌕</a>{% endif %}</td>
 {% else %}
-  <td class="{{lop}}" {% if style %}style="{{ style }}"{% endif %}
-      data-dong="{{ ban_ghi.pk }}" data-cot="{{ cot.code }}" tabindex="0">{{ gia_tri|default_if_none:"" }}</td>
+  <td class="{{lop}}" id="o-{{ ban_ghi.pk }}-{{ cot.code }}" {% if style %}style="{{ style }}"{% endif %}{% if oob %} hx-swap-oob="outerHTML"{% endif %}
+      data-dong="{{ ban_ghi.pk }}" data-cot="{{ cot.code }}" tabindex="0">{{ gia_tri|default_if_none:"" }}{% if cot.is_key and gia_tri %}<a class="o-khoa-loc" href="{% url 'bang_tinh_xem' bang.code %}?{% if qs_giu %}{{ qs_giu }}&{% endif %}f_{{ cot.code }}={{ gia_tri|urlencode }}" title="Lọc theo giá trị này">⌕</a>{% endif %}</td>
 {% endif %}

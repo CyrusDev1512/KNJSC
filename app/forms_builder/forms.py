@@ -38,13 +38,14 @@ class ColumnForm(forms.ModelForm):
         model = ColumnDef
         fields = [
             "name", "code", "field_type", "meaning", "required", "order",
+            "is_key",
             "is_computed", "compute_op", "compute_left", "compute_right",
             "compute_decimals",
         ]
         labels = {
             "name": "Nhãn hiển thị", "code": "Tên kỹ thuật",
             "field_type": "Kiểu dữ liệu", "meaning": "Nhãn ý nghĩa",
-            "required": "Bắt buộc nhập", "order": "Thứ tự",
+            "required": "Bắt buộc nhập", "order": "Thứ tự", "is_key": "Cột khoá",
             "is_computed": "Là cột tính sẵn", "compute_op": "Phép tính",
             "compute_left": "Toán hạng A", "compute_right": "Toán hạng B",
             "compute_decimals": "Số chữ số thập phân",

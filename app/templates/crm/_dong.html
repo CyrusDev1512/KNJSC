@@ -1,0 +1,11 @@
+{% comment %}
+Một dòng thật trên lưới. Dùng khi vẽ lưới và khi dòng trống vừa thành bản ghi
+(HTMX trả về) — một mẫu duy nhất. Cần: bang, d (grid_service.row_context),
+la_van_don, qs_giu.
+{% endcomment %}
+<tr class="{{ d.lop }}" data-dong="{{ d.ban_ghi.pk }}">
+  {% if la_van_don %}<td class="{{ d.lop_trung }}" style="left:0;min-width:72px;max-width:72px">{% if d.so_trung > 1 %}{{ d.so_trung }}{% else %}—{% endif %}</td>{% endif %}
+  {% for o in d.cac_o %}
+    {% include "crm/_o.html" with ban_ghi=d.ban_ghi duoc_sua=d.sua cot=o.cot gia_tri=o.gia_tri lop=o.lop style=o.style %}
+  {% endfor %}
+</tr>

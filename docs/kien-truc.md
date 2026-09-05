@@ -67,7 +67,8 @@ Bản phác thảo để bàn. Mọi phần đều có thể đổi.
 **Mũi tên chỉ chiều gọi.** Module trên gọi module dưới. Không có vòng ngược.
 
 `orders` và `crm` là hai module riêng. `orders` giữ đơn hàng và sản phẩm;
-`crm` giữ khách hàng, và về sau là màn hình bảng tính (ADR-004, ADR-006).
+`crm` giữ khách hàng và màn hình Bảng tính — lưới kiểu Excel cho mọi bảng
+(ADR-004, ADR-009, ADR-010).
 Tách ra vì `crm` sẽ thành ứng dụng riêng khi đo được điều kiện ở cuối tài
 liệu này, còn `orders` thì ở lại.
 
@@ -309,7 +310,8 @@ Giao diện dùng chung không thành module riêng mà nằm ở `app/templates
 ├── Tác vụ nền có theo dõi (BackgroundJob), đánh dấu kẹt
 ├── Sao lưu pg_dump hằng đêm, giữ 30 bản, phục hồi có xác nhận; service beat
 ├── Bảng tính vận đơn theo tệp thật — dịch vụ bangtinh cổng 8021 (ADR-009)
-└── Kiểm thử toàn diện: Playwright, Locust, 50.000 dòng, ma trận 45 ô
+├── Kiểm thử toàn diện: Playwright, Locust, 50.000 dòng, ma trận 45 ô
+└── Bảng tính cho mọi bảng: viền ô, dòng trống, cột khoá, thanh lọc trái, định dạng ô, thư mục (ADR-010)
 ```
 
 ### Giai đoạn 8 — Đưa lên máy chủ và hoàn thiện

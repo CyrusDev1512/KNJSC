@@ -293,3 +293,21 @@ def test_lenh_tao_bang_van_don_chay_lai_duoc(departments, nguoi_dung):
 
     assert TableDef.all_objects.filter(code=WAYBILL_TABLE_CODE).count() == 1
     assert WAYBILL_TABLE_CODE in ra.getvalue()
+
+
+def test_lenh_tao_bang_van_don_tren_may_sach(db):
+    """FR-6.3 — Máy sạch chưa có bộ phận nào, lệnh vẫn tạo được bộ phận Vận đơn và bảng"""
+    from django.core.management import call_command
+    from io import StringIO
+
+    from org.models import Department
+    from orders.constants import WAYBILL_DEPARTMENT_CODE, WAYBILL_TABLE_CODE
+
+    assert not Department.all_objects.exists()
+    ra = StringIO()
+    call_command("tao_bang_van_don", stdout=ra)
+
+    bo_phan = Department.objects.get(code=WAYBILL_DEPARTMENT_CODE)
+    bang = TableDef.all_objects.get(code=WAYBILL_TABLE_CODE)
+    assert bang.department == bo_phan
+    assert bang.columns.count() > 0

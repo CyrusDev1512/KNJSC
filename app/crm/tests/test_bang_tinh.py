@@ -71,28 +71,31 @@ def _so_dong(client, qs=""):
 # ══ Phân quyền — AC-11.4 ═══════════════════════════════════════════
 
 def test_ngoai_bo_phan_van_don_bi_tu_choi_moi_duong_dan(client, du_lieu, nguoi_dung):
-    """AC-11.4 — Sale các cấp và Marketing bị 403 (có ghi nhật ký) ở mọi đường dẫn Bảng tính; Vận đơn và Admin vào được"""
+    """AC-11.4 — Sale các cấp và Marketing bị từ chối (404, như Bảng dữ liệu) ở mọi đường dẫn Bảng tính của bảng vận đơn, kể cả POST; Vận đơn và Admin vào được"""
     pk = du_lieu["an1"].pk
     cac_duong = [
-        "/bang-tinh/", "/bang-tinh/loc/trang_thai_vc/", f"/bang-tinh/o/{pk}/ghi_chu/",
-        "/bang-tinh/xuat/",
+        "/bang-tinh/van_don/", "/bang-tinh/van_don/loc/trang_thai_vc/",
+        f"/bang-tinh/van_don/o/{pk}/ghi_chu/", "/bang-tinh/van_don/xuat/",
     ]
     for ma in ("staff_sale_1", "leader_sale_1", "manager_sale", "staff_mkt", "manager_mkt"):
         client.force_login(nguoi_dung[ma])
-        truoc = AuditLog.objects.filter(action=AuditAction.DENIED).count()
         for duong in cac_duong:
-            assert client.get(duong).status_code == 403, f"{ma} vào được {duong}"
-        assert client.post(f"/bang-tinh/o/{pk}/ghi_chu/", {"gia_tri": "x"}).status_code == 403
-        assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == truoc + len(cac_duong) + 1
+            assert client.get(duong).status_code == 404, f"{ma} vào được {duong}"
+        assert client.post(f"/bang-tinh/van_don/o/{pk}/ghi_chu/", {"gia_tri": "x"}).status_code == 404
+        assert client.post("/bang-tinh/van_don/dong-moi/", {"ma_don": "DH-x"}).status_code == 404
+        # Bảng vận đơn không hiện trong danh sách bảng ở thanh bên của họ
+        kq = client.get("/bang-tinh/")
+        assert kq.status_code == 404 or "van_don" not in [b.code for b in kq.context["cac_bang"]]
 
     for ma in ("staff_vd", "admin"):
         client.force_login(nguoi_dung[ma])
-        assert client.get("/bang-tinh/").status_code == 200, ma
-        assert client.get("/bang-tinh/loc/trang_thai_vc/").status_code == 200
-        assert client.get("/bang-tinh/xuat/").status_code == 200
+        assert client.get("/bang-tinh/").context["bang"].code == "van_don", ma
+        assert client.get("/bang-tinh/van_don/").status_code == 200
+        assert client.get("/bang-tinh/van_don/loc/trang_thai_vc/").status_code == 200
+        assert client.get("/bang-tinh/van_don/xuat/").status_code == 200
 
     client.logout()
-    kq = client.get("/bang-tinh/")
+    kq = client.get("/bang-tinh/van_don/")
     assert kq.status_code == 302 and "/dang-nhap/" in kq["Location"]
 
 
@@ -129,15 +132,15 @@ def test_loc_tung_cot_va_cong_don(client, du_lieu, nguoi_dung):
 def test_hop_loc_cot_liet_ke_gia_tri_kem_so_dem(client, du_lieu, nguoi_dung):
     """AC-11.2 — Hộp lọc của một cột liệt kê giá trị khác nhau kèm số dòng, thu hẹp được bằng ô tìm"""
     client.force_login(nguoi_dung["staff_vd"])
-    kq = client.get("/bang-tinh/loc/trang_thai_vc/")
+    kq = client.get("/bang-tinh/van_don/loc/trang_thai_vc/")
     tuy_chon = dict(kq.context["tuy_chon"])
     assert tuy_chon == {"Đang giao": 1, "Đã nhận hàng": 1, "Hủy trước giao": 1, "Hoàn đơn": 1}
-    kq = client.get("/bang-tinh/loc/trang_thai_vc/?q=hủy")
+    kq = client.get("/bang-tinh/van_don/loc/trang_thai_vc/?q=hủy")
     assert dict(kq.context["tuy_chon"]) == {"Hủy trước giao": 1}
     assert kq.context["loai"] == "danh_sach"
-    assert client.get("/bang-tinh/loc/ngay/").context["loai"] == "khoang"
-    assert client.get("/bang-tinh/loc/ghi_chu/").context["loai"] == "chua"
-    assert client.get("/bang-tinh/loc/khong_co/").status_code == 404
+    assert client.get("/bang-tinh/van_don/loc/ngay/").context["loai"] == "khoang"
+    assert client.get("/bang-tinh/van_don/loc/ghi_chu/").context["loai"] == "chua"
+    assert client.get("/bang-tinh/van_don/loc/khong_co/").status_code == 404
 
 
 # ══ Sửa ô — AC-11.3, AC-11.7 ═══════════════════════════════════════
@@ -146,7 +149,7 @@ def test_sua_o_dung_kieu_va_tu_choi_gia_tri_ngoai_danh_sach(client, du_lieu, ngu
     """AC-11.3 — Ô danh sách chỉ nhận giá trị trong danh sách (không phân biệt hoa thường), giá trị lạ → 400 kèm lý do; mỗi lần sửa một dòng nhật ký"""
     dong = du_lieu["an1"]
     client.force_login(nguoi_dung["staff_vd"])
-    duong = f"/bang-tinh/o/{dong.pk}/trang_thai_vc/"
+    duong = f"/bang-tinh/van_don/o/{dong.pk}/trang_thai_vc/"
     with SUA_DUOC:
         # trình sửa là ô chọn với đủ tám trạng thái
         html = client.get(duong).content.decode()
@@ -165,31 +168,31 @@ def test_sua_o_dung_kieu_va_tu_choi_gia_tri_ngoai_danh_sach(client, du_lieu, ngu
         assert dong.data["trang_thai_vc"] == "Đã nhận hàng"
 
         # thanh toán: viết hoa kiểu tệp thật vẫn về đúng nhãn
-        kq = client.post(f"/bang-tinh/o/{dong.pk}/trang_thai_tt/", {"gia_tri": "đã THANH toán"})
+        kq = client.post(f"/bang-tinh/van_don/o/{dong.pk}/trang_thai_tt/", {"gia_tri": "đã THANH toán"})
         assert kq.status_code == 200
         dong.refresh_from_db()
         assert dong.data["trang_thai_tt"] == PaymentStatus.PAID.label
 
         # nhân viên vận đơn là danh sách gợi ý: mã người lạ vẫn nhận
-        html = client.get(f"/bang-tinh/o/{dong.pk}/nv_van_don/").content.decode()
+        html = client.get(f"/bang-tinh/van_don/o/{dong.pk}/nv_van_don/").content.decode()
         assert "<datalist" in html and "staff_vd" in html
-        assert client.post(f"/bang-tinh/o/{dong.pk}/nv_van_don/", {"gia_tri": "PHUONGVH"}).status_code == 200
+        assert client.post(f"/bang-tinh/van_don/o/{dong.pk}/nv_van_don/", {"gia_tri": "PHUONGVH"}).status_code == 200
 
         # số lượng sản phẩm: ô số, "abc" bị từ chối
-        assert "type=\"number\"" in client.get(f"/bang-tinh/o/{dong.pk}/sl_retinol_cream/").content.decode()
-        assert client.post(f"/bang-tinh/o/{dong.pk}/sl_retinol_cream/", {"gia_tri": "abc"}).status_code == 400
+        assert "type=\"number\"" in client.get(f"/bang-tinh/van_don/o/{dong.pk}/sl_retinol_cream/").content.decode()
+        assert client.post(f"/bang-tinh/van_don/o/{dong.pk}/sl_retinol_cream/", {"gia_tri": "abc"}).status_code == 400
         # ghi chú nhiều dòng
-        assert "<textarea" in client.get(f"/bang-tinh/o/{dong.pk}/ghi_chu/").content.decode()
+        assert "<textarea" in client.get(f"/bang-tinh/van_don/o/{dong.pk}/ghi_chu/").content.decode()
         # huỷ sửa trả về ô hiển thị
         assert 'class="o-sua' in client.get(duong + "?hien=1").content.decode()
-        assert client.get(f"/bang-tinh/o/{dong.pk}/khong_co/").status_code == 404
+        assert client.get(f"/bang-tinh/van_don/o/{dong.pk}/khong_co/").status_code == 404
 
 
 def test_bang_du_lieu_chi_xem_bang_tinh_sua_duoc(client, du_lieu, nguoi_dung):
     """AC-11.7 — Ở dịch vụ chính ô không sửa được (403, lưới báo chỉ xem); cùng đường dẫn ở dịch vụ Bảng tính thì 200"""
     dong = du_lieu["an1"]
     client.force_login(nguoi_dung["staff_vd"])
-    duong = f"/bang-tinh/o/{dong.pk}/ghi_chu/"
+    duong = f"/bang-tinh/van_don/o/{dong.pk}/ghi_chu/"
     kq = client.get("/bang-tinh/")
     assert kq.context["chi_xem"] is True
     assert 'class="o-xem' in kq.content.decode() and 'class="o-sua' not in kq.content.decode()

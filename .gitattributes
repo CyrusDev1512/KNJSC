@@ -1,0 +1,9 @@
+# Tệp chạy trong container Linux phải giữ xuống dòng LF, kể cả khi checkout
+# trên Windows (autocrlf) — không thì `exec /entrypoint.sh: no such file`
+*.sh text eol=lf
+*.py text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+# Tệp chạy trên Windows thì CRLF
+*.bat text eol=crlf

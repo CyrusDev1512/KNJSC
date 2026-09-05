@@ -157,3 +157,91 @@ def test_cot_dau_va_tieu_de_dung_yen_khi_cuon(live_server, trang, dang_nhap, du_
     assert sau["thuong"] < truoc["thuong"] - 500, "cột thường phải trôi theo cuộn"
     assert sau["coDinh"] >= truoc["khung"], "cột cố định vẫn nằm trong khung nhìn"
     chup(trang, "bang-tinh-cuon-ngang")
+
+
+def test_dong_trong_thanh_dong_that_va_loc_theo_o_khoa(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
+    """AC-11.14 — Gõ vào dòng trống rồi nhấn Enter thì dòng thật xuất hiện không tải lại trang; AC-11.16 — bấm ⌕ ở ô Mã đơn thì lưới lọc còn đúng dòng đó"""
+    with override_settings(GRID_ONLY_TABLES=set()):
+        dang_nhap(trang, nguoi_dung["staff_vd"])
+        trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
+        so_dong_truoc = trang.locator("tbody tr[data-dong]").count()
+        assert trang.locator("tr.dong-moi").count() >= 1
+
+        o = trang.locator("tr.dong-moi").first.locator('input[name="ma_don"]')
+        o.fill("DH-MOI")
+        trang.locator("tr.dong-moi").first.locator('input[name="ten_khach"]').fill("Khách gõ tay")
+        trang.keyboard.press("Enter")
+        trang.wait_for_selector('td[data-cot="ten_khach"]:has-text("Khách gõ tay")')
+        assert trang.locator("tbody tr[data-dong]").count() == so_dong_truoc + 1
+        assert trang.locator("tr.dong-moi").count() >= 1          # vẫn còn dòng trống để gõ tiếp
+        assert "/bang-tinh/van_don/?sap=ma_don" in trang.url      # không tải lại trang
+
+        # ⌕ ở ô Mã đơn lọc theo giá trị đó
+        trang.locator('td[data-cot="ma_don"]:has-text("DH-1") .o-khoa-loc').click()
+        trang.wait_for_url("**/bang-tinh/van_don/?*f_ma_don=DH-1*")
+        assert trang.locator("tbody tr[data-dong]").count() == 1
+
+
+def test_chon_vung_va_dinh_dang_o(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
+    """AC-11.15 — Ctrl+bấm rồi Shift+bấm chọn một vùng, bấm B thì cả vùng in đậm tại chỗ không tải lại trang; tải lại trang định dạng vẫn còn; Ctrl+B trên ô đã đậm thì bỏ đậm"""
+    with override_settings(GRID_ONLY_TABLES=set()):
+        dang_nhap(trang, nguoi_dung["staff_vd"])
+        trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
+        o_dau = trang.locator('tbody tr[data-dong] td[data-cot="ten_khach"]').nth(0)
+        o_cuoi = trang.locator('tbody tr[data-dong] td[data-cot="so_dien_thoai"]').nth(1)
+        o_dau.click(modifiers=["Control"])
+        assert trang.locator("td.dang-sua").count() == 0            # Ctrl+bấm không mở sửa
+        o_cuoi.click(modifiers=["Shift"])
+        assert trang.locator("td.o-chon").count() == 4
+        trang.click(".bt-dinh-dang .bt-dd[data-dd=b]")
+        trang.wait_for_function("document.querySelectorAll('td.dd-dam').length === 4")
+        assert "sap=ma_don" in trang.url
+        trang.click(".bt-mo-mau")
+        trang.click(".bt-mau-vang")
+        trang.wait_for_function("document.querySelectorAll('td.dd-nen-vang').length === 4")
+
+        trang.reload()
+        trang.wait_for_load_state("networkidle")
+        assert trang.locator("td.dd-dam.dd-nen-vang").count() == 4
+
+        trang.locator('tbody tr[data-dong] td[data-cot="ten_khach"]').nth(0).focus()
+        trang.keyboard.press("Control+b")
+        trang.wait_for_function("document.querySelectorAll('td.dd-dam').length === 3")
+
+
+def test_keo_do_rong_va_thu_tu_cot_nho_tren_trinh_duyet(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
+    """AC-11.18 — Trang Bảng tính không có thanh bên hệ thống; cột có chữ A B C; kéo mép tiêu đề đổi độ rộng, kéo thả tiêu đề đổi thứ tự ở cả tiêu đề lẫn dòng; tải lại vẫn giữ; Đặt lại cột về mặc định"""
+    with override_settings(GRID_ONLY_TABLES=set()):
+        dang_nhap(trang, nguoi_dung["staff_vd"])
+        trang.goto(live_server.url + "/bang-tinh/van_don/")
+        assert trang.locator("aside.nav").count() == 0
+        assert trang.locator(".bt-chu-cot").all_inner_texts()[:3] == ["A", "B", "C"]
+
+        th = trang.locator('thead th[data-cot="dia_chi"]')
+        th.scroll_into_view_if_needed()
+        rong_truoc = th.bounding_box()["width"]
+        tay = th.locator(".bt-keo-cot").bounding_box()
+        trang.mouse.move(tay["x"] + tay["width"] / 2, tay["y"] + tay["height"] / 2)
+        trang.mouse.down()
+        trang.mouse.move(tay["x"] + 100, tay["y"] + 10, steps=6)
+        trang.mouse.up()
+        assert th.bounding_box()["width"] > rong_truoc + 60
+
+        # Kéo Thành phố ra trước Địa chỉ (cả hai không cố định, đang hiện trên màn hình)
+        trang.locator('thead th[data-cot="thanh_pho"]').drag_to(
+            trang.locator('thead th[data-cot="dia_chi"]'), target_position={"x": 5, "y": 20})
+        thu_tu = trang.locator("thead th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        assert thu_tu.index("thanh_pho") < thu_tu.index("dia_chi")
+        dong = trang.locator("tbody tr[data-dong]").first.locator("td[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        assert dong == thu_tu
+
+        trang.reload()
+        trang.wait_for_load_state("networkidle")
+        thu_tu2 = trang.locator("thead th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        assert thu_tu2 == thu_tu
+        assert trang.locator('thead th[data-cot="dia_chi"]').bounding_box()["width"] > rong_truoc + 60
+
+        trang.click(".bt-dat-lai-cot")
+        trang.wait_for_load_state("networkidle")
+        thu_tu3 = trang.locator("thead th[data-cot]").evaluate_all("els => els.map(e => e.dataset.cot)")
+        assert thu_tu3.index("dia_chi") < thu_tu3.index("thanh_pho")

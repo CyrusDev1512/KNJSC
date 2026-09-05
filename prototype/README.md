@@ -69,8 +69,8 @@ không trả danh sách rỗng, đúng như FR-3.5. Bản thật của màn hìn
 | `tokens.css` | `app/static/css/tokens.css` — chuyển thẳng, không sửa |
 | `main.css` | `app/static/css/main.css` — chuyển thẳng, không sửa |
 | `layout.js` | `app/templates/base.html` cộng `core/permissions.py` |
-| `bang-tinh.css` | `app/static/css/bang-tinh.css` — chuyển thẳng |
-| `bang-tinh.js` | `app/static/js/bang-tinh.js` — chuyển thẳng |
+| `bang-tinh.css` | `app/static/css/bang-tinh.css` — **không chuyển thẳng**: bản Django viết lại theo lưới HTML (ADR-009); chỉ lấy lại ý tưởng thanh công cụ và bảng màu (ADR-010) |
+| `bang-tinh.js` | `app/static/js/bang-tinh.js` — **không chuyển**: engine công thức bỏ khỏi phạm vi (ADR-009); bản Django là bàn phím, dòng trống, chọn vùng, định dạng qua HTMX |
 
 `layout.js` chèn thanh bên và thanh trên vào mọi trang, giống hệt cách
 `base.html` của Django sẽ làm. Hàm `QUYEN` trong tệp đó là bản nháp của

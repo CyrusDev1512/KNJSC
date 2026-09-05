@@ -140,7 +140,7 @@ def duong_dan(departments, teams, nguoi_dung):
         # Bảng của Manager Sale: Staff và Leader cùng bộ phận thấy bảng nhưng
         # không được nhập; Vận đơn không thấy bảng
         "Nhập tệp vào bảng của Sale": "/bang/bang_manager_sale/nhap/",
-        "Bảng tính vận đơn": "/bang-tinh/",
+        "Bảng tính vận đơn": "/bang-tinh/van_don/",
     }
 
 

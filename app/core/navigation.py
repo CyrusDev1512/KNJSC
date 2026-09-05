@@ -31,6 +31,10 @@ class NavItem:
     #: Dùng cho màn hình chỉ thuộc về một bộ phận, ví dụ Lên đơn là của Sale
     #: — xem ma trận kiểm chéo ở `docs/04` mục 3.
     departments: tuple = None
+    #: Bộ phận **không** thấy mục này — cặp với `departments` để cùng một màn
+    #: hình có hai mục: Vận đơn mở Bảng tính ở dịch vụ riêng, bộ phận khác mở
+    #: ngay ở dịch vụ chính (ADR-010). Admin tính là thuộc mọi bộ phận.
+    exclude_departments: tuple = None
     #: Tên biến settings chứa địa chỉ ngoài. Có giá trị thì mục này trỏ ra
     #: dịch vụ khác (Bảng tính chạy riêng — ADR-009); rỗng thì dùng url_name.
     external_setting: str = ""
@@ -77,6 +81,8 @@ NAVIGATION = (
         NavItem("bang", "Bảng dữ liệu", "bang"),
         NavItem("bang_tinh", "Bảng tính", "bang_tinh", departments=WAYBILL_ONLY,
                 external_setting="BANGTINH_URL"),
+        # Mọi bảng đều có Bảng tính (ADR-010): bộ phận khác mở ngay tại đây
+        NavItem("bang_tinh", "Bảng tính", "bang_tinh", exclude_departments=WAYBILL_ONLY),
         NavItem("bieu_mau", "Biểu mẫu", "bieu_mau", Rank.MANAGER),
         NavItem("tac_vu", "Tác vụ nền", "tac_vu"),
     )),
@@ -95,6 +101,7 @@ def visible_navigation(user):
             {"code": m.code, "label": m.label, "href": href}
             for m in group.items
             if has_rank(user, m.min_rank) and in_departments(user, m.departments)
+            and not (m.exclude_departments and in_departments(user, m.exclude_departments))
             and (href := m.href())
         ]
         if items:

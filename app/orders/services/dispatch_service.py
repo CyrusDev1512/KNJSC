@@ -147,6 +147,10 @@ def ensure_waybill_table(*, actor=None):
             table=bang, name=ten, code=ma, field_type=kieu, meaning=nhan, order=i,
         )
     sync_product_columns(bang)
+    # Mã đơn là cột khoá của bảng vận đơn — bấm ô Mã đơn trên Bảng tính là lọc
+    # ra đúng đơn đó (ADR-010). Chỉ đặt khi bảng chưa có cột khoá nào.
+    if not bang.columns.filter(is_key=True).exists():
+        bang.columns.filter(code="ma_don").update(is_key=True)
     return bang
 
 

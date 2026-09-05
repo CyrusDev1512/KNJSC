@@ -3,7 +3,7 @@ Hộp lọc của một cột — như hộp lọc Excel. Gửi GET về lưới
 được chép lại (`giu`) để bộ lọc cộng dồn. Cần: cot, loai, tuy_chon, dang_chon,
 tu, den, chua, rong, co, q, giu.
 {% endcomment %}
-<form class="loc-cot" method="get" action="{% url 'bang_tinh' %}" data-cot="{{ cot.code }}">
+<form class="loc-cot" method="get" action="{% url 'bang_tinh_xem' bang.code %}" data-cot="{{ cot.code }}">
   {% for k, v in giu %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
   <div class="loc-cot-dau">
     <b>{{ cot.name }}</b>
@@ -13,7 +13,7 @@ tu, den, chua, rong, co, q, giu.
   {% if loai == "danh_sach" %}
     <label class="nhan-nho" for="loc-q-{{ cot.code }}">Tìm trong danh sách</label>
     <input class="o-nhap" id="loc-q-{{ cot.code }}" name="q" value="{{ q }}" placeholder="Gõ để thu hẹp" autocomplete="off"
-           hx-get="{% url 'bang_tinh_loc_cot' cot.code %}" hx-trigger="keyup changed delay:300ms" hx-target="#hop-loc" hx-swap="innerHTML" hx-include="closest form">
+           hx-get="{% url 'bang_tinh_loc_cot' bang.code cot.code %}" hx-trigger="keyup changed delay:300ms" hx-target="#hop-loc" hx-swap="innerHTML" hx-include="closest form">
     <div class="loc-cot-ds">
       {% for gia_tri, so in tuy_chon %}
         <label class="loc-cot-muc">

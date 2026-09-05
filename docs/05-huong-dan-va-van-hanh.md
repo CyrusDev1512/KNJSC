@@ -242,22 +242,76 @@ Cột nào dùng để thống kê thì gán **nhãn ý nghĩa** — ví dụ c�
 | Hệ thống tự đăng xuất | Do không thao tác quá một tiếng, đăng nhập lại |
 | Nhập tệp báo lỗi | Kiểm tra kích thước dưới 10 MB và số dòng dưới 5.000; đuôi tệp phải đúng nội dung |
 | Nhập xong báo "dòng lỗi" | Mở trang Tác vụ nền, xem bảng dòng lỗi theo số hàng Excel, sửa tệp rồi nhập lại phần đó |
-| Không sửa được ô trên bảng vận đơn | Đúng như thiết kế — bảng vận đơn sửa ở Bảng tính (mục A8) |
+| Không sửa được ô trên bảng vận đơn | Đúng như thiết kế — bảng vận đơn sửa ở Bảng tính cổng 8021 (mục A8) |
+| Bảng tính không có dòng trống cuối lưới | Bạn không có quyền thêm dòng vào bảng đó, hoặc bảng vận đơn đang mở ở hệ thống chính (chỉ xem) |
+| Nút định dạng báo "Chưa chọn ô nào" | Bấm vào một ô trước, Shift+bấm để chọn vùng |
 | Bảng tính báo "không có trong danh sách" | Ô đó chỉ nhận giá trị trong danh sách chọn — chọn từ ô xổ xuống |
 | Lỡ nhập sai đơn đã lưu | Báo quản lý, không tự sửa được |
 
 ---
 
-## A8. Bảng tính vận đơn — dành cho Vận đơn
+## A8. Bảng tính — lưới kiểu Excel cho mọi bảng
 
-Địa chỉ riêng: **`http://localhost:8021/bang-tinh/`** (trên máy chủ sẽ là một
-subdomain). Cùng tài khoản với hệ thống chính. Chỉ bộ phận Vận đơn và quản trị
-viên vào được; người khác gọi thẳng đường dẫn cũng bị từ chối.
+Mục **Bảng tính** trên thanh bên mở một trang **toàn màn hình riêng**, như mở
+một tệp bảng tính: không còn thanh bên hệ thống, lưới chiếm hết cửa sổ. Thanh
+trên có tên bảng, ô đổi bảng, nút Nền và tên bạn; nút **☰** mở menu về Tổng
+quan, Bảng dữ liệu và các màn hình khác. Mọi ô có viền, cột đánh chữ A B C,
+bấm ô là sửa, cuối lưới luôn thừa dòng trống để gõ bản ghi mới. Thanh bên trái
+liệt kê các bảng theo thư mục. Bạn chỉ thấy bảng trong phạm vi của mình; gọi
+thẳng đường dẫn bảng khác cũng bị từ chối.
 
-Đây là nơi **làm việc** trên bảng vận đơn, dựng theo đúng tệp Excel bộ phận
-đang dùng: mỗi sản phẩm một cột số lượng, trạng thái chọn từ danh sách, cột
-Trùng đếm số điện thoại trùng, đơn Hủy tô đỏ, bốn cột đầu và hàng tiêu đề đứng
-yên khi cuộn.
+**Cột:** kéo mép phải của tiêu đề để đổi độ rộng; kéo thả tiêu đề sang chỗ
+khác để đổi thứ tự (cột đứng yên khi cuộn không đổi được); **Ẩn/hiện cột** để
+giấu cột; **Đặt lại cột** để về mặc định. Ba thứ này nhớ trên trình duyệt của
+bạn, không ảnh hưởng người khác.
+
+**Riêng bộ phận Vận đơn:** bảng vận đơn sửa ở địa chỉ riêng
+**`http://localhost:8021/bang-tinh/`** (trên máy chủ sẽ là một subdomain), cùng
+tài khoản. Ở hệ thống chính bảng vận đơn chỉ xem. Lưới vận đơn dựng theo đúng
+tệp Excel bộ phận đang dùng: mỗi sản phẩm một cột số lượng, trạng thái chọn từ
+danh sách, cột Trùng đếm số điện thoại trùng, đơn Hủy tô đỏ, bốn cột đầu và
+hàng tiêu đề đứng yên khi cuộn.
+
+### Thanh công cụ
+
+| Nút | Làm gì |
+|---|---|
+| Nhập Excel · Xuất Excel | Nhập theo luồng của Bảng dữ liệu (mục A4); xuất đúng lưới đang lọc |
+| Thêm dòng | Đưa con trỏ tới dòng trống cuối lưới |
+| Thêm cột | Mở màn hình Sửa cột (Manager) |
+| Thư mục mới | Tạo thư mục trong thanh bên (Manager) |
+| **B** · Màu nền · Cỡ · ⇤ ↔ ⇥ · Gỡ định dạng | Định dạng ô đang chọn — xem "Định dạng" |
+| Lọc theo ô này | Lọc lưới theo giá trị của ô đang chọn |
+| Ẩn/hiện cột · Đặt lại cột | Tích cột muốn ẩn; đặt lại độ rộng, thứ tự và cột ẩn về mặc định |
+
+### Thanh bên trái
+
+| Khối | Cách dùng |
+|---|---|
+| Bảng | Cây thư mục và bảng. Manager tạo, đổi tên, xoá thư mục (⋯ cạnh tên) và chọn thư mục cho bảng đang mở |
+| Chọn nhanh | Hôm nay, Hôm qua, 7 ngày qua, Tháng này, Tháng trước — lọc theo cột Ngày |
+| Khoảng ngày | Gõ Từ ngày, Đến ngày rồi Áp dụng |
+| Sản phẩm | Tích một hay nhiều sản phẩm (hoặc Tất cả), Áp dụng — lấy dòng có **một trong** các sản phẩm đó |
+
+Bấm **‹** để thu gọn thanh bên.
+
+### Dòng trống và cột khoá
+
+Gõ vào dòng trống cuối lưới rồi nhấn Enter hoặc rời khỏi dòng — dòng thành bản
+ghi thật ngay, thuộc bộ phận sở hữu bảng. Sai kiểu hay thiếu cột bắt buộc thì
+ô đỏ kèm lý do, giá trị đã gõ còn nguyên. Không thấy dòng trống nghĩa là bạn
+không có quyền thêm vào bảng này.
+
+Cột khoá (Manager đánh dấu trong Sửa cột; bảng vận đơn là Mã đơn) có nút **⌕**
+trong ô: bấm là lọc lưới theo giá trị đó, cộng dồn với bộ lọc đang bật.
+
+### Định dạng
+
+Bấm một ô, **Shift+bấm** ô khác để chọn vùng, **Ctrl+bấm** để thêm từng ô, rồi
+bấm nút trên thanh công cụ: đậm (**B** hoặc Ctrl+B), màu nền (sáu màu), cỡ chữ
+10–18, căn trái/giữa/phải, **Gỡ định dạng**. Định dạng lưu vào hệ thống — ai
+mở bảng cũng thấy — và đòi quyền sửa ô đó. Không chọn ô thì nút báo "Chưa chọn
+ô nào".
 
 ### Lọc
 

@@ -41,7 +41,7 @@ def test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap(client, bang_vd, nguoi_d
         assert 'class="nav-muc" href="/bang-tinh/"' in html
         for vang in ('href="/bang/"', 'href="/len-don/"', 'href="/bieu-mau/"', 'href="/bao-cao-ngay/"'):
             assert vang not in html, f"dịch vụ bangtinh không được có mục {vang}"
-        assert client.post(f"/bang-tinh/o/{dong.pk}/ghi_chu/", {"gia_tri": "sửa ở Bảng tính"}).status_code == 200
+        assert client.post(f"/bang-tinh/van_don/o/{dong.pk}/ghi_chu/", {"gia_tri": "sửa ở Bảng tính"}).status_code == 200
         assert client.get("/bang/").status_code == 404
         assert client.get("/len-don/").status_code == 404
         assert client.get("/tac-vu/").status_code == 200, "tải tệp xuất lớn vẫn cần trang tác vụ"

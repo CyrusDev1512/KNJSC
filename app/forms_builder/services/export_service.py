@@ -54,6 +54,23 @@ def build_queryset(user, table, params, columns=None):
     return ds, columns, bo_loc
 
 
+#: Cách dựng queryset cho một lần xuất, theo tên. Màn hình có bộ lọc riêng
+#: (Bảng tính: `trung`, `sp`) đăng ký cách dựng của mình lúc khởi động; tác vụ
+#: nền dựng lại đúng cách đó qua tên ghi trong `job.summary["builder"]`. Nhờ
+#: vậy nút xuất ở đâu cũng "xuất đúng thứ đang hiện" (ADR-002) mà
+#: `forms_builder` không phải biết tới `crm`.
+QUERYSET_BUILDERS = {"table": build_queryset}
+
+
+def register_builder(name, fn):
+    """`fn(user, table, params) -> (queryset, columns, bộ lọc)`."""
+    QUERYSET_BUILDERS[name] = fn
+
+
+def _dung(builder, user, table, params):
+    return QUERYSET_BUILDERS.get(builder, build_queryset)(user, table, params)
+
+
 def cell_value(cot, gia_tri):
     """Giá trị ô Excel theo kiểu cột — để tệp mở ra là số thật, ngày thật."""
     if gia_tri in (None, ""):
@@ -89,12 +106,13 @@ def file_name(table):
     return f"{table.code}-{datetime.now():%Y%m%d-%H%M}.xlsx"
 
 
-def export(user, table, params, *, request=None):
+def export(user, table, params, *, request=None, builder="table"):
     """Xuất bảng. Trả `("file", Workbook)` hoặc `("job", BackgroundJob)`.
 
     Vượt `EXPORT_MAX_ROWS` (NFR-14) thì từ chối trước khi làm gì nặng.
+    `builder` chọn cách dựng queryset — xem `QUERYSET_BUILDERS`.
     """
-    ds, columns, bo_loc = build_queryset(user, table, params)
+    ds, columns, bo_loc = _dung(builder, user, table, params)
     so_dong = ds.count()
     tran = getattr(settings, "EXPORT_MAX_ROWS", 50_000)
     if so_dong > tran:
@@ -120,7 +138,7 @@ def export(user, table, params, *, request=None):
         target_type="table", target_id=table.code, total=so_dong,
         summary={"params": {k: params.getlist(k) if hasattr(params, "getlist") else [params[k]]
                             for k in params.keys()},
-                 "file_name": file_name(table)},
+                 "file_name": file_name(table), "builder": builder},
     )
     from ..tasks import chay_tac_vu_xuat
     from .import_service import _day_vao_hang_doi
@@ -140,7 +158,7 @@ def run(job_id):
         params = QueryDict("", mutable=True)
         for k, v in (job.summary.get("params") or {}).items():
             params.setlist(k, v)
-        ds, columns, _ = build_queryset(job.created_by, table, params)
+        ds, columns, _ = _dung(job.summary.get("builder", "table"), job.created_by, table, params)
         wb = build_workbook(ds, columns, title=table.name)
 
         thu_muc = Path(settings.EXPORT_DIR)
