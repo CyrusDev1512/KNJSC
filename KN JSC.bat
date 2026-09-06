@@ -9,9 +9,10 @@ rem      RO tren man hinh roi van bat ban dang co; khong nuot loi.
 rem   2. Tao (hoac lam moi) loi tat "KN JSC" co logo ngoai Desktop, tu do
 rem      nhay dup logo la du.
 rem   3. Mo Docker Desktop neu chua chay, bat container.
-rem   4. Co ma moi thi chay migrate va tao_bang_van_don, khoi dong lai worker;
-rem      dung lai image chi khi Dockerfile, requirements hay entrypoint doi.
-rem      Khong co ma moi thi vai giay la len.
+rem   4. Ma tren may khac lan chay truoc - du ai keo: tep nay, cap-nhat-local.bat
+rem      hay go git tay - thi chay migrate va tao_bang_van_don, khoi dong lai
+rem      worker; dung lai image chi khi Dockerfile, requirements hay entrypoint
+rem      doi. Ma khong doi thi vai giay la len.
 rem   5. May sach thi nap tai khoan mau - du_lieu_mau. Roi mo trinh duyet.
 rem
 rem Tham so "loi-tat": chi tao loi tat roi thoat - cap-nhat-local.bat dung.
@@ -90,6 +91,18 @@ set "DOCKER_DESKTOP=%ProgramFiles%\Docker\Docker\Docker Desktop.exe"
 set "CO_MA_MOI="
 if defined SAU if not "%TRUOC%"=="%SAU%" set "CO_MA_MOI=1"
 if defined CO_MA_MOI echo Da keo ma moi ve.
+rem --- Ma tren may co khac lan chay truoc khong. Commit cua lan chay truoc ghi o
+rem storage\.kn-jsc-lan-truoc - storage khong theo git. Khac la migrate, du ai
+rem keo ma. Truoc day chi migrate khi chinh tep nay keo duoc; nguoi dung keo tay
+rem thi web len ma cot moi chua co - ProgrammingError - 06.09.2026 ---
+set "DAU_VET=storage\.kn-jsc-lan-truoc"
+set "LAN_TRUOC="
+set "HIEN_TAI="
+if exist "%DAU_VET%" set /p LAN_TRUOC=<"%DAU_VET%"
+for /f %%h in ('git rev-parse HEAD 2^>nul') do set "HIEN_TAI=%%h"
+set "MA_DOI="
+if not "%LAN_TRUOC%"=="%HIEN_TAI%" set "MA_DOI=1"
+if defined MA_DOI if not defined CO_MA_MOI echo Ma tren may khac lan chay truoc - se cap nhat cau truc du lieu.
 
 rem --- 0. Loi tat ngoai Desktop: lam moi moi lan chay de luon tro dung cho,
 rem ke ca khi thu muc kho ma doi ten hay chuyen cho. Duong dan Desktop lay tu
@@ -161,7 +174,7 @@ rem --- 4. Bat container. Dung lai image chi khi thu vien hay Dockerfile doi;
 rem con lai image da co thi dung lai, chua co thi compose tu dung. Container
 rem khoi dong lai thi entrypoint tu chay migrate va tao_bang_van_don ---
 set "DUNG_LAI="
-if defined CO_MA_MOI for /f %%x in ('git diff --name-only %TRUOC% %SAU% -- app/requirements.txt app/requirements-dev.txt deploy/Dockerfile deploy/entrypoint.sh 2^>nul') do set "DUNG_LAI=--build"
+if defined MA_DOI if defined LAN_TRUOC for /f %%x in ('git diff --name-only %LAN_TRUOC% %HIEN_TAI% -- app/requirements.txt app/requirements-dev.txt deploy/Dockerfile deploy/entrypoint.sh 2^>nul') do set "DUNG_LAI=--build"
 if defined DUNG_LAI echo Thu vien hay Dockerfile doi, dang dung lai image - mat vai phut ...
 %COMPOSE% up -d %DUNG_LAI%
 if errorlevel 1 goto :loi
@@ -185,11 +198,14 @@ goto :doi_web
 rem Ma moi vao container qua thu muc gan ngoai, container khong dung lai nen
 rem migrate trong entrypoint khong chay - goi tuong minh. Worker va beat khong
 rem tu nap lai ma nhu runserver nen khoi dong lai
-if defined CO_MA_MOI (
+if defined MA_DOI (
   echo Cap nhat cau truc du lieu theo ma moi ...
   %COMPOSE% exec -T web python manage.py migrate --noinput
+  if errorlevel 1 goto :loi
   %COMPOSE% exec -T web python manage.py tao_bang_van_don
   %COMPOSE% restart worker beat
+  if not exist "storage" mkdir "storage"
+  if defined HIEN_TAI >"%DAU_VET%" echo %HIEN_TAI%
 )
 if "%LAN_DAU%"=="1" (
   echo May moi, dang nap tai khoan mau - mat khau in ra cuoi lenh ...
@@ -198,7 +214,7 @@ if "%LAN_DAU%"=="1" (
 start "" %DIA_CHI%
 echo.
 echo Da mo http://localhost:8020 - KN ERP. KN CRM - bang tinh: http://localhost:8021/
-if not defined CO_MA_MOI echo Khong co ma moi - neu vua gop code tren GitHub ma khong thay doi, xem dong Nhanh dang dung o tren.
+if not defined MA_DOI echo Ma tren may khong doi so voi lan chay truoc - neu vua gop code tren GitHub ma khong thay doi, xem dong Nhanh dang dung o tren.
 echo Tai khoan mau xem o docs\tai-khoan-mau.md
 if "%LAN_DAU%"=="1" (
   pause
