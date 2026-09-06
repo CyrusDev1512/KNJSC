@@ -28,8 +28,11 @@ Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của 
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
 tóm để không phải lục.
 
-> Cập nhật ngày 04.09.2026, sau khi xong Giai đoạn 7 phần E — Bảng tính cho
-> mọi bảng, định dạng ô, cột khoá, thư mục (ADR-010). Mục D chỉ còn `AC-5.1`.
+> Cập nhật ngày 06.09.2026. Giai đoạn 7 phần E (ADR-010) đã vào `main` qua
+> PR #4. Phần F (Bảng tính như KN Demo, ADR-011) và phần G (**KN CRM là app
+> riêng**, trang chủ cây Bộ phận ▸ Quý ▸ Tháng, ADR-012) xong, **còn trên nhánh
+> riêng** `claude/bang-tinh-nhu-kn-demo` (PR #5, base `main`), chờ anh/chị
+> nghiệm thu. Mục D chỉ còn `AC-5.1`.
 
 **Đang ở đâu:** xong Giai đoạn 0 tới 7. Nhập tệp Excel/CSV bốn bước có xem
 trước và tiến độ, xuất kèm bộ lọc, tệp lớn chạy nền giữ 24 giờ (7A). Sao lưu
@@ -43,12 +46,24 @@ cột, sửa ô có danh sách chọn, Lọc trùng, tô màu Hủy/Hoàn, mỗi
 `/bang-tinh/<mã bảng>/` cho bảng nào trong phạm vi; viền ô như Excel, dòng
 trống cuối lưới gõ là thành bản ghi; định dạng ô (đậm, nền, cỡ, căn) lưu vào
 cơ sở dữ liệu; cột khoá bấm ⌕ là lọc; thanh lọc bên trái (chọn nhanh, khoảng
-ngày, sản phẩm); thanh công cụ; thư mục chứa bảng. 85 tiêu chí, 75 trên 76
-tự động có bài kiểm.
+ngày, sản phẩm); thanh công cụ; thư mục chứa bảng. **Bảng tính như KN Demo**
+(7F, ADR-011): khung tối viền vàng, thanh công thức có ô địa chỉ, số dòng,
+chữ cột tới Z, chân trang có tab; kéo chọn vùng, dán từ Excel, kéo điền, hoàn
+tác, menu chuột phải (xoá/khôi phục dòng, Manager chèn/xoá cột), 40 màu và
+định dạng số, hộp lọc theo giá trị, tự cập nhật khi người khác sửa. **KN CRM
+là app riêng** (7G, ADR-012): KN ERP không còn lưới, chỉ có mục KN CRM mở tab
+mới sang dịch vụ 8021; trang chủ KN CRM là cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng tự
+sinh từ cột Ngày, bấm tháng là mở lưới lọc sẵn tháng đó (tháng là góc nhìn,
+không tách bảng), quyền theo bảng như cũ. 97 tiêu chí, 86 trên 87 tự động có
+bài kiểm.
 
 **Việc tiếp theo:** **nghiệm thu một đợt theo `docs/07`** — anh/chị bấm tay
-từng vai, đánh ☑ (đã thêm các bước của 7E). Rồi Giai đoạn 8: máy chủ,
-subdomain cho Bảng tính, đo tải trên máy chủ thật.
+từng vai, đánh ☑, gửi danh sách lỗi; sửa trên nhánh `claude/bang-tinh-nhu-kn-demo`
+rồi mới gộp PR #5. Xem KN CRM ở máy nhà bằng
+`scripts\cap-nhat-local.bat claude/bang-tinh-nhu-kn-demo` rồi bấm **KN CRM**
+trên thanh bên (tab mới `localhost:8021/`); chạy không tham số thì về `main` —
+lưới ADR-010 còn nằm trong ERP. Rồi Giai đoạn 8: máy chủ, tên miền con cho KN
+CRM, KN ERP dùng tốt trên điện thoại, đo tải trên máy chủ thật (chờ V1).
 
 ### A · Nghiệm thu — việc của anh/chị
 
@@ -56,7 +71,7 @@ subdomain cho Bảng tính, đo tải trên máy chủ thật.
 kiểm thử tự động đều đạt, nhưng anh/chị **chưa trực tiếp thử màn hình nào**. Phần
 trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải *đã nghiệm thu*.
 
-**Mười hai việc làm được ngay bây giờ — kịch bản từng bước ở `docs/07`:**
+**Mười lăm việc làm được ngay bây giờ — kịch bản từng bước ở `docs/07`:**
 
 | ☐ | Việc | Mã |
 |---|---|---|
@@ -73,6 +88,8 @@ trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải
 | ☐ | Bảng tính: cuộn ngang dọc, cột đầu và tiêu đề đứng yên | `AC-11.1` |
 | ☐ | Bảng tính trên điện thoại và máy tính bảng thật | `AC-11.11` |
 | ☐ | Bảng tính: mọi ô có viền, thanh công cụ đủ mục, ẩn cột nhớ được, thanh bên thu gọn được | `AC-11.18` |
+| ☐ | Bảng tính đặt cạnh ảnh `docs/tham-khao/kn-demo/`: khung, thanh công thức, số dòng, chữ cột, cột trống, chân trang, ⛶; kéo chọn vùng, dán từ Excel, chuột phải | `AC-11.27` |
+| ☐ | KN CRM: bấm mục trên thanh bên ERP mở tab mới; trang chủ cây Bộ phận ▸ Quý ▸ Tháng; bấm tháng → Mở → lưới lọc tháng → ← về đúng nhánh | `docs/07` mục 3.3 |
 
 **Một việc biết trước là chưa đạt:**
 
@@ -234,6 +251,12 @@ mục 6.
 | Q48 | Cột khoá | `ColumnDef.is_key`, mỗi bảng một cột, Manager đặt trong Sửa cột, bảng vận đơn lấy Mã đơn; ô cột khoá có nút ⌕ lọc theo giá trị — AC-11.16 | 04.09.2026 |
 | Q49 | Định dạng ô lưu ở đâu — sửa ADR-002 phần "Mất gì" | **Cơ sở dữ liệu** (`DataRecord.style`), mọi người cùng thấy; sổ giá trị đóng (đậm, sáu màu nền, cỡ 10–18, căn lề), không nhận CSS tự do; quyền bằng quyền sửa ô — AC-11.15, ADR-010 | 04.09.2026 |
 | Q50 | "Tạo folder" nghĩa là gì | **Thư mục chứa bảng**, phẳng, thuộc bộ phận, model ở `forms_builder` (không ở `crm` vì ADR-004); Manager bộ phận quản lý; chỉ sắp xếp thanh bên, không ảnh hưởng phạm vi — AC-11.17 | 04.09.2026 |
+| Q51 | Bảng tính nhìn và thao tác thế nào | **Y hệt bảng tính KN Demo** về cách nhìn và cách thao tác (ảnh `docs/tham-khao/kn-demo/`), trên nền dữ liệu KNJSC giữ nguyên; làm trên nhánh riêng `claude/bang-tinh-nhu-kn-demo`; bảng "không làm" ghi ở ADR-011 (công thức, tab là trang, chèn hàng giữa, chiều cao dòng, cột trống gõ được) | 04.09.2026 |
+| Q52 | Ai xoá được dòng trên lưới | **Đúng bằng quyền sửa dòng** — `grant_service.can_delete_record` gọi `can_edit_record`, đặt tên riêng để sau này tách được mà không phải đổi mô hình quyền; xoá là xoá mềm, Ctrl+Z khôi phục — AC-11.21, ADR-011 | 04.09.2026 |
+| Q53 | Bấm một lần vào ô là gì | **Chọn ô**, không mở sửa; bấm đúp, Enter, F2 hoặc gõ chữ mới sửa — như demo và Excel, không thế thì không kéo chọn vùng được; thay cách "bấm ô là sửa" của ADR-009 — AC-11.25, ADR-011 | 04.09.2026 |
+| Q54 | Bảng tính đặt ở đâu so với ERP, có làm app không | **KN CRM là app riêng trong hệ sinh thái**: dịch vụ `bangtinh` 8021, tên miền con, mở tab mới từ ERP, **cùng kho mã cùng cơ sở dữ liệu** (cách B trong bảng so sánh A/B/C); KN ERP không còn lưới. **Không** làm app cài đặt (native, PWA) — quá đắt; cái cần trên điện thoại là KN ERP (Giai đoạn 8) — AC-11.30, ADR-012 | 06.09.2026 |
+| Q55 | "Thư mục Quý → Tháng → file vận đơn" nghĩa là gì | **Tháng là góc nhìn trên một bảng**, cây tự sinh từ cột Ngày; bấm tháng là mở lưới lọc sẵn. Không tách bảng theo tháng (Lên đơn ghi vào một bảng, Lọc trùng và mua lại lần đếm cả lịch sử) — AC-11.28, AC-11.29, ADR-012 | 06.09.2026 |
+| Q56 | Quyền trong KN CRM cấp ở mức nào | **Theo bảng như hiện có** (Manager cấp Xem/Sửa từng bảng ở KN ERP); cây chỉ hiện thứ được xem; không thêm quyền theo thư mục hay theo tháng — ADR-012 | 06.09.2026 |
 
 ---
 
@@ -251,6 +274,8 @@ Những thứ đáng làm nhưng chưa tới lượt.
 | S6 | Nhiều người cùng sửa một bảng theo thời gian thực | Phức tạp, cần đánh giá lại nhu cầu |
 | S7 | Thư mục lồng nhau trên Bảng tính | Chưa ai cần; thêm sau chỉ là FK `parent` trên `Folder` — ADR-010 |
 | S8 | Xuất Excel mang theo định dạng ô (đậm, màu nền) | `export_service.build_workbook` chưa đọc `DataRecord.style`; làm khi có người hỏi |
+| S9 | Kéo đổi chiều cao dòng trên Bảng tính | Dòng đổi chỗ khi sắp xếp và phân trang nên chiều cao theo chỉ số dòng vô nghĩa; nếu cần thì lưu theo bản ghi như `style` — ADR-011 |
+| S10 | Công thức gõ ở thanh công thức của Bảng tính | Ô `fx` đã có, gõ `=` đang báo chưa hỗ trợ; chờ "cách thứ ba" người dùng nói tới sau ADR-006; khi có thì cắm vào đúng chỗ này — ADR-011 |
 
 ---
 
@@ -320,8 +345,8 @@ hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp d�
 | Lịch sử báo cáo | 4 | Đã có |
 | Lên đơn | 5 | Đã có |
 | Báo cáo tổng hợp | 6 | Đã có — tab Theo thị trường treo ghi chú chờ N9, Q36 |
-| Bảng tính | 7 | Đã có — lưới cho **mọi bảng** ở `/bang-tinh/<mã>/` (ADR-010): viền ô, dòng trống, cột khoá, thanh lọc bên trái, thanh công cụ, định dạng ô, thư mục; bảng vận đơn vẫn sửa ở dịch vụ `bangtinh` (ADR-009) |
-| Bảng tính, màn hình chi tiết | 7 | Không làm engine công thức (ADR-009); phần thanh công cụ định dạng của bản dựng đã có lại dưới dạng sổ đóng (ADR-010) |
+| Bảng tính | 7 | Đã có — lưới cho **mọi bảng** ở `/bang-tinh/<mã>/` (ADR-010): viền ô, dòng trống, cột khoá, thanh lọc bên trái, thanh công cụ, định dạng ô, thư mục; bảng vận đơn vẫn sửa ở dịch vụ `bangtinh` (ADR-009); nhìn và thao tác như bảng tính KN Demo — chọn vùng, dán từ Excel, kéo điền, chuột phải, hoàn tác, hộp lọc giá trị, tự cập nhật (ADR-011); là **app riêng KN CRM** ở 8021 với trang chủ cây Bộ phận ▸ Quý ▸ Tháng, ERP chỉ liên kết (ADR-012) — nhánh `claude/bang-tinh-nhu-kn-demo` |
+| Bảng tính, màn hình chi tiết | 7 | Không làm engine công thức (ADR-009); phần thanh công cụ định dạng của bản dựng đã có lại dưới dạng sổ đóng (ADR-010); thanh công cụ và thanh công thức theo KN Demo (ADR-011), công thức chờ S10 |
 
 **Thiếu sót đã biết, không phải màn hình riêng nhưng ảnh hưởng trải nghiệm:**
 
@@ -371,4 +396,11 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 04.09.2026 | Trên Windows, cả bốn container `Restarting` với `exec /entrypoint.sh: no such file or directory`: git checkout đổi `entrypoint.sh` sang CRLF, `#!/bin/sh\r` không có trình thông dịch. Sửa hai tầng: `.gitattributes` giữ LF cho `.sh .py .html .css .js` (gộp ý từ nhánh `claude/project-status-progress-7ajcqg`), và Dockerfile `sed -i 's/\r$//'` trước `chmod` để image dựng đúng dù git cấu hình thế nào |
 | 04.09.2026 | Người dùng cập nhật xong vẫn thấy Bảng tính vỡ bố cục: trình duyệt dùng `bang-tinh.css` cũ trong bộ đệm (cùng tên với tệp đã có trên `main`). Thêm `?v=<mốc sửa tệp tĩnh>` vào mọi đường dẫn CSS và JS (`core/context_processors.PHIEN_BAN_TINH`) — đổi mã là trình duyệt tự tải mới, không phải Ctrl+F5 |
 | 04.09.2026 | Người dùng thêm hai yêu cầu: (1) kéo đổi độ rộng từng cột và tự quyết thứ tự cột A B C; (2) Bảng tính phải là một trang toàn màn hình khác hẳn, chức năng chính là lưới. Làm ngay trong 7E: khung riêng `crm/base_bang_tinh.html` (không thanh bên hệ thống, menu ☰), chữ cột A B C, kéo mép tiêu đề đổi rộng, kéo thả tiêu đề đổi thứ tự, nút Đặt lại cột — ba thứ nhớ trên trình duyệt theo mã bảng (ADR-010 mục 8, 9). Sửa AC-11.18 |
+| 04.09.2026 | Người dùng gửi gói KN Demo (`Kim_Ngan_DEMO.rar`), chốt *"tạo nhánh riêng và làm cái view y hệt như ảnh"*. Nhánh `claude/bang-tinh-nhu-kn-demo` tách từ đầu nhánh 7E. Đọc trọn mã demo: bảng tính JSON tự viết, công thức tính ở trình duyệt, tự lưu cả tài liệu, không phân trang — KNJSC chỉ lấy cách nhìn và thao tác (ảnh ở `docs/tham-khao/kn-demo/`). Giai đoạn 1 (ADR-011): khung tối viền vàng 48px, thanh công cụ đúng thứ tự demo, thanh công thức có ô địa chỉ `A1`, cột số dòng 46px, hàng chữ cột có nút ▼ và mép kéo, hàng tên cột là hàng 1 (vận đơn xanh, bảng khác vàng), cột trống tới Z, chân trang có tab bảng và `+100 dòng`, trạng thái lưu, nút ⛶ toàn màn hình, bấm một lần là chọn / bấm đúp hoặc gõ chữ là sửa, thanh bên ẩn mặc định. Sổ định dạng mở rộng theo demo: nghiêng, gạch chân, gạch ngang, xuống dòng, viền, bảng 40 màu chữ và nền (`m01…m40`, CSS sinh bằng `scripts/sinh-css-mau.py`), cỡ 10–28, định dạng số. Sửa nhân tiện: `tests/test_hieu_nang.py` để lại bộ phận và bảng giả trong cơ sở dữ liệu kiểm thử (xoá mềm vẫn chiếm tên unique) làm mọi bài chạy sau đỏ khi chạy cả bộ kể cả `cham` — dọn thật ở teardown |
+| 04.09.2026 | Giai đoạn 2 của ADR-011 trên nhánh `claude/bang-tinh-nhu-kn-demo`: kéo chuột chọn vùng (ô địa chỉ hiện `C3:F7`, số dòng và chữ cột tô sáng, thống kê Tổng · TB · Số ô), bấm số dòng chọn hàng, chữ cột chọn cột, góc chọn cả trang; Shift+mũi tên, Ctrl+A; cắt/chép/dán qua clipboard hệ thống (TSV — dán từ Excel được, dán nội bộ mang theo định dạng, lặp khối khi vùng là bội số, tràn xuống dòng trống thì tạo bản ghi); tay kéo điền bốn hướng (số cách đều thì tiếp chuỗi, không thì lặp khối); Delete xoá nội dung; hoàn tác/làm lại 100 bước phía trình duyệt (giá trị và định dạng). Máy chủ: `record_service.update_cells` + `POST luu-o/` được cả hoặc không gì, `CellError` chỉ đúng ô, quyền kiểm từng dòng, ngoài phạm vi 403 có nhật ký; AC-11.19, AC-11.20. Ba lỗi ngầm của htmx 2 gặp trên đường: (1) `afterRequest` bắn trước khi thay ô — phải chờ `afterSettle`; (2) phần tử mới trùng id với phần tử cũ thì trong lúc settle mang tạm thuộc tính cũ — trình sửa ô không được mang id; (3) `processNode` chạy sau settle 20ms nên `requestSubmit()` sớm hơn là trình duyệt tự nộp biểu mẫu — `guiSua` chờ hết `htmx-settling`. Và: mảnh HTML có `<td>` đứng trước `<tr>` thì trình duyệt bỏ `<tr>` — phản hồi luu-o trả dòng trước ô |
+| 04.09.2026 | Giai đoạn 3 của ADR-011: menu chuột phải đúng nhãn demo (Cắt · Sao chép · Dán · Chèn N hàng trống · Xoá N hàng · Chèn N cột trái/phải · Xoá N cột · Xoá nội dung · Xoá định dạng; mục không có quyền mờ đi); xoá dòng là xoá mềm sau hộp xác nhận, Ctrl+Z khôi phục về chỗ cũ (`xoa-dong/`, `khoi-phuc-dong/`, `record_service.restore_record`, quyền `can_delete_record` = quyền sửa dòng — Q52); Manager của bộ phận sở hữu chèn/bỏ cột ngay trên lưới (`them-cot/`, `xoa-cot/`, `table_service.insert_columns`, `removable_reason`; cột khoá, vế cột tính sẵn, cột hệ thống vận đơn thì giữ; `can_manage_columns`); hộp lọc cột theo demo (tên cột · số giá trị, ô tìm, danh sách giá trị kèm số cho mọi kiểu cột, Điều kiện khác gập, Chọn tất cả · Không chọn · Xóa lọc · Áp dụng); lưới hỏi `moi-nhat/` mỗi `GRID_POLL_SECONDS` giây khi rảnh, có gì mới thì nạp lại thân bảng và toast. AC-11.21 → AC-11.26, 93 tiêu chí, 83 trên 84 tự động có bài kiểm. Nhãn "Bỏ chọn" của demo đổi thành "Không chọn" vì luật nút nguy (test_giao_dien) bắt chữ "Bỏ"; các mục Xoá trong menu mang `nut-nguy` (chữ đỏ) theo cùng luật |
+| 04.09.2026 | Giai đoạn 4 của ADR-011 — tài liệu: viết `quyet-dinh/011-bang-tinh-theo-mau-kn-demo.md` (kèm bảng "không làm"), thêm 009/010/011 vào danh sách ADR; `docs/02` FR-7.9 → FR-7.12; `docs/03` §4.6 thêm các dòng lưu nhiều ô, xoá/khôi phục dòng, chèn/bỏ cột, hộp lọc giá trị, tự cập nhật, hoàn tác, cột trống, hai tệp JS; `docs/04` AC-11.27 (thủ công, đối chiếu ảnh) — 94 tiêu chí; `docs/05` A8 viết lại theo giao diện mới; `docs/06` bảng thủ công thêm AC-11.18 (thiếu từ 7E) và AC-11.27; `docs/07` thêm bước dán từ Excel, kéo điền, chuột phải xoá hàng, chèn cột, hộp lọc, tự cập nhật, và sửa các bước cũ theo giao diện mới (bấm đúp mới sửa, Nhập tệp trong ⋯, Tải Excel ở thanh trên, Bộ lọc mở thanh bên); chốt Q51 → Q53, mở S9, S10; dashboard 7F |
+| 05.09.2026 | Gộp PR #4 (Giai đoạn 7E, ADR-010) vào `main` bằng merge commit `3facc87`, giữ nguyên SHA và giữ nhánh 7E. PR #5 (7F, ADR-011) đổi base về `main`, vẫn mở trên nhánh riêng theo ý anh/chị — chờ nghiệm thu `docs/07` rồi mới gộp. Nhánh 7F gộp `main` vào để không tụt sau |
 | 06.09.2026 | Người dùng muốn một tệp `.bat` nháy đúp là mở ngay `localhost` trên máy đó và tự bật Docker. `cap-nhat-local.bat` làm được nhưng kéo mã, dựng lại image và nạp dữ liệu mẫu nên mất vài phút — quá nặng cho việc mở lại hằng ngày. Thêm `scripts/KN JSC.bat` (tên do người dùng chọn; kèm biểu tượng `KN JSC.ico` vẽ từ `KN JSC.svg` — chữ KN trắng trên nền xanh, vạch cam, chữ JSC; lần đầu chạy tự tạo lối tắt "KN JSC" ngoài Desktop bằng PowerShell, đường dẫn Desktop lấy từ Registry để đúng cả khi OneDrive dời Desktop): mở Docker Desktop nếu chưa chạy (tìm cả trong Registry khi cài ở thư mục khác), `up -d` không `--build`, kiểm web ngay trước khi ngủ nên container đang chạy sẵn là mở trình duyệt tức thì; lần đầu trên máy sạch (chưa có container `web`) thì nạp `du_lieu_mau` trước khi mở, không thì không có tài khoản để đăng nhập. `cap-nhat-local.bat` cũng gọi nó (tham số `loi-tat`) ngay sau `git pull`, vì người dùng kéo mã xong là mong thấy logo ngay chứ không đi tìm tệp `.bat`. Người dùng bực vì vẫn phải tìm thư mục để nháy đúp lần đầu: yêu cầu thật là *mỗi ngày ấn một nút, không gõ gì*. Thêm `scripts/Cai dat KN JSC.bat` gửi thẳng qua chat để nháy đúp một lần ở bất kỳ đâu: tự tìm thư mục KNJSC trên máy (chỗ hay clone, rồi quét `dir /s`), `git pull`, gọi `KN JSC.bat` để tạo logo ngoài Desktop và mở hệ thống. Từ đó chỉ còn logo trên Desktop. Rồi người dùng chốt: **một tệp `.bat` ở thư mục gốc, máy nào clone về cũng nháy đúp là lên** — chuyển `KN JSC.bat` lên gốc, thêm tự `git pull --ff-only`; có mã mới thì migrate, `tao_bang_van_don`, khởi động lại worker/beat, dựng lại image chỉ khi Dockerfile/requirements/entrypoint đổi; gọi lại chính nó sau pull (tham số `da-keo`) vì cmd đọc `.bat` theo byte, tệp tự đổi là đọc lệch dòng. Lối tắt Desktop làm mới mỗi lần chạy để trỏ đúng chỗ khi kho mã chuyển. `cap-nhat-local.bat` giữ làm bản "làm hết cho chắc", và cũng được sửa theo cùng kiểu gọi lại chính nó sau `git pull` (mô phỏng cho thấy bản cũ trên máy người dùng, khi kéo mã đè lên chính nó, đọc tiếp rơi vào giữa dòng `set /a DEM+=1` rồi dừng ngang nếu Docker đang chạy sẵn). Bài học: **tệp `.bat` nào tự `git pull` thì phần sau `pull` phải nằm trong khối `( ... )` và `call` lại chính nó.** Chỉ Windows, chưa làm bản `.sh` vì Mac/Linux chỉ cần `docker compose up -d` |
+| 06.09.2026 | Anh/chị hỏi lại câu gốc: vì sao cần Bảng tính, so với Excel, Google Sheets, Lark thì sao; kể lại dây chuyền Google Form → Sheet của Vận đơn lag dần sau vài tháng (6.000 khách một tháng). Chốt: KN ERP xem nhanh, **Bảng tính là app riêng KN CRM** tách tên miền, không làm app cài đặt, cái cần trên điện thoại là ERP. Bốn yêu cầu cho KN CRM (trang mới, thấy thư mục trước, quyền do Manager cấp, cây Bộ phận → Quý → Tháng → file); phản biện được chấp nhận: tháng là góc nhìn trên một bảng, quyền theo bảng. Làm 7G trên cùng nhánh: bỏ `crm.urls` khỏi ERP, một mục KN CRM mở tab mới, `crm/tests/conftest.py` đặt URLconf 8021, `test_khoi` duyệt hai URLconf; `crm/services/tree_service.py` + trang chủ `/` (cây tự sinh từ `val_date`, đếm một truy vấn cho cả bộ phận), nhãn tháng trên lưới, nút ← về đúng nhánh, tạo thư mục từ trang chủ; AC-11.28 → AC-11.30, 97 tiêu chí; ADR-012; Q54 → Q56 |
+| 06.09.2026 | Anh/chị xem ảnh trước/sau (main 7E so với nhánh KN CRM) rồi chốt **gộp PR #5 vào `main`**. Gộp `main` (PR #6 → #10, `KN JSC.bat`) vào nhánh trước để hết xung đột ở chính bảng này, rồi gộp PR #5 bằng merge commit, giữ nhánh như lần PR #4. Máy anh/chị đang ở `main` nên nháy đúp `KN JSC.bat` là kéo được KN CRM; mã mount thẳng vào container, không cần dựng lại image. `/bang-tinh/` ở 8020 từ nay trả 404, lưới chỉ có ở KN CRM 8021 |

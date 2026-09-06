@@ -87,7 +87,7 @@ rem migrate trong entrypoint khong chay lai - goi tuong minh
 %COMPOSE% exec -T web python manage.py du_lieu_mau
 start "" %DIA_CHI%
 echo.
-echo Xong - mo http://localhost:8020 (he thong) va http://localhost:8021/bang-tinh/ (Bang tinh, van don)
+echo Xong - mo http://localhost:8020 (KN ERP) va http://localhost:8021/ (KN CRM, bang tinh)
 pause
 exit /b 0
 

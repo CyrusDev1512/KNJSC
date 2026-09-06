@@ -16,7 +16,7 @@
     {% if duoc_nhap %}<a class="nut" href="{% url 'bang_nhap' bang.code %}">Nhập tệp</a>{% endif %}
     {# Xuất đúng thứ đang hiện: mang theo bộ lọc, tìm kiếm, sắp xếp — ADR-002 #}
     <a class="nut" href="{% url 'bang_xuat' bang.code %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Xuất tệp</a>
-    {% if chi_xem %}<a class="nut nut-chinh" href="{{ bang_tinh_url }}">Mở Bảng tính</a>{% endif %}
+    {% if chi_xem %}<a class="nut nut-chinh" href="{{ bang_tinh_url }}" target="_blank" rel="noopener">Mở trong KN CRM</a>{% endif %}
   </div>
 </div>
 
@@ -25,7 +25,7 @@
     <span class="bao-ic">i</span>
     <div>
       <b>Bảng này chỉ xem ở đây</b>
-      <p>Bộ phận Vận đơn làm việc và sửa dữ liệu ở <a href="{{ bang_tinh_url }}">Bảng tính</a> — một nơi sửa duy nhất (ADR-009).</p>
+      <p>Bộ phận Vận đơn làm việc và sửa dữ liệu ở <a href="{{ bang_tinh_url }}" target="_blank" rel="noopener">KN CRM</a> — một nơi sửa duy nhất (ADR-009, ADR-012).</p>
     </div>
   </div>
 {% endif %}

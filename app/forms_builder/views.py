@@ -202,7 +202,7 @@ def bang_xem(request, code):
         "duoc_nhap": grant_service.can_import(request.user, bang_hien),
         # Bảng chỉ xem ở đây, sửa ở Bảng tính — ADR-009
         "chi_xem": grant_service.is_grid_only(bang_hien),
-        "bang_tinh_url": settings.BANGTINH_URL,
+        "bang_tinh_url": settings.BANGTINH_URL.rstrip("/") + f"/bang-tinh/{bang_hien.code}/",
         # Quyền sửa tính theo **từng dòng**: người tạo dòng sửa được dòng của
         # mình, quản lý sửa cả bảng, và có thể có quyền cấp riêng
         "cac_dong": [

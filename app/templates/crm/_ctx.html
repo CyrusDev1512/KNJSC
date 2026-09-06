@@ -1,0 +1,22 @@
+{% comment %}
+Menu chuột phải trên lưới — nhãn theo bảng tính KN Demo (ADR-011). JS điền số
+hàng / số cột đang chọn, bật tắt mục theo quyền (data-quan-ly-cot của lưới,
+ô sửa được) và gọi các đường dẫn xoa-dong, khoi-phuc-dong, them-cot, xoa-cot.
+Mục xoá mang nut-nguy theo luật giao diện (bài test_giao_dien). Không cần biến.
+{% endcomment %}
+<div id="bt-ctx" class="bt-ctx" hidden role="menu" aria-label="Menu ô">
+  <button class="bt-ctx-muc" type="button" role="menuitem" data-lenh="cat">✂  Cắt</button>
+  <button class="bt-ctx-muc" type="button" role="menuitem" data-lenh="chep">⧉  Sao chép</button>
+  <button class="bt-ctx-muc" type="button" role="menuitem" data-lenh="dan">⎘  Dán</button>
+  <div class="bt-ctx-ngan"></div>
+  <button class="bt-ctx-muc" type="button" role="menuitem" data-lenh="them-hang">Chèn <span class="bt-ctx-so-hang">1</span> hàng trống</button>
+  <button class="bt-ctx-muc nut nut-nguy" type="button" role="menuitem" data-lenh="xoa-hang">Xoá <span class="bt-ctx-so-hang">1</span> hàng</button>
+  <div class="bt-ctx-ngan"></div>
+  <button class="bt-ctx-muc" type="button" role="menuitem" data-lenh="them-cot-trai">Chèn <span class="bt-ctx-so-cot">1</span> cột bên trái</button>
+  <button class="bt-ctx-muc" type="button" role="menuitem" data-lenh="them-cot-phai">Chèn <span class="bt-ctx-so-cot">1</span> cột bên phải</button>
+  <button class="bt-ctx-muc nut nut-nguy" type="button" role="menuitem" data-lenh="xoa-cot">Xoá <span class="bt-ctx-so-cot">1</span> cột</button>
+  <div class="bt-ctx-ngan"></div>
+  <button class="bt-ctx-muc nut nut-nguy" type="button" role="menuitem" data-lenh="xoa-noi-dung">Xoá nội dung</button>
+  <button class="bt-ctx-muc nut nut-nguy" type="button" role="menuitem" data-lenh="xoa-dinh-dang">Xoá định dạng</button>
+</div>
+<div id="bt-toast" class="bt-toast" hidden role="status" aria-live="polite"></div>

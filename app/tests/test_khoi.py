@@ -15,6 +15,7 @@ Ba điều khẳng định:
 3. Ngoài phạm vi thì 403 hoặc 404, **không phải** 200 với danh sách rỗng — AC-3.6
 """
 import pytest
+from django.test import override_settings
 from django.urls import URLPattern, URLResolver, get_resolver
 
 pytestmark = pytest.mark.django_db
@@ -76,7 +77,13 @@ def _thu_thap(resolver=None, tien_to=""):
     return ket_qua
 
 
-CAC_DUONG_DAN = sorted(set(_thu_thap()))
+#: Hai dịch vụ, hai bộ định tuyến (ADR-009, ADR-012): KN ERP và KN CRM. Mỗi
+#: đường dẫn mang theo URLconf của nó để bài kiểm gọi đúng dịch vụ.
+URLCONF_ERP = "knjsc.urls"
+URLCONF_CRM = "knjsc.urls_bangtinh"
+_ERP = sorted(set(_thu_thap(get_resolver(URLCONF_ERP))))
+_CRM = sorted(set(_thu_thap(get_resolver(URLCONF_CRM))) - set(_ERP))
+CAC_DUONG_DAN = [(URLCONF_ERP, t, d) for t, d in _ERP] + [(URLCONF_CRM, t, d) for t, d in _CRM]
 
 #: Vai trò kiểm chéo. Mỗi cấp bậc của mỗi bộ phận đúng một đại diện.
 CAC_VAI_TRO = ["staff_sale_1", "leader_sale_1", "manager_sale", "staff_mkt",
@@ -85,15 +92,15 @@ CAC_VAI_TRO = ["staff_sale_1", "leader_sale_1", "manager_sale", "staff_mkt",
 
 def test_tim_duoc_du_duong_dan():
     """Bài quét chỉ có nghĩa khi thật sự lấy được danh sách đường dẫn"""
-    assert len(CAC_DUONG_DAN) >= 20, (
-        f"Chỉ tìm thấy {len(CAC_DUONG_DAN)} đường dẫn, chắc chắn thiếu"
-    )
+    assert len(_ERP) >= 20, f"Chỉ tìm thấy {len(_ERP)} đường dẫn ERP, chắc chắn thiếu"
+    assert len(_CRM) >= 10, f"Chỉ tìm thấy {len(_CRM)} đường dẫn KN CRM, chắc chắn thiếu"
 
 
-@pytest.mark.parametrize("ten,duong_dan", CAC_DUONG_DAN, ids=lambda x: str(x))
-def test_chua_dang_nhap_thi_bi_chuyen_ve_trang_dang_nhap(client, ten, duong_dan):
+@pytest.mark.parametrize("urlconf,ten,duong_dan", CAC_DUONG_DAN, ids=lambda x: str(x))
+def test_chua_dang_nhap_thi_bi_chuyen_ve_trang_dang_nhap(client, urlconf, ten, duong_dan):
     """AC-1.1 — Gọi mọi đường dẫn khi chưa đăng nhập thì bị chuyển về đăng nhập"""
-    kq = client.get(duong_dan)
+    with override_settings(ROOT_URLCONF=urlconf):
+        kq = client.get(duong_dan)
     assert kq.status_code in (302, 405), (
         f"{ten} ({duong_dan}) trả {kq.status_code} cho người chưa đăng nhập"
     )
@@ -104,15 +111,16 @@ def test_chua_dang_nhap_thi_bi_chuyen_ve_trang_dang_nhap(client, ten, duong_dan)
 
 
 @pytest.mark.parametrize("vai_tro", CAC_VAI_TRO)
-@pytest.mark.parametrize("ten,duong_dan", CAC_DUONG_DAN, ids=lambda x: str(x))
-def test_khong_duong_dan_nao_no(client, nguoi_dung, vai_tro, ten, duong_dan):
+@pytest.mark.parametrize("urlconf,ten,duong_dan", CAC_DUONG_DAN, ids=lambda x: str(x))
+def test_khong_duong_dan_nao_no(client, nguoi_dung, vai_tro, urlconf, ten, duong_dan):
     """NFR-6 — Không đường dẫn nào trả lỗi 500, với bất kỳ vai trò nào
 
     Bài này không kiểm nghiệp vụ. Nó chỉ khẳng định hệ thống không sập, và
     người ngoài phạm vi nhận đúng lỗi từ chối chứ không phải trang trắng.
     """
     client.force_login(nguoi_dung[vai_tro])
-    kq = client.get(duong_dan)
+    with override_settings(ROOT_URLCONF=urlconf):
+        kq = client.get(duong_dan)
     assert kq.status_code in MA_CHAP_NHAN, (
         f"{vai_tro} gọi {ten} ({duong_dan}) nhận {kq.status_code}"
     )

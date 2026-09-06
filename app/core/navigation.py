@@ -36,8 +36,14 @@ class NavItem:
     #: ngay ở dịch vụ chính (ADR-010). Admin tính là thuộc mọi bộ phận.
     exclude_departments: tuple = None
     #: Tên biến settings chứa địa chỉ ngoài. Có giá trị thì mục này trỏ ra
-    #: dịch vụ khác (Bảng tính chạy riêng — ADR-009); rỗng thì dùng url_name.
+    #: dịch vụ khác (KN CRM chạy riêng — ADR-009, ADR-012); rỗng thì dùng url_name.
     external_setting: str = ""
+    #: Mở tab mới — chỉ có nghĩa khi mục đang là liên kết ngoài; ở chính dịch
+    #: vụ đó (địa chỉ ngoài để rỗng) mục thành liên kết trong, cùng tab.
+    new_tab: bool = False
+
+    def is_external(self):
+        return bool(self.external_setting and getattr(settings, self.external_setting, ""))
 
     def href(self):
         """Địa chỉ thật của mục, hoặc None nếu dịch vụ hiện tại không có nó.
@@ -45,7 +51,7 @@ class NavItem:
         Dịch vụ `bangtinh` dùng URLconf thu hẹp: mục nào không có ở đó thì
         thanh bên không vẽ — thay vì nổ NoReverseMatch trên mọi trang.
         """
-        if self.external_setting and getattr(settings, self.external_setting, ""):
+        if self.is_external():
             return getattr(settings, self.external_setting)
         try:
             return reverse(self.url_name)
@@ -79,10 +85,9 @@ NAVIGATION = (
     )),
     NavGroup("Dữ liệu", (
         NavItem("bang", "Bảng dữ liệu", "bang"),
-        NavItem("bang_tinh", "Bảng tính", "bang_tinh", departments=WAYBILL_ONLY,
-                external_setting="BANGTINH_URL"),
-        # Mọi bảng đều có Bảng tính (ADR-010): bộ phận khác mở ngay tại đây
-        NavItem("bang_tinh", "Bảng tính", "bang_tinh", exclude_departments=WAYBILL_ONLY),
+        # KN CRM là app riêng cho mọi bộ phận (ADR-012): ở ERP mục này là liên
+        # kết ngoài mở tab mới; ở chính KN CRM nó là liên kết trong về trang chủ
+        NavItem("bang_tinh", "KN CRM", "bang_tinh", external_setting="BANGTINH_URL", new_tab=True),
         NavItem("bieu_mau", "Biểu mẫu", "bieu_mau", Rank.MANAGER),
         NavItem("tac_vu", "Tác vụ nền", "tac_vu"),
     )),
@@ -98,7 +103,8 @@ def visible_navigation(user):
     ket_qua = []
     for group in NAVIGATION:
         items = [
-            {"code": m.code, "label": m.label, "href": href}
+            {"code": m.code, "label": m.label, "href": href,
+             "new_tab": m.new_tab and m.is_external()}
             for m in group.items
             if has_rank(user, m.min_rank) and in_departments(user, m.departments)
             and not (m.exclude_departments and in_departments(user, m.exclude_departments))

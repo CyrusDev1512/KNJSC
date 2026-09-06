@@ -12,6 +12,7 @@ from django.db import transaction
 from core.audit import record
 from core.constants import AuditAction
 
+from ..meaning import FieldType
 from ..models import ColumnDef, DataRecord, TableDef
 
 
@@ -144,6 +145,56 @@ def remove_column(column, *, actor=None, request=None):
         detail=f"Bỏ cột {ma} khỏi bảng {bang.code}", request=request,
     )
     return bang
+
+
+@transaction.atomic
+def insert_columns(table, *, count=1, anchor=None, after=True, actor=None, request=None):
+    """Chèn `count` cột chữ ngắn "Cột mới k" cạnh cột `anchor` (trước hay sau) —
+    menu chuột phải của Bảng tính, ADR-011. Không có `anchor` thì chèn cuối.
+    Đánh lại `order` của mọi cột theo vị trí mới. Trả về các cột vừa tạo."""
+    cac_cot = list(table.columns.order_by("order", "id"))
+    vi_tri = len(cac_cot)
+    for i, c in enumerate(cac_cot):
+        if anchor and c.code == anchor:
+            vi_tri = i + 1 if after else i
+            break
+    da_co = {c.code for c in cac_cot}
+    moi = []
+    n = 1
+    for _ in range(count):
+        while f"cot_moi_{n}" in da_co:
+            n += 1
+        da_co.add(f"cot_moi_{n}")
+        moi.append(ColumnDef(table=table, name=f"Cột mới {n}", code=f"cot_moi_{n}", field_type=FieldType.TEXT))
+        n += 1
+    thu_tu = cac_cot[:vi_tri] + moi + cac_cot[vi_tri:]
+    for i, c in enumerate(thu_tu, start=1):
+        if c.pk is None:
+            c.order = i
+            c.full_clean()
+            c.save()
+            record(
+                AuditAction.CREATE, actor=actor, target=c,
+                detail=f"Chèn cột {c.code} vào bảng {table.code} ở vị trí {i}", request=request,
+            )
+        elif c.order != i:
+            c.order = i
+            c.save(update_fields=["order", "updated_at"])
+    return moi
+
+
+def removable_reason(column):
+    """Vì sao không bỏ được cột này ngay trên lưới; trống nghĩa là bỏ được.
+    Cột khoá và cột đang là vế của một cột tính sẵn thì giữ."""
+    if column.is_key:
+        return f'"{column.name}" là cột khoá của bảng — đổi cột khoá ở Sửa cột trước.'
+    dung_o = [
+        c.name for c in column.table.columns.filter(is_computed=True)
+        if column.code in (c.compute_left, c.compute_right)
+    ]
+    if dung_o:
+        return f'"{column.name}" đang là vế của cột tính sẵn {", ".join(dung_o)}.'
+    return ""
 
 
 def _thu_tu_ke_tiep(table):
