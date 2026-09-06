@@ -41,6 +41,9 @@ if not "%~1"=="" (
   git checkout %~1
 )
 git pull
+rem Loi tat "KN JSC" ngoai Desktop (bieu tuong KN JSC.ico) - tao neu chua co,
+rem de keo ma xong la thay logo ngay; tu do nhay dup logo la mo he thong
+if exist "%~dp0KN JSC.bat" call "%~dp0KN JSC.bat" loi-tat
 
 %COMPOSE% up -d --build
 if errorlevel 1 goto :loi

@@ -70,6 +70,7 @@ hai cách:
 ```
 scripts\cap-nhat-local.bat          Windows — tự làm hết
 ./scripts/cap-nhat-local.sh         Mac, Linux — tự làm hết
+scripts\KN JSC.bat                  Windows — mở nhanh; máy sạch thì lần đầu tự nạp tài khoản
 ```
 
 hoặc chỉ nạp tài khoản khi container đã chạy:

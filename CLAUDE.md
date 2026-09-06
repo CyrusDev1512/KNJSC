@@ -27,8 +27,20 @@ scripts\cap-nhat-local.bat   Windows (hoặc nháy đúp tệp)
 ./scripts/cap-nhat-local.sh  Mac và Linux
 ```
 
-Lệnh tự mở Docker Desktop nếu chưa chạy, kéo mã mới, dựng container, đợi web lên, nạp dữ
-liệu mẫu rồi mở trình duyệt ở `http://127.0.0.1:8020/`. Chạy lại nhiều lần được.
+Lệnh tự mở Docker Desktop nếu chưa chạy, kéo mã mới, tạo lối tắt "KN JSC" ngoài
+Desktop nếu chưa có, dựng container, đợi web lên, nạp dữ liệu mẫu rồi mở trình
+duyệt ở `http://127.0.0.1:8020/`. Chạy lại nhiều lần được.
+
+**Máy đã dựng rồi, hằng ngày chỉ cần mở lại** thì dùng lệnh nhẹ hơn:
+
+```
+scripts\KN JSC.bat           Windows — nháy đúp tệp; lần đầu nó tự tạo lối tắt "KN JSC" ngoài Desktop
+```
+
+Nó chỉ mở Docker Desktop nếu chưa chạy, bật container, đợi web trả lời rồi mở
+trình duyệt — không kéo mã, không dựng lại image, nên vài giây là lên. Lần đầu
+trên máy sạch nó tự nạp dữ liệu mẫu. Có mã mới thì vẫn phải `cap-nhat-local`.
+Biểu tượng lối tắt là `scripts/KN JSC.ico`, nguồn vẽ ở `scripts/KN JSC.svg`.
 
 Bên trong nó chỉ là hai lệnh dưới đây, muốn làm tay thì làm:
 
