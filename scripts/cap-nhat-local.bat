@@ -51,8 +51,21 @@ rem Keo ma trong mot khoi, keo xong goi lai ban moi cua tep roi thoat ngay
   if not "%~1"=="" (
     git fetch origin
     git checkout %~1
+    if errorlevel 1 (
+      echo.
+      echo KHONG CHUYEN DUOC SANG NHANH %~1 - xem loi git o tren. Chua dung lai gi ca.
+      pause
+      exit /b 1
+    )
   )
   git pull
+  if errorlevel 1 (
+    echo.
+    echo KHONG KEO DUOC MA MOI - xem loi git o tren. Chua dung lai gi ca, ma tren may van la ban cu.
+    echo Neu git bao xung dot - CONFLICT - thi chay:  git merge --abort  roi chay lai tep nay.
+    pause
+    exit /b 1
+  )
   call "%~f0" da-keo
   exit /b
 )
@@ -84,6 +97,9 @@ rem Ma moi vao container qua thu muc gan ngoai, container khong dung lai nen
 rem migrate trong entrypoint khong chay lai - goi tuong minh
 %COMPOSE% exec -T web python manage.py migrate --noinput
 %COMPOSE% exec -T web python manage.py tao_bang_van_don
+rem Ghi commit vua migrate de KN JSC.bat lan sau biet ma khong doi, khoi migrate lai
+if not exist "storage" mkdir "storage"
+for /f %%h in ('git rev-parse HEAD 2^>nul') do >"storage\.kn-jsc-lan-truoc" echo %%h
 %COMPOSE% exec -T web python manage.py du_lieu_mau
 start "" %DIA_CHI%
 echo.

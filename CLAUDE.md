@@ -29,11 +29,15 @@ KN JSC.bat                   Windows — ở thư mục gốc; clone về, nháy
 
 `KN JSC.bat` tự kéo mã mới từ GitHub (có git và có mạng), tạo hoặc làm mới lối
 tắt "KN JSC" có logo ngoài Desktop, mở Docker Desktop nếu chưa chạy, bật
-container, đợi web lên rồi mở trình duyệt ở `http://127.0.0.1:8020/`. Có mã
-mới thì tự `migrate`, `tao_bang_van_don`, khởi động lại worker, và dựng lại
-image chỉ khi Dockerfile, requirements hay entrypoint đổi; không có mã mới thì
-vài giây là lên. Máy sạch thì tự nạp dữ liệu mẫu. Biểu tượng là
-`scripts/KN JSC.ico`, nguồn vẽ `scripts/KN JSC.svg`.
+container, đợi web lên rồi mở trình duyệt ở `http://127.0.0.1:8020/`. Mã trên
+máy **khác lần chạy trước** (dù ai kéo: tệp này, `cap-nhat-local.bat` hay gõ git
+tay; nhớ bằng `storage/.kn-jsc-lan-truoc`) thì tự `migrate`, `tao_bang_van_don`,
+khởi động lại worker, và dựng lại image chỉ khi Dockerfile, requirements hay
+entrypoint đổi; mã không đổi thì vài giây là lên. Máy sạch thì tự nạp dữ liệu mẫu. Biểu tượng là
+`scripts/KN JSC.ico`, nguồn vẽ `scripts/KN JSC.svg`. Kéo mã **thất bại** (kho
+đang gộp dở, sửa tay chưa commit, mất mạng) thì màn hình đen nói rõ và vẫn bật
+bản đang có — không có dòng `Da keo ma moi ve.` nghĩa là chưa có mã mới; nó cũng
+in nhánh đang đứng, vì máy đứng ở nhánh khác `main` thì kéo mãi không thấy đổi.
 
 Tệp gọi lại chính nó sau khi kéo mã (tham số nội bộ `da-keo`, **giữ nguyên
 tên**): cmd đọc tệp `.bat` theo vị trí byte, tệp tự đổi thì đọc tiếp sẽ lệch
