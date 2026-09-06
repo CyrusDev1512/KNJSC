@@ -51,8 +51,21 @@ rem Keo ma trong mot khoi, keo xong goi lai ban moi cua tep roi thoat ngay
   if not "%~1"=="" (
     git fetch origin
     git checkout %~1
+    if errorlevel 1 (
+      echo.
+      echo KHONG CHUYEN DUOC SANG NHANH %~1 - xem loi git o tren. Chua dung lai gi ca.
+      pause
+      exit /b 1
+    )
   )
   git pull
+  if errorlevel 1 (
+    echo.
+    echo KHONG KEO DUOC MA MOI - xem loi git o tren. Chua dung lai gi ca, ma tren may van la ban cu.
+    echo Neu git bao xung dot - CONFLICT - thi chay:  git merge --abort  roi chay lai tep nay.
+    pause
+    exit /b 1
+  )
   call "%~f0" da-keo
   exit /b
 )
