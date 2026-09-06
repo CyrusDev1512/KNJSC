@@ -244,6 +244,7 @@ dịch vụ chính và sửa ở dịch vụ riêng (`bangtinh`, cổng 8021); b
 | AC-11.25 | Ô địa chỉ hiện `A1` hay `C3:F7` theo ô và vùng đang chọn, gõ địa chỉ + Enter thì nhảy tới ô đó; ô giá trị trên thanh công thức hiện giá trị thô, Enter lưu rồi xuống dòng; bấm một lần chỉ chọn ô, bấm đúp hoặc gõ chữ mới mở sửa với đúng ký tự vừa gõ; rời ô đang sửa mà đã đổi thì lưu | FR-7.4 | Tự động |
 | AC-11.26 | Lưới hỏi máy chủ mốc mới nhất (thời điểm sửa gần nhất, số dòng, số cột — trong phạm vi người xem, không có dữ liệu) mỗi vài giây khi rảnh; người khác sửa thì thân bảng tự nạp lại và hiện báo Có dữ liệu mới; đổi số cột thì tải lại trang; bộ phận khác 404 | FR-7.1 | Tự động |
 | AC-11.27 | Nhìn và thao tác như bảng tính KN Demo, đối chiếu ảnh `docs/tham-khao/kn-demo/`: khung tối viền vàng, thanh công cụ đúng thứ tự demo, thanh công thức có ô địa chỉ, cột số dòng, chữ cột A B C có nút ▼, hàng tên cột là hàng 1, cột trống tới Z, ô 25px có viền, chân trang có tab bảng và `+100 dòng`, nút ⛶ phóng toàn màn hình, trạng thái lưu ở thanh trên; kéo chuột chọn vùng thấy viền vàng và tay kéo điền | FR-7.9 · FR-7.12 | Thủ công |
+| AC-11.30 | KN CRM là app riêng (dịch vụ `bangtinh`): ở KN ERP mục **KN CRM** trên thanh bên của mọi bộ phận là liên kết ngoài tới `BANGTINH_URL` mở tab mới, `/bang-tinh/` ở ERP không tồn tại (404); nút "Mở trong KN CRM" ở Bảng dữ liệu trỏ đúng bảng; ở KN CRM gốc `/` là trang chủ, các màn hình ERP không tồn tại, mục KN CRM là liên kết trong cùng tab | FR-7.13 · FR-3.6 | Tự động |
 
 ---
 

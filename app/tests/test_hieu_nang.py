@@ -87,7 +87,7 @@ def test_bang_du_lieu_50000_dong_duoi_2_giay(client, du_lieu_lon, django_assert_
 def test_bang_tinh_50000_dong_co_loc_duoi_2_giay(client, du_lieu_lon, django_assert_max_num_queries):
     """AC-7.1 — Bảng tính trên 50.000 dòng, có hai bộ lọc và cột Lọc trùng, trang đầu dưới 2 giây"""
     client.force_login(du_lieu_lon["vd"])
-    with override_settings(GRID_ONLY_TABLES=set()):
+    with override_settings(ROOT_URLCONF="knjsc.urls_bangtinh", GRID_ONLY_TABLES=set()):
         mat = _bam_gio(client, "/bang-tinh/", django_assert_max_num_queries)
         assert mat < PERF_PAGE_SECONDS, f"lưới không lọc mất {mat:.2f}s"
         mat = _bam_gio(

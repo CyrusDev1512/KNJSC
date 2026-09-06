@@ -1,8 +1,8 @@
 """Bảng tính vận đơn — `docs/04` mục 11, ADR-009.
 
-Chạy qua HTTP với cả hai cấu hình: dịch vụ chính (chỉ xem) và dịch vụ
-`bangtinh` (sửa được — dựng lại bằng `GRID_ONLY_TABLES` rỗng). Mỗi bài phân
-quyền kiểm cả hai chiều.
+Chạy qua HTTP ở app KN CRM (`conftest.py` đặt URLconf `knjsc.urls_bangtinh`)
+với cả hai cấu hình bảng chỉ xem và sửa được (`GRID_ONLY_TABLES` rỗng — đúng
+dịch vụ 8021 khi chạy thật). Mỗi bài phân quyền kiểm cả hai chiều.
 """
 from datetime import date
 from pathlib import Path
@@ -198,7 +198,8 @@ def test_bang_du_lieu_chi_xem_bang_tinh_sua_duoc(client, du_lieu, nguoi_dung):
     assert 'class="o-xem' in kq.content.decode() and 'class="o-sua' not in kq.content.decode()
     assert client.get(duong).status_code == 403
     assert client.post(duong, {"gia_tri": "sửa ở chỗ sai"}).status_code == 403
-    assert client.post(f"/bang/van_don/o/{dong.pk}/ghi_chu/", {"gia_tri": "sửa ở chỗ sai"}).status_code == 403
+    with override_settings(ROOT_URLCONF="knjsc.urls"):          # Bảng dữ liệu ở KN ERP
+        assert client.post(f"/bang/van_don/o/{dong.pk}/ghi_chu/", {"gia_tri": "sửa ở chỗ sai"}).status_code == 403
     dong.refresh_from_db()
     assert dong.data.get("ghi_chu") == "Giao buổi tối"
 

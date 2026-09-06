@@ -49,13 +49,24 @@ def test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap(client, bang_vd, nguoi_d
     assert dong.data["ghi_chu"] == "sửa ở Bảng tính"
 
 
-def test_dich_vu_chinh_co_lien_ket_ngoai_toi_bang_tinh(client, bang_vd, nguoi_dung, settings):
-    """AC-11.4 — Ở dịch vụ chính, mục Bảng tính trên thanh bên trỏ ra địa chỉ dịch vụ riêng, và chỉ Vận đơn với Admin thấy"""
-    settings.BANGTINH_URL = "http://localhost:8021/bang-tinh/"
+def test_erp_chi_con_lien_ket_sang_kn_crm(client, bang_vd, nguoi_dung, settings):
+    """AC-11.30 — Ở KN ERP mục KN CRM trên thanh bên của mọi bộ phận là liên kết ngoài mở tab mới, lưới không tồn tại ở ERP, Bảng dữ liệu có nút mở đúng bảng trong KN CRM; ở KN CRM mục này là liên kết trong cùng tab"""
+    settings.ROOT_URLCONF = "knjsc.urls"                     # KN ERP
+    settings.BANGTINH_URL = "http://localhost:8021/"
+    lien_ket = 'href="http://localhost:8021/"\n             target="_blank" rel="noopener"'
+    for ma in ("staff_vd", "staff_sale_1", "staff_mkt", "admin"):
+        client.force_login(nguoi_dung[ma])
+        html = client.get("/").content.decode()
+        assert lien_ket in html, f"{ma} không thấy mục KN CRM mở tab mới"
+        assert ">KN CRM<" in html
     client.force_login(nguoi_dung["staff_vd"])
-    html = client.get("/").content.decode()
-    assert 'href="http://localhost:8021/bang-tinh/"' in html
-    client.force_login(nguoi_dung["admin"])
-    assert 'href="http://localhost:8021/bang-tinh/"' in client.get("/").content.decode()
-    client.force_login(nguoi_dung["staff_sale_1"])
-    assert "8021/bang-tinh" not in client.get("/").content.decode()
+    assert client.get("/bang-tinh/").status_code == 404, "lưới không còn ở ERP"
+    assert client.get("/bang-tinh/van_don/").status_code == 404
+    html = client.get("/bang/van_don/").content.decode()
+    assert 'href="http://localhost:8021/bang-tinh/van_don/" target="_blank" rel="noopener">Mở trong KN CRM</a>' in html
+
+    # Ở chính KN CRM: mục là liên kết trong, không mở tab mới
+    settings.ROOT_URLCONF = "knjsc.urls_bangtinh"
+    settings.BANGTINH_URL = ""
+    html = client.get("/bang-tinh/").content.decode()
+    assert 'class="nav-muc" href="/bang-tinh/"' in html and "target=\"_blank\"" not in html

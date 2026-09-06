@@ -1,6 +1,8 @@
-"""Gốc điều hướng.
+"""Gốc điều hướng của dịch vụ chính (KN ERP).
 
-Đường dẫn hiển thị cho người dùng viết bằng tiếng Việt không dấu.
+Đường dẫn hiển thị cho người dùng viết bằng tiếng Việt không dấu. Lưới Bảng
+tính **không** nằm ở đây: nó là app riêng KN CRM (`knjsc/urls_bangtinh.py`,
+ADR-012); thanh bên chỉ có liên kết sang đó.
 """
 from django.contrib import admin
 from django.urls import include, path
@@ -13,5 +15,4 @@ urlpatterns = [
     path("", include("forms_builder.urls")),
     path("", include("reports.urls")),
     path("", include("orders.urls")),
-    path("", include("crm.urls")),
 ]

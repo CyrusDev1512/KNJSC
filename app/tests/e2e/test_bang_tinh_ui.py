@@ -6,6 +6,17 @@ HTMX chạy thật: AC-11.10 và phần cuộn của AC-11.1.
 import pytest
 from django.test import override_settings
 
+#: Lưới chỉ có ở app KN CRM (ADR-012): dựng lại đúng cấu hình dịch vụ 8021
+DICH_VU_CRM = override_settings(ROOT_URLCONF="knjsc.urls_bangtinh", GRID_ONLY_TABLES=set(), BANGTINH_URL="")
+
+
+@pytest.fixture(autouse=True)
+def _o_kn_crm(settings):
+    """Mọi bài ở tệp này chạy ở app KN CRM: URLconf 8021, bảng vận đơn sửa được."""
+    settings.ROOT_URLCONF = "knjsc.urls_bangtinh"
+    settings.GRID_ONLY_TABLES = set()
+    settings.BANGTINH_URL = ""
+
 from forms_builder.services import record_service
 from orders.models import Product, ProductGroup
 from orders.services import dispatch_service
@@ -44,7 +55,7 @@ def _dong_dang_focus(page):
 
 def test_ban_phim_di_chuyen_sua_va_huy(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
     """AC-11.10 — Mũi tên và Tab đi giữa các ô, Enter mở sửa, Esc huỷ, chọn giá trị danh sách thì ô cập nhật không tải lại trang"""
-    with override_settings(GRID_ONLY_TABLES=set()):
+    with DICH_VU_CRM:
         dang_nhap(trang, nguoi_dung["staff_vd"])
         trang.goto(live_server.url + "/bang-tinh/?sap=ma_don")
         dong1 = du_lieu["dong"][0].pk
@@ -161,7 +172,7 @@ def test_cot_dau_va_tieu_de_dung_yen_khi_cuon(live_server, trang, dang_nhap, du_
 
 def test_dong_trong_thanh_dong_that_va_loc_theo_o_khoa(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
     """AC-11.14 — Gõ vào dòng trống rồi nhấn Enter thì dòng thật xuất hiện không tải lại trang; AC-11.16 — bấm ⌕ ở ô Mã đơn thì lưới lọc còn đúng dòng đó"""
-    with override_settings(GRID_ONLY_TABLES=set()):
+    with DICH_VU_CRM:
         dang_nhap(trang, nguoi_dung["staff_vd"])
         trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
         so_dong_truoc = trang.locator("tbody tr[data-dong]").count()
@@ -184,7 +195,7 @@ def test_dong_trong_thanh_dong_that_va_loc_theo_o_khoa(live_server, trang, dang_
 
 def test_chon_vung_va_dinh_dang_o(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
     """AC-11.15 — Ctrl+bấm rồi Shift+bấm chọn một vùng, bấm B thì cả vùng in đậm tại chỗ không tải lại trang; tải lại trang định dạng vẫn còn; Ctrl+B trên ô đã đậm thì bỏ đậm"""
-    with override_settings(GRID_ONLY_TABLES=set()):
+    with DICH_VU_CRM:
         dang_nhap(trang, nguoi_dung["staff_vd"])
         trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
         o_dau = trang.locator('tbody tr[data-dong] td[data-cot="ten_khach"]').nth(0)
@@ -211,7 +222,7 @@ def test_chon_vung_va_dinh_dang_o(live_server, trang, dang_nhap, du_lieu, nguoi_
 
 def test_keo_do_rong_va_thu_tu_cot_nho_tren_trinh_duyet(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
     """AC-11.18 — Trang Bảng tính không có thanh bên hệ thống; cột có chữ A B C; kéo mép tiêu đề đổi độ rộng, kéo thả tiêu đề đổi thứ tự ở cả tiêu đề lẫn dòng; tải lại vẫn giữ; Đặt lại cột về mặc định"""
-    with override_settings(GRID_ONLY_TABLES=set()):
+    with DICH_VU_CRM:
         dang_nhap(trang, nguoi_dung["staff_vd"])
         trang.goto(live_server.url + "/bang-tinh/van_don/")
         assert trang.locator("aside.nav").count() == 0
@@ -258,7 +269,7 @@ def _gia_tri(trang, dong, cot):
 def test_keo_chon_vung_dan_tu_excel_va_keo_dien(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
     """AC-11.19 — Kéo chuột chọn vùng thì ô địa chỉ hiện `C3:D4`; dán chữ có tab và xuống dòng (như chép từ Excel) vào ô đang chọn thì các ô bên cạnh và bên dưới nhận đúng giá trị, tràn xuống dòng trống thì thành bản ghi mới; kéo tay điền từ hai số cách đều thì tiếp chuỗi; Delete xoá nội dung vùng chọn"""
     from forms_builder.models import DataRecord
-    with override_settings(GRID_ONLY_TABLES=set()):
+    with DICH_VU_CRM:
         dang_nhap(trang, nguoi_dung["staff_vd"])
         trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
         trang.wait_for_load_state("networkidle")
@@ -330,7 +341,7 @@ def test_keo_chon_vung_dan_tu_excel_va_keo_dien(live_server, trang, dang_nhap, d
 
 def test_hoan_tac_va_lam_lai(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
     """AC-11.20 — Ctrl+Z trả lại giá trị cũ của các ô vừa dán và của vùng vừa xoá nội dung; Ctrl+Y áp lại; nút ↶ ↷ bật tắt theo ngăn xếp; Ctrl+Z sau khi in đậm thì bỏ đậm"""
-    with override_settings(GRID_ONLY_TABLES=set()):
+    with DICH_VU_CRM:
         dang_nhap(trang, nguoi_dung["staff_vd"])
         trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
         trang.wait_for_load_state("networkidle")
@@ -372,7 +383,7 @@ def test_hoan_tac_va_lam_lai(live_server, trang, dang_nhap, du_lieu, nguoi_dung)
 
 def test_o_dia_chi_thanh_cong_thuc_va_bam_dup(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
     """AC-11.25 — Ô địa chỉ hiện địa chỉ ô đang chọn, gõ địa chỉ + Enter thì nhảy tới; ô giá trị hiện giá trị thô, Enter ở đó lưu rồi xuống dòng; bấm một lần chỉ chọn, bấm đúp mới mở sửa; rời ô đang sửa mà đã đổi thì lưu"""
-    with override_settings(GRID_ONLY_TABLES=set()):
+    with DICH_VU_CRM:
         dang_nhap(trang, nguoi_dung["staff_vd"])
         trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
         trang.wait_for_load_state("networkidle")
@@ -408,7 +419,7 @@ def test_o_dia_chi_thanh_cong_thuc_va_bam_dup(live_server, trang, dang_nhap, du_
 def test_menu_chuot_phai_xoa_hang_va_hoan_tac(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
     """AC-11.21 — Chuột phải lên vùng hai dòng: menu hiện Xoá 2 hàng; xác nhận thì hai dòng biến khỏi lưới và bị đánh dấu xoá; Ctrl+Z khôi phục cả hai về chỗ cũ; mục chèn cột mờ với Staff"""
     from forms_builder.models import DataRecord
-    with override_settings(GRID_ONLY_TABLES=set()):
+    with DICH_VU_CRM:
         dang_nhap(trang, nguoi_dung["staff_vd"])
         trang.goto(live_server.url + "/bang-tinh/van_don/?sap=ma_don")
         trang.wait_for_load_state("networkidle")
