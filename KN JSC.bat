@@ -4,6 +4,8 @@ rem duoc, may nao cung duoc: clone kho ma ve, nhay dup tep nay, xong.
 rem
 rem No lam gi:
 rem   1. Keo ma moi tu GitHub - co git va co mang thi keo, khong thi bo qua.
+rem      Keo khong duoc - dang gop do, sua tay chua commit, mat mang - thi NOI
+rem      RO tren man hinh roi van bat ban dang co; khong nuot loi.
 rem   2. Tao (hoac lam moi) loi tat "KN JSC" co logo ngoai Desktop, tu do
 rem      nhay dup logo la du.
 rem   3. Mo Docker Desktop neu chua chay, bat container.
@@ -37,6 +39,16 @@ if not exist ".git" goto :khong_keo
 where git >nul 2>&1
 if errorlevel 1 goto :khong_keo
 for /f %%h in ('git rev-parse HEAD 2^>nul') do set "TRUOC=%%h"
+rem Kho ma dang do dang mot lan gop hay rebase - xung dot chua giai - thi git
+rem pull tu choi. Noi ro va khong keo. Truoc day pull -q nuot loi nay, nguoi
+rem dung tuong da co ma moi ma van chay ban cu - 06.09.2026
+if exist ".git\MERGE_HEAD" goto :gop_do
+if exist ".git\rebase-merge" goto :gop_do
+if exist ".git\rebase-apply" goto :gop_do
+set "NHANH="
+for /f %%b in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set "NHANH=%%b"
+echo Nhanh dang dung: %NHANH%
+if /i not "%NHANH%"=="main" echo   Khong phai main - chi keo ban moi cua nhanh nay. Ve main: scripts\cap-nhat-local.bat main
 rem Tep nay chua duoc git theo doi - nguoi dung tai ve roi tha vao thu muc -
 rem thi git pull se tu choi ghi de. Tam doi no ra ngoai, keo xong dung ban tu
 rem GitHub; keo khong duoc thi tra lai. Ca khoi da doc het truoc khi chay.
@@ -45,12 +57,27 @@ git ls-files --error-unmatch "KN JSC.bat" >nul 2>&1 && set "DA_THEO_DOI=1"
 echo Kiem tra ma moi tren GitHub ...
 (
   if not defined DA_THEO_DOI move /y "%~f0" "%TEMP%\KN JSC.bat.cu" >nul
-  git pull --ff-only -q
+  git pull --ff-only
+  if errorlevel 1 (
+    echo.
+    echo KHONG KEO DUOC MA MOI - xem loi git ngay tren. He thong se chay ban dang co tren may.
+    echo Thu: scripts\cap-nhat-local.bat main
+    timeout /t 8
+  )
   if not exist "%~f0" move /y "%TEMP%\KN JSC.bat.cu" "%~f0" >nul
   for /f %%h in ('git rev-parse HEAD 2^>nul') do set "SAU=%%h"
   call "%~f0" da-keo %*
   exit /b
 )
+:gop_do
+echo.
+echo Kho ma dang do dang mot lan gop - xung dot chua giai - nen khong keo duoc ma moi.
+echo He thong se chay ban dang co tren may. De go, mo cmd tai thu muc nay va chay:
+echo     git merge --abort
+echo     git checkout main
+echo     git pull --ff-only
+echo roi nhay dup lai KN JSC.bat
+timeout /t 10
 :khong_keo
 call "%~f0" da-keo %*
 exit /b
@@ -170,7 +197,8 @@ if "%LAN_DAU%"=="1" (
 )
 start "" %DIA_CHI%
 echo.
-echo Da mo http://localhost:8020 - he thong. Bang tinh van don: http://localhost:8021/bang-tinh/
+echo Da mo http://localhost:8020 - KN ERP. KN CRM - bang tinh: http://localhost:8021/
+if not defined CO_MA_MOI echo Khong co ma moi - neu vua gop code tren GitHub ma khong thay doi, xem dong Nhanh dang dung o tren.
 echo Tai khoan mau xem o docs\tai-khoan-mau.md
 if "%LAN_DAU%"=="1" (
   pause
