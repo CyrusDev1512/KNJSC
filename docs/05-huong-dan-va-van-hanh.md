@@ -455,6 +455,15 @@ chạy, hoặc xoá vùng lưu cơ sở dữ liệu. Cả ba đều có thể l�
 
 ## B6. Cập nhật hệ thống
 
+**Máy cá nhân — một lệnh:** nháy đúp `KN JSC.bat` ở thư mục gốc (Windows), hoặc
+chạy `scripts\cap-nhat-local.bat` / `./scripts/cap-nhat-local.sh`. Script tự mở
+Docker Desktop và chờ nó sẵn sàng, kéo mã mới, dựng lại container, migrate, tạo
+bảng vận đơn, nạp dữ liệu mẫu (kể cả đặt lại đúng mật khẩu in ra cho tài khoản mẫu
+có sẵn) rồi mở trình duyệt. Muốn xem một nhánh khác thì truyền tên nhánh:
+`scripts\cap-nhat-local.bat <tên nhánh>`. Dừng ở bước nào thì in rõ bước đó.
+
+Máy chủ thật thì làm theo thứ tự dưới đây:
+
 1. **Tạo bản sao lưu mới trước khi làm gì**
 2. Chép bản sao lưu đó ra một nơi khác
 3. Lấy mã nguồn mới
