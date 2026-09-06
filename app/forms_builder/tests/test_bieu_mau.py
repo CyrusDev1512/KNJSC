@@ -416,42 +416,29 @@ def test_phai_chon_dung_mot_ben_nhan_quyen(bang_mkt, teams, nguoi_dung):
         )
 
 
-# ══ Sửa ô theo quyền cấp riêng — gỡ K12 ════════════════════════════
+# ══ Cấp quyền riêng và Bảng dữ liệu chỉ xem — ADR-014 ══════════════
 
-def test_cap_quyen_sua_thi_sua_duoc_o(client, bang_mkt, nguoi_dung):
-    """AC-7.4 — Được cấp quyền sửa thì sửa được ô, dù ngoài bộ phận"""
+def test_cap_quyen_sua_van_chi_xem_o_bang_du_lieu(client, bang_mkt, nguoi_dung):
+    """AC-7.4 — Được cấp quyền Sửa thì thấy bảng ngoài bộ phận nhưng ở KN ERP vẫn chỉ xem: không ô sửa, đường sửa ô cũ trả 404; quyền Sửa chỉ có nghĩa trên lưới KN CRM"""
     from forms_builder.services import record_service
 
     bg = record_service.create_record(
         bang_mkt, {"marketer": "Tên cũ"}, actor=nguoi_dung["staff_mkt"])
     nguoi = nguoi_dung["staff_sale_1"]
-
-    grant_service.grant(table=bang_mkt, user=nguoi, action=GrantAction.VIEW,
-                        actor=nguoi_dung["manager_mkt"])
-    grant_service.grant(table=bang_mkt, user=nguoi, action=GrantAction.EDIT,
-                        actor=nguoi_dung["manager_mkt"])
+    for quyen in (GrantAction.VIEW, GrantAction.EDIT):
+        grant_service.grant(table=bang_mkt, user=nguoi, action=quyen,
+                            actor=nguoi_dung["manager_mkt"])
 
     client.force_login(nguoi)
-    kq = client.post(f"/bang/bc_mkt/o/{bg.pk}/marketer/", {"gia_tri": "Tên mới"})
+    kq = client.get("/bang/bc_mkt/")
     assert kq.status_code == 200
-    bg.refresh_from_db()
-    assert bg.data["marketer"] == "Tên mới"
+    html = kq.content.decode()
+    assert "Tên cũ" in html
+    assert "hx-post" not in html and 'class="o-sua' not in html
+    assert "Bảng này chỉ để xem" in html
 
-
-def test_chi_cap_quyen_xem_thi_khong_sua_duoc_o(client, bang_mkt, nguoi_dung):
-    """AC-7.4 — Chiều bị từ chối: chỉ được xem thì không sửa được ô"""
-    from forms_builder.services import record_service
-
-    bg = record_service.create_record(
-        bang_mkt, {"marketer": "Tên cũ"}, actor=nguoi_dung["staff_mkt"])
-    nguoi = nguoi_dung["staff_sale_1"]
-    grant_service.grant(table=bang_mkt, user=nguoi, action=GrantAction.VIEW,
-                        actor=nguoi_dung["manager_mkt"])
-
-    client.force_login(nguoi)
     kq = client.post(f"/bang/bc_mkt/o/{bg.pk}/marketer/", {"gia_tri": "Tên mới"})
-    assert kq.status_code == 403
-
+    assert kq.status_code == 404
     bg.refresh_from_db()
     assert bg.data["marketer"] == "Tên cũ"
 

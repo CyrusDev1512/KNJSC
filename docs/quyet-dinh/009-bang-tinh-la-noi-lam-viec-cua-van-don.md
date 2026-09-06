@@ -6,6 +6,7 @@
 | Ngày | 03.09.2026 |
 | Người quyết định | Anh/chị chủ dự án, qua bốn câu hỏi ngày 03.09.2026 |
 | Liên quan | ADR-002 · ADR-004 · **sửa ADR-006** · FR-7.4 · FR-7.8 · backlog Q26, Q38 → Q45 |
+| Đã được thay | **Mục 4** phần "các bảng khác vẫn sửa ô như cũ" — ADR-014 (06.09.2026): Bảng dữ liệu chỉ xem với mọi bảng |
 
 ---
 

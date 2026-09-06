@@ -10,7 +10,7 @@ thật, không gọi tắt tầng dịch vụ.
         ↓
     Nhân viên Sale lên đơn                      → sinh dòng bảng vận đơn
         ↓
-    Nhân viên Vận đơn cập nhật trạng thái       → sửa ô ngay trên bảng
+    Nhân viên Vận đơn cập nhật trạng thái       → sửa ô trên lưới KN CRM
         ↓
     Quản lý mở nhật ký                          → thấy đủ dấu vết
 
@@ -135,7 +135,7 @@ def test_mot_ngay_cua_cong_ty(client, departments, teams, nguoi_dung):
     assert don.total == Decimal("300.00"), "Đọc sai số tiền người dùng gõ"
     assert don.record is not None, "Đơn chưa chảy sang bảng vận đơn"
 
-    # ── 4. Nhân viên Vận đơn cập nhật trạng thái, ngay trên bảng ──
+    # ── 4. Nhân viên Vận đơn cập nhật trạng thái, trên lưới KN CRM ──
     client.force_login(vd_nv)
     bang_vd = dispatch_service.waybill_table()
 
@@ -144,12 +144,14 @@ def test_mot_ngay_cua_cong_ty(client, departments, teams, nguoi_dung):
         "Vận đơn không thấy dòng do Sale lên — cả tính năng vô dụng"
     )
 
-    # Ở Bảng dữ liệu chỉ xem (ADR-009); cập nhật là việc của Bảng tính — dịch
-    # vụ `bangtinh` chạy cùng mã với `GRID_ONLY_TABLES` rỗng
-    duong_dan = f"/bang/{bang_vd.code}/o/{don.record_id}/trang_thai_vc/"
-    assert client.post(duong_dan, {"gia_tri": "Đang giao"}).status_code == 403
-    with override_settings(GRID_ONLY_TABLES=set()):
-        kq = client.post(duong_dan, {"gia_tri": "Đang giao"})
+    # Bảng dữ liệu ở KN ERP chỉ để xem với mọi bảng, không có đường sửa ô
+    # (ADR-014); cập nhật là việc của KN CRM — dịch vụ `bangtinh` chạy cùng mã
+    # với URLconf riêng và `GRID_ONLY_TABLES` rỗng
+    duong_cu = f"/bang/{bang_vd.code}/o/{don.record_id}/trang_thai_vc/"
+    assert client.post(duong_cu, {"gia_tri": "Đang giao"}).status_code == 404
+    with override_settings(ROOT_URLCONF="knjsc.urls_bangtinh", GRID_ONLY_TABLES=set()):
+        kq = client.post(f"/bang-tinh/{bang_vd.code}/o/{don.record_id}/trang_thai_vc/",
+                         {"gia_tri": "Đang giao"})
     assert kq.status_code == 200
     don.record.refresh_from_db()
     assert don.record.data["trang_thai_vc"] == "Đang giao"

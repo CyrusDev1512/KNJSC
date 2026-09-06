@@ -6,6 +6,7 @@
 | Ngày | 06.09.2026 |
 | Người quyết định | Anh/chị chủ dự án, qua bốn câu hỏi ngày 06.09.2026 |
 | Liên quan | ADR-001 · ADR-007 · ADR-009 (sổ danh sách) · ADR-010 (định dạng từng ô) · FR-4.6 · FR-6.8 · FR-8.7 → FR-8.9 · backlog Q58 → Q61, K22 |
+| Đã được thay | **Mục 2** phần ô chọn và "＋ Thêm mới…" ngay trong ô Bảng dữ liệu — ADR-014 (06.09.2026): Bảng dữ liệu chỉ xem; ô chọn còn ở biểu mẫu, báo cáo ngày, Lên đơn |
 
 ---
 

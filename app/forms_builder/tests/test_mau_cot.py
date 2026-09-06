@@ -105,11 +105,11 @@ def test_lop_css_theo_nguong(bang_mkt):
     assert styling.alert_class(cot, "150") == "o-dat-nguong"
 
     assert styling.column_class(cot) == "cot-nen-vang"
-    assert styling.cell_class(cot, "150", editable=True) == "o-sua cot-nen-vang o-dat-nguong"
-    assert styling.cell_class(cot, "", editable=False, error=True) == "cot-nen-vang o-loi"
+    assert styling.cell_class(cot, "150") == "cot-nen-vang o-dat-nguong"
+    assert styling.cell_class(cot, "") == "cot-nen-vang"        # ô trống: chỉ màu cột
 
     cot.alert_op, cot.alert_value, cot.highlight = "", None, ""
-    assert styling.cell_class(cot, "150", editable=False) == ""
+    assert styling.cell_class(cot, "150") == ""
 
 
 def test_manager_dat_mau_va_nguong_roi_bang_hien_dung(client, bang_mkt, nguoi_dung):
@@ -135,9 +135,10 @@ def test_manager_dat_mau_va_nguong_roi_bang_hien_dung(client, bang_mkt, nguoi_du
     html = client.get("/bang/chi_phi_ads/").content.decode()
     assert '<table class="bang bang-luoi">' in html
     assert '<th class="sap-xep cot-nen-vang' in html
-    assert html.count('class="o-sua cot-nen-vang o-vuot-nguong"') == 1
-    assert html.count('class="o-sua cot-nen-vang o-dat-nguong"') == 1
-    assert html.count('class="o-sua cot-nen-vang"') == 1          # ô trống: chỉ màu cột
+    assert html.count('class="cot-nen-vang o-vuot-nguong"') == 1
+    assert html.count('class="cot-nen-vang o-dat-nguong"') == 1
+    assert html.count('class="cot-nen-vang"') == 1                # ô trống: chỉ màu cột
+    assert 'class="o-sua' not in html                            # chỉ xem — ADR-014
 
 
 def test_bao_cao_xem_mang_lop_mau(client, bang_mkt, departments, nguoi_dung):

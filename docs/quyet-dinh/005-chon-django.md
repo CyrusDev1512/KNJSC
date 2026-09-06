@@ -106,6 +106,8 @@ Hệ thống nội bộ dưới một trăm người dùng, không cần ứng d
 
 Bảng dữ liệu là màn hình phức tạp nhất — lọc, sắp xếp, phân trang, sửa từng ô. HTMX làm được cả bốn mà không cần dựng gói.
 
+> Phần "sửa từng ô" đã được thay bởi ADR-014 (06.09.2026): Bảng dữ liệu ở KN ERP chỉ để xem, sửa ô là việc của lưới KN CRM. Lập luận về HTMX vẫn nguyên.
+
 ---
 
 ## Hệ quả

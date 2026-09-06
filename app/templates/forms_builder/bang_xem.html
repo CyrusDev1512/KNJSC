@@ -16,19 +16,18 @@
     {% if duoc_nhap %}<a class="nut" href="{% url 'bang_nhap' bang.code %}">Nhập tệp</a>{% endif %}
     {# Xuất đúng thứ đang hiện: mang theo bộ lọc, tìm kiếm, sắp xếp — ADR-002 #}
     <a class="nut" href="{% url 'bang_xuat' bang.code %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Xuất tệp</a>
-    {% if chi_xem %}<a class="nut nut-chinh" href="{{ bang_tinh_url }}" target="_blank" rel="noopener">Mở trong KN CRM</a>{% endif %}
+    {# Nơi sửa duy nhất là lưới KN CRM của đúng bảng này — ADR-012, ADR-014 #}
+    <a class="nut nut-chinh" href="{{ bang_tinh_url }}" target="_blank" rel="noopener">Mở trong KN CRM</a>
   </div>
 </div>
 
-{% if chi_xem %}
-  <div class="bao bao-nhan">
-    <span class="bao-ic">i</span>
-    <div>
-      <b>Bảng này chỉ xem ở đây</b>
-      <p>Bộ phận Vận đơn làm việc và sửa dữ liệu ở <a href="{{ bang_tinh_url }}" target="_blank" rel="noopener">KN CRM</a> — một nơi sửa duy nhất (ADR-009, ADR-012).</p>
-    </div>
+<div class="bao bao-nhan">
+  <span class="bao-ic">i</span>
+  <div>
+    <b>Bảng này chỉ để xem</b>
+    <p>Sửa số liệu ở <a href="{{ bang_tinh_url }}" target="_blank" rel="noopener">KN CRM</a> — một nơi sửa duy nhất cho mọi bảng (ADR-014).</p>
   </div>
-{% endif %}
+</div>
 
 <div class="bang-hop">
   {# Chỉ cột mang nhãn ý nghĩa mới cho lọc — cột đó có chỉ mục (quy tắc 9) #}
@@ -66,10 +65,11 @@
         </tr>
       </thead>
       <tbody>
-        {% for ban_ghi, cac_o, sua_duoc_dong in cac_dong %}
+        {% for ban_ghi, cac_o in cac_dong %}
           <tr>
             {% for cot, gia_tri, lop_o in cac_o %}
-              {% include "forms_builder/_o.html" with duoc_sua=sua_duoc_dong %}
+              {# Ô chỉ để xem — ADR-014; lớp màu cột và cảnh báo tính sẵn ở styling.py #}
+              <td class="{{lop_o}}"{% if cot.is_computed %} title="Cột tính sẵn, hệ thống tự tính"{% endif %}>{{ gia_tri|default:"—" }}</td>
             {% endfor %}
             <td class="nho">{{ ban_ghi.created_by.username|default:"—" }}</td>
           </tr>
@@ -85,38 +85,4 @@
   {% include "components/phan_trang.html" %}
 </div>
 
-{% if duoc_sua %}
-  <p class="nho mo-nhat" style="margin-top:var(--sp-3)">
-    Bấm vào ô để sửa, nhấn Enter hoặc bấm ra ngoài để lưu. Ô chọn thì chọn xong là lưu. Cột tính sẵn không sửa tay được.
-  </p>
-{% endif %}
-
-{% endblock %}
-
-{% block cuoi_trang %}
-<script>
-  /* Ô trên bảng: Enter hoặc rời ô thì bắn sự kiện "sua" cho HTMX gửi đi.
-     Không gửi khi giá trị không đổi — tránh ghi nhật ký rác. */
-  document.addEventListener("focusin", function (e) {
-    if (e.target.matches(".o-trong-bang")) e.target.dataset.goc = e.target.value;
-  });
-  function gui(o) {
-    if (o.value === o.dataset.goc) return;
-    o.dataset.goc = o.value;
-    o.closest("td").dispatchEvent(new Event("sua"));
-  }
-  document.addEventListener("focusout", function (e) {
-    if (e.target.matches(".o-trong-bang")) gui(e.target);
-  });
-  /* Ô chọn: chọn xong là lưu ngay. Mục "Thêm mới…" do chon.js lo, không gửi. */
-  document.addEventListener("change", function (e) {
-    if (e.target.matches("select.o-trong-bang") && e.target.value !== "__them__") gui(e.target);
-  });
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && e.target.matches(".o-trong-bang")) {
-      e.preventDefault();
-      e.target.blur();
-    }
-  });
-</script>
 {% endblock %}

@@ -121,4 +121,4 @@ def read_report_cells(bao_cao):
     from forms_builder import styling
 
     cot = styling.decorate_columns(list(bao_cao.form.table.columns.order_by("order", "id")))
-    return styling.row_cells(bao_cao.record, cot, editable=False)
+    return styling.row_cells(bao_cao.record, cot)

@@ -4,7 +4,8 @@
    (vào danh sách của cột, hoặc vào danh mục sản phẩm) rồi trả về đúng các
    <option> mới. Tệp này chép danh sách đó vào mọi ô chọn cùng nhóm
    (data-nhom), chọn giá trị vừa thêm ở ô đã hỏi, và bắn "change" để nơi
-   dùng ô tự lo tiếp: ô trên bảng dữ liệu thì lưu, màn hình Lên đơn thì tính lại.
+   dùng ô tự lo tiếp: màn hình Lên đơn thì tính lại tiền, biểu mẫu thì giữ giá
+   trị vừa chọn. Bảng dữ liệu không có ô chọn vì chỉ để xem (ADR-014).
 
    Bắt sự kiện ở mức document nên ô do HTMX thay vào sau vẫn chạy. */
 (function () {
@@ -80,13 +81,4 @@
     }
   });
 
-  // htmx không thay nội dung khi máy chủ trả 400; ô sửa trên bảng dữ liệu lại
-  // dùng 400 để đưa lý do lỗi về đúng ô đó — cho phép thay riêng trường hợp này
-  document.addEventListener("htmx:beforeSwap", function (e) {
-    var dich = e.detail.target;
-    if (e.detail.xhr && e.detail.xhr.status === 400 && dich && dich.matches && dich.matches("td.o-sua")) {
-      e.detail.shouldSwap = true;
-      e.detail.isError = false;
-    }
-  });
 })();
