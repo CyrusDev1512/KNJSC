@@ -242,24 +242,46 @@ Cột nào dùng để thống kê thì gán **nhãn ý nghĩa** — ví dụ c�
 | Hệ thống tự đăng xuất | Do không thao tác quá một tiếng, đăng nhập lại |
 | Nhập tệp báo lỗi | Kiểm tra kích thước dưới 10 MB và số dòng dưới 5.000; đuôi tệp phải đúng nội dung |
 | Nhập xong báo "dòng lỗi" | Mở trang Tác vụ nền, xem bảng dòng lỗi theo số hàng Excel, sửa tệp rồi nhập lại phần đó |
-| Không sửa được ô trên bảng vận đơn | Đúng như thiết kế — bảng vận đơn sửa ở Bảng tính cổng 8021 (mục A8) |
-| Bảng tính không có dòng trống cuối lưới | Bạn không có quyền thêm dòng vào bảng đó, hoặc bảng vận đơn đang mở ở hệ thống chính (chỉ xem) |
+| Không sửa được ô trên bảng vận đơn | Đúng như thiết kế — bảng vận đơn sửa ở KN CRM, cổng 8021 (mục A8) |
+| Bảng tính không có dòng trống cuối lưới | Bạn không có quyền thêm dòng vào bảng đó |
 | Nút định dạng báo "Chưa chọn ô nào" | Bấm vào một ô trước, Shift+bấm để chọn vùng |
 | Bảng tính báo "không có trong danh sách" | Ô đó chỉ nhận giá trị trong danh sách chọn — chọn từ ô xổ xuống |
 | Lỡ nhập sai đơn đã lưu | Báo quản lý, không tự sửa được |
 
 ---
 
-## A8. Bảng tính — lưới kiểu Excel cho mọi bảng
+## A8. KN CRM — app Bảng tính, lưới kiểu Excel cho mọi bảng
 
-Mục **Bảng tính** trên thanh bên mở một trang **toàn màn hình riêng**, nhìn
-và dùng như một bảng tính quen thuộc: khung tối viền vàng, thanh công cụ,
-thanh công thức, cột số dòng, chữ cột A B C… Z, ô có viền, chân trang có tab
-các bảng. Thanh trên có **←** về hệ thống, tên bảng, trạng thái lưu ("Đã lưu",
+Mục **KN CRM** trên thanh bên của KN ERP mở **một tab mới** sang app riêng
+(máy phát triển: `http://localhost:8021/`; trên máy chủ là tên miền con, dùng
+chung đăng nhập). Đây là nơi làm việc trên dữ liệu; KN ERP chỉ để xem nhanh
+và làm nghiệp vụ. Bạn chỉ thấy bảng trong phạm vi của mình; gọi thẳng đường
+dẫn bảng khác cũng bị từ chối.
+
+### Trang chủ: Bộ phận ▸ Quý ▸ Tháng ▸ bảng
+
+Vào KN CRM là thấy **cây thư mục bên trái**, như mở ổ đĩa thời còn dùng Sheet:
+bộ phận (chỉ bộ phận nào bạn có bảng được xem), rồi **Quý**, rồi **Tháng**, mỗi
+tháng ghi số dòng. Bấm một tháng thì bên phải liệt kê các bảng của bộ phận
+có cột Ngày, kèm số dòng trong tháng, lần cập nhật gần nhất và nhãn **Xem**
+hay **Sửa** (quyền của bạn trên bảng đó, do Manager cấp ở KN ERP). Bấm **Mở**
+là vào lưới **lọc sẵn đúng tháng đó** — thanh trên ghi "Tháng 9/2026". Tháng
+chỉ là góc nhìn: vẫn là một bảng, dữ liệu không bị tách. Mục **Toàn bộ bảng**
+dưới mỗi bộ phận liệt kê mọi bảng không lọc thời gian, xếp theo thư mục tay
+(Manager tạo bằng nút **+ Thư mục**). Bảng không có cột Ngày chỉ nằm ở đó.
+
+Từ lưới, bấm **←** ở góc trên trái để về trang chủ, cây mở đúng chỗ vừa rời.
+Từ trang chủ, **←** hoặc nút **KN ERP** đưa về hệ thống chính.
+
+### Lưới
+
+Lưới là một trang **toàn màn hình**, nhìn và dùng như một bảng tính quen
+thuộc: khung tối viền vàng, thanh công cụ, thanh công thức, cột số dòng, chữ
+cột A B C… Z, ô có viền, chân trang có tab các bảng. Thanh trên có **←** về
+trang chủ, tên bảng, nhãn tháng đang xem (nếu có), trạng thái lưu ("Đã lưu",
 "Đang lưu…", "Lỗi lưu"), nút **Tải Excel**, nút **⛶** phóng toàn màn hình (Esc
 để thoát) và chữ cái đầu tên bạn — bấm vào mở menu Nền sáng/tối, các màn hình
-khác và Đăng xuất. Bạn chỉ thấy bảng trong phạm vi của mình; gọi thẳng đường
-dẫn bảng khác cũng bị từ chối.
+khác và Đăng xuất.
 
 **Hàng 1 là tên cột, dữ liệu từ hàng 2**, số dòng nối tiếp qua các trang (mỗi
 trang 100 dòng, chuyển trang ở chân trang). Cột trống bên phải chỉ để nhìn cho

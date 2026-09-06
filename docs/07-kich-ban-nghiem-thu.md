@@ -43,7 +43,7 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 | ☐ | Việc | Đạt khi |
 |---|---|---|
 | ☐ | Mở `localhost:8020` | Thấy màn hình đăng nhập tiếng Việt |
-| ☐ | Mở `localhost:8021/bang-tinh/` | Thấy màn hình đăng nhập (dịch vụ Bảng tính chạy) |
+| ☐ | Mở `localhost:8021/` | Thấy màn hình đăng nhập (app KN CRM chạy) |
 | ☐ | Đăng nhập `quantri`, mở Tổng quan | Ô "Sao lưu đêm qua" hiện — có thể ghi "Chưa từng sao lưu", không sao |
 
 ---
@@ -54,7 +54,7 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 
 | ☐ | Bước | Đạt khi | Mã |
 |---|---|---|---|
-| ☐ | Đăng nhập, nhìn thanh bên | Có Lên đơn, Đơn hàng, Bảng dữ liệu, Bảng tính (mở bảng của Sale, không thấy bảng vận đơn); **không** có Nhân sự, Nhật ký | AC-3.6, AC-11.12 |
+| ☐ | Đăng nhập, nhìn thanh bên | Có Lên đơn, Đơn hàng, Bảng dữ liệu, **KN CRM** (mở tab mới; trang chủ chỉ có nhánh Sale, không thấy Vận đơn); **không** có Nhân sự, Nhật ký | AC-3.6, AC-11.12, AC-11.30 |
 | ☐ | Lên đơn cho khách mới, thị trường Canada, 2 sản phẩm, tiền CAD | Đơn lưu, mã `DH-…`, tổng tiền đúng | AC-6.1, AC-6.2 |
 | ☐ | Mở Bảng dữ liệu → Bảng vận đơn | Thấy dòng vừa lên: đủ tên khách, số điện thoại, **số lượng từng sản phẩm** ở đúng cột, Quốc gia Canada, Loại tiền CAD, trạng thái "Đã lên đơn" | AC-6.3, AC-11.8 |
 | ☐ | Bấm vào một ô trên bảng vận đơn | Ô **không** sửa được, có dòng báo "Bảng này chỉ xem ở đây" và nút Mở Bảng tính | AC-11.7 |
@@ -73,7 +73,7 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 | ☐ | Mở Bảng dữ liệu → Báo cáo Marketing → **Nhập tệp**, chọn chính tệp vừa xuất | Xem trước ghi đúng cột khớp cột; Xác nhận → tác vụ chạy, "Không có dòng lỗi" | AC-7.7 |
 | ☐ | Nhập một tệp `.exe` đổi đuôi `.xlsx` (tạo bằng cách đổi tên bất kỳ tệp nào) | Bị từ chối ngay, thông báo tiếng Việt | AC-7.9 |
 | ☐ | Tắt wifi giữa lúc bấm Lọc, rồi bật lại | Trình duyệt báo mất mạng, bật lại bấm lại thì chạy tiếp, không mất dữ liệu đã lưu | mục 12.7 |
-| ☐ | `mkt.manager` vào **Bảng tính** trên thanh bên (`localhost:8020/bang-tinh/`) | Mở bảng Báo cáo Marketing thành trang bảng tính: khung tối viền vàng, thanh công cụ như bảng tính (↶ ↷, định dạng số, cỡ chữ, B I U S, màu chữ, màu nền, căn lề, xuống dòng, viền, Xóa ĐD, Bộ lọc), nút **⋯** chứa Nhập, Thêm cột, Thư mục mới, Ẩn/hiện cột, Đặt lại cột, Lọc theo ô, Bỏ lọc; **Tải Excel** ở thanh trên; mọi ô có viền | **AC-11.12**, **AC-11.18**, **AC-11.27** |
+| ☐ | `mkt.manager` bấm **KN CRM** trên thanh bên → tab mới mở trang chủ KN CRM → nhánh Marketing → **Toàn bộ bảng** → Báo cáo Marketing → **Mở** | Tab mới ở `localhost:8021/`; trang chủ có cây Marketing ▸ Quý ▸ Tháng và nút Cấp quyền; lưới mở thành trang bảng tính: khung tối viền vàng, thanh công cụ như bảng tính (↶ ↷, định dạng số, cỡ chữ, B I U S, màu chữ, màu nền, căn lề, xuống dòng, viền, Xóa ĐD, Bộ lọc), nút **⋯** chứa Nhập, Thêm cột, Thư mục mới, Ẩn/hiện cột, Đặt lại cột, Lọc theo ô, Bỏ lọc; **Tải Excel** ở thanh trên; mọi ô có viền | **AC-11.12**, **AC-11.18**, **AC-11.27** |
 | ☐ | Bấm **Bộ lọc** để mở thanh bên trái: bấm **Hôm qua**, rồi gõ Từ ngày / Đến ngày, rồi tích hai sản phẩm và Áp dụng | Số dòng đổi theo, chip lọc hiện ở trên; Xuất Excel khi đang lọc ra đúng số dòng đó | AC-11.13 |
 | ☐ | Bấm một ô ở dòng trống cuối lưới rồi gõ ngay: ngày, marketer, sản phẩm; nhấn Enter | Dòng thành dòng thật ngay, không tải lại trang; vẫn còn dòng trống để gõ tiếp; gõ ngày sai thì ô đỏ kèm lý do, giá trị đã gõ còn nguyên | AC-11.14 |
 | ☐ | Kéo chuột từ một ô tới ô khác để chọn vùng (ô địa chỉ hiện ví dụ `B3:D6`), bấm **B**, **Màu nền** → ô vàng trong bảng 40 màu, **Cỡ 16**, căn giữa, **Định dạng số → VND** trên cột Doanh số | Cả vùng đổi ngay, số hiện dạng `1.250.000 ₫` mà giá trị gõ vào không đổi; đăng nhập `mkt.staff` mở cùng bảng thấy y hệt; **Xóa ĐD** thì về như cũ; Ctrl+Z trả lại định dạng vừa xoá | **AC-11.15**, AC-11.23, AC-11.20 |
@@ -91,11 +91,15 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 
 ### 3.3. Vận đơn — `vd.staff`
 
-Mở `http://localhost:8021/bang-tinh/`. Đây là màn hình làm việc của bộ phận.
+Đăng nhập KN ERP rồi bấm **KN CRM** trên thanh bên: tab mới mở trang chủ
+KN CRM ở `http://localhost:8021/`. Đây là nơi làm việc của bộ phận.
 
 | ☐ | Bước | Đạt khi | Mã |
 |---|---|---|---|
-| ☐ | Đăng nhập, nhìn thanh bên | Chỉ có Tổng quan, Bảng tính, Tác vụ nền — không có Lên đơn, Báo cáo | AC-11.4 |
+| ☐ | Ở KN ERP nhìn thanh bên | Chỉ có Tổng quan, KN CRM, Tác vụ nền — không có Lên đơn, Báo cáo | AC-11.4 |
+| ☐ | Trang chủ KN CRM | Cây bên trái: **Vận đơn ▸ Quý hiện tại ▸ ba tháng** (tháng hiện tại đang chọn), mỗi tháng có số dòng; **không** có nhánh Sale hay Marketing; bên phải: Bảng vận đơn với số dòng trong tháng, nhãn **Sửa**, nút Mở | **AC-11.28** |
+| ☐ | Bấm một tháng có dữ liệu → **Mở** | Lưới mở với chip lọc Ngày từ ngày 1 tới ngày cuối tháng, thanh trên ghi "Tháng M/YYYY", số dòng đúng tháng; bấm **←** thì về trang chủ với đúng tháng đang chọn | **AC-11.29** |
+| ☐ | Gõ `localhost:8020/bang-tinh/` ở KN ERP | Trang 404 — lưới chỉ có ở KN CRM | AC-11.30 |
 | ☐ | Cuộn ngang lưới | Cột Trùng, Mã đơn, Ngày, Tên khách, Số điện thoại **đứng yên**; cuộn dọc thì hàng tiêu đề đứng yên | **AC-11.1** |
 | ☐ | Bấm ▼ trên chữ cột của Trạng thái vận chuyển, tích hai trạng thái, **Áp dụng** | Số dòng đổi, chân trang ghi đúng `1–n / N` và "Đang lọc 1 cột"; bấm **Bộ lọc** thấy chip, bấm × trên chip thì bỏ lọc đó | AC-11.2, AC-11.24 |
 | ☐ | Bấm ▼ ở Tên khách, mở **Điều kiện khác**, gõ một chữ vào "chứa", Áp dụng | Hai lọc cộng dồn, chip hiện cả hai | AC-11.2 |

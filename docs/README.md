@@ -53,7 +53,8 @@ docs/
 │   ├── 008-bao-cao-boc-quanh-bieu-mau.md
 │   ├── 009-bang-tinh-la-noi-lam-viec-cua-van-don.md
 │   ├── 010-bang-tinh-cho-moi-bang-va-dinh-dang-o.md
-│   └── 011-bang-tinh-theo-mau-kn-demo.md
+│   ├── 011-bang-tinh-theo-mau-kn-demo.md
+│   └── 012-kn-crm-app-rieng-cay-thang.md
 │
 └── tham-khao/                       dữ liệu và tệp gốc từ khách hàng
     ├── CRM_Tan.xlsx

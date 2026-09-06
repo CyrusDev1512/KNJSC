@@ -296,7 +296,7 @@ Cùng bộ đọc bộ lọc với màn hình bảng (`query.read_filters`), nê
 50.000 dòng. Tiêu đề là tên cột, giá trị giữ kiểu (Decimal, ngày thật) để nhập
 lại được (AC-7.7).
 
-### 4.6. Bảng tính — ADR-009, ADR-010, ADR-011
+### 4.6. Bảng tính, tức app KN CRM — ADR-009, ADR-010, ADR-011, ADR-012
 
 Lưới kiểu Excel cho **mọi bảng** trong phạm vi quyền (`/bang-tinh/<mã>/`),
 dựng đầu tiên cho bảng `van_don`, nhìn và thao tác như bảng tính KN Demo
@@ -311,7 +311,9 @@ dựng đầu tiên cho bảng `van_don`, nhìn và thao tác như bảng tính 
 | Thứ tự cột | `dispatch_service.GRID_ORDER`, cột `sl_*` chèn sau thông tin khách |
 | Danh sách chọn | `forms_builder.choice_registry` — `crm` đăng ký lúc khởi động; *chặt* với trạng thái, *gợi ý* với nhân viên |
 | Sửa ô | `record_service.update_cell` — cùng đường với Bảng dữ liệu; `can_edit_record` trả False khi bảng nằm trong `GRID_ONLY_TABLES` |
-| Dịch vụ riêng | `knjsc/settings/bangtinh.py`: URLconf thu hẹp, `GRID_ONLY_TABLES` rỗng; container `bangtinh` cổng 8021; tương lai subdomain với `SESSION_COOKIE_DOMAIN` |
+| Dịch vụ riêng — **KN CRM** | `knjsc/settings/bangtinh.py`: URLconf `knjsc/urls_bangtinh.py`, `GRID_ONLY_TABLES` rỗng; container `bangtinh` cổng 8021; tương lai subdomain với `SESSION_COOKIE_DOMAIN`. **KN ERP không gắn `crm.urls`** (ADR-012): thanh bên một mục KN CRM trỏ `BANGTINH_URL` mở tab mới (`NavItem.new_tab`), Bảng dữ liệu có nút mở đúng bảng; ở KN CRM mục này là liên kết trong |
+| Trang chủ KN CRM | `crm/services/tree_service.py`: `all_tables` (một truy vấn kèm cột), `departments_of`, `month_counts` (`TruncMonth` trên `val_date`, `GROUP BY table_id`, một lệnh cho cả bộ phận), `table_stats`, `quarters` (mới trước, quý hiện tại luôn có), `build` → cây Bộ phận ▸ Quý ▸ Tháng và danh sách bảng của nút; view `crm.views.trang_chu` ở `/` (tên `bang_tinh`, `tong_quan`), tham số `bp`, `quy`, `thang`, `tat-ca`; `bp` ngoài phạm vi 404 có nhật ký |
+| Tháng là góc nhìn | `tree_service.grid_url(table, month)` → `bang-tinh/<mã>/?f_<Ngày>__lon_bang=…&f_<Ngày>__nho_bang=…`; `month_of_params` nhận ra bộ lọc đúng trọn tháng để lưới ghi nhãn và nút ← (`home_url`) về đúng nhánh |
 | Trạng thái lưới | Trên URL (`f_<cột>`, `sap`, `chieu`, `trung`, `sp`); không lưu máy chủ |
 | Phạm vi bảng | `TableDef.objects.in_scope(user)` — ngoài phạm vi 404; `/bang-tinh/` mở `van_don` nếu thấy, không thì bảng đầu tiên |
 | Dòng trống | `GRID_SPARE_ROWS` dòng cuối lưới; POST `dong-moi/` → `record_service.create_record`; quyền `grant_service.can_create_record` |

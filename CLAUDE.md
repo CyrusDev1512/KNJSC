@@ -48,8 +48,12 @@ Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.
 `tao_bang_van_don` ngay sau `migrate`, vì bảng này là bảng động (quyết định
 001) nên `migrate` không sinh ra nó. Thiếu bảng thì màn hình Bảng tính trả 404.
 
-**Bảng tính** (`/bang-tinh/<mã bảng>/`) là lưới kiểu Excel cho mọi bảng trong
-phạm vi quyền — ADR-010. Bảng vận đơn sửa ở cổng 8021, xem ở 8020 (ADR-009).
+**KN CRM** (dịch vụ `bangtinh`, cổng 8021, `knjsc/urls_bangtinh.py`) là app
+riêng chứa **Bảng tính** — ADR-012: trang chủ `/` là cây Bộ phận ▸ Quý ▸ Tháng
+▸ bảng (`crm/services/tree_service.py`), lưới ở `/bang-tinh/<mã bảng>/` cho mọi
+bảng trong phạm vi quyền — ADR-010. KN ERP (8020) **không có lưới**, chỉ có mục
+KN CRM trên thanh bên mở tab mới; bài kiểm của `crm/tests` chạy ở URLconf 8021
+nhờ `crm/tests/conftest.py`. Bảng vận đơn chỉ sửa ở KN CRM (ADR-009).
 Nhìn và thao tác theo bảng tính KN Demo — ADR-011: giao diện lưới nằm ở hai
 tệp `app/static/js/bang-tinh.js` (trang: thanh bên, cột, thanh công thức, sửa
 một ô) và `bang-tinh-o.js` (ô: chọn vùng, clipboard, kéo điền, hoàn tác, menu

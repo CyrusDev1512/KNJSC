@@ -28,10 +28,11 @@ Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của 
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
 tóm để không phải lục.
 
-> Cập nhật ngày 05.09.2026. Giai đoạn 7 phần E (ADR-010) đã vào `main` qua
-> PR #4. Phần F — Bảng tính nhìn và thao tác như bảng tính KN Demo (ADR-011) —
-> đã xong nhưng **còn trên nhánh riêng** `claude/bang-tinh-nhu-kn-demo` (PR #5,
-> base `main`), chờ anh/chị nghiệm thu. Mục D chỉ còn `AC-5.1`.
+> Cập nhật ngày 06.09.2026. Giai đoạn 7 phần E (ADR-010) đã vào `main` qua
+> PR #4. Phần F (Bảng tính như KN Demo, ADR-011) và phần G (**KN CRM là app
+> riêng**, trang chủ cây Bộ phận ▸ Quý ▸ Tháng, ADR-012) xong, **còn trên nhánh
+> riêng** `claude/bang-tinh-nhu-kn-demo` (PR #5, base `main`), chờ anh/chị
+> nghiệm thu. Mục D chỉ còn `AC-5.1`.
 
 **Đang ở đâu:** xong Giai đoạn 0 tới 7. Nhập tệp Excel/CSV bốn bước có xem
 trước và tiến độ, xuất kèm bộ lọc, tệp lớn chạy nền giữ 24 giờ (7A). Sao lưu
@@ -49,15 +50,20 @@ ngày, sản phẩm); thanh công cụ; thư mục chứa bảng. **Bảng tính
 (7F, ADR-011): khung tối viền vàng, thanh công thức có ô địa chỉ, số dòng,
 chữ cột tới Z, chân trang có tab; kéo chọn vùng, dán từ Excel, kéo điền, hoàn
 tác, menu chuột phải (xoá/khôi phục dòng, Manager chèn/xoá cột), 40 màu và
-định dạng số, hộp lọc theo giá trị, tự cập nhật khi người khác sửa. 94 tiêu
-chí, 83 trên 84 tự động có bài kiểm.
+định dạng số, hộp lọc theo giá trị, tự cập nhật khi người khác sửa. **KN CRM
+là app riêng** (7G, ADR-012): KN ERP không còn lưới, chỉ có mục KN CRM mở tab
+mới sang dịch vụ 8021; trang chủ KN CRM là cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng tự
+sinh từ cột Ngày, bấm tháng là mở lưới lọc sẵn tháng đó (tháng là góc nhìn,
+không tách bảng), quyền theo bảng như cũ. 97 tiêu chí, 86 trên 87 tự động có
+bài kiểm.
 
 **Việc tiếp theo:** **nghiệm thu một đợt theo `docs/07`** — anh/chị bấm tay
 từng vai, đánh ☑, gửi danh sách lỗi; sửa trên nhánh `claude/bang-tinh-nhu-kn-demo`
-rồi mới gộp PR #5. Xem Bảng tính mới ở máy nhà bằng
-`scripts\cap-nhat-local.bat claude/bang-tinh-nhu-kn-demo`; chạy không tham số
-thì về `main` — lưới ADR-010, chưa có dáng KN Demo. Rồi Giai đoạn 8: máy chủ,
-subdomain cho Bảng tính, đo tải trên máy chủ thật (chờ V1).
+rồi mới gộp PR #5. Xem KN CRM ở máy nhà bằng
+`scripts\cap-nhat-local.bat claude/bang-tinh-nhu-kn-demo` rồi bấm **KN CRM**
+trên thanh bên (tab mới `localhost:8021/`); chạy không tham số thì về `main` —
+lưới ADR-010 còn nằm trong ERP. Rồi Giai đoạn 8: máy chủ, tên miền con cho KN
+CRM, KN ERP dùng tốt trên điện thoại, đo tải trên máy chủ thật (chờ V1).
 
 ### A · Nghiệm thu — việc của anh/chị
 
@@ -65,7 +71,7 @@ subdomain cho Bảng tính, đo tải trên máy chủ thật (chờ V1).
 kiểm thử tự động đều đạt, nhưng anh/chị **chưa trực tiếp thử màn hình nào**. Phần
 trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải *đã nghiệm thu*.
 
-**Mười bốn việc làm được ngay bây giờ — kịch bản từng bước ở `docs/07`:**
+**Mười lăm việc làm được ngay bây giờ — kịch bản từng bước ở `docs/07`:**
 
 | ☐ | Việc | Mã |
 |---|---|---|
@@ -83,6 +89,7 @@ trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải
 | ☐ | Bảng tính trên điện thoại và máy tính bảng thật | `AC-11.11` |
 | ☐ | Bảng tính: mọi ô có viền, thanh công cụ đủ mục, ẩn cột nhớ được, thanh bên thu gọn được | `AC-11.18` |
 | ☐ | Bảng tính đặt cạnh ảnh `docs/tham-khao/kn-demo/`: khung, thanh công thức, số dòng, chữ cột, cột trống, chân trang, ⛶; kéo chọn vùng, dán từ Excel, chuột phải | `AC-11.27` |
+| ☐ | KN CRM: bấm mục trên thanh bên ERP mở tab mới; trang chủ cây Bộ phận ▸ Quý ▸ Tháng; bấm tháng → Mở → lưới lọc tháng → ← về đúng nhánh | `docs/07` mục 3.3 |
 
 **Một việc biết trước là chưa đạt:**
 
@@ -247,6 +254,9 @@ mục 6.
 | Q51 | Bảng tính nhìn và thao tác thế nào | **Y hệt bảng tính KN Demo** về cách nhìn và cách thao tác (ảnh `docs/tham-khao/kn-demo/`), trên nền dữ liệu KNJSC giữ nguyên; làm trên nhánh riêng `claude/bang-tinh-nhu-kn-demo`; bảng "không làm" ghi ở ADR-011 (công thức, tab là trang, chèn hàng giữa, chiều cao dòng, cột trống gõ được) | 04.09.2026 |
 | Q52 | Ai xoá được dòng trên lưới | **Đúng bằng quyền sửa dòng** — `grant_service.can_delete_record` gọi `can_edit_record`, đặt tên riêng để sau này tách được mà không phải đổi mô hình quyền; xoá là xoá mềm, Ctrl+Z khôi phục — AC-11.21, ADR-011 | 04.09.2026 |
 | Q53 | Bấm một lần vào ô là gì | **Chọn ô**, không mở sửa; bấm đúp, Enter, F2 hoặc gõ chữ mới sửa — như demo và Excel, không thế thì không kéo chọn vùng được; thay cách "bấm ô là sửa" của ADR-009 — AC-11.25, ADR-011 | 04.09.2026 |
+| Q54 | Bảng tính đặt ở đâu so với ERP, có làm app không | **KN CRM là app riêng trong hệ sinh thái**: dịch vụ `bangtinh` 8021, tên miền con, mở tab mới từ ERP, **cùng kho mã cùng cơ sở dữ liệu** (cách B trong bảng so sánh A/B/C); KN ERP không còn lưới. **Không** làm app cài đặt (native, PWA) — quá đắt; cái cần trên điện thoại là KN ERP (Giai đoạn 8) — AC-11.30, ADR-012 | 06.09.2026 |
+| Q55 | "Thư mục Quý → Tháng → file vận đơn" nghĩa là gì | **Tháng là góc nhìn trên một bảng**, cây tự sinh từ cột Ngày; bấm tháng là mở lưới lọc sẵn. Không tách bảng theo tháng (Lên đơn ghi vào một bảng, Lọc trùng và mua lại lần đếm cả lịch sử) — AC-11.28, AC-11.29, ADR-012 | 06.09.2026 |
+| Q56 | Quyền trong KN CRM cấp ở mức nào | **Theo bảng như hiện có** (Manager cấp Xem/Sửa từng bảng ở KN ERP); cây chỉ hiện thứ được xem; không thêm quyền theo thư mục hay theo tháng — ADR-012 | 06.09.2026 |
 
 ---
 
@@ -335,7 +345,7 @@ hình mà bản Django chưa có; bảng dưới đây theo dõi việc lấp d�
 | Lịch sử báo cáo | 4 | Đã có |
 | Lên đơn | 5 | Đã có |
 | Báo cáo tổng hợp | 6 | Đã có — tab Theo thị trường treo ghi chú chờ N9, Q36 |
-| Bảng tính | 7 | Đã có — lưới cho **mọi bảng** ở `/bang-tinh/<mã>/` (ADR-010): viền ô, dòng trống, cột khoá, thanh lọc bên trái, thanh công cụ, định dạng ô, thư mục; bảng vận đơn vẫn sửa ở dịch vụ `bangtinh` (ADR-009); nhìn và thao tác như bảng tính KN Demo — chọn vùng, dán từ Excel, kéo điền, chuột phải, hoàn tác, hộp lọc giá trị, tự cập nhật (ADR-011, nhánh `claude/bang-tinh-nhu-kn-demo`) |
+| Bảng tính | 7 | Đã có — lưới cho **mọi bảng** ở `/bang-tinh/<mã>/` (ADR-010): viền ô, dòng trống, cột khoá, thanh lọc bên trái, thanh công cụ, định dạng ô, thư mục; bảng vận đơn vẫn sửa ở dịch vụ `bangtinh` (ADR-009); nhìn và thao tác như bảng tính KN Demo — chọn vùng, dán từ Excel, kéo điền, chuột phải, hoàn tác, hộp lọc giá trị, tự cập nhật (ADR-011); là **app riêng KN CRM** ở 8021 với trang chủ cây Bộ phận ▸ Quý ▸ Tháng, ERP chỉ liên kết (ADR-012) — nhánh `claude/bang-tinh-nhu-kn-demo` |
 | Bảng tính, màn hình chi tiết | 7 | Không làm engine công thức (ADR-009); phần thanh công cụ định dạng của bản dựng đã có lại dưới dạng sổ đóng (ADR-010); thanh công cụ và thanh công thức theo KN Demo (ADR-011), công thức chờ S10 |
 
 **Thiếu sót đã biết, không phải màn hình riêng nhưng ảnh hưởng trải nghiệm:**
@@ -391,3 +401,4 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 04.09.2026 | Giai đoạn 3 của ADR-011: menu chuột phải đúng nhãn demo (Cắt · Sao chép · Dán · Chèn N hàng trống · Xoá N hàng · Chèn N cột trái/phải · Xoá N cột · Xoá nội dung · Xoá định dạng; mục không có quyền mờ đi); xoá dòng là xoá mềm sau hộp xác nhận, Ctrl+Z khôi phục về chỗ cũ (`xoa-dong/`, `khoi-phuc-dong/`, `record_service.restore_record`, quyền `can_delete_record` = quyền sửa dòng — Q52); Manager của bộ phận sở hữu chèn/bỏ cột ngay trên lưới (`them-cot/`, `xoa-cot/`, `table_service.insert_columns`, `removable_reason`; cột khoá, vế cột tính sẵn, cột hệ thống vận đơn thì giữ; `can_manage_columns`); hộp lọc cột theo demo (tên cột · số giá trị, ô tìm, danh sách giá trị kèm số cho mọi kiểu cột, Điều kiện khác gập, Chọn tất cả · Không chọn · Xóa lọc · Áp dụng); lưới hỏi `moi-nhat/` mỗi `GRID_POLL_SECONDS` giây khi rảnh, có gì mới thì nạp lại thân bảng và toast. AC-11.21 → AC-11.26, 93 tiêu chí, 83 trên 84 tự động có bài kiểm. Nhãn "Bỏ chọn" của demo đổi thành "Không chọn" vì luật nút nguy (test_giao_dien) bắt chữ "Bỏ"; các mục Xoá trong menu mang `nut-nguy` (chữ đỏ) theo cùng luật |
 | 04.09.2026 | Giai đoạn 4 của ADR-011 — tài liệu: viết `quyet-dinh/011-bang-tinh-theo-mau-kn-demo.md` (kèm bảng "không làm"), thêm 009/010/011 vào danh sách ADR; `docs/02` FR-7.9 → FR-7.12; `docs/03` §4.6 thêm các dòng lưu nhiều ô, xoá/khôi phục dòng, chèn/bỏ cột, hộp lọc giá trị, tự cập nhật, hoàn tác, cột trống, hai tệp JS; `docs/04` AC-11.27 (thủ công, đối chiếu ảnh) — 94 tiêu chí; `docs/05` A8 viết lại theo giao diện mới; `docs/06` bảng thủ công thêm AC-11.18 (thiếu từ 7E) và AC-11.27; `docs/07` thêm bước dán từ Excel, kéo điền, chuột phải xoá hàng, chèn cột, hộp lọc, tự cập nhật, và sửa các bước cũ theo giao diện mới (bấm đúp mới sửa, Nhập tệp trong ⋯, Tải Excel ở thanh trên, Bộ lọc mở thanh bên); chốt Q51 → Q53, mở S9, S10; dashboard 7F |
 | 05.09.2026 | Gộp PR #4 (Giai đoạn 7E, ADR-010) vào `main` bằng merge commit `3facc87`, giữ nguyên SHA và giữ nhánh 7E. PR #5 (7F, ADR-011) đổi base về `main`, vẫn mở trên nhánh riêng theo ý anh/chị — chờ nghiệm thu `docs/07` rồi mới gộp. Nhánh 7F gộp `main` vào để không tụt sau |
+| 06.09.2026 | Anh/chị hỏi lại câu gốc: vì sao cần Bảng tính, so với Excel, Google Sheets, Lark thì sao; kể lại dây chuyền Google Form → Sheet của Vận đơn lag dần sau vài tháng (6.000 khách một tháng). Chốt: KN ERP xem nhanh, **Bảng tính là app riêng KN CRM** tách tên miền, không làm app cài đặt, cái cần trên điện thoại là ERP. Bốn yêu cầu cho KN CRM (trang mới, thấy thư mục trước, quyền do Manager cấp, cây Bộ phận → Quý → Tháng → file); phản biện được chấp nhận: tháng là góc nhìn trên một bảng, quyền theo bảng. Làm 7G trên cùng nhánh: bỏ `crm.urls` khỏi ERP, một mục KN CRM mở tab mới, `crm/tests/conftest.py` đặt URLconf 8021, `test_khoi` duyệt hai URLconf; `crm/services/tree_service.py` + trang chủ `/` (cây tự sinh từ `val_date`, đếm một truy vấn cho cả bộ phận), nhãn tháng trên lưới, nút ← về đúng nhánh, tạo thư mục từ trang chủ; AC-11.28 → AC-11.30, 97 tiêu chí; ADR-012; Q54 → Q56 |

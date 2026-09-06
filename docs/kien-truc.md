@@ -68,7 +68,9 @@ Bản phác thảo để bàn. Mọi phần đều có thể đổi.
 
 `orders` và `crm` là hai module riêng. `orders` giữ đơn hàng và sản phẩm;
 `crm` giữ khách hàng và màn hình Bảng tính — lưới kiểu Excel cho mọi bảng,
-nhìn và thao tác như bảng tính KN Demo (ADR-004, ADR-009, ADR-010, ADR-011).
+nhìn và thao tác như bảng tính KN Demo, chạy thành app riêng **KN CRM** với
+trang chủ là cây Bộ phận ▸ Quý ▸ Tháng (ADR-004, ADR-009, ADR-010, ADR-011,
+ADR-012).
 Tách ra vì `crm` sẽ thành ứng dụng riêng khi đo được điều kiện ở cuối tài
 liệu này, còn `orders` thì ở lại.
 
@@ -312,7 +314,8 @@ Giao diện dùng chung không thành module riêng mà nằm ở `app/templates
 ├── Bảng tính vận đơn theo tệp thật — dịch vụ bangtinh cổng 8021 (ADR-009)
 ├── Kiểm thử toàn diện: Playwright, Locust, 50.000 dòng, ma trận 45 ô
 ├── Bảng tính cho mọi bảng: viền ô, dòng trống, cột khoá, thanh lọc trái, định dạng ô, thư mục (ADR-010)
-└── Bảng tính nhìn và thao tác như KN Demo: chọn vùng, dán, kéo điền, chuột phải, hoàn tác, tự cập nhật (ADR-011)
+├── Bảng tính nhìn và thao tác như KN Demo: chọn vùng, dán, kéo điền, chuột phải, hoàn tác, tự cập nhật (ADR-011)
+└── KN CRM là app riêng, ERP chỉ liên kết; trang chủ cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng, tháng là góc nhìn (ADR-012)
 ```
 
 ### Giai đoạn 8 — Đưa lên máy chủ và hoàn thiện
