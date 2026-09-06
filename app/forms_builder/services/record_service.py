@@ -27,11 +27,21 @@ from ..models import DataRecord
 TRUE_WORDS = frozenset({"1", "true", "co", "có", "x", "yes", "dung", "đúng"})
 
 
-def parse_value(column, raw):
+def _goi_y_danh_sach(choice_list):
+    """Đuôi thông báo khi giá trị không có trong danh sách: mười mục đầu, hoặc
+    lời nhắc Manager thêm danh sách nếu cột chưa có gì (Q58)."""
+    muc = list(choice_list.options())
+    if not muc:
+        return "Cột chưa có danh sách chọn — quản lý thêm ở Sửa cột."
+    return "Chọn: " + ", ".join(muc[:10]) + ("…" if len(muc) > 10 else "")
+
+
+def parse_value(column, raw, *, choices=None):
     """Ép giá trị người dùng gõ về đúng kiểu của cột.
 
     Trả về giá trị đã chuẩn hoá, hoặc ném `BusinessError` với thông báo tiếng
-    Việt nói rõ cột nào sai (NFR-6).
+    Việt nói rõ cột nào sai (NFR-6). `choices` là bản chụp danh sách chọn đã
+    lấy sẵn (nhập hàng loạt); không truyền thì tự phân giải theo cột.
     """
     if raw is None:
         return None
@@ -48,13 +58,15 @@ def parse_value(column, raw):
                 raw = str(int(raw))
             raw = str(raw)
             if kieu == FieldType.CHOICE:
-                # Cột có sổ danh sách thì chỉ nhận giá trị trong sổ, và đưa
-                # về đúng nhãn ("Đã Thanh Toán" → "Đã thanh toán")
-                raw, hop_le = choice_registry.normalise(column.table.code, column.code, raw)
+                # Cột Chọn một chỉ nhận giá trị trong danh sách (sổ crm, nhãn
+                # ý nghĩa, hay danh sách trên cột — Q58), và đưa về đúng nhãn
+                # ("Đã Thanh Toán" → "Đã thanh toán")
+                ds = choices if choices is not None else choice_registry.for_column(column)
+                raw, hop_le = choice_registry.match(ds, raw)
                 if not hop_le:
                     raise BusinessError(
                         f'Giá trị "{raw}" không có trong danh sách của cột "{column.name}". '
-                        "Chọn: " + ", ".join(choice_registry.options_for(column.table.code, column.code))
+                        + _goi_y_danh_sach(ds)
                     )
             return raw
         if kieu == FieldType.INTEGER:
@@ -170,6 +182,12 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
     team = getattr(ho_so, "team", None)
     ket_qua = BulkResult()
     lo = []
+    # Danh sách chọn chụp một lần cho cả lượt — không thì 5.000 dòng là
+    # 5.000 lần truy vấn danh mục sản phẩm
+    chon = {
+        c.code: choice_registry.snapshot(choice_registry.for_column(c))
+        for c in columns if c.field_type == FieldType.CHOICE
+    }
 
     def ghi_lo():
         if not lo:
@@ -189,7 +207,7 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
                 gia_tri = values.get(cot.code)
                 if gia_tri in (None, ""):
                     continue
-                du_lieu[cot.code] = parse_value(cot, gia_tri)
+                du_lieu[cot.code] = parse_value(cot, gia_tri, choices=chon.get(cot.code))
             thieu = _thieu_bat_buoc(columns, du_lieu)
             if thieu:
                 raise BusinessError("Thiếu cột bắt buộc: " + ", ".join(thieu))
@@ -219,6 +237,39 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
     return ket_qua
 
 
+class CellError(BusinessError):
+    """Một ô trong gói nhiều ô bị từ chối — mang theo dòng và cột để giao diện
+    chỉ đúng ô (ADR-011)."""
+
+    def __init__(self, message, *, pk, code):
+        super().__init__(message)
+        self.pk = pk
+        self.column = code
+
+
+def _cot(columns, code):
+    cot = next((c for c in columns if c.code == code), None)
+    if cot is None:
+        raise BusinessError("Cột này không có trong bảng.")
+    return cot
+
+
+def _dat_o(ban_ghi, cot, raw):
+    """Đặt giá trị một ô trong bộ nhớ, chưa lưu. Trả `(đổi không, cũ, mới)`.
+    Cùng luật cho sửa một ô lẫn dán nhiều ô: cột tính sẵn không sửa tay, cột
+    bắt buộc không để trống, giá trị ép kiểu theo cột."""
+    if cot.is_computed:
+        raise BusinessError(f'Cột "{cot.name}" là cột tính sẵn, không sửa tay được.')
+    cu = ban_ghi.data.get(cot.code)
+    moi = parse_value(cot, raw)
+    if cu == moi:
+        return False, cu, moi
+    if cot.required and moi in (None, ""):
+        raise BusinessError(f'Cột "{cot.name}" bắt buộc nhập, không để trống được.')
+    ban_ghi.data[cot.code] = moi
+    return True, cu, moi
+
+
 @transaction.atomic
 def update_cell(ban_ghi, code, raw, *, actor=None, request=None, columns=None):
     """Sửa đúng một ô trên bảng — FR-7.4.
@@ -227,20 +278,10 @@ def update_cell(ban_ghi, code, raw, *, actor=None, request=None, columns=None):
     thêm một lệnh truy vấn (quy tắc Q2).
     """
     columns = columns if columns is not None else list(ban_ghi.table.columns.all())
-    cot = next((c for c in columns if c.code == code), None)
-    if cot is None:
-        raise BusinessError("Cột này không có trong bảng.")
-    if cot.is_computed:
-        raise BusinessError(f'Cột "{cot.name}" là cột tính sẵn, không sửa tay được.')
-
-    cu = ban_ghi.data.get(code)
-    moi = parse_value(cot, raw)
-    if cu == moi:
+    cot = _cot(columns, code)
+    doi, cu, moi = _dat_o(ban_ghi, cot, raw)
+    if not doi:
         return ban_ghi
-    if cot.required and moi in (None, ""):
-        raise BusinessError(f'Cột "{cot.name}" bắt buộc nhập, không để trống được.')
-
-    ban_ghi.data[code] = moi
     ban_ghi.apply_computed_columns(columns)
     ban_ghi.sync_indexed_columns(columns)
     ban_ghi.save(skip_sync=True)
@@ -252,6 +293,58 @@ def update_cell(ban_ghi, code, raw, *, actor=None, request=None, columns=None):
             f"{_hien(cu)} → {_hien(moi)}"
         ),
         request=request,
+    )
+    return ban_ghi
+
+
+@transaction.atomic
+def update_cells(cells, *, actor=None, request=None, columns=None):
+    """Sửa nhiều ô một lần — dán, kéo điền, xoá nội dung, hoàn tác (ADR-011).
+
+    `cells` là danh sách `(bản ghi, mã cột, giá trị thô)`. **Một giao dịch,
+    được cả hoặc không gì**: một ô sai thì `CellError` nêu đúng ô và không ô
+    nào đổi. Mỗi bản ghi lưu một lần sau khi tính lại cột tính sẵn; một dòng
+    nhật ký gộp. Trả về số ô đã đổi.
+    """
+    da_doi = 0
+    ban_ghi_doi = {}
+    for ban_ghi, code, raw in cells:
+        cot_ds = columns if columns is not None else list(ban_ghi.table.columns.all())
+        cot = _cot(cot_ds, code)
+        try:
+            doi, _, _ = _dat_o(ban_ghi, cot, raw)
+        except BusinessError as e:
+            raise CellError(str(e), pk=ban_ghi.pk, code=code) from e
+        if doi:
+            da_doi += 1
+            ban_ghi_doi[ban_ghi.pk] = ban_ghi
+    if not da_doi:
+        return 0
+    for ban_ghi in ban_ghi_doi.values():
+        cot_ds = columns if columns is not None else list(ban_ghi.table.columns.all())
+        ban_ghi.apply_computed_columns(cot_ds)
+        ban_ghi.sync_indexed_columns(cot_ds)
+        ban_ghi.save(skip_sync=True)
+    dau = cells[0][0]
+    record(
+        AuditAction.UPDATE, actor=actor, target=dau,
+        detail=f"Sửa {da_doi} ô trên {len(ban_ghi_doi)} dòng của bảng {dau.table.code} (dán, kéo điền, xoá nội dung hoặc hoàn tác)",
+        request=request,
+    )
+    return da_doi
+
+
+@transaction.atomic
+def restore_record(ban_ghi, *, actor=None, request=None):
+    """Khôi phục một dòng đã xoá mềm — hoàn tác xoá trên Bảng tính (ADR-011)."""
+    if ban_ghi.deleted_at is None:
+        return ban_ghi
+    ban_ghi.deleted_at = None
+    ban_ghi.deleted_by = None
+    ban_ghi.save(update_fields=["deleted_at", "deleted_by", "updated_at"], skip_sync=True)
+    record(
+        AuditAction.UPDATE, actor=actor, target=ban_ghi,
+        detail=f"Khôi phục dòng đã xoá của bảng {ban_ghi.table.code}", request=request,
     )
     return ban_ghi
 
@@ -279,13 +372,43 @@ def _hien(gia_tri):
 #: dùng (an toàn), và giao diện dịch từng giá trị sang một lớp CSS cố định
 #: (`crm.services.grid_service.STYLE_CLASSES`). Muốn thêm màu hay cỡ chữ thì
 #: thêm ở cả hai chỗ.
+#: Bảng 40 màu chữ và nền (theo bảng màu của KN Demo — ADR-011). Giá trị lưu
+#: là khoá `m01`…`m40`; mã màu chỉ nằm ở đây và trong khối CSS sinh từ đây
+#: (`scripts/sinh-css-mau.py`), không bao giờ vào dữ liệu hay trang.
+PALETTE = (
+    ("m01", "#000000"), ("m02", "#334155"), ("m03", "#64748b"), ("m04", "#94a3b8"),
+    ("m05", "#cbd5e1"), ("m06", "#e2e8f0"), ("m07", "#f1f5f9"), ("m08", "#ffffff"),
+    ("m09", "#7f1d1d"), ("m10", "#b91c1c"), ("m11", "#ef4444"), ("m12", "#f97316"),
+    ("m13", "#f59e0b"), ("m14", "#eab308"), ("m15", "#84cc16"), ("m16", "#22c55e"),
+    ("m17", "#14b8a6"), ("m18", "#06b6d4"), ("m19", "#3b82f6"), ("m20", "#3370ff"),
+    ("m21", "#6366f1"), ("m22", "#8b5cf6"), ("m23", "#a855f7"), ("m24", "#d946ef"),
+    ("m25", "#ec4899"), ("m26", "#f43f5e"), ("m27", "#fecaca"), ("m28", "#fed7aa"),
+    ("m29", "#fde68a"), ("m30", "#fef08a"), ("m31", "#d9f99d"), ("m32", "#bbf7d0"),
+    ("m33", "#99f6e4"), ("m34", "#a5f3fc"), ("m35", "#bfdbfe"), ("m36", "#c7d2fe"),
+    ("m37", "#ddd6fe"), ("m38", "#e9d5ff"), ("m39", "#f5d0fe"), ("m40", "#fbcfe8"),
+)
+PALETTE_KEYS = frozenset(k for k, _ in PALETTE)
+#: Sáu tên màu nền của ADR-010 vẫn nhận — dữ liệu cũ không phải chuyển đổi
+BG_LEGACY = frozenset({"vang", "xanh", "do", "luc", "xam", "cam"})
+#: Khoá bật/tắt: chỉ có giá trị 1 (bật); gửi rỗng là tắt
+STYLE_ON = frozenset({"b", "i", "u", "st", "wr", "bd"})
 STYLE_SCHEMA = {
     "b": {1},                                             # in đậm
-    "bg": {"vang", "xanh", "do", "luc", "xam", "cam"},    # màu nền
-    "fs": {10, 11, 12, 14, 16, 18},                       # cỡ chữ (px)
+    "i": {1},                                             # nghiêng
+    "u": {1},                                             # gạch chân
+    "st": {1},                                            # gạch ngang
+    "wr": {1},                                            # xuống dòng trong ô
+    "bd": {1},                                            # kẻ viền ô
+    "bg": BG_LEGACY | PALETTE_KEYS,                       # màu nền
+    "c": PALETTE_KEYS,                                    # màu chữ
+    "fs": {10, 11, 12, 13, 14, 16, 18, 20, 24, 28},       # cỡ chữ (px); 13 là cỡ lưới
     "al": {"l", "c", "r"},                                # căn lề
+    "fmt": {"num", "pct", "usd", "vnd", "text"},          # định dạng số khi hiển thị
 }
-STYLE_LABELS = {"b": "đậm", "bg": "nền", "fs": "cỡ", "al": "căn"}
+STYLE_LABELS = {
+    "b": "đậm", "i": "nghiêng", "u": "gạch chân", "st": "gạch ngang", "wr": "xuống dòng",
+    "bd": "viền", "bg": "nền", "c": "màu chữ", "fs": "cỡ", "al": "căn", "fmt": "định dạng số",
+}
 #: Gửi lên với giá trị này nghĩa là **bỏ** thuộc tính đó
 STYLE_EMPTY = (None, "", 0, "0", False)
 
@@ -301,7 +424,7 @@ def normalise_style(raw):
             raise BusinessError(f'Định dạng "{khoa}" không có trong sổ.')
         if gia_tri in STYLE_EMPTY:
             continue
-        if khoa in ("b", "fs"):
+        if khoa in STYLE_ON or khoa == "fs":
             try:
                 gia_tri = int(gia_tri)
             except (TypeError, ValueError):

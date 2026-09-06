@@ -16,7 +16,7 @@
     {% if duoc_nhap %}<a class="nut" href="{% url 'bang_nhap' bang.code %}">Nhập tệp</a>{% endif %}
     {# Xuất đúng thứ đang hiện: mang theo bộ lọc, tìm kiếm, sắp xếp — ADR-002 #}
     <a class="nut" href="{% url 'bang_xuat' bang.code %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Xuất tệp</a>
-    {% if chi_xem %}<a class="nut nut-chinh" href="{{ bang_tinh_url }}">Mở Bảng tính</a>{% endif %}
+    {% if chi_xem %}<a class="nut nut-chinh" href="{{ bang_tinh_url }}" target="_blank" rel="noopener">Mở trong KN CRM</a>{% endif %}
   </div>
 </div>
 
@@ -25,7 +25,7 @@
     <span class="bao-ic">i</span>
     <div>
       <b>Bảng này chỉ xem ở đây</b>
-      <p>Bộ phận Vận đơn làm việc và sửa dữ liệu ở <a href="{{ bang_tinh_url }}">Bảng tính</a> — một nơi sửa duy nhất (ADR-009).</p>
+      <p>Bộ phận Vận đơn làm việc và sửa dữ liệu ở <a href="{{ bang_tinh_url }}" target="_blank" rel="noopener">KN CRM</a> — một nơi sửa duy nhất (ADR-009, ADR-012).</p>
     </div>
   </div>
 {% endif %}
@@ -51,11 +51,11 @@
   </form>
 
   <div class="bang-cuon">
-    <table class="bang">
+    <table class="bang bang-luoi">
       <thead>
         <tr>
           {% for c in cac_cot %}
-            <th class="sap-xep {% if c.field_type == 'money' or c.field_type == 'integer' or c.field_type == 'decimal' %}phai{% endif %}">
+            <th class="sap-xep {{c.lop_cot}} {% if c.field_type == 'money' or c.field_type == 'integer' or c.field_type == 'decimal' %}phai{% endif %}">
               <a href="?sap={{ c.code }}{% if sap_xep == c.code and not giam_dan %}&chieu=giam{% endif %}">
                 {{ c.name }}
                 <span class="mui">{% if sap_xep == c.code %}{% if giam_dan %}↓{% else %}↑{% endif %}{% else %}↕{% endif %}</span>
@@ -68,7 +68,7 @@
       <tbody>
         {% for ban_ghi, cac_o, sua_duoc_dong in cac_dong %}
           <tr>
-            {% for cot, gia_tri in cac_o %}
+            {% for cot, gia_tri, lop_o in cac_o %}
               {% include "forms_builder/_o.html" with duoc_sua=sua_duoc_dong %}
             {% endfor %}
             <td class="nho">{{ ban_ghi.created_by.username|default:"—" }}</td>
@@ -87,7 +87,7 @@
 
 {% if duoc_sua %}
   <p class="nho mo-nhat" style="margin-top:var(--sp-3)">
-    Bấm vào ô để sửa, nhấn Enter hoặc bấm ra ngoài để lưu. Cột tính sẵn không sửa tay được.
+    Bấm vào ô để sửa, nhấn Enter hoặc bấm ra ngoài để lưu. Ô chọn thì chọn xong là lưu. Cột tính sẵn không sửa tay được.
   </p>
 {% endif %}
 
@@ -107,6 +107,10 @@
   }
   document.addEventListener("focusout", function (e) {
     if (e.target.matches(".o-trong-bang")) gui(e.target);
+  });
+  /* Ô chọn: chọn xong là lưu ngay. Mục "Thêm mới…" do chon.js lo, không gửi. */
+  document.addEventListener("change", function (e) {
+    if (e.target.matches("select.o-trong-bang") && e.target.value !== "__them__") gui(e.target);
   });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && e.target.matches(".o-trong-bang")) {

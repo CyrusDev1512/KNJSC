@@ -29,11 +29,15 @@ KN JSC.bat                   Windows — ở thư mục gốc; clone về, nháy
 
 `KN JSC.bat` tự kéo mã mới từ GitHub (có git và có mạng), tạo hoặc làm mới lối
 tắt "KN JSC" có logo ngoài Desktop, mở Docker Desktop nếu chưa chạy, bật
-container, đợi web lên rồi mở trình duyệt ở `http://127.0.0.1:8020/`. Có mã
-mới thì tự `migrate`, `tao_bang_van_don`, khởi động lại worker, và dựng lại
-image chỉ khi Dockerfile, requirements hay entrypoint đổi; không có mã mới thì
-vài giây là lên. Máy sạch thì tự nạp dữ liệu mẫu. Biểu tượng là
-`scripts/KN JSC.ico`, nguồn vẽ `scripts/KN JSC.svg`.
+container, đợi web lên rồi mở trình duyệt ở `http://127.0.0.1:8020/`. Mã trên
+máy **khác lần chạy trước** (dù ai kéo: tệp này, `cap-nhat-local.bat` hay gõ git
+tay; nhớ bằng `storage/.kn-jsc-lan-truoc`) thì tự `migrate`, `tao_bang_van_don`,
+khởi động lại worker, và dựng lại image chỉ khi Dockerfile, requirements hay
+entrypoint đổi; mã không đổi thì vài giây là lên. Máy sạch thì tự nạp dữ liệu mẫu. Biểu tượng là
+`scripts/KN JSC.ico`, nguồn vẽ `scripts/KN JSC.svg`. Kéo mã **thất bại** (kho
+đang gộp dở, sửa tay chưa commit, mất mạng) thì màn hình đen nói rõ và vẫn bật
+bản đang có — không có dòng `Da keo ma moi ve.` nghĩa là chưa có mã mới; nó cũng
+in nhánh đang đứng, vì máy đứng ở nhánh khác `main` thì kéo mãi không thấy đổi.
 
 Tệp gọi lại chính nó sau khi kéo mã (tham số nội bộ `da-keo`, **giữ nguyên
 tên**): cmd đọc tệp `.bat` theo vị trí byte, tệp tự đổi thì đọc tiếp sẽ lệch
@@ -63,8 +67,17 @@ Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.
 `tao_bang_van_don` ngay sau `migrate`, vì bảng này là bảng động (quyết định
 001) nên `migrate` không sinh ra nó. Thiếu bảng thì màn hình Bảng tính trả 404.
 
-**Bảng tính** (`/bang-tinh/<mã bảng>/`) là lưới kiểu Excel cho mọi bảng trong
-phạm vi quyền — ADR-010. Bảng vận đơn sửa ở cổng 8021, xem ở 8020 (ADR-009).
+**KN CRM** (dịch vụ `bangtinh`, cổng 8021, `knjsc/urls_bangtinh.py`) là app
+riêng chứa **Bảng tính** — ADR-012: trang chủ `/` là cây Bộ phận ▸ Quý ▸ Tháng
+▸ bảng (`crm/services/tree_service.py`), lưới ở `/bang-tinh/<mã bảng>/` cho mọi
+bảng trong phạm vi quyền — ADR-010. KN ERP (8020) **không có lưới**, chỉ có mục
+KN CRM trên thanh bên mở tab mới; bài kiểm của `crm/tests` chạy ở URLconf 8021
+nhờ `crm/tests/conftest.py`. Bảng vận đơn chỉ sửa ở KN CRM (ADR-009).
+Nhìn và thao tác theo bảng tính KN Demo — ADR-011: giao diện lưới nằm ở hai
+tệp `app/static/js/bang-tinh.js` (trang: thanh bên, cột, thanh công thức, sửa
+một ô) và `bang-tinh-o.js` (ô: chọn vùng, clipboard, kéo điền, hoàn tác, menu
+chuột phải, tự cập nhật). Bảng 40 màu sinh CSS bằng `scripts/sinh-css-mau.py`,
+đừng gõ tay.
 
 ### Chạy kiểm thử
 

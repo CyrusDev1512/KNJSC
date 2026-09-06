@@ -13,16 +13,14 @@
 >
 > Nếu bạn chỉ dùng hệ thống thì đọc phần A là đủ.
 
-> ## ⚠ Tài liệu này viết trước, một phần chưa chạy được
+> ## ⚠ Một mục chưa chạy được
 >
-> Cập nhật 03.09.2026 — xong Giai đoạn 6. Những mục dưới đây **mô tả tính năng
-> chưa xây xong**, đọc để biết hướng chứ đừng đi thử:
+> Cập nhật 06.09.2026 — xong Giai đoạn 0 tới 7. Mọi mục dưới đây đều chạy được,
+> trừ một chỗ:
 >
 > | Mục | Chờ |
 > |---|---|
-> | **A4 · Nhập từ tệp Excel** và **Xuất ra tệp Excel** | Giai đoạn 7 |
 > | **A5 · Báo cáo tổng hợp** — riêng cách nhóm **Theo thị trường** | Chờ chốt backlog N9 |
-> | **B · Sao lưu và phục hồi** | Giai đoạn 8 |
 >
 > Danh sách đầy đủ những gì đã chạy và chưa chạy nằm ở `backlog.md` **mục 0**.
 
@@ -61,6 +59,11 @@ Mỗi bộ phận có biểu mẫu riêng.
 3. Điền các trường, những trường có dấu sao là bắt buộc
 4. Bấm **Gửi**
 
+**Trường Marketer / Người bán hệ thống tự ghi tên bạn**, ô chỉ đọc, không phải
+điền. **Trường kiểu Chọn một là ô chọn**: chọn từ danh sách, không gõ tay được;
+thiếu giá trị cần chọn thì báo quản lý thêm (quản lý thấy thêm mục **＋ Thêm
+mới…** ngay cuối danh sách: chọn nó, gõ giá trị, Enter là có).
+
 **Sau khi gửi thì không sửa được.** Kiểm tra kỹ trước khi bấm.
 
 ### Xem lại báo cáo cũ
@@ -89,7 +92,9 @@ phạm vi quản lý.
 
 1. Vào mục **Lên đơn**
 2. Điền thông tin khách hàng
-3. Thêm sản phẩm: chọn sản phẩm, nhập số lượng
+3. Thêm sản phẩm: chọn sản phẩm từ danh mục, nhập số lượng. Sản phẩm chưa có
+   trong danh mục thì quản lý chọn **＋ Thêm mới…** cuối danh sách, gõ tên, Enter —
+   sản phẩm vào danh mục, được chọn ngay, và bảng vận đơn có thêm cột số lượng
 4. Bấm **Thêm sản phẩm** nếu đơn có nhiều mặt hàng
 5. Nhập giá bán và phương thức thanh toán
 6. Bấm **Lưu đơn**
@@ -124,7 +129,16 @@ Vào mục **Đơn của tôi**. Danh sách hiện các đơn bạn đã tạo.
 ### Sửa dữ liệu
 
 Bấm vào ô cần sửa, gõ giá trị mới, nhấn Enter hoặc bấm ra ngoài để lưu. Cột
-tính sẵn (nền chàm nhạt) không sửa tay được.
+tính sẵn (nền chàm nhạt) không sửa tay được. **Cột kiểu Chọn một là ô chọn**:
+chọn xong là lưu ngay; giá trị gửi thẳng ngoài danh sách bị từ chối và lý do
+hiện ngay trong ô. Quản lý thấy thêm mục **＋ Thêm mới…**: chọn nó, gõ giá trị
+mới, Enter — giá trị vào danh sách của cột (cột Sản phẩm thì vào danh mục sản
+phẩm) và mọi ô cùng cột nhận được ngay.
+
+**Viền và màu.** Mọi ô có viền, tiêu đề cột nền xanh lá. Quản lý đặt trong
+**Sửa cột** cho từng cột: **Màu cột** (vàng, đỏ, xanh lá, xanh dương) tô cả tiêu
+đề lẫn ô; **Cảnh báo** kèm **Ngưỡng** cho cột số — ô vượt ngưỡng tô đỏ, ô đạt tô
+xanh lá, ô trống không tô. Màn hình xem lại báo cáo cũng mang màu đó.
 
 Nếu bạn không có quyền sửa dòng đó, ô không cho nhập. **Riêng bảng vận đơn
 chỉ xem ở đây** — có dòng báo và nút **Mở Bảng tính**; sửa ở đó (mục A8).
@@ -229,6 +243,14 @@ Tương tự tạo biểu mẫu. Chọn các cột, đặt kiểu dữ liệu ch
 Cột nào dùng để thống kê thì gán **nhãn ý nghĩa** — ví dụ cột "Giá bán" gán nhãn
 "Doanh thu". Nhờ vậy báo cáo tổng hợp mới tính được.
 
+### Sửa cột
+
+| Ô | Dùng khi |
+|---|---|
+| **Danh sách chọn** | Cột kiểu Chọn một: gõ mỗi dòng một giá trị. Cột mang nhãn Sản phẩm lấy danh sách từ danh mục sản phẩm, nhãn Người bán gợi ý nhân sự bộ phận — hai cột đó không nhập tay ở đây |
+| **Màu cột** | Tô nền tiêu đề và mọi ô của cột trên Bảng dữ liệu |
+| **Cảnh báo** và **Ngưỡng** | Chỉ cột kiểu số: chọn "Đỏ khi lớn hơn" hay "Đỏ khi nhỏ hơn" kèm ngưỡng; ô vượt tô đỏ, ô đạt tô xanh lá |
+
 ---
 
 ## A7. Câu hỏi thường gặp
@@ -242,28 +264,66 @@ Cột nào dùng để thống kê thì gán **nhãn ý nghĩa** — ví dụ c�
 | Hệ thống tự đăng xuất | Do không thao tác quá một tiếng, đăng nhập lại |
 | Nhập tệp báo lỗi | Kiểm tra kích thước dưới 10 MB và số dòng dưới 5.000; đuôi tệp phải đúng nội dung |
 | Nhập xong báo "dòng lỗi" | Mở trang Tác vụ nền, xem bảng dòng lỗi theo số hàng Excel, sửa tệp rồi nhập lại phần đó |
-| Không sửa được ô trên bảng vận đơn | Đúng như thiết kế — bảng vận đơn sửa ở Bảng tính cổng 8021 (mục A8) |
-| Bảng tính không có dòng trống cuối lưới | Bạn không có quyền thêm dòng vào bảng đó, hoặc bảng vận đơn đang mở ở hệ thống chính (chỉ xem) |
+| Ô chọn không có giá trị mình cần | Cột Chọn một chỉ nhận giá trị trong danh sách. Quản lý thêm ở Sửa cột hoặc chọn **＋ Thêm mới…** ngay tại ô; nhân viên báo quản lý |
+| Không gõ được ô Marketer / Người bán | Đúng như thiết kế — hệ thống tự ghi tên bạn (FR-4.6) |
+| Không sửa được ô trên bảng vận đơn | Đúng như thiết kế — bảng vận đơn sửa ở KN CRM, cổng 8021 (mục A8) |
+| Bảng tính không có dòng trống cuối lưới | Bạn không có quyền thêm dòng vào bảng đó |
 | Nút định dạng báo "Chưa chọn ô nào" | Bấm vào một ô trước, Shift+bấm để chọn vùng |
 | Bảng tính báo "không có trong danh sách" | Ô đó chỉ nhận giá trị trong danh sách chọn — chọn từ ô xổ xuống |
 | Lỡ nhập sai đơn đã lưu | Báo quản lý, không tự sửa được |
 
 ---
 
-## A8. Bảng tính — lưới kiểu Excel cho mọi bảng
+## A8. KN CRM — app Bảng tính, lưới kiểu Excel cho mọi bảng
 
-Mục **Bảng tính** trên thanh bên mở một trang **toàn màn hình riêng**, như mở
-một tệp bảng tính: không còn thanh bên hệ thống, lưới chiếm hết cửa sổ. Thanh
-trên có tên bảng, ô đổi bảng, nút Nền và tên bạn; nút **☰** mở menu về Tổng
-quan, Bảng dữ liệu và các màn hình khác. Mọi ô có viền, cột đánh chữ A B C,
-bấm ô là sửa, cuối lưới luôn thừa dòng trống để gõ bản ghi mới. Thanh bên trái
-liệt kê các bảng theo thư mục. Bạn chỉ thấy bảng trong phạm vi của mình; gọi
-thẳng đường dẫn bảng khác cũng bị từ chối.
+Mục **KN CRM** trên thanh bên của KN ERP mở **một tab mới** sang app riêng
+(máy phát triển: `http://localhost:8021/`; trên máy chủ là tên miền con, dùng
+chung đăng nhập). Đây là nơi làm việc trên dữ liệu; KN ERP chỉ để xem nhanh
+và làm nghiệp vụ. Bạn chỉ thấy bảng trong phạm vi của mình; gọi thẳng đường
+dẫn bảng khác cũng bị từ chối.
 
-**Cột:** kéo mép phải của tiêu đề để đổi độ rộng; kéo thả tiêu đề sang chỗ
-khác để đổi thứ tự (cột đứng yên khi cuộn không đổi được); **Ẩn/hiện cột** để
-giấu cột; **Đặt lại cột** để về mặc định. Ba thứ này nhớ trên trình duyệt của
-bạn, không ảnh hưởng người khác.
+### Trang chủ: Bộ phận ▸ Quý ▸ Tháng ▸ bảng
+
+Vào KN CRM là thấy **cây thư mục bên trái**, như mở ổ đĩa thời còn dùng Sheet:
+bộ phận (chỉ bộ phận nào bạn có bảng được xem), rồi **Quý**, rồi **Tháng**, mỗi
+tháng ghi số dòng. Bấm một tháng thì bên phải liệt kê các bảng của bộ phận
+có cột Ngày, kèm số dòng trong tháng, lần cập nhật gần nhất và nhãn **Xem**
+hay **Sửa** (quyền của bạn trên bảng đó, do Manager cấp ở KN ERP). Bấm **Mở**
+là vào lưới **lọc sẵn đúng tháng đó** — thanh trên ghi "Tháng 9/2026". Tháng
+chỉ là góc nhìn: vẫn là một bảng, dữ liệu không bị tách. Mục **Toàn bộ bảng**
+dưới mỗi bộ phận liệt kê mọi bảng không lọc thời gian, xếp theo thư mục tay
+(Manager tạo bằng nút **+ Thư mục**). Bảng không có cột Ngày chỉ nằm ở đó.
+
+Từ lưới, bấm **←** ở góc trên trái để về trang chủ, cây mở đúng chỗ vừa rời.
+Từ trang chủ, **←** hoặc nút **KN ERP** đưa về hệ thống chính.
+
+### Lưới
+
+Lưới là một trang **toàn màn hình**, nhìn và dùng như một bảng tính quen
+thuộc: khung tối viền vàng, thanh công cụ, thanh công thức, cột số dòng, chữ
+cột A B C… Z, ô có viền, chân trang có tab các bảng. Thanh trên có **←** về
+trang chủ, tên bảng, nhãn tháng đang xem (nếu có), trạng thái lưu ("Đã lưu",
+"Đang lưu…", "Lỗi lưu"), nút **Tải Excel**, nút **⛶** phóng toàn màn hình (Esc
+để thoát) và chữ cái đầu tên bạn — bấm vào mở menu Nền sáng/tối, các màn hình
+khác và Đăng xuất.
+
+**Hàng 1 là tên cột, dữ liệu từ hàng 2**, số dòng nối tiếp qua các trang (mỗi
+trang 100 dòng, chuyển trang ở chân trang). Cột trống bên phải chỉ để nhìn cho
+đủ chữ tới Z — gõ vào không có gì; Manager thêm cột thật bằng chuột phải. Cuối
+lưới luôn thừa dòng trống để gõ bản ghi mới; nút **+100 dòng** ở chân trang
+thêm dòng trống.
+
+**Chọn và sửa:** bấm một lần là **chọn** ô (viền vàng, ô địa chỉ trên thanh
+công thức hiện `B3`); kéo chuột để chọn vùng (`B3:D6`), bấm số dòng chọn cả
+hàng, bấm chữ cột chọn cả cột, góc trên trái chọn cả trang. **Bấm đúp**, Enter,
+F2 hoặc gõ thẳng chữ số mới mở sửa; rời ô đã đổi thì tự lưu. Ô giá trị trên
+thanh công thức cũng sửa được: Enter lưu rồi xuống dòng, Tab sang phải. Gõ `=`
+thì báo chưa hỗ trợ công thức — dùng cột tính sẵn (Manager đặt trong Sửa cột).
+
+**Cột:** kéo mép phải của chữ cột để đổi độ rộng; kéo thả chữ cột sang chỗ
+khác để đổi thứ tự (cột đứng yên khi cuộn không đổi được); **⋯ → Ẩn/hiện cột**
+để giấu cột; **Đặt lại cột** để về mặc định. Ba thứ này nhớ trên trình duyệt
+của bạn, không ảnh hưởng người khác.
 
 **Riêng bộ phận Vận đơn:** bảng vận đơn sửa ở địa chỉ riêng
 **`http://localhost:8021/bang-tinh/`** (trên máy chủ sẽ là một subdomain), cùng
@@ -276,13 +336,36 @@ hàng tiêu đề đứng yên khi cuộn.
 
 | Nút | Làm gì |
 |---|---|
-| Nhập Excel · Xuất Excel | Nhập theo luồng của Bảng dữ liệu (mục A4); xuất đúng lưới đang lọc |
-| Thêm dòng | Đưa con trỏ tới dòng trống cuối lưới |
-| Thêm cột | Mở màn hình Sửa cột (Manager) |
-| Thư mục mới | Tạo thư mục trong thanh bên (Manager) |
-| **B** · Màu nền · Cỡ · ⇤ ↔ ⇥ · Gỡ định dạng | Định dạng ô đang chọn — xem "Định dạng" |
-| Lọc theo ô này | Lọc lưới theo giá trị của ô đang chọn |
-| Ẩn/hiện cột · Đặt lại cột | Tích cột muốn ẩn; đặt lại độ rộng, thứ tự và cột ẩn về mặc định |
+| ↶ ↷ | Hoàn tác, làm lại (Ctrl+Z, Ctrl+Y) — tối đa 100 bước, tải lại trang là hết |
+| Định dạng số · Cỡ chữ | Số, phần trăm, USD, VND, văn bản cho ô số; cỡ chữ 10–28 |
+| **B** *I* U S · A · ▣ | Đậm, nghiêng, gạch chân, gạch ngang; màu chữ và màu nền từ bảng 40 màu |
+| ⫷ ⫶ ⫸ · ↩ · ▦ · Xóa ĐD | Căn trái/giữa/phải, xuống dòng trong ô, viền đậm, xoá mọi định dạng của vùng chọn |
+| Bộ lọc | Mở thanh bên trái (bảng, chọn nhanh ngày, sản phẩm, tìm) |
+| ⋯ | Việc riêng của hệ thống: Nhập tệp, Thêm cột, Thư mục mới, Ẩn/hiện cột, Đặt lại cột, Lọc theo ô này, Bỏ mọi lọc, Bảng dữ liệu |
+| Tải Excel (thanh trên) | Xuất đúng lưới đang lọc |
+
+### Chuột phải
+
+Chuột phải lên ô hay vùng đang chọn mở menu: **Cắt · Sao chép · Dán** (dán từ
+Excel được — chép trong Excel rồi Ctrl+V trên lưới), **Chèn N hàng trống** (thêm
+ở cuối lưới), **Xoá N hàng** (chỉ đánh dấu xoá, có hộp xác nhận, Ctrl+Z khôi
+phục), **Chèn N cột bên trái / bên phải** và **Xoá N cột** (chỉ Manager của bộ
+phận sở hữu bảng; cột khoá và cột đang dùng cho cột tính sẵn không xoá được),
+**Xoá nội dung**, **Xoá định dạng**. Mục bạn không có quyền thì mờ đi.
+
+### Dán, kéo điền, xoá nội dung
+
+Chép vùng (Ctrl+C) rồi dán (Ctrl+V) vào ô khác — cả vùng lưu **một lần**, được
+cả hoặc không: một ô sai (chữ vào cột số, để trống cột bắt buộc) thì báo đúng ô
+đó và không ô nào đổi. Dán tràn xuống dòng trống thì thành dòng mới. Kéo ô
+vuông vàng ở góc dưới phải vùng chọn để **điền tiếp**: số cách đều thì nối
+chuỗi (1, 2, 3 → 4, 5), không thì lặp lại. **Delete** xoá nội dung vùng chọn.
+Chân trang hiện Tổng · Trung bình · Số ô của vùng đang chọn.
+
+### Tự cập nhật
+
+Người khác sửa cùng bảng thì lưới của bạn tự nạp lại trong vài giây và hiện
+"Có dữ liệu mới" — không cần bấm tải lại.
 
 ### Thanh bên trái
 
@@ -293,7 +376,8 @@ hàng tiêu đề đứng yên khi cuộn.
 | Khoảng ngày | Gõ Từ ngày, Đến ngày rồi Áp dụng |
 | Sản phẩm | Tích một hay nhiều sản phẩm (hoặc Tất cả), Áp dụng — lấy dòng có **một trong** các sản phẩm đó |
 
-Bấm **‹** để thu gọn thanh bên.
+Thanh bên ẩn mặc định — bấm **Bộ lọc** trên thanh công cụ để mở, bấm lần nữa
+(hoặc **×** trong thanh bên) để đóng; trạng thái nhớ trên trình duyệt.
 
 ### Dòng trống và cột khoá
 
@@ -307,45 +391,46 @@ trong ô: bấm là lọc lưới theo giá trị đó, cộng dồn với bộ 
 
 ### Định dạng
 
-Bấm một ô, **Shift+bấm** ô khác để chọn vùng, **Ctrl+bấm** để thêm từng ô, rồi
-bấm nút trên thanh công cụ: đậm (**B** hoặc Ctrl+B), màu nền (sáu màu), cỡ chữ
-10–18, căn trái/giữa/phải, **Gỡ định dạng**. Định dạng lưu vào hệ thống — ai
-mở bảng cũng thấy — và đòi quyền sửa ô đó. Không chọn ô thì nút báo "Chưa chọn
-ô nào".
+Kéo chuột chọn vùng (hoặc **Shift+bấm**, Shift+mũi tên), rồi bấm nút trên
+thanh công cụ: đậm (**B** hoặc Ctrl+B), nghiêng, gạch chân, gạch ngang, màu
+chữ và màu nền (bảng 40 màu), cỡ chữ 10–28, căn trái/giữa/phải, xuống dòng,
+viền, định dạng số, **Xóa ĐD**. Định dạng lưu vào hệ thống — ai mở bảng cũng
+thấy — và đòi quyền sửa ô đó. Định dạng số chỉ đổi cách hiện; giá trị gõ vào
+giữ nguyên. Ctrl+Z trả lại định dạng vừa đổi.
 
 ### Lọc
 
 | Việc | Cách làm |
 |---|---|
-| Lọc một cột | Bấm **▾** cạnh tên cột. Cột chữ ngắn và cột chọn: tích các giá trị (kèm số dòng), có ô tìm để thu hẹp. Cột số và ngày: từ – đến. Ghi chú: chứa chữ. Mọi cột: Chỉ ô trống / Chỉ ô có giá trị |
-| Lọc nhiều cột | Lọc cột thứ hai thì cộng dồn với cột thứ nhất; mỗi bộ lọc là một chip phía trên, bấm **×** để bỏ đúng lọc đó |
-| Chỉ số điện thoại trùng | Tích ô **Chỉ số điện thoại trùng** |
-| Tìm nhanh | Ô tìm ở đầu — tìm trong tên khách, số điện thoại, người bán, sản phẩm |
-| Sắp xếp | Bấm tên cột; bấm lần nữa để đảo |
+| Lọc một cột | Bấm **▼** trên chữ cột. Mọi cột: tích các giá trị (kèm số dòng), ô tìm để thu hẹp, Chọn tất cả / Không chọn, **Áp dụng**. Mục **Điều kiện khác**: cột số và ngày từ – đến, cột chữ chứa chữ, Chỉ ô trống / Chỉ ô có giá trị. **Xóa lọc** bỏ lọc của cột đó |
+| Lọc nhiều cột | Lọc cột thứ hai thì cộng dồn với cột thứ nhất; chân trang ghi "Đang lọc N cột"; mỗi bộ lọc là một chip trong thanh bên **Bộ lọc**, bấm **×** để bỏ đúng lọc đó |
+| Chỉ số điện thoại trùng | Bấm **Bộ lọc**, tích ô **Chỉ số điện thoại trùng** |
+| Tìm nhanh | Ô tìm trong thanh bên **Bộ lọc** — tìm trong tên khách, số điện thoại, người bán, sản phẩm |
+| Sắp xếp | Bấm tên cột ở hàng 1; bấm lần nữa để đảo |
 | Chia sẻ đúng bộ lọc | Chép địa chỉ trên thanh trình duyệt — bộ lọc nằm trong đó |
 
-Dòng "Đang hiện x trên y vận đơn" thay cho công thức đếm trong tệp cũ. Mỗi
-trang 100 dòng.
+Chân trang ghi `1–100 / N vận đơn` thay cho công thức đếm trong tệp cũ. Mỗi
+trang 100 dòng, chuyển trang bằng ‹ ›.
 
 ### Sửa
 
 | Việc | Cách làm |
 |---|---|
-| Sửa một ô | Bấm vào ô, hoặc đi tới ô bằng phím rồi **Enter** |
+| Sửa một ô | **Bấm đúp** vào ô, hoặc đi tới ô rồi **Enter** / F2, hoặc gõ thẳng giá trị mới (bấm một lần chỉ chọn ô) |
 | Ô trạng thái, thanh toán, đối soát | Chọn từ danh sách — chọn xong là lưu ngay |
 | Ô nhân viên vận đơn | Gợi ý danh sách tài khoản bộ phận, nhưng gõ mã khác vẫn được |
 | Ghi chú nhiều dòng | Gõ Enter để xuống dòng, **Ctrl+Enter** để lưu |
 | Huỷ | **Esc** |
-| Di chuyển | Mũi tên bốn hướng, **Tab** sang ô kế, **Shift+Tab** lùi lại |
+| Di chuyển | Mũi tên bốn hướng, **Tab** sang ô kế, **Shift+Tab** lùi lại, Ctrl+Home về đầu, PageUp/PageDown 20 dòng; gõ địa chỉ như `B7` vào ô địa chỉ + Enter để nhảy tới |
 
 Mỗi lần sửa ghi một dòng nhật ký (ai, lúc nào, giá trị cũ → mới). Giá trị
 ngoài danh sách bị từ chối kèm lý do ngay tại ô.
 
 ### Nhập và xuất
 
-Nút **Nhập tệp** mở luồng nhập của Bảng dữ liệu (mục A4) cho bảng vận đơn —
-tệp Excel cũ của bộ phận nhập được không cần sửa. Nút **Xuất Excel** xuất đúng
-lưới đang lọc.
+**⋯ → Nhập tệp** mở luồng nhập của Bảng dữ liệu (mục A4) cho bảng vận đơn —
+tệp Excel cũ của bộ phận nhập được không cần sửa. Nút **Tải Excel** ở thanh
+trên xuất đúng lưới đang lọc (chưa mang theo định dạng ô).
 
 ---
 
@@ -430,6 +515,15 @@ chạy, hoặc xoá vùng lưu cơ sở dữ liệu. Cả ba đều có thể l�
 ---
 
 ## B6. Cập nhật hệ thống
+
+**Máy cá nhân — một lệnh:** nháy đúp `KN JSC.bat` ở thư mục gốc (Windows), hoặc
+chạy `scripts\cap-nhat-local.bat` / `./scripts/cap-nhat-local.sh`. Script tự mở
+Docker Desktop và chờ nó sẵn sàng, kéo mã mới, dựng lại container, migrate, tạo
+bảng vận đơn, nạp dữ liệu mẫu (kể cả đặt lại đúng mật khẩu in ra cho tài khoản mẫu
+có sẵn) rồi mở trình duyệt. Muốn xem một nhánh khác thì truyền tên nhánh:
+`scripts\cap-nhat-local.bat <tên nhánh>`. Dừng ở bước nào thì in rõ bước đó.
+
+Máy chủ thật thì làm theo thứ tự dưới đây:
 
 1. **Tạo bản sao lưu mới trước khi làm gì**
 2. Chép bản sao lưu đó ra một nơi khác

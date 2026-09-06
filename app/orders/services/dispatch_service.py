@@ -13,6 +13,7 @@ from decimal import Decimal
 from django.db import transaction
 
 from core.exceptions import BusinessError
+from core.identity import display_name
 from forms_builder.meaning import FieldType, Meaning
 from forms_builder.models import ColumnDef, TableDef
 from forms_builder.services import record_service
@@ -225,8 +226,7 @@ def build_values(order, lines=None):
         "gia_tien": str(tong),
         "loai_tien": order.currency,
         "pttt": PaymentMethod(order.payment_method).label,
-        "nguoi_ban": getattr(getattr(nguoi_ban, "profile", None), "full_name", "")
-                     or getattr(nguoi_ban, "username", ""),
+        "nguoi_ban": display_name(nguoi_ban),
         "don_vi_phu": order.sub_unit,
         "facebook": khach.facebook,
         "email": khach.email,

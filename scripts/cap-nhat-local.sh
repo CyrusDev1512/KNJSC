@@ -66,4 +66,4 @@ case "$(uname -s)" in
   Linux) xdg-open "$DIA_CHI" >/dev/null 2>&1 || true ;;
 esac
 echo
-echo "Xong — mở http://localhost:8020 (hệ thống) và http://localhost:8021/bang-tinh/ (Bảng tính, vận đơn)"
+echo "Xong — mở http://localhost:8020 (KN ERP) và http://localhost:8021/ (KN CRM, bảng tính)"

@@ -38,17 +38,18 @@
     <div class="phai nho mo-nhat">Ghi vào bảng {{ bao_cao.form.table.name }}</div>
   </div>
   <div class="bang-cuon">
-    <table class="bang">
+    <table class="bang bang-luoi">
       <thead><tr><th>Trường</th><th class="phai">Giá trị</th></tr></thead>
       <tbody>
-        {% for cot, gia_tri in cac_dong %}
+        {% for cot, gia_tri, lop in cac_dong %}
           <tr>
-            <td>
+            <td class="{{cot.lop_cot}}">
               {{ cot.name }}
               {% if cot.is_computed %}<span class="chip chip-nhan"><i></i>Tự tính</span>{% endif %}
               <small class="ma-o">{{ cot.code }}</small>
             </td>
-            <td class="phai {% if cot.field_type == 'money' or cot.field_type == 'integer' or cot.field_type == 'decimal' %}tien{% endif %}">
+            {# Màu cột và ngưỡng của bảng đích theo về đây — forms_builder.styling #}
+            <td class="{{lop}} phai {% if cot.field_type == 'money' or cot.field_type == 'integer' or cot.field_type == 'decimal' %}tien{% endif %}">
               {{ gia_tri|default:"—" }}
             </td>
           </tr>

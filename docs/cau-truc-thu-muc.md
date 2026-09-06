@@ -30,6 +30,7 @@ kim-ngan-jsc/
 │   ├── core/                              nền móng, mọi module gọi vào
 │   │   ├── models.py                      TimestampedModel, SoftDeleteModel
 │   │   ├── scope.py                       hàm phạm vi duy nhất
+│   │   ├── identity.py                    tên hiển thị: họ tên, không có thì tên đăng nhập
 │   │   ├── permissions.py                 kiểm quyền cấp bậc và bộ phận
 │   │   ├── middleware.py                  hết phiên, buộc đổi mật khẩu, chặn cache
 │   │   ├── audit.py                       ghi nhật ký hoạt động
@@ -69,8 +70,11 @@ kim-ngan-jsc/
 │   │   │   ├── form_service.py            tạo, sửa biểu mẫu
 │   │   │   ├── table_service.py           tạo bảng, sinh cột
 │   │   │   ├── link_service.py            nối biểu mẫu với bảng, kiểm kiểu
-│   │   │   └── record_service.py          ghi, sửa, xoá bản ghi
+│   │   │   ├── record_service.py          ghi, sửa, xoá bản ghi
+│   │   │   └── choice_service.py          thêm giá trị vào danh sách chọn, quyền
 │   │   ├── meaning.py                     bảy nhãn ý nghĩa và cách dùng
+│   │   ├── choice_registry.py             sổ danh sách chọn ba tầng — ADR-013
+│   │   ├── styling.py                     lớp CSS màu cột, ngưỡng cảnh báo
 │   │   ├── query.py                       dựng truy vấn động trên bảng
 │   │   ├── forms.py
 │   │   ├── views/
@@ -105,7 +109,8 @@ kim-ngan-jsc/
 │   │   ├── services/
 │   │   │   ├── order_service.py           tạo đơn, khoá sau khi lưu
 │   │   │   ├── dispatch_service.py        ghi một chiều sang bảng vận đơn
-│   │   │   └── customer_service.py        nhận diện khách mua lại
+│   │   │   ├── customer_service.py        nhận diện khách mua lại
+│   │   │   └── product_service.py         thêm sản phẩm, nguồn ô chọn Sản phẩm
 │   │   ├── forms.py
 │   │   ├── views.py
 │   │   ├── urls.py
@@ -129,6 +134,7 @@ kim-ngan-jsc/
 │   │   │   ├── pagination.html
 │   │   │   ├── filter_bar.html
 │   │   │   ├── form_field.html
+│   │   │   ├── o_chon.html                ô chọn từ danh sách, mục Thêm mới
 │   │   │   └── empty_state.html
 │   │   ├── core/
 │   │   ├── org/
@@ -143,6 +149,7 @@ kim-ngan-jsc/
 │   │   │   └── main.css
 │   │   ├── js/
 │   │   │   ├── htmx.min.js
+│   │   │   ├── chon.js                    ô chọn có "Thêm mới…"
 │   │   │   └── table.js                   lọc, sắp xếp, sửa ô
 │   │   └── img/
 │   │
@@ -195,7 +202,12 @@ kim-ngan-jsc/
 │   │   ├── 004-crm-la-module-tach-sau.md
 │   │   ├── 005-chon-django.md
 │   │   ├── 006-cong-thuc-tren-bang.md
-│   │   └── 007-bang-dich-va-nhan-y-nghia.md
+│   │   ├── 007-bang-dich-va-nhan-y-nghia.md
+│   │   ├── 008-bao-cao-boc-quanh-bieu-mau.md
+│   │   ├── 009-bang-tinh-la-noi-lam-viec-cua-van-don.md
+│   │   ├── 010-bang-tinh-cho-moi-bang-va-dinh-dang-o.md
+│   │   ├── 011-bang-tinh-theo-mau-kn-demo.md
+│   │   └── 012-kn-crm-app-rieng-cay-thang.md
 │   └── tham-khao/
 │       ├── CRM_Tan.xlsx
 │       ├── vandon-mau.xlsx
@@ -274,7 +286,7 @@ __pycache__/
 | Nơi | Kiểm gì |
 |---|---|
 | `app/<module>/tests/` | Trong một module — service, model, view |
-| `tests/` ở gốc | Xuyên module — ma trận phân quyền, trọn luồng lên đơn |
+| `app/tests/` | Xuyên module — ma trận phân quyền, trọn luồng lên đơn, truy vết, khói, hiệu năng. (Thư mục `tests/` ở gốc kho chỉ là chỗ giữ, chưa có bài nào) |
 
 Ba tệp ở gốc là ba thứ dễ hỏng nhất và không thuộc module nào:
 
@@ -297,5 +309,10 @@ Ba tệp ở gốc là ba thứ dễ hỏng nhất và không thuộc module nà
 | `005-chon-django.md` | Vì sao Django, vì sao HTMX thay vì khung giao diện riêng |
 | `006-cong-thuc-tren-bang.md` | Vì sao bảng dữ liệu chỉ có cột tính sẵn |
 | `007-bang-dich-va-nhan-y-nghia.md` | Vì sao luôn chọn bảng có sẵn, và bảy nhãn ý nghĩa |
+| `008-bao-cao-boc-quanh-bieu-mau.md` | Vì sao báo cáo hằng ngày bọc quanh biểu mẫu, không tự giữ nội dung |
+| `009-bang-tinh-la-noi-lam-viec-cua-van-don.md` | Vì sao Bảng tính là lưới của Vận đơn theo tệp thật, chạy thành dịch vụ riêng |
+| `010-bang-tinh-cho-moi-bang-va-dinh-dang-o.md` | Vì sao lưới mở cho mọi bảng, định dạng ô lưu cơ sở dữ liệu dạng sổ đóng, thư mục phẳng |
+| `011-bang-tinh-theo-mau-kn-demo.md` | Vì sao nhìn và thao tác theo KN Demo mà không nhúng mã demo; bảng "không làm" |
+| `012-kn-crm-app-rieng-cay-thang.md` | Vì sao Bảng tính là app riêng KN CRM (dịch vụ riêng, chung mã), trang chủ cây Bộ phận ▸ Quý ▸ Tháng, tháng là góc nhìn |
 
 Bốn tệp này viết ngay khi tạo repo, không đợi.

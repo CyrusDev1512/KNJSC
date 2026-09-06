@@ -1,0 +1,102 @@
+{% extends "crm/base_bang_tinh.html" %}
+{% block tieu_de %}KN CRM · Kim Ngân JSC{% endblock %}
+{% block ten_bang %}
+  <h1 class="bt-tieu-de">{{ tieu_de }}</h1>
+{% endblock %}
+{% block thanh_tren_phai %}
+  <a class="bt-nut-tren" href="{{ erp_url }}" title="Về KN ERP, cùng tab">KN ERP</a>
+{% endblock %}
+
+{% block noi_dung %}
+{% comment %}
+Trang chủ KN CRM — ADR-012. Trái: cây Bộ phận ▸ Quý ▸ Tháng (tự sinh từ cột
+Ngày của các bảng trong phạm vi); phải: các bảng của nút đang chọn. Tháng là
+góc nhìn: nút Mở dẫn tới lưới với bộ lọc khoảng ngày sẵn. Cây chỉ dựng từ
+phạm vi quyền (`tree_service`), lớp CSS tính ở Python.
+{% endcomment %}
+<div class="crm-trang">
+  <nav class="crm-cay" aria-label="Bộ phận, quý và tháng">
+    {% for m in cac_bo_phan %}
+      <details class="crm-bp" {% if m.dang_chon %}open{% endif %}>
+        <summary class="{{ m.lop }}">{{ m.bp.name }}</summary>
+        {% for q in m.quy %}
+          <details class="crm-quy" {% if q.dang_chon %}open{% endif %}>
+            <summary class="{{ q.lop }}">{{ q.label }} <span class="crm-so">{{ q.count }}</span></summary>
+            <ul class="crm-thang">
+              {% for t in q.months %}
+                <li><a class="{{ t.lop }}" href="{{ t.url }}" {% if t.dang_chon %}aria-current="page"{% endif %}>{{ t.label }} <span class="crm-so">{{ t.count }}</span></a></li>
+              {% endfor %}
+            </ul>
+          </details>
+        {% endfor %}
+        <a class="{{ m.lop_tat_ca }}" href="{{ m.url_tat_ca }}" {% if m.tat_ca_chon %}aria-current="page"{% endif %}>Toàn bộ bảng <span class="crm-so">{{ m.so_bang }}</span></a>
+      </details>
+    {% empty %}
+      <p class="crm-rong-cay">Chưa có bảng nào trong phạm vi của bạn.</p>
+    {% endfor %}
+  </nav>
+
+  <section class="crm-noi-dung" aria-label="Bảng trong nút đang chọn">
+    <div class="crm-dau">
+      <div>
+        <div class="crm-nhan">{{ nhan_nut }}</div>
+        <h2 class="crm-tieu-de">{{ tieu_de }}</h2>
+        <p class="crm-mo-ta">{{ mo_ta }}</p>
+      </div>
+      {% if duoc_quan_ly_thu_muc %}
+        <div class="hanh-dong">
+          <a class="nut nut-nho" href="{{ cap_quyen_url }}" title="Cấp quyền xem, sửa từng bảng ở KN ERP">Cấp quyền ↗</a>
+          <button class="nut nut-nho bt-thu-muc-moi" type="button" aria-expanded="false" aria-controls="crm-form-thu-muc">+ Thư mục</button>
+        </div>
+      {% endif %}
+    </div>
+    {% if duoc_quan_ly_thu_muc %}
+      <form id="crm-form-thu-muc" class="crm-form-thu-muc" method="post" action="{% url 'thu_muc_moi' %}" hidden>
+        {% csrf_token %}
+        <input type="hidden" name="bo_phan" value="{{ bp.pk }}">
+        <label for="crm-ten-thu-muc">Tên thư mục mới</label>
+        <input class="o-nhap" id="crm-ten-thu-muc" name="name" maxlength="120" required autocomplete="off">
+        <button class="nut nut-nho nut-chinh" type="submit">Tạo</button>
+      </form>
+    {% endif %}
+
+    {% for nhom in cac_nhom %}
+      {% if nhom.ten %}<h3 class="crm-nhom">{{ nhom.ten }}</h3>{% endif %}
+      <ul class="crm-ds">
+        {% for b in nhom.cac_bang %}
+          <li class="crm-hang">
+            <div class="crm-hang-ten">
+              <a class="crm-bang-ten" href="{{ b.url }}">{{ b.bang.name }}</a>
+              <div class="crm-meta">
+                <span>{{ b.so_dong }} dòng{% if thang %} trong tháng{% endif %}</span>
+                {% if b.cap_nhat %}<span>cập nhật {{ b.cap_nhat|date:"d/m H:i" }}</span>{% endif %}
+                {% if b.khong_ngay %}<span class="crm-chu-y">không có cột Ngày</span>{% endif %}
+              </div>
+            </div>
+            <span class="{{ b.lop_quyen }}">{{ b.quyen }}</span>
+            <a class="nut nut-nho nut-chinh" href="{{ b.url }}">Mở</a>
+          </li>
+        {% empty %}
+          <li class="crm-hang-rong">Trống</li>
+        {% endfor %}
+      </ul>
+    {% empty %}
+      {% include "components/rong.html" with rong_tieu_de="Không có bảng nào ở đây" rong_mo_ta=rong_mo_ta %}
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}
+
+{% block cuoi_trang %}
+<script>
+  (function () {
+    var nut = document.querySelector(".bt-thu-muc-moi"), form = document.getElementById("crm-form-thu-muc");
+    if (!nut || !form) return;
+    nut.addEventListener("click", function () {
+      form.hidden = !form.hidden;
+      nut.setAttribute("aria-expanded", form.hidden ? "false" : "true");
+      if (!form.hidden) form.querySelector("input[name=name]").focus();
+    });
+  })();
+</script>
+{% endblock %}

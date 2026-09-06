@@ -25,12 +25,66 @@ from .managers import (
     AllDataRecordManager, AllFormDefManager, AllTableDefManager,
     DataRecordManager, FormDefManager, TableDefManager,
 )
+from . import choice_registry
 from .meaning import COLUMN_OF, FieldType, Meaning, allows, type_fits
 
 #: Kiểu dữ liệu được làm cột khoá — chuỗi ngắn hoặc số nguyên, thứ so bằng được
 KEY_TYPES = (FieldType.TEXT, FieldType.INTEGER)
 
 CODE_HELP = "Tên kỹ thuật, tiếng Anh, dùng làm khoá trong cơ sở dữ liệu."
+
+#: Kiểu số — cột đặt được ngưỡng cảnh báo (kể cả cột tính sẵn, vốn là kiểu tiền)
+NUMERIC_TYPES = (FieldType.INTEGER, FieldType.DECIMAL, FieldType.MONEY)
+
+#: Giới hạn danh sách chọn trên một cột. 200 ký tự khớp độ dài cột tách
+#: `val_product` và `val_seller`, nơi giá trị chọn có thể chép sang.
+CHOICE_OPTIONS_MAX = 200
+CHOICE_OPTION_MAX_LENGTH = 200
+
+
+class Highlight(models.TextChoices):
+    """Màu nền của cả cột trên Bảng dữ liệu — FR-8.8, Q60.
+
+    Sổ đóng: giao diện dịch từng giá trị sang một lớp CSS cố định ở
+    `forms_builder/styling.py`, không nhận màu tự do.
+    """
+
+    VANG = "vang", "Vàng"
+    DO = "do", "Đỏ"
+    LUC = "luc", "Xanh lá"
+    XANH = "xanh", "Xanh dương"
+
+
+class AlertOp(models.TextChoices):
+    """Chiều so sánh của ngưỡng cảnh báo — ô vượt ngưỡng tô đỏ, còn lại xanh lá."""
+
+    GT = "gt", "Đỏ khi lớn hơn ngưỡng"
+    LT = "lt", "Đỏ khi nhỏ hơn ngưỡng"
+
+
+def validate_choice_options(options):
+    """Lý do danh sách chọn không hợp lệ, hoặc None nếu ổn.
+
+    Danh sách là JSON tự do trong cơ sở dữ liệu, nên kiểm ở đây thay vì tin
+    dữ liệu đến từ biểu mẫu hay từ dịch vụ.
+    """
+    if not isinstance(options, list):
+        return "Danh sách chọn phải là danh sách các dòng chữ."
+    if len(options) > CHOICE_OPTIONS_MAX:
+        return f"Danh sách chọn tối đa {CHOICE_OPTIONS_MAX} giá trị."
+    da_co = set()
+    for gia_tri in options:
+        if not isinstance(gia_tri, str) or not gia_tri.strip():
+            return "Mỗi giá trị trong danh sách là một dòng chữ, không để trống."
+        if gia_tri != gia_tri.strip():
+            return f'Giá trị "{gia_tri}" còn khoảng trắng thừa ở đầu hoặc cuối.'
+        if len(gia_tri) > CHOICE_OPTION_MAX_LENGTH:
+            return f"Mỗi giá trị tối đa {CHOICE_OPTION_MAX_LENGTH} ký tự."
+        khoa = choice_registry._khoa(gia_tri)
+        if khoa in da_co:
+            return f'Giá trị "{gia_tri}" bị trùng trong danh sách.'
+        da_co.add(khoa)
+    return None
 
 
 class ComputeOp(models.TextChoices):
@@ -170,6 +224,28 @@ class ColumnDef(TimestampedModel):
         help_text="Giá trị nhận diện dòng; bấm ô này trên Bảng tính để lọc nhanh. Mỗi bảng một cột.",
     )
 
+    # ── Danh sách chọn — FR-8.7, Q58 ──
+    # Chỉ cho kiểu Chọn một. Cột mang nhãn Sản phẩm hay Người bán lấy danh
+    # sách từ hệ thống (sổ theo nhãn ở choice_registry), không nhập ở đây.
+    options = models.JSONField(
+        "Danh sách chọn", default=list, blank=True,
+        help_text="Giá trị được chọn của cột kiểu Chọn một. Manager quản lý, người điền chỉ chọn.",
+    )
+
+    # ── Màu cột và ngưỡng cảnh báo trên Bảng dữ liệu — FR-8.8, Q60 ──
+    highlight = models.CharField(
+        "Màu cột", max_length=8, choices=Highlight.choices, blank=True, default="",
+        help_text="Tô nền tiêu đề và mọi ô của cột trên Bảng dữ liệu.",
+    )
+    alert_op = models.CharField(
+        "Cảnh báo", max_length=2, choices=AlertOp.choices, blank=True, default="",
+        help_text="Chỉ cho cột kiểu số. Ô vượt ngưỡng tô đỏ, ô đạt tô xanh lá.",
+    )
+    alert_value = models.DecimalField(
+        "Ngưỡng", max_digits=MONEY_MAX_DIGITS, decimal_places=MONEY_DECIMAL_PLACES,
+        null=True, blank=True,
+    )
+
     # ── Cột tính sẵn — ADR-006 ──
     is_computed = models.BooleanField("Là cột tính sẵn", default=False)
     compute_op = models.CharField(
@@ -250,6 +326,35 @@ class ColumnDef(TimestampedModel):
                         'Bảng đã có cột khoá "%(cot)s". Bỏ khoá ở cột đó trước.',
                         params={"cot": khoa_khac.name},
                     )
+
+        # Danh sách chọn — FR-8.7. Danh sách rỗng thì không có gì để kiểm:
+        # cột Chọn một chưa có danh sách sẽ không nhận giá trị nào (Q58)
+        if self.options:
+            if self.field_type != FieldType.CHOICE:
+                loi["options"] = ValidationError(
+                    "Danh sách chọn chỉ đặt được cho cột kiểu Chọn một."
+                )
+            elif choice_registry.has_meaning_source(self.meaning):
+                loi["options"] = ValidationError(
+                    "Cột mang nhãn %(nhan)s lấy danh sách từ hệ thống, không nhập tay.",
+                    params={"nhan": Meaning(self.meaning).label},
+                )
+            else:
+                ly_do = validate_choice_options(self.options)
+                if ly_do:
+                    loi["options"] = ValidationError(ly_do)
+        elif self.options is not None and not isinstance(self.options, list):
+            loi["options"] = ValidationError("Danh sách chọn phải là danh sách các dòng chữ.")
+
+        # Ngưỡng cảnh báo — FR-8.8: đủ cả chiều lẫn ngưỡng, và chỉ cho cột số
+        if bool(self.alert_op) != (self.alert_value is not None):
+            loi["alert_value"] = ValidationError(
+                "Cảnh báo cần đủ cả chiều so sánh lẫn ngưỡng, hoặc bỏ trống cả hai."
+            )
+        elif self.alert_op and self.field_type not in NUMERIC_TYPES:
+            loi["alert_op"] = ValidationError(
+                "Ngưỡng cảnh báo chỉ đặt được cho cột kiểu số."
+            )
 
         if self.is_computed:
             if not self.compute_op:
@@ -555,7 +660,7 @@ class FormDef(ScopedModel):
 
     def ordered_fields(self):
         """Các trường theo đúng thứ tự hiển thị, lấy sẵn định nghĩa và cột đích."""
-        return (self.fields.select_related("field", "link", "link__column")
+        return (self.fields.select_related("field", "link", "link__column", "link__column__table")
                 .order_by("order", "id"))
 
 

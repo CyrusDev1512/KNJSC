@@ -63,7 +63,8 @@ TAI_KHOAN = [
 COT_BC_MKT = [
     ("Ngày", "ngay", "date", "date"),
     ("Marketer", "marketer", "text", "seller"),
-    ("Sản phẩm", "san_pham", "text", "product"),
+    # Chọn một mang nhãn Sản phẩm: ô chọn lấy từ danh mục sản phẩm (FR-8.7)
+    ("Sản phẩm", "san_pham", "choice", "product"),
     ("Số Mess", "so_mess", "integer", ""),
     ("CPQC", "cpqc", "money", ""),
     ("Số đơn", "so_don", "integer", ""),
@@ -79,13 +80,21 @@ COT_TINH_BC_MKT = [
     ("Tỉ lệ chốt", "ti_le_chot", "percent", "so_don", "so_mess", 2),
 ]
 
+#: Màu cột và ngưỡng cảnh báo mẫu — như bảng "Dữ liệu chi phí Ads" của người
+#: dùng: tỉ lệ chốt tô vàng cả cột, CPO đỏ khi vượt 1.500.000 (FR-8.8)
+MAU_COT_BC_MKT = {
+    "ti_le_chot": {"highlight": "vang"},
+    "cpo": {"highlight": "do", "alert_op": "gt", "alert_value": Decimal("1500000")},
+}
+
 #: Số liệu thật lấy từ sheet BC MKT. Dòng đầu cho CPO 1.506.687 và tỉ lệ chốt
-#: 6,76% — đúng bằng con số trong bản của khách hàng.
+#: 6,76% — đúng bằng con số trong bản của khách hàng. Tên sản phẩm phải khớp
+#: danh mục `SAN_PHAM`, vì cột Sản phẩm là ô chọn chặt.
 DONG_BC_MKT = [
-    ("Nguyễn Quang Minh", "Máy massage HM-200", 4303, "438446060", 291, "1425942850"),
+    ("Nguyễn Quang Minh", "Máy massage cầm tay HM-200", 4303, "438446060", 291, "1425942850"),
     ("Trần Thu Hà", "Đèn ngủ cảm ứng", 2180, "196300000", 148, "612400000"),
-    ("Nguyễn Quang Minh", "Máy massage HM-200", 3907, "402118000", 264, "1288900000"),
-    ("Lê Hoàng Nam", "Bộ nồi chống dính", 1640, "151200000", 96, "441600000"),
+    ("Nguyễn Quang Minh", "Máy massage cầm tay HM-200", 3907, "402118000", 264, "1288900000"),
+    ("Lê Hoàng Nam", "Nồi chiên không dầu 5L", 1640, "151200000", 96, "441600000"),
     ("Trần Thu Hà", "Đèn ngủ cảm ứng", 2455, "221000000", 171, "708300000"),
 ]
 
@@ -130,6 +139,7 @@ class Command(BaseCommand):
         self.mat_khau = o["mat_khau"]
         self.da_tao = {"bộ phận": 0, "team": 0, "tài khoản": 0,
                        "bảng": 0, "biểu mẫu": 0, "sản phẩm": 0, "dòng dữ liệu": 0}
+        self.dat_lai_mat_khau = 0
 
         bo_phan = self._bo_phan()
         team = self._team(bo_phan)
@@ -174,8 +184,19 @@ class Command(BaseCommand):
         User = get_user_model()
         ket_qua = {}
         for ten_dn, ho_ten, cap_bac, ma_bp, ten_team, doi_mk in TAI_KHOAN:
-            co_san = User.objects.filter(username=ten_dn).first()
+            co_san = User.objects.filter(username=ten_dn).select_related("profile").first()
             if co_san is not None:
+                # Tài khoản mẫu đã có từ lần chạy trước: đặt lại đúng mật khẩu
+                # in ra cuối lệnh và mở khoá — không thì màn hình in một mật
+                # khẩu mà cơ sở dữ liệu giữ một mật khẩu khác, đăng nhập hỏng
+                # mà không ai hiểu vì sao (03.09.2026, máy Windows của người dùng)
+                ho_so = getattr(co_san, "profile", None)
+                if ho_so is not None:
+                    account_service.reset_password(ho_so, self.mat_khau)
+                    account_service.unlock_account(ho_so)
+                    ho_so.must_change_password = doi_mk
+                    ho_so.save(update_fields=["must_change_password"])
+                    self.dat_lai_mat_khau += 1
                 ket_qua[ten_dn] = co_san
                 continue
 
@@ -265,7 +286,8 @@ class Command(BaseCommand):
             table_service.add_column(
                 bang, actor=ql, name=ten, code=ma, field_type="money", order=j,
                 is_computed=True, compute_op=phep,
-                compute_left=a, compute_right=b, compute_decimals=so_le)
+                compute_left=a, compute_right=b, compute_decimals=so_le,
+                **MAU_COT_BC_MKT.get(ma, {}))
 
         # Thư viện định nghĩa trường, rồi biểu mẫu nộp báo cáo ngày
         bieu_mau = form_service.create_form(
@@ -309,6 +331,9 @@ class Command(BaseCommand):
         da = ", ".join(f"{v} {k}" for k, v in self.da_tao.items() if v)
         self.stdout.write(self.style.SUCCESS(
             "Da tao: " + (da if da else "khong co gi moi, du lieu da day du")))
+        if self.dat_lai_mat_khau:
+            self.stdout.write(
+                f"Da dat lai mat khau va mo khoa {self.dat_lai_mat_khau} tai khoan mau co san")
         self.stdout.write(
             f"Hien co: {TableDef.objects.count()} bang, "
             f"{DataRecord.objects.count()} dong, {len(nguoi)} tai khoan")

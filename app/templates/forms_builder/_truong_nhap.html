@@ -1,0 +1,37 @@
+{% comment %}
+Một trường trên màn hình điền biểu mẫu và nộp báo cáo ngày — một chỗ duy nhất
+quyết định ô nhập trông thế nào (trước đây hai màn hình chép nhau).
+Cần: o (form_service.Widget), bm (biểu mẫu đang điền).
+{% endcomment %}{% with t=o.t gia_tri=o.gia_tri %}
+<div class="truong">
+  <label for="o-{{ t.field.code }}">
+    {{ t.field.name }}{% if t.required %} <span class="bat-buoc">*</span>{% endif %}
+    <span class="ky-thuat">{{ t.field.code }}</span>
+  </label>
+  {% if o.danh_tinh %}
+    {# Danh tính người điền: hệ thống tự ghi, ô không có name nên không gửi lên — FR-4.6 #}
+    <input class="o-nhap" id="o-{{ t.field.code }}" value="{{ o.ten_nguoi_dung }}" readonly>
+    <span class="goi-y">Chính là bạn, hệ thống tự ghi</span>
+  {% elif o.cac_muc != None %}
+    {% url 'bang_them_lua_chon' bm.table.code o.cot.code as them_url %}
+    {% include "components/o_chon.html" with ten=t.field.code id_o="o-"|add:t.field.code nhan=t.field.name cac_muc=o.cac_muc chat=o.chat co_them=o.co_them nhom=t.field.code lop="o-nhap" %}
+  {% elif t.field.field_type == "long_text" %}
+    <textarea class="o-nhap" id="o-{{ t.field.code }}" name="{{ t.field.code }}" rows="3">{{ gia_tri }}</textarea>
+  {% elif t.field.field_type == "date" %}
+    <input class="o-nhap" type="date" id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
+  {% elif t.field.field_type == "datetime" %}
+    <input class="o-nhap" type="datetime-local" id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
+  {% elif t.field.field_type == "boolean" %}
+    <select class="o-nhap" id="o-{{ t.field.code }}" name="{{ t.field.code }}">
+      <option value="">— chọn —</option>
+      <option value="co" {% if gia_tri == "co" %}selected{% endif %}>Có</option>
+      <option value="khong" {% if gia_tri == "khong" %}selected{% endif %}>Không</option>
+    </select>
+  {% else %}
+    <input class="o-nhap {% if t.field.field_type == 'money' or t.field.field_type == 'integer' or t.field.field_type == 'decimal' %}tien{% endif %}"
+           id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
+  {% endif %}
+  {% if t.field.hint %}<span class="goi-y">{{ t.field.hint }}</span>{% endif %}
+  {% if not t.link %}<span class="goi-y">Trường này chưa nối cột, dữ liệu sẽ không được lưu.</span>{% endif %}
+</div>
+{% endwith %}

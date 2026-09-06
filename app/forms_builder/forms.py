@@ -1,8 +1,10 @@
 """Biểu mẫu của forms_builder. Nhãn và thông báo lỗi bằng tiếng Việt."""
 from django import forms
 
+from . import choice_registry
 from .meaning import ALLOWED_TYPES, FieldType, Meaning, choices_with_hint
 from .models import (
+    AlertOp, Highlight,
     ColumnDef, ComputeOp, FieldDef, FormDef, GrantAction, TableDef,
 )
 from .services import link_service
@@ -30,15 +32,27 @@ class TableForm(forms.ModelForm):
 class ColumnForm(forms.ModelForm):
     """Thêm hoặc sửa một cột.
 
-    `ColumnDef.clean()` lo phần kiểm chéo giữa nhãn, kiểu và công thức; biểu
-    mẫu này chỉ lo phần hiển thị.
+    `ColumnDef.clean()` lo phần kiểm chéo giữa nhãn, kiểu, công thức, danh sách
+    chọn và ngưỡng cảnh báo; biểu mẫu này chỉ lo phần hiển thị.
     """
+
+    # Danh sách chọn gõ mỗi dòng một giá trị — JSON trong cơ sở dữ liệu, nhưng
+    # Manager không phải biết JSON là gì (FR-8.7)
+    options = forms.CharField(
+        label="Danh sách chọn", required=False,
+        widget=forms.Textarea(attrs={"rows": 4}),
+        help_text=(
+            "Mỗi dòng một giá trị. Chỉ cho kiểu Chọn một; cột mang nhãn Sản phẩm "
+            "hoặc Người bán lấy danh sách từ hệ thống."
+        ),
+    )
 
     class Meta:
         model = ColumnDef
         fields = [
             "name", "code", "field_type", "meaning", "required", "order",
-            "is_key",
+            "is_key", "options",
+            "highlight", "alert_op", "alert_value",
             "is_computed", "compute_op", "compute_left", "compute_right",
             "compute_decimals",
         ]
@@ -46,6 +60,7 @@ class ColumnForm(forms.ModelForm):
             "name": "Nhãn hiển thị", "code": "Tên kỹ thuật",
             "field_type": "Kiểu dữ liệu", "meaning": "Nhãn ý nghĩa",
             "required": "Bắt buộc nhập", "order": "Thứ tự", "is_key": "Cột khoá",
+            "highlight": "Màu cột", "alert_op": "Cảnh báo", "alert_value": "Ngưỡng",
             "is_computed": "Là cột tính sẵn", "compute_op": "Phép tính",
             "compute_left": "Toán hạng A", "compute_right": "Toán hạng B",
             "compute_decimals": "Số chữ số thập phân",
@@ -53,6 +68,8 @@ class ColumnForm(forms.ModelForm):
         help_texts = {
             "name": "Tiếng Việt, người dùng nhìn thấy.",
             "code": "Tiếng Anh, không dấu.",
+            "highlight": "Tô nền tiêu đề và mọi ô của cột trên Bảng dữ liệu.",
+            "alert_op": "Chỉ cho cột kiểu số. Ô vượt ngưỡng tô đỏ, ô đạt tô xanh lá.",
         }
 
     def __init__(self, *args, table=None, **kwargs):
@@ -60,6 +77,23 @@ class ColumnForm(forms.ModelForm):
         self.table = table or self.instance.table
         if self.instance.pk:
             self.fields["code"].disabled = True
+            # Danh sách đã lưu hiện lại thành từng dòng để sửa
+            self.initial["options"] = "\n".join(self.instance.options or [])
+        self.fields["highlight"].choices = [("", "Không tô")] + list(Highlight.choices)
+        self.fields["alert_op"].choices = [("", "Không cảnh báo")] + list(AlertOp.choices)
+
+    def clean_options(self):
+        """Mỗi dòng một giá trị: bỏ khoảng trắng thừa, dòng trống và dòng trùng
+        (không phân biệt hoa thường), giữ thứ tự Manager gõ."""
+        ket_qua, da_co = [], set()
+        for dong in (self.cleaned_data.get("options") or "").splitlines():
+            gia_tri = " ".join(dong.split())
+            khoa = choice_registry._khoa(gia_tri)
+            if not gia_tri or khoa in da_co:
+                continue
+            da_co.add(khoa)
+            ket_qua.append(gia_tri)
+        return ket_qua
 
         # Nhãn ý nghĩa kèm mô tả ngắn, và bỏ những nhãn đã có cột khác giữ
         da_dung = set(

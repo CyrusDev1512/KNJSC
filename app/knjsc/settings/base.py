@@ -153,8 +153,9 @@ EXPORT_MAX_ROWS = 50_000        # NFR-14
 # Bảng chỉ xem ở màn hình Bảng dữ liệu, sửa ở Bảng tính (ADR-009). Dịch vụ
 # `bangtinh` để rỗng để chính nó sửa được.
 GRID_ONLY_TABLES = set(env_list("GRID_ONLY_TABLES", "van_don"))
-# Địa chỉ dịch vụ Bảng tính — chạy riêng, tương lai là subdomain
-BANGTINH_URL = env("BANGTINH_URL", "http://localhost:8021/bang-tinh/")
+# Địa chỉ app KN CRM (Bảng tính) — dịch vụ riêng, tương lai là subdomain
+# (ADR-009, ADR-012). Trỏ gốc: trang chủ là cây thư mục, bảng ở `bang-tinh/<mã>/`
+BANGTINH_URL = env("BANGTINH_URL", "http://localhost:8021/")
 # Địa chỉ dịch vụ chính — Bảng tính liên kết ngược về Bảng dữ liệu và Nhập tệp
 MAIN_APP_URL = env("MAIN_APP_URL", "http://localhost:8020/")
 

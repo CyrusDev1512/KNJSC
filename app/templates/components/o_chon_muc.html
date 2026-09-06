@@ -1,0 +1,7 @@
+{% comment %}
+Các <option> của một ô chọn — FR-8.7. Dùng cả lúc vẽ trang lẫn khi máy chủ trả
+về sau "Thêm mới…" (static/js/chon.js chép vào mọi ô chọn cùng nhóm).
+Cần: cac_muc [(giá trị, nhãn)], gia_tri, co_them. Tuỳ chọn: nhan_trong.
+{% endcomment %}<option value="">{{ nhan_trong|default:"— chọn —" }}</option>
+{% for gt, nhan in cac_muc %}<option value="{{ gt }}"{% if gt == gia_tri %} selected{% endif %}>{{ nhan }}</option>
+{% endfor %}{% if co_them %}<option value="__them__">＋ Thêm mới…</option>{% endif %}

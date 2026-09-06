@@ -13,13 +13,15 @@ from .conftest import chup
 
 pytestmark = [pytest.mark.django_db(transaction=True), pytest.mark.trinh_duyet, pytest.mark.cham]
 
+#: (tên, đường dẫn, vai, URLconf) — lưới nằm ở app KN CRM (ADR-012)
+ERP, CRM = "knjsc.urls", "knjsc.urls_bangtinh"
 MAN_HINH = [
-    ("tong-quan", "/", "staff_vd"),
-    ("bang-du-lieu", "/bang/van_don/", "staff_vd"),
-    ("bang-tinh", "/bang-tinh/", "staff_vd"),
-    ("len-don", "/len-don/", "staff_sale_1"),
-    ("bao-cao-ngay", "/bao-cao-ngay/", "staff_mkt"),
-    ("nhap-tep", "/bang/van_don/nhap/", "admin"),
+    ("tong-quan", "/", "staff_vd", ERP),
+    ("bang-du-lieu", "/bang/van_don/", "staff_vd", ERP),
+    ("bang-tinh", "/bang-tinh/", "staff_vd", CRM),
+    ("len-don", "/len-don/", "staff_sale_1", ERP),
+    ("bao-cao-ngay", "/bao-cao-ngay/", "staff_mkt", ERP),
+    ("nhap-tep", "/bang/van_don/nhap/", "admin", ERP),
 ]
 
 
@@ -34,10 +36,12 @@ def du_lieu(departments, nguoi_dung):
     return bang
 
 
-@pytest.mark.parametrize("ten,duong_dan,vai", MAN_HINH, ids=[m[0] for m in MAN_HINH])
+@pytest.mark.parametrize("ten,duong_dan,vai,urlconf", MAN_HINH, ids=[m[0] for m in MAN_HINH])
 def test_khong_tran_ngang_tren_dien_thoai(live_server, trang_dien_thoai, dang_nhap, du_lieu,
-                                          nguoi_dung, ten, duong_dan, vai):
+                                          nguoi_dung, settings, ten, duong_dan, vai, urlconf):
     """AC-10.4 — Trên màn hình 390px mỗi màn hình chính không tràn ngang, và có ảnh chụp để đối chiếu"""
+    settings.ROOT_URLCONF = urlconf
+    settings.GRID_ONLY_TABLES = set() if urlconf == CRM else settings.GRID_ONLY_TABLES
     page = trang_dien_thoai
     dang_nhap(page, nguoi_dung[vai])
     page.goto(live_server.url + duong_dan)
