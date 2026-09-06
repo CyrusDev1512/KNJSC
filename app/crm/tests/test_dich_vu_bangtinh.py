@@ -51,6 +51,15 @@ def test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap(client, bang_vd, nguoi_d
     assert dong.data["ghi_chu"] == "sửa ở Bảng tính"
 
 
+def test_erp_dung_logo_kn_jsc(client, nguoi_dung):
+    """AC-11.31 — KN ERP dùng logo KN JSC ở đầu thanh bên (bấm về Tổng quan) và favicon riêng, không lẫn với KN CRM"""
+    client.force_login(nguoi_dung["staff_vd"])
+    with override_settings(ROOT_URLCONF="knjsc.urls"):
+        html = client.get("/").content.decode()
+    assert 'class="nav-hieu" href="/"' in html and "img/kn-jsc.svg" in html and "img/kn-crm.svg" not in html
+    assert 'rel="icon" type="image/svg+xml" href="/static/img/kn-jsc.svg' in html
+
+
 def test_erp_chi_con_lien_ket_sang_kn_crm(client, bang_vd, nguoi_dung, settings):
     """AC-11.30 — Ở KN ERP mục KN CRM trên thanh bên của mọi bộ phận là liên kết ngoài mở tab mới, lưới không tồn tại ở ERP, Bảng dữ liệu có nút mở đúng bảng trong KN CRM; ở KN CRM mục này là liên kết trong cùng tab"""
     settings.ROOT_URLCONF = "knjsc.urls"                     # KN ERP

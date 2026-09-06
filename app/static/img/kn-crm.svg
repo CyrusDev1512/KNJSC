@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="KN CRM">
+  <!--
+    Logo KN CRM — cùng họ với KN JSC (ô xanh gradient bo góc, chữ KN trắng,
+    vạch cam) nhưng thay chữ JSC bằng dấu lưới 3×2 ô vàng nhạt: dấu hiệu của
+    Bảng tính (ADR-011, ADR-014). Dùng ở thanh trên lưới, menu trái KN CRM và
+    favicon 8021; ở 16px vẫn đọc được chữ KN, dấu lưới thành một khối sáng.
+  -->
+  <defs>
+    <linearGradient id="nen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#173C8F"/>
+      <stop offset="1" stop-color="#1877E0"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="58" fill="url(#nen)"/>
+  <circle cx="214" cy="42" r="118" fill="#FFFFFF" fill-opacity="0.07"/>
+  <text x="112" y="150" font-size="118" letter-spacing="-3" font-family="'Be Vietnam Pro', FreeSans, 'Liberation Sans', Arial, Helvetica, sans-serif" font-weight="700" fill="#FFFFFF" text-anchor="middle">KN</text>
+  <rect x="40" y="168" width="150" height="9" rx="4.5" fill="#F5A524"/>
+  <g id="luoi" fill="#F8E3A3" stroke="#173C8F" stroke-width="3">
+    <rect x="176" y="176" width="20" height="20"/><rect x="200" y="176" width="20" height="20"/>
+    <rect x="176" y="200" width="20" height="20"/><rect x="200" y="200" width="20" height="20"/>
+    <rect x="176" y="224" width="20" height="12"/><rect x="200" y="224" width="20" height="12"/>
+  </g>
+  <text x="36" y="226" font-size="38" letter-spacing="7" font-family="'Be Vietnam Pro', FreeSans, 'Liberation Sans', Arial, Helvetica, sans-serif" font-weight="700" fill="#D6E4FF" text-anchor="start">CRM</text>
+</svg>

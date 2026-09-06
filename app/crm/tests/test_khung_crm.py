@@ -36,7 +36,7 @@ def _sidebar(html):
 
 
 def test_trang_chu_tong_quan_co_sidebar_theo_pham_vi(client, du_lieu, nguoi_dung, django_assert_max_num_queries):
-    """AC-11.31 — Trang chủ KN CRM là tổng quan theo phạm vi (Staff chỉ đếm dòng của mình), có sidebar avatar + Trang chủ + Bảng tính với mục con là bộ phận trong phạm vi, không có nút ←; Leader thấy Tạo bảng; người không có bảng vẫn vào được; chưa đăng nhập chuyển về đăng nhập; trong ngân sách truy vấn"""
+    """AC-11.31 — Trang chủ KN CRM là tổng quan theo phạm vi (Staff chỉ đếm dòng của mình), có sidebar avatar + Trang chủ + Bảng tính với mục con là bộ phận trong phạm vi, không có nút ←; logo KN CRM ở đầu menu trái và trên thanh trên của lưới bấm về trang chủ, favicon riêng; Leader thấy Tạo bảng; người không có bảng vẫn vào được; chưa đăng nhập chuyển về đăng nhập; trong ngân sách truy vấn"""
     kq = client.get("/")
     assert kq.status_code == 302 and "/dang-nhap/" in kq["Location"]
 
@@ -55,6 +55,9 @@ def test_trang_chu_tong_quan_co_sidebar_theo_pham_vi(client, du_lieu, nguoi_dung
     assert [b.code for b in kq.context["bang"]["data"]] == ["van_don"]
     assert kq.context["duoc_tao_bang"] is False and "+ Tạo bảng" not in html
     assert kq.context["hoat_dong"]["ok"]
+    # Logo KN CRM ở đầu menu trái bấm về trang chủ; favicon riêng của KN CRM
+    assert 'class="nav-hieu" href="/"' in html and "img/kn-crm.svg" in html
+    assert 'rel="icon" type="image/svg+xml" href="/static/img/kn-crm.svg' in html
 
     # Sale Staff: chỉ dòng của mình, sidebar không có Vận đơn
     client.force_login(nguoi_dung["staff_sale_1"])
@@ -94,6 +97,8 @@ def test_bang_tinh_thu_muc_roi_luoi_va_quay_ve(client, du_lieu, nguoi_dung):
     html = luoi.content.decode()
     assert 'id="thanh-ben"' not in html
     assert 'class="bt-ve" href="/thu-muc/?bp=van-don&amp;tat-ca=1"' in html
+    # Logo trên thanh trên của lưới bấm về trang chủ KN CRM
+    assert 'class="bt-hieu" href="/"' in html and "img/kn-crm.svg" in html
     assert "Về Bảng tính" in html
     luoi = client.get("/bang-tinh/van_don/", {"f_ngay__lon_bang": "2026-09-01", "f_ngay__nho_bang": "2026-09-30"})
     assert 'class="bt-ve" href="/thu-muc/?bp=van-don&amp;thang=2026-09"' in luoi.content.decode()

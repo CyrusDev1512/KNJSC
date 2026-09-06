@@ -289,6 +289,8 @@ chữ cái đầu tên, tên và cấp bậc của bạn; rồi **Trang chủ**,
 được — mục con là từng bộ phận bạn có bảng), **Nhập tệp** (Leader trở lên),
 **Cấp quyền** (Manager), **Tác vụ nền**, **Nhật ký** (Manager) và **KN ERP**.
 Nút **‹** ở đầu thanh trên thu gọn menu còn dải biểu tượng, nhớ cho lần sau.
+Logo KN CRM (ô xanh chữ KN có dấu lưới) ở đầu menu trái và ở thanh trên của lưới:
+bấm vào là về trang chủ; tab trình duyệt cũng mang logo đó, còn KN ERP mang logo KN JSC.
 Trang chủ ghi số dòng nhập tháng này và hôm nay, số bảng, tổng số dòng, bảng
 cập nhật gần nhất, danh sách bảng có nút **Mở** và hoạt động gần đây — tất cả
 đã lọc theo phạm vi của bạn. Trang có menu trái **không có nút ←**; về hệ thống
