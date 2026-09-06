@@ -3,19 +3,19 @@
 Chỉ gắn vào dịch vụ `bangtinh` (ADR-009, ADR-012) — KN ERP không có lưới, chỉ
 liên kết sang. Mọi bảng trong phạm vi quyền đều có lưới ở
 `bang-tinh/<mã bảng>/` (ADR-010); gốc `/` là trang chủ tổng quan, `thu-muc/`
-là cây thư mục (ADR-013).
+là cây thư mục (ADR-014).
 """
 from django.urls import path
 
 from . import views
 
 urlpatterns = [
-    # Trang chủ KN CRM: tổng quan có sidebar (ADR-013); tên `bang_tinh` giữ
+    # Trang chủ KN CRM: tổng quan có sidebar (ADR-014); tên `bang_tinh` giữ
     # để mục KN CRM trên thanh bên ERP và các liên kết cũ vẫn đúng
     path("", views.tong_quan, name="bang_tinh"),
     # Mục Bảng tính trên sidebar: trang thư mục, cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng (ADR-012)
     path("thu-muc/", views.thu_muc, name="thu_muc"),
-    # Chọn bảng để nhập tệp (Leader trở lên) hay cấp quyền (Manager) — ADR-013
+    # Chọn bảng để nhập tệp (Leader trở lên) hay cấp quyền (Manager) — ADR-014
     path("nhap-tep/", views.nhap_tep, name="nhap_tep"),
     path("cap-quyen/", views.cap_quyen, name="cap_quyen"),
     # Mở bảng mặc định (vận đơn, hoặc bảng đầu tiên trong phạm vi)

@@ -1,4 +1,4 @@
-"""Số liệu cho **Trang chủ KN CRM** (tổng quan) — ADR-013, AC-11.31.
+"""Số liệu cho **Trang chủ KN CRM** (tổng quan) — ADR-014, AC-11.31.
 
 Theo mẫu `dashboard_service` của KN ERP: mỗi khối chạy trong lớp bọc riêng,
 một khối hỏng thì báo "tạm chưa khả dụng", khối khác vẫn hiện. Mọi số liệu

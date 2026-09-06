@@ -272,7 +272,7 @@ def test_xuat_vuot_tran_bi_tu_choi(client, bang_sale, nguoi_dung):
 # ══ Phân quyền — cả hai chiều ══════════════════════════════════════
 
 def test_quyen_nhap_hai_chieu(client, bang_sale, nguoi_dung):
-    """AC-3.6 — Nhân viên bị từ chối nhập (403 có ghi nhật ký), quản lý bộ phận sở hữu (Leader trở lên — ADR-013) thì được"""
+    """AC-3.6 — Nhân viên bị từ chối nhập (403 có ghi nhật ký), quản lý bộ phận sở hữu (Leader trở lên — ADR-014) thì được"""
     client.force_login(nguoi_dung["staff_sale_1"])
     truoc = AuditLog.objects.filter(action=AuditAction.DENIED).count()
     assert client.get("/bang/don_sale/nhap/").status_code == 403

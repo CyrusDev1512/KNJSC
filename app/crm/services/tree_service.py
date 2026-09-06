@@ -182,7 +182,7 @@ def quarters(dem, *, hom_nay=None):
 # ── Liên kết ─────────────────────────────────────────────────────────
 
 def home_url(department=None, quarter=None, month=None, *, all_tables=False):
-    """Địa chỉ trang thư mục (mục Bảng tính) với cây mở đúng nút — ADR-013."""
+    """Địa chỉ trang thư mục (mục Bảng tính) với cây mở đúng nút — ADR-014."""
     cap = []
     if department is not None:
         cap.append(("bp", department.code))

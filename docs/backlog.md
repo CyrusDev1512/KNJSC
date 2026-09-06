@@ -33,6 +33,9 @@ tóm để không phải lục.
 > riêng**, trang chủ cây Bộ phận ▸ Quý ▸ Tháng, ADR-012) **đã vào `main` qua
 > PR #5** tối 06.09; đợt chỉnh sửa KNERP đầu tiên — ô chọn có "Thêm mới…",
 > danh tính người điền tự ghi, màu cột và viền ô (ADR-013) — vào qua PR #11.
+> **KN CRM đợt 2** (7I, ADR-014: khung sidebar theo Teeze, trang chủ tổng
+> quan, Leader như Manager trong bộ phận, tạo bảng/nhập tệp/cấp quyền ngay trong
+> KN CRM) đang ở nhánh `claude/kn-crm-khung-sidebar`, PR nháp chờ anh/chị gộp.
 > Nghiệm thu bấm tay theo `docs/07` vẫn chờ anh/chị. Mục D chỉ còn `AC-5.1`.
 
 **Đang ở đâu:** xong Giai đoạn 0 tới 7. Nhập tệp Excel/CSV bốn bước có xem
@@ -58,8 +61,13 @@ sinh từ cột Ngày, bấm tháng là mở lưới lọc sẵn tháng đó (th
 không tách bảng), quyền theo bảng như cũ. **Chỉnh sửa KNERP 06.09** (ADR-013): mọi cột Chọn một là ô chọn có "＋ Thêm mới…"
 cho Manager ở biểu mẫu, báo cáo ngày, Bảng dữ liệu và Lên đơn; sản phẩm lấy từ
 danh mục, Manager thêm tại chỗ; trường Người bán tự ghi tên người điền; Bảng dữ
-liệu có viền, tiêu đề xanh lá, màu cột và ngưỡng cảnh báo. 103 tiêu chí, 91 trên
-92 tự động có bài kiểm.
+liệu có viền, tiêu đề xanh lá, màu cột và ngưỡng cảnh báo. **KN CRM đợt 2** (7I,
+ADR-014): KN CRM có sidebar theo Teeze (avatar, Trang chủ, Bảng tính gập theo bộ
+phận, Nhập tệp, Cấp quyền, Tác vụ nền, KN ERP), trang chủ là tổng quan theo phạm
+vi, cây tháng thành mục Bảng tính ở `/thu-muc/`, lưới vẫn toàn màn hình và chỉ lưới
+có ← (về thư mục, không về ERP); Leader được như Manager trong bộ phận mình; tạo
+bảng, sửa cột kèm cấp quyền, nhập tệp chạy ngay trong KN CRM. 107 tiêu chí, 95 trên
+96 tự động có bài kiểm.
 
 **Việc tiếp theo:** **nghiệm thu một đợt theo `docs/07`** — anh/chị bấm tay
 từng vai, đánh ☑, gửi danh sách lỗi; sửa trên nhánh `claude/bang-tinh-nhu-kn-demo`
@@ -75,7 +83,7 @@ CRM, KN ERP dùng tốt trên điện thoại, đo tải trên máy chủ thật
 kiểm thử tự động đều đạt, nhưng anh/chị **chưa trực tiếp thử màn hình nào**. Phần
 trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải *đã nghiệm thu*.
 
-**Mười lăm việc làm được ngay bây giờ — kịch bản từng bước ở `docs/07`:**
+**Mười sáu việc làm được ngay bây giờ — kịch bản từng bước ở `docs/07`:**
 
 | ☐ | Việc | Mã |
 |---|---|---|
@@ -94,6 +102,7 @@ trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải
 | ☐ | Bảng tính: mọi ô có viền, thanh công cụ đủ mục, ẩn cột nhớ được, thanh bên thu gọn được | `AC-11.18` |
 | ☐ | Bảng tính đặt cạnh ảnh `docs/tham-khao/kn-demo/`: khung, thanh công thức, số dòng, chữ cột, cột trống, chân trang, ⛶; kéo chọn vùng, dán từ Excel, chuột phải | `AC-11.27` |
 | ☐ | KN CRM: bấm mục trên thanh bên ERP mở tab mới; trang chủ cây Bộ phận ▸ Quý ▸ Tháng; bấm tháng → Mở → lưới lọc tháng → ← về đúng nhánh | `docs/07` mục 3.3 |
+| ☐ | KN CRM đợt 2: trang chủ tổng quan có menu trái; Bảng tính → thư mục → Mở → lưới full → ← về thư mục; Leader tạo thư mục, cột, bảng, nhập tệp trong bộ phận mình; Nhập tệp và Cấp quyền trên sidebar | `AC-11.31` → `AC-11.34` · `docs/07` |
 
 **Một việc biết trước là chưa đạt:**
 
@@ -264,6 +273,9 @@ mục 6.
 | Q59 | Danh tính người điền ghi dạng gì, ép ở đâu | **Họ tên trong hồ sơ, không có thì tên đăng nhập** (`core.identity.display_name`, cùng luật với bảng vận đơn); ép ở tầng dịch vụ `form_service.fill`, không tin POST; chỉ áp cho điền biểu mẫu và nộp báo cáo, nhập tệp và lên đơn giữ nguyên — AC-4.6 | 06.09.2026 |
 | Q60 | Tô màu chỉ số quan trọng trên Bảng dữ liệu theo cách nào | **Màu cột** (vàng, đỏ, xanh lá, xanh dương) tô tiêu đề lẫn ô, cộng **ngưỡng cảnh báo** cho cột số (đỏ khi lớn hơn / nhỏ hơn X, còn lại xanh lá); tiêu đề mặc định **xanh lá cố định**; là thuộc tính của cột, khác định dạng từng ô của ADR-010; viền chỉ ở bảng mang lớp `bang-luoi` — ADR-013, AC-8.9, AC-8.10 | 06.09.2026 |
 | Q61 | Ai thêm sản phẩm, thêm ở đâu | **Manager bất kỳ bộ phận (hoặc Admin) thêm ngay tại ô chọn** — trên biểu mẫu, ô bảng và Lên đơn; mã tự sinh từ tên, đồng bộ cột `sl_` trên bảng vận đơn ngay. Màn hình quản lý sản phẩm đầy đủ để sau (S11) — AC-6.9 | 06.09.2026 |
+| Q62 | KN CRM cần trang chủ và menu trái không, lưới có sidebar không | **Có khung riêng như một app**: sidebar theo Teeze (ảnh anh/chị gửi), trang chủ là tổng quan như ERP, cây tháng là mục **Bảng tính** ở `/thu-muc/`; **lưới vẫn full như Excel**, chỉ khi chủ động quay về mới thấy menu trái; chỉ lưới có ← và nó về thư mục, không về ERP — AC-11.31, AC-11.32, ADR-014 | 07.09.2026 |
+| Q63 | Leader được làm gì trong KN CRM | **Như Manager trong bộ phận mình**: thư mục, cột, tạo bảng, nhập tệp, xuất, sửa/xoá dòng người khác (một hàm `_quan_ly_bo_phan`); cấp quyền cho người khác vẫn Manager; phạm vi xem không đổi — AC-11.33, ADR-014 | 07.09.2026 |
+| Q64 | Nhập tệp, tạo bảng, cấp quyền có phải bật sang ERP không | **Không** — gắn view forms_builder vào 8021, template kế thừa khung KN CRM qua biến `khung`; mục Nhập tệp (Leader+) và Cấp quyền (Manager) trên sidebar — AC-11.34, ADR-014 | 07.09.2026 |
 
 ---
 
@@ -415,3 +427,4 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 06.09.2026 | Anh/chị xem ảnh trước/sau (main 7E so với nhánh KN CRM) rồi chốt **gộp PR #5 vào `main`**. Gộp `main` (PR #6 → #10, `KN JSC.bat`) vào nhánh trước để hết xung đột ở chính bảng này, rồi gộp PR #5 bằng merge commit, giữ nhánh như lần PR #4. Máy anh/chị đang ở `main` nên nháy đúp `KN JSC.bat` là kéo được KN CRM; mã mount thẳng vào container, không cần dựng lại image. `/bang-tinh/` ở 8020 từ nay trả 404, lưới chỉ có ở KN CRM 8021 |
 | 06.09.2026 | Đợt chỉnh sửa KNERP đầu tiên (thread KNERP, chỉ hệ thống chính, không đụng `app/crm/`). Bốn yêu cầu: (1) mọi chỗ chọn lựa là ô chọn có "＋ Thêm mới…", sản phẩm lấy từ danh mục và Manager thêm tại chỗ; (2) trường Người bán tự ghi tên người điền; (3) Bảng dữ liệu tô màu cột và ngưỡng cảnh báo, tiêu đề xanh lá; (4) viền mọi ô. Chốt Q58 → Q61, ghi ADR-013, đóng K22, mở K25, S11, S12. `ColumnDef` thêm `options`, `highlight`, `alert_op`, `alert_value` (migration 0008); `choice_registry` ba tầng; `choice_service`, `product_service`, `core/identity`, `forms_builder/styling`; `components/o_chon.html`, `static/js/chon.js`; hai đường dẫn POST mới. Sửa nhân tiện: chú thích nhiều dòng `{# #}` ở màn nộp báo cáo bị hiện ra màn hình; lỗi sửa ô 400 bị HTMX nuốt nay hiện ngay trong ô. AC-4.6, AC-6.9, AC-8.7 → AC-8.10. PR #5 (KN CRM) vào `main` trước nên đánh số lại ADR-012 → ADR-013, Q54 → Q57 thành Q58 → Q61, nhãn 7G thành 7H; sau khi gộp: 103 tiêu chí, 91 trên 92 tự động có bài kiểm |
 | 06.09.2026 | Sau khi gộp PR #5, anh/chị nháy `KN JSC.bat` mà vẫn thấy "Bảng tính" thay vì KN CRM. `git status -sb` trên máy cho thấy kho đứng ở nhánh `claude/bang-tinh-nhu-kn-demo` tại `f11b788` (bản 04.09), `[behind 6]`, và **đang gộp dở**: `UU docs/backlog.md` cùng loạt tệp của main đã stage — dấu vết lần `cap-nhat-local.bat <nhánh>` trước đó `git pull` vướng xung đột ở `docs/backlog.md` rồi dừng, còn `KN JSC.bat` sau đó `git pull --ff-only -q` bị từ chối vì đang merge nhưng `-q` nuốt lỗi, chạy tiếp bằng mã cũ. Gỡ trên máy: `git merge --abort`, `git checkout main`, `git pull --ff-only`. Sửa cho hết lặng lẽ: `KN JSC.bat` thấy `.git/MERGE_HEAD` (hay `rebase-merge`, `rebase-apply`) thì in cách gỡ và không kéo; in nhánh đang đứng, cảnh báo khi không phải `main`; bỏ `-q`, pull lỗi thì in rõ và đợi 8 giây rồi vẫn bật bản đang có; `cap-nhat-local.bat` checkout hay pull lỗi thì dừng có thông báo thay vì dựng tiếp bằng mã cũ và để lại merge dở. Gỡ xong, 8021 báo `ProgrammingError: column forms_builder_columndef.options does not exist` — mã mới đã chạy nhưng **chưa migrate**: `KN JSC.bat` chỉ migrate khi chính nó kéo được mã (`TRUOC` ≠ `SAU`), người dùng kéo tay thì nó thấy "không có mã mới" và bỏ qua. Sửa: nhớ commit của lần chạy trước ở `storage/.kn-jsc-lan-truoc`, khác `HEAD` là migrate và cân nhắc `--build`, dù ai kéo; `cap-nhat-local.bat` migrate xong cũng ghi tệp đó. Bài học: **tệp `.bat` gọi git thì không được `-q`, phải kiểm `errorlevel` sau mỗi lệnh, và "có mã mới" phải so với lần chạy trước chứ không phải với lần kéo của chính nó** |
+| 07.09.2026 | Anh/chị mở KN CRM sau khi gộp PR #5 và nêu bốn điểm: bấm ← mãi rơi về ERP; chưa có trang chủ, chưa có sidebar; thư mục phải là một mục trên sidebar; Leader và Manager được thêm/sửa/xoá/tạo/nhập/xuất. Chốt qua ba câu hỏi và ảnh Teeze: trang chủ tổng quan như ERP, sidebar theo Teeze, Leader như Manager trong bộ phận, lưới vẫn full như Excel và chỉ khi chủ động quay về mới thấy menu trái. Làm **7I** trên nhánh `claude/kn-crm-khung-sidebar` (ADR-014): `grant_service._quan_ly_bo_phan` một chỗ cho mọi phép kiểm quản lý bộ phận, Sửa cột ở ERP kiểm thêm `can_manage_columns` (bịt lỗ Manager bộ phận khác được cấp Xem vẫn sửa cột); `base_crm.html` + `crm/navigation.py` + context processor `khung_crm`; trang chủ `/` = `tong_quan_service`; cây tháng sang `/thu-muc/`; view forms_builder gắn vào 8021 với `{% extends khung %}`, tên `bang`/`bang_xem` chuyển hướng có đăng nhập. Ba lần đụng **tên lớp CSS trùng** giữa sidebar và trang thư mục (`crm-nhan`, `crm-nhom`) làm chữ hoá đơn cách — đặt tiền tố `crm-nav-` cho sidebar. AC-11.31 → AC-11.34, sửa AC-8.8/8.9/11.17/11.19/11.21/11.22/3.6 và ma trận; 107 tiêu chí, 95 trên 96. Số ADR: thread KNERP đã lấy 013 nên đợt này là **014**, sửa dòng trùng "012" trong danh sách ADR |

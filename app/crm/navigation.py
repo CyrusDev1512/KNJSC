@@ -1,4 +1,4 @@
-"""Sidebar của app KN CRM — ADR-013, dáng theo Teeze.
+"""Sidebar của app KN CRM — ADR-014, dáng theo Teeze.
 
 Riêng, không dùng chung `core.navigation.NAVIGATION` của KN ERP: ở dịch vụ
 8021 phần lớn mục ERP không có đường dẫn, còn KN CRM cần mục **sinh động** —

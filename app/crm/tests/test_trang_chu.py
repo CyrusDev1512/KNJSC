@@ -1,4 +1,4 @@
-"""Trang thư mục KN CRM (mục Bảng tính, `/thu-muc/`) — cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng, `docs/04` mục 11, ADR-012, ADR-013.
+"""Trang thư mục KN CRM (mục Bảng tính, `/thu-muc/`) — cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng, `docs/04` mục 11, ADR-012, ADR-014.
 
 Chạy ở app KN CRM (`conftest.py` đặt URLconf 8021). Mỗi bài phân quyền kiểm
 cả hai chiều: nhánh được xem có mặt, nhánh ngoài phạm vi không có; `bp` ngoài

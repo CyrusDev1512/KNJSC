@@ -60,12 +60,12 @@ def _lay_bang(request, code):
 
 def _duoc_sua_bang(user):
     """Ai được tạo và sửa cấu trúc bảng — FR-8.1 giao cho Manager trở lên;
-    ADR-013 mở cho Leader (quản lý của bộ phận)."""
+    ADR-014 mở cho Leader (quản lý của bộ phận)."""
     return has_rank(user, Rank.LEADER)
 
 
 def _kiem_sua_cau_truc(request, bang_hien):
-    """Sửa cột: quản lý của bộ phận sở hữu bảng hoặc Admin — ADR-013. Bảng
+    """Sửa cột: quản lý của bộ phận sở hữu bảng hoặc Admin — ADR-014. Bảng
     chỉ được cấp quyền xem từ bộ phận khác thì không đổi cấu trúc được
     (403 có nhật ký), cùng luật với chèn/bỏ cột trên lưới (AC-11.22)."""
     if not grant_service.can_manage_columns(request.user, bang_hien):
@@ -102,7 +102,7 @@ def bang(request):
 
 @login_required
 def bang_moi(request):
-    """Tạo bảng mới — FR-8.1; Leader trở lên (ADR-013)."""
+    """Tạo bảng mới — FR-8.1; Leader trở lên (ADR-014)."""
     request.nav_current = "bang"
     assert_rank(request.user, Rank.LEADER, request)
 
@@ -124,7 +124,7 @@ def bang_moi(request):
 
 @login_required
 def bang_cot(request, code):
-    """Thêm và sửa cột của một bảng — quản lý của bộ phận sở hữu (ADR-013)."""
+    """Thêm và sửa cột của một bảng — quản lý của bộ phận sở hữu (ADR-014)."""
     request.nav_current = "bang"
     assert_rank(request.user, Rank.LEADER, request)
     bang_hien = _lay_bang(request, code)
@@ -163,7 +163,7 @@ def bang_cot(request, code):
 @login_required
 @require_POST
 def bang_xoa_cot(request, code, pk):
-    """Bỏ một cột khỏi bảng — quản lý của bộ phận sở hữu (ADR-013)."""
+    """Bỏ một cột khỏi bảng — quản lý của bộ phận sở hữu (ADR-014)."""
     assert_rank(request.user, Rank.LEADER, request)
     bang_hien = _lay_bang(request, code)
     _kiem_sua_cau_truc(request, bang_hien)

@@ -18,7 +18,7 @@ from . import grant_service, table_service
 
 def can_manage_options(user, table):
     """Ai thêm được giá trị vào danh sách chọn của bảng: Admin, hoặc quản lý
-    (Leader, Manager — ADR-013) của bộ phận sở hữu bảng — cùng luật với thư mục (ADR-010). Người được cấp
+    (Leader, Manager — ADR-014) của bộ phận sở hữu bảng — cùng luật với thư mục (ADR-010). Người được cấp
     quyền Sửa vẫn chỉ chọn, vì danh sách là chuyện của Manager (Q58)."""
     return grant_service.can_manage_folders(user, table.department_id)
 

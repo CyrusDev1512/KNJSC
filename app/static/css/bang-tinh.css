@@ -689,7 +689,7 @@ body.bt-dang-keo { cursor: crosshair; }
   .bt-chon-tt, .bt-loc-tt { display: none; }
 }
 
-/* ── 12. Trang thư mục KN CRM — mục Bảng tính: cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng (ADR-012, ADR-013) ──
+/* ── 12. Trang thư mục KN CRM — mục Bảng tính: cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng (ADR-012, ADR-014) ──
    Nằm trong khung sáng có sidebar (base_crm.html) nên dùng token của ERP, không dùng --bt-*. */
 .bt-app { flex: none; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--bt-vang); margin-right: 4px; }
 .crm-trang { display: flex; gap: var(--sp-4); align-items: flex-start; }
@@ -736,20 +736,20 @@ body.bt-dang-keo { cursor: crosshair; }
   .crm-hang { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* ── 13. Khung KN CRM có sidebar theo Teeze (ADR-013): avatar + tên + cấp bậc trên
+/* ── 13. Khung KN CRM có sidebar theo Teeze (ADR-014): avatar + tên + cấp bậc trên
    cùng, mục có icon, nhóm gập được với mục con thụt vào, mục đang chọn tô xanh
    nhạt, nút ‹ thu gọn còn dải icon. Dùng lại .nav/.nav-muc/.topbar của main.css. ── */
 .crm-nguoi { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--rule); }
 .crm-nguoi-ten { min-width: 0; line-height: 1.25; }
 .crm-nguoi-ten b { display: block; font-size: var(--fs-md); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .crm-nguoi-ten small { color: var(--ink-3); font-size: var(--fs-xs); }
-.crm-nhom > summary { list-style: none; cursor: pointer; }
-.crm-nhom > summary::-webkit-details-marker { display: none; }
+.crm-nav-nhom > summary { list-style: none; cursor: pointer; }
+.crm-nav-nhom > summary::-webkit-details-marker { display: none; }
 .crm-nhom-lk { display: flex; align-items: center; gap: var(--sp-3); flex: 1; min-width: 0; color: inherit; text-decoration: none; }
 .crm-nav-nhan { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .crm-mui { margin-left: auto; font-size: var(--fs-sm); color: var(--ink-3); transition: transform .12s; }
-.crm-nhom[open] > summary .crm-mui { transform: rotate(180deg); }
-.crm-dang, .crm-nhom > summary.crm-dang { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.crm-nav-nhom[open] > summary .crm-mui { transform: rotate(180deg); }
+.crm-dang, .crm-nav-nhom > summary.crm-dang { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .crm-con { padding-left: 34px; font-size: var(--fs-sm); }
 .crm-con .ic { width: 10px; font-size: 9px; }
 .crm-thu-gon { font-size: 16px; line-height: 1; padding: 2px 9px; }

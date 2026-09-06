@@ -1,4 +1,4 @@
-"""Leader như Manager trong bộ phận mình — ADR-013, AC-11.33.
+"""Leader như Manager trong bộ phận mình — ADR-014, AC-11.33.
 
 Người dùng chốt 06.09.2026: trong KN CRM, Leader được thêm, sửa, xoá, tạo,
 nhập tệp, xuất Excel như Manager, giới hạn trong bộ phận mình. Riêng cấp

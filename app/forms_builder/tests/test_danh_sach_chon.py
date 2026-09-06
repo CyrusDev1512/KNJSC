@@ -271,7 +271,7 @@ def test_them_gia_tri_cot_san_pham_la_them_san_pham(bang_kenh, san_pham, nguoi_d
 
 
 def test_quyen_them_gia_tri(bang_kenh, nguoi_dung, departments):
-    """AC-8.8 — Admin, Manager và Leader bộ phận sở hữu bảng thêm được (ADR-013); Staff, Manager bộ phận khác thì không"""
+    """AC-8.8 — Admin, Manager và Leader bộ phận sở hữu bảng thêm được (ADR-014); Staff, Manager bộ phận khác thì không"""
     from forms_builder.services import choice_service
 
     assert choice_service.can_manage_options(nguoi_dung["admin"], bang_kenh)

@@ -75,7 +75,7 @@ def test_xoa_dong_la_xoa_mem_va_khoi_phuc_duoc(client, bang_sale, nguoi_dung):
 
 
 def test_phan_quyen_xoa_dong_ba_cap_bac(client, bang_sale, bang_vd, nguoi_dung):
-    """AC-11.21 — Staff chỉ xoá dòng của mình (dòng người khác 403 có nhật ký, cả gói không xoá), Leader, Manager và Admin xoá được dòng người khác cùng bộ phận (ADR-013); bộ phận khác 404; bảng vận đơn chỉ xem ở dịch vụ chính 403"""
+    """AC-11.21 — Staff chỉ xoá dòng của mình (dòng người khác 403 có nhật ký, cả gói không xoá), Leader, Manager và Admin xoá được dòng người khác cùng bộ phận (ADR-014); bộ phận khác 404; bảng vận đơn chỉ xem ở dịch vụ chính 403"""
     nv, nv_b = nguoi_dung["staff_sale_1"], nguoi_dung["staff_sale_1b"]
     d_nv = _dong(bang_sale, nv, khach="A", doanh_thu="10", so_luong="1")
     d_b = _dong(bang_sale, nv_b, khach="B", doanh_thu="10", so_luong="1")
@@ -150,7 +150,7 @@ def test_bo_cot_giu_gia_tri_va_tu_choi_cot_khoa_cot_tinh(client, bang_sale, bang
 
 
 def test_phan_quyen_chen_bo_cot_ba_cap_bac(client, bang_sale, nguoi_dung):
-    """AC-11.22 — Staff không chèn hay bỏ cột (403 có nhật ký); Manager bộ phận khác 404; Leader, Manager của bộ phận sở hữu và Admin thì được (ADR-013)"""
+    """AC-11.22 — Staff không chèn hay bỏ cột (403 có nhật ký); Manager bộ phận khác 404; Leader, Manager của bộ phận sở hữu và Admin thì được (ADR-014)"""
     truoc = AuditLog.objects.filter(action=AuditAction.DENIED).count()
     for ai in ("staff_sale_1",):
         client.force_login(nguoi_dung[ai])

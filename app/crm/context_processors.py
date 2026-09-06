@@ -2,7 +2,7 @@
 
 `khung` là tệp khung mà các template dùng chung của `forms_builder` (tạo
 bảng, sửa cột, nhập tệp) kế thừa: ở KN ERP là `base.html`, ở KN CRM là
-`crm/base_crm.html` có sidebar — ADR-013. Đăng ký chung ở `settings/base.py`
+`crm/base_crm.html` có sidebar — ADR-014. Đăng ký chung ở `settings/base.py`
 để bộ kiểm (đổi `ROOT_URLCONF` bằng override) cũng có; ở KN ERP không tốn
 truy vấn nào.
 """
