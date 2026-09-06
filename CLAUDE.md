@@ -30,6 +30,16 @@ scripts\cap-nhat-local.bat   Windows (hoặc nháy đúp tệp)
 Lệnh tự mở Docker Desktop nếu chưa chạy, kéo mã mới, dựng container, đợi web lên, nạp dữ
 liệu mẫu rồi mở trình duyệt ở `http://127.0.0.1:8020/`. Chạy lại nhiều lần được.
 
+**Máy đã dựng rồi, hằng ngày chỉ cần mở lại** thì dùng lệnh nhẹ hơn:
+
+```
+scripts\mo-local.bat         Windows (nháy đúp tệp, hoặc tạo lối tắt ra màn hình chính)
+```
+
+Nó chỉ mở Docker Desktop nếu chưa chạy, bật container, đợi web trả lời rồi mở
+trình duyệt — không kéo mã, không dựng lại image, nên vài giây là lên. Lần đầu
+trên máy sạch nó tự nạp dữ liệu mẫu. Có mã mới thì vẫn phải `cap-nhat-local`.
+
 Bên trong nó chỉ là hai lệnh dưới đây, muốn làm tay thì làm:
 
 ```
