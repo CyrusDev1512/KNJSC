@@ -7,3 +7,6 @@
 *.js text eol=lf
 # Tệp chạy trên Windows thì CRLF
 *.bat text eol=crlf
+# Bieu tuong la nhi phan; SVG la van ban
+*.ico binary
+*.svg text eol=lf

@@ -33,12 +33,13 @@ liệu mẫu rồi mở trình duyệt ở `http://127.0.0.1:8020/`. Chạy lạ
 **Máy đã dựng rồi, hằng ngày chỉ cần mở lại** thì dùng lệnh nhẹ hơn:
 
 ```
-scripts\mo-local.bat         Windows (nháy đúp tệp, hoặc tạo lối tắt ra màn hình chính)
+scripts\KN JSC.bat           Windows — nháy đúp tệp; lần đầu nó tự tạo lối tắt "KN JSC" ngoài Desktop
 ```
 
 Nó chỉ mở Docker Desktop nếu chưa chạy, bật container, đợi web trả lời rồi mở
 trình duyệt — không kéo mã, không dựng lại image, nên vài giây là lên. Lần đầu
 trên máy sạch nó tự nạp dữ liệu mẫu. Có mã mới thì vẫn phải `cap-nhat-local`.
+Biểu tượng lối tắt là `scripts/KN JSC.ico`, nguồn vẽ ở `scripts/KN JSC.svg`.
 
 Bên trong nó chỉ là hai lệnh dưới đây, muốn làm tay thì làm:
 

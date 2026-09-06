@@ -1,6 +1,7 @@
 @echo off
-rem Mo nhanh ban chay thu tren may nay - nhay dup la chay, chay lai bao nhieu
-rem lan cung duoc. Tao loi tat ra man hinh chinh neu muon.
+rem KN JSC - mo he thong tren may nay: nhay dup la chay, chay lai bao nhieu
+rem lan cung duoc. Lan dau chay tu tao loi tat "KN JSC" ngoai Desktop (bieu
+rem tuong la KN JSC.ico cung thu muc); tu do nhay dup loi tat la du.
 rem
 rem Khac voi cap-nhat-local.bat: KHONG keo ma moi, KHONG dung lai image, KHONG
 rem nap lai du lieu mau (tru lan dau tren may sach) - nen container da co thi
@@ -10,11 +11,28 @@ rem
 rem Muon cap nhat ma moi thi chay cap-nhat-local.bat.
 setlocal
 chcp 65001 >nul
+title KN JSC
 cd /d "%~dp0.."
 set "COMPOSE=docker compose -f deploy\docker-compose.yml"
 set "DIA_CHI=http://127.0.0.1:8020/"
 set "DOCKER_DESKTOP=%ProgramFiles%\Docker\Docker\Docker Desktop.exe"
 
+rem --- 0. Loi tat ngoai Desktop. Chi tao khi chua co, de ai da xoa thi khong
+rem bi moc lai; muon tao lai thi xoa loi tat roi chay tep nay. Duong dan
+rem Desktop lay tu Registry vi may dung OneDrive thi Desktop khong nam trong
+rem thu muc nguoi dung ---
+set "MAN_HINH="
+for /f "tokens=2,*" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" /v Desktop 2^>nul ^| find "REG_SZ"') do set "MAN_HINH=%%b"
+if not defined MAN_HINH set "MAN_HINH=%USERPROFILE%\Desktop"
+set "LOI_TAT=%MAN_HINH%\KN JSC.lnk"
+set "TEP_BAT=%~f0"
+set "THU_MUC=%~dp0"
+set "BIEU_TUONG=%~dp0KN JSC.ico"
+if exist "%LOI_TAT%" goto :co_loi_tat
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$s=(New-Object -ComObject WScript.Shell).CreateShortcut($env:LOI_TAT);$s.TargetPath=$env:TEP_BAT;$s.WorkingDirectory=$env:THU_MUC;$s.IconLocation=$env:BIEU_TUONG+',0';$s.Description='Mo he thong KN JSC';$s.Save()" >nul 2>&1
+if exist "%LOI_TAT%" (echo Da tao loi tat "KN JSC" ngoai Desktop.) else (echo Khong tao duoc loi tat ngoai Desktop - bo qua, he thong van mo binh thuong.)
+
+:co_loi_tat
 rem --- 1. Co Docker chua? Vua cai xong thi PATH cua cua so nay co the chua co ---
 where docker >nul 2>&1
 if not errorlevel 1 goto :co_docker
