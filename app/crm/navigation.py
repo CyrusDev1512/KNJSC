@@ -5,8 +5,9 @@ Riêng, không dùng chung `core.navigation.NAVIGATION` của KN ERP: ở dịch
 mỗi bộ phận trong phạm vi là một mục con của "Bảng tính". Lớp CSS tính ở
 đây, không đặt điều kiện trong thuộc tính class của template (luật K15).
 
-Mục đang chọn lấy từ `request.nav_current`: `tong_quan`, `thu_muc`,
-`bp:<mã bộ phận>` (trang thư mục của một bộ phận), `tac_vu`, `nhat_ky`.
+Mục đang chọn lấy từ `request.nav_current`: `tong_quan`, `thu_muc` (hay `bang`
+của các view forms_builder), `bp:<mã bộ phận>` (trang thư mục của một bộ phận),
+`nhap_tep`, `cap_quyen`, `tac_vu`, `nhat_ky`.
 """
 from dataclasses import dataclass, field
 
@@ -63,8 +64,13 @@ def build(user, current=""):
             CrmNavItem(f"bp:{d.code}", d.name, tree_service.home_url(d), "▸", current == f"bp:{d.code}")
             for d in tree_service.departments_of(user, cac_bang)
         )
-        dang = current == "thu_muc" or any(c.current for c in con)
-        muc.append(CrmNavItem("thu_muc", "Bảng tính", u, "▦", current == "thu_muc", con, mo=dang))
+        # `bang` là nav_current của các view forms_builder (tạo bảng, sửa cột, nhập)
+        dang = current in ("thu_muc", "bang") or any(c.current for c in con)
+        muc.append(CrmNavItem("thu_muc", "Bảng tính", u, "▦", current in ("thu_muc", "bang"), con, mo=dang))
+    if has_rank(user, Rank.LEADER) and (u := _url("nhap_tep")) is not None:
+        muc.append(CrmNavItem("nhap_tep", "Nhập tệp", u, "⇪", current == "nhap_tep"))
+    if has_rank(user, Rank.MANAGER) and (u := _url("cap_quyen")) is not None:
+        muc.append(CrmNavItem("cap_quyen", "Cấp quyền", u, "✓", current == "cap_quyen"))
     if (u := _url("tac_vu")) is not None:
         muc.append(CrmNavItem("tac_vu", "Tác vụ nền", u, "◔", current == "tac_vu"))
     if has_rank(user, Rank.MANAGER) and (u := _url("nhat_ky")) is not None:

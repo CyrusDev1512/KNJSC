@@ -15,6 +15,9 @@ urlpatterns = [
     path("", views.tong_quan, name="bang_tinh"),
     # Mục Bảng tính trên sidebar: trang thư mục, cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng (ADR-012)
     path("thu-muc/", views.thu_muc, name="thu_muc"),
+    # Chọn bảng để nhập tệp (Leader trở lên) hay cấp quyền (Manager) — ADR-013
+    path("nhap-tep/", views.nhap_tep, name="nhap_tep"),
+    path("cap-quyen/", views.cap_quyen, name="cap_quyen"),
     # Mở bảng mặc định (vận đơn, hoặc bảng đầu tiên trong phạm vi)
     path("bang-tinh/", views.bang_tinh, name="bang_tinh_mac_dinh"),
     # Thư mục đứng trước `<slug:code>` để "thu-muc" không bị hiểu là mã bảng

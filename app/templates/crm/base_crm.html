@@ -56,15 +56,15 @@ sang ERP. Mục menu do `crm/navigation.py` tính, lớp CSS tính sẵn ở Pyt
         {% if muc.children %}
           <details class="crm-nhom" {% if muc.mo %}open{% endif %}>
             <summary class="{{ muc.lop }}" {% if muc.current %}aria-current="page"{% endif %}>
-              <a class="crm-nhom-lk" href="{{ muc.href }}"><span class="ic">{{ muc.icon }}</span><span class="crm-nhan">{{ muc.label }}</span></a>
+              <a class="crm-nhom-lk" href="{{ muc.href }}"><span class="ic">{{ muc.icon }}</span><span class="crm-nav-nhan">{{ muc.label }}</span></a>
               <span class="crm-mui" aria-hidden="true">⌄</span>
             </summary>
             {% for con in muc.children %}
-              <a class="{{ con.lop_con }}" href="{{ con.href }}" {% if con.current %}aria-current="page"{% endif %}><span class="ic">{{ con.icon }}</span><span class="crm-nhan">{{ con.label }}</span></a>
+              <a class="{{ con.lop_con }}" href="{{ con.href }}" {% if con.current %}aria-current="page"{% endif %}><span class="ic">{{ con.icon }}</span><span class="crm-nav-nhan">{{ con.label }}</span></a>
             {% endfor %}
           </details>
         {% else %}
-          <a class="{{ muc.lop }}" href="{{ muc.href }}" {% if muc.new_tab %}target="_blank" rel="noopener"{% endif %} {% if muc.current %}aria-current="page"{% endif %}><span class="ic">{{ muc.icon }}</span><span class="crm-nhan">{{ muc.label }}</span></a>
+          <a class="{{ muc.lop }}" href="{{ muc.href }}" {% if muc.new_tab %}target="_blank" rel="noopener"{% endif %} {% if muc.current %}aria-current="page"{% endif %}><span class="ic">{{ muc.icon }}</span><span class="crm-nav-nhan">{{ muc.label }}</span></a>
         {% endif %}
       {% endfor %}
     </nav>

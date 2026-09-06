@@ -746,7 +746,7 @@ body.bt-dang-keo { cursor: crosshair; }
 .crm-nhom > summary { list-style: none; cursor: pointer; }
 .crm-nhom > summary::-webkit-details-marker { display: none; }
 .crm-nhom-lk { display: flex; align-items: center; gap: var(--sp-3); flex: 1; min-width: 0; color: inherit; text-decoration: none; }
-.crm-nhan { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crm-nav-nhan { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .crm-mui { margin-left: auto; font-size: var(--fs-sm); color: var(--ink-3); transition: transform .12s; }
 .crm-nhom[open] > summary .crm-mui { transform: rotate(180deg); }
 .crm-dang, .crm-nhom > summary.crm-dang { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
@@ -755,7 +755,7 @@ body.bt-dang-keo { cursor: crosshair; }
 .crm-thu-gon { font-size: 16px; line-height: 1; padding: 2px 9px; }
 .crm-gia-tri-nho { font-size: var(--fs-lg); }
 html.crm-gon .crm-nav { width: 60px; }
-html.crm-gon .crm-nav .nav-hieu div, html.crm-gon .crm-nguoi-ten, html.crm-gon .crm-nhan, html.crm-gon .crm-mui,
+html.crm-gon .crm-nav .nav-hieu div, html.crm-gon .crm-nguoi-ten, html.crm-gon .crm-nav-nhan, html.crm-gon .crm-mui,
 html.crm-gon .crm-con, html.crm-gon .crm-nav .nav-chan { display: none; }
 html.crm-gon .crm-nav .nav-muc { justify-content: center; padding: 8px 0; }
 html.crm-gon .crm-nav .nav-dau, html.crm-gon .crm-nguoi { justify-content: center; padding-left: 0; padding-right: 0; }

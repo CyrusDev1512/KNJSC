@@ -1,14 +1,22 @@
-"""Sidebar KN CRM đưa vào mọi template — chỉ khi đang chạy dịch vụ 8021.
+"""Khung và sidebar KN CRM đưa vào mọi template.
 
-Đăng ký chung ở `settings/base.py` để bộ kiểm (đổi `ROOT_URLCONF` bằng
-override) cũng có; ở KN ERP hàm trả rỗng, không tốn truy vấn nào.
+`khung` là tệp khung mà các template dùng chung của `forms_builder` (tạo
+bảng, sửa cột, nhập tệp) kế thừa: ở KN ERP là `base.html`, ở KN CRM là
+`crm/base_crm.html` có sidebar — ADR-013. Đăng ký chung ở `settings/base.py`
+để bộ kiểm (đổi `ROOT_URLCONF` bằng override) cũng có; ở KN ERP không tốn
+truy vấn nào.
 """
 from django.conf import settings
 
+KHUNG_ERP = "base.html"
+KHUNG_CRM = "crm/base_crm.html"
+
 
 def khung_crm(request):
-    if settings.ROOT_URLCONF != "knjsc.urls_bangtinh" or not request.user.is_authenticated:
-        return {}
+    if settings.ROOT_URLCONF != "knjsc.urls_bangtinh":
+        return {"khung": KHUNG_ERP}
+    if not request.user.is_authenticated:
+        return {"khung": KHUNG_CRM}
     from .navigation import build
 
-    return {"crm_nav": build(request.user, getattr(request, "nav_current", ""))}
+    return {"khung": KHUNG_CRM, "crm_nav": build(request.user, getattr(request, "nav_current", ""))}

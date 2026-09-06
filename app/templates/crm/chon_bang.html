@@ -1,0 +1,47 @@
+{% extends "crm/base_crm.html" %}
+{% block tieu_de %}{{ tieu_de }} · KN CRM · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}{{ tieu_de }}{% endblock %}
+
+{% block noi_dung %}
+{% comment %}
+Trang chọn bảng dùng chung cho hai mục sidebar "Nhập tệp" và "Cấp quyền"
+(ADR-013): liệt kê bảng trong phạm vi mà người này làm được việc đó, mỗi hàng
+một nút dẫn tới màn hình tương ứng của forms_builder chạy ngay trong KN CRM.
+Dáng theo Teeze: tiêu đề + mô tả, dòng "Tổng cộng N bảng", bảng có nút hành động.
+{% endcomment %}
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">KN CRM</div>
+    <h1>{{ tieu_de }}</h1>
+    <p>{{ mo_ta }}</p>
+  </div>
+  {% if duoc_tao_bang %}
+    <div class="hanh-dong"><a class="nut nut-chinh" href="{% url 'bang_moi' %}">+ Tạo bảng</a></div>
+  {% endif %}
+</div>
+
+<div class="the">
+  <div class="the-dau">
+    <h2>Tổng cộng {{ cac_bang|length }} bảng</h2>
+  </div>
+  {% if cac_bang %}
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead><tr><th>Tên bảng</th><th>Bộ phận</th><th class="phai">Số dòng</th><th></th></tr></thead>
+        <tbody>
+          {% for b in cac_bang %}
+            <tr>
+              <td><a href="{% url 'bang_tinh_xem' b.code %}">{{ b.name }}</a></td>
+              <td class="nho">{{ b.department }}</td>
+              <td class="tien">{{ b.so_dong }}</td>
+              <td class="phai"><a class="nut nut-nho nut-chinh" href="{{ b.url_hanh_dong }}">{{ nhan_nut }}</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    {% include "components/rong.html" with rong_tieu_de=rong_tieu_de rong_mo_ta=rong_mo_ta %}
+  {% endif %}
+</div>
+{% endblock %}
