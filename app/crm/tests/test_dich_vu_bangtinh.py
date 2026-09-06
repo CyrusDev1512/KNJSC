@@ -30,7 +30,8 @@ def test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap(client, bang_vd, nguoi_d
     client.force_login(nguoi_dung["staff_vd"])
     with DICH_VU_BANGTINH:
         kq = client.get("/")
-        assert kq.status_code == 200 and "KN CRM" in kq.content.decode()
+        html_goc = kq.content.decode()
+        assert kq.status_code == 200 and "KN CRM" in html_goc and 'id="thanh-ben"' in html_goc
         kq = client.get("/bang-tinh/")
         assert kq.status_code == 200 and kq.context["chi_xem"] is False
         html = kq.content.decode()

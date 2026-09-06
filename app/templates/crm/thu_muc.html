@@ -1,18 +1,14 @@
-{% extends "crm/base_bang_tinh.html" %}
-{% block tieu_de %}KN CRM · Kim Ngân JSC{% endblock %}
-{% block ten_bang %}
-  <h1 class="bt-tieu-de">{{ tieu_de }}</h1>
-{% endblock %}
-{% block thanh_tren_phai %}
-  <a class="bt-nut-tren" href="{{ erp_url }}" title="Về KN ERP, cùng tab">KN ERP</a>
-{% endblock %}
+{% extends "crm/base_crm.html" %}
+{% block tieu_de %}Bảng tính · {{ tieu_de }} · KN CRM{% endblock %}
+{% block ten_trang %}Bảng tính · {{ tieu_de }}{% endblock %}
 
 {% block noi_dung %}
 {% comment %}
-Trang chủ KN CRM — ADR-012. Trái: cây Bộ phận ▸ Quý ▸ Tháng (tự sinh từ cột
-Ngày của các bảng trong phạm vi); phải: các bảng của nút đang chọn. Tháng là
-góc nhìn: nút Mở dẫn tới lưới với bộ lọc khoảng ngày sẵn. Cây chỉ dựng từ
-phạm vi quyền (`tree_service`), lớp CSS tính ở Python.
+Trang thư mục của KN CRM — mục "Bảng tính" trên sidebar (ADR-012, ADR-013).
+Trái: cây Bộ phận ▸ Quý ▸ Tháng (tự sinh từ cột Ngày của các bảng trong
+phạm vi); phải: các bảng của nút đang chọn. Tháng là góc nhìn: nút Mở dẫn tới
+lưới toàn màn hình với bộ lọc khoảng ngày sẵn; từ lưới bấm ← là về đây. Cây
+chỉ dựng từ phạm vi quyền (`tree_service`), lớp CSS tính ở Python.
 {% endcomment %}
 <div class="crm-trang">
   <nav class="crm-cay" aria-label="Bộ phận, quý và tháng">
@@ -45,7 +41,8 @@ phạm vi quyền (`tree_service`), lớp CSS tính ở Python.
       </div>
       {% if duoc_quan_ly_thu_muc %}
         <div class="hanh-dong">
-          <a class="nut nut-nho" href="{{ cap_quyen_url }}" title="Cấp quyền xem, sửa từng bảng ở KN ERP">Cấp quyền ↗</a>
+          <a class="nut nut-nho nut-chinh" href="{{ tao_bang_url }}" title="Tạo bảng mới cho bộ phận mình">+ Tạo bảng</a>
+          {% if duoc_cap_quyen %}<a class="nut nut-nho" href="{{ cap_quyen_url }}" title="Cấp quyền xem, sửa từng bảng ở KN ERP">Cấp quyền ↗</a>{% endif %}
           <button class="nut nut-nho bt-thu-muc-moi" type="button" aria-expanded="false" aria-controls="crm-form-thu-muc">+ Thư mục</button>
         </div>
       {% endif %}

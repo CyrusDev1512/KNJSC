@@ -82,6 +82,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "core.context_processors.khung_chung",
+                "crm.context_processors.khung_crm",
             ],
         },
     },

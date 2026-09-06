@@ -35,7 +35,7 @@ from orders.constants import WAYBILL_TABLE_CODE
 from orders.services import dispatch_service
 from org.models import Department
 
-from .services import grid_service, sidebar_service, tree_service
+from .services import grid_service, sidebar_service, tong_quan_service, tree_service
 
 
 def _cac_bang(user):
@@ -86,13 +86,31 @@ def _qs_hien_tai(request):
 
 
 @login_required
-def trang_chu(request):
-    """Trang chủ KN CRM — cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng (ADR-012).
+def tong_quan(request):
+    """Trang chủ KN CRM — tổng quan theo phạm vi quyền, có sidebar (ADR-013).
+
+    Không có nút ←: về ERP bằng mục KN ERP. Từ đây bấm Bảng tính mới sang
+    trang thư mục, rồi mới mở lưới.
+    """
+    request.nav_current = "tong_quan"
+    boi_canh = tong_quan_service.tong_quan(request.user)
+    boi_canh.update({
+        "erp_url": _ngoai("/"),
+        "duoc_tao_bang": has_rank(request.user, Rank.LEADER),
+        "tao_bang_url": _ngoai("/bang/moi/"),
+    })
+    return render(request, "crm/tong_quan.html", boi_canh)
+
+
+@login_required
+def thu_muc(request):
+    """Mục Bảng tính của KN CRM — trang thư mục: cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng
+    (ADR-012, ADR-013), có sidebar; bấm một bảng mới mở lưới toàn màn hình.
 
     Cây chỉ dựng từ phạm vi quyền; `bp` ngoài phạm vi trả 404 có nhật ký
     (quy tắc 8), không phải trang rỗng. Không có bảng nào thì cũng 404 kèm lời.
     """
-    request.nav_current = "bang_tinh"
+    request.nav_current = "thu_muc"
     try:
         du_lieu = tree_service.build(
             request.user,
@@ -105,15 +123,17 @@ def trang_chu(request):
     if du_lieu is None:
         raise Http404("Chưa có bảng nào trong phạm vi của bạn.")
     bp = du_lieu["bp"]
+    request.nav_current = f"bp:{bp.code}"
     boi_canh = dict(du_lieu)
     boi_canh.update({
         "erp_url": _ngoai("/"),
-        "ve_url": _ngoai("/"), "ve_nhan": "Về KN ERP",
         "duoc_quan_ly_thu_muc": has_rank(request.user, Rank.LEADER)
                                 and grant_service.can_manage_folders(request.user, bp),
+        "duoc_cap_quyen": has_rank(request.user, Rank.MANAGER),
         "cap_quyen_url": _ngoai("/bang/"),
+        "tao_bang_url": _ngoai("/bang/moi/"),
     })
-    return render(request, "crm/trang_chu.html", boi_canh)
+    return render(request, "crm/thu_muc.html", boi_canh)
 
 
 @login_required
@@ -148,7 +168,7 @@ def bang_tinh_xem(request, code):
               else tree_service.home_url(bang.department, all_tables=True))
     return render(request, "crm/bang_tinh.html", {
         "thang_dang_xem": thang_dang_xem,
-        "ve_url": ve_url, "ve_nhan": "Về trang chủ KN CRM",
+        "ve_url": ve_url, "ve_nhan": "Về Bảng tính — thư mục",
         "cay": cay,
         "cac_thu_muc": [t for t, _ in cay if t is not None and t.department_id == bang.department_id],
         "duoc_quan_ly_thu_muc": grant_service.can_manage_folders(request.user, bang.department),

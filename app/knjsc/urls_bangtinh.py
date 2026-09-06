@@ -11,7 +11,7 @@ from crm import views as crm_views
 urlpatterns = [
     # Cùng một trang chủ mang hai tên: `tong_quan` để khung và thanh bên dùng
     # chung với ERP không nổ, `bang_tinh` (trong crm.urls) là tên chính thức
-    path("", crm_views.trang_chu, name="tong_quan"),
+    path("", crm_views.tong_quan, name="tong_quan"),
     path("", include("core.urls")),
     path("", include("crm.urls")),
 ]

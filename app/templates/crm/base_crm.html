@@ -1,0 +1,136 @@
+{% load static %}<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block tieu_de %}KN CRM · Kim Ngân JSC{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="{% static 'css/tokens.css' %}?v={{ phien_ban_tinh }}">
+<link rel="stylesheet" href="{% static 'css/main.css' %}?v={{ phien_ban_tinh }}">
+<link rel="stylesheet" href="{% static 'css/bang-tinh.css' %}?v={{ phien_ban_tinh }}">
+<script>
+  /* Trang có sidebar của KN CRM sáng theo Teeze (ADR-013) khi chưa chọn nền;
+     lưới vẫn tối như bảng tính (ADR-011). Đã chọn thì theo lựa chọn. Trạng
+     thái thu gọn menu trái nhớ riêng, đặt trước khi vẽ để không nháy. */
+  (function () {
+    var n = null, g = null;
+    try { n = localStorage.getItem("knjsc-nen"); g = localStorage.getItem("kn-crm-gon"); } catch (e) {}
+    document.documentElement.dataset.theme = n || "light";
+    if (g === "1") document.documentElement.classList.add("crm-gon");
+  })();
+</script>
+{% block dau_trang %}{% endblock %}
+</head>
+<body>
+{% comment %}
+Khung KN CRM có sidebar — ADR-013, dáng theo Teeze: menu trái sáng (avatar +
+tên + cấp bậc, mục có icon, nhóm gập được, mục đang chọn tô xanh nhạt, nút ‹
+thu gọn còn dải icon), thanh trên với tiêu đề trang, nền sáng/tối, KN ERP,
+đăng xuất. Dùng cho Trang chủ, Bảng tính (thư mục) và các trang không phải
+lưới; lưới giữ `base_bang_tinh.html` toàn màn hình, chỉ lưới mới có nút ←.
+Không có nút ← ở đây: về ERP bằng mục KN ERP, không thể "bấm ← mãi" mà rơi
+sang ERP. Mục menu do `crm/navigation.py` tính, lớp CSS tính sẵn ở Python.
+{% endcomment %}
+{% if user.is_authenticated %}
+<div class="app" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+
+  <aside class="nav crm-nav" id="thanh-ben">
+    <div class="nav-dau">
+      <a class="nav-hieu" href="{% url 'tong_quan' %}">
+        <span>KN</span>
+        <div>KN CRM<small>Bảng tính</small></div>
+      </a>
+    </div>
+    <div class="crm-nguoi">
+      <div class="avatar">{{ profile.full_name|default:user.get_username|first|upper }}</div>
+      <div class="crm-nguoi-ten">
+        <b>{{ profile.full_name|default:user.get_username }}</b>
+        <small>{{ profile.get_rank_display }}{% if profile.department %} · {{ profile.department }}{% endif %}</small>
+      </div>
+    </div>
+
+    <nav class="nav-than" aria-label="Điều hướng KN CRM">
+      {% for muc in crm_nav %}
+        {% if muc.children %}
+          <details class="crm-nhom" {% if muc.mo %}open{% endif %}>
+            <summary class="{{ muc.lop }}" {% if muc.current %}aria-current="page"{% endif %}>
+              <a class="crm-nhom-lk" href="{{ muc.href }}"><span class="ic">{{ muc.icon }}</span><span class="crm-nhan">{{ muc.label }}</span></a>
+              <span class="crm-mui" aria-hidden="true">⌄</span>
+            </summary>
+            {% for con in muc.children %}
+              <a class="{{ con.lop_con }}" href="{{ con.href }}" {% if con.current %}aria-current="page"{% endif %}><span class="ic">{{ con.icon }}</span><span class="crm-nhan">{{ con.label }}</span></a>
+            {% endfor %}
+          </details>
+        {% else %}
+          <a class="{{ muc.lop }}" href="{{ muc.href }}" {% if muc.new_tab %}target="_blank" rel="noopener"{% endif %} {% if muc.current %}aria-current="page"{% endif %}><span class="ic">{{ muc.icon }}</span><span class="crm-nhan">{{ muc.label }}</span></a>
+        {% endif %}
+      {% endfor %}
+    </nav>
+
+    <div class="nav-chan">
+      <div class="ma nho">KN CRM · ADR-013</div>
+    </div>
+  </aside>
+
+  <div class="chinh">
+    <div class="topbar">
+      <button class="nut nut-nho nut-nav" type="button" id="nut-nav" aria-label="Mở điều hướng">☰</button>
+      <button class="nut nut-nho crm-thu-gon" type="button" id="crm-thu-gon" title="Thu gọn hay mở rộng menu trái" aria-label="Thu gọn menu trái">‹</button>
+      <div class="duong-dan">
+        <span>KN CRM</span><span>/</span><b>{% block ten_trang %}{% endblock %}</b>
+      </div>
+      <div class="topbar-phai">
+        {% block thanh_tren_phai %}{% endblock %}
+        <button class="nut nut-nho" type="button" id="nut-nen" title="Đổi nền sáng tối">Nền</button>
+        <a class="nut nut-nho" href="{{ erp_url }}" title="Sang KN ERP, cùng tab">KN ERP</a>
+        <div class="nguoi-dung">
+          <div class="avatar">{{ profile.full_name|default:user.get_username|first|upper }}</div>
+          <div>
+            <b>{{ profile.full_name|default:user.get_username }}</b>
+            <small>{{ profile.get_rank_display }}{% if profile.department %} · {{ profile.department }}{% endif %}</small>
+          </div>
+        </div>
+        <form method="post" action="{% url 'dang_xuat' %}">
+          {% csrf_token %}
+          <button class="nut nut-nho" type="submit">Đăng xuất</button>
+        </form>
+      </div>
+    </div>
+
+    <main class="noi-dung doc">
+      {% if messages %}
+        {% for tin in messages %}
+          <div class="bao {% if tin.tags == 'error' %}bao-xau{% elif tin.tags == 'warning' %}bao-cho{% else %}bao-tot{% endif %}">
+            <span class="bao-ic">{% if tin.tags == 'error' %}!{% else %}✓{% endif %}</span>
+            <div><b>{{ tin }}</b></div>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {% block noi_dung %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<script>
+  document.getElementById("nut-nen").addEventListener("click", function () {
+    var toi = document.documentElement.dataset.theme === "dark";
+    document.documentElement.dataset.theme = toi ? "light" : "dark";
+    try { localStorage.setItem("knjsc-nen", toi ? "light" : "dark"); } catch (e) {}
+  });
+  document.getElementById("nut-nav").addEventListener("click", function () {
+    document.getElementById("thanh-ben").classList.toggle("mo");
+  });
+  document.getElementById("crm-thu-gon").addEventListener("click", function () {
+    var gon = document.documentElement.classList.toggle("crm-gon");
+    try { localStorage.setItem("kn-crm-gon", gon ? "1" : "0"); } catch (e) {}
+  });
+</script>
+
+<script src="{% static 'js/htmx.min.js' %}?v={{ phien_ban_tinh }}" defer></script>
+{% block cuoi_trang %}{% endblock %}
+{% endif %}
+</body>
+</html>

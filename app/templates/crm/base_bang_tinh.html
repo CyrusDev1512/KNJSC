@@ -23,11 +23,12 @@
 </head>
 <body class="bt-than">
 {% comment %}
-Khung của app KN CRM — ADR-010, dáng theo bảng tính KN Demo — ADR-011, app
-riêng — ADR-012: thanh trên 48px (nút ← theo trang: từ lưới về trang chủ, từ
-trang chủ về KN ERP; chữ hiệu KN CRM; tên bảng; trạng thái lưu; Tải Excel;
-toàn màn hình; tài khoản), rồi phần thân của từng trang. Không thanh bên hệ
-thống; điều hướng nằm trong menu tài khoản. View phải truyền `ve_url`, `ve_nhan`.
+Khung **lưới** của app KN CRM — ADR-010, dáng theo bảng tính KN Demo —
+ADR-011, app riêng — ADR-012: toàn màn hình, thanh trên 48px (nút ← về trang
+thư mục đúng nhánh — ADR-013, không bao giờ về ERP; chữ hiệu KN CRM; tên
+bảng; trạng thái lưu; Tải Excel; toàn màn hình; tài khoản), rồi lưới. Không
+sidebar: các trang khác của KN CRM dùng `base_crm.html` có sidebar; chỉ khi
+bấm ← mới thấy menu trái. View phải truyền `ve_url`, `ve_nhan`.
 {% endcomment %}
 {% if user.is_authenticated %}
 <div class="app bt-toan-man" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
