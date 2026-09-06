@@ -88,6 +88,25 @@ def granted_form_ids(user, action=GrantAction.FILL):
     )
 
 
+#: Cấp bậc được coi là "quản lý của bộ phận" — ADR-013. Người dùng chốt
+#: 06.09.2026: Leader được như Manager trong bộ phận mình (thư mục, cột, tạo
+#: bảng, nhập tệp, sửa và xoá dòng của người khác); riêng cấp quyền cho người
+#: khác vẫn là việc của Manager (`bang_cap_quyen`, `grant()`).
+QUAN_LY_BO_PHAN = (Rank.LEADER, Rank.MANAGER, Rank.ADMIN)
+
+
+def _quan_ly_bo_phan(user, department_id):
+    """Người này là quản lý của bộ phận kia không: Admin, hoặc Leader/Manager
+    đúng bộ phận đó. Một chỗ duy nhất cho mọi phép kiểm "quản lý bộ phận" bên
+    dưới, để sau này đổi luật không phải sửa từng hàm."""
+    if is_admin(user):
+        return True
+    ho_so = getattr(user, "profile", None)
+    if ho_so is None:
+        return False
+    return ho_so.department_id == department_id and ho_so.rank in QUAN_LY_BO_PHAN
+
+
 # ══ CÁC PHÉP KIỂM Ở TẦNG VIEW ═════════════════════════════════════
 
 def can_fill(user, form):
@@ -107,16 +126,11 @@ def can_fill(user, form):
 def can_import(user, table):
     """Người này nhập được tệp vào bảng kia không — FR-7.5, backlog Q38.
 
-    Nhập là tạo hàng nghìn dòng một lúc nên nghiêm hơn sửa ô: quản lý trở
-    lên trong bộ phận sở hữu bảng, hoặc người/team được cấp quyền **sửa**
-    trên bảng đó. Admin luôn được.
+    Nhập là tạo hàng nghìn dòng một lúc nên nghiêm hơn sửa ô: quản lý của bộ
+    phận sở hữu bảng (Leader trở lên — ADR-013), hoặc người/team được cấp
+    quyền **sửa** trên bảng đó. Admin luôn được.
     """
-    if is_admin(user):
-        return True
-    ho_so = getattr(user, "profile", None)
-    if ho_so is None:
-        return False
-    if ho_so.department_id == table.department_id and ho_so.rank in (Rank.MANAGER, Rank.ADMIN):
+    if _quan_ly_bo_phan(user, table.department_id):
         return True
     return table.pk in granted_table_ids(user, GrantAction.EDIT)
 
@@ -131,14 +145,9 @@ def is_grid_only(table):
 
 
 def can_manage_folders(user, department):
-    """Ai tạo, đổi tên, xoá thư mục và xếp bảng vào thư mục — ADR-010:
-    Admin, hoặc Manager của chính bộ phận đó."""
-    if is_admin(user):
-        return True
-    ho_so = getattr(user, "profile", None)
-    if ho_so is None:
-        return False
-    return ho_so.department_id == getattr(department, "pk", department) and ho_so.rank == Rank.MANAGER
+    """Ai tạo, đổi tên, xoá thư mục và xếp bảng vào thư mục — ADR-010, ADR-013:
+    Admin, hoặc quản lý (Leader, Manager) của chính bộ phận đó."""
+    return _quan_ly_bo_phan(user, getattr(department, "pk", department))
 
 
 def can_create_record(user, table):
@@ -171,20 +180,16 @@ def can_delete_record(user, record_obj):
 
 def can_manage_columns(user, table):
     """Ai thêm hay bỏ cột của bảng ngay trên Bảng tính (menu chuột phải) —
-    Admin, hoặc Manager của bộ phận sở hữu bảng, như thư mục (`can_manage_folders`)."""
-    if is_admin(user):
-        return True
-    ho_so = getattr(user, "profile", None)
-    return bool(
-        ho_so and ho_so.rank == Rank.MANAGER and ho_so.department_id == table.department_id
-    )
+    Admin, hoặc quản lý (Leader, Manager) của bộ phận sở hữu bảng, như thư mục
+    (`can_manage_folders`) — ADR-013."""
+    return _quan_ly_bo_phan(user, table.department_id)
 
 
 def can_edit_record(user, record_obj):
     """Người này sửa được dòng dữ liệu kia không — FR-7.4.
 
-    Ba đường: quản lý trở lên trong bộ phận sở hữu bảng, hoặc chính người tạo
-    dòng, hoặc có cấp quyền sửa trên bảng đó. Bảng chỉ xem (ADR-009) thì
+    Ba đường: quản lý (Leader trở lên — ADR-013) trong bộ phận sở hữu bảng,
+    hoặc chính người tạo dòng, hoặc có cấp quyền sửa trên bảng đó. Bảng chỉ xem (ADR-009) thì
     không ai sửa được ở đây, kể cả Admin — chỗ sửa là Bảng tính.
     """
     if is_grid_only(record_obj.table):
@@ -199,7 +204,7 @@ def can_edit_record(user, record_obj):
         return False
 
     cung_bo_phan = ho_so.department_id == record_obj.table.department_id
-    if cung_bo_phan and ho_so.rank in (Rank.MANAGER, Rank.ADMIN):
+    if cung_bo_phan and ho_so.rank in QUAN_LY_BO_PHAN:
         return True
     # Bảng dùng chung là hàng đợi việc của cả bộ phận: ai trong bộ phận đó
     # cũng sửa được. Bảng vận đơn là ví dụ — nhân viên Vận đơn không tạo dòng

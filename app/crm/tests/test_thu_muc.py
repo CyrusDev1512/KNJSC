@@ -98,11 +98,11 @@ def test_manager_tao_doi_ten_xoa_thu_muc_va_chuyen_bang(client, cac_bang, depart
 
 
 def test_thu_muc_theo_bo_phan_va_cap_bac(client, cac_bang, departments, nguoi_dung):
-    """AC-11.17 — Staff và Leader bị 403 có nhật ký ở mọi thao tác thư mục; Manager bộ phận khác không thấy thư mục (404) và không chuyển được bảng của bộ phận khác; thanh bên của Sale không hiện thư mục Marketing"""
+    """AC-11.17 — Staff bị 403 có nhật ký ở mọi thao tác thư mục, Leader cùng bộ phận làm được như Manager (ADR-013); Manager bộ phận khác không thấy thư mục (404) và không chuyển được bảng của bộ phận khác; thanh bên của Sale không hiện thư mục Marketing"""
     tm_sale = folder_service.create_folder(name="Sale 2026", department=departments["sale"], actor=nguoi_dung["manager_sale"])
     tm_mkt = folder_service.create_folder(name="MKT 2026", department=departments["mkt"], actor=nguoi_dung["manager_mkt"])
 
-    for ma in ("staff_sale_1", "leader_sale_1"):
+    for ma in ("staff_sale_1",):
         client.force_login(nguoi_dung[ma])
         truoc = _so(AuditAction.DENIED)
         assert client.post("/bang-tinh/thu-muc/moi/", {"name": "Lén", "ve": "don_sale"}).status_code == 403
@@ -119,6 +119,19 @@ def test_thu_muc_theo_bo_phan_va_cap_bac(client, cac_bang, departments, nguoi_du
     assert tm_sale.name == "Sale 2026" and not tm_sale.is_deleted
     cac_bang["sale"].refresh_from_db()
     assert cac_bang["sale"].folder is None
+
+    # Leader cùng bộ phận: như Manager — tạo, đổi tên, xếp bảng vào thư mục (ADR-013)
+    client.force_login(nguoi_dung["leader_sale_1"])
+    assert client.get("/bang-tinh/don_sale/").context["duoc_quan_ly_thu_muc"] is True
+    assert client.post("/bang-tinh/thu-muc/moi/", {"name": "Leader 2026", "ve": "don_sale"}).status_code == 302
+    assert client.post(f"/bang-tinh/thu-muc/{tm_sale.pk}/sua/", {"name": "Sale 2026 sửa", "ve": "don_sale"}).status_code == 302
+    assert client.post("/bang-tinh/don_sale/chuyen-thu-muc/", {"folder": tm_sale.pk}).status_code == 302
+    tm_sale.refresh_from_db(); cac_bang["sale"].refresh_from_db()
+    assert tm_sale.name == "Sale 2026 sửa" and cac_bang["sale"].folder == tm_sale
+    # nhưng thư mục của bộ phận khác vẫn ngoài phạm vi
+    assert client.post(f"/bang-tinh/thu-muc/{tm_mkt.pk}/sua/", {"name": "x", "ve": "don_sale"}).status_code == 404
+    client.post("/bang-tinh/don_sale/chuyen-thu-muc/", {"folder": ""})
+    tm_sale.name = "Sale 2026"; tm_sale.save(update_fields=["name"])
 
     # Manager Marketing: thư mục Sale ngoài phạm vi → 404; bảng Sale ngoài phạm vi → 404
     client.force_login(nguoi_dung["manager_mkt"])

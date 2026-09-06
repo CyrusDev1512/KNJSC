@@ -142,13 +142,13 @@ def test_dinh_dang_theo_quyen_sua_o(client, bang_sale, bang_vd, nguoi_dung):
     kq = client.post(duong, {"o": _o((d_2, "khach")), "b": "1"})
     d_2.refresh_from_db()
     assert d_2.style == {}
-    # Leader cùng team thấy dòng nhưng không sửa được dòng người khác → 403 có nhật ký
+    # Leader cùng bộ phận định dạng được dòng người khác như Manager (ADR-013), không có nhật ký từ chối
     client.force_login(nguoi_dung["leader_sale_1"])
     d_1b = _dong(bang_sale, nguoi_dung["staff_sale_1b"], ngay="2026-08-01", khach="C")
-    assert client.post(duong, {"o": _o((d_1b, "khach")), "b": "1"}).status_code == 403
-    assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == truoc + 1
+    assert client.post(duong, {"o": _o((d_1b, "khach")), "b": "1"}).status_code == 200
+    assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == truoc
     d_1b.refresh_from_db()
-    assert d_1b.style == {}
+    assert d_1b.style.get("khach")
     client.force_login(nguoi_dung["manager_sale"])
     assert client.post(duong, {"o": _o((d_1b, "khach"), (d_2, "khach")), "al": "r"}).status_code == 200
     d_1b.refresh_from_db(); d_2.refresh_from_db()

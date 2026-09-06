@@ -281,7 +281,7 @@ def test_cot_khoa_mot_cot_moi_bang_va_loc_theo_o(client, bang_sale, bang_vd, ngu
     assert _so_dong(client, "/bang-tinh/don_sale/?f_ma=A1") == 1
     assert _so_dong(client, "/bang-tinh/don_sale/?f_ma=A1&f_khach__chua=Hai") == 0
 
-    # Sửa cột trên màn hình Sửa cột (ở KN ERP): Manager đặt được, Leader bị 403
+    # Sửa cột trên màn hình Sửa cột (ở KN ERP): Manager và Leader đặt được (ADR-013), Staff bị 403
     client.force_login(ql)
     with override_settings(ROOT_URLCONF="knjsc.urls"):
         kq = client.post(f"/bang/don_sale/cot/?cot={cot_ma.pk}", {
@@ -297,4 +297,6 @@ def test_cot_khoa_mot_cot_moi_bang_va_loc_theo_o(client, bang_sale, bang_vd, ngu
         assert kq.status_code == 302 and bang_sale.columns.get(code="ma").is_key
         assert "Khoá" in client.get("/bang/don_sale/cot/").content.decode()
         client.force_login(nguoi_dung["leader_sale_1"])
+        assert client.get("/bang/don_sale/cot/").status_code == 200
+        client.force_login(nguoi_dung["staff_sale_1"])
         assert client.post(f"/bang/don_sale/cot/?cot={cot_ma.pk}", {"name": "x"}).status_code == 403

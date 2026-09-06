@@ -109,7 +109,7 @@ def trang_chu(request):
     boi_canh.update({
         "erp_url": _ngoai("/"),
         "ve_url": _ngoai("/"), "ve_nhan": "Về KN ERP",
-        "duoc_quan_ly_thu_muc": has_rank(request.user, Rank.MANAGER)
+        "duoc_quan_ly_thu_muc": has_rank(request.user, Rank.LEADER)
                                 and grant_service.can_manage_folders(request.user, bp),
         "cap_quyen_url": _ngoai("/bang/"),
     })
@@ -173,8 +173,8 @@ def bang_tinh_xem(request, code):
         "chips": chips,
         "chi_xem": grant_service.is_grid_only(bang),
         "duoc_them_dong": duoc_them,
-        "duoc_sua_cot": has_rank(request.user, Rank.MANAGER),
-        "duoc_quan_ly_cot": has_rank(request.user, Rank.MANAGER) and grant_service.can_manage_columns(request.user, bang),
+        "duoc_sua_cot": has_rank(request.user, Rank.LEADER),
+        "duoc_quan_ly_cot": has_rank(request.user, Rank.LEADER) and grant_service.can_manage_columns(request.user, bang),
         "giay_hoi": GRID_POLL_SECONDS,
         "duoc_nhap": grant_service.can_import(request.user, bang),
         "bang_du_lieu_url": _ngoai(f"/bang/{bang.code}/"),
@@ -582,7 +582,7 @@ def bang_tinh_khoi_phuc_dong(request, code):
 
 
 def _kiem_quan_ly_cot(request, bang):
-    assert_rank(request.user, Rank.MANAGER, request)
+    assert_rank(request.user, Rank.LEADER, request)
     if not grant_service.can_manage_columns(request.user, bang):
         record_denied(request.user, request.path, request)
         raise OutOfScopeError("Chỉ quản lý của bộ phận sở hữu bảng mới thêm hay bỏ cột.")
@@ -657,8 +657,8 @@ def bang_tinh_moi_nhat(request, code):
 # ── Thư mục chứa bảng — ADR-010 ───────────────────────────────────
 
 def _kiem_quan_ly_thu_muc(request, department):
-    """Manager của bộ phận đó hoặc Admin; không thì 403 có ghi nhật ký."""
-    assert_rank(request.user, Rank.MANAGER, request)
+    """Quản lý (Leader, Manager) của bộ phận đó hoặc Admin — ADR-013; không thì 403 có ghi nhật ký."""
+    assert_rank(request.user, Rank.LEADER, request)
     if not grant_service.can_manage_folders(request.user, department):
         record_denied(request.user, request.path, request)
         raise OutOfScopeError("Chỉ quản lý của bộ phận này mới sắp xếp được thư mục.")
