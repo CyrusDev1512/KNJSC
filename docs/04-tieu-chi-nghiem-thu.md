@@ -172,6 +172,8 @@ Mỗi ô là một bài kiểm thử. Năm vai trò nhân với chín đường 
 | AC-8.4 | Người không được phân quyền không thấy biểu mẫu đó | FR-8.4 | Tự động |
 | AC-8.5 | Sửa biểu mẫu không làm mất dữ liệu đã nhập trước đó | FR-8.5 | Tự động |
 | AC-8.6 | Nối trường kiểu chữ vào cột kiểu số thì bị chặn với thông báo rõ ràng | FR-8.6 | Tự động |
+| AC-8.7 | Cột kiểu Chọn một chỉ nhận giá trị trong danh sách chọn (không phân biệt hoa thường), giá trị lạ bị từ chối kèm gợi ý; danh sách chỉ đặt được cho kiểu Chọn một, bỏ dòng trống và trùng; trên biểu mẫu, báo cáo ngày và ô Bảng dữ liệu cột này hiện thành ô chọn | FR-8.7 | Tự động |
+| AC-8.9 | Manager đặt màu cột và ngưỡng cảnh báo trong Sửa cột; ngưỡng chỉ nhận cột kiểu số; tiêu đề và ô của cột mang màu đã đặt, ô vượt ngưỡng tô đỏ, ô đạt tô xanh lá, ô trống không tô; màn hình xem báo cáo cũng mang màu | FR-8.8 | Tự động |
 
 ---
 
