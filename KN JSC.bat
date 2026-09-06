@@ -37,9 +37,16 @@ if not exist ".git" goto :khong_keo
 where git >nul 2>&1
 if errorlevel 1 goto :khong_keo
 for /f %%h in ('git rev-parse HEAD 2^>nul') do set "TRUOC=%%h"
+rem Tep nay chua duoc git theo doi - nguoi dung tai ve roi tha vao thu muc -
+rem thi git pull se tu choi ghi de. Tam doi no ra ngoai, keo xong dung ban tu
+rem GitHub; keo khong duoc thi tra lai. Ca khoi da doc het truoc khi chay.
+set "DA_THEO_DOI="
+git ls-files --error-unmatch "KN JSC.bat" >nul 2>&1 && set "DA_THEO_DOI=1"
 echo Kiem tra ma moi tren GitHub ...
 (
+  if not defined DA_THEO_DOI move /y "%~f0" "%TEMP%\KN JSC.bat.cu" >nul
   git pull --ff-only -q
+  if not exist "%~f0" move /y "%TEMP%\KN JSC.bat.cu" "%~f0" >nul
   for /f %%h in ('git rev-parse HEAD 2^>nul') do set "SAU=%%h"
   call "%~f0" da-keo %*
   exit /b
