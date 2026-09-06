@@ -27,8 +27,9 @@ scripts\cap-nhat-local.bat   Windows (hoặc nháy đúp tệp)
 ./scripts/cap-nhat-local.sh  Mac và Linux
 ```
 
-Lệnh tự mở Docker Desktop nếu chưa chạy, kéo mã mới, dựng container, đợi web lên, nạp dữ
-liệu mẫu rồi mở trình duyệt ở `http://127.0.0.1:8020/`. Chạy lại nhiều lần được.
+Lệnh tự mở Docker Desktop nếu chưa chạy, kéo mã mới, tạo lối tắt "KN JSC" ngoài
+Desktop nếu chưa có, dựng container, đợi web lên, nạp dữ liệu mẫu rồi mở trình
+duyệt ở `http://127.0.0.1:8020/`. Chạy lại nhiều lần được.
 
 **Máy đã dựng rồi, hằng ngày chỉ cần mở lại** thì dùng lệnh nhẹ hơn:
 

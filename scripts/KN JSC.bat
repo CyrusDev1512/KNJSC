@@ -2,6 +2,8 @@
 rem KN JSC - mo he thong tren may nay: nhay dup la chay, chay lai bao nhieu
 rem lan cung duoc. Lan dau chay tu tao loi tat "KN JSC" ngoai Desktop (bieu
 rem tuong la KN JSC.ico cung thu muc); tu do nhay dup loi tat la du.
+rem Goi kem tham so "loi-tat" thi chi tao loi tat roi thoat, khong mo gi
+rem (cap-nhat-local.bat dung de keo ma xong la thay logo ngay).
 rem
 rem Khac voi cap-nhat-local.bat: KHONG keo ma moi, KHONG dung lai image, KHONG
 rem nap lai du lieu mau (tru lan dau tren may sach) - nen container da co thi
@@ -33,6 +35,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "$s=(New-Object -ComObjec
 if exist "%LOI_TAT%" (echo Da tao loi tat "KN JSC" ngoai Desktop.) else (echo Khong tao duoc loi tat ngoai Desktop - bo qua, he thong van mo binh thuong.)
 
 :co_loi_tat
+if /i "%~1"=="loi-tat" exit /b 0
 rem --- 1. Co Docker chua? Vua cai xong thi PATH cua cua so nay co the chua co ---
 where docker >nul 2>&1
 if not errorlevel 1 goto :co_docker
