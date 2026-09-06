@@ -1,15 +1,21 @@
 @echo off
-rem Ban Windows cua cap-nhat-local.sh — bam dup la chay, chay lai nhieu lan duoc.
+rem Ban Windows cua cap-nhat-local.sh - bam dup la chay, chay lai nhieu lan duoc.
 rem Mo Docker Desktop neu chua chay, keo ma moi, dung lai docker compose,
 rem doi web len, bao dam co du lieu mau, mo trinh duyet.
 rem Hang ngay chi can nhay dup "KN JSC.bat" o thu muc goc (no tu keo ma, tu
 rem migrate). Tep nay la ban "lam het cho chac": chuyen nhanh, LUON dung lai
 rem image, migrate, nap du lieu mau - dung khi doi nhanh hay khi KN JSC.bat len
 rem ma man hinh loi.
+rem
+rem Tham so: ten nhanh muon chuyen sang, khong bat buoc. "da-keo" la tham so
+rem noi bo, GIU NGUYEN TEN: keo ma xong tep goi lai chinh no, vi cmd doc tep
+rem .bat theo vi tri byte, keo ma doi chinh tep nay thi doc tiep se lech dong.
+rem Nen phan keo ma nam tron trong mot khoi ( ... ) da doc het truoc khi chay.
 setlocal
 cd /d "%~dp0.."
 set "COMPOSE=docker compose -f deploy\docker-compose.yml"
 set "DIA_CHI=http://127.0.0.1:8020/"
+if /i "%~1"=="da-keo" goto :sau_keo
 
 where docker >nul 2>&1
 if errorlevel 1 (
@@ -40,13 +46,21 @@ goto :doi_docker
 
 :docker_ok
 echo Docker da san sang.
-if not "%~1"=="" (
-  git fetch origin
-  git checkout %~1
+rem Keo ma trong mot khoi, keo xong goi lai ban moi cua tep roi thoat ngay
+(
+  if not "%~1"=="" (
+    git fetch origin
+    git checkout %~1
+  )
+  git pull
+  call "%~f0" da-keo
+  exit /b
 )
-git pull
-rem Loi tat "KN JSC" ngoai Desktop (bieu tuong KN JSC.ico) - tao neu chua co,
-rem de keo ma xong la thay logo ngay; tu do nhay dup logo la mo he thong
+
+:sau_keo
+rem ======= Tu day tro di chay tren ban moi nhat cua tep =======
+rem Loi tat "KN JSC" ngoai Desktop (bieu tuong scripts\KN JSC.ico) - de keo ma
+rem xong la thay logo ngay; tu do nhay dup logo la mo he thong
 if exist "%~dp0..\KN JSC.bat" call "%~dp0..\KN JSC.bat" loi-tat
 
 %COMPOSE% up -d --build
