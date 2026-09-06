@@ -107,6 +107,7 @@ Trong tình huống nào thì nên xem lại quyết định này.
 | 010 | Bảng tính cho mọi bảng, có định dạng ô, cột khoá và thư mục | Đã áp dụng | 04.09.2026 |
 | 011 | Bảng tính nhìn và thao tác theo bảng tính KN Demo | Đã áp dụng | 04.09.2026 |
 | 012 | KN CRM là app riêng, trang chủ là cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng | Đã áp dụng | 06.09.2026 |
+| 012 | Danh sách chọn và màu cột là thuộc tính của cột, Manager quản lý; danh tính người điền do hệ thống ghi | Đã áp dụng | 06.09.2026 |
 
 ---
 

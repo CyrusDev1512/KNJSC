@@ -30,6 +30,7 @@ kim-ngan-jsc/
 │   ├── core/                              nền móng, mọi module gọi vào
 │   │   ├── models.py                      TimestampedModel, SoftDeleteModel
 │   │   ├── scope.py                       hàm phạm vi duy nhất
+│   │   ├── identity.py                    tên hiển thị: họ tên, không có thì tên đăng nhập
 │   │   ├── permissions.py                 kiểm quyền cấp bậc và bộ phận
 │   │   ├── middleware.py                  hết phiên, buộc đổi mật khẩu, chặn cache
 │   │   ├── audit.py                       ghi nhật ký hoạt động
@@ -69,8 +70,11 @@ kim-ngan-jsc/
 │   │   │   ├── form_service.py            tạo, sửa biểu mẫu
 │   │   │   ├── table_service.py           tạo bảng, sinh cột
 │   │   │   ├── link_service.py            nối biểu mẫu với bảng, kiểm kiểu
-│   │   │   └── record_service.py          ghi, sửa, xoá bản ghi
+│   │   │   ├── record_service.py          ghi, sửa, xoá bản ghi
+│   │   │   └── choice_service.py          thêm giá trị vào danh sách chọn, quyền
 │   │   ├── meaning.py                     bảy nhãn ý nghĩa và cách dùng
+│   │   ├── choice_registry.py             sổ danh sách chọn ba tầng — ADR-013
+│   │   ├── styling.py                     lớp CSS màu cột, ngưỡng cảnh báo
 │   │   ├── query.py                       dựng truy vấn động trên bảng
 │   │   ├── forms.py
 │   │   ├── views/
@@ -105,7 +109,8 @@ kim-ngan-jsc/
 │   │   ├── services/
 │   │   │   ├── order_service.py           tạo đơn, khoá sau khi lưu
 │   │   │   ├── dispatch_service.py        ghi một chiều sang bảng vận đơn
-│   │   │   └── customer_service.py        nhận diện khách mua lại
+│   │   │   ├── customer_service.py        nhận diện khách mua lại
+│   │   │   └── product_service.py         thêm sản phẩm, nguồn ô chọn Sản phẩm
 │   │   ├── forms.py
 │   │   ├── views.py
 │   │   ├── urls.py
@@ -129,6 +134,7 @@ kim-ngan-jsc/
 │   │   │   ├── pagination.html
 │   │   │   ├── filter_bar.html
 │   │   │   ├── form_field.html
+│   │   │   ├── o_chon.html                ô chọn từ danh sách, mục Thêm mới
 │   │   │   └── empty_state.html
 │   │   ├── core/
 │   │   ├── org/
@@ -143,6 +149,7 @@ kim-ngan-jsc/
 │   │   │   └── main.css
 │   │   ├── js/
 │   │   │   ├── htmx.min.js
+│   │   │   ├── chon.js                    ô chọn có "Thêm mới…"
 │   │   │   └── table.js                   lọc, sắp xếp, sửa ô
 │   │   └── img/
 │   │
@@ -279,7 +286,7 @@ __pycache__/
 | Nơi | Kiểm gì |
 |---|---|
 | `app/<module>/tests/` | Trong một module — service, model, view |
-| `tests/` ở gốc | Xuyên module — ma trận phân quyền, trọn luồng lên đơn |
+| `app/tests/` | Xuyên module — ma trận phân quyền, trọn luồng lên đơn, truy vết, khói, hiệu năng. (Thư mục `tests/` ở gốc kho chỉ là chỗ giữ, chưa có bài nào) |
 
 Ba tệp ở gốc là ba thứ dễ hỏng nhất và không thuộc module nào:
 

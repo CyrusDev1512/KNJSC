@@ -2,21 +2,30 @@
 Một ô trên bảng dữ liệu. Dùng cả khi vẽ bảng lần đầu lẫn khi HTMX trả về sau
 khi sửa — nên chỉ có đúng một nơi quyết định ô trông thế nào.
 
-Cần: bang, ban_ghi, cot, gia_tri, duoc_sua.
+Cần: bang, ban_ghi, cot, gia_tri, duoc_sua, lop_o (chuỗi lớp do
+forms_builder.styling tính sẵn: kiểu ô, màu cột, cảnh báo ngưỡng, ô lỗi).
+Tuỳ chọn: loi — lý do sửa hỏng, hiện ngay trong ô. Cột Chọn một có
+cot.la_chon (choice_service.attach_lists) thì vẽ ô chọn thay cho ô chữ.
 {% endcomment %}
 {% if cot.is_computed %}
   {# Cột tính sẵn không sửa tay được — ADR-006 #}
-  <td class="tien o-tinh" title="Cột tính sẵn, không sửa tay">{{ gia_tri|default:"—" }}</td>
+  <td class="{{lop_o}}" title="Cột tính sẵn, không sửa tay">{{ gia_tri|default:"—" }}</td>
 {% elif duoc_sua %}
-  <td class="o-sua"
+  <td class="{{lop_o}}"
       hx-post="{% url 'bang_sua_o' bang.code ban_ghi.pk cot.code %}"
       hx-trigger="sua"
       hx-swap="outerHTML"
       hx-include="this"
-      data-ma="{{ cot.code }}">
-    <input class="o-trong-bang" name="gia_tri" value="{{ gia_tri|default:'' }}"
-           aria-label="{{ cot.name }}">
+      data-ma="{{ cot.code }}"{% if loi %} title="{{ loi }}"{% endif %}>
+    {% if cot.la_chon %}
+      {% url 'bang_them_lua_chon' bang.code cot.code as them_url %}
+      {% include "components/o_chon.html" with ten="gia_tri" nhan=cot.name cac_muc=cot.cac_muc chat=cot.chat co_them=cot.co_them nhom=cot.code hau_to=ban_ghi.pk lop="o-trong-bang" %}
+    {% else %}
+      <input class="o-trong-bang" name="gia_tri" value="{{ gia_tri|default:'' }}"
+             aria-label="{{ cot.name }}">
+    {% endif %}
+    {% if loi %}<span class="o-loi-ly-do">{{ loi }}</span>{% endif %}
   </td>
 {% else %}
-  <td>{{ gia_tri|default:"—" }}</td>
+  <td class="{{lop_o}}">{{ gia_tri|default:"—" }}</td>
 {% endif %}

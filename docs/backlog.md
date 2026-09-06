@@ -28,11 +28,11 @@ Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của 
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
 tóm để không phải lục.
 
-> Cập nhật ngày 06.09.2026. Giai đoạn 7 phần E (ADR-010) đã vào `main` qua
-> PR #4. Phần F (Bảng tính như KN Demo, ADR-011) và phần G (**KN CRM là app
-> riêng**, trang chủ cây Bộ phận ▸ Quý ▸ Tháng, ADR-012) xong, **còn trên nhánh
-> riêng** `claude/bang-tinh-nhu-kn-demo` (PR #5, base `main`), chờ anh/chị
-> nghiệm thu. Mục D chỉ còn `AC-5.1`.
+> Cập nhật ngày 06.09.2026. Giai đoạn 7 phần E (ADR-010) vào `main` qua PR #4;
+> phần F (Bảng tính như KN Demo, ADR-011) và phần G (**KN CRM là app riêng**,
+> ADR-012) vào qua PR #5; đợt chỉnh sửa KNERP đầu tiên — ô chọn có "Thêm mới…",
+> danh tính người điền tự ghi, màu cột và viền ô (ADR-013) — vào qua PR #11.
+> Mục D chỉ còn `AC-5.1`.
 
 **Đang ở đâu:** xong Giai đoạn 0 tới 7. Nhập tệp Excel/CSV bốn bước có xem
 trước và tiến độ, xuất kèm bộ lọc, tệp lớn chạy nền giữ 24 giờ (7A). Sao lưu
@@ -54,8 +54,11 @@ tác, menu chuột phải (xoá/khôi phục dòng, Manager chèn/xoá cột), 4
 là app riêng** (7G, ADR-012): KN ERP không còn lưới, chỉ có mục KN CRM mở tab
 mới sang dịch vụ 8021; trang chủ KN CRM là cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng tự
 sinh từ cột Ngày, bấm tháng là mở lưới lọc sẵn tháng đó (tháng là góc nhìn,
-không tách bảng), quyền theo bảng như cũ. 97 tiêu chí, 86 trên 87 tự động có
-bài kiểm.
+không tách bảng), quyền theo bảng như cũ. **Chỉnh sửa KNERP 06.09** (ADR-013): mọi cột Chọn một là ô chọn có "＋ Thêm mới…"
+cho Manager ở biểu mẫu, báo cáo ngày, Bảng dữ liệu và Lên đơn; sản phẩm lấy từ
+danh mục, Manager thêm tại chỗ; trường Người bán tự ghi tên người điền; Bảng dữ
+liệu có viền, tiêu đề xanh lá, màu cột và ngưỡng cảnh báo. 103 tiêu chí, 91 trên
+92 tự động có bài kiểm.
 
 **Việc tiếp theo:** **nghiệm thu một đợt theo `docs/07`** — anh/chị bấm tay
 từng vai, đánh ☑, gửi danh sách lỗi; sửa trên nhánh `claude/bang-tinh-nhu-kn-demo`
@@ -129,21 +132,20 @@ Không cái nào chặn triển khai. Xếp theo mức.
 | **K24** | Trang Bảng dữ liệu và Bảng tính trên 50.000 dòng tốn 12 lệnh truy vấn, hơn ngân sách 10 (Q2) hai lệnh; thời gian vẫn đạt 0,4 s và 1,1 s — bài hiệu năng đánh dấu xfail | Trung bình |
 | **K19** | Bài Playwright và bài 50.000 dòng chỉ chạy trên máy phát triển, không chạy trong container `web` (không có Chromium, `pytest` mặc định không bỏ `cham` nhưng image không có trình duyệt) | Thấp |
 | **K21** | Thư mục `storage/` là bind mount, container chạy uid 1000: máy Linux mà chủ thư mục khác thì nhập tệp và sao lưu hỏng — entrypoint chỉ cảnh báo, chưa tự sửa | Thấp |
-| **K22** | Danh sách chọn cho cột *Chọn một* của bảng tự tạo — bảng vận đơn có sổ đăng ký (ADR-009), bảng tự tạo chưa | Thấp |
+| **K25** | Bảng tính (`crm`) chưa đọc `choice_registry.for_column`: ô Chọn một của bảng tự tạo ở đó vẫn là ô chữ, máy chủ vẫn chặn giá trị lạ — một dòng trong `grid_service.choice_list`, giao thread KN CRM | Thấp |
 | **K8** | `ScopedModel` chưa có cột "người sửa" | Thấp |
 | **K10** | Quy tắc Q3 chưa áp ở màn hình nào | Thấp |
 | **K14** | Nhánh Staff trong `apply_scope` không đọc phạm vi cấp thêm | Thấp |
 
 ### D · Tiêu chí nghiệm thu chưa có bài kiểm
 
-2 tiêu chí đánh dấu *Tự động* nhưng chưa viết được. Danh sách này nằm trong
+1 tiêu chí đánh dấu *Tự động* nhưng chưa viết được. Danh sách này nằm trong
 `app/tests/test_truy_vet.py`, biến `HOAN`, và
 **có bài kiểm bắt phải ghi lý do** — không giấu được.
 
 | Tiêu chí | Chờ |
 |---|---|
 | `AC-5.1` | Bốn cách nhóm mới chạy ba — tab thị trường chờ **N9** |
-| `AC-7.1` | 50.000 bản ghi dưới 2 giây, cần `seed_perf.py` — Giai đoạn 7D |
 
 ### E · Màn hình chưa có
 
@@ -171,7 +173,7 @@ mục 6.
 | K24 | Bài `tests/test_hieu_nang.py` trên 50.000 dòng: thời gian đạt (0,4 s Bảng dữ liệu, 1,1 s Bảng tính có lọc) nhưng đếm 12 lệnh truy vấn, hơn ngân sách 10 của Q2 hai lệnh. Chưa soi được lệnh nào thừa (nghi: phiên + hồ sơ + phạm vi + bảng + cột + đếm + trang + quyền cấp + sổ danh sách nhân viên). Bài đánh dấu `xfail(strict=False)` | Trung bình | GĐ 7D |
 | K19 | Bài kiểm trình duyệt thật (`tests/e2e/`, Playwright) và bài hiệu năng 50.000 dòng cần Chromium và thời gian, không chạy trong container `web` — tự bỏ qua kèm lý do. Chạy trên máy phát triển: `pip install -r requirements-dev.txt && playwright install chromium && pytest -m trinh_duyet` | Thấp | GĐ 7D |
 | K21 | Thư mục `storage/` là bind mount, container chạy uid 1000. Trên máy Linux mà chủ thư mục là người khác thì nhập tệp và sao lưu hỏng vì không ghi được; `entrypoint.sh` mới chỉ cảnh báo, chưa tự sửa quyền | Thấp | GĐ 7B |
-| K22 | `ColumnDef` kiểu *Chọn một* chưa có trường lưu danh sách lựa chọn. Bảng vận đơn dùng sổ đăng ký `forms_builder.choice_registry` (crm đăng ký lúc khởi động — ADR-009); bảng tự tạo vẫn nhận mọi giá trị. Muốn có danh sách cho bảng tự tạo thì thêm trường `options` kèm tệp chuyển đổi | Thấp | GĐ 7C |
+| K25 | Bảng tính (`crm`) chưa đọc `choice_registry.for_column` nên ô Chọn một của bảng tự tạo trên lưới vẫn là ô chữ (máy chủ vẫn chặn giá trị lạ qua `parse_value`). Sửa là một dòng trong `grid_service.choice_list` — thuộc thread KN CRM, không sửa ở đây. ~~K22~~ đóng ngày 06.09.2026 bằng `ColumnDef.options` và sổ theo nhãn (ADR-012) | Thấp | KNERP 06.09 |
 
 ### 1.2. Nghiệp vụ
 
@@ -257,6 +259,10 @@ mục 6.
 | Q54 | Bảng tính đặt ở đâu so với ERP, có làm app không | **KN CRM là app riêng trong hệ sinh thái**: dịch vụ `bangtinh` 8021, tên miền con, mở tab mới từ ERP, **cùng kho mã cùng cơ sở dữ liệu** (cách B trong bảng so sánh A/B/C); KN ERP không còn lưới. **Không** làm app cài đặt (native, PWA) — quá đắt; cái cần trên điện thoại là KN ERP (Giai đoạn 8) — AC-11.30, ADR-012 | 06.09.2026 |
 | Q55 | "Thư mục Quý → Tháng → file vận đơn" nghĩa là gì | **Tháng là góc nhìn trên một bảng**, cây tự sinh từ cột Ngày; bấm tháng là mở lưới lọc sẵn. Không tách bảng theo tháng (Lên đơn ghi vào một bảng, Lọc trùng và mua lại lần đếm cả lịch sử) — AC-11.28, AC-11.29, ADR-012 | 06.09.2026 |
 | Q56 | Quyền trong KN CRM cấp ở mức nào | **Theo bảng như hiện có** (Manager cấp Xem/Sửa từng bảng ở KN ERP); cây chỉ hiện thứ được xem; không thêm quyền theo thư mục hay theo tháng — ADR-012 | 06.09.2026 |
+| Q58 | Danh sách chọn của cột Chọn một lấy từ đâu, ai thêm — K22 | **Ba tầng, một chỗ phân giải** (`choice_registry.for_column`): sổ (bảng, cột) của crm → nhãn ý nghĩa (Sản phẩm = danh mục sản phẩm, chặt; Người bán = nhân sự bộ phận, gợi ý) → `ColumnDef.options` (chặt). **Manager quản lý, Staff chỉ chọn**; cột chưa có danh sách không nhận giá trị nào; bảng vận đơn giữ sổ crm — ADR-013, AC-8.7, AC-8.8 | 06.09.2026 |
+| Q59 | Danh tính người điền ghi dạng gì, ép ở đâu | **Họ tên trong hồ sơ, không có thì tên đăng nhập** (`core.identity.display_name`, cùng luật với bảng vận đơn); ép ở tầng dịch vụ `form_service.fill`, không tin POST; chỉ áp cho điền biểu mẫu và nộp báo cáo, nhập tệp và lên đơn giữ nguyên — AC-4.6 | 06.09.2026 |
+| Q60 | Tô màu chỉ số quan trọng trên Bảng dữ liệu theo cách nào | **Màu cột** (vàng, đỏ, xanh lá, xanh dương) tô tiêu đề lẫn ô, cộng **ngưỡng cảnh báo** cho cột số (đỏ khi lớn hơn / nhỏ hơn X, còn lại xanh lá); tiêu đề mặc định **xanh lá cố định**; là thuộc tính của cột, khác định dạng từng ô của ADR-010; viền chỉ ở bảng mang lớp `bang-luoi` — ADR-013, AC-8.9, AC-8.10 | 06.09.2026 |
+| Q61 | Ai thêm sản phẩm, thêm ở đâu | **Manager bất kỳ bộ phận (hoặc Admin) thêm ngay tại ô chọn** — trên biểu mẫu, ô bảng và Lên đơn; mã tự sinh từ tên, đồng bộ cột `sl_` trên bảng vận đơn ngay. Màn hình quản lý sản phẩm đầy đủ để sau (S11) — AC-6.9 | 06.09.2026 |
 
 ---
 
@@ -276,6 +282,8 @@ Những thứ đáng làm nhưng chưa tới lượt.
 | S8 | Xuất Excel mang theo định dạng ô (đậm, màu nền) | `export_service.build_workbook` chưa đọc `DataRecord.style`; làm khi có người hỏi |
 | S9 | Kéo đổi chiều cao dòng trên Bảng tính | Dòng đổi chỗ khi sắp xếp và phân trang nên chiều cao theo chỉ số dòng vô nghĩa; nếu cần thì lưu theo bản ghi như `style` — ADR-011 |
 | S10 | Công thức gõ ở thanh công thức của Bảng tính | Ô `fx` đã có, gõ `=` đang báo chưa hỗ trợ; chờ "cách thứ ba" người dùng nói tới sau ADR-006; khi có thì cắm vào đúng chỗ này — ADR-011 |
+| S11 | Màn hình quản lý sản phẩm đầy đủ: sửa tên, nhóm, ngừng bán | Hiện chỉ thêm nhanh tại ô chọn (Q61); ngừng bán mới làm được qua dòng lệnh. |
+| S12 | Xuất Excel Bảng dữ liệu mang theo màu cột và ô cảnh báo | Cùng chỗ với S8 |
 
 ---
 
@@ -404,3 +412,4 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 06.09.2026 | Người dùng muốn một tệp `.bat` nháy đúp là mở ngay `localhost` trên máy đó và tự bật Docker. `cap-nhat-local.bat` làm được nhưng kéo mã, dựng lại image và nạp dữ liệu mẫu nên mất vài phút — quá nặng cho việc mở lại hằng ngày. Thêm `scripts/KN JSC.bat` (tên do người dùng chọn; kèm biểu tượng `KN JSC.ico` vẽ từ `KN JSC.svg` — chữ KN trắng trên nền xanh, vạch cam, chữ JSC; lần đầu chạy tự tạo lối tắt "KN JSC" ngoài Desktop bằng PowerShell, đường dẫn Desktop lấy từ Registry để đúng cả khi OneDrive dời Desktop): mở Docker Desktop nếu chưa chạy (tìm cả trong Registry khi cài ở thư mục khác), `up -d` không `--build`, kiểm web ngay trước khi ngủ nên container đang chạy sẵn là mở trình duyệt tức thì; lần đầu trên máy sạch (chưa có container `web`) thì nạp `du_lieu_mau` trước khi mở, không thì không có tài khoản để đăng nhập. `cap-nhat-local.bat` cũng gọi nó (tham số `loi-tat`) ngay sau `git pull`, vì người dùng kéo mã xong là mong thấy logo ngay chứ không đi tìm tệp `.bat`. Người dùng bực vì vẫn phải tìm thư mục để nháy đúp lần đầu: yêu cầu thật là *mỗi ngày ấn một nút, không gõ gì*. Thêm `scripts/Cai dat KN JSC.bat` gửi thẳng qua chat để nháy đúp một lần ở bất kỳ đâu: tự tìm thư mục KNJSC trên máy (chỗ hay clone, rồi quét `dir /s`), `git pull`, gọi `KN JSC.bat` để tạo logo ngoài Desktop và mở hệ thống. Từ đó chỉ còn logo trên Desktop. Rồi người dùng chốt: **một tệp `.bat` ở thư mục gốc, máy nào clone về cũng nháy đúp là lên** — chuyển `KN JSC.bat` lên gốc, thêm tự `git pull --ff-only`; có mã mới thì migrate, `tao_bang_van_don`, khởi động lại worker/beat, dựng lại image chỉ khi Dockerfile/requirements/entrypoint đổi; gọi lại chính nó sau pull (tham số `da-keo`) vì cmd đọc `.bat` theo byte, tệp tự đổi là đọc lệch dòng. Lối tắt Desktop làm mới mỗi lần chạy để trỏ đúng chỗ khi kho mã chuyển. `cap-nhat-local.bat` giữ làm bản "làm hết cho chắc", và cũng được sửa theo cùng kiểu gọi lại chính nó sau `git pull` (mô phỏng cho thấy bản cũ trên máy người dùng, khi kéo mã đè lên chính nó, đọc tiếp rơi vào giữa dòng `set /a DEM+=1` rồi dừng ngang nếu Docker đang chạy sẵn). Bài học: **tệp `.bat` nào tự `git pull` thì phần sau `pull` phải nằm trong khối `( ... )` và `call` lại chính nó.** Chỉ Windows, chưa làm bản `.sh` vì Mac/Linux chỉ cần `docker compose up -d` |
 | 06.09.2026 | Anh/chị hỏi lại câu gốc: vì sao cần Bảng tính, so với Excel, Google Sheets, Lark thì sao; kể lại dây chuyền Google Form → Sheet của Vận đơn lag dần sau vài tháng (6.000 khách một tháng). Chốt: KN ERP xem nhanh, **Bảng tính là app riêng KN CRM** tách tên miền, không làm app cài đặt, cái cần trên điện thoại là ERP. Bốn yêu cầu cho KN CRM (trang mới, thấy thư mục trước, quyền do Manager cấp, cây Bộ phận → Quý → Tháng → file); phản biện được chấp nhận: tháng là góc nhìn trên một bảng, quyền theo bảng. Làm 7G trên cùng nhánh: bỏ `crm.urls` khỏi ERP, một mục KN CRM mở tab mới, `crm/tests/conftest.py` đặt URLconf 8021, `test_khoi` duyệt hai URLconf; `crm/services/tree_service.py` + trang chủ `/` (cây tự sinh từ `val_date`, đếm một truy vấn cho cả bộ phận), nhãn tháng trên lưới, nút ← về đúng nhánh, tạo thư mục từ trang chủ; AC-11.28 → AC-11.30, 97 tiêu chí; ADR-012; Q54 → Q56 |
 | 06.09.2026 | Anh/chị xem ảnh trước/sau (main 7E so với nhánh KN CRM) rồi chốt **gộp PR #5 vào `main`**. Gộp `main` (PR #6 → #10, `KN JSC.bat`) vào nhánh trước để hết xung đột ở chính bảng này, rồi gộp PR #5 bằng merge commit, giữ nhánh như lần PR #4. Máy anh/chị đang ở `main` nên nháy đúp `KN JSC.bat` là kéo được KN CRM; mã mount thẳng vào container, không cần dựng lại image. `/bang-tinh/` ở 8020 từ nay trả 404, lưới chỉ có ở KN CRM 8021 |
+| 06.09.2026 | Đợt chỉnh sửa KNERP đầu tiên (thread KNERP, chỉ hệ thống chính, không đụng `app/crm/`). Bốn yêu cầu: (1) mọi chỗ chọn lựa là ô chọn có "＋ Thêm mới…", sản phẩm lấy từ danh mục và Manager thêm tại chỗ; (2) trường Người bán tự ghi tên người điền; (3) Bảng dữ liệu tô màu cột và ngưỡng cảnh báo, tiêu đề xanh lá; (4) viền mọi ô. Chốt Q58 → Q61, ghi ADR-013, đóng K22, mở K25, S11, S12. `ColumnDef` thêm `options`, `highlight`, `alert_op`, `alert_value` (migration 0008); `choice_registry` ba tầng; `choice_service`, `product_service`, `core/identity`, `forms_builder/styling`; `components/o_chon.html`, `static/js/chon.js`; hai đường dẫn POST mới. Sửa nhân tiện: chú thích nhiều dòng `{# #}` ở màn nộp báo cáo bị hiện ra màn hình; lỗi sửa ô 400 bị HTMX nuốt nay hiện ngay trong ô. AC-4.6, AC-6.9, AC-8.7 → AC-8.10. PR #5 (KN CRM) vào `main` trước nên đánh số lại ADR-012 → ADR-013, Q54 → Q57 thành Q58 → Q61, nhãn 7G thành 7H; sau khi gộp: 103 tiêu chí, 91 trên 92 tự động có bài kiểm |

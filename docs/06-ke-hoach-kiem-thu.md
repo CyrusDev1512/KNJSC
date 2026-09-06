@@ -35,8 +35,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **97** — 87 tự động, 10 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **86 trên 87** |
+| Tiêu chí nghiệm thu trong `docs/04` | **103** — 92 tự động, 11 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **91 trên 92** |
 | Tiêu chí tự động còn hoãn | **1**, đều thuộc diện chờ người dùng chốt — `AC-5.1`, backlog N9 |
 | Bao phủ dòng mã | khoảng 85% |
 
@@ -128,6 +128,7 @@ bấm tay từng bước ở `docs/07-kich-ban-nghiem-thu.md`**.
 | ☐ | `AC-10.5` | Phục hồi từ bản sao lưu | người vận hành | `scripts/backup.sh` rồi `scripts/restore.sh --toi-chac-chan` trên máy thử; đăng nhập lại thấy đủ dữ liệu |
 | ☐ | `AC-11.1` | Bốn cột đầu và tiêu đề Bảng tính đứng yên khi cuộn | `vd.staff` | Cuộn ngang và dọc lưới 8021; máy đã đo bằng Playwright, mắt người xác nhận |
 | ☐ | `AC-11.11` | Bảng tính trên điện thoại và máy tính bảng | `vd.staff` | Lưới cuộn trong khung, bấm được ô, hộp lọc mở được |
+| ☐ | `AC-8.10` | Bảng dữ liệu có viền ô, tiêu đề xanh lá, màu cột và ô cảnh báo | `mkt.manager` | Mở `/bang/bao_cao_mkt/` ở nền sáng rồi nền tối: mọi ô có viền, tiêu đề xanh lá, cột Tỉ lệ chốt vàng, ô CPO vượt 1.500.000 đỏ, ô đạt xanh lá; mở một báo cáo ở Lịch sử báo cáo thấy cùng màu |
 | ☐ | `AC-11.18` | Bảng tính là trang toàn màn hình riêng; độ rộng, thứ tự, cột ẩn nhớ trên trình duyệt | `mkt.manager` | Không thanh bên hệ thống; kéo mép chữ cột, kéo thả chữ cột, ẩn cột rồi tải lại vẫn giữ; Đặt lại cột về mặc định |
 | ☐ | `AC-11.27` | Bảng tính nhìn và thao tác như KN Demo | `mkt.manager`, `vd.staff` | Đặt cạnh ảnh `docs/tham-khao/kn-demo/`: khung, thanh công cụ, thanh công thức, số dòng, chữ cột, cột trống, chân trang, ⛶; kéo chọn vùng thấy viền vàng và tay kéo điền |
 
@@ -143,7 +144,7 @@ bấm tay từng bước ở `docs/07-kich-ban-nghiem-thu.md`**.
 | ☐ | Phục hồi từ bản sao lưu | Chạy được — `scripts/restore.sh`, chưa thử |
 | ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | Chạy được, chưa thử |
 
-**Mười bảy việc đều chạy được**, chỉ còn `AC-10.3` biết trước là chưa đạt
+**Mười tám việc đều chạy được**, chỉ còn `AC-10.3` biết trước là chưa đạt
 (trang 404 tiếng Việt — K9, người dùng chốt chưa làm). `AC-1.7` từng nằm ở bảng trên nhưng đã
 bỏ theo **Q34** — không cần điều hướng sau đăng nhập nữa.
 

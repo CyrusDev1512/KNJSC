@@ -93,7 +93,7 @@ khoản thử ở `docs/tai-khoan-mau.md`.
 
 | Mục | Nội dung |
 |---|---|
-| Giai đoạn hiện tại | Phase 1 — thiết kế |
+| Giai đoạn hiện tại | Phase 1 — đã làm xong Giai đoạn 0 tới 7, đang chỉnh sửa theo yêu cầu và chờ nghiệm thu một đợt (`docs/backlog.md` mục 0) |
 | Phạm vi phase 1 | Xem bảng bên dưới |
 | Bản tham khảo giao diện | KN Demo — chỉ tham khảo, không dùng làm nền mã nguồn |
 
@@ -144,13 +144,15 @@ kim-ngan-jsc/
 
 ## Chạy dự án
 
-Phần này sẽ được bổ sung khi có mã nguồn.
+```
+Yêu cầu môi trường:   Docker Desktop (Windows, Mac) hoặc Docker Engine (Linux)
+Cài đặt lần đầu:      scripts\cap-nhat-local.bat   (Windows)  ·  ./scripts/cap-nhat-local.sh  (Mac, Linux)
+Chạy hằng ngày:       cùng lệnh đó — tự mở Docker, kéo mã, dựng container, nạp dữ liệu mẫu, mở trình duyệt
+```
 
-```
-Yêu cầu môi trường:   (bổ sung sau)
-Cài đặt lần đầu:      (bổ sung sau)
-Chạy hằng ngày:       (bổ sung sau)
-```
+Hệ thống ở `http://127.0.0.1:8020/`, Bảng tính vận đơn ở `http://127.0.0.1:8021/bang-tinh/`.
+Tài khoản mẫu và mật khẩu ở `docs/tai-khoan-mau.md`. Chi tiết ở `CLAUDE.md` mục
+"Bật hệ thống trên máy mới".
 
 ---
 

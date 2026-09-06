@@ -228,6 +228,7 @@ LOP_BO_NGHIA = {
     "luoi-2": "luoi", "luoi-3": "luoi", "luoi-4": "luoi",
     "luoi-3cot": "luoi", "luoi-phu": "luoi",
     "bm-hang-2": "bm-hang",
+    "bang-luoi": "bang",
     "nut-chinh": "nut", "nut-nho": "nut", "nut-nguy": "nut", "nut-nav": "nut",
     "chip-tot": "chip", "chip-xau": "chip", "chip-nhat": "chip",
     "chip-nhan": "chip", "chip-cho": "chip",

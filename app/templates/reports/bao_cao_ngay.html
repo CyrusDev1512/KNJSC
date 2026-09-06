@@ -65,36 +65,14 @@
     <div class="the" style="max-width:860px;margin-top:var(--sp-4)">
       <div class="the-dau"><h2>Nội dung báo cáo</h2></div>
       <div class="the-than bm">
-        {% for t, gia_tri in cac_o %}
-          <div class="truong">
-            <label for="o-{{ t.field.code }}">
-              {{ t.field.name }}{% if t.required %} <span class="bat-buoc">*</span>{% endif %}
-              <span class="ky-thuat">{{ t.field.code }}</span>
-            </label>
-            {% if t.field.field_type == "long_text" %}
-              <textarea class="o-nhap" id="o-{{ t.field.code }}" name="{{ t.field.code }}" rows="3">{{ gia_tri }}</textarea>
-            {% elif t.field.field_type == "date" %}
-              <input class="o-nhap" type="date" id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
-            {% elif t.field.field_type == "datetime" %}
-              <input class="o-nhap" type="datetime-local" id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
-            {% elif t.field.field_type == "boolean" %}
-              <select class="o-nhap" id="o-{{ t.field.code }}" name="{{ t.field.code }}">
-                <option value="">— chọn —</option>
-                <option value="co" {% if gia_tri == "co" %}selected{% endif %}>Có</option>
-                <option value="khong" {% if gia_tri == "khong" %}selected{% endif %}>Không</option>
-              </select>
-            {% else %}
-              <input class="o-nhap {% if t.field.field_type == 'money' or t.field.field_type == 'integer' or t.field.field_type == 'decimal' %}tien{% endif %}"
-                     id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
-            {% endif %}
-            {% if t.field.hint %}<span class="goi-y">{{ t.field.hint }}</span>{% endif %}
-          </div>
+        {% for o in cac_o %}
+          {% include "forms_builder/_truong_nhap.html" %}
         {% empty %}
           <p class="mo-nhat">Biểu mẫu này chưa có trường nào. Quản lý cần thêm trường trước.</p>
         {% endfor %}
 
-        {# Cột tính sẵn hiện ngay tại chỗ, nền chàm, không gõ được — ADR-006.
-           Để người nộp thấy trước hệ thống sẽ tính ra gì, không phải đoán. #}
+        {% comment %}Cột tính sẵn hiện ngay tại chỗ, nền chàm, không gõ được — ADR-006.
+           Để người nộp thấy trước hệ thống sẽ tính ra gì, không phải đoán.{% endcomment %}
         {% for c in cac_cot_tinh %}
           <div class="truong">
             <label for="tinh-{{ c.code }}">{{ c.name }} <span class="ky-thuat">{{ c.code }}</span></label>

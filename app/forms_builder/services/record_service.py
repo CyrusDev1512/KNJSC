@@ -27,11 +27,21 @@ from ..models import DataRecord
 TRUE_WORDS = frozenset({"1", "true", "co", "có", "x", "yes", "dung", "đúng"})
 
 
-def parse_value(column, raw):
+def _goi_y_danh_sach(choice_list):
+    """Đuôi thông báo khi giá trị không có trong danh sách: mười mục đầu, hoặc
+    lời nhắc Manager thêm danh sách nếu cột chưa có gì (Q58)."""
+    muc = list(choice_list.options())
+    if not muc:
+        return "Cột chưa có danh sách chọn — quản lý thêm ở Sửa cột."
+    return "Chọn: " + ", ".join(muc[:10]) + ("…" if len(muc) > 10 else "")
+
+
+def parse_value(column, raw, *, choices=None):
     """Ép giá trị người dùng gõ về đúng kiểu của cột.
 
     Trả về giá trị đã chuẩn hoá, hoặc ném `BusinessError` với thông báo tiếng
-    Việt nói rõ cột nào sai (NFR-6).
+    Việt nói rõ cột nào sai (NFR-6). `choices` là bản chụp danh sách chọn đã
+    lấy sẵn (nhập hàng loạt); không truyền thì tự phân giải theo cột.
     """
     if raw is None:
         return None
@@ -48,13 +58,15 @@ def parse_value(column, raw):
                 raw = str(int(raw))
             raw = str(raw)
             if kieu == FieldType.CHOICE:
-                # Cột có sổ danh sách thì chỉ nhận giá trị trong sổ, và đưa
-                # về đúng nhãn ("Đã Thanh Toán" → "Đã thanh toán")
-                raw, hop_le = choice_registry.normalise(column.table.code, column.code, raw)
+                # Cột Chọn một chỉ nhận giá trị trong danh sách (sổ crm, nhãn
+                # ý nghĩa, hay danh sách trên cột — Q58), và đưa về đúng nhãn
+                # ("Đã Thanh Toán" → "Đã thanh toán")
+                ds = choices if choices is not None else choice_registry.for_column(column)
+                raw, hop_le = choice_registry.match(ds, raw)
                 if not hop_le:
                     raise BusinessError(
                         f'Giá trị "{raw}" không có trong danh sách của cột "{column.name}". '
-                        "Chọn: " + ", ".join(choice_registry.options_for(column.table.code, column.code))
+                        + _goi_y_danh_sach(ds)
                     )
             return raw
         if kieu == FieldType.INTEGER:
@@ -170,6 +182,12 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
     team = getattr(ho_so, "team", None)
     ket_qua = BulkResult()
     lo = []
+    # Danh sách chọn chụp một lần cho cả lượt — không thì 5.000 dòng là
+    # 5.000 lần truy vấn danh mục sản phẩm
+    chon = {
+        c.code: choice_registry.snapshot(choice_registry.for_column(c))
+        for c in columns if c.field_type == FieldType.CHOICE
+    }
 
     def ghi_lo():
         if not lo:
@@ -189,7 +207,7 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
                 gia_tri = values.get(cot.code)
                 if gia_tri in (None, ""):
                     continue
-                du_lieu[cot.code] = parse_value(cot, gia_tri)
+                du_lieu[cot.code] = parse_value(cot, gia_tri, choices=chon.get(cot.code))
             thieu = _thieu_bat_buoc(columns, du_lieu)
             if thieu:
                 raise BusinessError("Thiếu cột bắt buộc: " + ", ".join(thieu))

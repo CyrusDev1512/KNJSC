@@ -21,6 +21,8 @@ from django.views.decorators.http import require_POST
 from core.exceptions import BusinessError
 from core.pagination import PAGE_SIZES, page_size, paginate
 
+from forms_builder.services import form_service
+
 from . import aggregations, excel
 from .services import daily_service, summary_service
 
@@ -79,9 +81,8 @@ def bao_cao_ngay(request):
     da_nop = bool(bm) and daily_service.already_submitted(bm, request.user, ngay)
     return render(request, "reports/bao_cao_ngay.html", {
         "cac_bieu_mau": cac_bieu_mau, "bm": bm, "ngay": ngay,
-        # Chưa nhập gì thì điền sẵn giá trị mặc định của định nghĩa trường
-        "cac_o": [(t, du_lieu.get(t.field.code) or t.field.default_value)
-                  for t in cac_truong],
+        # Ô nhập, ô chọn, ô danh tính — cùng bộ với màn hình điền biểu mẫu
+        "cac_o": form_service.widgets(bm, cac_truong, du_lieu, user=request.user) if bm else [],
         "loi": loi, "da_nop": da_nop,
         "cac_cot_tinh": bm.table.computed_columns() if bm else [],
     })
@@ -246,7 +247,7 @@ def bao_cao_xem(request, pk):
     )
     return render(request, "reports/bao_cao_xem.html", {
         "bao_cao": bao_cao,
-        "cac_dong": daily_service.read_report(bao_cao),
+        "cac_dong": daily_service.read_report_cells(bao_cao),
         "duoc_bo": bao_cao.created_by_id == request.user.pk,
     })
 

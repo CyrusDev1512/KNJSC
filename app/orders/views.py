@@ -7,19 +7,19 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from core.constants import Currency
+from core.constants import Currency, Rank
 from core.exceptions import BusinessError
 from core.navigation import SALES_ONLY
-from core.permissions import assert_departments
+from core.permissions import assert_departments, assert_rank, has_rank
 from core.pagination import PAGE_SIZES, page_size, paginate
 
 from .constants import Market, PaymentMethod
 from .models import Product
-from .services import order_service
+from .services import order_service, product_service
 
 
 def _phan_trang(request, queryset, ten_don_vi="đơn"):
@@ -48,6 +48,36 @@ def _doc_cac_dong(request):
             "unit_price": request.POST.get(f"gia_{i}", "0").strip() or "0",
         })
     return cac_dong
+
+
+def _muc_san_pham():
+    """`[(mã, tên)]` của sản phẩm đang bán, cho ô chọn trên màn hình Lên đơn."""
+    return [
+        (sp.code, sp.name)
+        for sp in Product.objects.filter(is_active=True).order_by("name")
+    ]
+
+
+@login_required
+@require_POST
+def san_pham_moi(request):
+    """Thêm sản phẩm ngay tại ô chọn trên màn hình Lên đơn — FR-6.8, Q61.
+
+    Chỉ Manager trở lên của bộ phận Sale (màn hình này là của Sale). Trả về
+    các `<option>` mới với sản phẩm vừa thêm được chọn sẵn.
+    """
+    assert_departments(request.user, SALES_ONLY, request)
+    assert_rank(request.user, Rank.MANAGER, request)
+    try:
+        san_pham = product_service.create_product(
+            name=request.POST.get("nhan_moi", ""), actor=request.user, request=request,
+        )
+    except BusinessError as loi:
+        return HttpResponse(str(loi), status=400)
+    return render(request, "components/o_chon_muc.html", {
+        "cac_muc": _muc_san_pham(), "gia_tri": san_pham.code, "co_them": True,
+        "nhan_trong": "— chọn sản phẩm —",
+    })
 
 
 @login_required
@@ -92,7 +122,9 @@ def len_don(request):
 
     return render(request, "orders/len_don.html", {
         "d": du_lieu, "loi": loi, "nhac_khach": nhac_khach,
-        "cac_san_pham": Product.objects.filter(is_active=True).select_related("group"),
+        "cac_muc_sp": _muc_san_pham(),
+        # Manager thêm sản phẩm ngay tại ô chọn — FR-6.8, Q61
+        "duoc_them_sp": has_rank(request.user, Rank.MANAGER),
         "cac_thi_truong": Market.choices,
         "cac_pttt": PaymentMethod.choices,
         "cac_loai_tien": Currency.choices,

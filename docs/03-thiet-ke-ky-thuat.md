@@ -331,6 +331,17 @@ dựng đầu tiên cho bảng `van_don`, nhìn và thao tác như bảng tính 
 | Cột trống, dòng trống | Chữ cột nối tiếp tới `GRID_MIN_COLUMNS` (tối thiểu `GRID_FILLER_COLUMNS`), ô `o-trong-cot` không có `data-cot` nên không lưu; `+100 dòng` nhân bản dòng trống phía trình duyệt tới `GRID_SPARE_ROWS_MAX`; số dòng nối tiếp qua trang từ `page_obj.start_index` |
 | Hai tệp JS | `static/js/bang-tinh.js` — trang: thanh bên, cột (rộng, thứ tự, ẩn), thanh công thức, sửa một ô, trạng thái lưu; `static/js/bang-tinh-o.js` — ô: chọn vùng, clipboard TSV, kéo điền, hoàn tác, menu chuột phải, tự cập nhật. ES5, không bước dựng |
 
+### 4.7. Danh sách chọn, danh tính người điền, màu cột — FR-8.7, FR-4.6, FR-8.8, ADR-013
+
+| Việc | Cách làm |
+|---|---|
+| Danh sách chọn, ba tầng | `choice_registry.for_column(cột)`: sổ `(bảng, cột)` do `crm` đăng ký → sổ theo **nhãn ý nghĩa** (Sản phẩm = danh mục sản phẩm, chặt, có thêm — `orders` đăng ký; Người bán = nhân sự bộ phận, gợi ý — `forms_builder` tự đăng ký) → `ColumnDef.options` (chặt). Hai tầng sau chỉ áp cho kiểu *Chọn một*; cột chưa có danh sách thì không nhận giá trị nào (Q58) |
+| Kiểm khi ghi | `record_service.parse_value` gọi `choice_registry.match`; nhập hàng loạt chụp danh sách một lần bằng `snapshot` |
+| Ô chọn trên màn hình | `components/o_chon.html` (+ `o_chon_muc.html`) dùng chung cho điền biểu mẫu, nộp báo cáo ngày (`forms_builder/_truong_nhap.html`), ô Bảng dữ liệu (`_o.html`) và Lên đơn; `static/js/chon.js` lo mục "＋ Thêm mới…" |
+| Thêm giá trị mới | `POST bang/<mã>/cot/<mã cột>/lua-chon/` → `choice_service.add_option` (Admin hoặc Manager bộ phận sở hữu; có nhật ký); `POST len-don/san-pham-moi/` → `product_service.create_product` (Manager Sale; mã tự sinh, đồng bộ cột `sl_`). Trả về các `<option>`, trình duyệt chép vào mọi ô cùng nhóm |
+| Danh tính người điền | `core/identity.display_name` (họ tên, không có thì tên đăng nhập); `form_service.fill` ép vào trường nhãn Người bán trước khi ghi, cả điền biểu mẫu lẫn nộp báo cáo; ô trên màn hình chỉ đọc, không gửi lên (Q59) |
+| Màu cột và ngưỡng | `ColumnDef.highlight`, `alert_op`, `alert_value` (migration 0008); `forms_builder/styling.py` dịch sang lớp CSS đóng `cot-nen-*`, `o-vuot-nguong`, `o-dat-nguong`; bảng mang lớp `bang-luoi` mới có viền và tiêu đề xanh lá (Q60) |
+
 ---
 
 ## 5. Quy tắc viết truy vấn
@@ -446,9 +457,4 @@ Tác vụ dọn dẹp chạy nền theo lịch, ghi lại kết quả mỗi lầ
 
 ## 10. Nội dung chưa quyết định
 
-| # | Nội dung | Ảnh hưởng tới thiết kế |
-|---|---|---|
-| 1 | Tạo biểu mẫu thì tự sinh bảng hay luôn chọn bảng có sẵn | Mục 4.3 |
-| 2 | Danh sách nhãn ý nghĩa cuối cùng | Mục 2.5 |
-
-Các quyết định này khi chốt sẽ được ghi vào `quyet-dinh/` kèm lý do.
+Hai điểm từng treo ở đây đã chốt và ghi thành quyết định: tạo biểu mẫu luôn chọn bảng có sẵn (ADR-007, mục 4.3) và bảy nhãn ý nghĩa (ADR-007, mục 2.5). Việc chưa quyết còn lại nằm ở `backlog.md` mục 0.

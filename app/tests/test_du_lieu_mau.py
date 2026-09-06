@@ -23,7 +23,7 @@ from core.constants import Rank
 from forms_builder.models import DataRecord, FormDef, TableDef
 from orders.constants import WAYBILL_TABLE_CODE
 from orders.models import Product
-from org.models import Department, Team
+from org.models import Department, Team, UserProfile
 
 pytestmark = pytest.mark.django_db
 
@@ -156,3 +156,44 @@ def test_van_chay_duoc_khi_ghi_ro_la_co_y():
 
     from django.contrib.auth import get_user_model
     assert get_user_model().objects.count() == 12
+
+
+def test_san_pham_mau_khop_danh_muc_va_co_mau():
+    """AC-8.8 — Cột Sản phẩm mẫu là ô chọn lấy từ danh mục, mọi dòng mẫu khớp tên sản phẩm; cột mẫu có màu và ngưỡng để thấy ngay"""
+    from decimal import Decimal
+
+    from forms_builder.models import ColumnDef
+
+    _chay()
+    bang_cot = {c.code: c for c in ColumnDef.objects.filter(table__code="bao_cao_mkt")}
+    assert bang_cot["san_pham"].field_type == "choice" and bang_cot["san_pham"].meaning == "product"
+    ten_san_pham = set(Product.objects.values_list("name", flat=True))
+    for dong in DataRecord.objects.filter(table__code="bao_cao_mkt"):
+        assert dong.data["san_pham"] in ten_san_pham, dong.data["san_pham"]
+    assert bang_cot["ti_le_chot"].highlight == "vang"
+    assert (bang_cot["cpo"].highlight, bang_cot["cpo"].alert_op, bang_cot["cpo"].alert_value) == (
+        "do", "gt", Decimal("1500000"))
+
+
+@pytest.mark.django_db
+def test_chay_lai_dat_lai_dung_mat_khau_da_in(client):
+    """docs/04 mục 12.1 — Chạy lại lệnh thì mật khẩu in ra cuối lệnh là mật khẩu thật, kể cả khi tài khoản đã có
+
+    Lỗi thật ngày 03.09.2026: máy của người dùng có sẵn `quantri` từ lần dựng
+    trước với mật khẩu khác; lệnh bỏ qua tài khoản có sẵn nên màn hình in một
+    mật khẩu, cơ sở dữ liệu giữ một mật khẩu khác — đăng nhập hỏng.
+    """
+    from django.core.management import call_command
+    from django.utils import timezone
+
+    call_command("du_lieu_mau", "--mat-khau", "mat-khau-lan-mot", verbosity=0)
+    ho_so = UserProfile.objects.select_related("user").get(user__username="quantri")
+    ho_so.locked_until = timezone.now() + timezone.timedelta(minutes=15)   # đang bị khoá
+    ho_so.save(update_fields=["locked_until"])
+
+    call_command("du_lieu_mau", "--mat-khau", "mat-khau-lan-hai", verbosity=0)
+    assert client.login(username="quantri", password="mat-khau-lan-hai")
+    assert not client.login(username="quantri", password="mat-khau-lan-mot")
+    ho_so.refresh_from_db()
+    assert ho_so.locked_until is None and ho_so.must_change_password is False
+    assert UserProfile.objects.get(user__username="sale.moi").must_change_password is True
