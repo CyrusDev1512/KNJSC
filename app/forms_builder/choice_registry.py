@@ -152,6 +152,17 @@ def _khoa(text):
     return " ".join(unicodedata.normalize("NFC", str(text)).casefold().split())
 
 
+def find(choice_list, value):
+    """Nhãn chuẩn trong danh sách khớp với giá trị, hoặc None nếu không có."""
+    if choice_list is None or value in (None, ""):
+        return None
+    khoa = _khoa(value)
+    for nhan in choice_list.options():
+        if _khoa(nhan) == khoa:
+            return nhan
+    return None
+
+
 def match(choice_list, value):
     """Đưa giá trị về đúng nhãn trong danh sách.
 
@@ -160,10 +171,9 @@ def match(choice_list, value):
     """
     if choice_list is None or value in (None, ""):
         return value, True
-    khoa = _khoa(value)
-    for nhan in choice_list.options():
-        if _khoa(nhan) == khoa:
-            return nhan, True
+    nhan = find(choice_list, value)
+    if nhan is not None:
+        return nhan, True
     return value, not choice_list.strict
 
 
