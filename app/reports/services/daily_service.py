@@ -12,7 +12,7 @@ from django.db import IntegrityError, transaction
 from core.audit import record
 from core.constants import AuditAction
 from core.exceptions import BusinessError
-from forms_builder.services import form_service, grant_service, record_service
+from forms_builder.services import form_service, grant_service
 
 from ..models import DailyReport
 
@@ -50,15 +50,9 @@ def submit(form, values, *, report_date, actor, request=None, fields=None):
     if not form.is_active:
         raise BusinessError("Biểu mẫu này đã ngừng dùng.")
 
-    fields = fields if fields is not None else list(form.ordered_fields())
-    thieu = form_service.missing_required(form, values, fields)
-    if thieu:
-        raise BusinessError("Chưa điền các trường bắt buộc: " + ", ".join(thieu))
-
-    ban_ghi = record_service.create_record(
-        form.table, form_service.values_by_column(form, values, fields),
-        actor=actor, request=request,
-    )
+    # Cùng một đường với màn hình điền biểu mẫu: ép danh tính người nộp vào
+    # trường Người bán (FR-4.6), kiểm bắt buộc, rồi ghi vào bảng đích
+    ban_ghi = form_service.fill(form, values, actor=actor, request=request, fields=fields)
 
     ho_so = getattr(actor, "profile", None)
     bao_cao = DailyReport(

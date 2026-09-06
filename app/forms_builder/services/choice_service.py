@@ -88,15 +88,16 @@ def add_option(column, label, *, actor=None, request=None):
 
 
 def attach_lists(columns, *, user, table):
-    """Gắn danh sách chọn lên từng cột kiểu Chọn một để template chỉ in ra:
-    `cac_muc` (các mục), `chat` (chặt hay gợi ý), `co_them` (được thêm mới).
+    """Gắn danh sách chọn lên từng cột để template chỉ in ra: `la_chon` (là cột
+    Chọn một), `cac_muc` (các mục), `chat` (chặt hay gợi ý), `co_them` (được thêm mới).
 
     Mỗi nguồn hệ thống tốn một truy vấn; danh sách trên cột không tốn gì.
     Cột không phải Chọn một thì `cac_muc` là None.
     """
     duoc_them = can_manage_options(user, table)
     for cot in columns:
-        if cot.field_type != FieldType.CHOICE:
+        cot.la_chon = cot.field_type == FieldType.CHOICE
+        if not cot.la_chon:
             cot.cac_muc, cot.chat, cot.co_them = None, True, False
             continue
         ds = choice_registry.for_column(cot)

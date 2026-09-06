@@ -104,7 +104,18 @@
       <div class="the">
         <div class="the-dau">
           <h2>Sản phẩm</h2>
-          <div class="phai"><button class="nut nut-nho" type="button" id="them-dong">+ Thêm dòng</button></div>
+          <div class="phai hang">
+            {% if duoc_them_sp %}
+              {# Manager thêm sản phẩm ngay tại ô chọn — FR-6.8. Hộp này dùng chung cho mọi dòng #}
+              <span class="o-chon-them" id="them-sp" hidden data-nhom="sp">
+                <input class="o-nhap" name="nhan_moi" maxlength="200" autocomplete="off" aria-label="Tên sản phẩm mới">
+                <button class="nut nut-nho nut-chinh" type="button"
+                        hx-post="{% url 'san_pham_moi' %}" hx-include="closest .o-chon-them" hx-swap="none">Thêm</button>
+                <span class="o-chon-loi" role="alert"></span>
+              </span>
+            {% endif %}
+            <button class="nut nut-nho" type="button" id="them-dong">+ Thêm dòng</button>
+          </div>
         </div>
         <div class="bang-cuon">
           <table class="bang" id="bang-dong">
@@ -119,11 +130,9 @@
                 <tr class="dong-sp">
                   <td>
                     <select class="o-nhap o-sp" name="sp_{{ forloop.counter0 }}"
-                            aria-label="Sản phẩm dòng {{ forloop.counter }}">
-                      <option value="">— chọn sản phẩm —</option>
-                      {% for sp in cac_san_pham %}
-                        <option value="{{ sp.code }}" {% if sp.code == dong.product %}selected{% endif %}>{{ sp.name }}</option>
-                      {% endfor %}
+                            aria-label="Sản phẩm dòng {{ forloop.counter }}"
+                            data-nhom="sp" data-them-hop="#them-sp">
+                      {% include "components/o_chon_muc.html" with cac_muc=cac_muc_sp gia_tri=dong.product co_them=duoc_them_sp nhan_trong="— chọn sản phẩm —" %}
                     </select>
                   </td>
                   <td class="phai"><input class="o-nhap tien o-sl" name="sl_{{ forloop.counter0 }}"

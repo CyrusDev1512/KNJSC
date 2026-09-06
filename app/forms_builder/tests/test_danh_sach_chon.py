@@ -278,3 +278,177 @@ def test_quyen_them_gia_tri(bang_kenh, nguoi_dung, departments):
     assert choice_service.can_manage_options(nguoi_dung["manager_sale"], bang_kenh)
     for ma in ("staff_sale_1", "leader_sale_1", "manager_mkt", "staff_vd"):
         assert not choice_service.can_manage_options(nguoi_dung[ma], bang_kenh), ma
+
+
+# ══ Màn hình — ô chọn và "Thêm mới…" ════════════════════════════════
+
+@pytest.fixture
+def bieu_mau_kenh(bang_kenh, departments, nguoi_dung):
+    """Biểu mẫu Sale nối vào bảng kênh: Kênh (chọn), Sản phẩm (chọn, nhãn), Ghi chú."""
+    from forms_builder.models import FieldDef
+    from forms_builder.services import form_service
+
+    ql = nguoi_dung["manager_sale"]
+    bm = form_service.create_form(
+        name="Kênh bán ngày", code="kenh_ngay", department=departments["sale"],
+        table=bang_kenh, actor=ql,
+    )
+    for ten, ma, kieu, nhan in [
+        ("Kênh", "kenh", FieldType.CHOICE, ""),
+        ("Sản phẩm", "san_pham", FieldType.CHOICE, Meaning.PRODUCT),
+        ("Ghi chú", "ghi_chu", FieldType.TEXT, ""),
+    ]:
+        truong = FieldDef.objects.create(
+            name=ten, code=ma, field_type=kieu, meaning=nhan, department=departments["sale"])
+        form_service.add_field(
+            bm, truong, column=bang_kenh.columns.get(code=ma), required=(ma == "kenh"), actor=ql)
+    return bm
+
+
+def _dong_kenh(bang, nguoi, **gia_tri):
+    from forms_builder.services import record_service
+
+    return record_service.create_record(bang, gia_tri, actor=nguoi)
+
+
+def test_o_chon_tren_bang_du_lieu_la_select(client, bang_kenh, san_pham, nguoi_dung):
+    """AC-8.7 — Ô của cột Chọn một trên Bảng dữ liệu là ô chọn; Manager có mục Thêm mới, Staff thì không"""
+    _dong_kenh(bang_kenh, nguoi_dung["staff_sale_1"], kenh="Facebook")
+
+    client.force_login(nguoi_dung["manager_sale"])
+    html = client.get("/bang/kenh_sale/").content.decode()
+    assert '<select class="o-trong-bang" name="gia_tri"' in html
+    assert '<option value="Facebook" selected>' in html
+    assert '<option value="Retinol Cream">' in html          # cột Sản phẩm lấy từ danh mục
+    assert '<option value="__them__">' in html
+
+    client.force_login(nguoi_dung["staff_sale_1"])           # sửa được dòng của mình
+    html = client.get("/bang/kenh_sale/").content.decode()
+    assert '<select class="o-trong-bang" name="gia_tri"' in html
+    assert '<option value="__them__">' not in html
+
+
+def test_gui_thang_gia_tri_la_vao_o_chon_bi_400(client, bang_kenh, nguoi_dung):
+    """AC-8.7 — Gửi thẳng giá trị ngoài danh sách vào ô chọn thì bị từ chối, ô trả về vẫn là ô chọn kèm lý do"""
+    dong = _dong_kenh(bang_kenh, nguoi_dung["manager_sale"], kenh="Facebook")
+    client.force_login(nguoi_dung["manager_sale"])
+
+    kq = client.post(f"/bang/kenh_sale/o/{dong.pk}/kenh/", {"gia_tri": "Zalo"})
+    assert kq.status_code == 400
+    html = kq.content.decode()
+    assert "o-loi" in html and "<select" in html and "không có trong danh sách" in html
+    dong.refresh_from_db()
+    assert dong.data["kenh"] == "Facebook"
+
+    kq = client.post(f"/bang/kenh_sale/o/{dong.pk}/kenh/", {"gia_tri": "tiktok"})
+    assert kq.status_code == 200
+    assert '<option value="TikTok" selected>' in kq.content.decode()
+    dong.refresh_from_db()
+    assert dong.data["kenh"] == "TikTok"
+
+
+def test_bieu_mau_va_bao_cao_ngay_hien_o_chon(client, bieu_mau_kenh, san_pham, nguoi_dung):
+    """AC-8.7 — Màn hình điền biểu mẫu và nộp báo cáo ngày vẽ cột Chọn một thành ô chọn; Manager thấy Thêm mới"""
+    client.force_login(nguoi_dung["manager_sale"])
+    for url in ("/bieu-mau/kenh_ngay/dien/", "/bao-cao/?bieu_mau=kenh_ngay"):
+        html = client.get(url).content.decode()
+        assert '<select class="o-nhap" name="kenh"' in html, url
+        assert '<option value="TikTok">' in html and '<option value="Retinol Cream">' in html
+        assert html.count('<option value="__them__">') == 2                     # Kênh và Sản phẩm
+
+    client.force_login(nguoi_dung["staff_sale_1"])
+    html = client.get("/bieu-mau/kenh_ngay/dien/").content.decode()
+    assert '<select class="o-nhap" name="kenh"' in html and "__them__" not in html
+
+
+def test_manager_them_gia_tri_qua_duong_dan(client, bang_kenh, nguoi_dung):
+    """AC-8.8 — Manager bộ phận sở hữu thêm giá trị qua đường dẫn: danh sách trả về có mục mới được chọn, cột đổi, có nhật ký"""
+    from core.constants import AuditAction
+    from core.models import AuditLog
+
+    client.force_login(nguoi_dung["manager_sale"])
+    truoc = AuditLog.objects.filter(action=AuditAction.UPDATE).count()
+    kq = client.post("/bang/kenh_sale/cot/kenh/lua-chon/", {"nhan_moi": "Zalo"})
+    assert kq.status_code == 200
+    html = kq.content.decode()
+    assert '<option value="Zalo" selected>' in html and '<option value="__them__">' in html
+    assert bang_kenh.columns.get(code="kenh").options == ["Facebook", "TikTok", "Zalo"]
+    assert AuditLog.objects.filter(action=AuditAction.UPDATE).count() == truoc + 1
+
+
+def test_staff_va_leader_them_gia_tri_bi_403_co_nhat_ky(client, bang_kenh, nguoi_dung):
+    """AC-8.8 — Staff và Leader gửi thẳng đường dẫn thêm giá trị thì bị từ chối và có dòng nhật ký từ chối"""
+    from core.constants import AuditAction
+    from core.models import AuditLog
+
+    for ma in ("staff_sale_1", "leader_sale_1"):
+        truoc = AuditLog.objects.filter(action=AuditAction.DENIED).count()
+        client.force_login(nguoi_dung[ma])
+        kq = client.post("/bang/kenh_sale/cot/kenh/lua-chon/", {"nhan_moi": "Zalo"})
+        assert kq.status_code == 403, ma
+        assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == truoc + 1
+    assert bang_kenh.columns.get(code="kenh").options == ["Facebook", "TikTok"]
+
+
+def test_manager_bo_phan_khac_va_nguoi_duoc_cap_quyen_bi_chan(client, bang_kenh, nguoi_dung):
+    """AC-8.8 — Manager bộ phận khác không thấy bảng (404); người được cấp quyền Sửa vẫn không thêm được (403)"""
+    from forms_builder.models import GrantAction
+    from forms_builder.services import grant_service
+
+    client.force_login(nguoi_dung["manager_mkt"])
+    assert client.post("/bang/kenh_sale/cot/kenh/lua-chon/", {"nhan_moi": "Zalo"}).status_code == 404
+
+    # Cấp quyền xem lẫn sửa — như màn hình cấp quyền vẫn làm
+    for viec in (GrantAction.VIEW, GrantAction.EDIT):
+        grant_service.grant(
+            table=bang_kenh, user=nguoi_dung["staff_mkt"], action=viec,
+            actor=nguoi_dung["manager_sale"],
+        )
+    client.force_login(nguoi_dung["staff_mkt"])
+    assert client.get("/bang/kenh_sale/").status_code == 200          # thấy bảng nhờ cấp quyền
+    assert client.post("/bang/kenh_sale/cot/kenh/lua-chon/", {"nhan_moi": "Zalo"}).status_code == 403
+    assert bang_kenh.columns.get(code="kenh").options == ["Facebook", "TikTok"]
+
+
+def test_them_gia_tri_rong_400_va_get_405(client, bang_kenh, nguoi_dung):
+    """AC-8.8 — Giá trị rỗng bị từ chối kèm thông báo; đường dẫn chỉ nhận POST; cột không có thì 404"""
+    client.force_login(nguoi_dung["manager_sale"])
+    kq = client.post("/bang/kenh_sale/cot/kenh/lua-chon/", {"nhan_moi": "   "})
+    assert kq.status_code == 400 and "không được để trống" in kq.content.decode()
+    assert client.get("/bang/kenh_sale/cot/kenh/lua-chon/").status_code == 405
+    assert client.post("/bang/kenh_sale/cot/khong_co/lua-chon/", {"nhan_moi": "X"}).status_code == 404
+
+
+def test_cot_san_pham_them_gia_tri_qua_duong_dan_la_tao_san_pham(client, bang_kenh, san_pham, nguoi_dung):
+    """AC-8.8 — Thêm mới ở cột Sản phẩm qua đường dẫn tạo sản phẩm trong danh mục và cột số lượng trên bảng vận đơn"""
+    from orders.models import Product
+    from orders.services import dispatch_service
+
+    bang_vd = dispatch_service.ensure_waybill_table(actor=nguoi_dung["admin"])
+    client.force_login(nguoi_dung["manager_sale"])
+    kq = client.post("/bang/kenh_sale/cot/san_pham/lua-chon/", {"nhan_moi": "Kem chống nắng"})
+    assert kq.status_code == 200
+    assert '<option value="Kem chống nắng" selected>' in kq.content.decode()
+    assert Product.objects.filter(name="Kem chống nắng", code="kem-chong-nang").exists()
+    assert bang_vd.columns.filter(code="sl_kem_chong_nang").exists()
+
+
+def test_bang_co_cot_chon_khong_qua_muoi_lenh_truy_van(
+        client, bang_kenh, san_pham, nguoi_dung, django_assert_max_num_queries):
+    """AC-10.2 — Bảng có cột chọn (danh sách trên cột và danh mục sản phẩm) vẫn không quá 10 lệnh truy vấn"""
+    for _ in range(30):
+        _dong_kenh(bang_kenh, nguoi_dung["manager_sale"], kenh="Facebook", san_pham="Retinol Cream")
+    client.force_login(nguoi_dung["manager_sale"])
+    client.get("/bang/kenh_sale/")                  # lượt đầu ghi mốc phiên
+    with django_assert_max_num_queries(10):
+        assert client.get("/bang/kenh_sale/").status_code == 200
+
+
+def test_man_hinh_dien_va_bao_cao_ngay_it_truy_van(
+        client, bieu_mau_kenh, san_pham, nguoi_dung, django_assert_max_num_queries):
+    """Quy tắc Q2 — Màn hình điền biểu mẫu và nộp báo cáo ngày có ô chọn vẫn dưới 12 lệnh truy vấn"""
+    client.force_login(nguoi_dung["manager_sale"])
+    for url in ("/bieu-mau/kenh_ngay/dien/", "/bao-cao/?bieu_mau=kenh_ngay"):
+        client.get(url)
+        with django_assert_max_num_queries(12):
+            assert client.get(url).status_code == 200, url

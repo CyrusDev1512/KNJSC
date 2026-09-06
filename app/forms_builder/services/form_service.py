@@ -8,13 +8,19 @@ liệu nằm trong `DataRecord.data`, khoá là tên kỹ thuật của **cột 
 phải của trường biểu mẫu. Thêm, bớt hay đổi thứ tự trường chỉ đổi cách nhập,
 không đụng tới dữ liệu đã có. Đừng phá tính chất đó.
 """
+from dataclasses import dataclass
+
 from django.db import transaction
 
 from core.audit import record
 from core.constants import AuditAction
+from core.exceptions import BusinessError
+from core.identity import display_name
 
+from .. import choice_registry
+from ..meaning import FieldType, Meaning
 from ..models import FieldDef, FormDef, FormField
-from . import link_service
+from . import choice_service, link_service, record_service
 
 
 @transaction.atomic
@@ -239,3 +245,86 @@ def missing_required(form, du_lieu_theo_truong, fields=None):
         t.field.name for t in fields
         if t.required and du_lieu_theo_truong.get(t.field.code) in (None, "")
     ]
+
+
+# ══ ĐIỀN BIỂU MẪU — FR-8.2, FR-8.3, FR-4.6, FR-8.7 ═══════════════════
+
+def _cot_dich(form_field):
+    """Cột bảng mà trường này ghi vào, hoặc None nếu chưa nối."""
+    lien_ket = getattr(form_field, "link", None)
+    return lien_ket.column if lien_ket is not None else None
+
+
+def is_identity_field(form_field):
+    """Trường mang danh tính người điền: nhãn Người bán trên trường hoặc trên
+    cột đích — FR-4.6. Hệ thống tự ghi, người dùng không điền và không đổi được."""
+    cot = _cot_dich(form_field)
+    return (form_field.field.meaning == Meaning.SELLER
+            or (cot is not None and cot.meaning == Meaning.SELLER))
+
+
+def identity_codes(fields):
+    return {t.field.code for t in fields if is_identity_field(t)}
+
+
+def apply_identity(values, fields, actor):
+    """Ép giá trị trường danh tính về tên người gửi, bất kể yêu cầu gửi gì (Q55)."""
+    ten = display_name(actor)
+    ket_qua = dict(values)
+    for ma in identity_codes(fields):
+        ket_qua[ma] = ten
+    return ket_qua
+
+
+@transaction.atomic
+def fill(form, values, *, actor, request=None, fields=None):
+    """Điền một dòng qua biểu mẫu: ép danh tính, kiểm bắt buộc, ghi vào bảng đích.
+
+    Một đường duy nhất cho cả màn hình điền biểu mẫu lẫn nộp báo cáo ngày
+    (ADR-008), nên quy tắc không lệch nhau giữa hai chỗ.
+    """
+    fields = fields if fields is not None else list(form.ordered_fields())
+    values = apply_identity(values, fields, actor)
+    thieu = missing_required(form, values, fields)
+    if thieu:
+        raise BusinessError("Chưa điền các trường bắt buộc: " + ", ".join(thieu))
+    return record_service.create_record(
+        form.table, values_by_column(form, values, fields),
+        actor=actor, request=request,
+    )
+
+
+@dataclass
+class Widget:
+    """Một ô nhập trên biểu mẫu, đủ dữ liệu để template chỉ in ra."""
+
+    t: object                       # FormField
+    gia_tri: str = ""
+    cot: object = None              # ColumnDef đích, hoặc None
+    danh_tinh: bool = False         # hệ thống tự ghi, ô chỉ đọc
+    ten_nguoi_dung: str = ""
+    cac_muc: list = None            # [(giá trị, nhãn)] khi là ô chọn
+    chat: bool = True
+    co_them: bool = False
+
+
+def widgets(form, fields, values, *, user):
+    """Danh sách `Widget` cho màn hình điền: giá trị đang gõ (hoặc mặc định),
+    trường danh tính, và danh sách chọn của cột Chọn một."""
+    duoc_them = choice_service.can_manage_options(user, form.table)
+    ten = display_name(user)
+    ket_qua = []
+    for t in fields:
+        w = Widget(
+            t=t, gia_tri=values.get(t.field.code) or t.field.default_value,
+            cot=_cot_dich(t),
+        )
+        if is_identity_field(t):
+            w.danh_tinh, w.ten_nguoi_dung, w.gia_tri = True, ten, ten
+        elif w.cot is not None and w.cot.field_type == FieldType.CHOICE:
+            ds = choice_registry.for_column(w.cot)
+            w.cac_muc = choice_service.items(ds)
+            w.chat = ds.strict
+            w.co_them = duoc_them and ds.can_add
+        ket_qua.append(w)
+    return ket_qua

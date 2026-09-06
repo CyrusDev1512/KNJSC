@@ -112,6 +112,7 @@ Mỗi ô là một bài kiểm thử. Năm vai trò nhân với chín đường 
 | AC-4.3 | Người dùng xem lại được danh sách báo cáo cũ của mình | FR-4.3 | Tự động |
 | AC-4.4 | Báo cáo đã nộp không sửa được, kể cả khi gọi thẳng đường dẫn sửa | FR-4.4 | Tự động |
 | AC-4.5 | Leader xem được báo cáo của người trong team | FR-4.5 | Tự động |
+| AC-4.6 | Trường mang nhãn Người bán trên biểu mẫu và báo cáo ngày được hệ thống tự ghi họ tên người gửi (thiếu họ tên thì tên đăng nhập); gửi giá trị khác trong yêu cầu cũng không đổi được; ô trên màn hình chỉ đọc, không gửi lên | FR-4.6 | Tự động |
 
 ---
 

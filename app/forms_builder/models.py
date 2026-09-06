@@ -660,7 +660,7 @@ class FormDef(ScopedModel):
 
     def ordered_fields(self):
         """Các trường theo đúng thứ tự hiển thị, lấy sẵn định nghĩa và cột đích."""
-        return (self.fields.select_related("field", "link", "link__column")
+        return (self.fields.select_related("field", "link", "link__column", "link__column__table")
                 .order_by("order", "id"))
 
 

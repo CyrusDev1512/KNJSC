@@ -360,6 +360,48 @@ table.bang-rong td.cho-xuong { white-space: normal; min-width: 200px; }
   color: var(--critical);
   font-size: var(--fs-xs);
 }
+.o-loi-ly-do {
+  display: block; padding: 0 var(--sp-3) var(--sp-1);
+  font-size: var(--fs-xs); color: var(--critical);
+}
+
+/* ══ Ô CHỌN CÓ "THÊM MỚI…" — FR-8.7 ══
+   Ô chọn từ danh sách; hộp gõ giá trị mới ẩn sẵn, static/js/chon.js mở ra. */
+.o-chon { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); width: 100%; }
+.o-chon > select, .o-chon > input { flex: 1 1 12ch; min-width: 0; }
+select.o-trong-bang { cursor: pointer; }
+.o-chon-them { display: inline-flex; align-items: center; gap: var(--sp-2); flex: 1 1 100%; }
+.o-chon-them[hidden] { display: none; }
+.o-chon-them .o-nhap { flex: 1 1 10ch; min-width: 0; }
+.o-chon-loi { color: var(--critical); font-size: var(--fs-xs); }
+.o-chon-loi:empty { display: none; }
+
+/* ══ BẢNG DỮ LIỆU KIỂU LƯỚI — FR-8.8, FR-8.9 ══
+   Chỉ bảng mang lớp bổ nghĩa `bang-luoi` (màn hình Bảng dữ liệu, xem báo cáo):
+   viền mọi ô, tiêu đề xanh lá, màu cột và ngưỡng cảnh báo. Dùng `separate` như
+   Bảng tính để tiêu đề cố định khi cuộn vẫn giữ viền. Các lớp `cot-nen-*`,
+   `o-vuot-nguong`, `o-dat-nguong` do forms_builder/styling.py sinh ra. */
+table.bang.bang-luoi { border-collapse: separate; border-spacing: 0; }
+table.bang.bang-luoi th, table.bang.bang-luoi td {
+  border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+}
+table.bang.bang-luoi tr > :first-child { border-left: 1px solid var(--rule); }
+table.bang.bang-luoi tbody td { border-top: 0; }
+table.bang.bang-luoi thead th {
+  background: var(--good-soft); color: var(--ink-2);
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--good);
+}
+table.bang.bang-luoi th.cot-nen-vang, table.bang.bang-luoi td.cot-nen-vang { background: var(--warn-soft); }
+table.bang.bang-luoi th.cot-nen-do,   table.bang.bang-luoi td.cot-nen-do   { background: var(--critical-soft); }
+table.bang.bang-luoi th.cot-nen-luc,  table.bang.bang-luoi td.cot-nen-luc  { background: var(--good-soft); }
+table.bang.bang-luoi th.cot-nen-xanh, table.bang.bang-luoi td.cot-nen-xanh { background: var(--info-soft); }
+table.bang.bang-luoi td.o-dat-nguong {
+  background: var(--good-soft); font-variant-numeric: tabular-nums;
+}
+table.bang.bang-luoi td.o-vuot-nguong {
+  background: var(--critical-soft); color: var(--critical);
+  font-weight: 600; font-variant-numeric: tabular-nums;
+}
 
 /* ══ THANH LỌC ═══════════════════════════════════════════════════ */
 

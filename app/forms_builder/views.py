@@ -27,7 +27,7 @@ from core.pagination import PAGE_SIZES, page_size, paginate
 from core.audit import record_denied
 from core.permissions import assert_rank, has_rank, is_admin
 
-from . import query
+from . import query, styling
 from .forms import (
     ColumnForm, FieldDefForm, FormFieldForm, FormForm, GrantForm, TableForm,
 )
@@ -35,8 +35,8 @@ from .models import (
     ColumnDef, DataRecord, FieldDef, FormDef, FormField, Grant, TableDef,
 )
 from .services import (
-    export_service, form_service, grant_service, import_service, link_service,
-    record_service, table_service,
+    choice_service, export_service, form_service, grant_service, import_service,
+    link_service, record_service, table_service,
 )
 
 
@@ -174,7 +174,7 @@ def bang_xem(request, code):
     """Xem, lọc, sắp xếp và phân trang một bảng — FR-7.1 tới FR-7.3."""
     request.nav_current = "bang"
     bang_hien = _lay_bang(request, code)
-    cac_cot = list(bang_hien.columns.order_by("order", "id"))
+    cac_cot = styling.decorate_columns(list(bang_hien.columns.order_by("order", "id")))
 
     bo_loc = _doc_bo_loc(request, cac_cot)
     tim = request.GET.get("tim", "").strip()
@@ -189,6 +189,17 @@ def bang_xem(request, code):
     )
 
     boi_canh = _phan_trang(request, ds, "dòng")
+    # Quyền sửa tính theo **từng dòng**: người tạo dòng sửa được dòng của
+    # mình, quản lý sửa cả bảng, và có thể có quyền cấp riêng. Lớp CSS của ô
+    # (màu cột, ngưỡng) tính sẵn ở styling để template chỉ in ra.
+    cac_dong, co_dong_sua = [], False
+    for bg in boi_canh["page_obj"]:
+        sua = grant_service.can_edit_record(request.user, bg)
+        co_dong_sua = co_dong_sua or sua
+        cac_dong.append((bg, styling.row_cells(bg, cac_cot, editable=sua), sua))
+    if co_dong_sua:
+        # Cột Chọn một sửa được thì cần danh sách để vẽ ô chọn — FR-8.7
+        choice_service.attach_lists(cac_cot, user=request.user, table=bang_hien)
     boi_canh.update({
         "bang": bang_hien, "cac_cot": cac_cot,
         # Ghép sẵn giá trị đang lọc vào từng cột — template không tra được
@@ -203,13 +214,7 @@ def bang_xem(request, code):
         # Bảng chỉ xem ở đây, sửa ở Bảng tính — ADR-009
         "chi_xem": grant_service.is_grid_only(bang_hien),
         "bang_tinh_url": settings.BANGTINH_URL,
-        # Quyền sửa tính theo **từng dòng**: người tạo dòng sửa được dòng của
-        # mình, quản lý sửa cả bảng, và có thể có quyền cấp riêng
-        "cac_dong": [
-            (bg, query.read_row(bg, cac_cot),
-             grant_service.can_edit_record(request.user, bg))
-            for bg in boi_canh["page_obj"]
-        ],
+        "cac_dong": cac_dong,
     })
     return render(request, "forms_builder/bang_xem.html", boi_canh)
 
@@ -233,21 +238,60 @@ def bang_sua_o(request, code, pk, ma_cot):
         raise OutOfScopeError("Bạn không có quyền sửa dòng này.")
 
     cac_cot = list(bang_hien.columns.order_by("order", "id"))
+    cot = next((c for c in cac_cot if c.code == ma_cot), None)
+    if cot is None:
+        raise Http404("Cột này không có trong bảng.")
+    styling.decorate_columns([cot])
+    choice_service.attach_lists([cot], user=request.user, table=bang_hien)
+    boi_canh = {"bang": bang_hien, "ban_ghi": ban_ghi, "cot": cot, "duoc_sua": True}
+
+    gia_tri_gui = request.POST.get("gia_tri", "")
     try:
         record_service.update_cell(
-            ban_ghi, ma_cot, request.POST.get("gia_tri", ""),
+            ban_ghi, ma_cot, gia_tri_gui,
             actor=request.user, request=request, columns=cac_cot,
         )
     except BusinessError as loi:
-        return HttpResponse(
-            f'<td class="o-sua o-loi" title="{loi}">{loi}</td>', status=400,
-        )
+        # Trả lại đúng ô đó kèm lý do, giữ giá trị đã gõ — static/js/chon.js
+        # cho phép HTMX thay ô dù mã 400
+        boi_canh.update({
+            "gia_tri": gia_tri_gui, "loi": str(loi),
+            "lop_o": styling.cell_class(cot, gia_tri_gui, editable=True, error=True),
+        })
+        return render(request, "forms_builder/_o.html", boi_canh, status=400)
 
-    cot = next(c for c in cac_cot if c.code == ma_cot)
-    return render(request, "forms_builder/_o.html", {
-        "bang": bang_hien, "ban_ghi": ban_ghi, "cot": cot,
-        "gia_tri": ban_ghi.data.get(ma_cot),
-        "duoc_sua": True,
+    gia_tri = ban_ghi.data.get(ma_cot)
+    boi_canh.update({
+        "gia_tri": gia_tri, "lop_o": styling.cell_class(cot, gia_tri, editable=True),
+    })
+    return render(request, "forms_builder/_o.html", boi_canh)
+
+
+@login_required
+@require_POST
+def bang_them_lua_chon(request, code, ma_cot):
+    """Thêm một giá trị vào danh sách chọn của cột, ngay tại ô chọn — FR-8.7, Q54.
+
+    Trả về các `<option>` mới (mục vừa thêm được chọn sẵn) để trình duyệt chép
+    vào mọi ô chọn cùng cột. Quyền kiểm ở máy chủ: Admin hoặc Manager bộ phận
+    sở hữu bảng; người khác gửi thẳng thì bị từ chối và có nhật ký (FR-3.6).
+    """
+    bang_hien = _lay_bang(request, code)
+    if not choice_service.can_manage_options(request.user, bang_hien):
+        record_denied(request.user, request.path, request)
+        raise OutOfScopeError(
+            "Chỉ quản lý của bộ phận sở hữu bảng mới thêm được giá trị vào danh sách."
+        )
+    cot = get_object_or_404(bang_hien.columns, code=ma_cot)
+    try:
+        chuan = choice_service.add_option(
+            cot, request.POST.get("nhan_moi", ""), actor=request.user, request=request,
+        )
+    except BusinessError as loi:
+        return HttpResponse(str(loi), status=400)
+    return render(request, "components/o_chon_muc.html", {
+        "cac_muc": choice_service.items(choice_service.options_for(cot)),
+        "gia_tri": chuan, "co_them": True,
     })
 
 
@@ -601,23 +645,19 @@ def bieu_mau_dien(request, code):
     if request.method == "POST":
         du_lieu = {t.field.code: request.POST.get(t.field.code, "").strip()
                    for t in cac_truong}
-        thieu = form_service.missing_required(bm, du_lieu, cac_truong)
-        if thieu:
-            loi.append("Chưa điền các trường bắt buộc: " + ", ".join(thieu))
-        else:
-            try:
-                record_service.create_record(
-                    bm.table, form_service.values_by_column(bm, du_lieu, cac_truong),
-                    actor=request.user, request=request,
-                )
-                messages.success(request, "Đã lưu một dòng vào bảng " + bm.table.name)
-                return redirect("bieu_mau_dien", code=bm.code)
-            except BusinessError as e:
-                loi.append(str(e))
+        try:
+            # Một đường với nộp báo cáo ngày: ép danh tính người điền (FR-4.6),
+            # kiểm bắt buộc, ghi vào bảng đích
+            form_service.fill(
+                bm, du_lieu, actor=request.user, request=request, fields=cac_truong,
+            )
+            messages.success(request, "Đã lưu một dòng vào bảng " + bm.table.name)
+            return redirect("bieu_mau_dien", code=bm.code)
+        except BusinessError as e:
+            loi.append(str(e))
 
     return render(request, "forms_builder/bieu_mau_dien.html", {
         "bm": bm, "cac_truong": cac_truong, "du_lieu": du_lieu, "loi": loi,
-        # Chưa nhập gì thì điền sẵn giá trị mặc định của định nghĩa trường
-        "cac_o": [(t, du_lieu.get(t.field.code) or t.field.default_value)
-                  for t in cac_truong],
+        # Ô nhập, ô chọn, ô danh tính — giá trị đang gõ hoặc mặc định của trường
+        "cac_o": form_service.widgets(bm, cac_truong, du_lieu, user=request.user),
     })
