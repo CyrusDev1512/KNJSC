@@ -39,12 +39,12 @@ for %%k in ("%KHO%.") do set "KHO=%%~fk\"
 echo Thay kho ma o: %KHO%
 echo Dang keo ma moi nhat ...
 git -C "%KHO%." pull
-if not exist "%KHO%scripts\KN JSC.bat" (
-  echo Keo ma xong van chua thay scripts\KN JSC.bat. Chup man hinh cua so nay gui nguoi ho tro.
+if not exist "%KHO%KN JSC.bat" (
+  echo Keo ma xong van chua thay KN JSC.bat. Chup man hinh cua so nay gui nguoi ho tro.
   goto :loi
 )
 rem KN JSC.bat tu tao loi tat ngoai Desktop neu chua co, roi mo he thong
-call "%KHO%scripts\KN JSC.bat"
+call "%KHO%KN JSC.bat"
 exit /b 0
 
 :loi
