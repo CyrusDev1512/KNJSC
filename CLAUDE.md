@@ -92,6 +92,25 @@ Kèm đo bao phủ thì thêm `--cov`. Bỏ bài chạy chậm thì thêm `-m "n
 **Đừng chạy `migrate ... zero` trên cơ sở dữ liệu phát triển** — nó xoá bảng
 thật. Bài kiểm thử tự lo việc đó trên cơ sở dữ liệu riêng.
 
+### Skill thiết kế giao diện — Impeccable và Taste
+
+Hai bộ skill mã nguồn mở đã chép sẵn vào `.claude/skills/`; nguồn, phiên bản,
+giấy phép và cách cập nhật ở `.claude/skills/NGUON.md`. Dùng khi làm giao diện:
+
+| Gọi | Làm gì |
+|---|---|
+| `/impeccable init` | Hỏi vài câu rồi ghi `PRODUCT.md`: sản phẩm, người dùng, giọng điệu. **Làm một lần trước.** `teach` là bí danh |
+| `/impeccable critique`, `audit`, `polish`, `clarify`, `layout`, `typeset`, `adapt`… | Nhận xét, kiểm, đánh bóng một màn hình. Gõ `/impeccable` không tham số để xem menu đủ 23 lệnh |
+| `/design-taste-frontend` | Skill chính của Taste: dựng giao diện có gu, tránh kiểu "AI slop" |
+| `/redesign-existing-projects` | Rà màn hình có sẵn rồi sửa bố cục và thứ bậc |
+| `/high-end-visual-design`, `/minimalist-ui` | Hai hướng thẩm mỹ: cao cấp trầm, hoặc tối giản kiểu Notion và Linear |
+
+Dự án là HTMX và CSS thuần (ADR-005), nên gợi ý React, Tailwind, GSAP hay thư
+viện khác trong skill phải chuyển sang CSS và JS thuần: quy tắc 8 "không thêm
+thư viện" đứng trên skill. Hook tự kiểm thiết kế sau mỗi lần sửa tệp không
+commit vì nó chạy engine ngoài sau từng lệnh sửa; muốn bật trên máy mình thì gõ
+`/impeccable hooks on`. Bốn subagent của Impeccable nằm ở `.claude/agents/`.
+
 ### Đã thoả thuận với người dùng
 
 | Thoả thuận | Vì sao |
