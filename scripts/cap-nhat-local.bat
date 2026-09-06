@@ -2,6 +2,10 @@
 rem Ban Windows cua cap-nhat-local.sh — bam dup la chay, chay lai nhieu lan duoc.
 rem Mo Docker Desktop neu chua chay, keo ma moi, dung lai docker compose,
 rem doi web len, bao dam co du lieu mau, mo trinh duyet.
+rem Hang ngay chi can nhay dup "KN JSC.bat" o thu muc goc (no tu keo ma, tu
+rem migrate). Tep nay la ban "lam het cho chac": chuyen nhanh, LUON dung lai
+rem image, migrate, nap du lieu mau - dung khi doi nhanh hay khi KN JSC.bat len
+rem ma man hinh loi.
 setlocal
 cd /d "%~dp0.."
 set "COMPOSE=docker compose -f deploy\docker-compose.yml"
@@ -43,7 +47,7 @@ if not "%~1"=="" (
 git pull
 rem Loi tat "KN JSC" ngoai Desktop (bieu tuong KN JSC.ico) - tao neu chua co,
 rem de keo ma xong la thay logo ngay; tu do nhay dup logo la mo he thong
-if exist "%~dp0KN JSC.bat" call "%~dp0KN JSC.bat" loi-tat
+if exist "%~dp0..\KN JSC.bat" call "%~dp0..\KN JSC.bat" loi-tat
 
 %COMPOSE% up -d --build
 if errorlevel 1 goto :loi

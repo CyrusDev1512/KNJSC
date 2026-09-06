@@ -49,6 +49,15 @@ Manager   →  toàn bộ bộ phận
 
 ---
 
+## Chạy thử trên máy mình
+
+Windows: clone kho mã về, nháy đúp `KN JSC.bat` ở thư mục gốc. Tệp tự kéo mã
+mới, bật Docker, mở `http://localhost:8020` và đặt lối tắt "KN JSC" ngoài
+Desktop cho những lần sau. Mac và Linux: `./scripts/cap-nhat-local.sh`. Tài
+khoản thử ở `docs/tai-khoan-mau.md`.
+
+---
+
 ## Đọc file nào
 
 | Bạn là ai | Đọc file nào |

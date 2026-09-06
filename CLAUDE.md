@@ -20,31 +20,32 @@ không hỏi lại người dùng những gì họ đã trả lời.
 `docs/backlog.md` mục 2 là nhật ký quyết định — mỗi dòng một câu đã chốt, kèm
 ngày. Đọc nó trước khi hỏi lại người dùng bất cứ điều gì.
 
-### Bật hệ thống trên máy mới — một lệnh
+### Bật hệ thống — nháy đúp một tệp, máy nào cũng vậy
 
 ```
-scripts\cap-nhat-local.bat   Windows (hoặc nháy đúp tệp)
+KN JSC.bat                   Windows — ở thư mục gốc; clone về, nháy đúp, xong
 ./scripts/cap-nhat-local.sh  Mac và Linux
 ```
 
-Lệnh tự mở Docker Desktop nếu chưa chạy, kéo mã mới, tạo lối tắt "KN JSC" ngoài
-Desktop nếu chưa có, dựng container, đợi web lên, nạp dữ liệu mẫu rồi mở trình
-duyệt ở `http://127.0.0.1:8020/`. Chạy lại nhiều lần được.
+`KN JSC.bat` tự kéo mã mới từ GitHub (có git và có mạng), tạo hoặc làm mới lối
+tắt "KN JSC" có logo ngoài Desktop, mở Docker Desktop nếu chưa chạy, bật
+container, đợi web lên rồi mở trình duyệt ở `http://127.0.0.1:8020/`. Có mã
+mới thì tự `migrate`, `tao_bang_van_don`, khởi động lại worker, và dựng lại
+image chỉ khi Dockerfile, requirements hay entrypoint đổi; không có mã mới thì
+vài giây là lên. Máy sạch thì tự nạp dữ liệu mẫu. Biểu tượng là
+`scripts/KN JSC.ico`, nguồn vẽ `scripts/KN JSC.svg`.
 
-**Máy đã dựng rồi, hằng ngày chỉ cần mở lại** thì dùng lệnh nhẹ hơn:
+Tệp gọi lại chính nó sau khi kéo mã (tham số nội bộ `da-keo`, **giữ nguyên
+tên**): cmd đọc tệp `.bat` theo vị trí byte, tệp tự đổi thì đọc tiếp sẽ lệch
+dòng, nên phần kéo mã nằm trọn trong một khối `( ... )` rồi `call` lại bản mới.
 
-```
-scripts\KN JSC.bat           Windows — nháy đúp tệp; lần đầu nó tự tạo lối tắt "KN JSC" ngoài Desktop
-```
+`scripts\cap-nhat-local.bat [nhánh]` là bản "làm hết cho chắc": chuyển nhánh,
+kéo mã, luôn dựng lại image, migrate, nạp dữ liệu mẫu. Dùng khi đổi nhánh hay
+khi `KN JSC.bat` lên mà màn hình lỗi. Máy chưa có lối tắt mà không muốn tìm thư
+mục: gửi người dùng `scripts/Cai dat KN JSC.bat`, nháy đúp một lần ở bất kỳ
+đâu, nó tự tìm thư mục KNJSC, kéo mã rồi gọi `KN JSC.bat`.
 
-Nó chỉ mở Docker Desktop nếu chưa chạy, bật container, đợi web trả lời rồi mở
-trình duyệt — không kéo mã, không dựng lại image, nên vài giây là lên. Lần đầu
-trên máy sạch nó tự nạp dữ liệu mẫu. Có mã mới thì vẫn phải `cap-nhat-local`.
-Biểu tượng lối tắt là `scripts/KN JSC.ico`, nguồn vẽ ở `scripts/KN JSC.svg`.
-Máy chưa có lối tắt thì gửi người dùng `scripts/Cai dat KN JSC.bat`: nháy đúp một
-lần ở bất kỳ đâu, nó tự tìm thư mục KNJSC, kéo mã, tạo lối tắt rồi mở hệ thống.
-
-Bên trong nó chỉ là hai lệnh dưới đây, muốn làm tay thì làm:
+Bên trong các tệp đó chỉ là hai lệnh dưới đây, muốn làm tay thì làm:
 
 ```
 docker compose -f deploy/docker-compose.yml up -d
@@ -238,6 +239,7 @@ phải bảo trì và cập nhật.
 
 ```
 kim-ngan-jsc/
+├── KN JSC.bat             Windows: nháy đúp là mở hệ thống
 ├── README.md
 ├── CLAUDE.md              file này
 ├── docs/                  tài liệu
