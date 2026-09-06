@@ -247,7 +247,7 @@ def bao_cao_xem(request, pk):
     )
     return render(request, "reports/bao_cao_xem.html", {
         "bao_cao": bao_cao,
-        "cac_dong": daily_service.read_report(bao_cao),
+        "cac_dong": daily_service.read_report_cells(bao_cao),
         "duoc_bo": bao_cao.created_by_id == request.user.pk,
     })
 

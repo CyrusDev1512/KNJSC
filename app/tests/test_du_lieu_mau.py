@@ -156,3 +156,20 @@ def test_van_chay_duoc_khi_ghi_ro_la_co_y():
 
     from django.contrib.auth import get_user_model
     assert get_user_model().objects.count() == 12
+
+
+def test_san_pham_mau_khop_danh_muc_va_co_mau():
+    """AC-8.8 — Cột Sản phẩm mẫu là ô chọn lấy từ danh mục, mọi dòng mẫu khớp tên sản phẩm; cột mẫu có màu và ngưỡng để thấy ngay"""
+    from decimal import Decimal
+
+    from forms_builder.models import ColumnDef
+
+    _chay()
+    bang_cot = {c.code: c for c in ColumnDef.objects.filter(table__code="bao_cao_mkt")}
+    assert bang_cot["san_pham"].field_type == "choice" and bang_cot["san_pham"].meaning == "product"
+    ten_san_pham = set(Product.objects.values_list("name", flat=True))
+    for dong in DataRecord.objects.filter(table__code="bao_cao_mkt"):
+        assert dong.data["san_pham"] in ten_san_pham, dong.data["san_pham"]
+    assert bang_cot["ti_le_chot"].highlight == "vang"
+    assert (bang_cot["cpo"].highlight, bang_cot["cpo"].alert_op, bang_cot["cpo"].alert_value) == (
+        "do", "gt", Decimal("1500000"))

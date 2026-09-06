@@ -82,3 +82,101 @@ def test_sua_cot_luu_mau_va_nguong(bang_mkt, nguoi_dung):
     table_service.update_column(ColumnDef.objects.get(pk=cot.pk), form.cleaned_data)
     cot.refresh_from_db()
     assert cot.highlight == "" and cot.alert_op == "" and cot.alert_value is None
+
+
+# ══ Hiển thị: lớp CSS của cột và ô ═══════════════════════════════════
+
+def test_lop_css_theo_nguong(bang_mkt):
+    """AC-8.9 — Ô vượt ngưỡng mang lớp đỏ, ô đạt mang lớp xanh, ô trống hay không phải số thì không tô"""
+    from forms_builder import styling
+
+    cot = ColumnDef(
+        table=bang_mkt, name="CPO", code="cpo", field_type=FieldType.MONEY,
+        alert_op=AlertOp.GT, alert_value=Decimal("100"), highlight=Highlight.VANG,
+    )
+    assert styling.alert_class(cot, "150") == "o-vuot-nguong"
+    assert styling.alert_class(cot, "100") == "o-dat-nguong"
+    assert styling.alert_class(cot, "50") == "o-dat-nguong"
+    assert styling.alert_class(cot, "") == "" and styling.alert_class(cot, None) == ""
+    assert styling.alert_class(cot, "chữ") == ""
+
+    cot.alert_op = AlertOp.LT
+    assert styling.alert_class(cot, "50") == "o-vuot-nguong"
+    assert styling.alert_class(cot, "150") == "o-dat-nguong"
+
+    assert styling.column_class(cot) == "cot-nen-vang"
+    assert styling.cell_class(cot, "150", editable=True) == "o-sua cot-nen-vang o-dat-nguong"
+    assert styling.cell_class(cot, "", editable=False, error=True) == "cot-nen-vang o-loi"
+
+    cot.alert_op, cot.alert_value, cot.highlight = "", None, ""
+    assert styling.cell_class(cot, "150", editable=False) == ""
+
+
+def test_manager_dat_mau_va_nguong_roi_bang_hien_dung(client, bang_mkt, nguoi_dung):
+    """AC-8.9 — Manager đặt màu cột và ngưỡng trong Sửa cột; tiêu đề và ô mang màu, ô vượt ngưỡng đỏ, ô đạt xanh, ô trống không tô"""
+    from forms_builder.services import record_service
+
+    ql = nguoi_dung["manager_mkt"]
+    cot = bang_mkt.columns.get(code="cpqc")
+    client.force_login(ql)
+    kq = client.post(f"/bang/chi_phi_ads/cot/?cot={cot.pk}", {
+        "name": "CPQC", "code": "cpqc", "field_type": FieldType.MONEY, "meaning": "",
+        "order": 1, "compute_decimals": 2,
+        "highlight": Highlight.VANG, "alert_op": AlertOp.GT, "alert_value": "100",
+    })
+    assert kq.status_code in (200, 302), kq.content[:300]
+    cot.refresh_from_db()
+    assert (cot.highlight, cot.alert_op, cot.alert_value) == (Highlight.VANG, AlertOp.GT, Decimal("100"))
+
+    record_service.create_record(bang_mkt, {"marketer": "A", "cpqc": "150", "so_don": 1}, actor=ql)
+    record_service.create_record(bang_mkt, {"marketer": "B", "cpqc": "50", "so_don": 1}, actor=ql)
+    record_service.create_record(bang_mkt, {"marketer": "C", "so_don": 1}, actor=ql)
+
+    html = client.get("/bang/chi_phi_ads/").content.decode()
+    assert '<table class="bang bang-luoi">' in html
+    assert '<th class="sap-xep cot-nen-vang' in html
+    assert html.count('class="o-sua cot-nen-vang o-vuot-nguong"') == 1
+    assert html.count('class="o-sua cot-nen-vang o-dat-nguong"') == 1
+    assert html.count('class="o-sua cot-nen-vang"') == 1          # ô trống: chỉ màu cột
+
+
+def test_bao_cao_xem_mang_lop_mau(client, bang_mkt, departments, nguoi_dung):
+    """AC-8.9 — Màn hình xem báo cáo cũng mang màu cột và lớp cảnh báo của bảng đích"""
+    from datetime import date
+
+    from forms_builder.models import FieldDef
+    from forms_builder.services import form_service, table_service
+    from reports.services import daily_service
+
+    ql = nguoi_dung["manager_mkt"]
+    table_service.update_column(
+        bang_mkt.columns.get(code="cpqc"),
+        {"highlight": Highlight.DO, "alert_op": AlertOp.LT, "alert_value": Decimal("1000")}, actor=ql,
+    )
+    bm = form_service.create_form(
+        name="Chi phí ngày", code="chi_phi_ngay", department=departments["mkt"], table=bang_mkt, actor=ql)
+    for ma in ("marketer", "cpqc", "so_don"):
+        cot = bang_mkt.columns.get(code=ma)
+        truong = FieldDef.objects.create(
+            name=cot.name, code=ma, field_type=cot.field_type, department=departments["mkt"])
+        form_service.add_field(bm, truong, column=cot, actor=ql)
+    bao_cao = daily_service.submit(
+        bm, {"marketer": "A", "cpqc": "500", "so_don": "2"}, report_date=date(2026, 9, 1), actor=ql)
+
+    client.force_login(ql)
+    html = client.get(f"/bao-cao/{bao_cao.pk}/").content.decode()
+    assert '<table class="bang bang-luoi">' in html
+    assert 'class="cot-nen-do o-vuot-nguong phai tien"' in html
+
+
+def test_lop_luoi_va_mau_co_that_trong_css():
+    """FR-8.9 — Các lớp do styling sinh ra và lớp lưới đều có thật trong main.css (bài quét template không thấy được chúng)"""
+    import re
+    from pathlib import Path
+
+    from forms_builder import styling
+
+    css = (Path(__file__).resolve().parents[2] / "static" / "css" / "main.css").read_text(encoding="utf-8")
+    da_khai = set(re.findall(r"\.([a-zA-Z][\w-]*)", css))
+    can = {"bang-luoi", styling.ALERT_HIT, styling.ALERT_OK, *styling.HIGHLIGHT_CLASSES.values()}
+    assert can <= da_khai, can - da_khai

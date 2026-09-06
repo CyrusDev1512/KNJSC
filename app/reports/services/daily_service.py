@@ -113,3 +113,12 @@ def read_report(bao_cao):
 
     cot = list(bao_cao.form.table.columns.order_by("order", "id"))
     return read_row(bao_cao.record, cot)
+
+
+def read_report_cells(bao_cao):
+    """Như `read_report` nhưng kèm lớp CSS từng ô — màu cột và ngưỡng cảnh báo
+    của bảng đích hiện cả ở màn hình xem báo cáo (FR-8.8)."""
+    from forms_builder import styling
+
+    cot = styling.decorate_columns(list(bao_cao.form.table.columns.order_by("order", "id")))
+    return styling.row_cells(bao_cao.record, cot, editable=False)
