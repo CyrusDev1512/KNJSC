@@ -71,8 +71,8 @@
           <p class="mo-nhat">Biểu mẫu này chưa có trường nào. Quản lý cần thêm trường trước.</p>
         {% endfor %}
 
-        {# Cột tính sẵn hiện ngay tại chỗ, nền chàm, không gõ được — ADR-006.
-           Để người nộp thấy trước hệ thống sẽ tính ra gì, không phải đoán. #}
+        {% comment %}Cột tính sẵn hiện ngay tại chỗ, nền chàm, không gõ được — ADR-006.
+           Để người nộp thấy trước hệ thống sẽ tính ra gì, không phải đoán.{% endcomment %}
         {% for c in cac_cot_tinh %}
           <div class="truong">
             <label for="tinh-{{ c.code }}">{{ c.name }} <span class="ky-thuat">{{ c.code }}</span></label>

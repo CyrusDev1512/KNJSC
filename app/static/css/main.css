@@ -369,6 +369,8 @@ table.bang-rong td.cho-xuong { white-space: normal; min-width: 200px; }
    Ô chọn từ danh sách; hộp gõ giá trị mới ẩn sẵn, static/js/chon.js mở ra. */
 .o-chon { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); width: 100%; }
 .o-chon > select, .o-chon > input { flex: 1 1 12ch; min-width: 0; }
+/* Trong ô bảng: ô chọn đủ rộng để đọc được tên sản phẩm, bảng cuộn ngang thay vì cắt cụt */
+td .o-chon > select { min-width: 16ch; }
 select.o-trong-bang { cursor: pointer; }
 .o-chon-them { display: inline-flex; align-items: center; gap: var(--sp-2); flex: 1 1 100%; }
 .o-chon-them[hidden] { display: none; }

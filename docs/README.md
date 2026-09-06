@@ -51,7 +51,9 @@ docs/
 │   ├── 006-cong-thuc-tren-bang.md
 │   ├── 007-bang-dich-va-nhan-y-nghia.md
 │   ├── 008-bao-cao-boc-quanh-bieu-mau.md
-│   └── 009-bang-tinh-la-noi-lam-viec-cua-van-don.md
+│   ├── 009-bang-tinh-la-noi-lam-viec-cua-van-don.md
+│   ├── 010-bang-tinh-cho-moi-bang-va-dinh-dang-o.md
+│   └── 012-danh-sach-chon-va-mau-cot.md
 │
 └── tham-khao/                       dữ liệu và tệp gốc từ khách hàng
     ├── CRM_Tan.xlsx
@@ -95,21 +97,17 @@ Sửa tài liệu mỗi lần nghĩ ra gì đó là cách nhanh nhất biến n�
 |---|---|---|
 | `01-tong-quan-san-pham.md` | 0.1 | Bản nháp |
 | `02-yeu-cau-san-pham.md` | 0.1 | Bản nháp |
-| `03-thiet-ke-ky-thuat.md` | 0.1 | Bản nháp, còn 4 điểm chưa quyết |
+| `03-thiet-ke-ky-thuat.md` | 0.1 | Bản nháp |
 | `04-tieu-chi-nghiem-thu.md` | 0.1 | Bản nháp |
 | `05-huong-dan-va-van-hanh.md` | 0.1 | Bản nháp |
 | `kien-truc.md` | 0.1 | Bản nháp |
-| `quyet-dinh/001` tới `004` | — | Đã áp dụng |
+| `quyet-dinh/001` tới `012` | — | Đã áp dụng (011 đang ở nhánh KN CRM) |
 | `backlog.md` | 0.1 | Cập nhật liên tục |
 
 ---
 
 ## Điểm chưa quyết
 
-| # | Nội dung | Chặn giai đoạn |
-|---|---|---|
-| 1 | Khung ứng dụng cụ thể | 1 |
-| 2 | Danh sách nhãn ý nghĩa cuối cùng | 3 và 6 |
-| 3 | Tạo biểu mẫu tự sinh bảng hay luôn chọn bảng có sẵn | 3 |
-
-Chi tiết ở `backlog.md`.
+Ba điểm từng nằm ở đây (khung ứng dụng, nhãn ý nghĩa, bảng đích của biểu mẫu)
+đã chốt ở ADR-005 và ADR-007. Việc chưa quyết còn lại — câu hỏi nghiệp vụ N1,
+N3, N7, N9, N10 và vận hành V1, V2 — nằm ở `backlog.md` mục 0.

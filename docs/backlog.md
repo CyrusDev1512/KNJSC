@@ -28,8 +28,8 @@ Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của 
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
 tóm để không phải lục.
 
-> Cập nhật ngày 04.09.2026, sau khi xong Giai đoạn 7 phần E — Bảng tính cho
-> mọi bảng, định dạng ô, cột khoá, thư mục (ADR-010). Mục D chỉ còn `AC-5.1`.
+> Cập nhật ngày 06.09.2026, sau đợt chỉnh sửa KNERP đầu tiên — ô chọn có "Thêm
+> mới…", danh tính người điền tự ghi, màu cột và viền ô (ADR-012). Mục D chỉ còn `AC-5.1`.
 
 **Đang ở đâu:** xong Giai đoạn 0 tới 7. Nhập tệp Excel/CSV bốn bước có xem
 trước và tiến độ, xuất kèm bộ lọc, tệp lớn chạy nền giữ 24 giờ (7A). Sao lưu
@@ -43,8 +43,11 @@ cột, sửa ô có danh sách chọn, Lọc trùng, tô màu Hủy/Hoàn, mỗi
 `/bang-tinh/<mã bảng>/` cho bảng nào trong phạm vi; viền ô như Excel, dòng
 trống cuối lưới gõ là thành bản ghi; định dạng ô (đậm, nền, cỡ, căn) lưu vào
 cơ sở dữ liệu; cột khoá bấm ⌕ là lọc; thanh lọc bên trái (chọn nhanh, khoảng
-ngày, sản phẩm); thanh công cụ; thư mục chứa bảng. 85 tiêu chí, 75 trên 76
-tự động có bài kiểm.
+ngày, sản phẩm); thanh công cụ; thư mục chứa bảng. **Chỉnh sửa KNERP 06.09**
+(ADR-012): mọi cột Chọn một là ô chọn có "＋ Thêm mới…" cho Manager ở biểu mẫu,
+báo cáo ngày, Bảng dữ liệu và Lên đơn; sản phẩm lấy từ danh mục, Manager thêm
+tại chỗ; trường Người bán tự ghi tên người điền; Bảng dữ liệu có viền, tiêu đề
+xanh lá, màu cột và ngưỡng cảnh báo. 91 tiêu chí, 80 trên 81 tự động có bài kiểm.
 
 **Việc tiếp theo:** **nghiệm thu một đợt theo `docs/07`** — anh/chị bấm tay
 từng vai, đánh ☑ (đã thêm các bước của 7E). Rồi Giai đoạn 8: máy chủ,
@@ -112,21 +115,20 @@ Không cái nào chặn triển khai. Xếp theo mức.
 | **K24** | Trang Bảng dữ liệu và Bảng tính trên 50.000 dòng tốn 12 lệnh truy vấn, hơn ngân sách 10 (Q2) hai lệnh; thời gian vẫn đạt 0,4 s và 1,1 s — bài hiệu năng đánh dấu xfail | Trung bình |
 | **K19** | Bài Playwright và bài 50.000 dòng chỉ chạy trên máy phát triển, không chạy trong container `web` (không có Chromium, `pytest` mặc định không bỏ `cham` nhưng image không có trình duyệt) | Thấp |
 | **K21** | Thư mục `storage/` là bind mount, container chạy uid 1000: máy Linux mà chủ thư mục khác thì nhập tệp và sao lưu hỏng — entrypoint chỉ cảnh báo, chưa tự sửa | Thấp |
-| **K22** | Danh sách chọn cho cột *Chọn một* của bảng tự tạo — bảng vận đơn có sổ đăng ký (ADR-009), bảng tự tạo chưa | Thấp |
+| **K25** | Bảng tính (`crm`) chưa đọc `choice_registry.for_column`: ô Chọn một của bảng tự tạo ở đó vẫn là ô chữ, máy chủ vẫn chặn giá trị lạ — một dòng trong `grid_service.choice_list`, giao thread KN CRM | Thấp |
 | **K8** | `ScopedModel` chưa có cột "người sửa" | Thấp |
 | **K10** | Quy tắc Q3 chưa áp ở màn hình nào | Thấp |
 | **K14** | Nhánh Staff trong `apply_scope` không đọc phạm vi cấp thêm | Thấp |
 
 ### D · Tiêu chí nghiệm thu chưa có bài kiểm
 
-2 tiêu chí đánh dấu *Tự động* nhưng chưa viết được. Danh sách này nằm trong
+1 tiêu chí đánh dấu *Tự động* nhưng chưa viết được. Danh sách này nằm trong
 `app/tests/test_truy_vet.py`, biến `HOAN`, và
 **có bài kiểm bắt phải ghi lý do** — không giấu được.
 
 | Tiêu chí | Chờ |
 |---|---|
 | `AC-5.1` | Bốn cách nhóm mới chạy ba — tab thị trường chờ **N9** |
-| `AC-7.1` | 50.000 bản ghi dưới 2 giây, cần `seed_perf.py` — Giai đoạn 7D |
 
 ### E · Màn hình chưa có
 
@@ -154,7 +156,7 @@ mục 6.
 | K24 | Bài `tests/test_hieu_nang.py` trên 50.000 dòng: thời gian đạt (0,4 s Bảng dữ liệu, 1,1 s Bảng tính có lọc) nhưng đếm 12 lệnh truy vấn, hơn ngân sách 10 của Q2 hai lệnh. Chưa soi được lệnh nào thừa (nghi: phiên + hồ sơ + phạm vi + bảng + cột + đếm + trang + quyền cấp + sổ danh sách nhân viên). Bài đánh dấu `xfail(strict=False)` | Trung bình | GĐ 7D |
 | K19 | Bài kiểm trình duyệt thật (`tests/e2e/`, Playwright) và bài hiệu năng 50.000 dòng cần Chromium và thời gian, không chạy trong container `web` — tự bỏ qua kèm lý do. Chạy trên máy phát triển: `pip install -r requirements-dev.txt && playwright install chromium && pytest -m trinh_duyet` | Thấp | GĐ 7D |
 | K21 | Thư mục `storage/` là bind mount, container chạy uid 1000. Trên máy Linux mà chủ thư mục là người khác thì nhập tệp và sao lưu hỏng vì không ghi được; `entrypoint.sh` mới chỉ cảnh báo, chưa tự sửa quyền | Thấp | GĐ 7B |
-| K22 | `ColumnDef` kiểu *Chọn một* chưa có trường lưu danh sách lựa chọn. Bảng vận đơn dùng sổ đăng ký `forms_builder.choice_registry` (crm đăng ký lúc khởi động — ADR-009); bảng tự tạo vẫn nhận mọi giá trị. Muốn có danh sách cho bảng tự tạo thì thêm trường `options` kèm tệp chuyển đổi | Thấp | GĐ 7C |
+| K25 | Bảng tính (`crm`) chưa đọc `choice_registry.for_column` nên ô Chọn một của bảng tự tạo trên lưới vẫn là ô chữ (máy chủ vẫn chặn giá trị lạ qua `parse_value`). Sửa là một dòng trong `grid_service.choice_list` — thuộc thread KN CRM, không sửa ở đây. ~~K22~~ đóng ngày 06.09.2026 bằng `ColumnDef.options` và sổ theo nhãn (ADR-012) | Thấp | KNERP 06.09 |
 
 ### 1.2. Nghiệp vụ
 
@@ -234,6 +236,10 @@ mục 6.
 | Q48 | Cột khoá | `ColumnDef.is_key`, mỗi bảng một cột, Manager đặt trong Sửa cột, bảng vận đơn lấy Mã đơn; ô cột khoá có nút ⌕ lọc theo giá trị — AC-11.16 | 04.09.2026 |
 | Q49 | Định dạng ô lưu ở đâu — sửa ADR-002 phần "Mất gì" | **Cơ sở dữ liệu** (`DataRecord.style`), mọi người cùng thấy; sổ giá trị đóng (đậm, sáu màu nền, cỡ 10–18, căn lề), không nhận CSS tự do; quyền bằng quyền sửa ô — AC-11.15, ADR-010 | 04.09.2026 |
 | Q50 | "Tạo folder" nghĩa là gì | **Thư mục chứa bảng**, phẳng, thuộc bộ phận, model ở `forms_builder` (không ở `crm` vì ADR-004); Manager bộ phận quản lý; chỉ sắp xếp thanh bên, không ảnh hưởng phạm vi — AC-11.17 | 04.09.2026 |
+| Q54 | Danh sách chọn của cột Chọn một lấy từ đâu, ai thêm — K22 | **Ba tầng, một chỗ phân giải** (`choice_registry.for_column`): sổ (bảng, cột) của crm → nhãn ý nghĩa (Sản phẩm = danh mục sản phẩm, chặt; Người bán = nhân sự bộ phận, gợi ý) → `ColumnDef.options` (chặt). **Manager quản lý, Staff chỉ chọn**; cột chưa có danh sách không nhận giá trị nào; bảng vận đơn giữ sổ crm — ADR-012, AC-8.7, AC-8.8 | 06.09.2026 |
+| Q55 | Danh tính người điền ghi dạng gì, ép ở đâu | **Họ tên trong hồ sơ, không có thì tên đăng nhập** (`core.identity.display_name`, cùng luật với bảng vận đơn); ép ở tầng dịch vụ `form_service.fill`, không tin POST; chỉ áp cho điền biểu mẫu và nộp báo cáo, nhập tệp và lên đơn giữ nguyên — AC-4.6 | 06.09.2026 |
+| Q56 | Tô màu chỉ số quan trọng trên Bảng dữ liệu theo cách nào | **Màu cột** (vàng, đỏ, xanh lá, xanh dương) tô tiêu đề lẫn ô, cộng **ngưỡng cảnh báo** cho cột số (đỏ khi lớn hơn / nhỏ hơn X, còn lại xanh lá); tiêu đề mặc định **xanh lá cố định**; là thuộc tính của cột, khác định dạng từng ô của ADR-010; viền chỉ ở bảng mang lớp `bang-luoi` — ADR-012, AC-8.9, AC-8.10 | 06.09.2026 |
+| Q57 | Ai thêm sản phẩm, thêm ở đâu | **Manager bất kỳ bộ phận (hoặc Admin) thêm ngay tại ô chọn** — trên biểu mẫu, ô bảng và Lên đơn; mã tự sinh từ tên, đồng bộ cột `sl_` trên bảng vận đơn ngay. Màn hình quản lý sản phẩm đầy đủ để sau (S11) — AC-6.9 | 06.09.2026 |
 
 ---
 
@@ -251,6 +257,8 @@ Những thứ đáng làm nhưng chưa tới lượt.
 | S6 | Nhiều người cùng sửa một bảng theo thời gian thực | Phức tạp, cần đánh giá lại nhu cầu |
 | S7 | Thư mục lồng nhau trên Bảng tính | Chưa ai cần; thêm sau chỉ là FK `parent` trên `Folder` — ADR-010 |
 | S8 | Xuất Excel mang theo định dạng ô (đậm, màu nền) | `export_service.build_workbook` chưa đọc `DataRecord.style`; làm khi có người hỏi |
+| S11 | Màn hình quản lý sản phẩm đầy đủ: sửa tên, nhóm, ngừng bán | Hiện chỉ thêm nhanh tại ô chọn (Q57); ngừng bán mới làm được qua dòng lệnh. S9, S10 đã dùng ở nhánh KN CRM |
+| S12 | Xuất Excel Bảng dữ liệu mang theo màu cột và ô cảnh báo | Cùng chỗ với S8 |
 
 ---
 
@@ -371,3 +379,4 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 04.09.2026 | Trên Windows, cả bốn container `Restarting` với `exec /entrypoint.sh: no such file or directory`: git checkout đổi `entrypoint.sh` sang CRLF, `#!/bin/sh\r` không có trình thông dịch. Sửa hai tầng: `.gitattributes` giữ LF cho `.sh .py .html .css .js` (gộp ý từ nhánh `claude/project-status-progress-7ajcqg`), và Dockerfile `sed -i 's/\r$//'` trước `chmod` để image dựng đúng dù git cấu hình thế nào |
 | 04.09.2026 | Người dùng cập nhật xong vẫn thấy Bảng tính vỡ bố cục: trình duyệt dùng `bang-tinh.css` cũ trong bộ đệm (cùng tên với tệp đã có trên `main`). Thêm `?v=<mốc sửa tệp tĩnh>` vào mọi đường dẫn CSS và JS (`core/context_processors.PHIEN_BAN_TINH`) — đổi mã là trình duyệt tự tải mới, không phải Ctrl+F5 |
 | 04.09.2026 | Người dùng thêm hai yêu cầu: (1) kéo đổi độ rộng từng cột và tự quyết thứ tự cột A B C; (2) Bảng tính phải là một trang toàn màn hình khác hẳn, chức năng chính là lưới. Làm ngay trong 7E: khung riêng `crm/base_bang_tinh.html` (không thanh bên hệ thống, menu ☰), chữ cột A B C, kéo mép tiêu đề đổi rộng, kéo thả tiêu đề đổi thứ tự, nút Đặt lại cột — ba thứ nhớ trên trình duyệt theo mã bảng (ADR-010 mục 8, 9). Sửa AC-11.18 |
+| 06.09.2026 | Đợt chỉnh sửa KNERP đầu tiên (thread KNERP, chỉ hệ thống chính, không đụng `app/crm/`). Bốn yêu cầu: (1) mọi chỗ chọn lựa là ô chọn có "＋ Thêm mới…", sản phẩm lấy từ danh mục và Manager thêm tại chỗ; (2) trường Người bán tự ghi tên người điền; (3) Bảng dữ liệu tô màu cột và ngưỡng cảnh báo, tiêu đề xanh lá; (4) viền mọi ô. Chốt Q54 → Q57, ghi ADR-012, đóng K22, mở K25, S11, S12. `ColumnDef` thêm `options`, `highlight`, `alert_op`, `alert_value` (migration 0008); `choice_registry` ba tầng; `choice_service`, `product_service`, `core/identity`, `forms_builder/styling`; `components/o_chon.html`, `static/js/chon.js`; hai đường dẫn POST mới. Sửa nhân tiện: chú thích nhiều dòng `{# #}` ở màn nộp báo cáo bị hiện ra màn hình; lỗi sửa ô 400 bị HTMX nuốt nay hiện ngay trong ô. AC-4.6, AC-6.9, AC-8.7 → AC-8.10: 91 tiêu chí, 80 trên 81 tự động có bài kiểm; 1.232 bài đạt |

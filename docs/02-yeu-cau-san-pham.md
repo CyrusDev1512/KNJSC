@@ -73,6 +73,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-4.3 | Người dùng phải xem lại được các báo cáo cũ do chính mình nộp |
 | FR-4.4 | Người dùng không được sửa báo cáo đã nộp |
 | FR-4.5 | Leader và Manager phải xem được báo cáo của người thuộc phạm vi quản lý |
+| FR-4.6 | Trường danh tính người điền (nhãn Người bán) trên biểu mẫu và báo cáo hằng ngày phải do hệ thống tự ghi theo tài khoản đang đăng nhập; người dùng không phải điền và không đổi được |
 
 ---
 
@@ -100,6 +101,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-6.5 | Người tạo đơn phải xem lại được các đơn cũ do chính mình tạo |
 | FR-6.6 | Người tạo đơn không được sửa đơn đã lưu |
 | FR-6.7 | Hệ thống phải nhận diện được khách hàng đã mua trước đó, dựa trên số điện thoại |
+| FR-6.8 | Người dùng cấp Manager phải thêm được sản phẩm vào danh mục ngay tại ô chọn sản phẩm; sản phẩm mới phải có ngay cột số lượng trên bảng vận đơn |
 
 ---
 
@@ -128,6 +130,9 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-8.4 | Manager phải phân quyền được ai điền biểu mẫu nào và ai xem bảng nào |
 | FR-8.5 | Manager phải sửa được biểu mẫu đã tạo mà không làm mất dữ liệu đã nhập |
 | FR-8.6 | Hệ thống phải kiểm tra tính tương thích khi nối trường của biểu mẫu với cột của bảng |
+| FR-8.7 | Mọi cột kiểu Chọn một phải hiện thành ô chọn từ danh sách ở mọi chỗ nhập; danh sách do Manager quản lý (đặt trong Sửa cột hoặc thêm ngay tại ô chọn), cột mang nhãn Sản phẩm lấy danh sách từ danh mục sản phẩm; giá trị ngoài danh sách bị từ chối |
+| FR-8.8 | Manager phải đặt được màu nền cho từng cột và ngưỡng cảnh báo cho cột kiểu số; Bảng dữ liệu tô màu tiêu đề và ô theo cài đặt đó, ô vượt ngưỡng tô đỏ, ô đạt tô xanh lá |
+| FR-8.9 | Bảng dữ liệu phải có viền mọi ô và tiêu đề cột có màu nền |
 
 ---
 
@@ -187,10 +192,10 @@ Những mục sau ảnh hưởng tới phạm vi và cần thống nhất trư�
 
 | # | Nội dung | Phương án | Ảnh hưởng |
 |---|---|---|---|
-| 1 | Mức độ công thức trên bảng — FR-7.8 | Chỉ cột tính sẵn / Cho gõ công thức tự do / Kết hợp cả hai | Độ phức tạp và thời gian triển khai |
-| 2 | Tạo biểu mẫu thì tự sinh bảng mới, hay luôn phải chọn bảng có sẵn | Tự sinh có tuỳ chọn / Luôn chọn | Cách vận hành hằng ngày |
-| 3 | Lịch nộp báo cáo có bắt buộc đúng giờ không | Chỉ ghi nhận / Nhắc nhở / Chặn nộp muộn | Có cần tác vụ chạy nền hay không |
-| 4 | Cách thống kê trên bảng do người dùng tự tạo | Gán nhãn ý nghĩa cho trường / Không thống kê | Báo cáo tổng hợp có bao phủ được dữ liệu tự tạo hay không |
+| 1 | ~~Mức độ công thức trên bảng — FR-7.8~~ | Đã chốt: cột tính sẵn, không công thức tự do — ADR-006, ADR-009 | — |
+| 2 | ~~Tạo biểu mẫu thì tự sinh bảng mới, hay luôn phải chọn bảng có sẵn~~ | Đã chốt: luôn chọn bảng có sẵn — ADR-007 | — |
+| 3 | Lịch nộp báo cáo có bắt buộc đúng giờ không | Chỉ ghi nhận / Nhắc nhở / Chặn nộp muộn | Có cần tác vụ chạy nền hay không — backlog N1 |
+| 4 | ~~Cách thống kê trên bảng do người dùng tự tạo~~ | Đã chốt: bảy nhãn ý nghĩa — ADR-007 | — |
 
 ---
 

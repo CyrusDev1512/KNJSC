@@ -13,16 +13,14 @@
 >
 > Nếu bạn chỉ dùng hệ thống thì đọc phần A là đủ.
 
-> ## ⚠ Tài liệu này viết trước, một phần chưa chạy được
+> ## ⚠ Một mục chưa chạy được
 >
-> Cập nhật 03.09.2026 — xong Giai đoạn 6. Những mục dưới đây **mô tả tính năng
-> chưa xây xong**, đọc để biết hướng chứ đừng đi thử:
+> Cập nhật 06.09.2026 — xong Giai đoạn 0 tới 7. Mọi mục dưới đây đều chạy được,
+> trừ một chỗ:
 >
 > | Mục | Chờ |
 > |---|---|
-> | **A4 · Nhập từ tệp Excel** và **Xuất ra tệp Excel** | Giai đoạn 7 |
 > | **A5 · Báo cáo tổng hợp** — riêng cách nhóm **Theo thị trường** | Chờ chốt backlog N9 |
-> | **B · Sao lưu và phục hồi** | Giai đoạn 8 |
 >
 > Danh sách đầy đủ những gì đã chạy và chưa chạy nằm ở `backlog.md` **mục 0**.
 
@@ -61,6 +59,11 @@ Mỗi bộ phận có biểu mẫu riêng.
 3. Điền các trường, những trường có dấu sao là bắt buộc
 4. Bấm **Gửi**
 
+**Trường Marketer / Người bán hệ thống tự ghi tên bạn**, ô chỉ đọc, không phải
+điền. **Trường kiểu Chọn một là ô chọn**: chọn từ danh sách, không gõ tay được;
+thiếu giá trị cần chọn thì báo quản lý thêm (quản lý thấy thêm mục **＋ Thêm
+mới…** ngay cuối danh sách: chọn nó, gõ giá trị, Enter là có).
+
 **Sau khi gửi thì không sửa được.** Kiểm tra kỹ trước khi bấm.
 
 ### Xem lại báo cáo cũ
@@ -89,7 +92,9 @@ phạm vi quản lý.
 
 1. Vào mục **Lên đơn**
 2. Điền thông tin khách hàng
-3. Thêm sản phẩm: chọn sản phẩm, nhập số lượng
+3. Thêm sản phẩm: chọn sản phẩm từ danh mục, nhập số lượng. Sản phẩm chưa có
+   trong danh mục thì quản lý chọn **＋ Thêm mới…** cuối danh sách, gõ tên, Enter —
+   sản phẩm vào danh mục, được chọn ngay, và bảng vận đơn có thêm cột số lượng
 4. Bấm **Thêm sản phẩm** nếu đơn có nhiều mặt hàng
 5. Nhập giá bán và phương thức thanh toán
 6. Bấm **Lưu đơn**
@@ -124,7 +129,16 @@ Vào mục **Đơn của tôi**. Danh sách hiện các đơn bạn đã tạo.
 ### Sửa dữ liệu
 
 Bấm vào ô cần sửa, gõ giá trị mới, nhấn Enter hoặc bấm ra ngoài để lưu. Cột
-tính sẵn (nền chàm nhạt) không sửa tay được.
+tính sẵn (nền chàm nhạt) không sửa tay được. **Cột kiểu Chọn một là ô chọn**:
+chọn xong là lưu ngay; giá trị gửi thẳng ngoài danh sách bị từ chối và lý do
+hiện ngay trong ô. Quản lý thấy thêm mục **＋ Thêm mới…**: chọn nó, gõ giá trị
+mới, Enter — giá trị vào danh sách của cột (cột Sản phẩm thì vào danh mục sản
+phẩm) và mọi ô cùng cột nhận được ngay.
+
+**Viền và màu.** Mọi ô có viền, tiêu đề cột nền xanh lá. Quản lý đặt trong
+**Sửa cột** cho từng cột: **Màu cột** (vàng, đỏ, xanh lá, xanh dương) tô cả tiêu
+đề lẫn ô; **Cảnh báo** kèm **Ngưỡng** cho cột số — ô vượt ngưỡng tô đỏ, ô đạt tô
+xanh lá, ô trống không tô. Màn hình xem lại báo cáo cũng mang màu đó.
 
 Nếu bạn không có quyền sửa dòng đó, ô không cho nhập. **Riêng bảng vận đơn
 chỉ xem ở đây** — có dòng báo và nút **Mở Bảng tính**; sửa ở đó (mục A8).
@@ -229,6 +243,14 @@ Tương tự tạo biểu mẫu. Chọn các cột, đặt kiểu dữ liệu ch
 Cột nào dùng để thống kê thì gán **nhãn ý nghĩa** — ví dụ cột "Giá bán" gán nhãn
 "Doanh thu". Nhờ vậy báo cáo tổng hợp mới tính được.
 
+### Sửa cột
+
+| Ô | Dùng khi |
+|---|---|
+| **Danh sách chọn** | Cột kiểu Chọn một: gõ mỗi dòng một giá trị. Cột mang nhãn Sản phẩm lấy danh sách từ danh mục sản phẩm, nhãn Người bán gợi ý nhân sự bộ phận — hai cột đó không nhập tay ở đây |
+| **Màu cột** | Tô nền tiêu đề và mọi ô của cột trên Bảng dữ liệu |
+| **Cảnh báo** và **Ngưỡng** | Chỉ cột kiểu số: chọn "Đỏ khi lớn hơn" hay "Đỏ khi nhỏ hơn" kèm ngưỡng; ô vượt tô đỏ, ô đạt tô xanh lá |
+
 ---
 
 ## A7. Câu hỏi thường gặp
@@ -242,6 +264,8 @@ Cột nào dùng để thống kê thì gán **nhãn ý nghĩa** — ví dụ c�
 | Hệ thống tự đăng xuất | Do không thao tác quá một tiếng, đăng nhập lại |
 | Nhập tệp báo lỗi | Kiểm tra kích thước dưới 10 MB và số dòng dưới 5.000; đuôi tệp phải đúng nội dung |
 | Nhập xong báo "dòng lỗi" | Mở trang Tác vụ nền, xem bảng dòng lỗi theo số hàng Excel, sửa tệp rồi nhập lại phần đó |
+| Ô chọn không có giá trị mình cần | Cột Chọn một chỉ nhận giá trị trong danh sách. Quản lý thêm ở Sửa cột hoặc chọn **＋ Thêm mới…** ngay tại ô; nhân viên báo quản lý |
+| Không gõ được ô Marketer / Người bán | Đúng như thiết kế — hệ thống tự ghi tên bạn (FR-4.6) |
 | Không sửa được ô trên bảng vận đơn | Đúng như thiết kế — bảng vận đơn sửa ở Bảng tính cổng 8021 (mục A8) |
 | Bảng tính không có dòng trống cuối lưới | Bạn không có quyền thêm dòng vào bảng đó, hoặc bảng vận đơn đang mở ở hệ thống chính (chỉ xem) |
 | Nút định dạng báo "Chưa chọn ô nào" | Bấm vào một ô trước, Shift+bấm để chọn vùng |

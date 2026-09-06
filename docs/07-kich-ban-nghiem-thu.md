@@ -68,6 +68,10 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 |---|---|---|---|
 | ☐ | `mkt.staff` nộp báo cáo ngày | Lưu được; nộp lại cùng ngày thì ghi đè, không sinh dòng đôi | AC-4.1, AC-4.2 |
 | ☐ | Cột CPO, giá mess trên biểu mẫu | Tự tính khi gõ số, không sửa tay được | AC-7.10 |
+| ☐ | `mkt.staff` nhìn biểu mẫu Nộp báo cáo | Ô Marketer chỉ đọc mang tên mình, không gõ được; ô Sản phẩm là ô chọn có ba sản phẩm, **không** có "Thêm mới…" | AC-4.6, AC-8.7 |
+| ☐ | `mkt.manager` mở Nộp báo cáo, ở ô Sản phẩm chọn **＋ Thêm mới…**, gõ "Kem chống nắng mới", Enter | Sản phẩm được chọn ngay không tải lại trang; mở lại trang vẫn có trong danh sách; Nhật ký có dòng "Thêm sản phẩm" | AC-8.8, AC-6.9 |
+| ☐ | `mkt.manager` mở Bảng dữ liệu → Báo cáo Marketing, rồi bật **Nền** tối | Mọi ô có viền, tiêu đề xanh lá, cột Tỉ lệ chốt vàng, CPO đỏ khi vượt 1.500.000 và xanh khi đạt, ở cả hai nền; bấm ô Sản phẩm là ô chọn, chọn xong lưu ngay | **AC-8.10**, AC-8.9, AC-8.7 |
+| ☐ | `mkt.manager` vào Sửa cột của cột CPQC, đặt Màu cột vàng, Cảnh báo "Đỏ khi lớn hơn" ngưỡng 400000000, Lưu | Về Bảng dữ liệu: cột CPQC vàng, hai ô lớn hơn ngưỡng đỏ | AC-8.9 |
 | ☐ | `mkt.manager` mở Báo cáo tổng hợp, nhóm theo ngày rồi theo nhân viên | Có dòng tổng cộng, số khớp bảng Báo cáo Marketing | AC-5.2, AC-5.3 |
 | ☐ | Bấm Xuất Excel, mở tệp bằng Excel | Số trong tệp khớp số trên màn hình, tiền là số thật (không phải chữ) | **AC-5.6** |
 | ☐ | Mở Bảng dữ liệu → Báo cáo Marketing → **Nhập tệp**, chọn chính tệp vừa xuất | Xem trước ghi đúng cột khớp cột; Xác nhận → tác vụ chạy, "Không có dòng lỗi" | AC-7.7 |
