@@ -97,6 +97,9 @@ rem Ma moi vao container qua thu muc gan ngoai, container khong dung lai nen
 rem migrate trong entrypoint khong chay lai - goi tuong minh
 %COMPOSE% exec -T web python manage.py migrate --noinput
 %COMPOSE% exec -T web python manage.py tao_bang_van_don
+rem Ghi commit vua migrate de KN JSC.bat lan sau biet ma khong doi, khoi migrate lai
+if not exist "storage" mkdir "storage"
+for /f %%h in ('git rev-parse HEAD 2^>nul') do >"storage\.kn-jsc-lan-truoc" echo %%h
 %COMPOSE% exec -T web python manage.py du_lieu_mau
 start "" %DIA_CHI%
 echo.
