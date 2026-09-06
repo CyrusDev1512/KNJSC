@@ -28,8 +28,9 @@ Quy mô: dưới 100 người dùng, tối đa 50 người cùng lúc, mỗi tea
 2.000 đến 5.000 bản ghi mỗi tháng.
 
 Tình huống dùng (xác nhận 06.09.2026): làm việc ở văn phòng trên **máy tính là
-chính**; điện thoại là phụ, để nộp báo cáo ngày hoặc xem nhanh. **Nhiều người
-dùng máy cấu hình thấp hoặc mạng yếu.**
+chính**; điện thoại là phụ, để nộp báo cáo ngày hoặc xem nhanh. Một số người
+dùng máy cấu hình thấp hoặc mạng yếu, nhưng chủ dự án chốt cùng ngày: **hiện
+chưa cần quá lo về hiệu năng**, giữ trang gọn là đủ.
 
 ## Product Purpose
 
@@ -95,10 +96,10 @@ theo thị trường mới.
 2. Chỉ thấy phần thuộc quyền, và không có đường vòng.
 3. Quản lý tự dựng bảng và biểu mẫu, không đợi sửa mã.
 4. Số liệu và nhật ký là sự thật: không làm tròn sai, không sửa được lịch sử.
-5. Nhẹ và nhanh trên máy yếu; thiết kế cho máy tính trước, nhưng điện thoại phải dùng được.
+5. Thiết kế cho máy tính trước, nhưng điện thoại phải dùng được. Gọn nhẹ là nếp tốt, không phải rào cản: chưa cần hy sinh hiệu ứng hay tính năng vì hiệu năng.
 
 ## Accessibility & Inclusion
 
-- Máy cấu hình thấp và mạng yếu là thực tế (xác nhận 06.09.2026): trang phải nhẹ, ít hiệu ứng chuyển động, chịu được mạng chập chờn; lưu từng ô không được mất dữ liệu khi rớt mạng.
+- Một số người dùng máy cấu hình thấp hoặc mạng yếu (xác nhận 06.09.2026), nhưng **hiện chưa cần quá lo về hiệu năng** (chủ dự án chốt cùng ngày). Giữ nếp gọn: không tải thứ không dùng, lưu từng ô không mất dữ liệu khi rớt mạng. Tối ưu sâu để sau, khi có số đo thật.
 - Điện thoại là phụ nhưng phải dùng được: 390px không tràn ngang, đã có kiểm thử tự động.
 - Trình đọc màn hình và tương phản cao: chưa ai nêu yêu cầu. Ghi nhận là chưa quyết, không phải "không cần".
