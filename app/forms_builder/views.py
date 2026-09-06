@@ -213,7 +213,7 @@ def bang_xem(request, code):
         "duoc_nhap": grant_service.can_import(request.user, bang_hien),
         # Bảng chỉ xem ở đây, sửa ở Bảng tính — ADR-009
         "chi_xem": grant_service.is_grid_only(bang_hien),
-        "bang_tinh_url": settings.BANGTINH_URL,
+        "bang_tinh_url": settings.BANGTINH_URL.rstrip("/") + f"/bang-tinh/{bang_hien.code}/",
         "cac_dong": cac_dong,
     })
     return render(request, "forms_builder/bang_xem.html", boi_canh)
@@ -270,7 +270,7 @@ def bang_sua_o(request, code, pk, ma_cot):
 @login_required
 @require_POST
 def bang_them_lua_chon(request, code, ma_cot):
-    """Thêm một giá trị vào danh sách chọn của cột, ngay tại ô chọn — FR-8.7, Q54.
+    """Thêm một giá trị vào danh sách chọn của cột, ngay tại ô chọn — FR-8.7, Q58.
 
     Trả về các `<option>` mới (mục vừa thêm được chọn sẵn) để trình duyệt chép
     vào mọi ô chọn cùng cột. Quyền kiểm ở máy chủ: Admin hoặc Manager bộ phận

@@ -1,4 +1,4 @@
-"""Danh mục sản phẩm: thêm sản phẩm và cung cấp danh sách cho ô chọn — FR-6.8, Q57.
+"""Danh mục sản phẩm: thêm sản phẩm và cung cấp danh sách cho ô chọn — FR-6.8, Q61.
 
 Tầng dịch vụ (điều cấm 2). Danh mục dùng chung cả công ty, không áp phạm vi
 quyền; ai được *thêm* thì tầng view kiểm (Manager trở lên). Thêm sản phẩm là

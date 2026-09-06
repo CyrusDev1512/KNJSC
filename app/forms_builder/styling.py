@@ -1,4 +1,4 @@
-"""Lớp CSS của cột và ô trên Bảng dữ liệu — FR-8.8, FR-8.9, Q56.
+"""Lớp CSS của cột và ô trên Bảng dữ liệu — FR-8.8, FR-8.9, Q60.
 
 Tính ở đây, template chỉ in ra `{{ lop }}`. Hai lý do:
 

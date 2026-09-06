@@ -1,4 +1,4 @@
-"""Danh tính hiển thị của một tài khoản — FR-4.6, Q55.
+"""Danh tính hiển thị của một tài khoản — FR-4.6, Q59.
 
 Một luật duy nhất cho cả hệ thống: **họ tên trong hồ sơ, không có thì tên đăng
 nhập**. Cột Người bán trên bảng vận đơn, trường Marketer trên báo cáo ngày và

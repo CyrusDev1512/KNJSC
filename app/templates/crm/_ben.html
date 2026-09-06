@@ -3,11 +3,40 @@ Thanh bên trái của Bảng tính — ADR-010: danh sách bảng, chọn nhanh
 ngày, từ ngày / đến ngày, sản phẩm. Không tham số mới: ngày viết vào
 `f_<cột ngày>__lon_bang` và `__nho_bang`, sản phẩm vào `f_<cột>__trong` hoặc
 `sp`. Khối nào bảng không có cột tương ứng thì không vẽ.
-Cần: bang, cay (folder_service.tree), cac_thu_muc, duoc_quan_ly_thu_muc, ben
-(sidebar_service.context).
+Cần: bang, luoi, chips, la_van_don, cay (folder_service.tree), cac_thu_muc,
+duoc_quan_ly_thu_muc, ben (sidebar_service.context).
 {% endcomment %}
 <aside class="bt-ben" id="bt-ben" aria-label="Bộ lọc và danh sách bảng">
-  <button class="nut nut-nho bt-thu-ben" type="button" title="Thu gọn hoặc mở thanh bên" aria-label="Thu gọn thanh bên">‹</button>
+  <button class="nut nut-nho bt-thu-ben bt-ben-dong" type="button" title="Đóng thanh bên" aria-label="Đóng thanh bên">×</button>
+
+  <section class="bt-ben-muc">
+    <h2 class="bt-ben-tieu-de">Tìm và lọc</h2>
+    <form class="bt-ben-form" method="get" action="{% url 'bang_tinh_xem' bang.code %}">
+      <label for="tim">Tìm nhanh</label>
+      <input class="o-nhap" id="tim" name="tim" value="{{ luoi.search }}" placeholder="Tìm trên các cột có nhãn ý nghĩa">
+      {% for k, v in luoi.filters.items %}
+        {% if v|length and v.0 and v != v.0 %}{# danh sách: nhiều tham số cùng tên #}
+          {% for gt in v %}<input type="hidden" name="f_{{ k }}" value="{{ gt }}">{% endfor %}
+        {% else %}
+          <input type="hidden" name="f_{{ k }}" value="{{ v }}">
+        {% endif %}
+      {% endfor %}
+      {% for ma in luoi.products %}<input type="hidden" name="sp" value="{{ ma }}">{% endfor %}
+      {% if luoi.sort %}<input type="hidden" name="sap" value="{{ luoi.sort }}">{% endif %}
+      {% if luoi.descending %}<input type="hidden" name="chieu" value="giam">{% endif %}
+      {% if la_van_don %}
+        <label class="bt-ben-chon"><input type="checkbox" id="trung" name="trung" value="1" {% if luoi.duplicates_only %}checked{% endif %} onchange="this.form.requestSubmit()"> <span class="bt-ben-nhan">Chỉ số điện thoại trùng</span></label>
+      {% endif %}
+      <button class="nut nut-nho nut-chinh" type="submit">Áp dụng</button>
+    </form>
+    {% if chips %}
+      <div class="chip-loc-hang">
+        {% for nhan, bo_url in chips %}
+          <a class="chip chip-nhan chip-loc" href="{{ bo_url }}" title="Bỏ lọc này">{{ nhan }} ×</a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
 
   <section class="bt-ben-muc">
     <div class="bt-ben-dau">

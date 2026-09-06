@@ -20,17 +20,32 @@ không hỏi lại người dùng những gì họ đã trả lời.
 `docs/backlog.md` mục 2 là nhật ký quyết định — mỗi dòng một câu đã chốt, kèm
 ngày. Đọc nó trước khi hỏi lại người dùng bất cứ điều gì.
 
-### Bật hệ thống trên máy mới — một lệnh
+### Bật hệ thống — nháy đúp một tệp, máy nào cũng vậy
 
 ```
-scripts\cap-nhat-local.bat   Windows (hoặc nháy đúp tệp)
+KN JSC.bat                   Windows — ở thư mục gốc; clone về, nháy đúp, xong
 ./scripts/cap-nhat-local.sh  Mac và Linux
 ```
 
-Lệnh tự mở Docker Desktop nếu chưa chạy, kéo mã mới, dựng container, đợi web lên, nạp dữ
-liệu mẫu rồi mở trình duyệt ở `http://127.0.0.1:8020/`. Chạy lại nhiều lần được.
+`KN JSC.bat` tự kéo mã mới từ GitHub (có git và có mạng), tạo hoặc làm mới lối
+tắt "KN JSC" có logo ngoài Desktop, mở Docker Desktop nếu chưa chạy, bật
+container, đợi web lên rồi mở trình duyệt ở `http://127.0.0.1:8020/`. Có mã
+mới thì tự `migrate`, `tao_bang_van_don`, khởi động lại worker, và dựng lại
+image chỉ khi Dockerfile, requirements hay entrypoint đổi; không có mã mới thì
+vài giây là lên. Máy sạch thì tự nạp dữ liệu mẫu. Biểu tượng là
+`scripts/KN JSC.ico`, nguồn vẽ `scripts/KN JSC.svg`.
 
-Bên trong nó chỉ là hai lệnh dưới đây, muốn làm tay thì làm:
+Tệp gọi lại chính nó sau khi kéo mã (tham số nội bộ `da-keo`, **giữ nguyên
+tên**): cmd đọc tệp `.bat` theo vị trí byte, tệp tự đổi thì đọc tiếp sẽ lệch
+dòng, nên phần kéo mã nằm trọn trong một khối `( ... )` rồi `call` lại bản mới.
+
+`scripts\cap-nhat-local.bat [nhánh]` là bản "làm hết cho chắc": chuyển nhánh,
+kéo mã, luôn dựng lại image, migrate, nạp dữ liệu mẫu. Dùng khi đổi nhánh hay
+khi `KN JSC.bat` lên mà màn hình lỗi. Máy chưa có lối tắt mà không muốn tìm thư
+mục: gửi người dùng `scripts/Cai dat KN JSC.bat`, nháy đúp một lần ở bất kỳ
+đâu, nó tự tìm thư mục KNJSC, kéo mã rồi gọi `KN JSC.bat`.
+
+Bên trong các tệp đó chỉ là hai lệnh dưới đây, muốn làm tay thì làm:
 
 ```
 docker compose -f deploy/docker-compose.yml up -d
@@ -48,8 +63,17 @@ Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.
 `tao_bang_van_don` ngay sau `migrate`, vì bảng này là bảng động (quyết định
 001) nên `migrate` không sinh ra nó. Thiếu bảng thì màn hình Bảng tính trả 404.
 
-**Bảng tính** (`/bang-tinh/<mã bảng>/`) là lưới kiểu Excel cho mọi bảng trong
-phạm vi quyền — ADR-010. Bảng vận đơn sửa ở cổng 8021, xem ở 8020 (ADR-009).
+**KN CRM** (dịch vụ `bangtinh`, cổng 8021, `knjsc/urls_bangtinh.py`) là app
+riêng chứa **Bảng tính** — ADR-012: trang chủ `/` là cây Bộ phận ▸ Quý ▸ Tháng
+▸ bảng (`crm/services/tree_service.py`), lưới ở `/bang-tinh/<mã bảng>/` cho mọi
+bảng trong phạm vi quyền — ADR-010. KN ERP (8020) **không có lưới**, chỉ có mục
+KN CRM trên thanh bên mở tab mới; bài kiểm của `crm/tests` chạy ở URLconf 8021
+nhờ `crm/tests/conftest.py`. Bảng vận đơn chỉ sửa ở KN CRM (ADR-009).
+Nhìn và thao tác theo bảng tính KN Demo — ADR-011: giao diện lưới nằm ở hai
+tệp `app/static/js/bang-tinh.js` (trang: thanh bên, cột, thanh công thức, sửa
+một ô) và `bang-tinh-o.js` (ô: chọn vùng, clipboard, kéo điền, hoàn tác, menu
+chuột phải, tự cập nhật). Bảng 40 màu sinh CSS bằng `scripts/sinh-css-mau.py`,
+đừng gõ tay.
 
 ### Chạy kiểm thử
 
@@ -224,6 +248,7 @@ phải bảo trì và cập nhật.
 
 ```
 kim-ngan-jsc/
+├── KN JSC.bat             Windows: nháy đúp là mở hệ thống
 ├── README.md
 ├── CLAUDE.md              file này
 ├── docs/                  tài liệu

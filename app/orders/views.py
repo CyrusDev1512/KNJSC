@@ -61,7 +61,7 @@ def _muc_san_pham():
 @login_required
 @require_POST
 def san_pham_moi(request):
-    """Thêm sản phẩm ngay tại ô chọn trên màn hình Lên đơn — FR-6.8, Q57.
+    """Thêm sản phẩm ngay tại ô chọn trên màn hình Lên đơn — FR-6.8, Q61.
 
     Chỉ Manager trở lên của bộ phận Sale (màn hình này là của Sale). Trả về
     các `<option>` mới với sản phẩm vừa thêm được chọn sẵn.
@@ -123,7 +123,7 @@ def len_don(request):
     return render(request, "orders/len_don.html", {
         "d": du_lieu, "loi": loi, "nhac_khach": nhac_khach,
         "cac_muc_sp": _muc_san_pham(),
-        # Manager thêm sản phẩm ngay tại ô chọn — FR-6.8, Q57
+        # Manager thêm sản phẩm ngay tại ô chọn — FR-6.8, Q61
         "duoc_them_sp": has_rank(request.user, Rank.MANAGER),
         "cac_thi_truong": Market.choices,
         "cac_pttt": PaymentMethod.choices,

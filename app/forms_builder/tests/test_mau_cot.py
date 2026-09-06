@@ -1,4 +1,4 @@
-"""Màu cột và ngưỡng cảnh báo trên Bảng dữ liệu — FR-8.8, Q56.
+"""Màu cột và ngưỡng cảnh báo trên Bảng dữ liệu — FR-8.8, Q60.
 
 Bước 1 kiểm phần định nghĩa trong Sửa cột; phần hiển thị kiểm ở các bài
 thêm sau trong cùng tệp.

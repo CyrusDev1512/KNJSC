@@ -268,7 +268,7 @@ def identity_codes(fields):
 
 
 def apply_identity(values, fields, actor):
-    """Ép giá trị trường danh tính về tên người gửi, bất kể yêu cầu gửi gì (Q55)."""
+    """Ép giá trị trường danh tính về tên người gửi, bất kể yêu cầu gửi gì (Q59)."""
     ten = display_name(actor)
     ket_qua = dict(values)
     for ma in identity_codes(fields):

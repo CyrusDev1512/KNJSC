@@ -1,4 +1,4 @@
-"""Sổ danh sách chọn cho cột kiểu *Chọn một* của bảng động — FR-8.7, Q54.
+"""Sổ danh sách chọn cho cột kiểu *Chọn một* của bảng động — FR-8.7, Q58.
 
 Một chỗ duy nhất quyết định ô đó nhận giá trị nào (quy tắc 7): tầng dịch vụ
 kiểm khi điền biểu mẫu, sửa ô và nhập tệp, còn giao diện lấy cùng danh sách đó

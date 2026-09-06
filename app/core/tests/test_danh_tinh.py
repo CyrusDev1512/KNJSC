@@ -1,4 +1,4 @@
-"""Danh tính hiển thị — FR-4.6, Q55. Một luật cho cả hệ thống."""
+"""Danh tính hiển thị — FR-4.6, Q59. Một luật cho cả hệ thống."""
 import pytest
 
 from core.identity import display_name

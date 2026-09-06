@@ -113,10 +113,10 @@ def test_moi_bang_trong_pham_vi_mo_duoc_o_bang_tinh(client, bang_sale, bang_mkt,
     # Thanh công cụ theo quyền: Manager thêm cột và nhập tệp, Staff thì không; ai cũng xuất được
     client.force_login(nguoi_dung["manager_sale"])
     html = client.get("/bang-tinh/don_sale/").content.decode()
-    assert "Thêm cột" in html and "Nhập Excel" in html and "Xuất Excel" in html
+    assert "Thêm cột" in html and "Nhập Excel" in html and "Tải Excel" in html
     client.force_login(nguoi_dung["staff_sale_1"])
     html = client.get("/bang-tinh/don_sale/").content.decode()
-    assert "Thêm cột" not in html and "Nhập Excel" not in html and "Xuất Excel" in html
+    assert "Thêm cột" not in html and "Nhập Excel" not in html and "Tải Excel" in html
     assert "Thêm dòng" in html                       # cùng bộ phận thì thêm dòng được
     assert 'class="bt-ben"' in html and 'class="bt-cong-cu"' in html
 
@@ -281,19 +281,20 @@ def test_cot_khoa_mot_cot_moi_bang_va_loc_theo_o(client, bang_sale, bang_vd, ngu
     assert _so_dong(client, "/bang-tinh/don_sale/?f_ma=A1") == 1
     assert _so_dong(client, "/bang-tinh/don_sale/?f_ma=A1&f_khach__chua=Hai") == 0
 
-    # Sửa cột trên màn hình Sửa cột: Manager đặt được, Leader bị 403
+    # Sửa cột trên màn hình Sửa cột (ở KN ERP): Manager đặt được, Leader bị 403
     client.force_login(ql)
-    kq = client.post(f"/bang/don_sale/cot/?cot={cot_ma.pk}", {
-        "name": "Mã đơn", "code": "ma", "field_type": "text", "meaning": "", "order": 6,
-        "compute_decimals": 2, "compute_op": "", "compute_left": "", "compute_right": "",
-    })
-    assert kq.status_code == 302
-    assert not bang_sale.columns.get(code="ma").is_key              # bỏ tích thì hết khoá
-    kq = client.post(f"/bang/don_sale/cot/?cot={cot_ma.pk}", {
-        "name": "Mã đơn", "code": "ma", "field_type": "text", "meaning": "", "order": 6, "is_key": "on",
-        "compute_decimals": 2, "compute_op": "", "compute_left": "", "compute_right": "",
-    })
-    assert kq.status_code == 302 and bang_sale.columns.get(code="ma").is_key
-    assert "Khoá" in client.get("/bang/don_sale/cot/").content.decode()
-    client.force_login(nguoi_dung["leader_sale_1"])
-    assert client.post(f"/bang/don_sale/cot/?cot={cot_ma.pk}", {"name": "x"}).status_code == 403
+    with override_settings(ROOT_URLCONF="knjsc.urls"):
+        kq = client.post(f"/bang/don_sale/cot/?cot={cot_ma.pk}", {
+            "name": "Mã đơn", "code": "ma", "field_type": "text", "meaning": "", "order": 6,
+            "compute_decimals": 2, "compute_op": "", "compute_left": "", "compute_right": "",
+        })
+        assert kq.status_code == 302
+        assert not bang_sale.columns.get(code="ma").is_key              # bỏ tích thì hết khoá
+        kq = client.post(f"/bang/don_sale/cot/?cot={cot_ma.pk}", {
+            "name": "Mã đơn", "code": "ma", "field_type": "text", "meaning": "", "order": 6, "is_key": "on",
+            "compute_decimals": 2, "compute_op": "", "compute_left": "", "compute_right": "",
+        })
+        assert kq.status_code == 302 and bang_sale.columns.get(code="ma").is_key
+        assert "Khoá" in client.get("/bang/don_sale/cot/").content.decode()
+        client.force_login(nguoi_dung["leader_sale_1"])
+        assert client.post(f"/bang/don_sale/cot/?cot={cot_ma.pk}", {"name": "x"}).status_code == 403

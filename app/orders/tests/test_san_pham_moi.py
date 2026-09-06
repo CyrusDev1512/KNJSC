@@ -1,4 +1,4 @@
-"""Thêm sản phẩm vào danh mục — FR-6.8, Q57.
+"""Thêm sản phẩm vào danh mục — FR-6.8, Q61.
 
 Bước 2 kiểm tầng dịch vụ; đường dẫn "Thêm mới…" trên màn hình Lên đơn kiểm ở
 các bài thêm sau trong cùng tệp.

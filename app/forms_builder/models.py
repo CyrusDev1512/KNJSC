@@ -43,7 +43,7 @@ CHOICE_OPTION_MAX_LENGTH = 200
 
 
 class Highlight(models.TextChoices):
-    """Màu nền của cả cột trên Bảng dữ liệu — FR-8.8, Q56.
+    """Màu nền của cả cột trên Bảng dữ liệu — FR-8.8, Q60.
 
     Sổ đóng: giao diện dịch từng giá trị sang một lớp CSS cố định ở
     `forms_builder/styling.py`, không nhận màu tự do.
@@ -224,7 +224,7 @@ class ColumnDef(TimestampedModel):
         help_text="Giá trị nhận diện dòng; bấm ô này trên Bảng tính để lọc nhanh. Mỗi bảng một cột.",
     )
 
-    # ── Danh sách chọn — FR-8.7, Q54 ──
+    # ── Danh sách chọn — FR-8.7, Q58 ──
     # Chỉ cho kiểu Chọn một. Cột mang nhãn Sản phẩm hay Người bán lấy danh
     # sách từ hệ thống (sổ theo nhãn ở choice_registry), không nhập ở đây.
     options = models.JSONField(
@@ -232,7 +232,7 @@ class ColumnDef(TimestampedModel):
         help_text="Giá trị được chọn của cột kiểu Chọn một. Manager quản lý, người điền chỉ chọn.",
     )
 
-    # ── Màu cột và ngưỡng cảnh báo trên Bảng dữ liệu — FR-8.8, Q56 ──
+    # ── Màu cột và ngưỡng cảnh báo trên Bảng dữ liệu — FR-8.8, Q60 ──
     highlight = models.CharField(
         "Màu cột", max_length=8, choices=Highlight.choices, blank=True, default="",
         help_text="Tô nền tiêu đề và mọi ô của cột trên Bảng dữ liệu.",
@@ -328,7 +328,7 @@ class ColumnDef(TimestampedModel):
                     )
 
         # Danh sách chọn — FR-8.7. Danh sách rỗng thì không có gì để kiểm:
-        # cột Chọn một chưa có danh sách sẽ không nhận giá trị nào (Q54)
+        # cột Chọn một chưa có danh sách sẽ không nhận giá trị nào (Q58)
         if self.options:
             if self.field_type != FieldType.CHOICE:
                 loi["options"] = ValidationError(

@@ -35,8 +35,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **91** — 81 tự động, 10 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **80 trên 81** |
+| Tiêu chí nghiệm thu trong `docs/04` | **103** — 92 tự động, 11 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **91 trên 92** |
 | Tiêu chí tự động còn hoãn | **1**, đều thuộc diện chờ người dùng chốt — `AC-5.1`, backlog N9 |
 | Bao phủ dòng mã | khoảng 85% |
 
@@ -73,7 +73,7 @@ Bỏ qua các bài chạy chậm khi cần vòng lặp nhanh: `pytest -m "not ch
 | 5 | **Hộp đen** | `tests/test_ma_tran_phan_quyen.py` | 45 ô ma trận kiểm chéo `docs/04` mục 3 | Tìm ra 4 lỗi thật ngay lần chạy đầu |
 | 6 | **Hộp trắng** | `tests/test_hop_trang.py`, bản đo bao phủ | Nhánh chỉ chạy khi có lỗi, đường huỷ giao dịch | Tìm ra lỗi đọc tiền sai gấp trăm lần |
 | 7 | **Giao diện** | `core/tests/test_giao_dien.py` | Lớp CSS có thật, ô nhập có nhãn, bảng có tiêu đề | Thêm lớp bịa vào template → đỏ |
-| 8 | **Đầu-cuối trình duyệt** | `tests/e2e/` — Playwright, dấu `trinh_duyet` | Nhập → xuất → nhập lại qua giao diện; bàn phím và hộp lọc trên Bảng tính; cột cố định khi cuộn; 390px không tràn ngang, có ảnh chụp | Đổi phím Esc thành không làm gì trong `bang-tinh.js` → đỏ |
+| 8 | **Đầu-cuối trình duyệt** | `tests/e2e/` — Playwright, dấu `trinh_duyet` | Nhập → xuất → nhập lại qua giao diện; bàn phím và hộp lọc trên Bảng tính; kéo chọn vùng, dán TSV, kéo điền, hoàn tác, ô địa chỉ, chuột phải xoá hàng rồi hoàn tác (ADR-011); trang chủ KN CRM bấm tháng → lưới lọc tháng → ← (ADR-012); cột cố định khi cuộn; 390px không tràn ngang, có ảnh chụp | Đổi phím Esc thành không làm gì trong `bang-tinh.js` → đỏ |
 | 9 | **Hiệu năng** | `tests/test_hieu_nang.py` (dấu `cham`), `tests/perf/locustfile.py` | 50.000 dòng thật: trang đầu và lưới có lọc dưới 2 giây, ≤ 10 truy vấn; Locust 50 người tự chấm p99 ≤ 3 giây | Bỏ `select_related` ở lưới → vượt 10 truy vấn |
 
 Cộng một tầng thứ mười không nằm trong danh sách: **truy vết**
@@ -129,6 +129,8 @@ bấm tay từng bước ở `docs/07-kich-ban-nghiem-thu.md`**.
 | ☐ | `AC-11.1` | Bốn cột đầu và tiêu đề Bảng tính đứng yên khi cuộn | `vd.staff` | Cuộn ngang và dọc lưới 8021; máy đã đo bằng Playwright, mắt người xác nhận |
 | ☐ | `AC-11.11` | Bảng tính trên điện thoại và máy tính bảng | `vd.staff` | Lưới cuộn trong khung, bấm được ô, hộp lọc mở được |
 | ☐ | `AC-8.10` | Bảng dữ liệu có viền ô, tiêu đề xanh lá, màu cột và ô cảnh báo | `mkt.manager` | Mở `/bang/bao_cao_mkt/` ở nền sáng rồi nền tối: mọi ô có viền, tiêu đề xanh lá, cột Tỉ lệ chốt vàng, ô CPO vượt 1.500.000 đỏ, ô đạt xanh lá; mở một báo cáo ở Lịch sử báo cáo thấy cùng màu |
+| ☐ | `AC-11.18` | Bảng tính là trang toàn màn hình riêng; độ rộng, thứ tự, cột ẩn nhớ trên trình duyệt | `mkt.manager` | Không thanh bên hệ thống; kéo mép chữ cột, kéo thả chữ cột, ẩn cột rồi tải lại vẫn giữ; Đặt lại cột về mặc định |
+| ☐ | `AC-11.27` | Bảng tính nhìn và thao tác như KN Demo | `mkt.manager`, `vd.staff` | Đặt cạnh ảnh `docs/tham-khao/kn-demo/`: khung, thanh công cụ, thanh công thức, số dòng, chữ cột, cột trống, chân trang, ⛶; kéo chọn vùng thấy viền vàng và tay kéo điền |
 
 ### Bảy việc ở `docs/04` mục 12
 
@@ -142,7 +144,7 @@ bấm tay từng bước ở `docs/07-kich-ban-nghiem-thu.md`**.
 | ☐ | Phục hồi từ bản sao lưu | Chạy được — `scripts/restore.sh`, chưa thử |
 | ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | Chạy được, chưa thử |
 
-**Mười sáu việc đều chạy được**, chỉ còn `AC-10.3` biết trước là chưa đạt
+**Mười tám việc đều chạy được**, chỉ còn `AC-10.3` biết trước là chưa đạt
 (trang 404 tiếng Việt — K9, người dùng chốt chưa làm). `AC-1.7` từng nằm ở bảng trên nhưng đã
 bỏ theo **Q34** — không cần điều hướng sau đăng nhập nữa.
 

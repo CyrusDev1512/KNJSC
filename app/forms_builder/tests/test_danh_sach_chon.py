@@ -1,4 +1,4 @@
-"""Danh sách chọn của cột kiểu *Chọn một* — FR-8.7, Q54.
+"""Danh sách chọn của cột kiểu *Chọn một* — FR-8.7, Q58.
 
 Bước 1 kiểm phần định nghĩa: Manager đặt danh sách trong Sửa cột, model chặn
 danh sách sai. Phần điền, sửa ô và "Thêm mới…" kiểm ở các bài phía dưới cùng
@@ -134,7 +134,7 @@ def test_cot_chon_tu_choi_gia_tri_ngoai_danh_sach(bang_kenh, nguoi_dung):
 
 
 def test_cot_chon_chua_co_danh_sach_khong_nhan_gia_tri(bang_sale, nguoi_dung):
-    """AC-8.7 — Cột Chọn một chưa có danh sách thì không nhận giá trị nào, lỗi chỉ Manager tới Sửa cột (Q54)"""
+    """AC-8.7 — Cột Chọn một chưa có danh sách thì không nhận giá trị nào, lỗi chỉ Manager tới Sửa cột (Q58)"""
     from core.exceptions import BusinessError
     from forms_builder.services import record_service
 

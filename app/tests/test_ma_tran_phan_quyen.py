@@ -15,6 +15,7 @@ phải sửa cả đây — hai chỗ lệch nhau là một trong hai chỗ sai.
 from datetime import date
 
 import pytest
+from django.test import override_settings
 
 from forms_builder.meaning import FieldType, Meaning
 from forms_builder.models import ColumnDef, FieldDef, TableDef
@@ -140,6 +141,7 @@ def duong_dan(departments, teams, nguoi_dung):
         # Bảng của Manager Sale: Staff và Leader cùng bộ phận thấy bảng nhưng
         # không được nhập; Vận đơn không thấy bảng
         "Nhập tệp vào bảng của Sale": "/bang/bang_manager_sale/nhap/",
+        # Lưới nằm ở app KN CRM (ADR-012) — bài kiểm gọi đúng URLconf của nó
         "Bảng tính vận đơn": "/bang-tinh/van_don/",
     }
 
@@ -175,7 +177,9 @@ def test_ma_tran_kiem_cheo(client, nguoi_dung, duong_dan,
         else:
             dd = f"/bao-cao/{dd[ma_vai_tro]}/"
 
-    kq = client.get(dd)
+    urlconf = "knjsc.urls_bangtinh" if dd.startswith("/bang-tinh/") else "knjsc.urls"
+    with override_settings(ROOT_URLCONF=urlconf):
+        kq = client.get(dd)
     thuc_te = _ket_qua(kq.status_code, kq.get("Location", ""))
 
     assert thuc_te == mong_doi, (

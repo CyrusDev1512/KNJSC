@@ -1,4 +1,4 @@
-/* Ô chọn có mục "＋ Thêm mới…" — FR-8.7, Q54.
+/* Ô chọn có mục "＋ Thêm mới…" — FR-8.7, Q58.
 
    Chọn mục đó thì mở hộp gõ giá trị mới ngay cạnh ô; máy chủ thêm giá trị
    (vào danh sách của cột, hoặc vào danh mục sản phẩm) rồi trả về đúng các

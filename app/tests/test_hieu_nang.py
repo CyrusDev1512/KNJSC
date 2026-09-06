@@ -52,8 +52,15 @@ def du_lieu_lon(django_db_setup, django_db_blocker):
         nhom.delete()
         for u in (admin, nv, sale_nv):
             u.delete()
-        vd.delete()
-        sale.delete()
+        # Dọn thật (không xoá mềm) vì đây là dữ liệu dựng riêng cho bài đo, ghi
+        # thẳng ngoài giao dịch của pytest: bảng vận đơn giả giữ bộ phận bằng
+        # PROTECT, và bộ phận xoá mềm vẫn chiếm tên "Sale" (unique) làm mọi bài
+        # chạy sau không tạo lại được bộ phận.
+        from forms_builder.models import TableDef
+        for bang in TableDef.all_objects.filter(department__in=[sale, vd]):
+            bang.hard_delete()
+        vd.hard_delete()
+        sale.hard_delete()
 
 
 def _bam_gio(client, duong_dan, django_assert_max_num_queries):
@@ -80,7 +87,7 @@ def test_bang_du_lieu_50000_dong_duoi_2_giay(client, du_lieu_lon, django_assert_
 def test_bang_tinh_50000_dong_co_loc_duoi_2_giay(client, du_lieu_lon, django_assert_max_num_queries):
     """AC-7.1 — Bảng tính trên 50.000 dòng, có hai bộ lọc và cột Lọc trùng, trang đầu dưới 2 giây"""
     client.force_login(du_lieu_lon["vd"])
-    with override_settings(GRID_ONLY_TABLES=set()):
+    with override_settings(ROOT_URLCONF="knjsc.urls_bangtinh", GRID_ONLY_TABLES=set()):
         mat = _bam_gio(client, "/bang-tinh/", django_assert_max_num_queries)
         assert mat < PERF_PAGE_SECONDS, f"lưới không lọc mất {mat:.2f}s"
         mat = _bam_gio(

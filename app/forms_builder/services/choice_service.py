@@ -1,5 +1,5 @@
 """Danh sách chọn của cột: ai thêm được, thêm thế nào, và lấy danh sách để vẽ
-ô chọn — FR-8.7, Q54.
+ô chọn — FR-8.7, Q58.
 
 Tầng dịch vụ (điều cấm 2): đường dẫn "Thêm mới…" trên biểu mẫu, trên ô bảng
 và bất kỳ chỗ nào sau này đều gọi vào đây. Việc *phân giải* danh sách nằm ở
@@ -19,7 +19,7 @@ from . import grant_service, table_service
 def can_manage_options(user, table):
     """Ai thêm được giá trị vào danh sách chọn của bảng: Admin, hoặc Manager
     của bộ phận sở hữu bảng — cùng luật với thư mục (ADR-010). Người được cấp
-    quyền Sửa vẫn chỉ chọn, vì danh sách là chuyện của Manager (Q54)."""
+    quyền Sửa vẫn chỉ chọn, vì danh sách là chuyện của Manager (Q58)."""
     return grant_service.can_manage_folders(user, table.department_id)
 
 

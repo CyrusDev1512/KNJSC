@@ -161,6 +161,25 @@ def can_create_record(user, table):
     return table.pk in granted_table_ids(user, GrantAction.EDIT)
 
 
+def can_delete_record(user, record_obj):
+    """Ai xoá (mềm) được một dòng trên Bảng tính — ADR-011, backlog Q52.
+
+    Cùng luật với sửa ô: xoá mềm chỉ là một cách sửa khác, khôi phục được.
+    Đặt tên riêng để sau này tách luật mà không phải sửa từng view."""
+    return can_edit_record(user, record_obj)
+
+
+def can_manage_columns(user, table):
+    """Ai thêm hay bỏ cột của bảng ngay trên Bảng tính (menu chuột phải) —
+    Admin, hoặc Manager của bộ phận sở hữu bảng, như thư mục (`can_manage_folders`)."""
+    if is_admin(user):
+        return True
+    ho_so = getattr(user, "profile", None)
+    return bool(
+        ho_so and ho_so.rank == Rank.MANAGER and ho_so.department_id == table.department_id
+    )
+
+
 def can_edit_record(user, record_obj):
     """Người này sửa được dòng dữ liệu kia không — FR-7.4.
 
