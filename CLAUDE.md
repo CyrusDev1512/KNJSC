@@ -41,6 +41,8 @@ Nó chỉ mở Docker Desktop nếu chưa chạy, bật container, đợi web tr
 trình duyệt — không kéo mã, không dựng lại image, nên vài giây là lên. Lần đầu
 trên máy sạch nó tự nạp dữ liệu mẫu. Có mã mới thì vẫn phải `cap-nhat-local`.
 Biểu tượng lối tắt là `scripts/KN JSC.ico`, nguồn vẽ ở `scripts/KN JSC.svg`.
+Máy chưa có lối tắt thì gửi người dùng `scripts/Cai dat KN JSC.bat`: nháy đúp một
+lần ở bất kỳ đâu, nó tự tìm thư mục KNJSC, kéo mã, tạo lối tắt rồi mở hệ thống.
 
 Bên trong nó chỉ là hai lệnh dưới đây, muốn làm tay thì làm:
 
