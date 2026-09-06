@@ -446,3 +446,23 @@ def test_menu_chuot_phai_xoa_hang_va_hoan_tac(live_server, trang, dang_nhap, du_
         thu_tu = trang.locator("tbody tr[data-dong]").evaluate_all("els => els.map(e => e.dataset.dong)")
         assert thu_tu[:3] == [str(d1), str(d2), str(d3)]                      # về đúng chỗ cũ
         chup(trang, "bang-tinh-menu-chuot-phai")
+
+
+def test_trang_chu_kn_crm_chon_thang_va_quay_lai(live_server, trang, dang_nhap, du_lieu, nguoi_dung):
+    """AC-11.29 — Trang chủ KN CRM: cây Bộ phận ▸ Quý ▸ Tháng; bấm Tháng 8/2026 rồi Mở là lưới lọc đúng tháng có nhãn tháng; nút ← về đúng nhánh đang mở"""
+    dang_nhap(trang, nguoi_dung["staff_vd"])
+    trang.goto(live_server.url + "/")
+    assert trang.locator("h1.bt-tieu-de").inner_text().startswith("Vận đơn")
+    thang8 = trang.locator("a.crm-thang-lk", has_text="Tháng 8/2026")
+    assert thang8.inner_text().strip().endswith("4")           # bốn dòng tháng 8
+    thang8.click()
+    trang.wait_for_url("**/?bp=van-don&thang=2026-08")
+    chup(trang, "kn-crm-trang-chu")
+    trang.locator("a.nut", has_text="Mở").first.click()
+    trang.wait_for_url("**/bang-tinh/van_don/?f_ngay__lon_bang=2026-08-01&f_ngay__nho_bang=2026-08-31")
+    assert trang.locator("tbody tr[data-dong]").count() == 4
+    assert "Tháng 8/2026" in trang.locator(".bt-ten").inner_text()
+    chup(trang, "kn-crm-luoi-thang")
+    trang.locator("a.bt-ve").click()
+    trang.wait_for_url("**/?bp=van-don&thang=2026-08")
+    assert trang.locator("a.crm-thang-lk.on").inner_text().startswith("Tháng 8/2026")

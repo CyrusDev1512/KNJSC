@@ -688,3 +688,50 @@ body.bt-dang-keo { cursor: crosshair; }
   .bt-tab { padding: 0 10px; }
   .bt-chon-tt, .bt-loc-tt { display: none; }
 }
+
+/* ── 12. Trang chủ KN CRM — cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng (ADR-012) ── */
+.bt-app { flex: none; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--bt-vang); margin-right: 4px; }
+.crm-trang { flex: 1 1 0; min-height: 0; display: flex; align-items: stretch; }
+.crm-cay { flex: 0 0 272px; overflow: auto; background: var(--bt-sel-nen); color: var(--bt-sel-chu); border-right: 1px solid var(--bt-khung-vien); padding: 12px 10px 24px; font-size: 13px; }
+.crm-cay details > summary { list-style: none; cursor: pointer; }
+.crm-cay details > summary::-webkit-details-marker { display: none; }
+.crm-bp { margin-bottom: 6px; }
+.crm-bp-ten { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 6px; font-weight: 700; color: var(--bt-khung-chu); }
+.crm-bp-ten::before { content: "▸"; font-size: 11px; color: var(--bt-nhat); transition: transform .12s; }
+.crm-bp[open] > .crm-bp-ten::before { transform: rotate(90deg); }
+.crm-bp-ten:hover, .crm-quy-ten:hover, .crm-thang-lk:hover, .crm-tat-ca:hover { background: var(--bt-tb-hover-nen); }
+.crm-bp-ten.on { color: var(--bt-tb-on-chu); }
+.crm-quy { margin-left: 14px; }
+.crm-quy-ten { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 6px; color: var(--bt-sel-chu); }
+.crm-quy-ten::before { content: "▸"; font-size: 10px; color: var(--bt-nhat); transition: transform .12s; }
+.crm-quy[open] > .crm-quy-ten::before { transform: rotate(90deg); }
+.crm-quy-ten.on { color: var(--bt-tb-on-chu); font-weight: 600; }
+.crm-thang { list-style: none; margin: 0 0 4px 22px; padding: 0; display: grid; gap: 2px; }
+.crm-thang-lk, .crm-tat-ca { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 6px; color: var(--bt-sel-chu); text-decoration: none; }
+.crm-thang-lk.on, .crm-tat-ca.on { background: var(--bt-tb-on-nen); color: var(--bt-tb-on-chu); font-weight: 600; }
+.crm-tat-ca { margin: 4px 0 0 14px; }
+.crm-so { margin-left: auto; font-family: var(--font-ma); font-size: 11px; color: var(--bt-nhat); font-variant-numeric: tabular-nums; }
+.crm-thang-lk.on .crm-so, .crm-tat-ca.on .crm-so { color: inherit; }
+.crm-rong-cay { color: var(--bt-nhat); padding: 10px; }
+.crm-noi-dung { flex: 1 1 0; min-width: 0; overflow: auto; background: var(--bt-ct-nen); color: var(--bt-ct-chu); padding: 22px 28px 40px; }
+.crm-dau { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.crm-nhan { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--bt-ct-nhat); font-weight: 600; }
+.crm-tieu-de { margin: 2px 0 4px; font-size: 20px; font-weight: 700; }
+.crm-mo-ta { margin: 0; color: var(--bt-ct-nhat); font-size: 13px; max-width: 70ch; }
+.crm-form-thu-muc { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 14px; }
+.crm-form-thu-muc label { font-size: 12px; color: var(--bt-ct-nhat); flex-basis: 100%; }
+.crm-nhom { margin: 18px 0 8px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--bt-ct-nhat); }
+.crm-ds { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.crm-hang { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 14px; background: #fffdf8; border: 1px solid var(--bt-ct-vien); border-radius: 6px; padding: 10px 14px; }
+.crm-hang-ten { min-width: 0; }
+.crm-bang-ten { font-weight: 600; color: inherit; text-decoration: none; }
+.crm-bang-ten:hover { color: #7a5e0d; text-decoration: underline; }
+.crm-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--bt-ct-nhat); margin-top: 2px; }
+.crm-chu-y { color: #a15c00; }
+.crm-hang-rong { color: var(--bt-ct-nhat); padding: 10px 14px; border: 1px dashed var(--bt-ct-vien); border-radius: 6px; }
+.crm-noi-dung .rong { color: var(--bt-ct-chu); }
+@media (max-width: 760px) {
+  .crm-trang { flex-direction: column; overflow: auto; }
+  .crm-cay { flex: none; max-height: 42vh; border-right: 0; border-bottom: 1px solid var(--bt-khung-vien); }
+  .crm-hang { grid-template-columns: minmax(0, 1fr); }
+}

@@ -3,6 +3,7 @@
 {% block tieu_de %}{{ bang.name }} · Bảng tính · Kim Ngân JSC{% endblock %}
 {% block ten_bang %}
   <h1 class="bt-tieu-de">{{ bang.name }}</h1>
+  {% if thang_dang_xem %}<span class="chip chip-nhan" title="Đang xem đúng một tháng — về trang chủ để chọn tháng khác">{{ thang_dang_xem.label }}</span>{% endif %}
   {% if chi_xem %}<span class="chip chip-nhat">Chỉ xem ở đây</span>{% endif %}
 {% endblock %}
 {% block thanh_tren_phai %}

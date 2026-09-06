@@ -22,7 +22,7 @@ def bang_vd(departments, nguoi_dung):
 
 
 def test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap(client, bang_vd, nguoi_dung):
-    """AC-11.7 — Ở dịch vụ Bảng tính: gốc chuyển tới lưới, lưới sửa được, các màn hình khác không tồn tại"""
+    """AC-11.7 — Ở app KN CRM: gốc là trang chủ, lưới sửa được, các màn hình khác không tồn tại"""
     dong = record_service.create_record(
         bang_vd, {"ma_don": "DH-1", "ten_khach": "A", "so_dien_thoai": "0911"},
         actor=nguoi_dung["staff_vd"],
@@ -30,7 +30,7 @@ def test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap(client, bang_vd, nguoi_d
     client.force_login(nguoi_dung["staff_vd"])
     with DICH_VU_BANGTINH:
         kq = client.get("/")
-        assert kq.status_code == 302 and kq["Location"] == "/bang-tinh/"
+        assert kq.status_code == 200 and "KN CRM" in kq.content.decode()
         kq = client.get("/bang-tinh/")
         assert kq.status_code == 200 and kq.context["chi_xem"] is False
         html = kq.content.decode()
@@ -38,7 +38,8 @@ def test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap(client, bang_vd, nguoi_d
         # Thanh bên: có Bảng tính (liên kết trong); các mục của dịch vụ chính
         # không vẽ vì đường dẫn không tồn tại ở đây (nút "Bảng dữ liệu" trên
         # lưới là liên kết ngoài về dịch vụ chính, không tính)
-        assert 'class="nav-muc" href="/bang-tinh/"' in html
+        assert 'class="nav-muc" href="/"\n             \n             aria-current="page">KN CRM</a>' in html or 'href="/"' in html
+        assert ">KN CRM</a>" in html and 'href="/"' in html      # liên kết trong về trang chủ
         for vang in ('href="/bang/"', 'href="/len-don/"', 'href="/bieu-mau/"', 'href="/bao-cao-ngay/"'):
             assert vang not in html, f"dịch vụ bangtinh không được có mục {vang}"
         assert client.post(f"/bang-tinh/van_don/o/{dong.pk}/ghi_chu/", {"gia_tri": "sửa ở Bảng tính"}).status_code == 200
@@ -69,4 +70,4 @@ def test_erp_chi_con_lien_ket_sang_kn_crm(client, bang_vd, nguoi_dung, settings)
     settings.ROOT_URLCONF = "knjsc.urls_bangtinh"
     settings.BANGTINH_URL = ""
     html = client.get("/bang-tinh/").content.decode()
-    assert 'class="nav-muc" href="/bang-tinh/"' in html and "target=\"_blank\"" not in html
+    assert ">KN CRM</a>" in html and 'href="/"' in html and "target=\"_blank\"" not in html

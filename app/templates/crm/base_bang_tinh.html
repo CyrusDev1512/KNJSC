@@ -23,18 +23,19 @@
 </head>
 <body class="bt-than">
 {% comment %}
-Khung riêng của Bảng tính — ADR-010, dáng theo bảng tính KN Demo — ADR-011:
-thanh trên 48px (về hệ thống, tên bảng, trạng thái lưu, Tải Excel, toàn màn
-hình, tài khoản), thanh công cụ, thanh công thức, lưới chiếm hết phần còn
-lại, chân trang có tab bảng. Không thanh bên hệ thống; điều hướng nằm trong
-menu tài khoản.
+Khung của app KN CRM — ADR-010, dáng theo bảng tính KN Demo — ADR-011, app
+riêng — ADR-012: thanh trên 48px (nút ← theo trang: từ lưới về trang chủ, từ
+trang chủ về KN ERP; chữ hiệu KN CRM; tên bảng; trạng thái lưu; Tải Excel;
+toàn màn hình; tài khoản), rồi phần thân của từng trang. Không thanh bên hệ
+thống; điều hướng nằm trong menu tài khoản. View phải truyền `ve_url`, `ve_nhan`.
 {% endcomment %}
 {% if user.is_authenticated %}
 <div class="app bt-toan-man" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
   <header class="bt-thanh-tren">
-    <a class="bt-ve" href="{% url 'tong_quan' %}" title="Về hệ thống" aria-label="Về hệ thống">←</a>
+    <a class="bt-ve" href="{{ ve_url }}" title="{{ ve_nhan }}" aria-label="{{ ve_nhan }}">←</a>
     <span class="bt-hieu" aria-hidden="true">▦</span>
+    <span class="bt-app">KN CRM</span>
     <div class="bt-ten">{% block ten_bang %}{% endblock %}</div>
     <span class="bt-trang-thai" id="bt-trang-thai" aria-live="polite">Đã lưu</span>
     <span class="bt-gian"></span>

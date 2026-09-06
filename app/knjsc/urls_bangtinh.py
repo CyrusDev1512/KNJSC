@@ -5,10 +5,13 @@ tính. Không có bảng dữ liệu, báo cáo, lên đơn — những thứ đ
 nơi **duy nhất** có lưới; KN ERP chỉ liên kết sang.
 """
 from django.urls import include, path
-from django.views.generic import RedirectView
+
+from crm import views as crm_views
 
 urlpatterns = [
-    path("", RedirectView.as_view(pattern_name="bang_tinh", permanent=False), name="tong_quan"),
+    # Cùng một trang chủ mang hai tên: `tong_quan` để khung và thanh bên dùng
+    # chung với ERP không nổ, `bang_tinh` (trong crm.urls) là tên chính thức
+    path("", crm_views.trang_chu, name="tong_quan"),
     path("", include("core.urls")),
     path("", include("crm.urls")),
 ]

@@ -33,8 +33,9 @@ from forms_builder.services import (
 )
 from orders.constants import WAYBILL_TABLE_CODE
 from orders.services import dispatch_service
+from org.models import Department
 
-from .services import grid_service, sidebar_service
+from .services import grid_service, sidebar_service, tree_service
 
 
 def _cac_bang(user):
@@ -85,6 +86,37 @@ def _qs_hien_tai(request):
 
 
 @login_required
+def trang_chu(request):
+    """Trang chủ KN CRM — cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng (ADR-012).
+
+    Cây chỉ dựng từ phạm vi quyền; `bp` ngoài phạm vi trả 404 có nhật ký
+    (quy tắc 8), không phải trang rỗng. Không có bảng nào thì cũng 404 kèm lời.
+    """
+    request.nav_current = "bang_tinh"
+    try:
+        du_lieu = tree_service.build(
+            request.user,
+            bp_code=request.GET.get("bp", ""), quy_raw=request.GET.get("quy", ""),
+            thang_raw=request.GET.get("thang", ""), tat_ca=request.GET.get("tat-ca") == "1",
+        )
+    except LookupError:
+        record_denied(request.user, request.get_full_path(), request)
+        raise Http404("Bộ phận này không có bảng nào trong phạm vi của bạn.")
+    if du_lieu is None:
+        raise Http404("Chưa có bảng nào trong phạm vi của bạn.")
+    bp = du_lieu["bp"]
+    boi_canh = dict(du_lieu)
+    boi_canh.update({
+        "erp_url": _ngoai("/"),
+        "ve_url": _ngoai("/"), "ve_nhan": "Về KN ERP",
+        "duoc_quan_ly_thu_muc": has_rank(request.user, Rank.MANAGER)
+                                and grant_service.can_manage_folders(request.user, bp),
+        "cap_quyen_url": _ngoai("/bang/"),
+    })
+    return render(request, "crm/trang_chu.html", boi_canh)
+
+
+@login_required
 def bang_tinh(request):
     """Bảng tính mặc định — bảng vận đơn, hoặc bảng đầu tiên trong phạm vi."""
     return bang_tinh_xem(request, _ma_bang_mac_dinh(request.user))
@@ -109,7 +141,14 @@ def bang_tinh_xem(request, code):
     dong_dau = (trang.start_index() or 1) + 1      # trang rỗng: dòng trống vẫn từ 2
     cac_dong = grid_service.rows(trang.object_list, luoi.columns, request.user, waybill=vd, start=dong_dau)
     cac_cot_trong = grid_service.filler_letters(len(luoi.columns), offset=1 if vd else 0)
+    # Đang xem đúng một tháng thì thanh trên ghi tháng và nút ← về đúng nhánh (ADR-012)
+    thang_dang_xem = tree_service.month_of_params(request.GET, luoi.columns)
+    ve_url = (tree_service.home_url(bang.department, month=thang_dang_xem)
+              if thang_dang_xem is not None
+              else tree_service.home_url(bang.department, all_tables=True))
     return render(request, "crm/bang_tinh.html", {
+        "thang_dang_xem": thang_dang_xem,
+        "ve_url": ve_url, "ve_nhan": "Về trang chủ KN CRM",
         "cay": cay,
         "cac_thu_muc": [t for t, _ in cay if t is not None and t.department_id == bang.department_id],
         "duoc_quan_ly_thu_muc": grant_service.can_manage_folders(request.user, bang.department),
@@ -640,19 +679,26 @@ def _ve(request):
 @login_required
 @require_POST
 def thu_muc_moi(request):
-    """Tạo thư mục trong bộ phận của bảng đang mở."""
-    bang = _bang(request, request.POST.get("ve", ""))
-    _kiem_quan_ly_thu_muc(request, bang.department)
+    """Tạo thư mục: từ lưới (`ve` = bảng đang mở, thư mục thuộc bộ phận của
+    bảng) hoặc từ trang chủ KN CRM (`bo_phan` = khoá bộ phận đang chọn)."""
+    ma_bp = request.POST.get("bo_phan", "")
+    if ma_bp:
+        bo_phan = get_object_or_404(Department, pk=ma_bp)
+        ve_trang_chu = tree_service.home_url(bo_phan, all_tables=True)
+    else:
+        bo_phan = _bang(request, request.POST.get("ve", "")).department
+        ve_trang_chu = None
+    _kiem_quan_ly_thu_muc(request, bo_phan)
     try:
         thu_muc = folder_service.create_folder(
-            name=request.POST.get("name", ""), department=bang.department,
+            name=request.POST.get("name", ""), department=bo_phan,
             actor=request.user, request=request,
         )
     except BusinessError as loi:
         messages.error(request, str(loi))
     else:
         messages.success(request, f"Đã tạo thư mục {thu_muc.name}.")
-    return _ve(request)
+    return redirect(ve_trang_chu) if ve_trang_chu else _ve(request)
 
 
 @login_required
