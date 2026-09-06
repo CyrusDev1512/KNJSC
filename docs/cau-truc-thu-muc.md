@@ -80,7 +80,7 @@ kim-ngan-jsc/
 │   │   ├── views/
 │   │   │   ├── builder_views.py           trình tạo biểu mẫu và bảng
 │   │   │   ├── form_views.py              điền biểu mẫu
-│   │   │   └── table_views.py             xem và sửa bảng
+│   │   │   └── table_views.py             xem bảng (chỉ xem), sửa cột, nhập xuất
 │   │   ├── urls.py
 │   │   ├── migrations/
 │   │   └── tests/
@@ -150,7 +150,7 @@ kim-ngan-jsc/
 │   │   ├── js/
 │   │   │   ├── htmx.min.js
 │   │   │   ├── chon.js                    ô chọn có "Thêm mới…"
-│   │   │   └── table.js                   lọc, sắp xếp, sửa ô
+│   │   │   └── bang-tinh.js, bang-tinh-o.js   lưới KN CRM (ADR-011)
 │   │   └── img/
 │   │
 │   └── conftest.py                        cấu hình chung cho kiểm thử

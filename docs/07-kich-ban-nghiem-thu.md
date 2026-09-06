@@ -57,9 +57,9 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 | ☐ | Đăng nhập, nhìn thanh bên | Có Lên đơn, Đơn hàng, Bảng dữ liệu, **KN CRM** (mở tab mới; trang chủ chỉ có nhánh Sale, không thấy Vận đơn); **không** có Nhân sự, Nhật ký | AC-3.6, AC-11.12, AC-11.30 |
 | ☐ | Lên đơn cho khách mới, thị trường Canada, 2 sản phẩm, tiền CAD | Đơn lưu, mã `DH-…`, tổng tiền đúng | AC-6.1, AC-6.2 |
 | ☐ | Mở Bảng dữ liệu → Bảng vận đơn | Thấy dòng vừa lên: đủ tên khách, số điện thoại, **số lượng từng sản phẩm** ở đúng cột, Quốc gia Canada, Loại tiền CAD, trạng thái "Đã lên đơn" | AC-6.3, AC-11.8 |
-| ☐ | Bấm vào một ô trên bảng vận đơn | Ô **không** sửa được, có dòng báo "Bảng này chỉ xem ở đây" và nút Mở Bảng tính | AC-11.7 |
+| ☐ | Bấm vào một ô bất kỳ trên Bảng dữ liệu — bảng vận đơn, rồi Báo cáo Marketing bằng `mkt.manager` | Ô **không** sửa được ở bảng nào, có dòng báo "Bảng này chỉ để xem" và nút **Mở trong KN CRM** | AC-11.7, AC-7.4 |
 | ☐ | Lên đơn lần hai cùng số điện thoại | Cột "Mua lại lần" của dòng mới là 2 | AC-11.8 |
-| ☐ | Gõ thẳng `localhost:8020/bang-tinh/` | Trang từ chối 403 tiếng Việt | AC-11.4 |
+| ☐ | Gõ thẳng `localhost:8020/bang-tinh/` | Trang 404 — lưới chỉ có ở KN CRM (ADR-012), KN ERP chỉ xem | AC-11.4, AC-11.30 |
 | ☐ | Gõ thẳng `localhost:8020/nhan-su/` | Trang từ chối | AC-3.7 |
 
 ### 3.2. Marketing — `mkt.staff` rồi `mkt.manager`
@@ -70,7 +70,7 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 | ☐ | Cột CPO, giá mess trên biểu mẫu | Tự tính khi gõ số, không sửa tay được | AC-7.10 |
 | ☐ | `mkt.staff` nhìn biểu mẫu Nộp báo cáo | Ô Marketer chỉ đọc mang tên mình, không gõ được; ô Sản phẩm là ô chọn có ba sản phẩm, **không** có "Thêm mới…" | AC-4.6, AC-8.7 |
 | ☐ | `mkt.manager` mở Nộp báo cáo, ở ô Sản phẩm chọn **＋ Thêm mới…**, gõ "Kem chống nắng mới", Enter | Sản phẩm được chọn ngay không tải lại trang; mở lại trang vẫn có trong danh sách; Nhật ký có dòng "Thêm sản phẩm" | AC-8.8, AC-6.9 |
-| ☐ | `mkt.manager` mở Bảng dữ liệu → Báo cáo Marketing, rồi bật **Nền** tối | Mọi ô có viền, tiêu đề xanh lá, cột Tỉ lệ chốt vàng, CPO đỏ khi vượt 1.500.000 và xanh khi đạt, ở cả hai nền; bấm ô Sản phẩm là ô chọn, chọn xong lưu ngay | **AC-8.10**, AC-8.9, AC-8.7 |
+| ☐ | `mkt.manager` mở Bảng dữ liệu → Báo cáo Marketing, rồi bật **Nền** tối | Mọi ô có viền, tiêu đề xanh lá, cột Tỉ lệ chốt vàng, CPO đỏ khi vượt 1.500.000 và xanh khi đạt, ở cả hai nền; ô Sản phẩm chỉ là chữ, bấm không sửa được | **AC-8.10**, AC-8.9, AC-7.4 |
 | ☐ | `mkt.manager` vào Sửa cột của cột CPQC, đặt Màu cột vàng, Cảnh báo "Đỏ khi lớn hơn" ngưỡng 400000000, Lưu | Về Bảng dữ liệu: cột CPQC vàng, hai ô lớn hơn ngưỡng đỏ | AC-8.9 |
 | ☐ | `mkt.manager` mở Báo cáo tổng hợp, nhóm theo ngày rồi theo nhân viên | Có dòng tổng cộng, số khớp bảng Báo cáo Marketing | AC-5.2, AC-5.3 |
 | ☐ | Bấm Xuất Excel, mở tệp bằng Excel | Số trong tệp khớp số trên màn hình, tiền là số thật (không phải chữ) | **AC-5.6** |
@@ -117,9 +117,9 @@ KN CRM ở `http://localhost:8021/`. Đây là nơi làm việc của bộ phậ
 | ☐ | Bấm **Tải Excel** ở thanh trên khi đang lọc, mở bằng Excel | Chỉ có các dòng đang lọc, tiêu đề là tên cột tiếng Việt, ngày là ngày thật | AC-7.7, ADR-002 |
 | ☐ | Mở lưới trên điện thoại (hoặc thu cửa sổ còn 400px) | Không tràn ngang cả trang, lưới cuộn trong khung, bấm được ô | **AC-11.11**, AC-10.4 |
 | ☐ | Bấm **⌕** cạnh một Mã đơn | Lưới còn đúng đơn đó, chip lọc "Mã đơn = …" ở trên, bộ lọc cũ vẫn giữ | AC-11.16 |
-| ☐ | Gõ vào dòng trống cuối lưới một vận đơn mới (mã, tên khách, số điện thoại), Enter | Dòng thật xuất hiện, cột Trùng tính ngay nếu trùng số; ở `localhost:8020/bang-tinh/van_don/` thì **không** có dòng trống (chỉ xem) | AC-11.14, AC-11.7 |
-| ☐ | Tô nền đỏ (**Màu nền** → ô đỏ) một ô Ghi chú ở 8021, rồi mở cùng bảng ở 8020 bằng `quantri` | Ô đỏ ở cả hai nơi; ở 8020 nút định dạng không làm gì (bảng chỉ xem) | AC-11.15 |
-| ☐ | Ở `localhost:8020/bang-tinh/van_don/` chuột phải lên một ô | Dán, Chèn hàng, Xoá hàng, Xoá nội dung, Xoá định dạng mờ vì bảng chỉ xem ở đây; Sao chép vẫn dùng được; ở 8021 các mục đó sáng | AC-11.21, AC-11.7 |
+| ☐ | Gõ vào dòng trống cuối lưới một vận đơn mới (mã, tên khách, số điện thoại), Enter | Dòng thật xuất hiện, cột Trùng tính ngay nếu trùng số; ở KN ERP `localhost:8020/bang/van_don/` **không** có dòng trống và không sửa được ô (chỉ xem) | AC-11.14, AC-11.7 |
+| ☐ | Tô nền đỏ (**Màu nền** → ô đỏ) một ô Ghi chú ở 8021, rồi mở cùng bảng ở KN ERP `localhost:8020/bang/van_don/` bằng `quantri` | Ô đỏ ở 8021; KN ERP không có nút định dạng và không sửa được ô — chỉ xem (ADR-014) | AC-11.15 |
+| ☐ | Ở KN ERP `localhost:8020/bang/van_don/` chuột phải lên một ô | Chỉ có menu thường của trình duyệt — KN ERP không có lưới, chỉ xem; ở 8021 menu chuột phải có đủ Dán, Chèn hàng, Xoá hàng, Xoá nội dung, Xoá định dạng | AC-11.21, AC-11.7 |
 
 ### 3.4. Quản trị — `quantri`
 

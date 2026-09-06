@@ -171,7 +171,7 @@ def _doc_bo_loc(request, cac_cot):
 
 @login_required
 def bang_xem(request, code):
-    """Xem, lọc, sắp xếp và phân trang một bảng — FR-7.1 tới FR-7.3."""
+    """Xem, lọc, sắp xếp và phân trang một bảng — FR-7.1 tới FR-7.4. Chỉ xem, không sửa ô (ADR-014)."""
     request.nav_current = "bang"
     bang_hien = _lay_bang(request, code)
     cac_cot = styling.decorate_columns(list(bang_hien.columns.order_by("order", "id")))
@@ -189,17 +189,10 @@ def bang_xem(request, code):
     )
 
     boi_canh = _phan_trang(request, ds, "dòng")
-    # Quyền sửa tính theo **từng dòng**: người tạo dòng sửa được dòng của
-    # mình, quản lý sửa cả bảng, và có thể có quyền cấp riêng. Lớp CSS của ô
-    # (màu cột, ngưỡng) tính sẵn ở styling để template chỉ in ra.
-    cac_dong, co_dong_sua = [], False
-    for bg in boi_canh["page_obj"]:
-        sua = grant_service.can_edit_record(request.user, bg)
-        co_dong_sua = co_dong_sua or sua
-        cac_dong.append((bg, styling.row_cells(bg, cac_cot, editable=sua), sua))
-    if co_dong_sua:
-        # Cột Chọn một sửa được thì cần danh sách để vẽ ô chọn — FR-8.7
-        choice_service.attach_lists(cac_cot, user=request.user, table=bang_hien)
+    # Bảng dữ liệu chỉ để xem với mọi bảng — ADR-014: không tính quyền sửa
+    # từng dòng, không vẽ ô nhập; sửa số liệu là việc của KN CRM. Lớp CSS của
+    # ô (màu cột, ngưỡng) tính sẵn ở styling để template chỉ in ra.
+    cac_dong = [(bg, styling.row_cells(bg, cac_cot)) for bg in boi_canh["page_obj"]]
     boi_canh.update({
         "bang": bang_hien, "cac_cot": cac_cot,
         # Ghép sẵn giá trị đang lọc vào từng cột — template không tra được
@@ -211,60 +204,11 @@ def bang_xem(request, code):
         "tim": tim, "sap_xep": sap_xep, "giam_dan": giam_dan,
         "duoc_sua": _duoc_sua_bang(request.user),
         "duoc_nhap": grant_service.can_import(request.user, bang_hien),
-        # Bảng chỉ xem ở đây, sửa ở Bảng tính — ADR-009
-        "chi_xem": grant_service.is_grid_only(bang_hien),
+        # Nơi sửa duy nhất: lưới KN CRM của đúng bảng này — ADR-012, ADR-014
         "bang_tinh_url": settings.BANGTINH_URL.rstrip("/") + f"/bang-tinh/{bang_hien.code}/",
         "cac_dong": cac_dong,
     })
     return render(request, "forms_builder/bang_xem.html", boi_canh)
-
-
-@login_required
-@require_POST
-def bang_sua_o(request, code, pk, ma_cot):
-    """Sửa đúng một ô, trả về mảnh HTML của ô đó — FR-7.4.
-
-    Quyền kiểm ở máy chủ trước khi đọc dữ liệu, không phải ẩn nút trên giao
-    diện (FR-3.6, nguyên tắc P1). Gọi thẳng đường dẫn này vẫn bị chặn.
-    """
-    bang_hien = _lay_bang(request, code)
-    # Bản ghi phải nằm trong phạm vi quyền — lấy thẳng theo khoá chính là lộ
-    # dữ liệu của người khác
-    ban_ghi = get_object_or_404(
-        DataRecord.objects.in_scope(request.user).select_related("table"),
-        pk=pk, table=bang_hien,
-    )
-    if not grant_service.can_edit_record(request.user, ban_ghi):
-        raise OutOfScopeError("Bạn không có quyền sửa dòng này.")
-
-    cac_cot = list(bang_hien.columns.order_by("order", "id"))
-    cot = next((c for c in cac_cot if c.code == ma_cot), None)
-    if cot is None:
-        raise Http404("Cột này không có trong bảng.")
-    styling.decorate_columns([cot])
-    choice_service.attach_lists([cot], user=request.user, table=bang_hien)
-    boi_canh = {"bang": bang_hien, "ban_ghi": ban_ghi, "cot": cot, "duoc_sua": True}
-
-    gia_tri_gui = request.POST.get("gia_tri", "")
-    try:
-        record_service.update_cell(
-            ban_ghi, ma_cot, gia_tri_gui,
-            actor=request.user, request=request, columns=cac_cot,
-        )
-    except BusinessError as loi:
-        # Trả lại đúng ô đó kèm lý do, giữ giá trị đã gõ — static/js/chon.js
-        # cho phép HTMX thay ô dù mã 400
-        boi_canh.update({
-            "gia_tri": gia_tri_gui, "loi": str(loi),
-            "lop_o": styling.cell_class(cot, gia_tri_gui, editable=True, error=True),
-        })
-        return render(request, "forms_builder/_o.html", boi_canh, status=400)
-
-    gia_tri = ban_ghi.data.get(ma_cot)
-    boi_canh.update({
-        "gia_tri": gia_tri, "lop_o": styling.cell_class(cot, gia_tri, editable=True),
-    })
-    return render(request, "forms_builder/_o.html", boi_canh)
 
 
 @login_required

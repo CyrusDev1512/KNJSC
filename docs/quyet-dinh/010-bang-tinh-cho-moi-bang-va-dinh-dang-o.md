@@ -7,6 +7,7 @@
 | Người quyết định | Anh/chị chủ dự án, qua bốn câu hỏi ngày 04.09.2026 |
 | Thay thế cho | **ADR-009 mục 1** (lưới chỉ của Vận đơn) · **ADR-002 phần "Mất gì"** (chấp nhận không có định dạng màu) |
 | Liên quan | ADR-001 · ADR-007 · ADR-009 · FR-7.1 → FR-7.8 · backlog Q46 → Q50 |
+| Đã được thay | **Mục 1** phần "bảng khác sửa được ở cả hai" — ADR-012 (lưới chỉ ở KN CRM), rồi ADR-014 (KN ERP chỉ xem mọi bảng) |
 
 ---
 

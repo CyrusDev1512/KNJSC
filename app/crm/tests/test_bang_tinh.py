@@ -198,8 +198,8 @@ def test_bang_du_lieu_chi_xem_bang_tinh_sua_duoc(client, du_lieu, nguoi_dung):
     assert 'class="o-xem' in kq.content.decode() and 'class="o-sua' not in kq.content.decode()
     assert client.get(duong).status_code == 403
     assert client.post(duong, {"gia_tri": "sửa ở chỗ sai"}).status_code == 403
-    with override_settings(ROOT_URLCONF="knjsc.urls"):          # Bảng dữ liệu ở KN ERP
-        assert client.post(f"/bang/van_don/o/{dong.pk}/ghi_chu/", {"gia_tri": "sửa ở chỗ sai"}).status_code == 403
+    with override_settings(ROOT_URLCONF="knjsc.urls"):          # Bảng dữ liệu ở KN ERP: không có đường sửa ô (ADR-014)
+        assert client.post(f"/bang/van_don/o/{dong.pk}/ghi_chu/", {"gia_tri": "sửa ở chỗ sai"}).status_code == 404
     dong.refresh_from_db()
     assert dong.data.get("ghi_chu") == "Giao buổi tối"
 

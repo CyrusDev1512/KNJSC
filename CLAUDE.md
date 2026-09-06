@@ -70,9 +70,11 @@ Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.
 **KN CRM** (dịch vụ `bangtinh`, cổng 8021, `knjsc/urls_bangtinh.py`) là app
 riêng chứa **Bảng tính** — ADR-012: trang chủ `/` là cây Bộ phận ▸ Quý ▸ Tháng
 ▸ bảng (`crm/services/tree_service.py`), lưới ở `/bang-tinh/<mã bảng>/` cho mọi
-bảng trong phạm vi quyền — ADR-010. KN ERP (8020) **không có lưới**, chỉ có mục
-KN CRM trên thanh bên mở tab mới; bài kiểm của `crm/tests` chạy ở URLconf 8021
-nhờ `crm/tests/conftest.py`. Bảng vận đơn chỉ sửa ở KN CRM (ADR-009).
+bảng trong phạm vi quyền — ADR-010. KN ERP (8020) **không có lưới và không sửa
+ô**: Bảng dữ liệu chỉ để xem với mọi bảng (ADR-014), chỉ có mục KN CRM trên thanh
+bên mở tab mới và nút "Mở trong KN CRM" ở đầu mỗi bảng; bài kiểm của `crm/tests`
+chạy ở URLconf 8021 nhờ `crm/tests/conftest.py`. Mọi bảng chỉ sửa ở KN CRM
+(ADR-009 cho vận đơn, ADR-014 cho tất cả).
 Nhìn và thao tác theo bảng tính KN Demo — ADR-011: giao diện lưới nằm ở hai
 tệp `app/static/js/bang-tinh.js` (trang: thanh bên, cột, thanh công thức, sửa
 một ô) và `bang-tinh-o.js` (ô: chọn vùng, clipboard, kéo điền, hoàn tác, menu
@@ -147,7 +149,8 @@ thiết kế bất cứ thứ gì.
 Lý do chọn ghi ở `docs/quyet-dinh/005-chon-django.md`.
 
 **Không thêm khung giao diện như React hay Vue.** Bảng dữ liệu là màn hình phức
-tạp nhất và HTMX làm được — lọc, sắp xếp, phân trang, sửa từng ô.
+tạp nhất của KN ERP và HTMX làm được — lọc, sắp xếp, phân trang. Sửa ô là việc
+của lưới KN CRM (ADR-014), không phải của Bảng dữ liệu.
 
 ---
 
@@ -179,6 +182,7 @@ tạp nhất và HTMX làm được — lọc, sắp xếp, phân trang, sửa t
 | 10 | Lấy toàn bộ bảng trong màn hình danh sách | Quy tắc Q4 |
 | 11 | Dùng `.objects.filter()` trực tiếp cho dữ liệu có phạm vi quyền | Phải qua Custom Manager |
 | 12 | Dùng Django Admin cho nghiệp vụ hằng ngày | Admin bỏ qua tầng dịch vụ, chỉ dùng cho quản trị viên |
+| 13 | Cho sửa ô tại chỗ ở Bảng dữ liệu của KN ERP, dù chỉ một bảng | Bảng dữ liệu chỉ để xem; sửa số liệu là việc của KN CRM — anh/chị chốt 06.09.2026, ADR-014 |
 
 ---
 

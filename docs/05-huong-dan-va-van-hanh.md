@@ -126,22 +126,20 @@ Vào mục **Đơn của tôi**. Danh sách hiện các đơn bạn đã tạo.
 | Lọc theo cột | Bấm biểu tượng lọc ở tiêu đề cột |
 | Sắp xếp | Bấm vào tiêu đề cột, bấm lần nữa để đảo thứ tự |
 
-### Sửa dữ liệu
+### Chỉ xem — sửa số liệu ở KN CRM
 
-Bấm vào ô cần sửa, gõ giá trị mới, nhấn Enter hoặc bấm ra ngoài để lưu. Cột
-tính sẵn (nền chàm nhạt) không sửa tay được. **Cột kiểu Chọn một là ô chọn**:
-chọn xong là lưu ngay; giá trị gửi thẳng ngoài danh sách bị từ chối và lý do
-hiện ngay trong ô. Quản lý thấy thêm mục **＋ Thêm mới…**: chọn nó, gõ giá trị
-mới, Enter — giá trị vào danh sách của cột (cột Sản phẩm thì vào danh mục sản
-phẩm) và mọi ô cùng cột nhận được ngay.
+Bảng dữ liệu chỉ để xem, với mọi bảng và mọi cấp bậc (ADR-014): bấm vào ô
+không mở được gì. Đầu bảng có dòng báo "Bảng này chỉ để xem" và nút **Mở
+trong KN CRM** dẫn sang đúng bảng đó trên lưới KN CRM (mục A8) — sửa, dán,
+thêm dòng, định dạng đều ở đó. Cột tính sẵn (nền chàm nhạt) hệ thống tự tính ở
+mọi nơi. Cột kiểu Chọn một hiện giá trị dạng chữ; danh sách chọn Quản lý đặt
+trong **Sửa cột** hoặc thêm bằng **＋ Thêm mới…** ở biểu mẫu, báo cáo ngày và
+Lên đơn.
 
 **Viền và màu.** Mọi ô có viền, tiêu đề cột nền xanh lá. Quản lý đặt trong
 **Sửa cột** cho từng cột: **Màu cột** (vàng, đỏ, xanh lá, xanh dương) tô cả tiêu
 đề lẫn ô; **Cảnh báo** kèm **Ngưỡng** cho cột số — ô vượt ngưỡng tô đỏ, ô đạt tô
 xanh lá, ô trống không tô. Màn hình xem lại báo cáo cũng mang màu đó.
-
-Nếu bạn không có quyền sửa dòng đó, ô không cho nhập. **Riêng bảng vận đơn
-chỉ xem ở đây** — có dòng báo và nút **Mở Bảng tính**; sửa ở đó (mục A8).
 
 ### Nhập từ tệp Excel
 
@@ -264,9 +262,9 @@ Cột nào dùng để thống kê thì gán **nhãn ý nghĩa** — ví dụ c�
 | Hệ thống tự đăng xuất | Do không thao tác quá một tiếng, đăng nhập lại |
 | Nhập tệp báo lỗi | Kiểm tra kích thước dưới 10 MB và số dòng dưới 5.000; đuôi tệp phải đúng nội dung |
 | Nhập xong báo "dòng lỗi" | Mở trang Tác vụ nền, xem bảng dòng lỗi theo số hàng Excel, sửa tệp rồi nhập lại phần đó |
-| Ô chọn không có giá trị mình cần | Cột Chọn một chỉ nhận giá trị trong danh sách. Quản lý thêm ở Sửa cột hoặc chọn **＋ Thêm mới…** ngay tại ô; nhân viên báo quản lý |
+| Ô chọn không có giá trị mình cần | Cột Chọn một chỉ nhận giá trị trong danh sách. Quản lý thêm ở Sửa cột hoặc chọn **＋ Thêm mới…** ngay tại ô chọn trên biểu mẫu, báo cáo ngày, Lên đơn; nhân viên báo quản lý |
 | Không gõ được ô Marketer / Người bán | Đúng như thiết kế — hệ thống tự ghi tên bạn (FR-4.6) |
-| Không sửa được ô trên bảng vận đơn | Đúng như thiết kế — bảng vận đơn sửa ở KN CRM, cổng 8021 (mục A8) |
+| Không sửa được ô trên Bảng dữ liệu | Đúng như thiết kế — Bảng dữ liệu chỉ để xem với mọi bảng; sửa số liệu ở KN CRM, cổng 8021, nút **Mở trong KN CRM** ngay đầu bảng (mục A8, ADR-014) |
 | Bảng tính không có dòng trống cuối lưới | Bạn không có quyền thêm dòng vào bảng đó |
 | Nút định dạng báo "Chưa chọn ô nào" | Bấm vào một ô trước, Shift+bấm để chọn vùng |
 | Bảng tính báo "không có trong danh sách" | Ô đó chỉ nhận giá trị trong danh sách chọn — chọn từ ô xổ xuống |
@@ -325,9 +323,9 @@ khác để đổi thứ tự (cột đứng yên khi cuộn không đổi đư�
 để giấu cột; **Đặt lại cột** để về mặc định. Ba thứ này nhớ trên trình duyệt
 của bạn, không ảnh hưởng người khác.
 
-**Riêng bộ phận Vận đơn:** bảng vận đơn sửa ở địa chỉ riêng
+**Bộ phận Vận đơn:** bảng vận đơn sửa ở địa chỉ riêng
 **`http://localhost:8021/bang-tinh/`** (trên máy chủ sẽ là một subdomain), cùng
-tài khoản. Ở hệ thống chính bảng vận đơn chỉ xem. Lưới vận đơn dựng theo đúng
+tài khoản. Ở KN ERP mọi bảng, kể cả bảng vận đơn, chỉ xem (ADR-014). Lưới vận đơn dựng theo đúng
 tệp Excel bộ phận đang dùng: mỗi sản phẩm một cột số lượng, trạng thái chọn từ
 danh sách, cột Trùng đếm số điện thoại trùng, đơn Hủy tô đỏ, bốn cột đầu và
 hàng tiêu đề đứng yên khi cuộn.

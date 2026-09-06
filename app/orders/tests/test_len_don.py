@@ -13,7 +13,6 @@ from decimal import Decimal
 from unittest import mock
 
 import pytest
-from django.test import override_settings
 
 from core.constants import AuditAction, Currency
 from core.exceptions import BusinessError
@@ -197,28 +196,23 @@ def test_bo_phan_van_don_thay_don_cua_sale(bang_van_don, san_pham, nguoi_dung):
     assert thay.filter(pk=don.record_id).exists()
 
 
-def test_van_don_sua_duoc_trang_thai_tren_bang(client, bang_van_don, san_pham, nguoi_dung):
-    """AC-11.7 — Bảng vận đơn không sửa được ô ở Bảng dữ liệu, chỉ sửa ở Bảng tính; đơn gốc vẫn khoá
+def test_van_don_khong_sua_duoc_o_bang_du_lieu(client, bang_van_don, san_pham, nguoi_dung):
+    """AC-11.7 — Bảng vận đơn, như mọi bảng, không sửa được ô ở Bảng dữ liệu KN ERP: đường sửa ô cũ trả 404 với nhân viên Vận đơn lẫn Admin; sửa ở KN CRM (crm/tests); đơn gốc vẫn khoá
 
-    Q26 sửa ngày 03.09.2026 (ADR-009): Bảng dữ liệu là nơi xem, Bảng tính là
-    nơi Vận đơn làm việc. Dịch vụ `bangtinh` dùng cùng mã nhưng
-    `GRID_ONLY_TABLES` rỗng — bài này dựng lại đúng điều kiện đó.
+    Q26 sửa ngày 03.09.2026 (ADR-009) chốt bảng vận đơn chỉ xem ở Bảng dữ
+    liệu; ADR-014 ngày 06.09.2026 mở rộng cho mọi bảng và gỡ hẳn đường sửa ô.
     """
     don = _len_don(nguoi_dung["staff_sale_1"], san_pham)
     duong_dan = f"/bang/{bang_van_don.code}/o/{don.record_id}/trang_thai_vc/"
 
-    client.force_login(nguoi_dung["staff_vd"])
-    kq = client.post(duong_dan, {"gia_tri": "Đang giao"})
-    assert kq.status_code == 403, "ở dịch vụ chính, bảng vận đơn chỉ xem"
+    for ai in ("staff_vd", "admin"):
+        client.force_login(nguoi_dung[ai])
+        assert client.post(duong_dan, {"gia_tri": "Đang giao"}).status_code == 404
+        html = client.get(f"/bang/{bang_van_don.code}/").content.decode()
+        assert "Bảng này chỉ để xem" in html and "hx-post" not in html
+
     don.record.refresh_from_db()
     assert don.record.data.get("trang_thai_vc") != "Đang giao"
-
-    with override_settings(GRID_ONLY_TABLES=set()):          # dịch vụ Bảng tính
-        kq = client.post(duong_dan, {"gia_tri": "Đang giao"})
-    assert kq.status_code == 200
-
-    don.record.refresh_from_db()
-    assert don.record.data["trang_thai_vc"] == "Đang giao"
     don.refresh_from_db()
     assert don.total == Decimal("300.00")          # đơn gốc không đổi — BR-3
 

@@ -152,7 +152,7 @@ Mỗi ô là một bài kiểm thử. Năm vai trò nhân với chín đường 
 | AC-7.1 | Bảng 50.000 bản ghi tải trang đầu dưới 2 giây | FR-7.1 · NFR-1 | Tự động |
 | AC-7.2 | Lọc theo cột trả về đúng số bản ghi | FR-7.2 | Tự động |
 | AC-7.3 | Sắp xếp theo cột cho ra thứ tự đúng, cả tăng và giảm | FR-7.3 | Tự động |
-| AC-7.4 | Người không có quyền sửa thì không sửa được ô, kể cả gọi thẳng đường dẫn | FR-7.4 | Tự động |
+| AC-7.4 | Bảng dữ liệu ở KN ERP chỉ để xem với mọi cấp bậc, kể cả người tạo dòng, người được cấp quyền Sửa và Admin: không có ô sửa, gọi thẳng đường sửa ô cũ trả 404, dữ liệu và nhật ký không đổi; nút Mở trong KN CRM hiện với mọi bảng | FR-7.4 | Tự động |
 | AC-7.5 | Nhập tệp Excel 2.000 dòng hoàn tất dưới 60 giây | FR-7.5 · NFR-3 | Tự động |
 | AC-7.6 | Tệp Excel có dòng lỗi thì các dòng hợp lệ vẫn được nhập, dòng lỗi được liệt kê | FR-7.5 | Tự động |
 | AC-7.7 | **Xuất ra tệp Excel rồi nhập lại chính tệp đó thì không phát sinh lỗi** | FR-7.7 | Tự động |
@@ -174,7 +174,7 @@ Mỗi ô là một bài kiểm thử. Năm vai trò nhân với chín đường 
 | AC-8.4 | Người không được phân quyền không thấy biểu mẫu đó | FR-8.4 | Tự động |
 | AC-8.5 | Sửa biểu mẫu không làm mất dữ liệu đã nhập trước đó | FR-8.5 | Tự động |
 | AC-8.6 | Nối trường kiểu chữ vào cột kiểu số thì bị chặn với thông báo rõ ràng | FR-8.6 | Tự động |
-| AC-8.7 | Cột kiểu Chọn một chỉ nhận giá trị trong danh sách chọn (không phân biệt hoa thường), giá trị lạ bị từ chối kèm gợi ý; danh sách chỉ đặt được cho kiểu Chọn một, bỏ dòng trống và trùng; trên biểu mẫu, báo cáo ngày và ô Bảng dữ liệu cột này hiện thành ô chọn | FR-8.7 | Tự động |
+| AC-8.7 | Cột kiểu Chọn một chỉ nhận giá trị trong danh sách chọn (không phân biệt hoa thường), giá trị lạ bị từ chối kèm gợi ý; danh sách chỉ đặt được cho kiểu Chọn một, bỏ dòng trống và trùng; trên biểu mẫu và báo cáo ngày cột này hiện thành ô chọn, trên Bảng dữ liệu chỉ hiện chữ vì chỉ xem | FR-8.7 | Tự động |
 | AC-8.8 | Cột Chọn một mang nhãn Sản phẩm lấy danh sách từ danh mục sản phẩm đang bán; Manager bộ phận sở hữu bảng (hoặc Admin) thêm giá trị mới ngay tại ô chọn và có ghi nhật ký, trùng thì lấy giá trị có sẵn; Staff, Leader gửi thẳng bị từ chối có ghi nhật ký, Manager bộ phận khác bị chặn; bảng vận đơn giữ nguyên sổ danh sách của Bảng tính | FR-8.7 · FR-3.6 | Tự động |
 | AC-8.9 | Manager đặt màu cột và ngưỡng cảnh báo trong Sửa cột; ngưỡng chỉ nhận cột kiểu số; tiêu đề và ô của cột mang màu đã đặt, ô vượt ngưỡng tô đỏ, ô đạt tô xanh lá, ô trống không tô; màn hình xem báo cáo cũng mang màu | FR-8.8 | Tự động |
 | AC-8.10 | Bảng dữ liệu có viền mọi ô, tiêu đề cột nền xanh lá, màu cột và ô cảnh báo nhìn rõ trên cả nền sáng lẫn nền tối, cả ở màn hình Bảng dữ liệu và xem báo cáo | FR-8.9 | Thủ công |
@@ -217,9 +217,8 @@ Lưới làm việc kiểu Excel. Dựng đầu tiên cho bộ phận Vận đơ
 — ADR-009, backlog Q38 tới Q45 — rồi mở cho **mọi bảng dữ liệu** ở
 `/bang-tinh/<mã bảng>/` — ADR-010, Q46 tới Q50 — rồi **nhìn và thao tác như
 bảng tính KN Demo** (ảnh ở `docs/tham-khao/kn-demo/`) — ADR-011, Q51 tới Q53.
-Bảng vận đơn vẫn chỉ xem ở
-dịch vụ chính và sửa ở dịch vụ riêng (`bangtinh`, cổng 8021); bảng khác sửa
-được ở cả hai.
+Từ ADR-014 (06.09.2026) **mọi bảng chỉ xem ở KN ERP** và sửa ở KN CRM (dịch
+vụ `bangtinh`, cổng 8021); KN ERP không còn đường sửa ô.
 
 | Mã | Tiêu chí | Yêu cầu | Loại |
 |---|---|---|---|
@@ -229,7 +228,7 @@ dịch vụ chính và sửa ở dịch vụ riêng (`bangtinh`, cổng 8021); b
 | AC-11.4 | Người ngoài phạm vi bảng vận đơn (không phải quản trị viên) bị từ chối ở mọi đường dẫn Bảng tính của bảng đó, kể cả gọi thẳng và gửi POST | FR-3.6 | Tự động |
 | AC-11.5 | Cột Lọc trùng đếm đúng số dòng cùng số điện thoại và tô màu khi lớn hơn 1; lọc được "chỉ số trùng" | FR-7.8 | Tự động |
 | AC-11.6 | Dòng Hủy trước giao, Hủy sau giao, Hoàn đơn được tô màu | FR-7.8 | Tự động |
-| AC-11.7 | Bảng vận đơn không sửa được ô ở Bảng dữ liệu; cùng đường dẫn đó ở Bảng tính thì sửa được | FR-7.4 | Tự động |
+| AC-11.7 | Không bảng nào sửa được ô ở Bảng dữ liệu KN ERP — đường sửa ô cũ trả 404, kể cả bảng vận đơn với nhân viên Vận đơn lẫn Admin; cùng ô đó ở lưới KN CRM thì sửa được, bảng chỉ xem ở dịch vụ này thì 403 | FR-7.4 | Tự động |
 | AC-11.8 | Mỗi sản phẩm đang bán có một cột số lượng trên bảng vận đơn; lên đơn điền tự động số lượng, địa chỉ và lần mua | FR-6.3 · FR-6.7 | Tự động |
 | AC-11.9 | Nhập tệp vận đơn thật (ẩn danh) không chỉnh sửa: mọi dòng vào, không dòng lỗi, trạng thái và thanh toán khớp danh sách, điện thoại là chuỗi | FR-7.5 | Tự động |
 | AC-11.10 | Bàn phím: mũi tên và Tab đi giữa các ô, Enter sửa, Esc huỷ, chọn giá trị danh sách thì ô cập nhật không tải lại trang | FR-7.8 | Tự động |

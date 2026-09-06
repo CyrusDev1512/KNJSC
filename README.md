@@ -150,7 +150,7 @@ Cài đặt lần đầu:      scripts\cap-nhat-local.bat   (Windows)  ·  ./scr
 Chạy hằng ngày:       cùng lệnh đó — tự mở Docker, kéo mã, dựng container, nạp dữ liệu mẫu, mở trình duyệt
 ```
 
-Hệ thống ở `http://127.0.0.1:8020/`, Bảng tính vận đơn ở `http://127.0.0.1:8021/bang-tinh/`.
+KN ERP ở `http://127.0.0.1:8020/` (Bảng dữ liệu chỉ xem), KN CRM ở `http://127.0.0.1:8021/` (lưới sửa số liệu cho mọi bảng).
 Tài khoản mẫu và mật khẩu ở `docs/tai-khoan-mau.md`. Chi tiết ở `CLAUDE.md` mục
 "Bật hệ thống trên máy mới".
 

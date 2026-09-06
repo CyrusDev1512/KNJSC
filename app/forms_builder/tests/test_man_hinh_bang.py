@@ -1,8 +1,8 @@
 """Kiểm thử màn hình bảng dữ liệu — phần người dùng thật sự chạm vào.
 
 `test_bang_dong.py` kiểm mô hình dữ liệu. Tệp này kiểm đường đi qua HTTP: ai
-vào được màn hình nào, ai sửa được ô nào, và gọi thẳng đường dẫn có bị chặn
-không (FR-3.6).
+vào được màn hình nào, gọi thẳng đường dẫn có bị chặn không (FR-3.6), và
+Bảng dữ liệu chỉ để xem với mọi người — không có đường sửa ô ở KN ERP (ADR-014).
 
 Mỗi bài phân quyền kiểm **cả hai chiều** — chỉ kiểm chiều được phép thì không
 phát hiện được rò rỉ dữ liệu.
@@ -12,6 +12,7 @@ from decimal import Decimal
 import pytest
 
 from core.constants import AuditAction
+from core.exceptions import BusinessError
 from core.models import AuditLog
 from forms_builder.meaning import FieldType, Meaning
 from forms_builder.models import ColumnDef, ComputeOp, DataRecord, TableDef
@@ -201,103 +202,79 @@ def test_man_hinh_bang_khong_qua_muoi_lenh_truy_van(
         assert client.get("/bang/don_sale/").status_code == 200
 
 
-# ══ Sửa từng ô — FR-7.4 ════════════════════════════════════════════
+# ══ Bảng dữ liệu chỉ để xem — FR-7.4, ADR-014 ═══════════════════
 
-def _duong_dan_o(ban_ghi, ma_cot):
+#: Những mảnh HTML của ô sửa được (Giai đoạn 3, đã gỡ) — không được xuất hiện
+#: lại trong thân bảng
+DAU_VET_SUA_O = ("hx-post", 'class="o-sua', "o-trong-bang", "<select", "__them__")
+
+
+def _duong_dan_o_cu(ban_ghi, ma_cot):
+    """Đường sửa ô của Giai đoạn 3, đã gỡ theo ADR-014 — gọi vào phải 404."""
     return f"/bang/{ban_ghi.table.code}/o/{ban_ghi.pk}/{ma_cot}/"
 
 
-def test_manager_sua_duoc_o(client, bang_sale, nguoi_dung):
-    """AC-7.4 — Người có quyền sửa được ô ngay trên bảng"""
-    bg = _dong(bang_sale, nguoi_dung["manager_sale"], khach="Tên cũ", so_luong=1)
-
-    client.force_login(nguoi_dung["manager_sale"])
-    kq = client.post(_duong_dan_o(bg, "khach"), {"gia_tri": "Tên mới"})
-    assert kq.status_code == 200
-
-    bg.refresh_from_db()
-    assert bg.data["khach"] == "Tên mới"
-    assert bg.val_customer == "Tên mới"      # cột tách phải đổi theo
+def _than_bang(html):
+    return html[html.index("<tbody>"):html.index("</tbody>")]
 
 
-def test_staff_khong_sua_duoc_o_cua_nguoi_khac(client, bang_sale, nguoi_dung):
-    """AC-7.4 — Không có quyền thì không sửa được ô, kể cả gọi thẳng đường dẫn"""
-    bg = _dong(bang_sale, nguoi_dung["staff_sale_2"], khach="Của người khác", so_luong=1)
-
-    client.force_login(nguoi_dung["staff_sale_1"])
-    kq = client.post(_duong_dan_o(bg, "khach"), {"gia_tri": "Đã đổi"})
-    assert kq.status_code == 404             # ngoài phạm vi, không thấy bản ghi
-
-    bg.refresh_from_db()
-    assert bg.data["khach"] == "Của người khác"
-
-
-def test_staff_sua_duoc_dong_cua_chinh_minh(client, bang_sale, nguoi_dung):
-    """AC-7.4 — Chiều được phép: Staff sửa được dòng do chính mình tạo"""
+@pytest.mark.parametrize("ai", ["staff_sale_1", "leader_sale_1", "manager_sale", "admin"])
+def test_bang_du_lieu_chi_xem_voi_moi_cap_bac(client, bang_sale, nguoi_dung, ai):
+    """AC-7.4 — Bảng dữ liệu chỉ để xem với mọi cấp bậc, kể cả người tạo dòng và Admin: không có ô sửa, đường sửa ô cũ trả 404, dữ liệu và nhật ký không đổi; sửa số liệu ở KN CRM"""
     bg = _dong(bang_sale, nguoi_dung["staff_sale_1"], khach="Của tôi", so_luong=1)
-
-    client.force_login(nguoi_dung["staff_sale_1"])
-    assert client.post(_duong_dan_o(bg, "khach"), {"gia_tri": "Của tôi, đã sửa"}).status_code == 200
-    bg.refresh_from_db()
-    assert bg.data["khach"] == "Của tôi, đã sửa"
-
-
-def test_khong_sua_duoc_cot_tinh_san(client, bang_sale, nguoi_dung):
-    """ADR-006 — Cột tính sẵn không sửa tay được, kể cả gọi thẳng đường dẫn"""
-    bg = _dong(bang_sale, nguoi_dung["manager_sale"], doanh_thu="1000", so_luong=4)
-    assert bg.data["gia_dv"] == "250.00"
-
-    client.force_login(nguoi_dung["manager_sale"])
-    kq = client.post(_duong_dan_o(bg, "gia_dv"), {"gia_tri": "999"})
-    assert kq.status_code == 400
-
-    bg.refresh_from_db()
-    assert bg.data["gia_dv"] == "250.00"
-
-
-def test_sua_o_sinh_mot_dong_nhat_ky(client, bang_sale, nguoi_dung):
-    """AC-9.2 — Mọi thao tác thay đổi dữ liệu sinh một dòng nhật ký"""
-    bg = _dong(bang_sale, nguoi_dung["manager_sale"], khach="Trước", so_luong=1)
     truoc = AuditLog.objects.filter(action=AuditAction.UPDATE).count()
 
-    client.force_login(nguoi_dung["manager_sale"])
-    client.post(_duong_dan_o(bg, "khach"), {"gia_tri": "Sau"})
+    client.force_login(nguoi_dung[ai])
+    kq = client.get("/bang/don_sale/")
+    assert kq.status_code == 200
+    html = kq.content.decode()
+    than = _than_bang(html)
+    assert "Của tôi" in than
+    for dau in DAU_VET_SUA_O:
+        assert dau not in than, f"còn dấu vết sửa ô: {dau}"
+    assert "Bảng này chỉ để xem" in html
+    assert 'rel="noopener">Mở trong KN CRM</a>' in html
 
-    ds = AuditLog.objects.filter(action=AuditAction.UPDATE)
-    assert ds.count() == truoc + 1
-    assert "Trước → Sau" in ds.latest("created_at").detail
-
-
-def test_sua_o_gia_tri_khong_doi_thi_khong_ghi_nhat_ky(client, bang_sale, nguoi_dung):
-    """BR-5 — Không đổi gì thì không ghi nhật ký, tránh nhật ký rác"""
-    bg = _dong(bang_sale, nguoi_dung["manager_sale"], khach="Y nguyên", so_luong=1)
-    truoc = AuditLog.objects.filter(action=AuditAction.UPDATE).count()
-
-    client.force_login(nguoi_dung["manager_sale"])
-    client.post(_duong_dan_o(bg, "khach"), {"gia_tri": "Y nguyên"})
-
+    kq = client.post(_duong_dan_o_cu(bg, "khach"), {"gia_tri": "Đã đổi"})
+    assert kq.status_code == 404
+    bg.refresh_from_db()
+    assert bg.data["khach"] == "Của tôi"
     assert AuditLog.objects.filter(action=AuditAction.UPDATE).count() == truoc
 
 
-def test_sua_o_cap_nhat_luon_cot_tinh_san(client, bang_sale, nguoi_dung):
+# ══ Dịch vụ sửa ô — dùng chung với lưới KN CRM, không có đường HTTP ở ERP ═══
+
+def test_update_cell_tu_choi_cot_tinh_san(bang_sale, nguoi_dung):
+    """ADR-006 — Cột tính sẵn không sửa tay được, kể cả gọi thẳng tầng dịch vụ"""
+    bg = _dong(bang_sale, nguoi_dung["manager_sale"], doanh_thu="1000", so_luong=4)
+    assert bg.data["gia_dv"] == "250.00"
+
+    with pytest.raises(BusinessError):
+        record_service.update_cell(bg, "gia_dv", "999", actor=nguoi_dung["manager_sale"])
+    bg.refresh_from_db()
+    assert bg.data["gia_dv"] == "250.00"
+
+
+def test_update_cell_tinh_lai_cot_tinh_san(bang_sale, nguoi_dung):
     """AC-7.10 — Sửa cột nguồn thì cột tính sẵn đổi theo ngay"""
     bg = _dong(bang_sale, nguoi_dung["manager_sale"], doanh_thu="1000", so_luong=4)
-
-    client.force_login(nguoi_dung["manager_sale"])
-    client.post(_duong_dan_o(bg, "so_luong"), {"gia_tri": "5"})
-
+    record_service.update_cell(bg, "so_luong", "5", actor=nguoi_dung["manager_sale"])
     bg.refresh_from_db()
     assert bg.data["gia_dv"] == "200.00"
 
 
-def test_gia_tri_sai_kieu_bi_tu_choi(client, bang_sale, nguoi_dung):
-    """NFR-6 — Gõ sai kiểu thì báo lỗi tiếng Việt, không hiện trang trắng"""
-    bg = _dong(bang_sale, nguoi_dung["manager_sale"], so_luong=1)
+def test_update_cell_khong_doi_thi_khong_ghi_nhat_ky(bang_sale, nguoi_dung):
+    """BR-5 — Không đổi gì thì không ghi nhật ký; đổi thì đúng một dòng ghi Trước → Sau (AC-9.2)"""
+    bg = _dong(bang_sale, nguoi_dung["manager_sale"], khach="Y nguyên", so_luong=1)
+    truoc = AuditLog.objects.filter(action=AuditAction.UPDATE).count()
 
-    client.force_login(nguoi_dung["manager_sale"])
-    kq = client.post(_duong_dan_o(bg, "so_luong"), {"gia_tri": "không phải số"})
-    assert kq.status_code == 400
-    assert "Số nguyên" in kq.content.decode()
+    record_service.update_cell(bg, "khach", "Y nguyên", actor=nguoi_dung["manager_sale"])
+    assert AuditLog.objects.filter(action=AuditAction.UPDATE).count() == truoc
+
+    record_service.update_cell(bg, "khach", "Đã đổi", actor=nguoi_dung["manager_sale"])
+    ds = AuditLog.objects.filter(action=AuditAction.UPDATE)
+    assert ds.count() == truoc + 1
+    assert "Y nguyên → Đã đổi" in ds.latest("created_at").detail
 
 
 # ══ Đổi công thức thì tính lại dữ liệu cũ — ADR-006 ════════════════

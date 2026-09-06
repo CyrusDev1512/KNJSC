@@ -1,8 +1,9 @@
 """Danh sách chọn của cột: ai thêm được, thêm thế nào, và lấy danh sách để vẽ
 ô chọn — FR-8.7, Q58.
 
-Tầng dịch vụ (điều cấm 2): đường dẫn "Thêm mới…" trên biểu mẫu, trên ô bảng
-và bất kỳ chỗ nào sau này đều gọi vào đây. Việc *phân giải* danh sách nằm ở
+Tầng dịch vụ (điều cấm 2): đường dẫn "Thêm mới…" trên biểu mẫu, nộp báo cáo
+ngày, Lên đơn và bất kỳ chỗ nhập nào sau này đều gọi vào đây. Bảng dữ liệu
+không có ô chọn vì chỉ để xem (ADR-014). Việc *phân giải* danh sách nằm ở
 `forms_builder.choice_registry`; tệp này chỉ thêm phần quyền, phần ghi và
 phần dọn dữ liệu cho giao diện.
 """
@@ -85,23 +86,3 @@ def add_option(column, label, *, actor=None, request=None):
     raise BusinessError(
         f'Danh sách của cột "{column.name}" do hệ thống quản lý, không thêm tại đây.'
     )
-
-
-def attach_lists(columns, *, user, table):
-    """Gắn danh sách chọn lên từng cột để template chỉ in ra: `la_chon` (là cột
-    Chọn một), `cac_muc` (các mục), `chat` (chặt hay gợi ý), `co_them` (được thêm mới).
-
-    Mỗi nguồn hệ thống tốn một truy vấn; danh sách trên cột không tốn gì.
-    Cột không phải Chọn một thì `cac_muc` là None.
-    """
-    duoc_them = can_manage_options(user, table)
-    for cot in columns:
-        cot.la_chon = cot.field_type == FieldType.CHOICE
-        if not cot.la_chon:
-            cot.cac_muc, cot.chat, cot.co_them = None, True, False
-            continue
-        ds = choice_registry.for_column(cot)
-        cot.cac_muc = items(ds)
-        cot.chat = ds.strict
-        cot.co_them = duoc_them and ds.can_add
-    return columns

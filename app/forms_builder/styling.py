@@ -60,22 +60,21 @@ def decorate_columns(columns):
     return columns
 
 
-def cell_class(column, value, *, editable, error=False):
-    """Chuỗi lớp của một `<td>`: kiểu ô (tính sẵn, sửa được), màu cột, cảnh báo, lỗi."""
+def cell_class(column, value):
+    """Chuỗi lớp của một `<td>`: cột tính sẵn, màu cột, cảnh báo.
+
+    Không có lớp "ô sửa được": Bảng dữ liệu chỉ để xem với mọi bảng (ADR-014).
+    """
     phan = []
     if column.is_computed:
         phan += ["tien", "o-tinh"]
-    elif editable:
-        phan.append("o-sua")
     phan += [column_class(column), alert_class(column, value)]
-    if error:
-        phan.append("o-loi")
     return " ".join(p for p in phan if p)
 
 
-def row_cells(record, columns, *, editable=False):
+def row_cells(record, columns):
     """`[(cột, giá trị, lớp)]` cho một dòng — thay cho `query.read_row` khi vẽ bảng."""
     return [
-        (cot, gia_tri, cell_class(cot, gia_tri, editable=editable))
+        (cot, gia_tri, cell_class(cot, gia_tri))
         for cot, gia_tri in query.read_row(record, columns)
     ]
