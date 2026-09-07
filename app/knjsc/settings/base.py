@@ -220,6 +220,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "culture.thuong_sao_thang",
         "schedule": crontab(day_of_month=1, hour=1, minute=0),
     },
+    "thiep-sinh-nhat": {
+        "task": "feed.thiep_sinh_nhat",
+        "schedule": crontab(hour=6, minute=0),
+    },
 }
 
 # ── Cảnh báo cho người vận hành ─────────────────────────────────────

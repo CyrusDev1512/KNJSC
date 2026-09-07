@@ -1,0 +1,33 @@
+{% comment %}
+Một bài trên Bảng tin. Cần: bai (Post có author, subject kèm profile, thuộc tính
+duoc_go), da_thich, so_thich, so_binh_luan, duoc_ghim (người xem là Manager trở lên).
+{% endcomment %}
+<article class="the bai {% if bai.la_sinh_nhat %}bai-sinh-nhat{% endif %}" id="bai-{{ bai.pk }}">
+  <div class="bai-dau">
+    {% if bai.author %}
+      <div class="avatar avatar-lon">{{ bai.author.profile.full_name|default:bai.author.username|first|upper }}</div>
+      <div>
+        <b><a href="{% url 'van_hoa_thanh_vien' bai.author.pk %}">{{ bai.author.profile.full_name|default:bai.author.username }}</a></b>
+        <div class="nho mo-nhat">{{ bai.author.profile.department|default:"—" }} · {{ bai.created_at|date:"d.m.Y H:i" }}</div>
+      </div>
+    {% else %}
+      <div class="avatar avatar-lon">🎂</div>
+      <div>
+        <b>KN JSC</b>
+        <div class="nho mo-nhat">Thiệp tự động · {{ bai.created_at|date:"d.m.Y" }}</div>
+      </div>
+    {% endif %}
+    {% if bai.is_pinned %}<span class="chip chip-nhan day">Đã ghim</span>{% endif %}
+  </div>
+  <p class="bai-than">{{ bai.body }}</p>
+  <div class="bai-chan">
+    {% include "feed/_thich.html" with bai=bai da_thich=da_thich so_thich=so_thich %}
+    <a class="nut nut-nho" href="{% url 'bang_tin_xem' bai.pk %}">{{ so_binh_luan }} bình luận</a>
+    {% if duoc_ghim %}
+      <form method="post" action="{% url 'bang_tin_ghim' bai.pk %}">{% csrf_token %}<button class="nut nut-nho" type="submit">{% if bai.is_pinned %}Gỡ ghim{% else %}Ghim{% endif %}</button></form>
+    {% endif %}
+    {% if bai.duoc_go %}
+      <form method="post" action="{% url 'bang_tin_go' bai.pk %}">{% csrf_token %}<button class="nut nut-nho nut-nguy" type="submit">Gỡ bài</button></form>
+    {% endif %}
+  </div>
+</article>

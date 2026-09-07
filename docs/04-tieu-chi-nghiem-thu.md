@@ -275,6 +275,12 @@ Bảng tin chung của công ty — FR-10.1 tới FR-10.6, ADR-015.
 
 | Mã | Tiêu chí | Yêu cầu | Loại |
 |---|---|---|---|
+| AC-13.1 | Ai đăng nhập cũng đăng được bài dạng chữ và thấy mọi bài, không phân theo bộ phận; bài ghim đứng đầu; bài trống hay quá dài bị từ chối; danh sách phân trang 25 dòng; GET vào đường đăng trả 405; chưa đăng nhập bị chuyển về đăng nhập | FR-10.1 · FR-10.6 | Tự động |
+| AC-13.2 | Bấm thích qua HTMX nhận về đúng nút mới với số lượt; bấm lại là bỏ thích, thích lại không sinh dòng mới; bình luận hiện dưới bài kèm số bình luận, gửi qua HTMX nhận về mảnh bình luận; bình luận trống bị từ chối; bài đã gỡ hay không có trả 404; mỗi tương tác một dòng nhật ký | FR-10.2 · FR-10.6 · BR-5 | Tự động |
+| AC-13.3 | Manager và Admin ghim, gỡ ghim và gỡ được bài bất kỳ; tác giả gỡ được bài của mình; Staff hay Leader ghim hoặc gỡ bài người khác bị từ chối có nhật ký và không thấy nút; gỡ là xoá mềm; bình luận gỡ bởi người viết hoặc Manager trở lên | FR-10.3 · FR-3.5 · BR-4 | Tự động |
+| AC-13.4 | Mỗi sáng hệ thống đăng thiệp cho người có sinh nhật hôm đó theo hồ sơ, mỗi người mỗi năm một thiệp; dịch vụ, lệnh và tác vụ nền chạy lại không nhân đôi, thiệp đã gỡ không đăng lại; tài khoản đã khoá không có thiệp; sinh 29.02 được chúc ngày 28.02 năm không nhuận; thiệp hiện trên Bảng tin với kiểu riêng | FR-10.4 | Tự động |
+| AC-13.5 | Thanh bên hiện sinh nhật tháng này theo ngày, năm người nhiều sao nhất, ba ghi nhận mới nhất và thành viên có hồ sơ tạo trong 30 ngày; trang Bảng tin và trang bài có dữ liệu chạy không quá 10 lệnh truy vấn | FR-10.5 · Q4 | Tự động |
+| AC-13.6 | Bảng tin trên điện thoại: bài đọc được, bấm Thích và gửi bình luận được, thanh bên xếp xuống dưới bài, không tràn ngang | FR-10.1 · NFR-7 | Thủ công |
 
 ---
 

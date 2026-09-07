@@ -232,6 +232,8 @@ LOP_BO_NGHIA = {
     "nut-chinh": "nut", "nut-nho": "nut", "nut-nguy": "nut", "nut-nav": "nut",
     "chip-tot": "chip", "chip-xau": "chip", "chip-nhat": "chip",
     "chip-nhan": "chip", "chip-cho": "chip",
+    # Bảng tin (ADR-015)
+    "bai-sinh-nhat": "bai", "avatar-lon": "avatar", "nut-thich": "nut",
 }
 
 

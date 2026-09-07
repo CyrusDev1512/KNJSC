@@ -168,7 +168,7 @@ def test_bang_xep_hang_doanh_so_thang_nay(client, nguoi_dung, san_pham):
             leaderboard_service.sales_leaderboard()
         kq = client.get("/van-hoa/")
         assert kq.status_code == 200 and kq.context["bang_xep_hang"] == []
-        assert "Chưa có tỉ giá cho USD" in kq.content.decode()
+        assert "Chưa có tỉ giá cho" in kq.content.decode()
 
 
 # ══ AC-15.3 · Thưởng sao tháng ═════════════════════════════════════

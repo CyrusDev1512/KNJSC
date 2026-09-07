@@ -72,6 +72,7 @@ def sales_leaderboard(period=None, *, limit=LEADERBOARD_ROWS, users=None):
         .filter(created_at__gte=dau, created_at__lt=cuoi, seller__isnull=False)
         .values("seller", "currency")
         .annotate(so_don=Count("id"), tong=Sum("total"))
+        .order_by("seller", "currency")      # thứ tự cố định: lỗi thiếu tỉ giá nêu đúng một loại tiền
     )
     gop = {}
     for r in rows:

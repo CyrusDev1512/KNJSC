@@ -1,0 +1,31 @@
+{% comment %}
+Bình luận của một bài kèm ô viết — mảnh HTMX thay chính nó sau khi gửi.
+Cần: bai, cac_binh_luan (mỗi cái có thuộc tính duoc_go), comment_max, loi.
+{% endcomment %}
+<div class="binh-luan-ds" id="binh-luan-{{ bai.pk }}">
+  {% for bl in cac_binh_luan %}
+    <div class="binh-luan">
+      <div class="avatar">{{ bl.author.profile.full_name|default:bl.author.username|default:"?"|first|upper }}</div>
+      <div class="binh-luan-than">
+        <b>{{ bl.author.profile.full_name|default:bl.author.username|default:"Tài khoản đã xoá" }}</b>
+        <span class="nho mo-nhat">{{ bl.created_at|date:"d.m.Y H:i" }}</span>
+        <p>{{ bl.body }}</p>
+      </div>
+      {% if bl.duoc_go %}
+        <form method="post" action="{% url 'bang_tin_binh_luan_go' bl.pk %}">{% csrf_token %}<button class="nut nut-nho nut-nguy" type="submit">Gỡ</button></form>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p class="nho mo-nhat binh-luan-trong">Chưa có bình luận. Viết vài dòng đi!</p>
+  {% endfor %}
+  <form class="binh-luan-viet" method="post" action="{% url 'bang_tin_binh_luan' bai.pk %}"
+        hx-post="{% url 'bang_tin_binh_luan' bai.pk %}" hx-target="#binh-luan-{{ bai.pk }}" hx-swap="outerHTML">
+    {% csrf_token %}
+    <label class="nho mo-nhat" for="bl-body-{{ bai.pk }}">Bình luận của bạn</label>
+    <div class="hang">
+      <input class="o-nhap" id="bl-body-{{ bai.pk }}" name="body" maxlength="{{ comment_max }}" required placeholder="Viết bình luận…">
+      <button class="nut nut-nho nut-chinh" type="submit">Gửi</button>
+    </div>
+    {% if loi %}<div class="loi-truong">{{ loi }}</div>{% endif %}
+  </form>
+</div>

@@ -108,6 +108,42 @@ GHI_NHAN_MAU = [
     ("sale.leader", "sale.staff2", "tan_tam", "Ở lại gọi thêm khách Canada tới tối để kịp đơn."),
 ]
 
+#: Ngày sinh mẫu — `sale.staff` đúng hôm nay để Bảng tin có thiệp ngay khi dựng (FR-10.4)
+NGAY_SINH_MAU = {
+    "sale.staff": "hom-nay",
+    "sale.staff2": (1998, 11, 20),
+    "sale.leader": (1990, 3, 8),
+    "mkt.staff": (1999, 7, 14),
+    "mkt.manager": (1987, 12, 25),
+    "vd.staff": (1996, 5, 2),
+}
+
+#: Bài mẫu trên Bảng tin — (tác giả, nội dung, ghim)
+BAI_MAU = [
+    ("quantri", "Chào mừng cả nhà đến với Bảng tin nội bộ KN JSC! Đây là nơi đăng thông báo, "
+                "chia sẻ tin vui và chúc mừng nhau. Ai cũng đăng được; quản lý ghim bài quan trọng lên đầu.", True),
+    ("sale.manager", "Tháng này team Sale chốt vượt mục tiêu 12%. Cảm ơn cả team đã gọi khách tới tối. "
+                     "Thứ Hai tuần sau họp tổng kết lúc 9h sáng.", False),
+    ("mkt.manager", "Bộ ảnh sản phẩm đèn ngủ mới đã lên. Team Sale lấy ảnh ở mục Tài liệu Marketing để gửi khách.", False),
+    ("vd.manager", "Nhắc cả nhà: đơn Canada chốt sau 16h sẽ đi chuyến hôm sau. "
+                   "Ghi rõ ghi chú giao hàng trên bảng vận đơn giúp bên mình.", False),
+    ("sale.staff", "Hôm nay mình chốt được khách đầu tiên ở Philippines. Cảm ơn anh Dũng đã hướng dẫn kịch bản!", False),
+]
+
+#: Bình luận mẫu — (số thứ tự bài, người viết, nội dung)
+BINH_LUAN_MAU = [
+    (5, "sale.leader", "Giỏi lắm, giữ phong độ nhé!"),
+    (5, "mkt.staff", "Chúc mừng Hà!"),
+    (2, "sale.leader2", "Team 2 cũng đã sẵn sàng cho tháng sau."),
+]
+
+#: Lượt thích mẫu — (số thứ tự bài, người thích)
+THICH_MAU = [
+    (1, "sale.staff"), (1, "mkt.staff"), (1, "vd.staff"),
+    (5, "sale.leader"), (5, "sale.manager"), (5, "mkt.staff"),
+    (3, "sale.staff"),
+]
+
 #: Bốn cột tính sẵn — đúng bốn công thức trong tệp thật của khách hàng.
 #: (nhãn, tên kỹ thuật, phép tính, toán hạng A, toán hạng B, số chữ số thập phân)
 COT_TINH_BC_MKT = [
@@ -176,7 +212,9 @@ class Command(BaseCommand):
         self.mat_khau = o["mat_khau"]
         self.da_tao = {"bộ phận": 0, "team": 0, "tài khoản": 0,
                        "bảng": 0, "biểu mẫu": 0, "sản phẩm": 0, "dòng dữ liệu": 0,
-                       "tài liệu": 0, "việc": 0, "đơn hàng": 0, "ghi nhận": 0}
+                       "tài liệu": 0, "việc": 0, "đơn hàng": 0, "ghi nhận": 0,
+                       "ngày sinh": 0, "bài": 0, "bình luận": 0, "lượt thích": 0,
+                       "thiệp sinh nhật": 0}
         self.dat_lai_mat_khau = 0
 
         bo_phan = self._bo_phan()
@@ -190,6 +228,8 @@ class Command(BaseCommand):
         self._cong_viec(nguoi)
         self._don_hang(nguoi)
         self._ghi_nhan(nguoi)
+        self._ngay_sinh(nguoi)
+        self._bang_tin(nguoi)
 
         self._bao_cao_ket_qua(nguoi)
 
@@ -438,6 +478,41 @@ class Command(BaseCommand):
             recognition_service.give_recognition(
                 receiver=nguoi[nguoi_nhan], value=gia_tri, message=loi_nhan, actor=nguoi[ai])
             self.da_tao["ghi nhận"] += 1
+
+    def _ngay_sinh(self, nguoi):
+        """Ngày sinh cho vài hồ sơ mẫu — chỉ điền chỗ còn trống, không ghi đè."""
+        hom_nay = timezone.localdate()
+        for ten_dn, ngay in NGAY_SINH_MAU.items():
+            ho_so = nguoi[ten_dn].profile
+            if ho_so.birthday is not None:
+                continue
+            # 1996 nhuận, nên hôm nay là 29.02 vẫn đổi năm được
+            ho_so.birthday = hom_nay.replace(year=1996) if ngay == "hom-nay" else date(*ngay)
+            ho_so.save(update_fields=["birthday"])
+            self.da_tao["ngày sinh"] += 1
+
+    def _bang_tin(self, nguoi):
+        """Năm bài (bài chào mừng ghim), bình luận, lượt thích, và thiệp sinh nhật
+        hôm nay — cùng hàm với tác vụ nền 06:00 (FR-10.4)."""
+        from feed.constants import PostKind
+        from feed.models import Post
+        from feed.services import post_service
+
+        if not Post.all_objects.filter(kind=PostKind.BAI_VIET).exists():
+            cac_bai = []
+            for ai, noi_dung, ghim in BAI_MAU:
+                bai = post_service.create_post(body=noi_dung, actor=nguoi[ai])
+                if ghim:
+                    post_service.pin_post(bai, actor=nguoi[ai])
+                cac_bai.append(bai)
+                self.da_tao["bài"] += 1
+            for so, ai, noi_dung in BINH_LUAN_MAU:
+                post_service.add_comment(cac_bai[so - 1], body=noi_dung, actor=nguoi[ai])
+                self.da_tao["bình luận"] += 1
+            for so, ai in THICH_MAU:
+                post_service.toggle_like(cac_bai[so - 1], actor=nguoi[ai])
+                self.da_tao["lượt thích"] += 1
+        self.da_tao["thiệp sinh nhật"] += post_service.create_birthday_posts(timezone.localdate())
 
     # ── Báo cáo kết quả ──
 

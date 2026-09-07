@@ -254,7 +254,7 @@ def test_cong_mot_nghin_dong_tien_khong_sai_so():
 
 @pytest.mark.parametrize(
     "duong_dan",
-    ["/nhan-su/", "/nhat-ky/", "/bo-phan/", "/bang/", "/ma-tran-quyen/", "/tai-lieu/", "/cong-viec/", "/van-hoa/"],
+    ["/nhan-su/", "/nhat-ky/", "/bo-phan/", "/bang/", "/ma-tran-quyen/", "/tai-lieu/", "/cong-viec/", "/van-hoa/", "/bang-tin/"],
 )
 def test_man_hinh_danh_sach_khong_qua_muoi_lenh_truy_van(
     client, nguoi_dung, django_assert_max_num_queries, duong_dan,

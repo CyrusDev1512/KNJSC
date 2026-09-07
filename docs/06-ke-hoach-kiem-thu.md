@@ -35,8 +35,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **117** — 106 tự động, 11 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **105 trên 106** |
+| Tiêu chí nghiệm thu trong `docs/04` | **123** — 111 tự động, 12 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **110 trên 111** |
 | Tiêu chí tự động còn hoãn | **1**, đều thuộc diện chờ người dùng chốt — `AC-5.1`, backlog N9 |
 | Bao phủ dòng mã | khoảng 85% |
 
@@ -130,6 +130,7 @@ bấm tay từng bước ở `docs/07-kich-ban-nghiem-thu.md`**.
 | ☐ | `AC-11.11` | Bảng tính trên điện thoại và máy tính bảng | `vd.staff` | Lưới cuộn trong khung, bấm được ô, hộp lọc mở được |
 | ☐ | `AC-8.10` | Bảng dữ liệu có viền ô, tiêu đề xanh lá, màu cột và ô cảnh báo | `mkt.manager` | Mở `/bang/bao_cao_mkt/` ở nền sáng rồi nền tối: mọi ô có viền, tiêu đề xanh lá, cột Tỉ lệ chốt vàng, ô CPO vượt 1.500.000 đỏ, ô đạt xanh lá; mở một báo cáo ở Lịch sử báo cáo thấy cùng màu |
 | ☐ | `AC-11.18` | Bảng tính là trang toàn màn hình riêng; độ rộng, thứ tự, cột ẩn nhớ trên trình duyệt | `mkt.manager` | Không thanh bên hệ thống; kéo mép chữ cột, kéo thả chữ cột, ẩn cột rồi tải lại vẫn giữ; Đặt lại cột về mặc định |
+| ☐ | `AC-13.6` | Bảng tin trên điện thoại | `sale.staff` | Mở `/bang-tin/` trên máy thật: bài đọc được, bấm Thích và gửi bình luận được, thanh bên xếp xuống dưới bài, không tràn ngang |
 | ☐ | `AC-11.27` | Bảng tính nhìn và thao tác như KN Demo | `mkt.manager`, `vd.staff` | Đặt cạnh ảnh `docs/tham-khao/kn-demo/`: khung, thanh công cụ, thanh công thức, số dòng, chữ cột, cột trống, chân trang, ⛶; kéo chọn vùng thấy viền vàng và tay kéo điền |
 
 ### Bảy việc ở `docs/04` mục 17
@@ -144,7 +145,7 @@ bấm tay từng bước ở `docs/07-kich-ban-nghiem-thu.md`**.
 | ☐ | Phục hồi từ bản sao lưu | Chạy được — `scripts/restore.sh`, chưa thử |
 | ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | Chạy được, chưa thử |
 
-**Mười tám việc đều chạy được**, chỉ còn `AC-10.3` biết trước là chưa đạt
+**Mười chín việc đều chạy được**, chỉ còn `AC-10.3` biết trước là chưa đạt
 (trang 404 tiếng Việt — K9, người dùng chốt chưa làm). `AC-1.7` từng nằm ở bảng trên nhưng đã
 bỏ theo **Q34** — không cần điều hướng sau đăng nhập nữa.
 
