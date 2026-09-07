@@ -39,7 +39,9 @@ docs/
 │
 ├── kien-truc.md                     kiến trúc tổng thể, lộ trình tám giai đoạn
 ├── so-do-kien-truc.html             năm sơ đồ dạng hình
-├── backlog.md                       phát hiện và câu hỏi chưa quyết
+├── backlog.md
+├── backlog-kanban.md               bảng việc To do / In progress / Finished / Far Plan
+├── test-log.md                     lỗi cần sửa: mức, chỗ sai, blocker, ảnh hưởng, nhánh                       phát hiện và câu hỏi chưa quyết
 │
 ├── quyet-dinh/                      nhật ký quyết định kiến trúc
 │   ├── README.md

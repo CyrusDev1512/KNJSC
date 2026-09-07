@@ -13,6 +13,7 @@ không hỏi lại người dùng những gì họ đã trả lời.
 | Đọc | Trả lời câu gì |
 |---|---|
 | `docs/backlog.md` **mục 0** | **Còn nợ những gì** — bản tóm mọi việc chưa xong, cả của người dùng lẫn của mã |
+| `docs/backlog-kanban.md`, `docs/test-log.md` | Việc đang ở cột nào (To do / In progress / Finished / Far Plan) và **từng lỗi `TL-xx`** kèm mức, chỗ sai, blocker |
 | `docs/dashboard-tien-do.html` | Đã làm tới đâu, giai đoạn nào xong |
 | `docs/quyet-dinh/` | Vì sao làm thế. **Đừng quyết lại những gì đã chốt** |
 | `docs/06-ke-hoach-kiem-thu.md` | Kiểm thử ra sao, việc nào người phải bấm tay |
