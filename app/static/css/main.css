@@ -328,7 +328,8 @@ table.bang tfoot td.tien { font-family: var(--font-ma); text-align: right; }
 table.bang-rong td, table.bang-rong th { white-space: nowrap; }
 table.bang-rong td.cho-xuong { white-space: normal; min-width: 200px; }
 
-/* Ô sửa được tại chỗ */
+/* Ô sửa được của lưới KN CRM (bang-tinh.css ghi đè thêm). Bảng dữ liệu ở
+   KN ERP không có ô sửa — chỉ để xem, ADR-014 */
 .o-sua { cursor: text; border-radius: var(--r-sm); padding: 0; }
 .o-sua:hover { box-shadow: inset 0 0 0 1px var(--rule-strong); background: var(--surface); }
 .o-sua:focus-within {
@@ -361,17 +362,11 @@ table.bang-rong td.cho-xuong { white-space: normal; min-width: 200px; }
   color: var(--critical);
   font-size: var(--fs-xs);
 }
-.o-loi-ly-do {
-  display: block; padding: 0 var(--sp-3) var(--sp-1);
-  font-size: var(--fs-xs); color: var(--critical);
-}
 
 /* ══ Ô CHỌN CÓ "THÊM MỚI…" — FR-8.7 ══
    Ô chọn từ danh sách; hộp gõ giá trị mới ẩn sẵn, static/js/chon.js mở ra. */
 .o-chon { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); width: 100%; }
 .o-chon > select, .o-chon > input { flex: 1 1 12ch; min-width: 0; }
-/* Trong ô bảng: ô chọn đủ rộng để đọc được tên sản phẩm, bảng cuộn ngang thay vì cắt cụt */
-td .o-chon > select { min-width: 16ch; }
 select.o-trong-bang { cursor: pointer; }
 .o-chon-them { display: inline-flex; align-items: center; gap: var(--sp-2); flex: 1 1 100%; }
 .o-chon-them[hidden] { display: none; }

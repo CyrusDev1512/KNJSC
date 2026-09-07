@@ -80,7 +80,7 @@ kim-ngan-jsc/
 │   │   ├── views/
 │   │   │   ├── builder_views.py           trình tạo biểu mẫu và bảng
 │   │   │   ├── form_views.py              điền biểu mẫu
-│   │   │   └── table_views.py             xem và sửa bảng
+│   │   │   └── table_views.py             xem bảng (chỉ xem), sửa cột, nhập xuất
 │   │   ├── urls.py
 │   │   ├── migrations/
 │   │   └── tests/
@@ -150,7 +150,7 @@ kim-ngan-jsc/
 │   │   ├── js/
 │   │   │   ├── htmx.min.js
 │   │   │   ├── chon.js                    ô chọn có "Thêm mới…"
-│   │   │   └── table.js                   lọc, sắp xếp, sửa ô
+│   │   │   └── bang-tinh.js, bang-tinh-o.js   lưới KN CRM (ADR-011)
 │   │   └── img/
 │   │
 │   └── conftest.py                        cấu hình chung cho kiểm thử
@@ -209,7 +209,8 @@ kim-ngan-jsc/
 │   │   ├── 011-bang-tinh-theo-mau-kn-demo.md
 │   │   ├── 012-kn-crm-app-rieng-cay-thang.md
 │   │   ├── 013-danh-sach-chon-va-mau-cot.md
-│   │   └── 014-kn-crm-khung-sidebar-leader-nhu-manager.md
+│   │   ├── 014-bang-du-lieu-chi-xem.md
+│   │   └── 015-kn-crm-khung-sidebar-leader-nhu-manager.md
 │   └── tham-khao/
 │       ├── CRM_Tan.xlsx
 │       ├── vandon-mau.xlsx
@@ -317,6 +318,7 @@ Ba tệp ở gốc là ba thứ dễ hỏng nhất và không thuộc module nà
 | `011-bang-tinh-theo-mau-kn-demo.md` | Vì sao nhìn và thao tác theo KN Demo mà không nhúng mã demo; bảng "không làm" |
 | `012-kn-crm-app-rieng-cay-thang.md` | Vì sao Bảng tính là app riêng KN CRM (dịch vụ riêng, chung mã), trang chủ cây Bộ phận ▸ Quý ▸ Tháng, tháng là góc nhìn |
 | `013-danh-sach-chon-va-mau-cot.md` | Danh sách chọn và màu cột là thuộc tính của cột, Manager quản lý; danh tính người điền do hệ thống ghi |
-| `014-kn-crm-khung-sidebar-leader-nhu-manager.md` | Vì sao KN CRM có hai khung (sidebar theo Teeze cho trang chủ tổng quan, thư mục, nhập tệp; lưới vẫn toàn màn hình), Leader được như Manager trong bộ phận mình, và tạo bảng, nhập tệp, cấp quyền chạy ngay trong KN CRM |
+| `014-bang-du-lieu-chi-xem.md` | Bảng dữ liệu ở KN ERP chỉ để xem với mọi bảng; sửa số liệu là việc của KN CRM |
+| `015-kn-crm-khung-sidebar-leader-nhu-manager.md` | Vì sao KN CRM có hai khung (sidebar theo Teeze cho trang chủ tổng quan, thư mục, nhập tệp; lưới vẫn toàn màn hình), Leader được như Manager trong bộ phận mình, và tạo bảng, nhập tệp, cấp quyền chạy ngay trong KN CRM |
 
 Bốn tệp này viết ngay khi tạo repo, không đợi.

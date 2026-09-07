@@ -1,4 +1,4 @@
-# ADR-014 — KN CRM có khung sidebar theo Teeze, trang chủ là tổng quan, Leader như Manager trong bộ phận
+# ADR-015 — KN CRM có khung sidebar theo Teeze, trang chủ là tổng quan, Leader như Manager trong bộ phận
 
 | Mục | Nội dung |
 |---|---|
@@ -6,7 +6,7 @@
 | Ngày | 07.09.2026 |
 | Người quyết định | Anh/chị chủ dự án, qua bốn điểm chưa hợp lý nêu tối 06.09.2026 và ba câu hỏi chốt |
 | Thay thế cho | **ADR-012 mục 1** phần "cùng một khung cho trang chủ lẫn lưới; nút ← từ trang chủ về KN ERP" · **ADR-012 mục 2** phần "trang chủ là cây" (cây chuyển sang mục Bảng tính) · **ADR-012 mục 5** phần "Manager cấp quyền ở KN ERP, KN CRM chỉ hiển thị" · **ADR-010 mục 6, ADR-011 mục chuột phải** phần "Manager" → quản lý của bộ phận |
-| Liên quan | ADR-009 · ADR-010 · ADR-011 · ADR-012 · FR-7.14 · FR-7.15 · backlog Q62 → Q64 |
+| Liên quan | ADR-009 · ADR-010 · ADR-011 · ADR-012 · FR-7.14 · FR-7.15 · backlog Q63 → Q65 |
 
 ---
 

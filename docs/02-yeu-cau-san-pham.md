@@ -112,7 +112,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-7.1 | Hệ thống phải hiển thị dữ liệu dạng bảng, có phân trang |
 | FR-7.2 | Hệ thống phải cho phép lọc theo từng cột |
 | FR-7.3 | Hệ thống phải cho phép sắp xếp theo từng cột |
-| FR-7.4 | Hệ thống phải cho phép sửa dữ liệu trực tiếp trên bảng, nếu người dùng có quyền |
+| FR-7.4 | Bảng dữ liệu ở KN ERP **chỉ để xem** với mọi bảng và mọi cấp bậc: không có ô sửa tại chỗ, không có đường sửa ô; sửa số liệu là việc của KN CRM (FR-7.13) — ADR-014, thay cho yêu cầu cũ "sửa trực tiếp trên bảng nếu có quyền" |
 | FR-7.5 | Hệ thống phải cho phép nhập dữ liệu từ tệp Excel |
 | FR-7.6 | Hệ thống phải cho phép xuất dữ liệu ra tệp Excel |
 | FR-7.7 | Tệp xuất ra phải nhập lại được vào hệ thống mà không phát sinh lỗi |
@@ -122,8 +122,8 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-7.11 | Định dạng ô đủ như bảng tính — nghiêng, gạch chân, gạch ngang, xuống dòng, viền, màu chữ và màu nền từ bảng 40 màu, cỡ chữ, định dạng số — vẫn là sổ đóng lưu trong cơ sở dữ liệu (ADR-010, ADR-011) |
 | FR-7.12 | Bảng tính phải nhìn như bảng tính KN Demo (khung, thanh công thức có ô địa chỉ, số dòng, chữ cột, cột trống, chân trang có tab, toàn màn hình), lọc theo giá trị cột như demo, và tự cập nhật khi người khác sửa (ADR-011) |
 | FR-7.13 | Bảng tính là app riêng **KN CRM** trong hệ sinh thái (dịch vụ riêng, tên miền riêng, mở tab mới từ KN ERP); trang chủ là cây Bộ phận → Quý → Tháng → bảng tự sinh từ cột Ngày, tháng là góc nhìn lọc sẵn trên một bảng; ai không được xem bảng nào thì không thấy nhánh đó, quyền do Manager cấp theo bảng (ADR-012) |
-| FR-7.14 | KN CRM có **khung riêng như một app**: sidebar trái theo Teeze (avatar, tên, cấp bậc; Trang chủ; Bảng tính gập được với mục con là từng bộ phận trong phạm vi; Nhập tệp; Cấp quyền; Tác vụ nền; KN ERP; thu gọn được); trang chủ là **tổng quan theo phạm vi**; mục Bảng tính mở trang thư mục (cây Bộ phận → Quý → Tháng → bảng); bấm bảng mới mở lưới toàn màn hình như Excel, chỉ lưới có nút ← và nó về trang thư mục, không về KN ERP (ADR-014) |
-| FR-7.15 | **Leader được như Manager trong bộ phận mình** ở KN CRM: tạo bảng, sửa cột, chèn/bỏ cột, thư mục, nhập tệp, xuất Excel, sửa và xoá dòng của người khác trong phạm vi; cấp quyền cho người khác vẫn chỉ Manager; ba việc tạo bảng, sửa cột kèm cấp quyền, nhập tệp chạy ngay trong KN CRM (ADR-014) |
+| FR-7.14 | KN CRM có **khung riêng như một app**: sidebar trái theo Teeze (avatar, tên, cấp bậc; Trang chủ; Bảng tính gập được với mục con là từng bộ phận trong phạm vi; Nhập tệp; Cấp quyền; Tác vụ nền; KN ERP; thu gọn được); trang chủ là **tổng quan theo phạm vi**; mục Bảng tính mở trang thư mục (cây Bộ phận → Quý → Tháng → bảng); bấm bảng mới mở lưới toàn màn hình như Excel, chỉ lưới có nút ← và nó về trang thư mục, không về KN ERP (ADR-015) |
+| FR-7.15 | **Leader được như Manager trong bộ phận mình** ở KN CRM: tạo bảng, sửa cột, chèn/bỏ cột, thư mục, nhập tệp, xuất Excel, sửa và xoá dòng của người khác trong phạm vi; cấp quyền cho người khác vẫn chỉ Manager; ba việc tạo bảng, sửa cột kèm cấp quyền, nhập tệp chạy ngay trong KN CRM (ADR-015) |
 
 ---
 
@@ -137,7 +137,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-8.4 | Manager phải phân quyền được ai điền biểu mẫu nào và ai xem bảng nào |
 | FR-8.5 | Manager phải sửa được biểu mẫu đã tạo mà không làm mất dữ liệu đã nhập |
 | FR-8.6 | Hệ thống phải kiểm tra tính tương thích khi nối trường của biểu mẫu với cột của bảng |
-| FR-8.7 | Mọi cột kiểu Chọn một phải hiện thành ô chọn từ danh sách ở mọi chỗ nhập; danh sách do Manager quản lý (đặt trong Sửa cột hoặc thêm ngay tại ô chọn), cột mang nhãn Sản phẩm lấy danh sách từ danh mục sản phẩm; giá trị ngoài danh sách bị từ chối |
+| FR-8.7 | Mọi cột kiểu Chọn một phải hiện thành ô chọn từ danh sách ở mọi chỗ nhập (biểu mẫu, báo cáo ngày, Lên đơn; Bảng dữ liệu chỉ xem nên không có ô chọn — FR-7.4); danh sách do Manager quản lý (đặt trong Sửa cột hoặc thêm ngay tại ô chọn), cột mang nhãn Sản phẩm lấy danh sách từ danh mục sản phẩm; giá trị ngoài danh sách bị từ chối |
 | FR-8.8 | Manager phải đặt được màu nền cho từng cột và ngưỡng cảnh báo cho cột kiểu số; Bảng dữ liệu tô màu tiêu đề và ô theo cài đặt đó, ô vượt ngưỡng tô đỏ, ô đạt tô xanh lá |
 | FR-8.9 | Bảng dữ liệu phải có viền mọi ô và tiêu đề cột có màu nền |
 

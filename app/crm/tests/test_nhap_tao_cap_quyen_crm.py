@@ -1,4 +1,4 @@
-"""Tạo bảng, sửa cột kèm cấp quyền, nhập tệp chạy **ngay trong KN CRM** — ADR-014, AC-11.34.
+"""Tạo bảng, sửa cột kèm cấp quyền, nhập tệp chạy **ngay trong KN CRM** — ADR-015, AC-11.34.
 
 Ba màn hình này là view của `forms_builder` gắn thêm vào URLconf 8021, template
 kế thừa khung KN CRM có sidebar qua biến `khung`. Tên `bang` và `bang_xem`

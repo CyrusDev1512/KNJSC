@@ -88,7 +88,7 @@ def _qs_hien_tai(request):
 
 @login_required
 def tong_quan(request):
-    """Trang chủ KN CRM — tổng quan theo phạm vi quyền, có sidebar (ADR-014).
+    """Trang chủ KN CRM — tổng quan theo phạm vi quyền, có sidebar (ADR-015).
 
     Không có nút ←: về ERP bằng mục KN ERP. Từ đây bấm Bảng tính mới sang
     trang thư mục, rồi mới mở lưới.
@@ -106,7 +106,7 @@ def tong_quan(request):
 @login_required
 def thu_muc(request):
     """Mục Bảng tính của KN CRM — trang thư mục: cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng
-    (ADR-012, ADR-014), có sidebar; bấm một bảng mới mở lưới toàn màn hình.
+    (ADR-012, ADR-015), có sidebar; bấm một bảng mới mở lưới toàn màn hình.
 
     Cây chỉ dựng từ phạm vi quyền; `bp` ngoài phạm vi trả 404 có nhật ký
     (quy tắc 8), không phải trang rỗng. Không có bảng nào thì cũng 404 kèm lời.
@@ -155,7 +155,7 @@ def _chon_bang(request, *, tieu_de, mo_ta, duoc, url_name, nhan_nut, rong_mo_ta)
 
 @login_required
 def nhap_tep(request):
-    """Mục Nhập tệp trên sidebar — Leader trở lên (ADR-014): chọn bảng rồi vào
+    """Mục Nhập tệp trên sidebar — Leader trở lên (ADR-015): chọn bảng rồi vào
     luồng nhập 4 bước của forms_builder chạy ngay trong KN CRM."""
     request.nav_current = "nhap_tep"
     assert_rank(request.user, Rank.LEADER, request)
@@ -168,7 +168,7 @@ def nhap_tep(request):
 
 @login_required
 def cap_quyen(request):
-    """Mục Cấp quyền trên sidebar — Manager (ADR-014): chọn bảng của bộ phận
+    """Mục Cấp quyền trên sidebar — Manager (ADR-015): chọn bảng của bộ phận
     mình rồi vào màn Cột kèm cấp quyền của forms_builder, ngay trong KN CRM."""
     request.nav_current = "cap_quyen"
     assert_rank(request.user, Rank.MANAGER, request)
@@ -241,7 +241,7 @@ def bang_tinh_xem(request, code):
         "giay_hoi": GRID_POLL_SECONDS,
         "duoc_nhap": grant_service.can_import(request.user, bang),
         "bang_du_lieu_url": _ngoai(f"/bang/{bang.code}/"),
-        # Nhập tệp, sửa cột, tạo bảng chạy ngay trong KN CRM (ADR-014)
+        # Nhập tệp, sửa cột, tạo bảng chạy ngay trong KN CRM (ADR-015)
         "nhap_url": reverse("bang_nhap", args=[bang.code]),
         "sua_cot_url": reverse("bang_cot", args=[bang.code]),
         "tao_bang_url": reverse("bang_moi"),
@@ -721,7 +721,7 @@ def bang_tinh_moi_nhat(request, code):
 # ── Thư mục chứa bảng — ADR-010 ───────────────────────────────────
 
 def _kiem_quan_ly_thu_muc(request, department):
-    """Quản lý (Leader, Manager) của bộ phận đó hoặc Admin — ADR-014; không thì 403 có ghi nhật ký."""
+    """Quản lý (Leader, Manager) của bộ phận đó hoặc Admin — ADR-015; không thì 403 có ghi nhật ký."""
     assert_rank(request.user, Rank.LEADER, request)
     if not grant_service.can_manage_folders(request.user, department):
         record_denied(request.user, request.path, request)

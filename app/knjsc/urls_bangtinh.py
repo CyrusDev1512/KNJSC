@@ -1,8 +1,8 @@
-"""Gốc điều hướng của app **KN CRM** (dịch vụ `bangtinh`) — ADR-009, ADR-012, ADR-014.
+"""Gốc điều hướng của app **KN CRM** (dịch vụ `bangtinh`) — ADR-009, ADR-012, ADR-015.
 
 Thu hẹp: đăng nhập, đổi mật khẩu, tác vụ nền (để tải tệp xuất lớn), trang
 chủ tổng quan, Bảng tính (thư mục + lưới), và **ba việc của quản lý bộ phận
-làm ngay tại đây**: tạo bảng, sửa cột kèm cấp quyền, nhập tệp (ADR-014) —
+làm ngay tại đây**: tạo bảng, sửa cột kèm cấp quyền, nhập tệp (ADR-015) —
 dùng chung view của `forms_builder`, template kế thừa khung KN CRM qua biến
 `khung`. Không có Bảng dữ liệu, báo cáo, lên đơn, biểu mẫu — những thứ đó ở
 KN ERP. Đây là nơi **duy nhất** có lưới; KN ERP chỉ liên kết sang.

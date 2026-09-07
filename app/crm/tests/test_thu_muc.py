@@ -98,7 +98,7 @@ def test_manager_tao_doi_ten_xoa_thu_muc_va_chuyen_bang(client, cac_bang, depart
 
 
 def test_thu_muc_theo_bo_phan_va_cap_bac(client, cac_bang, departments, nguoi_dung):
-    """AC-11.17 — Staff bị 403 có nhật ký ở mọi thao tác thư mục, Leader cùng bộ phận làm được như Manager (ADR-014); Manager bộ phận khác không thấy thư mục (404) và không chuyển được bảng của bộ phận khác; thanh bên của Sale không hiện thư mục Marketing"""
+    """AC-11.17 — Staff bị 403 có nhật ký ở mọi thao tác thư mục, Leader cùng bộ phận làm được như Manager (ADR-015); Manager bộ phận khác không thấy thư mục (404) và không chuyển được bảng của bộ phận khác; thanh bên của Sale không hiện thư mục Marketing"""
     tm_sale = folder_service.create_folder(name="Sale 2026", department=departments["sale"], actor=nguoi_dung["manager_sale"])
     tm_mkt = folder_service.create_folder(name="MKT 2026", department=departments["mkt"], actor=nguoi_dung["manager_mkt"])
 
@@ -120,7 +120,7 @@ def test_thu_muc_theo_bo_phan_va_cap_bac(client, cac_bang, departments, nguoi_du
     cac_bang["sale"].refresh_from_db()
     assert cac_bang["sale"].folder is None
 
-    # Leader cùng bộ phận: như Manager — tạo, đổi tên, xếp bảng vào thư mục (ADR-014)
+    # Leader cùng bộ phận: như Manager — tạo, đổi tên, xếp bảng vào thư mục (ADR-015)
     client.force_login(nguoi_dung["leader_sale_1"])
     assert client.get("/bang-tinh/don_sale/").context["duoc_quan_ly_thu_muc"] is True
     assert client.post("/bang-tinh/thu-muc/moi/", {"name": "Leader 2026", "ve": "don_sale"}).status_code == 302

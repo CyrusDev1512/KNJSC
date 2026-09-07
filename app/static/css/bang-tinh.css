@@ -690,7 +690,7 @@ body.bt-dang-keo { cursor: crosshair; }
   .bt-chon-tt, .bt-loc-tt { display: none; }
 }
 
-/* ── 12. Trang thư mục KN CRM — mục Bảng tính: cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng (ADR-012, ADR-014) ──
+/* ── 12. Trang thư mục KN CRM — mục Bảng tính: cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng (ADR-012, ADR-015) ──
    Nằm trong khung sáng có sidebar (base_crm.html) nên dùng token của ERP, không dùng --bt-*. */
 .bt-app { flex: none; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--bt-vang); margin-right: 4px; }
 .crm-trang { display: flex; gap: var(--sp-4); align-items: flex-start; }
@@ -737,7 +737,7 @@ body.bt-dang-keo { cursor: crosshair; }
   .crm-hang { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* ── 13. Khung KN CRM có sidebar theo Teeze (ADR-014): avatar + tên + cấp bậc trên
+/* ── 13. Khung KN CRM có sidebar theo Teeze (ADR-015): avatar + tên + cấp bậc trên
    cùng, mục có icon, nhóm gập được với mục con thụt vào, mục đang chọn tô xanh
    nhạt, nút ‹ thu gọn còn dải icon. Dùng lại .nav/.nav-muc/.topbar của main.css. ── */
 .crm-nguoi { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--rule); }

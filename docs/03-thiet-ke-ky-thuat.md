@@ -183,7 +183,7 @@ pham_vi(nguoi_dung) → danh sách team hoặc bộ phận được xem
 | Leader | Toàn bộ team người đó phụ trách |
 | Manager | Toàn bộ bộ phận |
 
-**Phạm vi xem** (bảng trên) khác **quyền thao tác**. Từ ADR-014, "quản lý của bộ
+**Phạm vi xem** (bảng trên) khác **quyền thao tác**. Từ ADR-015, "quản lý của bộ
 phận" = Admin, hoặc **Leader hay Manager đúng bộ phận đó** — một hàm duy nhất
 `grant_service._quan_ly_bo_phan`, dùng cho thư mục, cột, tạo bảng, nhập tệp,
 sửa/xoá dòng người khác, danh sách chọn. Leader vẫn chỉ *thấy* team mình;
@@ -302,7 +302,7 @@ Cùng bộ đọc bộ lọc với màn hình bảng (`query.read_filters`), nê
 50.000 dòng. Tiêu đề là tên cột, giá trị giữ kiểu (Decimal, ngày thật) để nhập
 lại được (AC-7.7).
 
-### 4.6. Bảng tính, tức app KN CRM — ADR-009, ADR-010, ADR-011, ADR-012, ADR-014
+### 4.6. Bảng tính, tức app KN CRM — ADR-009, ADR-010, ADR-011, ADR-012, ADR-015
 
 Lưới kiểu Excel cho **mọi bảng** trong phạm vi quyền (`/bang-tinh/<mã>/`),
 dựng đầu tiên cho bảng `van_don`, nhìn và thao tác như bảng tính KN Demo
@@ -316,11 +316,12 @@ dựng đầu tiên cho bảng `van_don`, nhìn và thao tác như bảng tính 
 | Lọc trùng | Cột ảo: `Subquery` đếm dòng cùng `val_phone` trong bảng; số trống không tính |
 | Thứ tự cột | `dispatch_service.GRID_ORDER`, cột `sl_*` chèn sau thông tin khách |
 | Danh sách chọn | `forms_builder.choice_registry` — `crm` đăng ký lúc khởi động; *chặt* với trạng thái, *gợi ý* với nhân viên |
-| Sửa ô | `record_service.update_cell` — cùng đường với Bảng dữ liệu; `can_edit_record` trả False khi bảng nằm trong `GRID_ONLY_TABLES` |
-| Dịch vụ riêng — **KN CRM** | `knjsc/settings/bangtinh.py`: URLconf `knjsc/urls_bangtinh.py`, `GRID_ONLY_TABLES` rỗng; container `bangtinh` cổng 8021; tương lai subdomain với `SESSION_COOKIE_DOMAIN`. **KN ERP không gắn `crm.urls`** (ADR-012): thanh bên một mục KN CRM trỏ `BANGTINH_URL` mở tab mới (`NavItem.new_tab`), Bảng dữ liệu có nút mở đúng bảng; ở KN CRM mục này là liên kết trong |
+| Sửa ô | `record_service.update_cell` — chỉ lưới KN CRM gọi; `can_edit_record` kiểm từng dòng ở máy chủ, trả False khi bảng nằm trong `GRID_ONLY_TABLES` (danh sách này chỉ còn ý nghĩa với KN CRM — K26) |
+| Bảng dữ liệu ở KN ERP | **Chỉ để xem với mọi bảng** — ADR-014: `bang_xem` không tính quyền sửa dòng, không vẽ ô nhập; view `bang_sua_o`, `_o.html`, `choice_service.attach_lists` đã gỡ; nút "Mở trong KN CRM" và dòng báo hiện với mọi bảng |
+| Dịch vụ riêng — **KN CRM** | `knjsc/settings/bangtinh.py`: URLconf `knjsc/urls_bangtinh.py`, `GRID_ONLY_TABLES` rỗng; container `bangtinh` cổng 8021; tương lai subdomain với `SESSION_COOKIE_DOMAIN`. **KN ERP không gắn `crm.urls`** (ADR-012): thanh bên một mục KN CRM trỏ `BANGTINH_URL` mở tab mới (`NavItem.new_tab`), Bảng dữ liệu chỉ xem, có nút mở đúng bảng ở KN CRM (ADR-014); ở KN CRM mục này là liên kết trong |
 | Trang thư mục (mục Bảng tính, `/thu-muc/`) | `crm/services/tree_service.py`: `all_tables` (một truy vấn kèm cột), `departments_of`, `month_counts` (`TruncMonth` trên `val_date`, `GROUP BY table_id`, một lệnh cho cả bộ phận), `table_stats`, `quarters` (mới trước, quý hiện tại luôn có), `build` → cây Bộ phận ▸ Quý ▸ Tháng và danh sách bảng của nút; view `crm.views.trang_chu` ở `/` (tên `bang_tinh`, `tong_quan`), tham số `bp`, `quy`, `thang`, `tat-ca`; `bp` ngoài phạm vi 404 có nhật ký |
 | Tháng là góc nhìn | `tree_service.grid_url(table, month)` → `bang-tinh/<mã>/?f_<Ngày>__lon_bang=…&f_<Ngày>__nho_bang=…`; `month_of_params` nhận ra bộ lọc đúng trọn tháng để lưới ghi nhãn và nút ← (`home_url`) về đúng nhánh |
-| Hai khung của KN CRM | `templates/crm/base_crm.html` (sidebar sáng theo Teeze, dùng lại `.nav`/`.topbar` của `main.css`, CSS mục 13 `bang-tinh.css`) cho trang chủ, thư mục, nhập tệp, cấp quyền; `base_bang_tinh.html` toàn màn hình cho lưới — chỉ lưới có ←, về `tree_service.home_url` (ADR-014) |
+| Hai khung của KN CRM | `templates/crm/base_crm.html` (sidebar sáng theo Teeze, dùng lại `.nav`/`.topbar` của `main.css`, CSS mục 13 `bang-tinh.css`) cho trang chủ, thư mục, nhập tệp, cấp quyền; `base_bang_tinh.html` toàn màn hình cho lưới — chỉ lưới có ←, về `tree_service.home_url` (ADR-015) |
 | Sidebar KN CRM | `crm/navigation.py` `build(user, current)` — mục sinh từ phạm vi (`departments_of` một truy vấn), lớp CSS tính ở Python; context processor `crm.context_processors.khung_crm` chỉ chạy khi `ROOT_URLCONF` là 8021, đặt cả biến `khung` |
 | Trang chủ KN CRM (`/`) | `crm/services/tong_quan_service.py` — mẫu `dashboard_service` với `_khoi`; một `aggregate` đếm ba số dòng theo `created_at`, bảng cập nhật gần nhất (`Max(records__updated_at)`), `AuditLog.in_scope` |
 | Tạo bảng, sửa cột, nhập tệp trong KN CRM | `knjsc/urls_bangtinh.py` gắn thẳng view của `forms_builder`; template của chúng `{% extends khung %}`; tên `bang`/`bang_xem` ở 8021 là chuyển hướng có đăng nhập về `/thu-muc/` và lưới; `/bang/` vẫn 404 |
@@ -347,7 +348,7 @@ dựng đầu tiên cho bảng `van_don`, nhìn và thao tác như bảng tính 
 |---|---|
 | Danh sách chọn, ba tầng | `choice_registry.for_column(cột)`: sổ `(bảng, cột)` do `crm` đăng ký → sổ theo **nhãn ý nghĩa** (Sản phẩm = danh mục sản phẩm, chặt, có thêm — `orders` đăng ký; Người bán = nhân sự bộ phận, gợi ý — `forms_builder` tự đăng ký) → `ColumnDef.options` (chặt). Hai tầng sau chỉ áp cho kiểu *Chọn một*; cột chưa có danh sách thì không nhận giá trị nào (Q58) |
 | Kiểm khi ghi | `record_service.parse_value` gọi `choice_registry.match`; nhập hàng loạt chụp danh sách một lần bằng `snapshot` |
-| Ô chọn trên màn hình | `components/o_chon.html` (+ `o_chon_muc.html`) dùng chung cho điền biểu mẫu, nộp báo cáo ngày (`forms_builder/_truong_nhap.html`), ô Bảng dữ liệu (`_o.html`) và Lên đơn; `static/js/chon.js` lo mục "＋ Thêm mới…" |
+| Ô chọn trên màn hình | `components/o_chon.html` (+ `o_chon_muc.html`) dùng chung cho điền biểu mẫu, nộp báo cáo ngày (`forms_builder/_truong_nhap.html`) và Lên đơn — Bảng dữ liệu chỉ xem, không có ô chọn (ADR-014); `static/js/chon.js` lo mục "＋ Thêm mới…" |
 | Thêm giá trị mới | `POST bang/<mã>/cot/<mã cột>/lua-chon/` → `choice_service.add_option` (Admin hoặc Manager bộ phận sở hữu; có nhật ký); `POST len-don/san-pham-moi/` → `product_service.create_product` (Manager Sale; mã tự sinh, đồng bộ cột `sl_`). Trả về các `<option>`, trình duyệt chép vào mọi ô cùng nhóm |
 | Danh tính người điền | `core/identity.display_name` (họ tên, không có thì tên đăng nhập); `form_service.fill` ép vào trường nhãn Người bán trước khi ghi, cả điền biểu mẫu lẫn nộp báo cáo; ô trên màn hình chỉ đọc, không gửi lên (Q59) |
 | Màu cột và ngưỡng | `ColumnDef.highlight`, `alert_op`, `alert_value` (migration 0008); `forms_builder/styling.py` dịch sang lớp CSS đóng `cot-nen-*`, `o-vuot-nguong`, `o-dat-nguong`; bảng mang lớp `bang-luoi` mới có viền và tiêu đề xanh lá (Q60) |

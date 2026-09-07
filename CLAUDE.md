@@ -68,7 +68,7 @@ Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.
 001) nên `migrate` không sinh ra nó. Thiếu bảng thì màn hình Bảng tính trả 404.
 
 **KN CRM** (dịch vụ `bangtinh`, cổng 8021, `knjsc/urls_bangtinh.py`) là app
-riêng chứa **Bảng tính** — ADR-012, ADR-014. Hai khung: `templates/crm/base_crm.html`
+riêng chứa **Bảng tính** — ADR-012, ADR-015. Hai khung: `templates/crm/base_crm.html`
 có **sidebar theo Teeze** (`crm/navigation.py`, context processor `khung_crm`) cho
 trang chủ `/` (tổng quan, `crm/services/tong_quan_service.py`), mục **Bảng tính**
 = trang thư mục `/thu-muc/` (cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng,
@@ -77,9 +77,11 @@ trang chủ `/` (tổng quan, `crm/services/tong_quan_service.py`), mục **Bả
 về trang thư mục, không bao giờ về ERP. Tạo bảng, sửa cột kèm cấp quyền, nhập
 tệp là view của `forms_builder` gắn vào 8021, template `{% extends khung %}`.
 **Leader như Manager trong bộ phận mình** (`grant_service._quan_ly_bo_phan`),
-cấp quyền cho người khác vẫn Manager. KN ERP (8020) **không có lưới**, chỉ có mục
-KN CRM trên thanh bên mở tab mới; bài kiểm của `crm/tests` chạy ở URLconf 8021
-nhờ `crm/tests/conftest.py`. Bảng vận đơn chỉ sửa ở KN CRM (ADR-009).
+cấp quyền cho người khác vẫn Manager. KN ERP (8020) **không có lưới và không sửa
+ô**: Bảng dữ liệu chỉ để xem với mọi bảng (ADR-014), chỉ có mục KN CRM trên thanh
+bên mở tab mới và nút "Mở trong KN CRM" ở đầu mỗi bảng; bài kiểm của `crm/tests`
+chạy ở URLconf 8021 nhờ `crm/tests/conftest.py`. Mọi bảng chỉ sửa ở KN CRM
+(ADR-009 cho vận đơn, ADR-014 cho tất cả).
 Nhìn và thao tác theo bảng tính KN Demo — ADR-011: giao diện lưới nằm ở hai
 tệp `app/static/js/bang-tinh.js` (trang: thanh bên, cột, thanh công thức, sửa
 một ô) và `bang-tinh-o.js` (ô: chọn vùng, clipboard, kéo điền, hoàn tác, menu
@@ -96,6 +98,25 @@ Kèm đo bao phủ thì thêm `--cov`. Bỏ bài chạy chậm thì thêm `-m "n
 
 **Đừng chạy `migrate ... zero` trên cơ sở dữ liệu phát triển** — nó xoá bảng
 thật. Bài kiểm thử tự lo việc đó trên cơ sở dữ liệu riêng.
+
+### Skill thiết kế giao diện — Impeccable và Taste
+
+Hai bộ skill mã nguồn mở đã chép sẵn vào `.claude/skills/`; nguồn, phiên bản,
+giấy phép và cách cập nhật ở `.claude/skills/NGUON.md`. Dùng khi làm giao diện:
+
+| Gọi | Làm gì |
+|---|---|
+| `/impeccable init` | Hỏi vài câu rồi ghi `PRODUCT.md`: sản phẩm, người dùng, giọng điệu. **Làm một lần trước.** `teach` là bí danh |
+| `/impeccable critique`, `audit`, `polish`, `clarify`, `layout`, `typeset`, `adapt`… | Nhận xét, kiểm, đánh bóng một màn hình. Gõ `/impeccable` không tham số để xem menu đủ 23 lệnh |
+| `/design-taste-frontend` | Skill chính của Taste: dựng giao diện có gu, tránh kiểu "AI slop" |
+| `/redesign-existing-projects` | Rà màn hình có sẵn rồi sửa bố cục và thứ bậc |
+| `/high-end-visual-design`, `/minimalist-ui` | Hai hướng thẩm mỹ: cao cấp trầm, hoặc tối giản kiểu Notion và Linear |
+
+Dự án là HTMX và CSS thuần (ADR-005), nên gợi ý React, Tailwind, GSAP hay thư
+viện khác trong skill phải chuyển sang CSS và JS thuần: quy tắc 8 "không thêm
+thư viện" đứng trên skill. Hook tự kiểm thiết kế sau mỗi lần sửa tệp không
+commit vì nó chạy engine ngoài sau từng lệnh sửa; muốn bật trên máy mình thì gõ
+`/impeccable hooks on`. Bốn subagent của Impeccable nằm ở `.claude/agents/`.
 
 ### Đã thoả thuận với người dùng
 
@@ -135,7 +156,8 @@ thiết kế bất cứ thứ gì.
 Lý do chọn ghi ở `docs/quyet-dinh/005-chon-django.md`.
 
 **Không thêm khung giao diện như React hay Vue.** Bảng dữ liệu là màn hình phức
-tạp nhất và HTMX làm được — lọc, sắp xếp, phân trang, sửa từng ô.
+tạp nhất của KN ERP và HTMX làm được — lọc, sắp xếp, phân trang. Sửa ô là việc
+của lưới KN CRM (ADR-014), không phải của Bảng dữ liệu.
 
 ---
 
@@ -167,6 +189,7 @@ tạp nhất và HTMX làm được — lọc, sắp xếp, phân trang, sửa t
 | 10 | Lấy toàn bộ bảng trong màn hình danh sách | Quy tắc Q4 |
 | 11 | Dùng `.objects.filter()` trực tiếp cho dữ liệu có phạm vi quyền | Phải qua Custom Manager |
 | 12 | Dùng Django Admin cho nghiệp vụ hằng ngày | Admin bỏ qua tầng dịch vụ, chỉ dùng cho quản trị viên |
+| 13 | Cho sửa ô tại chỗ ở Bảng dữ liệu của KN ERP, dù chỉ một bảng | Bảng dữ liệu chỉ để xem; sửa số liệu là việc của KN CRM — anh/chị chốt 06.09.2026, ADR-014 |
 
 ---
 

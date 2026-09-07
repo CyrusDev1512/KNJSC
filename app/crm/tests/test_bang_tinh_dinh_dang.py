@@ -142,7 +142,7 @@ def test_dinh_dang_theo_quyen_sua_o(client, bang_sale, bang_vd, nguoi_dung):
     kq = client.post(duong, {"o": _o((d_2, "khach")), "b": "1"})
     d_2.refresh_from_db()
     assert d_2.style == {}
-    # Leader cùng bộ phận định dạng được dòng người khác như Manager (ADR-014), không có nhật ký từ chối
+    # Leader cùng bộ phận định dạng được dòng người khác như Manager (ADR-015), không có nhật ký từ chối
     client.force_login(nguoi_dung["leader_sale_1"])
     d_1b = _dong(bang_sale, nguoi_dung["staff_sale_1b"], ngay="2026-08-01", khach="C")
     assert client.post(duong, {"o": _o((d_1b, "khach")), "b": "1"}).status_code == 200

@@ -133,7 +133,7 @@ def test_bo_qua_cot_tinh_san_cot_la_va_gioi_han(client, bang_sale, nguoi_dung):
 # ══ Phân quyền: cả chiều cho phép lẫn chiều từ chối — AC-11.19 ═════
 
 def test_phan_quyen_luu_o_ba_cap_bac(client, bang_sale, bang_vd, nguoi_dung):
-    """AC-11.19 — Staff chỉ dán vào dòng của mình (dòng người khác 403 có nhật ký), Leader, Manager và Admin sửa được dòng người khác cùng bộ phận (ADR-014); bộ phận khác 404; bảng vận đơn chỉ xem ở dịch vụ chính 403, ở dịch vụ bangtinh thì được"""
+    """AC-11.19 — Staff chỉ dán vào dòng của mình (dòng người khác 403 có nhật ký), Leader, Manager và Admin sửa được dòng người khác cùng bộ phận (ADR-015); bộ phận khác 404; bảng vận đơn chỉ xem ở dịch vụ chính 403, ở dịch vụ bangtinh thì được"""
     nv, nv_b = nguoi_dung["staff_sale_1"], nguoi_dung["staff_sale_1b"]
     d_nv = _dong(bang_sale, nv, khach="A", doanh_thu="100", so_luong="2")
     d_b = _dong(bang_sale, nv_b, khach="B", doanh_thu="100", so_luong="2")

@@ -26,7 +26,7 @@ CAC_TEP_CSS = [
 #: Thêm vào đây phải kèm lý do, không phải chỗ để giấu lỗi gõ sai.
 MOC_JAVASCRIPT = {
     "bo-dong", "dong-sp", "o-gia", "o-sl", "o-sp", "o-thanh-tien",   # bảng dòng sản phẩm
-    "o-trong-bang",                                                   # ô sửa trên bảng
+    "o-trong-bang",                                                   # trình sửa ô của lưới KN CRM
     "truong-muc",                                                     # danh sách trường
     # Bảng tính (ADR-010): nút và ô chỉ để JS bắt, không có kiểu riêng
     "bt-tat-ca", "bt-them-dong", "bt-loc-o", "bt-an-cot", "bt-thu-ben",

@@ -17,7 +17,6 @@ urlpatterns = [
     path("bang/<slug:code>/cot/<int:pk>/bo/", views.bang_xoa_cot, name="bang_xoa_cot"),
     path("bang/<slug:code>/cot/<slug:ma_cot>/lua-chon/", views.bang_them_lua_chon,
          name="bang_them_lua_chon"),
-    path("bang/<slug:code>/o/<int:pk>/<slug:ma_cot>/", views.bang_sua_o, name="bang_sua_o"),
     path("bang/<slug:code>/cap-quyen/", views.bang_cap_quyen, name="bang_cap_quyen"),
     path("bang/<slug:code>/thu-quyen/<int:pk>/", views.bang_thu_quyen, name="bang_thu_quyen"),
 

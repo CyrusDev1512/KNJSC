@@ -1,4 +1,4 @@
-"""Khung KN CRM có sidebar — ADR-014, AC-11.31 và AC-11.32.
+"""Khung KN CRM có sidebar — ADR-015, AC-11.31 và AC-11.32.
 
 Trang chủ `/` là tổng quan theo phạm vi; mục Bảng tính trên sidebar mở trang
 thư mục `/thu-muc/`; bấm bảng mới mở lưới toàn màn hình; ← của lưới về trang

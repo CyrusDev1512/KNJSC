@@ -88,7 +88,7 @@ def granted_form_ids(user, action=GrantAction.FILL):
     )
 
 
-#: Cấp bậc được coi là "quản lý của bộ phận" — ADR-014. Người dùng chốt
+#: Cấp bậc được coi là "quản lý của bộ phận" — ADR-015. Người dùng chốt
 #: 06.09.2026: Leader được như Manager trong bộ phận mình (thư mục, cột, tạo
 #: bảng, nhập tệp, sửa và xoá dòng của người khác); riêng cấp quyền cho người
 #: khác vẫn là việc của Manager (`bang_cap_quyen`, `grant()`).
@@ -127,7 +127,7 @@ def can_import(user, table):
     """Người này nhập được tệp vào bảng kia không — FR-7.5, backlog Q38.
 
     Nhập là tạo hàng nghìn dòng một lúc nên nghiêm hơn sửa ô: quản lý của bộ
-    phận sở hữu bảng (Leader trở lên — ADR-014), hoặc người/team được cấp
+    phận sở hữu bảng (Leader trở lên — ADR-015), hoặc người/team được cấp
     quyền **sửa** trên bảng đó. Admin luôn được.
     """
     if _quan_ly_bo_phan(user, table.department_id):
@@ -145,7 +145,7 @@ def is_grid_only(table):
 
 
 def can_manage_folders(user, department):
-    """Ai tạo, đổi tên, xoá thư mục và xếp bảng vào thư mục — ADR-010, ADR-014:
+    """Ai tạo, đổi tên, xoá thư mục và xếp bảng vào thư mục — ADR-010, ADR-015:
     Admin, hoặc quản lý (Leader, Manager) của chính bộ phận đó."""
     return _quan_ly_bo_phan(user, getattr(department, "pk", department))
 
@@ -181,14 +181,14 @@ def can_delete_record(user, record_obj):
 def can_manage_columns(user, table):
     """Ai thêm hay bỏ cột của bảng ngay trên Bảng tính (menu chuột phải) —
     Admin, hoặc quản lý (Leader, Manager) của bộ phận sở hữu bảng, như thư mục
-    (`can_manage_folders`) — ADR-014."""
+    (`can_manage_folders`) — ADR-015."""
     return _quan_ly_bo_phan(user, table.department_id)
 
 
 def can_edit_record(user, record_obj):
     """Người này sửa được dòng dữ liệu kia không — FR-7.4.
 
-    Ba đường: quản lý (Leader trở lên — ADR-014) trong bộ phận sở hữu bảng,
+    Ba đường: quản lý (Leader trở lên — ADR-015) trong bộ phận sở hữu bảng,
     hoặc chính người tạo dòng, hoặc có cấp quyền sửa trên bảng đó. Bảng chỉ xem (ADR-009) thì
     không ai sửa được ở đây, kể cả Admin — chỗ sửa là Bảng tính.
     """

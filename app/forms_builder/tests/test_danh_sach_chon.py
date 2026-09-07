@@ -1,8 +1,8 @@
 """Danh sách chọn của cột kiểu *Chọn một* — FR-8.7, Q58.
 
 Bước 1 kiểm phần định nghĩa: Manager đặt danh sách trong Sửa cột, model chặn
-danh sách sai. Phần điền, sửa ô và "Thêm mới…" kiểm ở các bài phía dưới cùng
-tệp (thêm dần theo giai đoạn).
+danh sách sai. Phần điền biểu mẫu và "Thêm mới…" kiểm ở các bài phía dưới cùng
+tệp. Bảng dữ liệu chỉ để xem (ADR-014) nên ở đó cột Chọn một chỉ là chữ.
 """
 import pytest
 from django.core.exceptions import ValidationError
@@ -271,7 +271,7 @@ def test_them_gia_tri_cot_san_pham_la_them_san_pham(bang_kenh, san_pham, nguoi_d
 
 
 def test_quyen_them_gia_tri(bang_kenh, nguoi_dung, departments):
-    """AC-8.8 — Admin, Manager và Leader bộ phận sở hữu bảng thêm được (ADR-014); Staff, Manager bộ phận khác thì không"""
+    """AC-8.8 — Admin, Manager và Leader bộ phận sở hữu bảng thêm được (ADR-015); Staff, Manager bộ phận khác thì không"""
     from forms_builder.services import choice_service
 
     assert choice_service.can_manage_options(nguoi_dung["admin"], bang_kenh)
@@ -312,38 +312,30 @@ def _dong_kenh(bang, nguoi, **gia_tri):
     return record_service.create_record(bang, gia_tri, actor=nguoi)
 
 
-def test_o_chon_tren_bang_du_lieu_la_select(client, bang_kenh, san_pham, nguoi_dung):
-    """AC-8.7 — Ô của cột Chọn một trên Bảng dữ liệu là ô chọn; Manager có mục Thêm mới, Staff thì không"""
-    _dong_kenh(bang_kenh, nguoi_dung["staff_sale_1"], kenh="Facebook")
+def test_bang_du_lieu_hien_gia_tri_chon_dang_chu(client, bang_kenh, san_pham, nguoi_dung):
+    """AC-8.7 — Trên Bảng dữ liệu cột Chọn một chỉ hiện giá trị dạng chữ: không ô chọn, không "Thêm mới…", kể cả với Manager — chỉ xem, ADR-014"""
+    _dong_kenh(bang_kenh, nguoi_dung["staff_sale_1"], kenh="Facebook", san_pham="Retinol Cream")
 
-    client.force_login(nguoi_dung["manager_sale"])
-    html = client.get("/bang/kenh_sale/").content.decode()
-    assert '<select class="o-trong-bang" name="gia_tri"' in html
-    assert '<option value="Facebook" selected>' in html
-    assert '<option value="Retinol Cream">' in html          # cột Sản phẩm lấy từ danh mục
-    assert '<option value="__them__">' in html
-
-    client.force_login(nguoi_dung["staff_sale_1"])           # sửa được dòng của mình
-    html = client.get("/bang/kenh_sale/").content.decode()
-    assert '<select class="o-trong-bang" name="gia_tri"' in html
-    assert '<option value="__them__">' not in html
+    for ai in ("manager_sale", "staff_sale_1"):
+        client.force_login(nguoi_dung[ai])
+        html = client.get("/bang/kenh_sale/").content.decode()
+        than = html[html.index("<tbody>"):html.index("</tbody>")]
+        assert ">Facebook<" in than and ">Retinol Cream<" in than
+        assert "<select" not in than and "__them__" not in than and "o-trong-bang" not in than
 
 
-def test_gui_thang_gia_tri_la_vao_o_chon_bi_400(client, bang_kenh, nguoi_dung):
-    """AC-8.7 — Gửi thẳng giá trị ngoài danh sách vào ô chọn thì bị từ chối, ô trả về vẫn là ô chọn kèm lý do"""
+def test_dich_vu_sua_o_tu_choi_gia_tri_ngoai_danh_sach(bang_kenh, nguoi_dung):
+    """AC-8.7 — Tầng dịch vụ sửa ô (dùng chung với KN CRM) từ chối giá trị ngoài danh sách kèm lý do, và chuẩn hoá hoa thường theo danh sách"""
+    from core.exceptions import BusinessError
+    from forms_builder.services import record_service
+
     dong = _dong_kenh(bang_kenh, nguoi_dung["manager_sale"], kenh="Facebook")
-    client.force_login(nguoi_dung["manager_sale"])
-
-    kq = client.post(f"/bang/kenh_sale/o/{dong.pk}/kenh/", {"gia_tri": "Zalo"})
-    assert kq.status_code == 400
-    html = kq.content.decode()
-    assert "o-loi" in html and "<select" in html and "không có trong danh sách" in html
+    with pytest.raises(BusinessError, match="không có trong danh sách"):
+        record_service.update_cell(dong, "kenh", "Zalo", actor=nguoi_dung["manager_sale"])
     dong.refresh_from_db()
     assert dong.data["kenh"] == "Facebook"
 
-    kq = client.post(f"/bang/kenh_sale/o/{dong.pk}/kenh/", {"gia_tri": "tiktok"})
-    assert kq.status_code == 200
-    assert '<option value="TikTok" selected>' in kq.content.decode()
+    record_service.update_cell(dong, "kenh", "tiktok", actor=nguoi_dung["manager_sale"])
     dong.refresh_from_db()
     assert dong.data["kenh"] == "TikTok"
 
