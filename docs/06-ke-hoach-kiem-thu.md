@@ -35,8 +35,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **107** — 96 tự động, 11 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **95 trên 96** |
+| Tiêu chí nghiệm thu trong `docs/04` | **110** — 98 tự động, 12 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **97 trên 98** |
 | Tiêu chí tự động còn hoãn | **1**, đều thuộc diện chờ người dùng chốt — `AC-5.1`, backlog N9 |
 | Bao phủ dòng mã | khoảng 85% |
 
@@ -74,7 +74,40 @@ Bỏ qua các bài chạy chậm khi cần vòng lặp nhanh: `pytest -m "not ch
 | 6 | **Hộp trắng** | `tests/test_hop_trang.py`, bản đo bao phủ | Nhánh chỉ chạy khi có lỗi, đường huỷ giao dịch | Tìm ra lỗi đọc tiền sai gấp trăm lần |
 | 7 | **Giao diện** | `core/tests/test_giao_dien.py` | Lớp CSS có thật, ô nhập có nhãn, bảng có tiêu đề | Thêm lớp bịa vào template → đỏ |
 | 8 | **Đầu-cuối trình duyệt** | `tests/e2e/` — Playwright, dấu `trinh_duyet` | Nhập → xuất → nhập lại qua giao diện; bàn phím và hộp lọc trên Bảng tính; kéo chọn vùng, dán TSV, kéo điền, hoàn tác, ô địa chỉ, chuột phải xoá hàng rồi hoàn tác (ADR-011); trang chủ KN CRM bấm tháng → lưới lọc tháng → ← (ADR-012); cột cố định khi cuộn; 390px không tràn ngang, có ảnh chụp | Đổi phím Esc thành không làm gì trong `bang-tinh.js` → đỏ |
-| 9 | **Hiệu năng** | `tests/test_hieu_nang.py` (dấu `cham`), `tests/perf/locustfile.py` | 50.000 dòng thật: trang đầu và lưới có lọc dưới 2 giây, ≤ 10 truy vấn; Locust 50 người tự chấm p99 ≤ 3 giây | Bỏ `select_related` ở lưới → vượt 10 truy vấn |
+| 9 | **Hiệu năng và kiểm tải** | `tests/test_hieu_nang.py` (dấu `cham`), `tests/perf/locustfile.py`, **`manage.py seed_perf` + `do_hieu_nang` + `tests/perf/locustfile_kn_crm.py`**, `crm/tests/test_kiem_tai.py` | 50.000 dòng thật: trang đầu và lưới có lọc dưới 2 giây; Locust 50 người p99 ≤ 3 giây (AC-10.1). **KN CRM ở cỡ 100 nghìn khách** (AC-10.8, ADR-016): 100.000 dòng vận đơn ≈ 3 triệu ô + bảng Sale 20.000 dòng có cột tính sẵn; đo một người rồi **100 người 5 phút** (70 nhân viên vận đơn di qua di lại, 20 Sale/MKT, 7 trưởng nhóm dán/xoá, 3 Manager đổi cột tính sẵn giữa phiên) trên gunicorn — ĐẠT khi p95 đọc ≤ 1 s, ghi ≤ 0,5 s, `moi-nhat/` ≤ 0,3 s, 0 lỗi, tính lại 100.000 dòng ≤ 30 s không chặn người khác; ngân sách truy vấn của các đường đã sửa khoá bằng AC-11.36 | Bỏ `select_related` ở lưới → vượt ngân sách; quay lại `{% include %}` từng ô → lưới 630 ms, 100 người p95 11 s |
+
+**Kiểm tải KN CRM — cách chạy và số đo** (ADR-016, K27). Ba lệnh trong `app/`
+(hoặc nháy đúp `scripts/kiem-tai-kn-crm.bat`, chạy `scripts/kiem-tai-kn-crm.sh`;
+xem `app/tests/perf/README.md`):
+
+```
+python manage.py seed_perf --xoa-cu --so-dong 100000 --so-thang 24 --dien-day --bang-sale
+python manage.py do_hieu_nang --giai-thich          # một người, không tải → storage/perf/<ngày>-don-le.md
+locust -f tests/perf/locustfile_kn_crm.py --host http://localhost:8021 --users 100 --spawn-rate 10 --run-time 5m --headless
+```
+
+Số đo ngày 07.09.2026 trên máy ảo 4 nhân, PostgreSQL 16 mặc định, gunicorn 3
+worker, 100.010 dòng (2,95 triệu ô, 85.954 số điện thoại), một người không tải,
+trung vị 3 lần:
+
+| Đường | Trước | Sau | Ngưỡng |
+|---|--:|--:|--:|
+| Lưới vận đơn 100 dòng × 39 cột | 638 ms | 154 ms | 1.000 ms |
+| Lưới trang 500 | 846 ms | 280 ms | 1.000 ms |
+| Sắp xếp theo khoá JSON | 755 ms | 350 ms | 1.000 ms |
+| Chỉ dòng trùng `?trung=1` | 1.089 ms | 478 ms | 1.000 ms |
+| `moi-nhat/` | 65 ms (quét cả bảng) | 72 ms (chỉ mục, thêm tiến độ tác vụ) | 300 ms |
+| Dán 500 ô | 1.670 ms, 1.013 lệnh | 207 ms, 13 lệnh | 500 ms |
+| Tính lại cột tính sẵn 20.000 dòng | 29,5 s | 4,2 s | 30 s |
+| Tính lại cột 100.000 dòng | 153 s trong request | 19,6 s ở tác vụ nền (2 lô song song) | 30 s |
+
+Kết quả 100 người 5 phút trên máy ảo (22,8 yêu cầu/giây, chấm từ lúc cả 100 người
+đã đăng nhập — `--reset-stats`): **trước** p95 mọi nhóm ~11 giây, 14 lỗi;
+**sau** p95 đọc 853 ms, ghi 371 ms, `moi-nhat/` 143 ms, 0 lỗi, tính lại cột
+100.000 dòng 24,4–24,8 s mà p95 người khác trong lúc đó 900 ms — **ĐẠT** cả năm
+tiêu chí. Báo cáo chi tiết ở `storage/perf/<ngày>-tai-100.md` (không đưa lên kho
+mã); bảng trước/sau đầy đủ ở ADR-016. Trên máy anh/chị, script in ĐẠT / KHÔNG ĐẠT
+từng tiêu chí — số trên máy thật mới là số để nghiệm thu NFR-2.
 
 Cộng một tầng thứ mười không nằm trong danh sách: **truy vết**
 (`tests/test_truy_vet.py`) đọc `docs/04` và khẳng định mọi tiêu chí tự động đều
@@ -181,7 +214,7 @@ Ghi ra để không tự lừa mình:
 | # | Thiếu | Vì sao chưa làm |
 |---|---|---|
 | 1 | Không có gì chạy kiểm thử tự động khi đẩy mã lên kho | Người dùng chốt chưa dựng, vì backlog **V2** còn để ngỏ ai vận hành sau bàn giao |
-| 2 | Đo tải 50 người mới chạy trên máy phát triển, chưa chạy trên máy chủ thật | Máy chủ chưa có — Giai đoạn 8; kết quả trên máy cá nhân chỉ để so tương đối |
+| 2 | Đo tải 50 người và kiểm tải 100 người / 100 nghìn khách mới chạy trên máy phát triển (máy ảo 4 nhân), chưa chạy trên máy chủ thật | Máy chủ chưa có — Giai đoạn 8; `scripts/kiem-tai-kn-crm.*` chạy lại được trên bất kỳ máy có Docker, kết quả trên máy cá nhân chỉ để so tương đối |
 | 3 | Bài trình duyệt thật (Playwright) và hiệu năng 50.000 dòng không chạy trong container `web` | Image không có Chromium và `pytest` mặc định bỏ dấu `cham`; chạy trên máy phát triển — backlog **K19** |
 | 4 | Chưa kiểm khả năng đọc màn hình cho người khiếm thị | Không có yêu cầu nào nêu, chưa hỏi người dùng |
 | 5 | Hai bài đánh dấu `xfail`: hộp lọc cột trong Playwright (K23) và ngân sách 10 truy vấn trên 50.000 dòng (K24, đếm được 12) | Người dùng cần demo gấp ngày 03.09.2026; nợ ghi ở backlog, không nới ngưỡng |

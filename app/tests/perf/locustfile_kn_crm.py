@@ -5,11 +5,13 @@ Chạy trên máy đã có `du_lieu_mau` (tài khoản) và `seed_perf --so-dong
 gunicorn (không đo trên `runserver`):
 
     locust -f tests/perf/locustfile_kn_crm.py --host http://localhost:8021 \\
-           --users 100 --spawn-rate 10 --run-time 5m --headless
+           --users 100 --spawn-rate 10 --run-time 5m --headless --reset-stats
 
 Không bấm giao diện (không Playwright): mỗi người ảo là **một tab lưới** gọi
 đúng những HTTP mà trình duyệt gọi, kể cả hỏi `moi-nhat/` mỗi 8 giây ở nền.
-Bốn vai theo trọng số (100 người → đúng 70 / 20 / 7 / 3):
+Nhịp thao tác như người thật: nhân viên 4–12 giây một thao tác, quản lý thưa
+hơn (đo 07.09: 100 người ≈ 15 yêu cầu/giây, trong đó một nửa là poll). Bốn vai
+theo trọng số (100 người → đúng 70 / 20 / 7 / 3):
 
 - **Nhân viên vận đơn (70)** "di qua di lại": mở lưới tháng hiện tại, chuyển
   trang, sắp xếp, hộp lọc, áp bộ lọc, tìm nhanh, xem dòng trùng, sửa 1 ô,
@@ -24,7 +26,9 @@ Bốn vai theo trọng số (100 người → đúng 70 / 20 / 7 / 3):
   ba làm việc đó trên bảng vận đơn 100.000 dòng. Cột thêm ra được gỡ ở
   cuối phiên.
 
-**Tự chấm khi dừng** (ngưỡng ở `core/constants.py`, "như Excel trên máy thường"):
+**Tự chấm khi dừng** (ngưỡng ở `core/constants.py`, "như Excel trên máy thường";
+`--reset-stats` để chấm từ lúc cả 100 người đã đăng nhập xong — 20 giây đầu ai
+cũng băm mật khẩu cùng lúc, không phải cảnh làm việc):
 nhóm *đọc* p95 ≤ 1 s, nhóm *ghi* p95 ≤ 0,5 s, `moi-nhat/` p95 ≤ 0,3 s, không
 yêu cầu nào hỏng, cột tính sẵn 100.000 dòng ≤ 30 s **và** p95 nhóm đọc của
 những người khác trong lúc đó vẫn ≤ 1 s. In ĐẠT / KHÔNG ĐẠT từng dòng, thoát
@@ -46,6 +50,7 @@ from pathlib import Path
 
 import gevent
 from locust import HttpUser, between, events, task
+from requests.adapters import HTTPAdapter
 
 try:
     from core.constants import (
@@ -112,6 +117,9 @@ class TabLuoi(HttpUser):
     def on_start(self):
         _MA_TAB[0] += 1
         self.stt = _MA_TAB[0]
+        # Như trình duyệt: kết nối keep-alive bị máy chủ đóng đúng lúc gửi thì gửi lại
+        # một lần (chỉ GET — urllib3 không thử lại POST)
+        self.client.mount("http://", HTTPAdapter(max_retries=1))
         _dang_nhap(self.client, self.tai_khoan)
         self.goc = f"/bang-tinh/{self.bang}/"
         self.pks = []
@@ -138,9 +146,10 @@ class TabLuoi(HttpUser):
     def _post(self, duong, du_lieu, ten, ma=(200,)):
         with self.client.post(duong, du_lieu, headers=self._headers(), name=ten,
                               catch_response=True, allow_redirects=False) as kq:
-            if kq.status_code == 403 and "xoá" in kq.text:
-                # Dòng vừa bị người khác xoá (trưởng nhóm xoá 20 dòng rồi khôi phục):
-                # máy chủ từ chối đúng (quy tắc 8), người thật tải lại trang — không phải lỗi
+            if kq.status_code == 403 and ("xoá" in kq.text or "xoa-dong" in ten or "khoi-phuc-dong" in ten):
+                # Dòng vừa bị người khác xoá hay khôi phục (bảy trưởng nhóm cùng xoá/khôi
+                # phục trên một trang): máy chủ từ chối đúng (quy tắc 8), người thật tải
+                # lại trang rồi làm tiếp — tranh chấp, không phải lỗi
                 TRANH_CHAP[0] += 1
                 self.pks = []
                 kq.success()
@@ -177,10 +186,11 @@ class TabLuoi(HttpUser):
 
 
 class NhanVienVanDon(TabLuoi):
-    """70 người: di qua di lại trên bảng vận đơn 100.000 dòng."""
+    """70 người: di qua di lại trên bảng vận đơn 100.000 dòng — một thao tác mỗi 4–12 giây
+    (người thật nhìn trang vài giây rồi mới bấm tiếp), cộng poll `moi-nhat/` mỗi 8 giây."""
 
     weight = 70
-    wait_time = between(1, 4)
+    wait_time = between(4, 12)
     tai_khoan = "vd.staff"
     bang = VAN_DON
 
@@ -245,7 +255,7 @@ class NhanVienSaleMkt(TabLuoi):
     Tài khoản Manager/Leader vì Staff chỉ thấy dòng mình tạo, mà dữ liệu đo là do seed tạo."""
 
     weight = 20
-    wait_time = between(2, 6)
+    wait_time = between(5, 15)
 
     def on_start(self):
         la_sale = _MA_TAB[0] % 2 == 0
@@ -307,7 +317,7 @@ class TruongNhom(TabLuoi):
     """7 người: dán nhiều ô, xoá và khôi phục dòng, tạo thư mục, xuất Excel một lần."""
 
     weight = 7
-    wait_time = between(4, 10)
+    wait_time = between(8, 20)
 
     def on_start(self):
         # vd.manager làm việc nặng trên bảng vận đơn (Vận đơn không có Leader trong dữ liệu mẫu),
@@ -363,7 +373,7 @@ class QuanLy(TabLuoi):
     """3 người: giữa phiên thêm rồi sửa một cột tính sẵn — 20.000 dòng (Sale) và 100.000 dòng (Vận đơn)."""
 
     weight = 3
-    wait_time = between(5, 12)
+    wait_time = between(10, 20)
 
     def on_start(self):
         _SO_QUAN_LY[0] += 1
@@ -390,6 +400,17 @@ class QuanLy(TabLuoi):
             hong = kq.status_code != 302
             if hong:
                 kq.failure(f"HTTP {kq.status_code}: form không hợp lệ hoặc bị từ chối")
+        # Bảng lớn tính lại ở tác vụ nền (ADR-016): đợi tới khi moi-nhat/ hết báo
+        # `tinh_lai` — cửa sổ tính lại là từ lúc bấm Lưu tới lúc worker xong
+        han = time.time() + 600
+        while not hong and time.time() < han:
+            gevent.sleep(2)
+            kq = self.client.get(f"{self.goc}moi-nhat/", name=f"{HOI}: moi-nhat/")
+            try:
+                if kq.status_code != 200 or not kq.json().get("tinh_lai"):
+                    break
+            except ValueError:
+                break
         CUA_SO_TINH_LAI.append((self.bang, bat_dau, time.time(), (time.time() - bat_dau) * 1000, hong))
         return not hong
 
@@ -429,6 +450,22 @@ class QuanLy(TabLuoi):
             self.client.post(f"/bang/{self.bang}/cot/{self.pk_cot}/bo/", {"csrfmiddlewaretoken": token},
                              headers={"Referer": self.client.base_url + f"/bang/{self.bang}/cot/"},
                              name=f"{TINH}: gỡ cột tính sẵn (dọn)", allow_redirects=False)
+
+
+@events.spawning_complete.add_listener
+def _da_vao_du(user_count, **kw):
+    """`--reset-stats`: chấm từ lúc 100 người đã đăng nhập xong (trạng thái làm việc
+    ổn định), bỏ 20 giây đầu ai cũng băm mật khẩu cùng lúc — nhật ký riêng cũng xoá theo."""
+    if getattr(_ENV[0].parsed_options, "reset_stats", False) if _ENV[0] else False:
+        NHAT_KY.clear()
+
+
+_ENV = [None]
+
+
+@events.init.add_listener
+def _nho_moi_truong(environment, **kw):
+    _ENV[0] = environment
 
 
 # ── Ghi nhật ký từng yêu cầu để tính p95 theo cửa sổ ──

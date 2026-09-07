@@ -99,6 +99,14 @@ Kèm đo bao phủ thì thêm `--cov`. Bỏ bài chạy chậm thì thêm `-m "n
 **Đừng chạy `migrate ... zero` trên cơ sở dữ liệu phát triển** — nó xoá bảng
 thật. Bài kiểm thử tự lo việc đó trên cơ sở dữ liệu riêng.
 
+**Kiểm tải KN CRM** (ADR-016, AC-10.8): nháy đúp `scripts/kiem-tai-kn-crm.bat`
+(Mac/Linux `.sh`) — nạp 100 nghìn dòng vận đơn, đo một người (`manage.py
+do_hieu_nang`), rồi Locust 100 người 5 phút trên gunicorn, in ĐẠT / KHÔNG ĐẠT,
+báo cáo ở `storage/perf/`. Ngưỡng ở `core/constants.py` (`PERF_*`). Lưới dựng ô
+bằng `grid_service.cell_html` (không `{% include %}` từng ô), ghi hàng loạt qua
+`DataRecord.bulk_save`, cột tính sẵn trên bảng lớn tính lại ở tác vụ nền — sửa
+những chỗ đó thì chạy lại `crm/tests/test_kiem_tai.py` và bài kiểm tải.
+
 ### Skill thiết kế giao diện — Impeccable và Taste
 
 Hai bộ skill mã nguồn mở đã chép sẵn vào `.claude/skills/`; nguồn, phiên bản,

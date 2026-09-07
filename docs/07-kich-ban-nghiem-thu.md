@@ -146,6 +146,8 @@ KN CRM ở `http://localhost:8021/`. Đây là nơi làm việc của bộ phậ
 | ☐ | Tắt Docker Desktop, mở lại, chờ 1 phút | `localhost:8020` và `8021` tự lên, không cần gõ lệnh | docs/05 B5 |
 | ☐ | Đo tải: `manage.py seed_perf` rồi Locust 50 người 1 phút (xem `app/tests/perf/README.md`) | Kịch bản in **ĐẠT** — p99 dưới 3 giây | **AC-10.1** |
 | ☐ | Trong lúc Locust chạy, mở Bảng tính bằng tay | Vẫn dùng được, không chờ quá vài giây | NFR-2 |
+| ☐ | Kiểm tải KN CRM: nháy đúp `scripts\kiem-tai-kn-crm.bat` (Mac/Linux: `scripts/kiem-tai-kn-crm.sh`), chờ ~15 phút | In **KẾT QUẢ: ĐẠT**, mở thư mục `storage\perf` có hai tệp `-don-le.md` và `-tai-100.md` của hôm nay; trong lúc chạy mở KN CRM bằng tay vẫn dùng được | **AC-10.8**, ADR-016 |
+| ☐ | Sau đó, `quantri` mở KN CRM → bảng vận đơn → Sửa cột → thêm cột tính sẵn `Giá × Số lượng` | Màn Sửa cột báo "đang được tính lại ở tác vụ nền #…", lưới hiện "Đang tính lại cột… n%" rồi tự nạp lại với giá trị đúng; Tác vụ nền có dòng "Tính lại cột" | AC-11.35 |
 | ☐ | Cài từ đầu trên máy sạch theo `docs/05` B2 | Tới màn hình đăng nhập không cần hỏi ai | mục 12.1 |
 
 ---

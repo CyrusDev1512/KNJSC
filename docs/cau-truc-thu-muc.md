@@ -210,7 +210,8 @@ kim-ngan-jsc/
 │   │   ├── 012-kn-crm-app-rieng-cay-thang.md
 │   │   ├── 013-danh-sach-chon-va-mau-cot.md
 │   │   ├── 014-bang-du-lieu-chi-xem.md
-│   │   └── 015-kn-crm-khung-sidebar-leader-nhu-manager.md
+│   │   ├── 015-kn-crm-khung-sidebar-leader-nhu-manager.md
+│   │   └── 016-kn-crm-chiu-tai-100-nghin-khach.md
 │   └── tham-khao/
 │       ├── CRM_Tan.xlsx
 │       ├── vandon-mau.xlsx
@@ -320,5 +321,6 @@ Ba tệp ở gốc là ba thứ dễ hỏng nhất và không thuộc module nà
 | `013-danh-sach-chon-va-mau-cot.md` | Danh sách chọn và màu cột là thuộc tính của cột, Manager quản lý; danh tính người điền do hệ thống ghi |
 | `014-bang-du-lieu-chi-xem.md` | Bảng dữ liệu ở KN ERP chỉ để xem với mọi bảng; sửa số liệu là việc của KN CRM |
 | `015-kn-crm-khung-sidebar-leader-nhu-manager.md` | Vì sao KN CRM có hai khung (sidebar theo Teeze cho trang chủ tổng quan, thư mục, nhập tệp; lưới vẫn toàn màn hình), Leader được như Manager trong bộ phận mình, và tạo bảng, nhập tệp, cấp quyền chạy ngay trong KN CRM |
+| `016-kn-crm-chiu-tai-100-nghin-khach.md` | KN CRM ở cỡ 100 nghìn khách, 100 người cùng lúc: đo trước (seed_perf, do_hieu_nang, Locust) rồi sửa đúng chỗ đo được; tính lại cột tính sẵn chạy nền |
 
 Bốn tệp này viết ngay khi tạo repo, không đợi.
