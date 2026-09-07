@@ -82,6 +82,7 @@ theo thị trường mới.
 - Tên gọi (xác nhận 06.09.2026): **KNERP** cho hệ thống chính, **KN CRM** cho bảng tính, **Kim Ngân JSC** là tên công ty.
 - Biểu tượng hiện có: chữ KN trắng trên nền xanh chuyển sắc, vạch cam, chữ JSC nhỏ; nguồn `scripts/KN JSC.svg`, tệp `scripts/KN JSC.ico`. Đang dùng cho lối tắt trên máy tính; chưa chốt là logo chính thức trên giao diện.
 - Giọng nói: tiếng Việt có dấu, ngắn, nói thẳng việc; thông báo lỗi nói rõ người dùng nên làm gì tiếp.
+- Hướng thiết kế (chốt 07.09.2026 trên bàn chọn, sau hai vòng gieo): **chuẩn ngành theo Google Workspace và Google Sheets**, chơi thẳng. Mốc chất lượng là độ tinh của Sheets và Workspace. Đang dựng thử trên nhánh `claude/thiet-ke-chuan-nganh`, chưa gộp.
 
 ## Evidence on Hand
 
