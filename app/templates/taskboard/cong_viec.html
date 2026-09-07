@@ -3,16 +3,70 @@
 {% block ten_trang %}Công việc{% endblock %}
 
 {% block noi_dung %}
+
 <div class="trang-dau">
   <div>
-    <div class="nhan-nho">Nội bộ · ADR-015</div>
+    <div class="nhan-nho">Nội bộ · FR-11.1 tới FR-11.5</div>
     <h1>Công việc</h1>
-    <p>Việc được giao và việc tự nhận, theo dõi tới khi xong.</p>
+    <p>Việc bạn nhận và việc bạn giao. Trưởng nhóm thấy cả team, quản lý thấy cả bộ phận. Bấm nút ở cuối dòng để chuyển trạng thái.</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut nut-chinh" href="{% url 'cong_viec_moi' %}">Tạo việc</a>
   </div>
 </div>
-<div class="the">
-  <div class="the-than">
-    {% include "components/rong.html" with rong_tieu_de="Đang dựng" rong_mo_ta="Màn hình này đang được làm trong đợt MVP Nội bộ." %}
+
+<div class="bang-hop">
+  <div class="tab-thanh" role="tablist">
+    <a class="tab" role="tab" href="{% url 'cong_viec' %}?tab=cua_toi" aria-selected="{% if tab == 'cua_toi' %}true{% else %}false{% endif %}">Của tôi</a>
+    <a class="tab" role="tab" href="{% url 'cong_viec' %}?tab=pham_vi" aria-selected="{% if tab == 'pham_vi' %}true{% else %}false{% endif %}">Trong phạm vi</a>
   </div>
+  <form class="loc" method="get">
+    <input type="hidden" name="tab" value="{{ tab }}">
+    <div class="truong">
+      <label for="trang_thai">Trạng thái</label>
+      <select class="o-nhap" id="trang_thai" name="trang_thai">
+        <option value="">Tất cả</option>
+        {% for ma, nhan in cac_trang_thai %}<option value="{{ ma }}" {% if ma == trang_thai %}selected{% endif %}>{{ nhan }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="truong">
+      <label for="uu_tien">Ưu tiên</label>
+      <select class="o-nhap" id="uu_tien" name="uu_tien">
+        <option value="">Tất cả</option>
+        {% for ma, nhan in cac_uu_tien %}<option value="{{ ma }}" {% if ma == uu_tien %}selected{% endif %}>{{ nhan }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="truong">
+      <label for="nguoi">Người làm</label>
+      <select class="o-nhap" id="nguoi" name="nguoi">
+        <option value="">Tất cả</option>
+        {% for u in cac_nguoi %}<option value="{{ u.pk }}" {% if nguoi == u.pk|stringformat:"s" %}selected{% endif %}>{{ u.profile.full_name|default:u.username }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="loc-nut">
+      <a class="nut nut-nho" href="{% url 'cong_viec' %}?tab={{ tab }}">Xoá lọc</a>
+      <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
+    </div>
+  </form>
+
+  <div class="bang-cuon">
+    <table class="bang">
+      <thead>
+        <tr><th>Việc</th><th>Người làm</th><th>Ưu tiên</th><th>Hạn</th><th>Trạng thái</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for d in cac_dong %}
+          {% include "taskboard/_dong.html" with t=d.t lop_tt=d.lop_tt lop_ut=d.lop_ut duoc_doi=d.duoc_doi cac_buoc=d.cac_buoc %}
+        {% empty %}
+          <tr><td colspan="6">
+            {% include "components/rong.html" with rong_tieu_de="Chưa có việc nào" rong_mo_ta="Bấm Tạo việc để tự nhận một việc hoặc giao cho người trong phạm vi của bạn." %}
+          </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% include "components/phan_trang.html" %}
 </div>
+
 {% endblock %}

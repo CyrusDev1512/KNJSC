@@ -19,7 +19,7 @@ class TaiLenForm(forms.Form):
         help_text="PDF, Word, Excel, CSV, ảnh JPG hoặc PNG; tối đa 10 MB.",
     )
     link = forms.URLField(
-        label="Hoặc liên kết", required=False, max_length=500,
+        label="Hoặc liên kết", required=False, max_length=500, assume_scheme="https",
         help_text="Dán địa chỉ Google Drive, Notion… nếu không tải tệp.",
     )
 

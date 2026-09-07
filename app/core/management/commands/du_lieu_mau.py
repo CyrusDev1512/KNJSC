@@ -79,6 +79,16 @@ TAI_LIEU_MAU = [
     ("Kế hoạch quảng cáo quý 4", "mkt", "mkt.manager", "Ngân sách và mục tiêu từng kênh"),
 ]
 
+#: Việc mẫu — (tiêu đề, người tạo, người làm, ưu tiên, hạn lệch so với hôm nay, trạng thái)
+CONG_VIEC_MAU = [
+    ("Gọi lại 5 khách Canada chưa chốt", "sale.leader", "sale.staff", "cao", -1, "dang_lam"),
+    ("Cập nhật giá sản phẩm mới lên bảng", "sale.manager", "sale.leader", "vua", 3, "moi"),
+    ("Chốt đơn tồn của team 2", "sale.leader2", "sale.staff2", "vua", 2, "moi"),
+    ("Lên kế hoạch quảng cáo tháng sau", "mkt.manager", "mkt.leader", "cao", 7, "moi"),
+    ("Chụp ảnh sản phẩm đèn ngủ", "mkt.manager", "mkt.staff", "thap", -3, "xong"),
+    ("Đối soát vận đơn tuần này", "vd.manager", "vd.staff", "vua", 1, "dang_lam"),
+]
+
 #: Bốn cột tính sẵn — đúng bốn công thức trong tệp thật của khách hàng.
 #: (nhãn, tên kỹ thuật, phép tính, toán hạng A, toán hạng B, số chữ số thập phân)
 COT_TINH_BC_MKT = [
@@ -147,7 +157,7 @@ class Command(BaseCommand):
         self.mat_khau = o["mat_khau"]
         self.da_tao = {"bộ phận": 0, "team": 0, "tài khoản": 0,
                        "bảng": 0, "biểu mẫu": 0, "sản phẩm": 0, "dòng dữ liệu": 0,
-                       "tài liệu": 0}
+                       "tài liệu": 0, "việc": 0}
         self.dat_lai_mat_khau = 0
 
         bo_phan = self._bo_phan()
@@ -158,6 +168,7 @@ class Command(BaseCommand):
         self._bao_cao_marketing(bo_phan, nguoi)
         self._thu_muc(nguoi)
         self._tai_lieu(bo_phan, nguoi)
+        self._cong_viec(nguoi)
 
         self._bao_cao_ket_qua(nguoi)
 
@@ -355,6 +366,28 @@ class Command(BaseCommand):
                 actor=nguoi[ai],
             )
             self.da_tao["tài liệu"] += 1
+
+    def _cong_viec(self, nguoi):
+        """Sáu việc mẫu: một quá hạn, một đã xong — FR-11."""
+        from taskboard.constants import TaskStatus
+        from taskboard.models import Task
+        from taskboard.services import task_service
+
+        if Task.all_objects.exists():
+            return
+        hom_nay = timezone.localdate()
+        for tieu_de, ai_tao, ai_lam, uu_tien, lech, trang_thai in CONG_VIEC_MAU:
+            viec = task_service.create_task(
+                title=tieu_de, assignee=nguoi[ai_lam], priority=uu_tien,
+                due_date=hom_nay + timedelta(days=lech) if lech is not None else None,
+                actor=nguoi[ai_tao],
+            )
+            if trang_thai == TaskStatus.DANG_LAM:
+                task_service.change_status(viec, TaskStatus.DANG_LAM, actor=nguoi[ai_lam])
+            elif trang_thai == TaskStatus.XONG:
+                task_service.change_status(viec, TaskStatus.DANG_LAM, actor=nguoi[ai_lam])
+                task_service.change_status(viec, TaskStatus.XONG, actor=nguoi[ai_lam])
+            self.da_tao["việc"] += 1
 
     # ── Báo cáo kết quả ──
 

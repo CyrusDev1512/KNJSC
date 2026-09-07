@@ -530,6 +530,9 @@ hr.ke { border: 0; border-top: 1px solid var(--rule); margin: var(--sp-4) 0; }
 .muc-ds a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .muc-ds .dem { margin-left: auto; font-family: var(--font-ma); font-size: var(--fs-xs); color: var(--ink-3); }
 
+/* Hạn đã qua mà việc còn mở */
+.qua-han { color: var(--critical); font-weight: 600; }
+
 /* Cụm nút nhỏ trong một ô bảng (Tải về + Gỡ) */
 .hang-nut { display: inline-flex; gap: var(--sp-2); align-items: center; }
 .hang-nut form { margin: 0; display: inline; }

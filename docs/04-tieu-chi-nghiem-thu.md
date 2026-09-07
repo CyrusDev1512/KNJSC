@@ -284,6 +284,11 @@ Quản lý việc trong bộ phận — FR-11.1 tới FR-11.5, ADR-015.
 
 | Mã | Tiêu chí | Yêu cầu | Loại |
 |---|---|---|---|
+| AC-14.1 | Staff tự giao cho mình, giao người khác bị từ chối; Leader giao trong team, người team khác bị từ chối; Manager giao cả bộ phận, không giao sang bộ phận khác; Admin giao được mọi người | FR-11.1 · FR-3.5 | Tự động |
+| AC-14.2 | Staff thấy việc mình nhận hoặc tạo; Leader thấy việc của team; Manager cả bộ phận; Admin tất cả; gọi thẳng việc ngoài phạm vi trả 404 | FR-11.3 | Tự động |
+| AC-14.3 | Người làm đổi trạng thái qua HTMX nhận về đúng một dòng bảng; chuyển sai bước trả 400; người cùng team không phải người làm bị 404 còn Leader đổi được; mỗi lần một dòng nhật ký | FR-11.2 · BR-5 | Tự động |
+| AC-14.4 | Tab Của tôi và Trong phạm vi, lọc theo trạng thái, người làm, ưu tiên; danh sách phân trang 25 dòng | FR-11.4 | Tự động |
+| AC-14.5 | Người tạo hoặc Leader trở lên sửa được việc (nhật ký ghi trường đổi); gỡ là xoá mềm bởi người tạo hoặc Manager; người làm không phải người tạo bị từ chối có nhật ký | FR-11.5 · BR-4 | Tự động |
 
 ---
 
