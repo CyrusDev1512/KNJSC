@@ -61,7 +61,7 @@ def active_users():
     return {
         u.pk: u for u in get_user_model().objects
         .filter(is_active=True, profile__isnull=False)
-        .select_related("profile", "profile__department", "profile__team")   # ô chọn hiện bộ phận
+        .select_related("profile", "profile__department")   # ô chọn hiện bộ phận; team không ai đọc
         .order_by("profile__full_name", "username")
     }
 

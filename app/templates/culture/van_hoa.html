@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load knjsc %}
 {% block tieu_de %}Ghi nhận văn hoá · Kim Ngân JSC{% endblock %}
 {% block ten_trang %}Văn hoá{% endblock %}
 
@@ -27,7 +27,7 @@
             <label for="gn-nguoi">Đồng nghiệp <span class="bat-buoc">*</span></label>
             <select class="o-nhap" id="gn-nguoi" name="receiver" required>
               <option value="">— chọn —</option>
-              {% for u in cac_nguoi %}<option value="{{ u.pk }}">{{ u.profile.full_name|default:u.username }} · {{ u.profile.department|default:"—" }}</option>{% endfor %}
+              {% for u in cac_nguoi %}<option value="{{ u.pk }}">{{ u|ten }} · {{ u.profile.department|default:"—" }}</option>{% endfor %}
             </select>
           </div>
           <div class="truong">
@@ -74,7 +74,7 @@
           <li class="bxh-hang">
             <span class="hang-so {{d.lop_hang}}" aria-label="Hạng {{ d.hang }}">{{ d.hang }}</span>
             <div class="bxh-ten">
-              <a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user.profile.full_name|default:d.user.username }}</a>
+              <a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user|ten }}</a>
               <div class="nho mo-nhat">{{ d.so_don }} đơn{% if d.sao_thuong %} · thưởng <span class="sao">★ {{ d.sao_thuong }}</span>{% endif %}</div>
             </div>
             <span class="tien day">{{ d.tong_hien }}</span>
@@ -97,7 +97,7 @@
           <li class="bxh-hang">
             <span class="hang-so {{d.lop_hang}}" aria-label="Hạng {{ d.hang }}">{{ d.hang }}</span>
             <div class="bxh-ten">
-              <a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user.profile.full_name|default:d.user.username }}</a>
+              <a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user|ten }}</a>
               <div class="nho mo-nhat">tháng này {{ d.sao_ky }}</div>
             </div>
             <span class="sao">★ {{ d.sao }}</span>

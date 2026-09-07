@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 
 from core.constants import Rank
 from core.exceptions import BusinessError
-from core.pagination import PAGE_SIZES, filter_query, page_size, paginate
+from core.pagination import filter_query, pagination_context
 from core.permissions import assert_rank
 from org.models import Department
 
@@ -20,15 +20,6 @@ from .constants import STATUS_CHIP, ResourceStatus
 from .forms import TaiNguyenForm
 from .models import Resource, ResourceCategory
 from .services import resource_service
-
-
-def _phan_trang(request, queryset, ten_don_vi="tài nguyên"):
-    trang = paginate(request, queryset)
-    return {
-        "page_obj": trang, "trang": trang,
-        "moi_trang": page_size(request), "cac_co_trang": PAGE_SIZES,
-        "ten_don_vi": ten_don_vi, "tham_so": "trang", "tham_so_co": "moi_trang",
-    }
 
 
 def _form(du_lieu=None, nguoi_giu=None, **initial):
@@ -73,7 +64,7 @@ def tai_nguyen(request):
     qs_loc = filter_query(
         muc=muc_hien.pk if muc_hien else "", trang_thai=trang_thai, nguoi=nguoi, tim=tim,
     )
-    boi_canh = _phan_trang(request, ds)
+    boi_canh = pagination_context(request, ds, "tài nguyên")
     boi_canh.update({
         "cac_muc": cac_muc, "muc_hien": muc_hien, "trang_thai": trang_thai, "nguoi": nguoi,
         "tim": tim, "qs_loc": qs_loc,

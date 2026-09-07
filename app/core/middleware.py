@@ -12,6 +12,8 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.cache import add_never_cache_headers
 
+from .htmx import is_htmx
+
 # Những đường dẫn luôn cho qua, nếu không sẽ chuyển hướng vòng tròn
 EXEMPT_PREFIXES = ("/dang-nhap", "/dang-xuat", "/doi-mat-khau", "/static", "/media")
 
@@ -25,7 +27,7 @@ def _ve_dang_nhap(request, ly_do):
     trình duyệt tự chuyển trang bằng header `HX-Redirect` — trả 302 thì htmx
     đi theo rồi nhét cả trang đăng nhập vào chỗ nút."""
     url = f"{settings.LOGIN_URL}?{ly_do}=1"
-    if request.headers.get("HX-Request") == "true":
+    if is_htmx(request):
         return HttpResponse(status=200, headers={"HX-Redirect": url})
     return redirect(url)
 

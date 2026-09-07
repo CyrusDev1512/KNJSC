@@ -60,8 +60,7 @@ class DocumentCategory(TimestampedModel, SoftDeleteModel):
 class Document(ScopedModel):
     """Một tài liệu: tệp đã tải lên, hoặc chỉ là liên kết."""
 
-    # Phạm vi theo mục (bộ phận hoặc toàn công ty), viết ở managers.py
-    SCOPE_TEAM_FIELD = None
+    # Phạm vi theo mục (bộ phận hoặc toàn công ty), viết ở managers.py — không dùng SCOPE_*
 
     title = models.CharField("Tiêu đề", max_length=TITLE_MAX)
     category = models.ForeignKey(

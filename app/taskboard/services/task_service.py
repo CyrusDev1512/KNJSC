@@ -11,7 +11,7 @@ from core.audit import record
 from core.constants import AuditAction, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.identity import display_name
-from core.permissions import has_rank, is_admin
+from core.permissions import has_rank
 from org.models import UserProfile
 
 from ..constants import (

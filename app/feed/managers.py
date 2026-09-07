@@ -8,14 +8,7 @@ from django.db import models
 from django.db.models import Count, IntegerField, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 
-from core.managers import SoftDeleteQuerySet
-
-
-class AliveManager(models.Manager):
-    """Loại sẵn bản ghi đã đánh dấu xoá; muốn lấy cả thì dùng `all_objects`."""
-
-    def get_queryset(self):
-        return super().get_queryset().filter(deleted_at__isnull=True)
+from core.managers import AliveManager, SoftDeleteQuerySet
 
 
 def _dem(model, ten_khoa="post"):

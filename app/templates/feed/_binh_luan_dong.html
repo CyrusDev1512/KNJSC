@@ -1,12 +1,12 @@
-{% comment %}Một bình luận. Cần: bl (Comment có author kèm profile, thuộc tính duoc_go).{% endcomment %}
+{% load knjsc %}{% comment %}Một bình luận. Cần: bl (Comment có author kèm profile, thuộc tính duoc_go).{% endcomment %}
 <div class="binh-luan">
   {% if bl.author %}
-    <div class="avatar" aria-hidden="true">{{ bl.author.profile.full_name|default:bl.author.username|first|upper }}</div>
+    {% avatar bl.author %}
   {% else %}
     <div class="avatar" aria-hidden="true">?</div>
   {% endif %}
   <div class="binh-luan-than">
-    <b>{% if bl.author %}{{ bl.author.profile.full_name|default:bl.author.username }}{% else %}Tài khoản đã xoá{% endif %}</b>
+    <b>{% if bl.author %}{{ bl.author|ten }}{% else %}Tài khoản đã xoá{% endif %}</b>
     <span class="nho mo-nhat">{{ bl.created_at|date:"d.m.Y H:i" }}</span>
     <p>{{ bl.body|urlize }}</p>
   </div>

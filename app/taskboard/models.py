@@ -12,8 +12,7 @@ from .managers import AllTaskManager, TaskManager
 class Task(ScopedModel):
     """Một việc: ai tạo, ai làm, trạng thái, ưu tiên, hạn."""
 
-    # Phạm vi có hai người liên quan, viết riêng ở managers.py
-    SCOPE_TEAM_FIELD = None
+    # Phạm vi có hai người liên quan, viết riêng ở managers.py — không dùng SCOPE_*
 
     title = models.CharField("Tiêu đề", max_length=TITLE_MAX)
     description = models.TextField("Mô tả", blank=True)

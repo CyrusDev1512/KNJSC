@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load knjsc %}
 {% block tieu_de %}Công việc · Kim Ngân JSC{% endblock %}
 {% block ten_trang %}Công việc{% endblock %}
 
@@ -41,7 +41,7 @@
       <label for="nguoi">Người làm</label>
       <select class="o-nhap" id="nguoi" name="nguoi">
         <option value="">Tất cả</option>
-        {% for u in cac_nguoi %}<option value="{{ u.pk }}" {% if nguoi == u.pk|stringformat:"s" %}selected{% endif %}>{{ u.profile.full_name|default:u.username }}</option>{% endfor %}
+        {% for u in cac_nguoi %}<option value="{{ u.pk }}" {% if nguoi == u.pk|stringformat:"s" %}selected{% endif %}>{{ u|ten }}</option>{% endfor %}
       </select>
     </div>
     {% endif %}

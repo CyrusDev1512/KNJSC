@@ -33,12 +33,17 @@ def can_moderate(user):
     return has_rank(user, Rank.MANAGER)
 
 
+def _owns_or_moderates(user, obj):
+    """Chủ của bài hay bình luận, hoặc người điều phối (Manager trở lên)."""
+    return obj.author_id == getattr(user, "pk", None) or can_moderate(user)
+
+
 def can_delete_post(user, post):
-    return post.author_id == getattr(user, "pk", None) or can_moderate(user)
+    return _owns_or_moderates(user, post)
 
 
 def can_delete_comment(user, comment):
-    return comment.author_id == getattr(user, "pk", None) or can_moderate(user)
+    return _owns_or_moderates(user, comment)
 
 
 # ══ ĐỌC ═══════════════════════════════════════════════════════════

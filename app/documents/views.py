@@ -12,22 +12,13 @@ from django.views.decorators.http import require_POST
 from core.audit import record_denied
 from core.constants import Rank
 from core.exceptions import BusinessError, OutOfScopeError
-from core.pagination import PAGE_SIZES, filter_query, page_size, paginate
+from core.pagination import filter_query, pagination_context
 from core.permissions import assert_rank, has_rank, is_admin
 from org.models import Department
 
 from .forms import TaiLenForm
 from .models import Document, DocumentCategory
 from .services import document_service
-
-
-def _phan_trang(request, queryset, ten_don_vi="tài liệu"):
-    trang = paginate(request, queryset)
-    return {
-        "page_obj": trang, "trang": trang,
-        "moi_trang": page_size(request), "cac_co_trang": PAGE_SIZES,
-        "ten_don_vi": ten_don_vi, "tham_so": "trang", "tham_so_co": "moi_trang",
-    }
 
 
 def _bo_phan_tao_muc(user):
@@ -61,7 +52,7 @@ def tai_lieu(request):
 
     qs_loc = filter_query(muc=muc_hien.pk if muc_hien else "", tim=tim)
 
-    boi_canh = _phan_trang(request, ds)
+    boi_canh = pagination_context(request, ds, "tài liệu")
     boi_canh.update({
         "cac_muc": cac_muc, "muc_hien": muc_hien, "tim": tim, "qs_loc": qs_loc,
         "tong_tai_lieu": sum(m.so_tai_lieu for m in cac_muc),

@@ -18,7 +18,6 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from django.conf import settings
-from django.db import transaction
 from django.http import QueryDict
 
 from core import excel

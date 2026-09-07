@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load knjsc %}
 {% block tieu_de %}Tài nguyên · Kim Ngân JSC{% endblock %}
 {% block ten_trang %}Tài nguyên{% endblock %}
 
@@ -34,7 +34,7 @@
         <label for="nguoi">Người giữ</label>
         <select class="o-nhap" id="nguoi" name="nguoi">
           <option value="">Tất cả</option>
-          {% for u in cac_nguoi %}<option value="{{ u.pk }}" {% if nguoi == u.pk|stringformat:"s" %}selected{% endif %}>{{ u.profile.full_name|default:u.username }}</option>{% endfor %}
+          {% for u in cac_nguoi %}<option value="{{ u.pk }}" {% if nguoi == u.pk|stringformat:"s" %}selected{% endif %}>{{ u|ten }}</option>{% endfor %}
         </select>
       </div>
       <div class="loc-nut">
@@ -59,7 +59,7 @@
               </td>
               <td>{{ tn.category.name }}</td>
               <td><span class="chip {{lop_tt}}">{{ tn.get_status_display }}</span></td>
-              <td class="nho">{% if tn.holder %}{{ tn.holder.profile.full_name|default:tn.holder.username }}{% else %}—{% endif %}</td>
+              <td class="nho">{% if tn.holder %}{{ tn.holder|ten }}{% else %}—{% endif %}</td>
               <td class="nho">{{ tn.department|default:"—" }}</td>
               <td class="ma-o">{{ tn.updated_at|date:"d.m.Y" }}</td>
               <td class="phai">

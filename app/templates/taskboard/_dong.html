@@ -1,4 +1,4 @@
-{% comment %}
+{% load knjsc %}{% comment %}
 Một dòng việc — dùng ở danh sách và làm mảnh HTMX trả về sau khi đổi trạng thái.
 Cần: t (Task), lop_tt, lop_ut, duoc_doi, cac_buoc [(mã, nhãn)].
 {% endcomment %}
@@ -7,7 +7,7 @@ Cần: t (Task), lop_tt, lop_ut, duoc_doi, cac_buoc [(mã, nhãn)].
     <a href="{% url 'cong_viec_xem' t.pk %}"><b>{{ t.title }}</b></a>
     {% if t.description %}<div class="nho mo-nhat">{{ t.description|truncatechars:90 }}</div>{% endif %}
   </td>
-  <td class="nho">{% if t.assignee %}{{ t.assignee.profile.full_name|default:t.assignee.username }}{% else %}—{% endif %}</td>
+  <td class="nho">{% if t.assignee %}{{ t.assignee|ten }}{% else %}—{% endif %}</td>
   <td><span class="chip {{lop_ut}}">{{ t.get_priority_display }}</span></td>
   <td class="ma-o {% if t.qua_han %}qua-han{% endif %}">{% if t.due_date %}{{ t.due_date|date:"d.m.Y" }}{% else %}—{% endif %}</td>
   <td><span class="chip {{lop_tt}}">{{ t.get_status_display }}</span></td>

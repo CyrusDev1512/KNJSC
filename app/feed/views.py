@@ -12,20 +12,12 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
+from core.htmx import is_htmx
 from core.identity import display_name
-from core.pagination import PAGE_SIZES, page_size, paginate
+from core.pagination import pagination_context
 
 from .constants import BODY_MAX, COMMENT_MAX
 from .services import post_service
-
-
-def _phan_trang(request, queryset, ten_don_vi="bài"):
-    trang = paginate(request, queryset)
-    return {
-        "page_obj": trang, "trang": trang,
-        "moi_trang": page_size(request), "cac_co_trang": PAGE_SIZES,
-        "ten_don_vi": ten_don_vi, "tham_so": "trang", "tham_so_co": "moi_trang",
-    }
 
 
 def _bai_hoac_404(request, pk):
@@ -33,10 +25,6 @@ def _bai_hoac_404(request, pk):
     if bai is None:
         raise Http404
     return bai
-
-
-def _la_htmx(request):
-    return request.headers.get("HX-Request") == "true"
 
 
 def _gan_quyen(user, cac_bai):
@@ -61,7 +49,7 @@ def _binh_luan(request, bai, loi="", truoc=None, oob=False):
 
 def _trang_bang_tin(request, body_cu=""):
     """Trang Bảng tin; `body_cu` giữ lại bài đang gõ khi đăng lỗi."""
-    boi_canh = _phan_trang(request, post_service.feed_qs(request.user))
+    boi_canh = pagination_context(request, post_service.feed_qs(request.user), "bài")
     trang = boi_canh["trang"]
     trang.object_list = _gan_quyen(request.user, list(trang.object_list))
     boi_canh.update(post_service.sidebar(request.user))
@@ -116,7 +104,7 @@ def bang_tin_thich(request, pk):
     """Thích hoặc bỏ thích — HTMX nhận về đúng nút mới (FR-10.2)."""
     bai = _bai_hoac_404(request, pk)
     da_thich = post_service.toggle_like(bai, actor=request.user, request=request)
-    if not _la_htmx(request):
+    if not is_htmx(request):
         return redirect("bang_tin_xem", pk=bai.pk)
     return render(request, "feed/_thich.html", {
         "bai": bai, "da_thich": da_thich, "so_thich": post_service.like_count(bai),
@@ -139,7 +127,7 @@ def bang_tin_binh_luan(request, pk):
             )
         except BusinessError as e:
             loi = str(e)
-        if not _la_htmx(request):
+        if not is_htmx(request):
             if loi:
                 messages.error(request, loi)
             return redirect("bang_tin_xem", pk=bai.pk)

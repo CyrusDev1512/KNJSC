@@ -15,20 +15,12 @@ from django.views.decorators.http import require_POST
 
 from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
-from core.pagination import PAGE_SIZES, filter_query, page_size, paginate
+from core.htmx import is_htmx
+from core.pagination import filter_query, pagination_context
 
 from .constants import OPEN_STATUSES, PRIORITY_CHIP, STATUS_CHIP, TaskPriority, TaskStatus
 from .forms import CongViecForm
 from .services import task_service
-
-
-def _phan_trang(request, queryset, ten_don_vi="việc"):
-    trang = paginate(request, queryset)
-    return {
-        "page_obj": trang, "trang": trang,
-        "moi_trang": page_size(request), "cac_co_trang": PAGE_SIZES,
-        "ten_don_vi": ten_don_vi, "tham_so": "trang", "tham_so_co": "moi_trang",
-    }
 
 
 def _dong(user, task):
@@ -87,7 +79,7 @@ def cong_viec(request):
         qua_han="1" if qua_han else "", sap=sap,
     )
 
-    boi_canh = _phan_trang(request, ds)
+    boi_canh = pagination_context(request, ds, "việc")
     boi_canh.update({
         "tab": tab, "trang_thai": trang_thai, "uu_tien": uu_tien, "nguoi": nguoi,
         "qua_han": qua_han, "sap": sap, "qs_loc": qs_loc,
@@ -182,12 +174,12 @@ def cong_viec_trang_thai(request, pk):
             viec, request.POST.get("trang_thai", ""), actor=request.user, request=request,
         )
     except BusinessError as loi:
-        if request.headers.get("HX-Request"):
+        if is_htmx(request):
             # Chữ thường, không phải HTML: base.html hiện nguyên văn trong hộp báo lỗi
             return HttpResponse(str(loi), status=400, content_type="text/plain; charset=utf-8")
         messages.error(request, str(loi))
         return redirect("cong_viec_xem", pk=pk)
-    if request.headers.get("HX-Request"):
+    if is_htmx(request):
         return render(request, "taskboard/_dong.html", _dong(request.user, viec))
     messages.success(request, f"Việc chuyển sang {viec.get_status_display()}.")
     ve = request.POST.get("ve", "")

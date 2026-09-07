@@ -8,7 +8,7 @@ thấy của mình) nên viết riêng ở đây, không rải ra view.
 from django.db import models
 from django.db.models import Q
 
-from core.managers import SoftDeleteQuerySet
+from core.managers import AliveManager, SoftDeleteQuerySet
 from core.scope import get_user_scope
 
 
@@ -35,13 +35,6 @@ class DocumentQuerySet(SoftDeleteQuerySet):
 
     def can_view(self, user, obj):
         return self.in_scope(user).filter(pk=obj.pk).exists()
-
-
-class AliveManager(models.Manager):
-    """Loại sẵn bản ghi đã đánh dấu xoá; muốn lấy cả thì dùng `all_objects`."""
-
-    def get_queryset(self):
-        return super().get_queryset().filter(deleted_at__isnull=True)
 
 
 class CategoryManager(AliveManager.from_queryset(CategoryQuerySet)):

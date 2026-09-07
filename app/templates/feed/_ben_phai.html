@@ -1,4 +1,4 @@
-{% comment %}
+{% load knjsc %}{% comment %}
 Thanh bên Bảng tin (FR-10.5). Cần: hom_nay, sinh_nhat_thang (user có thuộc tính
 sinh_nhat_hom_nay), top_sao, ghi_nhan_moi, thanh_vien_moi. Mọi người ở đây đều
 đang hoạt động (bản đồ active_users) nên liên kết tới trang thành viên luôn mở được.
@@ -10,7 +10,7 @@ sinh_nhat_hom_nay), top_sao, ghi_nhan_moi, thanh_vien_moi. Mọi người ở đ
       {% for u in sinh_nhat_thang %}
         <li class="ben-hang">
           <span class="ngay-so">{{ u.profile.birthday|date:"d.m" }}</span>
-          <a href="{% url 'van_hoa_thanh_vien' u.pk %}">{{ u.profile.full_name|default:u.username }}</a>
+          <a href="{% url 'van_hoa_thanh_vien' u.pk %}">{{ u|ten }}</a>
           {% if u.sinh_nhat_hom_nay %}<span class="chip chip-tot day">Hôm nay</span>{% endif %}
         </li>
       {% empty %}
@@ -25,7 +25,7 @@ sinh_nhat_hom_nay), top_sao, ghi_nhan_moi, thanh_vien_moi. Mọi người ở đ
       {% for d in top_sao %}
         <li class="bxh-hang">
           <span class="hang-so {{d.lop_hang}}" aria-label="Hạng {{ d.hang }}">{{ d.hang }}</span>
-          <span class="bxh-ten"><a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user.profile.full_name|default:d.user.username }}</a></span>
+          <span class="bxh-ten"><a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user|ten }}</a></span>
           <span class="sao">★ {{ d.sao }}</span>
         </li>
       {% empty %}
@@ -50,9 +50,9 @@ sinh_nhat_hom_nay), top_sao, ghi_nhan_moi, thanh_vien_moi. Mọi người ở đ
     <ul class="bxh">
       {% for u in thanh_vien_moi %}
         <li class="ben-hang">
-          <div class="avatar" aria-hidden="true">{{ u.profile.full_name|default:u.username|first|upper }}</div>
+          {% avatar u %}
           <div>
-            <b>{{ u.profile.full_name|default:u.username }}</b>
+            <b>{{ u|ten }}</b>
             <div class="nho mo-nhat">{{ u.profile.department|default:"—" }} · {{ u.profile.created_at|date:"d.m.Y" }}</div>
           </div>
         </li>

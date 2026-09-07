@@ -1,13 +1,13 @@
-{% extends "base.html" %}
-{% block tieu_de %}{{ nguoi.profile.full_name|default:nguoi.username }} · Sao · Kim Ngân JSC{% endblock %}
-{% block ten_trang %}{{ nguoi.profile.full_name|default:nguoi.username }}{% endblock %}
+{% extends "base.html" %}{% load knjsc %}
+{% block tieu_de %}{{ nguoi|ten }} · Sao · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}{{ nguoi|ten }}{% endblock %}
 
 {% block noi_dung %}
 
 <div class="trang-dau">
   <div>
     <div class="nhan-nho">Văn hoá · FR-12.5 · {{ nguoi.profile.department|default:"—" }}</div>
-    <h1>{{ nguoi.profile.full_name|default:nguoi.username }}</h1>
+    <h1>{{ nguoi|ten }}</h1>
     <p>{{ nguoi.profile.get_rank_display }}{% if nguoi.profile.team %} · {{ nguoi.profile.team }}{% endif %}</p>
   </div>
   <div class="hanh-dong"><a class="nut" href="{% url 'van_hoa' %}">Quay lại</a></div>

@@ -5,14 +5,7 @@ sách, nên không có `in_scope`; manager chỉ loại bản ghi đã xoá mề
 """
 from django.db import models
 
-from core.managers import SoftDeleteQuerySet
-
-
-class AliveManager(models.Manager):
-    """Loại sẵn bản ghi đã đánh dấu xoá; muốn lấy cả thì dùng `all_objects`."""
-
-    def get_queryset(self):
-        return super().get_queryset().filter(deleted_at__isnull=True)
+from core.managers import AliveManager, SoftDeleteQuerySet
 
 
 class CategoryManager(AliveManager.from_queryset(SoftDeleteQuerySet)):

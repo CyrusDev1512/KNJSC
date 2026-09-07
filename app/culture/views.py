@@ -13,20 +13,11 @@ from django.views.decorators.http import require_POST
 from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
 from core.identity import display_name
-from core.pagination import PAGE_SIZES, page_size, paginate
+from core.pagination import pagination_context
 
 from .constants import MESSAGE_MAX, MONTHLY_RANK_STARS, STARS_PER_RECOGNITION, CoreValue
 from .forms import GhiNhanForm
 from .services import leaderboard_service, recognition_service
-
-
-def _phan_trang(request, queryset, ten_don_vi="ghi nhận"):
-    trang = paginate(request, queryset)
-    return {
-        "page_obj": trang, "trang": trang,
-        "moi_trang": page_size(request), "cac_co_trang": PAGE_SIZES,
-        "ten_don_vi": ten_don_vi, "tham_so": "trang", "tham_so_co": "moi_trang",
-    }
 
 
 def _hang_so():
@@ -43,7 +34,7 @@ def van_hoa(request):
     request.nav_current = "van_hoa"
     nguoi = recognition_service.active_users()      # một truy vấn dùng chung cho cả trang
     ky = recognition_service.current_period()
-    boi_canh = _phan_trang(request, recognition_service.recognitions_qs())
+    boi_canh = pagination_context(request, recognition_service.recognitions_qs(), "ghi nhận")
     loi_ti_gia = ""
     try:
         bang_xep_hang = leaderboard_service.sales_leaderboard(users=nguoi)
@@ -98,7 +89,7 @@ def van_hoa_thanh_vien(request, pk):
     nguoi = recognition_service.active_user(pk)
     if nguoi is None:
         raise Http404
-    boi_canh = _phan_trang(request, recognition_service.received_by(nguoi))
+    boi_canh = pagination_context(request, recognition_service.received_by(nguoi), "ghi nhận")
     ky = recognition_service.current_period()
     boi_canh.update({
         "nguoi": nguoi,

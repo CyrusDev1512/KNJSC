@@ -33,7 +33,7 @@ class Post(TimestampedModel, SoftDeleteModel):
         null=True, blank=True, on_delete=models.SET_NULL, related_name="birthday_posts",
     )
     birthday_on = models.DateField("Ngày sinh nhật", null=True, blank=True)
-    is_pinned = models.BooleanField("Ghim", default=False, db_index=True)
+    is_pinned = models.BooleanField("Ghim", default=False)      # chỉ mục ghép post_pinned_created_idx đã đủ
     pinned_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name="Người ghim",
         null=True, blank=True, on_delete=models.SET_NULL, related_name="+",

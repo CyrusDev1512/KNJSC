@@ -23,7 +23,7 @@ from django.views.decorators.http import require_POST
 
 from core.constants import IMPORT_MAX_ROWS, UPLOAD_MAX_BYTES, JobStatus, Rank
 from core.exceptions import BusinessError, OutOfScopeError
-from core.pagination import PAGE_SIZES, page_size, paginate
+from core.pagination import pagination_context
 from core.audit import record_denied
 from core.permissions import assert_rank, has_rank, is_admin
 
@@ -36,18 +36,8 @@ from .models import (
 )
 from .services import (
     choice_service, export_service, form_service, grant_service, import_service,
-    link_service, record_service, table_service,
+    link_service, table_service,
 )
-
-
-def _phan_trang(request, queryset, ten_don_vi="dòng", param="trang", size_param="moi_trang"):
-    """Bối cảnh dùng chung cho khối phân trang (quy tắc 1)."""
-    trang = paginate(request, queryset, param=param, size_param=size_param)
-    return {
-        "page_obj": trang, "trang": trang,
-        "moi_trang": page_size(request, size_param), "cac_co_trang": PAGE_SIZES,
-        "ten_don_vi": ten_don_vi, "tham_so": param, "tham_so_co": size_param,
-    }
 
 
 def _lay_bang(request, code):
@@ -86,7 +76,7 @@ def bang(request):
         "tim": tim,
         "duoc_sua": _duoc_sua_bang(request.user),
     }
-    boi_canh.update(_phan_trang(request, ds, "bảng"))
+    boi_canh.update(pagination_context(request, ds, "bảng"))
     return render(request, "forms_builder/bang.html", boi_canh)
 
 
@@ -188,7 +178,7 @@ def bang_xem(request, code):
         descending=giam_dan, columns=cac_cot,
     )
 
-    boi_canh = _phan_trang(request, ds, "dòng")
+    boi_canh = pagination_context(request, ds, "dòng")
     # Bảng dữ liệu chỉ để xem với mọi bảng — ADR-014: không tính quyền sửa
     # từng dòng, không vẽ ô nhập; sửa số liệu là việc của KN CRM. Lớp CSS của
     # ô (màu cột, ngưỡng) tính sẵn ở styling để template chỉ in ra.
@@ -418,7 +408,7 @@ def bieu_mau(request):
         "duoc_sua": _duoc_sua_bang(request.user),
         "thu_vien": thu_vien.select_related("department").order_by("name"),
     }
-    boi_canh.update(_phan_trang(request, ds, "biểu mẫu"))
+    boi_canh.update(pagination_context(request, ds, "biểu mẫu"))
     return render(request, "forms_builder/bieu_mau.html", boi_canh)
 
 

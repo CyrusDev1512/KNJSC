@@ -21,7 +21,7 @@ class Recognition(TimestampedModel):
     )
     receiver = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name="Người được ghi nhận",
-        on_delete=models.PROTECT, related_name="recognitions_received", db_index=True,
+        on_delete=models.PROTECT, related_name="recognitions_received",
     )
     value = models.CharField("Giá trị văn hoá", max_length=16, choices=CoreValue.choices)
     message = models.CharField("Lời nhắn", max_length=MESSAGE_MAX)
@@ -43,7 +43,7 @@ class StarAward(TimestampedModel):
 
     receiver = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name="Người nhận",
-        on_delete=models.PROTECT, related_name="star_awards", db_index=True,
+        on_delete=models.PROTECT, related_name="star_awards",
     )
     source = models.CharField("Nguồn", max_length=12, choices=StarSource.choices, db_index=True)
     stars = models.PositiveSmallIntegerField("Số sao")
