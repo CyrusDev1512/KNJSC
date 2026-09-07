@@ -89,6 +89,25 @@ CONG_VIEC_MAU = [
     ("Đối soát vận đơn tuần này", "vd.manager", "vd.staff", "vua", 1, "dang_lam"),
 ]
 
+#: Đơn hàng mẫu cho bảng xếp hạng doanh số — (người bán, tên khách, số điện
+#: thoại, thị trường, tiền tệ, mã sản phẩm, số lượng, đơn giá). Ba loại tiền để
+#: thấy quy đổi VND (FR-12.3). Đi qua `order_service` nên ghi luôn sang vận đơn.
+DON_HANG_MAU = [
+    ("sale.staff", "Emily Tran", "+14085550101", "us", Currency.USD, "hm200", 2, "150.00"),
+    ("sale.staff", "Daniel Ng", "+14155550102", "us", Currency.USD, "den_ngu", 1, "89.00"),
+    ("sale.staff2", "Sophie Martin", "+16045550103", "ca", Currency.CAD, "retinol-cream", 3, "120.00"),
+    ("sale.leader", "Nguyễn Văn An", "0912345678", "us", Currency.VND, "noi_chien", 1, "2590000"),
+]
+
+#: Ghi nhận mẫu, chéo bộ phận — (người ghi nhận, người được ghi nhận, giá trị, lời nhắn)
+GHI_NHAN_MAU = [
+    ("vd.staff", "sale.staff", "hop_tac",
+     "Chốt đơn xong là gửi đủ địa chỉ và ghi chú giao hàng ngay, bên vận đơn không phải hỏi lại."),
+    ("sale.manager", "mkt.staff", "sang_tao", "Bộ ảnh đèn ngủ mới làm tỉ lệ chốt tăng rõ."),
+    ("mkt.manager", "vd.staff", "trach_nhiem", "Đối soát vận đơn tuần này xong trước hạn."),
+    ("sale.leader", "sale.staff2", "tan_tam", "Ở lại gọi thêm khách Canada tới tối để kịp đơn."),
+]
+
 #: Bốn cột tính sẵn — đúng bốn công thức trong tệp thật của khách hàng.
 #: (nhãn, tên kỹ thuật, phép tính, toán hạng A, toán hạng B, số chữ số thập phân)
 COT_TINH_BC_MKT = [
@@ -157,7 +176,7 @@ class Command(BaseCommand):
         self.mat_khau = o["mat_khau"]
         self.da_tao = {"bộ phận": 0, "team": 0, "tài khoản": 0,
                        "bảng": 0, "biểu mẫu": 0, "sản phẩm": 0, "dòng dữ liệu": 0,
-                       "tài liệu": 0, "việc": 0}
+                       "tài liệu": 0, "việc": 0, "đơn hàng": 0, "ghi nhận": 0}
         self.dat_lai_mat_khau = 0
 
         bo_phan = self._bo_phan()
@@ -169,6 +188,8 @@ class Command(BaseCommand):
         self._thu_muc(nguoi)
         self._tai_lieu(bo_phan, nguoi)
         self._cong_viec(nguoi)
+        self._don_hang(nguoi)
+        self._ghi_nhan(nguoi)
 
         self._bao_cao_ket_qua(nguoi)
 
@@ -388,6 +409,35 @@ class Command(BaseCommand):
                 task_service.change_status(viec, TaskStatus.DANG_LAM, actor=nguoi[ai_lam])
                 task_service.change_status(viec, TaskStatus.XONG, actor=nguoi[ai_lam])
             self.da_tao["việc"] += 1
+
+    def _don_hang(self, nguoi):
+        """Bốn đơn mẫu để bảng xếp hạng doanh số tháng này có số — FR-12.3.
+        Chỉ dựng khi chưa có đơn nào, kể cả đơn đã bỏ."""
+        from orders.models import Order, Product
+        from orders.services import order_service
+
+        if Order.all_objects.exists():
+            return
+        san_pham = {sp.code: sp for sp in Product.objects.all()}
+        for ai, khach, sdt, thi_truong, tien_te, ma_sp, so_luong, don_gia in DON_HANG_MAU:
+            order_service.create_order(
+                phone=sdt, customer_name=khach, market=thi_truong, currency=tien_te,
+                lines=[{"product": san_pham[ma_sp], "quantity": so_luong, "unit_price": don_gia}],
+                actor=nguoi[ai],
+            )
+            self.da_tao["đơn hàng"] += 1
+
+    def _ghi_nhan(self, nguoi):
+        """Bốn ghi nhận chéo bộ phận, mỗi ghi nhận một sao — FR-12.1, FR-12.2."""
+        from culture.models import Recognition
+        from culture.services import recognition_service
+
+        if Recognition.objects.exists():
+            return
+        for ai, nguoi_nhan, gia_tri, loi_nhan in GHI_NHAN_MAU:
+            recognition_service.give_recognition(
+                receiver=nguoi[nguoi_nhan], value=gia_tri, message=loi_nhan, actor=nguoi[ai])
+            self.da_tao["ghi nhận"] += 1
 
     # ── Báo cáo kết quả ──
 

@@ -298,6 +298,10 @@ Ghi nhận, sao và bảng xếp hạng doanh số — FR-12.1 tới FR-12.5, AD
 
 | Mã | Tiêu chí | Yêu cầu | Loại |
 |---|---|---|---|
+| AC-15.1 | Ai đăng nhập cũng ghi nhận được đồng nghiệp theo một giá trị văn hoá, người nhận được cộng đúng một sao cùng giao dịch và có nhật ký; tự ghi nhận, lời nhắn trống, giá trị lạ hay người đã khoá đều bị từ chối; GET vào đường gửi trả 405 | FR-12.1 · FR-12.2 · BR-5 | Tự động |
+| AC-15.2 | Bảng xếp hạng gộp đơn tháng này theo người bán, quy về VND bằng tỉ giá cố định trong cấu hình, xếp theo tổng rồi số đơn; đơn đã bỏ và đơn tháng trước không tính; mọi bộ phận xem được nhưng không thấy mã đơn; thiếu tỉ giá thì báo lỗi, không trả số sai | FR-12.3 · BR-8 | Tự động |
+| AC-15.3 | Ngày 1 hằng tháng ba người dẫn đầu kỳ trước nhận 5, 3, 1 sao; lệnh và tác vụ nền chạy lại không nhân đôi; kỳ sai định dạng bị từ chối; mỗi lần chạy một dòng nhật ký | FR-12.4 · BR-5 | Tự động |
+| AC-15.4 | Trang thành viên hiện tổng sao mọi kỳ, sao kỳ này, sao theo tháng và ghi nhận nhận được phân trang 25 dòng; bảng Nhiều sao nhất xếp theo tổng sao; thành viên không có hoặc đã khoá trả 404 | FR-12.5 · FR-12.2 | Tự động |
 
 ---
 

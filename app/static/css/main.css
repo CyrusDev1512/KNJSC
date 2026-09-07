@@ -533,6 +533,31 @@ hr.ke { border: 0; border-top: 1px solid var(--rule); margin: var(--sp-4) 0; }
 /* Hạn đã qua mà việc còn mở */
 .qua-han { color: var(--critical); font-weight: 600; }
 
+/* Thẻ ghi nhận văn hoá */
+.ghi-nhan { padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--rule); }
+.ghi-nhan:last-child { border-bottom: 0; }
+.ghi-nhan-dau { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
+.ghi-nhan-dau .avatar { width: 34px; height: 34px; font-size: var(--fs-md); }
+.ghi-nhan-than { margin: var(--sp-2) 0 0; color: var(--ink-2); }
+.gia-tri-vh {
+  display: inline-block; padding: 2px 10px; border-radius: 10px;
+  background: var(--accent-soft); color: var(--accent); font-size: var(--fs-xs); font-weight: 600;
+}
+/* Huy hiệu sao */
+.sao { color: var(--warn); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Số hạng: vàng, bạc, đồng cho ba hạng đầu */
+.hang-so {
+  display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--surface-3); color: var(--ink-2); font-family: var(--font-ma); font-weight: 700; font-size: var(--fs-sm);
+}
+.hang-so-1 { background: var(--warn); color: #1d1500; }
+.hang-so-2 { background: var(--rule-strong); color: var(--ink); }
+.hang-so-3 { background: var(--serious-soft); color: var(--serious); }
+/* Danh sách xếp hạng gọn trong thẻ */
+.bxh { display: flex; flex-direction: column; }
+.bxh-hang { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--rule); }
+.bxh-hang:last-child { border-bottom: 0; }
+
 /* Cụm nút nhỏ trong một ô bảng (Tải về + Gỡ) */
 .hang-nut { display: inline-flex; gap: var(--sp-2); align-items: center; }
 .hang-nut form { margin: 0; display: inline; }

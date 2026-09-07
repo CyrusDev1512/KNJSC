@@ -1,0 +1,13 @@
+{% comment %}Một thẻ ghi nhận. Cần: gn (Recognition có giver, receiver kèm profile).{% endcomment %}
+<div class="ghi-nhan">
+  <div class="ghi-nhan-dau">
+    <div class="avatar">{{ gn.receiver.profile.full_name|default:gn.receiver.username|first|upper }}</div>
+    <div>
+      <b><a href="{% url 'van_hoa_thanh_vien' gn.receiver.pk %}">{{ gn.receiver.profile.full_name|default:gn.receiver.username }}</a></b>
+      <span class="nho mo-nhat">được {{ gn.giver.profile.full_name|default:gn.giver.username }} ghi nhận · {{ gn.created_at|date:"d.m.Y H:i" }}</span>
+    </div>
+    <span class="gia-tri-vh">{{ gn.get_value_display }}</span>
+    <span class="sao" title="Một sao">★ 1</span>
+  </div>
+  <p class="ghi-nhan-than">{{ gn.message }}</p>
+</div>

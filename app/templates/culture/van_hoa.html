@@ -1,18 +1,105 @@
 {% extends "base.html" %}
 {% block tieu_de %}Ghi nhận văn hoá · Kim Ngân JSC{% endblock %}
-{% block ten_trang %}Ghi nhận văn hoá{% endblock %}
+{% block ten_trang %}Văn hoá{% endblock %}
 
 {% block noi_dung %}
+
 <div class="trang-dau">
   <div>
-    <div class="nhan-nho">Nội bộ · ADR-015</div>
+    <div class="nhan-nho">Nội bộ · FR-12.1 tới FR-12.5</div>
     <h1>Ghi nhận văn hoá</h1>
-    <p>Ghi nhận đồng nghiệp, bảng xếp hạng doanh số và sao.</p>
+    <p>Ghi nhận đồng nghiệp làm tốt một giá trị của công ty: mỗi ghi nhận là một sao. Cuối tháng, ba người dẫn đầu doanh số nhận thêm 5, 3, 1 sao.</p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut" href="{% url 'van_hoa_thanh_vien' user.pk %}">Sao của tôi: <b class="so">{{ sao_cua_toi }}</b> ★</a>
   </div>
 </div>
-<div class="the">
-  <div class="the-than">
-    {% include "components/rong.html" with rong_tieu_de="Đang dựng" rong_mo_ta="Màn hình này đang được làm trong đợt MVP Nội bộ." %}
+
+<div class="luoi luoi-phu">
+  <div class="doc">
+    <div class="the">
+      <div class="the-dau"><h2>Ghi nhận đồng nghiệp</h2></div>
+      <form class="the-than bm" method="post" action="{% url 'van_hoa_ghi_nhan' %}" id="bm-ghi-nhan">
+        {% csrf_token %}
+        <div class="bm-hang bm-hang-2">
+          <div class="truong">
+            <label for="gn-nguoi">Đồng nghiệp <span class="bat-buoc">*</span></label>
+            <select class="o-nhap" id="gn-nguoi" name="receiver" required>
+              <option value="">— chọn —</option>
+              {% for u in cac_nguoi %}<option value="{{ u.pk }}">{{ u.profile.full_name|default:u.username }} · {{ u.profile.department|default:"—" }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="truong">
+            <label for="gn-gia-tri">Giá trị văn hoá <span class="bat-buoc">*</span></label>
+            <select class="o-nhap" id="gn-gia-tri" name="value" required>
+              {% for ma, nhan in cac_gia_tri %}<option value="{{ ma }}">{{ nhan }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="truong">
+          <label for="gn-loi">Lời nhắn <span class="bat-buoc">*</span></label>
+          <textarea class="o-nhap" id="gn-loi" name="message" rows="3" maxlength="300" required placeholder="Bạn đã làm gì đáng ghi nhận?"></textarea>
+        </div>
+      </form>
+      <div class="the-chan">
+        <span class="nho mo-nhat">Ghi nhận không sửa, không xoá được — nghĩ kỹ rồi gửi</span>
+        <div class="day hang"><button class="nut nut-chinh" type="submit" form="bm-ghi-nhan">Gửi ghi nhận</button></div>
+      </div>
+    </div>
+
+    <div class="the">
+      <div class="the-dau"><h2>Ghi nhận mới nhất</h2><span class="phai nho mo-nhat">{{ page_obj.paginator.count }} ghi nhận</span></div>
+      <div>
+        {% for gn in trang %}
+          {% include "culture/_ghi_nhan.html" with gn=gn %}
+        {% empty %}
+          {% include "components/rong.html" with rong_tieu_de="Chưa có ghi nhận nào" rong_mo_ta="Hãy là người đầu tiên ghi nhận một đồng nghiệp." %}
+        {% endfor %}
+      </div>
+      {% include "components/phan_trang.html" %}
+    </div>
+  </div>
+
+  <div class="doc">
+    <div class="the">
+      <div class="the-dau"><h2>Xếp hạng doanh số {{ ky_hien }}</h2></div>
+      <div class="bang-cuon">
+        <table class="bang">
+          <thead><tr><th>Hạng</th><th>Người bán</th><th class="phai">Số đơn</th><th class="phai">Doanh số (VND)</th><th class="phai">Thưởng</th></tr></thead>
+          <tbody>
+            {% for d in bang_xep_hang %}
+              <tr>
+                <td><span class="hang-so {{d.lop_hang}}">{{ d.hang }}</span></td>
+                <td><a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user.profile.full_name|default:d.user.username }}</a></td>
+                <td class="phai so">{{ d.so_don }}</td>
+                <td class="tien">{{ d.tong_hien }}</td>
+                <td class="phai">{% if d.sao_thuong %}<span class="sao">★ {{ d.sao_thuong }}</span>{% else %}—{% endif %}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5">{% include "components/rong.html" with rong_tieu_de="Chưa có đơn tháng này" rong_mo_ta="Bảng xếp hạng tính từ đơn hàng đã lên trong tháng, quy về VND." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="the-chan"><span class="nho mo-nhat">Quy đổi theo tỉ giá cố định trong cấu hình. Ngày 1 tháng sau hệ thống tự thưởng sao.</span></div>
+    </div>
+
+    <div class="the">
+      <div class="the-dau"><h2>Nhiều sao nhất</h2></div>
+      <div class="bxh">
+        {% for d in nhieu_sao %}
+          <div class="bxh-hang">
+            <span class="hang-so {{d.lop_hang}}">{{ d.hang }}</span>
+            <a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user.profile.full_name|default:d.user.username }}</a>
+            <span class="nho mo-nhat">tháng này {{ d.sao_ky }}</span>
+            <span class="sao day">★ {{ d.sao }}</span>
+          </div>
+        {% empty %}
+          {% include "components/rong.html" with rong_tieu_de="Chưa ai có sao" rong_mo_ta="Sao đến từ ghi nhận của đồng nghiệp và từ xếp hạng doanh số." %}
+        {% endfor %}
+      </div>
+    </div>
   </div>
 </div>
+
 {% endblock %}

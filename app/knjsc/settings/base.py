@@ -215,6 +215,11 @@ CELERY_BEAT_SCHEDULE = {
         "task": "core.danh_dau_tac_vu_ket",
         "schedule": crontab(minute="*/15"),
     },
+    # Nhóm Nội bộ — ADR-015
+    "thuong-sao-thang": {
+        "task": "culture.thuong_sao_thang",
+        "schedule": crontab(day_of_month=1, hour=1, minute=0),
+    },
 }
 
 # ── Cảnh báo cho người vận hành ─────────────────────────────────────
