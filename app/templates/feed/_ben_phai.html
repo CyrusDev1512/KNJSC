@@ -1,36 +1,37 @@
 {% comment %}
 Thanh bên Bảng tin (FR-10.5). Cần: hom_nay, sinh_nhat_thang (user có thuộc tính
-sinh_nhat_hom_nay), top_sao, ghi_nhan_moi, thanh_vien_moi.
+sinh_nhat_hom_nay), top_sao, ghi_nhan_moi, thanh_vien_moi. Mọi người ở đây đều
+đang hoạt động (bản đồ active_users) nên liên kết tới trang thành viên luôn mở được.
 {% endcomment %}
 <div class="doc">
   <div class="the">
-    <div class="the-dau"><h2>Sinh nhật tháng {{ hom_nay|date:"m" }}</h2></div>
-    <div class="bxh">
+    <div class="the-dau"><h2>Sinh nhật tháng {{ hom_nay|date:"n" }}</h2></div>
+    <ul class="bxh">
       {% for u in sinh_nhat_thang %}
-        <div class="ben-hang">
+        <li class="ben-hang">
           <span class="ngay-so">{{ u.profile.birthday|date:"d.m" }}</span>
           <a href="{% url 'van_hoa_thanh_vien' u.pk %}">{{ u.profile.full_name|default:u.username }}</a>
           {% if u.sinh_nhat_hom_nay %}<span class="chip chip-tot day">Hôm nay</span>{% endif %}
-        </div>
+        </li>
       {% empty %}
-        <p class="the-than nho mo-nhat">Tháng này chưa có sinh nhật nào trong hồ sơ.</p>
+        <li class="the-than nho mo-nhat">Tháng này chưa có sinh nhật nào trong hồ sơ.</li>
       {% endfor %}
-    </div>
+    </ul>
   </div>
 
   <div class="the">
     <div class="the-dau"><h2>Nhiều sao nhất</h2><a class="phai nho" href="{% url 'van_hoa' %}">Văn hoá →</a></div>
-    <div class="bxh">
+    <ol class="bxh">
       {% for d in top_sao %}
-        <div class="bxh-hang">
-          <span class="hang-so {{d.lop_hang}}">{{ d.hang }}</span>
-          <a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user.profile.full_name|default:d.user.username }}</a>
-          <span class="sao day">★ {{ d.sao }}</span>
-        </div>
+        <li class="bxh-hang">
+          <span class="hang-so {{d.lop_hang}}" aria-label="Hạng {{ d.hang }}">{{ d.hang }}</span>
+          <span class="bxh-ten"><a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user.profile.full_name|default:d.user.username }}</a></span>
+          <span class="sao">★ {{ d.sao }}</span>
+        </li>
       {% empty %}
-        <p class="the-than nho mo-nhat">Chưa ai có sao. Ghi nhận đồng nghiệp ở trang Văn hoá.</p>
+        <li class="the-than nho mo-nhat">Chưa ai có sao. Cấp trên ghi nhận cấp dưới ở trang Văn hoá.</li>
       {% endfor %}
-    </div>
+    </ol>
   </div>
 
   <div class="the">
@@ -46,18 +47,18 @@ sinh_nhat_hom_nay), top_sao, ghi_nhan_moi, thanh_vien_moi.
 
   <div class="the">
     <div class="the-dau"><h2>Thành viên mới</h2></div>
-    <div class="bxh">
+    <ul class="bxh">
       {% for u in thanh_vien_moi %}
-        <div class="ben-hang">
-          <div class="avatar">{{ u.profile.full_name|default:u.username|first|upper }}</div>
+        <li class="ben-hang">
+          <div class="avatar" aria-hidden="true">{{ u.profile.full_name|default:u.username|first|upper }}</div>
           <div>
             <b>{{ u.profile.full_name|default:u.username }}</b>
             <div class="nho mo-nhat">{{ u.profile.department|default:"—" }} · {{ u.profile.created_at|date:"d.m.Y" }}</div>
           </div>
-        </div>
+        </li>
       {% empty %}
-        <p class="the-than nho mo-nhat">30 ngày qua không có thành viên mới.</p>
+        <li class="the-than nho mo-nhat">{{ new_member_days }} ngày qua không có thành viên mới.</li>
       {% endfor %}
-    </div>
+    </ul>
   </div>
 </div>

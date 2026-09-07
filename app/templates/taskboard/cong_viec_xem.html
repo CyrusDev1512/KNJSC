@@ -65,13 +65,14 @@
       <form class="the-than bm" method="post" action="{% url 'cong_viec_sua' t.pk %}" id="bm-sua">
         {% csrf_token %}
         {% for truong in form %}
-          <div class="truong">
+          <div class="truong {% if truong.errors %}co-loi{% endif %}">
             <label for="{{ truong.id_for_label }}">
               {{ truong.label }}{% if truong.field.required %} <span class="bat-buoc">*</span>{% endif %}
               <span class="ky-thuat">{{ truong.name }}</span>
             </label>
             {{ truong|safe }}
             {% if truong.help_text %}<span class="goi-y">{{ truong.help_text }}</span>{% endif %}
+            {% for loi in truong.errors %}<span class="loi-truong">{{ loi }}</span>{% endfor %}
           </div>
         {% endfor %}
       </form>

@@ -16,7 +16,7 @@
   <div class="doc">
     {% include "feed/_bai.html" with bai=bai da_thich=da_thich so_thich=so_thich so_binh_luan=so_binh_luan %}
     <div class="the">
-      <div class="the-dau"><h2>Bình luận</h2><span class="phai nho mo-nhat">{{ so_binh_luan }}</span></div>
+      <div class="the-dau"><h2>Bình luận</h2><span class="phai nho mo-nhat" id="so-bl-{{ bai.pk }}">{{ so_binh_luan }}</span></div>
       <div class="the-than">{% include "feed/_binh_luan.html" %}</div>
     </div>
   </div>

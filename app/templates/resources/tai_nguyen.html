@@ -38,7 +38,7 @@
         </select>
       </div>
       <div class="loc-nut">
-        <a class="nut nut-nho" href="{% url 'tai_nguyen' %}">Xoá lọc</a>
+        <a class="nut nut-nho" href="{% url 'tai_nguyen' %}{% if muc_hien %}?muc={{ muc_hien.pk }}{% endif %}">Xoá lọc</a>
         <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
       </div>
     </form>

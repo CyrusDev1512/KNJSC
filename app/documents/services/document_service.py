@@ -150,6 +150,15 @@ def upload_document(*, title, category, upload=None, link="", description="",
     return doc
 
 
+def log_download(doc, *, actor, request=None):
+    """Mỗi lượt tải về hay mở liên kết là một dòng nhật ký — FR-9.3, BR-5."""
+    return record(
+        AuditAction.EXPORT, actor=actor, target=doc,
+        detail=("Mở liên kết" if doc.la_lien_ket else "Tải về") + f" tài liệu #{doc.pk}",
+        request=request,
+    )
+
+
 @transaction.atomic
 def delete_document(doc, *, actor, request=None):
     """Gỡ tài liệu: xoá mềm, tệp vẫn nằm trên đĩa để khôi phục được — FR-9.4."""

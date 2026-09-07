@@ -125,11 +125,13 @@ def tai_lieu_tai(request, pk):
         Document.objects.in_scope(request.user).select_related("category"), pk=pk,
     )
     if doc.la_lien_ket:
+        document_service.log_download(doc, actor=request.user, request=request)
         return redirect(doc.link)
     duong_dan = document_service.absolute_path(doc)
     if duong_dan is None or not duong_dan.exists():
         messages.error(request, "Tệp không còn trên máy chủ. Báo người vận hành kiểm thư mục storage/tai-lieu.")
         return redirect("tai_lieu")
+    document_service.log_download(doc, actor=request.user, request=request)
     return FileResponse(open(duong_dan, "rb"), as_attachment=True, filename=doc.file_name)
 
 

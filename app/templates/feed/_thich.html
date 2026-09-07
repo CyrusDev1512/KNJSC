@@ -1,6 +1,8 @@
-{% comment %}Nút thích — mảnh HTMX, thay chính nó sau mỗi lần bấm; hx-sync bỏ lần bấm thứ hai khi lần đầu chưa xong. Cần: bai, da_thich, so_thich.{% endcomment %}
-<button class="nut nut-nho nut-thich" type="button"
-        hx-post="{% url 'bang_tin_thich' bai.pk %}" hx-target="this" hx-swap="outerHTML" hx-sync="this:drop"
-        aria-pressed="{% if da_thich %}true{% else %}false{% endif %}">
-  {% if da_thich %}♥ Đã thích{% else %}♡ Thích{% endif %} <span class="so">{{ so_thich }}</span>
-</button>
+{% comment %}Nút thích — mảnh HTMX, thay chính nó sau mỗi lần bấm; là form thật nên không có JS vẫn dùng được; hx-sync bỏ lần bấm thứ hai khi lần đầu chưa xong. Cần: bai, da_thich, so_thich.{% endcomment %}
+<form class="bm-thich" method="post" action="{% url 'bang_tin_thich' bai.pk %}"
+      hx-post="{% url 'bang_tin_thich' bai.pk %}" hx-target="this" hx-swap="outerHTML" hx-sync="this:drop">
+  {% csrf_token %}
+  <button class="nut nut-nho nut-thich" type="submit" aria-pressed="{% if da_thich %}true{% else %}false{% endif %}">
+    {% if da_thich %}♥ Đã thích{% else %}♡ Thích{% endif %} <span class="so">{{ so_thich }}</span>
+  </button>
+</form>

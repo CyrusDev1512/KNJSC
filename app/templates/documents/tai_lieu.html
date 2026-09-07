@@ -110,8 +110,8 @@
           <div class="truong">
             <label for="muc-bp">Dùng cho</label>
             <select class="o-nhap" id="muc-bp" name="department">
-              {% for bp in cac_bo_phan_muc %}<option value="{{ bp.pk }}">{{ bp.name }}</option>{% endfor %}
               {% if la_admin %}<option value="">Toàn công ty</option>{% endif %}
+              {% for bp in cac_bo_phan_muc %}<option value="{{ bp.pk }}">{{ bp.name }}</option>{% endfor %}
             </select>
             <span class="goi-y">Mục toàn công ty chỉ quản trị viên tạo được.</span>
           </div>

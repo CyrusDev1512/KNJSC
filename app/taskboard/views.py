@@ -5,10 +5,11 @@ Mọi truy vấn đi qua `objects.in_scope(user)` (quy tắc 11).
 """
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import F, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
@@ -16,7 +17,7 @@ from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import PAGE_SIZES, filter_query, page_size, paginate
 
-from .constants import PRIORITY_CHIP, STATUS_CHIP, TaskPriority, TaskStatus
+from .constants import OPEN_STATUSES, PRIORITY_CHIP, STATUS_CHIP, TaskPriority, TaskStatus
 from .forms import CongViecForm
 from .services import task_service
 
@@ -55,6 +56,8 @@ def cong_viec(request):
     trang_thai = request.GET.get("trang_thai", "")
     uu_tien = request.GET.get("uu_tien", "")
     nguoi = request.GET.get("nguoi", "").strip()
+    qua_han = request.GET.get("qua_han") == "1"
+    sap = request.GET.get("sap", "")
 
     ds = task_service.tasks_of(request.user)
     if tab == "cua_toi":
@@ -71,14 +74,23 @@ def cong_viec(request):
         ds = ds.filter(assignee_id=int(nguoi))
     else:
         nguoi = ""
-    ds = ds.order_by("-created_at")
+    if qua_han:
+        ds = ds.filter(due_date__lt=timezone.localdate(), status__in=OPEN_STATUSES)
+    if sap == "han":
+        ds = ds.order_by(F("due_date").asc(nulls_last=True), "-created_at")   # chỉ mục due_date có việc
+    else:
+        sap = ""
+        ds = ds.order_by("-created_at")
 
-    qs_loc = filter_query(tab=tab, trang_thai=trang_thai, uu_tien=uu_tien, nguoi=nguoi)
+    qs_loc = filter_query(
+        tab=tab, trang_thai=trang_thai, uu_tien=uu_tien, nguoi=nguoi,
+        qua_han="1" if qua_han else "", sap=sap,
+    )
 
     boi_canh = _phan_trang(request, ds)
     boi_canh.update({
         "tab": tab, "trang_thai": trang_thai, "uu_tien": uu_tien, "nguoi": nguoi,
-        "qs_loc": qs_loc,
+        "qua_han": qua_han, "sap": sap, "qs_loc": qs_loc,
         "cac_trang_thai": TaskStatus.choices, "cac_uu_tien": TaskPriority.choices,
         "cac_nguoi": task_service.assignable_users(request.user),
         "cac_dong": [_dong(request.user, t) for t in boi_canh["page_obj"]],
@@ -108,14 +120,10 @@ def cong_viec_moi(request):
     })
 
 
-@login_required
-def cong_viec_xem(request, pk):
-    """Chi tiết một việc trong phạm vi, kèm nút chuyển trạng thái và biểu mẫu sửa."""
-    request.nav_current = "cong_viec"
-    viec = _viec_trong_pham_vi(request, pk)
+def _trang_xem(request, viec, form=None):
+    """Trang chi tiết; `form` đã điền (kể cả lỗi) thì hiện đúng trạng thái đó."""
     duoc_sua = task_service.can_edit(request.user, viec)
-    form = None
-    if duoc_sua:
+    if duoc_sua and form is None:
         form = CongViecForm(
             initial={
                 "title": viec.title, "description": viec.description,
@@ -125,10 +133,17 @@ def cong_viec_xem(request, pk):
         )
     boi_canh = _dong(request.user, viec)
     boi_canh.update({
-        "form": form, "duoc_sua": duoc_sua,
+        "form": form if duoc_sua else None, "duoc_sua": duoc_sua,
         "duoc_go": task_service.can_delete(request.user, viec),
     })
     return render(request, "taskboard/cong_viec_xem.html", boi_canh)
+
+
+@login_required
+def cong_viec_xem(request, pk):
+    """Chi tiết một việc trong phạm vi, kèm nút chuyển trạng thái và biểu mẫu sửa."""
+    request.nav_current = "cong_viec"
+    return _trang_xem(request, _viec_trong_pham_vi(request, pk))
 
 
 @login_required
@@ -139,17 +154,19 @@ def cong_viec_sua(request, pk):
     if not task_service.can_edit(request.user, viec):
         record_denied(request.user, request.path, request)
         raise OutOfScopeError("Bạn không có quyền sửa việc này.")
+    request.nav_current = "cong_viec"
     form = CongViecForm(request.POST, nguoi=task_service.assignable_users(request.user), sua=True)
     if form.is_valid():
         try:
             task_service.update_task(viec, form.cleaned_data, actor=request.user, request=request)
             messages.success(request, "Đã lưu việc.")
+            return redirect("cong_viec_xem", pk=pk)
         except BusinessError as loi:
             messages.error(request, str(loi))
     else:
-        messages.error(request, "Biểu mẫu chưa hợp lệ: " + "; ".join(
-            f"{ten}: {' '.join(loi)}" for ten, loi in form.errors.items()))
-    return redirect("cong_viec_xem", pk=pk)
+        messages.error(request, "Biểu mẫu chưa hợp lệ — xem lỗi ở từng ô.")
+    # Lỗi thì hiện lại trang với những gì đã gõ, lỗi ngay dưới ô
+    return _trang_xem(request, viec, form=form)
 
 
 @login_required

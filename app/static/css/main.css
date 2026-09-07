@@ -554,7 +554,7 @@ hr.ke { border: 0; border-top: 1px solid var(--rule); margin: var(--sp-4) 0; }
 .hang-so-2 { background: var(--rule-strong); color: var(--ink); }
 .hang-so-3 { background: var(--serious-soft); color: var(--serious); }
 /* Danh sách xếp hạng gọn trong thẻ */
-.bxh { display: flex; flex-direction: column; }
+.bxh { display: flex; flex-direction: column; list-style: none; margin: 0; padding: 0; }
 .bxh-hang { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--rule); }
 .bxh-hang:last-child { border-bottom: 0; }
 .bxh-ten { flex: 1; min-width: 0; }
@@ -572,6 +572,7 @@ hr.ke { border: 0; border-top: 1px solid var(--rule); margin: var(--sp-4) 0; }
 /* Thiệp sinh nhật: viền vàng, nền ấm */
 .bai-sinh-nhat { border-color: var(--warn); background: linear-gradient(180deg, var(--warn-soft), var(--surface) 60%); }
 .avatar-lon { width: 38px; height: 38px; font-size: var(--fs-md); }
+.bm-thich { display: inline; margin: 0; }
 .nut-thich[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .binh-luan-ds { display: flex; flex-direction: column; gap: var(--sp-3); }
 .binh-luan { display: flex; gap: var(--sp-3); align-items: flex-start; }

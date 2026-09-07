@@ -1,9 +1,9 @@
-{% comment %}Một thẻ ghi nhận. Cần: gn (Recognition có giver, receiver kèm profile).{% endcomment %}
+{% comment %}Một thẻ ghi nhận. Cần: gn (Recognition có giver, receiver kèm profile và star_award). Người đã khoá thì không đặt liên kết — trang thành viên chỉ mở cho tài khoản đang hoạt động.{% endcomment %}
 <div class="ghi-nhan">
   <div class="ghi-nhan-dau">
-    <div class="avatar">{{ gn.receiver.profile.full_name|default:gn.receiver.username|first|upper }}</div>
+    <div class="avatar" aria-hidden="true">{{ gn.receiver.profile.full_name|default:gn.receiver.username|first|upper }}</div>
     <div>
-      <b><a href="{% url 'van_hoa_thanh_vien' gn.receiver.pk %}">{{ gn.receiver.profile.full_name|default:gn.receiver.username }}</a></b>
+      <b>{% if gn.receiver.is_active %}<a href="{% url 'van_hoa_thanh_vien' gn.receiver.pk %}">{{ gn.receiver.profile.full_name|default:gn.receiver.username }}</a>{% else %}{{ gn.receiver.profile.full_name|default:gn.receiver.username }}{% endif %}</b>
       <span class="nho mo-nhat">được {{ gn.giver.profile.full_name|default:gn.giver.username }} ghi nhận · {{ gn.created_at|date:"d.m.Y H:i" }}</span>
     </div>
     <span class="gia-tri-vh">{{ gn.get_value_display }}</span>

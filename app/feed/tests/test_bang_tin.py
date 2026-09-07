@@ -64,9 +64,12 @@ def test_dang_bai_va_xem_toan_cong_ty(client, nguoi_dung):
     noi_dung = client.get("/bang-tin/").content.decode()
     assert "Chốt được khách Philippines đầu tiên!" in noi_dung and "Staff Sale 1" in noi_dung
 
-    # Bài trống, bài quá dài
+    # Bài trống, bài quá dài: hiện lại trang với bài đang gõ, không tạo bài
     kq = client.post("/bang-tin/dang/", {"body": "   "})
-    assert kq.status_code == 302 and Post.objects.count() == 1
+    assert kq.status_code == 200 and Post.objects.count() == 1
+    kq = client.post("/bang-tin/dang/", {"body": "x" * 2001})
+    assert kq.status_code == 200 and Post.objects.count() == 1
+    assert "x" * 2001 in kq.content.decode() and "Bài dài quá" in kq.content.decode()
     with pytest.raises(BusinessError):
         _bai(n["staff_vd"], "x" * 2001)
 

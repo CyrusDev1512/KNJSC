@@ -19,7 +19,7 @@
         {% csrf_token %}
         <div class="truong">
           <label for="bai-body">Bạn muốn chia sẻ gì với cả nhà?</label>
-          <textarea class="o-nhap" id="bai-body" name="body" rows="3" maxlength="{{ body_max }}" required placeholder="Thông báo, tin vui, lời cảm ơn…"></textarea>
+          <textarea class="o-nhap" id="bai-body" name="body" rows="3" maxlength="{{ body_max }}" required placeholder="Thông báo, tin vui, lời cảm ơn…">{{ body_cu }}</textarea>
         </div>
         <div class="hang">
           <span class="nho mo-nhat">Bài hiện với toàn công ty</span>

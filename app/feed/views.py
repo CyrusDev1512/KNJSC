@@ -46,37 +46,51 @@ def _gan_quyen(user, cac_bai):
     return cac_bai
 
 
-def _binh_luan(request, bai, loi="", truoc=None):
+def _binh_luan(request, bai, loi="", truoc=None, oob=False):
+    """Bối cảnh mảnh bình luận. `oob=True` khi trả lời HTMX: kèm hai phần tử
+    thay tại chỗ (số bình luận ở đầu bài và ở thẻ) để trang không lệch số."""
     cac, con_cu = post_service.comments_of(bai, truoc=truoc)
     for bl in cac:
         bl.duoc_go = post_service.can_delete_comment(request.user, bl)
     return {
         "bai": bai, "cac_binh_luan": cac, "con_cu": con_cu,
-        "comment_max": COMMENT_MAX, "loi": loi,
+        "so_binh_luan": post_service.comment_count(bai),
+        "comment_max": COMMENT_MAX, "loi": loi, "oob": oob,
     }
+
+
+def _trang_bang_tin(request, body_cu=""):
+    """Trang Bảng tin; `body_cu` giữ lại bài đang gõ khi đăng lỗi."""
+    boi_canh = _phan_trang(request, post_service.feed_qs(request.user))
+    trang = boi_canh["trang"]
+    trang.object_list = _gan_quyen(request.user, list(trang.object_list))
+    boi_canh.update(post_service.sidebar(request.user))
+    boi_canh.update({
+        "duoc_ghim": post_service.can_moderate(request.user), "body_max": BODY_MAX,
+        "body_cu": body_cu,
+    })
+    return render(request, "feed/bang_tin.html", boi_canh)
 
 
 @login_required
 def bang_tin(request):
     """Bài mới nhất, ghim đứng đầu, phân trang 25; thanh bên — FR-10.1, FR-10.5."""
     request.nav_current = "bang_tin"
-    boi_canh = _phan_trang(request, post_service.feed_qs(request.user))
-    trang = boi_canh["trang"]
-    trang.object_list = _gan_quyen(request.user, list(trang.object_list))
-    boi_canh.update(post_service.sidebar(request.user))
-    boi_canh.update({"duoc_ghim": post_service.can_moderate(request.user), "body_max": BODY_MAX})
-    return render(request, "feed/bang_tin.html", boi_canh)
+    return _trang_bang_tin(request)
 
 
 @login_required
 @require_POST
 def bang_tin_dang(request):
-    """Đăng bài — FR-10.1."""
+    """Đăng bài — FR-10.1. Lỗi thì hiện lại trang với bài đang gõ, không mất chữ."""
+    request.nav_current = "bang_tin"
+    body = request.POST.get("body", "")
     try:
-        post_service.create_post(body=request.POST.get("body", ""), actor=request.user, request=request)
+        post_service.create_post(body=body, actor=request.user, request=request)
         messages.success(request, "Đã đăng lên Bảng tin.")
     except BusinessError as loi:
         messages.error(request, str(loi))
+        return _trang_bang_tin(request, body_cu=body)
     return redirect("bang_tin")
 
 
@@ -129,6 +143,7 @@ def bang_tin_binh_luan(request, pk):
             if loi:
                 messages.error(request, loi)
             return redirect("bang_tin_xem", pk=bai.pk)
+        return render(request, "feed/_binh_luan.html", _binh_luan(request, bai, loi, oob=True))
     return render(request, "feed/_binh_luan.html", _binh_luan(request, bai, loi))
 
 

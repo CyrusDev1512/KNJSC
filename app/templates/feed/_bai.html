@@ -5,16 +5,22 @@ duoc_go), da_thich, so_thich, so_binh_luan, duoc_ghim (người xem là Manager 
 <article class="the bai {% if bai.la_sinh_nhat %}bai-sinh-nhat{% endif %}" id="bai-{{ bai.pk }}">
   <div class="bai-dau">
     {% if bai.author %}
-      <div class="avatar avatar-lon">{{ bai.author.profile.full_name|default:bai.author.username|first|upper }}</div>
+      <div class="avatar avatar-lon" aria-hidden="true">{{ bai.author.profile.full_name|default:bai.author.username|first|upper }}</div>
       <div>
-        <b><a href="{% url 'van_hoa_thanh_vien' bai.author.pk %}">{{ bai.author.profile.full_name|default:bai.author.username }}</a></b>
+        <b>{% if bai.author.is_active %}<a href="{% url 'van_hoa_thanh_vien' bai.author.pk %}">{{ bai.author.profile.full_name|default:bai.author.username }}</a>{% else %}{{ bai.author.profile.full_name|default:bai.author.username }}{% endif %}</b>
         <div class="nho mo-nhat">{{ bai.author.profile.department|default:"—" }} · {{ bai.created_at|date:"d.m.Y H:i" }}</div>
       </div>
-    {% else %}
-      <div class="avatar avatar-lon">🎂</div>
+    {% elif bai.la_sinh_nhat %}
+      <div class="avatar avatar-lon" aria-hidden="true">🎂</div>
       <div>
-        <b>KN JSC</b>
+        <b>KN JSC</b>{% if bai.subject %} <span class="nho mo-nhat">chúc mừng</span> <b>{% if bai.subject.is_active %}<a href="{% url 'van_hoa_thanh_vien' bai.subject.pk %}">{{ bai.subject.profile.full_name|default:bai.subject.username }}</a>{% else %}{{ bai.subject.profile.full_name|default:bai.subject.username }}{% endif %}</b>{% endif %}
         <div class="nho mo-nhat">Thiệp tự động · {{ bai.created_at|date:"d.m.Y" }}</div>
+      </div>
+    {% else %}
+      <div class="avatar avatar-lon" aria-hidden="true">?</div>
+      <div>
+        <b>Tài khoản đã xoá</b>
+        <div class="nho mo-nhat">{{ bai.created_at|date:"d.m.Y H:i" }}</div>
       </div>
     {% endif %}
     {% if bai.is_pinned %}<span class="chip chip-nhan day">Đã ghim</span>{% endif %}
@@ -22,7 +28,7 @@ duoc_go), da_thich, so_thich, so_binh_luan, duoc_ghim (người xem là Manager 
   <p class="bai-than">{{ bai.body|urlize }}</p>
   <div class="bai-chan">
     {% include "feed/_thich.html" with bai=bai da_thich=da_thich so_thich=so_thich %}
-    <a class="nut nut-nho" href="{% url 'bang_tin_xem' bai.pk %}">{{ so_binh_luan }} bình luận</a>
+    <a class="nut nut-nho" id="lk-bl-{{ bai.pk }}" href="{% url 'bang_tin_xem' bai.pk %}">{{ so_binh_luan }} bình luận</a>
     {% if duoc_ghim %}
       <form method="post" action="{% url 'bang_tin_ghim' bai.pk %}">{% csrf_token %}<input type="hidden" name="ghim" value="{% if bai.is_pinned %}0{% else %}1{% endif %}"><button class="nut nut-nho" type="submit">{% if bai.is_pinned %}Gỡ ghim{% else %}Ghim{% endif %}</button></form>
     {% endif %}

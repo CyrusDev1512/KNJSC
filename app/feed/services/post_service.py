@@ -78,6 +78,10 @@ def like_count(post):
     return Like.objects.filter(post=post).count()
 
 
+def comment_count(post):
+    return Comment.objects.filter(post=post).count()
+
+
 # ══ GHI ═══════════════════════════════════════════════════════════
 
 @transaction.atomic
@@ -241,7 +245,10 @@ def sidebar(user):
     for u in nguoi.values():
         ns = u.profile.birthday
         if ns and ns.month == hom_nay.month:
-            u.sinh_nhat_hom_nay = ns.day == hom_nay.day
+            # Sinh 29.02 thì năm không nhuận được chúc ngày 28.02 — cùng luật với thiệp
+            u.sinh_nhat_hom_nay = ns.day == hom_nay.day or (
+                ns.day == 29 and ns.month == 2 and hom_nay.day == 28 and not calendar.isleap(hom_nay.year)
+            )
             sinh_nhat.append(u)
     sinh_nhat.sort(key=lambda u: (u.profile.birthday.day, display_name(u)))
 
@@ -252,7 +259,7 @@ def sidebar(user):
     )[:SIDEBAR_NEW_MEMBERS]
 
     return {
-        "hom_nay": hom_nay,
+        "hom_nay": hom_nay, "new_member_days": NEW_MEMBER_DAYS,
         "sinh_nhat_thang": sinh_nhat,
         "top_sao": recognition_service.star_totals(limit=SIDEBAR_STARS, users=nguoi),
         "ghi_nhan_moi": list(recognition_service.recognitions_qs()[:SIDEBAR_RECOGNITIONS]),

@@ -17,7 +17,7 @@ class TaskPriority(models.TextChoices):
 
 #: Chuyển trạng thái hợp lệ — FR-11.2. Xong quay lại Đang làm được; Huỷ mở lại thành Mới
 STATUS_TRANSITIONS = {
-    TaskStatus.MOI: (TaskStatus.DANG_LAM, TaskStatus.HUY),
+    TaskStatus.MOI: (TaskStatus.DANG_LAM, TaskStatus.XONG, TaskStatus.HUY),   # việc nhỏ xong ngay, không bắt qua Đang làm
     TaskStatus.DANG_LAM: (TaskStatus.XONG, TaskStatus.HUY, TaskStatus.MOI),
     TaskStatus.XONG: (TaskStatus.DANG_LAM,),
     TaskStatus.HUY: (TaskStatus.MOI,),

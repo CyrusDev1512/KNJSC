@@ -69,16 +69,16 @@
   <div class="doc">
     <div class="the">
       <div class="the-dau"><h2>Xếp hạng doanh số {{ ky_hien }}</h2><span class="phai nho mo-nhat">VND</span></div>
-      <div class="bxh">
+      <ol class="bxh">
         {% for d in bang_xep_hang %}
-          <div class="bxh-hang">
-            <span class="hang-so {{d.lop_hang}}">{{ d.hang }}</span>
+          <li class="bxh-hang">
+            <span class="hang-so {{d.lop_hang}}" aria-label="Hạng {{ d.hang }}">{{ d.hang }}</span>
             <div class="bxh-ten">
               <a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user.profile.full_name|default:d.user.username }}</a>
               <div class="nho mo-nhat">{{ d.so_don }} đơn{% if d.sao_thuong %} · thưởng <span class="sao">★ {{ d.sao_thuong }}</span>{% endif %}</div>
             </div>
             <span class="tien day">{{ d.tong_hien }}</span>
-          </div>
+          </li>
         {% empty %}
           {% if loi_ti_gia %}
             {% include "components/rong.html" with rong_bieu_tuong="!" rong_tieu_de="Chưa tính được xếp hạng" rong_mo_ta=loi_ti_gia %}
@@ -86,24 +86,26 @@
             {% include "components/rong.html" with rong_tieu_de="Chưa có đơn tháng này" rong_mo_ta="Bảng xếp hạng tính từ đơn hàng đã lên trong tháng, quy về VND." %}
           {% endif %}
         {% endfor %}
-      </div>
+      </ol>
       <div class="the-chan"><span class="nho mo-nhat">Tính theo ngày lên đơn trên hệ thống, quy đổi theo tỉ giá cố định trong cấu hình; bằng tổng và bằng số đơn thì đồng hạng. Ngày 1 tháng sau hệ thống tự thưởng {{ sao_top }} sao cho ba hạng đầu.</span></div>
     </div>
 
     <div class="the">
       <div class="the-dau"><h2>Nhiều sao nhất</h2></div>
-      <div class="bxh">
+      <ol class="bxh">
         {% for d in nhieu_sao %}
-          <div class="bxh-hang">
-            <span class="hang-so {{d.lop_hang}}">{{ d.hang }}</span>
-            <a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user.profile.full_name|default:d.user.username }}</a>
-            <span class="nho mo-nhat">tháng này {{ d.sao_ky }}</span>
-            <span class="sao day">★ {{ d.sao }}</span>
-          </div>
+          <li class="bxh-hang">
+            <span class="hang-so {{d.lop_hang}}" aria-label="Hạng {{ d.hang }}">{{ d.hang }}</span>
+            <div class="bxh-ten">
+              <a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user.profile.full_name|default:d.user.username }}</a>
+              <div class="nho mo-nhat">tháng này {{ d.sao_ky }}</div>
+            </div>
+            <span class="sao">★ {{ d.sao }}</span>
+          </li>
         {% empty %}
-          {% include "components/rong.html" with rong_tieu_de="Chưa ai có sao" rong_mo_ta="Sao đến từ ghi nhận của đồng nghiệp và từ xếp hạng doanh số." %}
+          {% include "components/rong.html" with rong_tieu_de="Chưa ai có sao" rong_mo_ta="Sao đến từ ghi nhận của cấp trên và từ xếp hạng doanh số." %}
         {% endfor %}
-      </div>
+      </ol>
     </div>
   </div>
 </div>

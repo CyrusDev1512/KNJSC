@@ -31,10 +31,10 @@ def _phan_trang(request, queryset, ten_don_vi="tài nguyên"):
     }
 
 
-def _form(request, du_lieu=None, **initial):
+def _form(du_lieu=None, nguoi_giu=None, **initial):
     return TaiNguyenForm(
         du_lieu, initial=initial or None,
-        cac_muc=ResourceCategory.objects.all(), nguoi=resource_service.holders(),
+        cac_muc=ResourceCategory.objects.all(), nguoi=resource_service.holders(include=nguoi_giu),
         bo_phan=Department.objects.order_by("name"),
     )
 
@@ -60,7 +60,10 @@ def tai_nguyen(request):
         ds = ds.filter(status=trang_thai)
     else:
         trang_thai = ""
+    cac_nguoi = list(resource_service.holders())
     if nguoi.isdigit():
+        if not any(u.pk == int(nguoi) for u in cac_nguoi):
+            raise Http404                    # người không có: từ chối, không phải danh sách rỗng (quy tắc 8)
         ds = ds.filter(holder_id=int(nguoi))
     else:
         nguoi = ""
@@ -76,7 +79,7 @@ def tai_nguyen(request):
         "tim": tim, "qs_loc": qs_loc,
         "tong_tai_nguyen": sum(m.so_tai_nguyen for m in cac_muc),
         "cac_trang_thai": ResourceStatus.choices,
-        "cac_nguoi": resource_service.holders(),
+        "cac_nguoi": cac_nguoi,
         "duoc_sua": resource_service.can_manage(request.user),
         "cac_dong": [(tn, STATUS_CHIP.get(tn.status, "chip-nhat")) for tn in boi_canh["page_obj"]],
     })
@@ -88,7 +91,7 @@ def tai_nguyen_moi(request):
     """Thêm tài nguyên — Manager trở lên (FR-13.3)."""
     request.nav_current = "tai_nguyen"
     assert_rank(request.user, Rank.MANAGER, request)
-    form = _form(request, request.POST or None)
+    form = _form(request.POST or None)
     if request.method == "POST" and form.is_valid():
         d = form.cleaned_data
         try:
@@ -112,7 +115,7 @@ def tai_nguyen_sua(request, pk):
     assert_rank(request.user, Rank.MANAGER, request)
     tn = get_object_or_404(resource_service.resources_qs(), pk=pk)
     form = _form(
-        request, request.POST or None,
+        request.POST or None, nguoi_giu=tn.holder_id,
         category=tn.category_id, name=tn.name, status=tn.status, holder=tn.holder_id,
         department=tn.department_id, link=tn.link, note=tn.note,
     )

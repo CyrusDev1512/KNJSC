@@ -75,7 +75,9 @@ def van_hoa_ghi_nhan(request):
         raise OutOfScopeError("Chỉ trưởng nhóm trở lên mới ghi nhận được cấp dưới.")
     form = GhiNhanForm(request.POST)
     if not form.is_valid():
-        messages.error(request, "Chọn đồng nghiệp, giá trị và viết lời nhắn.")
+        messages.error(request, "Chưa gửi được: " + "; ".join(
+            f"{form.fields[ten].label if ten in form.fields else 'Biểu mẫu'}: {' '.join(loi)}"
+            for ten, loi in form.errors.items()))
         return redirect("van_hoa")
     d = form.cleaned_data
     try:

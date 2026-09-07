@@ -1,9 +1,14 @@
 {% comment %}
 Bình luận của một bài kèm ô viết — mảnh HTMX thay chính nó sau khi gửi. Chỉ
 tải các bình luận mới nhất; cũ hơn thì bấm "Xem bình luận cũ hơn".
-Cần: bai, cac_binh_luan (mỗi cái có thuộc tính duoc_go), con_cu, comment_max, loi.
+Cần: bai, cac_binh_luan (mỗi cái có thuộc tính duoc_go), con_cu, so_binh_luan,
+comment_max, loi; oob=True khi là phản hồi HTMX để cập nhật số bình luận trên trang.
 {% endcomment %}
 <div class="binh-luan-ds" id="binh-luan-{{ bai.pk }}">
+  {% if oob %}
+    <span class="phai nho mo-nhat" id="so-bl-{{ bai.pk }}" hx-swap-oob="true">{{ so_binh_luan }}</span>
+    <a class="nut nut-nho" id="lk-bl-{{ bai.pk }}" hx-swap-oob="true" href="{% url 'bang_tin_xem' bai.pk %}">{{ so_binh_luan }} bình luận</a>
+  {% endif %}
   {% if cac_binh_luan %}
     {% include "feed/_binh_luan_cu.html" %}
   {% else %}

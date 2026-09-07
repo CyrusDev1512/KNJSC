@@ -36,12 +36,24 @@
         {% for ma, nhan in cac_uu_tien %}<option value="{{ ma }}" {% if ma == uu_tien %}selected{% endif %}>{{ nhan }}</option>{% endfor %}
       </select>
     </div>
+    {% if cac_nguoi|length > 1 %}
     <div class="truong">
       <label for="nguoi">Người làm</label>
       <select class="o-nhap" id="nguoi" name="nguoi">
         <option value="">Tất cả</option>
         {% for u in cac_nguoi %}<option value="{{ u.pk }}" {% if nguoi == u.pk|stringformat:"s" %}selected{% endif %}>{{ u.profile.full_name|default:u.username }}</option>{% endfor %}
       </select>
+    </div>
+    {% endif %}
+    <div class="truong">
+      <label for="sap">Sắp xếp</label>
+      <select class="o-nhap" id="sap" name="sap">
+        <option value="">Mới tạo trước</option>
+        <option value="han" {% if sap == "han" %}selected{% endif %}>Hạn gần trước</option>
+      </select>
+    </div>
+    <div class="truong">
+      <label for="qua-han"><input type="checkbox" id="qua-han" name="qua_han" value="1" {% if qua_han %}checked{% endif %}> Chỉ việc quá hạn</label>
     </div>
     <div class="loc-nut">
       <a class="nut nut-nho" href="{% url 'cong_viec' %}?tab={{ tab }}">Xoá lọc</a>

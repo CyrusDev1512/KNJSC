@@ -49,10 +49,15 @@ def resources_qs():
     return Resource.objects.select_related("category", "holder", "holder__profile", "department")
 
 
-def holders():
-    """Ai giữ được tài nguyên: mọi tài khoản đang hoạt động có hồ sơ."""
+def holders(include=None):
+    """Ai giữ được tài nguyên: mọi tài khoản đang hoạt động có hồ sơ. `include`
+    là mã người giữ hiện tại — đã khoá vẫn phải hiện trong ô chọn khi sửa, không
+    thì bấm Lưu là lặng lẽ mất người giữ."""
+    dk = Q(is_active=True, profile__isnull=False)
+    if include:
+        dk |= Q(pk=include)
     return (
-        get_user_model().objects.filter(is_active=True, profile__isnull=False)
+        get_user_model().objects.filter(dk)
         .select_related("profile").order_by("profile__full_name", "username")
     )
 
