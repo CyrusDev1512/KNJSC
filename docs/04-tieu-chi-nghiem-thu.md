@@ -317,6 +317,9 @@ Danh mục tài nguyên dùng chung — FR-13.1 tới FR-13.4, ADR-015.
 
 | Mã | Tiêu chí | Yêu cầu | Loại |
 |---|---|---|---|
+| AC-16.1 | Tài nguyên chia theo mục BM, Via, Page…; mọi cấp bậc, mọi bộ phận xem được cả danh sách với trạng thái là chip; lọc theo mục, trạng thái, người giữ và tìm theo tên; mục không có trả 404; danh sách phân trang 25 dòng; Manager trở lên thêm mục, Staff bị từ chối có nhật ký, trùng tên bị chặn | FR-13.1 · FR-13.2 · FR-3.5 | Tự động |
+| AC-16.2 | Manager trở lên thêm, sửa, gỡ tài nguyên; sửa ghi nhật ký từng trường đổi nhưng không chép ghi chú; gỡ là xoá mềm; Staff và Leader bị từ chối có nhật ký và không thấy nút; tài nguyên đã gỡ trả 404 | FR-13.3 · FR-3.5 · BR-4 · BR-5 | Tự động |
+| AC-16.3 | Ghi chú chứa mật khẩu, OTP, 2FA, token hay mã bí mật bị từ chối ở cả thêm lẫn sửa; không có cột mật khẩu trong bảng; nhật ký không chứa ghi chú | FR-13.4 · BR-6 | Tự động |
 
 ---
 

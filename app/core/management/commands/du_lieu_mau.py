@@ -144,6 +144,17 @@ THICH_MAU = [
     (3, "sale.staff"),
 ]
 
+#: Tài nguyên mẫu — (mục, tên, trạng thái, người giữ, mã bộ phận, ghi chú). Năm mục
+#: mặc định lấy từ `resources.constants.DEFAULT_CATEGORIES`.
+TAI_NGUYEN_MAU = [
+    ("BM", "BM Kim Ngân 01", "dang_dung", "mkt.staff", "marketing", "Đang chạy 3 tài khoản QC"),
+    ("BM", "BM Kim Ngân 02", "khoa", "mkt.leader", "marketing", "Bị khoá 03.09, đang kháng"),
+    ("Via", "Via US 2019", "trong", None, None, "Via cổ, chưa gán ai"),
+    ("Page", "Page KN Beauty CA", "dang_dung", "sale.staff", "sale", "Page bán hàng thị trường Canada"),
+    ("Tài khoản QC", "TKQC 1023-55", "dang_dung", "mkt.staff", "marketing", "Ngưỡng 5.000.000"),
+    ("SIM", "SIM Viettel 0987", "hong", "vd.staff", "van-don", "Đã báo nhà mạng"),
+]
+
 #: Bốn cột tính sẵn — đúng bốn công thức trong tệp thật của khách hàng.
 #: (nhãn, tên kỹ thuật, phép tính, toán hạng A, toán hạng B, số chữ số thập phân)
 COT_TINH_BC_MKT = [
@@ -214,7 +225,7 @@ class Command(BaseCommand):
                        "bảng": 0, "biểu mẫu": 0, "sản phẩm": 0, "dòng dữ liệu": 0,
                        "tài liệu": 0, "việc": 0, "đơn hàng": 0, "ghi nhận": 0,
                        "ngày sinh": 0, "bài": 0, "bình luận": 0, "lượt thích": 0,
-                       "thiệp sinh nhật": 0}
+                       "thiệp sinh nhật": 0, "mục tài nguyên": 0, "tài nguyên": 0}
         self.dat_lai_mat_khau = 0
 
         bo_phan = self._bo_phan()
@@ -230,6 +241,7 @@ class Command(BaseCommand):
         self._ghi_nhan(nguoi)
         self._ngay_sinh(nguoi)
         self._bang_tin(nguoi)
+        self._tai_nguyen(bo_phan, nguoi)
 
         self._bao_cao_ket_qua(nguoi)
 
@@ -513,6 +525,24 @@ class Command(BaseCommand):
                 post_service.toggle_like(cac_bai[so - 1], actor=nguoi[ai])
                 self.da_tao["lượt thích"] += 1
         self.da_tao["thiệp sinh nhật"] += post_service.create_birthday_posts(timezone.localdate())
+
+    def _tai_nguyen(self, bo_phan, nguoi):
+        """Năm mục mặc định và sáu tài nguyên mẫu — FR-13. Ghi chú không có mật khẩu."""
+        from resources.models import Resource, ResourceCategory
+        from resources.services import resource_service
+
+        self.da_tao["mục tài nguyên"] += resource_service.ensure_default_categories(actor=nguoi["quantri"])
+        if Resource.all_objects.exists():
+            return
+        muc = {m.name: m for m in ResourceCategory.objects.all()}
+        for ten_muc, ten, trang_thai, ai_giu, ma_bp, ghi_chu in TAI_NGUYEN_MAU:
+            resource_service.create_resource(
+                category=muc[ten_muc], name=ten, status=trang_thai, note=ghi_chu,
+                holder=nguoi[ai_giu] if ai_giu else None,
+                department=bo_phan[ma_bp] if ma_bp else None,
+                actor=nguoi["quantri"],
+            )
+            self.da_tao["tài nguyên"] += 1
 
     # ── Báo cáo kết quả ──
 

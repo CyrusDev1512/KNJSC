@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block tieu_de %}{% if tn %}Sửa tài nguyên{% else %}Thêm tài nguyên{% endif %} · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}{% if tn %}Sửa tài nguyên{% else %}Thêm tài nguyên{% endif %}{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Nội bộ · FR-13.3</div>
+    <h1>{% if tn %}Sửa {{ tn.name }}{% else %}Thêm tài nguyên{% endif %}</h1>
+    <p>Chọn mục, đặt tên, ghi tình trạng và ai đang giữ. Ghi chú không chứa mật khẩu hay mã bí mật — hệ thống sẽ từ chối.</p>
+  </div>
+  <div class="hanh-dong"><a class="nut" href="{% url 'tai_nguyen' %}">Quay lại</a></div>
+</div>
+
+{% if form.non_field_errors %}
+  <div class="bao bao-xau">
+    <span class="bao-ic">!</span>
+    <div>
+      <b>Chưa lưu được</b>
+      {% for loi in form.non_field_errors %}<p>{{ loi }}</p>{% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+<div class="the" style="max-width:640px">
+  <form class="the-than bm" method="post" id="bm-tai-nguyen">
+    {% csrf_token %}
+    {% for truong in form %}
+      <div class="truong {% if truong.errors %}co-loi{% endif %}">
+        <label for="{{ truong.id_for_label }}">
+          {{ truong.label }}{% if truong.field.required %} <span class="bat-buoc">*</span>{% endif %}
+          <span class="ky-thuat">{{ truong.name }}</span>
+        </label>
+        {{ truong|safe }}
+        {% if truong.help_text %}<span class="goi-y">{{ truong.help_text }}</span>{% endif %}
+        {% for loi in truong.errors %}<span class="loi-truong">{{ loi }}</span>{% endfor %}
+      </div>
+    {% endfor %}
+  </form>
+  <div class="the-chan">
+    <span class="nho mo-nhat">Mỗi lần lưu ghi một dòng nhật ký, không chép nội dung ghi chú</span>
+    <div class="day hang">
+      <a class="nut" href="{% url 'tai_nguyen' %}">Huỷ</a>
+      <button class="nut nut-chinh" type="submit" form="bm-tai-nguyen">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll(".bm input, .bm select, .bm textarea").forEach(function (o) {
+    if (o.type !== "checkbox" && o.type !== "hidden") o.classList.add("o-nhap");
+  });
+</script>
+
+{% endblock %}

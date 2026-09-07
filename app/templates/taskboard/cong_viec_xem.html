@@ -27,8 +27,8 @@
           <table class="bang">
             <thead><tr><th>Mục</th><th>Giá trị</th></tr></thead>
             <tbody>
-              <tr><td>Người làm</td><td>{{ t.assignee.profile.full_name|default:t.assignee.username|default:"—" }}</td></tr>
-              <tr><td>Người tạo</td><td>{{ t.created_by.profile.full_name|default:t.created_by.username|default:"—" }}</td></tr>
+              <tr><td>Người làm</td><td>{% if t.assignee %}{{ t.assignee.profile.full_name|default:t.assignee.username }}{% else %}—{% endif %}</td></tr>
+              <tr><td>Người tạo</td><td>{% if t.created_by %}{{ t.created_by.profile.full_name|default:t.created_by.username }}{% else %}—{% endif %}</td></tr>
               <tr><td>Tạo lúc</td><td class="ma-o">{{ t.created_at|date:"d.m.Y H:i" }}</td></tr>
               {% if t.done_at %}<tr><td>Xong lúc</td><td class="ma-o">{{ t.done_at|date:"d.m.Y H:i" }}</td></tr>{% endif %}
             </tbody>

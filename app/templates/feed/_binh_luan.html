@@ -5,9 +5,13 @@ Cần: bai, cac_binh_luan (mỗi cái có thuộc tính duoc_go), comment_max, l
 <div class="binh-luan-ds" id="binh-luan-{{ bai.pk }}">
   {% for bl in cac_binh_luan %}
     <div class="binh-luan">
-      <div class="avatar">{{ bl.author.profile.full_name|default:bl.author.username|default:"?"|first|upper }}</div>
+      {% if bl.author %}
+        <div class="avatar">{{ bl.author.profile.full_name|default:bl.author.username|first|upper }}</div>
+      {% else %}
+        <div class="avatar">?</div>
+      {% endif %}
       <div class="binh-luan-than">
-        <b>{{ bl.author.profile.full_name|default:bl.author.username|default:"Tài khoản đã xoá" }}</b>
+        <b>{% if bl.author %}{{ bl.author.profile.full_name|default:bl.author.username }}{% else %}Tài khoản đã xoá{% endif %}</b>
         <span class="nho mo-nhat">{{ bl.created_at|date:"d.m.Y H:i" }}</span>
         <p>{{ bl.body }}</p>
       </div>

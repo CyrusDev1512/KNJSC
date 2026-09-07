@@ -1,18 +1,122 @@
 {% extends "base.html" %}
-{% block tieu_de %}Tài nguyên dùng chung · Kim Ngân JSC{% endblock %}
-{% block ten_trang %}Tài nguyên dùng chung{% endblock %}
+{% block tieu_de %}Tài nguyên · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Tài nguyên{% endblock %}
 
 {% block noi_dung %}
+
 <div class="trang-dau">
   <div>
-    <div class="nhan-nho">Nội bộ · ADR-015</div>
-    <h1>Tài nguyên dùng chung</h1>
-    <p>BM, Via, Page và các tài nguyên dùng chung của công ty.</p>
+    <div class="nhan-nho">Nội bộ · FR-13.1 tới FR-13.4</div>
+    <h1>Tài nguyên</h1>
+    <p>Kho tài nguyên dùng chung của công ty, chia theo mục: có gì, ai đang giữ, tình trạng ra sao. Không ghi mật khẩu ở đây.</p>
+  </div>
+  <div class="hanh-dong">
+    {% if duoc_sua %}<a class="nut nut-chinh" href="{% url 'tai_nguyen_moi' %}">Thêm tài nguyên</a>{% endif %}
   </div>
 </div>
-<div class="the">
-  <div class="the-than">
-    {% include "components/rong.html" with rong_tieu_de="Đang dựng" rong_mo_ta="Màn hình này đang được làm trong đợt MVP Nội bộ." %}
+
+<div class="luoi luoi-phu">
+  <div class="bang-hop">
+    <form class="loc" method="get">
+      {% if muc_hien %}<input type="hidden" name="muc" value="{{ muc_hien.pk }}">{% endif %}
+      <div class="truong o-tim">
+        <label for="tim">Tìm theo tên</label>
+        <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="BM, page, số SIM…">
+      </div>
+      <div class="truong">
+        <label for="trang-thai">Trạng thái</label>
+        <select class="o-nhap" id="trang-thai" name="trang_thai">
+          <option value="">Tất cả</option>
+          {% for ma, nhan in cac_trang_thai %}<option value="{{ ma }}" {% if trang_thai == ma %}selected{% endif %}>{{ nhan }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="truong">
+        <label for="nguoi">Người giữ</label>
+        <select class="o-nhap" id="nguoi" name="nguoi">
+          <option value="">Tất cả</option>
+          {% for u in cac_nguoi %}<option value="{{ u.pk }}" {% if nguoi == u.pk|stringformat:"s" %}selected{% endif %}>{{ u.profile.full_name|default:u.username }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="loc-nut">
+        <a class="nut nut-nho" href="{% url 'tai_nguyen' %}">Xoá lọc</a>
+        <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
+      </div>
+    </form>
+
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead>
+          <tr>
+            <th>Tài nguyên</th><th>Mục</th><th>Trạng thái</th><th>Người giữ</th><th>Bộ phận</th><th>Cập nhật</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tn, lop_tt in cac_dong %}
+            <tr>
+              <td>
+                <b>{{ tn.name }}</b>
+                {% if tn.note %}<div class="nho mo-nhat">{{ tn.note|truncatechars:90 }}</div>{% endif %}
+              </td>
+              <td>{{ tn.category.name }}</td>
+              <td><span class="chip {{lop_tt}}">{{ tn.get_status_display }}</span></td>
+              <td class="nho">{% if tn.holder %}{{ tn.holder.profile.full_name|default:tn.holder.username }}{% else %}—{% endif %}</td>
+              <td class="nho">{{ tn.department|default:"—" }}</td>
+              <td class="ma-o">{{ tn.updated_at|date:"d.m.Y" }}</td>
+              <td class="phai">
+                <div class="hang-nut">
+                  {% if tn.link %}<a class="nut nut-nho" href="{{ tn.link }}" target="_blank" rel="noopener">Mở</a>{% endif %}
+                  {% if duoc_sua %}
+                    <a class="nut nut-nho" href="{% url 'tai_nguyen_sua' tn.pk %}">Sửa</a>
+                    <form method="post" action="{% url 'tai_nguyen_go' tn.pk %}">
+                      {% csrf_token %}
+                      <button class="nut nut-nho nut-nguy" type="submit">Gỡ</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7">
+              {% include "components/rong.html" with rong_tieu_de="Chưa có tài nguyên nào" rong_mo_ta="Quản lý thêm tài nguyên vào từng mục; cả công ty xem được ở đây." %}
+            </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% include "components/phan_trang.html" %}
+  </div>
+
+  <div class="doc">
+    <div class="the">
+      <div class="the-dau"><h2>Mục</h2></div>
+      <ul class="muc-ds">
+        <li><a href="{% url 'tai_nguyen' %}" {% if not muc_hien %}aria-current="page"{% endif %}>Tất cả <span class="dem">{{ tong_tai_nguyen }}</span></a></li>
+        {% for m in cac_muc %}
+          <li>
+            <a href="{% url 'tai_nguyen' %}?muc={{ m.pk }}" {% if muc_hien and muc_hien.pk == m.pk %}aria-current="page"{% endif %}>
+              <span>{{ m.name }}</span>
+              <span class="dem">{{ m.so_tai_nguyen }}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    {% if duoc_sua %}
+      <div class="the">
+        <div class="the-dau"><h2>Thêm mục</h2></div>
+        <form class="the-than bm" method="post" action="{% url 'tai_nguyen_muc_moi' %}">
+          {% csrf_token %}
+          <div class="truong">
+            <label for="muc-ten">Tên mục <span class="bat-buoc">*</span></label>
+            <input class="o-nhap" id="muc-ten" name="name" maxlength="120" required placeholder="Ví dụ: Tài khoản TikTok">
+          </div>
+          <div class="hang"><button class="nut nut-nho nut-chinh" type="submit">Thêm mục</button></div>
+        </form>
+      </div>
+    {% endif %}
   </div>
 </div>
+
 {% endblock %}

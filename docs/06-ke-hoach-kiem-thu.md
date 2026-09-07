@@ -35,8 +35,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **123** — 111 tự động, 12 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **110 trên 111** |
+| Tiêu chí nghiệm thu trong `docs/04` | **126** — 114 tự động, 12 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **113 trên 114** |
 | Tiêu chí tự động còn hoãn | **1**, đều thuộc diện chờ người dùng chốt — `AC-5.1`, backlog N9 |
 | Bao phủ dòng mã | khoảng 85% |
 
