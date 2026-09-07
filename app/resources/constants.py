@@ -31,8 +31,12 @@ RESOURCE_FIELD_LABELS = {
     "status": "Trạng thái", "holder": "Người giữ", "department": "Bộ phận",
 }
 
-#: Ghi chú không được chứa mật khẩu hay mã bí mật (FR-13.4) — thấy từ này là chặn
-SECRET_HINTS = (
-    "mật khẩu", "mat khau", "password", "passwd", "pass:", "pwd", "otp", "2fa",
-    "secret", "token", "mã bí mật", "ma bi mat", "api key", "api_key",
+#: Tên, ghi chú, liên kết không được chứa mật khẩu hay mã bí mật (FR-13.4).
+#: Từ mạnh: thấy là chặn. Từ yếu: chỉ chặn khi đi kèm một giá trị có chữ số
+#: ("OTP 483920", "mk: abc123"), còn "nhận OTP quảng cáo" hay "pin sạc" thì
+#: cho qua. So khớp theo ranh giới từ, sau khi chuẩn hoá Unicode và chữ thường.
+SECRET_STRONG = (
+    "mật khẩu", "mat khau", "matkhau", "password", "passwd", "pwd", "secret",
+    "token", "mã bí mật", "ma bi mat", "api key", "api_key", "apikey",
 )
+SECRET_WEAK = ("otp", "2fa", "mk", "pass", "pin", "mã pin")

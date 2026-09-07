@@ -39,6 +39,7 @@ PRIORITY_CHIP = {
     TaskPriority.CAO: "chip-xau",
 }
 
+DESCRIPTION_MAX = 2000
 TITLE_MAX = 200
 
 #: Nhãn tiếng Việt khi ghi nhật ký sửa việc

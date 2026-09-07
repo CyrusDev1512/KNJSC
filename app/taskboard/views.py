@@ -8,11 +8,13 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
-from core.pagination import PAGE_SIZES, page_size, paginate
+from core.pagination import PAGE_SIZES, filter_query, page_size, paginate
 
 from .constants import PRIORITY_CHIP, STATUS_CHIP, TaskPriority, TaskStatus
 from .forms import CongViecForm
@@ -71,10 +73,7 @@ def cong_viec(request):
         nguoi = ""
     ds = ds.order_by("-created_at")
 
-    qs_loc = f"&tab={tab}"
-    for ten, gia_tri in (("trang_thai", trang_thai), ("uu_tien", uu_tien), ("nguoi", nguoi)):
-        if gia_tri:
-            qs_loc += f"&{ten}={gia_tri}"
+    qs_loc = filter_query(tab=tab, trang_thai=trang_thai, uu_tien=uu_tien, nguoi=nguoi)
 
     boi_canh = _phan_trang(request, ds)
     boi_canh.update({
@@ -122,7 +121,7 @@ def cong_viec_xem(request, pk):
                 "title": viec.title, "description": viec.description,
                 "assignee": viec.assignee, "priority": viec.priority, "due_date": viec.due_date,
             },
-            nguoi=task_service.assignable_users(request.user),
+            nguoi=task_service.assignable_users(request.user), sua=True,
         )
     boi_canh = _dong(request.user, viec)
     boi_canh.update({
@@ -140,7 +139,7 @@ def cong_viec_sua(request, pk):
     if not task_service.can_edit(request.user, viec):
         record_denied(request.user, request.path, request)
         raise OutOfScopeError("Bạn không có quyền sửa việc này.")
-    form = CongViecForm(request.POST, nguoi=task_service.assignable_users(request.user))
+    form = CongViecForm(request.POST, nguoi=task_service.assignable_users(request.user), sua=True)
     if form.is_valid():
         try:
             task_service.update_task(viec, form.cleaned_data, actor=request.user, request=request)
@@ -167,13 +166,17 @@ def cong_viec_trang_thai(request, pk):
         )
     except BusinessError as loi:
         if request.headers.get("HX-Request"):
-            return HttpResponse(str(loi), status=400)
+            # Chữ thường, không phải HTML: base.html hiện nguyên văn trong hộp báo lỗi
+            return HttpResponse(str(loi), status=400, content_type="text/plain; charset=utf-8")
         messages.error(request, str(loi))
         return redirect("cong_viec_xem", pk=pk)
     if request.headers.get("HX-Request"):
         return render(request, "taskboard/_dong.html", _dong(request.user, viec))
     messages.success(request, f"Việc chuyển sang {viec.get_status_display()}.")
-    return redirect(request.POST.get("ve") or "cong_viec")
+    ve = request.POST.get("ve", "")
+    if not url_has_allowed_host_and_scheme(ve, allowed_hosts={request.get_host()}):
+        ve = reverse("cong_viec")             # chỉ quay về trong hệ thống, không chuyển ra ngoài
+    return redirect(ve)
 
 
 @login_required

@@ -4,6 +4,7 @@ Không cần cơ sở dữ liệu. Mọi tệp Excel sinh trong bộ nhớ bằn
 không commit tệp nhị phân làm fixture.
 """
 import io
+import zipfile
 import unicodedata
 from datetime import date, datetime
 from decimal import Decimal
@@ -69,14 +70,30 @@ def test_duoi_la_bi_tu_choi():
     assert "không được phép" in str(loi.value)
 
 
+def _zip(ten_trong):
+    dem = io.BytesIO()
+    with zipfile.ZipFile(dem, "w") as z:
+        z.writestr(ten_trong, "<x/>")
+    dem.seek(0)
+    return dem
+
+
 def test_word_va_pdf_nhan_theo_chu_ky_va_duoi():
-    """NFR-12 — Word cùng chữ ký ZIP với Excel nên tin đuôi khai báo; PDF nhận theo chữ ký; luồng nhập vẫn chỉ Excel và CSV"""
-    assert excel.sniff_kind(_xlsx([["a"]]), declared_name="quy-trinh.docx") == FileKind.DOCX
+    """NFR-12 — Word cùng chữ ký ZIP với Excel nên tin đuôi khai báo, nhưng bên trong phải có đúng tệp đặc trưng (word/document.xml, xl/workbook.xml); PDF nhận theo chữ ký; ZIP rác hay Excel đổi đuôi .docx bị từ chối; luồng nhập vẫn chỉ Excel và CSV"""
+    assert excel.sniff_kind(_zip("word/document.xml"), declared_name="quy-trinh.docx") == FileKind.DOCX
+    assert excel.sniff_kind(_xlsx([["a"]]), declared_name="bang.xlsx") == FileKind.XLSX
     assert excel.sniff_kind(io.BytesIO(b"%PDF-1.4\n%..."), declared_name="quy-dinh.pdf") == FileKind.PDF
+    for tep, ten in (
+        (io.BytesIO(b"%PDF-1.4\n"), "quy-dinh.docx"),          # PDF đổi đuôi Word
+        (_xlsx([["a"]]), "quy-trinh.docx"),                     # Excel đổi đuôi Word
+        (_zip("word/document.xml"), "bang.xlsx"),               # Word đổi đuôi Excel
+        (_zip("x.txt"), "rac.docx"),                            # ZIP rác đổi đuôi
+        (io.BytesIO(b"PK\x03\x04" + b"\x00" * 60), "rac.xlsx"),  # đầu tệp giống ZIP nhưng không phải ZIP
+    ):
+        with pytest.raises(excel.UploadRejected):
+            excel.sniff_kind(tep, declared_name=ten)
     with pytest.raises(excel.UploadRejected):
-        excel.sniff_kind(io.BytesIO(b"%PDF-1.4\n"), declared_name="quy-dinh.docx")   # đổi đuôi
-    with pytest.raises(excel.UploadRejected):
-        excel.sniff_kind(_xlsx([["a"]]), declared_name="a.docx", allowed=(FileKind.XLSX, FileKind.CSV))
+        excel.sniff_kind(_zip("word/document.xml"), declared_name="a.docx", allowed=(FileKind.XLSX, FileKind.CSV))
 
 
 def test_thu_hep_theo_luong():

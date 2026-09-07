@@ -27,7 +27,11 @@ class CongViecForm(forms.Form):
         label="Hạn", required=False, widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
     )
 
-    def __init__(self, *args, nguoi=None, **kwargs):
+    def __init__(self, *args, nguoi=None, sua=False, **kwargs):
         super().__init__(*args, **kwargs)
         if nguoi is not None:
             self.fields["assignee"].queryset = nguoi
+        if sua:
+            # Trang sửa: để trống là giữ nguyên người làm, không phải giao lại cho mình
+            self.fields["assignee"].empty_label = "— giữ nguyên người làm —"
+            self.fields["assignee"].help_text = "Để trống thì giữ nguyên; đổi người thì việc chuyển sang bộ phận của người đó."

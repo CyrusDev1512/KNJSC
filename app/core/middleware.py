@@ -7,6 +7,7 @@ import time
 
 from django.conf import settings
 from django.contrib.auth import logout
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.cache import add_never_cache_headers
@@ -17,6 +18,16 @@ EXEMPT_PREFIXES = ("/dang-nhap", "/dang-xuat", "/doi-mat-khau", "/static", "/med
 
 def _is_exempt(path):
     return any(path.startswith(p) for p in EXEMPT_PREFIXES)
+
+
+def _ve_dang_nhap(request, ly_do):
+    """Về trang đăng nhập. Yêu cầu HTMX (bấm Thích, đổi trạng thái…) thì bảo
+    trình duyệt tự chuyển trang bằng header `HX-Redirect` — trả 302 thì htmx
+    đi theo rồi nhét cả trang đăng nhập vào chỗ nút."""
+    url = f"{settings.LOGIN_URL}?{ly_do}=1"
+    if request.headers.get("HX-Request") == "true":
+        return HttpResponse(status=200, headers={"HX-Redirect": url})
+    return redirect(url)
 
 
 class SessionTimeoutMiddleware:
@@ -46,14 +57,14 @@ class SessionTimeoutMiddleware:
             last = request.session.get("last_seen_at")
             if last and now - last > self.timeout:
                 logout(request)
-                return redirect(f"{settings.LOGIN_URL}?het_phien=1")
+                return _ve_dang_nhap(request, "het_phien")
 
             profile = getattr(request.user, "profile", None)
             if profile is not None:
                 moc_phien = request.session.get("auth_epoch")
                 if moc_phien is not None and moc_phien != profile.session_epoch:
                     logout(request)
-                    return redirect(f"{settings.LOGIN_URL}?doi_quyen=1")
+                    return _ve_dang_nhap(request, "doi_quyen")
 
             if last is None or now - last >= self.GHI_LAI_SAU:
                 request.session["last_seen_at"] = now

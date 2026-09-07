@@ -19,15 +19,15 @@ duoc_go), da_thich, so_thich, so_binh_luan, duoc_ghim (người xem là Manager 
     {% endif %}
     {% if bai.is_pinned %}<span class="chip chip-nhan day">Đã ghim</span>{% endif %}
   </div>
-  <p class="bai-than">{{ bai.body }}</p>
+  <p class="bai-than">{{ bai.body|urlize }}</p>
   <div class="bai-chan">
     {% include "feed/_thich.html" with bai=bai da_thich=da_thich so_thich=so_thich %}
     <a class="nut nut-nho" href="{% url 'bang_tin_xem' bai.pk %}">{{ so_binh_luan }} bình luận</a>
     {% if duoc_ghim %}
-      <form method="post" action="{% url 'bang_tin_ghim' bai.pk %}">{% csrf_token %}<button class="nut nut-nho" type="submit">{% if bai.is_pinned %}Gỡ ghim{% else %}Ghim{% endif %}</button></form>
+      <form method="post" action="{% url 'bang_tin_ghim' bai.pk %}">{% csrf_token %}<input type="hidden" name="ghim" value="{% if bai.is_pinned %}0{% else %}1{% endif %}"><button class="nut nut-nho" type="submit">{% if bai.is_pinned %}Gỡ ghim{% else %}Ghim{% endif %}</button></form>
     {% endif %}
     {% if bai.duoc_go %}
-      <form method="post" action="{% url 'bang_tin_go' bai.pk %}">{% csrf_token %}<button class="nut nut-nho nut-nguy" type="submit">Gỡ bài</button></form>
+      <form method="post" action="{% url 'bang_tin_go' bai.pk %}" onsubmit="return confirm('Gỡ bài này khỏi Bảng tin?')">{% csrf_token %}<button class="nut nut-nho nut-nguy" type="submit">Gỡ bài</button></form>
     {% endif %}
   </div>
 </article>

@@ -121,6 +121,10 @@ def upload_document(*, title, category, upload=None, link="", description="",
         raise BusinessError("Cần chọn tệp hoặc dán liên kết.")
     if link and not link.startswith(LINK_SCHEMES):
         raise BusinessError("Liên kết phải bắt đầu bằng http:// hoặc https://.")
+    if upload is not None and link:
+        raise BusinessError("Chọn tệp hoặc dán liên kết, không cả hai.")
+    if not has_rank(actor, Rank.MANAGER):
+        raise OutOfScopeError("Chỉ quản lý trở lên tải được tài liệu lên.")
     if not DocumentCategory.objects.in_scope(actor).filter(pk=category.pk).exists():
         raise OutOfScopeError("Mục này không thuộc phạm vi của bạn.")
 
@@ -149,6 +153,8 @@ def upload_document(*, title, category, upload=None, link="", description="",
 @transaction.atomic
 def delete_document(doc, *, actor, request=None):
     """Gỡ tài liệu: xoá mềm, tệp vẫn nằm trên đĩa để khôi phục được — FR-9.4."""
+    if not can_manage_document(actor, doc):
+        raise OutOfScopeError("Bạn không có quyền gỡ tài liệu này.")
     doc.delete(by=actor)
     record(
         AuditAction.DELETE, actor=actor, target=doc,

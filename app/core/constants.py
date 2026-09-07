@@ -28,6 +28,11 @@ def rank_level(rank):
     return RANK_LEVEL.get(rank, 0)
 
 
+#: Liên kết người dùng dán vào (tài liệu, tài nguyên) chỉ nhận hai giao thức web —
+#: kiểm ở tầng dịch vụ, không trông vào form, để "javascript:" không lọt vào href
+LINK_SCHEMES = ("http://", "https://")
+
+
 class Currency(models.TextChoices):
     """Loại tiền tệ dùng trong phase 1.
 

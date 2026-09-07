@@ -52,7 +52,7 @@
       {% endif %}
     </div>
     {% if duoc_go %}
-      <form method="post" action="{% url 'cong_viec_go' t.pk %}" class="hang">
+      <form method="post" action="{% url 'cong_viec_go' t.pk %}" class="hang" onsubmit="return confirm('Gỡ việc này?')">
         {% csrf_token %}
         <button class="nut nut-nho nut-nguy" type="submit">Gỡ việc này</button>
       </form>

@@ -8,7 +8,7 @@
   <div>
     <div class="nhan-nho">Nội bộ · FR-12.1 tới FR-12.5</div>
     <h1>Ghi nhận văn hoá</h1>
-    <p>Ghi nhận đồng nghiệp làm tốt một giá trị của công ty: mỗi ghi nhận là một sao. Cuối tháng, ba người dẫn đầu doanh số nhận thêm 5, 3, 1 sao.</p>
+    <p>Cấp trên ghi nhận cấp dưới làm tốt một giá trị của công ty: mỗi ghi nhận là {{ sao_moi_ghi_nhan }} sao. Cuối tháng, ba hạng đầu doanh số nhận thêm {{ sao_top }} sao.</p>
   </div>
   <div class="hanh-dong">
     <a class="nut" href="{% url 'van_hoa_thanh_vien' user.pk %}">Sao của tôi: <b class="so">{{ sao_cua_toi }}</b> ★</a>
@@ -17,8 +17,9 @@
 
 <div class="luoi luoi-phu">
   <div class="doc">
+    {% if duoc_ghi_nhan and cac_nguoi %}
     <div class="the">
-      <div class="the-dau"><h2>Ghi nhận đồng nghiệp</h2></div>
+      <div class="the-dau"><h2>Ghi nhận cấp dưới</h2></div>
       <form class="the-than bm" method="post" action="{% url 'van_hoa_ghi_nhan' %}" id="bm-ghi-nhan">
         {% csrf_token %}
         <div class="bm-hang bm-hang-2">
@@ -38,7 +39,7 @@
         </div>
         <div class="truong">
           <label for="gn-loi">Lời nhắn <span class="bat-buoc">*</span></label>
-          <textarea class="o-nhap" id="gn-loi" name="message" rows="3" maxlength="300" required placeholder="Bạn đã làm gì đáng ghi nhận?"></textarea>
+          <textarea class="o-nhap" id="gn-loi" name="message" rows="3" maxlength="{{ message_max }}" required placeholder="Người này đã làm gì đáng ghi nhận?"></textarea>
         </div>
       </form>
       <div class="the-chan">
@@ -46,6 +47,11 @@
         <div class="day hang"><button class="nut nut-chinh" type="submit" form="bm-ghi-nhan">Gửi ghi nhận</button></div>
       </div>
     </div>
+    {% elif duoc_ghi_nhan %}
+    <div class="the"><div class="the-than nho mo-nhat">Bạn chưa phụ trách ai nên chưa có người để ghi nhận. Quản trị viên gán team ở Bộ phận và team.</div></div>
+    {% else %}
+    <div class="the"><div class="the-than nho mo-nhat">Ghi nhận đi từ trên xuống: trưởng nhóm ghi nhận người trong team, quản lý ghi nhận cả bộ phận. Bạn nhận sao khi được cấp trên ghi nhận — sao của bạn hiện ở góc trên.</div></div>
+    {% endif %}
 
     <div class="the">
       <div class="the-dau"><h2>Ghi nhận mới nhất</h2><span class="phai nho mo-nhat">{{ page_obj.paginator.count }} ghi nhận</span></div>
@@ -56,7 +62,7 @@
           {% include "components/rong.html" with rong_tieu_de="Chưa có ghi nhận nào" rong_mo_ta="Hãy là người đầu tiên ghi nhận một đồng nghiệp." %}
         {% endfor %}
       </div>
-      {% include "components/phan_trang.html" %}
+      {% if page_obj.paginator.count %}{% include "components/phan_trang.html" %}{% endif %}
     </div>
   </div>
 
@@ -74,10 +80,14 @@
             <span class="tien day">{{ d.tong_hien }}</span>
           </div>
         {% empty %}
-          {% include "components/rong.html" with rong_tieu_de="Chưa có đơn tháng này" rong_mo_ta="Bảng xếp hạng tính từ đơn hàng đã lên trong tháng, quy về VND." %}
+          {% if loi_ti_gia %}
+            {% include "components/rong.html" with rong_bieu_tuong="!" rong_tieu_de="Chưa tính được xếp hạng" rong_mo_ta=loi_ti_gia %}
+          {% else %}
+            {% include "components/rong.html" with rong_tieu_de="Chưa có đơn tháng này" rong_mo_ta="Bảng xếp hạng tính từ đơn hàng đã lên trong tháng, quy về VND." %}
+          {% endif %}
         {% endfor %}
       </div>
-      <div class="the-chan"><span class="nho mo-nhat">Quy đổi theo tỉ giá cố định trong cấu hình. Ngày 1 tháng sau hệ thống tự thưởng 5, 3, 1 sao cho ba người đầu.</span></div>
+      <div class="the-chan"><span class="nho mo-nhat">Tính theo ngày lên đơn trên hệ thống, quy đổi theo tỉ giá cố định trong cấu hình; bằng tổng và bằng số đơn thì đồng hạng. Ngày 1 tháng sau hệ thống tự thưởng {{ sao_top }} sao cho ba hạng đầu.</span></div>
     </div>
 
     <div class="the">

@@ -88,8 +88,11 @@ services:
       redis:
         condition: service_healthy
 
-  # Lịch định kỳ: sao lưu 02:00, dọn tệp 03:00, canh tác vụ kẹt mỗi 15 phút
+  # Lịch định kỳ: sao lưu 02:00, dọn tệp 03:00, canh tác vụ kẹt mỗi 15 phút,
+  # thiệp sinh nhật 06:00, thưởng sao xếp hạng ngày 1 lúc 01:00
   # (CELERY_BEAT_SCHEDULE). Không có service này thì không có gì tự chạy.
+  # Tệp lịch để trong /storage cho sống qua lần dựng lại container: mất tệp
+  # là beat quên mốc chạy cuối và bỏ luôn lần bị lỡ khi máy tắt.
   beat:
     build:
       context: ..
@@ -97,7 +100,7 @@ services:
       args:
         INSTALL_DEV: "1"
     restart: unless-stopped
-    command: celery -A knjsc beat -l info --schedule /tmp/celerybeat-schedule
+    command: celery -A knjsc beat -l info --schedule /storage/celerybeat-schedule
     environment:
       <<: *moi_truong
       RUN_MIGRATIONS: "0"

@@ -67,7 +67,7 @@
                   {% if tn.link %}<a class="nut nut-nho" href="{{ tn.link }}" target="_blank" rel="noopener">Mở</a>{% endif %}
                   {% if duoc_sua %}
                     <a class="nut nut-nho" href="{% url 'tai_nguyen_sua' tn.pk %}">Sửa</a>
-                    <form method="post" action="{% url 'tai_nguyen_go' tn.pk %}">
+                    <form method="post" action="{% url 'tai_nguyen_go' tn.pk %}" onsubmit="return confirm('Gỡ tài nguyên này?')">
                       {% csrf_token %}
                       <button class="nut nut-nho nut-nguy" type="submit">Gỡ</button>
                     </form>

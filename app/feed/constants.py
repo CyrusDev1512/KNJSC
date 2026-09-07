@@ -20,3 +20,7 @@ BIRTHDAY_MESSAGE = (
     "Chúc mừng sinh nhật {ten}! Cả nhà KN JSC chúc bạn tuổi mới nhiều sức khoẻ, "
     "nhiều niềm vui và thật nhiều đơn."
 )
+#: Mỗi lần mở bài chỉ tải chừng này bình luận mới nhất, cũ hơn thì bấm "Xem thêm" (quy tắc 1)
+COMMENT_PAGE = 20
+#: Máy tắt vài ngày thì khi bật lại đăng bù thiệp lùi tối đa chừng này ngày
+BIRTHDAY_CATCH_UP_DAYS = 14

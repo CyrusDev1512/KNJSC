@@ -15,7 +15,7 @@ from django.core.management.base import CommandError
 from django.test import override_settings
 
 from core.constants import AuditAction, Currency
-from core.exceptions import BusinessError
+from core.exceptions import BusinessError, OutOfScopeError
 from core.models import AuditLog
 from culture.constants import MONTHLY_RANK_STARS, CoreValue, StarSource
 from culture.models import Recognition, StarAward
@@ -63,10 +63,10 @@ def _ghi_nhan(giver, receiver, value=CoreValue.HOP_TAC, message="Làm tốt lắ
         receiver=receiver, value=value, message=message, actor=giver)
 
 
-# ══ AC-15.1 · Ghi nhận và sao ══════════════════════════════════════
+# ══ AC-15.1 · Ghi nhận từ trên xuống và sao — Q70 ═════════════════
 
-def test_ghi_nhan_dong_nghiep_cong_mot_sao(client, nguoi_dung):
-    """AC-15.1 — Ai đăng nhập cũng ghi nhận được đồng nghiệp theo một giá trị văn hoá, người nhận được cộng đúng một sao cùng giao dịch và có nhật ký; tự ghi nhận, lời nhắn trống, giá trị lạ hay người đã khoá đều bị từ chối; GET vào đường gửi trả 405"""
+def test_ghi_nhan_tu_tren_xuong_cong_mot_sao(client, nguoi_dung):
+    """AC-15.1 — Trưởng nhóm trở lên ghi nhận cấp dưới trong phạm vi mình (Leader: team, Manager: bộ phận, Admin: mọi người) theo một giá trị văn hoá, người nhận được cộng đúng một sao cùng giao dịch và có nhật ký; nhân viên không ghi nhận ai và không thấy form; ghi nhận người ngoài phạm vi, ngang hoặc trên cấp, chính mình, lời nhắn trống, giá trị lạ hay người đã khoá đều bị từ chối; GET vào đường gửi trả 405"""
     n = nguoi_dung
     ky = recognition_service.current_period()
 
@@ -75,49 +75,80 @@ def test_ghi_nhan_dong_nghiep_cong_mot_sao(client, nguoi_dung):
         client.force_login(n[vai])
         assert client.get("/van-hoa/").status_code == 200, vai
 
-    # Staff Sale ghi nhận nhân viên Marketing — chéo bộ phận vẫn được
-    client.force_login(n["staff_sale_1"])
+    # Ai ghi nhận được ai — Q70
+    assert recognition_service.recipients(n["staff_sale_1"]) == []
+    assert set(recognition_service.recipients(n["leader_sale_1"])) == {n["staff_sale_1"], n["staff_sale_1b"]}
+    quan_ly = set(recognition_service.recipients(n["manager_sale"]))
+    assert {n["leader_sale_1"], n["leader_sale_2"], n["staff_sale_1"], n["staff_sale_2"]} <= quan_ly
+    assert n["manager_sale"] not in quan_ly and n["staff_mkt"] not in quan_ly
+    quan_tri = set(recognition_service.recipients(n["admin"]))
+    assert {n["manager_sale"], n["staff_mkt"]} <= quan_tri and n["admin"] not in quan_tri
+
+    # Leader ghi nhận người trong team mình
+    client.force_login(n["leader_sale_1"])
     truoc = _so(AuditAction.CREATE)
     kq = client.post("/van-hoa/ghi-nhan/", {
-        "receiver": n["staff_mkt"].pk, "value": CoreValue.SANG_TAO,
+        "receiver": n["staff_sale_1"].pk, "value": CoreValue.SANG_TAO,
         "message": "Bộ ảnh mới làm tỉ lệ chốt tăng rõ",
     })
     assert kq.status_code == 302 and kq["Location"] == "/van-hoa/"
     gn = Recognition.objects.get()
-    assert (gn.giver, gn.receiver, gn.value) == (n["staff_sale_1"], n["staff_mkt"], CoreValue.SANG_TAO)
+    assert (gn.giver, gn.receiver, gn.value) == (n["leader_sale_1"], n["staff_sale_1"], CoreValue.SANG_TAO)
     sao = StarAward.objects.get(recognition=gn)
     assert (sao.receiver, sao.source, sao.stars, sao.period) == (
-        n["staff_mkt"], StarSource.GHI_NHAN, 1, ky)
-    assert recognition_service.stars_of(n["staff_mkt"]) == 1
+        n["staff_sale_1"], StarSource.GHI_NHAN, 1, ky)
+    assert recognition_service.stars_of(n["staff_sale_1"]) == 1
     assert _so(AuditAction.CREATE) == truoc + 1
-    assert "Ghi nhận #" in AuditLog.objects.filter(action=AuditAction.CREATE).first().detail
+    chi_tiet = AuditLog.objects.filter(action=AuditAction.CREATE).first().detail
+    assert "Ghi nhận #" in chi_tiet and f"tặng #{n['staff_sale_1'].pk}" in chi_tiet
+    assert "Staff Sale" not in chi_tiet                          # ghi mã, không ghi tên
 
-    # Trang hiện ghi nhận cho người bộ phận khác xem
+    # Nhân viên xem được, không thấy form; gọi thẳng đường gửi bị từ chối có nhật ký
     client.force_login(n["staff_vd"])
     noi_dung = client.get("/van-hoa/").content.decode()
     assert "Bộ ảnh mới làm tỉ lệ chốt tăng rõ" in noi_dung and "Sáng tạo" in noi_dung
+    assert 'id="bm-ghi-nhan"' not in noi_dung and "Ghi nhận đi từ trên xuống" in noi_dung
+    tu_choi = _so(AuditAction.DENIED)
+    kq = client.post("/van-hoa/ghi-nhan/", {
+        "receiver": n["staff_mkt"].pk, "value": CoreValue.TAN_TAM, "message": "Thử",
+    })
+    assert kq.status_code == 403 and _so(AuditAction.DENIED) == tu_choi + 1
+    with pytest.raises(OutOfScopeError):
+        _ghi_nhan(n["staff_vd"], n["staff_mkt"])
 
-    # Danh sách chọn không có chính mình
-    assert n["staff_vd"] not in recognition_service.recipients(n["staff_vd"])
-    assert n["staff_mkt"] in recognition_service.recipients(n["staff_vd"])
-    assert f'<option value="{n["staff_vd"].pk}">' not in noi_dung
-
-    # Bị từ chối: tự ghi nhận, lời nhắn trống, giá trị lạ, người đã khoá
+    # Bị từ chối: team khác, ngang cấp, cấp trên, bộ phận khác, chính mình, trống, giá trị lạ, đã khoá
     with pytest.raises(BusinessError):
-        _ghi_nhan(n["staff_vd"], n["staff_vd"])
+        _ghi_nhan(n["leader_sale_1"], n["staff_sale_2"])
     with pytest.raises(BusinessError):
-        _ghi_nhan(n["staff_vd"], n["staff_mkt"], message="   ")
+        _ghi_nhan(n["manager_sale"], n["manager_mkt"])
     with pytest.raises(BusinessError):
-        _ghi_nhan(n["staff_vd"], n["staff_mkt"], value="lam_bua")
+        _ghi_nhan(n["leader_sale_1"], n["manager_sale"])
+    with pytest.raises(BusinessError):
+        _ghi_nhan(n["manager_sale"], n["staff_mkt"])
+    with pytest.raises(BusinessError):
+        _ghi_nhan(n["admin"], n["admin"])
+    with pytest.raises(BusinessError):
+        _ghi_nhan(n["admin"], n["staff_mkt"], message="   ")
+    with pytest.raises(BusinessError):
+        _ghi_nhan(n["admin"], n["staff_mkt"], value="lam_bua")
     n["staff_sale_2"].is_active = False
     n["staff_sale_2"].save(update_fields=["is_active"])
     with pytest.raises(BusinessError):
-        _ghi_nhan(n["staff_vd"], n["staff_sale_2"])
+        _ghi_nhan(n["manager_sale"], n["staff_sale_2"])
+
+    # Qua form: chọn người đã khoá thì báo đúng lý do; tự chọn mình cũng không được
+    client.force_login(n["manager_sale"])
     kq = client.post("/van-hoa/ghi-nhan/", {
-        "receiver": n["staff_vd"].pk, "value": CoreValue.TAN_TAM, "message": "Tự khen",
+        "receiver": n["staff_sale_2"].pk, "value": CoreValue.TAN_TAM, "message": "Thử",
+    }, follow=True)
+    assert "Không tìm thấy đồng nghiệp này" in kq.content.decode()
+    kq = client.post("/van-hoa/ghi-nhan/", {
+        "receiver": n["manager_sale"].pk, "value": CoreValue.TAN_TAM, "message": "Tự khen",
     })
     assert kq.status_code == 302
     assert Recognition.objects.count() == 1 and StarAward.objects.count() == 1
+    # Manager ghi nhận Leader — cấp dưới trong bộ phận: được
+    assert _ghi_nhan(n["manager_sale"], n["leader_sale_1"]).receiver == n["leader_sale_1"]
 
     # Sai phương thức và chưa đăng nhập
     assert client.get("/van-hoa/ghi-nhan/").status_code == 405
@@ -231,8 +262,8 @@ def test_trang_thanh_vien_tong_sao_va_ghi_nhan(client, nguoi_dung):
     ky = recognition_service.current_period()
     ky_truoc = leaderboard_service.previous_period()
     for i in range(26):
-        _ghi_nhan(n["staff_sale_1"], n["staff_mkt"], message=f"Lần {i + 1}")
-    _ghi_nhan(n["staff_vd"], n["staff_sale_2"], value=CoreValue.TAN_TAM)
+        _ghi_nhan(n["admin"], n["staff_mkt"], message=f"Lần {i + 1}")
+    _ghi_nhan(n["manager_sale"], n["staff_sale_2"], value=CoreValue.TAN_TAM)
     StarAward.objects.create(                                   # thưởng xếp hạng tháng trước
         receiver=n["staff_mkt"], source=StarSource.XEP_HANG, stars=5, period=ky_truoc, rank=1)
 
@@ -271,9 +302,69 @@ def test_trang_thanh_vien_khong_qua_muoi_lenh_truy_van(client, nguoi_dung, djang
     """AC-10.2 — Trang thành viên chạy không quá 10 lệnh truy vấn"""
     n = nguoi_dung
     for _ in range(3):
-        _ghi_nhan(n["staff_sale_1"], n["staff_mkt"])
+        _ghi_nhan(n["admin"], n["staff_mkt"])
     client.force_login(n["admin"])
     duong_dan = f"/van-hoa/thanh-vien/{n['staff_mkt'].pk}/"
     client.get(duong_dan)
     with django_assert_max_num_queries(10):
         assert client.get(duong_dan).status_code == 200
+
+
+# ══ Người bán đã khoá, đồng hạng, nhiều loại tiền — Q71, Q72 ═══════
+
+@override_settings(EXCHANGE_RATES_VND=TI_GIA)
+def test_nguoi_ban_da_khoa_khong_chiem_hang_va_dong_hang(nguoi_dung, san_pham):
+    """AC-15.2 — Người bán đã khoá không chiếm hạng: người kế tiếp lên hạng 1 và nhận 5 sao; bằng tổng và bằng số đơn thì đồng hạng cùng sao, người kế tiếp nhảy hạng (Q72); người bán nhiều loại tiền được gộp về VND; kỳ "2026-9" và "2026-09" là một; nhật ký thưởng ghi tỉ giá và tổng từng người"""
+    n = nguoi_dung
+    _don(n["staff_sale_2"], san_pham, "900.00")                              # 22.500.000 — sẽ bị khoá
+    _don(n["staff_sale_1"], san_pham, "100.00")                              # 2.500.000
+    _don(n["staff_sale_1"], san_pham, "500.00", Currency.CAD, Market.CA)     # + 9.000.000 = 11.500.000, 2 đơn
+    _don(n["staff_sale_1b"], san_pham, "460.00")                             # 11.500.000, 1 đơn
+    _don(n["leader_sale_1"], san_pham, "200.00")
+    _don(n["leader_sale_1"], san_pham, "260.00")                             # 11.500.000, 2 đơn
+    _don(n["manager_sale"], san_pham, "40.00")                               # 1.000.000
+    n["staff_sale_2"].is_active = False
+    n["staff_sale_2"].save(update_fields=["is_active"])
+
+    bang = leaderboard_service.sales_leaderboard()
+    assert [(d["hang"], d["user"], d["so_don"], d["tong_vnd"], d["sao_thuong"]) for d in bang] == [
+        (1, n["leader_sale_1"], 2, Decimal("11500000"), 5),
+        (1, n["staff_sale_1"], 2, Decimal("11500000"), 5),
+        (3, n["staff_sale_1b"], 1, Decimal("11500000"), 1),
+        (4, n["manager_sale"], 1, Decimal("1000000"), 0),
+    ]
+    assert [d["lop_hang"] for d in bang] == ["hang-so-1", "hang-so-1", "hang-so-3", ""]
+
+    # Thưởng tháng: hai người đồng hạng 1 cùng 5 sao, hạng 3 một sao; kỳ viết "2026-9" không thưởng đúp
+    _lui_ve_thang_truoc(*Order.objects.all())
+    ky_truoc = leaderboard_service.previous_period()
+    assert leaderboard_service.award_monthly_stars(ky_truoc) == 3
+    ky_khong_so_0 = f"{int(ky_truoc[:4])}-{int(ky_truoc[5:])}"
+    assert leaderboard_service.award_monthly_stars(ky_khong_so_0) == 0
+    thuong = {s.receiver: (s.stars, s.rank, s.period) for s in StarAward.objects.filter(source=StarSource.XEP_HANG)}
+    assert thuong == {
+        n["leader_sale_1"]: (5, 1, ky_truoc), n["staff_sale_1"]: (5, 1, ky_truoc), n["staff_sale_1b"]: (1, 3, ky_truoc),
+    }
+    chi_tiet = AuditLog.objects.filter(action=AuditAction.CREATE).first().detail
+    assert "tỉ giá" in chi_tiet and "USD 25000" in chi_tiet and "11.500.000" in chi_tiet
+
+    # Nhiều sao nhất cũng đồng hạng và bỏ người đã khoá
+    StarAward.objects.create(receiver=n["staff_sale_2"], source=StarSource.XEP_HANG, stars=9, period="2020-01", rank=1)
+    top = recognition_service.star_totals()
+    assert [(d["hang"], d["user"], d["sao"]) for d in top] == [
+        (1, n["leader_sale_1"], 5), (1, n["staff_sale_1"], 5), (3, n["staff_sale_1b"], 1),
+    ]
+
+
+@override_settings(EXCHANGE_RATES_VND=TI_GIA)
+def test_trang_van_hoa_khong_qua_muoi_lenh_truy_van(client, nguoi_dung, san_pham, django_assert_max_num_queries):
+    """AC-10.2 — Trang Văn hoá có dữ liệu (đơn, ghi nhận, sao) chạy không quá 10 lệnh truy vấn, kể cả với Leader phải tính phạm vi team"""
+    n = nguoi_dung
+    _don(n["staff_sale_1"], san_pham, "100.00")
+    for _ in range(3):
+        _ghi_nhan(n["leader_sale_1"], n["staff_sale_1"])
+    for vai in ("leader_sale_1", "admin"):
+        client.force_login(n[vai])
+        client.get("/van-hoa/")
+        with django_assert_max_num_queries(10):
+            assert client.get("/van-hoa/").status_code == 200, vai

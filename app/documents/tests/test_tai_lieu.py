@@ -2,8 +2,10 @@
 
 Mỗi bài phân quyền kiểm **cả hai chiều**: được phép và bị từ chối.
 """
+import io
 import os
 import time
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -20,7 +22,17 @@ from documents.services import document_service
 pytestmark = pytest.mark.django_db
 
 PDF = b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n"
-ZIP = b"PK\x03\x04" + b"\x00" * 60
+
+
+def _zip(ten_trong):
+    """ZIP nhỏ nhất có đúng tệp đặc trưng của Word hay Excel — ZIP rác đổi đuôi không qua."""
+    dem = io.BytesIO()
+    with zipfile.ZipFile(dem, "w") as z:
+        z.writestr(ten_trong, "<x/>")
+    return dem.getvalue()
+
+
+ZIP = _zip("word/document.xml")
 
 
 def _tep(ten="quy-dinh.pdf", noi_dung=PDF):
@@ -233,3 +245,25 @@ def test_man_hinh_tai_lieu_khong_qua_muoi_lenh_truy_van(client, cac_tai_lieu, ng
     client.get("/tai-lieu/")
     with django_assert_max_num_queries(10):
         assert client.get("/tai-lieu/").status_code == 200
+
+
+# ══ Dịch vụ tự kiểm quyền; mục mới không nổ — rà soát 07.09 ═════════
+
+def test_dich_vu_tu_kiem_quyen_va_muc_moi_khong_no(client, cac_muc, nguoi_dung):
+    """AC-12.4 — Gọi thẳng tầng dịch vụ: nhân viên tải lên hay người không có quyền gỡ đều bị từ chối, không trông vào view; tệp và liên kết cùng lúc bị từ chối; thêm mục với mã bộ phận không phải số trả 404, không 500; ZIP rác đổi đuôi .docx bị từ chối"""
+    n = nguoi_dung
+    goi = document_service.upload_document
+    with pytest.raises(OutOfScopeError):
+        goi(title="Lậu", category=cac_muc["chung"], link="https://vi.du/a", actor=n["staff_sale_1"])
+    with pytest.raises(BusinessError):
+        goi(title="Hai thứ", category=cac_muc["chung"], upload=_tep(), link="https://vi.du/a", actor=n["admin"])
+    with pytest.raises(BusinessError):
+        goi(title="Rác", category=cac_muc["chung"], upload=_tep("rac.docx", _zip("x.txt")), actor=n["admin"])
+    doc = goi(title="Thật", category=cac_muc["chung"], link="https://vi.du/a", actor=n["admin"])
+    with pytest.raises(OutOfScopeError):
+        document_service.delete_document(doc, actor=n["manager_sale"])      # mục toàn công ty: chỉ Admin
+    assert Document.objects.filter(pk=doc.pk).exists()
+
+    client.force_login(n["manager_sale"])
+    assert client.post("/tai-lieu/muc-moi/", {"name": "Mục lạ", "department": "abc"}).status_code == 404
+    assert not DocumentCategory.objects.filter(name="Mục lạ").exists()

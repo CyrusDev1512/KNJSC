@@ -273,10 +273,10 @@ def test_thanh_ben_va_ngan_sach_truy_van(client, nguoi_dung, django_assert_max_n
     _dat_sinh_nhat(n["staff_mkt"], date(1991, hom_nay.month % 12 + 1, 5))      # tháng sau: không hiện
     for i in range(3):
         recognition_service.give_recognition(
-            receiver=n["staff_mkt"], value=CoreValue.HOP_TAC, message=f"Lần {i}", actor=n["staff_sale_1"])
+            receiver=n["staff_mkt"], value=CoreValue.HOP_TAC, message=f"Lần {i}", actor=n["manager_mkt"])
     for i in range(2):
         recognition_service.give_recognition(
-            receiver=n["staff_vd"], value=CoreValue.TAN_TAM, message=f"Nữa {i}", actor=n["staff_mkt"])
+            receiver=n["staff_vd"], value=CoreValue.TAN_TAM, message=f"Nữa {i}", actor=n["admin"])
     UserProfile.objects.filter(user=n["staff_sale_1b"]).update(created_at=timezone.now() - timedelta(days=40))
     bai = _bai(n["staff_sale_1"])
     post_service.add_comment(bai, body="Một", actor=n["staff_mkt"])
@@ -302,3 +302,57 @@ def test_thanh_ben_va_ngan_sach_truy_van(client, nguoi_dung, django_assert_max_n
     html = kq.content.decode()
     assert "1 bình luận" in html and '<span class="so">2</span>' in html and "★ 3" in html
     assert "Sinh nhật tháng" in html and "Thành viên mới" in html
+
+
+# ══ Bình luận phân trang, chống bấm đúp, ghim rõ ý — rà soát 07.09 ═
+
+def test_binh_luan_phan_trang_va_ghim_ro_y(client, nguoi_dung):
+    """AC-13.2 — Bài chỉ tải 20 bình luận mới nhất, "Xem bình luận cũ hơn" tải tiếp qua HTMX; nút Thích và form bình luận có hx-sync chống bấm đúp; ghim gửi rõ ý muốn nên hai quản lý bấm trên trang cũ không làm ngược ý nhau"""
+    n = nguoi_dung
+    bai = _bai(n["staff_sale_1"])
+    for i in range(23):
+        post_service.add_comment(bai, body=f"BL {i:02d}", actor=n["staff_mkt"])
+    client.force_login(n["staff_vd"])
+    html = client.get(f"/bang-tin/{bai.pk}/").content.decode()
+    assert "BL 22" in html and "BL 03" in html and "BL 02" not in html
+    assert "Xem bình luận cũ hơn" in html and 'hx-sync="this:drop"' in html
+    truoc = Comment.objects.get(body="BL 03").pk
+    cu = client.get(f"/bang-tin/{bai.pk}/binh-luan/", {"truoc": truoc}).content.decode()
+    assert "BL 02" in cu and "BL 00" in cu and "BL 03" not in cu
+    assert "Xem bình luận cũ hơn" not in cu and "<html" not in cu
+
+    client.force_login(n["manager_sale"])
+    client.post(f"/bang-tin/{bai.pk}/ghim/", {"ghim": "1"})
+    bai.refresh_from_db()
+    assert bai.is_pinned
+    client.post(f"/bang-tin/{bai.pk}/ghim/", {"ghim": "1"})           # trang cũ bấm Ghim lần nữa: không đảo
+    bai.refresh_from_db()
+    assert bai.is_pinned
+    client.post(f"/bang-tin/{bai.pk}/ghim/", {"ghim": "0"})
+    bai.refresh_from_db()
+    assert not bai.is_pinned
+
+
+def test_thiep_sinh_nhat_bu_ngay_may_tat(nguoi_dung):
+    """AC-13.4 — Máy tắt vài ngày thì khi bật lại đăng bù thiệp cho những ngày đó (tối đa 14 ngày), không đăng lại thiệp đã có, không đăng cho ngày tương lai"""
+    from feed.tasks import thiep_sinh_nhat
+
+    n = nguoi_dung
+    hom_nay = timezone.localdate()
+    _dat_sinh_nhat(n["staff_sale_1"], (hom_nay - timedelta(days=2)).replace(year=1996))
+    _dat_sinh_nhat(n["staff_mkt"], (hom_nay - timedelta(days=1)).replace(year=1992))
+    _dat_sinh_nhat(n["staff_vd"], hom_nay.replace(year=1988))
+    _dat_sinh_nhat(n["staff_sale_2"], (hom_nay - timedelta(days=20)).replace(year=1996))   # quá 14 ngày: không bù
+
+    assert post_service.catch_up_birthday_posts() == 1              # lần đầu chưa có thiệp: chỉ hôm nay
+    # Giả lập máy tắt: thiệp mới nhất là của ba ngày trước
+    Post.all_objects.filter(kind=PostKind.SINH_NHAT).update(
+        birthday_on=hom_nay - timedelta(days=3), subject=n["staff_sale_1b"])
+    assert post_service.catch_up_birthday_posts() == 3              # hai ngày trước, hôm qua, hôm nay
+    assert post_service.catch_up_birthday_posts() == 0
+    assert thiep_sinh_nhat() == 0
+    assert set(Post.objects.filter(kind=PostKind.SINH_NHAT).values_list("subject_id", flat=True)) == {
+        n["staff_sale_1b"].pk, n["staff_sale_1"].pk, n["staff_mkt"].pk, n["staff_vd"].pk,
+    }
+    with pytest.raises(CommandError):
+        call_command("thiep_sinh_nhat", "--ngay", (hom_nay + timedelta(days=1)).isoformat(), stdout=StringIO())

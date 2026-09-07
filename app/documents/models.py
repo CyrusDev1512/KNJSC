@@ -7,7 +7,8 @@ view có kiểm quyền, không có đường tĩnh (FR-9.3).
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Q
+from django.db.models.functions import Lower
 
 from core.constants import FileKind
 from core.models import ScopedModel, SoftDeleteModel, TimestampedModel
@@ -40,9 +41,9 @@ class DocumentCategory(TimestampedModel, SoftDeleteModel):
         ordering = ["order", "name"]
         constraints = [
             # Trùng tên trong cùng bộ phận (kể cả cùng "toàn công ty") thì
-            # chặn, nhưng chỉ tính mục chưa xoá — BR-4
+            # chặn, không phân biệt hoa thường, chỉ tính mục chưa xoá — BR-4
             models.UniqueConstraint(
-                fields=["department", "name"], nulls_distinct=False,
+                Lower("name"), F("department"), nulls_distinct=False,
                 condition=Q(deleted_at__isnull=True),
                 name="doc_category_name_unique",
             ),

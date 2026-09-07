@@ -7,7 +7,7 @@
       <span class="nho mo-nhat">được {{ gn.giver.profile.full_name|default:gn.giver.username }} ghi nhận · {{ gn.created_at|date:"d.m.Y H:i" }}</span>
     </div>
     <span class="gia-tri-vh">{{ gn.get_value_display }}</span>
-    <span class="sao" title="Một sao">★ 1</span>
+    <span class="sao" title="Sao từ ghi nhận">★ {{ gn.star_award.stars|default:"1" }}</span>
   </div>
   <p class="ghi-nhan-than">{{ gn.message }}</p>
 </div>

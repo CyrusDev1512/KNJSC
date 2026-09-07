@@ -4,18 +4,22 @@ Tầng dịch vụ, không biết gì về HTTP (điều cấm 2). Mọi thao t�
 nhật ký (BR-5) và nằm trong một giao dịch. Nhật ký không bao giờ chép nội
 dung ghi chú — chỉ ghi "đã đổi".
 """
+import re
+import unicodedata
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Max, Q
 
 from core.audit import record
-from core.constants import AuditAction, Rank
+from core.constants import LINK_SCHEMES, AuditAction, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.identity import display_name
 from core.permissions import has_rank
 
 from ..constants import (
-    DEFAULT_CATEGORIES, NAME_MAX, NOTE_MAX, RESOURCE_FIELD_LABELS, SECRET_HINTS, ResourceStatus,
+    DEFAULT_CATEGORIES, LINK_MAX, NAME_MAX, NOTE_MAX, RESOURCE_FIELD_LABELS, SECRET_STRONG,
+    SECRET_WEAK, ResourceStatus,
 )
 from ..models import Resource, ResourceCategory
 
@@ -55,20 +59,49 @@ def holders():
 
 # ══ KIỂM ══════════════════════════════════════════════════════════
 
+def _mau(cac_tu):
+    return "|".join(re.escape(unicodedata.normalize("NFC", t)) for t in cac_tu)
+
+
+#: Từ mạnh đứng một mình là chặn; từ yếu phải kèm một giá trị có chữ số ngay sau
+_MAU_MANH = re.compile(r"(?<!\w)(?:" + _mau(SECRET_STRONG) + r")(?!\w)")
+_MAU_YEU = re.compile(
+    r"(?<!\w)(?:" + _mau(SECRET_WEAK) + r")(?!\w)\s*(?:[:=\-]|là)?\s*\S*\d\S*"
+)
+
+
+def check_text(text, nhan="Ghi chú"):
+    """Chuỗi không được chứa mật khẩu hay mã bí mật — FR-13.4. Là bộ lọc tốt
+    nhất có thể, không phải bảo đảm: kho này không phải két sắt."""
+    chuan = unicodedata.normalize("NFC", text or "").casefold()
+    if _MAU_MANH.search(chuan) or _MAU_YEU.search(chuan):
+        raise BusinessError(
+            f"{nhan} không được chứa mật khẩu hay mã bí mật. "
+            "Kho tài nguyên chỉ ghi có gì, ai giữ, tình trạng ra sao."
+        )
+    return (text or "").strip()
+
+
 def check_note(note):
-    """Ghi chú không được chứa mật khẩu hay mã bí mật — FR-13.4."""
-    thap = (note or "").lower()
-    for tu in SECRET_HINTS:
-        if tu in thap:
-            raise BusinessError(
-                "Ghi chú không được chứa mật khẩu hay mã bí mật. "
-                "Kho tài nguyên chỉ ghi có gì, ai giữ, tình trạng ra sao."
-            )
-    return (note or "").strip()
+    """Ghi chú — giữ tên cũ cho chỗ gọi sẵn có."""
+    note = check_text(note, "Ghi chú")
+    if len(note) > NOTE_MAX:
+        raise BusinessError(f"Ghi chú dài quá {NOTE_MAX} ký tự.")
+    return note
+
+
+def _lien_ket(link):
+    """Liên kết chỉ nhận http(s) — kiểm ở dịch vụ, không trông vào form (XSS lưu trữ)."""
+    link = check_text(link, "Liên kết")
+    if link and not link.startswith(LINK_SCHEMES):
+        raise BusinessError("Liên kết phải bắt đầu bằng http:// hoặc https://.")
+    if len(link) > LINK_MAX:
+        raise BusinessError(f"Liên kết dài quá {LINK_MAX} ký tự.")
+    return link
 
 
 def _ten(name):
-    name = (name or "").strip()
+    name = check_text(name, "Tên")
     if not name:
         raise BusinessError("Tên không được để trống.")
     if len(name) > NAME_MAX:
@@ -79,14 +112,17 @@ def _ten(name):
 # ══ GHI — MỤC ═════════════════════════════════════════════════════
 
 @transaction.atomic
-def create_category(*, name, actor, request=None, order=0):
-    """Thêm mục — Manager trở lên (FR-13.1)."""
+def create_category(*, name, actor, request=None, order=None):
+    """Thêm mục — Manager trở lên (FR-13.1). Không chỉ thứ tự thì xếp cuối."""
     _phai_la_quan_ly(actor)
     name = (name or "").strip()
     if not name:
         raise BusinessError("Tên mục không được để trống.")
     if ResourceCategory.objects.filter(name__iexact=name).exists():
         raise BusinessError(f"Đã có mục tên {name}.")
+    if order is None:
+        cuoi = ResourceCategory.objects.aggregate(m=Max("order"))["m"]
+        order = 0 if cuoi is None else cuoi + 1
     muc = ResourceCategory.objects.create(name=name, order=order, created_by=actor)
     record(AuditAction.CREATE, actor=actor, target=muc, detail=f"Thêm mục tài nguyên {muc.name}", request=request)
     return muc
@@ -117,7 +153,7 @@ def create_resource(*, category, name, actor, request=None, note="", link="",
     if status not in ResourceStatus.values:
         raise BusinessError("Trạng thái không hợp lệ.")
     tn = Resource(
-        category=category, name=_ten(name), note=check_note(note), link=(link or "").strip(),
+        category=category, name=_ten(name), note=check_note(note), link=_lien_ket(link),
         status=status, holder=holder, department=department, created_by=actor,
     )
     tn.full_clean(exclude=["created_by"])
@@ -130,8 +166,8 @@ def create_resource(*, category, name, actor, request=None, note="", link="",
 
 
 def _hien(truong, gia_tri):
-    if truong == "note":
-        return "…"                      # không chép ghi chú vào nhật ký
+    if truong in ("note", "link"):
+        return "…"                      # không chép ghi chú hay liên kết vào nhật ký
     if truong == "status":
         return ResourceStatus(gia_tri).label if gia_tri else "—"
     if truong == "holder":
@@ -154,7 +190,7 @@ def update_resource(tn, *, actor, request=None, **thay_doi):
         elif truong == "note":
             moi = check_note(moi)
         elif truong == "link":
-            moi = (moi or "").strip()
+            moi = _lien_ket(moi)
         elif truong == "status" and moi not in ResourceStatus.values:
             raise BusinessError("Trạng thái không hợp lệ.")
         elif truong == "category" and (moi is None or moi.deleted_at is not None):

@@ -3,6 +3,8 @@
 Quy tắc 1: mọi màn hình danh sách phải có phân trang, mặc định 25 dòng.
 Quy tắc Q4: không bao giờ lấy toàn bộ bảng trong màn hình danh sách.
 """
+from urllib.parse import urlencode
+
 from django.conf import settings
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
@@ -34,6 +36,14 @@ def paginate(request, queryset, param="trang", size_param="moi_trang", default_s
         return paginator.page(1)
     except EmptyPage:
         return paginator.page(paginator.num_pages)
+
+
+def filter_query(**tham_so):
+    """Chuỗi truy vấn của bộ lọc để nối vào liên kết phân trang (`qs_loc` của
+    `components/phan_trang.html`): bắt đầu bằng "&", đã mã hoá URL, bỏ giá trị
+    trống. Ghép tay `f"&tim={tim}"` thì "Sale & Marketing" hay "#" làm hỏng bộ lọc."""
+    giu = {k: v for k, v in tham_so.items() if v not in (None, "")}
+    return "&" + urlencode(giu) if giu else ""
 
 
 class PaginatedListMixin:

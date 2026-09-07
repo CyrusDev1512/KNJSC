@@ -3,13 +3,20 @@
 Nhật ký chỉ ghi ai làm gì với đối tượng nào. Tuyệt đối không ghi mật khẩu,
 số thẻ, hay thông tin cá nhân đầy đủ vào đây, kể cả khi gỡ lỗi (điều cấm 6).
 """
+import re
+
 from .constants import AuditAction
 from .models import AuditLog
 
-# Những từ khoá không bao giờ được xuất hiện trong phần chi tiết
+# Những từ khoá không bao giờ được xuất hiện trong phần chi tiết. So khớp theo
+# **ranh giới từ**: "password" bắt, còn "theo", "Matthew", "Ricardo" thì không —
+# bản đầu so chuỗi con với cả "the" nên mọi dòng có chữ "theo" bị lược sạch.
 SENSITIVE_KEYS = (
-    "password", "mat_khau", "token", "secret", "api_key",
-    "card", "cvv", "the", "otp",
+    "password", "passwd", "mat_khau", "mat khau", "mật khẩu", "token", "secret",
+    "api_key", "api key", "card", "cvv", "số thẻ", "otp",
+)
+_MAU_NHAY_CAM = re.compile(
+    r"(?<!\w)(?:" + "|".join(re.escape(k) for k in SENSITIVE_KEYS) + r")(?!\w)", re.IGNORECASE,
 )
 
 MAX_DETAIL = 500
@@ -28,8 +35,7 @@ def _scrub(detail):
     """Bỏ đi phần chi tiết nếu nó lỡ chứa từ khoá nhạy cảm."""
     if not detail:
         return ""
-    thap = str(detail).lower()
-    if any(k in thap for k in SENSITIVE_KEYS):
+    if _MAU_NHAY_CAM.search(str(detail)):
         return "[đã lược bỏ vì chứa dữ liệu nhạy cảm]"
     return str(detail)[:MAX_DETAIL]
 

@@ -175,13 +175,20 @@ from decimal import Decimal  # noqa: E402
 
 
 def env_rates(name, default):
-    """Đọc bảng tỉ giá `MA=so,MA=so` từ môi trường, gộp lên bảng mặc định."""
+    """Đọc bảng tỉ giá `MA=so,MA=so` từ môi trường, gộp lên bảng mặc định.
+
+    Số phải là **số nguyên VND không dấu chấm, không dấu phẩy** (`USD=25400`):
+    "25.400" sẽ thành 25,4 và "25,400" bị cắt ở dấu phẩy — hai kiểu sai đó
+    lặng lẽ đưa số sai vào sổ sao, nên từ chối ngay lúc khởi động và nói rõ.
+    """
     ket_qua = dict(default)
     for muc in env_list(name, ""):
         if "=" not in muc:
-            continue
-        ma, gia = muc.split("=", 1)
-        ket_qua[ma.strip().upper()] = Decimal(gia.strip())
+            raise RuntimeError(f"{name}: mục '{muc}' phải có dạng MA=so, ví dụ USD=25400 (không dấu chấm, dấu phẩy).")
+        ma, gia = (x.strip() for x in muc.split("=", 1))
+        if not ma.isalpha() or not gia.isdigit() or int(gia) <= 0:
+            raise RuntimeError(f"{name}: '{muc}' — tỉ giá phải là số nguyên VND dương, ví dụ USD=25400.")
+        ket_qua[ma.upper()] = Decimal(gia)
     ket_qua["VND"] = Decimal("1")
     return ket_qua
 

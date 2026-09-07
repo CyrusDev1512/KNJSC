@@ -62,7 +62,7 @@
                 <div class="hang-nut">
                   <a class="nut nut-nho" href="{% url 'tai_lieu_tai' doc.pk %}"{% if doc.la_lien_ket %} target="_blank" rel="noopener"{% endif %}>{% if doc.la_lien_ket %}Mở{% else %}Tải về{% endif %}</a>
                   {% if duoc_go %}
-                    <form method="post" action="{% url 'tai_lieu_go' doc.pk %}">
+                    <form method="post" action="{% url 'tai_lieu_go' doc.pk %}" onsubmit="return confirm('Gỡ tài liệu này?')">
                       {% csrf_token %}
                       <button class="nut nut-nho nut-nguy" type="submit">Gỡ</button>
                     </form>

@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from core.audit import record_denied
 from core.constants import Rank
 from core.exceptions import BusinessError, OutOfScopeError
-from core.pagination import PAGE_SIZES, page_size, paginate
+from core.pagination import PAGE_SIZES, filter_query, page_size, paginate
 from core.permissions import assert_rank, has_rank, is_admin
 from org.models import Department
 
@@ -59,11 +59,7 @@ def tai_lieu(request):
     if tim:
         ds = ds.filter(title__icontains=tim)
 
-    qs_loc = ""
-    if muc_hien:
-        qs_loc += f"&muc={muc_hien.pk}"
-    if tim:
-        qs_loc += f"&tim={tim}"
+    qs_loc = filter_query(muc=muc_hien.pk if muc_hien else "", tim=tim)
 
     boi_canh = _phan_trang(request, ds)
     boi_canh.update({
@@ -108,6 +104,8 @@ def tai_lieu_muc_moi(request):
     """Thêm mục — Manager cho bộ phận mình, Admin cả mục toàn công ty (FR-9.1)."""
     assert_rank(request.user, Rank.MANAGER, request)
     ma_bp = request.POST.get("department", "").strip()
+    if ma_bp and not ma_bp.isdigit():
+        raise Http404
     bo_phan = get_object_or_404(Department, pk=ma_bp) if ma_bp else None
     try:
         muc = document_service.create_category(

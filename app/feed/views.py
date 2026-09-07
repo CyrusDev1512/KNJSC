@@ -46,11 +46,14 @@ def _gan_quyen(user, cac_bai):
     return cac_bai
 
 
-def _binh_luan(request, bai, loi=""):
-    cac = list(post_service.comments_of(bai))
+def _binh_luan(request, bai, loi="", truoc=None):
+    cac, con_cu = post_service.comments_of(bai, truoc=truoc)
     for bl in cac:
         bl.duoc_go = post_service.can_delete_comment(request.user, bl)
-    return {"bai": bai, "cac_binh_luan": cac, "comment_max": COMMENT_MAX, "loi": loi}
+    return {
+        "bai": bai, "cac_binh_luan": cac, "con_cu": con_cu,
+        "comment_max": COMMENT_MAX, "loi": loi,
+    }
 
 
 @login_required
@@ -109,9 +112,12 @@ def bang_tin_thich(request, pk):
 @login_required
 @require_http_methods(["GET", "POST"])
 def bang_tin_binh_luan(request, pk):
-    """GET: mảnh bình luận của bài; POST: thêm bình luận rồi trả mảnh (HTMX) hoặc quay về bài — FR-10.2."""
+    """GET: mảnh bình luận của bài (`truoc=<mã>` lấy trang cũ hơn); POST: thêm bình luận rồi trả mảnh (HTMX) hoặc quay về bài — FR-10.2."""
     bai = _bai_hoac_404(request, pk)
     loi = ""
+    if request.method == "GET" and request.GET.get("truoc", "").isdigit():
+        return render(request, "feed/_binh_luan_cu.html",
+                      _binh_luan(request, bai, truoc=int(request.GET["truoc"])))
     if request.method == "POST":
         try:
             post_service.add_comment(
@@ -134,12 +140,18 @@ def bang_tin_ghim(request, pk):
     if not post_service.can_moderate(request.user):
         record_denied(request.user, request.path, request)
         raise OutOfScopeError("Chỉ quản lý trở lên ghim được bài.")
-    if bai.is_pinned:
-        post_service.unpin_post(bai, actor=request.user, request=request)
-        messages.success(request, "Đã gỡ ghim.")
-    else:
+    # Form gửi rõ ý muốn (ghim=1 hay 0) để hai quản lý bấm trên trang cũ không
+    # làm ngược ý nhau; không gửi thì đảo trạng thái như trước
+    muon = request.POST.get("ghim")
+    muon_ghim = (not bai.is_pinned) if muon is None else muon == "1"
+    if muon_ghim == bai.is_pinned:
+        messages.info(request, "Bài đã ở đúng trạng thái đó rồi.")
+    elif muon_ghim:
         post_service.pin_post(bai, actor=request.user, request=request)
         messages.success(request, "Đã ghim bài lên đầu Bảng tin.")
+    else:
+        post_service.unpin_post(bai, actor=request.user, request=request)
+        messages.success(request, "Đã gỡ ghim.")
     return redirect("bang_tin")
 
 

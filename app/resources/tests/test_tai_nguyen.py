@@ -126,9 +126,9 @@ def test_them_sua_go_tai_nguyen(client, cac_tai_nguyen, cac_muc, nguoi_dung, dep
     kq = client.post("/tai-nguyen/moi/", {
         "category": cac_muc["SIM"].pk, "name": "SIM Viettel 0987", "status": "dang_dung",
         "holder": n["staff_mkt"].pk, "department": departments["mkt"].pk,
-        "link": "", "note": "Nhận OTP quảng cáo, để ở bàn Marketing",
+        "link": "", "note": "OTP 483920 gửi về SIM này",
     })
-    assert kq.status_code == 200 and not Resource.objects.filter(name="SIM Viettel 0987").exists()   # "OTP" trong ghi chú
+    assert kq.status_code == 200 and not Resource.objects.filter(name="SIM Viettel 0987").exists()   # mã OTP trong ghi chú
     kq = client.post("/tai-nguyen/moi/", {
         "category": cac_muc["SIM"].pk, "name": "SIM Viettel 0987", "status": "dang_dung",
         "holder": n["staff_mkt"].pk, "department": departments["mkt"].pk,
@@ -184,9 +184,12 @@ def test_them_sua_go_tai_nguyen(client, cac_tai_nguyen, cac_muc, nguoi_dung, dep
 # ══ AC-16.3 · Không lưu mật khẩu ═══════════════════════════════════
 
 def test_ghi_chu_khong_chua_mat_khau(cac_muc, nguoi_dung):
-    """AC-16.3 — Ghi chú chứa mật khẩu, OTP, 2FA, token hay mã bí mật bị từ chối ở cả thêm lẫn sửa; không có cột mật khẩu trong bảng; nhật ký không chứa ghi chú"""
+    """AC-16.3 — Tên, ghi chú hay liên kết chứa mật khẩu, token, mã bí mật, hoặc OTP/2FA/PIN/mk kèm số đều bị từ chối ở cả thêm lẫn sửa, kể cả gõ dấu rời (NFD); nhắc tới OTP hay 2FA mà không kèm mã thì được; liên kết không phải http(s) bị từ chối ở tầng dịch vụ; không có cột mật khẩu trong bảng; nhật ký không chứa ghi chú"""
     n = nguoi_dung
-    for xau in ("Mật khẩu: Abc123", "password abc", "pass: 1234", "mã OTP gửi về SIM này", "2FA qua app", "token dán ở đây"):
+    for xau in (
+        "Mật khẩu: Abc123", "password abc", "pass: 1234", "OTP 483920 gửi về SIM này", "2FA: 112233",
+        "token dán ở đây", "mk là abc123", "PIN 1234", "Ma\u0302\u0323t kha\u0302\u0309u: x",    # NFD
+    ):
         with pytest.raises(BusinessError):
             resource_service.create_resource(category=cac_muc["BM"], name="BM 02", note=xau, actor=n["admin"])
     assert not Resource.objects.filter(name="BM 02").exists()
@@ -195,6 +198,17 @@ def test_ghi_chu_khong_chua_mat_khau(cac_muc, nguoi_dung):
         resource_service.update_resource(bm, actor=n["admin"], note="pwd: 123456")
     bm.refresh_from_db()
     assert bm.note == "Đang chạy 3 tài khoản"
+    # Nhắc tới OTP, 2FA, pin mà không kèm mã thì là ghi chú bình thường
+    for xau in ("Nhận OTP quảng cáo, để ở bàn Marketing", "Dùng 2FA qua app", "Pin sạc dự phòng"):
+        resource_service.update_resource(bm, actor=n["admin"], note=xau)
+    with pytest.raises(BusinessError):
+        resource_service.create_resource(category=cac_muc["BM"], name="BM password 1", actor=n["admin"])
+    with pytest.raises(BusinessError):
+        resource_service.create_resource(category=cac_muc["BM"], name="BM 03", link="https://a.b/?password=1", actor=n["admin"])
+    with pytest.raises(BusinessError):
+        resource_service.create_resource(category=cac_muc["BM"], name="BM 03", link="javascript:alert(1)", actor=n["admin"])
+    with pytest.raises(BusinessError):
+        resource_service.update_resource(bm, actor=n["admin"], link="ftp://x.y/z")
     assert not any("password" in f.name or "secret" in f.name for f in Resource._meta.get_fields())
     assert all("Đang chạy 3 tài khoản" not in a.detail for a in AuditLog.objects.all())
 

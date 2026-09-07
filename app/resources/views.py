@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 
 from core.constants import Rank
 from core.exceptions import BusinessError
-from core.pagination import PAGE_SIZES, page_size, paginate
+from core.pagination import PAGE_SIZES, filter_query, page_size, paginate
 from core.permissions import assert_rank
 from org.models import Department
 
@@ -67,11 +67,8 @@ def tai_nguyen(request):
     if tim:
         ds = ds.filter(name__icontains=tim)
 
-    qs_loc = "".join(
-        f"&{k}={v}" for k, v in (
-            ("muc", muc_hien.pk if muc_hien else ""), ("trang_thai", trang_thai),
-            ("nguoi", nguoi), ("tim", tim),
-        ) if v
+    qs_loc = filter_query(
+        muc=muc_hien.pk if muc_hien else "", trang_thai=trang_thai, nguoi=nguoi, tim=tim,
     )
     boi_canh = _phan_trang(request, ds)
     boi_canh.update({
@@ -154,7 +151,6 @@ def tai_nguyen_muc_moi(request):
     try:
         muc = resource_service.create_category(
             name=request.POST.get("name", ""), actor=request.user, request=request,
-            order=ResourceCategory.objects.count(),
         )
         messages.success(request, f"Đã thêm mục {muc.name}.")
     except BusinessError as loi:

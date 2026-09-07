@@ -7,7 +7,7 @@ from datetime import date, timedelta
 import pytest
 
 from core.constants import AuditAction
-from core.exceptions import BusinessError
+from core.exceptions import BusinessError, OutOfScopeError
 from core.models import AuditLog
 from taskboard.constants import TaskPriority, TaskStatus
 from taskboard.models import Task
@@ -213,3 +213,40 @@ def test_man_hinh_cong_viec_khong_qua_muoi_lenh_truy_van(client, cac_viec, nguoi
     client.get("/cong-viec/?tab=pham_vi")
     with django_assert_max_num_queries(10):
         assert client.get("/cong-viec/?tab=pham_vi").status_code == 200
+
+
+# ══ Dịch vụ tự kiểm quyền, sửa giữ người làm, `ve` an toàn — rà soát 07.09 ═
+
+def test_dich_vu_tu_kiem_quyen_va_sua_giu_nguoi_lam(nguoi_dung):
+    """AC-14.5 — Gọi thẳng tầng dịch vụ bằng người không có quyền vẫn bị từ chối, không trông vào view; sửa việc để trống người làm thì giữ nguyên người cũ; đổi người làm thì việc chuyển sang bộ phận của người đó"""
+    n = nguoi_dung
+    v = task_service.create_task(title="Việc A", assignee=n["staff_sale_1"], actor=n["manager_sale"])
+    with pytest.raises(OutOfScopeError):
+        task_service.update_task(v, {"title": "Đổi trộm"}, actor=n["staff_sale_1b"])      # ngoài phạm vi Staff
+    with pytest.raises(OutOfScopeError):
+        task_service.change_status(v, TaskStatus.DANG_LAM, actor=n["staff_mkt"])          # bộ phận khác
+    with pytest.raises(OutOfScopeError):
+        task_service.delete_task(v, actor=n["leader_sale_1"])                             # Leader không gỡ
+    task_service.update_task(v, {"assignee": None, "title": "Việc A sửa"}, actor=n["manager_sale"])
+    v.refresh_from_db()
+    assert v.assignee == n["staff_sale_1"] and v.title == "Việc A sửa"
+    v2 = task_service.create_task(title="Việc B", assignee=n["staff_mkt"], actor=n["admin"])
+    task_service.update_task(v2, {"assignee": n["staff_sale_2"]}, actor=n["admin"])
+    v2.refresh_from_db()
+    assert v2.assignee == n["staff_sale_2"] and v2.department_id == n["staff_sale_2"].profile.department_id
+    with pytest.raises(BusinessError):
+        task_service.update_task(v2, {"description": "x" * 2001}, actor=n["admin"])
+
+
+def test_ve_chi_quay_ve_trong_he_thong(client, nguoi_dung):
+    """AC-14.3 — Tham số `ve` sau khi đổi trạng thái chỉ chuyển về đường dẫn trong hệ thống, đường ngoài bị thay bằng danh sách việc; sai bước qua HTMX trả 400 dạng chữ thường để trình duyệt hiện lý do"""
+    n = nguoi_dung
+    v = task_service.create_task(title="Việc V", actor=n["staff_sale_1"])
+    client.force_login(n["staff_sale_1"])
+    kq = client.post(f"/cong-viec/{v.pk}/trang-thai/", {"trang_thai": "dang_lam", "ve": "https://evil.example/"})
+    assert kq.status_code == 302 and kq["Location"] == "/cong-viec/"
+    kq = client.post(f"/cong-viec/{v.pk}/trang-thai/", {"trang_thai": "xong", "ve": "/cong-viec/?tab=pham_vi"})
+    assert kq.status_code == 302 and kq["Location"] == "/cong-viec/?tab=pham_vi"
+    kq = client.post(f"/cong-viec/{v.pk}/trang-thai/", {"trang_thai": "huy"}, HTTP_HX_REQUEST="true")
+    assert kq.status_code == 400 and kq["Content-Type"].startswith("text/plain")
+    assert "Không chuyển được" in kq.content.decode()

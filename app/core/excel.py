@@ -68,6 +68,24 @@ def _dau_tep(upload, n=16):
     return dau
 
 
+#: Tệp ZIP thật của Excel và Word luôn chứa tệp này bên trong — ZIP bất kỳ đổi
+#: đuôi thì không (docs/03 S7)
+_ZIP_DAU_HIEU = {FileKind.XLSX: "xl/workbook.xml", FileKind.DOCX: "word/document.xml"}
+
+
+def _zip_dung_loai(upload, loai):
+    """ZIP có đúng tệp đặc trưng của loại đã khai không."""
+    upload.seek(0)
+    try:
+        with zipfile.ZipFile(upload) as z:
+            ten = set(z.namelist())
+    except (zipfile.BadZipFile, OSError, ValueError):
+        return False
+    finally:
+        upload.seek(0)
+    return _ZIP_DAU_HIEU[loai] in ten
+
+
 def _giong_csv(upload):
     """CSV không có chữ ký: đọc được dạng chữ và không chứa byte 0 thì nhận."""
     upload.seek(0)
@@ -129,6 +147,11 @@ def sniff_kind(upload, *, declared_name=None, allowed=None):
         # để chọn giữa hai loại đó, nhưng nội dung vẫn phải là ZIP thật
         if loai in ZIP_KINDS and theo_duoi in ZIP_KINDS:
             loai = theo_duoi
+        if theo_duoi in ZIP_KINDS and loai in ZIP_KINDS and not _zip_dung_loai(upload, theo_duoi):
+            raise UploadRejected(
+                f"Tệp khai là {FileKind(theo_duoi).label} nhưng bên trong không phải "
+                f"{FileKind(theo_duoi).label}. Không nhận tệp đổi đuôi."
+            )
         if theo_duoi != loai:
             raise UploadRejected(
                 f"Tệp khai là {FileKind(theo_duoi).label} nhưng nội dung là "

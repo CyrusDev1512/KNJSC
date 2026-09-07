@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import Q
+from django.db.models.functions import Lower
 
 from core.models import SoftDeleteModel, TimestampedModel
 
@@ -33,9 +34,9 @@ class ResourceCategory(TimestampedModel, SoftDeleteModel):
         verbose_name_plural = "Mục tài nguyên"
         ordering = ["order", "name"]
         constraints = [
-            # Trùng tên thì chặn, nhưng chỉ tính mục chưa xoá — BR-4
+            # Trùng tên (không phân biệt hoa thường) thì chặn, chỉ tính mục chưa xoá — BR-4
             models.UniqueConstraint(
-                fields=["name"], condition=Q(deleted_at__isnull=True),
+                Lower("name"), condition=Q(deleted_at__isnull=True),
                 name="resource_category_name_unique",
             ),
         ]

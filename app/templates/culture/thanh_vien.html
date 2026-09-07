@@ -29,7 +29,7 @@
         {% include "components/rong.html" with rong_tieu_de="Chưa có ghi nhận nào" rong_mo_ta="Đồng nghiệp ghi nhận sẽ hiện ở đây." %}
       {% endfor %}
     </div>
-    {% include "components/phan_trang.html" %}
+    {% if page_obj.paginator.count %}{% include "components/phan_trang.html" %}{% endif %}
   </div>
   <div class="the">
     <div class="the-dau"><h2>Sao theo tháng</h2></div>

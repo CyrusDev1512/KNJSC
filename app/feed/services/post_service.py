@@ -9,7 +9,7 @@ from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, Max, OuterRef, Q
 from django.utils import timezone
 
 from core.audit import record
@@ -20,8 +20,8 @@ from core.permissions import has_rank
 from culture.services import recognition_service
 
 from ..constants import (
-    BIRTHDAY_MESSAGE, BODY_MAX, COMMENT_MAX, NEW_MEMBER_DAYS, SIDEBAR_NEW_MEMBERS,
-    SIDEBAR_RECOGNITIONS, SIDEBAR_STARS, PostKind,
+    BIRTHDAY_CATCH_UP_DAYS, BIRTHDAY_MESSAGE, BODY_MAX, COMMENT_MAX, COMMENT_PAGE,
+    NEW_MEMBER_DAYS, SIDEBAR_NEW_MEMBERS, SIDEBAR_RECOGNITIONS, SIDEBAR_STARS, PostKind,
 )
 from ..models import Comment, Like, Post
 
@@ -52,13 +52,21 @@ def feed_qs(user):
         )
         .with_counts()
         .annotate(da_thich=Exists(Like.objects.filter(post=OuterRef("pk"), user=user)))
-        # Truy vấn có GROUP BY thì Django bỏ Meta.ordering — phải nói rõ lại
-        .order_by("-is_pinned", "-created_at")
+        .order_by("-is_pinned", "-created_at")       # nói rõ, không trông vào Meta.ordering
     )
 
 
-def comments_of(post):
-    return Comment.objects.filter(post=post).select_related("author", "author__profile")
+def comments_of(post, *, truoc=None, limit=COMMENT_PAGE):
+    """`limit` bình luận mới nhất của bài (cũ hơn bình luận `truoc` nếu có),
+    theo thứ tự thời gian, và cờ "còn cũ hơn nữa" — quy tắc 1, không lấy hết."""
+    qs = Comment.objects.filter(post=post).select_related("author", "author__profile").order_by("-pk")
+    if truoc:
+        qs = qs.filter(pk__lt=truoc)
+    cac = list(qs[:limit + 1])
+    con_cu = len(cac) > limit
+    cac = cac[:limit]
+    cac.reverse()
+    return cac, con_cu
 
 
 def comment_by_pk(pk):
@@ -152,9 +160,10 @@ def toggle_like(post, *, actor, request=None):
     Bỏ thích là xoá mềm; thích lại chỉ bỏ dấu xoá, nên mỗi người mỗi bài
     không bao giờ quá một dòng (ràng buộc duy nhất).
     """
-    like = Like.all_objects.filter(post=post, user=actor).first()
-    if like is None:
-        like, da_thich = Like.objects.create(post=post, user=actor), True
+    # get_or_create tự xử lý hai yêu cầu cùng lúc (bấm đúp) trên ràng buộc duy nhất
+    like, tao = Like.all_objects.get_or_create(post=post, user=actor)
+    if tao:
+        da_thich = True
     elif like.deleted_at is None:
         like.delete(by=actor)
         da_thich = False
@@ -202,6 +211,21 @@ def create_birthday_posts(on=None, *, actor=None, request=None):
             AuditAction.CREATE, actor=actor, target=("post", on.isoformat()),
             detail=f"Thiệp sinh nhật {on:%d.%m.%Y}: {moi} thiệp mới", request=request,
         )
+    return moi
+
+
+def catch_up_birthday_posts(today=None, *, actor=None, request=None):
+    """Đăng bù thiệp cho những ngày máy tắt: từ ngày sau thiệp mới nhất, lùi
+    tối đa `BIRTHDAY_CATCH_UP_DAYS` ngày, tới hôm nay. Lần đầu (chưa có thiệp
+    nào) chỉ làm hôm nay. Trả về tổng số thiệp mới."""
+    today = today or timezone.localdate()
+    cuoi = Post.all_objects.filter(kind=PostKind.SINH_NHAT).aggregate(m=Max("birthday_on"))["m"]
+    bat_dau = today if cuoi is None else max(cuoi + timedelta(days=1), today - timedelta(days=BIRTHDAY_CATCH_UP_DAYS))
+    bat_dau = min(bat_dau, today)          # thiệp "tương lai" không kéo lùi hôm nay
+    moi, ngay = 0, bat_dau
+    while ngay <= today:
+        moi += create_birthday_posts(ngay, actor=actor, request=request)
+        ngay += timedelta(days=1)
     return moi
 
 

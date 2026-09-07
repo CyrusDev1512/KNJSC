@@ -25,7 +25,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from core.constants import Currency, Rank
-from orders.constants import WAYBILL_DEPARTMENT_CODE, WAYBILL_DEPARTMENT_NAME
+from orders.constants import WAYBILL_DEPARTMENT_CODE, WAYBILL_DEPARTMENT_NAME, WAYBILL_TABLE_CODE
 
 #: Mật khẩu chung cho mọi tài khoản mẫu. Chỉ dùng ở máy phát triển.
 MAT_KHAU_MAU = "MatKhauTam-2026"
@@ -99,13 +99,13 @@ DON_HANG_MAU = [
     ("sale.leader", "Nguyễn Văn An", "0912345678", "us", Currency.VND, "noi_chien", 1, "2590000"),
 ]
 
-#: Ghi nhận mẫu, chéo bộ phận — (người ghi nhận, người được ghi nhận, giá trị, lời nhắn)
+#: Ghi nhận mẫu, từ trên xuống (Q70) — (người ghi nhận, người được ghi nhận, giá trị, lời nhắn)
 GHI_NHAN_MAU = [
-    ("vd.staff", "sale.staff", "hop_tac",
+    ("sale.leader", "sale.staff", "hop_tac",
      "Chốt đơn xong là gửi đủ địa chỉ và ghi chú giao hàng ngay, bên vận đơn không phải hỏi lại."),
-    ("sale.manager", "mkt.staff", "sang_tao", "Bộ ảnh đèn ngủ mới làm tỉ lệ chốt tăng rõ."),
-    ("mkt.manager", "vd.staff", "trach_nhiem", "Đối soát vận đơn tuần này xong trước hạn."),
-    ("sale.leader", "sale.staff2", "tan_tam", "Ở lại gọi thêm khách Canada tới tối để kịp đơn."),
+    ("mkt.manager", "mkt.staff", "sang_tao", "Bộ ảnh đèn ngủ mới làm tỉ lệ chốt tăng rõ."),
+    ("vd.manager", "vd.staff", "trach_nhiem", "Đối soát vận đơn tuần này xong trước hạn."),
+    ("sale.leader2", "sale.staff2", "tan_tam", "Ở lại gọi thêm khách Canada tới tối để kịp đơn."),
 ]
 
 #: Ngày sinh mẫu — `sale.staff` đúng hôm nay để Bảng tin có thiệp ngay khi dựng (FR-10.4)
@@ -464,11 +464,13 @@ class Command(BaseCommand):
 
     def _don_hang(self, nguoi):
         """Bốn đơn mẫu để bảng xếp hạng doanh số tháng này có số — FR-12.3.
-        Chỉ dựng khi chưa có đơn nào, kể cả đơn đã bỏ."""
+        Chỉ dựng trên máy chưa có đơn nào **và** bảng vận đơn còn trống: máy đã
+        nhập vận đơn thật thì không nhét bốn dòng giả vào giữa."""
+        from forms_builder.models import DataRecord
         from orders.models import Order, Product
         from orders.services import order_service
 
-        if Order.all_objects.exists():
+        if Order.all_objects.exists() or DataRecord.all_objects.filter(table__code=WAYBILL_TABLE_CODE).exists():
             return
         san_pham = {sp.code: sp for sp in Product.objects.all()}
         for ai, khach, sdt, thi_truong, tien_te, ma_sp, so_luong, don_gia in DON_HANG_MAU:
