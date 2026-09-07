@@ -3,16 +3,123 @@
 {% block ten_trang %}Tài liệu{% endblock %}
 
 {% block noi_dung %}
+
 <div class="trang-dau">
   <div>
-    <div class="nhan-nho">Nội bộ · ADR-015</div>
+    <div class="nhan-nho">Nội bộ · FR-9.1 tới FR-9.5</div>
     <h1>Tài liệu</h1>
-    <p>Quy định, quy trình và biểu mẫu dùng chung, chia theo mục.</p>
+    <p>Quy định, quy trình và biểu mẫu dùng chung, chia theo mục. Bạn thấy mục của bộ phận mình và mục dùng chung toàn công ty.</p>
+  </div>
+  <div class="hanh-dong">
+    {% if duoc_tai_len %}<a class="nut nut-chinh" href="{% url 'tai_lieu_tai_len' %}">Tải lên</a>{% endif %}
   </div>
 </div>
-<div class="the">
-  <div class="the-than">
-    {% include "components/rong.html" with rong_tieu_de="Đang dựng" rong_mo_ta="Màn hình này đang được làm trong đợt MVP Nội bộ." %}
+
+<div class="luoi luoi-phu">
+  <div class="bang-hop">
+    <form class="loc" method="get">
+      <div class="truong o-tim">
+        <label for="tim">Tìm theo tiêu đề</label>
+        <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Tên tài liệu">
+      </div>
+      <div class="truong">
+        <label for="muc">Mục</label>
+        <select class="o-nhap" id="muc" name="muc">
+          <option value="">Tất cả</option>
+          {% for m in cac_muc %}<option value="{{ m.pk }}" {% if muc_hien and muc_hien.pk == m.pk %}selected{% endif %}>{{ m.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="loc-nut">
+        <a class="nut nut-nho" href="{% url 'tai_lieu' %}">Xoá lọc</a>
+        <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
+      </div>
+    </form>
+
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead>
+          <tr>
+            <th>Tài liệu</th><th>Mục</th><th>Phạm vi</th><th>Loại</th>
+            <th>Người tải</th><th>Ngày</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for doc, duoc_go in cac_dong %}
+            <tr>
+              <td>
+                <b>{{ doc.title }}</b>
+                {% if doc.description %}<div class="nho mo-nhat">{{ doc.description }}</div>{% endif %}
+              </td>
+              <td>{{ doc.category.name }}</td>
+              <td class="nho">{{ doc.department|default:"Toàn công ty" }}</td>
+              <td>
+                {% if doc.la_lien_ket %}<span class="chip chip-nhat">Liên kết</span>
+                {% else %}<span class="chip chip-nhan">{{ doc.get_file_kind_display }}</span>{% endif %}
+              </td>
+              <td class="nho">{{ doc.created_by.profile.full_name|default:doc.created_by.username|default:"—" }}</td>
+              <td class="ma-o">{{ doc.created_at|date:"d.m.Y" }}</td>
+              <td class="phai">
+                <div class="hang-nut">
+                  <a class="nut nut-nho" href="{% url 'tai_lieu_tai' doc.pk %}"{% if doc.la_lien_ket %} target="_blank" rel="noopener"{% endif %}>{% if doc.la_lien_ket %}Mở{% else %}Tải về{% endif %}</a>
+                  {% if duoc_go %}
+                    <form method="post" action="{% url 'tai_lieu_go' doc.pk %}">
+                      {% csrf_token %}
+                      <button class="nut nut-nho nut-nguy" type="submit">Gỡ</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7">
+              {% include "components/rong.html" with rong_tieu_de="Chưa có tài liệu nào" rong_mo_ta="Quản lý tải lên hoặc thêm liên kết; tài liệu hiện ở đây theo mục." %}
+            </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% include "components/phan_trang.html" %}
+  </div>
+
+  <div class="doc">
+    <div class="the">
+      <div class="the-dau"><h2>Mục tài liệu</h2></div>
+      <ul class="muc-ds">
+        <li><a href="{% url 'tai_lieu' %}" {% if not muc_hien %}aria-current="page"{% endif %}>Tất cả <span class="dem">{{ tong_tai_lieu }}</span></a></li>
+        {% for m in cac_muc %}
+          <li>
+            <a href="{% url 'tai_lieu' %}?muc={{ m.pk }}" {% if muc_hien and muc_hien.pk == m.pk %}aria-current="page"{% endif %}>
+              <span>{{ m.name }} <span class="nho mo-nhat">· {{ m.pham_vi }}</span></span>
+              <span class="dem">{{ m.so_tai_lieu }}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    {% if duoc_tai_len %}
+      <div class="the">
+        <div class="the-dau"><h2>Thêm mục</h2></div>
+        <form class="the-than bm" method="post" action="{% url 'tai_lieu_muc_moi' %}">
+          {% csrf_token %}
+          <div class="truong">
+            <label for="muc-ten">Tên mục <span class="bat-buoc">*</span></label>
+            <input class="o-nhap" id="muc-ten" name="name" maxlength="120" required>
+          </div>
+          <div class="truong">
+            <label for="muc-bp">Dùng cho</label>
+            <select class="o-nhap" id="muc-bp" name="department">
+              {% for bp in cac_bo_phan_muc %}<option value="{{ bp.pk }}">{{ bp.name }}</option>{% endfor %}
+              {% if la_admin %}<option value="">Toàn công ty</option>{% endif %}
+            </select>
+            <span class="goi-y">Mục toàn công ty chỉ quản trị viên tạo được.</span>
+          </div>
+          <div class="hang"><button class="nut nut-nho nut-chinh" type="submit">Thêm mục</button></div>
+        </form>
+      </div>
+    {% endif %}
   </div>
 </div>
+
 {% endblock %}

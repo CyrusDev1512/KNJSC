@@ -261,6 +261,11 @@ Thư viện tài liệu chia theo mục — FR-9.1 tới FR-9.5, ADR-015.
 
 | Mã | Tiêu chí | Yêu cầu | Loại |
 |---|---|---|---|
+| AC-12.1 | Manager tạo mục cho bộ phận mình và tải tệp lên mục trong phạm vi; Manager không tạo được mục toàn công ty, Admin tạo được; Staff và Leader gọi đường tải lên thì bị từ chối và có nhật ký | FR-9.1 · FR-9.2 · FR-3.6 | Tự động |
+| AC-12.2 | Staff thấy tài liệu toàn công ty và của bộ phận mình, không thấy của bộ phận khác; gọi thẳng đường tải về tài liệu bộ phận khác trả 404; Admin thấy tất cả | FR-9.3 · FR-3.5 | Tự động |
+| AC-12.3 | Tệp đổi đuôi, sai loại hoặc quá 10 MB bị từ chối; Word nhận theo đuôi khai báo; tài liệu chỉ có liên kết tạo được, thiếu cả hai hoặc liên kết sai giao thức thì từ chối | FR-9.2 · NFR-11 · NFR-12 | Tự động |
+| AC-12.4 | Người tải, Manager của bộ phận và Admin gỡ được tài liệu (xoá mềm, có nhật ký); người khác bị từ chối có nhật ký; ngoài phạm vi là 404 | FR-9.4 · BR-4 | Tự động |
+| AC-12.5 | Tệp tài liệu nằm ở `storage/tai-lieu/` và không bị tác vụ dọn tệp 24 giờ xoá | FR-9.5 | Tự động |
 
 ---
 

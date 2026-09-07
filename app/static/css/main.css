@@ -517,6 +517,23 @@ table.bang.bang-luoi td.o-vuot-nguong {
 .giua { text-align: center; }
 hr.ke { border: 0; border-top: 1px solid var(--rule); margin: var(--sp-4) 0; }
 
+/* ══ NỘI BỘ — ADR-015 ═══════════════════════════════════════════ */
+
+/* Danh sách mục ở thanh bên phải (Tài liệu, Tài nguyên) */
+.muc-ds { list-style: none; margin: 0; padding: 0; }
+.muc-ds li + li { border-top: 1px solid var(--rule); }
+.muc-ds a {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4); color: var(--ink); text-decoration: none;
+}
+.muc-ds a:hover { background: var(--surface-2); }
+.muc-ds a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.muc-ds .dem { margin-left: auto; font-family: var(--font-ma); font-size: var(--fs-xs); color: var(--ink-3); }
+
+/* Cụm nút nhỏ trong một ô bảng (Tải về + Gỡ) */
+.hang-nut { display: inline-flex; gap: var(--sp-2); align-items: center; }
+.hang-nut form { margin: 0; display: inline; }
+
 /* ══ MÀN HÌNH HẸP ════════════════════════════════════════════════ */
 
 @media (max-width: 900px) {

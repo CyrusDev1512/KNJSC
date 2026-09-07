@@ -71,6 +71,14 @@ COT_BC_MKT = [
     ("Doanh số", "doanh_so", "money", "revenue"),
 ]
 
+#: Tài liệu mẫu — chỉ liên kết (tiêu đề, mục, người tải, mô tả) — ADR-015
+TAI_LIEU_MAU = [
+    ("Nội quy công ty 2026", "chung", "quantri", "Giờ làm, nghỉ phép, kỷ luật"),
+    ("Sổ tay nhân viên mới", "chung", "quantri", "Đọc trong tuần đầu"),
+    ("Quy trình chốt đơn và lên đơn", "sale", "sale.manager", "Kịch bản tư vấn, cách lên đơn"),
+    ("Kế hoạch quảng cáo quý 4", "mkt", "mkt.manager", "Ngân sách và mục tiêu từng kênh"),
+]
+
 #: Bốn cột tính sẵn — đúng bốn công thức trong tệp thật của khách hàng.
 #: (nhãn, tên kỹ thuật, phép tính, toán hạng A, toán hạng B, số chữ số thập phân)
 COT_TINH_BC_MKT = [
@@ -138,7 +146,8 @@ class Command(BaseCommand):
 
         self.mat_khau = o["mat_khau"]
         self.da_tao = {"bộ phận": 0, "team": 0, "tài khoản": 0,
-                       "bảng": 0, "biểu mẫu": 0, "sản phẩm": 0, "dòng dữ liệu": 0}
+                       "bảng": 0, "biểu mẫu": 0, "sản phẩm": 0, "dòng dữ liệu": 0,
+                       "tài liệu": 0}
         self.dat_lai_mat_khau = 0
 
         bo_phan = self._bo_phan()
@@ -148,6 +157,7 @@ class Command(BaseCommand):
         self._bang_van_don(nguoi["quantri"])
         self._bao_cao_marketing(bo_phan, nguoi)
         self._thu_muc(nguoi)
+        self._tai_lieu(bo_phan, nguoi)
 
         self._bao_cao_ket_qua(nguoi)
 
@@ -322,6 +332,29 @@ class Command(BaseCommand):
             _, moi = Product.objects.get_or_create(
                 code=ma, defaults={"name": ten, "group": nhom, "unit": "cái"})
             self.da_tao["sản phẩm"] += int(moi)
+
+    # ── Nhóm Nội bộ — ADR-015 ──
+
+    def _tai_lieu(self, bo_phan, nguoi):
+        """Ba mục và bốn tài liệu dạng liên kết. Không đưa tệp nhị phân vào kho mã."""
+        from documents.models import DocumentCategory
+        from documents.services import document_service
+
+        if DocumentCategory.all_objects.exists():
+            return
+        chung = document_service.create_category(
+            name="Quy định chung", department=None, actor=nguoi["quantri"])
+        sale = document_service.create_category(
+            name="Quy trình Sale", department=bo_phan["sale"], actor=nguoi["sale.manager"])
+        mkt = document_service.create_category(
+            name="Tài liệu Marketing", department=bo_phan["marketing"], actor=nguoi["mkt.manager"])
+        for tieu_de, muc, ai, mo_ta in TAI_LIEU_MAU:
+            document_service.upload_document(
+                title=tieu_de, category={"chung": chung, "sale": sale, "mkt": mkt}[muc],
+                link="https://docs.google.com/document/d/mau-" + muc, description=mo_ta,
+                actor=nguoi[ai],
+            )
+            self.da_tao["tài liệu"] += 1
 
     # ── Báo cáo kết quả ──
 
