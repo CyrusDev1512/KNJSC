@@ -65,8 +65,18 @@ def test_csv_nhan_khi_doc_duoc_dang_chu():
 def test_duoi_la_bi_tu_choi():
     """NFR-12 — Đuôi ngoài danh sách cho phép thì từ chối dù nội dung là gì"""
     with pytest.raises(excel.UploadRejected) as loi:
-        excel.sniff_kind(_xlsx([["a"]]), declared_name="don.docx")
+        excel.sniff_kind(_xlsx([["a"]]), declared_name="don.exe")
     assert "không được phép" in str(loi.value)
+
+
+def test_word_va_pdf_nhan_theo_chu_ky_va_duoi():
+    """NFR-12 — Word cùng chữ ký ZIP với Excel nên tin đuôi khai báo; PDF nhận theo chữ ký; luồng nhập vẫn chỉ Excel và CSV"""
+    assert excel.sniff_kind(_xlsx([["a"]]), declared_name="quy-trinh.docx") == FileKind.DOCX
+    assert excel.sniff_kind(io.BytesIO(b"%PDF-1.4\n%..."), declared_name="quy-dinh.pdf") == FileKind.PDF
+    with pytest.raises(excel.UploadRejected):
+        excel.sniff_kind(io.BytesIO(b"%PDF-1.4\n"), declared_name="quy-dinh.docx")   # đổi đuôi
+    with pytest.raises(excel.UploadRejected):
+        excel.sniff_kind(_xlsx([["a"]]), declared_name="a.docx", allowed=(FileKind.XLSX, FileKind.CSV))
 
 
 def test_thu_hep_theo_luong():

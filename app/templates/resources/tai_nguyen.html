@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block tieu_de %}Tài nguyên dùng chung · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Tài nguyên dùng chung{% endblock %}
+
+{% block noi_dung %}
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Nội bộ · ADR-015</div>
+    <h1>Tài nguyên dùng chung</h1>
+    <p>BM, Via, Page và các tài nguyên dùng chung của công ty.</p>
+  </div>
+</div>
+<div class="the">
+  <div class="the-than">
+    {% include "components/rong.html" with rong_tieu_de="Đang dựng" rong_mo_ta="Màn hình này đang được làm trong đợt MVP Nội bộ." %}
+  </div>
+</div>
+{% endblock %}

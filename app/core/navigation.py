@@ -69,6 +69,14 @@ NAVIGATION = (
     NavGroup("Tổng quan", (
         NavItem("tong_quan", "Tổng quan", "tong_quan"),
     )),
+    # Nhóm Nội bộ — ADR-015: mọi cấp bậc, mọi bộ phận; phạm vi kiểm ở từng view
+    NavGroup("Nội bộ", (
+        NavItem("bang_tin", "Bảng tin", "bang_tin"),
+        NavItem("tai_lieu", "Tài liệu", "tai_lieu"),
+        NavItem("cong_viec", "Công việc", "cong_viec"),
+        NavItem("van_hoa", "Văn hoá", "van_hoa"),
+        NavItem("tai_nguyen", "Tài nguyên", "tai_nguyen"),
+    )),
     NavGroup("Tổ chức", (
         NavItem("nhan_su", "Nhân sự", "nhan_su", Rank.LEADER),
         NavItem("bo_phan", "Bộ phận và team", "bo_phan", Rank.ADMIN),

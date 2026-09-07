@@ -103,7 +103,7 @@ Sửa tài liệu mỗi lần nghĩ ra gì đó là cách nhanh nhất biến n�
 | `04-tieu-chi-nghiem-thu.md` | 0.1 | Bản nháp |
 | `05-huong-dan-va-van-hanh.md` | 0.1 | Bản nháp |
 | `kien-truc.md` | 0.1 | Bản nháp |
-| `quyet-dinh/001` tới `014` | — | Đã áp dụng |
+| `quyet-dinh/001` tới `015` | — | Đã áp dụng |
 | `backlog.md` | 0.1 | Cập nhật liên tục |
 
 ---

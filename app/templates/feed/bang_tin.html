@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block tieu_de %}Bảng tin công ty · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Bảng tin công ty{% endblock %}
+
+{% block noi_dung %}
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Nội bộ · ADR-015</div>
+    <h1>Bảng tin công ty</h1>
+    <p>Tin tức, thông báo và lời chúc của cả công ty.</p>
+  </div>
+</div>
+<div class="the">
+  <div class="the-than">
+    {% include "components/rong.html" with rong_tieu_de="Đang dựng" rong_mo_ta="Màn hình này đang được làm trong đợt MVP Nội bộ." %}
+  </div>
+</div>
+{% endblock %}

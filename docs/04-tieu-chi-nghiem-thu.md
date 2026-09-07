@@ -255,7 +255,52 @@ vụ `bangtinh`, cổng 8021); KN ERP không còn đường sửa ô.
 
 ---
 
-## 12. Kiểm thử thủ công trước bàn giao
+## 12. Tài liệu
+
+Thư viện tài liệu chia theo mục — FR-9.1 tới FR-9.5, ADR-015.
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+
+---
+
+## 13. Bảng tin
+
+Bảng tin chung của công ty — FR-10.1 tới FR-10.6, ADR-015.
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+
+---
+
+## 14. Công việc
+
+Quản lý việc trong bộ phận — FR-11.1 tới FR-11.5, ADR-015.
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+
+---
+
+## 15. Ghi nhận văn hoá
+
+Ghi nhận, sao và bảng xếp hạng doanh số — FR-12.1 tới FR-12.5, ADR-015.
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+
+---
+
+## 16. Tài nguyên
+
+Danh mục tài nguyên dùng chung — FR-13.1 tới FR-13.4, ADR-015.
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+
+---
+
+## 17. Kiểm thử thủ công trước bàn giao
 
 Những việc máy không tự làm được, người phải kiểm bằng tay.
 
@@ -271,13 +316,13 @@ Những việc máy không tự làm được, người phải kiểm bằng tay
 
 ---
 
-## 13. Điều kiện coi là hoàn thành phase 1
+## 18. Điều kiện coi là hoàn thành phase 1
 
 | # | Điều kiện |
 |---|---|
 | 1 | Toàn bộ tiêu chí đánh dấu **Tự động** đều có bài kiểm thử và đều đạt |
 | 2 | Ma trận kiểm chéo phân quyền ở mục 3 được kiểm đầy đủ, cả trường hợp cho phép và từ chối |
-| 3 | Toàn bộ danh sách kiểm thủ công ở mục 12 đã thực hiện và đạt |
+| 3 | Toàn bộ danh sách kiểm thủ công ở mục 17 đã thực hiện và đạt |
 | 4 | Đã phục hồi thành công ít nhất một lần từ bản sao lưu |
 | 5 | Tệp Excel thật của công ty nhập được mà không cần chỉnh sửa thủ công |
 | 6 | Ba vai trò đã chạy trọn quy trình trên dữ liệu thật |
@@ -288,7 +333,7 @@ Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ 
 
 ---
 
-## 14. Nội dung chưa quyết định
+## 19. Nội dung chưa quyết định
 
 | # | Nội dung | Ảnh hưởng |
 |---|---|---|

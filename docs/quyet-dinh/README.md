@@ -109,6 +109,7 @@ Trong tình huống nào thì nên xem lại quyết định này.
 | 012 | KN CRM là app riêng, trang chủ là cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng | Đã áp dụng | 06.09.2026 |
 | 013 | Danh sách chọn và màu cột là thuộc tính của cột, Manager quản lý; danh tính người điền do hệ thống ghi | Đã áp dụng | 06.09.2026 |
 | 014 | Bảng dữ liệu ở KN ERP chỉ để xem với mọi bảng; sửa số liệu là việc của KN CRM | Đã áp dụng | 06.09.2026 |
+| 015 | Năm tính năng nội bộ (Bảng tin, Tài liệu, Công việc, Văn hoá, Tài nguyên) là năm app riêng, làm MVP trước | Đã áp dụng | 06.09.2026 |
 
 ---
 

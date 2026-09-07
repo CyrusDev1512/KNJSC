@@ -1,7 +1,7 @@
 """Kiểm thử lệnh dựng dữ liệu mẫu.
 
 Lệnh này là thứ duy nhất biến một máy trống thành một hệ thống dùng được —
-`docs/04` mục 12 việc số 1: *"Cài đặt từ đầu trên máy sạch, chạy tới màn hình
+`docs/04` mục 17 việc số 1: *"Cài đặt từ đầu trên máy sạch, chạy tới màn hình
 đăng nhập"*. Hỏng lặng lẽ thì người mở máy mới không đăng nhập được, và cũng
 không biết vì sao.
 
@@ -45,7 +45,7 @@ def _chay(**tuy_chon):
 
 
 def test_may_trong_chay_xong_thi_dang_nhap_duoc(client):
-    """docs/04 mục 12.1 — Cài từ đầu trên máy sạch, chạy tới màn hình đăng nhập
+    """docs/04 mục 17.1 — Cài từ đầu trên máy sạch, chạy tới màn hình đăng nhập
 
     Đây là bài quan trọng nhất của tệp: không có nó thì người mở máy mới nhận
     một hệ thống không có tài khoản nào.
@@ -177,7 +177,7 @@ def test_san_pham_mau_khop_danh_muc_va_co_mau():
 
 @pytest.mark.django_db
 def test_chay_lai_dat_lai_dung_mat_khau_da_in(client):
-    """docs/04 mục 12.1 — Chạy lại lệnh thì mật khẩu in ra cuối lệnh là mật khẩu thật, kể cả khi tài khoản đã có
+    """docs/04 mục 17.1 — Chạy lại lệnh thì mật khẩu in ra cuối lệnh là mật khẩu thật, kể cả khi tài khoản đã có
 
     Lỗi thật ngày 03.09.2026: máy của người dùng có sẵn `quantri` từ lần dựng
     trước với mật khẩu khác; lệnh bỏ qua tài khoản có sẵn nên màn hình in một

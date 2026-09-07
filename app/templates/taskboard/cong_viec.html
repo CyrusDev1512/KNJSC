@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block tieu_de %}Công việc · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Công việc{% endblock %}
+
+{% block noi_dung %}
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Nội bộ · ADR-015</div>
+    <h1>Công việc</h1>
+    <p>Việc được giao và việc tự nhận, theo dõi tới khi xong.</p>
+  </div>
+</div>
+<div class="the">
+  <div class="the-than">
+    {% include "components/rong.html" with rong_tieu_de="Đang dựng" rong_mo_ta="Màn hình này đang được làm trong đợt MVP Nội bộ." %}
+  </div>
+</div>
+{% endblock %}

@@ -31,8 +31,10 @@ DEBUG = False
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 # ── Ứng dụng ────────────────────────────────────────────────────────
-# Bảy module trong app/. core là module duy nhất được các module khác
-# gọi vào; các module còn lại không gọi trực tiếp nhau.
+# Mười hai module trong app/. core là module duy nhất được các module khác
+# gọi vào; các module còn lại không gọi trực tiếp nhau — trừ vài chiều một
+# chiều có ghi trong ADR: reports, orders, crm → forms_builder; và nhóm Nội bộ
+# (ADR-015): feed → culture, org; culture → orders.
 DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -50,6 +52,12 @@ LOCAL_APPS = [
     "orders",
     "dashboard",
     "crm",
+    # Nhóm Nội bộ — ADR-015: bảng tin, tài liệu, công việc, văn hoá, tài nguyên
+    "feed",
+    "documents",
+    "taskboard",
+    "culture",
+    "resources",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
@@ -158,6 +166,32 @@ GRID_ONLY_TABLES = set(env_list("GRID_ONLY_TABLES", "van_don"))
 BANGTINH_URL = env("BANGTINH_URL", "http://localhost:8021/")
 # Địa chỉ dịch vụ chính — Bảng tính liên kết ngược về Bảng dữ liệu và Nhập tệp
 MAIN_APP_URL = env("MAIN_APP_URL", "http://localhost:8020/")
+
+# Tỉ giá cố định để quy đổi doanh số về VND cho bảng xếp hạng (ADR-015, Q66).
+# Số mặc định là số tạm — backlog N11 chờ anh/chị chốt; đè bằng biến môi
+# trường dạng `EXCHANGE_RATES_VND="USD=25400,CAD=18500,PHP=440"`. Decimal, không
+# dùng số thực (BR-8). VND luôn là 1.
+from decimal import Decimal  # noqa: E402
+
+
+def env_rates(name, default):
+    """Đọc bảng tỉ giá `MA=so,MA=so` từ môi trường, gộp lên bảng mặc định."""
+    ket_qua = dict(default)
+    for muc in env_list(name, ""):
+        if "=" not in muc:
+            continue
+        ma, gia = muc.split("=", 1)
+        ket_qua[ma.strip().upper()] = Decimal(gia.strip())
+    ket_qua["VND"] = Decimal("1")
+    return ket_qua
+
+
+EXCHANGE_RATES_VND = env_rates("EXCHANGE_RATES_VND", {
+    "VND": Decimal("1"),
+    "USD": Decimal("25400"),
+    "CAD": Decimal("18500"),
+    "PHP": Decimal("440"),
+})
 
 # ── Tác vụ nền ──────────────────────────────────────────────────────
 CELERY_BROKER_URL = env("REDIS_URL", "redis://localhost:6379/0")

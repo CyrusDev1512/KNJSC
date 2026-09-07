@@ -65,7 +65,7 @@ class AuditAction(models.TextChoices):
 
 # ══ NHẬP XUẤT TỆP VÀ TÁC VỤ NỀN — Giai đoạn 7 ══════════════════════
 #
-# Con số lấy từ docs/02 mục 10 (NFR-11 tới NFR-16) và docs/03 mục 6.3, 8, 9.
+# Con số lấy từ docs/02 mục 15 (NFR-11 tới NFR-16) và docs/03 mục 6.3, 8, 9.
 # Khai ở đây một chỗ; settings chỉ đọc lại, không viết cứng lần hai.
 
 UPLOAD_MAX_BYTES = 10 * 1024 * 1024     # NFR-11 — 10 MB mỗi tệp tải lên
@@ -103,15 +103,24 @@ class FileKind(models.TextChoices):
     CSV = "csv", "CSV"
     JPG = "jpg", "Ảnh JPG"
     PNG = "png", "Ảnh PNG"
+    # Hai loại thêm cho thư viện Tài liệu (ADR-015, FR-9.2); luồng nhập bảng
+    # vẫn chỉ nhận Excel và CSV
+    PDF = "pdf", "PDF"
+    DOCX = "docx", "Word"
 
 
 #: Chữ ký đầu tệp. CSV không có chữ ký — nhận khi đọc được dạng chữ và không
-#: chứa byte 0 (xem `core.excel.sniff_kind`).
+#: chứa byte 0 (xem `core.excel.sniff_kind`). DOCX là tệp ZIP như XLSX nên
+#: cùng chữ ký; phân biệt hai loại bằng đuôi khai báo.
 FILE_MAGIC = {
     FileKind.XLSX: (b"PK\x03\x04",),
     FileKind.JPG: (b"\xff\xd8\xff",),
     FileKind.PNG: (b"\x89PNG\r\n\x1a\n",),
+    FileKind.PDF: (b"%PDF-",),
 }
+
+#: Các loại chung một chữ ký ZIP — đuôi khai báo quyết định loại nào
+ZIP_KINDS = (FileKind.XLSX, FileKind.DOCX)
 
 #: Đuôi tệp ứng với mỗi loại, để đối chiếu đuôi khai báo với loại thật.
 FILE_EXTENSIONS = {
@@ -119,6 +128,8 @@ FILE_EXTENSIONS = {
     FileKind.CSV: (".csv",),
     FileKind.JPG: (".jpg", ".jpeg"),
     FileKind.PNG: (".png",),
+    FileKind.PDF: (".pdf",),
+    FileKind.DOCX: (".docx",),
 }
 
 #: Loại tệp nhận được ở luồng nhập dữ liệu vào bảng

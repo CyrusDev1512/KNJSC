@@ -86,7 +86,8 @@ def nhan_su_moi(request):
         account_service.create_account(
             username=d["username"], email=d["email"], full_name=d["full_name"],
             rank=d["rank"], department=d["department"], team=d["team"],
-            password=d["password"], actor=request.user, request=request,
+            password=d["password"], birthday=d.get("birthday"),
+            actor=request.user, request=request,
         )
         messages.success(request, f"Đã tạo tài khoản {d['username']}.")
         return redirect("nhan_su")
