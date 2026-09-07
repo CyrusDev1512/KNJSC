@@ -432,6 +432,77 @@ trên xuất đúng lưới đang lọc (chưa mang theo định dạng ô).
 
 ---
 
+## A9. Bảng tin — cả công ty
+
+Mục **Bảng tin** trong nhóm Nội bộ trên thanh bên. Ai cũng thấy mọi bài, không
+phân theo bộ phận.
+
+| Việc | Cách làm |
+|---|---|
+| Đăng bài | Gõ vào ô trên cùng, bấm **Đăng**. Chỉ chữ, tối đa 2.000 ký tự |
+| Thích, bình luận | Nút **♡ Thích** dưới bài (bấm lại là bỏ thích); bấm **n bình luận** để mở bài và viết bình luận |
+| Ghim, gỡ bài | Manager và Admin thấy nút **Ghim** (bài lên đầu trang) và **Gỡ bài** với mọi bài; ai cũng gỡ được bài của mình. Gỡ là ẩn đi, không mất |
+| Thiệp sinh nhật | Mỗi sáng 06:00 hệ thống tự đăng thiệp cho người có sinh nhật hôm đó — lấy từ **Ngày sinh** trong hồ sơ nhân sự (Nhân sự → Sửa). Không có ngày sinh thì không có thiệp |
+| Thanh bên | Sinh nhật tháng này, năm người nhiều sao nhất, ba ghi nhận mới, thành viên vào trong 30 ngày |
+
+---
+
+## A10. Tài liệu
+
+Quy định, quy trình, biểu mẫu dùng chung — chia theo **mục**. Bạn thấy mục dùng
+chung toàn công ty và mục của bộ phận mình.
+
+| Việc | Ai | Cách làm |
+|---|---|---|
+| Xem, tải về | Mọi người | Bấm **Tải về** (tệp) hoặc **Mở** (liên kết). Lọc theo mục ở cột phải, tìm theo tiêu đề |
+| Thêm mục | Manager (mục bộ phận mình), Admin (cả mục toàn công ty) | Ô **Thêm mục** ở cột phải |
+| Tải lên | Manager trở lên | **Tải lên**: chọn mục, tiêu đề, rồi chọn tệp (PDF, Word, Excel, CSV, ảnh; tối đa 10 MB) **hoặc** dán liên kết Google Drive, Notion… |
+| Gỡ | Người tải, Manager bộ phận, Admin | Nút **Gỡ** — ẩn đi, không xoá tệp |
+
+Tệp được kiểm theo nội dung, không theo đuôi: đổi tên `.exe` thành `.pdf` vẫn
+bị từ chối.
+
+---
+
+## A11. Công việc
+
+| Việc | Cách làm |
+|---|---|
+| Giao việc | **Thêm việc**: tiêu đề, người làm, ưu tiên, hạn. Staff chỉ tự giao cho mình; Leader giao trong team; Manager giao cả bộ phận; Admin giao ai cũng được |
+| Đổi trạng thái | Nút ngay trên dòng: Mới → Đang làm → Xong (hoặc Huỷ). Người làm, người tạo và Leader trở lên đổi được; đổi xong dòng cập nhật tại chỗ, không tải lại trang |
+| Xem | Tab **Của tôi** (việc mình nhận hoặc tạo) và **Trong phạm vi** (team với Leader, bộ phận với Manager); lọc theo trạng thái, người làm, ưu tiên |
+| Sửa, gỡ | Người tạo hoặc Leader trở lên sửa; người tạo hoặc Manager gỡ. Hạn đã qua mà chưa xong thì ngày hạn đỏ |
+
+---
+
+## A12. Văn hoá — ghi nhận, sao, xếp hạng
+
+| Việc | Cách làm |
+|---|---|
+| Ghi nhận đồng nghiệp | Chọn người, chọn một giá trị (Tận tâm, Chính trực, Hợp tác, Sáng tạo, Trách nhiệm), viết lời nhắn, **Gửi ghi nhận**. Không tự ghi nhận mình. Ghi nhận **không sửa, không xoá** được — nghĩ kỹ rồi gửi |
+| Sao | Mỗi ghi nhận cho người nhận **một sao**. Ngày 1 hằng tháng, ba người dẫn đầu doanh số tháng trước nhận thêm **5, 3, 1 sao** |
+| Xếp hạng doanh số | Tính từ **Đơn hàng** tháng này theo người bán, quy về VND theo tỉ giá cố định trong cấu hình; cả công ty xem hạng, số đơn, tổng — không thấy chi tiết đơn |
+| Trang thành viên | Bấm tên bất kỳ: tổng sao, sao tháng này, sao theo tháng, ghi nhận nhận được |
+
+---
+
+## A13. Tài nguyên
+
+Kho tài nguyên dùng chung — BM, Via, Page, Tài khoản QC, SIM… — ai cũng xem
+được cả danh sách.
+
+| Việc | Ai | Cách làm |
+|---|---|---|
+| Xem | Mọi người | Lọc theo mục (cột phải), trạng thái (Trống, Đang dùng, Khoá, Hỏng), người giữ; tìm theo tên |
+| Thêm, sửa, gỡ | Manager trở lên | **Thêm tài nguyên**, nút **Sửa** và **Gỡ** trên dòng. Mỗi lần lưu có nhật ký ghi trường nào đổi |
+| Thêm mục | Manager trở lên | Ô **Thêm mục** ở cột phải |
+
+**Không ghi mật khẩu, mã OTP, 2FA, token vào ghi chú** — hệ thống từ chối lưu
+khi thấy các từ này. Kho chỉ trả lời "có gì, ai giữ, tình trạng ra sao"; mật
+khẩu để ở kho mật khẩu riêng.
+
+---
+
 # PHẦN B — SỔ TAY VẬN HÀNH
 
 > Phần này dành cho người chịu trách nhiệm giữ cho hệ thống chạy được.
@@ -473,6 +544,8 @@ và tệp cấu hình.
    `OPERATOR_EMAILS`)
 3. Nhìn ô **Tác vụ nền**: có tác vụ "kẹt" nghĩa là worker không chạy — xem B5
 4. Nếu hệ thống không mở được, xem mục B5
+5. Bảng tin: hồ sơ có người sinh nhật hôm nay mà sau 06:00 không thấy thiệp
+   thì `beat` không chạy — xem B5
 
 Mất khoảng hai phút. **Đừng bỏ qua bước kiểm bản sao lưu** — sao lưu hỏng thường
 im lặng, chỉ phát hiện khi cần dùng thì đã muộn.
@@ -554,6 +627,7 @@ Máy chủ thật thì làm theo thứ tự dưới đây:
 | Nơi lưu | Ít nhất một bản ở nơi khác máy chủ chính | Đặt biến `BACKUP_DIR` trỏ sang ổ khác, hoặc chép thư mục `storage/backups/` đi mỗi ngày |
 | Mã hoá | Bản sao lưu mã hoá trước khi rời khỏi máy chủ | Chưa có trong hệ thống — mã hoá khi chép ra ngoài (Giai đoạn 8) |
 | Thử phục hồi | Mỗi quý một lần | Xem dưới |
+| Tệp tài liệu | `storage/tai-lieu/` **không** nằm trong `pg_dump` | Chép thư mục đó đi cùng bản sao lưu; phục hồi thì chép lại — backlog K27 |
 
 **Sao lưu ngay bây giờ:** `scripts/backup.sh` (Windows: chạy lệnh trong tệp
 đó bằng PowerShell). Trước mỗi lần cập nhật hệ thống nên chạy một lần.
@@ -602,6 +676,7 @@ dữ liệu cần giữ:
 | `storage/exports/` | Tệp Excel xuất ở nền | Tự xoá sau 24 giờ (03:00) |
 | `storage/uploads/imports/` | Tệp đang chờ nhập | Xoá sau khi nhập xong, hoặc sau 24 giờ nếu bỏ dở |
 | `storage/e2e/` | Ảnh chụp màn hình của bài kiểm trình duyệt | Xoá tay khi muốn |
+| `storage/tai-lieu/` | Tệp ở mục Tài liệu (FR-9.2) | **Không dọn**, giữ vĩnh viễn; chép cùng bản sao lưu — K27 |
 
 Container chạy bằng uid 1000; trên máy Linux thư mục phải ghi được bởi uid đó
 (backlog K21). Lúc khởi động, `entrypoint.sh` in cảnh báo nếu không ghi được.
@@ -615,7 +690,7 @@ Sáu dịch vụ trong `docker-compose.yml`:
 | `web` | Hệ thống chính | **8020** |
 | `bangtinh` | Bảng tính vận đơn — cùng mã, cùng cơ sở dữ liệu, cấu hình `knjsc.settings.bangtinh` | **8021** |
 | `worker` | Chạy nhập tệp, xuất tệp, sao lưu | — |
-| `beat` | Bấm giờ: sao lưu 02:00, dọn tệp 03:00, canh tác vụ kẹt mỗi 15 phút | — |
+| `beat` | Bấm giờ: sao lưu 02:00, dọn tệp 03:00, canh tác vụ kẹt mỗi 15 phút, thiệp sinh nhật 06:00, thưởng sao xếp hạng ngày 1 lúc 01:00 | — |
 
 Không có `worker` thì nhập tệp treo ở "Chờ xử lý" và sau 15 phút bị đánh dấu
 kẹt; không có `beat` thì không có gì tự chạy đêm.

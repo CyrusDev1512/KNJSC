@@ -16,7 +16,7 @@
         'chua'  chưa bắt đầu              → tính 0 điểm
 
   Tiến độ tổng = tổng của (trọng số giai đoạn × tỉ lệ việc xong trong
-  giai đoạn đó). Trọng số chín giai đoạn cộng lại bằng 100.
+  giai đoạn đó). Trọng số các giai đoạn tự cộng lại (GĐ 9 thêm sau, không cân lại các giai đoạn cũ).
 
   Nguồn: docs/kien-truc.md (lộ trình), docs/EXAMPLE/CRM_ Tân.xlsx (phạm vi
   khách hàng), docs/02-yeu-cau-san-pham.md (mã FR), docs/backlog.md.
@@ -178,7 +178,7 @@ body {
 }
 .tile-val small { font-size: 13px; font-weight: 500; color: var(--ink-3); }
 
-/* ── Thước đo chín giai đoạn ───────────────────────────── */
+/* ── Thước đo mười giai đoạn ───────────────────────────── */
 .meter-head {
   display: flex; justify-content: space-between; align-items: baseline;
   margin: 30px 0 9px; gap: 16px; flex-wrap: wrap;
@@ -503,10 +503,10 @@ footer code {
     </div>
 
     <div class="meter-head">
-      <div class="eyebrow">Chín giai đoạn — bề rộng bằng trọng số</div>
+      <div class="eyebrow">Mười giai đoạn — bề rộng bằng trọng số</div>
       <div class="eyebrow" id="m-hint">Trỏ vào một đoạn để xem chi tiết</div>
     </div>
-    <div class="meter" id="meter" role="group" aria-label="Thước tiến độ chín giai đoạn"></div>
+    <div class="meter" id="meter" role="group" aria-label="Thước tiến độ mười giai đoạn"></div>
     <div class="meter-legend">
       <span class="lg"><i style="background:var(--st-xong)"></i> Đã xong</span>
       <span class="lg"><i style="background:var(--st-dang)"></i> Đang làm</span>
@@ -520,8 +520,9 @@ footer code {
     <div class="section-head">
       <div class="eyebrow">Phần 1</div>
       <h2 id="h-lotrinh">Lộ trình thi công</h2>
-      <p>Giai đoạn 0 tới 6 đã xong — riêng cách nhóm theo thị trường của GĐ 6
-        chờ chốt N9. Giai đoạn 7 là phần đang tới lượt.</p>
+      <p>Giai đoạn 0 tới 7 đã xong — riêng cách nhóm theo thị trường của GĐ 6
+        chờ chốt N9. Giai đoạn 9 (nhóm Nội bộ, bản MVP, ADR-015) đã làm trên nhánh
+        riêng và chờ anh/chị xem PR #20; Giai đoạn 8 (máy chủ) chờ V1.</p>
     </div>
     <div id="phases"></div>
     <button class="fbtn" id="btn-an" type="button" aria-expanded="false"
@@ -767,6 +768,20 @@ const GIAI_DOAN = [
       { t: "Chuyển dữ liệu thật", tt: "chua" },
       { t: "Đào tạo người dùng", tt: "chua" }
     ]
+  },
+  {
+    id: 9, ten: "Nội bộ — bản MVP (nhánh riêng, PR #20 nháp)", mod: "documents · feed · taskboard · culture · resources", trongSo: 8,
+    viec: [
+      { t: "Khung: năm app, nhóm Nội bộ trên thanh bên, tỉ giá VND, FileKind PDF/Word, ngày sinh hồ sơ, docs 02/04 mục mới", tt: "xong", note: "ADR-015" },
+      { t: "Tài liệu: mục theo bộ phận hoặc toàn công ty, tải PDF/Word/Excel/CSV/ảnh hoặc liên kết, tải về có kiểm quyền, gỡ mềm", tt: "xong", note: "AC-12.1 → 12.5" },
+      { t: "Công việc: giao theo phạm vi cấp bậc, đổi trạng thái HTMX, tab và lọc, sửa và gỡ", tt: "xong", note: "AC-14.1 → 14.5" },
+      { t: "Văn hoá: ghi nhận một sao, xếp hạng doanh số quy VND, thưởng 5/3/1 sao ngày 1, trang thành viên", tt: "xong", note: "AC-15.1 → 15.4" },
+      { t: "Bảng tin: bài, thích, bình luận, ghim và gỡ, thiệp sinh nhật 06:00, thanh bên", tt: "xong", note: "AC-13.1 → 13.5" },
+      { t: "Tài nguyên: mục BM/Via/Page/TKQC/SIM, danh sách chung lọc và tìm, Manager thêm sửa gỡ, ghi chú không mật khẩu", tt: "xong", note: "AC-16.1 → 16.3" },
+      { t: "Dữ liệu mẫu cho cả năm app, tài liệu dự án, kịch bản bấm tay docs/07", tt: "xong" },
+      { t: "Anh/chị bấm thử, chốt N11 (tỉ giá) và N12 (giá trị văn hoá), rồi gộp PR #20", tt: "chua" },
+      { t: "Bảng tin trên điện thoại", tt: "chua", note: "AC-13.6 thủ công" }
+    ]
   }
 ];
 
@@ -918,7 +933,7 @@ const GD_KE_TIEP = GIAI_DOAN.find(
 /* ── Băng tổng ── */
 document.getElementById("f-pct").textContent = so(Math.round(TIEN_DO * 10) / 10);
 document.getElementById("f-cap").textContent =
-  `Tính theo trọng số chín giai đoạn. Đây là tiến độ <b>đã làm</b>, không phải `
+  `Tính theo trọng số mười giai đoạn. Đây là tiến độ <b>đã làm</b>, không phải `
   + `<b>đã nghiệm thu</b> — xem backlog mục 0.`;
 document.getElementById("t-viec").innerHTML = `${VIEC_XONG} <small>/ ${VIEC_TONG}</small>`;
 document.getElementById("t-crm").innerHTML = `${CRM_XONG} <small>/ ${CRM_LEAF.length}</small>`;
@@ -974,7 +989,7 @@ const phasesEl = document.getElementById("phases");
 const anEl = document.getElementById("phases-an");
 /* Hiện tới giai đoạn đang làm; phần chưa tới lượt thì ẩn cho đỡ rối.
    Đổi số này mỗi khi xong một giai đoạn. */
-const HIEN_TOI_GD = 8;
+const HIEN_TOI_GD = 9;
 
 GIAI_DOAN.forEach(g => {
   const wrap = document.createElement("div");

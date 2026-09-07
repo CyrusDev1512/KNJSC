@@ -98,6 +98,16 @@ Mọi bảng có:
 | Dòng sản phẩm trong đơn | Đơn nào, sản phẩm nào, số lượng, đơn giá | Một đơn nhiều dòng — FR-6.2 |
 | Danh mục sản phẩm | Tên, nhóm, đơn vị tính | Quản lý tự thêm |
 | Nhật ký hoạt động | Ai làm gì, trên đối tượng nào, khi nào | Chỉ ghi thêm — BR-6 |
+| Mục tài liệu | Tên, bộ phận (trống = toàn công ty), thứ tự | Nhóm Nội bộ, ADR-015 — FR-9.1 |
+| Tài liệu | Tiêu đề, mục, tệp hoặc liên kết, người tải | Tệp ở `storage/tai-lieu/` — FR-9.2 |
+| Việc | Tiêu đề, bộ phận, người làm, trạng thái, ưu tiên, hạn | FR-11.1 |
+| Ghi nhận | Người ghi nhận, người được ghi nhận, giá trị văn hoá, lời nhắn | Sổ cái, chỉ ghi thêm — FR-12.1 |
+| Sao | Người nhận, nguồn (ghi nhận hay xếp hạng), số sao, kỳ, hạng | Mỗi người mỗi kỳ một dòng xếp hạng — FR-12.4 |
+| Bài | Tác giả (trống = hệ thống), loại (bài viết, sinh nhật), nội dung, ghim | FR-10.1, FR-10.4 |
+| Bình luận | Bài, người viết, nội dung | FR-10.2 |
+| Lượt thích | Bài, người thích — duy nhất; bỏ thích là xoá mềm | FR-10.2 |
+| Mục tài nguyên | Tên, thứ tự | BM, Via, Page… — FR-13.1 |
+| Tài nguyên | Mục, tên, trạng thái, người giữ, bộ phận dùng, ghi chú, liên kết | Không có cột mật khẩu — FR-13.4 |
 
 ### 2.3. Quan hệ chính
 
@@ -125,6 +135,14 @@ Biểu mẫu ──n:m── Định nghĩa trường
 | Bản ghi dữ liệu | Bảng chứa nó, ngày tạo | Lọc theo bảng và thời gian |
 | Hồ sơ người dùng | Bộ phận, team | Áp phạm vi quyền |
 | Nhật ký hoạt động | Thời điểm, người thực hiện | Tra cứu |
+| Hồ sơ người dùng | Ngày sinh | Thiệp sinh nhật mỗi sáng — FR-10.4 |
+| Tài liệu | (mục, ngày), (bộ phận, ngày), GIN tiêu đề | Lọc theo mục, phạm vi bộ phận, tìm theo tiêu đề — FR-9.3 |
+| Việc | (bộ phận, trạng thái, ngày), (người làm, trạng thái), (người tạo, ngày) | Phạm vi và tab Của tôi — FR-11.3 |
+| Ghi nhận | (người nhận, ngày) | Trang thành viên — FR-12.5 |
+| Sao | Người nhận, (kỳ, nguồn) | Tổng sao và thưởng tháng — FR-12.4 |
+| Bài | (ghim, ngày), (tác giả, ngày) | Bảng tin ghim đứng đầu — FR-10.1 |
+| Bình luận | (bài, ngày) | Bình luận dưới bài |
+| Tài nguyên | (mục, trạng thái), người giữ, GIN tên | Lọc và tìm — FR-13.2 |
 
 **Không đánh chỉ mục mọi cột.** Mỗi chỉ mục làm việc ghi chậm hơn và chiếm thêm dung lượng.
 
@@ -342,6 +360,18 @@ dựng đầu tiên cho bảng `van_don`, nhìn và thao tác như bảng tính 
 | Thêm giá trị mới | `POST bang/<mã>/cot/<mã cột>/lua-chon/` → `choice_service.add_option` (Admin hoặc Manager bộ phận sở hữu; có nhật ký); `POST len-don/san-pham-moi/` → `product_service.create_product` (Manager Sale; mã tự sinh, đồng bộ cột `sl_`). Trả về các `<option>`, trình duyệt chép vào mọi ô cùng nhóm |
 | Danh tính người điền | `core/identity.display_name` (họ tên, không có thì tên đăng nhập); `form_service.fill` ép vào trường nhãn Người bán trước khi ghi, cả điền biểu mẫu lẫn nộp báo cáo; ô trên màn hình chỉ đọc, không gửi lên (Q59) |
 | Màu cột và ngưỡng | `ColumnDef.highlight`, `alert_op`, `alert_value` (migration 0008); `forms_builder/styling.py` dịch sang lớp CSS đóng `cot-nen-*`, `o-vuot-nguong`, `o-dat-nguong`; bảng mang lớp `bang-luoi` mới có viền và tiêu đề xanh lá (Q60) |
+
+### 4.8. Nhóm Nội bộ — FR-9 tới FR-13, ADR-015
+
+| App | Phạm vi | Điểm đáng chú ý |
+|---|---|---|
+| `documents` — Tài liệu | Mục toàn công ty ai cũng thấy; mục bộ phận thì người trong bộ phận thấy; Admin tất cả (`documents/managers.py`) | Tải lên và thêm mục: Manager trở lên (mục toàn công ty chỉ Admin); tệp lưu `storage/tai-lieu/<uuid>.<đuôi>` ngoài đường dọn 24 giờ, tải về qua view kiểm quyền (`FileResponse`), DOCX phân biệt với XLSX bằng đuôi khai báo |
+| `taskboard` — Công việc | Staff: việc mình nhận hoặc tạo; Leader: team (người nhận hoặc người tạo) cộng của mình; Manager: bộ phận; Admin: tất cả (`TaskQuerySet.in_scope`) | Chuyển trạng thái theo bảng `STATUS_TRANSITIONS`; đổi trạng thái qua HTMX trả về đúng một `<tr>`; giao việc chỉ cho người trong `UserProfile.objects.in_scope(actor)` |
+| `culture` — Văn hoá | Toàn công ty: ai cũng ghi nhận, xem sao và xếp hạng | Sổ ghi nhận và sổ sao chỉ ghi thêm. **Bảng xếp hạng là ngoại lệ phạm vi có chủ ý** (Q66): đọc `Order.all_objects.alive()` toàn công ty, chỉ trả hạng, tên, số đơn, tổng đã quy VND bằng `EXCHANGE_RATES_VND` (Decimal, N11). `award_monthly_stars` 5/3/1 với ràng buộc (người, kỳ, nguồn) nên chạy lại không nhân đôi; beat ngày 1 lúc 01:00, lệnh `thuong_sao_thang --thang` |
+| `feed` — Bảng tin | Toàn công ty: ai cũng thấy mọi bài | Ghim và gỡ bài bất kỳ: Manager trở lên; thích và bỏ thích là một dòng `Like` xoá mềm rồi khôi phục (ràng buộc một người một bài); thiệp sinh nhật `create_birthday_posts` mỗi người mỗi ngày một thiệp kể cả đã gỡ (`all_objects.get_or_create`), sinh 29.02 được chúc ngày 28.02 năm không nhuận; beat 06:00, lệnh `thiep_sinh_nhat --ngay`. Truy vấn có `GROUP BY` phải `order_by` rõ vì Django bỏ `Meta.ordering`. Thanh bên mượn `culture` — chiều phụ thuộc `feed → culture → orders`, không ai import `feed` |
+| `resources` — Tài nguyên | Toàn công ty xem (Q64); Manager trở lên thêm, sửa, gỡ, thêm mục | Không có cột mật khẩu; ghi chú bị chặn khi chứa từ khoá bí mật (`SECRET_HINTS`, FR-13.4); nhật ký sửa ghi từng trường đổi nhưng không chép nội dung ghi chú |
+
+Cả năm app dùng chung khuôn: view hàm `@login_required`, quyền hỏi tầng dịch vụ, view chỉ POST có `@require_POST` (GET trả 405), xoá mềm, phân trang 25, mỗi màn hình danh sách nằm trong ngân sách 10 truy vấn (`core/tests/test_ra_soat.py`). Bản đồ người đang hoạt động `recognition_service.active_users()` (một truy vấn, kèm hồ sơ và bộ phận) được Văn hoá và Bảng tin dùng chung để tránh N+1. Trong template, chuỗi `{{ a.b.c|default:x.y }}` với `x` có thể trống làm Django ném lỗi ngay trong đối số filter — rào bằng `{% if x %}`.
 
 ---
 

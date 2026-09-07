@@ -557,6 +557,8 @@ hr.ke { border: 0; border-top: 1px solid var(--rule); margin: var(--sp-4) 0; }
 .bxh { display: flex; flex-direction: column; }
 .bxh-hang { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--rule); }
 .bxh-hang:last-child { border-bottom: 0; }
+.bxh-ten { flex: 1; min-width: 0; }
+.bxh-hang .tien { white-space: nowrap; }
 
 /* Bảng tin: bài, bình luận, nút thích, thanh bên */
 .bai { overflow: hidden; }

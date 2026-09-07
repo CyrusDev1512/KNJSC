@@ -62,26 +62,22 @@
 
   <div class="doc">
     <div class="the">
-      <div class="the-dau"><h2>Xếp hạng doanh số {{ ky_hien }}</h2></div>
-      <div class="bang-cuon">
-        <table class="bang">
-          <thead><tr><th>Hạng</th><th>Người bán</th><th class="phai">Số đơn</th><th class="phai">Doanh số (VND)</th><th class="phai">Thưởng</th></tr></thead>
-          <tbody>
-            {% for d in bang_xep_hang %}
-              <tr>
-                <td><span class="hang-so {{d.lop_hang}}">{{ d.hang }}</span></td>
-                <td><a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user.profile.full_name|default:d.user.username }}</a></td>
-                <td class="phai so">{{ d.so_don }}</td>
-                <td class="tien">{{ d.tong_hien }}</td>
-                <td class="phai">{% if d.sao_thuong %}<span class="sao">★ {{ d.sao_thuong }}</span>{% else %}—{% endif %}</td>
-              </tr>
-            {% empty %}
-              <tr><td colspan="5">{% include "components/rong.html" with rong_tieu_de="Chưa có đơn tháng này" rong_mo_ta="Bảng xếp hạng tính từ đơn hàng đã lên trong tháng, quy về VND." %}</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div class="the-dau"><h2>Xếp hạng doanh số {{ ky_hien }}</h2><span class="phai nho mo-nhat">VND</span></div>
+      <div class="bxh">
+        {% for d in bang_xep_hang %}
+          <div class="bxh-hang">
+            <span class="hang-so {{d.lop_hang}}">{{ d.hang }}</span>
+            <div class="bxh-ten">
+              <a href="{% url 'van_hoa_thanh_vien' d.user.pk %}">{{ d.user.profile.full_name|default:d.user.username }}</a>
+              <div class="nho mo-nhat">{{ d.so_don }} đơn{% if d.sao_thuong %} · thưởng <span class="sao">★ {{ d.sao_thuong }}</span>{% endif %}</div>
+            </div>
+            <span class="tien day">{{ d.tong_hien }}</span>
+          </div>
+        {% empty %}
+          {% include "components/rong.html" with rong_tieu_de="Chưa có đơn tháng này" rong_mo_ta="Bảng xếp hạng tính từ đơn hàng đã lên trong tháng, quy về VND." %}
+        {% endfor %}
       </div>
-      <div class="the-chan"><span class="nho mo-nhat">Quy đổi theo tỉ giá cố định trong cấu hình. Ngày 1 tháng sau hệ thống tự thưởng sao.</span></div>
+      <div class="the-chan"><span class="nho mo-nhat">Quy đổi theo tỉ giá cố định trong cấu hình. Ngày 1 tháng sau hệ thống tự thưởng 5, 3, 1 sao cho ba người đầu.</span></div>
     </div>
 
     <div class="the">

@@ -271,6 +271,8 @@ Những mục sau ảnh hưởng tới phạm vi và cần thống nhất trư�
 | 2 | ~~Tạo biểu mẫu thì tự sinh bảng mới, hay luôn phải chọn bảng có sẵn~~ | Đã chốt: luôn chọn bảng có sẵn — ADR-007 | — |
 | 3 | Lịch nộp báo cáo có bắt buộc đúng giờ không | Chỉ ghi nhận / Nhắc nhở / Chặn nộp muộn | Có cần tác vụ chạy nền hay không — backlog N1 |
 | 4 | ~~Cách thống kê trên bảng do người dùng tự tạo~~ | Đã chốt: bảy nhãn ý nghĩa — ADR-007 | — |
+| 5 | Tỉ giá cố định quy doanh số về VND cho bảng xếp hạng Văn hoá — FR-12.3 | Đang tạm USD 25.400, CAD 18.500, PHP 440 trong cấu hình | Số trên bảng xếp hạng — backlog N11 |
+| 6 | Danh sách giá trị văn hoá để ghi nhận — FR-12.1 | Đang tạm năm giá trị: Tận tâm, Chính trực, Hợp tác, Sáng tạo, Trách nhiệm | Đổi sau khi có ghi nhận thật thì phải chuyển dữ liệu — backlog N12 |
 
 ---
 
