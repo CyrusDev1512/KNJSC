@@ -34,4 +34,6 @@ RUN useradd --create-home --uid 1000 knjsc && chown -R knjsc /app \
 USER knjsc
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["gunicorn", "knjsc.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+# 3 tiến trình × 4 luồng (gthread): yêu cầu ngắn (moi-nhat, lưu ô) không xếp hàng sau
+# một lượt xuất Excel hay dán 500 ô đang chiếm tiến trình — ADR-016, K27
+CMD ["gunicorn", "knjsc.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--threads", "4", "--worker-class", "gthread", "--keep-alive", "5"]

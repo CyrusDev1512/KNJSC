@@ -7,13 +7,23 @@ nhật ký hoạt động (BR-5) và nằm trong một giao dịch.
 `full_clean()`. Nên mọi hàm ở đây gọi `full_clean()` trước khi lưu; bỏ qua là
 lọt cấu hình hỏng vào cơ sở dữ liệu.
 """
-from django.db import transaction
+import logging
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+from datetime import date, datetime
+
+from django.db import OperationalError, connection, transaction
 
 from core.audit import record
-from core.constants import AuditAction
+from core.constants import RECOMPUTE_BATCH, RECOMPUTE_SYNC_MAX_ROWS, RECOMPUTE_THREADS, AuditAction, JobKind, JobStatus
+from core.models import BackgroundJob
 
 from ..meaning import FieldType
-from ..models import ColumnDef, DataRecord, TableDef
+from ..models import COLUMN_OF, ColumnDef, DataRecord, TableDef
+
+logger = logging.getLogger(__name__)
+RECOMPUTE_RETRIES = 3
 
 
 @transaction.atomic
@@ -87,7 +97,7 @@ def add_column(table, *, actor=None, request=None, **fields):
     cot.save()
 
     if cot.meaning or cot.is_computed:
-        resync_table(table)
+        cot.resync_job = schedule_resync(table, actor=actor)
 
     record(
         AuditAction.CREATE, actor=actor, target=cot,
@@ -121,7 +131,7 @@ def update_column(column, changes, *, actor=None, request=None):
     # ghi mới có số mới, cùng một cột — không ai phát hiện ra cho tới lúc đối
     # chiếu báo cáo
     if phai_tinh_lai:
-        resync_table(column.table)
+        column.resync_job = schedule_resync(column.table, actor=actor)
 
     record(
         AuditAction.UPDATE, actor=actor, target=column,
@@ -140,7 +150,7 @@ def remove_column(column, *, actor=None, request=None):
     """
     bang, ma = column.table, column.code
     column.delete()
-    resync_table(bang)
+    schedule_resync(bang, actor=actor)
     record(
         AuditAction.DELETE, actor=actor, target=bang,
         detail=f"Bỏ cột {ma} khỏi bảng {bang.code}", request=request,
@@ -203,22 +213,135 @@ def _thu_tu_ke_tiep(table):
     return (cuoi or 0) + 1
 
 
-def resync_table(table, *, batch=500):
+def resync_table(table, *, batch=RECOMPUTE_BATCH, on_progress=None):
     """Tính lại cột tính sẵn và cột tách cho mọi bản ghi của một bảng.
 
     Gọi sau khi đổi công thức hoặc đổi nhãn ý nghĩa. Lấy danh sách cột **một
     lần** rồi truyền vào từng bản ghi — để `DataRecord.save()` tự lấy thì mỗi
-    dòng tốn thêm một lệnh truy vấn (quy tắc Q2).
+    dòng tốn thêm một lệnh truy vấn (quy tắc Q2). Làm theo lô `batch` dòng:
+    khoá lô (`select_for_update`) → tính trong bộ nhớ → một `bulk_update`,
+    nên 100.000 dòng là ~100 giao dịch ngắn thay vì 100.000 lệnh UPDATE (K27);
+    người đang sửa ô trong lúc đó không mất dữ liệu — lệnh của họ chờ lô xong
+    rồi ghi đè bằng bản đã tính đủ cột (`DataRecord.save`). `on_progress(n)`
+    báo sau mỗi lô. Trả về số dòng đã tính.
 
     Không ghi nhật ký: đây là hệ quả của một thao tác đã được ghi, không phải
-    thao tác của người dùng.
+    thao tác của người dùng. Bảng lớn thì đừng gọi thẳng — `schedule_resync`.
     """
+    from .record_service import save_rows
+
     cot = list(table.columns.all())
-    ds = DataRecord.all_objects.filter(table=table).order_by("pk")
+    pks = list(DataRecord.all_objects.filter(table=table).order_by("pk").values_list("pk", flat=True))
     da_sua = 0
-    for ban_ghi in ds.iterator(chunk_size=batch):
-        ban_ghi.apply_computed_columns(cot)
-        ban_ghi.sync_indexed_columns(cot)
-        ban_ghi.save(skip_sync=True)
-        da_sua += 1
+    khoa = threading.Lock()
+
+    def mot_lo(i):
+        for lan in range(RECOMPUTE_RETRIES):
+            try:
+                with transaction.atomic():
+                    # Khoá theo thứ tự khoá chính, cùng chiều với `bulk_save` của người đang dán ô
+                    lo = list(DataRecord.all_objects.select_for_update().filter(pk__in=pks[i:i + batch]).order_by("pk"))
+                    doi, cot_doi = [], set()
+                    for ban_ghi in lo:
+                        truoc = (dict(ban_ghi.data), *(getattr(ban_ghi, c) for c in COLUMN_OF.values()))
+                        ban_ghi.apply_computed_columns(cot)
+                        ban_ghi.sync_indexed_columns(cot)
+                        sau = (ban_ghi.data, *(getattr(ban_ghi, c) for c in COLUMN_OF.values()))
+                        khac = [c for c, a, b in zip(("data", *COLUMN_OF.values()), truoc, sau) if not _giong(a, b)]
+                        if not khac:
+                            continue                   # dòng không đổi thì không ghi, không đổi mốc
+                        doi.append(ban_ghi)
+                        cot_doi.update(khac)
+                    if doi:
+                        save_rows(doi, fields=sorted(cot_doi))
+                return len(lo)
+            except OperationalError as loi:
+                # Deadlock với một lượt dán ô: worker là bên nhường, thử lại lô này
+                if "deadlock" not in str(loi).lower() or lan == RECOMPUTE_RETRIES - 1:
+                    raise
+                time.sleep(0.5)
+
+    def bao(n):
+        nonlocal da_sua
+        with khoa:
+            da_sua += n
+            if on_progress:
+                on_progress(da_sua)
+
+    dau_lo = range(0, len(pks), batch)
+    # Ở worker (ngoài giao dịch) chạy song song vài lô: phần nặng là Postgres ghi
+    # lại chỉ mục GIN của JSON, hai kết nối là hai nhân. Trong giao dịch (bảng nhỏ
+    # tính tại chỗ, bài kiểm) thì tuần tự — luồng khác không thấy dữ liệu chưa commit.
+    if RECOMPUTE_THREADS > 1 and not connection.in_atomic_block and len(dau_lo) > 1:
+        def chay(i):
+            try:
+                return mot_lo(i)
+            finally:
+                connection.close()                     # mỗi luồng một kết nối riêng, đóng khi xong
+        with ThreadPoolExecutor(max_workers=RECOMPUTE_THREADS) as pool:
+            for n in pool.map(chay, dau_lo):
+                bao(n)
+    else:
+        for i in dau_lo:
+            bao(mot_lo(i))
     return da_sua
+
+
+def _giong(a, b):
+    """Giá trị cột tách trước và sau đồng bộ có như nhau không. Cột ngày đọc từ
+    DB là `date`, còn `sync_indexed_columns` đặt lại chuỗi ISO từ JSON — so bằng
+    chuỗi; số tiền so bằng Decimal (120 == 120.00)."""
+    if a is None or b is None:
+        return a is b or (a in ("", None) and b in ("", None))
+    if isinstance(a, (date, datetime)) or isinstance(b, (date, datetime)):
+        return str(a) == str(b)
+    return a == b
+
+
+def schedule_resync(table, *, actor=None):
+    """Tính lại cột của bảng: ngay tại chỗ khi bảng có tới `RECOMPUTE_SYNC_MAX_ROWS`
+    dòng, còn không thì giao **tác vụ nền** (ADR-016) — cột hiện ngay, giá trị
+    điền dần, lưới báo "đang tính" qua `moi-nhat/`, Manager không phải đợi và
+    worker web không bị chiếm hàng phút. Trả về `BackgroundJob` nếu chạy nền,
+    None nếu đã tính xong tại chỗ."""
+    so_dong = DataRecord.all_objects.filter(table=table).count()
+    if so_dong <= RECOMPUTE_SYNC_MAX_ROWS:
+        resync_table(table)
+        return None
+    job = BackgroundJob.objects.create(
+        kind=JobKind.RECOMPUTE, status=JobStatus.PENDING, created_by=actor,
+        title=f"Tính lại cột của bảng {table.name} ({so_dong} dòng)",
+        target_type="table", target_id=table.code, total=so_dong,
+    )
+    from ..tasks import chay_tac_vu_tinh_lai
+    from .import_service import _day_vao_hang_doi
+
+    _day_vao_hang_doi(chay_tac_vu_tinh_lai, job.pk)
+    return job
+
+
+def recompute_job_of(table):
+    """Tác vụ tính lại đang chờ hoặc đang chạy của bảng — để lưới báo tiến độ."""
+    return (
+        BackgroundJob.objects.filter(
+            kind=JobKind.RECOMPUTE, target_type="table", target_id=table.code,
+            status__in=[JobStatus.PENDING, JobStatus.RUNNING],
+        ).order_by("-pk").values("pk", "progress", "total").first()
+    )
+
+
+def run_resync_job(job_id):
+    """Worker: tính lại cột theo lô, báo tiến độ sau mỗi lô."""
+    job = BackgroundJob.objects.filter(pk=job_id, kind=JobKind.RECOMPUTE).first()
+    if job is None or job.status != JobStatus.PENDING:
+        return None
+    job.mark_running()
+    try:
+        table = TableDef.all_objects.get(code=job.target_id)
+        da_tinh = resync_table(table, on_progress=lambda n: job.set_progress(n))
+        job.set_progress(da_tinh, da_tinh)
+        job.mark_done(summary={"da_tinh": da_tinh})
+    except Exception:
+        logger.exception("Tác vụ tính lại cột #%s thất bại", job.pk)
+        job.mark_failed("Tính lại cột thất bại vì lỗi hệ thống. Sửa lại cột để chạy lại.")
+    return job

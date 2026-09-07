@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.contrib import messages
-from django.db import transaction
+from django.db import OperationalError, transaction
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Max
@@ -202,7 +202,10 @@ def bang_tinh_xem(request, code):
     cay = folder_service.tree(request.user)
     # Số dòng như Excel (ADR-011): hàng tên cột là 1, dữ liệu của trang từ 2
     dong_dau = (trang.start_index() or 1) + 1      # trang rỗng: dòng trống vẫn từ 2
-    cac_dong = grid_service.rows(trang.object_list, luoi.columns, request.user, waybill=vd, start=dong_dau)
+    dong_trang = list(trang.object_list)
+    if vd:
+        grid_service.attach_duplicate_counts(bang, dong_trang)
+    cac_dong = grid_service.rows(dong_trang, luoi.columns, request.user, waybill=vd, start=dong_dau, qs_giu=qs_loc)
     cac_cot_trong = grid_service.filler_letters(len(luoi.columns), offset=1 if vd else 0)
     # Đang xem đúng một tháng thì thanh trên ghi tháng và nút ← về đúng nhánh (ADR-012)
     thang_dang_xem = tree_service.month_of_params(request.GET, luoi.columns)
@@ -312,7 +315,7 @@ def bang_tinh_o(request, code, pk, ma_cot):
     if request.GET.get("hien"):
         sua = grant_service.can_edit_record(request.user, ban_ghi)
         boi_canh.update(duoc_sua=sua, lop=grid_service.cell_class(cot, cd, sua, style=kieu))
-        return render(request, "crm/_o.html", boi_canh)
+        return HttpResponse(_o_html(boi_canh))
     if not grant_service.can_edit_record(request.user, ban_ghi):
         raise OutOfScopeError("Bảng này chỉ xem ở đây, sửa ở Bảng tính.")
 
@@ -328,9 +331,18 @@ def bang_tinh_o(request, code, pk, ma_cot):
             return render(request, "crm/_o_sua.html", _boi_canh_sua(bang, cot, boi_canh), status=400)
         boi_canh["gia_tri"] = ban_ghi.data.get(ma_cot)
         boi_canh["hien"] = grid_service.display_value(cot, boi_canh["gia_tri"], kieu)
-        return render(request, "crm/_o.html", boi_canh)
+        return HttpResponse(_o_html(boi_canh))
 
     return render(request, "crm/_o_sua.html", _boi_canh_sua(bang, cot, boi_canh))
+
+
+def _o_html(boi_canh):
+    """Một ô từ bối cảnh kiểu `_o_sua.html` — vẽ bằng `grid_service.cell_html` (K27)."""
+    return grid_service.cell_html(
+        boi_canh["bang"], boi_canh["ban_ghi"], boi_canh["cot"], gia_tri=boi_canh.get("gia_tri"),
+        hien=boi_canh.get("hien"), duoc_sua=boi_canh.get("duoc_sua", False), lop=boi_canh.get("lop", ""),
+        style=boi_canh.get("style", ""), qs_giu=boi_canh.get("qs_giu", ""), oob=boi_canh.get("oob", False),
+    )
 
 
 def _boi_canh_sua(bang, cot, boi_canh):
@@ -382,7 +394,7 @@ def bang_tinh_dong_moi(request, code):
             moi = ds.first() or ban_ghi
             html = render_to_string("crm/_dong.html", {
                 **boi_canh, "qs_giu": _qs_hien_tai(request),
-                "d": grid_service.row_context(moi, cac_cot, request.user, waybill=vd, stt=stt),
+                "d": grid_service.row_context(moi, cac_cot, request.user, waybill=vd, stt=stt, qs_giu=_qs_hien_tai(request)),
             }, request) + render_to_string("crm/_dong_moi.html", {
                 **boi_canh, "dong": grid_service.spare_rows(cac_cot, 1, waybill=vd, start=stt + 1)[0],
                 "lop_dong": "dong-moi",
@@ -452,13 +464,13 @@ def bang_tinh_dinh_dang(request, code):
         cot = theo_ma[ma]
         cd = co_dinh.get(ma)
         sua = grant_service.can_edit_record(request.user, ban_ghi)
-        manh.append(render_to_string("crm/_o.html", {
+        manh.append(_o_html({
             "bang": bang, "ban_ghi": ban_ghi, "cot": cot, "gia_tri": ban_ghi.data.get(ma),
             "hien": grid_service.display_value(cot, ban_ghi.data.get(ma), (ban_ghi.style or {}).get(ma)),
             "duoc_sua": sua, "qs_giu": qs_giu, "oob": True,
             "lop": grid_service.cell_class(cot, cd, sua, style=(ban_ghi.style or {}).get(ma)),
             "style": grid_service.frozen_style(cd, offset=lech),
-        }, request))
+        }))
     return HttpResponse("".join(manh))
 
 
@@ -517,7 +529,9 @@ def bang_tinh_luu_o(request, code):
 
     cells = [(ban_ghi_theo_pk[pk], ma, raw) for pk, cac in co_san.items() for ma, raw in cac]
     da_tao = []
-    try:
+
+    def luu():
+        da_tao.clear()
         with transaction.atomic():
             record_service.update_cells(cells, actor=request.user, request=request, columns=cac_cot)
             for khoa, gia_tri in dong_moi.items():
@@ -531,6 +545,16 @@ def bang_tinh_luu_o(request, code):
                 except BusinessError as e:
                     raise record_service.CellError(str(e), pk=khoa, code=next(iter(da_dien))) from e
                 da_tao.append((khoa, ban_ghi))
+
+    try:
+        try:
+            luu()
+        except OperationalError as loi:
+            # Deadlock với worker đang tính lại cột (ADR-016): giao dịch đã huỷ sạch,
+            # làm lại một lần là xong — người dùng không thấy gì
+            if "deadlock" not in str(loi).lower():
+                raise
+            luu()
     except record_service.CellError as e:
         return render(request, "crm/_bao_loi.html", {"loi": str(e), "o": f"{e.pk}:{e.column}"}, status=400)
     except BusinessError as e:
@@ -556,7 +580,7 @@ def bang_tinh_luu_o(request, code):
             manh_dong.append(render_to_string("crm/_dong.html", {
                 "bang": bang, "la_van_don": vd, "cac_cot": cac_cot, "cac_cot_trong": cac_cot_trong,
                 "qs_giu": qs_giu, "oob_id": "dong-" + khoa,
-                "d": grid_service.row_context(moi, cac_cot, request.user, waybill=vd, stt=_so_dong(khoa[4:])),
+                "d": grid_service.row_context(moi, cac_cot, request.user, waybill=vd, stt=_so_dong(khoa[4:]), qs_giu=qs_giu),
             }, request))
     for pk, cac in co_san.items():
         ban_ghi = ban_ghi_theo_pk[pk]
@@ -565,13 +589,13 @@ def bang_tinh_luu_o(request, code):
             cot = theo_ma[ma]
             cd = co_dinh.get(ma)
             kieu = (ban_ghi.style or {}).get(ma)
-            manh.append(render_to_string("crm/_o.html", {
+            manh.append(_o_html({
                 "bang": bang, "ban_ghi": ban_ghi, "cot": cot, "gia_tri": ban_ghi.data.get(ma),
                 "hien": grid_service.display_value(cot, ban_ghi.data.get(ma), kieu),
                 "duoc_sua": sua, "qs_giu": qs_giu, "oob": True,
                 "lop": grid_service.cell_class(cot, cd, sua, style=kieu),
                 "style": grid_service.frozen_style(cd, offset=lech),
-            }, request))
+            }))
     return HttpResponse("".join(manh_dong + manh))
 
 
@@ -640,7 +664,7 @@ def bang_tinh_khoi_phuc_dong(request, code):
     }
     return HttpResponse("".join(
         render_to_string("crm/_dong.html", {
-            **boi_canh, "d": grid_service.row_context(theo_pk[pk], cac_cot, request.user, waybill=vd),
+            **boi_canh, "d": grid_service.row_context(theo_pk[pk], cac_cot, request.user, waybill=vd, qs_giu=_qs_hien_tai(request)),
         }, request) for pk in pks if pk in theo_pk
     ))
 
@@ -708,13 +732,22 @@ def bang_tinh_xoa_cot(request, code):
 def bang_tinh_moi_nhat(request, code):
     """Mốc mới nhất của bảng trong phạm vi người xem — lưới hỏi mỗi
     `GRID_POLL_SECONDS` giây để tự cập nhật khi người khác sửa (ADR-011).
-    Chỉ có thời điểm, số dòng và số cột — không có dữ liệu."""
-    bang = _bang(request, code)
-    tong = DataRecord.objects.in_scope(request.user).filter(table=bang).aggregate(moc=Max("updated_at"), so=Count("id"))
+    Chỉ có thời điểm sửa gần nhất, số cột và tiến độ tác vụ tính lại cột (nếu
+    có, ADR-016) — không có dữ liệu. Không đếm dòng: thêm, xoá mềm, khôi phục
+    đều đổi `updated_at` (kể cả dòng đã xoá, nên lấy trên `all_objects`), mà
+    COUNT(*) là quét cả bảng 100 tab × mỗi 8 giây (K27).
+    """
+    bang = _bang(request, code)                     # bảng ngoài phạm vi → 404 ở đây
+    # Mốc theo **cả bảng**, không theo phạm vi từng người: `_bang` đã kiểm quyền
+    # xem bảng, còn mốc chỉ nói "có gì đổi", không lộ dữ liệu; lọc thêm theo phạm
+    # vi là JOIN cản chỉ mục `(table, updated_at)` và thành quét cả bảng (78 ms ×
+    # 100 tab × mỗi 8 giây). `all_objects`: dòng xoá mềm vẫn mang mốc xoá nên xoá
+    # một dòng bất kỳ cũng đổi mốc.
+    tong = DataRecord.all_objects.filter(table=bang).aggregate(moc=Max("updated_at"))
     return JsonResponse({
         "moc": tong["moc"].isoformat() if tong["moc"] else "",
-        "so": tong["so"],
         "cot": bang.columns.count(),
+        "tinh_lai": table_service.recompute_job_of(bang),
     })
 
 

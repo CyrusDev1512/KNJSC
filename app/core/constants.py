@@ -104,6 +104,9 @@ PERF_READ_P95_MS = 1000                  # mở lưới, lọc, chuyển trang, 
 PERF_WRITE_P95_MS = 500                  # lưu ô, dòng mới, định dạng
 PERF_POLL_P95_MS = 300                   # moi-nhat/ (mỗi tab hỏi mỗi GRID_POLL_SECONDS giây)
 PERF_RECOMPUTE_SECONDS = 30              # tính lại cột tính sẵn trên PERF_LOAD_ROWS dòng
+RECOMPUTE_SYNC_MAX_ROWS = 2_000          # bảng nhiều dòng hơn thì tính lại cột ở tác vụ nền — ADR-016
+RECOMPUTE_BATCH = 1_000                  # mỗi lô tính lại: đọc, tính, bulk_save, báo tiến độ
+RECOMPUTE_THREADS = 2                    # worker tính lại song song bấy nhiêu lô — ghi JSON có GIN là việc của Postgres
 
 
 class FileKind(models.TextChoices):
@@ -142,6 +145,7 @@ class JobKind(models.TextChoices):
     EXPORT = "export", "Xuất tệp"
     BACKUP = "backup", "Sao lưu"
     CLEANUP = "cleanup", "Dọn dẹp"
+    RECOMPUTE = "recompute", "Tính lại cột"          # đổi cột tính sẵn / nhãn trên bảng lớn — ADR-016
 
 
 class JobStatus(models.TextChoices):

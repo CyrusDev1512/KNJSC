@@ -185,7 +185,7 @@ def test_insert_columns_dich_vu(bang_sale, nguoi_dung):
 # ══ Mốc mới nhất để tự cập nhật — AC-11.26 ════════════════════════
 
 def test_moi_nhat_tra_moc_trong_pham_vi(client, bang_sale, nguoi_dung):
-    """AC-11.26 — `moi-nhat/` trả mốc sửa gần nhất, số dòng và số cột **trong phạm vi người xem**, không có dữ liệu; đổi ô thì mốc đổi; bộ phận khác 404; chưa đăng nhập thì chuyển về đăng nhập"""
+    """AC-11.26 — `moi-nhat/` trả mốc sửa gần nhất và số cột **trong phạm vi người xem**, không có dữ liệu, không đếm dòng; đổi ô, xoá mềm, thêm dòng đều đổi mốc; bộ phận khác 404; chưa đăng nhập thì chuyển về đăng nhập"""
     nv, nv_b = nguoi_dung["staff_sale_1"], nguoi_dung["staff_sale_1b"]
     d1 = _dong(bang_sale, nv, khach="A", doanh_thu="10", so_luong="1")
     _dong(bang_sale, nv_b, khach="B", doanh_thu="10", so_luong="1")
@@ -193,11 +193,14 @@ def test_moi_nhat_tra_moc_trong_pham_vi(client, bang_sale, nguoi_dung):
     kq = client.get(f"/bang-tinh/{bang_sale.code}/moi-nhat/")
     assert kq.status_code == 200
     d = kq.json()
-    assert d["so"] == 1 and d["cot"] == 5 and d["moc"] and "A" not in kq.content.decode()
+    assert "so" not in d and d["cot"] == 5 and d["moc"] and d["tinh_lai"] is None and "A" not in kq.content.decode()
     record_service.update_cell(d1, "khach", "A2", actor=nv)
-    assert client.get(f"/bang-tinh/{bang_sale.code}/moi-nhat/").json()["moc"] >= d["moc"]
-    client.force_login(nguoi_dung["manager_sale"])
-    assert client.get(f"/bang-tinh/{bang_sale.code}/moi-nhat/").json()["so"] == 2
+    moc2 = client.get(f"/bang-tinh/{bang_sale.code}/moi-nhat/").json()["moc"]
+    assert moc2 > d["moc"]
+    client.force_login(nguoi_dung["manager_sale"])         # Manager thấy cả hai dòng
+    moc_ql = client.get(f"/bang-tinh/{bang_sale.code}/moi-nhat/").json()["moc"]
+    record_service.delete_record(d1, actor=nv)              # xoá mềm cũng đổi mốc (không cần đếm dòng)
+    assert client.get(f"/bang-tinh/{bang_sale.code}/moi-nhat/").json()["moc"] > moc_ql
     client.force_login(nguoi_dung["staff_mkt"])
     assert client.get(f"/bang-tinh/{bang_sale.code}/moi-nhat/").status_code == 404
     client.logout()
