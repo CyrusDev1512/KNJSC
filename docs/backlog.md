@@ -153,7 +153,7 @@ Không cái nào chặn triển khai. Xếp theo mức.
 | **K26** | `GRID_ONLY_TABLES` và `is_grid_only` chỉ còn KN CRM dùng sau khi KN ERP gỡ hẳn sửa ô (ADR-014); ở dịch vụ `bangtinh` danh sách đã rỗng — thread KN CRM xem xét bỏ luôn | Thấp |
 | **K27** | Tệp tài liệu ở `storage/tai-lieu/` không nằm trong `pg_dump` — phục hồi từ bản sao lưu là mất tệp nếu không chép thư mục đi kèm | Trung bình |
 | **K28** | `docs/so-do-kien-truc.html` và sơ đồ trong `docs/kien-truc.md` chưa vẽ năm app Nội bộ | Thấp |
-| **K29** | Bài Playwright `test_dong_trong_thanh_dong_that_va_loc_theo_o_khoa` (lưới KN CRM) đỏ cả trên `main` 345e1c0: bấm ⌕ ở ô Mã đơn không chuyển sang `?f_ma_don=…` — thread KN CRM xem | Trung bình |
+| **K29** | Bài Playwright `test_dong_trong_thanh_dong_that_va_loc_theo_o_khoa` (lưới KN CRM) đỏ cả trên `main` 345e1c0: bấm ⌕ ở ô Mã đơn không chuyển sang `?f_ma_don=…`; `test_ban_phim_di_chuyen_sua_va_huy` đỏ khi chạy đủ `cham`, chạy riêng xanh trên cả hai nhánh — thread KN CRM xem | Trung bình |
 | **K8** | `ScopedModel` chưa có cột "người sửa" | Thấp |
 | **K10** | Quy tắc Q3 chưa áp ở màn hình nào | Thấp |
 | **K14** | Nhánh Staff trong `apply_scope` không đọc phạm vi cấp thêm | Thấp |
@@ -198,7 +198,7 @@ mục 6.
 | K26 | `GRID_ONLY_TABLES` và `grant_service.is_grid_only` chỉ còn KN CRM dùng (lưới báo chỉ xem; bảy tệp `crm/tests` dựa vào nó để kiểm chiều 403) sau khi KN ERP gỡ hẳn sửa ô (ADR-014); ở dịch vụ `bangtinh` danh sách đã rỗng nên thread KN CRM xem xét bỏ luôn — thread KNERP không đụng `app/crm/` | KNERP 06.09 |
 | K27 | Tài liệu tải lên nằm ở `storage/tai-lieu/`, ngoài `pg_dump`: `scripts/backup.sh` chưa chép thư mục này, `restore.sh` cũng không; hiện `docs/05` B8 và B10 dặn chép tay cùng bản sao lưu | Trung bình | ADR-015 |
 | K28 | Sơ đồ `docs/so-do-kien-truc.html` và hình vẽ trong `docs/kien-truc.md` chưa có năm app Nội bộ; bảng module ở `docs/kien-truc.md` và `docs/cau-truc-thu-muc.md` đã cập nhật chữ | Thấp | ADR-015 |
-| K29 | `tests/e2e/test_bang_tinh_ui.py::test_dong_trong_thanh_dong_that_va_loc_theo_o_khoa` đỏ ngày 07.09.2026 khi chạy đủ `cham` — chạy riêng trên `main` 345e1c0 (worktree sạch, cơ sở dữ liệu kiểm thử riêng) cũng đỏ y hệt: sau khi gõ dòng trống thành dòng thật, bấm `.o-khoa-loc` ở ô Mã đơn `DH-1` không chuyển tới `?f_ma_don=DH-1…` trong 15 giây. Không phải do nhánh Nội bộ; cùng họ với K23 (hộp lọc gửi form hai lần) — thread KN CRM xem, thread KNERP không đụng `app/crm/` | Trung bình | KNERP 07.09 |
+| K29 | `tests/e2e/test_bang_tinh_ui.py::test_dong_trong_thanh_dong_that_va_loc_theo_o_khoa` đỏ ngày 07.09.2026 khi chạy đủ `cham` — chạy riêng trên `main` 345e1c0 (worktree sạch, cơ sở dữ liệu kiểm thử riêng) cũng đỏ y hệt: sau khi gõ dòng trống thành dòng thật, bấm `.o-khoa-loc` ở ô Mã đơn `DH-1` không chuyển tới `?f_ma_don=DH-1…` trong 15 giây. Không phải do nhánh Nội bộ; cùng họ với K23 (hộp lọc gửi form hai lần). Cùng lần chạy đủ `cham` (28 đạt, 3 xfail), `test_ban_phim_di_chuyen_sua_va_huy` cũng đỏ (chờ ô Trạng thái VC đổi sau khi chọn danh sách quá 15 giây) nhưng chạy riêng thì xanh trên cả `main` lẫn nhánh Nội bộ — nghi do tải Chromium khi chạy nhiều bài liền, cần chờ có điều kiện thay vì đếm giây. Thread KN CRM xem, thread KNERP không đụng `app/crm/` | Trung bình | KNERP 07.09 |
 
 ### 1.2. Nghiệp vụ
 
