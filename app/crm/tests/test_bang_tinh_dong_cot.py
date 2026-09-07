@@ -75,7 +75,7 @@ def test_xoa_dong_la_xoa_mem_va_khoi_phuc_duoc(client, bang_sale, nguoi_dung):
 
 
 def test_phan_quyen_xoa_dong_ba_cap_bac(client, bang_sale, bang_vd, nguoi_dung):
-    """AC-11.21 — Staff chỉ xoá dòng của mình (dòng người khác 403 có nhật ký, cả gói không xoá), Leader không xoá dòng người khác, Manager và Admin cả bộ phận; bộ phận khác 404; bảng vận đơn chỉ xem ở dịch vụ chính 403"""
+    """AC-11.21 — Staff chỉ xoá dòng của mình (dòng người khác 403 có nhật ký, cả gói không xoá), Leader, Manager và Admin xoá được dòng người khác cùng bộ phận (ADR-015); bộ phận khác 404; bảng vận đơn chỉ xem ở dịch vụ chính 403"""
     nv, nv_b = nguoi_dung["staff_sale_1"], nguoi_dung["staff_sale_1b"]
     d_nv = _dong(bang_sale, nv, khach="A", doanh_thu="10", so_luong="1")
     d_b = _dong(bang_sale, nv_b, khach="B", doanh_thu="10", so_luong="1")
@@ -85,7 +85,8 @@ def test_phan_quyen_xoa_dong_ba_cap_bac(client, bang_sale, bang_vd, nguoi_dung):
     assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == truoc + 1
     assert DataRecord.objects.filter(table=bang_sale).count() == 2          # cả gói không xoá
     client.force_login(nguoi_dung["leader_sale_1"])
-    assert client.post(f"/bang-tinh/{bang_sale.code}/xoa-dong/", {"pk": [d_b.pk]}).status_code == 403
+    assert client.post(f"/bang-tinh/{bang_sale.code}/xoa-dong/", {"pk": [d_b.pk]}).status_code == 200
+    assert client.post(f"/bang-tinh/{bang_sale.code}/khoi-phuc-dong/", {"pk": [d_b.pk]}).status_code == 200
     client.force_login(nguoi_dung["staff_mkt"])
     assert client.post(f"/bang-tinh/{bang_sale.code}/xoa-dong/", {"pk": [d_b.pk]}).status_code == 404
     client.force_login(nguoi_dung["manager_sale"])
@@ -149,13 +150,18 @@ def test_bo_cot_giu_gia_tri_va_tu_choi_cot_khoa_cot_tinh(client, bang_sale, bang
 
 
 def test_phan_quyen_chen_bo_cot_ba_cap_bac(client, bang_sale, nguoi_dung):
-    """AC-11.22 — Staff và Leader không chèn hay bỏ cột (403 có nhật ký); Manager bộ phận khác 404; Manager của bộ phận sở hữu và Admin thì được"""
+    """AC-11.22 — Staff không chèn hay bỏ cột (403 có nhật ký); Manager bộ phận khác 404; Leader, Manager của bộ phận sở hữu và Admin thì được (ADR-015)"""
     truoc = AuditLog.objects.filter(action=AuditAction.DENIED).count()
-    for ai in ("staff_sale_1", "leader_sale_1"):
+    for ai in ("staff_sale_1",):
         client.force_login(nguoi_dung[ai])
         assert client.post(f"/bang-tinh/{bang_sale.code}/them-cot/", {"canh": "khach", "so": 1}).status_code == 403
         assert client.post(f"/bang-tinh/{bang_sale.code}/xoa-cot/", {"cot": ["so_luong"]}).status_code == 403
-    assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == truoc + 4
+    assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == truoc + 2
+    client.force_login(nguoi_dung["leader_sale_1"])
+    assert client.post(f"/bang-tinh/{bang_sale.code}/them-cot/", {"canh": "khach", "so": 1}).status_code == 200
+    assert bang_sale.columns.filter(code="cot_moi_1").exists()
+    assert client.post(f"/bang-tinh/{bang_sale.code}/xoa-cot/", {"cot": ["cot_moi_1"]}).status_code == 200
+    assert not bang_sale.columns.filter(code="cot_moi_1").exists()
     client.force_login(nguoi_dung["manager_mkt"])
     assert client.post(f"/bang-tinh/{bang_sale.code}/them-cot/", {"so": 1}).status_code == 404
     client.force_login(nguoi_dung["admin"])

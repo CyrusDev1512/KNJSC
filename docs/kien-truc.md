@@ -69,8 +69,9 @@ Bản phác thảo để bàn. Mọi phần đều có thể đổi.
 `orders` và `crm` là hai module riêng. `orders` giữ đơn hàng và sản phẩm;
 `crm` giữ khách hàng và màn hình Bảng tính — lưới kiểu Excel cho mọi bảng,
 nhìn và thao tác như bảng tính KN Demo, chạy thành app riêng **KN CRM** với
-trang chủ là cây Bộ phận ▸ Quý ▸ Tháng (ADR-004, ADR-009, ADR-010, ADR-011,
-ADR-012).
+sidebar theo Teeze, trang chủ tổng quan, mục Bảng tính là cây Bộ phận ▸ Quý ▸
+Tháng, Leader như Manager trong bộ phận (ADR-004, ADR-009, ADR-010, ADR-011,
+ADR-012, ADR-015).
 Tách ra vì `crm` sẽ thành ứng dụng riêng khi đo được điều kiện ở cuối tài
 liệu này, còn `orders` thì ở lại.
 
@@ -315,7 +316,8 @@ Giao diện dùng chung không thành module riêng mà nằm ở `app/templates
 ├── Kiểm thử toàn diện: Playwright, Locust, 50.000 dòng, ma trận 45 ô
 ├── Bảng tính cho mọi bảng: viền ô, dòng trống, cột khoá, thanh lọc trái, định dạng ô, thư mục (ADR-010)
 ├── Bảng tính nhìn và thao tác như KN Demo: chọn vùng, dán, kéo điền, chuột phải, hoàn tác, tự cập nhật (ADR-011)
-└── KN CRM là app riêng, ERP chỉ liên kết; trang chủ cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng, tháng là góc nhìn (ADR-012)
+├── KN CRM là app riêng, ERP chỉ liên kết; cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng, tháng là góc nhìn (ADR-012)
+└── KN CRM có sidebar theo Teeze, trang chủ tổng quan; Leader như Manager trong bộ phận; tạo bảng, nhập tệp, cấp quyền ngay trong KN CRM (ADR-015)
 ```
 
 ### Giai đoạn 8 — Đưa lên máy chủ và hoàn thiện

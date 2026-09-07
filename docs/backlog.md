@@ -34,8 +34,10 @@ tóm để không phải lục.
 > PR #5** tối 06.09; đợt chỉnh sửa KNERP đầu tiên — ô chọn có "Thêm mới…",
 > danh tính người điền tự ghi, màu cột và viền ô (ADR-013) — vào qua PR #11;
 > đợt thứ hai cùng ngày: **Bảng dữ liệu chỉ để xem với mọi bảng**, gỡ hẳn sửa
-> ô ở KN ERP (ADR-014, Q62). Nghiệm thu bấm tay theo `docs/07` vẫn chờ anh/chị.
-> Mục D chỉ còn `AC-5.1`.
+> ô ở KN ERP (ADR-015, Q62). **KN CRM đợt 2** (7J, ADR-015: khung sidebar theo
+> Teeze, trang chủ tổng quan, Leader như Manager trong bộ phận, tạo bảng/nhập
+> tệp/cấp quyền ngay trong KN CRM, logo tự vẽ) vào qua PR #19. Nghiệm thu bấm
+> tay theo `docs/07` vẫn chờ anh/chị. Mục D chỉ còn `AC-5.1`.
 
 **Đang ở đâu:** xong Giai đoạn 0 tới 7. Nhập tệp Excel/CSV bốn bước có xem
 trước và tiến độ, xuất kèm bộ lọc, tệp lớn chạy nền giữ 24 giờ (7A). Sao lưu
@@ -62,8 +64,13 @@ cho Manager ở biểu mẫu, báo cáo ngày và Lên đơn; sản phẩm lấy
 danh mục, Manager thêm tại chỗ; trường Người bán tự ghi tên người điền; Bảng dữ
 liệu có viền, tiêu đề xanh lá, màu cột và ngưỡng cảnh báo. **Bảng dữ liệu chỉ để
 xem** với mọi bảng (7I, ADR-014): gỡ hẳn đường sửa ô ở KN ERP, sửa số liệu là
-việc của KN CRM; luật 13 trong `CLAUDE.md`. 103 tiêu chí, 91 trên 92 tự động có
-bài kiểm.
+việc của KN CRM; luật 13 trong `CLAUDE.md`. **KN CRM đợt 2** (7J, ADR-015): KN CRM
+có sidebar theo Teeze (avatar, Trang chủ, Bảng tính gập theo bộ phận, Nhập tệp,
+Cấp quyền, Tác vụ nền, KN ERP), trang chủ là tổng quan theo phạm vi, cây tháng
+thành mục Bảng tính ở `/thu-muc/`, lưới vẫn toàn màn hình và chỉ lưới có ← (về
+thư mục, không về ERP); Leader được như Manager trong bộ phận mình; tạo bảng, sửa
+cột kèm cấp quyền, nhập tệp chạy ngay trong KN CRM; logo tự vẽ và favicon. 107 tiêu
+chí, 95 trên 96 tự động có bài kiểm.
 
 **Việc tiếp theo:** **nghiệm thu một đợt theo `docs/07`** — anh/chị bấm tay
 từng vai, đánh ☑, gửi danh sách lỗi. Mọi thứ đã ở `main`, các nhánh cũ đã xoá:
@@ -77,7 +84,7 @@ CRM, KN ERP dùng tốt trên điện thoại, đo tải trên máy chủ thật
 kiểm thử tự động đều đạt, nhưng anh/chị **chưa trực tiếp thử màn hình nào**. Phần
 trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải *đã nghiệm thu*.
 
-**Mười lăm việc làm được ngay bây giờ — kịch bản từng bước ở `docs/07`:**
+**Mười sáu việc làm được ngay bây giờ — kịch bản từng bước ở `docs/07`:**
 
 | ☐ | Việc | Mã |
 |---|---|---|
@@ -96,6 +103,7 @@ trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải
 | ☐ | Bảng tính: mọi ô có viền, thanh công cụ đủ mục, ẩn cột nhớ được, thanh bên thu gọn được | `AC-11.18` |
 | ☐ | Bảng tính đặt cạnh ảnh `docs/tham-khao/kn-demo/`: khung, thanh công thức, số dòng, chữ cột, cột trống, chân trang, ⛶; kéo chọn vùng, dán từ Excel, chuột phải | `AC-11.27` |
 | ☐ | KN CRM: bấm mục trên thanh bên ERP mở tab mới; trang chủ cây Bộ phận ▸ Quý ▸ Tháng; bấm tháng → Mở → lưới lọc tháng → ← về đúng nhánh | `docs/07` mục 3.3 |
+| ☐ | KN CRM đợt 2: trang chủ tổng quan có menu trái; Bảng tính → thư mục → Mở → lưới full → ← về thư mục; Leader tạo thư mục, cột, bảng, nhập tệp trong bộ phận mình; Nhập tệp và Cấp quyền trên sidebar | `AC-11.31` → `AC-11.34` · `docs/07` |
 
 **Một việc biết trước là chưa đạt:**
 
@@ -269,6 +277,9 @@ mục 6.
 | Q60 | Tô màu chỉ số quan trọng trên Bảng dữ liệu theo cách nào | **Màu cột** (vàng, đỏ, xanh lá, xanh dương) tô tiêu đề lẫn ô, cộng **ngưỡng cảnh báo** cho cột số (đỏ khi lớn hơn / nhỏ hơn X, còn lại xanh lá); tiêu đề mặc định **xanh lá cố định**; là thuộc tính của cột, khác định dạng từng ô của ADR-010; viền chỉ ở bảng mang lớp `bang-luoi` — ADR-013, AC-8.9, AC-8.10 | 06.09.2026 |
 | Q62 | Bảng dữ liệu ở KN ERP có sửa ô không — sửa Q26, Q42 và ADR-010 mục 1 | **Không, với mọi bảng.** Bảng dữ liệu chỉ để xem; sửa số liệu là việc của KN CRM. Gỡ hẳn view `bang_sua_o`, `_o.html`, `choice_service.attach_lists`, khối script sửa ô; nút "Mở trong KN CRM" và dòng báo hiện với mọi bảng; `GRID_ONLY_TABLES` chỉ còn KN CRM dùng (K26) — ADR-014, AC-7.4, AC-11.7, luật 13 `CLAUDE.md` | 06.09.2026 |
 | Q61 | Ai thêm sản phẩm, thêm ở đâu | **Manager bất kỳ bộ phận (hoặc Admin) thêm ngay tại ô chọn** — trên biểu mẫu, ô bảng và Lên đơn; mã tự sinh từ tên, đồng bộ cột `sl_` trên bảng vận đơn ngay. Màn hình quản lý sản phẩm đầy đủ để sau (S11) — AC-6.9 | 06.09.2026 |
+| Q63 | KN CRM cần trang chủ và menu trái không, lưới có sidebar không | **Có khung riêng như một app**: sidebar theo Teeze (ảnh anh/chị gửi), trang chủ là tổng quan như ERP, cây tháng là mục **Bảng tính** ở `/thu-muc/`; **lưới vẫn full như Excel**, chỉ khi chủ động quay về mới thấy menu trái; chỉ lưới có ← và nó về thư mục, không về ERP — AC-11.31, AC-11.32, ADR-015 | 07.09.2026 |
+| Q64 | Leader được làm gì trong KN CRM | **Như Manager trong bộ phận mình**: thư mục, cột, tạo bảng, nhập tệp, xuất, sửa/xoá dòng người khác (một hàm `_quan_ly_bo_phan`); cấp quyền cho người khác vẫn Manager; phạm vi xem không đổi — AC-11.33, ADR-015 | 07.09.2026 |
+| Q65 | Nhập tệp, tạo bảng, cấp quyền có phải bật sang ERP không | **Không** — gắn view forms_builder vào 8021, template kế thừa khung KN CRM qua biến `khung`; mục Nhập tệp (Leader+) và Cấp quyền (Manager) trên sidebar — AC-11.34, ADR-015 | 07.09.2026 |
 
 ---
 
@@ -423,3 +434,5 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 06.09.2026 | Người dùng muốn thêm skill thiết kế như bên Codex: **Impeccable** và **taste-skill** ("teach taste" của Impeccable nay là `/impeccable init`, `teach` là bí danh). Trong phiên web, `impeccable.style` bị chính sách mạng chặn (403) và `npx skills add` bị bộ phân loại chặn, nên chép thẳng từ kho nguồn GitHub: Impeccable skill 4.2.1 (Apache-2.0) vào `.claude/skills/impeccable/` kèm 4 subagent ở `.claude/agents/`, và 4 trên 13 skill của taste-skill (MIT): `design-taste-frontend`, `redesign-existing-projects`, `high-end-visual-design`, `minimalist-ui`; bỏ các skill sinh ảnh và bản riêng cho Codex, Stitch. Không commit hook detector (chạy engine sau mỗi lần sửa tệp), bật tay bằng `/impeccable hooks on`; engine tải về `~/.impeccable/bin/` lần đầu chạy, không nằm trong kho. Ghi nguồn và cách cập nhật ở `.claude/skills/NGUON.md`; CLAUDE.md thêm mục "Skill thiết kế giao diện" nhắc quy tắc 8 đứng trên gợi ý thư viện của skill |
 | 06.09.2026 | Chạy `/impeccable init`. Ba câu hỏi, ba câu trả lời: (1) tên chính thức **KNERP** cho hệ thống chính, **KN CRM** cho bảng tính, **Kim Ngân JSC** là công ty; (2) **máy tính là chính, điện thoại phụ** để nộp báo cáo ngày và xem nhanh; (3) **nhiều người dùng máy yếu hoặc mạng yếu**, không có yêu cầu trợ năng nào được nêu (ghi là chưa quyết). Viết `PRODUCT.md` ở thư mục gốc theo lược đồ của Impeccable, phần còn lại lấy từ docs và ADR; không ghi hướng thẩm mỹ. Không có công cụ sinh ảnh trong phiên nên chưa ghi `buildPath`; chế độ live chưa cấu hình vì ứng dụng không chạy trong phiên web. Ngay sau đó chủ dự án nói thêm: *hiện chưa cần quá lo về hiệu năng*, nên PRODUCT.md hạ "máy yếu, mạng yếu" từ ràng buộc xuống điều cần biết, không lấy làm cớ cắt hiệu ứng hay tính năng |
 | 06.09.2026 | Anh/chị hỏi vì sao bảng vận đơn không sửa được mà Báo cáo Marketing lại sửa được ngay trên Bảng dữ liệu: vì `GRID_ONLY_TABLES` chỉ có `van_don` (ADR-009 mục 4), bảng khác còn luật sửa ô của Giai đoạn 3 (FR-7.4) và ADR-010 mục 1 giữ nguyên điều đó; đợt KNERP đầu tiên không nêu mâu thuẫn này ra. Anh/chị hỏi tiếp gỡ hết dấu vết sửa ô có nhẹ đi không — trả lời thật: không bớt dữ liệu, tính toán khi ghi chuyển sang KN CRM cùng bộ mã; nhẹ ở mã và ở trang bảng có cột chọn; lý do thật là một cửa ghi duy nhất. Chốt **Bảng dữ liệu chỉ để xem với mọi bảng, sửa số liệu là việc của KN CRM** (Q62, ADR-014, luật 13 `CLAUDE.md`) và gỡ hết phía ERP: view `bang_sua_o` + đường dẫn, `_o.html`, khối script trong `bang_xem.html`, nhánh `editable` của `styling`, `choice_service.attach_lists`, handler 400 trong `chon.js`, CSS `o-loi-ly-do`; nút "Mở trong KN CRM" và dòng báo hiện với mọi bảng. Giữ `can_edit_record`, `record_service`, `GRID_ONLY_TABLES` vì lưới KN CRM dùng (K26). 14 bài kiểm thử sửa ô viết lại thành bài chỉ xem (AC-7.4, AC-11.7, AC-8.7) và bài gọi thẳng `update_cell` (BR-5, ADR-006, AC-7.10); một khẳng định ở `crm/tests/test_bang_tinh.py` đổi 403 → 404 |
+| 07.09.2026 | Anh/chị mở KN CRM sau khi gộp PR #5 và nêu bốn điểm: bấm ← mãi rơi về ERP; chưa có trang chủ, chưa có sidebar; thư mục phải là một mục trên sidebar; Leader và Manager được thêm/sửa/xoá/tạo/nhập/xuất. Chốt qua ba câu hỏi và ảnh Teeze: trang chủ tổng quan như ERP, sidebar theo Teeze, Leader như Manager trong bộ phận, lưới vẫn full như Excel và chỉ khi chủ động quay về mới thấy menu trái. Làm **7I** trên nhánh `claude/kn-crm-khung-sidebar` (ADR-015): `grant_service._quan_ly_bo_phan` một chỗ cho mọi phép kiểm quản lý bộ phận, Sửa cột ở ERP kiểm thêm `can_manage_columns` (bịt lỗ Manager bộ phận khác được cấp Xem vẫn sửa cột); `base_crm.html` + `crm/navigation.py` + context processor `khung_crm`; trang chủ `/` = `tong_quan_service`; cây tháng sang `/thu-muc/`; view forms_builder gắn vào 8021 với `{% extends khung %}`, tên `bang`/`bang_xem` chuyển hướng có đăng nhập. Ba lần đụng **tên lớp CSS trùng** giữa sidebar và trang thư mục (`crm-nhan`, `crm-nhom`) làm chữ hoá đơn cách — đặt tiền tố `crm-nav-` cho sidebar. AC-11.31 → AC-11.34, sửa AC-8.8/8.9/11.17/11.19/11.21/11.22/3.6 và ma trận; 107 tiêu chí, 95 trên 96. Số ADR: thread KNERP đã lấy 013 nên đợt này là **014**, sửa dòng trùng "012" trong danh sách ADR |
+| 07.09.2026 | Anh/chị muốn thay ▦ trên thanh trên lưới bằng **logo tự thiết kế**, bấm logo về trang chủ; chốt tôi vẽ, đặt ở thanh trên lưới, đầu menu trái KN CRM, đầu menu trái KN ERP và favicon. Vẽ `static/img/kn-crm.svg` cùng họ KN JSC (ô xanh gradient, KN trắng, vạch cam) thêm dấu lưới 3×2 vàng nhạt và chữ CRM; `static/img/kn-jsc.svg` là bản web của `scripts/KN JSC.svg`. Context processor `khung_crm` trả `logo` theo dịch vụ để một dòng favicon dùng chung ở bốn khung; trang đăng nhập cũng mang logo. Trước đó hệ thống chưa có favicon nào |

@@ -1,4 +1,4 @@
-"""Trang chủ KN CRM — cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng, `docs/04` mục 11, ADR-012.
+"""Trang thư mục KN CRM (mục Bảng tính, `/thu-muc/`) — cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng, `docs/04` mục 11, ADR-012, ADR-015.
 
 Chạy ở app KN CRM (`conftest.py` đặt URLconf 8021). Mỗi bài phân quyền kiểm
 cả hai chiều: nhánh được xem có mặt, nhánh ngoài phạm vi không có; `bp` ngoài
@@ -68,14 +68,14 @@ def du_lieu(bang_vd, bang_sale, bang_khong_ngay, nguoi_dung):
 
 
 def _trang(client, **tham_so):
-    kq = client.get("/", tham_so)
+    kq = client.get("/thu-muc/", tham_so)
     return kq, (kq.content.decode() if kq.status_code == 200 else "")
 
 
 # ══ Cây theo phạm vi — AC-11.28 ════════════════════════════════════
 
 def test_trang_chu_theo_pham_vi_quyen(client, du_lieu, nguoi_dung, departments, django_assert_max_num_queries):
-    """AC-11.28 — Trang chủ KN CRM: cây Bộ phận ▸ Quý ▸ Tháng chỉ dựng từ bảng trong phạm vi (Vận đơn không thấy nhánh Sale và ngược lại, Admin thấy mọi bộ phận, bảng được cấp quyền Xem hiện với nhãn Xem); số dòng theo tháng đúng phạm vi cấp bậc; `bp` ngoài phạm vi 404; trong ngân sách truy vấn của lưới"""
+    """AC-11.28 — Trang thư mục KN CRM (mục Bảng tính): cây Bộ phận ▸ Quý ▸ Tháng chỉ dựng từ bảng trong phạm vi (Vận đơn không thấy nhánh Sale và ngược lại, Admin thấy mọi bộ phận, bảng được cấp quyền Xem hiện với nhãn Xem); số dòng theo tháng đúng phạm vi cấp bậc; `bp` ngoài phạm vi 404; trong ngân sách truy vấn của lưới"""
     # Vận đơn: thấy nhánh Vận đơn với quý 3 (tháng 9: 2 dòng, tháng 8: 1) và quý 2 (tháng 4: 1)
     client.force_login(nguoi_dung["staff_vd"])
     with django_assert_max_num_queries(14):          # cùng ngân sách với lưới — backlog K24
@@ -88,8 +88,8 @@ def test_trang_chu_theo_pham_vi_quyen(client, du_lieu, nguoi_dung, departments, 
     assert "Tháng 4/2026 <span class=\"crm-so\">1</span>" in html
     assert kq.context["tieu_de"] == "Vận đơn · Tháng 9/2026"
     # Nhánh Sale không có với Vận đơn, kể cả gõ thẳng bp → 404, không phải trang rỗng
-    assert client.get("/", {"bp": "sale"}).status_code == 404
-    assert client.get("/", {"bp": "khong-co"}).status_code == 404
+    assert client.get("/thu-muc/", {"bp": "sale"}).status_code == 404
+    assert client.get("/thu-muc/", {"bp": "khong-co"}).status_code == 404
 
     # Sale staff: chỉ dòng của mình đếm vào tháng (AC-3.1), không thấy Vận đơn
     client.force_login(nguoi_dung["staff_sale_1"])
@@ -111,7 +111,7 @@ def test_trang_chu_theo_pham_vi_quyen(client, du_lieu, nguoi_dung, departments, 
 
     # Marketing được cấp quyền XEM bảng Sale: thấy nhánh Sale với nhãn Xem, không thấy Vận đơn
     mkt = nguoi_dung["staff_mkt"]
-    assert client.force_login(mkt) is None and client.get("/").status_code == 404   # chưa có bảng nào
+    assert client.force_login(mkt) is None and client.get("/thu-muc/").status_code == 404   # chưa có bảng nào
     grant_service.grant(table=du_lieu["sale"], user=mkt, action=GrantAction.VIEW, actor=nguoi_dung["manager_sale"])
     grant_service.clear_cache(mkt)
     kq, html = _trang(client, bp="sale", **{"tat-ca": "1"})
@@ -120,7 +120,7 @@ def test_trang_chu_theo_pham_vi_quyen(client, du_lieu, nguoi_dung, departments, 
     assert "Danh mục Sale" not in html                                    # bảng không được cấp
 
     client.logout()
-    kq = client.get("/")
+    kq = client.get("/thu-muc/")
     assert kq.status_code == 302 and "/dang-nhap/" in kq["Location"]
 
 
@@ -142,7 +142,7 @@ def test_bam_thang_mo_luoi_loc_dung_thang(client, du_lieu, nguoi_dung):
     assert luoi.context["thang_dang_xem"].label == "Tháng 9/2026"
     html_luoi = luoi.content.decode()
     assert "Tháng 9/2026" in html_luoi
-    assert 'href="/?bp=sale&amp;thang=2026-09"' in html_luoi or 'href="/?bp=sale&thang=2026-09"' in html_luoi, "← phải về đúng nhánh"
+    assert 'href="/thu-muc/?bp=sale&amp;thang=2026-09"' in html_luoi or 'href="/thu-muc/?bp=sale&thang=2026-09"' in html_luoi, "← phải về đúng nhánh"
     # Tháng 2 năm nhuận: ngày cuối đúng
     assert tree_service.Month(2028, 2).last == date(2028, 2, 29)
     # Lọc không trọn tháng thì không có nhãn
@@ -158,7 +158,7 @@ def test_bam_thang_mo_luoi_loc_dung_thang(client, du_lieu, nguoi_dung):
     # Quý gõ tay chưa có dữ liệu vẫn mở với ba tháng trống, tháng sai dạng thì về mặc định
     kq, html = _trang(client, quy="2025-4")
     assert kq.status_code == 200 and "Quý 4/2025" in html and "Tháng 12/2025" in html
-    assert client.get("/", {"thang": "abc"}).status_code == 200
+    assert client.get("/thu-muc/", {"thang": "abc"}).status_code == 200
 
     # Vận đơn: bảng vận đơn ở KN CRM sửa được → nhãn Sửa; tắt (bảng chỉ xem) → nhãn Xem
     client.force_login(nguoi_dung["staff_vd"])

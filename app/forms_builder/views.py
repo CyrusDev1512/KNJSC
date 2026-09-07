@@ -59,8 +59,18 @@ def _lay_bang(request, code):
 
 
 def _duoc_sua_bang(user):
-    """Ai được tạo và sửa cấu trúc bảng — FR-8.1 giao cho Manager trở lên."""
-    return has_rank(user, Rank.MANAGER)
+    """Ai được tạo và sửa cấu trúc bảng — FR-8.1 giao cho Manager trở lên;
+    ADR-015 mở cho Leader (quản lý của bộ phận)."""
+    return has_rank(user, Rank.LEADER)
+
+
+def _kiem_sua_cau_truc(request, bang_hien):
+    """Sửa cột: quản lý của bộ phận sở hữu bảng hoặc Admin — ADR-015. Bảng
+    chỉ được cấp quyền xem từ bộ phận khác thì không đổi cấu trúc được
+    (403 có nhật ký), cùng luật với chèn/bỏ cột trên lưới (AC-11.22)."""
+    if not grant_service.can_manage_columns(request.user, bang_hien):
+        record_denied(request.user, request.path, request)
+        raise OutOfScopeError("Chỉ quản lý của bộ phận sở hữu bảng mới sửa được cột.")
 
 
 # ══ QUẢN LÝ BẢNG ══════════════════════════════════════════════════
@@ -92,9 +102,9 @@ def bang(request):
 
 @login_required
 def bang_moi(request):
-    """Tạo bảng mới — FR-8.1."""
+    """Tạo bảng mới — FR-8.1; Leader trở lên (ADR-015)."""
     request.nav_current = "bang"
-    assert_rank(request.user, Rank.MANAGER, request)
+    assert_rank(request.user, Rank.LEADER, request)
 
     ho_so = getattr(request.user, "profile", None)
     form = TableForm(request.POST or None)
@@ -114,10 +124,11 @@ def bang_moi(request):
 
 @login_required
 def bang_cot(request, code):
-    """Thêm và sửa cột của một bảng."""
+    """Thêm và sửa cột của một bảng — quản lý của bộ phận sở hữu (ADR-015)."""
     request.nav_current = "bang"
-    assert_rank(request.user, Rank.MANAGER, request)
+    assert_rank(request.user, Rank.LEADER, request)
     bang_hien = _lay_bang(request, code)
+    _kiem_sua_cau_truc(request, bang_hien)
 
     sua_pk = request.GET.get("cot")
     dang_sua = None
@@ -152,9 +163,10 @@ def bang_cot(request, code):
 @login_required
 @require_POST
 def bang_xoa_cot(request, code, pk):
-    """Bỏ một cột khỏi bảng."""
-    assert_rank(request.user, Rank.MANAGER, request)
+    """Bỏ một cột khỏi bảng — quản lý của bộ phận sở hữu (ADR-015)."""
+    assert_rank(request.user, Rank.LEADER, request)
     bang_hien = _lay_bang(request, code)
+    _kiem_sua_cau_truc(request, bang_hien)
     cot = get_object_or_404(ColumnDef, pk=pk, table=bang_hien)
     ten = cot.name
     table_service.remove_column(cot, actor=request.user, request=request)

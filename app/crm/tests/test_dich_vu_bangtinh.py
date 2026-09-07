@@ -30,7 +30,8 @@ def test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap(client, bang_vd, nguoi_d
     client.force_login(nguoi_dung["staff_vd"])
     with DICH_VU_BANGTINH:
         kq = client.get("/")
-        assert kq.status_code == 200 and "KN CRM" in kq.content.decode()
+        html_goc = kq.content.decode()
+        assert kq.status_code == 200 and "KN CRM" in html_goc and 'id="thanh-ben"' in html_goc
         kq = client.get("/bang-tinh/")
         assert kq.status_code == 200 and kq.context["chi_xem"] is False
         html = kq.content.decode()
@@ -48,6 +49,15 @@ def test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap(client, bang_vd, nguoi_d
         assert client.get("/tac-vu/").status_code == 200, "tải tệp xuất lớn vẫn cần trang tác vụ"
     dong.refresh_from_db()
     assert dong.data["ghi_chu"] == "sửa ở Bảng tính"
+
+
+def test_erp_dung_logo_kn_jsc(client, nguoi_dung):
+    """AC-11.31 — KN ERP dùng logo KN JSC ở đầu thanh bên (bấm về Tổng quan) và favicon riêng, không lẫn với KN CRM"""
+    client.force_login(nguoi_dung["staff_vd"])
+    with override_settings(ROOT_URLCONF="knjsc.urls"):
+        html = client.get("/").content.decode()
+    assert 'class="nav-hieu" href="/"' in html and "img/kn-jsc.svg" in html and "img/kn-crm.svg" not in html
+    assert 'rel="icon" type="image/svg+xml" href="/static/img/kn-jsc.svg' in html
 
 
 def test_erp_chi_con_lien_ket_sang_kn_crm(client, bang_vd, nguoi_dung, settings):

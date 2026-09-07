@@ -280,9 +280,24 @@ chung đăng nhập). Đây là nơi làm việc trên dữ liệu; KN ERP chỉ
 và làm nghiệp vụ. Bạn chỉ thấy bảng trong phạm vi của mình; gọi thẳng đường
 dẫn bảng khác cũng bị từ chối.
 
-### Trang chủ: Bộ phận ▸ Quý ▸ Tháng ▸ bảng
+### Trang chủ và menu trái
 
-Vào KN CRM là thấy **cây thư mục bên trái**, như mở ổ đĩa thời còn dùng Sheet:
+Vào KN CRM là **trang chủ tổng quan** có **menu trái** (ADR-015): trên cùng là
+chữ cái đầu tên, tên và cấp bậc của bạn; rồi **Trang chủ**, **Bảng tính** (gập
+được — mục con là từng bộ phận bạn có bảng), **Nhập tệp** (Leader trở lên),
+**Cấp quyền** (Manager), **Tác vụ nền**, **Nhật ký** (Manager) và **KN ERP**.
+Nút **‹** ở đầu thanh trên thu gọn menu còn dải biểu tượng, nhớ cho lần sau.
+Logo KN CRM (ô xanh chữ KN có dấu lưới) ở đầu menu trái và ở thanh trên của lưới:
+bấm vào là về trang chủ; tab trình duyệt cũng mang logo đó, còn KN ERP mang logo KN JSC.
+Trang chủ ghi số dòng nhập tháng này và hôm nay, số bảng, tổng số dòng, bảng
+cập nhật gần nhất, danh sách bảng có nút **Mở** và hoạt động gần đây — tất cả
+đã lọc theo phạm vi của bạn. Trang có menu trái **không có nút ←**; về hệ thống
+chính bằng mục **KN ERP**.
+
+### Bảng tính: Bộ phận ▸ Quý ▸ Tháng ▸ bảng
+
+Bấm **Bảng tính** trên menu trái (hay một bộ phận dưới nó) là mở **trang thư
+mục** với cây bên trái, như mở ổ đĩa thời còn dùng Sheet:
 bộ phận (chỉ bộ phận nào bạn có bảng được xem), rồi **Quý**, rồi **Tháng**, mỗi
 tháng ghi số dòng. Bấm một tháng thì bên phải liệt kê các bảng của bộ phận
 có cột Ngày, kèm số dòng trong tháng, lần cập nhật gần nhất và nhãn **Xem**
@@ -290,17 +305,30 @@ hay **Sửa** (quyền của bạn trên bảng đó, do Manager cấp ở KN ER
 là vào lưới **lọc sẵn đúng tháng đó** — thanh trên ghi "Tháng 9/2026". Tháng
 chỉ là góc nhìn: vẫn là một bảng, dữ liệu không bị tách. Mục **Toàn bộ bảng**
 dưới mỗi bộ phận liệt kê mọi bảng không lọc thời gian, xếp theo thư mục tay
-(Manager tạo bằng nút **+ Thư mục**). Bảng không có cột Ngày chỉ nằm ở đó.
+(Leader hay Manager của bộ phận tạo bằng nút **+ Thư mục**; nút **+ Tạo bảng**
+cũng ở đây). Bảng không có cột Ngày chỉ nằm ở đó.
 
-Từ lưới, bấm **←** ở góc trên trái để về trang chủ, cây mở đúng chỗ vừa rời.
-Từ trang chủ, **←** hoặc nút **KN ERP** đưa về hệ thống chính.
+Bấm một bảng mới mở **lưới toàn màn hình** — menu trái ẩn đi để lưới rộng như
+Excel. Từ lưới, bấm **←** ở góc trên trái là về trang thư mục, cây mở đúng chỗ
+vừa rời và thấy lại menu trái. ← không bao giờ đưa bạn sang KN ERP.
+
+### Quản lý bộ phận: Leader và Manager
+
+Trong KN CRM, **Leader được như Manager trong bộ phận mình**: tạo bảng, sửa và
+chèn/bỏ cột, tạo thư mục, nhập tệp, tải Excel, sửa hay xoá dòng của người khác
+trong phạm vi mình thấy. Chỉ **cấp quyền cho người ngoài bộ phận** vẫn là việc
+của Manager. Ba việc này làm ngay trong KN CRM, không phải bật sang KN ERP:
+**Nhập tệp** trên menu trái liệt kê bảng bạn được nhập, bấm **Nhập tệp** là vào
+luồng bốn bước quen thuộc; **Cấp quyền** (Manager) liệt kê bảng của bộ phận,
+bấm **Cột & cấp quyền** là màn Sửa cột có phần cấp quyền ở dưới; **+ Tạo bảng**
+có ở trang chủ và trang thư mục.
 
 ### Lưới
 
 Lưới là một trang **toàn màn hình**, nhìn và dùng như một bảng tính quen
 thuộc: khung tối viền vàng, thanh công cụ, thanh công thức, cột số dòng, chữ
 cột A B C… Z, ô có viền, chân trang có tab các bảng. Thanh trên có **←** về
-trang chủ, tên bảng, nhãn tháng đang xem (nếu có), trạng thái lưu ("Đã lưu",
+trang thư mục, tên bảng, nhãn tháng đang xem (nếu có), trạng thái lưu ("Đã lưu",
 "Đang lưu…", "Lỗi lưu"), nút **Tải Excel**, nút **⛶** phóng toàn màn hình (Esc
 để thoát) và chữ cái đầu tên bạn — bấm vào mở menu Nền sáng/tối, các màn hình
 khác và Đăng xuất.

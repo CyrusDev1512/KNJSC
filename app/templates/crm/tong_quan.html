@@ -1,0 +1,125 @@
+{% extends "crm/base_crm.html" %}
+{% block tieu_de %}Trang chủ · KN CRM · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Trang chủ{% endblock %}
+
+{% block noi_dung %}
+{% comment %}
+Trang chủ KN CRM — tổng quan theo phạm vi quyền (ADR-015, AC-11.31), cùng
+dáng với Tổng quan KN ERP. Mọi số đã lọc qua `in_scope`. Từ đây bấm Bảng tính
+(sidebar hay nút) mới sang trang thư mục, rồi mới tới lưới.
+{% endcomment %}
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">KN CRM</div>
+    <h1>Chào {{ profile.full_name|default:user.get_username }}</h1>
+    <p>
+      Phạm vi đang xem: <b>{{ profile.get_rank_display }}</b>{% if profile.department %}
+      bộ phận <b>{{ profile.department }}</b>{% endif %}. Số liệu dưới đây đã lọc theo phạm vi đó.
+    </p>
+  </div>
+  <div class="hanh-dong">
+    <a class="nut nut-chinh" href="{% url 'thu_muc' %}">Mở Bảng tính</a>
+    {% if duoc_tao_bang %}<a class="nut" href="{{ tao_bang_url }}">+ Tạo bảng</a>{% endif %}
+  </div>
+</div>
+
+<div class="luoi luoi-4">
+  {% if so_lieu.ok %}
+    <div class="o-so">
+      <div class="nhan">Dòng nhập tháng {{ so_lieu.data.thang }}/{{ so_lieu.data.nam }}</div>
+      <div class="gia-tri">{{ so_lieu.data.dong_thang }}</div>
+      <div class="phu">{{ so_lieu.data.dong_hom_nay }} dòng hôm nay</div>
+    </div>
+    <div class="o-so">
+      <div class="nhan">Bảng trong phạm vi</div>
+      <div class="gia-tri">{{ so_lieu.data.so_bang }}</div>
+      <div class="phu">Mở ở mục Bảng tính</div>
+    </div>
+    <div class="o-so">
+      <div class="nhan">Tổng số dòng</div>
+      <div class="gia-tri">{{ so_lieu.data.so_dong }}</div>
+      <div class="phu">Theo phạm vi của bạn</div>
+    </div>
+    <div class="o-so">
+      <div class="nhan">Cập nhật gần nhất</div>
+      <div class="gia-tri crm-gia-tri-nho">{% if bang.ok and bang.data and bang.data.0.cap_nhat %}{{ bang.data.0.cap_nhat|date:"d/m H:i" }}{% else %}—{% endif %}</div>
+      <div class="phu">{% if bang.ok and bang.data %}{{ bang.data.0.name }}{% else %}Chưa có dữ liệu{% endif %}</div>
+    </div>
+  {% else %}
+    <div class="o-so">
+      <div class="nhan">Số liệu</div>
+      <div class="gia-tri crm-gia-tri-nho">Tạm chưa khả dụng</div>
+    </div>
+  {% endif %}
+</div>
+
+<div class="luoi luoi-2">
+  <div class="the">
+    <div class="the-dau">
+      <h2>Bảng trong phạm vi</h2>
+      <div class="phai"><a class="nut nut-nho" href="{% url 'thu_muc' %}">Xem theo tháng</a></div>
+    </div>
+    {% if bang.ok %}
+      <div class="bang-cuon">
+        <table class="bang">
+          <thead><tr><th>Tên bảng</th><th>Bộ phận</th><th class="phai">Số dòng</th><th>Cập nhật</th><th></th></tr></thead>
+          <tbody>
+            {% for b in bang.data %}
+              <tr>
+                <td><a href="{{ b.url }}">{{ b.name }}</a></td>
+                <td class="nho">{{ b.department }}</td>
+                <td class="tien">{{ b.so_dong }}</td>
+                <td class="ma-o">{% if b.cap_nhat %}{{ b.cap_nhat|date:"d/m H:i" }}{% else %}—{% endif %}</td>
+                <td class="phai"><a class="nut nut-nho nut-chinh" href="{{ b.url }}">Mở</a></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5">
+                {% include "components/rong.html" with rong_tieu_de="Chưa có bảng nào trong phạm vi" rong_mo_ta="Quản lý bộ phận tạo bảng, hoặc được cấp quyền xem bảng của bộ phận khác." %}
+              </td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="rong">
+        <div class="bieu-tuong ma">▤</div>
+        <h3>Danh sách bảng tạm thời chưa khả dụng</h3>
+        <p>Các phần khác của Trang chủ vẫn hoạt động bình thường.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="the">
+    <div class="the-dau">
+      <h2>Hoạt động gần đây</h2>
+    </div>
+    {% if hoat_dong.ok %}
+      {% if hoat_dong.data %}
+        <div class="bang-cuon">
+          <table class="bang">
+            <thead><tr><th>Thời điểm</th><th>Người</th><th>Hành động</th><th>Đối tượng</th></tr></thead>
+            <tbody>
+              {% for dong in hoat_dong.data %}
+                <tr>
+                  <td class="ma-o">{{ dong.created_at|date:"d.m H:i" }}</td>
+                  <td>{{ dong.actor_label|default:"—" }}</td>
+                  <td>{{ dong.get_action_display }}</td>
+                  <td class="ma-o">{{ dong.target_type }}{% if dong.target_id %} · {{ dong.target_id|truncatechars:24 }}{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        {% include "components/rong.html" with rong_tieu_de="Chưa có hoạt động nào" rong_mo_ta="Thao tác trong phạm vi của bạn sẽ hiện ở đây." %}
+      {% endif %}
+    {% else %}
+      <div class="rong">
+        <div class="bieu-tuong ma">!</div>
+        <h3>Nhật ký tạm thời chưa khả dụng</h3>
+        <p>Các phần khác của Trang chủ vẫn hoạt động bình thường.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

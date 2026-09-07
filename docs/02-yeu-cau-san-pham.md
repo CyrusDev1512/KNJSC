@@ -122,6 +122,8 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-7.11 | Định dạng ô đủ như bảng tính — nghiêng, gạch chân, gạch ngang, xuống dòng, viền, màu chữ và màu nền từ bảng 40 màu, cỡ chữ, định dạng số — vẫn là sổ đóng lưu trong cơ sở dữ liệu (ADR-010, ADR-011) |
 | FR-7.12 | Bảng tính phải nhìn như bảng tính KN Demo (khung, thanh công thức có ô địa chỉ, số dòng, chữ cột, cột trống, chân trang có tab, toàn màn hình), lọc theo giá trị cột như demo, và tự cập nhật khi người khác sửa (ADR-011) |
 | FR-7.13 | Bảng tính là app riêng **KN CRM** trong hệ sinh thái (dịch vụ riêng, tên miền riêng, mở tab mới từ KN ERP); trang chủ là cây Bộ phận → Quý → Tháng → bảng tự sinh từ cột Ngày, tháng là góc nhìn lọc sẵn trên một bảng; ai không được xem bảng nào thì không thấy nhánh đó, quyền do Manager cấp theo bảng (ADR-012) |
+| FR-7.14 | KN CRM có **khung riêng như một app**: sidebar trái theo Teeze (avatar, tên, cấp bậc; Trang chủ; Bảng tính gập được với mục con là từng bộ phận trong phạm vi; Nhập tệp; Cấp quyền; Tác vụ nền; KN ERP; thu gọn được); trang chủ là **tổng quan theo phạm vi**; mục Bảng tính mở trang thư mục (cây Bộ phận → Quý → Tháng → bảng); bấm bảng mới mở lưới toàn màn hình như Excel, chỉ lưới có nút ← và nó về trang thư mục, không về KN ERP (ADR-015) |
+| FR-7.15 | **Leader được như Manager trong bộ phận mình** ở KN CRM: tạo bảng, sửa cột, chèn/bỏ cột, thư mục, nhập tệp, xuất Excel, sửa và xoá dòng của người khác trong phạm vi; cấp quyền cho người khác vẫn chỉ Manager; ba việc tạo bảng, sửa cột kèm cấp quyền, nhập tệp chạy ngay trong KN CRM (ADR-015) |
 
 ---
 

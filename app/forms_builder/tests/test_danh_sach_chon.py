@@ -271,12 +271,13 @@ def test_them_gia_tri_cot_san_pham_la_them_san_pham(bang_kenh, san_pham, nguoi_d
 
 
 def test_quyen_them_gia_tri(bang_kenh, nguoi_dung, departments):
-    """AC-8.8 — Admin và Manager bộ phận sở hữu bảng thêm được; Staff, Leader, Manager bộ phận khác thì không"""
+    """AC-8.8 — Admin, Manager và Leader bộ phận sở hữu bảng thêm được (ADR-015); Staff, Manager bộ phận khác thì không"""
     from forms_builder.services import choice_service
 
     assert choice_service.can_manage_options(nguoi_dung["admin"], bang_kenh)
     assert choice_service.can_manage_options(nguoi_dung["manager_sale"], bang_kenh)
-    for ma in ("staff_sale_1", "leader_sale_1", "manager_mkt", "staff_vd"):
+    assert choice_service.can_manage_options(nguoi_dung["leader_sale_1"], bang_kenh)
+    for ma in ("staff_sale_1", "manager_mkt", "staff_vd"):
         assert not choice_service.can_manage_options(nguoi_dung[ma], bang_kenh), ma
 
 
@@ -368,12 +369,12 @@ def test_manager_them_gia_tri_qua_duong_dan(client, bang_kenh, nguoi_dung):
     assert AuditLog.objects.filter(action=AuditAction.UPDATE).count() == truoc + 1
 
 
-def test_staff_va_leader_them_gia_tri_bi_403_co_nhat_ky(client, bang_kenh, nguoi_dung):
-    """AC-8.8 — Staff và Leader gửi thẳng đường dẫn thêm giá trị thì bị từ chối và có dòng nhật ký từ chối"""
+def test_staff_them_gia_tri_bi_403_co_nhat_ky(client, bang_kenh, nguoi_dung):
+    """AC-8.8 — Staff gửi thẳng đường dẫn thêm giá trị thì bị từ chối và có dòng nhật ký từ chối"""
     from core.constants import AuditAction
     from core.models import AuditLog
 
-    for ma in ("staff_sale_1", "leader_sale_1"):
+    for ma in ("staff_sale_1",):
         truoc = AuditLog.objects.filter(action=AuditAction.DENIED).count()
         client.force_login(nguoi_dung[ma])
         kq = client.post("/bang/kenh_sale/cot/kenh/lua-chon/", {"nhan_moi": "Zalo"})

@@ -182,7 +182,7 @@ def quarters(dem, *, hom_nay=None):
 # ── Liên kết ─────────────────────────────────────────────────────────
 
 def home_url(department=None, quarter=None, month=None, *, all_tables=False):
-    """Địa chỉ trang chủ với cây mở đúng nút."""
+    """Địa chỉ trang thư mục (mục Bảng tính) với cây mở đúng nút — ADR-015."""
     cap = []
     if department is not None:
         cap.append(("bp", department.code))
@@ -193,7 +193,7 @@ def home_url(department=None, quarter=None, month=None, *, all_tables=False):
     if all_tables:
         cap.append(("tat-ca", "1"))
     duoi = "&".join(f"{k}={v}" for k, v in cap)
-    return reverse("bang_tinh") + ("?" + duoi if duoi else "")
+    return reverse("thu_muc") + ("?" + duoi if duoi else "")
 
 
 def grid_url(table, month=None):

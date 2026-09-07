@@ -68,9 +68,16 @@ Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.
 001) nên `migrate` không sinh ra nó. Thiếu bảng thì màn hình Bảng tính trả 404.
 
 **KN CRM** (dịch vụ `bangtinh`, cổng 8021, `knjsc/urls_bangtinh.py`) là app
-riêng chứa **Bảng tính** — ADR-012: trang chủ `/` là cây Bộ phận ▸ Quý ▸ Tháng
-▸ bảng (`crm/services/tree_service.py`), lưới ở `/bang-tinh/<mã bảng>/` cho mọi
-bảng trong phạm vi quyền — ADR-010. KN ERP (8020) **không có lưới và không sửa
+riêng chứa **Bảng tính** — ADR-012, ADR-015. Hai khung: `templates/crm/base_crm.html`
+có **sidebar theo Teeze** (`crm/navigation.py`, context processor `khung_crm`) cho
+trang chủ `/` (tổng quan, `crm/services/tong_quan_service.py`), mục **Bảng tính**
+= trang thư mục `/thu-muc/` (cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng,
+`crm/services/tree_service.py`), Nhập tệp, Cấp quyền; và `base_bang_tinh.html`
+**toàn màn hình** cho lưới `/bang-tinh/<mã bảng>/` (ADR-010) — chỉ lưới có nút ←,
+về trang thư mục, không bao giờ về ERP. Tạo bảng, sửa cột kèm cấp quyền, nhập
+tệp là view của `forms_builder` gắn vào 8021, template `{% extends khung %}`.
+**Leader như Manager trong bộ phận mình** (`grant_service._quan_ly_bo_phan`),
+cấp quyền cho người khác vẫn Manager. KN ERP (8020) **không có lưới và không sửa
 ô**: Bảng dữ liệu chỉ để xem với mọi bảng (ADR-014), chỉ có mục KN CRM trên thanh
 bên mở tab mới và nút "Mở trong KN CRM" ở đầu mỗi bảng; bài kiểm của `crm/tests`
 chạy ở URLconf 8021 nhờ `crm/tests/conftest.py`. Mọi bảng chỉ sửa ở KN CRM

@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block tieu_de %}Bảng tính · Kim Ngân JSC{% endblock %}</title>
+<link rel="icon" type="image/svg+xml" href="{% static logo %}?v={{ phien_ban_tinh }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -23,18 +24,19 @@
 </head>
 <body class="bt-than">
 {% comment %}
-Khung của app KN CRM — ADR-010, dáng theo bảng tính KN Demo — ADR-011, app
-riêng — ADR-012: thanh trên 48px (nút ← theo trang: từ lưới về trang chủ, từ
-trang chủ về KN ERP; chữ hiệu KN CRM; tên bảng; trạng thái lưu; Tải Excel;
-toàn màn hình; tài khoản), rồi phần thân của từng trang. Không thanh bên hệ
-thống; điều hướng nằm trong menu tài khoản. View phải truyền `ve_url`, `ve_nhan`.
+Khung **lưới** của app KN CRM — ADR-010, dáng theo bảng tính KN Demo —
+ADR-011, app riêng — ADR-012: toàn màn hình, thanh trên 48px (nút ← về trang
+thư mục đúng nhánh — ADR-015, không bao giờ về ERP; chữ hiệu KN CRM; tên
+bảng; trạng thái lưu; Tải Excel; toàn màn hình; tài khoản), rồi lưới. Không
+sidebar: các trang khác của KN CRM dùng `base_crm.html` có sidebar; chỉ khi
+bấm ← mới thấy menu trái. View phải truyền `ve_url`, `ve_nhan`.
 {% endcomment %}
 {% if user.is_authenticated %}
 <div class="app bt-toan-man" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
   <header class="bt-thanh-tren">
     <a class="bt-ve" href="{{ ve_url }}" title="{{ ve_nhan }}" aria-label="{{ ve_nhan }}">←</a>
-    <span class="bt-hieu" aria-hidden="true">▦</span>
+    <a class="bt-hieu" href="{% url 'tong_quan' %}" title="Về trang chủ KN CRM"><img src="{% static logo %}" alt="KN CRM"></a>
     <span class="bt-app">KN CRM</span>
     <div class="bt-ten">{% block ten_bang %}{% endblock %}</div>
     <span class="bt-trang-thai" id="bt-trang-thai" aria-live="polite">Đã lưu</span>

@@ -84,7 +84,7 @@ Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chú
 </div>
 
 <footer class="bt-chan">
-  {% if duoc_sua_cot %}<a class="bt-tab-them" href="{{ tao_bang_url }}" title="Thêm bảng mới (mở Bảng dữ liệu)" aria-label="Thêm bảng">+</a>{% endif %}
+  {% if duoc_sua_cot %}<a class="bt-tab-them" href="{{ tao_bang_url }}" title="Thêm bảng mới" aria-label="Thêm bảng">+</a>{% endif %}
   <div class="bt-tabs">
     {% for b in cac_bang %}<a class="bt-tab{% if b.pk == bang.pk %} on{% endif %}" href="{% url 'bang_tinh_xem' b.code %}"{% if b.pk == bang.pk %} aria-current="page"{% endif %}>{{ b.name }}</a>{% endfor %}
   </div>
