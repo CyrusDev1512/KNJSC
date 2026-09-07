@@ -37,7 +37,9 @@ kim-ngan-jsc/
 │   │   ├── mixins.py                      lớp dùng chung cho view
 │   │   ├── exceptions.py                  lỗi nghiệp vụ có mã
 │   │   ├── validators.py                  kiểm tra dữ liệu dùng chung
-│   │   ├── pagination.py                  phân trang mặc định 25 dòng
+│   │   ├── pagination.py                  phân trang mặc định 25 dòng, pagination_context, filter_query
+│   │   ├── htmx.py                        nhận biết yêu cầu htmx
+│   │   ├── templatetags/knjsc.py          bộ lọc |ten và thẻ {% avatar %}
 │   │   ├── excel.py                       đọc và ghi tệp Excel
 │   │   ├── services/
 │   │   │   ├── audit_service.py

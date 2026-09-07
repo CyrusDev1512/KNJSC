@@ -45,7 +45,7 @@ def _dat_sinh_nhat(user, ngay):
 # ══ AC-13.1 · Đăng và xem ═══════════════════════════════════════════
 
 def test_dang_bai_va_xem_toan_cong_ty(client, nguoi_dung):
-    """AC-13.1 — Ai đăng nhập cũng đăng được bài dạng chữ và thấy mọi bài, không phân theo bộ phận; bài ghim đứng đầu; bài trống hay quá dài bị từ chối; danh sách phân trang 25 dòng; GET vào đường đăng trả 405; chưa đăng nhập bị chuyển về đăng nhập"""
+    """AC-13.1 — Ai đăng nhập cũng đăng được bài dạng chữ và thấy mọi bài, không phân theo bộ phận; bài ghim đứng đầu; bài trống hay quá dài bị từ chối và giữ lại bài đang gõ; danh sách phân trang 25 dòng; GET vào đường đăng trả 405; chưa đăng nhập bị chuyển về đăng nhập"""
     n = nguoi_dung
     for vai in ("staff_sale_1", "leader_sale_1", "manager_mkt", "staff_vd", "admin"):
         client.force_login(n[vai])
@@ -359,3 +359,32 @@ def test_thiep_sinh_nhat_bu_ngay_may_tat(nguoi_dung):
     }
     with pytest.raises(CommandError):
         call_command("thiep_sinh_nhat", "--ngay", (hom_nay + timedelta(days=1)).isoformat(), stdout=StringIO())
+
+
+# ══ Số bình luận cập nhật tại chỗ, Thích không cần JS, liên kết — rà soát 07.09 ═
+
+def test_binh_luan_cap_nhat_so_tai_cho_thich_khong_can_js_va_thiep_co_lien_ket(client, nguoi_dung):
+    """AC-13.2 — Gửi bình luận qua HTMX trả kèm hai phần tử thay tại chỗ (số ở thẻ và nút "n bình luận") nên số trên trang không lệch, mảnh tải thường thì không kèm; nút Thích là form thật có mã chống giả mạo nên không có JS vẫn dùng được; đường dẫn trong bài thành liên kết bấm được; thiệp sinh nhật liên kết tới trang thành viên người được chúc; bài của tài khoản đã xoá hiện "Tài khoản đã xoá"; thanh bên là danh sách có thứ tự, tiêu đề ghi số tháng không có số 0 đứng trước"""
+    n = nguoi_dung
+    bai = _bai(n["staff_sale_1"], "Xem thêm tại https://kn.example/tin nhé")
+    client.force_login(n["staff_mkt"])
+    html = client.get("/bang-tin/").content.decode()
+    assert '<a href="https://kn.example/tin"' in html
+    assert '<form class="bm-thich"' in html and 'name="csrfmiddlewaretoken"' in html
+    assert '<ol class="bxh">' in html and f"Sinh nhật tháng {timezone.localdate().month}<" in html
+
+    html = client.post(f"/bang-tin/{bai.pk}/binh-luan/", {"body": "Một"}, **HX).content.decode()
+    assert f'id="so-bl-{bai.pk}" hx-swap-oob="true">1</span>' in html
+    assert f'id="lk-bl-{bai.pk}" hx-swap-oob="true"' in html and ">1 bình luận</a>" in html
+    assert "hx-swap-oob" not in client.get(f"/bang-tin/{bai.pk}/binh-luan/").content.decode()
+
+    hom_nay = timezone.localdate()
+    _dat_sinh_nhat(n["staff_vd"], hom_nay.replace(year=1996))
+    assert post_service.create_birthday_posts(hom_nay) == 1
+    html = client.get("/bang-tin/").content.decode()
+    assert f'href="/van-hoa/thanh-vien/{n["staff_vd"].pk}/"' in html and "chúc mừng" in html
+
+    mo_coi = _bai(n["staff_sale_2"], "Bài của người sắp bị xoá tài khoản")
+    Post.all_objects.filter(pk=mo_coi.pk).update(author=None)      # như SET_NULL khi xoá tài khoản
+    html = client.get("/bang-tin/").content.decode()
+    assert "Tài khoản đã xoá" in html and "Bài của người sắp bị xoá tài khoản" in html

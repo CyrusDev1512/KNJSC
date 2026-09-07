@@ -107,7 +107,13 @@
   document.body.addEventListener("htmx:beforeSwap", function (e) {
     var xhr = e.detail.xhr; if (!xhr) return;
     var url = xhr.responseURL || "";
-    if (url.indexOf("/dang-nhap/") !== -1) { e.detail.shouldSwap = false; window.location.href = url; return; }
+    if (url.indexOf("/dang-nhap/") !== -1) {
+      e.detail.shouldSwap = false;
+      // `next` do login_required gắn trỏ vào đường POST (đăng nhập xong là 405): về lại trang đang xem
+      var dich = new URL(url, window.location.href);
+      dich.searchParams.set("next", window.location.pathname + window.location.search);
+      window.location.href = dich.href; return;
+    }
     if (xhr.status >= 400) {
       e.detail.shouldSwap = false;
       var la_chu = (xhr.getResponseHeader("Content-Type") || "").indexOf("text/plain") === 0;

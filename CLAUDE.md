@@ -93,8 +93,13 @@ ngoại lệ phạm vi có chủ ý** (`culture/services/leaderboard_service.py`
 đọc đơn toàn công ty, chỉ trả hạng, số đơn, tổng quy VND bằng
 `EXCHANGE_RATES_VND` (số tạm, N11). Hai tác vụ nền `culture.thuong_sao_thang`
 (ngày 1, 01:00) và `feed.thiep_sinh_nhat` (06:00) dùng cùng hàm với lệnh
-`thuong_sao_thang --thang` và `thiep_sinh_nhat --ngay`. Tệp tài liệu ở
-`storage/tai-lieu/`, ngoài đường dọn 24 giờ và ngoài `pg_dump` (K27). Bản MVP
+`thuong_sao_thang --thang` và `thiep_sinh_nhat --ngay`; `entrypoint.sh` chạy bù
+cả hai khi bật máy. Ghi nhận văn hoá đi **từ trên xuống** (Q70): chỉ Leader trở
+lên ghi nhận cấp dưới trong phạm vi mình; mọi người bán đều tranh hạng (Q71);
+đồng hạng cùng nhận sao (Q72). Tệp tài liệu ở `storage/tai-lieu/`, ngoài đường
+dọn 24 giờ và ngoài `pg_dump` (K27). Khuôn dùng chung ở `core`, đừng chép lại ở
+app mới: `AliveManager`, `pagination_context` và `filter_query`, `htmx.is_htmx`,
+bộ lọc `|ten` và thẻ `{% avatar %}` (`core/templatetags/knjsc.py`). Bản MVP
 vào qua PR #20 (nhánh `claude/knerp-noi-bo-mvp`), anh/chị xem rồi mới gộp.
 
 ### Chạy kiểm thử

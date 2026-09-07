@@ -240,11 +240,12 @@ def test_tep_tai_lieu_khong_bi_don_sau_24_gio(cac_muc, nguoi_dung):
 
 
 def test_man_hinh_tai_lieu_khong_qua_muoi_lenh_truy_van(client, cac_tai_lieu, nguoi_dung, django_assert_max_num_queries):
-    """AC-10.2 — Màn hình Tài liệu chạy không quá 10 lệnh truy vấn"""
-    client.force_login(nguoi_dung["admin"])
-    client.get("/tai-lieu/")
-    with django_assert_max_num_queries(10):
-        assert client.get("/tai-lieu/").status_code == 200
+    """AC-10.2 — Màn hình Tài liệu chạy không quá 10 lệnh truy vấn, với Admin lẫn Leader phải lọc theo bộ phận"""
+    for vai in ("admin", "leader_sale_1", "staff_vd"):
+        client.force_login(nguoi_dung[vai])
+        client.get("/tai-lieu/")
+        with django_assert_max_num_queries(10):
+            assert client.get("/tai-lieu/").status_code == 200, vai
 
 
 # ══ Dịch vụ tự kiểm quyền; mục mới không nổ — rà soát 07.09 ═════════
@@ -267,3 +268,51 @@ def test_dich_vu_tu_kiem_quyen_va_muc_moi_khong_no(client, cac_muc, nguoi_dung):
     client.force_login(n["manager_sale"])
     assert client.post("/tai-lieu/muc-moi/", {"name": "Mục lạ", "department": "abc"}).status_code == 404
     assert not DocumentCategory.objects.filter(name="Mục lạ").exists()
+
+
+# ══ Tải về qua view, tệp mất trên đĩa, tên mục hoa thường — rà soát 07.09 ═
+
+def test_tai_ve_qua_view_va_tep_mat_tren_dia(client, cac_muc, cac_tai_lieu, nguoi_dung):
+    """AC-12.2 — Tải về đi qua view có kiểm quyền: tệp trả về dạng đính kèm đúng tên gốc và ghi một dòng nhật ký; mở liên kết chuyển tới liên kết và cũng ghi nhật ký; tệp mất trên đĩa thì báo lỗi rồi về danh sách, không 500, không nhật ký; tài liệu đã gỡ trả 404"""
+    n = nguoi_dung
+    doc = document_service.upload_document(
+        title="Quy định nghỉ phép", category=cac_muc["chung"], upload=_tep(), actor=n["admin"])
+    client.force_login(n["staff_vd"])
+    xuat = _so(AuditAction.EXPORT)
+    kq = client.get(f"/tai-lieu/{doc.pk}/tai/")
+    assert kq.status_code == 200
+    assert kq["Content-Disposition"].startswith("attachment") and "quy-dinh.pdf" in kq["Content-Disposition"]
+    assert b"".join(kq.streaming_content) == PDF
+    assert _so(AuditAction.EXPORT) == xuat + 1
+    assert f"#{doc.pk}" in AuditLog.objects.filter(action=AuditAction.EXPORT).latest("created_at").detail
+
+    lk = cac_tai_lieu["chung"]
+    kq = client.get(f"/tai-lieu/{lk.pk}/tai/")
+    assert kq.status_code == 302 and kq["Location"] == lk.link
+    assert _so(AuditAction.EXPORT) == xuat + 2
+
+    document_service.absolute_path(doc).unlink()                  # người vận hành lỡ xoá tệp
+    kq = client.get(f"/tai-lieu/{doc.pk}/tai/", follow=True)
+    assert kq.redirect_chain[-1][0] == "/tai-lieu/" and "Tệp không còn trên máy chủ" in kq.content.decode()
+    assert _so(AuditAction.EXPORT) == xuat + 2
+
+    document_service.delete_document(lk, actor=n["admin"])
+    assert client.get(f"/tai-lieu/{lk.pk}/tai/").status_code == 404
+
+
+def test_ten_muc_khong_phan_biet_hoa_thuong_o_tang_du_lieu(cac_muc, nguoi_dung, departments):
+    """AC-12.1 — Tên mục chỉ khác hoa thường bị chặn ngay ở cơ sở dữ liệu (cùng bộ phận, hoặc cùng toàn công ty), không chỉ ở tầng dịch vụ; cùng tên ở bộ phận khác thì được; mục đã gỡ không giữ chỗ tên"""
+    from django.db import IntegrityError, transaction
+
+    n = nguoi_dung
+    with pytest.raises(BusinessError):
+        document_service.create_category(name="quy định chung", department=None, actor=n["admin"])
+    with pytest.raises(IntegrityError), transaction.atomic():
+        DocumentCategory.objects.create(name="quy định chung", department=None, created_by=n["admin"])
+    with pytest.raises(IntegrityError), transaction.atomic():
+        DocumentCategory.objects.create(name="quy trình sale", department=departments["sale"], created_by=n["admin"])
+    khac_bp = DocumentCategory.objects.create(name="Quy trình Sale", department=departments["mkt"], created_by=n["admin"])
+    assert khac_bp.pk
+    DocumentCategory.objects.filter(pk=cac_muc["sale"].pk).delete(by=n["admin"])
+    assert document_service.create_category(
+        name="quy trình sale", department=departments["sale"], actor=n["manager_sale"]).pk != cac_muc["sale"].pk

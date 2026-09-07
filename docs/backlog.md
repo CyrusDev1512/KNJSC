@@ -36,7 +36,10 @@ tóm để không phải lục.
 > đợt thứ hai cùng ngày: **Bảng dữ liệu chỉ để xem với mọi bảng**, gỡ hẳn sửa
 > ô ở KN ERP (ADR-014, Q62). **MVP Nội bộ** — Tài liệu, Bảng tin, Công việc,
 > Văn hoá, Tài nguyên (ADR-015) — xong ngày 07.09 trên nhánh riêng
-> `claude/knerp-noi-bo-mvp`, **PR #20 nháp, chưa gộp**, chờ anh/chị xem.
+> `claude/knerp-noi-bo-mvp`, **PR #20 nháp, chưa gộp**, chờ anh/chị xem. Rà soát
+> lại nhánh ngày 07.09: bốn commit A → D sửa 22 lỗi và điểm yếu, cải tiến giao
+> diện, gọn mã dùng chung, thêm bài kiểm và tài liệu; chốt **Q70** (chỉ cấp trên
+> ghi nhận cấp dưới), **Q71** (mọi người bán tranh hạng), **Q72** (đồng hạng).
 > Nghiệm thu bấm tay theo `docs/07` vẫn chờ anh/chị.
 > Mục D chỉ còn `AC-5.1`.
 
@@ -97,9 +100,9 @@ trăm trên `dashboard-tien-do.html` là tiến độ *đã làm*, không phải
 | ☐ | Ba vai trò đăng nhập, chạy trọn quy trình của mình | `docs/04` mục 17.2 |
 | ☐ | Thử trên điện thoại và máy tính bảng thật | `docs/04` mục 17.5 |
 | ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | `docs/04` mục 17.7 |
-| ☐ | Xuất báo cáo tổng hợp, mở bằng Excel, đối chiếu số | `AC-5.6` · mục 12.4 |
-| ☐ | Nhập tệp vận đơn thật (`docs/tham-khao/vandon-mau.xlsx`) qua Bảng dữ liệu → Nhập tệp | mục 12.3 |
-| ☐ | Sao lưu rồi phục hồi trên máy thử: `scripts/backup.sh`, `scripts/restore.sh --toi-chac-chan` | `AC-10.5` · mục 12.6 |
+| ☐ | Xuất báo cáo tổng hợp, mở bằng Excel, đối chiếu số | `AC-5.6` · `docs/04` mục 17.4 |
+| ☐ | Nhập tệp vận đơn thật (`docs/tham-khao/vandon-mau.xlsx`) qua Bảng dữ liệu → Nhập tệp | `docs/04` mục 17.3 |
+| ☐ | Sao lưu rồi phục hồi trên máy thử: `scripts/backup.sh`, `scripts/restore.sh --toi-chac-chan` | `AC-10.5` · `docs/04` mục 17.6 |
 | ☐ | 50 người đồng thời: `manage.py seed_perf` rồi Locust 1 phút, in ĐẠT | `AC-10.1` |
 | ☐ | Bảng tính: cuộn ngang dọc, cột đầu và tiêu đề đứng yên | `AC-11.1` |
 | ☐ | Bảng tính trên điện thoại và máy tính bảng thật | `AC-11.11` |
@@ -196,7 +199,7 @@ mục 6.
 | K21 | Thư mục `storage/` là bind mount, container chạy uid 1000. Trên máy Linux mà chủ thư mục là người khác thì nhập tệp và sao lưu hỏng vì không ghi được; `entrypoint.sh` mới chỉ cảnh báo, chưa tự sửa quyền | Thấp | GĐ 7B |
 | K25 | Bảng tính (`crm`) chưa đọc `choice_registry.for_column` nên ô Chọn một của bảng tự tạo trên lưới vẫn là ô chữ (máy chủ vẫn chặn giá trị lạ qua `parse_value`). Sửa là một dòng trong `grid_service.choice_list` — thuộc thread KN CRM, không sửa ở đây. ~~K22~~ đóng ngày 06.09.2026 bằng `ColumnDef.options` và sổ theo nhãn (ADR-012) | Thấp | KNERP 06.09 |
 | K26 | `GRID_ONLY_TABLES` và `grant_service.is_grid_only` chỉ còn KN CRM dùng (lưới báo chỉ xem; bảy tệp `crm/tests` dựa vào nó để kiểm chiều 403) sau khi KN ERP gỡ hẳn sửa ô (ADR-014); ở dịch vụ `bangtinh` danh sách đã rỗng nên thread KN CRM xem xét bỏ luôn — thread KNERP không đụng `app/crm/` | KNERP 06.09 |
-| K27 | Tài liệu tải lên nằm ở `storage/tai-lieu/`, ngoài `pg_dump`: `scripts/backup.sh` chưa chép thư mục này, `restore.sh` cũng không; hiện `docs/05` B8 và B10 dặn chép tay cùng bản sao lưu | Trung bình | ADR-015 |
+| K27 | Tài liệu tải lên nằm ở `storage/tai-lieu/`, ngoài `pg_dump`: `scripts/backup.sh` chưa chép thư mục này, `restore.sh` cũng không; hiện `docs/05` B8 và B10 dặn chép tay cùng bản sao lưu. Tài liệu đã gỡ (xoá mềm) thì tệp vẫn nằm trên đĩa — tệp mồ côi, chưa có lệnh dọn | Trung bình | ADR-015 |
 | K28 | Sơ đồ `docs/so-do-kien-truc.html` và hình vẽ trong `docs/kien-truc.md` chưa có năm app Nội bộ; bảng module ở `docs/kien-truc.md` và `docs/cau-truc-thu-muc.md` đã cập nhật chữ | Thấp | ADR-015 |
 | K29 | `tests/e2e/test_bang_tinh_ui.py::test_dong_trong_thanh_dong_that_va_loc_theo_o_khoa` đỏ ngày 07.09.2026 khi chạy đủ `cham` — chạy riêng trên `main` 345e1c0 (worktree sạch, cơ sở dữ liệu kiểm thử riêng) cũng đỏ y hệt: sau khi gõ dòng trống thành dòng thật, bấm `.o-khoa-loc` ở ô Mã đơn `DH-1` không chuyển tới `?f_ma_don=DH-1…` trong 15 giây. Không phải do nhánh Nội bộ; cùng họ với K23 (hộp lọc gửi form hai lần). Cùng lần chạy đủ `cham` (28 đạt, 3 xfail), `test_ban_phim_di_chuyen_sua_va_huy` cũng đỏ (chờ ô Trạng thái VC đổi sau khi chọn danh sách quá 15 giây) nhưng chạy riêng thì xanh trên cả `main` lẫn nhánh Nội bộ — nghi do tải Chromium khi chạy nhiều bài liền, cần chờ có điều kiện thay vì đếm giây. Thread KN CRM xem, thread KNERP không đụng `app/crm/` | Trung bình | KNERP 07.09 |
 
@@ -211,7 +214,7 @@ mục 6.
 | N7 | BR-1 nói mỗi người thuộc đúng một bộ phận, nhưng Admin hiện không thuộc bộ phận nào. Giữ nguyên hay bắt Admin cũng phải có bộ phận | Trung bình | Rà soát GĐ 1–2 |
 | N9 | Cách nhóm theo thị trường của báo cáo tổng hợp lấy số liệu từ đâu — cột Quốc gia bảng vận đơn chưa có nhãn ý nghĩa (ADR-007 để ngỏ); ba đường: thêm nhãn thứ tám kèm tệp chuyển đổi, lấy từ đơn hàng, hay nhóm cột JSON. Người dùng chốt 03.09.2026: **chưa quan trọng, hỏi lại sau**. Tab vẫn hiện kèm ghi chú — Q36 | Trung bình | Kế hoạch GĐ 6 |
 | N10 | Có tách loại tiền VND và USD khi cộng doanh thu không — bảng động chưa lưu loại tiền theo dòng có nhãn (Q10 lưu kèm loại tiền chỉ áp cho đơn hàng). GĐ 6 chọn cách đơn giản nhất: cộng thẳng `val_revenue`, không kèm ký hiệu tiền. Hỏi lại cùng lúc với N9 | Thấp | Kế hoạch GĐ 6 |
-| N11 | Tỉ giá cố định để quy doanh số về VND trên bảng xếp hạng Văn hoá: đang tạm USD 25.400, CAD 18.500, PHP 440 trong `EXCHANGE_RATES_VND` (`knjsc/settings/base.py`, đè bằng biến môi trường cùng tên dạng `USD=25400,CAD=18500`). Anh/chị chốt số, và có cần đổi theo tháng không | Trung bình | ADR-015 |
+| N11 | Tỉ giá cố định để quy doanh số về VND trên bảng xếp hạng Văn hoá: đang tạm USD 25.400, CAD 18.500, PHP 440 trong `EXCHANGE_RATES_VND` (`knjsc/settings/base.py`, đè bằng biến môi trường cùng tên, **bắt buộc** dạng `USD=25400,CAD=18500,PHP=440` — số nguyên, không dấu chấm hay phẩy; sai thì hệ thống không lên và nêu tên biến, rà soát 07.09). Anh/chị chốt số, và có cần đổi theo tháng không (S18) | Trung bình | ADR-015 |
 | N12 | Danh sách giá trị văn hoá để ghi nhận: đang tạm năm giá trị Tận tâm, Chính trực, Hợp tác, Sáng tạo, Trách nhiệm (`culture/constants.py`). Đổi sau khi có ghi nhận thật thì cần tệp chuyển đổi dữ liệu | Trung bình | ADR-015 |
 
 ### 1.3. Vận hành
@@ -298,6 +301,9 @@ mục 6.
 | Q67 | Sao tính thế nào | **Một ghi nhận = một sao**; ngày 1 hằng tháng ba người dẫn đầu tháng trước nhận **5, 3, 1** sao, ràng buộc (người, kỳ, nguồn) nên chạy lại không nhân đôi; sổ ghi nhận và sổ sao chỉ ghi thêm, không sửa xoá (S16) — ADR-015 | 06.09.2026 |
 | Q68 | Tài liệu chia mục thế nào, ai tải lên | Mục theo bộ phận hoặc toàn công ty; Manager tải lên mục bộ phận mình, Admin cả mục chung; PDF, Word, Excel, CSV, ảnh hoặc chỉ liên kết; tệp ở `storage/tai-lieu/`, tải về qua view kiểm quyền — ADR-015, FR-9.x | 06.09.2026 |
 | Q69 | Danh sách module trong `app/` — sửa Q8 | **Mười hai module**: bảy cũ cộng `documents`, `feed`, `taskboard`, `culture`, `resources`; phụ thuộc một chiều `feed → culture → orders`, không ai import `feed` — ADR-015 | 06.09.2026 |
+| Q70 | Ai ghi nhận văn hoá được ai — sửa FR-12.1, AC-15.1, ADR-015 mục 5 | **Chỉ cấp trên ghi nhận cấp dưới**: Leader ghi nhận nhân viên team mình, Manager ghi nhận Leader và nhân viên bộ phận, Admin ghi nhận mọi người; nhân viên chỉ xem, không có form; không đặt trần số ghi nhận mỗi ngày (anh/chị chọn cách này thay cho trần). Dịch vụ kiểm bằng `UserProfile.objects.in_scope(giver)` và cấp bậc thấp hơn | 07.09.2026 |
+| Q71 | Ai tranh hạng doanh số | **Mọi người bán**, kể cả Leader, Manager, Admin có đơn — không loại quản lý khỏi bảng | 07.09.2026 |
+| Q72 | Hoà điểm trên bảng xếp hạng — sửa Q67 | **Đồng hạng, cùng nhận sao** kiểu thi đấu 1, 1, 3: bằng tổng VND và bằng số đơn thì cùng hạng, cùng sao thưởng, người kế tiếp nhảy hạng | 07.09.2026 |
 
 ---
 
@@ -324,6 +330,7 @@ Những thứ đáng làm nhưng chưa tới lượt.
 | S15 | Bảng kanban kéo thả cho Công việc, việc con, đính kèm | MVP là danh sách với nút đổi trạng thái — ADR-015 |
 | S16 | Sửa hoặc thu hồi ghi nhận | Hiện là sổ cái chỉ ghi thêm để sao không lệch (Q67); nếu làm thì thu hồi phải trừ sao kèm nhật ký |
 | S17 | Thông báo khi được giao việc, được ghi nhận, được bình luận | Cần chuông trên thanh trên hoặc thư — trùng hướng S3 |
+| S18 | Tỉ giá theo ngày lên đơn | Hiện quy đổi bằng bảng cố định tại lúc tính, nên đổi `EXCHANGE_RATES_VND` giữa tháng là hạng đổi ngược thời gian; đã ghi tỉ giá vào nhật ký thưởng (rà soát 07.09). Muốn đúng hẳn thì lưu tỉ giá theo ngày trên từng đơn — N11, ADR-015 |
 
 ---
 
@@ -460,3 +467,4 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 06.09.2026 | Chạy `/impeccable init`. Ba câu hỏi, ba câu trả lời: (1) tên chính thức **KNERP** cho hệ thống chính, **KN CRM** cho bảng tính, **Kim Ngân JSC** là công ty; (2) **máy tính là chính, điện thoại phụ** để nộp báo cáo ngày và xem nhanh; (3) **nhiều người dùng máy yếu hoặc mạng yếu**, không có yêu cầu trợ năng nào được nêu (ghi là chưa quyết). Viết `PRODUCT.md` ở thư mục gốc theo lược đồ của Impeccable, phần còn lại lấy từ docs và ADR; không ghi hướng thẩm mỹ. Không có công cụ sinh ảnh trong phiên nên chưa ghi `buildPath`; chế độ live chưa cấu hình vì ứng dụng không chạy trong phiên web. Ngay sau đó chủ dự án nói thêm: *hiện chưa cần quá lo về hiệu năng*, nên PRODUCT.md hạ "máy yếu, mạng yếu" từ ràng buộc xuống điều cần biết, không lấy làm cớ cắt hiệu ứng hay tính năng |
 | 06.09.2026 | Anh/chị hỏi vì sao bảng vận đơn không sửa được mà Báo cáo Marketing lại sửa được ngay trên Bảng dữ liệu: vì `GRID_ONLY_TABLES` chỉ có `van_don` (ADR-009 mục 4), bảng khác còn luật sửa ô của Giai đoạn 3 (FR-7.4) và ADR-010 mục 1 giữ nguyên điều đó; đợt KNERP đầu tiên không nêu mâu thuẫn này ra. Anh/chị hỏi tiếp gỡ hết dấu vết sửa ô có nhẹ đi không — trả lời thật: không bớt dữ liệu, tính toán khi ghi chuyển sang KN CRM cùng bộ mã; nhẹ ở mã và ở trang bảng có cột chọn; lý do thật là một cửa ghi duy nhất. Chốt **Bảng dữ liệu chỉ để xem với mọi bảng, sửa số liệu là việc của KN CRM** (Q62, ADR-014, luật 13 `CLAUDE.md`) và gỡ hết phía ERP: view `bang_sua_o` + đường dẫn, `_o.html`, khối script trong `bang_xem.html`, nhánh `editable` của `styling`, `choice_service.attach_lists`, handler 400 trong `chon.js`, CSS `o-loi-ly-do`; nút "Mở trong KN CRM" và dòng báo hiện với mọi bảng. Giữ `can_edit_record`, `record_service`, `GRID_ONLY_TABLES` vì lưới KN CRM dùng (K26). 14 bài kiểm thử sửa ô viết lại thành bài chỉ xem (AC-7.4, AC-11.7, AC-8.7) và bài gọi thẳng `update_cell` (BR-5, ADR-006, AC-7.10); một khẳng định ở `crm/tests/test_bang_tinh.py` đổi 403 → 404 |
 | 07.09.2026 | **MVP Nội bộ** (ADR-015) trên nhánh `claude/knerp-noi-bo-mvp`, PR #20 nháp, **chưa gộp**: năm app `documents`, `feed`, `taskboard`, `culture`, `resources`; nhóm Nội bộ trên thanh bên; ngày sinh hồ sơ (org 0003); `FileKind` PDF, Word; `EXCHANGE_RATES_VND`. 23 tiêu chí mới AC-12.1 → AC-16.3 (một thủ công), 126 tiêu chí, 113 trên 114 tự động có bài kiểm, 1.637 bài đạt (chưa kể `cham`). Chốt Q63 → Q69 (sửa Q2, Q8), mở N11, N12, K27, K28, S13 → S17. Sửa nhân tiện: `|default:a.b.c` với `a` trống trong template ném lỗi — rào `{% if %}` ở bốn template |
+| 07.09.2026 | **Rà soát lại nhánh MVP Nội bộ** theo yêu cầu anh/chị ("recheck lại nhánh này, xem tất cả vấn đề có thể xảy ra và đề xuất cải tiến"): ba tác nhân đọc mã song song ra ~45 phát hiện, không có rò rỉ phạm vi quyền nhưng 8 lỗi thật. Anh/chị chốt sửa hết trong bốn commit trên cùng nhánh, PR #20 vẫn nháp: **A** lỗi thật (người bán đã khoá chiếm hạng và làm rơi 5 sao; `2026-9` thưởng đúp; bấm đúp Thích nổ 500; hết phiên qua HTMX nhét trang đăng nhập vào nút; liên kết `javascript:` ở Tài nguyên; `qs_loc` không mã hoá; dịch vụ Tài liệu và Công việc không tự kiểm quyền; sửa việc để trống người làm là giao lại cho mình; open redirect `ve`; `_scrub` khớp chuỗi con làm mất dòng nhật ký có chữ "theo"; `USD=25.400` thành 25,4; đơn mẫu chen vào máy có vận đơn thật; ZIP giả `.docx`; lịch beat mất khi dựng lại và thiệp không bù ngày máy tắt; bình luận không phân trang; `with_counts` nhân chéo hai bảng; ghim đảo theo trạng thái cũ; ràng buộc tên mục phân biệt hoa thường), **B** cải tiến giao diện (Thích là form thật, số bình luận cập nhật tại chỗ, thiệp liên kết người được chúc, giữ bài khi đăng lỗi, Mới → Xong, lọc quá hạn, sắp theo hạn, lỗi form tại chỗ, nhật ký tải về, người giữ đã khoá không rơi), **C** gọn mã (`AliveManager`, `pagination_context`, `is_htmx`, `|ten`, `{% avatar %}`, bỏ chỉ mục và import thừa; migration feed 0002), **D** 14 bài kiểm mới và tài liệu. Chốt **Q70** (chỉ cấp trên ghi nhận cấp dưới — đổi FR-12.1, AC-15.1, ADR-015 mục 5, dữ liệu mẫu), **Q71**, **Q72**; mở **S18**; sửa K27, N11; sửa tham chiếu "mục 12.x" ở mục 0 thành `docs/04` mục 17.x. 1.677 bài đạt (chưa kể `cham`); K29 vẫn của thread KN CRM |

@@ -50,6 +50,12 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 
 ## 3. Kịch bản theo vai
 
+> Ba thứ phụ thuộc **ngày chạy `du_lieu_mau`**: thiệp sinh nhật của `sale.staff`
+> chỉ hiện đúng hôm đó; bảng xếp hạng doanh số và `thuong_sao_thang` tính tháng
+> có bốn đơn mẫu (tháng chạy lệnh) — sang tháng mới thì bảng trống cho tới khi
+> lên đơn mới; máy đã nhập vận đơn thật **trước** khi chạy lệnh thì không có đơn
+> mẫu, bảng xếp hạng trống là đúng (mục 3.3).
+
 ### 3.1. Sale — `sale.staff`
 
 | ☐ | Bước | Đạt khi | Mã |
@@ -63,10 +69,10 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 | ☐ | Gõ thẳng `localhost:8020/nhan-su/` | Trang từ chối | AC-3.7 |
 | ☐ | Nhìn nhóm **Nội bộ** trên thanh bên | Có Bảng tin, Tài liệu, Công việc, Văn hoá, Tài nguyên | ADR-015 |
 | ☐ | Mở **Bảng tin** | Bài chào mừng ghim đứng đầu; có **thiệp sinh nhật của chính mình** (dữ liệu mẫu đặt ngày sinh `sale.staff` là ngày chạy `du_lieu_mau`), viền vàng; thanh bên phải có Sinh nhật tháng này, Nhiều sao nhất, Ghi nhận mới, Thành viên mới | AC-13.1, AC-13.4, AC-13.5 |
-| ☐ | Đăng một bài; bấm **♡ Thích** trên bài của người khác rồi bấm lại; mở bài và viết bình luận | Bài hiện ngay đầu danh sách; nút đổi thành ♥ Đã thích với số 1 rồi về ♡ Thích, không tải lại trang; bình luận hiện dưới bài; **không** có nút Ghim, chỉ có Gỡ bài trên bài của mình | AC-13.1, AC-13.2, AC-13.3 |
+| ☐ | Đăng một bài; bấm **♡ Thích** trên bài của người khác rồi bấm lại (thử bấm đúp thật nhanh); mở bài và viết bình luận | Bài hiện ngay đầu danh sách; nút đổi thành ♥ Đã thích với số 1 rồi về ♡ Thích, không tải lại trang, bấm đúp không báo lỗi; bình luận hiện dưới bài và số "n bình luận" đổi ngay; **không** có nút Ghim, chỉ có Gỡ bài (có hỏi lại) trên bài của mình | AC-13.1, AC-13.2, AC-13.3 |
 | ☐ | Mở **Tài liệu** | Thấy mục Quy định chung và Quy trình Sale, **không** thấy Tài liệu Marketing; không có nút Tải lên và Thêm mục; bấm **Mở** một tài liệu | AC-12.1, AC-12.3 |
-| ☐ | Mở **Công việc** | Tab Của tôi có "Gọi lại 5 khách Canada chưa chốt" hạn đỏ (quá hạn); bấm **Xong** trên dòng → dòng đổi tại chỗ; tab Trong phạm vi cũng chỉ có việc của mình | AC-14.2, AC-14.3, AC-14.4 |
-| ☐ | Mở **Văn hoá**, ghi nhận `mkt.staff` giá trị Hợp tác | Thẻ ghi nhận hiện đầu danh sách; bảng Nhiều sao nhất cộng `mkt.staff` một sao; Xếp hạng doanh số tháng này có mình hạng 1 với 9.880.600 VND (389 USD × 25.400), `sale.staff2` hạng 2 (360 CAD), `sale.leader` hạng 3; không thấy mã đơn nào | AC-15.1, AC-15.2 |
+| ☐ | Mở **Công việc** | Tab Của tôi có "Gọi lại 5 khách Canada chưa chốt" hạn đỏ (quá hạn); tick **Chỉ việc quá hạn** rồi Lọc còn đúng việc đó; bấm **Xong** trên dòng → dòng đổi tại chỗ; tab Trong phạm vi cũng chỉ có việc của mình; **không** có ô lọc Người làm | AC-14.2, AC-14.3, AC-14.4 |
+| ☐ | Mở **Văn hoá** | **Không** có ô ghi nhận (nhân viên chỉ xem — Q70), có dòng "Ghi nhận đi từ trên xuống"; danh sách có thẻ `sale.leader` ghi nhận mình; Xếp hạng doanh số tháng này có mình hạng 1 với 9.880.600 VND (389 USD × 25.400), `sale.staff2` hạng 2 (360 CAD), `sale.leader` hạng 3; không thấy mã đơn nào | AC-15.1, AC-15.2 |
 | ☐ | Mở **Tài nguyên** | Thấy đủ sáu tài nguyên trong năm mục, trạng thái là chip màu; lọc mục BM còn hai dòng; **không** có nút Thêm, Sửa, Gỡ, Thêm mục | AC-16.1, AC-16.2 |
 | ☐ | Mở Bảng tin trên điện thoại | Bài đọc được, bấm Thích và gửi bình luận được, thanh bên xếp xuống dưới bài, không tràn ngang | **AC-13.6** |
 
@@ -100,7 +106,8 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 | ☐ | `mkt.manager` chọn hai ô cạnh nhau, chuột phải → **Chèn 2 cột bên phải**; rồi chuột phải lên cột mới → **Xoá cột** | Hai cột "Cột mới 1", "Cột mới 2" xuất hiện ngay sau cột đó, gõ được; xoá được; đăng nhập `mkt.staff` thì các mục cột này mờ | **AC-11.22** |
 | ☐ | Bấm ▼ trên chữ cột Marketer | Hộp lọc: "Lọc cột Marketer · N giá trị", ô tìm, danh sách tên kèm số dòng; tích hai tên, **Áp dụng** → lưới còn đúng các dòng đó, chân trang ghi "Đang lọc 1 cột"; **Xóa lọc** thì về đủ | **AC-11.24** |
 | ☐ | Mở cùng bảng ở cửa sổ thứ hai bằng `mkt.staff`, sửa một ô ở đó | Trong vòng 10 giây cửa sổ `mkt.manager` tự hiện giá trị mới kèm báo "Có dữ liệu mới" | AC-11.26 |
-| ☐ | `mkt.manager` mở **Bảng tin**: bấm **Ghim** trên bài của `sale.staff`, rồi **Gỡ ghim**; **Gỡ bài** một bài bất kỳ | Bài ghim nhảy lên đầu có chip "Đã ghim"; gỡ xong bài biến mất; Nhật ký (`quantri`) có dòng Ghim bài, Gỡ ghim bài, Gỡ bài | AC-13.3 |
+| ☐ | `mkt.manager` mở **Bảng tin**: bấm **Ghim** trên bài của `sale.staff`, rồi **Gỡ ghim**; **Gỡ bài** một bài bất kỳ | Bài ghim nhảy lên đầu có chip "Đã ghim"; gỡ có hỏi lại, xong bài biến mất; Nhật ký (`quantri`) có dòng Ghim bài, Gỡ ghim bài, Gỡ bài | AC-13.3 |
+| ☐ | `mkt.manager` mở **Văn hoá**, nhìn ô Đồng nghiệp rồi ghi nhận `mkt.staff` giá trị Hợp tác | Ô chọn chỉ có `mkt.leader` và `mkt.staff` — **không** có `sale.staff`, không có chính mình; thẻ ghi nhận hiện đầu danh sách; Nhiều sao nhất cộng `mkt.staff` một sao; gửi thiếu lời nhắn thì báo đúng ô "Lời nhắn" | AC-15.1 |
 | ☐ | `mkt.manager` mở **Tài liệu** → **Tải lên**: mục Tài liệu Marketing, chọn một tệp PDF thật; rồi thử một tệp `.exe` đổi đuôi `.pdf` | Tệp PDF hiện trong mục; `mkt.staff` đăng nhập thấy và **Tải về** được, `sale.staff` **không** thấy; tệp giả bị từ chối | AC-12.2, AC-12.3, AC-12.4 |
 | ☐ | `mkt.manager` mở **Công việc** → **Thêm việc** giao cho `mkt.staff`, hạn ngày mai; thử giao cho `sale.staff` | Việc hiện ở tab Trong phạm vi; ô Người làm **không** có `sale.staff` | AC-14.1 |
 | ☐ | `mkt.manager` mở **Tài nguyên** → **Thêm mục** "Tài khoản TikTok"; **Thêm tài nguyên** vào mục đó với ghi chú có chữ "mật khẩu: 123" | Mục mới hiện ở cột phải; tài nguyên bị từ chối vì ghi chú chứa mật khẩu, sửa ghi chú thì lưu được; **Sửa** đổi trạng thái sang Khoá → Nhật ký có dòng "Trạng thái: Trống → Khoá", không thấy nội dung ghi chú | AC-16.1, AC-16.2, AC-16.3 |
@@ -108,7 +115,9 @@ xem `docs/05` mục B5, đừng kiểm tiếp.
 ### 3.3. Vận đơn — `vd.staff`
 
 Đăng nhập KN ERP rồi bấm **KN CRM** trên thanh bên: tab mới mở trang chủ
-KN CRM ở `http://localhost:8021/`. Đây là nơi làm việc của bộ phận.
+KN CRM ở `http://localhost:8021/`. Đây là nơi làm việc của bộ phận. Máy đã có
+dòng vận đơn thật trước khi chạy `du_lieu_mau` thì lệnh **không** dựng bốn đơn
+mẫu (để số giả không lẫn vào), nên Xếp hạng doanh số ở 3.1 trống là đúng.
 
 | ☐ | Bước | Đạt khi | Mã |
 |---|---|---|---|
@@ -142,8 +151,9 @@ KN CRM ở `http://localhost:8021/`. Đây là nơi làm việc của bộ phậ
 | ☐ | Ma trận phân quyền | Đủ 45 ô, khớp `docs/04` mục 3 | AC-3.x |
 | ☐ | Gõ đường dẫn sai `localhost:8020/khong-co/` | Ghi nhận trang hiện gì. **Chưa làm** trang 404 tiếng Việt — backlog K9; đây là điểm biết trước | AC-10.3 |
 | ☐ | Nhân sự → Sửa hồ sơ `vd.manager`, điền **Ngày sinh** là hôm nay; rồi chạy `docker compose -f deploy/docker-compose.yml exec web python manage.py thiep_sinh_nhat` hai lần | Lần một "1 thiep moi", lần hai "0 thiep moi"; Bảng tin có thiệp cho Bùi Kim Chi; Nhật ký có dòng "Thiệp sinh nhật" | AC-13.4 |
-| ☐ | Chạy `… manage.py thuong_sao_thang --thang <tháng này, dạng YYYY-MM>` hai lần | Lần một "3 dong sao moi", lần hai "0 dong sao moi"; Văn hoá → Nhiều sao nhất: `sale.staff` +5, `sale.staff2` +3, `sale.leader` +1; Nhật ký có "Thưởng sao xếp hạng" | AC-15.3 |
-| ☐ | Văn hoá: tìm chính mình trong ô Đồng nghiệp | Không có tên mình — không tự ghi nhận được | AC-15.1 |
+| ☐ | Chạy `… manage.py thuong_sao_thang --thang <tháng có đơn mẫu, dạng YYYY-MM>` hai lần | Lần một "3 dong sao moi", lần hai "0 dong sao moi"; Văn hoá → Nhiều sao nhất: `sale.staff` +5, `sale.staff2` +3, `sale.leader` +1 (đồng hạng thì cùng nhận — Q72); Nhật ký có "Thưởng sao xếp hạng" kèm tỉ giá | AC-15.3 |
+| ☐ | Văn hoá: nhìn ô Đồng nghiệp | Có mọi người trừ chính mình — Admin ghi nhận được tất cả nhưng không tự ghi nhận | AC-15.1 |
+| ☐ | Để yên quá 60 phút (hoặc đăng xuất ở tab khác) rồi bấm **♡ Thích** trên Bảng tin | Trình duyệt chuyển hẳn về trang đăng nhập, không có mảnh trang lạ nhét vào chỗ nút | AC-1.4 |
 
 ---
 

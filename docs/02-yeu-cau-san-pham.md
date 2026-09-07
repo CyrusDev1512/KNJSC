@@ -149,7 +149,7 @@ Thư viện tài liệu dùng chung, chia theo mục — nhóm Nội bộ, ADR-0
 |---|---|
 | FR-9.1 | Tài liệu phải chia theo mục; mỗi mục thuộc một bộ phận hoặc dùng cho toàn công ty. Manager tạo mục cho bộ phận mình, Admin tạo mục toàn công ty |
 | FR-9.2 | Manager trở lên tải lên được tệp PDF, Word, Excel, CSV, ảnh JPG hoặc PNG (giới hạn NFR-11, kiểm nội dung theo NFR-12), hoặc thêm tài liệu dạng liên kết |
-| FR-9.3 | Mọi người trong phạm vi của mục xem và tải về được; tải về đi qua đường có kiểm quyền, không có đường tĩnh tới tệp |
+| FR-9.3 | Mọi người trong phạm vi của mục xem và tải về được; tải về đi qua đường có kiểm quyền, không có đường tĩnh tới tệp; mỗi lượt tải về hay mở liên kết ghi một dòng nhật ký |
 | FR-9.4 | Gỡ tài liệu là xoá mềm (BR-4); người tải, Manager của bộ phận đó hoặc Admin mới gỡ được |
 | FR-9.5 | Tệp tài liệu nằm ngoài các thư mục bị dọn tự động sau 24 giờ |
 
@@ -162,7 +162,7 @@ Bảng tin chung của công ty — ADR-015.
 | Mã | Yêu cầu |
 |---|---|
 | FR-10.1 | Mọi người đăng được bài dạng chữ; ai cũng xem được toàn bộ bài, không phân theo bộ phận |
-| FR-10.2 | Mọi người thích và bình luận được; bỏ thích được, thích lại được |
+| FR-10.2 | Mọi người thích và bình luận được; bỏ thích được, thích lại được; bài chỉ tải 20 bình luận mới nhất, cũ hơn tải tiếp |
 | FR-10.3 | Manager và Admin ghim bài (đứng đầu trang) và gỡ bài bất kỳ; tác giả gỡ được bài của mình; gỡ là xoá mềm |
 | FR-10.4 | Hệ thống tự đăng thiệp chúc mừng sinh nhật theo ngày sinh trong hồ sơ nhân sự, mỗi người mỗi năm một thiệp |
 | FR-10.5 | Thanh bên có sinh nhật tháng này, bảng xếp hạng sao, ghi nhận mới nhất và thành viên mới |
@@ -177,9 +177,9 @@ Quản lý việc trong bộ phận — ADR-015.
 | Mã | Yêu cầu |
 |---|---|
 | FR-11.1 | Tạo việc và giao cho người trong phạm vi của mình; Staff tự giao cho chính mình |
-| FR-11.2 | Việc có bốn trạng thái Mới, Đang làm, Xong, Huỷ và chỉ chuyển theo bảng chuyển hợp lệ; có ưu tiên và hạn |
+| FR-11.2 | Việc có bốn trạng thái Mới, Đang làm, Xong, Huỷ và chỉ chuyển theo bảng chuyển hợp lệ (việc nhỏ chuyển thẳng Mới → Xong; Huỷ mở lại thành Mới); có ưu tiên và hạn |
 | FR-11.3 | Phạm vi xem theo cấp bậc: Staff thấy việc mình nhận hoặc tạo, Leader thấy việc của team, Manager cả bộ phận, Admin tất cả |
-| FR-11.4 | Danh sách có tab Của tôi và Trong phạm vi, lọc theo trạng thái, người làm, ưu tiên; phân trang |
+| FR-11.4 | Danh sách có tab Của tôi và Trong phạm vi, lọc theo trạng thái, người làm, ưu tiên, chỉ việc quá hạn; sắp theo hạn gần trước; phân trang |
 | FR-11.5 | Gỡ việc là xoá mềm; người tạo hoặc Manager trở lên mới gỡ được |
 
 ---
@@ -190,10 +190,10 @@ Ghi nhận đồng nghiệp, sao và bảng xếp hạng doanh số — ADR-015.
 
 | Mã | Yêu cầu |
 |---|---|
-| FR-12.1 | Mọi người ghi nhận được đồng nghiệp theo một giá trị văn hoá kèm lời nhắn; không tự ghi nhận mình |
+| FR-12.1 | **Trưởng nhóm trở lên ghi nhận cấp dưới trong phạm vi mình** (Leader: nhân viên team, Manager: cả bộ phận, Admin: mọi người) theo một giá trị văn hoá kèm lời nhắn; nhân viên chỉ xem; không tự ghi nhận mình — Q70 |
 | FR-12.2 | Mỗi ghi nhận cho người nhận một sao |
-| FR-12.3 | Bảng xếp hạng doanh số tháng này tính từ Đơn hàng theo người bán, quy về VND bằng tỉ giá cố định trong cấu hình; toàn công ty xem hạng, số đơn và tổng, không thấy chi tiết đơn |
-| FR-12.4 | Ngày 1 hằng tháng, ba người đứng đầu tháng trước nhận 5, 3, 1 sao thưởng; chạy lại không nhân đôi |
+| FR-12.3 | Bảng xếp hạng doanh số tháng này tính từ Đơn hàng theo người bán (ngày lên đơn trên hệ thống), quy về VND bằng tỉ giá cố định trong cấu hình; mọi người bán kể cả quản lý đều tranh hạng (Q71); bằng tổng và bằng số đơn thì đồng hạng (Q72); toàn công ty xem hạng, số đơn và tổng, không thấy chi tiết đơn |
+| FR-12.4 | Ngày 1 hằng tháng, những người ở hạng 1, 2, 3 tháng trước nhận 5, 3, 1 sao thưởng, đồng hạng cùng nhận (Q72); chạy lại không nhân đôi; nhật ký thưởng ghi tỉ giá đã dùng |
 | FR-12.5 | Tổng sao hiện ở bảng xếp hạng sao và trang thành viên |
 
 ---
@@ -271,7 +271,7 @@ Những mục sau ảnh hưởng tới phạm vi và cần thống nhất trư�
 | 2 | ~~Tạo biểu mẫu thì tự sinh bảng mới, hay luôn phải chọn bảng có sẵn~~ | Đã chốt: luôn chọn bảng có sẵn — ADR-007 | — |
 | 3 | Lịch nộp báo cáo có bắt buộc đúng giờ không | Chỉ ghi nhận / Nhắc nhở / Chặn nộp muộn | Có cần tác vụ chạy nền hay không — backlog N1 |
 | 4 | ~~Cách thống kê trên bảng do người dùng tự tạo~~ | Đã chốt: bảy nhãn ý nghĩa — ADR-007 | — |
-| 5 | Tỉ giá cố định quy doanh số về VND cho bảng xếp hạng Văn hoá — FR-12.3 | Đang tạm USD 25.400, CAD 18.500, PHP 440 trong cấu hình | Số trên bảng xếp hạng — backlog N11 |
+| 5 | Tỉ giá cố định quy doanh số về VND cho bảng xếp hạng Văn hoá — FR-12.3 | Đang tạm USD 25.400, CAD 18.500, PHP 440 trong cấu hình (biến `EXCHANGE_RATES_VND`, dạng `USD=25400,CAD=18500,PHP=440`) | Số trên bảng xếp hạng — backlog N11; đổi tỉ giá giữa tháng thì hạng đổi theo — S18 |
 | 6 | Danh sách giá trị văn hoá để ghi nhận — FR-12.1 | Đang tạm năm giá trị: Tận tâm, Chính trực, Hợp tác, Sáng tạo, Trách nhiệm | Đổi sau khi có ghi nhận thật thì phải chuyển dữ liệu — backlog N12 |
 
 ---

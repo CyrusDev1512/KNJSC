@@ -48,8 +48,8 @@ Manager   →  toàn bộ bộ phận
 ```
 
 Ngoài nghiệp vụ, cả công ty dùng chung nhóm **Nội bộ** (bản MVP, ADR-015):
-Bảng tin, Tài liệu chia mục, Công việc, Văn hoá (ghi nhận, sao, xếp hạng doanh
-số) và Tài nguyên.
+Bảng tin, Tài liệu chia mục, Công việc, Văn hoá (cấp trên ghi nhận cấp dưới,
+sao, xếp hạng doanh số) và Tài nguyên.
 
 ---
 

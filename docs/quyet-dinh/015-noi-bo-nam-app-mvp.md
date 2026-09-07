@@ -6,7 +6,7 @@
 | Ngày | 06.09.2026 |
 | Người quyết định | Anh/chị chủ dự án, qua bốn câu hỏi và một câu bổ sung ngày 06.09.2026 |
 | Thay thế cho | **Backlog Q2** (không làm quản lý tài nguyên) · **Q8** (bảy module) |
-| Liên quan | ADR-004 · ADR-012 · FR-9 → FR-13 · AC-12 → AC-16 · backlog Q63 → Q69, K27, K28, N11, N12, S13 → S17 |
+| Liên quan | ADR-004 · ADR-012 · FR-9 → FR-13 · AC-12 → AC-16 · backlog Q63 → Q72, K27, K28, N11, N12, S13 → S18 |
 
 ---
 
@@ -43,7 +43,7 @@ mục tài nguyên, nhưng **vẫn không lưu mật khẩu** trong đó (FR-13.
 | **Năm app nhỏ** (chọn) | Mỗi app một luật phạm vi, một bộ kiểm thử, gỡ hay mở rộng độc lập; đúng nếp `org`, `reports`, `orders` | Nhiều tệp khung hơn |
 | Ghi nhận nhân đôi thành bài trên Bảng tin | Bảng tin sôi động hơn | Tạo vòng phụ thuộc `culture ↔ feed`; hai bản ghi cho một việc |
 | Xếp hạng doanh số theo nhãn Người bán trên mọi bảng | Gồm cả Marketing | Khớp theo chuỗi tên, không theo tài khoản; anh/chị chọn Đơn hàng |
-| Tỉ giá lấy từ dịch vụ ngoài | Đúng theo ngày | Thêm phụ thuộc mạng và thư viện; MVP chỉ cần con số cố định (S17) |
+| Tỉ giá lấy từ dịch vụ ngoài | Đúng theo ngày | Thêm phụ thuộc mạng và thư viện; MVP chỉ cần con số cố định (S18) |
 
 ## Quyết định
 
@@ -68,14 +68,19 @@ mục tài nguyên, nhưng **vẫn không lưu mật khẩu** trong đó (FR-13.
    tạo, Leader thấy team, Manager cả bộ phận, Admin tất cả; giao việc chỉ cho
    người trong `UserProfile.objects.in_scope`; bốn trạng thái, chuyển theo bảng
    cố định; đổi trạng thái bằng HTMX thay đúng một dòng.
-5. **Văn hoá:** ghi nhận không tự ghi nhận mình, không xoá được ở MVP (như báo
-   cáo đã nộp, để sao không lệch — S16 nếu cần); mỗi ghi nhận sinh một dòng
-   sao. Bảng xếp hạng doanh số đọc `orders.Order` toàn công ty — **ngoại lệ
+5. **Văn hoá:** ghi nhận đi **từ trên xuống** (Q70, rà soát 07.09.2026 — thay
+   câu "ai cũng ghi nhận" của bản đầu): Leader ghi nhận nhân viên team mình,
+   Manager ghi nhận Leader và nhân viên bộ phận, Admin ghi nhận mọi người; nhân
+   viên chỉ xem; không tự ghi nhận mình; không xoá được ở MVP (như báo cáo đã
+   nộp, để sao không lệch — S16 nếu cần); mỗi ghi nhận sinh một dòng sao. Bảng xếp hạng doanh số đọc `orders.Order` toàn công ty — **ngoại lệ
    phạm vi có chủ ý** vì là chỉ số gộp cho văn hoá, không lộ chi tiết đơn;
    quy đổi VND bằng `EXCHANGE_RATES_VND` (Decimal, một chỗ trong settings, đè
    bằng biến môi trường; số mặc định là số tạm — N11). Thưởng tháng chạy ngày
    1 bằng Celery beat và bằng lệnh `thuong_sao_thang --thang` khi cần chạy tay;
-   ràng buộc duy nhất (người, kỳ, nguồn) nên chạy lại không nhân đôi.
+   ràng buộc duy nhất (người, kỳ, nguồn) nên chạy lại không nhân đôi. Mọi
+   người bán đều tranh hạng, kể cả quản lý (Q71); bằng tổng và bằng số đơn thì
+   đồng hạng kiểu thi đấu 1, 1, 3 và cùng nhận sao (Q72); người bán đã khoá
+   không chiếm hạng; nhật ký thưởng ghi tỉ giá đã dùng.
 6. **Tài nguyên là danh mục dùng chung:** mọi người đã đăng nhập xem toàn bộ,
    Manager trở lên thêm mục và thêm, sửa, gỡ; không sổ bàn giao (S13).
 7. **Ngày sinh** là cột mới trên hồ sơ nhân sự (org migration 0003), sửa được ở
@@ -99,4 +104,4 @@ kanban, sổ bàn giao và tỉ giá tự động để mỗi tính năng chạy
 ## Điều kiện xem lại
 
 Khi công ty dùng thật ba tháng: cần ảnh trong bài, sổ bàn giao tài nguyên,
-kanban, hay tỉ giá theo ngày thì mở các S13 → S17 thành quyết định mới.
+kanban, hay tỉ giá theo ngày thì mở các S13 → S18 thành quyết định mới.

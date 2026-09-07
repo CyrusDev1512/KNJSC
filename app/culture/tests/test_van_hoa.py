@@ -206,7 +206,7 @@ def test_bang_xep_hang_doanh_so_thang_nay(client, nguoi_dung, san_pham):
 
 @override_settings(EXCHANGE_RATES_VND=TI_GIA)
 def test_thuong_sao_top_ba_thang_truoc_khong_nhan_doi(nguoi_dung, san_pham):
-    """AC-15.3 — Ngày 1 hằng tháng ba người dẫn đầu kỳ trước nhận 5, 3, 1 sao; lệnh và tác vụ nền chạy lại không nhân đôi; kỳ sai định dạng bị từ chối; mỗi lần chạy một dòng nhật ký"""
+    """AC-15.3 — Ngày 1 hằng tháng những người ở hạng 1, 2, 3 kỳ trước nhận 5, 3, 1 sao; lệnh và tác vụ nền chạy lại không nhân đôi; kỳ sai định dạng bị từ chối; mỗi lần chạy một dòng nhật ký"""
     from culture.tasks import thuong_sao_thang
 
     n = nguoi_dung
@@ -368,3 +368,29 @@ def test_trang_van_hoa_khong_qua_muoi_lenh_truy_van(client, nguoi_dung, san_pham
         client.get("/van-hoa/")
         with django_assert_max_num_queries(10):
             assert client.get("/van-hoa/").status_code == 200, vai
+
+
+# ══ Lỗi form theo từng ô, ô chọn theo phạm vi — Q70, rà soát 07.09 ═
+
+def test_form_ghi_nhan_bao_loi_theo_tung_o_va_o_chon_theo_pham_vi(client, nguoi_dung):
+    """AC-15.1 — Gửi ghi nhận thiếu lời nhắn hay chọn giá trị lạ thì thông báo nêu đúng ô sai và không tạo gì; ô chọn đồng nghiệp của Leader chỉ có nhân viên team mình, của Manager có cả Leader và nhân viên bộ phận, của Admin có mọi người trừ chính mình; nhân viên không có ai để chọn"""
+    n = nguoi_dung
+    client.force_login(n["leader_sale_1"])
+    kq = client.post("/van-hoa/ghi-nhan/", {
+        "receiver": n["staff_sale_1"].pk, "value": CoreValue.HOP_TAC, "message": "",
+    }, follow=True)
+    assert "Chưa gửi được: Lời nhắn:" in kq.content.decode()
+    kq = client.post("/van-hoa/ghi-nhan/", {
+        "receiver": n["staff_sale_1"].pk, "value": "lam_bua", "message": "Thử",
+    }, follow=True)
+    assert "Chưa gửi được: Giá trị văn hoá:" in kq.content.decode()
+    assert Recognition.objects.count() == 0
+
+    chon = lambda: {u.pk for u in client.get("/van-hoa/").context["cac_nguoi"]}     # noqa: E731
+    assert chon() == {n["staff_sale_1"].pk, n["staff_sale_1b"].pk}
+    client.force_login(n["manager_sale"])
+    assert chon() == {n[k].pk for k in ("leader_sale_1", "leader_sale_2", "staff_sale_1", "staff_sale_1b", "staff_sale_2")}
+    client.force_login(n["admin"])
+    assert chon() == {u.pk for k, u in n.items() if k != "admin"}
+    client.force_login(n["staff_sale_1"])
+    assert chon() == set()

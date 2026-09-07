@@ -216,8 +216,55 @@ def test_ghi_chu_khong_chua_mat_khau(cac_muc, nguoi_dung):
 # ══ Ngân sách truy vấn — AC-10.2 ═══════════════════════════════════
 
 def test_danh_sach_tai_nguyen_khong_qua_muoi_lenh_truy_van(client, cac_tai_nguyen, nguoi_dung, django_assert_max_num_queries):
-    """AC-10.2 — Danh sách tài nguyên có dữ liệu chạy không quá 10 lệnh truy vấn"""
-    client.force_login(nguoi_dung["manager_sale"])
-    client.get("/tai-nguyen/")
-    with django_assert_max_num_queries(10):
-        assert client.get("/tai-nguyen/").status_code == 200
+    """AC-10.2 — Danh sách tài nguyên có dữ liệu chạy không quá 10 lệnh truy vấn, với Manager lẫn Leader và Staff"""
+    for vai in ("manager_sale", "leader_sale_1", "staff_vd"):
+        client.force_login(nguoi_dung[vai])
+        client.get("/tai-nguyen/")
+        with django_assert_max_num_queries(10):
+            assert client.get("/tai-nguyen/").status_code == 200, vai
+
+
+# ══ Người giữ đã khoá, lọc người lạ, tên mục hoa thường — rà soát 07.09 ═
+
+def test_nguoi_giu_da_khoa_van_hien_khi_sua_va_loc_nguoi_la_404(client, cac_tai_nguyen, cac_muc, nguoi_dung, departments):
+    """AC-16.2 — Người giữ đã bị khoá vẫn hiện trong ô chọn khi sửa và bấm Lưu không làm mất người giữ; trang thêm mới không có người đã khoá; lọc theo người không có hay đã khoá trả 404; "Xoá lọc" giữ mục đang chọn; Leader thêm mục bị từ chối có nhật ký"""
+    n = nguoi_dung
+    bm = cac_tai_nguyen["bm"]                                       # người giữ: staff_mkt
+    n["staff_mkt"].is_active = False
+    n["staff_mkt"].save(update_fields=["is_active"])
+
+    client.force_login(n["manager_mkt"])
+    html = client.get(f"/tai-nguyen/{bm.pk}/sua/").content.decode()
+    assert f'<option value="{n["staff_mkt"].pk}" selected' in html
+    assert f'<option value="{n["staff_mkt"].pk}"' not in client.get("/tai-nguyen/moi/").content.decode()
+    kq = client.post(f"/tai-nguyen/{bm.pk}/sua/", {
+        "category": bm.category_id, "name": bm.name, "status": bm.status, "holder": n["staff_mkt"].pk,
+        "department": departments["mkt"].pk, "link": "", "note": "Đang chạy 3 tài khoản QC",
+    })
+    assert kq.status_code == 302
+    bm.refresh_from_db()
+    assert bm.holder == n["staff_mkt"]
+
+    assert client.get("/tai-nguyen/", {"nguoi": n["staff_mkt"].pk}).status_code == 404
+    assert client.get("/tai-nguyen/", {"nguoi": 999999}).status_code == 404
+    html = client.get("/tai-nguyen/", {"muc": cac_muc["BM"].pk, "tim": "x"}).content.decode()
+    assert f'href="/tai-nguyen/?muc={cac_muc["BM"].pk}">Xoá lọc' in html
+
+    client.force_login(n["leader_sale_1"])
+    tu_choi = _so(AuditAction.DENIED)
+    assert client.post("/tai-nguyen/muc-moi/", {"name": "Lậu"}).status_code == 403
+    assert _so(AuditAction.DENIED) == tu_choi + 1 and not ResourceCategory.objects.filter(name="Lậu").exists()
+
+
+def test_ten_muc_tai_nguyen_khong_phan_biet_hoa_thuong_o_tang_du_lieu(cac_muc, nguoi_dung):
+    """AC-16.1 — Tên mục chỉ khác hoa thường bị chặn ngay ở cơ sở dữ liệu, không chỉ ở tầng dịch vụ; mục đã gỡ không giữ chỗ tên; mục mới xếp cuối (thứ tự lớn nhất cộng một)"""
+    from django.db import IntegrityError, transaction
+
+    n = nguoi_dung
+    with pytest.raises(IntegrityError), transaction.atomic():
+        ResourceCategory.objects.create(name="via", created_by=n["admin"])
+    lon_nhat = max(m.order for m in cac_muc.values())
+    moi = resource_service.create_category(name="Tài khoản TikTok", actor=n["admin"])
+    assert moi.order == lon_nhat + 1
+    ResourceCategory.objects.filter(pk=moi.pk).delete(by=n["admin"])
+    assert resource_service.create_category(name="tài khoản tiktok", actor=n["admin"]).pk != moi.pk

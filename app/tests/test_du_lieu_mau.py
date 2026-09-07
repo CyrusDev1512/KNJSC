@@ -197,3 +197,57 @@ def test_chay_lai_dat_lai_dung_mat_khau_da_in(client):
     ho_so.refresh_from_db()
     assert ho_so.locked_until is None and ho_so.must_change_password is False
     assert UserProfile.objects.get(user__username="sale.moi").must_change_password is True
+
+
+# ══ Nhóm Nội bộ và bảng xếp hạng mẫu — ADR-015, rà soát 07.09 ═══════
+
+TI_GIA_MAC_DINH = {"VND": 1, "USD": 25400, "CAD": 18500, "PHP": 440}
+
+
+@override_settings(EXCHANGE_RATES_VND={k: __import__("decimal").Decimal(v) for k, v in TI_GIA_MAC_DINH.items()})
+def test_du_lieu_noi_bo_va_bang_xep_hang_mau():
+    """AC-15.2 — Dữ liệu mẫu dựng đủ nhóm Nội bộ: ba mục và bốn tài liệu, sáu việc, bốn ghi nhận từ trên xuống kèm bốn sao, năm bài (một ghim) với ba bình luận và bảy lượt thích, thiệp sinh nhật hôm nay cho sale.staff, năm mục và sáu tài nguyên; bốn đơn mẫu cho bảng xếp hạng tháng này ra đúng số ghi ở docs/07 với tỉ giá mặc định: sale.staff hạng 1 với 9.880.600 VND"""
+    from decimal import Decimal
+
+    from core.constants import rank_level
+    from culture.models import Recognition, StarAward
+    from culture.services import leaderboard_service
+    from documents.models import Document, DocumentCategory
+    from feed.constants import PostKind
+    from feed.models import Comment, Like, Post
+    from resources.models import Resource, ResourceCategory
+    from taskboard.models import Task
+
+    _chay()
+    assert (DocumentCategory.objects.count(), Document.objects.count()) == (3, 4)
+    assert Task.objects.count() == 6
+    assert Recognition.objects.count() == 4 and StarAward.objects.count() == 4
+    for gn in Recognition.objects.select_related("giver__profile", "receiver__profile"):
+        assert rank_level(gn.giver.profile.rank) > rank_level(gn.receiver.profile.rank), gn   # Q70
+    assert Post.objects.filter(kind=PostKind.BAI_VIET).count() == 5
+    assert Post.objects.filter(is_pinned=True).count() == 1
+    assert (Comment.objects.count(), Like.objects.count()) == (3, 7)
+    thiep = Post.objects.filter(kind=PostKind.SINH_NHAT)
+    assert thiep.count() == 1 and thiep.get().subject.username == "sale.staff"
+    assert (ResourceCategory.objects.count(), Resource.objects.count()) == (5, 6)
+
+    bxh = leaderboard_service.sales_leaderboard()
+    assert [(d["user"].username, d["hang"], d["so_don"], d["tong_vnd"]) for d in bxh] == [
+        ("sale.staff", 1, 2, Decimal("9880600")),
+        ("sale.staff2", 2, 1, Decimal("6660000")),
+        ("sale.leader", 3, 1, Decimal("2590000")),
+    ]
+    assert bxh[0]["tong_hien"] == "9.880.600"
+
+
+def test_khong_nhet_don_mau_khi_da_co_van_don_that():
+    """AC-15.2 — Máy đã có dòng vận đơn (nhập tệp thật) mà chưa có đơn hàng nào thì lệnh không dựng bốn đơn mẫu, để bảng xếp hạng không lẫn số giả"""
+    from orders.models import Order
+
+    _chay()
+    assert Order.all_objects.count() == 4
+    assert DataRecord.all_objects.filter(table__code=WAYBILL_TABLE_CODE).exists()
+    Order.all_objects.all().hard_delete()                       # chỉ còn dòng vận đơn
+    ra = _chay()
+    assert Order.all_objects.count() == 0 and "đơn hàng" not in ra
+

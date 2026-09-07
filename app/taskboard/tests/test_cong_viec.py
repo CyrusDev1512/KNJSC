@@ -9,7 +9,7 @@ import pytest
 from core.constants import AuditAction
 from core.exceptions import BusinessError, OutOfScopeError
 from core.models import AuditLog
-from taskboard.constants import TaskPriority, TaskStatus
+from taskboard.constants import STATUS_TRANSITIONS, TaskPriority, TaskStatus
 from taskboard.models import Task
 from taskboard.services import task_service
 
@@ -208,11 +208,12 @@ def test_sua_va_go_viec_theo_quyen(client, cac_viec, nguoi_dung):
 
 
 def test_man_hinh_cong_viec_khong_qua_muoi_lenh_truy_van(client, cac_viec, nguoi_dung, django_assert_max_num_queries):
-    """AC-10.2 — Màn hình Công việc chạy không quá 10 lệnh truy vấn"""
-    client.force_login(nguoi_dung["admin"])
-    client.get("/cong-viec/?tab=pham_vi")
-    with django_assert_max_num_queries(10):
-        assert client.get("/cong-viec/?tab=pham_vi").status_code == 200
+    """AC-10.2 — Màn hình Công việc chạy không quá 10 lệnh truy vấn, với Admin lẫn Leader phải tính phạm vi team"""
+    for vai in ("admin", "leader_sale_1", "manager_sale"):
+        client.force_login(nguoi_dung[vai])
+        client.get("/cong-viec/?tab=pham_vi")
+        with django_assert_max_num_queries(10):
+            assert client.get("/cong-viec/?tab=pham_vi&sap=han").status_code == 200, vai
 
 
 # ══ Dịch vụ tự kiểm quyền, sửa giữ người làm, `ve` an toàn — rà soát 07.09 ═
@@ -250,3 +251,74 @@ def test_ve_chi_quay_ve_trong_he_thong(client, nguoi_dung):
     kq = client.post(f"/cong-viec/{v.pk}/trang-thai/", {"trang_thai": "huy"}, HTTP_HX_REQUEST="true")
     assert kq.status_code == 400 and kq["Content-Type"].startswith("text/plain")
     assert "Không chuyển được" in kq.content.decode()
+
+
+# ══ Lọc quá hạn, sắp theo hạn, Mới → Xong, lỗi form tại chỗ — rà soát 07.09 ═
+
+def test_loc_qua_han_sap_theo_han_va_an_o_nguoi_lam(client, nguoi_dung):
+    """AC-14.4 — Lọc "Chỉ việc quá hạn" giữ đúng việc chưa xong đã qua hạn; "Hạn gần trước" xếp theo hạn, việc không hạn xuống cuối; hai bộ lọc giữ qua phân trang; Staff không thấy ô lọc Người làm vì chỉ có mình, Leader thì thấy"""
+    n = nguoi_dung
+    hom_nay = date.today()
+    _viec(n["staff_sale_1"], "Quá hạn", due_date=hom_nay - timedelta(days=2))
+    xong = _viec(n["staff_sale_1"], "Quá hạn nhưng xong", due_date=hom_nay - timedelta(days=5))
+    task_service.change_status(xong, TaskStatus.XONG, actor=n["staff_sale_1"])
+    _viec(n["staff_sale_1"], "Sắp tới", due_date=hom_nay + timedelta(days=1))
+    _viec(n["staff_sale_1"], "Không hạn")
+
+    client.force_login(n["staff_sale_1"])
+    ten = lambda kq: [d["t"].title for d in kq.context["cac_dong"]]     # noqa: E731
+    kq = client.get("/cong-viec/", {"qua_han": "1"})
+    assert ten(kq) == ["Quá hạn"] and "&qua_han=1" in kq.context["qs_loc"]
+    kq = client.get("/cong-viec/", {"sap": "han"})
+    assert ten(kq) == ["Quá hạn nhưng xong", "Quá hạn", "Sắp tới", "Không hạn"]
+    assert "&sap=han" in kq.context["qs_loc"]
+    kq = client.get("/cong-viec/", {"sap": "lung-tung"})
+    assert ten(kq) == ["Không hạn", "Sắp tới", "Quá hạn nhưng xong", "Quá hạn"] and kq.context["sap"] == ""
+    html = client.get("/cong-viec/").content.decode()
+    assert 'id="nguoi"' not in html and 'id="qua-han"' in html and 'id="sap"' in html
+    client.force_login(n["leader_sale_1"])
+    assert 'id="nguoi"' in client.get("/cong-viec/").content.decode()
+
+
+def test_chuyen_trang_thai_moi_xong_huy_va_mo_lai(nguoi_dung):
+    """AC-14.3 — Việc nhỏ chuyển thẳng Mới → Xong và ghi giờ xong; Mới → Huỷ rồi Huỷ → Mới mở lại được; Xong → Mới hay Huỷ → Xong không có trong bảng chuyển nên bị từ chối"""
+    n = nguoi_dung
+    assert STATUS_TRANSITIONS[TaskStatus.MOI] == (TaskStatus.DANG_LAM, TaskStatus.XONG, TaskStatus.HUY)
+    v = _viec(n["staff_sale_1"], "Việc nhỏ")
+    task_service.change_status(v, TaskStatus.XONG, actor=n["staff_sale_1"])
+    v.refresh_from_db()
+    assert v.status == TaskStatus.XONG and v.done_at is not None
+    with pytest.raises(BusinessError):
+        task_service.change_status(v, TaskStatus.MOI, actor=n["staff_sale_1"])
+
+    h = _viec(n["staff_sale_1"], "Việc huỷ")
+    task_service.change_status(h, TaskStatus.HUY, actor=n["staff_sale_1"])
+    with pytest.raises(BusinessError):
+        task_service.change_status(h, TaskStatus.XONG, actor=n["staff_sale_1"])
+    task_service.change_status(h, TaskStatus.MOI, actor=n["staff_sale_1"])
+    h.refresh_from_db()
+    assert h.status == TaskStatus.MOI and h.done_at is None
+
+
+def test_sua_viec_loi_hien_tai_cho_va_leader_khong_go(client, nguoi_dung):
+    """AC-14.5 — Sửa việc mà biểu mẫu sai (hạn không phải ngày) thì hiện lại trang chi tiết với lỗi ngay dưới ô và giữ những gì đã gõ, không lưu gì; sửa đúng thì quay về trang chi tiết; Leader không phải người tạo gỡ việc bị từ chối có nhật ký"""
+    n = nguoi_dung
+    v = _viec(n["manager_sale"], "Việc gốc", assignee=n["staff_sale_1"])
+    client.force_login(n["manager_sale"])
+    kq = client.post(f"/cong-viec/{v.pk}/sua/", {
+        "title": "Tên mới chưa lưu", "priority": "cao", "due_date": "31/31/2026",
+    })
+    assert kq.status_code == 200
+    html = kq.content.decode()
+    assert 'class="loi-truong"' in html and "Tên mới chưa lưu" in html and "co-loi" in html
+    v.refresh_from_db()
+    assert v.title == "Việc gốc" and v.priority == TaskPriority.VUA
+    kq = client.post(f"/cong-viec/{v.pk}/sua/", {"title": "Tên mới", "priority": "cao"})
+    assert kq.status_code == 302 and kq["Location"] == f"/cong-viec/{v.pk}/"
+    v.refresh_from_db()
+    assert v.title == "Tên mới" and v.assignee == n["staff_sale_1"]
+
+    client.force_login(n["leader_sale_1"])
+    tu_choi = _so(AuditAction.DENIED)
+    assert client.post(f"/cong-viec/{v.pk}/go/").status_code == 403
+    assert _so(AuditAction.DENIED) == tu_choi + 1 and Task.objects.filter(pk=v.pk).exists()
