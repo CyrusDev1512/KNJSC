@@ -521,8 +521,9 @@ footer code {
       <div class="eyebrow">Phần 1</div>
       <h2 id="h-lotrinh">Lộ trình thi công</h2>
       <p>Giai đoạn 0 tới 7 đã xong — riêng cách nhóm theo thị trường của GĐ 6
-        chờ chốt N9. Giai đoạn 9 (nhóm Nội bộ, bản MVP, ADR-017) đã làm trên nhánh
-        riêng và chờ anh/chị xem PR #20; Giai đoạn 8 (máy chủ) chờ V1.</p>
+        chờ chốt N9. Giai đoạn 7K (kiểm tải KN CRM, ADR-016) và Giai đoạn 9
+        (nhóm Nội bộ, bản MVP, ADR-017) đã gộp vào <code>main</code>; Giai đoạn 8
+        (máy chủ) chờ V1.</p>
     </div>
     <div id="phases"></div>
     <button class="fbtn" id="btn-an" type="button" aria-expanded="false"
@@ -778,7 +779,7 @@ const GIAI_DOAN = [
     ]
   },
   {
-    id: 9, ten: "Nội bộ — bản MVP (nhánh riêng, PR #20 nháp)", mod: "documents · feed · taskboard · culture · resources", trongSo: 8,
+    id: 9, ten: "Nội bộ — bản MVP", mod: "documents · feed · taskboard · culture · resources", trongSo: 8,
     viec: [
       { t: "Khung: năm app, nhóm Nội bộ trên thanh bên, tỉ giá VND, FileKind PDF/Word, ngày sinh hồ sơ, docs 02/04 mục mới", tt: "xong", note: "ADR-017" },
       { t: "Tài liệu: mục theo bộ phận hoặc toàn công ty, tải PDF/Word/Excel/CSV/ảnh hoặc liên kết, tải về có kiểm quyền, gỡ mềm", tt: "xong", note: "AC-12.1 → 12.5" },
@@ -787,8 +788,8 @@ const GIAI_DOAN = [
       { t: "Bảng tin: bài, thích, bình luận, ghim và gỡ, thiệp sinh nhật 06:00, thanh bên", tt: "xong", note: "AC-13.1 → 13.5" },
       { t: "Tài nguyên: mục BM/Via/Page/TKQC/SIM, danh sách chung lọc và tìm, Manager thêm sửa gỡ, ghi chú không mật khẩu", tt: "xong", note: "AC-16.1 → 16.3" },
       { t: "Dữ liệu mẫu cho cả năm app, tài liệu dự án, kịch bản bấm tay docs/07", tt: "xong" },
-      { t: "Rà soát 07.09 sau MVP: sửa 22 lỗi và điểm yếu (A), cải tiến giao diện (B), gọn mã dùng chung (C), thêm bài kiểm và tài liệu (D) — Q75 ghi nhận từ trên xuống, Q76, Q77 đồng hạng", tt: "xong", note: "PR #20, bốn commit" },
-      { t: "Anh/chị bấm thử, chốt N11 (tỉ giá) và N12 (giá trị văn hoá), rồi gộp PR #20", tt: "chua" },
+      { t: "Rà soát 07.09 sau MVP: sửa 22 lỗi và điểm yếu (A), cải tiến giao diện (B), gọn mã dùng chung (C), thêm bài kiểm và tài liệu (D) — Q75 ghi nhận từ trên xuống, Q76, Q77 đồng hạng", tt: "xong", note: "bốn commit" },
+      { t: "Anh/chị bấm thử, chốt N11 (tỉ giá) và N12 (giá trị văn hoá)", tt: "chua" },
       { t: "Bảng tin trên điện thoại", tt: "chua", note: "AC-13.6 thủ công" }
     ]
   }
