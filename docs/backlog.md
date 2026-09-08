@@ -28,6 +28,11 @@ Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của 
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
 tóm để không phải lục.
 
+> Từ 07.09.2026 có thêm hai tệp nhìn theo việc: `backlog-kanban.md` (To do /
+> In progress / Finished / Far Plan) và `test-log.md` (từng lỗi `TL-xx` kèm mức
+> nghiêm trọng, chỗ sai, blocker, ảnh hưởng, nhánh). Tệp này vẫn là nơi ghi vì
+> sao (Q, K, nhật ký).
+
 > Cập nhật ngày 06.09.2026. Giai đoạn 7 phần E (ADR-010) đã vào `main` qua
 > PR #4. Phần F (Bảng tính như KN Demo, ADR-011) và phần G (**KN CRM là app
 > riêng**, trang chủ cây Bộ phận ▸ Quý ▸ Tháng, ADR-012) **đã vào `main` qua
