@@ -14,7 +14,7 @@ from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 
-from .constants import JOB_FINISHED, AuditAction, JobStatus, Rank, rank_level
+from .constants import AuditAction, JobStatus, Rank, rank_level
 from .forms import LoginForm
 from .models import AuditLog, BackgroundJob
 from .navigation import NAVIGATION

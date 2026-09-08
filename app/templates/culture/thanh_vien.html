@@ -1,0 +1,51 @@
+{% extends "base.html" %}{% load knjsc %}
+{% block tieu_de %}{{ nguoi|ten }} · Sao · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}{{ nguoi|ten }}{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Văn hoá · FR-12.5 · {{ nguoi.profile.department|default:"—" }}</div>
+    <h1>{{ nguoi|ten }}</h1>
+    <p>{{ nguoi.profile.get_rank_display }}{% if nguoi.profile.team %} · {{ nguoi.profile.team }}{% endif %}</p>
+  </div>
+  <div class="hanh-dong"><a class="nut" href="{% url 'van_hoa' %}">Quay lại</a></div>
+</div>
+
+<div class="luoi luoi-3">
+  <div class="o-so"><div class="nhan">Tổng sao</div><div class="gia-tri">★ {{ tong_sao }}</div></div>
+  <div class="o-so"><div class="nhan">Sao tháng {{ ky_hien }}</div><div class="gia-tri">★ {{ sao_ky }}</div></div>
+  <div class="o-so"><div class="nhan">Ghi nhận nhận được</div><div class="gia-tri">{{ page_obj.paginator.count }}</div></div>
+</div>
+
+<div class="luoi luoi-phu" style="margin-top:var(--sp-4)">
+  <div class="the">
+    <div class="the-dau"><h2>Ghi nhận nhận được</h2></div>
+    <div>
+      {% for gn in trang %}
+        {% include "culture/_ghi_nhan.html" with gn=gn %}
+      {% empty %}
+        {% include "components/rong.html" with rong_tieu_de="Chưa có ghi nhận nào" rong_mo_ta="Đồng nghiệp ghi nhận sẽ hiện ở đây." %}
+      {% endfor %}
+    </div>
+    {% if page_obj.paginator.count %}{% include "components/phan_trang.html" %}{% endif %}
+  </div>
+  <div class="the">
+    <div class="the-dau"><h2>Sao theo tháng</h2></div>
+    <div class="bang-cuon">
+      <table class="bang">
+        <thead><tr><th>Kỳ</th><th class="phai">Sao</th></tr></thead>
+        <tbody>
+          {% for ky, sao in theo_ky %}
+            <tr><td class="ma-o">{{ ky }}</td><td class="phai so">★ {{ sao }}</td></tr>
+          {% empty %}
+            <tr><td colspan="2" class="mo-nhat">Chưa có sao.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

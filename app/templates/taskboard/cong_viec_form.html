@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block tieu_de %}{{ tieu_de }} · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}{{ tieu_de }}{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Nội bộ · FR-11.1</div>
+    <h1>{{ tieu_de }}</h1>
+    <p>Không chọn người làm thì việc là của chính bạn. Giao được cho người trong phạm vi: trưởng nhóm giao trong team, quản lý giao cả bộ phận.</p>
+  </div>
+  <div class="hanh-dong"><a class="nut" href="{% url 'cong_viec' %}">Quay lại</a></div>
+</div>
+
+<div class="the" style="max-width:640px">
+  <form class="the-than bm" method="post" id="bm-viec">
+    {% csrf_token %}
+    {% for truong in form %}
+      <div class="truong {% if truong.errors %}co-loi{% endif %}">
+        <label for="{{ truong.id_for_label }}">
+          {{ truong.label }}{% if truong.field.required %} <span class="bat-buoc">*</span>{% endif %}
+          <span class="ky-thuat">{{ truong.name }}</span>
+        </label>
+        {{ truong|safe }}
+        {% if truong.help_text %}<span class="goi-y">{{ truong.help_text }}</span>{% endif %}
+        {% for loi in truong.errors %}<span class="loi-truong">{{ loi }}</span>{% endfor %}
+      </div>
+    {% endfor %}
+  </form>
+  <div class="the-chan">
+    <span class="nho mo-nhat">Mọi thay đổi đều ghi vào nhật ký hoạt động</span>
+    <div class="day hang">
+      <a class="nut" href="{% url 'cong_viec' %}">Huỷ</a>
+      <button class="nut nut-chinh" type="submit" form="bm-viec">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll(".bm input, .bm select, .bm textarea").forEach(function (o) {
+    if (o.type !== "checkbox" && o.type !== "hidden") o.classList.add("o-nhap");
+  });
+</script>
+
+{% endblock %}

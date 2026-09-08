@@ -102,6 +102,9 @@ class UserProfile(TimestampedModel):
         "Cấp bậc", max_length=10, choices=Rank.choices,
         default=Rank.STAFF, db_index=True,
     )
+    # Ngày sinh để Bảng tin tự đăng thiệp chúc mừng (ADR-017, FR-10.4); để
+    # trống thì không có thiệp. Có chỉ mục vì lọc theo tháng và ngày mỗi sáng.
+    birthday = models.DateField("Ngày sinh", null=True, blank=True, db_index=True)
 
     # Trạng thái đăng nhập
     must_change_password = models.BooleanField("Buộc đổi mật khẩu", default=True)

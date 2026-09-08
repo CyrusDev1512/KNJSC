@@ -15,4 +15,10 @@ urlpatterns = [
     path("", include("forms_builder.urls")),
     path("", include("reports.urls")),
     path("", include("orders.urls")),
+    # Nhóm Nội bộ — ADR-017
+    path("", include("feed.urls")),
+    path("", include("documents.urls")),
+    path("", include("taskboard.urls")),
+    path("", include("culture.urls")),
+    path("", include("resources.urls")),
 ]

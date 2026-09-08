@@ -131,6 +131,16 @@ class AuditQuerySet(models.QuerySet):
         )
 
 
+class AliveManager(models.Manager):
+    """Manager mặc định của model xoá mềm **không có** phạm vi quyền: loại sẵn
+    bản ghi đã đánh dấu xoá; muốn lấy cả thì dùng `all_objects`. Ghép với
+    queryset riêng bằng `AliveManager.from_queryset(...)` — Tài liệu, Bảng tin,
+    Tài nguyên dùng chung một bản này, không mỗi app chép một bản."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
+
+
 class ScopedManager(models.Manager.from_queryset(ScopedQuerySet)):
     """Manager mặc định của model có phạm vi quyền.
 

@@ -3,11 +3,10 @@
 **Không có view sửa đơn** — BR-3, FR-6.6. Thiếu đường dẫn là cách chặn chắc
 nhất; gọi thẳng cũng không có gì để gọi.
 """
-from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -15,20 +14,11 @@ from core.constants import Currency, Rank
 from core.exceptions import BusinessError
 from core.navigation import SALES_ONLY
 from core.permissions import assert_departments, assert_rank, has_rank
-from core.pagination import PAGE_SIZES, page_size, paginate
+from core.pagination import pagination_context
 
 from .constants import Market, PaymentMethod
 from .models import Product
 from .services import order_service, product_service
-
-
-def _phan_trang(request, queryset, ten_don_vi="đơn"):
-    trang = paginate(request, queryset)
-    return {
-        "page_obj": trang, "trang": trang,
-        "moi_trang": page_size(request), "cac_co_trang": PAGE_SIZES,
-        "ten_don_vi": ten_don_vi, "tham_so": "trang", "tham_so_co": "moi_trang",
-    }
 
 
 def _doc_cac_dong(request):
@@ -158,7 +148,7 @@ def don_hang(request):
         ds = ds.filter(market=thi_truong)
 
     boi_canh = {"tim": tim, "thi_truong": thi_truong, "cac_thi_truong": Market.choices}
-    boi_canh.update(_phan_trang(request, ds))
+    boi_canh.update(pagination_context(request, ds, "đơn"))
     return render(request, "orders/don_hang.html", boi_canh)
 
 

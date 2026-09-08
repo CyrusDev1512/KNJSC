@@ -4,7 +4,7 @@ Cơ sở dữ liệu không theo kho mã. Không có lệnh này thì `docker co
 trên máy mới cho ra hệ thống trống trơn — **không có tài khoản nào để đăng
 nhập**, kể cả quản trị viên.
 
-Đây là việc số 1 trong danh sách kiểm thủ công ở `docs/04` mục 12:
+Đây là việc số 1 trong danh sách kiểm thủ công ở `docs/04` mục 17:
 *"Cài đặt từ đầu trên máy sạch, chạy tới màn hình đăng nhập"*.
 
     docker compose -f deploy/docker-compose.yml exec web python manage.py du_lieu_mau
@@ -25,7 +25,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from core.constants import Currency, Rank
-from orders.constants import WAYBILL_DEPARTMENT_CODE, WAYBILL_DEPARTMENT_NAME
+from orders.constants import WAYBILL_DEPARTMENT_CODE, WAYBILL_DEPARTMENT_NAME, WAYBILL_TABLE_CODE
 
 #: Mật khẩu chung cho mọi tài khoản mẫu. Chỉ dùng ở máy phát triển.
 MAT_KHAU_MAU = "MatKhauTam-2026"
@@ -69,6 +69,90 @@ COT_BC_MKT = [
     ("CPQC", "cpqc", "money", ""),
     ("Số đơn", "so_don", "integer", ""),
     ("Doanh số", "doanh_so", "money", "revenue"),
+]
+
+#: Tài liệu mẫu — chỉ liên kết (tiêu đề, mục, người tải, mô tả) — ADR-017
+TAI_LIEU_MAU = [
+    ("Nội quy công ty 2026", "chung", "quantri", "Giờ làm, nghỉ phép, kỷ luật"),
+    ("Sổ tay nhân viên mới", "chung", "quantri", "Đọc trong tuần đầu"),
+    ("Quy trình chốt đơn và lên đơn", "sale", "sale.manager", "Kịch bản tư vấn, cách lên đơn"),
+    ("Kế hoạch quảng cáo quý 4", "mkt", "mkt.manager", "Ngân sách và mục tiêu từng kênh"),
+]
+
+#: Việc mẫu — (tiêu đề, người tạo, người làm, ưu tiên, hạn lệch so với hôm nay, trạng thái)
+CONG_VIEC_MAU = [
+    ("Gọi lại 5 khách Canada chưa chốt", "sale.leader", "sale.staff", "cao", -1, "dang_lam"),
+    ("Cập nhật giá sản phẩm mới lên bảng", "sale.manager", "sale.leader", "vua", 3, "moi"),
+    ("Chốt đơn tồn của team 2", "sale.leader2", "sale.staff2", "vua", 2, "moi"),
+    ("Lên kế hoạch quảng cáo tháng sau", "mkt.manager", "mkt.leader", "cao", 7, "moi"),
+    ("Chụp ảnh sản phẩm đèn ngủ", "mkt.manager", "mkt.staff", "thap", -3, "xong"),
+    ("Đối soát vận đơn tuần này", "vd.manager", "vd.staff", "vua", 1, "dang_lam"),
+]
+
+#: Đơn hàng mẫu cho bảng xếp hạng doanh số — (người bán, tên khách, số điện
+#: thoại, thị trường, tiền tệ, mã sản phẩm, số lượng, đơn giá). Ba loại tiền để
+#: thấy quy đổi VND (FR-12.3). Đi qua `order_service` nên ghi luôn sang vận đơn.
+DON_HANG_MAU = [
+    ("sale.staff", "Emily Tran", "+14085550101", "us", Currency.USD, "hm200", 2, "150.00"),
+    ("sale.staff", "Daniel Ng", "+14155550102", "us", Currency.USD, "den_ngu", 1, "89.00"),
+    ("sale.staff2", "Sophie Martin", "+16045550103", "ca", Currency.CAD, "retinol-cream", 3, "120.00"),
+    ("sale.leader", "Nguyễn Văn An", "0912345678", "us", Currency.VND, "noi_chien", 1, "2590000"),
+]
+
+#: Ghi nhận mẫu, từ trên xuống (Q75) — (người ghi nhận, người được ghi nhận, giá trị, lời nhắn)
+GHI_NHAN_MAU = [
+    ("sale.leader", "sale.staff", "hop_tac",
+     "Chốt đơn xong là gửi đủ địa chỉ và ghi chú giao hàng ngay, bên vận đơn không phải hỏi lại."),
+    ("mkt.manager", "mkt.staff", "sang_tao", "Bộ ảnh đèn ngủ mới làm tỉ lệ chốt tăng rõ."),
+    ("vd.manager", "vd.staff", "trach_nhiem", "Đối soát vận đơn tuần này xong trước hạn."),
+    ("sale.leader2", "sale.staff2", "tan_tam", "Ở lại gọi thêm khách Canada tới tối để kịp đơn."),
+]
+
+#: Ngày sinh mẫu — `sale.staff` đúng hôm nay để Bảng tin có thiệp ngay khi dựng (FR-10.4)
+NGAY_SINH_MAU = {
+    "sale.staff": "hom-nay",
+    "sale.staff2": (1998, 11, 20),
+    "sale.leader": (1990, 3, 8),
+    "mkt.staff": (1999, 7, 14),
+    "mkt.manager": (1987, 12, 25),
+    "vd.staff": (1996, 5, 2),
+}
+
+#: Bài mẫu trên Bảng tin — (tác giả, nội dung, ghim)
+BAI_MAU = [
+    ("quantri", "Chào mừng cả nhà đến với Bảng tin nội bộ KN JSC! Đây là nơi đăng thông báo, "
+                "chia sẻ tin vui và chúc mừng nhau. Ai cũng đăng được; quản lý ghim bài quan trọng lên đầu.", True),
+    ("sale.manager", "Tháng này team Sale chốt vượt mục tiêu 12%. Cảm ơn cả team đã gọi khách tới tối. "
+                     "Thứ Hai tuần sau họp tổng kết lúc 9h sáng.", False),
+    ("mkt.manager", "Bộ ảnh sản phẩm đèn ngủ mới đã lên. Team Sale lấy ảnh ở mục Tài liệu Marketing để gửi khách.", False),
+    ("vd.manager", "Nhắc cả nhà: đơn Canada chốt sau 16h sẽ đi chuyến hôm sau. "
+                   "Ghi rõ ghi chú giao hàng trên bảng vận đơn giúp bên mình.", False),
+    ("sale.staff", "Hôm nay mình chốt được khách đầu tiên ở Philippines. Cảm ơn anh Dũng đã hướng dẫn kịch bản!", False),
+]
+
+#: Bình luận mẫu — (số thứ tự bài, người viết, nội dung)
+BINH_LUAN_MAU = [
+    (5, "sale.leader", "Giỏi lắm, giữ phong độ nhé!"),
+    (5, "mkt.staff", "Chúc mừng Hà!"),
+    (2, "sale.leader2", "Team 2 cũng đã sẵn sàng cho tháng sau."),
+]
+
+#: Lượt thích mẫu — (số thứ tự bài, người thích)
+THICH_MAU = [
+    (1, "sale.staff"), (1, "mkt.staff"), (1, "vd.staff"),
+    (5, "sale.leader"), (5, "sale.manager"), (5, "mkt.staff"),
+    (3, "sale.staff"),
+]
+
+#: Tài nguyên mẫu — (mục, tên, trạng thái, người giữ, mã bộ phận, ghi chú). Năm mục
+#: mặc định lấy từ `resources.constants.DEFAULT_CATEGORIES`.
+TAI_NGUYEN_MAU = [
+    ("BM", "BM Kim Ngân 01", "dang_dung", "mkt.staff", "marketing", "Đang chạy 3 tài khoản QC"),
+    ("BM", "BM Kim Ngân 02", "khoa", "mkt.leader", "marketing", "Bị khoá 03.09, đang kháng"),
+    ("Via", "Via US 2019", "trong", None, None, "Via cổ, chưa gán ai"),
+    ("Page", "Page KN Beauty CA", "dang_dung", "sale.staff", "sale", "Page bán hàng thị trường Canada"),
+    ("Tài khoản QC", "TKQC 1023-55", "dang_dung", "mkt.staff", "marketing", "Ngưỡng 5.000.000"),
+    ("SIM", "SIM Viettel 0987", "hong", "vd.staff", "van-don", "Đã báo nhà mạng"),
 ]
 
 #: Bốn cột tính sẵn — đúng bốn công thức trong tệp thật của khách hàng.
@@ -138,7 +222,10 @@ class Command(BaseCommand):
 
         self.mat_khau = o["mat_khau"]
         self.da_tao = {"bộ phận": 0, "team": 0, "tài khoản": 0,
-                       "bảng": 0, "biểu mẫu": 0, "sản phẩm": 0, "dòng dữ liệu": 0}
+                       "bảng": 0, "biểu mẫu": 0, "sản phẩm": 0, "dòng dữ liệu": 0,
+                       "tài liệu": 0, "việc": 0, "đơn hàng": 0, "ghi nhận": 0,
+                       "ngày sinh": 0, "bài": 0, "bình luận": 0, "lượt thích": 0,
+                       "thiệp sinh nhật": 0, "mục tài nguyên": 0, "tài nguyên": 0}
         self.dat_lai_mat_khau = 0
 
         bo_phan = self._bo_phan()
@@ -148,6 +235,13 @@ class Command(BaseCommand):
         self._bang_van_don(nguoi["quantri"])
         self._bao_cao_marketing(bo_phan, nguoi)
         self._thu_muc(nguoi)
+        self._tai_lieu(bo_phan, nguoi)
+        self._cong_viec(nguoi)
+        self._don_hang(nguoi)
+        self._ghi_nhan(nguoi)
+        self._ngay_sinh(nguoi)
+        self._bang_tin(nguoi)
+        self._tai_nguyen(bo_phan, nguoi)
 
         self._bao_cao_ket_qua(nguoi)
 
@@ -322,6 +416,135 @@ class Command(BaseCommand):
             _, moi = Product.objects.get_or_create(
                 code=ma, defaults={"name": ten, "group": nhom, "unit": "cái"})
             self.da_tao["sản phẩm"] += int(moi)
+
+    # ── Nhóm Nội bộ — ADR-017 ──
+
+    def _tai_lieu(self, bo_phan, nguoi):
+        """Ba mục và bốn tài liệu dạng liên kết. Không đưa tệp nhị phân vào kho mã."""
+        from documents.models import DocumentCategory
+        from documents.services import document_service
+
+        if DocumentCategory.all_objects.exists():
+            return
+        chung = document_service.create_category(
+            name="Quy định chung", department=None, actor=nguoi["quantri"])
+        sale = document_service.create_category(
+            name="Quy trình Sale", department=bo_phan["sale"], actor=nguoi["sale.manager"])
+        mkt = document_service.create_category(
+            name="Tài liệu Marketing", department=bo_phan["marketing"], actor=nguoi["mkt.manager"])
+        for tieu_de, muc, ai, mo_ta in TAI_LIEU_MAU:
+            document_service.upload_document(
+                title=tieu_de, category={"chung": chung, "sale": sale, "mkt": mkt}[muc],
+                link="https://docs.google.com/document/d/mau-" + muc, description=mo_ta,
+                actor=nguoi[ai],
+            )
+            self.da_tao["tài liệu"] += 1
+
+    def _cong_viec(self, nguoi):
+        """Sáu việc mẫu: một quá hạn, một đã xong — FR-11."""
+        from taskboard.constants import TaskStatus
+        from taskboard.models import Task
+        from taskboard.services import task_service
+
+        if Task.all_objects.exists():
+            return
+        hom_nay = timezone.localdate()
+        for tieu_de, ai_tao, ai_lam, uu_tien, lech, trang_thai in CONG_VIEC_MAU:
+            viec = task_service.create_task(
+                title=tieu_de, assignee=nguoi[ai_lam], priority=uu_tien,
+                due_date=hom_nay + timedelta(days=lech) if lech is not None else None,
+                actor=nguoi[ai_tao],
+            )
+            if trang_thai == TaskStatus.DANG_LAM:
+                task_service.change_status(viec, TaskStatus.DANG_LAM, actor=nguoi[ai_lam])
+            elif trang_thai == TaskStatus.XONG:
+                task_service.change_status(viec, TaskStatus.DANG_LAM, actor=nguoi[ai_lam])
+                task_service.change_status(viec, TaskStatus.XONG, actor=nguoi[ai_lam])
+            self.da_tao["việc"] += 1
+
+    def _don_hang(self, nguoi):
+        """Bốn đơn mẫu để bảng xếp hạng doanh số tháng này có số — FR-12.3.
+        Chỉ dựng trên máy chưa có đơn nào **và** bảng vận đơn còn trống: máy đã
+        nhập vận đơn thật thì không nhét bốn dòng giả vào giữa."""
+        from forms_builder.models import DataRecord
+        from orders.models import Order, Product
+        from orders.services import order_service
+
+        if Order.all_objects.exists() or DataRecord.all_objects.filter(table__code=WAYBILL_TABLE_CODE).exists():
+            return
+        san_pham = {sp.code: sp for sp in Product.objects.all()}
+        for ai, khach, sdt, thi_truong, tien_te, ma_sp, so_luong, don_gia in DON_HANG_MAU:
+            order_service.create_order(
+                phone=sdt, customer_name=khach, market=thi_truong, currency=tien_te,
+                lines=[{"product": san_pham[ma_sp], "quantity": so_luong, "unit_price": don_gia}],
+                actor=nguoi[ai],
+            )
+            self.da_tao["đơn hàng"] += 1
+
+    def _ghi_nhan(self, nguoi):
+        """Bốn ghi nhận chéo bộ phận, mỗi ghi nhận một sao — FR-12.1, FR-12.2."""
+        from culture.models import Recognition
+        from culture.services import recognition_service
+
+        if Recognition.objects.exists():
+            return
+        for ai, nguoi_nhan, gia_tri, loi_nhan in GHI_NHAN_MAU:
+            recognition_service.give_recognition(
+                receiver=nguoi[nguoi_nhan], value=gia_tri, message=loi_nhan, actor=nguoi[ai])
+            self.da_tao["ghi nhận"] += 1
+
+    def _ngay_sinh(self, nguoi):
+        """Ngày sinh cho vài hồ sơ mẫu — chỉ điền chỗ còn trống, không ghi đè."""
+        hom_nay = timezone.localdate()
+        for ten_dn, ngay in NGAY_SINH_MAU.items():
+            ho_so = nguoi[ten_dn].profile
+            if ho_so.birthday is not None:
+                continue
+            # 1996 nhuận, nên hôm nay là 29.02 vẫn đổi năm được
+            ho_so.birthday = hom_nay.replace(year=1996) if ngay == "hom-nay" else date(*ngay)
+            ho_so.save(update_fields=["birthday"])
+            self.da_tao["ngày sinh"] += 1
+
+    def _bang_tin(self, nguoi):
+        """Năm bài (bài chào mừng ghim), bình luận, lượt thích, và thiệp sinh nhật
+        hôm nay — cùng hàm với tác vụ nền 06:00 (FR-10.4)."""
+        from feed.constants import PostKind
+        from feed.models import Post
+        from feed.services import post_service
+
+        if not Post.all_objects.filter(kind=PostKind.BAI_VIET).exists():
+            cac_bai = []
+            for ai, noi_dung, ghim in BAI_MAU:
+                bai = post_service.create_post(body=noi_dung, actor=nguoi[ai])
+                if ghim:
+                    post_service.pin_post(bai, actor=nguoi[ai])
+                cac_bai.append(bai)
+                self.da_tao["bài"] += 1
+            for so, ai, noi_dung in BINH_LUAN_MAU:
+                post_service.add_comment(cac_bai[so - 1], body=noi_dung, actor=nguoi[ai])
+                self.da_tao["bình luận"] += 1
+            for so, ai in THICH_MAU:
+                post_service.toggle_like(cac_bai[so - 1], actor=nguoi[ai])
+                self.da_tao["lượt thích"] += 1
+        self.da_tao["thiệp sinh nhật"] += post_service.create_birthday_posts(timezone.localdate())
+
+    def _tai_nguyen(self, bo_phan, nguoi):
+        """Năm mục mặc định và sáu tài nguyên mẫu — FR-13. Ghi chú không có mật khẩu."""
+        from resources.models import Resource, ResourceCategory
+        from resources.services import resource_service
+
+        self.da_tao["mục tài nguyên"] += resource_service.ensure_default_categories(actor=nguoi["quantri"])
+        if Resource.all_objects.exists():
+            return
+        muc = {m.name: m for m in ResourceCategory.objects.all()}
+        for ten_muc, ten, trang_thai, ai_giu, ma_bp, ghi_chu in TAI_NGUYEN_MAU:
+            resource_service.create_resource(
+                category=muc[ten_muc], name=ten, status=trang_thai, note=ghi_chu,
+                holder=nguoi[ai_giu] if ai_giu else None,
+                department=bo_phan[ma_bp] if ma_bp else None,
+                actor=nguoi["quantri"],
+            )
+            self.da_tao["tài nguyên"] += 1
 
     # ── Báo cáo kết quả ──
 

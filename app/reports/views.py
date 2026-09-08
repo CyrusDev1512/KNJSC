@@ -19,22 +19,12 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from core.exceptions import BusinessError
-from core.pagination import PAGE_SIZES, page_size, paginate
+from core.pagination import pagination_context
 
 from forms_builder.services import form_service
 
 from . import aggregations, excel
 from .services import daily_service, summary_service
-
-
-def _phan_trang(request, queryset, ten_don_vi="báo cáo"):
-    """Bối cảnh khối phân trang (quy tắc 1)."""
-    trang = paginate(request, queryset)
-    return {
-        "page_obj": trang, "trang": trang,
-        "moi_trang": page_size(request), "cac_co_trang": PAGE_SIZES,
-        "ten_don_vi": ten_don_vi, "tham_so": "trang", "tham_so_co": "moi_trang",
-    }
 
 
 def _ngay_bao_cao(chuoi):
@@ -106,7 +96,7 @@ def bao_cao_lich_su(request):
         ds = ds.filter(report_date__lte=_ngay_bao_cao(den))
 
     boi_canh = {"tim": tim, "tu": tu, "den": den}
-    boi_canh.update(_phan_trang(request, ds))
+    boi_canh.update(pagination_context(request, ds, "báo cáo"))
     return render(request, "reports/bao_cao_lich_su.html", boi_canh)
 
 
@@ -187,7 +177,7 @@ def bao_cao_tong_hop(request):
         kq = boi_canh["kq"]
         if kq.ok:
             # Cắt trang trên danh sách nhóm đã lấy về — xem MAX_GROUPS
-            boi_canh.update(_phan_trang(
+            boi_canh.update(pagination_context(
                 request, boi_canh.pop("cac_nhom"), ten_don_vi=kq.unit))
             boi_canh["cac_dong"] = aggregations.finish_rows(
                 list(boi_canh["trang"].object_list), kq)

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block tieu_de %}Tải lên tài liệu · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Tải lên tài liệu{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Nội bộ · FR-9.2</div>
+    <h1>Tải lên tài liệu</h1>
+    <p>Chọn mục, đặt tiêu đề, rồi chọn tệp hoặc dán liên kết. Tệp được kiểm loại theo nội dung, không theo đuôi.</p>
+  </div>
+  <div class="hanh-dong"><a class="nut" href="{% url 'tai_lieu' %}">Quay lại</a></div>
+</div>
+
+{% if form.non_field_errors %}
+  <div class="bao bao-xau">
+    <span class="bao-ic">!</span>
+    <div>
+      <b>Chưa lưu được</b>
+      {% for loi in form.non_field_errors %}<p>{{ loi }}</p>{% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+<div class="the" style="max-width:640px">
+  <form class="the-than bm" method="post" enctype="multipart/form-data" id="bm-tai-len">
+    {% csrf_token %}
+    {% for truong in form %}
+      <div class="truong {% if truong.errors %}co-loi{% endif %}">
+        <label for="{{ truong.id_for_label }}">
+          {{ truong.label }}{% if truong.field.required %} <span class="bat-buoc">*</span>{% endif %}
+          <span class="ky-thuat">{{ truong.name }}</span>
+        </label>
+        {{ truong|safe }}
+        {% if truong.help_text %}<span class="goi-y">{{ truong.help_text }}</span>{% endif %}
+        {% for loi in truong.errors %}<span class="loi-truong">{{ loi }}</span>{% endfor %}
+      </div>
+    {% endfor %}
+  </form>
+  <div class="the-chan">
+    <span class="nho mo-nhat">Tệp lưu trong storage/tai-lieu, tải về qua hệ thống, có nhật ký</span>
+    <div class="day hang">
+      <a class="nut" href="{% url 'tai_lieu' %}">Huỷ</a>
+      <button class="nut nut-chinh" type="submit" form="bm-tai-len">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll(".bm input, .bm select, .bm textarea").forEach(function (o) {
+    if (o.type !== "checkbox" && o.type !== "hidden") o.classList.add("o-nhap");
+  });
+</script>
+
+{% endblock %}

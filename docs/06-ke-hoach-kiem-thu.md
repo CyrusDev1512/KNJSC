@@ -26,7 +26,7 @@ chỉ làm con số đẹp. Mỗi tầng dưới đây đều đã được th�
 29.08.2026: có đo bao phủ để biết chỗ hổng, nhưng **không đặt ngưỡng chặn** —
 ngưỡng đẻ ra bài kiểm viết cho đủ số chứ không bắt được lỗi.
 
-**Không bỏ qua phân quyền.** `docs/04` mục 13: *lỗi phân quyền dẫn tới rò rỉ dữ
+**Không bỏ qua phân quyền.** `docs/04` mục 18: *lỗi phân quyền dẫn tới rò rỉ dữ
 liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 ---
@@ -35,8 +35,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **107** — 96 tự động, 11 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **95 trên 96** |
+| Tiêu chí nghiệm thu trong `docs/04` | **126** — 114 tự động, 12 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **113 trên 114** |
 | Tiêu chí tự động còn hoãn | **1**, đều thuộc diện chờ người dùng chốt — `AC-5.1`, backlog N9 |
 | Bao phủ dòng mã | khoảng 85% |
 
@@ -78,7 +78,7 @@ Bỏ qua các bài chạy chậm khi cần vòng lặp nhanh: `pytest -m "not ch
 
 Cộng một tầng thứ mười không nằm trong danh sách: **truy vết**
 (`tests/test_truy_vet.py`) đọc `docs/04` và khẳng định mọi tiêu chí tự động đều
-có bài kiểm. Đây là `docs/04` mục 13 điều 1 viết thành mã chạy được.
+có bài kiểm. Đây là `docs/04` mục 18 điều 1 viết thành mã chạy được.
 
 ---
 
@@ -130,9 +130,10 @@ bấm tay từng bước ở `docs/07-kich-ban-nghiem-thu.md`**.
 | ☐ | `AC-11.11` | Bảng tính trên điện thoại và máy tính bảng | `vd.staff` | Lưới cuộn trong khung, bấm được ô, hộp lọc mở được |
 | ☐ | `AC-8.10` | Bảng dữ liệu có viền ô, tiêu đề xanh lá, màu cột và ô cảnh báo | `mkt.manager` | Mở `/bang/bao_cao_mkt/` ở nền sáng rồi nền tối: mọi ô có viền, tiêu đề xanh lá, cột Tỉ lệ chốt vàng, ô CPO vượt 1.500.000 đỏ, ô đạt xanh lá; mở một báo cáo ở Lịch sử báo cáo thấy cùng màu |
 | ☐ | `AC-11.18` | Bảng tính là trang toàn màn hình riêng; độ rộng, thứ tự, cột ẩn nhớ trên trình duyệt | `mkt.manager` | Không thanh bên hệ thống; kéo mép chữ cột, kéo thả chữ cột, ẩn cột rồi tải lại vẫn giữ; Đặt lại cột về mặc định |
+| ☐ | `AC-13.6` | Bảng tin trên điện thoại | `sale.staff` | Mở `/bang-tin/` trên máy thật: bài đọc được, bấm Thích và gửi bình luận được, thanh bên xếp xuống dưới bài, không tràn ngang |
 | ☐ | `AC-11.27` | Bảng tính nhìn và thao tác như KN Demo | `mkt.manager`, `vd.staff` | Đặt cạnh ảnh `docs/tham-khao/kn-demo/`: khung, thanh công cụ, thanh công thức, số dòng, chữ cột, cột trống, chân trang, ⛶; kéo chọn vùng thấy viền vàng và tay kéo điền |
 
-### Bảy việc ở `docs/04` mục 12
+### Bảy việc ở `docs/04` mục 17
 
 | ☐ | Việc | Trạng thái |
 |---|---|---|
@@ -144,7 +145,7 @@ bấm tay từng bước ở `docs/07-kich-ban-nghiem-thu.md`**.
 | ☐ | Phục hồi từ bản sao lưu | Chạy được — `scripts/restore.sh`, chưa thử |
 | ☐ | Ngắt mạng giữa chừng, kiểm thông báo lỗi | Chạy được, chưa thử |
 
-**Mười tám việc đều chạy được**, chỉ còn `AC-10.3` biết trước là chưa đạt
+**Mười chín việc đều chạy được**, chỉ còn `AC-10.3` biết trước là chưa đạt
 (trang 404 tiếng Việt — K9, người dùng chốt chưa làm). `AC-1.7` từng nằm ở bảng trên nhưng đã
 bỏ theo **Q34** — không cần điều hướng sau đăng nhập nữa.
 
@@ -160,7 +161,7 @@ trọn một đợt nằm ở `docs/07-kich-ban-nghiem-thu.md`.
 Phần trăm trong `dashboard-tien-do.html` là tiến độ **đã làm**, không phải
 **đã nghiệm thu**. Hai con số đó có thể lệch nhau.
 
-Điều kiện hoàn thành phase 1 nằm ở `docs/04` mục 13, bảy điều. Ba điều đã có
+Điều kiện hoàn thành phase 1 nằm ở `docs/04` mục 18, bảy điều. Ba điều đã có
 mã kiểm tự động:
 
 | Điều | Kiểm bằng |

@@ -1,0 +1,5 @@
+{% comment %}Trang bình luận cũ hơn — thay chỗ nút "Xem bình luận cũ hơn". Cần: bai, cac_binh_luan, con_cu.{% endcomment %}
+{% if con_cu %}
+  <button class="nut nut-nho" type="button" hx-get="{% url 'bang_tin_binh_luan' bai.pk %}?truoc={{ cac_binh_luan.0.pk }}" hx-target="this" hx-swap="outerHTML" hx-sync="this:drop">Xem bình luận cũ hơn</button>
+{% endif %}
+{% for bl in cac_binh_luan %}{% include "feed/_binh_luan_dong.html" with bl=bl %}{% endfor %}

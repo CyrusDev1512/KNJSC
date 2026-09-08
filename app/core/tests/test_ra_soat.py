@@ -123,6 +123,17 @@ def test_het_phien_sau_60_phut_khong_thao_tac(client, nguoi_dung, settings):
     assert "het_phien=1" in tra_loi.headers["Location"]
 
 
+def test_het_phien_khi_bam_htmx_thi_bao_trinh_duyet_chuyen_trang(client, nguoi_dung, settings):
+    """AC-1.4 — Yêu cầu HTMX (bấm Thích, đổi trạng thái) gặp phiên hết hạn nhận header HX-Redirect về trang đăng nhập, không phải trang đăng nhập bị nhét vào chỗ nút"""
+    client.post("/dang-nhap/", {"username": "staff_sale_1", "password": "matkhau-kiem-thu-1"})
+    phien = client.session
+    phien["last_seen_at"] = int(time.time()) - settings.SESSION_IDLE_TIMEOUT_SECONDS - 1
+    phien.save()
+    tra_loi = client.get("/bang-tin/", HTTP_HX_REQUEST="true")
+    assert tra_loi.status_code == 200 and "het_phien=1" in tra_loi["HX-Redirect"]
+    assert tra_loi.content == b""
+
+
 def test_con_trong_60_phut_thi_van_vao_duoc(client, nguoi_dung, settings):
     """AC-1.4 — Chưa quá ngưỡng thì phiên vẫn còn hiệu lực"""
     client.post("/dang-nhap/", {
@@ -254,7 +265,7 @@ def test_cong_mot_nghin_dong_tien_khong_sai_so():
 
 @pytest.mark.parametrize(
     "duong_dan",
-    ["/nhan-su/", "/nhat-ky/", "/bo-phan/", "/bang/", "/ma-tran-quyen/"],
+    ["/nhan-su/", "/nhat-ky/", "/bo-phan/", "/bang/", "/ma-tran-quyen/", "/tai-lieu/", "/cong-viec/", "/van-hoa/", "/bang-tin/", "/tai-nguyen/"],
 )
 def test_man_hinh_danh_sach_khong_qua_muoi_lenh_truy_van(
     client, nguoi_dung, django_assert_max_num_queries, duong_dan,

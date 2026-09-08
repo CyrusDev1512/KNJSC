@@ -1,0 +1,39 @@
+{% load knjsc %}{% comment %}
+Một bài trên Bảng tin. Cần: bai (Post có author, subject kèm profile, thuộc tính
+duoc_go), da_thich, so_thich, so_binh_luan, duoc_ghim (người xem là Manager trở lên).
+{% endcomment %}
+<article class="the bai {% if bai.la_sinh_nhat %}bai-sinh-nhat{% endif %}" id="bai-{{ bai.pk }}">
+  <div class="bai-dau">
+    {% if bai.author %}
+      {% avatar bai.author lon=True %}
+      <div>
+        <b>{% if bai.author.is_active %}<a href="{% url 'van_hoa_thanh_vien' bai.author.pk %}">{{ bai.author|ten }}</a>{% else %}{{ bai.author|ten }}{% endif %}</b>
+        <div class="nho mo-nhat">{{ bai.author.profile.department|default:"—" }} · {{ bai.created_at|date:"d.m.Y H:i" }}</div>
+      </div>
+    {% elif bai.la_sinh_nhat %}
+      <div class="avatar avatar-lon" aria-hidden="true">🎂</div>
+      <div>
+        <b>KN JSC</b>{% if bai.subject %} <span class="nho mo-nhat">chúc mừng</span> <b>{% if bai.subject.is_active %}<a href="{% url 'van_hoa_thanh_vien' bai.subject.pk %}">{{ bai.subject|ten }}</a>{% else %}{{ bai.subject|ten }}{% endif %}</b>{% endif %}
+        <div class="nho mo-nhat">Thiệp tự động · {{ bai.created_at|date:"d.m.Y" }}</div>
+      </div>
+    {% else %}
+      <div class="avatar avatar-lon" aria-hidden="true">?</div>
+      <div>
+        <b>Tài khoản đã xoá</b>
+        <div class="nho mo-nhat">{{ bai.created_at|date:"d.m.Y H:i" }}</div>
+      </div>
+    {% endif %}
+    {% if bai.is_pinned %}<span class="chip chip-nhan day">Đã ghim</span>{% endif %}
+  </div>
+  <p class="bai-than">{{ bai.body|urlize }}</p>
+  <div class="bai-chan">
+    {% include "feed/_thich.html" with bai=bai da_thich=da_thich so_thich=so_thich %}
+    <a class="nut nut-nho" id="lk-bl-{{ bai.pk }}" href="{% url 'bang_tin_xem' bai.pk %}">{{ so_binh_luan }} bình luận</a>
+    {% if duoc_ghim %}
+      <form method="post" action="{% url 'bang_tin_ghim' bai.pk %}">{% csrf_token %}<input type="hidden" name="ghim" value="{% if bai.is_pinned %}0{% else %}1{% endif %}"><button class="nut nut-nho" type="submit">{% if bai.is_pinned %}Gỡ ghim{% else %}Ghim{% endif %}</button></form>
+    {% endif %}
+    {% if bai.duoc_go %}
+      <form method="post" action="{% url 'bang_tin_go' bai.pk %}" onsubmit="return confirm('Gỡ bài này khỏi Bảng tin?')">{% csrf_token %}<button class="nut nut-nho nut-nguy" type="submit">Gỡ bài</button></form>
+    {% endif %}
+  </div>
+</article>

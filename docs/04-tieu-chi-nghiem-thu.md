@@ -259,7 +259,75 @@ vụ `bangtinh`, cổng 8021); KN ERP không còn đường sửa ô.
 
 ---
 
-## 12. Kiểm thử thủ công trước bàn giao
+## 12. Tài liệu
+
+Thư viện tài liệu chia theo mục — FR-9.1 tới FR-9.5, ADR-017.
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-12.1 | Manager tạo mục cho bộ phận mình và tải tệp lên mục trong phạm vi; Manager không tạo được mục toàn công ty, Admin tạo được; Staff và Leader gọi đường tải lên thì bị từ chối và có nhật ký; tên mục trùng chỉ khác hoa thường bị chặn ngay ở cơ sở dữ liệu, mục đã gỡ không giữ chỗ tên | FR-9.1 · FR-9.2 · FR-3.6 | Tự động |
+| AC-12.2 | Staff thấy tài liệu toàn công ty và của bộ phận mình, không thấy của bộ phận khác; gọi thẳng đường tải về tài liệu bộ phận khác trả 404; Admin thấy tất cả; tải về đi qua view có kiểm quyền, trả tệp đính kèm đúng tên gốc và ghi nhật ký (mở liên kết cũng ghi); tệp mất trên đĩa thì báo lỗi, không 500; tài liệu đã gỡ trả 404 | FR-9.3 · FR-3.5 | Tự động |
+| AC-12.3 | Tệp đổi đuôi, sai loại hoặc quá 10 MB bị từ chối; ZIP rác đổi đuôi `.docx` bị từ chối vì thiếu `word/document.xml`; Word nhận theo đuôi khai báo; tài liệu chỉ có liên kết tạo được; thiếu cả hai, có cả hai, hoặc liên kết sai giao thức thì từ chối | FR-9.2 · NFR-11 · NFR-12 | Tự động |
+| AC-12.4 | Người tải, Manager của bộ phận và Admin gỡ được tài liệu (xoá mềm, có nhật ký); người khác bị từ chối có nhật ký; ngoài phạm vi là 404; gọi thẳng tầng dịch vụ bằng người không có quyền cũng bị từ chối, không trông vào view; thêm mục với mã bộ phận không phải số trả 404 | FR-9.4 · BR-4 | Tự động |
+| AC-12.5 | Tệp tài liệu nằm ở `storage/tai-lieu/` và không bị tác vụ dọn tệp 24 giờ xoá | FR-9.5 | Tự động |
+
+---
+
+## 13. Bảng tin
+
+Bảng tin chung của công ty — FR-10.1 tới FR-10.6, ADR-017.
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-13.1 | Ai đăng nhập cũng đăng được bài dạng chữ và thấy mọi bài, không phân theo bộ phận; bài ghim đứng đầu; bài trống hay quá dài bị từ chối và giữ lại bài đang gõ; danh sách phân trang 25 dòng; GET vào đường đăng trả 405; chưa đăng nhập bị chuyển về đăng nhập | FR-10.1 · FR-10.6 | Tự động |
+| AC-13.2 | Bấm thích qua HTMX nhận về đúng nút mới với số lượt — nút là form thật nên không có JS vẫn dùng được, có `hx-sync` chống bấm đúp; bấm lại là bỏ thích, thích lại không sinh dòng mới; bình luận hiện dưới bài kèm số bình luận, gửi qua HTMX nhận về mảnh bình luận kèm số cập nhật tại chỗ; bài chỉ tải 20 bình luận mới nhất, cũ hơn tải tiếp qua HTMX; bình luận trống bị từ chối; đường dẫn trong bài thành liên kết; bài đã gỡ hay không có trả 404; mỗi tương tác một dòng nhật ký | FR-10.2 · FR-10.6 · BR-5 | Tự động |
+| AC-13.3 | Manager và Admin ghim, gỡ ghim và gỡ được bài bất kỳ; tác giả gỡ được bài của mình; Staff hay Leader ghim hoặc gỡ bài người khác bị từ chối có nhật ký và không thấy nút; gỡ là xoá mềm; bình luận gỡ bởi người viết hoặc Manager trở lên; ghim gửi rõ ý muốn (ghim hay gỡ ghim) nên hai quản lý bấm trên trang cũ không làm ngược ý nhau | FR-10.3 · FR-3.5 · BR-4 | Tự động |
+| AC-13.4 | Mỗi sáng hệ thống đăng thiệp cho người có sinh nhật hôm đó theo hồ sơ, mỗi người mỗi năm một thiệp; dịch vụ, lệnh và tác vụ nền chạy lại không nhân đôi, thiệp đã gỡ không đăng lại; tài khoản đã khoá không có thiệp; sinh 29.02 được chúc ngày 28.02 năm không nhuận; thiệp hiện trên Bảng tin với kiểu riêng và liên kết tới người được chúc; máy tắt vài ngày thì bật lại đăng bù (tối đa 14 ngày), không đăng cho ngày tương lai | FR-10.4 | Tự động |
+| AC-13.5 | Thanh bên hiện sinh nhật tháng này theo ngày, năm người nhiều sao nhất, ba ghi nhận mới nhất và thành viên có hồ sơ tạo trong 30 ngày; trang Bảng tin và trang bài có dữ liệu chạy không quá 10 lệnh truy vấn | FR-10.5 · Q4 | Tự động |
+| AC-13.6 | Bảng tin trên điện thoại: bài đọc được, bấm Thích và gửi bình luận được, thanh bên xếp xuống dưới bài, không tràn ngang | FR-10.1 · NFR-7 | Thủ công |
+
+---
+
+## 14. Công việc
+
+Quản lý việc trong bộ phận — FR-11.1 tới FR-11.5, ADR-015.
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-14.1 | Staff tự giao cho mình, giao người khác bị từ chối; Leader giao trong team, người team khác bị từ chối; Manager giao cả bộ phận, không giao sang bộ phận khác; Admin giao được mọi người | FR-11.1 · FR-3.5 | Tự động |
+| AC-14.2 | Staff thấy việc mình nhận hoặc tạo; Leader thấy việc của team; Manager cả bộ phận; Admin tất cả; gọi thẳng việc ngoài phạm vi trả 404 | FR-11.3 | Tự động |
+| AC-14.3 | Người làm đổi trạng thái qua HTMX nhận về đúng một dòng bảng; chuyển sai bước trả 400 dạng chữ thường để trình duyệt hiện lý do; việc nhỏ chuyển thẳng Mới → Xong, Huỷ mở lại thành Mới; người cùng team không phải người làm bị 404 còn Leader đổi được; tham số quay về chỉ nhận đường dẫn trong hệ thống; mỗi lần một dòng nhật ký | FR-11.2 · BR-5 | Tự động |
+| AC-14.4 | Tab Của tôi và Trong phạm vi; lọc theo trạng thái, người làm, ưu tiên, chỉ việc quá hạn; sắp theo hạn gần trước; Staff không thấy ô lọc Người làm vì chỉ có mình; danh sách phân trang 25 dòng và giữ bộ lọc qua trang | FR-11.4 | Tự động |
+| AC-14.5 | Người tạo hoặc Leader trở lên sửa được việc (nhật ký ghi trường đổi; biểu mẫu sai thì lỗi hiện tại chỗ, không mất chữ; để trống người làm là giữ nguyên, đổi người làm thì việc sang bộ phận người đó); gỡ là xoá mềm bởi người tạo hoặc Manager; người làm không phải người tạo, hay Leader không phải người tạo, bị từ chối có nhật ký; gọi thẳng tầng dịch vụ cũng bị từ chối | FR-11.5 · BR-4 | Tự động |
+
+---
+
+## 15. Ghi nhận văn hoá
+
+Ghi nhận, sao và bảng xếp hạng doanh số — FR-12.1 tới FR-12.5, ADR-017.
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-15.1 | Trưởng nhóm trở lên ghi nhận cấp dưới trong phạm vi mình (Leader: team, Manager: bộ phận, Admin: mọi người) theo một giá trị văn hoá, người nhận được cộng đúng một sao cùng giao dịch và có nhật ký; nhân viên không ghi nhận ai và không thấy form; ghi nhận người ngoài phạm vi, ngang hoặc trên cấp, chính mình, lời nhắn trống, giá trị lạ hay người đã khoá đều bị từ chối, thông báo nêu đúng ô sai; ô chọn chỉ có cấp dưới trong phạm vi; GET vào đường gửi trả 405 — Q75 | FR-12.1 · FR-12.2 · BR-5 | Tự động |
+| AC-15.2 | Bảng xếp hạng gộp đơn tháng này theo người bán, quy về VND bằng tỉ giá cố định trong cấu hình, xếp theo tổng rồi số đơn; đơn đã bỏ và đơn tháng trước không tính; mọi bộ phận xem được nhưng không thấy mã đơn; thiếu tỉ giá thì báo lỗi, không trả số sai; người bán đã khoá không chiếm hạng; bằng tổng và bằng số đơn thì đồng hạng 1, 1, 3 (Q77); mọi người bán kể cả quản lý đều tranh hạng (Q76); người bán nhiều loại tiền được gộp về VND; dữ liệu mẫu ra đúng số ghi ở `docs/07` | FR-12.3 · BR-8 | Tự động |
+| AC-15.3 | Ngày 1 hằng tháng những người ở hạng 1, 2, 3 kỳ trước nhận 5, 3, 1 sao, đồng hạng cùng nhận; lệnh và tác vụ nền chạy lại không nhân đôi, kỳ `2026-9` và `2026-09` là một; kỳ sai định dạng bị từ chối; mỗi lần chạy một dòng nhật ký ghi tỉ giá và tổng từng người | FR-12.4 · BR-5 | Tự động |
+| AC-15.4 | Trang thành viên hiện tổng sao mọi kỳ, sao kỳ này, sao theo tháng và ghi nhận nhận được phân trang 25 dòng; bảng Nhiều sao nhất xếp theo tổng sao; thành viên không có hoặc đã khoá trả 404 | FR-12.5 · FR-12.2 | Tự động |
+
+---
+
+## 16. Tài nguyên
+
+Danh mục tài nguyên dùng chung — FR-13.1 tới FR-13.4, ADR-017.
+
+| Mã | Tiêu chí | Yêu cầu | Loại |
+|---|---|---|---|
+| AC-16.1 | Tài nguyên chia theo mục BM, Via, Page…; mọi cấp bậc, mọi bộ phận xem được cả danh sách với trạng thái là chip; lọc theo mục, trạng thái, người giữ và tìm theo tên; mục hay người giữ không có trả 404; Xoá lọc giữ mục đang chọn; danh sách phân trang 25 dòng; Manager trở lên thêm mục, Staff và Leader bị từ chối có nhật ký; trùng tên kể cả khác hoa thường bị chặn ở cả dịch vụ lẫn cơ sở dữ liệu, mục mới xếp cuối | FR-13.1 · FR-13.2 · FR-3.5 | Tự động |
+| AC-16.2 | Manager trở lên thêm, sửa, gỡ tài nguyên; sửa ghi nhật ký từng trường đổi nhưng không chép ghi chú; gỡ là xoá mềm; Staff và Leader bị từ chối có nhật ký và không thấy nút; tài nguyên đã gỡ trả 404; người giữ đã bị khoá vẫn hiện trong ô chọn khi sửa nên bấm Lưu không mất người giữ | FR-13.3 · FR-3.5 · BR-4 · BR-5 | Tự động |
+| AC-16.3 | Tên, ghi chú hay liên kết chứa mật khẩu, token, mã bí mật, hoặc OTP/2FA/PIN/mk kèm số đều bị từ chối ở cả thêm lẫn sửa, kể cả gõ dấu rời (NFD); nhắc tới OTP hay 2FA mà không kèm mã thì được; liên kết không phải http(s) bị từ chối ở tầng dịch vụ; không có cột mật khẩu trong bảng; nhật ký không chứa ghi chú | FR-13.4 · BR-6 | Tự động |
+
+---
+
+## 17. Kiểm thử thủ công trước bàn giao
 
 Những việc máy không tự làm được, người phải kiểm bằng tay.
 
@@ -275,13 +343,13 @@ Những việc máy không tự làm được, người phải kiểm bằng tay
 
 ---
 
-## 13. Điều kiện coi là hoàn thành phase 1
+## 18. Điều kiện coi là hoàn thành phase 1
 
 | # | Điều kiện |
 |---|---|
 | 1 | Toàn bộ tiêu chí đánh dấu **Tự động** đều có bài kiểm thử và đều đạt |
 | 2 | Ma trận kiểm chéo phân quyền ở mục 3 được kiểm đầy đủ, cả trường hợp cho phép và từ chối |
-| 3 | Toàn bộ danh sách kiểm thủ công ở mục 12 đã thực hiện và đạt |
+| 3 | Toàn bộ danh sách kiểm thủ công ở mục 17 đã thực hiện và đạt |
 | 4 | Đã phục hồi thành công ít nhất một lần từ bản sao lưu |
 | 5 | Tệp Excel thật của công ty nhập được mà không cần chỉnh sửa thủ công |
 | 6 | Ba vai trò đã chạy trọn quy trình trên dữ liệu thật |
@@ -292,7 +360,7 @@ Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ 
 
 ---
 
-## 14. Nội dung chưa quyết định
+## 19. Nội dung chưa quyết định
 
 | # | Nội dung | Ảnh hưởng |
 |---|---|---|

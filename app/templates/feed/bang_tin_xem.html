@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block tieu_de %}Bài trên Bảng tin · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Bảng tin{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Nội bộ · Bảng tin</div>
+    <h1>Bài của {{ ten_tac_gia }}</h1>
+  </div>
+  <div class="hanh-dong"><a class="nut" href="{% url 'bang_tin' %}">Quay lại Bảng tin</a></div>
+</div>
+
+<div class="luoi luoi-phu">
+  <div class="doc">
+    {% include "feed/_bai.html" with bai=bai da_thich=da_thich so_thich=so_thich so_binh_luan=so_binh_luan %}
+    <div class="the">
+      <div class="the-dau"><h2>Bình luận</h2><span class="phai nho mo-nhat" id="so-bl-{{ bai.pk }}">{{ so_binh_luan }}</span></div>
+      <div class="the-than">{% include "feed/_binh_luan.html" %}</div>
+    </div>
+  </div>
+
+  {% include "feed/_ben_phai.html" %}
+</div>
+
+{% endblock %}

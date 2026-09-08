@@ -1,6 +1,6 @@
 """Truy vết hai chiều giữa `docs/04` và mã kiểm thử.
 
-`docs/04` mục 13 điều 1 nói điều kiện hoàn thành phase 1 là *"toàn bộ tiêu chí
+`docs/04` mục 18 điều 1 nói điều kiện hoàn thành phase 1 là *"toàn bộ tiêu chí
 đánh dấu Tự động đều có bài kiểm thử và đều đạt"*. Tệp này biến điều kiện đó
 thành mã chạy được, thay vì phải rà bằng mắt mỗi lần.
 
@@ -81,7 +81,7 @@ def test_doc_duoc_tai_lieu_tieu_chi():
 
 
 def test_moi_tieu_chi_tu_dong_deu_co_bai_kiem():
-    """docs/04 mục 13 điều 1 — Mọi tiêu chí Tự động đều có bài kiểm thử
+    """docs/04 mục 18 điều 1 — Mọi tiêu chí Tự động đều có bài kiểm thử
 
     Đây là điều kiện hoàn thành phase 1, viết thành mã chạy được. Đỏ nghĩa là
     có tiêu chí đã hứa tự động hoá nhưng chưa ai viết bài kiểm.

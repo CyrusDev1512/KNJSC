@@ -37,7 +37,9 @@ kim-ngan-jsc/
 │   │   ├── mixins.py                      lớp dùng chung cho view
 │   │   ├── exceptions.py                  lỗi nghiệp vụ có mã
 │   │   ├── validators.py                  kiểm tra dữ liệu dùng chung
-│   │   ├── pagination.py                  phân trang mặc định 25 dòng
+│   │   ├── pagination.py                  phân trang mặc định 25 dòng, pagination_context, filter_query
+│   │   ├── htmx.py                        nhận biết yêu cầu htmx
+│   │   ├── templatetags/knjsc.py          bộ lọc |ten và thẻ {% avatar %}
 │   │   ├── excel.py                       đọc và ghi tệp Excel
 │   │   ├── services/
 │   │   │   ├── audit_service.py
@@ -127,6 +129,34 @@ kim-ngan-jsc/
 │   │   ├── urls.py
 │   │   └── tests/
 │   │
+│   ├── documents/                         Nội bộ — tài liệu chia mục (ADR-017)
+│   │   ├── models.py                      DocumentCategory, Document
+│   │   ├── managers.py                    mục toàn công ty + mục bộ phận mình
+│   │   ├── services/document_service.py   tải lên, tải về có kiểm quyền, gỡ mềm
+│   │   └── tests/test_tai_lieu.py
+│   ├── feed/                              Nội bộ — bảng tin
+│   │   ├── models.py                      Post, Comment, Like
+│   │   ├── services/post_service.py       đăng, thích, bình luận, ghim, thiệp sinh nhật, thanh bên
+│   │   ├── tasks.py                       feed.thiep_sinh_nhat 06:00
+│   │   ├── management/commands/thiep_sinh_nhat.py
+│   │   └── tests/test_bang_tin.py
+│   ├── taskboard/                         Nội bộ — công việc
+│   │   ├── models.py                      Task
+│   │   ├── managers.py                    phạm vi theo người làm hoặc người tạo
+│   │   ├── services/task_service.py       giao việc, đổi trạng thái, sửa, gỡ
+│   │   └── tests/test_cong_viec.py
+│   ├── culture/                           Nội bộ — văn hoá
+│   │   ├── models.py                      Recognition, StarAward
+│   │   ├── services/recognition_service.py ghi nhận, sao, bản đồ người đang hoạt động
+│   │   ├── services/leaderboard_service.py xếp hạng doanh số quy VND, thưởng 5/3/1
+│   │   ├── tasks.py                       culture.thuong_sao_thang ngày 1
+│   │   ├── management/commands/thuong_sao_thang.py
+│   │   └── tests/test_van_hoa.py
+│   ├── resources/                         Nội bộ — tài nguyên dùng chung
+│   │   ├── models.py                      ResourceCategory, Resource
+│   │   ├── services/resource_service.py   thêm sửa gỡ, chặn mật khẩu trong ghi chú
+│   │   └── tests/test_tai_nguyen.py
+│   │
 │   ├── templates/
 │   │   ├── base.html                      khung chung, thanh điều hướng
 │   │   ├── components/                    thành phần dùng lại
@@ -141,7 +171,12 @@ kim-ngan-jsc/
 │   │   ├── forms_builder/
 │   │   ├── reports/
 │   │   ├── orders/
-│   │   └── dashboard/
+│   │   ├── dashboard/
+│   │   ├── documents/
+│   │   ├── feed/
+│   │   ├── taskboard/
+│   │   ├── culture/
+│   │   └── resources/
 │   │
 │   ├── static/
 │   │   ├── css/
@@ -224,7 +259,7 @@ kim-ngan-jsc/
 
 ---
 
-## Bảy module trong `app/`
+## Mười hai module trong `app/`
 
 | Module | Sở hữu dữ liệu gì | Gọi vào ai |
 |---|---|---|
@@ -235,6 +270,11 @@ kim-ngan-jsc/
 | `orders` | Đơn hàng, sản phẩm, khách hàng | `core`, `org`, `forms_builder` |
 | `crm` | Bảng tính vận đơn — lưới làm việc trên bảng `van_don`, chạy được thành dịch vụ riêng (ADR-009) | `core`, `org`, `forms_builder`, `orders` |
 | `dashboard` | Không sở hữu, chỉ đọc | Tất cả |
+| `documents` | Mục tài liệu, tài liệu (tệp ở `storage/tai-lieu/`) — nhóm Nội bộ, ADR-017 | `core`, `org` |
+| `taskboard` | Việc | `core`, `org` |
+| `culture` | Ghi nhận, sao; bảng xếp hạng đọc đơn hàng (ngoại lệ phạm vi có chủ ý, Q71) | `core`, `org`, `orders` |
+| `feed` | Bài, bình luận, lượt thích; thanh bên mượn sao và ghi nhận | `core`, `org`, `culture` |
+| `resources` | Mục tài nguyên, tài nguyên | `core`, `org` |
 
 **Quy tắc phụ thuộc:** module chỉ gọi module nằm trên nó trong bảng. Không có vòng.
 

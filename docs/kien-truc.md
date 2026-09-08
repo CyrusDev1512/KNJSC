@@ -29,7 +29,7 @@ Bản phác thảo để bàn. Mọi phần đều có thể đổi.
        └────────────── đơn chảy một chiều ──────────────────┘
 ```
 
-### Bảy module trong mã nguồn
+### Mười hai module trong mã nguồn
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -74,6 +74,12 @@ Tháng, Leader như Manager trong bộ phận (ADR-004, ADR-009, ADR-010, ADR-01
 ADR-012, ADR-015).
 Tách ra vì `crm` sẽ thành ứng dụng riêng khi đo được điều kiện ở cuối tài
 liệu này, còn `orders` thì ở lại.
+
+**Năm app Nội bộ** (ADR-017) — `documents`, `feed`, `taskboard`, `culture`,
+`resources` — đứng cùng hàng với `orders`, `crm`, `reports`: gọi xuống `org`
+và `core`; riêng `culture` đọc `orders` (bảng xếp hạng doanh số) và `feed` gọi
+`culture` (sao, ghi nhận trên thanh bên). Không ai gọi `feed`. Sơ đồ trên chưa
+vẽ năm app này — backlog K28.
 
 Giao diện dùng chung không thành module riêng — nó nằm ở `app/templates/`
 và `app/static/`, vì không sở hữu dữ liệu nào.
@@ -217,7 +223,12 @@ kim-ngan-jsc/
 │   ├── reports/              ← báo cáo hằng ngày, báo cáo tổng hợp
 │   ├── orders/               ← đơn hàng, sản phẩm, luồng ghi sang bảng
 │   ├── crm/                  ← khách hàng, và về sau là bảng tính
-│   └── dashboard/            ← tổng quan, chỉ đọc
+│   ├── dashboard/            ← tổng quan, chỉ đọc
+│   ├── documents/            ← tài liệu chia mục — nhóm Nội bộ, ADR-017
+│   ├── feed/                 ← bảng tin, thiệp sinh nhật
+│   ├── taskboard/            ← công việc
+│   ├── culture/              ← ghi nhận, sao, xếp hạng doanh số
+│   └── resources/            ← tài nguyên dùng chung
 │
 ├── config/                   ← cấu hình, không đưa lên kho mã nguồn
 ├── deploy/
@@ -231,7 +242,7 @@ kim-ngan-jsc/
 └── README.md
 ```
 
-**Bảy module trong `app/`.** Mỗi module tự chứa mô hình dữ liệu, tầng dịch vụ và giao diện của nó.
+**Mười hai module trong `app/`.** Mỗi module tự chứa mô hình dữ liệu, tầng dịch vụ và giao diện của nó.
 
 Giao diện dùng chung không thành module riêng mà nằm ở `app/templates/` và
 `app/static/`, vì nó không sở hữu dữ liệu nào.

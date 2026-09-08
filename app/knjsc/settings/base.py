@@ -31,8 +31,10 @@ DEBUG = False
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 # ── Ứng dụng ────────────────────────────────────────────────────────
-# Bảy module trong app/. core là module duy nhất được các module khác
-# gọi vào; các module còn lại không gọi trực tiếp nhau.
+# Mười hai module trong app/. core là module duy nhất được các module khác
+# gọi vào; các module còn lại không gọi trực tiếp nhau — trừ vài chiều một
+# chiều có ghi trong ADR: reports, orders, crm → forms_builder; và nhóm Nội bộ
+# (ADR-017): feed → culture, org; culture → orders.
 DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -50,6 +52,12 @@ LOCAL_APPS = [
     "orders",
     "dashboard",
     "crm",
+    # Nhóm Nội bộ — ADR-017: bảng tin, tài liệu, công việc, văn hoá, tài nguyên
+    "feed",
+    "documents",
+    "taskboard",
+    "culture",
+    "resources",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
@@ -160,6 +168,39 @@ BANGTINH_URL = env("BANGTINH_URL", "http://localhost:8021/")
 # Địa chỉ dịch vụ chính — Bảng tính liên kết ngược về Bảng dữ liệu và Nhập tệp
 MAIN_APP_URL = env("MAIN_APP_URL", "http://localhost:8020/")
 
+# Tỉ giá cố định để quy đổi doanh số về VND cho bảng xếp hạng (ADR-017, Q71).
+# Số mặc định là số tạm — backlog N11 chờ anh/chị chốt; đè bằng biến môi
+# trường dạng `EXCHANGE_RATES_VND="USD=25400,CAD=18500,PHP=440"`. Decimal, không
+# dùng số thực (BR-8). VND luôn là 1.
+from decimal import Decimal  # noqa: E402
+
+
+def env_rates(name, default):
+    """Đọc bảng tỉ giá `MA=so,MA=so` từ môi trường, gộp lên bảng mặc định.
+
+    Số phải là **số nguyên VND không dấu chấm, không dấu phẩy** (`USD=25400`):
+    "25.400" sẽ thành 25,4 và "25,400" bị cắt ở dấu phẩy — hai kiểu sai đó
+    lặng lẽ đưa số sai vào sổ sao, nên từ chối ngay lúc khởi động và nói rõ.
+    """
+    ket_qua = dict(default)
+    for muc in env_list(name, ""):
+        if "=" not in muc:
+            raise RuntimeError(f"{name}: mục '{muc}' phải có dạng MA=so, ví dụ USD=25400 (không dấu chấm, dấu phẩy).")
+        ma, gia = (x.strip() for x in muc.split("=", 1))
+        if not ma.isalpha() or not gia.isdigit() or int(gia) <= 0:
+            raise RuntimeError(f"{name}: '{muc}' — tỉ giá phải là số nguyên VND dương, ví dụ USD=25400.")
+        ket_qua[ma.upper()] = Decimal(gia)
+    ket_qua["VND"] = Decimal("1")
+    return ket_qua
+
+
+EXCHANGE_RATES_VND = env_rates("EXCHANGE_RATES_VND", {
+    "VND": Decimal("1"),
+    "USD": Decimal("25400"),
+    "CAD": Decimal("18500"),
+    "PHP": Decimal("440"),
+})
+
 # ── Tác vụ nền ──────────────────────────────────────────────────────
 CELERY_BROKER_URL = env("REDIS_URL", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
@@ -181,6 +222,15 @@ CELERY_BEAT_SCHEDULE = {
     "danh-dau-tac-vu-ket": {
         "task": "core.danh_dau_tac_vu_ket",
         "schedule": crontab(minute="*/15"),
+    },
+    # Nhóm Nội bộ — ADR-017
+    "thuong-sao-thang": {
+        "task": "culture.thuong_sao_thang",
+        "schedule": crontab(day_of_month=1, hour=1, minute=0),
+    },
+    "thiep-sinh-nhat": {
+        "task": "feed.thiep_sinh_nhat",
+        "schedule": crontab(hour=6, minute=0),
     },
 }
 

@@ -14,7 +14,8 @@ from ..models import UserProfile
 
 @transaction.atomic
 def create_account(*, username, email, full_name, rank=Rank.STAFF,
-                   department=None, team=None, password=None, actor=None, request=None):
+                   department=None, team=None, password=None, birthday=None,
+                   actor=None, request=None):
     """Tạo tài khoản kèm hồ sơ nhân sự.
 
     Mật khẩu đặt lần đầu luôn phải đổi ở lần đăng nhập kế tiếp (FR-1.3).
@@ -34,7 +35,7 @@ def create_account(*, username, email, full_name, rank=Rank.STAFF,
 
     profile = UserProfile.objects.create(
         user=user, full_name=full_name, rank=rank,
-        department=department, team=team, must_change_password=True,
+        department=department, team=team, birthday=birthday, must_change_password=True,
     )
     record(
         AuditAction.CREATE, actor=actor, target=user,
@@ -49,6 +50,7 @@ PROFILE_FIELD_LABELS = {
     "rank": "Cấp bậc",
     "department": "Bộ phận",
     "team": "Team",
+    "birthday": "Ngày sinh",
 }
 
 

@@ -26,7 +26,7 @@ fi
 # sao lưu hỏng ngay lần đầu mà không ai biết vì sao. Chỉ cảnh báo, không dừng:
 # dịch vụ vẫn lên được để người vận hành sửa quyền — backlog K21.
 KHO="${STORAGE_DIR:-/storage}"
-for tm in "$KHO" "$KHO/uploads" "$KHO/exports" "$KHO/backups"; do
+for tm in "$KHO" "$KHO/uploads" "$KHO/exports" "$KHO/backups" "$KHO/tai-lieu"; do
   mkdir -p "$tm" 2>/dev/null || true
   if [ ! -w "$tm" ]; then
     echo "CANH BAO: khong ghi duoc vao $tm — nhap tep va sao luu se hong. Kiem quyen thu muc storage/ (uid 1000)." >&2
@@ -39,6 +39,11 @@ if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
   # Máy sạch mà thiếu bảng này thì màn hình Bảng tính trả 404. Lệnh chạy
   # lại nhiều lần được, đã có thì chỉ bổ sung cột còn thiếu.
   python manage.py tao_bang_van_don
+  # Hai việc theo lịch của nhóm Nội bộ (ADR-017) chạy bù lúc máy bật: máy để
+  # bàn thường tắt vào 06:00 và 01:00 ngày 1 nên không trông vào beat được.
+  # Cả hai chạy lại nhiều lần được; hỏng thì chỉ cảnh báo, không chặn khởi động.
+  python manage.py thiep_sinh_nhat || echo "CANH BAO: thiep_sinh_nhat loi, xem log tren" >&2
+  python manage.py thuong_sao_thang || echo "CANH BAO: thuong_sao_thang loi, xem log tren" >&2
 fi
 
 exec "$@"

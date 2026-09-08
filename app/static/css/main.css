@@ -518,6 +518,85 @@ table.bang.bang-luoi td.o-vuot-nguong {
 .giua { text-align: center; }
 hr.ke { border: 0; border-top: 1px solid var(--rule); margin: var(--sp-4) 0; }
 
+/* ══ NỘI BỘ — ADR-017 ═══════════════════════════════════════════ */
+
+/* Danh sách mục ở thanh bên phải (Tài liệu, Tài nguyên) */
+.muc-ds { list-style: none; margin: 0; padding: 0; }
+.muc-ds li + li { border-top: 1px solid var(--rule); }
+.muc-ds a {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4); color: var(--ink); text-decoration: none;
+}
+.muc-ds a:hover { background: var(--surface-2); }
+.muc-ds a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.muc-ds .dem { margin-left: auto; font-family: var(--font-ma); font-size: var(--fs-xs); color: var(--ink-3); }
+
+/* Hạn đã qua mà việc còn mở */
+.qua-han { color: var(--critical); font-weight: 600; }
+
+/* Thẻ ghi nhận văn hoá */
+.ghi-nhan { padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--rule); }
+.ghi-nhan:last-child { border-bottom: 0; }
+.ghi-nhan-dau { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
+.ghi-nhan-dau .avatar { width: 34px; height: 34px; font-size: var(--fs-md); }
+.ghi-nhan-than { margin: var(--sp-2) 0 0; color: var(--ink-2); }
+.gia-tri-vh {
+  display: inline-block; padding: 2px 10px; border-radius: 10px;
+  background: var(--accent-soft); color: var(--accent); font-size: var(--fs-xs); font-weight: 600;
+}
+/* Huy hiệu sao */
+.sao { color: var(--warn); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Số hạng: vàng, bạc, đồng cho ba hạng đầu */
+.hang-so {
+  display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--surface-3); color: var(--ink-2); font-family: var(--font-ma); font-weight: 700; font-size: var(--fs-sm);
+}
+.hang-so-1 { background: var(--warn); color: #1d1500; }
+.hang-so-2 { background: var(--rule-strong); color: var(--ink); }
+.hang-so-3 { background: var(--serious-soft); color: var(--serious); }
+/* Danh sách xếp hạng gọn trong thẻ */
+.bxh { display: flex; flex-direction: column; list-style: none; margin: 0; padding: 0; }
+.bxh-hang { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--rule); }
+.bxh-hang:last-child { border-bottom: 0; }
+.bxh-ten { flex: 1; min-width: 0; }
+.bxh-hang .tien { white-space: nowrap; }
+
+/* Bảng tin: bài, bình luận, nút thích, thanh bên */
+.bai { overflow: hidden; }
+.bai-dau { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4) 0; flex-wrap: wrap; }
+.bai-than { margin: var(--sp-3) 0 0; padding: 0 var(--sp-4); white-space: pre-line; line-height: 1.55; overflow-wrap: anywhere; }
+.bai-chan {
+  display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
+  padding: var(--sp-3) var(--sp-4); border-top: 1px solid var(--rule); margin-top: var(--sp-3);
+}
+.bai-chan form { margin: 0; display: inline; }
+/* Thiệp sinh nhật: viền vàng, nền ấm */
+.bai-sinh-nhat { border-color: var(--warn); background: linear-gradient(180deg, var(--warn-soft), var(--surface) 60%); }
+.avatar-lon { width: 38px; height: 38px; font-size: var(--fs-md); }
+.bm-thich { display: inline; margin: 0; }
+.nut-thich[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.binh-luan-ds { display: flex; flex-direction: column; gap: var(--sp-3); }
+.binh-luan { display: flex; gap: var(--sp-3); align-items: flex-start; }
+.binh-luan form { margin: 0; }
+.binh-luan-than { flex: 1; min-width: 0; background: var(--surface-2); border-radius: var(--r-md); padding: var(--sp-2) var(--sp-3); }
+.binh-luan-than b { margin-right: var(--sp-2); }
+.binh-luan-than p { margin: var(--sp-1) 0 0; white-space: pre-line; overflow-wrap: anywhere; }
+.binh-luan-trong { margin: 0; }
+.binh-luan-viet { display: flex; flex-direction: column; gap: var(--sp-1); }
+.binh-luan-viet .hang { flex-wrap: nowrap; }
+.binh-luan-viet .o-nhap { flex: 1; min-width: 0; }
+/* Dòng trên thanh bên: ngày sinh nhật, thành viên mới */
+.ben-hang { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--rule); }
+.ben-hang:last-child { border-bottom: 0; }
+.ngay-so {
+  font-family: var(--font-ma); font-size: var(--fs-xs); font-weight: 700; white-space: nowrap;
+  padding: 2px 8px; border-radius: 10px; background: var(--surface-3); color: var(--ink-2);
+}
+
+/* Cụm nút nhỏ trong một ô bảng (Tải về + Gỡ) */
+.hang-nut { display: inline-flex; gap: var(--sp-2); align-items: center; }
+.hang-nut form { margin: 0; display: inline; }
+
 /* ══ MÀN HÌNH HẸP ════════════════════════════════════════════════ */
 
 @media (max-width: 900px) {

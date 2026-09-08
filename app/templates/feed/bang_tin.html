@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block tieu_de %}Bảng tin · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Bảng tin{% endblock %}
+
+{% block noi_dung %}
+
+<div class="trang-dau">
+  <div>
+    <div class="nhan-nho">Nội bộ · FR-10.1 tới FR-10.6</div>
+    <h1>Bảng tin công ty</h1>
+    <p>Thông báo, tin vui và lời chúc của cả công ty. Ai cũng đăng được; quản lý ghim bài quan trọng lên đầu.</p>
+  </div>
+</div>
+
+<div class="luoi luoi-phu">
+  <div class="doc">
+    <div class="the">
+      <form class="the-than bm" method="post" action="{% url 'bang_tin_dang' %}" id="bm-dang">
+        {% csrf_token %}
+        <div class="truong">
+          <label for="bai-body">Bạn muốn chia sẻ gì với cả nhà?</label>
+          <textarea class="o-nhap" id="bai-body" name="body" rows="3" maxlength="{{ body_max }}" required placeholder="Thông báo, tin vui, lời cảm ơn…">{{ body_cu }}</textarea>
+        </div>
+        <div class="hang">
+          <span class="nho mo-nhat">Bài hiện với toàn công ty</span>
+          <button class="nut nut-chinh day" type="submit">Đăng</button>
+        </div>
+      </form>
+    </div>
+
+    {% for bai in trang %}
+      {% include "feed/_bai.html" with bai=bai da_thich=bai.da_thich so_thich=bai.so_thich so_binh_luan=bai.so_binh_luan %}
+    {% empty %}
+      <div class="the"><div class="the-than">
+        {% include "components/rong.html" with rong_tieu_de="Chưa có bài nào" rong_mo_ta="Hãy là người đầu tiên đăng lên Bảng tin." %}
+      </div></div>
+    {% endfor %}
+    {% if page_obj.paginator.num_pages > 1 %}<div class="the">{% include "components/phan_trang.html" %}</div>{% endif %}
+  </div>
+
+  {% include "feed/_ben_phai.html" %}
+</div>
+
+{% endblock %}

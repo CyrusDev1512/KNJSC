@@ -30,7 +30,8 @@ from openpyxl.styles import Font
 from openpyxl.utils.exceptions import InvalidFileException
 
 from .constants import (
-    FILE_EXTENSIONS, FILE_MAGIC, HEADER_SCAN_ROWS, UPLOAD_MAX_BYTES, FileKind,
+    FILE_EXTENSIONS, FILE_MAGIC, HEADER_SCAN_ROWS, UPLOAD_MAX_BYTES,
+    ZIP_KINDS, FileKind,
 )
 from .exceptions import BusinessError
 
@@ -67,6 +68,24 @@ def _dau_tep(upload, n=16):
     return dau
 
 
+#: Tệp ZIP thật của Excel và Word luôn chứa tệp này bên trong — ZIP bất kỳ đổi
+#: đuôi thì không (docs/03 S7)
+_ZIP_DAU_HIEU = {FileKind.XLSX: "xl/workbook.xml", FileKind.DOCX: "word/document.xml"}
+
+
+def _zip_dung_loai(upload, loai):
+    """ZIP có đúng tệp đặc trưng của loại đã khai không."""
+    upload.seek(0)
+    try:
+        with zipfile.ZipFile(upload) as z:
+            ten = set(z.namelist())
+    except (zipfile.BadZipFile, OSError, ValueError):
+        return False
+    finally:
+        upload.seek(0)
+    return _ZIP_DAU_HIEU[loai] in ten
+
+
 def _giong_csv(upload):
     """CSV không có chữ ký: đọc được dạng chữ và không chứa byte 0 thì nhận."""
     upload.seek(0)
@@ -79,6 +98,11 @@ def _giong_csv(upload):
     except UnicodeDecodeError:
         return False
     return True
+
+
+def _cac_duoi_cho_phep():
+    """Chuỗi ".xlsx, .csv, …" sinh từ FILE_EXTENSIONS — khai một chỗ (quy tắc 7)."""
+    return ", ".join(d for cac in FILE_EXTENSIONS.values() for d in cac)
 
 
 def kind_of_extension(ten_tep):
@@ -109,7 +133,7 @@ def sniff_kind(upload, *, declared_name=None, allowed=None):
 
     if loai is None:
         raise UploadRejected(
-            "Không nhận ra loại tệp. Chỉ nhận Excel (.xlsx), CSV, ảnh JPG hoặc PNG."
+            "Không nhận ra loại tệp. Chỉ nhận " + _cac_duoi_cho_phep() + "."
         )
 
     if declared_name:
@@ -117,7 +141,16 @@ def sniff_kind(upload, *, declared_name=None, allowed=None):
         if theo_duoi is None:
             raise UploadRejected(
                 f'Đuôi tệp "{Path(str(declared_name)).suffix}" không được phép. '
-                "Chỉ nhận .xlsx, .csv, .jpg, .png."
+                "Chỉ nhận " + _cac_duoi_cho_phep() + "."
+            )
+        # Word và Excel cùng là tệp ZIP, chữ ký giống nhau: tin đuôi khai báo
+        # để chọn giữa hai loại đó, nhưng nội dung vẫn phải là ZIP thật
+        if loai in ZIP_KINDS and theo_duoi in ZIP_KINDS:
+            loai = theo_duoi
+        if theo_duoi in ZIP_KINDS and loai in ZIP_KINDS and not _zip_dung_loai(upload, theo_duoi):
+            raise UploadRejected(
+                f"Tệp khai là {FileKind(theo_duoi).label} nhưng bên trong không phải "
+                f"{FileKind(theo_duoi).label}. Không nhận tệp đổi đuôi."
             )
         if theo_duoi != loai:
             raise UploadRejected(
@@ -262,7 +295,7 @@ def find_header_row(rows, expected_labels):
 
 #: Ngày kiểu Việt Nam, có hoặc không kèm giờ. Dấu gạch chéo cho phép gõ đúp
 #: (`1/12//2023`) — tệp thật có hai dòng như vậy, và tệp thật phải nhập được
-#: mà không chỉnh sửa (docs/04 mục 13 điều 5).
+#: mà không chỉnh sửa (docs/04 mục 18 điều 5).
 _NGAY_GIO = re.compile(
     r"^\s*(?:(\d{1,2}):(\d{2})(?::(\d{2}))?\s+)?(\d{1,2})/+(\d{1,2})/+(\d{4})"
     r"(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?\s*$"

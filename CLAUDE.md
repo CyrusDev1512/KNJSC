@@ -59,7 +59,8 @@ docker compose -f deploy/docker-compose.yml exec web python manage.py du_lieu_ma
 **Vì sao cần lệnh thứ hai.** Cơ sở dữ liệu không theo kho mã, nên máy mới dựng
 xong là hệ thống trống, **không có tài khoản nào để đăng nhập**. `du_lieu_mau`
 tạo 12 tài khoản ba bộ phận bốn cấp bậc, bảng Báo cáo Marketing với số liệu
-thật, biểu mẫu và sản phẩm. Mật khẩu in ra cuối lệnh. Tài khoản `quantri` vào
+thật, biểu mẫu và sản phẩm, cùng dữ liệu mẫu cho nhóm Nội bộ (tài liệu, việc,
+đơn hàng, ghi nhận, bài Bảng tin, thiệp sinh nhật hôm nay, tài nguyên). Mật khẩu in ra cuối lệnh. Tài khoản `quantri` vào
 được cả trang quản trị Django ở `/quan-tri/`. Danh sách đầy đủ 12 tài khoản
 kèm mật khẩu ở `docs/tai-khoan-mau.md`.
 
@@ -87,6 +88,26 @@ tệp `app/static/js/bang-tinh.js` (trang: thanh bên, cột, thanh công thức
 một ô) và `bang-tinh-o.js` (ô: chọn vùng, clipboard, kéo điền, hoàn tác, menu
 chuột phải, tự cập nhật). Bảng 40 màu sinh CSS bằng `scripts/sinh-css-mau.py`,
 đừng gõ tay.
+
+**Nhóm Nội bộ** (ADR-017) là năm app nhỏ cùng khuôn: `documents` (Tài liệu),
+`feed` (Bảng tin), `taskboard` (Công việc), `culture` (Văn hoá), `resources`
+(Tài nguyên) — nhóm "Nội bộ" trên thanh bên, mọi cấp bậc vào được. Phụ thuộc
+một chiều: `feed → culture, org`; `culture → orders`; không ai import `feed`.
+Bảng tin, Văn hoá, Tài nguyên là của toàn công ty theo quyết định (Q69, Q70)
+nên không có `in_scope`; Tài liệu lọc theo bộ phận ở `documents/managers.py`,
+Công việc theo cấp bậc ở `taskboard/managers.py`. **Bảng xếp hạng doanh số là
+ngoại lệ phạm vi có chủ ý** (`culture/services/leaderboard_service.py`, Q71):
+đọc đơn toàn công ty, chỉ trả hạng, số đơn, tổng quy VND bằng
+`EXCHANGE_RATES_VND` (số tạm, N11). Hai tác vụ nền `culture.thuong_sao_thang`
+(ngày 1, 01:00) và `feed.thiep_sinh_nhat` (06:00) dùng cùng hàm với lệnh
+`thuong_sao_thang --thang` và `thiep_sinh_nhat --ngay`; `entrypoint.sh` chạy bù
+cả hai khi bật máy. Ghi nhận văn hoá đi **từ trên xuống** (Q75): chỉ Leader trở
+lên ghi nhận cấp dưới trong phạm vi mình; mọi người bán đều tranh hạng (Q76);
+đồng hạng cùng nhận sao (Q77). Tệp tài liệu ở `storage/tai-lieu/`, ngoài đường
+dọn 24 giờ và ngoài `pg_dump` (K27). Khuôn dùng chung ở `core`, đừng chép lại ở
+app mới: `AliveManager`, `pagination_context` và `filter_query`, `htmx.is_htmx`,
+bộ lọc `|ten` và thẻ `{% avatar %}` (`core/templatetags/knjsc.py`). Bản MVP
+vào qua PR #20 (nhánh `claude/knerp-noi-bo-mvp`), anh/chị xem rồi mới gộp.
 
 ### Chạy kiểm thử
 

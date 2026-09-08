@@ -66,3 +66,13 @@ def test_hien_thi_tien_theo_tap_quan_viet_nam():
     assert format_money(Decimal("1875000"), Currency.VND) == "1.875.000 ₫"
     assert format_money(Decimal("192.50"), Currency.USD) == "$192,50"
     assert format_money(Decimal("-42.5"), Currency.USD) == "-$42,50"
+
+
+def test_luoc_bo_theo_ranh_gioi_tu(nguoi_dung):
+    """AC-9.2 — Chi tiết chỉ bị lược bỏ khi có từ khoá nhạy cảm đứng thành từ; "theo", "Matthew", "Ricardo" giữ nguyên, "password=", "token", "credit card" thì lược"""
+    from core import audit
+
+    giu = "Sửa việc #1 — Tiêu đề: Gọi khách → Theo dõi khách Matthew Ricardo"
+    assert audit.record(AuditAction.UPDATE, actor=nguoi_dung["admin"], detail=giu).detail == giu
+    for xau in ("mật khẩu: abc", "token dán đây", "credit card 4111", "gửi OTP 1234", "Password=1"):
+        assert "lược bỏ" in audit.record(AuditAction.UPDATE, actor=nguoi_dung["admin"], detail=xau).detail

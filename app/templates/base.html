@@ -92,6 +92,36 @@
   document.getElementById("nut-nav").addEventListener("click", function () {
     document.getElementById("thanh-ben").classList.toggle("mo");
   });
+  /* HTMX: chưa đăng nhập hay hết phiên thì về trang đăng nhập thay vì nhét trang
+     đó vào chỗ nút; lỗi 4xx/5xx thì báo ở đầu trang thay vì im lặng */
+  function baoLoiHtmx(chu) {
+    var main = document.querySelector("main.noi-dung");
+    if (!main) { alert(chu); return; }
+    var hop = document.createElement("div");
+    hop.className = "bao bao-xau"; hop.setAttribute("role", "alert");
+    hop.innerHTML = '<span class="bao-ic">!</span><div><b></b></div>';
+    hop.querySelector("b").textContent = chu;
+    main.insertBefore(hop, main.firstChild);
+    window.scrollTo({ top: 0 });
+    setTimeout(function () { hop.remove(); }, 8000);
+  }
+  document.body.addEventListener("htmx:beforeSwap", function (e) {
+    var xhr = e.detail.xhr; if (!xhr) return;
+    var url = xhr.responseURL || "";
+    if (url.indexOf("/dang-nhap/") !== -1) {
+      e.detail.shouldSwap = false;
+      // `next` do login_required gắn trỏ vào đường POST (đăng nhập xong là 405): về lại trang đang xem
+      var dich = new URL(url, window.location.href);
+      dich.searchParams.set("next", window.location.pathname + window.location.search);
+      window.location.href = dich.href; return;
+    }
+    if (xhr.status >= 400) {
+      e.detail.shouldSwap = false;
+      var la_chu = (xhr.getResponseHeader("Content-Type") || "").indexOf("text/plain") === 0;
+      baoLoiHtmx(la_chu && xhr.responseText ? xhr.responseText
+        : "Thao tác không thực hiện được (mã " + xhr.status + "). Tải lại trang rồi thử lại.");
+    }
+  });
 </script>
 
 <script src="{% static 'js/htmx.min.js' %}?v={{ phien_ban_tinh }}" defer></script>

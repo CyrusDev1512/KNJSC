@@ -22,6 +22,11 @@ class TaoTaiKhoanForm(forms.Form):
         label="Team", queryset=Team.objects.all(),
         required=False, empty_label="Chưa gán team",
     )
+    birthday = forms.DateField(
+        label="Ngày sinh", required=False,
+        widget=forms.DateInput(attrs={"type": "date"}),
+        help_text="Để Bảng tin tự chúc mừng sinh nhật; bỏ trống nếu không muốn.",
+    )
     password = forms.CharField(
         label="Mật khẩu tạm", min_length=10, widget=forms.PasswordInput,
         help_text="Người dùng bắt buộc đổi ở lần đăng nhập đầu tiên.",
@@ -50,11 +55,12 @@ class SuaHoSoForm(forms.ModelForm):
 
     class Meta:
         model = UserProfile
-        fields = ("full_name", "rank", "department", "team")
+        fields = ("full_name", "rank", "department", "team", "birthday")
         labels = {
             "full_name": "Họ tên", "rank": "Cấp bậc",
-            "department": "Bộ phận", "team": "Team",
+            "department": "Bộ phận", "team": "Team", "birthday": "Ngày sinh",
         }
+        widgets = {"birthday": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

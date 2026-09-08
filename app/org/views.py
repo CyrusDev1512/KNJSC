@@ -12,26 +12,12 @@ from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from core.constants import Rank
-from core.exceptions import BusinessError
-from core.pagination import PAGE_SIZES, page_size, paginate
+from core.pagination import pagination_context
 from core.permissions import assert_rank, is_admin
 
 from .forms import BoPhanForm, SuaHoSoForm, TaoTaiKhoanForm, TeamForm
 from .models import Department, Team, UserProfile
 from .services import account_service, org_service
-
-
-def _phan_trang(request, queryset, ten_don_vi="dòng", param="trang", size_param="moi_trang"):
-    """Bối cảnh dùng chung cho khối phân trang.
-
-    `param` cho phép một màn hình có hai bảng phân trang độc lập.
-    """
-    trang = paginate(request, queryset, param=param, size_param=size_param)
-    return {
-        "page_obj": trang, "trang": trang,
-        "moi_trang": page_size(request, size_param), "cac_co_trang": PAGE_SIZES,
-        "ten_don_vi": ten_don_vi, "tham_so": param, "tham_so_co": size_param,
-    }
 
 
 # ══ NHÂN SỰ ═══════════════════════════════════════════════════════
@@ -70,7 +56,7 @@ def nhan_su(request):
         "cac_cap_bac": Rank.choices,
         "duoc_sua": is_admin(request.user),
     }
-    boi_canh.update(_phan_trang(request, ds, "người"))
+    boi_canh.update(pagination_context(request, ds, "người"))
     return render(request, "org/nhan_su.html", boi_canh)
 
 
@@ -86,7 +72,8 @@ def nhan_su_moi(request):
         account_service.create_account(
             username=d["username"], email=d["email"], full_name=d["full_name"],
             rank=d["rank"], department=d["department"], team=d["team"],
-            password=d["password"], actor=request.user, request=request,
+            password=d["password"], birthday=d.get("birthday"),
+            actor=request.user, request=request,
         )
         messages.success(request, f"Đã tạo tài khoản {d['username']}.")
         return redirect("nhan_su")
@@ -198,6 +185,6 @@ def bo_phan(request):
     # Hai bảng phân trang độc lập nhau (quy tắc 1, Q4) — mỗi bảng một tham số
     return render(request, "org/bo_phan.html", {
         "form_bo_phan": form_bo_phan, "form_team": form_team,
-        "pt_bo_phan": _phan_trang(request, ds_bo_phan, "bộ phận", "trang_bp", "moi_trang_bp"),
-        "pt_team": _phan_trang(request, ds_team, "team", "trang_tm", "moi_trang_tm"),
+        "pt_bo_phan": pagination_context(request, ds_bo_phan, "bộ phận", "trang_bp", "moi_trang_bp"),
+        "pt_team": pagination_context(request, ds_team, "team", "trang_tm", "moi_trang_tm"),
     })

@@ -116,7 +116,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-7.5 | Hệ thống phải cho phép nhập dữ liệu từ tệp Excel |
 | FR-7.6 | Hệ thống phải cho phép xuất dữ liệu ra tệp Excel |
 | FR-7.7 | Tệp xuất ra phải nhập lại được vào hệ thống mà không phát sinh lỗi |
-| FR-7.8 | Hệ thống phải hỗ trợ công thức tính toán trên bảng — *phạm vi cụ thể xem mục 11*. Đã chốt: cột tính sẵn trên Bảng dữ liệu (ADR-006) và **Bảng tính vận đơn** là lưới làm việc theo tệp thật, không có công thức tự do (ADR-009); nhìn và thao tác theo bảng tính KN Demo, công thức ở thanh công thức chờ cách thứ ba (ADR-011) |
+| FR-7.8 | Hệ thống phải hỗ trợ công thức tính toán trên bảng — *phạm vi cụ thể xem mục 16*. Đã chốt: cột tính sẵn trên Bảng dữ liệu (ADR-006) và **Bảng tính vận đơn** là lưới làm việc theo tệp thật, không có công thức tự do (ADR-009); nhìn và thao tác theo bảng tính KN Demo, công thức ở thanh công thức chờ cách thứ ba (ADR-011) |
 | FR-7.9 | Bảng tính phải thao tác được như bảng tính quen thuộc: kéo chuột chọn vùng, cắt/chép/dán (kể cả dán từ Excel), tay kéo điền, xoá nội dung, hoàn tác và làm lại — mỗi ô vẫn là bản ghi thật có phạm vi quyền, một gói ô lưu một giao dịch được cả hoặc không gì (ADR-011) |
 | FR-7.10 | Bảng tính phải có menu chuột phải: chèn hàng trống, xoá hàng (xoá mềm, hoàn tác được), chèn và xoá cột ngay trên lưới cho Manager của bộ phận sở hữu bảng, xoá nội dung, xoá định dạng (ADR-011) |
 | FR-7.11 | Định dạng ô đủ như bảng tính — nghiêng, gạch chân, gạch ngang, xuống dòng, viền, màu chữ và màu nền từ bảng 40 màu, cỡ chữ, định dạng số — vẫn là sổ đóng lưu trong cơ sở dữ liệu (ADR-010, ADR-011) |
@@ -143,7 +143,77 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 
 ---
 
-## 9. Quy tắc nghiệp vụ
+## 9. Tài liệu
+
+Thư viện tài liệu dùng chung, chia theo mục — nhóm Nội bộ, ADR-017.
+
+| Mã | Yêu cầu |
+|---|---|
+| FR-9.1 | Tài liệu phải chia theo mục; mỗi mục thuộc một bộ phận hoặc dùng cho toàn công ty. Manager tạo mục cho bộ phận mình, Admin tạo mục toàn công ty |
+| FR-9.2 | Manager trở lên tải lên được tệp PDF, Word, Excel, CSV, ảnh JPG hoặc PNG (giới hạn NFR-11, kiểm nội dung theo NFR-12), hoặc thêm tài liệu dạng liên kết |
+| FR-9.3 | Mọi người trong phạm vi của mục xem và tải về được; tải về đi qua đường có kiểm quyền, không có đường tĩnh tới tệp; mỗi lượt tải về hay mở liên kết ghi một dòng nhật ký |
+| FR-9.4 | Gỡ tài liệu là xoá mềm (BR-4); người tải, Manager của bộ phận đó hoặc Admin mới gỡ được |
+| FR-9.5 | Tệp tài liệu nằm ngoài các thư mục bị dọn tự động sau 24 giờ |
+
+---
+
+## 10. Bảng tin
+
+Bảng tin chung của công ty — ADR-017.
+
+| Mã | Yêu cầu |
+|---|---|
+| FR-10.1 | Mọi người đăng được bài dạng chữ; ai cũng xem được toàn bộ bài, không phân theo bộ phận |
+| FR-10.2 | Mọi người thích và bình luận được; bỏ thích được, thích lại được; bài chỉ tải 20 bình luận mới nhất, cũ hơn tải tiếp |
+| FR-10.3 | Manager và Admin ghim bài (đứng đầu trang) và gỡ bài bất kỳ; tác giả gỡ được bài của mình; gỡ là xoá mềm |
+| FR-10.4 | Hệ thống tự đăng thiệp chúc mừng sinh nhật theo ngày sinh trong hồ sơ nhân sự, mỗi người mỗi năm một thiệp |
+| FR-10.5 | Thanh bên có sinh nhật tháng này, bảng xếp hạng sao, ghi nhận mới nhất và thành viên mới |
+| FR-10.6 | Mọi tương tác (đăng, thích, bình luận, ghim, gỡ) đều ghi nhật ký (BR-5) |
+
+---
+
+## 11. Công việc
+
+Quản lý việc trong bộ phận — ADR-015.
+
+| Mã | Yêu cầu |
+|---|---|
+| FR-11.1 | Tạo việc và giao cho người trong phạm vi của mình; Staff tự giao cho chính mình |
+| FR-11.2 | Việc có bốn trạng thái Mới, Đang làm, Xong, Huỷ và chỉ chuyển theo bảng chuyển hợp lệ (việc nhỏ chuyển thẳng Mới → Xong; Huỷ mở lại thành Mới); có ưu tiên và hạn |
+| FR-11.3 | Phạm vi xem theo cấp bậc: Staff thấy việc mình nhận hoặc tạo, Leader thấy việc của team, Manager cả bộ phận, Admin tất cả |
+| FR-11.4 | Danh sách có tab Của tôi và Trong phạm vi, lọc theo trạng thái, người làm, ưu tiên, chỉ việc quá hạn; sắp theo hạn gần trước; phân trang |
+| FR-11.5 | Gỡ việc là xoá mềm; người tạo hoặc Manager trở lên mới gỡ được |
+
+---
+
+## 12. Ghi nhận văn hoá
+
+Ghi nhận đồng nghiệp, sao và bảng xếp hạng doanh số — ADR-017.
+
+| Mã | Yêu cầu |
+|---|---|
+| FR-12.1 | **Trưởng nhóm trở lên ghi nhận cấp dưới trong phạm vi mình** (Leader: nhân viên team, Manager: cả bộ phận, Admin: mọi người) theo một giá trị văn hoá kèm lời nhắn; nhân viên chỉ xem; không tự ghi nhận mình — Q75 |
+| FR-12.2 | Mỗi ghi nhận cho người nhận một sao |
+| FR-12.3 | Bảng xếp hạng doanh số tháng này tính từ Đơn hàng theo người bán (ngày lên đơn trên hệ thống), quy về VND bằng tỉ giá cố định trong cấu hình; mọi người bán kể cả quản lý đều tranh hạng (Q76); bằng tổng và bằng số đơn thì đồng hạng (Q77); toàn công ty xem hạng, số đơn và tổng, không thấy chi tiết đơn |
+| FR-12.4 | Ngày 1 hằng tháng, những người ở hạng 1, 2, 3 tháng trước nhận 5, 3, 1 sao thưởng, đồng hạng cùng nhận (Q72); chạy lại không nhân đôi; nhật ký thưởng ghi tỉ giá đã dùng |
+| FR-12.5 | Tổng sao hiện ở bảng xếp hạng sao và trang thành viên |
+
+---
+
+## 13. Tài nguyên
+
+Danh mục tài nguyên dùng chung — ADR-017, thay quyết định Q2.
+
+| Mã | Yêu cầu |
+|---|---|
+| FR-13.1 | Tài nguyên chia theo mục (BM, Via, Page, …); Manager trở lên thêm mục |
+| FR-13.2 | Mọi người xem được toàn bộ danh sách; lọc theo mục, trạng thái, người giữ; tìm theo tên |
+| FR-13.3 | Manager trở lên thêm, sửa, gỡ (xoá mềm) tài nguyên; mỗi thay đổi ghi nhật ký |
+| FR-13.4 | Không lưu mật khẩu hay mã bí mật trong ghi chú tài nguyên |
+
+---
+
+## 14. Quy tắc nghiệp vụ
 
 Những ràng buộc phải luôn đúng, không phụ thuộc màn hình hay thao tác.
 
@@ -160,7 +230,7 @@ Những ràng buộc phải luôn đúng, không phụ thuộc màn hình hay th
 
 ---
 
-## 10. Yêu cầu phi chức năng
+## 15. Yêu cầu phi chức năng
 
 | Mã | Yêu cầu | Ngưỡng |
 |---|---|---|
@@ -187,13 +257,13 @@ Những ràng buộc phải luôn đúng, không phụ thuộc màn hình hay th
 
 ---
 
-> **Về các con số trong mục 10.** Những giá trị này được đặt dựa trên quy mô dự kiến
+> **Về các con số trong mục 15.** Những giá trị này được đặt dựa trên quy mô dự kiến
 > tại mục 5 của `01-tong-quan-san-pham.md`. Chúng cần được xác nhận với người sử dụng
 > trước khi triển khai, và có thể điều chỉnh mà không ảnh hưởng tới thiết kế.
 
 ---
 
-## 11. Nội dung chưa quyết định
+## 16. Nội dung chưa quyết định
 
 Những mục sau ảnh hưởng tới phạm vi và cần thống nhất trước khi triển khai.
 
@@ -203,10 +273,12 @@ Những mục sau ảnh hưởng tới phạm vi và cần thống nhất trư�
 | 2 | ~~Tạo biểu mẫu thì tự sinh bảng mới, hay luôn phải chọn bảng có sẵn~~ | Đã chốt: luôn chọn bảng có sẵn — ADR-007 | — |
 | 3 | Lịch nộp báo cáo có bắt buộc đúng giờ không | Chỉ ghi nhận / Nhắc nhở / Chặn nộp muộn | Có cần tác vụ chạy nền hay không — backlog N1 |
 | 4 | ~~Cách thống kê trên bảng do người dùng tự tạo~~ | Đã chốt: bảy nhãn ý nghĩa — ADR-007 | — |
+| 5 | Tỉ giá cố định quy doanh số về VND cho bảng xếp hạng Văn hoá — FR-12.3 | Đang tạm USD 25.400, CAD 18.500, PHP 440 trong cấu hình (biến `EXCHANGE_RATES_VND`, dạng `USD=25400,CAD=18500,PHP=440`) | Số trên bảng xếp hạng — backlog N11; đổi tỉ giá giữa tháng thì hạng đổi theo — S21 |
+| 6 | Danh sách giá trị văn hoá để ghi nhận — FR-12.1 | Đang tạm năm giá trị: Tận tâm, Chính trực, Hợp tác, Sáng tạo, Trách nhiệm | Đổi sau khi có ghi nhận thật thì phải chuyển dữ liệu — backlog N12 |
 
 ---
 
-## 12. Ngoài phạm vi phase 1
+## 17. Ngoài phạm vi phase 1
 
 | Nhóm | Nội dung |
 |---|---|

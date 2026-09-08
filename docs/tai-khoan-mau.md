@@ -60,6 +60,15 @@ Muốn thử phân quyền thì đăng nhập `sale.staff` và `sale.staff2`: ha
 khác team, không thấy báo cáo của nhau. `sale.leader` thấy cả `sale.staff`
 nhưng không thấy `sale.staff2`.
 
+Nhóm **Nội bộ** (Bảng tin, Tài liệu, Công việc, Văn hoá, Tài nguyên — ADR-017)
+mọi cấp bậc đều vào; Manager trở lên mới ghim bài, tải tài liệu, thêm mục,
+thêm tài nguyên. Ghi nhận văn hoá đi từ trên xuống (Q75): `sale.leader` ghi
+nhận được `sale.staff`, `mkt.manager` ghi nhận được `mkt.leader` và `mkt.staff`,
+`quantri` ghi nhận được mọi người; `sale.staff` không có ô ghi nhận. Dữ liệu mẫu đặt **ngày sinh** cho vài tài khoản để Bảng tin
+có thiệp ngay: `sale.staff` đúng ngày chạy lệnh (thiệp hiện hôm đó),
+`sale.staff2` 20.11, `sale.leader` 08.03, `mkt.staff` 14.07, `mkt.manager`
+25.12, `vd.staff` 02.05. Sửa ngày sinh ở Nhân sự → Sửa hồ sơ.
+
 ---
 
 ## Nếu chưa có tài khoản nào

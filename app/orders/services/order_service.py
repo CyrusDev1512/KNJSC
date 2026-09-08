@@ -9,7 +9,7 @@ này **không có hàm sửa đơn**; thiếu hàm là cách chặn chắc nhấ
 **Đơn và dòng vận đơn cùng một giao dịch** — AC-6.5. Ghi sang bảng vận đơn
 hỏng thì đơn cũng không được lưu; không bao giờ có đơn mồ côi.
 """
-from decimal import Decimal, InvalidOperation
+from decimal import InvalidOperation
 
 from django.db import transaction
 from django.utils import timezone
