@@ -92,7 +92,7 @@ gunicorn; sửa theo số đo — ô lưới dựng bằng Python (638 → 154 m
 theo trang, `moi-nhat/` không đếm dòng, ghi hàng loạt `UPDATE … FROM VALUES`, tính
 lại cột chạy nền theo lô (100.000 dòng: 153 s trong request → 19,6 s ở worker, 2 lô song song); gunicorn 3 tiến trình × 4 luồng;
 `scripts/kiem-tai-kn-crm.*` chạy lại được trên máy có Docker. Sau khi hợp nhất:
-129 tiêu chí, 115 trên 116 tiêu chí tự động có bài kiểm.
+133 tiêu chí, 119 trên 120 tiêu chí tự động có bài kiểm.
 
 **Việc tiếp theo:** **nghiệm thu một đợt theo `docs/07`** — anh/chị bấm tay
 từng vai, đánh ☑, gửi danh sách lỗi. Mọi thứ đã ở `main`, các nhánh cũ đã xoá:
