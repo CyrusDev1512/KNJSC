@@ -57,7 +57,8 @@ docs/
 │   ├── 012-kn-crm-app-rieng-cay-thang.md
 │   ├── 013-danh-sach-chon-va-mau-cot.md
 │   ├── 014-bang-du-lieu-chi-xem.md
-│   └── 015-kn-crm-khung-sidebar-leader-nhu-manager.md
+│   ├── 015-kn-crm-khung-sidebar-leader-nhu-manager.md
+│   └── 016-kn-crm-chiu-tai-100-nghin-khach.md
 │
 └── tham-khao/                       dữ liệu và tệp gốc từ khách hàng
     ├── CRM_Tan.xlsx
@@ -105,7 +106,7 @@ Sửa tài liệu mỗi lần nghĩ ra gì đó là cách nhanh nhất biến n�
 | `04-tieu-chi-nghiem-thu.md` | 0.1 | Bản nháp |
 | `05-huong-dan-va-van-hanh.md` | 0.1 | Bản nháp |
 | `kien-truc.md` | 0.1 | Bản nháp |
-| `quyet-dinh/001` tới `015` | — | Đã áp dụng |
+| `quyet-dinh/001` tới `016` | — | Đã áp dụng |
 | `backlog.md` | 0.1 | Cập nhật liên tục |
 
 ---

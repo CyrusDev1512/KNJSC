@@ -19,10 +19,14 @@ chép đường dẫn; độ rộng cột và cột ẩn do trình duyệt nhớ
 """
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
+from html import escape          # bản chuẩn: không qua lớp lazy của Django, 20.000 lần/trang (K27)
+from urllib.parse import quote
 
 from django.db.models import Case, Count, F, IntegerField, OuterRef, Q, Subquery, Value, When
 from django.db.models.fields.json import KeyTextTransform
 from django.http import QueryDict
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 from core.constants import (
     GRID_FILLER_COLUMNS, GRID_FILTER_OPTIONS_MAX, GRID_FROZEN_COLUMNS, GRID_FROZEN_COLUMNS_GENERIC,
@@ -189,9 +193,37 @@ def frozen_columns(columns, *, waybill=True):
     return ket_qua
 
 
+def duplicate_phones(table):
+    """Queryset số điện thoại xuất hiện ở hơn một dòng của bảng — cho `?trung=1`.
+    Một GROUP BY trên chỉ mục `(table, val_phone)` thay vì subquery từng dòng (K27)."""
+    return (
+        DataRecord.objects.filter(table=table).exclude(val_phone="")
+        .order_by().values("val_phone").annotate(n=Count("id")).filter(n__gt=1).values("val_phone")
+    )
+
+
+def attach_duplicate_counts(table, records):
+    """Gắn `so_trung` cho các dòng **của một trang**: một truy vấn đếm theo số
+    điện thoại của đúng những dòng đó, thay vì subquery tương quan chạy trên
+    toàn bảng trước khi cắt trang (trang 500 của 100.000 dòng: 50.000 lần, K27).
+    Số trống không tính là trùng với nhau. Trả về chính danh sách đã gắn."""
+    records = list(records)
+    so = {r.val_phone for r in records if r.val_phone}
+    dem = {}
+    if so:
+        dem = dict(
+            DataRecord.objects.filter(table=table, val_phone__in=so)
+            .order_by().values_list("val_phone").annotate(n=Count("id"))
+        )
+    for r in records:
+        r.so_trung = dem.get(r.val_phone, 0) if r.val_phone else 0
+    return records
+
+
 def duplicate_count(table):
-    """Biểu thức đếm số dòng cùng số điện thoại trong bảng — cột "Lọc trùng".
-    Số trống thì không tính là trùng với nhau."""
+    """Biểu thức đếm số dòng cùng số điện thoại trong bảng — cột "Lọc trùng"
+    cho **một vài dòng** (dòng vừa tạo, vừa dán); cả trang thì dùng
+    `attach_duplicate_counts`. Số trống thì không tính là trùng với nhau."""
     cung_so = (
         DataRecord.objects.filter(table=table, val_phone=OuterRef("val_phone"))
         .order_by().values("val_phone").annotate(n=Count("id")).values("n")
@@ -241,10 +273,11 @@ def build_grid(user, params, *, table=None):
     chi_trung = False
     san_pham = []
     if van_don:
-        ds = ds.annotate(so_trung=duplicate_count(table))
+        # Cột Trùng đếm sau khi cắt trang (`attach_duplicate_counts`); lọc chỉ
+        # dòng trùng thì so với danh sách số điện thoại trùng — một GROUP BY
         chi_trung = params.get("trung") == "1"
         if chi_trung:
-            ds = ds.filter(so_trung__gt=1)
+            ds = ds.filter(val_phone__in=duplicate_phones(table))
         san_pham = read_products(params, columns)
         if san_pham:
             ds = ds.filter(product_any_of(san_pham))
@@ -359,25 +392,85 @@ def header_columns(columns, filters=None, *, waybill=True):
     return ket_qua
 
 
-def row_context(record, columns, user, *, waybill=True, co_dinh=None, stt=None):
+def grid_url(table):
+    """URL của lưới một bảng — gốc để ghép URL từng ô."""
+    return reverse("bang_tinh_xem", args=[table.code])
+
+
+def cell_url(goc, pk, code):
+    """URL sửa một ô, ghép chuỗi trên gốc lưới `goc` (`grid_url`).
+
+    Cùng khuôn với `bang_tinh_o` trong `crm/urls.py` — cố ý không gọi
+    `reverse()` từng ô: một trang lưới có 3.900 ô, `reverse()` 7.800 lần mất
+    0,4 giây (K27). `test_bang_tinh_hieu_nang` giữ hai bên khớp nhau.
+    """
+    return f"{goc}o/{pk}/{code}/"
+
+
+def cell_html(bang, ban_ghi, cot, *, gia_tri, hien, duoc_sua, lop, style="", qs_giu="",
+              oob=False, goc=None):
+    """HTML của **một ô** — nơi duy nhất quyết định ô trông thế nào (ADR-011).
+
+    Dựng bằng chuỗi thay vì template `{% include %}` từng ô: vẽ 100 dòng × 39
+    cột qua template mất ~0,5 giây một trang, ghép chuỗi mất ~0,05 giây (K27).
+    Dùng khi vẽ lưới, khi HTMX trả về sau khi lưu, khi huỷ sửa, khi đổi định
+    dạng. Bấm một lần là chọn, bấm đúp hoặc Enter mới sửa. `gia_tri` là giá
+    trị thô (vào `data-goc`), `hien` là chữ đã định dạng số (None → giá trị
+    thô), `oob` vẽ lại ô tại chỗ (hx-swap-oob), `goc` là URL lưới (`grid_url`)
+    để ghép URL sửa ô; thiếu thì tự tìm.
+    """
+    pk = ban_ghi.pk
+    goc_gt = "" if gia_tri is None else str(gia_tri)
+    chu = goc_gt if hien is None else str(hien)
+    goc = goc if goc is not None else grid_url(bang)
+    lien_ket = ""
+    if cot.is_key and gia_tri:
+        hoi = f"{escape(qs_giu)}&amp;" if qs_giu else ""
+        lien_ket = (f'<a class="o-khoa-loc" href="{goc}?{hoi}f_{cot.code}={quote(goc_gt, safe="/")}" '
+                    f'title="Lọc theo giá trị này">⌕</a>')
+    thuoc = f' style="{escape(style)}"' if style else ""
+    if oob:
+        thuoc += ' hx-swap-oob="outerHTML"'
+    if duoc_sua and not cot.is_computed:
+        url = cell_url(goc, pk, cot.code)
+        return mark_safe(
+            f'<td class="{lop}" id="o-{pk}-{cot.code}"{thuoc} tabindex="0" data-dong="{pk}" data-cot="{cot.code}" '
+            f'data-goc="{escape(goc_gt)}" data-sua-url="{url}" hx-get="{url}" hx-trigger="dblclick" hx-swap="outerHTML" '
+            f'title="{escape(cot.name)} — bấm đúp hoặc Enter để sửa">{escape(chu)}{lien_ket}</td>'
+        )
+    return mark_safe(
+        f'<td class="{lop}" id="o-{pk}-{cot.code}"{thuoc} data-dong="{pk}" data-cot="{cot.code}" '
+        f'data-goc="{escape(goc_gt)}" tabindex="0">{escape(chu)}{lien_ket}</td>'
+    )
+
+
+def row_context(record, columns, user, *, waybill=True, co_dinh=None, stt=None, qs_giu="", goc=None):
     """Một dòng cho template: ô theo thứ tự cột, lớp màu, số trùng, sửa được
     không, số dòng `stt` (hàng tên cột là 1, dữ liệu từ 2 — ADR-011)."""
     co_dinh = co_dinh if co_dinh is not None else _co_dinh(columns, waybill)
     lech = left_offset(waybill)
+    goc = goc if goc is not None else grid_url(record.table)
     sua = grant_service.can_edit_record(user, record)
     so_trung = getattr(record, "so_trung", 0) or 0
     kieu = record.style or {}
+    du_lieu = record.data
+    cac_o = []
+    for c in columns:
+        gia_tri = du_lieu.get(c.code)
+        st = kieu.get(c.code)
+        cd = co_dinh.get(c.code)
+        lop = cell_class(c, cd, sua, style=st)
+        hien = display_value(c, gia_tri, st)
+        cac_o.append({
+            "cot": c, "gia_tri": gia_tri, "hien": hien, "id": f"o-{record.pk}-{c.code}", "lop": lop,
+            "style": frozen_style(cd, offset=lech),
+            "html": cell_html(record.table, record, c, gia_tri=gia_tri, hien=hien, duoc_sua=sua, lop=lop,
+                              style=frozen_style(cd, offset=lech), qs_giu=qs_giu, goc=goc),
+        })
     return {
         "ban_ghi": record,
         "stt": stt,
-        "cac_o": [
-            {"cot": c, "gia_tri": record.data.get(c.code),
-             "hien": display_value(c, record.data.get(c.code), kieu.get(c.code)),
-             "id": f"o-{record.pk}-{c.code}",
-             "lop": cell_class(c, co_dinh.get(c.code), sua, style=kieu.get(c.code)),
-             "style": frozen_style(co_dinh.get(c.code), offset=lech)}
-            for c in columns
-        ],
+        "cac_o": cac_o,
         "sua": sua,
         "lop": choices.row_class(record.data.get("trang_thai_vc")) if waybill else "",
         "so_trung": so_trung,
@@ -386,11 +479,14 @@ def row_context(record, columns, user, *, waybill=True, co_dinh=None, stt=None):
     }
 
 
-def rows(records, columns, user, *, waybill=True, start=2):
-    """Các dòng của một trang; số dòng bắt đầu từ `start` (trang đầu: 2)."""
+def rows(records, columns, user, *, waybill=True, start=2, qs_giu=""):
+    """Các dòng của một trang; số dòng bắt đầu từ `start` (trang đầu: 2).
+    `qs_giu` là bộ lọc đang bật, để liên kết ⌕ của cột khoá cộng dồn."""
     co_dinh = _co_dinh(columns, waybill)
+    records = list(records)
+    goc = grid_url(records[0].table) if records else None
     return [
-        row_context(r, columns, user, waybill=waybill, co_dinh=co_dinh, stt=start + i)
+        row_context(r, columns, user, waybill=waybill, co_dinh=co_dinh, stt=start + i, qs_giu=qs_giu, goc=goc)
         for i, r in enumerate(records)
     ]
 

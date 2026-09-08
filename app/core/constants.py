@@ -99,6 +99,19 @@ GRID_INSERT_COLUMNS_MAX = 10             # số cột tối đa chèn một lầ
 GRID_POLL_SECONDS = 8                    # Bảng tính hỏi máy chủ có gì mới mỗi bấy nhiêu giây
 PERF_TABLE_ROWS = 50_000                 # AC-7.1 — 50.000 bản ghi tải trang đầu
 PERF_PAGE_SECONDS = 2                    # ... dưới 2 giây
+# Kiểm tải KN CRM ở cỡ 100 nghìn khách, 100 người cùng lúc — AC-10.6, docs/06 tầng 9.
+# Ngưỡng "như Excel trên máy thường": 95% lượt mở/lọc/chuyển trang dưới 1 giây,
+# lưu ô dưới nửa giây, hỏi mốc mới nhất dưới 0,3 giây, tính lại cột tính sẵn
+# 100 nghìn dòng dưới 30 giây và không chặn người khác, không có lỗi.
+PERF_LOAD_ROWS = 100_000                 # dòng vận đơn khi kiểm tải (≈ 3 triệu ô, 80 nghìn SĐT)
+PERF_LOAD_USERS = 100                    # người dùng ảo cùng lúc
+PERF_READ_P95_MS = 1000                  # mở lưới, lọc, chuyển trang, sắp xếp, hộp lọc, trang chủ, thư mục
+PERF_WRITE_P95_MS = 500                  # lưu ô, dòng mới, định dạng
+PERF_POLL_P95_MS = 300                   # moi-nhat/ (mỗi tab hỏi mỗi GRID_POLL_SECONDS giây)
+PERF_RECOMPUTE_SECONDS = 30              # tính lại cột tính sẵn trên PERF_LOAD_ROWS dòng
+RECOMPUTE_SYNC_MAX_ROWS = 2_000          # bảng nhiều dòng hơn thì tính lại cột ở tác vụ nền — ADR-016
+RECOMPUTE_BATCH = 1_000                  # mỗi lô tính lại: đọc, tính, bulk_save, báo tiến độ
+RECOMPUTE_THREADS = 2                    # worker tính lại song song bấy nhiêu lô — ghi JSON có GIN là việc của Postgres
 
 
 class FileKind(models.TextChoices):
@@ -148,6 +161,7 @@ class JobKind(models.TextChoices):
     EXPORT = "export", "Xuất tệp"
     BACKUP = "backup", "Sao lưu"
     CLEANUP = "cleanup", "Dọn dẹp"
+    RECOMPUTE = "recompute", "Tính lại cột"          # đổi cột tính sẵn / nhãn trên bảng lớn — ADR-016
 
 
 class JobStatus(models.TextChoices):

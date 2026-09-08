@@ -762,3 +762,7 @@ html.crm-gon .crm-nav .nav-muc { justify-content: center; padding: 8px 0; }
 html.crm-gon .crm-nav .nav-dau, html.crm-gon .crm-nguoi { justify-content: center; padding-left: 0; padding-right: 0; }
 html.crm-gon .crm-thu-gon { transform: rotate(180deg); }
 @media (max-width: 900px) { .crm-thu-gon { display: none; } }
+
+/* ══ 14. Đang tính lại cột ở nền (ADR-016) — nhãn nhỏ trên thanh công cụ ══ */
+.bt-dang-tinh { font-size: 12px; color: var(--bt-chu-mo, #9aa4b2); padding: 0 8px; white-space: nowrap; }
+.bt-dang-tinh::before { content: "⟳ "; }

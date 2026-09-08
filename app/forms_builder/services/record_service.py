@@ -13,6 +13,7 @@ from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
+from django.utils import timezone
 
 from core.audit import record
 from core.constants import AuditAction
@@ -254,6 +255,13 @@ def _cot(columns, code):
     return cot
 
 
+def save_rows(records, *, fields=None):
+    """Ghi nhiều bản ghi **đã tính xong trong bộ nhớ** một lượt — dán 500 ô:
+    1.013 lệnh → 3 lệnh (K27). Cột tính sẵn và cột tách phải đã đồng bộ trước;
+    `DataRecord.bulk_save` lo SQL và mốc sửa. `fields` mặc định: JSON + cột tách."""
+    return DataRecord.bulk_save(records, fields=fields)
+
+
 def _dat_o(ban_ghi, cot, raw):
     """Đặt giá trị một ô trong bộ nhớ, chưa lưu. Trả `(đổi không, cũ, mới)`.
     Cùng luật cho sửa một ô lẫn dán nhiều ô: cột tính sẵn không sửa tay, cột
@@ -324,7 +332,7 @@ def update_cells(cells, *, actor=None, request=None, columns=None):
         cot_ds = columns if columns is not None else list(ban_ghi.table.columns.all())
         ban_ghi.apply_computed_columns(cot_ds)
         ban_ghi.sync_indexed_columns(cot_ds)
-        ban_ghi.save(skip_sync=True)
+    save_rows(ban_ghi_doi.values())
     dau = cells[0][0]
     record(
         AuditAction.UPDATE, actor=actor, target=dau,
@@ -497,8 +505,7 @@ def update_styles(cells, style, *, actor=None, request=None, columns=None, repla
             ban_ghi_doi[ban_ghi.pk] = ban_ghi
     if not da_doi:
         return 0
-    for ban_ghi in ban_ghi_doi.values():
-        ban_ghi.save(update_fields=["style", "updated_at"], skip_sync=True)
+    save_rows(ban_ghi_doi.values(), fields=("style",))
     dau = cells[0][0]
     record(
         AuditAction.UPDATE, actor=actor, target=dau,

@@ -110,6 +110,7 @@ Trong tình huống nào thì nên xem lại quyết định này.
 | 013 | Danh sách chọn và màu cột là thuộc tính của cột, Manager quản lý; danh tính người điền do hệ thống ghi | Đã áp dụng | 06.09.2026 |
 | 014 | Bảng dữ liệu ở KN ERP chỉ để xem với mọi bảng; sửa số liệu là việc của KN CRM | Đã áp dụng | 06.09.2026 |
 | 015 | KN CRM có khung sidebar theo Teeze, trang chủ là tổng quan, Leader như Manager trong bộ phận; tạo bảng, nhập tệp, cấp quyền ngay trong KN CRM | Đã áp dụng | 07.09.2026 |
+| 016 | KN CRM chịu được 100 nghìn khách và 100 người cùng lúc: đo trước, sửa đúng chỗ đo được — ô lưới dựng bằng Python, cột Trùng theo trang, `moi-nhat/` không đếm dòng, `bulk_save` bằng VALUES, tính lại cột chạy nền, compose có chế độ gunicorn | Đã áp dụng | 07.09.2026 |
 | 017 | Năm tính năng nội bộ (Bảng tin, Tài liệu, Công việc, Văn hoá, Tài nguyên) là năm app riêng, làm MVP trước | Đã áp dụng | 06.09.2026 |
 
 ---

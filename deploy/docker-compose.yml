@@ -40,7 +40,10 @@ services:
       args:
         INSTALL_DEV: "1"
     restart: unless-stopped
-    command: python manage.py runserver 0.0.0.0:8000
+    # Mặc định runserver (nạp lại mã khi sửa). Đo tải hay chạy thật thì đặt
+    # KNJSC_LENH_WEB="gunicorn knjsc.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 4 --worker-class gthread --keep-alive 5"
+    # (như Dockerfile) — scripts/kiem-tai-kn-crm.* tự làm việc này.
+    command: ${KNJSC_LENH_WEB:-python manage.py runserver 0.0.0.0:8000}
     environment: &moi_truong
       DJANGO_SETTINGS_MODULE: knjsc.settings.dev
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-khoa-may-ca-nhan-khong-dung-tren-may-chu}
@@ -122,7 +125,10 @@ services:
       args:
         INSTALL_DEV: "1"
     restart: unless-stopped
-    command: python manage.py runserver 0.0.0.0:8000
+    # Mặc định runserver (nạp lại mã khi sửa). Đo tải hay chạy thật thì đặt
+    # KNJSC_LENH_WEB="gunicorn knjsc.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 4 --worker-class gthread --keep-alive 5"
+    # (như Dockerfile) — scripts/kiem-tai-kn-crm.* tự làm việc này.
+    command: ${KNJSC_LENH_WEB:-python manage.py runserver 0.0.0.0:8000}
     environment:
       <<: *moi_truong
       DJANGO_SETTINGS_MODULE: knjsc.settings.bangtinh

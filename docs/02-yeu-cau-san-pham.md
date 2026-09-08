@@ -235,7 +235,7 @@ Những ràng buộc phải luôn đúng, không phụ thuộc màn hình hay th
 | Mã | Yêu cầu | Ngưỡng |
 |---|---|---|
 | NFR-1 | Thời gian tải màn hình danh sách | Dưới 2 giây với 50.000 bản ghi |
-| NFR-2 | Số người dùng đồng thời | 50 |
+| NFR-2 | Số người dùng đồng thời | 50 (cam kết). Mục tiêu mở rộng đã đo được: **100 người trên 100 nghìn khách** ở KN CRM, p95 mở/lọc/chuyển trang ≤ 1 s, lưu ô ≤ 0,5 s — AC-10.8, ADR-016 |
 | NFR-3 | Thời gian nhập tệp Excel 2.000 dòng | Dưới 60 giây |
 | NFR-4 | Mật khẩu lưu dưới dạng đã băm, không lưu dạng đọc được | Bắt buộc |
 | NFR-5 | Kết nối mã hoá bắt buộc khi truy cập từ ngoài máy chủ | Bắt buộc |

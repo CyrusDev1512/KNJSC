@@ -480,6 +480,9 @@ class DataRecord(ScopedModel):
         indexes = [
             models.Index(fields=["table", "-created_at"], name="record_table_time_idx"),
             models.Index(fields=["table", "val_date"], name="record_table_date_idx"),
+            # `moi-nhat/` hỏi Max(updated_at) mỗi 8 giây mỗi tab; cột Trùng đếm theo số điện thoại (K27)
+            models.Index(fields=["table", "updated_at"], name="record_table_updated_idx"),
+            models.Index(fields=["table", "val_phone"], name="record_table_phone_idx"),
             # Cột JSON dùng để lọc phải có chỉ mục GIN — quy tắc 12
             GinIndex(fields=["data"], name="record_data_gin"),
         ]
@@ -526,6 +529,48 @@ class DataRecord(ScopedModel):
             if dich not in con_dung:
                 setattr(self, dich, _normalise(None, dich))
         return self
+
+    @classmethod
+    def bulk_save(cls, records, *, fields=None, batch=1000):
+        """Ghi nhiều bản ghi **đã tính xong trong bộ nhớ** — một lệnh
+        `UPDATE … FROM (VALUES …)` cho mỗi `batch` dòng.
+
+        Không dùng `bulk_update` của Django: nó dựng `CASE WHEN id=… THEN …`
+        cho từng cột, với JSON 3 KB mỗi dòng thì 1.000 dòng mất 1,2 giây chỉ để
+        ghép câu lệnh, trong khi `VALUES` mất 0,08 giây (đo ở K27). Đây là chỗ
+        duy nhất ghi SQL tay cho bản ghi; tham số đi qua `get_db_prep_save` và
+        ép kiểu theo `db_type` của từng cột nên cùng luật với `save()`. Mốc sửa
+        `updated_at` đặt ở đây vì không qua `save()`. Trả về số dòng đã ghi.
+        """
+        from django.db import connection
+        from django.utils import timezone
+
+        # Ghi theo thứ tự khoá chính để hai lệnh ghi cùng lúc (dán ô, worker tính
+        # lại) khoá dòng cùng chiều — khác chiều là deadlock (K27)
+        records = sorted(records, key=lambda r: r.pk)
+        if not records:
+            return 0
+        ten = list(fields or ("data", *COLUMN_OF.values()))
+        if "updated_at" not in ten:
+            ten.append("updated_at")
+        luc = timezone.now()
+        cac_cot = [cls._meta.get_field(t) for t in ten]
+        qn = connection.ops.quote_name
+        khuon = "(%s, " + ", ".join(f"%s::{c.db_type(connection)}" for c in cac_cot) + ")"
+        dat = ", ".join(f"{qn(c.column)} = v.{qn(c.column)}" for c in cac_cot)
+        cot_v = ", ".join(["id"] + [qn(c.column) for c in cac_cot])
+        for i in range(0, len(records), batch):
+            lo = records[i:i + batch]
+            tham_so = []
+            for r in lo:
+                r.updated_at = luc
+                tham_so.append(r.pk)
+                tham_so.extend(c.get_db_prep_save(getattr(r, c.attname), connection) for c in cac_cot)
+            sql = (f"UPDATE {qn(cls._meta.db_table)} AS r SET {dat} FROM (VALUES "
+                   + ", ".join([khuon] * len(lo)) + f") AS v({cot_v}) WHERE r.id = v.id")
+            with connection.cursor() as c:
+                c.execute(sql, tham_so)
+        return len(records)
 
     def save(self, *args, **kwargs):
         if self.table_id and not kwargs.pop("skip_sync", False):

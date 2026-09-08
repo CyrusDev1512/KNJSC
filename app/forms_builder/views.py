@@ -135,11 +135,11 @@ def bang_cot(request, code):
             goc = ColumnDef.objects.get(pk=dang_sua.pk)
             table_service.update_column(
                 goc, d, actor=request.user, request=request)
-            messages.success(request, f"Đã sửa cột {goc.name}.")
+            messages.success(request, f"Đã sửa cột {goc.name}." + _bao_tinh_lai(goc))
         else:
             cot = table_service.add_column(
                 bang_hien, actor=request.user, request=request, **d)
-            messages.success(request, f"Đã thêm cột {cot.name}.")
+            messages.success(request, f"Đã thêm cột {cot.name}." + _bao_tinh_lai(cot))
         return redirect("bang_cot", code=bang_hien.code)
 
     return render(request, "forms_builder/bang_cot.html", {
@@ -148,6 +148,15 @@ def bang_cot(request, code):
         "form_quyen": GrantForm(cho_bang=True),
         "cac_quyen": grant_service.grants_of_table(bang_hien),
     })
+
+
+def _bao_tinh_lai(cot):
+    """Bảng lớn thì cột tính lại ở tác vụ nền (ADR-016) — nói rõ để Manager không tưởng lỗi."""
+    job = getattr(cot, "resync_job", None)
+    if job is None:
+        return ""
+    return (f" Bảng có {job.total} dòng nên giá trị đang được tính lại ở tác vụ nền #{job.pk}; "
+            "lưới báo tiến độ và tự cập nhật khi xong.")
 
 
 @login_required

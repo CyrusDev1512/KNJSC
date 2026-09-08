@@ -961,7 +961,17 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) {
         if (!d) return;
-        var moc = d.moc + "|" + d.so;
+        var moc = d.moc;
+        // Manager đổi cột tính sẵn trên bảng lớn: máy chủ tính lại ở nền theo lô
+        // (ADR-016). Báo tiến độ, chưa nạp lại — nạp một lần khi xong, đỡ 100 tab
+        // cùng tải lại lưới mỗi 8 giây trong lúc tính
+        var dang_tinh = d.tinh_lai;
+        if (dang_tinh) {
+          baoDangTinh(dang_tinh.progress, dang_tinh.total);
+          MOC = moc; DANG_TINH = true;
+          return;
+        }
+        if (DANG_TINH) { DANG_TINH = false; baoDangTinh(null); MOC = moc; if (String(d.cot) !== String(LUOI.dataset.soCot)) { location.reload(); return; } napLaiThan(); return; }
         if (MOC === null) { MOC = moc; return; }
         if (moc === MOC) return;
         MOC = moc;
@@ -969,6 +979,14 @@
         napLaiThan();
       })
       .catch(function () {});
+  }
+  var DANG_TINH = false;
+  function baoDangTinh(da, tong) {
+    var o = document.getElementById("bt-dang-tinh");
+    if (!o) return;
+    if (da === null) { o.hidden = true; o.textContent = ""; return; }
+    o.hidden = false;
+    o.textContent = "Đang tính lại cột… " + (tong ? Math.round(100 * da / tong) + "%" : "");
   }
   function napLaiThan() {
     if (!ranh()) return;
