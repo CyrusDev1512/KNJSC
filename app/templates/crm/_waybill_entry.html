@@ -1,0 +1,13 @@
+<div id="vd-entry" class="vd-entry">
+  {% if success %}<p role="status" class="vd-success">{{ success }}</p>{% endif %}
+  {% if error %}<p role="alert" class="vd-error">{{ error }}</p>{% endif %}
+  <form method="post" action="{% url 'waybill_create' %}" hx-post="{% url 'waybill_create' %}" hx-target="#vd-entry" hx-swap="outerHTML">
+    {% csrf_token %}
+    <div class="vd-fields">
+      {% for field in form %}<div class="truong"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>{{ field }}{{ field.errors }}</div>{% endfor %}
+    </div>
+    <p class="vd-note">SALE/CSKH: {{ user.profile.full_name|default:user.username }}. Mã đơn và Ngày được ghi tự động khi lưu.</p>
+    {% include "crm/_waybill_items.html" %}
+    <div class="vd-actions"><button class="nut nut-chinh" type="submit">Lưu đơn</button><span>Đơn lưu xong được chuyển xuống Vận hành đơn.</span></div>
+  </form>
+</div>

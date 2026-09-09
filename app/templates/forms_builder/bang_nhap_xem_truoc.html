@@ -30,6 +30,14 @@
   </div>
 {% endif %}
 
+{% if job.summary.preview_error_count %}
+<div class="bao bao-xau" role="alert"><div>
+  <b>{{ job.summary.preview_error_count }} dòng có chi tiết sản phẩm không hợp lệ — sẽ không được nhập.</b>
+  <p>Tải lại tệp đã sửa, hoặc xác nhận để chỉ nhập các dòng hợp lệ. Không tự phân bổ tổng tiền.</p>
+  <ul>{% for number, error in job.summary.preview_errors %}<li>Hàng {{ number }}: {{ error }}</li>{% endfor %}</ul>
+</div></div>
+{% endif %}
+
 <div class="luoi luoi-2">
   <div class="the">
     <div class="the-dau"><h2>Cột khớp</h2></div>

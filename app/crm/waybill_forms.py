@@ -1,0 +1,22 @@
+"""Ô nhập của Lên đơn KN CRM; nghiệp vụ vẫn do orders xử lý."""
+from django import forms
+from core.constants import Currency
+from orders.constants import Market, PaymentMethod
+
+
+class WaybillOrderForm(forms.Form):
+    customer_name = forms.CharField(label="Tên khách", max_length=200)
+    phone = forms.CharField(label="Số điện thoại", max_length=40)
+    market = forms.ChoiceField(label="Quốc gia", choices=Market.choices)
+    state = forms.CharField(label="Bang", max_length=120, required=False)
+    city = forms.CharField(label="Thành phố", max_length=120, required=False)
+    zipcode = forms.CharField(label="Zipcode", max_length=20, required=False)
+    address_line = forms.CharField(label="Chi tiết số nhà, đường", max_length=300, required=False)
+    currency = forms.ChoiceField(label="Loại tiền", choices=Currency.choices, initial=Currency.USD)
+    payment_method = forms.ChoiceField(label="PTTT lên đơn", choices=PaymentMethod.choices)
+    note = forms.CharField(label="Ghi chú", max_length=500, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs["class"] = "o-nhap"

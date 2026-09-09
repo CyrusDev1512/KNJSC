@@ -28,6 +28,7 @@ from core.exceptions import BusinessError
 from core.models import BackgroundJob
 
 from ..models import DataRecord, TableDef
+from .. import record_policies
 from . import record_service
 
 logger = logging.getLogger(__name__)
@@ -231,13 +232,26 @@ def prepare(table, upload, *, actor, request=None):
     excel.check_size(upload.size)
     kind = excel.sniff_kind(upload, declared_name=upload.name, allowed=IMPORT_FILE_KINDS)
     columns = list(table.columns.order_by("order", "id"))
+    policy = record_policies.for_table(table)
+    if policy:
+        columns += policy.extra_columns(table)
     sheet, header_idx, mapping, cac_dong = _phan_tich(upload, kind, columns)
+
+    preview_errors = []
+    if policy:
+        for number, values in cac_dong:
+            try:
+                policy.prepare_values(values)
+            except BusinessError as error:
+                preview_errors.append([number, str(error)])
 
     rel = _luu_tep(upload, kind)
     tom_tat = {
         "file_name": upload.name, "kind": kind, "sheet": sheet.sheet_name,
         "header_row": header_idx + 1,
         "sample": _mau(cac_dong, mapping),
+        "preview_error_count": len(preview_errors),
+        "preview_errors": preview_errors[:IMPORT_ERROR_LIST_MAX],
         **mapping.as_summary(),
     }
     job = BackgroundJob.objects.create(
@@ -280,10 +294,12 @@ def run(job_id):
     try:
         table = TableDef.objects.get(code=job.target_id)
         columns = list(table.columns.order_by("order", "id"))
+        policy = record_policies.for_table(table)
+        import_columns = columns + policy.extra_columns(table) if policy else columns
         kind = job.summary.get("kind")
         duong_dan = _duong_dan_tuyet_doi(job.input_path)
         with open(duong_dan, "rb") as f:
-            _, _, mapping, cac_dong = _phan_tich(f, kind, columns)
+            _, _, mapping, cac_dong = _phan_tich(f, kind, import_columns)
 
         job.set_progress(0, len(cac_dong))
         ket_qua = record_service.create_records_bulk(

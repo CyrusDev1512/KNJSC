@@ -24,6 +24,13 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 
 ## 0. Còn nợ những gì — xem ở đây trước
 
+**Đã xong 09.09.2026 — Vận đơn theo CRM Tân (ADR-018):** đã bổ sung bảng
+`van_don_moi`, luồng tạo ERP/CRM, chi tiết/thanh toán từng sản phẩm và bốn cách
+thống kê. 25 bài kiểm mới và toàn bộ hồi quy đã đạt; migration xuôi/ngược đạt;
+giao diện 1440px/390px, cuộn ngang và JavaScript đều đạt. Bảng cũ local giữ nguyên
+222 dòng; bảng mới vẫn trống, không gieo đơn thử vào dữ liệu thật. Nghiệm thu người
+dùng vẫn theo một đợt, không hỏi lại những lựa chọn đã chốt ở Q78–Q80.
+
 Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của người dùng lẫn việc
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
 tóm để không phải lục.
@@ -331,6 +338,9 @@ mục 6.
 | Q75 | Ai ghi nhận văn hoá được ai — sửa FR-12.1, AC-15.1, ADR-017 mục 5 | **Chỉ cấp trên ghi nhận cấp dưới**: Leader ghi nhận nhân viên team mình, Manager ghi nhận Leader và nhân viên bộ phận, Admin ghi nhận mọi người; nhân viên chỉ xem, không có form; không đặt trần số ghi nhận mỗi ngày (anh/chị chọn cách này thay cho trần). Dịch vụ kiểm bằng `UserProfile.objects.in_scope(giver)` và cấp bậc thấp hơn | 07.09.2026 |
 | Q76 | Ai tranh hạng doanh số | **Mọi người bán**, kể cả Leader, Manager, Admin có đơn — không loại quản lý khỏi bảng | 07.09.2026 |
 | Q77 | Hoà điểm trên bảng xếp hạng — sửa Q72 | **Đồng hạng, cùng nhận sao** kiểu thi đấu 1, 1, 3: bằng tổng VND và bằng số đơn thì cùng hạng, cùng sao thưởng, người kế tiếp nhảy hạng | 07.09.2026 |
+| Q78 | Sheet Vận đơn của CRM Tân là mẫu hiện hành | Tạo **Vận đơn** mới `van_don_moi` trống; đổi `van_don` thành **Vận đơn cũ**, giữ dữ liệu, liên kết, quyền; tất cả đơn mới từ ERP/CRM vào bảng mới; sao quyền riêng đang hiệu lực một lần — ADR-018 | 08.09.2026 |
+| Q79 | Bố cục và chi tiết thanh toán | Ba khu cùng trang, giữ thao tác lưới; một đơn một dòng với chi tiết sản phẩm riêng; tiền thu nhập từng sản phẩm, không phân bổ tỷ lệ, không sửa ERP; PTTT tách hai trường, thêm Loại tiền, chưa làm Blacklist/lịch sử nhiều lần thu | 08.09.2026 |
+| Q80 | Nguồn và cách thống kê vận đơn mới | Lấy bản sao hiện tại của bảng mới, toàn bộ bộ lọc/quyền, tách loại tiền, nhóm SALE/CSKH/sản phẩm/Quốc gia, distinct đơn; nhập tệp cần chi tiết xác định, không suy đoán từ tổng — ADR-018 | 08.09.2026 |
 
 ---
 

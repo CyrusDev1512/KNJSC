@@ -761,7 +761,8 @@ const GIAI_DOAN = [
       { t: "Kiểm tải KN CRM 100 nghìn khách: seed_perf 100.000 dòng + bảng Sale có cột tính sẵn, do_hieu_nang đo 25 đường kèm EXPLAIN, Locust 100 người bốn vai tự chấm, script kiem-tai-kn-crm", tt: "xong", note: "7K · ADR-016 · AC-10.8" },
       { t: "Sửa theo số đo: ô lưới dựng bằng Python (638 → 154 ms), cột Trùng đếm theo trang, moi-nhat không COUNT, bulk_save bằng VALUES, hai chỉ mục mới", tt: "xong", note: "7K · AC-11.36" },
       { t: "Tính lại cột tính sẵn trên bảng lớn chạy nền theo lô, lưới báo tiến độ và nạp lại khi xong (100.000 dòng: 153 s → 19,6 s ở worker)", tt: "xong", note: "7K · ADR-016 · AC-11.35" },
-      { t: "Chạy kiểm tải trên máy anh/chị và máy chủ thật, ghi số vào docs/06", tt: "chua", note: "7K · K27" }
+      { t: "Chạy kiểm tải trên máy anh/chị và máy chủ thật, ghi số vào docs/06", tt: "chua", note: "7K · K27" },
+      { t: "Vận đơn mới theo CRM Tân: hai bảng, ba khu, ERP/CRM cùng luồng, chi tiết tiền từng sản phẩm, thống kê có bộ lọc", tt: "xong", note: "7L · ADR-018 · 25 bài mới, hồi quy, migration hai chiều và giao diện desktop/mobile đều đạt" }
     ]
   },
   {
@@ -899,7 +900,7 @@ const SHEETS = [
 const GAPS = [
   { id: "L1", txt: "<b>Tên sáu module lệch nhau giữa ba tài liệu.</b> Chốt trước khi tạo package Django.", src: "chặn GĐ 1" },
   { id: "G7", txt: "<b>Admin có được tự thêm trường dữ liệu không.</b> Khách tự ghi câu hỏi, chưa có đáp án.", src: "ô D32 · K2 · K3" },
-  { id: "G1", txt: "<b>BLACK LIST</b> có cột riêng trong sheet Vận đơn, không có trong yêu cầu nào.", src: "ô U5 · B8" },
+  { id: "G1", txt: "<b>BLACK LIST</b>: chủ dự án chốt chưa làm ở Vận đơn mới; bảng cũ giữ nguyên.", src: "Q79 · ADR-018" },
   { id: "G2", txt: "<b>Khối thông tin thanh toán</b> — ngày, trạng thái, số tiền, bill. Tài liệu chỉ có phương thức.", src: "ô O5–T6" },
   { id: "G3", txt: "<b>Địa chỉ tách năm cấp</b> — chưa có trong mô hình dữ liệu. Ảnh hưởng thống kê thị trường.", src: "ô E3–I3" },
   { id: "G4", txt: "<b>Trạng thái vận chuyển</b> — chưa định nghĩa tập trạng thái và ai được đổi.", src: "ô N5" },

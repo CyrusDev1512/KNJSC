@@ -51,8 +51,8 @@ def test_trang_chu_tong_quan_co_sidebar_theo_pham_vi(client, du_lieu, nguoi_dung
     assert 'href="/thu-muc/"' in ben and 'href="/thu-muc/?bp=van-don"' in ben
     assert "KN ERP" in ben and "Tác vụ nền" in ben
     sl = kq.context["so_lieu"]["data"]
-    assert sl["so_bang"] == 1 and sl["so_dong"] == 3 and sl["dong_thang"] == 3 and sl["dong_hom_nay"] == 3
-    assert [b.code for b in kq.context["bang"]["data"]] == ["van_don"]
+    assert sl["so_bang"] == 2 and sl["so_dong"] == 3 and sl["dong_thang"] == 3 and sl["dong_hom_nay"] == 3
+    assert set(b.code for b in kq.context["bang"]["data"]) == {"van_don", "van_don_moi"}
     assert kq.context["duoc_tao_bang"] is False and "+ Tạo bảng" not in html
     assert kq.context["hoat_dong"]["ok"]
     # Logo KN CRM ở đầu menu trái bấm về trang chủ; favicon riêng của KN CRM

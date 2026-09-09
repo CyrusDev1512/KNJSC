@@ -24,6 +24,11 @@ CODE_BASE_MAX = 50
 NAME_MAX = Product._meta.get_field("name").max_length
 
 
+def entry_products():
+    """Danh mục cho chi tiết vận đơn; giữ cả hàng ngừng bán để sửa đơn cũ."""
+    return list(Product.objects.order_by("name").values("code", "name", "is_active"))
+
+
 def unique_code(name):
     """Mã kỹ thuật sinh từ tên: bỏ dấu, chữ thường, gạch nối; trùng thì thêm số.
 

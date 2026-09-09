@@ -24,8 +24,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
-from core.constants import Currency, Rank
-from orders.constants import WAYBILL_DEPARTMENT_CODE, WAYBILL_DEPARTMENT_NAME, WAYBILL_TABLE_CODE
+from core.constants import Rank
+from orders.constants import WAYBILL_DEPARTMENT_CODE, WAYBILL_DEPARTMENT_NAME
 
 #: Mật khẩu chung cho mọi tài khoản mẫu. Chỉ dùng ở máy phát triển.
 MAT_KHAU_MAU = "MatKhauTam-2026"
@@ -87,16 +87,6 @@ CONG_VIEC_MAU = [
     ("Lên kế hoạch quảng cáo tháng sau", "mkt.manager", "mkt.leader", "cao", 7, "moi"),
     ("Chụp ảnh sản phẩm đèn ngủ", "mkt.manager", "mkt.staff", "thap", -3, "xong"),
     ("Đối soát vận đơn tuần này", "vd.manager", "vd.staff", "vua", 1, "dang_lam"),
-]
-
-#: Đơn hàng mẫu cho bảng xếp hạng doanh số — (người bán, tên khách, số điện
-#: thoại, thị trường, tiền tệ, mã sản phẩm, số lượng, đơn giá). Ba loại tiền để
-#: thấy quy đổi VND (FR-12.3). Đi qua `order_service` nên ghi luôn sang vận đơn.
-DON_HANG_MAU = [
-    ("sale.staff", "Emily Tran", "+14085550101", "us", Currency.USD, "hm200", 2, "150.00"),
-    ("sale.staff", "Daniel Ng", "+14155550102", "us", Currency.USD, "den_ngu", 1, "89.00"),
-    ("sale.staff2", "Sophie Martin", "+16045550103", "ca", Currency.CAD, "retinol-cream", 3, "120.00"),
-    ("sale.leader", "Nguyễn Văn An", "0912345678", "us", Currency.VND, "noi_chien", 1, "2590000"),
 ]
 
 #: Ghi nhận mẫu, từ trên xuống (Q75) — (người ghi nhận, người được ghi nhận, giá trị, lời nhắn)
@@ -237,7 +227,7 @@ class Command(BaseCommand):
         self._thu_muc(nguoi)
         self._tai_lieu(bo_phan, nguoi)
         self._cong_viec(nguoi)
-        self._don_hang(nguoi)
+        # ADR-018: Vận đơn mới bắt đầu trống, không tạo đơn demo khi nạp mẫu.
         self._ghi_nhan(nguoi)
         self._ngay_sinh(nguoi)
         self._bang_tin(nguoi)
@@ -461,25 +451,6 @@ class Command(BaseCommand):
                 task_service.change_status(viec, TaskStatus.DANG_LAM, actor=nguoi[ai_lam])
                 task_service.change_status(viec, TaskStatus.XONG, actor=nguoi[ai_lam])
             self.da_tao["việc"] += 1
-
-    def _don_hang(self, nguoi):
-        """Bốn đơn mẫu để bảng xếp hạng doanh số tháng này có số — FR-12.3.
-        Chỉ dựng trên máy chưa có đơn nào **và** bảng vận đơn còn trống: máy đã
-        nhập vận đơn thật thì không nhét bốn dòng giả vào giữa."""
-        from forms_builder.models import DataRecord
-        from orders.models import Order, Product
-        from orders.services import order_service
-
-        if Order.all_objects.exists() or DataRecord.all_objects.filter(table__code=WAYBILL_TABLE_CODE).exists():
-            return
-        san_pham = {sp.code: sp for sp in Product.objects.all()}
-        for ai, khach, sdt, thi_truong, tien_te, ma_sp, so_luong, don_gia in DON_HANG_MAU:
-            order_service.create_order(
-                phone=sdt, customer_name=khach, market=thi_truong, currency=tien_te,
-                lines=[{"product": san_pham[ma_sp], "quantity": so_luong, "unit_price": don_gia}],
-                actor=nguoi[ai],
-            )
-            self.da_tao["đơn hàng"] += 1
 
     def _ghi_nhan(self, nguoi):
         """Bốn ghi nhận chéo bộ phận, mỗi ghi nhận một sao — FR-12.1, FR-12.2."""

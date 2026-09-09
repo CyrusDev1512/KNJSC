@@ -370,3 +370,16 @@ Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ 
 | 1 | ~~Tiêu chí cho công thức trên bảng~~ | Đã chốt 29.08.2026 — ADR-006, thành AC-7.10 tới AC-7.12 |
 | 2 | Số lượng bài kiểm thử tự động tối thiểu | Có nên đặt ngưỡng tỉ lệ bao phủ không |
 | 3 | ~~Công cụ đo hiệu năng khi kiểm AC-10.1~~ | Đã chốt 03.09.2026 — Locust, chỉ dùng khi kiểm thử (backlog Q44, K6 đóng) |
+
+## 20. Vận đơn mới theo CRM Tân — ADR-018
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-18.1 | Khởi tạo máy sạch và cập nhật máy có dữ liệu đều có hai bảng; chạy lại không trùng, bảng cũ giữ dữ liệu/ID/liên kết/quyền; bảng mới trống, chỉ sao quyền đang hiệu lực một lần | ADR-018 | Tự động |
+| AC-18.2 | Tạo ở ERP/CRM sinh đúng một dòng bảng mới và chi tiết cùng giao dịch; lỗi chi tiết hoàn tác cả đơn; ngày Việt Nam, người bán từ tài khoản | FR-6.3 · ADR-018 | Tự động |
+| AC-18.3 | Chi tiết nhiều sản phẩm, tiền thu từng sản phẩm, tổng/trạng thái khớp; số tiền chính xác, sửa bản sao không đổi ERP; editor cũ không ghi đè, audit không chứa thông tin khách | ADR-018 · BR-3 · BR-8 | Tự động |
+| AC-18.4 | Ba cấp bậc và Admin kiểm cả hai chiều trên khu nhập, chi tiết GET/POST, thống kê; quyền lên đơn không cấp quyền xem bảng, chỉ có quyền xem không sửa được | FR-3.5 · ADR-018 | Tự động |
+| AC-18.5 | Ô tổng và trạng thái tự tính không sửa trực tiếp/dán đè; gói dán có ô cấm hoàn tác cả gói; cột chuẩn không đổi cấu trúc hoặc bị xoá | ADR-018 | Tự động |
+| AC-18.6 | Thống kê theo toàn bộ bộ lọc và quyền, bốn kiểu nhóm; tách tiền, distinct đơn, nhóm mã sản phẩm; sửa, xoá mềm, khôi phục phản ánh đúng, Hủy/Hoàn không bị bỏ ngầm | ADR-018 | Tự động |
+| AC-18.7 | Xuất/nhập lại bảo toàn chi tiết và tiền; dòng thiếu chi tiết, tổng không khớp hoặc mã sản phẩm lạ báo lỗi xem trước, không tự phân bổ | FR-7.5 → FR-7.7 · ADR-018 | Tự động |
+| AC-18.8 | Giao diện có Lên đơn, Vận hành đơn, Thống kê và tiêu đề nhóm; hai khu thu gọn, các ô tổng mở chi tiết, không có Blacklist; 390px cuộn trong lưới | ADR-018 | Tự động |

@@ -18,7 +18,7 @@ from core.constants import AuditAction, Currency
 from core.exceptions import BusinessError
 from core.models import AuditLog
 from forms_builder.models import DataRecord, TableDef
-from orders.constants import Market, PaymentMethod, WAYBILL_TABLE_CODE
+from orders.constants import Market, PaymentMethod, WAYBILL_TABLE_CODE, ACTIVE_WAYBILL_TABLE_CODE
 from orders.models import Customer, Order, OrderLine, Product, ProductGroup
 from orders.services import dispatch_service, order_service
 
@@ -28,7 +28,8 @@ pytestmark = pytest.mark.django_db
 @pytest.fixture
 def bang_van_don(departments, nguoi_dung):
     """Bảng vận đơn theo đúng cấu trúc chuẩn."""
-    return dispatch_service.ensure_waybill_table(actor=nguoi_dung["admin"])
+    dispatch_service.ensure_waybill_table(actor=nguoi_dung["admin"])
+    return TableDef.all_objects.get(code=ACTIVE_WAYBILL_TABLE_CODE)
 
 
 @pytest.fixture
@@ -163,7 +164,7 @@ def test_chua_co_bang_van_don_thi_bao_loi_ro(san_pham, nguoi_dung):
 
     with pytest.raises(BusinessError) as loi:
         _len_don(nguoi_dung["staff_sale_1"], san_pham)
-    assert "bảng vận đơn" in str(loi.value)
+    assert "bảng vận đơn" in str(loi.value).lower()
     assert not Order.all_objects.exists()
 
 
@@ -174,10 +175,10 @@ def test_sau_cot_them_co_tren_bang_van_don(bang_van_don, san_pham, nguoi_dung):
 
     assert o["quoc_gia"] == "Hoa Kỳ"
     assert o["loai_tien"] == Currency.USD
-    assert o["facebook"] == "fb.com/an"
-    assert o["email"] == "an@vidu.com"
+    assert don.customer.facebook == "fb.com/an"
+    assert don.customer.email == "an@vidu.com"
     assert o["nguoi_ban"]                          # tên người bán, không rỗng
-    assert "don_vi_phu" in o
+    assert not {"facebook", "email", "don_vi_phu", "black_list"} & o.keys()
 
 
 def test_bo_phan_van_don_thay_don_cua_sale(bang_van_don, san_pham, nguoi_dung):
@@ -317,7 +318,7 @@ def test_danh_sach_den_chi_canh_bao_khong_chan(bang_van_don, san_pham, nguoi_dun
 
     don = _len_don(nguoi_dung["staff_sale_1"], san_pham, phone="0900000000")
     assert don.pk is not None                      # không chặn
-    assert don.record.data["black_list"] == "Từ chối nhận hàng 2 lần"
+    assert "black_list" not in don.record.data  # ADR-018: không đưa vào bảng mới
 
 
 def test_khach_cu_khong_bi_tao_trung(bang_van_don, san_pham, nguoi_dung):
@@ -373,7 +374,7 @@ def test_chi_nguoi_len_don_moi_bo_duoc(client, bang_van_don, san_pham, nguoi_dun
 # ══ Nhật ký và hiệu năng ═══════════════════════════════════════════
 
 def test_len_don_sinh_dong_nhat_ky(bang_van_don, san_pham, nguoi_dung):
-    """AC-9.2 — Lên đơn sinh dòng nhật ký, ghi rõ khách và tổng tiền"""
+    """AC-9.2 — Lên đơn sinh nhật ký mã đơn, không ghi thông tin khách nhạy cảm"""
     truoc = AuditLog.objects.filter(action=AuditAction.CREATE).count()
     don = _len_don(nguoi_dung["staff_sale_1"], san_pham)
 
@@ -381,7 +382,7 @@ def test_len_don_sinh_dong_nhat_ky(bang_van_don, san_pham, nguoi_dung):
     assert ds.count() == truoc + 2                 # một cho dòng bảng, một cho đơn
     chi_tiet = ds.latest("created_at").detail
     assert don.code in chi_tiet
-    assert "0912345678" in chi_tiet
+    assert "0912345678" not in chi_tiet
 
 
 def test_man_hinh_don_hang_khong_qua_muoi_lenh_truy_van(

@@ -96,7 +96,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 |---|---|
 | FR-6.1 | Hệ thống phải cho phép nhập đơn hàng với thông tin khách hàng, danh sách sản phẩm, giá bán và phương thức thanh toán |
 | FR-6.2 | Một đơn hàng phải chứa được nhiều sản phẩm, không giới hạn số lượng dòng |
-| FR-6.3 | Sau khi lưu đơn, hệ thống phải tự động ghi dữ liệu sang bảng vận đơn |
+| FR-6.3 | Sau khi lưu đơn ở ERP hoặc khu Lên đơn KN CRM, tự ghi một dòng và bản sao chi tiết vào Vận đơn mới `van_don_moi`; bảng `van_don` đổi tên Vận đơn cũ, không chuyển dữ liệu lịch sử — ADR-018 |
 | FR-6.4 | Hệ thống phải lưu mã liên kết giữa đơn hàng và dòng tương ứng trên bảng vận đơn |
 | FR-6.5 | Người tạo đơn phải xem lại được các đơn cũ do chính mình tạo |
 | FR-6.6 | Người tạo đơn không được sửa đơn đã lưu |

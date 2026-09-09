@@ -20,7 +20,7 @@ from core.constants import AuditAction
 from core.exceptions import BusinessError
 from core.money import parse_money
 
-from .. import choice_registry
+from .. import choice_registry, record_policies
 from ..meaning import FieldType
 from ..models import DataRecord
 
@@ -122,6 +122,9 @@ def create_record(table, values, *, actor=None, request=None, columns=None):
     Bộ phận và team lấy theo hồ sơ người tạo, để phạm vi quyền áp đúng ngay từ
     lúc sinh ra bản ghi.
     """
+    policy = record_policies.for_table(table)
+    if policy:
+        values = policy.prepare_values(values)
     columns = columns if columns is not None else list(table.columns.all())
     du_lieu = {}
     for cot in columns:
@@ -147,6 +150,8 @@ def create_record(table, values, *, actor=None, request=None, columns=None):
     ban_ghi.apply_computed_columns(columns)
     ban_ghi.sync_indexed_columns(columns)
     ban_ghi.save(skip_sync=True)
+    if policy:
+        policy.after_create(ban_ghi, values)
 
     record(
         AuditAction.CREATE, actor=actor, target=ban_ghi,
@@ -182,6 +187,16 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
     ho_so = getattr(actor, "profile", None)
     team = getattr(ho_so, "team", None)
     ket_qua = BulkResult()
+    if record_policies.for_table(table):
+        for i, values in enumerate(rows):
+            try:
+                create_record(table, values, actor=actor, request=request, columns=columns)
+                ket_qua.created += 1
+            except BusinessError as error:
+                ket_qua.errors.append((row_numbers[i] if row_numbers else i + 1, str(error)))
+            if on_progress and (i + 1) % batch == 0:
+                on_progress(i + 1)
+        return ket_qua
     lo = []
     # Danh sách chọn chụp một lần cho cả lượt — không thì 5.000 dòng là
     # 5.000 lần truy vấn danh mục sản phẩm
@@ -266,6 +281,9 @@ def _dat_o(ban_ghi, cot, raw):
     """Đặt giá trị một ô trong bộ nhớ, chưa lưu. Trả `(đổi không, cũ, mới)`.
     Cùng luật cho sửa một ô lẫn dán nhiều ô: cột tính sẵn không sửa tay, cột
     bắt buộc không để trống, giá trị ép kiểu theo cột."""
+    policy = record_policies.for_table(ban_ghi.table)
+    if policy:
+        policy.assert_editable(cot.code)
     if cot.is_computed:
         raise BusinessError(f'Cột "{cot.name}" là cột tính sẵn, không sửa tay được.')
     cu = ban_ghi.data.get(cot.code)
@@ -285,6 +303,9 @@ def update_cell(ban_ghi, code, raw, *, actor=None, request=None, columns=None):
     Truyền sẵn `columns` khi sửa nhiều ô liên tiếp: mỗi lần để hàm tự lấy là
     thêm một lệnh truy vấn (quy tắc Q2).
     """
+    policy = record_policies.for_table(ban_ghi.table)
+    if policy:
+        policy.refresh_for_update(ban_ghi, actor)
     columns = columns if columns is not None else list(ban_ghi.table.columns.all())
     cot = _cot(columns, code)
     doi, cu, moi = _dat_o(ban_ghi, cot, raw)
@@ -298,7 +319,7 @@ def update_cell(ban_ghi, code, raw, *, actor=None, request=None, columns=None):
         AuditAction.UPDATE, actor=actor, target=ban_ghi,
         detail=(
             f"Sửa ô {ban_ghi.table.code}.{code} — "
-            f"{_hien(cu)} → {_hien(moi)}"
+            + ("cập nhật giá trị" if policy else f"{_hien(cu)} → {_hien(moi)}")
         ),
         request=request,
     )
@@ -316,6 +337,11 @@ def update_cells(cells, *, actor=None, request=None, columns=None):
     """
     da_doi = 0
     ban_ghi_doi = {}
+    # Cùng thứ tự khoá với sửa chi tiết; không ghi đè JSON đã đổi sau khi view đọc.
+    for row in sorted({r.pk: r for r, _, _ in cells}.values(), key=lambda r: r.pk):
+        policy = record_policies.for_table(row.table)
+        if policy:
+            policy.refresh_for_update(row, actor)
     for ban_ghi, code, raw in cells:
         cot_ds = columns if columns is not None else list(ban_ghi.table.columns.all())
         cot = _cot(cot_ds, code)

@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-09T14:43:01.2572826+07:00",
+  "title": "Design System: Kim Ngân JSC / KN CRM",
+  "extensions": {
+    "colorMeta": {
+      "accent": { "role": "primary", "displayName": "Operational Indigo", "canonical": "#3a37a3", "tonalRamp": ["oklch(20% 0.10 275)", "oklch(30% 0.13 275)", "oklch(40% 0.15 275)", "oklch(50% 0.16 275)", "oklch(60% 0.14 275)", "oklch(72% 0.10 275)", "oklch(84% 0.06 275)", "oklch(95% 0.02 275)"] },
+      "accent-hover": { "role": "primary", "displayName": "Pressed Indigo", "canonical": "#2e2b8a", "tonalRamp": ["oklch(18% 0.09 275)", "oklch(28% 0.12 275)", "oklch(38% 0.15 275)", "oklch(48% 0.15 275)", "oklch(60% 0.13 275)", "oklch(72% 0.09 275)", "oklch(84% 0.05 275)", "oklch(95% 0.02 275)"] },
+      "accent-soft": { "role": "primary", "displayName": "Indigo Wash", "canonical": "#ecebf9", "tonalRamp": ["oklch(18% 0.03 275)", "oklch(30% 0.04 275)", "oklch(42% 0.04 275)", "oklch(55% 0.04 275)", "oklch(68% 0.035 275)", "oklch(79% 0.03 275)", "oklch(89% 0.02 275)", "oklch(96% 0.012 275)"] },
+      "on-accent": { "role": "neutral", "displayName": "On Accent", "canonical": "#ffffff", "tonalRamp": ["#262626", "#404040", "#666666", "#8c8c8c", "#b3b3b3", "#d9d9d9", "#f2f2f2", "#ffffff"] },
+      "brand-brass": { "role": "secondary", "displayName": "Kim Ngân Brass", "canonical": "#9a7228", "tonalRamp": ["oklch(20% 0.05 78)", "oklch(30% 0.07 78)", "oklch(40% 0.09 78)", "oklch(50% 0.10 78)", "oklch(61% 0.09 78)", "oklch(73% 0.07 78)", "oklch(85% 0.04 78)", "oklch(95% 0.015 78)"] },
+      "plane": { "role": "neutral", "displayName": "Workspace Plane", "canonical": "#f2f2f6", "tonalRamp": ["oklch(18% 0.006 275)", "oklch(30% 0.007 275)", "oklch(42% 0.008 275)", "oklch(54% 0.009 275)", "oklch(66% 0.009 275)", "oklch(78% 0.008 275)", "oklch(89% 0.006 275)", "oklch(96% 0.004 275)"] },
+      "surface": { "role": "neutral", "displayName": "Working Surface", "canonical": "#fbfbfd", "tonalRamp": ["oklch(18% 0.004 275)", "oklch(30% 0.005 275)", "oklch(42% 0.006 275)", "oklch(54% 0.006 275)", "oklch(66% 0.006 275)", "oklch(78% 0.005 275)", "oklch(90% 0.004 275)", "oklch(98% 0.002 275)"] },
+      "surface-subtle": { "role": "neutral", "displayName": "Subtle Surface", "canonical": "#f6f6fa", "tonalRamp": ["oklch(18% 0.006 275)", "oklch(30% 0.007 275)", "oklch(42% 0.008 275)", "oklch(54% 0.008 275)", "oklch(66% 0.008 275)", "oklch(78% 0.007 275)", "oklch(89% 0.005 275)", "oklch(97% 0.003 275)"] },
+      "surface-toolbar": { "role": "neutral", "displayName": "Toolbar Surface", "canonical": "#ecedf3", "tonalRamp": ["oklch(18% 0.007 275)", "oklch(30% 0.009 275)", "oklch(42% 0.010 275)", "oklch(54% 0.010 275)", "oklch(66% 0.009 275)", "oklch(78% 0.008 275)", "oklch(89% 0.006 275)", "oklch(95% 0.004 275)"] },
+      "ink": { "role": "neutral", "displayName": "Primary Ink", "canonical": "#15151c", "tonalRamp": ["oklch(15% 0.012 275)", "oklch(26% 0.012 275)", "oklch(38% 0.011 275)", "oklch(50% 0.010 275)", "oklch(62% 0.009 275)", "oklch(74% 0.007 275)", "oklch(86% 0.005 275)", "oklch(95% 0.003 275)"] },
+      "ink-muted": { "role": "neutral", "displayName": "Muted Ink", "canonical": "#4a4a58", "tonalRamp": ["oklch(17% 0.014 275)", "oklch(29% 0.016 275)", "oklch(41% 0.016 275)", "oklch(53% 0.014 275)", "oklch(65% 0.012 275)", "oklch(77% 0.009 275)", "oklch(88% 0.006 275)", "oklch(96% 0.003 275)"] },
+      "ink-faint": { "role": "neutral", "displayName": "Faint Ink", "canonical": "#83838f", "tonalRamp": ["oklch(18% 0.012 275)", "oklch(30% 0.014 275)", "oklch(42% 0.014 275)", "oklch(54% 0.013 275)", "oklch(66% 0.011 275)", "oklch(78% 0.009 275)", "oklch(89% 0.006 275)", "oklch(96% 0.003 275)"] },
+      "rule": { "role": "neutral", "displayName": "Fine Rule", "canonical": "#e3e3ec", "tonalRamp": ["oklch(18% 0.008 275)", "oklch(30% 0.010 275)", "oklch(42% 0.011 275)", "oklch(54% 0.011 275)", "oklch(66% 0.010 275)", "oklch(78% 0.008 275)", "oklch(88% 0.006 275)", "oklch(95% 0.004 275)"] },
+      "rule-strong": { "role": "neutral", "displayName": "Strong Rule", "canonical": "#c9c9d6", "tonalRamp": ["oklch(18% 0.010 275)", "oklch(30% 0.012 275)", "oklch(42% 0.014 275)", "oklch(54% 0.014 275)", "oklch(66% 0.013 275)", "oklch(78% 0.010 275)", "oklch(88% 0.007 275)", "oklch(95% 0.004 275)"] },
+      "positive": { "role": "tertiary", "displayName": "Positive", "canonical": "#0ca30c", "tonalRamp": ["oklch(20% 0.08 143)", "oklch(30% 0.11 143)", "oklch(40% 0.14 143)", "oklch(50% 0.16 143)", "oklch(61% 0.15 143)", "oklch(73% 0.11 143)", "oklch(85% 0.07 143)", "oklch(95% 0.025 143)"] },
+      "warning": { "role": "tertiary", "displayName": "Warning", "canonical": "#fab219", "tonalRamp": ["oklch(20% 0.06 78)", "oklch(31% 0.09 78)", "oklch(42% 0.12 78)", "oklch(54% 0.15 78)", "oklch(66% 0.16 78)", "oklch(77% 0.13 78)", "oklch(87% 0.08 78)", "oklch(95% 0.03 78)"] },
+      "critical": { "role": "tertiary", "displayName": "Critical", "canonical": "#d03b3b", "tonalRamp": ["oklch(20% 0.08 25)", "oklch(31% 0.12 25)", "oklch(42% 0.16 25)", "oklch(53% 0.18 25)", "oklch(64% 0.16 25)", "oklch(75% 0.12 25)", "oklch(86% 0.07 25)", "oklch(95% 0.025 25)"] },
+      "dark-plane": { "role": "neutral", "displayName": "Dark Workspace Plane", "canonical": "#0b0b10", "tonalRamp": ["oklch(14% 0.008 285)", "oklch(25% 0.009 285)", "oklch(37% 0.010 285)", "oklch(49% 0.010 285)", "oklch(61% 0.009 285)", "oklch(73% 0.007 285)", "oklch(85% 0.005 285)", "oklch(95% 0.002 285)"] },
+      "dark-surface": { "role": "neutral", "displayName": "Dark Working Surface", "canonical": "#16161e", "tonalRamp": ["oklch(16% 0.012 285)", "oklch(27% 0.014 285)", "oklch(39% 0.015 285)", "oklch(51% 0.014 285)", "oklch(63% 0.012 285)", "oklch(75% 0.009 285)", "oklch(86% 0.006 285)", "oklch(95% 0.003 285)"] },
+      "dark-surface-subtle": { "role": "neutral", "displayName": "Dark Subtle Surface", "canonical": "#1c1c26", "tonalRamp": ["oklch(17% 0.014 285)", "oklch(28% 0.017 285)", "oklch(40% 0.018 285)", "oklch(52% 0.017 285)", "oklch(64% 0.014 285)", "oklch(76% 0.011 285)", "oklch(87% 0.007 285)", "oklch(95% 0.003 285)"] },
+      "dark-surface-toolbar": { "role": "neutral", "displayName": "Dark Toolbar Surface", "canonical": "#22222e", "tonalRamp": ["oklch(18% 0.016 285)", "oklch(29% 0.020 285)", "oklch(41% 0.020 285)", "oklch(53% 0.018 285)", "oklch(65% 0.015 285)", "oklch(77% 0.011 285)", "oklch(87% 0.007 285)", "oklch(95% 0.003 285)"] },
+      "dark-ink": { "role": "neutral", "displayName": "Dark Primary Ink", "canonical": "#f1f1f6", "tonalRamp": ["oklch(18% 0.006 285)", "oklch(30% 0.008 285)", "oklch(42% 0.009 285)", "oklch(54% 0.009 285)", "oklch(66% 0.008 285)", "oklch(78% 0.007 285)", "oklch(89% 0.005 285)", "oklch(96% 0.003 285)"] },
+      "dark-ink-muted": { "role": "neutral", "displayName": "Dark Muted Ink", "canonical": "#b6b6c4", "tonalRamp": ["oklch(18% 0.010 285)", "oklch(30% 0.013 285)", "oklch(42% 0.014 285)", "oklch(54% 0.014 285)", "oklch(66% 0.012 285)", "oklch(78% 0.010 285)", "oklch(88% 0.007 285)", "oklch(95% 0.004 285)"] },
+      "dark-ink-faint": { "role": "neutral", "displayName": "Dark Faint Ink", "canonical": "#8a8a99", "tonalRamp": ["oklch(18% 0.012 285)", "oklch(30% 0.015 285)", "oklch(42% 0.016 285)", "oklch(54% 0.015 285)", "oklch(66% 0.013 285)", "oklch(78% 0.010 285)", "oklch(88% 0.007 285)", "oklch(95% 0.004 285)"] },
+      "dark-rule": { "role": "neutral", "displayName": "Dark Fine Rule", "canonical": "#2a2a36", "tonalRamp": ["oklch(18% 0.015 285)", "oklch(30% 0.018 285)", "oklch(42% 0.019 285)", "oklch(54% 0.018 285)", "oklch(66% 0.015 285)", "oklch(78% 0.011 285)", "oklch(88% 0.007 285)", "oklch(95% 0.004 285)"] },
+      "dark-rule-strong": { "role": "neutral", "displayName": "Dark Strong Rule", "canonical": "#3b3b4a", "tonalRamp": ["oklch(18% 0.017 285)", "oklch(30% 0.021 285)", "oklch(42% 0.022 285)", "oklch(54% 0.020 285)", "oklch(66% 0.017 285)", "oklch(78% 0.012 285)", "oklch(88% 0.008 285)", "oklch(95% 0.004 285)"] },
+      "dark-accent": { "role": "primary", "displayName": "Dark Operational Indigo", "canonical": "#9a97ee", "tonalRamp": ["oklch(20% 0.07 275)", "oklch(31% 0.10 275)", "oklch(42% 0.12 275)", "oklch(54% 0.13 275)", "oklch(66% 0.12 275)", "oklch(77% 0.09 275)", "oklch(87% 0.055 275)", "oklch(95% 0.02 275)"] },
+      "dark-accent-hover": { "role": "primary", "displayName": "Dark Hover Indigo", "canonical": "#b0adf3", "tonalRamp": ["oklch(20% 0.06 275)", "oklch(31% 0.09 275)", "oklch(42% 0.11 275)", "oklch(54% 0.12 275)", "oklch(66% 0.11 275)", "oklch(77% 0.08 275)", "oklch(87% 0.05 275)", "oklch(95% 0.018 275)"] },
+      "dark-accent-soft": { "role": "primary", "displayName": "Dark Indigo Wash", "canonical": "#1f1e39", "tonalRamp": ["oklch(17% 0.035 275)", "oklch(28% 0.048 275)", "oklch(40% 0.052 275)", "oklch(52% 0.050 275)", "oklch(64% 0.042 275)", "oklch(76% 0.030 275)", "oklch(87% 0.018 275)", "oklch(95% 0.008 275)"] },
+      "dark-on-accent": { "role": "neutral", "displayName": "Dark On Accent", "canonical": "#0b0b10", "tonalRamp": ["oklch(14% 0.008 285)", "oklch(25% 0.009 285)", "oklch(37% 0.010 285)", "oklch(49% 0.010 285)", "oklch(61% 0.009 285)", "oklch(73% 0.007 285)", "oklch(85% 0.005 285)", "oklch(95% 0.002 285)"] },
+      "dark-brand-brass": { "role": "secondary", "displayName": "Dark Kim Ngân Brass", "canonical": "#c9a458", "tonalRamp": ["oklch(20% 0.05 80)", "oklch(31% 0.07 80)", "oklch(42% 0.09 80)", "oklch(54% 0.105 80)", "oklch(66% 0.10 80)", "oklch(77% 0.08 80)", "oklch(87% 0.05 80)", "oklch(95% 0.018 80)"] },
+      "sheet-shell": { "role": "neutral", "displayName": "Spreadsheet Night", "canonical": "#101014", "tonalRamp": ["oklch(15% 0.007 285)", "oklch(26% 0.008 285)", "oklch(38% 0.009 285)", "oklch(50% 0.009 285)", "oklch(62% 0.008 285)", "oklch(74% 0.006 285)", "oklch(86% 0.004 285)", "oklch(95% 0.002 285)"] },
+      "sheet-shell-ink": { "role": "neutral", "displayName": "Warm Shell Ink", "canonical": "#ece5cb", "tonalRamp": ["oklch(18% 0.02 88)", "oklch(30% 0.03 88)", "oklch(42% 0.04 88)", "oklch(54% 0.045 88)", "oklch(66% 0.04 88)", "oklch(78% 0.035 88)", "oklch(88% 0.025 88)", "oklch(95% 0.012 88)"] },
+      "sheet-gold": { "role": "secondary", "displayName": "Spreadsheet Gold", "canonical": "#d8b45c", "tonalRamp": ["oklch(20% 0.05 83)", "oklch(31% 0.07 83)", "oklch(42% 0.09 83)", "oklch(54% 0.11 83)", "oklch(66% 0.11 83)", "oklch(77% 0.09 83)", "oklch(87% 0.055 83)", "oklch(95% 0.02 83)"] },
+      "sheet-grid": { "role": "neutral", "displayName": "Cream Grid", "canonical": "#fffdf8", "tonalRamp": ["oklch(18% 0.012 85)", "oklch(30% 0.018 85)", "oklch(42% 0.022 85)", "oklch(54% 0.024 85)", "oklch(66% 0.022 85)", "oklch(78% 0.018 85)", "oklch(89% 0.012 85)", "oklch(98% 0.006 85)"] },
+      "sheet-grid-plane": { "role": "neutral", "displayName": "Grid Plane", "canonical": "#f3f0e7", "tonalRamp": ["oklch(18% 0.014 85)", "oklch(30% 0.020 85)", "oklch(42% 0.024 85)", "oklch(54% 0.026 85)", "oklch(66% 0.024 85)", "oklch(78% 0.020 85)", "oklch(89% 0.014 85)", "oklch(96% 0.008 85)"] },
+      "sheet-grid-rule": { "role": "neutral", "displayName": "Grid Rule", "canonical": "#e6e0d1", "tonalRamp": ["oklch(18% 0.016 85)", "oklch(30% 0.024 85)", "oklch(42% 0.030 85)", "oklch(54% 0.032 85)", "oklch(66% 0.030 85)", "oklch(78% 0.024 85)", "oklch(88% 0.016 85)", "oklch(95% 0.009 85)"] }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Application Headline", "purpose": "Page-level titles in KNERP and KN CRM shell pages." },
+      "title": { "displayName": "Section Title", "purpose": "CRM page and section headings." },
+      "body": { "displayName": "Application Body", "purpose": "Default Vietnamese copy and controls." },
+      "label": { "displayName": "Compact Label", "purpose": "Forms, compact buttons, and support metadata." },
+      "mono-label": { "displayName": "Technical Label", "purpose": "Codes, figures, navigation groups, and compact structural labels." },
+      "sheet-body": { "displayName": "Spreadsheet Body", "purpose": "Grid cells, toolbars, menus, and sheet tabs." }
+    },
+    "shadows": [
+      { "name": "structural-low", "value": "0 1px 2px rgba(21,21,40,.05)", "purpose": "Shared cards and metric containers." },
+      { "name": "overlay", "value": "0 4px 16px rgba(21,21,40,.10)", "purpose": "Mobile navigation and shared floating surfaces." },
+      { "name": "spreadsheet-overlay", "value": "0 16px 40px rgba(0,0,0,.6)", "purpose": "Spreadsheet menus, filters, and popovers in the default dark shell." },
+      { "name": "cell-editor", "value": "0 3px 10px rgba(60,48,10,.25)", "purpose": "Lift the active editor over adjacent grid cells." }
+    ],
+    "motion": [
+      { "name": "navigation-slide", "value": "transform .2s ease", "purpose": "Move the mobile navigation rail on and off canvas." },
+      { "name": "disclosure-turn", "value": "transform .12s", "purpose": "Rotate tree and navigation disclosure markers." },
+      { "name": "waybill-group-freeze", "value": "transform 120ms ease-out", "purpose": "Keep a local waybill group label legible while horizontally scrolling." }
+    ],
+    "breakpoints": [
+      { "name": "compact-grid", "value": "600px" },
+      { "name": "crm-stack", "value": "760px" },
+      { "name": "navigation-drawer", "value": "900px" },
+      { "name": "waybill-form-three-column", "value": "1000px" },
+      { "name": "secondary-column-collapse", "value": "1180px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The normal high-priority action in application pages.",
+      "html": "<button class=\"ds-btn-primary\">Lưu thay đổi</button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border:1px solid var(--accent); border-radius:var(--r-md); background:var(--accent); color:var(--accent-ink); font:600 14px 'Be Vietnam Pro',system-ui,sans-serif; cursor:pointer; } .ds-btn-primary:hover { background:var(--accent-hover); border-color:var(--accent-hover); } .ds-btn-primary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A compact bordered action for routine and secondary tasks.",
+      "html": "<button class=\"ds-btn-secondary\">Nền</button>",
+      "css": ".ds-btn-secondary { display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border:1px solid var(--rule-strong); border-radius:var(--r-md); background:var(--surface); color:var(--ink); font:500 14px 'Be Vietnam Pro',system-ui,sans-serif; cursor:pointer; } .ds-btn-secondary:hover { border-color:var(--ink-3); background:var(--surface-2); } .ds-btn-secondary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "The shared compact form control with an indigo focus halo.",
+      "html": "<label class=\"ds-field\"><span>Tên khách</span><input value=\"Nguyễn An\"></label>",
+      "css": ".ds-field { display:flex; flex-direction:column; gap:5px; color:var(--ink-2); font:600 12.5px 'Be Vietnam Pro',system-ui,sans-serif; } .ds-field input { width:260px; padding:6px 12px; border:1px solid var(--rule-strong); border-radius:var(--r-md); background:var(--surface); color:var(--ink); font:400 14px 'Be Vietnam Pro',system-ui,sans-serif; } .ds-field input:focus { border-color:var(--accent); outline:none; box-shadow:0 0 0 3px var(--accent-soft); }"
+    },
+    {
+      "name": "Accent Chip",
+      "kind": "chip",
+      "refersTo": "chip-accent",
+      "description": "A compact selected-state or contextual label.",
+      "html": "<span class=\"ds-chip-accent\">Đang xem</span>",
+      "css": ".ds-chip-accent { display:inline-flex; align-items:center; padding:1px 8px; border:1px solid transparent; border-radius:10px; background:var(--accent-soft); color:var(--accent); font:500 12.5px 'Be Vietnam Pro',system-ui,sans-serif; white-space:nowrap; }"
+    },
+    {
+      "name": "Application Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A restrained bordered container for application content.",
+      "html": "<section class=\"ds-card\"><h3>Tổng quan</h3><p>Nội dung vận hành</p></section>",
+      "css": ".ds-card { width:280px; padding:16px; border:1px solid var(--rule); border-radius:var(--r-md); background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(21,21,40,.05); font:400 14px/1.55 'Be Vietnam Pro',system-ui,sans-serif; } .ds-card h3 { margin:0 0 8px; font-size:16px; font-weight:600; } .ds-card p { margin:0; color:var(--ink-2); }"
+    },
+    {
+      "name": "Active Navigation Item",
+      "kind": "nav",
+      "refersTo": "navigation-active",
+      "description": "The selected destination in the shared application rail.",
+      "html": "<a class=\"ds-nav-active\" href=\"#\"><span>Bảng tính</span></a>",
+      "css": ".ds-nav-active { display:flex; align-items:center; gap:12px; padding:7px 12px; border-radius:var(--r-md); background:var(--accent-soft); color:var(--accent); text-decoration:none; font:600 14px 'Be Vietnam Pro',system-ui,sans-serif; } .ds-nav-active:hover { background:var(--surface-2); color:var(--ink); } .ds-nav-active:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }"
+    },
+    {
+      "name": "Spreadsheet Export Button",
+      "kind": "button",
+      "refersTo": "sheet-export",
+      "description": "The brass primary action inside the dark spreadsheet frame.",
+      "html": "<button class=\"ds-sheet-export\">Tải Excel</button>",
+      "css": ".ds-sheet-export { display:inline-flex; align-items:center; height:30px; padding:0 12px; border:1px solid transparent; border-radius:8px; background:linear-gradient(105deg,#f7e7b2,#e8c874 25%,#bb913f 52%,#e8c874 78%,#f7e7b2); color:#241a05; font:600 13px 'Segoe UI',system-ui,sans-serif; cursor:pointer; } .ds-sheet-export:hover { border-color:#d8b45c; } .ds-sheet-export:focus-visible { outline:2px solid #d8b45c; outline-offset:2px; }"
+    },
+    {
+      "name": "Spreadsheet Cell",
+      "kind": "custom",
+      "refersTo": "sheet-cell",
+      "description": "A dense cream grid cell with the KN CRM gold current-cell state.",
+      "html": "<div class=\"ds-sheet-cell\" tabindex=\"0\">Mã đơn</div>",
+      "css": ".ds-sheet-cell { position:relative; width:120px; height:25px; padding:0 6px; display:flex; align-items:center; overflow:hidden; border-right:1px solid #e6e0d1; border-bottom:1px solid #e6e0d1; background:#fffdf8; color:#1f2937; font:400 13px/1.3 'Segoe UI',system-ui,sans-serif; white-space:nowrap; text-overflow:ellipsis; } .ds-sheet-cell:hover { box-shadow:inset 0 0 0 1px rgba(184,149,43,.45); } .ds-sheet-cell:focus { outline:none; box-shadow:inset 0 0 0 2px #b8952b; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Disciplined Operations Desk",
+    "overview": "Kim Ngân JSC is a compact, desktop-first operations interface. The shared KNERP and KN CRM shell uses pale neutral layers, fine rules, restrained indigo actions, and very small radii so dense business information remains calm and legible. Brass is a rare identity mark, not a general-purpose action color.\n\nThe KN CRM grid is a deliberate workspace inside that system: a dark brass-accented tool frame surrounds a permanently warm, paper-like sheet. It behaves more like a familiar desktop spreadsheet than a card-based web page—fixed toolbars, 25px rows, sticky headings, formula controls, sheet tabs, and direct cell states carry the hierarchy.",
+    "keyCharacteristics": [
+      "Compact, information-first density with 4px-based spacing.",
+      "Fine borders and tonal layering before shadow.",
+      "Restrained indigo for normal application actions; brass only for KN identity and spreadsheet emphasis.",
+      "A dark spreadsheet frame around a light cream grid, independent of the selected app theme.",
+      "Vietnamese labels in Be Vietnam Pro; numerical and technical metadata use tabular or monospaced text."
+    ],
+    "rules": [
+      { "name": "The Two-Layer Workspace Rule", "body": "The application shell may follow light or dark theme tokens, but spreadsheet cells remain a warm light surface so editing and scanning are stable across themes.", "section": "colors" },
+      { "name": "The Brass Restraint Rule", "body": "Brass marks KN identity and spreadsheet emphasis; ordinary product actions remain indigo.", "section": "colors" },
+      { "name": "The Utility Type Rule", "body": "Monospace is reserved for identifiers, figures, and compact structural labels; ordinary Vietnamese prose stays in the sans-serif body face.", "section": "typography" },
+      { "name": "The Grid Owns Overflow Rule", "body": "Dense spreadsheet content preserves column width and scrolls inside its workspace; the overall document must not be widened to fit the sheet.", "section": "layout" },
+      { "name": "The Flat-Until-Floating Rule", "body": "Borders and background steps define normal structure; pronounced shadows are reserved for content that truly overlays the workspace.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use the shared neutral/indigo tokens for ordinary application pages and controls.",
+      "Do keep the KN CRM grid cream and legible in both light and dark shell modes.",
+      "Do preserve the compact spreadsheet measurements, sticky headers, rectangular selection outline, and horizontal overflow behavior.",
+      "Do use tabular or monospaced text for codes and figures where alignment improves scanning.",
+      "Do keep visible keyboard focus and honor reduced-motion preferences."
+    ],
+    "donts": [
+      "Don't use brass as a replacement for the normal indigo application action color.",
+      "Don't turn Vận đơn's green grouped headers into a global brand or navigation color.",
+      "Don't render the spreadsheet as floating cards or loosen its row density into a dashboard layout.",
+      "Don't add decorative shadows to resting surfaces; reserve strong elevation for overlays."
+    ]
+  }
+}

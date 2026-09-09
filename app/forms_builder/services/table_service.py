@@ -20,6 +20,7 @@ from core.constants import RECOMPUTE_BATCH, RECOMPUTE_SYNC_MAX_ROWS, RECOMPUTE_T
 from core.models import BackgroundJob
 
 from ..meaning import FieldType
+from .. import record_policies
 from ..models import COLUMN_OF, ColumnDef, DataRecord, TableDef
 
 logger = logging.getLogger(__name__)
@@ -109,6 +110,9 @@ def add_column(table, *, actor=None, request=None, **fields):
 @transaction.atomic
 def update_column(column, changes, *, actor=None, request=None):
     """Sửa một cột. Đổi công thức thì tính lại toàn bộ bản ghi cũ."""
+    policy = record_policies.for_table(column.table)
+    if policy:
+        policy.assert_column_change(column, changes)
     da_doi, phai_tinh_lai = [], False
     for ten in COLUMN_FIELDS:
         if ten not in changes:
@@ -148,6 +152,9 @@ def remove_column(column, *, actor=None, request=None):
     liệu người dùng gõ vào không tự biến mất (tinh thần BR-4). Cột không còn
     hiển thị, và gán lại đúng tên kỹ thuật đó thì dữ liệu cũ hiện trở lại.
     """
+    policy = record_policies.for_table(column.table)
+    if policy:
+        policy.assert_column_change(column)
     bang, ma = column.table, column.code
     column.delete()
     schedule_resync(bang, actor=actor)
@@ -197,6 +204,12 @@ def insert_columns(table, *, count=1, anchor=None, after=True, actor=None, reque
 def removable_reason(column):
     """Vì sao không bỏ được cột này ngay trên lưới; trống nghĩa là bỏ được.
     Cột khoá và cột đang là vế của một cột tính sẵn thì giữ."""
+    policy = record_policies.for_table(column.table)
+    if policy:
+        try:
+            policy.assert_column_change(column)
+        except BusinessError as error:
+            return str(error)
     if column.is_key:
         return f'"{column.name}" là cột khoá của bảng — đổi cột khoá ở Sửa cột trước.'
     dung_o = [

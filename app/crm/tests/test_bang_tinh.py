@@ -63,7 +63,7 @@ def du_lieu(bang_vd, nguoi_dung):
 
 
 def _so_dong(client, qs=""):
-    kq = client.get("/bang-tinh/" + qs)
+    kq = client.get("/bang-tinh/van_don/" + qs)
     assert kq.status_code == 200
     return kq.context["page_obj"].paginator.count
 
@@ -89,7 +89,7 @@ def test_ngoai_bo_phan_van_don_bi_tu_choi_moi_duong_dan(client, du_lieu, nguoi_d
 
     for ma in ("staff_vd", "admin"):
         client.force_login(nguoi_dung[ma])
-        assert client.get("/bang-tinh/").context["bang"].code == "van_don", ma
+        assert client.get("/bang-tinh/").context["bang"].code == "van_don_moi", ma
         assert client.get("/bang-tinh/van_don/").status_code == 200
         assert client.get("/bang-tinh/van_don/loc/trang_thai_vc/").status_code == 200
         assert client.get("/bang-tinh/van_don/xuat/").status_code == 200
@@ -122,7 +122,7 @@ def test_loc_tung_cot_va_cong_don(client, du_lieu, nguoi_dung):
     assert _so_dong(client, "?f_khong_co__trong=a&f_ngay__bay=1") == 4
 
     # chip "đang lọc" và liên kết bỏ đúng một bộ lọc
-    kq = client.get(f"/bang-tinh/?f_trang_thai_vc__trong={dg}&f_ten_khach__chua=An")
+    kq = client.get(f"/bang-tinh/van_don/?f_trang_thai_vc__trong={dg}&f_ten_khach__chua=An")
     chips = dict(kq.context["chips"])
     assert any("Trạng thái vận chuyển" in nhan for nhan in chips)
     bo_ten = next(url for nhan, url in chips.items() if "Tên khách" in nhan)
@@ -193,7 +193,7 @@ def test_bang_du_lieu_chi_xem_bang_tinh_sua_duoc(client, du_lieu, nguoi_dung):
     dong = du_lieu["an1"]
     client.force_login(nguoi_dung["staff_vd"])
     duong = f"/bang-tinh/van_don/o/{dong.pk}/ghi_chu/"
-    kq = client.get("/bang-tinh/")
+    kq = client.get("/bang-tinh/van_don/")
     assert kq.context["chi_xem"] is True
     assert 'class="o-xem' in kq.content.decode() and 'class="o-sua' not in kq.content.decode()
     assert client.get(duong).status_code == 403
@@ -204,7 +204,7 @@ def test_bang_du_lieu_chi_xem_bang_tinh_sua_duoc(client, du_lieu, nguoi_dung):
     assert dong.data.get("ghi_chu") == "Giao buổi tối"
 
     with SUA_DUOC:
-        kq = client.get("/bang-tinh/")
+        kq = client.get("/bang-tinh/van_don/")
         assert kq.context["chi_xem"] is False and 'class="o-sua' in kq.content.decode()
         assert client.post(duong, {"gia_tri": "Đúng chỗ"}).status_code == 200
     dong.refresh_from_db()
@@ -216,7 +216,7 @@ def test_bang_du_lieu_chi_xem_bang_tinh_sua_duoc(client, du_lieu, nguoi_dung):
 def test_loc_trung_dem_dung_va_to_mau(client, du_lieu, nguoi_dung):
     """AC-11.5 — Cột Lọc trùng đếm đúng số dòng cùng số điện thoại, tô màu khi > 1, lọc được chỉ số trùng"""
     client.force_login(nguoi_dung["staff_vd"])
-    kq = client.get("/bang-tinh/")
+    kq = client.get("/bang-tinh/van_don/")
     trung = {d["ban_ghi"].pk: d["so_trung"] for d in kq.context["cac_dong"]}
     assert trung[du_lieu["an1"].pk] == 2 and trung[du_lieu["an2"].pk] == 2
     assert trung[du_lieu["binh"].pk] == 1 and trung[du_lieu["chi"].pk] == 1
@@ -231,10 +231,10 @@ def test_loc_trung_dem_dung_va_to_mau(client, du_lieu, nguoi_dung):
 def test_dong_huy_va_hoan_duoc_to_mau(client, du_lieu, nguoi_dung):
     """AC-11.6 — Dòng Hủy trước giao, Hủy sau giao, Hoàn đơn mang lớp màu xấu; dòng khác thì không"""
     client.force_login(nguoi_dung["staff_vd"])
-    lop = {d["ban_ghi"].pk: d["lop"] for d in client.get("/bang-tinh/").context["cac_dong"]}
+    lop = {d["ban_ghi"].pk: d["lop"] for d in client.get("/bang-tinh/van_don/").context["cac_dong"]}
     assert lop[du_lieu["binh"].pk] == "dong-xau" and lop[du_lieu["chi"].pk] == "dong-xau"
     assert lop[du_lieu["an1"].pk] == "" and lop[du_lieu["an2"].pk] == "dong-tot"
-    html = client.get("/bang-tinh/").content.decode()
+    html = client.get("/bang-tinh/van_don/").content.decode()
     assert html.count('<tr class="dong-xau"') == 2
 
 
@@ -268,14 +268,17 @@ def test_moi_san_pham_mot_cot_va_len_don_dien_tu_dong(bang_vd, san_pham, nguoi_d
         )
 
     don = len_don()
-    d = don.record.data
+    # ADR-018: hàm dựng dữ liệu lịch sử giữ cột cũ; push chỉ ghi bảng mới.
+    d = dispatch_service.build_values(don)
     assert d["sl_retinol_cream"] == 5 and d["sl_sua_rua_mat"] == 1
     assert "sl_retinol_serum" not in d or d["sl_retinol_serum"] in (None, 0)
     assert d["dia_chi"] == "812 Yonge St" and d["mua_lai"] == 1
     assert d["loai_tien"] == "CAD" and d["quoc_gia"] == "Canada"
     assert d["trang_thai_vc"] == "Đã lên đơn" and d["trang_thai_tt"] == "Chưa thanh toán"
     don2 = len_don()
-    assert don2.record.data["mua_lai"] == 2
+    assert dispatch_service.build_values(don2)["mua_lai"] == 2
+    assert don.record.table.code == "van_don_moi"
+    assert not any(k.startswith("sl_") for k in don.record.data)
 
 
 # ══ Tệp thật — AC-11.9 ═════════════════════════════════════════════

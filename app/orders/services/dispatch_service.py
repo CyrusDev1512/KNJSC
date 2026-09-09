@@ -11,6 +11,7 @@ gộp tên, Số lượng cộng lại, Giá tiền là tổng. Chi tiết từn
 from decimal import Decimal
 
 from django.db import transaction
+from django.utils import timezone
 
 from core.exceptions import BusinessError
 from core.identity import display_name
@@ -19,7 +20,7 @@ from forms_builder.models import ColumnDef, TableDef
 from forms_builder.services import record_service
 
 from ..constants import (
-    WAYBILL_DEPARTMENT_CODE, WAYBILL_TABLE_CODE, Market, PaymentMethod,
+    WAYBILL_DEPARTMENT_CODE, WAYBILL_TABLE_CODE, ACTIVE_WAYBILL_TABLE_CODE, Market, PaymentMethod,
     PaymentStatus, ShippingStatus,
 )
 
@@ -119,7 +120,7 @@ def ensure_waybill_table(*, actor=None):
     """
     from org.models import Department
 
-    bo_phan = Department.objects.filter(code=WAYBILL_DEPARTMENT_CODE).first()
+    bo_phan = Department.objects.select_for_update().filter(code=WAYBILL_DEPARTMENT_CODE).first()
     if bo_phan is None:
         raise BusinessError(
             f"Chưa có bộ phận với tên kỹ thuật {WAYBILL_DEPARTMENT_CODE}."
@@ -136,9 +137,6 @@ def ensure_waybill_table(*, actor=None):
             # vì dòng do bên Sale tạo ra
             is_shared=True,
         )
-    elif not bang.is_shared:
-        bang.is_shared = True
-        bang.save(update_fields=["is_shared", "updated_at"])
 
     da_co = set(bang.columns.values_list("code", flat=True))
     for i, (ten, ma, kieu, nhan) in enumerate(WAYBILL_COLUMNS):
@@ -152,6 +150,9 @@ def ensure_waybill_table(*, actor=None):
     # ra đúng đơn đó (ADR-010). Chỉ đặt khi bảng chưa có cột khoá nào.
     if not bang.columns.filter(is_key=True).exists():
         bang.columns.filter(code="ma_don").update(is_key=True)
+    from . import waybill_service
+    waybill_service.ensure_table(bang, actor=actor)
+    bang.refresh_from_db()
     return bang
 
 
@@ -256,7 +257,15 @@ def push(order, *, actor=None, request=None, lines=None):
     Gọi **bên trong** giao dịch của `order_service.create_order`. Hàm này ném
     lỗi thì cả đơn hàng cũng không được lưu — AC-6.5.
     """
-    bang = waybill_table()
+    from .waybill_service import DETAIL_CODE
+    bang = TableDef.all_objects.filter(code=ACTIVE_WAYBILL_TABLE_CODE, deleted_at__isnull=True, is_active=True).first()
+    if bang is None:
+        raise BusinessError("Chưa có bảng Vận đơn mới. Chạy manage.py tao_bang_van_don.")
+    lines = list(lines if lines is not None else order.lines.select_related("product"))
+    values = build_values(order, lines)
+    values["ngay"] = timezone.localdate(order.created_at).isoformat()
+    values[DETAIL_CODE] = [{"product": line.product.code, "quantity": line.quantity,
+                           "unit_price": str(line.unit_price), "paid_amount": "0.00"} for line in lines]
     return record_service.create_record(
-        bang, build_values(order, lines), actor=actor, request=request,
+        bang, values, actor=actor, request=request,
     )

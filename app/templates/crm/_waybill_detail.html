@@ -1,0 +1,11 @@
+<h2 id="vd-detail-title">Chi tiết sản phẩm · {{ row.data.ma_don }}</h2>
+<p class="vd-note">Loại tiền: {{ row.data.loai_tien }}. Nhập tiền đã thanh toán riêng cho từng sản phẩm.</p>
+{% if error %}<p role="alert" class="vd-error">{{ error }}</p>{% endif %}
+<form hx-post="{% url 'waybill_detail' row.pk %}" hx-target="#vd-detail-body" hx-swap="innerHTML">
+  {% csrf_token %}<input type="hidden" name="version" value="{{ version }}">
+  <fieldset {% if not editable %}disabled{% endif %}>
+    {% include "crm/_waybill_items.html" with with_payment=True %}
+    {% if editable %}<div class="vd-actions"><button class="nut nut-chinh" type="submit">Lưu chi tiết</button></div>{% endif %}
+  </fieldset>
+</form>
+{% if not editable %}<p class="vd-note">Bạn có quyền xem. Cần quyền sửa để cập nhật chi tiết.</p>{% endif %}

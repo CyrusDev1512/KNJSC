@@ -36,8 +36,9 @@ from forms_builder import choice_registry, query
 from forms_builder.meaning import FieldType
 from forms_builder.models import DataRecord
 from forms_builder.services import grant_service, record_service
-from orders.constants import WAYBILL_TABLE_CODE
+from orders.constants import WAYBILL_TABLE_CODE, ACTIVE_WAYBILL_TABLE_CODE
 from orders.services import dispatch_service
+from orders.services import waybill_service
 
 from .. import choices
 
@@ -163,6 +164,9 @@ def display_columns(table, columns=None):
     """Cột theo thứ tự hiển thị. Bảng vận đơn: theo tệp thật, cột sản phẩm
     chèn vào chỗ đánh dấu, cột lạ xếp cuối. Bảng khác: theo thứ tự tạo cột."""
     columns = list(columns if columns is not None else table.columns.order_by("order", "id"))
+    if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+        order = {c[1]: i for i, c in enumerate(waybill_service.COLUMNS)}
+        return sorted(columns, key=lambda c: (order.get(c.code, len(order)), c.order, c.pk))
     if not is_waybill(table):
         return columns
     thu_tu = {ma: i for i, ma in enumerate(dispatch_service.GRID_ORDER)}
@@ -177,6 +181,23 @@ def display_columns(table, columns=None):
         return (cuoi, c.order, c.code)
 
     return sorted(columns, key=khoa)
+
+
+def waybill_groups(columns):
+    """Tiêu đề nhóm cố định của mẫu; cột người dùng thêm nằm cuối."""
+    info = {c[1] for c in waybill_service.COLUMNS[:15]}
+    payment = {c[1] for c in waybill_service.COLUMNS[16:]}
+    groups = []
+    for c in columns:
+        label = ("THÔNG TIN ĐƠN HÀNG" if c.code in info else
+                 "THÔNG TIN THANH TOÁN" if c.code in payment else
+                 "VẬN CHUYỂN" if c.code == "trang_thai_vc" else "BỔ SUNG")
+        if groups and groups[-1]["label"] == label:
+            groups[-1]["span"] += 1
+            groups[-1]["codes"].append(c.code)
+        else:
+            groups.append({"label": label, "span": 1, "codes": [c.code]})
+    return groups
 
 
 def frozen_columns(columns, *, waybill=True):
@@ -431,6 +452,15 @@ def cell_html(bang, ban_ghi, cot, *, gia_tri, hien, duoc_sua, lop, style="", qs_
     thuoc = f' style="{escape(style)}"' if style else ""
     if oob:
         thuoc += ' hx-swap-oob="outerHTML"'
+    if bang.code == ACTIVE_WAYBILL_TABLE_CODE and cot.code in waybill_service.DETAIL_CELLS:
+        url = reverse("waybill_detail", args=[pk])
+        return mark_safe(
+            f'<td class="{lop}" id="o-{pk}-{cot.code}"{thuoc} tabindex="0" data-dong="{pk}" data-cot="{cot.code}" '
+            f'data-goc="{escape(goc_gt)}" data-waybill-detail="{url}" '
+            f'title="{escape(cot.name)} — mở chi tiết sản phẩm">{escape(chu)}</td>'
+        )
+    if bang.code == ACTIVE_WAYBILL_TABLE_CODE and cot.code in waybill_service.PROTECTED:
+        duoc_sua = False
     if duoc_sua and not cot.is_computed:
         url = cell_url(goc, pk, cot.code)
         return mark_safe(
@@ -472,7 +502,7 @@ def row_context(record, columns, user, *, waybill=True, co_dinh=None, stt=None, 
         "stt": stt,
         "cac_o": cac_o,
         "sua": sua,
-        "lop": choices.row_class(record.data.get("trang_thai_vc")) if waybill else "",
+        "lop": choices.row_class(record.data.get("trang_thai_vc")) if waybill or record.table.code == ACTIVE_WAYBILL_TABLE_CODE else "",
         "so_trung": so_trung,
         "lop_trung": "co-dinh tien o-trung" if so_trung > 1 else "co-dinh tien",
         "style_trung": duplicate_style(),

@@ -27,12 +27,13 @@ from core.constants import (
 )
 from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import PAGE_SIZES, page_size, paginate
-from core.permissions import assert_rank, has_rank
+from core.permissions import assert_rank, has_rank, in_departments
+from core.navigation import SALES_ONLY
 from forms_builder.models import DataRecord, Folder, TableDef
 from forms_builder.services import (
     export_service, folder_service, grant_service, record_service, table_service,
 )
-from orders.constants import WAYBILL_TABLE_CODE
+from orders.constants import WAYBILL_TABLE_CODE, ACTIVE_WAYBILL_TABLE_CODE
 from orders.services import dispatch_service
 from org.models import Department
 
@@ -54,6 +55,8 @@ def _ma_bang_mac_dinh(user):
     """`/bang-tinh/` mở bảng vận đơn nếu người này thấy nó, không thì bảng đầu
     tiên trong phạm vi; không có bảng nào thì 404 kèm lời giải thích."""
     cac = _cac_bang(user)
+    if cac.filter(code=ACTIVE_WAYBILL_TABLE_CODE).exists():
+        return ACTIVE_WAYBILL_TABLE_CODE
     if cac.filter(code=WAYBILL_TABLE_CODE).exists():
         return WAYBILL_TABLE_CODE
     dau = cac.first()
@@ -189,7 +192,12 @@ def bang_tinh(request):
 def bang_tinh_xem(request, code):
     """Lưới một bảng: lọc theo cột, sắp xếp, phân trang 100 dòng, sửa ô tại chỗ,
     dòng trống để thêm, thanh lọc bên trái, thanh công cụ."""
+    if code == ACTIVE_WAYBILL_TABLE_CODE and not _cac_bang(request.user).filter(code=code).exists():
+        if in_departments(request.user, SALES_ONLY):
+            return redirect("waybill_create")
+        raise OutOfScopeError("Bạn không có quyền xem bảng Vận đơn.")
     bang = _bang(request, code)
+    new_waybill = code == ACTIVE_WAYBILL_TABLE_CODE
     luoi = grid_service.build_grid(request.user, request.GET, table=bang)
     trang = paginate(request, luoi.queryset, default_size=GRID_PAGE_SIZE)
     qs_loc = _qs_khac(request.GET)
@@ -198,7 +206,7 @@ def bang_tinh_xem(request, code):
         for khoa, nhan in luoi.chips
     ]
     vd = luoi.is_waybill
-    duoc_them = grant_service.can_create_record(request.user, bang)
+    duoc_them = grant_service.can_create_record(request.user, bang) and not new_waybill
     cay = folder_service.tree(request.user)
     # Số dòng như Excel (ADR-011): hàng tên cột là 1, dữ liệu của trang từ 2
     dong_dau = (trang.start_index() or 1) + 1      # trang rỗng: dòng trống vẫn từ 2
@@ -213,6 +221,9 @@ def bang_tinh_xem(request, code):
               if thang_dang_xem is not None
               else tree_service.home_url(bang.department, all_tables=True))
     return render(request, "crm/bang_tinh.html", {
+        "new_waybill": new_waybill,
+        "can_enter_order": new_waybill and in_departments(request.user, SALES_ONLY),
+        "waybill_groups": grid_service.waybill_groups(luoi.columns) if new_waybill else [],
         "thang_dang_xem": thang_dang_xem,
         "ve_url": ve_url, "ve_nhan": "Về Bảng tính — thư mục",
         "cay": cay,

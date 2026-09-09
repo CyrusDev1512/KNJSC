@@ -17,10 +17,43 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from core.constants import Currency
-from core.models import ScopedModel, TimestampedModel
+from core.models import ScopedModel, TimestampedModel, SoftDeleteModel
 from core.money import money_field
 
 from .constants import Market, PaymentMethod
+
+
+class WaybillItemQuerySet(models.QuerySet):
+    """Phạm vi chi tiết luôn đi qua dòng vận đơn cha."""
+
+    def in_scope(self, user):
+        from forms_builder.models import DataRecord
+        return self.for_records(DataRecord.objects.in_scope(user))
+
+    def for_records(self, records):
+        return self.filter(record_id__in=records.order_by().values("pk"),
+                           deleted_at__isnull=True, record__deleted_at__isnull=True)
+
+
+class WaybillItem(TimestampedModel, SoftDeleteModel):
+    """Bản sao sản phẩm vận đơn; sửa không ghi ngược OrderLine — ADR-018."""
+
+    record = models.ForeignKey("forms_builder.DataRecord", on_delete=models.PROTECT,
+                               related_name="waybill_items")
+    product = models.ForeignKey("orders.Product", on_delete=models.PROTECT)
+    quantity = models.PositiveIntegerField("Số lượng")
+    unit_price = money_field("Đơn giá")
+    paid_amount = money_field("Đã thanh toán", default=Decimal("0.00"))
+
+    objects = WaybillItemQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["pk"]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(quantity__gt=0), name="waybill_item_quantity_positive"),
+            models.CheckConstraint(condition=models.Q(unit_price__gte=0), name="waybill_item_price_nonnegative"),
+            models.CheckConstraint(condition=models.Q(paid_amount__gte=0), name="waybill_item_paid_nonnegative"),
+        ]
 
 
 # ══ DANH MỤC SẢN PHẨM ═════════════════════════════════════════════

@@ -112,6 +112,7 @@ Trong tình huống nào thì nên xem lại quyết định này.
 | 015 | KN CRM có khung sidebar theo Teeze, trang chủ là tổng quan, Leader như Manager trong bộ phận; tạo bảng, nhập tệp, cấp quyền ngay trong KN CRM | Đã áp dụng | 07.09.2026 |
 | 016 | KN CRM chịu được 100 nghìn khách và 100 người cùng lúc: đo trước, sửa đúng chỗ đo được — ô lưới dựng bằng Python, cột Trùng theo trang, `moi-nhat/` không đếm dòng, `bulk_save` bằng VALUES, tính lại cột chạy nền, compose có chế độ gunicorn | Đã áp dụng | 07.09.2026 |
 | 017 | Năm tính năng nội bộ (Bảng tin, Tài liệu, Công việc, Văn hoá, Tài nguyên) là năm app riêng, làm MVP trước | Đã áp dụng | 06.09.2026 |
+| 018 | Vận đơn mới theo CRM Tân, hai bảng độc lập, chi tiết sản phẩm và tiền thu, thống kê theo bản sao | Đã áp dụng | 08.09.2026 |
 
 ---
 

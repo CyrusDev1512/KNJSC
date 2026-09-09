@@ -20,6 +20,7 @@ THU_MUC_TEMPLATE = GOC / "templates"
 CAC_TEP_CSS = [
     GOC / "static" / "css" / "main.css", GOC / "static" / "css" / "tokens.css",
     GOC / "static" / "css" / "bang-tinh.css",
+    GOC / "static" / "css" / "waybill.css",
 ]
 
 #: Lớp chỉ dùng làm móc cho JavaScript, cố ý không có kiểu dáng.

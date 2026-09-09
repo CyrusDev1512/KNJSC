@@ -447,6 +447,7 @@
       moi('[data-cot="' + th.dataset.cot + '"]', function (o) { o.hidden = gia_tri; });
     });
     canhCotCoDinh();
+    LUOI.dispatchEvent(new Event("gridColumnsChanged"));
   }
   function tenCot(ma) {
     var th = LUOI.querySelector('thead tr.bt-hang-ten th[data-cot="' + ma + '"]');

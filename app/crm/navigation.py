@@ -15,7 +15,8 @@ from django.conf import settings
 from django.urls import NoReverseMatch, reverse
 
 from core.constants import Rank
-from core.permissions import has_rank
+from core.permissions import has_rank, in_departments
+from core.navigation import SALES_ONLY
 
 
 @dataclass(frozen=True)
@@ -55,6 +56,8 @@ def build(user, current=""):
     from .services import tree_service
 
     muc = []
+    if in_departments(user, SALES_ONLY) and (u := _url("waybill_create")) is not None:
+        muc.append(CrmNavItem("waybill_create", "Lên đơn", u, "", current == "waybill_create"))
     if (u := _url("tong_quan")) is not None:
         muc.append(CrmNavItem("tong_quan", "Trang chủ", u, "⌂", current == "tong_quan"))
     if (u := _url("thu_muc")) is not None:

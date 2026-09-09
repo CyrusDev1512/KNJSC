@@ -1,0 +1,18 @@
+<form class="vd-stat-form" hx-get="{% url 'waybill_statistics' %}" hx-target="#vd-statistics">
+  {% for key, value in filters %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+  <label for="vd-group">Cách nhóm</label>
+  <select class="o-nhap" id="vd-group" name="group" onchange="this.form.requestSubmit()">
+    {% for code, label in groups %}<option value="{{ code }}" {% if group == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+</form>
+<p class="vd-note">Theo toàn bộ dòng khớp bộ lọc, tách riêng loại tiền. Bao gồm đơn Hủy/Hoàn nếu chưa lọc trạng thái.</p>
+{% if group == 'product' %}<p class="vd-note">Một đơn nhiều sản phẩm có thể xuất hiện ở nhiều nhóm; không cộng số đơn các nhóm để lấy tổng đơn.</p>{% endif %}
+<div class="vd-items-scroll"><table class="bang">
+  <thead><tr><th scope="col">Nhóm</th><th scope="col">Loại tiền</th><th scope="col">Số đơn</th><th scope="col">Số lượng</th><th scope="col">Giá trị</th><th scope="col">Đã thanh toán</th></tr></thead>
+  <tbody>{% for r in results %}<tr><td>{{ r.label|default:'Chưa có' }}</td><td>{{ r.currency }}</td><td>{{ r.orders }}</td><td>{{ r.quantity }}</td><td>{{ r.value|floatformat:2 }}</td><td>{{ r.paid|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="6">Chưa có vận đơn khớp bộ lọc.</td></tr>{% endfor %}</tbody>
+</table></div>
+<nav class="vd-actions" aria-label="Trang thống kê">
+  {% if page.has_previous %}<button class="nut" hx-get="{% url 'waybill_statistics' %}?{{ params }}&trang={{ page.previous_page_number }}" hx-target="#vd-statistics">Trang trước</button>{% endif %}
+  <span>Trang {{ page.number }} / {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<button class="nut" hx-get="{% url 'waybill_statistics' %}?{{ params }}&trang={{ page.next_page_number }}" hx-target="#vd-statistics">Trang sau</button>{% endif %}
+</nav>

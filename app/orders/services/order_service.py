@@ -138,8 +138,7 @@ def create_order(*, phone, customer_name, lines, actor, request=None,
     record(
         AuditAction.CREATE, actor=actor, target=don,
         detail=(
-            f"Lên đơn {don.code} — {khach.name} {khach.phone}, "
-            f"{len(cac_dong)} dòng, tổng {don.total} {don.currency}"
+            f"Lên đơn {don.code} — {len(cac_dong)} dòng sản phẩm"
         ),
         request=request,
     )

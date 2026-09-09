@@ -96,6 +96,7 @@ Mọi bảng có:
 | Báo cáo hằng ngày | Người nộp, thời điểm nộp, nội dung | FR-4.2 |
 | Đơn hàng | Khách hàng, giá bán, phương thức thanh toán, người tạo | |
 | Dòng sản phẩm trong đơn | Đơn nào, sản phẩm nào, số lượng, đơn giá | Một đơn nhiều dòng — FR-6.2 |
+| Chi tiết sản phẩm vận đơn | Dòng vận đơn, sản phẩm, số lượng, đơn giá, tiền đã thanh toán | Bản sao độc lập trong `orders.WaybillItem`, xoá mềm, Decimal; FK có chỉ mục; ADR-018 |
 | Danh mục sản phẩm | Tên, nhóm, đơn vị tính | Quản lý tự thêm |
 | Nhật ký hoạt động | Ai làm gì, trên đối tượng nào, khi nào | Chỉ ghi thêm — BR-6 |
 | Mục tài liệu | Tên, bộ phận (trống = toàn công ty), thứ tự | Nhóm Nội bộ, ADR-017 — FR-9.1 |

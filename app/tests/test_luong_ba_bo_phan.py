@@ -137,7 +137,7 @@ def test_mot_ngay_cua_cong_ty(client, departments, teams, nguoi_dung):
 
     # ── 4. Nhân viên Vận đơn cập nhật trạng thái, trên lưới KN CRM ──
     client.force_login(vd_nv)
-    bang_vd = dispatch_service.waybill_table()
+    bang_vd = don.record.table
 
     thay = DataRecord.objects.in_scope(vd_nv)
     assert thay.filter(pk=don.record_id).exists(), (

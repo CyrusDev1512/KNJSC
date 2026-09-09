@@ -1,0 +1,7 @@
+{% extends "crm/base_bang_tinh.html" %}
+{% load static %}
+{% block tieu_de %}Lên đơn · KN CRM{% endblock %}
+{% block ten_bang %}<h1>Lên đơn</h1>{% endblock %}
+{% block dau_trang %}<link rel="stylesheet" href="{% static 'css/waybill.css' %}">{% endblock %}
+{% block noi_dung %}<main class="vd-page"><section class="vd-section"><h2>Lên đơn</h2>{% include "crm/_waybill_entry.html" %}</section></main>{% endblock %}
+{% block cuoi_trang %}<script src="{% static 'js/waybill.js' %}" defer></script>{% endblock %}

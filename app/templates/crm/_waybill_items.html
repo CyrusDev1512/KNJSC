@@ -1,0 +1,18 @@
+<div class="vd-items-scroll">
+<table class="bang vd-items">
+  <thead><tr><th scope="col">Sản phẩm</th><th scope="col">Số lượng</th><th scope="col">Đơn giá</th>{% if with_payment %}<th scope="col">Đã thanh toán</th>{% endif %}<th scope="col">Thao tác</th></tr></thead>
+  <tbody>
+    {% for item in items %}<tr>
+      <td><select class="o-nhap" name="product" aria-label="Sản phẩm" required>
+        <option value="">Chọn sản phẩm</option>
+        {% for p in products %}<option value="{{ p.code }}" {% if p.code == item.product %}selected{% endif %}>{{ p.name }}{% if not p.is_active %} (ngừng bán){% endif %}</option>{% endfor %}
+      </select></td>
+      <td><input class="o-nhap" name="quantity" value="{{ item.quantity }}" type="number" min="1" step="1" aria-label="Số lượng" required></td>
+      <td><input class="o-nhap" name="unit_price" value="{{ item.unit_price|default:'0.00' }}" inputmode="decimal" aria-label="Đơn giá" required></td>
+      {% if with_payment %}<td><input class="o-nhap" name="paid_amount" value="{{ item.paid_amount|default:'0.00' }}" inputmode="decimal" aria-label="Đã thanh toán" required></td>{% endif %}
+      <td><button type="button" class="nut nut-nguy" data-remove-item>Bỏ dòng</button></td>
+    </tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+<button type="button" class="nut" data-add-item>Thêm sản phẩm</button>

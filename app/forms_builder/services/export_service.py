@@ -28,7 +28,7 @@ from core.constants import (
 from core.exceptions import BusinessError
 from core.models import BackgroundJob
 
-from .. import query
+from .. import query, record_policies
 from ..meaning import FieldType
 from ..models import DataRecord, TableDef
 
@@ -91,13 +91,23 @@ def cell_value(cot, gia_tri):
 
 def rows_of(queryset, columns):
     """Sinh từng dòng theo thứ tự cột, đọc theo lô để không nạp hết vào RAM."""
+    policy = record_policies.for_table(columns[0].table) if columns else None
+    if policy:
+        queryset = policy.export_queryset(queryset)
     for ban_ghi in queryset.iterator(chunk_size=500):
-        yield [cell_value(cot, ban_ghi.data.get(cot.code)) for cot in columns]
+        values = [cell_value(cot, ban_ghi.data.get(cot.code)) for cot in columns]
+        if policy:
+            values.append(policy.export_detail(ban_ghi))
+        yield values
 
 
 def build_workbook(queryset, columns, *, title):
+    policy = record_policies.for_table(columns[0].table) if columns else None
+    headers = [c.name for c in columns]
+    if policy:
+        headers += [c.name for c in policy.extra_columns(columns[0].table)]
     return excel.write_table(
-        [c.name for c in columns], rows_of(queryset, columns), sheet_title=title,
+        headers, rows_of(queryset, columns), sheet_title=title,
     )
 
 

@@ -35,8 +35,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **133** — 120 tự động, 13 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **119 trên 120** |
+| Tiêu chí nghiệm thu trong `docs/04` | **141** — 128 tự động, 13 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **127 trên 128** |
 | Tiêu chí tự động còn hoãn | **1**, đều thuộc diện chờ người dùng chốt — `AC-5.1`, backlog N9 |
 | Bao phủ dòng mã | khoảng 85% |
 
@@ -145,6 +145,19 @@ Ba trong bốn lỗi đó **không sập trang, không báo lỗi, không làm b
 ---
 
 ## Danh sách kiểm thủ công
+
+### Vận đơn CRM Tân — bổ sung 08.09.2026
+
+Chạy `pytest crm/tests/test_waybill_new.py`, rồi kiểm migration xuôi/ngược
+bằng `pytest core/tests/test_chuyen_doi.py -m cham -k orders` trên DB kiểm thử.
+Đối chiếu bằng mắt với sheet Vận đơn: ba khu cùng trang, PTTT tách riêng,
+Blacklist vắng mặt; bấm ô tổng nhập tiền cho hai sản phẩm, kiểm Tổng hợp và
+Theo sản phẩm; sửa SALE/CSKH và Quốc gia rồi kiểm hai cách nhóm còn lại.
+Lọc Ngày, đổi trang lưới, thống kê không bị cắt theo trang. Đổi loại tiền không
+quy đổi số đã nhập. Mở 390px, cuộn ngang lưới, thu gọn Lên đơn và Thống kê.
+Script kiểm đọc giao diện local: `node scripts/kiem-thu-van-don-ui.cjs`
+(cần Playwright đã có ở môi trường kiểm thử và Chrome; tài khoản mẫu hoặc
+biến `KN_TEST_USER`, `KN_TEST_PASSWORD`, `KN_CRM_URL`). Script không tạo đơn.
 
 Chạy trước mỗi lần bàn giao. Máy không làm được những việc này — **kịch bản
 bấm tay từng bước ở `docs/07-kich-ban-nghiem-thu.md`**.

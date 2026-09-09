@@ -7,9 +7,12 @@ là cây thư mục (ADR-015).
 """
 from django.urls import path
 
-from . import views
+from . import views, waybill_views
 
 urlpatterns = [
+    path("van-don/len-don/", waybill_views.create_order, name="waybill_create"),
+    path("van-don/chi-tiet/<int:pk>/", waybill_views.detail, name="waybill_detail"),
+    path("van-don/thong-ke/", waybill_views.statistics, name="waybill_statistics"),
     # Trang chủ KN CRM: tổng quan có sidebar (ADR-015); tên `bang_tinh` giữ
     # để mục KN CRM trên thanh bên ERP và các liên kết cũ vẫn đúng
     path("", views.tong_quan, name="bang_tinh"),
