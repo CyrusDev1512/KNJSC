@@ -119,3 +119,14 @@ theo thị trường mới.
 - Một số người dùng máy cấu hình thấp hoặc mạng yếu (xác nhận 06.09.2026), nhưng **hiện chưa cần quá lo về hiệu năng** (chủ dự án chốt cùng ngày). Giữ nếp gọn: không tải thứ không dùng, lưu từng ô không mất dữ liệu khi rớt mạng. Tối ưu sâu để sau, khi có số đo thật.
 - Điện thoại là phụ nhưng phải dùng được: 390px không tràn ngang, đã có kiểm thử tự động.
 - Trình đọc màn hình và tương phản cao: chưa ai nêu yêu cầu. Ghi nhận là chưa quyết, không phải "không cần".
+
+
+## Xác nhận 09.09.2026 — báo cáo và đánh giá nhân sự
+
+- Phạm vi xem báo cáo: Staff xem bản thân; Leader xem team mình; Manager xem
+  toàn bộ phòng ban mình; CEO/Admin xem toàn công ty. Đây là phạm vi báo cáo,
+  không tự áp lại cho các nội dung nội bộ dùng chung toàn công ty.
+- Tên hiển thị “Văn hoá” đổi thành **“Đánh giá nhân sự”**. Giữ module `culture`,
+  URL và dữ liệu hiện tại; đổi tên không đồng nghĩa đã có cơ chế chấm điểm mới.
+- Báo cáo muộn ảnh hưởng trực tiếp tới Đánh giá nhân sự. Chưa chốt hạn nộp,
+  ngoại lệ, mức trừ và cách tác động tới sao/điểm hiện có; chưa triển khai tự trừ.

@@ -57,6 +57,12 @@ riêng của Claude có sẵn trong môi trường Codex.
 
 ## 3. Context và ranh giới hệ thống
 
+- Tên hiển thị module `culture` là **Đánh giá nhân sự** (trước đây: Văn hoá).
+  Báo cáo muộn ảnh hưởng trực tiếp tới tính năng này; quy tắc hạn nộp, ngoại lệ
+  và mức trừ chưa chốt, không tự suy ra cách trừ sao/điểm.
+  Phạm vi báo cáo: Staff bản thân, Leader team, Manager phòng ban mình,
+  CEO/Admin toàn công ty; không tự mở rộng quy tắc này sang nội dung nội bộ chung.
+
 - **Ưu tiên hiện tại (chủ dự án chốt 09.09.2026):** tập trung sửa feedback
   khách hàng trong KNJSC_PROBLEM.txt theo phạm vi đã xác nhận. “Việc cần làm
   của tôi”, nhắc việc chủ động và AI là giai đoạn sau; không đưa vào tác vụ

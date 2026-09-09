@@ -68,3 +68,17 @@ có quyền ghi tiền/bằng chứng khi H7 chưa được trả lời.
 
    **Trả lời:** Chưa có thông tin thực tế đầy đủ. Câu hỏi này không hỏi lại
    việc ai phân công xử lý đơn: chủ dự án đã chốt là Leader Vận đơn.
+
+
+## Vấn đề 5 — Báo cáo muộn trong Đánh giá nhân sự
+
+**Đã chốt:** báo cáo muộn ảnh hưởng trực tiếp tới Đánh giá nhân sự (tên cũ:
+Văn hoá). Không hỏi lại việc có áp dụng hay không.
+
+1. **H8 — Hạn nộp cho từng loại báo cáo là khi nào; ngày nghỉ, nộp lại và
+   trường hợp được miễn được xử lý thế nào?**
+2. **H9 — Mỗi lần muộn ảnh hưởng bao nhiêu điểm, tính theo kỳ nào và có tác
+   động tới sao/xếp hạng hiện có không? Ai được xác nhận hoặc điều chỉnh?**
+
+**Đối tượng:** Chủ dự án, Nhân sự và người có thẩm quyền chốt đánh giá.
+**Trả lời:** Chưa có. Chưa triển khai tự trừ điểm.

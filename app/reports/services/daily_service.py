@@ -100,7 +100,7 @@ def history(user):
     bộ phận. Phạm vi do `ScopedManager` lo, không viết điều kiện ở đây.
     """
     return (DailyReport.objects.in_scope(user)
-            .select_related("form", "record", "created_by", "department", "team"))
+            .select_related("form", "form__table", "record", "created_by", "created_by__profile", "department", "team"))
 
 
 def read_report(bao_cao):
@@ -122,3 +122,36 @@ def read_report_cells(bao_cao):
 
     cot = styling.decorate_columns(list(bao_cao.form.table.columns.order_by("order", "id")))
     return styling.row_cells(bao_cao.record, cot)
+
+
+def history_choices(user):
+    """Danh mục lọc chỉ lấy từ báo cáo người xem có quyền đọc."""
+    from django.db.models import Exists, OuterRef
+    from org.models import Department
+    from forms_builder.models import FormDef, TableDef
+
+    reports = history(user)
+    allowed = TableDef.objects.in_scope(user).filter(is_active=True)
+    forms = FormDef.objects.filter(pk__in=reports.values("form_id")).annotate(
+        report_source_allowed=Exists(allowed.filter(pk=OuterRef("table_id")))
+    ).order_by("name")
+    departments = Department.objects.filter(pk__in=reports.values("department_id")).order_by("name")
+    return forms, departments
+
+
+def attach_marketing_links(page, forms, date_from, date_to):
+    """Gắn đường sang thống kê sau phân trang; không đọc cột theo từng dòng."""
+    from urllib.parse import urlencode
+    from .. import marketing
+
+    page.object_list = page.object_list.prefetch_related("form__table__columns")
+    allowed_forms = {form.pk for form in forms if form.report_source_allowed}
+    table_cache = {}
+    for report in page:
+        table = report.form.table
+        if table.pk not in table_cache:
+            table_cache[table.pk] = marketing.is_marketing(list(table.columns.all()))
+        if report.form_id in allowed_forms and table_cache[table.pk]:
+            report.thong_ke_qs = urlencode({"nguon": table.code, "nhom": "tong-hop",
+                "tu": date_from or report.report_date.isoformat(),
+                "den": date_to or report.report_date.isoformat()})

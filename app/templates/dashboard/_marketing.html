@@ -1,0 +1,19 @@
+<section class="bang-hop" aria-label="Thống kê Marketing">
+  <div class="trang-dau"><h2>Thống kê Marketing</h2></div>
+  {% if marketing.ok %}{% with m=marketing.data %}
+  <form method="get" class="loc">
+    <div class="truong"><label for="mkt-nguon">Nguồn Marketing</label><select class="o-nhap" id="mkt-nguon" name="mkt_nguon">
+      {% for t in m.tables %}<option value="{{ t.code }}" {% if t.pk == m.table.pk %}selected{% endif %}>{{ t.name }}</option>{% empty %}<option value="">Chưa có nguồn</option>{% endfor %}
+    </select></div>
+    <div class="truong"><label for="mkt-tu">Từ ngày</label><input class="o-nhap" id="mkt-tu" type="date" name="mkt_tu" value="{{ m.start|date:'Y-m-d' }}"></div>
+    <div class="truong"><label for="mkt-den">Đến ngày</label><input class="o-nhap" id="mkt-den" type="date" name="mkt_den" value="{{ m.end|date:'Y-m-d' }}"></div>
+    <button class="nut nut-chinh" type="submit">Xem thống kê</button>
+  </form>
+  {% if m.state == 'ready' %}<div class="bang-cuon"><table class="bang"><thead><tr>{% for label,value in m.metrics %}<th>{{ label }}</th>{% endfor %}</tr></thead><tbody><tr>{% for label,value in m.metrics %}<td>{{ value }}</td>{% endfor %}</tr></tbody></table></div>
+  {% elif m.state == 'empty' %}<p>Chưa có dữ liệu Marketing trong khoảng ngày này.</p>
+  {% elif m.state == 'no_source' %}<p>Chưa có nguồn báo cáo Marketing trong phạm vi của bạn.</p>
+  {% elif m.state == 'invalid_source' %}<p>Nguồn đã chọn không khả dụng trong phạm vi của bạn.</p>
+  {% else %}<p>Thống kê Marketing tạm chưa khả dụng.</p>{% endif %}
+  {% if m.url %}<a class="nut" href="{{ m.url }}">Xem báo cáo Marketing chi tiết</a>{% endif %}
+  {% endwith %}{% else %}<p>Thống kê Marketing tạm chưa khả dụng. Các phần khác vẫn hoạt động.</p>{% endif %}
+</section>

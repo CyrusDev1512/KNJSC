@@ -565,3 +565,42 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 09.09.2026: theo yêu cầu gom hoàn chỉnh, chuyển 10 bản nội dung về `ai/skills`; Codex/Claude mỗi bên chỉ còn 10 cầu nối cùng danh mục. `.impeccable` giữ dữ liệu thiết kế. Cập nhật đường dẫn launcher, nguồn và script kiểm hash/danh mục; kiểm CRLF, phát hiện file lệch/file dư đạt. Chưa commit/push; chưa kiểm client trên máy khác.
 
 09.09.2026: thay thế cấu trúc đồng bộ phía trên theo yêu cầu mới: chỉ `.agents/skills` giữ 10 skill, bỏ `ai`, `.claude/skills` và `.impeccable` ở gốc. Hồ sơ thiết kế giữ tại `.agents/design-state`; Impeccable dùng hướng dẫn thủ công, không tự chạy engine tạo lại thư mục gốc. Script chỉ kiểm tra, không tạo cầu nối. Chưa commit/push; chưa kiểm engine ở vị trí mới hoặc tự chọn skill qua 5 tác vụ.
+
+## Đề xuất cho giai đoạn sau — 09.09.2026
+
+**Trạng thái: đề xuất, chưa duyệt triển khai. Ưu tiên hiện tại vẫn là sửa feedback khách hàng.**
+
+**Câu hỏi của chủ dự án (tóm tắt):** Từ feedback trong KNJSC_PROBLEM, KN CRM nên làm tính năng gì, với mục tiêu dài hạn là hệ thống chủ động cho người dùng biết việc còn phải làm và sau này tích hợp AI xuyên suốt CRM/ERP?
+
+**Câu trả lời của trợ lý (tóm tắt):** Dựa trên phân công và trạng thái đơn để phát triển “Việc cần làm của tôi”: tập hợp việc theo người phụ trách, chỉ rõ vì sao cần xử lý, mở đúng đơn và xác định khi nào hoàn tất. Sau đó xem xét danh sách kế toán cần đối chiếu và thông báo có hành động đi kèm; tránh tạo thêm danh sách nhập tay trùng bảng vận đơn. AI về sau có thể tóm tắt việc tồn, giải thích và đề xuất bước tiếp theo, dựa trên dữ liệu, quyền và quy tắc nghiệp vụ đã chốt.
+
+**Phản hồi của chủ dự án:** Đồng ý định hướng, nhưng để giai đoạn sau; bây giờ tập trung sửa feedback của khách hàng trước. Phân công, phân quyền và các lỗi nghiệp vụ được xử lý theo feedback riêng, không gộp thành dự án nhắc việc/AI.
+
+**Còn cần xác nhận khi xem xét đề xuất:** Điều kiện sinh/hoàn thành việc, thời hạn, mức ưu tiên, kênh và tần suất thông báo, quyền hành động của AI. Quyền nhập/sửa tiền và bằng chứng vẫn chờ H7 trong [USER_INQUIRY.md](USER_INQUIRY.md).
+
+
+## Xác nhận 09.09.2026 — báo cáo và đánh giá nhân sự
+
+- Phạm vi xem báo cáo: Staff xem bản thân; Leader xem team mình; Manager xem
+  toàn bộ phòng ban mình; CEO/Admin xem toàn công ty. Đây là phạm vi báo cáo,
+  không tự áp lại cho các nội dung nội bộ dùng chung toàn công ty.
+- Tên hiển thị “Văn hoá” đổi thành **“Đánh giá nhân sự”**. Giữ module `culture`,
+  URL và dữ liệu hiện tại; đổi tên không đồng nghĩa đã có cơ chế chấm điểm mới.
+- Báo cáo muộn ảnh hưởng trực tiếp tới Đánh giá nhân sự. Chưa chốt hạn nộp,
+  ngoại lệ, mức trừ và cách tác động tới sao/điểm hiện có; chưa triển khai tự trừ.
+
+
+### 09.09.2026 — BC MKT trên KNERP, triển khai local
+
+Đã hoàn thiện các chỉ tiêu xác định theo Excel, lịch sử lọc biểu mẫu/phòng ban,
+khối Marketing trên Tổng quan và đổi tên Đánh giá nhân sự. Chi tiết và giới hạn
+ở [BC MKT ERP](bc-mkt-erp.md). `KNJSC_PROBLEM.txt` đánh dấu `-> đã làm` riêng
+phần hoàn thành; không đánh dấu cả nhóm 05/06 hoặc các mục hoãn.
+
+Kiểm chứng: 13 test mới đạt (công thức, tổng, zero/missing, 4 cấp quyền trên
+lịch sử/thống kê/Tổng quan/xuất, lọc và lỗi khối). Hồi quy reports, culture,
+core/tests/test_giao_dien.py, core/tests/test_mau_dung_chung.py và crm/tests đạt.
+Phát hiện rồi sửa vượt trần truy vấn do bộ lọc; test lịch sử/tổng hợp <=10 đạt.
+Sau tách helper lịch sử và sửa comment lộ trên UI, chạy lại reports đạt.
+Trình duyệt 1440px/390px đạt, không có console error được ghi nhận.
+Chưa commit/push; chưa áp quy tắc báo cáo muộn hoặc mở mục thị trường.

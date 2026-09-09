@@ -113,10 +113,11 @@ def _sao_luu():
     }
 
 
-def tong_quan(user):
+def tong_quan(user, *, params=None):
     """Toàn bộ số liệu của màn hình Tổng quan."""
     scope = get_user_scope(user)
     return {
+        "marketing": _khoi("marketing", lambda: _marketing(user, params or {})),
         "scope": scope,
         "la_admin": scope.is_admin,
         "nhan_su": _khoi("nhan_su", lambda: _so_nhan_su(user)),
@@ -126,3 +127,38 @@ def tong_quan(user):
         "tac_vu": _khoi("tac_vu", lambda: _tac_vu(user)),
         "sao_luu": _khoi("sao_luu", _sao_luu) if scope.is_admin else None,
     }
+
+
+def _marketing(user, params):
+    from urllib.parse import urlencode
+    from django.urls import reverse
+    from reports import marketing, aggregations
+    from reports.services import summary_service
+
+    tables = [t for t in summary_service.source_tables(user)
+              if marketing.is_marketing(list(t.columns.all()))]
+    code = params.get("mkt_nguon", "")
+    table = next((t for t in tables if t.code == code), None) if code else (tables[0] if tables else None)
+    start, end = summary_service.default_range()
+    start = summary_service.parse_day(params.get("mkt_tu"), start)
+    end = summary_service.parse_day(params.get("mkt_den"), end)
+    data = {"tables": tables, "table": table, "start": start, "end": end,
+            "state": "no_source"}
+    if code and table is None:
+        # Không để lựa chọn ngoài quyền rơi về nguồn khác hoặc lộ số liệu.
+        data["state"] = "invalid_source"
+        return data
+    if table is None:
+        return data
+    result = summary_service.build_context(user, table, tab="tong-hop", date_from=start,
+                                          date_to=end, product="")["kq"]
+    data["url"] = reverse("bao_cao_tong_hop") + "?" + urlencode({
+        "nguon": table.code, "tu": start.isoformat(), "den": end.isoformat(), "nhom": "tong-hop"})
+    if not result.ok:
+        data["state"] = "unavailable"
+    elif not result.totals["so_dong"]:
+        data["state"] = "empty"
+    else:
+        data["state"] = "ready"
+        data["metrics"] = list(zip([c.label for c in result.columns], aggregations.total_cells(result)))
+    return data

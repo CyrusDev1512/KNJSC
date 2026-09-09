@@ -20,7 +20,7 @@ from core.constants import AuditAction
 from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.models import DataRecord, TableDef
 
-from .. import aggregations
+from .. import aggregations, marketing
 
 #: Cách nhóm hợp lệ trên URL. "thi-truong" có mặt ở thanh tab nhưng chưa có
 #: số liệu — hoãn theo Q36, chờ chốt backlog N9.
@@ -50,6 +50,7 @@ def source_tables(user):
         TableDef.objects.in_scope(user)
         .filter(is_active=True, columns__meaning__gt="")
         .distinct()
+        .prefetch_related("columns")
         .order_by("name")
     )
 
@@ -152,6 +153,7 @@ def build_context(user, table, *, tab, date_from, date_to, product,
         date_from=date_from, date_to=date_to, product=product,
         with_totals=False,
     )
+    result = marketing.adapt(result, columns)
     cac_nhom = []
     if result.ok:
         cac_nhom = list(result.rows[:MAX_GROUPS + 1])
@@ -163,7 +165,7 @@ def build_context(user, table, *, tab, date_from, date_to, product,
             )
         else:
             totals = aggregations.totals_from_rows(cac_nhom, result)
-        result = aggregations.attach_totals(result, totals)
+        result = marketing.with_totals(result, totals)
     boi_canh = {
         "kq": result,
         "o_so": _headline(result) if result.ok else [],
@@ -240,4 +242,4 @@ def build_export(user, table, *, tab, date_from, date_to, product, request=None)
                 f"{date_from or '…'} đến {date_to or '…'}, {so_nhom} dòng nhóm"),
         request=request,
     )
-    return result
+    return marketing.adapt(result, columns)

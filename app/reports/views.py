@@ -23,7 +23,7 @@ from core.pagination import pagination_context
 
 from forms_builder.services import form_service
 
-from . import aggregations, excel
+from . import aggregations, excel, marketing
 from .services import daily_service, summary_service
 
 
@@ -95,8 +95,19 @@ def bao_cao_lich_su(request):
     if den:
         ds = ds.filter(report_date__lte=_ngay_bao_cao(den))
 
-    boi_canh = {"tim": tim, "tu": tu, "den": den}
+    forms, departments = daily_service.history_choices(request.user)
+    form_code = request.GET.get("bieu_mau", "").strip()
+    dept_code = request.GET.get("bo_phan", "").strip()
+    selected_form = get_object_or_404(forms, code=form_code) if form_code else None
+    selected_dept = get_object_or_404(departments, code=dept_code) if dept_code else None
+    if selected_form:
+        ds = ds.filter(form=selected_form)
+    if selected_dept:
+        ds = ds.filter(department=selected_dept)
+    boi_canh = {"tim": tim, "tu": tu, "den": den, "cac_bieu_mau": forms,
+               "cac_bo_phan": departments, "bieu_mau": form_code, "bo_phan": dept_code}
     boi_canh.update(pagination_context(request, ds, "báo cáo"))
+    daily_service.attach_marketing_links(boi_canh["trang"], forms, tu, den)
     return render(request, "reports/bao_cao_lich_su.html", boi_canh)
 
 
@@ -154,6 +165,10 @@ def bao_cao_tong_hop(request):
     bang = summary_service.pick_table(
         request.user, tham_so["nguon"], cac_bang, request=request)
 
+    tabs = summary_service.TABS
+    if bang is not None and marketing.is_marketing(list(bang.columns.all())):
+        tabs = (("tong-hop", "Thống kê tổng hợp"), ("nhan-vien", "Thống kê theo MKT"),
+                ("san-pham", "Thống kê theo sản phẩm"), ("thi-truong", "Thống kê theo thị trường"))
     boi_canh = {
         "cac_bang": cac_bang, "bang": bang,
         "tab": tham_so["tab"], "tu": tham_so["tu"], "den": tham_so["den"],
@@ -161,7 +176,7 @@ def bao_cao_tong_hop(request):
         "cac_tab": [
             {"ma": ma, "nhan": nhan,
              "url": "?" + _query_loc(tham_so, bang, nhom=ma)}
-            for ma, nhan in summary_service.TABS
+            for ma, nhan in tabs
         ],
         "qs": _query_loc(tham_so, bang),
         # Đuôi nối vào liên kết phân trang để không mất trạng thái lọc

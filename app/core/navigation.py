@@ -74,7 +74,7 @@ NAVIGATION = (
         NavItem("bang_tin", "Bảng tin", "bang_tin"),
         NavItem("tai_lieu", "Tài liệu", "tai_lieu"),
         NavItem("cong_viec", "Công việc", "cong_viec"),
-        NavItem("van_hoa", "Văn hoá", "van_hoa"),
+        NavItem("van_hoa", "Đánh giá nhân sự", "van_hoa"),
         NavItem("tai_nguyen", "Tài nguyên", "tai_nguyen"),
     )),
     NavGroup("Tổ chức", (

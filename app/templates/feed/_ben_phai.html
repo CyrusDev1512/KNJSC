@@ -20,7 +20,7 @@ sinh_nhat_hom_nay), top_sao, ghi_nhan_moi, thanh_vien_moi. Mọi người ở đ
   </div>
 
   <div class="the">
-    <div class="the-dau"><h2>Nhiều sao nhất</h2><a class="phai nho" href="{% url 'van_hoa' %}">Văn hoá →</a></div>
+    <div class="the-dau"><h2>Nhiều sao nhất</h2><a class="phai nho" href="{% url 'van_hoa' %}">Đánh giá nhân sự →</a></div>
     <ol class="bxh">
       {% for d in top_sao %}
         <li class="bxh-hang">
@@ -29,7 +29,7 @@ sinh_nhat_hom_nay), top_sao, ghi_nhan_moi, thanh_vien_moi. Mọi người ở đ
           <span class="sao">★ {{ d.sao }}</span>
         </li>
       {% empty %}
-        <li class="the-than nho mo-nhat">Chưa ai có sao. Cấp trên ghi nhận cấp dưới ở trang Văn hoá.</li>
+        <li class="the-than nho mo-nhat">Chưa ai có sao. Cấp trên ghi nhận cấp dưới ở trang Đánh giá nhân sự.</li>
       {% endfor %}
     </ol>
   </div>

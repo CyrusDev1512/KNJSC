@@ -107,13 +107,21 @@ Ranh giới được nêu trong nguồn
 
 Vấn đề tập trung
 1. Lịch sử báo cáo cần tạo thống kê Marketing dựa trên input của Marketing.
+   Phần đã kiểm chứng 09.09.2026: lọc lịch sử theo biểu mẫu/phòng ban, mở thống kê Marketing đúng bảng nguồn và kỳ; tính các chỉ tiêu BC MKT đã xác định -> đã làm
+   Còn chờ: định nghĩa/nguồn Doanh thu, Hóa đơn và thống kê theo thị trường.
 2. Marketing nhập dữ liệu thì hệ thống phải thống kê lại cho Marketing; Sale và Vận đơn cũng cần cơ chế tương tự.
+   Phần Marketing: tổng hợp theo ngày, Marketer, sản phẩm; công thức BC MKT, xuất Excel và giới hạn bản thân/team/phòng ban/toàn công ty -> đã làm
+   Còn chờ: đặc tả tương ứng của Sale/Vận đơn; không đánh dấu hoàn tất toàn mục.
 3. Cần tính ví dụ như tỷ lệ thu tiền đến tỷ lệ realtime là bao nhiêu phần trăm, theo công thức do công ty cung cấp.
 4. Trước đây việc này thuộc Leader; cần xác định lại vai trò nhập, kiểm tra và xem thống kê.
 5. Công thức xử lý cần nằm ngoài file master/dữ liệu gốc.
 6. Thống kê không phải lúc nào cũng cần realtime; chậm một chút không phải vấn đề.
 7. Quy định Marketing: báo cáo muộn sẽ bị đánh giá trừ điểm, do phía quản trị kiểm soát.
+   Đổi tên hiển thị Văn hóa thành Đánh giá nhân sự -> đã làm
+   Chưa làm xác định muộn/trừ điểm: chờ hạn nộp, ngoại lệ và cách tính điểm ở H8–H9.
 8. Giám đốc đăng nhập cần xem báo cáo tổng hợp Marketing, Sale, Vận đơn và CSKH.
+   Khối Marketing trên Tổng quan: chọn một nguồn, lọc ngày, xem tổng và mở chi tiết theo quyền -> đã làm
+   Chưa hoàn tất tổng quan đủ Sale/Vận đơn/CSKH; không cộng chồng nhiều bảng.
 
 Kết quả tính năng cần hướng tới
 - KNCRM giữ dữ liệu nghiệp vụ đầu vào.

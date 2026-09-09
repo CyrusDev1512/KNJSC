@@ -81,3 +81,19 @@ lỗi nào dưới đây có bài kiểm; mỗi lỗi khi sửa phải kèm mộ
 Ba điều kiện đo do tôi đặt, chờ anh/chị xác nhận: nhịp người ảo 4–12 giây một
 thao tác; bỏ 20 giây đầu khi cả 100 người đăng nhập; lượt bị từ chối vì dòng
 vừa bị người khác xoá không tính là lỗi.
+
+
+### 09.09.2026 — BC MKT trên KNERP, triển khai local
+
+Đã hoàn thiện các chỉ tiêu xác định theo Excel, lịch sử lọc biểu mẫu/phòng ban,
+khối Marketing trên Tổng quan và đổi tên Đánh giá nhân sự. Chi tiết và giới hạn
+ở [BC MKT ERP](bc-mkt-erp.md). `KNJSC_PROBLEM.txt` đánh dấu `-> đã làm` riêng
+phần hoàn thành; không đánh dấu cả nhóm 05/06 hoặc các mục hoãn.
+
+Kiểm chứng: 13 test mới đạt (công thức, tổng, zero/missing, 4 cấp quyền trên
+lịch sử/thống kê/Tổng quan/xuất, lọc và lỗi khối). Hồi quy reports, culture,
+core/tests/test_giao_dien.py, core/tests/test_mau_dung_chung.py và crm/tests đạt.
+Phát hiện rồi sửa vượt trần truy vấn do bộ lọc; test lịch sử/tổng hợp <=10 đạt.
+Sau tách helper lịch sử và sửa comment lộ trên UI, chạy lại reports đạt.
+Trình duyệt 1440px/390px đạt, không có console error được ghi nhận.
+Chưa commit/push; chưa áp quy tắc báo cáo muộn hoặc mở mục thị trường.

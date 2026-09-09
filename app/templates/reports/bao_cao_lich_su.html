@@ -29,6 +29,12 @@
       <label for="den">Đến ngày</label>
       <input class="o-nhap" type="date" id="den" name="den" value="{{ den }}">
     </div>
+    <div class="truong"><label for="bieu-mau">Biểu mẫu</label>
+      <select class="o-nhap" name="bieu_mau" id="bieu-mau"><option value="">Tất cả biểu mẫu</option>
+      {% for f in cac_bieu_mau %}<option value="{{ f.code }}" {% if bieu_mau == f.code %}selected{% endif %}>{{ f.name }}</option>{% endfor %}</select></div>
+    <div class="truong"><label for="bo-phan">Bộ phận</label>
+      <select class="o-nhap" name="bo_phan" id="bo-phan"><option value="">Tất cả bộ phận trong quyền</option>
+      {% for d in cac_bo_phan %}<option value="{{ d.code }}" {% if bo_phan == d.code %}selected{% endif %}>{{ d.name }}</option>{% endfor %}</select></div>
     <div class="loc-nut">
       <a class="nut nut-nho" href="{% url 'bao_cao_lich_su' %}">Xoá lọc</a>
       <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
@@ -52,13 +58,13 @@
             <td>{{ bc.created_by.profile.full_name|default:bc.created_by.username }}</td>
             <td class="nho">{{ bc.department }}</td>
             <td class="nho">{{ bc.team|default:"—" }}</td>
-            {# Đọc thẳng cột tách của nhãn Doanh thu — đây là chỗ bảy nhãn
-               ý nghĩa của Giai đoạn 3 bắt đầu trả công #}
+            {% comment %}Doanh số từ cột tách của bảng nguồn.{% endcomment %}
             <td class="tien">{{ bc.record.val_revenue|default:"—" }}</td>
             {# Lưu giờ quốc tế, hiện giờ Việt Nam — BR-7, quy tắc 5 #}
             <td class="ma-o">{{ bc.submitted_at|date:"d.m H:i" }}</td>
             <td class="phai">
               <a class="nut nut-nho" href="{% url 'bao_cao_xem' bc.pk %}">Xem</a>
+              {% if bc.thong_ke_qs %}<a class="nut nut-nho" href="{% url 'bao_cao_tong_hop' %}?{{ bc.thong_ke_qs }}">Thống kê Marketing</a>{% endif %}
             </td>
           </tr>
         {% empty %}
