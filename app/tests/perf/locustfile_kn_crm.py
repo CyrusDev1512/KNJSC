@@ -59,7 +59,7 @@ try:
 except Exception:  # noqa: BLE001 — chạy ngoài thư mục app thì dùng đúng con số đã chốt
     GRID_POLL_SECONDS, PERF_READ_P95_MS, PERF_WRITE_P95_MS, PERF_POLL_P95_MS, PERF_RECOMPUTE_SECONDS = 8, 1000, 500, 300, 30
 
-MAT_KHAU = os.environ.get("KNJSC_MAT_KHAU", "MatKhauTam-2026")
+MAT_KHAU = os.environ.get("KNJSC_MAT_KHAU", "matkhaucuatoi")
 ERP_HOST = os.environ.get("ERP_HOST", "http://localhost:8020")
 MANAGER_DELAY = int(os.environ.get("MANAGER_DELAY", "90"))
 MANAGER_VAN_DON = os.environ.get("MANAGER_VAN_DON", "1") == "1"    # 0: không đổi cột trên bảng vận đơn (chạy thử ngắn)

@@ -57,7 +57,7 @@ def test_may_trong_chay_xong_thi_dang_nhap_duoc(client):
 
     assert get_user_model().objects.count() == 12
     kq = client.post("/dang-nhap/", {
-        "username": "quantri", "password": "MatKhauTam-2026",
+        "username": "quantri", "password": "matkhaucuatoi",
     })
     assert kq.status_code == 302, "Tài khoản quản trị không đăng nhập được"
 

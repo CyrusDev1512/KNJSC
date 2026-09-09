@@ -210,7 +210,11 @@ if defined MA_DOI (
 if "%LAN_DAU%"=="1" (
   echo May moi, dang nap tai khoan mau - mat khau in ra cuoi lenh ...
   %COMPOSE% exec -T web python manage.py du_lieu_mau
+  if errorlevel 1 goto :loi
 )
+rem Moi database local nhan cap nhat tai khoan mau mot lan; khong nap lai du lieu.
+%COMPOSE% exec -T web python manage.py cap_nhat_mat_khau_mau
+if errorlevel 1 goto :loi
 start "" %DIA_CHI%
 echo.
 echo Da mo http://localhost:8020 - KN ERP. KN CRM - bang tinh: http://localhost:8021/

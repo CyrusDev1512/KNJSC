@@ -15,7 +15,7 @@ const fs = require('fs');
   try {
     await page.goto(base + '/dang-nhap/');
     await page.locator('[name=username]').fill(process.env.KN_TEST_USER || 'quantri');
-    await page.locator('[name=password]').fill(process.env.KN_TEST_PASSWORD || 'MatKhauTam-2026');
+    await page.locator('[name=password]').fill(process.env.KN_TEST_PASSWORD || 'matkhaucuatoi');
     await page.locator('button[type=submit]').click();
     await page.waitForURL(url => !url.pathname.includes('dang-nhap'));
     await page.goto(base + '/bang-tinh/van_don_moi/');

@@ -24,7 +24,7 @@ import re
 
 from locust import HttpUser, between, events, task
 
-MAT_KHAU = os.environ.get("KNJSC_MAT_KHAU", "MatKhauTam-2026")
+MAT_KHAU = os.environ.get("KNJSC_MAT_KHAU", "matkhaucuatoi")
 BANGTINH_HOST = os.environ.get("BANGTINH_HOST", "http://localhost:8021")
 NGUONG_P99_MS = 3000
 TRANG_THAI = ["Đã lên đơn", "Đang giao", "Đã nhận hàng", "Hẹn lại"]

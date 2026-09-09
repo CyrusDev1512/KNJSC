@@ -24,6 +24,16 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 
 ## 0. Còn nợ những gì — xem ở đây trước
 
+**Đã xong 09.09.2026 — cập nhật đăng nhập mẫu qua launcher:** chủ dự án yêu cầu
+đổi mật khẩu chung của 12 tài khoản mẫu và để máy khác nhận khi mở KN JSC.
+Đã đồng bộ mặc định seed, tài liệu và script kiểm thử; `KN JSC.bat` gọi
+`cap_nhat_mat_khau_mau` sau khởi tạo. Lệnh chỉ chạy khi DEBUG bật, đánh dấu từng
+tài khoản trong database để không đặt lại ở lần mở sau, giữ quyền và cờ buộc đổi
+mật khẩu, không nạp dữ liệu nghiệp vụ. Sửa ghi chú cũ trong tài liệu: chạy lại
+`du_lieu_mau` thực tế có đặt lại mật khẩu tài khoản đã có. Kiểm thử liên quan:
+18 bài đạt; database local đã xác thực đủ 12 tài khoản, chạy lại cập nhật 0.
+Máy khác cần kéo được nhánh có thay đổi này; chưa kiểm chứng trên máy thứ hai.
+
 **Đã xong 09.09.2026 — Vận đơn theo CRM Tân (ADR-018):** đã bổ sung bảng
 `van_don_moi`, luồng tạo ERP/CRM, chi tiết/thanh toán từng sản phẩm và bốn cách
 thống kê. 25 bài kiểm mới và toàn bộ hồi quy đã đạt; migration xuôi/ngược đạt;

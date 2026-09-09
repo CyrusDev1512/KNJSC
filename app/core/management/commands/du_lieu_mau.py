@@ -28,7 +28,7 @@ from core.constants import Rank
 from orders.constants import WAYBILL_DEPARTMENT_CODE, WAYBILL_DEPARTMENT_NAME
 
 #: Mật khẩu chung cho mọi tài khoản mẫu. Chỉ dùng ở máy phát triển.
-MAT_KHAU_MAU = "MatKhauTam-2026"
+MAT_KHAU_MAU = "matkhaucuatoi"
 
 #: Ba bộ phận. Bộ phận Vận đơn lấy tên từ `orders.constants` để khớp với
 #: lệnh `tao_bang_van_don`.
