@@ -107,11 +107,13 @@
     }
   });
   document.body.addEventListener('waybillChanged', function (event) {
-    if (!document.getElementById('vd-page')) return;
-    if (event.detail.kind === 'detail') {
-      document.getElementById('vd-detail').close();
-      htmx.ajax('GET', location.href, {target: '#luoi-vd tbody', select: '#luoi-vd tbody', swap: 'outerHTML'});
-    } else window.location.reload();
+    var dialog = document.getElementById('vd-detail');
+    if (!grid || !dialog || event.detail.kind !== 'detail') return;
+    dialog.close();
+    htmx.ajax('GET', location.href, {target: '#luoi-vd tbody', select: '#luoi-vd tbody', swap: 'outerHTML'}).then(function () {
+      // tbody cũ đã rời DOM sau outerHTML, không dựa vào contains ở afterSwap.
+      htmx.trigger(document.body, 'waybillRefresh');
+    });
   });
   document.body.addEventListener('htmx:afterSwap', function (event) {
     if (grid && grid.contains(event.detail.target)) htmx.trigger(document.body, 'waybillRefresh');

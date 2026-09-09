@@ -1,4 +1,4 @@
-"""Ba khu vận đơn mới: nhập, chi tiết và thống kê — ADR-018."""
+"""Trang lên đơn riêng, chi tiết và thống kê vận đơn — ADR-018, ADR-019."""
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
@@ -53,8 +53,6 @@ def create_order(request):
                "ve_url": reverse("thu_muc"), "ve_nhan": "Về Bảng tính — thư mục"}
     template = "crm/_waybill_entry.html" if request.headers.get("HX-Request") else "crm/waybill_entry.html"
     response = render(request, template, context, status=400 if error or form.errors else 200)
-    if success:
-        response["HX-Trigger"] = "waybillChanged"
     return response
 
 

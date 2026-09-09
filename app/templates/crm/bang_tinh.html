@@ -14,11 +14,6 @@
 {% block noi_dung %}
 {% if new_waybill %}
 <div class="vd-page" id="vd-page">
-  <details class="vd-section" {% if can_enter_order %}open{% endif %}>
-    <summary>Lên đơn</summary>
-    {% if can_enter_order %}<div hx-get="{% url 'waybill_create' %}" hx-trigger="load" hx-swap="outerHTML">Đang tải biểu mẫu…</div>
-    {% else %}<p class="vd-note">Bộ phận Sale lên đơn tại KN ERP hoặc KN CRM. Đơn mới xuất hiện ở lưới bên dưới.</p>{% endif %}
-  </details>
   <h2 class="vd-heading">Vận hành đơn</h2>
 {% endif %}
 {% comment %}
@@ -81,7 +76,7 @@ Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chú
           {% endfor %}
           {% if not cac_dong and not cac_dong_trong %}
             {% if new_waybill %}<tr class="bt-dong-rong"><td class="vd-empty-cell" colspan="{{ so_cot_luoi }}">
-              {% include "components/rong.html" with rong_tieu_de="Chưa có vận đơn khớp bộ lọc" rong_mo_ta="Đơn tạo từ ERP hoặc khu Lên đơn sẽ xuất hiện ở đây. Có thể bỏ bớt bộ lọc để xem các đơn khác." %}
+              {% include "components/rong.html" with rong_tieu_de="Chưa có vận đơn khớp bộ lọc" rong_mo_ta="Đơn tạo tại trang Lên đơn của KN ERP hoặc KN CRM sẽ xuất hiện ở đây. Có thể bỏ bớt bộ lọc để xem các đơn khác." %}
             </td></tr>{% else %}<tr class="bt-dong-rong"><td colspan="{{ so_cot_luoi }}">
               {% include "components/rong.html" with rong_tieu_de="Không có dòng nào" rong_mo_ta="Chưa có dòng nào khớp bộ lọc. Bỏ bớt lọc, hoặc nhập tệp ở Bảng dữ liệu." %}
             </td></tr>{% endif %}

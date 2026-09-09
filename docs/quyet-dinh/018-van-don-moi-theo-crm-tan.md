@@ -7,6 +7,10 @@ không tự tạo thêm yêu cầu ngoài các lựa chọn chủ dự án đã 
 
 ## Quyết định
 
+> Phần **bố cục ba khu** dưới đây đã được [ADR-019](019-tach-len-don-khoi-bang-van-don.md)
+> thay thế ngày 09.09.2026: gỡ Lên đơn nhúng, giữ lưới và thống kê. Nội dung
+> cũ được giữ để truy lịch sử; các quyết định dữ liệu và quyền vẫn áp dụng.
+
 - Giữ `van_don`, đổi nhãn thành **Vận đơn cũ**; không chép dữ liệu, đổi ID,
   đường dẫn hay liên kết `Order.record` lịch sử. **Vận đơn** mới có mã
   `van_don_moi`, bắt đầu trống. Đơn tạo sau chuyển đổi ở ERP và CRM cùng ghi

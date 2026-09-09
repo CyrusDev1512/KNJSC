@@ -24,6 +24,18 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 
 ## 0. Còn nợ những gì — xem ở đây trước
 
+**09.09.2026 — ADR-019:** chủ dự án chốt bỏ Lên đơn nhúng trong bảng Vận đơn,
+giữ lưới, thống kê và hai trang Lên đơn riêng. Đã gỡ template, context và sự kiện
+tải lại bảng sau tạo đơn; cập nhật AC-18.8 và kiểm thử. Phần bố cục ba khu của
+Q79/ADR-018 là lịch sử, được ADR-019 thay thế. Yêu cầu Vận đơn chỉ sửa giao hàng
+và thu tiền, không sửa giá/số lượng, cần xử lý ở tác vụ riêng; chưa đổi quyền
+chi tiết trong lượt này. Không sửa 20 khách mẫu hoặc database local.
+Kiểm chứng: 135 bài CRM/đơn hàng đạt; Chrome 1440px và 390px đạt. Script kiểm
+form riêng sau HTMX swap, không tải form trong bảng, bảng trống và mô phỏng
+tín hiệu lưu chi tiết để kiểm tải lại lưới/thống kê (không POST dữ liệu local).
+Đã làm rõ bước tải lại thống kê sau thay `tbody`: node cũ rời DOM nên không
+chỉ dựa vào `contains` trong `afterSwap`. Database giữ 20 dòng mới và 13 dòng cũ.
+
 **Đã xong 09.09.2026 — cập nhật đăng nhập mẫu qua launcher:** chủ dự án yêu cầu
 đổi mật khẩu chung của 12 tài khoản mẫu và để máy khác nhận khi mở KN JSC.
 Đã đồng bộ mặc định seed, tài liệu và script kiểm thử; `KN JSC.bat` gọi

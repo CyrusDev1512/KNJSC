@@ -144,7 +144,8 @@ def test_direct_routes_permissions_both_directions(client, setup, departments, m
     post = {**form_data(setup[2]), "paid_amount": ["1.00", "0.00"], "version": row.updated_at.isoformat()}
     assert client.post(detail, post).status_code == expected
     if rank != Rank.ADMIN:
-        assert client.get(GRID).status_code == 302  # chỉ tới khu nhập, không nhận lưới
+        response = client.get(GRID)
+        assert response.status_code == 302 and response.url == ENTRY
         vd = make_user(f"vd_{rank}", rank, departments["vd"])
         client.force_login(vd)
         assert client.get(ENTRY).status_code == 403
@@ -239,15 +240,50 @@ def test_invalid_money_is_business_error(value):
         service.money(value)
 
 
-def test_three_sections_and_protected_cells(client, setup, nguoi_dung):
-    """AC-18.8 — Trang có ba khu, nhóm cột, mở chi tiết từ ô tổng và không có Blacklist."""
+@pytest.mark.parametrize("role", ["admin", "staff_sale_1", "staff_vd"])
+def test_grid_and_statistics_without_embedded_entry(client, setup, nguoi_dung, role):
+    """AC-18.8, ADR-019 — Chỉ lưới và thống kê; không tải form Lên đơn nhúng."""
     order(setup, nguoi_dung["staff_sale_1"])
-    client.force_login(nguoi_dung["admin"])
+    user = nguoi_dung[role]
+    if role == "staff_sale_1":
+        grant_service.grant(table=setup[1], user=user, action=GrantAction.VIEW, actor=nguoi_dung["admin"])
+    client.force_login(user)
     response = client.get(GRID)
     html = response.content.decode()
-    for text in ("Lên đơn", "Vận hành đơn", "Thống kê", "THÔNG TIN ĐƠN HÀNG", "THÔNG TIN THANH TOÁN", "data-waybill-detail"):
+    for text in ("Vận hành đơn", "Thống kê", "THÔNG TIN ĐƠN HÀNG", "THÔNG TIN THANH TOÁN", "data-waybill-detail"):
         assert text in html
+    assert 'id="vd-entry"' not in html and '<summary>Lên đơn</summary>' not in html
+    assert 'hx-get="' + ENTRY not in html and 'hx-post="' + ENTRY not in html
+    assert "can_enter_order" not in response.context
     assert "black_list" not in html and not response.context["duoc_them_dong"]
     row = DataRecord.objects.filter(table=setup[1]).get()
     detail = client.get(f"/van-don/chi-tiet/{row.pk}/").content.decode()
     assert "Đã thanh toán" in detail and 'name="paid_amount"' in detail
+
+
+def test_standalone_entry_htmx_success_and_validation(client, setup, nguoi_dung):
+    """ADR-019 — Form riêng giữ lỗi/thành công, không phát sự kiện tải lại bảng."""
+    client.force_login(nguoi_dung["staff_sale_1"])
+    assert 'id="vd-entry"' in client.get(ENTRY).content.decode()
+    invalid = client.post(ENTRY, {**form_data(setup[2]), "customer_name": ""}, HTTP_HX_REQUEST="true")
+    assert invalid.status_code == 400 and 'id="vd-entry"' in invalid.content.decode()
+    assert not Order.objects.exists()
+    response = client.post(ENTRY, form_data(setup[2]), HTTP_HX_REQUEST="true")
+    assert response.status_code == 200 and "Đã lưu đơn" in response.content.decode()
+    assert 'id="vd-entry"' in response.content.decode()
+    assert "HX-Trigger" not in response
+    assert Order.objects.count() == 1 and DataRecord.objects.filter(table=setup[1]).count() == 1
+
+
+def test_erp_entry_still_dispatches_to_new_table(client, setup, nguoi_dung, settings):
+    """ADR-019 — Gỡ form nhúng không đổi nơi nhận của trang Lên đơn ERP."""
+    settings.ROOT_URLCONF = "knjsc.urls"
+    client.force_login(nguoi_dung["staff_sale_1"])
+    response = client.post("/len-don/", {
+        "phone": "2025550199", "customer_name": "Khách kiểm thử ERP",
+        "sp_0": setup[2][0].code, "sl_0": "2", "gia_0": "10.10",
+        "market": Market.US, "currency": Currency.USD,
+    })
+    assert response.status_code == 302
+    assert Order.objects.get().record.table_id == setup[1].pk
+    assert DataRecord.objects.filter(table=setup[1]).count() == 1

@@ -222,7 +222,6 @@ def bang_tinh_xem(request, code):
               else tree_service.home_url(bang.department, all_tables=True))
     return render(request, "crm/bang_tinh.html", {
         "new_waybill": new_waybill,
-        "can_enter_order": new_waybill and in_departments(request.user, SALES_ONLY),
         "waybill_groups": grid_service.waybill_groups(luoi.columns) if new_waybill else [],
         "thang_dang_xem": thang_dang_xem,
         "ve_url": ve_url, "ve_nhan": "Về Bảng tính — thư mục",

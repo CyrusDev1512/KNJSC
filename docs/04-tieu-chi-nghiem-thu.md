@@ -382,4 +382,4 @@ Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ 
 | AC-18.5 | Ô tổng và trạng thái tự tính không sửa trực tiếp/dán đè; gói dán có ô cấm hoàn tác cả gói; cột chuẩn không đổi cấu trúc hoặc bị xoá | ADR-018 | Tự động |
 | AC-18.6 | Thống kê theo toàn bộ bộ lọc và quyền, bốn kiểu nhóm; tách tiền, distinct đơn, nhóm mã sản phẩm; sửa, xoá mềm, khôi phục phản ánh đúng, Hủy/Hoàn không bị bỏ ngầm | ADR-018 | Tự động |
 | AC-18.7 | Xuất/nhập lại bảo toàn chi tiết và tiền; dòng thiếu chi tiết, tổng không khớp hoặc mã sản phẩm lạ báo lỗi xem trước, không tự phân bổ | FR-7.5 → FR-7.7 · ADR-018 | Tự động |
-| AC-18.8 | Giao diện có Lên đơn, Vận hành đơn, Thống kê và tiêu đề nhóm; hai khu thu gọn, các ô tổng mở chi tiết, không có Blacklist; 390px cuộn trong lưới | ADR-018 | Tự động |
+| AC-18.8 | Bảng chỉ có Vận hành đơn, Thống kê và tiêu đề nhóm; không có form hoặc yêu cầu tải Lên đơn nhúng. Thống kê thu gọn được, ô tổng mở chi tiết, không có Blacklist; 390px cuộn trong lưới. Hai trang Lên đơn riêng hoạt động như trước | ADR-018, ADR-019 | Tự động |

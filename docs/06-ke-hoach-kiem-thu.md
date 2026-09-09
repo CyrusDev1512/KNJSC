@@ -150,11 +150,12 @@ Ba trong bốn lỗi đó **không sập trang, không báo lỗi, không làm b
 
 Chạy `pytest crm/tests/test_waybill_new.py`, rồi kiểm migration xuôi/ngược
 bằng `pytest core/tests/test_chuyen_doi.py -m cham -k orders` trên DB kiểm thử.
-Đối chiếu bằng mắt với sheet Vận đơn: ba khu cùng trang, PTTT tách riêng,
+Theo ADR-019, bảng chỉ có lưới và thống kê, không tự tải form Lên đơn;
+thử thêm/bớt sản phẩm tại trang Lên đơn riêng. PTTT tách riêng,
 Blacklist vắng mặt; bấm ô tổng nhập tiền cho hai sản phẩm, kiểm Tổng hợp và
 Theo sản phẩm; sửa SALE/CSKH và Quốc gia rồi kiểm hai cách nhóm còn lại.
 Lọc Ngày, đổi trang lưới, thống kê không bị cắt theo trang. Đổi loại tiền không
-quy đổi số đã nhập. Mở 390px, cuộn ngang lưới, thu gọn Lên đơn và Thống kê.
+quy đổi số đã nhập. Mở 390px, cuộn ngang lưới, thu gọn Thống kê.
 Script kiểm đọc giao diện local: `node scripts/kiem-thu-van-don-ui.cjs`
 (cần Playwright đã có ở môi trường kiểm thử và Chrome; tài khoản mẫu hoặc
 biến `KN_TEST_USER`, `KN_TEST_PASSWORD`, `KN_CRM_URL`). Script không tạo đơn.

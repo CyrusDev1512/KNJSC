@@ -18,12 +18,35 @@ const fs = require('fs');
     await page.locator('[name=password]').fill(process.env.KN_TEST_PASSWORD || 'matkhaucuatoi');
     await page.locator('button[type=submit]').click();
     await page.waitForURL(url => !url.pathname.includes('dang-nhap'));
-    await page.goto(base + '/bang-tinh/van_don_moi/');
+    await page.goto(base + '/van-don/len-don/');
     await page.locator('#vd-entry form').waitFor();
-    await page.locator('#vd-statistics table').waitFor();
     await page.getByRole('button', {name: 'Thêm sản phẩm', exact: true}).click();
     if (await page.locator('.vd-items tbody tr').count() !== 2) throw Error('Không thêm được sản phẩm');
     await page.locator('.vd-items tbody tr').last().getByRole('button', {name: 'Bỏ dòng'}).click();
+    if (await page.locator('.vd-items tbody tr').count() !== 1) throw Error('Không bỏ được sản phẩm');
+    // GET thay form như một lần HTMX swap, không gửi đơn vào database local.
+    await page.evaluate(() => htmx.ajax('GET', '/van-don/len-don/', {target: '#vd-entry', swap: 'outerHTML'}));
+    await page.getByRole('button', {name: 'Thêm sản phẩm', exact: true}).click();
+    if (await page.locator('.vd-items tbody tr').count() !== 2) throw Error('Thêm sản phẩm hỏng sau HTMX swap');
+    await page.locator('.vd-items tbody tr').last().getByRole('button', {name: 'Bỏ dòng'}).click();
+    const entryRequests = [];
+    page.on('request', request => {
+      if (new URL(request.url()).pathname === '/van-don/len-don/') entryRequests.push(request.url());
+    });
+    await page.goto(base + '/bang-tinh/van_don_moi/');
+    await page.locator('#vd-statistics table').waitFor();
+    if (await page.locator('#vd-entry, [hx-get*="/van-don/len-don/"]').count()) throw Error('Còn form Lên đơn nhúng');
+    const detailCell = page.locator('[data-waybill-detail]').first();
+    if (await detailCell.count()) {
+      await detailCell.click();
+      await page.locator('#vd-detail-body form').waitFor();
+      // Mô phỏng tín hiệu thành công; kiểm phản ứng UI bằng GET, không lưu chi tiết.
+      const gridRefresh = page.waitForResponse(r => new URL(r.url()).pathname === '/bang-tinh/van_don_moi/' && r.request().method() === 'GET');
+      const statisticsRefresh = page.waitForResponse(r => new URL(r.url()).pathname === '/van-don/thong-ke/');
+      await page.evaluate(() => htmx.trigger(document.body, 'waybillChanged', {kind: 'detail'}));
+      await Promise.all([gridRefresh, statisticsRefresh]);
+      if (await page.locator('#vd-detail').evaluate(el => el.open)) throw Error('Chi tiết không đóng sau cập nhật');
+    }
     for (const [name, width, height] of [['desktop',1440,1000], ['mobile',390,844]]) {
       await page.setViewportSize({width, height});
       await page.locator('#vd-page').evaluate(el => {el.scrollTop = 0;});
@@ -66,7 +89,12 @@ const fs = require('fs');
       await page.screenshot({path: path.join(out, name + '-grid-right.png')});
       await page.locator('#luoi-vd').evaluate(el => {el.scrollLeft = 0;});
     }
+    await page.goto(base + '/bang-tinh/van_don_moi/?tim=ADR019_EMPTY_CHECK_7e8a4162');
+    await page.locator('.vd-empty-cell .rong').waitFor();
+    await page.locator('#vd-statistics').getByText('Cách nhóm', {exact: true}).waitFor();
+    if (await page.locator('#vd-entry').count()) throw Error('Bảng trống tải form Lên đơn');
+    if (entryRequests.length) throw Error('Bảng tự tải form Lên đơn');
     if (errors.length) throw Error(errors.join('\n'));
-    console.log('ĐẠT: ba khu, thêm/bỏ dòng sản phẩm, máy tính 1440px, điện thoại 390px, cuộn ngang; không có lỗi JavaScript.');
+    console.log('ĐẠT: Lên đơn riêng thêm/bỏ sản phẩm; bảng chỉ có lưới và thống kê, không tải form; máy tính 1440px, điện thoại 390px, cuộn ngang; không có lỗi JavaScript.');
   } finally { await browser.close(); }
 })().catch(error => {console.error(error); process.exitCode = 1;});
