@@ -4,6 +4,9 @@ Hệ thống quản lý vận hành cho công ty thương mại điện tử xuy
 Ba bộ phận Sale, Marketing và Vận đơn làm việc trên cùng một nơi, mỗi người
 chỉ thấy phần thuộc quyền của mình.
 
+Thiết lập AI trên máy khác: [đồng bộ hướng dẫn và skill](docs/dong-bo-ai-nhieu-may.md).
+Kiểm tra local: `python scripts/dong-bo-skill.py --check` (không thay đổi dữ liệu).
+
 ---
 
 ## Bối cảnh

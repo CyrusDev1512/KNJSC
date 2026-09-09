@@ -1,0 +1,5 @@
+interface:
+  display_name: "performance-optimization"
+  short_description: "Design focused, measured performance changes"
+policy:
+  allow_implicit_invocation: true

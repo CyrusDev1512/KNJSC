@@ -2,6 +2,11 @@
 
 Đọc file này trước khi sửa bất kỳ mã nguồn nào trong dự án.
 
+Đọc [AGENTS.md](AGENTS.md) cho quy tắc phối hợp chung đã chốt của dự án; khi
+hướng dẫn quy trình cũ ở đây khác với AGENTS.md, dùng AGENTS.md. Skill dùng chung
+có một bản nội dung duy nhất tại `.agents/skills`; xem
+[đồng bộ AI nhiều máy](docs/dong-bo-ai-nhieu-may.md) khi thiết lập hoặc cập nhật.
+
 ---
 
 ## Bắt đầu một phiên mới — đọc bốn chỗ này trước
@@ -131,22 +136,18 @@ những chỗ đó thì chạy lại `crm/tests/test_kiem_tai.py` và bài kiể
 
 ### Skill thiết kế giao diện — Impeccable và Taste
 
-Hai bộ skill mã nguồn mở đã chép sẵn vào `.claude/skills/`; nguồn, phiên bản,
-giấy phép và cách cập nhật ở `.claude/skills/NGUON.md`. Dùng khi làm giao diện:
+Skill nằm duy nhất trong `.agents/skills`; nguồn và giấy phép ở
+`.agents/skill-sources.json` và `.agents/NGUON-THIET-KE.md`.
+Không còn `.claude/skills` hoặc cầu nối. Đọc SKILL.md tương ứng khi tác vụ cần;
+không mặc định slash command hoặc tự khám phá hoạt động trong mọi client.
 
-| Gọi | Làm gì |
-|---|---|
-| `/impeccable init` | Hỏi vài câu rồi ghi `PRODUCT.md`: sản phẩm, người dùng, giọng điệu. **Làm một lần trước.** `teach` là bí danh |
-| `/impeccable critique`, `audit`, `polish`, `clarify`, `layout`, `typeset`, `adapt`… | Nhận xét, kiểm, đánh bóng một màn hình. Gõ `/impeccable` không tham số để xem menu đủ 23 lệnh |
-| `/design-taste-frontend` | Skill chính của Taste: dựng giao diện có gu, tránh kiểu "AI slop" |
-| `/redesign-existing-projects` | Rà màn hình có sẵn rồi sửa bố cục và thứ bậc |
-| `/high-end-visual-design`, `/minimalist-ui` | Hai hướng thẩm mỹ: cao cấp trầm, hoặc tối giản kiểu Notion và Linear |
-
-Dự án là HTMX và CSS thuần (ADR-005), nên gợi ý React, Tailwind, GSAP hay thư
-viện khác trong skill phải chuyển sang CSS và JS thuần: quy tắc 8 "không thêm
-thư viện" đứng trên skill. Hook tự kiểm thiết kế sau mỗi lần sửa tệp không
-commit vì nó chạy engine ngoài sau từng lệnh sửa; muốn bật trên máy mình thì gõ
-`/impeccable hooks on`. Bốn subagent của Impeccable nằm ở `.claude/agents/`.
+Impeccable dùng hướng dẫn thiết kế, với hồ sơ tại `.agents/design-state`.
+Không tự chạy engine/hook hoặc tạo lại `.impeccable` ở gốc; engine chưa được
+kiểm chứng với vị trí dữ liệu mới. Bốn agent cũ ở `.claude/agents` không tự kích hoạt.
+Taste gồm `design-taste-frontend`, `redesign-existing-projects`,
+`high-end-visual-design`, `minimalist-ui`; chỉ đọc hướng phù hợp với yêu cầu.
+Dự án dùng HTMX, CSS/JS thuần (ADR-005); hướng dẫn skill không cho phép tự thêm
+React, Tailwind, GSAP hoặc thay đổi nghiệp vụ ngoài phạm vi được duyệt.
 
 ### Đã thoả thuận với người dùng
 

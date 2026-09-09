@@ -1,0 +1,250 @@
+KNJSC — TỔNG HỢP VẤN ĐỀ SẢN PHẨM
+
+Mục đích tài liệu
+- Tập trung toàn bộ nội dung từ KNJSC.txt thành các vấn đề lớn theo tính năng.
+- Xác định vấn đề thuộc phía KNERP, KNCRM hay cần phối hợp cả hai.
+- Xác định nhóm nhân sự sử dụng, chịu ảnh hưởng hoặc cần tham gia xử lý.
+- Không loại bỏ nội dung nguồn. Phụ lục cuối tài liệu giữ nguyên toàn bộ nội dung gốc để đối chiếu.
+
+QUY ƯỚC PHÂN LOẠI
+- KNCRM: nơi phát sinh và quản lý dữ liệu nghiệp vụ khách hàng, lên đơn, vận đơn, Sale và CSKH.
+- KNERP: nơi thống kê, báo cáo quản trị, KPI, nhân sự và góc nhìn điều hành.
+- KNERP + KNCRM: dữ liệu phát sinh ở KNCRM nhưng cần tổng hợp, kiểm soát hoặc hiển thị ở KNERP.
+
+======================================================================
+VẤN ĐỀ LỚN 01 — LÊN ĐƠN, CẤU TRÚC SẢN PHẨM VÀ KIỂM SOÁT DỮ LIỆU ĐẦU VÀO
+======================================================================
+
+Phía hệ thống: KNCRM.
+Nhân sự liên quan: Sale; Quản trị; Leader; Kho là bên nhận dữ liệu xuất.
+
+Vấn đề tập trung
+1. Quy trình lên đơn cần có các trường bắt buộc; chỉ khi nhập đủ mới được tạo đơn.
+2. Trước đây mỗi thị trường và mỗi sản phẩm dùng một form, một sheet riêng, gây phân tán cấu trúc dữ liệu.
+3. Cần cấu trúc chọn sản phẩm theo chuỗi: nhóm sản phẩm -> tên sản phẩm -> số sản phẩm.
+4. Cần bổ sung đơn vị hàng hóa như hộp, cái, chiếc, túi.
+5. Đơn giá không nên bị fixed; Sale cần được tự điền đơn giá.
+6. Trường hợp nhân sự trùng tên, dữ liệu xuất Excel phải dùng mã nhân viên để phân biệt.
+7. Cần xuất Excel vận đơn theo ngày để gửi lên kho.
+
+Kết quả tính năng cần hướng tới
+- Một quy trình lên đơn thống nhất cho nhiều thị trường và sản phẩm.
+- Validation dữ liệu bắt buộc trước khi ghi nhận đơn.
+- Danh mục sản phẩm có quan hệ nhóm/tên/số lượng và đơn vị rõ ràng.
+- File xuất kho truy được nhân sự bằng mã duy nhất, không phụ thuộc tên hiển thị.
+
+======================================================================
+VẤN ĐỀ LỚN 02 — TÀI KHOẢN, MÃ NHÂN VIÊN, PHÂN QUYỀN VÀ GIỚI HẠN THAO TÁC
+======================================================================
+
+Phía hệ thống: KNERP + KNCRM.
+Nhân sự liên quan: Quản trị; Nhân sự; toàn bộ nhân viên; Vận đơn; Leader.
+
+Vấn đề tập trung
+1. FPT/quy ước quản lý phải lấy mã nhân viên làm định danh duy nhất.
+2. Nhân viên đăng nhập hệ thống bằng mã nhân viên.
+3. Mật khẩu ban đầu cần random để tránh người này vào tài khoản của nhân sự khác.
+4. Nhân viên Vận đơn chỉ được xem hoặc thao tác đúng phạm vi được giao.
+5. Cần assign theo tên/người được giao để tránh nhân sự Vận đơn của đơn này chỉnh sửa đơn thuộc nhân sự Vận đơn khác.
+6. Vận đơn được xem dữ liệu nhưng không được thao tác mục đối soát nếu không có quyền.
+7. Hệ thống cần hạn chế thao tác linh tinh và chỉ cung cấp các thao tác có ý nghĩa với vai trò.
+8. Phần view cho nhân viên phải thuận tiện nhất cho người trực tiếp xử lý.
+
+Kết quả tính năng cần hướng tới
+- Một định danh nhân sự duy nhất xuyên suốt KNERP và KNCRM.
+- Phân quyền theo vai trò, người được giao, phạm vi dữ liệu và loại thao tác.
+- Tách rõ quyền xem, quyền sửa và quyền đối soát.
+
+======================================================================
+VẤN ĐỀ LỚN 03 — FILE VẬN ĐƠN, TRA CỨU, LỌC VÀ THAO TÁC NGHIỆP VỤ
+======================================================================
+
+Phía hệ thống: KNCRM; KNERP nhận kết quả thống kê.
+Nhân sự liên quan: Vận đơn; Sale; Marketing; CSKH; Leader; Quản trị.
+
+Vấn đề tập trung
+1. File vận đơn cần lọc nhanh theo trạng thái vận chuyển và tình trạng thu tiền để giảm thao tác.
+2. Hiện còn thiếu lọc theo sản phẩm, thị trường và Marketing.
+3. Cần lọc riêng trạng thái giao hàng và trạng thái thanh toán.
+4. Cần xác định rõ những thao tác nào được phép thực hiện trên dữ liệu vận đơn.
+5. Dữ liệu vận đơn là dữ liệu gốc, không chứa công thức; công thức chỉ nằm ở phần thống kê.
+6. Có phần ghi chú nguồn chưa hoàn chỉnh: “những phần chứa dữ liệu kh”. Nội dung này được giữ lại để làm rõ thêm, không tự suy diễn hoặc loại bỏ.
+
+Kết quả tính năng cần hướng tới
+- Bộ lọc thống nhất cho vận chuyển, thu tiền, sản phẩm, thị trường, Marketing, giao hàng và thanh toán.
+- Giao diện theo vai trò, giảm thao tác thừa.
+- Tách lớp dữ liệu nghiệp vụ khỏi lớp công thức và thống kê.
+
+======================================================================
+VẤN ĐỀ LỚN 04 — LỊCH SỬ MUA HÀNG, DỮ LIỆU CŨ, BLACKLIST VÀ TRUY XUẤT NHIỀU NĂM
+======================================================================
+
+Phía hệ thống: KNCRM; có thể cung cấp số liệu tổng hợp cho KNERP.
+Nhân sự liên quan: CSKH; Sale; Vận đơn; Quản trị.
+
+Vấn đề tập trung
+1. Chưa rõ lịch sử mua hàng khi chuyển sang các năm khác sẽ bị ảnh hưởng thế nào.
+2. CSKH muốn xem lịch sử mua hàng để phục vụ mục đích Sale và chăm sóc lại.
+3. Blacklist cần truy xuất được dữ liệu các năm cũ, kể cả khi trước đây dữ liệu nằm trong nhiều file.
+4. CSKH muốn đưa dữ liệu cũ của Vận đơn về để tiếp tục chăm sóc.
+5. Cần xác định dữ liệu nào là dữ liệu của CSKH và cách liên kết nó với dữ liệu lên đơn/vận đơn.
+
+Kết quả tính năng cần hướng tới
+- Một hồ sơ khách hàng có lịch sử xuyên năm.
+- Blacklist dùng chung, không bị chia cắt theo file hoặc theo năm.
+- CSKH và Sale truy xuất được lịch sử phù hợp với quyền hạn.
+
+======================================================================
+VẤN ĐỀ LỚN 05 — BÁO CÁO, THỐNG KÊ, CÔNG THỨC VÀ RANH GIỚI KNERP/KNCRM
+======================================================================
+
+Phía hệ thống: KNERP + KNCRM.
+Nhân sự liên quan: Giám đốc; Leader; Marketing; Sale; Vận đơn; CSKH; Quản trị.
+
+Ranh giới được nêu trong nguồn
+- Dữ liệu bên CRM.
+- Thống kê bên ERP.
+
+Vấn đề tập trung
+1. Lịch sử báo cáo cần tạo thống kê Marketing dựa trên input của Marketing.
+2. Marketing nhập dữ liệu thì hệ thống phải thống kê lại cho Marketing; Sale và Vận đơn cũng cần cơ chế tương tự.
+3. Cần tính ví dụ như tỷ lệ thu tiền đến tỷ lệ realtime là bao nhiêu phần trăm, theo công thức do công ty cung cấp.
+4. Trước đây việc này thuộc Leader; cần xác định lại vai trò nhập, kiểm tra và xem thống kê.
+5. Công thức xử lý cần nằm ngoài file master/dữ liệu gốc.
+6. Thống kê không phải lúc nào cũng cần realtime; chậm một chút không phải vấn đề.
+7. Quy định Marketing: báo cáo muộn sẽ bị đánh giá trừ điểm, do phía quản trị kiểm soát.
+8. Giám đốc đăng nhập cần xem báo cáo tổng hợp Marketing, Sale, Vận đơn và CSKH.
+
+Kết quả tính năng cần hướng tới
+- KNCRM giữ dữ liệu nghiệp vụ đầu vào.
+- KNERP nhận dữ liệu, chạy công thức và tạo thống kê/báo cáo quản trị.
+- Công thức có phiên bản và do công ty cung cấp, không nhúng vào file dữ liệu gốc.
+- Hỗ trợ báo cáo tổng hợp cho Giám đốc và báo cáo theo từng bộ phận.
+- Cho phép thống kê theo lô hoặc có độ trễ chấp nhận được, không bắt buộc mọi chỉ số realtime.
+
+======================================================================
+VẤN ĐỀ LỚN 06 — QUẢN TRỊ NHÂN SỰ, KPI VÀ GÓC NHÌN GIÁM ĐỐC
+======================================================================
+
+Phía hệ thống: KNERP.
+Nhân sự liên quan: Giám đốc; Nhân sự; Quản trị; Leader; toàn bộ nhân viên.
+
+Vấn đề tập trung
+1. Giám đốc cần xem thêm tình hình tuyển dụng và các thông tin điều hành khác.
+2. Phân hệ Nhân sự cần phản ánh hiệu quả, năng suất và tiến độ theo KPI.
+3. Cần quản lý lộ trình thăng tiến và trách nhiệm của nhân sự.
+4. Cần phản ánh văn hóa doanh nghiệp và mức độ tuân thủ các quy định làm việc.
+5. Dữ liệu đánh giá như báo cáo Marketing muộn phải có khả năng đi vào đánh giá quản trị/KPI.
+
+Kết quả tính năng cần hướng tới
+- Dashboard điều hành cho Giám đốc.
+- Hồ sơ hiệu suất/KPI theo nhân sự và đơn vị.
+- Theo dõi tuyển dụng, lộ trình thăng tiến, trách nhiệm và tuân thủ.
+
+======================================================================
+VẤN ĐỀ LỚN 07 — CSKH, NHẬN DIỆN DATA CẦN CHĂM SÓC VÀ CHIẾN LƯỢC NỘI DUNG
+======================================================================
+
+Phía hệ thống: KNCRM; KNERP có thể nhận thống kê quản trị.
+Nhân sự liên quan: CSKH; Sale; Quản trị; Giám đốc.
+
+Ưu tiên
+- CSKH tháng sau mới cần và được xử lý cuối cùng trong lộ trình hiện tại.
+
+Vấn đề tập trung
+1. CSKH ghi rất nhiều note mỗi ngày khi chăm sóc khách hàng.
+2. Chưa có phương pháp phát hiện data nào đang cần chăm sóc.
+3. Một khách hàng/đơn có thể xuất hiện nhiều lần trong file lên đơn, ví dụ lên 10 lần, nhưng trong file CSKH chỉ nên xuất hiện một lần.
+4. Cần cơ chế hợp nhất khách hàng và chống trùng dữ liệu chăm sóc.
+5. CSKH sẽ thiết kế nội dung cho thư viện theo cả quý, không spam; mục tiêu là chiến lược CSKH chứ không chỉ đo hiệu quả tức thời.
+6. Có định hướng AI/tự động hóa timeline và các hoạt động liên quan.
+
+Kết quả tính năng cần hướng tới
+- Một hồ sơ CSKH duy nhất cho mỗi khách hàng, liên kết được nhiều lần lên đơn.
+- Timeline chăm sóc, note hằng ngày và tiêu chí nhận diện khách cần chăm sóc.
+- Thư viện nội dung theo kế hoạch quý.
+- AI/tự động hóa timeline là hướng phát triển sau khi dữ liệu và quy trình nền tảng ổn định.
+
+======================================================================
+VẤN ĐỀ LỚN 08 — PILOT, CHUYỂN ĐỔI VÀ VẬN HÀNH SONG SONG
+======================================================================
+
+Phía hệ thống: KNERP + KNCRM.
+Nhân sự liên quan: toàn bộ nhóm Pilot; Sale; Marketing; Vận đơn; CSKH; Leader; Quản trị; Giám đốc.
+
+Vấn đề tập trung
+1. Trong thời gian Pilot, người dùng sẽ chạy song song cả Sheets và ứng dụng.
+2. Việc chạy song song tạo nguy cơ trùng dữ liệu, lệch dữ liệu, nhập hai lần và không rõ nguồn nào là chuẩn.
+3. Cần xác định file master, dữ liệu gốc, thời điểm đối soát và tiêu chí chuyển hẳn sang ứng dụng.
+
+Kết quả tính năng cần hướng tới
+- Có quy trình Pilot rõ ai nhập ở đâu, ai đối soát và nguồn dữ liệu nào được coi là chuẩn.
+- Có kế hoạch kết thúc chạy song song thay vì duy trì Sheets và app vô thời hạn.
+
+======================================================================
+MA TRẬN NHANH: HỆ THỐNG — TÍNH NĂNG — NHÂN SỰ
+======================================================================
+
+1. KNCRM — Lên đơn và danh mục sản phẩm — Sale, Leader, Quản trị, Kho.
+2. KNCRM — Vận đơn, trạng thái giao hàng và thanh toán — Vận đơn, Sale, Leader, Quản trị.
+3. KNCRM — Lịch sử mua hàng, blacklist và dữ liệu xuyên năm — CSKH, Sale, Vận đơn.
+4. KNCRM — Hồ sơ khách hàng, note và timeline CSKH — CSKH, Sale.
+5. KNERP — Thống kê, công thức và báo cáo bộ phận — Giám đốc, Leader, Marketing, Sale, Vận đơn, CSKH.
+6. KNERP — KPI, tuyển dụng, hiệu suất và lộ trình nhân sự — Giám đốc, Nhân sự, Leader, Quản trị.
+7. KNERP + KNCRM — Tài khoản, mã nhân viên và phân quyền — Nhân sự, Quản trị, toàn bộ nhân viên.
+8. KNERP + KNCRM — Pilot và đối soát Sheets/app — toàn bộ nhóm Pilot.
+
+======================================================================
+PHỤ LỤC — NỘI DUNG NGUỒN GIỮ NGUYÊN
+======================================================================
+
+1.giới thiệu về sản phẩm
+-file vận đơn:
++ lọc nhanh theo trạng thái vận chuyển, tình trạng thu tiền -> tránh thao tác
+- lên đơn: có các trường bắt buộc yêu cầu phải nhập mới có thể lên đơn ( trước đây mỗi thị trường mỗi sản phẩm là 1 form 1 sheet)
++ nhóm sp -> tến sp -> số sp
++ thêm đơn vị: hộp, cái,chiếc, túi
++ đơn giá không cần fixed: để sale tự điền đơn giá
++ cùng tên -> xuất Excel sẽ ra mã nhân viên
+FPT: quẩn lí teo quy ước mã nhân viên ( mã nhân viên là duy nhất)->ĐN hệ thống theo mã nhân viên
+-> mật khẩu random tránh vào tài khoản của nhân sự khác
+lịch sử mua hàng: sang các năm có ảnh hưởng gì không?
+-> cskh sẽ muốn xem cho mục đích sale
+-> blacklist có truy xuất được các năm cũ không? ( nếu như có nhiều file)
+-> cskh sẽ muốn bê data cũ của vận đơn về để chăm sóc lại
+- xuất excel vận đơn theo ngày để gửi lên kho|
+-> dữ liệu của cskh
+
+file vận đơn:
+- thao tác trên dữ liệu
+-> vận đơn được xem nhưng không được thao tác mục đối soát
+-> lịch sử báo cáo -> thống kê marketing dựa trên các input của mkt
+thiếu: lọc theo sp, theo thị trường, theo mkt
+quy định mkt: báo cáo muộn sẽ đánh giá trừ điểm ( quản trị)
+_file dữ liệu vận đơn chứa dữ liệu không có công thức,CT chỉ nằm ở mục thống kê
+
+@Vận đơn: MKT nhập dữ liệu -> phải thống kê cho MKT ( same with sale và vận đơn)
+VD: tỉ lệ thu tiền đến tỉ lệ realtime là bn % ( có công thức do cty cung cấp)
+trước đây là leader
+những phần chứa dữ liệu kh
+thống kê bên erp
+dữ liệu bên crm
+
+Giám đốc đăng nhập: báo cáo mkt, sale, vđ, cskh tổng
+tình hình tuyển dụng v.v...
+
+nhân sự:hiệu quả, năng suất , tiến độ theo kpi, lộ trình thăng tiến, trách nhiệm, văn hoá doanh nghiệp ( tuân thủ các quy định làm việc v.v)
+CSKH: tháng sau mới cần, xử lí cuối cùng
+assign theo tên được giao-> tránh TH vđ của đơn này chỉnh sửa đơn của VĐ khác
+-> hạn chế thao tác linh tinh, tập trung vào các thao tác có nghĩa
+phần view cho nhân viên tiện nhất cho nhân sự xử lí
+-> công thức xử lí ngoài file master
+thống kê không phải lúc nào cũng cần, chậm chút cũng không vấn đề
+lọc tt giao hàng và tt thanh toán
+
+Pilot-> chạy thử sẽ sử dụng song song cả sheets cả app
+cskh-> note rất nhiều mỗi ngày chăm sóc
+phương pháp phát hiện cần chăm sóc data nào?
+vd: file lên đơn có thể lên 10 lần, nhưng file cskh thì chỉ xuất hiện 1 lần
+cskh sẽ thiết kế nội dung cho thư viện cả quý chứ không spam -> chiến lược cskh chứ không phải hiệu quả...
+AI/tự động hoá timeline v.v...

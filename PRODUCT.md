@@ -34,12 +34,27 @@ chưa cần quá lo về hiệu năng**, giữ trang gọn là đủ.
 
 ## Product Purpose
 
+**Ưu tiên hiện tại — xác nhận 09.09.2026:** sửa feedback khách hàng trước.
+“Việc cần làm của tôi”, thông báo/nhắc việc chủ động và AI xuyên hệ thống
+thuộc giai đoạn sau, không nằm trong phạm vi sửa feedback hiện tại.
+
 Một nơi làm việc chung thay cho biểu mẫu và bảng tính rời rạc trên Google Form,
 Google Sheets và Lark: dữ liệu nhập một lần, bộ phận liên quan đều thấy; mỗi
 người chỉ thấy phần thuộc quyền; báo cáo tổng hợp tự sinh từ dữ liệu đã có.
 
 Thành công nghĩa là ba bộ phận đối chiếu được số với nhau, không ai xem được
 dữ liệu ngoài quyền, và quản lý không còn gom báo cáo tay mỗi ngày.
+
+**Định hướng được chủ dự án xác nhận 09.09.2026:** hệ thống phải chủ động cho
+từng người dùng biết công việc của mình còn những gì, giảm việc quản lý phải
+liên tục mở hệ thống để kiểm tra và nhắc việc. CRM/ERP cần hỗ trợ hoàn thành
+công việc, không dừng ở hiển thị thông tin. Dài hạn sẽ tích hợp AI xuyên suốt
+hệ thống. Quy tắc sinh việc, hạn xử lý, kênh thông báo và quyền hành động của
+AI cần được chốt theo nghiệp vụ; đây chưa phải các tính năng đã triển khai.
+
+Tài liệu KNJSC là ghi chép feedback từ buổi họp với khách hàng;
+`KNJSC_PROBLEM.txt` tổng hợp các vấn đề từ ghi chép đó. Đối chiếu với quyết
+định đã chốt, không mặc định mọi feedback là yêu cầu đã duyệt.
 
 Hai phần có tên riêng (xác nhận 06.09.2026):
 

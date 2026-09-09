@@ -24,6 +24,31 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 
 ## 0. Còn nợ những gì — xem ở đây trước
 
+**Thứ tự thực hiện chốt 09.09.2026:** sửa feedback khách hàng trước; “Việc
+cần làm của tôi”, nhắc việc chủ động và AI để giai đoạn sau. Không mở rộng
+tác vụ feedback sang các tính năng này. Điểm nghiệp vụ chưa rõ tiếp tục
+ghi trong USER_INQUIRY.md, không tự quyết khi sửa.
+
+**09.09.2026 — mục tiêu sản phẩm do chủ dự án xác nhận:** tài liệu KNJSC là
+ghi chép phản hồi trong buổi họp khách hàng; `KNJSC_PROBLEM.txt` tổng hợp các
+vấn đề từ nguồn đó. Đây là nguồn feedback, không mặc nhiên biến mọi ý thành
+yêu cầu đã duyệt. Đích cuối là hệ thống chủ động cho từng người dùng biết
+công việc của mình còn gì, giảm việc quản lý phải liên tục vào kiểm tra;
+dài hạn tích hợp AI xuyên suốt CRM/ERP. Đã ghi vào PRODUCT.md và AGENTS.md.
+Chưa chốt quy tắc sinh việc, hạn xử lý, kênh thông báo hoặc quyền hành động
+của AI; chưa triển khai các tính năng này.
+
+**09.09.2026 — đã chốt nghiệp vụ phân công và kế toán, chưa triển khai:**
+Leader Vận đơn giao/đổi người phụ trách trên từng dòng. Nhân viên Vận đơn và
+CSKH chỉ thấy khách/đơn được giao cho chính mình. Kế toán làm trên cùng bảng
+Vận đơn mới, ban đầu cần xem toàn bộ đơn chưa thu tiền; đối chiếu riêng tình
+trạng giao hàng (đã giao/chưa giao), tình trạng thanh toán (đã trả/chưa trả)
+và bằng chứng khi ghi đã trả. Không suy ra rằng đơn đã trả phải bị ẩn khỏi kế
+toán hoặc bộ trạng thái hiện có phải thu về hai giá trị. Quyền nhập/sửa số
+tiền và bằng chứng **chưa chốt — [H7 trong USER_INQUIRY](USER_INQUIRY.md)**;
+chủ dự án sẽ hỏi người có thẩm quyền.
+Chỉ ghi nhận yêu cầu, chưa sửa code, quyền hoặc dữ liệu.
+
 **09.09.2026 — ADR-019:** chủ dự án chốt bỏ Lên đơn nhúng trong bảng Vận đơn,
 giữ lưới, thống kê và hai trang Lên đơn riêng. Đã gỡ template, context và sự kiện
 tải lại bảng sau tạo đơn; cập nhật AC-18.8 và kiểm thử. Phần bố cục ba khu của
@@ -412,16 +437,10 @@ Những thứ đáng làm nhưng chưa tới lượt.
 
 ## 5. Câu hỏi cần hỏi người dùng
 
-Những câu chưa có đáp án, cần hỏi trực tiếp người sử dụng.
-
-| # | Câu hỏi | Hỏi ai |
-|---|---|---|
-| H1 | Trong tệp Excel hiện tại, anh chị có gõ công thức không? Gõ những gì? | Vận đơn, Marketing |
-| H2 | Anh chị có hay kéo góc ô để điền cả cột không? | Vận đơn, Marketing |
-| H3 | Anh chị có dán dữ liệu từ tệp Excel khác vào không? | Vận đơn, Marketing |
-| H4 | Mỗi ngày mất bao lâu cho việc nhập liệu và tổng hợp thủ công? | Cả ba bộ phận |
-| H5 | Lần gần nhất cần tìm một thông tin mà tìm không ra là khi nào? | Cả ba bộ phận |
-| H6 | Một bộ phận hiện có mấy team, ai phân team? | Quản lý |
+Các câu H1–H7 đã chuyển sang [USER_INQUIRY.md](USER_INQUIRY.md) ngày
+09.09.2026 theo yêu cầu chủ dự án: chia theo vấn đề, đối tượng trả lời và
+danh sách đánh số. Cập nhật câu hỏi/câu trả lời tại file đó để tránh lệch
+hai bản. Backlog tiếp tục giữ tiến độ, các vấn đề N/V và lịch sử quyết định.
 
 ---
 
@@ -535,3 +554,14 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 07.09.2026 | Anh/chị yêu cầu **kiểm thử toàn diện KN CRM** ở cỡ hàng triệu ô, 100 nghìn khách, rồi mô phỏng 100 người cùng lúc "di qua di lại" và "lập công thức", không bấm giao diện. Chốt: công thức = cột tính sẵn; chạy máy ảo trước, đóng gói cho máy anh/chị; ngưỡng "như Excel trên máy thường" (Q66). Nhánh `claude/kiem-tai-kn-crm`: `seed_perf` 100.000 dòng 24 tháng đủ 30 cột + bảng `perf_sale` 20.000 dòng có Doanh thu = Đơn giá × Số lượng (45 giây, 209 MB); lệnh mới `do_hieu_nang` đo 25 đường kèm EXPLAIN; `tests/perf/locustfile_kn_crm.py` 100 người bốn vai tự chấm. **Trước**: một người thì lưới 638 ms mà DB chỉ 58 ms (95% là 3.900 `{% include %}` + 7.800 `{% url %}`), `?trung=1` 1,1 s, dán 500 ô 1,7 s / 1.013 lệnh, tính lại cột 100.000 dòng 153 s trong request; 100 người thì 13 RPS, p95 mọi nhóm ~11 s. **Sửa** (ADR-016, K27): ô dựng bằng `grid_service.cell_html`; cột Trùng đếm theo trang + chỉ mục `(table, val_phone)`; `moi-nhat/` chỉ Max(updated_at) trên `all_objects` + chỉ mục `(table, updated_at)`; `DataRecord.bulk_save` bằng `UPDATE … FROM (VALUES …)` vì `bulk_update` của Django ghép CASE WHEN mất 1,2 s/1.000 dòng; tính lại cột chạy nền `BackgroundJob` "Tính lại cột" theo lô có tiến độ trên lưới; compose có `KNJSC_LENH_WEB` để chạy gunicorn. **Sau** một người: lưới 154 ms, trang 500 280 ms, trùng 478 ms, dán 500 ô 207 ms, tính lại 20.000 dòng 4,2 s, 100.000 dòng 19,6 s (2 lô song song ở worker). AC-10.8 (thủ công), AC-11.35, AC-11.36; `scripts/kiem-tai-kn-crm.bat/.sh`; bộ đếm docs/06 110 — 98 tự động, 12 thủ công; 97 trên 98. 100 người 5 phút "sau" (gunicorn 3 tiến trình × 4 luồng, `--reset-stats`): 22,8 yêu cầu/giây, p95 đọc 853 ms, ghi 371 ms, hỏi 143 ms, 0 lỗi, tính lại 100.000 dòng 24,4–24,8 s, p95 người khác lúc đó 900 ms — **ĐẠT** (trước: ~11 s mọi nhóm, 14 lỗi). Trên đường đi còn bắt được một deadlock dán ô ↔ worker (khoá cùng chiều pk + thử lại), mốc `moi-nhat/` phải theo cả bảng mới dùng được chỉ mục, và `bulk_update` của Django chậm gấp 14 lần `UPDATE … FROM VALUES` |
 | 07.09.2026 | Anh/chị tự thử KN CRM và gửi video: gõ "ssssd" vào cột Số Mess của dòng trống Báo cáo Marketing, rời ô, thanh trên báo "Đã lưu" mà không có gì xảy ra; hỏi vì sao cả `main` lẫn nhánh mới đều bị. Tái hiện trên máy ảo: máy chủ trả 400 đúng ("không đúng kiểu Số nguyên"), nhưng JS coi 400 là thành công và lời báo bị CSS giấu — lỗi có từ 7F, PR #21 chỉ sửa tốc độ nên không gây và không sửa (K28). Anh/chị chất vấn vì sao không đo và kiểm đường sai từ đầu, và khẳng định cách hiện tại chưa tối ưu; tôi nêu ba hướng tối ưu hơn (lưới JSON + JS vẽ ô, SSE, cột tính trong DB). Anh/chị chốt: **ghi backlog, giờ chưa phải lúc tối ưu** — Q67, S13–S15; việc trước mắt là K28 |
 | 08.09.2026 | Theo yêu cầu dọn toàn bộ nhánh: hợp nhất bốn đầu việc còn riêng vào `main` — backlog/test-log, kiểm tải KN CRM, MVP Nội bộ và hợp đồng thiết kế chuẩn ngành. Giải trùng mã do hai nhánh phát triển song song: giữ kiểm tải ở ADR-016, Q66–Q67, K27–K28, S13–S15; chuyển MVP Nội bộ sang ADR-017, Q68–Q77, K30–K31, S16–S21. Ba commit chỉ còn ở local `project-status-progress-7ajcqg` không áp lại vì chức năng đã có bản mới đầy đủ hơn trên `main` (launcher, đặt lại mật khẩu mẫu, `.gitattributes`). Sau khi kiểm tra, xóa các nhánh local và remote cũ, chỉ giữ `main` |
+
+
+## Thiết lập công cụ Codex — 09.09.2026
+
+Đã bổ sung [bộ 5 skill gọn](bo-skill-knjsc.md) ở `.agents/skills` theo kế hoạch được duyệt; nguồn cố định theo commit, có giấy phép và bản biên tập riêng cho KNJSC. Kiểm tra tĩnh 5/5 đạt. Chờ xác nhận Codex khám phá ở phiên tiếp theo và đánh giá tự chọn qua 5 tác vụ thực tế; chưa kết luận tiết kiệm token hoặc tăng hiệu năng ứng dụng. Các skill để dành chưa cài.
+
+09.09.2026: chuẩn hóa [đồng bộ AI nhiều máy](dong-bo-ai-nhieu-may.md), một nguồn nội dung mỗi skill và 6 cầu nối Codex/Claude; thêm script kiểm tra chỉ đọc, kiểm CRLF và phát hiện sai lệch đạt. Codex đã nhận 5 skill cốt lõi; các cầu nối mới chờ kiểm khám phá. Chưa commit/push, chưa đồng bộ qua GitHub.
+
+09.09.2026: theo yêu cầu gom hoàn chỉnh, chuyển 10 bản nội dung về `ai/skills`; Codex/Claude mỗi bên chỉ còn 10 cầu nối cùng danh mục. `.impeccable` giữ dữ liệu thiết kế. Cập nhật đường dẫn launcher, nguồn và script kiểm hash/danh mục; kiểm CRLF, phát hiện file lệch/file dư đạt. Chưa commit/push; chưa kiểm client trên máy khác.
+
+09.09.2026: thay thế cấu trúc đồng bộ phía trên theo yêu cầu mới: chỉ `.agents/skills` giữ 10 skill, bỏ `ai`, `.claude/skills` và `.impeccable` ở gốc. Hồ sơ thiết kế giữ tại `.agents/design-state`; Impeccable dùng hướng dẫn thủ công, không tự chạy engine tạo lại thư mục gốc. Script chỉ kiểm tra, không tạo cầu nối. Chưa commit/push; chưa kiểm engine ở vị trí mới hoặc tự chọn skill qua 5 tác vụ.
