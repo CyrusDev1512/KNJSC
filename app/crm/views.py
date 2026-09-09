@@ -145,7 +145,7 @@ def _chon_bang(request, *, tieu_de, mo_ta, duoc, url_name, nhan_nut, rong_mo_ta)
     mà `duoc(user, bang)` đúng, kèm số dòng, mỗi hàng một nút hành động."""
     cac_bang = []
     for b in (TableDef.objects.in_scope(request.user).select_related("department")
-              .annotate(so_dong=Count("records", distinct=True)).order_by("department__name", "name")):
+              .with_visible_record_count(request.user).order_by("department__name", "name")):
         if duoc(request.user, b):
             b.url_hanh_dong = reverse(url_name, args=[b.code])
             cac_bang.append(b)
@@ -198,6 +198,7 @@ def bang_tinh_xem(request, code):
         raise OutOfScopeError("Bạn không có quyền xem bảng Vận đơn.")
     bang = _bang(request, code)
     new_waybill = code == ACTIVE_WAYBILL_TABLE_CODE
+    from orders.services.assignment_service import can_assign
     luoi = grid_service.build_grid(request.user, request.GET, table=bang)
     trang = paginate(request, luoi.queryset, default_size=GRID_PAGE_SIZE)
     qs_loc = _qs_khac(request.GET)
@@ -222,6 +223,8 @@ def bang_tinh_xem(request, code):
               else tree_service.home_url(bang.department, all_tables=True))
     return render(request, "crm/bang_tinh.html", {
         "new_waybill": new_waybill,
+        "can_assign": new_waybill and can_assign(request.user),
+        "quick_filters": sidebar_service.quick_filters(request.GET) if new_waybill else None,
         "waybill_groups": grid_service.waybill_groups(luoi.columns) if new_waybill else [],
         "thang_dang_xem": thang_dang_xem,
         "ve_url": ve_url, "ve_nhan": "Về Bảng tính — thư mục",
@@ -753,9 +756,17 @@ def bang_tinh_moi_nhat(request, code):
     # vi là JOIN cản chỉ mục `(table, updated_at)` và thành quét cả bảng (78 ms ×
     # 100 tab × mỗi 8 giây). `all_objects`: dòng xoá mềm vẫn mang mốc xoá nên xoá
     # một dòng bất kỳ cũng đổi mốc.
-    tong = DataRecord.all_objects.filter(table=bang).aggregate(moc=Max("updated_at"))
+    records = DataRecord.all_objects.filter(table=bang)
+    if code == ACTIVE_WAYBILL_TABLE_CODE:
+        from django.db.models import Count
+        records = records.in_scope(request.user)
+        tong = records.aggregate(moc=Max('updated_at'), count=Count('pk'))
+        moc = f"{tong['moc'].isoformat() if tong['moc'] else ''}:{tong['count']}"
+    else:
+        tong = records.aggregate(moc=Max('updated_at'))
+        moc = tong['moc'].isoformat() if tong['moc'] else ''
     return JsonResponse({
-        "moc": tong["moc"].isoformat() if tong["moc"] else "",
+        "moc": moc,
         "cot": bang.columns.count(),
         "tinh_lai": table_service.recompute_job_of(bang),
     })

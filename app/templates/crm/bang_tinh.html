@@ -23,6 +23,7 @@ trống bên phải cho đủ chữ tới Z; dòng trống cuối lưới. Cột
 Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chúng.
 {% endcomment %}
 {% include "crm/_cong_cu.html" %}
+{% if new_waybill %}{% include 'crm/_quick_filters.html' %}{% endif %}
 
 <div class="bt-thanh-ct">
   <input class="bt-dia-chi" id="bt-dia-chi" value="A1" aria-label="Ô hiện tại — gõ địa chỉ để nhảy tới" title="Ô hiện tại — gõ địa chỉ như B7 để nhảy tới" autocomplete="off" spellcheck="false">
@@ -124,6 +125,8 @@ Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chú
 {% endblock %}
 
 {% block cuoi_trang %}
+{% if can_assign %}{% include 'crm/_assignment.html' %}{% endif %}
+{% if new_waybill %}<script src="{% static 'js/waybill-feedback.js' %}" defer></script>{% endif %}
 {% if new_waybill %}<script src="{% static 'js/waybill.js' %}" defer></script>{% endif %}
 <script src="{% static 'js/bang-tinh.js' %}?v={{ phien_ban_tinh }}" defer></script>
 <script src="{% static 'js/bang-tinh-o.js' %}?v={{ phien_ban_tinh }}" defer></script>

@@ -19,6 +19,7 @@ from forms_builder.models import ColumnDef, DataRecord, TableDef, Grant
 from forms_builder.services import grant_service, record_service
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE, PaymentMethod, PaymentStatus, ShippingStatus, Market
 from orders.models import Product, WaybillItem
+from . import assignment_service
 
 DETAIL_CODE = "chi_tiet_sp"
 PROTECTED = frozenset({"san_pham", "so_luong", "gia_tien", "so_tien_tt", "trang_thai_tt"})
@@ -46,6 +47,9 @@ COLUMNS = [
     ("Bill", "bill", FieldType.TEXT, ""),
     ("PTTT thực tế", "pttt_thuc_te", FieldType.CHOICE, ""),
     ("Ghi chú", "ghi_chu", FieldType.LONG_TEXT, ""),
+    ("Phụ trách Vận đơn", "phu_trach_vd", FieldType.TEXT, ""),
+    ("Phụ trách CSKH", "phu_trach_cskh", FieldType.TEXT, ""),
+    ("Phụ trách Marketing", "phu_trach_mkt", FieldType.TEXT, ""),
 ]
 REQUIRED = {"ma_don", "ten_khach", "so_dien_thoai", "ngay", "loai_tien"}
 OPTIONS = {
@@ -142,6 +146,8 @@ def totals(items):
 
 
 def prepare_values(values):
+    if any(values.get(code) not in (None, '') for code in assignment_service.COLUMNS):
+        raise BusinessError('Không nhập phân công qua tệp hoặc ô. Dùng hộp Phân công sau khi nhập.')
     items = validate_items(values.get(DETAIL_CODE))
     computed = totals(items)
     for code in ("so_luong", "gia_tien", "so_tien_tt"):
@@ -159,6 +165,8 @@ def after_create(row, values):
 
 
 def assert_editable(code):
+    if code in assignment_service.COLUMNS:
+        raise BusinessError('Cột này chỉ được sửa bằng hộp Phân công.')
     if code in PROTECTED:
         raise BusinessError("Sửa trong Chi tiết sản phẩm; tổng và trạng thái thanh toán được tính tự động.")
 
@@ -173,12 +181,15 @@ def assert_column_change(column, changes=None):
 
 def extra_columns(table):
     return [SimpleNamespace(name="Chi tiết sản phẩm (JSON)", code=DETAIL_CODE,
-                            field_type=FieldType.LONG_TEXT, required=True, is_computed=False)]
+                            field_type=FieldType.LONG_TEXT, required=True, is_computed=False)] + [
+        SimpleNamespace(name=name, code=code, field_type=FieldType.TEXT, required=False, is_computed=True)
+        for code, name in [('ma_sale', 'Mã Sale tạo đơn'), ('ma_vd', 'Mã nhân viên Vận đơn'),
+                           ('ma_cskh', 'Mã nhân viên CSKH'), ('ma_mkt', 'Mã nhân viên Marketing')]]
 
 
 def export_queryset(queryset):
     from django.db.models import Prefetch
-    return queryset.prefetch_related(Prefetch("waybill_items",
+    return assignment_service.related(queryset).prefetch_related(Prefetch("waybill_items",
         queryset=WaybillItem.objects.filter(deleted_at__isnull=True).select_related("product"),
         to_attr="export_items"))
 
@@ -189,21 +200,35 @@ def export_detail(row):
                        for i in row.export_items], ensure_ascii=False)
 
 
+def export_values(row):
+    order = getattr(row, 'order', None)
+    assignment = getattr(row, 'assignment', None)
+    return [export_detail(row), order.seller.username if order and order.seller_id else ''] + [
+        getattr(assignment, field).username if assignment and getattr(assignment, field + '_id') else ''
+        for field in assignment_service.FIELDS]
+
+
 def row_for(user, pk, *, lock=False):
-    rows = DataRecord.objects.in_scope(user).filter(table__code=ACTIVE_WAYBILL_TABLE_CODE).select_related("table")
+    rows = DataRecord.objects.filter(table__code=ACTIVE_WAYBILL_TABLE_CODE).select_related("table")
     if lock:
         rows = rows.select_for_update(of=("self",))
+    else:
+        rows = rows.in_scope(user)
     row = rows.filter(pk=pk).first()
-    if row is None:
+    if row is None or (lock and not DataRecord.objects.in_scope(user).filter(pk=pk).exists()):
         raise OutOfScopeError("Bạn không có quyền xem vận đơn này.")
     return row
 
 
-def refresh_for_update(row, user):
-    fresh = row_for(user, row.pk, lock=True)
+def refresh_for_update(row, user, *, include_deleted=False):
+    if include_deleted:
+        fresh = DataRecord.all_objects.select_for_update().get(pk=row.pk)
+    else:
+        fresh = row_for(user, row.pk, lock=True)
     if not grant_service.can_edit_record(user, fresh):
         raise OutOfScopeError("Bạn không có quyền sửa vận đơn này.")
     row.data, row.style, row.updated_at = fresh.data, fresh.style, fresh.updated_at
+    row.deleted_at, row.deleted_by_id = fresh.deleted_at, fresh.deleted_by_id
 
 
 def items_for(user, pk):

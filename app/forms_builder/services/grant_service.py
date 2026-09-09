@@ -192,6 +192,15 @@ def can_edit_record(user, record_obj):
     hoặc chính người tạo dòng, hoặc có cấp quyền sửa trên bảng đó. Bảng chỉ xem (ADR-009) thì
     không ai sửa được ở đây, kể cả Admin — chỗ sửa là Bảng tính.
     """
+    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+    from forms_builder.models import DataRecord
+    if record_obj.table.code == ACTIVE_WAYBILL_TABLE_CODE and not DataRecord.all_objects.in_scope(user).filter(pk=record_obj.pk).exists():
+        return False
+    return can_edit_visible_record(user, record_obj)
+
+
+def can_edit_visible_record(user, record_obj):
+    """Chỉ gọi cho dòng đã lấy từ in_scope trong cùng request đọc; không dùng ở đường ghi."""
     if is_grid_only(record_obj.table):
         return False
     if is_admin(user):

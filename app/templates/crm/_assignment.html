@@ -1,0 +1,13 @@
+<dialog id="vd-assignment" class="vd-dialog" aria-labelledby="vd-assignment-title" data-url="{% url 'waybill_assignment' %}">
+  <button class="nut vd-close" type="button" data-assignment-close>Đóng</button>
+  <h2 id="vd-assignment-title">Phân công</h2>
+  <p id="vd-assignment-info"></p>
+  <p id="vd-assignment-status" role="status" aria-live="polite"></p>
+  <form id="vd-assignment-form">
+    {% csrf_token %}
+    <div id="vd-assignment-fields" class="vd-assignment-fields"></div>
+    <p>Giữ nguyên: không đổi trường đó. Bỏ phân công: xoá người đang phụ trách.</p>
+    <button class="nut nut-chinh" id="vd-assignment-save" type="submit">Lưu phân công</button>
+    <button class="nut" id="vd-assignment-reload" type="button">Tải lại phân công</button>
+  </form>
+</dialog>

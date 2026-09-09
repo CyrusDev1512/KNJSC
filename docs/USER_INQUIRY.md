@@ -82,3 +82,32 @@ Văn hoá). Không hỏi lại việc có áp dụng hay không.
 
 **Đối tượng:** Chủ dự án, Nhân sự và người có thẩm quyền chốt đánh giá.
 **Trả lời:** Chưa có. Chưa triển khai tự trừ điểm.
+
+## Vấn đề 6 — Phân công, lọc và xuất Vận đơn mới
+
+**Đối tượng:** Leader Vận đơn, Sale/CSKH, Marketing; chủ dự án xác nhận.
+
+1. **Ai phân công, chọn ai và dòng chưa giao hiển thị cho ai?**
+
+   **Trả lời / Chủ dự án / 09.09.2026:** Leader/Manager Vận đơn và Admin
+   xem/phân công toàn bảng. Nhân viên Vận đơn chỉ xem đơn được giao; Sale
+   thấy đơn mình tạo hoặc được giao CSKH; CSKH chỉ thấy đơn được giao.
+   Người Vận đơn chọn tài khoản Vận đơn; CSKH chọn Sale hoặc CSKH; Marketing
+   chọn tài khoản Marketing. Chỉ nhận tài khoản hoạt động, không bị khoá.
+   Giao CSKH không tự cấp quyền sửa; tên Marketing không mở quyền xem.
+
+2. **Mã nhân viên và file xuất dùng định danh nào?**
+
+   **Trả lời / Chủ dự án / 09.09.2026:** Username là mã nhân viên; phân công
+   liên kết tài khoản bằng ID. Excel giữ cấu trúc hiện tại, thêm mã Sale
+   tạo đơn và ba người phụ trách. Không suy mã từ họ tên hoặc dòng nhập cũ.
+
+3. **Lọc ngày, trạng thái và sản phẩm theo nguồn nào?**
+
+   **Trả lời / Chủ dự án / 09.09.2026:** Ngày của đơn; giữ các trạng thái
+   hiện có (kể cả trả một phần); mã sản phẩm từ chi tiết, Quốc gia là thị
+   trường, Marketing từ người được Leader gán. Xuất toàn bộ kết quả lọc
+   trong quyền. Không tạo mẫu kho riêng.
+
+Đã triển khai theo [ADR-020](quyet-dinh/020-phan-cong-loc-xuat-van-don-moi.md).
+H7 ở vấn đề 1 vẫn chờ trả lời; phần này không thay quyền ghi tiền/bằng chứng.

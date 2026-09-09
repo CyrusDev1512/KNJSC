@@ -74,8 +74,8 @@ def bang(request):
     # nhân chéo nhau và cả hai con số đều sai
     ds = (TableDef.objects.in_scope(request.user)
           .select_related("department", "created_by")
-          .annotate(so_cot=Count("columns", distinct=True),
-                    so_dong=Count("records", distinct=True))
+          .annotate(so_cot=Count("columns", distinct=True))
+          .with_visible_record_count(request.user)
           .order_by("name"))
 
     tim = request.GET.get("tim", "").strip()
@@ -298,7 +298,7 @@ def bang_nhap_xem_truoc(request, code, pk):
         "bang": bang_hien, "job": job,
         "mapping": tom_tat.get("mapping", []), "ignored": tom_tat.get("ignored", []),
         "sample": tom_tat.get("sample", []),
-        "so_dong_hien_co": import_service.record_count(bang_hien),
+        "so_dong_hien_co": import_service.record_count(bang_hien, request.user),
     })
 
 

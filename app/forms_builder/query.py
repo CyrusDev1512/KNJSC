@@ -61,6 +61,10 @@ class ColumnMap:
         cot = self.by_code.get(code)
         if cot is None:
             return None
+        from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+        from orders.services.assignment_service import COLUMNS
+        if self.table.code == ACTIVE_WAYBILL_TABLE_CODE and code in COLUMNS:
+            return f'assignment__{COLUMNS[code]}__username'
         cot_tach = COLUMN_OF.get(cot.meaning) if cot.meaning else None
         return cot_tach or f"data__{code}"
 
@@ -96,6 +100,25 @@ def apply_filters(queryset, column_map, filters):
         phep = OPERATORS.get(ten_phep or "bang")
         duong_dan = column_map.path(code)
         if not duong_dan or not phep:
+            continue
+        from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+        if column_map.table.code == ACTIVE_WAYBILL_TABLE_CODE and code == 'san_pham':
+            from orders.models import WaybillItem
+            items = WaybillItem.objects.filter(deleted_at__isnull=True)
+            if phep in ('blank', 'nonblank'):
+                condition = Q(pk__in=items.values('record_id'))
+                queryset = queryset.exclude(condition) if phep == 'blank' else queryset.filter(condition)
+            else:
+                values = gia_tri if phep != 'in' or isinstance(gia_tri, (list, tuple)) else [gia_tri]
+                items = items.filter(**{f'product__code__{phep}': values})
+                queryset = queryset.filter(pk__in=items.values('record_id'))
+            continue
+        if duong_dan.startswith('assignment__') and phep in ('in', 'exact'):
+            values = gia_tri if isinstance(gia_tri, (list, tuple)) else [gia_tri]
+            condition = Q(**{f'{duong_dan}__in': [v for v in values if v != '__unassigned__']})
+            if '__unassigned__' in values:
+                condition |= Q(**{f'{duong_dan}__isnull': True})
+            queryset = queryset.filter(condition)
             continue
         if phep in ("blank", "nonblank"):
             trong = Q(**{f"{duong_dan}__isnull": True}) | Q(**{duong_dan: ""})
@@ -199,6 +222,10 @@ def build(queryset, table, *, filters=None, search="", sort=None, descending=Fal
     queryset = apply_filters(queryset, column_map, filters)
     queryset = apply_search(queryset, column_map, search)
     queryset = apply_sort(queryset, column_map, sort, descending)
+    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+    if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+        from orders.services.assignment_service import related
+        queryset = related(queryset)
     return queryset, column_map
 
 
@@ -207,4 +234,8 @@ def read_row(record, columns):
 
     Dùng ở tầng giao diện để khỏi phải biết giá trị nằm ở JSON hay cột tách.
     """
-    return [(cot, record.data.get(cot.code)) for cot in columns]
+    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+    from orders.services import assignment_service
+    return [(cot, assignment_service.display(record, cot.code)
+             if record.table.code == ACTIVE_WAYBILL_TABLE_CODE and cot.code in assignment_service.COLUMNS
+             else record.data.get(cot.code)) for cot in columns]

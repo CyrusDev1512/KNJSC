@@ -189,7 +189,8 @@ def waybill_groups(columns):
     payment = {c[1] for c in waybill_service.COLUMNS[16:]}
     groups = []
     for c in columns:
-        label = ("THÔNG TIN ĐƠN HÀNG" if c.code in info else
+        label = ('PHÂN CÔNG' if c.code in waybill_service.assignment_service.COLUMNS else
+                 "THÔNG TIN ĐƠN HÀNG" if c.code in info else
                  "THÔNG TIN THANH TOÁN" if c.code in payment else
                  "VẬN CHUYỂN" if c.code == "trang_thai_vc" else "BỔ SUNG")
         if groups and groups[-1]["label"] == label:
@@ -284,6 +285,8 @@ def build_grid(user, params, *, table=None):
     van_don = is_waybill(table)
     columns = display_columns(table)
     bo_loc = query.read_filters(params, columns)
+    if table.code == ACTIVE_WAYBILL_TABLE_CODE and params.getlist(PRODUCT_PARAM) and 'san_pham__trong' in bo_loc:
+        bo_loc['san_pham__trong'] = list(dict.fromkeys(bo_loc['san_pham__trong'] + params.getlist(PRODUCT_PARAM)))
     tim = (params.get("tim") or "").strip()
     sap = params.get("sap") or ""
     giam = params.get("chieu") == "giam"
@@ -293,6 +296,14 @@ def build_grid(user, params, *, table=None):
     )
     chi_trung = False
     san_pham = []
+    if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+        from orders.models import WaybillItem
+        from orders.services import assignment_service
+        san_pham = [v for v in params.getlist(PRODUCT_PARAM) if v]
+        if san_pham and 'san_pham__trong' not in bo_loc:
+            ds = ds.filter(pk__in=WaybillItem.objects.filter(deleted_at__isnull=True,
+                product__code__in=san_pham).values('record_id'))
+        ds = assignment_service.related(ds)
     if van_don:
         # Cột Trùng đếm sau khi cắt trang (`attach_duplicate_counts`); lọc chỉ
         # dòng trùng thì so với danh sách số điện thoại trùng — một GROUP BY
@@ -324,6 +335,8 @@ def filter_chips(bo_loc, columns, products=()):
     chips = []
     for khoa, gia_tri in bo_loc.items():
         code, _, phep = khoa.partition("__")
+        if code in waybill_service.assignment_service.COLUMNS:
+            gia_tri = ['Chưa gán' if v == '__unassigned__' else v for v in gia_tri] if isinstance(gia_tri, list) else ('Chưa gán' if gia_tri == '__unassigned__' else gia_tri)
         nhan_phep = OPERATOR_LABELS.get(phep or "bang", phep)
         if phep in ("rong", "co"):
             mo_ta = nhan_phep
@@ -459,6 +472,12 @@ def cell_html(bang, ban_ghi, cot, *, gia_tri, hien, duoc_sua, lop, style="", qs_
             f'data-goc="{escape(goc_gt)}" data-waybill-detail="{url}" '
             f'title="{escape(cot.name)} — mở chi tiết sản phẩm">{escape(chu)}</td>'
         )
+    if bang.code == ACTIVE_WAYBILL_TABLE_CODE and cot.code in waybill_service.assignment_service.COLUMNS:
+        chu = waybill_service.assignment_service.display(ban_ghi, cot.code)
+        return mark_safe(
+            f'<td class="o-xem" id="o-{pk}-{cot.code}"{thuoc} tabindex="0" data-dong="{pk}" '
+            f'data-cot="{cot.code}" data-assignment-row="{pk}" data-goc="{escape(chu)}" '
+            f'title="{escape(cot.name)} — Phân công">{escape(chu)}</td>')
     if bang.code == ACTIVE_WAYBILL_TABLE_CODE and cot.code in waybill_service.PROTECTED:
         duoc_sua = False
     if duoc_sua and not cot.is_computed:
@@ -474,19 +493,22 @@ def cell_html(bang, ban_ghi, cot, *, gia_tri, hien, duoc_sua, lop, style="", qs_
     )
 
 
-def row_context(record, columns, user, *, waybill=True, co_dinh=None, stt=None, qs_giu="", goc=None):
+def row_context(record, columns, user, *, waybill=True, co_dinh=None, stt=None, qs_giu="", goc=None, scope_checked=False):
     """Một dòng cho template: ô theo thứ tự cột, lớp màu, số trùng, sửa được
     không, số dòng `stt` (hàng tên cột là 1, dữ liệu từ 2 — ADR-011)."""
     co_dinh = co_dinh if co_dinh is not None else _co_dinh(columns, waybill)
     lech = left_offset(waybill)
     goc = goc if goc is not None else grid_url(record.table)
-    sua = grant_service.can_edit_record(user, record)
+    sua = (grant_service.can_edit_visible_record(user, record) if scope_checked
+           else grant_service.can_edit_record(user, record))
     so_trung = getattr(record, "so_trung", 0) or 0
     kieu = record.style or {}
     du_lieu = record.data
     cac_o = []
     for c in columns:
         gia_tri = du_lieu.get(c.code)
+        if record.table.code == ACTIVE_WAYBILL_TABLE_CODE and c.code in waybill_service.assignment_service.COLUMNS:
+            gia_tri = waybill_service.assignment_service.display(record, c.code)
         st = kieu.get(c.code)
         cd = co_dinh.get(c.code)
         lop = cell_class(c, cd, sua, style=st)
@@ -516,7 +538,7 @@ def rows(records, columns, user, *, waybill=True, start=2, qs_giu=""):
     records = list(records)
     goc = grid_url(records[0].table) if records else None
     return [
-        row_context(r, columns, user, waybill=waybill, co_dinh=co_dinh, stt=start + i, qs_giu=qs_giu, goc=goc)
+        row_context(r, columns, user, waybill=waybill, co_dinh=co_dinh, stt=start + i, qs_giu=qs_giu, goc=goc, scope_checked=True)
         for i, r in enumerate(records)
     ]
 
@@ -605,7 +627,12 @@ def filter_options(user, table, column, search="", limit=GRID_FILTER_OPTIONS_MAX
     như hộp lọc của Excel. Tối đa `limit` giá trị, nhiều nhất trước."""
     cmap = query.ColumnMap(table, [column])
     ds = DataRecord.objects.in_scope(user).filter(table=table)
-    if cmap.is_indexed(column.code):
+    if table.code == ACTIVE_WAYBILL_TABLE_CODE and column.code == 'san_pham':
+        from orders.models import WaybillItem
+        items = WaybillItem.objects.for_records(ds).filter(product__code__icontains=search).order_by().values('product__code').annotate(n=Count('record_id', distinct=True)).order_by('-n', 'product__code')[:limit]
+        return [(i['product__code'], i['n']) for i in items]
+    assignment_column = table.code == ACTIVE_WAYBILL_TABLE_CODE and column.code in waybill_service.assignment_service.COLUMNS
+    if cmap.is_indexed(column.code) or assignment_column:
         ds = ds.annotate(gt=F(cmap.path(column.code)))
     else:
         ds = ds.annotate(gt=KeyTextTransform(column.code, "data"))
@@ -614,7 +641,7 @@ def filter_options(user, table, column, search="", limit=GRID_FILTER_OPTIONS_MAX
     hang = (
         ds.order_by().values("gt").annotate(n=Count("id")).order_by("-n", "gt")[:limit]
     )
-    return [("" if h["gt"] is None else str(h["gt"]), h["n"]) for h in hang]
+    return [(('__unassigned__' if assignment_column else '') if h['gt'] is None else str(h['gt']), h['n']) for h in hang]
 
 
 def choice_list(table, column):

@@ -278,6 +278,19 @@ Những mục sau ảnh hưởng tới phạm vi và cần thống nhất trư�
 
 ---
 
+## 16a. Bổ sung feedback KN CRM đã duyệt
+
+**Bổ sung đã duyệt 09.09.2026 — feedback KN CRM:** Vận đơn mới quản lý người
+phụ trách Vận đơn, CSKH và Marketing bằng liên kết tài khoản. Leader/Manager
+Vận đơn và Admin phân công; nhân viên Vận đơn xem dòng được giao, Sale thấy
+dòng mình tạo hoặc chăm sóc, CSKH chỉ thấy dòng được giao. Giao CSKH không
+tự cấp quyền sửa, gán Marketing không cấp quyền xem. Giữ bộ trạng thái hiện
+có; lọc độc lập vận chuyển/thanh toán, mã sản phẩm chi tiết, Quốc gia và
+Marketing được gán. Excel xuất toàn kết quả lọc/ngày trong quyền, có mã nhân
+viên; file nền phải kiểm lại quyền trước tải. Chi tiết và các ngoại lệ thay
+thế quy tắc bảng mới trước đây ở [ADR-020](quyet-dinh/020-phan-cong-loc-xuat-van-don-moi.md).
+H7 về nhập tiền/bằng chứng vẫn chờ quyết định.
+
 ## 17. Ngoài phạm vi phase 1
 
 | Nhóm | Nội dung |

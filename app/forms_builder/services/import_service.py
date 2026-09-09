@@ -334,6 +334,10 @@ def job_for(user, pk, table=None):
     return ds.first()
 
 
-def record_count(table):
+def record_count(table, user):
     """Số dòng hiện có, cho màn hình xem trước biết bảng đang lớn cỡ nào."""
-    return DataRecord.objects.filter(table=table).count()
+    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+    records = DataRecord.objects.filter(table=table)
+    if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+        records = records.in_scope(user)
+    return records.count()

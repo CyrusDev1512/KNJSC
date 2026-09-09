@@ -38,6 +38,9 @@ def _cap_them(user, action):
 class TableDefQuerySet(ScopedQuerySet):
     """Giữ nguyên xoá mềm và `can_view` của `ScopedQuerySet`, chỉ đổi `in_scope`."""
 
+    def with_visible_record_count(self, user):
+        return self.annotate(so_dong=models.Count('records', distinct=True, filter=record_count_scope(user)))
+
     def in_scope(self, user):
         """Bảng của bộ phận mình, cộng bảng được cấp quyền xem riêng."""
         from .models import GrantAction
@@ -47,10 +50,15 @@ class TableDefQuerySet(ScopedQuerySet):
             return trong_bo_phan
 
         duoc_cap = _cap_them(user, GrantAction.VIEW)
-        if not duoc_cap:
-            return trong_bo_phan
+        from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+        from .models import DataRecord
+        visible = DataRecord.objects.filter(table__code=ACTIVE_WAYBILL_TABLE_CODE).filter(
+            Q(created_by_id=user.pk, created_by__profile__department__code='sale')
+            | Q(order__created_by_id=user.pk, order__created_by__profile__department__code='sale')
+            | Q(assignment__care_id=user.pk, assignment__care__profile__department__code__in=['sale', 'cskh']))
         return self.filter(
             Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
+            | Q(pk__in=visible.order_by().values('table_id'))
         )
 
 
@@ -59,6 +67,12 @@ class TableDefManager(models.Manager.from_queryset(TableDefQuerySet)):
 
     def get_queryset(self):
         return super().get_queryset().filter(deleted_at__isnull=True)
+
+
+def record_count_scope(user):
+    from .models import DataRecord
+    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+    return ~Q(code=ACTIVE_WAYBILL_TABLE_CODE) | Q(records__pk__in=DataRecord.objects.in_scope(user).values('pk'))
 
 
 class AllTableDefManager(models.Manager.from_queryset(TableDefQuerySet)):
@@ -149,7 +163,8 @@ class DataRecordQuerySet(ScopedQuerySet):
         if duoc_cap:
             them |= Q(table_id__in=duoc_cap)
 
-        return self.filter(Q(pk__in=theo_cap_bac.values("pk")) | them)
+        from orders.services.assignment_service import scope_condition
+        return self.filter(scope_condition(user, Q(pk__in=theo_cap_bac.values("pk")) | them))
 
 
 class DataRecordManager(models.Manager.from_queryset(DataRecordQuerySet)):

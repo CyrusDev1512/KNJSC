@@ -23,6 +23,19 @@ from core.money import money_field
 from .constants import Market, PaymentMethod
 
 
+class WaybillAssignment(models.Model):
+    """Định danh phân công; dòng chưa có bản ghi này có phiên bản 0."""
+    record = models.OneToOneField('forms_builder.DataRecord', on_delete=models.CASCADE,
+                                 related_name='assignment')
+    delivery = models.ForeignKey('auth.User', null=True, blank=True, on_delete=models.PROTECT,
+                                 related_name='delivery_assignments')
+    care = models.ForeignKey('auth.User', null=True, blank=True, on_delete=models.PROTECT,
+                             related_name='care_assignments')
+    marketing = models.ForeignKey('auth.User', null=True, blank=True, on_delete=models.PROTECT,
+                                  related_name='marketing_assignments')
+    version = models.PositiveIntegerField(default=0)
+
+
 class WaybillItemQuerySet(models.QuerySet):
     """Phạm vi chi tiết luôn đi qua dòng vận đơn cha."""
 

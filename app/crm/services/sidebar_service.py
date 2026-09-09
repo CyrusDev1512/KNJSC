@@ -86,6 +86,16 @@ def product_options(user, table, columns, params):
     `kind` là `"cot_sl"` (bảng vận đơn), `"gia_tri"` (bảng có cột Sản phẩm)
     hoặc None (không có khối này).
     """
+    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+    if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+        from django.db.models import Count
+        from orders.models import WaybillItem
+        chosen = params.getlist('sp') + params.getlist('f_san_pham__trong')
+        items = WaybillItem.objects.in_scope(user).filter(record__table=table).order_by().values(
+            'product__code', 'product__name').annotate(n=Count('record_id', distinct=True)).order_by('product__code')
+        return {'kind': 'chi_tiet', 'param': 'f_san_pham__trong', 'items': [
+            (i['product__code'], f"{i['product__code']} — {i['product__name']}", i['n'], i['product__code'] in chosen)
+            for i in items]}
     if grid_service.is_waybill(table):
         dang_chon = set(grid_service.read_products(params, columns))
         return {
@@ -110,6 +120,17 @@ def context(user, table, columns, params, today=None):
     cot_ngay = date_column(columns)
     san_pham = product_options(user, table, columns, params)
     ben = {"cot_ngay": cot_ngay, "san_pham": san_pham}
+    if table.code == grid_service.ACTIVE_WAYBILL_TABLE_CODE:
+        groups = []
+        for code, name in [('quoc_gia', 'Thị trường'), ('phu_trach_mkt', 'Marketing')]:
+            column = next(c for c in columns if c.code == code)
+            param = f'f_{code}__trong'
+            groups.append({'name': name, 'param': param,
+                'keep': grid_service.params_without(params, exclude=(param,)),
+                'items': [(value, 'Chưa gán' if value == '__unassigned__' else value, count,
+                           value in params.getlist(param))
+                          for value, count in grid_service.filter_options(user, table, column)]})
+        ben['assignment_filters'] = groups
     if cot_ngay is not None:
         k_tu, k_den = _khoa_ngay(cot_ngay)
         ben.update({
@@ -119,6 +140,19 @@ def context(user, table, columns, params, today=None):
             "giu_ngay": grid_service.params_without(params, exclude=(k_tu, k_den)),
         })
     if san_pham["kind"]:
-        ben["giu_san_pham"] = grid_service.params_without(params, exclude=(san_pham["param"],))
+        exclude = (san_pham['param'], 'sp') if table.code == grid_service.ACTIVE_WAYBILL_TABLE_CODE else (san_pham['param'],)
+        ben["giu_san_pham"] = grid_service.params_without(params, exclude=exclude)
     ben["co_gi"] = cot_ngay is not None or bool(san_pham["kind"])
     return ben
+
+
+def quick_filters(params):
+    from orders.constants import ShippingStatus, PaymentStatus
+    groups = []
+    for code, name, choices in [('trang_thai_vc', 'Vận chuyển', ShippingStatus.labels),
+                                ('trang_thai_tt', 'Thanh toán', PaymentStatus.labels)]:
+        param = f'f_{code}__trong'
+        groups.append({'name': name, 'param': param,
+                       'items': [(v, v in params.getlist(param)) for v in choices]})
+    return {'groups': groups, 'keep': grid_service.params_without(params,
+        exclude=tuple(g['param'] for g in groups))}

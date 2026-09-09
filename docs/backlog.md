@@ -24,6 +24,12 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 
 ## 0. Còn nợ những gì — xem ở đây trước
 
+**09.09.2026 — feedback KN CRM trên `codex/sua-feedback`:** đã triển khai
+phân công Vận đơn/CSKH/Marketing theo tài khoản, phạm vi theo người được giao,
+bộ lọc nhanh/chi tiết và xuất Excel theo ngày/bộ lọc có mã nhân viên.
+Xem [ADR-020](quyet-dinh/020-phan-cong-loc-xuat-van-don-moi.md) và
+[test-log](test-log.md). H7 vẫn chưa chốt, không mở quyền đối soát.
+
 **Thứ tự thực hiện chốt 09.09.2026:** sửa feedback khách hàng trước; “Việc
 cần làm của tôi”, nhắc việc chủ động và AI để giai đoạn sau. Không mở rộng
 tác vụ feedback sang các tính năng này. Điểm nghiệp vụ chưa rõ tiếp tục
@@ -307,6 +313,17 @@ mục 6.
 
 ## 2. Đã quyết định
 
+### Feedback KN CRM — phân công, lọc và xuất Vận đơn mới (09.09.2026)
+
+Chủ dự án duyệt triển khai đề xuất 3–6 cho `van_don_moi`. Đã hoàn tất trên
+nhánh `codex/sua-feedback`, chưa commit/push trong tác vụ này. Username là mã
+nhân viên; Leader/Manager Vận đơn và Admin phân công, không suy người từ tên.
+Quyền xem mới không tự cấp quyền sửa CSKH; bảo vệ cột phân công khỏi nhập/dán.
+Giữ thống kê và Lên đơn riêng, Excel một đơn một dòng; kiểm lại quyền file nền.
+Các test cũ được cập nhật bước phân công rõ ràng trước khi nhân viên xử lý.
+Quyết định, giới hạn và cách nghiệm thu ở ADR-020, AC-20.1 đến AC-20.7.
+Không làm H7, nhắc việc, AI, chuyển bảng cũ hoặc thay thư viện grid.
+
 | # | Nội dung | Quyết định | Ngày |
 |---|---|---|---|
 | Q1 | Đơn hàng chảy sang bảng vận đơn theo chiều nào | Một chiều cho phase 1 | (điền) |
@@ -441,6 +458,9 @@ Các câu H1–H7 đã chuyển sang [USER_INQUIRY.md](USER_INQUIRY.md) ngày
 09.09.2026 theo yêu cầu chủ dự án: chia theo vấn đề, đối tượng trả lời và
 danh sách đánh số. Cập nhật câu hỏi/câu trả lời tại file đó để tránh lệch
 hai bản. Backlog tiếp tục giữ tiến độ, các vấn đề N/V và lịch sử quyết định.
+
+Tra từng câu: H1 công thức; H2 kéo điền; H3 dán; H4 thời gian nhập/tổng hợp;
+H5 tìm kiếm; H6 cơ cấu team; H7 quyền nhập tiền/bằng chứng. H7 vẫn chưa chốt.
 
 ---
 

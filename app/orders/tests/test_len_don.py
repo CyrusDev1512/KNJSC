@@ -194,7 +194,10 @@ def test_bo_phan_van_don_thay_don_cua_sale(bang_van_don, san_pham, nguoi_dung):
 
     # Nhân viên Vận đơn không tạo dòng nào, nhưng phải thấy để đi giao
     thay = DataRecord.objects.in_scope(nguoi_dung["staff_vd"])
-    assert thay.filter(pk=don.record_id).exists()
+    assert not thay.filter(pk=don.record_id).exists()  # Bảng mới: chờ Leader phân công.
+    from orders.services.assignment_service import assign
+    assign(nguoi_dung['admin'], {don.record_id: 0}, {'delivery': nguoi_dung['staff_vd'].pk})
+    assert DataRecord.objects.in_scope(nguoi_dung['staff_vd']).filter(pk=don.record_id).exists()
 
 
 def test_van_don_khong_sua_duoc_o_bang_du_lieu(client, bang_van_don, san_pham, nguoi_dung):

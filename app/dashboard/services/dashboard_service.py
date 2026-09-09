@@ -75,7 +75,7 @@ def _bang_dong(user):
     bang = list(
         TableDef.objects.in_scope(user)
         .select_related("department")
-        .annotate(so_dong=Count("records", distinct=True))
+        .with_visible_record_count(user)
         .order_by("-updated_at")[:5]
     )
     return {

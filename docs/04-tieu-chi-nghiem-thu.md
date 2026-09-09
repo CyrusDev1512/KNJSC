@@ -383,3 +383,19 @@ Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ 
 | AC-18.6 | Thống kê theo toàn bộ bộ lọc và quyền, bốn kiểu nhóm; tách tiền, distinct đơn, nhóm mã sản phẩm; sửa, xoá mềm, khôi phục phản ánh đúng, Hủy/Hoàn không bị bỏ ngầm | ADR-018 | Tự động |
 | AC-18.7 | Xuất/nhập lại bảo toàn chi tiết và tiền; dòng thiếu chi tiết, tổng không khớp hoặc mã sản phẩm lạ báo lỗi xem trước, không tự phân bổ | FR-7.5 → FR-7.7 · ADR-018 | Tự động |
 | AC-18.8 | Bảng chỉ có Vận hành đơn, Thống kê và tiêu đề nhóm; không có form hoặc yêu cầu tải Lên đơn nhúng. Thống kê thu gọn được, ô tổng mở chi tiết, không có Blacklist; 390px cuộn trong lưới. Hai trang Lên đơn riêng hoạt động như trước | ADR-018, ADR-019 | Tự động |
+
+## 21. Feedback Vận đơn mới — ADR-020
+
+Các tiêu chí này thay giả định thấy toàn bộ hàng đợi của nhân viên Vận đơn
+ở AC-18.4 trên bảng mới. AC-18.7 chỉ nhập lại phần dữ liệu nghiệp vụ;
+phân công trong file không được dùng để cấp quyền.
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-20.1 | Leader/Manager Vận đơn và Admin phân công; nhân viên thấy đúng đơn được giao, Sale thấy đơn mình tạo; CSKH chỉ bổ sung xem; grant bảng/Marketing không vượt phạm vi; đọc chung ERP và số đếm tuân thủ | ADR-020 | Tự động |
+| AC-20.2 | Ba người phụ trách là tài khoản hoạt động đúng bộ phận, mã/họ tên hiển thị; chặn ô/dán/nhập ghi phân công; người cũ không ghi được dữ liệu đã đọc trước khi chuyển giao | ADR-020 | Tự động |
+| AC-20.3 | Một/nhiều dòng, giữ/đổi/bỏ từng trường; hai request đồng thời không ghi đè, phiên bản cũ trả 409, lỗi rollback cả lượt, audit không thông tin khách | ADR-020 | Tự động |
+| AC-20.4 | Lọc AND/OR đúng, mã sản phẩm chi tiết không nhân dòng; Quốc gia/Marketing và chưa gán đúng; ngày và trạng thái độc lập; lựa chọn/thống kê trong phạm vi | ADR-020 | Tự động |
+| AC-20.5 | Xuất toàn kết quả lọc/ngày, mã nhân viên phân biệt trùng tên, dòng thiếu Order để trống mã Sale; trực tiếp/nền đồng nhất, worker và tải lại kiểm quyền | ADR-020 | Tự động |
+| AC-20.6 | Desktop/mobile không tràn trang; bàn phím mở phân công, chọn nhiều dòng, lỗi xung đột có cách tải lại; URL giữ lọc/sắp xếp, trạng thái rỗng rõ; không có Lên đơn nhúng | ADR-020 | Tự động |
+| AC-20.7 | Migration xuôi/ngược trên DB test bảo toàn đơn/dòng/chi tiết, không tự phân công; lưới 100 dòng không truy vấn riêng từng dòng | ADR-020 | Tự động |

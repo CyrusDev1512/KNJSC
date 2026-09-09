@@ -37,3 +37,16 @@
 .vd-page :focus-visible, .vd-dialog :focus-visible { outline: 2px solid #237b55; outline-offset: 2px; }
 @media (max-width: 1000px) { .vd-fields { grid-template-columns: repeat(3, minmax(140px, 1fr)); } }
 @media (max-width: 600px) { .vd-fields { grid-template-columns: 1fr; } .vd-page { padding: 8px; } .vd-dialog { padding: 14px; } .vd-page .bt-bo-cuc { height: 420px; } .vd-page .vd-empty-cell .rong { width: calc(100vw - 16px); padding-inline: 16px; } }
+/* Feedback: giữ bộ lọc và phân công trong khung lưới hiện có. */
+.vd-quick-bar, .vd-quick-form { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.vd-quick-bar { padding:8px 12px; justify-content:space-between; }
+.vd-quick-group { position:relative; }
+.vd-quick-group summary { cursor:pointer; padding:8px; }
+.vd-quick-options { position:absolute; z-index:90; top:100%; left:0; min-width:220px; max-height:320px; overflow:auto; padding:12px; background:var(--surface); color:var(--ink); border:1px solid var(--rule); border-radius:6px; box-shadow:0 4px 12px #0002; }
+.vd-quick-options label { display:flex; gap:8px; padding:7px 0; }
+.vd-assignment-fields { display:grid; gap:16px; }
+.vd-assignment-fields label { display:grid; gap:6px; min-width:0; }
+.vd-assignment-fields select { width:100%; min-width:0; }
+.vd-assignment-fields small { overflow-wrap:anywhere; }
+#vd-assignment-status { min-height:1.5em; }
+@media(max-width:600px) { .vd-quick-options { position:fixed; left:12px; right:12px; top:25%; min-width:0; max-height:50vh; } }

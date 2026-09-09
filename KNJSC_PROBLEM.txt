@@ -24,8 +24,8 @@ Vấn đề tập trung
 3. Cần cấu trúc chọn sản phẩm theo chuỗi: nhóm sản phẩm -> tên sản phẩm -> số sản phẩm.
 4. Cần bổ sung đơn vị hàng hóa như hộp, cái, chiếc, túi.
 5. Đơn giá không nên bị fixed; Sale cần được tự điền đơn giá.
-6. Trường hợp nhân sự trùng tên, dữ liệu xuất Excel phải dùng mã nhân viên để phân biệt.
-7. Cần xuất Excel vận đơn theo ngày để gửi lên kho.
+6. Trường hợp nhân sự trùng tên, dữ liệu xuất Excel phải dùng mã nhân viên để phân biệt. -> đã làm (KN CRM — xuất theo ngày/bộ lọc, định danh bằng mã nhân viên)
+7. Cần xuất Excel vận đơn theo ngày để gửi lên kho. -> đã làm (KN CRM — xuất theo ngày/bộ lọc, định danh bằng mã nhân viên)
 
 Kết quả tính năng cần hướng tới
 - Một quy trình lên đơn thống nhất cho nhiều thị trường và sản phẩm.
@@ -44,8 +44,8 @@ Vấn đề tập trung
 1. FPT/quy ước quản lý phải lấy mã nhân viên làm định danh duy nhất.
 2. Nhân viên đăng nhập hệ thống bằng mã nhân viên.
 3. Mật khẩu ban đầu cần random để tránh người này vào tài khoản của nhân sự khác.
-4. Nhân viên Vận đơn chỉ được xem hoặc thao tác đúng phạm vi được giao.
-5. Cần assign theo tên/người được giao để tránh nhân sự Vận đơn của đơn này chỉnh sửa đơn thuộc nhân sự Vận đơn khác.
+4. Nhân viên Vận đơn chỉ được xem hoặc thao tác đúng phạm vi được giao. -> đã làm (KN CRM — Vận đơn mới: phân công và phạm vi theo người được giao)
+5. Cần assign theo tên/người được giao để tránh nhân sự Vận đơn của đơn này chỉnh sửa đơn thuộc nhân sự Vận đơn khác. -> đã làm (KN CRM — Vận đơn mới: phân công và phạm vi theo người được giao)
 6. Vận đơn được xem dữ liệu nhưng không được thao tác mục đối soát nếu không có quyền.
 7. Hệ thống cần hạn chế thao tác linh tinh và chỉ cung cấp các thao tác có ý nghĩa với vai trò.
 8. Phần view cho nhân viên phải thuận tiện nhất cho người trực tiếp xử lý.
@@ -63,9 +63,9 @@ Phía hệ thống: KNCRM; KNERP nhận kết quả thống kê.
 Nhân sự liên quan: Vận đơn; Sale; Marketing; CSKH; Leader; Quản trị.
 
 Vấn đề tập trung
-1. File vận đơn cần lọc nhanh theo trạng thái vận chuyển và tình trạng thu tiền để giảm thao tác.
-2. Hiện còn thiếu lọc theo sản phẩm, thị trường và Marketing.
-3. Cần lọc riêng trạng thái giao hàng và trạng thái thanh toán.
+1. File vận đơn cần lọc nhanh theo trạng thái vận chuyển và tình trạng thu tiền để giảm thao tác. -> đã làm (KN CRM — Vận đơn mới: bộ lọc nhanh và sản phẩm/thị trường/Marketing)
+2. Hiện còn thiếu lọc theo sản phẩm, thị trường và Marketing. -> đã làm (KN CRM — Vận đơn mới: bộ lọc nhanh và sản phẩm/thị trường/Marketing)
+3. Cần lọc riêng trạng thái giao hàng và trạng thái thanh toán. -> đã làm (KN CRM — Vận đơn mới: bộ lọc nhanh và sản phẩm/thị trường/Marketing)
 4. Cần xác định rõ những thao tác nào được phép thực hiện trên dữ liệu vận đơn.
 5. Dữ liệu vận đơn là dữ liệu gốc, không chứa công thức; công thức chỉ nằm ở phần thống kê.
 6. Có phần ghi chú nguồn chưa hoàn chỉnh: “những phần chứa dữ liệu kh”. Nội dung này được giữ lại để làm rõ thêm, không tự suy diễn hoặc loại bỏ.

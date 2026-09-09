@@ -55,6 +55,11 @@ Xếp theo thứ tự nên làm. Mỗi dòng một PR nhỏ, có ảnh trước/
 
 ## Finished
 
+- **09.09.2026 — `codex/sua-feedback`:** phân công Vận đơn mới và phạm vi theo
+  tài khoản; bộ lọc nhanh/sản phẩm/thị trường/Marketing; xuất ngày/bộ lọc có
+  mã nhân viên và kiểm quyền file nền. [ADR-020](quyet-dinh/020-phan-cong-loc-xuat-van-don-moi.md),
+  AC-20.1 đến AC-20.7. H7 chưa làm; chưa commit/push trong tác vụ này.
+
 Mọi thứ đã vào `main` (ở `3ab19a5`) hoặc đã xong trên nhánh. Số giai đoạn theo
 `dashboard-tien-do.html`.
 

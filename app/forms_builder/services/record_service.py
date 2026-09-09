@@ -371,6 +371,9 @@ def update_cells(cells, *, actor=None, request=None, columns=None):
 @transaction.atomic
 def restore_record(ban_ghi, *, actor=None, request=None):
     """Khôi phục một dòng đã xoá mềm — hoàn tác xoá trên Bảng tính (ADR-011)."""
+    policy = record_policies.for_table(ban_ghi.table)
+    if policy:
+        policy.refresh_for_update(ban_ghi, actor, include_deleted=True)
     if ban_ghi.deleted_at is None:
         return ban_ghi
     ban_ghi.deleted_at = None
@@ -386,6 +389,9 @@ def restore_record(ban_ghi, *, actor=None, request=None):
 @transaction.atomic
 def delete_record(ban_ghi, *, actor=None, request=None):
     """Xoá một dòng. Đánh dấu chứ không xoá khỏi cơ sở dữ liệu (BR-4)."""
+    policy = record_policies.for_table(ban_ghi.table)
+    if policy:
+        policy.refresh_for_update(ban_ghi, actor)
     ma_bang = ban_ghi.table.code
     ban_ghi.delete(by=actor)
     record(
@@ -503,6 +509,9 @@ def update_style(ban_ghi, code, style, *, actor=None, request=None, columns=None
     """Đổi định dạng một ô — ADR-010. Lưu vào `DataRecord.style`, mọi người
     cùng thấy; mỗi lần đổi một dòng nhật ký (BR-5). Không đụng `data` nên
     ghi bằng `update_fields`, an toàn với bảy cột tách."""
+    policy = record_policies.for_table(ban_ghi.table)
+    if policy:
+        policy.refresh_for_update(ban_ghi, actor)
     columns = columns if columns is not None else list(ban_ghi.table.columns.all())
     doi, cu, moi = _ap_dinh_dang(ban_ghi, code, style, columns, replace=replace)
     if not doi:
@@ -523,6 +532,10 @@ def update_styles(cells, style, *, actor=None, request=None, columns=None, repla
     Trả về số ô đã đổi."""
     da_doi = 0
     ban_ghi_doi = {}
+    for row in sorted({r.pk: r for r, _ in cells}.values(), key=lambda r: r.pk):
+        policy = record_policies.for_table(row.table)
+        if policy:
+            policy.refresh_for_update(row, actor)
     for ban_ghi, code in cells:
         cot = columns if columns is not None else list(ban_ghi.table.columns.all())
         doi, _, _ = _ap_dinh_dang(ban_ghi, code, style, cot, replace=replace)

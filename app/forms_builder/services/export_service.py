@@ -89,25 +89,27 @@ def cell_value(cot, gia_tri):
     return gia_tri
 
 
-def rows_of(queryset, columns):
+def rows_of(queryset, columns, *, exported_ids=None):
     """Sinh từng dòng theo thứ tự cột, đọc theo lô để không nạp hết vào RAM."""
     policy = record_policies.for_table(columns[0].table) if columns else None
     if policy:
         queryset = policy.export_queryset(queryset)
     for ban_ghi in queryset.iterator(chunk_size=500):
-        values = [cell_value(cot, ban_ghi.data.get(cot.code)) for cot in columns]
+        if exported_ids is not None:
+            exported_ids.append(ban_ghi.pk)
+        values = [cell_value(cot, value) for cot, value in query.read_row(ban_ghi, columns)]
         if policy:
-            values.append(policy.export_detail(ban_ghi))
+            values.extend(policy.export_values(ban_ghi))
         yield values
 
 
-def build_workbook(queryset, columns, *, title):
+def build_workbook(queryset, columns, *, title, exported_ids=None):
     policy = record_policies.for_table(columns[0].table) if columns else None
     headers = [c.name for c in columns]
     if policy:
         headers += [c.name for c in policy.extra_columns(columns[0].table)]
     return excel.write_table(
-        headers, rows_of(queryset, columns), sheet_title=title,
+        headers, rows_of(queryset, columns, exported_ids=exported_ids), sheet_title=title,
     )
 
 
@@ -164,11 +166,27 @@ def run(job_id):
     job.mark_running()
     try:
         table = TableDef.objects.get(code=job.target_id)
+        from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+        if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+            if not job.created_by.is_active or not TableDef.objects.in_scope(job.created_by).filter(pk=table.pk).exists():
+                raise BusinessError('Quyền xem đã thay đổi. Hãy xuất lại.')
         params = QueryDict("", mutable=True)
         for k, v in (job.summary.get("params") or {}).items():
             params.setlist(k, v)
         ds, columns, _ = _dung(job.summary.get("builder", "table"), job.created_by, table, params)
-        wb = build_workbook(ds, columns, title=table.name)
+        if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+            ids = list(ds.values_list('pk', flat=True))
+            if len(ids) > getattr(settings, 'EXPORT_MAX_ROWS', 50_000):
+                raise BusinessError('Kết quả vượt giới hạn xuất. Thu hẹp bộ lọc rồi xuất lại.')
+            ds = ds.filter(pk__in=ids)
+        if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+            exported_ids = []
+            wb = build_workbook(ds, columns, title=table.name, exported_ids=exported_ids)
+            job.summary['exported_row_ids'] = exported_ids
+            job.total = len(exported_ids)
+            job.save(update_fields=['summary', 'total'])
+        else:
+            wb = build_workbook(ds, columns, title=table.name)
 
         thu_muc = Path(settings.EXPORT_DIR)
         thu_muc.mkdir(parents=True, exist_ok=True)
@@ -188,5 +206,18 @@ def result_file(job):
     """Đường dẫn tuyệt đối của tệp kết quả, hoặc None nếu đã bị dọn."""
     if not job.result_path:
         return None
+    check_download(job, job.created_by)
     duong_dan = Path(settings.STORAGE_DIR) / job.result_path
     return duong_dan if duong_dan.exists() else None
+
+
+def check_download(job, user):
+    """Kiểm lại tập dòng của file đã tạo, không chỉ quyền truy cập tác vụ."""
+    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+    if job.kind != JobKind.EXPORT or job.target_id != ACTIVE_WAYBILL_TABLE_CODE:
+        return
+    ids = job.summary.get('exported_row_ids')
+    if (not user.is_active or not isinstance(ids, list)
+        or not TableDef.objects.in_scope(user).filter(code=ACTIVE_WAYBILL_TABLE_CODE).exists()
+        or DataRecord.objects.in_scope(user).filter(pk__in=ids, table__code=ACTIVE_WAYBILL_TABLE_CODE).count() != len(ids)):
+        raise BusinessError('Quyền xem các dòng trong tệp đã thay đổi. Hãy xuất lại.')

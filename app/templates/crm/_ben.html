@@ -150,4 +150,18 @@ duoc_quan_ly_thu_muc, ben (sidebar_service.context).
       </form>
     </section>
   {% endif %}
+  {% for group in ben.assignment_filters %}
+  <section class="bt-ben-muc">
+    <h2 class="bt-ben-tieu-de">{{ group.name }}</h2>
+    <form class="bt-ben-form" method="get">
+      {% for k, v in group.keep %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+      <div class="bt-ben-ds">
+        {% for value, label, count, selected in group.items %}
+        <label class="bt-ben-chon"><input type="checkbox" name="{{ group.param }}" value="{{ value }}"{% if selected %} checked{% endif %}><span class="bt-ben-nhan">{{ label }}</span><span class="bt-ben-so">{{ count }}</span></label>
+        {% empty %}<p>Không có lựa chọn trong phạm vi được xem.</p>{% endfor %}
+      </div>
+      <button class="nut nut-nho nut-chinh" type="submit">Áp dụng</button>
+    </form>
+  </section>
+  {% endfor %}
 </aside>

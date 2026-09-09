@@ -97,3 +97,55 @@ Phát hiện rồi sửa vượt trần truy vấn do bộ lọc; test lịch s�
 Sau tách helper lịch sử và sửa comment lộ trên UI, chạy lại reports đạt.
 Trình duyệt 1440px/390px đạt, không có console error được ghi nhận.
 Chưa commit/push; chưa áp quy tắc báo cáo muộn hoặc mở mục thị trường.
+## 09.09.2026 — Kiểm chứng feedback Vận đơn mới (ADR-020)
+
+Nhánh `codex/sua-feedback`. Thay đổi phân công theo tài khoản, phạm vi dùng
+chung CRM/ERP, bộ lọc và Excel; không triển khai H7 hoặc Lên đơn nhúng.
+
+- Hồi quy trước sửa: hai test đỏ chứng minh nhân viên Vận đơn thấy đơn chưa
+  giao và lọc mã sản phẩm chưa tác động tới chi tiết. Sau sửa đạt.
+- Suite không gồm bài chậm: **1.923 passed, 1 skipped, 33 deselected**,
+  94,40 giây. Bài skip là cầu Chrome riêng chưa bật biến môi trường trong
+  suite; đã chạy riêng bằng Chrome thật và đạt **1 passed** (13,38 giây).
+- Chrome desktop 1440×1000 và mobile 390×844: phân công một dòng bằng Enter,
+  chọn vùng/giao hàng loạt, giữ trường khác, chọn tên dài, xung đột 409 rồi
+  tải lại, URL/bộ lọc/sắp xếp, sidebar, trạng thái rỗng, không tràn ngang trang.
+  Ảnh và log local: `.agents/design-state/review/feedback/`.
+- Sau khi chốt lưu ID từ chính những dòng đã ghi vào workbook, chạy lại
+  nhóm phân công/xuất/nhập/truy vết: **65 passed** (14,91 giây), database
+  pytest riêng `test_knjsc_feedback_verify`.
+- Có test hai kết nối phân công cùng hai dòng với thứ tự đầu vào ngược nhau:
+  một lượt lưu, một lượt xung đột; không ghi đè. Có kiểm đổi/bỏ, rollback,
+  sai bộ phận/tài khoản khoá, CSKH chỉ xem, grant không vượt phạm vi, API/dán/
+  nhập/định dạng/khôi phục, thống kê và gợi ý; xuất trực tiếp/nền, worker và tải
+  lại sau đổi quyền, mã trùng tên, ngày và dòng thiếu liên kết Sale.
+- Migration `0004/0005` có kiểm ngược/xuôi trên DB test, giữ dữ liệu dòng,
+  không tự phân công. Đã chạy cả nhóm `core/tests/test_chuyen_doi.py` riêng.
+  Trên DB local chỉ migrate xuôi: trước/sau vẫn 13 dòng bảng cũ, 20 dòng bảng
+  mới, 0 phân công. Không dùng dữ liệu local để thử ghi phân công.
+- Lưới mới 100 dòng kiểm ngân sách tối đa 22 truy vấn; ngân sách lưới/bulk/
+  polling bảng cũ vẫn đạt. Đây không phải kiểm tải 100 nghìn khách hoặc
+  nghiệm thu 10–20 người thao tác liên tục.
+- Đánh dấu đúng 7 ý trong `KNJSC_PROBLEM.txt`: Problem 01 ý 6–7, Problem 02
+  ý 4–5, Problem 03 ý 1–3. Phụ lục nguồn và Problem 02 ý 6 giữ nguyên.
+
+Lệnh từ gốc repository (giữ database test riêng, bỏ entrypoint seed):
+
+```powershell
+docker compose -f deploy/docker-compose.yml run --rm -e RUN_MIGRATIONS=0 web pytest -m 'not cham' -o addopts='--strict-markers --ds=knjsc.settings.test' -q
+docker compose -f deploy/docker-compose.yml run --rm -e RUN_MIGRATIONS=0 web pytest core/tests/test_chuyen_doi.py
+```
+
+Kiểm Chrome: chạy lệnh server dưới đây, rồi chạy script Node trên host trong
+khi server đợi. `POSTGRES_DB` này chỉ đặt tên cho DB pytest, không phải DB dev.
+Script dùng tài khoản fixture của pytest, không dùng tài khoản khách hàng.
+
+```powershell
+docker compose -f deploy/docker-compose.yml run --rm -p 8031:8031 -e RUN_MIGRATIONS=0 -e POSTGRES_DB=knjsc_feedback_ui -e KN_FEEDBACK_BROWSER=1 web pytest crm/tests/test_feedback_browser_server.py --liveserver=0.0.0.0:8031
+$env:NODE_PATH='C:\Users\PC\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\node_modules'
+& 'C:\Program Files\nodejs\node.exe' scripts/kiem-thu-feedback-ui.cjs
+```
+
+Chưa commit/push trong tác vụ này. Nhật ký lịch sử bên trên giữ nguyên.
+
+---

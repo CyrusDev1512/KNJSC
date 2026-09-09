@@ -140,9 +140,10 @@ def test_mot_ngay_cua_cong_ty(client, departments, teams, nguoi_dung):
     bang_vd = don.record.table
 
     thay = DataRecord.objects.in_scope(vd_nv)
-    assert thay.filter(pk=don.record_id).exists(), (
-        "Vận đơn không thấy dòng do Sale lên — cả tính năng vô dụng"
-    )
+    assert not thay.filter(pk=don.record_id).exists()  # Đơn mới chờ được phân công.
+    from orders.services.assignment_service import assign
+    assign(nguoi_dung['admin'], {don.record_id: 0}, {'delivery': vd_nv.pk})
+    assert DataRecord.objects.in_scope(vd_nv).filter(pk=don.record_id).exists()
 
     # Bảng dữ liệu ở KN ERP chỉ để xem với mọi bảng, không có đường sửa ô
     # (ADR-014); cập nhật là việc của KN CRM — dịch vụ `bangtinh` chạy cùng mã

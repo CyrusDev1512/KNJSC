@@ -17,7 +17,7 @@ from core.models import AuditLog
 from forms_builder.models import DataRecord, TableDef, Grant, GrantAction
 from forms_builder.services import record_service, grant_service, import_service, export_service
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE, Market, PaymentMethod
-from orders.models import Product, Order, OrderLine, WaybillItem
+from orders.models import Product, Order, OrderLine, WaybillItem, WaybillAssignment
 from orders.services import dispatch_service, order_service, waybill_service as service
 
 pytestmark = pytest.mark.django_db
@@ -39,9 +39,14 @@ def lines(products, paid="0.00"):
     return [{"product": p.code, "quantity": 2, "unit_price": "10.10", "paid_amount": paid} for p in products]
 
 
-def order(setup, user):
-    return order_service.create_order(phone="0901234567", customer_name="Khách kiểm thử",
+def order(setup, user, *, assigned=True):
+    result = order_service.create_order(phone="0901234567", customer_name="Khách kiểm thử",
         lines=lines(setup[2]), actor=user, currency=Currency.USD)
+    if assigned:
+        from django.contrib.auth import get_user_model
+        WaybillAssignment.objects.create(record=result.record,
+            delivery=get_user_model().objects.get(username='staff_vd'))
+    return result
 
 
 def form_data(products):
@@ -140,13 +145,14 @@ def test_direct_routes_permissions_both_directions(client, setup, departments, m
     assert client.post(ENTRY, form_data(setup[2])).status_code == 200
     expected = 200 if rank == Rank.ADMIN else 403
     assert client.get(detail).status_code == expected
-    assert client.get(STATS).status_code == expected
+    assert client.get(STATS).status_code == 200  # Sale vừa tạo đơn được xem/thống kê đơn của mình.
     post = {**form_data(setup[2]), "paid_amount": ["1.00", "0.00"], "version": row.updated_at.isoformat()}
     assert client.post(detail, post).status_code == expected
     if rank != Rank.ADMIN:
         response = client.get(GRID)
-        assert response.status_code == 302 and response.url == ENTRY
+        assert response.status_code == 200
         vd = make_user(f"vd_{rank}", rank, departments["vd"])
+        WaybillAssignment.objects.filter(record=row).update(delivery=vd)
         client.force_login(vd)
         assert client.get(ENTRY).status_code == 403
         assert client.post(ENTRY, form_data(setup[2])).status_code == 403
@@ -189,8 +195,9 @@ def test_statistics_full_filter_currency_product_and_soft_delete(client, setup, 
     service.update_items(actor, row.pk, lines(setup[2], "1.11"), row.updated_at.isoformat())
     row.refresh_from_db()
     for i in range(26):
-        record_service.create_record(setup[1], {**row.data, "ma_don": f"COPY-{i}",
+        copy = record_service.create_record(setup[1], {**row.data, "ma_don": f"COPY-{i}",
             "loai_tien": "CAD" if i == 0 else "USD", service.DETAIL_CODE: lines(setup[2], "1.11")}, actor=actor)
+        WaybillAssignment.objects.create(record=copy, delivery=actor)
     record_service.update_cell(row, "trang_thai_vc", "Hoàn đơn", actor=actor)
     client.force_login(actor)
     results = client.get(STATS, {"moi_trang": 25, "trang": 2}).context["results"]
@@ -211,8 +218,8 @@ def test_statistics_full_filter_currency_product_and_soft_delete(client, setup, 
 def test_export_import_roundtrip_and_preview_ambiguous(client, setup, nguoi_dung, settings, tmp_path):
     """AC-18.7 — Xuất chi tiết JSON, nhập lại đúng; lỗi chi tiết xuất hiện ngay ở xem trước."""
     settings.STORAGE_DIR = tmp_path
-    row = order(setup, nguoi_dung["staff_sale_1"]).record
-    service.update_items(nguoi_dung["staff_vd"], row.pk, lines(setup[2], "1.11"), row.updated_at.isoformat())
+    row = order(setup, nguoi_dung["staff_sale_1"], assigned=False).record
+    service.update_items(nguoi_dung["admin"], row.pk, lines(setup[2], "1.11"), row.updated_at.isoformat())
     columns = list(setup[1].columns.all())
     workbook = export_service.build_workbook(DataRecord.objects.in_scope(nguoi_dung["admin"]).filter(pk=row.pk), columns, title="Vận đơn")
     buffer = BytesIO(); workbook.save(buffer)
