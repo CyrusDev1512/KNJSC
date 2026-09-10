@@ -1,7 +1,9 @@
 # Lỗi Vận đơn mới: Admin không mở được trình sửa ô
 
-Ngày ghi nhận: 11.09.2026  
-Nhánh: `vandonmoi`  
+Ngày ghi nhận: 11.09.2026
+
+Nhánh: `vandonmoi`
+
 Trạng thái: Chưa sửa — tiếp tục tái hiện bằng trình duyệt ngày mai
 
 ## Hiện tượng người dùng báo
