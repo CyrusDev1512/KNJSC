@@ -1,6 +1,5 @@
-<dialog id="vd-assignment" class="vd-dialog" aria-labelledby="vd-assignment-title" data-url="{% url 'waybill_assignment' %}">
-  <button class="nut vd-close" type="button" data-assignment-close>Đóng</button>
-  <h2 id="vd-assignment-title">Phân công</h2>
+<dialog id="vd-assignment" {% if master_grid %}class="vd-dialog mg-dialog"{% else %}class="vd-dialog"{% endif %} aria-labelledby="vd-assignment-title" data-url="{% url 'waybill_assignment' %}">
+  {% if master_grid %}<header class="mg-dialog-head"><h2 id="vd-assignment-title">Phân công</h2><button class="mg-close" type="button" data-assignment-close aria-label="Đóng phân công">×</button></header><div class="mg-dialog-body">{% else %}<button class="nut vd-close" type="button" data-assignment-close>Đóng</button><h2 id="vd-assignment-title">Phân công</h2>{% endif %}
   <p id="vd-assignment-info"></p>
   <p id="vd-assignment-status" role="status" aria-live="polite"></p>
   <form id="vd-assignment-form">
@@ -10,4 +9,5 @@
     <button class="nut nut-chinh" id="vd-assignment-save" type="submit">Lưu phân công</button>
     <button class="nut" id="vd-assignment-reload" type="button">Tải lại phân công</button>
   </form>
+{% if master_grid %}</div>{% endif %}
 </dialog>

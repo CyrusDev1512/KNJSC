@@ -115,6 +115,7 @@ Trong tình huống nào thì nên xem lại quyết định này.
 | 018 | Vận đơn mới theo CRM Tân, hai bảng độc lập, chi tiết sản phẩm và tiền thu, thống kê theo bản sao | Đã áp dụng | 08.09.2026 |
 | 019 | [Gỡ Lên đơn nhúng khỏi bảng Vận đơn](019-tach-len-don-khoi-bang-van-don.md), giữ trang riêng và thống kê | Đã áp dụng | 09.09.2026 |
 | 020 | [Phân công, lọc và xuất Vận đơn mới](020-phan-cong-loc-xuat-van-don-moi.md), phạm vi theo tài khoản và kiểm lại quyền file nền | Đã áp dụng | 09.09.2026 |
+| 021 | [Lưới master và Thống kê KN CRM](021-luoi-master-va-thong-ke-crm.md), tải khối/ảo hóa, CAS và biên nhận, biểu đồ riêng | Đã triển khai, kiểm chứng local; xem test-log | 10.09.2026 |
 
 ---
 

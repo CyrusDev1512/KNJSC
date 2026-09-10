@@ -20,6 +20,7 @@ mảnh nối được với nhau**. Nhiều lỗi chỉ lộ ra ở chỗ nối 
 """
 from datetime import date
 from decimal import Decimal
+from uuid import uuid4
 
 import pytest
 from django.test import override_settings
@@ -151,8 +152,15 @@ def test_mot_ngay_cua_cong_ty(client, departments, teams, nguoi_dung):
     duong_cu = f"/bang/{bang_vd.code}/o/{don.record_id}/trang_thai_vc/"
     assert client.post(duong_cu, {"gia_tri": "Đang giao"}).status_code == 404
     with override_settings(ROOT_URLCONF="knjsc.urls_bangtinh", GRID_ONLY_TABLES=set()):
-        kq = client.post(f"/bang-tinh/{bang_vd.code}/o/{don.record_id}/trang_thai_vc/",
-                         {"gia_tri": "Đang giao"})
+        # ADR-021: bảng mới chặn đường HTML cũ, Lưu dữ liệu gửi giá trị đã đọc
+        # và UUID qua JSON; không bỏ kiểm CAS để giữ tương thích payload cũ.
+        assert client.post(f"/bang-tinh/{bang_vd.code}/o/{don.record_id}/trang_thai_vc/",
+                           {"gia_tri": "Đang giao"}).status_code == 409
+        kq = client.post(f"/bang-tinh/{bang_vd.code}/luu-json/", {
+            "operation": str(uuid4()),
+            "cells": [{"id": don.record_id, "column": "trang_thai_vc",
+                       "old": don.record.data.get("trang_thai_vc"), "value": "Đang giao"}],
+        }, content_type="application/json")
     assert kq.status_code == 200
     don.record.refresh_from_db()
     assert don.record.data["trang_thai_vc"] == "Đang giao"
@@ -168,7 +176,10 @@ def test_mot_ngay_cua_cong_ty(client, departments, teams, nguoi_dung):
     dau_vet = list(AuditLog.objects.order_by("created_at").values_list("detail", flat=True))
     assert any("Nộp báo cáo" in d for d in dau_vet), "Thiếu dấu vết nộp báo cáo"
     assert any("Lên đơn" in d for d in dau_vet), "Thiếu dấu vết lên đơn"
-    assert any("Sửa ô" in d and "trang_thai_vc" in d for d in dau_vet), (
+    assert AuditLog.objects.filter(
+        actor=vd_nv, action=AuditAction.UPDATE,
+        detail__startswith=f"Sửa 1 ô trên 1 dòng của bảng {bang_vd.code}",
+    ).exists(), (
         "Thiếu dấu vết cập nhật trạng thái vận chuyển"
     )
     assert AuditLog.objects.filter(action=AuditAction.CREATE).count() >= 4

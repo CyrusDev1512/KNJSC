@@ -46,6 +46,7 @@
     } catch (error) { status.textContent = error.message; }
     finally { loading = false; reload.disabled = false; }
   }
+  window.addEventListener('master-assignment', event => open(event.detail.ids));
   function open(rowIds) {
     ids = [...new Set(rowIds.filter(Boolean))];
     if (!dialog.open) dialog.showModal();
@@ -84,7 +85,9 @@
         headers: {'Content-Type': 'application/json', 'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value},
         body: JSON.stringify({versions, changes})}));
       status.textContent = 'Đã lưu phân công. Đang cập nhật bảng…';
-      window.location.reload();
+      dialog.close();
+      if (window.KNJSC_MASTER) window.dispatchEvent(new CustomEvent('master-refresh'));
+      else window.location.reload();
     } catch (error) {
       status.textContent = `Chưa lưu: ${error.message} Bấm “Tải lại phân công” để kiểm tra trước khi thử lại.`;
       reload.disabled = false;

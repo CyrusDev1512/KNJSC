@@ -95,3 +95,14 @@ Chưa tới lượt, không làm khi chưa có quyết định mới của anh/c
 | GĐ 8 | Máy chủ thật, tên miền con cho KN CRM, nginx phục vụ tệp tĩnh, đo tải trên máy chủ, KN ERP dùng tốt trên điện thoại | Chờ V1 |
 | S1 → S9, S11, S12 | Đồng bộ hai chiều đơn ↔ vận đơn, chia sẻ quyền cho cấp dưới, thông báo chủ động, kênh báo sự cố, bảng xoay chiều, nhiều người cùng sửa thời gian thực, thư mục lồng nhau, xuất Excel mang định dạng, chiều cao dòng, quản lý sản phẩm | Xem `backlog.md` mục 3 |
 | N9 | Thống kê theo thị trường trong báo cáo | Chờ nguồn số liệu (Q36) |
+
+### 10.09.2026 — Chín hạng mục lưới mới, thay quyết định lưu thủ công
+
+Đã duyệt autosave, chọn hàng/màu xanh, hai chế độ, fs/c/bg, lịch sử và
+đối chiếu conflict, Admin chọn Sale, thứ tự tạo tăng dần và số hàng từ 1.
+Đã triển khai và kiểm chức năng trên database test: suite rộng 1.049 pass,
+6 fixture skip được tách kiểm; 90 test tác động và E2E cuối đạt. Hiệu năng
+lọc 300k còn chưa đạt; chạy bền dừng theo yêu cầu chủ dự án, để phiên sau
+chạy lại đủ 30 phút. Không đổi H7/lưới cũ.
+Xem [quyết định ADR-021](quyet-dinh/021-luoi-master-va-thong-ke-crm.md) và
+[báo cáo chín hạng mục](kiem-chung-master-nine.md).

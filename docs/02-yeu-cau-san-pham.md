@@ -291,6 +291,16 @@ viên; file nền phải kiểm lại quyền trước tải. Chi tiết và cá
 thế quy tắc bảng mới trước đây ở [ADR-020](quyet-dinh/020-phan-cong-loc-xuat-van-don-moi.md).
 H7 về nhập tiền/bằng chứng vẫn chờ quyết định.
 
+## 16b. File master và Thống kê KN CRM — chốt 10.09.2026
+
+Chỉ Vận đơn mới chuyển sang lưới riêng, cuộn liên tục theo khối, thao tác
+Excel cơ bản để xem/chỉnh sửa; không công thức tự do. Chữ dài đọc/sửa trong
+vùng nổi, không giãn cấu trúc. Ctrl+A chọn toàn bộ kết quả lọc, copy/ghi tối
+đa 2.000 ô, Undo/Redo có kiểm xung đột. Không thêm dòng/xóa dòng/định dạng/
+kéo điền trong UI mới. Thống kê tách thành tính năng ngang cấp Bảng tính,
+SVG và bảng đối chiếu theo toàn dữ liệu lọc/quyền, tách tiền tệ. Chi tiết
+[ADR-021](quyet-dinh/021-luoi-master-va-thong-ke-crm.md). Không đổi nghiệp vụ H7.
+
 ## 17. Ngoài phạm vi phase 1
 
 | Nhóm | Nội dung |
@@ -302,3 +312,21 @@ H7 về nhập tiền/bằng chứng vẫn chờ quyết định.
 | Ứng dụng di động | Bản cài đặt từ cửa hàng ứng dụng |
 | Đồng bộ hai chiều | Sửa trên bảng vận đơn cập nhật ngược lại đơn hàng |
 | Tích hợp bên ngoài | Kết nối với phần mềm kế toán hoặc sàn thương mại điện tử |
+
+## Bổ sung thao tác Vận đơn mới — 10.09.2026
+
+Quy định này thay phần lưu thủ công trước đó. Kết thúc sửa sẽ tự lưu nền;
+Ctrl+S/Lưu dữ liệu gửi ngay. Chờ trạng thái Đã lưu trước khi đóng trang.
+Đổi lọc/popup giữ nháp; cảnh báo rời trang chỉ xuất hiện khi còn chưa lưu.
+Nhập file, phân công và chi tiết sản phẩm vẫn có nút gửi riêng.
+
+- Chế độ Xem: chọn/đọc, F2 hoặc bấm đúp để sửa. Chế độ Chỉnh sửa: bấm/chuyển
+  tới ô được phép sửa để nhập ngay. Tab chuyển ô; Enter xuống hàng cho ô
+  một dòng. Ô nhiều dòng Enter xuống dòng, Ctrl+Enter kết thúc.
+- Bấm số hàng để chọn hàng. Dòng đầu mang số 1. Đơn mới ở cuối theo mặc định.
+- Định dạng có cỡ chữ/màu chữ/màu nền, dùng cùng autosave và Undo/Redo.
+- … → Lịch sử xem thay đổi qua lưới mới của dòng đang chọn. … → Xung đột
+  đối chiếu giá trị và chọn server hoặc gửi lại; có xung đột thì cả lượt chưa ghi.
+- Admin lên đơn tại CRM phải chọn Sale đứng đơn đang hoạt động.
+
+Phạm vi và kết quả kiểm chứng: [báo cáo chín hạng mục](kiem-chung-master-nine.md).

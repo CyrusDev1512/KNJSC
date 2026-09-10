@@ -1,0 +1,27 @@
+{% extends 'crm/base_crm.html' %}{% load static %}
+{% block tieu_de %}Thống kê Vận đơn · KN CRM{% endblock %}
+{% block ten_trang %}Thống kê{% endblock %}
+{% block dau_trang %}<link rel="stylesheet" href="{% static 'css/master-grid.css' %}?v={{ phien_ban_tinh }}">{% endblock %}
+{% block noi_dung %}
+<section class="ms-page">
+  <header class="ms-title"><div><h1>Thống kê Vận đơn</h1><p>Cập nhật {{ updated|date:'H:i:s d/m/Y' }} · Theo dữ liệu bạn được phép xem</p></div><a class="nut" href="?{{ params }}">Làm mới</a><a class="nut nut-chinh" href="{% url 'bang_tinh_xem' bang.code %}?{{ qs_giu }}">Mở bảng với bộ lọc này</a></header>
+  <details class="ms-filter"><summary>Bộ lọc thống kê</summary>{% include 'crm/_master_filters.html' %}</details>
+  <div class="mg-chips">{% for label, url in chips %}<a href="{{ url }}">{{ label }} ×</a>{% endfor %}</div>
+  <section class="ms-summary" aria-label="Tổng quan"><div><b>{{ summary.orders }}</b><span>Đơn khớp bộ lọc</span></div><div><b>{{ summary.quantity }}</b><span>Sản phẩm</span></div>
+    {% for r in summary.totals %}<div><b>{{ r.value|floatformat:2 }} {{ r.record__data__loai_tien }}</b><span>Giá trị · Đã thanh toán {{ r.paid|floatformat:2 }} {{ r.record__data__loai_tien }}</span></div>{% endfor %}
+  </section>
+  {% if summary.missing %}<p>{{ summary.missing }} đơn chưa có chi tiết sản phẩm: được tính vào số đơn, chưa có cơ sở tính số lượng và tiền.</p>{% endif %}
+  <div class="ms-charts">{% for chart in charts %}<section class="ms-chart"><h2>{{ chart.title }}</h2><p>{{ chart.note }}</p>
+    {% if chart.total %}
+    {% if chart.kind == 'donut' %}<div class="ms-donut"><svg viewBox="0 0 120 120" role="img" aria-label="{{ chart.title }}"><title>{{ chart.title }} — {{ chart.total }} đơn</title><circle cx="60" cy="60" r="44" fill="none" stroke="#e3e3ec" stroke-width="16"/>{% for g in chart.groups %}<circle cx="60" cy="60" r="44" pathLength="100" fill="none" stroke="{{ g.color }}" stroke-width="16" stroke-dasharray="{{ g.dash }}" stroke-dashoffset="{{ g.offset }}" transform="rotate(-90 60 60)"><title>{{ g.label }}: {{ g.value }} đơn ({{ g.percent }}%)</title></circle>{% endfor %}<text x="60" y="63" text-anchor="middle" fill="currentColor" font-size="14">{{ chart.total }}</text></svg>
+    <ul>{% for g in chart.groups %}<li><span style="background:{{ g.color }}"></span>{{ g.label }} <b>{{ g.value }}</b> <small>{{ g.percent }}%</small></li>{% endfor %}</ul></div>
+    {% else %}<div class="ms-bar-list">{% for g in chart.groups %}<div><div class="ms-bar-label"><span>{{ g.label }}</span><b>{{ g.value }}</b></div><svg class="ms-bar" viewBox="0 0 500 20" preserveAspectRatio="none" role="img" aria-label="{{ g.label }}: {{ g.value }}"><title>{{ g.label }}: {{ g.value }}</title><rect x="0" y="1" width="{{ g.width }}" height="18" rx="2" fill="{{ g.color }}"/></svg></div>{% endfor %}</div>{% endif %}
+    {% else %}<p class="ms-empty">Chưa có dữ liệu khớp bộ lọc.</p>{% endif %}
+    <details><summary>Số liệu đối chiếu</summary><table class="bang"><thead><tr><th>Nhóm</th><th>Số lượng</th></tr></thead><tbody>{% for g in chart.table_groups %}<tr><td>{{ g.label }}</td><td>{{ g.value }}</td></tr>{% empty %}<tr><td colspan="2">Không có dữ liệu.</td></tr>{% endfor %}</tbody></table>{% if chart.page %}<nav>{% if chart.page.has_previous %}<a href="{{ chart.page_url }}{{ chart.page.previous_page_number }}">Trước</a>{% endif %} Trang {{ chart.page.number }} / {{ chart.page.paginator.num_pages }} · {{ chart.page.paginator.count }} nhóm {% if chart.page.has_next %}<a href="{{ chart.page_url }}{{ chart.page.next_page_number }}">Sau</a>{% endif %}</nav>{% endif %}</details>
+  </section>{% endfor %}</div>
+  <section class="ms-table"><h2>Bảng tổng hợp</h2><form method="get">{% for k,v in filters %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}<label>Cách nhóm <select aria-label="Cách nhóm" name="group" onchange="this.form.requestSubmit()">{% for code,label in groups %}<option value="{{ code }}"{% if code == group %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label><button class="nut">Áp dụng</button></form>
+  <p>Tách riêng loại tiền. Bao gồm đơn Hủy/Hoàn nếu chưa lọc trạng thái. Đơn nhiều sản phẩm có thể thuộc nhiều nhóm; không cộng số đơn giữa các nhóm sản phẩm.</p>
+  <div class="ms-scroll"><table class="bang"><thead><tr><th>Nhóm</th><th>Loại tiền</th><th>Số đơn</th><th>Số lượng</th><th>Giá trị</th><th>Đã thanh toán</th></tr></thead><tbody>{% for r in results %}<tr><td>{{ r.label|default:'Chưa có' }}</td><td>{{ r.currency }}</td><td>{{ r.orders }}</td><td>{{ r.quantity }}</td><td>{{ r.value|floatformat:2 }}</td><td>{{ r.paid|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="6">Chưa có vận đơn khớp bộ lọc.</td></tr>{% endfor %}</tbody></table></div>
+  <nav>{% if page.has_previous %}<a href="?{{ params }}&trang={{ page.previous_page_number }}">Trang trước</a>{% endif %} Trang {{ page.number }} / {{ page.paginator.num_pages }} {% if page.has_next %}<a href="?{{ params }}&trang={{ page.next_page_number }}">Trang sau</a>{% endif %}</nav></section>
+</section>
+{% endblock %}

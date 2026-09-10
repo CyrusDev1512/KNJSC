@@ -91,6 +91,18 @@ riêng của Claude có sẵn trong môi trường Codex.
   ([ADR-012](docs/quyet-dinh/012-kn-crm-app-rieng-cay-thang.md),
   [ADR-015](docs/quyet-dinh/015-kn-crm-khung-sidebar-leader-nhu-manager.md)).
 - Bảng động dùng `TableDef`, `ColumnDef`, `DataRecord`; tái sử dụng service chung.
+  Riêng `van_don_moi` là **file master** để xem/tìm/chỉnh sửa theo
+  [ADR-021](docs/quyet-dinh/021-luoi-master-va-thong-ke-crm.md): lưới cuộn ảo
+  độc lập, không công thức Excel tự do hoặc thanh công thức. Thống kê là
+  tính năng riêng `/thong-ke/`; không đưa thống kê nhúng trở lại bảng.
+  Ô Vận đơn mới **tự lưu nền** theo quyết định thay thế ngày 10.09.2026:
+  kết thúc sửa đưa vào hàng đợi 500ms, tối đa 2s cho phần đã kết thúc nhập;
+  Ctrl+S/Lưu dữ liệu gửi ngay, không khóa lưới khi lưu. Đổi lọc/popup giữ nháp;
+  chỉ cảnh báo rời/tải lại trang khi còn phần chưa xác nhận. Nháp/xung đột
+  chỉ trong RAM, không lưu dữ liệu khách hàng vào localStorage. Lịch sử ô
+  chỉ ghi thay đổi qua lưới mới, kiểm quyền xem dòng hiện hành; xung đột phải
+  đối chiếu và kiểm CAS lại, không âm thầm ghi đè. Phân công/chi tiết/nhập
+  file giữ nút gửi riêng. Không đưa lại hộp Lưu/Bỏ/Ở lại khi chuyển chức năng.
   Tháng là góc nhìn lọc trên bảng, không tự tạo bảng vật lý riêng theo tháng.
   Không mở rộng công thức theo cột thành công thức Excel tự do từng ô khi chưa chốt.
 - Với vận đơn, đọc [ADR-018](docs/quyet-dinh/018-van-don-moi-theo-crm-tan.md):

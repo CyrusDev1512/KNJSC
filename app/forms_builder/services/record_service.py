@@ -335,13 +335,22 @@ def update_cells(cells, *, actor=None, request=None, columns=None):
     nào đổi. Mỗi bản ghi lưu một lần sau khi tính lại cột tính sẵn; một dòng
     nhật ký gộp. Trả về số ô đã đổi.
     """
-    da_doi = 0
-    ban_ghi_doi = {}
     # Cùng thứ tự khoá với sửa chi tiết; không ghi đè JSON đã đổi sau khi view đọc.
     for row in sorted({r.pk: r for r, _, _ in cells}.values(), key=lambda r: r.pk):
         policy = record_policies.for_table(row.table)
         if policy:
             policy.refresh_for_update(row, actor)
+    return _update_locked_cells(cells, actor=actor, request=request, columns=columns)
+
+
+def _update_locked_cells(cells, *, actor, request=None, columns=None):
+    """Nội bộ: caller đã khóa dòng, kiểm scope/quyền trong cùng transaction.
+
+    Lưới JSON kiểm cả lô trước CAS; không tải lại từng dòng sau đó.
+    Các caller thông thường phải tiếp tục gọi update_cells.
+    """
+    da_doi = 0
+    ban_ghi_doi = {}
     for ban_ghi, code, raw in cells:
         cot_ds = columns if columns is not None else list(ban_ghi.table.columns.all())
         cot = _cot(cot_ds, code)

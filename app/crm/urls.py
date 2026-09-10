@@ -7,9 +7,14 @@ là cây thư mục (ADR-015).
 """
 from django.urls import path
 
-from . import views, waybill_views, assignment_views
+from . import views, waybill_views, assignment_views, master_views, statistics_views
 
 urlpatterns = [
+    path('thong-ke/', statistics_views.overview, name='crm_statistics'),
+    path('bang-tinh/<slug:code>/du-lieu/', master_views.data, name='master_data'),
+    path('bang-tinh/<slug:code>/luu-json/', master_views.save, name='master_save'),
+    path('bang-tinh/<slug:code>/lich-su/', master_views.history, name='master_history'),
+    path('bang-tinh/<slug:code>/quyen-dong/', master_views.scope, name='master_scope'),
     path('van-don/phan-cong/', assignment_views.assignment, name='waybill_assignment'),
     path("van-don/len-don/", waybill_views.create_order, name="waybill_create"),
     path("van-don/chi-tiet/<int:pk>/", waybill_views.detail, name="waybill_detail"),

@@ -63,7 +63,7 @@ def _lop_trong_tep(duong_dan):
 def _lop_da_khai():
     """Mọi tên lớp đã khai trong các tệp kiểu dáng dùng chung."""
     da_khai = set()
-    for tep in CAC_TEP_CSS:
+    for tep in [*CAC_TEP_CSS, Path(__file__).resolve().parents[2] / "static/css/master-grid.css"]:
         da_khai |= set(re.findall(r"\.([a-zA-Z][\w-]*)", tep.read_text(encoding="utf-8")))
     return da_khai
 

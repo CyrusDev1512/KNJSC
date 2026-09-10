@@ -26,7 +26,7 @@ def can_assign(user):
         department(user) == 'van-don' and scope.rank in (Rank.LEADER, Rank.MANAGER)))
 
 
-def scope_condition(user, original):
+def scope_condition(user, original, *, only_new=False):
     """Chỉ thay ngoại lệ của bảng mới; original là điều kiện quyền bảng cũ."""
     scope = get_user_scope(user)
     dept = department(user)
@@ -38,13 +38,15 @@ def scope_condition(user, original):
     elif dept == 'cskh':
         allowed = Q(assignment__care_id=user.pk)
     elif dept == 'sale':
-        own = Q(created_by_id=user.pk) | Q(order__created_by_id=user.pk)
+        own = Q(created_by_id=user.pk) | Q(order__created_by_id=user.pk) | Q(order__seller_id=user.pk)
         allowed = own | Q(assignment__care_id=user.pk)
         if scope.rank != Rank.STAFF:
             allowed |= original
     else:
         allowed = original
-    return (~new & original) | (new & allowed)
+    # Caller đã giới hạn đúng bảng mới: bỏ nhánh bảng khác khỏi SQL,
+    # vẫn dùng cùng điều kiện nghiệp vụ, không nhân bản quy tắc quyền.
+    return allowed if only_new else (~new & original) | (new & allowed)
 
 
 def label(user):

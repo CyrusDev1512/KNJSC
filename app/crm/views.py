@@ -198,6 +198,9 @@ def bang_tinh_xem(request, code):
         raise OutOfScopeError("Bạn không có quyền xem bảng Vận đơn.")
     bang = _bang(request, code)
     new_waybill = code == ACTIVE_WAYBILL_TABLE_CODE
+    if new_waybill:
+        from .master_views import shell
+        return shell(request, bang)
     from orders.services.assignment_service import can_assign
     luoi = grid_service.build_grid(request.user, request.GET, table=bang)
     trang = paginate(request, luoi.queryset, default_size=GRID_PAGE_SIZE)
@@ -222,10 +225,6 @@ def bang_tinh_xem(request, code):
               if thang_dang_xem is not None
               else tree_service.home_url(bang.department, all_tables=True))
     return render(request, "crm/bang_tinh.html", {
-        "new_waybill": new_waybill,
-        "can_assign": new_waybill and can_assign(request.user),
-        "quick_filters": sidebar_service.quick_filters(request.GET) if new_waybill else None,
-        "waybill_groups": grid_service.waybill_groups(luoi.columns) if new_waybill else [],
         "thang_dang_xem": thang_dang_xem,
         "ve_url": ve_url, "ve_nhan": "Về Bảng tính — thư mục",
         "cay": cay,
@@ -333,6 +332,8 @@ def bang_tinh_o(request, code, pk, ma_cot):
         raise OutOfScopeError("Bảng này chỉ xem ở đây, sửa ở Bảng tính.")
 
     if request.method == "POST":
+        if code == ACTIVE_WAYBILL_TABLE_CODE:
+            return _master_upgrade_required(request)
         try:
             record_service.update_cell(
                 ban_ghi, ma_cot, request.POST.get("gia_tri", ""),
@@ -347,6 +348,11 @@ def bang_tinh_o(request, code, pk, ma_cot):
         return HttpResponse(_o_html(boi_canh))
 
     return render(request, "crm/_o_sua.html", _boi_canh_sua(bang, cot, boi_canh))
+
+
+def _master_upgrade_required(request):
+    return render(request, 'crm/_bao_loi.html', {'loi':
+        'Lưới Vận đơn mới đã cập nhật. Giữ lại nội dung chưa lưu rồi tải lại trang để lưu an toàn.'}, status=409)
 
 
 def _o_html(boi_canh):
@@ -433,6 +439,8 @@ def bang_tinh_dinh_dang(request, code):
     dạng hx-swap-oob để lưới cập nhật tại chỗ; sai → 400 kèm lời báo.
     """
     bang = _bang(request, code)
+    if bang.code == 'van_don_moi':
+        return HttpResponse('Dùng định dạng trên lưới mới để kiểm tra xung đột.', status=409)
     vd = grid_service.is_waybill(bang)
     cac_cot = grid_service.display_columns(bang)
     theo_ma = {c.code: c for c in cac_cot}
@@ -539,6 +547,9 @@ def bang_tinh_luu_o(request, code):
     if dong_moi and not grant_service.can_create_record(request.user, bang):
         record_denied(request.user, request.path, request)
         raise OutOfScopeError("Bạn không thêm được dòng vào bảng này.")
+
+    if code == ACTIVE_WAYBILL_TABLE_CODE:
+        return _master_upgrade_required(request)
 
     cells = [(ban_ghi_theo_pk[pk], ma, raw) for pk, cac in co_san.items() for ma, raw in cac]
     da_tao = []

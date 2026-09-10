@@ -265,7 +265,7 @@
 /* ── 3. Lưới: luôn màu kem, chữ 13px, ô 25px, viền mọi ô ─────────────────
    Ghi đè các token chung ngay trong .luoi-vd để mọi kiểu ô (kể cả màu nền
    cũ của ADR-010) đều đọc màu kem, ở cả nền tối lẫn nền sáng. */
-.luoi-vd {
+.luoi-vd, .mg-viewport, .mg-float {
   --surface: #fffdf8; --surface-2: #f6f2e6; --surface-3: #faf7ee; --plane: #f3f0e7;
   --ink: #1f2937; --ink-2: #2b2617; --ink-3: #6f6544;
   --rule: #e6e0d1; --rule-strong: #cfc5a8;
@@ -433,34 +433,34 @@ body.bt-dang-keo { cursor: crosshair; }
    Mỗi giá trị trong record_service.STYLE_SCHEMA là một lớp cố định; không có
    CSS nào sinh từ dữ liệu người dùng. Màu nền viết đủ độ ưu tiên để thắng
    màu dòng (tr.dong-xau) và ô cố định (.co-dinh). */
-.luoi-vd td.dd-dam { font-weight: 700; }
-.luoi-vd td.dd-nghieng { font-style: italic; }
-.luoi-vd td.dd-gach-chan { text-decoration: underline; }
-.luoi-vd td.dd-gach-ngang { text-decoration: line-through; }
-.luoi-vd td.dd-gach-chan.dd-gach-ngang { text-decoration: underline line-through; }
-.luoi-vd td.dd-xuong-dong { white-space: normal; word-break: break-word; height: auto; }
-.luoi-vd td.dd-vien { box-shadow: inset 0 0 0 1px #64748b; }
-.luoi-vd td.dd-nen-vang, .luoi-vd tr.dong-xau td.dd-nen-vang, .luoi-vd td.co-dinh.dd-nen-vang { background: var(--warn-soft); }
-.luoi-vd td.dd-nen-xanh, .luoi-vd tr.dong-xau td.dd-nen-xanh, .luoi-vd td.co-dinh.dd-nen-xanh { background: #ecebf9; }
-.luoi-vd td.dd-nen-do,   .luoi-vd tr.dong-xau td.dd-nen-do,   .luoi-vd td.co-dinh.dd-nen-do   { background: var(--critical-soft); }
-.luoi-vd td.dd-nen-luc,  .luoi-vd tr.dong-xau td.dd-nen-luc,  .luoi-vd td.co-dinh.dd-nen-luc  { background: var(--good-soft); }
-.luoi-vd td.dd-nen-xam,  .luoi-vd tr.dong-xau td.dd-nen-xam,  .luoi-vd td.co-dinh.dd-nen-xam  { background: var(--surface-2); }
-.luoi-vd td.dd-nen-cam,  .luoi-vd tr.dong-xau td.dd-nen-cam,  .luoi-vd td.co-dinh.dd-nen-cam  { background: var(--serious-soft); }
-.luoi-vd td.dd-co-10 { font-size: 10px; }
-.luoi-vd td.dd-co-11 { font-size: 11px; }
-.luoi-vd td.dd-co-12 { font-size: 12px; }
-.luoi-vd td.dd-co-13 { font-size: 13px; }
-.luoi-vd td.dd-co-14 { font-size: 14px; }
-.luoi-vd td.dd-co-16 { font-size: 16px; }
-.luoi-vd td.dd-co-18 { font-size: 18px; }
-.luoi-vd td.dd-co-20 { font-size: 20px; }
-.luoi-vd td.dd-co-24 { font-size: 24px; }
-.luoi-vd td.dd-co-28 { font-size: 28px; }
-.luoi-vd td.dd-can-trai { text-align: left; }
-.luoi-vd td.dd-can-giua { text-align: center; }
-.luoi-vd td.dd-can-phai { text-align: right; }
-.luoi-vd td.dd-dinh-so, .luoi-vd td.dd-dinh-phan-tram, .luoi-vd td.dd-dinh-usd, .luoi-vd td.dd-dinh-vnd { text-align: right; }
-.luoi-vd td.dd-dinh-chu { text-align: left; }
+.luoi-vd td.dd-dam , .mg-cell.dd-dam { font-weight: 700; }
+.luoi-vd td.dd-nghieng , .mg-cell.dd-nghieng { font-style: italic; }
+.luoi-vd td.dd-gach-chan , .mg-cell.dd-gach-chan { text-decoration: underline; }
+.luoi-vd td.dd-gach-ngang , .mg-cell.dd-gach-ngang { text-decoration: line-through; }
+.luoi-vd td.dd-gach-chan.dd-gach-ngang , .mg-cell.dd-gach-chan.dd-gach-ngang { text-decoration: underline line-through; }
+.luoi-vd td.dd-xuong-dong , .mg-cell.dd-xuong-dong { white-space: normal; word-break: break-word; height: auto; }
+.luoi-vd td.dd-vien , .mg-cell.dd-vien { box-shadow: inset 0 0 0 1px #64748b; }
+.luoi-vd td.dd-nen-vang, .luoi-vd tr.dong-xau td.dd-nen-vang, .luoi-vd td.co-dinh.dd-nen-vang , .mg-cell.dd-nen-vang { background: var(--warn-soft); }
+.luoi-vd td.dd-nen-xanh, .luoi-vd tr.dong-xau td.dd-nen-xanh, .luoi-vd td.co-dinh.dd-nen-xanh , .mg-cell.dd-nen-xanh { background: #ecebf9; }
+.luoi-vd td.dd-nen-do,   .luoi-vd tr.dong-xau td.dd-nen-do,   .luoi-vd td.co-dinh.dd-nen-do   , .mg-cell.dd-nen-do { background: var(--critical-soft); }
+.luoi-vd td.dd-nen-luc,  .luoi-vd tr.dong-xau td.dd-nen-luc,  .luoi-vd td.co-dinh.dd-nen-luc  , .mg-cell.dd-nen-luc { background: var(--good-soft); }
+.luoi-vd td.dd-nen-xam,  .luoi-vd tr.dong-xau td.dd-nen-xam,  .luoi-vd td.co-dinh.dd-nen-xam  , .mg-cell.dd-nen-xam { background: var(--surface-2); }
+.luoi-vd td.dd-nen-cam,  .luoi-vd tr.dong-xau td.dd-nen-cam,  .luoi-vd td.co-dinh.dd-nen-cam  , .mg-cell.dd-nen-cam { background: var(--serious-soft); }
+.luoi-vd td.dd-co-10 , .mg-cell.dd-co-10 { font-size: 10px; }
+.luoi-vd td.dd-co-11 , .mg-cell.dd-co-11 { font-size: 11px; }
+.luoi-vd td.dd-co-12 , .mg-cell.dd-co-12 { font-size: 12px; }
+.luoi-vd td.dd-co-13 , .mg-cell.dd-co-13 { font-size: 13px; }
+.luoi-vd td.dd-co-14 , .mg-cell.dd-co-14 { font-size: 14px; }
+.luoi-vd td.dd-co-16 , .mg-cell.dd-co-16 { font-size: 16px; }
+.luoi-vd td.dd-co-18 , .mg-cell.dd-co-18 { font-size: 18px; }
+.luoi-vd td.dd-co-20 , .mg-cell.dd-co-20 { font-size: 20px; }
+.luoi-vd td.dd-co-24 , .mg-cell.dd-co-24 { font-size: 24px; }
+.luoi-vd td.dd-co-28 , .mg-cell.dd-co-28 { font-size: 28px; }
+.luoi-vd td.dd-can-trai , .mg-cell.dd-can-trai { text-align: left; }
+.luoi-vd td.dd-can-giua , .mg-cell.dd-can-giua { text-align: center; }
+.luoi-vd td.dd-can-phai , .mg-cell.dd-can-phai { text-align: right; }
+.luoi-vd td.dd-dinh-so, .luoi-vd td.dd-dinh-phan-tram, .luoi-vd td.dd-dinh-usd, .luoi-vd td.dd-dinh-vnd , .mg-cell.dd-dinh-so, .mg-cell.dd-dinh-phan-tram, .mg-cell.dd-dinh-usd, .mg-cell.dd-dinh-vnd { text-align: right; }
+.luoi-vd td.dd-dinh-chu , .mg-cell.dd-dinh-chu { text-align: left; }
 
 /* ══ SINH TỰ ĐỘNG: bảng 40 màu — scripts/sinh-css-mau.py đọc record_service.PALETTE, đừng sửa tay ══ */
 .bt-mau-m01 { background: #000000; }
@@ -503,86 +503,86 @@ body.bt-dang-keo { cursor: crosshair; }
 .bt-mau-m38 { background: #e9d5ff; }
 .bt-mau-m39 { background: #f5d0fe; }
 .bt-mau-m40 { background: #fbcfe8; }
-.luoi-vd td.dd-chu-m01 { color: #000000; }
-.luoi-vd td.dd-chu-m02 { color: #334155; }
-.luoi-vd td.dd-chu-m03 { color: #64748b; }
-.luoi-vd td.dd-chu-m04 { color: #94a3b8; }
-.luoi-vd td.dd-chu-m05 { color: #cbd5e1; }
-.luoi-vd td.dd-chu-m06 { color: #e2e8f0; }
-.luoi-vd td.dd-chu-m07 { color: #f1f5f9; }
-.luoi-vd td.dd-chu-m08 { color: #ffffff; }
-.luoi-vd td.dd-chu-m09 { color: #7f1d1d; }
-.luoi-vd td.dd-chu-m10 { color: #b91c1c; }
-.luoi-vd td.dd-chu-m11 { color: #ef4444; }
-.luoi-vd td.dd-chu-m12 { color: #f97316; }
-.luoi-vd td.dd-chu-m13 { color: #f59e0b; }
-.luoi-vd td.dd-chu-m14 { color: #eab308; }
-.luoi-vd td.dd-chu-m15 { color: #84cc16; }
-.luoi-vd td.dd-chu-m16 { color: #22c55e; }
-.luoi-vd td.dd-chu-m17 { color: #14b8a6; }
-.luoi-vd td.dd-chu-m18 { color: #06b6d4; }
-.luoi-vd td.dd-chu-m19 { color: #3b82f6; }
-.luoi-vd td.dd-chu-m20 { color: #3370ff; }
-.luoi-vd td.dd-chu-m21 { color: #6366f1; }
-.luoi-vd td.dd-chu-m22 { color: #8b5cf6; }
-.luoi-vd td.dd-chu-m23 { color: #a855f7; }
-.luoi-vd td.dd-chu-m24 { color: #d946ef; }
-.luoi-vd td.dd-chu-m25 { color: #ec4899; }
-.luoi-vd td.dd-chu-m26 { color: #f43f5e; }
-.luoi-vd td.dd-chu-m27 { color: #fecaca; }
-.luoi-vd td.dd-chu-m28 { color: #fed7aa; }
-.luoi-vd td.dd-chu-m29 { color: #fde68a; }
-.luoi-vd td.dd-chu-m30 { color: #fef08a; }
-.luoi-vd td.dd-chu-m31 { color: #d9f99d; }
-.luoi-vd td.dd-chu-m32 { color: #bbf7d0; }
-.luoi-vd td.dd-chu-m33 { color: #99f6e4; }
-.luoi-vd td.dd-chu-m34 { color: #a5f3fc; }
-.luoi-vd td.dd-chu-m35 { color: #bfdbfe; }
-.luoi-vd td.dd-chu-m36 { color: #c7d2fe; }
-.luoi-vd td.dd-chu-m37 { color: #ddd6fe; }
-.luoi-vd td.dd-chu-m38 { color: #e9d5ff; }
-.luoi-vd td.dd-chu-m39 { color: #f5d0fe; }
-.luoi-vd td.dd-chu-m40 { color: #fbcfe8; }
-.luoi-vd td.dd-nen-m01, .luoi-vd tr.dong-xau td.dd-nen-m01, .luoi-vd td.co-dinh.dd-nen-m01 { background: #000000; }
-.luoi-vd td.dd-nen-m02, .luoi-vd tr.dong-xau td.dd-nen-m02, .luoi-vd td.co-dinh.dd-nen-m02 { background: #334155; }
-.luoi-vd td.dd-nen-m03, .luoi-vd tr.dong-xau td.dd-nen-m03, .luoi-vd td.co-dinh.dd-nen-m03 { background: #64748b; }
-.luoi-vd td.dd-nen-m04, .luoi-vd tr.dong-xau td.dd-nen-m04, .luoi-vd td.co-dinh.dd-nen-m04 { background: #94a3b8; }
-.luoi-vd td.dd-nen-m05, .luoi-vd tr.dong-xau td.dd-nen-m05, .luoi-vd td.co-dinh.dd-nen-m05 { background: #cbd5e1; }
-.luoi-vd td.dd-nen-m06, .luoi-vd tr.dong-xau td.dd-nen-m06, .luoi-vd td.co-dinh.dd-nen-m06 { background: #e2e8f0; }
-.luoi-vd td.dd-nen-m07, .luoi-vd tr.dong-xau td.dd-nen-m07, .luoi-vd td.co-dinh.dd-nen-m07 { background: #f1f5f9; }
-.luoi-vd td.dd-nen-m08, .luoi-vd tr.dong-xau td.dd-nen-m08, .luoi-vd td.co-dinh.dd-nen-m08 { background: #ffffff; }
-.luoi-vd td.dd-nen-m09, .luoi-vd tr.dong-xau td.dd-nen-m09, .luoi-vd td.co-dinh.dd-nen-m09 { background: #7f1d1d; }
-.luoi-vd td.dd-nen-m10, .luoi-vd tr.dong-xau td.dd-nen-m10, .luoi-vd td.co-dinh.dd-nen-m10 { background: #b91c1c; }
-.luoi-vd td.dd-nen-m11, .luoi-vd tr.dong-xau td.dd-nen-m11, .luoi-vd td.co-dinh.dd-nen-m11 { background: #ef4444; }
-.luoi-vd td.dd-nen-m12, .luoi-vd tr.dong-xau td.dd-nen-m12, .luoi-vd td.co-dinh.dd-nen-m12 { background: #f97316; }
-.luoi-vd td.dd-nen-m13, .luoi-vd tr.dong-xau td.dd-nen-m13, .luoi-vd td.co-dinh.dd-nen-m13 { background: #f59e0b; }
-.luoi-vd td.dd-nen-m14, .luoi-vd tr.dong-xau td.dd-nen-m14, .luoi-vd td.co-dinh.dd-nen-m14 { background: #eab308; }
-.luoi-vd td.dd-nen-m15, .luoi-vd tr.dong-xau td.dd-nen-m15, .luoi-vd td.co-dinh.dd-nen-m15 { background: #84cc16; }
-.luoi-vd td.dd-nen-m16, .luoi-vd tr.dong-xau td.dd-nen-m16, .luoi-vd td.co-dinh.dd-nen-m16 { background: #22c55e; }
-.luoi-vd td.dd-nen-m17, .luoi-vd tr.dong-xau td.dd-nen-m17, .luoi-vd td.co-dinh.dd-nen-m17 { background: #14b8a6; }
-.luoi-vd td.dd-nen-m18, .luoi-vd tr.dong-xau td.dd-nen-m18, .luoi-vd td.co-dinh.dd-nen-m18 { background: #06b6d4; }
-.luoi-vd td.dd-nen-m19, .luoi-vd tr.dong-xau td.dd-nen-m19, .luoi-vd td.co-dinh.dd-nen-m19 { background: #3b82f6; }
-.luoi-vd td.dd-nen-m20, .luoi-vd tr.dong-xau td.dd-nen-m20, .luoi-vd td.co-dinh.dd-nen-m20 { background: #3370ff; }
-.luoi-vd td.dd-nen-m21, .luoi-vd tr.dong-xau td.dd-nen-m21, .luoi-vd td.co-dinh.dd-nen-m21 { background: #6366f1; }
-.luoi-vd td.dd-nen-m22, .luoi-vd tr.dong-xau td.dd-nen-m22, .luoi-vd td.co-dinh.dd-nen-m22 { background: #8b5cf6; }
-.luoi-vd td.dd-nen-m23, .luoi-vd tr.dong-xau td.dd-nen-m23, .luoi-vd td.co-dinh.dd-nen-m23 { background: #a855f7; }
-.luoi-vd td.dd-nen-m24, .luoi-vd tr.dong-xau td.dd-nen-m24, .luoi-vd td.co-dinh.dd-nen-m24 { background: #d946ef; }
-.luoi-vd td.dd-nen-m25, .luoi-vd tr.dong-xau td.dd-nen-m25, .luoi-vd td.co-dinh.dd-nen-m25 { background: #ec4899; }
-.luoi-vd td.dd-nen-m26, .luoi-vd tr.dong-xau td.dd-nen-m26, .luoi-vd td.co-dinh.dd-nen-m26 { background: #f43f5e; }
-.luoi-vd td.dd-nen-m27, .luoi-vd tr.dong-xau td.dd-nen-m27, .luoi-vd td.co-dinh.dd-nen-m27 { background: #fecaca; }
-.luoi-vd td.dd-nen-m28, .luoi-vd tr.dong-xau td.dd-nen-m28, .luoi-vd td.co-dinh.dd-nen-m28 { background: #fed7aa; }
-.luoi-vd td.dd-nen-m29, .luoi-vd tr.dong-xau td.dd-nen-m29, .luoi-vd td.co-dinh.dd-nen-m29 { background: #fde68a; }
-.luoi-vd td.dd-nen-m30, .luoi-vd tr.dong-xau td.dd-nen-m30, .luoi-vd td.co-dinh.dd-nen-m30 { background: #fef08a; }
-.luoi-vd td.dd-nen-m31, .luoi-vd tr.dong-xau td.dd-nen-m31, .luoi-vd td.co-dinh.dd-nen-m31 { background: #d9f99d; }
-.luoi-vd td.dd-nen-m32, .luoi-vd tr.dong-xau td.dd-nen-m32, .luoi-vd td.co-dinh.dd-nen-m32 { background: #bbf7d0; }
-.luoi-vd td.dd-nen-m33, .luoi-vd tr.dong-xau td.dd-nen-m33, .luoi-vd td.co-dinh.dd-nen-m33 { background: #99f6e4; }
-.luoi-vd td.dd-nen-m34, .luoi-vd tr.dong-xau td.dd-nen-m34, .luoi-vd td.co-dinh.dd-nen-m34 { background: #a5f3fc; }
-.luoi-vd td.dd-nen-m35, .luoi-vd tr.dong-xau td.dd-nen-m35, .luoi-vd td.co-dinh.dd-nen-m35 { background: #bfdbfe; }
-.luoi-vd td.dd-nen-m36, .luoi-vd tr.dong-xau td.dd-nen-m36, .luoi-vd td.co-dinh.dd-nen-m36 { background: #c7d2fe; }
-.luoi-vd td.dd-nen-m37, .luoi-vd tr.dong-xau td.dd-nen-m37, .luoi-vd td.co-dinh.dd-nen-m37 { background: #ddd6fe; }
-.luoi-vd td.dd-nen-m38, .luoi-vd tr.dong-xau td.dd-nen-m38, .luoi-vd td.co-dinh.dd-nen-m38 { background: #e9d5ff; }
-.luoi-vd td.dd-nen-m39, .luoi-vd tr.dong-xau td.dd-nen-m39, .luoi-vd td.co-dinh.dd-nen-m39 { background: #f5d0fe; }
-.luoi-vd td.dd-nen-m40, .luoi-vd tr.dong-xau td.dd-nen-m40, .luoi-vd td.co-dinh.dd-nen-m40 { background: #fbcfe8; }
+.luoi-vd td.dd-chu-m01, .mg-cell.dd-chu-m01 { color: #000000; }
+.luoi-vd td.dd-chu-m02, .mg-cell.dd-chu-m02 { color: #334155; }
+.luoi-vd td.dd-chu-m03, .mg-cell.dd-chu-m03 { color: #64748b; }
+.luoi-vd td.dd-chu-m04, .mg-cell.dd-chu-m04 { color: #94a3b8; }
+.luoi-vd td.dd-chu-m05, .mg-cell.dd-chu-m05 { color: #cbd5e1; }
+.luoi-vd td.dd-chu-m06, .mg-cell.dd-chu-m06 { color: #e2e8f0; }
+.luoi-vd td.dd-chu-m07, .mg-cell.dd-chu-m07 { color: #f1f5f9; }
+.luoi-vd td.dd-chu-m08, .mg-cell.dd-chu-m08 { color: #ffffff; }
+.luoi-vd td.dd-chu-m09, .mg-cell.dd-chu-m09 { color: #7f1d1d; }
+.luoi-vd td.dd-chu-m10, .mg-cell.dd-chu-m10 { color: #b91c1c; }
+.luoi-vd td.dd-chu-m11, .mg-cell.dd-chu-m11 { color: #ef4444; }
+.luoi-vd td.dd-chu-m12, .mg-cell.dd-chu-m12 { color: #f97316; }
+.luoi-vd td.dd-chu-m13, .mg-cell.dd-chu-m13 { color: #f59e0b; }
+.luoi-vd td.dd-chu-m14, .mg-cell.dd-chu-m14 { color: #eab308; }
+.luoi-vd td.dd-chu-m15, .mg-cell.dd-chu-m15 { color: #84cc16; }
+.luoi-vd td.dd-chu-m16, .mg-cell.dd-chu-m16 { color: #22c55e; }
+.luoi-vd td.dd-chu-m17, .mg-cell.dd-chu-m17 { color: #14b8a6; }
+.luoi-vd td.dd-chu-m18, .mg-cell.dd-chu-m18 { color: #06b6d4; }
+.luoi-vd td.dd-chu-m19, .mg-cell.dd-chu-m19 { color: #3b82f6; }
+.luoi-vd td.dd-chu-m20, .mg-cell.dd-chu-m20 { color: #3370ff; }
+.luoi-vd td.dd-chu-m21, .mg-cell.dd-chu-m21 { color: #6366f1; }
+.luoi-vd td.dd-chu-m22, .mg-cell.dd-chu-m22 { color: #8b5cf6; }
+.luoi-vd td.dd-chu-m23, .mg-cell.dd-chu-m23 { color: #a855f7; }
+.luoi-vd td.dd-chu-m24, .mg-cell.dd-chu-m24 { color: #d946ef; }
+.luoi-vd td.dd-chu-m25, .mg-cell.dd-chu-m25 { color: #ec4899; }
+.luoi-vd td.dd-chu-m26, .mg-cell.dd-chu-m26 { color: #f43f5e; }
+.luoi-vd td.dd-chu-m27, .mg-cell.dd-chu-m27 { color: #fecaca; }
+.luoi-vd td.dd-chu-m28, .mg-cell.dd-chu-m28 { color: #fed7aa; }
+.luoi-vd td.dd-chu-m29, .mg-cell.dd-chu-m29 { color: #fde68a; }
+.luoi-vd td.dd-chu-m30, .mg-cell.dd-chu-m30 { color: #fef08a; }
+.luoi-vd td.dd-chu-m31, .mg-cell.dd-chu-m31 { color: #d9f99d; }
+.luoi-vd td.dd-chu-m32, .mg-cell.dd-chu-m32 { color: #bbf7d0; }
+.luoi-vd td.dd-chu-m33, .mg-cell.dd-chu-m33 { color: #99f6e4; }
+.luoi-vd td.dd-chu-m34, .mg-cell.dd-chu-m34 { color: #a5f3fc; }
+.luoi-vd td.dd-chu-m35, .mg-cell.dd-chu-m35 { color: #bfdbfe; }
+.luoi-vd td.dd-chu-m36, .mg-cell.dd-chu-m36 { color: #c7d2fe; }
+.luoi-vd td.dd-chu-m37, .mg-cell.dd-chu-m37 { color: #ddd6fe; }
+.luoi-vd td.dd-chu-m38, .mg-cell.dd-chu-m38 { color: #e9d5ff; }
+.luoi-vd td.dd-chu-m39, .mg-cell.dd-chu-m39 { color: #f5d0fe; }
+.luoi-vd td.dd-chu-m40, .mg-cell.dd-chu-m40 { color: #fbcfe8; }
+.luoi-vd td.dd-nen-m01, .luoi-vd tr.dong-xau td.dd-nen-m01, .luoi-vd td.co-dinh.dd-nen-m01, .mg-cell.dd-nen-m01 { background: #000000; }
+.luoi-vd td.dd-nen-m02, .luoi-vd tr.dong-xau td.dd-nen-m02, .luoi-vd td.co-dinh.dd-nen-m02, .mg-cell.dd-nen-m02 { background: #334155; }
+.luoi-vd td.dd-nen-m03, .luoi-vd tr.dong-xau td.dd-nen-m03, .luoi-vd td.co-dinh.dd-nen-m03, .mg-cell.dd-nen-m03 { background: #64748b; }
+.luoi-vd td.dd-nen-m04, .luoi-vd tr.dong-xau td.dd-nen-m04, .luoi-vd td.co-dinh.dd-nen-m04, .mg-cell.dd-nen-m04 { background: #94a3b8; }
+.luoi-vd td.dd-nen-m05, .luoi-vd tr.dong-xau td.dd-nen-m05, .luoi-vd td.co-dinh.dd-nen-m05, .mg-cell.dd-nen-m05 { background: #cbd5e1; }
+.luoi-vd td.dd-nen-m06, .luoi-vd tr.dong-xau td.dd-nen-m06, .luoi-vd td.co-dinh.dd-nen-m06, .mg-cell.dd-nen-m06 { background: #e2e8f0; }
+.luoi-vd td.dd-nen-m07, .luoi-vd tr.dong-xau td.dd-nen-m07, .luoi-vd td.co-dinh.dd-nen-m07, .mg-cell.dd-nen-m07 { background: #f1f5f9; }
+.luoi-vd td.dd-nen-m08, .luoi-vd tr.dong-xau td.dd-nen-m08, .luoi-vd td.co-dinh.dd-nen-m08, .mg-cell.dd-nen-m08 { background: #ffffff; }
+.luoi-vd td.dd-nen-m09, .luoi-vd tr.dong-xau td.dd-nen-m09, .luoi-vd td.co-dinh.dd-nen-m09, .mg-cell.dd-nen-m09 { background: #7f1d1d; }
+.luoi-vd td.dd-nen-m10, .luoi-vd tr.dong-xau td.dd-nen-m10, .luoi-vd td.co-dinh.dd-nen-m10, .mg-cell.dd-nen-m10 { background: #b91c1c; }
+.luoi-vd td.dd-nen-m11, .luoi-vd tr.dong-xau td.dd-nen-m11, .luoi-vd td.co-dinh.dd-nen-m11, .mg-cell.dd-nen-m11 { background: #ef4444; }
+.luoi-vd td.dd-nen-m12, .luoi-vd tr.dong-xau td.dd-nen-m12, .luoi-vd td.co-dinh.dd-nen-m12, .mg-cell.dd-nen-m12 { background: #f97316; }
+.luoi-vd td.dd-nen-m13, .luoi-vd tr.dong-xau td.dd-nen-m13, .luoi-vd td.co-dinh.dd-nen-m13, .mg-cell.dd-nen-m13 { background: #f59e0b; }
+.luoi-vd td.dd-nen-m14, .luoi-vd tr.dong-xau td.dd-nen-m14, .luoi-vd td.co-dinh.dd-nen-m14, .mg-cell.dd-nen-m14 { background: #eab308; }
+.luoi-vd td.dd-nen-m15, .luoi-vd tr.dong-xau td.dd-nen-m15, .luoi-vd td.co-dinh.dd-nen-m15, .mg-cell.dd-nen-m15 { background: #84cc16; }
+.luoi-vd td.dd-nen-m16, .luoi-vd tr.dong-xau td.dd-nen-m16, .luoi-vd td.co-dinh.dd-nen-m16, .mg-cell.dd-nen-m16 { background: #22c55e; }
+.luoi-vd td.dd-nen-m17, .luoi-vd tr.dong-xau td.dd-nen-m17, .luoi-vd td.co-dinh.dd-nen-m17, .mg-cell.dd-nen-m17 { background: #14b8a6; }
+.luoi-vd td.dd-nen-m18, .luoi-vd tr.dong-xau td.dd-nen-m18, .luoi-vd td.co-dinh.dd-nen-m18, .mg-cell.dd-nen-m18 { background: #06b6d4; }
+.luoi-vd td.dd-nen-m19, .luoi-vd tr.dong-xau td.dd-nen-m19, .luoi-vd td.co-dinh.dd-nen-m19, .mg-cell.dd-nen-m19 { background: #3b82f6; }
+.luoi-vd td.dd-nen-m20, .luoi-vd tr.dong-xau td.dd-nen-m20, .luoi-vd td.co-dinh.dd-nen-m20, .mg-cell.dd-nen-m20 { background: #3370ff; }
+.luoi-vd td.dd-nen-m21, .luoi-vd tr.dong-xau td.dd-nen-m21, .luoi-vd td.co-dinh.dd-nen-m21, .mg-cell.dd-nen-m21 { background: #6366f1; }
+.luoi-vd td.dd-nen-m22, .luoi-vd tr.dong-xau td.dd-nen-m22, .luoi-vd td.co-dinh.dd-nen-m22, .mg-cell.dd-nen-m22 { background: #8b5cf6; }
+.luoi-vd td.dd-nen-m23, .luoi-vd tr.dong-xau td.dd-nen-m23, .luoi-vd td.co-dinh.dd-nen-m23, .mg-cell.dd-nen-m23 { background: #a855f7; }
+.luoi-vd td.dd-nen-m24, .luoi-vd tr.dong-xau td.dd-nen-m24, .luoi-vd td.co-dinh.dd-nen-m24, .mg-cell.dd-nen-m24 { background: #d946ef; }
+.luoi-vd td.dd-nen-m25, .luoi-vd tr.dong-xau td.dd-nen-m25, .luoi-vd td.co-dinh.dd-nen-m25, .mg-cell.dd-nen-m25 { background: #ec4899; }
+.luoi-vd td.dd-nen-m26, .luoi-vd tr.dong-xau td.dd-nen-m26, .luoi-vd td.co-dinh.dd-nen-m26, .mg-cell.dd-nen-m26 { background: #f43f5e; }
+.luoi-vd td.dd-nen-m27, .luoi-vd tr.dong-xau td.dd-nen-m27, .luoi-vd td.co-dinh.dd-nen-m27, .mg-cell.dd-nen-m27 { background: #fecaca; }
+.luoi-vd td.dd-nen-m28, .luoi-vd tr.dong-xau td.dd-nen-m28, .luoi-vd td.co-dinh.dd-nen-m28, .mg-cell.dd-nen-m28 { background: #fed7aa; }
+.luoi-vd td.dd-nen-m29, .luoi-vd tr.dong-xau td.dd-nen-m29, .luoi-vd td.co-dinh.dd-nen-m29, .mg-cell.dd-nen-m29 { background: #fde68a; }
+.luoi-vd td.dd-nen-m30, .luoi-vd tr.dong-xau td.dd-nen-m30, .luoi-vd td.co-dinh.dd-nen-m30, .mg-cell.dd-nen-m30 { background: #fef08a; }
+.luoi-vd td.dd-nen-m31, .luoi-vd tr.dong-xau td.dd-nen-m31, .luoi-vd td.co-dinh.dd-nen-m31, .mg-cell.dd-nen-m31 { background: #d9f99d; }
+.luoi-vd td.dd-nen-m32, .luoi-vd tr.dong-xau td.dd-nen-m32, .luoi-vd td.co-dinh.dd-nen-m32, .mg-cell.dd-nen-m32 { background: #bbf7d0; }
+.luoi-vd td.dd-nen-m33, .luoi-vd tr.dong-xau td.dd-nen-m33, .luoi-vd td.co-dinh.dd-nen-m33, .mg-cell.dd-nen-m33 { background: #99f6e4; }
+.luoi-vd td.dd-nen-m34, .luoi-vd tr.dong-xau td.dd-nen-m34, .luoi-vd td.co-dinh.dd-nen-m34, .mg-cell.dd-nen-m34 { background: #a5f3fc; }
+.luoi-vd td.dd-nen-m35, .luoi-vd tr.dong-xau td.dd-nen-m35, .luoi-vd td.co-dinh.dd-nen-m35, .mg-cell.dd-nen-m35 { background: #bfdbfe; }
+.luoi-vd td.dd-nen-m36, .luoi-vd tr.dong-xau td.dd-nen-m36, .luoi-vd td.co-dinh.dd-nen-m36, .mg-cell.dd-nen-m36 { background: #c7d2fe; }
+.luoi-vd td.dd-nen-m37, .luoi-vd tr.dong-xau td.dd-nen-m37, .luoi-vd td.co-dinh.dd-nen-m37, .mg-cell.dd-nen-m37 { background: #ddd6fe; }
+.luoi-vd td.dd-nen-m38, .luoi-vd tr.dong-xau td.dd-nen-m38, .luoi-vd td.co-dinh.dd-nen-m38, .mg-cell.dd-nen-m38 { background: #e9d5ff; }
+.luoi-vd td.dd-nen-m39, .luoi-vd tr.dong-xau td.dd-nen-m39, .luoi-vd td.co-dinh.dd-nen-m39, .mg-cell.dd-nen-m39 { background: #f5d0fe; }
+.luoi-vd td.dd-nen-m40, .luoi-vd tr.dong-xau td.dd-nen-m40, .luoi-vd td.co-dinh.dd-nen-m40, .mg-cell.dd-nen-m40 { background: #fbcfe8; }
 /* ══ HẾT SINH ══ */
 
 /* ── 5. Hộp nổi: lọc một cột (dáng #fltp của demo, 256px), ẩn/hiện cột, menu chuột phải, toast ── */

@@ -1,5 +1,8 @@
 # ADR-019 — Gỡ Lên đơn nhúng khỏi bảng Vận đơn
 
+> Bổ sung 10.09.2026: [ADR-021](021-luoi-master-va-thong-ke-crm.md) thay phần bố cục/renderer và thống kê nhúng của Vận đơn mới. Quyền, dữ liệu và nghiệp vụ không đổi.
+
+
 Ngày: 09.09.2026. Trạng thái: Đã áp dụng.
 
 ## Lý do

@@ -1,0 +1,61 @@
+{% extends 'crm/base_bang_tinh.html' %}{% load static %}
+{% block tieu_de %}{{ bang.name }} · Bảng tính · KN CRM{% endblock %}
+{% block ten_bang %}{{ bang.name }}{% endblock %}
+{% block dau_trang %}<link rel="stylesheet" href="{% static 'css/master-grid.css' %}?v={{ phien_ban_tinh }}"><link rel="stylesheet" href="{% static 'css/waybill.css' %}?v={{ phien_ban_tinh }}">{% endblock %}
+{% block thanh_tren_phai %}{% endblock %}
+{% block noi_dung %}
+<section id="master-grid" class="mg-root" aria-label="Bảng dữ liệu Vận đơn">
+  <div class="mg-toolbar">
+    <form id="mg-search" method="get"><input type="search" name="tim" value="{{ luoi.search }}" aria-label="Tìm kiếm vận đơn" placeholder="Tìm khách, số điện thoại…"><button class="nut">Tìm</button></form>
+    <button class="nut" id="mg-filters-button" aria-expanded="false">Bộ lọc</button>
+    <button class="nut" id="mg-columns-button">Cột</button>
+    <button class="nut" id="mg-mode" aria-pressed="false">Chế độ: Xem</button>
+    <button class="nut" id="mg-format-button">Định dạng</button>
+    <button class="nut" id="mg-undo" title="Ctrl+Z" disabled>Hoàn tác</button><button class="nut" id="mg-redo" title="Ctrl+Y" disabled>Làm lại</button>
+
+    <a class="nut" data-query-link href="{% url 'crm_statistics' %}?{{ qs_giu }}" title="Xem thống kê với bộ lọc này">Thống kê</a>
+    <div class="mg-more-wrap">
+      <button class="nut" id="mg-more-button" aria-label="Thao tác khác" aria-expanded="false" aria-controls="mg-more">…</button>
+      <div id="mg-more" class="mg-more" hidden>
+        <button class="nut" id="mg-save" disabled>Lưu dữ liệu <small>Ctrl+S</small></button>
+        <button class="nut" id="mg-history-button">Lịch sử</button>
+        <button class="nut" id="mg-conflict-button">Xung đột (0)</button>
+        <details><summary>Nhập/Xuất</summary>
+          {% if duoc_nhap %}<a class="nut" href="{% url 'bang_nhap' bang.code %}">Nhập Excel</a>{% endif %}
+          <a class="nut" data-query-link href="{% url 'bang_tinh_xuat' bang.code %}?{{ qs_giu }}">Tải Excel</a>
+          <small>Xuất dữ liệu đã lưu trên hệ thống.</small>
+        </details>
+        {% if can_assign %}<button class="nut" id="mg-assign">Phân công</button>{% endif %}
+        <button class="nut" disabled>Chia sẻ link <small>Chưa triển khai</small></button>
+      </div>
+    </div>
+  </div>
+  <div id="mg-chips" class="mg-chips">{% for label, url in chips %}<a href="{{ url }}">{{ label }} ×</a>{% endfor %}</div>
+  <div id="mg-message" role="status" hidden></div>
+  <div class="mg-workspace">
+    <aside id="mg-filters" hidden aria-label="Bộ lọc vận đơn">{% include 'crm/_master_filters.html' %}</aside>
+    <div id="mg-viewport" class="mg-viewport" role="grid" tabindex="0" aria-label="Vận đơn mới" aria-multiselectable="true">
+      <div id="mg-canvas" class="mg-canvas"></div>
+    </div>
+  </div>
+  <footer class="mg-footer"><span id="mg-count">Đang tải…</span><span id="mg-selection"></span><span>F2 sửa · Ctrl+C/V sao chép/dán · Esc đóng</span></footer>
+</section>
+<div id="mg-reader" class="mg-float" role="region" aria-label="Nội dung ô" hidden><button type="button" aria-label="Đóng nội dung">×</button><strong></strong><div></div></div>
+<form id="mg-editor" class="mg-float mg-editor" hidden aria-label="Sửa nội dung ô"><button class="mg-close" type="button" data-master-close="editor" aria-label="Đóng ô nhập">×</button><strong></strong><div id="mg-input"></div><div class="mg-editor-actions"><button class="nut nut-chinh" type="submit">Xong</button><button class="nut" type="button" id="mg-cancel">Hủy</button></div></form>
+<dialog id="mg-columns" class="mg-dialog"><header class="mg-dialog-head"><h2>Cột hiển thị</h2><button class="mg-close" type="button" data-master-close="mg-columns" aria-label="Đóng cột hiển thị">×</button></header><div class="mg-dialog-body" id="mg-column-list"></div></dialog>
+<dialog id="mg-format" class="mg-dialog mg-tools-dialog" aria-labelledby="mg-format-title"><header class="mg-dialog-head"><h2 id="mg-format-title">Định dạng vùng chọn</h2><button class="mg-close" data-master-close="mg-format" aria-label="Đóng định dạng">×</button></header><div class="mg-dialog-body" id="mg-format-body"></div></dialog>
+<dialog id="mg-history" class="mg-dialog mg-tools-dialog" aria-labelledby="mg-history-title"><header class="mg-dialog-head"><h2 id="mg-history-title">Lịch sử dòng</h2><button class="mg-close" data-master-close="mg-history" aria-label="Đóng lịch sử">×</button></header><div class="mg-dialog-body" id="mg-history-body"></div></dialog>
+<dialog id="mg-conflict" class="mg-dialog mg-tools-dialog" aria-labelledby="mg-conflict-title"><header class="mg-dialog-head"><h2 id="mg-conflict-title">Đối chiếu xung đột</h2><button class="mg-close" data-master-close="mg-conflict" aria-label="Đóng xung đột">×</button></header><div class="mg-dialog-body" id="mg-conflict-body"></div></dialog>
+<div id="hop-loc" class="loc-cot-hop" hidden><header class="mg-dialog-head"><b>Lọc cột</b><button class="mg-close" type="button" data-master-close="hop-loc" aria-label="Đóng lọc cột">×</button></header><div id="mg-column-filter-body"></div></div>
+<dialog id="vd-detail" class="vd-dialog mg-dialog" aria-label="Chi tiết sản phẩm"><header class="mg-dialog-head"><h2>Chi tiết sản phẩm</h2><button class="mg-close" type="button" data-close-detail aria-label="Đóng chi tiết sản phẩm">×</button></header><div class="mg-dialog-body" id="vd-detail-body"></div></dialog>
+{{ config|json_script:'mg-config' }}
+{% csrf_token %}
+{% endblock %}
+{% block cuoi_trang %}
+{% if can_assign %}{% include 'crm/_assignment.html' with master_grid=True %}{% endif %}
+<script src="{% static 'js/master-row-geometry.js' %}?v={{ phien_ban_tinh }}" defer></script>
+<script src="{% static 'js/master-working-copy.js' %}?v={{ phien_ban_tinh }}" defer></script>
+<script src="{% static 'js/master-grid.js' %}?v={{ phien_ban_tinh }}" defer></script>
+<script src="{% static 'js/waybill-feedback.js' %}?v={{ phien_ban_tinh }}" defer></script>
+<script src="{% static 'js/waybill.js' %}?v={{ phien_ban_tinh }}" defer></script>
+{% endblock %}

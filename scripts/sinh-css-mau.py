@@ -33,11 +33,11 @@ def sinh():
     for ma, hex_ in _palette():
         dong.append(f".bt-mau-{ma} {{ background: {hex_}; }}")
     for ma, hex_ in _palette():
-        dong.append(f".luoi-vd td.dd-chu-{ma} {{ color: {hex_}; }}")
+        dong.append(f".luoi-vd td.dd-chu-{ma}, .mg-cell.dd-chu-{ma} {{ color: {hex_}; }}")
     for ma, hex_ in _palette():
         dong.append(
             f".luoi-vd td.dd-nen-{ma}, .luoi-vd tr.dong-xau td.dd-nen-{ma}, "
-            f".luoi-vd td.co-dinh.dd-nen-{ma} {{ background: {hex_}; }}"
+            f".luoi-vd td.co-dinh.dd-nen-{ma}, .mg-cell.dd-nen-{ma} {{ background: {hex_}; }}"
         )
     return "\n".join(dong)
 

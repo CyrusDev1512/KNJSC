@@ -399,3 +399,23 @@ phân công trong file không được dùng để cấp quyền.
 | AC-20.5 | Xuất toàn kết quả lọc/ngày, mã nhân viên phân biệt trùng tên, dòng thiếu Order để trống mã Sale; trực tiếp/nền đồng nhất, worker và tải lại kiểm quyền | ADR-020 | Tự động |
 | AC-20.6 | Desktop/mobile không tràn trang; bàn phím mở phân công, chọn nhiều dòng, lỗi xung đột có cách tải lại; URL giữ lọc/sắp xếp, trạng thái rỗng rõ; không có Lên đơn nhúng | ADR-020 | Tự động |
 | AC-20.7 | Migration xuôi/ngược trên DB test bảo toàn đơn/dòng/chi tiết, không tự phân công; lưới 100 dòng không truy vấn riêng từng dòng | ADR-020 | Tự động |
+
+
+## 22. Lưới master và Thống kê KN CRM — ADR-021
+
+AC-21.1 thay AC-18.8 về Vận hành đơn/tiêu đề nhóm/thống kê nhúng; giữ các
+quyền và hợp đồng dữ liệu của AC-18/20. Các bảng khác tiếp tục tiêu chí cũ.
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-21.1 | Chỉ bảng mới chạy controller riêng, không form Lên đơn/thống kê nhúng/thanh công thức; hàng mặc định 28px, kéo 28–400px và xuống dòng; ghi nhớ theo user/bảng/ID local, Escape hủy/↑↓/Home; cuộn/neo đồng bộ, reader/editor không tự giãn hàng | ADR-021 | Tự động |
+| AC-21.2 | Khối 100/cache 10, DOM hữu hạn; chọn/đi xuyên khối, Ctrl+A toàn kết quả, copy/dán ≤2.000 ô giữ số 0 đầu; sai/khóa không ghi phần, không tạo dòng; IME đúng | ADR-021 | Tự động |
+| AC-21.3 | Tự lưu nền sau kết thúc nhập, gộp 500ms/tối đa 2s; vẫn sửa được khi lưu; Ctrl+S gửi ngay; tối đa 2.000 ô/lượt; CAS cùng ô trả 409, khác ô giữ cả hai; UUID gửi lại không ghi hai lần, UUID khác nội dung bị từ chối; batch atomic, audit không nội dung khách | ADR-021 | Tự động |
+| AC-21.4 | Mọi đọc/ghi/copy chưa tải/poll theo scope, thu quyền không trả dòng hoặc ghi bản nháp; lọc/sắp xếp ổn định, phản hồi cũ bị bỏ; đổi lọc/popup giữ nháp, X luôn thấy được; lỗi lưu giữ nội dung, rời/tải lại bảng cảnh báo nếu còn thay đổi chưa xác nhận | ADR-021 | Tự động |
+| AC-21.5 | Thống kê riêng, biểu đồ/tổng hợp toàn kết quả lọc, tiền tách loại; top 10 nhưng đối chiếu đủ nhóm; trạng thái trống/partial, đơn thiếu chi tiết đúng; link/redirect giữ lọc | ADR-021 | Tự động |
+| AC-21.6 | Desktop 1440/laptop 1280/mobile 390/zoom 125% không vỡ; cuộn sâu, chọn/đọc/resize p95 ≤100ms; HTTP 100k/300k ×10/20 người đọc p95 ≤1s, ghi ≤0,5s, cache/DOM/bộ nhớ hữu hạn | ADR-021 · ADR-016 | Tự động |
+| AC-21.7 | Migration biên nhận/lịch sử và chỉ mục master xuôi/ngược trên DB test không đổi dữ liệu đơn/phân công; hồi quy lưới cũ, Lên đơn ERP/CRM, chi tiết, nhập/xuất nền/direct và quyền trước tải | ADR-021 | Tự động |
+| AC-21.8 | Mặc định Xem; Chỉnh sửa mở nhập khi bấm/chuyển ô, giữ mũi tên trong chữ và thao tác chọn vùng; hàng được chọn và viền dùng xanh dương; số dòng đầu là 1; mặc định đơn cũ trước/mới cuối, khóa phụ ID | ADR-021 | Tự động |
+| AC-21.9 | Cỡ chữ/màu chữ/màu nền giữ thuộc tính khác; CAS riêng từng thuộc tính; định dạng/Undo/Redo nguyên tử; phản hồi lượt cũ không xóa nháp mới, retry giữ UUID/nội dung; lỗi quyền/kiểu/xung đột không retry tự động | ADR-021 | Tự động |
+| AC-21.10 | Lịch sử chỉ nối thêm, trước/sau theo ô, tài khoản/thời điểm/nhóm thao tác; 50 mục/trang, kiểm quyền hiện hành, replay không trùng; xung đột đối chiếu trong phiên và gửi lại bằng CAS mới, không ghi đè cưỡng bức | ADR-021 | Tự động |
+| AC-21.11 | Admin CRM bắt buộc chọn Sale hoạt động/hợp lệ; creator là Admin, seller/phòng ban/team theo Sale; Sale đọc đơn đứng tên; người khác không giả mạo seller; lỗi tạo đơn/chi tiết/vận đơn rollback cả lượt | ADR-021 | Tự động |

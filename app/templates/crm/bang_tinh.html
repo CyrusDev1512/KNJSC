@@ -1,6 +1,5 @@
 {% extends "crm/base_bang_tinh.html" %}
 {% load static %}
-{% block dau_trang %}{% if new_waybill %}<link rel="stylesheet" href="{% static 'css/waybill.css' %}">{% endif %}{% endblock %}
 {% block tieu_de %}{{ bang.name }} · Bảng tính · Kim Ngân JSC{% endblock %}
 {% block ten_bang %}
   <h1 class="bt-tieu-de">{{ bang.name }}</h1>
@@ -12,10 +11,6 @@
 {% endblock %}
 
 {% block noi_dung %}
-{% if new_waybill %}
-<div class="vd-page" id="vd-page">
-  <h2 class="vd-heading">Vận hành đơn</h2>
-{% endif %}
 {% comment %}
 Lưới như một sheet (ADR-011): hàng chữ cột A B C có nút lọc ▼ và mép kéo độ
 rộng; hàng tên cột là hàng 1; dữ liệu từ hàng 2, số nối tiếp qua trang; cột
@@ -23,7 +18,6 @@ trống bên phải cho đủ chữ tới Z; dòng trống cuối lưới. Cột
 Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chúng.
 {% endcomment %}
 {% include "crm/_cong_cu.html" %}
-{% if new_waybill %}{% include 'crm/_quick_filters.html' %}{% endif %}
 
 <div class="bt-thanh-ct">
   <input class="bt-dia-chi" id="bt-dia-chi" value="A1" aria-label="Ô hiện tại — gõ địa chỉ để nhảy tới" title="Ô hiện tại — gõ địa chỉ như B7 để nhảy tới" autocomplete="off" spellcheck="false">
@@ -58,7 +52,6 @@ Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chú
             {% endfor %}
             {% for chu in cac_cot_trong %}<th class="bt-chu bt-chu-trong" data-trong="{{ forloop.counter }}"><span class="bt-chu-cot">{{ chu }}</span></th>{% endfor %}
           </tr>
-          {% if new_waybill %}<tr class="vd-group-header"><th></th>{% for g in waybill_groups %}<th data-columns="{{ g.codes|join:',' }}" colspan="{{ g.span }}" scope="colgroup"><span>{{ g.label }}</span></th>{% endfor %}{% if cac_cot_trong %}<th colspan="{{ cac_cot_trong|length }}"></th>{% endif %}</tr>{% endif %}
           <tr class="bt-hang-ten">
             <th class="bt-so-dong co-dinh" style="left:0">1</th>
             {% if la_van_don %}<th class="bt-ten-cot co-dinh o-trung-th" style="{{ style_trung }}" title="Số dòng cùng số điện thoại">Lọc trùng</th>{% endif %}
@@ -76,11 +69,9 @@ Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chú
             {% include "crm/_dong.html" %}
           {% endfor %}
           {% if not cac_dong and not cac_dong_trong %}
-            {% if new_waybill %}<tr class="bt-dong-rong"><td class="vd-empty-cell" colspan="{{ so_cot_luoi }}">
-              {% include "components/rong.html" with rong_tieu_de="Chưa có vận đơn khớp bộ lọc" rong_mo_ta="Đơn tạo tại trang Lên đơn của KN ERP hoặc KN CRM sẽ xuất hiện ở đây. Có thể bỏ bớt bộ lọc để xem các đơn khác." %}
-            </td></tr>{% else %}<tr class="bt-dong-rong"><td colspan="{{ so_cot_luoi }}">
+            <tr class="bt-dong-rong"><td colspan="{{ so_cot_luoi }}">
               {% include "components/rong.html" with rong_tieu_de="Không có dòng nào" rong_mo_ta="Chưa có dòng nào khớp bộ lọc. Bỏ bớt lọc, hoặc nhập tệp ở Bảng dữ liệu." %}
-            </td></tr>{% endif %}
+            </td></tr>
           {% endif %}
           {% for dong in cac_dong_trong %}
             {% include "crm/_dong_moi.html" with lop_dong="dong-moi" %}
@@ -106,17 +97,6 @@ Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chú
   </nav>
   <span class="bt-chon-tt" id="bt-chon-tt"></span>
 </footer>
-{% if new_waybill %}
-<details class="vd-section" open>
-  <summary>Thống kê</summary>
-  <div id="vd-statistics" hx-get="{% url 'waybill_statistics' %}{% if qs_giu %}?{{ qs_giu }}{% endif %}" hx-trigger="load, waybillRefresh from:body" hx-swap="innerHTML">Đang tính thống kê…</div>
-</details>
-<dialog id="vd-detail" class="vd-dialog" aria-labelledby="vd-detail-title">
-  <button class="nut vd-close" type="button" data-close-detail aria-label="Đóng chi tiết">Đóng</button>
-  <div id="vd-detail-body"></div>
-</dialog>
-</div>
-{% endif %}
 
 {# Hộp lọc một cột: HTMX đổ vào đây, JS đặt vị trí cạnh chữ cột #}
 <div id="hop-loc" class="loc-cot-hop" hidden></div>
@@ -125,9 +105,6 @@ Lọc trùng không có `data-cot` nên JS sắp cột không đụng tới chú
 {% endblock %}
 
 {% block cuoi_trang %}
-{% if can_assign %}{% include 'crm/_assignment.html' %}{% endif %}
-{% if new_waybill %}<script src="{% static 'js/waybill-feedback.js' %}" defer></script>{% endif %}
-{% if new_waybill %}<script src="{% static 'js/waybill.js' %}" defer></script>{% endif %}
 <script src="{% static 'js/bang-tinh.js' %}?v={{ phien_ban_tinh }}" defer></script>
 <script src="{% static 'js/bang-tinh-o.js' %}?v={{ phien_ban_tinh }}" defer></script>
 {% endblock %}

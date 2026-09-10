@@ -49,6 +49,7 @@ Vấn đề tập trung
 6. Vận đơn được xem dữ liệu nhưng không được thao tác mục đối soát nếu không có quyền.
 7. Hệ thống cần hạn chế thao tác linh tinh và chỉ cung cấp các thao tác có ý nghĩa với vai trò.
 8. Phần view cho nhân viên phải thuận tiện nhất cho người trực tiếp xử lý.
+   Phần KN CRM — Vận đơn mới: tự lưu nền, chế độ Xem/Chỉnh sửa, chọn hàng xanh, định dạng cơ bản, lịch sử ô/xung đột và số hàng từ 1; kiểm chức năng/E2E -> đã làm (phạm vi thao tác đã chốt; chưa đóng nghiệm thu hiệu năng lọc 300k hoặc H7)
 
 Kết quả tính năng cần hướng tới
 - Một định danh nhân sự duy nhất xuyên suốt KNERP và KNCRM.

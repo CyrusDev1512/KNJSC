@@ -111,3 +111,61 @@ Văn hoá). Không hỏi lại việc có áp dụng hay không.
 
 Đã triển khai theo [ADR-020](quyet-dinh/020-phan-cong-loc-xuat-van-don-moi.md).
 H7 ở vấn đề 1 vẫn chờ trả lời; phần này không thay quyền ghi tiền/bằng chứng.
+
+## Quyết định bổ sung — file master và Thống kê (10.09.2026)
+
+**Đối tượng xác nhận:** Chủ dự án. Đây là quyết định phạm vi đã duyệt triển
+khai, không thay câu trả lời khảo sát chi tiết H2/H3 của nhân viên.
+
+1. **Bảng tính cần làm gì?** Xem/tìm/chỉnh sửa như thao tác Excel cơ bản;
+   thường cuộn kiểm tình trạng giao và bấm ô đọc hết chữ. Không công thức
+   tự do. Làm Vận đơn mới trước; các bảng khác giữ nguyên.
+2. **Tải và chọn thế nào?** Cuộn liên tục theo khối; Ctrl+A toàn kết quả
+   lọc. Sửa/copy/dán/Delete nội dung/Undo/Redo, tối đa 2.000 ô/lượt; chưa có
+   kéo điền, định dạng mới hoặc xóa dòng. Không lưu nháp/khách vào localStorage.
+3. **Thống kê đặt đâu?** Tính năng riêng cùng cấp Bảng tính, có donut/cột
+   và bảng đối chiếu; chuyển bộ lọc hai chiều. Giữ trạng thái và tiền tệ
+   hiện có, không bổ sung công thức đối soát hoặc quyền tiền/bằng chứng H7.
+
+**Trả lời / Chủ dự án / 10.09.2026:** Kế hoạch triển khai ADR-021 đã được duyệt.
+
+## Vấn đề cần bàn sau phiên — Nhiều người sửa cùng dữ liệu KN CRM
+
+**Đối tượng:** Chủ dự án, Leader Vận đơn và người sử dụng bảng tính.
+
+1. Khi hai người sửa cùng một ô rồi bấm Lưu, người dùng cần xem và xử lý
+   hai giá trị như thế nào? Ai được quyết định giá trị cuối?
+2. Khi một lượt Lưu có nhiều ô và chỉ một ô bị xung đột, mong muốn xử lý
+   cả lượt hay từng ô ra sao?
+3. Undo sau khi người khác đã sửa hoặc sau khi phân công đổi cần có hành vi nào?
+
+**Trạng thái / Chủ dự án / 10.09.2026:** Ghi lại, bàn sau phiên này; chưa chốt
+cách giải quyết mới. Giữ CAS/biên nhận/kiểm quyền hiện có, không tự cho ghi đè.
+
+**Đã chốt riêng về lưu dữ liệu / Chủ dự án / 10.09.2026:** Các ô bảng Vận đơn
+mới dùng lưu thủ công. Enter/chuyển ô/đóng popup giữ bản đang làm trong RAM;
+Lưu dữ liệu hoặc Ctrl+S mới ghi database. Rời bảng/tải lại/đóng tab mất phần
+chưa lưu, không hỏi ba lựa chọn. Phân công, Chi tiết và Nhập Excel vẫn xác nhận
+riêng. Menu … gom Lưu dữ liệu, Nhập/Xuất, Phân công; Chia sẻ link chưa triển khai.
+
+## 10.09.2026 — Chốt chín hạng mục Vận đơn mới
+
+1. Lưu thế nào? Tự lưu nền sau kết thúc sửa; 500ms/tối đa 2s. Không hỏi khi
+   đổi chức năng; chỉ cảnh báo rời trang nếu còn chưa xác nhận.
+2. Định dạng gì? Cỡ chữ, màu chữ, màu nền; không thêm bộ định dạng đầy đủ.
+3. Ai xem lịch sử? Người hiện có quyền xem dòng. Chỉ lịch sử qua lưới mới,
+   không suy dựng từ nhập file/phân công/chi tiết cũ.
+4. Xung đột? Làm cùng đợt; giữ RAM trong phiên. Người sửa đối chiếu và chọn,
+   cả lượt được kiểm lại; không lưu một phần hoặc ghi đè âm thầm.
+5. Admin đứng đơn? Chỉ CRM thêm chọn Sale. Admin là người thực hiện, Sale
+   là người đứng đơn; phòng ban/team của đơn theo Sale.
+6. Chế độ Chỉnh sửa? Mũi tên trong chữ, Tab chuyển ô, Enter ô một dòng xuống
+   hàng; nhiều dòng dùng Ctrl+Enter kết thúc. Mặc định vẫn là chế độ Xem.
+7. Lịch sử lưu ở đâu, có chậm/phình không? Sau triển khai: PostgreSQL
+   `crm_gridcellhistory` lưu trước/sau theo ô; 300.000 mục test gồm chỉ mục
+   khoảng 69,28 MiB. Biên nhận `crm_gridmutationreceipt` là bảng riêng,
+   320 lượt test khoảng 2,26 MiB, chứa cả kết quả để gửi lại an toàn.
+   Trang 50 lịch sử p95 28,56ms trong TestClient riêng; chưa đại diện mọi tải.
+   Nháp chỉ ở RAM trình duyệt. Dung lượng tăng theo số ô/lượt sửa và độ dài,
+   không bằng số khách. Xem kịch bản năm và giới hạn trong báo cáo
+   [chín hạng mục](kiem-chung-master-nine.md). Chưa tự đặt thời hạn xóa.

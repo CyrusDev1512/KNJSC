@@ -149,3 +149,30 @@ $env:NODE_PATH='C:\Users\PC\.cache\codex-runtimes\codex-primary-runtime\dependen
 Chưa commit/push trong tác vụ này. Nhật ký lịch sử bên trên giữ nguyên.
 
 ---
+
+## 10.09.2026 — Chín hạng mục CRM, bàn giao khi tạm dừng chạy bền
+
+- Đã triển khai autosave, chọn hàng/xanh dương, hai chế độ, fs/c/bg, lịch sử
+  và conflict, Admin chọn Sale, đơn cũ trước/mới cuối, số hàng từ 1.
+- Suite `crm/tests orders/tests forms_builder/tests core/tests tests/test_luong_ba_bo_phan.py`:
+  1.049 passed, 6 fixture chuyên dụng skipped, 87,87s. Sau bổ sung cuối,
+  `crm/tests/test_master_nine.py orders/tests crm/tests/test_waybill_new.py`:
+  90 passed. Không cộng hai lượt thành một con số suite.
+- Node working copy, autosave, queue, scope, conflict, geometry đạt.
+  Chrome cuối 16 nhóm E2E/UI đạt: nhiều vai trò, replay sau mất phản hồi,
+  409 hai lựa chọn, thu quyền giữa dán hai hàng (không ghi một phần),
+  Undo/Redo, định dạng, hàng/cột, bấm đúp 120ms, copy/paste và viewport.
+- Migration history/cover index xuôi/ngược trên DB test đạt; local đã áp
+  dụng xuôi. Mọi thử ghi dùng DB test, không dùng khách mẫu đang làm việc.
+- Ma trận trước/sau đủ 100k/300k ×10/20, 60s làm nóng +300s đo mỗi lượt.
+  Sau: p95 đọc khối 164–664ms, ghi ô 86–124ms; lọc 300k 1.135–1.340ms
+  chưa đạt 1s. Sáu lỗi ngắt kết nối trong 11.815 request cuối, không loại
+  khỏi số đo; kiểm tính toàn vẹn không báo sai dữ liệu ở ma trận ngắn.
+- Chrome 100 mẫu/thao tác p95 30–49ms, cache ≤10 và DOM hữu hạn. History
+  300k khoảng 69,28 MiB; receipt 320 lượt 2,26 MiB, số đo riêng từng bảng.
+- Chủ dự án yêu cầu dừng chạy bền và push: đã dừng sau mẫu Chrome phút 15,
+  chưa đủ 30 phút và chưa có tổng HTTP chạy dài. Giữ trạng thái chưa kiểm
+  chứng để phiên sau chạy lại. IME Windows thật/native zoom chưa xác nhận.
+- KNJSC Problem 02 ý 8 chỉ đánh dấu phần thao tác CRM được kiểm chứng;
+  không đánh dấu H7 hoặc toàn bộ hiệu năng. Báo cáo và bằng chứng:
+  [chín hạng mục](kiem-chung-master-nine.md).

@@ -187,3 +187,35 @@ mẫu (để số giả không lẫn vào), nên Xếp hạng doanh số ở 3.1
 
 Điều kiện hoàn thành phase 1 (`docs/04` mục 18) cần cả bảy điều; tài liệu này
 lo điều 3, 4, 5 và 6. Điều 7 — bàn giao tài liệu — là `docs/05` phần B.
+
+
+## Bổ sung nghiệm thu Vận đơn mới — ADR-021
+
+Chỉ ghi dữ liệu trên môi trường nghiệm thu được cho phép; bộ tự động dùng
+DB test. Các bước công thức/kéo điền/định dạng của bảng cũ không áp cho UI mới.
+
+| Bước | Đạt khi |
+|---|---|
+| Mở bảng; cuộn sâu; kéo cột đang cố định | Không tải vô hạn; header/ô không lệch, giữ vị trí cuộn |
+| Bấm ô chữ dài; Escape; F2 rồi kéo khung nhập | Đọc đủ chữ; hàng/cột giữ nguyên, popup nằm trong màn hình |
+| Ctrl+A rồi Copy/Delete trên tập lớn | Chọn toàn kết quả; vượt2.000 ô báo lọc/xuất, không cắt hoặc ghi âm thầm |
+| Shift chọn qua biên100; dán từ Excel có số0 đầu và nhiều dòng | Đúng ID dòng, tiếng Việt và chuỗi mã; sai/khóa từ chối cả lượt |
+| Hai người sửa cùng/khác ô; Undo sau khi người khác sửa | Cùng ô báo xung đột, khác ô giữ cả hai; Undo không đè sửa đồng nghiệp |
+| Ngắt phản hồi lưu rồi thử lại; thử đổi lọc khi chưa lưu | Cùng mã thao tác không ghi lần hai, giữ nháp và báo đúng trạng thái |
+| Chuyển giao dòng khi người cũ đang sửa | Người cũ mất quyền ở request tiếp theo, không ghi nháp lên dòng đó |
+| Mở Thống kê với bộ lọc, chọn nhóm, đối chiếu bảng rồi về lưới | Hai chiều giữ điều kiện; biểu đồ toàn tập; tiền tách loại, thiếu chi tiết có cảnh báo |
+| Desktop1440/laptop1280/mobile390/zoom125% | Không tràn trang hoặc vỡ cấu trúc; mobile cuộn trong lưới |
+
+## Nghiệm thu chín hạng mục Vận đơn mới — 10.09.2026
+
+Dùng môi trường test: Admin không có phòng ban chọn Sale và tạo đơn; xác nhận
+đơn ở cuối, hàng đầu số 1. Leader giao đơn, Staff chỉ thấy đúng phần được giao.
+Staff sửa và chờ Đã lưu; Sale đứng đơn xem dữ liệu/lịch sử nhưng không tự có
+quyền sửa mới. Hai người sửa cùng ô phải đối chiếu, không ghi đè im lặng.
+Thử hai chế độ, Tab/Enter/IME, vùng chọn xanh, fs/c/bg, Undo/Redo, kéo hàng/cột,
+đọc nội dung dài và popup có X. Ngắt phản hồi sau commit để kiểm replay cùng ID;
+rời trang khi còn nháp phải cảnh báo. Đối chiếu file xuất với dữ liệu đã lưu.
+Thu quyền một dòng trong lượt dán hai dòng đang gửi: server không ghi cả
+lượt, lưới gỡ dòng mất quyền và giữ nháp dòng còn quyền. Không tự gửi phần
+còn lại; chỉ bấm Thử lại mới tạo lượt mới và kiểm quyền/CAS lần nữa.
+Bằng chứng và các phần chưa đạt ghi tại [báo cáo](kiem-chung-master-nine.md).

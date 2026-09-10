@@ -8,13 +8,11 @@ from django.views.decorators.http import require_http_methods
 
 from core.exceptions import BusinessError, OutOfScopeError
 from core.navigation import SALES_ONLY
-from core.pagination import paginate
 from core.permissions import assert_departments, in_departments
 from forms_builder.models import TableDef
 from forms_builder.services import grant_service
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 from orders.services import order_service, waybill_service, product_service
-from .services import grid_service
 from .waybill_forms import WaybillOrderForm
 
 
@@ -37,7 +35,7 @@ def item_context(items=None):
 @require_http_methods(["GET", "POST"])
 def create_order(request):
     assert_departments(request.user, SALES_ONLY, request)
-    form = WaybillOrderForm(request.POST if request.method == "POST" else None)
+    form = WaybillOrderForm(request.POST if request.method == "POST" else None, actor=request.user)
     error, success, items = "", "", None
     if request.method == "POST":
         try:
@@ -46,7 +44,7 @@ def create_order(request):
             if form.is_valid():
                 order = order_service.create_order(**form.cleaned_data, lines=items, actor=request.user, request=request)
                 success = f"Đã lưu đơn {order.code} vào Vận đơn."
-                form, items = WaybillOrderForm(), None
+                form, items = WaybillOrderForm(actor=request.user), None
         except (BusinessError, ValidationError, ValueError) as exc:
             error = str(exc) if isinstance(exc, BusinessError) else "Kiểm tra lại thông tin đơn và chi tiết sản phẩm."
     context = {"form": form, "error": error, "success": success, **item_context(items),
@@ -83,26 +81,9 @@ def detail(request, pk):
 
 @login_required
 def statistics(request):
-    table = TableDef.objects.in_scope(request.user).filter(code=ACTIVE_WAYBILL_TABLE_CODE).first()
-    if table is None:
-        raise OutOfScopeError("Bạn không có quyền xem thống kê vận đơn.")
-    grid = grid_service.build_grid(request.user, request.GET, table=table)
-    group = request.GET.get("group", "total")
-    if group not in {"total", "seller", "product", "market"}:
-        return HttpResponse("Cách nhóm thống kê không hợp lệ.", status=400)
-    rows, grouping = waybill_service.statistics(grid.queryset, group)
-    page = paginate(request, rows)
-    results = [{**r, "label": r[grouping[0]] if group != "total" else "Tổng hợp",
-                "currency": r["record__data__loai_tien"], "quantity": r["quantity_total"]} for r in page.object_list]
-    if group == "product":
-        for result in results:
-            result["label"] = f'{result["product__name"]} ({result["product__code"]})'
-    params = request.GET.copy()
-    params.pop("trang", None)
-    filters = [(key, value) for key, values in params.lists() if key != "group" for value in values]
-    return render(request, "crm/_waybill_statistics.html", {
-        "results": results, "page": page, "group": group, "params": params.urlencode(),
-        "filters": filters,
-        "groups": [("total", "Tổng hợp"), ("seller", "Theo nhân viên"),
-                   ("product", "Theo sản phẩm"), ("market", "Theo thị trường")],
-    })
+    # Giữ liên kết cũ; kiểm quyền trước khi chuyển sang trang riêng.
+    from .services.master_grid_service import table_for
+    from django.shortcuts import redirect
+    table_for(request.user, ACTIVE_WAYBILL_TABLE_CODE)
+    suffix = ('?' + request.GET.urlencode()) if request.GET else ''
+    return redirect(reverse('crm_statistics') + suffix)

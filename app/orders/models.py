@@ -18,6 +18,7 @@ from django.db import models
 
 from core.constants import Currency
 from core.models import ScopedModel, TimestampedModel, SoftDeleteModel
+from core.managers import ScopedQuerySet, ScopedManager, AllObjectsManager
 from core.money import money_field
 
 from .constants import Market, PaymentMethod
@@ -144,6 +145,12 @@ class Customer(TimestampedModel):
 
 # ══ ĐƠN HÀNG ══════════════════════════════════════════════════════
 
+class OrderQuerySet(ScopedQuerySet):
+    def in_scope(self, user):
+        original = super().in_scope(user)
+        return self.filter(models.Q(pk__in=original.values('pk')) | models.Q(seller=user))
+
+
 class Order(ScopedModel):
     """Một đơn hàng. Lưu xong là khoá — BR-3.
 
@@ -151,6 +158,9 @@ class Order(ScopedModel):
     để lọc và thống kê theo thị trường được. Gộp thành một chuỗi thì không
     nhóm theo bang hay thành phố được nữa.
     """
+
+    objects = ScopedManager.from_queryset(OrderQuerySet)()
+    all_objects = AllObjectsManager.from_queryset(OrderQuerySet)()
 
     SCOPE_OWNER_FIELD = "created_by"
     SCOPE_TEAM_FIELD = "team"

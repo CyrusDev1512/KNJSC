@@ -18,7 +18,7 @@ bảng do chính mình tạo — mà Leader thì không được tạo bảng (F
 đó cho Manager). Kết quả là Leader thấy danh sách rỗng.
 """
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Exists, OuterRef
 
 from core.managers import ScopedQuerySet, apply_department_scope, apply_scope
 from core.scope import get_user_scope
@@ -55,10 +55,11 @@ class TableDefQuerySet(ScopedQuerySet):
         visible = DataRecord.objects.filter(table__code=ACTIVE_WAYBILL_TABLE_CODE).filter(
             Q(created_by_id=user.pk, created_by__profile__department__code='sale')
             | Q(order__created_by_id=user.pk, order__created_by__profile__department__code='sale')
+            | Q(order__seller_id=user.pk, order__seller__profile__department__code='sale')
             | Q(assignment__care_id=user.pk, assignment__care__profile__department__code__in=['sale', 'cskh']))
         return self.filter(
             Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
-            | Q(pk__in=visible.order_by().values('table_id'))
+            | Q(Exists(visible.filter(table_id=OuterRef('pk'))))
         )
 
 
@@ -141,8 +142,11 @@ class DataRecordQuerySet(ScopedQuerySet):
     cả bộ phận. Cấp quyền chỉ **cộng thêm**, không thay thế.
     """
 
-    def in_scope(self, user):
+    def in_scope(self, user, *, table=None):
         from .models import GrantAction
+
+        if table is not None:
+            self = self.filter(table=table)
 
         theo_cap_bac = apply_scope(
             self, user, owner="created_by", team="team", department="department",
@@ -164,7 +168,9 @@ class DataRecordQuerySet(ScopedQuerySet):
             them |= Q(table_id__in=duoc_cap)
 
         from orders.services.assignment_service import scope_condition
-        return self.filter(scope_condition(user, Q(pk__in=theo_cap_bac.values("pk")) | them))
+        from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+        return self.filter(scope_condition(user, Q(pk__in=theo_cap_bac.values("pk")) | them,
+            only_new=table is not None and table.code == ACTIVE_WAYBILL_TABLE_CODE))
 
 
 class DataRecordManager(models.Manager.from_queryset(DataRecordQuerySet)):

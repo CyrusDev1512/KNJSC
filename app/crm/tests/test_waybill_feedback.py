@@ -192,7 +192,7 @@ def test_filters_and_statistics_use_scoped_rows(feedback, nguoi_dung, delivery_l
     assert grid_service.build_grid(nguoi_dung['admin'], QueryDict('f_phu_trach_mkt__trong=__unassigned__'), table=table).queryset.get().pk == rows[1].pk
     client.force_login(user)
     assert client.get(f'/van-don/chi-tiet/{rows[1].pk}/').status_code == 403
-    assert client.get('/van-don/thong-ke/').status_code == 200
+    assert client.get('/thong-ke/').status_code == 200
 
 
 def test_product_or_without_duplicates_and_states_and(feedback, nguoi_dung):
@@ -330,9 +330,9 @@ def test_grid_ui_and_filtered_url(feedback, nguoi_dung, delivery_leader, client)
     quick = response.context['quick_filters']
     assert ('sap', 'ma_don') in quick['keep'] and not any(k == 'trang' for k, _ in quick['keep'])
     html = response.content.decode()
-    assert 'Phân công dòng đã chọn' in html and 'Thanh toán 1 phần' in html
+    assert 'Phân công' in html and 'Thanh toán 1 phần' in html
     assert 'id="vd-entry"' not in html
-    assert 'Bộ lọc chi tiết' in html
+    assert 'Bộ lọc' in html
 
 
 def test_erp_reads_new_assignment_scope(feedback, nguoi_dung, client, settings):
@@ -352,5 +352,5 @@ def test_scoped_grid_does_not_query_per_row(feedback, nguoi_dung, delivery_leade
     client.force_login(nguoi_dung['staff_vd'])
     client.get('/bang-tinh/van_don_moi/moi-nhat/')
     with django_assert_max_num_queries(22):
-        response = client.get('/bang-tinh/van_don_moi/')
-    assert response.status_code == 200 and len(response.context['cac_dong']) == 100
+        response = client.get('/bang-tinh/van_don_moi/du-lieu/')
+    assert response.status_code == 200 and len(response.json()['rows']) == 100

@@ -737,3 +737,51 @@ kẹt; không có `beat` thì không có gì tự chạy đêm.
 đúng dạng `USD=25400,CAD=18500,PHP=440` — số nguyên VND, không dấu chấm hay
 phẩy trong số. Sai định dạng thì cả bốn dịch vụ không lên và báo tên biến, để
 không có số sai lặng lẽ vào sổ sao.
+
+
+### Bảng master Vận đơn mới — ADR-021
+
+Bảng mới cuộn liên tục; bấm ô để đọc chữ bị cắt, F2/bấm đúp sửa theo quyền.
+Ctrl+A chọn toàn bộ kết quả lọc; Ctrl+C/V, Delete nội dung, Ctrl+Z/Y giới hạn
+2.000 ô/lượt. Enter/Tab hoặc đóng khung nhập bằng X giữ nội dung trong bản
+đang làm; ô nhiều dòng dùng Ctrl+Enter để kết thúc nhập, Escape hủy phần đang gõ.
+**… → Lưu dữ liệu** hoặc **Ctrl+S** mới ghi database, tối đa 2.000 ô chưa lưu.
+Mở/đóng chức năng và đổi bộ lọc giữ nháp; Lưu ghi cả ô đã sửa ngoài bộ lọc hiện tại.
+**Tải lại/rời bảng/đóng tab mất phần chưa lưu, không có hộp hỏi xác nhận.**
+Khi báo Chưa lưu/Xung đột, phần đang làm còn trên màn hình; chưa coi là đã lưu.
+Menu … có Nhập/Xuất, Phân công và Chia sẻ link (chưa triển khai). Các hộp có X
+ở đầu hộp, luôn nhìn thấy khi cuộn. Xuất Excel/lọc/thống kê dùng dữ liệu đã lưu.
+Phân công/chi tiết dùng hộp riêng. Thống kê chuyển sang mục sidebar riêng,
+nhận cùng bộ lọc, không tự cập nhật sau mỗi lần sửa ô.
+
+Bản cập nhật cần migration `crm.0001_initial` (chỉ thêm biên nhận lưu): dùng
+quy trình cập nhật/migration chuẩn. Không hạ migration trên DB đang làm việc
+để kiểm; phép thử đảo chiều nằm trong `crm/tests/test_master_grid.py`.
+
+Kéo mép dưới **số hàng** để chỉnh chiều cao 28–400px. Hàng cao sẽ xuống dòng,
+phần chữ còn thiếu vẫn mở bằng bấm ô. Thả chuột ghi nhớ riêng theo tài khoản,
+bảng và ID vận đơn trên trình duyệt/máy hiện tại; không đồng bộ sang máy khác.
+Escape trong lúc kéo hủy lượt đó. Focus tay nắm: ↑/↓ đổi 4px, Home về 28px.
+Kéo hàng giữ phần đang nhập vào bản đang làm, không yêu cầu lưu trước. Chỉnh chiều cao không đổi dữ liệu,
+không vào Undo/Redo nội dung và không thay chiều cao trong file Excel xuất.
+
+## Bổ sung thao tác Vận đơn mới — 10.09.2026
+
+Quy định này thay phần lưu thủ công trước đó. Kết thúc sửa sẽ tự lưu nền;
+Ctrl+S/Lưu dữ liệu gửi ngay. Chờ trạng thái Đã lưu trước khi đóng trang.
+Đổi lọc/popup giữ nháp; cảnh báo rời trang chỉ xuất hiện khi còn chưa lưu.
+Nhập file, phân công và chi tiết sản phẩm vẫn có nút gửi riêng.
+
+- Chế độ Xem: chọn/đọc, F2 hoặc bấm đúp để sửa. Chế độ Chỉnh sửa: bấm/chuyển
+  tới ô được phép sửa để nhập ngay. Tab chuyển ô; Enter xuống hàng cho ô
+  một dòng. Ô nhiều dòng Enter xuống dòng, Ctrl+Enter kết thúc.
+- Bấm số hàng để chọn hàng. Dòng đầu mang số 1. Đơn mới ở cuối theo mặc định.
+- Định dạng có cỡ chữ/màu chữ/màu nền, dùng cùng autosave và Undo/Redo.
+- Nếu một dòng mất quyền giữa lượt sửa, hệ thống gỡ dòng đó và giữ nháp
+  còn quyền. Kiểm tra thông báo rồi bấm **Thử lại** để gửi phần còn hợp lệ;
+  hệ thống không tự ghi một phần của lượt vừa bị từ chối.
+- … → Lịch sử xem thay đổi qua lưới mới của dòng đang chọn. … → Xung đột
+  đối chiếu giá trị và chọn server hoặc gửi lại; có xung đột thì cả lượt chưa ghi.
+- Admin lên đơn tại CRM phải chọn Sale đứng đơn đang hoạt động.
+
+Phạm vi và kết quả kiểm chứng: [báo cáo chín hạng mục](kiem-chung-master-nine.md).

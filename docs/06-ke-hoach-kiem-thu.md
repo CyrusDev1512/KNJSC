@@ -233,3 +233,109 @@ Ghi ra để không tự lừa mình:
 | 3 | Bài trình duyệt thật (Playwright) và hiệu năng 50.000 dòng không chạy trong container `web` | Image không có Chromium và `pytest` mặc định bỏ dấu `cham`; chạy trên máy phát triển — backlog **K19** |
 | 4 | Chưa kiểm khả năng đọc màn hình cho người khiếm thị | Không có yêu cầu nào nêu, chưa hỏi người dùng |
 | 5 | Hai bài đánh dấu `xfail`: hộp lọc cột trong Playwright (K23) và ngân sách 10 truy vấn trên 50.000 dòng (K24, đếm được 12) | Người dùng cần demo gấp ngày 03.09.2026; nợ ghi ở backlog, không nới ngưỡng |
+
+## Bổ sung 10.09.2026 — AC-21, lưới master Vận đơn mới
+
+Các lệnh dưới đây chạy từ gốc repository. Chỉ dùng DB pytest, không dùng
+launcher hoặc `seed_perf` trên database đang làm việc. Hai bộ Chrome cũ
+`kiem-thu-feedback-ui.cjs`/`test_feedback_browser_server.py` chuyển sang bộ
+master; số liệu baseline cũ được giữ theo snapshot trước ADR-021.
+
+```powershell
+# Hồi quy ứng dụng
+ docker compose -f deploy/docker-compose.yml run --rm -e RUN_MIGRATIONS=0 web pytest crm/tests orders/tests forms_builder/tests core/tests
+# Terminal 1: server test cho Chrome host, DB riêng
+ docker compose -f deploy/docker-compose.yml run --rm -p 8031:8031 -e RUN_MIGRATIONS=0 -e POSTGRES_DB=knjsc_master_ui -e KN_MASTER_BROWSER=1 web pytest crm/tests/test_master_browser_server.py --liveserver=0.0.0.0:8031
+# Terminal 2: Node có Playwright và Chrome được cài sẵn
+ node scripts/kiem-thu-master-ui.cjs
+```
+
+Capacity: tạo snapshot Git trước sửa vào `.agents/design-state/review/master/before/app`
+(ví dụ `git archive HEAD app` **trước triển khai**, không lấy HEAD sau khi đã
+commit thay đổi để gọi là baseline). Gắn chỉ đọc `/before`, kết quả vào
+`/evidence`. Trên Windows, thay `C:/KNJSC/KNJSC` bằng gốc checkout thực tế:
+
+```powershell
+ docker compose -f deploy/docker-compose.yml run --rm -p 8032:8032 -p 8033:8033 -v C:/KNJSC/KNJSC/.agents/design-state/review/master/before:/before:ro -v C:/KNJSC/KNJSC/.agents/design-state/review/master:/evidence -e RUN_MIGRATIONS=0 -e POSTGRES_DB=knjsc_master_capacity -e KN_MASTER_CAPACITY=1 web pytest crm/tests/test_master_capacity.py -s
+# Song song, terminal host:
+ node scripts/kiem-thu-master-capacity.cjs
+```
+
+Fixture kiểm tên DB `test_knjsc_master_capacity*`, tạo 100k/300k dòng ×25 cột
+và một chi tiết/dòng; 20 tài khoản test có scope toàn bảng để đo tình huống
+đọc rộng. Gunicorn 3 worker ×4 thread, keep-alive5 giây, cùng settings trước/sau, DB PostgreSQL16.
+Mỗi stage 45 giây (bỏ 10 giây đầu), 10 hoặc20 người, nghỉ1–3 giây; đọc/lọc/ghi
+trọng số5/1/2, poll khi đến hạn8 giây trong lượt đọc. Không gọi nhập/xuất nền
+trong workload này; chúng được kiểm hồi quy chức năng riêng.
+
+Docker PostgreSQL hiện có `/dev/shm`64MB: kết nối WSGI **test** đặt
+`max_parallel_workers_per_gather=0` cho cả hai snapshot sau khi baseline
+ban đầu phát sinh thiếu shared memory. Không ALTER SYSTEM hoặc sửa Compose
+đang dùng. Ghi rõ điều này khi so sánh. Dừng nếu sai DB/auth, process lỗi
+hoặc lỗi HTTP vượt5%; lỗi dưới ngưỡng vẫn lưu, không coi là đạt nghiệm thu.
+Các biến resume chỉ dùng lại kết quả cùng mã/cấu hình vừa kiểm, không thay
+kết quả lịch sử thành số đo mới.
+
+Báo riêng p95/đếm mẫu/lỗi theo request, byte phản hồi, số khối/DOM và heap
+sau GC của Chrome. Browser không chạy chồng cửa sổ đo HTTP. Thời gian từ
+phát event đến hai frame là phép đo phản hồi vẽ, không phải INP người dùng
+thật. Kết quả local ngắn không thay kiểm endurance hoặc máy chủ sản xuất.
+
+
+### Kéo chiều cao hàng Vận đơn mới — bổ sung ADR-021
+
+**Cập nhật lưu thủ công 10.09.2026:** chạy `node scripts/kiem-thu-master-working-copy.cjs`
+để kiểm buffer và Undo/Redo. Với server `test_master_browser_server.py` như
+bên dưới, chạy `node scripts/kiem-thu-master-manual-ui.cjs` để kiểm Enter
+không POST, popup X, lưu ô ngoài bộ lọc, reload bỏ nháp, mất phản hồi/replay
+và menu mobile. Mỗi runner Chrome dùng một lượt fixture mới, không chạy hai
+runner cùng server/tệp tín hiệu. Bài master UI hiện có đã đổi sang Ctrl+S
+sau các thao tác cần kiểm ghi database.
+
+Kiểm toán học hình học: `node scripts/kiem-thu-master-row-geometry.cjs`.
+Bộ Chrome hiện có gọi thêm `scripts/kiem-thu-master-row-height.cjs`; dùng
+server pytest `test_master_browser_server.py` với DB `knjsc_master_rows` và
+`KN_MASTER_BROWSER=1`, cổng 8031 như hướng dẫn master ở trên.
+
+Chỉ đo trình duyệt 100k/300k, không chạy lại HTTP load:
+
+```powershell
+docker compose -f deploy/docker-compose.yml run --rm -p 8033:8033 -v C:/KNJSC/KNJSC/.agents/design-state/review/master:/evidence -e RUN_MIGRATIONS=0 -e POSTGRES_DB=knjsc_master_capacity_rows -e KN_MASTER_ROW_CAPACITY=1 web pytest crm/tests/test_master_row_capacity.py --tb=short
+# Khi fixture đã tạo dữ liệu, chạy ở terminal thứ hai với Node/Playwright hiện có:
+node scripts/kiem-thu-master-row-capacity.cjs
+```
+
+Thay đường dẫn mount bằng checkout trên máy tương ứng. Fixture chặn database
+không có tiền tố test; dữ liệu tổng hợp 25 cột và một chi tiết sản phẩm mỗi dòng.
+Không chạy trên DB thật, không dùng 20 khách mẫu. Kết quả/ảnh ở thư mục review
+local; báo p95, số mẫu, cách đo, cache/DOM/heap và hạn chế riêng cho bản này.
+
+## Kiểm chứng chín hạng mục Vận đơn mới — 10.09.2026
+
+Kế hoạch đủ Unit, Functional, E2E, UI/UX và Performance. Các fixture ghi chỉ
+chạy trên DB test. Xem [báo cáo và giới hạn](kiem-chung-master-nine.md).
+
+```powershell
+node scripts/kiem-thu-master-autosave-unit.cjs
+node scripts/kiem-thu-master-queue-unit.cjs
+node scripts/kiem-thu-master-scope-unit.cjs
+node scripts/kiem-thu-master-conflict-unit.cjs
+node scripts/kiem-thu-master-working-copy.cjs
+node scripts/kiem-thu-master-row-geometry.cjs
+docker compose -f deploy/docker-compose.yml run --rm -e RUN_MIGRATIONS=0 -e POSTGRES_DB=knjsc_nine_verify web pytest crm/tests orders/tests forms_builder/tests core/tests tests/test_luong_ba_bo_phan.py -ra
+# Server UI test cổng 8035, sau đó chạy script Chrome từ terminal khác:
+docker compose -f deploy/docker-compose.yml run --rm -p 8035:8035 -e RUN_MIGRATIONS=0 -e POSTGRES_DB=knjsc_nine_browser -e KN_MASTER_BROWSER=1 web pytest crm/tests/test_master_browser_server.py --liveserver=0.0.0.0:8035 -q
+node scripts/kiem-thu-master-nine-ui.cjs
+```
+
+Node cần Playwright có sẵn trong runtime trên máy, không tự thêm dependency.
+Capacity dùng `test_master_nine_capacity.py`, `KN_NINE_CAPACITY=1`, mount snapshot
+workspace trước sửa tại `/before/app` (chỉ đọc) và thư mục artifact `/evidence`.
+DB phải có tiền tố `knjsc_master_capacity_nine`; pytest tạo DB `test_...`.
+Chạy lần lượt `NINE_STAGE=before` rồi `after`, cùng cổng 8036/cấu hình.
+Mặc định 60s warmup +300s đo, 100k/300k ×10/20; Chrome phối hợp qua
+`scripts/kiem-thu-master-nine-capacity.cjs`. `NINE_ENDURANCE=1` thêm 30 phút
+đo với 20 người và Admin/Leader tranh chấp cùng dòng sau ma trận thường.
+Dung lượng dùng `KN_NINE_STORAGE=1`, DB `knjsc_nine_storage` và
+`test_master_nine_storage.py`; đo bảng, TOAST và index riêng cho history/receipt.
+Không lấy bài mô phỏng IME làm bằng chứng đã kiểm bộ gõ Windows thật.

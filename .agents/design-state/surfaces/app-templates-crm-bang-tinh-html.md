@@ -1,24 +1,24 @@
 ---
-version: 1
+version: 2
 slug: "app-templates-crm-bang-tinh-html"
-primary_target: "app/templates/crm/bang_tinh.html"
-related_targets: ["app/static/css/waybill.css","app/static/js/waybill.js"]
+primary_target: "app/templates/crm/master_grid.html"
+related_targets: ["app/templates/crm/statistics.html","app/static/css/master-grid.css","app/static/js/master-grid.js","app/static/css/bang-tinh.css"]
 ---
 
-# Vận đơn mới — local extension, Operate
+# Vận đơn mới — file master, Operate
 
-Scope: app/templates/crm/bang_tinh.html, only van_don_moi and its entry/detail/statistics fragments.
+ADR-021 thay hợp đồng bố cục cũ ngày 10.09.2026. Chỉ van_don_moi; lưới cũ giữ nguyên.
 
 ## Direction contract
 
-THESIS: One working page follows the user's Excel sheet: entry, operations, statistics.
+THESIS: File master giúp cuộn kiểm tình trạng giao và đọc/sửa nội dung nhanh, bằng thao tác cơ bản quen từ Excel.
 
-OWN-WORLD: Preserve the running KN CRM spreadsheet shell, toolbar, tokens, typography and interactions. Green grouped headers distinguish Excel content. Do not redesign the existing shell to match the unrelated pending global brief.
+OWN-WORLD: Giữ khung KN CRM và lưới kem của bảng cũ; header chữ/tên cột, số dòng, hàng mặc định 28px, tay nắm ở số hàng kéo 28–400px và xuống dòng (ADR-021 bổ sung). Không tiêu đề nhóm xanh, Vận hành đơn, thanh công thức hoặc thống kê nhúng.
 
-STORY: Sale creates an order; operators update its independent product/payment snapshot; filtered statistics reflect those edits.
+STORY: Chọn ô → đọc chữ dài trong vùng nổi → F2/bấm đúp sửa nếu có quyền → trạng thái lưu rõ. Phân công và chi tiết dùng hộp chuyên dụng. Thống kê là trang riêng có bộ lọc chuyển qua lại.
 
-FIRST VIEWPORT: Existing compact topbar, collapsible entry form, operations heading and familiar spreadsheet. Statistics follow the grid. Entry and statistics collapse to give the grid room.
+FIRST VIEWPORT: Topbar hiện có, toolbar gọn, toàn bộ phần còn lại cho lưới cuộn ảo. Chỉ DOM vùng nhìn; popup không đổi kích thước hàng/cột. Mobile cuộn trong lưới, không làm tràn trang.
 
-FORM: Precisely specified local extension; no concept seed or replacement visual world. Product detail is a focused dialog opened from four aggregate cells.
+FORM: Trang Thống kê dùng token neutral/indigo của KN CRM, hai donut và hai biểu đồ cột SVG. Nhãn/chú giải và bảng đối chiếu có phân trang. Tiền tệ tách riêng, thiếu chi tiết được giải thích.
 
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
+FINISH: Kiểm desktop/mobile, bàn phím, chữ dài và ảnh chụp thực tế. Evidence local tại `.agents/design-state/review/master`; kết quả và giới hạn ở `docs/test-log.md`. Không thêm raster hoặc dependency.

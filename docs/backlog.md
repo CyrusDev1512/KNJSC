@@ -624,3 +624,20 @@ Phát hiện rồi sửa vượt trần truy vấn do bộ lọc; test lịch s�
 Sau tách helper lịch sử và sửa comment lộ trên UI, chạy lại reports đạt.
 Trình duyệt 1440px/390px đạt, không có console error được ghi nhận.
 Chưa commit/push; chưa áp quy tắc báo cáo muộn hoặc mở mục thị trường.
+
+### 10.09.2026 — Chín hạng mục lưới mới, thay quyết định lưu thủ công
+
+Đã duyệt autosave, chọn hàng/màu xanh, hai chế độ, fs/c/bg, lịch sử và
+đối chiếu conflict, Admin chọn Sale, thứ tự tạo tăng dần và số hàng từ 1.
+Đã triển khai và kiểm chức năng trên database test: suite rộng 1.049 pass,
+6 fixture skip được tách kiểm; 90 test tác động và E2E cuối đạt. Hiệu năng
+lọc 300k còn chưa đạt; chạy bền dừng theo yêu cầu chủ dự án, để phiên sau
+chạy lại đủ 30 phút. Không đổi H7/lưới cũ.
+Xem [quyết định ADR-021](quyet-dinh/021-luoi-master-va-thong-ke-crm.md) và
+[báo cáo chín hạng mục](kiem-chung-master-nine.md).
+
+Phát hiện từ ma trận cuối 10.09: lọc Quốc gia trên 300.000 dòng còn p95
+1.135ms (10 người)/1.340ms (20 người), vượt mục tiêu 1 giây; đọc khối và
+lưu ô đạt mục tiêu ở bốn lượt ngắn. Giữ việc này ở phần hiệu năng chưa
+nghiệm thu; không đổi nghiệp vụ lọc hoặc chia bảng để né phép đo.
+Các lỗi kết nối lẻ vẫn được tính trong báo cáo, chưa khẳng định nguyên nhân.

@@ -483,6 +483,10 @@ class DataRecord(ScopedModel):
             # `moi-nhat/` hỏi Max(updated_at) mỗi 8 giây mỗi tab; cột Trùng đếm theo số điện thoại (K27)
             models.Index(fields=["table", "updated_at"], name="record_table_updated_idx"),
             models.Index(fields=["table", "val_phone"], name="record_table_phone_idx"),
+            # Đếm/phạm vi/cuộn master đọc chỉ mục thay vì JSON của toàn bộ bảng.
+            models.Index(fields=["table", "created_at", "id"],
+                         include=["deleted_at", "updated_at", "created_by"],
+                         name="record_master_cover_idx"),
             # Cột JSON dùng để lọc phải có chỉ mục GIN — quy tắc 12
             GinIndex(fields=["data"], name="record_data_gin"),
         ]

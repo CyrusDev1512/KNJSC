@@ -183,24 +183,6 @@ def display_columns(table, columns=None):
     return sorted(columns, key=khoa)
 
 
-def waybill_groups(columns):
-    """Tiêu đề nhóm cố định của mẫu; cột người dùng thêm nằm cuối."""
-    info = {c[1] for c in waybill_service.COLUMNS[:15]}
-    payment = {c[1] for c in waybill_service.COLUMNS[16:]}
-    groups = []
-    for c in columns:
-        label = ('PHÂN CÔNG' if c.code in waybill_service.assignment_service.COLUMNS else
-                 "THÔNG TIN ĐƠN HÀNG" if c.code in info else
-                 "THÔNG TIN THANH TOÁN" if c.code in payment else
-                 "VẬN CHUYỂN" if c.code == "trang_thai_vc" else "BỔ SUNG")
-        if groups and groups[-1]["label"] == label:
-            groups[-1]["span"] += 1
-            groups[-1]["codes"].append(c.code)
-        else:
-            groups.append({"label": label, "span": 1, "codes": [c.code]})
-    return groups
-
-
 def frozen_columns(columns, *, waybill=True):
     """Các cột cố định bên trái khi cuộn ngang, kèm vị trí `left` (px)."""
     if waybill:
@@ -291,7 +273,7 @@ def build_grid(user, params, *, table=None):
     sap = params.get("sap") or ""
     giam = params.get("chieu") == "giam"
     ds, _ = query.build(
-        DataRecord.objects.in_scope(user), table,
+        DataRecord.objects.in_scope(user, table=table), table,
         filters=bo_loc, search=tim, sort=sap, descending=giam, columns=columns,
     )
     chi_trung = False

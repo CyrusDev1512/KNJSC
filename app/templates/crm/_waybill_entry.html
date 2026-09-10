@@ -6,7 +6,8 @@
     <div class="vd-fields">
       {% for field in form %}<div class="truong"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>{{ field }}{{ field.errors }}</div>{% endfor %}
     </div>
-    <p class="vd-note">SALE/CSKH: {{ user.profile.full_name|default:user.username }}. Mã đơn và Ngày được ghi tự động khi lưu.</p>
+    {{ form.non_field_errors }}
+    <p class="vd-note">{% if form.seller %}Sale đứng đơn theo tài khoản được chọn; người thực hiện vẫn là {{ user.username }}.{% else %}SALE/CSKH: {{ user.profile.full_name|default:user.username }}.{% endif %} Mã đơn và Ngày được ghi tự động khi lưu.</p>
     {% include "crm/_waybill_items.html" %}
     <div class="vd-actions"><button class="nut nut-chinh" type="submit">Lưu đơn</button><span>Đơn lưu xong xuất hiện trong bảng Vận đơn.</span></div>
   </form>

@@ -1,5 +1,8 @@
 # ADR-020 — Phân công, bộ lọc và xuất Vận đơn mới
 
+> Bổ sung 10.09.2026: [ADR-021](021-luoi-master-va-thong-ke-crm.md) thay phần bố cục/renderer và thống kê nhúng của Vận đơn mới. Quyền, dữ liệu và nghiệp vụ không đổi.
+
+
 **Ngày:** 09.09.2026. **Trạng thái:** Đã triển khai theo kế hoạch chủ dự án duyệt.
 **Phạm vi:** `van_don_moi`, KN CRM và các đường đọc dữ liệu chung với ERP.
 Thay ngoại lệ “mọi nhân viên Vận đơn thấy mọi dòng” của ADR-018 trên bảng mới;

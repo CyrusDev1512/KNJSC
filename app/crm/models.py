@@ -1,5 +1,51 @@
-"""Khách hàng và bảng tính. Module trong monolith, chuẩn bị để tách app sau (ADR-004).
-Giai đoạn 5 trở đi.
+"""Biên nhận ghi lưới; dữ liệu nghiệp vụ vẫn thuộc forms_builder/orders."""
+from django.conf import settings
+from django.db import models
 
-Chưa có model nào. Giai đoạn tương ứng sẽ thêm.
-"""
+
+class GridMutationReceipt(models.Model):
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    table = models.ForeignKey('forms_builder.TableDef', on_delete=models.PROTECT)
+    operation = models.UUIDField()
+    fingerprint = models.CharField(max_length=64)
+    result = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['actor', 'operation'], name='crm_mutation_actor_operation')]
+
+
+class HistoryQuerySet(models.QuerySet):
+    def bulk_create(self, objs, *args, **kwargs):
+        if kwargs.get('update_conflicts'):
+            raise RuntimeError('Lịch sử chỉ được ghi thêm.')
+        return super().bulk_create(objs, *args, **kwargs)
+
+    def update(self, **kwargs):
+        raise RuntimeError('Lịch sử chỉ được ghi thêm.')
+
+    def delete(self):
+        raise RuntimeError('Lịch sử chỉ được ghi thêm.')
+
+
+class GridCellHistory(models.Model):
+    """Lịch sử nghiệp vụ có kiểm quyền dòng, không phải log kỹ thuật."""
+    record = models.ForeignKey('forms_builder.DataRecord', on_delete=models.PROTECT)
+    receipt = models.ForeignKey(GridMutationReceipt, on_delete=models.PROTECT)
+    column = models.CharField(max_length=100)
+    property = models.CharField(max_length=12, default='value')
+    before = models.JSONField(null=True)
+    after = models.JSONField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    objects = HistoryQuerySet.as_manager()
+
+    class Meta:
+        indexes = [models.Index(fields=['record', '-id'], name='crm_history_record_id')]
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise RuntimeError('Lịch sử chỉ được ghi thêm.')
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise RuntimeError('Lịch sử chỉ được ghi thêm.')

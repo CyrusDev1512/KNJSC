@@ -138,6 +138,10 @@ def apply_filters(queryset, column_map, filters):
             if phep in NUMERIC_OPERATORS and cot.field_type not in JSON_RANGE_TYPES:
                 phep = "exact"
         try:
+            if phep == 'exact' and duong_dan.startswith('data__'):
+                # GIN(data) dùng containment, không dùng biểu thức data->key = x.
+                # Giữ phép bằng bên dưới để không thay ngữ nghĩa lọc hiện có.
+                queryset = queryset.filter(data__contains={code: gia_tri})
             queryset = queryset.filter(**{f"{duong_dan}__{phep}": gia_tri})
         except (FieldError, ValueError, TypeError):
             continue
@@ -224,6 +228,10 @@ def build(queryset, table, *, filters=None, search="", sort=None, descending=Fal
     queryset = apply_sort(queryset, column_map, sort, descending)
     from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
     if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+        if not sort or not column_map.path(sort):
+            queryset = queryset.order_by('created_at', 'pk')
+        else:
+            queryset = queryset.order_by(*queryset.query.order_by, 'pk')
         from orders.services.assignment_service import related
         queryset = related(queryset)
     return queryset, column_map

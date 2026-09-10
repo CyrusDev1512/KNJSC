@@ -23,7 +23,7 @@ from orders.services import dispatch_service, order_service, waybill_service as 
 pytestmark = pytest.mark.django_db
 GRID = "/bang-tinh/van_don_moi/"
 ENTRY = "/van-don/len-don/"
-STATS = "/van-don/thong-ke/"
+STATS = "/thong-ke/"
 
 
 @pytest.fixture
@@ -87,6 +87,8 @@ def test_erp_and_crm_each_create_one_new_snapshot(client, setup, nguoi_dung):
     assert original.record.data["ngay"] == "2026-09-09"
     client.force_login(actor)
     response = client.post(ENTRY, {**form_data(setup[2]), "seller": nguoi_dung["admin"].pk})
+    assert response.status_code == 400  # Không âm thầm bỏ qua giả mạo Sale nữa.
+    response = client.post(ENTRY, form_data(setup[2]))
     assert response.status_code == 200, response.content.decode()
     assert Order.objects.count() == 2
     assert DataRecord.objects.filter(table=setup[1]).count() == 2
@@ -142,7 +144,10 @@ def test_direct_routes_permissions_both_directions(client, setup, departments, m
     sale = make_user(f"sale_{rank}", rank, departments["sale"])
     client.force_login(sale)
     assert client.get(ENTRY).status_code == 200
-    assert client.post(ENTRY, form_data(setup[2])).status_code == 200
+    data = form_data(setup[2])
+    if rank == Rank.ADMIN:
+        data['seller'] = nguoi_dung['staff_sale_1'].pk
+    assert client.post(ENTRY, data).status_code == 200
     expected = 200 if rank == Rank.ADMIN else 403
     assert client.get(detail).status_code == expected
     assert client.get(STATS).status_code == 200  # Sale vừa tạo đơn được xem/thống kê đơn của mình.
@@ -182,8 +187,11 @@ def test_paste_and_cell_cannot_override_totals(client, setup, nguoi_dung, column
     row = order(setup, nguoi_dung["staff_sale_1"]).record
     before = row.data.copy()
     client.force_login(nguoi_dung["staff_vd"])
-    assert client.post(f"{GRID}o/{row.pk}/{column}/", {"gia_tri": "999"}).status_code == 400
-    assert client.post(GRID + "luu-o/", {"o": [f"{row.pk}:ghi_chu", f"{row.pk}:{column}"], "gt": ["không lưu", "999"]}).status_code == 400
+    import uuid
+    locked={'id':row.pk,'column':column,'old':row.data.get(column),'value':'999'}
+    assert client.post(GRID+'luu-json/',{'operation':str(uuid.uuid4()),'cells':[locked]}, content_type='application/json').status_code==400
+    assert client.post(GRID+'luu-json/',{'operation':str(uuid.uuid4()),'cells':[
+        {'id':row.pk,'column':'ghi_chu','old':row.data.get('ghi_chu'),'value':'không lưu'},locked]}, content_type='application/json').status_code==400
     row.refresh_from_db()
     assert row.data == before
 
@@ -257,12 +265,12 @@ def test_grid_and_statistics_without_embedded_entry(client, setup, nguoi_dung, r
     client.force_login(user)
     response = client.get(GRID)
     html = response.content.decode()
-    for text in ("Vận hành đơn", "Thống kê", "THÔNG TIN ĐƠN HÀNG", "THÔNG TIN THANH TOÁN", "data-waybill-detail"):
+    for text in ("master-grid", "thống kê", "Bộ lọc", "master-grid.js"):
         assert text in html
     assert 'id="vd-entry"' not in html and '<summary>Lên đơn</summary>' not in html
     assert 'hx-get="' + ENTRY not in html and 'hx-post="' + ENTRY not in html
     assert "can_enter_order" not in response.context
-    assert "black_list" not in html and not response.context["duoc_them_dong"]
+    assert "black_list" not in html and 'id="vd-statistics"' not in html
     row = DataRecord.objects.filter(table=setup[1]).get()
     detail = client.get(f"/van-don/chi-tiet/{row.pk}/").content.decode()
     assert "Đã thanh toán" in detail and 'name="paid_amount"' in detail

@@ -283,7 +283,7 @@ The signature workspace is dense and desktop-like: dark toolbar and footer, warm
 
 ### Waybill Group Header
 
-The new Vận đơn surface adds green grouped column headers and pale-green field headers to mirror the source Excel structure. This is a local data-categorization treatment inside the spreadsheet; it does not alter the global KN CRM palette or button hierarchy.
+Historical treatment, superseded for `van_don_moi` on 10.09.2026 by ADR-021. The master grid uses cream cells, letter/name headers, rows defaulting to 28px with individual resizing to 400px, a compact existing shell, and floating reader/editor panels. Selection uses blue without overwriting saved cell formatting. It has no grouped green headers, formula bar or embedded statistics. Statistics is a separate sidebar page using the existing neutral/indigo tokens, SVG charts and paginated reconciliation tables. Other grids retain their existing design.
 
 ## Do's and Don'ts
 

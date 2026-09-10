@@ -97,7 +97,20 @@ def create_order(*, phone, customer_name, lines, actor, request=None,
         defaults={"name": customer_name.strip(), "facebook": facebook, "email": email},
     )
 
-    ho_so = getattr(actor, "profile", None)
+    if seller is not None:
+        from core.constants import Rank
+        from core.permissions import has_rank
+        from django.contrib.auth import get_user_model
+        from django.db.models import Q
+        if seller.pk != actor.pk and not has_rank(actor, Rank.ADMIN):
+            raise BusinessError('Chỉ Admin được chọn Sale đứng đơn.')
+        seller = get_user_model().objects.select_related('profile__department', 'profile__team').filter(
+            pk=seller.pk, is_active=True, profile__department__code='sale',
+            profile__department__is_active=True, profile__department__deleted_at__isnull=True).filter(
+                Q(profile__locked_until__isnull=True) | Q(profile__locked_until__lte=timezone.now())).first()
+        if seller is None:
+            raise BusinessError('Sale phải đang hoạt động và thuộc bộ phận Sale.')
+    ho_so = getattr(seller or actor, "profile", None)
     don = Order(
         code=_sinh_ma_don(), customer=khach, market=market, state=state, city=city,
         zipcode=zipcode, address_line=address_line, payment_method=payment_method,

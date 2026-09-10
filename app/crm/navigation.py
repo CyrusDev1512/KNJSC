@@ -56,13 +56,14 @@ def build(user, current=""):
     from .services import tree_service
 
     muc = []
+    cac_bang = []
     if in_departments(user, SALES_ONLY) and (u := _url("waybill_create")) is not None:
         muc.append(CrmNavItem("waybill_create", "Lên đơn", u, "", current == "waybill_create"))
     if (u := _url("tong_quan")) is not None:
         muc.append(CrmNavItem("tong_quan", "Trang chủ", u, "⌂", current == "tong_quan"))
     if (u := _url("thu_muc")) is not None:
         # Một truy vấn, không kéo cột như `tree_service.all_tables` — sidebar ở mọi trang
-        cac_bang = list(TableDef.objects.in_scope(user).select_related("department").only("id", "department"))
+        cac_bang = list(TableDef.objects.in_scope(user).select_related("department").only("id", "department", "code"))
         con = tuple(
             CrmNavItem(f"bp:{d.code}", d.name, tree_service.home_url(d), "▸", current == f"bp:{d.code}")
             for d in tree_service.departments_of(user, cac_bang)
@@ -70,6 +71,8 @@ def build(user, current=""):
         # `bang` là nav_current của các view forms_builder (tạo bảng, sửa cột, nhập)
         dang = current in ("thu_muc", "bang") or any(c.current for c in con)
         muc.append(CrmNavItem("thu_muc", "Bảng tính", u, "▦", current in ("thu_muc", "bang"), con, mo=dang))
+    if any(b.code == 'van_don_moi' for b in cac_bang) and (u := _url('crm_statistics')):
+        muc.append(CrmNavItem('statistics', 'Thống kê', u, '▥', current == 'statistics'))
     if has_rank(user, Rank.LEADER) and (u := _url("nhap_tep")) is not None:
         muc.append(CrmNavItem("nhap_tep", "Nhập tệp", u, "⇪", current == "nhap_tep"))
     if has_rank(user, Rank.MANAGER) and (u := _url("cap_quyen")) is not None:

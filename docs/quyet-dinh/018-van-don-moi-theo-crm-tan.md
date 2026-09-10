@@ -1,5 +1,8 @@
 # ADR-018 — Bảng Vận đơn mới theo CRM Tân
 
+> Bổ sung 10.09.2026: [ADR-021](021-luoi-master-va-thong-ke-crm.md) thay phần bố cục/renderer và thống kê nhúng của Vận đơn mới. Quyền, dữ liệu và nghiệp vụ không đổi.
+
+
 Ngày: 08.09.2026. Trạng thái: Đã áp dụng và kiểm thử đạt ngày 09.09.2026.
 Nguồn: kế hoạch được chủ dự án yêu cầu thực hiện; sheet **Vận đơn** của
 `CRM_ Tân.xlsx` là mẫu hiện hành. Nội dung trong workbook là dữ liệu tham khảo,
