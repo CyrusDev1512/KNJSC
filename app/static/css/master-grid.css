@@ -55,3 +55,91 @@
 .mg-tools-dialog{width:min(680px,calc(100vw - 24px));border:1px solid var(--rule);border-radius:6px;background:var(--surface);color:var(--ink)}
 .mg-tool-field{display:grid;gap:6px;margin:0 0 16px}.mg-history-item{padding:12px 0;border-bottom:1px solid var(--rule)}.mg-history-item pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;max-height:180px;overflow:auto}.mg-history-item p{font-size:12px;color:var(--ink-2)}
 #mg-mode[aria-pressed="true"]{border-color:#2563eb;color:#2563eb;background:#dbeafe}
+
+/* Vận đơn mới: vùng nhận diện khách giữ mát, rõ và ổn định trên lưới giấy. */
+.mg-waybill-master {
+  --mg-pinned-code: #e4edf9;
+  --mg-pinned-name: #eaf1fa;
+  --mg-pinned-phone: #f0f5fb;
+  --mg-pinned-head-code: #ccdced;
+  --mg-pinned-head-name: #d6e3f1;
+  --mg-pinned-head-phone: #dfe9f4;
+  --mg-pinned-rule: #8193ad;
+  --mg-toolbar-bg: #202735;
+  --mg-toolbar-surface: #2b3444;
+  --mg-toolbar-border: #46536a;
+  --mg-toolbar-ink: #f3f6fb;
+  --mg-toolbar-muted: #c5cfdd;
+  font-family: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
+}
+.mg-waybill-master .mg-toolbar {
+  gap: 7px; padding: 8px 10px; background: var(--mg-toolbar-bg);
+  border-bottom-color: var(--mg-toolbar-border); box-shadow: 0 3px 10px -8px #07101f;
+}
+.mg-waybill-master .mg-toolbar .nut {
+  min-height: 32px; padding: 5px 10px; border-color: var(--mg-toolbar-border);
+  border-radius: 4px; background: var(--mg-toolbar-surface); color: var(--mg-toolbar-ink);
+  font-family: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif; font-size: 12.5px;
+  font-weight: 600; line-height: 1.2;
+}
+.mg-waybill-master .mg-toolbar .nut:hover:not(:disabled) {background:#364156;border-color:#71809a}
+.mg-waybill-master .mg-toolbar .nut:active:not(:disabled) {transform:translateY(1px)}
+.mg-waybill-master .mg-toolbar .nut:disabled {color:#8994a5;background:#252d3a;border-color:#374254}
+.mg-waybill-master .mg-toolbar #mg-search {gap:0}
+.mg-waybill-master .mg-toolbar #mg-search input {
+  width:260px; min-height:32px; padding:6px 10px; border-color:var(--mg-toolbar-border);
+  border-radius:4px 0 0 4px; background:#f8fafc; color:#172033;
+  font-family:"Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
+}
+.mg-waybill-master .mg-toolbar #mg-search input::placeholder {color:#59667a;opacity:1}
+.mg-waybill-master .mg-toolbar #mg-search .nut {
+  border-left:0; border-radius:0 4px 4px 0; background:#405f8d; border-color:#405f8d;
+}
+.mg-waybill-master .mg-toolbar #mg-search .nut:hover {background:#344f77;border-color:#344f77}
+.mg-waybill-master .mg-toolbar #mg-format-button {margin-left:auto}
+.mg-waybill-master .mg-toolbar a.nut {text-decoration:none}
+.mg-waybill-master .mg-toolbar :focus-visible {outline:2px solid #9eb9df;outline-offset:2px}
+
+.mg-waybill-master .mg-cell {font-family:"Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;font-variant-numeric:tabular-nums}
+.mg-waybill-master .mg-cell.mg-pinned[data-code="ma_don"] {background:var(--mg-pinned-code)}
+.mg-waybill-master .mg-cell.mg-pinned[data-code="ten_khach"] {background:var(--mg-pinned-name);font-weight:500}
+.mg-waybill-master .mg-cell.mg-pinned[data-code="so_dien_thoai"] {background:var(--mg-pinned-phone)}
+.mg-waybill-master .mg-heading.mg-pinned[data-code="ma_don"] {background:var(--mg-pinned-head-code)}
+.mg-waybill-master .mg-heading.mg-pinned[data-code="ten_khach"] {background:var(--mg-pinned-head-name)}
+.mg-waybill-master .mg-heading.mg-pinned[data-code="so_dien_thoai"] {background:var(--mg-pinned-head-phone)}
+.mg-waybill-master :is(.mg-cell,.mg-heading)[data-code="ma_don"],
+.mg-waybill-master :is(.mg-cell,.mg-heading)[data-code="so_dien_thoai"] {
+  font-family:"IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+  font-variant-numeric:tabular-nums;
+}
+.mg-waybill-master .mg-cell[data-code="ghi_chu"] {font-family:"Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;line-height:1.45!important}
+.mg-waybill-master .mg-pinned-edge {
+  border-right-color:var(--mg-pinned-rule)!important;
+  box-shadow:8px 0 16px -13px rgba(31,55,88,.9);
+}
+.mg-waybill-master .mg-cell.mg-pinned-edge.mg-selected {
+  box-shadow:inset 0 0 0 999px rgba(59,130,246,.16),8px 0 16px -13px rgba(31,55,88,.9);
+}
+.mg-waybill-master .mg-heading.mg-pinned .mg-column-name {font-weight:700!important}
+.mg-waybill-master .mg-letter {font-family:"IBM Plex Mono", "Cascadia Mono", Consolas, monospace;font-size:10.5px;font-weight:600}
+.mg-waybill-master .mg-footer {font-family:"Be Vietnam Pro", "Segoe UI", system-ui, sans-serif}
+.mg-waybill-master .mg-viewport {scrollbar-color:#7d8da6 #edf1f6;scrollbar-width:thin}
+.mg-waybill-master .mg-viewport::-webkit-scrollbar {width:12px;height:12px}
+.mg-waybill-master .mg-viewport::-webkit-scrollbar-track {background:#edf1f6}
+.mg-waybill-master .mg-viewport::-webkit-scrollbar-thumb {background:#7d8da6;border:3px solid #edf1f6;border-radius:8px}
+
+:root[data-theme="light"] .mg-waybill-master {
+  --mg-toolbar-bg:#e9eef5; --mg-toolbar-surface:#f8fafc; --mg-toolbar-border:#bac5d4;
+  --mg-toolbar-ink:#1d293b; --mg-toolbar-muted:#526174;
+}
+:root[data-theme="light"] .mg-waybill-master .mg-toolbar {box-shadow:0 3px 10px -9px #5f6d81}
+:root[data-theme="light"] .mg-waybill-master .mg-toolbar .nut:hover:not(:disabled) {background:#dce4ee;border-color:#8493a7}
+:root[data-theme="light"] .mg-waybill-master .mg-toolbar .nut:disabled {color:#7b8797;background:#e1e6ed;border-color:#c4cdd9}
+
+@media(max-width:700px){
+  .mg-waybill-master .mg-toolbar {padding:6px;gap:4px}
+  .mg-waybill-master .mg-toolbar #mg-search {flex:1 1 100%}
+  .mg-waybill-master .mg-toolbar #mg-search input {width:auto;max-width:none;flex:1}
+  .mg-waybill-master .mg-toolbar #mg-format-button {margin-left:0}
+  .mg-waybill-master .mg-toolbar .nut {min-height:34px;padding-inline:8px}
+}

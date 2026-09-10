@@ -785,3 +785,25 @@ Nhập file, phân công và chi tiết sản phẩm vẫn có nút gửi riêng
 - Admin lên đơn tại CRM phải chọn Sale đứng đơn đang hoạt động.
 
 Phạm vi và kết quả kiểm chứng: [báo cáo chín hạng mục](kiem-chung-master-nine.md).
+
+## Nạp 10.000 vận đơn mẫu — 11.09.2026
+
+Lệnh này chỉ dùng cho môi trường phát triển có `DEBUG=1`. Lệnh chỉ tác động nhóm
+mã `MAU-20260910-*` trong `van_don_moi`; không tạo khách hàng, đơn hoặc dòng sản
+phẩm bên ERP và không sửa vận đơn ngoài tiền tố mẫu.
+
+Sao lưu database trước, rồi từ container `web` chạy xem trước:
+
+```powershell
+python manage.py nap_du_lieu_van_don_moi --tong-so 10000 --seed 20260911 --dry-run
+```
+
+Kết quả chuẩn trên database có 500 dòng mẫu cũ là 500 dòng cập nhật và 9.500 dòng
+tạo mới. Khi đã đối chiếu đúng, bỏ `--dry-run` để chạy thật. Toàn bộ lượt chạy nằm
+trong một giao dịch: thiếu bảng, sản phẩm hoặc nhân sự hợp lệ, hay lỗi giữa lượt,
+thì không ghi một phần. Chạy lại cùng tổng và seed không tạo trùng và không đổi ID
+các dòng/chi tiết/phân công đã đúng.
+
+Sau khi chạy, kiểm tra tổng 10.000 mã và số điện thoại duy nhất, ghi chú không còn
+`???`, mọi dòng có bang/thành phố/zipcode/địa chỉ, tổng số lượng/giá/đã thu khớp
+`WaybillItem`, và Sale/CSKH/Vận đơn thuộc đúng bộ phận đang hoạt động.

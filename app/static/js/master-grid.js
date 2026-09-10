@@ -45,12 +45,15 @@
     const order = preferences.order || [], byCode = new Map(state.columns.map(c => [c.code, c]));
     const arranged = [...new Set([...order, ...state.columns.map(c => c.code)])].filter(c => byCode.has(c));
     state.visible = arranged.filter(c => !(preferences.hidden || []).includes(c)).map(code => ({...byCode.get(code), width: Math.max(72, Math.min(640, preferences.widths?.[code] || byCode.get(code).width))}));
-    let x = 46, frozen = 46;
+    let x = 46, frozen = 46, lastPinned = null;
     for (const c of state.visible) {
       c.x = x; x += c.width;
-      c.pin = c.frozen && frozen + c.width <= Math.max(230, viewport.clientWidth - 120);
-      if (c.pin) { c.pinX = frozen; frozen += c.width; }
+      // Chừa tối thiểu một dải 64px cho phần cuộn; ở desktop hẹp vẫn giữ đủ
+      // ba cột nhận diện khách, còn điện thoại tự giảm số cột ghim để lưới dùng được.
+      c.pin = c.frozen && frozen + c.width <= Math.max(230, viewport.clientWidth - 64);
+      if (c.pin) { c.pinX = frozen; frozen += c.width; lastPinned = c; }
     }
+    for (const c of state.visible) c.pinEdge = c === lastPinned;
     state.width = Math.max(x, viewport.clientWidth); state.frozen = frozen;
     canvas.style.width = state.width + 'px'; canvas.style.height = Math.max(HEADER + geometry.top(state.total), viewport.clientHeight) + 'px';
   }
@@ -134,7 +137,8 @@
     position(head, 0, top, state.width, HEADER);
     const corner = element('button', 'mg-corner', '▦'); corner.dataset.all = '1'; corner.title = 'Chọn toàn bộ kết quả'; position(corner, left, 0, 46, HEADER); head.append(corner);
     for (const c of cols) {
-      const h = element('div', 'mg-heading' + (c.pin ? ' mg-pinned' : '')); h.dataset.column = c.i; h.setAttribute('role','columnheader');
+      const h = element('div', 'mg-heading' + (c.pin ? ' mg-pinned' : '') + (c.pinEdge ? ' mg-pinned-edge' : ''));
+      h.dataset.column = c.i; h.dataset.code = c.code; h.setAttribute('role','columnheader');
       position(h, c.pin ? left+c.pinX : c.x, 0, c.width, HEADER);
       const letter = element('button','mg-letter', columnLetter(c.i)); letter.dataset.selectColumn = c.i; letter.title = 'Chọn cột';
       const name = element('button','mg-column-name',c.name + (query.get('sap') === c.code ? (query.get('chieu') === 'giam' ? ' ↓' : ' ↑') : '')); name.dataset.sort = c.code;
@@ -144,7 +148,7 @@
     }
     // Giữ node header qua chọn ô/nạp khối để focus và nhấn chuột không bị
     // mất giữa pointerdown/pointerup. Chỉ đổi cây nút khi cấu trúc cột đổi.
-    const headerKey=JSON.stringify(cols.map(c=>[c.code,c.i,c.width,c.pin,c.name]).concat([[query.get('sap'),query.get('chieu')]]));
+    const headerKey=JSON.stringify(cols.map(c=>[c.code,c.i,c.width,c.pin,c.pinEdge,c.name]).concat([[query.get('sap'),query.get('chieu')]]));
     const previousHead=canvas.querySelector(':scope > .mg-head');
     if(previousHead){
       previousHead.style.cssText=head.style.cssText;
@@ -167,7 +171,7 @@
       }
       for (const c of cols) {
         const value = row ? cellValue(row,c.code) : null;
-        const cell = element('div','mg-cell '+(value?.class || '')+(rowHeight>ROW?' mg-wrap':'')+(c.pin?' mg-pinned':'')+(selected(r,c.i)?' mg-selected':'')+(state.current?.r===r&&state.current?.c===c.i?' mg-current':''),row ? (value?.display ?? value?.value ?? '') : '…');
+        const cell = element('div','mg-cell '+(value?.class || '')+(rowHeight>ROW?' mg-wrap':'')+(c.pin?' mg-pinned':'')+(c.pinEdge?' mg-pinned-edge':'')+(selected(r,c.i)?' mg-selected':'')+(state.current?.r===r&&state.current?.c===c.i?' mg-current':''),row ? (value?.display ?? value?.value ?? '') : '…');
         cell.dataset.r=r;cell.dataset.c=c.i;cell.dataset.code=c.code;
         if(row) {cell.dataset.id=row.id;cell.id=`mg-${row.id}-${c.code}`;}
         cell.setAttribute('role','gridcell');cell.setAttribute('aria-colindex',c.i+2);cell.setAttribute('aria-selected',!!selected(r,c.i));

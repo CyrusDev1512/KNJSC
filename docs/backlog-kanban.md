@@ -55,6 +55,11 @@ Xếp theo thứ tự nên làm. Mỗi dòng một PR nhỏ, có ảnh trước/
 
 ## Finished
 
+- **11.09.2026 — `vandonmoi`:** hoàn thiện đúng 10.000 dòng mẫu
+  `MAU-20260910-*` trong Vận đơn mới bằng management command tái lập theo seed;
+  giữ 500 danh tính cũ, thêm 9.500 dòng, chi tiết sản phẩm và phân công. Sửa ghi
+  chú lỗi `?`, làm rõ ba cột ghim và toolbar theo phạm vi riêng của bảng mới.
+
 - **09.09.2026 — `codex/sua-feedback`:** phân công Vận đơn mới và phạm vi theo
   tài khoản; bộ lọc nhanh/sản phẩm/thị trường/Marketing; xuất ngày/bộ lọc có
   mã nhân viên và kiểm quyền file nền. [ADR-020](quyet-dinh/020-phan-cong-loc-xuat-van-don-moi.md),
@@ -80,6 +85,7 @@ Mọi thứ đã vào `main` (ở `3ab19a5`) hoặc đã xong trên nhánh. Số
 | 7K (đo) | `seed_perf` 100.000 dòng + bảng Sale có cột tính sẵn; `do_hieu_nang` 25 đường kèm EXPLAIN; Locust 100 người bốn vai tự chấm; `scripts/kiem-tai-kn-crm.*` | #21 (nháp) | ADR-016 |
 | 7K (sửa) | Ô lưới dựng bằng Python 638 → 154 ms; cột Trùng theo trang; `moi-nhat` không đếm dòng; `bulk_save` bằng VALUES; tính lại cột chạy nền 153 s → 19,6 s; 100 người p95 11 s → 0,85 s | #21 (nháp) | ADR-016 — **chưa gộp**, xem In progress |
 | 7L | Vận đơn mới theo CRM Tân: hai bảng độc lập, ERP/CRM cùng luồng, chi tiết tiền từng sản phẩm, thống kê; 25 bài mới, toàn bộ hồi quy, migration hai chiều và giao diện desktop/mobile đều đạt | — | ADR-018 |
+| 7L.1 | 10.000 vận đơn mẫu Canada/CAD có chi tiết, thanh toán, phân công; vùng ba cột nhận diện ghim rõ trên lưới | — | Nhánh `vandonmoi` · 11.09.2026 |
 | — | Rà lại toàn bộ KN CRM trên `main` và trên PR #21, ghi thành `test-log.md` | nhánh này | |
 
 ## Far Plan

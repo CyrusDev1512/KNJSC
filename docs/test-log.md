@@ -176,3 +176,38 @@ Chưa commit/push trong tác vụ này. Nhật ký lịch sử bên trên giữ 
 - KNJSC Problem 02 ý 8 chỉ đánh dấu phần thao tác CRM được kiểm chứng;
   không đánh dấu H7 hoặc toàn bộ hiệu năng. Báo cáo và bằng chứng:
   [chín hạng mục](kiem-chung-master-nine.md).
+
+---
+
+## 11.09.2026 — 10.000 vận đơn mẫu và vùng cột ghim
+
+Phạm vi nhánh `vandonmoi`: management command chỉ tác động nhóm
+`MAU-20260910-*`, giao diện riêng của master grid Vận đơn mới và tài liệu vận hành.
+
+- Trước khi ghi database local đã tạo `storage/backups/knjsc-20260911-015637.dump`.
+  Dry-run dự báo đúng 500 dòng cập nhật/9.500 dòng tạo mới; chạy thật mất khoảng
+  10,6 giây. Chạy lại cùng seed không ghi thêm hoặc tăng phiên bản phân công.
+- Đối chiếu local: 10.000 dòng, 10.000 mã đơn và 10.000 số điện thoại duy nhất;
+  19.970 chi tiết sản phẩm; 10.000 phân công. Không có dòng thiếu địa chỉ, ghi chú
+  `???`, sai tổng chi tiết, sai bộ phận Vận đơn/CSKH hoặc có Marketing tự gán.
+  Trạng thái thanh toán gồm 3.334 chưa thanh toán, 4.584 một phần và 2.082 đã
+  thanh toán; đơn chưa trả không có ngày/bill/PTTT thực tế.
+- Test command có dry-run, giữ ID/danh tính, không tạo Customer/Order/OrderLine,
+  tổng Decimal, phân công hợp lệ, chạy lại giữ ID/phiên bản/audit, thiếu nhân sự
+  không ghi và lỗi giữa lượt rollback toàn bộ.
+- Trình duyệt thật tại cổng 8021 xác nhận 10.000 dòng tải được, ba cột Mã đơn/Tên
+  khách/Số điện thoại cùng ghim khi cuộn ngang và cột cuối có ranh giới. Script
+  lớp chồng cột cố định đạt. Không dùng thao tác sửa dữ liệu để kiểm giao diện.
+- Suite toàn workspace trong thư mục đang làm việc không dùng làm bằng chứng đạt:
+  có thay đổi chưa commit khác về Executive statistics xuất hiện trong lúc chạy,
+  gây 17 lỗi ngoài phạm vi (template/CSS/nhãn/truy vết). Các file này được giữ
+  nguyên và không đưa vào commit `vandonmoi`.
+- Trên worktree sạch của commit, nhóm command + master grid đạt **22 bài**. Suite
+  đầy đủ dùng container và test database riêng đạt **2.019 bài**, 24 skip, 2 xfail;
+  còn bốn lỗi truy vết có sẵn do AC-21.8/9/11 chưa được nối tới test và `docs/06`
+  còn số đếm cũ. Đã bổ sung mã vào chính các bài hiện có và đồng bộ thành 159 tiêu
+  chí, 146 tự động, 145 đã có bài; chạy lại nhóm truy vết rồi suite sạch trước push.
+- Sau đồng bộ truy vết: **13 bài truy vết đạt**; suite đầy đủ cuối trên worktree,
+  container và test database riêng đạt **2.023 passed, 24 skipped, 2 xfailed**
+  trong 288,39 giây. Các bài trình duyệt bị skip không được tính là đã kiểm bằng
+  suite; phần ghim/cột chồng đã được kiểm riêng bằng trình duyệt thật và script Node.

@@ -13,6 +13,7 @@ def post(client, cells, operation=None):
 
 
 def test_chronological_default(client, feedback, nguoi_dung):
+    """AC-21.8 — Mặc định đơn cũ trước, mới cuối với khóa phụ ID ổn định."""
     client.force_login(nguoi_dung['admin'])
     assert [r['id'] for r in client.get(BASE+'du-lieu/').json()['rows']] == sorted(r.pk for r in feedback[2])
 
@@ -101,6 +102,7 @@ def test_one_error_in_two_thousand_cells_rolls_back_everything(client, feedback,
 
 
 def test_style_cas_merges_properties_and_preserves_value(client, feedback, nguoi_dung):
+    """AC-21.9 — CAS thuộc tính style giữ giá trị và các thuộc tính khác."""
     client.force_login(nguoi_dung['admin'])
     row = feedback[2][0]
     def cell(prop, old, value):
@@ -131,6 +133,7 @@ def test_conflict_rolls_back_whole_batch_and_no_history(client, feedback, nguoi_
 
 
 def test_admin_selects_seller_without_changing_profile(feedback, nguoi_dung):
+    """AC-21.11 — Admin tạo đơn cho Sale mà không đổi hồ sơ người tạo."""
     from orders.services.order_service import create_order, orders_of
     from forms_builder.models import DataRecord
     admin, seller = nguoi_dung['admin'], nguoi_dung['staff_sale_1']

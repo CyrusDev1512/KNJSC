@@ -24,6 +24,16 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 
 ## 0. Còn nợ những gì — xem ở đây trước
 
+**11.09.2026 — đã hoàn thiện dữ liệu thử Vận đơn mới trên `vandonmoi`:** nhóm
+`MAU-20260910-*` có đúng 10.000 vận đơn Canada/CAD, trong đó giữ nguyên danh tính
+500 dòng cũ và tạo 9.500 dòng còn thiếu. Mỗi dòng có địa chỉ, 1–3 chi tiết sản
+phẩm, tiền thanh toán từng sản phẩm và phân công Sale/CSKH/Vận đơn hợp lệ. Lệnh
+`nap_du_lieu_van_don_moi` chạy lại an toàn, có dry-run và không tạo Customer/Order
+ERP. Ghi chú lỗi dấu hỏi được thay bằng dữ liệu UTF-8; kiểm tra xác định đây là
+dữ liệu hỏng riêng của nhóm mẫu, không phải lỗi font toàn hệ thống. Giao diện
+`van_don_moi` có vùng ba cột nhận diện ghim màu slate và thanh công cụ dễ đọc hơn;
+không đổi giao diện bảng CRM khác.
+
 **09.09.2026 — feedback KN CRM trên `codex/sua-feedback`:** đã triển khai
 phân công Vận đơn/CSKH/Marketing theo tài khoản, phạm vi theo người được giao,
 bộ lọc nhanh/chi tiết và xuất Excel theo ngày/bộ lọc có mã nhân viên.

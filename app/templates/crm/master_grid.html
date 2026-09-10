@@ -4,7 +4,7 @@
 {% block dau_trang %}<link rel="stylesheet" href="{% static 'css/master-grid.css' %}?v={{ phien_ban_tinh }}"><link rel="stylesheet" href="{% static 'css/waybill.css' %}?v={{ phien_ban_tinh }}">{% endblock %}
 {% block thanh_tren_phai %}{% endblock %}
 {% block noi_dung %}
-<section id="master-grid" class="mg-root" aria-label="Bảng dữ liệu Vận đơn">
+<section id="master-grid" class="mg-root mg-waybill-master" aria-label="Bảng dữ liệu Vận đơn">
   <div class="mg-toolbar">
     <form id="mg-search" method="get"><input type="search" name="tim" value="{{ luoi.search }}" aria-label="Tìm kiếm vận đơn" placeholder="Tìm khách, số điện thoại…"><button class="nut">Tìm</button></form>
     <button class="nut" id="mg-filters-button" aria-expanded="false">Bộ lọc</button>

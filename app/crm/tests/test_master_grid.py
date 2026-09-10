@@ -92,6 +92,17 @@ def test_grid_shell_has_no_embedded_statistics_or_old_controllers(client, feedba
     assert 'js/bang-tinh.js' not in html and 'vd-statistics' not in html
 
 
+def test_waybill_master_has_scoped_design_and_three_frozen_identity_columns(
+        client, feedback, nguoi_dung):
+    client.force_login(nguoi_dung['admin'])
+    html = client.get(BASE).content.decode()
+    assert 'class="mg-root mg-waybill-master"' in html
+    metadata = client.get(BASE + 'du-lieu/').json()['columns']
+    assert [column['code'] for column in metadata if column['frozen']] == [
+        'ma_don', 'ten_khach', 'so_dien_thoai',
+    ]
+
+
 def test_block_limit_and_invalidated_query(client, feedback, nguoi_dung):
     """AC-21.2 — Khối tối đa 100 dòng và phiên bản truy vấn."""
     table, _, rows = feedback

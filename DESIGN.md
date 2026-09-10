@@ -285,6 +285,14 @@ The signature workspace is dense and desktop-like: dark toolbar and footer, warm
 
 Historical treatment, superseded for `van_don_moi` on 10.09.2026 by ADR-021. The master grid uses cream cells, letter/name headers, rows defaulting to 28px with individual resizing to 400px, a compact existing shell, and floating reader/editor panels. Selection uses blue without overwriting saved cell formatting. It has no grouped green headers, formula bar or embedded statistics. Statistics is a separate sidebar page using the existing neutral/indigo tokens, SVG charts and paginated reconciliation tables. Other grids retain their existing design.
 
+For `van_don_moi`, the three identity columns use a restrained cool-slate sequence
+across headers and cells. Order code and phone use the existing mono stack; customer
+name and notes use the Vietnamese UI stack. The final pinned column has a single
+right rule and light shadow so horizontal scrolling reads as one fixed identity
+region. The compact toolbar uses a neutral slate surface and clearer primary/search
+hierarchy. This treatment is scoped to the waybill master and does not recolor other
+CRM grids.
+
 ## Do's and Don'ts
 
 ### Do:
