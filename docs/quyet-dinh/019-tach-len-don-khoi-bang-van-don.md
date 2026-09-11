@@ -1,5 +1,7 @@
 # ADR-019 — Gỡ Lên đơn nhúng khỏi bảng Vận đơn
 
+> 11.09.2026: [ADR-023](023-dieu-huong-erp-va-len-don-crm.md) thay phần giữ trang Lên đơn ERP; chỉ CRM còn form nhập. Các quyết định khác giữ nguyên.
+
 > Bổ sung 10.09.2026: [ADR-021](021-luoi-master-va-thong-ke-crm.md) thay phần bố cục/renderer và thống kê nhúng của Vận đơn mới. Quyền, dữ liệu và nghiệp vụ không đổi.
 
 

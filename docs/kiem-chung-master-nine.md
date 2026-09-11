@@ -1,5 +1,10 @@
 # Kiểm chứng chín hạng mục Vận đơn mới — 10.09.2026
 
+**Bổ sung 11.09:** đã chạy lại đủ 30 phút trên snapshot `7449e73`, còn lỗi
+kết nối đọc và mục tiêu lọc chưa đạt. Bản inline mới đo ngắn riêng; xem
+[kết quả 11.09](kiem-chung-master-admin-20260911.md). Phần dưới giữ số đo
+và trạng thái lịch sử của ngày 10.09.
+
 Trạng thái: đã triển khai và kiểm chức năng chín hạng mục; chưa đạt toàn
 bộ mục tiêu hiệu năng (lọc 300k). Chạy kéo dài dừng theo yêu cầu chủ dự án;
 để phiên sau chạy lại đủ 30 phút, không đánh dấu đã đạt.

@@ -1,10 +1,27 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+**11.09.2026 — Ba lựa chọn Lên đơn bắt buộc chọn rõ:** Quốc gia/Loại tiền/PTTT mặc định rỗng, chọn hợp lệ mới lưu; đơn kế tiếp trở lại rỗng. 105 test đạt, Chrome 1440/390 đạt, trần 10 truy vấn giữ đạt; không migration/dependency, chưa commit/push. [Bằng chứng bổ sung](kiem-chung-len-don-gio-admin-20260911.md).
+
+
 **11.09.2026 — Rung cột ghim:** hồi quy trước sửa bắt trượt ngang và thay node
 tiêu đề; sau sticky đạt 0 px ở các mẫu 100k/300k, 1440/1280/390 và CSS zoom
 125%. UI/copy/paste/autosave/kéo hàng-cột đạt; render p95 17,5–21,1 ms,
 tăng so với baseline. Chưa kiểm zoom trình duyệt thật/trackpad người dùng.
 [Kịch bản, video local, số đo và giới hạn](kiem-chung-ghim-cot-20260911.md).
+
+**11.09.2026 — Bổ sung giờ lưu và Admin tự đứng đơn (thay quyết định chọn Sale):** Ngày giờ cập nhật HH:mm trên form, thông báo lấy timestamp thực tế đã lưu; bỏ dropdown, Admin/Sale tự đứng bằng mã đăng nhập. Admin thử nghiệm chưa thuộc Sale dùng Sale/team trống, giữ hồ sơ. 117 test đạt; Chrome 1440/390 đạt; kiểm tải đọc 10/20 Admin: 4.782 request đo/0 lỗi, p95 cao nhất 76,38 ms trên fixture nhỏ. Không migration mới, chưa commit/push. [Kiểm chứng và giới hạn](kiem-chung-len-don-gio-admin-20260911.md).
+
+
+**11.09.2026 — Ngày/đơn vị/mã nhân viên khi lên đơn:** đã kiểm chứng local: Ngày Việt Nam chỉ đọc; chọn hộp/cái/chiếc/túi từng sản phẩm, snapshot trên đơn/vận đơn; mã đăng nhập cho định danh nghiệp vụ và lịch sử. Migration 0006 đã kiểm xuôi/ngược DB test và áp dụng xuôi local. Hồi quy 984 đạt/2 lỗi giao diện thống kê có sẵn; lượt focused cuối 72 đạt; Chrome 1440/390 đạt; Locust đọc 10/20 đạt 4.618 request/0 lỗi. Chống lặp hoãn, không kết luận năng lực toàn CRM. [Bằng chứng và giới hạn](kiem-chung-len-don-20260911.md). Chưa commit/push.
+
+
+**11.09.2026 — Điều hướng ERP/thư viện/Lên đơn CRM:** đã triển khai local theo ADR-023. Giữ Bảng dữ liệu ERP; sửa Biểu mẫu thiếu người tạo, gộp hai tab đúng quyền; chuyển nhập đơn và xem đơn gốc sang CRM. Kiểm thử, số đo và giới hạn tại [báo cáo bàn giao](kiem-chung-erp-hub-20260911.md). Chưa commit/push.
+
+## 11.09.2026 — Nhãn lọc Marketing trên Tổng quan ERP
+
+- Chủ dự án duyệt đổi “Xem thống kê” thành “Áp dụng bộ lọc”, đúng hành vi gửi bộ lọc GET trên trang hiện tại. Giữ liên kết xem báo cáo chi tiết riêng.
+- Phạm vi: chỉ nhãn nút trong `app/templates/dashboard/_marketing.html`; không đổi truy vấn, quyền hoặc điều hướng.
+- Kiểm chứng: kiểm nội dung template và `git diff --check`; chưa chạy E2E trình duyệt, không kết luận đã kiểm chứng dữ liệu lọc trong phiên người dùng.
 
 Mỗi lỗi một dòng, mã `TL-xx`, không xoá dòng khi sửa xong mà đổi cột Trạng
 thái. `backlog-kanban.md` tham chiếu mã ở đây để xếp việc; `backlog.md` (K28,
@@ -243,3 +260,29 @@ Phạm vi nhánh `vandonmoi`: management command chỉ tác động nhóm
   20.000 + Vận đơn 300.000 **498,61/733,64ms**. Vận đơn giữ 12 query ở cả hai
   cỡ; đỉnh cấp phát Python cùng **0,25MiB**, không tăng theo số dòng. AC-22.9 đạt
   trên máy phát triển; đây không thay thế kiểm tải đồng thời trên máy chủ thật.
+
+## 11.09.2026 — Admin, nhập trong ô Vận đơn mới và chạy bền
+
+- Đã tái hiện options=null gây lỗi JavaScript và draft không có input chặn
+  các ô sau; rê 7px trong cùng ô không mở sửa. Hồi quy đỏ trước, xanh sau.
+- Backend nhóm master: 19 đạt. Suite crm/orders/forms_builder/core:
+  1.041 đạt, 2 lỗi, 7 skip, 103,31s. Hai lỗi kiểm CSS/nhãn statistics.html
+  tái hiện trên snapshot 7449e73 (2 lỗi/566 deselected), chưa xử lý ngoài scope.
+- Sáu script JS đạt; Chrome Admin sửa/lưu trạng thái/ngày, Tab/dán TSV,
+  Xem F2/double-click120ms, lỗi options không khóa ô khác, hình học inline
+  1440/1280/390/CSS zoom125 đạt. E2E nhiều vai trò, autosave, CAS, replay,
+  thu quyền, Undo/Redo và hàng/cột/cache đạt.
+- Đo inline 100 mẫu khi giữ phản hồi lưu: sự kiện mở/nhập đến hai frame
+  p95 30,9/29,5ms trên một dòng lọc của fixture 1.300 dòng. Không phải IME thật.
+- Chạy bền snapshot trước sửa đủ 30 phút/300k/20 người: 22.460 request,
+  16 lỗi ngắt kết nối đọc; đọc/lưu/lọc p95 645/118/1.354ms. Chrome đủ 31 mẫu,
+  heap sau GC 2,59–3,37MiB; không phát hiện integrity error trong harness.
+  Kết quả và giới hạn tại [báo cáo 11.09](kiem-chung-master-admin-20260911.md).
+- Kiểm truy vết tài liệu riêng: 10 đạt/3 lỗi; snapshot 7449e73 cũng 10 đạt/3
+  lỗi. Parser không nhận một số AC-22 và số lượng trong docs/06 chưa khớp;
+  ghi nợ tài liệu/bài kiểm, không tính là lỗi ghi dữ liệu của lưới.
+- Bản inline, lượt ngắn 300k/20 người: 683 request/2 lỗi đọc; đọc/lưu/lọc
+  p95 1.278/185/1.854ms, phần đọc/lọc chưa đạt. Chrome 100 mẫu/thao tác:
+  chọn/nhập/đọc/kéo cột/kéo hàng p95 32,6/31/30,5/49,5/49,3ms; cache10,
+  DOM4.794, heap ba vòng 7,498–7,505 triệu byte. Hồi quy resolver cuối 1 đạt,
+  thêm 0 SQL cho options bộ cột chuẩn. Không coi lượt ngắn là chạy bền inline.

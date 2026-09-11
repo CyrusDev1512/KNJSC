@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block tieu_de %}Biểu mẫu & tài liệu · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Biểu mẫu & tài liệu{% endblock %}
+{% block noi_dung %}
+<h1>Biểu mẫu & tài liệu</h1>
+<nav class="hang" aria-label="Biểu mẫu và tài liệu">
+  {% if can_manage_forms %}<a {% if active_tab == 'forms' %}class="nut nut-chinh"{% else %}class="nut"{% endif %} href="{% url 'bieu_mau' %}?tab=forms" {% if active_tab == 'forms' %}aria-current="page"{% endif %}>Biểu mẫu</a>{% endif %}
+  <a {% if active_tab == 'documents' %}class="nut nut-chinh"{% else %}class="nut"{% endif %} href="{% url 'bieu_mau' %}?tab=documents" {% if active_tab == 'documents' %}aria-current="page"{% endif %}>Tài liệu</a>
+</nav>
+{% if active_tab == 'forms' %}{% include "forms_builder/_library_forms.html" %}{% else %}{% include "documents/_library_documents.html" %}{% endif %}
+{% endblock %}

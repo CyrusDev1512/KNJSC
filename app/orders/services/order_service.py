@@ -15,12 +15,14 @@ from django.db import transaction
 from django.utils import timezone
 
 from core.audit import record
-from core.constants import AuditAction, Currency
+from core.constants import AuditAction, Currency, Rank
+from core.permissions import has_rank
 from core.exceptions import BusinessError
 from core.money import parse_money
 
 from ..constants import Market, PaymentMethod
 from ..models import Customer, Order, OrderLine, Product
+from ..units import resolve_unit
 from . import dispatch_service
 
 
@@ -98,8 +100,6 @@ def create_order(*, phone, customer_name, lines, actor, request=None,
     )
 
     if seller is not None:
-        from core.constants import Rank
-        from core.permissions import has_rank
         from django.contrib.auth import get_user_model
         from django.db.models import Q
         if seller.pk != actor.pk and not has_rank(actor, Rank.ADMIN):
@@ -111,13 +111,22 @@ def create_order(*, phone, customer_name, lines, actor, request=None,
         if seller is None:
             raise BusinessError('Sale phải đang hoạt động và thuộc bộ phận Sale.')
     ho_so = getattr(seller or actor, "profile", None)
+    department = getattr(ho_so, "department", None)
+    team = getattr(ho_so, "team", None)
+    if seller is None and has_rank(actor, Rank.ADMIN) and (
+            department is None or department.code != "sale"):
+        # Admin tự đứng đơn thử: dùng Sale làm phạm vi nội bộ, không gán team giả.
+        from org.models import Department
+        department = Department.objects.filter(code="sale", is_active=True).first()
+        team = None
+        if department is None:
+            raise BusinessError("Chưa có bộ phận Sale đang hoạt động để lưu đơn.")
     don = Order(
         code=_sinh_ma_don(), customer=khach, market=market, state=state, city=city,
         zipcode=zipcode, address_line=address_line, payment_method=payment_method,
         currency=currency, seller=seller or actor, sub_unit=sub_unit, note=note,
         created_by=actor,
-        department=getattr(ho_so, "department", None),
-        team=getattr(ho_so, "team", None),
+        department=department, team=team,
     )
     if don.department_id is None:
         raise BusinessError("Tài khoản chưa gán bộ phận nên chưa lên đơn được.")
@@ -132,7 +141,7 @@ def create_order(*, phone, customer_name, lines, actor, request=None,
             if sp is None:
                 raise BusinessError(f"Dòng {i}: không tìm thấy sản phẩm {d['product']}.")
         dong = OrderLine(
-            order=don, product=sp,
+            order=don, product=sp, unit=resolve_unit(sp, d.get("unit") or sp.unit),
             quantity=int(d.get("quantity") or 1),
             unit_price=_tien(d.get("unit_price") or 0, f"đơn giá dòng {i}"),
         )

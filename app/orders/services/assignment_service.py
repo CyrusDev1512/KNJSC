@@ -52,8 +52,7 @@ def scope_condition(user, original, *, only_new=False):
 def label(user):
     if user is None:
         return ''
-    name = getattr(getattr(user, 'profile', None), 'full_name', '')
-    return f'{user.username} — {name}' if name else user.username
+    return user.get_username()
 
 
 def candidates(field):

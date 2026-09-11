@@ -53,6 +53,7 @@
         <span>Kim Ngân JSC</span><span>/</span><b>{% block ten_trang %}{% endblock %}</b>
       </div>
       <div class="topbar-phai">
+        {% if crm_app_url %}<a class="nut nut-nho" href="{{ crm_app_url }}" target="_blank" rel="noopener" aria-label="Mở KN CRM trong tab mới"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg> KN CRM</a>{% endif %}
         <button class="nut nut-nho" type="button" id="nut-nen" title="Đổi nền sáng tối">Nền</button>
         <div class="nguoi-dung">
           <div class="avatar">{{ profile.full_name|default:user.get_username|first|upper }}</div>

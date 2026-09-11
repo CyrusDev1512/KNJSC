@@ -154,6 +154,7 @@
       "Vietnamese labels in Be Vietnam Pro; numerical and technical metadata use tabular or monospaced text."
     ],
     "rules": [
+      { "name": "Vận đơn mới — inline editing, 11.09.2026", "body": "ADR-021 overrides legacy grid controls for van_don_moi: default 28px rows with per-user resizing, blue selection, no free formulas. The value editor stays inside its cell and never covers the next row; long-content reader and protected detail/assignment dialogs remain separate. Tab/Enter and range paste retain autosave and CAS.", "section": "interaction" },
       { "name": "The Two-Layer Workspace Rule", "body": "The application shell may follow light or dark theme tokens, but spreadsheet cells remain a warm light surface so editing and scanning are stable across themes.", "section": "colors" },
       { "name": "The Brass Restraint Rule", "body": "Brass marks KN identity and spreadsheet emphasis; ordinary product actions remain indigo.", "section": "colors" },
       { "name": "The Utility Type Rule", "body": "Monospace is reserved for identifiers, figures, and compact structural labels; ordinary Vietnamese prose stays in the sans-serif body face.", "section": "typography" },

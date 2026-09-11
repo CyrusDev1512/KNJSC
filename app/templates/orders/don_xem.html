@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "crm/base_crm.html" %}
 {% block tieu_de %}Đơn {{ don.code }} · Kim Ngân JSC{% endblock %}
 {% block ten_trang %}Đơn {{ don.code }}{% endblock %}
 
@@ -8,12 +8,12 @@
   <div>
     <div class="nhan-nho">BR-3 · chỉ đọc</div>
     <h1>{{ don.code }}</h1>
-    <p>Lên lúc {{ don.created_at|date:"H:i d.m.Y" }} giờ Việt Nam, bởi {{ don.created_by.profile.full_name|default:don.created_by.username }}.</p>
+    <p>Lên lúc {{ don.created_at|date:"H:i d.m.Y" }} giờ Việt Nam, bởi {{ don.created_by.username|default:"—" }}.</p>
   </div>
   <div class="hanh-dong">
-    <a class="nut" href="{% url 'don_hang' %}">Quay lại</a>
-    {% if don.record %}
-      <a class="nut" href="{% url 'bang_xem' don.record.table.code %}">Xem trên bảng vận đơn</a>
+    <a class="nut" href="{% url 'thu_muc' %}">Quay lại</a>
+    {% if van_don_url %}
+      <a class="nut" href="{{ van_don_url }}">Xem trên bảng vận đơn</a>
     {% endif %}
     {% if duoc_bo %}
       <form method="post" action="{% url 'don_bo' don.code %}">
@@ -29,8 +29,7 @@
   <div>
     <b>Đơn đã lưu không sửa được</b>
     <p>
-      Quy tắc BR-3. Trạng thái vận chuyển và thanh toán do bộ phận Vận đơn cập
-      nhật thẳng trên bảng vận đơn, không sửa ở đây.
+      Đây là thông tin đơn gốc. Các cập nhật vận hành trên bảng vận đơn không sửa nội dung đơn gốc.
     </p>
   </div>
 </div>
@@ -42,13 +41,14 @@
     <div class="bang-cuon">
       <table class="bang">
         <thead>
-          <tr><th>Sản phẩm</th><th class="phai">Số lượng</th>
+          <tr><th>Sản phẩm</th><th>Đơn vị</th><th class="phai">Số lượng</th>
               <th class="phai">Đơn giá</th><th class="phai">Thành tiền</th></tr>
         </thead>
         <tbody>
           {% for dong in cac_dong %}
             <tr>
               <td>{{ dong.product.name }}<small class="ma-o">{{ dong.product.code }}</small></td>
+              <td>{{ dong.unit|default:"—" }}</td>
               <td class="tien">{{ dong.quantity }}</td>
               <td class="tien">{{ dong.unit_price }}</td>
               <td class="tien">{{ dong.line_total }}</td>
@@ -57,7 +57,7 @@
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="3" class="phai"><b>Tổng</b></td>
+            <td colspan="4" class="phai"><b>Tổng</b></td>
             <td class="tien"><b>{{ don.total }} {{ don.currency }}</b></td>
           </tr>
         </tfoot>
@@ -103,6 +103,7 @@
             <tr><td>Mã bưu chính</td><td class="phai ma-o">{{ don.zipcode|default:"—" }}</td></tr>
             <tr><td>Số nhà, đường</td><td class="phai">{{ don.address_line|default:"—" }}</td></tr>
             <tr><td>Phương thức thanh toán</td><td class="phai">{{ don.get_payment_method_display }}</td></tr>
+            <tr><td>Sale đứng đơn</td><td class="phai">{{ don.seller.username|default:"—" }}</td></tr>
             <tr><td>Đơn vị phụ</td><td class="phai">{{ don.sub_unit|default:"—" }}</td></tr>
             <tr><td>Ghi chú</td><td class="phai">{{ don.note|default:"—" }}</td></tr>
           </tbody>

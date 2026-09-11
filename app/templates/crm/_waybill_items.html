@@ -1,11 +1,15 @@
 <div class="vd-items-scroll">
 <table class="bang vd-items">
-  <thead><tr><th scope="col">Sản phẩm</th><th scope="col">Số lượng</th><th scope="col">Đơn giá</th>{% if with_payment %}<th scope="col">Đã thanh toán</th>{% endif %}<th scope="col">Thao tác</th></tr></thead>
+  <thead><tr><th scope="col">Sản phẩm</th><th scope="col">Đơn vị</th><th scope="col">Số lượng</th><th scope="col">Đơn giá</th>{% if with_payment %}<th scope="col">Đã thanh toán</th>{% endif %}<th scope="col">Thao tác</th></tr></thead>
   <tbody>
     {% for item in items %}<tr>
       <td><select class="o-nhap" name="product" aria-label="Sản phẩm" required>
         <option value="">Chọn sản phẩm</option>
-        {% for p in products %}<option value="{{ p.code }}" {% if p.code == item.product %}selected{% endif %}>{{ p.name }}{% if not p.is_active %} (ngừng bán){% endif %}</option>{% endfor %}
+        {% for p in products %}<option value="{{ p.code }}" data-unit="{{ p.unit }}" {% if p.code == item.product %}selected{% endif %}>{{ p.name }}{% if not p.is_active %} (ngừng bán){% endif %}</option>{% endfor %}
+      </select></td>
+      <td><select class="o-nhap" name="unit" aria-label="Đơn vị tính">
+        <option value="">{% if with_payment %}Chưa xác định{% else %}Theo sản phẩm{% endif %}</option>
+        {% for unit in units %}<option value="{{ unit }}" {% if unit == item.unit %}selected{% endif %}>{{ unit }}</option>{% endfor %}
       </select></td>
       <td><input class="o-nhap" name="quantity" value="{{ item.quantity }}" type="number" min="1" step="1" aria-label="Số lượng" required></td>
       <td><input class="o-nhap" name="unit_price" value="{{ item.unit_price|default:'0.00' }}" inputmode="decimal" aria-label="Đơn giá" required></td>

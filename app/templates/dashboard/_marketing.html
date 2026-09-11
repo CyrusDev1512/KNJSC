@@ -7,7 +7,7 @@
     </select></div>
     <div class="truong"><label for="mkt-tu">Từ ngày</label><input class="o-nhap" id="mkt-tu" type="date" name="mkt_tu" value="{{ m.start|date:'Y-m-d' }}"></div>
     <div class="truong"><label for="mkt-den">Đến ngày</label><input class="o-nhap" id="mkt-den" type="date" name="mkt_den" value="{{ m.end|date:'Y-m-d' }}"></div>
-    <button class="nut nut-chinh" type="submit">Xem thống kê</button>
+    <button class="nut nut-chinh" type="submit">Áp dụng bộ lọc</button>
   </form>
   {% if m.state == 'ready' %}<div class="bang-cuon"><table class="bang"><thead><tr>{% for label,value in m.metrics %}<th>{{ label }}</th>{% endfor %}</tr></thead><tbody><tr>{% for label,value in m.metrics %}<td>{{ value }}</td>{% endfor %}</tr></tbody></table></div>
   {% elif m.state == 'empty' %}<p>Chưa có dữ liệu Marketing trong khoảng ngày này.</p>

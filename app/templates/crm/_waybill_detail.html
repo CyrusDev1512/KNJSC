@@ -1,3 +1,4 @@
+{% if original_order %}<p><a class="nut" href="{% url 'don_xem' original_order.code %}" target="_blank" rel="noopener">Xem đơn gốc</a></p>{% endif %}
 <h2 id="vd-detail-title">Chi tiết sản phẩm · {{ row.data.ma_don }}</h2>
 <p class="vd-note">Loại tiền: {{ row.data.loai_tien }}. Nhập tiền đã thanh toán riêng cho từng sản phẩm.</p>
 {% if error %}<p role="alert" class="vd-error">{{ error }}</p>{% endif %}

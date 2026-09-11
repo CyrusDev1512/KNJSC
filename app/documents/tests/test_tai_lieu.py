@@ -124,7 +124,7 @@ def test_manager_tao_muc_va_tai_len_staff_bi_tu_choi(client, departments, cac_mu
 def test_pham_vi_xem_theo_muc(client, cac_muc, cac_tai_lieu, nguoi_dung):
     """AC-12.2 — Staff thấy tài liệu toàn công ty và của bộ phận mình, không thấy của bộ phận khác; gọi thẳng đường tải về tài liệu bộ phận khác trả 404; Admin thấy tất cả"""
     client.force_login(nguoi_dung["staff_sale_1"])
-    kq = client.get("/tai-lieu/")
+    kq = client.get("/bieu-mau/?tab=documents")
     assert kq.status_code == 200
     html = kq.content.decode()
     assert "Nội quy công ty" in html and "Quy trình chốt đơn" in html
@@ -135,22 +135,22 @@ def test_pham_vi_xem_theo_muc(client, cac_muc, cac_tai_lieu, nguoi_dung):
     assert kq.status_code == 302 and kq["Location"].startswith("https://docs.google.com/")
     # Ngoài phạm vi: 404, không lộ là có tài liệu
     assert client.get(f"/tai-lieu/{cac_tai_lieu['mkt'].pk}/tai/").status_code == 404
-    assert client.get(f"/tai-lieu/?muc={cac_muc['mkt'].pk}").status_code == 404
-    assert client.get(f"/tai-lieu/?muc={cac_muc['sale'].pk}").status_code == 200
+    assert client.get(f"/bieu-mau/?tab=documents&muc={cac_muc['mkt'].pk}").status_code == 404
+    assert client.get(f"/bieu-mau/?tab=documents&muc={cac_muc['sale'].pk}").status_code == 200
 
     # Vận đơn chỉ thấy mục toàn công ty
     client.force_login(nguoi_dung["staff_vd"])
-    html = client.get("/tai-lieu/").content.decode()
+    html = client.get("/bieu-mau/?tab=documents").content.decode()
     assert "Nội quy công ty" in html and "Quy trình chốt đơn" not in html
 
     # Admin thấy cả ba
     client.force_login(nguoi_dung["admin"])
-    html = client.get("/tai-lieu/").content.decode()
+    html = client.get("/bieu-mau/?tab=documents").content.decode()
     assert all(t in html for t in ("Nội quy công ty", "Quy trình chốt đơn", "Kế hoạch quảng cáo"))
     assert client.get(f"/tai-lieu/{cac_tai_lieu['mkt'].pk}/tai/").status_code == 302
 
     # Tìm theo tiêu đề
-    html = client.get("/tai-lieu/?tim=chốt").content.decode()
+    html = client.get("/bieu-mau/?tab=documents&tim=chốt").content.decode()
     assert "Quy trình chốt đơn" in html and "Nội quy công ty" not in html
 
 
@@ -243,9 +243,9 @@ def test_man_hinh_tai_lieu_khong_qua_muoi_lenh_truy_van(client, cac_tai_lieu, ng
     """AC-10.2 — Màn hình Tài liệu chạy không quá 10 lệnh truy vấn, với Admin lẫn Leader phải lọc theo bộ phận"""
     for vai in ("admin", "leader_sale_1", "staff_vd"):
         client.force_login(nguoi_dung[vai])
-        client.get("/tai-lieu/")
+        client.get("/bieu-mau/?tab=documents")
         with django_assert_max_num_queries(10):
-            assert client.get("/tai-lieu/").status_code == 200, vai
+            assert client.get("/bieu-mau/?tab=documents").status_code == 200, vai
 
 
 # ══ Dịch vụ tự kiểm quyền; mục mới không nổ — rà soát 07.09 ═════════
@@ -293,7 +293,7 @@ def test_tai_ve_qua_view_va_tep_mat_tren_dia(client, cac_muc, cac_tai_lieu, nguo
 
     document_service.absolute_path(doc).unlink()                  # người vận hành lỡ xoá tệp
     kq = client.get(f"/tai-lieu/{doc.pk}/tai/", follow=True)
-    assert kq.redirect_chain[-1][0] == "/tai-lieu/" and "Tệp không còn trên máy chủ" in kq.content.decode()
+    assert kq.redirect_chain[-1][0] == "/bieu-mau/?tab=documents" and "Tệp không còn trên máy chủ" in kq.content.decode()
     assert _so(AuditAction.EXPORT) == xuat + 2
 
     document_service.delete_document(lk, actor=n["admin"])

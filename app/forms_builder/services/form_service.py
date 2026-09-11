@@ -15,7 +15,7 @@ from django.db import transaction
 from core.audit import record
 from core.constants import AuditAction
 from core.exceptions import BusinessError
-from core.identity import display_name
+from core.identity import employee_code
 
 from .. import choice_registry
 from ..meaning import FieldType, Meaning
@@ -269,7 +269,7 @@ def identity_codes(fields):
 
 def apply_identity(values, fields, actor):
     """Ép giá trị trường danh tính về tên người gửi, bất kể yêu cầu gửi gì (Q59)."""
-    ten = display_name(actor)
+    ten = employee_code(actor)
     ket_qua = dict(values)
     for ma in identity_codes(fields):
         ket_qua[ma] = ten
@@ -312,7 +312,7 @@ def widgets(form, fields, values, *, user):
     """Danh sách `Widget` cho màn hình điền: giá trị đang gõ (hoặc mặc định),
     trường danh tính, và danh sách chọn của cột Chọn một."""
     duoc_them = choice_service.can_manage_options(user, form.table)
-    ten = display_name(user)
+    ten = employee_code(user)
     ket_qua = []
     for t in fields:
         w = Widget(

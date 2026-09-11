@@ -17,13 +17,19 @@
     if (add) {
       var body = add.closest('form').querySelector('.vd-items tbody');
       var row = body.rows[0].cloneNode(true);
-      row.querySelector('select').value = '';
+      row.querySelectorAll('select').forEach(function (select) { select.value = ''; });
       row.querySelectorAll('input').forEach(function (input) { input.value = input.name === 'quantity' ? '1' : '0.00'; });
       body.appendChild(row); row.querySelector('select').focus();
     }
     var remove = event.target.closest('[data-remove-item]');
     if (remove && remove.closest('tbody').rows.length > 1) remove.closest('tr').remove();
   }, true);
+  document.addEventListener('change', function (event) {
+    if (!event.target.matches('select[name="product"]')) return;
+    var row = event.target.closest('tr'), unit = row.querySelector('[name="unit"]');
+    var option = event.target.selectedOptions[0];
+    if (unit) unit.value = option ? option.dataset.unit || 'cái' : '';
+  });
   document.addEventListener('keydown', function (event) {
     var cell = event.target.closest('[data-waybill-detail]');
     if (cell && event.key === 'Enter') { event.preventDefault(); event.stopImmediatePropagation(); showDetail(cell); }

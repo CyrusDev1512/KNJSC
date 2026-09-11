@@ -1,5 +1,7 @@
 # Hướng dẫn sử dụng và vận hành
 
+**11.09.2026 — Điều hướng ERP/thư viện/Lên đơn CRM:** đã triển khai local theo ADR-023. Giữ Bảng dữ liệu ERP; sửa Biểu mẫu thiếu người tạo, gộp hai tab đúng quyền; chuyển nhập đơn và xem đơn gốc sang CRM. Kiểm thử, số đo và giới hạn tại [báo cáo bàn giao](kiem-chung-erp-hub-20260911.md). Chưa commit/push.
+
 | Mục | Nội dung |
 |---|---|
 | Dự án | Kim Ngân JSC — Hệ thống vận hành nội bộ |
@@ -783,6 +785,12 @@ Nhập file, phân công và chi tiết sản phẩm vẫn có nút gửi riêng
 - … → Lịch sử xem thay đổi qua lưới mới của dòng đang chọn. … → Xung đột
   đối chiếu giá trị và chọn server hoặc gửi lại; có xung đột thì cả lượt chưa ghi.
 - Admin lên đơn tại CRM phải chọn Sale đứng đơn đang hoạt động.
+
+**Cập nhật 11.09.2026:** nhập trực tiếp trong ô, không còn khung nhập nổi
+che hàng dưới hoặc kéo giãn riêng khung nhập. Escape hủy phần đang gõ;
+Tab/Enter kết thúc và tự lưu như trên. Muốn đọc dài, dùng chế độ Xem hoặc
+kéo chiều cao hàng. Dán bảng nhiều ô từ trong ô nhập vẫn dùng giới hạn
+2.000 ô và kiểm lỗi toàn lượt. Các ô tổng/chi tiết/phân công giữ cơ chế riêng.
 
 Phạm vi và kết quả kiểm chứng: [báo cáo chín hạng mục](kiem-chung-master-nine.md).
 

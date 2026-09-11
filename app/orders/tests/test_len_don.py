@@ -365,12 +365,13 @@ def test_goi_thang_don_ngoai_pham_vi_bi_chan(client, bang_van_don, san_pham, ngu
     assert client.get(f"/don-hang/{don.code}/").status_code == 404
 
 
-def test_chi_nguoi_len_don_moi_bo_duoc(client, bang_van_don, san_pham, nguoi_dung):
+def test_chi_nguoi_len_don_moi_bo_duoc(client, bang_van_don, san_pham, nguoi_dung, settings):
+    settings.ROOT_URLCONF = "knjsc.urls_bangtinh"
     """BR-3 — Người khác không bỏ được đơn của mình, kể cả Manager"""
     don = _len_don(nguoi_dung["staff_sale_1"], san_pham)
     client.force_login(nguoi_dung["manager_sale"])
 
-    client.post(f"/don-hang/{don.code}/bo/")
+    client.post(f"/van-don/don-goc/{don.code}/bo/")
     assert Order.objects.filter(pk=don.pk).exists()
 
 
@@ -388,16 +389,17 @@ def test_len_don_sinh_dong_nhat_ky(bang_van_don, san_pham, nguoi_dung):
     assert "0912345678" not in chi_tiet
 
 
-def test_man_hinh_don_hang_khong_qua_muoi_lenh_truy_van(
-        client, bang_van_don, san_pham, nguoi_dung, django_assert_max_num_queries):
-    """AC-10.2 — Màn hình danh sách đơn chạy không quá 10 lệnh truy vấn"""
-    for i in range(5):
-        _len_don(nguoi_dung["staff_sale_1"], san_pham, phone=f"09000000{i:02d}")
-
+def test_don_goc_khong_qua_muoi_lenh_truy_van(
+        client, bang_van_don, san_pham, nguoi_dung, settings, django_assert_max_num_queries):
+    """AC-10.2 — Chi tiết đơn gốc CRM thay danh sách đơn ERP; không quá 10 truy vấn."""
+    settings.ROOT_URLCONF = "knjsc.urls_bangtinh"
+    settings.BANGTINH_URL = ""
+    don = _len_don(nguoi_dung["staff_sale_1"], san_pham)
     client.force_login(nguoi_dung["manager_sale"])
-    client.get("/don-hang/")                       # lượt đầu ghi mốc phiên
+    path = f"/van-don/don-goc/{don.code}/"
+    client.get(path)
     with django_assert_max_num_queries(10):
-        assert client.get("/don-hang/").status_code == 200
+        assert client.get(path).status_code == 200
 
 
 def test_ma_don_khong_trung_trong_cung_ngay(bang_van_don, san_pham, nguoi_dung):

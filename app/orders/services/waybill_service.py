@@ -24,6 +24,7 @@ from forms_builder.models import ColumnDef, DataRecord, TableDef, Grant
 from forms_builder.services import grant_service, record_service
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE, PaymentMethod, PaymentStatus, ShippingStatus, Market
 from orders.models import Product, WaybillItem
+from orders.units import resolve_unit
 from . import assignment_service
 
 DETAIL_CODE = "chi_tiet_sp"
@@ -109,7 +110,7 @@ def money(value):
         raise BusinessError("Số tiền phải không âm và có tối đa hai chữ số thập phân.")
 
 
-def validate_items(raw):
+def validate_items(raw, *, previous=None, strict_units=False):
     if isinstance(raw, str):
         try:
             raw = json.loads(raw)
@@ -122,7 +123,7 @@ def validate_items(raw):
         raise BusinessError("Mỗi dòng chi tiết phải có mã sản phẩm.")
     products = {p.code: p for p in Product.objects.filter(code__in=codes)}
     result = []
-    for d in raw:
+    for index, d in enumerate(raw):
         product = products.get(d["product"])
         if product is None:
             raise BusinessError("Mã sản phẩm trong chi tiết không có trong danh mục.")
@@ -130,7 +131,15 @@ def validate_items(raw):
             qty = Decimal(str(d.get("quantity", "")))
             if not qty.is_finite() or qty <= 0 or qty != qty.to_integral_value():
                 raise ValueError
+            prior = previous[index] if previous and index < len(previous) else None
+            old_unit = prior.unit if prior and prior.product_id == product.pk else None
+            if old_unit is None and previous and "unit" not in d:
+                known = {item.unit for item in previous if item.product_id == product.pk}
+                if len(known) > 1:
+                    raise BusinessError("Mở lại chi tiết và chọn đơn vị cho sản phẩm bị đổi vị trí.")
+                old_unit = next(iter(known), None)
             item = WaybillItem(product=product, quantity=int(qty),
+                               unit=resolve_unit(product, d.get("unit"), previous=old_unit, allow_custom=not strict_units),
                                unit_price=money(d.get("unit_price")), paid_amount=money(d.get("paid_amount", 0)))
             item.full_clean(exclude=["record"])
         except (ValueError, TypeError, InvalidOperation, ValidationError):
@@ -200,7 +209,7 @@ def export_queryset(queryset):
 
 
 def export_detail(row):
-    return json.dumps([{"product": i.product.code, "quantity": i.quantity,
+    return json.dumps([{"product": i.product.code, "quantity": i.quantity, "unit": i.unit,
                         "unit_price": str(i.unit_price), "paid_amount": str(i.paid_amount)}
                        for i in row.export_items], ensure_ascii=False)
 
@@ -248,7 +257,8 @@ def update_items(user, pk, raw, version, *, request=None):
         raise OutOfScopeError("Bạn không có quyền sửa vận đơn này.")
     if version != row.updated_at.isoformat():
         raise BusinessError("Vận đơn vừa được người khác sửa. Đóng rồi mở lại chi tiết để lấy dữ liệu mới.")
-    items = validate_items(raw)
+    previous = list(WaybillItem.objects.filter(record=row, deleted_at__isnull=True))
+    items = validate_items(raw, previous=previous)
     WaybillItem.objects.in_scope(user).filter(record=row).update(deleted_at=timezone.now(), deleted_by=user)
     after_create(row, {"_items": items})
     row.data.update(totals(items))

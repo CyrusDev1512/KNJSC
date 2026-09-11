@@ -14,7 +14,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from core.exceptions import BusinessError
-from core.identity import display_name
+from core.identity import employee_code
 from forms_builder.meaning import FieldType, Meaning
 from forms_builder.models import ColumnDef, TableDef
 from forms_builder.services import record_service
@@ -215,7 +215,7 @@ def build_values(order, lines=None):
         "nv_van_don": None,
         "doi_soat": None,
         "ma_don": order.code,
-        "ngay": order.created_at.date().isoformat(),
+        "ngay": timezone.localdate(order.created_at).isoformat(),
         "ten_khach": khach.name,
         "so_dien_thoai": khach.phone,
         "san_pham": ten_sp,
@@ -227,7 +227,7 @@ def build_values(order, lines=None):
         "gia_tien": str(tong),
         "loai_tien": order.currency,
         "pttt": PaymentMethod(order.payment_method).label,
-        "nguoi_ban": display_name(nguoi_ban),
+        "nguoi_ban": employee_code(nguoi_ban),
         "don_vi_phu": order.sub_unit,
         "facebook": khach.facebook,
         "email": khach.email,
@@ -264,7 +264,7 @@ def push(order, *, actor=None, request=None, lines=None):
     lines = list(lines if lines is not None else order.lines.select_related("product"))
     values = build_values(order, lines)
     values["ngay"] = timezone.localdate(order.created_at).isoformat()
-    values[DETAIL_CODE] = [{"product": line.product.code, "quantity": line.quantity,
+    values[DETAIL_CODE] = [{"product": line.product.code, "quantity": line.quantity, "unit": line.unit,
                            "unit_price": str(line.unit_price), "paid_amount": "0.00"} for line in lines]
     return record_service.create_record(
         bang, values, actor=actor, request=request,

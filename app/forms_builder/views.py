@@ -23,7 +23,7 @@ from django.views.decorators.http import require_POST
 
 from core.constants import IMPORT_MAX_ROWS, UPLOAD_MAX_BYTES, JobStatus, Rank
 from core.exceptions import BusinessError, OutOfScopeError
-from core.pagination import pagination_context
+from core.pagination import pagination_context, filter_query
 from core.audit import record_denied
 from core.permissions import assert_rank, has_rank, is_admin
 
@@ -401,13 +401,17 @@ def _loi_dau_tien(form):
 
 @login_required
 def bieu_mau(request):
-    """Danh sách biểu mẫu và thư viện định nghĩa trường.
-
-    Đây là màn hình **quản lý**, không phải chỗ nhân viên vào điền. Ma trận
-    kiểm chéo `docs/04` mục 3 ghi rõ chỉ Manager trở lên vào được.
-    Nhân viên điền biểu mẫu qua màn hình Nộp báo cáo ngày.
-    """
+    """Hai tab độc lập: quản lý biểu mẫu và tài liệu trong phạm vi người xem."""
     request.nav_current = "bieu_mau"
+    can_manage = has_rank(request.user, Rank.MANAGER)
+    tab = request.GET.get('tab') or ('forms' if can_manage else 'documents')
+    if tab not in ('forms', 'documents'):
+        raise Http404
+    if tab == 'documents':
+        from documents.presentation import document_list_context
+        context = document_list_context(request)
+        context.update(active_tab=tab, can_manage_forms=can_manage)
+        return render(request, 'forms_builder/library_hub.html', context)
     assert_rank(request.user, Rank.MANAGER, request)
 
     ds = (FormDef.objects.in_scope(request.user)
@@ -430,7 +434,9 @@ def bieu_mau(request):
         "thu_vien": thu_vien.select_related("department").order_by("name"),
     }
     boi_canh.update(pagination_context(request, ds, "biểu mẫu"))
-    return render(request, "forms_builder/bieu_mau.html", boi_canh)
+    boi_canh.update(active_tab="forms", can_manage_forms=can_manage,
+                   qs_loc=filter_query(tab="forms", tim=tim))
+    return render(request, "forms_builder/library_hub.html", boi_canh)
 
 
 @login_required

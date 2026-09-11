@@ -1,9 +1,20 @@
 # Backlog
 
+**11.09.2026 — Ba lựa chọn Lên đơn bắt buộc chọn rõ:** Quốc gia/Loại tiền/PTTT mặc định rỗng, chọn hợp lệ mới lưu; đơn kế tiếp trở lại rỗng. 105 test đạt, Chrome 1440/390 đạt, trần 10 truy vấn giữ đạt; không migration/dependency, chưa commit/push. [Bằng chứng bổ sung](kiem-chung-len-don-gio-admin-20260911.md).
+
+
 **11.09.2026 — Ghim cột Vận đơn mới:** đã thay bù cuộn JavaScript bằng vùng
 sticky; đo 100k/300k đạt độ lệch 0 px, cache/request không tăng; hồi quy thao
 tác đạt. Render p95 tăng nhẹ; còn nghiệm thu zoom trình duyệt thật/trackpad.
 [Biên bản](kiem-chung-ghim-cot-20260911.md). Không đóng lỗi API/kết nối cũ.
+
+**11.09.2026 — Bổ sung giờ lưu và Admin tự đứng đơn (thay quyết định chọn Sale):** Ngày giờ cập nhật HH:mm trên form, thông báo lấy timestamp thực tế đã lưu; bỏ dropdown, Admin/Sale tự đứng bằng mã đăng nhập. Admin thử nghiệm chưa thuộc Sale dùng Sale/team trống, giữ hồ sơ. 117 test đạt; Chrome 1440/390 đạt; kiểm tải đọc 10/20 Admin: 4.782 request đo/0 lỗi, p95 cao nhất 76,38 ms trên fixture nhỏ. Không migration mới, chưa commit/push. [Kiểm chứng và giới hạn](kiem-chung-len-don-gio-admin-20260911.md).
+
+
+**11.09.2026 — Ngày/đơn vị/mã nhân viên khi lên đơn:** đã kiểm chứng local: Ngày Việt Nam chỉ đọc; chọn hộp/cái/chiếc/túi từng sản phẩm, snapshot trên đơn/vận đơn; mã đăng nhập cho định danh nghiệp vụ và lịch sử. Migration 0006 đã kiểm xuôi/ngược DB test và áp dụng xuôi local. Hồi quy 984 đạt/2 lỗi giao diện thống kê có sẵn; lượt focused cuối 72 đạt; Chrome 1440/390 đạt; Locust đọc 10/20 đạt 4.618 request/0 lỗi. Chống lặp hoãn, không kết luận năng lực toàn CRM. [Bằng chứng và giới hạn](kiem-chung-len-don-20260911.md). Chưa commit/push.
+
+
+**11.09.2026 — Điều hướng ERP/thư viện/Lên đơn CRM:** đã triển khai local theo ADR-023. Giữ Bảng dữ liệu ERP; sửa Biểu mẫu thiếu người tạo, gộp hai tab đúng quyền; chuyển nhập đơn và xem đơn gốc sang CRM. Kiểm thử, số đo và giới hạn tại [báo cáo bàn giao](kiem-chung-erp-hub-20260911.md). Chưa commit/push.
 
 Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quyết định.
 
@@ -28,6 +39,17 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 ---
 
 ## 0. Còn nợ những gì — xem ở đây trước
+
+**11.09.2026 — Admin/nhập ô Vận đơn mới:** đã sửa nguồn options bị null,
+draft dang dở và click rê nhẹ; nhập trong ô được chủ dự án duyệt, hồi quy
+Chrome/E2E đạt. Chạy bền snapshot `7449e73` đã đủ 30 phút/300k/20 người:
+22.460 request, 16 lỗi ngắt kết nối đọc; lọc p95 1,35s còn chưa đạt.
+Số đo inline ghi riêng. Suite liên quan 1.041 đạt/2 lỗi/7 skip; hai lỗi rà CSS/nhãn
+của Thống kê tái hiện cả trên snapshot trước sửa, còn cần xử lý riêng.
+Ba lỗi truy vết tài liệu AC-22/số lượng tiêu chí cũng có từ trước. Lượt ngắn
+inline 300k còn đọc/lọc p95 1,28/1,85s và 2 lỗi kết nối đọc; chưa chốt nguyên nhân.
+Chưa kiểm lại phiên người dùng/IME thật. Xem
+[báo cáo 11.09](kiem-chung-master-admin-20260911.md).
 
 **11.09.2026 — Bàn điều hành KN CRM theo ADR-022:** `/thong-ke/` đã được nâng
 cấp từ Thống kê Vận đơn riêng thành góc nhìn tổng hợp Marketing–Sale–Vận đơn và

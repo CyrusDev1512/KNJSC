@@ -26,7 +26,7 @@ NAME_MAX = Product._meta.get_field("name").max_length
 
 def entry_products():
     """Danh mục cho chi tiết vận đơn; giữ cả hàng ngừng bán để sửa đơn cũ."""
-    return list(Product.objects.order_by("name").values("code", "name", "is_active"))
+    return list(Product.objects.order_by("name").values("code", "name", "is_active", "unit"))
 
 
 def unique_code(name):

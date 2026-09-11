@@ -1,5 +1,7 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
+> Cập nhật 11.09.2026: [ADR-023](docs/quyet-dinh/023-dieu-huong-erp-va-len-don-crm.md) chốt Lên đơn tại CRM, xem đơn gốc từ vận đơn và thư viện Biểu mẫu & tài liệu hai tab trên ERP. Bảng dữ liệu ERP vẫn chỉ đọc.
+
 Đọc file này trước khi sửa bất kỳ mã nguồn nào trong dự án.
 
 Đọc [AGENTS.md](AGENTS.md) cho quy tắc phối hợp chung đã chốt của dự án; khi

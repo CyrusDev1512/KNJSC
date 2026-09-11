@@ -1,8 +1,5 @@
-{% extends "base.html" %}{% load knjsc %}
-{% block tieu_de %}Tài liệu · Kim Ngân JSC{% endblock %}
-{% block ten_trang %}Tài liệu{% endblock %}
+{% load knjsc %}
 
-{% block noi_dung %}
 
 <div class="trang-dau">
   <div>
@@ -17,7 +14,7 @@
 
 <div class="luoi luoi-phu">
   <div class="bang-hop">
-    <form class="loc" method="get">
+    <form class="loc" method="get"><input type="hidden" name="tab" value="documents">
       <div class="truong o-tim">
         <label for="tim">Tìm theo tiêu đề</label>
         <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Tên tài liệu">
@@ -30,7 +27,7 @@
         </select>
       </div>
       <div class="loc-nut">
-        <a class="nut nut-nho" href="{% url 'tai_lieu' %}">Xoá lọc</a>
+        <a class="nut nut-nho" href="{% url 'bieu_mau' %}?tab=documents">Xoá lọc</a>
         <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
       </div>
     </form>
@@ -86,10 +83,10 @@
     <div class="the">
       <div class="the-dau"><h2>Mục tài liệu</h2></div>
       <ul class="muc-ds">
-        <li><a href="{% url 'tai_lieu' %}" {% if not muc_hien %}aria-current="page"{% endif %}>Tất cả <span class="dem">{{ tong_tai_lieu }}</span></a></li>
+        <li><a href="{% url 'bieu_mau' %}?tab=documents" {% if not muc_hien %}aria-current="page"{% endif %}>Tất cả <span class="dem">{{ tong_tai_lieu }}</span></a></li>
         {% for m in cac_muc %}
           <li>
-            <a href="{% url 'tai_lieu' %}?muc={{ m.pk }}" {% if muc_hien and muc_hien.pk == m.pk %}aria-current="page"{% endif %}>
+            <a href="{% url 'bieu_mau' %}?tab=documents&amp;muc={{ m.pk }}" {% if muc_hien and muc_hien.pk == m.pk %}aria-current="page"{% endif %}>
               <span>{{ m.name }} <span class="nho mo-nhat">· {{ m.pham_vi }}</span></span>
               <span class="dem">{{ m.so_tai_lieu }}</span>
             </a>
@@ -122,4 +119,3 @@
   </div>
 </div>
 
-{% endblock %}

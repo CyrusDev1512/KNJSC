@@ -46,7 +46,7 @@
         {% for dong in trang %}
           <tr>
             <td class="ma-o">{{ dong.created_at|date:"d.m.Y H:i:s" }}</td>
-            <td>{{ dong.actor_label|default:"—" }}</td>
+            <td>{% if dong.actor %}{{ dong.actor.username }}{% else %}{{ dong.actor_label|default:"—" }}{% endif %}</td>
             <td>
               <span class="chip {% if dong.action == 'denied' or dong.action == 'login_failed' %}chip-xau{% elif dong.action == 'permission' %}chip-cho{% elif dong.action == 'create' %}chip-tot{% else %}chip-nhat{% endif %}">
                 <i></i>{{ dong.get_action_display }}

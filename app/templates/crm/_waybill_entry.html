@@ -1,14 +1,23 @@
 <div id="vd-entry" class="vd-entry">
   {% if success %}<p role="status" class="vd-success">{{ success }}</p>{% endif %}
+  {% if saved_order %}<a class="nut" href="{% url 'don_xem' saved_order.code %}">Xem đơn gốc</a>{% endif %}
   {% if error %}<p role="alert" class="vd-error">{{ error }}</p>{% endif %}
-  <form method="post" action="{% url 'waybill_create' %}" hx-post="{% url 'waybill_create' %}" hx-target="#vd-entry" hx-swap="outerHTML">
+  <form data-order-preview="{% url 'waybill_preview' %}" method="post" action="{% url 'waybill_create' %}" hx-post="{% url 'waybill_create' %}" hx-target="#vd-entry" hx-swap="outerHTML">
     {% csrf_token %}
     <div class="vd-fields">
+      <div class="truong"><label for="order-date">Ngày giờ (Việt Nam)</label><input id="order-date" class="o-nhap" type="text" value="{{ order_date|date:'d/m/Y H:i' }}" data-order-clock="{{ order_date|date:'c' }}" readonly aria-describedby="order-date-help"><small id="order-date-help">Tự ghi thời điểm thực tế khi lưu đơn.</small></div>
       {% for field in form %}<div class="truong"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>{{ field }}{{ field.errors }}</div>{% endfor %}
     </div>
     {{ form.non_field_errors }}
-    <p class="vd-note">{% if form.seller %}Sale đứng đơn theo tài khoản được chọn; người thực hiện vẫn là {{ user.username }}.{% else %}SALE/CSKH: {{ user.profile.full_name|default:user.username }}.{% endif %} Mã đơn và Ngày được ghi tự động khi lưu.</p>
+    {% include "orders/_nhac_khach.html" %}
+    <p class="vd-note">Sale đứng đơn: {{ user.username }}. Hệ thống tự ghi người đang đăng nhập và thời điểm lưu đơn.</p>
     {% include "crm/_waybill_items.html" %}
+    {% if duoc_them_sp %}<div class="hang">
+      <input class="o-nhap" data-product-name aria-label="Tên sản phẩm mới" maxlength="200" placeholder="Tên sản phẩm mới">
+      <button class="nut" type="button" data-create-product="{% url 'san_pham_moi' %}">Tạo sản phẩm</button>
+      <span data-product-result role="status"></span>
+    </div>{% endif %}
+    <p data-order-summary role="status">Chọn sản phẩm để xem tóm tắt đơn.</p>
     <div class="vd-actions"><button class="nut nut-chinh" type="submit">Lưu đơn</button><span>Đơn lưu xong xuất hiện trong bảng Vận đơn.</span></div>
   </form>
 </div>

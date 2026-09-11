@@ -306,7 +306,8 @@ def test_assignment_migration_roundtrip_preserves_records(feedback):
         assert table.columns.filter(code__in=assignment.COLUMNS).count() == 3
         assert dict(DataRecord.objects.filter(pk__in=expected).values_list('pk', 'data')) == expected
     finally:
-        MigrationExecutor(connection).migrate([('orders', '0005_assignment_columns')])
+        executor = MigrationExecutor(connection)
+        executor.migrate(executor.loader.graph.leaf_nodes())
 
 
 def test_download_worker_rechecks_current_assignments(feedback, nguoi_dung, delivery_leader, settings, tmp_path):

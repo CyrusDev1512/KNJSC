@@ -20,9 +20,12 @@ Nhân sự liên quan: Sale; Quản trị; Leader; Kho là bên nhận dữ li�
 
 Vấn đề tập trung
 1. Quy trình lên đơn cần có các trường bắt buộc; chỉ khi nhập đủ mới được tạo đơn.
+   - Quốc gia, Loại tiền, PTTT lên đơn mặc định chưa chọn; bắt buộc chọn giá trị hợp lệ ở trình duyệt và server, lưu xong trả về chưa chọn cho đơn tiếp theo -> đã làm (11.09.2026; 105 test và Chrome 1440/390 đạt).
+   - Bổ sung Ngày giờ hiển thị chỉ đọc dạng dd/mm/yyyy HH:mm, cập nhật phút khi mở form; thông báo lấy giờ Việt Nam thực tế đã lưu, không nhận giờ tùy ý từ người dùng -> đã làm (11.09.2026).
 2. Trước đây mỗi thị trường và mỗi sản phẩm dùng một form, một sheet riêng, gây phân tán cấu trúc dữ liệu.
+   - Phần giao diện: một nơi lên đơn tại CRM, tra đơn gốc từ vận đơn theo quyền; ERP giữ Bảng dữ liệu chỉ đọc -> đã làm (ADR-023, 11.09.2026). Không đóng yêu cầu danh mục nhóm/tên/đơn vị sản phẩm.
 3. Cần cấu trúc chọn sản phẩm theo chuỗi: nhóm sản phẩm -> tên sản phẩm -> số sản phẩm.
-4. Cần bổ sung đơn vị hàng hóa như hộp, cái, chiếc, túi.
+4. Cần bổ sung đơn vị hàng hóa như hộp, cái, chiếc, túi. -> đã làm (Lên đơn CRM: chọn từng dòng, chụp đơn vị đơn gốc/vận đơn; kiểm functional, Chrome 1440/390 và kiểm tải đọc ngắn 10/20 — 11.09.2026)
 5. Đơn giá không nên bị fixed; Sale cần được tự điền đơn giá.
 6. Trường hợp nhân sự trùng tên, dữ liệu xuất Excel phải dùng mã nhân viên để phân biệt. -> đã làm (KN CRM — xuất theo ngày/bộ lọc, định danh bằng mã nhân viên)
 7. Cần xuất Excel vận đơn theo ngày để gửi lên kho. -> đã làm (KN CRM — xuất theo ngày/bộ lọc, định danh bằng mã nhân viên)
@@ -42,6 +45,8 @@ Nhân sự liên quan: Quản trị; Nhân sự; toàn bộ nhân viên; Vận �
 
 Vấn đề tập trung
 1. FPT/quy ước quản lý phải lấy mã nhân viên làm định danh duy nhất.
+   - Phần lên đơn, trường định danh biểu mẫu/báo cáo mới, phân công và lịch sử thao tác: dùng mã đăng nhập; Admin thực hiện và Sale đứng đơn giữ riêng, không viết lại dữ liệu cũ -> đã làm (11.09.2026; docs/kiem-chung-len-don-20260911.md).
+   - Quyết định thay thế cùng ngày: Admin cũng tự đứng đơn bằng mã đăng nhập, bỏ dropdown Sale cho mọi tài khoản; dùng Sale/team trống cho Admin thử nghiệm chưa thuộc Sale, không đổi hồ sơ -> đã làm (117 test, Chrome 1440/390, kiểm tải đọc 10/20; docs/kiem-chung-len-don-gio-admin-20260911.md).
 2. Nhân viên đăng nhập hệ thống bằng mã nhân viên.
 3. Mật khẩu ban đầu cần random để tránh người này vào tài khoản của nhân sự khác.
 4. Nhân viên Vận đơn chỉ được xem hoặc thao tác đúng phạm vi được giao. -> đã làm (KN CRM — Vận đơn mới: phân công và phạm vi theo người được giao)

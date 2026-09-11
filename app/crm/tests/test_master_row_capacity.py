@@ -45,8 +45,8 @@ def test_row_capacity(feedback, make_user, settings):
                 cursor.execute(f'INSERT INTO forms_builder_datarecord ({columns}) SELECT '+', '.join(select)+
                     ' FROM forms_builder_datarecord s CROSS JOIN generate_series(%s,%s) g WHERE s.id=%s', [current,count-1,source[0].pk])
                 cursor.execute('''INSERT INTO orders_waybillitem
-                    (created_at,updated_at,record_id,product_id,quantity,unit_price,paid_amount)
-                    SELECT r.created_at,r.updated_at,r.id,%s,1,10,0 FROM forms_builder_datarecord r
+                    (created_at,updated_at,record_id,product_id,quantity,unit_price,paid_amount,unit)
+                    SELECT r.created_at,r.updated_at,r.id,%s,1,10,0,'hộp' FROM forms_builder_datarecord r
                     WHERE r.table_id=%s AND NOT EXISTS (SELECT 1 FROM orders_waybillitem i WHERE i.record_id=r.id)''', [products[0].pk,table.pk])
                 cursor.execute('ANALYZE forms_builder_datarecord');cursor.execute('ANALYZE orders_waybillitem')
             marker=output/'row-capacity-ready.json';result=output/'row-capacity-result.json'

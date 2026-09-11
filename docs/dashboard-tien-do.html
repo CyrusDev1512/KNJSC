@@ -464,6 +464,10 @@ footer code {
 </style>
 
 <div class="wrap">
+  <p>11.09.2026 · Sửa Admin và nhập trong ô Vận đơn mới: Chrome/E2E đạt;
+    chạy bền snapshot 7449e73 đã đủ 30 phút, còn 16 lỗi đọc/22.460 request,
+    lọc Quốc gia p95 1,35s. Suite rộng còn hai lỗi giao diện
+    Thống kê có từ trước. <a href="kiem-chung-master-admin-20260911.md">Kết quả hiện tại</a>.</p>
   <p id="master-nine-status">10.09.2026 · Vận đơn mới: chín hạng mục đã triển khai,
     kiểm chức năng và E2E đạt; lọc 300k chưa đạt mục tiêu hiệu năng; chạy bền hoãn sang phiên sau theo yêu cầu.
     <a href="kiem-chung-master-nine.md">Kết quả và giới hạn kiểm thử</a>.</p>
@@ -776,6 +780,8 @@ const GIAI_DOAN = [
       { t: "Tính lại cột tính sẵn trên bảng lớn chạy nền theo lô, lưới báo tiến độ và nạp lại khi xong (100.000 dòng: 153 s → 19,6 s ở worker)", tt: "xong", note: "7K · ADR-016 · AC-11.35" },
       { t: "Chạy kiểm tải trên máy anh/chị và máy chủ thật, ghi số vào docs/06", tt: "chua", note: "7K · K27" },
       { t: "Vận đơn mới theo CRM Tân: hai bảng, lưới và thống kê; Lên đơn ở trang riêng (ADR-019), ERP/CRM cùng luồng", tt: "xong", note: "7L · ADR-018 · 25 bài mới, hồi quy, migration hai chiều và giao diện desktop/mobile đều đạt" },
+      { t: "Lên đơn: ngày giờ Việt Nam, đơn vị và tự đứng đơn bằng mã nhân viên", tt: "xong", note: "11.09.2026 · HH:mm, Admin tự đứng đơn; bổ sung ba lựa chọn bắt buộc rỗng ban đầu: 105 test, Chrome 1440/390 đạt; lượt trước kiểm tải đọc 10/20 đạt. Xem kiem-chung-len-don-gio-admin-20260911.md; chống lặp hoãn, lỗi rà statistics cũ vẫn mở" },
+      { t: "Sắp xếp ERP, thư viện hai tab và lên đơn duy nhất tại CRM", tt: "xong", note: "ADR-023 · 11.09.2026 · functional, Chrome 1440/390, kiểm tải đọc 10/20; xem kiem-chung-erp-hub-20260911.md" },
       { t: "Hoàn thiện 10.000 vận đơn mẫu Canada/CAD và làm rõ ba cột nhận diện ghim", tt: "xong", note: "7L.1 · vandonmoi · 11.09.2026" },
       { t: "Sửa rung cột ghim bằng sticky trong lưới Vận đơn mới", tt: "dang", note: "11.09.2026 · đã triển khai, hồi quy 100k/300k lệch 0px; UI đạt. Render tăng nhẹ; còn zoom trình duyệt thật/trackpad. Xem kiem-chung-ghim-cot-20260911.md" },
       { t: "KN JSC tự cập nhật mật khẩu 12 tài khoản mẫu một lần trên mỗi database local", tt: "xong", note: "09.09.2026 · 18 bài kiểm đạt; đã cập nhật và xác thực database local, máy khác cần kéo nhánh có bản cập nhật" }

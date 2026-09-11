@@ -148,7 +148,7 @@ def test_admin_selects_seller_without_changing_profile(feedback, nguoi_dung):
     assert admin.profile.department_id == before
 
 
-def test_admin_form_requires_seller_and_rejects_forgery(client, feedback, nguoi_dung):
+def test_admin_form_uses_actor_and_rejects_forgery(client, feedback, nguoi_dung):
     from orders.models import Order
     data={'customer_name':'Khách E2E','phone':'0911111111','market':'USA','currency':'USD',
           'payment_method':'card','product':[feedback[1][0].code],'quantity':['1'],'unit_price':['1'],'paid_amount':['0']}
@@ -157,9 +157,9 @@ def test_admin_form_requires_seller_and_rejects_forgery(client, feedback, nguoi_
     data.update(market=Market.US,payment_method=PaymentMethod.CARD)
     client.force_login(nguoi_dung['admin'])
     before=Order.objects.count()
-    assert client.post('/van-don/len-don/',data).status_code==400
-    data['seller']=nguoi_dung['staff_sale_1'].pk
     assert client.post('/van-don/len-don/',data).status_code==200
+    data['seller']=nguoi_dung['staff_sale_1'].pk
+    assert client.post('/van-don/len-don/',data).status_code==400
     assert Order.objects.count()==before+1
     client.force_login(nguoi_dung['staff_sale_2'])
     assert client.post('/van-don/len-don/',data).status_code==400
@@ -178,8 +178,6 @@ def test_rejects_unavailable_seller(feedback, nguoi_dung, departments, field, va
     elif field=='department_active':seller.profile.department.is_active=False;seller.profile.department.save()
     elif field=='department_deleted':seller.profile.department.deleted_at=timezone.now();seller.profile.department.save()
     else:seller.profile.locked_until=timezone.now()+timedelta(hours=1);seller.profile.save()
-    from crm.waybill_forms import WaybillOrderForm
-    assert not WaybillOrderForm(actor=nguoi_dung['admin']).fields['seller'].queryset.filter(pk=seller.pk).exists()
     with pytest.raises(BusinessError):
         create_order(actor=nguoi_dung['admin'],seller=seller,phone='0912222222',customer_name='Không tạo',lines=[{'product':feedback[1][0],'quantity':1,'unit_price':'1'}])
 

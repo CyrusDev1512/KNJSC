@@ -6,10 +6,16 @@ liên kết sang. Mọi bảng trong phạm vi quyền đều có lưới ở
 là cây thư mục (ADR-015).
 """
 from django.urls import path
+from orders import views as order_views
 
 from . import views, waybill_views, assignment_views, master_views, statistics_views
 
 urlpatterns = [
+    path("van-don/len-don/tom-tat/", waybill_views.preview_order, name="waybill_preview"),
+    path("van-don/don-goc/<slug:code>/", order_views.don_xem, name="don_xem"),
+    path("van-don/don-goc/<slug:code>/bo/", order_views.don_bo, name="don_bo"),
+    path("van-don/len-don/kiem-khach/", order_views.kiem_khach, name="kiem_khach"),
+    path("van-don/len-don/san-pham-moi/", order_views.san_pham_moi, name="san_pham_moi"),
     path('thong-ke/', statistics_views.overview, name='crm_statistics'),
     path('bang-tinh/<slug:code>/du-lieu/', master_views.data, name='master_data'),
     path('bang-tinh/<slug:code>/luu-json/', master_views.save, name='master_save'),

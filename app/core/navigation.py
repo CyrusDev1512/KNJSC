@@ -68,18 +68,17 @@ class NavGroup:
 NAVIGATION = (
     NavGroup("Tổng quan", (
         NavItem("tong_quan", "Tổng quan", "tong_quan"),
+        NavItem("bang_tin", "Bảng tin", "bang_tin"),
     )),
     # Nhóm Nội bộ — ADR-017: mọi cấp bậc, mọi bộ phận; phạm vi kiểm ở từng view
     NavGroup("Nội bộ", (
-        NavItem("bang_tin", "Bảng tin", "bang_tin"),
-        NavItem("tai_lieu", "Tài liệu", "tai_lieu"),
-        NavItem("cong_viec", "Công việc", "cong_viec"),
-        NavItem("van_hoa", "Đánh giá nhân sự", "van_hoa"),
+        NavItem("cong_viec", "Quản lý task", "cong_viec"),
         NavItem("tai_nguyen", "Tài nguyên", "tai_nguyen"),
     )),
     NavGroup("Tổ chức", (
         NavItem("nhan_su", "Nhân sự", "nhan_su", Rank.LEADER),
         NavItem("bo_phan", "Bộ phận và team", "bo_phan", Rank.ADMIN),
+        NavItem("van_hoa", "Đánh giá nhân sự", "van_hoa"),
     )),
     NavGroup("Báo cáo", (
         NavItem("bao_cao_ngay", "Nộp báo cáo ngày", "bao_cao_ngay"),
@@ -87,21 +86,14 @@ NAVIGATION = (
         # Mọi cấp bậc, mọi bộ phận — FR-5.5 lọc bằng phạm vi, không bằng cấp bậc
         NavItem("bao_cao_tong_hop", "Báo cáo tổng hợp", "bao_cao_tong_hop"),
     )),
-    NavGroup("Đơn hàng", (
-        NavItem("len_don", "Lên đơn", "len_don", departments=SALES_ONLY),
-        NavItem("don_hang", "Đơn hàng", "don_hang", departments=SALES_ONLY),
-    )),
     NavGroup("Dữ liệu", (
         NavItem("bang", "Bảng dữ liệu", "bang"),
-        # KN CRM là app riêng cho mọi bộ phận (ADR-012): ở ERP mục này là liên
-        # kết ngoài mở tab mới; ở chính KN CRM nó là liên kết trong về trang chủ
-        NavItem("bang_tinh", "KN CRM", "bang_tinh", external_setting="BANGTINH_URL", new_tab=True),
-        NavItem("bieu_mau", "Biểu mẫu", "bieu_mau", Rank.MANAGER),
-        NavItem("tac_vu", "Tác vụ nền", "tac_vu"),
+        NavItem("bieu_mau", "Biểu mẫu & tài liệu", "bieu_mau"),
     )),
     NavGroup("Quản trị", (
         NavItem("nhat_ky", "Nhật ký hoạt động", "nhat_ky", Rank.MANAGER),
         NavItem("ma_tran_quyen", "Ma trận phân quyền", "ma_tran_quyen", Rank.MANAGER),
+        NavItem("tac_vu", "Tác vụ nền", "tac_vu"),
     )),
 )
 

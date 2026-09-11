@@ -607,7 +607,7 @@
         const p=new URLSearchParams({record:row.id,column:filter.value});if(target)p.set('before',target);
         const data=await fetch(config.historyUrl+'?'+p).then(json);if(generation!==serial||state.historyId!==row.id)return;
         items.replaceChildren();if(!data.items.length)items.append(element('p','','Chưa có lịch sử khớp lựa chọn.'));
-        for(const h of data.items){const item=element('section','mg-history-item');item.append(element('strong','',`${h.actor} — ${h.name} · ${new Date(h.time).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})}`),element('p','',`${state.columns.find(c=>c.code===h.column)?.name||h.column} · ${propertyName(h.property)} · ${({edit:"Sửa",paste:"Dán",clear:"Xóa nội dung",format:"Định dạng",undo:"Hoàn tác",redo:"Làm lại"})[h.kind]||"Thay đổi"} · ${h.operation.slice(0,8)}`),element('pre','',`Trước: ${h.before??'Trống'}\nSau: ${h.after??'Trống'}`));items.append(item);}
+        for(const h of data.items){const item=element('section','mg-history-item');item.append(element('strong','',`${h.actor} · ${new Date(h.time).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})}`),element('p','',`${state.columns.find(c=>c.code===h.column)?.name||h.column} · ${propertyName(h.property)} · ${({edit:"Sửa",paste:"Dán",clear:"Xóa nội dung",format:"Định dạng",undo:"Hoàn tác",redo:"Làm lại"})[h.kind]||"Thay đổi"} · ${h.operation.slice(0,8)}`),element('pre','',`Trước: ${h.before??'Trống'}\nSau: ${h.after??'Trống'}`));items.append(item);}
         cursor=data.next;pageCursor=target;more.hidden=!cursor;back.hidden=!trail.length;
       }catch(e){if(e.status===403||e.status===404){body.replaceChildren(element('p','',e.message));}else items.append(element('p','',e.message));}
       finally{more.disabled=back.disabled=false;}

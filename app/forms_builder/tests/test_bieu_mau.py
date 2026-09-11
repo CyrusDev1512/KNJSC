@@ -176,7 +176,7 @@ def test_du_lieu_ghi_dung_bang_dich(client, bieu_mau, bang_mkt, nguoi_dung):
     bg = DataRecord.objects.get(table=bang_mkt)
     # Trường Marketer mang nhãn Người bán nên hệ thống tự ghi người gửi,
     # bỏ qua giá trị gõ tay — FR-4.6, AC-4.6
-    assert bg.data["marketer"] == "Staff Mkt"
+    assert bg.data["marketer"] == "staff_mkt"
     assert bg.val_revenue == Decimal("1425942850.00")
     assert bg.data["ti_le_chot"] == "6.76"      # cột tính sẵn tự tính
 
@@ -473,7 +473,7 @@ def test_lay_cap_quyen_chi_mot_lenh_truy_van(bang_mkt, nguoi_dung,
 # ══ Danh tính người điền tự ghi — FR-4.6 ════════════════════════════
 
 def test_dien_bieu_mau_tu_ghi_nguoi_ban(client, bieu_mau, bang_mkt, nguoi_dung):
-    """AC-4.6 — Trường Người bán tự ghi họ tên người gửi; gửi giá trị khác trong yêu cầu cũng không đổi được"""
+    """AC-4.6 — Trường Người bán tự ghi mã đăng nhập người gửi; gửi giá trị khác trong yêu cầu cũng không đổi được"""
     client.force_login(nguoi_dung["staff_mkt"])
     kq = client.post(f"/bieu-mau/{bieu_mau.code}/dien/", {
         "ngay": "2026-08-28", "marketer": "Ai đó khác", "so_mess": "10",
@@ -481,8 +481,8 @@ def test_dien_bieu_mau_tu_ghi_nguoi_ban(client, bieu_mau, bang_mkt, nguoi_dung):
     })
     assert kq.status_code == 302
     dong = DataRecord.objects.get(table=bang_mkt)
-    assert dong.data["marketer"] == "Staff Mkt"
-    assert dong.val_seller == "Staff Mkt"
+    assert dong.data["marketer"] == "staff_mkt"
+    assert dong.val_seller == "staff_mkt"
 
 
 def test_nop_bao_cao_ngay_tu_ghi_nguoi_ban(bieu_mau, bang_mkt, nguoi_dung):
@@ -492,7 +492,7 @@ def test_nop_bao_cao_ngay_tu_ghi_nguoi_ban(bieu_mau, bang_mkt, nguoi_dung):
     from reports.services import daily_service
 
     nv = nguoi_dung["staff_mkt"]
-    nv.profile.full_name = ""
+    nv.profile.full_name = "Họ tên khác mã nhân viên"
     nv.profile.save(update_fields=["full_name"])
     bao_cao = daily_service.submit(
         bieu_mau, {"ngay": "2026-08-28", "marketer": "Giả mạo", "so_mess": "10"},
@@ -508,5 +508,5 @@ def test_o_nguoi_ban_tren_man_hinh_chi_doc(client, bieu_mau, nguoi_dung):
     for url in (f"/bieu-mau/{bieu_mau.code}/dien/", f"/bao-cao/?bieu_mau={bieu_mau.code}"):
         html = client.get(url).content.decode()
         assert 'name="marketer"' not in html, url
-        assert 'value="Staff Mkt" readonly' in html, url
+        assert 'value="staff_mkt" readonly' in html, url
         assert "Chính là bạn, hệ thống tự ghi" in html, url

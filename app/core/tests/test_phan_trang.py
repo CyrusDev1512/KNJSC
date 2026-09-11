@@ -26,11 +26,11 @@ def test_tim_co_dau_va_van_giu_qua_phan_trang(client, nguoi_dung, departments):
         document_service.upload_document(
             title=f"Sale & Marketing {i:02d}", category=muc, link="https://vi.du/x", actor=nguoi_dung["admin"])
     client.force_login(nguoi_dung["staff_vd"])
-    kq = client.get("/tai-lieu/", {"tim": "Sale & Marketing"})
+    kq = client.get("/bieu-mau/", {"tab": "documents", "tim": "Sale & Marketing"})
     assert kq.context["page_obj"].paginator.count == 27
-    assert kq.context["qs_loc"] == "&tim=Sale+%26+Marketing"
+    assert kq.context["qs_loc"] == "&tab=documents&tim=Sale+%26+Marketing"
     assert "&amp;tim=Sale+%26+Marketing" in kq.content.decode()
-    kq2 = client.get("/tai-lieu/", {"tim": "Sale & Marketing", "trang": 2})
+    kq2 = client.get("/bieu-mau/", {"tab": "documents", "tim": "Sale & Marketing", "trang": 2})
     assert len(kq2.context["trang"]) == 2 and kq2.context["page_obj"].paginator.count == 27
 
 

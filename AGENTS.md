@@ -82,7 +82,8 @@ riêng của Claude có sẵn trong môi trường Codex.
 - Hệ thống vận hành thương mại điện tử của Kim Ngân JSC: Marketing → Sale → Vận đơn,
   cùng các module nội bộ. Stack Django, PostgreSQL, HTMX, CSS/JavaScript thuần,
   Celery/Redis và Docker Compose; giữ kiến trúc modular monolith hiện có.
-- **KNERP**: dịch vụ `web`, cổng local 8020; báo cáo, lên đơn và các chức năng ERP.
+- **KNERP**: dịch vụ `web`, cổng local 8020; báo cáo và các chức năng ERP.
+  Lên đơn chỉ còn ở CRM; ERP giữ URL GET chuyển tiếp theo [ADR-023](docs/quyet-dinh/023-dieu-huong-erp-va-len-don-crm.md).
   **Bảng dữ liệu chỉ đọc với mọi bảng**, không mở sửa ô hoặc endpoint ghi lưới ở ERP
   ([ADR-014](docs/quyet-dinh/014-bang-du-lieu-chi-xem.md)).
 - **KN CRM**: dịch vụ `bangtinh`, cổng local 8021, dùng chung code và database;
@@ -109,8 +110,8 @@ riêng của Claude có sẵn trong môi trường Codex.
   Không mở rộng công thức theo cột thành công thức Excel tự do từng ô khi chưa chốt.
 - Với vận đơn, đọc [ADR-018](docs/quyet-dinh/018-van-don-moi-theo-crm-tan.md):
   `van_don` là bảng cũ, `van_don_moi` nhận đơn mới. Giữ ID và liên kết lịch sử;
-  không áp hành vi riêng của bảng cũ sang bảng mới. ERP và CRM tạo đơn qua cùng
-  service; quyền tạo đơn không đồng nghĩa quyền xem bảng.
+  không áp hành vi riêng của bảng cũ sang bảng mới. CRM tạo đơn qua service `orders` dùng chung; ERP không còn form nhập đơn.
+  Quyền tạo đơn không đồng nghĩa quyền xem bảng hoặc đơn gốc ngoài phạm vi.
 
 ## 4. Quy tắc dữ liệu và triển khai
 

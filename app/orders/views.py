@@ -6,38 +6,17 @@ nhất; gọi thẳng cũng không có gì để gọi.
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 
-from core.constants import Currency, Rank
+from core.constants import Rank
 from core.exceptions import BusinessError
 from core.navigation import SALES_ONLY
-from core.permissions import assert_departments, assert_rank, has_rank
-from core.pagination import pagination_context
+from core.permissions import assert_departments, assert_rank
 
-from .constants import Market, PaymentMethod
 from .models import Product
 from .services import order_service, product_service
-
-
-def _doc_cac_dong(request):
-    """Đọc các dòng sản phẩm trên biểu mẫu.
-
-    Ô nhập đặt tên `sp_0`, `sl_0`, `gia_0`... Dòng nào chưa chọn sản phẩm thì
-    bỏ qua, để người dùng thêm sẵn ô trống mà vẫn gửi được.
-    """
-    cac_dong = []
-    for i in range(20):
-        ma_sp = request.POST.get(f"sp_{i}", "").strip()
-        if not ma_sp:
-            continue
-        cac_dong.append({
-            "product": ma_sp,
-            "quantity": request.POST.get(f"sl_{i}", "1").strip() or "1",
-            "unit_price": request.POST.get(f"gia_{i}", "0").strip() or "0",
-        })
-    return cac_dong
 
 
 def _muc_san_pham():
@@ -64,61 +43,11 @@ def san_pham_moi(request):
         )
     except BusinessError as loi:
         return HttpResponse(str(loi), status=400)
+    if request.headers.get("Accept") == "application/json":
+        return JsonResponse({"code": san_pham.code, "name": san_pham.name})
     return render(request, "components/o_chon_muc.html", {
         "cac_muc": _muc_san_pham(), "gia_tri": san_pham.code, "co_them": True,
         "nhan_trong": "— chọn sản phẩm —",
-    })
-
-
-@login_required
-def len_don(request):
-    """Lên một đơn hàng mới — FR-6.1, FR-6.2, FR-6.3."""
-    request.nav_current = "len_don"
-    # Lên đơn là chức năng của Sale — ma trận kiểm chéo `docs/04` mục 3 ghi rõ
-    # Vận đơn bị từ chối. Kiểm ở máy chủ, không chỉ ẩn mục trên thanh bên (P1)
-    assert_departments(request.user, SALES_ONLY, request)
-
-    du_lieu = request.POST if request.method == "POST" else {}
-    loi = []
-    nhac_khach = order_service.customer_notice(du_lieu.get("phone", ""))
-
-    if request.method == "POST":
-        try:
-            don = order_service.create_order(
-                phone=du_lieu.get("phone", ""),
-                customer_name=du_lieu.get("customer_name", ""),
-                facebook=du_lieu.get("facebook", ""),
-                email=du_lieu.get("email", ""),
-                market=du_lieu.get("market") or Market.US,
-                state=du_lieu.get("state", ""),
-                city=du_lieu.get("city", ""),
-                zipcode=du_lieu.get("zipcode", ""),
-                address_line=du_lieu.get("address_line", ""),
-                payment_method=du_lieu.get("payment_method") or PaymentMethod.CARD,
-                currency=du_lieu.get("currency") or Currency.USD,
-                sub_unit=du_lieu.get("sub_unit", ""),
-                note=du_lieu.get("note", ""),
-                lines=_doc_cac_dong(request),
-                actor=request.user, request=request,
-            )
-            messages.success(
-                request,
-                f"Đã lưu đơn {don.code} và ghi sang bảng vận đơn. Đơn đã khoá.",
-            )
-            return redirect("don_hang")
-        except BusinessError as e:
-            # AC-6.1: từ chối nhưng không mất dữ liệu đã nhập
-            loi.append(str(e))
-
-    return render(request, "orders/len_don.html", {
-        "d": du_lieu, "loi": loi, "nhac_khach": nhac_khach,
-        "cac_muc_sp": _muc_san_pham(),
-        # Manager thêm sản phẩm ngay tại ô chọn — FR-6.8, Q61
-        "duoc_them_sp": has_rank(request.user, Rank.MANAGER),
-        "cac_thi_truong": Market.choices,
-        "cac_pttt": PaymentMethod.choices,
-        "cac_loai_tien": Currency.choices,
-        "cac_dong": _doc_cac_dong(request) or [{}],
     })
 
 
@@ -129,39 +58,27 @@ def kiem_khach(request):
     Dùng bằng HTMX ngay khi gõ xong số điện thoại, để người lên đơn biết
     trước chứ không phải gửi rồi mới biết.
     """
+    assert_departments(request.user, SALES_ONLY, request)
     nhac = order_service.customer_notice(request.GET.get("phone", ""))
     return render(request, "orders/_nhac_khach.html", {"nhac_khach": nhac})
 
 
 @login_required
-def don_hang(request):
-    """Danh sách đơn trong phạm vi quyền — FR-6.5."""
-    request.nav_current = "don_hang"
-    assert_departments(request.user, SALES_ONLY, request)
-
-    ds = order_service.orders_of(request.user)
-    tim = request.GET.get("tim", "").strip()
-    if tim:
-        ds = ds.filter(customer__phone__icontains=tim)
-    thi_truong = request.GET.get("thi_truong", "")
-    if thi_truong:
-        ds = ds.filter(market=thi_truong)
-
-    boi_canh = {"tim": tim, "thi_truong": thi_truong, "cac_thi_truong": Market.choices}
-    boi_canh.update(pagination_context(request, ds, "đơn"))
-    return render(request, "orders/don_hang.html", boi_canh)
-
-
-@login_required
+@require_GET
 def don_xem(request, code):
     """Xem lại một đơn đã lưu. Chỉ đọc — BR-3."""
-    request.nav_current = "don_hang"
+    request.nav_current = "waybill_create"
     don = get_object_or_404(
-        order_service.orders_of(request.user).prefetch_related("lines__product"),
+        order_service.orders_of(request.user).select_related("record"),
         code=code,
     )
+    from forms_builder.models import DataRecord
+    from django.urls import reverse
+    row = DataRecord.objects.in_scope(request.user).filter(pk=don.record_id).select_related("table").first()
     return render(request, "orders/don_xem.html", {
+        "van_don_url": reverse("bang_tinh_xem", args=[row.table.code]) if row else None,
         "don": don,
+        "ve_url": "/thu-muc/", "ve_nhan": "Về Bảng tính — thư mục",
         "cac_dong": list(don.lines.select_related("product")),
         "duoc_bo": don.created_by_id == request.user.pk,
     })
@@ -174,8 +91,8 @@ def don_bo(request, code):
     don = get_object_or_404(order_service.orders_of(request.user), code=code)
     if don.created_by_id != request.user.pk:
         messages.error(request, "Chỉ người lên đơn mới bỏ được đơn của mình.")
-        return redirect("don_hang")
+        return redirect("thu_muc")
 
     order_service.cancel_order(don, actor=request.user, request=request)
     messages.success(request, f"Đã bỏ đơn {code}. Dòng trên bảng vận đơn cũng đã gỡ.")
-    return redirect("don_hang")
+    return redirect("thu_muc")

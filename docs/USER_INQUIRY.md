@@ -148,6 +148,15 @@ Lưu dữ liệu hoặc Ctrl+S mới ghi database. Rời bảng/tải lại/đó
 chưa lưu, không hỏi ba lựa chọn. Phân công, Chi tiết và Nhập Excel vẫn xác nhận
 riêng. Menu … gom Lưu dữ liệu, Nhập/Xuất, Phân công; Chia sẻ link chưa triển khai.
 
+## 11.09.2026 — Bỏ khung nhập che bảng
+
+**Hỏi:** Chỉnh sửa nhập ngay trong ô, Tab/Enter chuyển ô; chọn vùng rồi
+dán/xóa/định dạng vẫn dùng autosave và kiểm xung đột, được không?
+
+**Chủ dự án duyệt:** Có; đồng thời sửa lỗi Admin lúc bấm được lúc không và
+tiếp tục chạy bền. Ô tổng, chi tiết và phân công giữ cơ chế riêng.
+Không mở thêm quyền hay đổi quy tắc trạng thái thanh toán.
+
 ## 10.09.2026 — Chốt chín hạng mục Vận đơn mới
 
 1. Lưu thế nào? Tự lưu nền sau kết thúc sửa; 500ms/tối đa 2s. Không hỏi khi
@@ -159,6 +168,7 @@ riêng. Menu … gom Lưu dữ liệu, Nhập/Xuất, Phân công; Chia sẻ lin
    cả lượt được kiểm lại; không lưu một phần hoặc ghi đè âm thầm.
 5. Admin đứng đơn? Chỉ CRM thêm chọn Sale. Admin là người thực hiện, Sale
    là người đứng đơn; phòng ban/team của đơn theo Sale.
+   **Thay thế 11.09.2026:** chủ dự án chốt Admin cũng tự đứng đơn bằng mã của mình, bỏ chọn Sale. Admin thử nghiệm không thuộc Sale dùng Sale/team trống làm giá trị nội bộ; không đổi hồ sơ. Chi tiết ADR-023.
 6. Chế độ Chỉnh sửa? Mũi tên trong chữ, Tab chuyển ô, Enter ô một dòng xuống
    hàng; nhiều dòng dùng Ctrl+Enter kết thúc. Mặc định vẫn là chế độ Xem.
 7. Lịch sử lưu ở đâu, có chậm/phình không? Sau triển khai: PostgreSQL

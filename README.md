@@ -1,5 +1,7 @@
 # Kim Ngân JSC — Hệ thống vận hành nội bộ
 
+> Cập nhật 11.09.2026: [ADR-023](docs/quyet-dinh/023-dieu-huong-erp-va-len-don-crm.md) chốt Lên đơn tại CRM, xem đơn gốc từ vận đơn và thư viện Biểu mẫu & tài liệu hai tab trên ERP. Bảng dữ liệu ERP vẫn chỉ đọc.
+
 Hệ thống quản lý vận hành cho công ty thương mại điện tử xuyên biên giới.
 Ba bộ phận Sale, Marketing và Vận đơn làm việc trên cùng một nơi, mỗi người
 chỉ thấy phần thuộc quyền của mình.

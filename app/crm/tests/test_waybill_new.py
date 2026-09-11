@@ -149,8 +149,6 @@ def test_direct_routes_permissions_both_directions(client, setup, departments, m
     client.force_login(sale)
     assert client.get(ENTRY).status_code == 200
     data = form_data(setup[2])
-    if rank == Rank.ADMIN:
-        data['seller'] = nguoi_dung['staff_sale_1'].pk
     assert client.post(ENTRY, data).status_code == 200
     expected = 200 if rank == Rank.ADMIN else 403
     assert client.get(detail).status_code == expected
@@ -294,15 +292,11 @@ def test_standalone_entry_htmx_success_and_validation(client, setup, nguoi_dung)
     assert Order.objects.count() == 1 and DataRecord.objects.filter(table=setup[1]).count() == 1
 
 
-def test_erp_entry_still_dispatches_to_new_table(client, setup, nguoi_dung, settings):
-    """ADR-019 — Gỡ form nhúng không đổi nơi nhận của trang Lên đơn ERP."""
+def test_erp_entry_rejects_legacy_write(client, setup, nguoi_dung, settings):
+    """Chuyển Lên đơn sang CRM: URL ERP không còn tạo đơn."""
     settings.ROOT_URLCONF = "knjsc.urls"
     client.force_login(nguoi_dung["staff_sale_1"])
-    response = client.post("/len-don/", {
-        "phone": "2025550199", "customer_name": "Khách kiểm thử ERP",
-        "sp_0": setup[2][0].code, "sl_0": "2", "gia_0": "10.10",
-        "market": Market.US, "currency": Currency.USD,
-    })
-    assert response.status_code == 302
-    assert Order.objects.get().record.table_id == setup[1].pk
-    assert DataRecord.objects.filter(table=setup[1]).count() == 1
+    response = client.post("/len-don/", {"phone": "2025550199", "customer_name": "Khách thử"})
+    assert response.status_code == 405
+    assert not Order.objects.exists()
+    assert not DataRecord.objects.filter(table=setup[1]).exists()

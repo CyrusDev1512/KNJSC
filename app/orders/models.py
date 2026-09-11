@@ -56,6 +56,7 @@ class WaybillItem(TimestampedModel, SoftDeleteModel):
                                related_name="waybill_items")
     product = models.ForeignKey("orders.Product", on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField("Số lượng")
+    unit = models.CharField("Đơn vị tính", max_length=40, blank=True, default="")
     unit_price = money_field("Đơn giá")
     paid_amount = money_field("Đã thanh toán", default=Decimal("0.00"))
 
@@ -270,6 +271,7 @@ class OrderLine(TimestampedModel):
         on_delete=models.PROTECT, related_name="order_lines", db_index=True,
     )
     quantity = models.PositiveIntegerField("Số lượng", default=1)
+    unit = models.CharField("Đơn vị tính", max_length=40, blank=True, default="")
     unit_price = money_field("Đơn giá")
 
     class Meta:
