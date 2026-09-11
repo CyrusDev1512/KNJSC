@@ -116,6 +116,7 @@ Trong tình huống nào thì nên xem lại quyết định này.
 | 019 | [Gỡ Lên đơn nhúng khỏi bảng Vận đơn](019-tach-len-don-khoi-bang-van-don.md), giữ trang riêng và thống kê | Đã áp dụng | 09.09.2026 |
 | 020 | [Phân công, lọc và xuất Vận đơn mới](020-phan-cong-loc-xuat-van-don-moi.md), phạm vi theo tài khoản và kiểm lại quyền file nền | Đã áp dụng | 09.09.2026 |
 | 021 | [Lưới master và Thống kê KN CRM](021-luoi-master-va-thong-ke-crm.md), tải khối/ảo hóa, CAS và biên nhận, biểu đồ riêng | Đã triển khai, kiểm chứng local; xem test-log | 10.09.2026 |
+| 022 | [Bàn điều hành KN CRM theo nguồn dữ liệu](022-ban-dieu-hanh-kn-crm.md), tổng hợp Marketing–Sale–Vận đơn và phân tích từng bảng | Đã triển khai và kiểm chứng local; xem test-log | 11.09.2026 |
 
 ---
 

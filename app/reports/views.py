@@ -12,6 +12,7 @@ from io import BytesIO
 from urllib.parse import urlencode
 
 from django.contrib import messages
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -181,6 +182,10 @@ def bao_cao_tong_hop(request):
         "qs": _query_loc(tham_so, bang),
         # Đuôi nối vào liên kết phân trang để không mất trạng thái lọc
         "qs_loc": "&" + _query_loc(tham_so, bang),
+        "crm_dashboard_url": (
+            settings.BANGTINH_URL.rstrip("/") + "/thong-ke/"
+            if settings.BANGTINH_URL else ""
+        ),
     }
 
     if bang is not None and not boi_canh["hoan_thi_truong"]:

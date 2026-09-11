@@ -1,27 +1,172 @@
 {% extends 'crm/base_crm.html' %}{% load static %}
-{% block tieu_de %}Thống kê Vận đơn · KN CRM{% endblock %}
+{% block tieu_de %}Bàn điều hành · KN CRM{% endblock %}
 {% block ten_trang %}Thống kê{% endblock %}
-{% block dau_trang %}<link rel="stylesheet" href="{% static 'css/master-grid.css' %}?v={{ phien_ban_tinh }}">{% endblock %}
+{% block dau_trang %}<link rel="stylesheet" href="{% static 'css/executive-statistics.css' %}?v={{ phien_ban_tinh }}">{% endblock %}
 {% block noi_dung %}
-<section class="ms-page">
-  <header class="ms-title"><div><h1>Thống kê Vận đơn</h1><p>Cập nhật {{ updated|date:'H:i:s d/m/Y' }} · Theo dữ liệu bạn được phép xem</p></div><a class="nut" href="?{{ params }}">Làm mới</a><a class="nut nut-chinh" href="{% url 'bang_tinh_xem' bang.code %}?{{ qs_giu }}">Mở bảng với bộ lọc này</a></header>
-  <details class="ms-filter"><summary>Bộ lọc thống kê</summary>{% include 'crm/_master_filters.html' %}</details>
-  <div class="mg-chips">{% for label, url in chips %}<a href="{{ url }}">{{ label }} ×</a>{% endfor %}</div>
-  <section class="ms-summary" aria-label="Tổng quan"><div><b>{{ summary.orders }}</b><span>Đơn khớp bộ lọc</span></div><div><b>{{ summary.quantity }}</b><span>Sản phẩm</span></div>
-    {% for r in summary.totals %}<div><b>{{ r.value|floatformat:2 }} {{ r.record__data__loai_tien }}</b><span>Giá trị · Đã thanh toán {{ r.paid|floatformat:2 }} {{ r.record__data__loai_tien }}</span></div>{% endfor %}
+<main class="exec-page">
+  <header class="exec-heading">
+    <div>
+      <h1>{% if executive_owner %}Bàn điều hành chủ sở hữu{% else %}Bàn điều hành{% endif %}</h1>
+      <p>{% if dashboard.profile == 'overview' %}Marketing – Sale – Vận đơn trong phạm vi bạn được xem{% elif source_table %}Phân tích {{ source_table.name }}{% else %}Số liệu vận hành trong phạm vi bạn được xem{% endif %} · Cập nhật {{ updated|date:'H:i d/m/Y' }}</p>
+    </div>
+    <a class="nut" href="?{{ params }}">Làm mới số liệu</a>
+  </header>
+
+  <form class="exec-controls" method="get" aria-label="Bộ lọc Bàn điều hành">
+    <label>Nguồn phân tích
+      <select name="nguon">
+        <option value="">Tổng hợp Marketing – Sale – Vận đơn</option>
+        {% for source in sources %}<option value="{{ source.code }}"{% if selected_source == source.code %} selected{% endif %}>{{ source.name }} · {{ source.profile_label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Từ ngày <input type="date" name="tu" value="{{ date_from|date:'Y-m-d' }}"></label>
+    <label>Đến ngày <input type="date" name="den" value="{{ date_to|date:'Y-m-d' }}"></label>
+    {% if dashboard.profile == 'waybill' %}
+    <label>Cách nhóm
+      <select name="group">{% for code,label in groups %}<option value="{{ code }}"{% if code == group %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    </label>
+    {% endif %}
+    <button class="nut nut-chinh" type="submit">Áp dụng</button>
+  </form>
+
+  {% if date_errors %}
+  <section class="exec-error" role="alert">
+    <h2>Chưa thể tính số liệu</h2>
+    {% for error in date_errors %}<p>{{ error }}</p>{% endfor %}
   </section>
-  {% if summary.missing %}<p>{{ summary.missing }} đơn chưa có chi tiết sản phẩm: được tính vào số đơn, chưa có cơ sở tính số lượng và tiền.</p>{% endif %}
-  <div class="ms-charts">{% for chart in charts %}<section class="ms-chart"><h2>{{ chart.title }}</h2><p>{{ chart.note }}</p>
-    {% if chart.total %}
-    {% if chart.kind == 'donut' %}<div class="ms-donut"><svg viewBox="0 0 120 120" role="img" aria-label="{{ chart.title }}"><title>{{ chart.title }} — {{ chart.total }} đơn</title><circle cx="60" cy="60" r="44" fill="none" stroke="#e3e3ec" stroke-width="16"/>{% for g in chart.groups %}<circle cx="60" cy="60" r="44" pathLength="100" fill="none" stroke="{{ g.color }}" stroke-width="16" stroke-dasharray="{{ g.dash }}" stroke-dashoffset="{{ g.offset }}" transform="rotate(-90 60 60)"><title>{{ g.label }}: {{ g.value }} đơn ({{ g.percent }}%)</title></circle>{% endfor %}<text x="60" y="63" text-anchor="middle" fill="currentColor" font-size="14">{{ chart.total }}</text></svg>
-    <ul>{% for g in chart.groups %}<li><span style="background:{{ g.color }}"></span>{{ g.label }} <b>{{ g.value }}</b> <small>{{ g.percent }}%</small></li>{% endfor %}</ul></div>
-    {% else %}<div class="ms-bar-list">{% for g in chart.groups %}<div><div class="ms-bar-label"><span>{{ g.label }}</span><b>{{ g.value }}</b></div><svg class="ms-bar" viewBox="0 0 500 20" preserveAspectRatio="none" role="img" aria-label="{{ g.label }}: {{ g.value }}"><title>{{ g.label }}: {{ g.value }}</title><rect x="0" y="1" width="{{ g.width }}" height="18" rx="2" fill="{{ g.color }}"/></svg></div>{% endfor %}</div>{% endif %}
-    {% else %}<p class="ms-empty">Chưa có dữ liệu khớp bộ lọc.</p>{% endif %}
-    <details><summary>Số liệu đối chiếu</summary><table class="bang"><thead><tr><th>Nhóm</th><th>Số lượng</th></tr></thead><tbody>{% for g in chart.table_groups %}<tr><td>{{ g.label }}</td><td>{{ g.value }}</td></tr>{% empty %}<tr><td colspan="2">Không có dữ liệu.</td></tr>{% endfor %}</tbody></table>{% if chart.page %}<nav>{% if chart.page.has_previous %}<a href="{{ chart.page_url }}{{ chart.page.previous_page_number }}">Trước</a>{% endif %} Trang {{ chart.page.number }} / {{ chart.page.paginator.num_pages }} · {{ chart.page.paginator.count }} nhóm {% if chart.page.has_next %}<a href="{{ chart.page_url }}{{ chart.page.next_page_number }}">Sau</a>{% endif %}</nav>{% endif %}</details>
-  </section>{% endfor %}</div>
-  <section class="ms-table"><h2>Bảng tổng hợp</h2><form method="get">{% for k,v in filters %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}<label>Cách nhóm <select aria-label="Cách nhóm" name="group" onchange="this.form.requestSubmit()">{% for code,label in groups %}<option value="{{ code }}"{% if code == group %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label><button class="nut">Áp dụng</button></form>
-  <p>Tách riêng loại tiền. Bao gồm đơn Hủy/Hoàn nếu chưa lọc trạng thái. Đơn nhiều sản phẩm có thể thuộc nhiều nhóm; không cộng số đơn giữa các nhóm sản phẩm.</p>
-  <div class="ms-scroll"><table class="bang"><thead><tr><th>Nhóm</th><th>Loại tiền</th><th>Số đơn</th><th>Số lượng</th><th>Giá trị</th><th>Đã thanh toán</th></tr></thead><tbody>{% for r in results %}<tr><td>{{ r.label|default:'Chưa có' }}</td><td>{{ r.currency }}</td><td>{{ r.orders }}</td><td>{{ r.quantity }}</td><td>{{ r.value|floatformat:2 }}</td><td>{{ r.paid|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="6">Chưa có vận đơn khớp bộ lọc.</td></tr>{% endfor %}</tbody></table></div>
-  <nav>{% if page.has_previous %}<a href="?{{ params }}&trang={{ page.previous_page_number }}">Trang trước</a>{% endif %} Trang {{ page.number }} / {{ page.paginator.num_pages }} {% if page.has_next %}<a href="?{{ params }}&trang={{ page.next_page_number }}">Trang sau</a>{% endif %}</nav></section>
-</section>
+  {% elif not sources %}
+  <section class="exec-empty"><h2>Chưa có nguồn dữ liệu</h2><p>Khi bạn có quyền xem ít nhất một bảng đang hoạt động, nguồn đó sẽ xuất hiện tại đây.</p></section>
+  {% elif dashboard %}
+    {% if dashboard.profile == 'overview' %}
+    <form class="exec-source-strip" method="get" aria-label="Ba nguồn cho góc nhìn tổng hợp">
+      <input type="hidden" name="tu" value="{{ date_from|date:'Y-m-d' }}">
+      <input type="hidden" name="den" value="{{ date_to|date:'Y-m-d' }}">
+      <label>Marketing
+        <select name="mkt_nguon"><option value="">Chưa có nguồn phù hợp</option>{% for source in profile_choices.marketing %}<option value="{{ source.code }}"{% if dashboard.selected_sources.marketing == source.code %} selected{% endif %}>{{ source.name }}</option>{% endfor %}</select>
+      </label>
+      <label>Sale
+        <select name="sale_nguon"><option value="">Chưa có nguồn phù hợp</option>{% for source in profile_choices.sale %}<option value="{{ source.code }}"{% if dashboard.selected_sources.sale == source.code %} selected{% endif %}>{{ source.name }}</option>{% endfor %}</select>
+      </label>
+      <label>Vận đơn
+        <select name="vd_nguon"><option value="">Chưa có nguồn phù hợp</option>{% for source in profile_choices.waybill %}<option value="{{ source.code }}"{% if dashboard.selected_sources.waybill == source.code %} selected{% endif %}>{{ source.name }}</option>{% endfor %}</select>
+      </label>
+      <button class="nut" type="submit">Đổi nguồn</button>
+    </form>
+    {% endif %}
+
+    {% if dashboard.insights %}
+    <section class="exec-briefing" aria-labelledby="briefing-title">
+      <div class="exec-section-heading"><h2 id="briefing-title">Điều cần biết lúc này</h2><p>Nhận định theo quy tắc, không tự thay đổi dữ liệu.</p></div>
+      <ol>
+        {% for insight in dashboard.insights %}
+        <li class="is-{{ insight.tone }}">
+          <div><h3>{{ insight.situation }}</h3><p>{{ insight.evidence }}</p><small>Nguồn: {{ insight.source }}</small></div>
+          <a class="nut" href="{{ insight.href }}">Mở dữ liệu</a>
+        </li>
+        {% endfor %}
+      </ol>
+    </section>
+    {% endif %}
+
+    {% if dashboard.profile == 'overview' %}
+    <section class="exec-pulse" aria-label="Tình hình theo bộ phận">
+      {% for key,section in dashboard.sections.items %}
+      <article>
+        <div><h2>{{ section.title }}</h2><p>{{ section.source_name }}</p></div>
+        {% if section.ok %}
+          <dl>
+            {% for item in section.metrics|slice:':2' %}<div><dt>{{ item.label }}</dt><dd>{{ item.value|floatformat:'-2' }}{{ item.suffix }}</dd></div>{% endfor %}
+            {% for item in section.money|slice:':1' %}<div><dt>{{ item.label }} · {{ item.currency }}</dt><dd>{{ item.value|floatformat:'-2' }}</dd></div>{% endfor %}
+          </dl>
+          <a href="?nguon={{ section.source_code }}&tu={{ date_from|date:'Y-m-d' }}&den={{ date_to|date:'Y-m-d' }}">Xem chuyên sâu</a>
+        {% else %}
+          <p>{{ section.message }}</p><a href="{{ section.open_url }}">Mở bảng nguồn</a>
+        {% endif %}
+      </article>
+      {% empty %}
+      <div class="exec-empty"><h2>Chưa nhận diện được nguồn chuyên biệt</h2><p>Chọn một bảng ở ô “Nguồn phân tích” để xem chế độ chung và phần cấu hình còn thiếu.</p></div>
+      {% endfor %}
+    </section>
+    {% else %}
+      {% if dashboard.legacy_note %}<p class="exec-history-note">{{ dashboard.legacy_note }}</p>{% endif %}
+      {% if dashboard.missing %}<section class="exec-warning"><h2>Cấu hình còn thiếu</h2><p>Cần gán nhãn: {{ dashboard.missing|join:', ' }}. Hệ thống không tự đoán cột dữ liệu.</p></section>{% endif %}
+      {% if dashboard.ok %}
+      <section class="exec-kpis" aria-label="Chỉ số chính">
+        {% for item in dashboard.metrics %}
+        <div><span>{{ item.label }}</span><strong>{{ item.value|default_if_none:'—'|floatformat:'-2' }}{{ item.suffix }}</strong></div>
+        {% endfor %}
+        {% for item in dashboard.money %}
+        <div><span>{{ item.label }} · {{ item.currency }}</span><strong>{{ item.value|default_if_none:'—'|floatformat:'-2' }}</strong></div>
+        {% endfor %}
+        {% for item in dashboard.paid %}
+        <div><span>{{ item.label }} · {{ item.currency }}</span><strong>{{ item.value|default_if_none:'—'|floatformat:'-2' }}</strong></div>
+        {% endfor %}
+        {% for item in dashboard.ratios %}
+        <div><span>{{ item.label }} · {{ item.currency }}</span><strong>{{ item.value|default_if_none:'—'|floatformat:'-2' }}</strong></div>
+        {% endfor %}
+        {% for item in dashboard.aov %}
+        <div><span>AOV · {{ item.currency }}</span><strong>{{ item.value|default_if_none:'—'|floatformat:'-2' }}</strong></div>
+        {% endfor %}
+      </section>
+      {% else %}
+      <section class="exec-error"><h2>Phần số liệu tạm chưa khả dụng</h2><p>{{ dashboard.message }}</p><a href="{{ dashboard.open_url }}">Mở bảng nguồn</a></section>
+      {% endif %}
+    {% endif %}
+
+    {% if dashboard.charts %}
+    <section class="exec-chart-grid" aria-label="Biểu đồ vận hành">
+      {% for chart in dashboard.charts %}
+      <article class="exec-chart">
+        <header><h2>{{ chart.title }}</h2><p>{{ chart.note }}</p></header>
+        {% if chart.kind == 'line' %}
+        <div class="exec-line-wrap">
+          <svg viewBox="0 0 {{ chart.view_width }} {{ chart.view_height }}" role="img" tabindex="0" aria-label="{{ chart.title }}">
+            <title>{{ chart.title }}. {{ chart.note }}</title>
+            <line x1="38" y1="{{ chart.axis_y }}" x2="662" y2="{{ chart.axis_y }}" class="exec-axis"/>
+            {% for series in chart.series %}
+            <polyline points="{{ series.points }}" fill="none" stroke="{{ series.color }}" stroke-width="3" vector-effect="non-scaling-stroke"/>
+            {% for dot in series.dots %}<circle cx="{{ dot.x }}" cy="{{ dot.y }}" r="4" fill="{{ series.color }}"><title>{{ series.label }} · {{ dot.label }}: {{ dot.value }}</title></circle>{% if dot.show_label %}<text x="{{ dot.x }}" y="{{ dot.label_y }}" text-anchor="middle" class="exec-point-label">{{ dot.value|floatformat:'-2' }}</text>{% endif %}{% endfor %}
+            {% endfor %}
+          </svg>
+          <ul class="exec-legend">{% for series in chart.series %}<li><span style="--series:{{ series.color }}"></span>{{ series.label }}</li>{% endfor %}</ul>
+        </div>
+        {% else %}
+        <div class="exec-bars">
+          {% for group in chart.groups %}
+          <div class="exec-bar-row">
+            <div><span>{{ group.label }}</span><strong>{{ group.value|floatformat:'-2' }}</strong></div>
+            <svg viewBox="0 0 532 24" preserveAspectRatio="none" role="img" tabindex="0" aria-label="{{ group.label }}: {{ group.value }}">
+              <title>{{ group.label }}: {{ group.value }}</title>
+              <polygon points="{{ group.depth_points }}" fill="{{ group.color }}" class="exec-bar-depth"/>
+              <rect x="0" y="4" width="{{ group.width }}" height="18" fill="{{ group.color }}" class="exec-bar-front"/>
+            </svg>
+          </div>
+          {% empty %}<p class="exec-empty-inline">Chưa có dữ liệu khớp bộ lọc.</p>{% endfor %}
+        </div>
+        {% endif %}
+        <details>
+          <summary>Số liệu đối chiếu</summary>
+          <div class="exec-table-scroll"><table><thead><tr><th>Nhóm</th>{% if chart.series %}{% for series in chart.series %}<th>{{ series.label }}</th>{% endfor %}{% else %}<th>{{ chart.value_label }}</th>{% endif %}</tr></thead>
+          <tbody>
+            {% for row in chart.page.object_list %}<tr><td>{{ row.label }}</td>{% if row.values %}{% for value in row.values %}<td>{{ value|floatformat:'-2' }}</td>{% endfor %}{% else %}<td>{{ row.value|floatformat:'-2' }}</td>{% endif %}</tr>
+            {% empty %}<tr><td colspan="3">Không có dữ liệu.</td></tr>{% endfor %}
+          </tbody></table></div>
+          {% if chart.page.paginator.num_pages > 1 %}<nav class="exec-pagination">{% if chart.page.has_previous %}<a href="{{ chart.page_url }}{{ chart.page.previous_page_number }}">Trước</a>{% endif %}<span>Trang {{ chart.page.number }} / {{ chart.page.paginator.num_pages }}</span>{% if chart.page.has_next %}<a href="{{ chart.page_url }}{{ chart.page.next_page_number }}">Sau</a>{% endif %}</nav>{% endif %}
+        </details>
+      </article>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if dashboard.profile == 'waybill' and summary %}
+    <section class="exec-reconcile">
+      <div class="exec-section-heading"><h2>Bảng đối chiếu Vận đơn</h2><p>Tách riêng loại tiền; giữ tương thích cách nhóm và bộ lọc hiện hành.</p></div>
+      <div class="exec-table-scroll"><table><thead><tr><th>Nhóm</th><th>Loại tiền</th><th>Số đơn</th><th>Số lượng</th><th>Giá trị</th><th>Đã thanh toán</th></tr></thead><tbody>
+      {% for row in results %}<tr><td>{{ row.label|default:'Chưa có' }}</td><td>{{ row.currency }}</td><td>{{ row.orders }}</td><td>{{ row.quantity }}</td><td>{{ row.value|floatformat:2 }}</td><td>{{ row.paid|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="6">Chưa có Vận đơn khớp bộ lọc.</td></tr>{% endfor %}
+      </tbody></table></div>
+      {% if page.paginator.num_pages > 1 %}<nav class="exec-pagination">{% if page.has_previous %}<a href="?{{ params }}&trang={{ page.previous_page_number }}">Trang trước</a>{% endif %}<span>Trang {{ page.number }} / {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a href="?{{ params }}&trang={{ page.next_page_number }}">Trang sau</a>{% endif %}</nav>{% endif %}
+    </section>
+    {% endif %}
+  {% endif %}
+</main>
 {% endblock %}

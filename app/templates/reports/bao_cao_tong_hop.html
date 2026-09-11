@@ -12,6 +12,7 @@
       bộ phận <b>{{ profile.department }}</b>{% endif %}.</p>
   </div>
   <div class="hanh-dong">
+    {% if crm_dashboard_url %}<a class="nut nut-chinh" href="{{ crm_dashboard_url }}" target="_blank" rel="noopener">Mở Bàn điều hành KN CRM</a>{% endif %}
     {% if bang and not hoan_thi_truong and kq.ok %}
       <a class="nut" href="{% url 'bao_cao_tong_hop_xuat' %}?{{ qs }}">Xuất Excel</a>
     {% endif %}

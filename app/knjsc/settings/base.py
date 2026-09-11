@@ -167,6 +167,9 @@ GRID_ONLY_TABLES = set(env_list("GRID_ONLY_TABLES", "van_don"))
 BANGTINH_URL = env("BANGTINH_URL", "http://localhost:8021/")
 # Địa chỉ dịch vụ chính — Bảng tính liên kết ngược về Bảng dữ liệu và Nhập tệp
 MAIN_APP_URL = env("MAIN_APP_URL", "http://localhost:8020/")
+# Tài khoản Admin được trình bày Bàn điều hành theo vai trò chủ sở hữu.
+# Danh sách này không cấp thêm bất kỳ quyền xem dữ liệu nào.
+EXECUTIVE_OWNER_USERNAMES = env_list("EXECUTIVE_OWNER_USERNAMES", "")
 
 # Tỉ giá cố định để quy đổi doanh số về VND cho bảng xếp hạng (ADR-017, Q71).
 # Số mặc định là số tạm — backlog N11 chờ anh/chị chốt; đè bằng biến môi

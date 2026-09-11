@@ -13,7 +13,7 @@
     <button class="nut" id="mg-format-button">Định dạng</button>
     <button class="nut" id="mg-undo" title="Ctrl+Z" disabled>Hoàn tác</button><button class="nut" id="mg-redo" title="Ctrl+Y" disabled>Làm lại</button>
 
-    <a class="nut" data-query-link href="{% url 'crm_statistics' %}?{{ qs_giu }}" title="Xem thống kê với bộ lọc này">Thống kê</a>
+    <a class="nut" data-query-link href="{% url 'crm_statistics' %}?nguon={{ bang.code }}{% if qs_giu %}&amp;{{ qs_giu }}{% endif %}" title="Xem thống kê với bộ lọc này">Thống kê</a>
     <div class="mg-more-wrap">
       <button class="nut" id="mg-more-button" aria-label="Thao tác khác" aria-expanded="false" aria-controls="mg-more">…</button>
       <div id="mg-more" class="mg-more" hidden>

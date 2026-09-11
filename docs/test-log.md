@@ -211,3 +211,29 @@ Phạm vi nhánh `vandonmoi`: management command chỉ tác động nhóm
   container và test database riêng đạt **2.023 passed, 24 skipped, 2 xfailed**
   trong 288,39 giây. Các bài trình duyệt bị skip không được tính là đã kiểm bằng
   suite; phần ghim/cột chồng đã được kiểm riêng bằng trình duyệt thật và script Node.
+
+---
+
+## 11.09.2026 — Bàn điều hành KN CRM (ADR-022)
+
+- TDD đỏ trước triển khai: 8 bài đầu của `test_executive_statistics.py` cùng thất
+  bại vì trang chỉ nhận `van_don_moi`, chưa có profile, kỳ so sánh, chọn nguồn
+  hoặc owner. Sau triển khai mở rộng thành 15 bài, gồm cả nguồn `van_don` lịch sử,
+  scope bốn cấp, lỗi cô lập, hình học biểu đồ, tách tiền và liên kết KNERP.
+- Nhóm hồi quy tập trung:
+  `crm/tests/test_executive_statistics.py crm/tests/test_master_grid.py
+  crm/tests/test_waybill_new.py crm/tests/test_waybill_feedback.py reports/tests`:
+  lần đầu còn một lỗi loại tiền của đơn thiếu chi tiết bị rơi khỏi bảng tổng; đã
+  sửa để giữ nhóm với giá trị 0. Lần bàn giao cuối đạt **159 passed trong
+  41,22 giây**.
+- `python -m compileall -q app/crm app/orders` đạt.
+- `scripts/kiem-thu-ban-dieu-hanh-ui.cjs` đạt ở 1440px, 1280px, 390px, sáng,
+  tối + `prefers-reduced-motion` và zoom 125%: không tràn ngang, tối đa ba
+  insight, SVG đều có title/focus, biểu đồ đều có bảng đối chiếu; màn Vận đơn
+  chuyên sâu có đủ 6 biểu đồ, 4 KPI và link ngày/trạng thái đúng.
+- `KN_EXECUTIVE_CAPACITY=1` trên database test riêng, mỗi mốc warmup rồi đo 20
+  request: Sale 20.000 dòng p50/p95 **73,72/89,07ms**; Vận đơn 100.000 dòng
+  **289,93/333,72ms**; Vận đơn 300.000 dòng **781,53/893,26ms**; tổng hợp Sale
+  20.000 + Vận đơn 300.000 **498,61/733,64ms**. Vận đơn giữ 12 query ở cả hai
+  cỡ; đỉnh cấp phát Python cùng **0,25MiB**, không tăng theo số dòng. AC-22.9 đạt
+  trên máy phát triển; đây không thay thế kiểm tải đồng thời trên máy chủ thật.

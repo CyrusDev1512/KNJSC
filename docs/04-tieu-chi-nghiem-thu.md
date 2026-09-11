@@ -419,3 +419,20 @@ quyền và hợp đồng dữ liệu của AC-18/20. Các bảng khác tiếp t
 | AC-21.9 | Cỡ chữ/màu chữ/màu nền giữ thuộc tính khác; CAS riêng từng thuộc tính; định dạng/Undo/Redo nguyên tử; phản hồi lượt cũ không xóa nháp mới, retry giữ UUID/nội dung; lỗi quyền/kiểu/xung đột không retry tự động | ADR-021 | Tự động |
 | AC-21.10 | Lịch sử chỉ nối thêm, trước/sau theo ô, tài khoản/thời điểm/nhóm thao tác; 50 mục/trang, kiểm quyền hiện hành, replay không trùng; xung đột đối chiếu trong phiên và gửi lại bằng CAS mới, không ghi đè cưỡng bức | ADR-021 | Tự động |
 | AC-21.11 | Admin CRM bắt buộc chọn Sale hoạt động/hợp lệ; creator là Admin, seller/phòng ban/team theo Sale; Sale đọc đơn đứng tên; người khác không giả mạo seller; lỗi tạo đơn/chi tiết/vận đơn rollback cả lượt | ADR-021 | Tự động |
+
+## 23. Bàn điều hành KN CRM — ADR-022
+
+AC-22 thay phần đích Thống kê Vận đơn riêng của AC-21.5; giữ nguyên hợp đồng
+lưới, bộ lọc và dữ liệu Vận đơn của AC-18/20/21.
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-22.1 | `/thong-ke/` tổng hợp tối đa một nguồn mỗi profile; `nguon` phân tích đúng một bảng; mọi bảng hoạt động trong scope đều chọn được; mặc định nguồn cập nhật gần nhất và ưu tiên `van_don_moi` | ADR-022 | Tự động |
+| AC-22.2 | Nhận diện đúng Vận đơn mới → Marketing → Sale → Chung; bảng cũ có ghi chú lịch sử; thiếu nhãn Ngày được liệt kê, không tự đoán | ADR-022 | Tự động |
+| AC-22.3 | Kỳ trước cùng số ngày; CPO/AOV/tỷ lệ dùng tổng có trọng số; kỳ trước 0 không sinh vô cực; tiền tách loại hoặc ghi đơn vị theo bảng | ADR-022 · BR-3 | Tự động |
+| AC-22.4 | Sale–Vận đơn chỉ đối chiếu tổng cùng kỳ, chênh lệch ghi cần đối chiếu; mỗi màn hình tối đa ba insight đúng thứ tự, trung tính, có bằng chứng/nguồn/link ngày và trạng thái tương ứng | ADR-022 | Tự động + trình duyệt |
+| AC-22.5 | Staff/Leader/Manager/Admin chỉ thấy đúng scope trên danh sách, aggregate và link; mã ngoài scope/ngừng dùng trả 403 có audit; owner username không phải Admin không được nâng giao diện hoặc quyền | ADR-022 · FR-3.5 | Tự động |
+| AC-22.6 | Ngày sai hoặc `tu > den` hiện lỗi và không aggregate; một profile lỗi không che phần khác; bảng rỗng/partial/thiếu chi tiết vẫn có trạng thái rõ | ADR-022 | Tự động |
+| AC-22.7 | Biểu đồ đúng bộ theo profile, ≤10 nhóm và bảng đối chiếu phân trang đủ; ngày/tuần/tháng theo 45/180 ngày; cột 2.5D không sai tỷ lệ, đường phẳng, có title/nhãn/bảng/focus/reduced-motion | ADR-022 | Tự động + trình duyệt |
+| AC-22.8 | Sidebar hiện khi có bất kỳ bảng nào; Trang chủ CRM và Báo cáo tổng hợp ERP chỉ thêm link; xuất Excel ERP và `f_*`/`group`/phân trang/redirect Vận đơn cũ không hồi quy | ADR-022 · ADR-014 | Tự động |
+| AC-22.9 | Query không tăng theo số dòng hoặc toàn bộ bảng ngoài ba nguồn; p95 đọc ≤1 giây trên 100k/300k Vận đơn và 20k Sale; không có dependency, cache, polling hoặc tác vụ nền mới | ADR-022 · ADR-016 | Tự động + hiệu năng |

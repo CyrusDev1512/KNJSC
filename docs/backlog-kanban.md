@@ -55,6 +55,13 @@ Xếp theo thứ tự nên làm. Mỗi dòng một PR nhỏ, có ảnh trước/
 
 ## Finished
 
+- **11.09.2026 — Bàn điều hành KN CRM:** tổng hợp tối đa ba nguồn và chuyên sâu
+  mọi bảng theo profile Marketing/Sale/Vận đơn/Chung; insight có bằng chứng và
+  link xử lý, biểu đồ SVG, tách tiền tệ, giữ scope và tương thích thống kê cũ.
+  [ADR-022](quyet-dinh/022-ban-dieu-hanh-kn-crm.md), AC-22.1–22.9. Hồi quy 159
+  bài đạt; p95 20k Sale/100k Vận đơn/300k Vận đơn/tổng hợp lần lượt
+  89,07/333,72/893,26/733,64ms; kiểm trình duyệt đủ ma trận trong test-log.
+
 - **11.09.2026 — `vandonmoi`:** hoàn thiện đúng 10.000 dòng mẫu
   `MAU-20260910-*` trong Vận đơn mới bằng management command tái lập theo seed;
   giữ 500 danh tính cũ, thêm 9.500 dòng, chi tiết sản phẩm và phân công. Sửa ghi
@@ -86,6 +93,7 @@ Mọi thứ đã vào `main` (ở `3ab19a5`) hoặc đã xong trên nhánh. Số
 | 7K (sửa) | Ô lưới dựng bằng Python 638 → 154 ms; cột Trùng theo trang; `moi-nhat` không đếm dòng; `bulk_save` bằng VALUES; tính lại cột chạy nền 153 s → 19,6 s; 100 người p95 11 s → 0,85 s | #21 (nháp) | ADR-016 — **chưa gộp**, xem In progress |
 | 7L | Vận đơn mới theo CRM Tân: hai bảng độc lập, ERP/CRM cùng luồng, chi tiết tiền từng sản phẩm, thống kê; 25 bài mới, toàn bộ hồi quy, migration hai chiều và giao diện desktop/mobile đều đạt | — | ADR-018 |
 | 7L.1 | 10.000 vận đơn mẫu Canada/CAD có chi tiết, thanh toán, phân công; vùng ba cột nhận diện ghim rõ trên lưới | — | Nhánh `vandonmoi` · 11.09.2026 |
+| 7M | Bàn điều hành KN CRM theo nguồn Marketing/Sale/Vận đơn/Chung; KNERP giữ báo cáo và thêm liên kết | — | ADR-022 |
 | — | Rà lại toàn bộ KN CRM trên `main` và trên PR #21, ghi thành `test-log.md` | nhánh này | |
 
 ## Far Plan

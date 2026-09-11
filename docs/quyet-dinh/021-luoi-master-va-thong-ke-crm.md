@@ -68,6 +68,10 @@ chi tiết sản phẩm được giữ nguyên, không biến thành công thứ
 
 ## Thống kê độc lập
 
+> Phần đích hiển thị dưới đây được thay thế ngày 11.09.2026 bởi
+> [ADR-022](022-ban-dieu-hanh-kn-crm.md). Công thức Vận đơn, bộ lọc và bảng đối
+> chiếu vẫn được giữ tương thích trong Bàn điều hành.
+
 Sidebar có Thống kê ngang cấp Bảng tính, `/thong-ke/`; nguồn đầu tiên là Vận
 đơn mới trong phạm vi người xem. Đường `/van-don/thong-ke/` kiểm quyền rồi
 chuyển hướng, giữ bộ lọc. Xóa fragment, sự kiện và CSS thống kê nhúng.

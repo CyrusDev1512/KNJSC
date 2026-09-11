@@ -807,3 +807,34 @@ các dòng/chi tiết/phân công đã đúng.
 Sau khi chạy, kiểm tra tổng 10.000 mã và số điện thoại duy nhất, ghi chú không còn
 `???`, mọi dòng có bang/thành phố/zipcode/địa chỉ, tổng số lượng/giá/đã thu khớp
 `WaybillItem`, và Sale/CSKH/Vận đơn thuộc đúng bộ phận đang hoạt động.
+
+## Bàn điều hành KN CRM — ADR-022
+
+Mở **Bàn điều hành** trên sidebar KN CRM hoặc
+`http://localhost:8021/thong-ke/`. Không chọn nguồn là góc nhìn tổng hợp; chọn
+một bảng để xem chuyên sâu. Khoảng ngày mặc định từ đầu tháng đến hôm nay. Ba ô
+Marketing/Sale/Vận đơn ở góc tổng hợp chỉ đổi nguồn đang dùng, không cộng nhiều
+bảng cùng loại. Tên nguồn luôn hiện cạnh số liệu.
+
+Nhận định trên màn hình được sinh theo quy tắc và chỉ dẫn tới dữ liệu cần xem;
+đây chưa phải AI Agent, không tự gửi thông báo, tạo việc hay sửa bảng. Chênh lệch
+Sale–Vận đơn là tổng cần đối chiếu, không phải kết luận thất lạc. Tiền không được
+quy đổi hoặc cộng khác loại. Khi một phần báo tạm chưa khả dụng, mở bảng nguồn để
+kiểm nhãn cột/dữ liệu; các phần còn lại vẫn dùng được.
+
+Biến môi trường tùy chọn:
+
+```env
+EXECUTIVE_OWNER_USERNAMES=quan_tri,ceo
+```
+
+Biến này chỉ đổi tiêu đề giao diện cho username đang hoạt động có cấp Admin,
+không cấp quyền xem dữ liệu. Để trống là hành vi mặc định. Sau khi đổi biến, khởi
+động lại dịch vụ `bangtinh`; kiểm từng tài khoản vẫn chỉ thấy bảng/dòng theo cấp
+bậc hiện hành. KN ERP giữ Báo cáo tổng hợp và xuất Excel; nút **Mở Bàn điều hành
+KN CRM** chỉ mở nơi phân tích, không thay dữ liệu báo cáo.
+
+Snapshot chuyên sâu Vận đơn dùng tối đa 64MiB `work_mem` cục bộ cho mỗi request
+aggregate và tự hoàn nguyên sau transaction; không cần sửa `postgresql.conf`.
+Khi kiểm tải đồng thời trên máy chủ thật, theo dõi RAM theo số request thống kê
+chạy song song thay vì nhân con số này với toàn bộ tài khoản đã đăng nhập.

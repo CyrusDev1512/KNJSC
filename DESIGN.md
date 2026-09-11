@@ -283,7 +283,7 @@ The signature workspace is dense and desktop-like: dark toolbar and footer, warm
 
 ### Waybill Group Header
 
-Historical treatment, superseded for `van_don_moi` on 10.09.2026 by ADR-021. The master grid uses cream cells, letter/name headers, rows defaulting to 28px with individual resizing to 400px, a compact existing shell, and floating reader/editor panels. Selection uses blue without overwriting saved cell formatting. It has no grouped green headers, formula bar or embedded statistics. Statistics is a separate sidebar page using the existing neutral/indigo tokens, SVG charts and paginated reconciliation tables. Other grids retain their existing design.
+Historical treatment, superseded for `van_don_moi` on 10.09.2026 by ADR-021. The master grid uses cream cells, letter/name headers, rows defaulting to 28px with individual resizing to 400px, a compact existing shell, and floating reader/editor panels. Selection uses blue without overwriting saved cell formatting. It has no grouped green headers, formula bar or embedded statistics. Statistics is a separate sidebar destination; its current visual contract is the Executive Operations Desk below. Other grids retain their existing design.
 
 For `van_don_moi`, the three identity columns use a restrained cool-slate sequence
 across headers and cells. Order code and phone use the existing mono stack; customer
@@ -292,6 +292,27 @@ right rule and light shadow so horizontal scrolling reads as one fixed identity
 region. The compact toolbar uses a neutral slate surface and clearer primary/search
 hierarchy. This treatment is scoped to the waybill master and does not recolor other
 CRM grids.
+
+### Executive Operations Desk
+
+`/thong-ke/` follows the Disciplined Operations Desk direction at density 7/10,
+motion 2/10, and visual variance 4/10. It is a decision surface, not a collection
+of decorative KPI cards: a compact source/date control band leads to at most three
+rule-based insights, one canonical KPI strip in detail views, and a restrained
+chart grid. Overview summaries name the exact Marketing, Sale, and Waybill source.
+
+Resting sections are flat surfaces separated by one-pixel rules. Indigo marks
+actions and chart series; green, amber, and red only communicate real state. Bar
+charts may use a fixed 6px depth face, while the front face alone carries the data
+length. Line charts remain flat. Every SVG has a title and keyboard focus, and each
+chart has a paginated tabular alternative. At compact widths controls and summaries
+stack; tables own horizontal overflow so the document never widens. Dark mode uses
+the shared dark neutral tokens, and reduced motion disables nonessential transitions.
+
+Do not repeat the same CPO, Mess, order, or revenue figure in multiple KPI blocks.
+Do not use gradients, glass effects, oversized numerals, floating card shadows, or
+3D perspective that changes perceived values. Insight language must remain neutral,
+show evidence and source, and provide a direct data action.
 
 ## Do's and Don'ts
 

@@ -26,6 +26,10 @@ ENTRY = "/van-don/len-don/"
 STATS = "/thong-ke/"
 
 
+def get_stats(client, params=None):
+    return client.get(STATS, {"nguon": "van_don_moi", **(params or {})})
+
+
 @pytest.fixture
 def setup(departments, nguoi_dung, settings):
     settings.GRID_ONLY_TABLES = set()
@@ -150,7 +154,7 @@ def test_direct_routes_permissions_both_directions(client, setup, departments, m
     assert client.post(ENTRY, data).status_code == 200
     expected = 200 if rank == Rank.ADMIN else 403
     assert client.get(detail).status_code == expected
-    assert client.get(STATS).status_code == 200  # Sale vừa tạo đơn được xem/thống kê đơn của mình.
+    assert get_stats(client).status_code == 200  # Sale vừa tạo đơn được xem/thống kê đơn của mình.
     post = {**form_data(setup[2]), "paid_amount": ["1.00", "0.00"], "version": row.updated_at.isoformat()}
     assert client.post(detail, post).status_code == expected
     if rank != Rank.ADMIN:
@@ -162,7 +166,7 @@ def test_direct_routes_permissions_both_directions(client, setup, departments, m
         assert client.get(ENTRY).status_code == 403
         assert client.post(ENTRY, form_data(setup[2])).status_code == 403
         assert client.get(detail).status_code == 200
-        assert client.get(STATS).status_code == 200
+        assert get_stats(client).status_code == 200
         row.refresh_from_db(); post["version"] = row.updated_at.isoformat()
         assert client.post(detail, post).status_code == 200
 
@@ -174,11 +178,11 @@ def test_view_grant_cannot_edit_or_enter_orders(client, setup, nguoi_dung):
     grant = grant_service.grant(table=setup[1], user=user, action=GrantAction.VIEW, actor=nguoi_dung["admin"])
     client.force_login(user)
     detail = f"/van-don/chi-tiet/{row.pk}/"
-    assert client.get(detail).status_code == 200 and client.get(STATS).status_code == 200
+    assert client.get(detail).status_code == 200 and get_stats(client).status_code == 200
     assert client.post(detail, form_data(setup[2])).status_code == 403
     assert client.post(ENTRY, form_data(setup[2])).status_code == 403
     grant_service.revoke(grant, actor=nguoi_dung["admin"])
-    assert client.get(detail).status_code == 403 and client.get(STATS).status_code == 403
+    assert client.get(detail).status_code == 403 and get_stats(client).status_code == 403
 
 
 @pytest.mark.parametrize("column", sorted(service.PROTECTED))
@@ -208,19 +212,19 @@ def test_statistics_full_filter_currency_product_and_soft_delete(client, setup, 
         WaybillAssignment.objects.create(record=copy, delivery=actor)
     record_service.update_cell(row, "trang_thai_vc", "Hoàn đơn", actor=actor)
     client.force_login(actor)
-    results = client.get(STATS, {"moi_trang": 25, "trang": 2}).context["results"]
+    results = get_stats(client, {"moi_trang": 25, "trang": 2}).context["results"]
     assert sum(r["orders"] for r in results) == 27
     usd = next(r for r in results if r["currency"] == "USD")
     assert usd["value"] == Decimal("40.40") * 26 and usd["paid"] == Decimal("2.22") * 26
     params = {"f_ma_don__trong": row.data["ma_don"], "group": "product"}
-    response = client.get(STATS, params)
+    response = get_stats(client, params)
     assert len(response.context["results"]) == 2  # tên trùng nhau nhưng khác mã
     assert all(r["orders"] == 1 and r["paid"] == Decimal("1.11") for r in response.context["results"])
     assert ('f_ma_don__trong', row.data['ma_don']) in response.context['filters']
     record_service.delete_record(row, actor=actor)
-    assert not client.get(STATS, params).context["results"]
+    assert not get_stats(client, params).context["results"]
     record_service.restore_record(row, actor=actor)
-    assert len(client.get(STATS, params).context["results"]) == 2
+    assert len(get_stats(client, params).context["results"]) == 2
 
 
 def test_export_import_roundtrip_and_preview_ambiguous(client, setup, nguoi_dung, settings, tmp_path):

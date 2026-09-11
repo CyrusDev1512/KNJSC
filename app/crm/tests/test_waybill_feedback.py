@@ -192,7 +192,7 @@ def test_filters_and_statistics_use_scoped_rows(feedback, nguoi_dung, delivery_l
     assert grid_service.build_grid(nguoi_dung['admin'], QueryDict('f_phu_trach_mkt__trong=__unassigned__'), table=table).queryset.get().pk == rows[1].pk
     client.force_login(user)
     assert client.get(f'/van-don/chi-tiet/{rows[1].pk}/').status_code == 403
-    assert client.get('/thong-ke/').status_code == 200
+    assert client.get('/thong-ke/', {'nguon': 'van_don_moi'}).status_code == 200
 
 
 def test_product_or_without_duplicates_and_states_and(feedback, nguoi_dung):

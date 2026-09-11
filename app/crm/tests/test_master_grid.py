@@ -72,13 +72,13 @@ def test_replay_revoked_scope_denied(client, feedback, nguoi_dung, delivery_lead
 
 def test_statistics_standalone_and_counts_missing_items(client, feedback, nguoi_dung):
     client.force_login(nguoi_dung['admin'])
-    response = client.get('/thong-ke/')
+    response = client.get('/thong-ke/', {'nguon': 'van_don_moi'})
     assert response.status_code == 200
     assert response.context['summary']['orders'] == 2
     assert response.context['summary']['missing'] == 0
     row = feedback[2][0]
     row.waybill_items.all().delete()
-    response = client.get('/thong-ke/')
+    response = client.get('/thong-ke/', {'nguon': 'van_don_moi'})
     assert response.context['summary']['orders'] == 2
     assert response.context['summary']['missing'] == 1
     old = client.get('/van-don/thong-ke/?sp=feedback-0')
@@ -187,9 +187,10 @@ def test_draft_visibility_probe_rechecks_assignment(client, feedback, nguoi_dung
 def test_chart_top_ten_keeps_full_reconciliation(client, feedback, nguoi_dung):
     table,_,source=feedback
     DataRecord.objects.bulk_create([DataRecord(table=table,created_by=nguoi_dung['admin'],
+        val_date=source[0].val_date,
         data={**source[0].data,'quoc_gia':f'Thị trường {i:02d}'}) for i in range(28)])
     client.force_login(nguoi_dung['admin'])
-    response=client.get('/thong-ke/',{'chart_market':2})
+    response=client.get('/thong-ke/',{'nguon':'van_don_moi','chart_market':2})
     chart=response.context['charts'][2]
     assert len(chart['groups'])==10
     assert chart['page'].paginator.count==29 and chart['page'].number==2
@@ -228,12 +229,12 @@ def test_blank_statuses_and_currencies_stay_separate(client, feedback, nguoi_dun
     a,b=source
     a.data.update(trang_thai_vc=None,loai_tien='USD');a.save()
     b.data.update(trang_thai_vc='',loai_tien='VND');b.save()
-    DataRecord.objects.create(table=table,created_by=nguoi_dung['admin'],data={'trang_thai_vc':'Đang giao'})
+    b.waybill_items.all().delete()
     client.force_login(nguoi_dung['admin'])
-    response=client.get('/thong-ke/')
+    response=client.get('/thong-ke/', {'nguon': 'van_don_moi'})
     blank=[g for g in response.context['charts'][0]['groups'] if g['label']=='Chưa có trạng thái']
     assert len(blank)==1 and blank[0]['value']==2
-    assert response.context['summary']['orders']==3 and response.context['summary']['missing']==1
+    assert response.context['summary']['orders']==2 and response.context['summary']['missing']==1
     assert {r['record__data__loai_tien'] for r in response.context['summary']['totals']}=={'USD','VND'}
 
 

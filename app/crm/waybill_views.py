@@ -86,4 +86,5 @@ def statistics(request):
     from django.shortcuts import redirect
     table_for(request.user, ACTIVE_WAYBILL_TABLE_CODE)
     suffix = ('?' + request.GET.urlencode()) if request.GET else ''
-    return redirect(reverse('crm_statistics') + suffix)
+    separator = '&' if suffix else '?'
+    return redirect(reverse('crm_statistics') + suffix + separator + 'nguon=van_don_moi')

@@ -5,8 +5,13 @@ from decimal import Decimal, InvalidOperation
 from types import SimpleNamespace
 
 from django.core.exceptions import ValidationError
-from django.db import transaction
-from django.db.models import Count, Sum, F, DecimalField, ExpressionWrapper
+from django.db import connection, transaction
+from django.db.models import (
+    Count, Sum, F, Value, TextField, DecimalField, ExpressionWrapper,
+    Exists, OuterRef,
+)
+from django.db.models.fields.json import KeyTextTransform
+from django.db.models.functions import NullIf
 from django.utils import timezone
 
 from core.audit import record
@@ -268,3 +273,180 @@ def statistics(records, group="total"):
         orders=Count("record_id", distinct=True), quantity_total=Sum("quantity"),
         value=Sum(value), paid=Sum("paid_amount"),
     ).order_by(*grouping), grouping
+
+
+def statistics_totals(records):
+    """Tổng theo tiền tệ từ cả dòng cha, nên đơn thiếu chi tiết vẫn giữ nhóm."""
+    return statistics_breakdown(records)[0]
+
+
+def statistics_breakdown(records, record_counts=None):
+    """Tính tổng tiền tệ và sản phẩm trong cùng một lần quét chi tiết.
+
+    Đây là công thức dùng chung cho Bàn điều hành và lớp tương thích thống kê;
+    mặt hàng đã xoá mềm không đóng góp vào số lượng hoặc tiền.
+    """
+    value = ExpressionWrapper(
+        F("quantity") * F("unit_price"),
+        output_field=DecimalField(max_digits=24, decimal_places=2),
+    )
+    if record_counts is None:
+        record_counts = {
+            row["currency"]: row["orders"]
+            for row in (
+                records.annotate(currency=NullIf(
+                    KeyTextTransform("loai_tien", "data"),
+                    Value("", output_field=TextField()),
+                ))
+                .order_by()
+                .values("currency")
+                .annotate(orders=Count("id"))
+            )
+        }
+    item_rows = list(
+        WaybillItem.objects.for_records(records)
+        .annotate(currency=KeyTextTransform("loai_tien", "record__data"))
+        .order_by()
+        .values("currency", "product__name")
+        .annotate(
+            quantity_total=Sum("quantity"),
+            value=Sum(value),
+            paid=Sum("paid_amount"),
+        )
+    )
+    money = {}
+    products = {}
+    for row in item_rows:
+        currency = row["currency"] or None
+        total = money.setdefault(currency, {
+            "quantity_total": 0, "value": Decimal(0), "paid": Decimal(0),
+        })
+        total["quantity_total"] += row["quantity_total"] or 0
+        total["value"] += row["value"] or Decimal(0)
+        total["paid"] += row["paid"] or Decimal(0)
+        product = row["product__name"] or "Chưa có sản phẩm"
+        products[product] = products.get(product, 0) + (row["quantity_total"] or 0)
+    totals = [
+        {
+            "record__data__loai_tien": currency,
+            "orders": orders,
+            "quantity_total": money.get(currency, {}).get("quantity_total", 0),
+            "value": money.get(currency, {}).get("value", Decimal(0)),
+            "paid": money.get(currency, {}).get("paid", Decimal(0)),
+        }
+        for currency, orders in sorted(
+            record_counts.items(), key=lambda item: (item[0] is not None, item[0] or ""),
+        )
+    ]
+    product_rows = [
+        {"label": label, "value": quantity}
+        for label, quantity in sorted(
+            products.items(), key=lambda item: (-item[1], item[0]),
+        )
+    ]
+    return totals, product_rows
+
+
+def executive_snapshot(records, granularity, max_groups=2_000):
+    """Gom các chiều điều hành và chi tiết tiền hàng trong một lần đọc phạm vi.
+
+    Queryset ``records`` đã mang đủ điều kiện quyền/bộ lọc. CTE chỉ giữ các cột
+    cần cho thống kê, nên PostgreSQL không phải đọc lại JSON và dòng cha cho từng
+    biểu đồ; mọi nhóm vẫn bị chặn trước khi trả về Python.
+    """
+    scoped = records.order_by().values("id", "val_date", "data")
+    scoped_sql, scoped_params = scoped.query.sql_with_params()
+    bucket = {
+        "day": "val_date",
+        "week": "date_trunc('week', val_date)::date",
+        "month": "date_trunc('month', val_date)::date",
+    }[granularity]
+    sql = f"""
+        WITH scoped AS MATERIALIZED (
+            SELECT id, val_date,
+                   NULLIF(data->>'trang_thai_vc', '') AS delivery,
+                   NULLIF(data->>'trang_thai_tt', '') AS payment,
+                   NULLIF(data->>'quoc_gia', '') AS market,
+                   NULLIF(data->>'loai_tien', '') AS currency
+            FROM ({scoped_sql}) source
+        ), record_groups AS (
+            SELECT CASE
+                     WHEN GROUPING({bucket}) = 0 THEN 'period'
+                     WHEN GROUPING(delivery) = 0 THEN 'delivery'
+                     WHEN GROUPING(payment) = 0 THEN 'payment'
+                     WHEN GROUPING(market) = 0 THEN 'market'
+                     ELSE 'record_currency'
+                   END AS kind,
+                   CASE
+                     WHEN GROUPING({bucket}) = 0 THEN to_char({bucket}, 'YYYY-MM-DD')
+                     WHEN GROUPING(delivery) = 0 THEN COALESCE(delivery, '')
+                     WHEN GROUPING(payment) = 0 THEN COALESCE(payment, '')
+                     WHEN GROUPING(market) = 0 THEN COALESCE(market, '')
+                     ELSE COALESCE(currency, '')
+                   END AS label,
+                   COUNT(*)::numeric AS metric_value,
+                   0::bigint AS orders_with_items,
+                   0::numeric AS quantity_total,
+                   0::numeric AS money_value,
+                   0::numeric AS paid_value,
+                   NULL::bigint AS product_id
+            FROM scoped
+            GROUP BY GROUPING SETS (
+                ({bucket}), (delivery), (payment), (market), (currency)
+            )
+        ), item_groups AS (
+            SELECT CASE WHEN GROUPING(s.currency) = 0
+                        THEN 'item_currency' ELSE 'product' END AS kind,
+                   CASE WHEN GROUPING(s.currency) = 0
+                        THEN COALESCE(s.currency, '')
+                        ELSE i.product_id::text END AS label,
+                   0::numeric AS metric_value,
+                   0::bigint AS orders_with_items,
+                   COALESCE(SUM(i.quantity), 0)::numeric AS quantity_total,
+                   COALESCE(SUM(i.quantity * i.unit_price), 0)::numeric AS money_value,
+                   COALESCE(SUM(i.paid_amount), 0)::numeric AS paid_value,
+                   CASE WHEN GROUPING(s.currency) = 0
+                        THEN NULL ELSE i.product_id END AS product_id
+            FROM scoped s
+            JOIN orders_waybillitem i
+              ON i.record_id = s.id AND i.deleted_at IS NULL
+            GROUP BY GROUPING SETS ((s.currency), (i.product_id))
+        ), all_groups AS (
+            SELECT * FROM record_groups
+            UNION ALL
+            SELECT * FROM item_groups
+        ), ranked AS (
+            SELECT *, ROW_NUMBER() OVER (
+                PARTITION BY kind
+                ORDER BY CASE WHEN kind = 'product' THEN quantity_total
+                              ELSE metric_value END DESC, label
+            ) AS position
+            FROM all_groups
+        )
+        SELECT ranked.kind,
+               CASE WHEN ranked.kind = 'product'
+                    THEN COALESCE(product.name, '') ELSE ranked.label END AS label,
+               metric_value, orders_with_items,
+               quantity_total, money_value, paid_value
+        FROM ranked
+        LEFT JOIN orders_product product ON product.id = ranked.product_id
+        WHERE position <= {int(max_groups)}
+    """
+    with transaction.atomic(), connection.cursor() as cursor:
+        # CTE có trần bộ nhớ cố định: đủ giữ các chiều của 300k dòng, không đổi
+        # work_mem toàn hệ thống và tự hoàn nguyên ngay sau snapshot.
+        cursor.execute("SET LOCAL work_mem = '64MB'")
+        cursor.execute("SET LOCAL jit = off")
+        cursor.execute(sql, scoped_params)
+        columns = [column[0] for column in cursor.description]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
+def missing_item_count(records):
+    """Đếm dòng cha chưa có chi tiết bằng EXISTS trên chỉ mục record_id."""
+    active_item = WaybillItem.objects.filter(
+        record_id=OuterRef("pk"), deleted_at__isnull=True,
+    )
+    return records.annotate(
+        _has_waybill_item=Exists(active_item),
+    ).filter(_has_waybill_item=False).count()

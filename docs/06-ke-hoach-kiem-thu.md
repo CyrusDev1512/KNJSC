@@ -339,3 +339,38 @@ Mặc định 60s warmup +300s đo, 100k/300k ×10/20; Chrome phối hợp qua
 Dung lượng dùng `KN_NINE_STORAGE=1`, DB `knjsc_nine_storage` và
 `test_master_nine_storage.py`; đo bảng, TOAST và index riêng cho history/receipt.
 Không lấy bài mô phỏng IME làm bằng chứng đã kiểm bộ gõ Windows thật.
+
+## Bàn điều hành KN CRM — ADR-022
+
+Chạy vòng chức năng tập trung trước, dùng database test do pytest quản lý:
+
+```powershell
+docker compose -f deploy/docker-compose.yml run --rm -e RUN_MIGRATIONS=0 web pytest `
+  crm/tests/test_executive_statistics.py `
+  crm/tests/test_master_grid.py `
+  crm/tests/test_waybill_new.py `
+  crm/tests/test_waybill_feedback.py `
+  reports/tests -ra
+```
+
+Ma trận bắt buộc gồm: bảng Marketing hiện tại; bảng Sale có Ngày/Người bán/Số
+đơn/Doanh thu; `van_don_moi`; `van_don` cũ; bảng chung đủ/thiếu nhãn. Kiểm
+CPO/AOV/tỷ lệ từ tổng, kỳ trước 0, tiền USD/VND/CAD/PHP riêng, thiếu loại tiền,
+tổng Sale–Vận đơn lệch/khớp và tối đa ba insight. Với Staff, Leader, Manager,
+Admin kiểm cả nguồn được phép và URL nguồn bị từ chối; kiểm owner cấu hình nhưng
+không phải Admin. Xóa mềm/ngừng bảng, ngày sai, bảng rỗng, số không hợp lệ, thiếu
+chi tiết sản phẩm và lỗi giả lập một profile phải có kết quả rõ.
+
+Trình duyệt mở 1440px, 1280px, 390px và zoom 125% ở sáng/tối. Dùng Tab tới form,
+nút insight, SVG và `details`; kiểm focus nhìn thấy, bảng thay thế đọc được và
+không có tràn ngang toàn trang. Bật `prefers-reduced-motion: reduce`; đường giữ
+phẳng, mặt trước cột giữ tỷ lệ số liệu và phần sâu luôn 6px. Kiểm link insight có
+`f_ngay__lon_bang`, `f_ngay__nho_bang` và đúng bộ lọc trạng thái.
+
+Hiệu năng chạy riêng, không dùng database thật: fixture phải chặn tên DB không có
+tiền tố test. Tạo 20.000 dòng Sale rồi 100.000/300.000 Vận đơn, warmup trước khi
+đo ít nhất 20 request cho mỗi nguồn và góc tổng hợp. Ghi p50/p95/max, lỗi, số
+query và đỉnh cấp phát Python của một request riêng; p95 mục tiêu ≤1 giây. So
+sánh số query và bộ nhớ ở hai cỡ dữ liệu để phát hiện N+1 hoặc nạp dòng thô.
+Không chạy chồng với browser hoặc bài tải lưới ADR-021; không coi kết quả dữ
+liệu nhỏ là đã đạt AC-22.9.

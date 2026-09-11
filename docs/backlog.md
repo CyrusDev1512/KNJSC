@@ -24,6 +24,18 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 
 ## 0. Còn nợ những gì — xem ở đây trước
 
+**11.09.2026 — Bàn điều hành KN CRM theo ADR-022:** `/thong-ke/` đã được nâng
+cấp từ Thống kê Vận đơn riêng thành góc nhìn tổng hợp Marketing–Sale–Vận đơn và
+phân tích chuyên sâu từng bảng đang hoạt động trong phạm vi người xem. Hệ thống
+tách tiền tệ, so kỳ liền trước, đưa tối đa ba nhận định theo quy tắc và liên kết
+về đúng dữ liệu; không tự nhận là AI, tạo việc hoặc hành động. KNERP giữ Báo cáo
+tổng hợp/xuất Excel và chỉ thêm liên kết. Hồi quy tập trung 159 bài đạt; kiểm
+trình duyệt đủ 1440/1280/390px, sáng/tối, giảm chuyển động và zoom 125%. Phép đo
+20 request sau warmup đạt p95 89,07ms ở 20k Sale, 333,72ms ở 100k Vận đơn,
+893,26ms ở 300k Vận đơn và 733,64ms ở góc tổng hợp; đỉnh cấp phát Python của
+Vận đơn giữ 0,25MiB ở cả 100k và 300k. Xem
+[ADR-022](quyet-dinh/022-ban-dieu-hanh-kn-crm.md).
+
 **11.09.2026 — đã hoàn thiện dữ liệu thử Vận đơn mới trên `vandonmoi`:** nhóm
 `MAU-20260910-*` có đúng 10.000 vận đơn Canada/CAD, trong đó giữ nguyên danh tính
 500 dòng cũ và tạo 9.500 dòng còn thiếu. Mỗi dòng có địa chỉ, 1–3 chi tiết sản
@@ -651,3 +663,13 @@ Phát hiện từ ma trận cuối 10.09: lọc Quốc gia trên 300.000 dòng c
 lưu ô đạt mục tiêu ở bốn lượt ngắn. Giữ việc này ở phần hiệu năng chưa
 nghiệm thu; không đổi nghiệp vụ lọc hoặc chia bảng để né phép đo.
 Các lỗi kết nối lẻ vẫn được tính trong báo cáo, chưa khẳng định nguyên nhân.
+
+### 11.09.2026 — Bàn điều hành Marketing–Sale–Vận đơn
+
+Chủ dự án duyệt nâng trực tiếp `/thong-ke/` thành Bàn điều hành. Đã tách bộ điều
+phối, bốn profile, insight và dữ liệu biểu đồ; mọi truy vấn bắt đầu từ manager
+scope hiện có. Không thêm dependency, realtime, cache, worker hay bảng Sale.
+Giao diện dùng SVG 2.5D tiết chế, bảng số liệu thay thế và tối đa ba nhận định.
+Thêm cấu hình owner chỉ đổi cách trình bày cho Admin, không nâng quyền. KN ERP và
+Trang chủ CRM chỉ thêm liên kết. Tiêu chí mới là AC-22.1–22.9; trạng thái kiểm
+thực tế ghi tại test-log, không lấy nhãn hoàn thành thay cho số đo p95.
