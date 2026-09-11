@@ -8,6 +8,26 @@ pytestmark = pytest.mark.django_db
 BASE = '/bang-tinh/van_don_moi/'
 
 
+def test_editor_choices_match_validation_source(client, feedback, nguoi_dung, django_assert_num_queries):
+    """AC-21.2 — Cột chọn của bảng mới dùng đủ nguồn như dịch vụ ghi."""
+    from forms_builder import choice_registry
+    client.force_login(nguoi_dung['admin'])
+    columns = {c.code: c for c in feedback[0].columns.all()}
+    from crm.services.master_grid_service import metadata as editor_metadata
+    # Danh sách cột chuẩn của bảng mới không thêm SQL khi dựng options mỗi khối.
+    with django_assert_num_queries(0):
+        editor_metadata(columns.values())
+    metadata = client.get(BASE + 'du-lieu/').json()['columns']
+    for item in metadata:
+        source = choice_registry.for_column(columns[item['code']])
+        assert item['options'] == (list(source.options()) if source else [])
+    status = next(c for c in metadata if c['code'] == 'trang_thai_vc')
+    assert status['options']
+    row = feedback[2][0]
+    assert write(client, row, column='trang_thai_vc', old=row.data.get('trang_thai_vc'),
+                 value=status['options'][-1]).status_code == 200
+
+
 def write(client, row, column='ghi_chu', old=None, value='Ghi chú mới', operation=None):
     return client.post(BASE + 'luu-json/', {'operation': operation or str(uuid.uuid4()),
         'cells': [{'id': row.pk, 'column': column, 'old': old, 'value': value}]}, content_type='application/json')

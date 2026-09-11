@@ -1,10 +1,45 @@
 # Lỗi Vận đơn mới: Admin không mở được trình sửa ô
 
+**Bổ sung 11.09 — Rung ba cột ghim khi cuộn:** đây là lỗi hiển thị riêng,
+không phải lỗi quyền/không mở input. Đã bỏ bù scrollLeft/scrollTop, dùng vùng
+sticky và giữ node ô/tiêu đề; hồi quy bấm đúp/inline/kéo hàng-cột đạt.
+[Biên bản trước/sau, số đo và giới hạn](kiem-chung-ghim-cot-20260911.md).
+
 Ngày ghi nhận: 11.09.2026
 
 Nhánh: `vandonmoi`
 
-Trạng thái: Chưa sửa — tiếp tục tái hiện bằng trình duyệt ngày mai
+Trạng thái: Đã sửa và kiểm trên Chrome/database test ngày 11.09.2026;
+chưa quan sát lại chính phiên trình duyệt gặp lỗi của người dùng.
+
+## Kết quả điều tra và sửa ngày 11.09.2026
+
+Chủ dự án xác nhận lỗi xảy ra lúc được lúc không, có lúc không bấm sửa được
+bất kỳ ô nào; đồng thời duyệt nhập ngay trong ô để bỏ khung che dữ liệu.
+
+Hai đường lỗi đã tái hiện được:
+
+1. `metadata()` gọi `grid_service.choice_list`, chỉ tra sổ theo bảng/cột.
+   Vận đơn mới có cột chọn lấy danh sách từ `ColumnDef.options`; API trả
+   `options=null` dù server cho sửa. `edit()` lặp qua giá trị này gây
+   `c.options is not iterable`. Do draft được đặt trước khi tạo input,
+   lỗi còn để lại draft không có input, khiến bước kết thúc nhập chặn ô sau.
+2. Pointer di chuyển hơn 5px nhưng vẫn trong một ô bị xem là kéo vùng,
+   nên không mở sửa. Hồi quy với rê 7px trong cùng ô thất bại trước sửa.
+
+Đã dùng `choice_registry.for_column()` giống dịch vụ kiểm kiểu khi ghi;
+trả danh sách JSON kể cả rỗng. Trình sửa chỉ tạo draft sau khi input sẵn sàng;
+metadata không hợp lệ báo lỗi cột đó, không khóa ô khác. Click được phân biệt
+bằng việc có đi qua ô khác hay không, giữ Shift/kéo chọn vùng.
+
+Trình nhập nằm trong kích thước ô, bám cột ghim/cuộn/zoom; Tab/Enter và dán
+vùng dùng autosave/CAS hiện có. Không đổi quyền Admin hoặc mở khóa các ô tổng.
+Chrome đã kiểm sửa/lưu trạng thái và ngày, bấm đúp 120ms/F2, Tab, dán giữ số 0,
+metadata lỗi không chặn ô khác, 1440/1280/390px và CSS zoom 125%.
+Kết quả chi tiết: [kiểm chứng Admin và chạy bền](kiem-chung-master-admin-20260911.md).
+
+Chưa có bằng chứng lỗi do PC. Các mục dưới đây giữ nguyên ghi nhận ban đầu,
+không dùng suy đoán ban đầu thay cho nguyên nhân đã tái hiện ở trên.
 
 ## Hiện tượng người dùng báo
 

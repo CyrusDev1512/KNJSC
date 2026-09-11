@@ -5,6 +5,7 @@
   if (!root) return;
   const $ = id => document.getElementById(id), config = JSON.parse($('mg-config').textContent);
   const viewport = $('mg-viewport'), canvas = $('mg-canvas'), editor = $('mg-editor'), reader = $('mg-reader');
+  editor.classList.add('mg-inline-editor');
   const ROW = 28, HEADER = 54, BLOCK = 100, MAX = 2000, CACHE = 10;
   const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
   const key = `kn-master:${config.user}:${config.table}`;
@@ -102,6 +103,32 @@
     for(const attr of [...target.attributes])if(!source.hasAttribute(attr.name))target.removeAttribute(attr.name);
     for(const attr of source.attributes)if(target.getAttribute(attr.name)!==attr.value)target.setAttribute(attr.name,attr.value);
   }
+  function syncRow(target, source) {
+    // Một pool cho cả hai vùng để chuyển ghim/không ghim vẫn dùng đúng node ô.
+    const key=e=>e.dataset.code||e.classList[0];
+    const pool=new Map([...target.querySelectorAll('.mg-pin-region,.mg-cell,.mg-heading,.mg-number,.mg-corner,.mg-row-resize')].map(e=>[key(e),e]));
+    function children(parent, fresh) {
+      const keep=[];
+      for(const next of [...fresh.children]){
+        const existing=pool.get(key(next));
+        if(!existing){keep.push(next);continue;}
+        syncAttributes(existing,next);
+        if(next.classList.contains('mg-pin-region'))children(existing,next);
+        else if(next.classList.contains('mg-heading')){
+          // Giữ các nút focus/resize ngay cả khi cột ảo bên phải vào/ra vùng nhìn.
+          [...next.children].forEach((button,i)=>{syncAttributes(existing.children[i],button);if(existing.children[i].textContent!==button.textContent)existing.children[i].textContent=button.textContent;});
+        }else if(existing.textContent!==next.textContent)existing.textContent=next.textContent;
+        keep.push(existing);
+      }
+      keep.forEach((e,i)=>{if(parent.children[i]!==e)parent.insertBefore(e,parent.children[i]||null);});
+      const visible=new Set(keep);for(const e of [...parent.children])if(!visible.has(e))e.remove();
+    }
+    syncAttributes(target,source);children(target,source);
+  }
+  function pinRegion(height) {
+    const region=element('div','mg-pin-region');region.setAttribute('role','presentation');
+    region.style.width=state.frozen+'px';region.style.height=height+'px';return region;
+  }
   function updateBody(body, fragment) {
     // Giữ chính node ô giữa hai lần bấm để trình duyệt nhận dblclick.
     // Chỉ giữ các hàng/cột trong cửa sổ cuộn, không tăng DOM theo dữ liệu.
@@ -110,16 +137,7 @@
     for(const fresh of [...fragment.children]){
       const rowKey=fresh.getAttribute('aria-rowindex'),previous=rowKey&&oldRows.get(rowKey);
       if(!previous){body.append(fresh);keep.add(fresh);continue;}
-      syncAttributes(previous,fresh);
-      const key=cell=>cell.dataset.code||(cell.hasAttribute('data-row-resize')?'#row-resize':'#row-number');
-      const oldCells=new Map([...previous.children].map(cell=>[key(cell),cell])),visible=new Set();
-      for(const next of [...fresh.children]){
-        const existing=oldCells.get(key(next));
-        if(existing){syncAttributes(existing,next);if(existing.textContent!==next.textContent)existing.textContent=next.textContent;visible.add(existing);}
-        else{previous.append(next);visible.add(next);}
-      }
-      for(const cell of [...previous.children])if(!visible.has(cell))cell.remove();
-      [...visible].forEach((cell,i)=>{if(previous.children[i]!==cell)previous.insertBefore(cell,previous.children[i]||null);});
+      syncRow(previous,fresh);
       keep.add(previous);
     }
     for(const row of [...body.children])if(!keep.has(row))row.remove();
@@ -134,40 +152,34 @@
     const cols = state.visible.map((c, i) => ({...c, i})).filter(c => c.pin || (c.x + c.width > left - 160 && c.x < left + viewport.clientWidth + 160));
     const fragment = document.createDocumentFragment();
     const head = element('div', 'mg-head'); head.setAttribute('role', 'row');
-    position(head, 0, top, state.width, HEADER);
-    const corner = element('button', 'mg-corner', '▦'); corner.dataset.all = '1'; corner.title = 'Chọn toàn bộ kết quả'; position(corner, left, 0, 46, HEADER); head.append(corner);
+    position(head, 0, 0, state.width, HEADER);
+    const headPins=pinRegion(HEADER);head.append(headPins);
+    const corner = element('button', 'mg-corner', '▦'); corner.dataset.all = '1'; corner.title = 'Chọn toàn bộ kết quả'; position(corner, 0, 0, 46, HEADER); headPins.append(corner);
     for (const c of cols) {
       const h = element('div', 'mg-heading' + (c.pin ? ' mg-pinned' : '') + (c.pinEdge ? ' mg-pinned-edge' : ''));
       h.dataset.column = c.i; h.dataset.code = c.code; h.setAttribute('role','columnheader');
-      position(h, c.pin ? left+c.pinX : c.x, 0, c.width, HEADER);
+      position(h, c.pin ? c.pinX : c.x, 0, c.width, HEADER);
       const letter = element('button','mg-letter', columnLetter(c.i)); letter.dataset.selectColumn = c.i; letter.title = 'Chọn cột';
       const name = element('button','mg-column-name',c.name + (query.get('sap') === c.code ? (query.get('chieu') === 'giam' ? ' ↓' : ' ↑') : '')); name.dataset.sort = c.code;
       const filter = element('button','mg-filter-icon','▾'); filter.dataset.filter = c.code; filter.setAttribute('aria-label','Lọc '+c.name);
       const handle = element('span','mg-resize'); handle.dataset.resize = c.code; handle.setAttribute('role','separator'); handle.setAttribute('aria-label','Đổi độ rộng '+c.name);
-      h.append(letter,name,filter,handle);head.append(h);
+      h.append(letter,name,filter,handle);(c.pin?headPins:head).append(h);
     }
-    // Giữ node header qua chọn ô/nạp khối để focus và nhấn chuột không bị
-    // mất giữa pointerdown/pointerup. Chỉ đổi cây nút khi cấu trúc cột đổi.
-    const headerKey=JSON.stringify(cols.map(c=>[c.code,c.i,c.width,c.pin,c.pinEdge,c.name]).concat([[query.get('sap'),query.get('chieu')]]));
     const previousHead=canvas.querySelector(':scope > .mg-head');
-    if(previousHead){
-      previousHead.style.cssText=head.style.cssText;
-      if(previousHead.dataset.key!==headerKey)previousHead.replaceChildren(...head.children);
-      else [...previousHead.children].forEach((child,i)=>child.style.cssText=head.children[i].style.cssText);
-      previousHead.dataset.key=headerKey;
-    }else{head.dataset.key=headerKey;canvas.prepend(head);}
+    if(previousHead)syncRow(previousHead,head);else canvas.prepend(head);
     let body=canvas.querySelector(':scope > .mg-body');
     if(!body){body=element('div','mg-body');canvas.append(body);}
     for (let r = start; r < end; r++) {
       const row = rowAt(r), line = element('div','mg-row');line.setAttribute('role','row');line.setAttribute('aria-rowindex',r+2);
       const rowHeight=geometry.height(r);
       position(line,0,HEADER+geometry.top(r),state.width,rowHeight);
-      const number = element('button','mg-number',String(r+1)); number.dataset.selectRow=r;number.setAttribute('aria-selected',!!(state.selection&&r>=state.selection.r1&&r<=state.selection.r2));position(number,left,0,46,rowHeight);line.append(number);
+      const pins=pinRegion(rowHeight);line.append(pins);
+      const number = element('button','mg-number',String(r+1)); number.dataset.selectRow=r;number.setAttribute('aria-selected',!!(state.selection&&r>=state.selection.r1&&r<=state.selection.r2));position(number,0,0,46,rowHeight);pins.append(number);
       if(row){
         const handle=element('div','mg-row-resize');handle.dataset.rowResize=r;handle.dataset.id=row.id;handle.tabIndex=0;
         handle.setAttribute('role','separator');handle.setAttribute('aria-orientation','horizontal');handle.setAttribute('aria-label','Chiều cao hàng '+(r+1));
         handle.setAttribute('aria-valuemin','28');handle.setAttribute('aria-valuemax','400');handle.setAttribute('aria-valuenow',rowHeight);
-        handle.title='Kéo chỉnh chiều cao · ↑/↓ 4 px · Home về 28 px';position(handle,left,rowHeight-7,46,7);line.append(handle);
+        handle.title='Kéo chỉnh chiều cao · ↑/↓ 4 px · Home về 28 px';position(handle,0,rowHeight-7,46,7);pins.append(handle);
       }
       for (const c of cols) {
         const value = row ? cellValue(row,c.code) : null;
@@ -177,12 +189,13 @@
         cell.setAttribute('role','gridcell');cell.setAttribute('aria-colindex',c.i+2);cell.setAttribute('aria-selected',!!selected(r,c.i));
         if(selected(r,c.i))for(const [side,on] of Object.entries({top:r===state.selection.r1,bottom:r===state.selection.r2,left:c.i===state.selection.c1,right:c.i===state.selection.c2}))if(on)cell.classList.add('mg-edge-'+side);
         if(value&&!value.editable) cell.setAttribute('aria-readonly','true');
-        position(cell,c.pin?left+c.pinX:c.x,0,c.width,rowHeight);line.append(cell);
+        position(cell,c.pin?c.pinX:c.x,0,c.width,rowHeight);(c.pin?pins:line).append(cell);
       }
       fragment.append(line);
     }
     if (!state.total) { const empty=element('p','mg-empty','Chưa có vận đơn khớp bộ lọc.'); position(empty,left+24,HEADER+35,Math.max(120,viewport.clientWidth-48),60);fragment.append(empty); }
     updateBody(body,fragment);
+    positionEditor();
     viewport.setAttribute('aria-rowcount',state.total+1);viewport.setAttribute('aria-colcount',state.visible.length+1);
     const s=state.selection;
     $('mg-count').textContent=state.total.toLocaleString('vi-VN')+' dòng khớp bộ lọc';
@@ -220,6 +233,18 @@
     reader.querySelector('strong').textContent=c.name;reader.querySelector('div').textContent=cellValue(row,c.code).display;
     floatAt(reader,cell.getBoundingClientRect());
   }
+  function positionEditor(){
+    if(!state.draft)return;
+    const d=state.draft,cell=$(`mg-${d.id}-${d.column}`);
+    if(!cell){editor.style.visibility='hidden';return;}
+    const box=cell.getBoundingClientRect(),view=viewport.getBoundingClientRect();
+    const scale=view.width/viewport.offsetWidth||1;
+    const left=Math.max(box.left,view.left+(cell.classList.contains('mg-pinned')?46:state.frozen)*scale);
+    const top=Math.max(box.top,view.top+HEADER*scale),right=Math.min(box.right,view.right),bottom=Math.min(box.bottom,view.bottom);
+    editor.style.visibility=right>left&&bottom>top?'visible':'hidden';
+    Object.assign(editor.style,{left:box.left/scale+'px',top:box.top/scale+'px',width:box.width/scale+'px',height:box.height/scale+'px',
+      clipPath:`inset(${Math.max(0,top-box.top)/scale}px ${Math.max(0,box.right-right)/scale}px ${Math.max(0,box.bottom-bottom)/scale}px ${Math.max(0,left-box.left)/scale}px)`});
+  }
   async function edit(automatic=false) {
     if(dirty()||!state.current)return;
     const cur={...state.current}, generation=state.generation;
@@ -231,14 +256,19 @@
     if(c.assignment){window.dispatchEvent(new CustomEvent('master-assignment',{detail:{ids:[row.id]}}));return;}
     if(c.detail){const d=$('vd-detail');d.showModal();$('vd-detail-body').textContent='Đang tải chi tiết…';await htmx.ajax('GET',row.detail_url,{target:'#vd-detail-body',swap:'innerHTML'});return;}
     const value=cellValue(row,c.code);if(!value.editable){message('Ô này chỉ đọc.');return;}
-    state.draft={id:row.id,column:c.code,old:value.value,cur};
     editor.querySelector('strong').textContent=c.name;
     let input;
-    if(c.type==='choice'||c.options?.length){input=element('select','o-nhap');input.append(new Option('—',''));for(const v of c.options)input.append(new Option(v,v));}
+    const options=Array.isArray(c.options)?c.options:[];
+    if(c.type==='choice'&&!Array.isArray(c.options)){message('Chưa tải được danh sách chọn của cột. Hãy tải lại trang; các ô khác vẫn có thể sửa.',true);return;}
+    if(c.type==='choice'||options.length){input=element('select','o-nhap');input.append(new Option('—',''));for(const v of options)input.append(new Option(v,v));}
     else {input=element(c.type==='long_text'?'textarea':'input','o-nhap');if(c.type==='date')input.type='date';else if(c.type==='datetime')input.type='datetime-local';else if(['integer','decimal','money'].includes(c.type))input.inputMode='decimal';}
     input.name='value';input.setAttribute('aria-label',c.name);input.value=value.value??'';
     $('mg-input').replaceChildren(input);
-    floatAt(editor,$(`mg-${row.id}-${c.code}`)?.getBoundingClientRect());input.focus();
+    // Chỉ giữ bản nháp khi đã tạo xong trình nhập; lỗi mở một ô không khóa cả lưới.
+    state.draft={id:row.id,column:c.code,old:value.value,cur};
+    editor.hidden=false;
+    const cell=$(`mg-${row.id}-${c.code}`);if(cell){const style=getComputedStyle(cell);editor.style.font=style.font;editor.style.color=style.color;editor.style.backgroundColor=style.backgroundColor;}
+    positionEditor();input.focus({preventScroll:true});
     if(input.select)input.select();refreshStatus();repaint();
   }
   function cellValue(row,column) {
@@ -436,6 +466,11 @@
   editor.addEventListener('submit',e=>{e.preventDefault();if(finishEditor())viewport.focus({preventScroll:true});});
   editor.addEventListener('input',refreshStatus);
   editor.addEventListener('change',refreshStatus);
+  editor.addEventListener('paste',e=>{
+    const text=e.clipboardData.getData('text/plain');
+    // TSV từ Excel là vùng dữ liệu; xuống dòng riêng trong textarea vẫn là nội dung ô.
+    if(text.includes('\t')||(e.target.tagName!=='TEXTAREA'&&/[\r\n]/.test(text))){e.preventDefault();if(finishEditor()){viewport.focus({preventScroll:true});safe(()=>paste(text))();}}
+  });
   editor.addEventListener('keydown',e=>{
     if(e.isComposing||e.keyCode===229)return;
     if(e.key==='Escape'){e.preventDefault();cancelEdit();}
@@ -473,17 +508,17 @@
     if(rowHandle){
       e.preventDefault();if(dirty())return;
       const r=Number(rowHandle.dataset.rowResize),row=rowAt(r);if(!row||String(row.id)!==rowHandle.dataset.id)return;
-      const line=rowHandle.parentElement,scale=line.getBoundingClientRect().height/geometry.height(r);
+      const line=rowHandle.closest('.mg-row'),scale=line.getBoundingClientRect().height/geometry.height(r);
       rowResize={index:r,id:row.id,before:geometry.height(r),start:e.clientY,y:e.clientY,scale:scale||1,handle:rowHandle,pointer:e.pointerId};
       reader.hidden=true;drag=null;resizing=null;cancelAnimationFrame(frame);frame=0;
       rowHandle.focus({preventScroll:true});rowHandle.setPointerCapture(e.pointerId);root.classList.add('mg-resizing-row');return;
     }
     if(dirty())return;
     const handle=e.target.closest('[data-resize]');if(handle){e.preventDefault();const c=state.visible.find(c=>c.code===handle.dataset.resize);resizing={code:c.code,width:c.width,x:e.clientX};reader.hidden=true;return;}
-    const cell=e.target.closest('[data-r]');if(cell){e.preventDefault();choose(+cell.dataset.r,+cell.dataset.c,e.shiftKey);drag={x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,moved:false,shift:e.shiftKey};}
+    const cell=e.target.closest('[data-r]');if(cell){e.preventDefault();choose(+cell.dataset.r,+cell.dataset.c,e.shiftKey);drag={x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,r:+cell.dataset.r,c:+cell.dataset.c,id:cell.dataset.id,moved:false,crossed:false,shift:e.shiftKey};}
   });
   function extendDrag(){if(!drag)return;const rect=viewport.getBoundingClientRect();let dy=0,dx=0;if(drag.y>rect.bottom-28)dy=ROW;else if(drag.y<rect.top+HEADER+20)dy=-ROW;if(drag.x>rect.right-24)dx=24;else if(drag.x<rect.left+state.frozen+16)dx=-24;
-    if(drag.moved){viewport.scrollTop+=dy;viewport.scrollLeft+=dx;const target=document.elementFromPoint(Math.min(rect.right-8,Math.max(rect.left+48,drag.x)),Math.min(rect.bottom-8,Math.max(rect.top+HEADER+2,drag.y)))?.closest('[data-r]');if(target)choose(+target.dataset.r,+target.dataset.c,true);}
+    if(drag.moved){viewport.scrollTop+=dy;viewport.scrollLeft+=dx;const target=document.elementFromPoint(Math.min(rect.right-8,Math.max(rect.left+48,drag.x)),Math.min(rect.bottom-8,Math.max(rect.top+HEADER+2,drag.y)))?.closest('[data-r]');if(target){drag.crossed ||= +target.dataset.r!==drag.r||+target.dataset.c!==drag.c;choose(+target.dataset.r,+target.dataset.c,true);}}
     frame=requestAnimationFrame(extendDrag);
   }
   document.addEventListener('pointermove',e=>{
@@ -491,7 +526,11 @@
     if(resizing){preferences.widths||={};preferences.widths[resizing.code]=Math.max(72,Math.min(640,resizing.width+e.clientX-resizing.x));repaint();return;}
     if(drag){drag.x=e.clientX;drag.y=e.clientY;drag.moved ||= Math.abs(e.clientX-drag.startX)+Math.abs(e.clientY-drag.startY)>5;if(!frame)frame=requestAnimationFrame(extendDrag);}
   });
-  document.addEventListener('pointerup',e=>{if(rowResize){if(e.pointerId===rowResize.pointer){rowResize.y=e.clientY;finishRowResize(true);}return;}if(resizing){resizing=null;persist();}if(drag){const d=drag;drag=null;cancelAnimationFrame(frame);frame=0;if(!d.moved&&!d.shift)setTimeout(()=>state.editMode?safe(()=>edit(true))():showReader(document.elementFromPoint(d.x,d.y)?.closest('[data-r]')),0);}});
+  document.addEventListener('pointerup',e=>{if(rowResize){if(e.pointerId===rowResize.pointer){rowResize.y=e.clientY;finishRowResize(true);}return;}if(resizing){resizing=null;persist();}if(drag){const d=drag;drag=null;cancelAnimationFrame(frame);frame=0;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-r]');
+    // Rê nhẹ trong cùng ô vẫn là click; chỉ giữ chọn vùng khi đã đi qua ô khác.
+    const sameCell=target&&+target.dataset.r===d.r&&+target.dataset.c===d.c&&target.dataset.id===d.id;
+    if(sameCell&&!d.crossed&&!d.shift)setTimeout(()=>state.editMode?safe(()=>edit(true))():showReader(target),0);
+  }});
   viewport.addEventListener('dblclick',e=>{if(!e.target.closest('[data-row-resize]'))safe(edit)();});
   viewport.addEventListener('click',e=>{
     if(e.target.closest('[data-all]'))selectAll();

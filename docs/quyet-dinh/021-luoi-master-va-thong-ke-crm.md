@@ -198,3 +198,35 @@ Kết quả kiểm chứng đợt này được ghi riêng tại
   tạo cho lượt đã điều chỉnh; mất quyền toàn bảng tiếp tục gỡ toàn bộ.
 - Không đưa số đo bản trước tối ưu vào kết luận nghiệm thu bản cuối; giữ
   artifact `after-initial` để thể hiện lần chưa đạt và nguyên nhân đã tìm.
+
+## Quyết định thay thế — nhập ngay trong ô, 11.09.2026
+
+Chủ dự án duyệt bỏ khung nhập nổi che hàng bên dưới. Trình nhập giá trị
+nằm đúng trong ô đang chọn, cùng chiều rộng/chiều cao và định dạng đã lưu;
+cuộn hoặc kéo cột giữ vị trí theo ID dòng/mã cột. Không kéo giãn riêng khung
+nhập nữa; đọc chữ dài dùng vùng đọc, hoặc tăng chiều cao hàng đã có.
+Xem vẫn F2/bấm đúp để sửa; Chỉnh sửa bấm/chuyển tới ô là nhập. Escape hủy
+phần đang gõ, Tab/Enter kết thúc theo quy tắc đã chốt; không có nút Hủy/Lưu
+nổi phủ lên bảng. Dán TSV trong ô nhập chuyển sang thao tác vùng nguyên tử;
+xuống dòng riêng trong textarea vẫn là nội dung một ô.
+
+Giữ autosave, CAS, phân quyền, chi tiết sản phẩm/phân công và ô tổng.
+Danh sách chọn JSON dùng cùng bộ phân giải với kiểm kiểu khi ghi. Lỗi tạo
+trình nhập không được tạo draft dang dở hoặc chặn các ô khác. Rê chuột nhẹ
+trong cùng ô vẫn mở sửa; kéo qua ô khác/Shift tiếp tục là chọn vùng.
+
+## Quyết định thay thế — ghim bằng trình duyệt, 11.09.2026
+
+Riêng `van_don_moi`, mỗi hàng ảo có vùng `position: sticky; left: 0`
+chứa số hàng, tay kéo chiều cao và các cột nhận diện đủ chỗ ghim. Tiêu đề
+sticky theo chiều dọc và có vùng ghim tương ứng; bỏ bù `scrollLeft` cho ô
+ghim và `scrollTop` cho tiêu đề. Giữ quy tắc giảm số cột ghim trên màn hình
+hẹp. Không tách hai lưới hoặc nhân đôi ô dữ liệu.
+
+Đối chiếu DOM theo mã cột, giữ node vùng ghim/ô/nút tiêu đề khi cột ảo bên
+phải vào/ra màn hình. Vùng ghim nền kín, nằm trên ô đang chọn ở phần cuộn.
+Nhập inline vẫn bám ô bằng ID; thay đổi này không đổi dữ liệu hoặc quyền.
+
+Đo phải bao gồm thời điểm trước rAF của ứng dụng, không chỉ lúc cuộn dừng.
+[Biên bản và số đo](../kiem-chung-ghim-cot-20260911.md) ghi kết quả 100k/300k,
+chi phí render tăng nhẹ và giới hạn kiểm chứng zoom trình duyệt thực sự.

@@ -1,5 +1,11 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+**11.09.2026 — Rung cột ghim:** hồi quy trước sửa bắt trượt ngang và thay node
+tiêu đề; sau sticky đạt 0 px ở các mẫu 100k/300k, 1440/1280/390 và CSS zoom
+125%. UI/copy/paste/autosave/kéo hàng-cột đạt; render p95 17,5–21,1 ms,
+tăng so với baseline. Chưa kiểm zoom trình duyệt thật/trackpad người dùng.
+[Kịch bản, video local, số đo và giới hạn](kiem-chung-ghim-cot-20260911.md).
+
 Mỗi lỗi một dòng, mã `TL-xx`, không xoá dòng khi sửa xong mà đổi cột Trạng
 thái. `backlog-kanban.md` tham chiếu mã ở đây để xếp việc; `backlog.md` (K28,
 Q67) ghi bối cảnh.

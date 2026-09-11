@@ -98,8 +98,10 @@ riêng của Claude có sẵn trong môi trường Codex.
   Ô Vận đơn mới **tự lưu nền** theo quyết định thay thế ngày 10.09.2026:
   kết thúc sửa đưa vào hàng đợi 500ms, tối đa 2s cho phần đã kết thúc nhập;
   Ctrl+S/Lưu dữ liệu gửi ngay, không khóa lưới khi lưu. Đổi lọc/popup giữ nháp;
-  chỉ cảnh báo rời/tải lại trang khi còn phần chưa xác nhận. Nháp/xung đột
-  chỉ trong RAM, không lưu dữ liệu khách hàng vào localStorage. Lịch sử ô
+  chỉ cảnh báo rời/tải lại trang khi còn phần chưa xác nhận.
+  Trình nhập giá trị nằm ngay trong ô (duyệt 11.09.2026), không dùng khung
+  nhập nổi che hàng bên dưới; vùng đọc dài và hộp chi tiết/phân công giữ riêng.
+  Nháp/xung đột chỉ trong RAM, không lưu dữ liệu khách hàng vào localStorage. Lịch sử ô
   chỉ ghi thay đổi qua lưới mới, kiểm quyền xem dòng hiện hành; xung đột phải
   đối chiếu và kiểm CAS lại, không âm thầm ghi đè. Phân công/chi tiết/nhập
   file giữ nút gửi riêng. Không đưa lại hộp Lưu/Bỏ/Ở lại khi chuyển chức năng.

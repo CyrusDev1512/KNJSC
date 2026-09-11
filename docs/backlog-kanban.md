@@ -1,5 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+**11.09 — Cột ghim Vận đơn mới:** triển khai và hồi quy tự động đã xong;
+100k/300k lệch 0 px, cache 10, không tăng request. Còn nghiệm thu thủ công
+zoom trình duyệt thật/trackpad; chi phí render tăng nhẹ được ghi rõ tại
+[biên bản](kiem-chung-ghim-cot-20260911.md). Không gộp với lỗi API trước đó.
+
 Bản nhìn theo cột của `backlog.md`. `backlog.md` vẫn là nơi ghi **vì sao** (quyết
 định Q, lỗ hổng K, nhật ký); tệp này chỉ trả lời **đang ở cột nào**. Lỗi cụ thể
 kèm mức nghiêm trọng, chỗ sai, blocker và ảnh hưởng nằm ở `test-log.md`; ở đây

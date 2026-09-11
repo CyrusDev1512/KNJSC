@@ -1,5 +1,10 @@
 # Backlog
 
+**11.09.2026 — Ghim cột Vận đơn mới:** đã thay bù cuộn JavaScript bằng vùng
+sticky; đo 100k/300k đạt độ lệch 0 px, cache/request không tăng; hồi quy thao
+tác đạt. Render p95 tăng nhẹ; còn nghiệm thu zoom trình duyệt thật/trackpad.
+[Biên bản](kiem-chung-ghim-cot-20260911.md). Không đóng lỗi API/kết nối cũ.
+
 Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quyết định.
 
 > **Quy tắc:** phát hiện gì thì ghi vào đây trước, **không sửa tài liệu ngay**.

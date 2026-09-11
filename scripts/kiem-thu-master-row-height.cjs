@@ -40,7 +40,7 @@ module.exports=async function rowHeightChecks({page,context,base}){
   const note=page.locator('.mg-cell[data-code="ghi_chu"][data-r="0"]');await note.waitFor();
   assert.equal(await note.evaluate(e=>getComputedStyle(e).whiteSpace),'pre-wrap');await note.click();await page.locator('#mg-reader').waitFor();await page.screenshot({path:require('path').resolve(__dirname,'../.agents/design-state/review/master/row-height-reader.png')});
   await page.keyboard.press('Escape');await note.dblclick({delay:120});await page.locator('#mg-editor textarea').waitFor();
-  await page.locator('#mg-cancel').click();
+  await page.keyboard.press('Escape');
   await page.locator('#mg-viewport').evaluate(e=>e.scrollLeft=0);
   await handle(0).focus();await page.keyboard.press('Home');assert.equal(await height(0),28);
   // Chiều cao không mất khi dữ liệu khối bị loại khỏi LRU.

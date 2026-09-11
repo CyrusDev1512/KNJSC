@@ -12,6 +12,7 @@ from django.urls import reverse
 from core.constants import GRID_PASTE_CELLS_MAX
 from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.models import DataRecord, TableDef
+from forms_builder import choice_registry
 from forms_builder.services import grant_service, record_service
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 from orders.services import waybill_service, assignment_service
@@ -42,8 +43,13 @@ def digest(value):
 
 
 def metadata(columns):
+    def options(column):
+        # Cùng nguồn với record_service: sổ bảng, nhãn ý nghĩa, rồi options của cột.
+        source = choice_registry.for_column(column)
+        return list(source.options()) if source else []
+
     return [{'code': c.code, 'name': c.name, 'type': c.field_type, 'required': c.required,
-             'computed': c.is_computed, 'options': grid_service.choice_list(c.table, c)[0],
+             'computed': c.is_computed, 'options': options(c),
              'detail': c.code in waybill_service.DETAIL_CELLS,
              'assignment': c.code in assignment_service.COLUMNS,
              'protected': c.is_computed or c.code in waybill_service.PROTECTED or c.code in assignment_service.COLUMNS,
