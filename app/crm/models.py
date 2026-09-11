@@ -3,6 +3,32 @@ from django.conf import settings
 from django.db import models
 
 
+class GridRevision(models.Model):
+    table = models.OneToOneField('forms_builder.TableDef', on_delete=models.CASCADE, primary_key=True)
+    revision = models.BigIntegerField(default=0)
+    fields = models.JSONField(default=dict)
+
+
+class GridChange(models.Model):
+    table = models.ForeignKey('forms_builder.TableDef', on_delete=models.CASCADE)
+    revision = models.BigIntegerField()
+    record_ids = models.JSONField(default=list)
+    columns = models.JSONField(default=list)
+    reset = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['table','revision'], name='crm_change_table_revision')]
+
+
+class GridPendingChange(models.Model):
+    """Chỉ tồn tại trong giao dịch; trigger deferred gom và xóa trước commit."""
+    transaction_id = models.BigIntegerField(db_index=True)
+    table_id = models.BigIntegerField()
+    record_ids = models.JSONField(default=list)
+    columns = models.JSONField(default=list)
+    reset = models.BooleanField(default=False)
+
+
 class GridMutationReceipt(models.Model):
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     table = models.ForeignKey('forms_builder.TableDef', on_delete=models.PROTECT)

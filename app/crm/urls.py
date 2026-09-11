@@ -21,6 +21,7 @@ urlpatterns = [
     path('bang-tinh/<slug:code>/luu-json/', master_views.save, name='master_save'),
     path('bang-tinh/<slug:code>/lich-su/', master_views.history, name='master_history'),
     path('bang-tinh/<slug:code>/quyen-dong/', master_views.scope, name='master_scope'),
+    path('bang-tinh/<slug:code>/dong-bo/', master_views.sync, name='master_sync'),
     path('van-don/phan-cong/', assignment_views.assignment, name='waybill_assignment'),
     path("van-don/len-don/", waybill_views.create_order, name="waybill_create"),
     path("van-don/chi-tiet/<int:pk>/", waybill_views.detail, name="waybill_detail"),

@@ -8,19 +8,20 @@
   editor.classList.add('mg-inline-editor');
   const ROW = 28, HEADER = 54, BLOCK = 100, MAX = 2000, CACHE = 10;
   const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const requestLog=[];
   const key = `kn-master:${config.user}:${config.table}`;
   let preferences = {};
   try { preferences = JSON.parse(localStorage.getItem(key) || '{}'); } catch (_) {}
   if(!preferences||typeof preferences!=='object'||Array.isArray(preferences))preferences={};
   const heights=Object.create(null), geometry=new window.KNJSCRowGeometry();
-  let working=new window.KNJSCWorkingCopy();
+  let working=new window.KNJSCWorkingCopy(!!config.renderOptimized);
   const same=window.KNJSCWorkingCopy.same;
   for(const [id,h] of Object.entries(preferences.rowHeights||{})){
     if(/^[1-9]\d*$/.test(id)&&Number.isSafeInteger(Number(id))&&typeof h==='number'&&Number.isFinite(h)&&h>28)heights[id]=Math.max(28,Math.min(400,Math.round(h)));
   }
   preferences.rowHeights=heights;
   const state = {columns: [], visible: [], cache: new Map(), pending: new Map(), total: 0,
-    version: '', generation: 0, selection: null, anchor: null, current: null, draft: null,
+    version: '', queryToken:'', metadataVersion:'', revision:0, cursors:new Map(), generation: 0, selection: null, anchor: null, current: null, draft: null,
     retry: null, busy: false, ready: false, poll: '', lastError: '', editMode:false, conflicts:[], retryCount:0, composing:false, accessEpoch:0};
   let saveTimer=0, firstQueued=0;
   let query = new URLSearchParams(location.search), scheduled = false, drag = null, resizing = null, frame = 0, rowResize = null, rowFrame = 0;
@@ -39,10 +40,25 @@
   async function json(response) {
     const data = await response.json().catch(() => ({}));
     if (!response.ok) { const error = new Error(data.error || 'Không tải được dữ liệu. Kiểm tra kết nối hoặc quyền truy cập.'); error.status = response.status; error.cell = data.cell; error.conflicts=data.conflicts||[]; throw error; }
-    if(response.redirected || !response.headers.get('Content-Type')?.includes('application/json'))throw Error('Phiên đăng nhập hoặc phản hồi không hợp lệ. Nội dung chưa được xác nhận lưu.');
+    if(response.redirected || !response.headers.get('Content-Type')?.includes('application/json')){
+      const error=Error('Phiên đăng nhập hoặc phản hồi không hợp lệ. Nội dung chưa được xác nhận lưu.');
+      if(response.url&&new URL(response.url).pathname==='/dang-nhap/')error.status=403;
+      throw error;
+    }
     return data;
   }
+  function fetch(url,options={}) {
+    if(!config.requestMetrics)return window.fetch(url,options);
+    const headers=new Headers(options.headers),id=crypto.randomUUID().replaceAll('-',''),start=performance.now();
+    headers.set('X-Request-ID',id);
+    const record=(status,requestId,error)=>{requestLog.push({id:requestId||id,status,ms:performance.now()-start,...(error?{error}:{})});if(requestLog.length>100)requestLog.shift();};
+    return window.fetch(url,{...options,headers}).then(response=>{record(response.status,response.headers.get('X-Request-ID'));return response;},error=>{record(0,id,error.name);throw error;});
+  }
   function layout() {
+    canvas.style.height = Math.max(HEADER + geometry.top(state.total), viewport.clientHeight) + 'px';
+    const layoutKey=config.renderOptimized?JSON.stringify([preferences.order,preferences.hidden,preferences.widths,viewport.clientWidth]):null;
+    if(config.renderOptimized&&state.layoutKey===layoutKey&&state.layoutColumns===state.columns)return;
+    state.layoutKey=layoutKey;state.layoutColumns=state.columns;state.layoutEpoch=(state.layoutEpoch||0)+1;
     const order = preferences.order || [], byCode = new Map(state.columns.map(c => [c.code, c]));
     const arranged = [...new Set([...order, ...state.columns.map(c => c.code)])].filter(c => byCode.has(c));
     state.visible = arranged.filter(c => !(preferences.hidden || []).includes(c)).map(code => ({...byCode.get(code), width: Math.max(72, Math.min(640, preferences.widths?.[code] || byCode.get(code).width))}));
@@ -63,6 +79,7 @@
   function invalidate(clearSelection = true) {
     finishRowResize(false);
     state.generation++; state.pending.forEach(p => p.controller.abort()); state.pending.clear(); state.cache.clear(); state.version = '';
+    state.queryToken='';state.cursors.clear();
     updateGeometry(()=>geometry.reset(state.total));
     if (clearSelection) { state.selection = state.anchor = state.current = null; reader.hidden = true; }
     repaint();
@@ -74,10 +91,27 @@
     const generation = state.generation, controller = new AbortController();
     const params = new URLSearchParams(query); params.delete('trang'); params.delete('moi_trang');
     params.set('offset', number * BLOCK); if (state.version) params.set('version', state.version);
+    if(config.protocol===2){
+      params.set('protocol','2');
+      if(state.queryToken)params.set('query_token',state.queryToken);
+      if(state.metadataVersion)params.set('metadata_version',state.metadataVersion);
+      if(state.cursors.has(number))params.set('cursor',state.cursors.get(number));
+    }
     const promise = fetch(config.dataUrl + '?' + params, {signal: controller.signal}).then(json).then(data => {
       if (generation !== state.generation) return;
+      // Polling có thể đã xác nhận mốc mới trong lúc khối này đang trên mạng.
+      // Bỏ khối cũ và để renderer yêu cầu lại, không đưa giá trị cũ vào cache.
+      if(state.queryToken&&data.protocol===2&&data.revision<state.revision){repaint();return;}
+      if(config.protocol===2&&data.protocol!==2){config.protocol=1;config.syncUrl=null;state.queryToken='';state.metadataVersion='';state.cursors.clear();state.version='';}
       if (state.version && state.version !== data.version) { invalidate(); return; }
-      state.version = data.version; state.total = data.total; state.columns = data.columns; state.ready = true;
+      state.version = data.version; state.total = data.total;if(data.columns)state.columns = data.columns; state.ready = true;
+      if(data.protocol===2){
+        if(!state.queryToken)state.revision=data.revision;
+        state.queryToken=data.query_token;state.metadataVersion=data.metadata_version;
+        if(data.next_cursor)state.cursors.set(number+1,data.next_cursor);
+        if(data.previous_cursor)state.cursors.set(number-1,data.previous_cursor);
+        while(state.cursors.size>22)state.cursors.delete(state.cursors.keys().next().value);
+      }
       updateGeometry(()=>{
         if(geometry.total!==data.total)geometry.reset(data.total);
         data.rows.forEach((row,i)=>{if(rowResize?.id!==row.id)geometry.set(number*BLOCK+i,heights[row.id]||ROW);});
@@ -137,13 +171,23 @@
     for(const fresh of [...fragment.children]){
       const rowKey=fresh.getAttribute('aria-rowindex'),previous=rowKey&&oldRows.get(rowKey);
       if(!previous){body.append(fresh);keep.add(fresh);continue;}
-      syncRow(previous,fresh);
+      if(!fresh._reuse)syncRow(previous,fresh);
+      previous._paint=fresh._paint;
       keep.add(previous);
     }
     for(const row of [...body.children])if(!keep.has(row))row.remove();
     [...keep].forEach((row,i)=>{if(body.children[i]!==row)body.insertBefore(row,body.children[i]||null);});
   }
   function selected(r, c) { const s = state.selection; return s && r >= s.r1 && r <= s.r2 && c >= s.c1 && c <= s.c2; }
+  function paintSelection(line,r){
+    line.querySelector('.mg-number')?.setAttribute('aria-selected',!!(state.selection&&r>=state.selection.r1&&r<=state.selection.r2));
+    for(const cell of line.querySelectorAll('.mg-cell')){
+      const c=Number(cell.dataset.c),on=!!selected(r,c);
+      cell.classList.toggle('mg-selected',on);cell.classList.toggle('mg-current',state.current?.r===r&&state.current?.c===c);
+      cell.setAttribute('aria-selected',on);
+      for(const [side,edge] of Object.entries({top:r===state.selection?.r1,bottom:r===state.selection?.r2,left:c===state.selection?.c1,right:c===state.selection?.c2}))cell.classList.toggle('mg-edge-'+side,on&&edge);
+    }
+  }
   function render() {
     if (!state.ready) { if (!state.lastError) loadBlock(0).catch(() => {}); return; }
     layout();
@@ -151,6 +195,8 @@
     const start = Math.max(0, geometry.at(Math.max(0,top-HEADER))-8), end = Math.min(state.total, geometry.at(top+viewport.clientHeight)+9);
     const cols = state.visible.map((c, i) => ({...c, i})).filter(c => c.pin || (c.x + c.width > left - 160 && c.x < left + viewport.clientWidth + 160));
     const fragment = document.createDocumentFragment();
+    const headerKey=config.renderOptimized?JSON.stringify([state.layoutEpoch,cols.map(c=>c.code),query.get('sap'),query.get('chieu')]):'';
+    if(!config.renderOptimized||state.headerKey!==headerKey||!canvas.querySelector(':scope > .mg-head')){
     const head = element('div', 'mg-head'); head.setAttribute('role', 'row');
     position(head, 0, 0, state.width, HEADER);
     const headPins=pinRegion(HEADER);head.append(headPins);
@@ -167,11 +213,20 @@
     }
     const previousHead=canvas.querySelector(':scope > .mg-head');
     if(previousHead)syncRow(previousHead,head);else canvas.prepend(head);
+    state.headerKey=headerKey;
+    }
     let body=canvas.querySelector(':scope > .mg-body');
     if(!body){body=element('div','mg-body');canvas.append(body);}
+    const oldRows=config.renderOptimized?new Map([...body.children].map(row=>[row.getAttribute('aria-rowindex'),row])):new Map();
     for (let r = start; r < end; r++) {
       const row = rowAt(r), line = element('div','mg-row');line.setAttribute('role','row');line.setAttribute('aria-rowindex',r+2);
       const rowHeight=geometry.height(r);
+      const paint=config.renderOptimized?{row,working,local:working.revision(row?.id),layout:headerKey,height:rowHeight,top:geometry.top(r)}:null;
+      const previous=oldRows.get(String(r+2)),old=previous?._paint;
+      line._paint=paint;
+      if(config.renderOptimized&&old&&Object.keys(paint).every(k=>paint[k]===old[k])){
+        paintSelection(previous,r);line._reuse=true;fragment.append(line);continue;
+      }
       position(line,0,HEADER+geometry.top(r),state.width,rowHeight);
       const pins=pinRegion(rowHeight);line.append(pins);
       const number = element('button','mg-number',String(r+1)); number.dataset.selectRow=r;number.setAttribute('aria-selected',!!(state.selection&&r>=state.selection.r1&&r<=state.selection.r2));position(number,0,0,46,rowHeight);pins.append(number);
@@ -355,11 +410,11 @@
     firstQueued ||= Date.now();clearTimeout(saveTimer);
     saveTimer=setTimeout(()=>saveAll(false),Math.max(0,Math.min(500,2000-(Date.now()-firstQueued))));
   }
-  function updateRows(rows){
+  function updateRows(rows,partial=false){
     const byId=new Map(rows.map(r=>[r.id,r]));
-    for(const block of state.cache.values())block.rows=block.rows.map(r=>byId.get(r.id)||r);
+    for(const block of state.cache.values())block.rows=block.rows.map(r=>byId.has(r.id)?(partial?{...r,cells:{...r.cells,...byId.get(r.id).cells}}:byId.get(r.id)):r);
     // Request đã bắt đầu trước lượt lưu không được ghi đè kết quả vừa xác nhận.
-    state.generation++;state.pending.forEach(p=>p.controller.abort());state.pending.clear();state.version='';
+    state.generation++;state.pending.forEach(p=>p.controller.abort());state.pending.clear();if(config.protocol!==2)state.version='';
     repaint();
   }
   async function saveAll(explicit=true) {
@@ -371,12 +426,13 @@
     const accessEpoch=state.accessEpoch;
     try{
         const cells=working.pending();
-        const payload=state.retry?.payload||{operation:crypto.randomUUID(),cells,kind:state.kind||'edit'};state.kind='edit';
+        const payload=state.retry?.payload||{operation:crypto.randomUUID(),cells,kind:state.kind||'edit',...(config.compact?{protocol:2}:{})};state.kind='edit';
         state.retry={payload};working.hold(payload.cells);
         const data=await fetch(config.saveUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(payload)}).then(json);
         if(accessEpoch!==state.accessEpoch)return;
-        working.acknowledge(payload.cells,data.rows);working.observe(data.rows);state.retry=null;state.retryCount=0;
-        updateRows(data.rows);state.lastError='';
+        const rows=data.protocol===2?data.render_cells:data.rows;
+        working.acknowledge(payload.cells,rows);working.observe(rows);state.retry=null;state.retryCount=0;
+        updateRows(rows,data.protocol===2);state.lastError='';
     }catch(error){
       clearTimeout(saveTimer);firstQueued=0;
       if(error.status===403||error.status===404){
@@ -390,7 +446,7 @@
       state.errorStatus=error.status||0;
       const position=error.cell?.id?`Dòng #${error.cell.id}, cột ${error.cell.column}: `:'';message(position+error.message,true);
       const retry=element('button','nut','Thử lại'),discard=element('button','nut','Bỏ bản nháp');
-      retry.onclick=()=>{state.retryCount=0;saveAll();};discard.onclick=()=>{working=new window.KNJSCWorkingCopy();state.retry=null;state.conflicts=[];state.saveError=false;message();invalidate();refreshStatus();};
+      retry.onclick=()=>{state.retryCount=0;saveAll();};discard.onclick=()=>{working=new window.KNJSCWorkingCopy(!!config.renderOptimized);state.retry=null;state.conflicts=[];state.saveError=false;message();invalidate();refreshStatus();};
       if(state.conflicts.length){const open=element('button','nut','Đối chiếu xung đột');open.onclick=showConflicts;$('mg-message').append(open);}
       else $('mg-message').append(retry);
       // Không bỏ lượt chưa biết đã commit hay chưa; giải quyết biên nhận trước.
@@ -661,11 +717,12 @@
   async function refresh(){state.lastError='';invalidate();}
   window.addEventListener('master-refresh',refresh);
   window.KNJSC_MASTER={refresh,selectedRows:async()=>[...new Set((await rangeCells()).map(c=>c.id))],diagnostics:()=>({cache:state.cache.size,cells:canvas.querySelectorAll('.mg-cell').length,total:state.total,generation:state.generation})};
+  window.KNJSC_MASTER.requestDiagnostics=()=>requestLog.map(entry=>({...entry}));
   function clearAccess(text){
     const hadDraft=!!state.draft||!!state.retry;
     state.draft=state.retry=state.historyId=null;editor.hidden=reader.hidden=true;
     $('mg-input').replaceChildren();reader.querySelector('div').textContent='';
-    working=new window.KNJSCWorkingCopy();state.conflicts=[];state.saveError=true;clearTimeout(saveTimer);
+    working=new window.KNJSCWorkingCopy(!!config.renderOptimized);state.conflicts=[];state.saveError=true;clearTimeout(saveTimer);
     state.accessEpoch++;
     for(const id of ['mg-history','mg-conflict','mg-format']){$(id).close();$(id+'-body').replaceChildren();}
     $('vd-detail')?.close();$('vd-detail-body')?.replaceChildren();$('vd-assignment')?.close();$('vd-assignment-fields')?.replaceChildren();
@@ -675,6 +732,26 @@
   async function poll(){
     if(document.hidden||state.busy)return;
     try{
+      if(config.syncUrl){
+        if(!state.queryToken)return;
+        const generation=state.generation,ids=new Set(working.pending().map(c=>c.id));
+        if(state.draft)ids.add(state.draft.id);if(state.historyId)ids.add(state.historyId);
+        for(const block of state.cache.values())block.rows.forEach(row=>ids.add(row.id));
+        const visible=[...new Set([...canvas.querySelectorAll('.mg-cell[data-id]')].map(cell=>Number(cell.dataset.id)))].slice(0,100);
+        const data=await fetch(config.syncUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({ids:[...ids],visible,query:query.toString(),query_token:state.queryToken,revision:state.revision})}).then(json);
+        if(generation!==state.generation||state.busy)return;
+        if(data.unsupported){config.syncUrl=null;return;}
+        if(data.removed.length){
+          const text=await retainReadableDrafts('Quyền xem đã thay đổi.');
+          state.conflicts=state.conflicts.filter(c=>!data.removed.includes(c.id));message(text,true);refreshStatus();return;
+        }
+        if(data.reset){invalidate(false);return;}
+        state.revision=data.revision;
+        const invalid=new Set(data.invalidate);
+        for(const [number,block] of state.cache)if(block.rows.some(row=>invalid.has(row.id)))state.cache.delete(number);
+        if(data.rows.length){working.observe(data.rows);updateRows(data.rows);}else if(invalid.size)repaint();
+        return;
+      }
       const data=await fetch(config.filterUrl+'moi-nhat/').then(json),stamp=JSON.stringify(data);
       const ids=new Set(working.pending().map(c=>c.id));
       if(state.draft)ids.add(state.draft.id);if(state.historyId)ids.add(state.historyId);

@@ -63,6 +63,7 @@ LOCAL_APPS = [
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
+    "core.request_metrics.RequestMetricsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -110,6 +111,25 @@ DATABASES = {
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Mỗi nhóm được bật riêng sau kiểm chứng; mặc định bảo toàn giao thức cũ.
+CRM_OPT_READ = env_bool('CRM_OPT_READ',False)
+CRM_OPT_SYNC = env_bool('CRM_OPT_SYNC',False)
+CRM_OPT_RECEIPTS = env_bool('CRM_OPT_RECEIPTS',False)
+CRM_OPT_STATS = env_bool('CRM_OPT_STATS',False)
+CRM_OPT_RENDER = env_bool('CRM_OPT_RENDER',False)
+CRM_OPT_EXPORT = env_bool('CRM_OPT_EXPORT',False)
+CRM_REQUEST_METRICS = env_bool('CRM_REQUEST_METRICS',False)
+CRM_OPT_QUEUES = env_bool('CRM_OPT_QUEUES',False)
+if CRM_OPT_QUEUES:
+    CELERY_TASK_ROUTES = {
+        'forms_builder.chay_tac_vu_nhap': {'queue':'crm_heavy'},
+        'forms_builder.chay_tac_vu_xuat': {'queue':'crm_heavy'},
+        'forms_builder.chay_tac_vu_tinh_lai': {'queue':'crm_heavy'},
+    }
+CACHES = {'default':{'BACKEND':'django.core.cache.backends.locmem.LocMemCache'},
+          'crm':{'BACKEND':'django.core.cache.backends.redis.RedisCache','LOCATION':env('CRM_CACHE_URL','redis://localhost:6379/2'),
+                 'OPTIONS':{'socket_connect_timeout':0.2,'socket_timeout':0.2}}}
 
 # ── Mật khẩu ────────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [

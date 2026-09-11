@@ -9,6 +9,11 @@
 
 ## Quyết định
 
+Bổ sung 11.09.2026: [ADR-024](024-crm-optimization.md) quy định giao thức
+đọc/đồng bộ/biên nhận v2 và cache Thống kê tối đa 15 giây. Đang triển khai
+sau cờ mặc định tắt; không thay autosave, CAS, quyền, công thức hoặc thao tác
+đã chốt ở đây. Kết quả nghiệm thu theo biên bản riêng, không dùng số đo cũ.
+
 Bảng tính là một tính năng; mỗi bảng là một nguồn dữ liệu trong tính năng đó.
 Vận đơn mới đóng vai trò file master để xem, tìm và chỉnh sửa. Không có công
 thức Excel tự do, thanh công thức, định dạng mới, kéo điền hoặc xóa dòng trong

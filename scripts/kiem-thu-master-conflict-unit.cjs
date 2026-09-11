@@ -7,7 +7,7 @@ function run(choice){
   const row={id:1,cells:{note:{value:'Ban đầu',display:'Ban đầu',style:{}}}},working=new Working();working.stage([{id:1,column:'note',old:'Ban đầu',value:'Của tôi'}]);
   const body={children:[],append(...children){this.children.push(...children);},replaceChildren(){this.children=[];}};
   const ctx={state:{cache:new Map([[0,{rows:[row]}]]),pending:new Map(),generation:0,conflicts:[{id:1,column:'note',old:'Ban đầu',value:'Của tôi',current:'Đồng nghiệp'}]},working,window:{KNJSCWorkingCopy:Working},Map,Option:function(text,value){this.text=text;this.value=value;},
-    $:id=>id==='mg-conflict-body'?body:{close(){}},element:(tag,css,text)=>({tag,text,children:[],setAttribute(){},append(...children){this.children.push(...children);}}),message(){messageCleared=true;},openDialog(){},saveAll(){},repaint(){}};
+    config:{},$:id=>id==='mg-conflict-body'?body:{close(){}},element:(tag,css,text)=>({tag,text,children:[],setAttribute(){},append(...children){this.children.push(...children);}}),message(){messageCleared=true;},openDialog(){},saveAll(){},repaint(){}};
   vm.createContext(ctx);vm.runInContext(updateCode+conflictCode+';showConflicts();',ctx);
   const section=body.children.find(c=>c.tag==='section'),select=section.children.find(c=>c.tag==='select');select.value=choice;select.onchange();body.children.find(c=>c.tag==='button').onclick();
   const cached=ctx.state.cache.get(0).rows[0].cells.note.value;

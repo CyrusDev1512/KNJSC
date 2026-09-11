@@ -97,6 +97,9 @@ def block(user, table, params):
 
 
 def _block(user, table, params, *, snapshot=False):
+    from . import optimization
+    if params.get('protocol')=='2' and optimization.enabled('READ'):
+        return optimization.block(user,table,params)
     try:
         offset = int(params.get('offset', 0))
         if offset < 0 or offset > 2**31 - 1:
@@ -153,7 +156,10 @@ def save(user, table, payload, *, request=None):
     kind = payload.get('kind', 'edit')
     if kind not in ('edit','paste','clear','format','undo','redo'):
         raise BusinessError('Loại thao tác không hợp lệ.')
-    fingerprint = digest({'table': table.pk, 'cells': cells, **({'kind':kind} if 'kind' in payload else {})})
+    from . import optimization
+    compact=payload.get('protocol')==2 and optimization.enabled('RECEIPTS')
+    # Phiên bản request không phụ thuộc cờ rollout: replay vẫn hợp lệ khi tắt cờ.
+    fingerprint = digest({'table': table.pk, 'cells': cells, **({'kind':kind} if 'kind' in payload else {}), **({'protocol':2} if payload.get('protocol')==2 else {})})
     # Unique constraint tuần tự hoá cả request trùng ID nhưng khác tập dòng.
     receipt, created = GridMutationReceipt.objects.get_or_create(actor=user, operation=operation,
         defaults={'table': table, 'fingerprint': fingerprint})
@@ -173,6 +179,7 @@ def save(user, table, payload, *, request=None):
         column.table = table
     column_map = {c.code: c for c in columns}
     by_id = {r.pk: r for r in rows}
+    before_rows={r.pk:json.loads(json.dumps({'data':r.data,'style':r.style},cls=DjangoJSONEncoder)) for r in rows} if compact else {}
     changes, styles, conflicts = [], [], []
     for c in cells:
         row, column = by_id[c['id']], column_map.get(c['column'])
@@ -211,8 +218,21 @@ def save(user, table, payload, *, request=None):
         if value != c['old']:
             history.append(GridCellHistory(record=r, receipt=receipt, column=c['column'], property=prop, before=c['old'], after=value))
     GridCellHistory.objects.bulk_create(history, batch_size=500)
-    result = {'rows': serialize(fresh, columns, user), 'replayed': False,
+    result = {'replayed': False,
               'operation': str(operation), 'changed': len(history), 'kind': kind}
+    if compact:
+        result.update(protocol=2,cells=[],render_cells=[])
+        for c in cells:
+            r=final[c['id']];prop=c.get('property','value')
+            value=r.data.get(c['column']) if prop=='value' else (r.style or {}).get(c['column'],{}).get(prop)
+            result['cells'].append({'id':r.pk,'column':c['column'],'property':prop,'value':value})
+        for row in fresh:
+            previous=before_rows[row.pk]
+            changed_codes={c['column'] for c in cells if c['id']==row.pk}
+            changed_codes.update(k for k in set(previous['data'])|set(row.data) if previous['data'].get(k)!=row.data.get(k))
+            result['render_cells'].append({'id':row.pk,'cells':serialize([row],[c for c in columns if c.code in changed_codes],user)[0]['cells']})
+    else:
+        result['rows']=serialize(fresh,columns,user)
     receipt.result = result
     receipt.save(update_fields=['result'])
     return result

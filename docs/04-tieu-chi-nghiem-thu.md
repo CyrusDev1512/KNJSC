@@ -436,3 +436,22 @@ lưới, bộ lọc và dữ liệu Vận đơn của AC-18/20/21.
 | AC-22.7 | Biểu đồ đúng bộ theo profile, ≤10 nhóm và bảng đối chiếu phân trang đủ; ngày/tuần/tháng theo 45/180 ngày; cột 2.5D không sai tỷ lệ, đường phẳng, có title/nhãn/bảng/focus/reduced-motion | ADR-022 | Tự động + trình duyệt |
 | AC-22.8 | Sidebar hiện khi có bất kỳ bảng nào; Trang chủ CRM và Báo cáo tổng hợp ERP chỉ thêm link; xuất Excel ERP và `f_*`/`group`/phân trang/redirect Vận đơn cũ không hồi quy | ADR-022 · ADR-014 | Tự động |
 | AC-22.9 | Query không tăng theo số dòng hoặc toàn bộ bảng ngoài ba nguồn; p95 đọc ≤1 giây trên 100k/300k Vận đơn và 20k Sale; không có dependency, cache, polling hoặc tác vụ nền mới | ADR-022 · ADR-016 | Tự động + hiệu năng |
+
+## 24. CRM-Optimization — ADR-024, đang kiểm chứng
+
+ADR-024 thay riêng điều kiện “không có cache mới” của AC-22.9 bằng cache
+Thống kê tối đa 15 giây. Giữ công thức, scope và các tiêu chí giao diện trước đó.
+Các mục dưới là điều kiện nghiệm thu, **không phải kết quả đã đạt**.
+
+| Mã | Đạt khi | Kiểm bằng |
+|---|---|---|
+| AC-24.1 | Khối v2 ≤100 dòng; token/cursor ký theo user/bảng/điều kiện/quyền; ID/thứ tự/tổng khớp truy vấn và xuất; cache hit không COUNT lại; Redis lỗi đọc DB | Unit/functional và EXPLAIN |
+| AC-24.2 | Mọi đường ghi phát revision cùng transaction; rollback không phát; commit đảo thứ tự khởi tạo không mất sự kiện; journal ≤10k phiên bản/bảng và ≤2k ID/sự kiện | Transaction/bulk/migration test |
+| AC-24.3 | Sync ≤4k ID client, chỉ trả dòng còn scope; mất quyền/khóa tài khoản gỡ dữ liệu khỏi UI; cache nóng không vượt quyền; lọc/sort đổi loại phản hồi cũ | Functional + trình duyệt |
+| AC-24.4 | V1/v2 cùng giữ CAS, nguyên tử, nháp mới, Undo và replay; biên nhận v2 không nhân lịch sử, trả đúng xác nhận ban đầu sau kiểm quyền, kể cả tắt cờ | Unit + E2E |
+| AC-24.5 | Sticky lệch ≤1 CSS px trong cuộn; cache ≤10, DOM/heap có giới hạn; không đổi thao tác inline/IME/selection/resize; UI p95 ≤100ms, ≥100 mẫu | Chrome 1440/1280/390, CSS zoom và zoom thực ghi riêng |
+| AC-24.6 | Thống kê giữ công thức và snapshot, TTL không gia hạn quá15s, Làm mới bỏ cache; Excel giữ kiểu/chuỗi số0 đầu/định dạng/ID/thứ tự; worker/tải lại kiểm quyền; cấu hình giới hạn một tác vụ nặng chạy đồng thời, đo riêng độ dài/thời gian chờ hàng đợi | Functional + xuất/nhập nền |
+| AC-24.7 | Đo cùng snapshot/seed/tài nguyên: 100k/300k ×10/20, warmup60s/đo5phút; bản cuối 300k/20/30phút; đọc/lọc/history p95≤1s, lưu ô≤0,5s, 2k ô≤5s; không lỗi mạng/5xx không chủ đích hoặc sai dữ liệu | Raw HTTP/browser/resource/storage evidence |
+
+Không gộp skip thành đạt. VPS chưa có thì chỉ báo kết quả local; không dùng
+cấu hình dự kiến thay phép đo. Cờ không đạt hồi quy phải để tắt.

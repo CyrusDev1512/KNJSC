@@ -1,5 +1,15 @@
 # Hướng dẫn sử dụng và vận hành
 
+**CRM-Optimization — đã kiểm local, chưa phát hành, 11.09.2026:** cấu hình production ứng
+viên và quy trình bật/tắt từng nhóm ở
+[deploy/production/README](../deploy/production/README.md). Không thay launcher
+hoặc Compose local. Cờ tối ưu mặc định tắt; không tự migrate DB đang dùng.
+Thống kê khi bật cache hiển thị thời điểm tính, tối đa 15 giây; nút Làm mới
+lấy số liệu mới. Không đổi cách nhập/sửa của vận đơn.
+Xem [kết quả và điều kiện chưa đạt](kiem-chung-crm-optimization-20260911.md):
+không bật đồng loạt chỉ vì bài tải trả mã 0. Đặc biệt theo dõi backlog xuất,
+cold Thống kê và tăng RAM app; renderer giữ tắt khi chưa có lợi ích ổn định.
+
 **11.09.2026 — Điều hướng ERP/thư viện/Lên đơn CRM:** đã triển khai local theo ADR-023. Giữ Bảng dữ liệu ERP; sửa Biểu mẫu thiếu người tạo, gộp hai tab đúng quyền; chuyển nhập đơn và xem đơn gốc sang CRM. Kiểm thử, số đo và giới hạn tại [báo cáo bàn giao](kiem-chung-erp-hub-20260911.md). Chưa commit/push.
 
 | Mục | Nội dung |

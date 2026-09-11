@@ -2,6 +2,8 @@
 
 Thư mục này ghi lại các quyết định kỹ thuật quan trọng kèm lý do.
 
+Đang triển khai: [ADR-024 — CRM-Optimization](024-crm-optimization.md), chưa nghiệm thu hiệu năng/chạy bền.
+
 Mới: [ADR-023 — Điều hướng ERP và Lên đơn CRM](023-dieu-huong-erp-va-len-don-crm.md) (11.09.2026).
 
 ---

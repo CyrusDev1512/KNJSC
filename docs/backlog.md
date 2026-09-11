@@ -1,5 +1,16 @@
 # Backlog
 
+**11.09.2026 — CRM-Optimization, có bản local; chưa nghiệm thu toàn bộ:** nhánh/checkout riêng,
+snapshot đầy đủ đã đóng băng. Đã làm phiên bản/cache quyền, đọc/sync v2,
+receipt gọn, tái sử dụng renderer, cache Thống kê 15 giây, xuất write-only
+và cấu hình VPS ứng viên. Suite cuối 1.092 passed, 4 lỗi nền, 9 skipped;
+E2E/Chrome và tám lượt trước/sau đã kiểm. Bài bền 300k/20 cấu hình 30 phút:
+21.828 mẫu, không lỗi mạng/5xx hoặc oracle; 7 CAS dán cùng vùng được tách riêng.
+Render chưa cải thiện ổn định, cold Thống kê >1 giây và hàng đợi xuất tăng
+là phần còn nợ; cần phân tích thêm RSS app tăng trong bài bền. Cờ mặc định tắt,
+chưa commit/push/VPS. Không đánh dấu hoàn thành toàn bộ feedback.
+[Biên bản và phần còn nợ](kiem-chung-crm-optimization-20260911.md).
+
 **11.09.2026 — Ba lựa chọn Lên đơn bắt buộc chọn rõ:** Quốc gia/Loại tiền/PTTT mặc định rỗng, chọn hợp lệ mới lưu; đơn kế tiếp trở lại rỗng. 105 test đạt, Chrome 1440/390 đạt, trần 10 truy vấn giữ đạt; không migration/dependency, chưa commit/push. [Bằng chứng bổ sung](kiem-chung-len-don-gio-admin-20260911.md).
 
 

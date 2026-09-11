@@ -85,7 +85,27 @@ def scope(request, code):
         return JsonResponse({'error':'Danh sách dòng không hợp lệ.'},status=400)
 
 
+@login_required
+@require_POST
+def sync(request,code):
+    from django.db import connection,transaction
+    from .services import optimization
+    if not optimization.enabled('SYNC'):return JsonResponse({'unsupported':True})
+    try:
+        table=service.table_for(request.user,code)
+        already_atomic=connection.in_atomic_block
+        with transaction.atomic():
+            if not already_atomic:
+                with connection.cursor() as cursor:cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
+            return JsonResponse(optimization.sync(request.user,table,json.loads(request.body)))
+    except OutOfScopeError:return JsonResponse({'error':'Bạn không còn quyền xem bảng.'},status=403)
+    except BusinessError as exc:return JsonResponse({'error':str(exc)},status=409 if exc.code=='conflict' else 400)
+    except (ValueError,TypeError,AttributeError):return JsonResponse({'error':'Dữ liệu đồng bộ không hợp lệ.'},status=400)
+
+
 def shell(request, table):
+    from django.conf import settings
+    from .services import optimization
     from forms_builder.services.record_service import PALETTE
     grid = grid_service.build_grid(request.user, request.GET, table=table)
     month = tree_service.month_of_params(request.GET, grid.columns)
@@ -104,6 +124,11 @@ def shell(request, table):
         'ben': sidebar_service.context(request.user, table, grid.columns, qs),
         'quick_filters': sidebar_service.quick_filters(qs),
         'config': {'dataUrl': reverse('master_data', args=[table.code]),
+                   'requestMetrics':getattr(settings,'CRM_REQUEST_METRICS',False),
+                   'protocol':2 if optimization.enabled('READ') else 1,
+                   'compact':optimization.enabled('RECEIPTS'),
+                   'renderOptimized':optimization.enabled('RENDER'),
+                   'syncUrl':reverse('master_sync',args=[table.code]) if optimization.enabled('SYNC') and optimization.enabled('READ') else None,
                    'palette': dict(PALETTE), 'styleClasses': grid_service.STYLE_CLASSES,
                    'saveUrl': reverse('master_save', args=[table.code]),
                    'historyUrl': reverse('master_history', args=[table.code]),

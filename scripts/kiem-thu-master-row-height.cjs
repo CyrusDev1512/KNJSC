@@ -49,8 +49,9 @@ module.exports=async function rowHeightChecks({page,context,base}){
   await page.locator('#mg-viewport').evaluate(e=>e.scrollTop=0);await page.locator('.mg-cell[data-r="0"][data-id]').first().waitFor();assert.equal(await height(0),160);
   // Poll đổi phiên bản: giữ đúng hàng và chiều cao khi dựng lại cache.
   const refreshed=page.waitForResponse(r=>r.url().includes('/du-lieu/')&&r.status()===200,{timeout:18000});
-  await page.route('**/moi-nhat/',async route=>{const response=await route.fetch();await route.fulfill({response,json:{...await response.json(),rowHeightCheck:1}});});
-  await refreshed;await page.locator('.mg-cell[data-r="0"][data-id]').first().waitFor();assert.equal(await height(0),160);await page.unroute('**/moi-nhat/');
+  const sync=await page.evaluate(()=>!!JSON.parse(document.getElementById('mg-config').textContent).syncUrl),pollRoute=sync?'**/dong-bo/':'**/moi-nhat/';
+  await page.route(pollRoute,async route=>{const response=await route.fetch();await route.fulfill({response,json:{...await response.json(),...(sync?{reset:true}:{rowHeightCheck:1})}});});
+  await refreshed;await page.locator('.mg-cell[data-r="0"][data-id]').first().waitFor();assert.equal(await height(0),160);await page.unroute(pollRoute);
   // Zoom: khoảng kéo màn hình được đổi về px CSS.
   await page.evaluate(()=>document.documentElement.style.zoom='1.25');await drag(0,50);
   assert(Math.abs(await height(0)-250)<2);await page.evaluate(()=>document.documentElement.style.zoom='');assert.equal(await height(0),200);

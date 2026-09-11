@@ -1,0 +1,46 @@
+# Chỉ nhận mã hex 32 ký tự; header khác dùng mã do proxy cấp.
+map $http_x_request_id $correlation_id {
+    "~^[0-9a-fA-F]{32}$" $http_x_request_id;
+    default $request_id;
+}
+log_format technical escape=json '{"request_id":"$correlation_id","status":$status,"seconds":$request_time,"upstream_seconds":"$upstream_response_time","upstream_status":"$upstream_status","connection":$connection,"requests":$connection_requests}';
+# Error log chuẩn của Nginx có thể kèm query string; lỗi request theo technical log.
+error_log /var/log/nginx/error.log crit;
+upstream crm { server crm:8000; }
+upstream erp { server erp:8000; }
+map $host $application { ${CRM_HOST} crm; default erp; }
+server {
+    listen 80;
+    server_name ${CRM_HOST} ${ERP_HOST};
+    access_log /var/log/nginx/access.log technical;
+    return 301 https://$host$request_uri;
+}
+server {
+    listen 443 ssl;
+    server_name ${CRM_HOST} ${ERP_HOST};
+    ssl_certificate /etc/nginx/certificates/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certificates/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    access_log /var/log/nginx/access.log technical;
+    client_max_body_size 11m;
+    gzip on;
+    gzip_types application/json text/plain text/css application/javascript;
+    gzip_min_length 1024;
+    location /static/ { alias /staticfiles/; expires 1h; }
+    # Request buffering nhận hết upload trước khi chiếm worker Django.
+    # Download buffering không giữ luồng nhập ô theo tốc độ mạng máy khách.
+    location / {
+        proxy_pass http://$application;
+        proxy_http_version 1.1;
+        proxy_set_header Connection close;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Request-ID $correlation_id;
+        proxy_hide_header X-Request-ID;
+        add_header X-Request-ID $correlation_id always;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_request_buffering on;
+        proxy_buffering on;
+        proxy_next_upstream off;
+    }
+}

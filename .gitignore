@@ -67,3 +67,5 @@ docker-compose.override.yml
 .claude/settings.local.json
 # Anh review local; ho so design.json va surfaces van dong bo qua Git.
 /.agents/design-state/review/
+/.test-runtime/
+/deploy/production/certificates/

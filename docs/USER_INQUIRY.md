@@ -1,5 +1,27 @@
 # Câu hỏi cần xác nhận với người sử dụng
 
+## CRM-Optimization — chủ dự án đã chốt 11.09.2026
+
+1. **Đích triển khai/đối tượng:** KN CRM, lưới mới chỉ `van_don_moi`; VPS chưa
+   có. Đáp: làm checkout/nhánh `CRM-Optimization`, đo local trước, chuẩn bị
+   cấu hình 12 CPU/24 GB/300 Mbps; không suy năng lực VPS từ máy hiện tại.
+2. **Độ trễ Thống kê:** chấp nhận cache tối đa 15 giây, có thời điểm tính và
+   Làm mới bỏ cache. Quyền vẫn kiểm hiện hành; không đổi công thức nghiệp vụ.
+3. **Lưu giữ:** journal kỹ thuật giữ 10.000 revision/bảng, tối đa 2.000 ID/sự
+   kiện rồi đồng bộ lại. Không xóa lịch sử ô hoặc biên nhận nghiệp vụ.
+4. **Nghiệm thu:** trước/sau cùng fixture 100k/300k × 10/20, bản cuối chạy bền
+   300k/20/30 phút. Không chấp nhận ngưỡng lỗi mạng “dưới 5%”. Chưa commit/push.
+5. **Lịch sử có phình không?** Có, tăng theo số ô/thuộc tính được sửa, không
+   theo riêng số khách. Lịch sử ở `crm_gridcellhistory`, biên nhận ở
+   `crm_gridmutationreceipt`; nháp ở RAM trình duyệt. Lượt test 20 lần dán
+   2.000 ô: JSON receipt giảm 4.052.670 → 361.808 byte; vẫn đủ 40.000 history.
+   [Số đo/index/WAL và giả định một năm](kiem-chung-crm-optimization-20260911.md#sql-biên-nhận-và-dung-lượng).
+   Chưa thay chính sách lưu giữ hoặc tự xóa lịch sử.
+
+[ADR-024](quyet-dinh/024-crm-optimization.md) và
+[tiến độ kiểm](kiem-chung-crm-optimization-20260911.md). Đây là quyết định đã
+duyệt, không phải câu hỏi mới cần người dùng trả lời.
+
 Nơi tập hợp câu hỏi để chủ dự án mang đi hỏi đúng người. Chia theo vấn đề,
 ghi rõ đối tượng trả lời; đánh số câu hỏi trong từng nhóm.
 

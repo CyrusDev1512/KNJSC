@@ -1,5 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+**In progress / chờ nghiệm thu — CRM-Optimization (11.09):** mã sau cờ tắt đã có;
+đã đo đủ trước/sau 100k/300k × 10/20 và bài bền cấu hình 30 phút. Render/cold
+Thống kê, backlog xuất và tăng RSS app còn cần cải thiện/điều tra. Không suy nguyên nhân toàn bộ
+16 lỗi lịch sử; chưa kết luận năng lực VPS. [Kiểm chứng](kiem-chung-crm-optimization-20260911.md).
+
 **11.09.2026 — Ba lựa chọn Lên đơn bắt buộc chọn rõ:** Quốc gia/Loại tiền/PTTT mặc định rỗng, chọn hợp lệ mới lưu; đơn kế tiếp trở lại rỗng. 105 test đạt, Chrome 1440/390 đạt, trần 10 truy vấn giữ đạt; không migration/dependency, chưa commit/push. [Bằng chứng bổ sung](kiem-chung-len-don-gio-admin-20260911.md).
 
 

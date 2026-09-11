@@ -8,7 +8,7 @@ from django.utils import timezone
 from core.pagination import paginate
 from orders.services import waybill_service
 
-from .services import grid_service, statistics_service
+from .services import grid_service, statistics_service, statistics_cache
 
 
 GROUPS = (
@@ -39,12 +39,12 @@ def _date_range(params):
     return date_from, date_to, errors
 
 
-def _legacy_waybill_context(request, table, records, group, dashboard):
+def _legacy_waybill_context(request, table, records, group, dashboard, grouped=None):
     if group == "total":
         rows = dashboard["legacy_totals"]
         grouping = ["record__data__loai_tien"]
     else:
-        rows, grouping = waybill_service.statistics(records, group)
+        rows, grouping = grouped if grouped is not None else waybill_service.statistics(records, group)
     page = paginate(request, rows)
     results = [
         {
@@ -118,6 +118,7 @@ def _paginate_charts(request, dashboard):
 
 
 @login_required
+@statistics_cache.snapshot
 def overview(request):
     request.nav_current = "statistics"
     tables = statistics_service.source_tables(request.user)
@@ -135,28 +136,34 @@ def overview(request):
     dashboard = None
     context = {}
     grid = None
+    updated=timezone.now()
     if not date_errors:
-        if table is None:
-            dashboard = statistics_service.build_overview(
-                request.user, tables, request.GET, date_from, date_to, request,
-            )
-        else:
+        if table is not None:
             # Cùng bộ lọc với lưới để f_*, tìm kiếm và sản phẩm vẫn đúng.
             grid = grid_service.build_grid(request.user, request.GET, table=table)
-            dashboard = statistics_service.build_dashboard(
-                request.user, table, date_from, date_to, records=grid.queryset,
-            )
+        def calculate():
+            if table is None:
+                return statistics_service.build_overview(request.user,tables,request.GET,date_from,date_to,request),None
+            dashboard=statistics_service.build_dashboard(request.user,table,date_from,date_to,records=grid.queryset)
+            grouped=None
+            if dashboard['profile']=='waybill' and dashboard.get('ok') and group!='total':
+                rows,grouping=waybill_service.statistics(grid.queryset.filter(val_date__gte=date_from,val_date__lte=date_to),group)
+                grouped=(list(rows),grouping)
+            return dashboard,grouped
+        cached=statistics_cache.result(request.user,tables,request.GET,date_from,date_to,calculate)
+        dashboard,grouped=cached['value'];updated=cached['calculated']
+        if table is not None:
             if dashboard["profile"] == "waybill" and dashboard.get("ok"):
                 records = grid.queryset.filter(
                     val_date__gte=date_from, val_date__lte=date_to,
                 )
                 context.update(
-                    _legacy_waybill_context(request, table, records, group, dashboard)
+                    _legacy_waybill_context(request, table, records, group, dashboard,grouped)
                 )
         _paginate_charts(request, dashboard)
 
     params = request.GET.copy()
-    for page_key in ("trang", "chart_market", "chart_product"):
+    for page_key in ("trang", "chart_market", "chart_product", "lam_moi"):
         params.pop(page_key, None)
     context.update({
         "dashboard": dashboard,
@@ -173,7 +180,7 @@ def overview(request):
             if key not in {"group", "nguon", "tu", "den"}
             for value in values
         ],
-        "updated": timezone.now(),
+        "updated": updated,
         "executive_owner": statistics_service.is_executive_owner(request.user),
         "profile_choices": {
             profile: [source for source in sources if source["profile"] == profile]

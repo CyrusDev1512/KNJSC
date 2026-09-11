@@ -1,5 +1,16 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+**11.09 — CRM-Optimization kiểm local, chưa nghiệm thu toàn bộ:** baseline 1.076 passed/4 failed/8 skipped;
+4 lỗi nền về điều hướng và rà CSS/nhãn Thống kê giữ riêng. Suite cuối
+1.092 passed/4 lỗi nền/9 skipped, focused 71 passed. E2E mới theo luồng Sale,
+Chrome 100 mẫu/thao tác và ma trận tám lượt ngắn đạt các mục lưới; không lỗi
+mạng/5xx hoặc oracle trong ma trận. Render chưa nhanh hơn ổn định, cold
+Thống kê >1s. Bài bền cấu hình 30 phút có 21.828 mẫu, 0 lỗi ngoài dự kiến/
+oracle và 7 CAS hợp lệ. Lưới đạt ngưỡng chính; export chờ p95 ~11m45s,
+RAM app tăng nên không kết luận mọi mục đã đạt. Thêm 1 test cache đồng thời
+đạt; Redis mất kết nối thực đọc PG đúng oracle.
+[Chi tiết, lệnh và evidence](kiem-chung-crm-optimization-20260911.md).
+
 **11.09.2026 — Ba lựa chọn Lên đơn bắt buộc chọn rõ:** Quốc gia/Loại tiền/PTTT mặc định rỗng, chọn hợp lệ mới lưu; đơn kế tiếp trở lại rỗng. 105 test đạt, Chrome 1440/390 đạt, trần 10 truy vấn giữ đạt; không migration/dependency, chưa commit/push. [Bằng chứng bổ sung](kiem-chung-len-don-gio-admin-20260911.md).
 
 

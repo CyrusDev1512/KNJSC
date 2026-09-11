@@ -110,6 +110,7 @@ def build_workbook(queryset, columns, *, title, exported_ids=None):
         headers += [c.name for c in policy.extra_columns(columns[0].table)]
     return excel.write_table(
         headers, rows_of(queryset, columns, exported_ids=exported_ids), sheet_title=title,
+        write_only=getattr(settings,'CRM_OPT_EXPORT',False),
     )
 
 

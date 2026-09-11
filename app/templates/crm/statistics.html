@@ -9,7 +9,7 @@
       <h1>{% if executive_owner %}Bàn điều hành chủ sở hữu{% else %}Bàn điều hành{% endif %}</h1>
       <p>{% if dashboard.profile == 'overview' %}Marketing – Sale – Vận đơn trong phạm vi bạn được xem{% elif source_table %}Phân tích {{ source_table.name }}{% else %}Số liệu vận hành trong phạm vi bạn được xem{% endif %} · Cập nhật {{ updated|date:'H:i d/m/Y' }}</p>
     </div>
-    <a class="nut" href="?{{ params }}">Làm mới số liệu</a>
+    <a class="nut" href="?{{ params }}&amp;lam_moi=1">Làm mới số liệu</a>
   </header>
 
   <form class="exec-controls" method="get" aria-label="Bộ lọc Bàn điều hành">
