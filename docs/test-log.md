@@ -1,5 +1,17 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+**11.09 — Cấp mã đơn đồng thời, nhánh fix riêng từ a81decd:** TDD 2 fail
+trước sửa → 2 pass; focused cuối 9 pass (30 Sale, mỗi đơn hai sản phẩm,
+cùng khách, suffix >9999, xóa mềm/ngày/năm, rollback và timeout).
+`pytest orders/tests crm/tests`: 289 passed/2 failed/9 skipped; hai lỗi
+markup điều hướng tái hiện trên a81decd, không phải lỗi mới. Chrome 1440/390:
+Sale/Admin lên đơn–đơn gốc, timeout giữ form, quyền và tự lưu lưới đạt.
+Ba lượt chính đủ ≥300s đo sau warm-up; hỗn hợp 3.083 request đo/0 lỗi,
+361/361 đơn đúng; p95 tạo 170,58ms, lưu ô 108,69ms. Burst 30/30,
+p95 1.487,26ms, không timeout. Tương thích bốn cờ: 446 request/43 đơn/0 lỗi.
+Một lượt lỗi mã hóa harness bị loại, sửa script và đo lại; không giấu vào
+kết quả đạt. [Lệnh, số đo, skip và bằng chứng](kiem-chung-trung-ma-don-20260911.md).
+
 **11.09 — CRM-Optimization kiểm local, chưa nghiệm thu toàn bộ:** baseline 1.076 passed/4 failed/8 skipped;
 4 lỗi nền về điều hướng và rà CSS/nhãn Thống kê giữ riêng. Suite cuối
 1.092 passed/4 lỗi nền/9 skipped, focused 71 passed. E2E mới theo luồng Sale,

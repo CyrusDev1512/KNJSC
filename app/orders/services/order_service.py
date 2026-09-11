@@ -11,7 +11,9 @@ hỏng thì đơn cũng không được lưu; không bao giờ có đơn mồ c�
 """
 from decimal import InvalidOperation
 
-from django.db import transaction
+from django.db import OperationalError, connection, transaction
+from django.db.models import DecimalField, Max
+from django.db.models.functions import Cast, Substr
 from django.utils import timezone
 
 from core.audit import record
@@ -24,6 +26,37 @@ from ..constants import Market, PaymentMethod
 from ..models import Customer, Order, OrderLine, Product
 from ..units import resolve_unit
 from . import dispatch_service
+
+
+# Namespace riêng, ổn định giữa mọi worker; không dùng hash() của Python.
+ORDER_CODE_LOCK_NAMESPACE = 0x4B4E4F52
+ORDER_CODE_LOCK_TIMEOUT = "5s"
+
+
+def _lock_order_code(prefix):
+    """Giữ quyền cấp mã đến hết giao dịch đơn–Vận đơn, kể cả khi rollback."""
+    if not connection.in_atomic_block:
+        raise RuntimeError("Cấp mã đơn phải nằm trong giao dịch tạo đơn.")
+    try:
+        # Savepoint khôi phục giao dịch/cấu hình trước khi xử lý lỗi timeout.
+        # Khóa lấy thành công vẫn sống đến cuối giao dịch ngoài cùng.
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT current_setting('lock_timeout')")
+                previous_timeout = cursor.fetchone()[0]
+                cursor.execute("SELECT set_config('lock_timeout', %s, true)",
+                               [ORDER_CODE_LOCK_TIMEOUT])
+                cursor.execute("SELECT pg_advisory_xact_lock(%s, %s)",
+                               [ORDER_CODE_LOCK_NAMESPACE, int(prefix[3:7])])
+                cursor.execute("SELECT set_config('lock_timeout', %s, true)",
+                               [previous_timeout])
+    except OperationalError as exc:
+        if getattr(exc.__cause__, "sqlstate", None) != "55P03":
+            raise
+        raise BusinessError(
+            "Hệ thống đang bận cấp mã đơn. Vui lòng thử lại.",
+            code="order_code_busy",
+        ) from exc
 
 
 def find_customer(phone):
@@ -66,14 +99,19 @@ def _tien(gia_tri, ten_o):
 def _sinh_ma_don():
     """Mã đơn dạng DH-2608-0047, đủ ngắn để đọc và gõ lại.
 
-    Bốn số cuối đếm theo ngày, nên trong một ngày không trùng. Lấy số lớn
-    nhất đang có thay vì đếm số bản ghi — đơn đã xoá vẫn giữ chỗ.
+    Hậu tố tối thiểu bốn chữ số, tăng theo cùng tiền tố ngày–tháng, kể cả
+    năm khác vì mã hiện không có năm. Đơn đã xoá mềm vẫn giữ chỗ.
     """
     hom_nay = timezone.localdate()
     dau = f"DH-{hom_nay:%d%m}-"
-    cuoi = (Order.all_objects.filter(code__startswith=dau)
-            .order_by("-code").values_list("code", flat=True).first())
-    so = int(cuoi.rsplit("-", 1)[1]) + 1 if cuoi else 1
+    _lock_order_code(dau)
+    # Đọc sau câu lấy khóa, để READ COMMITTED thấy đơn vừa commit của người
+    # trước. Sắp chuỗi sẽ chọn 9999 thay vì 10000; chỉ lấy hậu tố số hợp lệ.
+    cuoi = (Order.all_objects.filter(code__startswith=dau,
+                                    code__regex=rf"^{dau}[0-9]+$")
+            .aggregate(last=Max(Cast(Substr("code", len(dau) + 1),
+                                    DecimalField(max_digits=22, decimal_places=0))))["last"])
+    so = int(cuoi) + 1 if cuoi is not None else 1
     return f"{dau}{so:04d}"
 
 
@@ -94,6 +132,8 @@ def create_order(*, phone, customer_name, lines, actor, request=None,
     if not (customer_name or "").strip():
         raise BusinessError("Tên khách là bắt buộc.")
 
+    # Mọi đường tạo đơn cùng thứ tự khóa, trước cả lần ghi khách hàng đầu.
+    code = _sinh_ma_don()
     khach, moi = Customer.objects.get_or_create(
         phone=phone.strip(),
         defaults={"name": customer_name.strip(), "facebook": facebook, "email": email},
@@ -122,7 +162,7 @@ def create_order(*, phone, customer_name, lines, actor, request=None,
         if department is None:
             raise BusinessError("Chưa có bộ phận Sale đang hoạt động để lưu đơn.")
     don = Order(
-        code=_sinh_ma_don(), customer=khach, market=market, state=state, city=city,
+        code=code, customer=khach, market=market, state=state, city=city,
         zipcode=zipcode, address_line=address_line, payment_method=payment_method,
         currency=currency, seller=seller or actor, sub_unit=sub_unit, note=note,
         created_by=actor,

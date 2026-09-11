@@ -20,6 +20,7 @@ Nhân sự liên quan: Sale; Quản trị; Leader; Kho là bên nhận dữ li�
 
 Vấn đề tập trung
 1. Quy trình lên đơn cần có các trường bắt buộc; chỉ khi nhập đủ mới được tạo đơn.
+   - Lỗi kỹ thuật bổ sung 11.09.2026: cấp mã đơn khi nhiều Sale lưu đồng thời; giữ định dạng mã và giao dịch đơn–Vận đơn, giới hạn chờ khóa 5 giây -> đã làm (nhánh fix/trung-ma-don-dong-thoi; functional và Chrome 1440/390 đạt; 30 Sale + 10 Vận đơn đo đủ 301 giây, 361 đơn đúng; đợt dồn 30/30 đơn; xem docs/kiem-chung-trung-ma-don-20260911.md). Chưa commit/push/merge; không đóng các vấn đề hiệu năng lưới.
    - Quốc gia, Loại tiền, PTTT lên đơn mặc định chưa chọn; bắt buộc chọn giá trị hợp lệ ở trình duyệt và server, lưu xong trả về chưa chọn cho đơn tiếp theo -> đã làm (11.09.2026; 105 test và Chrome 1440/390 đạt).
    - Bổ sung Ngày giờ hiển thị chỉ đọc dạng dd/mm/yyyy HH:mm, cập nhật phút khi mở form; thông báo lấy giờ Việt Nam thực tế đã lưu, không nhận giờ tùy ý từ người dùng -> đã làm (11.09.2026).
 2. Trước đây mỗi thị trường và mỗi sản phẩm dùng một form, một sheet riêng, gây phân tán cấu trúc dữ liệu.

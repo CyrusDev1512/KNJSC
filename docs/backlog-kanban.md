@@ -1,5 +1,13 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+**Finished local — Trùng mã đơn khi nhiều Sale lưu (11.09):** nhánh
+`fix/trung-ma-don-dong-thoi`/`a81decd`; service khóa PG theo DDMM, chờ tối đa
+5s và giữ giao dịch đơn–Vận đơn. Functional/Chrome 1440/390 đạt; hỗn hợp
+30 Sale + 10 Vận đơn đủ thời lượng, 361 đơn đúng; đợt dồn 30/30, không
+timeout. Kiểm tương thích READ/SYNC/RECEIPTS/RENDER đạt. Chưa commit/push/merge;
+các việc truy vấn/render lưới và lỗi nền vẫn giữ trạng thái riêng.
+[Biên bản](kiem-chung-trung-ma-don-20260911.md).
+
 **In progress / chờ nghiệm thu — CRM-Optimization (11.09):** mã sau cờ tắt đã có;
 đã đo đủ trước/sau 100k/300k × 10/20 và bài bền cấu hình 30 phút. Render/cold
 Thống kê, backlog xuất và tăng RSS app còn cần cải thiện/điều tra. Không suy nguyên nhân toàn bộ

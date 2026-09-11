@@ -1,5 +1,14 @@
 # Backlog
 
+**11.09.2026 — Sửa trùng mã đơn đồng thời, đạt nghiệm thu local:** nhánh
+`fix/trung-ma-don-dong-thoi` từ `a81decd`, worktree riêng. Khóa giao dịch PG
+theo DDMM, timeout 5s có kiểm soát, max hậu tố theo số và giữ mã xóa mềm.
+TDD/Chrome 1440/390 đạt; lượt 30 Sale + 10 Vận đơn đủ 301,52s đo,
+361 đơn đúng, p95 tạo 170,58ms/lưu ô 108,69ms; burst đủ 30/30.
+Cờ tắt trong lượt chính, kiểm tương thích bốn cờ đạt. Hai lỗi markup nền và
+9 skip giữ riêng; không đóng hiệu năng toàn CRM. Chưa commit/push/merge.
+[Bằng chứng và giới hạn](kiem-chung-trung-ma-don-20260911.md).
+
 **11.09.2026 — CRM-Optimization, có bản local; chưa nghiệm thu toàn bộ:** nhánh/checkout riêng,
 snapshot đầy đủ đã đóng băng. Đã làm phiên bản/cache quyền, đọc/sync v2,
 receipt gọn, tái sử dụng renderer, cache Thống kê 15 giây, xuất write-only

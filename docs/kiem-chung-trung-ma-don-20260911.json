@@ -1,0 +1,1913 @@
+{
+  "source": {
+    "base_commit": "a81decd1d0a641ace77ae5f4d4d4340b3ba3e180",
+    "branch": "fix/trung-ma-don-dong-thoi",
+    "fixture": {
+      "orders": 100000,
+      "lines_per_order": 2,
+      "sales": 30,
+      "delivery": 10,
+      "assignment": "round-robin, 10000 rows per delivery; new orders unassigned",
+      "dates": "waybill business dates span 2026; fixture Order.created_at is seed time",
+      "seed_codes": "TEST-0000000...TEST-0099999; actual service creates DH-DDMM suffixes"
+    },
+    "runtime": {
+      "network": "knjsc-code-test",
+      "database": "test_knjsc_code_load",
+      "postgres": "16-alpine",
+      "app_image": "knjsc-web",
+      "gunicorn_workers": 3,
+      "gunicorn_threads": 4,
+      "docker_cpus": 12,
+      "docker_memory_bytes": 8192139264,
+      "app_port": 8851,
+      "production_flags_changed": false
+    },
+    "files": {
+      "app\\orders\\services\\order_service.py": "2f096fe4743c94cad86237cb5bc90ee631f663201fc9b5d28cce3dfc0de18d30",
+      "app\\orders\\tests\\test_order_code_concurrency.py": "ae6a85929a5ccf130c3b02044779ab094be956fbc14c53da85552b910d5b29f7"
+    },
+    "before_service_sha256": "097aeee6af403db791677eca93f681ccb28c045a390035f98b35e044fd239291"
+  },
+  "isolation": "read committed",
+  "runs": {
+    "before-delivery": {
+      "diagnostic_only": false,
+      "window_seconds": 301.4952576160431,
+      "http": {
+        "grid/poll": {
+          "n": 297,
+          "p50_ms": 70.3,
+          "p95_ms": 116.09,
+          "p99_ms": 147.38,
+          "errors": 0,
+          "statuses": {
+            "200": 297
+          },
+          "rps": 0.99,
+          "app_p95_ms": 107.04,
+          "db_p95_ms": 89.24,
+          "queries_p50": 9
+        },
+        "grid/scope": {
+          "n": 269,
+          "p50_ms": 26.49,
+          "p95_ms": 45.34,
+          "p99_ms": 62.31,
+          "errors": 0,
+          "statuses": {
+            "200": 269
+          },
+          "rps": 0.89,
+          "app_p95_ms": 38.51,
+          "db_p95_ms": 25.52,
+          "queries_p50": 7
+        },
+        "grid/scroll": {
+          "n": 860,
+          "p50_ms": 100.43,
+          "p95_ms": 147.12,
+          "p99_ms": 181.55,
+          "errors": 0,
+          "statuses": {
+            "200": 860
+          },
+          "rps": 2.85,
+          "app_p95_ms": 139.46,
+          "db_p95_ms": 87.61,
+          "queries_p50": 12
+        },
+        "grid/save": {
+          "n": 382,
+          "p50_ms": 51.09,
+          "p95_ms": 101.04,
+          "p99_ms": 145.68,
+          "errors": 0,
+          "statuses": {
+            "200": 382
+          },
+          "rps": 1.27,
+          "app_p95_ms": 93.37,
+          "db_p95_ms": 43.52,
+          "queries_p50": 19
+        },
+        "grid/search": {
+          "n": 118,
+          "p50_ms": 195.81,
+          "p95_ms": 261.42,
+          "p99_ms": 271.71,
+          "errors": 0,
+          "statuses": {
+            "200": 118
+          },
+          "rps": 0.39,
+          "app_p95_ms": 253.81,
+          "db_p95_ms": 212.3,
+          "queries_p50": 12
+        },
+        "grid/filter": {
+          "n": 266,
+          "p50_ms": 90.5,
+          "p95_ms": 133.78,
+          "p99_ms": 152.06,
+          "errors": 0,
+          "statuses": {
+            "200": 266
+          },
+          "rps": 0.88,
+          "app_p95_ms": 126.81,
+          "db_p95_ms": 89.82,
+          "queries_p50": 12
+        }
+      },
+      "browser": {
+        "actions": {
+          "scroll-ready": {
+            "n": 85,
+            "p50_ms": 220,
+            "p95_ms": 805,
+            "max_ms": 1337
+          },
+          "select-paint": {
+            "n": 85,
+            "p50_ms": 64,
+            "p95_ms": 72,
+            "max_ms": 105
+          },
+          "edit-to-save": {
+            "n": 21,
+            "p50_ms": 598,
+            "p95_ms": 654,
+            "max_ms": 697
+          },
+          "filter-ready": {
+            "n": 16,
+            "p50_ms": 219,
+            "p95_ms": 330,
+            "max_ms": 330
+          }
+        },
+        "initial_ready_ms": 2061,
+        "long_tasks": 0,
+        "long_task_max_ms": 0,
+        "render_p95_ms": 14.5,
+        "render_max_ms": 27.699999999254942,
+        "errors": [],
+        "heap_bytes": 15101603,
+        "grid": {
+          "cache": 1,
+          "cells": 468,
+          "total": 10000,
+          "generation": 72
+        }
+      },
+      "routes": {
+        "GET bang-tinh/<slug:code>/du-lieu/": {
+          "n": 1448,
+          "app_p95_ms": 223.54,
+          "db_p95_ms": 182.67,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.688,
+          "query_p50": 12
+        },
+        "GET bang-tinh/<slug:code>/moi-nhat/": {
+          "n": 335,
+          "app_p95_ms": 105.26,
+          "db_p95_ms": 87.26,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.842,
+          "query_p50": 9
+        },
+        "POST bang-tinh/<slug:code>/quyen-dong/": {
+          "n": 307,
+          "app_p95_ms": 41.04,
+          "db_p95_ms": 25.78,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.671,
+          "query_p50": 7
+        },
+        "POST bang-tinh/<slug:code>/luu-json/": {
+          "n": 403,
+          "app_p95_ms": 93.37,
+          "db_p95_ms": 43.52,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.498,
+          "query_p50": 19
+        },
+        "GET bang-tinh/<slug:code>/": {
+          "n": 16,
+          "app_p95_ms": 397.53,
+          "db_p95_ms": 368.74,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.911,
+          "query_p50": 12
+        }
+      },
+      "top_sql_categories": [
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment COUNT",
+          "n": 1448,
+          "total_ms": 31391.91,
+          "p95_ms": 69.19
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment COUNT MAX",
+          "n": 1448,
+          "total_ms": 20141.04,
+          "p95_ms": 19.34
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_tabledef,forms_builder_datarecord,auth_user,org_userprofile,org_department,orders_order,orders_waybillassignment",
+          "n": 1448,
+          "total_ms": 18288.85,
+          "p95_ms": 17.84
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment OFFSET",
+          "n": 892,
+          "total_ms": 16493.63,
+          "p95_ms": 70.09
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/moi-nhat/",
+          "category": "SELECT forms_builder_datarecord,forms_builder_tabledef,orders_waybillassignment COUNT MAX",
+          "n": 335,
+          "total_ms": 14098.81,
+          "p95_ms": 60.77
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment",
+          "n": 556,
+          "total_ms": 12390.04,
+          "p95_ms": 69.49
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,forms_builder_tabledef,orders_waybillassignment,auth_user,org_userprofile,orders_order",
+          "n": 1333,
+          "total_ms": 9804.83,
+          "p95_ms": 10.25
+        },
+        {
+          "route": "POST bang-tinh/<slug:code>/luu-json/",
+          "category": "SELECT forms_builder_tabledef,forms_builder_datarecord,auth_user,org_userprofile,org_department,orders_order,orders_waybillassignment",
+          "n": 403,
+          "total_ms": 4921.4,
+          "p95_ms": 17.9
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/moi-nhat/",
+          "category": "SELECT forms_builder_tabledef,org_department,forms_builder_datarecord,auth_user,org_userprofile,orders_order,orders_waybillassignment",
+          "n": 335,
+          "total_ms": 4317.23,
+          "p95_ms": 17.97
+        },
+        {
+          "route": "POST bang-tinh/<slug:code>/quyen-dong/",
+          "category": "SELECT forms_builder_tabledef,forms_builder_datarecord,auth_user,org_userprofile,org_department,orders_order,orders_waybillassignment",
+          "n": 307,
+          "total_ms": 3825.42,
+          "p95_ms": 17.11
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/",
+          "category": "SELECT orders_waybillitem,forms_builder_datarecord,orders_product,forms_builder_tabledef,orders_waybillassignment COUNT",
+          "n": 16,
+          "total_ms": 2199.77,
+          "p95_ms": 201.68
+        },
+        {
+          "route": "POST bang-tinh/<slug:code>/luu-json/",
+          "category": "UPDATE forms_builder_datarecord",
+          "n": 403,
+          "total_ms": 1391.95,
+          "p95_ms": 6.76
+        }
+      ],
+      "resources": {
+        "knjsc-code-app": {
+          "samples": 43,
+          "cpu_p50": 23.56,
+          "cpu_p95": 38.2,
+          "cpu_max": 41.63,
+          "memory_last": "229.6MiB / 7.63GiB",
+          "network_first": "62.6MB / 87.5MB",
+          "network_last": "364MB / 509MB"
+        },
+        "knjsc-code-db": {
+          "samples": 43,
+          "cpu_p50": 48.83,
+          "cpu_p95": 124.32,
+          "cpu_max": 137.21,
+          "memory_last": "328.8MiB / 7.63GiB",
+          "network_first": "193MB / 108MB",
+          "network_last": "225MB / 408MB"
+        },
+        "knjsc-code-redis": {
+          "samples": 43,
+          "cpu_p50": 0.48,
+          "cpu_p95": 0.77,
+          "cpu_max": 0.89,
+          "memory_last": "4.277MiB / 7.63GiB",
+          "network_first": "3.72kB / 126B",
+          "network_last": "3.72kB / 126B"
+        },
+        "knjsc-code-load": {
+          "samples": 43,
+          "cpu_p50": 2.98,
+          "cpu_p95": 4.47,
+          "cpu_max": 5.61,
+          "memory_last": "57.13MiB / 7.63GiB",
+          "network_first": "67.3MB / 423kB",
+          "network_last": "398MB / 2.35MB"
+        }
+      },
+      "sql_errors": [],
+      "measured_seconds": 301.493275642395,
+      "all_requests": 2606,
+      "measured_requests": 2192,
+      "orders_acknowledged": 0
+    },
+    "after-delivery": {
+      "diagnostic_only": false,
+      "window_seconds": 301.5097095966339,
+      "http": {
+        "grid/search": {
+          "n": 121,
+          "p50_ms": 194.26,
+          "p95_ms": 248.51,
+          "p99_ms": 275.22,
+          "errors": 0,
+          "statuses": {
+            "200": 121
+          },
+          "rps": 0.4,
+          "app_p95_ms": 242.24,
+          "db_p95_ms": 201.08,
+          "queries_p50": 12
+        },
+        "grid/scroll": {
+          "n": 881,
+          "p50_ms": 100.73,
+          "p95_ms": 154.14,
+          "p99_ms": 183.19,
+          "errors": 0,
+          "statuses": {
+            "200": 881
+          },
+          "rps": 2.92,
+          "app_p95_ms": 143.74,
+          "db_p95_ms": 91.47,
+          "queries_p50": 12
+        },
+        "grid/save": {
+          "n": 382,
+          "p50_ms": 62.72,
+          "p95_ms": 113.05,
+          "p99_ms": 141.06,
+          "errors": 0,
+          "statuses": {
+            "200": 382
+          },
+          "rps": 1.27,
+          "app_p95_ms": 108.15,
+          "db_p95_ms": 43.05,
+          "queries_p50": 19
+        },
+        "grid/poll": {
+          "n": 294,
+          "p50_ms": 72.04,
+          "p95_ms": 109.34,
+          "p99_ms": 140.18,
+          "errors": 0,
+          "statuses": {
+            "200": 294
+          },
+          "rps": 0.98,
+          "app_p95_ms": 99.6,
+          "db_p95_ms": 85.13,
+          "queries_p50": 9
+        },
+        "grid/scope": {
+          "n": 272,
+          "p50_ms": 26.03,
+          "p95_ms": 45.62,
+          "p99_ms": 88.81,
+          "errors": 0,
+          "statuses": {
+            "200": 272
+          },
+          "rps": 0.9,
+          "app_p95_ms": 39.68,
+          "db_p95_ms": 28.27,
+          "queries_p50": 7
+        },
+        "grid/filter": {
+          "n": 258,
+          "p50_ms": 89.94,
+          "p95_ms": 135.79,
+          "p99_ms": 155.45,
+          "errors": 0,
+          "statuses": {
+            "200": 258
+          },
+          "rps": 0.86,
+          "app_p95_ms": 125.67,
+          "db_p95_ms": 91.98,
+          "queries_p50": 12
+        }
+      },
+      "browser": {
+        "actions": {
+          "scroll-ready": {
+            "n": 85,
+            "p50_ms": 221,
+            "p95_ms": 334,
+            "max_ms": 830
+          },
+          "select-paint": {
+            "n": 85,
+            "p50_ms": 64,
+            "p95_ms": 82,
+            "max_ms": 88
+          },
+          "edit-to-save": {
+            "n": 22,
+            "p50_ms": 613,
+            "p95_ms": 655,
+            "max_ms": 683
+          },
+          "filter-ready": {
+            "n": 17,
+            "p50_ms": 240,
+            "p95_ms": 328,
+            "max_ms": 328
+          }
+        },
+        "initial_ready_ms": 2555,
+        "long_tasks": 0,
+        "long_task_max_ms": 0,
+        "render_p95_ms": 13.2,
+        "render_max_ms": 37.70000000298023,
+        "errors": [],
+        "heap_bytes": 9025856,
+        "grid": {
+          "cache": 1,
+          "cells": 468,
+          "total": 10000,
+          "generation": 73
+        }
+      },
+      "routes": {
+        "GET bang-tinh/<slug:code>/du-lieu/": {
+          "n": 1460,
+          "app_p95_ms": 212.57,
+          "db_p95_ms": 174.52,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.687,
+          "query_p50": 12
+        },
+        "POST bang-tinh/<slug:code>/quyen-dong/": {
+          "n": 308,
+          "app_p95_ms": 40.28,
+          "db_p95_ms": 28.46,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.671,
+          "query_p50": 7
+        },
+        "POST bang-tinh/<slug:code>/luu-json/": {
+          "n": 404,
+          "app_p95_ms": 108.15,
+          "db_p95_ms": 43.77,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.435,
+          "query_p50": 19
+        },
+        "GET bang-tinh/<slug:code>/": {
+          "n": 17,
+          "app_p95_ms": 355.8,
+          "db_p95_ms": 326.8,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.908,
+          "query_p50": 12
+        },
+        "GET bang-tinh/<slug:code>/moi-nhat/": {
+          "n": 331,
+          "app_p95_ms": 99.6,
+          "db_p95_ms": 84.25,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.834,
+          "query_p50": 9
+        }
+      },
+      "top_sql_categories": [
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment COUNT",
+          "n": 1460,
+          "total_ms": 30973.1,
+          "p95_ms": 67.49
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment COUNT MAX",
+          "n": 1460,
+          "total_ms": 19695.01,
+          "p95_ms": 18.73
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_tabledef,forms_builder_datarecord,auth_user,org_userprofile,org_department,orders_order,orders_waybillassignment",
+          "n": 1460,
+          "total_ms": 18125.04,
+          "p95_ms": 17.43
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment OFFSET",
+          "n": 910,
+          "total_ms": 16457.84,
+          "p95_ms": 68.29
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/moi-nhat/",
+          "category": "SELECT forms_builder_datarecord,forms_builder_tabledef,orders_waybillassignment COUNT MAX",
+          "n": 331,
+          "total_ms": 13495.15,
+          "p95_ms": 60.73
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment",
+          "n": 550,
+          "total_ms": 12382.46,
+          "p95_ms": 65.59
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,forms_builder_tabledef,orders_waybillassignment,auth_user,org_userprofile,orders_order",
+          "n": 1341,
+          "total_ms": 9736.64,
+          "p95_ms": 9.99
+        },
+        {
+          "route": "POST bang-tinh/<slug:code>/luu-json/",
+          "category": "SELECT forms_builder_tabledef,forms_builder_datarecord,auth_user,org_userprofile,org_department,orders_order,orders_waybillassignment",
+          "n": 404,
+          "total_ms": 4947.6,
+          "p95_ms": 16.74
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/moi-nhat/",
+          "category": "SELECT forms_builder_tabledef,org_department,forms_builder_datarecord,auth_user,org_userprofile,orders_order,orders_waybillassignment",
+          "n": 331,
+          "total_ms": 4106.06,
+          "p95_ms": 17.21
+        },
+        {
+          "route": "POST bang-tinh/<slug:code>/quyen-dong/",
+          "category": "SELECT forms_builder_tabledef,forms_builder_datarecord,auth_user,org_userprofile,org_department,orders_order,orders_waybillassignment",
+          "n": 308,
+          "total_ms": 3665.49,
+          "p95_ms": 16.71
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/",
+          "category": "SELECT orders_waybillitem,forms_builder_datarecord,orders_product,forms_builder_tabledef,orders_waybillassignment COUNT",
+          "n": 17,
+          "total_ms": 2223.51,
+          "p95_ms": 162.01
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT django_session",
+          "n": 1460,
+          "total_ms": 1660.21,
+          "p95_ms": 2.6
+        }
+      ],
+      "resources": {
+        "knjsc-code-app": {
+          "samples": 43,
+          "cpu_p50": 26.61,
+          "cpu_p95": 41.71,
+          "cpu_max": 47.82,
+          "memory_last": "230.8MiB / 7.63GiB",
+          "network_first": "59.5MB / 83.4MB",
+          "network_last": "364MB / 508MB"
+        },
+        "knjsc-code-db": {
+          "samples": 43,
+          "cpu_p50": 53.91,
+          "cpu_p95": 140.5,
+          "cpu_max": 142.87,
+          "memory_last": "644.6MiB / 7.63GiB",
+          "network_first": "235MB / 474MB",
+          "network_last": "268MB / 775MB"
+        },
+        "knjsc-code-redis": {
+          "samples": 43,
+          "cpu_p50": 0.5,
+          "cpu_p95": 0.76,
+          "cpu_max": 0.79,
+          "memory_last": "4.027MiB / 7.63GiB",
+          "network_first": "4.52kB / 126B",
+          "network_last": "4.52kB / 126B"
+        },
+        "knjsc-code-load": {
+          "samples": 43,
+          "cpu_p50": 3.06,
+          "cpu_p95": 4.94,
+          "cpu_max": 6.18,
+          "memory_last": "60.58MiB / 7.63GiB",
+          "network_first": "64.9MB / 414kB",
+          "network_last": "397MB / 2.36MB"
+        }
+      },
+      "sql_errors": [],
+      "measured_seconds": 301.5023424625397,
+      "all_requests": 2619,
+      "measured_requests": 2208,
+      "orders_acknowledged": 0
+    },
+    "after-mixed": {
+      "diagnostic_only": false,
+      "window_seconds": 301.5266146659851,
+      "http": {
+        "grid/scroll": {
+          "n": 884,
+          "p50_ms": 100.8,
+          "p95_ms": 156.13,
+          "p99_ms": 188.05,
+          "errors": 0,
+          "statuses": {
+            "200": 884
+          },
+          "rps": 2.93,
+          "app_p95_ms": 146.11,
+          "db_p95_ms": 88.21,
+          "queries_p50": 12
+        },
+        "grid/poll": {
+          "n": 293,
+          "p50_ms": 69.96,
+          "p95_ms": 115.02,
+          "p99_ms": 139.11,
+          "errors": 0,
+          "statuses": {
+            "200": 293
+          },
+          "rps": 0.97,
+          "app_p95_ms": 107.79,
+          "db_p95_ms": 88.35,
+          "queries_p50": 9
+        },
+        "grid/scope": {
+          "n": 266,
+          "p50_ms": 26.33,
+          "p95_ms": 46.9,
+          "p99_ms": 58.78,
+          "errors": 0,
+          "statuses": {
+            "200": 266
+          },
+          "rps": 0.88,
+          "app_p95_ms": 41.5,
+          "db_p95_ms": 31.81,
+          "queries_p50": 7
+        },
+        "grid/save": {
+          "n": 379,
+          "p50_ms": 56.63,
+          "p95_ms": 108.69,
+          "p99_ms": 124.07,
+          "errors": 0,
+          "statuses": {
+            "200": 379
+          },
+          "rps": 1.26,
+          "app_p95_ms": 102.49,
+          "db_p95_ms": 44.51,
+          "queries_p50": 19
+        },
+        "grid/search": {
+          "n": 118,
+          "p50_ms": 195.58,
+          "p95_ms": 278.29,
+          "p99_ms": 307.55,
+          "errors": 0,
+          "statuses": {
+            "200": 118
+          },
+          "rps": 0.39,
+          "app_p95_ms": 273.82,
+          "db_p95_ms": 216.48,
+          "queries_p50": 12
+        },
+        "grid/filter": {
+          "n": 252,
+          "p50_ms": 92.03,
+          "p95_ms": 137.84,
+          "p99_ms": 176.95,
+          "errors": 0,
+          "statuses": {
+            "200": 252
+          },
+          "rps": 0.84,
+          "app_p95_ms": 131.1,
+          "db_p95_ms": 92.08,
+          "queries_p50": 12
+        },
+        "sale/customer-check": {
+          "n": 297,
+          "p50_ms": 50.08,
+          "p95_ms": 101.38,
+          "p99_ms": 122.3,
+          "errors": 0,
+          "statuses": {
+            "200": 297
+          },
+          "rps": 0.98,
+          "app_p95_ms": 91.99,
+          "db_p95_ms": 53.92,
+          "queries_p50": 7
+        },
+        "sale/preview": {
+          "n": 297,
+          "p50_ms": 14.6,
+          "p95_ms": 32.95,
+          "p99_ms": 45.19,
+          "errors": 0,
+          "statuses": {
+            "200": 297
+          },
+          "rps": 0.98,
+          "app_p95_ms": 26.45,
+          "db_p95_ms": 13.96,
+          "queries_p50": 13
+        },
+        "sale/create": {
+          "n": 297,
+          "p50_ms": 101.98,
+          "p95_ms": 170.58,
+          "p99_ms": 218.53,
+          "errors": 0,
+          "statuses": {
+            "200": 297
+          },
+          "rps": 0.98,
+          "app_p95_ms": 164.51,
+          "db_p95_ms": 104.84,
+          "queries_p50": 73
+        }
+      },
+      "browser": {
+        "actions": {
+          "scroll-ready": {
+            "n": 83,
+            "p50_ms": 302,
+            "p95_ms": 819,
+            "max_ms": 826
+          },
+          "select-paint": {
+            "n": 83,
+            "p50_ms": 62,
+            "p95_ms": 73,
+            "max_ms": 105
+          },
+          "filter-ready": {
+            "n": 16,
+            "p50_ms": 225,
+            "p95_ms": 343,
+            "max_ms": 343
+          },
+          "edit-to-save": {
+            "n": 20,
+            "p50_ms": 616,
+            "p95_ms": 687,
+            "max_ms": 706
+          }
+        },
+        "initial_ready_ms": 2171,
+        "long_tasks": 0,
+        "long_task_max_ms": 0,
+        "render_p95_ms": 15.2,
+        "render_max_ms": 25.899999998509884,
+        "errors": [],
+        "heap_bytes": 14967279,
+        "grid": {
+          "cache": 1,
+          "cells": 468,
+          "total": 10000,
+          "generation": 72
+        }
+      },
+      "routes": {
+        "GET bang-tinh/<slug:code>/du-lieu/": {
+          "n": 1456,
+          "app_p95_ms": 222.41,
+          "db_p95_ms": 182.11,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.688,
+          "query_p50": 12
+        },
+        "POST bang-tinh/<slug:code>/luu-json/": {
+          "n": 399,
+          "app_p95_ms": 103.25,
+          "db_p95_ms": 45.44,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.46,
+          "query_p50": 19
+        },
+        "GET bang-tinh/<slug:code>/moi-nhat/": {
+          "n": 331,
+          "app_p95_ms": 106.31,
+          "db_p95_ms": 87.02,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.845,
+          "query_p50": 9
+        },
+        "POST van-don/len-don/tom-tat/": {
+          "n": 297,
+          "app_p95_ms": 26.45,
+          "db_p95_ms": 13.96,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.443,
+          "query_p50": 13
+        },
+        "POST bang-tinh/<slug:code>/quyen-dong/": {
+          "n": 304,
+          "app_p95_ms": 41.42,
+          "db_p95_ms": 31.44,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.684,
+          "query_p50": 7
+        },
+        "GET van-don/len-don/kiem-khach/": {
+          "n": 297,
+          "app_p95_ms": 91.99,
+          "db_p95_ms": 53.92,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.709,
+          "query_p50": 7
+        },
+        "POST van-don/len-don/": {
+          "n": 297,
+          "app_p95_ms": 164.51,
+          "db_p95_ms": 104.84,
+          "lock_p50_ms": 0.11,
+          "lock_p95_ms": 13.34,
+          "lock_p99_ms": 59.18,
+          "db_share_total": 0.6,
+          "query_p50": 73
+        },
+        "GET bang-tinh/<slug:code>/": {
+          "n": 16,
+          "app_p95_ms": 399.49,
+          "db_p95_ms": 366.48,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.914,
+          "query_p50": 12
+        }
+      },
+      "top_sql_categories": [
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment COUNT",
+          "n": 1456,
+          "total_ms": 31825.72,
+          "p95_ms": 70.43
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment COUNT MAX",
+          "n": 1456,
+          "total_ms": 20180.16,
+          "p95_ms": 19.86
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_tabledef,forms_builder_datarecord,auth_user,org_userprofile,org_department,orders_order,orders_waybillassignment",
+          "n": 1456,
+          "total_ms": 18651.09,
+          "p95_ms": 18.24
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment OFFSET",
+          "n": 899,
+          "total_ms": 17196.9,
+          "p95_ms": 71.0
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/moi-nhat/",
+          "category": "SELECT forms_builder_datarecord,forms_builder_tabledef,orders_waybillassignment COUNT MAX",
+          "n": 331,
+          "total_ms": 13601.69,
+          "p95_ms": 57.49
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment",
+          "n": 557,
+          "total_ms": 12591.76,
+          "p95_ms": 69.74
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,forms_builder_tabledef,orders_waybillassignment,auth_user,org_userprofile,orders_order",
+          "n": 1337,
+          "total_ms": 10004.48,
+          "p95_ms": 10.68
+        },
+        {
+          "route": "GET van-don/len-don/kiem-khach/",
+          "category": "SELECT forms_builder_tabledef,org_department,forms_builder_datarecord,auth_user,org_userprofile,orders_order,orders_waybillassignment",
+          "n": 297,
+          "total_ms": 9638.43,
+          "p95_ms": 48.16
+        },
+        {
+          "route": "POST van-don/len-don/",
+          "category": "SELECT forms_builder_tabledef,org_department,forms_builder_datarecord,auth_user,org_userprofile,orders_order,orders_waybillassignment",
+          "n": 297,
+          "total_ms": 9322.98,
+          "p95_ms": 45.08
+        },
+        {
+          "route": "POST bang-tinh/<slug:code>/luu-json/",
+          "category": "SELECT forms_builder_tabledef,forms_builder_datarecord,auth_user,org_userprofile,org_department,orders_order,orders_waybillassignment",
+          "n": 399,
+          "total_ms": 4926.89,
+          "p95_ms": 17.66
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/moi-nhat/",
+          "category": "SELECT forms_builder_tabledef,org_department,forms_builder_datarecord,auth_user,org_userprofile,orders_order,orders_waybillassignment",
+          "n": 331,
+          "total_ms": 4182.62,
+          "p95_ms": 18.04
+        },
+        {
+          "route": "POST bang-tinh/<slug:code>/quyen-dong/",
+          "category": "SELECT forms_builder_tabledef,forms_builder_datarecord,auth_user,org_userprofile,org_department,orders_order,orders_waybillassignment",
+          "n": 304,
+          "total_ms": 3732.57,
+          "p95_ms": 17.98
+        }
+      ],
+      "resources": {
+        "knjsc-code-app": {
+          "samples": 43,
+          "cpu_p50": 30.22,
+          "cpu_p95": 60.72,
+          "cpu_max": 66.8,
+          "memory_last": "233.7MiB / 7.63GiB",
+          "network_first": "56.8MB / 80MB",
+          "network_last": "366MB / 512MB"
+        },
+        "knjsc-code-db": {
+          "samples": 43,
+          "cpu_p50": 58.2,
+          "cpu_p95": 147.18,
+          "cpu_max": 180.45,
+          "memory_last": "600.4MiB / 7.63GiB",
+          "network_first": "287MB / 920MB",
+          "network_last": "328MB / 1.23GB"
+        },
+        "knjsc-code-redis": {
+          "samples": 43,
+          "cpu_p50": 0.52,
+          "cpu_p95": 0.79,
+          "cpu_max": 0.85,
+          "memory_last": "4.035MiB / 7.63GiB",
+          "network_first": "5.74kB / 126B",
+          "network_last": "5.74kB / 126B"
+        },
+        "knjsc-code-load": {
+          "samples": 43,
+          "cpu_p50": 3.55,
+          "cpu_p95": 6.47,
+          "cpu_max": 7.38,
+          "memory_last": "61.73MiB / 7.63GiB",
+          "network_first": "58MB / 569kB",
+          "network_last": "391MB / 3.37MB"
+        }
+      },
+      "sql_errors": [],
+      "measured_seconds": 301.52464747428894,
+      "all_requests": 3654,
+      "measured_requests": 3083,
+      "orders_acknowledged": 361
+    },
+    "compat-smoke": {
+      "diagnostic_only": false,
+      "window_seconds": 44.54723596572876,
+      "http": {
+        "sale/open": {
+          "n": 30,
+          "p50_ms": 61.99,
+          "p95_ms": 289.67,
+          "p99_ms": 295.78,
+          "errors": 0,
+          "statuses": {
+            "200": 30
+          },
+          "rps": 0.67,
+          "app_p95_ms": 284.02,
+          "db_p95_ms": 49.15,
+          "queries_p50": 8
+        },
+        "delivery/open": {
+          "n": 9,
+          "p50_ms": 252.93,
+          "p95_ms": 345.79,
+          "p99_ms": 345.79,
+          "errors": 0,
+          "statuses": {
+            "200": 9
+          },
+          "rps": 0.2,
+          "app_p95_ms": 340.99,
+          "db_p95_ms": 243.06,
+          "queries_p50": 13
+        },
+        "grid/poll": {
+          "n": 35,
+          "p50_ms": 27.15,
+          "p95_ms": 41.2,
+          "p99_ms": 126.56,
+          "errors": 0,
+          "statuses": {
+            "200": 35
+          },
+          "rps": 0.79,
+          "app_p95_ms": 31.09,
+          "db_p95_ms": 19.77,
+          "queries_p50": 7
+        },
+        "grid/scroll": {
+          "n": 94,
+          "p50_ms": 97.93,
+          "p95_ms": 132.71,
+          "p99_ms": 218.33,
+          "errors": 0,
+          "statuses": {
+            "200": 94
+          },
+          "rps": 2.11,
+          "app_p95_ms": 127.95,
+          "db_p95_ms": 69.28,
+          "queries_p50": 15
+        },
+        "sale/customer-check": {
+          "n": 43,
+          "p50_ms": 43.25,
+          "p95_ms": 62.46,
+          "p99_ms": 91.54,
+          "errors": 0,
+          "statuses": {
+            "200": 43
+          },
+          "rps": 0.97,
+          "app_p95_ms": 54.02,
+          "db_p95_ms": 44.68,
+          "queries_p50": 7
+        },
+        "sale/preview": {
+          "n": 43,
+          "p50_ms": 12.66,
+          "p95_ms": 17.71,
+          "p99_ms": 31.55,
+          "errors": 0,
+          "statuses": {
+            "200": 43
+          },
+          "rps": 0.97,
+          "app_p95_ms": 13.86,
+          "db_p95_ms": 7.66,
+          "queries_p50": 13
+        },
+        "sale/create": {
+          "n": 43,
+          "p50_ms": 94.65,
+          "p95_ms": 130.75,
+          "p99_ms": 149.0,
+          "errors": 0,
+          "statuses": {
+            "200": 43
+          },
+          "rps": 0.97,
+          "app_p95_ms": 127.45,
+          "db_p95_ms": 74.72,
+          "queries_p50": 73
+        },
+        "grid/sync-v2": {
+          "n": 41,
+          "p50_ms": 46.62,
+          "p95_ms": 70.96,
+          "p99_ms": 106.92,
+          "errors": 0,
+          "statuses": {
+            "200": 41
+          },
+          "rps": 0.92,
+          "app_p95_ms": 65.29,
+          "db_p95_ms": 48.29,
+          "queries_p50": 14
+        },
+        "grid/save": {
+          "n": 40,
+          "p50_ms": 46.57,
+          "p95_ms": 88.15,
+          "p99_ms": 102.26,
+          "errors": 0,
+          "statuses": {
+            "200": 40
+          },
+          "rps": 0.9,
+          "app_p95_ms": 80.88,
+          "db_p95_ms": 40.82,
+          "queries_p50": 19
+        },
+        "grid/filter": {
+          "n": 26,
+          "p50_ms": 82.92,
+          "p95_ms": 110.07,
+          "p99_ms": 113.8,
+          "errors": 0,
+          "statuses": {
+            "200": 26
+          },
+          "rps": 0.58,
+          "app_p95_ms": 106.53,
+          "db_p95_ms": 65.66,
+          "queries_p50": 15
+        },
+        "grid/scope": {
+          "n": 25,
+          "p50_ms": 23.88,
+          "p95_ms": 44.86,
+          "p99_ms": 46.78,
+          "errors": 0,
+          "statuses": {
+            "200": 25
+          },
+          "rps": 0.56,
+          "app_p95_ms": 28.96,
+          "db_p95_ms": 20.21,
+          "queries_p50": 7
+        },
+        "grid/search": {
+          "n": 17,
+          "p50_ms": 175.27,
+          "p95_ms": 257.59,
+          "p99_ms": 257.59,
+          "errors": 0,
+          "statuses": {
+            "200": 17
+          },
+          "rps": 0.38,
+          "app_p95_ms": 250.86,
+          "db_p95_ms": 203.74,
+          "queries_p50": 15
+        }
+      },
+      "browser": {
+        "actions": {
+          "scroll-ready": {
+            "n": 12,
+            "p50_ms": 305,
+            "p95_ms": 821,
+            "max_ms": 821
+          },
+          "select-paint": {
+            "n": 12,
+            "p50_ms": 60,
+            "p95_ms": 66,
+            "max_ms": 66
+          },
+          "filter-ready": {
+            "n": 3,
+            "p50_ms": 226,
+            "p95_ms": 263,
+            "max_ms": 263
+          },
+          "edit-to-save": {
+            "n": 3,
+            "p50_ms": 574,
+            "p95_ms": 620,
+            "max_ms": 620
+          }
+        },
+        "initial_ready_ms": 2691,
+        "long_tasks": 1,
+        "long_task_max_ms": 59,
+        "render_p95_ms": 11.7,
+        "render_max_ms": 15.100000001490116,
+        "errors": [],
+        "heap_bytes": 4331286,
+        "grid": {
+          "cache": 2,
+          "cells": 450,
+          "total": 10000,
+          "generation": 19
+        }
+      },
+      "routes": {
+        "GET bang-tinh/<slug:code>/": {
+          "n": 13,
+          "app_p95_ms": 586.35,
+          "db_p95_ms": 262.97,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.807,
+          "query_p50": 13
+        },
+        "POST van-don/len-don/tom-tat/": {
+          "n": 43,
+          "app_p95_ms": 13.86,
+          "db_p95_ms": 7.66,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.41,
+          "query_p50": 13
+        },
+        "GET van-don/len-don/": {
+          "n": 30,
+          "app_p95_ms": 284.02,
+          "db_p95_ms": 49.15,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.454,
+          "query_p50": 8
+        },
+        "GET bang-tinh/<slug:code>/du-lieu/": {
+          "n": 186,
+          "app_p95_ms": 212.39,
+          "db_p95_ms": 171.63,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.669,
+          "query_p50": 15
+        },
+        "GET van-don/len-don/kiem-khach/": {
+          "n": 43,
+          "app_p95_ms": 54.02,
+          "db_p95_ms": 44.68,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.789,
+          "query_p50": 7
+        },
+        "POST van-don/len-don/": {
+          "n": 43,
+          "app_p95_ms": 127.45,
+          "db_p95_ms": 74.72,
+          "lock_p50_ms": 0.1,
+          "lock_p95_ms": 0.29,
+          "lock_p99_ms": 27.74,
+          "db_share_total": 0.537,
+          "query_p50": 73
+        },
+        "POST bang-tinh/<slug:code>/dong-bo/": {
+          "n": 46,
+          "app_p95_ms": 65.29,
+          "db_p95_ms": 48.29,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.643,
+          "query_p50": 14
+        },
+        "POST bang-tinh/<slug:code>/luu-json/": {
+          "n": 43,
+          "app_p95_ms": 80.88,
+          "db_p95_ms": 40.82,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.465,
+          "query_p50": 19
+        },
+        "POST bang-tinh/<slug:code>/quyen-dong/": {
+          "n": 25,
+          "app_p95_ms": 28.96,
+          "db_p95_ms": 20.21,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.67,
+          "query_p50": 7
+        },
+        "GET bang-tinh/<slug:code>/moi-nhat/": {
+          "n": 35,
+          "app_p95_ms": 31.09,
+          "db_p95_ms": 19.77,
+          "lock_p50_ms": 0,
+          "lock_p95_ms": 0,
+          "lock_p99_ms": 0,
+          "db_share_total": 0.677,
+          "query_p50": 7
+        }
+      },
+      "top_sql_categories": [
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_tabledef,forms_builder_datarecord,auth_user,org_userprofile,org_department,orders_order,orders_waybillassignment",
+          "n": 372,
+          "total_ms": 4147.75,
+          "p95_ms": 15.55
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment COUNT",
+          "n": 170,
+          "total_ms": 3938.95,
+          "p95_ms": 67.31
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment OFFSET",
+          "n": 98,
+          "total_ms": 2034.67,
+          "p95_ms": 70.37
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,orders_waybillassignment",
+          "n": 72,
+          "total_ms": 1498.5,
+          "p95_ms": 62.12
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/",
+          "category": "SELECT orders_waybillitem,forms_builder_datarecord,orders_product,forms_builder_tabledef,orders_waybillassignment COUNT",
+          "n": 13,
+          "total_ms": 1358.84,
+          "p95_ms": 116.3
+        },
+        {
+          "route": "GET van-don/len-don/kiem-khach/",
+          "category": "SELECT forms_builder_tabledef,org_department,forms_builder_datarecord,auth_user,org_userprofile,orders_order,orders_waybillassignment",
+          "n": 43,
+          "total_ms": 1232.5,
+          "p95_ms": 37.35
+        },
+        {
+          "route": "POST van-don/len-don/",
+          "category": "SELECT forms_builder_tabledef,org_department,forms_builder_datarecord,auth_user,org_userprofile,orders_order,orders_waybillassignment",
+          "n": 43,
+          "total_ms": 1180.91,
+          "p95_ms": 32.2
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/du-lieu/",
+          "category": "SELECT forms_builder_datarecord,forms_builder_tabledef,orders_waybillassignment,auth_user,org_userprofile,orders_order",
+          "n": 160,
+          "total_ms": 1065.42,
+          "p95_ms": 9.11
+        },
+        {
+          "route": "POST bang-tinh/<slug:code>/dong-bo/",
+          "category": "SELECT forms_builder_tabledef,forms_builder_datarecord,auth_user,org_userprofile,org_department,orders_order,orders_waybillassignment",
+          "n": 92,
+          "total_ms": 1018.31,
+          "p95_ms": 15.26
+        },
+        {
+          "route": "GET van-don/len-don/",
+          "category": "SELECT forms_builder_tabledef,org_department,forms_builder_datarecord,auth_user,org_userprofile,orders_order,orders_waybillassignment",
+          "n": 30,
+          "total_ms": 910.04,
+          "p95_ms": 36.07
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/",
+          "category": "SELECT forms_builder_datarecord,forms_builder_tabledef,orders_waybillassignment COUNT",
+          "n": 13,
+          "total_ms": 664.06,
+          "p95_ms": 61.16
+        },
+        {
+          "route": "GET bang-tinh/<slug:code>/",
+          "category": "SELECT forms_builder_datarecord,forms_builder_tabledef,orders_waybillassignment,auth_user COUNT",
+          "n": 13,
+          "total_ms": 508.57,
+          "p95_ms": 50.52
+        }
+      ],
+      "resources": {
+        "knjsc-code-app": {
+          "samples": 7,
+          "cpu_p50": 47.36,
+          "cpu_p95": 186.99,
+          "cpu_max": 186.99,
+          "memory_last": "232.5MiB / 7.63GiB",
+          "network_first": "1.91kB / 580B",
+          "network_last": "39.4MB / 54.2MB"
+        },
+        "knjsc-code-db": {
+          "samples": 7,
+          "cpu_p50": 75.86,
+          "cpu_p95": 158.67,
+          "cpu_max": 158.67,
+          "memory_last": "595.3MiB / 7.63GiB",
+          "network_first": "331MB / 1.24GB",
+          "network_last": "337MB / 1.28GB"
+        },
+        "knjsc-code-redis": {
+          "samples": 7,
+          "cpu_p50": 0.54,
+          "cpu_p95": 0.8,
+          "cpu_max": 0.8,
+          "memory_last": "4.035MiB / 7.63GiB",
+          "network_first": "6.12kB / 126B",
+          "network_last": "6.16kB / 126B"
+        },
+        "knjsc-code-load": {
+          "samples": 7,
+          "cpu_p50": 3.18,
+          "cpu_p95": 4.67,
+          "cpu_max": 4.67,
+          "memory_last": "58.45MiB / 7.63GiB",
+          "network_first": "0B / 0B",
+          "network_last": "36.8MB / 462kB"
+        }
+      },
+      "sql_errors": [],
+      "measured_seconds": 44.5468635559082,
+      "all_requests": 446,
+      "measured_requests": 446,
+      "orders_acknowledged": 43
+    }
+  },
+  "integrity": {
+    "before-delivery": {
+      "orders_acknowledged": 0,
+      "order_attempts": 0,
+      "persisted_attempts": 0,
+      "committed_without_success_response": 0,
+      "verified_cells": 58,
+      "errors": [],
+      "total_orders": 100000,
+      "total_records": 100000,
+      "new_orders_assigned": 0
+    },
+    "after-delivery": {
+      "orders_acknowledged": 0,
+      "order_attempts": 0,
+      "persisted_attempts": 0,
+      "committed_without_success_response": 0,
+      "verified_cells": 58,
+      "errors": [],
+      "total_orders": 100000,
+      "total_records": 100000,
+      "new_orders_assigned": 0
+    },
+    "after-mixed": {
+      "orders_acknowledged": 361,
+      "order_attempts": 361,
+      "persisted_attempts": 361,
+      "committed_without_success_response": 0,
+      "verified_cells": 58,
+      "errors": [],
+      "total_orders": 100361,
+      "total_records": 100361,
+      "new_orders_assigned": 0
+    },
+    "burst": {
+      "orders_acknowledged": 30,
+      "order_attempts": 30,
+      "persisted_attempts": 30,
+      "committed_without_success_response": 0,
+      "verified_cells": 0,
+      "errors": [],
+      "total_orders": 100391,
+      "total_records": 100391,
+      "new_orders_assigned": 0
+    },
+    "compat-smoke": {
+      "orders_acknowledged": 43,
+      "order_attempts": 43,
+      "persisted_attempts": 43,
+      "committed_without_success_response": 0,
+      "verified_cells": 29,
+      "errors": [],
+      "total_orders": 100434,
+      "total_records": 100434,
+      "new_orders_assigned": 0
+    },
+    "mobile-grid": {
+      "orders_acknowledged": 0,
+      "order_attempts": 0,
+      "persisted_attempts": 0,
+      "committed_without_success_response": 0,
+      "verified_cells": 1,
+      "errors": [],
+      "total_orders": 100391,
+      "total_records": 100391,
+      "new_orders_assigned": 0
+    },
+    "e2e": {
+      "orders": 4,
+      "cases": 10,
+      "errors": []
+    }
+  },
+  "tests": {
+    "red": {
+      "counts": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "2",
+        "skipped": "0",
+        "tests": "2",
+        "time": "5.948",
+        "timestamp": "2026-09-11T16:59:29.357144+07:00",
+        "hostname": "392aec45533d"
+      },
+      "failures": [
+        "orders.tests.test_order_code_concurrency.test_overlapping_orders_get_distinct_codes",
+        "orders.tests.test_order_code_concurrency.test_numeric_suffix_continues_past_9999"
+      ],
+      "skipped": []
+    },
+    "green-initial": {
+      "counts": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "2",
+        "time": "6.053",
+        "timestamp": "2026-09-11T17:00:34.047211+07:00",
+        "hostname": "762318d4570a"
+      },
+      "failures": [],
+      "skipped": []
+    },
+    "regression": {
+      "counts": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "2",
+        "skipped": "9",
+        "tests": "300",
+        "time": "107.320",
+        "timestamp": "2026-09-11T17:06:35.681617+07:00",
+        "hostname": "e0f8e8056bae"
+      },
+      "failures": [
+        "crm.tests.test_dich_vu_bangtinh.test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap",
+        "crm.tests.test_dich_vu_bangtinh.test_erp_chi_con_lien_ket_sang_kn_crm"
+      ],
+      "skipped": [
+        {
+          "name": "crm.tests.test_executive_statistics_capacity.test_executive_capacity",
+          "reason": "Kiểm tải chủ động trên DB test riêng"
+        },
+        {
+          "name": "crm.tests.test_feedback_browser_server.test_feedback_browser",
+          "reason": "Cần Chrome host / DB test riêng"
+        },
+        {
+          "name": "crm.tests.test_master_browser_server.test_master_browser",
+          "reason": "Cần Chrome host / server test riêng"
+        },
+        {
+          "name": "crm.tests.test_master_capacity.test_master_capacity",
+          "reason": "Kiểm tải riêng, có giới hạn và DB test"
+        },
+        {
+          "name": "crm.tests.test_master_nine_capacity.test_nine_capacity",
+          "reason": "Kiểm tải chủ động trên DB test riêng"
+        },
+        {
+          "name": "crm.tests.test_master_nine_storage.test_storage",
+          "reason": "Phép đo dung lượng trên DB test riêng"
+        },
+        {
+          "name": "crm.tests.test_master_row_capacity.test_row_capacity",
+          "reason": "Chrome 100k/300k trên DB test riêng"
+        },
+        {
+          "name": "crm.tests.test_optimization_capacity.test_capacity",
+          "reason": "Fixture kiểm tải tối ưu riêng"
+        },
+        {
+          "name": "crm.tests.test_order_hub_browser_server.test_order_hub_browser",
+          "reason": "Cần Chrome host và server DB test"
+        }
+      ]
+    },
+    "baseline-regression": {
+      "counts": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "2",
+        "skipped": "0",
+        "tests": "3",
+        "time": "6.184",
+        "timestamp": "2026-09-11T17:08:45.152157+07:00",
+        "hostname": "938387c24ee2"
+      },
+      "failures": [
+        "crm.tests.test_dich_vu_bangtinh.test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap",
+        "crm.tests.test_dich_vu_bangtinh.test_erp_chi_con_lien_ket_sang_kn_crm"
+      ],
+      "skipped": []
+    },
+    "functional-final": {
+      "counts": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "9",
+        "time": "22.081",
+        "timestamp": "2026-09-11T17:17:43.797221+07:00",
+        "hostname": "c51e4581ced5"
+      },
+      "failures": [],
+      "skipped": []
+    }
+  },
+  "burst": {
+    "started": 1789122883.232952,
+    "finished": 1789122884.762698,
+    "unique_codes": 30,
+    "p50_ms": 931.0123320028652,
+    "p95_ms": 1487.255810003262,
+    "p99_ms": 1518.9951409993228,
+    "lock_p95_ms": 584.284,
+    "statuses": [
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ]
+  },
+  "invalid_harness": {
+    "category": "invalid_harness_encoding",
+    "detail": "Unit label was corrupted by a Windows locale read; rejected before code allocation. Fixed UTF-8 handling and escaped unit literals; repeated after successful Sale smoke.",
+    "excluded_from_acceptance": true,
+    "measured_seconds": 26.439414739608765,
+    "order_attempts": 91,
+    "orders_created": 0,
+    "all_failed_requests": 182
+  },
+  "e2e": {
+    "cases": [
+      {
+        "width": 1440,
+        "role": "sale",
+        "case": "timeout-keeps-form",
+        "ms": 5150
+      },
+      {
+        "width": 1440,
+        "role": "sale",
+        "case": "save-two-products-and-original",
+        "code": "DH-1109-0001"
+      },
+      {
+        "width": 1440,
+        "role": "sale",
+        "case": "outside-scope-hidden"
+      },
+      {
+        "width": 1440,
+        "role": "admin",
+        "case": "save-two-products-and-original",
+        "code": "DH-1109-0002"
+      },
+      {
+        "width": 1440,
+        "role": "admin",
+        "case": "outside-scope-hidden"
+      },
+      {
+        "width": 390,
+        "role": "sale",
+        "case": "timeout-keeps-form",
+        "ms": 5136
+      },
+      {
+        "width": 390,
+        "role": "sale",
+        "case": "save-two-products-and-original",
+        "code": "DH-1109-0003"
+      },
+      {
+        "width": 390,
+        "role": "sale",
+        "case": "outside-scope-hidden"
+      },
+      {
+        "width": 390,
+        "role": "admin",
+        "case": "save-two-products-and-original",
+        "code": "DH-1109-0004"
+      },
+      {
+        "width": 390,
+        "role": "admin",
+        "case": "outside-scope-hidden"
+      }
+    ],
+    "errors": []
+  },
+  "mobile_grid": {
+    "phase": "mobile-grid",
+    "viewport": [
+      390,
+      900
+    ],
+    "actions": [
+      {
+        "kind": "scroll-ready",
+        "time": 1789122886915,
+        "ms": 18
+      },
+      {
+        "kind": "select-paint",
+        "time": 1789122886978,
+        "ms": 63
+      },
+      {
+        "kind": "filter-ready",
+        "time": 1789122887212,
+        "ms": 234
+      },
+      {
+        "kind": "edit-to-save",
+        "time": 1789122887969,
+        "ms": 599
+      },
+      {
+        "kind": "scroll-ready",
+        "time": 1789122891832,
+        "ms": 848
+      },
+      {
+        "kind": "select-paint",
+        "time": 1789122891892,
+        "ms": 60
+      },
+      {
+        "kind": "scroll-ready",
+        "time": 1789122895204,
+        "ms": 301
+      },
+      {
+        "kind": "select-paint",
+        "time": 1789122895259,
+        "ms": 55
+      },
+      {
+        "kind": "scroll-ready",
+        "time": 1789122898579,
+        "ms": 318
+      },
+      {
+        "kind": "select-paint",
+        "time": 1789122898642,
+        "ms": 63
+      },
+      {
+        "kind": "scroll-ready",
+        "time": 1789122901961,
+        "ms": 314
+      },
+      {
+        "kind": "select-paint",
+        "time": 1789122902025,
+        "ms": 64
+      },
+      {
+        "kind": "edit-to-save",
+        "time": 1789122902972,
+        "ms": 626
+      },
+      {
+        "kind": "scroll-ready",
+        "time": 1789122906309,
+        "ms": 331
+      },
+      {
+        "kind": "select-paint",
+        "time": 1789122906375,
+        "ms": 66
+      },
+      {
+        "kind": "filter-ready",
+        "time": 1789122906511,
+        "ms": 136
+      }
+    ],
+    "errors": [],
+    "started": 1789122885691,
+    "initialReadyMs": 1065,
+    "documentStart": 1789122885834.2,
+    "finished": 1789122909557,
+    "warmup": 0
+  },
+  "runtime_verified": {
+    "isolation": "read committed",
+    "postgres": "PostgreSQL 16.14 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+    "django": "5.2.6",
+    "python": "3.12.14",
+    "compat_flags": {
+      "READ": true,
+      "SYNC": true,
+      "RECEIPTS": true,
+      "RENDER": true,
+      "STATS": false,
+      "EXPORT": false,
+      "QUEUES": false
+    }
+  },
+  "cleanup": {
+    "removed_containers": [
+      "knjsc-code-app",
+      "knjsc-code-db",
+      "knjsc-code-redis"
+    ],
+    "removed_network": "knjsc-code-test",
+    "anonymous_volumes_removed": 2,
+    "credentials_removed": true,
+    "temporary_baseline_app_removed": false,
+    "production_containers_changed": false
+  }
+}
