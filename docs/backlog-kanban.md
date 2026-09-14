@@ -26,6 +26,18 @@ chưa nghiệm thu toàn chiến dịch; tạo bảng trắng/duplicate cấu tr
 functional/migration và Chrome với fixture 10k; giữ bốn lỗi nền/skip riêng.
 Chưa kích hoạt trên app 8021, chưa commit/push. H7 chỉ chốt phần chứng từ,
 không đóng quyền nhập tiền và đối soát. [Biên bản](kiem-chung-chung-tu-thanh-toan-20260912.md).
+**14.09 — Vận đơn DB:** đã tạo bảng động riêng `van_don_db`, 26 cột lấy từ định nghĩa hiện có, 0 dòng; sắp thứ tự theo file chủ dự án, không có Đơn vị phụ. Chưa nối Lên đơn; không đổi code ứng dụng hoặc bảng nguồn. Đã kiểm cấu hình lưu, tiêu đề HTML và thứ tự xuất. [Chi tiết](cau-hinh-van-don-db-20260914.md).
+
+**12.09.2026, 17:28 — Đã bật nhánh fix để chủ dự án test nút:** checkout chính `C:/KNJSC/KNJSC` và local 8020/8021 hiện chạy `fix/trung-ma-don-dong-thoi`. Bản CRM-UPDATE được giữ nguyên tại `C:/KNJSC/worktrees/CRM-UPDATE`, chưa ghép. Đã sao lưu database, áp dụng riêng `forms_builder.0011_delivery_view_mode`; không seed hoặc đổi chế độ xem thay người dùng. 10 test chế độ xem đạt trên PostgreSQL test riêng; hai URLconf sạch. Đọc READ ONLY trên local xác nhận trang chế độ xem, liên kết từ lưới và Cột & cấp quyền đều 200; mặc định hiện là theo phân công. Chưa commit/push.
+
+**12.09.2026 — Chế độ xem Vận đơn mới, đã kiểm chứng local:** Admin/Manager
+Vận đơn đổi theo phân công/toàn bảng; quyền sửa vẫn theo phân công. Trang
+lưới tự reload khi nhận phiên bản mới. 10 test mới, focused cuối 46 passed;
+Chrome 1440/390 đạt, migration xuôi/ngược đạt. Hồi quy rộng 500 passed,
+4 failed, 10 skipped; 2 lỗi mount fixture chạy lại đạt, còn 2 lỗi markup
+nền. Không chạy kiểm tải lớn, không tuyên bố tăng tốc. Đã có diff trên nhánh
+fix trong worktree riêng, chưa tích hợp checkout chính/chưa commit/push.
+[Bằng chứng](kiem-chung-che-do-xem-van-don-20260912.md), [ADR-026](quyet-dinh/026-che-do-xem-van-don.md).
 
 **Finished local — Trùng mã đơn khi nhiều Sale lưu (11.09):** nhánh
 `fix/trung-ma-don-dong-thoi`/`a81decd`; service khóa PG theo DDMM, chờ tối đa
