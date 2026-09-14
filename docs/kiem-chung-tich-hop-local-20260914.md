@@ -68,3 +68,13 @@ Bằng chứng thô: `storage/integration-20260914/`, `storage/erp-verification/
 
 Các commit triển khai: `83cbf89` (ERP), `bdc4f66` (Thống kê), `b43ba15` (chế độ xem).
 Bằng chứng tóm tắt đã theo dõi tại `docs/kiem-thu/integration-2026-09-14/`.
+
+## Hoàn tất Git và dọn local
+
+Đã push bốn commit 83cbf89 → a6d1af4 lên CRM-UPDATE. Nhánh fix/trung-ma-don-dong-thoi
+đã được đưa tới c5c81ca và push: khớp từng file với nội dung checkout chính, không đổi
+file đang chạy. Ba worktree bản trùng đã dọn thay đổi sau khi sao lưu từng file và
+đối chiếu SHA-256; không xóa thư mục storage hoặc dữ liệu runtime. Hai stash đã được
+gỡ khỏi danh sách sau khi xác minh SHA-256 bản patch dự phòng. Solarpunk giữ riêng.
+Bản sao dọn local: checkout chính `storage/local-cleanup-20260914/manifest.json`.
+Container/database/network kiểm chứng riêng đã dọn. Không xóa thư mục worktree.
