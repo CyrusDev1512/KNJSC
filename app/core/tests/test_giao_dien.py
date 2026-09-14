@@ -22,6 +22,7 @@ CAC_TEP_CSS = [
     GOC / "static" / "css" / "crm-frame.css",
     GOC / "static" / "css" / "grid-formats.css",
     GOC / "static" / "css" / "waybill.css",
+    GOC / "static" / "css" / "executive-statistics.css",
 ]
 
 #: Lớp chỉ dùng làm móc cho JavaScript, cố ý không có kiểu dáng.
