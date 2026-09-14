@@ -201,6 +201,14 @@ def can_edit_record(user, record_obj):
 
 def can_edit_visible_record(user, record_obj):
     """Chỉ gọi cho dòng đã lấy từ in_scope trong cùng request đọc; không dùng ở đường ghi."""
+    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+    from orders.services import assignment_service
+    if (record_obj.table.code == ACTIVE_WAYBILL_TABLE_CODE
+            and assignment_service.department(user) == 'van-don'
+            and not assignment_service.can_assign(user)):
+        assignment = getattr(record_obj, 'assignment', None)
+        if assignment is None or assignment.delivery_id != user.pk:
+            return False
     if is_grid_only(record_obj.table):
         return False
     if is_admin(user):

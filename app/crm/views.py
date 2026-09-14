@@ -333,7 +333,7 @@ def bang_tinh_moi_nhat(request, code):
     from .services import optimization
     if code==ACTIVE_WAYBILL_TABLE_CODE and optimization.enabled('SYNC'):
         current=optimization.state(bang)
-        return JsonResponse({'moc':str(current['revision']),'cot':current['fields'].get('__schema',0),'tinh_lai':table_service.recompute_job_of(bang)})
+        return JsonResponse({'delivery_view_version':bang.delivery_view_version,'moc':str(current['revision']),'cot':current['fields'].get('__schema',0),'tinh_lai':table_service.recompute_job_of(bang)})
     # Mốc theo **cả bảng**, không theo phạm vi từng người: `_bang` đã kiểm quyền
     # xem bảng, còn mốc chỉ nói "có gì đổi", không lộ dữ liệu; lọc thêm theo phạm
     # vi là JOIN cản chỉ mục `(table, updated_at)` và thành quét cả bảng (78 ms ×
@@ -349,6 +349,7 @@ def bang_tinh_moi_nhat(request, code):
         tong = records.aggregate(moc=Max('updated_at'))
         moc = tong['moc'].isoformat() if tong['moc'] else ''
     return JsonResponse({
+        "delivery_view_version": bang.delivery_view_version,
         "moc": moc,
         "cot": bang.columns.count(),
         "tinh_lai": table_service.recompute_job_of(bang),

@@ -8,6 +8,7 @@ from django.views.decorators.http import require_GET, require_POST
 from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.services import grant_service
 from orders.services.assignment_service import can_assign
+from orders.services import delivery_view_service
 from .services import master_grid_service as service, grid_service, sidebar_service, tree_service
 
 
@@ -118,6 +119,7 @@ def shell(request, table):
         p = qs.copy(); p.pop(key, None)
         chips.append((label, '?' + p.urlencode()))
     return render(request, 'crm/master_grid.html', {
+        'delivery_view_manage': delivery_view_service.can_manage(request.user, table),
         'waybill_profile': table.code == 'van_don_moi',
         'grid_root_class':'mg-root mg-waybill-master' if table.code == 'van_don_moi' else 'mg-root',
         'thang_dang_xem':month, 'bang': table, 'luoi': grid, 'qs_giu': qs.urlencode(), 'chips': chips,
@@ -128,6 +130,7 @@ def shell(request, table):
         'ben': sidebar_service.context(request.user, table, grid.columns, qs),
         'quick_filters': sidebar_service.quick_filters(qs) if table.code in ('van_don','van_don_moi') else {'groups':[], 'keep':grid_service.params_without(qs)},
         'config': {'dataUrl': reverse('master_data', args=[table.code]),
+                   'deliveryViewVersion': table.delivery_view_version,
                    'canCreate':row_mutations.can_create(request.user,table),
                    'requestMetrics':getattr(settings,'CRM_REQUEST_METRICS',False),
                    'protocol':2 if table.code == 'van_don_moi' and optimization.enabled('READ') else 1,

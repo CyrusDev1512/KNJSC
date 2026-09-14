@@ -1,0 +1,18 @@
+{% extends 'crm/base_crm.html' %}
+{% block tieu_de %}Chế độ xem bảng · KN CRM{% endblock %}
+{% block noi_dung %}
+<div class="trang-dau"><div><h1>Chế độ xem bảng {{ bang.name }}</h1><p>Áp dụng toàn bảng cho mọi nhân viên Vận đơn có quyền truy cập bảng này.</p></div></div>
+<form method="post" class="the bm" style="max-width:760px">
+  {% csrf_token %}
+  <div class="the-than">
+    {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+    <fieldset><legend>Phạm vi xem của nhân viên Vận đơn</legend>
+      <p><label><input type="radio" name="mode" value="assigned" {% if not bang.delivery_view_all %}checked{% endif %} required> Chỉ dòng được phân công</label></p>
+      <p><label><input type="radio" name="mode" value="all" {% if bang.delivery_view_all %}checked{% endif %}> Toàn bộ bảng</label></p>
+    </fieldset>
+    <p>Quyền sửa vẫn theo phân công. Phạm vi của Leader, Manager và Admin giữ nguyên.</p>
+    <p>Lưu thay đổi sẽ khiến các trang bảng đang mở tải lại. Nội dung chưa lưu có thể mất; hãy thông báo nhân viên lưu xong trước khi đổi.</p>
+  </div>
+  <div class="the-chan"><button class="nut nut-chinh" type="submit">Lưu thay đổi</button><a class="nut" href="{% url 'bang_tinh_xem' bang.code %}">Về bảng</a><a class="nut" href="{% url 'bang_cot' bang.code %}">Cột & cấp quyền</a></div>
+</form>
+{% endblock %}

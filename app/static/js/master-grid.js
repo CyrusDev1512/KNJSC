@@ -801,6 +801,12 @@
     invalidate();state.total=state.persistedTotal=0;state.drafts=[];state.ready=true;state.lastError=text;
     canvas.replaceChildren();message(text,true);if(hadDraft)status('Chưa lưu');repaint();
   }
+  function reloadForViewMode(data){
+    if(data.delivery_view_version===undefined||data.delivery_view_version===config.deliveryViewVersion)return false;
+    // Quản lý đổi phạm vi toàn bảng: bỏ cache/nháp rồi tải trang theo quyền mới.
+    clearAccess('Chế độ xem bảng đã thay đổi. Đang tải lại trang.');
+    window.location.reload();return true;
+  }
   async function poll(){
     if(document.hidden||state.busy||state.unavailable)return;
     try{
@@ -813,6 +819,7 @@
         for(const id of ids)if(id<1)ids.delete(id);
         const data=await fetch(config.syncUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({ids:[...ids],visible,query:query.toString(),query_token:state.queryToken,revision:state.revision})}).then(json);
         if(generation!==state.generation||state.busy)return;
+        if(reloadForViewMode(data))return;
         if(data.unsupported){config.syncUrl=null;return;}
         if(data.removed.length){
           const text=await retainReadableDrafts('Quyền xem đã thay đổi.');
@@ -826,6 +833,7 @@
         return;
       }
       const data=await fetch(config.filterUrl+'moi-nhat/').then(json),stamp=JSON.stringify(data);
+      if(reloadForViewMode(data))return;
       const ids=new Set(working.pending().map(c=>c.id));
       if(state.draft)ids.add(state.draft.id);if(state.historyId)ids.add(state.historyId);
       for(const block of state.cache.values())block.rows.forEach(r=>ids.add(r.id));

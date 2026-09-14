@@ -142,7 +142,9 @@ def bang_cot(request, code):
             messages.success(request, f"Đã thêm cột {cot.name}." + _bao_tinh_lai(cot))
         return redirect("bang_cot", code=bang_hien.code)
 
+    from orders.services.delivery_view_service import can_manage
     return render(request, "forms_builder/bang_cot.html", {
+        "delivery_view_manage": can_manage(request.user, bang_hien) and getattr(settings, "ROOT_URLCONF", "") == "knjsc.urls_bangtinh",
         "bang": bang_hien, "form": form, "dang_sua": dang_sua,
         "cac_cot": bang_hien.columns.order_by("order", "id"),
         "form_quyen": GrantForm(cho_bang=True),

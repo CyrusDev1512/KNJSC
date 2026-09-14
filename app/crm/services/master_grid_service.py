@@ -91,7 +91,7 @@ def serialize(rows, columns, user, *, meta=None):
 def stamp(user, table):
     # Bao gồm dòng xoá mềm để việc xoá/khôi phục cũng đổi mốc; vẫn trong phạm vi.
     s = DataRecord.all_objects.in_scope(user, table=table).aggregate(n=Count('*'), t=Max('updated_at'))
-    return digest(s)
+    return digest([s, table.delivery_view_version])
 
 
 def block(user, table, params):
@@ -196,7 +196,7 @@ def save(user, table, payload, *, request=None):
     list(DataRecord.all_objects.filter(table=table,pk__in=lock_ids).order_by('pk').select_for_update(of=('self',)).values_list('pk',flat=True))
     row_results = row_mutations.change(user, table, row_actions, receipt, replay=not created)
     ids = {c['id'] for c in cells}
-    rows = list(DataRecord.objects.filter(table=table, pk__in=ids).select_related('table')
+    rows = list(DataRecord.objects.filter(table=table, pk__in=ids).select_related('table', 'assignment')
                 .select_for_update(of=('self',)).order_by('pk'))
     allowed = set(DataRecord.objects.in_scope(user, table=table).filter(pk__in=ids).values_list('pk', flat=True))
     if ids != allowed or len(rows) != len(ids):
