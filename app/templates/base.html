@@ -12,42 +12,32 @@
 <link rel="stylesheet" href="{% static 'css/main.css' %}?v={{ phien_ban_tinh }}">
 <script>
   /* Đặt nền trước khi vẽ để tránh nháy sáng */
-  try { var n = localStorage.getItem("knjsc-nen"); if (n) document.documentElement.dataset.theme = n; } catch (e) {}
+  try { var n = localStorage.getItem("knjsc-nen"); document.documentElement.dataset.theme = n === "dark" ? "dark" : "light"; } catch (e) {}
 </script>
 {% block dau_trang %}{% endblock %}
+<link rel="stylesheet" href="{% static 'css/solarpunk.css' %}?v={{ phien_ban_tinh }}">
 </head>
-<body>
+<body class="sp-erp">
+<a class="sp-skip" href="#noi-dung-chinh">Đến nội dung</a>
 
 {% if user.is_authenticated %}
 {# Thẻ chống giả mạo cho mọi yêu cầu HTMX, khai một lần thay vì rải vào từng ô #}
 <div class="app" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
-  <aside class="nav" id="thanh-ben">
-    <div class="nav-dau">
-      <a class="nav-hieu" href="{% url 'tong_quan' %}" title="Về Tổng quan">
-        <img class="nav-logo" src="{% static logo %}" alt="">
-        <div>Kim Ngân JSC<small>Hệ thống vận hành</small></div>
-      </a>
-    </div>
-
-    <nav class="nav-than" aria-label="Điều hướng chính">
-      {% for nhom in nav_groups %}
-        <div class="nav-nhom">{{ nhom.label }}</div>
-        {% for muc in nhom.items %}
-          <a class="nav-muc" href="{{ muc.href }}"
-             {% if muc.new_tab %}target="_blank" rel="noopener"{% endif %}
-             {% if muc.code == nav_current %}aria-current="page"{% endif %}>{{ muc.label }}</a>
-        {% endfor %}
-      {% endfor %}
-    </nav>
-
-    <div class="nav-chan">
-      <div class="ma nho">Phase 1 · giai đoạn 7</div>
-    </div>
-  </aside>
+  <nav class="sp-dock" id="thanh-ben" aria-label="Điều hướng chính">
+    {% for nhom in nav_groups %}
+    <details class="sp-dock-group">
+      <summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">{% if forloop.counter == 1 %}<path d="m3 10 9-7 9 7v10H3Z M9 20v-7h6v7"/>{% elif forloop.counter == 2 %}<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v5m8-5v5M8 12h8m-8 4h5"/>{% elif forloop.counter == 3 %}<circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3m1-17a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5v2"/>{% elif forloop.counter == 4 %}<path d="M6 3h8l4 4v14H6Z M14 3v5h4M9 12h6m-6 4h6"/>{% elif forloop.counter == 5 %}<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/>{% else %}<path d="m12 3 8 4v6c0 4-8 8-8 8s-8-4-8-8V7Z M8 12l3 3 5-6"/>{% endif %}</svg><span>{{ nhom.label }}</span></summary>
+      <div class="sp-dock-menu">
+        {% for muc in nhom.items %}<a class="nav-muc" href="{{ muc.href }}" {% if muc.new_tab %}target="_blank" rel="noopener"{% endif %} {% if muc.code == nav_current %}aria-current="page"{% endif %}>{{ muc.label }}</a>{% endfor %}
+      </div>
+    </details>
+    {% endfor %}
+  </nav>
 
   <div class="chinh">
-    <div class="topbar">
+    <header class="topbar">
+      <a class="sp-brand" href="{% url 'tong_quan' %}"><img src="{% static logo %}" alt=""><strong>KN JSC<small>Không gian làm việc</small></strong></a>
       <button class="nut nut-nho nut-nav" type="button" id="nut-nav" aria-label="Mở điều hướng">☰</button>
       <div class="duong-dan">
         <span>Kim Ngân JSC</span><span>/</span><b>{% block ten_trang %}{% endblock %}</b>
@@ -67,9 +57,9 @@
           <button class="nut nut-nho" type="submit">Đăng xuất</button>
         </form>
       </div>
-    </div>
+    </header>
 
-    <main class="noi-dung doc">
+    <main class="noi-dung doc" id="noi-dung-chinh">
       {% if messages %}
         {% for tin in messages %}
           <div class="bao {% if tin.tags == 'error' %}bao-xau{% elif tin.tags == 'warning' %}bao-cho{% else %}bao-tot{% endif %}">
@@ -103,6 +93,7 @@
     hop.innerHTML = '<span class="bao-ic">!</span><div><b></b></div>';
     hop.querySelector("b").textContent = chu;
     main.insertBefore(hop, main.firstChild);
+    main.scrollTo({ top: 0 });
     window.scrollTo({ top: 0 });
     setTimeout(function () { hop.remove(); }, 8000);
   }
@@ -126,6 +117,7 @@
 </script>
 
 <script src="{% static 'js/htmx.min.js' %}?v={{ phien_ban_tinh }}" defer></script>
+<script src="{% static 'js/solarpunk-shell.js' %}?v={{ phien_ban_tinh }}" defer></script>
 <script src="{% static 'js/chon.js' %}?v={{ phien_ban_tinh }}" defer></script>
 {% block cuoi_trang %}{% endblock %}
 

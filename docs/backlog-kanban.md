@@ -1,5 +1,12 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 14.09.2026 — Hợp nhất CRM-UPDATE và Solar UI
+
+**Finished trong phạm vi nhánh:** nghiệp vụ/quyền/lưới master của CRM-UPDATE đã
+được hợp nhất với trình bày Solar. Chrome chức năng và bố cục đạt; full suite
+2.329 passed, còn 15 lỗi nền đã đối chiếu. Chờ chủ dự án nghiệm thu trước mọi
+quyết định với `main` hoặc nhánh cũ. [Bằng chứng](kiem-chung-crm-update-solar-ui-20260914.md).
+
 ## 14.09.2026 — Tích hợp phần local vào CRM-UPDATE
 
 Đã khôi phục ERP từ stash, ghép sửa Thống kê và chế độ xem Vận đơn; Solarpunk giữ riêng. Functional toàn bộ: 2327 đạt, 17 lỗi đều tái hiện trên nền 9bac840, 31 skip/2 xfail. Chrome định danh, bốn cấp quyền, Thống kê và đổi chế độ xem đạt tại 1440/390. Không kích hoạt runtime chính hoặc chạy lại kiểm tải toàn CRM. [Bằng chứng và giới hạn](kiem-chung-tich-hop-local-20260914.md).
@@ -26,6 +33,9 @@ chưa nghiệm thu toàn chiến dịch; tạo bảng trắng/duplicate cấu tr
 functional/migration và Chrome với fixture 10k; giữ bốn lỗi nền/skip riêng.
 Chưa kích hoạt trên app 8021, chưa commit/push. H7 chỉ chốt phần chứng từ,
 không đóng quyền nhập tiền và đối soát. [Biên bản](kiem-chung-chung-tu-thanh-toan-20260912.md).
+**14.09 — Solarpunk Office (nhánh UI riêng):** đã triển khai khung xanh, báo cáo hai vùng, chế độ tập trung cả hai lưới; preview ERP 18020 / CRM 18021 và dữ liệu riêng. Đã kiểm Chrome hai lưới, lưu/hoàn tác/lỗi mạng/CAS và bố cục sáng/tối; full suite 2154 pass, 14 fail (1 bài nhận diện khung chạy lại đạt, còn 13 lỗi nền); chưa merge/commit/push, không đổi 8020/8021. [Hồ sơ](kiem-chung-solarpunk-20260914.md), [ADR-028](quyet-dinh/028-solarpunk-office.md).
+
+
 **14.09 — Vận đơn DB:** đã tạo bảng động riêng `van_don_db`, 26 cột lấy từ định nghĩa hiện có, 0 dòng; sắp thứ tự theo file chủ dự án, không có Đơn vị phụ. Chưa nối Lên đơn; không đổi code ứng dụng hoặc bảng nguồn. Đã kiểm cấu hình lưu, tiêu đề HTML và thứ tự xuất. [Chi tiết](cau-hinh-van-don-db-20260914.md).
 
 **12.09.2026, 17:28 — Đã bật nhánh fix để chủ dự án test nút:** checkout chính `C:/KNJSC/KNJSC` và local 8020/8021 hiện chạy `fix/trung-ma-don-dong-thoi`. Bản CRM-UPDATE được giữ nguyên tại `C:/KNJSC/worktrees/CRM-UPDATE`, chưa ghép. Đã sao lưu database, áp dụng riêng `forms_builder.0011_delivery_view_mode`; không seed hoặc đổi chế độ xem thay người dùng. 10 test chế độ xem đạt trên PostgreSQL test riêng; hai URLconf sạch. Đọc READ ONLY trên local xác nhận trang chế độ xem, liên kết từ lưới và Cột & cấp quyền đều 200; mặc định hiện là theo phân công. Chưa commit/push.

@@ -1,0 +1,35 @@
+const {chromium}=require('./solarpunk-browser.cjs');
+const assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+(async()=>{
+ const browser=await chromium.launch({channel:'chrome',headless:true});const p=await browser.newPage({viewport:{width:1440,height:900}});
+ await p.goto('http://localhost:18021/dang-nhap/');await p.locator('[name=username]').fill('quantri');await p.locator('[name=password]').fill('matkhaucuatoi');
+ await Promise.all([p.waitForURL(u=>!u.pathname.includes('dang-nhap')),p.locator('button[type=submit]').click()]);
+ await p.goto('http://localhost:18021/bang-tinh/van_don_moi/');
+ const cell=p.locator('.mg-cell[data-code="ten_khach"]').first();await cell.waitFor();const original=await cell.innerText();
+ assert.ok(original.startsWith('Khách mẫu Solarpunk'));
+ let pending;await p.route('**/luu-json/',r=>{pending=r});
+ await cell.dblclick();await p.locator('#mg-input input').fill(original+' nháp A');await p.keyboard.press('Enter');
+ await p.waitForFunction(()=>document.querySelector('#bt-trang-thai').textContent==='Đang lưu');
+ const req=pending.request(),payload=req.postDataJSON();
+ const rival=structuredClone(payload);rival.operation=randomUUID();rival.cells.forEach(c=>c.value=original+' bản B');
+ const response=await p.request.post(req.url(),{data:rival,headers:{'X-CSRFToken':req.headers()['x-csrftoken']}});
+ assert.equal(response.status(),200);
+ await p.locator('#bt-toan-man-nut').click();await pending.continue();await p.unroute('**/luu-json/');
+ await p.waitForFunction(()=>document.querySelector('#bt-trang-thai').textContent==='Xung đột');
+ assert.equal(await p.locator('#mg-message').isVisible(),true);
+ await p.locator('#mg-message button').filter({hasText:'Đối chiếu'}).click();
+ assert.equal(await p.locator('#mg-conflict').isVisible(),true);
+ await p.keyboard.press('Escape');assert.equal(await p.locator('.bt-thanh-tren').isVisible(),false);
+ // Bỏ nháp thử nghiệm bằng nút hiện có, rồi khôi phục dữ liệu tổng hợp.
+ await p.locator('#mg-message button').filter({hasText:/Bỏ/}).click();
+ await p.waitForTimeout(200);await cell.dblclick();await p.locator('#mg-input input').fill(original);await p.keyboard.press('Enter');
+ await p.waitForFunction(()=>document.querySelector('#bt-trang-thai').textContent==='Đã lưu');
+ assert.equal(await cell.innerText(),original);
+ const pin=p.locator('.mg-heading[data-code="ma_don"]');const before=(await pin.boundingBox()).x;
+ await p.locator('#mg-viewport').evaluate(e=>{e.scrollLeft=700;e.scrollTop=500});await p.waitForTimeout(150);
+ assert.equal(Math.round((await pin.boundingBox()).x),Math.round(before));
+ const scroll=await p.locator('#mg-viewport').evaluate(e=>[e.scrollLeft,e.scrollTop]);
+ await p.locator('#sp-focus-exit').click();await p.locator('#bt-toan-man-nut').click();
+ assert.deepEqual(await p.locator('#mg-viewport').evaluate(e=>[e.scrollLeft,e.scrollTop]),scroll);
+ await browser.close();console.log('PASS: real CAS conflict, visible error/dialog, Esc priority, pinned column, scroll preservation');
+})().catch(e=>{console.error(e);process.exit(1)});

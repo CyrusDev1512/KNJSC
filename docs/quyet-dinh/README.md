@@ -2,6 +2,8 @@
 
 Mới: [ADR-027 — Lưới chung và vòng đời bảng](027-crm-update-luoi-chung-va-vong-doi-bang.md), đang kiểm local.
 
+- [ADR-028 — Solarpunk Office và chế độ tập trung lưới](028-solarpunk-office.md): duyệt 14.09.2026, đang hợp nhất với CRM-UPDATE.
+
 Mới: [ADR-026 — Chế độ xem Vận đơn mới](026-che-do-xem-van-don.md) (12.09.2026).
 
 Mới 12.09.2026: [ADR-025 — Trạng thái và chứng từ thanh toán](025-trang-thai-va-chung-tu-thanh-toan.md).

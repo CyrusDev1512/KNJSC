@@ -2,33 +2,33 @@
 name: "Kim Ngân JSC / KN CRM"
 description: "A compact Vietnamese operations system with a restrained app shell and a purpose-built spreadsheet workspace."
 colors:
-  accent: "#3a37a3"
-  accent-hover: "#2e2b8a"
-  accent-soft: "#ecebf9"
-  on-accent: "#ffffff"
+  accent: "#28583c"
+  accent-hover: "#17412b"
+  accent-soft: "#e4edd8"
+  on-accent: "#fffef3"
   brand-brass: "#9a7228"
-  plane: "#f2f2f6"
-  surface: "#fbfbfd"
-  surface-subtle: "#f6f6fa"
-  surface-toolbar: "#ecedf3"
-  ink: "#15151c"
-  ink-muted: "#4a4a58"
-  ink-faint: "#83838f"
-  rule: "#e3e3ec"
-  rule-strong: "#c9c9d6"
+  plane: "#e8eddf"
+  surface: "#fffdf7"
+  surface-subtle: "#f2f5eb"
+  surface-toolbar: "#e5ecdb"
+  ink: "#173b30"
+  ink-muted: "#456053"
+  ink-faint: "#607365"
+  rule: "#d5dece"
+  rule-strong: "#9eaf9a"
   positive: "#0ca30c"
   warning: "#fab219"
   critical: "#d03b3b"
-  dark-plane: "#0b0b10"
-  dark-surface: "#16161e"
+  dark-plane: "#101f19"
+  dark-surface: "#192c23"
   dark-surface-subtle: "#1c1c26"
   dark-surface-toolbar: "#22222e"
-  dark-ink: "#f1f1f6"
+  dark-ink: "#f0f3e7"
   dark-ink-muted: "#b6b6c4"
   dark-ink-faint: "#8a8a99"
   dark-rule: "#2a2a36"
   dark-rule-strong: "#3b3b4a"
-  dark-accent: "#9a97ee"
+  dark-accent: "#b7d598"
   dark-accent-hover: "#b0adf3"
   dark-accent-soft: "#1f1e39"
   dark-on-accent: "#0b0b10"
@@ -143,6 +143,21 @@ components:
     padding: "0 6px"
     height: "25px"
 ---
+
+## Hướng hiện hành trên nhánh UI — 14.09.2026
+
+**Solarpunk Office**, theo [ADR-028](docs/quyet-dinh/028-solarpunk-office.md).
+Khung xanh sage, mặt đọc kem, hành động xanh rừng, lựa chọn vàng nhạt;
+Be Vietnam Pro; bo khung 20–28px, điều khiển 8–12px, ô lưới 0px.
+Ảnh kiến trúc/cây xanh riêng ở viền, không có UI/chữ/logo giả trong ảnh nền.
+Sáng mặc định, tôn trọng lựa chọn sáng/tối đã lưu. Không blur trên ô bảng.
+ERP dùng header và dock nhóm có vùng riêng. CRM giữ cây điều hướng;
+báo cáo hai vùng; cả hai lưới có chế độ tập trung trong tab, công cụ theo yêu cầu.
+Nguồn chuẩn hiện hành: `app/static/css/solarpunk.css`, bốn base template,
+`grid-focus.js` và `solarpunk-shell.js`. Mọi mô tả khung cũ dưới đây được giữ
+để truy vết; phần xung đột về màu, bo góc, điều hướng và focus được ADR-027 thay thế.
+Chưa merge hoặc triển khai bản đang chạy. [Kiểm chứng](docs/kiem-chung-solarpunk-20260914.md).
+
 
 # Design System: Kim Ngân JSC / KN CRM
 

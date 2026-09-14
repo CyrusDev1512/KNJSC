@@ -3,6 +3,7 @@
 {% block ten_trang %}Báo cáo {{ bao_cao.report_date|date:"d.m.Y" }}{% endblock %}
 
 {% block noi_dung %}
+<article id="sp-report-content">
 
 <div class="trang-dau">
   <div>
@@ -32,7 +33,7 @@
   </div>
 </div>
 
-<div class="the" style="max-width:760px">
+<div class="the sp-report-document">
   <div class="the-dau">
     <h2>Nội dung</h2>
     <div class="phai nho mo-nhat">Ghi vào bảng {{ bao_cao.form.table.name }}</div>
@@ -65,4 +66,5 @@
   </div>
 </div>
 
+</article>
 {% endblock %}
