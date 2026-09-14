@@ -246,7 +246,7 @@ Những ràng buộc phải luôn đúng, không phụ thuộc màn hình hay th
 | NFR-10 | Thời gian phục hồi sau sự cố | Dưới 4 giờ |
 | NFR-11 | Kích thước tối đa mỗi tệp tải lên | 10 MB |
 | NFR-12 | Loại tệp được phép tải lên | Excel, CSV, ảnh JPG và PNG |
-| NFR-13 | Số dòng tối đa mỗi lần nhập từ tệp | 5.000 dòng |
+| NFR-13 | Số dòng tối đa mỗi lần nhập từ tệp | 10.000 dòng |
 | NFR-14 | Số bản ghi tối đa mỗi lần xuất ra tệp | 50.000 dòng |
 | NFR-15 | Thời gian giữ bản sao lưu tự động | 30 ngày, tối đa 30 bản gần nhất |
 | NFR-16 | Thời gian giữ tệp tạm sinh ra khi xuất dữ liệu | 24 giờ |

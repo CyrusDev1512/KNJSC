@@ -292,7 +292,7 @@ Phân quyền: ai điền biểu mẫu, ai xem bảng
 ```
 Kiểm cỡ (≤ 10 MB), loại thật của tệp (chữ ký đầu tệp so với đuôi)   ← S7, AC-7.8, AC-7.9
     ↓
-Đọc tối đa 5.000 dòng; dò hàng tiêu đề trong 10 hàng đầu
+Đọc tối đa 10.000 dòng; dò hàng tiêu đề trong 10 hàng đầu
     ↓
 Ánh xạ cột: tên cột → bí danh (Name, Phone, "SL <sản phẩm>"…) → cột bảng
     ↓

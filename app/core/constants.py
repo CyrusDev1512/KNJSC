@@ -74,7 +74,7 @@ class AuditAction(models.TextChoices):
 # Khai ở đây một chỗ; settings chỉ đọc lại, không viết cứng lần hai.
 
 UPLOAD_MAX_BYTES = 10 * 1024 * 1024     # NFR-11 — 10 MB mỗi tệp tải lên
-IMPORT_MAX_ROWS = 5_000                  # NFR-13 — trần cứng mỗi lần nhập
+IMPORT_MAX_ROWS = 10_000                 # NFR-13 — trần cứng mỗi lần nhập
 IMPORT_PERF_ROWS = 2_000                 # NFR-3  — mốc đo: 2.000 dòng dưới 60 giây
 IMPORT_PERF_SECONDS = 60
 EXPORT_SYNC_MAX_ROWS = 2_000             # trên mức này thì xuất chạy nền

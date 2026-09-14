@@ -186,7 +186,7 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
       không gọi `save()`, nên cột tính sẵn và cột tách phải gọi tay ở đây —
       quên là lọc và thống kê sai âm thầm (xem cảnh báo đầu tệp).
     - **Một dòng nhật ký** tóm tắt cho cả lượt, không mỗi dòng một dòng nhật
-      ký — 5.000 dòng nhật ký cho một lần bấm nhập là che mất mọi thứ khác.
+      ký — 10.000 dòng nhật ký cho một lần bấm nhập là che mất mọi thứ khác.
     """
     available(table)
     columns = columns if columns is not None else list(table.columns.all())
@@ -204,8 +204,8 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
                 on_progress(i + 1)
         return ket_qua
     lo = []
-    # Danh sách chọn chụp một lần cho cả lượt — không thì 5.000 dòng là
-    # 5.000 lần truy vấn danh mục sản phẩm
+    # Danh sách chọn chụp một lần cho cả lượt — không thì 10.000 dòng là
+    # 10.000 lần truy vấn danh mục sản phẩm
     chon = {
         c.code: choice_registry.snapshot(choice_registry.for_column(c))
         for c in columns if c.field_type == FieldType.CHOICE

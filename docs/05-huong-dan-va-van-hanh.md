@@ -199,7 +199,7 @@ Tệp không cần chỉnh sửa trước: hệ thống tự tìm hàng tiêu đ
 Excel lưu dạng số về chữ, đọc ngày kiểu `14/10/2023`. Ô danh sách (trạng thái)
 chỉ nhận giá trị trong danh sách, không phân biệt hoa thường.
 
-**Giới hạn:** tệp tối đa 10 MB, tối đa 5.000 dòng mỗi lần. Tệp đổi đuôi (ví
+**Giới hạn:** tệp tối đa 10 MB, tối đa 10.000 dòng mỗi lần. Tệp đổi đuôi (ví
 dụ `.exe` đổi thành `.xlsx`) bị từ chối ngay.
 
 Dòng lỗi không chặn dòng hợp lệ: 5 dòng có 2 dòng lỗi thì 3 dòng vẫn vào.
@@ -300,7 +300,7 @@ Cột nào dùng để thống kê thì gán **nhãn ý nghĩa** — ví dụ c�
 | Không thấy mục nào đó trong menu | Bạn chưa được cấp quyền, liên hệ quản lý |
 | Không thấy dữ liệu của người khác | Đúng như thiết kế, mỗi cấp bậc có phạm vi riêng |
 | Hệ thống tự đăng xuất | Do không thao tác quá một tiếng, đăng nhập lại |
-| Nhập tệp báo lỗi | Kiểm tra kích thước dưới 10 MB và số dòng dưới 5.000; đuôi tệp phải đúng nội dung |
+| Nhập tệp báo lỗi | Kiểm tra kích thước dưới 10 MB và số dòng không quá 10.000; đuôi tệp phải đúng nội dung |
 | Nhập xong báo "dòng lỗi" | Mở trang Tác vụ nền, xem bảng dòng lỗi theo số hàng Excel, sửa tệp rồi nhập lại phần đó |
 | Ô chọn không có giá trị mình cần | Cột Chọn một chỉ nhận giá trị trong danh sách. Quản lý thêm ở Sửa cột hoặc chọn **＋ Thêm mới…** ngay tại ô chọn trên biểu mẫu, báo cáo ngày, Lên đơn; nhân viên báo quản lý |
 | Không gõ được ô Marketer / Người bán | Đúng như thiết kế — hệ thống tự ghi tên bạn (FR-4.6) |
