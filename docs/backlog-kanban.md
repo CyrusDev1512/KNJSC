@@ -1,5 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 14.09.2026 — Tích hợp phần local vào CRM-UPDATE
+
+Đã khôi phục ERP từ stash, ghép sửa Thống kê và chế độ xem Vận đơn; Solarpunk giữ riêng. Functional toàn bộ: 2327 đạt, 17 lỗi đều tái hiện trên nền 9bac840, 31 skip/2 xfail. Chrome định danh, bốn cấp quyền, Thống kê và đổi chế độ xem đạt tại 1440/390. Không kích hoạt runtime chính hoặc chạy lại kiểm tải toàn CRM. [Bằng chứng và giới hạn](kiem-chung-tich-hop-local-20260914.md).
+
+
 **Finished trong phạm vi kiểm chứng — 14.09, CRM-UPDATE:** lưới chung,
 xóa/khôi phục bảng, tương phản và truy vấn phạm vi đã kiểm functional/Chrome;
 ma trận tải và bài bền 30 phút đạt. Bốn lỗi kiểm thử nền/11 skip giữ riêng.

@@ -1,5 +1,10 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 14.09.2026 — Tích hợp phần local vào CRM-UPDATE
+
+Đã khôi phục ERP từ stash, ghép sửa Thống kê và chế độ xem Vận đơn; Solarpunk giữ riêng. Functional toàn bộ: 2327 đạt, 17 lỗi đều tái hiện trên nền 9bac840, 31 skip/2 xfail. Chrome định danh, bốn cấp quyền, Thống kê và đổi chế độ xem đạt tại 1440/390. Không kích hoạt runtime chính hoặc chạy lại kiểm tải toàn CRM. [Bằng chứng và giới hạn](kiem-chung-tich-hop-local-20260914.md).
+
+
 **14.09 — Bàn giao CRM-UPDATE:** contrast đỏ 1,05/1,16 → xanh 12,43/11,27;
 TDD truy vấn phạm vi đỏ → xanh. Suite rộng lần đầu 1194 passed/7 failed/11 skipped;
 hai lỗi mount và một assertion CSS cache đã sửa, 21 bài liên quan chạy lại đạt.

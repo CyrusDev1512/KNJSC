@@ -143,3 +143,8 @@ Bốn điểm từng nằm ở đây đều đã chốt và đã có mục quy�
 
 Hiện **không còn điểm nào chờ ghi thành mục quyết định**. Danh sách việc chưa
 xong nằm ở `../backlog.md` mục 0.
+
+## Khôi phục quyết định 14.09.2026
+
+- [ADR-022: Báo cáo hoạt động ERP](022-bao-cao-hoat-dong-erp.md).
+- [ADR-026: Chế độ xem Vận đơn](026-che-do-xem-van-don.md).

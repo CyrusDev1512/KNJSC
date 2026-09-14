@@ -1,5 +1,10 @@
 # Backlog
 
+## 14.09.2026 — Tích hợp phần local vào CRM-UPDATE
+
+Đã khôi phục ERP từ stash, ghép sửa Thống kê và chế độ xem Vận đơn; Solarpunk giữ riêng. Functional toàn bộ: 2327 đạt, 17 lỗi đều tái hiện trên nền 9bac840, 31 skip/2 xfail. Chrome định danh, bốn cấp quyền, Thống kê và đổi chế độ xem đạt tại 1440/390. Không kích hoạt runtime chính hoặc chạy lại kiểm tải toàn CRM. [Bằng chứng và giới hạn](kiem-chung-tich-hop-local-20260914.md).
+
+
 **14.09 — CRM-UPDATE đã kiểm chứng trong worktree riêng:** hoàn tất lưới chung,
 xóa/khôi phục bảng, tương phản cột ghim và rút gọn truy vấn phạm vi. Chrome
 bốn cấu hình, ma trận 100k/300k × 10/20, 2.000 ô, Celery và bài bền 30 phút

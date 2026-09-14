@@ -1,0 +1,46 @@
+[
+  {
+    "width": 1440,
+    "manual": false,
+    "username": "identity_mu137c7t_1440_0",
+    "createMs": 163,
+    "filterTimes": [
+      126,
+      115
+    ],
+    "passed": true
+  },
+  {
+    "width": 1440,
+    "manual": true,
+    "username": "identity_mu137c7t_1440_1",
+    "createMs": 98,
+    "filterTimes": [
+      181,
+      153
+    ],
+    "passed": true
+  },
+  {
+    "width": 390,
+    "manual": false,
+    "username": "identity_mu137c7t_390_0",
+    "createMs": 111,
+    "filterTimes": [
+      103,
+      123
+    ],
+    "passed": true
+  },
+  {
+    "width": 390,
+    "manual": true,
+    "username": "identity_mu137c7t_390_1",
+    "createMs": 107,
+    "filterTimes": [
+      107,
+      110
+    ],
+    "passed": true
+  }
+]

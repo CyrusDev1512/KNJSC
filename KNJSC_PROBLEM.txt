@@ -49,10 +49,13 @@ Vấn đề tập trung
    - Phần lên đơn, trường định danh biểu mẫu/báo cáo mới, phân công và lịch sử thao tác: dùng mã đăng nhập; Admin thực hiện và Sale đứng đơn giữ riêng, không viết lại dữ liệu cũ -> đã làm (11.09.2026; docs/kiem-chung-len-don-20260911.md).
    - Quyết định thay thế cùng ngày: Admin cũng tự đứng đơn bằng mã đăng nhập, bỏ dropdown Sale cho mọi tài khoản; dùng Sale/team trống cho Admin thử nghiệm chưa thuộc Sale, không đổi hồ sơ -> đã làm (117 test, Chrome 1440/390, kiểm tải đọc 10/20; docs/kiem-chung-len-don-gio-admin-20260911.md).
 2. Nhân viên đăng nhập hệ thống bằng mã nhân viên.
+   Khôi phục lịch sử/chi tiết báo cáo hiển thị mã kèm họ tên, tìm bằng mã/họ tên trong phạm vi quyền; kiểm Chrome bốn cấp và đăng nhập tài khoản mới đạt 14.09.2026.
 3. Mật khẩu ban đầu cần random để tránh người này vào tài khoản của nhân sự khác.
+   Phần KNERP: đã khôi phục tự sinh mật khẩu tạm 16 ký tự khi Admin để trống, bàn giao một lần và buộc đổi khi đăng nhập; functional/Chrome đạt 14.09.2026. Xem docs/kiem-chung-tich-hop-local-20260914.md (chưa chạy lại kiểm tải).
 4. Nhân viên Vận đơn chỉ được xem hoặc thao tác đúng phạm vi được giao. -> đã làm (KN CRM — Vận đơn mới: phân công và phạm vi theo người được giao)
 5. Cần assign theo tên/người được giao để tránh nhân sự Vận đơn của đơn này chỉnh sửa đơn thuộc nhân sự Vận đơn khác. -> đã làm (KN CRM — Vận đơn mới: phân công và phạm vi theo người được giao)
 6. Vận đơn được xem dữ liệu nhưng không được thao tác mục đối soát nếu không có quyền.
+   Chốt bổ sung: Vận đơn không phụ trách và không cần quan tâm phần số tiền. Phần số tiền thuộc công việc của Kế toán và Kho. Quyền thao tác cụ thể của Kế toán/Kho cần xác định riêng.
 7. Hệ thống cần hạn chế thao tác linh tinh và chỉ cung cấp các thao tác có ý nghĩa với vai trò.
 8. Phần view cho nhân viên phải thuận tiện nhất cho người trực tiếp xử lý.
    Phần KN CRM — Vận đơn mới: tự lưu nền, chế độ Xem/Chỉnh sửa, chọn hàng xanh, định dạng cơ bản, lịch sử ô/xung đột và số hàng từ 1; kiểm chức năng/E2E -> đã làm (phạm vi thao tác đã chốt; chưa đóng nghiệm thu hiệu năng lọc 300k hoặc H7)
