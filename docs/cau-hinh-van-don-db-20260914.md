@@ -43,4 +43,5 @@ Theo xác nhận của chủ dự án, `van_don_db` phải có trên cả máy m
 chỉ tồn tại trong database local. Lệnh `manage.py tao_bang_van_don` nay tạo hoặc
 bổ sung bảng này theo đúng 26 cột ở trên, chạy lặp không sinh bảng/cột trùng và
 không tạo hay xoá dòng dữ liệu. `deploy/entrypoint.sh` đã gọi lệnh này sau migrate,
+và runbook production gọi tường minh do môi trường này đặt `RUN_MIGRATIONS=0`;
 vì vậy không cần migration vật lý riêng cho bảng động `TableDef`/`ColumnDef`.

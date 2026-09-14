@@ -37,6 +37,7 @@ docker compose config --quiet
 docker compose up -d db broker cache
 docker compose --profile maintenance run --rm static-owner
 docker compose run --rm crm python manage.py migrate --noinput
+docker compose run --rm crm python manage.py tao_bang_van_don
 docker compose run --rm crm python manage.py collectstatic --noinput
 docker compose up -d crm erp worker heavy beat proxy
 ```
