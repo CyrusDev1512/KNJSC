@@ -12,6 +12,12 @@ trong 448,37 giây; sáu lỗi mới của lượt đầu là hợp đồng đă
 endpoint đã tắt, sau khi cập nhật đúng quyết định 404 thì không còn.
 [Lệnh và bằng chứng](kiem-chung-erp-vandon-bill-20260914.md).
 
+Phát hành VPS 15.09: GitHub/VPS cùng SHA `97741e48ee427001a6ee88e89a109846c484396c`,
+image ERP/CRM `knjsc-app:97741e4`. Backup trước triển khai hợp lệ; migrate không có
+thay đổi, `tao_bang_van_don` và `collectstatic` đạt. ERP/CRM HTTPS 200, TLS 0;
+tệp JS/CSS công khai có marker dock/focus. `manage.py check` của cả hai dịch vụ
+sạch, RestartCount ứng dụng bằng 0 và log sau triển khai không có Traceback/ERROR.
+
 ## 14.09.2026 — Hợp nhất CRM-UPDATE và Solar UI
 
 Nhóm tập trung, hai URLconf và bốn script Chrome đạt. Full suite: **2.329

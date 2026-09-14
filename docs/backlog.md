@@ -8,6 +8,8 @@ giữ mã/ID/222 dòng nhưng đổi nhãn **Vận đơn mới**, thêm Phụ tr
 sắp lại cột; `van_don_moi` giữ nhãn **Vận đơn** và 10.000 dòng. Bill là text/URL
 an toàn; kho Chứng từ mặc định tắt và URL trả 404. Không tạo 100 bill/ảnh mẫu.
 Full suite cuối: 2.332 đạt, 15 lỗi nền, 31 skip và 2 xfail; không có lỗi mới.
+Đã push nhánh và triển khai VPS ngày 15.09 tại image `knjsc-app:97741e4`, sau
+backup; HTTPS/tệp tĩnh/check/log đều đạt. Không merge `main`.
 [Kiểm chứng](kiem-chung-erp-vandon-bill-20260914.md).
 
 ## 14.09.2026 — Hợp nhất CRM-UPDATE và Solar UI

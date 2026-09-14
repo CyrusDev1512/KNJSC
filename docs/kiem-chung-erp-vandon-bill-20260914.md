@@ -1,6 +1,6 @@
 # Kiểm chứng ERP tập trung, Vận đơn và Bill — 14.09.2026
 
-Phạm vi: nhánh `codex/crm-update-solar-ui`, chưa commit/push/merge `main`.
+Phạm vi: nhánh `codex/crm-update-solar-ui`; đã phát hành nhánh riêng, không merge `main`.
 
 ## Kết quả triển khai
 
@@ -45,4 +45,21 @@ có migration mới để áp dụng. Hai trang đăng nhập 8020/8021 trả 20
 
 ## Giới hạn
 
-Không tạo 100 bill placeholder và không dùng hai ảnh tham khảo. Chưa commit/push.
+Không tạo 100 bill placeholder và không dùng hai ảnh tham khảo.
+
+## Phát hành VPS — 15.09.2026
+
+- Mã chức năng được commit tại `97741e48ee427001a6ee88e89a109846c484396c` và
+  push lên `origin/codex/crm-update-solar-ui`.
+- Trước triển khai đã tạo backup VPS
+  `/opt/knjsc-runtime/backups/pre-deploy-97741e4-20260914180446.dump` và kiểm tra
+  được danh mục phục hồi; không xóa volume hoặc seed dữ liệu.
+- VPS `/opt/knjsc` được fast-forward đến đúng SHA, dựng image
+  `knjsc-app:97741e4`, chạy migrate (không có migration mới),
+  `tao_bang_van_don` và `collectstatic`, rồi thay ERP/CRM/worker/beat/proxy.
+- Sau triển khai, ERP và CRM HTTPS trả 200 với TLS hợp lệ; JavaScript/CSS công khai
+  chứa dock thu gọn và chế độ tập trung. Hai `manage.py check` sạch, các container
+  ứng dụng có `RestartCount=0`, log sau triển khai không có Traceback/ERROR.
+- Dữ liệu VPS sau cập nhật: `van_don` 1 dòng, `van_don_moi` 0 dòng,
+  `van_don_db` 0 dòng. `van_don` mang nhãn **Vận đơn mới**, có đúng một cột
+  `phu_trach_cskh`, `don_vi_phu` ở cuối; cờ Chứng từ là `False`.
