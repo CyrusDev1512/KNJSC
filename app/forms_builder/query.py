@@ -102,6 +102,17 @@ def apply_filters(queryset, column_map, filters):
         if not duong_dan or not phep:
             continue
         from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+        if column_map.table.code == ACTIVE_WAYBILL_TABLE_CODE and code == 'bill':
+            from orders.models import PaymentDocument
+            documents = PaymentDocument.objects.filter(deleted_at__isnull=True)
+            if phep in ('blank', 'nonblank'):
+                blank = (Q(data__bill__isnull=True) | Q(data__bill='') | Q(data__bill=None)) & ~Q(pk__in=documents.values('record_id'))
+                queryset = queryset.filter(blank) if phep == 'blank' else queryset.exclude(blank)
+            else:
+                value = gia_tri if phep != 'in' or isinstance(gia_tri, (list, tuple)) else [gia_tri]
+                matches = documents.filter(**{f'reference__{phep}': value})
+                queryset = queryset.filter(Q(**{f'data__bill__{phep}': value}) | Q(pk__in=matches.values('record_id')))
+            continue
         if column_map.table.code == ACTIVE_WAYBILL_TABLE_CODE and code == 'san_pham':
             from orders.models import WaybillItem
             items = WaybillItem.objects.filter(deleted_at__isnull=True)
@@ -200,6 +211,11 @@ def apply_search(queryset, column_map, term):
     dieu_kien = Q()
     for p in duong_dan:
         dieu_kien |= Q(**{f"{p}__icontains": term})
+    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+    if column_map.table.code == ACTIVE_WAYBILL_TABLE_CODE:
+        from orders.models import PaymentDocument
+        matches = PaymentDocument.objects.filter(deleted_at__isnull=True, reference__icontains=term)
+        dieu_kien |= Q(data__bill__icontains=term) | Q(pk__in=matches.values('record_id'))
     return queryset.filter(dieu_kien)
 
 
@@ -244,6 +260,15 @@ def read_row(record, columns):
     """
     from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
     from orders.services import assignment_service
-    return [(cot, assignment_service.display(record, cot.code)
-             if record.table.code == ACTIVE_WAYBILL_TABLE_CODE and cot.code in assignment_service.COLUMNS
-             else record.data.get(cot.code)) for cot in columns]
+    values = []
+    for column in columns:
+        value = record.data.get(column.code)
+        if record.table.code == ACTIVE_WAYBILL_TABLE_CODE and column.code in assignment_service.COLUMNS:
+            value = assignment_service.display(record, column.code)
+        elif column.code == 'bill' and hasattr(record, 'export_payments'):
+            references = [doc.reference for doc in record.export_payments]
+            if value:
+                references.append(str(value))
+            value = '; '.join(references)
+        values.append((column, value))
+    return values

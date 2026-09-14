@@ -52,6 +52,9 @@ class TableDefQuerySet(ScopedQuerySet):
         duoc_cap = _cap_them(user, GrantAction.VIEW)
         from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
         from .models import DataRecord
+        from org.models import Department
+        accounting = Department.objects.filter(pk=getattr(getattr(user, 'profile', None), 'department_id', None),
+            code='ke-toan', is_active=True, deleted_at__isnull=True)
         visible = DataRecord.objects.filter(table__code=ACTIVE_WAYBILL_TABLE_CODE).filter(
             Q(created_by_id=user.pk, created_by__profile__department__code='sale')
             | Q(order__created_by_id=user.pk, order__created_by__profile__department__code='sale')
@@ -60,6 +63,7 @@ class TableDefQuerySet(ScopedQuerySet):
         return self.filter(
             Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
             | Q(Exists(visible.filter(table_id=OuterRef('pk'))))
+            | (Q(code=ACTIVE_WAYBILL_TABLE_CODE) & Q(Exists(accounting)))
         )
 
 

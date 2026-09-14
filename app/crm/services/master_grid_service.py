@@ -58,6 +58,9 @@ def metadata(columns):
 
 
 def serialize(rows, columns, user):
+    from orders.services.payment_service import metadata
+    rows = list(rows)
+    bills = metadata([row.pk for row in rows]) if rows and any(c.code == 'bill' for c in columns) else {}
     result = []
     for row in rows:
         editable = grant_service.can_edit_visible_record(user, row)
@@ -71,6 +74,8 @@ def serialize(rows, columns, user):
                 'class': grid_service.cell_class(c, None, editable, style=style), 'style': style or {},
                 'editable': editable and not c.is_computed and c.code not in waybill_service.PROTECTED
                             and c.code not in assignment_service.COLUMNS}
+        if 'bill' in cells:
+            cells['bill']['payments'] = bills.get(row.pk, {'count': 0, 'links': []})
         result.append({'id': row.pk, 'cells': cells, 'editable': editable,
                        'updated': row.updated_at.isoformat(),
                        'detail_url': reverse('waybill_detail', args=[row.pk])})

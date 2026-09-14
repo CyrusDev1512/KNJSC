@@ -8,9 +8,15 @@ là cây thư mục (ADR-015).
 from django.urls import path
 from orders import views as order_views
 
-from . import views, waybill_views, assignment_views, master_views, statistics_views
+from . import views, waybill_views, assignment_views, master_views, statistics_views, payment_views
 
 urlpatterns = [
+    path('chung-tu-thanh-toan/', payment_views.library, name='payment_library'),
+    path('chung-tu-thanh-toan/don/', payment_views.rows, name='payment_rows'),
+    path('chung-tu-thanh-toan/tao/', payment_views.create, name='payment_create'),
+    path('chung-tu-thanh-toan/<int:pk>/', payment_views.detail, name='payment_detail'),
+    path('chung-tu-thanh-toan/<int:pk>/sua/', payment_views.update, name='payment_update'),
+    path('chung-tu-thanh-toan/anh/<int:pk>/', payment_views.image, name='payment_image'),
     path("van-don/len-don/tom-tat/", waybill_views.preview_order, name="waybill_preview"),
     path("van-don/don-goc/<slug:code>/", order_views.don_xem, name="don_xem"),
     path("van-don/don-goc/<slug:code>/bo/", order_views.don_bo, name="don_bo"),

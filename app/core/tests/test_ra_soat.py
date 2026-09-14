@@ -181,7 +181,7 @@ def test_moi_ham_dich_vu_deu_ghi_nhat_ky(db, departments, nguoi_dung):
 
     ho_so = nguoi_dung["staff_sale_1"].profile
     cac_thao_tac = [
-        lambda: org_service.create_department(name="Kế toán", code="ke-toan"),
+        lambda: org_service.create_department(name="Bộ phận kiểm nhật ký", code="kiem-nhat-ky"),
         lambda: org_service.create_team(name="Team mới", department=departments["sale"]),
         lambda: account_service.set_rank(ho_so, Rank.LEADER),
         lambda: account_service.lock_account(ho_so),
@@ -320,11 +320,11 @@ def test_tao_duoc_bo_phan_moi(client, nguoi_dung):
 
     client.force_login(nguoi_dung["admin"])
     client.post("/bo-phan/", {
-        "bp-name": "Kế toán", "bp-code": "ke-toan", "bp-is_active": "on",
+        "bp-name": "Bộ phận mới kiểm thử", "bp-code": "bo-phan-moi-test", "bp-is_active": "on",
         "tao_bo_phan": "1",
     })
-    assert Department.objects.filter(code="ke-toan").exists()
-    assert "Kế toán" in client.get("/bo-phan/").content.decode()
+    assert Department.objects.filter(code="bo-phan-moi-test").exists()
+    assert "Bộ phận mới kiểm thử" in client.get("/bo-phan/").content.decode()
 
 
 def test_tao_duoc_nhieu_team_trong_mot_bo_phan(client, nguoi_dung, departments):

@@ -1,5 +1,14 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+> Cập nhật 12.09.2026: theo yêu cầu chủ dự án, đã chuyển nhánh codex/chung-tu-thanh-toan về checkout chính C:/KNJSC/KNJSC và kích hoạt app local 8021. Đã áp dụng orders 0007, org 0004; không chạy seed. Các mô tả chưa kích hoạt bên dưới ghi trạng thái bàn giao trước bước này. Chưa commit/push; bản sao checkout cũ giữ nguyên nội dung, ở detached HEAD.
+
+**12.09 — Trạng thái thủ công và chứng từ thanh toán:** ba bài TDD ban đầu đỏ
+(khóa trạng thái, chi tiết ghi đè trạng thái, chưa có đường kho). Đã bổ sung kiểm
+quyền, replay, CAS, rollback/file, Ref/Excel, metadata theo khối và migration.
+Chrome dùng DB test 10.000 dòng; mở/cuộn không tải ảnh, Ctrl+V và tạo/sửa Ref đạt.
+Các lỗi harness đã sửa và chạy lại; bốn lỗi nền tái hiện trên `95988c9` giữ riêng.
+[Số liệu, lệnh và giới hạn](kiem-chung-chung-tu-thanh-toan-20260912.md).
+
 **11.09 — Cấp mã đơn đồng thời, nhánh fix riêng từ a81decd:** TDD 2 fail
 trước sửa → 2 pass; focused cuối 9 pass (30 Sale, mỗi đơn hai sản phẩm,
 cùng khách, suffix >9999, xóa mềm/ngày/năm, rollback và timeout).

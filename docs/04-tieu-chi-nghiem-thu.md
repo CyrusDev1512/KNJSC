@@ -1,5 +1,19 @@
 # Tiêu chí nghiệm thu
 
+## AC-26 — Trạng thái và chứng từ thanh toán (12.09.2026)
+
+| Mã | Đạt khi |
+|---|---|
+| AC-26.1 | Ba trạng thái sửa trực tiếp qua autosave/CAS/history/Undo; sửa tiền không ghi đè trạng thái; dữ liệu cũ giữ nguyên |
+| AC-26.2 | Vận đơn thêm theo phạm vi; Kế toán/Admin quản lý chứng từ; quyền đọc Kế toán không thành quyền sửa ô/phân công |
+| AC-26.3 | Ref giữ số 0 đầu, duy nhất trong đơn đang hiệu lực; replay tạo không trùng; sửa đồng thời có CAS; xóa mềm/khôi phục không mất file |
+| AC-26.4 | JPG/PNG tối đa 5 ảnh và 10 MB/lượt; ảnh riêng tư có kiểm quyền; lỗi lưu dọn file mới; không chuyển chứng từ sang đơn khác |
+| AC-26.5 | Bill hiển thị tối đa hai Ref và đường xem đủ; giữ Bill cũ; tìm/lọc/Excel đúng phạm vi, không nhúng ảnh |
+| AC-26.6 | Chrome 1440/1280/390: chọn/dán ảnh, tạo/sửa/xem, X/Escape; 10k dòng không tải ảnh khi mở/cuộn; metadata một truy vấn/khối; cache ≤10 |
+
+[Quyết định](quyet-dinh/025-trang-thai-va-chung-tu-thanh-toan.md) ·
+[Kết quả và giới hạn](kiem-chung-chung-tu-thanh-toan-20260912.md).
+
 | Mục | Nội dung |
 |---|---|
 | Dự án | Kim Ngân JSC — Hệ thống vận hành nội bộ |

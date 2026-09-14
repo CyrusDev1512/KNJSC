@@ -52,6 +52,8 @@
 {% csrf_token %}
 {% endblock %}
 {% block cuoi_trang %}
+<link rel="stylesheet" href="{% static 'css/payments.css' %}">
+<script src="{% static 'js/payments.js' %}" defer></script>
 {% if can_assign %}{% include 'crm/_assignment.html' with master_grid=True %}{% endif %}
 <script src="{% static 'js/master-row-geometry.js' %}?v={{ phien_ban_tinh }}" defer></script>
 <script src="{% static 'js/master-working-copy.js' %}?v={{ phien_ban_tinh }}" defer></script>

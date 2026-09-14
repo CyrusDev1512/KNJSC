@@ -28,8 +28,8 @@ from orders.units import resolve_unit
 from . import assignment_service
 
 DETAIL_CODE = "chi_tiet_sp"
-PROTECTED = frozenset({"san_pham", "so_luong", "gia_tien", "so_tien_tt", "trang_thai_tt"})
-DETAIL_CELLS = PROTECTED - {"trang_thai_tt"}
+PROTECTED = frozenset({"san_pham", "so_luong", "gia_tien", "so_tien_tt", "bill"})
+DETAIL_CELLS = PROTECTED - {"bill"}
 COLUMNS = [
     ("Mã đơn", "ma_don", FieldType.TEXT, ""),
     ("Tên khách", "ten_khach", FieldType.TEXT, Meaning.CUSTOMER),
@@ -164,6 +164,11 @@ def prepare_values(values):
         raise BusinessError('Không nhập phân công qua tệp hoặc ô. Dùng hộp Phân công sau khi nhập.')
     items = validate_items(values.get(DETAIL_CODE))
     computed = totals(items)
+    if 'trang_thai_tt' in values:
+        status = values['trang_thai_tt']
+        if status not in ('', None, *PaymentStatus.labels):
+            raise BusinessError('Trạng thái thanh toán không hợp lệ.')
+        computed['trang_thai_tt'] = status
     for code in ("so_luong", "gia_tien", "so_tien_tt"):
         if values.get(code) not in (None, "") and money(values[code]) != Decimal(str(computed[code])):
             raise BusinessError("Tổng số lượng hoặc tiền không khớp chi tiết sản phẩm. Hãy sửa tệp trước khi nhập.")
@@ -182,7 +187,7 @@ def assert_editable(code):
     if code in assignment_service.COLUMNS:
         raise BusinessError('Cột này chỉ được sửa bằng hộp Phân công.')
     if code in PROTECTED:
-        raise BusinessError("Sửa trong Chi tiết sản phẩm; tổng và trạng thái thanh toán được tính tự động.")
+        raise BusinessError("Bill sửa tại Chứng từ thanh toán; các tổng sửa tại Chi tiết sản phẩm.")
 
 
 def assert_column_change(column, changes=None):
@@ -203,7 +208,10 @@ def extra_columns(table):
 
 def export_queryset(queryset):
     from django.db.models import Prefetch
-    return assignment_service.related(queryset).prefetch_related(Prefetch("waybill_items",
+    from orders.models import PaymentDocument
+    from .payment_service import ordered
+    return assignment_service.related(queryset).prefetch_related(Prefetch('payment_documents',
+        queryset=ordered(PaymentDocument.objects.filter(deleted_at__isnull=True)), to_attr='export_payments'), Prefetch("waybill_items",
         queryset=WaybillItem.objects.filter(deleted_at__isnull=True).select_related("product"),
         to_attr="export_items"))
 
@@ -261,7 +269,9 @@ def update_items(user, pk, raw, version, *, request=None):
     items = validate_items(raw, previous=previous)
     WaybillItem.objects.in_scope(user).filter(record=row).update(deleted_at=timezone.now(), deleted_by=user)
     after_create(row, {"_items": items})
-    row.data.update(totals(items))
+    computed = totals(items)
+    computed.pop('trang_thai_tt')
+    row.data.update(computed)
     row.save()
     record(AuditAction.UPDATE, actor=user, target=row,
            detail=f"Sửa {len(items)} dòng chi tiết sản phẩm và thanh toán vận đơn", request=request)

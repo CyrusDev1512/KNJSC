@@ -1,5 +1,7 @@
 # ADR-018 — Bảng Vận đơn mới theo CRM Tân
 
+> Thay thế 12.09.2026: [ADR-025](025-trang-thai-va-chung-tu-thanh-toan.md) cho sửa trạng thái trực tiếp; sửa chi tiết/tiền không còn tính lại trạng thái. Thêm kho chứng từ và liên kết Bill.
+
 > Bổ sung 10.09.2026: [ADR-021](021-luoi-master-va-thong-ke-crm.md) thay phần bố cục/renderer và thống kê nhúng của Vận đơn mới. Quyền, dữ liệu và nghiệp vụ không đổi.
 
 

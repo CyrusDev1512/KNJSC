@@ -1,5 +1,19 @@
 # Câu hỏi cần xác nhận với người sử dụng
 
+## Chứng từ thanh toán — Vận đơn / Kế toán, đã chốt 12.09.2026
+
+1. **Ai thêm/quản lý bằng chứng?** Vận đơn thêm cho dòng thuộc quyền; Kế toán/Admin
+   quản lý toàn bộ chứng từ Vận đơn mới. Kế toán xem toàn bộ bảng mới, không tự
+   được sửa ô/phân công. Thêm bộ phận `ke-toan`, không thêm tài khoản.
+2. **Bill lưu gì?** Kho riêng lưu ảnh; Bill hiện Ref màu xanh, bấm mở ảnh. Một chứng
+   từ/một đơn; nhiều lần trả có nhiều chứng từ. Chưa hỗ trợ trả gộp nhiều đơn.
+3. **Trạng thái do ai quyết định?** Người có quyền sửa dòng chọn ba trạng thái hiện có.
+   Sửa trạng thái không đổi tiền; sửa tiền không ghi đè trạng thái đã chọn.
+4. **H7 còn mở gì?** Phần bằng chứng đã chốt như trên, thay các câu chờ H7 phía dưới
+   về quyền chứng từ. Quyền nhập tiền và xác nhận đối soát vẫn chưa mở rộng.
+
+Chi tiết: [ADR-025](quyet-dinh/025-trang-thai-va-chung-tu-thanh-toan.md).
+
 ## CRM-Optimization — chủ dự án đã chốt 11.09.2026
 
 1. **Đích triển khai/đối tượng:** KN CRM, lưới mới chỉ `van_don_moi`; VPS chưa

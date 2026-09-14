@@ -151,6 +151,8 @@
         else if(next.classList.contains('mg-heading')){
           // Giữ các nút focus/resize ngay cả khi cột ảo bên phải vào/ra vùng nhìn.
           [...next.children].forEach((button,i)=>{syncAttributes(existing.children[i],button);if(existing.children[i].textContent!==button.textContent)existing.children[i].textContent=button.textContent;});
+        }else if(next.dataset.code==='bill'){
+          if(existing.innerHTML!==next.innerHTML)existing.replaceChildren(...next.childNodes);
         }else if(existing.textContent!==next.textContent)existing.textContent=next.textContent;
         keep.push(existing);
       }
@@ -240,6 +242,17 @@
         const value = row ? cellValue(row,c.code) : null;
         const cell = element('div','mg-cell '+(value?.class || '')+(rowHeight>ROW?' mg-wrap':'')+(c.pin?' mg-pinned':'')+(c.pinEdge?' mg-pinned-edge':'')+(selected(r,c.i)?' mg-selected':'')+(state.current?.r===r&&state.current?.c===c.i?' mg-current':''),row ? (value?.display ?? value?.value ?? '') : '…');
         cell.dataset.r=r;cell.dataset.c=c.i;cell.dataset.code=c.code;
+        if(c.code==='bill'&&row){
+          cell.replaceChildren();
+          for(const link of value?.payments?.links||[]){
+            const a=element('button','payment-link',`Lần ${link.position}: ${link.reference}`);
+            a.type='button';a.dataset.paymentId=link.id;cell.append(a);
+          }
+          const more=element('a','payment-link',value?.payments?.count>2?`+${value.payments.count-2} lần khác`:'Mở danh sách');
+          more.href=`/chung-tu-thanh-toan/?record=${row.id}`;more.target='_blank';more.rel='noopener';
+          cell.append(more);
+          if(value?.value)cell.append(element('span','payment-legacy',` · Dữ liệu cũ: ${value.value}`));
+        }
         if(row) {cell.dataset.id=row.id;cell.id=`mg-${row.id}-${c.code}`;}
         cell.setAttribute('role','gridcell');cell.setAttribute('aria-colindex',c.i+2);cell.setAttribute('aria-selected',!!selected(r,c.i));
         if(selected(r,c.i))for(const [side,on] of Object.entries({top:r===state.selection.r1,bottom:r===state.selection.r2,left:c.i===state.selection.c1,right:c.i===state.selection.c2}))if(on)cell.classList.add('mg-edge-'+side);
@@ -286,6 +299,7 @@
     if(!cell||state.draft||drag||(cell.scrollWidth<=cell.clientWidth&&cell.scrollHeight<=cell.clientHeight))return;
     const row=rowAt(+cell.dataset.r),c=state.visible[+cell.dataset.c];if(!row)return;
     reader.querySelector('strong').textContent=c.name;reader.querySelector('div').textContent=cellValue(row,c.code).display;
+    if(c.code==='bill')reader.querySelector('div').replaceChildren(...[...cell.childNodes].map(node=>node.cloneNode(true)));
     floatAt(reader,cell.getBoundingClientRect());
   }
   function positionEditor(){

@@ -12,6 +12,7 @@ Ba quy tắc định hình module này:
   là khoá định danh của khách và bắt buộc có chỉ mục
 """
 from decimal import Decimal
+from .payment_models import PaymentDocument, PaymentImage
 
 from django.core.exceptions import ValidationError
 from django.db import models

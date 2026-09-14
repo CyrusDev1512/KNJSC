@@ -49,6 +49,8 @@ def dependencies(grid, params):
     if params.get('sap'):keys.add(params['sap'])
     if params.get('tim') or params.get('trung'):
         keys.update(c.code for c in grid.columns if c.meaning)
+        if params.get('tim'):
+            keys.add('bill')
     return keys
 
 

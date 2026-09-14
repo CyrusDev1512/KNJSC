@@ -1,5 +1,7 @@
 # Nhật ký quyết định kiến trúc
 
+Mới 12.09.2026: [ADR-025 — Trạng thái và chứng từ thanh toán](025-trang-thai-va-chung-tu-thanh-toan.md).
+
 Thư mục này ghi lại các quyết định kỹ thuật quan trọng kèm lý do.
 
 Đang triển khai: [ADR-024 — CRM-Optimization](024-crm-optimization.md), chưa nghiệm thu hiệu năng/chạy bền.

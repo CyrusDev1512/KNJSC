@@ -1,5 +1,33 @@
 # Hướng dẫn sử dụng và vận hành
 
+> Cập nhật 12.09.2026: theo yêu cầu chủ dự án, đã chuyển nhánh codex/chung-tu-thanh-toan về checkout chính C:/KNJSC/KNJSC và kích hoạt app local 8021. Đã áp dụng orders 0007, org 0004; không chạy seed. Các mô tả chưa kích hoạt bên dưới ghi trạng thái bàn giao trước bước này. Chưa commit/push; bản sao checkout cũ giữ nguyên nội dung, ở detached HEAD.
+
+## Chứng từ thanh toán — bản mới 12.09.2026
+
+Sau khi triển khai nhánh và chạy migration mới:
+
+1. Mở **Chứng từ thanh toán** trên menu CRM, bấm **Thêm chứng từ**.
+2. Tìm/chọn đơn, nhập đúng Ref (giữ số 0 đầu), ngày chuyển khoản/ghi chú nếu có.
+3. Chọn JPG/PNG hoặc Ctrl+V để dán ảnh vào form. Mỗi lượt tối đa 5 ảnh, tổng 10 MB.
+4. Bấm **Lưu chứng từ**. Nếu lỗi, giữ form và thử lại; không tạo mã lượt mới thủ công.
+5. Trong Bill, bấm Ref để mở ảnh ngay; chọn ảnh tiếp theo, phóng to/tải ảnh,
+   X hoặc Escape để đóng. **Mở danh sách** hoặc **+N lần khác** xem các lần thanh toán.
+6. Kế toán/Admin mở **Quản lý chứng từ** để sửa Ref, bổ sung/gỡ ảnh, xóa mềm/khôi phục.
+   Gắn nhầm đơn thì xóa mềm và tạo lại, không chuyển chứng từ sang đơn khác.
+7. Kho ảnh hiển thị theo Ref, không tải ảnh sẵn; **Làm mới** cập nhật danh sách sau thay đổi.
+
+Trạng thái thanh toán sửa tại ô như các lựa chọn khác. Đổi trạng thái không đổi tiền,
+và sửa tiền/chi tiết không thay trạng thái đã chọn. Chưa bổ sung quy trình đối soát.
+
+**Lưu trữ/sao lưu:** file nằm ở `STORAGE_DIR/chung-tu-thanh-toan/`; database chỉ giữ
+liên kết và metadata. Bản sao lưu phải gồm thư mục này và database tại mốc nhất quán
+(tạm ngừng ghi khi tạo bản sao hoặc dùng snapshot phối hợp). `pg_dump` riêng không có ảnh.
+Khi phục hồi cần giữ nguyên đường dẫn tương đối, quyền đọc/ghi của dịch vụ và cấu hình
+`STORAGE_DIR`. Không đặt thư mục ảnh thành static/public, không đưa vào nơi dọn file xuất.
+Xóa mềm vẫn giữ file gốc; chưa có chính sách tự xóa/lưu trữ lạnh.
+
+Nhánh hiện được kiểm trên database test; chưa áp migration vào app local 8021.
+
 **CRM-Optimization — đã kiểm local, chưa phát hành, 11.09.2026:** cấu hình production ứng
 viên và quy trình bật/tắt từng nhóm ở
 [deploy/production/README](../deploy/production/README.md). Không thay launcher

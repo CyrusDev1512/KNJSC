@@ -1,5 +1,12 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+> Cập nhật 12.09.2026: theo yêu cầu chủ dự án, đã chuyển nhánh codex/chung-tu-thanh-toan về checkout chính C:/KNJSC/KNJSC và kích hoạt app local 8021. Đã áp dụng orders 0007, org 0004; không chạy seed. Các mô tả chưa kích hoạt bên dưới ghi trạng thái bàn giao trước bước này. Chưa commit/push; bản sao checkout cũ giữ nguyên nội dung, ở detached HEAD.
+
+**Chờ kiểm tra trên môi trường sử dụng — Chứng từ thanh toán (12.09):** có mã,
+functional/migration và Chrome với fixture 10k; giữ bốn lỗi nền/skip riêng.
+Chưa kích hoạt trên app 8021, chưa commit/push. H7 chỉ chốt phần chứng từ,
+không đóng quyền nhập tiền và đối soát. [Biên bản](kiem-chung-chung-tu-thanh-toan-20260912.md).
+
 **Finished local — Trùng mã đơn khi nhiều Sale lưu (11.09):** nhánh
 `fix/trung-ma-don-dong-thoi`/`a81decd`; service khóa PG theo DDMM, chờ tối đa
 5s và giữ giao dịch đơn–Vận đơn. Functional/Chrome 1440/390 đạt; hỗn hợp

@@ -115,6 +115,12 @@ riêng của Claude có sẵn trong môi trường Codex.
 
 ## 4. Quy tắc dữ liệu và triển khai
 
+- Theo [ADR-025](docs/quyet-dinh/025-trang-thai-va-chung-tu-thanh-toan.md), trạng thái
+  thanh toán Vận đơn mới sửa trực tiếp; sửa tiền/chi tiết không tự đổi trạng thái.
+  Bill liên kết kho chứng từ, giữ Bill cũ. Vận đơn thêm theo phạm vi dòng; Kế toán/Admin
+  quản lý chứng từ. Kế toán đọc toàn bộ bảng mới nhưng không tự được sửa ô/phân công.
+  Quyết định này chỉ chốt phần bằng chứng H7, không mở quyền nhập tiền/đối soát.
+
 - Cấp bậc tách khỏi bộ phận: Staff theo bản thân, Leader theo team, Manager theo
   bộ phận, Admin toàn hệ thống. Kiểm tra quyền phía server trên mọi đường đọc/ghi,
   nhập/xuất và thống kê; dùng manager/service phạm vi hiện có. Không chỉ ẩn nút UI.

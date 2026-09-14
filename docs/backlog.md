@@ -1,5 +1,13 @@
 # Backlog
 
+> Cập nhật 12.09.2026: theo yêu cầu chủ dự án, đã chuyển nhánh codex/chung-tu-thanh-toan về checkout chính C:/KNJSC/KNJSC và kích hoạt app local 8021. Đã áp dụng orders 0007, org 0004; không chạy seed. Các mô tả chưa kích hoạt bên dưới ghi trạng thái bàn giao trước bước này. Chưa commit/push; bản sao checkout cũ giữ nguyên nội dung, ở detached HEAD.
+
+**12.09.2026 — Trạng thái và chứng từ thanh toán:** đã có bản triển khai trong
+checkout riêng `KNJSC-chung-tu-thanh-toan`, nhánh `codex/chung-tu-thanh-toan`.
+Trạng thái sửa trực tiếp; kho chứng từ, quyền Kế toán, Ref trong Bill, lưu ảnh riêng tư.
+Không mở quyền nhập tiền/đối soát. Chưa áp migration vào database đang chạy ở 8021,
+chưa commit/push. [Kết quả và phần chưa kiểm](kiem-chung-chung-tu-thanh-toan-20260912.md).
+
 **11.09.2026 — Sửa trùng mã đơn đồng thời, đạt nghiệm thu local:** nhánh
 `fix/trung-ma-don-dong-thoi` từ `a81decd`, worktree riêng. Khóa giao dịch PG
 theo DDMM, timeout 5s có kiểm soát, max hậu tố theo số và giữ mã xóa mềm.

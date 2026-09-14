@@ -609,6 +609,9 @@ def filter_options(user, table, column, search="", limit=GRID_FILTER_OPTIONS_MAX
     như hộp lọc của Excel. Tối đa `limit` giá trị, nhiều nhất trước."""
     cmap = query.ColumnMap(table, [column])
     ds = DataRecord.objects.in_scope(user).filter(table=table)
+    if table.code == ACTIVE_WAYBILL_TABLE_CODE and column.code == 'bill':
+        from orders.services.payment_service import filter_options as payment_options
+        return payment_options(ds, search, limit)
     if table.code == ACTIVE_WAYBILL_TABLE_CODE and column.code == 'san_pham':
         from orders.models import WaybillItem
         items = WaybillItem.objects.for_records(ds).filter(product__code__icontains=search).order_by().values('product__code').annotate(n=Count('record_id', distinct=True)).order_by('-n', 'product__code')[:limit]

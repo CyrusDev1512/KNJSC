@@ -20,6 +20,13 @@ def department(user):
     return profile.department.code if profile and profile.department_id else ''
 
 
+def is_accountant(user):
+    profile = getattr(user, 'profile', None)
+    dept = getattr(profile, 'department', None)
+    return bool(user.is_active and dept and dept.code == 'ke-toan'
+                and dept.is_active and dept.deleted_at is None)
+
+
 def can_assign(user):
     scope = get_user_scope(user)
     return user.is_active and (scope.is_admin or (
@@ -31,7 +38,7 @@ def scope_condition(user, original, *, only_new=False):
     scope = get_user_scope(user)
     dept = department(user)
     new = Q(table__code=ACTIVE_WAYBILL_TABLE_CODE)
-    if can_assign(user):
+    if can_assign(user) or is_accountant(user):
         allowed = Q()
     elif dept == 'van-don':
         allowed = Q(assignment__delivery_id=user.pk)

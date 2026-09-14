@@ -73,6 +73,8 @@ def build(user, current=""):
         muc.append(CrmNavItem("thu_muc", "Bảng tính", u, "▦", current in ("thu_muc", "bang"), con, mo=dang))
     if cac_bang and (u := _url('crm_statistics')):
         muc.append(CrmNavItem('statistics', 'Bàn điều hành', u, '▥', current == 'statistics'))
+    if any(t.code == 'van_don_moi' for t in cac_bang) and (u := _url('payment_library')):
+        muc.append(CrmNavItem('payments', 'Chứng từ thanh toán', u, '▧', current == 'payments'))
     if has_rank(user, Rank.LEADER) and (u := _url("nhap_tep")) is not None:
         muc.append(CrmNavItem("nhap_tep", "Nhập tệp", u, "⇪", current == "nhap_tep"))
     if has_rank(user, Rank.MANAGER) and (u := _url("cap_quyen")) is not None:

@@ -120,7 +120,8 @@ def test_detail_totals_and_original_immutable(setup, nguoi_dung, paid, status):
     service.update_items(nguoi_dung["staff_vd"], row.pk, lines(setup[2], paid), row.updated_at.isoformat())
     row.refresh_from_db(); original.refresh_from_db()
     assert row.data["so_tien_tt"] == str(Decimal(paid) * 2)
-    assert row.data["trang_thai_tt"] == status
+    # Quyết định thay thế: chi tiết chỉ tính tiền, không đổi trạng thái đã lưu.
+    assert row.data["trang_thai_tt"] == 'Chưa thanh toán'
     assert row.data["gia_tien"] == "40.40" and row.data["so_luong"] == 4
     assert original.total == Decimal("40.40") and original.lines.count() == 2
     assert WaybillItem.objects.in_scope(nguoi_dung["staff_vd"]).count() == 2
