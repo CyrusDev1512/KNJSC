@@ -13,6 +13,10 @@
 <script>
   /* Đặt nền trước khi vẽ để tránh nháy sáng */
   try { var n = localStorage.getItem("knjsc-nen"); document.documentElement.dataset.theme = n === "dark" ? "dark" : "light"; } catch (e) {}
+  {% if user.is_authenticated %}
+  /* Khôi phục bố cục trước khi nạp CSS để chuyển trang không nháy về khung nhỏ. */
+  try { if (localStorage.getItem("knjsc-erp-immersive") === "1") document.documentElement.classList.add("sp-erp-immersive"); } catch (e) {}
+  {% endif %}
 </script>
 {% block dau_trang %}{% endblock %}
 <link rel="stylesheet" href="{% static 'css/solarpunk.css' %}?v={{ phien_ban_tinh }}">
@@ -52,7 +56,16 @@
       </div>
       <div class="topbar-phai">
         {% if crm_app_url %}<a class="nut nut-nho" href="{{ crm_app_url }}" target="_blank" rel="noopener" aria-label="Mở KN CRM trong tab mới"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg> KN CRM</a>{% endif %}
-        <button class="nut nut-nho" type="button" id="nut-nen" title="Đổi nền sáng tối">Nền</button>
+        <div class="sp-view-actions" role="group" aria-label="Hiển thị">
+          <button class="nut nut-nho sp-shell-icon-button" type="button" id="nut-nen" title="Chuyển sang nền tối" aria-label="Chuyển sang nền tối" aria-pressed="false">
+            <svg class="sp-theme-icon sp-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v2.2M12 19.8V22M4.93 4.93l1.56 1.56m11.02 11.02 1.56 1.56M2 12h2.2M19.8 12H22M4.93 19.07l1.56-1.56M17.51 6.49l1.56-1.56"/></svg>
+            <svg class="sp-theme-icon sp-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20.4 15.2A8.5 8.5 0 0 1 8.8 3.6 8.6 8.6 0 1 0 20.4 15.2Z"/></svg>
+          </button>
+          <button class="nut nut-nho sp-shell-icon-button" type="button" id="sp-erp-fullscreen" title="Mở rộng giao diện ERP" aria-label="Mở rộng giao diện ERP" aria-pressed="false">
+            <svg class="sp-fullscreen-icon sp-fullscreen-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/></svg>
+            <svg class="sp-fullscreen-icon sp-fullscreen-contract" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 3v5H3M16 3v5h5M21 16h-5v5M3 16h5v5"/></svg>
+          </button>
+        </div>
         <div class="nguoi-dung">
           <div class="avatar">{{ profile.full_name|default:user.get_username|first|upper }}</div>
           <div>
@@ -83,11 +96,21 @@
 </div>
 
 <script>
-  document.getElementById("nut-nen").addEventListener("click", function () {
+  var nutNen = document.getElementById("nut-nen");
+  function dongBoNutNen() {
+    var dangToi = document.documentElement.dataset.theme === "dark";
+    var nhan = dangToi ? "Chuyển sang nền sáng" : "Chuyển sang nền tối";
+    nutNen.setAttribute("aria-label", nhan);
+    nutNen.setAttribute("aria-pressed", String(dangToi));
+    nutNen.title = nhan;
+  }
+  nutNen.addEventListener("click", function () {
     var toi = document.documentElement.dataset.theme === "dark";
     document.documentElement.dataset.theme = toi ? "light" : "dark";
     try { localStorage.setItem("knjsc-nen", toi ? "light" : "dark"); } catch (e) {}
+    dongBoNutNen();
   });
+  dongBoNutNen();
   document.getElementById("nut-nav").addEventListener("click", function () {
     document.getElementById("thanh-ben").classList.toggle("mo");
   });

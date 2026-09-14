@@ -1,5 +1,21 @@
 # Backlog
 
+## 15.09.2026 — Sửa sidebar CRM thu gọn
+
+Đã sửa logo/icon nhóm lệch trái khi thu gọn theo ảnh chủ dự án, kiểm Chrome
+sáng/tối, thu/mở và reload; triển khai CSS hotfix trên VPS theo yêu cầu.
+[Kết quả, cách triển khai và giới hạn](kiem-chung-crm-sidebar-20260915.md).
+
+## 15.09.2026 — Mở rộng giao diện KN ERP trong tab
+
+Đã có bản thử local: cụm Hiển thị trên header dùng icon Mặt trời/Mặt trăng và
+Mở rộng. Chế độ mở rộng phủ ERP sát bốn cạnh, bỏ ảnh nền, gutter, bo góc và bóng
+ngoài; giữ header/dock để điều hướng, còn Tập trung của bảng vẫn ẩn chúng theo
+luồng riêng. Nút này chỉ đổi bố cục trong tab, không gọi Fullscreen API nên không
+ẩn thanh địa chỉ hoặc tab Chrome; Esc thu gọn giao diện. Chrome 1440/390 đạt;
+lựa chọn được lưu và phục hồi trước khi vẽ khi chuyển trang hoặc mở tab ERP khác.
+Chưa commit/push/VPS.
+
 ## 14.09.2026 — Toàn màn hình ERP, sắp lại Vận đơn và tạm khóa Chứng từ
 
 Đã triển khai trên `codex/crm-update-solar-ui`: dock ERP thu gọn có nhớ bố cục,

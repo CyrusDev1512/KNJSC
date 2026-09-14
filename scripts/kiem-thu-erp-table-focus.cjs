@@ -21,6 +21,56 @@ const fs = require('node:fs');
       page.locator('button[type=submit]').click(),
     ]);
 
+    assert.equal(await page.locator('.sp-view-actions').isVisible(), true);
+    const themeBefore = await page.evaluate(() => document.documentElement.dataset.theme);
+    await page.locator('#nut-nen').click();
+    assert.notEqual(await page.evaluate(() => document.documentElement.dataset.theme), themeBefore);
+    assert.equal(await page.locator('#nut-nen').getAttribute('aria-label'), 'Chuyển sang nền sáng');
+    if (width === 1440) await page.locator('#nut-nen').click();
+
+    await page.locator('#sp-erp-fullscreen').click();
+    await page.waitForFunction(() => document.documentElement.classList.contains('sp-erp-immersive'));
+    assert.equal(
+      await page.evaluate(() => Boolean(document.fullscreenElement)),
+      false,
+      'Mở rộng giao diện ERP không được ẩn thanh địa chỉ và tab trình duyệt',
+    );
+    const edge = await page.evaluate(() => {
+      const app = document.querySelector('body.sp-erp>.app');
+      const box = app.getBoundingClientRect();
+      const appStyle = getComputedStyle(app);
+      return {
+        backgroundImage: getComputedStyle(document.body, '::before').content,
+        padding: [appStyle.paddingTop, appStyle.paddingRight, appStyle.paddingBottom, appStyle.paddingLeft],
+        left: Math.round(box.left), right: Math.round(innerWidth - box.right),
+        topRadius: getComputedStyle(document.querySelector('.topbar')).borderRadius,
+        contentRadius: getComputedStyle(document.querySelector('.noi-dung')).borderRadius,
+      };
+    });
+    assert.equal(edge.backgroundImage, 'none', 'Toàn màn hình không được để lộ ảnh nền');
+    assert.deepEqual(edge.padding, ['0px', '0px', '0px', '0px']);
+    assert.equal(edge.left, 0);
+    assert.equal(edge.right, 0);
+    assert.equal(edge.topRadius, '0px');
+    assert.equal(edge.contentRadius, '0px');
+    assert.equal(await page.locator('#sp-erp-fullscreen').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.evaluate(() => localStorage.getItem('knjsc-erp-immersive')), '1');
+    await page.reload();
+    assert.equal(await page.evaluate(() => document.documentElement.classList.contains('sp-erp-immersive')), true);
+    assert.equal(await page.locator('#sp-erp-fullscreen').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.evaluate(() => Boolean(document.fullscreenElement)), false);
+    await page.screenshot({path:`storage/erp-focus-verification/immersive-${width}.png`, fullPage:true});
+
+    const otherPage = await context.newPage();
+    await otherPage.goto('http://localhost:18020/bang/van_don/');
+    assert.equal(await otherPage.evaluate(() => document.documentElement.classList.contains('sp-erp-immersive')), true);
+    await otherPage.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.documentElement.classList.contains('sp-erp-immersive'));
+    assert.equal(await page.evaluate(() => localStorage.getItem('knjsc-erp-immersive')), '0');
+    await otherPage.close();
+
+    assert.equal(await page.locator('#sp-erp-fullscreen').getAttribute('aria-pressed'), 'false');
+
     await page.locator('#sp-dock-collapse').click();
     assert.equal(await page.locator('#thanh-ben').isVisible(), false);
     assert.equal(await page.locator('#sp-dock-expand').isVisible(), true);
@@ -29,7 +79,6 @@ const fs = require('node:fs');
     await page.locator('#sp-dock-expand').click();
     assert.equal(await page.locator('#thanh-ben').isVisible(), true);
 
-    if (width === 390) await page.evaluate(() => localStorage.setItem('knjsc-nen', 'dark'));
     await page.goto('http://localhost:18020/bang/van_don/');
     await page.locator('#erp-focus-enter').click();
     assert.equal(await page.locator('.topbar').isVisible(), false);

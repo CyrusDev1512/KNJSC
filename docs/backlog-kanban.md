@@ -1,5 +1,18 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 15.09.2026 — Sửa sidebar CRM thu gọn
+
+**Finished:** căn giữa logo và icon nhóm; Chrome local đạt, VPS đã nhận CSS
+hotfix qua HTTPS. [Bằng chứng và giới hạn](kiem-chung-crm-sidebar-20260915.md).
+
+## 15.09.2026 — Mở rộng giao diện KN ERP trong tab
+
+**Finished local, chờ chủ dự án xem:** hai nút Nền/Mở rộng đã đổi thành icon có
+nhãn hỗ trợ. ERP tràn sát viewport và không còn ảnh nền khi bật; trình duyệt vẫn
+giữ thanh địa chỉ và các tab vì nút không gọi Fullscreen API. Esc, desktop 1440px
+và mobile 390px đều đạt. Lựa chọn mở rộng được giữ qua tải lại, chuyển trang và
+đồng bộ giữa các tab ERP cùng origin. Chưa commit/push/VPS.
+
 ## 14.09.2026 — Toàn màn hình ERP, sắp lại Vận đơn và tạm khóa Chứng từ
 
 **Đã phát hành nhánh riêng lên VPS, chờ nghiệm thu người dùng:** chức năng, dữ liệu metadata và

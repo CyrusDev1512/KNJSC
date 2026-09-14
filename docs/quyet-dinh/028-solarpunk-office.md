@@ -30,6 +30,15 @@ header/dock/tiêu đề/mô tả, giữ bảng cùng DOM, và có Công cụ, Fu
 Esc đóng lớp đang mở, rồi Công cụ, rồi toàn màn hình trình duyệt và cuối cùng mới
 thoát Tập trung. ERP vẫn chỉ đọc theo ADR-014.
 
+Bổ sung 15.09.2026: header ERP có cụm hai icon Hiển thị — Nền sáng/tối và Mở rộng
+giao diện. Mở rộng giữ header/dock nhưng đưa toàn bộ app sát bốn cạnh viewport,
+bỏ ảnh nền, gutter, bo góc và bóng ngoài. Nút chỉ đổi bố cục bên trong tab, không
+gọi Fullscreen API và vì vậy không ẩn thanh địa chỉ hoặc các tab của trình duyệt.
+Esc chỉ thu gọn trạng thái này khi không có chế độ Tập trung của bảng đang ưu tiên
+xử lý. Lựa chọn bố cục lưu trong `localStorage`, được phục hồi trước khi CSS vẽ và
+đồng bộ giữa các tab ERP cùng origin; không lưu dữ liệu nghiệp vụ. Thay đổi không
+thêm đường ghi hoặc thay quyền ERP.
+
 Nút Toàn màn hình trên cả hai lưới bật chế độ trong tab, không phụ thuộc
 Fullscreen API. Header, toolbar, chip, footer và thanh công thức lưới thường
 ẩn đi. Lưới master không có thanh công thức.

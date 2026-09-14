@@ -100,6 +100,26 @@ def test_khung_erp_co_dock_thu_gon_va_bang_co_che_do_tap_trung():
     assert "event.key !== 'Escape'" in focus and "event.defaultPrevented" in focus
 
 
+def test_khung_erp_co_hai_icon_nen_va_mo_rong_trong_tab():
+    """Nút header chỉ mở rộng ERP trong tab, không kích hoạt Fullscreen API như F11."""
+    base = (THU_MUC_TEMPLATE / "base.html").read_text(encoding="utf-8")
+    shell = (GOC / "static/js/solarpunk-shell.js").read_text(encoding="utf-8")
+    css = (GOC / "static/css/solarpunk.css").read_text(encoding="utf-8")
+
+    assert 'class="sp-view-actions"' in base
+    assert 'id="nut-nen"' in base and 'class="sp-theme-icon' in base
+    assert 'id="sp-erp-fullscreen"' in base
+    assert 'class="sp-fullscreen-icon' in base
+    assert "sp-erp-immersive" in shell
+    assert "requestFullscreen" not in shell and "fullscreenchange" not in shell
+    assert "Mở rộng giao diện ERP" in base
+    assert "knjsc-erp-immersive" in base and "localStorage.getItem" in base
+    assert "knjsc-erp-immersive" in shell and "localStorage.setItem" in shell
+    assert "addEventListener('storage'" in shell
+    assert "sp-erp-immersive body.sp-erp::before" in css
+    assert "sp-erp-immersive .sp-erp>.app" in css
+
+
 @pytest.mark.parametrize("tep", CAC_TEMPLATE, ids=lambda p: p.name)
 def test_moi_lop_css_dung_trong_template_deu_ton_tai(tep):
     """K15 — Lớp CSS gõ trong template phải có thật trong tệp kiểu dáng

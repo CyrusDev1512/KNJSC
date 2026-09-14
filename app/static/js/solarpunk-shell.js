@@ -1,5 +1,35 @@
 /* Menu nhóm dùng details nguyên bản: Tab, Enter và Space hoạt động không cần JS. */
 (() => {
+  const root = document.documentElement;
+  const fullscreen = document.getElementById('sp-erp-fullscreen');
+  if (fullscreen) {
+    const storageKey = 'knjsc-erp-immersive';
+    const setImmersive = (active, persist = true) => {
+      root.classList.toggle('sp-erp-immersive', active);
+      fullscreen.setAttribute('aria-pressed', String(active));
+      fullscreen.setAttribute('aria-label', active ? 'Thu gọn giao diện ERP' : 'Mở rộng giao diện ERP');
+      fullscreen.title = active ? 'Thu gọn giao diện ERP' : 'Mở rộng giao diện ERP';
+      if (persist) try { localStorage.setItem(storageKey, active ? '1' : '0'); } catch (_) {}
+    };
+    setImmersive(root.classList.contains('sp-erp-immersive'), false);
+    fullscreen.addEventListener('click', () => {
+      const active = root.classList.contains('sp-erp-immersive');
+      setImmersive(!active);
+    });
+    window.addEventListener('storage', event => {
+      if (event.key === storageKey) setImmersive(event.newValue === '1', false);
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape' || event.defaultPrevented || !root.classList.contains('sp-erp-immersive')) return;
+      if (root.classList.contains('sp-erp-table-focus')) return;
+      setImmersive(false);
+      fullscreen.focus({preventScroll: true});
+      event.preventDefault();
+    });
+  }
+})();
+
+(() => {
   const groups = [...document.querySelectorAll('.sp-dock-group')];
   const collapse = document.getElementById('sp-dock-collapse');
   const expand = document.getElementById('sp-dock-expand');

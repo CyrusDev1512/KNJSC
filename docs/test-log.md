@@ -1,5 +1,26 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 15.09.2026 — Sidebar CRM thu gọn
+
+Chrome local: logo/icon nhóm từ lệch 16/13px về 0px, sáng/tối; thu/mở/reload
+và menu 390px đạt, không pageerror. VPS HTTPS trang đăng nhập/static 200,
+CSS khớp SHA256 local. Không chạy pytest cho sửa CSS này; chưa kiểm phiên
+đăng nhập production. [Chi tiết](kiem-chung-crm-sidebar-20260915.md).
+
+## 15.09.2026 — Mở rộng giao diện KN ERP trong tab
+
+TDD ban đầu đỏ vì header chưa có hai icon và shell chưa có trạng thái mở rộng toàn
+cục. Sau phản hồi người dùng, hồi quy mới đỏ đúng do nút còn gọi `requestFullscreen`
+như F11; mã chạy đã bỏ Fullscreen API khỏi nút header. Nhóm
+`core/tests/test_giao_dien.py` và `forms_builder/tests/test_man_hinh_bang.py` đạt.
+Chrome local cô lập 1440/390 xác nhận bốn cạnh bằng 0, padding ngoài bằng 0,
+pseudo-background là `none`, bo header/nội dung bằng 0, `fullscreenElement` vẫn rỗng,
+icon nền đổi theo theme và Esc thu gọn đúng. Nút Toàn màn hình trình duyệt riêng
+trong chế độ Tập trung của bảng vẫn hoạt động theo quyết định trước. Hồi quy tiếp
+theo ngày 15.09 đỏ vì shell chưa lưu `knjsc-erp-immersive`; sau sửa, Chrome xác nhận
+tải lại và mở trang Vận đơn ở tab mới vẫn mở rộng, còn Esc ở tab mới cập nhật cả
+tab cũ. Lớp bố cục được khôi phục trong `head` trước CSS để không nháy khung nhỏ.
+
 ## 14.09.2026 — Toàn màn hình ERP, sắp lại Vận đơn và tạm khóa Chứng từ
 
 TDD ban đầu đỏ đúng bốn nhóm: nhãn/thứ tự cũ, Bill bị khóa, Chứng từ còn lộ và

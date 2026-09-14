@@ -43,6 +43,15 @@ a {text-underline-offset:3px}
 .sp-erp .noi-dung {max-width:none;margin:16px 0 0;padding:24px clamp(18px,2.3vw,38px) 32px;border:1px solid var(--sp-edge);border-radius:28px;background:color-mix(in srgb,var(--surface) 96%,transparent);box-shadow:var(--shadow-2);min-width:0}
 .sp-erp .nut-nav {display:none}
 .sp-erp #nut-nav {display:none}
+.sp-view-actions {display:inline-flex;align-items:center;gap:4px;padding:3px;border:1px solid var(--rule);border-radius:12px;background:color-mix(in srgb,var(--surface) 86%,transparent)}
+.sp-shell-icon-button {display:inline-flex;align-items:center;justify-content:center;width:34px;min-width:34px;min-height:34px;padding:0;border:0;border-radius:9px;background:transparent}
+.sp-shell-icon-button:hover,.sp-shell-icon-button:focus-visible {background:var(--accent-soft);color:var(--accent)}
+.sp-theme-icon,.sp-fullscreen-icon {display:block;width:18px;height:18px}
+.sp-theme-moon,.sp-fullscreen-contract {display:none!important}
+:root[data-theme="dark"] .sp-theme-sun {display:none!important}
+:root[data-theme="dark"] .sp-theme-moon,
+.sp-erp-immersive .sp-fullscreen-contract {display:block!important}
+.sp-erp-immersive .sp-fullscreen-expand {display:none!important}
 .sp-dock {order:1;position:relative;flex:none;z-index:50;display:flex;align-self:center;gap:4px;padding:7px;margin:14px auto 12px;background:linear-gradient(145deg,#3b624a,var(--sp-dock));color:#f5f7e8;border:1px solid #a5b89a;border-radius:28px;box-shadow:0 10px 25px -12px #143d36aa,inset 0 1px 0 #ffffff50;max-width:100%}
 .sp-dock-group {position:relative;min-width:0}
 .sp-dock-group summary {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:100px;min-height:56px;padding:6px 14px;cursor:pointer;list-style:none;border-radius:20px;font-size:13px}
@@ -60,6 +69,14 @@ a {text-underline-offset:3px}
 .sp-dock-expand {position:fixed;left:50%;bottom:12px;z-index:55;display:flex;align-items:center;gap:7px;transform:translateX(-50%);min-height:42px;padding:8px 15px;border:1px solid #a5b89a;border-radius:20px;background:var(--sp-dock);color:#f5f7e8;box-shadow:var(--shadow-2);font:inherit;font-weight:600;cursor:pointer}
 .sp-dock-expand[hidden] {display:none}
 .sp-dock-collapsed .sp-dock {display:none}
+.sp-erp-immersive {scroll-padding-bottom:0;background:var(--surface);overscroll-behavior:none}
+.sp-erp-immersive body.sp-erp {margin:0;background:var(--surface)}
+.sp-erp-immersive body.sp-erp::before {content:none;opacity:0}
+.sp-erp-immersive .sp-erp>.app {width:100%;height:100dvh;padding:0;background:var(--surface)}
+.sp-erp-immersive .sp-erp .topbar {top:0;border-top:0;border-right:0;border-left:0;border-radius:0;background:var(--surface);backdrop-filter:none;box-shadow:none}
+.sp-erp-immersive .sp-erp .noi-dung {flex:1;margin:0;border-right:0;border-bottom:0;border-left:0;border-radius:0;box-shadow:none;background:var(--surface)}
+.sp-erp-immersive .sp-dock {margin-bottom:8px}
+:root:fullscreen {background:var(--surface)}
 .trang-dau {align-items:center;margin-bottom:26px;gap:18px}
 .trang-dau h1 {font-size:28px;line-height:1.3;letter-spacing:-.035em}
 .trang-dau .nhan-nho {display:none}
