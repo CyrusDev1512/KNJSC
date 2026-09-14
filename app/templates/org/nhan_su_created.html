@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block tieu_de %}Đã tạo nhân sự · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Đã tạo nhân sự{% endblock %}
+{% block noi_dung %}
+<div class="trang-dau"><h1>Đã tạo nhân sự</h1></div>
+<section class="the" style="max-width:640px"><div class="the-than">
+  <p>Bàn giao thông tin dưới đây cho nhân sự. Mật khẩu chỉ hiện trong lần tạo này; nhân sự phải đổi ở lần đăng nhập đầu tiên.</p>
+  <div class="truong"><label for="created-code">Mã nhân sự</label>
+    <input class="o-nhap" id="created-code" value="{{ created_profile.user.username }}" readonly></div>
+  <div class="truong"><label for="temporary-password">Mật khẩu tạm</label>
+    <input class="o-nhap" id="temporary-password" value="{{ temporary_password }}" readonly autocomplete="off" spellcheck="false">
+    <span class="goi-y">Chọn nội dung để sao chép và bàn giao.</span></div>
+</div><div class="the-chan"><a class="nut nut-chinh" href="{% url 'nhan_su' %}">Về danh sách nhân sự</a></div></section>
+{% endblock %}

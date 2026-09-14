@@ -95,3 +95,14 @@ class DailyReport(ScopedModel):
                 "Muốn bỏ thì đánh dấu xoá qua daily_service."
             )
         return super().save(*args, **kwargs)
+
+
+class ReportSource(models.Model):
+    """Ánh xạ báo cáo ERP tường minh; không dò tên trường ở mỗi yêu cầu."""
+    table = models.OneToOneField("forms_builder.TableDef", on_delete=models.CASCADE,
+                                related_name="erp_report")
+    kind = models.CharField(max_length=12, choices=[("sale", "Sale"), ("mkt", "Marketing"), ("delivery", "Vận đơn")])
+    columns = models.JSONField(default=dict)
+
+    class Meta:
+        verbose_name = "Nguồn báo cáo ERP"

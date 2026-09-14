@@ -1,0 +1,46 @@
+[
+  {
+    "width": 1440,
+    "manual": false,
+    "username": "identity_mtv491n2_1440_0",
+    "createMs": 250,
+    "filterTimes": [
+      143,
+      138
+    ],
+    "passed": true
+  },
+  {
+    "width": 1440,
+    "manual": true,
+    "username": "identity_mtv491n2_1440_1",
+    "createMs": 252,
+    "filterTimes": [
+      143,
+      140
+    ],
+    "passed": true
+  },
+  {
+    "width": 390,
+    "manual": false,
+    "username": "identity_mtv491n2_390_0",
+    "createMs": 239,
+    "filterTimes": [
+      122,
+      135
+    ],
+    "passed": true
+  },
+  {
+    "width": 390,
+    "manual": true,
+    "username": "identity_mtv491n2_390_1",
+    "createMs": 249,
+    "filterTimes": [
+      116,
+      142
+    ],
+    "passed": true
+  }
+]

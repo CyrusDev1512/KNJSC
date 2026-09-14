@@ -27,7 +27,7 @@ def forms_for(user):
 
     return (FormDef.objects.in_scope(user)
             .filter(is_active=True)
-            .select_related("department", "table")
+            .select_related("department", "table", "table__erp_report")
             .order_by("name"))
 
 
@@ -50,9 +50,26 @@ def submit(form, values, *, report_date, actor, request=None, fields=None):
     if not form.is_active:
         raise BusinessError("Biểu mẫu này đã ngừng dùng.")
 
+    source = getattr(form.table, "erp_report", None)
+    if source is not None and source.kind in ("sale", "mkt"):
+        from forms_builder.meaning import Meaning
+        from orders.constants import Market
+
+        fields = fields if fields is not None else list(form.ordered_fields())
+        linked = {f.link.column.code: (f, values.get(f.field.code, ""))
+                  for f in fields if getattr(f, "link", None)}
+        selected = linked.get(source.columns["market"])
+        if selected is None or selected[1] not in Market.labels:
+            raise BusinessError("Hãy chọn thị trường trong danh mục quốc gia.")
+        for field, value in linked.values():
+            if field.link.column.meaning == Meaning.DATE and str(value) != report_date.isoformat():
+                raise BusinessError("Ngày trong biểu mẫu phải trùng ngày báo cáo; Ngày ra đơn là thông tin riêng.")
+
     # Cùng một đường với màn hình điền biểu mẫu: ép danh tính người nộp vào
     # trường Người bán (FR-4.6), kiểm bắt buộc, rồi ghi vào bảng đích
-    ban_ghi = form_service.fill(form, values, actor=actor, request=request, fields=fields)
+    ban_ghi = form_service.fill(
+        form, values, actor=actor, request=request, fields=fields,
+    )
 
     ho_so = getattr(actor, "profile", None)
     bao_cao = DailyReport(
@@ -100,7 +117,7 @@ def history(user):
     bộ phận. Phạm vi do `ScopedManager` lo, không viết điều kiện ở đây.
     """
     return (DailyReport.objects.in_scope(user)
-            .select_related("form", "form__table", "record", "created_by", "created_by__profile", "department", "team"))
+            .select_related("form", "form__table", "form__table__erp_report", "record", "created_by", "created_by__profile", "department", "team"))
 
 
 def read_report(bao_cao):
@@ -144,14 +161,23 @@ def attach_marketing_links(page, forms, date_from, date_to):
     from urllib.parse import urlencode
     from .. import marketing
 
-    page.object_list = page.object_list.prefetch_related("form__table__columns")
+    from django.db.models import prefetch_related_objects
+
+    page.object_list = list(page.object_list)
+    legacy = [r for r in page.object_list if getattr(r.form.table, "erp_report", None) is None]
+    prefetch_related_objects(legacy, "form__table__columns")
     allowed_forms = {form.pk for form in forms if form.report_source_allowed}
     table_cache = {}
     for report in page:
         table = report.form.table
-        if table.pk not in table_cache:
+        configured = getattr(table, "erp_report", None)
+        if configured is None and table.pk not in table_cache:
             table_cache[table.pk] = marketing.is_marketing(list(table.columns.all()))
-        if report.form_id in allowed_forms and table_cache[table.pk]:
+        if report.form_id in allowed_forms and configured is not None:
+            report.activity_qs = urlencode({"nguon": table.code,
+                "tu": date_from or report.report_date.isoformat(),
+                "den": date_to or report.report_date.isoformat()})
+        elif report.form_id in allowed_forms and table_cache[table.pk]:
             report.thong_ke_qs = urlencode({"nguon": table.code, "nhom": "tong-hop",
                 "tu": date_from or report.report_date.isoformat(),
                 "den": date_to or report.report_date.isoformat()})

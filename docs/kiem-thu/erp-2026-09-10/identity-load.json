@@ -1,0 +1,174 @@
+{
+  "before-10": {
+    "duration": "5 minutes",
+    "start": "2026-09-10T05:30:33Z",
+    "end": "2026-09-10T05:35:33Z",
+    "rows": [
+      {
+        "name": "detail",
+        "requests": 405,
+        "failures": 0,
+        "p50": 15,
+        "p95": 31,
+        "p99": 48,
+        "rps": 1.3526729479536013
+      },
+      {
+        "name": "history_code",
+        "requests": 767,
+        "failures": 0,
+        "p50": 60,
+        "p95": 83,
+        "p99": 110.0,
+        "rps": 2.5617287680997833
+      },
+      {
+        "name": "history_name",
+        "requests": 751,
+        "failures": 0,
+        "p50": 120.0,
+        "p95": 160.0,
+        "p99": 190.0,
+        "rps": 2.5082898368226036
+      },
+      {
+        "name": "Aggregated",
+        "requests": 1923,
+        "failures": 0,
+        "p50": 65,
+        "p95": 140.0,
+        "p99": 180.0,
+        "rps": 6.422691552875988
+      }
+    ]
+  },
+  "before-20": {
+    "duration": "5 minutes",
+    "start": "2026-09-10T05:36:34Z",
+    "end": "2026-09-10T05:41:34Z",
+    "rows": [
+      {
+        "name": "detail",
+        "requests": 761,
+        "failures": 0,
+        "p50": 16,
+        "p95": 33,
+        "p99": 57,
+        "rps": 2.540566739487088
+      },
+      {
+        "name": "history_code",
+        "requests": 1541,
+        "failures": 0,
+        "p50": 59,
+        "p95": 93,
+        "p99": 120.0,
+        "rps": 5.144564186004734
+      },
+      {
+        "name": "history_name",
+        "requests": 1515,
+        "failures": 0,
+        "p50": 120.0,
+        "p95": 180.0,
+        "p99": 220.0,
+        "rps": 5.057764271120813
+      },
+      {
+        "name": "Aggregated",
+        "requests": 3817,
+        "failures": 0,
+        "p50": 67,
+        "p95": 160.0,
+        "p99": 200.0,
+        "rps": 12.742895196612634
+      }
+    ]
+  },
+  "after-10": {
+    "duration": "4 minutes and 59 seconds",
+    "start": "2026-09-10T05:46:46Z",
+    "end": "2026-09-10T05:51:45Z",
+    "rows": [
+      {
+        "name": "detail",
+        "requests": 369,
+        "failures": 0,
+        "p50": 17,
+        "p95": 37,
+        "p99": 72,
+        "rps": 1.2331612554382947
+      },
+      {
+        "name": "history_code",
+        "requests": 755,
+        "failures": 0,
+        "p50": 80,
+        "p95": 110.0,
+        "p99": 130.0,
+        "rps": 2.5231348180377036
+      },
+      {
+        "name": "history_name",
+        "requests": 765,
+        "failures": 0,
+        "p50": 120.0,
+        "p95": 170.0,
+        "p99": 200.0,
+        "rps": 2.556553822250123
+      },
+      {
+        "name": "Aggregated",
+        "requests": 1889,
+        "failures": 0,
+        "p50": 81,
+        "p95": 140.0,
+        "p99": 180.0,
+        "rps": 6.312849895726122
+      }
+    ]
+  },
+  "after-20": {
+    "duration": "4 minutes and 59 seconds",
+    "start": "2026-09-10T05:52:47Z",
+    "end": "2026-09-10T05:57:46Z",
+    "rows": [
+      {
+        "name": "detail",
+        "requests": 724,
+        "failures": 0,
+        "p50": 16,
+        "p95": 34,
+        "p99": 62,
+        "rps": 2.4173108451035867
+      },
+      {
+        "name": "history_code",
+        "requests": 1545,
+        "failures": 0,
+        "p50": 77,
+        "p95": 120.0,
+        "p99": 150.0,
+        "rps": 5.158487922216908
+      },
+      {
+        "name": "history_name",
+        "requests": 1498,
+        "failures": 0,
+        "p50": 120.0,
+        "p95": 170.0,
+        "p99": 200.0,
+        "rps": 5.001563046913222
+      },
+      {
+        "name": "Aggregated",
+        "requests": 3767,
+        "failures": 0,
+        "p50": 81,
+        "p95": 150.0,
+        "p99": 180.0,
+        "rps": 12.577361814233717
+      }
+    ]
+  }
+}

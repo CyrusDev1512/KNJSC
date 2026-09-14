@@ -164,7 +164,7 @@ def _recompute(computed_cols, values_by_code):
 
 
 def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
-              product="", columns=None, with_totals=True):
+              product="", columns=None, with_totals=True, group_expression=None, group_label=None):
     """Một lượt tổng hợp: nhóm + cộng + dòng tổng cộng — FR-5.1 và FR-5.4.
 
     `scoped_qs` phải là `DataRecord.objects.in_scope(user)` (quy tắc 11).
@@ -179,7 +179,7 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
     by_meaning = labeled_columns(cols)
 
     group_col = by_meaning.get(meaning)
-    if group_col is None or not can_group(meaning):
+    if group_expression is None and (group_col is None or not can_group(meaning)):
         # Bảng nguồn không có cột mang nhãn này — báo về để màn hình hiện
         # ghi chú, không nổ lỗi
         return SummaryResult(ok=False, unit=UNIT_OF[group_key])
@@ -199,7 +199,7 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
     # docstring đầu tệp
     rows = (
         qs.order_by()
-        .values(nhom=F(group_path))
+        .values(nhom=group_expression if group_expression is not None else F(group_path))
         .annotate(so_dong=Count("id"), **exprs)
     )
     if meaning == Meaning.DATE:
@@ -241,8 +241,8 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
 
     return SummaryResult(
         ok=True,
-        group_label=group_col.name,
-        group_is_date=(meaning == Meaning.DATE),
+        group_label=group_label or group_col.name,
+        group_is_date=(meaning == Meaning.DATE and group_expression is None),
         unit=UNIT_OF[group_key],
         columns=tuple(hien),
         rows=rows,

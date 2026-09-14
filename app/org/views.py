@@ -8,6 +8,9 @@ kiện lọc quyền ở đây (quy tắc 11).
 """
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.views.decorators.cache import never_cache
+from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -61,6 +64,9 @@ def nhan_su(request):
 
 
 @login_required
+@never_cache
+@sensitive_post_parameters('password')
+@sensitive_variables('d', 'temporary_password')
 def nhan_su_moi(request):
     """Tạo tài khoản. Chỉ quản trị viên (kien-truc.md — ai sở hữu dữ liệu gì)."""
     request.nav_current = "nhan_su"
@@ -69,14 +75,19 @@ def nhan_su_moi(request):
     form = TaoTaiKhoanForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         d = form.cleaned_data
-        account_service.create_account(
-            username=d["username"], email=d["email"], full_name=d["full_name"],
-            rank=d["rank"], department=d["department"], team=d["team"],
-            password=d["password"], birthday=d.get("birthday"),
-            actor=request.user, request=request,
-        )
-        messages.success(request, f"Đã tạo tài khoản {d['username']}.")
-        return redirect("nhan_su")
+        try:
+            profile, temporary_password = account_service.create_with_temporary_password(
+                username=d["username"], email=d["email"], full_name=d["full_name"],
+                rank=d["rank"], department=d["department"], team=d["team"],
+                password=d["password"], birthday=d.get("birthday"),
+                actor=request.user, request=request,
+            )
+        except ValidationError as error:
+            form.add_error(None, error)
+        else:
+            return render(request, "org/nhan_su_created.html", {
+                "created_profile": profile, "temporary_password": temporary_password,
+            })
 
     return render(request, "org/nhan_su_form.html", {
         "form": form, "tieu_de": "Tạo tài khoản", "la_tao_moi": True,

@@ -11,7 +11,7 @@
     <p>Báo cáo cho ngày {{ bao_cao.report_date|date:"d.m.Y" }}, nộp lúc {{ bao_cao.submitted_at|date:"H:i d.m.Y" }} giờ Việt Nam.</p>
   </div>
   <div class="hanh-dong">
-    <a class="nut" href="{% url 'bao_cao_lich_su' %}">Quay lại</a>
+    <a class="nut" href="{% url 'bao_cao_lich_su' %}{% if history_query %}?{{ history_query }}{% endif %}">Quay lại</a>
     {% if duoc_bo %}
       <form method="post" action="{% url 'bao_cao_bo' bao_cao.pk %}">
         {% csrf_token %}
@@ -59,7 +59,7 @@
   </div>
   <div class="the-chan">
     <span class="nho mo-nhat">
-      Người nộp: {{ bao_cao.created_by.profile.full_name|default:bao_cao.created_by.username }}
+      Người nộp: {% include "reports/_employee_identity.html" with person=bao_cao.created_by only %}
       · {{ bao_cao.department }}{% if bao_cao.team %} · {{ bao_cao.team }}{% endif %}
     </span>
   </div>

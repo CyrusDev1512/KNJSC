@@ -15,7 +15,8 @@
   </div>
 </div>
 
-{% include "dashboard/_marketing.html" %}
+{% include "dashboard/_activity.html" %}
+{% if not activity.configured %}{% include "dashboard/_marketing.html" %}{% endif %}
 
 {# ── Ô số liệu ─────────────────────────────────────────────── #}
 <div class="luoi luoi-4">

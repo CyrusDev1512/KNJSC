@@ -13,6 +13,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.conf import settings
+from django.db.models import Q
 from django.utils import timezone
 
 from core.audit import record, record_denied
@@ -48,8 +49,9 @@ def source_tables(user):
     để thống kê (ADR-001)."""
     return list(
         TableDef.objects.in_scope(user)
-        .filter(is_active=True, columns__meaning__gt="")
+        .filter(Q(columns__meaning__gt="") | Q(erp_report__isnull=False), is_active=True)
         .distinct()
+        .select_related("erp_report", "department")
         .prefetch_related("columns")
         .order_by("name")
     )

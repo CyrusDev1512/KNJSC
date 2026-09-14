@@ -10,7 +10,7 @@ from .models import Department, Team, UserProfile
 class TaoTaiKhoanForm(forms.Form):
     """Tạo tài khoản mới kèm hồ sơ nhân sự."""
 
-    username = forms.CharField(label="Tên đăng nhập", max_length=150)
+    username = forms.CharField(label="Mã nhân sự (tên đăng nhập)", max_length=150)
     email = forms.EmailField(label="Email")
     full_name = forms.CharField(label="Họ tên", max_length=150)
     rank = forms.ChoiceField(label="Cấp bậc", choices=Rank.choices, initial=Rank.STAFF)
@@ -28,8 +28,9 @@ class TaoTaiKhoanForm(forms.Form):
         help_text="Để Bảng tin tự chúc mừng sinh nhật; bỏ trống nếu không muốn.",
     )
     password = forms.CharField(
-        label="Mật khẩu tạm", min_length=10, widget=forms.PasswordInput,
-        help_text="Người dùng bắt buộc đổi ở lần đăng nhập đầu tiên.",
+        label="Mật khẩu tạm", min_length=10, required=False, strip=False,
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+        help_text="Để trống để hệ thống tự sinh. Người dùng bắt buộc đổi ở lần đăng nhập đầu tiên.",
     )
 
     def clean_username(self):

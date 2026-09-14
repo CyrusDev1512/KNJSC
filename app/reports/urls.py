@@ -1,9 +1,11 @@
 """Đường dẫn của reports, viết bằng tiếng Việt không dấu."""
 from django.urls import path
 
-from . import views
+from . import views, activity_views
 
 urlpatterns = [
+    path("bao-cao/hoat-dong/", activity_views.legacy_redirect, name="bao_cao_hoat_dong"),
+    path("bao-cao/hoat-dong/xuat/", activity_views.legacy_redirect, {"export": True}, name="bao_cao_hoat_dong_xuat"),
     path("bao-cao/", views.bao_cao_ngay, name="bao_cao_ngay"),
     path("bao-cao/lich-su/", views.bao_cao_lich_su, name="bao_cao_lich_su"),
     path("bao-cao/tong-hop/", views.bao_cao_tong_hop, name="bao_cao_tong_hop"),

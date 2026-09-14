@@ -1,0 +1,104 @@
+[
+  {
+    "source": "bao_cao_mkt",
+    "width": 1440,
+    "navigation": {
+      "ttfb": 67.60000014305115,
+      "dom": 78.90000009536743,
+      "load": 94.40000009536743,
+      "bytes": 15738,
+      "rows": 25,
+      "domNodes": 482,
+      "longTasks": []
+    },
+    "filterMs": 139,
+    "frameP95": 16.799999999999955,
+    "frameMax": 16.800000000000182,
+    "errors": []
+  },
+  {
+    "source": "bao_cao_sale",
+    "width": 1440,
+    "navigation": {
+      "ttfb": 63.89999985694885,
+      "dom": 77.79999995231628,
+      "load": 91.59999990463257,
+      "bytes": 13714,
+      "rows": 25,
+      "domNodes": 320,
+      "longTasks": []
+    },
+    "filterMs": 121,
+    "frameP95": 16.799999999999955,
+    "frameMax": 16.899999999999977,
+    "errors": []
+  },
+  {
+    "source": "van_don_moi",
+    "width": 1440,
+    "navigation": {
+      "ttfb": 115.70000004768372,
+      "dom": 131.40000009536743,
+      "load": 143.80000019073486,
+      "bytes": 12997,
+      "rows": 25,
+      "domNodes": 244,
+      "longTasks": []
+    },
+    "filterMs": 163,
+    "frameP95": 16.80000000000001,
+    "frameMax": 17.09999999999991,
+    "errors": []
+  },
+  {
+    "source": "bao_cao_mkt",
+    "width": 390,
+    "navigation": {
+      "ttfb": 67,
+      "dom": 84.09999990463257,
+      "load": 96,
+      "bytes": 15738,
+      "rows": 25,
+      "domNodes": 482,
+      "longTasks": []
+    },
+    "filterMs": 137,
+    "frameP95": 16.799999999999955,
+    "frameMax": 16.899999999999977,
+    "errors": []
+  },
+  {
+    "source": "bao_cao_sale",
+    "width": 390,
+    "navigation": {
+      "ttfb": 60.39999985694885,
+      "dom": 74.89999985694885,
+      "load": 84.5,
+      "bytes": 13714,
+      "rows": 25,
+      "domNodes": 320,
+      "longTasks": []
+    },
+    "filterMs": 135,
+    "frameP95": 16.80000000000001,
+    "frameMax": 16.800000000000182,
+    "errors": []
+  },
+  {
+    "source": "van_don_moi",
+    "width": 390,
+    "navigation": {
+      "ttfb": 127.59999990463257,
+      "dom": 146.29999995231628,
+      "load": 157.29999995231628,
+      "bytes": 12997,
+      "rows": 25,
+      "domNodes": 244,
+      "longTasks": []
+    },
+    "filterMs": 160,
+    "frameP95": 16.800000000000068,
+    "frameMax": 16.800000000000182,
+    "errors": []
+  }
+]

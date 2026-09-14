@@ -19,7 +19,7 @@
   <form class="loc" method="get">
     <div class="truong o-tim">
       <label for="tim">Tìm theo người nộp</label>
-      <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Tên nhân viên">
+      <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Mã nhân sự hoặc họ tên">
     </div>
     <div class="truong">
       <label for="tu">Từ ngày</label>
@@ -55,7 +55,7 @@
           <tr>
             <td class="ma-o">{{ bc.report_date|date:"d.m.Y" }}</td>
             <td>{{ bc.form.name }}</td>
-            <td>{{ bc.created_by.profile.full_name|default:bc.created_by.username }}</td>
+            <td>{% include "reports/_employee_identity.html" with person=bc.created_by only %}</td>
             <td class="nho">{{ bc.department }}</td>
             <td class="nho">{{ bc.team|default:"—" }}</td>
             {% comment %}Doanh số từ cột tách của bảng nguồn.{% endcomment %}
@@ -63,8 +63,8 @@
             {# Lưu giờ quốc tế, hiện giờ Việt Nam — BR-7, quy tắc 5 #}
             <td class="ma-o">{{ bc.submitted_at|date:"d.m H:i" }}</td>
             <td class="phai">
-              <a class="nut nut-nho" href="{% url 'bao_cao_xem' bc.pk %}">Xem</a>
-              {% if bc.thong_ke_qs %}<a class="nut nut-nho" href="{% url 'bao_cao_tong_hop' %}?{{ bc.thong_ke_qs }}">Thống kê Marketing</a>{% endif %}
+              <a class="nut nut-nho" href="{% url 'bao_cao_xem' bc.pk %}{% if history_query %}?{{ history_query }}{% endif %}">Xem</a>
+              {% if bc.activity_qs %}<a class="nut nut-nho" href="{% url 'bao_cao_tong_hop' %}?{{ bc.activity_qs }}">Báo cáo tổng hợp</a>{% endif %}{% if bc.thong_ke_qs %}<a class="nut nut-nho" href="{% url 'bao_cao_tong_hop' %}?{{ bc.thong_ke_qs }}">Thống kê Marketing</a>{% endif %}
             </td>
           </tr>
         {% empty %}

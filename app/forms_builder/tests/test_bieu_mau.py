@@ -486,7 +486,7 @@ def test_dien_bieu_mau_tu_ghi_nguoi_ban(client, bieu_mau, bang_mkt, nguoi_dung):
 
 
 def test_nop_bao_cao_ngay_tu_ghi_nguoi_ban(bieu_mau, bang_mkt, nguoi_dung):
-    """AC-4.6 — Nộp báo cáo ngày đi cùng một đường: Người bán là người nộp, thiếu họ tên thì lấy tên đăng nhập"""
+    """AC-4.6 — Báo cáo ngày dùng mã đăng nhập dù có họ tên; chặn giả mạo danh tính."""
     from datetime import date
 
     from reports.services import daily_service
@@ -510,3 +510,12 @@ def test_o_nguoi_ban_tren_man_hinh_chi_doc(client, bieu_mau, nguoi_dung):
         assert 'name="marketer"' not in html, url
         assert 'value="staff_mkt" readonly' in html, url
         assert "Chính là bạn, hệ thống tự ghi" in html, url
+
+
+def test_bieu_mau_he_thong_khong_co_nguoi_tao(client, bieu_mau, nguoi_dung):
+    """Biểu mẫu hệ thống có người tạo NULL vẫn mở được danh sách."""
+    FormDef.objects.filter(pk=bieu_mau.pk).update(created_by=None)
+    client.force_login(nguoi_dung["manager_mkt"])
+    response = client.get("/bieu-mau/")
+    assert response.status_code == 200
+    assert bieu_mau.name in response.content.decode()

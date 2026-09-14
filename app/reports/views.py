@@ -14,12 +14,13 @@ from urllib.parse import urlencode
 from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from core.exceptions import BusinessError
+from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import pagination_context
 
 from forms_builder.services import form_service
@@ -48,6 +49,8 @@ def bao_cao_ngay(request):
     cac_bieu_mau = list(daily_service.forms_for(request.user))
     ma_chon = request.POST.get("bieu_mau") or request.GET.get("bieu_mau")
     bm = next((f for f in cac_bieu_mau if f.code == ma_chon), None)
+    if ma_chon and bm is None:
+        raise OutOfScopeError("Biểu mẫu không thuộc phạm vi của bạn.")
     if bm is None and cac_bieu_mau:
         bm = cac_bieu_mau[0]
 
@@ -73,10 +76,19 @@ def bao_cao_ngay(request):
     return render(request, "reports/bao_cao_ngay.html", {
         "cac_bieu_mau": cac_bieu_mau, "bm": bm, "ngay": ngay,
         # Ô nhập, ô chọn, ô danh tính — cùng bộ với màn hình điền biểu mẫu
-        "cac_o": form_service.widgets(bm, cac_truong, du_lieu, user=request.user) if bm else [],
+        "cac_o": form_service.widgets(
+            bm, cac_truong, du_lieu, user=request.user,
+        ) if bm else [],
         "loi": loi, "da_nop": da_nop,
         "cac_cot_tinh": bm.table.computed_columns() if bm else [],
     })
+
+
+def _history_query(request, *, include_page=False):
+    keys = ["tim", "tu", "den", "bieu_mau", "bo_phan"]
+    if include_page:
+        keys += ["trang", "moi_trang"]
+    return urlencode({key: request.GET[key] for key in keys if request.GET.get(key)})
 
 
 @login_required
@@ -88,7 +100,8 @@ def bao_cao_lich_su(request):
 
     tim = request.GET.get("tim", "").strip()
     if tim:
-        ds = ds.filter(created_by__profile__full_name__icontains=tim)
+        ds = ds.filter(Q(created_by__username__icontains=tim)
+                       | Q(created_by__profile__full_name__icontains=tim))
     tu = request.GET.get("tu", "").strip()
     if tu:
         ds = ds.filter(report_date__gte=_ngay_bao_cao(tu))
@@ -97,10 +110,13 @@ def bao_cao_lich_su(request):
         ds = ds.filter(report_date__lte=_ngay_bao_cao(den))
 
     forms, departments = daily_service.history_choices(request.user)
+    forms, departments = list(forms), list(departments)
     form_code = request.GET.get("bieu_mau", "").strip()
     dept_code = request.GET.get("bo_phan", "").strip()
-    selected_form = get_object_or_404(forms, code=form_code) if form_code else None
-    selected_dept = get_object_or_404(departments, code=dept_code) if dept_code else None
+    selected_form = next((form for form in forms if form.code == form_code), None)
+    selected_dept = next((dept for dept in departments if dept.code == dept_code), None)
+    if (form_code and selected_form is None) or (dept_code and selected_dept is None):
+        raise Http404("Bộ lọc không thuộc phạm vi báo cáo của bạn.")
     if selected_form:
         ds = ds.filter(form=selected_form)
     if selected_dept:
@@ -108,6 +124,8 @@ def bao_cao_lich_su(request):
     boi_canh = {"tim": tim, "tu": tu, "den": den, "cac_bieu_mau": forms,
                "cac_bo_phan": departments, "bieu_mau": form_code, "bo_phan": dept_code}
     boi_canh.update(pagination_context(request, ds, "báo cáo"))
+    boi_canh["qs_loc"] = "&" + _history_query(request)
+    boi_canh["history_query"] = _history_query(request, include_page=True)
     daily_service.attach_marketing_links(boi_canh["trang"], forms, tu, den)
     return render(request, "reports/bao_cao_lich_su.html", boi_canh)
 
@@ -150,6 +168,15 @@ def _query_loc(tham_so, bang, **doi):
     return urlencode({k: v for k, v in gia_tri.items() if v})
 
 
+def _configured_report(request, table, tables, *, export=False):
+    """Nguồn đã cấu hình hiển thị ngay tại URL tổng hợp, dùng cùng bộ tính."""
+    from . import activity_views
+    choices = [t.erp_report for t in tables if getattr(t, "erp_report", None) is not None]
+    if table is not None and getattr(table, "erp_report", None) is not None:
+        return activity_views.report(request, export=export, choices=choices)
+    return None
+
+
 @login_required
 def bao_cao_tong_hop(request):
     """Thống kê theo nhãn ý nghĩa của bảng nguồn — FR-5.1 tới FR-5.5.
@@ -165,6 +192,10 @@ def bao_cao_tong_hop(request):
     # Ngoài phạm vi là 403 ngay tại đây (quy tắc 8), trước mọi truy vấn khác
     bang = summary_service.pick_table(
         request.user, tham_so["nguon"], cac_bang, request=request)
+
+    configured = _configured_report(request, bang, cac_bang, export=False)
+    if configured is not None:
+        return configured
 
     tabs = summary_service.TABS
     if bang is not None and marketing.is_marketing(list(bang.columns.all())):
@@ -215,6 +246,10 @@ def bao_cao_tong_hop_xuat(request):
     bang = summary_service.pick_table(
         request.user, tham_so["nguon"], cac_bang, request=request)
 
+    configured = _configured_report(request, bang, cac_bang, export=True)
+    if configured is not None:
+        return configured
+
     if bang is None or tham_so["tab"] == "thi-truong":
         messages.error(request, "Chưa có số liệu để xuất ở màn hình này.")
         return redirect("bao_cao_tong_hop")
@@ -259,6 +294,7 @@ def bao_cao_xem(request, pk):
         "bao_cao": bao_cao,
         "cac_dong": daily_service.read_report_cells(bao_cao),
         "duoc_bo": bao_cao.created_by_id == request.user.pk,
+        "history_query": _history_query(request, include_page=True),
     })
 
 

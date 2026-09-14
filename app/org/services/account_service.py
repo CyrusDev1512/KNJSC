@@ -3,16 +3,57 @@
 Tầng dịch vụ, không biết gì về HTTP. Cả giao diện web lẫn tác vụ nền đều
 gọi vào đây.
 """
+import secrets
+import string
+
 from django.contrib.auth import get_user_model
-from django.db import transaction
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.db import transaction, IntegrityError
+from django.views.decorators.debug import sensitive_variables
 
 from core.audit import record
 from core.constants import AuditAction, Rank
+from core.permissions import assert_rank
 
 from ..models import UserProfile
 
 
+@sensitive_variables('password', 'temporary')
+def create_with_temporary_password(*, password='', actor, **values):
+    """Luồng Admin bàn giao mật khẩu; không đổi hợp đồng create_account."""
+    assert_rank(actor, Rank.ADMIN)
+    User = get_user_model()
+    if User.objects.filter(username__iexact=values['username']).exists():
+        raise ValidationError('Mã nhân sự này đã có người dùng.')
+    candidate = User(username=values['username'], email=values['email'])
+    temporary = password
+    if not temporary:
+        alphabet = string.ascii_letters + string.digits
+        for _ in range(100):
+            temporary = ''.join(secrets.choice(alphabet) for _ in range(16))
+            if not (any(c.islower() for c in temporary) and any(c.isupper() for c in temporary)
+                    and any(c.isdigit() for c in temporary)):
+                continue
+            try:
+                validate_password(temporary, candidate)
+            except ValidationError:
+                continue
+            break
+        else:
+            raise ValidationError('Không tạo được mật khẩu đáp ứng quy tắc. Hãy thử lại.')
+    validate_password(temporary, candidate)
+    try:
+        profile = create_account(password=temporary, actor=actor, **values)
+    except IntegrityError:
+        if User.objects.filter(username__iexact=values['username']).exists():
+            raise ValidationError('Mã nhân sự này đã có người dùng.') from None
+        raise
+    return profile, temporary
+
+
 @transaction.atomic
+@sensitive_variables('password')
 def create_account(*, username, email, full_name, rank=Rank.STAFF,
                    department=None, team=None, password=None, birthday=None,
                    actor=None, request=None):

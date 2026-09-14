@@ -28,7 +28,7 @@
 {% endif %}
 
 <div class="the" style="max-width:640px">
-  <form class="the-than bm" method="post">
+  <form id="nhan-su-form" class="the-than bm" method="post">
     {% csrf_token %}
     {% for truong in form %}
       <div class="truong {% if truong.errors %}co-loi{% endif %}">
@@ -46,8 +46,7 @@
     <span class="nho mo-nhat">Mọi thay đổi đều ghi vào nhật ký hoạt động</span>
     <div class="day hang">
       <a class="nut" href="{% url 'nhan_su' %}">Huỷ</a>
-      <button class="nut nut-chinh" type="submit" form="{{ form.auto_id }}"
-              onclick="this.closest('.the').querySelector('form').submit()">Lưu</button>
+      <button class="nut nut-chinh" type="submit" form="nhan-su-form">Lưu</button>
     </div>
   </div>
 </div>
