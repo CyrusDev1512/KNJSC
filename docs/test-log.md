@@ -21,6 +21,17 @@ theo ngày 15.09 đỏ vì shell chưa lưu `knjsc-erp-immersive`; sau sửa, Ch
 tải lại và mở trang Vận đơn ở tab mới vẫn mở rộng, còn Esc ở tab mới cập nhật cả
 tab cũ. Lớp bố cục được khôi phục trong `head` trước CSS để không nháy khung nhỏ.
 
+Phát hành VPS 15.09: chức năng ở commit `2ea5ab2`, image chạy
+`knjsc-app:2ea5ab2-crm-sidebar-20260915`. Backup trước triển khai là
+`/opt/knjsc-runtime/backups/pre-deploy-2ea5ab2-20260915024952.dump` (293.907 byte),
+đọc được danh mục phục hồi. Không có migration mới; collectstatic chép 24 tệp và
+hai `manage.py check` sạch. ERP/CRM/JS trên HTTPS `.io.vn` trả 200, TLS 0; JS công
+khai có khóa lưu trạng thái và không gọi Fullscreen API. Hotfix sidebar CRM giữ
+nguyên SHA256 `61f1707e…3791f`; mọi container ứng dụng có RestartCount 0 và log ERP/
+CRM sau phát hành không có Traceback/ERROR/CRITICAL. Nhánh được một tác vụ đồng thời
+đẩy thêm commit `8dead1b` sau commit chức năng; image được dựng từ worktree chính xác
+`2ea5ab2` để không phát hành thay đổi tăng giới hạn nhập tệp ngoài phạm vi lượt này.
+
 ## 14.09.2026 — Toàn màn hình ERP, sắp lại Vận đơn và tạm khóa Chứng từ
 
 TDD ban đầu đỏ đúng bốn nhóm: nhãn/thứ tự cũ, Bill bị khóa, Chứng từ còn lộ và

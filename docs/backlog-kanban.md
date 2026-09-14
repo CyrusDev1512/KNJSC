@@ -11,7 +11,8 @@ hotfix qua HTTPS. [Bằng chứng và giới hạn](kiem-chung-crm-sidebar-20260
 nhãn hỗ trợ. ERP tràn sát viewport và không còn ảnh nền khi bật; trình duyệt vẫn
 giữ thanh địa chỉ và các tab vì nút không gọi Fullscreen API. Esc, desktop 1440px
 và mobile 390px đều đạt. Lựa chọn mở rộng được giữ qua tải lại, chuyển trang và
-đồng bộ giữa các tab ERP cùng origin. Chưa commit/push/VPS.
+đồng bộ giữa các tab ERP cùng origin. Đã triển khai VPS bằng image
+`knjsc-app:2ea5ab2-crm-sidebar-20260915`; không merge `main`.
 
 ## 14.09.2026 — Toàn màn hình ERP, sắp lại Vận đơn và tạm khóa Chứng từ
 

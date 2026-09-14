@@ -14,7 +14,8 @@ ngoài; giữ header/dock để điều hướng, còn Tập trung của bảng 
 luồng riêng. Nút này chỉ đổi bố cục trong tab, không gọi Fullscreen API nên không
 ẩn thanh địa chỉ hoặc tab Chrome; Esc thu gọn giao diện. Chrome 1440/390 đạt;
 lựa chọn được lưu và phục hồi trước khi vẽ khi chuyển trang hoặc mở tab ERP khác.
-Chưa commit/push/VPS.
+Đã phát hành commit chức năng `2ea5ab2` trên nhánh riêng và triển khai VPS bằng image
+`knjsc-app:2ea5ab2-crm-sidebar-20260915`; không merge `main`.
 
 ## 14.09.2026 — Toàn màn hình ERP, sắp lại Vận đơn và tạm khóa Chứng từ
 
