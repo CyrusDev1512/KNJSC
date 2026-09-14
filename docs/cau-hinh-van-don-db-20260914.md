@@ -36,3 +36,11 @@ Bằng chứng local: `storage/van-don-db-20260914/result.json`.
 
 Đây là cấu hình lưu trong database local, không phải tính năng mới trong Git.
 Không commit/push; bảng nguồn và liên kết Lên đơn giữ nguyên.
+
+## Thay thế ngày 15.09.2026 — cấu hình có thể tái tạo
+
+Theo xác nhận của chủ dự án, `van_don_db` phải có trên cả máy mới và VPS thay vì
+chỉ tồn tại trong database local. Lệnh `manage.py tao_bang_van_don` nay tạo hoặc
+bổ sung bảng này theo đúng 26 cột ở trên, chạy lặp không sinh bảng/cột trùng và
+không tạo hay xoá dòng dữ liệu. `deploy/entrypoint.sh` đã gọi lệnh này sau migrate,
+vì vậy không cần migration vật lý riêng cho bảng động `TableDef`/`ColumnDef`.

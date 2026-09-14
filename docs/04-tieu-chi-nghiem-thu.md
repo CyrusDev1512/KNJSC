@@ -397,6 +397,7 @@ Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ 
 | AC-18.6 | Thống kê theo toàn bộ bộ lọc và quyền, bốn kiểu nhóm; tách tiền, distinct đơn, nhóm mã sản phẩm; sửa, xoá mềm, khôi phục phản ánh đúng, Hủy/Hoàn không bị bỏ ngầm | ADR-018 | Tự động |
 | AC-18.7 | Xuất/nhập lại bảo toàn chi tiết và tiền; dòng thiếu chi tiết, tổng không khớp hoặc mã sản phẩm lạ báo lỗi xem trước, không tự phân bổ | FR-7.5 → FR-7.7 · ADR-018 | Tự động |
 | AC-18.8 | Bảng chỉ có Vận hành đơn, Thống kê và tiêu đề nhóm; không có form hoặc yêu cầu tải Lên đơn nhúng. Thống kê thu gọn được, ô tổng mở chi tiết, không có Blacklist; 390px cuộn trong lưới. Hai trang Lên đơn riêng hoạt động như trước | ADR-018, ADR-019 | Tự động |
+| AC-18.9 | Máy sạch có thêm bảng động độc lập `van_don_db`, đúng 26 cột theo cấu hình 14.09.2026; Ngày thanh toán đứng đầu nhóm thanh toán; chạy lệnh khởi tạo nhiều lần không trùng bảng/cột và không tạo dữ liệu | Cấu hình Vận đơn DB 14.09.2026 | Tự động |
 
 ## 21. Feedback Vận đơn mới — ADR-020
 
