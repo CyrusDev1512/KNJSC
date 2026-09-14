@@ -69,3 +69,4 @@ docker-compose.override.yml
 /.agents/design-state/review/
 /.test-runtime/
 /deploy/production/certificates/
+/artifacts/solarpunk/

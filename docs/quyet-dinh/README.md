@@ -1,5 +1,7 @@
 # Nhật ký quyết định kiến trúc
 
+- [ADR-027 — Solarpunk Office và chế độ tập trung lưới](027-solarpunk-office.md): duyệt 14.09.2026, triển khai trên nhánh UI riêng.
+
 Mới: [ADR-026 — Chế độ xem Vận đơn mới](026-che-do-xem-van-don.md) (12.09.2026).
 
 Thư mục này ghi lại các quyết định kỹ thuật quan trọng kèm lý do.

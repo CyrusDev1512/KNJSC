@@ -16,7 +16,7 @@ pytestmark = pytest.mark.django_db
 
 ERP = override_settings(ROOT_URLCONF="knjsc.urls")
 KHUNG_CRM = "KN CRM<small>Bảng tính</small>"
-KHUNG_ERP = "Kim Ngân JSC<small>"
+KHUNG_ERP = 'class="sp-erp"'  # Khung Solarpunk ERP, ADR-027.
 
 
 @pytest.fixture

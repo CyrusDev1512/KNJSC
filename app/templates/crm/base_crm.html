@@ -23,8 +23,9 @@
   })();
 </script>
 {% block dau_trang %}{% endblock %}
+<link rel="stylesheet" href="{% static 'css/solarpunk.css' %}?v={{ phien_ban_tinh }}">
 </head>
-<body>
+<body class="sp-crm">
 {% comment %}
 Khung KN CRM có sidebar — ADR-015, dáng theo Teeze: menu trái sáng (avatar +
 tên + cấp bậc, mục có icon, nhóm gập được, mục đang chọn tô xanh nhạt, nút ‹

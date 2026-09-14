@@ -52,11 +52,11 @@ def test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap(client, bang_vd, nguoi_d
 
 
 def test_erp_dung_logo_kn_jsc(client, nguoi_dung):
-    """AC-11.31 — KN ERP dùng logo KN JSC ở đầu thanh bên (bấm về Tổng quan) và favicon riêng, không lẫn với KN CRM"""
+    """AC-11.31 — KN ERP dùng logo KN JSC ở header (bấm về Tổng quan), ADR-027."""
     client.force_login(nguoi_dung["staff_vd"])
     with override_settings(ROOT_URLCONF="knjsc.urls"):
         html = client.get("/").content.decode()
-    assert 'class="nav-hieu" href="/"' in html and "img/kn-jsc.svg" in html and "img/kn-crm.svg" not in html
+    assert 'class="sp-brand" href="/"' in html and "img/kn-jsc.svg" in html and "img/kn-crm.svg" not in html
     assert 'rel="icon" type="image/svg+xml" href="/static/img/kn-jsc.svg' in html
 
 
