@@ -1,5 +1,7 @@
 # ADR-020 — Phân công, bộ lọc và xuất Vận đơn mới
 
+> Quyền xem Staff Vận đơn được bổ sung lựa chọn toàn bảng theo [ADR-026](026-che-do-xem-van-don.md), ngày 12.09.2026. Quyền sửa vẫn theo phân công.
+
 > Bổ sung 10.09.2026: [ADR-021](021-luoi-master-va-thong-ke-crm.md) thay phần bố cục/renderer và thống kê nhúng của Vận đơn mới. Quyền, dữ liệu và nghiệp vụ không đổi.
 
 

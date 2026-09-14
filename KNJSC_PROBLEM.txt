@@ -51,6 +51,7 @@ Vấn đề tập trung
 2. Nhân viên đăng nhập hệ thống bằng mã nhân viên.
 3. Mật khẩu ban đầu cần random để tránh người này vào tài khoản của nhân sự khác.
 4. Nhân viên Vận đơn chỉ được xem hoặc thao tác đúng phạm vi được giao. -> đã làm (KN CRM — Vận đơn mới: phân công và phạm vi theo người được giao)
+   - Quyết định thay thế 12.09.2026: Admin/Manager Vận đơn chọn Chỉ dòng được phân công / Toàn bộ bảng cho nhân viên Vận đơn; quyền sửa vẫn theo phân công, trang lưới reload khi đổi. Phần này đã kiểm chứng local -> đã làm (ADR-026; docs/kiem-chung-che-do-xem-van-don-20260912.md; chưa tích hợp checkout đang chạy).
 5. Cần assign theo tên/người được giao để tránh nhân sự Vận đơn của đơn này chỉnh sửa đơn thuộc nhân sự Vận đơn khác. -> đã làm (KN CRM — Vận đơn mới: phân công và phạm vi theo người được giao)
 6. Vận đơn được xem dữ liệu nhưng không được thao tác mục đối soát nếu không có quyền.
 7. Hệ thống cần hạn chế thao tác linh tinh và chỉ cung cấp các thao tác có ý nghĩa với vai trò.

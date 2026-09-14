@@ -34,7 +34,7 @@ def scope_condition(user, original, *, only_new=False):
     if can_assign(user):
         allowed = Q()
     elif dept == 'van-don':
-        allowed = Q(assignment__delivery_id=user.pk)
+        allowed = Q(assignment__delivery_id=user.pk) | Q(table__delivery_view_all=True)
     elif dept == 'cskh':
         allowed = Q(assignment__care_id=user.pk)
     elif dept == 'sale':

@@ -1,5 +1,7 @@
 # Nhật ký quyết định kiến trúc
 
+Mới: [ADR-026 — Chế độ xem Vận đơn mới](026-che-do-xem-van-don.md) (12.09.2026).
+
 Thư mục này ghi lại các quyết định kỹ thuật quan trọng kèm lý do.
 
 Đang triển khai: [ADR-024 — CRM-Optimization](024-crm-optimization.md), chưa nghiệm thu hiệu năng/chạy bền.

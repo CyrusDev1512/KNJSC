@@ -80,7 +80,7 @@ def serialize(rows, columns, user):
 def stamp(user, table):
     # Bao gồm dòng xoá mềm để việc xoá/khôi phục cũng đổi mốc; vẫn trong phạm vi.
     s = DataRecord.all_objects.in_scope(user, table=table).aggregate(n=Count('*'), t=Max('updated_at'))
-    return digest(s)
+    return digest([s, table.delivery_view_version])
 
 
 def block(user, table, params):
@@ -167,10 +167,12 @@ def save(user, table, payload, *, request=None):
     if receipt.fingerprint != fingerprint:
         raise BusinessError('Mã thao tác đã được dùng với nội dung khác.', code='conflict')
     ids = {c['id'] for c in cells}
-    rows = list(DataRecord.objects.filter(table=table, pk__in=ids).select_related('table')
+    rows = list(DataRecord.objects.filter(table=table, pk__in=ids).select_related('table', 'assignment')
                 .select_for_update(of=('self',)).order_by('pk'))
     allowed = set(DataRecord.objects.in_scope(user, table=table).filter(pk__in=ids).values_list('pk', flat=True))
     if ids != allowed or len(rows) != len(ids):
+        raise OutOfScopeError()
+    if any(not grant_service.can_edit_visible_record(user, row) for row in rows):
         raise OutOfScopeError()
     if not created:
         return {**receipt.result, 'replayed': True}
@@ -183,8 +185,6 @@ def save(user, table, payload, *, request=None):
     changes, styles, conflicts = [], [], []
     for c in cells:
         row, column = by_id[c['id']], column_map.get(c['column'])
-        if not grant_service.can_edit_visible_record(user, row):
-            raise OutOfScopeError()
         if column is None or column.is_computed or column.code in waybill_service.PROTECTED or column.code in assignment_service.COLUMNS:
             raise record_service.CellError('Ô này bị khoá; lượt ghi chưa được áp dụng.', pk=row.pk, code=c['column'])
         prop = c.get('property', 'value')

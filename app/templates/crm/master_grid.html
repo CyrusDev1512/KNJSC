@@ -25,6 +25,7 @@
           <a class="nut" data-query-link href="{% url 'bang_tinh_xuat' bang.code %}?{{ qs_giu }}">Tải Excel</a>
           <small>Xuất dữ liệu đã lưu trên hệ thống.</small>
         </details>
+        {% if delivery_view_manage %}<a class="nut" href="{% url 'delivery_view_mode' bang.code %}">Chế độ xem bảng</a>{% endif %}
         {% if can_assign %}<button class="nut" id="mg-assign">Phân công</button>{% endif %}
         <button class="nut" disabled>Chia sẻ link <small>Chưa triển khai</small></button>
       </div>

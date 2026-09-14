@@ -9,8 +9,10 @@ from django.urls import path
 from orders import views as order_views
 
 from . import views, waybill_views, assignment_views, master_views, statistics_views
+from . import delivery_view_views
 
 urlpatterns = [
+    path('bang-tinh/<slug:code>/che-do-xem/', delivery_view_views.configure, name='delivery_view_mode'),
     path("van-don/len-don/tom-tat/", waybill_views.preview_order, name="waybill_preview"),
     path("van-don/don-goc/<slug:code>/", order_views.don_xem, name="don_xem"),
     path("van-don/don-goc/<slug:code>/bo/", order_views.don_bo, name="don_bo"),

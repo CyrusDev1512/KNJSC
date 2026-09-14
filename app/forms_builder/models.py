@@ -169,6 +169,8 @@ class TableDef(ScopedModel):
         on_delete=models.SET_NULL, related_name="tables", db_index=True,
     )
     is_active = models.BooleanField("Đang dùng", default=True, db_index=True)
+    delivery_view_all = models.BooleanField("Vận đơn xem toàn bảng", default=False)
+    delivery_view_version = models.PositiveIntegerField(default=0, editable=False)
     is_shared = models.BooleanField(
         "Bảng dùng chung", default=False, db_index=True,
         help_text=(

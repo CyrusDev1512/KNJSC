@@ -67,7 +67,7 @@ def authority(user,table):
 
 def query_identity(user,table,grid,params,current):
     versions={k:current['fields'].get(k,0) for k in dependencies(grid,params)}
-    return digest([connection.settings_dict['NAME'],scope_key(user),table.pk,params_only(params),versions])
+    return digest([connection.settings_dict['NAME'],scope_key(user),table.pk,table.delivery_view_version,params_only(params),versions])
 
 
 def token(value):return signing.Signer(salt='crm-grid-v2').sign_object(value,compress=True)
@@ -132,7 +132,7 @@ def sync(user,table,payload):
     for c in grid.columns:c.table=table
     identity=query_identity(user,table,grid,params,current)
     allowed=set(DataRecord.objects.in_scope(user,table=table).filter(pk__in=ids).values_list('pk',flat=True))
-    result={'revision':current['revision'],'removed':sorted(set(ids)-allowed),'rows':[],'invalidate':[],'reset':False}
+    result={'delivery_view_version':table.delivery_view_version,'revision':current['revision'],'removed':sorted(set(ids)-allowed),'rows':[],'invalidate':[],'reset':False}
     try:since=int(payload.get('revision',-1))
     except (TypeError,ValueError):raise BusinessError('Phiên bản không hợp lệ.')
     if since<max(0,current['revision']-10000) or since>current['revision'] or untoken(payload.get('query_token'))!={'q':identity}:
