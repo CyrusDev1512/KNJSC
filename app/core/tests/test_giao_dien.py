@@ -19,7 +19,8 @@ GOC = Path(__file__).resolve().parent.parent.parent
 THU_MUC_TEMPLATE = GOC / "templates"
 CAC_TEP_CSS = [
     GOC / "static" / "css" / "main.css", GOC / "static" / "css" / "tokens.css",
-    GOC / "static" / "css" / "bang-tinh.css",
+    GOC / "static" / "css" / "crm-frame.css",
+    GOC / "static" / "css" / "grid-formats.css",
     GOC / "static" / "css" / "waybill.css",
 ]
 

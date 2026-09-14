@@ -227,8 +227,11 @@ def _chuoi(v):
 
 # ══ BỐN BƯỚC ══════════════════════════════════════════════════════
 
+@transaction.atomic
 def prepare(table, upload, *, actor, request=None):
     """Bước 1 — kiểm tệp, ánh xạ cột, tạo tác vụ *Chờ xác nhận*. Chưa ghi gì."""
+    from .lifecycle_service import lock
+    lock(table)
     excel.check_size(upload.size)
     kind = excel.sniff_kind(upload, declared_name=upload.name, allowed=IMPORT_FILE_KINDS)
     columns = list(table.columns.order_by("order", "id"))
@@ -263,8 +266,13 @@ def prepare(table, upload, *, actor, request=None):
     return job
 
 
+@transaction.atomic
 def confirm(job, *, actor, request=None):
     """Bước 3 — người dùng xác nhận: chuyển *Chờ xử lý* và đẩy vào hàng đợi."""
+    from .lifecycle_service import lock
+    table = TableDef.all_objects.get(code=job.target_id)
+    lock(table)
+    job = BackgroundJob.objects.select_for_update().get(pk=job.pk)
     if job.status != JobStatus.DRAFT:
         raise BusinessError("Tác vụ này đã được xác nhận rồi.")
     job.status = JobStatus.PENDING

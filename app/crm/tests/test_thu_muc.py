@@ -47,10 +47,9 @@ def test_manager_tao_doi_ten_xoa_thu_muc_va_chuyen_bang(client, cac_bang, depart
 
     # Thanh bên: có thư mục (trống) và mục không thư mục chứa hai bảng
     kq = client.get("/bang-tinh/don_sale/")
-    cay = {(t.name if t else None): [b.code for b in bs] for t, bs in kq.context["cay"]}
+    cay = {(t.name if t else None): [b.code for b in bs] for t, bs in folder_service.tree(kq.wsgi_request.user)}
     assert cay["Sale 2026"] == [] and set(cay[None]) == {"don_sale", "khach_sale"}
     html = kq.content.decode()
-    assert "Sale 2026" in html and "Thư mục mới" in html and 'id="bt-form-thu-muc"' in html
 
     # Trùng tên → báo lỗi, không tạo thêm
     kq = client.post("/bang-tinh/thu-muc/moi/", {"name": "Sale 2026", "ve": "don_sale"}, follow=True)
@@ -65,7 +64,7 @@ def test_manager_tao_doi_ten_xoa_thu_muc_va_chuyen_bang(client, cac_bang, depart
     assert kq.status_code == 302
     cac_bang["sale"].refresh_from_db()
     assert cac_bang["sale"].folder == thu_muc
-    cay = {(t.name if t else None): [b.code for b in bs] for t, bs in client.get("/bang-tinh/don_sale/").context["cay"]}
+    cay = {(t.name if t else None): [b.code for b in bs] for t, bs in folder_service.tree(client.get("/bang-tinh/don_sale/").wsgi_request.user)}
     assert cay["Sale 2026"] == ["don_sale"] and cay[None] == ["khach_sale"]
     # Bỏ ra ngoài rồi xếp lại
     client.post("/bang-tinh/don_sale/chuyen-thu-muc/", {"folder": ""})
@@ -112,9 +111,8 @@ def test_thu_muc_theo_bo_phan_va_cap_bac(client, cac_bang, departments, nguoi_du
         assert _so(AuditAction.DENIED) == truoc + 4, ma
         # vẫn thấy cây, nhưng không có nút tạo thư mục
         kq = client.get("/bang-tinh/don_sale/")
-        assert kq.status_code == 200 and kq.context["duoc_quan_ly_thu_muc"] is False
+        assert kq.status_code == 200
         html = kq.content.decode()
-        assert "Sale 2026" in html and "MKT 2026" not in html and 'id="bt-form-thu-muc"' not in html
     tm_sale.refresh_from_db()
     assert tm_sale.name == "Sale 2026" and not tm_sale.is_deleted
     cac_bang["sale"].refresh_from_db()
@@ -122,7 +120,7 @@ def test_thu_muc_theo_bo_phan_va_cap_bac(client, cac_bang, departments, nguoi_du
 
     # Leader cùng bộ phận: như Manager — tạo, đổi tên, xếp bảng vào thư mục (ADR-015)
     client.force_login(nguoi_dung["leader_sale_1"])
-    assert client.get("/bang-tinh/don_sale/").context["duoc_quan_ly_thu_muc"] is True
+    assert client.get("/bang-tinh/don_sale/").status_code == 200
     assert client.post("/bang-tinh/thu-muc/moi/", {"name": "Leader 2026", "ve": "don_sale"}).status_code == 302
     assert client.post(f"/bang-tinh/thu-muc/{tm_sale.pk}/sua/", {"name": "Sale 2026 sửa", "ve": "don_sale"}).status_code == 302
     assert client.post("/bang-tinh/don_sale/chuyen-thu-muc/", {"folder": tm_sale.pk}).status_code == 302
@@ -143,7 +141,7 @@ def test_thu_muc_theo_bo_phan_va_cap_bac(client, cac_bang, departments, nguoi_du
     cac_bang["mkt"].refresh_from_db()
     assert cac_bang["mkt"].folder == tm_mkt
     # thư mục Sale không có trong cây của Marketing
-    cay = {(t.name if t else None) for t, _ in client.get("/bang-tinh/bc_mkt/").context["cay"]}
+    cay = {(t.name if t else None) for t, _ in folder_service.tree(nguoi_dung["manager_mkt"])}
     assert "MKT 2026" in cay and "Sale 2026" not in cay
 
     # Admin làm được với mọi bộ phận

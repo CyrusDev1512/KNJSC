@@ -1,4 +1,13 @@
 /* Hình học lưới không phụ thuộc nội dung, vùng chọn hoặc khung nhập nổi. */
+/* Giữ bảng màu giấy của lưới khi tách khỏi CSS renderer cũ. */
+.mg-viewport,.mg-float {
+  --surface:#fffdf8; --surface-2:#f6f2e6; --surface-3:#faf7ee; --plane:#f3f0e7;
+  --ink:#1f2937; --ink-2:#2b2617; --ink-3:#6f6544;
+  --rule:#e6e0d1; --rule-strong:#cfc5a8;
+  --accent:#b8952b; --accent-soft:rgba(201,162,39,.13); --accent-hover:#a5851f; --accent-ink:#fff;
+  --warn-soft:#fdf3dc; --critical:#d03b3b; --critical-soft:#fbeaea;
+  --good:#0ca30c; --good-soft:#e6f6e6; --serious-soft:#fcece5;
+}
 .mg-root {display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;background:var(--surface);color:var(--ink);font:13px 'Segoe UI',system-ui,sans-serif}
 .mg-toolbar {display:flex;align-items:center;gap:6px;padding:8px 12px;flex-wrap:wrap;border-bottom:1px solid var(--rule);background:var(--surface-2)}
 .mg-toolbar form {display:flex;gap:4px}.mg-toolbar input {width:210px;max-width:40vw;min-width:0;border:1px solid var(--rule-strong);border-radius:4px;background:var(--surface);color:var(--ink);padding:6px}
@@ -151,3 +160,5 @@
   .mg-waybill-master .mg-toolbar #mg-format-button {margin-left:0}
   .mg-waybill-master .mg-toolbar .nut {min-height:34px;padding-inline:8px}
 }
+
+:where(.mg-row.dong-xau) .mg-cell {background:var(--critical-soft)}

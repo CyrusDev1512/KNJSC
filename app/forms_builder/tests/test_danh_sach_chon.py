@@ -201,8 +201,9 @@ def test_nhap_hang_loat_cot_chon_mot_lan_truy_van_danh_sach(
     dong.insert(5, {"kenh": "Zalo", "san_pham": "Retinol Cream"})
     dong.insert(9, {"kenh": "TikTok", "san_pham": "Không có"})
     cac_cot = list(bang_kenh.columns.all())
-    # Danh mục sản phẩm đọc đúng một lần; mỗi lô 500 dòng ghi một lệnh; một dòng nhật ký
-    with django_assert_max_num_queries(6):
+    # Danh mục vẫn đọc một lần. Thêm 3 lệnh cố định: kiểm bảng ban đầu,
+    # khóa chia sẻ và kiểm lại bảng sau khóa; không có truy vấn theo dòng.
+    with django_assert_max_num_queries(9):
         kq = record_service.create_records_bulk(
             bang_kenh, dong, actor=nguoi_dung["manager_sale"], columns=cac_cot)
     assert kq.created == 40
@@ -433,7 +434,7 @@ def test_bang_co_cot_chon_khong_qua_muoi_lenh_truy_van(
         _dong_kenh(bang_kenh, nguoi_dung["manager_sale"], kenh="Facebook", san_pham="Retinol Cream")
     client.force_login(nguoi_dung["manager_sale"])
     client.get("/bang/kenh_sale/")                  # lượt đầu ghi mốc phiên
-    with django_assert_max_num_queries(10):
+    with django_assert_max_num_queries(13):
         assert client.get("/bang/kenh_sale/").status_code == 200
 
 

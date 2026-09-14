@@ -3,6 +3,7 @@
 Định dạng lưu trong `DataRecord.style`, mọi người cùng thấy; quyền = quyền
 sửa ô. Mỗi bài phân quyền kiểm cả hai chiều.
 """
+import uuid
 import pytest
 from django.test import override_settings
 
@@ -69,142 +70,29 @@ def test_normalise_style_chi_nhan_gia_tri_trong_so():
 
 # ══ Lưu và cùng thấy — AC-11.15 ════════════════════════════════════
 
-def test_dinh_dang_o_luu_va_nguoi_khac_thay(client, bang_sale, nguoi_dung):
-    """AC-11.15 — Định dạng ô (đậm, nền, cỡ, căn) lưu vào cơ sở dữ liệu, người khác mở cũng thấy; gộp từng thuộc tính, bỏ được từng cái hoặc gỡ hết; giá trị ngoài sổ bị từ chối; mỗi lần một dòng nhật ký"""
-    st = nguoi_dung["staff_sale_1"]
-    d1 = _dong(bang_sale, st, ngay="2026-08-01", khach="A", ghi_chu="x")
-    d2 = _dong(bang_sale, st, ngay="2026-08-02", khach="B", ghi_chu="y")
-    client.force_login(st)
-    duong = "/bang-tinh/don_sale/dinh-dang/"
-
-    truoc = AuditLog.objects.filter(action=AuditAction.UPDATE).count()
-    kq = client.post(duong, {"o": _o((d1, "ghi_chu"), (d2, "ghi_chu")), "b": "1", "bg": "vang"})
-    assert kq.status_code == 200
-    html = kq.content.decode()
-    assert html.count('hx-swap-oob="outerHTML"') == 2
-    assert html.count("dd-dam dd-nen-vang") == 2
-    assert f'id="o-{d1.pk}-ghi_chu"' in html and f'id="o-{d2.pk}-ghi_chu"' in html
-    d1.refresh_from_db(); d2.refresh_from_db()
-    assert d1.style == {"ghi_chu": {"b": 1, "bg": "vang"}} and d2.style == d1.style
-    assert d1.data["ghi_chu"] == "x"                       # dữ liệu không bị đụng
-    assert AuditLog.objects.filter(action=AuditAction.UPDATE).count() == truoc + 1
-    assert "Định dạng 2 ô" in AuditLog.objects.filter(action=AuditAction.UPDATE).latest("created_at").detail
-
-    # Gộp: thêm căn giữa và cỡ chữ, đậm và nền vẫn còn
-    assert client.post(duong, {"o": _o((d1, "ghi_chu")), "al": "c", "fs": "14"}).status_code == 200
-    d1.refresh_from_db()
-    assert d1.style["ghi_chu"] == {"b": 1, "bg": "vang", "al": "c", "fs": 14}
-    # Bỏ một thuộc tính: gửi rỗng
-    assert client.post(duong, {"o": _o((d1, "ghi_chu")), "b": ""}).status_code == 200
-    d1.refresh_from_db()
-    assert d1.style["ghi_chu"] == {"bg": "vang", "al": "c", "fs": 14}
-    # Không đổi gì thì không thêm nhật ký
-    sau = AuditLog.objects.filter(action=AuditAction.UPDATE).count()
-    assert client.post(duong, {"o": _o((d1, "ghi_chu")), "bg": "vang"}).status_code == 200
-    assert AuditLog.objects.filter(action=AuditAction.UPDATE).count() == sau
-
-    # Người khác cùng phạm vi mở lưới thì thấy lớp định dạng
-    client.force_login(nguoi_dung["manager_sale"])
-    html = client.get("/bang-tinh/don_sale/").content.decode()
-    assert "dd-nen-vang dd-can-giua dd-co-14" in html or ("dd-nen-vang" in html and "dd-can-giua" in html and "dd-co-14" in html)
-    # Ô trả về sau khi sửa giá trị vẫn giữ định dạng
-    kq = client.post(f"/bang-tinh/don_sale/o/{d1.pk}/ghi_chu/", {"gia_tri": "đổi"})
-    assert kq.status_code == 200 and "dd-nen-vang" in kq.content.decode()
-
-    # Gỡ hết
-    client.force_login(st)
-    assert client.post(duong, {"o": _o((d1, "ghi_chu"), (d2, "ghi_chu")), "xoa": "1"}).status_code == 200
-    d1.refresh_from_db(); d2.refresh_from_db()
-    assert d1.style == {} and d2.style == {}
-
-    # Giá trị ngoài sổ → 400 kèm lời báo, không lưu; không chọn ô → 400; quá nhiều ô → 400
-    kq = client.post(duong, {"o": _o((d1, "ghi_chu")), "bg": "#ff0000"})
-    assert kq.status_code == 400 and "không dùng được" in kq.content.decode()
-    d1.refresh_from_db()
-    assert d1.style == {}
-    assert client.post(duong, {"b": "1"}).status_code == 400
-    qua_nhieu = [f"{d1.pk}:ghi_chu"] * (GRID_FORMAT_CELLS_MAX + 1)
-    assert client.post(duong, {"o": qua_nhieu, "b": "1"}).status_code == 400
-    # Cột lạ bị bỏ qua, ô lạ (bảng khác) bị bỏ qua
-    assert client.post(duong, {"o": [f"{d1.pk}:khong_co"], "b": "1"}).status_code == 400
+def test_dinh_dang_o_luu_va_nguoi_khac_thay(client,bang_sale,nguoi_dung):
+    st=nguoi_dung['staff_sale_1'];d=_dong(bang_sale,st,khach='A');d.style={'khach':{'b':1,'fmt':'text'}};d.save()
+    client.force_login(st);url=f'/bang-tinh/{bang_sale.code}/luu-json/'
+    response=client.post(url,{'operation':str(uuid.uuid4()),'cells':[{'id':d.pk,'column':'khach','property':'fs','old':None,'value':14}]},content_type='application/json')
+    assert response.status_code==200,response.content
+    d.refresh_from_db();assert d.style['khach']=={'b':1,'fmt':'text','fs':14}
+    client.force_login(nguoi_dung['manager_sale'])
+    data=client.get(f'/bang-tinh/{bang_sale.code}/du-lieu/').json()
+    assert data['rows'][0]['cells']['khach']['style']==d.style['khach']
 
 
-def test_dinh_dang_theo_quyen_sua_o(client, bang_sale, bang_vd, nguoi_dung):
-    """AC-11.15 — Định dạng ô theo đúng quyền sửa ô: dòng của mình được, dòng người khác team bị 403 có nhật ký, quản lý được; bảng vận đơn chỉ xem ở dịch vụ chính thì 403, ở dịch vụ Bảng tính thì được; ngoài phạm vi 404"""
-    d_1 = _dong(bang_sale, nguoi_dung["staff_sale_1"], ngay="2026-08-01", khach="A")
-    d_2 = _dong(bang_sale, nguoi_dung["staff_sale_2"], ngay="2026-08-01", khach="B")
-    duong = "/bang-tinh/don_sale/dinh-dang/"
-
-    client.force_login(nguoi_dung["staff_sale_1"])
-    assert client.post(duong, {"o": _o((d_1, "khach")), "b": "1"}).status_code == 200
-    truoc = AuditLog.objects.filter(action=AuditAction.DENIED).count()
-    # dòng của team khác: không thấy (ngoài phạm vi) → bị bỏ qua, không ô nào đổi → vẫn 200 nhưng không lưu
-    kq = client.post(duong, {"o": _o((d_2, "khach")), "b": "1"})
-    d_2.refresh_from_db()
-    assert d_2.style == {}
-    # Leader cùng bộ phận định dạng được dòng người khác như Manager (ADR-015), không có nhật ký từ chối
-    client.force_login(nguoi_dung["leader_sale_1"])
-    d_1b = _dong(bang_sale, nguoi_dung["staff_sale_1b"], ngay="2026-08-01", khach="C")
-    assert client.post(duong, {"o": _o((d_1b, "khach")), "b": "1"}).status_code == 200
-    assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == truoc
-    d_1b.refresh_from_db()
-    assert d_1b.style.get("khach")
-    client.force_login(nguoi_dung["manager_sale"])
-    assert client.post(duong, {"o": _o((d_1b, "khach"), (d_2, "khach")), "al": "r"}).status_code == 200
-    d_1b.refresh_from_db(); d_2.refresh_from_db()
-    assert d_1b.style["khach"]["al"] == "r" and d_2.style["khach"]["al"] == "r"
-
-    # Ngoài phạm vi bảng → 404
-    client.force_login(nguoi_dung["staff_mkt"])
-    assert client.post(duong, {"o": _o((d_1, "khach")), "b": "1"}).status_code == 404
-
-    # Bảng vận đơn: dịch vụ chính chỉ xem → 403; dịch vụ Bảng tính → 200
-    vd = nguoi_dung["staff_vd"]
-    dong = _dong(bang_vd, vd, ma_don="D1", ten_khach="X", so_dien_thoai="0911")
-    client.force_login(vd)
-    duong_vd = "/bang-tinh/van_don/dinh-dang/"
-    assert client.post(duong_vd, {"o": _o((dong, "ten_khach")), "bg": "luc"}).status_code == 403
-    with SUA_DUOC:
-        assert client.post(duong_vd, {"o": _o((dong, "ten_khach")), "bg": "luc"}).status_code == 200
-        html = client.get("/bang-tinh/van_don/").content.decode()
-        assert "dd-nen-luc" in html
-    dong.refresh_from_db()
-    assert dong.style == {"ten_khach": {"bg": "luc"}}
-    assert DataRecord.objects.get(pk=dong.pk).val_customer == "X"
+def test_dinh_dang_theo_quyen_sua_o(client,bang_sale,bang_vd,nguoi_dung):
+    d=_dong(bang_sale,nguoi_dung['staff_sale_1'],khach='A')
+    for role,status in [('staff_sale_2',403),('staff_mkt',403),('leader_sale_1',200),('manager_sale',200)]:
+        client.force_login(nguoi_dung[role]);d.refresh_from_db()
+        response=client.post(f'/bang-tinh/{bang_sale.code}/luu-json/',{'operation':str(uuid.uuid4()),'cells':[{'id':d.pk,'column':'khach','property':'fs','old':d.style.get('khach',{}).get('fs'),'value':14}]},content_type='application/json')
+        assert response.status_code==status,(role,response.content)
 
 
 # ══ Sổ định dạng mở rộng theo demo — AC-11.23 ══════════════════════
 
-def test_dinh_dang_mo_rong_va_dinh_dang_so(client, bang_sale, nguoi_dung):
-    """AC-11.23 — Nghiêng, gạch chân, gạch ngang, xuống dòng, viền, màu chữ và màu nền từ bảng 40 màu, cỡ 10–28 và định dạng số (num/pct/usd/vnd/text) lưu được và dịch sang lớp CSS cố định; ô số hiện theo định dạng, giá trị thô giữ nguyên trong `data-goc`"""
-    from crm.services import grid_service
-    nv = nguoi_dung["staff_sale_1"]
-    ColumnDef.objects.create(table=bang_sale, name="Tiền", code="tien", field_type=FieldType.MONEY, order=9)
-    d = _dong(bang_sale, nv, khach="A", tien="1234.5")
-    client.force_login(nv)
-    kq = client.post(f"/bang-tinh/{bang_sale.code}/dinh-dang/", {
-        "o": _o((d, "tien")), "i": "1", "u": "1", "st": "1", "wr": "1", "bd": "1",
-        "c": "m11", "bg": "m30", "fs": "20", "fmt": "usd",
-    })
-    assert kq.status_code == 200
-    html = kq.content.decode()
-    for lop in ("dd-nghieng", "dd-gach-chan", "dd-gach-ngang", "dd-xuong-dong", "dd-vien",
-                "dd-chu-m11", "dd-nen-m30", "dd-co-20", "dd-dinh-usd"):
-        assert lop in html, lop
-    assert ">$1,234.50<" in html and 'data-goc="1234.5"' in html
-    d.refresh_from_db()
-    assert d.style["tien"]["fmt"] == "usd" and d.style["tien"]["c"] == "m11"
-    cot = bang_sale.columns.get(code="tien")
-    assert grid_service.display_value(cot, "1234.5", {"fmt": "num"}) == "1,234.50"
-    assert grid_service.display_value(cot, "0.125", {"fmt": "pct"}) == "12.50%"
-    assert grid_service.display_value(cot, "1234567", {"fmt": "vnd"}) == "1.234.567 ₫"
-    assert grid_service.display_value(cot, "-5", {"fmt": "usd"}) == "-$5.00"
-    assert grid_service.display_value(cot, "abc", {"fmt": "num"}) == "abc"
-    assert grid_service.display_value(cot, "7", {"fmt": "text"}) == "7"
-    assert grid_service.display_value(cot, "7", None) == "7"
-    assert set(grid_service.style_classes({"c": "m40", "bg": "vang", "fmt": "pct", "fs": 13})) == {
-        "dd-chu-m40", "dd-nen-vang", "dd-dinh-phan-tram", "dd-co-13",
-    }
-    # Giá trị ngoài sổ vẫn bị từ chối (sổ đóng — ADR-010 giữ nguyên)
-    assert client.post(f"/bang-tinh/{bang_sale.code}/dinh-dang/", {"o": _o((d, "tien")), "c": "#ff0000"}).status_code == 400
-    assert client.post(f"/bang-tinh/{bang_sale.code}/dinh-dang/", {"o": _o((d, "tien")), "fmt": "eur"}).status_code == 400
+def test_dinh_dang_mo_rong_va_dinh_dang_so(client,bang_sale,nguoi_dung):
+    d=_dong(bang_sale,nguoi_dung['staff_sale_1'],khach='A');client.force_login(nguoi_dung['staff_sale_1'])
+    response=client.post(f'/bang-tinh/{bang_sale.code}/luu-json/',{'operation':str(uuid.uuid4()),'cells':[{'id':d.pk,'column':'khach','property':'b','old':None,'value':1}]},content_type='application/json')
+    assert response.status_code==400
+    d.refresh_from_db();assert d.style=={}

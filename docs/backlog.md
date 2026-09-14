@@ -1,5 +1,21 @@
 # Backlog
 
+**14.09 — CRM-UPDATE đã kiểm chứng trong worktree riêng:** hoàn tất lưới chung,
+xóa/khôi phục bảng, tương phản cột ghim và rút gọn truy vấn phạm vi. Chrome
+bốn cấu hình, ma trận 100k/300k × 10/20, 2.000 ô, Celery và bài bền 30 phút
+đạt; bài bền 31.985 mẫu, oracle 2.859 dòng không lỗi. Giữ bốn lỗi kiểm thử
+nền và 11 skip riêng. Local vẫn nhánh fix; chưa commit/push/kích hoạt.
+Tạo bảng trắng/duplicate hoãn; chế độ xem toàn bảng của nhánh fix chưa ghép.
+[Biên bản bàn giao](kiem-chung-crm-update-20260912.md).
+
+**12.09, 17:20 — Chủ dự án yêu cầu test trước:** đã chuyển checkout chính sang `CRM-UPDATE`, cập nhật local 8020/8021 và worker cùng code; không seed/migrate, chưa commit/push. Marketing/Sale đã xác nhận dùng lưới mới. Functional 1.130 passed, 4 lỗi nền, 11 skipped; Chrome chức năng đạt. Kiểm tải tạm dừng: bản cuối mới đủ 100k/10, chưa nghiệm thu toàn chiến dịch. [Kết quả và phần còn lại](kiem-chung-crm-update-20260912.md).
+
+**12.09 — CRM-UPDATE đang kiểm local:** lưới chung Marketing/Sale/Vận đơn cũ,
+xóa mềm/khôi phục bảng; giữ Vận đơn mới, ERP và dữ liệu. Đang chạy ma trận tải,
+chưa nghiệm thu toàn chiến dịch; tạo bảng trắng/duplicate cấu trúc hoãn.
+[Biên bản](kiem-chung-crm-update-20260912.md) · [ADR-027](quyet-dinh/027-crm-update-luoi-chung-va-vong-doi-bang.md).
+
+
 > Cập nhật 12.09.2026: theo yêu cầu chủ dự án, đã chuyển nhánh codex/chung-tu-thanh-toan về checkout chính C:/KNJSC/KNJSC và kích hoạt app local 8021. Đã áp dụng orders 0007, org 0004; không chạy seed. Các mô tả chưa kích hoạt bên dưới ghi trạng thái bàn giao trước bước này. Chưa commit/push; bản sao checkout cũ giữ nguyên nội dung, ở detached HEAD.
 
 **12.09.2026 — Trạng thái và chứng từ thanh toán:** đã có bản triển khai trong

@@ -1,10 +1,6 @@
 /* Phân công chỉ qua endpoint riêng. Không sửa JSON của ô hay snapshot cả dòng. */
 (() => {
   'use strict';
-  document.getElementById('vd-open-filters')?.addEventListener('click', () => {
-    document.getElementById('bt-bo-cuc')?.classList.remove('thu-gon');
-    document.getElementById('tim')?.focus();
-  });
   const dialog = document.getElementById('vd-assignment');
   if (!dialog) return;
   const form = document.getElementById('vd-assignment-form');
@@ -58,17 +54,6 @@
     }
     load();
   }
-  document.getElementById('vd-assign-selected')?.addEventListener('click', () => {
-    open([...document.querySelectorAll('#luoi-vd td.o-chon[data-dong], #luoi-vd td.o-hien[data-dong]')].map(cell => cell.dataset.dong));
-  });
-  document.addEventListener('dblclick', event => {
-    const cell = event.target.closest('[data-assignment-row]');
-    if (cell) { event.preventDefault(); event.stopImmediatePropagation(); open([cell.dataset.assignmentRow]); }
-  }, true);
-  document.addEventListener('keydown', event => {
-    const cell = event.target.closest('[data-assignment-row]');
-    if (cell && event.key === 'Enter') { event.preventDefault(); event.stopImmediatePropagation(); open([cell.dataset.assignmentRow]); }
-  }, true);
   dialog.querySelector('[data-assignment-close]').addEventListener('click', () => dialog.close());
   reload.addEventListener('click', load);
   form.addEventListener('submit', async event => {

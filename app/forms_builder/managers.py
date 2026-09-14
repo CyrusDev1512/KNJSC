@@ -147,6 +147,7 @@ class DataRecordQuerySet(ScopedQuerySet):
     """
 
     def in_scope(self, user, *, table=None):
+        self = self.filter(table__deleted_at__isnull=True, table__is_active=True)
         from .models import GrantAction
 
         if table is not None:
@@ -173,6 +174,11 @@ class DataRecordQuerySet(ScopedQuerySet):
 
         from orders.services.assignment_service import scope_condition
         from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+        if table is not None and table.code != ACTIVE_WAYBILL_TABLE_CODE:
+            # Bảng đã biết không dùng ngoại lệ Vận đơn mới. Ghép trực tiếp
+            # hai phạm vi, tránh quét lại ID và JOIN đơn/phân công không cần.
+            # Điều kiện bảng dùng chung vẫn đọc từ SQL, không tin metadata cũ.
+            return theo_cap_bac | self.filter(them)
         return self.filter(scope_condition(user, Q(pk__in=theo_cap_bac.values("pk")) | them,
             only_new=table is not None and table.code == ACTIVE_WAYBILL_TABLE_CODE))
 

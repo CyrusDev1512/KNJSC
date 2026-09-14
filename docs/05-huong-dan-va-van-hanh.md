@@ -884,3 +884,28 @@ Snapshot chuyên sâu Vận đơn dùng tối đa 64MiB `work_mem` cục bộ ch
 aggregate và tự hoàn nguyên sau transaction; không cần sửa `postgresql.conf`.
 Khi kiểm tải đồng thời trên máy chủ thật, theo dõi RAM theo số request thống kê
 chạy song song thay vì nhân con số này với toàn bộ tài khoản đã đăng nhập.
+
+## Lưới chung và xóa bảng — CRM-UPDATE, ADR-027
+
+Đã bật checkout CRM-UPDATE trên local 8020/8021 lúc 17:20 ngày 12.09 theo yêu
+cầu chủ dự án test trước; kiểm tải chưa nghiệm thu. Marketing, Sale và Vận đơn cũ mở cùng bộ lưới JSON như
+Vận đơn mới. Chế độ chỉnh sửa, nhập trong ô, autosave và lịch sử dùng chung.
+Dòng nháp cuối bảng chỉ xuất hiện khi tài khoản được phép tạo dòng. Nhập đủ
+trường bắt buộc rồi kết thúc ô để lưu; nháp còn thiếu được giữ trong bộ nhớ
+trang. Vận đơn mới tiếp tục nhận dòng từ Lên đơn.
+
+Manager của phòng ban sở hữu bảng hoặc Admin mở menu bảng → Xóa, nhập đúng
+tên bảng để xác nhận. Bảng còn biểu mẫu hoạt động hoặc tác vụ nhập/tính lại
+đang chờ/chạy sẽ báo phụ thuộc cần xử lý. Vận đơn mới không có thao tác xóa.
+Mục Đã xóa cho phép khôi phục giữ nguyên mã, ID và dữ liệu; nếu thư mục cũ
+đã xóa thì bảng xuất hiện ngoài thư mục. Không có xóa vĩnh viễn tự động.
+
+Tab đang mở gỡ nội dung và dừng lưu khi request tiếp theo báo bảng không còn
+khả dụng. File xuất nền kiểm lại quyền và ID dòng lúc tải; file cũ thiếu danh
+sách ID cần xuất lại. Khi nâng phiên bản, cập nhật đồng bộ các process web,
+CRM và worker rồi tải lại các tab cũ. URL ghi của client cũ trả 409 yêu cầu
+tải lại; không chuyển tiếp lượt ghi thiếu CAS.
+
+Không có migration hoặc dependency mới cho chiến dịch. Giữ cờ tối ưu hiện
+hành; đường đọc/sync v2 của bảng chuyển đổi chưa mở nếu chưa qua hồi quy.
+Theo dõi kết quả/giới hạn tại [báo cáo kiểm chứng](kiem-chung-crm-update-20260912.md).

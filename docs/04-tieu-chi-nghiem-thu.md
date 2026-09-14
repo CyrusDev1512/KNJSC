@@ -469,3 +469,21 @@ Các mục dưới là điều kiện nghiệm thu, **không phải kết quả 
 
 Không gộp skip thành đạt. VPS chưa có thì chỉ báo kết quả local; không dùng
 cấu hình dự kiến thay phép đo. Cờ không đạt hồi quy phải để tắt.
+
+## 27. Lưới dùng chung và vòng đời bảng — ADR-027
+
+Đây là tiêu chí, chưa phải nhãn hoàn thành. Kết quả tại
+[báo cáo CRM-UPDATE](kiem-chung-crm-update-20260912.md).
+
+| Mã | Đạt khi | Kiểm bằng |
+|---|---|---|
+| AC-27.1 | Mọi bảng động dùng chung shell/JSON/virtual grid; renderer nghiệp vụ từ registry; ERP chỉ đọc, Vận đơn mới giữ Lên đơn/Bill/phân công | Functional + Chrome |
+| AC-27.2 | Công thức/kiểu/định dạng đúng; CAS hai đầu vào đồng thời; ô khóa hoặc sai kiểu làm toàn lượt rollback và chỉ đúng vị trí | Functional/transaction |
+| AC-27.3 | Nháp cuối bảng, thiếu bắt buộc giữ RAM; paste tạo/sửa nguyên tử; retry không trùng; Undo có xung đột từ chối toàn lượt, Redo cùng ID | Functional + Chrome |
+| AC-27.4 | Manager đúng phòng ban/Admin xóa với tên chính xác, khôi phục giữ ID; Staff/Leader/Grant bị từ chối; Vận đơn mới được bảo vệ | Functional + Chrome |
+| AC-27.5 | Biểu mẫu/job ghi chặn xóa; khóa chia sẻ cho ghi và độc quyền cho vòng đời; bảng xóa ngừng đọc/ghi/tải file và tab nóng gỡ dữ liệu | Transaction + worker + Chrome |
+| AC-27.6 | Không còn renderer/asset ghi cũ; URL ghi cũ trả 409; metadata đổi cấu trúc giữ nháp theo mã cột; không ghi vòng qua CAS | Quét nguồn + functional + Chrome |
+| AC-27.7 | 1440/1280/390 và zoom Chrome thật 125%; DOM/cache giới hạn; ít nhất 100 mẫu/thao tác, p95 ≤100ms; ghim lệch ≤1 CSS px; phân biệt IME mô phỏng/thật | Chrome + bằng chứng thô |
+| AC-27.8 | 100k/300k ×10/20, 60s ấm +300s đo; nếu đạt chạy 300k/20/30 phút; đọc/lọc/history p95 ≤1s, lưu ≤0,5s, 2.000 ô ≤5s; không sai/mất/trùng/lộ dữ liệu | Locust + SQL + oracle + tài nguyên |
+
+Tạo bảng trắng và duplicate cấu trúc hoãn; quyền tạo bảng sẵn có giữ nguyên.

@@ -138,7 +138,7 @@ def test_bam_thang_mo_luoi_loc_dung_thang(client, du_lieu, nguoi_dung):
 
     luoi = client.get("/bang-tinh/don_sale/", {"f_ngay__lon_bang": "2026-09-01", "f_ngay__nho_bang": "2026-09-30"})
     assert luoi.status_code == 200
-    assert luoi.context["page_obj"].paginator.count == 2
+    assert client.get("/bang-tinh/don_sale/du-lieu/", {"f_ngay__lon_bang":"2026-09-01", "f_ngay__nho_bang":"2026-09-30"}).json()["total"] == 2
     assert luoi.context["thang_dang_xem"].label == "Tháng 9/2026"
     html_luoi = luoi.content.decode()
     assert "Tháng 9/2026" in html_luoi

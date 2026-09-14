@@ -113,6 +113,13 @@ riêng của Claude có sẵn trong môi trường Codex.
   không áp hành vi riêng của bảng cũ sang bảng mới. CRM tạo đơn qua service `orders` dùng chung; ERP không còn form nhập đơn.
   Quyền tạo đơn không đồng nghĩa quyền xem bảng hoặc đơn gốc ngoài phạm vi.
 
+- CRM-UPDATE: mọi bảng động dùng chung lõi JSON/cuộn ảo theo
+  [ADR-027](docs/quyet-dinh/027-crm-update-luoi-chung-va-vong-doi-bang.md).
+  Profile bảng cung cấp renderer/capability; không nhận diện nghiệp vụ bằng
+  mã cột đơn lẻ. Không đưa lại renderer HTML/HTMX ghi ô cũ. Xóa bảng chỉ
+  Manager sở hữu/Admin, không áp dụng Vận đơn mới; ghi service phải phối hợp
+  khóa vòng đời. Tạo bảng trắng/duplicate cấu trúc đang hoãn.
+
 ## 4. Quy tắc dữ liệu và triển khai
 
 - Theo [ADR-025](docs/quyet-dinh/025-trang-thai-va-chung-tu-thanh-toan.md), trạng thái

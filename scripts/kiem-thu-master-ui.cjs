@@ -1,6 +1,6 @@
 /* Chrome → pytest live_server, tuyệt đối không dùng DB dev. */
 const {chromium}=require('playwright'),fs=require('fs'),path=require('path'),assert=require('assert/strict');
-const root=path.resolve(__dirname,'..'),out=path.join(root,'.agents/design-state/review/master'),base='http://127.0.0.1:8031';
+const root=path.resolve(__dirname,'..'),out=process.env.KN_MASTER_EVIDENCE||path.join(root,'.agents/design-state/review/master'),base=process.env.KN_MASTER_URL||'http://127.0.0.1:8031';
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{
   const signal=path.join(root,'app/.master-browser-ready.json'),result=path.join(root,'app/.master-browser-result.json');

@@ -1,7 +1,7 @@
 /* Chỉ kết nối pytest live_server 8858 và dữ liệu synthetic. */
 const {chromium}=require('playwright'), fs=require('fs'), path=require('path'), assert=require('assert/strict');
 const root=path.resolve(__dirname,'..'), base='http://127.0.0.1:8858';
-const output=path.join(root,'.agents/design-state/review/payment');
+const output=process.env.KN_PAYMENT_EVIDENCE||path.join(root,'.agents/design-state/review/payment');
 const resultFile=path.join(root,'app/.payment-result.json');
 const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64');
 (async()=>{
@@ -73,6 +73,7 @@ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42
   await page.getByRole('button',{name:'Lưu thay đổi',exact:true}).click();
   await page.getByRole('heading',{name:'REF-BROWSER-00002',exact:true}).waitFor();
   await page.keyboard.press('Escape');
+  if(process.env.CRM_UPDATE_ADVANCED==='1')report.advanced=await require('./kiem-thu-shared-advanced.cjs')({page,context,base,delivery:fixture.delivery});
   assert.deepEqual(report.errors,[]);report.ok=true;
  }catch(e){report.failure=e.stack;}finally{
   await browser.close();fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(report,null,2));

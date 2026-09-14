@@ -1,4 +1,4 @@
-"""Điểm vào riêng của lưới JSON; bảng cũ tiếp tục dùng view/HTMX hiện có."""
+"""Điểm vào của bộ lưới JSON dùng chung cho các bảng động."""
 import json
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -51,7 +51,7 @@ def save(request, code):
     except OutOfScopeError:
         return JsonResponse({'error': 'Bạn không còn quyền sửa các dòng này.'}, status=403)
     except BusinessError as exc:
-        return JsonResponse({'error': str(exc), 'conflicts': getattr(exc, 'conflicts', []), 'cell': {'id': getattr(exc, 'pk', None),
+        return JsonResponse({'error': str(exc), 'code':exc.code, 'conflicts': getattr(exc, 'conflicts', []), 'cell': {'id': getattr(exc, 'pk', None),
             'column': getattr(exc, 'column', None)}}, status=409 if exc.code == 'conflict' else 400)
     except (ValueError, TypeError, json.JSONDecodeError):
         return JsonResponse({'error': 'Dữ liệu gửi lên không hợp lệ.'}, status=400)
@@ -89,10 +89,11 @@ def scope(request, code):
 @require_POST
 def sync(request,code):
     from django.db import connection,transaction
-    from .services import optimization
+    from .services import optimization, row_mutations
     if not optimization.enabled('SYNC'):return JsonResponse({'unsupported':True})
     try:
         table=service.table_for(request.user,code)
+        if table.code != 'van_don_moi':return JsonResponse({'unsupported':True})
         already_atomic=connection.in_atomic_block
         with transaction.atomic():
             if not already_atomic:
@@ -105,7 +106,7 @@ def sync(request,code):
 
 def shell(request, table):
     from django.conf import settings
-    from .services import optimization
+    from .services import optimization, row_mutations
     from forms_builder.services.record_service import PALETTE
     grid = grid_service.build_grid(request.user, request.GET, table=table)
     month = tree_service.month_of_params(request.GET, grid.columns)
@@ -117,18 +118,22 @@ def shell(request, table):
         p = qs.copy(); p.pop(key, None)
         chips.append((label, '?' + p.urlencode()))
     return render(request, 'crm/master_grid.html', {
-        'bang': table, 'luoi': grid, 'qs_giu': qs.urlencode(), 'chips': chips,
+        'waybill_profile': table.code == 'van_don_moi',
+        'grid_root_class':'mg-root mg-waybill-master' if table.code == 'van_don_moi' else 'mg-root',
+        'thang_dang_xem':month, 'bang': table, 'luoi': grid, 'qs_giu': qs.urlencode(), 'chips': chips,
         've_url': tree_service.home_url(table.department, month=month) if month else tree_service.home_url(table.department, all_tables=True),
-        've_nhan': 'Về Bảng tính — thư mục', 'can_assign': can_assign(request.user),
+        've_nhan': 'Về Bảng tính — thư mục', 'can_assign': table.code == 'van_don_moi' and can_assign(request.user),
+        'duoc_quan_ly_cot':grant_service.can_manage_columns(request.user, table),
         'duoc_nhap': grant_service.can_import(request.user, table),
         'ben': sidebar_service.context(request.user, table, grid.columns, qs),
-        'quick_filters': sidebar_service.quick_filters(qs),
+        'quick_filters': sidebar_service.quick_filters(qs) if table.code in ('van_don','van_don_moi') else {'groups':[], 'keep':grid_service.params_without(qs)},
         'config': {'dataUrl': reverse('master_data', args=[table.code]),
+                   'canCreate':row_mutations.can_create(request.user,table),
                    'requestMetrics':getattr(settings,'CRM_REQUEST_METRICS',False),
-                   'protocol':2 if optimization.enabled('READ') else 1,
+                   'protocol':2 if table.code == 'van_don_moi' and optimization.enabled('READ') else 1,
                    'compact':optimization.enabled('RECEIPTS'),
                    'renderOptimized':optimization.enabled('RENDER'),
-                   'syncUrl':reverse('master_sync',args=[table.code]) if optimization.enabled('SYNC') and optimization.enabled('READ') else None,
+                   'syncUrl':reverse('master_sync',args=[table.code]) if table.code == 'van_don_moi' and optimization.enabled('SYNC') and optimization.enabled('READ') else None,
                    'palette': dict(PALETTE), 'styleClasses': grid_service.STYLE_CLASSES,
                    'saveUrl': reverse('master_save', args=[table.code]),
                    'historyUrl': reverse('master_history', args=[table.code]),

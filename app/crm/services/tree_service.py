@@ -231,9 +231,11 @@ def permission_label(user, table):
 
 def _dong_bang(user, table, *, so_dong, cap_nhat, month):
     quyen, lop = permission_label(user, table)
+    from forms_builder.services.lifecycle_service import can_delete as may_delete
+    can_delete=may_delete(user,table)
     co_ngay = date_column(list(table.columns.all())) is not None
     return {
-        "bang": table, "so_dong": so_dong, "cap_nhat": cap_nhat,
+        "can_delete":can_delete, "bang": table, "so_dong": so_dong, "cap_nhat": cap_nhat,
         "quyen": quyen, "lop_quyen": lop, "khong_ngay": not co_ngay,
         "url": grid_url(table, month),
     }

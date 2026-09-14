@@ -82,6 +82,9 @@ Kết quả tính năng cần hướng tới
 - Giao diện theo vai trò, giảm thao tác thừa.
 - Tách lớp dữ liệu nghiệp vụ khỏi lớp công thức và thống kê.
 
+Theo dõi kỹ thuật CRM-UPDATE (12.09.2026, ADR-027): chuyển Marketing/Sale/Vận đơn cũ sang lưới chung; thêm xóa mềm/khôi phục bảng theo quyền. Đã bật local cho chủ dự án test trước lúc 17:20 ngày 12.09; kiểm tải tạm dừng, chưa đánh dấu hoàn thành. Giữ nguyên Vận đơn mới/Lên đơn/phân công/Bill và ERP chỉ đọc. Tạo bảng trắng và duplicate cấu trúc hoãn. Xem docs/kiem-chung-crm-update-20260912.md.
+  Cập nhật thay thế 14.09: phần lưới chung Marketing/Sale/Vận đơn cũ, xóa mềm/khôi phục bảng theo quyền, tương phản cột ghim và rút gọn truy vấn phạm vi -> đã làm (worktree CRM-UPDATE; functional, Chrome, ma trận 100k/300k × 10/20 và bài bền 30 phút đã kiểm; xem biên bản). Local vẫn nhánh fix, chưa commit/push/kích hoạt. Giữ riêng bốn lỗi kiểm thử nền và 11 skip. Không đóng các yêu cầu hiệu năng/nghiệp vụ còn lại; tạo bảng trắng/duplicate tiếp tục hoãn. Chế độ xem toàn bảng của nhánh fix chưa ghép vào CRM-UPDATE.
+
 ======================================================================
 VẤN ĐỀ LỚN 04 — LỊCH SỬ MUA HÀNG, DỮ LIỆU CŨ, BLACKLIST VÀ TRUY XUẤT NHIỀU NĂM
 ======================================================================

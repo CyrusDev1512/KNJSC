@@ -1,0 +1,10 @@
+{% extends 'crm/base_crm.html' %}
+{% block tieu_de %}Bảng đã xóa · KN CRM{% endblock %}
+{% block noi_dung %}
+<div class="trang-dau"><h1>Bảng đã xóa</h1><a class="nut" href="{% url 'thu_muc' %}">Về Bảng tính</a></div>
+{% for table in page_obj %}
+<div class="the the-than"><h2>{{ table.name }}</h2><p>{{ table.department.name }}</p>
+<form method="post" action="{% url 'restore_table' table.code %}">{% csrf_token %}<button class="nut" type="submit">Khôi phục {{ table.name }}</button></form></div>
+{% empty %}<p>Không có bảng đã xóa trong phạm vi quản lý.</p>{% endfor %}
+{% include 'components/phan_trang.html' %}
+{% endblock %}

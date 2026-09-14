@@ -30,20 +30,11 @@ def _dong_vd(bang, nguoi, i, sdt):
     }, actor=nguoi)
 
 
-def test_url_o_ghep_chuoi_khop_reverse(bang_vd, nguoi_dung):
-    """AC-11.36 — URL sửa ô ghép chuỗi (`cell_url`) khớp `reverse('bang_tinh_o')`; lưới 100 dòng vẫn ≤ 14 truy vấn"""
-    nv = nguoi_dung["staff_vd"]
-    d = _dong_vd(bang_vd, nv, 1, "0901")
-    goc = grid_service.grid_url(bang_vd)
-    assert grid_service.cell_url(goc, d.pk, "ghi_chu") == reverse("bang_tinh_o", args=[bang_vd.code, d.pk, "ghi_chu"])
-    assert goc == reverse("bang_tinh_xem", args=[bang_vd.code])
-    html = grid_service.cell_html(bang_vd, d, bang_vd.columns.get(code="ten_khach"), gia_tri="A <b>", hien=None,
-                                  duoc_sua=True, lop="o-sua", goc=goc)
-    assert 'data-goc="A &lt;b&gt;"' in html and f'data-sua-url="{goc}o/{d.pk}/ten_khach/"' in html
-    ma_don = bang_vd.columns.get(code="ma_don")
-    html = grid_service.cell_html(bang_vd, d, ma_don, gia_tri="T 1", hien=None, duoc_sua=False, lop="o-xem",
-                                  qs_giu="tim=a", goc=goc)
-    assert 'o-khoa-loc' in html and f'href="{goc}?tim=a&amp;f_ma_don=T%201"' in html and "data-sua-url" not in html
+def test_url_o_ghep_chuoi_khop_reverse(client,bang_vd,nguoi_dung):
+    client.force_login(nguoi_dung['staff_vd'])
+    response=client.get('/bang-tinh/van_don/')
+    assert response.status_code==200 and b'js/bang-tinh.js' not in response.content
+    assert response.context['config']['saveUrl']==reverse('master_save',args=[bang_vd.code])
 
 
 def test_luoi_100_dong_ngan_sach_truy_van(client, bang_vd, nguoi_dung, django_assert_max_num_queries, settings):
@@ -56,19 +47,19 @@ def test_luoi_100_dong_ngan_sach_truy_van(client, bang_vd, nguoi_dung, django_as
     client.get(f"/bang-tinh/{bang_vd.code}/moi-nhat/")       # lượt đầu ghi mốc phiên (middleware), không tính
     with django_assert_max_num_queries(13):
         kq = client.get(f"/bang-tinh/{bang_vd.code}/")
-    assert kq.status_code == 200 and kq.content.count(b"data-sua-url=") >= 100 * 30
-    with django_assert_max_num_queries(13):
-        kq = client.get(f"/bang-tinh/{bang_vd.code}/?trung=1")
+    assert kq.status_code == 200 and b'id="master-grid"' in kq.content
+    with django_assert_max_num_queries(14):  # snapshot lồng fixture kiểm mốc hai lần
+        kq = client.get(f"/bang-tinh/{bang_vd.code}/du-lieu/?trung=1")
     assert kq.status_code == 200
     dong = grid_service.attach_duplicate_counts(bang_vd, DataRecord.objects.filter(table=bang_vd).order_by("pk")[:20])
     assert [d.so_trung for d in dong] == [10 if i % 10 == 0 else 1 for i in range(20)]
     assert sorted(grid_service.duplicate_phones(bang_vd).values_list("val_phone", flat=True)) == ["0900"]
     import re
-    assert len(re.findall(rb'<tr [^>]*data-dong="\d+"', kq.content)) == 10          # đúng 10 dòng trùng
+    assert len(kq.json()['rows']) == 10          # đúng 10 dòng trùng
 
 
 def test_dan_500_o_va_moi_nhat_ngan_sach_truy_van(client, bang_vd, nguoi_dung, django_assert_max_num_queries, settings):
-    """AC-11.36 — Dán 500 ô (100 dòng × 5 cột) ghi bằng bulk_update: ≤ 25 truy vấn thay vì mỗi dòng một UPDATE; `moi-nhat/` ≤ 8 truy vấn, không COUNT toàn bảng"""
+    """AC-11.36/AC-27.2 — 500 ô qua CAS/receipt/history ≤35 truy vấn cố định; `moi-nhat/` ≤8, không COUNT toàn bảng"""
     settings.GRID_ONLY_TABLES = set()
     nv = nguoi_dung["staff_vd"]
     dong = [_dong_vd(bang_vd, nv, i, f"09{i:06d}") for i in range(100)]
@@ -79,8 +70,11 @@ def test_dan_500_o_va_moi_nhat_ngan_sach_truy_van(client, bang_vd, nguoi_dung, d
         for cot in ("ghi_chu", "thanh_pho", "bang", "zipcode", "pttt"):
             o.append(f"{d.pk}:{cot}")
             gt.append(f"x {d.pk}")
-    with django_assert_max_num_queries(25):
-        kq = client.post(f"/bang-tinh/{bang_vd.code}/luu-o/", {"o": o, "gt": gt})
+    import uuid
+    payload={'operation':str(uuid.uuid4()),'cells':[{'id':int(key.split(':')[0]),'column':key.split(':')[1],
+        'old':next(d for d in dong if d.pk==int(key.split(':')[0])).data.get(key.split(':')[1]),'value':value} for key,value in zip(o,gt)]}
+    with django_assert_max_num_queries(35):
+        kq = client.post(f'/bang-tinh/{bang_vd.code}/luu-json/',payload,content_type='application/json')
     assert kq.status_code == 200, kq.content[:200]
     assert DataRecord.objects.get(pk=dong[7].pk).data["zipcode"] == f"x {dong[7].pk}"
     with django_assert_max_num_queries(8):

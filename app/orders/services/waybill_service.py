@@ -65,6 +65,9 @@ OPTIONS = {
 }
 
 
+protect_table = True
+
+
 def register():
     record_policies.register(ACTIVE_WAYBILL_TABLE_CODE, sys.modules[__name__])
 
@@ -470,3 +473,23 @@ def missing_item_count(records):
     return records.annotate(
         _has_waybill_item=Exists(active_item),
     ).filter(_has_waybill_item=False).count()
+
+
+def grid_column(column):
+    """Khả năng hiển thị chỉ đăng ký cho bảng nghiệp vụ Vận đơn mới."""
+    return {'detail':column.code in DETAIL_CELLS, 'assignment':column.code in assignment_service.COLUMNS,
+        'protected':column.is_computed or column.code in PROTECTED or column.code in assignment_service.COLUMNS,
+        'renderer':'bill' if column.code == 'bill' else 'value',
+        'frozen':column.code in ('ma_don', 'ten_khach', 'so_dien_thoai')}
+
+
+def grid_value(row, column):
+    return assignment_service.display(row, column.code) if column.code in assignment_service.COLUMNS else row.data.get(column.code)
+
+
+def grid_extras(rows, columns):
+    from django.urls import reverse
+    from .payment_service import metadata
+    bills = metadata([row.pk for row in rows]) if rows and any(c.code == 'bill' for c in columns) else {}
+    return {row.pk:{'detail_url':reverse('waybill_detail', args=[row.pk]),
+        'cells':{'bill':{'payments':bills.get(row.pk, {'count':0, 'links':[]})}}} for row in rows}

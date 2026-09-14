@@ -8,6 +8,7 @@ tính lại bảy cột tách `val_*` trong bộ nhớ, nhưng `update_fields` c
 `data` xuống cơ sở dữ liệu. Kết quả: JSON một đằng, cột tách một nẻo — màn hình
 vẫn hiện đúng còn lọc và thống kê thì sai.
 """
+from .lifecycle_service import writing, available, lock as table_lock
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
@@ -98,7 +99,9 @@ def parse_value(column, raw, *, choices=None):
                 return raw.isoformat()
             return datetime.fromisoformat(str(raw)).isoformat()
         if kieu == FieldType.BOOLEAN:
-            return str(raw).strip().lower() in TRUE_WORDS
+            word = str(raw).strip().lower()
+            if word not in TRUE_WORDS | {"0", "false", "khong", "không", "no", "sai"}:raise ValueError(raw)
+            return word in TRUE_WORDS
     except (ValueError, TypeError, InvalidOperation):
         raise BusinessError(
             f'Giá trị "{raw}" không đúng kiểu {FieldType(kieu).label} '
@@ -115,6 +118,7 @@ def _thieu_bat_buoc(columns, values):
     ]
 
 
+@writing
 @transaction.atomic
 def create_record(table, values, *, actor=None, request=None, columns=None):
     """Thêm một dòng vào bảng.
@@ -166,10 +170,11 @@ class BulkResult:
 
     created: int = 0
     errors: list = field(default_factory=list)
+    error_columns: dict = field(default_factory=dict)
 
 
 def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
-                        batch=500, on_progress=None, row_numbers=None):
+                        batch=500, on_progress=None, row_numbers=None, on_created=None, audit_action=AuditAction.IMPORT):
     """Thêm nhiều dòng một lượt — nền của nhập tệp Excel (FR-7.5) và seed.
 
     Khác `create_record` ở ba chỗ, cố ý:
@@ -183,6 +188,7 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
     - **Một dòng nhật ký** tóm tắt cho cả lượt, không mỗi dòng một dòng nhật
       ký — 5.000 dòng nhật ký cho một lần bấm nhập là che mất mọi thứ khác.
     """
+    available(table)
     columns = columns if columns is not None else list(table.columns.all())
     ho_so = getattr(actor, "profile", None)
     team = getattr(ho_so, "team", None)
@@ -209,12 +215,15 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
         if not lo:
             return
         with transaction.atomic():
+            table_lock(table)
             DataRecord.objects.bulk_create(lo)
         ket_qua.created += len(lo)
+        if on_created:on_created(list(lo))
         lo.clear()
 
     for i, values in enumerate(rows):
         so_dong = row_numbers[i] if row_numbers else i + 1
+        error_column = None
         try:
             du_lieu = {}
             for cot in columns:
@@ -223,12 +232,15 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
                 gia_tri = values.get(cot.code)
                 if gia_tri in (None, ""):
                     continue
+                error_column = cot.code
                 du_lieu[cot.code] = parse_value(cot, gia_tri, choices=chon.get(cot.code))
             thieu = _thieu_bat_buoc(columns, du_lieu)
             if thieu:
+                error_column = next(c.code for c in columns if c.required and not c.is_computed and du_lieu.get(c.code) in (None,""))
                 raise BusinessError("Thiếu cột bắt buộc: " + ", ".join(thieu))
         except BusinessError as loi:
             ket_qua.errors.append((so_dong, str(loi)))
+            ket_qua.error_columns[so_dong] = error_column
             continue
 
         ban_ghi = DataRecord(
@@ -245,7 +257,7 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
     ghi_lo()
 
     record(
-        AuditAction.IMPORT, actor=actor, target=table,
+        audit_action, actor=actor, target=table,
         detail=(f"Nhập {ket_qua.created} dòng vào bảng {table.code}"
                 + (f", bỏ qua {len(ket_qua.errors)} dòng lỗi" if ket_qua.errors else "")),
         request=request,
@@ -296,6 +308,7 @@ def _dat_o(ban_ghi, cot, raw):
     return True, cu, moi
 
 
+@writing
 @transaction.atomic
 def update_cell(ban_ghi, code, raw, *, actor=None, request=None, columns=None):
     """Sửa đúng một ô trên bảng — FR-7.4.
@@ -326,6 +339,7 @@ def update_cell(ban_ghi, code, raw, *, actor=None, request=None, columns=None):
     return ban_ghi
 
 
+@writing
 @transaction.atomic
 def update_cells(cells, *, actor=None, request=None, columns=None):
     """Sửa nhiều ô một lần — dán, kéo điền, xoá nội dung, hoàn tác (ADR-011).
@@ -377,6 +391,7 @@ def _update_locked_cells(cells, *, actor, request=None, columns=None):
     return da_doi
 
 
+@writing
 @transaction.atomic
 def restore_record(ban_ghi, *, actor=None, request=None):
     """Khôi phục một dòng đã xoá mềm — hoàn tác xoá trên Bảng tính (ADR-011)."""
@@ -395,6 +410,7 @@ def restore_record(ban_ghi, *, actor=None, request=None):
     return ban_ghi
 
 
+@writing
 @transaction.atomic
 def delete_record(ban_ghi, *, actor=None, request=None):
     """Xoá một dòng. Đánh dấu chứ không xoá khỏi cơ sở dữ liệu (BR-4)."""
@@ -513,6 +529,7 @@ def _ap_dinh_dang(ban_ghi, code, style, columns, *, replace=False):
     return True, cu, gop
 
 
+@writing
 @transaction.atomic
 def update_style(ban_ghi, code, style, *, actor=None, request=None, columns=None, replace=False):
     """Đổi định dạng một ô — ADR-010. Lưu vào `DataRecord.style`, mọi người
@@ -534,6 +551,7 @@ def update_style(ban_ghi, code, style, *, actor=None, request=None, columns=None
     return ban_ghi
 
 
+@writing
 @transaction.atomic
 def update_styles(cells, style, *, actor=None, request=None, columns=None, replace=False):
     """Đổi định dạng nhiều ô một lần — `cells` là danh sách `(bản ghi, mã cột)`.

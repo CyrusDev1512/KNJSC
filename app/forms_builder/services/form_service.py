@@ -20,6 +20,7 @@ from core.identity import employee_code
 from .. import choice_registry
 from ..meaning import FieldType, Meaning
 from ..models import FieldDef, FormDef, FormField
+from .lifecycle_service import lock
 from . import choice_service, link_service, record_service
 
 
@@ -27,6 +28,7 @@ from . import choice_service, link_service, record_service
 def create_form(*, name, code, department, table, description="",
                 actor=None, request=None):
     """Tạo biểu mẫu mới, ghi vào một bảng có sẵn — FR-8.1, ADR-007."""
+    lock(table)
     bieu_mau = FormDef(
         name=name, code=code, department=department, table=table,
         description=description, created_by=actor,
@@ -43,6 +45,7 @@ def create_form(*, name, code, department, table, description="",
 @transaction.atomic
 def update_form(form, changes, *, actor=None, request=None):
     """Sửa tên, mô tả hoặc trạng thái. Không đổi được tên kỹ thuật và bảng đích."""
+    lock(form.table)
     da_doi = []
     for ten in ("name", "description", "is_active"):
         if ten not in changes:

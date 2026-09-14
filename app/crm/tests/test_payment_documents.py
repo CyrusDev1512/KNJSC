@@ -61,7 +61,7 @@ def test_delivery_add_only_and_accounting_read_not_edit(client, feedback, nguoi_
     assert response.status_code == 200, response.content
     pk = response.json()['id']
     assert client.post(f'/chung-tu-thanh-toan/{pk}/sua/', {'version': 1, 'action': 'delete'}).status_code == 403
-    accountant = make_user('accountant_doc', Rank.STAFF, Department.objects.get(code='ke-toan'))
+    accountant = make_user('accountant_doc', Rank.STAFF, Department.objects.get_or_create(code='ke-toan', defaults={'name':'Kế toán'})[0])
     client.force_login(accountant)
     assert client.get(BASE + 'du-lieu/').status_code == 200
     assert not grant_service.can_edit_record(accountant, row)

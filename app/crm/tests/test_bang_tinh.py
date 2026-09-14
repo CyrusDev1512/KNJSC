@@ -63,9 +63,9 @@ def du_lieu(bang_vd, nguoi_dung):
 
 
 def _so_dong(client, qs=""):
-    kq = client.get("/bang-tinh/van_don/" + qs)
+    kq = client.get("/bang-tinh/van_don/du-lieu/" + qs)
     assert kq.status_code == 200
-    return kq.context["page_obj"].paginator.count
+    return kq.json()['total']
 
 
 # ══ Phân quyền — AC-11.4 ═══════════════════════════════════════════
@@ -145,70 +145,26 @@ def test_hop_loc_cot_liet_ke_gia_tri_kem_so_dem(client, du_lieu, nguoi_dung):
 
 # ══ Sửa ô — AC-11.3, AC-11.7 ═══════════════════════════════════════
 
-def test_sua_o_dung_kieu_va_tu_choi_gia_tri_ngoai_danh_sach(client, du_lieu, nguoi_dung):
-    """AC-11.3 — Ô danh sách chỉ nhận giá trị trong danh sách (không phân biệt hoa thường), giá trị lạ → 400 kèm lý do; mỗi lần sửa một dòng nhật ký"""
-    dong = du_lieu["an1"]
-    client.force_login(nguoi_dung["staff_vd"])
-    duong = f"/bang-tinh/van_don/o/{dong.pk}/trang_thai_vc/"
+def test_sua_o_dung_kieu_va_tu_choi_gia_tri_ngoai_danh_sach(client,du_lieu,nguoi_dung):
+    import uuid
+    d=du_lieu['an1'];client.force_login(nguoi_dung['staff_vd'])
     with SUA_DUOC:
-        # trình sửa là ô chọn với đủ tám trạng thái
-        html = client.get(duong).content.decode()
-        assert "<select" in html and html.count("<option") == 1 + len(ShippingStatus)
-
-        truoc = AuditLog.objects.filter(action=AuditAction.UPDATE).count()
-        kq = client.post(duong, {"gia_tri": "Đã nhận hàng"})
-        assert kq.status_code == 200 and "Đã nhận hàng" in kq.content.decode()
-        dong.refresh_from_db()
-        assert dong.data["trang_thai_vc"] == "Đã nhận hàng" and dong.val_status == "Đã nhận hàng"
-        assert AuditLog.objects.filter(action=AuditAction.UPDATE).count() == truoc + 1
-
-        kq = client.post(duong, {"gia_tri": "Bay lên trời"})
-        assert kq.status_code == 400 and "không có trong danh sách" in kq.content.decode()
-        dong.refresh_from_db()
-        assert dong.data["trang_thai_vc"] == "Đã nhận hàng"
-
-        # thanh toán: viết hoa kiểu tệp thật vẫn về đúng nhãn
-        kq = client.post(f"/bang-tinh/van_don/o/{dong.pk}/trang_thai_tt/", {"gia_tri": "đã THANH toán"})
-        assert kq.status_code == 200
-        dong.refresh_from_db()
-        assert dong.data["trang_thai_tt"] == PaymentStatus.PAID.label
-
-        # nhân viên vận đơn là danh sách gợi ý: mã người lạ vẫn nhận
-        html = client.get(f"/bang-tinh/van_don/o/{dong.pk}/nv_van_don/").content.decode()
-        assert "<datalist" in html and "staff_vd" in html
-        assert client.post(f"/bang-tinh/van_don/o/{dong.pk}/nv_van_don/", {"gia_tri": "PHUONGVH"}).status_code == 200
-
-        # số lượng sản phẩm: ô số, "abc" bị từ chối
-        assert "type=\"number\"" in client.get(f"/bang-tinh/van_don/o/{dong.pk}/sl_retinol_cream/").content.decode()
-        assert client.post(f"/bang-tinh/van_don/o/{dong.pk}/sl_retinol_cream/", {"gia_tri": "abc"}).status_code == 400
-        # ghi chú nhiều dòng
-        assert "<textarea" in client.get(f"/bang-tinh/van_don/o/{dong.pk}/ghi_chu/").content.decode()
-        # huỷ sửa trả về ô hiển thị
-        assert 'class="o-sua' in client.get(duong + "?hien=1").content.decode()
-        assert client.get(f"/bang-tinh/van_don/o/{dong.pk}/khong_co/").status_code == 404
+        for value,status in [('Đã nhận hàng',200),('Bay lên trời',400)]:
+            d.refresh_from_db()
+            response=client.post('/bang-tinh/van_don/luu-json/',{'operation':str(uuid.uuid4()),'cells':[{'id':d.pk,'column':'trang_thai_vc','old':d.data['trang_thai_vc'],'value':value}]},content_type='application/json')
+            assert response.status_code==status,response.content
+        d.refresh_from_db();assert d.val_status=='Đã nhận hàng'
 
 
-def test_bang_du_lieu_chi_xem_bang_tinh_sua_duoc(client, du_lieu, nguoi_dung):
-    """AC-11.7 — Ở dịch vụ chính ô không sửa được (403, lưới báo chỉ xem); cùng đường dẫn ở dịch vụ Bảng tính thì 200"""
-    dong = du_lieu["an1"]
-    client.force_login(nguoi_dung["staff_vd"])
-    duong = f"/bang-tinh/van_don/o/{dong.pk}/ghi_chu/"
-    kq = client.get("/bang-tinh/van_don/")
-    assert kq.context["chi_xem"] is True
-    assert 'class="o-xem' in kq.content.decode() and 'class="o-sua' not in kq.content.decode()
-    assert client.get(duong).status_code == 403
-    assert client.post(duong, {"gia_tri": "sửa ở chỗ sai"}).status_code == 403
-    with override_settings(ROOT_URLCONF="knjsc.urls"):          # Bảng dữ liệu ở KN ERP: không có đường sửa ô (ADR-014)
-        assert client.post(f"/bang/van_don/o/{dong.pk}/ghi_chu/", {"gia_tri": "sửa ở chỗ sai"}).status_code == 404
-    dong.refresh_from_db()
-    assert dong.data.get("ghi_chu") == "Giao buổi tối"
-
+def test_bang_du_lieu_chi_xem_bang_tinh_sua_duoc(client,du_lieu,nguoi_dung):
+    import uuid
+    d=du_lieu['an1'];client.force_login(nguoi_dung['staff_vd'])
+    payload={'operation':str(uuid.uuid4()),'cells':[{'id':d.pk,'column':'ghi_chu','old':d.data['ghi_chu'],'value':'Đúng chỗ'}]}
+    with override_settings(ROOT_URLCONF='knjsc.urls'):
+        assert client.post('/bang/van_don/o/'+str(d.pk)+'/ghi_chu/',{'gia_tri':'Sai chỗ'}).status_code in (403,404,405)
     with SUA_DUOC:
-        kq = client.get("/bang-tinh/van_don/")
-        assert kq.context["chi_xem"] is False and 'class="o-sua' in kq.content.decode()
-        assert client.post(duong, {"gia_tri": "Đúng chỗ"}).status_code == 200
-    dong.refresh_from_db()
-    assert dong.data["ghi_chu"] == "Đúng chỗ"
+        assert client.post('/bang-tinh/van_don/luu-json/',payload,content_type='application/json').status_code==200
+    d.refresh_from_db();assert d.data['ghi_chu']=='Đúng chỗ'
 
 
 # ══ Lọc trùng, màu dòng — AC-11.5, AC-11.6 ═════════════════════════
@@ -217,10 +173,11 @@ def test_loc_trung_dem_dung_va_to_mau(client, du_lieu, nguoi_dung):
     """AC-11.5 — Cột Lọc trùng đếm đúng số dòng cùng số điện thoại, tô màu khi > 1, lọc được chỉ số trùng"""
     client.force_login(nguoi_dung["staff_vd"])
     kq = client.get("/bang-tinh/van_don/")
-    trung = {d["ban_ghi"].pk: d["so_trung"] for d in kq.context["cac_dong"]}
+    data=client.get('/bang-tinh/van_don/du-lieu/').json()
+    trung = {d['id']:d['cells']['__duplicates']['value'] for d in data['rows']}
     assert trung[du_lieu["an1"].pk] == 2 and trung[du_lieu["an2"].pk] == 2
     assert trung[du_lieu["binh"].pk] == 1 and trung[du_lieu["chi"].pk] == 1
-    assert kq.content.decode().count("o-trung\"") == 2
+    assert sum(n>1 for n in trung.values())==2
     assert _so_dong(client, "?trung=1") == 2
     # Số trống không tính là trùng với nhau
     _dong(du_lieu["an1"].table, nguoi_dung["staff_vd"], ten_khach="Không số 1", so_dien_thoai="")
@@ -231,11 +188,11 @@ def test_loc_trung_dem_dung_va_to_mau(client, du_lieu, nguoi_dung):
 def test_dong_huy_va_hoan_duoc_to_mau(client, du_lieu, nguoi_dung):
     """AC-11.6 — Dòng Hủy trước giao, Hủy sau giao, Hoàn đơn mang lớp màu xấu; dòng khác thì không"""
     client.force_login(nguoi_dung["staff_vd"])
-    lop = {d["ban_ghi"].pk: d["lop"] for d in client.get("/bang-tinh/van_don/").context["cac_dong"]}
+    lop = {d['id']:d['class'] for d in client.get('/bang-tinh/van_don/du-lieu/').json()['rows']}
     assert lop[du_lieu["binh"].pk] == "dong-xau" and lop[du_lieu["chi"].pk] == "dong-xau"
     assert lop[du_lieu["an1"].pk] == "" and lop[du_lieu["an2"].pk] == "dong-tot"
     html = client.get("/bang-tinh/van_don/").content.decode()
-    assert html.count('<tr class="dong-xau"') == 2
+    assert list(lop.values()).count('dong-xau')==2
 
 
 # ══ Cột sản phẩm — AC-11.8 ═════════════════════════════════════════
@@ -345,5 +302,5 @@ def test_hop_loc_cot_theo_gia_tri_nhu_demo(client, bang_vd, du_lieu, nguoi_dung)
     html = kq.content.decode()
     assert 'name="f_ngay__trong"' in html and 'name="f_ngay__lon_bang"' in html
     # Chọn hai giá trị: lưới còn đúng các dòng mang giá trị đó (Nguyễn An có hai dòng)
-    kq = client.get("/bang-tinh/van_don/", {"f_ten_khach__trong": ["Nguyễn An", "Trần Bình"]})
-    assert kq.status_code == 200 and kq.context["page_obj"].paginator.count == 3
+    kq = client.get("/bang-tinh/van_don/du-lieu/", {"f_ten_khach__trong": ["Nguyễn An", "Trần Bình"]})
+    assert kq.status_code == 200 and kq.json()['total']==3

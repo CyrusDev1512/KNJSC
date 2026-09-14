@@ -21,7 +21,7 @@
   }
   preferences.rowHeights=heights;
   const state = {columns: [], visible: [], cache: new Map(), pending: new Map(), total: 0,
-    version: '', queryToken:'', metadataVersion:'', revision:0, cursors:new Map(), generation: 0, selection: null, anchor: null, current: null, draft: null,
+    persistedTotal:0, drafts:[], nextDraft:-1, version: '', queryToken:'', metadataVersion:'', revision:0, cursors:new Map(), generation: 0, selection: null, anchor: null, current: null, draft: null,
     retry: null, busy: false, ready: false, poll: '', lastError: '', editMode:false, conflicts:[], retryCount:0, composing:false, accessEpoch:0};
   let saveTimer=0, firstQueued=0;
   let query = new URLSearchParams(location.search), scheduled = false, drag = null, resizing = null, frame = 0, rowResize = null, rowFrame = 0;
@@ -39,7 +39,7 @@
   }
   async function json(response) {
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) { const error = new Error(data.error || 'Không tải được dữ liệu. Kiểm tra kết nối hoặc quyền truy cập.'); error.status = response.status; error.cell = data.cell; error.conflicts=data.conflicts||[]; throw error; }
+    if (!response.ok) { const error = new Error(data.error || 'Không tải được dữ liệu. Kiểm tra kết nối hoặc quyền truy cập.'); error.status = response.status; error.code=data.code; error.cell = data.cell; error.conflicts=data.conflicts||[]; throw error; }
     if(response.redirected || !response.headers.get('Content-Type')?.includes('application/json')){
       const error=Error('Phiên đăng nhập hoặc phản hồi không hợp lệ. Nội dung chưa được xác nhận lưu.');
       if(response.url&&new URL(response.url).pathname==='/dang-nhap/')error.status=403;
@@ -74,7 +74,15 @@
     state.width = Math.max(x, viewport.clientWidth); state.frozen = frozen;
     canvas.style.width = state.width + 'px'; canvas.style.height = Math.max(HEADER + geometry.top(state.total), viewport.clientHeight) + 'px';
   }
-  function rowAt(index) { return state.cache.get(Math.floor(index / BLOCK))?.rows[index % BLOCK]; }
+  function ensureDrafts(count=1){
+    if(!config.canCreate)return;
+    while(state.drafts.length<count){
+      const cells=Object.fromEntries(state.columns.map(c=>[c.code,{value:null,display:'',style:{},class:'',editable:!c.protected}]));
+      state.drafts.push({id:state.nextDraft--,cells,editable:true,updated:null,detail_url:null});
+    }
+    state.total=state.persistedTotal+state.drafts.length;
+  }
+  function rowAt(index) { return index>=state.persistedTotal?state.drafts[index-state.persistedTotal]:state.cache.get(Math.floor(index / BLOCK))?.rows[index % BLOCK]; }
   function repaint() { if (!scheduled) { scheduled = true; requestAnimationFrame(() => { scheduled = false; render(); }); } }
   function invalidate(clearSelection = true) {
     finishRowResize(false);
@@ -85,6 +93,10 @@
     repaint();
   }
   async function loadBlock(number) {
+    if(state.unavailable)return;
+    // Khối đầu vẫn phải đọc lại sau invalidate, kể cả bảng từng rỗng.
+    // Chỉ bỏ truy vấn những khối cuối chứa toàn dòng nháp.
+    if(state.ready&&number>0&&number*BLOCK>=state.persistedTotal)return {rows:[]};
     if (number < 0) return;
     if (state.cache.has(number)) { const b = state.cache.get(number); state.cache.delete(number); state.cache.set(number, b); return b; }
     if (state.pending.has(number)) return state.pending.get(number).promise;
@@ -104,7 +116,9 @@
       if(state.queryToken&&data.protocol===2&&data.revision<state.revision){repaint();return;}
       if(config.protocol===2&&data.protocol!==2){config.protocol=1;config.syncUrl=null;state.queryToken='';state.metadataVersion='';state.cursors.clear();state.version='';}
       if (state.version && state.version !== data.version) { invalidate(); return; }
-      state.version = data.version; state.total = data.total;if(data.columns)state.columns = data.columns; state.ready = true;
+      if(data.schema_version)state.schemaVersion=data.schema_version;
+      if(data.capabilities)config.canCreate=data.capabilities.create;
+      state.version = data.version; state.persistedTotal = data.total;state.total=data.total;if(data.columns)state.columns = data.columns;ensureDrafts(); state.ready = true;
       if(data.protocol===2){
         if(!state.queryToken)state.revision=data.revision;
         state.queryToken=data.query_token;state.metadataVersion=data.metadata_version;
@@ -113,7 +127,7 @@
         while(state.cursors.size>22)state.cursors.delete(state.cursors.keys().next().value);
       }
       updateGeometry(()=>{
-        if(geometry.total!==data.total)geometry.reset(data.total);
+        if(geometry.total!==state.total)geometry.reset(state.total);
         data.rows.forEach((row,i)=>{if(rowResize?.id!==row.id)geometry.set(number*BLOCK+i,heights[row.id]||ROW);});
       });
       working.observe(data.rows);
@@ -211,7 +225,7 @@
       const name = element('button','mg-column-name',c.name + (query.get('sap') === c.code ? (query.get('chieu') === 'giam' ? ' ↓' : ' ↑') : '')); name.dataset.sort = c.code;
       const filter = element('button','mg-filter-icon','▾'); filter.dataset.filter = c.code; filter.setAttribute('aria-label','Lọc '+c.name);
       const handle = element('span','mg-resize'); handle.dataset.resize = c.code; handle.setAttribute('role','separator'); handle.setAttribute('aria-label','Đổi độ rộng '+c.name);
-      h.append(letter,name,filter,handle);(c.pin?headPins:head).append(h);
+      if(c.filterable===false){name.disabled=true;filter.hidden=true;}h.append(letter,name,filter,handle);(c.pin?headPins:head).append(h);
     }
     const previousHead=canvas.querySelector(':scope > .mg-head');
     if(previousHead)syncRow(previousHead,head);else canvas.prepend(head);
@@ -221,7 +235,7 @@
     if(!body){body=element('div','mg-body');canvas.append(body);}
     const oldRows=config.renderOptimized?new Map([...body.children].map(row=>[row.getAttribute('aria-rowindex'),row])):new Map();
     for (let r = start; r < end; r++) {
-      const row = rowAt(r), line = element('div','mg-row');line.setAttribute('role','row');line.setAttribute('aria-rowindex',r+2);
+      const row = rowAt(r), line = element('div','mg-row'+(row?.class?' '+row.class:''));line.setAttribute('role','row');line.setAttribute('aria-rowindex',r+2);
       const rowHeight=geometry.height(r);
       const paint=config.renderOptimized?{row,working,local:working.revision(row?.id),layout:headerKey,height:rowHeight,top:geometry.top(r)}:null;
       const previous=oldRows.get(String(r+2)),old=previous?._paint;
@@ -242,7 +256,7 @@
         const value = row ? cellValue(row,c.code) : null;
         const cell = element('div','mg-cell '+(value?.class || '')+(rowHeight>ROW?' mg-wrap':'')+(c.pin?' mg-pinned':'')+(c.pinEdge?' mg-pinned-edge':'')+(selected(r,c.i)?' mg-selected':'')+(state.current?.r===r&&state.current?.c===c.i?' mg-current':''),row ? (value?.display ?? value?.value ?? '') : '…');
         cell.dataset.r=r;cell.dataset.c=c.i;cell.dataset.code=c.code;
-        if(c.code==='bill'&&row){
+        if(c.renderer==='bill'&&row){
           cell.replaceChildren();
           for(const link of value?.payments?.links||[]){
             const a=element('button','payment-link',`Lần ${link.position}: ${link.reference}`);
@@ -261,12 +275,12 @@
       }
       fragment.append(line);
     }
-    if (!state.total) { const empty=element('p','mg-empty','Chưa có vận đơn khớp bộ lọc.'); position(empty,left+24,HEADER+35,Math.max(120,viewport.clientWidth-48),60);fragment.append(empty); }
+    if (!state.total) { const empty=element('p','mg-empty','Chưa có dữ liệu khớp bộ lọc.'); position(empty,left+24,HEADER+35,Math.max(120,viewport.clientWidth-48),60);fragment.append(empty); }
     updateBody(body,fragment);
     positionEditor();
     viewport.setAttribute('aria-rowcount',state.total+1);viewport.setAttribute('aria-colcount',state.visible.length+1);
     const s=state.selection;
-    $('mg-count').textContent=state.total.toLocaleString('vi-VN')+' dòng khớp bộ lọc';
+    $('mg-count').textContent=state.persistedTotal.toLocaleString('vi-VN')+' dòng khớp bộ lọc'+(config.canCreate?' · Dòng cuối để nhập mới':'');
     $('mg-selection').textContent=s?`${columnLetter(s.c1)}${s.r1+1}:${columnLetter(s.c2)}${s.r2+1} · ${((s.r2-s.r1+1)*(s.c2-s.c1+1)).toLocaleString('vi-VN')} ô được chọn`:'';
     $('mg-undo').disabled=!working.undo.length;
     $('mg-redo').disabled=!working.redo.length;
@@ -299,7 +313,7 @@
     if(!cell||state.draft||drag||(cell.scrollWidth<=cell.clientWidth&&cell.scrollHeight<=cell.clientHeight))return;
     const row=rowAt(+cell.dataset.r),c=state.visible[+cell.dataset.c];if(!row)return;
     reader.querySelector('strong').textContent=c.name;reader.querySelector('div').textContent=cellValue(row,c.code).display;
-    if(c.code==='bill')reader.querySelector('div').replaceChildren(...[...cell.childNodes].map(node=>node.cloneNode(true)));
+    if(c.renderer==='bill')reader.querySelector('div').replaceChildren(...[...cell.childNodes].map(node=>node.cloneNode(true)));
     floatAt(reader,cell.getBoundingClientRect());
   }
   function positionEditor(){
@@ -318,7 +332,7 @@
     if(dirty()||!state.current)return;
     const cur={...state.current}, generation=state.generation;
     const block=await loadBlock(Math.floor(cur.r/BLOCK));if(generation!==state.generation||!block)return;
-    const row=block.rows[cur.r%BLOCK],c=state.visible[cur.c];if(!row||!c)return;
+    const row=rowAt(cur.r),c=state.visible[cur.c];if(!row||!c)return;
     if(state.current?.r!==cur.r||state.current?.c!==cur.c)return;
     if(automatic&&(c.assignment||c.detail||!cellValue(row,c.code).editable))return;
     reader.hidden=true;
@@ -329,10 +343,13 @@
     let input;
     const options=Array.isArray(c.options)?c.options:[];
     if(c.type==='choice'&&!Array.isArray(c.options)){message('Chưa tải được danh sách chọn của cột. Hãy tải lại trang; các ô khác vẫn có thể sửa.',true);return;}
-    if(c.type==='choice'||options.length){input=element('select','o-nhap');input.append(new Option('—',''));for(const v of options)input.append(new Option(v,v));}
-    else {input=element(c.type==='long_text'?'textarea':'input','o-nhap');if(c.type==='date')input.type='date';else if(c.type==='datetime')input.type='datetime-local';else if(['integer','decimal','money'].includes(c.type))input.inputMode='decimal';}
+    if(c.type==='boolean'){input=element('select','o-nhap');input.append(new Option('—',''),new Option('Đúng','true'),new Option('Sai','false'));}
+    else if((c.type==='choice'||options.length)&&c.choice_strict!==false){input=element('select','o-nhap');input.append(new Option('—',''));for(const v of options)input.append(new Option(v,v));}
+    // Ngày giờ giữ ô chữ ISO như lưới cũ: datetime-local làm mất chuỗi có múi giờ.
+    else {input=element(c.type==='long_text'?'textarea':'input','o-nhap');if(c.type==='date')input.type='date';else if(['integer','decimal','money'].includes(c.type))input.inputMode='decimal';}
     input.name='value';input.setAttribute('aria-label',c.name);input.value=value.value??'';
     $('mg-input').replaceChildren(input);
+    if(options.length&&c.choice_strict===false){const suggestions=element('datalist','');suggestions.id='mg-choice-suggestions';for(const value of options)suggestions.append(new Option(value,value));input.setAttribute('list',suggestions.id);$('mg-input').append(suggestions);}
     // Chỉ giữ bản nháp khi đã tạo xong trình nhập; lỗi mở một ô không khóa cả lưới.
     state.draft={id:row.id,column:c.code,old:value.value,cur};
     editor.hidden=false;
@@ -408,16 +425,34 @@
     const gen=state.generation, result=[];
     for(let r=s.r1;r<=s.r2;r++){
       const b=await loadBlock(Math.floor(r/BLOCK));if(gen!==state.generation||!b)throw Error('Dữ liệu đã đổi; chọn lại vùng cần thao tác.');
-      const row=b.rows[r%BLOCK];if(!row)throw Error('Dòng không còn trong kết quả.');
+      const row=rowAt(r);if(!row)throw Error('Dòng không còn trong kết quả.');
       for(let c=s.c1;c<=s.c2;c++){const col=state.visible[c],v=cellValue(row,col.code);result.push({id:row.id,column:col.code,old:v.value,value:v.value,style:v.style,editable:v.editable,r,c});}
     }return result;
   }
   async function submit(cells,kind='edit') {
-    try{const changed=working.stage(cells);if(changed&&state.errorStatus===400)state.saveError=false;state.kind=kind;refreshStatus();repaint();scheduleSave();return true;}
+    if(state.rowRetry){message('Thử lại lượt hoàn tác chưa được xác nhận trước khi sửa tiếp.',true);return false;}
+    try{if(!working.count)state.editSchema=state.schemaVersion;const changed=working.stage(cells);if(changed&&state.errorStatus===400)state.saveError=false;state.kind=kind;refreshStatus();repaint();scheduleSave();return true;}
     catch(error){message(error.message,true);return false;}
   }
   async function undo(redo=false) {
-    if(dirty())return;working.travel(redo);state.kind=redo?'redo':'undo';refreshStatus();repaint();scheduleSave();
+    if(dirty())return;const step=(redo?working.redo:working.undo).at(-1);if(step?.createdRows?.length){await travelCreated(step,redo);return;}working.travel(redo);state.kind=redo?'redo':'undo';refreshStatus();repaint();scheduleSave();
+  }
+  async function travelCreated(step,redo){
+    if(state.busy)return;
+    if(state.rowRetry && (state.rowRetry.step!==step || state.rowRetry.redo!==redo)){message('Hãy thử lại lượt hoàn tác chưa được xác nhận.',true);return;}
+    if(working.count||state.retry){await saveAll();if(working.count||state.retry)return;}
+    const created=new Set(step.createdRows.map(r=>r.id));
+    const cells=step.filter(c=>!created.has(c.id)).map(c=>({...c,old:redo?c.old:c.value,value:redo?c.value:c.old}));
+    const payload=state.rowRetry?.payload||{operation:crypto.randomUUID(),kind:redo?'redo':'undo',cells,
+      row_changes:step.createdRows.map(r=>({...r,action:redo?'restore':'delete'}))};
+    state.rowRetry={payload,step,redo};
+    state.busy=true;
+    try{
+      const result=await fetch(config.saveUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(payload)}).then(json);
+      working.stage(cells,false);working.acknowledge(cells,result.rows||[]);
+      for(const row of result.row_results||[]){const item=step.createdRows.find(r=>r.id===row.id);if(item)item.version=row.version;}
+      state.rowRetry=null;(redo?working.redo:working.undo).pop();(redo?working.undo:working.redo).push(step);invalidate();
+    }catch(error){if(error.status&&error.status<500)state.rowRetry=null;message(error.message,true);if(state.rowRetry){const retry=element('button','nut','Thử lại hoàn tác');retry.onclick=()=>travelCreated(step,redo);$('mg-message').append(retry);}}finally{state.busy=false;refreshStatus();}
   }
   function scheduleSave(){
     if(state.saveError||state.conflicts.length||!working.count)return;
@@ -432,21 +467,33 @@
     repaint();
   }
   async function saveAll(explicit=true) {
+    if(state.rowRetry){await travelCreated(state.rowRetry.step,state.rowRetry.redo);return;}
     if(explicit&&!finishEditor())return;
-    if(state.busy||state.conflicts.length)return;
+    if(state.busy||state.conflicts.length||state.unavailable)return;
     clearTimeout(saveTimer);firstQueued=0;
     if(!working.pending().length&&!state.retry){refreshStatus();return;}
     state.busy=true;state.saveError=false;status('Đang lưu');message();closeMore();repaint();
     const accessEpoch=state.accessEpoch;
     try{
         const cells=working.pending();
-        const payload=state.retry?.payload||{operation:crypto.randomUUID(),cells,kind:state.kind||'edit',...(config.compact?{protocol:2}:{})};state.kind='edit';
+        for(const id of new Set(cells.filter(c=>c.id<0).map(c=>c.id))){
+          const missing=state.columns.filter(c=>c.required&&!c.computed&&!cells.some(x=>x.id===id&&x.column===c.code&&x.value!==''&&x.value!==null));
+          if(missing.length){const e=Error('Dòng mới thiếu: '+missing.map(c=>c.name).join(', '));e.status=400;throw e;}
+        }
+        const payload=state.retry?.payload||{operation:crypto.randomUUID(),cells,kind:state.kind||'edit',...(state.editSchema?{schema_version:state.editSchema}:{}),...(config.compact?{protocol:2}:{})};state.kind='edit';
         state.retry={payload};working.hold(payload.cells);
         const data=await fetch(config.saveUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(payload)}).then(json);
         if(accessEpoch!==state.accessEpoch)return;
         const rows=data.protocol===2?data.render_cells:data.rows;
+        if(data.id_map){
+          working.remap(data.id_map,rows,payload.operation);
+          payload.cells=payload.cells.map(c=>({...c,id:data.id_map[String(c.id)]??c.id}));
+          state.drafts=state.drafts.filter(r=>!data.id_map[String(r.id)]);
+        }
+        working.acknowledgeRowVersions(rows);
         working.acknowledge(payload.cells,rows);working.observe(rows);state.retry=null;state.retryCount=0;
         updateRows(rows,data.protocol===2);state.lastError='';
+        if(data.id_map){invalidate();message('Đã tạo dòng. Dòng được xếp theo thứ tự hiện tại; nếu không khớp bộ lọc sẽ không hiện trong kết quả.');}
     }catch(error){
       clearTimeout(saveTimer);firstQueued=0;
       if(error.status===403||error.status===404){
@@ -463,6 +510,7 @@
       retry.onclick=()=>{state.retryCount=0;saveAll();};discard.onclick=()=>{working=new window.KNJSCWorkingCopy(!!config.renderOptimized);state.retry=null;state.conflicts=[];state.saveError=false;message();invalidate();refreshStatus();};
       if(state.conflicts.length){const open=element('button','nut','Đối chiếu xung đột');open.onclick=showConflicts;$('mg-message').append(open);}
       else $('mg-message').append(retry);
+      if(error.code==='schema_changed'){const reload=element('button','nut','Tải lại cấu trúc, giữ nháp');reload.onclick=async()=>{invalidate(false);await loadBlock(0);state.editSchema=state.schemaVersion;state.retry=null;state.saveError=false;message('Đã tải cấu trúc mới. Kiểm tra nháp theo mã cột trước khi bấm Thử lại.');$('mg-message').append(retry);};$('mg-message').append(reload);}
       // Không bỏ lượt chưa biết đã commit hay chưa; giải quyết biên nhận trước.
       if(!state.retry)$('mg-message').append(discard);
       if((!error.status||error.status>=500)&&state.retryCount<4){const delay=1000*2**state.retryCount++;saveTimer=setTimeout(()=>saveAll(false),delay);}
@@ -473,7 +521,7 @@
     for(const c of state.retry?.payload.cells||[])ids.add(c.id);
     if(state.draft)ids.add(state.draft.id);if(state.historyId)ids.add(state.historyId);
     for(const block of state.cache.values())block.rows.forEach(row=>ids.add(row.id));
-    const visible=new Set(),all=[...ids];
+    const visible=new Set(),all=[...ids].filter(id=>id>0);
     for(let i=0;i<all.length;i+=4000){
       const data=await fetch(config.scopeUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({ids:all.slice(i,i+4000)})}).then(json);
       data.visible.forEach(id=>visible.add(id));
@@ -516,10 +564,11 @@
     const data=parseTSV(text),width=Math.max(0,...data.map(r=>r.length));if(!width)return;
     const start={...state.current};
     if(data.length*width>MAX)throw Error(`Chỉ dán tối đa ${MAX} ô một lần.`);
-    if(start.r+data.length>state.total||start.c+width>state.visible.length)throw Error('Vùng dán vượt cuối bảng; không tự tạo đơn hoặc cột mới.');
+    if(start.c+width>state.visible.length||(!config.canCreate&&start.r+data.length>state.persistedTotal))throw Error('Vùng dán vượt cuối bảng; không tự tạo đơn hoặc cột mới.');
+    ensureDrafts(Math.max(1,start.r+data.length-state.persistedTotal));updateGeometry(()=>geometry.reset(state.total));
     if(data.some(r=>r.length!==width))throw Error('Dữ liệu dán có số cột không đồng đều.');
     const gen=state.generation,cells=[];
-    for(let i=0;i<data.length;i++){const b=await loadBlock(Math.floor((start.r+i)/BLOCK));if(gen!==state.generation||!b)throw Error('Dữ liệu đã đổi, chọn lại vùng dán.');const row=b.rows[(start.r+i)%BLOCK];
+    for(let i=0;i<data.length;i++){const b=await loadBlock(Math.floor((start.r+i)/BLOCK));if(gen!==state.generation||!b)throw Error('Dữ liệu đã đổi, chọn lại vùng dán.');const row=rowAt(start.r+i);
       for(let j=0;j<width;j++){const c=state.visible[start.c+j],v=cellValue(row,c.code);if(!v.editable)throw Error(`Ô ${columnLetter(start.c+j)}${start.r+i+1} bị khóa; chưa dán ô nào.`);if(/^\s*=/.test(data[i][j]))throw Error('Không nhập công thức; hãy dán giá trị từ Excel.');cells.push({id:row.id,column:c.code,old:v.value,value:data[i][j]});}}
     await submit(cells,'paste');
   }
@@ -630,6 +679,12 @@
   new ResizeObserver(()=>{if(!editor.hidden){const b=editor.getBoundingClientRect();editor.style.maxWidth=(innerWidth-b.left-12)+'px';editor.style.maxHeight=(innerHeight-b.top-12)+'px';}}).observe(editor);
   window.addEventListener('resize',()=>{closeMore();reader.hidden=true;if(state.draft)floatAt(editor,editor.getBoundingClientRect());});
   document.body.addEventListener('htmx:afterSwap',()=>{document.querySelectorAll('#mg-column-filter-body [hx-target="#hop-loc"]').forEach(e=>e.setAttribute('hx-target','#mg-column-filter-body'));});
+  document.body.addEventListener('htmx:beforeSwap',e=>{
+    // Phản hồi đã gửi trước lúc xóa bảng không được đưa dữ liệu cũ trở lại DOM.
+    if(state.unavailable&&e.detail.target?.matches('#mg-column-filter-body, #hop-loc, #vd-detail-body, #vd-assignment-fields')){
+      e.detail.shouldSwap=false;e.preventDefault();
+    }
+  });
   function closeMore(){ $('mg-more').hidden=true;$('mg-more-button').setAttribute('aria-expanded','false'); }
   $('mg-more-button').onclick=()=>{
     if(dirty())return;const menu=$('mg-more'),button=$('mg-more-button'),show=menu.hidden;
@@ -665,7 +720,7 @@
   });
   $('mg-history-button').onclick=safe(async()=>{
     if(dirty())return;if(!state.current)throw Error('Chọn một ô trong dòng cần xem lịch sử.');
-    const block=await loadBlock(Math.floor(state.current.r/BLOCK)),row=block?.rows[state.current.r%BLOCK];if(!row)return;
+    const block=await loadBlock(Math.floor(state.current.r/BLOCK)),row=rowAt(state.current.r);if(!row)return;
     state.historyId=row.id;const body=$('mg-history-body');body.replaceChildren();
     body.append(element('p','','Chỉ gồm thay đổi ô/định dạng qua lưới mới; chưa gồm nhập file, phân công và chi tiết sản phẩm.'));
     const filter=element('select','o-nhap');filter.setAttribute('aria-label','Cột lịch sử');filter.append(new Option('Tất cả cột',''));
@@ -707,7 +762,7 @@
   }
   $('mg-conflict-button').onclick=showConflicts;
   window.addEventListener('beforeunload',e=>{
-    if(working.count||state.retry||state.busy||(state.draft&&!same(editor.elements.value?.value,state.draft.old))){e.preventDefault();e.returnValue='';}
+    if(working.count||state.retry||state.rowRetry||state.busy||(state.draft&&!same(editor.elements.value?.value,state.draft.old))){e.preventDefault();e.returnValue='';}
   });
   window.addEventListener('online',()=>{if(state.retry&&!state.busy&&!state.conflicts.length){state.retryCount=0;saveAll(false);}});
   document.addEventListener('pointerdown',e=>{
@@ -733,25 +788,29 @@
   window.KNJSC_MASTER={refresh,selectedRows:async()=>[...new Set((await rangeCells()).map(c=>c.id))],diagnostics:()=>({cache:state.cache.size,cells:canvas.querySelectorAll('.mg-cell').length,total:state.total,generation:state.generation})};
   window.KNJSC_MASTER.requestDiagnostics=()=>requestLog.map(entry=>({...entry}));
   function clearAccess(text){
+    state.unavailable=true;
+    closeMore();$('hop-loc').hidden=true;$('mg-column-filter-body').replaceChildren();
+    $('mg-filters').hidden=true;$('mg-filters-button').setAttribute('aria-expanded','false');
     const hadDraft=!!state.draft||!!state.retry;
-    state.draft=state.retry=state.historyId=null;editor.hidden=reader.hidden=true;
+    state.draft=state.retry=state.rowRetry=state.historyId=null;editor.hidden=reader.hidden=true;
     $('mg-input').replaceChildren();reader.querySelector('div').textContent='';
     working=new window.KNJSCWorkingCopy(!!config.renderOptimized);state.conflicts=[];state.saveError=true;clearTimeout(saveTimer);
     state.accessEpoch++;
     for(const id of ['mg-history','mg-conflict','mg-format']){$(id).close();$(id+'-body').replaceChildren();}
     $('vd-detail')?.close();$('vd-detail-body')?.replaceChildren();$('vd-assignment')?.close();$('vd-assignment-fields')?.replaceChildren();
-    invalidate();state.total=0;state.ready=true;state.lastError=text;
+    invalidate();state.total=state.persistedTotal=0;state.drafts=[];state.ready=true;state.lastError=text;
     canvas.replaceChildren();message(text,true);if(hadDraft)status('Chưa lưu');repaint();
   }
   async function poll(){
-    if(document.hidden||state.busy)return;
+    if(document.hidden||state.busy||state.unavailable)return;
     try{
       if(config.syncUrl){
         if(!state.queryToken)return;
         const generation=state.generation,ids=new Set(working.pending().map(c=>c.id));
         if(state.draft)ids.add(state.draft.id);if(state.historyId)ids.add(state.historyId);
         for(const block of state.cache.values())block.rows.forEach(row=>ids.add(row.id));
-        const visible=[...new Set([...canvas.querySelectorAll('.mg-cell[data-id]')].map(cell=>Number(cell.dataset.id)))].slice(0,100);
+        const visible=[...new Set([...canvas.querySelectorAll('.mg-cell[data-id]')].map(cell=>Number(cell.dataset.id)))].filter(id=>id>0).slice(0,100);
+        for(const id of ids)if(id<1)ids.delete(id);
         const data=await fetch(config.syncUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({ids:[...ids],visible,query:query.toString(),query_token:state.queryToken,revision:state.revision})}).then(json);
         if(generation!==state.generation||state.busy)return;
         if(data.unsupported){config.syncUrl=null;return;}
@@ -770,6 +829,7 @@
       const ids=new Set(working.pending().map(c=>c.id));
       if(state.draft)ids.add(state.draft.id);if(state.historyId)ids.add(state.historyId);
       for(const block of state.cache.values())block.rows.forEach(r=>ids.add(r.id));
+      for(const id of ids)if(id<1)ids.delete(id);
       if(ids.size){const check=await fetch(config.scopeUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({ids:[...ids]})}).then(json),visible=new Set(check.visible),lost=new Set([...ids].filter(id=>!visible.has(id)));
         if(lost.size){
           const interrupted=working.pending().some(c=>lost.has(c.id))||state.retry?.payload.cells.some(c=>lost.has(c.id));

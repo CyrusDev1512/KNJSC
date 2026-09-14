@@ -5,6 +5,29 @@
   const key=c=>`${c.id}:${c.column}:${c.property||'value'}`;
   class MasterWorkingCopy {
     constructor(track=false){this.track=track;this.entries=new Map();this.undo=[];this.redo=[];this.held=new Set();this.count=0;this.rowVersions=new Map();}
+    remap(mapping, rows, operation){
+      const ids=new Map(Object.entries(mapping).map(([a,b])=>[Number(a),b]));
+      const rowMap=new Map(rows.map(r=>[r.id,r]));
+      const assigned=new Set();
+      for(const step of [...this.undo,...this.redo]){
+        for(const cell of step){
+          const id=ids.get(cell.id);if(id===undefined)continue;
+          if(!assigned.has(id)){
+            (step.createdRows ||= []).push({id,source:operation,version:rowMap.get(id).updated});assigned.add(id);
+          }
+          cell.id=id;
+        }
+      }
+      this.entries=new Map([...this.entries.values()].map(e=>{const next={...e,id:ids.get(e.id)??e.id};return [key(next),next];}));
+      this.held=new Set([...this.held].map(k=>{const i=k.indexOf(':'),id=ids.get(Number(k.slice(0,i)));return id===undefined?k:id+k.slice(i);}));
+      this.rowVersions.clear();
+    }
+    acknowledgeRowVersions(rows){
+      const byId=new Map(rows.map(r=>[r.id,r]));
+      for(const step of [...this.undo,...this.redo])for(const row of step.createdRows||[]){
+        if(byId.has(row.id)&&byId.get(row.id).updated)row.version=byId.get(row.id).updated;
+      }
+    }
     revision(id){return this.rowVersions.get(id)||0;}
     touch(id){if(this.track)this.rowVersions.set(id,this.revision(id)+1);}
     value(id,column,fallback,property='value'){const e=this.entries.get(key({id,column,property}));return e?e.value:fallback;}

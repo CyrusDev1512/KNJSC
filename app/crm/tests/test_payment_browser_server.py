@@ -62,7 +62,7 @@ def test_payment_browser(live_server, feedback, nguoi_dung, settings):
     ready = Path('/app/.payment-ready.json')
     result = Path('/app/.payment-result.json')
     result.unlink(missing_ok=True)
-    ready.write_text(json.dumps({'document': document.pk, 'row': originals[0].pk, 'metrics': metrics}), encoding='utf-8')
+    ready.write_text(json.dumps({'document': document.pk, 'row': originals[0].pk, 'metrics': metrics,'delivery':nguoi_dung['staff_vd'].pk}), encoding='utf-8')
     try:
         end = time.monotonic() + 900
         while not result.exists() and time.monotonic() < end:
