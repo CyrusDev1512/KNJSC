@@ -87,6 +87,19 @@ def test_co_template_de_kiem():
     assert len(CAC_TEMPLATE) >= 10
 
 
+def test_khung_erp_co_dock_thu_gon_va_bang_co_che_do_tap_trung():
+    """Hợp đồng bố cục: dock dùng chung và bảng ERP có đủ điều khiển/fallback."""
+    base = (THU_MUC_TEMPLATE / "base.html").read_text(encoding="utf-8")
+    table = (THU_MUC_TEMPLATE / "forms_builder/bang_xem.html").read_text(encoding="utf-8")
+    shell = (GOC / "static/js/solarpunk-shell.js").read_text(encoding="utf-8")
+    focus = (GOC / "static/js/erp-table-focus.js").read_text(encoding="utf-8")
+    assert 'id="sp-dock-collapse"' in base and 'id="sp-dock-expand"' in base
+    assert "knjsc-erp-dock-collapsed" in shell and "localStorage.setItem" in shell
+    assert 'id="erp-focus-enter"' in table and 'id="erp-native-fullscreen"' in table
+    assert "requestFullscreen" in focus and "fullscreenElement" in focus
+    assert "event.key !== 'Escape'" in focus and "event.defaultPrevented" in focus
+
+
 @pytest.mark.parametrize("tep", CAC_TEMPLATE, ids=lambda p: p.name)
 def test_moi_lop_css_dung_trong_template_deu_ton_tai(tep):
     """K15 — Lớp CSS gõ trong template phải có thật trong tệp kiểu dáng

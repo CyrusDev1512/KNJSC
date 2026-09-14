@@ -1,5 +1,6 @@
 """Điểm vào của bộ lưới JSON dùng chung cho các bảng động."""
 import json
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -121,6 +122,7 @@ def shell(request, table):
     return render(request, 'crm/master_grid.html', {
         'delivery_view_manage': delivery_view_service.can_manage(request.user, table),
         'waybill_profile': table.code == 'van_don_moi',
+        'payment_documents_enabled': getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False),
         'grid_root_class':'mg-root mg-waybill-master' if table.code == 'van_don_moi' else 'mg-root',
         'thang_dang_xem':month, 'bang': table, 'luoi': grid, 'qs_giu': qs.urlencode(), 'chips': chips,
         've_url': tree_service.home_url(table.department, month=month) if month else tree_service.home_url(table.department, all_tables=True),

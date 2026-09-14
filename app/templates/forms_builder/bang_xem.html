@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block tieu_de %}{{ bang.name }} · Kim Ngân JSC{% endblock %}
 {% block ten_trang %}{{ bang.name }}{% endblock %}
 
@@ -11,6 +12,7 @@
     <p>{{ bang.description|default:"Danh sách đã lọc theo phạm vi quyền của bạn." }}</p>
   </div>
   <div class="hanh-dong">
+    <button class="nut" id="erp-focus-enter" type="button">Tập trung</button>
     <a class="nut" href="{% url 'bang' %}">Danh sách bảng</a>
     {% if duoc_sua %}<a class="nut" href="{% url 'bang_cot' bang.code %}">Sửa cột</a>{% endif %}
     {% if duoc_nhap %}<a class="nut" href="{% url 'bang_nhap' bang.code %}">Nhập tệp</a>{% endif %}
@@ -29,8 +31,19 @@
   </div>
 </div>
 
+<section class="erp-table-focus" id="erp-table-focus" aria-label="Bảng dữ liệu {{ bang.name }}">
+  <div class="erp-focus-bar" id="erp-focus-bar" hidden>
+    <strong>{{ bang.name }}</strong>
+    <div class="erp-focus-actions">
+      <button class="nut nut-nho" id="erp-focus-tools" type="button" aria-controls="erp-table-tools" aria-expanded="false">Công cụ</button>
+      <button class="nut nut-nho" id="erp-native-fullscreen" type="button">Toàn màn hình trình duyệt</button>
+      <button class="nut nut-nho nut-chinh" id="erp-focus-exit" type="button">Thoát</button>
+    </div>
+  </div>
+
 <div class="bang-hop">
   {# Chỉ cột mang nhãn ý nghĩa mới cho lọc — cột đó có chỉ mục (quy tắc 9) #}
+  <div class="erp-table-tools" id="erp-table-tools">
   <form class="loc" method="get">
     <div class="truong o-tim">
       <label for="tim">Tìm kiếm</label>
@@ -48,6 +61,7 @@
       <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
     </div>
   </form>
+  </div>
 
   <div class="bang-cuon">
     <table class="bang bang-luoi">
@@ -82,7 +96,12 @@
     </table>
   </div>
 
-  {% include "components/phan_trang.html" %}
+  <div class="erp-pagination-tools">{% include "components/phan_trang.html" %}</div>
 </div>
+</section>
 
+{% endblock %}
+{% block cuoi_trang %}
+{{ block.super }}
+<script src="{% static 'js/erp-table-focus.js' %}?v={{ phien_ban_tinh }}" defer></script>
 {% endblock %}

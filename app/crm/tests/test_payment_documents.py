@@ -12,6 +12,7 @@ pytestmark = pytest.mark.django_db
 @pytest.fixture(autouse=True)
 def payment_storage(settings, tmp_path):
     settings.STORAGE_DIR = tmp_path
+    settings.PAYMENT_DOCUMENTS_ENABLED = True
 
 
 def image_upload():

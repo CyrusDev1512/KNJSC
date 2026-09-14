@@ -1,5 +1,17 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 14.09.2026 — Toàn màn hình ERP, sắp lại Vận đơn và tạm khóa Chứng từ
+
+TDD ban đầu đỏ đúng bốn nhóm: nhãn/thứ tự cũ, Bill bị khóa, Chứng từ còn lộ và
+ERP chưa có Tập trung. Nhóm hồi quy liên quan đã xanh. Chrome cô lập 1440/390,
+sáng/tối đạt cho dock nhớ trạng thái, Fullscreen API, Esc theo lớp và ERP chỉ đọc;
+Bill cho sửa/Undo, URL web có `noopener`, `javascript:` không thành link. Database
+local có backup trước khi chạy lệnh hai lần; số dòng/ID/quyền không đổi.
+Full suite xác nhận: **2.332 passed, 15 failed nền, 31 skipped, 2 xfailed**
+trong 448,37 giây; sáu lỗi mới của lượt đầu là hợp đồng đăng nhập cũ đối với
+endpoint đã tắt, sau khi cập nhật đúng quyết định 404 thì không còn.
+[Lệnh và bằng chứng](kiem-chung-erp-vandon-bill-20260914.md).
+
 ## 14.09.2026 — Hợp nhất CRM-UPDATE và Solar UI
 
 Nhóm tập trung, hai URLconf và bốn script Chrome đạt. Full suite: **2.329

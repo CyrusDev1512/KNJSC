@@ -23,6 +23,8 @@
 .mg-cell.mg-edge-top{border-top:2px solid #2563eb}.mg-cell.mg-edge-bottom{border-bottom:2px solid #2563eb}.mg-cell.mg-edge-left{border-left:2px solid #2563eb}.mg-cell.mg-edge-right{border-right:2px solid #2563eb}
 .mg-number[aria-selected="true"]{background:#2563eb;color:#fff;font-weight:700}
 .mg-cell.mg-wrap {white-space:pre-wrap!important;overflow-wrap:anywhere;vertical-align:top}
+.mg-url-link {color:var(--accent);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.mg-url-link:hover {text-decoration-thickness:2px}
 .mg-viewport {overflow-anchor:none}
 .mg-row-resize {position:absolute;box-sizing:border-box;z-index:6;cursor:row-resize;touch-action:none;user-select:none;outline-offset:-2px}
 .mg-row-resize:hover,.mg-row-resize:focus-visible {background:color-mix(in srgb,var(--accent) 40%,transparent)}

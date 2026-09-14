@@ -20,6 +20,7 @@ chép đường dẫn; độ rộng cột và cột ẩn do trình duyệt nhớ
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 
+from django.conf import settings
 from django.db.models import Case, Count, F, IntegerField, OuterRef, Q, Subquery, Value, When
 from django.db.models.fields.json import KeyTextTransform
 from django.http import QueryDict
@@ -141,18 +142,7 @@ def display_columns(table, columns=None):
         return sorted(columns, key=lambda c: (order.get(c.code, len(order)), c.order, c.pk))
     if not is_waybill(table):
         return columns
-    thu_tu = {ma: i for i, ma in enumerate(dispatch_service.GRID_ORDER)}
-    cho_san_pham = thu_tu["__san_pham__"]
-    cuoi = len(thu_tu) + 1
-
-    def khoa(c):
-        if dispatch_service.is_product_column(c.code):
-            return (cho_san_pham, 0, c.name)
-        if c.code in thu_tu:
-            return (thu_tu[c.code], 0, "")
-        return (cuoi, c.order, c.code)
-
-    return sorted(columns, key=khoa)
+    return dispatch_service.ordered_columns(columns)
 
 
 def frozen_columns(columns, *, waybill=True):
@@ -383,7 +373,8 @@ def filter_options(user, table, column, search="", limit=GRID_FILTER_OPTIONS_MAX
     như hộp lọc của Excel. Tối đa `limit` giá trị, nhiều nhất trước."""
     cmap = query.ColumnMap(table, [column])
     ds = DataRecord.objects.in_scope(user).filter(table=table)
-    if table.code == ACTIVE_WAYBILL_TABLE_CODE and column.code == 'bill':
+    if (getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
+            and table.code == ACTIVE_WAYBILL_TABLE_CODE and column.code == 'bill'):
         from orders.services.payment_service import filter_options as payment_options
         return payment_options(ds, search, limit)
     if table.code == ACTIVE_WAYBILL_TABLE_CODE and column.code == 'san_pham':

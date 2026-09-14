@@ -228,6 +228,9 @@ def test_bang_du_lieu_chi_xem_voi_moi_cap_bac(client, bang_sale, nguoi_dung, ai)
     kq = client.get("/bang/don_sale/")
     assert kq.status_code == 200
     html = kq.content.decode()
+    assert 'id="erp-table-focus"' in html
+    assert 'id="erp-focus-enter"' in html
+    assert 'erp-table-focus.js' in html
     than = _than_bang(html)
     assert "Của tôi" in than
     for dau in DAU_VET_SUA_O:

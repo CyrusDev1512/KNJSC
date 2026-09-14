@@ -9,6 +9,11 @@ def grid_columns(columns):
         'renderer':'value','width':72,'frozen':True,'filterable':False}]
 
 
+def grid_column(column):
+    """Bill của bảng lịch sử là text; chỉ URL web an toàn được dựng thành link."""
+    return {'renderer': 'url'} if column.code == 'bill' else {}
+
+
 def grid_extras(rows, columns):
     if not rows:return {}
     grid_service.attach_duplicate_counts(rows[0].table, rows)

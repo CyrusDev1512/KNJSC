@@ -1,5 +1,13 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 14.09.2026 — Toàn màn hình ERP, sắp lại Vận đơn và tạm khóa Chứng từ
+
+**Finished trong phạm vi local, chờ nghiệm thu:** chức năng, dữ liệu metadata và
+Chrome 1440/390 sáng/tối đã áp dụng; database được sao lưu trước. Hai bảng giữ
+nguyên số dòng/ID/quyền; Chứng từ mặc định tắt nhưng kiểm thử cờ bật vẫn giữ luồng
+cũ. Không commit/push/merge main. [Kiểm chứng](kiem-chung-erp-vandon-bill-20260914.md).
+Full suite cuối: **2.332 passed, 15 failed nền, 31 skipped, 2 xfailed**.
+
 ## 14.09.2026 — Hợp nhất CRM-UPDATE và Solar UI
 
 **Finished trong phạm vi nhánh:** nghiệp vụ/quyền/lưới master của CRM-UPDATE đã

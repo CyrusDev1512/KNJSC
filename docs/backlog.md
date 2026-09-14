@@ -1,5 +1,15 @@
 # Backlog
 
+## 14.09.2026 — Toàn màn hình ERP, sắp lại Vận đơn và tạm khóa Chứng từ
+
+Đã triển khai trên `codex/crm-update-solar-ui`: dock ERP thu gọn có nhớ bố cục,
+mọi bảng dữ liệu ERP có Tập trung/Fullscreen/Công cụ; ERP vẫn chỉ đọc. `van_don`
+giữ mã/ID/222 dòng nhưng đổi nhãn **Vận đơn mới**, thêm Phụ trách CSKH trống và
+sắp lại cột; `van_don_moi` giữ nhãn **Vận đơn** và 10.000 dòng. Bill là text/URL
+an toàn; kho Chứng từ mặc định tắt và URL trả 404. Không tạo 100 bill/ảnh mẫu.
+Full suite cuối: 2.332 đạt, 15 lỗi nền, 31 skip và 2 xfail; không có lỗi mới.
+[Kiểm chứng](kiem-chung-erp-vandon-bill-20260914.md).
+
 ## 14.09.2026 — Hợp nhất CRM-UPDATE và Solar UI
 
 Nhánh `codex/crm-update-solar-ui` giữ CRM-UPDATE làm nguồn chuẩn nghiệp vụ và

@@ -47,6 +47,7 @@ WAYBILL_COLUMNS = [
     ("Loại tiền tệ", "loai_tien", FieldType.TEXT, ""),                 # +
     ("Phương thức thanh toán", "pttt", FieldType.TEXT, ""),
     ("Người bán", "nguoi_ban", FieldType.TEXT, Meaning.SELLER),        # +
+    ("Phụ trách CSKH", "phu_trach_cskh", FieldType.TEXT, ""),
     ("Đơn vị phụ", "don_vi_phu", FieldType.TEXT, ""),                  # +
     ("Facebook", "facebook", FieldType.TEXT, ""),                      # +
     ("Email", "email", FieldType.TEXT, ""),                            # +
@@ -70,11 +71,10 @@ WAYBILL_COLUMNS = [
 #: từng sản phẩm, rồi tiền và thanh toán, rồi trạng thái giao. Cột sản phẩm
 #: (`sl_*`) chèn vào chỗ đánh dấu. Cột không có trong danh sách xếp cuối.
 GRID_ORDER = [
-    "ma_don", "ngay", "ten_khach", "so_dien_thoai", "dia_chi", "thanh_pho", "bang",
-    "zipcode", "quoc_gia", "__san_pham__", "san_pham", "so_luong", "gia_tien",
-    "loai_tien", "pttt", "nguoi_ban", "mkt", "mua_lai", "ghi_chu", "trang_thai_vc",
-    "nv_van_don", "trang_thai_tt", "ngay_tt", "so_tien_tt", "nguoi_chuyen_tien",
-    "bill", "doi_soat", "black_list", "don_vi_phu", "facebook", "email",
+    "ngay", "dia_chi", "thanh_pho", "bang", "quoc_gia", "zipcode",
+    "san_pham", "__san_pham__", "so_luong", "gia_tien", "loai_tien", "pttt",
+    "nguoi_ban", "phu_trach_cskh", "mkt", "ma_don", "trang_thai_vc",
+    "ngay_tt", "ten_khach", "so_tien_tt", "bill", "ghi_chu", "doi_soat",
 ]
 
 #: Tiền tố tên kỹ thuật của cột số lượng theo sản phẩm
@@ -88,6 +88,43 @@ def product_column_code(product):
 
 def is_product_column(code):
     return code.startswith(PRODUCT_COLUMN_PREFIX)
+
+
+def ordered_columns(columns):
+    """Xếp các cột được chốt trước, giữ thứ tự tương đối của cột còn lại.
+
+    Cột sản phẩm động nằm ngay sau Sản phẩm; Đơn vị phụ luôn là cột cuối.
+    """
+    columns = list(columns)
+    priority = {code: index for index, code in enumerate(GRID_ORDER)}
+    product_slot = priority["__san_pham__"]
+    trailing_slot = len(priority) + 1
+
+    def key(column):
+        if column.code == "don_vi_phu":
+            return (trailing_slot + 1, 0, "")
+        if is_product_column(column.code):
+            return (product_slot, 0, column.name)
+        if column.code in priority:
+            return (priority[column.code], 0, "")
+        return (trailing_slot, column.order, column.pk)
+
+    return sorted(columns, key=key)
+
+
+def sync_column_order(table):
+    """Lưu thứ tự hiển thị ổn định để ERP và CRM cùng đọc một cấu trúc."""
+    columns = ordered_columns(table.columns.order_by("order", "id"))
+    changed = []
+    changed_at = timezone.now()
+    for index, column in enumerate(columns):
+        if column.order != index:
+            column.order = index
+            column.updated_at = changed_at
+            changed.append(column)
+    if changed:
+        ColumnDef.objects.bulk_update(changed, ["order", "updated_at"])
+    return len(changed)
 
 
 def product_columns():
@@ -146,6 +183,7 @@ def ensure_waybill_table(*, actor=None):
             table=bang, name=ten, code=ma, field_type=kieu, meaning=nhan, order=i,
         )
     sync_product_columns(bang)
+    sync_column_order(bang)
     # Mã đơn là cột khoá của bảng vận đơn — bấm ô Mã đơn trên Bảng tính là lọc
     # ra đúng đơn đó (ADR-010). Chỉ đặt khi bảng chưa có cột khoá nào.
     if not bang.columns.filter(is_key=True).exists():

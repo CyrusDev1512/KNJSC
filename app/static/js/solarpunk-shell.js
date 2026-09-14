@@ -1,6 +1,26 @@
 /* Menu nhóm dùng details nguyên bản: Tab, Enter và Space hoạt động không cần JS. */
 (() => {
   const groups = [...document.querySelectorAll('.sp-dock-group')];
+  const collapse = document.getElementById('sp-dock-collapse');
+  const expand = document.getElementById('sp-dock-expand');
+  const storageKey = 'knjsc-erp-dock-collapsed';
+  function setDockCollapsed(collapsed, persist = true) {
+    groups.forEach(group => { group.open = false; });
+    document.documentElement.classList.toggle('sp-dock-collapsed', collapsed);
+    if (collapse) collapse.setAttribute('aria-expanded', String(!collapsed));
+    if (expand) {
+      expand.hidden = !collapsed;
+      expand.setAttribute('aria-expanded', String(!collapsed));
+    }
+    if (persist) try { localStorage.setItem(storageKey, collapsed ? '1' : '0'); } catch (_) {}
+  }
+  if (collapse && expand) {
+    let collapsed = false;
+    try { collapsed = localStorage.getItem(storageKey) === '1'; } catch (_) {}
+    setDockCollapsed(collapsed, false);
+    collapse.addEventListener('click', () => { setDockCollapsed(true); expand.focus(); });
+    expand.addEventListener('click', () => { setDockCollapsed(false); collapse.focus(); });
+  }
   groups.forEach(group => {
     if (group.querySelector('[aria-current="page"]')) group.classList.add('sp-current');
     group.addEventListener('toggle', () => {

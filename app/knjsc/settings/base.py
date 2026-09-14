@@ -121,6 +121,9 @@ CRM_OPT_RENDER = env_bool('CRM_OPT_RENDER',False)
 CRM_OPT_EXPORT = env_bool('CRM_OPT_EXPORT',False)
 CRM_REQUEST_METRICS = env_bool('CRM_REQUEST_METRICS',False)
 CRM_OPT_QUEUES = env_bool('CRM_OPT_QUEUES',False)
+# Kho chứng từ thanh toán tạm dừng theo quyết định 14.09.2026. Giữ mã nguồn để
+# có thể bật lại có chủ đích sau này, nhưng mặc định không để lộ UI hay endpoint.
+PAYMENT_DOCUMENTS_ENABLED = env_bool('PAYMENT_DOCUMENTS_ENABLED', False)
 if CRM_OPT_QUEUES:
     CELERY_TASK_ROUTES = {
         'forms_builder.chay_tac_vu_nhap': {'queue':'crm_heavy'},

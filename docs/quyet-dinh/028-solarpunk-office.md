@@ -23,6 +23,13 @@ Không tạo endpoint mới hoặc truy vấn báo cáo ngoài phạm vi hiện 
 
 ## Chế độ tập trung
 
+Bổ sung 14.09.2026: dock dưới của ERP có nút Thu gọn trên mọi trang và chỉ để lại
+nút Menu nhỏ; trạng thái bố cục lưu trong `localStorage`, không chứa dữ liệu nghiệp
+vụ. Mọi trang bảng dữ liệu ERP tại `/bang/<mã>/` có chế độ Tập trung riêng: ẩn
+header/dock/tiêu đề/mô tả, giữ bảng cùng DOM, và có Công cụ, Fullscreen API, Thoát.
+Esc đóng lớp đang mở, rồi Công cụ, rồi toàn màn hình trình duyệt và cuối cùng mới
+thoát Tập trung. ERP vẫn chỉ đọc theo ADR-014.
+
 Nút Toàn màn hình trên cả hai lưới bật chế độ trong tab, không phụ thuộc
 Fullscreen API. Header, toolbar, chip, footer và thanh công thức lưới thường
 ẩn đi. Lưới master không có thanh công thức.

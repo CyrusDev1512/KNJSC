@@ -4,6 +4,7 @@ import sys
 from decimal import Decimal, InvalidOperation
 from types import SimpleNamespace
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import connection, transaction
 from django.db.models import (
@@ -28,8 +29,8 @@ from orders.units import resolve_unit
 from . import assignment_service
 
 DETAIL_CODE = "chi_tiet_sp"
-PROTECTED = frozenset({"san_pham", "so_luong", "gia_tien", "so_tien_tt", "bill"})
-DETAIL_CELLS = PROTECTED - {"bill"}
+PROTECTED = frozenset({"san_pham", "so_luong", "gia_tien", "so_tien_tt"})
+DETAIL_CELLS = PROTECTED
 COLUMNS = [
     ("Mã đơn", "ma_don", FieldType.TEXT, ""),
     ("Tên khách", "ten_khach", FieldType.TEXT, Meaning.CUSTOMER),
@@ -90,10 +91,10 @@ def ensure_table(legacy, *, actor=None):
         ])
         record(AuditAction.CREATE, actor=actor, target=table,
                detail="Tạo bảng vận đơn mới theo ADR-018")
-    if legacy.name != "Vận đơn cũ":
-        legacy.name = "Vận đơn cũ"
+    if legacy.name != "Vận đơn mới":
+        legacy.name = "Vận đơn mới"
         legacy.save(update_fields=["name", "updated_at"])
-        record(AuditAction.UPDATE, actor=actor, target=legacy, detail="Đổi tên thành Vận đơn cũ")
+        record(AuditAction.UPDATE, actor=actor, target=legacy, detail="Đổi tên thành Vận đơn mới")
     existing = set(table.columns.values_list("code", flat=True))
     for order, (name, code, kind, meaning) in enumerate(COLUMNS):
         if code not in existing:
@@ -211,12 +212,16 @@ def extra_columns(table):
 
 def export_queryset(queryset):
     from django.db.models import Prefetch
-    from orders.models import PaymentDocument
-    from .payment_service import ordered
-    return assignment_service.related(queryset).prefetch_related(Prefetch('payment_documents',
-        queryset=ordered(PaymentDocument.objects.filter(deleted_at__isnull=True)), to_attr='export_payments'), Prefetch("waybill_items",
+    prefetches = [Prefetch("waybill_items",
         queryset=WaybillItem.objects.filter(deleted_at__isnull=True).select_related("product"),
-        to_attr="export_items"))
+        to_attr="export_items")]
+    if getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False):
+        from orders.models import PaymentDocument
+        from .payment_service import ordered
+        prefetches.append(Prefetch('payment_documents',
+            queryset=ordered(PaymentDocument.objects.filter(deleted_at__isnull=True)),
+            to_attr='export_payments'))
+    return assignment_service.related(queryset).prefetch_related(*prefetches)
 
 
 def export_detail(row):
@@ -477,9 +482,12 @@ def missing_item_count(records):
 
 def grid_column(column):
     """Khả năng hiển thị chỉ đăng ký cho bảng nghiệp vụ Vận đơn mới."""
+    payment_documents = getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
+    is_bill = column.code == 'bill'
     return {'detail':column.code in DETAIL_CELLS, 'assignment':column.code in assignment_service.COLUMNS,
-        'protected':column.is_computed or column.code in PROTECTED or column.code in assignment_service.COLUMNS,
-        'renderer':'bill' if column.code == 'bill' else 'value',
+        'protected':column.is_computed or column.code in PROTECTED or column.code in assignment_service.COLUMNS
+            or (is_bill and payment_documents),
+        'renderer':'bill' if is_bill and payment_documents else ('url' if is_bill else 'value'),
         'frozen':column.code in ('ma_don', 'ten_khach', 'so_dien_thoai')}
 
 
@@ -489,6 +497,8 @@ def grid_value(row, column):
 
 def grid_extras(rows, columns):
     from django.urls import reverse
+    if not getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False):
+        return {row.pk: {'detail_url': reverse('waybill_detail', args=[row.pk])} for row in rows}
     from .payment_service import metadata
     bills = metadata([row.pk for row in rows]) if rows and any(c.code == 'bill' for c in columns) else {}
     return {row.pk:{'detail_url':reverse('waybill_detail', args=[row.pk]),

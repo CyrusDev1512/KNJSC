@@ -4,6 +4,8 @@ from datetime import date
 import uuid
 
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
+from django.http import Http404
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.http import FileResponse, JsonResponse
@@ -14,6 +16,16 @@ from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.models import DataRecord
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 from orders.services import payment_service as service
+
+
+def documents_enabled(view):
+    """Ẩn tuyệt đối kho chứng từ khi cờ tính năng đang tắt."""
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        if not getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False):
+            raise Http404
+        return view(request, *args, **kwargs)
+    return wrapped
 
 
 def errors(view):
@@ -37,6 +49,7 @@ def summary(document):
             'record': document.record_id, 'deleted': document.deleted_at is not None}
 
 
+@documents_enabled
 @login_required
 @require_GET
 @errors
@@ -67,6 +80,7 @@ def library(request):
         'operation': str(uuid.uuid4()), 'query': request.GET})
 
 
+@documents_enabled
 @login_required
 @require_GET
 @errors
@@ -81,6 +95,7 @@ def rows(request):
                                  for row in records.order_by('-id')[:50]]})
 
 
+@documents_enabled
 @login_required
 @require_POST
 @errors
@@ -91,6 +106,7 @@ def create(request):
     return JsonResponse(summary(document))
 
 
+@documents_enabled
 @login_required
 @require_GET
 @errors
@@ -103,6 +119,7 @@ def detail(request, pk):
     return JsonResponse(data)
 
 
+@documents_enabled
 @login_required
 @require_POST
 @errors
@@ -113,6 +130,7 @@ def update(request, pk):
     return JsonResponse(summary(document))
 
 
+@documents_enabled
 @login_required
 @require_GET
 @errors

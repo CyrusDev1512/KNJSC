@@ -54,7 +54,7 @@
 {% csrf_token %}
 {% endblock %}
 {% block cuoi_trang %}
-{% if waybill_profile %}<link rel="stylesheet" href="{% static 'css/payments.css' %}">
+{% if waybill_profile and payment_documents_enabled %}<link rel="stylesheet" href="{% static 'css/payments.css' %}">
 <script src="{% static 'js/payments.js' %}" defer></script>{% endif %}
 {% if can_assign %}{% include 'crm/_assignment.html' with master_grid=True %}{% endif %}
 <script src="{% static 'js/master-row-geometry.js' %}?v={{ phien_ban_tinh }}" defer></script>

@@ -1,5 +1,13 @@
 # ADR-025 — Trạng thái và chứng từ thanh toán
 
+> Thay thế một phần 14.09.2026: kho Chứng từ thanh toán tạm khóa mặc định bằng
+> `PAYMENT_DOCUMENTS_ENABLED=0`. Sidebar, script/renderer kho ảnh và mọi URL kho
+> trả 404 khi tắt; model, migration, file và code vẫn giữ để bật lại có chủ đích.
+> Bill của cả `van_don` và `van_don_moi` trở lại text tự do qua lưới CRM. Chỉ
+> chuỗi bắt đầu bằng `http://` hoặc `https://` được dựng thành liên kết tab mới;
+> giao thức khác là chữ thường. Không tạo ảnh hay 100 chứng từ mẫu, không sửa các
+> mã `BILL-MAU-*` hiện có. Quyết định sửa trực tiếp trạng thái thanh toán vẫn giữ.
+
 Ngày 12.09.2026. Chủ dự án duyệt triển khai trên `codex/chung-tu-thanh-toan`.
 Thay phần tự suy trạng thái từ tiền của ADR-018; không đổi đơn gốc hay quyền nhập tiền.
 

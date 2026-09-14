@@ -69,7 +69,7 @@ def test_initialize_preserves_legacy_and_copies_live_grants_once(departments, ng
     dispatch_service.ensure_waybill_table()
     new = TableDef.all_objects.get(code=ACTIVE_WAYBILL_TABLE_CODE)
     old.refresh_from_db(); historical.refresh_from_db()
-    assert old.name == "Vận đơn cũ" and old.code == "van_don"
+    assert old.name == "Vận đơn mới" and old.code == "van_don"
     assert historical.table_id == old.pk and historical.data == {"ma_don": "LICH-SU"}
     assert not DataRecord.all_objects.filter(table=new).exists()
     assert list(new.grants.values_list("user_id", flat=True)) == [live.user_id]
@@ -80,6 +80,32 @@ def test_initialize_preserves_legacy_and_copies_live_grants_once(departments, ng
     assert not new.grants.filter(deleted_at__isnull=True).exists()
     assert old.grants.filter(pk=live.pk, deleted_at__isnull=True).exists()
     assert new.columns.count() == len(service.COLUMNS)
+
+
+def test_legacy_waybill_name_and_columns_follow_current_note(departments, nguoi_dung):
+    """Tên hiển thị và thứ tự mới chạy lại an toàn, không làm mất cột tùy biến."""
+    old = TableDef.objects.create(code="van_don", name="Vận đơn cũ", department=departments["vd"], is_shared=True)
+    from forms_builder.meaning import FieldType
+    from forms_builder.models import ColumnDef
+    ColumnDef.objects.create(table=old, code="ZIP", name="ZIP tùy biến", field_type=FieldType.TEXT, order=1)
+    first_id = old.pk
+
+    dispatch_service.ensure_waybill_table(actor=nguoi_dung["admin"])
+    dispatch_service.ensure_waybill_table(actor=nguoi_dung["admin"])
+    old.refresh_from_db()
+    codes = list(old.columns.order_by("order", "id").values_list("code", flat=True))
+
+    assert old.pk == first_id and old.name == "Vận đơn mới"
+    assert old.columns.filter(code="phu_trach_cskh", name="Phụ trách CSKH").count() == 1
+    assert codes[:6] == ["ngay", "dia_chi", "thanh_pho", "bang", "quoc_gia", "zipcode"]
+    assert codes.index("san_pham") < codes.index("so_luong") < codes.index("gia_tien")
+    assert codes.index("nguoi_ban") < codes.index("phu_trach_cskh") < codes.index("mkt")
+    assert codes.index("mkt") < codes.index("ma_don") < codes.index("trang_thai_vc")
+    assert codes.index("ngay_tt") < codes.index("ten_khach") < codes.index("so_tien_tt")
+    assert codes.index("bill") < codes.index("ghi_chu") < codes.index("doi_soat")
+    assert "ZIP" in codes
+    assert codes[-1] == "don_vi_phu"
+    assert TableDef.all_objects.get(code=ACTIVE_WAYBILL_TABLE_CODE).name == "Vận đơn"
 
 
 def test_erp_and_crm_each_create_one_new_snapshot(client, setup, nguoi_dung):

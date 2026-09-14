@@ -267,6 +267,14 @@
           cell.append(more);
           if(value?.value)cell.append(element('span','payment-legacy',` · Dữ liệu cũ: ${value.value}`));
         }
+        if(c.renderer==='url'&&row){
+          const raw=String(value?.value ?? value?.display ?? '').trim();
+          if(/^https?:\/\//i.test(raw)){
+            const link=element('a','mg-url-link',raw);
+            link.href=raw;link.target='_blank';link.rel='noopener noreferrer';
+            link.title='Mở liên kết trong tab mới';cell.replaceChildren(link);
+          }
+        }
         if(row) {cell.dataset.id=row.id;cell.id=`mg-${row.id}-${c.code}`;}
         cell.setAttribute('role','gridcell');cell.setAttribute('aria-colindex',c.i+2);cell.setAttribute('aria-selected',!!selected(r,c.i));
         if(selected(r,c.i))for(const [side,on] of Object.entries({top:r===state.selection.r1,bottom:r===state.selection.r2,left:c.i===state.selection.c1,right:c.i===state.selection.c2}))if(on)cell.classList.add('mg-edge-'+side);
@@ -623,6 +631,7 @@
   viewport.addEventListener('paste',e=>{e.preventDefault();safe(()=>paste(e.clipboardData.getData('text/plain')))();});
   viewport.addEventListener('pointerdown',e=>{
     if(e.button!==0)return;
+    if(e.target.closest('.mg-url-link'))return;
     const rowHandle=e.target.closest('[data-row-resize]');
     if(rowHandle){
       e.preventDefault();if(dirty())return;
@@ -650,7 +659,7 @@
     const sameCell=target&&+target.dataset.r===d.r&&+target.dataset.c===d.c&&target.dataset.id===d.id;
     if(sameCell&&!d.crossed&&!d.shift)setTimeout(()=>state.editMode?safe(()=>edit(true))():showReader(target),0);
   }});
-  viewport.addEventListener('dblclick',e=>{if(!e.target.closest('[data-row-resize]'))safe(edit)();});
+  viewport.addEventListener('dblclick',e=>{if(!e.target.closest('[data-row-resize],.mg-url-link'))safe(edit)();});
   viewport.addEventListener('click',e=>{
     if(e.target.closest('[data-all]'))selectAll();
     const col=e.target.closest('[data-select-column]');if(col&&!dirty()&&state.total){choose(0,+col.dataset.selectColumn);if(state.selection)state.selection.r2=state.total-1;repaint();}

@@ -1,5 +1,11 @@
 # ADR-018 — Bảng Vận đơn mới theo CRM Tân
 
+> Thay thế 14.09.2026: giữ nguyên mã kỹ thuật và luồng nhận đơn nhưng đổi nhãn
+> `van_don` thành **Vận đơn mới**; `van_don_moi` tiếp tục mang nhãn **Vận đơn** và
+> tiếp tục là nơi nhận đơn mới. `van_don` được sắp lại metadata theo ghi chú hiện
+> hành, thêm cột text Phụ trách CSKH để trống và chuyển Đơn vị phụ xuống cuối.
+> Không đổi ID, dữ liệu, quyền hoặc liên kết của hai bảng.
+
 > Thay thế 12.09.2026: [ADR-025](025-trang-thai-va-chung-tu-thanh-toan.md) cho sửa trạng thái trực tiếp; sửa chi tiết/tiền không còn tính lại trạng thái. Thêm kho chứng từ và liên kết Bill.
 
 > Bổ sung 10.09.2026: [ADR-021](021-luoi-master-va-thong-ke-crm.md) thay phần bố cục/renderer và thống kê nhúng của Vận đơn mới. Quyền, dữ liệu và nghiệp vụ không đổi.
@@ -16,7 +22,8 @@ không tự tạo thêm yêu cầu ngoài các lựa chọn chủ dự án đã 
 > thay thế ngày 09.09.2026: gỡ Lên đơn nhúng, giữ lưới và thống kê. Nội dung
 > cũ được giữ để truy lịch sử; các quyết định dữ liệu và quyền vẫn áp dụng.
 
-- Giữ `van_don`, đổi nhãn thành **Vận đơn cũ**; không chép dữ liệu, đổi ID,
+- Giữ `van_don` (nhãn hiện hành từ 14.09.2026 là **Vận đơn mới**; nhãn
+  **Vận đơn cũ** dưới đây chỉ là lịch sử); không chép dữ liệu, đổi ID,
   đường dẫn hay liên kết `Order.record` lịch sử. **Vận đơn** mới có mã
   `van_don_moi`, bắt đầu trống. Đơn tạo sau chuyển đổi ở ERP và CRM cùng ghi
   vào bảng mới; `WAYBILL_TABLE_CODE` chỉ còn dành cho hành vi bảng cũ,

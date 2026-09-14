@@ -123,6 +123,34 @@ def test_waybill_master_has_scoped_design_and_three_frozen_identity_columns(
     ]
 
 
+def test_bill_is_editable_text_and_safe_url_when_documents_disabled(client, feedback, nguoi_dung, settings):
+    settings.PAYMENT_DOCUMENTS_ENABLED = False
+    client.force_login(nguoi_dung['admin'])
+    row = feedback[2][0]
+    metadata = client.get(BASE + 'du-lieu/').json()['columns']
+    bill = next(column for column in metadata if column['code'] == 'bill')
+    assert bill['protected'] is False and bill['renderer'] == 'url'
+    assert write(client, row, column='bill', old=row.data.get('bill'), value='https://example.com/bill/1').status_code == 200
+    row.refresh_from_db()
+    assert row.data['bill'] == 'https://example.com/bill/1'
+
+
+def test_payment_documents_disabled_hides_navigation_and_blocks_direct_urls(
+        client, feedback, nguoi_dung, settings):
+    settings.PAYMENT_DOCUMENTS_ENABLED = False
+    client.force_login(nguoi_dung['admin'])
+    html = client.get(BASE).content.decode()
+    assert 'payments.js' not in html and 'Chứng từ thanh toán' not in html
+    payload = client.get(BASE + 'du-lieu/').json()
+    bill = next(row['cells']['bill'] for row in payload['rows'])
+    assert 'payments' not in bill
+    for url in ('/chung-tu-thanh-toan/', '/chung-tu-thanh-toan/don/',
+                '/chung-tu-thanh-toan/1/', '/chung-tu-thanh-toan/anh/1/'):
+        assert client.get(url).status_code == 404
+    assert client.post('/chung-tu-thanh-toan/tao/').status_code == 404
+    assert client.post('/chung-tu-thanh-toan/1/sua/').status_code == 404
+
+
 def test_block_limit_and_invalidated_query(client, feedback, nguoi_dung):
     """AC-21.2 — Khối tối đa 100 dòng và phiên bản truy vấn."""
     table, _, rows = feedback

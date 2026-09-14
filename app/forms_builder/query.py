@@ -12,6 +12,7 @@ ghép sai thì hoặc nổ, hoặc tệ hơn là trả nhầm dữ liệu.
 **Phạm vi quyền không do tệp này lo.** Gọi `.in_scope(user)` trước, rồi mới
 đưa queryset vào đây (quy tắc 11).
 """
+from django.conf import settings
 from django.core.exceptions import FieldError
 from django.db.models import Q
 
@@ -102,7 +103,8 @@ def apply_filters(queryset, column_map, filters):
         if not duong_dan or not phep:
             continue
         from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
-        if column_map.table.code == ACTIVE_WAYBILL_TABLE_CODE and code == 'bill':
+        if (getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
+                and column_map.table.code == ACTIVE_WAYBILL_TABLE_CODE and code == 'bill'):
             from orders.models import PaymentDocument
             documents = PaymentDocument.objects.filter(deleted_at__isnull=True)
             if phep in ('blank', 'nonblank'):
@@ -212,7 +214,8 @@ def apply_search(queryset, column_map, term):
     for p in duong_dan:
         dieu_kien |= Q(**{f"{p}__icontains": term})
     from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
-    if column_map.table.code == ACTIVE_WAYBILL_TABLE_CODE:
+    if (getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
+            and column_map.table.code == ACTIVE_WAYBILL_TABLE_CODE):
         from orders.models import PaymentDocument
         matches = PaymentDocument.objects.filter(deleted_at__isnull=True, reference__icontains=term)
         dieu_kien |= Q(data__bill__icontains=term) | Q(pk__in=matches.values('record_id'))
