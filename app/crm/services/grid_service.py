@@ -17,6 +17,7 @@ dòng theo trạng thái, và lọc "có sản phẩm" trên các cột `sl_<mã
 Trạng thái lưới (bộ lọc, sắp xếp) sống trên URL để chia sẻ được bằng cách
 chép đường dẫn; độ rộng cột và cột ẩn do trình duyệt nhớ (localStorage).
 """
+from orders.constants import is_waybill_table
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 
@@ -229,7 +230,7 @@ def build_grid(user, params, *, table=None):
     van_don = is_waybill(table)
     columns = display_columns(table)
     bo_loc = query.read_filters(params, columns)
-    if table.code == ACTIVE_WAYBILL_TABLE_CODE and params.getlist(PRODUCT_PARAM) and 'san_pham__trong' in bo_loc:
+    if is_waybill_table(table) and params.getlist(PRODUCT_PARAM) and 'san_pham__trong' in bo_loc:
         bo_loc['san_pham__trong'] = list(dict.fromkeys(bo_loc['san_pham__trong'] + params.getlist(PRODUCT_PARAM)))
     tim = (params.get("tim") or "").strip()
     sap = params.get("sap") or ""
@@ -240,7 +241,7 @@ def build_grid(user, params, *, table=None):
     )
     chi_trung = False
     san_pham = []
-    if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+    if is_waybill_table(table):
         from orders.models import WaybillItem
         from orders.services import assignment_service
         san_pham = [v for v in params.getlist(PRODUCT_PARAM) if v]
@@ -374,14 +375,14 @@ def filter_options(user, table, column, search="", limit=GRID_FILTER_OPTIONS_MAX
     cmap = query.ColumnMap(table, [column])
     ds = DataRecord.objects.in_scope(user).filter(table=table)
     if (getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
-            and table.code == ACTIVE_WAYBILL_TABLE_CODE and column.code == 'bill'):
+            and is_waybill_table(table) and column.code == 'bill'):
         from orders.services.payment_service import filter_options as payment_options
         return payment_options(ds, search, limit)
-    if table.code == ACTIVE_WAYBILL_TABLE_CODE and column.code == 'san_pham':
+    if is_waybill_table(table) and column.code == 'san_pham':
         from orders.models import WaybillItem
         items = WaybillItem.objects.for_records(ds).filter(product__code__icontains=search).order_by().values('product__code').annotate(n=Count('record_id', distinct=True)).order_by('-n', 'product__code')[:limit]
         return [(i['product__code'], i['n']) for i in items]
-    assignment_column = table.code == ACTIVE_WAYBILL_TABLE_CODE and column.code in waybill_service.assignment_service.COLUMNS
+    assignment_column = is_waybill_table(table) and column.code in waybill_service.assignment_service.COLUMNS
     if cmap.is_indexed(column.code) or assignment_column:
         ds = ds.annotate(gt=F(cmap.path(column.code)))
     else:

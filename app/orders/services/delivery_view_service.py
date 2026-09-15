@@ -1,17 +1,17 @@
 """Chế độ đọc của nhân viên Vận đơn; không thay phân công hoặc quyền ghi."""
+from orders.constants import is_waybill_table
 from django.db import transaction
 from core.constants import Rank, AuditAction
 from core.scope import get_user_scope
 from core.exceptions import BusinessError, OutOfScopeError
 from core.audit import record
 from forms_builder.models import TableDef
-from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 from .assignment_service import department
 
 
 def can_manage(user, table):
     scope = get_user_scope(user)
-    return bool(user.is_active and table.code == ACTIVE_WAYBILL_TABLE_CODE and (
+    return bool(user.is_active and is_waybill_table(table) and (
         scope.is_admin or (scope.rank == Rank.MANAGER and department(user) == 'van-don'
                            and user.profile.department_id == table.department_id)))
 

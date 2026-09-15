@@ -17,6 +17,7 @@ nhánh Leader khi có cột team, nên Leader sẽ rơi xuống nhánh cuối v�
 bảng do chính mình tạo — mà Leader thì không được tạo bảng (FR-8.1 giao quyền
 đó cho Manager). Kết quả là Leader thấy danh sách rỗng.
 """
+from orders.constants import is_waybill_table, waybill_condition
 from django.db import models
 from django.db.models import Q, Exists, OuterRef
 
@@ -50,12 +51,11 @@ class TableDefQuerySet(ScopedQuerySet):
             return trong_bo_phan
 
         duoc_cap = _cap_them(user, GrantAction.VIEW)
-        from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
         from .models import DataRecord
         from org.models import Department
         accounting = Department.objects.filter(pk=getattr(getattr(user, 'profile', None), 'department_id', None),
             code='ke-toan', is_active=True, deleted_at__isnull=True)
-        visible = DataRecord.objects.filter(table__code=ACTIVE_WAYBILL_TABLE_CODE).filter(
+        visible = DataRecord.objects.filter(waybill_condition()).filter(
             Q(created_by_id=user.pk, created_by__profile__department__code='sale')
             | Q(order__created_by_id=user.pk, order__created_by__profile__department__code='sale')
             | Q(order__seller_id=user.pk, order__seller__profile__department__code='sale')
@@ -63,7 +63,7 @@ class TableDefQuerySet(ScopedQuerySet):
         return self.filter(
             Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
             | Q(Exists(visible.filter(table_id=OuterRef('pk'))))
-            | (Q(code=ACTIVE_WAYBILL_TABLE_CODE) & Q(Exists(accounting)))
+            | (waybill_condition("") & Q(Exists(accounting)))
         )
 
 
@@ -76,8 +76,7 @@ class TableDefManager(models.Manager.from_queryset(TableDefQuerySet)):
 
 def record_count_scope(user):
     from .models import DataRecord
-    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
-    return ~Q(code=ACTIVE_WAYBILL_TABLE_CODE) | Q(records__pk__in=DataRecord.objects.in_scope(user).values('pk'))
+    return ~waybill_condition("") | Q(records__pk__in=DataRecord.objects.in_scope(user).values('pk'))
 
 
 class AllTableDefManager(models.Manager.from_queryset(TableDefQuerySet)):
@@ -173,14 +172,13 @@ class DataRecordQuerySet(ScopedQuerySet):
             them |= Q(table_id__in=duoc_cap)
 
         from orders.services.assignment_service import scope_condition
-        from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
-        if table is not None and table.code != ACTIVE_WAYBILL_TABLE_CODE:
+        if table is not None and not is_waybill_table(table):
             # Bảng đã biết không dùng ngoại lệ Vận đơn mới. Ghép trực tiếp
             # hai phạm vi, tránh quét lại ID và JOIN đơn/phân công không cần.
             # Điều kiện bảng dùng chung vẫn đọc từ SQL, không tin metadata cũ.
             return theo_cap_bac | self.filter(them)
         return self.filter(scope_condition(user, Q(pk__in=theo_cap_bac.values("pk")) | them,
-            only_new=table is not None and table.code == ACTIVE_WAYBILL_TABLE_CODE))
+            only_new=table is not None and is_waybill_table(table)))
 
 
 class DataRecordManager(models.Manager.from_queryset(DataRecordQuerySet)):

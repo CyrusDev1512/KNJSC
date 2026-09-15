@@ -1,6 +1,7 @@
 """Điểm đăng ký luật bảng nghiệp vụ; bảng động không import module nghiệp vụ."""
 
 POLICIES = {}
+WORKFLOW_POLICIES = {}
 
 
 def register(code, policy):
@@ -8,7 +9,7 @@ def register(code, policy):
 
 
 def for_table(table):
-    return POLICIES.get(table.code)
+    return POLICIES.get(table.code) or WORKFLOW_POLICIES.get(getattr(table, "workflow", ""))
 
 
 GRID_POLICIES = {}
@@ -21,3 +22,7 @@ def register_grid(code, policy):
 
 def grid_for(table):
     return GRID_POLICIES.get(table.code) or for_table(table)
+
+
+def register_workflow(name, policy):
+    WORKFLOW_POLICIES[name] = policy

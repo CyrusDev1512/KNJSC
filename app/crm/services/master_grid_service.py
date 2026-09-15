@@ -1,4 +1,5 @@
 """Lưới master: JSON có giới hạn, so giá trị cũ và biên nhận cùng giao dịch."""
+from orders.constants import is_waybill_table
 import hashlib
 import json
 import uuid
@@ -12,7 +13,6 @@ from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.models import DataRecord, TableDef
 from forms_builder import choice_registry, record_policies
 from forms_builder.services import grant_service, record_service
-from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 from orders.services import assignment_service
 from crm.models import GridMutationReceipt, GridCellHistory
 from . import grid_service, row_mutations
@@ -109,7 +109,7 @@ def block(user, table, params):
 
 def _block(user, table, params, *, snapshot=False):
     from . import optimization
-    if table.code == ACTIVE_WAYBILL_TABLE_CODE and params.get('protocol')=='2' and optimization.enabled('READ'):
+    if is_waybill_table(table) and params.get('protocol')=='2' and optimization.enabled('READ'):
         return optimization.block(user,table,params)
     try:
         offset = int(params.get('offset', 0))
@@ -239,7 +239,7 @@ def save(user, table, payload, *, request=None):
         from core.constants import AuditAction
         record(AuditAction.UPDATE, actor=user, target=rows[0], detail=f'Định dạng {len(styles)} thuộc tính ô lưới master', request=request)
     fresh_qs = DataRecord.objects.in_scope(user, table=table).filter(pk__in=ids).select_related('table')
-    if table.code == ACTIVE_WAYBILL_TABLE_CODE:fresh_qs = assignment_service.related(fresh_qs)
+    if is_waybill_table(table):fresh_qs = assignment_service.related(fresh_qs)
     fresh = list(fresh_qs)
     final = {r.pk: r for r in fresh}
     history = []

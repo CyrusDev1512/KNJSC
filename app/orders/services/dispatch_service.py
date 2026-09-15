@@ -296,9 +296,8 @@ def push(order, *, actor=None, request=None, lines=None):
     lỗi thì cả đơn hàng cũng không được lưu — AC-6.5.
     """
     from .waybill_service import DETAIL_CODE
-    bang = TableDef.all_objects.filter(code=ACTIVE_WAYBILL_TABLE_CODE, deleted_at__isnull=True, is_active=True).first()
-    if bang is None:
-        raise BusinessError("Chưa có bảng Vận đơn mới. Chạy manage.py tao_bang_van_don.")
+    from . import destination_service
+    bang = destination_service.current(for_write=True)
     lines = list(lines if lines is not None else order.lines.select_related("product"))
     values = build_values(order, lines)
     values["ngay"] = timezone.localdate(order.created_at).isoformat()

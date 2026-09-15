@@ -1,4 +1,5 @@
 """Các profile thống kê trên queryset đã giới hạn quyền."""
+from orders.constants import is_waybill_table
 from datetime import date, timedelta
 from decimal import Decimal
 from urllib.parse import urlencode
@@ -10,7 +11,6 @@ from django.db.models.functions import Cast, NullIf, TruncMonth, TruncWeek
 
 from core.money import MONEY_DECIMAL_PLACES, MONEY_MAX_DIGITS
 from forms_builder.meaning import Meaning
-from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 from orders.models import WaybillItem
 from orders.services import waybill_service
 from reports import marketing
@@ -44,7 +44,7 @@ def column_by_meaning(columns, meaning):
 def profile_of(table, columns=None):
     """Một bảng chỉ thuộc một profile, theo đúng thứ tự ưu tiên đã chốt."""
     columns = list(columns if columns is not None else table.columns.all())
-    if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+    if is_waybill_table(table):
         return "waybill"
     if marketing.is_marketing(columns):
         return "marketing"

@@ -6,7 +6,7 @@ from django.views.decorators.http import require_http_methods
 
 from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.models import DataRecord
-from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+from orders.constants import waybill_condition
 from orders.services import assignment_service as service
 
 
@@ -26,7 +26,7 @@ def assignment(request):
         if not ids:
             return JsonResponse({'rows': [], 'fields': [], 'message': 'Chọn ít nhất một dòng có dữ liệu.'})
         rows = list(service.related(DataRecord.objects.in_scope(request.user).filter(
-            table__code=ACTIVE_WAYBILL_TABLE_CODE, pk__in=ids)).order_by('pk'))
+            waybill_condition(), pk__in=ids)).order_by('pk'))
         if len(rows) != len(ids):
             raise OutOfScopeError()
         return JsonResponse({

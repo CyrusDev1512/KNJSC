@@ -82,3 +82,13 @@ ACTIVE_WAYBILL_TABLE_CODE = "van_don_moi"
 #: `tao_bang_van_don` tự tạo bộ phận này trên máy sạch nếu chưa có.
 WAYBILL_DEPARTMENT_CODE = "van-don"
 WAYBILL_DEPARTMENT_NAME = "Vận đơn"
+
+
+def is_waybill_table(table):
+    """Profile vận hành giữ nguyên cả khi bảng ngừng nhận đơn mới."""
+    return table.code == ACTIVE_WAYBILL_TABLE_CODE or getattr(table, "workflow", "") == "waybill"
+
+
+def waybill_condition(prefix="table__"):
+    from django.db.models import Q
+    return Q(**{prefix + "code": ACTIVE_WAYBILL_TABLE_CODE}) | Q(**{prefix + "workflow": "waybill"})

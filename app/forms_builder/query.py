@@ -12,6 +12,7 @@ ghép sai thì hoặc nổ, hoặc tệ hơn là trả nhầm dữ liệu.
 **Phạm vi quyền không do tệp này lo.** Gọi `.in_scope(user)` trước, rồi mới
 đưa queryset vào đây (quy tắc 11).
 """
+from orders.constants import is_waybill_table
 from django.conf import settings
 from django.core.exceptions import FieldError
 from django.db.models import Q
@@ -62,9 +63,8 @@ class ColumnMap:
         cot = self.by_code.get(code)
         if cot is None:
             return None
-        from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
         from orders.services.assignment_service import COLUMNS
-        if self.table.code == ACTIVE_WAYBILL_TABLE_CODE and code in COLUMNS:
+        if is_waybill_table(self.table) and code in COLUMNS:
             return f'assignment__{COLUMNS[code]}__username'
         cot_tach = COLUMN_OF.get(cot.meaning) if cot.meaning else None
         return cot_tach or f"data__{code}"
@@ -102,9 +102,8 @@ def apply_filters(queryset, column_map, filters):
         duong_dan = column_map.path(code)
         if not duong_dan or not phep:
             continue
-        from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
         if (getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
-                and column_map.table.code == ACTIVE_WAYBILL_TABLE_CODE and code == 'bill'):
+                and is_waybill_table(column_map.table) and code == 'bill'):
             from orders.models import PaymentDocument
             documents = PaymentDocument.objects.filter(deleted_at__isnull=True)
             if phep in ('blank', 'nonblank'):
@@ -115,7 +114,7 @@ def apply_filters(queryset, column_map, filters):
                 matches = documents.filter(**{f'reference__{phep}': value})
                 queryset = queryset.filter(Q(**{f'data__bill__{phep}': value}) | Q(pk__in=matches.values('record_id')))
             continue
-        if column_map.table.code == ACTIVE_WAYBILL_TABLE_CODE and code == 'san_pham':
+        if is_waybill_table(column_map.table) and code == 'san_pham':
             from orders.models import WaybillItem
             items = WaybillItem.objects.filter(deleted_at__isnull=True)
             if phep in ('blank', 'nonblank'):
@@ -213,9 +212,8 @@ def apply_search(queryset, column_map, term):
     dieu_kien = Q()
     for p in duong_dan:
         dieu_kien |= Q(**{f"{p}__icontains": term})
-    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
     if (getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
-            and column_map.table.code == ACTIVE_WAYBILL_TABLE_CODE):
+            and is_waybill_table(column_map.table)):
         from orders.models import PaymentDocument
         matches = PaymentDocument.objects.filter(deleted_at__isnull=True, reference__icontains=term)
         dieu_kien |= Q(data__bill__icontains=term) | Q(pk__in=matches.values('record_id'))
@@ -245,8 +243,7 @@ def build(queryset, table, *, filters=None, search="", sort=None, descending=Fal
     queryset = apply_filters(queryset, column_map, filters)
     queryset = apply_search(queryset, column_map, search)
     queryset = apply_sort(queryset, column_map, sort, descending)
-    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
-    if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+    if is_waybill_table(table):
         if not sort or not column_map.path(sort):
             queryset = queryset.order_by('created_at', 'pk')
         else:
@@ -261,12 +258,11 @@ def read_row(record, columns):
 
     Dùng ở tầng giao diện để khỏi phải biết giá trị nằm ở JSON hay cột tách.
     """
-    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
     from orders.services import assignment_service
     values = []
     for column in columns:
         value = record.data.get(column.code)
-        if record.table.code == ACTIVE_WAYBILL_TABLE_CODE and column.code in assignment_service.COLUMNS:
+        if is_waybill_table(record.table) and column.code in assignment_service.COLUMNS:
             value = assignment_service.display(record, column.code)
         elif column.code == 'bill' and hasattr(record, 'export_payments'):
             references = [doc.reference for doc in record.export_payments]

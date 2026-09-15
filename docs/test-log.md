@@ -1,5 +1,21 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 15.09.2026 — Chrome Admin/Sale riêng: đổi đích khi đang nhập đơn
+
+Ba phiên đăng nhập riêng, hai kích thước 1440/390, tám đơn: lưu sau đổi đích và giữ form cũ khi Admin đổi đích hai chiều đều đúng. Đích lấy lúc lưu; DB xác nhận bảng, seller, created_by, Decimal và giữ đơn cũ. Browser server **1 passed**, Node `ok:true`, không pageerror. [Kịch bản, giới hạn, bằng chứng](kiem-chung-bang-nhan-don-20260915.md).
+
+
+## 15.09.2026 — Kiểm lại luồng Bảng nhận đơn
+
+68 test trực tiếp đạt, Chrome 1440/390 đạt và DB xác nhận đơn cũ giữ bảng. Hồi quy rộng: 616 đạt, 1 lỗi, 14 skip. Lỗi tại `crm/tests/test_trang_chu.py:137`: test còn đòi nhãn “Sửa”, trong khi tác vụ Tải mẫu Excel đã bỏ nhãn. Chưa sửa test ngoài phạm vi; không kết luận toàn suite đạt. [Bằng chứng](kiem-chung-bang-nhan-don-20260915.md).
+
+
+## 15.09.2026 — Chọn bảng nhận đơn tại CRM (local)
+
+Admin chọn đích nhận đơn mới; bảng/đơn cũ giữ nguyên. Đã áp migration 0012 local, chưa đổi đích mặc định, chưa commit/push/VPS. Sau sửa cuối 67 test liên quan đạt; Chrome 1440/390, hai ca 30 Sale đồng thời và migration xuôi/ngược đạt. [Kết quả và giới hạn](kiem-chung-bang-nhan-don-20260915.md) · [ADR-029](quyet-dinh/029-bang-nhan-don-crm.md).
+
+
+
 ## 15.09.2026 — Sidebar CRM thu gọn
 
 Chrome local: logo/icon nhóm từ lệch 16/13px về 0px, sáng/tối; thu/mở/reload

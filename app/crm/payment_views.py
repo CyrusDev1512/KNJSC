@@ -1,4 +1,5 @@
 """HTTP riêng của chứng từ; service kiểm quyền cho cả đường ảnh trực tiếp."""
+from orders.constants import waybill_condition
 from functools import wraps
 from datetime import date
 import uuid
@@ -14,7 +15,6 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.models import DataRecord
-from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 from orders.services import payment_service as service
 
 
@@ -87,7 +87,7 @@ def library(request):
 def rows(request):
     if not service.can_create(request.user):
         raise OutOfScopeError()
-    records = DataRecord.objects.in_scope(request.user).filter(table__code=ACTIVE_WAYBILL_TABLE_CODE)
+    records = DataRecord.objects.in_scope(request.user).filter(waybill_condition())
     text = request.GET.get('q', '').strip()
     if text:
         records = records.filter(Q(data__ma_don__icontains=text) | Q(data__ten_khach__icontains=text))

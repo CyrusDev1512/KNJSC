@@ -1,4 +1,5 @@
 """Kho chứng từ: quyền theo dòng, giao dịch nguyên tử và file riêng tư."""
+from orders.constants import waybill_condition
 import hashlib
 import json
 import uuid
@@ -18,7 +19,6 @@ from core.excel import check_size, sniff_kind
 from core.exceptions import BusinessError, OutOfScopeError
 from core.scope import get_user_scope
 from forms_builder.models import DataRecord
-from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 from orders.models import PaymentDocument, PaymentImage
 from . import assignment_service, waybill_service
 
@@ -36,7 +36,7 @@ def can_create(user):
 def documents_for(user, *, include_deleted=False):
     if not user.is_active:
         raise OutOfScopeError()
-    rows = DataRecord.objects.in_scope(user).filter(table__code=ACTIVE_WAYBILL_TABLE_CODE)
+    rows = DataRecord.objects.in_scope(user).filter(waybill_condition())
     documents = PaymentDocument.objects.filter(record_id__in=rows.values('pk'))
     if not include_deleted or not can_manage(user):
         documents = documents.filter(deleted_at__isnull=True)

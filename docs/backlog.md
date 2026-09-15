@@ -1,5 +1,16 @@
 # Backlog
 
+## 15.09.2026 — Kiểm lại luồng Bảng nhận đơn
+
+68 test trực tiếp đạt, Chrome 1440/390 đạt và DB xác nhận đơn cũ giữ bảng. Hồi quy rộng: 616 đạt, 1 lỗi, 14 skip. Lỗi tại `crm/tests/test_trang_chu.py:137`: test còn đòi nhãn “Sửa”, trong khi tác vụ Tải mẫu Excel đã bỏ nhãn. Chưa sửa test ngoài phạm vi; không kết luận toàn suite đạt. [Bằng chứng](kiem-chung-bang-nhan-don-20260915.md).
+
+
+## 15.09.2026 — Chọn bảng nhận đơn tại CRM (local)
+
+Admin chọn đích nhận đơn mới; bảng/đơn cũ giữ nguyên. Đã áp migration 0012 local, chưa đổi đích mặc định, chưa commit/push/VPS. Sau sửa cuối 67 test liên quan đạt; Chrome 1440/390, hai ca 30 Sale đồng thời và migration xuôi/ngược đạt. [Kết quả và giới hạn](kiem-chung-bang-nhan-don-20260915.md) · [ADR-029](quyet-dinh/029-bang-nhan-don-crm.md).
+
+
+
 ## 15.09.2026 — Sửa sidebar CRM thu gọn
 
 Đã sửa logo/icon nhóm lệch trái khi thu gọn theo ảnh chủ dự án, kiểm Chrome

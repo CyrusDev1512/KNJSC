@@ -10,6 +10,7 @@ Cột ngày là cột mang nhãn ý nghĩa **Ngày**, cột sản phẩm là c�
 **Sản phẩm** (ADR-007). Bảng vận đơn không có cột Sản phẩm mà có mỗi sản phẩm
 một cột số lượng (Q39), nên khối Sản phẩm của nó lọc bằng `sp=<mã cột>`.
 """
+from orders.constants import is_waybill_table
 from datetime import date, timedelta
 
 from forms_builder.meaning import Meaning
@@ -86,8 +87,7 @@ def product_options(user, table, columns, params):
     `kind` là `"cot_sl"` (bảng vận đơn), `"gia_tri"` (bảng có cột Sản phẩm)
     hoặc None (không có khối này).
     """
-    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
-    if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+    if is_waybill_table(table):
         from django.db.models import Count
         from orders.models import WaybillItem
         chosen = params.getlist('sp') + params.getlist('f_san_pham__trong')
@@ -120,7 +120,7 @@ def context(user, table, columns, params, today=None):
     cot_ngay = date_column(columns)
     san_pham = product_options(user, table, columns, params)
     ben = {"cot_ngay": cot_ngay, "san_pham": san_pham}
-    if table.code == grid_service.ACTIVE_WAYBILL_TABLE_CODE:
+    if is_waybill_table(table):
         groups = []
         for code, name in [('quoc_gia', 'Thị trường'), ('phu_trach_mkt', 'Marketing')]:
             column = next(c for c in columns if c.code == code)
@@ -140,7 +140,7 @@ def context(user, table, columns, params, today=None):
             "giu_ngay": grid_service.params_without(params, exclude=(k_tu, k_den)),
         })
     if san_pham["kind"]:
-        exclude = (san_pham['param'], 'sp') if table.code == grid_service.ACTIVE_WAYBILL_TABLE_CODE else (san_pham['param'],)
+        exclude = (san_pham['param'], 'sp') if is_waybill_table(table) else (san_pham['param'],)
         ben["giu_san_pham"] = grid_service.params_without(params, exclude=exclude)
     ben["co_gi"] = cot_ngay is not None or bool(san_pham["kind"])
     return ben

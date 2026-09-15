@@ -25,7 +25,7 @@ from core.permissions import assert_rank, has_rank, in_departments
 from core.navigation import SALES_ONLY
 from forms_builder.models import DataRecord, Folder, TableDef
 from forms_builder.services import export_service, folder_service, grant_service, table_service
-from orders.constants import WAYBILL_TABLE_CODE, ACTIVE_WAYBILL_TABLE_CODE
+from orders.constants import WAYBILL_TABLE_CODE, ACTIVE_WAYBILL_TABLE_CODE, is_waybill_table
 from orders.services import dispatch_service
 from org.models import Department
 
@@ -331,7 +331,7 @@ def bang_tinh_moi_nhat(request, code):
     """
     bang = _bang(request, code)                     # bảng ngoài phạm vi → 404 ở đây
     from .services import optimization
-    if code==ACTIVE_WAYBILL_TABLE_CODE and optimization.enabled('SYNC'):
+    if is_waybill_table(bang) and optimization.enabled('SYNC'):
         current=optimization.state(bang)
         return JsonResponse({'delivery_view_version':bang.delivery_view_version,'moc':str(current['revision']),'cot':current['fields'].get('__schema',0),'tinh_lai':table_service.recompute_job_of(bang)})
     # Mốc theo **cả bảng**, không theo phạm vi từng người: `_bang` đã kiểm quyền
@@ -340,7 +340,7 @@ def bang_tinh_moi_nhat(request, code):
     # 100 tab × mỗi 8 giây). `all_objects`: dòng xoá mềm vẫn mang mốc xoá nên xoá
     # một dòng bất kỳ cũng đổi mốc.
     records = DataRecord.all_objects.filter(table=bang)
-    if code == ACTIVE_WAYBILL_TABLE_CODE:
+    if is_waybill_table(bang):
         from django.db.models import Count
         records = records.in_scope(request.user)
         tong = records.aggregate(moc=Max('updated_at'), count=Count('pk'))

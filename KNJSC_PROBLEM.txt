@@ -1,5 +1,7 @@
 KNJSC — TỔNG HỢP VẤN ĐỀ SẢN PHẨM
 
+Bổ sung 15.09.2026 — Lên đơn: Admin cấu hình bảng nhận đơn mới, không di chuyển đơn cũ. Đã triển khai/kiểm chứng local; xem docs/kiem-chung-bang-nhan-don-20260915.md. Không đóng các yêu cầu nghiệp vụ hoặc kiểm tải toàn hệ thống còn lại.
+
 Mục đích tài liệu
 - Tập trung toàn bộ nội dung từ KNJSC.txt thành các vấn đề lớn theo tính năng.
 - Xác định vấn đề thuộc phía KNERP, KNCRM hay cần phối hợp cả hai.

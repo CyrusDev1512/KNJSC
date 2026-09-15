@@ -1,4 +1,5 @@
 """Phân công vận đơn: quyền theo ID, khoá dòng cha và CAS cho cả lượt."""
+from orders.constants import waybill_condition
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Q
@@ -8,7 +9,6 @@ from core.audit import record as audit
 from core.constants import AuditAction, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.scope import get_user_scope
-from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 
 FIELDS = {'delivery': ('van-don',), 'care': ('sale', 'cskh'), 'marketing': ('marketing',)}
 COLUMNS = {'phu_trach_vd': 'delivery', 'phu_trach_cskh': 'care', 'phu_trach_mkt': 'marketing'}
@@ -37,7 +37,7 @@ def scope_condition(user, original, *, only_new=False):
     """Chỉ thay ngoại lệ của bảng mới; original là điều kiện quyền bảng cũ."""
     scope = get_user_scope(user)
     dept = department(user)
-    new = Q(table__code=ACTIVE_WAYBILL_TABLE_CODE)
+    new = waybill_condition()
     if can_assign(user) or is_accountant(user):
         allowed = Q()
     elif dept == 'van-don':
@@ -118,7 +118,7 @@ def assign(user, versions, changes, *, request=None):
                 raise BusinessError(f'{LABELS[field]}: tài khoản bị khoá hoặc không đúng bộ phận.')
             targets[field] = target
     # Tất cả đường ghi lưới cũng khoá dòng cha; không khoá phía nullable của LEFT JOIN.
-    rows = list(DataRecord.objects.filter(table__code=ACTIVE_WAYBILL_TABLE_CODE,
+    rows = list(DataRecord.objects.filter(waybill_condition(),
         pk__in=expected).select_for_update(of=('self',)).order_by('pk'))
     if len(rows) != len(expected):
         raise OutOfScopeError()

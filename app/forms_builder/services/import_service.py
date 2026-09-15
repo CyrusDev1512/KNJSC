@@ -13,6 +13,7 @@ Chưa có gì được ghi vào bảng trước bước 3. Dòng lỗi không ch
 (AC-7.6); số dòng báo lỗi là **số hàng thật trong tệp Excel** để người dùng
 mở tệp ra tìm được ngay.
 """
+from orders.constants import is_waybill_table
 import logging
 import uuid
 from pathlib import Path
@@ -344,8 +345,7 @@ def job_for(user, pk, table=None):
 
 def record_count(table, user):
     """Số dòng hiện có, cho màn hình xem trước biết bảng đang lớn cỡ nào."""
-    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
     records = DataRecord.objects.filter(table=table)
-    if table.code == ACTIVE_WAYBILL_TABLE_CODE:
+    if is_waybill_table(table):
         records = records.in_scope(user)
     return records.count()

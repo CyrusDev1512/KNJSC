@@ -1,4 +1,5 @@
 """Điểm vào của bộ lưới JSON dùng chung cho các bảng động."""
+from orders.constants import is_waybill_table
 import json
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -95,7 +96,7 @@ def sync(request,code):
     if not optimization.enabled('SYNC'):return JsonResponse({'unsupported':True})
     try:
         table=service.table_for(request.user,code)
-        if table.code != 'van_don_moi':return JsonResponse({'unsupported':True})
+        if not is_waybill_table(table):return JsonResponse({'unsupported':True})
         already_atomic=connection.in_atomic_block
         with transaction.atomic():
             if not already_atomic:
@@ -121,24 +122,24 @@ def shell(request, table):
         chips.append((label, '?' + p.urlencode()))
     return render(request, 'crm/master_grid.html', {
         'delivery_view_manage': delivery_view_service.can_manage(request.user, table),
-        'waybill_profile': table.code == 'van_don_moi',
+        'waybill_profile': is_waybill_table(table),
         'payment_documents_enabled': getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False),
-        'grid_root_class':'mg-root mg-waybill-master' if table.code == 'van_don_moi' else 'mg-root',
+        'grid_root_class':'mg-root mg-waybill-master' if is_waybill_table(table) else 'mg-root',
         'thang_dang_xem':month, 'bang': table, 'luoi': grid, 'qs_giu': qs.urlencode(), 'chips': chips,
         've_url': tree_service.home_url(table.department, month=month) if month else tree_service.home_url(table.department, all_tables=True),
-        've_nhan': 'Về Bảng tính — thư mục', 'can_assign': table.code == 'van_don_moi' and can_assign(request.user),
+        've_nhan': 'Về Bảng tính — thư mục', 'can_assign': is_waybill_table(table) and can_assign(request.user),
         'duoc_quan_ly_cot':grant_service.can_manage_columns(request.user, table),
         'duoc_nhap': grant_service.can_import(request.user, table),
         'ben': sidebar_service.context(request.user, table, grid.columns, qs),
-        'quick_filters': sidebar_service.quick_filters(qs) if table.code in ('van_don','van_don_moi') else {'groups':[], 'keep':grid_service.params_without(qs)},
+        'quick_filters': sidebar_service.quick_filters(qs) if (table.code == 'van_don' or is_waybill_table(table)) else {'groups':[], 'keep':grid_service.params_without(qs)},
         'config': {'dataUrl': reverse('master_data', args=[table.code]),
                    'deliveryViewVersion': table.delivery_view_version,
                    'canCreate':row_mutations.can_create(request.user,table),
                    'requestMetrics':getattr(settings,'CRM_REQUEST_METRICS',False),
-                   'protocol':2 if table.code == 'van_don_moi' and optimization.enabled('READ') else 1,
+                   'protocol':2 if is_waybill_table(table) and optimization.enabled('READ') else 1,
                    'compact':optimization.enabled('RECEIPTS'),
                    'renderOptimized':optimization.enabled('RENDER'),
-                   'syncUrl':reverse('master_sync',args=[table.code]) if table.code == 'van_don_moi' and optimization.enabled('SYNC') and optimization.enabled('READ') else None,
+                   'syncUrl':reverse('master_sync',args=[table.code]) if is_waybill_table(table) and optimization.enabled('SYNC') and optimization.enabled('READ') else None,
                    'palette': dict(PALETTE), 'styleClasses': grid_service.STYLE_CLASSES,
                    'saveUrl': reverse('master_save', args=[table.code]),
                    'historyUrl': reverse('master_history', args=[table.code]),

@@ -1,4 +1,5 @@
 """Bộ điều phối Bàn điều hành và lớp tương thích thống kê Vận đơn cũ."""
+from orders.constants import is_waybill_table
 import logging
 from decimal import Decimal
 from django.db.models import Count, Max, Sum, Value, TextField
@@ -13,7 +14,6 @@ from forms_builder.models import DataRecord, TableDef
 from orders.models import WaybillItem
 from core.pagination import paginate
 from orders.services import waybill_service
-from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 
 from . import statistics_charts, statistics_insights, statistics_profiles
 
@@ -147,7 +147,7 @@ def default_sources(user, tables):
         if profile == "waybill":
             preferred = next(
                 (table for table in profile_tables
-                 if table.code == ACTIVE_WAYBILL_TABLE_CODE),
+                 if is_waybill_table(table)),
                 None,
             )
             if preferred is not None:

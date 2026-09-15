@@ -1,4 +1,5 @@
 """Vận đơn theo CRM Tân: chi tiết, tổng và quyền dùng một nguồn — ADR-018."""
+from orders.constants import waybill_condition
 import json
 import sys
 from decimal import Decimal, InvalidOperation
@@ -71,6 +72,7 @@ protect_table = True
 
 def register():
     record_policies.register(ACTIVE_WAYBILL_TABLE_CODE, sys.modules[__name__])
+    record_policies.register_workflow("waybill", sys.modules[__name__])
 
 
 @transaction.atomic
@@ -239,7 +241,7 @@ def export_values(row):
 
 
 def row_for(user, pk, *, lock=False):
-    rows = DataRecord.objects.filter(table__code=ACTIVE_WAYBILL_TABLE_CODE).select_related("table")
+    rows = DataRecord.objects.filter(waybill_condition()).select_related("table")
     if lock:
         rows = rows.select_for_update(of=("self",))
     else:

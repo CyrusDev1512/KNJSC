@@ -16,6 +16,7 @@ Hai loại câu hỏi, hai cách trả lời khác nhau:
 - *Ai điền biểu mẫu nào* — phép kiểm ở view, dùng `can_fill`. Không phải chuyện
   queryset, và phải chạy **trước** khi đọc dữ liệu (P1, FR-3.6)
 """
+from orders.constants import is_waybill_table
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
@@ -192,18 +193,16 @@ def can_edit_record(user, record_obj):
     hoặc chính người tạo dòng, hoặc có cấp quyền sửa trên bảng đó. Bảng chỉ xem (ADR-009) thì
     không ai sửa được ở đây, kể cả Admin — chỗ sửa là Bảng tính.
     """
-    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
     from forms_builder.models import DataRecord
-    if record_obj.table.code == ACTIVE_WAYBILL_TABLE_CODE and not DataRecord.all_objects.in_scope(user).filter(pk=record_obj.pk).exists():
+    if is_waybill_table(record_obj.table) and not DataRecord.all_objects.in_scope(user).filter(pk=record_obj.pk).exists():
         return False
     return can_edit_visible_record(user, record_obj)
 
 
 def can_edit_visible_record(user, record_obj):
     """Chỉ gọi cho dòng đã lấy từ in_scope trong cùng request đọc; không dùng ở đường ghi."""
-    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
     from orders.services import assignment_service
-    if (record_obj.table.code == ACTIVE_WAYBILL_TABLE_CODE
+    if (is_waybill_table(record_obj.table)
             and assignment_service.department(user) == 'van-don'
             and not assignment_service.can_assign(user)):
         assignment = getattr(record_obj, 'assignment', None)

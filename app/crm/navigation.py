@@ -12,6 +12,7 @@ của các view forms_builder), `bp:<mã bộ phận>` (trang thư mục của m
 from dataclasses import dataclass, field
 
 from django.conf import settings
+from orders.constants import is_waybill_table
 from django.urls import NoReverseMatch, reverse
 
 from core.constants import Rank
@@ -63,7 +64,7 @@ def build(user, current=""):
         muc.append(CrmNavItem("tong_quan", "Trang chủ", u, "⌂", current == "tong_quan"))
     if (u := _url("thu_muc")) is not None:
         # Một truy vấn, không kéo cột như `tree_service.all_tables` — sidebar ở mọi trang
-        cac_bang = list(TableDef.objects.in_scope(user).select_related("department").only("id", "department", "code"))
+        cac_bang = list(TableDef.objects.in_scope(user).select_related("department").only("id", "department", "code", "workflow"))
         con = tuple(
             CrmNavItem(f"bp:{d.code}", d.name, tree_service.home_url(d), "▸", current == f"bp:{d.code}")
             for d in tree_service.departments_of(user, cac_bang)
@@ -74,7 +75,7 @@ def build(user, current=""):
     if cac_bang and (u := _url('crm_statistics')):
         muc.append(CrmNavItem('statistics', 'Bàn điều hành', u, '▥', current == 'statistics'))
     if (getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
-            and any(t.code == 'van_don_moi' for t in cac_bang)
+            and any(is_waybill_table(t) for t in cac_bang)
             and (u := _url('payment_library'))):
         muc.append(CrmNavItem('payments', 'Chứng từ thanh toán', u, '▧', current == 'payments'))
     if has_rank(user, Rank.LEADER) and (u := _url("nhap_tep")) is not None:
@@ -85,6 +86,8 @@ def build(user, current=""):
         muc.append(CrmNavItem("tac_vu", "Tác vụ nền", u, "◔", current == "tac_vu"))
     if has_rank(user, Rank.MANAGER) and (u := _url("nhat_ky")) is not None:
         muc.append(CrmNavItem("nhat_ky", "Nhật ký", u, "≡", current == "nhat_ky"))
+    if has_rank(user, Rank.ADMIN) and (u := _url('order_destination')):
+        muc.append(CrmNavItem('order_destination', 'Bảng nhận đơn', u, '▦', current == 'order_destination'))
     erp = getattr(settings, "MAIN_APP_URL", "")
     if erp:
         muc.append(CrmNavItem("erp", "KN ERP", erp.rstrip("/") + "/", "↗"))

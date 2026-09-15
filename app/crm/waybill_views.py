@@ -14,7 +14,7 @@ from core.permissions import assert_departments, has_rank
 from forms_builder.services import grant_service
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 from orders.units import COMMON_UNITS
-from orders.services import order_service, waybill_service, product_service
+from orders.services import order_service, waybill_service, product_service, destination_service
 from .waybill_forms import WaybillOrderForm
 
 
@@ -52,7 +52,7 @@ def create_order(request):
             if form.is_valid():
                 order = order_service.create_order(**form.cleaned_data, lines=items, actor=request.user, request=request)
                 saved_at = timezone.localtime(order.created_at)
-                success = f"Đã lưu đơn {order.code} vào Vận đơn lúc {saved_at:%H:%M} ngày {saved_at:%d/%m/%Y}."
+                success = f"Đã lưu đơn {order.code} vào {order.record.table.name} lúc {saved_at:%H:%M} ngày {saved_at:%d/%m/%Y}."
                 saved_order = order
                 form, items = WaybillOrderForm(actor=request.user), None
         except (BusinessError, ValidationError, ValueError) as exc:

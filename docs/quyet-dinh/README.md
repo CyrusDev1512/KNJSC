@@ -152,3 +152,5 @@ xong nằm ở `../backlog.md` mục 0.
 
 - [ADR-022: Báo cáo hoạt động ERP](022-bao-cao-hoat-dong-erp.md).
 - [ADR-026: Chế độ xem Vận đơn](026-che-do-xem-van-don.md).
+
+- [ADR-029 — Bảng nhận đơn CRM](029-bang-nhan-don-crm.md): Admin chọn đích, giữ profile và dữ liệu đơn cũ.
