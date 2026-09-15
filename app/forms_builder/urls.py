@@ -10,6 +10,7 @@ urlpatterns = [
     path("bang/<slug:code>/", views.bang_xem, name="bang_xem"),
     path("bang/<slug:code>/cot/", views.bang_cot, name="bang_cot"),
     path("bang/<slug:code>/nhap/", views.bang_nhap, name="bang_nhap"),
+    path("bang/<slug:code>/mau-nhap.xlsx", views.bang_mau_nhap, name="bang_mau_nhap"),
     path("bang/<slug:code>/nhap/<int:pk>/", views.bang_nhap_xem_truoc, name="bang_nhap_xem_truoc"),
     path("bang/<slug:code>/nhap/<int:pk>/xac-nhan/", views.bang_nhap_xac_nhan,
          name="bang_nhap_xac_nhan"),

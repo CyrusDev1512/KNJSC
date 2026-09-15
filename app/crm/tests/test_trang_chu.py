@@ -134,7 +134,8 @@ def test_bam_thang_mo_luoi_loc_dung_thang(client, du_lieu, nguoi_dung):
     url = "/bang-tinh/don_sale/?f_ngay__lon_bang=2026-09-01&amp;f_ngay__nho_bang=2026-09-30"
     assert url in html, "nút Mở phải mang bộ lọc đúng tháng"
     assert "Danh mục Sale" not in html                    # không có cột Ngày → không ở góc nhìn tháng
-    assert '<span class="chip chip-nhan">Sửa</span>' in html
+    # Chủ dự án bỏ nhãn Sửa trên thẻ (15.09); quyền thao tác vẫn giữ nguyên.
+    assert '<span class="chip chip-nhan">Sửa</span>' not in html
 
     luoi = client.get("/bang-tinh/don_sale/", {"f_ngay__lon_bang": "2026-09-01", "f_ngay__nho_bang": "2026-09-30"})
     assert luoi.status_code == 200
@@ -160,10 +161,10 @@ def test_bam_thang_mo_luoi_loc_dung_thang(client, du_lieu, nguoi_dung):
     assert kq.status_code == 200 and "Quý 4/2025" in html and "Tháng 12/2025" in html
     assert client.get("/thu-muc/", {"thang": "abc"}).status_code == 200
 
-    # Vận đơn: bảng vận đơn ở KN CRM sửa được → nhãn Sửa; tắt (bảng chỉ xem) → nhãn Xem
+    # Bỏ nhãn Sửa; bảng chỉ xem vẫn có nhãn Xem để phân biệt quyền.
     client.force_login(nguoi_dung["staff_vd"])
     with SUA_DUOC:
-        assert '<span class="chip chip-nhan">Sửa</span>' in _trang(client)[1]
+        assert '<span class="chip chip-nhan">Sửa</span>' not in _trang(client)[1]
     assert '<span class="chip">Xem</span>' in _trang(client)[1]
 
 

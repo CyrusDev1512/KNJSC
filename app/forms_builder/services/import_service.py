@@ -217,13 +217,25 @@ def _duong_dan_tuyet_doi(rel):
 def _mau(cac_dong, mapping, n=5):
     """Vài dòng đầu để người dùng đối chiếu ở bước xem trước."""
     return [
-        [_chuoi(gia_tri.get(cot.code)) for _, cot in sorted(mapping.matched.values(), key=lambda x: x[0])]
+        [_chuoi(gia_tri.get(cot.code)) for _, (_, cot) in sorted(mapping.matched.items())]
         for _, gia_tri in cac_dong[:n]
     ]
 
 
 def _chuoi(v):
     return "" if v is None else str(v)
+
+
+def preview_sample(summary):
+    """Đọc đúng cả bản xem trước đã tạo trước khi sửa lỗi thứ tự cột."""
+    rows = summary.get('sample', [])
+    if summary.get('sample_layout_version') == 2:
+        return rows
+    mapping = summary.get('mapping', [])
+    old_order = sorted(mapping, key=lambda item: item['cot_tep'])
+    indexes = {item['code']: index for index, item in enumerate(old_order)}
+    return [[row[indexes[item['code']]] if indexes[item['code']] < len(row) else ''
+             for item in mapping] for row in rows]
 
 
 # ══ BỐN BƯỚC ══════════════════════════════════════════════════════
@@ -241,20 +253,19 @@ def prepare(table, upload, *, actor, request=None):
         columns += policy.extra_columns(table)
     sheet, header_idx, mapping, cac_dong = _phan_tich(upload, kind, columns)
 
-    preview_errors = []
-    if policy:
-        for number, values in cac_dong:
-            try:
-                policy.prepare_values(values)
-            except BusinessError as error:
-                preview_errors.append([number, str(error)])
+    if not cac_dong:
+        raise BusinessError('Tệp chưa có dòng dữ liệu. Điền khách hàng từ hàng dưới tiêu đề rồi tải lại.')
+    from .import_check_service import check
+    valid_rows, preview_errors = check(table, cac_dong, list(table.columns.order_by('order', 'id')))
 
     rel = _luu_tep(upload, kind)
     tom_tat = {
         "file_name": upload.name, "kind": kind, "sheet": sheet.sheet_name,
         "header_row": header_idx + 1,
         "sample": _mau(cac_dong, mapping),
+        "sample_layout_version": 2,
         "preview_error_count": len(preview_errors),
+        "preview_valid_count": len(valid_rows),
         "preview_errors": preview_errors[:IMPORT_ERROR_LIST_MAX],
         **mapping.as_summary(),
     }
@@ -311,12 +322,19 @@ def run(job_id):
             _, _, mapping, cac_dong = _phan_tich(f, kind, import_columns)
 
         job.set_progress(0, len(cac_dong))
-        ket_qua = record_service.create_records_bulk(
-            table, [gia_tri for _, gia_tri in cac_dong],
-            actor=job.created_by, columns=columns,
-            row_numbers=[so for so, _ in cac_dong],
-            on_progress=lambda n: job.set_progress(n),
-        )
+        from .import_check_service import check
+        from .lifecycle_service import lock
+        with transaction.atomic():
+            # Tuần tự hóa nhập cùng bảng; giữ khóa đến khi kiểm trùng và ghi xong.
+            lock(table, exclusive=True)
+            valid_rows, errors = check(table, cac_dong, columns)
+            ket_qua = record_service.create_records_bulk(
+                table, [values for _, values in valid_rows],
+                actor=job.created_by, columns=columns,
+                row_numbers=[number for number, _ in valid_rows],
+                on_progress=lambda n: job.set_progress(n),
+            )
+            ket_qua.errors = sorted(errors + ket_qua.errors)
         job.set_progress(len(cac_dong))
         job.mark_done(summary={
             "created": ket_qua.created,

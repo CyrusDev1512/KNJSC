@@ -9,13 +9,15 @@
     <div class="nhan-nho">FR-7.5 · Bước 2 trên 4</div>
     <h1>Xem trước: {{ job.summary.file_name }}</h1>
     <p>Sheet <b>{{ job.summary.sheet }}</b>, tiêu đề ở hàng <b>{{ job.summary.header_row }}</b>,
-      <b>{{ job.total }}</b> dòng dữ liệu sẽ được thêm vào bảng {{ bang.name }} (hiện có {{ so_dong_hien_co }} dòng).</p>
+      <b>{{ job.total }}</b> dòng dữ liệu trong tệp, bảng {{ bang.name }} hiện có {{ so_dong_hien_co }} dòng.</p>
+    {% if job.summary.preview_valid_count != None %}<p><b>{{ job.summary.preview_valid_count }} dòng hợp lệ</b> · {{ job.summary.preview_error_count }} dòng lỗi.
+      Hệ thống kiểm tra lại trước khi ghi; không ghi đè đơn đã có.</p>{% endif %}
   </div>
   <div class="hanh-dong">
     <a class="nut nut-nguy" href="{% url 'bang_xem' bang.code %}">Huỷ</a>
     <form method="post" action="{% url 'bang_nhap_xac_nhan' bang.code job.pk %}">
       {% csrf_token %}
-      <button class="nut nut-chinh" type="submit">Xác nhận nhập</button>
+      <button class="nut nut-chinh" type="submit" {% if job.summary.preview_valid_count == 0 %}disabled{% endif %}>Xác nhận nhập</button>
     </form>
   </div>
 </div>
@@ -32,8 +34,8 @@
 
 {% if job.summary.preview_error_count %}
 <div class="bao bao-xau" role="alert"><div>
-  <b>{{ job.summary.preview_error_count }} dòng có chi tiết sản phẩm không hợp lệ — sẽ không được nhập.</b>
-  <p>Tải lại tệp đã sửa, hoặc xác nhận để chỉ nhập các dòng hợp lệ. Không tự phân bổ tổng tiền.</p>
+  <b>{{ job.summary.preview_error_count }} dòng không hợp lệ — sẽ không được nhập.</b>
+  <p>{% if job.summary.preview_valid_count == 0 %}Sửa tệp rồi tải lại để tiếp tục nhập.{% else %}Tải lại tệp đã sửa, hoặc xác nhận để chỉ nhập các dòng hợp lệ.{% endif %}</p>
   <ul>{% for number, error in job.summary.preview_errors %}<li>Hàng {{ number }}: {{ error }}</li>{% endfor %}</ul>
 </div></div>
 {% endif %}

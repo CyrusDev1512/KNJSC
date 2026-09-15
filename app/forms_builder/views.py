@@ -19,7 +19,7 @@ from io import BytesIO
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 
 from core.constants import IMPORT_MAX_ROWS, UPLOAD_MAX_BYTES, JobStatus, Rank
 from core.exceptions import BusinessError, OutOfScopeError
@@ -254,6 +254,18 @@ def bang_them_lua_chon(request, code, ma_cot):
 
 # ══ NHẬP VÀ XUẤT TỆP — FR-7.5 tới FR-7.7 ═════════════════════════
 
+@login_required
+@require_GET
+def bang_mau_nhap(request, code):
+    from .services import import_template_service
+    table = _bang_duoc_nhap(request, code)
+    response = HttpResponse(import_template_service.build(table), content_type=
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="mau-nhap-{table.code}.xlsx"'
+    response['Cache-Control'] = 'private, no-store'
+    return response
+
+
 def _bang_duoc_nhap(request, code):
     """Bảng trong phạm vi VÀ người này được nhập vào nó. Ngoài quyền → 403,
     ghi nhật ký từ chối (quy tắc 8, AC-3.6) — kể cả khi chỉ mở trang chọn tệp."""
@@ -299,7 +311,7 @@ def bang_nhap_xem_truoc(request, code, pk):
     return render(request, "forms_builder/bang_nhap_xem_truoc.html", {
         "bang": bang_hien, "job": job,
         "mapping": tom_tat.get("mapping", []), "ignored": tom_tat.get("ignored", []),
-        "sample": tom_tat.get("sample", []),
+        "sample": import_service.preview_sample(tom_tat),
         "so_dong_hien_co": import_service.record_count(bang_hien, request.user),
     })
 
