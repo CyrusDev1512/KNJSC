@@ -8,3 +8,5 @@ else:
 
 SESSION_COOKIE_NAME = "kn_solarpunk_session"
 CSRF_COOKIE_NAME = "kn_solarpunk_csrf"
+SESSION_COOKIE_DOMAIN = None
+CSRF_COOKIE_DOMAIN = None

@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 15.09.2026 — Phiên đăng nhập chung
+
+**In progress VPS; kiểm local đạt trong phạm vi xác thực.** Không có thay đổi
+quyền nghiệp vụ. Hồi quy có một lỗi CSS nền riêng; chưa sửa ở đợt này.
+[Kiểm chứng](kiem-chung-dang-nhap-chung-20260915.md).
+
 ## 15.09.2026 — Chọn bảng nhận đơn tại CRM (local)
 
 Admin chọn đích nhận đơn mới; bảng/đơn cũ giữ nguyên. Đã áp migration 0012 local, chưa đổi đích mặc định, chưa commit/push/VPS. Sau sửa cuối 67 test liên quan đạt; Chrome 1440/390, hai ca 30 Sale đồng thời và migration xuôi/ngược đạt. [Kết quả và giới hạn](kiem-chung-bang-nhan-don-20260915.md) · [ADR-029](quyet-dinh/029-bang-nhan-don-crm.md).

@@ -13,6 +13,10 @@ import tempfile
 from .dev import *  # noqa: F401,F403
 from .dev import INSTALLED_APPS
 
+# Không phát cookie ra domain vận hành khi pytest kế thừa môi trường container.
+SESSION_COOKIE_DOMAIN = None
+CSRF_COOKIE_DOMAIN = None
+
 INSTALLED_APPS = INSTALLED_APPS + ["core.tests.apps.CoreTestsConfig"]
 
 # Tác vụ nền chạy ngay tại chỗ, và lỗi trong đó phải nổ ra.

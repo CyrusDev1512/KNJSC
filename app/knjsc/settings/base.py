@@ -170,6 +170,11 @@ EXPORT_DIR = STORAGE_DIR / "exports"            # tệp xuất, dọn sau 24 gi�
 BACKUP_DIR = Path(env("BACKUP_DIR", str(STORAGE_DIR / "backups")))
 
 # ── Phiên đăng nhập ─────────────────────────────────────────────────
+# Chỉ đặt domain mẹ khi mọi subdomain thuộc phạm vi tin cậy. Để trống ở local.
+SESSION_COOKIE_DOMAIN = env("SESSION_COOKIE_DOMAIN", "").strip() or None
+SESSION_COOKIE_NAME = env("SESSION_COOKIE_NAME", "sessionid")
+CSRF_COOKIE_DOMAIN = env("CSRF_COOKIE_DOMAIN", "").strip() or None
+CSRF_COOKIE_NAME = env("CSRF_COOKIE_NAME", "csrftoken")
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True

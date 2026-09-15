@@ -1,5 +1,12 @@
 # Backlog
 
+## 15.09.2026 — Đăng nhập chung ERP/CRM
+
+Đã kiểm local: cookie dùng chung, hai chiều/bốn cấp quyền, 16 kịch bản Chrome
+HTTPS đạt. Đang phát hành VPS theo ADR-030; giữ lỗi CSS nền ở màn hình chọn
+bảng nhận đơn (`loi`, `thong-bao`) trong backlog, không đóng cùng tác vụ này.
+[Kiểm chứng](kiem-chung-dang-nhap-chung-20260915.md).
+
 ## 15.09.2026 — Kiểm lại luồng Bảng nhận đơn
 
 68 test trực tiếp đạt, Chrome 1440/390 đạt và DB xác nhận đơn cũ giữ bảng. Hồi quy rộng: 616 đạt, 1 lỗi, 14 skip. Lỗi tại `crm/tests/test_trang_chu.py:137`: test còn đòi nhãn “Sửa”, trong khi tác vụ Tải mẫu Excel đã bỏ nhãn. Chưa sửa test ngoài phạm vi; không kết luận toàn suite đạt. [Bằng chứng](kiem-chung-bang-nhan-don-20260915.md).

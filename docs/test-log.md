@@ -1,5 +1,12 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 15.09.2026 — Đăng nhập chung ERP/CRM
+
+Hồi quy: 868 passed/1 failed nền/1 skipped; quyền lưới và biểu mẫu thêm
+213 passed. Bài Chrome chạy riêng 1 passed với 16 kịch bản HTTPS ở 1440/390.
+Lỗi CSS `order_destination.html` tái hiện trên archive f971683; không coi
+toàn suite đạt. VPS đang phát hành. [Bằng chứng](kiem-chung-dang-nhap-chung-20260915.md).
+
 ## 15.09.2026 — Chrome Admin/Sale riêng: đổi đích khi đang nhập đơn
 
 Ba phiên đăng nhập riêng, hai kích thước 1440/390, tám đơn: lưu sau đổi đích và giữ form cũ khi Admin đổi đích hai chiều đều đúng. Đích lấy lúc lưu; DB xác nhận bảng, seller, created_by, Decimal và giữ đơn cũ. Browser server **1 passed**, Node `ok:true`, không pageerror. [Kịch bản, giới hạn, bằng chứng](kiem-chung-bang-nhan-don-20260915.md).
