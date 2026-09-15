@@ -31,5 +31,29 @@ Giữ chặn bảng có dữ liệu chưa được chuẩn bị; đây là chuy�
 
 ## VPS
 
-Đang phát hành. Trước chuyển đổi phải lưu backup và checksum toàn bộ dòng/cột;
-sau chuyển đổi kiểm số dòng/hash không đổi, đích không đổi, lựa chọn được bật.
+Đã phát hành commit ứng dụng `cf51ad2`, image
+`knjsc-app:cf51ad2-destination-prepare` lên ERP/CRM/worker/heavy/beat cùng phiên
+bản. Hai URLconf check đạt, restart count=0, giữ giới hạn tài nguyên và hotfix
+sidebar. Giữ cấu hình đăng nhập chung ERP/CRM. Không migration hoặc seed.
+
+Backup ở `/opt/knjsc-runtime/backups/destination-prepare-20260915/`, gồm database
+dump đã đọc được bằng pg_restore --list, .env/compose/image trước, hash/diff CSS.
+Chạy command cho `van_don_db`, actor `admin`, expected_rows=6667.
+
+- Giữ đủ **6.667 dòng**. SHA256 toàn bộ giá trị dòng trước/sau:
+  `ebd2f7b86d21a96c4b14c112e566a145a764698838d36e7c4f5702b79ded3407`.
+- SHA256 cấu trúc cột trước/sau:
+  `d8bbb7c2e7fe944b9e702d60079a256bddf6ed0d63452dd4e1cc6c1b2514eeb6`.
+- Đích hiện hành giữ ID=2 (Vận đơn); Vận đơn DB ID=3 có workflow=waybill,
+  eligibility trả chuỗi rỗng. Không tạo Order/chi tiết/phân công giả.
+- Lần chuẩn bị metadata đo được **0,108 giây** trong process đã nạp Django;
+  không phải phép đo tải hoặc thời gian toàn request.
+- Chrome HTTPS domain thật ở **1440/390 đạt**: option không còn disabled hoặc
+  “Chưa đủ điều kiện”, chọn được DB; API đọc bảng trả đúng 6.667 dòng.
+  Không submit đổi đích trên VPS hoặc tạo đơn giả; chủ dự án tự chọn thời điểm
+  đổi. Luồng submit Admin → Sale lưu đã kiểm trên database test riêng.
+- Kiểm container/log sau phát hành không thấy traceback, 500, lỗi CSRF/Celery;
+  cấu hình cookie chung và timeout 60 phút giữ nguyên.
+
+Đã lưu bằng chứng gọn trên VPS và dọn container/database test riêng. Admin tải
+lại màn hình Bảng nhận đơn, chọn Vận đơn DB rồi bấm Lưu khi muốn chuyển đích.

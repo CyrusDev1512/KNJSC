@@ -2,7 +2,7 @@
 
 ## 15.09.2026 — Vận đơn DB bị vô hiệu trong chọn bảng
 
-**In progress VPS:** command/service chuẩn bị bảng đã có placeholder; kiểm
+**Finished VPS cf51ad2:** command/service chuẩn bị bảng đã có placeholder; kiểm
 local 87 test + Chrome hai kích thước đạt. [Chi tiết](kiem-chung-chuan-bi-bang-nhan-don-20260915.md).
 
 ## 15.09.2026 — Bàn giao tối ưu lưới cho PC nhà

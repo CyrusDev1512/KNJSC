@@ -3,7 +3,7 @@
 ## 15.09.2026 — Chuẩn bị Vận đơn DB nhận đơn
 
 Đã bổ sung chuyển cấu hình bảng placeholder theo duyệt, giữ dòng/cột và đích
-hiện hành; 87 test và Chrome 1440/390 đạt. Đang phát hành VPS.
+hiện hành; 87 test và Chrome 1440/390 đạt. VPS cf51ad2 đã bật lựa chọn; 6.667 dòng giữ nguyên.
 [Kiểm chứng](kiem-chung-chuan-bi-bang-nhan-don-20260915.md).
 
 ## 15.09.2026 — Đăng nhập chung ERP/CRM

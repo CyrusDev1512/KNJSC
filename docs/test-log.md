@@ -3,7 +3,7 @@
 ## 15.09.2026 — Chuẩn bị bảng có placeholder
 
 87 bài functional/hồi quy đạt; 1 bài E2E chứa Chrome 1440/390 đạt. Giữ nguyên
-dữ liệu cũ, kiểm Admin/Sale/Vận đơn và rollback. VPS đang phát hành.
+dữ liệu cũ, kiểm Admin/Sale/Vận đơn và rollback. VPS cf51ad2: Chrome 1440/390 đạt, hash 6.667 dòng/cột giữ nguyên.
 [Bằng chứng](kiem-chung-chuan-bi-bang-nhan-don-20260915.md).
 
 ## 15.09.2026 — Đăng nhập chung ERP/CRM
