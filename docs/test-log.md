@@ -7,6 +7,23 @@ Hồi quy: 868 passed/1 failed nền/1 skipped; quyền lưới và biểu mẫu
 Lỗi CSS `order_destination.html` tái hiện trên archive f971683; không coi
 toàn suite đạt. VPS đang phát hành. [Bằng chứng](kiem-chung-dang-nhap-chung-20260915.md).
 
+## 15.09.2026 — Khởi tạo 100 dòng báo cáo mẫu trên VPS
+
+2 test kịch bản đạt trên settings.test, gồm phạm vi người sở hữu, chạy lại và
+bảo vệ bảng cũ. Sau ghi VPS, tiến trình khác xác minh mỗi bảng 50 dòng/5 team/
+10 người; browser mở được hai lưới, tìm một nhân sự ra 5 dòng. Dịch vụ giữ
+nguyên thời điểm khởi động. [Bằng chứng](kiem-chung-bao-cao-mau-vps-20260915.md).
+
+Mẫu nhập vận đơn đã được sửa và kiểm lại: xem mục “Sửa và kiểm lại lỗi mẫu
+nhập” cuối tài liệu và [bằng chứng cập nhật](kiem-chung-mau-nhap-van-don-20260915.md).
+
+## 15.09.2026 — Kiểm mẫu nhập qua giao diện thực tế
+
+Môi trường riêng 18031: nhập 3 khách trên từng bảng và 10.000 khách DB đạt;
+file hỗn hợp nhập 1/bỏ 2 đúng. Phát hiện preview lệch cột, 4 cột mẫu bị bỏ qua,
+báo lỗi muộn và nhập lại tạo trùng. Đã sửa assertion nhãn Sửa theo yêu cầu đã
+duyệt: nhóm trang chủ chạy lại 3 passed. [Chi tiết và giới hạn](kiem-chung-mau-nhap-van-don-20260915.md).
+
 ## 15.09.2026 — Chrome Admin/Sale riêng: đổi đích khi đang nhập đơn
 
 Ba phiên đăng nhập riêng, hai kích thước 1440/390, tám đơn: lưu sau đổi đích và giữ form cũ khi Admin đổi đích hai chiều đều đúng. Đích lấy lúc lưu; DB xác nhận bảng, seller, created_by, Decimal và giữ đơn cũ. Browser server **1 passed**, Node `ok:true`, không pageerror. [Kịch bản, giới hạn, bằng chứng](kiem-chung-bang-nhan-don-20260915.md).
@@ -17,10 +34,13 @@ Ba phiên đăng nhập riêng, hai kích thước 1440/390, tám đơn: lưu sa
 68 test trực tiếp đạt, Chrome 1440/390 đạt và DB xác nhận đơn cũ giữ bảng. Hồi quy rộng: 616 đạt, 1 lỗi, 14 skip. Lỗi tại `crm/tests/test_trang_chu.py:137`: test còn đòi nhãn “Sửa”, trong khi tác vụ Tải mẫu Excel đã bỏ nhãn. Chưa sửa test ngoài phạm vi; không kết luận toàn suite đạt. [Bằng chứng](kiem-chung-bang-nhan-don-20260915.md).
 
 
+## 15.09.2026 — Tải mẫu Excel vận đơn
+
+5 test chức năng mới đạt; suite nhập/xuất và thư mục liên quan đạt. Đã bấm tải tại CRM local, kiểm desktop/390px. [Chi tiết lệnh, bằng chứng và giới hạn](kiem-chung-mau-nhap-van-don-20260915.md).
+
 ## 15.09.2026 — Chọn bảng nhận đơn tại CRM (local)
 
 Admin chọn đích nhận đơn mới; bảng/đơn cũ giữ nguyên. Đã áp migration 0012 local, chưa đổi đích mặc định, chưa commit/push/VPS. Sau sửa cuối 67 test liên quan đạt; Chrome 1440/390, hai ca 30 Sale đồng thời và migration xuôi/ngược đạt. [Kết quả và giới hạn](kiem-chung-bang-nhan-don-20260915.md) · [ADR-029](quyet-dinh/029-bang-nhan-don-crm.md).
-
 
 
 ## 15.09.2026 — Sidebar CRM thu gọn
@@ -438,3 +458,11 @@ Phạm vi nhánh `vandonmoi`: management command chỉ tác động nhóm
   chọn/nhập/đọc/kéo cột/kéo hàng p95 32,6/31/30,5/49,5/49,3ms; cache10,
   DOM4.794, heap ba vòng 7,498–7,505 triệu byte. Hồi quy resolver cuối 1 đạt,
   thêm 0 SQL cho options bộ cột chuẩn. Không coi lượt ngắn là chạy bền inline.
+## 15.09.2026 — Sửa và kiểm lại lỗi mẫu nhập
+
+30 test đạt trong 14.98s (checks/template/nhập-xuất/trang chủ), gồm hai worker
+nhập đồng thời cùng mã. UI trên DB riêng: ba mẫu mỗi bảng 3/3; tệp hỗn hợp
+1 đúng/2 lỗi; nhập lại báo 3 mã trùng và khóa xác nhận; 10.000/10.000 đạt;
+mẫu trống bị từ chối. Preview đã đối chiếu tiêu đề/giá trị. Workbook kiểm cấu
+trúc/định dạng bằng openpyxl, chưa Microsoft Excel. Thay thế các lỗi ghi nhận
+ở lượt kiểm trước. [Bằng chứng](kiem-chung-mau-nhap-van-don-20260915.md).

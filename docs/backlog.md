@@ -7,15 +7,46 @@ HTTPS đạt. Đang phát hành VPS theo ADR-030; giữ lỗi CSS nền ở màn
 bảng nhận đơn (`loi`, `thong-bao`) trong backlog, không đóng cùng tác vụ này.
 [Kiểm chứng](kiem-chung-dang-nhap-chung-20260915.md).
 
+## 15.09.2026 — Daily tasks: tối ưu lưới và nhập thiếu Vận đơn DB
+
+Chủ dự án chọn phương án 1 (tải theo vùng nhìn/tải trước có giới hạn), chưa
+triển khai. [Daily tasks](daily-tasks.md) lưu đủ 7 hạng mục, dự đoán có điều
+kiện và tiêu chí kiểm chứng. Đã xác định job nhập #3 tạo 6.667/10.000 dòng:
+3.333 dòng có “Đã về TK” bị từ chối vì danh sách lựa chọn `doi_soat` rỗng;
+chưa sửa cấu hình hoặc nhập bù. Đây là vấn đề nhập dữ liệu, tách khỏi tối ưu cuộn.
+
+## 15.09.2026 — Hai bảng báo cáo mẫu đã có trên VPS
+
+Đã tạo Marketing/Sale, mỗi bảng 50 dòng, 5 team và 10 nhân sự “Mẫu” không
+đăng nhập được; nguồn/biểu mẫu chuẩn đã có. Kiểm DB và hai lưới domain thật đạt.
+Giữ nguyên vận đơn/dịch vụ/phiên SSH khác. [Kiểm chứng](kiem-chung-bao-cao-mau-vps-20260915.md).
+
+## 15.09.2026 — Đã sửa lỗi mẫu nhập trên local
+
+Thay thế trạng thái còn lỗi ghi bên dưới: sửa preview lệch cột, bỏ cột chỉ xuất
+khỏi mẫu, căn lại workbook, báo lỗi trước xác nhận và chặn nhập trùng mã đơn.
+30 test đạt; trình duyệt kiểm ba mẫu, lỗi/trùng và 10.000 dòng đạt trên DB riêng.
+Chưa kiểm trực tiếp Microsoft Excel/chưa VPS. [Chi tiết](kiem-chung-mau-nhap-van-don-20260915.md).
+
+## 15.09.2026 — Kiểm thực tế mẫu nhập: còn lỗi cần xử lý
+
+Nhập qua UI đủ 3 khách/bảng và 10.000 khách DB; còn lỗi preview lệch cột,
+mẫu Vận đơn kèm 4 cột chỉ xuất, preview chưa báo lỗi giá trị, rủi ro nhập lại
+tạo trùng mã đơn. Chưa sửa nghiệp vụ; chưa đạt nghiệm thu toàn luồng.
+[Bằng chứng và phân loại](kiem-chung-mau-nhap-van-don-20260915.md).
+
 ## 15.09.2026 — Kiểm lại luồng Bảng nhận đơn
 
 68 test trực tiếp đạt, Chrome 1440/390 đạt và DB xác nhận đơn cũ giữ bảng. Hồi quy rộng: 616 đạt, 1 lỗi, 14 skip. Lỗi tại `crm/tests/test_trang_chu.py:137`: test còn đòi nhãn “Sửa”, trong khi tác vụ Tải mẫu Excel đã bỏ nhãn. Chưa sửa test ngoài phạm vi; không kết luận toàn suite đạt. [Bằng chứng](kiem-chung-bang-nhan-don-20260915.md).
 
 
+## 15.09.2026 — Tải mẫu Excel vận đơn (local)
+
+Đã thêm tải mẫu theo từng bảng và bỏ nhãn Sửa trên thẻ. Kiểm tải/nhập lại, quyền và trình duyệt local đạt; chưa push/VPS. [Kiểm chứng và giới hạn](kiem-chung-mau-nhap-van-don-20260915.md).
+
 ## 15.09.2026 — Chọn bảng nhận đơn tại CRM (local)
 
 Admin chọn đích nhận đơn mới; bảng/đơn cũ giữ nguyên. Đã áp migration 0012 local, chưa đổi đích mặc định, chưa commit/push/VPS. Sau sửa cuối 67 test liên quan đạt; Chrome 1440/390, hai ca 30 Sale đồng thời và migration xuôi/ngược đạt. [Kết quả và giới hạn](kiem-chung-bang-nhan-don-20260915.md) · [ADR-029](quyet-dinh/029-bang-nhan-don-crm.md).
-
 
 
 ## 15.09.2026 — Sửa sidebar CRM thu gọn

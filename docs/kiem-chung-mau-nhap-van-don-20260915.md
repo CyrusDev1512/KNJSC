@@ -1,5 +1,13 @@
 # Tải mẫu Excel vận đơn — 15.09.2026
 
+## Bổ sung trạng thái Git — 15.09.2026
+
+Code mẫu Excel đã lên GitHub trong `c41d8f0`, được hợp nhất tại `f971683`.
+Các mô tả local/chưa push phía dưới là bằng chứng tại thời điểm kiểm, không
+phải trạng thái phát hành mới nhất. Lỗi nhập trên VPS chỉ tạo 6.667/10.000
+dòng được điều tra riêng trong [daily tasks](daily-tasks.md); không dùng
+kết quả nhập 10.000 dòng local để kết luận file trên VPS nhập đủ.
+
 ## Chuẩn bị push GitHub
 
 Bản phát hành tách riêng 15 file của mẫu nhập trên nền `072cee4`, không kèm

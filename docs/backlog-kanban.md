@@ -1,15 +1,45 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 15.09.2026 — Bàn giao tối ưu lưới cho PC nhà
+
+**To do:** đã chọn phương án 1; chưa sửa lưới hoặc tạo “Vận đơn optimize”.
+[Daily tasks](daily-tasks.md) là điểm đọc tiếp: 7 hạng mục, phạm vi local,
+kiểm chứng, lỗi nhập 3.333 dòng và ranh giới đối soát đang tắt.
+Các mục “chưa push” của mẫu Excel bên dưới là nhật ký tại thời điểm kiểm;
+code mẫu Excel đã có trên GitHub qua `c41d8f0` và `f971683`.
+
 ## 15.09.2026 — Phiên đăng nhập chung
 
 **In progress VPS; kiểm local đạt trong phạm vi xác thực.** Không có thay đổi
 quyền nghiệp vụ. Hồi quy có một lỗi CSS nền riêng; chưa sửa ở đợt này.
 [Kiểm chứng](kiem-chung-dang-nhap-chung-20260915.md).
 
+## 15.09.2026 — Báo cáo Marketing/Sale mẫu trên domain thật
+
+**Finished VPS:** hai bảng mỗi bảng 50 dòng, phân đúng 5 team/10 nhân sự mẫu;
+DB và giao diện đã kiểm. Không tạo DailyReport đã nộp, tài khoản mẫu khóa đăng
+nhập; không restart dịch vụ. [Chi tiết](kiem-chung-bao-cao-mau-vps-20260915.md).
+
+## 15.09.2026 — Sửa lỗi mẫu nhập đã được duyệt
+
+**Finished local, chờ đối chiếu file của chủ dự án:** preview đúng cột, mẫu bỏ
+cột chỉ xuất và căn ô, báo lỗi sớm, chặn nhập trùng. 30 test đạt; UI ba mẫu,
+tệp lỗi/trùng và 10.000 dòng đạt. Thay thế trạng thái “Còn việc” ngay bên dưới.
+Chưa kiểm Microsoft Excel/chưa VPS. [Chi tiết](kiem-chung-mau-nhap-van-don-20260915.md).
+
+## 15.09.2026 — Kiểm người dùng thật cho mẫu nhập
+
+**Còn việc:** tải/nhập hợp lệ và 10.000 dòng đạt, nhưng preview lệch cột,
+mẫu có cột không nhận nhập, báo lỗi muộn và nhập lại tạo trùng. Phát hiện
+được ghi nhận, chưa thay đổi nghiệp vụ. [Chi tiết](kiem-chung-mau-nhap-van-don-20260915.md).
+
+## 15.09.2026 — Tải mẫu Excel vận đơn
+
+**Finished local:** nút Tải mẫu Excel đúng từng bảng, bỏ nhãn Sửa; kiểm nhập lại và quyền đạt. Chưa push/VPS. [Kiểm chứng](kiem-chung-mau-nhap-van-don-20260915.md).
+
 ## 15.09.2026 — Chọn bảng nhận đơn tại CRM (local)
 
 Admin chọn đích nhận đơn mới; bảng/đơn cũ giữ nguyên. Đã áp migration 0012 local, chưa đổi đích mặc định, chưa commit/push/VPS. Sau sửa cuối 67 test liên quan đạt; Chrome 1440/390, hai ca 30 Sale đồng thời và migration xuôi/ngược đạt. [Kết quả và giới hạn](kiem-chung-bang-nhan-don-20260915.md) · [ADR-029](quyet-dinh/029-bang-nhan-don-crm.md).
-
 
 
 ## 15.09.2026 — Sửa sidebar CRM thu gọn
