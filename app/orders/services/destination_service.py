@@ -36,7 +36,7 @@ def current(*, for_write=False):
     return table
 
 
-def eligibility(table):
+def _schema_error(table):
     if table.deleted_at is not None or not table.is_active:
         return 'Bảng không hoạt động.'
     if table.code == WAYBILL_TABLE_CODE:
@@ -51,9 +51,49 @@ def eligibility(table):
         options = waybill_service.OPTIONS.get(code)
         if options and not set(options).issubset(column.options or []):
             return f'Cột {label} thiếu lựa chọn chuẩn.'
+    return ''
+
+
+def eligibility(table):
+    reason = _schema_error(table)
+    if reason:
+        return reason
     if not is_waybill_table(table) and DataRecord.all_objects.filter(table=table).exists():
         return 'Bảng đã có dữ liệu nhưng chưa có profile Vận đơn; cần chuyển đổi riêng trước khi chọn.'
     return ''
+
+
+def _prepare_workflow(table):
+    if not is_waybill_table(table):
+        # Chỉ gắn profile; không suy người phụ trách từ nội dung ô cũ.
+        table.is_shared = True
+        table.delivery_view_version += 1
+    table.workflow = 'waybill'
+
+
+@transaction.atomic
+def prepare_existing(actor, table_id, *, expected_rows, request=None):
+    """Chuyển bảng đã được duyệt riêng; không tự chọn đích hoặc sửa dữ liệu cũ."""
+    assert_rank(actor, Rank.ADMIN, request)
+    if type(expected_rows) is not int or expected_rows < 0:
+        raise BusinessError('Số dòng xác nhận phải là số nguyên không âm.')
+    _lock(exclusive=True)
+    table = TableDef.all_objects.select_related('department').get(pk=table_id)
+    lifecycle_service.lock(table, exclusive=True)
+    table.refresh_from_db()
+    reason = _schema_error(table)
+    if reason:
+        raise BusinessError(reason)
+    count = DataRecord.all_objects.filter(table=table).count()
+    if count != expected_rows:
+        raise BusinessError(f'Số dòng đã thay đổi: xác nhận {expected_rows}, hiện có {count}.')
+    if is_waybill_table(table):
+        return table
+    _prepare_workflow(table)
+    table.save(update_fields=['workflow', 'is_shared', 'delivery_view_version', 'updated_at'])
+    record(AuditAction.UPDATE, actor=actor, target=table, request=request,
+           detail=f'Chuẩn bị bảng nhận đơn: {table.code}; giữ {count} dòng; chưa đổi đích nhận đơn')
+    return table
 
 
 def candidates():
@@ -77,11 +117,7 @@ def configure(actor, table_id, *, request=None):
     if previous and previous.pk == table.pk:
         return table
     TableDef.all_objects.filter(receives_orders=True).update(receives_orders=False)
-    if not is_waybill_table(table):
-        # Cùng cấu hình hàng đợi với Vận đơn gốc; scope vẫn chặn dòng chưa giao.
-        table.is_shared = True
-        table.delivery_view_version += 1
-    table.workflow = 'waybill'
+    _prepare_workflow(table)
     table.receives_orders = True
     table.save(update_fields=['workflow', 'receives_orders', 'delivery_view_version', 'is_shared', 'updated_at'])
     record(AuditAction.UPDATE, actor=actor, target=table, request=request,

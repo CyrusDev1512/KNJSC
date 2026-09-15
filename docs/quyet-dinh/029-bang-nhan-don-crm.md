@@ -34,3 +34,20 @@ Cần sao lưu cấu hình trước rollback và triển khai cùng phiên bản
 Không tự chọn Vận đơn DB trên dữ liệu đang vận hành. Không triển khai VPS trong tác vụ này.
 
 [Bằng chứng](../kiem-chung-bang-nhan-don-20260915.md).
+
+## Bổ sung 15.09.2026 — Vận đơn DB có placeholder
+
+Chủ dự án xác nhận 6.667 dòng Vận đơn DB là placeholder, duyệt chuẩn bị bảng
+để có thể chọn nhận đơn và phát hành VPS. Bổ sung lệnh vận hành
+`chuan_bi_bang_nhan_don --table van_don_db --actor <ma-admin> --expected-rows 6667`.
+
+Lệnh gọi service có kiểm quyền Admin, khóa lựa chọn đích và vòng đời bảng;
+kiểm đủ cấu trúc/lựa chọn chuẩn và số dòng đã xác nhận (gồm xóa mềm).
+Chỉ gắn workflow Vận đơn, bật cấu hình hàng đợi và tăng phiên bản quyền;
+không sửa dòng/cột, không tạo Order/WaybillItem hoặc phân công giả từ chuỗi tên.
+Dòng chưa phân công tuân theo phạm vi Vận đơn hiện có sau chuyển đổi.
+
+Không tự đổi bảng nhận đơn hiện hành. Admin chọn trên màn hình cũ sau khi bảng
+đã sẵn sàng. Bảng bất kỳ đã có dữ liệu vẫn bị chặn nếu chưa được duyệt chuyển
+đổi riêng; không tự nhận diện placeholder hoặc chạy chuyển đổi trong seed.
+Không thêm dependency/migration. [Kiểm chứng](../kiem-chung-chuan-bi-bang-nhan-don-20260915.md).
