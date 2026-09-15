@@ -10,7 +10,7 @@ code mẫu Excel đã có trên GitHub qua `c41d8f0` và `f971683`.
 
 ## 15.09.2026 — Phiên đăng nhập chung
 
-**In progress VPS; kiểm local đạt trong phạm vi xác thực.** Không có thay đổi
+**Finished VPS — cdc1a45; 16 ca Chrome test và 4 ca domain thật đạt.** Không có thay đổi
 quyền nghiệp vụ. Hồi quy có một lỗi CSS nền riêng; chưa sửa ở đợt này.
 [Kiểm chứng](kiem-chung-dang-nhap-chung-20260915.md).
 

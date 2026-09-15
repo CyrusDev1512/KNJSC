@@ -3,7 +3,7 @@
 ## 15.09.2026 — Đăng nhập chung ERP/CRM
 
 Đã kiểm local: cookie dùng chung, hai chiều/bốn cấp quyền, 16 kịch bản Chrome
-HTTPS đạt. Đang phát hành VPS theo ADR-030; giữ lỗi CSS nền ở màn hình chọn
+HTTPS đạt. Đã phát hành VPS cdc1a45, Chrome domain thật 4/4 đạt; giữ lỗi CSS nền ở màn hình chọn
 bảng nhận đơn (`loi`, `thong-bao`) trong backlog, không đóng cùng tác vụ này.
 [Kiểm chứng](kiem-chung-dang-nhap-chung-20260915.md).
 

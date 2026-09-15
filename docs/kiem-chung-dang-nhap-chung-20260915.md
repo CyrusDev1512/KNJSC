@@ -55,7 +55,7 @@ vấn phiên giữ nguyên; không tuyên bố tăng tốc.
 
 ## Phát hành VPS
 
-Đang chuẩn bị phát hành; chưa dùng kết quả local để kết luận VPS đạt.
+Đã phát hành và kiểm trên domain thật; kết quả dưới đây thay thế trạng thái chuẩn bị.
 Đã sao lưu ở `/opt/knjsc-runtime/backups/shared-login-20260915/`:
 
 - Database dump 853.803 byte, đọc được danh mục bằng pg_restore --list;
@@ -65,3 +65,37 @@ vấn phiên giữ nguyên; không tuyên bố tăng tốc.
   SHA256 `123d7f0073d13af7ee0d2db539f1b9ea159ba6f06f1f31543deddb0b58782d89`.
 - .env trước và compose.yml/compose.vps.yml lưu riêng tư trên VPS.
   Chỉ kiểm đọc archive, chưa thử phục hồi DB cho tác vụ này.
+
+### Bản đang chạy và nghiệm thu
+
+- Commit ứng dụng: `cdc1a45` — đã push lên `codex/crm-update-solar-ui`.
+- Image: `knjsc-app:cdc1a45-shared-login`, digest
+  `sha256:9a6ae8b7867e77ef33138fdb68eaf9a5192355e49b17285a95496fc345e77893`.
+  Image chứa nguyên hotfix sidebar VPS; hash sau phát hành khớp bản trước.
+- Cập nhật ERP/CRM/worker/heavy/beat từ 10:07:35 đến 10:07:49 UTC ngày 15.09.2026
+  (17:07 giờ Việt Nam). Đây là thời gian đợt cập nhật, không phải số đo downtime
+  hoặc độ trễ request. Hai worker không có tác vụ active trước khi dừng.
+- Cả năm container chạy cùng image, restart count=0. Giới hạn RAM lần lượt
+  ERP 512 MiB, CRM 640 MiB, worker 384 MiB, heavy 512 MiB, beat 192 MiB.
+  Giữ hai compose thực tế và tài nguyên DB/Redis; không seed/migrate.
+- `manage.py check` trên cả hai URLconf: không có vấn đề. Kiểm runtime xác nhận
+  tên/domain cookie mới, Secure/HttpOnly/Lax, hai CSRF trusted origins chính xác
+  và SESSION_IDLE_TIMEOUT_SECONDS=3600.
+- Chrome domain thật trước sửa tái hiện ERP đã đăng nhập nhưng CRM còn trang
+  đăng nhập. Sau sửa **4/4 lượt đạt**: 1440/390px × bắt đầu ERP/CRM. Bấm liên
+  kết chuyển ứng dụng, nhận đúng mã tài khoản ở form CRM; trang cấu hình Admin
+  đọc được, đăng xuất rồi request cả hai hostname đều về đăng nhập.
+- Chứng chỉ HTTPS thật được Chrome xác thực bình thường. Không bỏ kiểm TLS.
+  Các lần smoke mobile đầu cần sửa cách mở menu trong harness: sidebar VPS
+  đang ngoài viewport, nút tên “Mở điều hướng”; không force-click hoặc sửa UI.
+- Kiểm log từ lúc phát hành không thấy traceback, Internal Server Error,
+  lỗi CSRF hoặc lỗi Celery; các dịch vụ không tự khởi động lại.
+- Smoke VPS dùng tài khoản Admin hiện có, chỉ đăng nhập/đọc/đăng xuất; không tạo
+  đơn hay báo cáo giả. Bốn cấp quyền, chuyển tài khoản và cookie cũ kiểm bằng
+  các phiên riêng trên DB test, không giả nhận đã thử mọi tài khoản thực tế.
+
+Người đang sử dụng đăng nhập lại **một lần** tại ERP hoặc CRM sau phát hành.
+Logout dùng chung có hiệu lực ở request tiếp theo; nháp/form cũ không tự gửi lại.
+Không có lỗi nghiệm thu xác thực còn mở. Lỗi CSS nền nói trên vẫn ở backlog.
+Bằng chứng gọn được lưu cùng thư mục backup riêng tư trên VPS; không kèm giá trị
+cookie/mật khẩu. Container/database test và chứng chỉ test tạm được dọn sau kiểm.

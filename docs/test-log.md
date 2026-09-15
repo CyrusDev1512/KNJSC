@@ -5,7 +5,7 @@
 Hồi quy: 868 passed/1 failed nền/1 skipped; quyền lưới và biểu mẫu thêm
 213 passed. Bài Chrome chạy riêng 1 passed với 16 kịch bản HTTPS ở 1440/390.
 Lỗi CSS `order_destination.html` tái hiện trên archive f971683; không coi
-toàn suite đạt. VPS đang phát hành. [Bằng chứng](kiem-chung-dang-nhap-chung-20260915.md).
+toàn suite đạt. VPS cdc1a45: 4/4 ca Chrome thật đạt, cấu hình/log/container đúng. [Bằng chứng](kiem-chung-dang-nhap-chung-20260915.md).
 
 ## 15.09.2026 — Khởi tạo 100 dòng báo cáo mẫu trên VPS
 
