@@ -71,8 +71,9 @@ chỉ dựng từ phạm vi quyền (`tree_service`), lớp CSS tính ở Python
                 {% if b.khong_ngay %}<span class="crm-chu-y">không có cột Ngày</span>{% endif %}
               </div>
             </div>
-            <span class="{{ b.lop_quyen }}">{{ b.quyen }}</span>
-            <div class="hang"><a class="nut nut-nho nut-chinh" href="{{ b.url }}">Mở</a>
+            <div class="hang">{% if b.quyen != 'Sửa' %}<span class="{{ b.lop_quyen }}">{{ b.quyen }}</span>{% endif %}
+            {% if b.can_download_template %}<a class="nut nut-nho" href="{% url 'bang_mau_nhap' b.bang.code %}" aria-label="Tải mẫu Excel {{ b.bang.name }}">Tải mẫu Excel</a>{% endif %}
+            <a class="nut nut-nho nut-chinh" href="{{ b.url }}">Mở</a>
             {% if b.can_delete %}<details><summary>Thao tác bảng</summary><a class="nut nut-nguy" href="{% url 'delete_table' b.bang.code %}">Xóa</a></details>{% endif %}</div>
           </li>
         {% empty %}

@@ -6,7 +6,7 @@ thì mảnh không còn hx-trigger nên tự ngừng. Cần: job, da_xong.
      {% if not da_xong %}hx-get="{% url 'tac_vu_tien_do' job.pk %}" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}>
   <div class="the-dau">
     <h2>Tiến độ</h2>
-    <div class="phai">{% include "core/_chip_tac_vu.html" with j=job %}</div>
+    <div class="phai">{% if job.status == 'done' and job.kind == 'import' and job.summary.error_count %}<span class="chip">Hoàn tất xử lý — có dòng bị bỏ qua</span>{% else %}{% include "core/_chip_tac_vu.html" with j=job %}{% endif %}</div>
   </div>
   <div class="the-than tien-do">
     <div class="tien-do-thanh {% if job.status == 'done' %}xong{% elif job.status == 'failed' or job.status == 'stale' %}hong{% endif %}">
@@ -24,7 +24,7 @@ thì mảnh không còn hx-trigger nên tự ngừng. Cần: job, da_xong.
 
     {% if job.status == "done" %}
       {% if job.kind == "import" %}
-        <div class="bao bao-tot"><span class="bao-ic">✓</span>
+        <div class="bao {% if job.summary.error_count %}bao-cho{% else %}bao-tot{% endif %}"><span class="bao-ic">{% if job.summary.error_count %}!{% else %}✓{% endif %}</span>
           <div><b>Đã nhập {{ job.summary.created }} dòng</b>
             <p>{% if job.summary.error_count %}Bỏ qua {{ job.summary.error_count }} dòng lỗi — liệt kê bên dưới theo số hàng trong tệp.{% else %}Không có dòng lỗi.{% endif %}</p></div>
         </div>
