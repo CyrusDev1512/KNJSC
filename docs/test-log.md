@@ -1,8 +1,48 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 16.09.2026 — Lưới mới và kiểm cờ trên nguồn cố định
+
+137 passed trên snapshot ứng viên; E2E lưới chung 1 passed (1440/1280/390,
+zoom 125%, tạo/dán/Undo/Redo/xóa/khôi phục/thu quyền). Node và Chrome/API thật
+kiểm cuộn, nhảy và nhập khi lưu đạt. Hai lượt chính đủ 300 giây đo: 10 Vận
+đơn và 30 Sale + 10 Vận đơn; 367/367 đơn, oracle không lỗi. READ/SYNC có lỗi
+mở editor, không nghiệm thu bật cờ. Đã sửa harness dừng cắt request và hai
+lỗi metadata bằng TDD; không tính các lượt lỗi/thiếu thời gian là đạt.
+Kiểm bền dừng theo yêu cầu sau 14,71 phút đo; 939/939 đơn đúng. Có poll bị hủy và oracle lệch một ô do commit sau khi đóng metrics; không tính lượt dừng đạt. Chưa push/VPS. [Lệnh, môi trường, bằng chứng](kiem-chung-co-toi-uu-20260916.md).
+
 ## 16.09.2026 — Sửa riêng bố cục Tổng quan ERP
 
 Đã sửa nhãn–giá trị cùng hàng, bỏ kéo cao thẻ theo Marketing, kiểm responsive và suite báo cáo; push/phát hành VPS commit `da6e2c0`. Không đưa thay đổi báo cáo/lưới chưa phát hành vào bản này. [Kiểm chứng và giới hạn](kiem-chung-tong-quan-20260916.md).
+
+## 16/09/2026 — Chọn ô/nhập trong lúc lưu: đã tối ưu và đo local
+
+Đã tách cập nhật vùng chọn/mở/hủy editor khỏi dựng lại nội dung lưới.
+40 lượt/10.000 dòng mô phỏng, trình duyệt Codex 1280×720, giữ request lưu:
+p95 chọn/mở/nhập ~33–34 ms; baseline cũng ~34 ms nhưng một lượt chọn 58,1 ms.
+Bản cuối max 34,2 ms; DOM tạo mới giảm 51.891 → 466. Đây là phép đo tới hai
+rAF của fixture, không phải số đo API/VPS hoặc bảo đảm trên mọi máy.
+Giữ nháp mới khi phản hồi cũ về; lỗi lưu và Undo/Redo đã kiểm; 48 test server
+và nhóm Node liên quan đạt. Local, chưa push/VPS. Không đánh dấu toàn bộ bảy
+hạng mục tối ưu hoàn thành hoặc coi kiểm này là kiểm bộ nhớ dài hạn.
+[Chi tiết](kiem-chung-nhap-khi-luu-20260916.md).
+
+## 16.09.2026 — Nhảy xa và quyền sở hữu request
+
+TDD đỏ: 48 request/12 vùng nhảy; xanh: 1 request, cache không tạo request mới,
+tải đón phục hồi sau cuộn nhỏ ổn định. Browser desktop/mobile kiểm đổi lọc
+khi timer đang chờ, lỗi, quyền, nháp và biến thiên chiều cao đạt. Node kiểm
+không hủy request editor/copy và không xóa nhầm request thay thế đạt.
+E2E Django/PostgreSQL test riêng: 1 đạt/40,56 giây. Không seed VPS.
+[Số đo và giới hạn](kiem-chung-cuon-luoi-20260916.md).
+
+## 16.09.2026 — Hai thao tác cuộn lưới
+
+TDD đỏ: 27.880 phần tử mới/40 lượt cached; sau sửa 2.594 desktop, 2.126 mobile.
+Chrome mặc định/cờ render bật đạt; đổi lọc khi request chậm, lỗi tải đón,
+retry, thu quyền, nháp và chiều cao hàng đạt. Functional 110 đạt; fixture
+1 đạt; E2E server thật 1 đạt (1440/390). Node liên quan đạt sau bổ sung các
+binding còn thiếu trong fixture cũ; lỗi scope fixture đã đối chứng baseline.
+Đo API mô phỏng, không coi là kiểm tải VPS. [Chi tiết](kiem-chung-cuon-luoi-20260916.md).
 
 ## 16.09.2026 — Đã phát hành tiền/PTTT, bỏ Đơn vị phụ và sửa cột ghim
 

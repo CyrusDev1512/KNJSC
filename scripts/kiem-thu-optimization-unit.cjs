@@ -11,7 +11,8 @@ vm.runInContext(source.slice(source.indexOf('  async function json('),source.ind
   let observed=0;
   const grid={state,config:{protocol:2,dataUrl:'/data'},BLOCK:100,CACHE:10,AbortController,URLSearchParams,query:new URLSearchParams(),
     fetch:async()=>({protocol:2,revision:8,query_token:'q',version:'v',metadata_version:'m',total:0,columns:[],rows:[]}),json:async x=>x,
-    updateGeometry:fn=>fn(),geometry:{total:0},working:{observe:()=>observed++},layout:()=>{},repaint:()=>{}};
+    updateGeometry:fn=>fn(),geometry:{total:0,at:()=>0},viewport:{scrollTop:0,clientHeight:900},HEADER:54,
+    ensureDrafts:()=>{},working:{observe:()=>observed++},layout:()=>{},repaint:()=>{}};
   vm.createContext(grid);
   vm.runInContext(source.slice(source.indexOf('  async function loadBlock('),source.indexOf('  function element('))+';this.load=loadBlock;',grid);
   await grid.load(0);

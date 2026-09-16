@@ -1,8 +1,40 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 16.09.2026 — Tối ưu cuộn và cờ: chưa phát hành
+
+Code/E2E/hồi quy và tải ngắn đã kiểm; đã dừng kiểm bền theo yêu cầu sau 14,71 phút đo; chưa đủ 60 phút. Bảy cờ tắt.
+READ/SYNC chưa đạt thao tác dưới tải, RENDER chưa chứng minh lợi ích mới.
+Chưa push/VPS; giữ nợ 300k của task khác. [Chi tiết](kiem-chung-co-toi-uu-20260916.md).
+
 ## 16.09.2026 — Sửa riêng bố cục Tổng quan ERP
 
 Đã sửa nhãn–giá trị cùng hàng, bỏ kéo cao thẻ theo Marketing, kiểm responsive và suite báo cáo; push/phát hành VPS commit `da6e2c0`. Không đưa thay đổi báo cáo/lưới chưa phát hành vào bản này. [Kiểm chứng và giới hạn](kiem-chung-tong-quan-20260916.md).
+
+## 16/09/2026 — Chọn ô/nhập trong lúc lưu: đã tối ưu và đo local
+
+Đã tách cập nhật vùng chọn/mở/hủy editor khỏi dựng lại nội dung lưới.
+40 lượt/10.000 dòng mô phỏng, trình duyệt Codex 1280×720, giữ request lưu:
+p95 chọn/mở/nhập ~33–34 ms; baseline cũng ~34 ms nhưng một lượt chọn 58,1 ms.
+Bản cuối max 34,2 ms; DOM tạo mới giảm 51.891 → 466. Đây là phép đo tới hai
+rAF của fixture, không phải số đo API/VPS hoặc bảo đảm trên mọi máy.
+Giữ nháp mới khi phản hồi cũ về; lỗi lưu và Undo/Redo đã kiểm; 48 test server
+và nhóm Node liên quan đạt. Local, chưa push/VPS. Không đánh dấu toàn bộ bảy
+hạng mục tối ưu hoàn thành hoặc coi kiểm này là kiểm bộ nhớ dài hạn.
+[Chi tiết](kiem-chung-nhap-khi-luu-20260916.md).
+
+## 16.09.2026 — Gom nhảy xa
+
+**Finished local:** chỉ tải vùng đích sau 80 ms yên cuộn; tải trước phục hồi
+khi cuộn ổn định. Chrome 1440/390, sở hữu request và E2E DB thật đạt.
+48→1 request trong chuỗi nhảy mô phỏng; không gọi là tăng tốc lần nhảy đơn.
+Chưa push/VPS. [Chi tiết](kiem-chung-cuon-luoi-20260916.md).
+
+## 16.09.2026 — Cuộn cache và tải trước theo hướng
+
+**Finished local trong phép đo kiểm soát:** giữ DOM khi chỉ cuộn, đón hai
+khối, giữ trần cache và xử lý lỗi/quyền. Functional 110 đạt; Chrome 1440/390
+và tương thích cờ renderer đạt. Chưa push/VPS; còn đo mạng/backend thật khi
+phát hành. [Bằng chứng](kiem-chung-cuon-luoi-20260916.md).
 
 ## 16.09.2026 — Đã phát hành tiền/PTTT, bỏ Đơn vị phụ và sửa cột ghim
 

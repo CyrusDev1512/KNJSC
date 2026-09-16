@@ -1,8 +1,44 @@
 # Backlog
 
+## 16.09.2026 — Kiểm chứng cờ và phát hành tối ưu cuộn (đã dừng kiểm theo yêu cầu)
+
+Bản lưới mới qua 137 hồi quy, E2E lưới chung và hai lượt tải chính 100.000
+đơn; 30 Sale + 10 Vận đơn lưu 367/367 đơn đúng. READ/SYNC chưa bật vì
+invalidation theo cả bảng làm gián đoạn mở editor khi có đơn ngoài phạm vi;
+RENDER chưa có lợi ích bổ sung rõ. Kiểm bền dừng theo yêu cầu sau 14,71 phút đo; chưa đủ 60 phút, chưa push/VPS.
+Không đóng nợ 300.000 dòng hoặc hiệu năng VPS. [Bằng chứng](kiem-chung-co-toi-uu-20260916.md).
+
 ## 16.09.2026 — Sửa riêng bố cục Tổng quan ERP
 
 Đã sửa nhãn–giá trị cùng hàng, bỏ kéo cao thẻ theo Marketing, kiểm responsive và suite báo cáo; push/phát hành VPS commit `da6e2c0`. Không đưa thay đổi báo cáo/lưới chưa phát hành vào bản này. [Kiểm chứng và giới hạn](kiem-chung-tong-quan-20260916.md).
+
+## 16/09/2026 — Chọn ô/nhập trong lúc lưu: đã tối ưu và đo local
+
+Đã tách cập nhật vùng chọn/mở/hủy editor khỏi dựng lại nội dung lưới.
+40 lượt/10.000 dòng mô phỏng, trình duyệt Codex 1280×720, giữ request lưu:
+p95 chọn/mở/nhập ~33–34 ms; baseline cũng ~34 ms nhưng một lượt chọn 58,1 ms.
+Bản cuối max 34,2 ms; DOM tạo mới giảm 51.891 → 466. Đây là phép đo tới hai
+rAF của fixture, không phải số đo API/VPS hoặc bảo đảm trên mọi máy.
+Giữ nháp mới khi phản hồi cũ về; lỗi lưu và Undo/Redo đã kiểm; 48 test server
+và nhóm Node liên quan đạt. Local, chưa push/VPS. Không đánh dấu toàn bộ bảy
+hạng mục tối ưu hoàn thành hoặc coi kiểm này là kiểm bộ nhớ dài hạn.
+[Chi tiết](kiem-chung-nhap-khi-luu-20260916.md).
+
+## 16.09.2026 — Nhảy xa: gom và ưu tiên request vùng đích (local)
+
+Đã gom 80 ms khi nhảy xa, ngừng tải đón cho tới cuộn ổn định, giữ request
+editor/copy dùng chung. Chuỗi 12 vị trí giảm 48→1 request, đổi lại chờ đích
+~235–248 ms so với ~139–141 ms trong API mô phỏng trễ 120 ms. Không trì hoãn
+cache. Chrome và E2E DB test đạt; chưa đo tải server nhiều người, chưa push/VPS.
+[Bằng chứng và giới hạn](kiem-chung-cuon-luoi-20260916.md).
+
+## 16.09.2026 — Cuộn cache và tải trước theo hướng (local)
+
+Đã giảm dựng lại ô khi chỉ cuộn, tải đón tối đa hai khối; cache giữ 10 khối.
+Đo Chrome/API mô phỏng trễ 120 ms: p95 cuộn liên tục 140,9→47,7 ms desktop,
+136,9→49,4 ms mobile; cached khoảng 32 ms trước/sau. 110 functional và E2E
+database test đạt; chưa push/VPS, chưa nghiệm thu tải server nhiều người.
+[Kết quả, chi phí request và giới hạn](kiem-chung-cuon-luoi-20260916.md).
 
 ## 16.09.2026 — Đã phát hành tiền/PTTT, bỏ Đơn vị phụ và sửa cột ghim
 

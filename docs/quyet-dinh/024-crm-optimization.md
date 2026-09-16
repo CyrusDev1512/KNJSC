@@ -1,5 +1,23 @@
 # ADR-024 — Tối ưu KN CRM theo số đo
 
+## Bổ sung 16.09.2026 — hai thao tác cuộn được duyệt riêng
+
+Yêu cầu tiếp theo cùng ngày: nhảy xa gom request theo khoảng yên 80 ms,
+ưu tiên vùng đích, tạm ngừng tải đón đến khi cuộn nhỏ cùng hướng ổn định.
+Cache vẽ ngay; chỉ hủy request thuộc viewport, giữ request editor/copy dùng
+chung. Đây là giảm tải thừa với chi phí chờ có giới hạn, không cam kết giảm
+độ trễ của một lần nhảy hoặc giảm chi phí SQL chưa đo. Bằng chứng trong
+biên bản kiểm chứng cuộn bên dưới; bản này vẫn chỉ triển khai local.
+
+Chủ dự án chọn làm trước cuộn vùng có cache và cuộn liên tục cùng hướng.
+Bản local tái sử dụng DOM chỉ khi lần vẽ do cuộn đơn thuần; các thay đổi dữ
+liệu/lựa chọn cùng frame vẫn ưu tiên vẽ đầy đủ. Tải đón hai khối theo hướng,
+giữ cache 10 khối, hủy riêng tải đón hết hữu ích; quyền/lỗi/thế hệ truy vấn
+giữ hợp đồng hiện hành. Không bật các cờ tối ưu cũ hoặc thay kiến trúc.
+Đây là bổ sung hẹp cho đường cuộn mặc định, không nghiệm thu toàn bộ renderer
+thử nghiệm hoặc hiệu năng VPS. Số đo, chi phí request và giới hạn tại
+[kiểm chứng cuộn](../kiem-chung-cuon-luoi-20260916.md).
+
 Ngày: 11.09.2026. Trạng thái: **đã triển khai sau cờ và kiểm local;
 chưa nghiệm thu toàn bộ hiệu năng/phát hành**.
 
@@ -74,3 +92,24 @@ Quay lui bằng cờ; không xóa lịch sử/biên nhận hoặc phục hồi D
 | Thống kê | Tính lại trong 15 giây | Số liệu có độ trễ tối đa 15 giây, khóa tính |
 | Xuất/queue | Giữ toàn workbook trong RAM | Một tác vụ nặng/lần; giữ định dạng và quyền tải |
 | Production | Cách ly tác vụ nặng/cache/broker | Cần VPS thực để đo CPU steal, I/O, RTT và connection |
+
+## Kiểm chứng bổ sung 16.09.2026 — tách tối ưu cuộn khỏi cờ thử nghiệm
+
+Tối ưu cuộn cache, tải trước có giới hạn, gom nhảy xa và cập nhật vùng chọn
+được kiểm riêng trên lõi hiện hành; không cần bật `CRM_OPT_RENDER` để dùng
+các đường xử lý hẹp này. Chưa chuyển sang Canvas hoặc đổi phân quyền.
+
+Giao thức READ phải giữ `capabilities` và `schema_version` như giao thức
+cũ. Phiên bản metadata theo nội dung metadata thực tế, bao gồm lựa chọn
+động; chỉ bỏ danh sách cột khi client đã có đúng phiên bản. Không đổi
+schema database, quyền hoặc cơ chế kiểm CAS.
+
+READ/READ+SYNC chưa đạt kiểm thao tác khi Sale tạo đơn liên tục. Audit cho
+thấy đơn mới ngoài phạm vi Vận đơn vẫn làm token v2 hết hiệu lực, trong
+khi tập dòng nhìn thấy không đổi. Không bật mặc định hoặc tự đổi thiết kế
+membership/phạm vi để né lỗi trong đợt này. RENDER cũng chưa có lợi ích bổ
+sung rõ qua vòng sàng lọc. Các cờ còn lại không thuộc đợt đánh giá này.
+
+Xem [phương pháp, số đo và giới hạn](../kiem-chung-co-toi-uu-20260916.md).
+Kết quả local 100.000 dòng không thay kết quả VPS 300.000 dòng hoặc nghiệm
+thu toàn hệ thống. Trạng thái phát hành/chạy bền lấy từ biên bản mới này.

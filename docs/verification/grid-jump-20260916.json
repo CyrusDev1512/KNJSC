@@ -1,0 +1,295 @@
+{
+  "date": "2026-09-16",
+  "baselineHash": "fd75436a614cf034e797f9040b4d70f806c8bee87e107d2e7aa9e6f6924160a0",
+  "sourceHash": "bf0c4dc4826ae9bbab4a0cc1fcc90b49a368a9e7e314a47fc1878277985b0339",
+  "apiDelayMs": 120,
+  "coalescingMs": 80,
+  "before": [
+    {
+      "width": 1440,
+      "stage": "jump-before",
+      "requests": 48,
+      "offsets": [
+        900,
+        1000,
+        1100,
+        1200,
+        1900,
+        2000,
+        2100,
+        2200,
+        2900,
+        3000,
+        3100,
+        3200,
+        3900,
+        4000,
+        4100,
+        4200,
+        4900,
+        5000,
+        5100,
+        5200,
+        5900,
+        6000,
+        6100,
+        6200,
+        6900,
+        7000,
+        7100,
+        7200,
+        7900,
+        8000,
+        8100,
+        8200,
+        8900,
+        9000,
+        9100,
+        9200,
+        9900,
+        10000,
+        10100,
+        10200,
+        10900,
+        11000,
+        11100,
+        11200,
+        11900,
+        12000,
+        12100,
+        12200
+      ],
+      "finalWaitMs": 140.5,
+      "cachedMs": 9.5,
+      "cachedRequests": 0,
+      "errors": [],
+      "warmJumpMs": 24.69999998807907,
+      "warmJumpRequests": 0,
+      "resumedOffsets": [],
+      "filterReset": true
+    },
+    {
+      "width": 390,
+      "stage": "jump-before",
+      "requests": 48,
+      "offsets": [
+        900,
+        1000,
+        1100,
+        1200,
+        1900,
+        2000,
+        2100,
+        2200,
+        2900,
+        3000,
+        3100,
+        3200,
+        3900,
+        4000,
+        4100,
+        4200,
+        4900,
+        5000,
+        5100,
+        5200,
+        5900,
+        6000,
+        6100,
+        6200,
+        6900,
+        7000,
+        7100,
+        7200,
+        7900,
+        8000,
+        8100,
+        8200,
+        8900,
+        9000,
+        9100,
+        9200,
+        9900,
+        10000,
+        10100,
+        10200,
+        10900,
+        11000,
+        11100,
+        11200,
+        11900,
+        12000,
+        12100,
+        12200
+      ],
+      "finalWaitMs": 138.89999997615814,
+      "cachedMs": 15.600000023841858,
+      "cachedRequests": 0,
+      "errors": [],
+      "warmJumpMs": 21.400000035762787,
+      "warmJumpRequests": 0,
+      "resumedOffsets": [],
+      "filterReset": true
+    }
+  ],
+  "after": [
+    {
+      "width": 1440,
+      "stage": "jump-after",
+      "requests": 1,
+      "offsets": [
+        12000
+      ],
+      "finalWaitMs": 235.10000002384186,
+      "cachedMs": 7.199999988079071,
+      "cachedRequests": 0,
+      "errors": [],
+      "warmJumpMs": 28.30000001192093,
+      "warmJumpRequests": 0,
+      "resumedOffsets": [
+        50100,
+        50200
+      ],
+      "filterReset": true
+    },
+    {
+      "width": 390,
+      "stage": "jump-after",
+      "requests": 1,
+      "offsets": [
+        12000
+      ],
+      "finalWaitMs": 247.69999998807907,
+      "cachedMs": 15.300000011920929,
+      "cachedRequests": 0,
+      "errors": [],
+      "warmJumpMs": 30.80000001192093,
+      "warmJumpRequests": 0,
+      "resumedOffsets": [
+        50100,
+        50200
+      ],
+      "filterReset": true
+    }
+  ],
+  "scrollRegression": [
+    {
+      "width": 1440,
+      "cached": {
+        "samples": 40,
+        "p50": 30.69999998807907,
+        "p95": 31.900000035762787,
+        "max": 32.10000002384186
+      },
+      "continuous": {
+        "samples": 55,
+        "p50": 40.90000003576279,
+        "p95": 49.09999996423721,
+        "max": 50.60000002384186
+      },
+      "wheel": {
+        "run": false,
+        "frames": 188,
+        "missingFrames": 0,
+        "gaps": [],
+        "start": null,
+        "top": 12000
+      },
+      "errors": [],
+      "regressions": [
+        "wheel/selection",
+        "editor draft",
+        "variable row height",
+        "stale filter response",
+        "speculative 503",
+        "visible retry",
+        "403 clears cache"
+      ]
+    },
+    {
+      "width": 390,
+      "cached": {
+        "samples": 40,
+        "p50": 31.700000047683716,
+        "p95": 32.200000047683716,
+        "max": 32.30000001192093
+      },
+      "continuous": {
+        "samples": 55,
+        "p50": 41.10000002384186,
+        "p95": 48.80000001192093,
+        "max": 49.19999998807907
+      },
+      "wheel": {
+        "run": false,
+        "frames": 186,
+        "missingFrames": 0,
+        "gaps": [],
+        "start": null,
+        "top": 12000
+      },
+      "errors": [],
+      "regressions": [
+        "wheel/selection",
+        "editor draft",
+        "variable row height",
+        "stale filter response",
+        "speculative 503",
+        "visible retry",
+        "403 clears cache"
+      ]
+    }
+  ],
+  "renderFlag": [
+    {
+      "width": 1440,
+      "cached": {
+        "samples": 40,
+        "p50": 30.400000035762787,
+        "p95": 31.599999964237213,
+        "max": 33.59999996423721
+      },
+      "continuous": {
+        "samples": 55,
+        "p50": 38.80000001192093,
+        "p95": 47.69999998807907,
+        "max": 50.10000002384186
+      },
+      "errors": [],
+      "regressions": [
+        "wheel/selection",
+        "editor draft",
+        "variable row height",
+        "stale filter response",
+        "speculative 503",
+        "visible retry",
+        "403 clears cache"
+      ]
+    },
+    {
+      "width": 390,
+      "cached": {
+        "samples": 40,
+        "p50": 32.19999998807907,
+        "p95": 32.60000002384186,
+        "max": 32.799999952316284
+      },
+      "continuous": {
+        "samples": 55,
+        "p50": 40.5,
+        "p95": 48.39999997615814,
+        "max": 50.19999998807907
+      },
+      "errors": [],
+      "regressions": [
+        "wheel/selection",
+        "editor draft",
+        "variable row height",
+        "stale filter response",
+        "speculative 503",
+        "visible retry",
+        "403 clears cache"
+      ]
+    }
+  ]
+}

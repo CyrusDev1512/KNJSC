@@ -81,7 +81,8 @@ def untoken(value):
 
 
 def block(user,table,params):
-    from . import master_grid_service as master, grid_service
+    from . import master_grid_service as master, grid_service, row_mutations
+    from forms_builder.services import grant_service
     user=authority(user,table)
     current=state(table);grid=grid_service.build_grid(user,params,table=table)
     for column in grid.columns:column.table=table
@@ -112,9 +113,14 @@ def block(user,table,params):
     else:selected=list(candidate.values_list('pk','created_at')[offset:offset+master.BLOCK_SIZE])
     ids=[pk for pk,_ in selected];by_id={r.pk:r for r in qs.filter(pk__in=ids).order_by()}
     rows=[by_id[pk] for pk in ids if pk in by_id]
-    mv=digest([table.pk,current['fields'].get('__schema',0)])
-    result={'protocol':2,'rows':master.serialize(rows,grid.columns,user),'total':total,'version':identity,'query_token':query_token,'revision':current['revision'],'offset':offset,'block_size':master.BLOCK_SIZE,'metadata_version':mv}
-    if params.get('metadata_version')!=mv:result['columns']=master.metadata(grid.columns)
+    meta=master.metadata(grid.columns)
+    # Danh sách gợi ý động có thể đổi mà không ghi lại ColumnDef.
+    mv=master.digest(meta)
+    # Cờ READ chỉ đổi cách đọc/cache; giữ hợp đồng schema và quyền của lưới.
+    result={'protocol':2,'rows':master.serialize(rows,grid.columns,user,meta=meta),'total':total,'version':identity,'query_token':query_token,'revision':current['revision'],'offset':offset,'block_size':master.BLOCK_SIZE,'metadata_version':mv,
+            'schema_version':mv,
+            'capabilities':{'create':row_mutations.can_create(user,table),'structure':grant_service.can_manage_columns(user,table)}}
+    if params.get('metadata_version')!=mv:result['columns']=meta
     if selected and simple:
         def cursor(item,next_offset,back):return token({'q':identity,'id':item[0],'time':item[1].isoformat(),'offset':next_offset,'back':back})
         if offset+len(selected)<total:result['next_cursor']=cursor(selected[-1],offset+len(selected),False)

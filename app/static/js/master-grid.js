@@ -24,6 +24,9 @@
     persistedTotal:0, drafts:[], nextDraft:-1, version: '', queryToken:'', metadataVersion:'', revision:0, cursors:new Map(), generation: 0, selection: null, anchor: null, current: null, draft: null,
     retry: null, busy: false, ready: false, poll: '', lastError: '', editMode:false, conflicts:[], retryCount:0, composing:false, accessEpoch:0};
   let saveTimer=0, firstQueued=0;
+  let scrollPaint=false, selectionPaint=false, scrollTop=0, scrollDirection=1;
+  let jumpTimer=0, jumpPending=false, prefetchPaused=false, stableScrolls=0, lastScrollAt=0;
+  const prefetchFailed=new Set();
   let query = new URLSearchParams(location.search), scheduled = false, drag = null, resizing = null, frame = 0, rowResize = null, rowFrame = 0;
   const message = (text = '', error = false) => {
     $('mg-message').textContent = text; $('mg-message').hidden = !text;
@@ -54,10 +57,10 @@
     const record=(status,requestId,error)=>{requestLog.push({id:requestId||id,status,ms:performance.now()-start,...(error?{error}:{})});if(requestLog.length>100)requestLog.shift();};
     return window.fetch(url,{...options,headers}).then(response=>{record(response.status,response.headers.get('X-Request-ID'));return response;},error=>{record(0,id,error.name);throw error;});
   }
-  function layout() {
+  function layout(scrollOnly=false) {
     canvas.style.height = Math.max(HEADER + geometry.top(state.total), viewport.clientHeight) + 'px';
-    const layoutKey=config.renderOptimized?JSON.stringify([preferences.order,preferences.hidden,preferences.widths,viewport.clientWidth]):null;
-    if(config.renderOptimized&&state.layoutKey===layoutKey&&state.layoutColumns===state.columns)return;
+    const layoutKey=JSON.stringify([preferences.order,preferences.hidden,preferences.widths,viewport.clientWidth]);
+    if((scrollOnly||config.renderOptimized)&&state.layoutKey===layoutKey&&state.layoutColumns===state.columns)return;
     state.layoutKey=layoutKey;state.layoutColumns=state.columns;state.layoutEpoch=(state.layoutEpoch||0)+1;
     const order = preferences.order || [], byCode = new Map(state.columns.map(c => [c.code, c]));
     const arranged = [...new Set([...order, ...state.columns.map(c => c.code)])].filter(c => byCode.has(c));
@@ -83,23 +86,40 @@
     state.total=state.persistedTotal+state.drafts.length;
   }
   function rowAt(index) { return index>=state.persistedTotal?state.drafts[index-state.persistedTotal]:state.cache.get(Math.floor(index / BLOCK))?.rows[index % BLOCK]; }
-  function repaint() { if (!scheduled) { scheduled = true; requestAnimationFrame(() => { scheduled = false; render(); }); } }
+  function repaint(scrollOnly=false) {
+    // Nếu cùng frame có lưu/đổi lựa chọn/cấu trúc, phải vẽ cả thay đổi đó.
+    scrollPaint=scheduled?scrollPaint&&scrollOnly:scrollOnly;
+    selectionPaint=false;
+    if (!scheduled) { scheduled = true; requestAnimationFrame(() => { scheduled = false; render(scrollPaint); }); }
+  }
+  function repaintSelection() {
+    // Có thay đổi dữ liệu/khung cùng frame thì đường vẽ đầy đủ luôn thắng.
+    if(scheduled){scrollPaint=false;return;}
+    scheduled=true;selectionPaint=true;scrollPaint=false;
+    requestAnimationFrame(()=>{scheduled=false;if(selectionPaint)renderSelection();else render(scrollPaint);});
+  }
   function invalidate(clearSelection = true) {
     finishRowResize(false);
     state.generation++; state.pending.forEach(p => p.controller.abort()); state.pending.clear(); state.cache.clear(); state.version = '';
+    prefetchFailed.clear();
+    clearTimeout(jumpTimer);jumpTimer=0;jumpPending=false;prefetchPaused=false;stableScrolls=0;scrollTop=viewport.scrollTop;
     state.queryToken='';state.cursors.clear();
     updateGeometry(()=>geometry.reset(state.total));
     if (clearSelection) { state.selection = state.anchor = state.current = null; reader.hidden = true; }
     repaint();
   }
-  async function loadBlock(number) {
+  async function loadBlock(number, speculative=false, viewportOwned=false) {
     if(state.unavailable)return;
     // Khối đầu vẫn phải đọc lại sau invalidate, kể cả bảng từng rỗng.
     // Chỉ bỏ truy vấn những khối cuối chứa toàn dòng nháp.
     if(state.ready&&number>0&&number*BLOCK>=state.persistedTotal)return {rows:[]};
     if (number < 0) return;
     if (state.cache.has(number)) { const b = state.cache.get(number); state.cache.delete(number); state.cache.set(number, b); return b; }
-    if (state.pending.has(number)) return state.pending.get(number).promise;
+    if (state.pending.has(number)) {
+      const pending=state.pending.get(number);if(!speculative)pending.speculative=false;
+      if(!speculative&&!viewportOwned)pending.viewportOwned=false;
+      return pending.promise;
+    }
     const generation = state.generation, controller = new AbortController();
     const params = new URLSearchParams(query); params.delete('trang'); params.delete('moi_trang');
     params.set('offset', number * BLOCK); if (state.version) params.set('version', state.version);
@@ -110,7 +130,7 @@
       if(state.cursors.has(number))params.set('cursor',state.cursors.get(number));
     }
     const promise = fetch(config.dataUrl + '?' + params, {signal: controller.signal}).then(json).then(data => {
-      if (generation !== state.generation) return;
+      if (generation !== state.generation || controller.signal.aborted) return;
       // Polling có thể đã xác nhận mốc mới trong lúc khối này đang trên mạng.
       // Bỏ khối cũ và để renderer yêu cầu lại, không đưa giá trị cũ vào cache.
       if(state.queryToken&&data.protocol===2&&data.revision<state.revision){repaint();return;}
@@ -133,17 +153,47 @@
       working.observe(data.rows);
       state.cache.set(number, data);
       if(state.current&&Math.floor(state.current.r/BLOCK)===number&&state.currentId&&rowAt(state.current.r)?.id!==state.currentId){state.current=state.anchor=state.selection=null;state.currentId=null;}
-      while (state.cache.size > CACHE) state.cache.delete(state.cache.keys().next().value);
+      // Khối tải trước không được đẩy dữ liệu đang nhìn ra khỏi cache.
+      const first=Math.floor(geometry.at(Math.max(0,viewport.scrollTop-HEADER))/BLOCK);
+      const last=Math.floor(geometry.at(viewport.scrollTop+viewport.clientHeight)/BLOCK);
+      while (state.cache.size > CACHE) {
+        const victim=[...state.cache.keys()].find(b=>b<first||b>last);
+        if(victim===undefined)break;state.cache.delete(victim);
+      }
       layout(); repaint(); return data;
     }).catch(error => {
-      if (error.name === 'AbortError' || generation !== state.generation) return;
+      if (error.name === 'AbortError' || generation !== state.generation || controller.signal.aborted) return;
       if (error.status === 409) { message('Dữ liệu đã thay đổi; vùng chọn cũ được bỏ. Đang cập nhật vùng đang xem.'); invalidate(); return; }
       if (error.status === 403 || error.status === 404) clearAccess(error.message);
+      // Lỗi tải đón không chặn vùng đã có cache. Khi cuộn tới, tải lại theo
+      // đường thông thường để lỗi thật vẫn có thông báo và nút thử lại.
+      if(state.pending.get(number)?.speculative&&error.status!==403&&error.status!==404){
+        prefetchFailed.add(number);while(prefetchFailed.size>CACHE)prefetchFailed.delete(prefetchFailed.values().next().value);return;
+      }
       state.lastError = error.message; message(error.message, true);
       const retry=element('button','nut','Tải lại vùng đang xem');retry.onclick=()=>{state.lastError='';message();invalidate();};$('mg-message').append(retry);
       throw error;
-    }).finally(() => { if (generation === state.generation) state.pending.delete(number); });
-    state.pending.set(number, {controller, promise}); return promise;
+    }).finally(() => { if (state.pending.get(number)?.controller===controller) state.pending.delete(number); });
+    state.pending.set(number, {controller, promise, speculative, viewportOwned:speculative||viewportOwned}); return promise;
+  }
+  function loadViewport(start,end) {
+    if(!state.total||state.lastError||state.unavailable)return;
+    // Sau nhảy xa chỉ ưu tiên vùng thực sự nhìn thấy, chưa tải cả overscan.
+    const first=Math.floor((prefetchPaused?geometry.at(viewport.scrollTop):start)/BLOCK);
+    const last=Math.floor((prefetchPaused?geometry.at(viewport.scrollTop+viewport.clientHeight-HEADER-1):Math.max(start,end-1))/BLOCK);
+    const ahead=[];
+    for(let i=1;!prefetchPaused&&i<=2;i++){
+      const b=(scrollDirection>0?last:first)+scrollDirection*i;
+      if(b>=0&&b*BLOCK<state.persistedTotal)ahead.push(b);
+    }
+    // Chỉ hủy request thuộc viewport cũ/tải đón. Request được copy/dán/editor
+    // dùng chung đã chuyển quyền sở hữu sang caller và phải được giữ.
+    for(const [b,p] of state.pending)if(p.viewportOwned&&(b<first||b>last)&&!ahead.includes(b)){
+      p.controller.abort();state.pending.delete(b);
+    }
+    if(jumpPending)return;
+    for(let b=first;b<=last;b++)loadBlock(b,false,true).catch(()=>{});
+    for(const b of ahead)if(!prefetchFailed.has(b))loadBlock(b,true).catch(()=>{});
   }
   function element(tag, className, text) { const e = document.createElement(tag); e.className = className; if (text !== undefined) e.textContent = text; return e; }
   function position(e, x, y, w, h) { Object.assign(e.style, {left:x+'px', top:y+'px', width:w+'px', height:h+'px'}); }
@@ -204,15 +254,21 @@
       for(const [side,edge] of Object.entries({top:r===state.selection?.r1,bottom:r===state.selection?.r2,left:c===state.selection?.c1,right:c===state.selection?.c2}))cell.classList.toggle('mg-edge-'+side,on&&edge);
     }
   }
-  function render() {
+  function renderSelection(){
+    for(const line of canvas.querySelectorAll('.mg-body > .mg-row'))paintSelection(line,Number(line.getAttribute('aria-rowindex'))-2);
+    const s=state.selection;
+    $('mg-selection').textContent=s?`${columnLetter(s.c1)}${s.r1+1}:${columnLetter(s.c2)}${s.r2+1} · ${((s.r2-s.r1+1)*(s.c2-s.c1+1)).toLocaleString('vi-VN')} ô được chọn`:'';
+    positionEditor();
+  }
+  function render(scrollOnly=false) {
     if (!state.ready) { if (!state.lastError) loadBlock(0).catch(() => {}); return; }
-    layout();
+    layout(scrollOnly);
     const top = viewport.scrollTop, left = viewport.scrollLeft;
     const start = Math.max(0, geometry.at(Math.max(0,top-HEADER))-8), end = Math.min(state.total, geometry.at(top+viewport.clientHeight)+9);
     const cols = state.visible.map((c, i) => ({...c, i})).filter(c => c.pin || (c.x + c.width > left - 160 && c.x < left + viewport.clientWidth + 160));
     const fragment = document.createDocumentFragment();
-    const headerKey=config.renderOptimized?JSON.stringify([state.layoutEpoch,cols.map(c=>c.code),query.get('sap'),query.get('chieu')]):'';
-    if(!config.renderOptimized||state.headerKey!==headerKey||!canvas.querySelector(':scope > .mg-head')){
+    const headerKey=JSON.stringify([state.layoutEpoch,cols.map(c=>c.code),query.get('sap'),query.get('chieu')]);
+    if((!scrollOnly&&!config.renderOptimized)||state.headerKey!==headerKey||!canvas.querySelector(':scope > .mg-head')){
     const head = element('div', 'mg-head'); head.setAttribute('role', 'row');
     position(head, 0, 0, state.width, HEADER);
     const headPins=pinRegion(HEADER);head.append(headPins);
@@ -233,15 +289,15 @@
     }
     let body=canvas.querySelector(':scope > .mg-body');
     if(!body){body=element('div','mg-body');canvas.append(body);}
-    const oldRows=config.renderOptimized?new Map([...body.children].map(row=>[row.getAttribute('aria-rowindex'),row])):new Map();
+    const oldRows=new Map([...body.children].map(row=>[row.getAttribute('aria-rowindex'),row]));
     for (let r = start; r < end; r++) {
       const row = rowAt(r), line = element('div','mg-row'+(row?.class?' '+row.class:''));line.setAttribute('role','row');line.setAttribute('aria-rowindex',r+2);
       const rowHeight=geometry.height(r);
-      const paint=config.renderOptimized?{row,working,local:working.revision(row?.id),layout:headerKey,height:rowHeight,top:geometry.top(r)}:null;
+      const paint={row,working,local:working.revision(row?.id),layout:headerKey,height:rowHeight,top:geometry.top(r)};
       const previous=oldRows.get(String(r+2)),old=previous?._paint;
       line._paint=paint;
-      if(config.renderOptimized&&old&&Object.keys(paint).every(k=>paint[k]===old[k])){
-        paintSelection(previous,r);line._reuse=true;fragment.append(line);continue;
+      if((scrollOnly||config.renderOptimized)&&old&&Object.keys(paint).every(k=>paint[k]===old[k])){
+        if(!scrollOnly)paintSelection(previous,r);line._reuse=true;fragment.append(line);continue;
       }
       position(line,0,HEADER+geometry.top(r),state.width,rowHeight);
       const pins=pinRegion(rowHeight);line.append(pins);
@@ -293,7 +349,7 @@
     $('mg-undo').disabled=!working.undo.length;
     $('mg-redo').disabled=!working.redo.length;
     refreshStatus();
-    for(let b=Math.floor(start/BLOCK);b<=Math.floor(Math.max(start,end-1)/BLOCK)&&state.total;b++) if(!state.cache.has(b)&&!state.lastError) loadBlock(b).catch(()=>{});
+    loadViewport(start,end);
   }
   function columnLetter(i) { let s='';for(i++;i;i=Math.floor((i-1)/26))s=String.fromCharCode(65+(i-1)%26)+s;return s; }
   function choose(r,c,extend=false) {
@@ -301,9 +357,9 @@
     r=Math.max(0,Math.min(state.total-1,r));c=Math.max(0,Math.min(state.visible.length-1,c));
     state.current={r,c};state.currentId=rowAt(r)?.id;if(!extend||!state.anchor)state.anchor={r,c};
     const a=state.anchor;state.selection={r1:Math.min(a.r,r),r2:Math.max(a.r,r),c1:Math.min(a.c,c),c2:Math.max(a.c,c)};
-    reader.hidden=true;viewport.focus({preventScroll:true});repaint();
+    reader.hidden=true;viewport.focus({preventScroll:true});repaintSelection();
   }
-  function selectAll() { if(!state.total||!state.visible.length||dirty())return;choose(0,0);state.selection={r1:0,r2:state.total-1,c1:0,c2:state.visible.length-1};repaint(); }
+  function selectAll() { if(!state.total||!state.visible.length||dirty())return;choose(0,0);state.selection={r1:0,r2:state.total-1,c1:0,c2:state.visible.length-1};repaintSelection(); }
   function ensureVisible() {
     const cur=state.current;if(!cur)return;const c=state.visible[cur.c],h=geometry.height(cur.r),y=HEADER+geometry.top(cur.r);
     if(y<viewport.scrollTop+HEADER)viewport.scrollTop=y-HEADER;
@@ -371,7 +427,7 @@
     editor.hidden=false;
     const cell=$(`mg-${row.id}-${c.code}`);if(cell){const style=getComputedStyle(cell);editor.style.font=style.font;editor.style.color=style.color;editor.style.backgroundColor=style.backgroundColor;}
     positionEditor();input.focus({preventScroll:true});
-    if(input.select)input.select();refreshStatus();repaint();
+    if(input.select)input.select();refreshStatus();repaintSelection();
   }
   function cellValue(row,column) {
     const original=row.cells[column],value=working.value(row.id,column,original.value);
@@ -397,9 +453,9 @@
     const d=state.draft;
     if(!discard){try{const changed=working.stage([{id:d.id,column:d.column,old:d.old,value:editor.elements.value.value}]);if(changed&&state.errorStatus===400)state.saveError=false;}
       catch(error){message(error.message,true);return false;}}
-    state.draft=null;editor.hidden=true;refreshStatus();repaint();scheduleSave();return true;
+    state.draft=null;editor.hidden=true;refreshStatus();if(discard)repaintSelection();else repaint();scheduleSave();return true;
   }
-  function cancelEdit() {if(finishEditor(true)){viewport.focus({preventScroll:true});repaint();}}
+  function cancelEdit() {if(finishEditor(true)){viewport.focus({preventScroll:true});repaintSelection();}}
   function dirty() {return !finishEditor();}
   function rememberHeight(index,id) {
     const h=geometry.height(index);if(h===ROW)delete heights[id];else heights[id]=h;
@@ -488,7 +544,7 @@
     if(state.busy||state.conflicts.length||state.unavailable)return;
     clearTimeout(saveTimer);firstQueued=0;
     if(!working.pending().length&&!state.retry){refreshStatus();return;}
-    state.busy=true;state.saveError=false;status('Đang lưu');message();closeMore();repaint();
+    state.busy=true;state.saveError=false;status('Đang lưu');message();closeMore();repaintSelection();
     const accessEpoch=state.accessEpoch;
     try{
         const cells=working.pending();
@@ -704,7 +760,23 @@
     const button=e.target.closest('.loc-chon-tat-ca,.loc-bo-chon');if(button)button.closest('form').querySelectorAll('input[type=checkbox]').forEach(c=>c.checked=button.classList.contains('loc-chon-tat-ca'));
   },true);
   window.addEventListener('popstate',()=>navigate(new URLSearchParams(location.search),false));
-  viewport.addEventListener('scroll',()=>{reader.hidden=true;repaint();},{passive:true});
+  viewport.addEventListener('scroll',()=>{
+    const top=viewport.scrollTop,delta=top-scrollTop,now=performance.now();
+    if(delta){
+      const direction=delta>0?1:-1;
+      if(Math.abs(delta)>viewport.clientHeight||jumpPending){
+        // Gom các vị trí lướt qua khi kéo thumb; không trì hoãn vẽ cache.
+        jumpPending=true;prefetchPaused=true;stableScrolls=0;clearTimeout(jumpTimer);
+        jumpTimer=setTimeout(()=>{jumpPending=false;jumpTimer=0;repaint(true);},80);
+      }else if(prefetchPaused){
+        stableScrolls=direction===scrollDirection&&now-lastScrollAt<250?stableScrolls+1:1;
+        if(stableScrolls>=2)prefetchPaused=false;
+      }
+      scrollDirection=direction;lastScrollAt=now;
+    }
+    scrollTop=top;
+    reader.hidden=true;repaint(true);
+  },{passive:true});
   new ResizeObserver(()=>{layout();repaint();}).observe(viewport);
   new ResizeObserver(()=>{if(!editor.hidden){const b=editor.getBoundingClientRect();editor.style.maxWidth=(innerWidth-b.left-12)+'px';editor.style.maxHeight=(innerHeight-b.top-12)+'px';}}).observe(editor);
   window.addEventListener('resize',()=>{closeMore();reader.hidden=true;if(state.draft)floatAt(editor,editor.getBoundingClientRect());});

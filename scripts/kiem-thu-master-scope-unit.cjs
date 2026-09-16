@@ -2,7 +2,8 @@
 const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
 const Working=require('../app/static/js/master-working-copy.js');
 const source=fs.readFileSync(require.resolve('../app/static/js/master-grid.js'),'utf8');
-const code=source.slice(source.indexOf('  async function poll()'),source.indexOf('  setInterval(poll,8000)'));
+// Polling gọi guard đổi chế độ xem; nạp cả hàm thật để không nuốt ReferenceError.
+const code=source.slice(source.indexOf('  function reloadForViewMode('),source.indexOf('  setInterval(poll,8000)'));
 const working=new Working();working.stage([{id:1,column:'note',old:null,value:'A'},{id:2,column:'note',old:null,value:'B'}]);working.hold(working.pending());
 let cleared=false;const buttons=[];
 const ctx={working,Set,Map,JSON,document:{hidden:false},config:{filterUrl:'filter/',scopeUrl:'scope'},csrf:'test',json:async r=>r,
