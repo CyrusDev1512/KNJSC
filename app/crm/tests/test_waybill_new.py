@@ -55,7 +55,7 @@ def order(setup, user, *, assigned=True):
 
 def form_data(products):
     return {"phone": "0901234567", "customer_name": "Khách kiểm thử", "market": Market.US,
-            "currency": Currency.USD, "payment_method": PaymentMethod.CARD,
+            "currency": Currency.USD, "payment_method": PaymentMethod.ZELLE,
             "product": [p.code for p in products], "quantity": [2, 2], "unit_price": ["10.10", "10.10"]}
 
 
@@ -233,6 +233,7 @@ def test_statistics_full_filter_currency_product_and_soft_delete(client, setup, 
     row.refresh_from_db()
     for i in range(26):
         copy = record_service.create_record(setup[1], {**row.data, "ma_don": f"COPY-{i}",
+            "quoc_gia": "Canada" if i == 0 else "Hoa Kỳ",
             "loai_tien": "CAD" if i == 0 else "USD", service.DETAIL_CODE: lines(setup[2], "1.11")}, actor=actor)
         WaybillAssignment.objects.create(record=copy, delivery=actor)
     record_service.update_cell(row, "trang_thai_vc", "Hoàn đơn", actor=actor)
@@ -262,7 +263,7 @@ def test_export_import_roundtrip_and_preview_ambiguous(client, setup, nguoi_dung
     buffer = BytesIO(); workbook.save(buffer)
     upload = SimpleUploadedFile("roundtrip.xlsx", buffer.getvalue())
     job = import_service.prepare(setup[1], upload, actor=nguoi_dung["admin"])
-    assert job.summary["preview_error_count"] == 0
+    assert job.summary["preview_error_count"] == 0, job.summary['preview_errors']
     job.status = JobStatus.PENDING; job.save()
     import_service.run(job.pk); job.refresh_from_db()
     assert job.summary["created"] == 1 and job.summary["error_count"] == 0

@@ -25,6 +25,14 @@ class PaymentMethod(models.TextChoices):
     TRANSFER = "transfer", "Chuyển khoản"
     COD = "cod", "Thu hộ khi giao"
     WALLET = "wallet", "Ví điện tử"
+    ZELLE = "zelle", "Zelle"
+    PAYPAL = "paypal", "PayPal"
+
+
+# Giữ mã cũ để đọc lịch sử; chỉ hai phương thức này dùng cho thao tác mới.
+ACTIVE_PAYMENT_METHODS = (PaymentMethod.ZELLE, PaymentMethod.PAYPAL)
+ACTIVE_PAYMENT_CHOICES = [(method.value, method.label) for method in ACTIVE_PAYMENT_METHODS]
+ACTIVE_PAYMENT_LABELS = [method.label for method in ACTIVE_PAYMENT_METHODS]
 
 
 class ShippingStatus(models.TextChoices):

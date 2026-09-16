@@ -91,6 +91,17 @@
   --mg-toolbar-muted: #c5cfdd;
   font-family: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
 }
+/* Giải màu ngay trong vùng giấy. Màu kế thừa từ khung Solarpunk có thể là
+   nền tối, trong khi chữ của viewport luôn theo bảng màu giấy sáng. */
+.mg-waybill-master .mg-viewport {
+  --mg-pinned-code:var(--surface-2);
+  --mg-pinned-name:var(--surface-2);
+  --mg-pinned-phone:var(--surface);
+  --mg-pinned-head-code:var(--surface-3);
+  --mg-pinned-head-name:var(--surface-3);
+  --mg-pinned-head-phone:var(--surface-2);
+  --mg-pinned-rule:var(--rule-strong);
+}
 .mg-waybill-master .mg-toolbar {
   gap: 7px; padding: 8px 10px; background: var(--mg-toolbar-bg);
   border-bottom-color: var(--mg-toolbar-border); box-shadow: 0 3px 10px -8px #07101f;

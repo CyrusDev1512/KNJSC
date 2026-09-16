@@ -32,7 +32,7 @@ def test_download_template_roundtrip(client, nguoi_dung, code, settings):
     columns = list(table.columns.order_by('order', 'id'))
     assert headers[:len(columns)] == [c.name for c in columns]
     values = {'ngay': date(2026, 9, 15), 'ten_khach': 'Khach kiem thu',
-              'so_dien_thoai': '0012345678', 'ma_don': 'MAU-TEST-001', 'loai_tien': 'CAD'}
+              'so_dien_thoai': '0012345678', 'ma_don': 'MAU-TEST-001', 'loai_tien': 'CAD', 'quoc_gia': 'Canada'}
     for i, column in enumerate(columns, 1):
         if column.code in values:
             ws.cell(2, i, values[column.code])

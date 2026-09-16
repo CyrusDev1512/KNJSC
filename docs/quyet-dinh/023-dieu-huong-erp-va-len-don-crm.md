@@ -49,3 +49,12 @@ Bằng chứng: [kiểm chứng ngày giờ và Admin](../kiem-chung-len-don-gio
 
 
 Bổ sung theo ảnh feedback 11.09.2026: Quốc gia, Loại tiền và PTTT lên đơn không chọn sẵn; bắt buộc chọn option hợp lệ trước khi lưu, cả trình duyệt và server. Form sau lưu cũng trở về chưa chọn. Giữ mặc định service nội bộ, không sửa dữ liệu cũ.
+
+## Thay thế 16.09.2026 — Bỏ Đơn vị phụ
+
+Theo yêu cầu chủ dự án, bỏ Đơn vị phụ khỏi form Lên đơn và trang Xem đơn gốc.
+POST từ form cũ không còn đưa `sub_unit` vào service. Giữ cột database và hợp
+đồng service để không mất dữ liệu lịch sử; không sửa bảng Vận đơn cũ. Các đơn
+vị sản phẩm hộp/cái/chiếc/túi không thuộc thay đổi này. Không thêm migration.
+36 test liên quan và Chrome 1440/390 (lưu đơn → xem đơn gốc) đạt trên DB test.
+Local, chưa commit/push/VPS. Loại tiền hiện theo [ADR-031](031-tien-theo-quoc-gia-va-pttt.md).

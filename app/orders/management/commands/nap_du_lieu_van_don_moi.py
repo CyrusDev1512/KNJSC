@@ -17,7 +17,7 @@ from forms_builder.services import record_service
 from orders.constants import (
     ACTIVE_WAYBILL_TABLE_CODE,
     Market,
-    PaymentMethod,
+    ACTIVE_PAYMENT_LABELS,
     ShippingStatus,
 )
 from orders.models import Product, WaybillAssignment, WaybillItem
@@ -170,7 +170,7 @@ def _sample(sequence, seed, products, sellers, delivery, *, identity=None):
     for item, paid in zip(items, _paid_amounts(items, mode)):
         item.paid_amount = paid
     totals = waybill_service.totals(items)
-    payment_method = list(PaymentMethod.labels)[(sequence - 1) % len(PaymentMethod.labels)]
+    payment_method = ACTIVE_PAYMENT_LABELS[(sequence - 1) % len(ACTIVE_PAYMENT_LABELS)]
     paid = totals["trang_thai_tt"] != "Chưa thanh toán"
     payment_date = min(order_date + timedelta(days=rng.randrange(1, 8)), END_DATE)
     name = identity[0] if identity else (
@@ -194,7 +194,7 @@ def _sample(sequence, seed, products, sellers, delivery, *, identity=None):
         "trang_thai_vc": shipping,
         "ngay_tt": payment_date.isoformat() if paid else None,
         "bill": f"BILL-MAU-{sequence:05d}" if paid else None,
-        "pttt_thuc_te": list(PaymentMethod.labels)[sequence % len(PaymentMethod.labels)] if paid else None,
+        "pttt_thuc_te": ACTIVE_PAYMENT_LABELS[sequence % len(ACTIVE_PAYMENT_LABELS)] if paid else None,
         "ghi_chu": NOTES[(sequence - 1) % len(NOTES)],
         **totals,
     }

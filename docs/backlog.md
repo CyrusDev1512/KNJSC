@@ -1,5 +1,28 @@
 # Backlog
 
+## 16.09.2026 — Màu ba cột ghim trên VPS
+
+Đã sửa CSS kế thừa theme tối gây chữ chìm, kiểm Chrome domain thật sáng/tối
+1440/390 đạt. VPS image `7b827a6-pinned-contrast-20260916`, giữ hotfix sidebar.
+Chưa commit/push; các thay đổi nghiệp vụ local không được phát hành cùng.
+[Bằng chứng và quay lui](kiem-chung-mau-cot-ghim-20260916.md).
+
+## 16.09.2026 — Bỏ Đơn vị phụ trên Lên đơn
+
+Đã bỏ ô nhập và dòng hiển thị ở đơn gốc; giữ dữ liệu lịch sử và đơn vị sản
+phẩm. 36 test và Chrome 1440/390 đạt. Local, chưa commit/push/VPS.
+Quyết định thay thế tại ADR-023; log `storage/market-currency/subunit-*`.
+
+## 16.09.2026 — Tiền theo quốc gia, PTTT Zelle/PayPal
+
+Đã triển khai/kiểm local: tiền tự theo US/USD, CA/CAD, PH/PHP; đổi quốc gia
+có tiền phải xác nhận giữ số tiền. Form/lưới dùng chung hai phương thức.
+15 test mới và Chrome 1440/390 đạt. Chưa commit/push/VPS.
+[Quyết định](quyet-dinh/031-tien-theo-quoc-gia-va-pttt.md),
+[kiểm chứng và ba lỗi test nền](kiem-chung-tien-theo-quoc-gia-20260916.md).
+Các lỗi nền: test nhập lại mã trùng và hai test còn kỳ vọng form Lên đơn ở ERP;
+cần cập nhật theo quyết định đã chốt trong tác vụ riêng, không nới service.
+
 ## 15.09.2026 — Chuẩn bị Vận đơn DB nhận đơn
 
 Đã bổ sung chuyển cấu hình bảng placeholder theo duyệt, giữ dòng/cột và đích

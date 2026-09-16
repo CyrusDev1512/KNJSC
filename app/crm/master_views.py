@@ -54,7 +54,9 @@ def save(request, code):
     except OutOfScopeError:
         return JsonResponse({'error': 'Bạn không còn quyền sửa các dòng này.'}, status=403)
     except BusinessError as exc:
-        return JsonResponse({'error': str(exc), 'code':exc.code, 'conflicts': getattr(exc, 'conflicts', []), 'cell': {'id': getattr(exc, 'pk', None),
+        return JsonResponse({'error': str(exc), 'code':exc.code,
+            'currency_confirmations': getattr(exc, 'currency_confirmations', {}),
+            'conflicts': getattr(exc, 'conflicts', []), 'cell': {'id': getattr(exc, 'pk', None),
             'column': getattr(exc, 'column', None)}}, status=409 if exc.code == 'conflict' else 400)
     except (ValueError, TypeError, json.JSONDecodeError):
         return JsonResponse({'error': 'Dữ liệu gửi lên không hợp lệ.'}, status=400)

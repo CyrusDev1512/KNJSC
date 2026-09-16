@@ -154,7 +154,7 @@ def test_lock_timeout_preserves_form_and_restores_connection_setting(
     client = Client()
     client.force_login(nguoi_dung['staff_sale_1'])
     payload = {'customer_name': 'Khach TEST timeout', 'phone': 'TEST-LOCK-TIMEOUT',
-               'market': Market.US, 'currency': 'USD', 'payment_method': PaymentMethod.CARD,
+               'market': Market.US, 'currency': 'USD', 'payment_method': PaymentMethod.ZELLE,
                'product': san_pham['massage'].code, 'quantity': '2',
                'unit_price': '10.10', 'unit': 'hộp', 'note': 'TEST keep form'}
     reached, release = Event(), Event()

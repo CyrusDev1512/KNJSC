@@ -1,14 +1,15 @@
-"""Lên đơn: chọn rõ quốc gia, tiền tệ và phương thức thanh toán."""
+"""Lên đơn: chọn quốc gia/PTTT; tiền tệ tự theo quốc gia."""
 import pytest
 import re
 from orders.models import Order, WaybillItem
 from .test_waybill_new import setup, form_data, ENTRY
 
 pytestmark = pytest.mark.django_db
-FIELDS = ("market", "currency", "payment_method")
+FIELDS = ("market", "payment_method")
 
 
 def assert_empty_choices(response):
+    assert 'readonly' in str(response.context['form']['currency'])
     for name in FIELDS:
         markup = str(response.context["form"][name])
         options = re.findall(r"<option\b([^>]*)>", markup)

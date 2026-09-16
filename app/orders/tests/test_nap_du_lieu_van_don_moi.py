@@ -37,6 +37,7 @@ def du_lieu_nap(nguoi_dung):
             "so_dien_thoai": f"+1 416 555 01{i:02d}",
             "ngay": "2026-09-10",
             "loai_tien": "CAD",
+            "quoc_gia": "Canada",
             "ghi_chu": "D??? li???u hỏng",
             waybill_service.DETAIL_CODE: [{
                 "product": products[0].code,
@@ -51,6 +52,7 @@ def du_lieu_nap(nguoi_dung):
         "so_dien_thoai": "+1 604 555 0199",
         "ngay": "2026-09-10",
         "loai_tien": "CAD",
+        "quoc_gia": "Canada",
         "ghi_chu": "Giữ nguyên",
         waybill_service.DETAIL_CODE: [{
             "product": products[0].code,

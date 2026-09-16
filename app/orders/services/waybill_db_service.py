@@ -7,7 +7,7 @@ from django.utils import timezone
 from core.audit import record
 from core.constants import AuditAction
 from forms_builder.models import ColumnDef, TableDef
-from orders.constants import ACTIVE_WAYBILL_TABLE_CODE, WAYBILL_TABLE_CODE
+from orders.constants import ACTIVE_WAYBILL_TABLE_CODE, WAYBILL_TABLE_CODE, ACTIVE_PAYMENT_LABELS
 
 
 TABLE_CODE = "van_don_db"
@@ -50,7 +50,7 @@ def _column_values(source, order):
         "required": source.required,
         "order": order,
         "is_key": source.is_key,
-        "options": deepcopy(source.options),
+        "options": deepcopy(ACTIVE_PAYMENT_LABELS if source.code in ('pttt', 'pttt_thuc_te') else source.options),
         "highlight": source.highlight,
         "alert_op": source.alert_op,
         "alert_value": source.alert_value,

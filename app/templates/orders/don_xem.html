@@ -104,7 +104,6 @@
             <tr><td>Số nhà, đường</td><td class="phai">{{ don.address_line|default:"—" }}</td></tr>
             <tr><td>Phương thức thanh toán</td><td class="phai">{{ don.get_payment_method_display }}</td></tr>
             <tr><td>Sale đứng đơn</td><td class="phai">{{ don.seller.username|default:"—" }}</td></tr>
-            <tr><td>Đơn vị phụ</td><td class="phai">{{ don.sub_unit|default:"—" }}</td></tr>
             <tr><td>Ghi chú</td><td class="phai">{{ don.note|default:"—" }}</td></tr>
           </tbody>
         </table>

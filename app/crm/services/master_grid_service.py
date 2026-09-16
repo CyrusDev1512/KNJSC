@@ -178,6 +178,8 @@ def save(user, table, payload, *, request=None):
     compact=payload.get('protocol')==2 and optimization.enabled('RECEIPTS')
     # Phiên bản request không phụ thuộc cờ rollout: replay vẫn hợp lệ khi tắt cờ.
     fingerprint = digest({'table': table.pk, 'cells': cells, **({'schema_version':payload['schema_version']} if payload.get('schema_version') else {}), **({'row_changes':row_actions} if row_actions else {}), **({'kind':kind} if 'kind' in payload else {}), **({'protocol':2} if payload.get('protocol')==2 else {})})
+    if payload.get('currency_confirmations'):
+        fingerprint = digest([fingerprint, payload['currency_confirmations']])
     # Unique constraint tuần tự hoá cả request trùng ID nhưng khác tập dòng.
     receipt, created = GridMutationReceipt.objects.get_or_create(actor=user, operation=operation,
         defaults={'table': table, 'fingerprint': fingerprint})
@@ -227,8 +229,13 @@ def save(user, table, payload, *, request=None):
             styles.append(c)
     if conflicts:
         raise CellConflict(conflicts)
+    policy = record_policies.for_table(table)
+    confirmations = payload.get('currency_confirmations')
+    if policy and hasattr(policy, 'derived_grid_cells'):
+        cells.extend(policy.derived_grid_cells(changes, confirmations))
     if changes:
-        record_service._update_locked_cells(changes, actor=user, request=request, columns=columns)
+        record_service._update_locked_cells(changes, actor=user, request=request, columns=columns,
+                                           confirmations=confirmations)
     # Ghi style riêng, không ghi lại JSON dữ liệu hoặc thuộc tính style không chạm tới.
     style_rows = {r.pk: r for r in DataRecord.objects.filter(pk__in={c['id'] for c in styles}).select_related('table')}
     for c in styles:

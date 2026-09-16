@@ -97,7 +97,7 @@ def test_manual_payment_status_preserves_money(client, feedback, nguoi_dung):
 def test_explicit_import_status_is_kept(feedback):
     import json
     from core.exceptions import BusinessError
-    values = {'chi_tiet_sp': json.dumps([{'product': feedback[1][0].code, 'quantity': 1,
+    values = {'quoc_gia': 'Hoa Kỳ', 'chi_tiet_sp': json.dumps([{'product': feedback[1][0].code, 'quantity': 1,
                 'unit_price': '10', 'paid_amount': '10'}]), 'trang_thai_tt': 'Chưa thanh toán'}
     assert waybill_service.prepare_values(values)['trang_thai_tt'] == 'Chưa thanh toán'
     with pytest.raises(BusinessError):

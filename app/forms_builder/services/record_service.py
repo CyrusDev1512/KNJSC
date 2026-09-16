@@ -289,7 +289,7 @@ def save_rows(records, *, fields=None):
     return DataRecord.bulk_save(records, fields=fields)
 
 
-def _dat_o(ban_ghi, cot, raw):
+def _dat_o(ban_ghi, cot, raw, *, confirmations=None):
     """Đặt giá trị một ô trong bộ nhớ, chưa lưu. Trả `(đổi không, cũ, mới)`.
     Cùng luật cho sửa một ô lẫn dán nhiều ô: cột tính sẵn không sửa tay, cột
     bắt buộc không để trống, giá trị ép kiểu theo cột."""
@@ -304,6 +304,8 @@ def _dat_o(ban_ghi, cot, raw):
         return False, cu, moi
     if cot.required and moi in (None, ""):
         raise BusinessError(f'Cột "{cot.name}" bắt buộc nhập, không để trống được.')
+    if policy and hasattr(policy, 'derived_values'):
+        ban_ghi.data.update(policy.derived_values(ban_ghi, cot, moi, confirmations=confirmations))
     ban_ghi.data[cot.code] = moi
     return True, cu, moi
 
@@ -357,7 +359,7 @@ def update_cells(cells, *, actor=None, request=None, columns=None):
     return _update_locked_cells(cells, actor=actor, request=request, columns=columns)
 
 
-def _update_locked_cells(cells, *, actor, request=None, columns=None):
+def _update_locked_cells(cells, *, actor, request=None, columns=None, confirmations=None):
     """Nội bộ: caller đã khóa dòng, kiểm scope/quyền trong cùng transaction.
 
     Lưới JSON kiểm cả lô trước CAS; không tải lại từng dòng sau đó.
@@ -369,7 +371,7 @@ def _update_locked_cells(cells, *, actor, request=None, columns=None):
         cot_ds = columns if columns is not None else list(ban_ghi.table.columns.all())
         cot = _cot(cot_ds, code)
         try:
-            doi, _, _ = _dat_o(ban_ghi, cot, raw)
+            doi, _, _ = _dat_o(ban_ghi, cot, raw, confirmations=confirmations)
         except BusinessError as e:
             raise CellError(str(e), pk=ban_ghi.pk, code=code) from e
         if doi:

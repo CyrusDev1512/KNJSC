@@ -39,7 +39,7 @@
   }
   async function json(response) {
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) { const error = new Error(data.error || 'Không tải được dữ liệu. Kiểm tra kết nối hoặc quyền truy cập.'); error.status = response.status; error.code=data.code; error.cell = data.cell; error.conflicts=data.conflicts||[]; throw error; }
+    if (!response.ok) { const error = new Error(data.error || 'Không tải được dữ liệu. Kiểm tra kết nối hoặc quyền truy cập.'); error.status = response.status; error.code=data.code; error.cell = data.cell; error.conflicts=data.conflicts||[]; error.currencyConfirmations=data.currency_confirmations; throw error; }
     if(response.redirected || !response.headers.get('Content-Type')?.includes('application/json')){
       const error=Error('Phiên đăng nhập hoặc phản hồi không hợp lệ. Nội dung chưa được xác nhận lưu.');
       if(response.url&&new URL(response.url).pathname==='/dang-nhap/')error.status=403;
@@ -352,7 +352,15 @@
     const options=Array.isArray(c.options)?c.options:[];
     if(c.type==='choice'&&!Array.isArray(c.options)){message('Chưa tải được danh sách chọn của cột. Hãy tải lại trang; các ô khác vẫn có thể sửa.',true);return;}
     if(c.type==='boolean'){input=element('select','o-nhap');input.append(new Option('—',''),new Option('Đúng','true'),new Option('Sai','false'));}
-    else if((c.type==='choice'||options.length)&&c.choice_strict!==false){input=element('select','o-nhap');input.append(new Option('—',''));for(const v of options)input.append(new Option(v,v));}
+    else if((c.type==='choice'||options.length)&&c.choice_strict!==false){
+      input=element('select','o-nhap');input.append(new Option('—',''));
+      // Đọc nhãn lịch sử đã ngừng dùng; mở/đóng ô không được tự xóa giá trị cũ.
+      if(value.value&&!options.includes(value.value)){
+        const historical=new Option(`${value.value} (giá trị cũ)`,value.value);
+        historical.disabled=true;input.append(historical);
+      }
+      for(const v of options)input.append(new Option(v,v));
+    }
     // Ngày giờ giữ ô chữ ISO như lưới cũ: datetime-local làm mất chuỗi có múi giờ.
     else {input=element(c.type==='long_text'?'textarea':'input','o-nhap');if(c.type==='date')input.type='date';else if(['integer','decimal','money'].includes(c.type))input.inputMode='decimal';}
     input.name='value';input.setAttribute('aria-label',c.name);input.value=value.value??'';
@@ -489,6 +497,7 @@
           if(missing.length){const e=Error('Dòng mới thiếu: '+missing.map(c=>c.name).join(', '));e.status=400;throw e;}
         }
         const payload=state.retry?.payload||{operation:crypto.randomUUID(),cells,kind:state.kind||'edit',...(state.editSchema?{schema_version:state.editSchema}:{}),...(config.compact?{protocol:2}:{})};state.kind='edit';
+        if(!state.retry && state.currencyConfirmations)payload.currency_confirmations=state.currencyConfirmations;
         state.retry={payload};working.hold(payload.cells);
         const data=await fetch(config.saveUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(payload)}).then(json);
         if(accessEpoch!==state.accessEpoch)return;
@@ -499,11 +508,23 @@
           state.drafts=state.drafts.filter(r=>!data.id_map[String(r.id)]);
         }
         working.acknowledgeRowVersions(rows);
-        working.acknowledge(payload.cells,rows);working.observe(rows);state.retry=null;state.retryCount=0;
+        working.acknowledge(payload.cells,rows);working.observe(rows);state.retry=null;state.retryCount=0;state.currencyConfirmations=null;
         updateRows(rows,data.protocol===2);state.lastError='';
         if(data.id_map){invalidate();message('Đã tạo dòng. Dòng được xếp theo thứ tự hiện tại; nếu không khớp bộ lọc sẽ không hiện trong kết quả.');}
     }catch(error){
       clearTimeout(saveTimer);firstQueued=0;
+      if(error.code==='currency_confirmation'){
+        if(state.retry)working.release(state.retry.payload.cells);
+        state.retry=null;state.saveError=true;state.errorStatus=400;
+        if(window.confirm(error.message)){
+          state.currencyConfirmations={...state.currencyConfirmations,...error.currencyConfirmations};
+          setTimeout(()=>saveAll(),0);
+        }else{
+          state.currencyConfirmations=null;
+          message('Chưa lưu thay đổi quốc gia. Nháp vẫn giữ; sửa lại ô hoặc dùng Hoàn tác để hủy.',true);
+        }
+        return;
+      }
       if(error.status===403||error.status===404){
         state.saveError=true;
         try{error.message=await retainReadableDrafts(error.message);}

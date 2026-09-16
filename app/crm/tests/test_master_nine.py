@@ -151,10 +151,10 @@ def test_admin_selects_seller_without_changing_profile(feedback, nguoi_dung):
 def test_admin_form_uses_actor_and_rejects_forgery(client, feedback, nguoi_dung):
     from orders.models import Order
     data={'customer_name':'Khách E2E','phone':'0911111111','market':'USA','currency':'USD',
-          'payment_method':'card','product':[feedback[1][0].code],'quantity':['1'],'unit_price':['1'],'paid_amount':['0']}
+          'payment_method':'zelle','product':[feedback[1][0].code],'quantity':['1'],'unit_price':['1'],'paid_amount':['0']}
     # Lấy các giá trị lựa chọn thực tế, không phụ thuộc nhãn hiển thị.
     from orders.constants import Market, PaymentMethod
-    data.update(market=Market.US,payment_method=PaymentMethod.CARD)
+    data.update(market=Market.US,payment_method=PaymentMethod.ZELLE)
     client.force_login(nguoi_dung['admin'])
     before=Order.objects.count()
     assert client.post('/van-don/len-don/',data).status_code==200

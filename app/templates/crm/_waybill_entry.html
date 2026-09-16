@@ -1,4 +1,5 @@
 <div id="vd-entry" class="vd-entry">
+  {{ market_currencies|json_script:"order-market-currencies" }}
   {% if success %}<p role="status" class="vd-success">{{ success }}</p>{% endif %}
   {% if saved_order %}<a class="nut" href="{% url 'don_xem' saved_order.code %}">Xem đơn gốc</a>{% endif %}
   {% if error %}<p role="alert" class="vd-error">{{ error }}</p>{% endif %}

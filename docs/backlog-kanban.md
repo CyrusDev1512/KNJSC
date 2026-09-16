@@ -1,5 +1,22 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 16.09.2026 — Sửa màu cột ghim
+
+**Finished VPS:** CSS vùng giấy thống nhất ở sáng/tối; Chrome thật 1440/390 đạt.
+[Kiểm chứng](kiem-chung-mau-cot-ghim-20260916.md). Chưa commit/push.
+
+## 16.09.2026 — Bỏ trường Đơn vị phụ
+
+**Finished local:** bỏ trên Lên đơn/Xem đơn gốc; không xóa dữ liệu cũ.
+36 test và Chrome 1440/390 đạt. Chưa commit/push/VPS.
+
+## 16.09.2026 — Tiền theo quốc gia và PTTT
+
+**Finished local:** cố định tiền theo quốc gia, xác nhận giữ số tiền khi đổi,
+chọn Zelle/PayPal dùng chung form/lưới. 15 test mới và Chrome 1440/390 đạt;
+hồi quy có ba lỗi nền được đối chứng riêng. Chưa commit/push/VPS.
+[Kiểm chứng](kiem-chung-tien-theo-quoc-gia-20260916.md).
+
 ## 15.09.2026 — Vận đơn DB bị vô hiệu trong chọn bảng
 
 **Finished VPS cf51ad2:** command/service chuẩn bị bảng đã có placeholder; kiểm

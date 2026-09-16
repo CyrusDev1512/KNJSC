@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm'),cry
 const Working=require('../app/static/js/master-working-copy.js');
 const source=fs.readFileSync(require.resolve('../app/static/js/master-grid.js'),'utf8');
 const code=source.slice(source.indexOf('  function scheduleSave()'),source.indexOf('  async function copy()'));
-function fixture(){
+function fixture(confirm=()=>false){
   let now=10000,sequence=0;const timers=new Map(),requests=[];
   const ctx={Working,crypto,Map,Set,Date:{now:()=>now},
     setTimeout:(fn,delay)=>{const id=++sequence;timers.set(id,{fn,at:now+delay});return id;},clearTimeout:id=>timers.delete(id),
@@ -11,7 +11,7 @@ function fixture(){
     json:async r=>r,$:()=>({append(){},close(){},replaceChildren(){}}),element:()=>({}),
     editor:{hidden:true},reader:{hidden:true,querySelector:()=>({textContent:''})},cancelEdit(){},
     status(){},message(){},closeMore(){},repaint(){},refreshStatus(){},finishEditor:()=>true,
-    clearAccess(){},invalidate(){},showConflicts(){},config:{saveUrl:'test',scopeUrl:'scope'},csrf:'test',window:{KNJSCWorkingCopy:Working}};
+    clearAccess(){},invalidate(){},showConflicts(){},config:{saveUrl:'test',scopeUrl:'scope'},csrf:'test',window:{KNJSCWorkingCopy:Working,confirm}};
   vm.createContext(ctx);vm.runInContext(`let working=new Working(),saveTimer=0,firstQueued=0;const state={busy:false,saveError:false,conflicts:[],cache:new Map(),pending:new Map(),generation:0,accessEpoch:0,retryCount:0};${code};globalThis.api={working,state,scheduleSave,saveAll};`,ctx);
   const settle=async()=>{for(let i=0;i<12;i++)await Promise.resolve();};
   const advance=async delta=>{const end=now+delta;while(true){const next=[...timers].filter(([,v])=>v.at<=end).sort((a,b)=>a[1].at-b[1].at)[0];if(!next)break;now=next[1].at;timers.delete(next[0]);next[1].fn();await settle();}now=end;await settle();};
@@ -34,5 +34,21 @@ function fixture(){
   denied.requests[1].resolve({visible:[2]});await denied.settle();
   assert.equal(denied.working.pending().length,1);assert.equal(denied.working.pending()[0].id,2);assert.equal(denied.working.pending()[0].value,'Nháp mới còn quyền');
   await denied.advance(20000);assert.equal(denied.requests.length,2,'Không tự gửi lại một phần sau mất quyền');
+  for(const accepted of [false,true]){
+    const f=fixture(()=>accepted);f.stage('Canada');await f.advance(500);
+    f.requests[0].reject(Object.assign(Error('Xác nhận giữ số tiền'),{
+      status:400,code:'currency_confirmation',currencyConfirmations:{'1':'signed-test-token'}}));
+    await f.settle();await f.advance(1000);
+    assert.equal(f.requests.length,accepted?2:1);
+    if(accepted){
+      assert.equal(f.requests[1].payload.currency_confirmations['1'],'signed-test-token');
+      assert.notEqual(f.requests[1].payload.operation,f.requests[0].payload.operation);
+      await f.success(1);assert.equal(f.state.currencyConfirmations,null);assert.equal(f.working.count,0);
+    }else{
+      assert.equal(f.working.count,1);assert.equal(f.state.errorStatus,400);
+      assert.equal(f.state.retry,null);await f.advance(20000);assert.equal(f.requests.length,1);
+    }
+  }
+  console.log('PASS: đổi tiền chỉ gửi lại sau xác nhận; hủy giữ nháp và không tự retry');
   console.log('PASS: debounce 500ms/max 2s, một request, nháp mới, retry 1–2–4–8s cùng payload; 403 giữ nháp còn quyền và không tự gửi một phần; không tự retry 400/409');
 })().catch(error=>{console.error(error);process.exitCode=1;});

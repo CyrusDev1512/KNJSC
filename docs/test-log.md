@@ -1,5 +1,32 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 16.09.2026 — Độ tương phản ba cột ghim
+
+Chrome với đủ CSS tái hiện trước sửa 1,003:1; sau sửa ≥13,115:1. Bốn lượt
+domain VPS (sáng/tối × 1440/390) đạt, không pageerror; đã cuộn dọc/ngang.
+ERP/CRM HTTPS 200, chỉ phát hành CSS, không kiểm tải/ghi database.
+[Log, image và giới hạn](kiem-chung-mau-cot-ghim-20260916.md).
+
+## 16.09.2026 — Bỏ Đơn vị phụ
+
+TDD: test POST form cũ thất bại trước sửa vì vẫn lưu `sub_unit`; sau bỏ trường,
+`crm/tests/test_order_consolidation.py`, `test_order_required_choices.py`,
+`test_market_currency.py`: **36 passed** (12,98s). Chạy Compose với
+`RUN_MIGRATIONS=0`, `POSTGRES_DB=subunit_regression`, `--ds=knjsc.settings.test`.
+Chrome 1440/390 qua `kiem-thu-tien-theo-quoc-gia.cjs` kiểm không còn ô nhập,
+lưu đơn thành công và Xem đơn gốc không còn Đơn vị phụ; fixture kiểm DB:
+**1 passed** (33,72s), không pageerror. DB test riêng `test_subunit_browser`,
+container tự dọn. Không test tải lớn: thay đổi chỉ bỏ trường form/template.
+Log `storage/market-currency/subunit-*`; chưa push/VPS.
+
+## 16.09.2026 — Tiền theo quốc gia, Zelle/PayPal
+
+TDD 8 thất bại trước sửa; tập mới cuối cùng 15 đạt. Hồi quy CRM/orders/forms:
+533 đạt, 1 lỗi nền, 17 skip; luồng ERP cũ thêm 2 lỗi nền. Cả ba tái hiện trên
+archive 7b827a6. Chrome thật 1440/390 + đối chiếu DB đạt (1 bài E2E); Node queue,
+working copy/autosave/conflict và migration xuôi/ngược đạt. Không kiểm tải lớn.
+[Lệnh, kết quả, tên lỗi và giới hạn](kiem-chung-tien-theo-quoc-gia-20260916.md).
+
 ## 15.09.2026 — Chuẩn bị bảng có placeholder
 
 87 bài functional/hồi quy đạt; 1 bài E2E chứa Chrome 1440/390 đạt. Giữ nguyên

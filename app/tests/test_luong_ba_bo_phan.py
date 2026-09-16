@@ -127,7 +127,7 @@ def test_mot_ngay_cua_cong_ty(client, departments, teams, nguoi_dung):
         "phone": "0912345678", "customer_name": "Nguyễn Văn An",
         "email": "an@vidu.com", "market": "us", "state": "California",
         "city": "San Jose", "zipcode": "95112",
-        "payment_method": "card", "currency": "USD",
+        "payment_method": "zelle", "currency": "USD",
         "sp_0": "hm200", "sl_0": "2", "gia_0": "150,00",   # phẩy thập phân
     })
     assert kq.status_code == 302, "Lên đơn không thành công"

@@ -24,10 +24,12 @@ from forms_builder import record_policies
 from forms_builder.meaning import FieldType, Meaning
 from forms_builder.models import ColumnDef, DataRecord, TableDef, Grant
 from forms_builder.services import grant_service, record_service
-from orders.constants import ACTIVE_WAYBILL_TABLE_CODE, PaymentMethod, PaymentStatus, ShippingStatus, Market
+from orders.constants import ACTIVE_WAYBILL_TABLE_CODE, PaymentStatus, ShippingStatus, Market
 from orders.models import Product, WaybillItem
 from orders.units import resolve_unit
 from . import assignment_service
+from . import currency_service
+from orders.constants import ACTIVE_PAYMENT_LABELS
 
 DETAIL_CODE = "chi_tiet_sp"
 PROTECTED = frozenset({"san_pham", "so_luong", "gia_tien", "so_tien_tt"})
@@ -61,8 +63,8 @@ COLUMNS = [
 ]
 REQUIRED = {"ma_don", "ten_khach", "so_dien_thoai", "ngay", "loai_tien"}
 OPTIONS = {
-    "quoc_gia": Market.labels, "pttt": PaymentMethod.labels,
-    "pttt_thuc_te": PaymentMethod.labels, "loai_tien": Currency.values,
+    "quoc_gia": Market.labels, "pttt": ACTIVE_PAYMENT_LABELS,
+    "pttt_thuc_te": ACTIVE_PAYMENT_LABELS, "loai_tien": Currency.values,
     "trang_thai_vc": ShippingStatus.labels, "trang_thai_tt": PaymentStatus.labels,
 }
 
@@ -178,7 +180,10 @@ def prepare_values(values):
     for code in ("so_luong", "gia_tien", "so_tien_tt"):
         if values.get(code) not in (None, "") and money(values[code]) != Decimal(str(computed[code])):
             raise BusinessError("Tổng số lượng hoặc tiền không khớp chi tiết sản phẩm. Hãy sửa tệp trước khi nhập.")
-    result = {**values, **computed, "_items": items}
+    currency = currency_service.for_label(values.get('quoc_gia'))
+    if values.get('loai_tien') not in (None, '', currency):
+        raise BusinessError('Loại tiền phải theo quốc gia; sửa tệp trước khi nhập, không tự quy đổi.')
+    result = {**values, **computed, "_items": items, 'loai_tien': currency}
     result.setdefault("trang_thai_vc", ShippingStatus.DA_LEN_DON.label)
     return result
 
@@ -190,10 +195,44 @@ def after_create(row, values):
 
 
 def assert_editable(code):
+    if code == 'loai_tien':
+        raise BusinessError('Loại tiền tự theo quốc gia, không sửa độc lập.')
     if code in assignment_service.COLUMNS:
         raise BusinessError('Cột này chỉ được sửa bằng hộp Phân công.')
     if code in PROTECTED:
         raise BusinessError("Bill sửa tại Chứng từ thanh toán; các tổng sửa tại Chi tiết sản phẩm.")
+
+
+def choice_source(column):
+    from forms_builder.choice_registry import ChoiceList
+    if column.code in ('pttt', 'pttt_thuc_te'):
+        return ChoiceList(options=lambda: list(ACTIVE_PAYMENT_LABELS))
+    return None
+
+
+def derived_values(row, column, value, *, confirmations=None):
+    return currency_service.change(row, value, confirmations) if column.code == 'quoc_gia' else {}
+
+
+def derived_grid_cells(changes, confirmations):
+    """Kiểm cả lô trước ghi, gom một lần xác nhận cho dán nhiều quốc gia."""
+    missing, derived = {}, []
+    for row, code, raw in changes:
+        if code != 'quoc_gia' or raw == row.data.get(code):
+            continue
+        # Cùng chuẩn hóa nhãn với record_service, không đoán quốc gia từ chuỗi.
+        label = next((m.label for m in Market if m.label.casefold() == str(raw).strip().casefold()), raw)
+        try:
+            values = currency_service.change(row, label, confirmations)
+        except currency_service.CurrencyConfirmation as exc:
+            missing.update(exc.currency_confirmations)
+            continue
+        for field, value in values.items():
+            if value != row.data.get(field):
+                derived.append({'id': row.pk, 'column': field, 'old': row.data.get(field), 'value': value})
+    if missing:
+        raise currency_service.CurrencyConfirmation(missing)
+    return derived
 
 
 def assert_column_change(column, changes=None):
@@ -487,7 +526,7 @@ def grid_column(column):
     payment_documents = getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
     is_bill = column.code == 'bill'
     return {'detail':column.code in DETAIL_CELLS, 'assignment':column.code in assignment_service.COLUMNS,
-        'protected':column.is_computed or column.code in PROTECTED or column.code in assignment_service.COLUMNS
+        'protected':column.is_computed or column.code in PROTECTED or column.code == 'loai_tien' or column.code in assignment_service.COLUMNS
             or (is_bill and payment_documents),
         'renderer':'bill' if is_bill and payment_documents else ('url' if is_bill else 'value'),
         'frozen':column.code in ('ma_don', 'ten_khach', 'so_dien_thoai')}

@@ -25,6 +25,16 @@
   updateClock();
   setInterval(updateClock, 1000);
   document.addEventListener('htmx:afterSwap', updateClock);
+  function updateCurrency() {
+    const form = document.querySelector('[data-order-preview]');
+    const data = document.getElementById('order-market-currencies');
+    if (form && data) {
+      form.elements.currency.value = JSON.parse(data.textContent)[form.elements.market.value] || '';
+      form.dataset.currencyMarket = form.elements.market.value;
+    }
+  }
+  updateCurrency();
+  document.addEventListener('htmx:afterSwap', updateCurrency);
   let timer, pending, generation = 0;
   function preview(form) {
     const version = ++generation;
@@ -53,7 +63,16 @@
   }
   document.addEventListener('input', function (event) {
     const form = event.target.closest('[data-order-preview]');
-    if (form && ['product', 'quantity', 'unit_price', 'currency'].includes(event.target.name)) preview(form);
+    if (form && event.target.name === 'market') {
+      const previous = form.dataset.currencyMarket;
+      const hasMoney = [...form.querySelectorAll('[name=unit_price]')].some(input => input.value.trim() && !/^0([.,]0+)?$/.test(input.value.trim()));
+      if (previous && previous !== form.elements.market.value && hasMoney &&
+          !window.confirm('Đổi quốc gia sẽ đổi loại tiền. Giữ nguyên các số tiền đã nhập, không quy đổi tỷ giá?')) {
+        form.elements.market.value = previous;
+      }
+      updateCurrency();
+    }
+    if (form && ['product', 'quantity', 'unit_price', 'market'].includes(event.target.name)) preview(form);
   });
   document.addEventListener('click', async function (event) {
     const form = event.target.closest('[data-order-preview]');

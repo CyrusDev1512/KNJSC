@@ -217,7 +217,7 @@ def test_moi_san_pham_mot_cot_va_len_don_dien_tu_dong(bang_vd, san_pham, nguoi_d
         return order_service.create_order(
             phone="0999", customer_name="Khách Canada", address_line="812 Yonge St",
             market=Market.CA, state="AB", city="Calgary", zipcode="T1Y1J1",
-            payment_method=PaymentMethod.TRANSFER, currency=Currency.CAD,
+            payment_method=PaymentMethod.ZELLE, currency=Currency.CAD,
             lines=[{"product": san_pham["cream"], "quantity": 3, "unit_price": "50.00"},
                    {"product": moi, "quantity": 1, "unit_price": "20.00"},
                    {"product": san_pham["cream"], "quantity": 2, "unit_price": "50.00"}],

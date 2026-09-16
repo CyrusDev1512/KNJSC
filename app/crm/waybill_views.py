@@ -62,6 +62,8 @@ def create_order(request):
                "nhac_khach": order_service.customer_notice(form.data.get("phone", "")),
                "form": form, "error": error, "success": success, **item_context(items),
                "ve_url": reverse("thu_muc"), "ve_nhan": "Về Bảng tính — thư mục"}
+    from orders.services.currency_service import MARKET_CURRENCIES
+    context['market_currencies'] = MARKET_CURRENCIES
     template = "crm/_waybill_entry.html" if request.headers.get("HX-Request") else "crm/waybill_entry.html"
     response = render(request, template, context, status=400 if error or form.errors else 200)
     return response
@@ -109,12 +111,10 @@ def statistics(request):
 def preview_order(request):
     """Tóm tắt nhập liệu, chỉ đọc; dùng chung kiểm tra và Decimal của vận đơn."""
     from django.http import JsonResponse
-    from core.constants import Currency
+    from orders.services.currency_service import for_market
     assert_departments(request.user, SALES_ONLY, request)
     try:
-        currency = request.POST.get('currency')
-        if currency not in Currency.values:
-            raise BusinessError('Chọn loại tiền hợp lệ.')
+        currency = for_market(request.POST.get('market'))
         items = waybill_service.validate_items(read_items(request.POST), strict_units=True)
         result = waybill_service.totals(items)
         return JsonResponse({'lines': len(items), 'quantity': result['so_luong'],

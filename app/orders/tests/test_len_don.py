@@ -48,7 +48,7 @@ def _len_don(nguoi, san_pham, phone="0912345678", **thay_doi):
         phone=phone, customer_name="Nguyễn Văn An",
         email="an@vidu.com", facebook="fb.com/an",
         market=Market.US, state="California", city="San Jose", zipcode="95112",
-        payment_method=PaymentMethod.CARD, currency=Currency.USD,
+        payment_method=PaymentMethod.ZELLE, currency=Currency.USD,
         lines=[{"product": san_pham["massage"], "quantity": 2, "unit_price": "150.00"}],
         actor=nguoi,
     )

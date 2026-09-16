@@ -33,8 +33,11 @@ def test_crm_order_entry_keeps_customer_fields(client, setup, nguoi_dung):
     saved = Order.objects.get()
     assert saved.customer.facebook == data['facebook']
     assert saved.customer.email == data['email']
-    assert saved.sub_unit == data['sub_unit']
+    assert saved.sub_unit == ''  # Trường đã bỏ: POST cũ không còn được nhận.
     assert saved.record_id
+    assert 'sub_unit' not in response.context['form'].fields
+    detail = client.get(f'/van-don/don-goc/{saved.code}/')
+    assert 'Đơn vị phụ' not in detail.content.decode()
 
 
 @pytest.mark.parametrize('role,expected', [

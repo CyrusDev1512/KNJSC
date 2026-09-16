@@ -17,12 +17,13 @@ from django.db.models.functions import Cast, Substr
 from django.utils import timezone
 
 from core.audit import record
-from core.constants import AuditAction, Currency, Rank
+from core.constants import AuditAction, Rank
 from core.permissions import has_rank
 from core.exceptions import BusinessError
 from core.money import parse_money
 
-from ..constants import Market, PaymentMethod
+from ..constants import Market, PaymentMethod, ACTIVE_PAYMENT_METHODS, ACTIVE_PAYMENT_LABELS
+from . import currency_service
 from ..models import Customer, Order, OrderLine, Product
 from ..units import resolve_unit
 from . import dispatch_service
@@ -118,8 +119,8 @@ def _sinh_ma_don():
 @transaction.atomic
 def create_order(*, phone, customer_name, lines, actor, request=None,
                  facebook="", email="", market=Market.US, state="", city="",
-                 zipcode="", address_line="", payment_method=PaymentMethod.CARD,
-                 currency=Currency.USD, seller=None, sub_unit="", note=""):
+                 zipcode="", address_line="", payment_method=PaymentMethod.ZELLE,
+                 currency=None, seller=None, sub_unit="", note=""):
     """Lên một đơn hàng và ghi luôn sang bảng vận đơn.
 
     `lines` là danh sách dict `{"product": Product|mã, "quantity": int,
@@ -131,6 +132,12 @@ def create_order(*, phone, customer_name, lines, actor, request=None,
         raise BusinessError("Số điện thoại khách là bắt buộc.")
     if not (customer_name or "").strip():
         raise BusinessError("Tên khách là bắt buộc.")
+    expected_currency = currency_service.for_market(market)
+    if currency is not None and currency != expected_currency:
+        raise BusinessError('Loại tiền phải theo quốc gia đã chọn.')
+    currency = expected_currency
+    if payment_method not in ACTIVE_PAYMENT_METHODS:
+        raise BusinessError('Chọn phương thức thanh toán: ' + ', '.join(ACTIVE_PAYMENT_LABELS) + '.')
 
     # Mọi đường tạo đơn cùng thứ tự khóa, trước cả lần ghi khách hàng đầu.
     code = _sinh_ma_don()

@@ -44,12 +44,15 @@ def _schema_error(table):
     if table.department.code != 'van-don' or not table.department.is_active:
         return 'Bảng phải thuộc bộ phận Vận đơn đang hoạt động.'
     columns = {c.code: c for c in table.columns.all()}
+    from forms_builder import choice_registry
     for label, code, kind, meaning in waybill_service.COLUMNS:
         column = columns.get(code)
         if column is None or column.field_type != kind or column.is_computed or column.meaning != meaning:
             return f'Cột {label} chưa có hoặc không đúng cấu trúc Vận đơn.'
         options = waybill_service.OPTIONS.get(code)
-        if options and not set(options).issubset(column.options or []):
+        source = choice_registry.for_column(column) if options else None
+        actual_options = list(source.options()) if source else (column.options or [])
+        if options and not set(options).issubset(actual_options):
             return f'Cột {label} thiếu lựa chọn chuẩn.'
     return ''
 

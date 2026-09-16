@@ -187,7 +187,7 @@ class Order(ScopedModel):
     # ── Thanh toán và người bán ──
     payment_method = models.CharField(
         "Phương thức thanh toán", max_length=12, choices=PaymentMethod.choices,
-        default=PaymentMethod.CARD,
+        default=PaymentMethod.ZELLE,
     )
     currency = models.CharField(
         "Loại tiền tệ", max_length=3, choices=Currency.choices, default=Currency.USD,
