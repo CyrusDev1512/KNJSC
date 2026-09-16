@@ -1,0 +1,148 @@
+{
+  "runtime": {
+    "services": {
+      "crm": {
+        "image": "knjsc-app:0907cdd-grid",
+        "image_id": "sha256:22c67b5c6409349a8c993b014c1f3cbef385e5bdd51938f572d73915b5566816",
+        "running": true,
+        "restarts": 0,
+        "memory": 671088640,
+        "nano_cpus": 0,
+        "flags": [
+          "CRM_OPT_STATS=0",
+          "CRM_OPT_QUEUES=0",
+          "CRM_OPT_SYNC=0",
+          "CRM_OPT_READ=0",
+          "CRM_OPT_RENDER=0",
+          "CRM_OPT_EXPORT=0",
+          "CRM_OPT_RECEIPTS=0"
+        ],
+        "tracebacks": 0,
+        "internal_server_errors": 0
+      },
+      "erp": {
+        "image": "knjsc-app:0907cdd-grid",
+        "image_id": "sha256:22c67b5c6409349a8c993b014c1f3cbef385e5bdd51938f572d73915b5566816",
+        "running": true,
+        "restarts": 0,
+        "memory": 536870912,
+        "nano_cpus": 0,
+        "flags": [
+          "CRM_OPT_QUEUES=0",
+          "CRM_OPT_RECEIPTS=0",
+          "CRM_OPT_EXPORT=0",
+          "CRM_OPT_READ=0",
+          "CRM_OPT_RENDER=0",
+          "CRM_OPT_SYNC=0",
+          "CRM_OPT_STATS=0"
+        ],
+        "tracebacks": 0,
+        "internal_server_errors": 0
+      },
+      "worker": {
+        "image": "knjsc-app:0907cdd-grid",
+        "image_id": "sha256:22c67b5c6409349a8c993b014c1f3cbef385e5bdd51938f572d73915b5566816",
+        "running": true,
+        "restarts": 0,
+        "memory": 402653184,
+        "nano_cpus": 0,
+        "flags": [
+          "CRM_OPT_RENDER=0",
+          "CRM_OPT_EXPORT=0",
+          "CRM_OPT_QUEUES=0",
+          "CRM_OPT_SYNC=0",
+          "CRM_OPT_READ=0",
+          "CRM_OPT_STATS=0",
+          "CRM_OPT_RECEIPTS=0"
+        ],
+        "tracebacks": 0,
+        "internal_server_errors": 0
+      },
+      "heavy": {
+        "image": "knjsc-app:0907cdd-grid",
+        "image_id": "sha256:22c67b5c6409349a8c993b014c1f3cbef385e5bdd51938f572d73915b5566816",
+        "running": true,
+        "restarts": 0,
+        "memory": 536870912,
+        "nano_cpus": 0,
+        "flags": [
+          "CRM_OPT_SYNC=0",
+          "CRM_OPT_RECEIPTS=0",
+          "CRM_OPT_STATS=0",
+          "CRM_OPT_RENDER=0",
+          "CRM_OPT_QUEUES=0",
+          "CRM_OPT_EXPORT=0",
+          "CRM_OPT_READ=0"
+        ],
+        "tracebacks": 0,
+        "internal_server_errors": 0
+      },
+      "beat": {
+        "image": "knjsc-app:0907cdd-grid",
+        "image_id": "sha256:22c67b5c6409349a8c993b014c1f3cbef385e5bdd51938f572d73915b5566816",
+        "running": true,
+        "restarts": 0,
+        "memory": 201326592,
+        "nano_cpus": 0,
+        "flags": [
+          "CRM_OPT_QUEUES=0",
+          "CRM_OPT_RECEIPTS=0",
+          "CRM_OPT_READ=0",
+          "CRM_OPT_STATS=0",
+          "CRM_OPT_SYNC=0",
+          "CRM_OPT_EXPORT=0",
+          "CRM_OPT_RENDER=0"
+        ],
+        "tracebacks": 0,
+        "internal_server_errors": 0
+      }
+    },
+    "code_commit": "0907cdd794231b7830dafc9741d5af9e5408c212",
+    "backup": "/opt/knjsc-runtime/release-grid-20260916-160244",
+    "backup_bytes": 857957,
+    "backup_list_entries": 733,
+    "css_sha256": {
+      "crm-frame.css": "123d7f0073d13af7ee0d2db539f1b9ea159ba6f06f1f31543deddb0b58782d89",
+      "master-grid.css": "70bc53fd86b74673ef228888a27e36a248efa24ecfdf193a7f4252a1f8ffd8b7"
+    }
+  },
+  "browser": {
+    "errors": [],
+    "viewports": [
+      {
+        "width": 1440,
+        "hash": "7ed0015fb0cd223f3d1c2d80f48934fec1a77b7ac31ff0078eb772c3b19e1b6f",
+        "flags": {
+          "render": false,
+          "protocol": 1
+        },
+        "grid": {
+          "cache": 3,
+          "cells": 468,
+          "total": 6667,
+          "generation": 0
+        },
+        "selection": true
+      },
+      {
+        "width": 390,
+        "hash": "7ed0015fb0cd223f3d1c2d80f48934fec1a77b7ac31ff0078eb772c3b19e1b6f",
+        "flags": {
+          "render": false,
+          "protocol": 1
+        },
+        "grid": {
+          "cache": 3,
+          "cells": 198,
+          "total": 6667,
+          "generation": 0
+        },
+        "selection": true
+      }
+    ],
+    "anonymousBlocked": true,
+    "sharedSession": true,
+    "ok": true
+  },
+  "scope": "Read-only production smoke; no load test or fake orders; previous local endurance was stopped by user"
+}

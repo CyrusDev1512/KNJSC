@@ -1,10 +1,13 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
-## 16.09.2026 — Tối ưu cuộn và cờ: chưa phát hành
+## 16.09.2026 — Tối ưu cuộn và cờ: đã phát hành phần đã kiểm
 
 Code/E2E/hồi quy và tải ngắn đã kiểm; đã dừng kiểm bền theo yêu cầu sau 14,71 phút đo; chưa đủ 60 phút. Bảy cờ tắt.
 READ/SYNC chưa đạt thao tác dưới tải, RENDER chưa chứng minh lợi ích mới.
-Chưa push/VPS; giữ nợ 300k của task khác. [Chi tiết](kiem-chung-co-toi-uu-20260916.md).
+Đã push/phát hành VPS 0907cdd; giữ nợ 300k của task khác. [Chi tiết](kiem-chung-co-toi-uu-20260916.md).
+
+VPS image `knjsc-app:0907cdd-grid`; Chrome 1440/390 và hash JS đạt, năm service
+cùng image, giới hạn tài nguyên/CSS giữ nguyên. Không coi smoke là kiểm tải VPS.
 
 ## 16.09.2026 — Sửa riêng bố cục Tổng quan ERP
 

@@ -8,7 +8,10 @@ kiểm cuộn, nhảy và nhập khi lưu đạt. Hai lượt chính đủ 300 g
 đơn và 30 Sale + 10 Vận đơn; 367/367 đơn, oracle không lỗi. READ/SYNC có lỗi
 mở editor, không nghiệm thu bật cờ. Đã sửa harness dừng cắt request và hai
 lỗi metadata bằng TDD; không tính các lượt lỗi/thiếu thời gian là đạt.
-Kiểm bền dừng theo yêu cầu sau 14,71 phút đo; 939/939 đơn đúng. Có poll bị hủy và oracle lệch một ô do commit sau khi đóng metrics; không tính lượt dừng đạt. Chưa push/VPS. [Lệnh, môi trường, bằng chứng](kiem-chung-co-toi-uu-20260916.md).
+Kiểm bền dừng theo yêu cầu sau 14,71 phút đo; 939/939 đơn đúng. Có poll bị hủy và oracle lệch một ô do commit sau khi đóng metrics; không tính lượt dừng đạt. Đã push/phát hành VPS 0907cdd. [Lệnh, môi trường, bằng chứng](kiem-chung-co-toi-uu-20260916.md).
+
+VPS image `knjsc-app:0907cdd-grid`; Chrome 1440/390 và hash JS đạt, năm service
+cùng image, giới hạn tài nguyên/CSS giữ nguyên. Không coi smoke là kiểm tải VPS.
 
 ## 16.09.2026 — Sửa riêng bố cục Tổng quan ERP
 

@@ -35,6 +35,7 @@ const expected=process.argv[2];assert.match(expected||'',/^[0-9a-f]{64}$/);
    await page.locator('#mg-viewport').evaluate(el=>{el.scrollTop=280;el.scrollLeft=200;});
    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
    await page.locator('.mg-cell').first().click();
+   await page.waitForFunction(()=>!!document.getElementById('mg-selection').textContent);
    const state=await page.evaluate(()=>({grid:KNJSC_MASTER.diagnostics(),selection:!!document.getElementById('mg-selection').textContent}));
    assert(state.selection);assert(state.grid.cache<=10);assert(state.grid.cells>0);
    result.viewports.push({width,hash,flags,...state});

@@ -1,12 +1,15 @@
 # Backlog
 
-## 16.09.2026 — Kiểm chứng cờ và phát hành tối ưu cuộn (đã dừng kiểm theo yêu cầu)
+## 16.09.2026 — Kiểm chứng cờ và phát hành tối ưu cuộn (đã phát hành phần đã kiểm)
 
 Bản lưới mới qua 137 hồi quy, E2E lưới chung và hai lượt tải chính 100.000
 đơn; 30 Sale + 10 Vận đơn lưu 367/367 đơn đúng. READ/SYNC chưa bật vì
 invalidation theo cả bảng làm gián đoạn mở editor khi có đơn ngoài phạm vi;
-RENDER chưa có lợi ích bổ sung rõ. Kiểm bền dừng theo yêu cầu sau 14,71 phút đo; chưa đủ 60 phút, chưa push/VPS.
+RENDER chưa có lợi ích bổ sung rõ. Kiểm bền dừng theo yêu cầu sau 14,71 phút đo; chưa đủ 60 phút, đã push/phát hành VPS 0907cdd.
 Không đóng nợ 300.000 dòng hoặc hiệu năng VPS. [Bằng chứng](kiem-chung-co-toi-uu-20260916.md).
+
+VPS image `knjsc-app:0907cdd-grid`; Chrome 1440/390 và hash JS đạt, năm service
+cùng image, giới hạn tài nguyên/CSS giữ nguyên. Không coi smoke là kiểm tải VPS.
 
 ## 16.09.2026 — Sửa riêng bố cục Tổng quan ERP
 

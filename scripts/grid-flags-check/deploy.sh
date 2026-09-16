@@ -29,12 +29,12 @@ image="knjsc-app:${target:0:7}-grid"
 docker build -f deploy/Dockerfile -t "$image" .
 cd /opt/knjsc-runtime
 compose=(docker compose -f compose.yml -f compose.vps.yml)
-KNJSC_IMAGE="$image" "${compose[@]}" run --rm --no-deps crm python manage.py check
-KNJSC_IMAGE="$image" "${compose[@]}" run --rm --no-deps erp python manage.py check
+KNJSC_IMAGE="$image" "${compose[@]}" run --rm --no-deps --interactive=false crm python manage.py check
+KNJSC_IMAGE="$image" "${compose[@]}" run --rm --no-deps --interactive=false erp python manage.py check
 rollback() {
   trap - ERR
   cp "$folder/env.before" .env
-  "${compose[@]}" run --rm --no-deps crm python manage.py collectstatic --noinput
+  "${compose[@]}" run --rm --no-deps --interactive=false crm python manage.py collectstatic --noinput
   "${compose[@]}" --profile heavy up -d --no-deps erp crm worker heavy beat
   docker exec knjsc-production-proxy-1 nginx -t
   docker exec knjsc-production-proxy-1 nginx -s reload
@@ -58,7 +58,7 @@ for key,value in values.items():
 p.write_text(content)
 PY
 "${compose[@]}" config --quiet
-"${compose[@]}" run --rm --no-deps crm python manage.py collectstatic --noinput
+"${compose[@]}" run --rm --no-deps --interactive=false crm python manage.py collectstatic --noinput
 "${compose[@]}" --profile heavy up -d --no-deps erp crm worker heavy beat
 docker exec knjsc-production-proxy-1 nginx -t
 docker exec knjsc-production-proxy-1 nginx -s reload

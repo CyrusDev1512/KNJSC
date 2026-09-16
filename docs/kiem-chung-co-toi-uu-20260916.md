@@ -116,7 +116,7 @@ liên tục đơn lẻ ~49 ms, hoặc lấy thời gian edit-to-save có debounc
 thời gian server. Chưa chứng minh mọi thao tác dưới tải nhanh hơn rõ rệt.
 
 Kết luận hiện tại: các tối ưu hẹp có lợi ích đo được; giữ bảy cờ tắt,
-không nghiệm thu toàn bộ CRM hoặc VPS. **Chưa commit/push/phát hành**.
+không nghiệm thu toàn bộ CRM hoặc VPS. **Tại thời điểm dừng: chưa commit/push/phát hành**; trạng thái mới bên dưới.
 
 ## Sửa sai số của harness, không che lỗi nghiệm thu
 
@@ -147,10 +147,34 @@ rồi trả phản hồi, tải lại và đọc API để kiểm giá trị th�
 Độ trễ tương tác đó không được báo thành thời gian xử lý server.
 
 Bằng chứng tổng hợp: [JSON](verification/grid-flags-20260916.json).
-Kiểm thử đã dừng theo yêu cầu; chưa có bản phát hành của tác vụ này.
+Kiểm tải dài đã dừng theo yêu cầu; kết quả phát hành tiếp theo ghi bên dưới.
 
 ## Phát hành theo yêu cầu tiếp theo
 
 Chủ dự án yêu cầu push và cập nhật VPS sau khi đọc kết luận dừng kiểm.
 Chỉ phát hành ứng viên đã đo; giữ các cờ thử nghiệm tắt và các giới hạn
-kiểm chứng nêu trên. Kết quả triển khai sẽ ghi sau khi kiểm domain thật.
+kiểm chứng nêu trên. Đã push commit `0907cdd794231b7830dafc9741d5af9e5408c212` lên
+`codex/crm-update-solar-ui`. VPS cập nhật lúc khoảng 16:03 ngày 16.09.2026:
+
+- ERP/CRM/worker/heavy/beat cùng image `knjsc-app:0907cdd-grid`, image ID
+  `sha256:22c67b5c6409349a8c993b014c1f3cbef385e5bdd51938f572d73915b5566816`.
+- Bảy cờ CRM_OPT đều `0`; bộ nhớ/CPU limit và CSS hiện có giữ nguyên.
+- Backup: `/opt/knjsc-runtime/release-grid-20260916-160244/`, dump 857.957
+  byte, `pg_restore --list` đọc được 733 dòng danh mục. Không restore đè DB.
+- `manage.py check` ERP/CRM đạt, collectstatic và nginx reload thành công;
+  hai domain HTTPS trả 200. Không migration, seed hoặc tạo đơn test trên VPS.
+- Chrome domain thật ở 1440/390px: hash JS khớp đúng snapshot đã đo,
+  cuộn/chọn ô đạt, cache 3 khối, không lỗi JS/server. Chưa đăng nhập bị
+  chuyển về login; đăng nhập CRM rồi sang ERP không phải đăng nhập lại.
+- Năm service đang chạy, restart count 0; không traceback/Internal Server
+  Error trong log kể từ lần khởi động được kiểm. Đây là smoke sau phát hành,
+  không nghiệm thu tải VPS hay bài bền 60 phút.
+- Lần gọi script đầu qua SSH stdin dừng sau bước check đầu do Docker nhận
+  stdin; chưa đổi runtime. Chạy lại từ file đã hoàn tất đầy đủ. Script đã
+  thêm `--interactive=false`. Probe chọn ô được sửa chờ frame UI trước
+  assert; không thay code ứng dụng để làm smoke đạt.
+
+[Bằng chứng phát hành đã bỏ thông tin đăng nhập](verification/grid-release-20260916.json).
+Các ghi chú “chưa push/VPS” ở những biên bản cuộn trước là lịch sử tại lúc đo;
+trạng thái phát hành đoạn này thay thế chúng. Phần ERP/ngày của task khác vẫn
+ở working tree local, không được đưa vào commit này.
