@@ -1,5 +1,14 @@
 # Backlog
 
+## 16.09.2026 — Đã phát hành tiền/PTTT, bỏ Đơn vị phụ và sửa cột ghim
+
+Đã push mã `5ce53f3`, VPS chạy `knjsc-app:5ce53f3-market-20260916` trên
+ERP/CRM và các worker. Hồi quy đúng bản phát hành: 535 đạt, 1 lỗi nền,
+17 skip; E2E database test và Chrome VPS 1440/390 đạt. Giữ hotfix sidebar.
+Đã xử lý 502 sau thay container bằng nạp lại proxy; không ghi thử dữ liệu VPS.
+Mục này thay thế trạng thái chưa push/VPS của các mục cùng phạm vi bên dưới.
+[Chi tiết phát hành và giới hạn](phat-hanh-tien-te-20260916.md).
+
 ## 16.09.2026 — Màu ba cột ghim trên VPS
 
 Đã sửa CSS kế thừa theme tối gây chữ chìm, kiểm Chrome domain thật sáng/tối

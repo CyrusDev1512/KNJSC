@@ -1,5 +1,9 @@
 # Kiểm chứng tiền theo quốc gia — 16.09.2026
 
+**Cập nhật phát hành:** đã push `5ce53f3` và cập nhật VPS; xem
+[kết quả cuối và giới hạn](phat-hanh-tien-te-20260916.md). Các mục bên dưới
+ghi nhận quá trình kiểm chứng trước phát hành.
+
 Nền `7b827a6`, nhánh `codex/crm-update-solar-ui`. Bàn giao local, chưa commit,
 push hoặc phát hành VPS. Quyết định: [ADR-031](quyet-dinh/031-tien-theo-quoc-gia-va-pttt.md).
 
