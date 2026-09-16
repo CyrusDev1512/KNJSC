@@ -1,5 +1,9 @@
 # Backlog
 
+## 16.09.2026 — Sửa riêng bố cục Tổng quan ERP
+
+Đã sửa nhãn–giá trị cùng hàng, bỏ kéo cao thẻ theo Marketing, kiểm responsive và suite báo cáo; push/phát hành VPS commit `da6e2c0`. Không đưa thay đổi báo cáo/lưới chưa phát hành vào bản này. [Kiểm chứng và giới hạn](kiem-chung-tong-quan-20260916.md).
+
 ## 16.09.2026 — Đã phát hành tiền/PTTT, bỏ Đơn vị phụ và sửa cột ghim
 
 Đã push mã `5ce53f3`, VPS chạy `knjsc-app:5ce53f3-market-20260916` trên

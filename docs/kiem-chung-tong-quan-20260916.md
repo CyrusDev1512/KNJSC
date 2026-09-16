@@ -26,3 +26,13 @@ Phát hành bằng image theo commit, giữ hai compose hiện hành và giới 
 Không migration, seed hoặc sửa dữ liệu. Lưu image/cấu hình trước phát hành để quay lui.
 Kiểm Django, collectstatic, tải CSS mới qua HTTPS, ERP/CRM trả HTTP 200 và trạng thái container.
 Kiểm giao diện trực tiếp trên domain cần phiên đăng nhập còn hiệu lực.
+
+## Kết quả phát hành 16.09.2026, 12:35 giờ Việt Nam
+
+- Commit ứng dụng: `da6e2c0`, đã push nhánh `codex/crm-update-solar-ui` và xác nhận SHA GitHub khớp local.
+- VPS fast-forward sạch từ `9ff2dec`; ERP/CRM/worker/heavy/beat chạy image `knjsc-app:da6e2c0-overview-20260916`. Giữ giới hạn bộ nhớ và cả hai compose hiện hành.
+- Django check ERP và CRM: không lỗi. collectstatic: 2 file mới/cập nhật, 150 giữ nguyên. nginx config hợp lệ và đã reload upstream.
+- Hai domain `/dang-nhap/` trả HTTP 200. CSS Tổng quan tải qua HTTPS và so byte với source VPS: khớp.
+- Không migration, seed, sửa báo cáo lịch sử hoặc thay đổi dữ liệu nghiệp vụ.
+- Cấu hình và tên image cũ: `/opt/knjsc-runtime/release-overview-20260916-123448/`. Log local: `storage/overview-fix/deploy.log`.
+- Giao diện trình duyệt đã kiểm trên bản preview phát hành; phiên VPS hết hạn, đã nhờ đăng nhập lại và chưa có xác nhận. Không coi HTTP 200 là kiểm chứng màn hình Tổng quan sau đăng nhập.
