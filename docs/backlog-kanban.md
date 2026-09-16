@@ -264,7 +264,7 @@ Bản nhìn theo cột của `backlog.md`. `backlog.md` vẫn là nơi ghi **vì
 kèm mức nghiêm trọng, chỗ sai, blocker và ảnh hưởng nằm ở `test-log.md`; ở đây
 chỉ tham chiếu mã `TL-xx`.
 
-Cập nhật: 07.09.2026. Ai làm xong việc nào thì kéo dòng đó sang cột kế tiếp
+Cập nhật: 16.09.2026. Ai làm xong việc nào thì kéo dòng đó sang cột kế tiếp
 trong cùng lượt sửa mã, không để dồn.
 
 Mức ưu tiên: **P0** chặn nghiệm thu hoặc mất/lộ dữ liệu · **P1** người dùng
@@ -284,6 +284,7 @@ Xếp theo thứ tự nên làm. Mỗi dòng một PR nhỏ, có ảnh trước/
 | P0 | Lọc khoảng cột tiền/ngày với chuỗi lạ trả 500 | TL-04 | `main` | Trang trắng |
 | P0 | Thanh trên báo "Đã lưu" khi máy chủ trả 400; lời báo lỗi bị CSS giấu | TL-19, TL-20 | `main` | K28 — anh/chị gặp trong video 07.09 |
 | P0 | PR #21: làm lại giao dịch sau deadlock mất dữ liệu; job tính lại kẹt RUNNING làm lưới ngừng cập nhật | TL-22, TL-23 | `claude/kiem-tai-kn-crm` | **PR #21 không gộp cho tới khi xong hai dòng này** |
+| P1 | Cột Trùng có tác dụng: có ở Vận đơn DB, chuẩn hoá số điện thoại, đếm cả lịch sử, bấm để xem, lọc và tô màu | TL-35, TL-36 | `main` | Chờ anh/chị chốt 1 trong các ý ở backlog 16.09 |
 | P1 | Tiêu đề bảng ngoài vận đơn màu vàng → xanh; ô trắng; chỉ ô cảnh báo mới vàng/đỏ | TL-21 | `main` | K28; yêu cầu gốc của anh/chị |
 | P1 | Khôi phục dòng bỏ qua phạm vi quyền | TL-05 | `main` | Quy tắc 11 |
 | P1 | Dòng trống / ô sửa kẹt sau 403/500, tự cập nhật dừng | TL-06 | `main` | |

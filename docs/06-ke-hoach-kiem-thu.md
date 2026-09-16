@@ -35,8 +35,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **159** — 146 tự động, 13 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **145 trên 146** |
+| Tiêu chí nghiệm thu trong `docs/04` | **167** — 154 tự động, 13 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **152 trên 154** |
 | Tiêu chí tự động còn hoãn | **1**, đều thuộc diện chờ người dùng chốt — `AC-5.1`, backlog N9 |
 | Bao phủ dòng mã | khoảng 85% |
 
@@ -82,6 +82,7 @@ xem `app/tests/perf/README.md`):
 
 ```
 python manage.py seed_perf --xoa-cu --so-dong 100000 --so-thang 24 --dien-day --bang-sale
+python manage.py nap_khach_mau --so-khach 300000              # 300.000 khách, 20 % mua lại → Vận đơn DB (AC-10.9)
 python manage.py do_hieu_nang --giai-thich          # một người, không tải → storage/perf/<ngày>-don-le.md
 locust -f tests/perf/locustfile_kn_crm.py --host http://localhost:8021 --users 100 --spawn-rate 10 --run-time 5m --headless
 ```
