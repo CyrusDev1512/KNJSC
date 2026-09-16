@@ -1,5 +1,13 @@
 # Phát hành tiền theo quốc gia và sửa cột ghim — 16.09.2026
 
+## Bổ sung: đưa hotfix sidebar vào Git
+
+Theo yêu cầu đồng bộ tiếp theo, bổ sung đúng hai dòng CSS đang chạy trên VPS
+vào `app/static/css/crm-frame.css`: căn giữa logo và liên kết nhóm khi thu gọn
+sidebar. Đối chiếu nội dung file Git với file VPS và container CRM, không đổi
+hành vi đang chạy hoặc cần phát hành image mới chỉ cho lần đồng bộ này.
+Giữ các thay đổi ERP chưa hoàn tất ngoài commit.
+
 Đã push `5ce53f357521b4bc984e1d0c6ccf7a0cd887e0a0` lên
 `codex/crm-update-solar-ui` và phát hành VPS. Kết quả này thay thế trạng thái
 “local/chưa push/VPS” của các mục tiền, PTTT, Đơn vị phụ và cột ghim trước đó.
