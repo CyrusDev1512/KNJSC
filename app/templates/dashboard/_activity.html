@@ -1,4 +1,4 @@
-<section class="the">
+<section class="the dashboard-activity">
 <div class="the-dau"><h2>Báo cáo tổng hợp</h2></div>
 <div class="the-than"><form method="get" class="loc">
 <div class="truong"><label for="bc-tu">Từ ngày</label><input class="o-nhap" type="date" name="tu" id="bc-tu" value="{{ activity.start|date:'Y-m-d' }}"></div>
@@ -6,11 +6,11 @@
 {% for b in activity.blocks %}<div class="truong"><label for="nguon-{{ b.kind }}">{{ b.title }}</label><select class="o-nhap" id="nguon-{{ b.kind }}" name="{{ b.kind }}_nguon"><option value="">Nguồn mặc định</option>{% for s in b.sources %}<option value="{{ s.table.code }}" {% if b.data.source.pk == s.pk %}selected{% endif %}>{{ s.table.name }}</option>{% endfor %}</select></div>{% endfor %}
 <button class="nut nut-chinh" type="submit">Áp dụng</button></form>
 <p class="nho">Mỗi khối đọc một nguồn. Doanh số Marketing và Sale không cộng thành doanh số công ty.</p></div>
-<div class="luoi luoi-3">{% for b in activity.blocks %}<section class="the"><div class="the-dau"><h3>{{ b.title }}</h3></div><div class="the-than">
+<div class="dashboard-activity-grid">{% for b in activity.blocks %}<section class="the dashboard-activity-card"><div class="the-dau"><h3>{{ b.title }}</h3></div><div class="the-than">
 {% if not b.ok %}<p role="alert">Không tải được số liệu. Hãy kiểm tra nguồn hoặc thử lại.</p>
 {% elif b.data.state == 'no_source' %}<p>Chưa có nguồn báo cáo trong phạm vi của bạn.</p>
 {% elif b.data.state == 'unavailable' %}<p>Chưa đủ cấu hình chỉ tiêu cho nguồn này.</p>
-{% else %}<p>Nguồn: {{ b.data.source.table.name }}</p>
-{% if b.data.state == 'empty' %}<p>Chưa có dữ liệu trong khoảng ngày này.</p>{% else %}<dl>{% for label,value in b.data.metrics %}<dt>{{ label }}</dt><dd>{{ value }}</dd>{% endfor %}</dl>{% endif %}
-<p><a href="{{ b.data.url }}">Xem báo cáo chi tiết</a></p><p><a href="{{ b.data.person_url }}">Kết quả theo nhân viên</a> · <a href="{{ b.data.department_url }}">Theo phòng ban</a></p>
+{% else %}<p class="dashboard-source">Nguồn: {{ b.data.source.table.name }}</p>
+{% if b.data.state == 'empty' %}<p>Chưa có dữ liệu trong khoảng ngày này.</p>{% else %}<dl class="dashboard-metrics">{% for label,value in b.data.metrics %}<div class="dashboard-metric"><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}</dl>{% endif %}
+<div class="dashboard-links"><a href="{{ b.data.url }}">Xem báo cáo chi tiết</a><div><a href="{{ b.data.person_url }}">Kết quả theo nhân viên</a><a href="{{ b.data.department_url }}">Theo phòng ban</a></div></div>
 {% endif %}</div></section>{% endfor %}</div></section>
