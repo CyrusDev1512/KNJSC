@@ -69,6 +69,7 @@ def test_initialize_preserves_legacy_and_copies_live_grants_once(departments, ng
     dispatch_service.ensure_waybill_table()
     new = TableDef.all_objects.get(code=ACTIVE_WAYBILL_TABLE_CODE)
     old.refresh_from_db(); historical.refresh_from_db()
+    assert new.name == "crmThuận"
     assert old.name == "Vận đơn mới" and old.code == "van_don"
     assert historical.table_id == old.pk and historical.data == {"ma_don": "LICH-SU"}
     assert not DataRecord.all_objects.filter(table=new).exists()
@@ -105,7 +106,7 @@ def test_legacy_waybill_name_and_columns_follow_current_note(departments, nguoi_
     assert codes.index("bill") < codes.index("ghi_chu") < codes.index("doi_soat")
     assert "ZIP" in codes
     assert codes[-1] == "don_vi_phu"
-    assert TableDef.all_objects.get(code=ACTIVE_WAYBILL_TABLE_CODE).name == "Vận đơn"
+    assert TableDef.all_objects.get(code=ACTIVE_WAYBILL_TABLE_CODE).name == "crmThuận"
 
 
 def test_erp_and_crm_each_create_one_new_snapshot(client, setup, nguoi_dung):

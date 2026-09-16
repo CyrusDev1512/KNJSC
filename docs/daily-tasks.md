@@ -1,5 +1,30 @@
 # Daily tasks — KNJSC
 
+## 16.09.2026 — Dừng phép đo hỗn hợp, đưa toàn bộ thay đổi lên GitHub
+
+Theo yêu cầu chủ dự án, dừng kiểm tải 10 người Vận đơn + 5 Sale lên đơn. Mới chuẩn bị tài khoản/sản phẩm/bảng nhận đơn trong DB thử; chưa chạy kịch bản hỗn hợp, chưa có kết quả để kết luận. App/DB benchmark local và VPS đã dừng; giữ dữ liệu giả riêng để tái lập. Phạm vi bàn giao Git gồm toàn bộ thay đổi code, migration, kiểm thử và tài liệu hiện có; dữ liệu local/manifest phiên thử trong storage vẫn được gitignore.
+
+## 16.09.2026 — Mốc thực tế: 300.000 dòng + tối đa 10 người
+
+Chủ dự án xác nhận khoảng 100.000 đơn/năm, kiểm dự phòng 300.000 dòng và tối đa 10 người dùng file Vận đơn. Đã đo trên hai DB giả độc lập: 10 người, đọc toàn bảng p95 local/VPS 1,37/5,04 giây; lọc tháng 8.496 dòng 0,83/3,09 giây. Lưu tương ứng toàn bảng 0,49/2,34 giây, theo tháng 0,31/1,57 giây; không lỗi HTTP hoặc sai giá trị cuối ở 8 lượt chính. SQL phiên bản vẫn quét 300k dòng dù lọc tháng; CPU DB VPS gần hết hai core. Browser VPS nhảy dòng 150k vượt chờ 10 giây; chọn ô vẫn khoảng 36 ms. **Chưa đạt mục tiêu mượt**; cần duyệt tác vụ xử lý server/cache rồi đo lại đúng mốc này, không lấy khảo sát 20 người trước làm yêu cầu. Môi trường đo đã dừng, production giữ nguyên. [Bằng chứng và giới hạn](kiem-chung-300k-10-nguoi-20260916.md).
+
+
+## 16.09.2026 — Đo đồng thời Vận đơn DB trên VPS và local
+
+Đã đo 1/5/10/20 người trên 10.000 dòng giả, 26 cột, môi trường riêng. VPS 20 người: p95 đọc 965 ms, lưu 848 ms, poll 804 ms; vượt mục tiêu lưu/poll. Local tương ứng 288/272/199 ms. Các lượt hợp lệ không lỗi HTTP, kiểm lại giá trị cuối khớp. Browser 9 Locust + 1 Chrome: local cuộn p95 351 ms, VPS 245 ms; chưa chứng minh tối ưu local giữ lợi ích khi có ghi nền. Ghi nhận 409 đọc gây bỏ cache: cần chốt tác vụ riêng để xử lý, chưa sửa ứng dụng hoặc phát hành. [Phương pháp, số đo và giới hạn](kiem-chung-tai-dong-thoi-20260916.md).
+
+## 16/09/2026 — Chọn ô/nhập trong lúc lưu: đã tối ưu và đo local
+
+Đã tách cập nhật vùng chọn/mở/hủy editor khỏi dựng lại nội dung lưới.
+40 lượt/10.000 dòng mô phỏng, trình duyệt Codex 1280×720, giữ request lưu:
+p95 chọn/mở/nhập ~33–34 ms; baseline cũng ~34 ms nhưng một lượt chọn 58,1 ms.
+Bản cuối max 34,2 ms; DOM tạo mới giảm 51.891 → 466. Đây là phép đo tới hai
+rAF của fixture, không phải số đo API/VPS hoặc bảo đảm trên mọi máy.
+Giữ nháp mới khi phản hồi cũ về; lỗi lưu và Undo/Redo đã kiểm; 48 test server
+và nhóm Node liên quan đạt. Local, chưa push/VPS. Không đánh dấu toàn bộ bảy
+hạng mục tối ưu hoàn thành hoặc coi kiểm này là kiểm bộ nhớ dài hạn.
+[Chi tiết](kiem-chung-nhap-khi-luu-20260916.md).
+
 Mở lại file này mỗi ngày để xem việc còn nợ. Thêm nhật ký theo ngày thực tế;
 không tự chuyển việc chưa kiểm chứng sang hoàn thành. Đây là sổ công việc,
 không phải lịch tự chạy hoặc nhắc việc tự động.

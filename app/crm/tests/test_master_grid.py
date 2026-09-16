@@ -47,6 +47,18 @@ def test_blocks_scoped_and_stable(client, feedback, nguoi_dung):
         assert response.json()['rows'] == []
 
 
+def test_date_json_display_keeps_iso_value(client, feedback, nguoi_dung):
+    """Ngày đọc D/M/Y nhưng giá trị dùng sửa/lọc không bị đổi sang chuỗi trình bày."""
+    from crm.services.master_grid_service import serialize
+    row = feedback[2][0]
+    column = feedback[0].columns.filter(field_type='date').first()
+    assert column is not None
+    row.data[column.code] = '2026-01-22'
+    cell = serialize([row], [column], nguoi_dung['admin'])[0]['cells'][column.code]
+    assert cell['value'] == '2026-01-22'
+    assert cell['display'] == '22/01/2026'
+
+
 def test_same_cell_conflict_but_other_cell_survives(client, feedback, nguoi_dung):
     """AC-21.3 — CAS và giữ thay đổi khác ô."""
     client.force_login(nguoi_dung['admin'])

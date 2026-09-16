@@ -1,5 +1,9 @@
 # ADR-018 — Bảng Vận đơn mới theo CRM Tân
 
+> Thay thế 16.09.2026: chủ dự án yêu cầu đổi tên hiển thị **Vận đơn**
+> (`van_don_moi`) thành **crmThuận**. Giữ mã, ID, dữ liệu, quyền và cấu hình
+> nhận đơn. Bảng `van_don` vẫn tên **Vận đơn mới**. Đã áp dụng local; chưa VPS.
+
 > Thay thế 14.09.2026: giữ nguyên mã kỹ thuật và luồng nhận đơn nhưng đổi nhãn
 > `van_don` thành **Vận đơn mới**; `van_don_moi` tiếp tục mang nhãn **Vận đơn** và
 > tiếp tục là nơi nhận đơn mới. `van_don` được sắp lại metadata theo ghi chú hiện

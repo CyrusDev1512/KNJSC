@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block tieu_de %}Sửa báo cáo · KN ERP{% endblock %}
+{% block noi_dung %}
+<div class="trang-dau"><div><h1>Sửa {{ bm.name }}</h1>
+<p>Ngày {{ bao_cao.report_date|date:"d/m/Y" }} · Người nộp: {% include "reports/_employee_identity.html" with person=bao_cao.created_by only %}</p>
+<p>Giữ nguyên ngày, nhân sự và thời điểm nộp. Mọi thay đổi được lưu lịch sử.</p></div></div>
+{% for error in loi %}<div class="bao bao-xau" role="alert">{{ error }}</div>{% endfor %}
+<form method="post" class="the" style="max-width:860px">
+{% csrf_token %}<input type="hidden" name="version" value="{{ version }}">
+<div class="the-than bm">{% for o in cac_o %}{% include "forms_builder/_truong_nhap.html" %}{% endfor %}</div>
+<div class="the-chan"><a class="nut" href="{% url 'bao_cao_xem' bao_cao.pk %}">Quay lại báo cáo</a><button class="nut nut-chinh" type="submit">Lưu chỉnh sửa</button></div>
+</form>
+{% endblock %}
+
+{% block cuoi_trang %}{% load static %}<script src="{% static 'js/report-entry.js' %}?v={{ phien_ban_tinh }}" defer></script>{% endblock %}

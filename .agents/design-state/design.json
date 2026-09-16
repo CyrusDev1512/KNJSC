@@ -577,6 +577,11 @@
     ],
     "rules": [
       {
+        "name": "Báo cáo ERP — 16.09.2026",
+        "body": "Tổng hợp dùng bộ lọc bên trái bật/tắt được, bảng kẻ ô cuộn riêng bên phải, tổng ở đầu và cột Team/nhân sự khi nhóm theo người. Toàn màn hình bảng chiếm vùng tab, ẩn header/dock/nền; thanh gọn giữ bộ lọc/xuất/thoát, Esc đóng panel trước rồi thoát; giữ dữ liệu và lựa chọn. Mobile thường xếp một cột, trong focus mở panel cuộn riêng. Tìm tên không dấu không tự áp lọc; đổi nguồn loại ID người/team cũ. Báo cáo ngày Vận đơn dùng form và lịch sử hiện có với nội dung công việc, kết quả, vướng mắc; không có chỉ tiêu tiền/đối soát. Local xem thử, chưa nghiệm thu domain thật.",
+        "section": "interaction"
+      },
+      {
         "name": "Vận đơn mới — inline editing, 11.09.2026",
         "body": "ADR-021 overrides legacy grid controls for van_don_moi: default 28px rows with per-user resizing, blue selection, no free formulas. The value editor stays inside its cell and never covers the next row; long-content reader and protected detail/assignment dialogs remain separate. Tab/Enter and range paste retain autosave and CAS.",
         "section": "interaction"
@@ -610,6 +615,11 @@
         "name": "The Evidence-Before-Decoration Rule",
         "body": "Executive insights show situation, evidence, source, and a direct data action; chart perspective is decorative only and never changes the data-bearing face.",
         "section": "data-visualization"
+      },
+      {
+        "name": "System Report Fields and Date Display",
+        "body": "ERP/CRM date inputs display DD/MM/YYYY; transport remains ISO. New reports show readonly Vietnam today and current identity. Submitted reports expose an amendment action only for the approved team/department/admin scope; preserve owner/date and show revision history. ADR-032, 16/09/2026.",
+        "section": "forms"
       }
     ],
     "dos": [

@@ -17,7 +17,9 @@ def test_report_source_migration_preserves_business_rows(departments):
         assert "reports_reportsource" not in connection.introspection.table_names()
         assert DataRecord.objects.get(pk=row.pk).data == {"so_don": 7}
     finally:
-        MigrationExecutor(connection).migrate([("reports", "0002_erp_report_sources")])
+        executor = MigrationExecutor(connection)
+        executor.migrate(executor.loader.graph.leaf_nodes())
     assert "reports_reportsource" in connection.introspection.table_names()
+    assert "reports_reportrevision" in connection.introspection.table_names()
     assert DataRecord.objects.get(pk=row.pk).data == {"so_don": 7}
     assert not ReportSource.objects.exists()

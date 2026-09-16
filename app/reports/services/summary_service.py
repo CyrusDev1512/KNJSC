@@ -47,7 +47,7 @@ def source_tables(user):
     """Các bảng chọn được làm nguồn số liệu: trong phạm vi quyền, đang dùng,
     và có ít nhất một cột mang nhãn ý nghĩa — bảng không nhãn thì không có gì
     để thống kê (ADR-001)."""
-    return list(
+    tables = list(
         TableDef.objects.in_scope(user)
         .filter(Q(columns__meaning__gt="") | Q(erp_report__isnull=False), is_active=True)
         .distinct()
@@ -55,6 +55,15 @@ def source_tables(user):
         .prefetch_related("columns")
         .order_by("name")
     )
+    # Các bộ phận đã được JOIN cùng bảng. Tái sử dụng đúng đối tượng của
+    # hồ sơ cho khung trang, tránh truy vấn lặp khi thêm bộ lọc nhân sự.
+    profile = getattr(user, "profile", None)
+    if profile is not None and profile.department_id:
+        for table in tables:
+            if table.department_id == profile.department_id:
+                profile.department = table.department
+                break
+    return tables
 
 
 def pick_table(user, code, tables, *, request=None):

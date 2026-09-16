@@ -417,10 +417,11 @@
       }
       for(const v of options)input.append(new Option(v,v));
     }
-    // Ngày giờ giữ ô chữ ISO như lưới cũ: datetime-local làm mất chuỗi có múi giờ.
-    else {input=element(c.type==='long_text'?'textarea':'input','o-nhap');if(c.type==='date')input.type='date';else if(['integer','decimal','money'].includes(c.type))input.inputMode='decimal';}
+    // Bộ nhập dùng D/M/Y; ngày giờ giữ giá trị ISO/múi giờ khi gửi lưu.
+    else {input=element(c.type==='long_text'?'textarea':'input','o-nhap');if(c.type==='date')input.type='date';else if(c.type==='datetime')input.setAttribute('data-date-time','');else if(['integer','decimal','money'].includes(c.type))input.inputMode='decimal';}
     input.name='value';input.setAttribute('aria-label',c.name);input.value=value.value??'';
     $('mg-input').replaceChildren(input);
+    window.KNDate?.enhance(input);
     if(options.length&&c.choice_strict===false){const suggestions=element('datalist','');suggestions.id='mg-choice-suggestions';for(const value of options)suggestions.append(new Option(value,value));input.setAttribute('list',suggestions.id);$('mg-input').append(suggestions);}
     // Chỉ giữ bản nháp khi đã tạo xong trình nhập; lỗi mở một ô không khóa cả lưới.
     state.draft={id:row.id,column:c.code,old:value.value,cur};
@@ -438,7 +439,16 @@
       style[prop]=working.value(row.id,column,style[prop]??null,prop);
       if(mapped[style[prop]])classes+=' '+mapped[style[prop]];
     }
-    return {...original,value,style,class:classes,display:same(value,original.value)?original.display:String(value??'')};
+    let display=original.display;
+    if(!same(value,original.value)){
+      const type=state.columns.find(c=>c.code===column)?.type;
+      display=String(value??'');
+      if(window.KNDate&&(type==='date'||type==='datetime')){
+        display=window.KNDate.display(display,type==='datetime');
+        if(type==='datetime')display=display.slice(0,16);
+      }
+    }
+    return {...original,value,style,class:classes,display};
   }
   function refreshStatus() {
     const currentChanged=state.draft&&!same(editor.elements.value?.value,state.draft.old);
@@ -451,6 +461,7 @@
   function finishEditor(discard=false) {
     if(!state.draft)return true;if(state.composing)return false;
     const d=state.draft;
+    if(!discard&&editor.elements.value&&!editor.elements.value.reportValidity())return false;
     if(!discard){try{const changed=working.stage([{id:d.id,column:d.column,old:d.old,value:editor.elements.value.value}]);if(changed&&state.errorStatus===400)state.saveError=false;}
       catch(error){message(error.message,true);return false;}}
     state.draft=null;editor.hidden=true;refreshStatus();if(discard)repaintSelection();else repaint();scheduleSave();return true;

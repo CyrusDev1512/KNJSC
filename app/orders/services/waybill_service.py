@@ -83,7 +83,7 @@ def ensure_table(legacy, *, actor=None):
     legacy = TableDef.all_objects.select_for_update().get(pk=legacy.pk)
     table, created = TableDef.all_objects.get_or_create(
         code=ACTIVE_WAYBILL_TABLE_CODE,
-        defaults={"name": "Vận đơn", "department": legacy.department,
+        defaults={"name": "crmThuận", "department": legacy.department,
                   "folder": legacy.folder, "is_shared": True, "created_by": actor,
                   "description": "Theo CRM Tân: lên đơn, vận hành và thống kê."},
     )
@@ -95,6 +95,11 @@ def ensure_table(legacy, *, actor=None):
         ])
         record(AuditAction.CREATE, actor=actor, target=table,
                detail="Tạo bảng vận đơn mới theo ADR-018")
+    elif table.name == "Vận đơn":
+        table.name = "crmThuận"
+        table.save(update_fields=["name", "updated_at"])
+        record(AuditAction.UPDATE, actor=actor, target=table,
+               detail="Đổi tên hiển thị Vận đơn thành crmThuận; giữ nguyên bảng và dữ liệu")
     if legacy.name != "Vận đơn mới":
         legacy.name = "Vận đơn mới"
         legacy.save(update_fields=["name", "updated_at"])

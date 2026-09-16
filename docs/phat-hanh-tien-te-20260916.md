@@ -1,5 +1,20 @@
 # Phát hành tiền theo quốc gia và sửa cột ghim — 16.09.2026
 
+## Cập nhật VPS theo GitHub `9ff2dec`
+
+Theo yêu cầu tiếp theo, VPS đã fast-forward đến `9ff2dec` và dựng image
+`knjsc-app:9ff2dec-sidebar-20260916`. ERP, CRM, worker, heavy, beat đều chạy
+image này, giữ giới hạn tài nguyên. Checkout VPS sạch; hotfix sidebar đã
+trở thành nội dung Git, đối chiếu byte trước/sau không đổi.
+
+Backup riêng `/opt/knjsc-runtime/release-sidebar-20260916-101508`; pg_dump
+thành công và pg_restore đọc được danh mục. Không thay schema/dữ liệu.
+Django check ERP/CRM đạt; collectstatic và kiểm/nạp lại proxy thành công;
+hai domain HTTPS 200. Chrome 1440/390 kiểm form tiền, PTTT, xác nhận quốc gia,
+metadata lưới và màu ghim sáng/tối đạt, không pageerror, không lưu đơn thử.
+Log: `storage/market-currency/deploy-sidebar-latest.log` và
+`storage/market-currency/sidebar-vps-browser.log`.
+
 ## Bổ sung: đưa hotfix sidebar vào Git
 
 Theo yêu cầu đồng bộ tiếp theo, bổ sung đúng hai dòng CSS đang chạy trên VPS

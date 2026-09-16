@@ -280,20 +280,25 @@ def apply_identity(values, fields, actor):
 
 
 @transaction.atomic
-def fill(form, values, *, actor, request=None, fields=None):
+def fill(form, values, *, actor, request=None, fields=None, system_day=None):
     """Điền một dòng qua biểu mẫu: ép danh tính, kiểm bắt buộc, ghi vào bảng đích.
 
     Một đường duy nhất cho cả màn hình điền biểu mẫu lẫn nộp báo cáo ngày
     (ADR-008), nên quy tắc không lệch nhau giữa hai chỗ.
     """
     fields = fields if fields is not None else list(form.ordered_fields())
+    source = getattr(form.table, 'erp_report', None)
+    if source and source.kind in ('sale', 'mkt'):
+        from reports.services.daily_service import protected_values
+        from django.utils import timezone
+        values = protected_values(form, values, fields, system_day or timezone.localdate(), actor)
     values = apply_identity(values, fields, actor)
     thieu = missing_required(form, values, fields)
     if thieu:
         raise BusinessError("Chưa điền các trường bắt buộc: " + ", ".join(thieu))
     return record_service.create_record(
         form.table, values_by_column(form, values, fields),
-        actor=actor, request=request,
+        actor=actor, request=request, system_day=system_day,
     )
 
 
@@ -319,7 +324,7 @@ def widgets(form, fields, values, *, user):
     ket_qua = []
     for t in fields:
         w = Widget(
-            t=t, gia_tri=values.get(t.field.code) or t.field.default_value,
+            t=t, gia_tri=values[t.field.code] if values.get(t.field.code) is not None else t.field.default_value,
             cot=_cot_dich(t),
         )
         if is_identity_field(t):
@@ -330,4 +335,9 @@ def widgets(form, fields, values, *, user):
             w.chat = ds.strict
             w.co_them = duoc_them and ds.can_add
         ket_qua.append(w)
+    source = getattr(form.table, 'erp_report', None)
+    if source and source.kind in ('sale', 'mkt'):
+        from reports.services.daily_service import decorate_widgets
+        from django.utils import timezone
+        return decorate_widgets(ket_qua, form, values, user=user, day=timezone.localdate())
     return ket_qua

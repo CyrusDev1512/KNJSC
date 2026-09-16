@@ -248,4 +248,57 @@ dialog::backdrop {background:#10291b66;backdrop-filter:blur(3px)}
 .sp-focus-bar .bt-trang-thai.loi-luu {color:var(--critical);font-weight:600}
 .sp-focus-bar .bt-trang-thai.dang-luu {color:var(--warn)}
 .sp-focus-bar .bt-trang-thai.da-luu {color:var(--good)}
+.report-workspace {display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}
+.report-controls {display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.report-controls [hidden],.report-filter-panel[hidden] {display:none!important}
+.report-focus-title {display:none}
+.report-workspace.report-filters-hidden {grid-template-columns:minmax(0,1fr)}
+.report-filter-panel,.report-results {min-width:0;background:var(--surface);border:1px solid var(--rule);border-radius:20px;overflow:hidden}
+.report-filter-panel {padding:20px}
+.report-filter-panel h2,.report-results-heading h2 {font-size:18px;margin:0 0 14px}
+.report-filters {display:grid;gap:14px}
+.report-filters .truong {min-width:0;margin:0}
+.report-filters .o-nhap {width:100%;box-sizing:border-box;min-width:0}
+.report-filter-actions {display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.report-results-heading {padding:20px 20px 14px}
+.report-results-heading h2 {margin-bottom:6px}
+.report-results-heading p {margin:0;color:var(--ink-2);font-size:13px}
+.report-results>p {padding:0 20px}
+.report-table-scroll {max-height:70vh;overflow:auto;overscroll-behavior:contain;border-top:1px solid var(--rule-strong)}
+.report-table {border-collapse:separate!important;border-spacing:0;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+.report-table th,.report-table td {border:0!important;border-right:1px solid var(--rule-strong)!important;border-bottom:1px solid var(--rule-strong)!important;padding:12px 14px!important;white-space:nowrap}
+table.report-table thead th {position:sticky;top:0;z-index:1;background:var(--accent);color:var(--accent-ink);text-align:left;font-family:var(--font-van);letter-spacing:0;text-transform:none}
+.report-table td {text-align:right}
+.report-table .report-identity {text-align:left;font-weight:400}
+.report-table .report-total>* {background:var(--accent-soft);color:var(--ink);font-weight:700}
+.report-table tbody tr:not(.report-total):nth-child(odd)>* {background:var(--surface-2)}
+.report-table tbody tr:not(.report-total):hover>* {background:var(--accent-soft)}
+@media(max-width:900px) {.report-workspace {grid-template-columns:minmax(0,1fr)}.report-filters {grid-template-columns:repeat(2,minmax(0,1fr))}.report-filter-actions {grid-column:1/-1}}
+@media(max-width:480px) {.report-filters {grid-template-columns:minmax(0,1fr)}.report-filter-panel {padding:16px}.report-results-heading {padding:16px}}
+.sp-report-focus body::before {content:none}
+.sp-report-focus .report-view {height:100%;min-height:0;display:flex;flex-direction:column;background:var(--surface)}
+.sp-report-focus .report-controls {flex:none;margin:0;padding:8px 12px;border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.sp-report-focus .report-focus-title {display:flex;align-items:baseline;gap:12px;margin-right:auto;min-width:0}
+.sp-report-focus .report-focus-title span {color:var(--ink-2);font-size:13px}
+.sp-report-focus .report-workspace {position:relative;flex:1;min-height:0;gap:0;align-items:stretch}
+.sp-report-focus .report-results {display:flex;flex-direction:column;min-height:0;border:0;border-radius:0}
+.sp-report-focus .report-results-heading {display:none}
+.sp-report-focus .report-table-scroll {flex:1;min-height:0;max-height:none;border-top:0}
+.sp-report-focus .report-filter-panel {overflow:auto;min-height:0;border:0;border-right:1px solid var(--rule);border-radius:0}
+.sp-report-focus .report-filters {grid-template-columns:minmax(0,1fr)}
+.sp-report-focus .noi-dung>.report-view~* {display:none}
+@media(max-width:900px) {
+  .sp-report-focus .report-workspace {grid-template-columns:minmax(0,1fr)}
+  .sp-report-focus .report-filter-panel {position:absolute;inset:0 auto 0 0;width:min(320px,100%);box-sizing:border-box;z-index:3;box-shadow:var(--shadow-2)}
+}
+@media(max-width:600px) {
+  .sp-report-focus .report-focus-title {flex-basis:100%;justify-content:space-between}
+  .sp-report-focus .report-controls {justify-content:flex-start;gap:6px}
+}
 @media(max-width:700px) {.noi-dung>.luoi-4 {grid-template-columns:1fr 1fr}.sp-crm .crm-hang {padding:14px;flex-wrap:wrap}.sp-grid .vd-page {padding:10px}.sp-grid .vd-section {padding:16px}}
+
+/* Bộ nhập ngày Việt Nam, dùng chung ERP/CRM và ô nhập của lưới. */
+.kn-date-control{display:flex;position:relative;align-items:stretch;min-width:0;max-width:100%;width:100%}
+.kn-date-control>.o-nhap,.kn-date-control>input:not(.kn-date-native){min-width:0;flex:1;width:100%}
+.kn-date-picker{flex:0 0 30px;border:1px solid var(--vien,#cdd6cb);border-radius:8px;background:var(--nen-the,#f4f7ef);color:inherit;cursor:pointer}
+.kn-date-native{position:absolute;right:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none}

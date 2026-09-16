@@ -138,7 +138,10 @@ riêng của Claude có sẵn trong môi trường Codex.
   phân quyền bằng kết quả trống hoặc thông báo lưu thành công.
 - Tiền dùng `Decimal`/PostgreSQL numeric, giữ đơn vị và loại tiền. Không dùng float,
   tự đổi tỷ giá hoặc cộng lẫn tiền tệ. Thời gian lưu UTC, hiển thị theo giờ Việt Nam.
-- Giữ cơ chế bất biến của báo cáo đã nộp và đơn hàng đã chốt. Tạo đơn và bản sao
+- Giữ danh tính/ngày/thời điểm nộp của báo cáo và tính bất biến của đơn đã chốt.
+  Nội dung báo cáo cho Leader/Manager/Admin sửa trong phạm vi, có lịch sử và
+  kiểm phiên bản theo [ADR-032](docs/quyet-dinh/032-ngay-he-thong-va-sua-bao-cao.md).
+  Tạo đơn và bản sao
   vận đơn trong giao dịch; sửa bản sao vận đơn/chi tiết không sửa `Order`/`OrderLine`.
 - Dùng soft delete và audit theo khuôn hiện có; audit chỉ nối thêm, không sửa lịch sử.
   Không ghi mật khẩu, token hoặc dữ liệu khách hàng nhạy cảm vào log/audit.

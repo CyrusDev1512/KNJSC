@@ -11,6 +11,15 @@ Không đóng nợ 300.000 dòng hoặc hiệu năng VPS. [Bằng chứng](kiem-
 VPS image `knjsc-app:0907cdd-grid`; Chrome 1440/390 và hash JS đạt, năm service
 cùng image, giới hạn tài nguyên/CSS giữ nguyên. Không coi smoke là kiểm tải VPS.
 
+## 16.09.2026 — Mốc thực tế: 300.000 dòng + tối đa 10 người
+
+Chủ dự án xác nhận khoảng 100.000 đơn/năm, kiểm dự phòng 300.000 dòng và tối đa 10 người dùng file Vận đơn. Đã đo trên hai DB giả độc lập: 10 người, đọc toàn bảng p95 local/VPS 1,37/5,04 giây; lọc tháng 8.496 dòng 0,83/3,09 giây. Lưu tương ứng toàn bảng 0,49/2,34 giây, theo tháng 0,31/1,57 giây; không lỗi HTTP hoặc sai giá trị cuối ở 8 lượt chính. SQL phiên bản vẫn quét 300k dòng dù lọc tháng; CPU DB VPS gần hết hai core. Browser VPS nhảy dòng 150k vượt chờ 10 giây; chọn ô vẫn khoảng 36 ms. **Chưa đạt mục tiêu mượt**; cần duyệt tác vụ xử lý server/cache rồi đo lại đúng mốc này, không lấy khảo sát 20 người trước làm yêu cầu. Môi trường đo đã dừng, production giữ nguyên. [Bằng chứng và giới hạn](kiem-chung-300k-10-nguoi-20260916.md).
+
+
+## 16.09.2026 — Đo đồng thời Vận đơn DB trên VPS và local
+
+Đã đo 1/5/10/20 người trên 10.000 dòng giả, 26 cột, môi trường riêng. VPS 20 người: p95 đọc 965 ms, lưu 848 ms, poll 804 ms; vượt mục tiêu lưu/poll. Local tương ứng 288/272/199 ms. Các lượt hợp lệ không lỗi HTTP, kiểm lại giá trị cuối khớp. Browser 9 Locust + 1 Chrome: local cuộn p95 351 ms, VPS 245 ms; chưa chứng minh tối ưu local giữ lợi ích khi có ghi nền. Ghi nhận 409 đọc gây bỏ cache: cần chốt tác vụ riêng để xử lý, chưa sửa ứng dụng hoặc phát hành. [Phương pháp, số đo và giới hạn](kiem-chung-tai-dong-thoi-20260916.md).
+
 ## 16.09.2026 — Sửa riêng bố cục Tổng quan ERP
 
 Đã sửa nhãn–giá trị cùng hàng, bỏ kéo cao thẻ theo Marketing, kiểm responsive và suite báo cáo; push/phát hành VPS commit `da6e2c0`. Không đưa thay đổi báo cáo/lưới chưa phát hành vào bản này. [Kiểm chứng và giới hạn](kiem-chung-tong-quan-20260916.md).
@@ -43,6 +52,30 @@ cache. Chrome và E2E DB test đạt; chưa đo tải server nhiều người, c
 database test đạt; chưa push/VPS, chưa nghiệm thu tải server nhiều người.
 [Kết quả, chi phí request và giới hạn](kiem-chung-cuon-luoi-20260916.md).
 
+## 16.09.2026 — Đổi tên Vận đơn thành crmThuận (local)
+
+Theo yêu cầu chủ dự án, đổi tên hiển thị bảng `van_don_moi` thành `crmThuận`.
+Đã cập nhật tên mặc định và chuyển tên cũ khi khởi tạo lại; không ghi đè tên
+riêng khác. Local chỉ cập nhật name/updated_at và audit; kiểm trước/sau giữ
+ID, code, cờ nhận đơn và số dòng. Chrome mục Bảng nhận đơn hiển thị crmThuận
+là lựa chọn hiện tại. 11 test khởi tạo/bảng nhận đơn đạt. Chưa commit/push/VPS.
+
+
+## 16.09.2026 — Ngày hệ thống và chỉnh sửa báo cáo (local)
+
+Đã triển khai theo ADR-032: nhập ngày DD/MM/YYYY; báo cáo mới khóa ngày Việt
+Nam và người nộp; Leader sửa trong team, Manager trong bộ phận, Admin toàn
+hệ thống, có lịch sử và chống ghi đè bản cũ. Staff không sửa báo cáo đã nộp,
+kể cả qua lưới. Marketing có Doanh thu/Hóa đơn và năm công thức đã chốt;
+loại tiền lấy theo thị trường. Tổng tiền khác/thiếu đơn vị để trống có giải thích.
+Bổ sung 16/09: đã sửa phần đọc ô ngày và chip lọc lưới còn sót, 34 test đạt.
+256 test nhóm cuối đạt; đã kiểm trình duyệt luồng sửa, ngày, lưới và mobile.
+Lỗi nhập lại mã đơn trùng tái hiện cả ở HEAD 5ce53f3, không đổi nghiệp vụ nhập.
+Phần báo cáo này chưa commit/push/VPS; lỗi thêm sản phẩm 404 trên domain thật
+vẫn mở, không coi kết quả local là đã sửa 404.
+[Chi tiết và giới hạn](kiem-chung-bao-cao-erp-20260916.md),
+[quyết định thay thế](quyet-dinh/032-ngay-he-thong-va-sua-bao-cao.md).
+
 ## 16.09.2026 — Đã phát hành tiền/PTTT, bỏ Đơn vị phụ và sửa cột ghim
 
 Đã push mã `5ce53f3`, VPS chạy `knjsc-app:5ce53f3-market-20260916` trên
@@ -74,6 +107,15 @@ có tiền phải xác nhận giữ số tiền. Form/lưới dùng chung hai ph
 [kiểm chứng và ba lỗi test nền](kiem-chung-tien-theo-quoc-gia-20260916.md).
 Các lỗi nền: test nhập lại mã trùng và hai test còn kỳ vọng form Lên đơn ở ERP;
 cần cập nhật theo quyết định đã chốt trong tác vụ riêng, không nới service.
+
+## 16.09.2026 — Báo cáo ERP, local trước
+
+Đã thêm lọc team/người, bảng tổng hợp kẻ ô, biểu mẫu ngày Vận đơn năm trường,
+nút ẩn bộ lọc/toàn màn hình bảng và 36 mẫu đã nộp vào lịch sử.
+113 test báo cáo và endpoint sản phẩm đạt;
+đã kiểm UI local. **Lỗi 404 thêm sản phẩm trên domain thật còn mở**, chưa
+tái hiện; không coi thao tác Sale local thành công là đã sửa VPS.
+[Phạm vi, bằng chứng và phần còn lại](kiem-chung-bao-cao-erp-20260916.md).
 
 ## 15.09.2026 — Chuẩn bị Vận đơn DB nhận đơn
 

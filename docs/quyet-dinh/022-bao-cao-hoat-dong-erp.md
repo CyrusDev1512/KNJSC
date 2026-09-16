@@ -49,3 +49,9 @@ không nằm trong báo cáo hoạt động dành cho Vận đơn.
 Kiểm chứng: [báo cáo triển khai](../bao-cao-hoat-dong-erp.md),
 [test-log](../test-log.md), bộ test reports/tests/test_activity*.py và script
 trình duyệt/Locust ERP. Chỉ đánh dấu vấn đề hoàn thành khi cả ba lớp kiểm đạt.
+
+## Quyết định thay thế 16/09/2026
+
+[ADR-032](032-ngay-he-thong-va-sua-bao-cao.md) bổ sung đầu vào Doanh thu/Hóa đơn Marketing,
+ngày/nhân sự/tiền hệ thống và quyền sửa nội dung báo cáo có lịch sử. Các mục
+muộn/KPI/tuyển dụng/CSKH còn hoãn như cũ.

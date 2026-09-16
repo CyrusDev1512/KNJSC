@@ -27,7 +27,7 @@ class CellConflict(BusinessError):
 
 
 def table_for(user, code):
-    table = TableDef.objects.in_scope(user).filter(code=code, is_active=True).first()
+    table = TableDef.objects.in_scope(user).filter(code=code, is_active=True).select_related('erp_report').first()
     if table is None:
         raise OutOfScopeError()
     return table
@@ -49,12 +49,15 @@ def metadata(columns):
     table=columns[0].table if columns else None
     pinned={code for code,_,_ in grid_service.frozen_columns(columns,waybill=grid_service.is_waybill(table))} if table else set()
     result = []
+    source = getattr(table, 'erp_report', None) if table and not is_waybill_table(table) else None
     for c in columns:
         policy = record_policies.grid_for(c.table)
         presentation = policy.grid_column(c) if policy and hasattr(policy, 'grid_column') else {}
         result.append({'code':c.code, 'name':c.name, 'type':c.field_type, 'required':c.required,
             'computed':c.is_computed, **options(c), 'detail':False, 'assignment':False,
-            'protected':c.is_computed, 'renderer':'value', 'width':160, 'frozen':c.code in pinned,
+            'protected':c.is_computed or bool(source and source.kind in ('sale','mkt') and
+                (c.meaning in ('date','seller') or c.code == source.columns.get('currency'))),
+            'renderer':'value', 'width':160, 'frozen':c.code in pinned,
             **presentation})
     policy = record_policies.grid_for(table) if table else None
     if policy and hasattr(policy, 'grid_columns'):result = policy.grid_columns(columns) + result
@@ -64,6 +67,11 @@ def metadata(columns):
 
 def serialize(rows, columns, user, *, meta=None):
     rows, columns = list(rows), list(columns)
+    from reports.models import DailyReport
+    unchecked = [r for r in rows if not hasattr(r, '_submitted_report')]
+    submitted = set(DailyReport.objects.filter(record_id__in=[r.pk for r in unchecked]).values_list('record_id', flat=True)) if unchecked else set()
+    for row in unchecked:
+        row._submitted_report = row.pk in submitted
     table = rows[0].table if rows else (columns[0].table if columns else None)
     policy = record_policies.grid_for(table) if table else None
     extras = policy.grid_extras(rows, columns) if policy and hasattr(policy, 'grid_extras') else {}
@@ -133,7 +141,7 @@ def _block(user, table, params, *, snapshot=False):
     # OFFSET chỉ đi qua ID/thứ tự, không JOIN và mang JSON cùng thông tin
     # tài khoản cho hàng trăm nghìn dòng sẽ bị bỏ. Tải chi tiết đúng 100 ID.
     ids = list(qs.select_related(None).values_list('pk', flat=True)[offset:offset + BLOCK_SIZE])
-    by_id = {r.pk: r for r in qs.filter(pk__in=ids).order_by()}
+    by_id = {r.pk: r for r in grant_service.with_report_lock(qs.filter(pk__in=ids)).order_by()}
     rows = [by_id[pk] for pk in ids if pk in by_id]
     if not snapshot and version != digest([stamp(user, table), meta, filters]):
         raise BusinessError('Dữ liệu đang cập nhật. Thử lại vùng đang xem.', code='conflict')
@@ -198,7 +206,7 @@ def save(user, table, payload, *, request=None):
     list(DataRecord.all_objects.filter(table=table,pk__in=lock_ids).order_by('pk').select_for_update(of=('self',)).values_list('pk',flat=True))
     row_results = row_mutations.change(user, table, row_actions, receipt, replay=not created)
     ids = {c['id'] for c in cells}
-    rows = list(DataRecord.objects.filter(table=table, pk__in=ids).select_related('table', 'assignment')
+    rows = list(grant_service.with_report_lock(DataRecord.objects.filter(table=table, pk__in=ids)).select_related('table', 'assignment')
                 .select_for_update(of=('self',)).order_by('pk'))
     allowed = set(DataRecord.objects.in_scope(user, table=table).filter(pk__in=ids).values_list('pk', flat=True))
     if ids != allowed or len(rows) != len(ids):
@@ -245,7 +253,7 @@ def save(user, table, payload, *, request=None):
         from core.audit import record
         from core.constants import AuditAction
         record(AuditAction.UPDATE, actor=user, target=rows[0], detail=f'Định dạng {len(styles)} thuộc tính ô lưới master', request=request)
-    fresh_qs = DataRecord.objects.in_scope(user, table=table).filter(pk__in=ids).select_related('table')
+    fresh_qs = grant_service.with_report_lock(DataRecord.objects.in_scope(user, table=table).filter(pk__in=ids)).select_related('table')
     if is_waybill_table(table):fresh_qs = assignment_service.related(fresh_qs)
     fresh = list(fresh_qs)
     final = {r.pk: r for r in fresh}

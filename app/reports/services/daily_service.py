@@ -3,9 +3,9 @@
 Tầng dịch vụ, không biết gì về HTTP (điều cấm 2). Mọi thao tác ghi nhật ký
 (BR-5) và nằm trong một giao dịch.
 
-**Nộp xong là khoá.** BR-2 và FR-4.4 nói rõ báo cáo đã nộp không sửa và không
-xoá được. Nên tệp này **không có hàm sửa** — thiếu hàm là cách chặn chắc nhất.
-Nộp nhầm thì đánh dấu bỏ rồi nộp lại, và cả hai việc đều để lại dấu vết.
+Quyết định 16/09/2026 thay thế khóa tuyệt đối: nhân viên không sửa sau khi
+nộp; Leader/Manager/Admin sửa qua amend, kiểm phạm vi và ghi lịch sử.
+Ngày, chủ sở hữu và thời điểm nộp của DailyReport vẫn bất biến.
 """
 from django.db import IntegrityError, transaction
 
@@ -15,6 +15,127 @@ from core.exceptions import BusinessError
 from forms_builder.services import form_service, grant_service
 
 from ..models import DailyReport
+
+
+def protected_values(form, values, fields, day, owner, *, original=None):
+    """Ngày/danh tính do server quản lý; sửa giữ danh tính tại lúc nộp."""
+    from forms_builder.meaning import Meaning
+    from orders.services.currency_service import for_label
+    values = form_service.apply_identity(values, fields, owner)
+    source = getattr(form.table, 'erp_report', None)
+    market = None
+    for field in fields:
+        column = form_service._cot_dich(field)
+        if column is None:
+            continue
+        if column.meaning == Meaning.DATE:
+            values[field.field.code] = day.isoformat()
+        if original is not None and form_service.is_identity_field(field):
+            values[field.field.code] = original.get(column.code, values[field.field.code])
+        if source and source.kind in ('sale', 'mkt') and column.code == source.columns.get('market'):
+            market = values.get(field.field.code)
+    if source and source.kind in ('sale', 'mkt'):
+        currency = for_label(market)
+        for field in fields:
+            column = form_service._cot_dich(field)
+            if column and column.code == source.columns.get('currency', 'loai_tien'):
+                values[field.field.code] = currency
+    return values
+
+
+def submit_current(form, values, *, actor, request=None, fields=None):
+    """Đường nộp tương tác; submit ngày chỉ định dành cho nhập lịch sử nội bộ."""
+    from django.utils import timezone
+    fields = fields if fields is not None else list(form.ordered_fields())
+    day = timezone.localdate()
+    values = protected_values(form, values, fields, day, actor)
+    return submit(form, values, report_date=day, actor=actor, request=request, fields=fields)
+
+
+def can_amend(user, report):
+    from core.constants import Rank
+    from core.scope import get_user_scope
+    if not user.is_active:
+        return False
+    scope = get_user_scope(user)
+    return (scope.is_admin or
+            scope.rank == Rank.MANAGER and report.department_id in scope.department_ids or
+            scope.rank == Rank.LEADER and report.team_id in scope.team_ids)
+
+
+def report_widgets(form, fields, values, *, user, day, owner=None):
+    widgets = form_service.widgets(form, fields, values, user=user)
+    return decorate_widgets(widgets, form, values, user=user, day=day, owner=owner)
+
+
+def decorate_widgets(widgets, form, values, *, user, day, owner=None):
+    from forms_builder.meaning import Meaning
+    from core.identity import employee_code
+    source = getattr(form.table, 'erp_report', None)
+    for widget in widgets:
+        if widget.danh_tinh:
+            widget.ten_nguoi_dung = employee_code(owner or user)
+        if widget.cot and widget.cot.meaning == Meaning.DATE:
+            widget.system_value = day.strftime('%d/%m/%Y')
+            widget.report_date = True
+        if source and source.kind in ('sale', 'mkt') and widget.cot:
+            if widget.cot.code == source.columns.get('market'):
+                widget.report_market = True
+                from orders.services.currency_service import MARKET_CURRENCIES
+                widget.currency_map = {market.label:str(currency) for market, currency in MARKET_CURRENCIES.items()}
+                widget.cac_muc = [(label, label) for label in widget.currency_map]
+                widget.chat, widget.co_them = True, False
+            if widget.cot.code == source.columns.get('currency', 'loai_tien'):
+                widget.system_value = values.get(widget.t.field.code) or 'Chọn quốc gia'
+                widget.report_currency = True
+    return widgets
+
+
+class ReportConflict(BusinessError):
+    pass
+
+
+@transaction.atomic
+def amend(report, values, *, version, actor, request=None):
+    """Khóa dòng + so phiên bản; giữ chủ sở hữu, ngày và thời điểm nộp gốc."""
+    from copy import deepcopy
+    from decimal import Decimal
+    from core.exceptions import OutOfScopeError
+    from forms_builder.models import DataRecord
+    from forms_builder.services import record_service, lifecycle_service
+    from ..models import ReportRevision
+    lifecycle_service.lock(report.form.table)
+    current = DailyReport.objects.select_for_update().filter(pk=report.pk).first()
+    if current is None or not can_amend(actor, current):
+        raise OutOfScopeError()
+    row = DataRecord.objects.select_for_update().get(pk=current.record_id)
+    if str(version) != row.updated_at.isoformat():
+        raise ReportConflict('Báo cáo vừa được người khác sửa. Mở lại bản mới để đối chiếu; nội dung bạn đang nhập vẫn được giữ.')
+    fields = list(report.form.ordered_fields())
+    # Giá trị không có trong form gửi lên giữ nguyên; không làm rỗng trường cũ.
+    merged = {f.field.code: row.data.get(f.link.column.code) for f in fields if getattr(f, 'link', None)}
+    for field in fields:
+        if field.field.field_type in ('money', 'decimal') and merged.get(field.field.code) not in (None, ''):
+            merged[field.field.code] = Decimal(str(merged[field.field.code]))
+    merged.update(values)
+    merged = protected_values(report.form, merged, fields, current.report_date, current.created_by, original=row.data)
+    missing = form_service.missing_required(report.form, merged, fields)
+    if missing:
+        raise BusinessError('Chưa điền các trường bắt buộc: ' + ', '.join(missing))
+    before = deepcopy(row.data)
+    columns = list(report.form.table.columns.all())
+    mapped = form_service.values_by_column(report.form, merged, fields)
+    for column in columns:
+        if column.code in mapped and not column.is_computed:
+            row.data[column.code] = record_service.parse_value(column, mapped[column.code])
+    compute_report(row, report.form.table, columns)
+    row.sync_indexed_columns(columns)
+    if row.data != before:
+        row.save(skip_sync=True)
+        ReportRevision.objects.create(report=current, actor=actor, before=before, after=row.data)
+        record(AuditAction.UPDATE, actor=actor, target=current,
+               detail='Sửa nội dung báo cáo; giữ nguyên người nộp và ngày báo cáo.', request=request)
+    return current
 
 
 def forms_for(user):
@@ -68,8 +189,13 @@ def submit(form, values, *, report_date, actor, request=None, fields=None):
     # Cùng một đường với màn hình điền biểu mẫu: ép danh tính người nộp vào
     # trường Người bán (FR-4.6), kiểm bắt buộc, rồi ghi vào bảng đích
     ban_ghi = form_service.fill(
-        form, values, actor=actor, request=request, fields=fields,
+        form, values, actor=actor, request=request, fields=fields, system_day=report_date,
     )
+    columns = list(form.table.columns.all())
+    old_data = dict(ban_ghi.data)
+    compute_report(ban_ghi, form.table, columns)
+    if old_data != ban_ghi.data:
+        ban_ghi.save(skip_sync=True)
 
     ho_so = getattr(actor, "profile", None)
     bao_cao = DailyReport(
@@ -138,7 +264,56 @@ def read_report_cells(bao_cao):
     from forms_builder import styling
 
     cot = styling.decorate_columns(list(bao_cao.form.table.columns.order_by("order", "id")))
-    return styling.row_cells(bao_cao.record, cot)
+    from copy import copy
+    row = copy(bao_cao.record)
+    row.data = dict(row.data)
+    compute_report(row, bao_cao.form.table, cot)
+    return [(column, display_report_value(column, value), css)
+            for column, value, css in styling.row_cells(row, cot)]
+
+
+def compute_report(row, table, columns):
+    """Chỉ làm tròn kết quả cuối, không chia các trung gian đã làm tròn về 0."""
+    from decimal import Decimal
+    from reports.services.activity_service import FORMULAS
+    from reports.marketing import Metric
+    row.apply_computed_columns(columns)
+    source = getattr(table, 'erp_report', None)
+    if not source or source.kind != 'mkt':
+        return
+    by_code = {column.code:column for column in columns}
+    names = {'cpo':'cpo', 'mess_cost':'gia_mess', 'cost_sales':'cpqc_doanh_so',
+             'invoice_revenue':'hoa_don_doanh_thu', 'aov':'aov'}
+    values = {code:Decimal(str(row.data[code])) if row.data.get(code) not in (None, '') else None
+              for code in {source.columns[key] for key in ('cost','orders','mess','sales') if key in source.columns}}
+    for metric, code in names.items():
+        column = by_code.get(code)
+        if column is None or not column.is_computed:
+            continue
+        _, inputs, kind = FORMULAS[metric]
+        value = Metric(code, tuple(source.columns.get(key, '__missing') for key in inputs), kind).compute(values)
+        row.data[code] = str(value.quantize(Decimal(1).scaleb(-column.compute_decimals))) if value is not None else None
+
+
+def display_report_value(column, value):
+    from datetime import date, datetime
+    from django.utils import timezone
+    from reports.aggregations import format_number
+    if value in (None, ''):
+        return '—'
+    try:
+        if column.field_type == 'date':
+            return date.fromisoformat(str(value)).strftime('%d/%m/%Y')
+        if column.field_type == 'datetime':
+            moment = datetime.fromisoformat(str(value))
+            if timezone.is_aware(moment):
+                moment = timezone.localtime(moment)
+            return moment.strftime('%d/%m/%Y %H:%M')
+        if column.field_type in ('money', 'decimal', 'integer'):
+            return format_number(value, column.compute_decimals if column.is_computed else (0 if column.field_type == 'integer' else 2))
+    except (ValueError, TypeError):
+        pass
+    return value
 
 
 def history_choices(user):

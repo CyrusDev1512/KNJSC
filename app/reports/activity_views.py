@@ -26,6 +26,8 @@ def parameters(request):
         "end": summary_service.parse_day(request.GET.get("den"), end),
         "product": request.GET.get("sp", ""),
         "market": request.GET.get("thi_truong", ""),
+        "person": request.GET.get("nhan_su", ""),
+        "team": request.GET.get("team", ""),
     }
 
 
@@ -59,6 +61,7 @@ def report(request, export=False, choices=None):
            "params": params, "markets": Market.labels, "empty": True,
            "query": request.GET.urlencode(), "qs_loc": "&" + request.GET.urlencode()}
     if source:
+        ctx['people'], ctx['teams'] = service.people_choices(request.user, source)
         try:
             result = service.build(request.user, source, **params)
         except BusinessError as error:
@@ -76,6 +79,9 @@ def report(request, export=False, choices=None):
             ctx.update(pagination_context(request, page_source, "nhóm"))
             ctx.update(result=result, rows=aggregations.finish_rows(ctx["trang"], result),
                        totals=aggregations.total_cells(result), empty=not result.totals["so_dong"])
+            if getattr(result, 'show_team', False):
+                for row, raw in zip(ctx['rows'], ctx['trang']):
+                    row['team'] = raw['team_name']
             if source.kind == "delivery":
                 ctx["shipping"] = result.shipping
     return render(request, "reports/activity.html", ctx)

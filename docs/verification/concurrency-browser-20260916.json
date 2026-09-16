@@ -1,0 +1,130 @@
+[
+  {
+    "target": "local",
+    "stage": "idle",
+    "viewport": [
+      1280,
+      720
+    ],
+    "error": null,
+    "finished": true,
+    "scroll": {
+      "n": 40,
+      "p50": 26.3,
+      "p95": 43.4,
+      "max": 50.2
+    },
+    "cached": {
+      "n": 30,
+      "p50": 33.3,
+      "p95": 39.9,
+      "max": 41.6
+    },
+    "select": {
+      "n": 30,
+      "p50": 33.3,
+      "p95": 34,
+      "max": 34.1
+    },
+    "long_tasks": {
+      "n": 0,
+      "max": 0
+    }
+  },
+  {
+    "target": "local",
+    "stage": "concurrent",
+    "viewport": [
+      1280,
+      720
+    ],
+    "error": null,
+    "finished": true,
+    "scroll": {
+      "n": 40,
+      "p50": 27,
+      "p95": 350.9,
+      "max": 390.3
+    },
+    "cached": {
+      "n": 30,
+      "p50": 33.3,
+      "p95": 34.1,
+      "max": 34.2
+    },
+    "select": {
+      "n": 30,
+      "p50": 33.3,
+      "p95": 33.5,
+      "max": 33.7
+    },
+    "long_tasks": {
+      "n": 0,
+      "max": 0
+    }
+  },
+  {
+    "target": "vps",
+    "stage": "idle",
+    "viewport": [
+      1280,
+      720
+    ],
+    "error": null,
+    "finished": true,
+    "scroll": {
+      "n": 40,
+      "p50": 27.7,
+      "p95": 125.7,
+      "max": 175.3
+    },
+    "cached": {
+      "n": 30,
+      "p50": 33.4,
+      "p95": 42.2,
+      "max": 45.7
+    },
+    "select": {
+      "n": 30,
+      "p50": 33.3,
+      "p95": 33.5,
+      "max": 33.5
+    },
+    "long_tasks": {
+      "n": 0,
+      "max": 0
+    }
+  },
+  {
+    "target": "vps",
+    "stage": "concurrent",
+    "viewport": [
+      1280,
+      720
+    ],
+    "error": null,
+    "finished": true,
+    "scroll": {
+      "n": 40,
+      "p50": 27.2,
+      "p95": 244.8,
+      "max": 676
+    },
+    "cached": {
+      "n": 30,
+      "p50": 33.3,
+      "p95": 43.9,
+      "max": 266.4
+    },
+    "select": {
+      "n": 30,
+      "p50": 33.3,
+      "p95": 40.2,
+      "max": 40.3
+    },
+    "long_tasks": {
+      "n": 0,
+      "max": 0
+    }
+  }
+]

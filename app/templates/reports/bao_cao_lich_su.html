@@ -44,7 +44,7 @@
           <span><b>{{ bc.form.name }}</b><small data-employee-code="{{ bc.created_by.username }}">{{ bc.created_by.username }}{% if bc.created_by.profile.full_name %} · {{ bc.created_by.profile.full_name }}{% endif %}</small><small>{{ bc.department }}{% if bc.team %} · {{ bc.team }}{% endif %}</small></span>
           <span class="sp-history-time">{{ bc.submitted_at|date:"H:i" }}</span>
         </a>
-        <div class="sp-history-extra"><span>Doanh số: {{ bc.record.val_revenue|default:"—" }}</span>{% if bc.activity_qs %}<a href="{% url 'bao_cao_tong_hop' %}?{{ bc.activity_qs }}">Báo cáo tổng hợp</a>{% endif %}{% if bc.thong_ke_qs %}<a href="{% url 'bao_cao_tong_hop' %}?{{ bc.thong_ke_qs }}">Thống kê Marketing</a>{% endif %}</div>
+        <div class="sp-history-extra">{% if bc.record.val_revenue != None %}<span>Doanh số: {{ bc.record.val_revenue }}</span>{% endif %}{% if bc.activity_qs %}<a href="{% url 'bao_cao_tong_hop' %}?{{ bc.activity_qs }}">Báo cáo tổng hợp</a>{% endif %}{% if bc.thong_ke_qs %}<a href="{% url 'bao_cao_tong_hop' %}?{{ bc.thong_ke_qs }}">Thống kê Marketing</a>{% endif %}</div>
       </article>
     {% empty %}
       {% include "components/rong.html" with rong_tieu_de="Chưa có báo cáo nào" rong_mo_ta="Báo cáo đã nộp sẽ hiện ở đây, đã lọc theo phạm vi quyền của bạn." %}

@@ -40,7 +40,14 @@ DISPLAY_ORDER = {
 
 
 @dataclass(frozen=True)
-class DeliveryResult(aggregations.SummaryResult):
+class ActivityResult(aggregations.SummaryResult):
+    show_team: bool = False
+    currency_label: str = ''
+    currency_warning: str = ''
+
+
+@dataclass(frozen=True)
+class DeliveryResult(ActivityResult):
     """Trạng thái là phần bổ sung của cùng kết quả đã lọc quyền."""
     shipping: tuple = ()
 
@@ -76,6 +83,60 @@ def records(user, source):
                            department="department_id")
     return apply_scope(qs, user, owner="created_by_id", team="team_id",
                        department="department_id")
+
+
+def people_paths(source):
+    return ('assignment__delivery', 'assignment__delivery__profile__team') if source.kind == 'delivery' else ('created_by', 'team')
+
+
+def people_choices(user, source):
+    """Chỉ đưa ra nhân sự/team có dữ liệu trong phạm vi báo cáo, kể cả người đã nghỉ."""
+    owner, team = people_paths(source)
+    qs = records(user, source).order_by()
+    pairs = qs.values(
+        person_id=F(owner+'_id'), username=F(owner+'__username'),
+        full_name=F(owner+'__profile__full_name'),
+        option_team_id=F(team+'_id'), team_name=F(team+'__name')).distinct()
+    people, teams = {}, {}
+    for pair in pairs:
+        if pair['person_id'] is not None:
+            people[pair['person_id']] = pair['username'] + (
+                ' — '+pair['full_name'] if pair['full_name'] else '')
+        if pair['option_team_id'] is not None:
+            teams[pair['option_team_id']] = pair['team_name']
+    return tuple([{'id':key, 'label':label} for key, label in sorted(
+        choices.items(), key=lambda item: (item[1], item[0]))] for choices in (people, teams))
+
+
+def filter_people(qs, source, person='', team=''):
+    owner_path, team_path = people_paths(source)
+    # Kiểm trên phạm vi gốc, không nhầm người hợp lệ nhưng khác bộ lọc thành mất quyền.
+    for value, path in ((person, owner_path), (team, team_path)):
+        if not value:
+            continue
+        try:
+            number = int(value)
+            if number <= 0 or number > 2**63-1:
+                raise ValueError
+        except (TypeError, ValueError):
+            raise BusinessError('Bộ lọc team/nhân sự không hợp lệ.')
+        if not qs.filter(**{path+'_id':number}).exists():
+            raise OutOfScopeError('Team hoặc nhân sự không thuộc phạm vi nguồn báo cáo của bạn.')
+    if person:
+        qs = qs.filter(**{owner_path+'_id':int(person)})
+    if team:
+        qs = qs.filter(**{team_path+'_id':int(team)})
+    return qs
+
+
+def with_person_team(result, source, group):
+    if group != 'person' or not result.ok:
+        return result
+    _, team = people_paths(source)
+    rows = result.rows.annotate(team_name=Coalesce(F(team+'__name'), Value('Chưa có team')))
+    if isinstance(result, ActivityResult):
+        return replace(result, rows=rows, show_team=True)
+    return ActivityResult(**{**result.__dict__, 'rows':rows}, show_team=True)
 
 
 def group_expression(source, group):
@@ -117,11 +178,11 @@ def project_metrics(result, source):
     return with_totals(result, result.totals)
 
 
-def filtered_records(user, source, *, start=None, end=None, product="", market=""):
+def filtered_records(user, source, *, start=None, end=None, product="", market="", person="", team=""):
     """Bộ lọc duy nhất cho bảng, trạng thái, Tổng quan và tệp xuất."""
     if start and end and start > end:
         raise BusinessError("Từ ngày phải trước hoặc bằng Đến ngày.")
-    qs = records(user, source)
+    qs = filter_people(records(user, source), source, person, team)
     if start:
         qs = qs.filter(val_date__gte=start)
     if end:
@@ -142,19 +203,42 @@ def filtered_records(user, source, *, start=None, end=None, product="", market="
     return qs
 
 
-def build(user, source, *, group="day", start=None, end=None, product="", market=""):
+def build(user, source, *, group="day", start=None, end=None, product="", market="", person="", team=""):
     if group not in dict(GROUPS):
         raise BusinessError("Cách nhóm không hợp lệ.")
-    qs = filtered_records(user, source, start=start, end=end, product=product, market=market)
+    qs = filtered_records(user, source, start=start, end=end, product=product, market=market, person=person, team=team)
     if source.kind == "delivery":
-        return delivery(qs, source, group, product)
+        return with_person_team(delivery(qs, source, group, product), source, group)
     expression, label = group_expression(source, group)
     result = aggregations.summarize(
         source.table, qs, group_key="ngay" if group == "day" else "nhan-vien",
         columns=list(source.table.columns.all()),
         group_expression=expression, group_label=label,
     )
-    return project_metrics(result, source) if result.ok else result
+    result = project_metrics(result, source) if result.ok else result
+    if result.ok and source.columns.get('currency'):
+        result = currency_safe_result(result, source, qs)
+    return with_person_team(result, source, group)
+
+
+def currency_safe_result(result, source, qs):
+    """Không công bố tổng tiền khi lẫn đơn vị hoặc dữ liệu cũ chưa có đơn vị."""
+    currencies = list(qs.order_by().values_list('data__'+source.columns['currency'], flat=True).distinct()[:2])
+    if len(currencies) == 1 and currencies[0] in ('USD','CAD','PHP','VND'):
+        return ActivityResult(**result.__dict__, currency_label=currencies[0])
+    if not currencies:
+        return result
+    warning = ('Bộ lọc có nhiều loại tiền hoặc báo cáo cũ chưa xác định loại tiền. '
+               'Các chỉ tiêu tiền tạm để trống để tránh cộng sai đơn vị; chọn một thị trường '
+               'và bổ sung loại tiền cho báo cáo cũ qua người quản lý.')
+    # Số Mess, số đơn và tỉ lệ chốt vẫn có ý nghĩa trên toàn bộ dữ liệu.
+    monetary = {source.columns.get(key) for key in ('cost','sales','revenue','invoice')}
+    monetary |= {'cpo','mess_cost','cost_sales','invoice_revenue','aov'}
+    metrics = tuple(metric for metric in result.computed_columns if metric.code not in monetary)
+    metrics += tuple(Metric(column.code, (), 'missing') for column in result.columns if column.code in monetary)
+    result = replace(result, computed_columns=metrics)
+    result = with_totals(result, result.totals)
+    return ActivityResult(**result.__dict__, currency_warning=warning)
 
 
 def delivery(qs, source, group, product):
@@ -194,7 +278,7 @@ def delivery(qs, source, group, product):
     )
 
 
-def shipping_status(user, source, *, start=None, end=None, product="", market="", **unused):
-    qs = filtered_records(user, source, start=start, end=end, product=product, market=market)
+def shipping_status(user, source, *, start=None, end=None, product="", market="", person="", team="", **unused):
+    qs = filtered_records(user, source, start=start, end=end, product=product, market=market, person=person, team=team)
     return list(qs.order_by().values(label=status_expression())
                 .annotate(count=Count("pk")).order_by("label"))

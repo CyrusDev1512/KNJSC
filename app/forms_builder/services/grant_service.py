@@ -202,6 +202,8 @@ def can_edit_record(user, record_obj):
 def can_edit_visible_record(user, record_obj):
     """Chỉ gọi cho dòng đã lấy từ in_scope trong cùng request đọc; không dùng ở đường ghi."""
     from orders.services import assignment_service
+    if is_submitted_report(record_obj):
+        return False
     if (is_waybill_table(record_obj.table)
             and assignment_service.department(user) == 'van-don'
             and not assignment_service.can_assign(user)):
@@ -228,6 +230,21 @@ def can_edit_visible_record(user, record_obj):
     if cung_bo_phan and record_obj.table.is_shared:
         return True
     return record_obj.table_id in granted_table_ids(user, GrantAction.EDIT)
+
+
+def is_submitted_report(row):
+    """Serializer nạp cờ theo lô; đường ghi luôn kiểm lại báo cáo gốc."""
+    cached = getattr(row, '_submitted_report', None)
+    if cached is not None:
+        return cached
+    from reports.models import DailyReport
+    return DailyReport.objects.filter(record_id=row.pk).exists()
+
+
+def with_report_lock(queryset):
+    from django.db.models import Exists, OuterRef
+    from reports.models import DailyReport
+    return queryset.annotate(_submitted_report=Exists(DailyReport.objects.filter(record_id=OuterRef('pk'))))
 
 
 # ══ CẤP VÀ THU QUYỀN ══════════════════════════════════════════════

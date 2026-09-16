@@ -63,13 +63,17 @@ def configure_source(table, kind):
         missing = required - set(table.columns.values_list("code", flat=True))
         if missing:
             raise CommandError(f"{table.code}: thiếu cột {sorted(missing)}; không tự suy ánh xạ")
+        if kind == 'mkt':
+            configure_marketing(table)
+        ColumnDef.objects.get_or_create(table=table, code='loai_tien', defaults={
+            'name':'Loại tiền', 'field_type':'choice', 'options':['USD','CAD','PHP'], 'order':91})
         market, _ = ColumnDef.objects.get_or_create(
             table=table, code="thi_truong", defaults={"name": "Thị trường",
             "field_type": "choice", "options": list(Market.labels), "order": 90})
         if market.field_type != "choice":
             raise CommandError(f"{table.code}: thi_truong phải là choice")
         mapping = {"mess": "so_mess", "orders": "so_don", "sales": "doanh_so",
-                   "cost": "cpqc", "market": "thi_truong"}
+                   "cost": "cpqc", "market": "thi_truong", "currency":"loai_tien"}
         for key, name in (("revenue", "Doanh thu"), ("invoice", "Hóa đơn")):
             candidates = list(table.columns.filter(name=name, is_computed=False,
                               field_type__in=["money", "decimal", "integer"]))
@@ -79,6 +83,37 @@ def configure_source(table, kind):
                 mapping[key] = candidates[0].code
         configure_forms(table)
     ReportSource.objects.update_or_create(table=table, defaults={"kind": kind, "columns": mapping})
+
+
+def configure_marketing(table):
+    """Bổ sung mẫu đã duyệt; giữ nguyên dữ liệu lịch sử và trường nghiệp vụ phụ."""
+    from forms_builder.models import ComputeOp
+    for code, name in (('doanh_thu','Doanh thu'), ('hoa_don','Hóa đơn')):
+        existing = table.columns.filter(name=name, is_computed=False).first()
+        if existing is None:
+            column, _ = ColumnDef.objects.get_or_create(table=table, code=code,
+                defaults={'name':name, 'field_type':'money'})
+            if column.is_computed or column.field_type not in ('money','decimal','integer'):
+                raise CommandError(f'{table.code}.{code}: cấu hình không tương thích.')
+    formulas = (
+        ('cpo','CPO','cpqc','so_don'), ('gia_mess','Giá Mess','cpqc','so_mess'),
+        ('cpqc_doanh_so','CPQC/Doanh số','cpqc','doanh_so'),
+        ('hoa_don_doanh_thu','Hóa đơn/Doanh thu','gia_mess','cpo'),
+        ('aov','AOV','doanh_so','so_don'))
+    for order, (code, name, left, right) in enumerate(formulas, 8):
+        ColumnDef.objects.update_or_create(table=table, code=code, defaults={
+            'name':name, 'field_type':'decimal', 'is_computed':True,
+            'compute_op':ComputeOp.DIVIDE, 'compute_left':left, 'compute_right':right,
+            'compute_decimals':4, 'order':order})
+    for order, code in enumerate(('ngay','marketer','so_mess','cpqc','so_don','doanh_so','doanh_thu','hoa_don')):
+        table.columns.filter(code=code).update(order=order)
+    # Sản phẩm, quốc gia và các trường riêng vẫn được giữ để lọc báo cáo.
+    table.columns.filter(code='san_pham').update(order=80)
+    table.columns.filter(code='ti_le_chot').update(order=92)
+    for field in FormField.objects.filter(form__table=table).select_related('link__column'):
+        if getattr(field, 'link', None):
+            field.order = field.link.column.order
+            field.save(update_fields=['order'])
 
 
 class Command(BaseCommand):

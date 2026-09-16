@@ -71,7 +71,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-4.1 | Mỗi bộ phận phải có biểu mẫu báo cáo riêng |
 | FR-4.2 | Hệ thống phải ghi nhận thời điểm nộp của mỗi báo cáo |
 | FR-4.3 | Người dùng phải xem lại được các báo cáo cũ do chính mình nộp |
-| FR-4.4 | Người dùng không được sửa báo cáo đã nộp |
+| FR-4.4 | Staff không sửa báo cáo đã nộp; Leader trong team, Manager trong bộ phận, Admin toàn hệ thống sửa nội dung có lịch sử và kiểm phiên bản. Giữ ngày/danh tính/thời điểm nộp gốc — quyết định thay thế 16/09/2026, ADR-032 |
 | FR-4.5 | Leader và Manager phải xem được báo cáo của người thuộc phạm vi quản lý |
 | FR-4.6 | Trường danh tính người điền (nhãn Người bán) trên biểu mẫu và báo cáo hằng ngày phải do hệ thống tự ghi theo tài khoản đang đăng nhập; người dùng không phải điền và không đổi được |
 

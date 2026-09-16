@@ -1,0 +1,456 @@
+[
+  {
+    "target": "local",
+    "users": 1,
+    "samples": 62,
+    "ops": {
+      "read:block": {
+        "n": 35,
+        "p50": 86.93,
+        "p95": 127.39,
+        "max": 160.85392300010426,
+        "errors": 0,
+        "bytes_mean": 320931,
+        "db_p95": 36.14
+      },
+      "read:filter": {
+        "n": 15,
+        "p50": 47.22,
+        "p95": 56.1,
+        "max": 56.09785499837017,
+        "errors": 0,
+        "bytes_mean": 10639,
+        "db_p95": 25.16
+      },
+      "write:cell": {
+        "n": 6,
+        "p50": 88.83,
+        "p95": 97.63,
+        "max": 97.62521000084234,
+        "errors": 0,
+        "bytes_mean": 3268,
+        "db_p95": 28.73
+      },
+      "poll": {
+        "n": 6,
+        "p50": 30.31,
+        "p95": 49.51,
+        "max": 49.51276800056803,
+        "errors": 0,
+        "bytes_mean": 106,
+        "db_p95": 28.33
+      }
+    },
+    "verified_rows": null,
+    "integrity_errors": [],
+    "cpu_max": {
+      "knjsc-bench-20260916-app-1": 5.61,
+      "knjsc-bench-20260916-db-1": 5.86
+    },
+    "memory_last": {
+      "knjsc-bench-20260916-app-1": "87.05MiB / 640MiB",
+      "knjsc-bench-20260916-db-1": "83.67MiB / 512MiB"
+    },
+    "production_health_max_s": null
+  },
+  {
+    "target": "vps",
+    "users": 1,
+    "samples": 60,
+    "ops": {
+      "read:block": {
+        "n": 26,
+        "p50": 166.41,
+        "p95": 226.79,
+        "max": 239.8232140003529,
+        "errors": 0,
+        "bytes_mean": 320934,
+        "db_p95": 82.86
+      },
+      "read:filter": {
+        "n": 15,
+        "p50": 83.1,
+        "p95": 103.0,
+        "max": 102.99936899900786,
+        "errors": 0,
+        "bytes_mean": 10639,
+        "db_p95": 61.78
+      },
+      "write:cell": {
+        "n": 13,
+        "p50": 97.42,
+        "p95": 126.61,
+        "max": 126.60767799752648,
+        "errors": 0,
+        "bytes_mean": 3268,
+        "db_p95": 67.35
+      },
+      "poll": {
+        "n": 6,
+        "p50": 69.43,
+        "p95": 104.75,
+        "max": 104.7549760005495,
+        "errors": 0,
+        "bytes_mean": 106,
+        "db_p95": 58.11
+      }
+    },
+    "verified_rows": 1,
+    "integrity_errors": [],
+    "cpu_max": {
+      "knjsc-bench-20260916-app-1": 12.73,
+      "knjsc-bench-20260916-db-1": 18.18,
+      "knjsc-production-crm-1": 0.04,
+      "knjsc-production-db-1": 0.85
+    },
+    "memory_last": {
+      "knjsc-bench-20260916-app-1": "83.39MiB / 640MiB",
+      "knjsc-bench-20260916-db-1": "68.89MiB / 512MiB",
+      "knjsc-production-crm-1": "74.01MiB / 640MiB",
+      "knjsc-production-db-1": "56.43MiB / 1.25GiB"
+    },
+    "production_health_max_s": 0.458926
+  },
+  {
+    "target": "local",
+    "users": 5,
+    "samples": 295,
+    "ops": {
+      "read:block": {
+        "n": 154,
+        "p50": 90.26,
+        "p95": 142.29,
+        "max": 234.30214399922988,
+        "errors": 0,
+        "bytes_mean": 320988,
+        "db_p95": 52.94
+      },
+      "read:filter": {
+        "n": 48,
+        "p50": 47.79,
+        "p95": 93.59,
+        "max": 120.33650499870419,
+        "errors": 0,
+        "bytes_mean": 10645,
+        "db_p95": 47.95
+      },
+      "write:cell": {
+        "n": 62,
+        "p50": 83.48,
+        "p95": 125.45,
+        "max": 196.63317499725963,
+        "errors": 0,
+        "bytes_mean": 3274,
+        "db_p95": 61.63
+      },
+      "poll": {
+        "n": 31,
+        "p50": 31.66,
+        "p95": 69.7,
+        "max": 73.50925100035965,
+        "errors": 0,
+        "bytes_mean": 106,
+        "db_p95": 29.45
+      }
+    },
+    "verified_rows": 5,
+    "integrity_errors": [],
+    "cpu_max": {
+      "knjsc-bench-20260916-app-1": 20.3,
+      "knjsc-bench-20260916-db-1": 16.68
+    },
+    "memory_last": {
+      "knjsc-bench-20260916-app-1": "91.48MiB / 640MiB",
+      "knjsc-bench-20260916-db-1": "98.59MiB / 512MiB"
+    },
+    "production_health_max_s": null
+  },
+  {
+    "target": "vps",
+    "users": 5,
+    "samples": 276,
+    "ops": {
+      "read:block": {
+        "n": 127,
+        "p50": 181.33,
+        "p95": 299.88,
+        "max": 851.930827000615,
+        "errors": 0,
+        "bytes_mean": 320995,
+        "db_p95": 118.51
+      },
+      "read:filter": {
+        "n": 57,
+        "p50": 99.16,
+        "p95": 222.24,
+        "max": 808.7967730025412,
+        "errors": 0,
+        "bytes_mean": 10645,
+        "db_p95": 128.85
+      },
+      "write:cell": {
+        "n": 61,
+        "p50": 103.66,
+        "p95": 261.88,
+        "max": 369.1902399987157,
+        "errors": 0,
+        "bytes_mean": 3275,
+        "db_p95": 198.02
+      },
+      "poll": {
+        "n": 31,
+        "p50": 99.52,
+        "p95": 209.01,
+        "max": 315.09322700003395,
+        "errors": 0,
+        "bytes_mean": 106,
+        "db_p95": 106.09
+      }
+    },
+    "verified_rows": 5,
+    "integrity_errors": [],
+    "cpu_max": {
+      "knjsc-bench-20260916-app-1": 35.07,
+      "knjsc-bench-20260916-db-1": 50.31,
+      "knjsc-production-crm-1": 0.04,
+      "knjsc-production-db-1": 5.32
+    },
+    "memory_last": {
+      "knjsc-bench-20260916-app-1": "89.26MiB / 640MiB",
+      "knjsc-bench-20260916-db-1": "83.89MiB / 512MiB",
+      "knjsc-production-crm-1": "74.05MiB / 640MiB",
+      "knjsc-production-db-1": "56.43MiB / 1.25GiB"
+    },
+    "production_health_max_s": 0.145015
+  },
+  {
+    "target": "local",
+    "users": 10,
+    "samples": 606,
+    "ops": {
+      "read:block": {
+        "n": 313,
+        "p50": 96.3,
+        "p95": 147.56,
+        "max": 256.08451700099977,
+        "errors": 0,
+        "bytes_mean": 321055,
+        "db_p95": 73.11
+      },
+      "read:filter": {
+        "n": 111,
+        "p50": 49.84,
+        "p95": 98.35,
+        "max": 142.26710999719216,
+        "errors": 0,
+        "bytes_mean": 10646,
+        "db_p95": 57.53
+      },
+      "write:cell": {
+        "n": 121,
+        "p50": 60.29,
+        "p95": 139.09,
+        "max": 156.93548900162568,
+        "errors": 0,
+        "bytes_mean": 3275,
+        "db_p95": 78.01
+      },
+      "poll": {
+        "n": 61,
+        "p50": 36.58,
+        "p95": 75.43,
+        "max": 145.37671799917007,
+        "errors": 0,
+        "bytes_mean": 106,
+        "db_p95": 57.83
+      }
+    },
+    "verified_rows": 10,
+    "integrity_errors": [],
+    "cpu_max": {
+      "knjsc-bench-20260916-app-1": 39.46,
+      "knjsc-bench-20260916-db-1": 31.63
+    },
+    "memory_last": {
+      "knjsc-bench-20260916-app-1": "91MiB / 640MiB",
+      "knjsc-bench-20260916-db-1": "101.4MiB / 512MiB"
+    },
+    "production_health_max_s": null
+  },
+  {
+    "target": "vps",
+    "users": 10,
+    "samples": 543,
+    "ops": {
+      "read:block": {
+        "n": 238,
+        "p50": 228.33,
+        "p95": 432.01,
+        "max": 886.4702379978553,
+        "errors": 0,
+        "bytes_mean": 321052,
+        "db_p95": 194.47
+      },
+      "read:filter": {
+        "n": 124,
+        "p50": 134.25,
+        "p95": 325.75,
+        "max": 758.7236350009334,
+        "errors": 0,
+        "bytes_mean": 10646,
+        "db_p95": 171.24
+      },
+      "write:cell": {
+        "n": 122,
+        "p50": 151.55,
+        "p95": 373.18,
+        "max": 792.4490219993459,
+        "errors": 0,
+        "bytes_mean": 3276,
+        "db_p95": 190.96
+      },
+      "poll": {
+        "n": 59,
+        "p50": 115.4,
+        "p95": 236.92,
+        "max": 273.89769300134503,
+        "errors": 0,
+        "bytes_mean": 106,
+        "db_p95": 146.82
+      }
+    },
+    "verified_rows": 10,
+    "integrity_errors": [],
+    "measured": 59.563357383998664,
+    "rps": 9.12,
+    "cpu_max": {
+      "knjsc-bench-20260916-app-1": 60.11,
+      "knjsc-bench-20260916-db-1": 55.03,
+      "knjsc-production-crm-1": 0.05,
+      "knjsc-production-db-1": 5.11
+    },
+    "memory_last": {
+      "knjsc-bench-20260916-app-1": "89.84MiB / 640MiB",
+      "knjsc-bench-20260916-db-1": "84.88MiB / 512MiB",
+      "knjsc-production-crm-1": "74.05MiB / 640MiB",
+      "knjsc-production-db-1": "56.43MiB / 1.25GiB"
+    },
+    "production_health_max_s": 0.148928
+  },
+  {
+    "target": "local",
+    "users": 20,
+    "samples": 1160,
+    "ops": {
+      "read:block": {
+        "n": 570,
+        "p50": 144.75,
+        "p95": 287.72,
+        "max": 386.59216899759485,
+        "errors": 0,
+        "bytes_mean": 321155,
+        "db_p95": 145.66
+      },
+      "read:filter": {
+        "n": 252,
+        "p50": 81.3,
+        "p95": 225.96,
+        "max": 335.2506529990933,
+        "errors": 0,
+        "bytes_mean": 10647,
+        "db_p95": 123.06
+      },
+      "write:cell": {
+        "n": 211,
+        "p50": 120.27,
+        "p95": 272.37,
+        "max": 377.3897510000097,
+        "errors": 0,
+        "bytes_mean": 3276,
+        "db_p95": 165.95
+      },
+      "poll": {
+        "n": 127,
+        "p50": 71.86,
+        "p95": 199.21,
+        "max": 216.31409200199414,
+        "errors": 0,
+        "bytes_mean": 106,
+        "db_p95": 86.05
+      }
+    },
+    "verified_rows": 20,
+    "integrity_errors": [],
+    "measured": 59.650658792998,
+    "rps": 19.45,
+    "cpu_max": {
+      "knjsc-bench-20260916-app-1": 79.08,
+      "knjsc-bench-20260916-db-1": 65.05
+    },
+    "memory_last": {
+      "knjsc-bench-20260916-app-1": "91.35MiB / 640MiB",
+      "knjsc-bench-20260916-db-1": "102MiB / 512MiB"
+    },
+    "production_health_max_s": null
+  },
+  {
+    "target": "vps",
+    "users": 20,
+    "samples": 832,
+    "ops": {
+      "read:block": {
+        "n": 419,
+        "p50": 654.31,
+        "p95": 965.36,
+        "max": 1491.1218419983925,
+        "errors": 0,
+        "bytes_mean": 321148,
+        "db_p95": 288.52
+      },
+      "read:filter": {
+        "n": 138,
+        "p50": 491.77,
+        "p95": 757.82,
+        "max": 892.423104000045,
+        "errors": 0,
+        "bytes_mean": 10646,
+        "db_p95": 226.47
+      },
+      "write:cell": {
+        "n": 157,
+        "p50": 573.62,
+        "p95": 848.2,
+        "max": 1112.911479001923,
+        "errors": 0,
+        "bytes_mean": 3277,
+        "db_p95": 304.72
+      },
+      "poll": {
+        "n": 118,
+        "p50": 495.51,
+        "p95": 803.88,
+        "max": 1084.0165379995597,
+        "errors": 0,
+        "bytes_mean": 106,
+        "db_p95": 220.16
+      }
+    },
+    "verified_rows": 20,
+    "integrity_errors": [],
+    "measured": 60.04232566399878,
+    "rps": 13.86,
+    "cpu_max": {
+      "knjsc-bench-20260916-app-1": 82.67,
+      "knjsc-bench-20260916-db-1": 91.09,
+      "knjsc-production-crm-1": 0.04,
+      "knjsc-production-db-1": 5.58
+    },
+    "memory_last": {
+      "knjsc-bench-20260916-app-1": "90.13MiB / 640MiB",
+      "knjsc-bench-20260916-db-1": "85.66MiB / 512MiB",
+      "knjsc-production-crm-1": "74.08MiB / 640MiB",
+      "knjsc-production-db-1": "56.43MiB / 1.25GiB"
+    },
+    "production_health_max_s": 0.155916
+  }
+]

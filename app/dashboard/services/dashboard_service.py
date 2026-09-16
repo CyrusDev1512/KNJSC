@@ -200,5 +200,6 @@ def _activity_block(user, choices, code, start, end):
             "department_url": base + urlencode({**params, "nhom": "department"})}
     if result.ok:
         data.update(state="ready" if result.totals["so_dong"] else "empty", count=result.totals["so_dong"],
-                    metrics=list(zip([c.label for c in result.columns], aggregations.total_cells(result))))
+                    metrics=list(zip([c.label for c in result.columns], aggregations.total_cells(result))),
+                    currency_note=getattr(result, 'currency_warning', '') or getattr(result, 'currency_label', ''))
     return data

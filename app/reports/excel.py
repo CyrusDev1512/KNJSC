@@ -22,20 +22,22 @@ def build_workbook(title, result, subtitle=""):
     dam = Font(bold=True)
     ws.append([title])
     ws["A1"].font = dam
-    ws.append([subtitle])
+    unit_note = getattr(result, 'currency_warning', '') or getattr(result, 'currency_label', '')
+    ws.append([' · '.join(part for part in (subtitle, unit_note) if part)])
     ws.append([])
 
-    ws.append([result.group_label] + [c.label for c in result.columns])
+    show_team = getattr(result, 'show_team', False)
+    ws.append((['Team'] if show_team else []) + [result.group_label] + [c.label for c in result.columns])
     for o in ws[ws.max_row]:
         o.font = dam
 
     so_nhom = 0
     for item in result.rows.iterator():
         nhom, cells = aggregations.row_values(item, result)
-        ws.append([aggregations.format_group(nhom, result)] + cells)
+        ws.append(([item['team_name']] if show_team else []) + [aggregations.format_group(nhom, result)] + cells)
         so_nhom += 1
 
-    ws.append([f"Tổng cộng · {so_nhom} {result.unit}"] + aggregations.total_values(result))
+    ws.append(([''] if show_team else []) + [f"Tổng cộng · {so_nhom} {result.unit}"] + aggregations.total_values(result))
     for o in ws[ws.max_row]:
         o.font = dam
 

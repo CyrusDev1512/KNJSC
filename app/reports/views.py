@@ -4,8 +4,8 @@ View chỉ nhận yêu cầu, kiểm quyền, gọi tầng dịch vụ (điều 
 quyền do `DailyReport.objects.in_scope` lo, không viết điều kiện lọc ở đây
 (quy tắc 11).
 
-**Không có view sửa báo cáo** — BR-2 và FR-4.4. Thiếu đường dẫn là cách chặn
-chắc nhất; gọi thẳng cũng không có gì để gọi.
+Quyền sửa nội dung theo quyết định 16/09/2026; phạm vi và phiên bản
+được kiểm lại trong transaction tại daily_service.amend.
 """
 from datetime import date
 from io import BytesIO
@@ -54,7 +54,7 @@ def bao_cao_ngay(request):
     if bm is None and cac_bieu_mau:
         bm = cac_bieu_mau[0]
 
-    ngay = _ngay_bao_cao(request.POST.get("ngay_bao_cao") or request.GET.get("ngay"))
+    ngay = timezone.localdate()
     cac_truong = list(bm.ordered_fields()) if bm else []
     du_lieu, loi = {}, []
 
@@ -62,8 +62,8 @@ def bao_cao_ngay(request):
         du_lieu = {t.field.code: request.POST.get(t.field.code, "").strip()
                    for t in cac_truong}
         try:
-            daily_service.submit(
-                bm, du_lieu, report_date=ngay, actor=request.user,
+            daily_service.submit_current(
+                bm, du_lieu, actor=request.user,
                 request=request, fields=cac_truong,
             )
             messages.success(
@@ -76,8 +76,8 @@ def bao_cao_ngay(request):
     return render(request, "reports/bao_cao_ngay.html", {
         "cac_bieu_mau": cac_bieu_mau, "bm": bm, "ngay": ngay,
         # Ô nhập, ô chọn, ô danh tính — cùng bộ với màn hình điền biểu mẫu
-        "cac_o": form_service.widgets(
-            bm, cac_truong, du_lieu, user=request.user,
+        "cac_o": daily_service.report_widgets(
+            bm, cac_truong, du_lieu, user=request.user, day=ngay,
         ) if bm else [],
         "loi": loi, "da_nop": da_nop,
         "cac_cot_tinh": bm.table.computed_columns() if bm else [],
@@ -290,10 +290,19 @@ def bao_cao_xem(request, pk):
     bao_cao = get_object_or_404(
         daily_service.history(request.user), pk=pk,
     )
+    revisions = list(bao_cao.revisions.select_related('actor', 'actor__profile')[:50])
+    columns = {c.code: c for c in bao_cao.form.table.columns.all()}
+    for revision in revisions:
+        revision.display_changes = [{'name':columns[code].name,
+            'before':daily_service.display_report_value(columns[code], revision.before.get(code)),
+            'after':daily_service.display_report_value(columns[code], revision.after.get(code))}
+            for code in columns if revision.before.get(code) != revision.after.get(code)]
     return render(request, "reports/bao_cao_xem.html", {
         "bao_cao": bao_cao,
         "cac_dong": daily_service.read_report_cells(bao_cao),
         "duoc_bo": bao_cao.created_by_id == request.user.pk,
+        "duoc_sua": daily_service.can_amend(request.user, bao_cao),
+        "revisions": revisions,
         "history_query": _history_query(request, include_page=True),
     })
 
@@ -310,3 +319,36 @@ def bao_cao_bo(request, pk):
     daily_service.withdraw(bao_cao, actor=request.user, request=request)
     messages.success(request, "Đã bỏ báo cáo. Nộp lại sẽ là một bản ghi mới.")
     return redirect("bao_cao_lich_su")
+
+
+@login_required
+def bao_cao_sua(request, pk):
+    """Sửa nội dung trong phạm vi quản lý, giữ báo cáo gốc và lịch sử."""
+    report = get_object_or_404(daily_service.history(request.user), pk=pk)
+    if not daily_service.can_amend(request.user, report):
+        raise Http404('Báo cáo không thuộc phạm vi được sửa.')
+    request.nav_current = 'bao_cao_lich_su'
+    fields = list(report.form.ordered_fields())
+    values = {f.field.code: report.record.data.get(f.link.column.code, '')
+              for f in fields if getattr(f, 'link', None)}
+    # Giá trị lưu Decimal dùng dấu chấm, ô nhập tiền dùng dấu phẩy thập phân.
+    for f in fields:
+        if f.field.field_type in ('money', 'decimal') and f.field.code in values:
+            values[f.field.code] = str(values[f.field.code] if values[f.field.code] is not None else '').replace('.', ',')
+    version, errors, status = report.record.updated_at.isoformat(), [], 200
+    if request.method == 'POST':
+        values.update({f.field.code: request.POST[f.field.code] for f in fields if f.field.code in request.POST})
+        version = request.POST.get('version', '')
+        try:
+            daily_service.amend(report, values, version=version, actor=request.user, request=request)
+            messages.success(request, 'Đã cập nhật báo cáo và ghi lịch sử chỉnh sửa.')
+            return redirect('bao_cao_xem', pk=pk)
+        except daily_service.ReportConflict as error:
+            errors, status = [str(error)], 409
+        except BusinessError as error:
+            errors, status = [str(error)], 400
+    return render(request, 'reports/bao_cao_sua.html', {
+        'bao_cao': report, 'bm': report.form, 'version': version, 'loi': errors,
+        'cac_o': daily_service.report_widgets(report.form, fields, values,
+            user=request.user, day=report.report_date, owner=report.created_by),
+    }, status=status)

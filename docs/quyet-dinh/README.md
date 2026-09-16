@@ -155,3 +155,5 @@ xong nằm ở `../backlog.md` mục 0.
 
 - [ADR-029 — Bảng nhận đơn CRM](029-bang-nhan-don-crm.md): Admin chọn đích, giữ profile và dữ liệu đơn cũ.
 - [ADR-031 — Tiền theo quốc gia và PTTT](031-tien-theo-quoc-gia-va-pttt.md): US/USD, CA/CAD, PH/PHP; xác nhận đổi tiền, chỉ chọn Zelle/PayPal.
+
+- [ADR-032 — Ngày hệ thống và sửa báo cáo](032-ngay-he-thong-va-sua-bao-cao.md): DD/MM/YYYY, quyền sửa có lịch sử, mẫu Marketing và nguồn tiền.

@@ -19,12 +19,14 @@ chép đường dẫn; độ rộng cột và cột ẩn do trình duyệt nhớ
 """
 from orders.constants import is_waybill_table
 from dataclasses import dataclass, field
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
 from django.db.models import Case, Count, F, IntegerField, OuterRef, Q, Subquery, Value, When
 from django.db.models.fields.json import KeyTextTransform
 from django.http import QueryDict
+from django.utils import timezone
 
 from core.constants import GRID_FILTER_OPTIONS_MAX, GRID_FROZEN_COLUMNS, GRID_FROZEN_COLUMNS_GENERIC, GRID_FROZEN_WIDTH_DEFAULT
 from forms_builder import choice_registry, query
@@ -66,6 +68,18 @@ DUPLICATE_COLUMN_WIDTH = 72
 def display_value(column, value, style=None):
     """Chữ hiện trong ô: giá trị thô, hoặc số đã định dạng theo `fmt` của ô
     (ADR-011). Tính bằng `Decimal` (BR-8); giá trị không phải số thì giữ nguyên."""
+    # Chỉ đổi chữ hiển thị; JSON value vẫn giữ ISO cho lọc, sửa và CAS.
+    if value not in (None, ""):
+        try:
+            if column.field_type == FieldType.DATE:
+                return date.fromisoformat(str(value)).strftime("%d/%m/%Y")
+            if column.field_type == FieldType.DATETIME:
+                moment = datetime.fromisoformat(str(value))
+                if timezone.is_aware(moment):
+                    moment = timezone.localtime(moment)
+                return moment.strftime("%d/%m/%Y %H:%M")
+        except (ValueError, TypeError):
+            pass
     fmt = (style or {}).get("fmt")
     if not fmt or value in (None, "") or isinstance(value, bool):
         return value
@@ -276,6 +290,8 @@ def export_queryset(user, table, params):
 
 def filter_chips(bo_loc, columns, products=()):
     """Mỗi bộ lọc đang bật thành một chip `(khoá tham số, nhãn)`."""
+    columns = list(columns)
+    by_code = {c.code: c for c in columns}
     ten = {c.code: c.name for c in columns}
     chips = []
     for khoa, gia_tri in bo_loc.items():
@@ -283,6 +299,10 @@ def filter_chips(bo_loc, columns, products=()):
         if code in waybill_service.assignment_service.COLUMNS:
             gia_tri = ['Chưa gán' if v == '__unassigned__' else v for v in gia_tri] if isinstance(gia_tri, list) else ('Chưa gán' if gia_tri == '__unassigned__' else gia_tri)
         nhan_phep = OPERATOR_LABELS.get(phep or "bang", phep)
+        column = by_code.get(code)
+        if column and column.field_type in (FieldType.DATE, FieldType.DATETIME) and phep not in ("rong", "co"):
+            gia_tri = ([display_value(column, v) for v in gia_tri] if isinstance(gia_tri, list)
+                       else display_value(column, gia_tri))
         if phep in ("rong", "co"):
             mo_ta = nhan_phep
         elif isinstance(gia_tri, list):

@@ -1,5 +1,9 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 16.09.2026 — Kiểm trước khi commit toàn bộ thay đổi local
+
+Theo yêu cầu push toàn bộ, chạy lại `pytest reports/tests crm/tests/test_grid_date_display.py crm/tests/test_master_grid.py -m "not cham and not trinh_duyet" --maxfail=2` qua Compose với `RUN_MIGRATIONS=0`: **158 passed, 34,75s**. `node scripts/kiem-thu-date-inputs.cjs` đạt. Không chạy lại toàn suite hoặc trình duyệt trong lượt push này; bằng chứng UI và lỗi nền giữ ở hồ sơ kiểm chứng trước. Không đưa storage, session manifest, dữ liệu thử hoặc khóa SSH vào Git.
+
 ## 16.09.2026 — Lưới mới và kiểm cờ trên nguồn cố định
 
 137 passed trên snapshot ứng viên; E2E lưới chung 1 passed (1440/1280/390,
@@ -12,6 +16,15 @@ Kiểm bền dừng theo yêu cầu sau 14,71 phút đo; 939/939 đơn đúng. C
 
 VPS image `knjsc-app:0907cdd-grid`; Chrome 1440/390 và hash JS đạt, năm service
 cùng image, giới hạn tài nguyên/CSS giữ nguyên. Không coi smoke là kiểm tải VPS.
+
+## 16.09.2026 — Mốc thực tế: 300.000 dòng + tối đa 10 người
+
+Chủ dự án xác nhận khoảng 100.000 đơn/năm, kiểm dự phòng 300.000 dòng và tối đa 10 người dùng file Vận đơn. Đã đo trên hai DB giả độc lập: 10 người, đọc toàn bảng p95 local/VPS 1,37/5,04 giây; lọc tháng 8.496 dòng 0,83/3,09 giây. Lưu tương ứng toàn bảng 0,49/2,34 giây, theo tháng 0,31/1,57 giây; không lỗi HTTP hoặc sai giá trị cuối ở 8 lượt chính. SQL phiên bản vẫn quét 300k dòng dù lọc tháng; CPU DB VPS gần hết hai core. Browser VPS nhảy dòng 150k vượt chờ 10 giây; chọn ô vẫn khoảng 36 ms. **Chưa đạt mục tiêu mượt**; cần duyệt tác vụ xử lý server/cache rồi đo lại đúng mốc này, không lấy khảo sát 20 người trước làm yêu cầu. Môi trường đo đã dừng, production giữ nguyên. [Bằng chứng và giới hạn](kiem-chung-300k-10-nguoi-20260916.md).
+
+
+## 16.09.2026 — Đo đồng thời Vận đơn DB trên VPS và local
+
+Đã đo 1/5/10/20 người trên 10.000 dòng giả, 26 cột, môi trường riêng. VPS 20 người: p95 đọc 965 ms, lưu 848 ms, poll 804 ms; vượt mục tiêu lưu/poll. Local tương ứng 288/272/199 ms. Các lượt hợp lệ không lỗi HTTP, kiểm lại giá trị cuối khớp. Browser 9 Locust + 1 Chrome: local cuộn p95 351 ms, VPS 245 ms; chưa chứng minh tối ưu local giữ lợi ích khi có ghi nền. Ghi nhận 409 đọc gây bỏ cache: cần chốt tác vụ riêng để xử lý, chưa sửa ứng dụng hoặc phát hành. [Phương pháp, số đo và giới hạn](kiem-chung-tai-dong-thoi-20260916.md).
 
 ## 16.09.2026 — Sửa riêng bố cục Tổng quan ERP
 
@@ -46,6 +59,29 @@ retry, thu quyền, nháp và chiều cao hàng đạt. Functional 110 đạt; f
 1 đạt; E2E server thật 1 đạt (1440/390). Node liên quan đạt sau bổ sung các
 binding còn thiếu trong fixture cũ; lỗi scope fixture đã đối chứng baseline.
 Đo API mô phỏng, không coi là kiểm tải VPS. [Chi tiết](kiem-chung-cuon-luoi-20260916.md).
+
+## 16.09.2026 — Đổi tên Vận đơn thành crmThuận (local)
+
+Theo yêu cầu chủ dự án, đổi tên hiển thị bảng `van_don_moi` thành `crmThuận`.
+Đã cập nhật tên mặc định và chuyển tên cũ khi khởi tạo lại; không ghi đè tên
+riêng khác. Local chỉ cập nhật name/updated_at và audit; kiểm trước/sau giữ
+ID, code, cờ nhận đơn và số dòng. Chrome mục Bảng nhận đơn hiển thị crmThuận
+là lựa chọn hiện tại. 11 test khởi tạo/bảng nhận đơn đạt. Chưa commit/push/VPS.
+
+
+## 16.09.2026 — Ngày hệ thống và chỉnh sửa báo cáo (local)
+
+Đã triển khai theo ADR-032: nhập ngày DD/MM/YYYY; báo cáo mới khóa ngày Việt
+Nam và người nộp; Leader sửa trong team, Manager trong bộ phận, Admin toàn
+hệ thống, có lịch sử và chống ghi đè bản cũ. Staff không sửa báo cáo đã nộp,
+kể cả qua lưới. Marketing có Doanh thu/Hóa đơn và năm công thức đã chốt;
+loại tiền lấy theo thị trường. Tổng tiền khác/thiếu đơn vị để trống có giải thích.
+256 test nhóm cuối đạt; đã kiểm trình duyệt luồng sửa, ngày, lưới và mobile.
+Lỗi nhập lại mã đơn trùng tái hiện cả ở HEAD 5ce53f3, không đổi nghiệp vụ nhập.
+Phần báo cáo này chưa commit/push/VPS; lỗi thêm sản phẩm 404 trên domain thật
+vẫn mở, không coi kết quả local là đã sửa 404.
+[Chi tiết và giới hạn](kiem-chung-bao-cao-erp-20260916.md),
+[quyết định thay thế](quyet-dinh/032-ngay-he-thong-va-sua-bao-cao.md).
 
 ## 16.09.2026 — Đã phát hành tiền/PTTT, bỏ Đơn vị phụ và sửa cột ghim
 
@@ -82,6 +118,17 @@ TDD 8 thất bại trước sửa; tập mới cuối cùng 15 đạt. Hồi quy
 archive 7b827a6. Chrome thật 1440/390 + đối chiếu DB đạt (1 bài E2E); Node queue,
 working copy/autosave/conflict và migration xuôi/ngược đạt. Không kiểm tải lớn.
 [Lệnh, kết quả, tên lỗi và giới hạn](kiem-chung-tien-theo-quoc-gia-20260916.md).
+
+## 16.09.2026 — Báo cáo ERP local
+
+Bổ sung ẩn panel và full bảng theo phản hồi: 113 test reports đạt; browser
+kiểm desktop/mobile, Esc hai bước, giữ dữ liệu/bộ lọc và Apply trong focus.
+Ảnh ở `storage/report-before-after-20260916/` không theo Git.
+
+111 test reports đạt, không skip; thêm 2 bài đường thêm sản phẩm do form
+render cũng đạt. Chrome local kiểm lọc người/đổi nguồn, thêm sản phẩm Sale,
+lịch sử Vận đơn và responsive 1440/390. Lỗi 404 web thật chưa tái hiện;
+Marketing local còn cột text. [Chi tiết](kiem-chung-bao-cao-erp-20260916.md).
 
 ## 15.09.2026 — Chuẩn bị bảng có placeholder
 
@@ -555,3 +602,19 @@ nhập đồng thời cùng mã. UI trên DB riêng: ba mẫu mỗi bảng 3/3; 
 mẫu trống bị từ chối. Preview đã đối chiếu tiêu đề/giá trị. Workbook kiểm cấu
 trúc/định dạng bằng openpyxl, chưa Microsoft Excel. Thay thế các lỗi ghi nhận
 ở lượt kiểm trước. [Bằng chứng](kiem-chung-mau-nhap-van-don-20260915.md).
+
+
+## 16/09/2026 — Sửa phần ngày hiển thị trong ô lưới bị sót
+
+Ảnh phản hồi vẫn hiện YYYY-MM-DD: adapter trước chỉ đổi ô nhập. Đã sửa
+CRM grid_service.display_value và nhãn bộ lọc thành DD/MM/YYYY; ngày giờ
+hiển thị Việt Nam. Giá trị JSON/CAS/lọc giữ ISO. Nháp JS cũng dùng D/M/Y
+ngay khi kết thúc nhập, không chờ server; không đổi màu/định dạng tiền.
+TDD trước sửa: ba ca ô ngày/ngày giờ và một ca nhãn lọc thất bại đúng lỗi.
+Sau sửa: 34 test (grid_date_display, master_grid, bang_tinh_dinh_dang) đạt,
+0 failed/error/skipped. Node kiểm đường cellValue thực tế của nháp/hoàn tác
+và UTC→Việt Nam đạt. XML: storage/grid-date-display-20260916.xml.
+Chrome CRM local bảng Marketing: ô 14/09/2026, 15/09/2026, 16/09/2026;
+chip 01/09/2026–30/09/2026, query vẫn ISO. Ảnh lưu tại
+storage/reports-amendments-20260916/grid-date-display.png.
+Chỉ sửa local, chưa push/VPS; không khẳng định ảnh phản hồi chụp ở môi trường nào.

@@ -47,7 +47,7 @@ def change(user, table, actions, receipt, *, replay=False):
     ids=[a.get('id') for a in actions if isinstance(a,dict)]
     if len(ids)!=len(actions) or any(type(pk)is not int or pk<=0 for pk in ids) or len(set(ids))!=len(ids):
         raise BusinessError('Định danh hoàn tác dòng không hợp lệ.')
-    rows=list(DataRecord.all_objects.filter(table=table,pk__in=ids).select_related('table').select_for_update(of=('self',)).order_by('pk'))
+    rows=list(grant_service.with_report_lock(DataRecord.all_objects.filter(table=table,pk__in=ids)).select_related('table').select_for_update(of=('self',)).order_by('pk'))
     visible=set(DataRecord.all_objects.in_scope(user,table=table).filter(pk__in=ids).values_list('pk',flat=True))
     if visible!=set(ids):raise OutOfScopeError()
     by_id={r.pk:r for r in rows}
