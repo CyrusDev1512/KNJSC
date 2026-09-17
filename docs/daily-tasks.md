@@ -14,13 +14,21 @@ hành làm từ máy có SSH vào VPS. Mở Claude Code CLI trong thư mục kho
 
 - Nhánh làm việc là `codex/crm-update-solar-ui`, **không phải** `main`. Đọc
   `CLAUDE.md` mục "Nhánh và nơi mã đang chạy" trước.
-- VPS đang chạy `knjsc-app:0907cdd-grid` (16.09). Đầu nhánh hiện `a613655`, đi
-  trước 15 commit. **Chỉ một migration mới**: `reports.0003_report_revision`,
-  đảo ngược được.
-- Đã diễn tập nâng cấp trên DB có dữ liệu ở trạng thái `0907cdd`: 10.005 dòng
-  trước/sau không đổi, quay lui được, `check --deploy` sạch, gunicorn prod
-  khởi động được. Biên bản: `docs/kiem-chung-dien-tap-vps-20260917.md` —
-  **đọc trước khi làm**.
+- VPS đang chạy `knjsc-app:0907cdd-grid` (16.09). Đầu nhánh gồm cả `9949062`
+  (ADR-033, Codex đẩy chiều 17.09) — xác nhận HEAD bằng `git log -1`.
+  **Hai migration mới**, cả hai đảo ngược được, đã thử xuôi ngược:
+  `forms_builder.0013_remove_tabledef_delivery_view_all` (bỏ cột cấu hình
+  ADR-026, quay lui thì cột về `false`) và `reports.0003_report_revision`.
+- Đã diễn tập nâng cấp **hai lần** trên DB có dữ liệu ở trạng thái `0907cdd`
+  (lần hai gồm `9949062`): 10.005 dòng trước/sau không đổi, quay lui được,
+  `check --deploy` sạch, gunicorn prod khởi động được. Biên bản:
+  `docs/kiem-chung-dien-tap-vps-20260917.md` — **đọc trước khi làm**.
+- **ADR-033 là thay đổi nghiệp vụ nhìn thấy ngay**: nhân viên Vận đơn thấy và
+  **sửa được mọi dòng** của bảng vận đơn (trước chỉ dòng được giao); nút
+  "Chế độ: Xem" và trang "Chế độ xem bảng" bị bỏ; thay bằng nút **Tôi / Toàn
+  bộ** trên thanh công cụ lưới. Đã kiểm trên DB nâng cấp bằng Chrome với
+  `vd.staff`: thấy 10.000 dòng, "Tôi" còn 5.000, sửa dòng người khác ghi được.
+  Báo nhân viên Vận đơn trước khi phát hành để họ không tưởng lỗi.
 - Quy trình chuẩn ở `deploy/production/README.md`, **đã thêm** hai lệnh
   `configure_erp_reports` và `configure_delivery_daily_report` sau
   `tao_bang_van_don`. Thiếu chúng thì Báo cáo tổng hợp lặng lẽ hiện bản cũ.
@@ -32,7 +40,7 @@ hành làm từ máy có SSH vào VPS. Mở Claude Code CLI trong thư mục kho
 ### Việc, theo thứ tự
 
 1. Trên máy này: `git fetch`, checkout `codex/crm-update-solar-ui`, xác nhận
-   HEAD là `a613655` hoặc mới hơn. `pytest -m "not cham"` cho chắc (~2.500 đạt).
+   HEAD chứa `9949062` (`git log --oneline | grep 9949062`). `pytest -m "not cham"` cho chắc (~2.500 đạt).
 2. SSH vào VPS, **không đổi gì**, chỉ ghi nhận: `docker compose ps`, tag image
    đang chạy, dung lượng DB, `manage.py showmigrations reports`. Báo chủ dự án.
 3. **Dừng lại**, tóm tắt kế hoạch, hỏi chủ dự án xác nhận **một lần** trước khi
@@ -66,7 +74,9 @@ hành làm từ máy có SSH vào VPS. Mở Claude Code CLI trong thư mục kho
 
 ### Nếu hỏng
 
-Quay lui bằng image `knjsc-app:0907cdd-grid` và `migrate reports 0002`.
+Quay lui bằng image `knjsc-app:0907cdd-grid`, rồi `migrate forms_builder 0012`
+và `migrate reports 0002` (thứ tự này). Cột `delivery_view_all` về `false` cho
+mọi bảng — chấp nhận được vì bản cũ mặc định cũng `false`.
 **Không restore DB chỉ để lùi mã** (README production nói rõ).
 
 ### Quy tắc

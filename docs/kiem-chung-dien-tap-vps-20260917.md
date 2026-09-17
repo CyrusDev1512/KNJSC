@@ -38,6 +38,23 @@ kiểm khởi động, Chromium 1440×900 qua Playwright.
 | Lưới CRM sau nâng cấp | "10.000 dòng khớp bộ lọc", vẽ 360 ô, không lỗi JS |
 | Tổng quan ERP, Bảng dữ liệu | Mở được, có dữ liệu |
 
+## Lần diễn tập thứ hai — sau khi Codex đẩy `9949062` (ADR-033)
+
+Cùng cách dựng, DB lại ở `0907cdd` với 10.005 dòng; cố ý đặt
+`delivery_view_all = TRUE` cho `van_don_moi` để xem migration bỏ cột ứng xử ra sao.
+
+| Kiểm | Kết quả |
+|---|---|
+| `migrate` | Áp **hai** migration: `forms_builder.0013_remove_tabledef_delivery_view_all`, `reports.0003_report_revision` |
+| Cột `delivery_view_all` | Bị bỏ; `delivery_view_version` giữ lại đúng ADR-033 |
+| Dữ liệu trước/sau | 10.005 → 10.005 |
+| Quay lui cả hai rồi tiến lại | Được; cột về `false` (giá trị `TRUE` đặt thử mất — chấp nhận, tính năng đã bỏ) |
+| Chrome, đăng nhập `vd.staff` (nhân viên Vận đơn) | Thấy **10.000 dòng**; nút "Chế độ: Xem" **không còn**; có nút **Tôi / Toàn bộ** |
+| Bấm "Tôi" | 5.000 dòng, URL có `cua_toi=1` |
+| Sửa ô `ten_khach` của dòng không được giao | Ghi xuống DB, còn sau F5 — đúng quyết định ADR-033 |
+| Lỗi JS | Không |
+| `pytest` đầy đủ trên đầu nhánh (cả `cham`, `trinh_duyet`) | **2506 đạt, 18 bỏ qua, 0 đỏ** |
+
 ## Hai điều chủ dự án phải biết trước khi phát hành
 
 **1. Cột tiền của Báo cáo Marketing sẽ trống.** Sau nâng cấp, màn hình hiện dải
@@ -70,7 +87,7 @@ có hai bảng mới trong danh sách. Không mất dữ liệu, nhưng là thay
 
 ## Kết luận
 
-Đường nâng cấp **sạch**: một migration, đảo ngược được, không mất dữ liệu, quy
+Đường nâng cấp **sạch**: hai migration, đảo ngược được, không mất dữ liệu, quy
 trình trong `deploy/production/README.md` chạy đúng thứ tự. Rủi ro còn lại không
 nằm ở mã mà ở dữ liệu cũ thiếu Loại tiền — xử lý trước thì người dùng không thấy
 bảng trống.
