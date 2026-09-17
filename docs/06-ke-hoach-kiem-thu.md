@@ -36,8 +36,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 | | Số |
 |---|---|
 | Tiêu chí nghiệm thu trong `docs/04` | **191** — 178 tự động, 13 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **159 trên 178** |
-| Tiêu chí tự động còn hoãn | **19**, đều thuộc phần đang làm hoặc chờ chốt — xem bảng cuối tệp |
+| Tiêu chí tự động đã có bài kiểm | **154 trên 178** |
+| Tiêu chí tự động còn hoãn | **24**, đều thuộc phần đang làm hoặc chờ chốt — xem bảng cuối tệp |
 | Bao phủ dòng mã | khoảng 85% |
 
 Ba con số đầu **có bài kiểm canh** — `app/tests/test_truy_vet.py` đọc chính
@@ -73,7 +73,7 @@ Bỏ qua các bài chạy chậm khi cần vòng lặp nhanh: `pytest -m "not ch
 | 5 | **Hộp đen** | `tests/test_ma_tran_phan_quyen.py` | 50 ô ma trận kiểm chéo `docs/04` mục 3 | Tìm ra 4 lỗi thật ngay lần chạy đầu |
 | 6 | **Hộp trắng** | `tests/test_hop_trang.py`, bản đo bao phủ | Nhánh chỉ chạy khi có lỗi, đường huỷ giao dịch | Tìm ra lỗi đọc tiền sai gấp trăm lần |
 | 7 | **Giao diện** | `core/tests/test_giao_dien.py` | Lớp CSS có thật, ô nhập có nhãn, bảng có tiêu đề | Thêm lớp bịa vào template → đỏ |
-| 8 | **Đầu-cuối trình duyệt** | `tests/e2e/` — Playwright, dấu `trinh_duyet` | Nhập → xuất → nhập lại qua giao diện; bàn phím và hộp lọc trên Bảng tính; kéo chọn vùng, dán TSV, kéo điền, hoàn tác, ô địa chỉ, chuột phải xoá hàng rồi hoàn tác (ADR-011); trang chủ KN CRM bấm tháng → lưới lọc tháng → ← (ADR-012); cột cố định khi cuộn; 390px không tràn ngang, có ảnh chụp | Đổi phím Esc thành không làm gì trong `bang-tinh.js` → đỏ |
+| 8 | **Đầu-cuối trình duyệt** | Lưới: `scripts/kiem-thu-master-*.cjs` (Node + Chrome thật); còn lại `tests/e2e/` — Playwright, dấu `trinh_duyet` | Nhập → xuất → nhập lại qua giao diện; bàn phím và hộp lọc trên Bảng tính; kéo chọn vùng, dán TSV, kéo điền, hoàn tác, ô địa chỉ, chuột phải xoá hàng rồi hoàn tác (ADR-011); trang chủ KN CRM bấm tháng → lưới lọc tháng → ← (ADR-012); cột cố định khi cuộn; 390px không tràn ngang, có ảnh chụp | Đổi phím Esc thành không làm gì trong `bang-tinh.js` → đỏ |
 | 9 | **Hiệu năng và kiểm tải** | `tests/test_hieu_nang.py` (dấu `cham`), `tests/perf/locustfile.py`, **`manage.py seed_perf` + `do_hieu_nang` + `tests/perf/locustfile_kn_crm.py`**, `crm/tests/test_kiem_tai.py` | 50.000 dòng thật: trang đầu và lưới có lọc dưới 2 giây; Locust 50 người p99 ≤ 3 giây (AC-10.1). **KN CRM ở cỡ 100 nghìn khách** (AC-10.8, ADR-016): 100.000 dòng vận đơn ≈ 3 triệu ô + bảng Sale 20.000 dòng có cột tính sẵn; đo một người rồi **100 người 5 phút** (70 nhân viên vận đơn di qua di lại, 20 Sale/MKT, 7 trưởng nhóm dán/xoá, 3 Manager đổi cột tính sẵn giữa phiên) trên gunicorn — ĐẠT khi p95 đọc ≤ 1 s, ghi ≤ 0,5 s, `moi-nhat/` ≤ 0,3 s, 0 lỗi, tính lại 100.000 dòng ≤ 30 s không chặn người khác; ngân sách truy vấn của các đường đã sửa khoá bằng AC-11.36 | Bỏ `select_related` ở lưới → vượt ngân sách; quay lại `{% include %}` từng ô → lưới 630 ms, 100 người p95 11 s |
 
 **Kiểm tải KN CRM — cách chạy và số đo** (ADR-016, K27). Ba lệnh trong `app/`
@@ -135,7 +135,7 @@ Ba trong bốn lỗi đó **không sập trang, không báo lỗi, không làm b
 
 ## Tiêu chí còn hoãn
 
-19 tiêu chí tự động chưa có bài kiểm. Danh sách này nằm trong
+24 tiêu chí tự động chưa có bài kiểm. Danh sách này nằm trong
 `tests/test_truy_vet.py`, biến `HOAN`, và **rỗng dần theo tiến độ**
 — thêm mã vào đó bắt buộc ghi lý do và giai đoạn.
 
@@ -150,6 +150,9 @@ bài truy vết đếm đúng, chứ không phải để lờ đi.
 | `AC-24.2` → `AC-24.5`, `AC-24.7` | CRM-Optimization đang kiểm chứng — ADR-024, Giai đoạn 7K; hai mã đo trên Chrome thật và đo tải 30 phút chạy tay khi phát hành |
 | `AC-26.1` → `AC-26.6` | Chứng từ thanh toán mới ghi tiêu chí, chưa làm — ADR-025, backlog chờ làm |
 | `AC-27.1`, `AC-27.2`, `AC-27.4` → `AC-27.8` | Lưới dùng chung và vòng đời bảng đang làm — ADR-027, Giai đoạn 7K; `AC-27.3` đã có bài kiểm |
+| `AC-11.10`, `AC-11.20` | Bàn phím và hoàn tác **vẫn chạy**; bài kiểm nằm ở `scripts/kiem-thu-master-ui.cjs` và `kiem-thu-shared-grid.cjs`, chạy bằng Chrome thật nên `pytest` không đếm được |
+| `AC-11.25` | Ô địa chỉ hiện `A1:C3` đúng ở lưới mới; phần gõ địa chỉ để nhảy ô chưa rà lại |
+| `AC-11.14`, `AC-11.21` | **Tính năng không còn trong lưới mới** — dòng trống cuối lưới và menu chuột phải. Chờ chủ dự án chốt bỏ tiêu chí hay làm lại tính năng |
 
 ---
 

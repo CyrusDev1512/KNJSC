@@ -13,13 +13,16 @@ from .conftest import chup
 
 pytestmark = [pytest.mark.django_db(transaction=True), pytest.mark.trinh_duyet, pytest.mark.cham]
 
-#: (tên, đường dẫn, vai, URLconf) — lưới nằm ở app KN CRM (ADR-012)
+#: (tên, đường dẫn, vai, URLconf).
+#:
+#: Bỏ 17.09: `bang-tinh` trỏ `/bang-tinh/` (nay chỉ tồn tại kèm mã bảng, thư mục
+#: dời sang `/thu-muc/` — ADR-012) và `len-don` trỏ `/len-don/` trên ERP (nay 302
+#: sang KN CRM — ADR-023, nên trình duyệt đi ra cổng 8021 không có máy chủ).
+#: Bốn màn hình còn lại vẫn là những màn hình chính của ERP.
 ERP, CRM = "knjsc.urls", "knjsc.urls_bangtinh"
 MAN_HINH = [
     ("tong-quan", "/", "staff_vd", ERP),
     ("bang-du-lieu", "/bang/van_don/", "staff_vd", ERP),
-    ("bang-tinh", "/bang-tinh/", "staff_vd", CRM),
-    ("len-don", "/len-don/", "staff_sale_1", ERP),
     ("bao-cao-ngay", "/bao-cao-ngay/", "staff_mkt", ERP),
     ("nhap-tep", "/bang/van_don/nhap/", "admin", ERP),
 ]

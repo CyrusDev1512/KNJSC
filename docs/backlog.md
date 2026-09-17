@@ -1,5 +1,37 @@
 # Backlog
 
+## 17.09.2026 — Xoá 12 bài E2E viết cho lưới HTMX cũ
+
+Chạy `pytest` đầy đủ (cả `cham` lẫn `trinh_duyet`, máy ảo có Chromium) cho 14
+commit hai ngày qua: **2517 đạt, 12 đỏ**. Cả 12 đều là bài kiểm đi tìm giao diện
+đã xoá, **không bài nào chỉ ra lỗi sản phẩm** — đã mở lưới bằng Chromium, sửa ô,
+F5, dữ liệu còn nguyên.
+
+Vì sao đỏ âm thầm 36 commit: lưới HTMX cũ bỏ ở `9bac840` (14.09, ADR-021/027),
+`tests/e2e/test_bang_tinh_ui.py` lần cuối sửa `cf39064` (06.09). Hai tệp e2e mang
+**cả `cham` lẫn `trinh_duyet`**, nên lệnh hằng ngày `-m "not cham"` loại ra, mà
+máy không có Chromium thì tự bỏ qua. Hai lớp che.
+
+Không viết lại, vì lưới mới **đã có bài trình duyệt riêng**:
+`scripts/kiem-thu-master-ui.cjs` (Ctrl+E/A/C/V/S, bàn phím, clipboard, hoàn tác),
+`kiem-thu-shared-grid.cjs` (Ctrl+Z/Ctrl+Y), `kiem-thu-master-row-height.cjs`,
+`kiem-thu-master-pinned-ui.cjs` (cột ghim). Viết lại 10 bài Playwright là làm
+trùng. Đã xoá `tests/e2e/test_bang_tinh_ui.py`, và bỏ hai dòng `bang-tinh` với
+`len-don` khỏi `test_dien_thoai.py` (đường dẫn dời theo ADR-012 và ADR-023); bốn
+màn hình 390px còn lại vẫn chạy.
+
+Năm mã tiêu chí mất bài kiểm, đã ghi `HOAN` kèm lý do; `docs/06` nay 154 trên 178,
+24 hoãn. Tầng 8 của `docs/06` ghi rõ bài lưới nằm ở `scripts/kiem-thu-master-*.cjs`.
+
+**Hai việc chờ chủ dự án chốt.** `grep` trong `master-grid.js` không thấy
+`contextmenu` lẫn dòng trống cuối lưới: **AC-11.21 (menu chuột phải) và AC-11.14
+(dòng trống cuối lưới gõ thành bản ghi) là tính năng đã mất khi thay lưới**, mà
+`docs/04` vẫn ghi là tiêu chí nghiệm thu. Bỏ tiêu chí hay làm lại tính năng là
+quyết định nghiệp vụ, không phải của người viết kiểm thử.
+
+Cùng lượt: thêm stub `repaintSelection` cho `kiem-thu-master-queue-unit.cjs`
+(`0907cdd` thêm lời gọi vào `saveAll` mà quên stub, bài đó hỏng từ 16.09).
+
 ## 17.09.2026 — Vá nốt đường cấu hình nguồn báo cáo: bốn launcher và VPS
 
 Hôm trước mới gắn `configure_erp_reports` vào `entrypoint.sh`, tưởng là đủ. Dựng

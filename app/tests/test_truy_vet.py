@@ -59,6 +59,23 @@ HOAN = {
     "AC-27.6": "Dọn renderer ghi cũ đang làm — ADR-027, Giai đoạn 7K",
     "AC-27.7": "Đo trên Chrome thật, chưa tự động hoá — ADR-027, Giai đoạn 7K",
     "AC-27.8": "Bài đo tải dài 30 phút, chạy tay khi phát hành — ADR-027, Giai đoạn 7K",
+    # Năm mã dưới đây mất bài kiểm khi xoá `tests/e2e/test_bang_tinh_ui.py`
+    # ngày 17.09. Tệp đó viết cho lưới HTMX cũ, mà lưới cũ đã bỏ từ 14.09
+    # (ADR-021, 027) nên 12 bài trong đó đỏ suốt 36 commit mà không ai thấy —
+    # chúng mang cả `cham` lẫn `trinh_duyet` nên lệnh hằng ngày loại ra.
+    #
+    # Ba mã đầu: tính năng **vẫn còn**, và đã có bài trình duyệt riêng cho lưới
+    # mới ở `scripts/kiem-thu-master-*.cjs`, chỉ là chạy bằng Node + Chrome thật
+    # trên máy phát triển nên `pytest` không đếm được.
+    "AC-11.10": "Bàn phím lưới — scripts/kiem-thu-master-ui.cjs kiểm trên Chrome thật, backlog chờ đưa vào pytest",
+    "AC-11.20": "Hoàn tác/làm lại — scripts/kiem-thu-shared-grid.cjs kiểm Ctrl+Z/Ctrl+Y, backlog chờ đưa vào pytest",
+    "AC-11.25": "Ô địa chỉ hiện A1:C3 đúng ở lưới mới; phần gõ địa chỉ để nhảy ô chưa rà lại, backlog chờ chốt",
+    # Hai mã cuối: **tính năng không còn trong lưới mới**. `grep` trong
+    # `master-grid.js` không thấy `contextmenu` lẫn dòng trống cuối lưới. Tiêu
+    # chí ở `docs/04` chưa được đánh dấu Bỏ vì đó là quyết định của chủ dự án,
+    # không phải của người viết kiểm thử.
+    "AC-11.14": "Dòng trống cuối lưới không còn trong master-grid.js — backlog chờ chủ dự án chốt bỏ hay làm lại",
+    "AC-11.21": "Menu chuột phải không còn trong master-grid.js — backlog chờ chủ dự án chốt bỏ hay làm lại",
 }
 
 #: `docs/04` có ba dạng bảng, sinh dần theo từng đợt: bốn cột
