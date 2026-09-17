@@ -39,6 +39,12 @@ if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
   # Máy sạch mà thiếu bảng này thì màn hình Bảng tính trả 404. Lệnh chạy
   # lại nhiều lần được, đã có thì chỉ bổ sung cột còn thiếu.
   python manage.py tao_bang_van_don
+  # Nguồn báo cáo (ADR-022) cũng là metadata của bảng động, migrate chỉ tạo
+  # bảng rỗng. Không chạy hai lệnh này thì màn hình Báo cáo tổng hợp lặng lẽ
+  # rơi về bản tổng quát cũ và không có gì báo cho người dùng biết vì sao.
+  # Cả hai chạy lại nhiều lần được, chỉ ghi cấu hình, không tạo dòng nghiệp vụ.
+  python manage.py configure_erp_reports || echo "CANH BAO: configure_erp_reports loi, Bao cao tong hop se hien ban cu" >&2
+  python manage.py configure_delivery_daily_report || echo "CANH BAO: configure_delivery_daily_report loi, xem log tren" >&2
   # Hai việc theo lịch của nhóm Nội bộ (ADR-017) chạy bù lúc máy bật: máy để
   # bàn thường tắt vào 06:00 và 01:00 ngày 1 nên không trông vào beat được.
   # Cả hai chạy lại nhiều lần được; hỏng thì chỉ cảnh báo, không chặn khởi động.

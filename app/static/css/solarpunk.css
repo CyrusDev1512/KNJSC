@@ -300,5 +300,5 @@ table.report-table thead th {position:sticky;top:0;z-index:1;background:var(--ac
 /* Bộ nhập ngày Việt Nam, dùng chung ERP/CRM và ô nhập của lưới. */
 .kn-date-control{display:flex;position:relative;align-items:stretch;min-width:0;max-width:100%;width:100%}
 .kn-date-control>.o-nhap,.kn-date-control>input:not(.kn-date-native){min-width:0;flex:1;width:100%}
-.kn-date-picker{flex:0 0 30px;border:1px solid var(--vien,#cdd6cb);border-radius:8px;background:var(--nen-the,#f4f7ef);color:inherit;cursor:pointer}
+.kn-date-picker{flex:0 0 30px;border:1px solid var(--rule);border-radius:8px;background:var(--surface-2);color:var(--ink-2);cursor:pointer}
 .kn-date-native{position:absolute;right:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none}
