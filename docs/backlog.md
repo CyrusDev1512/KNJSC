@@ -1,5 +1,16 @@
 # Backlog
 
+## 17.09.2026 — Báo cáo tổng hợp toàn màn hình: hết khối trắng dưới bảng
+
+Chủ dự án thấy "ô trắng tinh" khi bấm Toàn màn hình ở Báo cáo tổng hợp: khung
+bảng (`.report-table-scroll`) được kéo `flex:1` chiếm hết chiều cao, nền trắng,
+phân trang bị đẩy xuống đáy, nên bảng ba dòng để lại một khối trắng cao 700 px.
+Sửa một chỗ trong `static/css/solarpunk.css`: khung bảng ôm đúng số dòng
+(`flex:0 1 auto`, vẫn cuộn trong khung khi bảng dài hơn màn hình), phân trang nằm
+ngay dưới bảng, phần còn lại mang nền dịu `--surface-2`. Kiểm trên máy ảo bằng
+Chromium 1440/390 và bảng 42 dòng ở khung 420 px (cuộn trong khung, phân trang
+vẫn thấy); `reports/tests` 128 bài đạt. Không đổi JS, không đổi nghiệp vụ.
+
 ## 17.09.2026 — CLAUDE.md theo nhánh đang chạy; cầu nối skill cho Claude Code
 
 Chủ dự án yêu cầu hai việc. (1) Viết lại `CLAUDE.md` cho khớp nhánh
