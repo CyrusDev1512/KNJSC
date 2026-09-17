@@ -1,0 +1,27 @@
+const fs=require('fs'),path=require('path'),{chromium}=require('playwright');
+const root=path.resolve(__dirname,'..'),m=JSON.parse(fs.readFileSync(path.join(root,'ready.json'))),phase=process.env.PHASE||'browser-smoke',duration=Number(process.env.DURATION||30),warmup=Number(process.env.WARMUP||0),base='http://127.0.0.1:8851',width=Number(process.env.WIDTH||1440);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{const browser=await chromium.launch({channel:'chrome',headless:true});let ctx;const result={phase,viewport:[width,900],actions:[],errors:[],writes:[],requests:[],started:Date.now()};
+try{ctx=await browser.newContext({viewport:{width,height:900}});const actor=m.users.find(u=>u.role==='delivery'&&u.index===9);await ctx.addCookies([{name:'sessionid',value:actor.session,url:base}]);const page=await ctx.newPage();page.setDefaultTimeout(30000);
+page.on('pageerror',e=>result.errors.push({kind:'pageerror',message:e.message}));
+page.on('requestfinished',async req=>{try{if(!req.url().includes('/bang-tinh/'))return;const t=req.timing(),r=await req.response();result.requests.push({time:Date.now(),path:new URL(req.url()).pathname,status:r.status(),duration:t.responseEnd,ttfb:t.responseStart,serverTiming:r.headers()['server-timing']});}catch{}});
+await page.addInitScript(()=>{window.probeLong=[];window.probeFrames=[];try{new PerformanceObserver(l=>window.probeLong.push(...l.getEntries().map(e=>({start:e.startTime,duration:e.duration})))).observe({type:'longtask',buffered:true});}catch{};let prev=performance.now();function frame(t){window.probeFrames.push({start:t,duration:t-prev});prev=t;requestAnimationFrame(frame)}requestAnimationFrame(frame)});
+await page.route('**/master-grid.js*',async route=>{const r=await route.fetch();let s=await r.text();const n='scheduled = false; render();';if(s.includes(n))s=s.replace(n,'scheduled = false; const probeStart=performance.now(); render(); (window.probeRender ||= []).push({start:probeStart,duration:performance.now()-probeStart});');await route.fulfill({response:r,body:s})});
+let t=Date.now();await page.goto(base+'/bang-tinh/van_don_moi/');await page.locator('.mg-cell[data-id]').first().waitFor();result.initialReadyMs=Date.now()-t;result.documentStart=await page.evaluate(()=>performance.timeOrigin);
+const end=Date.now()+duration*1000;let i=0;
+while(Date.now()<end&&!fs.existsSync(path.join(root,'results',phase+'-abort.txt'))&&!fs.existsSync(path.join(root,'results',phase+'.json'))){
+ try{
+ const row=[0,200,1000,4000,8000,9900][i%6];t=Date.now();await page.locator('#mg-viewport').evaluate((v,r)=>{v.scrollLeft=0;v.scrollTop=r*28},row);await page.locator(`.mg-cell[data-r="${row}"][data-id]`).first().waitFor();result.actions.push({kind:'scroll-ready',time:Date.now(),ms:Date.now()-t});
+ t=Date.now();const cell=width<600?page.locator(`.mg-cell[data-r="${row}"][data-id]`).first():page.locator(`.mg-cell[data-r="${row}"][data-code="ten_khach"]`);await cell.click();await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));result.actions.push({kind:'select-paint',time:Date.now(),ms:Date.now()-t});
+ if(i%5===0){
+  t=Date.now();const input=page.locator('#mg-search input');await input.fill(i%10===0?'Khach TEST':'');await Promise.all([page.waitForResponse(r=>r.url().includes('/du-lieu/')&&r.status()===200),input.press('Enter')]);await page.locator('.mg-cell[data-r="0"][data-id]').first().waitFor();result.actions.push({kind:'filter-ready',time:Date.now(),ms:Date.now()-t});
+ }
+ if(i%4===0){
+  if(await page.locator('#mg-mode').getAttribute('aria-pressed')==='false')await page.locator('#mg-mode').click();
+  await page.locator('#mg-viewport').evaluate(v=>{v.scrollLeft=v.scrollWidth;v.scrollTop=0});const note=page.locator('.mg-cell[data-r="0"][data-code="ghi_chu"]');await note.waitFor();const id=await note.getAttribute('data-id');await note.dblclick();const editor=page.locator('#mg-input input, #mg-input textarea').first();await editor.waitFor();const value='BROWSER-TEST-'+Date.now();t=Date.now();await editor.fill(value);const saved=page.waitForResponse(r=>r.url().includes('/luu-json/'));await editor.press('Control+Enter');const r=await saved;if(r.status()!==200)throw Error('Browser save HTTP '+r.status());const savedData=await r.json();const savedRow=savedData.protocol===2?savedData.cells.find(c=>c.column==='ghi_chu'&&c.value===value):savedData.rows.find(row=>row.cells.ghi_chu.value===value);if(!savedRow)throw Error('Saved response missing expected value');result.writes.push({id:savedRow.id,value});result.actions.push({kind:'edit-to-save',time:Date.now(),ms:Date.now()-t});
+ }
+ }catch(e){result.errors.push({kind:'action',message:e.message,time:Date.now()});await page.screenshot({path:path.join(root,'results',phase+'-error.png')});if(result.errors.length>=1)break;await page.keyboard.press('Escape');}
+ i++;await sleep(3000);
+}
+result.diagnostics=await page.evaluate(()=>({long:window.probeLong,frames:window.probeFrames,render:window.probeRender||[],grid:window.KNJSC_MASTER?.diagnostics?.(),heap:performance.memory?.usedJSHeapSize}));
+}finally{result.finished=Date.now();result.warmup=warmup;fs.writeFileSync(path.join(root,'results',phase+'-browser.json'),JSON.stringify(result,null,2));await ctx?.close();await browser.close();console.log(JSON.stringify({phase,initialReadyMs:result.initialReadyMs,actions:result.actions.length,errors:result.errors}));}})().catch(e=>{console.error(e.message);process.exitCode=1});

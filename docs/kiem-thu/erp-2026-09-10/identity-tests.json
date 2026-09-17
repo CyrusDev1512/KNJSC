@@ -1,0 +1,17 @@
+{
+  "tests": "2094",
+  "failures": "2",
+  "errors": "0",
+  "skipped": "24",
+  "time": "151.252",
+  "known_failures": [
+    {
+      "class": "tests.test_luong_ba_bo_phan",
+      "name": "test_mot_ngay_cua_cong_ty"
+    },
+    {
+      "class": "core.tests.test_giao_dien",
+      "name": "test_moi_lop_css_dung_trong_template_deu_ton_tai[_assignment.html]"
+    }
+  ]
+}

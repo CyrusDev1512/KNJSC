@@ -1,0 +1,260 @@
+{
+  "date": "2026-09-16",
+  "baselineHash": "cc359345d9d4c048835b2515fbffed7a417360c506f5bcdd2d81f2fcf3f8d58a",
+  "sourceHash": "fd75436a614cf034e797f9040b4d70f806c8bee87e107d2e7aa9e6f6924160a0",
+  "api": "Synthetic JSON, fixed 120ms delay, actual Django template and browser JS",
+  "results": {
+    "before": [
+      {
+        "width": 1440,
+        "cached": {
+          "samples": 40,
+          "p50": 31.69999998807907,
+          "p95": 32.10000002384186,
+          "max": 39.09999996423721
+        },
+        "continuous": {
+          "samples": 55,
+          "p50": 42.40000003576279,
+          "p95": 140.9000000357628,
+          "max": 216
+        },
+        "reuse": {
+          "created": 27880,
+          "headerSame": true,
+          "cellSame": true
+        },
+        "wheel": {
+          "run": false,
+          "frames": 181,
+          "missingFrames": 26,
+          "gaps": [
+            133.29999999999995,
+            116.79999999999995,
+            66.59999999999991,
+            116.59999999999991
+          ],
+          "start": null,
+          "top": 12000
+        },
+        "cache": 10,
+        "cells": 360,
+        "longTasks": 0,
+        "requests": 19,
+        "regressions": [],
+        "errors": []
+      },
+      {
+        "width": 390,
+        "cached": {
+          "samples": 40,
+          "p50": 31.600000023841858,
+          "p95": 32.10000002384186,
+          "max": 32.10000002384186
+        },
+        "continuous": {
+          "samples": 55,
+          "p50": 42.5,
+          "p95": 136.89999997615814,
+          "max": 140.19999998807907
+        },
+        "reuse": {
+          "created": 14680,
+          "headerSame": true,
+          "cellSame": true
+        },
+        "wheel": {
+          "run": false,
+          "frames": 178,
+          "missingFrames": 22,
+          "gaps": [
+            83.29999999999995,
+            116.79999999999995,
+            116.5,
+            50
+          ],
+          "start": null,
+          "top": 12000
+        },
+        "cache": 10,
+        "cells": 132,
+        "longTasks": 0,
+        "requests": 19,
+        "regressions": [],
+        "errors": []
+      }
+    ],
+    "after": [
+      {
+        "width": 1440,
+        "cached": {
+          "samples": 40,
+          "p50": 31,
+          "p95": 31.900000035762787,
+          "max": 32
+        },
+        "continuous": {
+          "samples": 55,
+          "p50": 40.5,
+          "p95": 47.69999998807907,
+          "max": 49.89999997615814
+        },
+        "reuse": {
+          "created": 2594,
+          "headerSame": true,
+          "cellSame": true
+        },
+        "wheel": {
+          "run": false,
+          "frames": 186,
+          "missingFrames": 0,
+          "gaps": [],
+          "start": null,
+          "top": 12000
+        },
+        "cache": 10,
+        "cells": 360,
+        "longTasks": 0,
+        "requests": 33,
+        "regressions": [
+          "wheel/selection",
+          "editor draft",
+          "variable row height",
+          "stale filter response",
+          "speculative 503",
+          "visible retry",
+          "403 clears cache"
+        ],
+        "errors": []
+      },
+      {
+        "width": 390,
+        "cached": {
+          "samples": 40,
+          "p50": 30.80000001192093,
+          "p95": 32,
+          "max": 32
+        },
+        "continuous": {
+          "samples": 55,
+          "p50": 41.19999998807907,
+          "p95": 49.39999997615814,
+          "max": 50.80000001192093
+        },
+        "reuse": {
+          "created": 2126,
+          "headerSame": true,
+          "cellSame": true
+        },
+        "wheel": {
+          "run": false,
+          "frames": 186,
+          "missingFrames": 0,
+          "gaps": [],
+          "start": null,
+          "top": 12000
+        },
+        "cache": 10,
+        "cells": 132,
+        "longTasks": 0,
+        "requests": 33,
+        "regressions": [
+          "wheel/selection",
+          "editor draft",
+          "variable row height",
+          "stale filter response",
+          "speculative 503",
+          "visible retry",
+          "403 clears cache"
+        ],
+        "errors": []
+      }
+    ],
+    "compat-render": [
+      {
+        "width": 1440,
+        "cached": {
+          "samples": 40,
+          "p50": 30.69999998807907,
+          "p95": 32.09999996423721,
+          "max": 32.19999998807907
+        },
+        "continuous": {
+          "samples": 55,
+          "p50": 41,
+          "p95": 48.69999998807907,
+          "max": 50.30000001192093
+        },
+        "reuse": {
+          "created": 2594,
+          "headerSame": true,
+          "cellSame": true
+        },
+        "wheel": {
+          "run": false,
+          "frames": 184,
+          "missingFrames": 0,
+          "gaps": [],
+          "start": null,
+          "top": 12000
+        },
+        "cache": 10,
+        "cells": 360,
+        "longTasks": 0,
+        "requests": 33,
+        "regressions": [
+          "wheel/selection",
+          "editor draft",
+          "variable row height",
+          "stale filter response",
+          "speculative 503",
+          "visible retry",
+          "403 clears cache"
+        ],
+        "errors": []
+      },
+      {
+        "width": 390,
+        "cached": {
+          "samples": 40,
+          "p50": 30.69999998807907,
+          "p95": 32,
+          "max": 32.299999952316284
+        },
+        "continuous": {
+          "samples": 55,
+          "p50": 41.60000002384186,
+          "p95": 48.80000001192093,
+          "max": 50
+        },
+        "reuse": {
+          "created": 2126,
+          "headerSame": true,
+          "cellSame": true
+        },
+        "wheel": {
+          "run": false,
+          "frames": 177,
+          "missingFrames": 0,
+          "gaps": [],
+          "start": null,
+          "top": 12000
+        },
+        "cache": 10,
+        "cells": 132,
+        "longTasks": 0,
+        "requests": 33,
+        "regressions": [
+          "wheel/selection",
+          "editor draft",
+          "variable row height",
+          "stale filter response",
+          "speculative 503",
+          "visible retry",
+          "403 clears cache"
+        ],
+        "errors": []
+      }
+    ]
+  }
+}

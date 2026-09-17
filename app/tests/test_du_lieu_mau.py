@@ -57,17 +57,22 @@ def test_may_trong_chay_xong_thi_dang_nhap_duoc(client):
 
     assert get_user_model().objects.count() == 12
     kq = client.post("/dang-nhap/", {
-        "username": "quantri", "password": "MatKhauTam-2026",
+        "username": "quantri", "password": "matkhaucuatoi",
     })
     assert kq.status_code == 302, "Tài khoản quản trị không đăng nhập được"
 
 
 def test_dung_du_co_cau_to_chuc():
-    """FR-2.1, FR-2.2 — Ba bộ phận, hai team, mỗi team một trưởng nhóm"""
+    """FR-2.1, FR-2.2 — Ba bộ phận nghiệp vụ, hai team, mỗi team một trưởng nhóm
+
+    Kế toán là bộ phận thứ tư, do `org/0004` tạo sẵn khi migrate (ADR-025 —
+    chứng từ thanh toán), không phải do `du_lieu_mau` dựng, và chưa có nhân sự
+    mẫu. Khẳng định đủ bốn để bài kiểm đỏ nếu ai đó lỡ xoá nó.
+    """
     _chay()
 
     assert set(Department.objects.values_list("code", flat=True)) == {
-        "sale", "marketing", "van-don"}
+        "sale", "marketing", "van-don", "ke-toan"}
     assert Team.objects.count() == 2
     assert all(t.leader_id is not None for t in Team.objects.all()), (
         "Team chưa có trưởng nhóm thì không thử được phạm vi quyền của Leader"
@@ -232,22 +237,19 @@ def test_du_lieu_noi_bo_va_bang_xep_hang_mau():
     assert (ResourceCategory.objects.count(), Resource.objects.count()) == (5, 6)
 
     bxh = leaderboard_service.sales_leaderboard()
-    assert [(d["user"].username, d["hang"], d["so_don"], d["tong_vnd"]) for d in bxh] == [
-        ("sale.staff", 1, 2, Decimal("9880600")),
-        ("sale.staff2", 2, 1, Decimal("6660000")),
-        ("sale.leader", 3, 1, Decimal("2590000")),
-    ]
-    assert bxh[0]["tong_hien"] == "9.880.600"
+    assert bxh == []  # ADR-018: không gieo đơn giả để bảng Vận đơn mới bắt đầu trống
 
 
 def test_khong_nhet_don_mau_khi_da_co_van_don_that():
-    """AC-15.2 — Máy đã có dòng vận đơn (nhập tệp thật) mà chưa có đơn hàng nào thì lệnh không dựng bốn đơn mẫu, để bảng xếp hạng không lẫn số giả"""
+    """AC-18.1 — Máy sạch và chạy lại đều giữ bảng mới trống, không gieo đơn demo."""
     from orders.models import Order
 
     _chay()
-    assert Order.all_objects.count() == 4
-    assert DataRecord.all_objects.filter(table__code=WAYBILL_TABLE_CODE).exists()
-    Order.all_objects.all().hard_delete()                       # chỉ còn dòng vận đơn
+    assert Order.all_objects.count() == 0
+    assert not DataRecord.all_objects.filter(table__code="van_don_moi").exists()
+    old = TableDef.all_objects.get(code=WAYBILL_TABLE_CODE)
+    row = DataRecord.objects.create(table=old, department=old.department, data={"ma_don": "LICH-SU"})
     ra = _chay()
     assert Order.all_objects.count() == 0 and "đơn hàng" not in ra
-
+    row.refresh_from_db()
+    assert row.data == {"ma_don": "LICH-SU"}

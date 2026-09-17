@@ -296,14 +296,19 @@ def test_lenh_tao_bang_van_don_chay_lai_duoc(departments, nguoi_dung):
 
 
 def test_lenh_tao_bang_van_don_tren_may_sach(db):
-    """FR-6.3 — Máy sạch chưa có bộ phận nào, lệnh vẫn tạo được bộ phận Vận đơn và bảng"""
+    """FR-6.3 — Máy sạch chưa có bộ phận Vận đơn, lệnh vẫn tạo được nó và bảng
+
+    Từ `org/0004` (ADR-025) thì máy sạch đã sẵn bộ phận Kế toán do migrate tạo,
+    nên điều cần khẳng định là chưa có **Vận đơn**, không phải chưa có gì.
+    """
     from django.core.management import call_command
     from io import StringIO
 
     from org.models import Department
     from orders.constants import WAYBILL_DEPARTMENT_CODE, WAYBILL_TABLE_CODE
 
-    assert not Department.all_objects.exists()
+    assert not Department.all_objects.filter(code=WAYBILL_DEPARTMENT_CODE).exists()
+
     ra = StringIO()
     call_command("tao_bang_van_don", stdout=ra)
 

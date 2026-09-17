@@ -3,6 +3,7 @@
 {% block ten_trang %}Bảng tính · {{ tieu_de }}{% endblock %}
 
 {% block noi_dung %}
+{% if duoc_cap_quyen %}<p><a class="nut" href="{% url 'deleted_tables' %}">Đã xóa</a></p>{% endif %}
 {% comment %}
 Trang thư mục của KN CRM — mục "Bảng tính" trên sidebar (ADR-012, ADR-015).
 Trái: cây Bộ phận ▸ Quý ▸ Tháng (tự sinh từ cột Ngày của các bảng trong
@@ -70,8 +71,10 @@ chỉ dựng từ phạm vi quyền (`tree_service`), lớp CSS tính ở Python
                 {% if b.khong_ngay %}<span class="crm-chu-y">không có cột Ngày</span>{% endif %}
               </div>
             </div>
-            <span class="{{ b.lop_quyen }}">{{ b.quyen }}</span>
+            <div class="hang">{% if b.quyen != 'Sửa' %}<span class="{{ b.lop_quyen }}">{{ b.quyen }}</span>{% endif %}
+            {% if b.can_download_template %}<a class="nut nut-nho" href="{% url 'bang_mau_nhap' b.bang.code %}" aria-label="Tải mẫu Excel {{ b.bang.name }}">Tải mẫu Excel</a>{% endif %}
             <a class="nut nut-nho nut-chinh" href="{{ b.url }}">Mở</a>
+            {% if b.can_delete %}<details><summary>Thao tác bảng</summary><a class="nut nut-nguy" href="{% url 'delete_table' b.bang.code %}">Xóa</a></details>{% endif %}</div>
           </li>
         {% empty %}
           <li class="crm-hang-rong">Trống</li>

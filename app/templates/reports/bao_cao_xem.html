@@ -3,15 +3,17 @@
 {% block ten_trang %}Báo cáo {{ bao_cao.report_date|date:"d.m.Y" }}{% endblock %}
 
 {% block noi_dung %}
+<article id="sp-report-content">
 
 <div class="trang-dau">
   <div>
-    <div class="nhan-nho">BR-2 · chỉ đọc</div>
+    <div class="nhan-nho">Báo cáo đã nộp</div>
     <h1>{{ bao_cao.form.name }}</h1>
     <p>Báo cáo cho ngày {{ bao_cao.report_date|date:"d.m.Y" }}, nộp lúc {{ bao_cao.submitted_at|date:"H:i d.m.Y" }} giờ Việt Nam.</p>
   </div>
   <div class="hanh-dong">
-    <a class="nut" href="{% url 'bao_cao_lich_su' %}">Quay lại</a>
+    <a class="nut" href="{% url 'bao_cao_lich_su' %}{% if history_query %}?{{ history_query }}{% endif %}">Quay lại</a>
+    {% if duoc_sua %}<a class="nut nut-chinh" href="{% url 'bao_cao_sua' bao_cao.pk %}">Sửa báo cáo</a>{% endif %}
     {% if duoc_bo %}
       <form method="post" action="{% url 'bao_cao_bo' bao_cao.pk %}">
         {% csrf_token %}
@@ -24,15 +26,14 @@
 <div class="bao bao-cho">
   <span class="bao-ic">!</span>
   <div>
-    <b>Báo cáo đã nộp không sửa được</b>
+    <b>Nội dung báo cáo đã được ghi nhận</b>
     <p>
-      Quy tắc BR-2. Nộp nhầm thì bỏ bản này rồi nộp lại — bản cũ vẫn giữ trong
-      cơ sở dữ liệu và trong nhật ký hoạt động, không mất dấu vết.
+      Nhân viên không sửa báo cáo đã nộp. Leader và quản lý sửa trong phạm vi phụ trách; mỗi lần thay đổi được lưu lịch sử.
     </p>
   </div>
 </div>
 
-<div class="the" style="max-width:760px">
+<div class="the sp-report-document">
   <div class="the-dau">
     <h2>Nội dung</h2>
     <div class="phai nho mo-nhat">Ghi vào bảng {{ bao_cao.form.table.name }}</div>
@@ -59,10 +60,27 @@
   </div>
   <div class="the-chan">
     <span class="nho mo-nhat">
-      Người nộp: {{ bao_cao.created_by.profile.full_name|default:bao_cao.created_by.username }}
+      Người nộp: {% include "reports/_employee_identity.html" with person=bao_cao.created_by only %}
       · {{ bao_cao.department }}{% if bao_cao.team %} · {{ bao_cao.team }}{% endif %}
     </span>
   </div>
 </div>
 
+{% if revisions %}
+<section class="the" style="margin-top:20px">
+  <div class="the-dau"><h2>Lịch sử chỉnh sửa</h2></div>
+  <div class="the-than">
+    {% for revision in revisions %}
+    <details><summary>{{ revision.created_at|date:"d/m/Y H:i" }} · {% include "reports/_employee_identity.html" with person=revision.actor only %}</summary>
+      <p>Nội dung trước và sau lần sửa:</p>
+      <div class="bang-cuon"><table class="bang bang-luoi"><thead><tr><th>Trường</th><th>Trước</th><th>Sau</th></tr></thead><tbody>
+      {% for change in revision.display_changes %}<tr><td>{{ change.name }}</td><td>{{ change.before }}</td><td>{{ change.after }}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </details>
+    {% endfor %}
+    <p class="nho mo-nhat">Hiển thị tối đa 50 lần chỉnh sửa gần nhất.</p>
+  </div>
+</section>
+{% endif %}
+</article>
 {% endblock %}

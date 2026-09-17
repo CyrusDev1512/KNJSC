@@ -17,6 +17,7 @@ FR-4.1 "mỗi bộ phận có biểu mẫu báo cáo riêng" chính là `FormDef
 đã có sẵn từ Giai đoạn 3.
 """
 from django.db import models
+from django.conf import settings
 
 from core.models import ScopedModel
 
@@ -24,8 +25,8 @@ from core.models import ScopedModel
 class DailyReport(ScopedModel):
     """Một lần nộp báo cáo của một người, cho một ngày.
 
-    Nộp xong là khoá — BR-2 và FR-4.4. Không có đường sửa, kể cả gọi thẳng
-    đường dẫn; xem `services/daily_service.py`.
+    Danh tính, ngày và thời điểm nộp bất biến. Nội dung được quản lý sửa qua
+    daily_service.amend theo quyết định 16/09/2026, có ReportRevision.
     """
 
     SCOPE_OWNER_FIELD = "created_by"
@@ -95,3 +96,48 @@ class DailyReport(ScopedModel):
                 "Muốn bỏ thì đánh dấu xoá qua daily_service."
             )
         return super().save(*args, **kwargs)
+
+
+class ReportSource(models.Model):
+    """Ánh xạ báo cáo ERP tường minh; không dò tên trường ở mỗi yêu cầu."""
+    table = models.OneToOneField("forms_builder.TableDef", on_delete=models.CASCADE,
+                                related_name="erp_report")
+    kind = models.CharField(max_length=12, choices=[("sale", "Sale"), ("mkt", "Marketing"), ("delivery", "Vận đơn")])
+    columns = models.JSONField(default=dict)
+
+    class Meta:
+        verbose_name = "Nguồn báo cáo ERP"
+
+
+class RevisionQuerySet(models.QuerySet):
+    def update(self, **kwargs):
+        raise RuntimeError('Lịch sử báo cáo chỉ được ghi thêm.')
+
+    def delete(self):
+        raise RuntimeError('Lịch sử báo cáo chỉ được ghi thêm.')
+
+    def bulk_create(self, objs, **kwargs):
+        if kwargs.get('update_conflicts'):
+            raise RuntimeError('Lịch sử báo cáo chỉ được ghi thêm.')
+        return super().bulk_create(objs, **kwargs)
+
+
+class ReportRevision(models.Model):
+    """Lịch sử nghiệp vụ, chỉ đọc trong phạm vi của báo cáo gốc."""
+    report = models.ForeignKey(DailyReport, on_delete=models.PROTECT, related_name='revisions')
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    before = models.JSONField()
+    after = models.JSONField()
+    objects = RevisionQuerySet.as_manager()
+
+    class Meta:
+        ordering = ['-id']
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise RuntimeError('Lịch sử báo cáo chỉ được ghi thêm.')
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise RuntimeError('Lịch sử báo cáo chỉ được ghi thêm.')

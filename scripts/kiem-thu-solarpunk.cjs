@@ -1,0 +1,95 @@
+/* Chạy trên database mẫu riêng của docker-compose.solarpunk.yml. */
+const {chromium} = require('./solarpunk-browser.cjs');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+(async () => {
+  const browser = await chromium.launch({channel:'chrome',headless:true});
+  const page = await browser.newPage({viewport:{width:1440,height:900}});
+  const origin = 'http://localhost:18021';
+  await page.goto(origin+'/dang-nhap/');
+  await page.locator('input[name="username"]').fill('quantri');
+  await page.locator('input[name="password"]').fill('matkhaucuatoi');
+  await Promise.all([page.waitForURL(u=>!u.pathname.includes('dang-nhap')),page.locator('button[type="submit"]').click()]);
+  await page.goto(origin+'/bang-tinh/van_don_moi/');
+  fs.mkdirSync('artifacts/solarpunk',{recursive:true});
+  await page.screenshot({path:'artifacts/solarpunk/grid-'+(process.env.BASELINE?'before':'after')+'.png'});
+  const viewport=page.locator('#mg-viewport');
+  async function reveal(code){
+    for(let left=0;left<=6000;left+=600){
+      await viewport.evaluate((node,x)=>{node.scrollLeft=x},left);await page.waitForTimeout(80);
+      const cell=page.locator(`.mg-cell[data-code="${code}"]`).first();if(await cell.count())return cell;
+    }
+    throw new Error(`Không tìm thấy cột ${code} sau khi cuộn ngang`);
+  }
+  const statusCell=await reveal('trang_thai_vc');
+  await statusCell.dblclick();
+  assert.equal(await page.locator('#mg-input select').count(),1,'Trạng thái vận chuyển phải dùng dropdown');
+  await page.keyboard.press('Escape');
+  const paymentDateCell=await reveal('ngay_tt');
+  await paymentDateCell.dblclick();
+  assert.equal(await page.locator('#mg-input input[type="date"]').count(),1,'Ngày thanh toán phải dùng trình chọn ngày');
+  await page.keyboard.press('Escape');
+  const productCell=await reveal('san_pham');
+  await productCell.dblclick();
+  await page.locator('#vd-detail[open]').waitFor();
+  await page.locator('[data-close-detail]').click();
+  await page.locator('#mg-more-button').click();
+  assert.equal(await page.locator('#mg-assign').isVisible(),true,'Admin phải còn thao tác Phân công');
+  assert.equal(await page.locator('#mg-more a[href$="/che-do-xem/"]').count(),1,'Phải còn trang Chế độ xem bảng');
+  await page.keyboard.press('Escape');
+  await page.locator('#bt-toan-man-nut').click();
+  assert.equal(await page.locator('.bt-thanh-tren').isVisible(),false,'Focus must hide account/header even without browser Fullscreen API');
+  assert.equal(await page.locator('#mg-viewport').isVisible(),true);
+  await page.locator('#sp-focus-tools').click();
+  assert.equal(await page.locator('.mg-toolbar').isVisible(),true);
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.mg-toolbar').isVisible(),false);
+  assert.equal(await page.locator('.bt-thanh-tren').isVisible(),false);
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.bt-thanh-tren').isVisible(),true);
+  const cell=page.locator('.mg-cell[data-code="ten_khach"]').first();
+  await cell.click();
+  const original=await cell.innerText();
+  await cell.dblclick();
+  await page.locator('#mg-input input, #mg-input textarea').fill(original+' kiểm UI');
+  await page.keyboard.press('Escape');
+  assert.equal(await cell.innerText(),original,'Esc cancels cell editor');
+  await page.locator('#bt-toan-man-nut').click();
+  await cell.dblclick();
+  await page.locator('#mg-input input, #mg-input textarea').fill(original+' kiểm UI');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.bt-thanh-tren').isVisible(),false,'Esc editor must not exit focus');
+  await page.locator('#sp-focus-tools').click();
+  await page.locator('#mg-columns-button').click();
+  assert.equal(await page.locator('#mg-columns').isVisible(),true);
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.bt-thanh-tren').isVisible(),false,'Esc dialog must not exit focus');
+  await page.locator('#sp-focus-tools').click();
+  await page.screenshot({path:'artifacts/solarpunk/grid-focus.png'});
+  assert.equal(await cell.evaluate(e=>getComputedStyle(e).borderRadius),'0px','Cells must keep exact square geometry');
+  await page.locator('#sp-focus-exit').click();
+  // Bảng động thường cũng dùng master grid chung của CRM-UPDATE, không quay lại renderer HTMX cũ.
+  await page.goto(origin+'/bang-tinh/bao_cao_mkt/');
+  await page.locator('#mg-viewport').waitFor();
+  await page.locator('#bt-toan-man-nut').click();
+  assert.equal(await page.locator('.bt-thanh-tren').isVisible(),false);
+  assert.equal(await page.locator('.mg-toolbar').isVisible(),false);
+  await page.locator('#sp-focus-tools').click();
+  assert.equal(await page.locator('.mg-toolbar').isVisible(),true);
+  assert.equal(await page.locator('#bt-trang-thai').count(),1);
+  await page.locator('#sp-focus-exit').click();
+  assert.equal(await page.locator('.mg-toolbar').isVisible(),true);
+  // Khung ERP giữ liên kết sang CRM; lịch sử báo cáo giữ HTMX và URL trực tiếp khi không có JS.
+  await page.goto('http://localhost:18020/');
+  assert.equal(await page.locator('a[href="http://localhost:18021/"][target="_blank"][rel~="noopener"]').count()>0,true);
+  await page.goto('http://localhost:18020/bao-cao/lich-su/?tim=mkt.staff&tu=2026-01-01&den=2099-12-31');
+  const reportLink=page.locator('.sp-history-link').first();await reportLink.waitFor();
+  const reportHref=await reportLink.getAttribute('href');
+  assert.ok(reportHref.includes('tim=mkt.staff')&&reportHref.includes('tu=2026-01-01')&&reportHref.includes('den=2099-12-31'));
+  assert.equal(await page.locator('.sp-history-extra a',{hasText:'Thống kê Marketing'}).count()>0,true);
+  const direct=await page.request.get(new URL(reportHref,'http://localhost:18020').href);
+  assert.equal(direct.status(),200);assert.ok((await direct.text()).includes('id="sp-report-content"'));
+  await reportLink.click();await page.locator('#sp-report-reader #sp-report-content').waitFor();
+  await browser.close();
+  console.log('PASS: CRM parity, typed editors, detail/assignment, report fallback, focus and layered Escape');
+})().catch(e=>{console.error(e);process.exit(1)});

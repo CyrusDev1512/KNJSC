@@ -28,6 +28,7 @@ urlpatterns = [
     path("bang/<slug:code>/cot/", fb.bang_cot, name="bang_cot"),
     path("bang/<slug:code>/cot/<int:pk>/bo/", fb.bang_xoa_cot, name="bang_xoa_cot"),
     path("bang/<slug:code>/nhap/", fb.bang_nhap, name="bang_nhap"),
+    path("bang/<slug:code>/mau-nhap.xlsx", fb.bang_mau_nhap, name="bang_mau_nhap"),
     path("bang/<slug:code>/nhap/<int:pk>/", fb.bang_nhap_xem_truoc, name="bang_nhap_xem_truoc"),
     path("bang/<slug:code>/nhap/<int:pk>/xac-nhan/", fb.bang_nhap_xac_nhan, name="bang_nhap_xac_nhan"),
     path("bang/<slug:code>/cap-quyen/", fb.bang_cap_quyen, name="bang_cap_quyen"),

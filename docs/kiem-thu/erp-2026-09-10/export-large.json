@@ -1,0 +1,23 @@
+[
+  {
+    "source": "bao_cao_mkt",
+    "groups": 1500,
+    "milliseconds": 276.27,
+    "bytes": 53685,
+    "passed": true
+  },
+  {
+    "source": "bao_cao_sale",
+    "groups": 1500,
+    "milliseconds": 151.35,
+    "bytes": 35308,
+    "passed": true
+  },
+  {
+    "source": "van_don_moi",
+    "groups": 2000,
+    "milliseconds": 247.04,
+    "bytes": 33281,
+    "passed": true
+  }
+]

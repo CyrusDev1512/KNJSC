@@ -7,6 +7,7 @@ import re
 
 from .constants import AuditAction
 from .models import AuditLog
+from .identity import employee_code
 
 # Những từ khoá không bao giờ được xuất hiện trong phần chi tiết. So khớp theo
 # **ranh giới từ**: "password" bắt, còn "theo", "Matthew", "Ricardo" thì không —
@@ -54,7 +55,7 @@ def record(action, actor=None, target=None, detail="", request=None, actor_label
             target_id = str(getattr(target, "pk", "") or "")
 
     if not actor_label and actor is not None:
-        actor_label = getattr(actor, "get_full_name", lambda: "")() or actor.get_username()
+        actor_label = employee_code(actor)
 
     return AuditLog.objects.create(
         actor=actor if getattr(actor, "pk", None) else None,

@@ -1,5 +1,45 @@
 # Hướng dẫn sử dụng và vận hành
 
+> Cập nhật 12.09.2026: theo yêu cầu chủ dự án, đã chuyển nhánh codex/chung-tu-thanh-toan về checkout chính C:/KNJSC/KNJSC và kích hoạt app local 8021. Đã áp dụng orders 0007, org 0004; không chạy seed. Các mô tả chưa kích hoạt bên dưới ghi trạng thái bàn giao trước bước này. Chưa commit/push; bản sao checkout cũ giữ nguyên nội dung, ở detached HEAD.
+
+## Chứng từ thanh toán — bản mới 12.09.2026
+
+Sau khi triển khai nhánh và chạy migration mới:
+
+1. Mở **Chứng từ thanh toán** trên menu CRM, bấm **Thêm chứng từ**.
+2. Tìm/chọn đơn, nhập đúng Ref (giữ số 0 đầu), ngày chuyển khoản/ghi chú nếu có.
+3. Chọn JPG/PNG hoặc Ctrl+V để dán ảnh vào form. Mỗi lượt tối đa 5 ảnh, tổng 10 MB.
+4. Bấm **Lưu chứng từ**. Nếu lỗi, giữ form và thử lại; không tạo mã lượt mới thủ công.
+5. Trong Bill, bấm Ref để mở ảnh ngay; chọn ảnh tiếp theo, phóng to/tải ảnh,
+   X hoặc Escape để đóng. **Mở danh sách** hoặc **+N lần khác** xem các lần thanh toán.
+6. Kế toán/Admin mở **Quản lý chứng từ** để sửa Ref, bổ sung/gỡ ảnh, xóa mềm/khôi phục.
+   Gắn nhầm đơn thì xóa mềm và tạo lại, không chuyển chứng từ sang đơn khác.
+7. Kho ảnh hiển thị theo Ref, không tải ảnh sẵn; **Làm mới** cập nhật danh sách sau thay đổi.
+
+Trạng thái thanh toán sửa tại ô như các lựa chọn khác. Đổi trạng thái không đổi tiền,
+và sửa tiền/chi tiết không thay trạng thái đã chọn. Chưa bổ sung quy trình đối soát.
+
+**Lưu trữ/sao lưu:** file nằm ở `STORAGE_DIR/chung-tu-thanh-toan/`; database chỉ giữ
+liên kết và metadata. Bản sao lưu phải gồm thư mục này và database tại mốc nhất quán
+(tạm ngừng ghi khi tạo bản sao hoặc dùng snapshot phối hợp). `pg_dump` riêng không có ảnh.
+Khi phục hồi cần giữ nguyên đường dẫn tương đối, quyền đọc/ghi của dịch vụ và cấu hình
+`STORAGE_DIR`. Không đặt thư mục ảnh thành static/public, không đưa vào nơi dọn file xuất.
+Xóa mềm vẫn giữ file gốc; chưa có chính sách tự xóa/lưu trữ lạnh.
+
+Nhánh hiện được kiểm trên database test; chưa áp migration vào app local 8021.
+
+**CRM-Optimization — đã kiểm local, chưa phát hành, 11.09.2026:** cấu hình production ứng
+viên và quy trình bật/tắt từng nhóm ở
+[deploy/production/README](../deploy/production/README.md). Không thay launcher
+hoặc Compose local. Cờ tối ưu mặc định tắt; không tự migrate DB đang dùng.
+Thống kê khi bật cache hiển thị thời điểm tính, tối đa 15 giây; nút Làm mới
+lấy số liệu mới. Không đổi cách nhập/sửa của vận đơn.
+Xem [kết quả và điều kiện chưa đạt](kiem-chung-crm-optimization-20260911.md):
+không bật đồng loạt chỉ vì bài tải trả mã 0. Đặc biệt theo dõi backlog xuất,
+cold Thống kê và tăng RAM app; renderer giữ tắt khi chưa có lợi ích ổn định.
+
+**11.09.2026 — Điều hướng ERP/thư viện/Lên đơn CRM:** đã triển khai local theo ADR-023. Giữ Bảng dữ liệu ERP; sửa Biểu mẫu thiếu người tạo, gộp hai tab đúng quyền; chuyển nhập đơn và xem đơn gốc sang CRM. Kiểm thử, số đo và giới hạn tại [báo cáo bàn giao](kiem-chung-erp-hub-20260911.md). Chưa commit/push.
+
 | Mục | Nội dung |
 |---|---|
 | Dự án | Kim Ngân JSC — Hệ thống vận hành nội bộ |
@@ -159,7 +199,7 @@ Tệp không cần chỉnh sửa trước: hệ thống tự tìm hàng tiêu đ
 Excel lưu dạng số về chữ, đọc ngày kiểu `14/10/2023`. Ô danh sách (trạng thái)
 chỉ nhận giá trị trong danh sách, không phân biệt hoa thường.
 
-**Giới hạn:** tệp tối đa 10 MB, tối đa 5.000 dòng mỗi lần. Tệp đổi đuôi (ví
+**Giới hạn:** tệp tối đa 10 MB, tối đa 10.000 dòng mỗi lần. Tệp đổi đuôi (ví
 dụ `.exe` đổi thành `.xlsx`) bị từ chối ngay.
 
 Dòng lỗi không chặn dòng hợp lệ: 5 dòng có 2 dòng lỗi thì 3 dòng vẫn vào.
@@ -260,7 +300,7 @@ Cột nào dùng để thống kê thì gán **nhãn ý nghĩa** — ví dụ c�
 | Không thấy mục nào đó trong menu | Bạn chưa được cấp quyền, liên hệ quản lý |
 | Không thấy dữ liệu của người khác | Đúng như thiết kế, mỗi cấp bậc có phạm vi riêng |
 | Hệ thống tự đăng xuất | Do không thao tác quá một tiếng, đăng nhập lại |
-| Nhập tệp báo lỗi | Kiểm tra kích thước dưới 10 MB và số dòng dưới 5.000; đuôi tệp phải đúng nội dung |
+| Nhập tệp báo lỗi | Kiểm tra kích thước dưới 10 MB và số dòng không quá 10.000; đuôi tệp phải đúng nội dung |
 | Nhập xong báo "dòng lỗi" | Mở trang Tác vụ nền, xem bảng dòng lỗi theo số hàng Excel, sửa tệp rồi nhập lại phần đó |
 | Ô chọn không có giá trị mình cần | Cột Chọn một chỉ nhận giá trị trong danh sách. Quản lý thêm ở Sửa cột hoặc chọn **＋ Thêm mới…** ngay tại ô chọn trên biểu mẫu, báo cáo ngày, Lên đơn; nhân viên báo quản lý |
 | Không gõ được ô Marketer / Người bán | Đúng như thiết kế — hệ thống tự ghi tên bạn (FR-4.6) |
@@ -626,7 +666,7 @@ chạy, hoặc xoá vùng lưu cơ sở dữ liệu. Cả ba đều có thể l�
 **Máy cá nhân — một lệnh:** nháy đúp `KN JSC.bat` ở thư mục gốc (Windows), hoặc
 chạy `scripts\cap-nhat-local.bat` / `./scripts/cap-nhat-local.sh`. Script tự mở
 Docker Desktop và chờ nó sẵn sàng, kéo mã mới, dựng lại container, migrate, tạo
-bảng vận đơn, nạp dữ liệu mẫu (kể cả đặt lại đúng mật khẩu in ra cho tài khoản mẫu
+các bảng vận đơn chuẩn cùng bảng độc lập **Vận đơn DB**, nạp dữ liệu mẫu (kể cả đặt lại đúng mật khẩu in ra cho tài khoản mẫu
 có sẵn) rồi mở trình duyệt. Muốn xem một nhánh khác thì truyền tên nhánh:
 `scripts\cap-nhat-local.bat <tên nhánh>`. Dừng ở bước nào thì in rõ bước đó.
 
@@ -737,3 +777,135 @@ kẹt; không có `beat` thì không có gì tự chạy đêm.
 đúng dạng `USD=25400,CAD=18500,PHP=440` — số nguyên VND, không dấu chấm hay
 phẩy trong số. Sai định dạng thì cả bốn dịch vụ không lên và báo tên biến, để
 không có số sai lặng lẽ vào sổ sao.
+
+
+### Bảng master Vận đơn mới — ADR-021
+
+Bảng mới cuộn liên tục; bấm ô để đọc chữ bị cắt, F2/bấm đúp sửa theo quyền.
+Ctrl+A chọn toàn bộ kết quả lọc; Ctrl+C/V, Delete nội dung, Ctrl+Z/Y giới hạn
+2.000 ô/lượt. Enter/Tab hoặc đóng khung nhập bằng X giữ nội dung trong bản
+đang làm; ô nhiều dòng dùng Ctrl+Enter để kết thúc nhập, Escape hủy phần đang gõ.
+**… → Lưu dữ liệu** hoặc **Ctrl+S** mới ghi database, tối đa 2.000 ô chưa lưu.
+Mở/đóng chức năng và đổi bộ lọc giữ nháp; Lưu ghi cả ô đã sửa ngoài bộ lọc hiện tại.
+**Tải lại/rời bảng/đóng tab mất phần chưa lưu, không có hộp hỏi xác nhận.**
+Khi báo Chưa lưu/Xung đột, phần đang làm còn trên màn hình; chưa coi là đã lưu.
+Menu … có Nhập/Xuất, Phân công và Chia sẻ link (chưa triển khai). Các hộp có X
+ở đầu hộp, luôn nhìn thấy khi cuộn. Xuất Excel/lọc/thống kê dùng dữ liệu đã lưu.
+Phân công/chi tiết dùng hộp riêng. Thống kê chuyển sang mục sidebar riêng,
+nhận cùng bộ lọc, không tự cập nhật sau mỗi lần sửa ô.
+
+Bản cập nhật cần migration `crm.0001_initial` (chỉ thêm biên nhận lưu): dùng
+quy trình cập nhật/migration chuẩn. Không hạ migration trên DB đang làm việc
+để kiểm; phép thử đảo chiều nằm trong `crm/tests/test_master_grid.py`.
+
+Kéo mép dưới **số hàng** để chỉnh chiều cao 28–400px. Hàng cao sẽ xuống dòng,
+phần chữ còn thiếu vẫn mở bằng bấm ô. Thả chuột ghi nhớ riêng theo tài khoản,
+bảng và ID vận đơn trên trình duyệt/máy hiện tại; không đồng bộ sang máy khác.
+Escape trong lúc kéo hủy lượt đó. Focus tay nắm: ↑/↓ đổi 4px, Home về 28px.
+Kéo hàng giữ phần đang nhập vào bản đang làm, không yêu cầu lưu trước. Chỉnh chiều cao không đổi dữ liệu,
+không vào Undo/Redo nội dung và không thay chiều cao trong file Excel xuất.
+
+## Bổ sung thao tác Vận đơn mới — 10.09.2026
+
+Quy định này thay phần lưu thủ công trước đó. Kết thúc sửa sẽ tự lưu nền;
+Ctrl+S/Lưu dữ liệu gửi ngay. Chờ trạng thái Đã lưu trước khi đóng trang.
+Đổi lọc/popup giữ nháp; cảnh báo rời trang chỉ xuất hiện khi còn chưa lưu.
+Nhập file, phân công và chi tiết sản phẩm vẫn có nút gửi riêng.
+
+- Chế độ Xem: chọn/đọc, F2 hoặc bấm đúp để sửa. Chế độ Chỉnh sửa: bấm/chuyển
+  tới ô được phép sửa để nhập ngay. Tab chuyển ô; Enter xuống hàng cho ô
+  một dòng. Ô nhiều dòng Enter xuống dòng, Ctrl+Enter kết thúc.
+- Bấm số hàng để chọn hàng. Dòng đầu mang số 1. Đơn mới ở cuối theo mặc định.
+- Định dạng có cỡ chữ/màu chữ/màu nền, dùng cùng autosave và Undo/Redo.
+- Nếu một dòng mất quyền giữa lượt sửa, hệ thống gỡ dòng đó và giữ nháp
+  còn quyền. Kiểm tra thông báo rồi bấm **Thử lại** để gửi phần còn hợp lệ;
+  hệ thống không tự ghi một phần của lượt vừa bị từ chối.
+- … → Lịch sử xem thay đổi qua lưới mới của dòng đang chọn. … → Xung đột
+  đối chiếu giá trị và chọn server hoặc gửi lại; có xung đột thì cả lượt chưa ghi.
+- Admin lên đơn tại CRM phải chọn Sale đứng đơn đang hoạt động.
+
+**Cập nhật 11.09.2026:** nhập trực tiếp trong ô, không còn khung nhập nổi
+che hàng dưới hoặc kéo giãn riêng khung nhập. Escape hủy phần đang gõ;
+Tab/Enter kết thúc và tự lưu như trên. Muốn đọc dài, dùng chế độ Xem hoặc
+kéo chiều cao hàng. Dán bảng nhiều ô từ trong ô nhập vẫn dùng giới hạn
+2.000 ô và kiểm lỗi toàn lượt. Các ô tổng/chi tiết/phân công giữ cơ chế riêng.
+
+Phạm vi và kết quả kiểm chứng: [báo cáo chín hạng mục](kiem-chung-master-nine.md).
+
+## Nạp 10.000 vận đơn mẫu — 11.09.2026
+
+Lệnh này chỉ dùng cho môi trường phát triển có `DEBUG=1`. Lệnh chỉ tác động nhóm
+mã `MAU-20260910-*` trong `van_don_moi`; không tạo khách hàng, đơn hoặc dòng sản
+phẩm bên ERP và không sửa vận đơn ngoài tiền tố mẫu.
+
+Sao lưu database trước, rồi từ container `web` chạy xem trước:
+
+```powershell
+python manage.py nap_du_lieu_van_don_moi --tong-so 10000 --seed 20260911 --dry-run
+```
+
+Kết quả chuẩn trên database có 500 dòng mẫu cũ là 500 dòng cập nhật và 9.500 dòng
+tạo mới. Khi đã đối chiếu đúng, bỏ `--dry-run` để chạy thật. Toàn bộ lượt chạy nằm
+trong một giao dịch: thiếu bảng, sản phẩm hoặc nhân sự hợp lệ, hay lỗi giữa lượt,
+thì không ghi một phần. Chạy lại cùng tổng và seed không tạo trùng và không đổi ID
+các dòng/chi tiết/phân công đã đúng.
+
+Sau khi chạy, kiểm tra tổng 10.000 mã và số điện thoại duy nhất, ghi chú không còn
+`???`, mọi dòng có bang/thành phố/zipcode/địa chỉ, tổng số lượng/giá/đã thu khớp
+`WaybillItem`, và Sale/CSKH/Vận đơn thuộc đúng bộ phận đang hoạt động.
+
+## Bàn điều hành KN CRM — ADR-022
+
+Mở **Bàn điều hành** trên sidebar KN CRM hoặc
+`http://localhost:8021/thong-ke/`. Không chọn nguồn là góc nhìn tổng hợp; chọn
+một bảng để xem chuyên sâu. Khoảng ngày mặc định từ đầu tháng đến hôm nay. Ba ô
+Marketing/Sale/Vận đơn ở góc tổng hợp chỉ đổi nguồn đang dùng, không cộng nhiều
+bảng cùng loại. Tên nguồn luôn hiện cạnh số liệu.
+
+Nhận định trên màn hình được sinh theo quy tắc và chỉ dẫn tới dữ liệu cần xem;
+đây chưa phải AI Agent, không tự gửi thông báo, tạo việc hay sửa bảng. Chênh lệch
+Sale–Vận đơn là tổng cần đối chiếu, không phải kết luận thất lạc. Tiền không được
+quy đổi hoặc cộng khác loại. Khi một phần báo tạm chưa khả dụng, mở bảng nguồn để
+kiểm nhãn cột/dữ liệu; các phần còn lại vẫn dùng được.
+
+Biến môi trường tùy chọn:
+
+```env
+EXECUTIVE_OWNER_USERNAMES=quan_tri,ceo
+```
+
+Biến này chỉ đổi tiêu đề giao diện cho username đang hoạt động có cấp Admin,
+không cấp quyền xem dữ liệu. Để trống là hành vi mặc định. Sau khi đổi biến, khởi
+động lại dịch vụ `bangtinh`; kiểm từng tài khoản vẫn chỉ thấy bảng/dòng theo cấp
+bậc hiện hành. KN ERP giữ Báo cáo tổng hợp và xuất Excel; nút **Mở Bàn điều hành
+KN CRM** chỉ mở nơi phân tích, không thay dữ liệu báo cáo.
+
+Snapshot chuyên sâu Vận đơn dùng tối đa 64MiB `work_mem` cục bộ cho mỗi request
+aggregate và tự hoàn nguyên sau transaction; không cần sửa `postgresql.conf`.
+Khi kiểm tải đồng thời trên máy chủ thật, theo dõi RAM theo số request thống kê
+chạy song song thay vì nhân con số này với toàn bộ tài khoản đã đăng nhập.
+
+## Lưới chung và xóa bảng — CRM-UPDATE, ADR-027
+
+Đã bật checkout CRM-UPDATE trên local 8020/8021 lúc 17:20 ngày 12.09 theo yêu
+cầu chủ dự án test trước; kiểm tải chưa nghiệm thu. Marketing, Sale và Vận đơn cũ mở cùng bộ lưới JSON như
+Vận đơn mới. Chế độ chỉnh sửa, nhập trong ô, autosave và lịch sử dùng chung.
+Dòng nháp cuối bảng chỉ xuất hiện khi tài khoản được phép tạo dòng. Nhập đủ
+trường bắt buộc rồi kết thúc ô để lưu; nháp còn thiếu được giữ trong bộ nhớ
+trang. Vận đơn mới tiếp tục nhận dòng từ Lên đơn.
+
+Manager của phòng ban sở hữu bảng hoặc Admin mở menu bảng → Xóa, nhập đúng
+tên bảng để xác nhận. Bảng còn biểu mẫu hoạt động hoặc tác vụ nhập/tính lại
+đang chờ/chạy sẽ báo phụ thuộc cần xử lý. Vận đơn mới không có thao tác xóa.
+Mục Đã xóa cho phép khôi phục giữ nguyên mã, ID và dữ liệu; nếu thư mục cũ
+đã xóa thì bảng xuất hiện ngoài thư mục. Không có xóa vĩnh viễn tự động.
+
+Tab đang mở gỡ nội dung và dừng lưu khi request tiếp theo báo bảng không còn
+khả dụng. File xuất nền kiểm lại quyền và ID dòng lúc tải; file cũ thiếu danh
+sách ID cần xuất lại. Khi nâng phiên bản, cập nhật đồng bộ các process web,
+CRM và worker rồi tải lại các tab cũ. URL ghi của client cũ trả 409 yêu cầu
+tải lại; không chuyển tiếp lượt ghi thiếu CAS.
+
+Không có migration hoặc dependency mới cho chiến dịch. Giữ cờ tối ưu hiện
+hành; đường đọc/sync v2 của bảng chuyển đổi chưa mở nếu chưa qua hồi quy.
+Theo dõi kết quả/giới hạn tại [báo cáo kiểm chứng](kiem-chung-crm-update-20260912.md).

@@ -1,0 +1,59 @@
+name: knjsc-solarpunk
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: solarpunk
+      POSTGRES_USER: solarpunk
+      POSTGRES_PASSWORD: solarpunk-preview-only
+    volumes:
+      - preview_db:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U solarpunk -d solarpunk"]
+      interval: 3s
+      retries: 20
+  redis:
+    image: redis:7-alpine
+  web:
+    image: knjsc-web:latest
+    command: python manage.py runserver 0.0.0.0:8000
+    environment: &environment
+      DJANGO_SETTINGS_MODULE: knjsc.settings.solarpunk_preview
+      DJANGO_SECRET_KEY: solarpunk-local-preview-only
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,web,bangtinh,testserver
+      POSTGRES_DB: solarpunk
+      POSTGRES_USER: solarpunk
+      POSTGRES_PASSWORD: solarpunk-preview-only
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      REDIS_URL: redis://redis:6379/0
+      RUN_MIGRATIONS: "0"
+      STORAGE_DIR: /storage
+      BANGTINH_URL: http://localhost:18021/
+      MAIN_APP_URL: http://localhost:18020/
+    volumes: &volumes
+      - ../app:/app
+      - ../docs:/docs:ro
+      - preview_storage:/storage
+    ports: ["127.0.0.1:18020:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+  bangtinh:
+    image: knjsc-web:latest
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      <<: *environment
+      SOLARPUNK_CRM: "1"
+    volumes: *volumes
+    ports: ["127.0.0.1:18021:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+volumes:
+  preview_db:
+  preview_storage:

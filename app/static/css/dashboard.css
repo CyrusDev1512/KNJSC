@@ -1,0 +1,58 @@
+/* Tổng quan: ghép nhãn và giá trị, không kéo thẻ ngắn theo thẻ dài. */
+.dashboard-activity .dashboard-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  align-items: start;
+  gap: 16px;
+  padding: 0 20px 20px;
+}
+.dashboard-activity .dashboard-activity-card { min-width: 0; }
+.dashboard-activity-card .the-dau { padding: 16px 18px; }
+.dashboard-activity-card .the-dau h3 { margin: 0; font-size: var(--fs-lg); }
+.dashboard-activity-card .the-than { padding: 16px 18px; }
+.dashboard-activity-card .dashboard-source {
+  margin: 0 0 14px;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  overflow-wrap: anywhere;
+}
+.dashboard-activity-card .dashboard-note {
+  padding: 12px;
+  margin: 0 0 12px;
+  border: 1px solid var(--rule);
+  background: var(--warn-soft);
+  border-radius: 8px;
+  font-size: var(--fs-sm);
+}
+.dashboard-metrics { margin: 0; }
+.dashboard-metric {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.dashboard-metric:first-child { padding-top: 0; }
+.dashboard-metric:last-child { border-bottom: 0; }
+.dashboard-metric dt { color: var(--ink-2); overflow-wrap: anywhere; }
+.dashboard-metric dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.dashboard-links {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  display: grid;
+  gap: 8px;
+}
+.dashboard-links > a { font-weight: 600; }
+.dashboard-links > div { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: var(--fs-sm); }
+@media (max-width: 600px) {
+  .dashboard-activity .dashboard-activity-grid { padding: 0 12px 12px; gap: 12px; }
+  .dashboard-activity-card .the-than, .dashboard-activity-card .the-dau { padding: 14px; }
+}

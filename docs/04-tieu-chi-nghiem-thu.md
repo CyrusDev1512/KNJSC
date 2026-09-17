@@ -1,5 +1,19 @@
 # Tiêu chí nghiệm thu
 
+## AC-26 — Trạng thái và chứng từ thanh toán (12.09.2026)
+
+| Mã | Đạt khi |
+|---|---|
+| AC-26.1 | Ba trạng thái sửa trực tiếp qua autosave/CAS/history/Undo; sửa tiền không ghi đè trạng thái; dữ liệu cũ giữ nguyên |
+| AC-26.2 | Vận đơn thêm theo phạm vi; Kế toán/Admin quản lý chứng từ; quyền đọc Kế toán không thành quyền sửa ô/phân công |
+| AC-26.3 | Ref giữ số 0 đầu, duy nhất trong đơn đang hiệu lực; replay tạo không trùng; sửa đồng thời có CAS; xóa mềm/khôi phục không mất file |
+| AC-26.4 | JPG/PNG tối đa 5 ảnh và 10 MB/lượt; ảnh riêng tư có kiểm quyền; lỗi lưu dọn file mới; không chuyển chứng từ sang đơn khác |
+| AC-26.5 | Bill hiển thị tối đa hai Ref và đường xem đủ; giữ Bill cũ; tìm/lọc/Excel đúng phạm vi, không nhúng ảnh |
+| AC-26.6 | Chrome 1440/1280/390: chọn/dán ảnh, tạo/sửa/xem, X/Escape; 10k dòng không tải ảnh khi mở/cuộn; metadata một truy vấn/khối; cache ≤10 |
+
+[Quyết định](quyet-dinh/025-trang-thai-va-chung-tu-thanh-toan.md) ·
+[Kết quả và giới hạn](kiem-chung-chung-tu-thanh-toan-20260912.md).
+
 | Mục | Nội dung |
 |---|---|
 | Dự án | Kim Ngân JSC — Hệ thống vận hành nội bộ |
@@ -87,7 +101,9 @@ và đó là chuyện bình thường.
 
 ### Ma trận kiểm chéo
 
-Mỗi ô là một bài kiểm thử. Năm vai trò nhân với chín đường dẫn chính — 45 ô, thêm hai dòng ngày 03.09.2026 (nhập tệp và Bảng tính).
+Mỗi ô là một bài kiểm thử. Năm vai trò nhân với mười đường dẫn chính — 50 ô, thêm hai dòng ngày 03.09.2026 (nhập tệp và Bảng tính) và một dòng ngày 17.09.2026 (thư viện tài liệu).
+
+Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ngay tại KN ERP: người có quyền được chuyển sang KN CRM, người không có quyền vẫn bị từ chối tại chỗ. **Thư viện biểu mẫu và tài liệu** dùng chung đường dẫn `/bieu-mau/`: mở ra là tab Tài liệu, ai đăng nhập cũng vào được; tab quản lý biểu mẫu `?tab=forms` vẫn chỉ Manager trở lên, gọi thẳng bằng vai khác trả lỗi từ chối.
 
 | Đường dẫn | Staff Sale | Leader Sale | Manager Sale | Staff Vận đơn | Chưa đăng nhập |
 |---|---|---|---|---|---|
@@ -95,11 +111,12 @@ Mỗi ô là một bài kiểm thử. Năm vai trò nhân với chín đường 
 | Báo cáo người cùng team | Từ chối | Vào được | Vào được | Từ chối | Chuyển đăng nhập |
 | Báo cáo team khác cùng bộ phận | Từ chối | Từ chối | Vào được | Từ chối | Chuyển đăng nhập |
 | Báo cáo bộ phận khác | Từ chối | Từ chối | Từ chối | Từ chối | Chuyển đăng nhập |
-| Màn hình lên đơn | Vào được | Vào được | Vào được | Từ chối | Chuyển đăng nhập |
+| Màn hình lên đơn | Chuyển sang KN CRM | Chuyển sang KN CRM | Chuyển sang KN CRM | Từ chối | Chuyển đăng nhập |
 | Bảng vận đơn | Từ chối | Từ chối | Từ chối | Vào được | Chuyển đăng nhập |
-| Quản lý biểu mẫu | Từ chối | Từ chối | Vào được | Từ chối | Chuyển đăng nhập |
+| Quản lý biểu mẫu (`?tab=forms`) | Từ chối | Từ chối | Vào được | Từ chối | Chuyển đăng nhập |
 | Nhập tệp vào bảng của Sale | Từ chối | Vào được | Vào được | Từ chối | Chuyển đăng nhập |
 | Bảng tính vận đơn | Từ chối | Từ chối | Từ chối | Vào được | Chuyển đăng nhập |
+| Thư viện tài liệu (`/bieu-mau/`) | Vào được | Vào được | Vào được | Vào được | Chuyển đăng nhập |
 
 ---
 
@@ -208,6 +225,7 @@ Mỗi ô là một bài kiểm thử. Năm vai trò nhân với chín đường 
 | AC-10.6 | Bản sao lưu tự động chỉ giữ tối đa 30 bản gần nhất | NFR-15 | Tự động |
 | AC-10.7 | Đọc trực tiếp cơ sở dữ liệu không thấy mật khẩu dạng đọc được | NFR-4 | Tự động |
 | AC-10.8 | **Kiểm tải KN CRM ở cỡ 100 nghìn khách** (docs/06 tầng 9): chạy `scripts/kiem-tai-kn-crm.*` trên máy có Docker — nạp 100.000 dòng vận đơn (≈ 3 triệu ô, 86 nghìn số điện thoại) và bảng Sale 20.000 dòng có cột tính sẵn, `do_hieu_nang` đo một người, rồi Locust **100 người 5 phút** (70 nhân viên vận đơn di qua di lại, 20 Sale/Marketing, 7 trưởng nhóm dán/xoá, 3 Manager đổi cột tính sẵn giữa phiên) trên gunicorn 3 worker; in **ĐẠT** khi p95 nhóm đọc ≤ 1 s, nhóm ghi ≤ 0,5 s, `moi-nhat/` ≤ 0,3 s, 0 lỗi, tính lại cột 100.000 dòng ≤ 30 s mà p95 người khác vẫn ≤ 1 s (`core/constants.py`) | NFR-2 | Thủ công |
+| AC-10.9 | `manage.py nap_khach_mau --bang <mã> --so-khach N` nạp N khách giả (mã đơn `KH-*`) theo lô 2.000 vào bảng vận đơn chỉ định (mặc định Vận đơn DB): số dòng = N ÷ (1 − tỉ lệ mua lại, mặc định 20 %), mỗi khách ít nhất một dòng, khách mua lại dùng lại số điện thoại để cột Trùng có việc, bảng có profile Vận đơn thì mỗi dòng có phân công Vận đơn/CSKH; `--xoa-cu` xoá sạch dòng `KH-*`; DEBUG tắt thì từ chối như `seed_perf` | NFR-2 | Tự động |
 
 ---
 
@@ -370,3 +388,107 @@ Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ 
 | 1 | ~~Tiêu chí cho công thức trên bảng~~ | Đã chốt 29.08.2026 — ADR-006, thành AC-7.10 tới AC-7.12 |
 | 2 | Số lượng bài kiểm thử tự động tối thiểu | Có nên đặt ngưỡng tỉ lệ bao phủ không |
 | 3 | ~~Công cụ đo hiệu năng khi kiểm AC-10.1~~ | Đã chốt 03.09.2026 — Locust, chỉ dùng khi kiểm thử (backlog Q44, K6 đóng) |
+
+## 20. Vận đơn mới theo CRM Tân — ADR-018
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-18.1 | Khởi tạo máy sạch và cập nhật máy có dữ liệu đều có hai bảng; chạy lại không trùng, bảng cũ giữ dữ liệu/ID/liên kết/quyền; bảng mới trống, chỉ sao quyền đang hiệu lực một lần | ADR-018 | Tự động |
+| AC-18.2 | Tạo ở ERP/CRM sinh đúng một dòng bảng mới và chi tiết cùng giao dịch; lỗi chi tiết hoàn tác cả đơn; ngày Việt Nam, người bán từ tài khoản | FR-6.3 · ADR-018 | Tự động |
+| AC-18.3 | Chi tiết nhiều sản phẩm, tiền thu từng sản phẩm, tổng/trạng thái khớp; số tiền chính xác, sửa bản sao không đổi ERP; editor cũ không ghi đè, audit không chứa thông tin khách | ADR-018 · BR-3 · BR-8 | Tự động |
+| AC-18.4 | Ba cấp bậc và Admin kiểm cả hai chiều trên khu nhập, chi tiết GET/POST, thống kê; quyền lên đơn không cấp quyền xem bảng, chỉ có quyền xem không sửa được | FR-3.5 · ADR-018 | Tự động |
+| AC-18.5 | Ô tổng và trạng thái tự tính không sửa trực tiếp/dán đè; gói dán có ô cấm hoàn tác cả gói; cột chuẩn không đổi cấu trúc hoặc bị xoá | ADR-018 | Tự động |
+| AC-18.6 | Thống kê theo toàn bộ bộ lọc và quyền, bốn kiểu nhóm; tách tiền, distinct đơn, nhóm mã sản phẩm; sửa, xoá mềm, khôi phục phản ánh đúng, Hủy/Hoàn không bị bỏ ngầm | ADR-018 | Tự động |
+| AC-18.7 | Xuất/nhập lại bảo toàn chi tiết và tiền; dòng thiếu chi tiết, tổng không khớp hoặc mã sản phẩm lạ báo lỗi xem trước, không tự phân bổ | FR-7.5 → FR-7.7 · ADR-018 | Tự động |
+| AC-18.8 | Bảng chỉ có Vận hành đơn, Thống kê và tiêu đề nhóm; không có form hoặc yêu cầu tải Lên đơn nhúng. Thống kê thu gọn được, ô tổng mở chi tiết, không có Blacklist; 390px cuộn trong lưới. Hai trang Lên đơn riêng hoạt động như trước | ADR-018, ADR-019 | Tự động |
+| AC-18.9 | Máy sạch có thêm bảng động độc lập `van_don_db`, đúng 26 cột theo cấu hình 14.09.2026; Ngày thanh toán đứng đầu nhóm thanh toán; chạy lệnh khởi tạo nhiều lần không trùng bảng/cột và không tạo dữ liệu | Cấu hình Vận đơn DB 14.09.2026 | Tự động |
+
+## 21. Feedback Vận đơn mới — ADR-020
+
+Các tiêu chí này thay giả định thấy toàn bộ hàng đợi của nhân viên Vận đơn
+ở AC-18.4 trên bảng mới. AC-18.7 chỉ nhập lại phần dữ liệu nghiệp vụ;
+phân công trong file không được dùng để cấp quyền.
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-20.1 | Leader/Manager Vận đơn và Admin phân công; nhân viên thấy đúng đơn được giao, Sale thấy đơn mình tạo; CSKH chỉ bổ sung xem; grant bảng/Marketing không vượt phạm vi; đọc chung ERP và số đếm tuân thủ | ADR-020 | Tự động |
+| AC-20.2 | Ba người phụ trách là tài khoản hoạt động đúng bộ phận, mã/họ tên hiển thị; chặn ô/dán/nhập ghi phân công; người cũ không ghi được dữ liệu đã đọc trước khi chuyển giao | ADR-020 | Tự động |
+| AC-20.3 | Một/nhiều dòng, giữ/đổi/bỏ từng trường; hai request đồng thời không ghi đè, phiên bản cũ trả 409, lỗi rollback cả lượt, audit không thông tin khách | ADR-020 | Tự động |
+| AC-20.4 | Lọc AND/OR đúng, mã sản phẩm chi tiết không nhân dòng; Quốc gia/Marketing và chưa gán đúng; ngày và trạng thái độc lập; lựa chọn/thống kê trong phạm vi | ADR-020 | Tự động |
+| AC-20.5 | Xuất toàn kết quả lọc/ngày, mã nhân viên phân biệt trùng tên, dòng thiếu Order để trống mã Sale; trực tiếp/nền đồng nhất, worker và tải lại kiểm quyền | ADR-020 | Tự động |
+| AC-20.6 | Desktop/mobile không tràn trang; bàn phím mở phân công, chọn nhiều dòng, lỗi xung đột có cách tải lại; URL giữ lọc/sắp xếp, trạng thái rỗng rõ; không có Lên đơn nhúng | ADR-020 | Tự động |
+| AC-20.7 | Migration xuôi/ngược trên DB test bảo toàn đơn/dòng/chi tiết, không tự phân công; lưới 100 dòng không truy vấn riêng từng dòng | ADR-020 | Tự động |
+
+
+## 22. Lưới master và Thống kê KN CRM — ADR-021
+
+AC-21.1 thay AC-18.8 về Vận hành đơn/tiêu đề nhóm/thống kê nhúng; giữ các
+quyền và hợp đồng dữ liệu của AC-18/20. Các bảng khác tiếp tục tiêu chí cũ.
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-21.1 | Chỉ bảng mới chạy controller riêng, không form Lên đơn/thống kê nhúng/thanh công thức; hàng mặc định 28px, kéo 28–400px và xuống dòng; ghi nhớ theo user/bảng/ID local, Escape hủy/↑↓/Home; cuộn/neo đồng bộ, reader/editor không tự giãn hàng | ADR-021 | Tự động |
+| AC-21.2 | Khối 100/cache 10, DOM hữu hạn; chọn/đi xuyên khối, Ctrl+A toàn kết quả, copy/dán ≤2.000 ô giữ số 0 đầu; sai/khóa không ghi phần, không tạo dòng; IME đúng; nhập trong ô không che hàng dưới, Admin sửa trạng thái/ngày theo hai chế độ, rê nhẹ vẫn mở và lỗi danh sách chọn không khóa ô khác | ADR-021 · bổ sung 11.09.2026 | Tự động |
+| AC-21.3 | Tự lưu nền sau kết thúc nhập, gộp 500ms/tối đa 2s; vẫn sửa được khi lưu; Ctrl+S gửi ngay; tối đa 2.000 ô/lượt; CAS cùng ô trả 409, khác ô giữ cả hai; UUID gửi lại không ghi hai lần, UUID khác nội dung bị từ chối; batch atomic, audit không nội dung khách | ADR-021 | Tự động |
+| AC-21.4 | Mọi đọc/ghi/copy chưa tải/poll theo scope, thu quyền không trả dòng hoặc ghi bản nháp; lọc/sắp xếp ổn định, phản hồi cũ bị bỏ; đổi lọc/popup giữ nháp, X luôn thấy được; lỗi lưu giữ nội dung, rời/tải lại bảng cảnh báo nếu còn thay đổi chưa xác nhận | ADR-021 | Tự động |
+| AC-21.5 | Thống kê riêng, biểu đồ/tổng hợp toàn kết quả lọc, tiền tách loại; top 10 nhưng đối chiếu đủ nhóm; trạng thái trống/partial, đơn thiếu chi tiết đúng; link/redirect giữ lọc | ADR-021 | Tự động |
+| AC-21.6 | Desktop 1440/laptop 1280/mobile 390/zoom 125% không vỡ; cuộn sâu, chọn/đọc/resize p95 ≤100ms; HTTP 100k/300k ×10/20 người đọc p95 ≤1s, ghi ≤0,5s, cache/DOM/bộ nhớ hữu hạn | ADR-021 · ADR-016 | Tự động |
+| AC-21.7 | Migration biên nhận/lịch sử và chỉ mục master xuôi/ngược trên DB test không đổi dữ liệu đơn/phân công; hồi quy lưới cũ, Lên đơn ERP/CRM, chi tiết, nhập/xuất nền/direct và quyền trước tải | ADR-021 | Tự động |
+| AC-21.8 | Mặc định Xem; Chỉnh sửa mở nhập khi bấm/chuyển ô, giữ mũi tên trong chữ và thao tác chọn vùng; hàng được chọn và viền dùng xanh dương; số dòng đầu là 1; mặc định đơn cũ trước/mới cuối, khóa phụ ID | ADR-021 | Tự động |
+| AC-21.9 | Cỡ chữ/màu chữ/màu nền giữ thuộc tính khác; CAS riêng từng thuộc tính; định dạng/Undo/Redo nguyên tử; phản hồi lượt cũ không xóa nháp mới, retry giữ UUID/nội dung; lỗi quyền/kiểu/xung đột không retry tự động | ADR-021 | Tự động |
+| AC-21.10 | Lịch sử chỉ nối thêm, trước/sau theo ô, tài khoản/thời điểm/nhóm thao tác; 50 mục/trang, kiểm quyền hiện hành, replay không trùng; xung đột đối chiếu trong phiên và gửi lại bằng CAS mới, không ghi đè cưỡng bức | ADR-021 | Tự động |
+| AC-21.11 | Admin CRM bắt buộc chọn Sale hoạt động/hợp lệ; creator là Admin, seller/phòng ban/team theo Sale; Sale đọc đơn đứng tên; người khác không giả mạo seller; lỗi tạo đơn/chi tiết/vận đơn rollback cả lượt | ADR-021 | Tự động |
+
+## 23. Bàn điều hành KN CRM — ADR-022
+
+AC-22 thay phần đích Thống kê Vận đơn riêng của AC-21.5; giữ nguyên hợp đồng
+lưới, bộ lọc và dữ liệu Vận đơn của AC-18/20/21.
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-22.1 | `/thong-ke/` tổng hợp tối đa một nguồn mỗi profile; `nguon` phân tích đúng một bảng; mọi bảng hoạt động trong scope đều chọn được; mặc định nguồn cập nhật gần nhất và ưu tiên `van_don_moi` | ADR-022 | Tự động |
+| AC-22.2 | Nhận diện đúng Vận đơn mới → Marketing → Sale → Chung; bảng cũ có ghi chú lịch sử; thiếu nhãn Ngày được liệt kê, không tự đoán | ADR-022 | Tự động |
+| AC-22.3 | Kỳ trước cùng số ngày; CPO/AOV/tỷ lệ dùng tổng có trọng số; kỳ trước 0 không sinh vô cực; tiền tách loại hoặc ghi đơn vị theo bảng | ADR-022 · BR-3 | Tự động |
+| AC-22.4 | Sale–Vận đơn chỉ đối chiếu tổng cùng kỳ, chênh lệch ghi cần đối chiếu; mỗi màn hình tối đa ba insight đúng thứ tự, trung tính, có bằng chứng/nguồn/link ngày và trạng thái tương ứng | ADR-022 | Tự động + trình duyệt |
+| AC-22.5 | Staff/Leader/Manager/Admin chỉ thấy đúng scope trên danh sách, aggregate và link; mã ngoài scope/ngừng dùng trả 403 có audit; owner username không phải Admin không được nâng giao diện hoặc quyền | ADR-022 · FR-3.5 | Tự động |
+| AC-22.6 | Ngày sai hoặc `tu > den` hiện lỗi và không aggregate; một profile lỗi không che phần khác; bảng rỗng/partial/thiếu chi tiết vẫn có trạng thái rõ | ADR-022 | Tự động |
+| AC-22.7 | Biểu đồ đúng bộ theo profile, ≤10 nhóm và bảng đối chiếu phân trang đủ; ngày/tuần/tháng theo 45/180 ngày; cột 2.5D không sai tỷ lệ, đường phẳng, có title/nhãn/bảng/focus/reduced-motion | ADR-022 | Tự động + trình duyệt |
+| AC-22.8 | Sidebar hiện khi có bất kỳ bảng nào; Trang chủ CRM và Báo cáo tổng hợp ERP chỉ thêm link; xuất Excel ERP và `f_*`/`group`/phân trang/redirect Vận đơn cũ không hồi quy | ADR-022 · ADR-014 | Tự động |
+| AC-22.9 | Query không tăng theo số dòng hoặc toàn bộ bảng ngoài ba nguồn; p95 đọc ≤1 giây trên 100k/300k Vận đơn và 20k Sale; không có dependency, cache, polling hoặc tác vụ nền mới | ADR-022 · ADR-016 | Tự động + hiệu năng |
+
+## 24. CRM-Optimization — ADR-024, đang kiểm chứng
+
+ADR-024 thay riêng điều kiện “không có cache mới” của AC-22.9 bằng cache
+Thống kê tối đa 15 giây. Giữ công thức, scope và các tiêu chí giao diện trước đó.
+Các mục dưới là điều kiện nghiệm thu, **không phải kết quả đã đạt**.
+
+| Mã | Đạt khi | Kiểm bằng |
+|---|---|---|
+| AC-24.1 | Khối v2 ≤100 dòng; token/cursor ký theo user/bảng/điều kiện/quyền; ID/thứ tự/tổng khớp truy vấn và xuất; cache hit không COUNT lại; Redis lỗi đọc DB | Unit/functional và EXPLAIN |
+| AC-24.2 | Mọi đường ghi phát revision cùng transaction; rollback không phát; commit đảo thứ tự khởi tạo không mất sự kiện; journal ≤10k phiên bản/bảng và ≤2k ID/sự kiện | Transaction/bulk/migration test |
+| AC-24.3 | Sync ≤4k ID client, chỉ trả dòng còn scope; mất quyền/khóa tài khoản gỡ dữ liệu khỏi UI; cache nóng không vượt quyền; lọc/sort đổi loại phản hồi cũ | Functional + trình duyệt |
+| AC-24.4 | V1/v2 cùng giữ CAS, nguyên tử, nháp mới, Undo và replay; biên nhận v2 không nhân lịch sử, trả đúng xác nhận ban đầu sau kiểm quyền, kể cả tắt cờ | Unit + E2E |
+| AC-24.5 | Sticky lệch ≤1 CSS px trong cuộn; cache ≤10, DOM/heap có giới hạn; không đổi thao tác inline/IME/selection/resize; UI p95 ≤100ms, ≥100 mẫu | Chrome 1440/1280/390, CSS zoom và zoom thực ghi riêng |
+| AC-24.6 | Thống kê giữ công thức và snapshot, TTL không gia hạn quá15s, Làm mới bỏ cache; Excel giữ kiểu/chuỗi số0 đầu/định dạng/ID/thứ tự; worker/tải lại kiểm quyền; cấu hình giới hạn một tác vụ nặng chạy đồng thời, đo riêng độ dài/thời gian chờ hàng đợi | Functional + xuất/nhập nền |
+| AC-24.7 | Đo cùng snapshot/seed/tài nguyên: 100k/300k ×10/20, warmup60s/đo5phút; bản cuối 300k/20/30phút; đọc/lọc/history p95≤1s, lưu ô≤0,5s, 2k ô≤5s; không lỗi mạng/5xx không chủ đích hoặc sai dữ liệu | Raw HTTP/browser/resource/storage evidence |
+
+Không gộp skip thành đạt. VPS chưa có thì chỉ báo kết quả local; không dùng
+cấu hình dự kiến thay phép đo. Cờ không đạt hồi quy phải để tắt.
+
+## 27. Lưới dùng chung và vòng đời bảng — ADR-027
+
+Đây là tiêu chí, chưa phải nhãn hoàn thành. Kết quả tại
+[báo cáo CRM-UPDATE](kiem-chung-crm-update-20260912.md).
+
+| Mã | Đạt khi | Kiểm bằng |
+|---|---|---|
+| AC-27.1 | Mọi bảng động dùng chung shell/JSON/virtual grid; renderer nghiệp vụ từ registry; ERP chỉ đọc, Vận đơn mới giữ Lên đơn/Bill/phân công | Functional + Chrome |
+| AC-27.2 | Công thức/kiểu/định dạng đúng; CAS hai đầu vào đồng thời; ô khóa hoặc sai kiểu làm toàn lượt rollback và chỉ đúng vị trí | Functional/transaction |
+| AC-27.3 | Nháp cuối bảng, thiếu bắt buộc giữ RAM; paste tạo/sửa nguyên tử; retry không trùng; Undo có xung đột từ chối toàn lượt, Redo cùng ID | Functional + Chrome |
+| AC-27.4 | Manager đúng phòng ban/Admin xóa với tên chính xác, khôi phục giữ ID; Staff/Leader/Grant bị từ chối; Vận đơn mới được bảo vệ | Functional + Chrome |
+| AC-27.5 | Biểu mẫu/job ghi chặn xóa; khóa chia sẻ cho ghi và độc quyền cho vòng đời; bảng xóa ngừng đọc/ghi/tải file và tab nóng gỡ dữ liệu | Transaction + worker + Chrome |
+| AC-27.6 | Không còn renderer/asset ghi cũ; URL ghi cũ trả 409; metadata đổi cấu trúc giữ nháp theo mã cột; không ghi vòng qua CAS | Quét nguồn + functional + Chrome |
+| AC-27.7 | 1440/1280/390 và zoom Chrome thật 125%; DOM/cache giới hạn; ít nhất 100 mẫu/thao tác, p95 ≤100ms; ghim lệch ≤1 CSS px; phân biệt IME mô phỏng/thật | Chrome + bằng chứng thô |
+| AC-27.8 | 100k/300k ×10/20, 60s ấm +300s đo; nếu đạt chạy 300k/20/30 phút; đọc/lọc/history p95 ≤1s, lưu ≤0,5s, 2.000 ô ≤5s; không sai/mất/trùng/lộ dữ liệu | Locust + SQL + oracle + tài nguyên |
+
+Tạo bảng trắng và duplicate cấu trúc hoãn; quyền tạo bảng sẵn có giữ nguyên.

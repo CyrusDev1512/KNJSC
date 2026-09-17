@@ -19,7 +19,11 @@ GOC = Path(__file__).resolve().parent.parent.parent
 THU_MUC_TEMPLATE = GOC / "templates"
 CAC_TEP_CSS = [
     GOC / "static" / "css" / "main.css", GOC / "static" / "css" / "tokens.css",
-    GOC / "static" / "css" / "bang-tinh.css",
+    GOC / "static" / "css" / "crm-frame.css",
+    GOC / "static" / "css" / "grid-formats.css",
+    GOC / "static" / "css" / "waybill.css",
+    GOC / "static" / "css" / "solarpunk.css",
+    GOC / "static" / "css" / "executive-statistics.css",
 ]
 
 #: Lớp chỉ dùng làm móc cho JavaScript, cố ý không có kiểu dáng.
@@ -62,7 +66,8 @@ def _lop_trong_tep(duong_dan):
 def _lop_da_khai():
     """Mọi tên lớp đã khai trong các tệp kiểu dáng dùng chung."""
     da_khai = set()
-    for tep in CAC_TEP_CSS:
+    for tep in [*CAC_TEP_CSS, Path(__file__).resolve().parents[2] / "static/css/master-grid.css",
+                Path(__file__).resolve().parents[2] / 'static/css/payments.css']:
         da_khai |= set(re.findall(r"\.([a-zA-Z][\w-]*)", tep.read_text(encoding="utf-8")))
     return da_khai
 
@@ -80,6 +85,39 @@ CAC_TEMPLATE = sorted(THU_MUC_TEMPLATE.rglob("*.html"))
 def test_co_template_de_kiem():
     """Bài quét chỉ có nghĩa khi thật sự tìm thấy template"""
     assert len(CAC_TEMPLATE) >= 10
+
+
+def test_khung_erp_co_dock_thu_gon_va_bang_co_che_do_tap_trung():
+    """Hợp đồng bố cục: dock dùng chung và bảng ERP có đủ điều khiển/fallback."""
+    base = (THU_MUC_TEMPLATE / "base.html").read_text(encoding="utf-8")
+    table = (THU_MUC_TEMPLATE / "forms_builder/bang_xem.html").read_text(encoding="utf-8")
+    shell = (GOC / "static/js/solarpunk-shell.js").read_text(encoding="utf-8")
+    focus = (GOC / "static/js/erp-table-focus.js").read_text(encoding="utf-8")
+    assert 'id="sp-dock-collapse"' in base and 'id="sp-dock-expand"' in base
+    assert "knjsc-erp-dock-collapsed" in shell and "localStorage.setItem" in shell
+    assert 'id="erp-focus-enter"' in table and 'id="erp-native-fullscreen"' in table
+    assert "requestFullscreen" in focus and "fullscreenElement" in focus
+    assert "event.key !== 'Escape'" in focus and "event.defaultPrevented" in focus
+
+
+def test_khung_erp_co_hai_icon_nen_va_mo_rong_trong_tab():
+    """Nút header chỉ mở rộng ERP trong tab, không kích hoạt Fullscreen API như F11."""
+    base = (THU_MUC_TEMPLATE / "base.html").read_text(encoding="utf-8")
+    shell = (GOC / "static/js/solarpunk-shell.js").read_text(encoding="utf-8")
+    css = (GOC / "static/css/solarpunk.css").read_text(encoding="utf-8")
+
+    assert 'class="sp-view-actions"' in base
+    assert 'id="nut-nen"' in base and 'class="sp-theme-icon' in base
+    assert 'id="sp-erp-fullscreen"' in base
+    assert 'class="sp-fullscreen-icon' in base
+    assert "sp-erp-immersive" in shell
+    assert "requestFullscreen" not in shell and "fullscreenchange" not in shell
+    assert "Mở rộng giao diện ERP" in base
+    assert "knjsc-erp-immersive" in base and "localStorage.getItem" in base
+    assert "knjsc-erp-immersive" in shell and "localStorage.setItem" in shell
+    assert "addEventListener('storage'" in shell
+    assert "sp-erp-immersive body.sp-erp::before" in css
+    assert "sp-erp-immersive .sp-erp>.app" in css
 
 
 @pytest.mark.parametrize("tep", CAC_TEMPLATE, ids=lambda p: p.name)

@@ -1,0 +1,3514 @@
+{
+  "created": "2026-09-11T05:43:54.969Z",
+  "head": "3c3fd09df63dd56b8eb7583391a6a976dba5406a",
+  "branch": "CRM-Optimization",
+  "baseline": "C:/KNJSC/CRM-Optimization-baseline",
+  "files": [
+    {
+      "path": "app/crm/tests/test_order_consolidation.py",
+      "sha256": "743b928c83e2e8544908a34302b8fb8f5217390023ba6ad11de5931db8d985dd",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_order_hub_browser_server.py",
+      "sha256": "19bb4ed0882710444529bc77ae6966ff2f252fbac559bad81f721313450e4945",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_order_identity_units.py",
+      "sha256": "ed4dfab4df351409115f9cffbb913c363aea281b466be16c524a344a00dbace0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_order_required_choices.py",
+      "sha256": "ef89b14507a4a04c7df1ff986a3f57771298df111c6541faf74234bd52345a92",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/presentation.py",
+      "sha256": "b04038ac208efae025d85d3b21c1eb367fa19fdde500d8a4d5d5ac2a83ec7406",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/tests/test_library_hub.py",
+      "sha256": "98687f6115614dc03c93b19cc3319982024b0f0c8267a580bd91bdfd9a1d7072",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/handoff.py",
+      "sha256": "334f02fa93237b2b616e350342e854dd094c0abf446af0c2a5fcd628c1b05392",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/migrations/0006_line_unit_snapshot.py",
+      "sha256": "53a4a1354ed88aa4d5110b308e617a5e53682a557e8da5610e33bb7a84111875",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/units.py",
+      "sha256": "2935566e10dfbdf4c90ba4b9ffa9c13176060efb0f4e8662189829e3159c72d7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/js/order-entry.js",
+      "sha256": "f9a96c1f0185d25002a1ae5dc1b3f2d7aa818cef5ec35ce42f0d93fe96e5ceef",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/documents/_library_documents.html",
+      "sha256": "c3f6bbfa3427533165933286c2bcf58455919ceade8ddd3d1fd6845063d9b511",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/forms_builder/_library_forms.html",
+      "sha256": "0a6e35e6e96d085787fc2e5b4c09f7ad382de44fe43a53dbf1a9266d52935073",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/forms_builder/library_hub.html",
+      "sha256": "1f84f3f4eda57bd5f74e8a7d0706e5fcb2b209ba677e4b824a4c9c6915e98913",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/perf/locust_order_entry.py",
+      "sha256": "9887ec323a1d378cd0363068caacebae8fbb8bb1fc335e9b788ebe0c0e389adf",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/perf/locust_order_hub.py",
+      "sha256": "f48c34af548fefbc061b7229b3044a4ebb75e282e28b35e1dcaa41fb5ae8e4da",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-chung-erp-hub-20260911.md",
+      "sha256": "67b1e254ba8f5a84f5e9f765ea68ebc42fce25a9ccae9c0d6010557d87e673da",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-chung-len-don-20260911.md",
+      "sha256": "998b3e24a44c0b9d773ec59508ec9d49bdf21fa15e205c2067bcb30655d6b56f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-chung-len-don-gio-admin-20260911.md",
+      "sha256": "5f20ea0b080f8ee6386279ba5c106bd38bea24320546fce43e37333728bc4c7b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/023-dieu-huong-erp-va-len-don-crm.md",
+      "sha256": "e1a40f265fa3f6ba2a865e3b5bde20ef972c7b6ae60ec9cfe7072c5a599b5b97",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-erp-hub.cjs",
+      "sha256": "cb4aa241b6e781533dddcfe380da823227abe88ed1b824f418e58fdae280175a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-order-entry.cjs",
+      "sha256": "70790efebc5ee167d0b8d82636913a7626607172bdeec8c54683b546da2a11f6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/NGUON-THIET-KE.md",
+      "sha256": "18d455f8d4fefee829479e7086d5c3ba9e7aa6b62e3550c1da914398152ee360",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/design-state/design.json",
+      "sha256": "b8308c99c1c5b60340a3d8f588857e86ecb0483078b8de1e35876e7117e330db",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/design-state/surfaces/app-templates-base-html.md",
+      "sha256": "2d945a12ce5d21fb5bc796e4d32393f5e0fea5e19d74c678e2af3c9c9451fa68",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/design-state/surfaces/app-templates-crm-bang-tinh-html.md",
+      "sha256": "edd1d83f5d2b0465f0bf7e63ff1b90da728fcb84106840386eb5516609012745",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skill-sources.json",
+      "sha256": "3bfe6b4fb074594c2b8cf510922b5404888516f288198d35cc91127d72e4a4d9",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/design-taste-frontend/LICENSE",
+      "sha256": "3c9f63518df3378772203cc64d38d9e381d2a4723b93d2c3849b2bf3d464de0c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/design-taste-frontend/SKILL.md",
+      "sha256": "2e064e92aca020b2e0bad69326fe7ea55d59005ed53d1a8cbce1bd135d44b8b3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/high-end-visual-design/LICENSE",
+      "sha256": "3c9f63518df3378772203cc64d38d9e381d2a4723b93d2c3849b2bf3d464de0c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/high-end-visual-design/SKILL.md",
+      "sha256": "2d11cdcefc8bf319429ee17d94d69a390802e2acf7163662d1eacbcf5be3ff79",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/LICENSE",
+      "sha256": "fc0673369dae07c045c46869d3d4c9113678c77fcc7d3b4e3a39ac074cfa68b6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/NOTICE.md",
+      "sha256": "9bc6cf69fa566aaaf6fa5cf40397597eab8b39f497de61728da7bcf0930db207",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/SKILL.md",
+      "sha256": "1ed319c38a4a31a2266fb82b011b4b62819aba0a270dfd7825aa8cc73db0cb62",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/adapt.md",
+      "sha256": "3292cdf2945c304f7b2b19c231a3d69a242adbcf0ce11695b6ec607527e41866",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/adapt.native.md",
+      "sha256": "0ca97ca6e9d7b3758b94d2a3dd5e1de0c7b7b9ca0b61ef6bc0cfa34fd0603e83",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/android.md",
+      "sha256": "a3757686a0c2778ccbc0ea321f4460368f26bc0229d2b24c3c694a42ce40b1a0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/animate.md",
+      "sha256": "0964df17380aaaf3a65befb05cadcc2bcaab8acd289b33d10d1eb0db1897b643",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/audit.md",
+      "sha256": "6d79ccc7f3aaa372d50d19d45e295332bfd959c333a998d5f18a8819fb9064e1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/audit.native.md",
+      "sha256": "047ad7c1b5b20a3b4e3760a8b9be238fd0621443a9a200a68e3e8fccdc5775e1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/bolder.md",
+      "sha256": "a8d73a725c3e0139d8e7de5ada1496054a22d95c02bd3980a53d0e5ae5badac4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/clarify.md",
+      "sha256": "ae344a11a75cb29cf09ad2325bbdf8caa2e7468a61b88f766a01c758b95bbd23",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/colorize.md",
+      "sha256": "06652c3b1b84177445eb99f97e0be3450c3219d8d704ba0382fb48b13ad5c1d9",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/craft-floor.md",
+      "sha256": "89281951d3b4a56ea64c6cfff32d02a6da2c9ea912d117bfa3a11e93224d3496",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/craft.md",
+      "sha256": "39b5fefbf524ad156a4cab2fbc5b65f2358c213a30d59a4c7510704e8d9dd56b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/critique.md",
+      "sha256": "8833f80538fbb37c62dc8dd3d45541e3c5d34f958f3f391285c8859cce7b04f8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/degraded/asset-producer.md",
+      "sha256": "9fce65c1a612a5c70fb641fbb031f644c10d413bca744f2a27c8dd62cf6198af",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/degraded/documenter.md",
+      "sha256": "f625dc0b847beb703306686c94759294e1d68fce51faaf8076d60a7228105616",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/degraded/finish-reviewer.md",
+      "sha256": "af57d7bbe1b65449d478d2ae6e82efdda07fa852f4d8b0ea767bcf9e5845f3bf",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/degraded/manual-edit-applier.md",
+      "sha256": "1b3672f3f3ae0065fbaac8a9025b759da40caeaa75cb716b629e4544c03ad8fb",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/delight.md",
+      "sha256": "6a6641bde4c9a3b4b260447d4a91d5a3eefa10ec18939a945aa6f27a34343047",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/distill.md",
+      "sha256": "2b4b805f104c8235afd1d05cfa5a7a1c47e615048fc7c7ed48280d85816127b6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/doctor.md",
+      "sha256": "0f7c3c9984f5356833d0d3e6b5d2963657525cca2aba753d219d47e84a2f2c48",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/document.md",
+      "sha256": "94368e5a890e2cd1f6badbf50edb99b5a830cf6367da50d109bf20f75c1576c0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/engine-workflow.md",
+      "sha256": "9f4dafb1348337c1a1e256919503432991d1b40930788716f11a8eb9e5759776",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/extract.md",
+      "sha256": "a1d14b473c7989a61f528923a59de04dc5f9d2cbdfbe141c87e0bb5866ad3bf4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/harden.md",
+      "sha256": "a27a7c0a11f15d0ee64c3a4bb8b8cc61053c725f1ecedfaf63c8dffc2efaf0e2",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/hooks.md",
+      "sha256": "034ac00fb2d7dcb0228b293fd100c40ecd1e25951889853a30652d25b00d2894",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/init.md",
+      "sha256": "8badfba53652ec183a8e3c95399b019682898808f5374f950ba80b3ef5eb4a36",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/ios.md",
+      "sha256": "60ada207bfb419ad0a570b8319c29403713ca2ad3fb9a2f5bdffa62ab25611bb",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/layout.md",
+      "sha256": "ef4c59eafe4efabcc112e902ee6660ec469423a0f99b7c2b1a03b5bd429d800d",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/live-setup.md",
+      "sha256": "07d38ed4a26e670057e042b317b816b17dee0028ee09431df0e5297846daa670",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/live.md",
+      "sha256": "4db2fa54368e73a8ee0b12d4ea5a77d6c955accb04a4f33dcb445b56152ed531",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/new-work.md",
+      "sha256": "c8f5b23e51cb5e67ea2ea05d259f2bb01c8062a67eb35668294d8b5b8029fed4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/onboard.md",
+      "sha256": "774d221e01beabf92924fded53935ee363887c1c46930f0b4ffcb6f8f7024388",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/operate.md",
+      "sha256": "c4b169ab7932329c833750971c53bc129d0385e16d0219b31f002792fce939e8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/optimize.md",
+      "sha256": "2fc27c6af0c80f332a715a6ea431215b9fa7de8fb82b7a9a8e7a20bf4b105b5a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/overdrive.md",
+      "sha256": "5bd1b1f5dfb4650989028eff0d215fc7138017fcfa3e652a68d3df3cd1d98907",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/polish.md",
+      "sha256": "e0f8997a76ff955449cc65bf2d9fcc542d893700a30b56fb2c5e5d8a438410f7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/quieter.md",
+      "sha256": "2ed15426acc4cefe3ce962b4c498beec3c902d6f7da70d7842b4bdddda2b4a9d",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/routing.md",
+      "sha256": "637628fe24be9b733e554c3c1cab9340e01335a65bb157277e5bbfe579b6cdf3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/shape.md",
+      "sha256": "51960b514f8437baf12484dd5be824e0c2d0ee8802e29e7f511e431493a6c417",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/typeset.md",
+      "sha256": "f35b963851cc9260d63fa1743593ea0bacaeb5780a1e5ec5a81a8e2ceceb7c83",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/visualize.md",
+      "sha256": "0680da06f441cf51bbe34e976b2988c365e5d4af549b5b2629030c3cf5acc092",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/VERSION",
+      "sha256": "872ea2dd57c69c8edf698d8482d2fd6519db291e3a954e7e3cedb314472df014",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/command-metadata.json",
+      "sha256": "f87af3eb3432d274d86080968d08cf299652ab0f66511cef9d867777d978de7a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/data/font-index-failures.json",
+      "sha256": "7461de9923357d70b1365647b0a85d181eac1702f622cbf24465767f4ba99d06",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/data/font-index.json",
+      "sha256": "47edbdfaf27073c47033d1ac7dfee881be49e2dcbda7671d1157300481dde6da",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/impeccable",
+      "sha256": "5307af769ae6bbaadd036b75d134da416170cda76a7ae4dc8d0573c48b2ed59c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/impeccable.cmd",
+      "sha256": "e1fe67010efb1684ffe1687a874521b1c92c1a58426004214d68cdc9f659eb9d",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/live-browser-dom.js",
+      "sha256": "de1b7404f4cdfd7b515196afb17b74b1980f0bc88cb8681ae93a76ca48ec7bdb",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/live-browser-ignores.js",
+      "sha256": "c1cb6877ca99a0c1b38ba0c7d59f32702d3022f6821d8045f7133f7c40b6362f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/live-browser-session.js",
+      "sha256": "edddeb3fad88adec9a055b1bf9d5c75418cbe97a13b1a7f6765e73249e482563",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/live-browser.js",
+      "sha256": "7af0a8665057c83b39bca2c8c7427ef2343734f70d4128c377113a6726a1e3b1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/modern-screenshot.umd.js",
+      "sha256": "bb36665889124a0b6e15f16045265737449c3bdcf2712cdb08af3cfa01563e2b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/minimalist-ui/LICENSE",
+      "sha256": "3c9f63518df3378772203cc64d38d9e381d2a4723b93d2c3849b2bf3d464de0c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/minimalist-ui/SKILL.md",
+      "sha256": "1a292d1459292649dc5b422e029093259b6127e7df2f37ad8c22033174333a57",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/performance-optimization/LICENSE",
+      "sha256": "6f202f8bd568cd730dbb2b0d1f8e243bc74c2fa1f64dbce9b2c7ea08bd5c9fd7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/performance-optimization/SKILL.md",
+      "sha256": "76ffea8dee33661c08b4b3a35a96075a8a09e4d6f5d5444d8f66fbeef7fdf4d1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/performance-optimization/agents/openai.yaml",
+      "sha256": "2368b4fddaf3bfe3cd48b70e019165d8733a0a075ca83342d0946f22178cf091",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/performance-optimization/references/data-and-grid.md",
+      "sha256": "8e4004e5fefd9a2bdf391272d01d3d865a68aa2f081810b974dec6a4c86d0bae",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/performance-testing-skill/LICENSE",
+      "sha256": "85d5b2559ca2794c57d7c12693718c2449cf53b4776d2cca191996ab273151c7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/performance-testing-skill/SKILL.md",
+      "sha256": "b510dd7d3cd7178d5e2e96816a3393e46c7bf45b2529b42dd0753afd9ffe8f33",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/performance-testing-skill/agents/openai.yaml",
+      "sha256": "f9277c4f691bd9dfc2e834e5c5a860f76dda904b9728b59280ddeb4c090295f0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/performance-testing-skill/references/workload-and-evidence.md",
+      "sha256": "954d80ba722c6dbf5fe0f2b359fce76422fa48f6ca81961cda3fb2652c9c6144",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/redesign-existing-projects/LICENSE",
+      "sha256": "3c9f63518df3378772203cc64d38d9e381d2a4723b93d2c3849b2bf3d464de0c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/redesign-existing-projects/SKILL.md",
+      "sha256": "d5a62efaf36fa52ea1966e06ce74452b3466a4f179af34fbce65f2c8e5461349",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/test-driven-development/LICENSE",
+      "sha256": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/test-driven-development/SKILL.md",
+      "sha256": "6cc1bb9620fb85208704414e313ca5de3de9bcd3dd11c08b08d18a641f806a91",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/test-driven-development/agents/openai.yaml",
+      "sha256": "a412148af68d00c186a86213efebdd1267e4bdd8ac59a60312cbce9ffb969e92",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/test-driven-development/references/test-design.md",
+      "sha256": "b74dafa7d7e0eacefca7a4f04c5c2ab3d195539ce4f9a83b3c4ca11f9a7f2675",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/verification-before-completion/LICENSE",
+      "sha256": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/verification-before-completion/SKILL.md",
+      "sha256": "59d1d963aaa0e91560cbefdcd2c7fd6f8881a2f24379f6c77f8356d652fd835a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/verification-before-completion/agents/openai.yaml",
+      "sha256": "d98701a68247555d8054c3cfdf448b9cefa8c9ae618574bdc9b33c94b0f777dc",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/verification-before-completion/references/evidence.md",
+      "sha256": "8ad45d8283ed6f2032b2350a3daa53d0bb84ad955379442794e92071bcb704a4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/web-perf/LICENSE",
+      "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/web-perf/SKILL.md",
+      "sha256": "84a7a63e911c4c7f0f0917450919fd6e764f3dac11729e0d3d89a762b0638f8e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/web-perf/agents/openai.yaml",
+      "sha256": "8b88ad10aa5b438275d35d39895acb1e556727b907bcf04cc90c74d1fb3ba1a1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".agents/skills/web-perf/references/grid-profiling.md",
+      "sha256": "760da583f6695e43f4b1095f1c9d4245f58f130796bd5d3acf921c551551b1c7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".claude/agents/impeccable-asset-producer.md",
+      "sha256": "e372182b91b4273fa16e1a27ec89263c17ab031dfcf1fd013ea76855bdd3f2d4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".claude/agents/impeccable-documenter.md",
+      "sha256": "1dbc19059782b7f84c4921a2529341528b2f2545bff1ed62c030e45fd97eb542",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".claude/agents/impeccable-finish-reviewer.md",
+      "sha256": "af2eb43c59865a26f5e658abb226cbf953355ccb13777424bd684a6d44e0b852",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".claude/agents/impeccable-manual-edit-applier.md",
+      "sha256": "c6f16a250298916eff329abf7b5906eae2e8569a7ebc40ac2e3ed8a1e845feb7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".gitattributes",
+      "sha256": "355c13e84f8f519763abbfa9af57a3eaec89353466dd8ad71d0706b5a383d36c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "acce5ce95703322aba7e9e5e389739150413e2af509a648887b58108fffa149c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "1933ef5864126e7f2c0fb473fe6c2444511b25ccaeb6d13ba964443ce7a568a8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "d79baeeacd8fc49eae2d22251504a967d6cb137e3abeb64c102fedbbf2a3c9d6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "DESIGN.md",
+      "sha256": "fb2ce87e8a8e777996e9842ee9195f3d59faf590b30a8af3812ee5c216010e29",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "KN JSC.bat",
+      "sha256": "bb4581e6b63aea1eeeead9777c26d72e759843a1f1da32e987fc73470fe36382",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "KN JSC.lnk",
+      "sha256": "e602adb5654480dacc20026c33f25381e61af58163462d14f462cf1897435b50",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "KNJSC_PROBLEM.txt",
+      "sha256": "97c4fba855707e2a588ce8741a5bf143801b4842fc6265d9bf933f6d88da1492",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "PRODUCT.md",
+      "sha256": "aaf774292b1198082e0489861e238ff262527fa4d2accf92428e31f42ef77743",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "README.md",
+      "sha256": "a4c15d500ae538b49467f02ba8a093ebf9581ecc405ef8e7e391ca7226e624dd",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/.coveragerc",
+      "sha256": "3149e4ca22c464648246c48253f29550494ca31a41dadb44d8ab079aad0eb5d1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/.gitkeep",
+      "sha256": "abcea4d63dd8d1cdbe96377933808c1e91141ba282447273b84f2e04c62396d3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/conftest.py",
+      "sha256": "1a10550b5a6c806a89b0bc3a635b6c2c08709562bdb3853891903a0d78738688",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/admin.py",
+      "sha256": "17a89a230668914c9e40263147ed03db0b77374dc3417650a849309e84f8989e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/alerts.py",
+      "sha256": "7203a8441328ef7272becf326528116193a42ed12a768ded9f5a7e6d2b1bd085",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/apps.py",
+      "sha256": "e763dde96e21f9c1dfdf15fcc56200be98f7c8202561ecceff7c6fc9ad48bbca",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/audit.py",
+      "sha256": "882ae83f752079d36a125c887cd60603016014fe145e96fb137622c283873f7b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/constants.py",
+      "sha256": "79f3da4550b49c123912e28031c5655c2505178dc0c93aca8923752d9cc21e79",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/context_processors.py",
+      "sha256": "7780e92324bc9e128dd7f8cdf52ac480f33ce84af09bf28e4f27d0da2c97848b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/excel.py",
+      "sha256": "ff32870bf7f0122c3fc5ae335c3f989336d530b4c74e9d8c0f6c148afc9f1caf",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/exceptions.py",
+      "sha256": "38c47229f5a980bb815342367c5ef82ee4c5922e5884e74f78603522b94a45d8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/forms.py",
+      "sha256": "9acaafc5fff939f2e47e5ba6ed6a61376ef1611d873367131d4637a71e55d54c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/htmx.py",
+      "sha256": "af909f6f723c9f7758ccda4d76e8ba91c8774d6aedb484b64f3a427387ae7602",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/identity.py",
+      "sha256": "4a08ea1d893724974858f1b659d05d8eda549ea819dd222a25bfcb13ef66ca53",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/management/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/management/commands/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/management/commands/cap_nhat_mat_khau_mau.py",
+      "sha256": "a2311af30f701ffb88e73d72b5243ec2b318996feb261460c9e51f85d072ff62",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/management/commands/do_hieu_nang.py",
+      "sha256": "580559d4fa63da48aa0a021705dac93327b9356738fef49408f0596597bda39c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/management/commands/du_lieu_mau.py",
+      "sha256": "5f558644de9ff1a72d4a5b845043ad37e178407ceb22f695341b3e25ddf2b409",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/management/commands/phuc_hoi.py",
+      "sha256": "adf6f18a032c3d46734f9f763a851e409bd2255d2725f65fd04973d6642a0015",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/management/commands/sao_luu.py",
+      "sha256": "871a2c33bf4ba7cc8bf36e5a0a3531cd1a39dd2f068b7e8ab0ee798fbb7c6d93",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/management/commands/seed_perf.py",
+      "sha256": "a5861723ccc09e12a2690c729578ca028b81ea472b295f3ba712d8ade5483eb5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/managers.py",
+      "sha256": "a38f05661f12b1d9f0cefb5d9fb33d2eb71f0bf2c8243c7592c6cf5ac6d509fc",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/middleware.py",
+      "sha256": "515eee1ddde2b438c4f8e435a493a9de71fb494f98675b2a4719fcfc81ff23a4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/migrations/0001_initial.py",
+      "sha256": "ca7e95a0d5e061366c6ac5f28355da2fab5ca31a380245547e74b681ddaa78f6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/migrations/0002_pg_trgm.py",
+      "sha256": "67bc70fde68d1a916daf20642961fba8121329db9121ab2d3fd2668733725376",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/migrations/0003_auditlog_audit_actor_label_trgm.py",
+      "sha256": "d97d915e259cc6bb61593302ea31f4fbe4d73d50efa646aa20ac79ba1a215a88",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/migrations/0004_backgroundjob.py",
+      "sha256": "22c8cba537dd7dbaccaeec61b808f23c81e9db13642de4f4c1ed59eea982143c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/migrations/0005_auditlog_action_backup.py",
+      "sha256": "08e8b6ed925f18f12d56f30be86a291523fb1cf105fd7dc4c74fd85985b4a4f3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/migrations/0006_backgroundjob_kind_recompute.py",
+      "sha256": "d57cff7a94df90936ef91a91784fbeb762a7366c54c0dc2c01c8781f35d00700",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/migrations/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/models.py",
+      "sha256": "d6c13c300fee625e85a84724a0901edf10e34e2d9b8bece2dad12e8a212cdf24",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/money.py",
+      "sha256": "1a70ee2288b620078bfee69cbf0911d464676532a71ad1c024bcb1381046a03c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/navigation.py",
+      "sha256": "70208dda8b50784a31ef1b166e7b138813f7b2a1a11ad059342bf0791ba28144",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/pagination.py",
+      "sha256": "64cc1ff1157e1dd3f3ace8c7fad04a5b3473385bb1c7dc7ec169116fbb722d11",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/permissions.py",
+      "sha256": "bb311234d51ab213b5999b76c12adbb084fc7791a2567a17c7594eb68528be97",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/scope.py",
+      "sha256": "35803ea7879155aa836698aebedcac0dcf7476d7a39c7183792bdfe921769ab8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/services/__init__.py",
+      "sha256": "11d54f26513c584cb114f8beb352a5aaf5a5c9945ccb7a73c492dfd41f194b8a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/services/auth_service.py",
+      "sha256": "5dacb0bb854a09d6e038c925a8a617f2b836a6076a8a1955d8463fde11d114fc",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/services/backup_service.py",
+      "sha256": "fca74a19688d0b800360b12967e1968bc7183c5707af156ccb017dceb4c36f33",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tasks.py",
+      "sha256": "04acfc8ccf4197a7f24f41cad0cf8bb537d98917fa1ee18b85a8237683b71602",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/templatetags/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/templatetags/knjsc.py",
+      "sha256": "e0c364ee40390ecbd05b15237d0fb07efe4fc0fe381a125b8bf4c86293e66c93",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/apps.py",
+      "sha256": "5bcd82545776de1eff2ea1c0d020e6025facb86307923210f455f765ec136d67",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/migrations/0001_initial.py",
+      "sha256": "eb9f5f1c2dfaca74f2a41448cffcd0e93e17e1a7846f8d3255bbfe0bce43a0ac",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/migrations/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/models.py",
+      "sha256": "89a584f4ebb1bc81e5bcc704db646e173f16a83ebb465c803b0e2ea4bf03fbde",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/test_audit.py",
+      "sha256": "65e18f340d88578d18593de9c141a70222275acd47aacdeecc0f9ba52e8205fb",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/test_chuyen_doi.py",
+      "sha256": "60c28b4d0d737916148f2afc980c1109bb88e5d2384f5c57310a26a02527dd5b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/test_danh_tinh.py",
+      "sha256": "93f614ad13ea13ac8030706382769ed37bdadc46c47efde73a91039d5db2bd9b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/test_excel.py",
+      "sha256": "40449e820326aa2af3e5c3aeacc9a6ab34e7f957a0a220ec2962d50da8b0fd0b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/test_giao_dien.py",
+      "sha256": "b71c0c10f84151cb754b221bcf773e6e07596fd6c9787b80dd7ba7ebae4166c7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/test_mau_dung_chung.py",
+      "sha256": "50d5ce3a5d0d9595672b42fdf71bf7a63434345f13f8c461508cb52e43437e1f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/test_permissions.py",
+      "sha256": "3964000d4482afda86e7627fa28e9e21fe81fc9edf85729294d24d1e6d884981",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/test_phan_trang.py",
+      "sha256": "c5357f7f4333654ec14b15ab3f3ea206292f7744003b695629cc66e8c150c89d",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/test_ra_soat.py",
+      "sha256": "06c0faf7ea83c9a8d4f65901df32ffda8df4cadca2af7bb6cdcb0c47a0d6c8fb",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/test_sao_luu.py",
+      "sha256": "f14f218eb50e0f9c22dbf90320f80939801333ccefb773448d026df23bdb9bef",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/tests/test_scope.py",
+      "sha256": "3a52194a321bb5285d8a6e5b4562cbf1528337d7e6673062f062a42d76897b8e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/urls.py",
+      "sha256": "c0b69ce2ca57aa55bb3e21736cdb4e65535b7abd24b0bb79ef5a47438ac1c71b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/core/views.py",
+      "sha256": "95960e37a711d232cc5ac4bae71a6d1ba34584f0367ce003e64b6df4e31652c3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/apps.py",
+      "sha256": "08fdc1bed6ad0fb15715e22238bce8210760a758523757f0d9b090bbb1e44e6c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/assignment_views.py",
+      "sha256": "7da432be8e53001dd59e99ddd49d9ad9d23ec89a503d607af16290f41c7fbd1e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/choices.py",
+      "sha256": "b933874740c485934339d86df807dcafae6e085bd7c4331c829a9bad00b875f4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/context_processors.py",
+      "sha256": "cd72888dd8ebb9a54102aa016d902a8f34093ae4b7117a69b59e1457c19e9913",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/master_views.py",
+      "sha256": "69166424efb2018bf4bbfb1a870641b1bfeaa3524ed7fc3cf650a17388bdd6e9",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/migrations/0001_initial.py",
+      "sha256": "e6d4656679517789e91fb75a1221999f41df4b6aa3f200394de174368fc93065",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/migrations/0002_grid_cell_history.py",
+      "sha256": "b4c4da19fbea42da98c9296402d8aac5e8ca756675c1fef5a85f58c272d952f8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/migrations/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/models.py",
+      "sha256": "6126f068e41f7bf7b98eaa8bd083b7ec70348d5332dcb97cdf7764df7e8aebd3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/navigation.py",
+      "sha256": "cb98ce286b743c784cb0aa5b3f8536e1bb49b5275576413d4acd01e0451ca11f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/services/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/services/grid_service.py",
+      "sha256": "13d366dd8d39901c72f7586a8763c35db43428adf7657553b8e68ba801997cb5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/services/master_grid_service.py",
+      "sha256": "fe20881a2060b149497eeaea69367f1297c715e60c6a81ce171f11cab24bf0d1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/services/sidebar_service.py",
+      "sha256": "95a7a65702308f2f7351a71f60f0cba3d787d2231bf62989f6e51936674e1bce",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/services/statistics_charts.py",
+      "sha256": "dd5c1eb3cb12f8a680b72ba411adb7bcc43a420ccab3329f239417ec0703d1d6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/services/statistics_insights.py",
+      "sha256": "d43d58fcf70fc6b066d1a2e73956a6f88ecd5711f0ad50f451b67d8e2fd8aede",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/services/statistics_profiles.py",
+      "sha256": "ed42d5a9de90cd20b4ec69d113225c0a83efae64c280256f1245d5691c756803",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/services/statistics_service.py",
+      "sha256": "dd11f0925cff1e6cdb9b52c1cc6de69f9e2ed26b419ec37a73f9af3cc09641e7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/services/tong_quan_service.py",
+      "sha256": "1886ace903f5566d17807efa831e23c0b0968017d7ddc20b0ce21ba1baeb41e2",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/services/tree_service.py",
+      "sha256": "359252f4545e6a3750fc2e3021e43a45e4b4848078bd6dc3f42ed997c3e47489",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/statistics_views.py",
+      "sha256": "355f9747996e29f2df014b7523373a24c0e44410976fddbc779087249d38010a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/conftest.py",
+      "sha256": "bf79df0d77f1f9d893495622b22f03394faef8646dddcd21c04a6d9b197cffae",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_bang_tinh.py",
+      "sha256": "3d2e9185efdedd479d2c9883a4f4364229d71ae80890ff1a0368f50fd5066f22",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_bang_tinh_dinh_dang.py",
+      "sha256": "b1dc059b26ccf3d1765372bfdf31b31850dc2b5f5b8a8a65a84a9b3cb6db6474",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_bang_tinh_dong_cot.py",
+      "sha256": "b61a6c44221039292893ccf0fbfd7ace58e777853111867908f1600537633682",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_bang_tinh_luu_o.py",
+      "sha256": "6a33e5ea8fb9d9ba97425b19e9e16722c24c0fffe27d9b480626db9895bbe882",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_bang_tinh_moi_bang.py",
+      "sha256": "1cc7f4acec0dc33ec41eff3ea57c3c659db837a6188f9d095467b38d51015ba5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_dich_vu_bangtinh.py",
+      "sha256": "ed2d3a8e35a4848f84a6075ee7a3da78315b6975c0597fabf08e22cf37eb5c59",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_executive_statistics.py",
+      "sha256": "d69313aed93f0284d761e8b81a11ee686efc4e82813423e9ad0fd0140350be8e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_executive_statistics_capacity.py",
+      "sha256": "35eed08d8af3084a8768a7b268e54541458c42121109d09d296c69627bda8f2a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_feedback_browser_server.py",
+      "sha256": "33789b5ac066147ea80177625e3abbfd7d812436285ab3c4db01e39c7f64d158",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_khung_crm.py",
+      "sha256": "73676e35a69b3fc756b55e14ac3d7fa2f97d69c8e88b8469a1667ef409444fb6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_kiem_tai.py",
+      "sha256": "b2b8083c0e441754bcd690bfe2fb39df880b4257d8c0d803988ded4b4c0fc477",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_master_browser_server.py",
+      "sha256": "5c6bba0f28a26f4d40498ea90d8e37603072c6d43f17385a14e605376430b23c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_master_capacity.py",
+      "sha256": "833c23cd44e6de0a698339543ced5d1e2a87f39b1125afdae0904eed2e7c6787",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_master_grid.py",
+      "sha256": "33baba75a071149f90b02d3ec9ac5592860ba850316a55c03e2e9c88dc239675",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_master_nine.py",
+      "sha256": "481a39afb13c0e32be020e2c2ae78645fb55c9fd987452c42af0e1b66766e8c4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_master_nine_capacity.py",
+      "sha256": "c65416a9bab2d0b2c953fd5a740bebcfd300d5ce67da2ce3fdcb9579245bbd63",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_master_nine_storage.py",
+      "sha256": "216cb7ee11442482ff4f0964164b96a177286cea3a090cc7880dd8a12742a54c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_master_row_capacity.py",
+      "sha256": "f16136e26c37f32516b85eddd54adee866ae549b8466aa124b2914c29641bd1c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_nhap_tao_cap_quyen_crm.py",
+      "sha256": "29898e5ace9fff18c851823139aa3b9de3625880cde7ffc1b6ea97556ad76206",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_quyen_leader.py",
+      "sha256": "b52d063b44f25c8d6d0a17f2f6f5754127a931981d63e073ef9f05f393181c31",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_thu_muc.py",
+      "sha256": "30fed4777d62811defd4323e8255e4fbeaadee0bbf82481858148db9c3b64338",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_trang_chu.py",
+      "sha256": "3686cdb62f5385793a994288c74eb6fd0b879236bc0fcec2eb9fffcd175db8c0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_waybill_feedback.py",
+      "sha256": "f2cdbe481adc1df2872504b152fa128e25ff0a3f2bd7ed0205b03ec27c53a8ab",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/tests/test_waybill_new.py",
+      "sha256": "1af48af0f4989f21de798208041263ad8af446c6823f749fe72968dbe09bbcef",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/urls.py",
+      "sha256": "23a6382721664491b603b30064ad309e791a947834881c6aabf9f548feea76b9",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/views.py",
+      "sha256": "e67bd68f6aa8a1a1a8b14d0a0d3e756037482b09d568e14b3e071cc400f30336",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/waybill_forms.py",
+      "sha256": "03ac0a3cf36cd64702fe62d8df854a37f580b4a552c33bec826641e85f62da9b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/crm/waybill_views.py",
+      "sha256": "57bad88a5c9fd7d2f9167767c124c65a4cc2e073b0144f233c0d35fd636a6cf4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/apps.py",
+      "sha256": "79e435811cc4f28e751679e1f9493d799437c0a165a406f9f0699fb3cb04cfea",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/constants.py",
+      "sha256": "a542547326cbad35f9515c0a141b772dc005642f109c4e099f79a5cc9c7b0c90",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/forms.py",
+      "sha256": "3b5119d3ff0c6261199ba08d2e60fe7f068198cc89ab08d4aa2ba3c554594724",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/management/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/management/commands/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/management/commands/thuong_sao_thang.py",
+      "sha256": "4f999a5d09f7200ace1fc3926359ef7eff0ab238a819cdf8b279cfa2725f4908",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/migrations/0001_ghi_nhan_va_sao.py",
+      "sha256": "0ed40bfb17564d72b5922cf1668d2f670a88eac59f7e395b8c9ff1236e6b294c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/migrations/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/models.py",
+      "sha256": "323a76df64b4b0392b4b453cdd3e82a1b04c0fcaadc101637979b1f328c69965",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/services/__init__.py",
+      "sha256": "226b5368bb224b8eb6507e2a445b0d76fc8a14e72a0822da0c349cf40815f436",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/services/leaderboard_service.py",
+      "sha256": "0782590406e3286fb1f26a1224fccdeb7b078648de5e5271313171f37823aebd",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/services/recognition_service.py",
+      "sha256": "ee46a7f630413dcc416d40e89c476e023371b2e8eebc41aeae4c3aa9816a75d3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/tasks.py",
+      "sha256": "0cb302002b9ccfa3c56fa958387aa897fca1aa7b3ef47c3477cf7e533f76b307",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/tests/test_van_hoa.py",
+      "sha256": "65e45a816b3f2c23e18cc7b99f8a78f249c16d18d901a0b643b32d38928fbcb0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/urls.py",
+      "sha256": "d5bf23f87b5ed3974a789abc6b19bba28666b25f3145ed19d1804a6c2c20cb1f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/culture/views.py",
+      "sha256": "170c0b6e474a9da8098d804f4fa7c920a4abfea0cc59ccae4ab7a92c7b04e5c3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/dashboard/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/dashboard/apps.py",
+      "sha256": "50dc3af3503488008dd7e526d528be3a389003f2d7a281d2ef7c90b6181b324d",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/dashboard/migrations/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/dashboard/models.py",
+      "sha256": "af3f8ab8f230cd39d9ca9e3b8de322727d6ad243b8cee6830851be909ec86464",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/dashboard/services/__init__.py",
+      "sha256": "db9263d3370af6a5a6063ef59eccbcb3f73a3e0ba0fefc9b0b367df8dcc751b1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/dashboard/services/dashboard_service.py",
+      "sha256": "920a89ece12795f919706acb6c05d18f53dd3e5d3cc46b5be5c27e53a74716b7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/dashboard/urls.py",
+      "sha256": "624a80df7c986fbb712d4c000c09fab0c8a0e52805803c460431fcc10543cc49",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/dashboard/views.py",
+      "sha256": "f6d9eaf1084114f8607627bd2d7cdb6db6b120f58ddb770a3a0b82ef85da1cdd",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/apps.py",
+      "sha256": "cae77797599c46d6e36e299dd09005dcf4fe16aab5381623128d9785dad1a734",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/constants.py",
+      "sha256": "ecccff8b3f5764dede1b145441fbd38630badbef649e4e63e8944268a11a4aa6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/forms.py",
+      "sha256": "fb58943aa2fdf85406206128cfb7e348f7b35a1f0debe8b62a23c3628be5fcf5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/managers.py",
+      "sha256": "00057ea2b9f9aaac21c257b7f1fa15af6a47d5c17cbe842f25491f1139b81aa4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/migrations/0001_tai_lieu_va_muc.py",
+      "sha256": "36896e0ffc557857b3647c5490e2f0093d8a5d5035401e2a5ff5dd4b6367a260",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/migrations/0002_muc_khong_phan_biet_hoa_thuong.py",
+      "sha256": "2219f35d5ee8cc01fc2a25b59f42e2488b3053bb8a600f1bef49206aa32872a4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/migrations/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/models.py",
+      "sha256": "2cbe683dff8aa7c48a16869257d88be3cd48c6ca5174b1a6c6d095bdcb7e1e2c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/services/__init__.py",
+      "sha256": "c959667d0cb0ce0c08fe458c65fbdd0b4e8902500fc713c2f61bac53f0fbe26a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/services/document_service.py",
+      "sha256": "53d12b430e00b087d969504b1969d2c14c1c5beeafa464ea3145da8ca7b7f0ec",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/tests/test_tai_lieu.py",
+      "sha256": "be101db91ea557db517cde0632169566b2f2551bfe02eecd55ad7498b3de3757",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/urls.py",
+      "sha256": "febd422d89b2720f7a39a379b505a1101d76853137214b638cdb232b2034fd5a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/documents/views.py",
+      "sha256": "c34eda3ad4c1d57716c34553481ee28445f245472daeceaf5bed107a1c425ce7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/apps.py",
+      "sha256": "06c3968524202dfe681864875271d8abc1d8ffe45c7bdc2db3311bab3395832f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/constants.py",
+      "sha256": "98f8f612dab6469bcf25e87f31f62f80d8c91876bd3e8c42d8332bc8ca7aada7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/management/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/management/commands/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/management/commands/thiep_sinh_nhat.py",
+      "sha256": "0de5cabb0596153cc230df101950a0eb8fbe7dd94e28c2606ae7a8247df09be0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/managers.py",
+      "sha256": "2a5ad732eed5f3efd4cc0294eb20360180e39d37f0ddc76e06cc1655e87614ac",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/migrations/0001_bang_tin.py",
+      "sha256": "f177b8b9f42ed25f1a3a1baa2925bd11018180d1cf2b8fbfdf122850b0316fc0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/migrations/0002_bo_chi_muc_ghim_trung.py",
+      "sha256": "f276503bab4ad497a3000550dc0aa7fb8663284164a2dfc1476f70fc82b327d8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/migrations/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/models.py",
+      "sha256": "4392f0600c5e25a9e0ed1b62e2fd1f4457e3477794c732a16acfcec905a5b779",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/services/__init__.py",
+      "sha256": "ce7b19562b6dec334a45940de871fc22dddb82ae5053ce857d0d8060b7662855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/services/post_service.py",
+      "sha256": "4f4be9f5c1f29fec0999efa8d30b491983d146f0ff3a934c0d78ec9c9a45b945",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/tasks.py",
+      "sha256": "4cdc32745daba144d050c7383f131bd7c9de39dbb2979f06e04a165a2abbf82e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/tests/test_bang_tin.py",
+      "sha256": "a572fd2a126c5f2ecc59a7e0ccce5797c655a5c01056a5791f3dc8f47d1be6bb",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/urls.py",
+      "sha256": "58facab282093bc4e448d54ef406175b7484d06b69a6db8c0946bfa40bae9b2e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/feed/views.py",
+      "sha256": "7477b40815812657595300966871b7c21e40432959b8597a910544bff9e61d52",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/apps.py",
+      "sha256": "18635fe286d07919ac04fd90670d84e916456a04aade6a3a5ab8858466abd42f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/choice_registry.py",
+      "sha256": "d47181df8883fafa5c9311a4cff06a00421f1243eae43c18eaace31ac91ec0c5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/forms.py",
+      "sha256": "a8af14a55f43f05d053ca944b4fa3d9d6f0fa41763e4069dd4e0d081deba7d3f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/managers.py",
+      "sha256": "62f5e2cc230311f79af2531535b4991f1997e494f84a0c1b48ec25ae13d112c1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/meaning.py",
+      "sha256": "058c0077677e4e07fe38f349380765fe4b847877656785d9da3bcdeab17378d5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/migrations/0001_initial.py",
+      "sha256": "ada37d4961b9b2e6566c68dd08106170f1316ca584c4c594739ecde0b9045b39",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/migrations/0002_columndef_column_meaning_unique_per_table.py",
+      "sha256": "4c5bd86b5d1050bd1c5258c525be8f73f2b54d2435e6af3b61fab28f7467d68f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/migrations/0003_fielddef_formdef_formfield_formtablelink_grant_and_more.py",
+      "sha256": "c74a520fed70d2ecd12d8c03a78707426180ca225e3c7f1c61a7fb25d0ef8e61",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/migrations/0004_tabledef_is_shared.py",
+      "sha256": "be4744e28c0e0c56fbaea2d8dc74006c4f5f26fbbfb1f5bf1d194c690465f04e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/migrations/0005_fielddef_default_value.py",
+      "sha256": "9648edb303518b89f1d05028de489ed7b3ae8e1c3e95a51abc640dcceb5eab20",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/migrations/0006_columndef_is_key_datarecord_style.py",
+      "sha256": "2cdf01de2649dce3447f44acc0dc8678574dbe5a53bdbba371b23ff5ddc6befc",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/migrations/0007_folder_tabledef_folder.py",
+      "sha256": "b7880e641c6e74652f913b461d2eec798506cfb1f81976ae055b8fe3f70bebc6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/migrations/0008_columndef_options_highlight_alert.py",
+      "sha256": "b1f48f3df644781aef272bb482e5a34888f4ea9ecb2e4caea9838b7a7dd71e8f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/migrations/0009_record_updated_phone_idx.py",
+      "sha256": "1f4b225069309f72892c27c556d93bcdbec38d3fb8f5130ec5c4a0b05c219241",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/migrations/0010_master_cover_index.py",
+      "sha256": "7d6bdc5bad81e9b8a2f89522e9e2b632d0d5e8d24fcbe19e13527ec886a03f4b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/migrations/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/models.py",
+      "sha256": "df1e3729e93b3d4367aa08472a824571fa5c9c583a97d49224c722a56dc35bb1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/query.py",
+      "sha256": "3c9f2b9f0db13d127ae9c347a5c34910d52364a6203ef0db5a70d621c38a1c5c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/record_policies.py",
+      "sha256": "9e0c70d8b49e34c8174bd93825e4f05ebf101a453fd7b7437d94fa437b7116f2",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/services/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/services/choice_service.py",
+      "sha256": "e1d1db31b8c1826b1c5f86a1f0d3305e121eb30c95d8046191611602ac328858",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/services/export_service.py",
+      "sha256": "a041dec9fe26d1401f7ce58d5939cf726cc7c76901035553da239fe3e002a9d3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/services/folder_service.py",
+      "sha256": "6ff6514e51e4e0b2d54739ca11cf6b32020ded0255b7b42bd208860c5f69bd7f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/services/form_service.py",
+      "sha256": "1f975dd7aea00e3b7e316947733084e6527e01a6bfe21920357b2329b7c2e5cf",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/services/grant_service.py",
+      "sha256": "847e378dfff57ea6c656effee8fda4ca0e7b33f33c82e5de3b430221839461c9",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/services/import_service.py",
+      "sha256": "ca8a17eff5ed32cba61df036b87332adb3661c4ddf7a5bea647da41c97b321bb",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/services/link_service.py",
+      "sha256": "25b64dfec878d7552bde8cf7e68d9e2c7fa8af590725b82bb00997e2def3b5cc",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/services/record_service.py",
+      "sha256": "4e4b20f088e72277b8ea4b00a3341fc6b43d43e96f5a4263698cd268d82abb3d",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/services/table_service.py",
+      "sha256": "439a4441fa76859d97f7efae769ea4da52a3f2b68e2ea4398851f8f132a7fdbf",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/styling.py",
+      "sha256": "4696eef0a2ef995a45dd3620c95950f50d498428ea9738b6aaefff21c2f76700",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/tasks.py",
+      "sha256": "e8c67e0f7ae79ac6151e1b07914061c36e91f383f4a3fc5565ba8c95b43b1aef",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/tests/test_bang_dong.py",
+      "sha256": "452dad47622d8f05fafd9b5c0788bbac9d319179e7d460ce5b93cf71d0ec368f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/tests/test_bieu_mau.py",
+      "sha256": "ee4ffaff5f148224a578027e81ba24ffd923f0db54a5b2a42307627fba7877d6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/tests/test_danh_sach_chon.py",
+      "sha256": "214a4e8aeab3682bf8135dfbce4c21e1552f361f6a28ac23270451ad398d282f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/tests/test_man_hinh_bang.py",
+      "sha256": "d0c92d79695bcc7df5e8656c75a628d940ae3cbab518c248c5bd5cc4ac4b6ef6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/tests/test_mau_cot.py",
+      "sha256": "4ba57ef1067c988e6421badbf75df11f5c3be218f341c223856441428cf20ebc",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/tests/test_nhap_hang_loat.py",
+      "sha256": "b64f558f17c65932a920c5ca1859f86f96ffb2ab611b0e4b5ef149029a2b6514",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/tests/test_nhap_xuat.py",
+      "sha256": "128bb82fa1982725639c5cf7f51a7fc25e95f0ad04345c6398996d6cc41b7ea7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/urls.py",
+      "sha256": "45b3f8ccf7a148836a54eb81d3238baad3397347c166793358ed151329bf7f4e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/forms_builder/views.py",
+      "sha256": "c2ee4b7380f0edac2eead89eb776f51b50b43f26d4755354b555f2e5b78f53e1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/knjsc/__init__.py",
+      "sha256": "36615d2d859379b48a254f136757ddc46f455b87bb9ce8d83134a81c92186b26",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/knjsc/celery.py",
+      "sha256": "c6b584aeb69de47af4aa601aa222dd1000b822cb30b9d987f466f6cd35cafa07",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/knjsc/settings/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/knjsc/settings/bangtinh.py",
+      "sha256": "f43779444ab21b62b4562827cb683b6a6ffcb330a0bde1573ff634132c327629",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/knjsc/settings/base.py",
+      "sha256": "e2e17a12d3596a67c77676bcfc20314781ebee7becce484135883ff71241dc3d",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/knjsc/settings/dev.py",
+      "sha256": "544df1a1c0441e111bb9a2642d48a90ff1c2217614c0368f92d2d15cdf06298d",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/knjsc/settings/prod.py",
+      "sha256": "acf09d0ee61bc6c07b0d0c5a9d73a7b6a2803131676ccfc6af10c1accd676705",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/knjsc/settings/test.py",
+      "sha256": "a75ec2927534a7b388f71db681341b8f7655ace54e978ac49e89e79b25861b16",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/knjsc/urls.py",
+      "sha256": "15a8dadd757198c26886c9f5b9c3daf5329af9580af5b89351a33ec640fc157e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/knjsc/urls_bangtinh.py",
+      "sha256": "d71ddf706097428061e0a179e16c63cbcad05fc9ba753845f36abae53d91f4c0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/knjsc/wsgi.py",
+      "sha256": "1999c1a0d0dc8485e1d37375a78675a608507cb6070c477f23abef4ca05c7173",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/manage.py",
+      "sha256": "c0d8b8b3987153b6e2ab5049e977076a30dcd1c8dde3cf5963eec5c26e180a93",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/apps.py",
+      "sha256": "af818bd794f17e0bf627c8299ccf8545adf48af29d065285964ba2d981912c19",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/constants.py",
+      "sha256": "72c7b30e0db6a3ac3eda38775233dba78b046dc0dde03deec9b2ce82667486ca",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/management/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/management/commands/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/management/commands/nap_du_lieu_van_don_moi.py",
+      "sha256": "6fc7146a53f4e6d685b2c8a0724d6e24c3b432946ff0a0df93daccad62cd2b7b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/management/commands/tao_bang_van_don.py",
+      "sha256": "5f043ec1e1f7ed3d8609632d344449bcb82712c02b791592f585416d11b73fe1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/migrations/0001_initial.py",
+      "sha256": "c57cca0f5274db72a735dd96deea6eaa0dfbe6f4440ba8086e7dee8f85b5b364",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/migrations/0002_trang_thai_van_don_va_tien_te.py",
+      "sha256": "684beebf4449fdd5a53a06abe1bbeef736679408506aaa80e3741cb95a9e3d66",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/migrations/0003_waybillitem.py",
+      "sha256": "94fb35909cbf952b3f5d3aa50336ab105a4928df98ecc445b0a530c264163ac5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/migrations/0004_waybill_assignment.py",
+      "sha256": "27065b762118190a6c96f6190dc46b94c548cb6f32a897128ed6d25dfe84b8a8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/migrations/0005_assignment_columns.py",
+      "sha256": "f72806689c3dc4d2ffff56e8e3432079e080c6b37b5dcdd9dbf0e1379de1fce2",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/migrations/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/models.py",
+      "sha256": "7d7afd1e3620d3ca820101a5c4406ca49f2d453ee26e354321755bfdfa69bf5a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/services/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/services/assignment_service.py",
+      "sha256": "5bcef89fd9d8795bb074783697663210195f5b85cfca669df3f765751f778ac3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/services/dispatch_service.py",
+      "sha256": "70b92437e9acd5ac9d2dbe57065ecdae0e2b07b0d0baccafeb75ef440c933c24",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/services/order_service.py",
+      "sha256": "94e6f2d47e1610a17b5dfe53112af412cdf0cdc6155c5f8ab5a6bd9f2fd10a11",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/services/product_service.py",
+      "sha256": "2024aecf4cc99e9bb9b1a4f214f0d14e9946f6c29d60f2577e50dc64fdf93518",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/services/waybill_service.py",
+      "sha256": "a704e28944e712a15f5a2cbbe228477aaf60184289c598389eaec1b9f318144a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/tests/test_len_don.py",
+      "sha256": "23436a39f704d92c708b643c3e4e2266e221fc2144490e9b3ca8b98ba8349c4f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/tests/test_nap_du_lieu_van_don_moi.py",
+      "sha256": "9452b6ddd00cdb75f79dad3077f4f20a1bdf390e71b39297dd57d11ea1055e8e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/tests/test_san_pham_moi.py",
+      "sha256": "e8dd81ceb26f33403b62813318b93ca38859d14ca001964b29b8c37e285374ed",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/urls.py",
+      "sha256": "22f096a4498f73a5d7f36329223d2e86f5c8ce42c673e5aa1d49b4115a67a9ad",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/orders/views.py",
+      "sha256": "888eb97729b560419c4dbcfb2b46215abe41a6359402b3c44438873e3e47b324",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/admin.py",
+      "sha256": "c2182cc6be0b0f3cecacfcdfecd7c370753d97404561eb9c145ea163e49b0521",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/apps.py",
+      "sha256": "b65f6a48b0b937e1ed115baefa620c336d3a1b3ebd99c5d6127137346a535f94",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/forms.py",
+      "sha256": "c1a8ccf14b255301c7437e354738bd6b28f87c8eb6023307b636ad87bad3e4e8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/managers.py",
+      "sha256": "405ba76779096b818b4d74b66263a84c2e19d914a793d2a66ce3d1731ec481e0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/migrations/0001_initial.py",
+      "sha256": "ccb69384843c64a600a9766fab5ab21d768f16cda6483071110d36abca85bd6a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/migrations/0002_userprofile_profile_full_name_trgm.py",
+      "sha256": "15eeeb3dfa7aae9fdb704a3c34c81a9526cafa3cc9f0335e5ef0ef386bf4e84e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/migrations/0003_userprofile_birthday.py",
+      "sha256": "bd6f89ae4b9f58fc96794e73318d0a37cfa7bf5b7df05a1dbb7002e8bf4d246b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/migrations/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/models.py",
+      "sha256": "601e99f27d38081f1128069a425badaf8bcd64879417757eaef271964c64e44d",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/services/__init__.py",
+      "sha256": "971ed2e7c86bcbd889c9c8e667ea26a1f2fb35c86b8d9c62a200ff84f66803be",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/services/account_service.py",
+      "sha256": "927264569f9459f042856bd3c61f8964a207a96ddea6403b7100d89b3d93fc02",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/services/org_service.py",
+      "sha256": "90fd6b351efcc841b6d47db0a4c7e1992d68b1a9e8fc21b72d1af8f4ad7dda73",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/tests/test_account.py",
+      "sha256": "937519f6baddc3b2e890ded3be70ded7ce6f5f82401ae9681957f0fcf1cfedf3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/tests/test_org_scope.py",
+      "sha256": "b95da1053a3e619031aa384b1ef27df0d95fc1df250769defa4713ef8f6a55a4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/tests/test_xoa_mem.py",
+      "sha256": "82a74672e1db65112890a8bd13923faf94ccd0762acf77e426213eb1941686c7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/urls.py",
+      "sha256": "f0292d895d2b7f57cd8b1d1af1208d2af6858c11dd753d18fe7384eea9eea943",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/org/views.py",
+      "sha256": "587615cf1fc8b5b43d31af8aaed186726ae8942c4a6f33a21540c7cff07ab1be",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/pytest.ini",
+      "sha256": "9bce489999e95ab06ddee87ae8e365f976c12bbd88256bd9def45faf1fb6cbdf",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/aggregations.py",
+      "sha256": "835e08cd24ad4b7bd6b3f5b1188b153aded5d18b2cf77aafdaa3af7773026ac6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/apps.py",
+      "sha256": "2b4294c87d150e567299dd4cbafbb46415011748c45531fe9ffc74d4a12e0ed9",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/excel.py",
+      "sha256": "717b076494cba42651d071e6e9935c7e4c1627fa788d8f47313eaf45ad042578",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/marketing.py",
+      "sha256": "f92524583c0387b1368d53bd847dc4c936543118cd7673e9dbb12a63329f8ad3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/migrations/0001_initial.py",
+      "sha256": "ce860000c1bfc3c592ac9caf2026f0f0fd69920cbdba0f4206fc1c3779856ead",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/migrations/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/models.py",
+      "sha256": "d67fb5311defaf1af6583a1026e995e7cbcb678539d1ba5320faaf60d0b747ff",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/services/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/services/daily_service.py",
+      "sha256": "334ce248d783a7f54b74790072d9c1044744eeca054de2d9ad0e1307d0e4fee6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/services/summary_service.py",
+      "sha256": "1ba93f9fa24474dbd0412cbba80f5048b210c7c74e70c5a98f41803c675263dd",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/tests/test_aggregations.py",
+      "sha256": "bdb8b280240ccba262240f9c806ef47a79b1c0fd681742882276eb6a60ef56bf",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/tests/test_bao_cao_ngay.py",
+      "sha256": "e013d8577c08ff83bb654b0d8c3faf7ce5acdaef88bc3705e875037d51e34781",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/tests/test_mkt_excel.py",
+      "sha256": "a852baa4e430ddc2cc70b5e073516bffacae12cbea90bf4ca20e846059ab37f0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/tests/test_summary_scope.py",
+      "sha256": "7d84db68c7f961ed3d038eec2e9fed107c54b0d8a6af5da4c4379bdc44079ec4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/urls.py",
+      "sha256": "9fdcbd9075cfbe7dcd6bbf107400fc7f50831da7f9f0f0782d9192e7bf0a2fc2",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/reports/views.py",
+      "sha256": "66c2bebf69e44f743096f80183d1eeeb970ebc7e191a71550c9c609d4beb8c76",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/requirements-dev.txt",
+      "sha256": "44d751a4d33964605ac8ccb3cd3906b813b8e88d841cdef36fed8b801b1b4f89",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/requirements.txt",
+      "sha256": "baaec0691ef249af6c7a5fb34abe8e24c8c01693dc15fdefbdff48755c5c0f53",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/apps.py",
+      "sha256": "14a820abb1dc269bae00eb059900decc587cdc93e83f01ad95c33ce5a7ec5ffa",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/constants.py",
+      "sha256": "d08c56342475cd545528db40f4d20646a386d7938f19c23814fa0ae06a1f7c48",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/forms.py",
+      "sha256": "c85067bfba8bde56647898668a7445da144d5dba176d7c99a1abc4094ddacf38",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/managers.py",
+      "sha256": "6dfb26d62b9f505f45be9f951dc5425c6f80c5ebcad0ca65aaa77c154b3713b5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/migrations/0001_tai_nguyen.py",
+      "sha256": "33ea7b73fc20ed5f8bcb990dab51c45a5673f4e67935541822a0925213becb36",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/migrations/0002_muc_khong_phan_biet_hoa_thuong.py",
+      "sha256": "99f0d5cf17634e83b00277110e734df071c0ae162b2c8f14eb2c8271ce290f84",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/migrations/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/models.py",
+      "sha256": "e30b819392f6a5acf36ef0b9b139d3ee73d72e3535a4d85abd883f961e38ca0a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/services/__init__.py",
+      "sha256": "0cfe74d07127f8447e7652fe97857cbd618cd1bfa78e74b426e4b42d38655b60",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/services/resource_service.py",
+      "sha256": "2a9e689d1adaa921cb66a4d608950d52ba7a676a7c3ddaeeab14ceec9041fd90",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/tests/test_tai_nguyen.py",
+      "sha256": "503438353a5df95ab5aed298b25ea1a2f30f68eb9222ad8d05d9d053565948ba",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/urls.py",
+      "sha256": "f39ded6b6f4166cd7701d82bc23ad849e1154920d1ae3c2ef8c2e38ae56ad9c3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/resources/views.py",
+      "sha256": "f265f65e1ae85977f587f0bea5afc8ce72ce7a1e76a4e1dd8ec0f942bddc9ffe",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/css/bang-tinh.css",
+      "sha256": "47357278279d8e266ed6164db04548cecaeb310309303ff1c7feec5b6503070e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/css/executive-statistics.css",
+      "sha256": "f7701a5430170e209b46582d88559bcd62f5664a22e0ad38dca0975e4679e6c4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/css/main.css",
+      "sha256": "b79eaa966a9d8881f24e974e3f92f0a84172707299aa1ee055b71c7118cbae9e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/css/master-grid.css",
+      "sha256": "9476a366981df6e2d9f46dd9225320c6180a99e548967532a9c237273ab901ec",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/css/tokens.css",
+      "sha256": "39323043d7e1edb739dab896125f92b4983de4f2711b1f0acf3be680d80bb5cd",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/css/waybill.css",
+      "sha256": "c20a7b535bf7929ebb08d0dfc4d288d29e798844a8bfab9cecada19e666b192a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/img/kn-crm.svg",
+      "sha256": "977e789dcbbd4672e01055f5d73d3cf0bfc8008f1d20d21dfa805a34c7a7df87",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/img/kn-jsc.svg",
+      "sha256": "8fe2e56d59a1cdb5e61de04d32f5638535b57b03e44669dffe789e8d085d12bf",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/js/bang-tinh-o.js",
+      "sha256": "e08b18e1a0626c9489e3786607f4549eceb05e609d10d5548e140d4e61aa73fd",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/js/bang-tinh.js",
+      "sha256": "2d1338dda8fed21e90a5f977ff631cb6fc914cdfd29a5594a2ec6f8dbe8548ac",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/js/chon.js",
+      "sha256": "f5816f2fa95691e98b734ded165ce6704f0734299b66c2b17432bb7fd23775cb",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/js/htmx.min.js",
+      "sha256": "e209dda5c8235479f3166defc7750e1dbcd5a5c1808b7792fc2e6733768fb447",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/js/master-grid.js",
+      "sha256": "452d482fa34d03d2c2f2d5c54b5a6aa5c4a81db0894899ecb6ad6fe1fb991390",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/js/master-row-geometry.js",
+      "sha256": "3d8fc02be1fd3ab55bd9a3ab96d48dc77022142ffc51d7f9672136517ae023df",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/js/master-working-copy.js",
+      "sha256": "1cea32012c75f359a4be80089f96e0aaf14b5cf3358cb098533aa539056de9f2",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/js/waybill-feedback.js",
+      "sha256": "257ebd1ef490c705667aa8116707568bdd190ca95cc65f71a84eb39250cbd68b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/static/js/waybill.js",
+      "sha256": "9bfa621d9c82cd5fe20f2e6f6873131f20c631d78b875276e8393fa818d69fd7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/apps.py",
+      "sha256": "2d04a9a788e9197003e580ef980e28bf3fb49b2e4ee13994ea88267e47d3a2a1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/constants.py",
+      "sha256": "12b88a9ed99d5aa7560f579cec8c4682507c1631f6762284c777f640273e4dd1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/forms.py",
+      "sha256": "ce7f4b7e9d2f20913b18def734653882e91590dc2b877e74ebbd14db1e6a0185",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/managers.py",
+      "sha256": "c3f45a02331b1075b089f7fa3fdb8c0cd05eac236f0f059af5d4c75906de4166",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/migrations/0001_cong_viec.py",
+      "sha256": "b8f7ee7540587e5f3af38b9a272404726f2c2b1cb7bd013abc0fab1a1706d704",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/migrations/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/models.py",
+      "sha256": "1ffcf0ce23a04f471352c77fedd9e495dea88bd54df8935073beba4e65419d7c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/services/__init__.py",
+      "sha256": "88140701b74b34762a04f56afbbb9291cb693cd2da820ef033245424305d436b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/services/task_service.py",
+      "sha256": "3c74124717c9503221c3e74822f5133aa43866d881211b6dea29834363611005",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/tests/test_cong_viec.py",
+      "sha256": "ca936ce191fe619060e9d75212983d40ff0f34e2306d11be290dbcb20525d326",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/urls.py",
+      "sha256": "3399d5e853b6ebcc51a015563c8f3ab0879df12bdc598c9239420a491f342df5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/taskboard/views.py",
+      "sha256": "bb762c46972927f00a4f64f4aaca1e79cd3aa551353ee4aadc75f36965ea137e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/403.html",
+      "sha256": "8d2a575188739bbee0cd04286d0090f28272bc13e30658dec4702822952f43f3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/base.html",
+      "sha256": "d97293faa43cbae0205d387a7ddf95a009e017164409c2d65818a06b629eeb2e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/base_tran.html",
+      "sha256": "496a0baeb66301a16d17a22501dd0255da6e4e2fec8c315049e9e75efc1bccf6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/components/o_chon.html",
+      "sha256": "0765085f7f0679681701143d32e54144bd3ebfa2cdfc536ed821e1940bcc51a7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/components/o_chon_muc.html",
+      "sha256": "c528c8928e2a467a8b2d6874c4caaf77c57a9303785104773a43ce97d0f686e1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/components/phan_trang.html",
+      "sha256": "53c626f08992a91f211985a018f282d58e3f73c9430f24042a213be11b8bc299",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/components/rong.html",
+      "sha256": "5e2a4fc10c52992917fcb4d4a93c816a355bd28d0c1d0c6b8cac27041da4d6f0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/core/_chip_tac_vu.html",
+      "sha256": "26910b6287f98dbf76fe73c9e17dff4bfc620a583d561a25c43909cb2374b1a1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/core/_tac_vu_tien_do.html",
+      "sha256": "afe9777ec754a2eae993d881b2523c5424e9aa5edaf54bbcfcaf719f3d08544c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/core/ma_tran_quyen.html",
+      "sha256": "02b80ffdfeac838f7d20c7ec7c91105cae00c995ed2fb59a1262ee92dc01bb10",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/core/nhat_ky.html",
+      "sha256": "47741a08488535740bfd9d57b7a2bd649969ef083d868a79e0b16954f12bd4c8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/core/tac_vu.html",
+      "sha256": "346fa3e7469ad7399ed733d044a207df03b3277b72bc793de51374d4c7e5b194",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/core/tac_vu_xem.html",
+      "sha256": "b36dbc638c3ef1609884a915ab1c7a194750237e7187fb6e9fcbdc914009f7c9",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/_assignment.html",
+      "sha256": "778ee9a3a3831d27acbf79fae3e7d304d0d2b4b24f87ebebfdd888c2ef0716ff",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/_bao_loi.html",
+      "sha256": "7389f286db4f5faf943ebb441e45be5b72b8979846c4d1a8cf74e63c97dadbba",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/_ben.html",
+      "sha256": "06e6410875ddeba931c2e2e54a0fe807aa1719b09a6a4e3810303067befa6e27",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/_cong_cu.html",
+      "sha256": "cf2cf5a48cccd6360df505460971f73e4f5f3210c6263f5d04c40cb80898b7a8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/_ctx.html",
+      "sha256": "a465f25abf5625849e8be7aea3b1801668c53682ae09cb3581977f6a002fdb53",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/_dong.html",
+      "sha256": "ccd03b94fd26308bf68715d909786645c6cd28391650fc9de32be6ad2d76a2e0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/_dong_moi.html",
+      "sha256": "e18a5f1685692ad736729241e7474944696ac7f1d3e53aceef726ae34c2f9406",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/_loc_cot.html",
+      "sha256": "c100db7d2b3cc87badc15b64842ca5cca2be44c0861a63e1740936f3f6b2d402",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/_master_filters.html",
+      "sha256": "b443e320b7a91312f9d221d82ca43a5d45cc26c6c309c3a566fc2bc4a407edba",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/_o_sua.html",
+      "sha256": "4ac1f42340a8ad64b786dd77d1a7182fbd9047516e464ec6e3ebb68d95757233",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/_waybill_detail.html",
+      "sha256": "36b7959ca5bddbc6977b8fe93d8e0ff91dca03ffc634d1c0b65f3c670bdf98c7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/_waybill_entry.html",
+      "sha256": "80ce2819528594f6b0851ff62db3d7e4fc525cf98cca582d8bcb834a46f30f8b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/_waybill_items.html",
+      "sha256": "adfde564e85bb63d905f171fd1c7cdfae930969f0e4c97332e796a998890a9cb",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/bang_tinh.html",
+      "sha256": "542996ee225d7b7f2729c8734b5b8d430f0ac65cafe1a229749a5b8246302f4a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/base_bang_tinh.html",
+      "sha256": "2f13e3fb4dc0d03e53557858b317e75bc7e2a92e4b50fa88850d4d8ec6ef2717",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/base_crm.html",
+      "sha256": "d2ff2068f151223c62435397475da38ee4dd38a3e961edcfe0af218685e6bd91",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/chon_bang.html",
+      "sha256": "2b0500d98849db048c8b679fb92342e972b5691376eab80f4e77840135894ee5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/master_grid.html",
+      "sha256": "2b9f38bd030a13c8780453d014e18270a2df1701dbb5ab79dfee792cdf162cde",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/statistics.html",
+      "sha256": "665559a2638058f325da97b3cb7f71880e8c5df61cd0278b69fe82056d65e6c1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/thu_muc.html",
+      "sha256": "4f15441812441523e7490bcc8dcdfc0539b3fdf6b230763e929e28449e609645",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/tong_quan.html",
+      "sha256": "697a2b42382f73d5b0370ea16a1a56a0bf165ee2c5e5f4e7041c84aaff313b8a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/crm/waybill_entry.html",
+      "sha256": "b104469cea1329b6195e0cd8c0fd0d08f8bf845b6bd41346022a9564c8f30b08",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/culture/_ghi_nhan.html",
+      "sha256": "6e22ffc530991f170dddc3da645d152ae59e959c08fef756522cdee42eb61307",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/culture/thanh_vien.html",
+      "sha256": "98b40b5617fd60284b0b5828e4c08739535dd1283833c2ecf0f78ec61f0a5a0a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/culture/van_hoa.html",
+      "sha256": "bc8a5128025a9214418d17dc57b3df3d4b775f383cfb8c2ba59784f7d3cc4a61",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/dashboard/_marketing.html",
+      "sha256": "9ea27e124535c50014fb2756facff92b1b88b79cbf1841deafae571c72794d12",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/dashboard/tong_quan.html",
+      "sha256": "5e61978f3219db6748926752c5171233b7bb97e13f7125e48791314ca9f7014f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/documents/tai_lieu_tai_len.html",
+      "sha256": "cc80322ea0eb06e3b9663d570c972ca950492482878bfda5a66cac8ed65a4068",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/feed/_bai.html",
+      "sha256": "b436133f86b2ff004ca8af2e54ebadc72b3f80f3c18e5ebabcf29b4d141d7957",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/feed/_ben_phai.html",
+      "sha256": "3756ff1c783940a076e1e81446da430f1fab5e82c73de06941a52b10e8839a05",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/feed/_binh_luan.html",
+      "sha256": "e4547f2555f3e3764ba56c9afdf30220ce6a73615d307c1f5f28d45488d87f5f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/feed/_binh_luan_cu.html",
+      "sha256": "be4ed4d7335fa3600576761b143fee58657244e305fd10964c13847625ca7587",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/feed/_binh_luan_dong.html",
+      "sha256": "b1c0509168eaac8da40eb2f5f786064c1d3627ced42004bff4b51b384580f737",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/feed/_thich.html",
+      "sha256": "f7e9bc4928d0209064fc43484de9352a46adde4101cc886d18242aa4a1831f0f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/feed/bang_tin.html",
+      "sha256": "bd501a1efae41642f11efa03b115e73ce87b81829daaa32d9abe623eb5905de3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/feed/bang_tin_xem.html",
+      "sha256": "91fe49d080ff116a59fb23f1ff0f1ba680a4ecf070e4caa5387e26ff57ab62c7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/forms_builder/_truong_nhap.html",
+      "sha256": "abed225be69bdb05c7cc28481c7cba4cd93c670c208dc509685b70b7ea05cca2",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/forms_builder/bang.html",
+      "sha256": "54052064c7c280516538daf51ddc2df5ad07282b89b44bab207a0b2bf1bb4b92",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/forms_builder/bang_cot.html",
+      "sha256": "ecea7efcb2d1682f115b6655d2978be4564cf9493c6151da8e937f6df080a4b4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/forms_builder/bang_form.html",
+      "sha256": "ebf744c1465d956ac172f648d5acaa39b6337467766d25c8d92bf2ed0096279c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/forms_builder/bang_nhap.html",
+      "sha256": "52b0c216a69105a1cdd6b6a5b40cc1e1b626ba53f519830c048f18e011885a71",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/forms_builder/bang_nhap_xem_truoc.html",
+      "sha256": "494b85a9bf075b15bd55609a9f4b108d55e566a2d79aaeed355886b04c576572",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/forms_builder/bang_xem.html",
+      "sha256": "39a3eed68d00a6132817dad46498107180ed3092862a2e0576d7cd0b7ff52690",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/forms_builder/bieu_mau_dien.html",
+      "sha256": "1e3c2c670ccf7b4a158863e669dbe74580f79230aa035e1c5d36cbf5434306c6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/forms_builder/bieu_mau_form.html",
+      "sha256": "14575336d92b54248ebea371bf30bff67de59f8e2965deabfded6ae3cc0554e4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/forms_builder/bieu_mau_sua.html",
+      "sha256": "31a8fee4106de6fe9e7d8c401bd81935665157fdf780127fac44374cd0449a24",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/forms_builder/truong_form.html",
+      "sha256": "a66f9df9727fe391b7c990f78b1ca851ec2c12d75c4b7e9a986bda23137e554a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/orders/_nhac_khach.html",
+      "sha256": "1b39f47735e51aef9b1611318d8b758476848817b17b6e7443bcb533444146b2",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/orders/don_xem.html",
+      "sha256": "3fbd9e071fd5392870a621e6cf62515bd2338a04ad7d9cca051366f398cfc172",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/org/bo_phan.html",
+      "sha256": "8476afbf86c69f9bcdfee0d72e1fcd8dc48ced12f439d794a3bb1c105df8afe9",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/org/nhan_su.html",
+      "sha256": "df3a1635e36870e5c2b569af693b0791aec4cb65e8ee1b6ddfbe2f3f710686a4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/org/nhan_su_form.html",
+      "sha256": "c7e9ba6491840cee80ab31902a0fb62c9cb19cf8dae9c9a09d6c60593e087a60",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/registration/login.html",
+      "sha256": "ae874a89b23e39f6a1d2fc9decee9d22fd304c64157aa3513e862868600c5fe3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/registration/password_change.html",
+      "sha256": "f2b52f9c744c51aeaa11cda413a03ed169e4697051d1450117d5871adec62da1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/reports/bao_cao_lich_su.html",
+      "sha256": "6dca9c48312bfffda36da36b4c228e27ee275633796fafa7116484fea75540f8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/reports/bao_cao_ngay.html",
+      "sha256": "641e1cefe5980274dd89ee5a2acd0b01f7d3a1c4b89ad83252adf8500ae27ca2",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/reports/bao_cao_tong_hop.html",
+      "sha256": "2cbfd7b596427576412dd4f7f62a716c33faa72a67865d0a769ffcab159b2984",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/reports/bao_cao_xem.html",
+      "sha256": "d2ec87218e58f1cdec241dcb800b35e6270c7746ac0b235e4f779dd6c7f64db8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/resources/tai_nguyen.html",
+      "sha256": "e1f5a42161a87695b6003be59ebfbfb9dd943aac491fd0ecb0b6059081bc5d63",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/resources/tai_nguyen_form.html",
+      "sha256": "b1b2f946b9e1d85203d8a78bf3fb1c44dd1265ebd91582f6b1f093cc40b658f5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/taskboard/_dong.html",
+      "sha256": "c3eaa386de4b9b871120fc61a559cfdb61bf29c715cbf46f9e2b47de5443701d",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/taskboard/cong_viec.html",
+      "sha256": "e126c442e1f60c5073c9b092def05c5803b28187c05e7f1d76b0e03e904a6a64",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/taskboard/cong_viec_form.html",
+      "sha256": "a100b6ac9e79e38ca20b4ce81cfe28adef0a8dabb6ddca0b59b0bea4da789e87",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/templates/taskboard/cong_viec_xem.html",
+      "sha256": "9851a4109fd09db0b07ac8d3d4e8a786a2ce1662ca0de2a07263cef3f1ecc88e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/e2e/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/e2e/conftest.py",
+      "sha256": "3f6fb34ec26f22c009255780780ee4f696d7d8b2b024b1ee7e3f4c2f8aee887e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/e2e/test_bang_tinh_ui.py",
+      "sha256": "8654c26dcf80f7e60fac0bc3c9de3ee1e2729bfce5af804fadc03b838766ae79",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/e2e/test_dien_thoai.py",
+      "sha256": "5b65e5661a6cf3d4125c20b34ee44e62a2a6967dd23bd47b684213c15335ee1f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/e2e/test_luong_nhap_xuat.py",
+      "sha256": "e0defd13792f3fff969f8e221205148eac87a8dc10d6b7d96e3434ffc914ddbb",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/perf/README.md",
+      "sha256": "9e20f91d64d6018ceda98f7eed28a67e71589ad083ebc0113c4906f8f355352f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/perf/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/perf/inspect_master_nine.py",
+      "sha256": "650b9081c8334f9aaa4ad311b545999c838f41dd5f27fb41025897192840e3d4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/perf/locust_master_nine.py",
+      "sha256": "c0abfc5456772983e5f9b3f44438f78c36b0eedd4b80c15097bbfa69c08aec03",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/perf/locustfile.py",
+      "sha256": "148cbfc7d79c046c3d7e70d8b0e9b1dbe8ea8cb41bfc0fec20ce65d3035c72dd",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/perf/locustfile_kn_crm.py",
+      "sha256": "94d439a7d20b4fcd7bd03aaef12c70e61aa5f04320afcd5fb05fd6ba2c1f42ca",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/perf/locustfile_master.py",
+      "sha256": "df2eea3ed1a46487a755b74012ca0c1632168ef1b5cc6e9614924578296fb54c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/perf/master_wsgi.py",
+      "sha256": "6bd7a9302393ec15df499847c95d08281441e1342c7c170d1ecd9839b644583c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/perf/trial_master_country_index.py",
+      "sha256": "5b7777c1c3cf928390c473fd0851974ff310412da0d7fde385399f53f9b9ec74",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/perf/trial_master_index.py",
+      "sha256": "a877a993b325fe2f7e97c70a43b0a77157ee958e05371638cbdfd0e0cb6f7c03",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/test_cap_nhat_mat_khau_mau.py",
+      "sha256": "0790b76a3d2bab96739e2a2563c91ab66824580b6737115be5cd28b63aaccccf",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/test_du_lieu_mau.py",
+      "sha256": "43eea3748c0f6169633e6712c5b2d23fa4ae52f42638f790f8ff34a173e883f0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/test_hieu_nang.py",
+      "sha256": "f1329f21ef6c0fe6d90a5cdfc6cd7f3d3de8c4663a8668656ce95182e980176a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/test_hop_trang.py",
+      "sha256": "36d10bede0198126e549d2b25ed1ad2950e54373fc5e0e3488bc50cadc4f2ef1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/test_khoi.py",
+      "sha256": "0198ba05f388644e87ec287ea8fb58aa15e0dd2fbf3f3eb00e725df46e8466c8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/test_luong_ba_bo_phan.py",
+      "sha256": "114e9d8652b5592291cb8534b7901acc74b37aa37b5c648521c18d401cc39252",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/test_ma_tran_phan_quyen.py",
+      "sha256": "d87aabf444d0744f01ca15da6e3bff8e59f53392dc5480c0e65eed1890853a94",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/test_ti_gia.py",
+      "sha256": "f9d9eddf84207979a19cf42aa26d006488e007aabd3f8af46e1f592f70a0115e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "app/tests/test_truy_vet.py",
+      "sha256": "b255aa028e138289717c2930a799940f6cedb527fb42036ee59202678ac248ad",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "config/.env.example",
+      "sha256": "1a0d035f962c4f67d2b25fd389506a7bbc9838e6686acbfc3bb0c0bbbc6f2642",
+      "excludedFromBaseline": true
+    },
+    {
+      "path": "config/.gitkeep",
+      "sha256": "abcea4d63dd8d1cdbe96377933808c1e91141ba282447273b84f2e04c62396d3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "deploy/.gitkeep",
+      "sha256": "abcea4d63dd8d1cdbe96377933808c1e91141ba282447273b84f2e04c62396d3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "deploy/Dockerfile",
+      "sha256": "1fd035df587472a313a088220e8adfe75c628f45ae58f8ce7cc721b3963e1847",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "deploy/docker-compose.yml",
+      "sha256": "261240eebd48dc92bfe7a367c960fb99174de0a620ae64887ecc4f344df8e9ab",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "deploy/entrypoint.sh",
+      "sha256": "eb4c88606501f24a542d517c639a198d477750ca6002ffdf6aac9214b0e8d538",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/01-tong-quan-san-pham.md",
+      "sha256": "e37ebac4566ec7e0d86a8bfcb5f2ddbc8ed6daaaa0ce54ec86bfa93e24ef746c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/02-yeu-cau-san-pham.md",
+      "sha256": "2c549164d4b5b9d70b78baf7912e7bda1e40c40c921ed5e9da0a4082bdd23eb5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/03-thiet-ke-ky-thuat.md",
+      "sha256": "e6fa685b7c2b2604b780decd089ea2e39fc5799829e8ebbb1201339e3b399f55",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/04-tieu-chi-nghiem-thu.md",
+      "sha256": "6ffc4940cb6a77b6382b065ada00f0261c98eb048789d4691b1f47e468b9b063",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/05-huong-dan-va-van-hanh.md",
+      "sha256": "0ca9a51626cb356cef8e2f811b3febbde427fc3911247a9112d99574e23d2ca7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/06-ke-hoach-kiem-thu.md",
+      "sha256": "5d256a5c02af0bbd5a730fa8e6bdf37ed16354907de2028914b976ffd1218e01",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/07-kich-ban-nghiem-thu.md",
+      "sha256": "ee105dc138f7009b97cfc6ffac798039597ae83938e621c4abd4b4a31a02962d",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/EXAMPLE/CRM_ Tân.xlsx",
+      "sha256": "d773b5a96fd89dca96f0b57d8bd509123d2b75cc5e3023c8fab06029f5880424",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/README.md",
+      "sha256": "6d26ae5037366fbdeb4a07513f2b214bcc6e48c2a52e727cb0f62fb2efe8eaf6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/USER_INQUIRY.md",
+      "sha256": "11aeb50df8d531dae8d73b7d7a10581a326faf7354b073383ca83e35be418eb9",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/backlog-kanban.md",
+      "sha256": "3734b5678b462d4c6085a3a1dcfa16cda03a0bc885fa9b91ef1044319b8b2edb",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/backlog.md",
+      "sha256": "fde53ca9d1907090a4775df4330e87fae4350b1e2531241b37d7b9604f97c458",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/bc-mkt-erp.md",
+      "sha256": "811bbc06b480fef559ae61f46d66e8d0427c6adc453423b175f2694334493acd",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/bo-skill-knjsc.md",
+      "sha256": "c95f1a06aab77bd4d35607ecbb34fd7dc26d75e079138b15691ec027b9951b69",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/cau-truc-thu-muc.md",
+      "sha256": "f247256fa878d316cca8b27cdea98c8565adf131626fc50a93955d011275ebda",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/dashboard-tien-do.html",
+      "sha256": "2a9d9f2accab7bbd80eefc04bddba6f9c4daa65425d9132f2688b4bbb6b3095b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/dong-bo-ai-nhieu-may.md",
+      "sha256": "4f15a71496041835e32f7847d731c1156c4da2432cf4c1b8fba73dc6428bcb78",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-chung-ghim-cot-20260911.md",
+      "sha256": "addd038afcac11b23821d9bfd9e518553177229e34c2acc57a906a5be4a07c94",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-chung-master-admin-20260911.md",
+      "sha256": "54858256c71b2185540049bc803f1836fd6ffb74e97f6d4b300e306c563a3d6d",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-chung-master-crm.md",
+      "sha256": "0d4899d5f1328b0442359eef9d89d3e44a36ca4ef2ed6e92aaf0159afb227acb",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-chung-master-nine.md",
+      "sha256": "ec82b7d80ac78adf3f4df878e5bf969c70473ae433bf8e8532506d27296672af",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-thu/keo-chieu-cao-hang.md",
+      "sha256": "da4d3f156b8e3cd8af2e9c6a5e2c755bc145e81a97627d0d47d25086b190d65c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-thu/luu-thu-cong-crm.md",
+      "sha256": "d7b45725ba37531b923783e1bd3617ca9b92f7f02372428f82a5046e190454fe",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-thu/master-nine-2026-09-10/grid-1280.png",
+      "sha256": "50176510fd93e1a43dcf3cdc3e9b00e2db47ae805d12478b4d1be9d1b3ea6d38",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-thu/master-nine-2026-09-10/grid-1440.png",
+      "sha256": "4ac87d35c1ca3d449caa79190f4f36fb79aea16d119b5ab242943bdc4c07b489",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-thu/master-nine-2026-09-10/grid-390.png",
+      "sha256": "4dfa6d1c4313936a8f3023803a39f6d00b07c323209028c3a9ac1541cd42debf",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-thu/master-nine-2026-09-10/history.png",
+      "sha256": "1d2a61e6394601886e6a239b70aace88291a75f9f2ad1dd922b23ad4dff3d29f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-thu/master-nine-2026-09-10/performance.md",
+      "sha256": "620a8e726c036ffe2f4444628215097d0967c7e2b0bdb1597e8d3d539462cd43",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-thu/master-nine-2026-09-10/row-selected.png",
+      "sha256": "1d37a7430f539c284beefe222cb9698ed7d9c6d5d70905b2c8e271b322433184",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-thu/master-nine-2026-09-10/summary.json",
+      "sha256": "2baf53b52fd9c05a2bc1bbb973a7b078cf7df5492125f7497c2d393578b5c15f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-thu/master-nine-2026-09-10/ui-result.json",
+      "sha256": "147e96e6b7ba4a09f3e40cae8e3cb96270dc660dec1755c97d69a0aef19394af",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kiem-thu/master-nine-2026-09-10/zoom125.png",
+      "sha256": "ec4082b6e8c49e26c430819767544f2c02c00c59da94b28fe8dcb38839579870",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/kien-truc.md",
+      "sha256": "597a3a52ebe798d5d3505b7fb052b1c6f489ed788c2832b858d4674963687382",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/loi-van-don-moi-khong-mo-trinh-sua-o.md",
+      "sha256": "e049e775cfb66e17e4a790509779238f28b7baafb28c961f15b6f954a147dc8e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/001-bang-dong-luu-dang-json.md",
+      "sha256": "4dabd5cc194c4218a1fbdef7513616e964246d3aad1488eb8dfd814ebeea9725",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/002-khong-nhung-thu-vien-bang-tinh.md",
+      "sha256": "aa610d409be859b2169e8ae8a974aa5a0b01fb7dda6e55d40d8b7185225aaf90",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/003-tach-cap-bac-va-bo-phan.md",
+      "sha256": "9631d77267e3c0419f1aeee120ed386715d0a3ae124cb119f337a2e24b447eeb",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/004-crm-la-module-tach-sau.md",
+      "sha256": "a4fafda22326a06eb4b8a465808ad9d4f6ef74750314ce9774e245be1b2d1b80",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/005-chon-django.md",
+      "sha256": "811b6d4afe21f3e7e75d53d740659eee5e57545aab151f238a0b4e51952c5c18",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/006-cong-thuc-tren-bang.md",
+      "sha256": "1b85745b31242f9d542fd57e6a11ce8aa09c052a15d8cc19d7e0623b6a978f87",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/007-bang-dich-va-nhan-y-nghia.md",
+      "sha256": "524247a1bc7a8ef22b827a56ef7c6db9ff3c1d64cc098fdbfe77c7f4759f5952",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/008-bao-cao-boc-quanh-bieu-mau.md",
+      "sha256": "2f99ae78b81cc9ddf0d6995e33ea5459185567bba54b30efec467a261f4a3a83",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/009-bang-tinh-la-noi-lam-viec-cua-van-don.md",
+      "sha256": "12bc97da2ef87701b9af887ec90944d755652a68c0dadd761bb22121b9973db4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/010-bang-tinh-cho-moi-bang-va-dinh-dang-o.md",
+      "sha256": "6fa31d9e49e62cc29b77bd4d01003be1aad7f89f67a0a931239945cb57e4264b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/011-bang-tinh-theo-mau-kn-demo.md",
+      "sha256": "d5dcbd305392120232f55eaabc4e75ae5d1ca194b28e3b258ed39906e2ab9351",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/012-kn-crm-app-rieng-cay-thang.md",
+      "sha256": "87ee684c3ebb279f4674f16067595b1aa40c53c2e53f2629856793b70774c27c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/013-danh-sach-chon-va-mau-cot.md",
+      "sha256": "3ead59b52fa6b9304352518567f97e72d1b03334cad67edfd1e1bf1933ed0284",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/014-bang-du-lieu-chi-xem.md",
+      "sha256": "88f9f26e0e1b3716e26c0c74345e4d78631fb4e5e9587e39fad6023682125ad1",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/015-kn-crm-khung-sidebar-leader-nhu-manager.md",
+      "sha256": "ed82b2a1dda7511e914d30383f0136d31326f7eb06b1b4f6c4bafa2d0a2c74d2",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/016-kn-crm-chiu-tai-100-nghin-khach.md",
+      "sha256": "967ae0b2ca09edeccf9bb2f99be04a52a28bbf6ca488783f02abffd8e306ed35",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/017-noi-bo-nam-app-mvp.md",
+      "sha256": "dda96f6a8ae8c5086901575ff4ef4f74f3daf7195e5a891f5571b9c0e0cb6465",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/018-van-don-moi-theo-crm-tan.md",
+      "sha256": "3a597fa25a2ba262ee83378cd8e1d668e721301655fae4dc0fb174ae6381cc3e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/019-tach-len-don-khoi-bang-van-don.md",
+      "sha256": "eebff5ae20afb1b46fb0db1bed478c95fb20d2cf508a437fca8b38dfdaac3341",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/020-phan-cong-loc-xuat-van-don-moi.md",
+      "sha256": "b6cde3dc9f5937a75f892f61e3505fa1b879340ba2f222e8bdf7695ea70c1043",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/021-luoi-master-va-thong-ke-crm.md",
+      "sha256": "67095246a1993f38a2a6bc2c7cf811a1b9aeb0ed5f4840f566ebec8f88b74220",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/022-ban-dieu-hanh-kn-crm.md",
+      "sha256": "cee49b52dc67c7f48f6937df46721dbaf7e83b08f5f9434d162ad8277788b78a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/quyet-dinh/README.md",
+      "sha256": "0e50802f7ba8eb2be3bd574978517832017553c5b9b4251422d534defafbc926",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/so-do-kien-truc.html",
+      "sha256": "856309d38257c724befec2053f007989a3d509395600c834d8c3c561d94da6a8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tai-khoan-mau.md",
+      "sha256": "011c4db508601c6743c29d6f947ffac211543cf1a6b5bb84575af1ba1e07dd0f",
+      "excludedFromBaseline": true
+    },
+    {
+      "path": "docs/test-log.md",
+      "sha256": "44f08f66a5ce64d66434c8423f9e11bda11f32b04587b2732ee5b26b6e288ad5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tham-khao/README.md",
+      "sha256": "957b14fbcbf3984a81f3608d33100f44fd78a4342f6845d9977068c0b4a22d32",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tham-khao/kn-demo/01-danh-sach-bang-tinh.png",
+      "sha256": "5fde7902a9cfdf22d3b2d9ceef624c60e503a84ac7718de2bcf3f8c263cb4338",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tham-khao/kn-demo/02-sheet-van-don.png",
+      "sha256": "2ab4dc998ee60e3ece733ef6d26ec97324c875576b5a2f512e5a203376a4aaae",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tham-khao/kn-demo/03-chon-vung-tay-keo-dien.png",
+      "sha256": "93b685edb22e261df99f675ade98e38225f05c1924d319672389a8f09f152dfd",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tham-khao/kn-demo/04-menu-chuot-phai.png",
+      "sha256": "30abed83e4fc9c182f4c2a2c6271451559a8b1f79b7457dfac937ea5959382af",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tham-khao/kn-demo/05-hop-loc-cot.png",
+      "sha256": "39ad0faeb9c14f3232941416514895639259d5091cb1a540913ee61773845af9",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tham-khao/kn-demo/06-thanh-cong-thuc.png",
+      "sha256": "156faa37f7c62761eecac4c4da7e4007778e22e2eff4526e1284fcc02bdb56f4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tham-khao/kn-demo/07-nhieu-trang-them-dong.png",
+      "sha256": "c89855b54d7b20b9d256f0f2c666db2f33ae55358d4d6516130c2f73a1d5a078",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tham-khao/kn-demo/08-sheet-chi-phi-ads.png",
+      "sha256": "6a60fbf5051bef6e3565762543438406f5d63f4edc4ede91aad170c1a71a3569",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tham-khao/kn-demo/09-che-do-sang.png",
+      "sha256": "d1a1f69d3dfc88e06bbd572b692dcc36e6f01fea231b6b5d1aa801833d565d7c",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tham-khao/kn-demo/10-bang-mau-nen.png",
+      "sha256": "7ddba15b6f82f3b664c9941b57d6e6d7b45062156a9ae73420db0f38b2abe851",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tham-khao/kn-demo/README.md",
+      "sha256": "d1db4a96699837a186e18ada19fd2e22d7bff3f08b98f259150d601c2941d84f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "docs/tham-khao/vandon-mau.xlsx",
+      "sha256": "3931dca2d9ab58335560cd9dec057720146af44a68eb30c29678071f8a7a6c79",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/README.md",
+      "sha256": "2e6886f2bf38d345a5fd8c4b270d7466d9242dac60b074b8a864c79cc66352dc",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/bang-tinh-chi-tiet.html",
+      "sha256": "0738e978905160b73e9ecfaa26728f36862a0dc2fa82ec01c6628e9426c8008f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/bang-tinh.html",
+      "sha256": "eef682d4d5618416d2d4211494f2c7c6821a87d762360c04d739c6451ffe672b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/bang-van-don.html",
+      "sha256": "14a1436c930802a43c04c9e46477b70d14a6e491e437894a205e9abb7506cbff",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/bao-cao-lich-su.html",
+      "sha256": "99fc3b675c94973c5665ced87d32aee7025b5d258a9f5a3effe8e911cfb9ed25",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/bao-cao-ngay.html",
+      "sha256": "48018c741d3457b4606ef06a74269f921e3a7cde679c9ac20ee51afd5210cbf7",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/bao-cao-tong-hop.html",
+      "sha256": "2d8afe18c0444e94117f308e00a493c5c1fe93487869d345bcb2c9c54565f600",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/index.html",
+      "sha256": "cc8e821d11721ea9785d97ddb44cfc27131021991ab196d2a32eccf9b15ddf18",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/len-don.html",
+      "sha256": "be3b29ecb5c490abf30c1916fede2b8bcf581b6dfc11337666785d1989982375",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/phan-quyen.html",
+      "sha256": "6f9e0c3c201ec85423ff56861e2a403352d899331c479a7fe5e7573a0b09e1a4",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/quan-ly-bieu-mau.html",
+      "sha256": "8e8a23d2e39df76600ca71a4acaa2e84310f49db1d732339020280a6609ed9af",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/static/bang-tinh.css",
+      "sha256": "d852e42ce2caa0d35491760fb65889913e6a2b6a9a5abdcf8e1f206bc601d479",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/static/bang-tinh.js",
+      "sha256": "ba5e5643460d3734dd8de059b248a77091546474fa41c9fbdeaf5beb1c3c4b9a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/static/layout.js",
+      "sha256": "ea22a5380514c46a1e4330887ba6d487dcb4ed9af8b80ed8fc2ff02047d0e269",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/static/main.css",
+      "sha256": "5c71644cfdf4c660d47753da9d49cb1e5794712cc93144946555c7c5ed6bb98f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/static/tokens.css",
+      "sha256": "d1e27a7aca274eedbd63a45bc9dd18fd3132bbda30df7981d3c53d7dddef5a8b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "prototype/tao-bieu-mau.html",
+      "sha256": "440db7aa3383e6ff2c0f4e984aac62195f184c483d7b4af2dd9348f4f16e6c85",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/.gitkeep",
+      "sha256": "abcea4d63dd8d1cdbe96377933808c1e91141ba282447273b84f2e04c62396d3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/Cai dat KN JSC.bat",
+      "sha256": "25124737f4689b0bedb11446fb49fc62351a50510d27e5b7fb0d014c76c1db58",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/KN JSC.ico",
+      "sha256": "714181c70c4db2f1c04c6b6230d3830fa7b4b5dea39a7ff33db49f34c0b2a428",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/KN JSC.svg",
+      "sha256": "54856b58909afd9c3959ca6de4eb87e671693c9e407b63c227c6ee08d58aa1b0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/an-danh-vandon.py",
+      "sha256": "afd67ae2941c85a1b66b7178ed6eb9dbf9da118b4a3fd12afc1f355f78f34b0e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/backup.sh",
+      "sha256": "3fabb3f6a33544db900fa8799a99ab85ab4add89e659a9e10f32c1ec106148b6",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/bao-cao-master-nine.cjs",
+      "sha256": "353518c3cc217849e47dd89cae9a763ba63068e1b2bbd2cf007ada33556613bf",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/cap-nhat-local.bat",
+      "sha256": "4b603b5e9ca32f38922e2347d1eddde83a2052f00e9254c533e3af589ef59502",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/cap-nhat-local.sh",
+      "sha256": "ef65c031790efbfa1f633a0a12a4208d504f400140cab677e958b7a27b0bef92",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/dong-bo-skill.py",
+      "sha256": "edfcca13b8e4e70c38d3134828b3403aee07de8c99c12884775da0420c68e639",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-tai-kn-crm.bat",
+      "sha256": "7edb0991f560d4ad076c54d1eb904785495a31b390d1da5c825975e07a1e0ffe",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-tai-kn-crm.sh",
+      "sha256": "e5ddd3aab95b27bc0bef03520d640929cff85499047b8f8444325566878a56d2",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-ban-dieu-hanh-ui.cjs",
+      "sha256": "10ad633c12bbcbfc359ace8e21e4389bffde8912d531f86ea05ea6dac058fad5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-feedback-ui.cjs",
+      "sha256": "8463a3ad601d60b4c083624a7ef4c82e601e88e97b8d2b07ff7039889174d478",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-admin-click.cjs",
+      "sha256": "50e496a5e9697268c15e268ec2fded98a70daf6fd43e90797434d7026587b2f0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-autosave-unit.cjs",
+      "sha256": "b8731b31f71fa7cf241706050adb345bbb5589383ea3cbc494537745346e00f5",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-baseline.cjs",
+      "sha256": "20c3a518bac8ece0ad345b2404e1a315698b2811379be101a3c2709c212ae973",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-capacity.cjs",
+      "sha256": "595255e58bce45d9f99f58e1affd7604faeab72361bcdca5d004f58b810cd114",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-conflict-unit.cjs",
+      "sha256": "877013804de3b3e3a9c083a0d5d317ce27691c5b5060ebac116fdfbf30dd437a",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-frozen-selection.cjs",
+      "sha256": "1ded30e21e23c732d7c744e2372a90ab085cf7beea5798c39feb49fd51fb1383",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-manual-ui.cjs",
+      "sha256": "8e175ef54143728377e4c00ffcdf9151b0cf47c304b5578d737d964c81d7252d",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-nine-capacity.cjs",
+      "sha256": "ea2f24a96f894381ec464dd0ef6ced8b6f68d533c0890d93641a574a78962ac0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-nine-ui.cjs",
+      "sha256": "a2f154dbb6d19a7d526fe3ad0b8abfa8a78de504b0a129537bfc6df1da7e5f1e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-pinned-profile.cjs",
+      "sha256": "7e6bd2609dff4875bf05ac1e09f8d134df6708582e8dd349debddf308278c495",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-pinned-ui.cjs",
+      "sha256": "d7944bd89bc3a6e50a6c63b208bf5036a5be02783e8fd3cf47067d1b5bf4ef7e",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-pinned.cjs",
+      "sha256": "45843f73a871a15454f180b8ecbf8ea109e244d204cac55b9c3a093200bd6bb0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-queue-unit.cjs",
+      "sha256": "fb6bb226839e47b615031aefc4f27f93def785f20fade955ae3f61cb9606bf84",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-revoked-batch.cjs",
+      "sha256": "09f717a39fb785354dbeff08757d73d2768d3abcda9aebabfbe460bdbdc135ef",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-row-capacity.cjs",
+      "sha256": "ad1e802101e152b575082b6dd1f0837bbc3a9d6f177f7975b16d7c04f8e7f8e8",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-row-geometry.cjs",
+      "sha256": "3da86c79f6b4f8dee079efc48123c0e658e4bbb243d9ae26a66c6ca6b718a0b3",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-row-height.cjs",
+      "sha256": "e7039bee4dc9344941ac5db00fcb85817432e40ed12c412b439af3595754ed66",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-scope-unit.cjs",
+      "sha256": "ff0715cd9f2b55bbaaef1e7746be3e2132f194abd6631c19c361a0298ba1a0c0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-ui.cjs",
+      "sha256": "ac2e398800b826247ecc32dfb2f33d129d6b1095a9de5c87869cb0f194e44afd",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-master-working-copy.cjs",
+      "sha256": "40884c75436cfe071253be81752b8bdc2dc2b9ee7f234454e0b8f66ee94ed25f",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/kiem-thu-van-don-ui.cjs",
+      "sha256": "f458e8d3198656514797d91e5a1260ed4cd6e715f45d2d474501cf8a13cb2b97",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/restore.sh",
+      "sha256": "f58548282765b10d30bdae673f9089af08efdd78bc4a48071f90339a229912b0",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/sinh-css-mau.py",
+      "sha256": "f9b49ca843e1a257b7ce84c830e322fc43a929f88824572baa381afde6b41e2b",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/theo-doi-master-nine.ps1",
+      "sha256": "38c15f39875fc1b37ff19f640b8f9d596f31b4770f7a95438cfd5707ecdd2bd9",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/tong-hop-master-nine.cjs",
+      "sha256": "524a9857e2df2d2f6a27bdf9e17a7c7469ac4b772cfd24940776db6b942a7c52",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "scripts/xuat-diff-master-nine.cjs",
+      "sha256": "227c7951fc7f47160c622c85f8cc795413f0faf6794c47542e63fe02413a5f92",
+      "excludedFromBaseline": false
+    },
+    {
+      "path": "tests/.gitkeep",
+      "sha256": "abcea4d63dd8d1cdbe96377933808c1e91141ba282447273b84f2e04c62396d3",
+      "excludedFromBaseline": false
+    }
+  ],
+  "deleted": [
+    "app/templates/documents/tai_lieu.html",
+    "app/templates/forms_builder/bieu_mau.html",
+    "app/templates/orders/don_hang.html",
+    "app/templates/orders/len_don.html"
+  ]
+}

@@ -39,6 +39,7 @@ def khung_chung(request):
         # từ chối. Mọi lỗi khác phải nổi lên, không được che.
         scope = None
     return {
+        "crm_app_url": getattr(settings, "BANGTINH_URL", ""),
         "nav_groups": visible_navigation(request.user),
         "nav_current": getattr(request, "nav_current", ""),
         "scope": scope,

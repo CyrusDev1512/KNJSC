@@ -169,6 +169,10 @@ class TableDef(ScopedModel):
         on_delete=models.SET_NULL, related_name="tables", db_index=True,
     )
     is_active = models.BooleanField("Đang dùng", default=True, db_index=True)
+    workflow = models.CharField("Nghiệp vụ bảng", max_length=24, blank=True, default="", editable=False)
+    receives_orders = models.BooleanField("Nhận đơn mới", default=False, editable=False)
+    delivery_view_all = models.BooleanField("Vận đơn xem toàn bảng", default=False)
+    delivery_view_version = models.PositiveIntegerField(default=0, editable=False)
     is_shared = models.BooleanField(
         "Bảng dùng chung", default=False, db_index=True,
         help_text=(
@@ -179,6 +183,12 @@ class TableDef(ScopedModel):
     )
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["receives_orders"], condition=models.Q(receives_orders=True),
+                name="one_order_destination",
+            ),
+        ]
         verbose_name = "Bảng dữ liệu"
         verbose_name_plural = "Bảng dữ liệu"
         ordering = ["name"]
@@ -483,6 +493,10 @@ class DataRecord(ScopedModel):
             # `moi-nhat/` hỏi Max(updated_at) mỗi 8 giây mỗi tab; cột Trùng đếm theo số điện thoại (K27)
             models.Index(fields=["table", "updated_at"], name="record_table_updated_idx"),
             models.Index(fields=["table", "val_phone"], name="record_table_phone_idx"),
+            # Đếm/phạm vi/cuộn master đọc chỉ mục thay vì JSON của toàn bộ bảng.
+            models.Index(fields=["table", "created_at", "id"],
+                         include=["deleted_at", "updated_at", "created_by"],
+                         name="record_master_cover_idx"),
             # Cột JSON dùng để lọc phải có chỉ mục GIN — quy tắc 12
             GinIndex(fields=["data"], name="record_data_gin"),
         ]

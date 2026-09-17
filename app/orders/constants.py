@@ -25,6 +25,14 @@ class PaymentMethod(models.TextChoices):
     TRANSFER = "transfer", "Chuyển khoản"
     COD = "cod", "Thu hộ khi giao"
     WALLET = "wallet", "Ví điện tử"
+    ZELLE = "zelle", "Zelle"
+    PAYPAL = "paypal", "PayPal"
+
+
+# Giữ mã cũ để đọc lịch sử; chỉ hai phương thức này dùng cho thao tác mới.
+ACTIVE_PAYMENT_METHODS = (PaymentMethod.ZELLE, PaymentMethod.PAYPAL)
+ACTIVE_PAYMENT_CHOICES = [(method.value, method.label) for method in ACTIVE_PAYMENT_METHODS]
+ACTIVE_PAYMENT_LABELS = [method.label for method in ACTIVE_PAYMENT_METHODS]
 
 
 class ShippingStatus(models.TextChoices):
@@ -75,7 +83,20 @@ LEGACY_PAYMENT_LABELS = {
 #: Tên kỹ thuật của bảng vận đơn. Đơn hàng ghi một chiều sang bảng này.
 WAYBILL_TABLE_CODE = "van_don"
 
+# Bảng cũ giữ mã để đường dẫn và đơn lịch sử không đổi (ADR-018).
+ACTIVE_WAYBILL_TABLE_CODE = "van_don_moi"
+
 #: Tên kỹ thuật và tên hiển thị của bộ phận sở hữu bảng vận đơn. Lệnh
 #: `tao_bang_van_don` tự tạo bộ phận này trên máy sạch nếu chưa có.
 WAYBILL_DEPARTMENT_CODE = "van-don"
 WAYBILL_DEPARTMENT_NAME = "Vận đơn"
+
+
+def is_waybill_table(table):
+    """Profile vận hành giữ nguyên cả khi bảng ngừng nhận đơn mới."""
+    return table.code == ACTIVE_WAYBILL_TABLE_CODE or getattr(table, "workflow", "") == "waybill"
+
+
+def waybill_condition(prefix="table__"):
+    from django.db.models import Q
+    return Q(**{prefix + "code": ACTIVE_WAYBILL_TABLE_CODE}) | Q(**{prefix + "workflow": "waybill"})

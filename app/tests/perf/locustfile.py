@@ -21,10 +21,11 @@ Bảng tính chạy ở dịch vụ riêng: đặt `BANGTINH_HOST` (mặc địn
 import os
 import random
 import re
+import uuid
 
 from locust import HttpUser, between, events, task
 
-MAT_KHAU = os.environ.get("KNJSC_MAT_KHAU", "MatKhauTam-2026")
+MAT_KHAU = os.environ.get("KNJSC_MAT_KHAU", "matkhaucuatoi")
 BANGTINH_HOST = os.environ.get("BANGTINH_HOST", "http://localhost:8021")
 NGUONG_P99_MS = 3000
 TRANG_THAI = ["Đã lên đơn", "Đang giao", "Đã nhận hàng", "Hẹn lại"]
@@ -78,8 +79,8 @@ class NguoiVanDon(HttpUser):
     @task(4)
     def mo_luoi(self):
         trang_thai = random.choice(TRANG_THAI)
-        kq = self.client.get(f"/bang-tinh/?f_trang_thai_vc__trong={trang_thai}", name="/bang-tinh/?loc")
-        self.o = re.findall(r'data-sua-url="([^"]+)"', kq.text)[:50]
+        kq = self.client.get("/bang-tinh/van_don/du-lieu/", params={"f_trang_thai_vc__trong": trang_thai}, name="/bang-tinh/van_don/du-lieu/?loc")
+        self.o = kq.json().get("rows", []) if kq.status_code == 200 else []
 
     @task(2)
     def hop_loc(self):
@@ -89,11 +90,17 @@ class NguoiVanDon(HttpUser):
     def sua_o(self):
         if not self.o:
             return
-        duong = random.choice([u for u in self.o if u.endswith("/trang_thai_vc/")] or self.o)
+        editable = [row for row in self.o if row["cells"].get("trang_thai_vc", {}).get("editable")]
+        if not editable:
+            return
+        row = random.choice(editable)
         token = self.client.cookies.get("csrftoken", "")
-        self.client.post(duong, {"gia_tri": random.choice(TRANG_THAI), "csrfmiddlewaretoken": token},
+        response = self.client.post("/bang-tinh/van_don/luu-json/", json={"operation": str(uuid.uuid4()), "cells": [
+            {"id": row["id"], "column": "trang_thai_vc", "old": row["cells"]["trang_thai_vc"]["value"], "value": random.choice(TRANG_THAI)}]},
                          headers={"Referer": self.client.base_url + "/bang-tinh/", "X-CSRFToken": token},
-                         name="/bang-tinh/van_don/o/<pk>/<cot>/ [POST]")
+                         name="/bang-tinh/van_don/luu-json/ [POST]")
+        if response.status_code == 200:
+            self.o = response.json().get("rows", [])
 
 
 class NguoiMarketing(HttpUser):

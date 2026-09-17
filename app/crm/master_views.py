@@ -1,0 +1,151 @@
+"""Điểm vào của bộ lưới JSON dùng chung cho các bảng động."""
+from orders.constants import is_waybill_table
+import json
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.urls import reverse
+from django.views.decorators.http import require_GET, require_POST
+from core.exceptions import BusinessError, OutOfScopeError
+from forms_builder.services import grant_service
+from orders.services.assignment_service import can_assign
+from orders.services import delivery_view_service
+from .services import master_grid_service as service, grid_service, sidebar_service, tree_service
+
+
+@login_required
+@require_GET
+def data(request, code):
+    try:
+        table = service.table_for(request.user, code)
+        if 'check_ids' in request.GET:
+            from forms_builder.models import DataRecord
+            try:
+                ids = {int(pk) for pk in request.GET['check_ids'].split(',')}
+                if len(ids) > 4000:
+                    raise ValueError
+            except ValueError:
+                raise BusinessError('Danh sách dòng không hợp lệ.')
+            return JsonResponse({'visible': list(DataRecord.objects.in_scope(request.user).filter(
+                table=table, pk__in=ids).values_list('pk', flat=True))})
+        if 'check_id' in request.GET:
+            from forms_builder.models import DataRecord
+            try:
+                pk = int(request.GET['check_id'])
+            except (ValueError, TypeError):
+                raise BusinessError('Định danh dòng không hợp lệ.')
+            if not DataRecord.objects.in_scope(request.user, table=table).filter(pk=pk).exists():
+                raise OutOfScopeError()
+            return JsonResponse({'visible': True})
+        return JsonResponse(service.block(request.user, table, request.GET))
+    except BusinessError as exc:
+        return JsonResponse({'error': str(exc)}, status=409 if exc.code == 'conflict' else 400)
+    except OutOfScopeError:
+        return JsonResponse({'error': 'Bạn không còn quyền xem dữ liệu này.'}, status=403)
+
+
+@login_required
+@require_POST
+def save(request, code):
+    try:
+        table = service.table_for(request.user, code)
+        return JsonResponse(service.save(request.user, table, json.loads(request.body), request=request))
+    except OutOfScopeError:
+        return JsonResponse({'error': 'Bạn không còn quyền sửa các dòng này.'}, status=403)
+    except BusinessError as exc:
+        return JsonResponse({'error': str(exc), 'code':exc.code,
+            'currency_confirmations': getattr(exc, 'currency_confirmations', {}),
+            'conflicts': getattr(exc, 'conflicts', []), 'cell': {'id': getattr(exc, 'pk', None),
+            'column': getattr(exc, 'column', None)}}, status=409 if exc.code == 'conflict' else 400)
+    except (ValueError, TypeError, json.JSONDecodeError):
+        return JsonResponse({'error': 'Dữ liệu gửi lên không hợp lệ.'}, status=400)
+
+
+@login_required
+@require_GET
+def history(request, code):
+    try:
+        return JsonResponse(service.history(request.user, service.table_for(request.user, code), request.GET))
+    except OutOfScopeError:
+        return JsonResponse({'error': 'Bạn không còn quyền xem lịch sử dòng này.'}, status=403)
+    except BusinessError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+
+
+@login_required
+@require_POST
+def scope(request, code):
+    """Đọc quyền theo ID bằng POST để không vượt giới hạn URL khi cache lớn."""
+    from forms_builder.models import DataRecord
+    try:
+        table = service.table_for(request.user, code)
+        ids = json.loads(request.body).get('ids')
+        if not isinstance(ids, list) or len(ids)>4000 or any(type(pk) is not int or pk<1 for pk in ids):
+            raise ValueError
+        return JsonResponse({'visible': list(DataRecord.objects.in_scope(request.user, table=table).filter(pk__in=ids).values_list('pk',flat=True))})
+    except OutOfScopeError:
+        return JsonResponse({'error':'Bạn không còn quyền xem bảng.'},status=403)
+    except (ValueError, TypeError, AttributeError):
+        return JsonResponse({'error':'Danh sách dòng không hợp lệ.'},status=400)
+
+
+@login_required
+@require_POST
+def sync(request,code):
+    from django.db import connection,transaction
+    from .services import optimization, row_mutations
+    if not optimization.enabled('SYNC'):return JsonResponse({'unsupported':True})
+    try:
+        table=service.table_for(request.user,code)
+        if not is_waybill_table(table):return JsonResponse({'unsupported':True})
+        already_atomic=connection.in_atomic_block
+        with transaction.atomic():
+            if not already_atomic:
+                with connection.cursor() as cursor:cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
+            return JsonResponse(optimization.sync(request.user,table,json.loads(request.body)))
+    except OutOfScopeError:return JsonResponse({'error':'Bạn không còn quyền xem bảng.'},status=403)
+    except BusinessError as exc:return JsonResponse({'error':str(exc)},status=409 if exc.code=='conflict' else 400)
+    except (ValueError,TypeError,AttributeError):return JsonResponse({'error':'Dữ liệu đồng bộ không hợp lệ.'},status=400)
+
+
+def shell(request, table):
+    from django.conf import settings
+    from .services import optimization, row_mutations
+    from forms_builder.services.record_service import PALETTE
+    grid = grid_service.build_grid(request.user, request.GET, table=table)
+    month = tree_service.month_of_params(request.GET, grid.columns)
+    qs = request.GET.copy()
+    for key in ('trang', 'moi_trang', 'offset', 'version'):
+        qs.pop(key, None)
+    chips = []
+    for key, label in grid.chips:
+        p = qs.copy(); p.pop(key, None)
+        chips.append((label, '?' + p.urlencode()))
+    return render(request, 'crm/master_grid.html', {
+        'delivery_view_manage': delivery_view_service.can_manage(request.user, table),
+        'waybill_profile': is_waybill_table(table),
+        'payment_documents_enabled': getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False),
+        'grid_root_class':'mg-root mg-waybill-master' if is_waybill_table(table) else 'mg-root',
+        'thang_dang_xem':month, 'bang': table, 'luoi': grid, 'qs_giu': qs.urlencode(), 'chips': chips,
+        've_url': tree_service.home_url(table.department, month=month) if month else tree_service.home_url(table.department, all_tables=True),
+        've_nhan': 'Về Bảng tính — thư mục', 'can_assign': is_waybill_table(table) and can_assign(request.user),
+        'duoc_quan_ly_cot':grant_service.can_manage_columns(request.user, table),
+        'duoc_nhap': grant_service.can_import(request.user, table),
+        'ben': sidebar_service.context(request.user, table, grid.columns, qs),
+        'quick_filters': sidebar_service.quick_filters(qs) if (table.code == 'van_don' or is_waybill_table(table)) else {'groups':[], 'keep':grid_service.params_without(qs)},
+        'config': {'dataUrl': reverse('master_data', args=[table.code]),
+                   'deliveryViewVersion': table.delivery_view_version,
+                   'canCreate':row_mutations.can_create(request.user,table),
+                   'requestMetrics':getattr(settings,'CRM_REQUEST_METRICS',False),
+                   'protocol':2 if is_waybill_table(table) and optimization.enabled('READ') else 1,
+                   'compact':optimization.enabled('RECEIPTS'),
+                   'renderOptimized':optimization.enabled('RENDER'),
+                   'syncUrl':reverse('master_sync',args=[table.code]) if is_waybill_table(table) and optimization.enabled('SYNC') and optimization.enabled('READ') else None,
+                   'palette': dict(PALETTE), 'styleClasses': grid_service.STYLE_CLASSES,
+                   'saveUrl': reverse('master_save', args=[table.code]),
+                   'historyUrl': reverse('master_history', args=[table.code]),
+                   'scopeUrl': reverse('master_scope', args=[table.code]),
+                   'filterUrl': reverse('bang_tinh_xem', args=[table.code]),
+                   'user': request.user.pk, 'table': table.code},
+    })

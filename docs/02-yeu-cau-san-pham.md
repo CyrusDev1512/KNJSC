@@ -71,7 +71,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-4.1 | Mỗi bộ phận phải có biểu mẫu báo cáo riêng |
 | FR-4.2 | Hệ thống phải ghi nhận thời điểm nộp của mỗi báo cáo |
 | FR-4.3 | Người dùng phải xem lại được các báo cáo cũ do chính mình nộp |
-| FR-4.4 | Người dùng không được sửa báo cáo đã nộp |
+| FR-4.4 | Staff không sửa báo cáo đã nộp; Leader trong team, Manager trong bộ phận, Admin toàn hệ thống sửa nội dung có lịch sử và kiểm phiên bản. Giữ ngày/danh tính/thời điểm nộp gốc — quyết định thay thế 16/09/2026, ADR-032 |
 | FR-4.5 | Leader và Manager phải xem được báo cáo của người thuộc phạm vi quản lý |
 | FR-4.6 | Trường danh tính người điền (nhãn Người bán) trên biểu mẫu và báo cáo hằng ngày phải do hệ thống tự ghi theo tài khoản đang đăng nhập; người dùng không phải điền và không đổi được |
 
@@ -96,7 +96,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 |---|---|
 | FR-6.1 | Hệ thống phải cho phép nhập đơn hàng với thông tin khách hàng, danh sách sản phẩm, giá bán và phương thức thanh toán |
 | FR-6.2 | Một đơn hàng phải chứa được nhiều sản phẩm, không giới hạn số lượng dòng |
-| FR-6.3 | Sau khi lưu đơn, hệ thống phải tự động ghi dữ liệu sang bảng vận đơn |
+| FR-6.3 | Sau khi lưu đơn ở trang Lên đơn riêng của ERP hoặc KN CRM, tự ghi một dòng và bản sao chi tiết vào Vận đơn mới `van_don_moi`; bảng không nhúng form Lên đơn. Bảng `van_don` đổi tên Vận đơn cũ, không chuyển dữ liệu lịch sử — ADR-018, ADR-019 |
 | FR-6.4 | Hệ thống phải lưu mã liên kết giữa đơn hàng và dòng tương ứng trên bảng vận đơn |
 | FR-6.5 | Người tạo đơn phải xem lại được các đơn cũ do chính mình tạo |
 | FR-6.6 | Người tạo đơn không được sửa đơn đã lưu |
@@ -246,7 +246,7 @@ Những ràng buộc phải luôn đúng, không phụ thuộc màn hình hay th
 | NFR-10 | Thời gian phục hồi sau sự cố | Dưới 4 giờ |
 | NFR-11 | Kích thước tối đa mỗi tệp tải lên | 10 MB |
 | NFR-12 | Loại tệp được phép tải lên | Excel, CSV, ảnh JPG và PNG |
-| NFR-13 | Số dòng tối đa mỗi lần nhập từ tệp | 5.000 dòng |
+| NFR-13 | Số dòng tối đa mỗi lần nhập từ tệp | 10.000 dòng |
 | NFR-14 | Số bản ghi tối đa mỗi lần xuất ra tệp | 50.000 dòng |
 | NFR-15 | Thời gian giữ bản sao lưu tự động | 30 ngày, tối đa 30 bản gần nhất |
 | NFR-16 | Thời gian giữ tệp tạm sinh ra khi xuất dữ liệu | 24 giờ |
@@ -278,6 +278,29 @@ Những mục sau ảnh hưởng tới phạm vi và cần thống nhất trư�
 
 ---
 
+## 16a. Bổ sung feedback KN CRM đã duyệt
+
+**Bổ sung đã duyệt 09.09.2026 — feedback KN CRM:** Vận đơn mới quản lý người
+phụ trách Vận đơn, CSKH và Marketing bằng liên kết tài khoản. Leader/Manager
+Vận đơn và Admin phân công; nhân viên Vận đơn xem dòng được giao, Sale thấy
+dòng mình tạo hoặc chăm sóc, CSKH chỉ thấy dòng được giao. Giao CSKH không
+tự cấp quyền sửa, gán Marketing không cấp quyền xem. Giữ bộ trạng thái hiện
+có; lọc độc lập vận chuyển/thanh toán, mã sản phẩm chi tiết, Quốc gia và
+Marketing được gán. Excel xuất toàn kết quả lọc/ngày trong quyền, có mã nhân
+viên; file nền phải kiểm lại quyền trước tải. Chi tiết và các ngoại lệ thay
+thế quy tắc bảng mới trước đây ở [ADR-020](quyet-dinh/020-phan-cong-loc-xuat-van-don-moi.md).
+H7 về nhập tiền/bằng chứng vẫn chờ quyết định.
+
+## 16b. File master và Thống kê KN CRM — chốt 10.09.2026
+
+Chỉ Vận đơn mới chuyển sang lưới riêng, cuộn liên tục theo khối, thao tác
+Excel cơ bản để xem/chỉnh sửa; không công thức tự do. Chữ dài đọc/sửa trong
+vùng nổi, không giãn cấu trúc. Ctrl+A chọn toàn bộ kết quả lọc, copy/ghi tối
+đa 2.000 ô, Undo/Redo có kiểm xung đột. Không thêm dòng/xóa dòng/định dạng/
+kéo điền trong UI mới. Thống kê tách thành tính năng ngang cấp Bảng tính,
+SVG và bảng đối chiếu theo toàn dữ liệu lọc/quyền, tách tiền tệ. Chi tiết
+[ADR-021](quyet-dinh/021-luoi-master-va-thong-ke-crm.md). Không đổi nghiệp vụ H7.
+
 ## 17. Ngoài phạm vi phase 1
 
 | Nhóm | Nội dung |
@@ -289,3 +312,21 @@ Những mục sau ảnh hưởng tới phạm vi và cần thống nhất trư�
 | Ứng dụng di động | Bản cài đặt từ cửa hàng ứng dụng |
 | Đồng bộ hai chiều | Sửa trên bảng vận đơn cập nhật ngược lại đơn hàng |
 | Tích hợp bên ngoài | Kết nối với phần mềm kế toán hoặc sàn thương mại điện tử |
+
+## Bổ sung thao tác Vận đơn mới — 10.09.2026
+
+Quy định này thay phần lưu thủ công trước đó. Kết thúc sửa sẽ tự lưu nền;
+Ctrl+S/Lưu dữ liệu gửi ngay. Chờ trạng thái Đã lưu trước khi đóng trang.
+Đổi lọc/popup giữ nháp; cảnh báo rời trang chỉ xuất hiện khi còn chưa lưu.
+Nhập file, phân công và chi tiết sản phẩm vẫn có nút gửi riêng.
+
+- Chế độ Xem: chọn/đọc, F2 hoặc bấm đúp để sửa. Chế độ Chỉnh sửa: bấm/chuyển
+  tới ô được phép sửa để nhập ngay. Tab chuyển ô; Enter xuống hàng cho ô
+  một dòng. Ô nhiều dòng Enter xuống dòng, Ctrl+Enter kết thúc.
+- Bấm số hàng để chọn hàng. Dòng đầu mang số 1. Đơn mới ở cuối theo mặc định.
+- Định dạng có cỡ chữ/màu chữ/màu nền, dùng cùng autosave và Undo/Redo.
+- … → Lịch sử xem thay đổi qua lưới mới của dòng đang chọn. … → Xung đột
+  đối chiếu giá trị và chọn server hoặc gửi lại; có xung đột thì cả lượt chưa ghi.
+- Admin lên đơn tại CRM phải chọn Sale đứng đơn đang hoạt động.
+
+Phạm vi và kết quả kiểm chứng: [báo cáo chín hạng mục](kiem-chung-master-nine.md).

@@ -8,6 +8,7 @@ tính lại bảy cột tách `val_*` trong bộ nhớ, nhưng `update_fields` c
 `data` xuống cơ sở dữ liệu. Kết quả: JSON một đằng, cột tách một nẻo — màn hình
 vẫn hiện đúng còn lọc và thống kê thì sai.
 """
+from .lifecycle_service import writing, available, lock as table_lock
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
@@ -20,7 +21,7 @@ from core.constants import AuditAction
 from core.exceptions import BusinessError
 from core.money import parse_money
 
-from .. import choice_registry
+from .. import choice_registry, record_policies
 from ..meaning import FieldType
 from ..models import DataRecord
 
@@ -98,7 +99,9 @@ def parse_value(column, raw, *, choices=None):
                 return raw.isoformat()
             return datetime.fromisoformat(str(raw)).isoformat()
         if kieu == FieldType.BOOLEAN:
-            return str(raw).strip().lower() in TRUE_WORDS
+            word = str(raw).strip().lower()
+            if word not in TRUE_WORDS | {"0", "false", "khong", "không", "no", "sai"}:raise ValueError(raw)
+            return word in TRUE_WORDS
     except (ValueError, TypeError, InvalidOperation):
         raise BusinessError(
             f'Giá trị "{raw}" không đúng kiểu {FieldType(kieu).label} '
@@ -115,14 +118,39 @@ def _thieu_bat_buoc(columns, values):
     ]
 
 
+def report_input_values(table, columns, values, actor, system_day=None):
+    """Các bảng báo cáo cấu hình rõ ràng dùng ngày/danh tính/tiền từ hệ thống."""
+    source = getattr(table, 'erp_report', None)
+    if source is None or source.kind not in ('sale', 'mkt'):
+        return values
+    from core.identity import employee_code
+    from forms_builder.meaning import Meaning
+    from orders.services.currency_service import for_label
+    values = dict(values)
+    for column in columns:
+        if column.meaning == Meaning.DATE:
+            values[column.code] = (system_day or timezone.localdate()).isoformat()
+        elif column.meaning == Meaning.SELLER and actor is not None:
+            values[column.code] = employee_code(actor)
+    currency_code = source.columns.get('currency')
+    if currency_code:
+        values[currency_code] = for_label(values.get(source.columns.get('market')))
+    return values
+
+
+@writing
 @transaction.atomic
-def create_record(table, values, *, actor=None, request=None, columns=None):
+def create_record(table, values, *, actor=None, request=None, columns=None, system_day=None):
     """Thêm một dòng vào bảng.
 
     Bộ phận và team lấy theo hồ sơ người tạo, để phạm vi quyền áp đúng ngay từ
     lúc sinh ra bản ghi.
     """
+    policy = record_policies.for_table(table)
+    if policy:
+        values = policy.prepare_values(values)
     columns = columns if columns is not None else list(table.columns.all())
+    values = report_input_values(table, columns, values, actor, system_day)
     du_lieu = {}
     for cot in columns:
         if cot.is_computed:
@@ -147,6 +175,8 @@ def create_record(table, values, *, actor=None, request=None, columns=None):
     ban_ghi.apply_computed_columns(columns)
     ban_ghi.sync_indexed_columns(columns)
     ban_ghi.save(skip_sync=True)
+    if policy:
+        policy.after_create(ban_ghi, values)
 
     record(
         AuditAction.CREATE, actor=actor, target=ban_ghi,
@@ -161,10 +191,11 @@ class BulkResult:
 
     created: int = 0
     errors: list = field(default_factory=list)
+    error_columns: dict = field(default_factory=dict)
 
 
 def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
-                        batch=500, on_progress=None, row_numbers=None):
+                        batch=500, on_progress=None, row_numbers=None, on_created=None, audit_action=AuditAction.IMPORT):
     """Thêm nhiều dòng một lượt — nền của nhập tệp Excel (FR-7.5) và seed.
 
     Khác `create_record` ở ba chỗ, cố ý:
@@ -176,15 +207,26 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
       không gọi `save()`, nên cột tính sẵn và cột tách phải gọi tay ở đây —
       quên là lọc và thống kê sai âm thầm (xem cảnh báo đầu tệp).
     - **Một dòng nhật ký** tóm tắt cho cả lượt, không mỗi dòng một dòng nhật
-      ký — 5.000 dòng nhật ký cho một lần bấm nhập là che mất mọi thứ khác.
+      ký — 10.000 dòng nhật ký cho một lần bấm nhập là che mất mọi thứ khác.
     """
+    available(table)
     columns = columns if columns is not None else list(table.columns.all())
     ho_so = getattr(actor, "profile", None)
     team = getattr(ho_so, "team", None)
     ket_qua = BulkResult()
+    if record_policies.for_table(table):
+        for i, values in enumerate(rows):
+            try:
+                create_record(table, values, actor=actor, request=request, columns=columns)
+                ket_qua.created += 1
+            except BusinessError as error:
+                ket_qua.errors.append((row_numbers[i] if row_numbers else i + 1, str(error)))
+            if on_progress and (i + 1) % batch == 0:
+                on_progress(i + 1)
+        return ket_qua
     lo = []
-    # Danh sách chọn chụp một lần cho cả lượt — không thì 5.000 dòng là
-    # 5.000 lần truy vấn danh mục sản phẩm
+    # Danh sách chọn chụp một lần cho cả lượt — không thì 10.000 dòng là
+    # 10.000 lần truy vấn danh mục sản phẩm
     chon = {
         c.code: choice_registry.snapshot(choice_registry.for_column(c))
         for c in columns if c.field_type == FieldType.CHOICE
@@ -194,13 +236,17 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
         if not lo:
             return
         with transaction.atomic():
+            table_lock(table)
             DataRecord.objects.bulk_create(lo)
         ket_qua.created += len(lo)
+        if on_created:on_created(list(lo))
         lo.clear()
 
     for i, values in enumerate(rows):
         so_dong = row_numbers[i] if row_numbers else i + 1
+        error_column = None
         try:
+            values = report_input_values(table, columns, values, actor)
             du_lieu = {}
             for cot in columns:
                 if cot.is_computed:
@@ -208,12 +254,15 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
                 gia_tri = values.get(cot.code)
                 if gia_tri in (None, ""):
                     continue
+                error_column = cot.code
                 du_lieu[cot.code] = parse_value(cot, gia_tri, choices=chon.get(cot.code))
             thieu = _thieu_bat_buoc(columns, du_lieu)
             if thieu:
+                error_column = next(c.code for c in columns if c.required and not c.is_computed and du_lieu.get(c.code) in (None,""))
                 raise BusinessError("Thiếu cột bắt buộc: " + ", ".join(thieu))
         except BusinessError as loi:
             ket_qua.errors.append((so_dong, str(loi)))
+            ket_qua.error_columns[so_dong] = error_column
             continue
 
         ban_ghi = DataRecord(
@@ -230,7 +279,7 @@ def create_records_bulk(table, rows, *, actor=None, request=None, columns=None,
     ghi_lo()
 
     record(
-        AuditAction.IMPORT, actor=actor, target=table,
+        audit_action, actor=actor, target=table,
         detail=(f"Nhập {ket_qua.created} dòng vào bảng {table.code}"
                 + (f", bỏ qua {len(ket_qua.errors)} dòng lỗi" if ket_qua.errors else "")),
         request=request,
@@ -262,10 +311,23 @@ def save_rows(records, *, fields=None):
     return DataRecord.bulk_save(records, fields=fields)
 
 
-def _dat_o(ban_ghi, cot, raw):
+def _dat_o(ban_ghi, cot, raw, *, confirmations=None):
     """Đặt giá trị một ô trong bộ nhớ, chưa lưu. Trả `(đổi không, cũ, mới)`.
     Cùng luật cho sửa một ô lẫn dán nhiều ô: cột tính sẵn không sửa tay, cột
     bắt buộc không để trống, giá trị ép kiểu theo cột."""
+    from .grant_service import is_submitted_report
+    if not hasattr(ban_ghi, '_submitted_report'):
+        ban_ghi._submitted_report = is_submitted_report(ban_ghi)
+    if ban_ghi._submitted_report:
+        raise BusinessError('Báo cáo đã nộp: mở Lịch sử báo cáo để chỉnh sửa theo quyền quản lý.')
+    source = getattr(cot.table, 'erp_report', None)
+    if source and source.kind in ('sale', 'mkt'):
+        from forms_builder.meaning import Meaning
+        if cot.meaning in (Meaning.DATE, Meaning.SELLER) or cot.code == source.columns.get('currency'):
+            raise BusinessError('Ngày báo cáo, nhân sự và loại tiền do hệ thống xác định.')
+    policy = record_policies.for_table(ban_ghi.table)
+    if policy:
+        policy.assert_editable(cot.code)
     if cot.is_computed:
         raise BusinessError(f'Cột "{cot.name}" là cột tính sẵn, không sửa tay được.')
     cu = ban_ghi.data.get(cot.code)
@@ -274,10 +336,18 @@ def _dat_o(ban_ghi, cot, raw):
         return False, cu, moi
     if cot.required and moi in (None, ""):
         raise BusinessError(f'Cột "{cot.name}" bắt buộc nhập, không để trống được.')
+    if source and source.kind in ('sale', 'mkt') and cot.code == source.columns.get('market'):
+        from orders.services.currency_service import for_label
+        currency = for_label(moi)
+        if source.columns.get('currency'):
+            ban_ghi.data[source.columns['currency']] = currency
+    if policy and hasattr(policy, 'derived_values'):
+        ban_ghi.data.update(policy.derived_values(ban_ghi, cot, moi, confirmations=confirmations))
     ban_ghi.data[cot.code] = moi
     return True, cu, moi
 
 
+@writing
 @transaction.atomic
 def update_cell(ban_ghi, code, raw, *, actor=None, request=None, columns=None):
     """Sửa đúng một ô trên bảng — FR-7.4.
@@ -285,6 +355,11 @@ def update_cell(ban_ghi, code, raw, *, actor=None, request=None, columns=None):
     Truyền sẵn `columns` khi sửa nhiều ô liên tiếp: mỗi lần để hàm tự lấy là
     thêm một lệnh truy vấn (quy tắc Q2).
     """
+    from .grant_service import with_report_lock
+    ban_ghi._submitted_report = with_report_lock(DataRecord.objects.filter(pk=ban_ghi.pk)).values_list('_submitted_report', flat=True).get()
+    policy = record_policies.for_table(ban_ghi.table)
+    if policy:
+        policy.refresh_for_update(ban_ghi, actor)
     columns = columns if columns is not None else list(ban_ghi.table.columns.all())
     cot = _cot(columns, code)
     doi, cu, moi = _dat_o(ban_ghi, cot, raw)
@@ -298,13 +373,14 @@ def update_cell(ban_ghi, code, raw, *, actor=None, request=None, columns=None):
         AuditAction.UPDATE, actor=actor, target=ban_ghi,
         detail=(
             f"Sửa ô {ban_ghi.table.code}.{code} — "
-            f"{_hien(cu)} → {_hien(moi)}"
+            + ("cập nhật giá trị" if policy else f"{_hien(cu)} → {_hien(moi)}")
         ),
         request=request,
     )
     return ban_ghi
 
 
+@writing
 @transaction.atomic
 def update_cells(cells, *, actor=None, request=None, columns=None):
     """Sửa nhiều ô một lần — dán, kéo điền, xoá nội dung, hoàn tác (ADR-011).
@@ -314,13 +390,32 @@ def update_cells(cells, *, actor=None, request=None, columns=None):
     nào đổi. Mỗi bản ghi lưu một lần sau khi tính lại cột tính sẵn; một dòng
     nhật ký gộp. Trả về số ô đã đổi.
     """
+    from .grant_service import with_report_lock
+    rows = {r.pk:r for r, _, _ in cells}
+    flags = dict(with_report_lock(DataRecord.objects.filter(pk__in=rows)).values_list('pk','_submitted_report'))
+    for row in rows.values():
+        row._submitted_report = flags.get(row.pk, False)
+    # Cùng thứ tự khoá với sửa chi tiết; không ghi đè JSON đã đổi sau khi view đọc.
+    for row in sorted({r.pk: r for r, _, _ in cells}.values(), key=lambda r: r.pk):
+        policy = record_policies.for_table(row.table)
+        if policy:
+            policy.refresh_for_update(row, actor)
+    return _update_locked_cells(cells, actor=actor, request=request, columns=columns)
+
+
+def _update_locked_cells(cells, *, actor, request=None, columns=None, confirmations=None):
+    """Nội bộ: caller đã khóa dòng, kiểm scope/quyền trong cùng transaction.
+
+    Lưới JSON kiểm cả lô trước CAS; không tải lại từng dòng sau đó.
+    Các caller thông thường phải tiếp tục gọi update_cells.
+    """
     da_doi = 0
     ban_ghi_doi = {}
     for ban_ghi, code, raw in cells:
         cot_ds = columns if columns is not None else list(ban_ghi.table.columns.all())
         cot = _cot(cot_ds, code)
         try:
-            doi, _, _ = _dat_o(ban_ghi, cot, raw)
+            doi, _, _ = _dat_o(ban_ghi, cot, raw, confirmations=confirmations)
         except BusinessError as e:
             raise CellError(str(e), pk=ban_ghi.pk, code=code) from e
         if doi:
@@ -342,9 +437,13 @@ def update_cells(cells, *, actor=None, request=None, columns=None):
     return da_doi
 
 
+@writing
 @transaction.atomic
 def restore_record(ban_ghi, *, actor=None, request=None):
     """Khôi phục một dòng đã xoá mềm — hoàn tác xoá trên Bảng tính (ADR-011)."""
+    policy = record_policies.for_table(ban_ghi.table)
+    if policy:
+        policy.refresh_for_update(ban_ghi, actor, include_deleted=True)
     if ban_ghi.deleted_at is None:
         return ban_ghi
     ban_ghi.deleted_at = None
@@ -357,9 +456,13 @@ def restore_record(ban_ghi, *, actor=None, request=None):
     return ban_ghi
 
 
+@writing
 @transaction.atomic
 def delete_record(ban_ghi, *, actor=None, request=None):
     """Xoá một dòng. Đánh dấu chứ không xoá khỏi cơ sở dữ liệu (BR-4)."""
+    policy = record_policies.for_table(ban_ghi.table)
+    if policy:
+        policy.refresh_for_update(ban_ghi, actor)
     ma_bang = ban_ghi.table.code
     ban_ghi.delete(by=actor)
     record(
@@ -472,11 +575,15 @@ def _ap_dinh_dang(ban_ghi, code, style, columns, *, replace=False):
     return True, cu, gop
 
 
+@writing
 @transaction.atomic
 def update_style(ban_ghi, code, style, *, actor=None, request=None, columns=None, replace=False):
     """Đổi định dạng một ô — ADR-010. Lưu vào `DataRecord.style`, mọi người
     cùng thấy; mỗi lần đổi một dòng nhật ký (BR-5). Không đụng `data` nên
     ghi bằng `update_fields`, an toàn với bảy cột tách."""
+    policy = record_policies.for_table(ban_ghi.table)
+    if policy:
+        policy.refresh_for_update(ban_ghi, actor)
     columns = columns if columns is not None else list(ban_ghi.table.columns.all())
     doi, cu, moi = _ap_dinh_dang(ban_ghi, code, style, columns, replace=replace)
     if not doi:
@@ -490,6 +597,7 @@ def update_style(ban_ghi, code, style, *, actor=None, request=None, columns=None
     return ban_ghi
 
 
+@writing
 @transaction.atomic
 def update_styles(cells, style, *, actor=None, request=None, columns=None, replace=False):
     """Đổi định dạng nhiều ô một lần — `cells` là danh sách `(bản ghi, mã cột)`.
@@ -497,6 +605,10 @@ def update_styles(cells, style, *, actor=None, request=None, columns=None, repla
     Trả về số ô đã đổi."""
     da_doi = 0
     ban_ghi_doi = {}
+    for row in sorted({r.pk: r for r, _ in cells}.values(), key=lambda r: r.pk):
+        policy = record_policies.for_table(row.table)
+        if policy:
+            policy.refresh_for_update(row, actor)
     for ban_ghi, code in cells:
         cot = columns if columns is not None else list(ban_ghi.table.columns.all())
         doi, _, _ = _ap_dinh_dang(ban_ghi, code, style, cot, replace=replace)

@@ -1,0 +1,74 @@
+[
+  {
+    "role": "staff",
+    "width": 1440,
+    "loadMs": 103.69999998807907,
+    "filterMs": 150,
+    "paginationMs": 139,
+    "inputToFrameMaxMs": 15.100000023841858,
+    "passed": true
+  },
+  {
+    "role": "leader",
+    "width": 1440,
+    "loadMs": 124.80000001192093,
+    "filterMs": 148,
+    "paginationMs": 175,
+    "inputToFrameMaxMs": 14.199999988079071,
+    "passed": true
+  },
+  {
+    "role": "manager",
+    "width": 1440,
+    "loadMs": 105.09999996423721,
+    "filterMs": 128,
+    "paginationMs": 164,
+    "inputToFrameMaxMs": 13.599999964237213,
+    "passed": true
+  },
+  {
+    "role": "admin",
+    "width": 1440,
+    "loadMs": 104.40000003576279,
+    "filterMs": 93,
+    "paginationMs": 123,
+    "inputToFrameMaxMs": 14.300000011920929,
+    "passed": true
+  },
+  {
+    "role": "staff",
+    "width": 390,
+    "loadMs": 79.40000003576279,
+    "filterMs": 138,
+    "paginationMs": 159,
+    "inputToFrameMaxMs": 14.5,
+    "passed": true
+  },
+  {
+    "role": "leader",
+    "width": 390,
+    "loadMs": 125.09999996423721,
+    "filterMs": 163,
+    "paginationMs": 163,
+    "inputToFrameMaxMs": 16.099999964237213,
+    "passed": true
+  },
+  {
+    "role": "manager",
+    "width": 390,
+    "loadMs": 104.80000001192093,
+    "filterMs": 175,
+    "paginationMs": 174,
+    "inputToFrameMaxMs": 13.300000011920929,
+    "passed": true
+  },
+  {
+    "role": "admin",
+    "width": 390,
+    "loadMs": 100.10000002384186,
+    "filterMs": 118,
+    "paginationMs": 136,
+    "inputToFrameMaxMs": 15,
+    "passed": true
+  }
+]

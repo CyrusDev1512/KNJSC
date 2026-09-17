@@ -1,6 +1,8 @@
 {% extends "base.html" %}
+{% load static %}
 {% block tieu_de %}Tổng quan · Kim Ngân JSC{% endblock %}
 {% block ten_trang %}Tổng quan{% endblock %}
+{% block dau_trang %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v={{ phien_ban_tinh }}">{% endblock %}
 
 {% block noi_dung %}
 
@@ -14,6 +16,9 @@
     </p>
   </div>
 </div>
+
+{% include "dashboard/_activity.html" %}
+{% if not activity.configured %}{% include "dashboard/_marketing.html" %}{% endif %}
 
 {# ── Ô số liệu ─────────────────────────────────────────────── #}
 <div class="luoi luoi-4">

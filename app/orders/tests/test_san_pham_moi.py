@@ -13,6 +13,12 @@ from orders.services import dispatch_service, product_service
 
 pytestmark = pytest.mark.django_db
 
+@pytest.fixture(autouse=True)
+def crm_entry(settings):
+    settings.ROOT_URLCONF = 'knjsc.urls_bangtinh'
+    settings.BANGTINH_URL = ''
+
+
 
 @pytest.fixture
 def san_pham(db):
@@ -67,14 +73,14 @@ def test_trung_ten_hoac_rong_bi_tu_choi(san_pham, nguoi_dung):
 def test_manager_sale_them_san_pham_tai_o_chon(client, san_pham, nguoi_dung):
     """AC-6.9 — Manager Sale thêm sản phẩm qua đường dẫn của màn hình Lên đơn; danh sách trả về có mục mới chọn sẵn theo mã"""
     client.force_login(nguoi_dung["manager_sale"])
-    kq = client.post("/len-don/san-pham-moi/", {"nhan_moi": "Đèn ngủ cảm ứng"})
+    kq = client.post("/van-don/len-don/san-pham-moi/", {"nhan_moi": "Đèn ngủ cảm ứng"})
     assert kq.status_code == 200
     html = kq.content.decode()
     assert '<option value="den-ngu-cam-ung" selected>Đèn ngủ cảm ứng</option>' in html
     assert '<option value="hm200">' in html and '<option value="__them__">' in html
     assert Product.objects.filter(code="den-ngu-cam-ung").exists()
 
-    kq = client.post("/len-don/san-pham-moi/", {"nhan_moi": ""})
+    kq = client.post("/van-don/len-don/san-pham-moi/", {"nhan_moi": ""})
     assert kq.status_code == 400 and "không được để trống" in kq.content.decode()
 
 
@@ -83,7 +89,7 @@ def test_staff_va_leader_sale_bi_403_co_nhat_ky(client, san_pham, nguoi_dung):
     for ma in ("staff_sale_1", "leader_sale_1"):
         truoc = AuditLog.objects.filter(action=AuditAction.DENIED).count()
         client.force_login(nguoi_dung[ma])
-        assert client.post("/len-don/san-pham-moi/", {"nhan_moi": "Mới"}).status_code == 403, ma
+        assert client.post("/van-don/len-don/san-pham-moi/", {"nhan_moi": "Mới"}).status_code == 403, ma
         assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == truoc + 1
     assert Product.objects.count() == 1
 
@@ -91,18 +97,18 @@ def test_staff_va_leader_sale_bi_403_co_nhat_ky(client, san_pham, nguoi_dung):
 def test_manager_bo_phan_khac_bi_chan(client, san_pham, nguoi_dung):
     """AC-6.9 — Manager Marketing không vào được màn hình Lên đơn nên cũng không thêm sản phẩm ở đó"""
     client.force_login(nguoi_dung["manager_mkt"])
-    assert client.post("/len-don/san-pham-moi/", {"nhan_moi": "Mới"}).status_code == 403
-    assert client.get("/len-don/san-pham-moi/").status_code == 405
+    assert client.post("/van-don/len-don/san-pham-moi/", {"nhan_moi": "Mới"}).status_code == 403
+    assert client.get("/van-don/len-don/san-pham-moi/").status_code == 405
 
 
 def test_len_don_hien_them_moi_chi_cho_manager(client, san_pham, nguoi_dung):
     """AC-6.9 — Ô chọn sản phẩm trên Lên đơn có mục Thêm mới và hộp thêm cho Manager; Staff không thấy"""
     client.force_login(nguoi_dung["manager_sale"])
-    html = client.get("/len-don/").content.decode()
-    assert '<option value="__them__">' in html and 'id="them-sp"' in html
-    assert '<option value="hm200">Máy massage cầm tay HM-200</option>' in html
+    html = client.get("/van-don/len-don/").content.decode()
+    assert 'data-create-product=' in html
+    assert 'value="hm200"' in html and "Máy massage cầm tay HM-200" in html
 
     client.force_login(nguoi_dung["staff_sale_1"])
-    html = client.get("/len-don/").content.decode()
-    assert '<option value="__them__">' not in html and 'id="them-sp"' not in html
-    assert '<option value="hm200">Máy massage cầm tay HM-200</option>' in html
+    html = client.get("/van-don/len-don/").content.decode()
+    assert 'data-create-product=' not in html
+    assert 'value="hm200"' in html and "Máy massage cầm tay HM-200" in html

@@ -1,0 +1,104 @@
+[
+  {
+    "source": "bao_cao_mkt",
+    "width": 1440,
+    "navigation": {
+      "ttfb": 67.59999990463257,
+      "dom": 79.40000009536743,
+      "load": 94.5,
+      "bytes": 15867,
+      "rows": 25,
+      "domNodes": 483,
+      "longTasks": []
+    },
+    "filterMs": 147,
+    "frameP95": 16.799999999999955,
+    "frameMax": 16.800000000000182,
+    "errors": []
+  },
+  {
+    "source": "bao_cao_sale",
+    "width": 1440,
+    "navigation": {
+      "ttfb": 74.20000004768372,
+      "dom": 84.20000004768372,
+      "load": 96.20000004768372,
+      "bytes": 13843,
+      "rows": 25,
+      "domNodes": 321,
+      "longTasks": []
+    },
+    "filterMs": 146,
+    "frameP95": 16.799999999999955,
+    "frameMax": 16.800000000000182,
+    "errors": []
+  },
+  {
+    "source": "van_don_moi",
+    "width": 1440,
+    "navigation": {
+      "ttfb": 124.39999985694885,
+      "dom": 141.09999990463257,
+      "load": 151.59999990463257,
+      "bytes": 13126,
+      "rows": 25,
+      "domNodes": 245,
+      "longTasks": []
+    },
+    "filterMs": 154,
+    "frameP95": 16.80000000000001,
+    "frameMax": 16.90000000000009,
+    "errors": []
+  },
+  {
+    "source": "bao_cao_mkt",
+    "width": 390,
+    "navigation": {
+      "ttfb": 66.5,
+      "dom": 81.90000009536743,
+      "load": 93.90000009536743,
+      "bytes": 15867,
+      "rows": 25,
+      "domNodes": 483,
+      "longTasks": []
+    },
+    "filterMs": 122,
+    "frameP95": 16.799999999999955,
+    "frameMax": 16.800000000000182,
+    "errors": []
+  },
+  {
+    "source": "bao_cao_sale",
+    "width": 390,
+    "navigation": {
+      "ttfb": 57.60000014305115,
+      "dom": 71.10000014305115,
+      "load": 79.90000009536743,
+      "bytes": 13843,
+      "rows": 25,
+      "domNodes": 321,
+      "longTasks": []
+    },
+    "filterMs": 134,
+    "frameP95": 16.799999999999955,
+    "frameMax": 16.800000000000182,
+    "errors": []
+  },
+  {
+    "source": "van_don_moi",
+    "width": 390,
+    "navigation": {
+      "ttfb": 133.79999995231628,
+      "dom": 149.59999990463257,
+      "load": 159.69999980926514,
+      "bytes": 13126,
+      "rows": 25,
+      "domNodes": 245,
+      "longTasks": []
+    },
+    "filterMs": 154,
+    "frameP95": 16.80000000000001,
+    "frameMax": 16.899999999999977,
+    "errors": []
+  }
+]

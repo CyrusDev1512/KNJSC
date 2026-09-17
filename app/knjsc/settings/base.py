@@ -63,6 +63,7 @@ LOCAL_APPS = [
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
+    "core.request_metrics.RequestMetricsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -111,6 +112,28 @@ DATABASES = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Mỗi nhóm được bật riêng sau kiểm chứng; mặc định bảo toàn giao thức cũ.
+CRM_OPT_READ = env_bool('CRM_OPT_READ',False)
+CRM_OPT_SYNC = env_bool('CRM_OPT_SYNC',False)
+CRM_OPT_RECEIPTS = env_bool('CRM_OPT_RECEIPTS',False)
+CRM_OPT_STATS = env_bool('CRM_OPT_STATS',False)
+CRM_OPT_RENDER = env_bool('CRM_OPT_RENDER',False)
+CRM_OPT_EXPORT = env_bool('CRM_OPT_EXPORT',False)
+CRM_REQUEST_METRICS = env_bool('CRM_REQUEST_METRICS',False)
+CRM_OPT_QUEUES = env_bool('CRM_OPT_QUEUES',False)
+# Kho chứng từ thanh toán tạm dừng theo quyết định 14.09.2026. Giữ mã nguồn để
+# có thể bật lại có chủ đích sau này, nhưng mặc định không để lộ UI hay endpoint.
+PAYMENT_DOCUMENTS_ENABLED = env_bool('PAYMENT_DOCUMENTS_ENABLED', False)
+if CRM_OPT_QUEUES:
+    CELERY_TASK_ROUTES = {
+        'forms_builder.chay_tac_vu_nhap': {'queue':'crm_heavy'},
+        'forms_builder.chay_tac_vu_xuat': {'queue':'crm_heavy'},
+        'forms_builder.chay_tac_vu_tinh_lai': {'queue':'crm_heavy'},
+    }
+CACHES = {'default':{'BACKEND':'django.core.cache.backends.locmem.LocMemCache'},
+          'crm':{'BACKEND':'django.core.cache.backends.redis.RedisCache','LOCATION':env('CRM_CACHE_URL','redis://localhost:6379/2'),
+                 'OPTIONS':{'socket_connect_timeout':0.2,'socket_timeout':0.2}}}
+
 # ── Mật khẩu ────────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -147,6 +170,11 @@ EXPORT_DIR = STORAGE_DIR / "exports"            # tệp xuất, dọn sau 24 gi�
 BACKUP_DIR = Path(env("BACKUP_DIR", str(STORAGE_DIR / "backups")))
 
 # ── Phiên đăng nhập ─────────────────────────────────────────────────
+# Chỉ đặt domain mẹ khi mọi subdomain thuộc phạm vi tin cậy. Để trống ở local.
+SESSION_COOKIE_DOMAIN = env("SESSION_COOKIE_DOMAIN", "").strip() or None
+SESSION_COOKIE_NAME = env("SESSION_COOKIE_NAME", "sessionid")
+CSRF_COOKIE_DOMAIN = env("CSRF_COOKIE_DOMAIN", "").strip() or None
+CSRF_COOKIE_NAME = env("CSRF_COOKIE_NAME", "csrftoken")
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
@@ -167,6 +195,9 @@ GRID_ONLY_TABLES = set(env_list("GRID_ONLY_TABLES", "van_don"))
 BANGTINH_URL = env("BANGTINH_URL", "http://localhost:8021/")
 # Địa chỉ dịch vụ chính — Bảng tính liên kết ngược về Bảng dữ liệu và Nhập tệp
 MAIN_APP_URL = env("MAIN_APP_URL", "http://localhost:8020/")
+# Tài khoản Admin được trình bày Bàn điều hành theo vai trò chủ sở hữu.
+# Danh sách này không cấp thêm bất kỳ quyền xem dữ liệu nào.
+EXECUTIVE_OWNER_USERNAMES = env_list("EXECUTIVE_OWNER_USERNAMES", "")
 
 # Tỉ giá cố định để quy đổi doanh số về VND cho bảng xếp hạng (ADR-017, Q71).
 # Số mặc định là số tạm — backlog N11 chờ anh/chị chốt; đè bằng biến môi

@@ -15,6 +15,7 @@ Ba điều khẳng định:
 3. Ngoài phạm vi thì 403 hoặc 404, **không phải** 200 với danh sách rỗng — AC-3.6
 """
 import pytest
+from django.conf import settings
 from django.test import override_settings
 from django.urls import URLPattern, URLResolver, get_resolver
 
@@ -101,6 +102,11 @@ def test_chua_dang_nhap_thi_bi_chuyen_ve_trang_dang_nhap(client, urlconf, ten, d
     """AC-1.1 — Gọi mọi đường dẫn khi chưa đăng nhập thì bị chuyển về đăng nhập"""
     with override_settings(ROOT_URLCONF=urlconf):
         kq = client.get(duong_dan)
+    # Tính năng tạm tắt phải không để lộ việc endpoint có tồn tại, kể cả trước
+    # bước đăng nhập. Khi bật lại, hợp đồng chuyển về đăng nhập bên dưới vẫn giữ.
+    if ten.startswith('payment_') and not settings.PAYMENT_DOCUMENTS_ENABLED:
+        assert kq.status_code == 404
+        return
     assert kq.status_code in (302, 405), (
         f"{ten} ({duong_dan}) trả {kq.status_code} cho người chưa đăng nhập"
     )

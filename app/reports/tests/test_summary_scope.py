@@ -99,12 +99,16 @@ def _xem(client, nguoi_dung, ma, **tham_so):
 
 # ══ Phạm vi quyền — FR-5.5 ═════════════════════════════════════════
 
-def test_staff_chi_thay_tong_cua_minh(client, dong_sale, nguoi_dung):
+def test_staff_chi_thay_tong_cua_minh(client, dong_sale, nguoi_dung, monkeypatch):
     """AC-3.1 — Staff chỉ thấy bản ghi do chính mình tạo, không thấy của
     người cùng team"""
+    from django.utils.html import strip_tags
+    # Mã cache static có thể chứa 700, không phải doanh số của đồng nghiệp.
+    monkeypatch.setattr('core.context_processors.PHIEN_BAN_TINH', 'cache-700')
     phan_hoi = _xem(client, nguoi_dung, "staff_sale_1", nhom="nhan-vien")
-    noi_dung = phan_hoi.content.decode()
+    noi_dung = strip_tags(phan_hoi.content.decode())
     assert phan_hoi.status_code == 200
+    assert phan_hoi.context['kq'].totals['c_doanh_so'] == 1500
     # 1.000 + 500 của chính mình; 700 của người cùng team không được lẫn vào
     assert "1.500" in noi_dung
     assert "700" not in noi_dung

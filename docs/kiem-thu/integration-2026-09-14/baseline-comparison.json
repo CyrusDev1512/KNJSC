@@ -1,0 +1,23 @@
+{
+  "same_failures": true,
+  "count": 17,
+  "failures": [
+    "FAILED crm/tests/test_dich_vu_bangtinh.py::test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap",
+    "FAILED crm/tests/test_dich_vu_bangtinh.py::test_erp_chi_con_lien_ket_sang_kn_crm",
+    "FAILED tests/test_du_lieu_mau.py::test_dung_du_co_cau_to_chuc",
+    "FAILED tests/test_hop_trang.py::test_lenh_tao_bang_van_don_tren_may_sach",
+    "FAILED tests/test_luong_ba_bo_phan.py::test_moi_bo_phan_chi_thay_phan_cua_minh",
+    "FAILED tests/test_luong_ba_bo_phan.py::test_mot_ngay_cua_cong_ty",
+    "FAILED tests/test_ma_tran_phan_quyen.py::test_ma_tran_kiem_cheo[M\\xe0n h\\xecnh l\\xean \\u0111\\u01a1n \\xb7 Leader Sale]",
+    "FAILED tests/test_ma_tran_phan_quyen.py::test_ma_tran_kiem_cheo[M\\xe0n h\\xecnh l\\xean \\u0111\\u01a1n \\xb7 Manager Sale]",
+    "FAILED tests/test_ma_tran_phan_quyen.py::test_ma_tran_kiem_cheo[M\\xe0n h\\xecnh l\\xean \\u0111\\u01a1n \\xb7 Staff Sale]",
+    "FAILED tests/test_ma_tran_phan_quyen.py::test_ma_tran_kiem_cheo[Qu\\u1ea3n l\\xfd bi\\u1ec3u m\\u1eabu \\xb7 Leader Sale]",
+    "FAILED tests/test_ma_tran_phan_quyen.py::test_ma_tran_kiem_cheo[Qu\\u1ea3n l\\xfd bi\\u1ec3u m\\u1eabu \\xb7 Staff Sale]",
+    "FAILED tests/test_ma_tran_phan_quyen.py::test_ma_tran_kiem_cheo[Qu\\u1ea3n l\\xfd bi\\u1ec3u m\\u1eabu \\xb7 Staff V\\u1eadn \\u0111\\u01a1n]",
+    "FAILED tests/test_truy_vet.py::test_da_co_cong_hoan_bang_tong_tu_dong",
+    "FAILED tests/test_truy_vet.py::test_ma_tieu_chi_trong_bai_kiem_deu_co_that",
+    "FAILED tests/test_truy_vet.py::test_moi_tieu_chi_tu_dong_deu_co_bai_kiem",
+    "FAILED tests/test_truy_vet.py::test_so_tieu_chi_da_co_bai_kiem_ghi_dung",
+    "FAILED tests/test_truy_vet.py::test_so_tieu_chi_ghi_trong_ke_hoach_khop_docs_04"
+  ]
+}

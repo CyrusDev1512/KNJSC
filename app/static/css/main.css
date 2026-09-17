@@ -328,7 +328,7 @@ table.bang tfoot td.tien { font-family: var(--font-ma); text-align: right; }
 table.bang-rong td, table.bang-rong th { white-space: nowrap; }
 table.bang-rong td.cho-xuong { white-space: normal; min-width: 200px; }
 
-/* Ô sửa được của lưới KN CRM (bang-tinh.css ghi đè thêm). Bảng dữ liệu ở
+/* Ô sửa được của lưới KN CRM (master-grid.css ghi đè thêm). Bảng dữ liệu ở
    KN ERP không có ô sửa — chỉ để xem, ADR-014 */
 .o-sua { cursor: text; border-radius: var(--r-sm); padding: 0; }
 .o-sua:hover { box-shadow: inset 0 0 0 1px var(--rule-strong); background: var(--surface); }

@@ -96,6 +96,7 @@ Mọi bảng có:
 | Báo cáo hằng ngày | Người nộp, thời điểm nộp, nội dung | FR-4.2 |
 | Đơn hàng | Khách hàng, giá bán, phương thức thanh toán, người tạo | |
 | Dòng sản phẩm trong đơn | Đơn nào, sản phẩm nào, số lượng, đơn giá | Một đơn nhiều dòng — FR-6.2 |
+| Chi tiết sản phẩm vận đơn | Dòng vận đơn, sản phẩm, số lượng, đơn giá, tiền đã thanh toán | Bản sao độc lập trong `orders.WaybillItem`, xoá mềm, Decimal; FK có chỉ mục; ADR-018 |
 | Danh mục sản phẩm | Tên, nhóm, đơn vị tính | Quản lý tự thêm |
 | Nhật ký hoạt động | Ai làm gì, trên đối tượng nào, khi nào | Chỉ ghi thêm — BR-6 |
 | Mục tài liệu | Tên, bộ phận (trống = toàn công ty), thứ tự | Nhóm Nội bộ, ADR-017 — FR-9.1 |
@@ -291,7 +292,7 @@ Phân quyền: ai điền biểu mẫu, ai xem bảng
 ```
 Kiểm cỡ (≤ 10 MB), loại thật của tệp (chữ ký đầu tệp so với đuôi)   ← S7, AC-7.8, AC-7.9
     ↓
-Đọc tối đa 5.000 dòng; dò hàng tiêu đề trong 10 hàng đầu
+Đọc tối đa 10.000 dòng; dò hàng tiêu đề trong 10 hàng đầu
     ↓
 Ánh xạ cột: tên cột → bí danh (Name, Phone, "SL <sản phẩm>"…) → cột bảng
     ↓

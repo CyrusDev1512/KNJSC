@@ -34,11 +34,40 @@ TEP_TIEU_CHI = next((p for p in CAC_NOI_CO_THE if p.exists()), CAC_NOI_CO_THE[0]
 #: phải ghi rõ vì sao chưa làm được và chờ giai đoạn nào. Rỗng dần theo tiến độ.
 HOAN = {
     "AC-5.1": "Tab thị trường hoãn — chưa chốt nguồn số liệu, backlog N9 và Q36",
+    # ADR-024 tự ghi ở `docs/04` mục 24: "đang kiểm chứng", "điều kiện nghiệm
+    # thu, không phải kết quả đã đạt". Năm tiêu chí dưới chưa có bài kiểm nào
+    # mang mã của chúng; AC-24.1 và AC-24.6 thì đã có.
+    "AC-24.2": "CRM-Optimization đang kiểm chứng — ADR-024, Giai đoạn 7K",
+    "AC-24.3": "CRM-Optimization đang kiểm chứng — ADR-024, Giai đoạn 7K",
+    "AC-24.4": "CRM-Optimization đang kiểm chứng — ADR-024, Giai đoạn 7K",
+    "AC-24.5": "Đo trên Chrome thật, chưa tự động hoá — ADR-024, Giai đoạn 7K",
+    "AC-24.7": "Bài đo tải dài 30 phút, chạy tay khi phát hành — ADR-024, Giai đoạn 7K",
+    # ADR-025 — chứng từ thanh toán. Mục AC-26 trong `docs/04` mới là bảng hai
+    # cột, chưa có bài kiểm nào mang mã AC-26.
+    "AC-26.1": "Chứng từ thanh toán mới ghi tiêu chí — ADR-025, backlog chờ làm",
+    "AC-26.2": "Chứng từ thanh toán mới ghi tiêu chí — ADR-025, backlog chờ làm",
+    "AC-26.3": "Chứng từ thanh toán mới ghi tiêu chí — ADR-025, backlog chờ làm",
+    "AC-26.4": "Chứng từ thanh toán mới ghi tiêu chí — ADR-025, backlog chờ làm",
+    "AC-26.5": "Chứng từ thanh toán mới ghi tiêu chí — ADR-025, backlog chờ làm",
+    "AC-26.6": "Kiểm trên Chrome thật, chưa tự động hoá — ADR-025, backlog chờ làm",
+    # ADR-027 tự ghi ở mục 27: "Đây là tiêu chí, chưa phải nhãn hoàn thành".
+    # AC-27.3 đã có bài kiểm, bảy mã còn lại thì chưa.
+    "AC-27.1": "Lưới dùng chung đang làm — ADR-027, Giai đoạn 7K",
+    "AC-27.2": "Lưới dùng chung đang làm — ADR-027, Giai đoạn 7K",
+    "AC-27.4": "Vòng đời bảng đang làm — ADR-027, Giai đoạn 7K",
+    "AC-27.5": "Vòng đời bảng đang làm — ADR-027, Giai đoạn 7K",
+    "AC-27.6": "Dọn renderer ghi cũ đang làm — ADR-027, Giai đoạn 7K",
+    "AC-27.7": "Đo trên Chrome thật, chưa tự động hoá — ADR-027, Giai đoạn 7K",
+    "AC-27.8": "Bài đo tải dài 30 phút, chạy tay khi phát hành — ADR-027, Giai đoạn 7K",
 }
 
-DONG_TIEU_CHI = re.compile(
-    r"^\|\s*(AC-\d+\.\d+)\s*\|(.+?)\|(.+?)\|\s*(Tự động|Thủ công)\s*\|", re.MULTILINE
-)
+#: `docs/04` có ba dạng bảng, sinh dần theo từng đợt: bốn cột
+#: (mã, đạt khi, yêu cầu, loại), ba cột (mã, đạt khi, kiểm bằng) từ ADR-024 và
+#: ADR-027, và hai cột (mã, đạt khi) ở mục AC-26. Bài này đọc cả ba: lấy mã ở
+#: cột đầu, rồi đọc cột cuối để biết tiêu chí kiểm bằng máy hay bằng tay.
+#: Trước đây regex chỉ nhận dạng bốn cột, nên sáu tiêu chí có bài kiểm thật
+#: (AC-22.4, AC-22.7, AC-22.9, AC-24.1, AC-24.6, AC-27.3) bị coi là mã bịa.
+DONG_TIEU_CHI = re.compile(r"^\|\s*(AC-\d+\.\d+)\s*\|(.+)\|\s*$", re.MULTILINE)
 #: Chỉ nhận mã nằm **ngay đầu docstring**, đúng quy ước `docs/04`:
 #:
 #:     """AC-3.1 — Staff chỉ xem được dữ liệu do chính mình tạo"""
@@ -48,15 +77,31 @@ DONG_TIEU_CHI = re.compile(
 MA_TRONG_DOCSTRING = re.compile(r'"""(AC-\d+\.\d+)\b')
 
 
+def _loai(cot_cuoi, ca_dong):
+    """Tiêu chí này kiểm bằng máy hay bằng tay, hay đã rút khỏi phạm vi.
+
+    Cột cuối mỗi bảng ghi cách kiểm, nhưng từ vựng khác nhau theo đợt: "Tự
+    động", "Thủ công", "Functional + Chrome", "Locust + SQL"… Chỉ "Thủ công"
+    mới là việc người phải bấm tay; mọi cách còn lại đều là máy chạy được, nên
+    phải có bài kiểm. Bảng hai cột không ghi cách kiểm thì mặc định là tự động.
+    """
+    if cot_cuoi.strip().casefold() == "bỏ" or "~~" in ca_dong:
+        return None                    # tiêu chí đã rút, không đòi bài kiểm
+    return "Thủ công" if "thủ công" in cot_cuoi.casefold() else "Tự động"
+
+
 def _tieu_chi():
     """Đọc `docs/04`, trả về `{mã: (nội dung, loại)}`."""
     if not TEP_TIEU_CHI.exists():
         return {}
     noi_dung = TEP_TIEU_CHI.read_text(encoding="utf-8")
-    return {
-        ma: (mo_ta.strip(), loai)
-        for ma, mo_ta, _, loai in DONG_TIEU_CHI.findall(noi_dung)
-    }
+    ket_qua = {}
+    for ma, phan_con_lai in DONG_TIEU_CHI.findall(noi_dung):
+        cot = [c.strip() for c in phan_con_lai.split("|")]
+        loai = _loai(cot[-1] if cot else "", phan_con_lai)
+        if loai is not None:
+            ket_qua[ma] = (cot[0] if cot else "", loai)
+    return ket_qua
 
 
 def _ma_trong_bai_kiem():

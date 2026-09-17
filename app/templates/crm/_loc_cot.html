@@ -18,7 +18,7 @@ chua, rong, co, q, giu.
     {% for gia_tri, so in tuy_chon %}
       <label class="loc-cot-muc">
         <input type="checkbox" name="f_{{ cot.code }}__trong" value="{{ gia_tri }}" {% if gia_tri in dang_chon %}checked{% endif %}>
-        <span class="loc-cot-gt">{{ gia_tri }}</span>
+        <span class="loc-cot-gt">{% if gia_tri == '__unassigned__' %}Chưa gán{% else %}{{ gia_tri }}{% endif %}</span>
         <small class="loc-cot-so">({{ so }})</small>
       </label>
     {% empty %}

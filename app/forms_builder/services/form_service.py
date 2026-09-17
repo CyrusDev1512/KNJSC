@@ -15,11 +15,12 @@ from django.db import transaction
 from core.audit import record
 from core.constants import AuditAction
 from core.exceptions import BusinessError
-from core.identity import display_name
+from core.identity import employee_code
 
 from .. import choice_registry
 from ..meaning import FieldType, Meaning
 from ..models import FieldDef, FormDef, FormField
+from .lifecycle_service import lock
 from . import choice_service, link_service, record_service
 
 
@@ -27,6 +28,7 @@ from . import choice_service, link_service, record_service
 def create_form(*, name, code, department, table, description="",
                 actor=None, request=None):
     """Tạo biểu mẫu mới, ghi vào một bảng có sẵn — FR-8.1, ADR-007."""
+    lock(table)
     bieu_mau = FormDef(
         name=name, code=code, department=department, table=table,
         description=description, created_by=actor,
@@ -43,6 +45,7 @@ def create_form(*, name, code, department, table, description="",
 @transaction.atomic
 def update_form(form, changes, *, actor=None, request=None):
     """Sửa tên, mô tả hoặc trạng thái. Không đổi được tên kỹ thuật và bảng đích."""
+    lock(form.table)
     da_doi = []
     for ten in ("name", "description", "is_active"):
         if ten not in changes:
@@ -269,7 +272,7 @@ def identity_codes(fields):
 
 def apply_identity(values, fields, actor):
     """Ép giá trị trường danh tính về tên người gửi, bất kể yêu cầu gửi gì (Q59)."""
-    ten = display_name(actor)
+    ten = employee_code(actor)
     ket_qua = dict(values)
     for ma in identity_codes(fields):
         ket_qua[ma] = ten
@@ -277,20 +280,25 @@ def apply_identity(values, fields, actor):
 
 
 @transaction.atomic
-def fill(form, values, *, actor, request=None, fields=None):
+def fill(form, values, *, actor, request=None, fields=None, system_day=None):
     """Điền một dòng qua biểu mẫu: ép danh tính, kiểm bắt buộc, ghi vào bảng đích.
 
     Một đường duy nhất cho cả màn hình điền biểu mẫu lẫn nộp báo cáo ngày
     (ADR-008), nên quy tắc không lệch nhau giữa hai chỗ.
     """
     fields = fields if fields is not None else list(form.ordered_fields())
+    source = getattr(form.table, 'erp_report', None)
+    if source and source.kind in ('sale', 'mkt'):
+        from reports.services.daily_service import protected_values
+        from django.utils import timezone
+        values = protected_values(form, values, fields, system_day or timezone.localdate(), actor)
     values = apply_identity(values, fields, actor)
     thieu = missing_required(form, values, fields)
     if thieu:
         raise BusinessError("Chưa điền các trường bắt buộc: " + ", ".join(thieu))
     return record_service.create_record(
         form.table, values_by_column(form, values, fields),
-        actor=actor, request=request,
+        actor=actor, request=request, system_day=system_day,
     )
 
 
@@ -312,11 +320,11 @@ def widgets(form, fields, values, *, user):
     """Danh sách `Widget` cho màn hình điền: giá trị đang gõ (hoặc mặc định),
     trường danh tính, và danh sách chọn của cột Chọn một."""
     duoc_them = choice_service.can_manage_options(user, form.table)
-    ten = display_name(user)
+    ten = employee_code(user)
     ket_qua = []
     for t in fields:
         w = Widget(
-            t=t, gia_tri=values.get(t.field.code) or t.field.default_value,
+            t=t, gia_tri=values[t.field.code] if values.get(t.field.code) is not None else t.field.default_value,
             cot=_cot_dich(t),
         )
         if is_identity_field(t):
@@ -327,4 +335,9 @@ def widgets(form, fields, values, *, user):
             w.chat = ds.strict
             w.co_them = duoc_them and ds.can_add
         ket_qua.append(w)
+    source = getattr(form.table, 'erp_report', None)
+    if source and source.kind in ('sale', 'mkt'):
+        from reports.services.daily_service import decorate_widgets
+        from django.utils import timezone
+        return decorate_widgets(ket_qua, form, values, user=user, day=timezone.localdate())
     return ket_qua

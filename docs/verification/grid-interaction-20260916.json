@@ -1,0 +1,77 @@
+{
+  "date": "2026-09-16",
+  "browser": "Codex in-app Chromium",
+  "method": "Fixture Django; API 10.000 dòng mô phỏng; response lưu bị giữ; sự kiện tổng hợp tới 2 rAF, không phải INP thực địa hay đo server",
+  "before": {
+    "stage": "before",
+    "viewport": [
+      1280,
+      720
+    ],
+    "total": 10000,
+    "save": "held response",
+    "selection": {
+      "n": 40,
+      "p50": 33.30000001192093,
+      "p95": 33.59999996423721,
+      "max": 58.09999996423721
+    },
+    "openEditor": {
+      "n": 40,
+      "p50": 33.30000001192093,
+      "p95": 33.69999998807907,
+      "max": 34.200000047683716
+    },
+    "typing": {
+      "n": 40,
+      "p50": 33.5,
+      "p95": 33.69999998807907,
+      "max": 33.80000001192093
+    },
+    "created": 51891,
+    "status": "Đang lưu",
+    "newerDraftPreserved": true
+  },
+  "after": {
+    "stage": "after",
+    "viewport": [
+      1280,
+      720
+    ],
+    "total": 10000,
+    "save": "held response",
+    "selection": {
+      "n": 40,
+      "p50": 33.39999997615814,
+      "p95": 33.59999996423721,
+      "max": 33.60000002384186
+    },
+    "openEditor": {
+      "n": 40,
+      "p50": 33.30000001192093,
+      "p95": 33.69999998807907,
+      "max": 34.19999998807907
+    },
+    "typing": {
+      "n": 40,
+      "p50": 33.30000001192093,
+      "p95": 33.700000047683716,
+      "max": 33.80000001192093
+    },
+    "created": 466,
+    "status": "Đang lưu",
+    "newerDraftPreserved": true
+  },
+  "baseline_sha256": "bf0c4dc4826ae9bbab4a0cc1fcc90b49a368a9e7e314a47fc1878277985b0339",
+  "final_sha256": "52cee5e0474564d92b1c1b1d472b409351c1052d706639a77827ce0d6637e035",
+  "server_tests": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "48",
+    "time": "19.362",
+    "timestamp": "2026-09-16T11:45:43.167107+07:00",
+    "hostname": "250cd2979fb3"
+  }
+}

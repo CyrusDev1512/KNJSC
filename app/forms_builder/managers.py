@@ -17,8 +17,9 @@ nhánh Leader khi có cột team, nên Leader sẽ rơi xuống nhánh cuối v�
 bảng do chính mình tạo — mà Leader thì không được tạo bảng (FR-8.1 giao quyền
 đó cho Manager). Kết quả là Leader thấy danh sách rỗng.
 """
+from orders.constants import is_waybill_table, waybill_condition
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Exists, OuterRef
 
 from core.managers import ScopedQuerySet, apply_department_scope, apply_scope
 from core.scope import get_user_scope
@@ -38,6 +39,9 @@ def _cap_them(user, action):
 class TableDefQuerySet(ScopedQuerySet):
     """Giữ nguyên xoá mềm và `can_view` của `ScopedQuerySet`, chỉ đổi `in_scope`."""
 
+    def with_visible_record_count(self, user):
+        return self.annotate(so_dong=models.Count('records', distinct=True, filter=record_count_scope(user)))
+
     def in_scope(self, user):
         """Bảng của bộ phận mình, cộng bảng được cấp quyền xem riêng."""
         from .models import GrantAction
@@ -47,10 +51,19 @@ class TableDefQuerySet(ScopedQuerySet):
             return trong_bo_phan
 
         duoc_cap = _cap_them(user, GrantAction.VIEW)
-        if not duoc_cap:
-            return trong_bo_phan
+        from .models import DataRecord
+        from org.models import Department
+        accounting = Department.objects.filter(pk=getattr(getattr(user, 'profile', None), 'department_id', None),
+            code='ke-toan', is_active=True, deleted_at__isnull=True)
+        visible = DataRecord.objects.filter(waybill_condition()).filter(
+            Q(created_by_id=user.pk, created_by__profile__department__code='sale')
+            | Q(order__created_by_id=user.pk, order__created_by__profile__department__code='sale')
+            | Q(order__seller_id=user.pk, order__seller__profile__department__code='sale')
+            | Q(assignment__care_id=user.pk, assignment__care__profile__department__code__in=['sale', 'cskh']))
         return self.filter(
             Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
+            | Q(Exists(visible.filter(table_id=OuterRef('pk'))))
+            | (waybill_condition("") & Q(Exists(accounting)))
         )
 
 
@@ -59,6 +72,11 @@ class TableDefManager(models.Manager.from_queryset(TableDefQuerySet)):
 
     def get_queryset(self):
         return super().get_queryset().filter(deleted_at__isnull=True)
+
+
+def record_count_scope(user):
+    from .models import DataRecord
+    return ~waybill_condition("") | Q(records__pk__in=DataRecord.objects.in_scope(user).values('pk'))
 
 
 class AllTableDefManager(models.Manager.from_queryset(TableDefQuerySet)):
@@ -127,8 +145,12 @@ class DataRecordQuerySet(ScopedQuerySet):
     cả bộ phận. Cấp quyền chỉ **cộng thêm**, không thay thế.
     """
 
-    def in_scope(self, user):
+    def in_scope(self, user, *, table=None):
+        self = self.filter(table__deleted_at__isnull=True, table__is_active=True)
         from .models import GrantAction
+
+        if table is not None:
+            self = self.filter(table=table)
 
         theo_cap_bac = apply_scope(
             self, user, owner="created_by", team="team", department="department",
@@ -149,7 +171,14 @@ class DataRecordQuerySet(ScopedQuerySet):
         if duoc_cap:
             them |= Q(table_id__in=duoc_cap)
 
-        return self.filter(Q(pk__in=theo_cap_bac.values("pk")) | them)
+        from orders.services.assignment_service import scope_condition
+        if table is not None and not is_waybill_table(table):
+            # Bảng đã biết không dùng ngoại lệ Vận đơn mới. Ghép trực tiếp
+            # hai phạm vi, tránh quét lại ID và JOIN đơn/phân công không cần.
+            # Điều kiện bảng dùng chung vẫn đọc từ SQL, không tin metadata cũ.
+            return theo_cap_bac | self.filter(them)
+        return self.filter(scope_condition(user, Q(pk__in=theo_cap_bac.values("pk")) | them,
+            only_new=table is not None and is_waybill_table(table)))
 
 
 class DataRecordManager(models.Manager.from_queryset(DataRecordQuerySet)):

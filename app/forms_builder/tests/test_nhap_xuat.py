@@ -17,7 +17,7 @@ from openpyxl import load_workbook
 
 from core import excel
 from core.constants import (
-    EXPORT_SYNC_MAX_ROWS, IMPORT_MAX_ROWS, IMPORT_PERF_ROWS, IMPORT_PERF_SECONDS,
+    EXPORT_SYNC_MAX_ROWS, IMPORT_PERF_ROWS, IMPORT_PERF_SECONDS,
     UPLOAD_MAX_BYTES, AuditAction, JobStatus,
 )
 from core.models import AuditLog, BackgroundJob
@@ -167,12 +167,25 @@ def test_tep_sai_loai_bi_tu_choi(client, bang_sale, nguoi_dung, ten, noi_dung):
     assert not BackgroundJob.objects.exists()
 
 
-def test_tep_hon_5000_dong_bi_tu_choi(client, bang_sale, nguoi_dung):
-    """NFR-13 — Tệp vượt trần 5.000 dòng bị từ chối trước khi ghi gì"""
+def test_tep_10000_dong_duoc_xem_truoc(client, bang_sale, nguoi_dung):
+    """NFR-13 — Tệp đúng 10.000 dòng được nhận vào bước xem trước, chưa ghi dữ liệu."""
     client.force_login(nguoi_dung["manager_sale"])
-    tep = _tep_don([[date(2026, 8, 1), f"K{i}", 100, 1] for i in range(IMPORT_MAX_ROWS + 1)])
+    tep = _tep_don([[date(2026, 8, 1), f"K{i}", 100, 1] for i in range(10_000)])
+
+    kq = client.post("/bang/don_sale/nhap/", {"tep": tep})
+
+    assert kq.status_code == 302
+    job = BackgroundJob.objects.latest("id")
+    assert job.status == JobStatus.DRAFT and job.total == 10_000
+    assert DataRecord.objects.filter(table=bang_sale).count() == 0
+
+
+def test_tep_hon_10000_dong_bi_tu_choi(client, bang_sale, nguoi_dung):
+    """NFR-13 — Tệp vượt trần 10.000 dòng bị từ chối trước khi ghi gì."""
+    client.force_login(nguoi_dung["manager_sale"])
+    tep = _tep_don([[date(2026, 8, 1), f"K{i}", 100, 1] for i in range(10_001)])
     kq = client.post("/bang/don_sale/nhap/", {"tep": tep}, follow=True)
-    assert "5.000" in kq.content.decode()
+    assert "10.000" in kq.content.decode()
     assert DataRecord.objects.filter(table=bang_sale).count() == 0
     assert not BackgroundJob.objects.exists()
 

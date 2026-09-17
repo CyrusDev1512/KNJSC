@@ -172,6 +172,13 @@ def tac_vu_tien_do(request, pk):
 def tac_vu_tai(request, pk):
     """Tải tệp kết quả. Tệp đã bị dọn sau 24 giờ thì nói rõ, không trả 500."""
     job = _tac_vu_cua_toi(request, pk)
+    from forms_builder.services.export_service import check_download
+    from core.exceptions import BusinessError
+    try:
+        check_download(job, request.user)
+    except BusinessError as exc:
+        messages.error(request, str(exc))
+        return redirect('tac_vu_xem', pk=pk)
     duong_dan = Path(settings.STORAGE_DIR) / job.result_path if job.result_path else None
     if job.status != JobStatus.DONE or duong_dan is None or not duong_dan.exists():
         messages.error(request, "Tệp đã quá 24 giờ và được dọn, hoặc tác vụ chưa xong. Hãy xuất lại.")

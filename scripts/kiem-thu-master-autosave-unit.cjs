@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict');
+const Working=require('../app/static/js/master-working-copy.js');
+const w=new Working(),base={id:1,column:'note',old:null};
+w.stage([{...base,value:'A'}]);
+const sent=w.pending();w.hold(sent);
+w.stage([{...base,old:'A',value:'B'}]);
+w.acknowledge(sent,[{id:1,cells:{note:{value:'A',style:{}}}}]);
+assert.deepEqual(w.pending().map(c=>[c.old,c.value]),[['A','B']]);
+w.stage([{...base,property:'fs',value:18}]);
+assert.equal(w.value(1,'note',null),'B');
+assert.equal(w.value(1,'note',null,'fs'),18);
+w.travel();assert.equal(w.value(1,'note',null,'fs'),null);
+w.travel(true);assert.equal(w.value(1,'note',null,'fs'),18);
+console.log('PASS: response cũ giữ bản nháp mới; value/style độc lập; Undo/Redo style');

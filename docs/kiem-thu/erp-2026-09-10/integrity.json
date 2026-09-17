@@ -1,0 +1,18 @@
+{
+  "base_records": 100000,
+  "daily_reports": 60000,
+  "items": 80000,
+  "product_quantity": 120000,
+  "runs": [
+    {
+      "proof": "proof-final-1000.json",
+      "persisted": 53,
+      "passed": true
+    },
+    {
+      "proof": "proof-final-2000.json",
+      "persisted": 110,
+      "passed": true
+    }
+  ]
+}

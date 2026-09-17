@@ -51,14 +51,14 @@ def _dong(n, tu=1):
 
 
 def test_nhap_1000_dong_it_truy_van_mot_nhat_ky(bang, nguoi_dung, django_assert_max_num_queries):
-    """AC-10.2 — Nhập 1.000 dòng tốn không quá 10 lệnh truy vấn và một dòng nhật ký
+    """AC-10.2/AC-27.5 — Nhập 1.000 dòng ≤13 lệnh gồm khóa vòng đời, một audit
 
     Không có `bulk_create` thì 1.000 dòng là 1.000 INSERT cộng 1.000 dòng
     nhật ký — vừa chậm (NFR-3) vừa che mất mọi thứ khác trong nhật ký.
     """
     cot = list(bang.columns.all())
     truoc = AuditLog.objects.filter(action=AuditAction.IMPORT).count()
-    with django_assert_max_num_queries(10):
+    with django_assert_max_num_queries(13):
         kq = record_service.create_records_bulk(
             bang, _dong(1000), actor=nguoi_dung["manager_sale"], columns=cot,
         )

@@ -337,16 +337,21 @@ def coerce_cell(value):
 
 # ══ GHI BẢNG ══════════════════════════════════════════════════════
 
-def write_table(headers, rows, *, sheet_title="Du lieu"):
+def write_table(headers, rows, *, sheet_title="Du lieu", write_only=False):
     """Ghi một bảng thành Workbook: hàng tiêu đề đậm và cố định, số giữ
     `Decimal` nguyên trạng, ngày là ngày thật để Excel hiểu."""
-    wb = Workbook()
-    ws = wb.active
+    wb = Workbook(write_only=write_only)
+    ws = wb.create_sheet(sheet_title[:31]) if write_only else wb.active
     ws.title = sheet_title[:31]
-    ws.append(list(headers))
-    for o in ws[1]:
-        o.font = Font(bold=True)
     ws.freeze_panes = "A2"
+    if write_only:
+        from openpyxl.cell import WriteOnlyCell
+        cells=[WriteOnlyCell(ws,value=v) for v in headers]
+        for cell in cells:cell.font=Font(bold=True)
+        ws.append(cells)
+    else:
+        ws.append(list(headers))
+        for o in ws[1]:o.font=Font(bold=True)
     for hang in rows:
         ws.append([_o_ghi(v) for v in hang])
     return wb

@@ -12,15 +12,64 @@ Ba quy tắc định hình module này:
   là khoá định danh của khách và bắt buộc có chỉ mục
 """
 from decimal import Decimal
+from .payment_models import PaymentDocument, PaymentImage
 
 from django.core.exceptions import ValidationError
 from django.db import models
 
 from core.constants import Currency
-from core.models import ScopedModel, TimestampedModel
+from core.models import ScopedModel, TimestampedModel, SoftDeleteModel
+from core.managers import ScopedQuerySet, ScopedManager, AllObjectsManager
 from core.money import money_field
 
 from .constants import Market, PaymentMethod
+
+
+class WaybillAssignment(models.Model):
+    """Định danh phân công; dòng chưa có bản ghi này có phiên bản 0."""
+    record = models.OneToOneField('forms_builder.DataRecord', on_delete=models.CASCADE,
+                                 related_name='assignment')
+    delivery = models.ForeignKey('auth.User', null=True, blank=True, on_delete=models.PROTECT,
+                                 related_name='delivery_assignments')
+    care = models.ForeignKey('auth.User', null=True, blank=True, on_delete=models.PROTECT,
+                             related_name='care_assignments')
+    marketing = models.ForeignKey('auth.User', null=True, blank=True, on_delete=models.PROTECT,
+                                  related_name='marketing_assignments')
+    version = models.PositiveIntegerField(default=0)
+
+
+class WaybillItemQuerySet(models.QuerySet):
+    """Phạm vi chi tiết luôn đi qua dòng vận đơn cha."""
+
+    def in_scope(self, user):
+        from forms_builder.models import DataRecord
+        return self.for_records(DataRecord.objects.in_scope(user))
+
+    def for_records(self, records):
+        return self.filter(record_id__in=records.order_by().values("pk"),
+                           deleted_at__isnull=True, record__deleted_at__isnull=True)
+
+
+class WaybillItem(TimestampedModel, SoftDeleteModel):
+    """Bản sao sản phẩm vận đơn; sửa không ghi ngược OrderLine — ADR-018."""
+
+    record = models.ForeignKey("forms_builder.DataRecord", on_delete=models.PROTECT,
+                               related_name="waybill_items")
+    product = models.ForeignKey("orders.Product", on_delete=models.PROTECT)
+    quantity = models.PositiveIntegerField("Số lượng")
+    unit = models.CharField("Đơn vị tính", max_length=40, blank=True, default="")
+    unit_price = money_field("Đơn giá")
+    paid_amount = money_field("Đã thanh toán", default=Decimal("0.00"))
+
+    objects = WaybillItemQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["pk"]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(quantity__gt=0), name="waybill_item_quantity_positive"),
+            models.CheckConstraint(condition=models.Q(unit_price__gte=0), name="waybill_item_price_nonnegative"),
+            models.CheckConstraint(condition=models.Q(paid_amount__gte=0), name="waybill_item_paid_nonnegative"),
+        ]
 
 
 # ══ DANH MỤC SẢN PHẨM ═════════════════════════════════════════════
@@ -98,6 +147,12 @@ class Customer(TimestampedModel):
 
 # ══ ĐƠN HÀNG ══════════════════════════════════════════════════════
 
+class OrderQuerySet(ScopedQuerySet):
+    def in_scope(self, user):
+        original = super().in_scope(user)
+        return self.filter(models.Q(pk__in=original.values('pk')) | models.Q(seller=user))
+
+
 class Order(ScopedModel):
     """Một đơn hàng. Lưu xong là khoá — BR-3.
 
@@ -105,6 +160,9 @@ class Order(ScopedModel):
     để lọc và thống kê theo thị trường được. Gộp thành một chuỗi thì không
     nhóm theo bang hay thành phố được nữa.
     """
+
+    objects = ScopedManager.from_queryset(OrderQuerySet)()
+    all_objects = AllObjectsManager.from_queryset(OrderQuerySet)()
 
     SCOPE_OWNER_FIELD = "created_by"
     SCOPE_TEAM_FIELD = "team"
@@ -129,7 +187,7 @@ class Order(ScopedModel):
     # ── Thanh toán và người bán ──
     payment_method = models.CharField(
         "Phương thức thanh toán", max_length=12, choices=PaymentMethod.choices,
-        default=PaymentMethod.CARD,
+        default=PaymentMethod.ZELLE,
     )
     currency = models.CharField(
         "Loại tiền tệ", max_length=3, choices=Currency.choices, default=Currency.USD,
@@ -214,6 +272,7 @@ class OrderLine(TimestampedModel):
         on_delete=models.PROTECT, related_name="order_lines", db_index=True,
     )
     quantity = models.PositiveIntegerField("Số lượng", default=1)
+    unit = models.CharField("Đơn vị tính", max_length=40, blank=True, default="")
     unit_price = money_field("Đơn giá")
 
     class Meta:

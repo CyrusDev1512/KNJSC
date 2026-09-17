@@ -1,6 +1,18 @@
 # Nhật ký quyết định kiến trúc
 
+Mới: [ADR-027 — Lưới chung và vòng đời bảng](027-crm-update-luoi-chung-va-vong-doi-bang.md), đang kiểm local.
+
+- [ADR-028 — Solarpunk Office và chế độ tập trung lưới](028-solarpunk-office.md): duyệt 14.09.2026, đang hợp nhất với CRM-UPDATE.
+
+Mới: [ADR-026 — Chế độ xem Vận đơn mới](026-che-do-xem-van-don.md) (12.09.2026).
+
+Mới 12.09.2026: [ADR-025 — Trạng thái và chứng từ thanh toán](025-trang-thai-va-chung-tu-thanh-toan.md).
+
 Thư mục này ghi lại các quyết định kỹ thuật quan trọng kèm lý do.
+
+Đang triển khai: [ADR-024 — CRM-Optimization](024-crm-optimization.md), chưa nghiệm thu hiệu năng/chạy bền.
+
+Mới: [ADR-023 — Điều hướng ERP và Lên đơn CRM](023-dieu-huong-erp-va-len-don-crm.md) (11.09.2026).
 
 ---
 
@@ -112,6 +124,11 @@ Trong tình huống nào thì nên xem lại quyết định này.
 | 015 | KN CRM có khung sidebar theo Teeze, trang chủ là tổng quan, Leader như Manager trong bộ phận; tạo bảng, nhập tệp, cấp quyền ngay trong KN CRM | Đã áp dụng | 07.09.2026 |
 | 016 | KN CRM chịu được 100 nghìn khách và 100 người cùng lúc: đo trước, sửa đúng chỗ đo được — ô lưới dựng bằng Python, cột Trùng theo trang, `moi-nhat/` không đếm dòng, `bulk_save` bằng VALUES, tính lại cột chạy nền, compose có chế độ gunicorn | Đã áp dụng | 07.09.2026 |
 | 017 | Năm tính năng nội bộ (Bảng tin, Tài liệu, Công việc, Văn hoá, Tài nguyên) là năm app riêng, làm MVP trước | Đã áp dụng | 06.09.2026 |
+| 018 | Vận đơn mới theo CRM Tân, hai bảng độc lập, chi tiết sản phẩm và tiền thu, thống kê theo bản sao | Đã áp dụng | 08.09.2026 |
+| 019 | [Gỡ Lên đơn nhúng khỏi bảng Vận đơn](019-tach-len-don-khoi-bang-van-don.md), giữ trang riêng và thống kê | Đã áp dụng | 09.09.2026 |
+| 020 | [Phân công, lọc và xuất Vận đơn mới](020-phan-cong-loc-xuat-van-don-moi.md), phạm vi theo tài khoản và kiểm lại quyền file nền | Đã áp dụng | 09.09.2026 |
+| 021 | [Lưới master và Thống kê KN CRM](021-luoi-master-va-thong-ke-crm.md), tải khối/ảo hóa, CAS và biên nhận, biểu đồ riêng | Đã triển khai, kiểm chứng local; xem test-log | 10.09.2026 |
+| 022 | [Bàn điều hành KN CRM theo nguồn dữ liệu](022-ban-dieu-hanh-kn-crm.md), tổng hợp Marketing–Sale–Vận đơn và phân tích từng bảng | Đã triển khai và kiểm chứng local; xem test-log | 11.09.2026 |
 
 ---
 
@@ -130,3 +147,13 @@ Bốn điểm từng nằm ở đây đều đã chốt và đã có mục quy�
 
 Hiện **không còn điểm nào chờ ghi thành mục quyết định**. Danh sách việc chưa
 xong nằm ở `../backlog.md` mục 0.
+
+## Khôi phục quyết định 14.09.2026
+
+- [ADR-022: Báo cáo hoạt động ERP](022-bao-cao-hoat-dong-erp.md).
+- [ADR-026: Chế độ xem Vận đơn](026-che-do-xem-van-don.md).
+
+- [ADR-029 — Bảng nhận đơn CRM](029-bang-nhan-don-crm.md): Admin chọn đích, giữ profile và dữ liệu đơn cũ.
+- [ADR-031 — Tiền theo quốc gia và PTTT](031-tien-theo-quoc-gia-va-pttt.md): US/USD, CA/CAD, PH/PHP; xác nhận đổi tiền, chỉ chọn Zelle/PayPal.
+
+- [ADR-032 — Ngày hệ thống và sửa báo cáo](032-ngay-he-thong-va-sua-bao-cao.md): DD/MM/YYYY, quyền sửa có lịch sử, mẫu Marketing và nguồn tiền.

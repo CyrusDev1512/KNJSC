@@ -35,9 +35,9 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **133** — 120 tự động, 13 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **119 trên 120** |
-| Tiêu chí tự động còn hoãn | **1**, đều thuộc diện chờ người dùng chốt — `AC-5.1`, backlog N9 |
+| Tiêu chí nghiệm thu trong `docs/04` | **191** — 178 tự động, 13 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **159 trên 178** |
+| Tiêu chí tự động còn hoãn | **19**, đều thuộc phần đang làm hoặc chờ chốt — xem bảng cuối tệp |
 | Bao phủ dòng mã | khoảng 85% |
 
 Ba con số đầu **có bài kiểm canh** — `app/tests/test_truy_vet.py` đọc chính
@@ -70,7 +70,7 @@ Bỏ qua các bài chạy chậm khi cần vòng lặp nhanh: `pytest -m "not ch
 | 2 | **Tệp chuyển đổi** | `core/tests/test_chuyen_doi.py` | Model khớp tệp, chạy xuôi và ngược, một nhánh lá | Bỏ `reverse_sql` của `0002_pg_trgm` → đỏ |
 | 3 | **Kiểm khói** | `tests/test_khoi.py` | Mọi đường dẫn × mọi vai trò, không trả 500 | Gỡ `@login_required` một view → đỏ |
 | 4 | **Chức năng** | Từng module, cộng `tests/test_luong_ba_bo_phan.py` | Luồng làm việc trọn vẹn qua HTTP | — |
-| 5 | **Hộp đen** | `tests/test_ma_tran_phan_quyen.py` | 45 ô ma trận kiểm chéo `docs/04` mục 3 | Tìm ra 4 lỗi thật ngay lần chạy đầu |
+| 5 | **Hộp đen** | `tests/test_ma_tran_phan_quyen.py` | 50 ô ma trận kiểm chéo `docs/04` mục 3 | Tìm ra 4 lỗi thật ngay lần chạy đầu |
 | 6 | **Hộp trắng** | `tests/test_hop_trang.py`, bản đo bao phủ | Nhánh chỉ chạy khi có lỗi, đường huỷ giao dịch | Tìm ra lỗi đọc tiền sai gấp trăm lần |
 | 7 | **Giao diện** | `core/tests/test_giao_dien.py` | Lớp CSS có thật, ô nhập có nhãn, bảng có tiêu đề | Thêm lớp bịa vào template → đỏ |
 | 8 | **Đầu-cuối trình duyệt** | `tests/e2e/` — Playwright, dấu `trinh_duyet` | Nhập → xuất → nhập lại qua giao diện; bàn phím và hộp lọc trên Bảng tính; kéo chọn vùng, dán TSV, kéo điền, hoàn tác, ô địa chỉ, chuột phải xoá hàng rồi hoàn tác (ADR-011); trang chủ KN CRM bấm tháng → lưới lọc tháng → ← (ADR-012); cột cố định khi cuộn; 390px không tràn ngang, có ảnh chụp | Đổi phím Esc thành không làm gì trong `bang-tinh.js` → đỏ |
@@ -82,6 +82,7 @@ xem `app/tests/perf/README.md`):
 
 ```
 python manage.py seed_perf --xoa-cu --so-dong 100000 --so-thang 24 --dien-day --bang-sale
+python manage.py nap_khach_mau --so-khach 300000              # 300.000 khách, 20 % mua lại → Vận đơn DB (AC-10.9)
 python manage.py do_hieu_nang --giai-thich          # một người, không tải → storage/perf/<ngày>-don-le.md
 locust -f tests/perf/locustfile_kn_crm.py --host http://localhost:8021 --users 100 --spawn-rate 10 --run-time 5m --headless
 ```
@@ -134,17 +135,39 @@ Ba trong bốn lỗi đó **không sập trang, không báo lỗi, không làm b
 
 ## Tiêu chí còn hoãn
 
-1 tiêu chí tự động chưa có bài kiểm. Danh sách này nằm trong
+19 tiêu chí tự động chưa có bài kiểm. Danh sách này nằm trong
 `tests/test_truy_vet.py`, biến `HOAN`, và **rỗng dần theo tiến độ**
 — thêm mã vào đó bắt buộc ghi lý do và giai đoạn.
+
+Mười tám mã mới thêm không phải là bài kiểm bị bỏ: ba mục AC-24, AC-26, AC-27
+là **tiêu chí của việc đang làm**, chính `docs/04` ghi rõ "đang kiểm chứng" và
+"điều kiện nghiệm thu, không phải kết quả đã đạt". Chúng vào danh sách hoãn để
+bài truy vết đếm đúng, chứ không phải để lờ đi.
 
 | Tiêu chí | Chờ |
 |---|---|
 | `AC-5.1` | Bốn cách nhóm mới chạy ba — tab thị trường chờ chốt nguồn số liệu, backlog **N9** và **Q36** |
+| `AC-24.2` → `AC-24.5`, `AC-24.7` | CRM-Optimization đang kiểm chứng — ADR-024, Giai đoạn 7K; hai mã đo trên Chrome thật và đo tải 30 phút chạy tay khi phát hành |
+| `AC-26.1` → `AC-26.6` | Chứng từ thanh toán mới ghi tiêu chí, chưa làm — ADR-025, backlog chờ làm |
+| `AC-27.1`, `AC-27.2`, `AC-27.4` → `AC-27.8` | Lưới dùng chung và vòng đời bảng đang làm — ADR-027, Giai đoạn 7K; `AC-27.3` đã có bài kiểm |
 
 ---
 
 ## Danh sách kiểm thủ công
+
+### Vận đơn CRM Tân — bổ sung 08.09.2026
+
+Chạy `pytest crm/tests/test_waybill_new.py`, rồi kiểm migration xuôi/ngược
+bằng `pytest core/tests/test_chuyen_doi.py -m cham -k orders` trên DB kiểm thử.
+Theo ADR-019, bảng chỉ có lưới và thống kê, không tự tải form Lên đơn;
+thử thêm/bớt sản phẩm tại trang Lên đơn riêng. PTTT tách riêng,
+Blacklist vắng mặt; bấm ô tổng nhập tiền cho hai sản phẩm, kiểm Tổng hợp và
+Theo sản phẩm; sửa SALE/CSKH và Quốc gia rồi kiểm hai cách nhóm còn lại.
+Lọc Ngày, đổi trang lưới, thống kê không bị cắt theo trang. Đổi loại tiền không
+quy đổi số đã nhập. Mở 390px, cuộn ngang lưới, thu gọn Thống kê.
+Script kiểm đọc giao diện local: `node scripts/kiem-thu-van-don-ui.cjs`
+(cần Playwright đã có ở môi trường kiểm thử và Chrome; tài khoản mẫu hoặc
+biến `KN_TEST_USER`, `KN_TEST_PASSWORD`, `KN_CRM_URL`). Script không tạo đơn.
 
 Chạy trước mỗi lần bàn giao. Máy không làm được những việc này — **kịch bản
 bấm tay từng bước ở `docs/07-kich-ban-nghiem-thu.md`**.
@@ -219,3 +242,144 @@ Ghi ra để không tự lừa mình:
 | 3 | Bài trình duyệt thật (Playwright) và hiệu năng 50.000 dòng không chạy trong container `web` | Image không có Chromium và `pytest` mặc định bỏ dấu `cham`; chạy trên máy phát triển — backlog **K19** |
 | 4 | Chưa kiểm khả năng đọc màn hình cho người khiếm thị | Không có yêu cầu nào nêu, chưa hỏi người dùng |
 | 5 | Hai bài đánh dấu `xfail`: hộp lọc cột trong Playwright (K23) và ngân sách 10 truy vấn trên 50.000 dòng (K24, đếm được 12) | Người dùng cần demo gấp ngày 03.09.2026; nợ ghi ở backlog, không nới ngưỡng |
+
+## Bổ sung 10.09.2026 — AC-21, lưới master Vận đơn mới
+
+Các lệnh dưới đây chạy từ gốc repository. Chỉ dùng DB pytest, không dùng
+launcher hoặc `seed_perf` trên database đang làm việc. Hai bộ Chrome cũ
+`kiem-thu-feedback-ui.cjs`/`test_feedback_browser_server.py` chuyển sang bộ
+master; số liệu baseline cũ được giữ theo snapshot trước ADR-021.
+
+```powershell
+# Hồi quy ứng dụng
+ docker compose -f deploy/docker-compose.yml run --rm -e RUN_MIGRATIONS=0 web pytest crm/tests orders/tests forms_builder/tests core/tests
+# Terminal 1: server test cho Chrome host, DB riêng
+ docker compose -f deploy/docker-compose.yml run --rm -p 8031:8031 -e RUN_MIGRATIONS=0 -e POSTGRES_DB=knjsc_master_ui -e KN_MASTER_BROWSER=1 web pytest crm/tests/test_master_browser_server.py --liveserver=0.0.0.0:8031
+# Terminal 2: Node có Playwright và Chrome được cài sẵn
+ node scripts/kiem-thu-master-ui.cjs
+```
+
+Capacity: tạo snapshot Git trước sửa vào `.agents/design-state/review/master/before/app`
+(ví dụ `git archive HEAD app` **trước triển khai**, không lấy HEAD sau khi đã
+commit thay đổi để gọi là baseline). Gắn chỉ đọc `/before`, kết quả vào
+`/evidence`. Trên Windows, thay `C:/KNJSC/KNJSC` bằng gốc checkout thực tế:
+
+```powershell
+ docker compose -f deploy/docker-compose.yml run --rm -p 8032:8032 -p 8033:8033 -v C:/KNJSC/KNJSC/.agents/design-state/review/master/before:/before:ro -v C:/KNJSC/KNJSC/.agents/design-state/review/master:/evidence -e RUN_MIGRATIONS=0 -e POSTGRES_DB=knjsc_master_capacity -e KN_MASTER_CAPACITY=1 web pytest crm/tests/test_master_capacity.py -s
+# Song song, terminal host:
+ node scripts/kiem-thu-master-capacity.cjs
+```
+
+Fixture kiểm tên DB `test_knjsc_master_capacity*`, tạo 100k/300k dòng ×25 cột
+và một chi tiết/dòng; 20 tài khoản test có scope toàn bảng để đo tình huống
+đọc rộng. Gunicorn 3 worker ×4 thread, keep-alive5 giây, cùng settings trước/sau, DB PostgreSQL16.
+Mỗi stage 45 giây (bỏ 10 giây đầu), 10 hoặc20 người, nghỉ1–3 giây; đọc/lọc/ghi
+trọng số5/1/2, poll khi đến hạn8 giây trong lượt đọc. Không gọi nhập/xuất nền
+trong workload này; chúng được kiểm hồi quy chức năng riêng.
+
+Docker PostgreSQL hiện có `/dev/shm`64MB: kết nối WSGI **test** đặt
+`max_parallel_workers_per_gather=0` cho cả hai snapshot sau khi baseline
+ban đầu phát sinh thiếu shared memory. Không ALTER SYSTEM hoặc sửa Compose
+đang dùng. Ghi rõ điều này khi so sánh. Dừng nếu sai DB/auth, process lỗi
+hoặc lỗi HTTP vượt5%; lỗi dưới ngưỡng vẫn lưu, không coi là đạt nghiệm thu.
+Các biến resume chỉ dùng lại kết quả cùng mã/cấu hình vừa kiểm, không thay
+kết quả lịch sử thành số đo mới.
+
+Báo riêng p95/đếm mẫu/lỗi theo request, byte phản hồi, số khối/DOM và heap
+sau GC của Chrome. Browser không chạy chồng cửa sổ đo HTTP. Thời gian từ
+phát event đến hai frame là phép đo phản hồi vẽ, không phải INP người dùng
+thật. Kết quả local ngắn không thay kiểm endurance hoặc máy chủ sản xuất.
+
+
+### Kéo chiều cao hàng Vận đơn mới — bổ sung ADR-021
+
+**Cập nhật lưu thủ công 10.09.2026:** chạy `node scripts/kiem-thu-master-working-copy.cjs`
+để kiểm buffer và Undo/Redo. Với server `test_master_browser_server.py` như
+bên dưới, chạy `node scripts/kiem-thu-master-manual-ui.cjs` để kiểm Enter
+không POST, popup X, lưu ô ngoài bộ lọc, reload bỏ nháp, mất phản hồi/replay
+và menu mobile. Mỗi runner Chrome dùng một lượt fixture mới, không chạy hai
+runner cùng server/tệp tín hiệu. Bài master UI hiện có đã đổi sang Ctrl+S
+sau các thao tác cần kiểm ghi database.
+
+Kiểm toán học hình học: `node scripts/kiem-thu-master-row-geometry.cjs`.
+Bộ Chrome hiện có gọi thêm `scripts/kiem-thu-master-row-height.cjs`; dùng
+server pytest `test_master_browser_server.py` với DB `knjsc_master_rows` và
+`KN_MASTER_BROWSER=1`, cổng 8031 như hướng dẫn master ở trên.
+
+Chỉ đo trình duyệt 100k/300k, không chạy lại HTTP load:
+
+```powershell
+docker compose -f deploy/docker-compose.yml run --rm -p 8033:8033 -v C:/KNJSC/KNJSC/.agents/design-state/review/master:/evidence -e RUN_MIGRATIONS=0 -e POSTGRES_DB=knjsc_master_capacity_rows -e KN_MASTER_ROW_CAPACITY=1 web pytest crm/tests/test_master_row_capacity.py --tb=short
+# Khi fixture đã tạo dữ liệu, chạy ở terminal thứ hai với Node/Playwright hiện có:
+node scripts/kiem-thu-master-row-capacity.cjs
+```
+
+Thay đường dẫn mount bằng checkout trên máy tương ứng. Fixture chặn database
+không có tiền tố test; dữ liệu tổng hợp 25 cột và một chi tiết sản phẩm mỗi dòng.
+Không chạy trên DB thật, không dùng 20 khách mẫu. Kết quả/ảnh ở thư mục review
+local; báo p95, số mẫu, cách đo, cache/DOM/heap và hạn chế riêng cho bản này.
+
+## Kiểm chứng chín hạng mục Vận đơn mới — 10.09.2026
+
+Kế hoạch đủ Unit, Functional, E2E, UI/UX và Performance. Các fixture ghi chỉ
+chạy trên DB test. Xem [báo cáo và giới hạn](kiem-chung-master-nine.md).
+
+```powershell
+node scripts/kiem-thu-master-autosave-unit.cjs
+node scripts/kiem-thu-master-queue-unit.cjs
+node scripts/kiem-thu-master-scope-unit.cjs
+node scripts/kiem-thu-master-conflict-unit.cjs
+node scripts/kiem-thu-master-working-copy.cjs
+node scripts/kiem-thu-master-row-geometry.cjs
+docker compose -f deploy/docker-compose.yml run --rm -e RUN_MIGRATIONS=0 -e POSTGRES_DB=knjsc_nine_verify web pytest crm/tests orders/tests forms_builder/tests core/tests tests/test_luong_ba_bo_phan.py -ra
+# Server UI test cổng 8035, sau đó chạy script Chrome từ terminal khác:
+docker compose -f deploy/docker-compose.yml run --rm -p 8035:8035 -e RUN_MIGRATIONS=0 -e POSTGRES_DB=knjsc_nine_browser -e KN_MASTER_BROWSER=1 web pytest crm/tests/test_master_browser_server.py --liveserver=0.0.0.0:8035 -q
+node scripts/kiem-thu-master-nine-ui.cjs
+```
+
+Node cần Playwright có sẵn trong runtime trên máy, không tự thêm dependency.
+Capacity dùng `test_master_nine_capacity.py`, `KN_NINE_CAPACITY=1`, mount snapshot
+workspace trước sửa tại `/before/app` (chỉ đọc) và thư mục artifact `/evidence`.
+DB phải có tiền tố `knjsc_master_capacity_nine`; pytest tạo DB `test_...`.
+Chạy lần lượt `NINE_STAGE=before` rồi `after`, cùng cổng 8036/cấu hình.
+Mặc định 60s warmup +300s đo, 100k/300k ×10/20; Chrome phối hợp qua
+`scripts/kiem-thu-master-nine-capacity.cjs`. `NINE_ENDURANCE=1` thêm 30 phút
+đo với 20 người và Admin/Leader tranh chấp cùng dòng sau ma trận thường.
+Dung lượng dùng `KN_NINE_STORAGE=1`, DB `knjsc_nine_storage` và
+`test_master_nine_storage.py`; đo bảng, TOAST và index riêng cho history/receipt.
+Không lấy bài mô phỏng IME làm bằng chứng đã kiểm bộ gõ Windows thật.
+
+## Bàn điều hành KN CRM — ADR-022
+
+Chạy vòng chức năng tập trung trước, dùng database test do pytest quản lý:
+
+```powershell
+docker compose -f deploy/docker-compose.yml run --rm -e RUN_MIGRATIONS=0 web pytest `
+  crm/tests/test_executive_statistics.py `
+  crm/tests/test_master_grid.py `
+  crm/tests/test_waybill_new.py `
+  crm/tests/test_waybill_feedback.py `
+  reports/tests -ra
+```
+
+Ma trận bắt buộc gồm: bảng Marketing hiện tại; bảng Sale có Ngày/Người bán/Số
+đơn/Doanh thu; `van_don_moi`; `van_don` cũ; bảng chung đủ/thiếu nhãn. Kiểm
+CPO/AOV/tỷ lệ từ tổng, kỳ trước 0, tiền USD/VND/CAD/PHP riêng, thiếu loại tiền,
+tổng Sale–Vận đơn lệch/khớp và tối đa ba insight. Với Staff, Leader, Manager,
+Admin kiểm cả nguồn được phép và URL nguồn bị từ chối; kiểm owner cấu hình nhưng
+không phải Admin. Xóa mềm/ngừng bảng, ngày sai, bảng rỗng, số không hợp lệ, thiếu
+chi tiết sản phẩm và lỗi giả lập một profile phải có kết quả rõ.
+
+Trình duyệt mở 1440px, 1280px, 390px và zoom 125% ở sáng/tối. Dùng Tab tới form,
+nút insight, SVG và `details`; kiểm focus nhìn thấy, bảng thay thế đọc được và
+không có tràn ngang toàn trang. Bật `prefers-reduced-motion: reduce`; đường giữ
+phẳng, mặt trước cột giữ tỷ lệ số liệu và phần sâu luôn 6px. Kiểm link insight có
+`f_ngay__lon_bang`, `f_ngay__nho_bang` và đúng bộ lọc trạng thái.
+
+Hiệu năng chạy riêng, không dùng database thật: fixture phải chặn tên DB không có
+tiền tố test. Tạo 20.000 dòng Sale rồi 100.000/300.000 Vận đơn, warmup trước khi
+đo ít nhất 20 request cho mỗi nguồn và góc tổng hợp. Ghi p50/p95/max, lỗi, số
+query và đỉnh cấp phát Python của một request riêng; p95 mục tiêu ≤1 giây. So
+sánh số query và bộ nhớ ở hai cỡ dữ liệu để phát hiện N+1 hoặc nạp dòng thô.
+Không chạy chồng với browser hoặc bài tải lưới ADR-021; không coi kết quả dữ
+liệu nhỏ là đã đạt AC-22.9.

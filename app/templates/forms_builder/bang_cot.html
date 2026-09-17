@@ -16,6 +16,14 @@
   </div>
 </div>
 
+{% if delivery_view_manage %}
+<div class="the" style="margin-bottom:var(--sp-5)"><div class="the-than">
+  <h2>Phạm vi xem của nhân viên Vận đơn</h2>
+  <p>{% if bang.delivery_view_all %}Toàn bộ bảng{% else %}Chỉ dòng được phân công{% endif %}</p>
+  <p>Áp dụng cho mọi nhân viên Vận đơn có quyền truy cập bảng này. Quyền sửa vẫn theo phân công.</p>
+  <a class="nut" href="{% url 'delivery_view_mode' bang.code %}">Chế độ xem bảng</a>
+</div></div>
+{% endif %}
 <div class="luoi luoi-phu">
 
   <div class="the">

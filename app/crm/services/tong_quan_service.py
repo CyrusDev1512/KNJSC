@@ -45,10 +45,12 @@ def _so_lieu(user):
 
 def _bang_gan_day(user):
     """Bảng trong phạm vi, mới cập nhật trước; kèm số dòng và địa chỉ lưới."""
+    from forms_builder.managers import record_count_scope
+    allowed = record_count_scope(user)
     cac_bang = list(
         TableDef.objects.in_scope(user)
         .select_related("department")
-        .annotate(so_dong=Count("records", distinct=True), cap_nhat=Max("records__updated_at"))
+        .annotate(so_dong=Count('records', filter=allowed, distinct=True), cap_nhat=Max('records__updated_at', filter=allowed))
         .order_by("-cap_nhat", "name")[:6]
     )
     for b in cac_bang:

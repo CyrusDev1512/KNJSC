@@ -1,0 +1,12 @@
+{% extends 'crm/base_crm.html' %}
+{% block tieu_de %}Xóa bảng · KN CRM{% endblock %}
+{% block noi_dung %}
+<h1>Xóa bảng {{ bang.name }}</h1>
+<p>Bảng sẽ không còn truy cập được. Dữ liệu, cột và lịch sử được giữ để khôi phục. Các trang bảng đang mở sẽ dừng làm việc.</p>
+{% if error %}<p role="alert" class="bao bao-xau">{{ error }}</p>{% endif %}
+<form method="post" class="bm the the-than" style="max-width:640px">{% csrf_token %}
+<label for="delete-name">Nhập đúng tên bảng để xác nhận: {{ bang.name }}</label>
+<input id="delete-name" name="name" required autocomplete="off">
+<div class="hang"><button class="nut nut-nguy" type="submit">Xóa bảng</button><a class="nut" href="{% url 'thu_muc' %}">Hủy</a></div>
+</form>
+{% endblock %}

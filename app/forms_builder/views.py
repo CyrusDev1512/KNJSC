@@ -19,11 +19,11 @@ from io import BytesIO
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 
 from core.constants import IMPORT_MAX_ROWS, UPLOAD_MAX_BYTES, JobStatus, Rank
 from core.exceptions import BusinessError, OutOfScopeError
-from core.pagination import pagination_context
+from core.pagination import pagination_context, filter_query
 from core.audit import record_denied
 from core.permissions import assert_rank, has_rank, is_admin
 
@@ -74,8 +74,8 @@ def bang(request):
     # nhân chéo nhau và cả hai con số đều sai
     ds = (TableDef.objects.in_scope(request.user)
           .select_related("department", "created_by")
-          .annotate(so_cot=Count("columns", distinct=True),
-                    so_dong=Count("records", distinct=True))
+          .annotate(so_cot=Count("columns", distinct=True))
+          .with_visible_record_count(request.user)
           .order_by("name"))
 
     tim = request.GET.get("tim", "").strip()
@@ -142,7 +142,9 @@ def bang_cot(request, code):
             messages.success(request, f"Đã thêm cột {cot.name}." + _bao_tinh_lai(cot))
         return redirect("bang_cot", code=bang_hien.code)
 
+    from orders.services.delivery_view_service import can_manage
     return render(request, "forms_builder/bang_cot.html", {
+        "delivery_view_manage": can_manage(request.user, bang_hien) and getattr(settings, "ROOT_URLCONF", "") == "knjsc.urls_bangtinh",
         "bang": bang_hien, "form": form, "dang_sua": dang_sua,
         "cac_cot": bang_hien.columns.order_by("order", "id"),
         "form_quyen": GrantForm(cho_bang=True),
@@ -252,6 +254,18 @@ def bang_them_lua_chon(request, code, ma_cot):
 
 # ══ NHẬP VÀ XUẤT TỆP — FR-7.5 tới FR-7.7 ═════════════════════════
 
+@login_required
+@require_GET
+def bang_mau_nhap(request, code):
+    from .services import import_template_service
+    table = _bang_duoc_nhap(request, code)
+    response = HttpResponse(import_template_service.build(table), content_type=
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="mau-nhap-{table.code}.xlsx"'
+    response['Cache-Control'] = 'private, no-store'
+    return response
+
+
 def _bang_duoc_nhap(request, code):
     """Bảng trong phạm vi VÀ người này được nhập vào nó. Ngoài quyền → 403,
     ghi nhật ký từ chối (quy tắc 8, AC-3.6) — kể cả khi chỉ mở trang chọn tệp."""
@@ -297,8 +311,8 @@ def bang_nhap_xem_truoc(request, code, pk):
     return render(request, "forms_builder/bang_nhap_xem_truoc.html", {
         "bang": bang_hien, "job": job,
         "mapping": tom_tat.get("mapping", []), "ignored": tom_tat.get("ignored", []),
-        "sample": tom_tat.get("sample", []),
-        "so_dong_hien_co": import_service.record_count(bang_hien),
+        "sample": import_service.preview_sample(tom_tat),
+        "so_dong_hien_co": import_service.record_count(bang_hien, request.user),
     })
 
 
@@ -401,13 +415,17 @@ def _loi_dau_tien(form):
 
 @login_required
 def bieu_mau(request):
-    """Danh sách biểu mẫu và thư viện định nghĩa trường.
-
-    Đây là màn hình **quản lý**, không phải chỗ nhân viên vào điền. Ma trận
-    kiểm chéo `docs/04` mục 3 ghi rõ chỉ Manager trở lên vào được.
-    Nhân viên điền biểu mẫu qua màn hình Nộp báo cáo ngày.
-    """
+    """Hai tab độc lập: quản lý biểu mẫu và tài liệu trong phạm vi người xem."""
     request.nav_current = "bieu_mau"
+    can_manage = has_rank(request.user, Rank.MANAGER)
+    tab = request.GET.get('tab') or ('forms' if can_manage else 'documents')
+    if tab not in ('forms', 'documents'):
+        raise Http404
+    if tab == 'documents':
+        from documents.presentation import document_list_context
+        context = document_list_context(request)
+        context.update(active_tab=tab, can_manage_forms=can_manage)
+        return render(request, 'forms_builder/library_hub.html', context)
     assert_rank(request.user, Rank.MANAGER, request)
 
     ds = (FormDef.objects.in_scope(request.user)
@@ -430,7 +448,9 @@ def bieu_mau(request):
         "thu_vien": thu_vien.select_related("department").order_by("name"),
     }
     boi_canh.update(pagination_context(request, ds, "biểu mẫu"))
-    return render(request, "forms_builder/bieu_mau.html", boi_canh)
+    boi_canh.update(active_tab="forms", can_manage_forms=can_manage,
+                   qs_loc=filter_query(tab="forms", tim=tim))
+    return render(request, "forms_builder/library_hub.html", boi_canh)
 
 
 @login_required

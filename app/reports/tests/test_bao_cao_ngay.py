@@ -81,6 +81,69 @@ def _nop(bm, nguoi, ngay=NGAY, **gia_tri):
     return daily_service.submit(bm, du_lieu, report_date=ngay, actor=nguoi)
 
 
+def test_history_search_employee_code_and_identity(client, bm_mkt, nguoi_dung):
+    person = nguoi_dung['staff_mkt']
+    person.profile.full_name = 'Người cùng tên'
+    person.profile.save(update_fields=['full_name'])
+    report = _nop(bm_mkt, person)
+    original = dict(report.record.data)
+    client.force_login(nguoi_dung['manager_mkt'])
+    for term in [person.username.upper(), 'người cùng']:
+        response = client.get('/bao-cao/lich-su/', {'tim':term, 'tu':str(NGAY), 'den':str(NGAY)})
+        assert response.context['trang'].paginator.count == 1
+        assert f'data-employee-code="{person.username}"' in response.content.decode()
+    detail = client.get(f'/bao-cao/{report.pk}/')
+    assert f'data-employee-code="{person.username}"' in detail.content.decode()
+    report.record.refresh_from_db()
+    assert report.record.data == original
+    client.force_login(nguoi_dung['staff_sale_1'])
+    assert client.get('/bao-cao/lich-su/', {'tim':person.username}).context['trang'].paginator.count == 0
+    assert client.get(f'/bao-cao/{report.pk}/').status_code == 404
+
+
+def test_identity_blank_shared_names_and_query_budget(client, bm_mkt, nguoi_dung, django_assert_max_num_queries):
+    staff, manager = nguoi_dung['staff_mkt'], nguoi_dung['manager_mkt']
+    reports=[]
+    for user in [staff, manager]:
+        user.profile.full_name='Cùng tên'
+        user.profile.save(update_fields=['full_name'])
+        reports.append(_nop(bm_mkt,user))
+    client.force_login(manager)
+    response=client.get('/bao-cao/lich-su/',{'tim':'CÙNG TÊN'})
+    assert response.context['trang'].paginator.count==2
+    staff.profile.full_name=''
+    staff.profile.save(update_fields=['full_name'])
+    with django_assert_max_num_queries(10):
+        response=client.get('/bao-cao/lich-su/',{'tim':staff.username,'bieu_mau':bm_mkt.code,
+            'bo_phan':bm_mkt.department.code,'tu':str(NGAY),'den':str(NGAY)})
+    assert response.context['trang'].paginator.count==1
+    assert f'data-employee-code="{staff.username}"' in response.content.decode()
+    assert client.get('/bao-cao/lich-su/',{'tim':'not-a-person'}).context['trang'].paginator.count==0
+
+
+def test_history_pagination_and_back_keep_filters(client, bm_mkt, nguoi_dung):
+    import html
+    import re
+    from datetime import timedelta
+    from urllib.parse import urlsplit, parse_qs
+    person=nguoi_dung['staff_mkt']
+    for offset in range(26):
+        _nop(bm_mkt,person,ngay=NGAY+timedelta(days=offset))
+    client.force_login(person)
+    query={'tim':person.username,'bieu_mau':bm_mkt.code,'bo_phan':bm_mkt.department.code,
+           'tu':str(NGAY),'den':str(NGAY+timedelta(days=25))}
+    response=client.get('/bao-cao/lich-su/',query)
+    next_url=html.unescape(re.search(r'href="([^"]+)" aria-label="Trang sau"',response.content.decode()).group(1))
+    assert all(parse_qs(urlsplit(next_url).query).get(k)==[v] for k,v in query.items())
+    response=client.get('/bao-cao/lich-su/'+next_url)
+    assert response.context['trang'].number==2 and len(response.context['trang'])==1
+    detail_url=html.unescape(re.search(r'href="(/bao-cao/\d+/[^"]*)"',response.content.decode()).group(1))
+    detail=client.get(detail_url)
+    back=html.unescape(re.search(r'href="(/bao-cao/lich-su/[^"]*)"[^>]*>Quay lại',detail.content.decode()).group(1))
+    assert parse_qs(urlsplit(back).query)['trang']==['2']
+    assert all(parse_qs(urlsplit(back).query).get(k)==[v] for k,v in query.items())
+
+
 # ══ Mỗi bộ phận một biểu mẫu riêng — FR-4.1 ════════════════════════
 
 def test_moi_bo_phan_thay_bieu_mau_rieng(bm_mkt, bm_sale, nguoi_dung):

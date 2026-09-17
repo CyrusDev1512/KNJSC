@@ -10,6 +10,7 @@ class OrdersConfig(AppConfig):
         # Cột Chọn một mang nhãn Sản phẩm lấy danh sách từ danh mục sản phẩm,
         # và "Thêm mới…" tại ô chọn là thêm sản phẩm (Q61). Đăng ký vào sổ của
         # forms_builder lúc khởi động — forms_builder không được import orders
-        from .services import product_service
+        from .services import product_service, waybill_service
 
         product_service.register_sources()
+        waybill_service.register()

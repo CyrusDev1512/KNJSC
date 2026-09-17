@@ -6,7 +6,7 @@ Ghi chú nhanh cho máy phát triển. Toàn bộ tài khoản dưới đây do 
 | | |
 |---|---|
 | Địa chỉ | `http://127.0.0.1:8020/` |
-| Mật khẩu chung | `MatKhauTam-2026` |
+| Mật khẩu chung | `matkhaucuatoi` |
 | Trang quản trị Django | `http://127.0.0.1:8020/quan-tri/` — chỉ `quantri` vào được |
 
 ---
@@ -15,7 +15,7 @@ Ghi chú nhanh cho máy phát triển. Toàn bộ tài khoản dưới đây do 
 
 | Tên đăng nhập | Mật khẩu | Vai trò |
 |---|---|---|
-| `quantri` | `MatKhauTam-2026` | Admin — thấy và sửa được mọi bộ phận, vào được trang quản trị Django |
+| `quantri` | `matkhaucuatoi` | Admin — thấy và sửa được mọi bộ phận, vào được trang quản trị Django |
 
 ---
 
@@ -23,27 +23,27 @@ Ghi chú nhanh cho máy phát triển. Toàn bộ tài khoản dưới đây do 
 
 | Tên đăng nhập | Mật khẩu | Cấp bậc | Team | Họ tên |
 |---|---|---|---|---|
-| `sale.manager` | `MatKhauTam-2026` | Manager | — | Lê Quốc Bảo |
-| `sale.leader` | `MatKhauTam-2026` | Leader | Sale 1 (trưởng nhóm) | Trần Văn Dũng |
-| `sale.leader2` | `MatKhauTam-2026` | Leader | Sale 2 (trưởng nhóm) | Phạm Quốc Anh |
-| `sale.staff` | `MatKhauTam-2026` | Staff | Sale 1 | Nguyễn Thị Hà |
-| `sale.staff2` | `MatKhauTam-2026` | Staff | Sale 2 | Lý Thu Hằng |
-| `sale.moi` | `MatKhauTam-2026` | Staff | — | Nhân viên mới — **bị buộc đổi mật khẩu ngay lần đầu đăng nhập**, cố ý để thử luồng đó |
+| `sale.manager` | `matkhaucuatoi` | Manager | — | Lê Quốc Bảo |
+| `sale.leader` | `matkhaucuatoi` | Leader | Sale 1 (trưởng nhóm) | Trần Văn Dũng |
+| `sale.leader2` | `matkhaucuatoi` | Leader | Sale 2 (trưởng nhóm) | Phạm Quốc Anh |
+| `sale.staff` | `matkhaucuatoi` | Staff | Sale 1 | Nguyễn Thị Hà |
+| `sale.staff2` | `matkhaucuatoi` | Staff | Sale 2 | Lý Thu Hằng |
+| `sale.moi` | `matkhaucuatoi` | Staff | — | Nhân viên mới — **bị buộc đổi mật khẩu ngay lần đầu đăng nhập**, cố ý để thử luồng đó |
 
 ## Bộ phận Marketing
 
 | Tên đăng nhập | Mật khẩu | Cấp bậc | Họ tên |
 |---|---|---|---|
-| `mkt.manager` | `MatKhauTam-2026` | Manager | Đỗ Thu Trang |
-| `mkt.leader` | `MatKhauTam-2026` | Leader | Vũ Hoài Nam |
-| `mkt.staff` | `MatKhauTam-2026` | Staff | Phạm Minh Anh |
+| `mkt.manager` | `matkhaucuatoi` | Manager | Đỗ Thu Trang |
+| `mkt.leader` | `matkhaucuatoi` | Leader | Vũ Hoài Nam |
+| `mkt.staff` | `matkhaucuatoi` | Staff | Phạm Minh Anh |
 
 ## Bộ phận Vận đơn
 
 | Tên đăng nhập | Mật khẩu | Cấp bậc | Họ tên |
 |---|---|---|---|
-| `vd.manager` | `MatKhauTam-2026` | Manager | Bùi Kim Chi |
-| `vd.staff` | `MatKhauTam-2026` | Staff | Hoàng Văn Tú |
+| `vd.manager` | `matkhaucuatoi` | Manager | Bùi Kim Chi |
+| `vd.staff` | `matkhaucuatoi` | Staff | Hoàng Văn Tú |
 
 ---
 
@@ -88,9 +88,35 @@ hoặc chỉ nạp tài khoản khi container đã chạy:
 docker compose -f deploy/docker-compose.yml exec web python manage.py du_lieu_mau
 ```
 
-Chạy lại nhiều lần được, tài khoản đã có thì giữ nguyên. Muốn mật khẩu khác
-thì thêm `--mat-khau <mật khẩu>` — chỉ áp cho tài khoản tạo mới trong lần chạy
-đó, tài khoản đã có không đổi.
+Chạy lại không tạo trùng, nhưng **đặt lại mật khẩu và mở khoá tài khoản mẫu đã có**.
+Thêm `--mat-khau <mật khẩu>` để chọn mật khẩu cho cả tài khoản mẫu mới lẫn đã có.
+Lệnh này còn nạp dữ liệu mẫu; không dùng chỉ để đồng bộ mật khẩu khi mở ứng dụng.
+
+## Mật khẩu giữa hai máy và khi mở KN JSC
+
+Mật khẩu đăng nhập được băm trong PostgreSQL, lưu trong Docker volume `db_data`,
+không nằm trong localStorage và không được push lên GitHub. KNERP và KN CRM trên
+cùng máy dùng chung database; hai máy chạy Docker riêng có database riêng.
+
+Sau khi cập nhật nhánh có thay đổi này, mở `KN JSC.bat` như bình thường: launcher
+kéo code của nhánh đang đứng, khởi động hệ thống rồi gọi `cap_nhat_mat_khau_mau`.
+Lệnh đổi 12 tài khoản mẫu đã có sang mật khẩu chung ở trên **một lần trên mỗi
+database**, đánh dấu riêng từng tài khoản trong audit. Máy mới nhận mật khẩu này
+khi tạo dữ liệu mẫu. Không tạo tài khoản còn thiếu hoặc nạp đơn/báo cáo bằng bước
+cập nhật mật khẩu; không đổi quyền hoặc cờ buộc đổi mật khẩu của tài khoản.
+
+Các lần mở sau không đặt lại mật khẩu người dùng đã đổi và không làm mất phiên
+đăng nhập lần nữa. Lần cập nhật đầu làm phiên cũ hết hiệu lực; đăng nhập lại bằng
+mật khẩu mới. `sale.moi` vẫn phải đổi mật khẩu ở lần đăng nhập đầu tiên.
+Khi `DEBUG` tắt, bước tự cập nhật này bỏ qua.
+
+Máy khác phải kéo được code mới của đúng nhánh; push riêng lẻ chưa đổi database
+máy đó. Nếu launcher báo không kéo được mã mới, cần xử lý lỗi Git rồi mở lại.
+Muốn chỉ chạy bước cập nhật một lần khi container đã sẵn sàng:
+
+```powershell
+docker compose -f deploy/docker-compose.yml exec web python manage.py cap_nhat_mat_khau_mau
+```
 
 Đổi mật khẩu cho tài khoản của mình ở `http://127.0.0.1:8020/doi-mat-khau/`.
 

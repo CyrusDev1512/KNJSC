@@ -16,6 +16,7 @@ Hai loại câu hỏi, hai cách trả lời khác nhau:
 - *Ai điền biểu mẫu nào* — phép kiểm ở view, dùng `can_fill`. Không phải chuyện
   queryset, và phải chạy **trước** khi đọc dữ liệu (P1, FR-3.6)
 """
+from orders.constants import is_waybill_table
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
@@ -192,6 +193,23 @@ def can_edit_record(user, record_obj):
     hoặc chính người tạo dòng, hoặc có cấp quyền sửa trên bảng đó. Bảng chỉ xem (ADR-009) thì
     không ai sửa được ở đây, kể cả Admin — chỗ sửa là Bảng tính.
     """
+    from forms_builder.models import DataRecord
+    if is_waybill_table(record_obj.table) and not DataRecord.all_objects.in_scope(user).filter(pk=record_obj.pk).exists():
+        return False
+    return can_edit_visible_record(user, record_obj)
+
+
+def can_edit_visible_record(user, record_obj):
+    """Chỉ gọi cho dòng đã lấy từ in_scope trong cùng request đọc; không dùng ở đường ghi."""
+    from orders.services import assignment_service
+    if is_submitted_report(record_obj):
+        return False
+    if (is_waybill_table(record_obj.table)
+            and assignment_service.department(user) == 'van-don'
+            and not assignment_service.can_assign(user)):
+        assignment = getattr(record_obj, 'assignment', None)
+        if assignment is None or assignment.delivery_id != user.pk:
+            return False
     if is_grid_only(record_obj.table):
         return False
     if is_admin(user):
@@ -212,6 +230,21 @@ def can_edit_record(user, record_obj):
     if cung_bo_phan and record_obj.table.is_shared:
         return True
     return record_obj.table_id in granted_table_ids(user, GrantAction.EDIT)
+
+
+def is_submitted_report(row):
+    """Serializer nạp cờ theo lô; đường ghi luôn kiểm lại báo cáo gốc."""
+    cached = getattr(row, '_submitted_report', None)
+    if cached is not None:
+        return cached
+    from reports.models import DailyReport
+    return DailyReport.objects.filter(record_id=row.pk).exists()
+
+
+def with_report_lock(queryset):
+    from django.db.models import Exists, OuterRef
+    from reports.models import DailyReport
+    return queryset.annotate(_submitted_report=Exists(DailyReport.objects.filter(record_id=OuterRef('pk'))))
 
 
 # ══ CẤP VÀ THU QUYỀN ══════════════════════════════════════════════

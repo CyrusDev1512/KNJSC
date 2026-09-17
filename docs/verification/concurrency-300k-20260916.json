@@ -1,0 +1,590 @@
+{
+  "date": "2026-09-16",
+  "dataset_rows": 300000,
+  "month_rows": 8496,
+  "columns": 26,
+  "users_max": 10,
+  "runs": [
+    {
+      "target": "local",
+      "users": 1,
+      "scope": "all",
+      "samples": 29,
+      "seconds": 34.64,
+      "verified_rows": 1,
+      "integrity_errors": [],
+      "stats": {
+        "poll": {
+          "n": 4,
+          "p50": 194.78,
+          "p95": 208.38,
+          "max": 208.38,
+          "mean_bytes": 107,
+          "errors": 0
+        },
+        "read:block": {
+          "n": 16,
+          "p50": 524.11,
+          "p95": 615.43,
+          "max": 615.43,
+          "mean_bytes": 322853,
+          "errors": 0
+        },
+        "read:filter": {
+          "n": 6,
+          "p50": 189.5,
+          "p95": 233.66,
+          "max": 233.66,
+          "mean_bytes": 10657,
+          "errors": 0
+        },
+        "write:cell": {
+          "n": 3,
+          "p50": 45.24,
+          "p95": 93.5,
+          "max": 93.5,
+          "mean_bytes": 3286,
+          "errors": 0
+        }
+      },
+      "peak_cpu": {
+        "knjsc-bench-300k-20260916-app-1": 14.24,
+        "knjsc-bench-300k-20260916-db-1": 51.16
+      },
+      "last_memory": {
+        "knjsc-bench-300k-20260916-app-1": "84.75MiB / 640MiB",
+        "knjsc-bench-300k-20260916-db-1": "468.1MiB / 1.25GiB"
+      },
+      "min_available_kb": null,
+      "health_max_seconds": null,
+      "health_statuses": [],
+      "monitor_errors": 0
+    },
+    {
+      "target": "local",
+      "users": 1,
+      "scope": "month",
+      "samples": 29,
+      "seconds": 34.56,
+      "verified_rows": 1,
+      "integrity_errors": [],
+      "stats": {
+        "poll": {
+          "n": 3,
+          "p50": 222.87,
+          "p95": 244.78,
+          "max": 244.78,
+          "mean_bytes": 107,
+          "errors": 0
+        },
+        "read:block": {
+          "n": 16,
+          "p50": 329.91,
+          "p95": 468.43,
+          "max": 468.43,
+          "mean_bytes": 323098,
+          "errors": 0
+        },
+        "read:filter": {
+          "n": 5,
+          "p50": 214.67,
+          "p95": 257.4,
+          "max": 257.4,
+          "mean_bytes": 10657,
+          "errors": 0
+        },
+        "write:cell": {
+          "n": 5,
+          "p50": 48.59,
+          "p95": 64.58,
+          "max": 64.58,
+          "mean_bytes": 3286,
+          "errors": 0
+        }
+      },
+      "peak_cpu": {
+        "knjsc-bench-300k-20260916-app-1": 4.99,
+        "knjsc-bench-300k-20260916-db-1": 21.49
+      },
+      "last_memory": {
+        "knjsc-bench-300k-20260916-app-1": "85.25MiB / 640MiB",
+        "knjsc-bench-300k-20260916-db-1": "589.8MiB / 1.25GiB"
+      },
+      "min_available_kb": null,
+      "health_max_seconds": null,
+      "health_statuses": [],
+      "monitor_errors": 0
+    },
+    {
+      "target": "local",
+      "users": 10,
+      "scope": "all",
+      "samples": 517,
+      "seconds": 75.15,
+      "verified_rows": 10,
+      "integrity_errors": [],
+      "stats": {
+        "poll": {
+          "n": 71,
+          "p50": 385.71,
+          "p95": 944.43,
+          "max": 1167.15,
+          "mean_bytes": 107,
+          "errors": 0
+        },
+        "read:block": {
+          "n": 259,
+          "p50": 873.28,
+          "p95": 1374.48,
+          "max": 1825.47,
+          "mean_bytes": 322914,
+          "errors": 0
+        },
+        "read:filter": {
+          "n": 89,
+          "p50": 289.89,
+          "p95": 780.35,
+          "max": 942.49,
+          "mean_bytes": 10663,
+          "errors": 0
+        },
+        "write:cell": {
+          "n": 98,
+          "p50": 104.43,
+          "p95": 485.86,
+          "max": 833.66,
+          "mean_bytes": 3293,
+          "errors": 0
+        }
+      },
+      "peak_cpu": {
+        "knjsc-bench-300k-20260916-app-1": 33.21,
+        "knjsc-bench-300k-20260916-db-1": 342.36
+      },
+      "last_memory": {
+        "knjsc-bench-300k-20260916-app-1": "92.02MiB / 640MiB",
+        "knjsc-bench-300k-20260916-db-1": "622.7MiB / 1.25GiB"
+      },
+      "min_available_kb": null,
+      "health_max_seconds": null,
+      "health_statuses": [],
+      "monitor_errors": 0
+    },
+    {
+      "target": "local",
+      "users": 10,
+      "scope": "month",
+      "samples": 601,
+      "seconds": 74.57,
+      "verified_rows": 10,
+      "integrity_errors": [],
+      "stats": {
+        "poll": {
+          "n": 73,
+          "p50": 312.71,
+          "p95": 588.56,
+          "max": 890.69,
+          "mean_bytes": 107,
+          "errors": 0
+        },
+        "read:block": {
+          "n": 290,
+          "p50": 438.46,
+          "p95": 826.74,
+          "max": 1243.85,
+          "mean_bytes": 323191,
+          "errors": 0
+        },
+        "read:filter": {
+          "n": 131,
+          "p50": 288.47,
+          "p95": 640.45,
+          "max": 737.6,
+          "mean_bytes": 10664,
+          "errors": 0
+        },
+        "write:cell": {
+          "n": 107,
+          "p50": 83.78,
+          "p95": 306.62,
+          "max": 489.18,
+          "mean_bytes": 3293,
+          "errors": 0
+        }
+      },
+      "peak_cpu": {
+        "knjsc-bench-300k-20260916-app-1": 37.97,
+        "knjsc-bench-300k-20260916-db-1": 282.19
+      },
+      "last_memory": {
+        "knjsc-bench-300k-20260916-app-1": "91.77MiB / 640MiB",
+        "knjsc-bench-300k-20260916-db-1": "604.9MiB / 1.25GiB"
+      },
+      "min_available_kb": null,
+      "health_max_seconds": null,
+      "health_statuses": [],
+      "monitor_errors": 0
+    },
+    {
+      "target": "vps",
+      "users": 1,
+      "scope": "all",
+      "samples": 23,
+      "seconds": 35.43,
+      "verified_rows": 1,
+      "integrity_errors": [],
+      "stats": {
+        "poll": {
+          "n": 3,
+          "p50": 468.61,
+          "p95": 533.68,
+          "max": 533.68,
+          "mean_bytes": 107,
+          "errors": 0
+        },
+        "read:block": {
+          "n": 12,
+          "p50": 1013.0,
+          "p95": 1944.74,
+          "max": 1944.74,
+          "mean_bytes": 322739,
+          "errors": 0
+        },
+        "read:filter": {
+          "n": 3,
+          "p50": 458.47,
+          "p95": 464.67,
+          "max": 464.67,
+          "mean_bytes": 10657,
+          "errors": 0
+        },
+        "write:cell": {
+          "n": 5,
+          "p50": 100.92,
+          "p95": 125.51,
+          "max": 125.51,
+          "mean_bytes": 3286,
+          "errors": 0
+        }
+      },
+      "peak_cpu": {
+        "knjsc-bench-300k-20260916-app-1": 6.95,
+        "knjsc-bench-300k-20260916-db-1": 79.3,
+        "knjsc-production-crm-1": 0.04,
+        "knjsc-production-db-1": 5.05
+      },
+      "last_memory": {
+        "knjsc-bench-300k-20260916-app-1": "84.71MiB / 640MiB",
+        "knjsc-bench-300k-20260916-db-1": "265.7MiB / 1.25GiB",
+        "knjsc-production-crm-1": "74.1MiB / 640MiB",
+        "knjsc-production-db-1": "60.57MiB / 1.25GiB"
+      },
+      "min_available_kb": 2504680,
+      "health_max_seconds": 0.156523,
+      "health_statuses": [
+        "200"
+      ],
+      "monitor_errors": 0
+    },
+    {
+      "target": "vps",
+      "users": 1,
+      "scope": "month",
+      "samples": 26,
+      "seconds": 34.48,
+      "verified_rows": 1,
+      "integrity_errors": [],
+      "stats": {
+        "poll": {
+          "n": 3,
+          "p50": 538.72,
+          "p95": 572.21,
+          "max": 572.21,
+          "mean_bytes": 107,
+          "errors": 0
+        },
+        "read:block": {
+          "n": 7,
+          "p50": 929.99,
+          "p95": 976.32,
+          "max": 976.32,
+          "mean_bytes": 323100,
+          "errors": 0
+        },
+        "read:filter": {
+          "n": 8,
+          "p50": 456.27,
+          "p95": 552.83,
+          "max": 552.83,
+          "mean_bytes": 10657,
+          "errors": 0
+        },
+        "write:cell": {
+          "n": 8,
+          "p50": 92.35,
+          "p95": 105.22,
+          "max": 105.22,
+          "mean_bytes": 3286,
+          "errors": 0
+        }
+      },
+      "peak_cpu": {
+        "knjsc-bench-300k-20260916-app-1": 4.16,
+        "knjsc-bench-300k-20260916-db-1": 77.37,
+        "knjsc-production-crm-1": 0.04,
+        "knjsc-production-db-1": 5.3
+      },
+      "last_memory": {
+        "knjsc-bench-300k-20260916-app-1": "84.73MiB / 640MiB",
+        "knjsc-bench-300k-20260916-db-1": "282.1MiB / 1.25GiB",
+        "knjsc-production-crm-1": "74.1MiB / 640MiB",
+        "knjsc-production-db-1": "56.43MiB / 1.25GiB"
+      },
+      "min_available_kb": 2496264,
+      "health_max_seconds": 0.114098,
+      "health_statuses": [
+        "200"
+      ],
+      "monitor_errors": 0
+    },
+    {
+      "target": "vps",
+      "users": 10,
+      "scope": "all",
+      "samples": 227,
+      "seconds": 76.68,
+      "verified_rows": 10,
+      "integrity_errors": [],
+      "stats": {
+        "poll": {
+          "n": 54,
+          "p50": 2263.18,
+          "p95": 3868.59,
+          "max": 4119.43,
+          "mean_bytes": 107,
+          "errors": 0
+        },
+        "read:block": {
+          "n": 92,
+          "p50": 3356.57,
+          "p95": 5043.86,
+          "max": 5585.14,
+          "mean_bytes": 322885,
+          "errors": 0
+        },
+        "read:filter": {
+          "n": 44,
+          "p50": 2103.63,
+          "p95": 3236.92,
+          "max": 3473.2,
+          "mean_bytes": 10660,
+          "errors": 0
+        },
+        "write:cell": {
+          "n": 37,
+          "p50": 1408.67,
+          "p95": 2341.01,
+          "max": 2881.55,
+          "mean_bytes": 3294,
+          "errors": 0
+        }
+      },
+      "peak_cpu": {
+        "knjsc-bench-300k-20260916-app-1": 20.9,
+        "knjsc-bench-300k-20260916-db-1": 189.59,
+        "knjsc-production-crm-1": 0.03,
+        "knjsc-production-db-1": 5.3
+      },
+      "last_memory": {
+        "knjsc-bench-300k-20260916-app-1": "88.8MiB / 640MiB",
+        "knjsc-bench-300k-20260916-db-1": "346.2MiB / 1.25GiB",
+        "knjsc-production-crm-1": "74.11MiB / 640MiB",
+        "knjsc-production-db-1": "56.43MiB / 1.25GiB"
+      },
+      "min_available_kb": 2434112,
+      "health_max_seconds": 0.191577,
+      "health_statuses": [
+        "200"
+      ],
+      "monitor_errors": 0
+    },
+    {
+      "target": "vps",
+      "users": 10,
+      "scope": "month",
+      "samples": 288,
+      "seconds": 76.43,
+      "verified_rows": 10,
+      "integrity_errors": [],
+      "stats": {
+        "poll": {
+          "n": 62,
+          "p50": 1944.41,
+          "p95": 2424.43,
+          "max": 2648.85,
+          "mean_bytes": 107,
+          "errors": 0
+        },
+        "read:block": {
+          "n": 136,
+          "p50": 2214.48,
+          "p95": 3087.1,
+          "max": 3434.16,
+          "mean_bytes": 323226,
+          "errors": 0
+        },
+        "read:filter": {
+          "n": 40,
+          "p50": 1532.23,
+          "p95": 2249.89,
+          "max": 2901.24,
+          "mean_bytes": 10665,
+          "errors": 0
+        },
+        "write:cell": {
+          "n": 50,
+          "p50": 821.13,
+          "p95": 1568.27,
+          "max": 1643.94,
+          "mean_bytes": 3294,
+          "errors": 0
+        }
+      },
+      "peak_cpu": {
+        "knjsc-bench-300k-20260916-app-1": 31.01,
+        "knjsc-bench-300k-20260916-db-1": 175.72,
+        "knjsc-production-crm-1": 0.03,
+        "knjsc-production-db-1": 4.21
+      },
+      "last_memory": {
+        "knjsc-bench-300k-20260916-app-1": "90.02MiB / 640MiB",
+        "knjsc-bench-300k-20260916-db-1": "366.6MiB / 1.25GiB",
+        "knjsc-production-crm-1": "74.12MiB / 640MiB",
+        "knjsc-production-db-1": "60.76MiB / 1.25GiB"
+      },
+      "min_available_kb": 2432016,
+      "health_max_seconds": 0.214495,
+      "health_statuses": [
+        "200"
+      ],
+      "monitor_errors": 0
+    }
+  ],
+  "browser": {
+    "local-browser-concurrent": {
+      "finished": true,
+      "error": null,
+      "viewport": [
+        1280,
+        720
+      ],
+      "deep": [
+        {
+          "row": 10000,
+          "ms": 1016.8000000119209
+        },
+        {
+          "row": 150000,
+          "ms": 1216.1000000238419
+        },
+        {
+          "row": 299950,
+          "ms": 1220.5999999642372
+        }
+      ],
+      "long_tasks": [],
+      "scroll": {
+        "n": 40,
+        "p50": 24.1,
+        "p95": 1487.2,
+        "max": 1529.4
+      },
+      "cached": {
+        "n": 30,
+        "p50": 33.3,
+        "p95": 34.3,
+        "max": 37.4
+      },
+      "select": {
+        "n": 30,
+        "p50": 33.3,
+        "p95": 33.7,
+        "max": 34.4
+      }
+    },
+    "local-browser-repeat": {
+      "finished": true,
+      "error": null,
+      "viewport": [
+        1280,
+        720
+      ],
+      "deep": [
+        {
+          "row": 10000,
+          "ms": 4249.099999964237
+        },
+        {
+          "row": 150000,
+          "ms": 1100.7000000476837
+        },
+        {
+          "row": 299950,
+          "ms": 849.8999999761581
+        }
+      ],
+      "long_tasks": [],
+      "scroll": {
+        "n": 40,
+        "p50": 23.6,
+        "p95": 1212.1,
+        "max": 1466.8
+      },
+      "cached": {
+        "n": 30,
+        "p50": 33.3,
+        "p95": 35.7,
+        "max": 37.1
+      },
+      "select": {
+        "n": 30,
+        "p50": 33.3,
+        "p95": 34.4,
+        "max": 34.6
+      }
+    },
+    "vps-browser-concurrent": {
+      "finished": false,
+      "error": "Data timeout",
+      "viewport": [
+        1280,
+        720
+      ],
+      "deep": [
+        {
+          "row": 10000,
+          "ms": 4850
+        }
+      ],
+      "long_tasks": [],
+      "scroll": {
+        "n": 40,
+        "p50": 32.1,
+        "p95": 8119,
+        "max": 8646.3
+      },
+      "cached": {
+        "n": 30,
+        "p50": 33.3,
+        "p95": 45.5,
+        "max": 51.3
+      },
+      "select": {
+        "n": 30,
+        "p50": 33.3,
+        "p95": 35.7,
+        "max": 43.5
+      }
+    }
+  }
+}

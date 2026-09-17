@@ -1,7 +1,7 @@
 """Ma trận kiểm chéo phân quyền — `docs/04` mục 3.
 
 Tài liệu có một bảng 9 đường dẫn × 5 vai trò, mỗi ô ghi rõ *Vào được* hay
-*Từ chối*. Mục 13 điều 2 bắt kiểm đủ cả 45 ô, và ghi thêm:
+*Từ chối*. Mục 13 điều 2 bắt kiểm đủ cả 50 ô, và ghi thêm:
 
 > **Không bỏ qua** các tiêu chí thuộc mục 3 và mục 9 với lý do sẽ sửa sau.
 > Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ thì không thu hồi được.
@@ -15,6 +15,7 @@ phải sửa cả đây — hai chỗ lệch nhau là một trong hai chỗ sai.
 from datetime import date
 
 import pytest
+from django.conf import settings
 from django.test import override_settings
 
 from forms_builder.meaning import FieldType, Meaning
@@ -28,6 +29,9 @@ pytestmark = pytest.mark.django_db
 VAO_DUOC = "vao_duoc"
 TU_CHOI = "tu_choi"
 CHUYEN_DANG_NHAP = "chuyen_dang_nhap"
+#: Lên đơn chuyển hẳn sang KN CRM (ADR-023). Không phải "vào được" mà cũng
+#: không phải "từ chối": người có quyền được đưa sang đúng nơi làm việc.
+CHUYEN_KN_CRM = "chuyen_kn_crm"
 
 #: Năm cột của bảng trong tài liệu. `None` là chưa đăng nhập.
 CAC_VAI_TRO = [
@@ -57,8 +61,8 @@ MA_TRAN = {
         "manager_sale": TU_CHOI, "staff_vd": TU_CHOI, None: CHUYEN_DANG_NHAP,
     },
     "Màn hình lên đơn": {
-        "staff_sale_1": VAO_DUOC, "leader_sale_1": VAO_DUOC,
-        "manager_sale": VAO_DUOC, "staff_vd": TU_CHOI, None: CHUYEN_DANG_NHAP,
+        "staff_sale_1": CHUYEN_KN_CRM, "leader_sale_1": CHUYEN_KN_CRM,
+        "manager_sale": CHUYEN_KN_CRM, "staff_vd": TU_CHOI, None: CHUYEN_DANG_NHAP,
     },
     "Bảng vận đơn": {
         "staff_sale_1": TU_CHOI, "leader_sale_1": TU_CHOI,
@@ -76,6 +80,13 @@ MA_TRAN = {
     "Bảng tính vận đơn": {
         "staff_sale_1": TU_CHOI, "leader_sale_1": TU_CHOI,
         "manager_sale": TU_CHOI, "staff_vd": VAO_DUOC, None: CHUYEN_DANG_NHAP,
+    },
+    # Dòng thêm 17.09.2026 — ADR-023 biến `/bieu-mau/` thành thư viện hai tab:
+    # tab Tài liệu mở cho mọi người, tab Biểu mẫu vẫn chỉ Manager trở lên. Giữ
+    # cả hai dòng để chiều cho phép và chiều từ chối đều có bài kiểm.
+    "Thư viện tài liệu": {
+        "staff_sale_1": VAO_DUOC, "leader_sale_1": VAO_DUOC,
+        "manager_sale": VAO_DUOC, "staff_vd": VAO_DUOC, None: CHUYEN_DANG_NHAP,
     },
 }
 
@@ -137,7 +148,9 @@ def duong_dan(departments, teams, nguoi_dung):
         "Báo cáo bộ phận khác": f"/bao-cao/{bo_phan_khac}/",
         "Màn hình lên đơn": "/len-don/",
         "Bảng vận đơn": "/bang/van_don/",
-        "Quản lý biểu mẫu": "/bieu-mau/",
+        # Tab quản lý biểu mẫu, không phải cửa vào thư viện (ADR-023)
+        "Quản lý biểu mẫu": "/bieu-mau/?tab=forms",
+        "Thư viện tài liệu": "/bieu-mau/",
         # Bảng của Manager Sale: Staff và Leader cùng bộ phận thấy bảng nhưng
         # không được nhập; Vận đơn không thấy bảng
         "Nhập tệp vào bảng của Sale": "/bang/bang_manager_sale/nhap/",
@@ -154,6 +167,8 @@ def _ket_qua(ma_http, vi_tri):
         return TU_CHOI
     if ma_http == 302 and "/dang-nhap/" in vi_tri:
         return CHUYEN_DANG_NHAP
+    if ma_http == 302 and settings.BANGTINH_URL and vi_tri.startswith(settings.BANGTINH_URL.rstrip("/")):
+        return CHUYEN_KN_CRM
     return f"khác ({ma_http})"
 
 
@@ -165,7 +180,7 @@ def test_ma_tran_kiem_cheo(client, nguoi_dung, duong_dan,
                            dong, ten_vai_tro, ma_vai_tro, mong_doi):
     """AC-3.1 tới AC-3.8 — Một ô trong ma trận kiểm chéo, `docs/04` mục 3
 
-    Mục 13 điều 2 đòi kiểm đủ 45 ô, cả chiều cho phép lẫn chiều từ chối.
+    Mục 13 điều 2 đòi kiểm đủ 50 ô, cả chiều cho phép lẫn chiều từ chối.
     """
     if ma_vai_tro is not None:
         client.force_login(nguoi_dung[ma_vai_tro])
@@ -190,4 +205,4 @@ def test_ma_tran_kiem_cheo(client, nguoi_dung, duong_dan,
 
 def test_ma_tran_du_bon_muoi_lam_o():
     """Mục 13 điều 2 — Bảng phải đủ 9 đường dẫn × 5 vai trò"""
-    assert len(CAC_O) == 45, f"Ma trận có {len(CAC_O)} ô, tài liệu ghi 45"
+    assert len(CAC_O) == 50, f"Ma trận có {len(CAC_O)} ô, tài liệu ghi 50"

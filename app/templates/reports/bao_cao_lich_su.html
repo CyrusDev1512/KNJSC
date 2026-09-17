@@ -1,25 +1,19 @@
 {% extends "base.html" %}
 {% block tieu_de %}Lịch sử báo cáo · Kim Ngân JSC{% endblock %}
 {% block ten_trang %}Lịch sử báo cáo{% endblock %}
-
 {% block noi_dung %}
-
-<div class="trang-dau">
-  <div>
-    <div class="nhan-nho">FR-4.3 · FR-4.4 · FR-4.5</div>
-    <h1>Lịch sử báo cáo</h1>
-    <p>Nhân viên thấy báo cáo của mình. Trưởng nhóm thấy cả team. Quản lý thấy cả bộ phận. Danh sách đã lọc sẵn theo phạm vi.</p>
-  </div>
-  <div class="hanh-dong">
-    <a class="nut nut-chinh" href="{% url 'bao_cao_ngay' %}">Nộp báo cáo</a>
-  </div>
-</div>
-
-<div class="bang-hop">
+<div class="sp-reports">
+  <section class="sp-report-reader" id="sp-report-reader" aria-label="Nội dung báo cáo" aria-live="polite"
+    {% if trang %}hx-get="{% url 'bao_cao_xem' trang.0.pk %}" hx-trigger="load" hx-select="#sp-report-content" hx-swap="innerHTML"{% endif %}>
+    {% include "components/rong.html" with rong_tieu_de="Nội dung báo cáo" rong_mo_ta="Chọn một báo cáo trong lịch sử để xem nội dung tại đây." %}
+  </section>
+  <aside class="sp-report-history" aria-label="Lịch sử báo cáo">
+    <div class="sp-history-title"><h1>Lịch sử báo cáo</h1><a class="nut nut-chinh" href="{% url 'bao_cao_ngay' %}">Nộp báo cáo</a></div>
+    <details class="sp-report-filters" {% if tim or tu or den or bieu_mau or bo_phan %}open{% endif %}><summary>Tìm và lọc báo cáo</summary>
   <form class="loc" method="get">
     <div class="truong o-tim">
       <label for="tim">Tìm theo người nộp</label>
-      <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Tên nhân viên">
+      <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Mã nhân sự hoặc họ tên">
     </div>
     <div class="truong">
       <label for="tu">Từ ngày</label>
@@ -29,48 +23,34 @@
       <label for="den">Đến ngày</label>
       <input class="o-nhap" type="date" id="den" name="den" value="{{ den }}">
     </div>
+    <div class="truong"><label for="bieu-mau">Biểu mẫu</label>
+      <select class="o-nhap" name="bieu_mau" id="bieu-mau"><option value="">Tất cả biểu mẫu</option>
+      {% for f in cac_bieu_mau %}<option value="{{ f.code }}" {% if bieu_mau == f.code %}selected{% endif %}>{{ f.name }}</option>{% endfor %}</select></div>
+    <div class="truong"><label for="bo-phan">Bộ phận</label>
+      <select class="o-nhap" name="bo_phan" id="bo-phan"><option value="">Tất cả bộ phận trong quyền</option>
+      {% for d in cac_bo_phan %}<option value="{{ d.code }}" {% if bo_phan == d.code %}selected{% endif %}>{{ d.name }}</option>{% endfor %}</select></div>
     <div class="loc-nut">
       <a class="nut nut-nho" href="{% url 'bao_cao_lich_su' %}">Xoá lọc</a>
       <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
     </div>
   </form>
 
-  <div class="bang-cuon">
-    <table class="bang">
-      <thead>
-        <tr>
-          <th>Ngày báo cáo</th><th>Biểu mẫu</th><th>Người nộp</th>
-          <th>Bộ phận</th><th>Team</th><th class="phai">Doanh số</th>
-          <th>Nộp lúc</th><th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for bc in trang %}
-          <tr>
-            <td class="ma-o">{{ bc.report_date|date:"d.m.Y" }}</td>
-            <td>{{ bc.form.name }}</td>
-            <td>{{ bc.created_by.profile.full_name|default:bc.created_by.username }}</td>
-            <td class="nho">{{ bc.department }}</td>
-            <td class="nho">{{ bc.team|default:"—" }}</td>
-            {# Đọc thẳng cột tách của nhãn Doanh thu — đây là chỗ bảy nhãn
-               ý nghĩa của Giai đoạn 3 bắt đầu trả công #}
-            <td class="tien">{{ bc.record.val_revenue|default:"—" }}</td>
-            {# Lưu giờ quốc tế, hiện giờ Việt Nam — BR-7, quy tắc 5 #}
-            <td class="ma-o">{{ bc.submitted_at|date:"d.m H:i" }}</td>
-            <td class="phai">
-              <a class="nut nut-nho" href="{% url 'bao_cao_xem' bc.pk %}">Xem</a>
-            </td>
-          </tr>
-        {% empty %}
-          <tr><td colspan="8">
-            {% include "components/rong.html" with rong_tieu_de="Chưa có báo cáo nào" rong_mo_ta="Báo cáo đã nộp sẽ hiện ở đây, đã lọc theo phạm vi quyền của bạn." %}
-          </td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  {% include "components/phan_trang.html" %}
+    </details>
+    <div class="sp-history-list">
+    {% for bc in trang %}
+      <article class="sp-history-item">
+        <a class="sp-history-link" href="{% url 'bao_cao_xem' bc.pk %}{% if history_query %}?{{ history_query }}{% endif %}" hx-get="{% url 'bao_cao_xem' bc.pk %}{% if history_query %}?{{ history_query }}{% endif %}" hx-target="#sp-report-reader" hx-select="#sp-report-content" hx-swap="innerHTML">
+          <time datetime="{{ bc.report_date|date:'Y-m-d' }}">{{ bc.report_date|date:"d.m" }}<small>{{ bc.report_date|date:"Y" }}</small></time>
+          <span><b>{{ bc.form.name }}</b><small data-employee-code="{{ bc.created_by.username }}">{{ bc.created_by.username }}{% if bc.created_by.profile.full_name %} · {{ bc.created_by.profile.full_name }}{% endif %}</small><small>{{ bc.department }}{% if bc.team %} · {{ bc.team }}{% endif %}</small></span>
+          <span class="sp-history-time">{{ bc.submitted_at|date:"H:i" }}</span>
+        </a>
+        <div class="sp-history-extra">{% if bc.record.val_revenue != None %}<span>Doanh số: {{ bc.record.val_revenue }}</span>{% endif %}{% if bc.activity_qs %}<a href="{% url 'bao_cao_tong_hop' %}?{{ bc.activity_qs }}">Báo cáo tổng hợp</a>{% endif %}{% if bc.thong_ke_qs %}<a href="{% url 'bao_cao_tong_hop' %}?{{ bc.thong_ke_qs }}">Thống kê Marketing</a>{% endif %}</div>
+      </article>
+    {% empty %}
+      {% include "components/rong.html" with rong_tieu_de="Chưa có báo cáo nào" rong_mo_ta="Báo cáo đã nộp sẽ hiện ở đây, đã lọc theo phạm vi quyền của bạn." %}
+    {% endfor %}
+    </div>
+    {% include "components/phan_trang.html" %}
+  </aside>
 </div>
-
 {% endblock %}

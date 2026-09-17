@@ -4,14 +4,15 @@ Một chỗ duy nhất quyết định ô đó nhận giá trị nào (quy tắc
 kiểm khi điền biểu mẫu, sửa ô và nhập tệp, còn giao diện lấy cùng danh sách đó
 để vẽ ô chọn. `forms_builder` không nhập module nghiệp vụ nào — chỉ giữ sổ.
 
-Ba tầng, phân giải ở `for_column()` theo đúng thứ tự:
+Bốn tầng, phân giải ở `for_column()` theo đúng thứ tự:
 
 1. **Sổ theo (bảng, cột)** — module nghiệp vụ đăng ký lúc khởi động, ví dụ `crm`
    đăng ký trạng thái vận đơn cho bảng `van_don`. Tầng này luôn thắng.
-2. **Sổ theo nhãn ý nghĩa** — cột *Chọn một* mang nhãn Sản phẩm lấy danh mục
+2. **Policy bảng** — danh mục nghiệp vụ dùng chung theo profile (ví dụ PTTT Vận đơn).
+3. **Sổ theo nhãn ý nghĩa** — cột *Chọn một* mang nhãn Sản phẩm lấy danh mục
    sản phẩm (`orders` đăng ký), nhãn Người bán lấy nhân sự bộ phận (`forms_builder`
    tự đăng ký). Có thể kèm hàm `add` để "Thêm mới…" ngay tại ô chọn.
-3. **Danh sách trên cột** — `ColumnDef.options`, Manager đặt trong Sửa cột.
+4. **Danh sách trên cột** — `ColumnDef.options`, Manager đặt trong Sửa cột.
 
 Hai tầng sau chỉ áp cho kiểu *Chọn một*; cột kiểu chữ mang nhãn (như `san_pham`
 trên bảng vận đơn) vẫn là ô chữ tự do.
@@ -120,6 +121,12 @@ def for_column(column):
     ds = _SO.get((column.table.code, column.code))
     if ds is not None:
         return ds
+    from . import record_policies
+    policy = record_policies.for_table(column.table)
+    if policy and hasattr(policy, 'choice_source'):
+        source = policy.choice_source(column)
+        if source is not None:
+            return source
     if column.field_type != FieldType.CHOICE:
         return None
 

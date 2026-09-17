@@ -13,6 +13,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.conf import settings
+from django.db.models import Q
 from django.utils import timezone
 
 from core.audit import record, record_denied
@@ -20,7 +21,7 @@ from core.constants import AuditAction
 from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.models import DataRecord, TableDef
 
-from .. import aggregations
+from .. import aggregations, marketing
 
 #: Cách nhóm hợp lệ trên URL. "thi-truong" có mặt ở thanh tab nhưng chưa có
 #: số liệu — hoãn theo Q36, chờ chốt backlog N9.
@@ -46,12 +47,23 @@ def source_tables(user):
     """Các bảng chọn được làm nguồn số liệu: trong phạm vi quyền, đang dùng,
     và có ít nhất một cột mang nhãn ý nghĩa — bảng không nhãn thì không có gì
     để thống kê (ADR-001)."""
-    return list(
+    tables = list(
         TableDef.objects.in_scope(user)
-        .filter(is_active=True, columns__meaning__gt="")
+        .filter(Q(columns__meaning__gt="") | Q(erp_report__isnull=False), is_active=True)
         .distinct()
+        .select_related("erp_report", "department")
+        .prefetch_related("columns")
         .order_by("name")
     )
+    # Các bộ phận đã được JOIN cùng bảng. Tái sử dụng đúng đối tượng của
+    # hồ sơ cho khung trang, tránh truy vấn lặp khi thêm bộ lọc nhân sự.
+    profile = getattr(user, "profile", None)
+    if profile is not None and profile.department_id:
+        for table in tables:
+            if table.department_id == profile.department_id:
+                profile.department = table.department
+                break
+    return tables
 
 
 def pick_table(user, code, tables, *, request=None):
@@ -152,6 +164,7 @@ def build_context(user, table, *, tab, date_from, date_to, product,
         date_from=date_from, date_to=date_to, product=product,
         with_totals=False,
     )
+    result = marketing.adapt(result, columns)
     cac_nhom = []
     if result.ok:
         cac_nhom = list(result.rows[:MAX_GROUPS + 1])
@@ -163,7 +176,7 @@ def build_context(user, table, *, tab, date_from, date_to, product,
             )
         else:
             totals = aggregations.totals_from_rows(cac_nhom, result)
-        result = aggregations.attach_totals(result, totals)
+        result = marketing.with_totals(result, totals)
     boi_canh = {
         "kq": result,
         "o_so": _headline(result) if result.ok else [],
@@ -240,4 +253,4 @@ def build_export(user, table, *, tab, date_from, date_to, product, request=None)
                 f"{date_from or '…'} đến {date_to or '…'}, {so_nhom} dòng nhóm"),
         request=request,
     )
-    return result
+    return marketing.adapt(result, columns)

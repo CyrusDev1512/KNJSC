@@ -7,6 +7,7 @@ nhật ký hoạt động (BR-5) và nằm trong một giao dịch.
 `full_clean()`. Nên mọi hàm ở đây gọi `full_clean()` trước khi lưu; bỏ qua là
 lọt cấu hình hỏng vào cơ sở dữ liệu.
 """
+from .lifecycle_service import writing
 import logging
 import threading
 import time
@@ -20,6 +21,7 @@ from core.constants import RECOMPUTE_BATCH, RECOMPUTE_SYNC_MAX_ROWS, RECOMPUTE_T
 from core.models import BackgroundJob
 
 from ..meaning import FieldType
+from .. import record_policies
 from ..models import COLUMN_OF, ColumnDef, DataRecord, TableDef
 
 logger = logging.getLogger(__name__)
@@ -43,6 +45,7 @@ def create_table(*, name, code, department, description="", actor=None, request=
 
 
 @transaction.atomic
+@writing
 def update_table(table, changes, *, actor=None, request=None):
     """Sửa tên hoặc mô tả bảng. Không đổi được tên kỹ thuật."""
     da_doi = []
@@ -83,6 +86,7 @@ RECOMPUTE_FIELDS = frozenset(
 
 
 @transaction.atomic
+@writing
 def add_column(table, *, actor=None, request=None, **fields):
     """Thêm một cột vào bảng.
 
@@ -107,8 +111,12 @@ def add_column(table, *, actor=None, request=None, **fields):
 
 
 @transaction.atomic
+@writing
 def update_column(column, changes, *, actor=None, request=None):
     """Sửa một cột. Đổi công thức thì tính lại toàn bộ bản ghi cũ."""
+    policy = record_policies.for_table(column.table)
+    if policy:
+        policy.assert_column_change(column, changes)
     da_doi, phai_tinh_lai = [], False
     for ten in COLUMN_FIELDS:
         if ten not in changes:
@@ -141,6 +149,7 @@ def update_column(column, changes, *, actor=None, request=None):
 
 
 @transaction.atomic
+@writing
 def remove_column(column, *, actor=None, request=None):
     """Bỏ một cột khỏi bảng.
 
@@ -148,6 +157,9 @@ def remove_column(column, *, actor=None, request=None):
     liệu người dùng gõ vào không tự biến mất (tinh thần BR-4). Cột không còn
     hiển thị, và gán lại đúng tên kỹ thuật đó thì dữ liệu cũ hiện trở lại.
     """
+    policy = record_policies.for_table(column.table)
+    if policy:
+        policy.assert_column_change(column)
     bang, ma = column.table, column.code
     column.delete()
     schedule_resync(bang, actor=actor)
@@ -159,6 +171,7 @@ def remove_column(column, *, actor=None, request=None):
 
 
 @transaction.atomic
+@writing
 def insert_columns(table, *, count=1, anchor=None, after=True, actor=None, request=None):
     """Chèn `count` cột chữ ngắn "Cột mới k" cạnh cột `anchor` (trước hay sau) —
     menu chuột phải của Bảng tính, ADR-011. Không có `anchor` thì chèn cuối.
@@ -197,6 +210,12 @@ def insert_columns(table, *, count=1, anchor=None, after=True, actor=None, reque
 def removable_reason(column):
     """Vì sao không bỏ được cột này ngay trên lưới; trống nghĩa là bỏ được.
     Cột khoá và cột đang là vế của một cột tính sẵn thì giữ."""
+    policy = record_policies.for_table(column.table)
+    if policy:
+        try:
+            policy.assert_column_change(column)
+        except BusinessError as error:
+            return str(error)
     if column.is_key:
         return f'"{column.name}" là cột khoá của bảng — đổi cột khoá ở Sửa cột trước.'
     dung_o = [
@@ -229,6 +248,8 @@ def resync_table(table, *, batch=RECOMPUTE_BATCH, on_progress=None):
     thao tác của người dùng. Bảng lớn thì đừng gọi thẳng — `schedule_resync`.
     """
     from .record_service import save_rows
+    from .lifecycle_service import available, lock
+    available(table)
 
     cot = list(table.columns.all())
     pks = list(DataRecord.all_objects.filter(table=table).order_by("pk").values_list("pk", flat=True))
@@ -239,6 +260,7 @@ def resync_table(table, *, batch=RECOMPUTE_BATCH, on_progress=None):
         for lan in range(RECOMPUTE_RETRIES):
             try:
                 with transaction.atomic():
+                    lock(table)
                     # Khoá theo thứ tự khoá chính, cùng chiều với `bulk_save` của người đang dán ô
                     lo = list(DataRecord.all_objects.select_for_update().filter(pk__in=pks[i:i + batch]).order_by("pk"))
                     doi, cot_doi = [], set()
@@ -298,6 +320,7 @@ def _giong(a, b):
     return a == b
 
 
+@writing
 def schedule_resync(table, *, actor=None):
     """Tính lại cột của bảng: ngay tại chỗ khi bảng có tới `RECOMPUTE_SYNC_MAX_ROWS`
     dòng, còn không thì giao **tác vụ nền** (ADR-016) — cột hiện ngay, giá trị

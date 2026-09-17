@@ -1,5 +1,349 @@
 # Backlog
 
+## 17.09.2026 — Sửa 19 bài kiểm đỏ có sẵn trước khi gộp KN CRM vào main
+
+Nhánh `codex/crm-update-solar-ui` có 19 bài đỏ **từ trước**, không do hai sửa
+nút lịch và entrypoint gây ra (đã kiểm lại ở `e5dae4e`). Chúng đỏ vì mã đi
+trước tài liệu và bài kiểm, chia bảy nhóm:
+
+| Nhóm | Vì sao đỏ | Sửa |
+|---|---|---|
+| Bộ phận Kế toán (ADR-025) | `org/0004` thêm bộ phận thứ tư, hai bài còn đếm ba | Đếm bốn; bài hợp trang chỉ đòi vắng bảng vận đơn |
+| Tiền theo quốc gia (ADR-031) | Bài xếp hạng còn dựng đơn VND, nay VND không hợp lệ với thị trường nào | Đổi sang PHP thị trường PH, thêm tỉ giá PHP |
+| Trùng mã đơn | Nhập tệp nay chặn mã đơn đã có; bài xuất–nhập dùng lại một mã | Thêm khẳng định chặn trùng, dòng thứ hai dùng mã mới |
+| Giao diện | Bốn lớp CSS dùng trong template mà chưa khai | Khai `.dashboard-*`, `.thong-bao` bằng biến nền, không màu cứng |
+| Ma trận phân quyền (ADR-023) | Lên đơn chuyển sang KN CRM, `/bieu-mau/` thành thư viện hai tab | Thêm kết quả *Chuyển KN CRM*, thêm dòng Thư viện tài liệu; ma trận 45 → **50 ô** |
+| Luồng ba bộ phận | Đơn nay lên ở KN CRM | Bài đặt đơn qua URLconf 8021; chiều từ chối kiểm 302 về KN CRM |
+| Truy vết | `docs/04` thêm bảng ba cột và hai cột, regex cũ chỉ đọc bốn cột | Đọc cả ba dạng bảng; 190 tiêu chí, 158/177 đã kiểm, 19 hoãn |
+
+19 mã hoãn không phải bài kiểm bị bỏ: AC-24, AC-26, AC-27 là tiêu chí của việc
+**đang làm**, chính `docs/04` ghi "đang kiểm chứng". Ghi vào `HOAN` để bài truy
+vết đếm đúng, kèm lý do và giai đoạn — quy tắc của `tests/test_truy_vet.py`.
+
+Sau sửa: `pytest -m "not cham"` **2494 xanh, 13 bỏ qua, 0 đỏ**.
+
+## 17.09.2026 — CLAUDE.md theo nhánh đang chạy; cầu nối skill cho Claude Code
+
+Chủ dự án yêu cầu hai việc. (1) Viết lại `CLAUDE.md` cho khớp nhánh
+`codex/crm-update-solar-ui`: nhánh chính không phải `main`, VPS và cách phát hành,
+lưới `master-grid.js` thay hai tệp HTMX đã xoá, ba bảng vận đơn, cờ `CRM_OPT_*`
+tắt, mốc 300.000 dòng / 10 người, lệnh dữ liệu giả, hai điều của AGENTS.md hay bị
+quên (duyệt trước, chỉ push khi được yêu cầu), ba lỗi `test_truy_vet` có sẵn, và
+ghi rõ TL-01 → TL-34 rà trên lưới cũ. (2) Skill dùng chung: giữ `.agents/skills`
+là nguồn duy nhất, thêm 10 cầu nối `.claude/skills/<tên>/SKILL.md` sinh bởi
+`scripts/dong-bo-skill.py --tao-cau-noi` (chép `name`/`description`, thân trỏ về
+nguồn; không symlink vì Windows, không chép nội dung vì lệch); `--check` và bài
+`tests/test_dong_bo_skill.py` bắt lệch. Mâu thuẫn còn để ngỏ: PRODUCT.md (Google
+Workspace, 07.09) và ADR-028 (Solarpunk, 14.09) cùng ghi "đã chốt"; chỉ mục ADR
+dừng ở 022 và có hai tệp 022 — chưa sửa, chờ chủ dự án.
+
+## 16.09.2026 — Cột Trùng chưa có tác dụng; nạp 300.000 khách mẫu vào Vận đơn DB
+
+Anh/chị xem bảng vận đơn cũ và thấy cột Trùng chỉ hiện con số 2. Rà mã: cột
+Trùng chỉ đăng ký cho bảng `van_don` cũ, **Vận đơn DB và `van_don_moi` không
+có cột này** (TL-35); đếm theo số điện thoại đúng như gõ nên số ghi khác định
+dạng không bắt được, chỉ đếm trong một bảng, không lọc, không bấm, không tô
+màu (TL-36). Đề xuất đã gửi anh/chị, **chưa làm gì** cho tới khi chốt.
+
+Lệnh mới `nap_khach_mau` (AC-10.9) nạp 300.000 khách giả theo lô vào Vận đơn
+DB: 375.000 dòng, 20 % là khách mua lại, 2 % số dòng mua lại ghi số điện
+thoại khác định dạng để đo TL-36; bảng có profile Vận đơn thì có phân công.
+Chạy ở máy anh/chị: `docker compose -f deploy/docker-compose.yml exec bangtinh
+python manage.py nap_khach_mau --so-khach 300000`, xoá bằng `--xoa-cu --so-khach 0`.
+Số đo máy ảo (4 nhân, Postgres 16 mặc định, 16.09): nạp 375.000 dòng hết **220 giây**;
+bảng có 301.502 số điện thoại khác nhau (1.502 là số ghi khác định dạng của khách
+cũ), **138.694 dòng có số trùng**; bảng DataRecord 896 MB; mở lưới Vận đơn DB lần
+đầu bằng Chromium 2,2 giây, chân trang "375.000 dòng khớp bộ lọc", không lỗi JS.
+
+## 16.09.2026 — Kiểm chứng cờ và phát hành tối ưu cuộn (đã phát hành phần đã kiểm)
+
+Bản lưới mới qua 137 hồi quy, E2E lưới chung và hai lượt tải chính 100.000
+đơn; 30 Sale + 10 Vận đơn lưu 367/367 đơn đúng. READ/SYNC chưa bật vì
+invalidation theo cả bảng làm gián đoạn mở editor khi có đơn ngoài phạm vi;
+RENDER chưa có lợi ích bổ sung rõ. Kiểm bền dừng theo yêu cầu sau 14,71 phút đo; chưa đủ 60 phút, đã push/phát hành VPS 0907cdd.
+Không đóng nợ 300.000 dòng hoặc hiệu năng VPS. [Bằng chứng](kiem-chung-co-toi-uu-20260916.md).
+
+VPS image `knjsc-app:0907cdd-grid`; Chrome 1440/390 và hash JS đạt, năm service
+cùng image, giới hạn tài nguyên/CSS giữ nguyên. Không coi smoke là kiểm tải VPS.
+
+## 16.09.2026 — Mốc thực tế: 300.000 dòng + tối đa 10 người
+
+Chủ dự án xác nhận khoảng 100.000 đơn/năm, kiểm dự phòng 300.000 dòng và tối đa 10 người dùng file Vận đơn. Đã đo trên hai DB giả độc lập: 10 người, đọc toàn bảng p95 local/VPS 1,37/5,04 giây; lọc tháng 8.496 dòng 0,83/3,09 giây. Lưu tương ứng toàn bảng 0,49/2,34 giây, theo tháng 0,31/1,57 giây; không lỗi HTTP hoặc sai giá trị cuối ở 8 lượt chính. SQL phiên bản vẫn quét 300k dòng dù lọc tháng; CPU DB VPS gần hết hai core. Browser VPS nhảy dòng 150k vượt chờ 10 giây; chọn ô vẫn khoảng 36 ms. **Chưa đạt mục tiêu mượt**; cần duyệt tác vụ xử lý server/cache rồi đo lại đúng mốc này, không lấy khảo sát 20 người trước làm yêu cầu. Môi trường đo đã dừng, production giữ nguyên. [Bằng chứng và giới hạn](kiem-chung-300k-10-nguoi-20260916.md).
+
+
+## 16.09.2026 — Đo đồng thời Vận đơn DB trên VPS và local
+
+Đã đo 1/5/10/20 người trên 10.000 dòng giả, 26 cột, môi trường riêng. VPS 20 người: p95 đọc 965 ms, lưu 848 ms, poll 804 ms; vượt mục tiêu lưu/poll. Local tương ứng 288/272/199 ms. Các lượt hợp lệ không lỗi HTTP, kiểm lại giá trị cuối khớp. Browser 9 Locust + 1 Chrome: local cuộn p95 351 ms, VPS 245 ms; chưa chứng minh tối ưu local giữ lợi ích khi có ghi nền. Ghi nhận 409 đọc gây bỏ cache: cần chốt tác vụ riêng để xử lý, chưa sửa ứng dụng hoặc phát hành. [Phương pháp, số đo và giới hạn](kiem-chung-tai-dong-thoi-20260916.md).
+
+## 16.09.2026 — Sửa riêng bố cục Tổng quan ERP
+
+Đã sửa nhãn–giá trị cùng hàng, bỏ kéo cao thẻ theo Marketing, kiểm responsive và suite báo cáo; push/phát hành VPS commit `da6e2c0`. Không đưa thay đổi báo cáo/lưới chưa phát hành vào bản này. [Kiểm chứng và giới hạn](kiem-chung-tong-quan-20260916.md).
+
+## 16/09/2026 — Chọn ô/nhập trong lúc lưu: đã tối ưu và đo local
+
+Đã tách cập nhật vùng chọn/mở/hủy editor khỏi dựng lại nội dung lưới.
+40 lượt/10.000 dòng mô phỏng, trình duyệt Codex 1280×720, giữ request lưu:
+p95 chọn/mở/nhập ~33–34 ms; baseline cũng ~34 ms nhưng một lượt chọn 58,1 ms.
+Bản cuối max 34,2 ms; DOM tạo mới giảm 51.891 → 466. Đây là phép đo tới hai
+rAF của fixture, không phải số đo API/VPS hoặc bảo đảm trên mọi máy.
+Giữ nháp mới khi phản hồi cũ về; lỗi lưu và Undo/Redo đã kiểm; 48 test server
+và nhóm Node liên quan đạt. Local, chưa push/VPS. Không đánh dấu toàn bộ bảy
+hạng mục tối ưu hoàn thành hoặc coi kiểm này là kiểm bộ nhớ dài hạn.
+[Chi tiết](kiem-chung-nhap-khi-luu-20260916.md).
+
+## 16.09.2026 — Nhảy xa: gom và ưu tiên request vùng đích (local)
+
+Đã gom 80 ms khi nhảy xa, ngừng tải đón cho tới cuộn ổn định, giữ request
+editor/copy dùng chung. Chuỗi 12 vị trí giảm 48→1 request, đổi lại chờ đích
+~235–248 ms so với ~139–141 ms trong API mô phỏng trễ 120 ms. Không trì hoãn
+cache. Chrome và E2E DB test đạt; chưa đo tải server nhiều người, chưa push/VPS.
+[Bằng chứng và giới hạn](kiem-chung-cuon-luoi-20260916.md).
+
+## 16.09.2026 — Cuộn cache và tải trước theo hướng (local)
+
+Đã giảm dựng lại ô khi chỉ cuộn, tải đón tối đa hai khối; cache giữ 10 khối.
+Đo Chrome/API mô phỏng trễ 120 ms: p95 cuộn liên tục 140,9→47,7 ms desktop,
+136,9→49,4 ms mobile; cached khoảng 32 ms trước/sau. 110 functional và E2E
+database test đạt; chưa push/VPS, chưa nghiệm thu tải server nhiều người.
+[Kết quả, chi phí request và giới hạn](kiem-chung-cuon-luoi-20260916.md).
+
+## 16.09.2026 — Đổi tên Vận đơn thành crmThuận (local)
+
+Theo yêu cầu chủ dự án, đổi tên hiển thị bảng `van_don_moi` thành `crmThuận`.
+Đã cập nhật tên mặc định và chuyển tên cũ khi khởi tạo lại; không ghi đè tên
+riêng khác. Local chỉ cập nhật name/updated_at và audit; kiểm trước/sau giữ
+ID, code, cờ nhận đơn và số dòng. Chrome mục Bảng nhận đơn hiển thị crmThuận
+là lựa chọn hiện tại. 11 test khởi tạo/bảng nhận đơn đạt. Chưa commit/push/VPS.
+
+
+## 16.09.2026 — Ngày hệ thống và chỉnh sửa báo cáo (local)
+
+Đã triển khai theo ADR-032: nhập ngày DD/MM/YYYY; báo cáo mới khóa ngày Việt
+Nam và người nộp; Leader sửa trong team, Manager trong bộ phận, Admin toàn
+hệ thống, có lịch sử và chống ghi đè bản cũ. Staff không sửa báo cáo đã nộp,
+kể cả qua lưới. Marketing có Doanh thu/Hóa đơn và năm công thức đã chốt;
+loại tiền lấy theo thị trường. Tổng tiền khác/thiếu đơn vị để trống có giải thích.
+Bổ sung 16/09: đã sửa phần đọc ô ngày và chip lọc lưới còn sót, 34 test đạt.
+256 test nhóm cuối đạt; đã kiểm trình duyệt luồng sửa, ngày, lưới và mobile.
+Lỗi nhập lại mã đơn trùng tái hiện cả ở HEAD 5ce53f3, không đổi nghiệp vụ nhập.
+Phần báo cáo này chưa commit/push/VPS; lỗi thêm sản phẩm 404 trên domain thật
+vẫn mở, không coi kết quả local là đã sửa 404.
+[Chi tiết và giới hạn](kiem-chung-bao-cao-erp-20260916.md),
+[quyết định thay thế](quyet-dinh/032-ngay-he-thong-va-sua-bao-cao.md).
+
+## 16.09.2026 — Đã phát hành tiền/PTTT, bỏ Đơn vị phụ và sửa cột ghim
+
+Đã push mã `5ce53f3`, VPS chạy `knjsc-app:5ce53f3-market-20260916` trên
+ERP/CRM và các worker. Hồi quy đúng bản phát hành: 535 đạt, 1 lỗi nền,
+17 skip; E2E database test và Chrome VPS 1440/390 đạt. Giữ hotfix sidebar.
+Đã xử lý 502 sau thay container bằng nạp lại proxy; không ghi thử dữ liệu VPS.
+Mục này thay thế trạng thái chưa push/VPS của các mục cùng phạm vi bên dưới.
+[Chi tiết phát hành và giới hạn](phat-hanh-tien-te-20260916.md).
+
+## 16.09.2026 — Màu ba cột ghim trên VPS
+
+Đã sửa CSS kế thừa theme tối gây chữ chìm, kiểm Chrome domain thật sáng/tối
+1440/390 đạt. VPS image `7b827a6-pinned-contrast-20260916`, giữ hotfix sidebar.
+Chưa commit/push; các thay đổi nghiệp vụ local không được phát hành cùng.
+[Bằng chứng và quay lui](kiem-chung-mau-cot-ghim-20260916.md).
+
+## 16.09.2026 — Bỏ Đơn vị phụ trên Lên đơn
+
+Đã bỏ ô nhập và dòng hiển thị ở đơn gốc; giữ dữ liệu lịch sử và đơn vị sản
+phẩm. 36 test và Chrome 1440/390 đạt. Local, chưa commit/push/VPS.
+Quyết định thay thế tại ADR-023; log `storage/market-currency/subunit-*`.
+
+## 16.09.2026 — Tiền theo quốc gia, PTTT Zelle/PayPal
+
+Đã triển khai/kiểm local: tiền tự theo US/USD, CA/CAD, PH/PHP; đổi quốc gia
+có tiền phải xác nhận giữ số tiền. Form/lưới dùng chung hai phương thức.
+15 test mới và Chrome 1440/390 đạt. Chưa commit/push/VPS.
+[Quyết định](quyet-dinh/031-tien-theo-quoc-gia-va-pttt.md),
+[kiểm chứng và ba lỗi test nền](kiem-chung-tien-theo-quoc-gia-20260916.md).
+Các lỗi nền: test nhập lại mã trùng và hai test còn kỳ vọng form Lên đơn ở ERP;
+cần cập nhật theo quyết định đã chốt trong tác vụ riêng, không nới service.
+
+## 16.09.2026 — Báo cáo ERP, local trước
+
+Đã thêm lọc team/người, bảng tổng hợp kẻ ô, biểu mẫu ngày Vận đơn năm trường,
+nút ẩn bộ lọc/toàn màn hình bảng và 36 mẫu đã nộp vào lịch sử.
+113 test báo cáo và endpoint sản phẩm đạt;
+đã kiểm UI local. **Lỗi 404 thêm sản phẩm trên domain thật còn mở**, chưa
+tái hiện; không coi thao tác Sale local thành công là đã sửa VPS.
+[Phạm vi, bằng chứng và phần còn lại](kiem-chung-bao-cao-erp-20260916.md).
+
+## 15.09.2026 — Chuẩn bị Vận đơn DB nhận đơn
+
+Đã bổ sung chuyển cấu hình bảng placeholder theo duyệt, giữ dòng/cột và đích
+hiện hành; 87 test và Chrome 1440/390 đạt. VPS cf51ad2 đã bật lựa chọn; 6.667 dòng giữ nguyên.
+[Kiểm chứng](kiem-chung-chuan-bi-bang-nhan-don-20260915.md).
+
+## 15.09.2026 — Đăng nhập chung ERP/CRM
+
+Đã kiểm local: cookie dùng chung, hai chiều/bốn cấp quyền, 16 kịch bản Chrome
+HTTPS đạt. Đã phát hành VPS cdc1a45, Chrome domain thật 4/4 đạt; giữ lỗi CSS nền ở màn hình chọn
+bảng nhận đơn (`loi`, `thong-bao`) trong backlog, không đóng cùng tác vụ này.
+[Kiểm chứng](kiem-chung-dang-nhap-chung-20260915.md).
+
+## 15.09.2026 — Daily tasks: tối ưu lưới và nhập thiếu Vận đơn DB
+
+Chủ dự án chọn phương án 1 (tải theo vùng nhìn/tải trước có giới hạn), chưa
+triển khai. [Daily tasks](daily-tasks.md) lưu đủ 7 hạng mục, dự đoán có điều
+kiện và tiêu chí kiểm chứng. Đã xác định job nhập #3 tạo 6.667/10.000 dòng:
+3.333 dòng có “Đã về TK” bị từ chối vì danh sách lựa chọn `doi_soat` rỗng;
+chưa sửa cấu hình hoặc nhập bù. Đây là vấn đề nhập dữ liệu, tách khỏi tối ưu cuộn.
+
+## 15.09.2026 — Hai bảng báo cáo mẫu đã có trên VPS
+
+Đã tạo Marketing/Sale, mỗi bảng 50 dòng, 5 team và 10 nhân sự “Mẫu” không
+đăng nhập được; nguồn/biểu mẫu chuẩn đã có. Kiểm DB và hai lưới domain thật đạt.
+Giữ nguyên vận đơn/dịch vụ/phiên SSH khác. [Kiểm chứng](kiem-chung-bao-cao-mau-vps-20260915.md).
+
+## 15.09.2026 — Đã sửa lỗi mẫu nhập trên local
+
+Thay thế trạng thái còn lỗi ghi bên dưới: sửa preview lệch cột, bỏ cột chỉ xuất
+khỏi mẫu, căn lại workbook, báo lỗi trước xác nhận và chặn nhập trùng mã đơn.
+30 test đạt; trình duyệt kiểm ba mẫu, lỗi/trùng và 10.000 dòng đạt trên DB riêng.
+Chưa kiểm trực tiếp Microsoft Excel/chưa VPS. [Chi tiết](kiem-chung-mau-nhap-van-don-20260915.md).
+
+## 15.09.2026 — Kiểm thực tế mẫu nhập: còn lỗi cần xử lý
+
+Nhập qua UI đủ 3 khách/bảng và 10.000 khách DB; còn lỗi preview lệch cột,
+mẫu Vận đơn kèm 4 cột chỉ xuất, preview chưa báo lỗi giá trị, rủi ro nhập lại
+tạo trùng mã đơn. Chưa sửa nghiệp vụ; chưa đạt nghiệm thu toàn luồng.
+[Bằng chứng và phân loại](kiem-chung-mau-nhap-van-don-20260915.md).
+
+## 15.09.2026 — Kiểm lại luồng Bảng nhận đơn
+
+68 test trực tiếp đạt, Chrome 1440/390 đạt và DB xác nhận đơn cũ giữ bảng. Hồi quy rộng: 616 đạt, 1 lỗi, 14 skip. Lỗi tại `crm/tests/test_trang_chu.py:137`: test còn đòi nhãn “Sửa”, trong khi tác vụ Tải mẫu Excel đã bỏ nhãn. Chưa sửa test ngoài phạm vi; không kết luận toàn suite đạt. [Bằng chứng](kiem-chung-bang-nhan-don-20260915.md).
+
+
+## 15.09.2026 — Tải mẫu Excel vận đơn (local)
+
+Đã thêm tải mẫu theo từng bảng và bỏ nhãn Sửa trên thẻ. Kiểm tải/nhập lại, quyền và trình duyệt local đạt; chưa push/VPS. [Kiểm chứng và giới hạn](kiem-chung-mau-nhap-van-don-20260915.md).
+
+## 15.09.2026 — Chọn bảng nhận đơn tại CRM (local)
+
+Admin chọn đích nhận đơn mới; bảng/đơn cũ giữ nguyên. Đã áp migration 0012 local, chưa đổi đích mặc định, chưa commit/push/VPS. Sau sửa cuối 67 test liên quan đạt; Chrome 1440/390, hai ca 30 Sale đồng thời và migration xuôi/ngược đạt. [Kết quả và giới hạn](kiem-chung-bang-nhan-don-20260915.md) · [ADR-029](quyet-dinh/029-bang-nhan-don-crm.md).
+
+
+## 15.09.2026 — Sửa sidebar CRM thu gọn
+
+Đã sửa logo/icon nhóm lệch trái khi thu gọn theo ảnh chủ dự án, kiểm Chrome
+sáng/tối, thu/mở và reload; triển khai CSS hotfix trên VPS theo yêu cầu.
+[Kết quả, cách triển khai và giới hạn](kiem-chung-crm-sidebar-20260915.md).
+
+## 15.09.2026 — Mở rộng giao diện KN ERP trong tab
+
+Đã có bản thử local: cụm Hiển thị trên header dùng icon Mặt trời/Mặt trăng và
+Mở rộng. Chế độ mở rộng phủ ERP sát bốn cạnh, bỏ ảnh nền, gutter, bo góc và bóng
+ngoài; giữ header/dock để điều hướng, còn Tập trung của bảng vẫn ẩn chúng theo
+luồng riêng. Nút này chỉ đổi bố cục trong tab, không gọi Fullscreen API nên không
+ẩn thanh địa chỉ hoặc tab Chrome; Esc thu gọn giao diện. Chrome 1440/390 đạt;
+lựa chọn được lưu và phục hồi trước khi vẽ khi chuyển trang hoặc mở tab ERP khác.
+Đã phát hành commit chức năng `2ea5ab2` trên nhánh riêng. VPS hiện chạy image
+`knjsc-app:8dead1b`, là hậu duệ chứa đầy đủ commit này; không merge `main`.
+
+## 14.09.2026 — Toàn màn hình ERP, sắp lại Vận đơn và tạm khóa Chứng từ
+
+Đã triển khai trên `codex/crm-update-solar-ui`: dock ERP thu gọn có nhớ bố cục,
+mọi bảng dữ liệu ERP có Tập trung/Fullscreen/Công cụ; ERP vẫn chỉ đọc. `van_don`
+giữ mã/ID/222 dòng nhưng đổi nhãn **Vận đơn mới**, thêm Phụ trách CSKH trống và
+sắp lại cột; `van_don_moi` giữ nhãn **Vận đơn** và 10.000 dòng. Bill là text/URL
+an toàn; kho Chứng từ mặc định tắt và URL trả 404. Không tạo 100 bill/ảnh mẫu.
+Full suite cuối: 2.332 đạt, 15 lỗi nền, 31 skip và 2 xfail; không có lỗi mới.
+Đã push nhánh và triển khai VPS ngày 15.09 tại image `knjsc-app:97741e4`, sau
+backup; HTTPS/tệp tĩnh/check/log đều đạt. Không merge `main`.
+[Kiểm chứng](kiem-chung-erp-vandon-bill-20260914.md).
+
+## 14.09.2026 — Hợp nhất CRM-UPDATE và Solar UI
+
+Nhánh `codex/crm-update-solar-ui` giữ CRM-UPDATE làm nguồn chuẩn nghiệp vụ và
+phủ giao diện Solar lên bốn khung. Chrome đã đạt các luồng lưới, sửa trạng thái/
+ngày, tự lưu, CAS, phân công, báo cáo và focus. Full suite 2.329 đạt, 15 lỗi nền,
+31 skip/2 xfail; không có nhóm lỗi mới. Chưa merge `main`, chưa triển khai và
+giữ nguyên các nhánh cũ. [Bằng chứng](kiem-chung-crm-update-solar-ui-20260914.md).
+
+## 14.09.2026 — Tích hợp phần local vào CRM-UPDATE
+
+Đã khôi phục ERP từ stash, ghép sửa Thống kê và chế độ xem Vận đơn; Solarpunk giữ riêng. Functional toàn bộ: 2327 đạt, 17 lỗi đều tái hiện trên nền 9bac840, 31 skip/2 xfail. Chrome định danh, bốn cấp quyền, Thống kê và đổi chế độ xem đạt tại 1440/390. Không kích hoạt runtime chính hoặc chạy lại kiểm tải toàn CRM. [Bằng chứng và giới hạn](kiem-chung-tich-hop-local-20260914.md).
+
+
+**14.09 — CRM-UPDATE đã kiểm chứng trong worktree riêng:** hoàn tất lưới chung,
+xóa/khôi phục bảng, tương phản cột ghim và rút gọn truy vấn phạm vi. Chrome
+bốn cấu hình, ma trận 100k/300k × 10/20, 2.000 ô, Celery và bài bền 30 phút
+đạt; bài bền 31.985 mẫu, oracle 2.859 dòng không lỗi. Giữ bốn lỗi kiểm thử
+nền và 11 skip riêng. Local vẫn nhánh fix; chưa commit/push/kích hoạt.
+Tạo bảng trắng/duplicate hoãn; chế độ xem toàn bảng của nhánh fix chưa ghép.
+[Biên bản bàn giao](kiem-chung-crm-update-20260912.md).
+
+**12.09, 17:20 — Chủ dự án yêu cầu test trước:** đã chuyển checkout chính sang `CRM-UPDATE`, cập nhật local 8020/8021 và worker cùng code; không seed/migrate, chưa commit/push. Marketing/Sale đã xác nhận dùng lưới mới. Functional 1.130 passed, 4 lỗi nền, 11 skipped; Chrome chức năng đạt. Kiểm tải tạm dừng: bản cuối mới đủ 100k/10, chưa nghiệm thu toàn chiến dịch. [Kết quả và phần còn lại](kiem-chung-crm-update-20260912.md).
+
+**12.09 — CRM-UPDATE đang kiểm local:** lưới chung Marketing/Sale/Vận đơn cũ,
+xóa mềm/khôi phục bảng; giữ Vận đơn mới, ERP và dữ liệu. Đang chạy ma trận tải,
+chưa nghiệm thu toàn chiến dịch; tạo bảng trắng/duplicate cấu trúc hoãn.
+[Biên bản](kiem-chung-crm-update-20260912.md) · [ADR-027](quyet-dinh/027-crm-update-luoi-chung-va-vong-doi-bang.md).
+
+
+> Cập nhật 12.09.2026: theo yêu cầu chủ dự án, đã chuyển nhánh codex/chung-tu-thanh-toan về checkout chính C:/KNJSC/KNJSC và kích hoạt app local 8021. Đã áp dụng orders 0007, org 0004; không chạy seed. Các mô tả chưa kích hoạt bên dưới ghi trạng thái bàn giao trước bước này. Chưa commit/push; bản sao checkout cũ giữ nguyên nội dung, ở detached HEAD.
+
+**12.09.2026 — Trạng thái và chứng từ thanh toán:** đã có bản triển khai trong
+checkout riêng `KNJSC-chung-tu-thanh-toan`, nhánh `codex/chung-tu-thanh-toan`.
+Trạng thái sửa trực tiếp; kho chứng từ, quyền Kế toán, Ref trong Bill, lưu ảnh riêng tư.
+Không mở quyền nhập tiền/đối soát. Chưa áp migration vào database đang chạy ở 8021,
+chưa commit/push. [Kết quả và phần chưa kiểm](kiem-chung-chung-tu-thanh-toan-20260912.md).
+**14.09 — Solarpunk Office (nhánh UI riêng):** đã triển khai khung xanh, báo cáo hai vùng, chế độ tập trung cả hai lưới; preview ERP 18020 / CRM 18021 và dữ liệu riêng. Đã kiểm Chrome hai lưới, lưu/hoàn tác/lỗi mạng/CAS và bố cục sáng/tối; full suite 2154 pass, 14 fail (1 bài nhận diện khung chạy lại đạt, còn 13 lỗi nền); chưa merge/commit/push, không đổi 8020/8021. [Hồ sơ](kiem-chung-solarpunk-20260914.md), [ADR-028](quyet-dinh/028-solarpunk-office.md).
+
+
+**14.09 — Vận đơn DB:** đã tạo bảng động riêng `van_don_db`, 26 cột lấy từ định nghĩa hiện có, 0 dòng; sắp thứ tự theo file chủ dự án, không có Đơn vị phụ. Chưa nối Lên đơn; không đổi code ứng dụng hoặc bảng nguồn. Đã kiểm cấu hình lưu, tiêu đề HTML và thứ tự xuất. [Chi tiết](cau-hinh-van-don-db-20260914.md).
+
+**12.09.2026, 17:28 — Đã bật nhánh fix để chủ dự án test nút:** checkout chính `C:/KNJSC/KNJSC` và local 8020/8021 hiện chạy `fix/trung-ma-don-dong-thoi`. Bản CRM-UPDATE được giữ nguyên tại `C:/KNJSC/worktrees/CRM-UPDATE`, chưa ghép. Đã sao lưu database, áp dụng riêng `forms_builder.0011_delivery_view_mode`; không seed hoặc đổi chế độ xem thay người dùng. 10 test chế độ xem đạt trên PostgreSQL test riêng; hai URLconf sạch. Đọc READ ONLY trên local xác nhận trang chế độ xem, liên kết từ lưới và Cột & cấp quyền đều 200; mặc định hiện là theo phân công. Chưa commit/push.
+
+**12.09.2026 — Chế độ xem Vận đơn mới, đã kiểm chứng local:** Admin/Manager
+Vận đơn đổi theo phân công/toàn bảng; quyền sửa vẫn theo phân công. Trang
+lưới tự reload khi nhận phiên bản mới. 10 test mới, focused cuối 46 passed;
+Chrome 1440/390 đạt, migration xuôi/ngược đạt. Hồi quy rộng 500 passed,
+4 failed, 10 skipped; 2 lỗi mount fixture chạy lại đạt, còn 2 lỗi markup
+nền. Không chạy kiểm tải lớn, không tuyên bố tăng tốc. Đã có diff trên nhánh
+fix trong worktree riêng, chưa tích hợp checkout chính/chưa commit/push.
+[Bằng chứng](kiem-chung-che-do-xem-van-don-20260912.md), [ADR-026](quyet-dinh/026-che-do-xem-van-don.md).
+
+**11.09.2026 — Sửa trùng mã đơn đồng thời, đạt nghiệm thu local:** nhánh
+`fix/trung-ma-don-dong-thoi` từ `a81decd`, worktree riêng. Khóa giao dịch PG
+theo DDMM, timeout 5s có kiểm soát, max hậu tố theo số và giữ mã xóa mềm.
+TDD/Chrome 1440/390 đạt; lượt 30 Sale + 10 Vận đơn đủ 301,52s đo,
+361 đơn đúng, p95 tạo 170,58ms/lưu ô 108,69ms; burst đủ 30/30.
+Cờ tắt trong lượt chính, kiểm tương thích bốn cờ đạt. Hai lỗi markup nền và
+9 skip giữ riêng; không đóng hiệu năng toàn CRM. Chưa commit/push/merge.
+[Bằng chứng và giới hạn](kiem-chung-trung-ma-don-20260911.md).
+
+**11.09.2026 — CRM-Optimization, có bản local; chưa nghiệm thu toàn bộ:** nhánh/checkout riêng,
+snapshot đầy đủ đã đóng băng. Đã làm phiên bản/cache quyền, đọc/sync v2,
+receipt gọn, tái sử dụng renderer, cache Thống kê 15 giây, xuất write-only
+và cấu hình VPS ứng viên. Suite cuối 1.092 passed, 4 lỗi nền, 9 skipped;
+E2E/Chrome và tám lượt trước/sau đã kiểm. Bài bền 300k/20 cấu hình 30 phút:
+21.828 mẫu, không lỗi mạng/5xx hoặc oracle; 7 CAS dán cùng vùng được tách riêng.
+Render chưa cải thiện ổn định, cold Thống kê >1 giây và hàng đợi xuất tăng
+là phần còn nợ; cần phân tích thêm RSS app tăng trong bài bền. Cờ mặc định tắt,
+chưa commit/push/VPS. Không đánh dấu hoàn thành toàn bộ feedback.
+[Biên bản và phần còn nợ](kiem-chung-crm-optimization-20260911.md).
+
+**11.09.2026 — Ba lựa chọn Lên đơn bắt buộc chọn rõ:** Quốc gia/Loại tiền/PTTT mặc định rỗng, chọn hợp lệ mới lưu; đơn kế tiếp trở lại rỗng. 105 test đạt, Chrome 1440/390 đạt, trần 10 truy vấn giữ đạt; không migration/dependency, chưa commit/push. [Bằng chứng bổ sung](kiem-chung-len-don-gio-admin-20260911.md).
+
+
+**11.09.2026 — Ghim cột Vận đơn mới:** đã thay bù cuộn JavaScript bằng vùng
+sticky; đo 100k/300k đạt độ lệch 0 px, cache/request không tăng; hồi quy thao
+tác đạt. Render p95 tăng nhẹ; còn nghiệm thu zoom trình duyệt thật/trackpad.
+[Biên bản](kiem-chung-ghim-cot-20260911.md). Không đóng lỗi API/kết nối cũ.
+
+**11.09.2026 — Bổ sung giờ lưu và Admin tự đứng đơn (thay quyết định chọn Sale):** Ngày giờ cập nhật HH:mm trên form, thông báo lấy timestamp thực tế đã lưu; bỏ dropdown, Admin/Sale tự đứng bằng mã đăng nhập. Admin thử nghiệm chưa thuộc Sale dùng Sale/team trống, giữ hồ sơ. 117 test đạt; Chrome 1440/390 đạt; kiểm tải đọc 10/20 Admin: 4.782 request đo/0 lỗi, p95 cao nhất 76,38 ms trên fixture nhỏ. Không migration mới, chưa commit/push. [Kiểm chứng và giới hạn](kiem-chung-len-don-gio-admin-20260911.md).
+
+
+**11.09.2026 — Ngày/đơn vị/mã nhân viên khi lên đơn:** đã kiểm chứng local: Ngày Việt Nam chỉ đọc; chọn hộp/cái/chiếc/túi từng sản phẩm, snapshot trên đơn/vận đơn; mã đăng nhập cho định danh nghiệp vụ và lịch sử. Migration 0006 đã kiểm xuôi/ngược DB test và áp dụng xuôi local. Hồi quy 984 đạt/2 lỗi giao diện thống kê có sẵn; lượt focused cuối 72 đạt; Chrome 1440/390 đạt; Locust đọc 10/20 đạt 4.618 request/0 lỗi. Chống lặp hoãn, không kết luận năng lực toàn CRM. [Bằng chứng và giới hạn](kiem-chung-len-don-20260911.md). Chưa commit/push.
+
+
+**11.09.2026 — Điều hướng ERP/thư viện/Lên đơn CRM:** đã triển khai local theo ADR-023. Giữ Bảng dữ liệu ERP; sửa Biểu mẫu thiếu người tạo, gộp hai tab đúng quyền; chuyển nhập đơn và xem đơn gốc sang CRM. Kiểm thử, số đo và giới hạn tại [báo cáo bàn giao](kiem-chung-erp-hub-20260911.md). Chưa commit/push.
+
 Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quyết định.
 
 > **Quy tắc:** phát hiện gì thì ghi vào đây trước, **không sửa tài liệu ngay**.
@@ -23,6 +367,99 @@ Nơi ghi lại mọi phát hiện, ý tưởng và câu hỏi chưa được quy
 ---
 
 ## 0. Còn nợ những gì — xem ở đây trước
+
+**11.09.2026 — Admin/nhập ô Vận đơn mới:** đã sửa nguồn options bị null,
+draft dang dở và click rê nhẹ; nhập trong ô được chủ dự án duyệt, hồi quy
+Chrome/E2E đạt. Chạy bền snapshot `7449e73` đã đủ 30 phút/300k/20 người:
+22.460 request, 16 lỗi ngắt kết nối đọc; lọc p95 1,35s còn chưa đạt.
+Số đo inline ghi riêng. Suite liên quan 1.041 đạt/2 lỗi/7 skip; hai lỗi rà CSS/nhãn
+của Thống kê tái hiện cả trên snapshot trước sửa, còn cần xử lý riêng.
+Ba lỗi truy vết tài liệu AC-22/số lượng tiêu chí cũng có từ trước. Lượt ngắn
+inline 300k còn đọc/lọc p95 1,28/1,85s và 2 lỗi kết nối đọc; chưa chốt nguyên nhân.
+Chưa kiểm lại phiên người dùng/IME thật. Xem
+[báo cáo 11.09](kiem-chung-master-admin-20260911.md).
+
+**11.09.2026 — Bàn điều hành KN CRM theo ADR-022:** `/thong-ke/` đã được nâng
+cấp từ Thống kê Vận đơn riêng thành góc nhìn tổng hợp Marketing–Sale–Vận đơn và
+phân tích chuyên sâu từng bảng đang hoạt động trong phạm vi người xem. Hệ thống
+tách tiền tệ, so kỳ liền trước, đưa tối đa ba nhận định theo quy tắc và liên kết
+về đúng dữ liệu; không tự nhận là AI, tạo việc hoặc hành động. KNERP giữ Báo cáo
+tổng hợp/xuất Excel và chỉ thêm liên kết. Hồi quy tập trung 159 bài đạt; kiểm
+trình duyệt đủ 1440/1280/390px, sáng/tối, giảm chuyển động và zoom 125%. Phép đo
+20 request sau warmup đạt p95 89,07ms ở 20k Sale, 333,72ms ở 100k Vận đơn,
+893,26ms ở 300k Vận đơn và 733,64ms ở góc tổng hợp; đỉnh cấp phát Python của
+Vận đơn giữ 0,25MiB ở cả 100k và 300k. Xem
+[ADR-022](quyet-dinh/022-ban-dieu-hanh-kn-crm.md).
+
+**11.09.2026 — đã hoàn thiện dữ liệu thử Vận đơn mới trên `vandonmoi`:** nhóm
+`MAU-20260910-*` có đúng 10.000 vận đơn Canada/CAD, trong đó giữ nguyên danh tính
+500 dòng cũ và tạo 9.500 dòng còn thiếu. Mỗi dòng có địa chỉ, 1–3 chi tiết sản
+phẩm, tiền thanh toán từng sản phẩm và phân công Sale/CSKH/Vận đơn hợp lệ. Lệnh
+`nap_du_lieu_van_don_moi` chạy lại an toàn, có dry-run và không tạo Customer/Order
+ERP. Ghi chú lỗi dấu hỏi được thay bằng dữ liệu UTF-8; kiểm tra xác định đây là
+dữ liệu hỏng riêng của nhóm mẫu, không phải lỗi font toàn hệ thống. Giao diện
+`van_don_moi` có vùng ba cột nhận diện ghim màu slate và thanh công cụ dễ đọc hơn;
+không đổi giao diện bảng CRM khác.
+
+**09.09.2026 — feedback KN CRM trên `codex/sua-feedback`:** đã triển khai
+phân công Vận đơn/CSKH/Marketing theo tài khoản, phạm vi theo người được giao,
+bộ lọc nhanh/chi tiết và xuất Excel theo ngày/bộ lọc có mã nhân viên.
+Xem [ADR-020](quyet-dinh/020-phan-cong-loc-xuat-van-don-moi.md) và
+[test-log](test-log.md). H7 vẫn chưa chốt, không mở quyền đối soát.
+
+**Thứ tự thực hiện chốt 09.09.2026:** sửa feedback khách hàng trước; “Việc
+cần làm của tôi”, nhắc việc chủ động và AI để giai đoạn sau. Không mở rộng
+tác vụ feedback sang các tính năng này. Điểm nghiệp vụ chưa rõ tiếp tục
+ghi trong USER_INQUIRY.md, không tự quyết khi sửa.
+
+**09.09.2026 — mục tiêu sản phẩm do chủ dự án xác nhận:** tài liệu KNJSC là
+ghi chép phản hồi trong buổi họp khách hàng; `KNJSC_PROBLEM.txt` tổng hợp các
+vấn đề từ nguồn đó. Đây là nguồn feedback, không mặc nhiên biến mọi ý thành
+yêu cầu đã duyệt. Đích cuối là hệ thống chủ động cho từng người dùng biết
+công việc của mình còn gì, giảm việc quản lý phải liên tục vào kiểm tra;
+dài hạn tích hợp AI xuyên suốt CRM/ERP. Đã ghi vào PRODUCT.md và AGENTS.md.
+Chưa chốt quy tắc sinh việc, hạn xử lý, kênh thông báo hoặc quyền hành động
+của AI; chưa triển khai các tính năng này.
+
+**09.09.2026 — đã chốt nghiệp vụ phân công và kế toán, chưa triển khai:**
+Leader Vận đơn giao/đổi người phụ trách trên từng dòng. Nhân viên Vận đơn và
+CSKH chỉ thấy khách/đơn được giao cho chính mình. Kế toán làm trên cùng bảng
+Vận đơn mới, ban đầu cần xem toàn bộ đơn chưa thu tiền; đối chiếu riêng tình
+trạng giao hàng (đã giao/chưa giao), tình trạng thanh toán (đã trả/chưa trả)
+và bằng chứng khi ghi đã trả. Không suy ra rằng đơn đã trả phải bị ẩn khỏi kế
+toán hoặc bộ trạng thái hiện có phải thu về hai giá trị. Quyền nhập/sửa số
+tiền và bằng chứng **chưa chốt — [H7 trong USER_INQUIRY](USER_INQUIRY.md)**;
+chủ dự án sẽ hỏi người có thẩm quyền.
+Chỉ ghi nhận yêu cầu, chưa sửa code, quyền hoặc dữ liệu.
+
+**09.09.2026 — ADR-019:** chủ dự án chốt bỏ Lên đơn nhúng trong bảng Vận đơn,
+giữ lưới, thống kê và hai trang Lên đơn riêng. Đã gỡ template, context và sự kiện
+tải lại bảng sau tạo đơn; cập nhật AC-18.8 và kiểm thử. Phần bố cục ba khu của
+Q79/ADR-018 là lịch sử, được ADR-019 thay thế. Yêu cầu Vận đơn chỉ sửa giao hàng
+và thu tiền, không sửa giá/số lượng, cần xử lý ở tác vụ riêng; chưa đổi quyền
+chi tiết trong lượt này. Không sửa 20 khách mẫu hoặc database local.
+Kiểm chứng: 135 bài CRM/đơn hàng đạt; Chrome 1440px và 390px đạt. Script kiểm
+form riêng sau HTMX swap, không tải form trong bảng, bảng trống và mô phỏng
+tín hiệu lưu chi tiết để kiểm tải lại lưới/thống kê (không POST dữ liệu local).
+Đã làm rõ bước tải lại thống kê sau thay `tbody`: node cũ rời DOM nên không
+chỉ dựa vào `contains` trong `afterSwap`. Database giữ 20 dòng mới và 13 dòng cũ.
+
+**Đã xong 09.09.2026 — cập nhật đăng nhập mẫu qua launcher:** chủ dự án yêu cầu
+đổi mật khẩu chung của 12 tài khoản mẫu và để máy khác nhận khi mở KN JSC.
+Đã đồng bộ mặc định seed, tài liệu và script kiểm thử; `KN JSC.bat` gọi
+`cap_nhat_mat_khau_mau` sau khởi tạo. Lệnh chỉ chạy khi DEBUG bật, đánh dấu từng
+tài khoản trong database để không đặt lại ở lần mở sau, giữ quyền và cờ buộc đổi
+mật khẩu, không nạp dữ liệu nghiệp vụ. Sửa ghi chú cũ trong tài liệu: chạy lại
+`du_lieu_mau` thực tế có đặt lại mật khẩu tài khoản đã có. Kiểm thử liên quan:
+18 bài đạt; database local đã xác thực đủ 12 tài khoản, chạy lại cập nhật 0.
+Máy khác cần kéo được nhánh có thay đổi này; chưa kiểm chứng trên máy thứ hai.
+
+**Đã xong 09.09.2026 — Vận đơn theo CRM Tân (ADR-018):** đã bổ sung bảng
+`van_don_moi`, luồng tạo ERP/CRM, chi tiết/thanh toán từng sản phẩm và bốn cách
+thống kê. 25 bài kiểm mới và toàn bộ hồi quy đã đạt; migration xuôi/ngược đạt;
+giao diện 1440px/390px, cuộn ngang và JavaScript đều đạt. Bảng cũ local giữ nguyên
+222 dòng; bảng mới vẫn trống, không gieo đơn thử vào dữ liệu thật. Nghiệm thu người
+dùng vẫn theo một đợt, không hỏi lại những lựa chọn đã chốt ở Q78–Q80.
 
 Một chỗ duy nhất liệt kê **mọi thứ chưa xong**, cả việc của người dùng lẫn việc
 của người viết mã. Chi tiết từng mục nằm ở các phần bên dưới; phần này là bản
@@ -58,7 +495,7 @@ bằng `scripts/restore.sh` (7B). **Bảng tính vận đơn** theo tệp thật
 cột, sửa ô có danh sách chọn, Lọc trùng, tô màu Hủy/Hoàn, mỗi sản phẩm một cột
 — chạy ở dịch vụ `bangtinh` `localhost:8021/bang-tinh/`, Bảng dữ liệu chỉ xem
 (7C, ADR-009). Kiểm thử chín tầng: thêm Playwright (bàn phím, hộp lọc, cột cố
-định, 390px), 50.000 dòng dưới 2 giây, Locust 50 người tự chấm, ma trận 45 ô;
+định, 390px), 50.000 dòng dưới 2 giây, Locust 50 người tự chấm, ma trận 50 ô;
 `docs/07` là kịch bản bấm tay (7D). **Bảng tính cho mọi bảng** (7E, ADR-010):
 `/bang-tinh/<mã bảng>/` cho bảng nào trong phạm vi; viền ô như Excel, dòng
 trống cuối lưới gõ là thành bản ghi; định dạng ô (đậm, nền, cỡ, căn) lưu vào
@@ -253,6 +690,17 @@ mục 6.
 
 ## 2. Đã quyết định
 
+### Feedback KN CRM — phân công, lọc và xuất Vận đơn mới (09.09.2026)
+
+Chủ dự án duyệt triển khai đề xuất 3–6 cho `van_don_moi`. Đã hoàn tất trên
+nhánh `codex/sua-feedback`, chưa commit/push trong tác vụ này. Username là mã
+nhân viên; Leader/Manager Vận đơn và Admin phân công, không suy người từ tên.
+Quyền xem mới không tự cấp quyền sửa CSKH; bảo vệ cột phân công khỏi nhập/dán.
+Giữ thống kê và Lên đơn riêng, Excel một đơn một dòng; kiểm lại quyền file nền.
+Các test cũ được cập nhật bước phân công rõ ràng trước khi nhân viên xử lý.
+Quyết định, giới hạn và cách nghiệm thu ở ADR-020, AC-20.1 đến AC-20.7.
+Không làm H7, nhắc việc, AI, chuyển bảng cũ hoặc thay thư viện grid.
+
 | # | Nội dung | Quyết định | Ngày |
 |---|---|---|---|
 | Q1 | Đơn hàng chảy sang bảng vận đơn theo chiều nào | Một chiều cho phase 1 | (điền) |
@@ -331,6 +779,9 @@ mục 6.
 | Q75 | Ai ghi nhận văn hoá được ai — sửa FR-12.1, AC-15.1, ADR-017 mục 5 | **Chỉ cấp trên ghi nhận cấp dưới**: Leader ghi nhận nhân viên team mình, Manager ghi nhận Leader và nhân viên bộ phận, Admin ghi nhận mọi người; nhân viên chỉ xem, không có form; không đặt trần số ghi nhận mỗi ngày (anh/chị chọn cách này thay cho trần). Dịch vụ kiểm bằng `UserProfile.objects.in_scope(giver)` và cấp bậc thấp hơn | 07.09.2026 |
 | Q76 | Ai tranh hạng doanh số | **Mọi người bán**, kể cả Leader, Manager, Admin có đơn — không loại quản lý khỏi bảng | 07.09.2026 |
 | Q77 | Hoà điểm trên bảng xếp hạng — sửa Q72 | **Đồng hạng, cùng nhận sao** kiểu thi đấu 1, 1, 3: bằng tổng VND và bằng số đơn thì cùng hạng, cùng sao thưởng, người kế tiếp nhảy hạng | 07.09.2026 |
+| Q78 | Sheet Vận đơn của CRM Tân là mẫu hiện hành | Tạo **Vận đơn** mới `van_don_moi` trống; đổi `van_don` thành **Vận đơn cũ**, giữ dữ liệu, liên kết, quyền; tất cả đơn mới từ ERP/CRM vào bảng mới; sao quyền riêng đang hiệu lực một lần — ADR-018 | 08.09.2026 |
+| Q79 | Bố cục và chi tiết thanh toán | Ba khu cùng trang, giữ thao tác lưới; một đơn một dòng với chi tiết sản phẩm riêng; tiền thu nhập từng sản phẩm, không phân bổ tỷ lệ, không sửa ERP; PTTT tách hai trường, thêm Loại tiền, chưa làm Blacklist/lịch sử nhiều lần thu | 08.09.2026 |
+| Q80 | Nguồn và cách thống kê vận đơn mới | Lấy bản sao hiện tại của bảng mới, toàn bộ bộ lọc/quyền, tách loại tiền, nhóm SALE/CSKH/sản phẩm/Quốc gia, distinct đơn; nhập tệp cần chi tiết xác định, không suy đoán từ tổng — ADR-018 | 08.09.2026 |
 
 ---
 
@@ -380,16 +831,13 @@ Những thứ đáng làm nhưng chưa tới lượt.
 
 ## 5. Câu hỏi cần hỏi người dùng
 
-Những câu chưa có đáp án, cần hỏi trực tiếp người sử dụng.
+Các câu H1–H7 đã chuyển sang [USER_INQUIRY.md](USER_INQUIRY.md) ngày
+09.09.2026 theo yêu cầu chủ dự án: chia theo vấn đề, đối tượng trả lời và
+danh sách đánh số. Cập nhật câu hỏi/câu trả lời tại file đó để tránh lệch
+hai bản. Backlog tiếp tục giữ tiến độ, các vấn đề N/V và lịch sử quyết định.
 
-| # | Câu hỏi | Hỏi ai |
-|---|---|---|
-| H1 | Trong tệp Excel hiện tại, anh chị có gõ công thức không? Gõ những gì? | Vận đơn, Marketing |
-| H2 | Anh chị có hay kéo góc ô để điền cả cột không? | Vận đơn, Marketing |
-| H3 | Anh chị có dán dữ liệu từ tệp Excel khác vào không? | Vận đơn, Marketing |
-| H4 | Mỗi ngày mất bao lâu cho việc nhập liệu và tổng hợp thủ công? | Cả ba bộ phận |
-| H5 | Lần gần nhất cần tìm một thông tin mà tìm không ra là khi nào? | Cả ba bộ phận |
-| H6 | Một bộ phận hiện có mấy team, ai phân team? | Quản lý |
+Tra từng câu: H1 công thức; H2 kéo điền; H3 dán; H4 thời gian nhập/tổng hợp;
+H5 tìm kiếm; H6 cơ cấu team; H7 quyền nhập tiền/bằng chứng. H7 vẫn chưa chốt.
 
 ---
 
@@ -503,3 +951,80 @@ trận kiểm chéo chín vai trò, các tiêu chí thủ công `AC-8.1`, `AC-10
 | 07.09.2026 | Anh/chị yêu cầu **kiểm thử toàn diện KN CRM** ở cỡ hàng triệu ô, 100 nghìn khách, rồi mô phỏng 100 người cùng lúc "di qua di lại" và "lập công thức", không bấm giao diện. Chốt: công thức = cột tính sẵn; chạy máy ảo trước, đóng gói cho máy anh/chị; ngưỡng "như Excel trên máy thường" (Q66). Nhánh `claude/kiem-tai-kn-crm`: `seed_perf` 100.000 dòng 24 tháng đủ 30 cột + bảng `perf_sale` 20.000 dòng có Doanh thu = Đơn giá × Số lượng (45 giây, 209 MB); lệnh mới `do_hieu_nang` đo 25 đường kèm EXPLAIN; `tests/perf/locustfile_kn_crm.py` 100 người bốn vai tự chấm. **Trước**: một người thì lưới 638 ms mà DB chỉ 58 ms (95% là 3.900 `{% include %}` + 7.800 `{% url %}`), `?trung=1` 1,1 s, dán 500 ô 1,7 s / 1.013 lệnh, tính lại cột 100.000 dòng 153 s trong request; 100 người thì 13 RPS, p95 mọi nhóm ~11 s. **Sửa** (ADR-016, K27): ô dựng bằng `grid_service.cell_html`; cột Trùng đếm theo trang + chỉ mục `(table, val_phone)`; `moi-nhat/` chỉ Max(updated_at) trên `all_objects` + chỉ mục `(table, updated_at)`; `DataRecord.bulk_save` bằng `UPDATE … FROM (VALUES …)` vì `bulk_update` của Django ghép CASE WHEN mất 1,2 s/1.000 dòng; tính lại cột chạy nền `BackgroundJob` "Tính lại cột" theo lô có tiến độ trên lưới; compose có `KNJSC_LENH_WEB` để chạy gunicorn. **Sau** một người: lưới 154 ms, trang 500 280 ms, trùng 478 ms, dán 500 ô 207 ms, tính lại 20.000 dòng 4,2 s, 100.000 dòng 19,6 s (2 lô song song ở worker). AC-10.8 (thủ công), AC-11.35, AC-11.36; `scripts/kiem-tai-kn-crm.bat/.sh`; bộ đếm docs/06 110 — 98 tự động, 12 thủ công; 97 trên 98. 100 người 5 phút "sau" (gunicorn 3 tiến trình × 4 luồng, `--reset-stats`): 22,8 yêu cầu/giây, p95 đọc 853 ms, ghi 371 ms, hỏi 143 ms, 0 lỗi, tính lại 100.000 dòng 24,4–24,8 s, p95 người khác lúc đó 900 ms — **ĐẠT** (trước: ~11 s mọi nhóm, 14 lỗi). Trên đường đi còn bắt được một deadlock dán ô ↔ worker (khoá cùng chiều pk + thử lại), mốc `moi-nhat/` phải theo cả bảng mới dùng được chỉ mục, và `bulk_update` của Django chậm gấp 14 lần `UPDATE … FROM VALUES` |
 | 07.09.2026 | Anh/chị tự thử KN CRM và gửi video: gõ "ssssd" vào cột Số Mess của dòng trống Báo cáo Marketing, rời ô, thanh trên báo "Đã lưu" mà không có gì xảy ra; hỏi vì sao cả `main` lẫn nhánh mới đều bị. Tái hiện trên máy ảo: máy chủ trả 400 đúng ("không đúng kiểu Số nguyên"), nhưng JS coi 400 là thành công và lời báo bị CSS giấu — lỗi có từ 7F, PR #21 chỉ sửa tốc độ nên không gây và không sửa (K28). Anh/chị chất vấn vì sao không đo và kiểm đường sai từ đầu, và khẳng định cách hiện tại chưa tối ưu; tôi nêu ba hướng tối ưu hơn (lưới JSON + JS vẽ ô, SSE, cột tính trong DB). Anh/chị chốt: **ghi backlog, giờ chưa phải lúc tối ưu** — Q67, S13–S15; việc trước mắt là K28 |
 | 08.09.2026 | Theo yêu cầu dọn toàn bộ nhánh: hợp nhất bốn đầu việc còn riêng vào `main` — backlog/test-log, kiểm tải KN CRM, MVP Nội bộ và hợp đồng thiết kế chuẩn ngành. Giải trùng mã do hai nhánh phát triển song song: giữ kiểm tải ở ADR-016, Q66–Q67, K27–K28, S13–S15; chuyển MVP Nội bộ sang ADR-017, Q68–Q77, K30–K31, S16–S21. Ba commit chỉ còn ở local `project-status-progress-7ajcqg` không áp lại vì chức năng đã có bản mới đầy đủ hơn trên `main` (launcher, đặt lại mật khẩu mẫu, `.gitattributes`). Sau khi kiểm tra, xóa các nhánh local và remote cũ, chỉ giữ `main` |
+
+
+## Thiết lập công cụ Codex — 09.09.2026
+
+Đã bổ sung [bộ 5 skill gọn](bo-skill-knjsc.md) ở `.agents/skills` theo kế hoạch được duyệt; nguồn cố định theo commit, có giấy phép và bản biên tập riêng cho KNJSC. Kiểm tra tĩnh 5/5 đạt. Chờ xác nhận Codex khám phá ở phiên tiếp theo và đánh giá tự chọn qua 5 tác vụ thực tế; chưa kết luận tiết kiệm token hoặc tăng hiệu năng ứng dụng. Các skill để dành chưa cài.
+
+09.09.2026: chuẩn hóa [đồng bộ AI nhiều máy](dong-bo-ai-nhieu-may.md), một nguồn nội dung mỗi skill và 6 cầu nối Codex/Claude; thêm script kiểm tra chỉ đọc, kiểm CRLF và phát hiện sai lệch đạt. Codex đã nhận 5 skill cốt lõi; các cầu nối mới chờ kiểm khám phá. Chưa commit/push, chưa đồng bộ qua GitHub.
+
+09.09.2026: theo yêu cầu gom hoàn chỉnh, chuyển 10 bản nội dung về `ai/skills`; Codex/Claude mỗi bên chỉ còn 10 cầu nối cùng danh mục. `.impeccable` giữ dữ liệu thiết kế. Cập nhật đường dẫn launcher, nguồn và script kiểm hash/danh mục; kiểm CRLF, phát hiện file lệch/file dư đạt. Chưa commit/push; chưa kiểm client trên máy khác.
+
+09.09.2026: thay thế cấu trúc đồng bộ phía trên theo yêu cầu mới: chỉ `.agents/skills` giữ 10 skill, bỏ `ai`, `.claude/skills` và `.impeccable` ở gốc. Hồ sơ thiết kế giữ tại `.agents/design-state`; Impeccable dùng hướng dẫn thủ công, không tự chạy engine tạo lại thư mục gốc. Script chỉ kiểm tra, không tạo cầu nối. Chưa commit/push; chưa kiểm engine ở vị trí mới hoặc tự chọn skill qua 5 tác vụ.
+
+## Đề xuất cho giai đoạn sau — 09.09.2026
+
+**Trạng thái: đề xuất, chưa duyệt triển khai. Ưu tiên hiện tại vẫn là sửa feedback khách hàng.**
+
+**Câu hỏi của chủ dự án (tóm tắt):** Từ feedback trong KNJSC_PROBLEM, KN CRM nên làm tính năng gì, với mục tiêu dài hạn là hệ thống chủ động cho người dùng biết việc còn phải làm và sau này tích hợp AI xuyên suốt CRM/ERP?
+
+**Câu trả lời của trợ lý (tóm tắt):** Dựa trên phân công và trạng thái đơn để phát triển “Việc cần làm của tôi”: tập hợp việc theo người phụ trách, chỉ rõ vì sao cần xử lý, mở đúng đơn và xác định khi nào hoàn tất. Sau đó xem xét danh sách kế toán cần đối chiếu và thông báo có hành động đi kèm; tránh tạo thêm danh sách nhập tay trùng bảng vận đơn. AI về sau có thể tóm tắt việc tồn, giải thích và đề xuất bước tiếp theo, dựa trên dữ liệu, quyền và quy tắc nghiệp vụ đã chốt.
+
+**Phản hồi của chủ dự án:** Đồng ý định hướng, nhưng để giai đoạn sau; bây giờ tập trung sửa feedback của khách hàng trước. Phân công, phân quyền và các lỗi nghiệp vụ được xử lý theo feedback riêng, không gộp thành dự án nhắc việc/AI.
+
+**Còn cần xác nhận khi xem xét đề xuất:** Điều kiện sinh/hoàn thành việc, thời hạn, mức ưu tiên, kênh và tần suất thông báo, quyền hành động của AI. Quyền nhập/sửa tiền và bằng chứng vẫn chờ H7 trong [USER_INQUIRY.md](USER_INQUIRY.md).
+
+
+## Xác nhận 09.09.2026 — báo cáo và đánh giá nhân sự
+
+- Phạm vi xem báo cáo: Staff xem bản thân; Leader xem team mình; Manager xem
+  toàn bộ phòng ban mình; CEO/Admin xem toàn công ty. Đây là phạm vi báo cáo,
+  không tự áp lại cho các nội dung nội bộ dùng chung toàn công ty.
+- Tên hiển thị “Văn hoá” đổi thành **“Đánh giá nhân sự”**. Giữ module `culture`,
+  URL và dữ liệu hiện tại; đổi tên không đồng nghĩa đã có cơ chế chấm điểm mới.
+- Báo cáo muộn ảnh hưởng trực tiếp tới Đánh giá nhân sự. Chưa chốt hạn nộp,
+  ngoại lệ, mức trừ và cách tác động tới sao/điểm hiện có; chưa triển khai tự trừ.
+
+
+### 09.09.2026 — BC MKT trên KNERP, triển khai local
+
+Đã hoàn thiện các chỉ tiêu xác định theo Excel, lịch sử lọc biểu mẫu/phòng ban,
+khối Marketing trên Tổng quan và đổi tên Đánh giá nhân sự. Chi tiết và giới hạn
+ở [BC MKT ERP](bc-mkt-erp.md). `KNJSC_PROBLEM.txt` đánh dấu `-> đã làm` riêng
+phần hoàn thành; không đánh dấu cả nhóm 05/06 hoặc các mục hoãn.
+
+Kiểm chứng: 13 test mới đạt (công thức, tổng, zero/missing, 4 cấp quyền trên
+lịch sử/thống kê/Tổng quan/xuất, lọc và lỗi khối). Hồi quy reports, culture,
+core/tests/test_giao_dien.py, core/tests/test_mau_dung_chung.py và crm/tests đạt.
+Phát hiện rồi sửa vượt trần truy vấn do bộ lọc; test lịch sử/tổng hợp <=10 đạt.
+Sau tách helper lịch sử và sửa comment lộ trên UI, chạy lại reports đạt.
+Trình duyệt 1440px/390px đạt, không có console error được ghi nhận.
+Chưa commit/push; chưa áp quy tắc báo cáo muộn hoặc mở mục thị trường.
+
+### 10.09.2026 — Chín hạng mục lưới mới, thay quyết định lưu thủ công
+
+Đã duyệt autosave, chọn hàng/màu xanh, hai chế độ, fs/c/bg, lịch sử và
+đối chiếu conflict, Admin chọn Sale, thứ tự tạo tăng dần và số hàng từ 1.
+Đã triển khai và kiểm chức năng trên database test: suite rộng 1.049 pass,
+6 fixture skip được tách kiểm; 90 test tác động và E2E cuối đạt. Hiệu năng
+lọc 300k còn chưa đạt; chạy bền dừng theo yêu cầu chủ dự án, để phiên sau
+chạy lại đủ 30 phút. Không đổi H7/lưới cũ.
+Xem [quyết định ADR-021](quyet-dinh/021-luoi-master-va-thong-ke-crm.md) và
+[báo cáo chín hạng mục](kiem-chung-master-nine.md).
+
+Phát hiện từ ma trận cuối 10.09: lọc Quốc gia trên 300.000 dòng còn p95
+1.135ms (10 người)/1.340ms (20 người), vượt mục tiêu 1 giây; đọc khối và
+lưu ô đạt mục tiêu ở bốn lượt ngắn. Giữ việc này ở phần hiệu năng chưa
+nghiệm thu; không đổi nghiệp vụ lọc hoặc chia bảng để né phép đo.
+Các lỗi kết nối lẻ vẫn được tính trong báo cáo, chưa khẳng định nguyên nhân.
+
+### 11.09.2026 — Bàn điều hành Marketing–Sale–Vận đơn
+
+Chủ dự án duyệt nâng trực tiếp `/thong-ke/` thành Bàn điều hành. Đã tách bộ điều
+phối, bốn profile, insight và dữ liệu biểu đồ; mọi truy vấn bắt đầu từ manager
+scope hiện có. Không thêm dependency, realtime, cache, worker hay bảng Sale.
+Giao diện dùng SVG 2.5D tiết chế, bảng số liệu thay thế và tối đa ba nhận định.
+Thêm cấu hình owner chỉ đổi cách trình bày cho Admin, không nâng quyền. KN ERP và
+Trang chủ CRM chỉ thêm liên kết. Tiêu chí mới là AC-22.1–22.9; trạng thái kiểm
+thực tế ghi tại test-log, không lấy nhãn hoàn thành thay cho số đo p95.

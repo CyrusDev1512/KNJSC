@@ -8,5 +8,5 @@ from .services import dashboard_service
 @login_required
 def tong_quan(request):
     request.nav_current = "tong_quan"
-    boi_canh = dashboard_service.tong_quan(request.user)
+    boi_canh = dashboard_service.tong_quan(request.user, params=request.GET)
     return render(request, "dashboard/tong_quan.html", boi_canh)

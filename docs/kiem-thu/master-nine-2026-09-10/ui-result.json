@@ -1,0 +1,21 @@
+{
+  "checks": [
+    "Thu quyền một dòng trong lượt dán: rollback cả lượt, gỡ dòng mất quyền, giữ nháp còn quyền, chỉ gửi lại khi bấm Thử lại",
+    "E2E Admin → cuối bảng → Leader phân công → Staff autosave → Sale xem lịch sử; thu quyền gỡ cả nháp",
+    "Số 1 và chọn hàng xanh",
+    "Bấm đúp 120ms, nội dung nhiều dòng, autosave",
+    "Chế độ Chỉnh sửa và Tab mở ô tiếp theo",
+    "Định dạng, Undo/Redo qua server",
+    "Sửa tiếp trong khi phản hồi bị trễ",
+    "Mất phản hồi sau commit → cùng ID/nội dung → replay không ghi lần hai",
+    "409, đối chiếu và gửi lại có CAS",
+    "Dùng giá trị hiện tại cập nhật ô ngay, không đợi polling",
+    "Lịch sử có trước/sau và nút đóng",
+    "Kéo chiều cao hàng đồng bộ",
+    "Ô hiện hành không đè cột cố định khi cuộn ngang",
+    "Desktop/laptop/mobile/zoom",
+    "Ctrl+A chọn cả kết quả, copy/Delete vượt 2.000 ô bị chặn",
+    "Hồi quy hàng/cột, cache, copy/paste số 0 đầu, phím, cảm ứng, localStorage"
+  ],
+  "ok": true
+}

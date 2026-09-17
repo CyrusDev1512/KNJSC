@@ -1,0 +1,171 @@
+{
+  "ok": true,
+  "errors": [],
+  "requests": [
+    "http://127.0.0.1:8858/chung-tu-thanh-toan/anh/1/",
+    "http://127.0.0.1:8858/chung-tu-thanh-toan/anh/10001/",
+    "http://127.0.0.1:8858/chung-tu-thanh-toan/anh/10002/"
+  ],
+  "screens": [
+    "library-1440.png",
+    "library-1280.png",
+    "library-390.png"
+  ],
+  "metrics": {
+    "serverBlock": {
+      "before_metadata": [
+        203.73,
+        85.48,
+        30.74,
+        26.71,
+        27.83,
+        28.72,
+        27.29,
+        28.34,
+        27.9,
+        27.56,
+        26.07,
+        28.03,
+        27.25,
+        27.35,
+        26.4,
+        26.57,
+        27.11,
+        26.53,
+        27.53,
+        76.87,
+        27.46,
+        30.92,
+        28.19,
+        30.91,
+        28.04,
+        27.56,
+        27.49,
+        26.82,
+        28.44,
+        27.93
+      ],
+      "after_metadata": [
+        32.28,
+        30.53,
+        30.35,
+        30.56,
+        31.07,
+        82.45,
+        33.99,
+        33.24,
+        31.2,
+        32.21,
+        33.02,
+        32.13,
+        33.57,
+        38.35,
+        33.45,
+        32.77,
+        31.3,
+        30.51,
+        30.39,
+        30.95,
+        30.67,
+        78.93,
+        31.39,
+        30.27,
+        30.58,
+        30.45,
+        30.35,
+        32.13,
+        34.77,
+        32.47
+      ]
+    },
+    "blockMs": [
+      83,
+      47,
+      40,
+      40,
+      38,
+      37,
+      38,
+      39,
+      40,
+      94,
+      39,
+      46
+    ],
+    "dom": [
+      {
+        "cache": 3,
+        "cells": 690,
+        "total": 10000,
+        "generation": 0
+      },
+      {
+        "cache": 5,
+        "cells": 690,
+        "total": 10000,
+        "generation": 0
+      },
+      {
+        "cache": 7,
+        "cells": 690,
+        "total": 10000,
+        "generation": 0
+      },
+      {
+        "cache": 7,
+        "cells": 540,
+        "total": 10000,
+        "generation": 0
+      },
+      {
+        "cache": 9,
+        "cells": 690,
+        "total": 10000,
+        "generation": 0
+      },
+      {
+        "cache": 10,
+        "cells": 690,
+        "total": 10000,
+        "generation": 0
+      },
+      {
+        "cache": 10,
+        "cells": 690,
+        "total": 10000,
+        "generation": 0
+      },
+      {
+        "cache": 10,
+        "cells": 690,
+        "total": 10000,
+        "generation": 0
+      },
+      {
+        "cache": 10,
+        "cells": 690,
+        "total": 10000,
+        "generation": 0
+      },
+      {
+        "cache": 10,
+        "cells": 690,
+        "total": 10000,
+        "generation": 0
+      },
+      {
+        "cache": 10,
+        "cells": 690,
+        "total": 10000,
+        "generation": 0
+      },
+      {
+        "cache": 10,
+        "cells": 540,
+        "total": 10000,
+        "generation": 0
+      }
+    ],
+    "billOpenMs": 132
+  }
+}

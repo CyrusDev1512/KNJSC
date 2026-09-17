@@ -464,10 +464,26 @@ footer code {
 </style>
 
 <div class="wrap">
+  <p>11.09.2026 · Sửa Admin và nhập trong ô Vận đơn mới: Chrome/E2E đạt;
+    chạy bền snapshot 7449e73 đã đủ 30 phút, còn 16 lỗi đọc/22.460 request,
+    lọc Quốc gia p95 1,35s. Suite rộng còn hai lỗi giao diện
+    Thống kê có từ trước. <a href="kiem-chung-master-admin-20260911.md">Kết quả hiện tại</a>.</p>
+  <p id="master-nine-status">10.09.2026 · Vận đơn mới: chín hạng mục đã triển khai,
+    kiểm chức năng và E2E đạt; lọc 300k chưa đạt mục tiêu hiệu năng; chạy bền hoãn sang phiên sau theo yêu cầu.
+    <a href="kiem-chung-master-nine.md">Kết quả và giới hạn kiểm thử</a>.</p>
+  <p>11.09.2026 · Nhánh <span class="mono">vandonmoi</span>: đã hoàn thiện 10.000
+    vận đơn mẫu Canada/CAD có chi tiết sản phẩm, thanh toán và phân công; sửa ghi chú
+    hỏng riêng của nhóm mẫu và làm rõ vùng ba cột nhận diện ghim. Không đổi dữ liệu ERP
+    hoặc các bảng CRM khác.</p>
+
 
   <header class="masthead">
     <div class="eyebrow">Phiếu tiến độ · Phase 1</div>
     <h1>Tiến độ Kim Ngân JSC</h1>
+    <p>14–15.09: ERP đã có dock thu gọn và chế độ Tập trung cho bảng dữ liệu; <span class="mono">van_don</span> đổi nhãn/sắp cột nhưng giữ dữ liệu, <span class="mono">van_don_moi</span> tiếp tục nhận đơn mới; Bill là text/URL an toàn và Chứng từ tạm tắt. Full suite 2.332 đạt, 15 lỗi nền, không có lỗi mới. Đã push nhánh và triển khai VPS sau backup bằng image <span class="mono">knjsc-app:97741e4</span>; HTTPS/check/log đạt, không merge main. <a href="kiem-chung-erp-vandon-bill-20260914.md">Biên bản mới</a></p>
+    <p>14.09: CRM-UPDATE và Solar UI đã hợp nhất trên nhánh <span class="mono">codex/crm-update-solar-ui</span>; Chrome đạt, full suite 2.329 đạt và còn 15 lỗi nền đã đối chiếu. Chưa merge main hoặc triển khai. <a href="kiem-chung-crm-update-solar-ui-20260914.md">Biên bản hợp nhất</a></p>
+    <p>14.09: Solarpunk Office — bản xem thử riêng 18020/18021, chưa tích hợp bản chạy. <a href="kiem-chung-solarpunk-20260914.md">Hồ sơ kiểm chứng</a></p>
+    <p>12.09: Chứng từ thanh toán và trạng thái sửa trực tiếp đã có bản kiểm local trên nhánh codex/chung-tu-thanh-toan; đã kích hoạt app 8021 ngày 12.09 sau khi áp dụng migration. <a href="kiem-chung-chung-tu-thanh-toan-20260912.md">Bằng chứng và giới hạn</a>.</p>
     <div class="brass-rule"></div>
     <p class="sub">
       Dự án đi được bao nhiêu phần trăm, và hạng mục nào trong
@@ -587,6 +603,9 @@ footer code {
   </section>
 
   <footer>
+    <p>09.09.2026: <a href="bc-mkt-erp.md">BC MKT trên KNERP</a> — công thức, lọc lịch sử, khối Tổng quan và xuất Excel đã kiểm chứng local; đánh dấu từng phần trong KNJSC_PROBLEM. Chưa làm thị trường, báo cáo muộn/trừ điểm hoặc thống kê bộ phận khác.</p>
+    <p>09.09.2026: đổi tên hiển thị Văn hoá thành Đánh giá nhân sự; báo cáo muộn ảnh hưởng trực tiếp tới tính năng này, quy tắc chấm/trừ điểm chờ H8–H9.</p>
+    <p>09.09.2026 · <a href="dong-bo-ai-nhieu-may.md">Bộ skill dự án</a>: 10 skill duy nhất tại <code>.agents/skills</code>, đã bỏ cầu nối và thư mục cũ; hồ sơ thiết kế ở <code>.agents/design-state</code>. Kiểm tra local đạt; chờ khám phá cấu trúc mới và tự chọn qua tác vụ thực tế. Chưa commit/push hoặc gửi sang máy khác.</p>
     Nguồn: <code>kien-truc.md</code> · <code>02-yeu-cau-san-pham.md</code> ·
     <code>backlog.md</code> · <code>CRM_ Tân.xlsx</code>.
     Cập nhật bằng cách sửa khối <code>DATA</code> ở đầu tệp
@@ -708,7 +727,8 @@ const GIAI_DOAN = [
       { t: "Lưu mã liên kết giữa đơn và bản ghi", tt: "xong", note: "FR-6.4" },
       { t: "Phát hiện khách mua lại theo số điện thoại", tt: "xong", note: "FR-6.7" },
       { t: "Trạng thái vận chuyển và thanh toán, Vận đơn sửa trên bảng", tt: "xong", note: "Q26" },
-      { t: "Bảng dùng chung — cả bộ phận Vận đơn thấy mọi dòng", tt: "xong" },
+      { t: "Bảng cũ dùng chung; Vận đơn mới theo người được giao", tt: "xong", note: "ADR-020 · Leader/Manager Vận đơn và Admin phân công, CSKH chỉ thêm quyền xem" },
+      { t: "Feedback KN CRM: lọc nhanh vận chuyển/thanh toán; sản phẩm, thị trường, Marketing; Excel theo ngày/bộ lọc có mã nhân viên", tt: "xong", note: "ADR-020 · AC-20.1–20.7; file nền kiểm lại quyền. H7 chưa làm" },
       { t: "BLACK LIST — cờ trên khách hàng, cảnh báo không chặn", tt: "xong", note: "Q25" },
       { t: "Kiểm thử: khoá đơn, ghi sang bảng nguyên vẹn, khách mua lại", tt: "xong", note: "30 bài" }
     ]
@@ -716,6 +736,9 @@ const GIAI_DOAN = [
   {
     id: 6, ten: "Báo cáo tổng hợp", mod: "reports", trongSo: 9,
     viec: [
+      { t: "16.09: chọn ô và nhập khi đang lưu", tt: "xong", note: "LOCAL: fixture 10k, p95 33–34 ms, giảm DOM tạo thừa 51.891 → 466; 48 test server và Node đạt. Chưa VPS, chưa đo mọi thiết bị. docs/kiem-chung-nhap-khi-luu-20260916.md" },
+      { t: "16.09: ngày hệ thống, sửa báo cáo theo cấp và công thức Marketing", tt: "xong", note: "LOCAL: 256 test nhóm cuối đạt; UI sửa/lịch sử/ngày/mobile đã kiểm. Có một lỗi nhập lại mã trùng trên baseline. Chưa push/VPS; ADR-032 và docs/kiem-chung-bao-cao-erp-20260916.md." },
+      { t: "Feedback ERP 16.09: lọc nhân sự/team, kẻ bảng, báo cáo ngày Vận đơn và mẫu lịch sử", tt: "dang", note: "Local đã có 36 mẫu; 111 test reports + 2 test thêm sản phẩm đạt, UI 1440/390 đã kiểm. Còn tái hiện lỗi 404 trên domain thật; chưa push/VPS. docs/kiem-chung-bao-cao-erp-20260916.md" },
       { t: "aggregations.py — phép tính dựa trên nhãn ý nghĩa", tt: "xong" },
       { t: "Thống kê tổng hợp theo ngày", tt: "xong" },
       { t: "Thống kê theo nhân viên", tt: "xong" },
@@ -724,6 +747,7 @@ const GIAI_DOAN = [
       { t: "Lọc theo khoảng thời gian và theo sản phẩm", tt: "xong", note: "FR-5.2 · FR-5.3" },
       { t: "Dòng tổng cộng, cột tính sẵn tính lại trên tổng", tt: "xong", note: "FR-5.4" },
       { t: "Xuất Excel từ màn hình báo cáo, ghi nhật ký P5", tt: "xong", note: "FR-5.6" },
+      { t: "Bàn điều hành KN CRM: tổng hợp Marketing–Sale–Vận đơn, phân tích từng bảng và insight theo quy tắc", tt: "xong", note: "ADR-022 · AC-22; 159 bài hồi quy đạt, p95 300k Vận đơn 893ms" },
       { t: "Kiểm thử phạm vi quyền trên báo cáo tổng hợp", tt: "xong", note: "AC-5.2 tới AC-5.5" }
     ]
   },
@@ -732,6 +756,8 @@ const GIAI_DOAN = [
     viec: [
       { t: "core/excel.py — đọc và ghi bằng openpyxl", tt: "xong" },
       { t: "Nhập tệp Excel, báo lỗi theo từng dòng", tt: "xong" },
+      { t: "Tải mẫu Excel theo từng bảng vận đơn; bỏ nhãn Sửa trên thẻ", tt: "xong", note: "15.09 · Local đã sửa preview, mẫu thừa cột, báo lỗi sớm và chặn nhập trùng; 30 test và UI ba mẫu/10.000 dòng đạt. Code đã lên GitHub qua c41d8f0/f971683; kiểm local 10.000 dòng không thay thế kiểm VPS. Lỗi nhập 3.333 dòng: xem docs/daily-tasks.md; chưa kiểm Microsoft Excel. docs/kiem-chung-mau-nhap-van-don-20260915.md" },
+      { t: "Tạo Báo cáo Marketing và Sale trên VPS, mỗi bảng 50 dòng mẫu", tt: "xong", note: "15.09 · Mỗi bảng 5 team/10 nhân sự Mẫu không đăng nhập; DB và hai lưới đã kiểm. Không restart hoặc đổi vận đơn. docs/kiem-chung-bao-cao-mau-vps-20260915.md" },
       { t: "Xuất tệp Excel", tt: "xong" },
       { t: "Tác vụ nền cho tệp lớn, có báo tiến độ", tt: "xong" },
       { t: "Sao lưu tự động hằng đêm, giữ 30 bản", tt: "xong" },
@@ -761,7 +787,25 @@ const GIAI_DOAN = [
       { t: "Kiểm tải KN CRM 100 nghìn khách: seed_perf 100.000 dòng + bảng Sale có cột tính sẵn, do_hieu_nang đo 25 đường kèm EXPLAIN, Locust 100 người bốn vai tự chấm, script kiem-tai-kn-crm", tt: "xong", note: "7K · ADR-016 · AC-10.8" },
       { t: "Sửa theo số đo: ô lưới dựng bằng Python (638 → 154 ms), cột Trùng đếm theo trang, moi-nhat không COUNT, bulk_save bằng VALUES, hai chỉ mục mới", tt: "xong", note: "7K · AC-11.36" },
       { t: "Tính lại cột tính sẵn trên bảng lớn chạy nền theo lô, lưới báo tiến độ và nạp lại khi xong (100.000 dòng: 153 s → 19,6 s ở worker)", tt: "xong", note: "7K · ADR-016 · AC-11.35" },
-      { t: "Chạy kiểm tải trên máy anh/chị và máy chủ thật, ghi số vào docs/06", tt: "chua", note: "7K · K27" }
+      { t: "Chạy kiểm tải trên máy anh/chị và máy chủ thật, ghi số vào docs/06", tt: "chua", note: "7K · K27" },
+      { t: "Vận đơn mới theo CRM Tân: hai bảng, lưới và thống kê; Lên đơn ở trang riêng (ADR-019), ERP/CRM cùng luồng", tt: "xong", note: "7L · ADR-018 · 25 bài mới, hồi quy, migration hai chiều và giao diện desktop/mobile đều đạt" },
+      { t: "Lên đơn: ngày giờ Việt Nam, đơn vị và tự đứng đơn bằng mã nhân viên", tt: "xong", note: "11.09.2026 · HH:mm, Admin tự đứng đơn; bổ sung ba lựa chọn bắt buộc rỗng ban đầu: 105 test, Chrome 1440/390 đạt; lượt trước kiểm tải đọc 10/20 đạt. Xem kiem-chung-len-don-gio-admin-20260911.md; chống lặp hoãn, lỗi rà statistics cũ vẫn mở" },
+      { t: "Sắp xếp ERP, thư viện hai tab và lên đơn duy nhất tại CRM", tt: "xong", note: "ADR-023 · 11.09.2026 · functional, Chrome 1440/390, kiểm tải đọc 10/20; xem kiem-chung-erp-hub-20260911.md" },
+      { t: "Hoàn thiện 10.000 vận đơn mẫu Canada/CAD và làm rõ ba cột nhận diện ghim", tt: "xong", note: "7L.1 · vandonmoi · 11.09.2026" },
+      { t: "Sửa rung cột ghim bằng sticky trong lưới Vận đơn mới", tt: "dang", note: "11.09.2026 · đã triển khai, hồi quy 100k/300k lệch 0px; UI đạt. Render tăng nhẹ; còn zoom trình duyệt thật/trackpad. Xem kiem-chung-ghim-cot-20260911.md" },
+      { t: "Vận đơn DB — bảng riêng sắp lại cột", tt: "xong", note: "14.09.2026 · Cấu hình database local: 26 cột hiện có, bắt đầu trống, không có Đơn vị phụ, chưa nối Lên đơn. Đã kiểm cấu hình lưu, tiêu đề HTML và thứ tự xuất; không sửa code ứng dụng/bảng nguồn. Xem cau-hinh-van-don-db-20260914.md" },
+      { t: "Chế độ xem Vận đơn: theo phân công / toàn bảng", tt: "xong", note: "12.09.2026 · Local worktree fix; quyền sửa giữ phân công, Manager/Admin đổi được. Focused 46 passed, Chrome 1440/390 và migration xuôi/ngược đạt; còn 2 lỗi markup nền. Chưa tích hợp checkout chính, chưa kiểm tải lớn. Xem kiem-chung-che-do-xem-van-don-20260912.md" },
+      { t: "Lên đơn đồng thời: cấp mã duy nhất, giữ giao dịch đơn–Vận đơn", tt: "xong", note: "11.09.2026 · fix/trung-ma-don-dong-thoi từ a81decd; TDD và Chrome 1440/390 đạt. Hỗn hợp 30 Sale + 10 Vận đơn: 301,52s đo, 361 đơn đúng, p95 tạo 170,58ms/lưu ô 108,69ms; burst 30/30 không timeout. Chưa commit/push/merge; 2 lỗi markup nền, 9 skip và hiệu năng lưới giữ riêng. Xem kiem-chung-trung-ma-don-20260911.md" },
+      { t: "16.09: tối ưu cuộn và kiểm cờ", tt: "xong", note: "VPS 0907cdd: cuộn/tải trước/chọn ô đã phát hành; Chrome 1440/390, hash JS và runtime đạt. 137 hồi quy local; kiểm bền dừng theo yêu cầu sau 14,71 phút, chưa đủ 60 phút. Bảy cờ tắt; chưa nghiệm thu toàn CRM/VPS. Xem kiem-chung-co-toi-uu-20260916.md." },
+      { t: "CRM-Optimization: phiên bản, cache quyền, sync, render và tác vụ nền", tt: "dang", note: "11.09.2026 · snapshot riêng; suite 1092 đạt/4 lỗi nền/9 skip, E2E + Chrome và 8 lượt trước/sau đã kiểm; bền 21.828 mẫu, 0 lỗi ngoài dự kiến/oracle; CAS tách riêng. Render/cold thống kê/backlog xuất/RSS còn nợ; cờ tắt, chưa VPS. Bổ sung 16.09: cuộn và nhảy xa kiểm local; gom nhảy 48→1 request/12 vị trí với chi phí chờ 80 ms, chưa VPS, xem kiem-chung-cuon-luoi-20260916.md; không đóng toàn bộ tối ưu." },
+      { t: "Tích hợp local: ERP, Thống kê và chế độ xem Vận đơn", tt: "xong", note: "14.09.2026 · functional 2327 đạt; 17 lỗi đối chứng có sẵn, 31 skip/2 xfail. Chrome 1440/390 đạt. Solarpunk riêng; chưa kích hoạt runtime. Xem kiem-chung-tich-hop-local-20260914.md." },
+      { t: "Chuẩn bị Vận đơn DB có placeholder", tt: "xong", note: "VPS cf51ad2: chọn được DB, giữ 6.667 dòng; 87 test và Chrome local/VPS 1440/390 đạt. Xem kiem-chung-chuan-bi-bang-nhan-don-20260915.md." },
+      { t: "Tiền theo quốc gia; Zelle/PayPal", tt: "xong", note: "16.09.2026 · Đã push 5ce53f3 và phát hành VPS; gồm bỏ Đơn vị phụ, sửa cột ghim. 535 đạt/1 lỗi nền/17 skip; Chrome test và VPS 1440/390 đạt. Xem phat-hanh-tien-te-20260916.md." },
+      { t: "Bỏ Đơn vị phụ khỏi Lên đơn và đơn gốc", tt: "xong", note: "16.09.2026 · Đã push/VPS 5ce53f3; giữ dữ liệu lịch sử và đơn vị sản phẩm. Chrome test/VPS 1440/390 đạt. Xem phat-hanh-tien-te-20260916.md." },
+      { t: "Sửa chữ chìm ở ba cột ghim trên VPS", tt: "xong", note: "16.09.2026 · Đã push/VPS image 5ce53f3-market-20260916; Chrome sáng/tối × 1440/390 đạt. Xem phat-hanh-tien-te-20260916.md." },
+      { t: "Bảng nhận đơn CRM", tt: "xong", note: "15.09.2026 · local: Admin chọn bảng đích, giữ đơn cũ; 67 test cuối, Chrome 1440/390, 30 Sale và migration đạt. Chưa commit/push/VPS; mặc định vẫn Vận đơn. Xem kiem-chung-bang-nhan-don-20260915.md." },
+      { t: "CRM-UPDATE: lưới chung Marketing/Sale/Vận đơn cũ và xóa/khôi phục bảng", tt: "xong", note: "14.09.2026 · đã kiểm chứng trong worktree riêng; local giữ nhánh fix, chưa commit/push/kích hoạt. Ma trận 100k/300k × 10/20, Chrome bốn cấu hình, ghi 2.000 ô và Celery đạt; bài bền đủ 30 phút, 31.985 mẫu, oracle 2.859 dòng không lỗi. Bốn lỗi kiểm thử nền/11 skip giữ riêng. Tạo bảng trắng/duplicate hoãn; chế độ xem toàn bảng của fix chưa ghép. Xem kiem-chung-crm-update-20260912.md" },
+      { t: "KN JSC tự cập nhật mật khẩu 12 tài khoản mẫu một lần trên mỗi database local", tt: "xong", note: "09.09.2026 · 18 bài kiểm đạt; đã cập nhật và xác thực database local, máy khác cần kéo nhánh có bản cập nhật" }
     ]
   },
   {
@@ -771,7 +815,7 @@ const GIAI_DOAN = [
       { t: "Tối ưu: chỉ mục, gộp truy vấn, đếm số lệnh mỗi màn hình", tt: "chua", note: "quy tắc 2" },
       { t: "Cài máy chủ, reverse proxy, kết nối mã hoá, tên miền", tt: "chua" },
       { t: "Đo tải 50 người trên máy chủ thật (kịch bản Locust có từ GĐ 7)", tt: "chua" },
-      { t: "Subdomain cho Bảng tính, phiên đăng nhập dùng chung", tt: "chua", note: "ADR-009" },
+      { t: "Subdomain cho Bảng tính, phiên đăng nhập dùng chung", tt: "xong", note: "ADR-030: VPS cdc1a45; 16 kịch bản Chrome test và 4 kịch bản domain thật đạt. Xem kiem-chung-dang-nhap-chung-20260915.md." },
       { t: "Thử phục hồi từ bản sao lưu", tt: "chua", note: "R6" },
       { t: "Sổ tay vận hành đủ để người khác tiếp nhận", tt: "chua", note: "R2" },
       { t: "Chuyển dữ liệu thật", tt: "chua" },
@@ -899,7 +943,7 @@ const SHEETS = [
 const GAPS = [
   { id: "L1", txt: "<b>Tên sáu module lệch nhau giữa ba tài liệu.</b> Chốt trước khi tạo package Django.", src: "chặn GĐ 1" },
   { id: "G7", txt: "<b>Admin có được tự thêm trường dữ liệu không.</b> Khách tự ghi câu hỏi, chưa có đáp án.", src: "ô D32 · K2 · K3" },
-  { id: "G1", txt: "<b>BLACK LIST</b> có cột riêng trong sheet Vận đơn, không có trong yêu cầu nào.", src: "ô U5 · B8" },
+  { id: "G1", txt: "<b>BLACK LIST</b>: chủ dự án chốt chưa làm ở Vận đơn mới; bảng cũ giữ nguyên.", src: "Q79 · ADR-018" },
   { id: "G2", txt: "<b>Khối thông tin thanh toán</b> — ngày, trạng thái, số tiền, bill. Tài liệu chỉ có phương thức.", src: "ô O5–T6" },
   { id: "G3", txt: "<b>Địa chỉ tách năm cấp</b> — chưa có trong mô hình dữ liệu. Ảnh hưởng thống kê thị trường.", src: "ô E3–I3" },
   { id: "G4", txt: "<b>Trạng thái vận chuyển</b> — chưa định nghĩa tập trạng thái và ai được đổi.", src: "ô N5" },

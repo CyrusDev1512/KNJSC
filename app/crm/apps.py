@@ -13,6 +13,10 @@ class CrmConfig(AppConfig):
         from . import choices
         from .services import grid_service
 
+        from forms_builder.record_policies import register_grid
+        from orders.constants import WAYBILL_TABLE_CODE
+        from .services import legacy_waybill_grid
+        register_grid(WAYBILL_TABLE_CODE, legacy_waybill_grid)
         choices.register_all()
         # Nút Xuất Excel trên Bảng tính xuất đúng lưới đang hiện, kể cả hai bộ
         # lọc riêng của lưới (`trung`, `sp`) — ADR-002

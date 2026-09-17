@@ -75,7 +75,7 @@ def _bang_dong(user):
     bang = list(
         TableDef.objects.in_scope(user)
         .select_related("department")
-        .annotate(so_dong=Count("records", distinct=True))
+        .with_visible_record_count(user)
         .order_by("-updated_at")[:5]
     )
     return {
@@ -113,10 +113,13 @@ def _sao_luu():
     }
 
 
-def tong_quan(user):
+def tong_quan(user, *, params=None):
     """Toàn bộ số liệu của màn hình Tổng quan."""
     scope = get_user_scope(user)
+    activity = _activity(user, params or {})
     return {
+        "activity": activity,
+        "marketing": _khoi("marketing", lambda: _marketing(user, params or {})) if not activity["configured"] else None,
         "scope": scope,
         "la_admin": scope.is_admin,
         "nhan_su": _khoi("nhan_su", lambda: _so_nhan_su(user)),
@@ -126,3 +129,77 @@ def tong_quan(user):
         "tac_vu": _khoi("tac_vu", lambda: _tac_vu(user)),
         "sao_luu": _khoi("sao_luu", _sao_luu) if scope.is_admin else None,
     }
+
+
+def _marketing(user, params):
+    from urllib.parse import urlencode
+    from django.urls import reverse
+    from reports import marketing, aggregations
+    from reports.services import summary_service
+
+    tables = [t for t in summary_service.source_tables(user)
+              if marketing.is_marketing(list(t.columns.all()))]
+    code = params.get("mkt_nguon", "")
+    table = next((t for t in tables if t.code == code), None) if code else (tables[0] if tables else None)
+    start, end = summary_service.default_range()
+    start = summary_service.parse_day(params.get("mkt_tu"), start)
+    end = summary_service.parse_day(params.get("mkt_den"), end)
+    data = {"tables": tables, "table": table, "start": start, "end": end,
+            "state": "no_source"}
+    if code and table is None:
+        # Không để lựa chọn ngoài quyền rơi về nguồn khác hoặc lộ số liệu.
+        data["state"] = "invalid_source"
+        return data
+    if table is None:
+        return data
+    result = summary_service.build_context(user, table, tab="tong-hop", date_from=start,
+                                          date_to=end, product="")["kq"]
+    data["url"] = reverse("bao_cao_tong_hop") + "?" + urlencode({
+        "nguon": table.code, "tu": start.isoformat(), "den": end.isoformat(), "nhom": "tong-hop"})
+    if not result.ok:
+        data["state"] = "unavailable"
+    elif not result.totals["so_dong"]:
+        data["state"] = "empty"
+    else:
+        data["state"] = "ready"
+        data["metrics"] = list(zip([c.label for c in result.columns], aggregations.total_cells(result)))
+    return data
+
+
+def _activity(user, params):
+    from reports.services import activity_service, summary_service
+
+    start, end = summary_service.default_range()
+    start = summary_service.parse_day(params.get("tu"), start)
+    end = summary_service.parse_day(params.get("den"), end)
+    loaded = _khoi("nguon_bao_cao", lambda: list(activity_service.sources(user)))
+    choices = loaded["data"] or []
+    blocks = []
+    for kind, title in (("mkt", "Marketing"), ("sale", "Sale"), ("delivery", "Hoạt động Vận đơn")):
+        available = [source for source in choices if source.kind == kind]
+        block = _khoi(kind, lambda: _activity_block(user, available, params.get(kind + "_nguon", ""), start, end)) if loaded["ok"] else {"ok": False, "data": None}
+        block.update(kind=kind, title=title, sources=available)
+        blocks.append(block)
+    return {"start": start, "end": end, "blocks": blocks, "configured": bool(choices)}
+
+
+def _activity_block(user, choices, code, start, end):
+    from urllib.parse import urlencode
+    from django.urls import reverse
+    from reports import aggregations
+    from reports.services import activity_service
+
+    source = activity_service.select_source(user, code, choices)
+    if source is None:
+        return {"state": "no_source"}
+    result = activity_service.build(user, source, start=start, end=end)
+    params = {"nguon": source.table.code, "tu": start.isoformat(), "den": end.isoformat()}
+    base = reverse("bao_cao_tong_hop") + "?"
+    data = {"source": source, "state": "unavailable", "url": base + urlencode(params),
+            "person_url": base + urlencode({**params, "nhom": "person"}),
+            "department_url": base + urlencode({**params, "nhom": "department"})}
+    if result.ok:
+        data.update(state="ready" if result.totals["so_dong"] else "empty", count=result.totals["so_dong"],
+                    metrics=list(zip([c.label for c in result.columns], aggregations.total_cells(result))),
+                    currency_note=getattr(result, 'currency_warning', '') or getattr(result, 'currency_label', ''))
+    return data

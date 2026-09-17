@@ -6,7 +6,7 @@
 
 <div class="trang-dau">
   <div>
-    <div class="nhan-nho">Văn hoá · FR-12.5 · {{ nguoi.profile.department|default:"—" }}</div>
+    <div class="nhan-nho">Đánh giá nhân sự · FR-12.5 · {{ nguoi.profile.department|default:"—" }}</div>
     <h1>{{ nguoi|ten }}</h1>
     <p>{{ nguoi.profile.get_rank_display }}{% if nguoi.profile.team %} · {{ nguoi.profile.team }}{% endif %}</p>
   </div>

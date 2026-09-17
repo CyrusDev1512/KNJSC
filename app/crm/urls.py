@@ -6,10 +6,40 @@ liên kết sang. Mọi bảng trong phạm vi quyền đều có lưới ở
 là cây thư mục (ADR-015).
 """
 from django.urls import path
+from orders import views as order_views
 
-from . import views
+from . import lifecycle_views, delivery_view_views
+from . import views, waybill_views, assignment_views, master_views, statistics_views, payment_views
+
+from . import destination_views
 
 urlpatterns = [
+    path('cau-hinh/nhan-don/', destination_views.configure, name='order_destination'),
+    path('bang-tinh/<slug:code>/che-do-xem/', delivery_view_views.configure, name='delivery_view_mode'),
+    path('bang-da-xoa/', lifecycle_views.deleted, name='deleted_tables'),
+    path('bang-tinh/<slug:code>/xoa-bang/', lifecycle_views.delete, name='delete_table'),
+    path('bang-tinh/<slug:code>/khoi-phuc-bang/', lifecycle_views.restore, name='restore_table'),
+    path('chung-tu-thanh-toan/', payment_views.library, name='payment_library'),
+    path('chung-tu-thanh-toan/don/', payment_views.rows, name='payment_rows'),
+    path('chung-tu-thanh-toan/tao/', payment_views.create, name='payment_create'),
+    path('chung-tu-thanh-toan/<int:pk>/', payment_views.detail, name='payment_detail'),
+    path('chung-tu-thanh-toan/<int:pk>/sua/', payment_views.update, name='payment_update'),
+    path('chung-tu-thanh-toan/anh/<int:pk>/', payment_views.image, name='payment_image'),
+    path("van-don/len-don/tom-tat/", waybill_views.preview_order, name="waybill_preview"),
+    path("van-don/don-goc/<slug:code>/", order_views.don_xem, name="don_xem"),
+    path("van-don/don-goc/<slug:code>/bo/", order_views.don_bo, name="don_bo"),
+    path("van-don/len-don/kiem-khach/", order_views.kiem_khach, name="kiem_khach"),
+    path("van-don/len-don/san-pham-moi/", order_views.san_pham_moi, name="san_pham_moi"),
+    path('thong-ke/', statistics_views.overview, name='crm_statistics'),
+    path('bang-tinh/<slug:code>/du-lieu/', master_views.data, name='master_data'),
+    path('bang-tinh/<slug:code>/luu-json/', master_views.save, name='master_save'),
+    path('bang-tinh/<slug:code>/lich-su/', master_views.history, name='master_history'),
+    path('bang-tinh/<slug:code>/quyen-dong/', master_views.scope, name='master_scope'),
+    path('bang-tinh/<slug:code>/dong-bo/', master_views.sync, name='master_sync'),
+    path('van-don/phan-cong/', assignment_views.assignment, name='waybill_assignment'),
+    path("van-don/len-don/", waybill_views.create_order, name="waybill_create"),
+    path("van-don/chi-tiet/<int:pk>/", waybill_views.detail, name="waybill_detail"),
+    path("van-don/thong-ke/", waybill_views.statistics, name="waybill_statistics"),
     # Trang chủ KN CRM: tổng quan có sidebar (ADR-015); tên `bang_tinh` giữ
     # để mục KN CRM trên thanh bên ERP và các liên kết cũ vẫn đúng
     path("", views.tong_quan, name="bang_tinh"),

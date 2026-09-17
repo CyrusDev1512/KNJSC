@@ -1,0 +1,32 @@
+<div class="mg-filter-content">
+  <header class="mg-dialog-head"><h2>Bộ lọc</h2>{% if config %}<button type="button" class="mg-close" data-master-close="mg-filters" aria-label="Đóng bộ lọc">×</button>{% endif %}</header>
+  <form method="get">
+    {% for k, v in quick_filters.keep %}{% if k != 'tim' %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endif %}{% endfor %}
+    <label>Tìm kiếm <input class="o-nhap" aria-label="Tìm kiếm" name="tim" value="{{ luoi.search }}" type="search"></label>
+    {% for g in quick_filters.groups %}
+    <fieldset><legend>{{ g.name }}</legend>{% for value, selected in g.items %}<label class="mg-check"><input type="checkbox" name="{{ g.param }}" value="{{ value }}"{% if selected %} checked{% endif %}> {{ value }}</label>{% endfor %}</fieldset>
+    {% endfor %}
+    <button class="nut nut-chinh">Áp dụng</button>
+  </form>
+  {% if ben.cot_ngay %}
+  <form method="get">
+    {% for k, v in ben.giu_ngay %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+    <fieldset><legend>Ngày của đơn</legend>
+    <label>Từ ngày <input class="o-nhap" type="date" aria-label="Từ ngày" name="{{ ben.k_tu }}" value="{{ ben.tu }}"></label>
+    <label>Đến ngày <input class="o-nhap" type="date" aria-label="Đến ngày" name="{{ ben.k_den }}" value="{{ ben.den }}"></label>
+    </fieldset><button class="nut">Lọc ngày</button>
+  </form>
+  {% endif %}
+  {% if ben.san_pham.kind %}<form method="get">
+    {% for k, v in ben.giu_san_pham %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+    <fieldset><legend>Sản phẩm</legend><div class="mg-options">
+    {% for gt, nhan, so, chon in ben.san_pham.items %}<label class="mg-check"><input type="checkbox" name="{{ ben.san_pham.param }}" value="{{ gt }}"{% if chon %} checked{% endif %}> {{ nhan }}{% if so is not None %} ({{ so }}){% endif %}</label>{% endfor %}
+    </div></fieldset><button class="nut">Lọc sản phẩm</button>
+  </form>{% endif %}
+  {% for g in ben.assignment_filters %}<form method="get">
+    {% for k, v in g.keep %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+    <fieldset><legend>{{ g.name }}</legend><div class="mg-options">{% for value, label, count, selected in g.items %}
+    <label class="mg-check"><input type="checkbox" name="{{ g.param }}" value="{{ value }}"{% if selected %} checked{% endif %}> {{ label }} ({{ count }})</label>
+    {% empty %}<p>Không có lựa chọn trong phạm vi được xem.</p>{% endfor %}</div></fieldset><button class="nut">Áp dụng {{ g.name }}</button>
+  </form>{% endfor %}
+</div>

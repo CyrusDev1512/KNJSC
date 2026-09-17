@@ -12,6 +12,8 @@ ghép sai thì hoặc nổ, hoặc tệ hơn là trả nhầm dữ liệu.
 **Phạm vi quyền không do tệp này lo.** Gọi `.in_scope(user)` trước, rồi mới
 đưa queryset vào đây (quy tắc 11).
 """
+from orders.constants import is_waybill_table
+from django.conf import settings
 from django.core.exceptions import FieldError
 from django.db.models import Q
 
@@ -61,6 +63,9 @@ class ColumnMap:
         cot = self.by_code.get(code)
         if cot is None:
             return None
+        from orders.services.assignment_service import COLUMNS
+        if is_waybill_table(self.table) and code in COLUMNS:
+            return f'assignment__{COLUMNS[code]}__username'
         cot_tach = COLUMN_OF.get(cot.meaning) if cot.meaning else None
         return cot_tach or f"data__{code}"
 
@@ -97,6 +102,36 @@ def apply_filters(queryset, column_map, filters):
         duong_dan = column_map.path(code)
         if not duong_dan or not phep:
             continue
+        if (getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
+                and is_waybill_table(column_map.table) and code == 'bill'):
+            from orders.models import PaymentDocument
+            documents = PaymentDocument.objects.filter(deleted_at__isnull=True)
+            if phep in ('blank', 'nonblank'):
+                blank = (Q(data__bill__isnull=True) | Q(data__bill='') | Q(data__bill=None)) & ~Q(pk__in=documents.values('record_id'))
+                queryset = queryset.filter(blank) if phep == 'blank' else queryset.exclude(blank)
+            else:
+                value = gia_tri if phep != 'in' or isinstance(gia_tri, (list, tuple)) else [gia_tri]
+                matches = documents.filter(**{f'reference__{phep}': value})
+                queryset = queryset.filter(Q(**{f'data__bill__{phep}': value}) | Q(pk__in=matches.values('record_id')))
+            continue
+        if is_waybill_table(column_map.table) and code == 'san_pham':
+            from orders.models import WaybillItem
+            items = WaybillItem.objects.filter(deleted_at__isnull=True)
+            if phep in ('blank', 'nonblank'):
+                condition = Q(pk__in=items.values('record_id'))
+                queryset = queryset.exclude(condition) if phep == 'blank' else queryset.filter(condition)
+            else:
+                values = gia_tri if phep != 'in' or isinstance(gia_tri, (list, tuple)) else [gia_tri]
+                items = items.filter(**{f'product__code__{phep}': values})
+                queryset = queryset.filter(pk__in=items.values('record_id'))
+            continue
+        if duong_dan.startswith('assignment__') and phep in ('in', 'exact'):
+            values = gia_tri if isinstance(gia_tri, (list, tuple)) else [gia_tri]
+            condition = Q(**{f'{duong_dan}__in': [v for v in values if v != '__unassigned__']})
+            if '__unassigned__' in values:
+                condition |= Q(**{f'{duong_dan}__isnull': True})
+            queryset = queryset.filter(condition)
+            continue
         if phep in ("blank", "nonblank"):
             trong = Q(**{f"{duong_dan}__isnull": True}) | Q(**{duong_dan: ""})
             queryset = queryset.filter(trong) if phep == "blank" else queryset.exclude(trong)
@@ -115,6 +150,10 @@ def apply_filters(queryset, column_map, filters):
             if phep in NUMERIC_OPERATORS and cot.field_type not in JSON_RANGE_TYPES:
                 phep = "exact"
         try:
+            if phep == 'exact' and duong_dan.startswith('data__'):
+                # GIN(data) dùng containment, không dùng biểu thức data->key = x.
+                # Giữ phép bằng bên dưới để không thay ngữ nghĩa lọc hiện có.
+                queryset = queryset.filter(data__contains={code: gia_tri})
             queryset = queryset.filter(**{f"{duong_dan}__{phep}": gia_tri})
         except (FieldError, ValueError, TypeError):
             continue
@@ -173,6 +212,11 @@ def apply_search(queryset, column_map, term):
     dieu_kien = Q()
     for p in duong_dan:
         dieu_kien |= Q(**{f"{p}__icontains": term})
+    if (getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
+            and is_waybill_table(column_map.table)):
+        from orders.models import PaymentDocument
+        matches = PaymentDocument.objects.filter(deleted_at__isnull=True, reference__icontains=term)
+        dieu_kien |= Q(data__bill__icontains=term) | Q(pk__in=matches.values('record_id'))
     return queryset.filter(dieu_kien)
 
 
@@ -199,6 +243,13 @@ def build(queryset, table, *, filters=None, search="", sort=None, descending=Fal
     queryset = apply_filters(queryset, column_map, filters)
     queryset = apply_search(queryset, column_map, search)
     queryset = apply_sort(queryset, column_map, sort, descending)
+    if is_waybill_table(table):
+        if not sort or not column_map.path(sort):
+            queryset = queryset.order_by('created_at', 'pk')
+        else:
+            queryset = queryset.order_by(*queryset.query.order_by, 'pk')
+        from orders.services.assignment_service import related
+        queryset = related(queryset)
     return queryset, column_map
 
 
@@ -207,4 +258,16 @@ def read_row(record, columns):
 
     Dùng ở tầng giao diện để khỏi phải biết giá trị nằm ở JSON hay cột tách.
     """
-    return [(cot, record.data.get(cot.code)) for cot in columns]
+    from orders.services import assignment_service
+    values = []
+    for column in columns:
+        value = record.data.get(column.code)
+        if is_waybill_table(record.table) and column.code in assignment_service.COLUMNS:
+            value = assignment_service.display(record, column.code)
+        elif column.code == 'bill' and hasattr(record, 'export_payments'):
+            references = [doc.reference for doc in record.export_payments]
+            if value:
+                references.append(str(value))
+            value = '; '.join(references)
+        values.append((column, value))
+    return values

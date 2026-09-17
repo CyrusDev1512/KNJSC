@@ -1,0 +1,5 @@
+interface:
+  display_name: "web-perf"
+  short_description: "Diagnose browser loading and interaction lag"
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+{% block tieu_de %}Báo cáo tổng hợp · KNERP{% endblock %}
+{% block ten_trang %}Báo cáo tổng hợp{% endblock %}
+{% block noi_dung %}
+<div class="trang-dau"><div><h1>Báo cáo tổng hợp</h1><p>Kết quả thực tế trong phạm vi của bạn. Chưa chấm điểm KPI hoặc xếp loại.</p></div>
+</div>
+<div class="report-view" id="report-view">
+<div class="report-controls" aria-label="Điều khiển bảng báo cáo">
+<div class="report-focus-title"><strong>{{ source.table.name|default:'Báo cáo tổng hợp' }}</strong><span>{{ params.start|date:'d/m/Y' }} – {{ params.end|date:'d/m/Y' }}</span></div>
+<button type="button" class="nut" id="report-toggle-filters" aria-controls="report-filter-panel" aria-expanded="true" hidden>Ẩn bộ lọc</button>
+{% if source %}<a class="nut" href="{% url 'bao_cao_tong_hop_xuat' %}?{{ query }}">Xuất Excel</a>{% endif %}
+<button type="button" class="nut nut-chinh" id="report-toggle-focus" aria-controls="report-view" aria-pressed="false" hidden>Toàn màn hình</button>
+</div>
+<div class="report-workspace" id="report-workspace">
+<aside class="report-filter-panel" id="report-filter-panel" aria-label="Bộ lọc báo cáo"><h2>Bộ lọc</h2><form method="get" class="report-filters">
+<div class="truong"><label for="nguon">Nguồn báo cáo</label><select class="o-nhap" name="nguon" id="nguon">{% for s in sources %}<option value="{{ s.table.code }}" {% if source.pk == s.pk %}selected{% endif %}>{{ s.table.name }}</option>{% endfor %}</select></div>
+<div class="truong"><label for="nhom">Cách xem</label><select class="o-nhap" name="nhom" id="nhom">{% for code,label in groups %}<option value="{{ code }}" {% if params.group == code %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+<div class="truong"><label for="tu">Từ ngày</label><input class="o-nhap" type="date" id="tu" name="tu" value="{{ params.start|date:'Y-m-d' }}"></div>
+<div class="truong"><label for="den">Đến ngày</label><input class="o-nhap" type="date" id="den" name="den" value="{{ params.end|date:'Y-m-d' }}"></div>
+<div class="truong"><label for="sp">Sản phẩm{% if source.kind == 'delivery' %} (mã){% endif %}</label><input class="o-nhap" name="sp" id="sp" value="{{ params.product }}"></div>
+<div class="truong"><label for="thi-truong">Thị trường</label><select class="o-nhap" name="thi_truong" id="thi-truong"><option value="">Tất cả</option><option value="__missing__" {% if params.market == '__missing__' %}selected{% endif %}>Chưa xác định</option>{% for m in markets %}<option {% if params.market == m %}selected{% endif %}>{{ m }}</option>{% endfor %}</select></div>
+<div class="truong"><label for="report-team">Team</label><select class="o-nhap" name="team" id="report-team"><option value="">Tất cả team trong quyền</option>{% for t in teams %}<option value="{{ t.id }}" {% if params.team == t.id|stringformat:'s' %}selected{% endif %}>{{ t.label }}</option>{% endfor %}</select></div>
+<div class="truong"><label for="report-person-search">Tìm nhân sự</label><input type="search" class="o-nhap" id="report-person-search" placeholder="Mã hoặc họ tên" aria-controls="report-person" autocomplete="off"></div>
+<div class="truong"><label for="report-person">Nhân sự</label><select class="o-nhap" name="nhan_su" id="report-person"><option value="">Tất cả nhân sự trong quyền</option>{% for p in people %}<option value="{{ p.id }}" {% if params.person == p.id|stringformat:'s' %}selected{% endif %}>{{ p.label }}</option>{% endfor %}</select><span class="goi-y" id="report-person-count" aria-live="polite">Chỉ hiển thị nhân sự có dữ liệu trong phạm vi của bạn.</span></div>
+<div class="report-filter-actions"><button type="submit" class="nut nut-chinh">Áp dụng</button><a class="nut" href="{% url 'bao_cao_tong_hop' %}?nguon={{ source.table.code|urlencode }}">Xóa lọc</a></div></form></aside>
+<section class="report-results" aria-label="Kết quả báo cáo">
+{% if result.currency_warning %}<p class="bao bao-cho" role="status">{{ result.currency_warning }}</p>{% elif result.currency_label %}<p class="nho">Đơn vị tiền: {{ result.currency_label }}</p>{% endif %}
+{% if source %}<div class="report-results-heading"><h2>{{ source.table.name }}</h2><p>{{ params.start|date:'d/m/Y' }} – {{ params.end|date:'d/m/Y' }} · Tổng trên toàn bộ kết quả khớp bộ lọc</p></div>{% endif %}
+{% if error %}<p class="bao bao-xau" role="alert">{{ error }}</p>{% elif not source %}<p>Chưa có nguồn báo cáo trong phạm vi của bạn.</p>{% elif unavailable %}<p>Chưa đủ cấu hình chỉ tiêu cho nguồn này.</p>{% elif empty %}<p>Chưa có dữ liệu trong bộ lọc này.</p>{% endif %}
+{% if result.ok %}<div class="bang-cuon report-table-scroll" tabindex="0" role="region" aria-label="Bảng số liệu, cuộn ngang để xem thêm"><table class="bang report-table"><thead><tr>{% if result.show_team %}<th scope="col">Team</th>{% endif %}<th scope="col">{{ result.group_label }}</th>{% for c in result.columns %}<th scope="col">{{ c.label }}</th>{% endfor %}</tr></thead>
+<tbody><tr class="report-total"><th scope="row" {% if result.show_team %}colspan="2"{% endif %}>Tổng trong bộ lọc</th>{% for c in totals %}<td>{{ c }}</td>{% endfor %}</tr>{% for row in rows %}<tr>{% if result.show_team %}<td class="report-identity">{{ row.team }}</td>{% endif %}<th scope="row" class="report-identity">{{ row.nhom }}</th>{% for c in row.cells %}<td>{{ c }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+</table></div>{% include 'components/phan_trang.html' %}{% endif %}</section></div></div>
+{% if shipping %}<section class="bang-hop"><h2>Trạng thái giao hàng</h2><ul>{% for g in shipping %}<li>{{ g.label|default:'Chưa xác định' }}: {{ g.count }} đơn</li>{% endfor %}</ul></section>{% endif %}
+{% if source.kind == 'delivery' %}<p>Vận đơn theo dõi hoạt động giao hàng; phần số tiền thuộc Kế toán và Kho. Một đơn nhiều sản phẩm được đếm một lần trong tổng.</p>{% endif %}
+<script src="{% static 'js/report-filters.js' %}?v={{ phien_ban_tinh }}" defer></script>
+{% endblock %}

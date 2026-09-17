@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "adapted_on": "2026-09-09",
+  "scope": "project",
+  "auto_update": false,
+  "skills": [
+    {
+      "name": "verification-before-completion",
+      "repository": "https://github.com/obra/superpowers",
+      "commit": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
+      "source_path": "skills/verification-before-completion/SKILL.md",
+      "source_url": "https://github.com/obra/superpowers/blob/b36e0829c6d0140e93cfef2ca599b1b07d4a7797/skills/verification-before-completion/SKILL.md",
+      "license": "MIT",
+      "license_source_url": "https://github.com/obra/superpowers/blob/b36e0829c6d0140e93cfef2ca599b1b07d4a7797/LICENSE",
+      "upstream_skill_sha256": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3",
+      "upstream_entrypoint_lines": 120,
+      "adaptation": [
+        "Narrow task-specific discovery description; automatic invocation enabled.",
+        "Replace broad mandates with authorized KNJSC workflow and focused verification.",
+        "Move conditional guidance into one concise reference; omit unrelated examples, hooks, MCP setup and scripts.",
+        "Keep repository policies linked rather than copied; preserve source license.",
+        "Consolidated into .agents/skills; removed client bridges."
+      ],
+      "files": {
+        "agents/openai.yaml": "4a84f8b8149d995e2b90bf1a087a75534f939f255e69a57a5c37d8d92130ad69",
+        "LICENSE": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
+        "references/evidence.md": "8ad45d8283ed6f2032b2350a3daa53d0bb84ad955379442794e92071bcb704a4",
+        "SKILL.md": "59d1d963aaa0e91560cbefdcd2c7fd6f8881a2f24379f6c77f8356d652fd835a"
+      },
+      "local_entrypoint_lines": 73
+    },
+    {
+      "name": "test-driven-development",
+      "repository": "https://github.com/obra/superpowers",
+      "commit": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
+      "source_path": "skills/test-driven-development/SKILL.md",
+      "source_url": "https://github.com/obra/superpowers/blob/b36e0829c6d0140e93cfef2ca599b1b07d4a7797/skills/test-driven-development/SKILL.md",
+      "license": "MIT",
+      "license_source_url": "https://github.com/obra/superpowers/blob/b36e0829c6d0140e93cfef2ca599b1b07d4a7797/LICENSE",
+      "upstream_skill_sha256": "bf1b8216e523851a411e91d429a7c1c2a173e79d88957bc78e348218d50edd54",
+      "upstream_entrypoint_lines": 320,
+      "adaptation": [
+        "Narrow task-specific discovery description; automatic invocation enabled.",
+        "Replace broad mandates with authorized KNJSC workflow and focused verification.",
+        "Move conditional guidance into one concise reference; omit unrelated examples, hooks, MCP setup and scripts.",
+        "Keep repository policies linked rather than copied; preserve source license.",
+        "Consolidated into .agents/skills; removed client bridges."
+      ],
+      "files": {
+        "agents/openai.yaml": "4c4bfed91e47be11475840c90336b90ee14278bc303e2a48d8de318ff3ffd4c6",
+        "LICENSE": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
+        "references/test-design.md": "b74dafa7d7e0eacefca7a4f04c5c2ab3d195539ce4f9a83b3c4ca11f9a7f2675",
+        "SKILL.md": "6cc1bb9620fb85208704414e313ca5de3de9bcd3dd11c08b08d18a641f806a91"
+      },
+      "local_entrypoint_lines": 72
+    },
+    {
+      "name": "performance-optimization",
+      "repository": "https://github.com/addyosmani/agent-skills",
+      "commit": "6ca0cd7db39b41b1c37e26d335c507ee92382c6d",
+      "source_path": "skills/performance-optimization/SKILL.md",
+      "source_url": "https://github.com/addyosmani/agent-skills/blob/6ca0cd7db39b41b1c37e26d335c507ee92382c6d/skills/performance-optimization/SKILL.md",
+      "license": "MIT",
+      "license_source_url": "https://github.com/addyosmani/agent-skills/blob/6ca0cd7db39b41b1c37e26d335c507ee92382c6d/LICENSE",
+      "upstream_skill_sha256": "00694d0c69bbde674d0e39de24052d90afea32d9fef9553eaee21a50a7e9b8cf",
+      "upstream_entrypoint_lines": 496,
+      "adaptation": [
+        "Narrow task-specific discovery description; automatic invocation enabled.",
+        "Replace broad mandates with authorized KNJSC workflow and focused verification.",
+        "Move conditional guidance into one concise reference; omit unrelated examples, hooks, MCP setup and scripts.",
+        "Keep repository policies linked rather than copied; preserve source license.",
+        "Consolidated into .agents/skills; removed client bridges."
+      ],
+      "files": {
+        "agents/openai.yaml": "c8f5f8c277b251f0eadefe9d4ce53b347e81835f063a869fef62ce5d0c4e186f",
+        "LICENSE": "6f202f8bd568cd730dbb2b0d1f8e243bc74c2fa1f64dbce9b2c7ea08bd5c9fd7",
+        "references/data-and-grid.md": "8e4004e5fefd9a2bdf391272d01d3d865a68aa2f081810b974dec6a4c86d0bae",
+        "SKILL.md": "76ffea8dee33661c08b4b3a35a96075a8a09e4d6f5d5444d8f66fbeef7fdf4d1"
+      },
+      "local_entrypoint_lines": 69
+    },
+    {
+      "name": "web-perf",
+      "repository": "https://github.com/cloudflare/skills",
+      "commit": "b052c32bab7dd493513260228a36c88294f343f1",
+      "source_path": "skills/web-perf/SKILL.md",
+      "source_url": "https://github.com/cloudflare/skills/blob/b052c32bab7dd493513260228a36c88294f343f1/skills/web-perf/SKILL.md",
+      "license": "Apache-2.0",
+      "license_source_url": "https://github.com/cloudflare/skills/blob/b052c32bab7dd493513260228a36c88294f343f1/LICENSE",
+      "upstream_skill_sha256": "79c531e95ca4d96a7de920c28c127c2c09ec55cd452a92222267d2954580be23",
+      "upstream_entrypoint_lines": 201,
+      "adaptation": [
+        "Narrow task-specific discovery description; automatic invocation enabled.",
+        "Replace broad mandates with authorized KNJSC workflow and focused verification.",
+        "Move conditional guidance into one concise reference; omit unrelated examples, hooks, MCP setup and scripts.",
+        "Keep repository policies linked rather than copied; preserve source license.",
+        "Consolidated into .agents/skills; removed client bridges."
+      ],
+      "files": {
+        "agents/openai.yaml": "c39a0a69e7a4c1dba70cb1c285e90f13245bf63ec5e3351de54453563374f41c",
+        "LICENSE": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+        "references/grid-profiling.md": "760da583f6695e43f4b1095f1c9d4245f58f130796bd5d3acf921c551551b1c7",
+        "SKILL.md": "84a7a63e911c4c7f0f0917450919fd6e764f3dac11729e0d3d89a762b0638f8e"
+      },
+      "local_entrypoint_lines": 71
+    },
+    {
+      "name": "performance-testing-skill",
+      "repository": "https://github.com/jovd83/performance-testing-skill",
+      "commit": "35272974c392ce092bc9dc6cc95e759b250fe28e",
+      "source_path": "SKILL.md",
+      "source_url": "https://github.com/jovd83/performance-testing-skill/blob/35272974c392ce092bc9dc6cc95e759b250fe28e/SKILL.md",
+      "license": "MIT",
+      "license_source_url": "https://github.com/jovd83/performance-testing-skill/blob/35272974c392ce092bc9dc6cc95e759b250fe28e/LICENSE",
+      "upstream_skill_sha256": "1da2646ce055eb3824dc7a4df4523493a7614ef58b9568cbf37cad2a86997554",
+      "upstream_entrypoint_lines": 278,
+      "adaptation": [
+        "Narrow task-specific discovery description; automatic invocation enabled.",
+        "Replace broad mandates with authorized KNJSC workflow and focused verification.",
+        "Move conditional guidance into one concise reference; omit unrelated examples, hooks, MCP setup and scripts.",
+        "Keep repository policies linked rather than copied; preserve source license.",
+        "Consolidated into .agents/skills; removed client bridges."
+      ],
+      "files": {
+        "agents/openai.yaml": "19b7b49066ed8e857af5ae0daa8ac86d52d0f8660e39f5152fe247ffa617b8cf",
+        "LICENSE": "85d5b2559ca2794c57d7c12693718c2449cf53b4776d2cca191996ab273151c7",
+        "references/workload-and-evidence.md": "954d80ba722c6dbf5fe0f2b359fce76422fa48f6ca81961cda3fb2652c9c6144",
+        "SKILL.md": "b510dd7d3cd7178d5e2e96816a3393e46c7bf45b2529b42dd0753afd9ffe8f33"
+      },
+      "local_entrypoint_lines": 67
+    },
+    {
+      "name": "impeccable",
+      "repository": "https://github.com/pbakaus/impeccable",
+      "source_provenance": ".agents/NGUON-THIET-KE.md",
+      "license": "Apache-2.0",
+      "adaptation": [
+        "Moved existing repository skill to shared ai/skills directory.",
+        "Updated local Impeccable fallback paths; content otherwise retained.",
+        "Consolidated into .agents/skills; removed client bridges.",
+        "Manual guidance entrypoint; legacy engine workflow archived and disabled by default to avoid recreating root state."
+      ],
+      "files": {
+        "LICENSE": "02bb8c3b4e70190e3986c0404ad2fd8d639b4f534252d82379cc1b502b6d1812",
+        "NOTICE.md": "c60a093c2845fd9fb82f9c6f742ece31f379f8190b535309d32d66c45ccffdcb",
+        "reference/adapt.md": "ec58806f16fc7ba29bccef08f2e158cd00be077ce05d45e943a59bd26dc6dc55",
+        "reference/adapt.native.md": "17c583cf8ad41266ea1e787b666b9d91fe13469d3d0f6af57c08e0146f9b17ac",
+        "reference/android.md": "058f81f256134841875fd3183e06b37a023de0c877fd2b9eecd97011640791fe",
+        "reference/animate.md": "94b4ce6299fea93d9f256b2d25705961a76bc5ea940c56db4145686ebc99df1b",
+        "reference/audit.md": "57402ef6fd9d0745f8c60d778f77da83a8b16edf751fa1013598a0f6e5f0f541",
+        "reference/audit.native.md": "fe91fcf28638f95577af481a50edaf339d6c9a3ad3b9fa477bc81c116b8bc392",
+        "reference/bolder.md": "4879f38b23d0a251a63cbb0327e660296194cd2e71eb4da3236c6ebfe5807746",
+        "reference/clarify.md": "6c382f8283756e8a693d832b750f7e4cbff1ca5bdcc3825b2b4ef4da9f21876a",
+        "reference/colorize.md": "d1fbd55074abb2251bdaa03749d34acc42c38e46e47549f18f5848df57d43c42",
+        "reference/craft-floor.md": "96e2e6bd4fcf9a2c6da65fb029f96d9176308fae2efd9d8653d3b8d838960e07",
+        "reference/craft.md": "9205e222bc6565b37fb504ceec93233c2d2a456802b69d16e6b1c44723907c4c",
+        "reference/critique.md": "4e6f3cc5916de0b7e65677489ebdb6a1510eb5d53d8f490d832a383fe422dae2",
+        "reference/degraded/asset-producer.md": "25a15e3296abe9a38d8ee858ddee5b94ab0e338fd9217bdca19cf4e90e43366b",
+        "reference/degraded/documenter.md": "97a09e350c383cb2f6bba027b83bedffd12a23b1b439ad4a045a48953eb19365",
+        "reference/degraded/finish-reviewer.md": "5f24c5a97b4ffcabc7c432b064cfdd04c7a2ad52f52e765be648dc0aadab8f38",
+        "reference/degraded/manual-edit-applier.md": "5fae7f8a2fc3ddd49ad0a413446dc44daedef5b6b7de5eb935bd2fbfad646d58",
+        "reference/delight.md": "56500b1f9d2fcec8324d7f448d813048b5831a46d3feeb1055bd3eb17ec3660f",
+        "reference/distill.md": "b2f60e0154bf0e687badc46d8c8420e2118a9a6e21162050722be779dc02cb6d",
+        "reference/doctor.md": "a98b397cedeeaa1da57f3395b3d9b6c1fc477f4247fb9dc13e4da3da588283ff",
+        "reference/document.md": "87b3db688c7963898bda8096f7868fed05ec5a0a80d14298e8b906b70cdf9c42",
+        "reference/engine-workflow.md": "18615730f02a6e49472ad7bc699c1d51658caabae2d2aed2eec232c2fc95463e",
+        "reference/extract.md": "bfc51972fbf387566dc9e29c8b1af479a66ab401fdbce659fae9e6a5a9d85316",
+        "reference/harden.md": "8a1c872773996dfa1c1eb765ac7ed8e8d41f99d4f12f090b4725b694e85eaa62",
+        "reference/hooks.md": "bf5def0175784cae16c4678ccd837c920d57e436d7ede7943563b1992f464a3a",
+        "reference/init.md": "78c236dadb7e70337dc9dfa67e65fc15b7abed137ad320c16410ddfa7aec34f9",
+        "reference/ios.md": "40c87038b5f75147a5952a96237acf312a327bf70c1bcd8e0a5f064625ae9668",
+        "reference/layout.md": "ff0c7295e84e6424147504ac14ffa9caf9fda58ad89509b39c18112934963c03",
+        "reference/live-setup.md": "6e20b51661edfae5a035ec10f532e63420591e0d13834ec93b4a1e196bc3aa45",
+        "reference/live.md": "58d96a14b000bd51f5adb248919345651cc0f6b8911a2f6213934ac2875edaf2",
+        "reference/new-work.md": "c230765396cddc183a9fb984b3d5f8acd949ce5e07407da1069d6e30256ec1b0",
+        "reference/onboard.md": "9a2c08ee2516d2ee87129e7ebe6a0895f9990c9852d1f6fa7e70be9a6a88a659",
+        "reference/operate.md": "a9d2203acd45ca33a13d5c68b02b23ed512425ac15f0e8438318ed124b43729d",
+        "reference/optimize.md": "6d368b679a0ed1815812815de65863b5840d419589dfbda06224c01149240287",
+        "reference/overdrive.md": "a9856cb40da6519b1334bcfc75a4fbe83bef39ca86ee6f3effcb2a96794c627c",
+        "reference/polish.md": "81666fc7f783b4e3514db6554e713dc0479bd9cdedb06e93d15f8b579aae869a",
+        "reference/quieter.md": "ee6d6d127c1c2ab3526d529a8e3698be2185b5e346ac617f37501de2c0698b97",
+        "reference/routing.md": "f907829361654b936087fec0baec8c7a67b2c3f0def2de6e35673dd34a1c7354",
+        "reference/shape.md": "a55f016c046cb6a27c55bd7f346375aeb506a755c4fbca19a5f92dbd42309c23",
+        "reference/typeset.md": "b5b4b01ad9e71317814af1f4a80125a0cbbd74fa7503d4171433b2c552f6b9a2",
+        "reference/visualize.md": "2806ada0ec5b488409e57bdbf639626b77661aba6cfde9899df7291fdb7abfcc",
+        "scripts/command-metadata.json": "6bdbc3f745ceee15e10b050f109ce42bbeb53ab3c3b5239257de1d596654dee7",
+        "scripts/data/font-index-failures.json": "835f19a0a3812f3652dd6979a2ce5597f654fd01f26e1b420b92d5f42b997ce4",
+        "scripts/data/font-index.json": "47edbdfaf27073c47033d1ac7dfee881be49e2dcbda7671d1157300481dde6da",
+        "scripts/impeccable": "0a88d2c7d7b40789758ae42f78437587fb05893454f64f9271e49378b6235a7d",
+        "scripts/impeccable.cmd": "c29367992504a8da13697443672641317de6a92adef537adbad2e64143b9ec89",
+        "scripts/live-browser-dom.js": "de1b7404f4cdfd7b515196afb17b74b1980f0bc88cb8681ae93a76ca48ec7bdb",
+        "scripts/live-browser-ignores.js": "c1cb6877ca99a0c1b38ba0c7d59f32702d3022f6821d8045f7133f7c40b6362f",
+        "scripts/live-browser-session.js": "edddeb3fad88adec9a055b1bf9d5c75418cbe97a13b1a7f6765e73249e482563",
+        "scripts/live-browser.js": "7af0a8665057c83b39bca2c8c7427ef2343734f70d4128c377113a6726a1e3b1",
+        "scripts/modern-screenshot.umd.js": "bb36665889124a0b6e15f16045265737449c3bdcf2712cdb08af3cfa01563e2b",
+        "scripts/VERSION": "297b50f08386d3521f8fdaf2f78eb8d9d0acdf452d2e61596905fba37208c792",
+        "SKILL.md": "729873016cc451544fc6475768ea8a52cf4673181af724e5356a6c088c2082c3"
+      },
+      "pre_move_skill_sha256": "cd76b0dbc9842ac24a48de43fcf32838a771802ece5b47dfcaeb8877f6b31b2c",
+      "local_entrypoint_lines": 47,
+      "commit": "831cabe",
+      "commit_note": "Abbreviated upstream commit recorded by the existing import provenance; not re-fetched in this consolidation."
+    },
+    {
+      "name": "design-taste-frontend",
+      "repository": "https://github.com/Leonxlnx/taste-skill",
+      "source_provenance": ".agents/NGUON-THIET-KE.md",
+      "license": "MIT",
+      "adaptation": [
+        "Moved existing repository skill to shared ai/skills directory.",
+        "Updated local Impeccable fallback paths; content otherwise retained.",
+        "Consolidated into .agents/skills; removed client bridges."
+      ],
+      "files": {
+        "LICENSE": "4575a543ab88dad12ccea7d97e563d0bce5b448b06072e65d3264497dad326df",
+        "SKILL.md": "aa194351b246b8b4799099d4ed7b033d29eab6e6e3d58d8d2172978be7b3ec89"
+      },
+      "pre_move_skill_sha256": "2e064e92aca020b2e0bad69326fe7ea55d59005ed53d1a8cbce1bd135d44b8b3",
+      "local_entrypoint_lines": 1206,
+      "commit": "ccbc156",
+      "commit_note": "Abbreviated upstream commit recorded by the existing import provenance; not re-fetched in this consolidation."
+    },
+    {
+      "name": "high-end-visual-design",
+      "repository": "https://github.com/Leonxlnx/taste-skill",
+      "source_provenance": ".agents/NGUON-THIET-KE.md",
+      "license": "MIT",
+      "adaptation": [
+        "Moved existing repository skill to shared ai/skills directory.",
+        "Updated local Impeccable fallback paths; content otherwise retained.",
+        "Consolidated into .agents/skills; removed client bridges."
+      ],
+      "files": {
+        "LICENSE": "4575a543ab88dad12ccea7d97e563d0bce5b448b06072e65d3264497dad326df",
+        "SKILL.md": "e1e32f5e2d420872c6c7332b53d5ff7721946766b78c4822b424c2d512c8fdbc"
+      },
+      "pre_move_skill_sha256": "2d11cdcefc8bf319429ee17d94d69a390802e2acf7163662d1eacbcf5be3ff79",
+      "local_entrypoint_lines": 98,
+      "commit": "ccbc156",
+      "commit_note": "Abbreviated upstream commit recorded by the existing import provenance; not re-fetched in this consolidation."
+    },
+    {
+      "name": "minimalist-ui",
+      "repository": "https://github.com/Leonxlnx/taste-skill",
+      "source_provenance": ".agents/NGUON-THIET-KE.md",
+      "license": "MIT",
+      "adaptation": [
+        "Moved existing repository skill to shared ai/skills directory.",
+        "Updated local Impeccable fallback paths; content otherwise retained.",
+        "Consolidated into .agents/skills; removed client bridges."
+      ],
+      "files": {
+        "LICENSE": "4575a543ab88dad12ccea7d97e563d0bce5b448b06072e65d3264497dad326df",
+        "SKILL.md": "36bc7328f085405f43b476938e62460fa573bf7e984e949e072bcf014831a44c"
+      },
+      "pre_move_skill_sha256": "1a292d1459292649dc5b422e029093259b6127e7df2f37ad8c22033174333a57",
+      "local_entrypoint_lines": 85,
+      "commit": "ccbc156",
+      "commit_note": "Abbreviated upstream commit recorded by the existing import provenance; not re-fetched in this consolidation."
+    },
+    {
+      "name": "redesign-existing-projects",
+      "repository": "https://github.com/Leonxlnx/taste-skill",
+      "source_provenance": ".agents/NGUON-THIET-KE.md",
+      "license": "MIT",
+      "adaptation": [
+        "Moved existing repository skill to shared ai/skills directory.",
+        "Updated local Impeccable fallback paths; content otherwise retained.",
+        "Consolidated into .agents/skills; removed client bridges."
+      ],
+      "files": {
+        "LICENSE": "4575a543ab88dad12ccea7d97e563d0bce5b448b06072e65d3264497dad326df",
+        "SKILL.md": "98ad3e5b051bfb71b2795f7e8a6aa0d32b51ee095606c098a4b2822ac07926c9"
+      },
+      "pre_move_skill_sha256": "d5a62efaf36fa52ea1966e06ce74452b3466a4f179af34fbce65f2c8e5461349",
+      "local_entrypoint_lines": 178,
+      "commit": "ccbc156",
+      "commit_note": "Abbreviated upstream commit recorded by the existing import provenance; not re-fetched in this consolidation."
+    }
+  ],
+  "file_hash_normalization": "SHA-256 of file bytes with CRLF normalized to LF; upstream_skill_sha256 remains original raw bytes",
+  "canonical_root": ".agents/skills"
+}

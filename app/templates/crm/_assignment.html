@@ -1,0 +1,14 @@
+<dialog id="vd-assignment" {% if master_grid %}class="vd-dialog mg-dialog"{% else %}class="vd-dialog"{% endif %} aria-labelledby="vd-assignment-title" data-url="{% url 'waybill_assignment' %}">
+  {% if master_grid %}<header class="mg-dialog-head"><h2 id="vd-assignment-title">Phân công</h2><button class="mg-close" type="button" data-assignment-close aria-label="Đóng phân công">×</button></header><div class="mg-dialog-body">{% else %}<button class="nut vd-close" type="button" data-assignment-close>Đóng</button><h2 id="vd-assignment-title">Phân công</h2>{% endif %}
+  {% if delivery_view_manage %}<p><a class="nut" href="{% url 'delivery_view_mode' bang.code %}">Chế độ xem bảng</a> <small>Áp dụng toàn bảng</small></p>{% endif %}
+  <p id="vd-assignment-info"></p>
+  <p id="vd-assignment-status" role="status" aria-live="polite"></p>
+  <form id="vd-assignment-form">
+    {% csrf_token %}
+    <div id="vd-assignment-fields" class="vd-assignment-fields"></div>
+    <p>Giữ nguyên: không đổi trường đó. Bỏ phân công: xoá người đang phụ trách.</p>
+    <button class="nut nut-chinh" id="vd-assignment-save" type="submit">Lưu phân công</button>
+    <button class="nut" id="vd-assignment-reload" type="button">Tải lại phân công</button>
+  </form>
+{% if master_grid %}</div>{% endif %}
+</dialog>
