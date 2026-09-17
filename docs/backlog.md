@@ -1,5 +1,26 @@
 # Backlog
 
+## 17.09.2026 — Diễn tập nâng cấp VPS 0907cdd → 49e2872
+
+Dựng database ở đúng trạng thái VPS (`0907cdd` + dữ liệu), rồi chạy đúng dãy lệnh
+của `deploy/production/README.md` bằng mã `49e2872`. **Đường nâng cấp sạch**: một
+migration `reports.0003_report_revision`, đảo ngược được, **10.005 dòng trước và
+sau không đổi**; `check --deploy` sạch; `docker compose config` hợp lệ 9 dịch vụ;
+gunicorn `settings.prod` khởi động được; Báo cáo tổng hợp ra bản mới, lưới CRM
+10.000 dòng không lỗi JS. [Biên bản](kiem-chung-dien-tap-vps-20260917.md).
+
+**Hai việc phải xử lý khi phát hành.** (1) Cột tiền của Báo cáo Marketing sẽ
+trống: đo được 5/5 dòng `bao_cao_mkt` thiếu `loai_tien`, `currency_safe_result()`
+cố ý bỏ trống để không cộng lẫn tiền tệ. Đã kiểm cách chữa — điền `loai_tien` thì
+dải vàng mất và số hiện lại. Cần bổ sung Loại tiền cho dòng cũ trên VPS.
+(2) Hai bảng rỗng `bao_cao_sale` và `bao_cao_van_don_ngay` sẽ xuất hiện nếu VPS
+chưa từng chạy hai lệnh `configure_*`.
+
+**Claude Code không đẩy được lên VPS.** Đã thử: không có `ssh`, `scp`, `rsync`;
+`~/.ssh` rỗng; `curl https://erp.thnsolution.io.vn/` trả `CONNECT tunnel failed,
+403` — chính sách mạng của môi trường chặn cả đọc. Phát hành vẫn do Codex làm từ
+máy chủ dự án.
+
 ## 17.09.2026 — Xoá 12 bài E2E viết cho lưới HTMX cũ
 
 Chạy `pytest` đầy đủ (cả `cham` lẫn `trinh_duyet`, máy ảo có Chromium) cho 14
