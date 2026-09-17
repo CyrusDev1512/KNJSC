@@ -35,9 +35,9 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **159** — 146 tự động, 13 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **145 trên 146** |
-| Tiêu chí tự động còn hoãn | **1**, đều thuộc diện chờ người dùng chốt — `AC-5.1`, backlog N9 |
+| Tiêu chí nghiệm thu trong `docs/04` | **190** — 177 tự động, 13 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **158 trên 177** |
+| Tiêu chí tự động còn hoãn | **19**, đều thuộc phần đang làm hoặc chờ chốt — xem bảng cuối tệp |
 | Bao phủ dòng mã | khoảng 85% |
 
 Ba con số đầu **có bài kiểm canh** — `app/tests/test_truy_vet.py` đọc chính
@@ -70,7 +70,7 @@ Bỏ qua các bài chạy chậm khi cần vòng lặp nhanh: `pytest -m "not ch
 | 2 | **Tệp chuyển đổi** | `core/tests/test_chuyen_doi.py` | Model khớp tệp, chạy xuôi và ngược, một nhánh lá | Bỏ `reverse_sql` của `0002_pg_trgm` → đỏ |
 | 3 | **Kiểm khói** | `tests/test_khoi.py` | Mọi đường dẫn × mọi vai trò, không trả 500 | Gỡ `@login_required` một view → đỏ |
 | 4 | **Chức năng** | Từng module, cộng `tests/test_luong_ba_bo_phan.py` | Luồng làm việc trọn vẹn qua HTTP | — |
-| 5 | **Hộp đen** | `tests/test_ma_tran_phan_quyen.py` | 45 ô ma trận kiểm chéo `docs/04` mục 3 | Tìm ra 4 lỗi thật ngay lần chạy đầu |
+| 5 | **Hộp đen** | `tests/test_ma_tran_phan_quyen.py` | 50 ô ma trận kiểm chéo `docs/04` mục 3 | Tìm ra 4 lỗi thật ngay lần chạy đầu |
 | 6 | **Hộp trắng** | `tests/test_hop_trang.py`, bản đo bao phủ | Nhánh chỉ chạy khi có lỗi, đường huỷ giao dịch | Tìm ra lỗi đọc tiền sai gấp trăm lần |
 | 7 | **Giao diện** | `core/tests/test_giao_dien.py` | Lớp CSS có thật, ô nhập có nhãn, bảng có tiêu đề | Thêm lớp bịa vào template → đỏ |
 | 8 | **Đầu-cuối trình duyệt** | `tests/e2e/` — Playwright, dấu `trinh_duyet` | Nhập → xuất → nhập lại qua giao diện; bàn phím và hộp lọc trên Bảng tính; kéo chọn vùng, dán TSV, kéo điền, hoàn tác, ô địa chỉ, chuột phải xoá hàng rồi hoàn tác (ADR-011); trang chủ KN CRM bấm tháng → lưới lọc tháng → ← (ADR-012); cột cố định khi cuộn; 390px không tràn ngang, có ảnh chụp | Đổi phím Esc thành không làm gì trong `bang-tinh.js` → đỏ |
@@ -134,13 +134,21 @@ Ba trong bốn lỗi đó **không sập trang, không báo lỗi, không làm b
 
 ## Tiêu chí còn hoãn
 
-1 tiêu chí tự động chưa có bài kiểm. Danh sách này nằm trong
+19 tiêu chí tự động chưa có bài kiểm. Danh sách này nằm trong
 `tests/test_truy_vet.py`, biến `HOAN`, và **rỗng dần theo tiến độ**
 — thêm mã vào đó bắt buộc ghi lý do và giai đoạn.
+
+Mười tám mã mới thêm không phải là bài kiểm bị bỏ: ba mục AC-24, AC-26, AC-27
+là **tiêu chí của việc đang làm**, chính `docs/04` ghi rõ "đang kiểm chứng" và
+"điều kiện nghiệm thu, không phải kết quả đã đạt". Chúng vào danh sách hoãn để
+bài truy vết đếm đúng, chứ không phải để lờ đi.
 
 | Tiêu chí | Chờ |
 |---|---|
 | `AC-5.1` | Bốn cách nhóm mới chạy ba — tab thị trường chờ chốt nguồn số liệu, backlog **N9** và **Q36** |
+| `AC-24.2` → `AC-24.5`, `AC-24.7` | CRM-Optimization đang kiểm chứng — ADR-024, Giai đoạn 7K; hai mã đo trên Chrome thật và đo tải 30 phút chạy tay khi phát hành |
+| `AC-26.1` → `AC-26.6` | Chứng từ thanh toán mới ghi tiêu chí, chưa làm — ADR-025, backlog chờ làm |
+| `AC-27.1`, `AC-27.2`, `AC-27.4` → `AC-27.8` | Lưới dùng chung và vòng đời bảng đang làm — ADR-027, Giai đoạn 7K; `AC-27.3` đã có bài kiểm |
 
 ---
 

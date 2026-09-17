@@ -302,3 +302,15 @@ table.report-table thead th {position:sticky;top:0;z-index:1;background:var(--ac
 .kn-date-control>.o-nhap,.kn-date-control>input:not(.kn-date-native){min-width:0;flex:1;width:100%}
 .kn-date-picker{flex:0 0 30px;border:1px solid var(--rule);border-radius:8px;background:var(--surface-2);color:var(--ink-2);cursor:pointer}
 .kn-date-native{position:absolute;right:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none}
+
+/* Tổng quan ERP — khối Báo cáo tổng hợp: mỗi nguồn một thẻ, mỗi thẻ vài chỉ tiêu. */
+.dashboard-activity { margin-bottom: 20px; }
+.dashboard-activity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; padding: 0 20px 20px; }
+.dashboard-activity-card { margin: 0; }
+.dashboard-source { margin: 0 0 8px; color: var(--ink-3); font-size: var(--fs-sm); }
+.dashboard-note { margin: 0 0 8px; color: var(--warn); font-size: var(--fs-sm); }
+.dashboard-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin: 0; }
+.dashboard-metric dt { color: var(--ink-2); font-size: var(--fs-sm); }
+.dashboard-metric dd { margin: 2px 0 0; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.dashboard-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 14px; font-size: var(--fs-sm); }
+.dashboard-links > div { display: flex; flex-wrap: wrap; gap: 12px; }

@@ -1,5 +1,27 @@
 # Backlog
 
+## 17.09.2026 — Sửa 19 bài kiểm đỏ có sẵn trước khi gộp KN CRM vào main
+
+Nhánh `codex/crm-update-solar-ui` có 19 bài đỏ **từ trước**, không do hai sửa
+nút lịch và entrypoint gây ra (đã kiểm lại ở `e5dae4e`). Chúng đỏ vì mã đi
+trước tài liệu và bài kiểm, chia bảy nhóm:
+
+| Nhóm | Vì sao đỏ | Sửa |
+|---|---|---|
+| Bộ phận Kế toán (ADR-025) | `org/0004` thêm bộ phận thứ tư, hai bài còn đếm ba | Đếm bốn; bài hợp trang chỉ đòi vắng bảng vận đơn |
+| Tiền theo quốc gia (ADR-031) | Bài xếp hạng còn dựng đơn VND, nay VND không hợp lệ với thị trường nào | Đổi sang PHP thị trường PH, thêm tỉ giá PHP |
+| Trùng mã đơn | Nhập tệp nay chặn mã đơn đã có; bài xuất–nhập dùng lại một mã | Thêm khẳng định chặn trùng, dòng thứ hai dùng mã mới |
+| Giao diện | Bốn lớp CSS dùng trong template mà chưa khai | Khai `.dashboard-*`, `.thong-bao` bằng biến nền, không màu cứng |
+| Ma trận phân quyền (ADR-023) | Lên đơn chuyển sang KN CRM, `/bieu-mau/` thành thư viện hai tab | Thêm kết quả *Chuyển KN CRM*, thêm dòng Thư viện tài liệu; ma trận 45 → **50 ô** |
+| Luồng ba bộ phận | Đơn nay lên ở KN CRM | Bài đặt đơn qua URLconf 8021; chiều từ chối kiểm 302 về KN CRM |
+| Truy vết | `docs/04` thêm bảng ba cột và hai cột, regex cũ chỉ đọc bốn cột | Đọc cả ba dạng bảng; 190 tiêu chí, 158/177 đã kiểm, 19 hoãn |
+
+19 mã hoãn không phải bài kiểm bị bỏ: AC-24, AC-26, AC-27 là tiêu chí của việc
+**đang làm**, chính `docs/04` ghi "đang kiểm chứng". Ghi vào `HOAN` để bài truy
+vết đếm đúng, kèm lý do và giai đoạn — quy tắc của `tests/test_truy_vet.py`.
+
+Sau sửa: `pytest -m "not cham"` **2494 xanh, 13 bỏ qua, 0 đỏ**.
+
 ## 16.09.2026 — Kiểm chứng cờ và phát hành tối ưu cuộn (đã phát hành phần đã kiểm)
 
 Bản lưới mới qua 137 hồi quy, E2E lưới chung và hai lượt tải chính 100.000
@@ -440,7 +462,7 @@ bằng `scripts/restore.sh` (7B). **Bảng tính vận đơn** theo tệp thật
 cột, sửa ô có danh sách chọn, Lọc trùng, tô màu Hủy/Hoàn, mỗi sản phẩm một cột
 — chạy ở dịch vụ `bangtinh` `localhost:8021/bang-tinh/`, Bảng dữ liệu chỉ xem
 (7C, ADR-009). Kiểm thử chín tầng: thêm Playwright (bàn phím, hộp lọc, cột cố
-định, 390px), 50.000 dòng dưới 2 giây, Locust 50 người tự chấm, ma trận 45 ô;
+định, 390px), 50.000 dòng dưới 2 giây, Locust 50 người tự chấm, ma trận 50 ô;
 `docs/07` là kịch bản bấm tay (7D). **Bảng tính cho mọi bảng** (7E, ADR-010):
 `/bang-tinh/<mã bảng>/` cho bảng nào trong phạm vi; viền ô như Excel, dòng
 trống cuối lưới gõ là thành bản ghi; định dạng ô (đậm, nền, cỡ, căn) lưu vào

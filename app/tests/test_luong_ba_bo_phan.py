@@ -121,16 +121,21 @@ def test_mot_ngay_cua_cong_ty(client, departments, teams, nguoi_dung):
     Product.objects.create(name="Máy massage HM-200", code="hm200", group=nhom)
 
     client.force_login(sale_nv)
-    the = _lay_the(client, "/len-don/")
-    kq = client.post("/len-don/", {
-        "csrfmiddlewaretoken": the,
-        "phone": "0912345678", "customer_name": "Nguyễn Văn An",
-        "email": "an@vidu.com", "market": "us", "state": "California",
-        "city": "San Jose", "zipcode": "95112",
-        "payment_method": "zelle", "currency": "USD",
-        "sp_0": "hm200", "sl_0": "2", "gia_0": "150,00",   # phẩy thập phân
-    })
-    assert kq.status_code == 302, "Lên đơn không thành công"
+    # Lên đơn chuyển hẳn sang KN CRM (ADR-023): KN ERP chỉ đưa người dùng sang,
+    # nên bài này gọi đúng URLconf của dịch vụ 8021 như trình duyệt vẫn làm.
+    assert client.get("/len-don/").status_code == 302, "KN ERP phải đưa sang KN CRM"
+    with override_settings(ROOT_URLCONF="knjsc.urls_bangtinh"):
+        the = _lay_the(client, "/van-don/len-don/")
+        kq = client.post("/van-don/len-don/", {
+            "csrfmiddlewaretoken": the,
+            "phone": "0912345678", "customer_name": "Nguyễn Văn An",
+            "email": "an@vidu.com", "market": "us", "state": "California",
+            "city": "San Jose", "zipcode": "95112",
+            "payment_method": "zelle", "currency": "USD",
+            "product": ["hm200"], "quantity": ["2"],
+            "unit_price": ["150,00"],                      # phẩy thập phân
+        })
+    assert kq.status_code == 200, "Lên đơn không thành công"
 
     don = Order.objects.get()
     assert don.total == Decimal("300.00"), "Đọc sai số tiền người dùng gõ"
@@ -202,5 +207,7 @@ def test_moi_bo_phan_chi_thay_phan_cua_minh(client, departments, teams, nguoi_du
     assert client.get("/bang/van_don/").status_code == 200  # nhưng thấy bảng của mình
 
     client.force_login(nguoi_dung["staff_sale_1"])
-    assert client.get("/len-don/").status_code == 200      # Sale lên đơn được
+    # Sale vẫn có quyền, nhưng KN ERP đưa sang KN CRM chứ không mở tại chỗ (ADR-023)
+    kq = client.get("/len-don/")
+    assert kq.status_code == 302 and "/van-don/len-don/" in kq["Location"]
     assert client.get("/bang/van_don/").status_code == 404  # không thấy bảng vận đơn

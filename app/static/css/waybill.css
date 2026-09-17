@@ -29,3 +29,8 @@
 #vd-assignment-status { min-height:1.5em; }
 
 @media (max-width:600px) { .vd-fields { grid-template-columns:1fr; } .vd-page {padding:8px;} .vd-dialog {padding:14px;} }
+
+/* Thông báo một dòng trong trang CRM; `.loi` là biến thể lỗi. Dùng biến nền
+   nên đổi màu theo nền sáng tối, không ghi màu cứng như `.vd-error` cũ. */
+.thong-bao { margin: 0 0 12px; padding: 10px 14px; border: 1px solid var(--rule); border-radius: 8px; background: var(--surface-2); color: var(--ink); }
+.thong-bao.loi { border-color: var(--critical); background: var(--critical-soft); color: var(--critical); }

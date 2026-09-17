@@ -101,7 +101,9 @@ và đó là chuyện bình thường.
 
 ### Ma trận kiểm chéo
 
-Mỗi ô là một bài kiểm thử. Năm vai trò nhân với chín đường dẫn chính — 45 ô, thêm hai dòng ngày 03.09.2026 (nhập tệp và Bảng tính).
+Mỗi ô là một bài kiểm thử. Năm vai trò nhân với mười đường dẫn chính — 50 ô, thêm hai dòng ngày 03.09.2026 (nhập tệp và Bảng tính) và một dòng ngày 17.09.2026 (thư viện tài liệu).
+
+Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ngay tại KN ERP: người có quyền được chuyển sang KN CRM, người không có quyền vẫn bị từ chối tại chỗ. **Thư viện biểu mẫu và tài liệu** dùng chung đường dẫn `/bieu-mau/`: mở ra là tab Tài liệu, ai đăng nhập cũng vào được; tab quản lý biểu mẫu `?tab=forms` vẫn chỉ Manager trở lên, gọi thẳng bằng vai khác trả lỗi từ chối.
 
 | Đường dẫn | Staff Sale | Leader Sale | Manager Sale | Staff Vận đơn | Chưa đăng nhập |
 |---|---|---|---|---|---|
@@ -109,11 +111,12 @@ Mỗi ô là một bài kiểm thử. Năm vai trò nhân với chín đường 
 | Báo cáo người cùng team | Từ chối | Vào được | Vào được | Từ chối | Chuyển đăng nhập |
 | Báo cáo team khác cùng bộ phận | Từ chối | Từ chối | Vào được | Từ chối | Chuyển đăng nhập |
 | Báo cáo bộ phận khác | Từ chối | Từ chối | Từ chối | Từ chối | Chuyển đăng nhập |
-| Màn hình lên đơn | Vào được | Vào được | Vào được | Từ chối | Chuyển đăng nhập |
+| Màn hình lên đơn | Chuyển sang KN CRM | Chuyển sang KN CRM | Chuyển sang KN CRM | Từ chối | Chuyển đăng nhập |
 | Bảng vận đơn | Từ chối | Từ chối | Từ chối | Vào được | Chuyển đăng nhập |
-| Quản lý biểu mẫu | Từ chối | Từ chối | Vào được | Từ chối | Chuyển đăng nhập |
+| Quản lý biểu mẫu (`?tab=forms`) | Từ chối | Từ chối | Vào được | Từ chối | Chuyển đăng nhập |
 | Nhập tệp vào bảng của Sale | Từ chối | Vào được | Vào được | Từ chối | Chuyển đăng nhập |
 | Bảng tính vận đơn | Từ chối | Từ chối | Từ chối | Vào được | Chuyển đăng nhập |
+| Thư viện tài liệu (`/bieu-mau/`) | Vào được | Vào được | Vào được | Vào được | Chuyển đăng nhập |
 
 ---
 

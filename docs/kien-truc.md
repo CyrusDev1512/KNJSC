@@ -326,7 +326,7 @@ Giao diện dùng chung không thành module riêng mà nằm ở `app/templates
 ├── Tác vụ nền có theo dõi (BackgroundJob), đánh dấu kẹt
 ├── Sao lưu pg_dump hằng đêm, giữ 30 bản, phục hồi có xác nhận; service beat
 ├── Bảng tính vận đơn theo tệp thật — dịch vụ bangtinh cổng 8021 (ADR-009)
-├── Kiểm thử toàn diện: Playwright, Locust, 50.000 dòng, ma trận 45 ô
+├── Kiểm thử toàn diện: Playwright, Locust, 50.000 dòng, ma trận 50 ô
 ├── Bảng tính cho mọi bảng: viền ô, dòng trống, cột khoá, thanh lọc trái, định dạng ô, thư mục (ADR-010)
 ├── Bảng tính nhìn và thao tác như KN Demo: chọn vùng, dán, kéo điền, chuột phải, hoàn tác, tự cập nhật (ADR-011)
 ├── KN CRM là app riêng, ERP chỉ liên kết; cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng, tháng là góc nhìn (ADR-012)

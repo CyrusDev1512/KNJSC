@@ -152,7 +152,7 @@ mẫu (để số giả không lẫn vào), nên Xếp hạng doanh số ở 3.1
 |---|---|---|---|
 | ☐ | Bộ phận và team → thêm team mới → sang Nhân sự gán ngay | Team mới hiện ở ô chọn trong cùng phiên | **AC-2.4** |
 | ☐ | Tổng quan | Thấy ô Sao lưu đêm qua, Tác vụ nền, Nhật ký | — |
-| ☐ | Ma trận phân quyền | Đủ 45 ô, khớp `docs/04` mục 3 | AC-3.x |
+| ☐ | Ma trận phân quyền | Đủ 50 ô, khớp `docs/04` mục 3 | AC-3.x |
 | ☐ | Gõ đường dẫn sai `localhost:8020/khong-co/` | Ghi nhận trang hiện gì. **Chưa làm** trang 404 tiếng Việt — backlog K9; đây là điểm biết trước | AC-10.3 |
 | ☐ | Nhân sự → Sửa hồ sơ `vd.manager`, điền **Ngày sinh** là hôm nay; rồi chạy `docker compose -f deploy/docker-compose.yml exec web python manage.py thiep_sinh_nhat` hai lần | Lần một "1 thiep moi", lần hai "0 thiep moi"; Bảng tin có thiệp cho Bùi Kim Chi; Nhật ký có dòng "Thiệp sinh nhật" | AC-13.4 |
 | ☐ | Chạy `… manage.py thuong_sao_thang --thang <tháng có đơn mẫu, dạng YYYY-MM>` hai lần | Lần một "3 dong sao moi", lần hai "0 dong sao moi"; Văn hoá → Nhiều sao nhất: `sale.staff` +5, `sale.staff2` +3, `sale.leader` +1 (đồng hạng thì cùng nhận — Q77); Nhật ký có "Thưởng sao xếp hạng" kèm tỉ giá | AC-15.3 |

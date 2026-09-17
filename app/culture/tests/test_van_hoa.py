@@ -26,8 +26,11 @@ from orders.services import dispatch_service, order_service
 
 pytestmark = pytest.mark.django_db
 
-#: Tỉ giá tròn để đọc số bằng mắt: 100 USD = 2.500.000, 500 CAD = 9.000.000
-TI_GIA = {"VND": Decimal("1"), "USD": Decimal("25000"), "CAD": Decimal("18000")}
+#: Tỉ giá tròn để đọc số bằng mắt: 100 USD = 2.500.000, 500 CAD = 9.000.000,
+#: 30.000 PHP = 15.000.000. Giữ VND trong bảng vì bảng xếp hạng vẫn quy về VND,
+#: nhưng không đơn nào mang VND: mỗi thị trường buộc đúng một loại tiền (ADR-031).
+TI_GIA = {"VND": Decimal("1"), "USD": Decimal("25000"), "CAD": Decimal("18000"),
+          "PHP": Decimal("500")}
 
 
 def _so(action):
@@ -164,7 +167,7 @@ def test_ghi_nhan_tu_tren_xuong_cong_mot_sao(client, nguoi_dung):
 def test_bang_xep_hang_doanh_so_thang_nay(client, nguoi_dung, san_pham):
     """AC-15.2 — Bảng xếp hạng gộp đơn tháng này theo người bán, quy về VND bằng tỉ giá cố định trong cấu hình, xếp theo tổng rồi số đơn; đơn đã bỏ và đơn tháng trước không tính; mọi bộ phận xem được nhưng không thấy mã đơn; thiếu tỉ giá thì báo lỗi, không trả số sai"""
     n = nguoi_dung
-    _don(n["staff_sale_1b"], san_pham, "15000000", Currency.VND)             # 15.000.000
+    _don(n["staff_sale_1b"], san_pham, "30000.00", Currency.PHP, Market.PH)  # 15.000.000
     _don(n["staff_sale_2"], san_pham, "500.00", Currency.CAD, Market.CA)      # 9.000.000
     _don(n["staff_sale_1"], san_pham, "100.00")                              # 2 đơn = 5.000.000
     _don(n["staff_sale_1"], san_pham, "100.00")

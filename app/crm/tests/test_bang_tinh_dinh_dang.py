@@ -92,6 +92,7 @@ def test_dinh_dang_theo_quyen_sua_o(client,bang_sale,bang_vd,nguoi_dung):
 # ══ Sổ định dạng mở rộng theo demo — AC-11.23 ══════════════════════
 
 def test_dinh_dang_mo_rong_va_dinh_dang_so(client,bang_sale,nguoi_dung):
+    """AC-11.23 — Nghiêng, gạch chân, gạch ngang, xuống dòng, viền, màu chữ và màu nền từ bảng 40 màu, cỡ 10–28 và định dạng số (num/pct/usd/vnd/text) lưu được và dịch sang lớp CSS cố định; ô số hiện theo định dạng, giá trị thô giữ nguyên trong `data-goc`"""
     d=_dong(bang_sale,nguoi_dung['staff_sale_1'],khach='A');client.force_login(nguoi_dung['staff_sale_1'])
     response=client.post(f'/bang-tinh/{bang_sale.code}/luu-json/',{'operation':str(uuid.uuid4()),'cells':[{'id':d.pk,'column':'khach','property':'b','old':None,'value':1}]},content_type='application/json')
     assert response.status_code==400

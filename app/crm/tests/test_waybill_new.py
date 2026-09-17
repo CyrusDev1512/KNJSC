@@ -255,12 +255,22 @@ def test_statistics_full_filter_currency_product_and_soft_delete(client, setup, 
 
 
 def test_export_import_roundtrip_and_preview_ambiguous(client, setup, nguoi_dung, settings, tmp_path):
-    """AC-18.7 — Xuất chi tiết JSON, nhập lại đúng; lỗi chi tiết xuất hiện ngay ở xem trước."""
+    """AC-18.7 — Xuất chi tiết JSON, nhập lại đúng; nhập trùng mã đơn bị chặn ngay ở xem trước; lỗi chi tiết cũng hiện ở xem trước."""
     settings.STORAGE_DIR = tmp_path
     row = order(setup, nguoi_dung["staff_sale_1"], assigned=False).record
     service.update_items(nguoi_dung["admin"], row.pk, lines(setup[2], "1.11"), row.updated_at.isoformat())
     columns = list(setup[1].columns.all())
     workbook = export_service.build_workbook(DataRecord.objects.in_scope(nguoi_dung["admin"]).filter(pk=row.pk), columns, title="Vận đơn")
+    buffer = BytesIO(); workbook.save(buffer)
+    # Nhập lại y nguyên thì bị chặn: mã đơn đã có trong bảng. Luật chống trùng
+    # sinh ra khi nhiều Sale cùng lưu một lúc, nên tệp xuất ra không dùng để
+    # nhân bản đơn được nữa.
+    trung = import_service.prepare(setup[1], SimpleUploadedFile("trung.xlsx", buffer.getvalue()), actor=nguoi_dung["admin"])
+    assert trung.summary["preview_error_count"] == 1
+    assert "đã tồn tại" in trung.summary["preview_errors"][0][1]
+    # Đổi mã đơn rồi nhập: chi tiết sản phẩm và số tiền vẫn đi theo đúng.
+    cot_ma_don = [c.code for c in columns].index("ma_don") + 1
+    workbook.active.cell(2, cot_ma_don, "ROUNDTRIP-1")
     buffer = BytesIO(); workbook.save(buffer)
     upload = SimpleUploadedFile("roundtrip.xlsx", buffer.getvalue())
     job = import_service.prepare(setup[1], upload, actor=nguoi_dung["admin"])
@@ -270,13 +280,16 @@ def test_export_import_roundtrip_and_preview_ambiguous(client, setup, nguoi_dung
     assert job.summary["created"] == 1 and job.summary["error_count"] == 0
     copy = DataRecord.objects.filter(table=setup[1]).exclude(pk=row.pk).get()
     assert copy.data["so_tien_tt"] == "2.22" and copy.waybill_items.count() == 2
+    # Mã đơn phải khác lần vừa nhập, nếu không lỗi báo ra là trùng mã chứ không
+    # phải lỗi chi tiết sản phẩm đang muốn kiểm.
+    workbook.active.cell(2, cot_ma_don, "ROUNDTRIP-2")
     workbook.active.cell(2, len(columns) + 1, "nhiều sản phẩm chưa tách")
     buffer = BytesIO(); workbook.save(buffer)
     job = import_service.prepare(setup[1], SimpleUploadedFile("bad.xlsx", buffer.getvalue()), actor=nguoi_dung["admin"])
     assert job.summary["preview_error_count"] == 1 and job.summary["preview_errors"][0][0] == 2
     client.force_login(nguoi_dung["admin"])
     html = client.get(f"/bang/van_don_moi/nhap/{job.pk}/").content.decode()
-    assert "chi tiết sản phẩm không hợp lệ" in html
+    assert "Chi tiết sản phẩm phải là danh sách JSON" in html
 
 
 @pytest.mark.parametrize("value", [None, "", "NaN", "Infinity", "-0.01"])
