@@ -1,14 +1,14 @@
 # Bộ 5 skill gọn cho KNJSC
 
-Ngày thiết lập: 09.09.2026. Phạm vi: Codex trong repository KNJSC.
+Ngày thiết lập: 09.09.2026; thêm cầu nối cho Claude Code 17.09.2026. Phạm vi: Codex và Claude Code trong repository KNJSC.
 
 ## Trạng thái và cách dùng
 
 Năm skill cốt lõi bên dưới hiện ở `.agents/skills`, cùng năm skill thiết kế đã có:
 `impeccable`, `design-taste-frontend`, `high-end-visual-design`, `minimalist-ui`,
 `redesign-existing-projects`. Tổng **10 bản nội dung chung**, không thêm skill mới
-ngoài hai nhóm này. Chỉ `.agents/skills` chứa nội dung; không còn cầu nối.
-Xem [cấu trúc và đồng bộ nhiều máy](dong-bo-ai-nhieu-may.md).
+ngoài hai nhóm này. Chỉ `.agents/skills` chứa nội dung; `.claude/skills` là 10 cầu nối
+sinh tự động để Claude Code cũng thấy đủ 10 skill. Xem [cấu trúc và đồng bộ nhiều máy](dong-bo-ai-nhieu-may.md).
 
 Danh mục Codex ở đầu lượt đã hiển thị đủ 10 tên skill trước lần chuyển nội dung này.
 Cấu trúc mới cần kiểm khám phá ở lượt/phiên tiếp theo; tự chọn qua 5 tác vụ vẫn chờ.

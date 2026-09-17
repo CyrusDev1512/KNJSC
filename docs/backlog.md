@@ -1,5 +1,20 @@
 # Backlog
 
+## 17.09.2026 — CLAUDE.md theo nhánh đang chạy; cầu nối skill cho Claude Code
+
+Chủ dự án yêu cầu hai việc. (1) Viết lại `CLAUDE.md` cho khớp nhánh
+`codex/crm-update-solar-ui`: nhánh chính không phải `main`, VPS và cách phát hành,
+lưới `master-grid.js` thay hai tệp HTMX đã xoá, ba bảng vận đơn, cờ `CRM_OPT_*`
+tắt, mốc 300.000 dòng / 10 người, lệnh dữ liệu giả, hai điều của AGENTS.md hay bị
+quên (duyệt trước, chỉ push khi được yêu cầu), ba lỗi `test_truy_vet` có sẵn, và
+ghi rõ TL-01 → TL-34 rà trên lưới cũ. (2) Skill dùng chung: giữ `.agents/skills`
+là nguồn duy nhất, thêm 10 cầu nối `.claude/skills/<tên>/SKILL.md` sinh bởi
+`scripts/dong-bo-skill.py --tao-cau-noi` (chép `name`/`description`, thân trỏ về
+nguồn; không symlink vì Windows, không chép nội dung vì lệch); `--check` và bài
+`tests/test_dong_bo_skill.py` bắt lệch. Mâu thuẫn còn để ngỏ: PRODUCT.md (Google
+Workspace, 07.09) và ADR-028 (Solarpunk, 14.09) cùng ghi "đã chốt"; chỉ mục ADR
+dừng ở 022 và có hai tệp 022 — chưa sửa, chờ chủ dự án.
+
 ## 16.09.2026 — Cột Trùng chưa có tác dụng; nạp 300.000 khách mẫu vào Vận đơn DB
 
 Anh/chị xem bảng vận đơn cũ và thấy cột Trùng chỉ hiện con số 2. Rà mã: cột
