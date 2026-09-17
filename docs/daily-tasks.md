@@ -1,5 +1,80 @@
 # Daily tasks — KNJSC
 
+## Bàn giao cho Claude Code CLI trên máy chủ dự án — 17.09.2026: phát hành VPS
+
+Claude Code trên web **không tới được VPS** (mạng môi trường trả
+`x-deny-reason: host_not_allowed`, cổng 22 không mở, không có `ssh`). Việc phát
+hành làm từ máy có SSH vào VPS. Mở Claude Code CLI trong thư mục kho, dán:
+
+> Đọc `docs/daily-tasks.md` mục "Bàn giao cho Claude Code CLI ... 17.09.2026" và
+> làm theo. SSH tới VPS: `<điền>`. Đường dẫn kho trên VPS: `<điền>`. Cách dựng
+> image: `<build tại VPS | build ở đây rồi đẩy>`.
+
+### Bối cảnh — đã kiểm chứng, không kiểm lại
+
+- Nhánh làm việc là `codex/crm-update-solar-ui`, **không phải** `main`. Đọc
+  `CLAUDE.md` mục "Nhánh và nơi mã đang chạy" trước.
+- VPS đang chạy `knjsc-app:0907cdd-grid` (16.09). Đầu nhánh hiện `a613655`, đi
+  trước 15 commit. **Chỉ một migration mới**: `reports.0003_report_revision`,
+  đảo ngược được.
+- Đã diễn tập nâng cấp trên DB có dữ liệu ở trạng thái `0907cdd`: 10.005 dòng
+  trước/sau không đổi, quay lui được, `check --deploy` sạch, gunicorn prod
+  khởi động được. Biên bản: `docs/kiem-chung-dien-tap-vps-20260917.md` —
+  **đọc trước khi làm**.
+- Quy trình chuẩn ở `deploy/production/README.md`, **đã thêm** hai lệnh
+  `configure_erp_reports` và `configure_delivery_daily_report` sau
+  `tao_bang_van_don`. Thiếu chúng thì Báo cáo tổng hợp lặng lẽ hiện bản cũ.
+  Production đặt `RUN_MIGRATIONS=0` nên entrypoint không chạy giúp — phải gọi tay.
+- Khuôn phát hành các lần trước: các tệp `docs/kiem-chung-*-vps-*.md` và các
+  commit "Ghi ket qua phat hanh ... tren VPS" — đọc để làm đúng khuôn tên tag
+  image, backup, `nginx -t`, kiểm Chrome domain thật.
+
+### Việc, theo thứ tự
+
+1. Trên máy này: `git fetch`, checkout `codex/crm-update-solar-ui`, xác nhận
+   HEAD là `a613655` hoặc mới hơn. `pytest -m "not cham"` cho chắc (~2.500 đạt).
+2. SSH vào VPS, **không đổi gì**, chỉ ghi nhận: `docker compose ps`, tag image
+   đang chạy, dung lượng DB, `manage.py showmigrations reports`. Báo chủ dự án.
+3. **Dừng lại**, tóm tắt kế hoạch, hỏi chủ dự án xác nhận **một lần** trước khi
+   động vào production. Dữ liệu thật ~1,25 GB, không hoàn tác được như máy ảo.
+4. Sau khi được gật: backup DB theo cách các lần trước, **kiểm phục hồi được**.
+   Không có backup kiểm được thì không đi tiếp.
+5. Dựng/kéo image `knjsc-app:<commit>-<nhãn>` đúng khuôn cũ.
+6. Tại `deploy/production`, chạy đúng dãy trong README: `config --quiet` →
+   `up -d db broker cache` → `static-owner` → `migrate --noinput` →
+   `tao_bang_van_don` → `configure_erp_reports` →
+   `configure_delivery_daily_report` → `collectstatic --noinput` →
+   `up -d crm erp worker heavy beat proxy`. Rồi `nginx -t` và reload.
+7. Kiểm sau phát hành bằng Chrome trên domain thật:
+   - ERP `/bao-cao/tong-hop/` phải là bản **mới**: có nút "Toàn màn hình".
+   - CRM `/bang-tinh/van_don_moi/` mở được, chân trang "N dòng khớp bộ lọc",
+     console không lỗi JS.
+   - Đăng nhập chung ERP/CRM còn hoạt động.
+8. Ghi một mục ngày vào đầu `docs/backlog.md` và một tệp
+   `docs/kiem-chung-phat-hanh-vps-<ngày>.md`: tag image, lệnh đã chạy, số đo,
+   phần chưa kiểm. Commit theo khuôn "Ghi ket qua phat hanh ... tren VPS", push
+   lên `codex/crm-update-solar-ui` khi chủ dự án bảo.
+
+### Hai thứ sẽ xảy ra sau phát hành — không phải lỗi, báo để chủ dự án quyết
+
+- **Báo cáo Marketing: mọi cột tiền hiện `—` kèm dải vàng**, vì dòng cũ không
+  có `loai_tien`; `currency_safe_result()` cố ý không cộng lẫn tiền tệ. Đếm số
+  dòng `bao_cao_mkt` trên VPS thiếu `loai_tien` và báo. Điền `loai_tien` cho
+  dòng cũ thì số hiện lại — đã kiểm. **Không tự điền**, hỏi loại tiền nào.
+- **Hai bảng rỗng** `bao_cao_sale` và `bao_cao_van_don_ngay` sẽ xuất hiện nếu
+  VPS chưa từng chạy `configure_*`. Chỉ báo, không xoá.
+
+### Nếu hỏng
+
+Quay lui bằng image `knjsc-app:0907cdd-grid` và `migrate reports 0002`.
+**Không restore DB chỉ để lùi mã** (README production nói rõ).
+
+### Quy tắc
+
+- Không bật cờ `CRM_OPT_*`, không đổi đích nhận đơn, không đụng dữ liệu nghiệp vụ.
+- Chỉ push khi được bảo. Không dán mật khẩu/khoá vào đâu; dùng `ssh` có sẵn.
+- Báo kết quả thật: lệnh nào đỏ thì dán nguyên log, không tóm tắt cho đẹp.
+
 ## 16.09.2026 — Dừng phép đo hỗn hợp, đưa toàn bộ thay đổi lên GitHub
 
 Theo yêu cầu chủ dự án, dừng kiểm tải 10 người Vận đơn + 5 Sale lên đơn. Mới chuẩn bị tài khoản/sản phẩm/bảng nhận đơn trong DB thử; chưa chạy kịch bản hỗn hợp, chưa có kết quả để kết luận. App/DB benchmark local và VPS đã dừng; giữ dữ liệu giả riêng để tái lập. Phạm vi bàn giao Git gồm toàn bộ thay đổi code, migration, kiểm thử và tài liệu hiện có; dữ liệu local/manifest phiên thử trong storage vẫn được gitignore.
