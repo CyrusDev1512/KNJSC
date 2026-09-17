@@ -330,7 +330,7 @@ dựng đầu tiên cho bảng `van_don`, nhìn và thao tác như bảng tính 
 
 | Việc | Cách làm |
 |---|---|
-| Phạm vi | `DataRecord.objects.in_scope(user)` — bảng dùng chung nên cả bộ phận thấy mọi dòng |
+| Phạm vi | `DataRecord.objects.in_scope(user)` — bảng dùng chung nên cả bộ phận thấy mọi dòng; bảng Vận đơn: nhân viên Vận đơn thấy và sửa mọi dòng, Sale/CSKH theo phân công (`assignment_service.scope_condition`, ADR-033); `?cua_toi=1` là bộ lọc theo cột phụ trách, đặt trong `grid_service.build_grid` |
 | Lọc, sắp xếp | `forms_builder.query` — toán tử `trong`, `chua`, `lon_bang`/`nho_bang`, `rong`/`co`; cột JSON số nguyên được ép kiểu để so được |
 | Lọc trùng | Cột ảo: `Subquery` đếm dòng cùng `val_phone` trong bảng; số trống không tính |
 | Thứ tự cột | `dispatch_service.GRID_ORDER`, cột `sl_*` chèn sau thông tin khách |

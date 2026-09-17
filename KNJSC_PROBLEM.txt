@@ -55,13 +55,13 @@ Vấn đề tập trung
 3. Mật khẩu ban đầu cần random để tránh người này vào tài khoản của nhân sự khác.
    Phần KNERP: đã khôi phục tự sinh mật khẩu tạm 16 ký tự khi Admin để trống, bàn giao một lần và buộc đổi khi đăng nhập; functional/Chrome đạt 14.09.2026. Xem docs/kiem-chung-tich-hop-local-20260914.md (chưa chạy lại kiểm tải).
 4. Nhân viên Vận đơn chỉ được xem hoặc thao tác đúng phạm vi được giao. -> đã làm (KN CRM — Vận đơn mới: phân công và phạm vi theo người được giao)
-   - Quyết định thay thế 12.09.2026: Admin/Manager Vận đơn chọn Chỉ dòng được phân công / Toàn bộ bảng cho nhân viên Vận đơn; quyền sửa vẫn theo phân công, trang lưới reload khi đổi. Phần này đã kiểm chứng local -> đã làm (ADR-026; docs/kiem-chung-che-do-xem-van-don-20260912.md; chưa tích hợp checkout đang chạy).
-5. Cần assign theo tên/người được giao để tránh nhân sự Vận đơn của đơn này chỉnh sửa đơn thuộc nhân sự Vận đơn khác. -> đã làm (KN CRM — Vận đơn mới: phân công và phạm vi theo người được giao)
+   - Quyết định thay thế 12.09.2026 (ADR-026, Chế độ xem bảng) đã bị thay 17.09.2026 bởi ADR-033: mặc định công ty là nhân viên Vận đơn thấy và sửa mọi dòng của bảng Vận đơn; nút Tôi / Toàn bộ trên lưới lọc theo cột phụ trách của bộ phận mình. Trang Chế độ xem bảng và trường cấu hình đã xoá -> đã làm (docs/kiem-chung-pham-vi-toi-toan-bo-20260917.md).
+5. Cần assign theo tên/người được giao để tránh nhân sự Vận đơn của đơn này chỉnh sửa đơn thuộc nhân sự Vận đơn khác. -> đã làm (KN CRM — Vận đơn mới: phân công theo người được giao). Chốt lại 17.09.2026 (ADR-033): phân công chỉ để biết ai phụ trách; nhân viên Vận đơn sửa được mọi dòng, lịch sử ô ghi ai sửa.
 6. Vận đơn được xem dữ liệu nhưng không được thao tác mục đối soát nếu không có quyền.
    Chốt bổ sung: Vận đơn không phụ trách và không cần quan tâm phần số tiền. Phần số tiền thuộc công việc của Kế toán và Kho. Quyền thao tác cụ thể của Kế toán/Kho cần xác định riêng.
 7. Hệ thống cần hạn chế thao tác linh tinh và chỉ cung cấp các thao tác có ý nghĩa với vai trò.
 8. Phần view cho nhân viên phải thuận tiện nhất cho người trực tiếp xử lý.
-   Phần KN CRM — Vận đơn mới: tự lưu nền, chế độ Xem/Chỉnh sửa, chọn hàng xanh, định dạng cơ bản, lịch sử ô/xung đột và số hàng từ 1; kiểm chức năng/E2E -> đã làm (phạm vi thao tác đã chốt; chưa đóng nghiệm thu hiệu năng lọc 300k hoặc H7)
+   Phần KN CRM — Vận đơn mới: tự lưu nền, lưới luôn chỉnh sửa và nút Tôi / Toàn bộ (ADR-033 thay chế độ Xem/Chỉnh sửa), chọn hàng xanh, định dạng cơ bản, lịch sử ô/xung đột và số hàng từ 1; kiểm chức năng/E2E -> đã làm (phạm vi thao tác đã chốt; chưa đóng nghiệm thu hiệu năng lọc 300k hoặc H7)
 
 Kết quả tính năng cần hướng tới
 - Một định danh nhân sự duy nhất xuyên suốt KNERP và KNCRM.

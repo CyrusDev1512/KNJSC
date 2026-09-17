@@ -209,10 +209,10 @@ DB test. Các bước công thức/kéo điền/định dạng của bảng cũ 
 ## Nghiệm thu chín hạng mục Vận đơn mới — 10.09.2026
 
 Dùng môi trường test: Admin không có phòng ban chọn Sale và tạo đơn; xác nhận
-đơn ở cuối, hàng đầu số 1. Leader giao đơn, Staff chỉ thấy đúng phần được giao.
+đơn ở cuối, hàng đầu số 1. Leader giao đơn; từ 17.09.2026 (ADR-033) Staff Vận đơn thấy và sửa mọi dòng, nút Tôi thu về dòng mình phụ trách.
 Staff sửa và chờ Đã lưu; Sale đứng đơn xem dữ liệu/lịch sử nhưng không tự có
 quyền sửa mới. Hai người sửa cùng ô phải đối chiếu, không ghi đè im lặng.
-Thử hai chế độ, Tab/Enter/IME, vùng chọn xanh, fs/c/bg, Undo/Redo, kéo hàng/cột,
+Thử nút Tôi / Toàn bộ (không còn hai chế độ), Tab/Enter/IME, vùng chọn xanh, fs/c/bg, Undo/Redo, kéo hàng/cột,
 đọc nội dung dài và popup có X. Ngắt phản hồi sau commit để kiểm replay cùng ID;
 rời trang khi còn nháp phải cảnh báo. Đối chiếu file xuất với dữ liệu đã lưu.
 Thu quyền một dòng trong lượt dán hai dòng đang gửi: server không ghi cả

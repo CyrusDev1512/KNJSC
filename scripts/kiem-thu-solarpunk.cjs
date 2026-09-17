@@ -35,7 +35,7 @@ const fs = require('node:fs');
   await page.locator('[data-close-detail]').click();
   await page.locator('#mg-more-button').click();
   assert.equal(await page.locator('#mg-assign').isVisible(),true,'Admin phải còn thao tác Phân công');
-  assert.equal(await page.locator('#mg-more a[href$="/che-do-xem/"]').count(),1,'Phải còn trang Chế độ xem bảng');
+  assert.equal(await page.locator('#mg-more a[href$="/che-do-xem/"]').count(),0,'Trang Chế độ xem bảng đã bỏ (ADR-033)');assert.equal(await page.locator('#mg-pham-vi').count(),0,'Admin không có nút Tôi/Toàn bộ');
   await page.keyboard.press('Escape');
   await page.locator('#bt-toan-man-nut').click();
   assert.equal(await page.locator('.bt-thanh-tren').isVisible(),false,'Focus must hide account/header even without browser Fullscreen API');

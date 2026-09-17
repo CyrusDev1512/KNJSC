@@ -9,7 +9,7 @@ const root=path.resolve(__dirname,'..'),out=path.join(root,'.agents/design-state
     await Promise.all([page.waitForURL(u=>!u.pathname.includes('dang-nhap')),page.locator('button[type=submit]').click()]);
     await page.goto('http://127.0.0.1:8035/bang-tinh/van_don_moi/?f_ma_don=MASTER-00000');
     const cell=page.locator('.mg-cell[data-r="0"][data-code="bang"]');await cell.waitFor();
-    await page.locator('#mg-mode').click();await cell.click();await page.locator('#mg-editor input').waitFor();
+    await cell.click();await page.locator('#mg-editor input').waitFor();
     result.checks.push('Admin click đứng yên mở ô sửa');await page.keyboard.press('Escape');
     const box=await cell.boundingBox();await page.mouse.move(box.x+30,box.y+12);await page.mouse.down();
     await page.mouse.move(box.x+37,box.y+12,{steps:3});await page.mouse.up();
@@ -42,18 +42,16 @@ const root=path.resolve(__dirname,'..'),out=path.join(root,'.agents/design-state
     await page.waitForFunction(()=>document.getElementById('bt-trang-thai').textContent==='Đã lưu');
     const pasted=await page.evaluate(async()=>{const c=JSON.parse(document.getElementById('mg-config').textContent),data=await fetch(c.dataUrl+location.search).then(r=>r.json());return [data.rows[0].cells.bang.value,data.rows[0].cells.thanh_pho.value];});
     assert.deepEqual(pasted,['00123','Hà Nội']);result.checks.push('Dán TSV từ ô đang sửa giữ số 0 đầu và ghi cả vùng');
-    await page.locator('#mg-mode').click();
     await (await findCell('trang_thai_vc')).dblclick({delay:120});await page.locator('#mg-editor select').waitFor();await page.keyboard.press('Escape');
     await (await findCell('ngay_tt')).click();await page.keyboard.press('F2');await page.locator('#mg-editor input[type=date]').waitFor();await page.keyboard.press('Escape');
-    result.checks.push('Chế độ Xem: bấm đúp 120ms mở trạng thái; F2 mở ngày');
+    result.checks.push('Bấm đúp 120ms mở trạng thái; F2 mở ngày (lưới luôn ở chế độ sửa, ADR-033)');
     // Metadata lỗi không được để lại draft ma chặn mọi ô sau đó.
     await page.route('**/du-lieu/**',async route=>{const response=await route.fetch(),body=await response.json();body.columns.find(c=>c.code==='trang_thai_vc').options=null;await route.fulfill({response,json:body});});
-    await page.reload();await cell.waitFor();await page.locator('#mg-mode').click();
+    await page.reload();await cell.waitFor();
     await (await findCell('trang_thai_vc')).click();assert.equal(await page.locator('#mg-editor').isVisible(),false);
     await (await findCell('bang')).click();await page.locator('#mg-editor input').waitFor();await page.keyboard.press('Escape');
     result.checks.push('Danh sách chọn lỗi không khóa các ô khác hoặc tạo bản nháp ma');
     await page.unrouteAll({behavior:'wait'});await page.reload();await cell.waitFor();
-    await page.locator('#mg-mode').click();
     await (await findCell('bang')).click();
     // Hình học trình nhập: cột ghim, màn hình hẹp và CSS zoom.
     await page.keyboard.press('Escape');

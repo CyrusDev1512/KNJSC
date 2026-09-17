@@ -16,7 +16,7 @@ def test_destination_migration_roundtrip(departments):
         assert 'workflow' not in columns and 'receives_orders' not in columns
         assert DataRecord.objects.get(pk=row.pk).data == {'ghi_chu':'giữ nguyên'}
     finally:
-        MigrationExecutor(connection).migrate([('forms_builder','0012_order_destination')])
+        executor=MigrationExecutor(connection);executor.migrate(executor.loader.graph.leaf_nodes())
     table.refresh_from_db()
     assert table.workflow == '' and table.receives_orders is False
     assert DataRecord.objects.get(pk=row.pk).table_id == table.pk

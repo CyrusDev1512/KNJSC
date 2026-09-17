@@ -146,7 +146,7 @@ def test_mot_ngay_cua_cong_ty(client, departments, teams, nguoi_dung):
     bang_vd = don.record.table
 
     thay = DataRecord.objects.in_scope(vd_nv)
-    assert not thay.filter(pk=don.record_id).exists()  # Đơn mới chờ được phân công.
+    assert thay.filter(pk=don.record_id).exists()  # ADR-033: nhân viên Vận đơn thấy đơn mới ngay, chưa cần phân công.
     from orders.services.assignment_service import assign
     assign(nguoi_dung['admin'], {don.record_id: 0}, {'delivery': vd_nv.pk})
     assert DataRecord.objects.in_scope(vd_nv).filter(pk=don.record_id).exists()

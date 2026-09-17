@@ -48,7 +48,7 @@ async function scroll(page,row){
         jumps.push({waitAfterLastScrollMs:await scroll(page,destination),requests:requests.length-before});
       }
       result.farJumps=jumps;
-      await scroll(page,0);await page.locator('#mg-mode').click();
+      await scroll(page,0);
       await page.locator('#mg-viewport').evaluate(v=>v.scrollLeft=v.scrollWidth);
       const cell=page.locator('.mg-cell[data-r="0"][data-code="ghi_chu"]');await cell.waitFor();
       const id=Number(await cell.getAttribute('data-id')),value='GRID-FLAGS-'+stage+'-'+width;

@@ -1,5 +1,7 @@
 # ADR-021 — Lưới master Vận đơn mới và Thống kê KN CRM
 
+> 17.09.2026: điều "Chế độ Xem mặc định; Chỉnh sửa mở ô khi bấm" bị thay bởi [ADR-033](033-pham-vi-toi-toan-bo-va-quyen-sua-van-don.md) — lưới luôn ở chế độ chỉnh sửa, nút Chế độ thay bằng Tôi / Toàn bộ.
+
 | Mục | Nội dung |
 |---|---|
 | Trạng thái | Đã triển khai, kiểm chứng local; xem test-log |

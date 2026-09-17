@@ -320,9 +320,11 @@ Ctrl+S/Lưu dữ liệu gửi ngay. Chờ trạng thái Đã lưu trước khi �
 Đổi lọc/popup giữ nháp; cảnh báo rời trang chỉ xuất hiện khi còn chưa lưu.
 Nhập file, phân công và chi tiết sản phẩm vẫn có nút gửi riêng.
 
-- Chế độ Xem: chọn/đọc, F2 hoặc bấm đúp để sửa. Chế độ Chỉnh sửa: bấm/chuyển
-  tới ô được phép sửa để nhập ngay. Tab chuyển ô; Enter xuống hàng cho ô
-  một dòng. Ô nhiều dòng Enter xuống dòng, Ctrl+Enter kết thúc.
+- Lưới luôn ở chế độ chỉnh sửa (ADR-033, 17.09.2026): bấm hoặc chuyển tới ô
+  được phép sửa là nhập ngay; ô không sửa được mở vùng đọc. Tab chuyển ô;
+  Enter xuống hàng cho ô một dòng. Ô nhiều dòng Enter xuống dòng, Ctrl+Enter
+  kết thúc. Nút **Tôi / Toàn bộ** ở bảng Vận đơn lọc theo cột phụ trách của
+  bộ phận mình, nhớ trên trình duyệt, mặc định Toàn bộ.
 - Bấm số hàng để chọn hàng. Dòng đầu mang số 1. Đơn mới ở cuối theo mặc định.
 - Định dạng có cỡ chữ/màu chữ/màu nền, dùng cùng autosave và Undo/Redo.
 - … → Lịch sử xem thay đổi qua lưới mới của dòng đang chọn. … → Xung đột

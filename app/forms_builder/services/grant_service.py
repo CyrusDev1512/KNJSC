@@ -201,15 +201,8 @@ def can_edit_record(user, record_obj):
 
 def can_edit_visible_record(user, record_obj):
     """Chỉ gọi cho dòng đã lấy từ in_scope trong cùng request đọc; không dùng ở đường ghi."""
-    from orders.services import assignment_service
     if is_submitted_report(record_obj):
         return False
-    if (is_waybill_table(record_obj.table)
-            and assignment_service.department(user) == 'van-don'
-            and not assignment_service.can_assign(user)):
-        assignment = getattr(record_obj, 'assignment', None)
-        if assignment is None or assignment.delivery_id != user.pk:
-            return False
     if is_grid_only(record_obj.table):
         return False
     if is_admin(user):
@@ -226,7 +219,8 @@ def can_edit_visible_record(user, record_obj):
         return True
     # Bảng dùng chung là hàng đợi việc của cả bộ phận: ai trong bộ phận đó
     # cũng sửa được. Bảng vận đơn là ví dụ — nhân viên Vận đơn không tạo dòng
-    # nào nhưng chính họ là người cập nhật trạng thái giao hàng
+    # nào nhưng chính họ là người cập nhật trạng thái giao hàng, và từ 17.09.2026
+    # (ADR-033) họ sửa được mọi dòng, không chỉ dòng được phân công
     if cung_bo_phan and record_obj.table.is_shared:
         return True
     return record_obj.table_id in granted_table_ids(user, GrantAction.EDIT)

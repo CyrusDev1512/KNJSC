@@ -41,8 +41,9 @@ def feedback(departments, nguoi_dung, settings):
     return table, products, rows
 
 
-def test_unassigned_rows_hidden_from_delivery_staff(feedback, nguoi_dung):
-    assert not DataRecord.objects.in_scope(nguoi_dung['staff_vd']).filter(table=feedback[0]).exists()
+def test_unassigned_rows_visible_to_delivery_staff(feedback, nguoi_dung):
+    """AC-33.1 — Nhân viên Vận đơn thấy cả dòng chưa phân công (mặc định công ty 17.09.2026)."""
+    assert visible(nguoi_dung['staff_vd'], feedback[0]) == {r.pk for r in feedback[2]}
 
 
 def test_product_filter_matches_item_code(feedback, nguoi_dung):
@@ -58,6 +59,14 @@ def delivery_leader(make_user, departments):
     return make_user('vd_leader', Rank.LEADER, departments['vd'])
 
 
+@pytest.fixture
+def cskh_staff(make_user):
+    """CSKH là vai duy nhất còn phạm vi theo phân công và chỉ xem — dùng cho các
+    bài "mất phân công thì mất quyền" sau ADR-033."""
+    from org.models import Department
+    return make_user('care_person', Rank.STAFF, Department.objects.create(code='cskh', name='CSKH'))
+
+
 def assign_rows(user, rows, **changes):
     versions = {r.pk: WaybillAssignment.objects.filter(record=r).values_list('version', flat=True).first() or 0 for r in rows}
     return assignment.assign(user, versions, changes)
@@ -67,16 +76,16 @@ def visible(user, table):
     return set(DataRecord.objects.in_scope(user).filter(table=table).values_list('pk', flat=True))
 
 
-def test_assignment_scope_and_view_only_care(feedback, nguoi_dung, delivery_leader, make_user, departments):
-    """AC-20.1 — Quyền dòng theo tài khoản, giao CSKH chỉ bổ sung xem."""
+def test_assignment_scope_and_view_only_care(feedback, nguoi_dung, delivery_leader, cskh_staff, make_user, departments):
+    """AC-20.1 — Nhân viên Vận đơn thấy và sửa toàn bảng (ADR-033); Sale thấy đơn
+    mình tạo hoặc được giao CSKH; giao CSKH chỉ bổ sung xem."""
     table, _, rows = feedback
     other = make_user('vd_other', Rank.STAFF, departments['vd'])
-    from org.models import Department
-    care = make_user('care_person', Rank.STAFF, Department.objects.create(code='cskh', name='CSKH'))
+    care = cskh_staff
     assign_rows(delivery_leader, [rows[0]], delivery=nguoi_dung['staff_vd'].pk, care=care.pk, marketing=nguoi_dung['staff_mkt'].pk)
     assign_rows(delivery_leader, [rows[1]], delivery=other.pk, care=nguoi_dung['staff_sale_1'].pk)
-    assert visible(nguoi_dung['staff_vd'], table) == {rows[0].pk}
-    assert visible(other, table) == {rows[1].pk}
+    assert visible(nguoi_dung['staff_vd'], table) == {r.pk for r in rows}
+    assert visible(other, table) == {r.pk for r in rows}
     assert visible(care, table) == {rows[0].pk}
     assert visible(nguoi_dung['staff_sale_1'], table) == {r.pk for r in rows}
     assert visible(nguoi_dung['staff_sale_2'], table) == {rows[1].pk}
@@ -84,9 +93,11 @@ def test_assignment_scope_and_view_only_care(feedback, nguoi_dung, delivery_lead
     assert visible(delivery_leader, table) == {r.pk for r in rows}
     assert not grant_service.can_edit_record(care, rows[0])
     assert not grant_service.can_edit_record(nguoi_dung['staff_sale_1'], rows[1])
+    # Vận đơn sửa được cả dòng không phụ trách; grant bảng không đổi gì thêm
+    assert grant_service.can_edit_record(other, rows[0])
     grant_service.grant(table=table, user=other, action=GrantAction.EDIT, actor=nguoi_dung['admin'])
-    assert visible(other, table) == {rows[1].pk}
-    assert not grant_service.can_edit_record(other, rows[0])
+    assert visible(other, table) == {r.pk for r in rows}
+    assert grant_service.can_edit_record(other, rows[0])
 
 
 def test_bulk_keep_clear_conflict_is_atomic(feedback, nguoi_dung, delivery_leader):
@@ -98,7 +109,7 @@ def test_bulk_keep_clear_conflict_is_atomic(feedback, nguoi_dung, delivery_leade
         assignment.assign(delivery_leader, {r.pk: 1 for r in rows}, {'delivery': None})
     assert WaybillAssignment.objects.filter(delivery=nguoi_dung['staff_vd']).count() == 2
     assign_rows(delivery_leader, rows, delivery=None)
-    assert not visible(nguoi_dung['staff_vd'], feedback[0])
+    assert visible(nguoi_dung['staff_vd'], feedback[0]) == {r.pk for r in rows}   # ADR-033: vẫn thấy hết
     assert WaybillAssignment.objects.filter(care=nguoi_dung['staff_sale_1']).count() == 2
     assert WaybillAssignment.objects.get(record=rows[1]).marketing_id == nguoi_dung['staff_mkt'].pk
 
@@ -147,9 +158,13 @@ def test_assignment_rejects_non_integer_account(feedback, delivery_leader, value
 
 @pytest.mark.parametrize('operation', ['cell', 'paste', 'style', 'styles', 'delete'])
 def test_old_assignee_cannot_write_stale_record(feedback, nguoi_dung, delivery_leader, operation):
-    row = feedback[2][0]; user = nguoi_dung['staff_vd']
-    assign_rows(delivery_leader, [row], delivery=user.pk)
-    assign_rows(delivery_leader, [row], delivery=None)
+    """Sale có Grant EDIT và được giao CSKH trên đơn của Sale khác: mất phân công
+    là mất quyền ghi ngay (Vận đơn không còn theo phân công — ADR-033)."""
+    row = feedback[2][1]; user = nguoi_dung['staff_sale_1']
+    grant_service.grant(table=feedback[0], user=user, action=GrantAction.EDIT, actor=nguoi_dung['admin'])
+    assign_rows(delivery_leader, [row], care=user.pk)
+    assert grant_service.can_edit_record(user, row)
+    assign_rows(delivery_leader, [row], care=None)
     with pytest.raises(OutOfScopeError):
         if operation == 'cell': record_service.update_cell(row, 'ghi_chu', 'bad', actor=user)
         elif operation == 'paste': record_service.update_cells([(row, 'ghi_chu', 'bad')], actor=user)
@@ -177,9 +192,9 @@ def test_filters_and_statistics_use_scoped_rows(feedback, nguoi_dung, delivery_l
     assign_rows(delivery_leader, [rows[0]], delivery=nguoi_dung['staff_vd'].pk, marketing=nguoi_dung['staff_mkt'].pk)
     user = nguoi_dung['staff_vd']
     options = sidebar_service.product_options(user, table, list(table.columns.all()), QueryDict())
-    assert [o[0] for o in options['items']] == [products[0].code]
+    assert {o[0] for o in options['items']} == {p.code for p in products}
     marketer_col = table.columns.get(code='phu_trach_mkt')
-    assert grid_service.filter_options(user, table, marketer_col) == [('staff_mkt', 1)]
+    assert set(grid_service.filter_options(user, table, marketer_col)) == {('staff_mkt', 1), ('__unassigned__', 1)}
     params = QueryDict(f'sp={products[0].code}&f_phu_trach_mkt__trong=staff_mkt&f_quoc_gia__trong=US&trang=9')
     # Dùng giá trị thị trường thực tế của dòng, không suy đoán mã/nhãn.
     params = params.copy(); params['f_quoc_gia__trong'] = rows[0].data['quoc_gia']
@@ -188,10 +203,11 @@ def test_filters_and_statistics_use_scoped_rows(feedback, nguoi_dung, delivery_l
     stats, _ = waybill_service.statistics(grid.queryset)
     assert sum(r['orders'] for r in stats) == 1
     params['f_phu_trach_mkt__trong'] = '__unassigned__'
-    assert not grid_service.build_grid(user, params, table=table).queryset.exists()
+    assert not grid_service.build_grid(user, params, table=table).queryset.exists()   # rows[1] không có sản phẩm 0
+    assert grid_service.build_grid(user, QueryDict('f_phu_trach_mkt__trong=__unassigned__'), table=table).queryset.get().pk == rows[1].pk
     assert grid_service.build_grid(nguoi_dung['admin'], QueryDict('f_phu_trach_mkt__trong=__unassigned__'), table=table).queryset.get().pk == rows[1].pk
     client.force_login(user)
-    assert client.get(f'/van-don/chi-tiet/{rows[1].pk}/').status_code == 403
+    assert client.get(f'/van-don/chi-tiet/{rows[1].pk}/').status_code == 200
     assert client.get('/thong-ke/', {'nguon': 'van_don_moi'}).status_code == 200
 
 
@@ -207,11 +223,12 @@ def test_product_or_without_duplicates_and_states_and(feedback, nguoi_dung):
     assert not grid_service.build_grid(nguoi_dung['admin'], params, table=table).queryset.exists()
 
 
-def test_export_employee_codes_and_async_revoke(feedback, nguoi_dung, delivery_leader, settings, tmp_path, client):
-    """AC-20.5 — Mã nhân viên và quyền file trực tiếp/nền."""
+def test_export_employee_codes_and_async_revoke(feedback, nguoi_dung, delivery_leader, cskh_staff, settings, tmp_path, client):
+    """AC-20.5 — Mã nhân viên và quyền file trực tiếp/nền (diễn viên CSKH: phạm vi
+    vẫn theo phân công sau ADR-033)."""
     table, _, rows = feedback
-    assign_rows(delivery_leader, rows, delivery=nguoi_dung['staff_vd'].pk, care=nguoi_dung['staff_sale_2'].pk)
-    user = nguoi_dung['staff_vd']
+    assign_rows(delivery_leader, rows, delivery=nguoi_dung['staff_vd'].pk, care=cskh_staff.pk)
+    user = cskh_staff
     for role in ['staff_sale_1', 'staff_sale_2']:
         profile = nguoi_dung[role].profile; profile.full_name = 'Trùng tên'; profile.save(update_fields=['full_name'])
     kind, wb = export_service.export(user, table, QueryDict('trang=10'), builder='grid')
@@ -230,7 +247,7 @@ def test_export_employee_codes_and_async_revoke(feedback, nguoi_dung, delivery_l
     direct = BytesIO(); wb.save(direct); direct.seek(0)
     assert list(load_workbook(export_service.result_file(job)).active.values) == list(load_workbook(direct).active.values)
     assert set(job.summary['exported_row_ids']) == {r.pk for r in rows}
-    assign_rows(delivery_leader, [rows[0]], delivery=None)
+    assign_rows(delivery_leader, [rows[0]], care=None)
     with pytest.raises(BusinessError, match='xuất lại'):
         export_service.check_download(job, user)
     client.force_login(user)
@@ -310,14 +327,14 @@ def test_assignment_migration_roundtrip_preserves_records(feedback):
         executor.migrate(executor.loader.graph.leaf_nodes())
 
 
-def test_download_worker_rechecks_current_assignments(feedback, nguoi_dung, delivery_leader, settings, tmp_path):
+def test_download_worker_rechecks_current_assignments(feedback, nguoi_dung, delivery_leader, cskh_staff, settings, tmp_path):
     table, _, rows = feedback
-    user = nguoi_dung['staff_vd']
-    assign_rows(delivery_leader, rows, delivery=user.pk)
+    user = cskh_staff
+    assign_rows(delivery_leader, rows, care=user.pk)
     settings.STORAGE_DIR = tmp_path; settings.EXPORT_DIR = tmp_path / 'exports'
     with patch.object(export_service, 'EXPORT_SYNC_MAX_ROWS', 0), patch('forms_builder.services.import_service._day_vao_hang_doi'):
         _, job = export_service.export(user, table, QueryDict(), builder='grid')
-    assign_rows(delivery_leader, [rows[0]], delivery=None)
+    assign_rows(delivery_leader, [rows[0]], care=None)
     export_service.run(job.pk); job.refresh_from_db()
     assert job.status == JobStatus.DONE
     assert job.summary['exported_row_ids'] == [rows[1].pk]
@@ -341,8 +358,8 @@ def test_erp_reads_new_assignment_scope(feedback, nguoi_dung, client, settings):
     client.force_login(nguoi_dung['staff_vd'])
     response = client.get('/bang/van_don_moi/')
     assert response.status_code == 200
-    assert 'Khách 0' not in response.content.decode() and 'Khách 1' not in response.content.decode()
-    assert TableDef.objects.in_scope(nguoi_dung['staff_vd']).with_visible_record_count(nguoi_dung['staff_vd']).get(pk=feedback[0].pk).so_dong == 0
+    assert 'Khách 0' in response.content.decode() and 'Khách 1' in response.content.decode()
+    assert TableDef.objects.in_scope(nguoi_dung['staff_vd']).with_visible_record_count(nguoi_dung['staff_vd']).get(pk=feedback[0].pk).so_dong == 2
 
 
 def test_scoped_grid_does_not_query_per_row(feedback, nguoi_dung, delivery_leader, client, django_assert_max_num_queries):
@@ -354,4 +371,7 @@ def test_scoped_grid_does_not_query_per_row(feedback, nguoi_dung, delivery_leade
     client.get('/bang-tinh/van_don_moi/moi-nhat/')
     with django_assert_max_num_queries(22):
         response = client.get('/bang-tinh/van_don_moi/du-lieu/')
+    assert response.status_code == 200 and len(response.json()['rows']) == 100
+    with django_assert_max_num_queries(22):
+        response = client.get('/bang-tinh/van_don_moi/du-lieu/?cua_toi=1')
     assert response.status_code == 200 and len(response.json()['rows']) == 100

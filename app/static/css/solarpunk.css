@@ -142,6 +142,7 @@ dialog::backdrop {background:#10291b66;backdrop-filter:blur(3px)}
 :root .mg-waybill-master .mg-toolbar .nut:hover:not(:disabled) {background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
 :root .mg-waybill-master .mg-toolbar .nut:disabled {background:var(--surface-2);color:var(--ink-3);border-color:var(--rule)}
 :root .mg-waybill-master .mg-toolbar #mg-search input {background:var(--surface);color:var(--ink);border-radius:9px 0 0 9px}
+:root .mg-waybill-master .mg-toolbar .mg-scope .nut[aria-pressed="true"], :root .mg-waybill-master .mg-toolbar .mg-scope .nut[aria-pressed="true"]:hover {background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 :root .mg-waybill-master .mg-toolbar #mg-search .nut {background:var(--accent);color:var(--accent-ink);border-color:var(--accent);border-radius:0 9px 9px 0}
 .mg-root {font-family:var(--font-van)}
 .mg-cell,.mg-heading,.mg-number,.mg-corner,.sp-grid .luoi-vd td,.sp-grid .luoi-vd th {border-radius:0}

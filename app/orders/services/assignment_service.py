@@ -33,15 +33,25 @@ def can_assign(user):
         department(user) == 'van-don' and scope.rank in (Rank.LEADER, Rank.MANAGER)))
 
 
+def field_for(user):
+    """Trường phân công ứng với bộ phận của người dùng — nút Tôi / Toàn bộ (ADR-033):
+    'delivery' | 'care' | 'marketing'; None với Admin, Kế toán và bộ phận khác."""
+    dept = department(user)
+    return next((f for f, depts in FIELDS.items() if dept in depts), None)
+
+
 def scope_condition(user, original, *, only_new=False):
-    """Chỉ thay ngoại lệ của bảng mới; original là điều kiện quyền bảng cũ."""
+    """Chỉ thay ngoại lệ của bảng mới; original là điều kiện quyền bảng cũ.
+
+    Nhân viên Vận đơn thấy **toàn bộ** dòng của bảng vận đơn, kể cả dòng chưa
+    phân công — mặc định công ty chốt 17.09.2026 (ADR-033, thay ADR-020/026).
+    Lọc "chỉ dòng tôi phụ trách" là việc của tham số `cua_toi` ở lưới.
+    """
     scope = get_user_scope(user)
     dept = department(user)
     new = waybill_condition()
-    if can_assign(user) or is_accountant(user):
+    if can_assign(user) or is_accountant(user) or dept == 'van-don':
         allowed = Q()
-    elif dept == 'van-don':
-        allowed = Q(assignment__delivery_id=user.pk) | Q(table__delivery_view_all=True)
     elif dept == 'cskh':
         allowed = Q(assignment__care_id=user.pk)
     elif dept == 'sale':

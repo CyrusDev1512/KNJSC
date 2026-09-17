@@ -110,7 +110,9 @@ def test_assigned_delivery_can_confirm_on_any_waybill_profile(client, feedback, 
     assert client.post(url, change, content_type='application/json').status_code == 200
     rows[0].refresh_from_db()
     assert rows[0].data['loai_tien'] == 'PHP'
-    assert client.post(url, payload(rows[1], 'quoc_gia', 'Philippines'), content_type='application/json').status_code == 403
+    # ADR-033: dòng chưa giao cũng sửa được với nhân viên Vận đơn, nên cũng bị hỏi xác nhận đổi tiền.
+    other = client.post(url, payload(rows[1], 'quoc_gia', 'Philippines'), content_type='application/json')
+    assert other.status_code == 400 and other.json()['code'] == 'currency_confirmation'
 
 
 @pytest.mark.parametrize('compact', [False, True])

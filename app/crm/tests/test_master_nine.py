@@ -1,7 +1,7 @@
 """AC-21 — Autosave: giao dịch, lịch sử, style và thứ tự không mất dữ liệu."""
 import uuid
 import pytest
-from .test_waybill_feedback import feedback, delivery_leader, assign_rows
+from .test_waybill_feedback import feedback, delivery_leader, cskh_staff, assign_rows
 from .test_master_grid import BASE, write
 
 pytestmark = pytest.mark.django_db
@@ -18,7 +18,7 @@ def test_chronological_default(client, feedback, nguoi_dung):
     assert [r['id'] for r in client.get(BASE+'du-lieu/').json()['rows']] == sorted(r.pk for r in feedback[2])
 
 
-def test_history_replay_and_scope(client, feedback, nguoi_dung, delivery_leader):
+def test_history_replay_and_scope(client, feedback, nguoi_dung, delivery_leader, cskh_staff):
     row = feedback[2][0]
     client.force_login(nguoi_dung['admin'])
     op = str(uuid.uuid4())
@@ -29,10 +29,10 @@ def test_history_replay_and_scope(client, feedback, nguoi_dung, delivery_leader)
     assert response.status_code == 200
     items = response.json()['items']
     assert len(items) == 1 and items[0]['after'] == 'Ghi chú mới'
-    assign_rows(delivery_leader, [row], delivery=nguoi_dung['staff_vd'].pk)
-    client.force_login(nguoi_dung['staff_vd'])
+    assign_rows(delivery_leader, [row], care=cskh_staff.pk)
+    client.force_login(cskh_staff)
     assert client.get(url).status_code == 200
-    assign_rows(delivery_leader, [row], delivery=None)
+    assign_rows(delivery_leader, [row], care=None)
     assert client.get(url).status_code in (403, 404)
 
 
@@ -206,10 +206,10 @@ def test_history_cursor_is_bounded_and_append_only(client, feedback, nguoi_dung)
     with pytest.raises(RuntimeError):GridCellHistory.objects.all().delete()
 
 
-def test_scope_probe_and_legacy_style_denied(client, feedback, nguoi_dung, delivery_leader):
+def test_scope_probe_and_legacy_style_denied(client, feedback, nguoi_dung, delivery_leader, cskh_staff):
     row,other=feedback[2]
-    assign_rows(delivery_leader,[row],delivery=nguoi_dung['staff_vd'].pk)
-    client.force_login(nguoi_dung['staff_vd'])
+    assign_rows(delivery_leader,[row],care=cskh_staff.pk)
+    client.force_login(cskh_staff)
     r=client.post(BASE+'quyen-dong/',{'ids':[row.pk,other.pk]},content_type='application/json')
     assert r.status_code==200 and r.json()['visible']==[row.pk]
     assert client.post(BASE+'dinh-dang/',{'o':[f'{row.pk}:ghi_chu'],'fs':'18'}).status_code==409

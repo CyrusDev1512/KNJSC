@@ -49,7 +49,7 @@ def test_switch_new_orders_keeps_old_rows_and_workflow(client, feedback, destina
     assert old_rows[0].__class__.objects.get(pk=old_rows[0].pk).table_id == old.pk
     assert statistics_profiles.profile_of(destination) == 'waybill'
     assert [c.code for c in grid_service.display_columns(destination)] == list(destination.columns.order_by('order','id').values_list('code', flat=True))
-    assert not DataRecord.objects.in_scope(nguoi_dung['staff_vd'], table=destination).exists()
+    assert DataRecord.objects.in_scope(nguoi_dung['staff_vd'], table=destination).filter(pk=order.record_id).exists()
     assignment_service.assign(actor, {order.record_id: 0}, {'delivery': nguoi_dung['staff_vd'].pk})
     assert DataRecord.objects.in_scope(nguoi_dung['staff_vd'], table=destination).filter(pk=order.record_id).exists()
     client.force_login(nguoi_dung['staff_vd'])
@@ -104,7 +104,7 @@ def test_destination_cannot_be_deleted(feedback, destination, nguoi_dung):
 def test_destination_payment_edit_permissions_and_export(client, feedback, destination, nguoi_dung, settings, tmp_path):
     import uuid
     from .test_payment_documents import create_document
-    from orders.services import destination_service, assignment_service, delivery_view_service
+    from orders.services import destination_service, assignment_service
     from forms_builder.services import export_service
     from django.http import QueryDict
     settings.PAYMENT_DOCUMENTS_ENABLED = True
@@ -118,11 +118,10 @@ def test_destination_payment_edit_permissions_and_export(client, feedback, desti
     client.force_login(staff)
     response=create_document(client,a.record)
     assert response.status_code == 200
-    assert create_document(client,b.record,reference='not-mine').status_code == 403
-    delivery_view_service.change(admin,destination,'all')
+    assert create_document(client,b.record,reference='not-mine').status_code == 200   # ADR-033: toàn bảng
     base=f'/bang-tinh/{destination.code}/'
     cells=lambda row:[{'id':row.pk,'column':'ghi_chu','old':row.data.get('ghi_chu'),'value':'đã kiểm tra'}]
     assert client.post(base+'luu-json/',{'operation':str(uuid.uuid4()),'cells':cells(a.record)},content_type='application/json').status_code == 200
-    assert client.post(base+'luu-json/',{'operation':str(uuid.uuid4()),'cells':cells(b.record)},content_type='application/json').status_code == 403
+    assert client.post(base+'luu-json/',{'operation':str(uuid.uuid4()),'cells':cells(b.record)},content_type='application/json').status_code == 200
     kind, book=export_service.export(staff,destination,QueryDict(),builder='grid')
     assert book.active.max_row == 3

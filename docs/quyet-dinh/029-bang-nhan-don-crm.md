@@ -17,7 +17,7 @@ Thay phần đích cố định trong ADR-018/023; giữ kiến trúc Django/ser
   Bảng cũ `van_don` không được dùng làm đích mới.
 - Khi tiếp nhận bảng trống: bật cùng cấu hình hàng đợi `is_shared` như bảng master gốc, đăng ký
   profile và tăng phiên bản để tab đang mở tải lại. Phạm vi Vận đơn vẫn theo phân công/chế độ xem;
-  xem toàn bảng không mở quyền sửa ô người khác. Giữ các ngoại lệ Sale/CSKH/Kế toán và chứng từ
+  xem toàn bảng không mở quyền sửa ô người khác (*câu này thay bởi ADR-033, 17.09.2026: nhân viên Vận đơn xem và sửa toàn bảng*). Giữ các ngoại lệ Sale/CSKH/Kế toán và chứng từ
   như các service hiện có. Quyền thêm chứng từ vẫn dựa trên phạm vi xem theo ADR-025.
 - Registry chính sách hỗ trợ workflow; dùng chung kiểm quyền, lưới JSON, chi tiết sản phẩm,
   phân công, lọc/xuất, chứng từ, thống kê và bảo vệ vòng đời bảng. Không suy profile từ mã cột.

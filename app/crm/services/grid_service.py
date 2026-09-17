@@ -59,6 +59,9 @@ SYSTEM_PARAMS = {"trang", "moi_trang"}
 #: Tham số lọc "có sản phẩm" của bảng vận đơn — nhiều giá trị cùng tên
 PRODUCT_PARAM = "sp"
 
+#: Tham số "Tôi": chỉ dòng có người xem ở cột phụ trách của bộ phận mình — ADR-033
+MY_SCOPE_PARAM = "cua_toi"
+
 NUMERIC_TYPES = {FieldType.MONEY, FieldType.INTEGER, FieldType.DECIMAL}
 
 #: Bề rộng cột "Trùng" đứng trước mọi cột cố định của bảng vận đơn
@@ -114,6 +117,7 @@ class Grid:
     is_waybill: bool = False
     key_column: object = None
     products: list = field(default_factory=list)
+    my_scope: bool = False
 
 
 def waybill_table():
@@ -255,6 +259,7 @@ def build_grid(user, params, *, table=None):
     )
     chi_trung = False
     san_pham = []
+    cua_toi = False
     if is_waybill_table(table):
         from orders.models import WaybillItem
         from orders.services import assignment_service
@@ -262,6 +267,12 @@ def build_grid(user, params, *, table=None):
         if san_pham and 'san_pham__trong' not in bo_loc:
             ds = ds.filter(pk__in=WaybillItem.objects.filter(deleted_at__isnull=True,
                 product__code__in=san_pham).values('record_id'))
+        # "Tôi": dòng có người xem ở cột phụ trách của bộ phận mình. Admin, Kế
+        # toán và bộ phận không có cột phụ trách thì tham số bị bỏ qua (ADR-033)
+        truong = assignment_service.field_for(user) if params.get(MY_SCOPE_PARAM) == "1" else None
+        if truong:
+            ds = ds.filter(**{f"assignment__{truong}_id": user.pk})
+            cua_toi = True
         ds = assignment_service.related(ds)
     if van_don:
         # Cột Trùng đếm sau khi cắt trang (`attach_duplicate_counts`); lọc chỉ
@@ -278,6 +289,7 @@ def build_grid(user, params, *, table=None):
         sort=sap, descending=giam, duplicates_only=chi_trung,
         chips=filter_chips(bo_loc, columns, san_pham),
         is_waybill=van_don, key_column=key_column(columns), products=san_pham,
+        my_scope=cua_toi,
     )
 
 

@@ -812,9 +812,11 @@ Ctrl+S/Lưu dữ liệu gửi ngay. Chờ trạng thái Đã lưu trước khi �
 Đổi lọc/popup giữ nháp; cảnh báo rời trang chỉ xuất hiện khi còn chưa lưu.
 Nhập file, phân công và chi tiết sản phẩm vẫn có nút gửi riêng.
 
-- Chế độ Xem: chọn/đọc, F2 hoặc bấm đúp để sửa. Chế độ Chỉnh sửa: bấm/chuyển
-  tới ô được phép sửa để nhập ngay. Tab chuyển ô; Enter xuống hàng cho ô
-  một dòng. Ô nhiều dòng Enter xuống dòng, Ctrl+Enter kết thúc.
+- Lưới luôn ở chế độ chỉnh sửa (ADR-033, 17.09.2026): bấm hoặc chuyển tới ô
+  được phép sửa là nhập ngay; ô không sửa được mở vùng đọc. Tab chuyển ô;
+  Enter xuống hàng cho ô một dòng. Ô nhiều dòng Enter xuống dòng, Ctrl+Enter
+  kết thúc. Nút **Tôi / Toàn bộ** ở bảng Vận đơn lọc theo cột phụ trách của
+  bộ phận mình, nhớ trên trình duyệt, mặc định Toàn bộ.
 - Bấm số hàng để chọn hàng. Dòng đầu mang số 1. Đơn mới ở cuối theo mặc định.
 - Định dạng có cỡ chữ/màu chữ/màu nền, dùng cùng autosave và Undo/Redo.
 - Nếu một dòng mất quyền giữa lượt sửa, hệ thống gỡ dòng đó và giữ nháp
@@ -826,7 +828,7 @@ Nhập file, phân công và chi tiết sản phẩm vẫn có nút gửi riêng
 
 **Cập nhật 11.09.2026:** nhập trực tiếp trong ô, không còn khung nhập nổi
 che hàng dưới hoặc kéo giãn riêng khung nhập. Escape hủy phần đang gõ;
-Tab/Enter kết thúc và tự lưu như trên. Muốn đọc dài, dùng chế độ Xem hoặc
+Tab/Enter kết thúc và tự lưu như trên. Muốn đọc dài, bấm … → Xem nội dung hoặc
 kéo chiều cao hàng. Dán bảng nhiều ô từ trong ô nhập vẫn dùng giới hạn
 2.000 ô và kiểm lỗi toàn lượt. Các ô tổng/chi tiết/phân công giữ cơ chế riêng.
 

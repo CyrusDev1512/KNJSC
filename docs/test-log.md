@@ -1,5 +1,20 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 17.09.2026 — ADR-033: Tôi / Toàn bộ, Vận đơn sửa toàn bảng
+
+`crm/tests/test_pham_vi_toi_toan_bo.py` 8 đạt; `makemigrations --check` sạch;
+migration 0013 xuôi/ngược đạt (AC-33.7). Sau khi rebase lên 8 commit Codex
+(đợt sửa 19 bài kiểm đỏ), chạy `crm/tests orders/tests forms_builder/tests
+tests core/tests -m "not trinh_duyet"`: còn đúng 3 bài đỏ do quyết định mới,
+đã sửa cùng lượt — `test_market_currency` (dòng chưa giao nay sửa được nên bị
+hỏi xác nhận đổi tiền 400 thay vì 403), `test_luong_ba_bo_phan` (Vận đơn thấy
+đơn mới ngay, không chờ phân công) — và 2 bài đếm của `test_truy_vet` (cập nhật
+docs/06: 198 tiêu chí, 185 tự động, 161 có bài kiểm). Chạy lại các tệp đó cùng
+`test_giao_dien`, `test_dong_bo_skill`: 0 đỏ. Chromium: nút Tôi lọc 10.000 →
+5.000 dòng, tải lại giữ, Toàn bộ về đủ; bấm ô mở ô nhập ngay, Enter xuống hàng;
+Admin không có nút. Chưa chạy VPS.
+[Biên bản](kiem-chung-pham-vi-toi-toan-bo-20260917.md).
+
 ## 16.09.2026 — Kiểm trước khi commit toàn bộ thay đổi local
 
 Theo yêu cầu push toàn bộ, chạy lại `pytest reports/tests crm/tests/test_grid_date_display.py crm/tests/test_master_grid.py -m "not cham and not trinh_duyet" --maxfail=2` qua Compose với `RUN_MIGRATIONS=0`: **158 passed, 34,75s**. `node scripts/kiem-thu-date-inputs.cjs` đạt. Không chạy lại toàn suite hoặc trình duyệt trong lượt push này; bằng chứng UI và lỗi nền giữ ở hồ sơ kiểm chứng trước. Không đưa storage, session manifest, dữ liệu thử hoặc khóa SSH vào Git.

@@ -151,7 +151,6 @@ async function main(){
    await page.mouse.wheel(500,0);await page.waitForTimeout(100);
    assert.equal(await page.locator('#mg-selection').textContent(),selection);
    await page.locator('#mg-viewport').evaluate(e=>{e.scrollTop=0;e.scrollLeft=0});await page.waitForTimeout(100);
-   await page.locator('#mg-mode').click();
    await page.locator('.mg-cell[data-r="0"][data-code="ten_khach"]').dblclick({delay:100});
    await page.locator('#mg-input [name=value]').fill('Nháp cuộn');
    await page.mouse.wheel(0,300);await page.waitForTimeout(100);

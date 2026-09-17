@@ -8,13 +8,13 @@ for(const [width,zoom] of [[1440,1],[1280,1],[390,1],[1440,1.25]]){
  async function login(user){await p.goto(base+'/dang-nhap/');await p.locator('[name=username]').fill(user);await p.locator('[name=password]').fill('matkhau-kiem-thu-1');await Promise.all([p.waitForURL(u=>!u.pathname.includes('dang-nhap')),p.locator('button[type=submit]').click()]);}
  await login('staff_mkt');
  if(width===1440&&zoom===1){
-  await p.goto(base+'/bang-tinh/'+ready.empty+'/');await p.locator('.mg-cell[data-id="-1"]').first().waitFor();await p.locator('#mg-mode').click();
+  await p.goto(base+'/bang-tinh/'+ready.empty+'/');await p.locator('.mg-cell[data-id="-1"]').first().waitFor();
   await p.locator('.mg-cell[data-id="-1"]').first().dblclick({delay:120});await p.locator('#mg-input [name=value]').fill('Dòng đầu tiên');
   const first=p.waitForResponse(r=>r.url().includes('luu-json/')&&r.request().method()==='POST');await p.locator('#mg-input [name=value]').press('Enter');assert.equal((await first).status(),200);
   await p.waitForFunction(()=>[...document.querySelectorAll('.mg-cell[data-id]')].some(c=>Number(c.dataset.id)>0));
   assert.match(await p.locator('#mg-count').textContent(),/^1 dòng/);result.emptyTable=true;
  }
- await p.goto(base+url);await p.waitForFunction(()=>window.KNJSC_MASTER?.diagnostics().total>=2);await p.locator('#mg-mode').click();
+ await p.goto(base+url);await p.waitForFunction(()=>window.KNJSC_MASTER?.diagnostics().total>=2);
  const zoomEvidence=await p.evaluate(()=>({dpr:devicePixelRatio,css:getComputedStyle(document.documentElement).zoom,scale:visualViewport.scale}));if(zoom!==1)assert.equal(zoomEvidence.dpr,1.25);
  const before=(await (await ctx.request.get(base+url+'du-lieu/')).json()).total;
  if(width===1440&&zoom===1){
@@ -32,8 +32,8 @@ for(const [width,zoom] of [[1440,1],[1280,1],[390,1],[1440,1.25]]){
  data=await (await ctx.request.get(base+url+'du-lieu/')).json();assert.equal(data.total,before);
  const redone=p.waitForResponse(r=>r.url().includes('luu-json/')&&r.request().method()==='POST');await p.keyboard.press('Control+y');assert.equal((await redone).status(),200);
  data=await (await ctx.request.get(base+url+'du-lieu/')).json();assert.equal(data.total,before+1);const id=Object.values(payload.id_map)[0];assert(data.rows.some(r=>r.id===id));
- await p.reload();await p.waitForFunction(()=>window.KNJSC_MASTER?.diagnostics().total>=2);await p.locator('#mg-mode').click();
- const original=p.locator('#mg-'+ready.row+'-bill');await p.locator('#mg-mode').click();await original.click();await p.evaluate(w=>navigator.clipboard.writeText('001234'+w),width+'-'+zoom);const pasted=p.waitForResponse(r=>r.url().includes('luu-json/')&&r.request().method()==='POST');await p.keyboard.press('Control+v');assert.equal((await pasted).status(),200);
+ await p.reload();await p.waitForFunction(()=>window.KNJSC_MASTER?.diagnostics().total>=2);
+ const original=p.locator('#mg-'+ready.row+'-bill');await original.click();await p.keyboard.press('Escape');await p.evaluate(w=>navigator.clipboard.writeText('001234'+w),width+'-'+zoom);const pasted=p.waitForResponse(r=>r.url().includes('luu-json/')&&r.request().method()==='POST');await p.keyboard.press('Control+v');assert.equal((await pasted).status(),200);
  data=await (await ctx.request.get(base+url+'du-lieu/')).json();assert.equal(data.rows.find(r=>r.id===ready.row).cells.bill.value,'001234'+width+'-'+zoom);
  // Lựa chọn qua bàn phím: thời gian gồm một khung render, không giả lập bộ gõ thật.
  await original.click();for(let i=0;i<100;i++){const t=performance.now();await p.keyboard.press(i%2?'ArrowLeft':'ArrowRight');await p.evaluate(()=>new Promise(r=>requestAnimationFrame(r)));result.timings.push({width,action:'selection',ms:performance.now()-t});}

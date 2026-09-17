@@ -36,7 +36,7 @@ def test_prepare_preserves_rows_and_destination_then_accepts_new_orders(
     destination_service.prepare_existing(admin, destination.pk, expected_rows=1)
     destination.refresh_from_db()
     assert destination.delivery_view_version == 1
-    assert not DataRecord.objects.in_scope(nguoi_dung['staff_vd'], table=destination).exists()
+    assert DataRecord.objects.in_scope(nguoi_dung['staff_vd'], table=destination).exists()   # ADR-033: Vận đơn thấy toàn bảng
     client.force_login(admin)
     assert client.post('/cau-hinh/nhan-don/', {'table': destination.pk}).status_code == 302
     order = create(nguoi_dung['staff_sale_1'], feedback[1], '0909888877')

@@ -411,7 +411,7 @@ phân công trong file không được dùng để cấp quyền.
 
 | Mã | Đạt khi | Yêu cầu | Kiểm bằng |
 |---|---|---|---|
-| AC-20.1 | Leader/Manager Vận đơn và Admin phân công; nhân viên thấy đúng đơn được giao, Sale thấy đơn mình tạo; CSKH chỉ bổ sung xem; grant bảng/Marketing không vượt phạm vi; đọc chung ERP và số đếm tuân thủ | ADR-020 | Tự động |
+| AC-20.1 | Leader/Manager Vận đơn và Admin phân công; nhân viên Vận đơn thấy và sửa mọi dòng (ADR-033 thay điều "chỉ đơn được giao"), Sale thấy đơn mình tạo; CSKH chỉ bổ sung xem; grant bảng/Marketing không vượt phạm vi; đọc chung ERP và số đếm tuân thủ | ADR-020 · ADR-033 | Tự động |
 | AC-20.2 | Ba người phụ trách là tài khoản hoạt động đúng bộ phận, mã/họ tên hiển thị; chặn ô/dán/nhập ghi phân công; người cũ không ghi được dữ liệu đã đọc trước khi chuyển giao | ADR-020 | Tự động |
 | AC-20.3 | Một/nhiều dòng, giữ/đổi/bỏ từng trường; hai request đồng thời không ghi đè, phiên bản cũ trả 409, lỗi rollback cả lượt, audit không thông tin khách | ADR-020 | Tự động |
 | AC-20.4 | Lọc AND/OR đúng, mã sản phẩm chi tiết không nhân dòng; Quốc gia/Marketing và chưa gán đúng; ngày và trạng thái độc lập; lựa chọn/thống kê trong phạm vi | ADR-020 | Tự động |
@@ -428,7 +428,7 @@ quyền và hợp đồng dữ liệu của AC-18/20. Các bảng khác tiếp t
 | Mã | Đạt khi | Yêu cầu | Kiểm bằng |
 |---|---|---|---|
 | AC-21.1 | Chỉ bảng mới chạy controller riêng, không form Lên đơn/thống kê nhúng/thanh công thức; hàng mặc định 28px, kéo 28–400px và xuống dòng; ghi nhớ theo user/bảng/ID local, Escape hủy/↑↓/Home; cuộn/neo đồng bộ, reader/editor không tự giãn hàng | ADR-021 | Tự động |
-| AC-21.2 | Khối 100/cache 10, DOM hữu hạn; chọn/đi xuyên khối, Ctrl+A toàn kết quả, copy/dán ≤2.000 ô giữ số 0 đầu; sai/khóa không ghi phần, không tạo dòng; IME đúng; nhập trong ô không che hàng dưới, Admin sửa trạng thái/ngày theo hai chế độ, rê nhẹ vẫn mở và lỗi danh sách chọn không khóa ô khác | ADR-021 · bổ sung 11.09.2026 | Tự động |
+| AC-21.2 | Khối 100/cache 10, DOM hữu hạn; chọn/đi xuyên khối, Ctrl+A toàn kết quả, copy/dán ≤2.000 ô giữ số 0 đầu; sai/khóa không ghi phần, không tạo dòng; IME đúng; nhập trong ô không che hàng dưới, Admin sửa trạng thái/ngày ngay trong ô (lưới luôn chỉnh sửa, ADR-033), rê nhẹ vẫn mở và lỗi danh sách chọn không khóa ô khác | ADR-021 · bổ sung 11.09.2026 | Tự động |
 | AC-21.3 | Tự lưu nền sau kết thúc nhập, gộp 500ms/tối đa 2s; vẫn sửa được khi lưu; Ctrl+S gửi ngay; tối đa 2.000 ô/lượt; CAS cùng ô trả 409, khác ô giữ cả hai; UUID gửi lại không ghi hai lần, UUID khác nội dung bị từ chối; batch atomic, audit không nội dung khách | ADR-021 | Tự động |
 | AC-21.4 | Mọi đọc/ghi/copy chưa tải/poll theo scope, thu quyền không trả dòng hoặc ghi bản nháp; lọc/sắp xếp ổn định, phản hồi cũ bị bỏ; đổi lọc/popup giữ nháp, X luôn thấy được; lỗi lưu giữ nội dung, rời/tải lại bảng cảnh báo nếu còn thay đổi chưa xác nhận | ADR-021 | Tự động |
 | AC-21.5 | Thống kê riêng, biểu đồ/tổng hợp toàn kết quả lọc, tiền tách loại; top 10 nhưng đối chiếu đủ nhóm; trạng thái trống/partial, đơn thiếu chi tiết đúng; link/redirect giữ lọc | ADR-021 | Tự động |
@@ -474,6 +474,22 @@ Các mục dưới là điều kiện nghiệm thu, **không phải kết quả 
 
 Không gộp skip thành đạt. VPS chưa có thì chỉ báo kết quả local; không dùng
 cấu hình dự kiến thay phép đo. Cờ không đạt hồi quy phải để tắt.
+
+## 33. Phạm vi Tôi / Toàn bộ và quyền sửa Vận đơn — ADR-033
+
+Thay AC-26 về Chế độ xem bảng (trang, service, trường đã xoá) và vế "nhân
+viên Vận đơn chỉ đơn được giao" của AC-20.1. Sale, CSKH, Marketing, Kế toán
+giữ tiêu chí cũ.
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-33.1 | Nhân viên Vận đơn thấy mọi dòng bảng Vận đơn kể cả chưa phân công hay người khác phụ trách; sửa được qua lưới JSON và `record_service`; chi tiết mở được; số dòng thư mục đếm đủ | ADR-033 | Tự động |
+| AC-33.2 | CSKH được giao chỉ xem (ghi 403); Sale không sửa dòng Sale khác; Admin gõ vào cột `phu_trach_*` vẫn 400, phân công chỉ qua hộp Phân công | ADR-033 · ADR-020 | Tự động |
+| AC-33.3 | `cua_toi=1` lọc theo cột phụ trách của bộ phận (Vận đơn → delivery, Sale/CSKH → care, Marketing → marketing); Admin, Kế toán, bảng thường bỏ qua; khối dữ liệu đổi phiên bản; 100 dòng không vượt trần 22 truy vấn | ADR-033 | Tự động |
+| AC-33.4 | `cua_toi=1` đi theo Tải Excel trực tiếp và nền, và Thống kê | ADR-033 | Tự động |
+| AC-33.5 | `che-do-xem/` trả 404; `TableDef` không còn `delivery_view_all` nhưng còn `delivery_view_version`; Cột & cấp quyền không còn khối Chế độ xem bảng | ADR-033 | Tự động |
+| AC-33.6 | Nút Tôi / Toàn bộ chỉ hiện cho người có cột phụ trách; không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi; `config.myScope` đúng trường | ADR-033 | Tự động |
+| AC-33.7 | Migration 0013 chạy xuôi và ngược trên DB test, giữ `delivery_view_version` và dữ liệu | ADR-033 | Tự động |
 
 ## 27. Lưới dùng chung và vòng đời bảng — ADR-027
 

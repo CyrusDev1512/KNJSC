@@ -1,6 +1,5 @@
 <dialog id="vd-assignment" {% if master_grid %}class="vd-dialog mg-dialog"{% else %}class="vd-dialog"{% endif %} aria-labelledby="vd-assignment-title" data-url="{% url 'waybill_assignment' %}">
   {% if master_grid %}<header class="mg-dialog-head"><h2 id="vd-assignment-title">Phân công</h2><button class="mg-close" type="button" data-assignment-close aria-label="Đóng phân công">×</button></header><div class="mg-dialog-body">{% else %}<button class="nut vd-close" type="button" data-assignment-close>Đóng</button><h2 id="vd-assignment-title">Phân công</h2>{% endif %}
-  {% if delivery_view_manage %}<p><a class="nut" href="{% url 'delivery_view_mode' bang.code %}">Chế độ xem bảng</a> <small>Áp dụng toàn bảng</small></p>{% endif %}
   <p id="vd-assignment-info"></p>
   <p id="vd-assignment-status" role="status" aria-live="polite"></p>
   <form id="vd-assignment-form">

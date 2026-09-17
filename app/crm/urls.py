@@ -8,14 +8,13 @@ là cây thư mục (ADR-015).
 from django.urls import path
 from orders import views as order_views
 
-from . import lifecycle_views, delivery_view_views
+from . import lifecycle_views
 from . import views, waybill_views, assignment_views, master_views, statistics_views, payment_views
 
 from . import destination_views
 
 urlpatterns = [
     path('cau-hinh/nhan-don/', destination_views.configure, name='order_destination'),
-    path('bang-tinh/<slug:code>/che-do-xem/', delivery_view_views.configure, name='delivery_view_mode'),
     path('bang-da-xoa/', lifecycle_views.deleted, name='deleted_tables'),
     path('bang-tinh/<slug:code>/xoa-bang/', lifecycle_views.delete, name='delete_table'),
     path('bang-tinh/<slug:code>/khoi-phuc-bang/', lifecycle_views.restore, name='restore_table'),

@@ -9,7 +9,7 @@
     <form id="mg-search" method="get"><input type="search" name="tim" value="{{ luoi.search }}" aria-label="Tìm kiếm trong bảng" placeholder="Tìm trong bảng…"><button class="nut">Tìm</button></form>
     <button class="nut" id="mg-filters-button" aria-expanded="false">Bộ lọc</button>
     <button class="nut" id="mg-columns-button">Cột</button>
-    <button class="nut" id="mg-mode" aria-pressed="false">Chế độ: Xem</button>
+    {% if pham_vi_toi %}<div id="mg-pham-vi" class="mg-scope" role="group" aria-label="Phạm vi dòng"><button class="nut" type="button" data-pham-vi="toi" aria-pressed="{{ luoi.my_scope|yesno:'true,false' }}" title="Chỉ dòng tôi phụ trách">Tôi</button><button class="nut" type="button" data-pham-vi="toan_bo" aria-pressed="{{ luoi.my_scope|yesno:'false,true' }}" title="Mọi dòng trong quyền xem">Toàn bộ</button></div>{% endif %}
     <button class="nut" id="mg-format-button">Định dạng</button>
     <button class="nut" id="mg-undo" title="Ctrl+Z" disabled>Hoàn tác</button><button class="nut" id="mg-redo" title="Ctrl+Y" disabled>Làm lại</button>
 
@@ -25,7 +25,6 @@
           <a class="nut" data-query-link href="{% url 'bang_tinh_xuat' bang.code %}?{{ qs_giu }}">Tải Excel</a>
           <small>Xuất dữ liệu đã lưu trên hệ thống.</small>
         </details>
-        {% if delivery_view_manage %}<a class="nut" href="{% url 'delivery_view_mode' bang.code %}">Chế độ xem bảng</a>{% endif %}
         {% if duoc_quan_ly_cot %}<a class="nut" href="{% url 'bang_cot' bang.code %}">Cấu trúc cột & cấp quyền</a>{% endif %}
         {% if can_assign %}<button class="nut" id="mg-assign">Phân công</button>{% endif %}
         <button class="nut" disabled>Chia sẻ link <small>Chưa triển khai</small></button>
@@ -40,7 +39,7 @@
       <div id="mg-canvas" class="mg-canvas"></div>
     </div>
   </div>
-  <footer class="mg-footer"><span id="mg-count">Đang tải…</span><span id="mg-selection"></span><span>F2 sửa · Ctrl+C/V sao chép/dán · Esc đóng</span></footer>
+  <footer class="mg-footer"><span id="mg-count">Đang tải…</span><span id="mg-selection"></span><span>Bấm ô để sửa · Enter xuống dòng · Ctrl+C/V sao chép/dán · Esc đóng</span></footer>
 </section>
 <div id="mg-reader" class="mg-float" role="region" aria-label="Nội dung ô" hidden><button type="button" aria-label="Đóng nội dung">×</button><strong></strong><div></div></div>
 <form id="mg-editor" class="mg-float mg-editor mg-inline-editor" hidden aria-label="Sửa ngay trong ô"><button class="mg-close" type="button" data-master-close="editor" aria-label="Đóng ô nhập">×</button><strong></strong><div id="mg-input"></div><div class="mg-editor-actions"><button class="nut nut-chinh" type="submit">Xong</button><button class="nut" type="button" id="mg-cancel">Hủy</button></div></form>

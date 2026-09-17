@@ -9,8 +9,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.services import grant_service
-from orders.services.assignment_service import can_assign
-from orders.services import delivery_view_service
+from orders.services.assignment_service import can_assign, field_for
 from .services import master_grid_service as service, grid_service, sidebar_service, tree_service
 
 
@@ -123,8 +122,9 @@ def shell(request, table):
         p = qs.copy(); p.pop(key, None)
         chips.append((label, '?' + p.urlencode()))
     return render(request, 'crm/master_grid.html', {
-        'delivery_view_manage': delivery_view_service.can_manage(request.user, table),
         'waybill_profile': is_waybill_table(table),
+        # Nút Tôi / Toàn bộ: chỉ người có cột phụ trách trong bảng vận đơn (ADR-033)
+        'pham_vi_toi': is_waybill_table(table) and bool(field_for(request.user)),
         'payment_documents_enabled': getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False),
         'grid_root_class':'mg-root mg-waybill-master' if is_waybill_table(table) else 'mg-root',
         'thang_dang_xem':month, 'bang': table, 'luoi': grid, 'qs_giu': qs.urlencode(), 'chips': chips,
@@ -136,6 +136,7 @@ def shell(request, table):
         'quick_filters': sidebar_service.quick_filters(qs) if (table.code == 'van_don' or is_waybill_table(table)) else {'groups':[], 'keep':grid_service.params_without(qs)},
         'config': {'dataUrl': reverse('master_data', args=[table.code]),
                    'deliveryViewVersion': table.delivery_view_version,
+                   'myScope': field_for(request.user) if is_waybill_table(table) else None,
                    'canCreate':row_mutations.can_create(request.user,table),
                    'requestMetrics':getattr(settings,'CRM_REQUEST_METRICS',False),
                    'protocol':2 if is_waybill_table(table) and optimization.enabled('READ') else 1,

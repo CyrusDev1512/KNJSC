@@ -73,7 +73,7 @@
 .mg-more{max-height:calc(100vh - 16px);overflow:auto}#mg-column-filter-body .loc-cot-dong{display:none}
 .mg-tools-dialog{width:min(680px,calc(100vw - 24px));border:1px solid var(--rule);border-radius:6px;background:var(--surface);color:var(--ink)}
 .mg-tool-field{display:grid;gap:6px;margin:0 0 16px}.mg-history-item{padding:12px 0;border-bottom:1px solid var(--rule)}.mg-history-item pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;max-height:180px;overflow:auto}.mg-history-item p{font-size:12px;color:var(--ink-2)}
-#mg-mode[aria-pressed="true"]{border-color:#2563eb;color:#2563eb;background:#dbeafe}
+.mg-scope{display:inline-flex}.mg-scope .nut+.nut{margin-left:-1px}.mg-scope .nut[aria-pressed="true"]{border-color:#2563eb;color:#fff;background:#2563eb;position:relative;z-index:1}
 
 /* Vận đơn mới: vùng nhận diện khách giữ mát, rõ và ổn định trên lưới giấy. */
 .mg-waybill-master {

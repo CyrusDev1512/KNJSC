@@ -206,7 +206,8 @@ Không mở thêm quyền hay đổi quy tắc trạng thái thanh toán.
    là người đứng đơn; phòng ban/team của đơn theo Sale.
    **Thay thế 11.09.2026:** chủ dự án chốt Admin cũng tự đứng đơn bằng mã của mình, bỏ chọn Sale. Admin thử nghiệm không thuộc Sale dùng Sale/team trống làm giá trị nội bộ; không đổi hồ sơ. Chi tiết ADR-023.
 6. Chế độ Chỉnh sửa? Mũi tên trong chữ, Tab chuyển ô, Enter ô một dòng xuống
-   hàng; nhiều dòng dùng Ctrl+Enter kết thúc. Mặc định vẫn là chế độ Xem.
+   hàng; nhiều dòng dùng Ctrl+Enter kết thúc. ~~Mặc định vẫn là chế độ Xem.~~
+   **Thay thế 17.09.2026 (ADR-033):** bỏ chế độ Xem, lưới luôn chỉnh sửa; nút Tôi / Toàn bộ lọc theo cột phụ trách.
 7. Lịch sử lưu ở đâu, có chậm/phình không? Sau triển khai: PostgreSQL
    `crm_gridcellhistory` lưu trước/sau theo ô; 300.000 mục test gồm chỉ mục
    khoảng 69,28 MiB. Biên nhận `crm_gridmutationreceipt` là bảng riêng,

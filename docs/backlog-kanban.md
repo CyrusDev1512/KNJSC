@@ -1,5 +1,14 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 17.09.2026 — Tôi / Toàn bộ và quyền sửa Vận đơn (ADR-033)
+
+**Finished local, chưa VPS:** nhân viên Vận đơn xem và sửa toàn bảng; nút Tôi /
+Toàn bộ theo cột phụ trách, nhớ trên trình duyệt; lưới luôn chỉnh sửa; xoá Chế độ
+xem bảng (ADR-026) và trường `delivery_view_all` (migration 0013). Sau rebase lên đợt
+sửa bài kiểm của Codex: toàn bộ suite Python 0 đỏ. Chromium 1440/390 đạt.
+[Biên bản](kiem-chung-pham-vi-toi-toan-bo-20260917.md).
+**To do:** phát hành VPS (máy chủ dự án, chạy `migrate` 0013).
+
 ## 16.09.2026 — Tối ưu cuộn và cờ: đã phát hành phần đã kiểm
 
 Code/E2E/hồi quy và tải ngắn đã kiểm; đã dừng kiểm bền theo yêu cầu sau 14,71 phút đo; chưa đủ 60 phút. Bảy cờ tắt.

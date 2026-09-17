@@ -1,5 +1,7 @@
 # ADR-026 — Chế độ xem Vận đơn mới
 
+> **Đã bị thay thế toàn bộ** bởi [ADR-033](033-pham-vi-toi-toan-bo-va-quyen-sua-van-don.md), 17.09.2026: nhân viên Vận đơn xem và sửa toàn bảng, nút Tôi / Toàn bộ theo người dùng; trang Chế độ xem bảng, service và trường `delivery_view_all` đã xoá (giữ `delivery_view_version`). Thân tệp giữ nguyên làm lịch sử.
+
 Ngày 12.09.2026. Chủ dự án duyệt triển khai; số 025 dành cho quyết định chứng
  từ thanh toán ở task đang chạy song song.
 

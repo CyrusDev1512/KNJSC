@@ -22,7 +22,7 @@
   preferences.rowHeights=heights;
   const state = {columns: [], visible: [], cache: new Map(), pending: new Map(), total: 0,
     persistedTotal:0, drafts:[], nextDraft:-1, version: '', queryToken:'', metadataVersion:'', revision:0, cursors:new Map(), generation: 0, selection: null, anchor: null, current: null, draft: null,
-    retry: null, busy: false, ready: false, poll: '', lastError: '', editMode:false, conflicts:[], retryCount:0, composing:false, accessEpoch:0};
+    retry: null, busy: false, ready: false, poll: '', lastError: '', conflicts:[], retryCount:0, composing:false, accessEpoch:0};
   let saveTimer=0, firstQueued=0;
   let scrollPaint=false, selectionPaint=false, scrollTop=0, scrollDirection=1;
   let jumpTimer=0, jumpPending=false, prefetchPaused=false, stableScrolls=0, lastScrollAt=0;
@@ -398,7 +398,9 @@
     const block=await loadBlock(Math.floor(cur.r/BLOCK));if(generation!==state.generation||!block)return;
     const row=rowAt(cur.r),c=state.visible[cur.c];if(!row||!c)return;
     if(state.current?.r!==cur.r||state.current?.c!==cur.c)return;
-    if(automatic&&(c.assignment||c.detail||!cellValue(row,c.code).editable))return;
+    // Lưới luôn ở chế độ chỉnh sửa (ADR-033): ô sửa được thì mở ô nhập ngay; ô chỉ đọc
+    // hay ô phân công/chi tiết thì mở hộp đọc, còn F2/Enter/bấm đúp vẫn mở hộp riêng.
+    if(automatic&&(c.assignment||c.detail||!cellValue(row,c.code).editable)){showReader($(`mg-${row.id}-${c.code}`));return;}
     reader.hidden=true;
     if(c.assignment){window.dispatchEvent(new CustomEvent('master-assignment',{detail:{ids:[row.id]}}));return;}
     if(c.detail){const d=$('vd-detail');d.showModal();$('vd-detail-body').textContent='Đang tải chi tiết…';await htmx.ajax('GET',row.detail_url,{target:'#vd-detail-body',swap:'innerHTML'});return;}
@@ -500,7 +502,7 @@
       if(gen!==state.generation)return;const doc=new DOMParser().parseFromString(html,'text/html');
       for(const id of ['mg-filters','mg-chips']){const e=doc.getElementById(id);if(e)$(id).innerHTML=e.innerHTML;}
     }).catch(()=>{});
-    repaint();return true;
+    syncScopeButtons();repaint();return true;
   }
   async function rangeCells() {
     const s=state.selection;if(!s)return [];
@@ -674,7 +676,7 @@
     let r=cur.r+dr,c=cur.c+dc;
     if(c>=state.visible.length){c=0;r++;}if(c<0){c=state.visible.length-1;r--;}
     if(r<0||r>=state.total){viewport.focus();return;}
-    choose(r,c);ensureVisible();if(state.editMode)await edit(true);
+    choose(r,c);ensureVisible();await edit(true);
   }
   editor.addEventListener('compositionstart',()=>state.composing=true);
   editor.addEventListener('compositionend',()=>state.composing=false);
@@ -689,7 +691,7 @@
   editor.addEventListener('keydown',e=>{
     if(e.isComposing||e.keyCode===229)return;
     if(e.key==='Escape'){e.preventDefault();cancelEdit();}
-    else if(e.key==='Enter'&&(e.target.tagName!=='TEXTAREA'||e.ctrlKey)){e.preventDefault();const d=state.draft;if(d&&finishEditor()){if(state.editMode)safe(()=>advance(d.cur,1))();else viewport.focus({preventScroll:true});}}
+    else if(e.key==='Enter'&&(e.target.tagName!=='TEXTAREA'||e.ctrlKey)){e.preventDefault();const d=state.draft;if(d&&finishEditor())safe(()=>advance(d.cur,1))();}
     else if(e.key==='Tab'&&e.target===editor.elements.value){e.preventDefault();const d=state.draft;if(d&&finishEditor())safe(()=>advance(d.cur,0,e.shiftKey?-1:1))();}
   });
   $('mg-cancel').onclick=cancelEdit;reader.querySelector('button').onclick=()=>{reader.hidden=true;viewport.focus({preventScroll:true});};
@@ -714,7 +716,7 @@
     if(e.key==='ArrowDown')r++;else if(e.key==='ArrowUp')r--;else if(e.key==='ArrowLeft')c--;else if(e.key==='ArrowRight')c++;
     else if(e.key==='Tab')c+=e.shiftKey?-1:1;else if(e.key==='PageDown')r=Math.max(r+1,geometry.at(geometry.top(r)+Math.max(ROW,viewport.clientHeight-HEADER)));else if(e.key==='PageUp')r=Math.min(r-1,geometry.at(Math.max(0,geometry.top(r)-Math.max(ROW,viewport.clientHeight-HEADER))));
     else if(e.key==='Home'){c=0;if(ctrl)r=0;}else if(e.key==='End'){c=state.visible.length-1;if(ctrl)r=state.total-1;}else moved=false;
-    if(moved){e.preventDefault();if(e.key==='Tab'){safe(()=>advance(cur,0,e.shiftKey?-1:1))();return;}choose(r,c,e.shiftKey);ensureVisible();if(state.editMode&&!e.shiftKey)safe(()=>edit(true))();}
+    if(moved){e.preventDefault();if(e.key==='Tab'){safe(()=>advance(cur,0,e.shiftKey?-1:1))();return;}choose(r,c,e.shiftKey);ensureVisible();if(!e.shiftKey)safe(()=>edit(true))();}
   });
   viewport.addEventListener('paste',e=>{e.preventDefault();safe(()=>paste(e.clipboardData.getData('text/plain')))();});
   viewport.addEventListener('pointerdown',e=>{
@@ -745,7 +747,7 @@
   document.addEventListener('pointerup',e=>{if(rowResize){if(e.pointerId===rowResize.pointer){rowResize.y=e.clientY;finishRowResize(true);}return;}if(resizing){resizing=null;persist();}if(drag){const d=drag;drag=null;cancelAnimationFrame(frame);frame=0;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-r]');
     // Rê nhẹ trong cùng ô vẫn là click; chỉ giữ chọn vùng khi đã đi qua ô khác.
     const sameCell=target&&+target.dataset.r===d.r&&+target.dataset.c===d.c&&target.dataset.id===d.id;
-    if(sameCell&&!d.crossed&&!d.shift)setTimeout(()=>state.editMode?safe(()=>edit(true))():showReader(target),0);
+    if(sameCell&&!d.crossed&&!d.shift)setTimeout(()=>safe(()=>edit(true))(),0);
   }});
   viewport.addEventListener('dblclick',e=>{if(!e.target.closest('[data-row-resize],.mg-url-link'))safe(edit)();});
   viewport.addEventListener('click',e=>{
@@ -805,10 +807,20 @@
     if(show){const anchor=button.getBoundingClientRect();Object.assign(menu.style,{position:'fixed',right:'auto',left:Math.max(8,Math.min(anchor.right-menu.offsetWidth,innerWidth-menu.offsetWidth-8))+'px',top:Math.max(8,Math.min(anchor.bottom+6,innerHeight-menu.offsetHeight-8))+'px'});}
   };
   $('mg-save').onclick=safe(saveAll);
-  $('mg-mode').onclick=()=>{
-    if(dirty())return;state.editMode=!state.editMode;
-    $('mg-mode').textContent='Chế độ: '+(state.editMode?'Chỉnh sửa':'Xem');$('mg-mode').setAttribute('aria-pressed',state.editMode);
-  };
+  // Nút Tôi / Toàn bộ (ADR-033): "Tôi" thêm cua_toi=1 vào URL, máy chủ lọc theo cột
+  // phụ trách của bộ phận mình; lựa chọn nhớ theo người dùng và bảng trên trình duyệt.
+  function syncScopeButtons(){
+    const group=$('mg-pham-vi');if(!group)return;const on=query.get('cua_toi')==='1';
+    group.querySelector('[data-pham-vi="toi"]').setAttribute('aria-pressed',String(on));
+    group.querySelector('[data-pham-vi="toan_bo"]').setAttribute('aria-pressed',String(!on));
+  }
+  $('mg-pham-vi')?.addEventListener('click',e=>{
+    const button=e.target.closest('[data-pham-vi]');if(!button||dirty())return;
+    const p=new URLSearchParams(query);
+    if(button.dataset.phamVi==='toi')p.set('cua_toi','1');else p.delete('cua_toi');
+    preferences.scope=button.dataset.phamVi;persist();
+    safe(()=>navigate(p))();
+  });
   function openDialog(id){closeMore();reader.hidden=true;$(id).showModal();}
   for(const id of ['mg-format','mg-history','mg-conflict'])$(id).addEventListener('close',()=>viewport.focus({preventScroll:true}));
   $('mg-format-button').onclick=safe(async()=>{
@@ -917,7 +929,7 @@
   function reloadForViewMode(data){
     if(data.delivery_view_version===undefined||data.delivery_view_version===config.deliveryViewVersion)return false;
     // Quản lý đổi phạm vi toàn bảng: bỏ cache/nháp rồi tải trang theo quyền mới.
-    clearAccess('Chế độ xem bảng đã thay đổi. Đang tải lại trang.');
+    clearAccess('Cấu hình bảng đã thay đổi. Đang tải lại trang.');
     window.location.reload();return true;
   }
   async function poll(){
@@ -967,5 +979,9 @@
   window.addEventListener('blur',()=>{finishRowResize(false);drag=null;resizing=null;cancelAnimationFrame(frame);frame=0;});
   document.addEventListener('pointercancel',()=>{finishRowResize(false);drag=null;resizing=null;cancelAnimationFrame(frame);frame=0;});
   viewport.addEventListener('lostpointercapture',e=>{if(rowResize&&e.pointerId===rowResize.pointer)finishRowResize(false);});
-  repaint();poll();
+  if(config.myScope&&preferences.scope==='toi'&&!query.has('cua_toi')){
+    const p=new URLSearchParams(query);p.set('cua_toi','1');
+    history.replaceState({},'',config.filterUrl+'?'+p);navigate(p,false);
+  }else{syncScopeButtons();repaint();}
+  poll();
 })();

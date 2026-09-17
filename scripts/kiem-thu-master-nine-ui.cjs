@@ -45,11 +45,11 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
     await page.screenshot({path:path.join(out,'row-selected.png')});
     await (await cell('ghi_chu')).dblclick({delay:120});await page.locator('#mg-editor textarea').fill('Tiếng Việt\nTự lưu');await page.keyboard.press('Control+Enter');await saved();
     assert.equal((await read()).cells.ghi_chu.value,'Tiếng Việt\nTự lưu');evidence.checks.push('Bấm đúp 120ms, nội dung nhiều dòng, autosave');
-    await page.locator('#mg-mode').click();await (await cell('bang')).click();await page.locator('#mg-editor input').fill('CA');
+    await (await cell('bang')).click();await page.locator('#mg-editor input').fill('CA');
     await page.keyboard.press('Tab');await page.locator('#mg-editor input').waitFor();assert.equal(await page.locator('#mg-editor input').getAttribute('aria-label'),'Thành phố');
     await page.locator('#mg-editor input').fill('Hà Nội');await page.keyboard.press('Escape');await saved();assert.equal((await read()).cells.bang.value,'CA');
-    evidence.checks.push('Chế độ Chỉnh sửa và Tab mở ô tiếp theo');
-    await page.locator('#mg-mode').click();await (await cell('bang')).click();await page.locator('#mg-format-button').click();await page.getByLabel('Cỡ chữ',{exact:true}).selectOption('18');await saved();
+    evidence.checks.push('Bấm ô mở ô nhập ngay và Tab mở ô tiếp theo');
+    await page.keyboard.press('Escape');await page.locator('#mg-format-button').click();await page.getByLabel('Cỡ chữ',{exact:true}).selectOption('18');await saved();
     assert.equal((await read()).cells.bang.style.fs,18);await page.locator('#mg-undo').click();await saved();assert.equal((await read()).cells.bang.style.fs,undefined);await page.locator('#mg-redo').click();await saved();
     evidence.checks.push('Định dạng, Undo/Redo qua server');
     // Giữ phản hồi đầu tiên, tiếp tục sửa cùng ô và xác nhận nháp mới không bị mất.

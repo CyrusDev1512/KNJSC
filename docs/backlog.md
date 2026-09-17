@@ -1,5 +1,28 @@
 # Backlog
 
+## 17.09.2026 — Nút Tôi / Toàn bộ; nhân viên Vận đơn xem và sửa toàn bảng; bỏ Chế độ xem bảng và Chế độ Xem/Chỉnh sửa (ADR-033)
+
+Chủ dự án thử trên VPS, chốt mặc định công ty: nhân viên Vận đơn thấy **và sửa**
+cả đơn của người khác; nút "Chế độ: Xem" và trang "Chế độ xem bảng" (ADR-026)
+gây nhầm, xoá hẳn. Ba câu hỏi đã trả lời: sửa được mọi dòng; nút hiện cho mọi
+người có cột phụ trách (Vận đơn, Sale/CSKH, Marketing; Admin và Kế toán không);
+nhớ trên trình duyệt, mặc định Toàn bộ. Đã làm: bỏ hai điều kiện "phải là người
+được giao" ở `assignment_service.scope_condition` và
+`grant_service.can_edit_visible_record`; thêm `field_for(user)` và tham số
+`cua_toi=1` trong `grid_service.build_grid` (đi theo khối JSON, phiên bản, chip,
+Thống kê, Excel); nút `#mg-pham-vi` thay `#mg-mode`, lưới luôn ở chế độ chỉnh
+sửa, ô không sửa được mở vùng đọc; xoá trang `che-do-xem/`, service, template,
+trường `delivery_view_all` (migration 0013, giữ `delivery_view_version`), hai bài
+kiểm và script cũ; 8 script Codex bỏ bấm `#mg-mode`; 11 bài kiểm ghim ADR-020/026
+đổi diễn viên sang CSKH hoặc Sale có Grant; bài mới AC-33.1 → 33.7. Tài liệu:
+ADR-033, đánh dấu ADR-020/021/026/029, chỉ mục ADR đủ tới 033, docs/02/03/04/05/
+06/07, KNJSC_PROBLEM 4/5/8, USER_INQUIRY 6, CLAUDE.md. Kiểm: rebase lên 8 commit
+Codex cùng ngày (đợt sửa 19 bài đỏ), toàn bộ `crm orders forms_builder tests core`
+còn 3 bài đỏ do quyết định mới (`test_market_currency`, `test_luong_ba_bo_phan`,
+bộ đếm `test_truy_vet`) — đã sửa, chạy lại 0 đỏ; Chromium 1440/390 với vd.staff,
+vd.manager, sale.staff, quantri — [biên bản](kiem-chung-pham-vi-toi-toan-bo-20260917.md).
+**Còn nợ:** chưa chạy trên VPS (máy chủ dự án phát hành, `migrate` có 0013);
+script Codex đã sửa chưa chạy lại vì máy ảo thiếu Playwright cho Node.
 ## 17.09.2026 — Diễn tập nâng cấp VPS 0907cdd → 49e2872
 
 Dựng database ở đúng trạng thái VPS (`0907cdd` + dữ liệu), rồi chạy đúng dãy lệnh

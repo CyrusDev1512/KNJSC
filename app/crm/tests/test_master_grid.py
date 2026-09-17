@@ -1,7 +1,7 @@
 """AC-21.1, AC-21.2, AC-21.3, AC-21.4, AC-21.5, AC-21.7 — Lưới master: phạm vi, khối dữ liệu, CAS và gửi lại an toàn."""
 import uuid
 import pytest
-from .test_waybill_feedback import feedback, delivery_leader, assign_rows
+from .test_waybill_feedback import feedback, delivery_leader, cskh_staff, assign_rows
 from forms_builder.models import DataRecord
 
 pytestmark = pytest.mark.django_db
@@ -42,9 +42,8 @@ def test_blocks_scoped_and_stable(client, feedback, nguoi_dung):
     assert {r['id'] for r in data['rows']} == {r.pk for r in feedback[2]}
     client.force_login(nguoi_dung['staff_vd'])
     response = client.get(BASE + 'du-lieu/')
-    assert response.status_code in (200, 403, 404)
-    if response.status_code == 200:
-        assert response.json()['rows'] == []
+    assert response.status_code == 200 and response.json()['total'] == 2
+    assert all(r['editable'] for r in response.json()['rows'])
 
 
 def test_date_json_display_keeps_iso_value(client, feedback, nguoi_dung):
@@ -93,12 +92,15 @@ def test_protected_and_invalid_batch_atomic(client, feedback, nguoi_dung):
 
 
 def test_replay_revoked_scope_denied(client, feedback, nguoi_dung, delivery_leader):
-    row = feedback[2][0]
-    assign_rows(delivery_leader, [row], delivery=nguoi_dung['staff_vd'].pk)
-    client.force_login(nguoi_dung['staff_vd'])
+    from forms_builder.models import GrantAction
+    from forms_builder.services import grant_service
+    row = feedback[2][1]; user = nguoi_dung['staff_sale_1']
+    grant_service.grant(table=feedback[0], user=user, action=GrantAction.EDIT, actor=nguoi_dung['admin'])
+    assign_rows(delivery_leader, [row], care=user.pk)
+    client.force_login(user)
     operation = str(uuid.uuid4())
     assert write(client, row, old=row.data.get('ghi_chu'), operation=operation).status_code == 200
-    assign_rows(delivery_leader, [row], delivery=None)
+    assign_rows(delivery_leader, [row], care=None)
     assert write(client, row, old=row.data.get('ghi_chu'), operation=operation).status_code in (403, 404)
 
 
@@ -234,13 +236,13 @@ def test_migration_roundtrip_keeps_business_rows(feedback):
     assert list(DataRecord.objects.values_list('id',flat=True))==ids
 
 
-def test_draft_visibility_probe_rechecks_assignment(client, feedback, nguoi_dung, delivery_leader):
+def test_draft_visibility_probe_rechecks_assignment(client, feedback, nguoi_dung, delivery_leader, cskh_staff):
     row=feedback[2][0]
-    assign_rows(delivery_leader, [row], delivery=nguoi_dung['staff_vd'].pk)
-    client.force_login(nguoi_dung['staff_vd'])
+    assign_rows(delivery_leader, [row], care=cskh_staff.pk)
+    client.force_login(cskh_staff)
     url=BASE+'du-lieu/?check_id='+str(row.pk)
     assert client.get(url).json()=={'visible': True}
-    assign_rows(delivery_leader, [row], delivery=None)
+    assign_rows(delivery_leader, [row], care=None)
     assert client.get(url).status_code==403
 
 

@@ -35,8 +35,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **191** — 178 tự động, 13 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **154 trên 178** |
+| Tiêu chí nghiệm thu trong `docs/04` | **198** — 185 tự động, 13 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **161 trên 185** |
 | Tiêu chí tự động còn hoãn | **24**, đều thuộc phần đang làm hoặc chờ chốt — xem bảng cuối tệp |
 | Bao phủ dòng mã | khoảng 85% |
 

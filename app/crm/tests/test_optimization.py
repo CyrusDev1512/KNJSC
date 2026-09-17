@@ -3,7 +3,7 @@ import uuid
 import pytest
 from django.db import connection, transaction
 from django.test.utils import CaptureQueriesContext
-from .test_waybill_feedback import feedback, delivery_leader
+from .test_waybill_feedback import feedback, delivery_leader, cskh_staff
 from .test_master_grid import BASE, write
 
 pytestmark = pytest.mark.django_db(transaction=True)
@@ -86,16 +86,19 @@ def test_sync_only_changed_visible_rows_and_no_scope_count(client,feedback,nguoi
 
 
 def test_warm_cache_loses_assignment_immediately(client,feedback,nguoi_dung,delivery_leader,enabled):
+    # Sale 1 luôn thấy đơn mình tạo (rows[0]) nên bảng còn trong phạm vi; đơn của
+    # Sale 2 chỉ thấy khi được giao CSKH — thu phân công là mất ngay (ADR-033: Vận
+    # đơn không còn theo phân công nên không dùng làm diễn viên ở đây)
     from .test_waybill_feedback import assign_rows
-    row=feedback[2][0];staff=nguoi_dung['staff_vd']
-    assign_rows(delivery_leader,[row],delivery=staff.pk)
+    row=feedback[2][1];staff=nguoi_dung['staff_sale_1']
+    assign_rows(delivery_leader,[row],care=staff.pk)
     client.force_login(staff)
     before=client.get(BASE+'du-lieu/',{'protocol':2}).json()
-    assert before['total']==1
-    assign_rows(delivery_leader,[row],delivery=None)
+    assert before['total']==2
+    assign_rows(delivery_leader,[row],care=None)
     sync=client.post(BASE+'dong-bo/',{'query_token':before['query_token'],'revision':before['revision'],'ids':[row.pk],'visible':[row.pk]},content_type='application/json').json()
     assert sync['removed']==[row.pk] and sync['reset'] and not sync['rows']
-    assert client.get(BASE+'du-lieu/',{'protocol':2}).json()['total']==0
+    assert client.get(BASE+'du-lieu/',{'protocol':2}).json()['total']==1
     assert client.get(BASE+'du-lieu/',{'protocol':2,'query_token':before['query_token']}).status_code==409
 
 
@@ -281,7 +284,7 @@ def test_assignment_journal_uses_actual_column_codes(feedback,nguoi_dung):
     assert set(COLUMNS).issubset(event.columns)
 
 
-def test_streaming_export_direct_background_equivalence_and_revocation(feedback,nguoi_dung,settings,tmp_path):
+def test_streaming_export_direct_background_equivalence_and_revocation(feedback,nguoi_dung,cskh_staff,settings,tmp_path):
     from io import BytesIO
     from openpyxl import load_workbook
     from unittest.mock import patch
@@ -290,8 +293,8 @@ def test_streaming_export_direct_background_equivalence_and_revocation(feedback,
     from core.exceptions import BusinessError
     from forms_builder.services import export_service
     from .test_waybill_feedback import assign_rows
-    table,_,rows=feedback;user=nguoi_dung['staff_vd']
-    assign_rows(nguoi_dung['admin'],rows,delivery=user.pk)
+    table,_,rows=feedback;user=cskh_staff
+    assign_rows(nguoi_dung['admin'],rows,care=user.pk)
     settings.EXPORT_DIR=tmp_path/'exports';settings.STORAGE_DIR=tmp_path
     expected=None;jobs=[]
     for flag in (False,True):
@@ -307,6 +310,6 @@ def test_streaming_export_direct_background_equivalence_and_revocation(feedback,
         assert job.status==JobStatus.DONE
         assert list(load_workbook(export_service.result_file(job)).active.values)==expected
         assert set(job.summary['exported_row_ids'])=={r.pk for r in rows}
-    assign_rows(nguoi_dung['admin'],[rows[0]],delivery=None)
+    assign_rows(nguoi_dung['admin'],[rows[0]],care=None)
     for job in jobs:
         with pytest.raises(BusinessError,match='xuất lại'):export_service.check_download(job,user)

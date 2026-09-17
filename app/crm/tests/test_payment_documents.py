@@ -45,7 +45,7 @@ def test_document_create_replay_private_image_and_cas(client, feedback, nguoi_du
     url = f'/chung-tu-thanh-toan/{pk}/sua/'
     assert client.post(url, {'version': 1, 'action': 'edit', 'reference': 'NEW'}).status_code == 200
     assert client.post(url, {'version': 1, 'action': 'delete'}).status_code == 409
-    client.force_login(nguoi_dung['staff_vd'])
+    client.force_login(nguoi_dung['staff_mkt'])   # ngoài phạm vi: Vận đơn nay thấy toàn bảng (ADR-033)
     assert client.get(detail['images'][0]['url']).status_code == 403
     assert create_document(client, row).status_code == 403
 

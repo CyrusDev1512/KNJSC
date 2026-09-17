@@ -22,7 +22,7 @@ không hỏi lại người dùng những gì họ đã trả lời.
 |---|---|
 | `docs/backlog.md` **các mục ghi ngày ở đầu tệp** rồi **mục 0** | Việc gần nhất và **còn nợ những gì**; từ 14.09 mỗi tác vụ là một mục ghi ngày ở đầu tệp, mục 0 là bản tóm cũ hơn |
 | `docs/backlog-kanban.md`, `docs/test-log.md` | Việc đang ở cột nào và **từng lỗi `TL-xx`** kèm mức, chỗ sai, blocker. Lưu ý: TL-01 → TL-34 rà trên lưới HTMX cũ (07.09); lưới đã thay, phải rà lại trước khi sửa |
-| `docs/quyet-dinh/` | Vì sao làm thế. **Đừng quyết lại những gì đã chốt.** Bảng ở `README.md` trong đó dừng ở 022, thư mục thực có tới 032 — đọc thư mục, không tin bảng |
+| `docs/quyet-dinh/` | Vì sao làm thế. **Đừng quyết lại những gì đã chốt.** Bảng ở `README.md` trong đó đã đủ tới 033 (17.09); hai tệp cùng số 022 |
 | `docs/kiem-chung-*.md`, `docs/06-ke-hoach-kiem-thu.md` | Mỗi tác vụ từ 09.09 có một biên bản kiểm chứng: đã đo gì, số bao nhiêu, còn gì chưa kiểm; 06 là kế hoạch kiểm thử chung |
 
 `docs/dashboard-tien-do.html` là tiến độ theo giai đoạn tới 08.09; sau đó tiến độ
@@ -111,7 +111,8 @@ Bài kiểm của `crm/tests` chạy ở URLconf 8021 nhờ `crm/tests/conftest.
 `grid-focus.js`). Máy chủ trả JSON theo khối 100 dòng (`du-lieu/`), ghi bằng
 `luu-json/` có so phiên bản CAS (409 khi ô vừa bị người khác đổi) và biên nhận
 chống lặp (`GridMutationReceipt`), lịch sử ô (`GridCellHistory`), tự lưu 500 ms,
-nhập ngay trong ô, ghim cột bằng `position: sticky`. Renderer HTML/HTMX ghi ô cũ
+nhập ngay trong ô, ghim cột bằng `position: sticky`. Lưới **luôn ở chế độ chỉnh sửa**
+(ADR-033): không còn nút Chế độ Xem/Chỉnh sửa, ô không sửa được mở vùng đọc. Renderer HTML/HTMX ghi ô cũ
 (`bang-tinh.js`, `bang-tinh-o.js`, `_o.html`) **đã bỏ, không đưa lại**. Profile
 nghiệp vụ của bảng lấy qua `forms_builder/record_policies.py` (`register_grid`,
 `register_workflow`), không nhận diện nghiệp vụ bằng mã cột. Cột **Trùng** hiện chỉ
@@ -127,8 +128,9 @@ Ba bảng vận đơn (ADR-018, 029):
 
 Admin chọn đích bằng `TableDef.receives_orders` (tối đa một bảng); bảng nào có
 `workflow = "waybill"` thì mang profile Vận đơn: phân công Vận đơn/CSKH/Marketing
-(`WaybillAssignment`, ADR-020), phạm vi Staff theo dòng được giao, chế độ xem
-Toàn bộ bảng chỉ mở quyền xem (ADR-026), chi tiết sản phẩm `WaybillItem`, trạng thái
+(`WaybillAssignment`, ADR-020); **nhân viên Vận đơn thấy và sửa mọi dòng, nút Tôi /
+Toàn bộ (`?cua_toi=1`) lọc theo cột phụ trách của bộ phận mình** (ADR-033 thay
+ADR-026, 17.09; Sale/CSKH vẫn theo phân công), chi tiết sản phẩm `WaybillItem`, trạng thái
 thanh toán sửa trực tiếp (ADR-025; kho chứng từ tắt bằng `PAYMENT_DOCUMENTS_ENABLED`).
 Tiền theo quốc gia US/USD, CA/CAD, PH/PHP, PTTT chỉ Zelle/PayPal (ADR-031).
 
@@ -264,11 +266,11 @@ của lưới KN CRM (ADR-014), không phải của Bảng dữ liệu.
 |---|---|
 | Thêm chức năng mới | `docs/02-yeu-cau-san-pham.md` — tìm mã FR tương ứng |
 | Sửa cấu trúc dữ liệu | `docs/03-thiet-ke-ky-thuat.md` mục 2 |
-| Đụng tới phân quyền | `docs/03-thiet-ke-ky-thuat.md` mục 3; ADR-020, 026 cho vận đơn |
+| Đụng tới phân quyền | `docs/03-thiet-ke-ky-thuat.md` mục 3; ADR-020, 033 cho vận đơn |
 | Viết truy vấn | `docs/03-thiet-ke-ky-thuat.md` mục 5 |
 | Viết kiểm thử | `docs/04-tieu-chi-nghiem-thu.md` — tìm mã AC tương ứng |
-| Đụng lưới CRM | ADR-021, 027; `crm/services/master_grid_service.py`, `static/js/master-grid.js` |
-| Đụng vận đơn | ADR-018, 020, 025, 026, 029, 031; `orders/services/waybill_service.py` |
+| Đụng lưới CRM | ADR-021, 027, 033; `crm/services/master_grid_service.py`, `static/js/master-grid.js` |
+| Đụng vận đơn | ADR-018, 020, 025, 029, 031, 033; `orders/services/waybill_service.py`, `orders/services/assignment_service.py` |
 
 ---
 
