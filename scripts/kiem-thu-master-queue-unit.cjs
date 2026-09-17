@@ -10,7 +10,7 @@ function fixture(confirm=()=>false){
     fetch:(url,options)=>new Promise((resolve,reject)=>requests.push({url,payload:JSON.parse(options.body),resolve,reject})),
     json:async r=>r,$:()=>({append(){},close(){},replaceChildren(){}}),element:()=>({}),
     editor:{hidden:true},reader:{hidden:true,querySelector:()=>({textContent:''})},cancelEdit(){},
-    status(){},message(){},closeMore(){},repaint(){},refreshStatus(){},finishEditor:()=>true,
+    status(){},message(){},closeMore(){},repaint(){},repaintSelection(){},refreshStatus(){},finishEditor:()=>true,
     clearAccess(){},invalidate(){},showConflicts(){},config:{saveUrl:'test',scopeUrl:'scope'},csrf:'test',window:{KNJSCWorkingCopy:Working,confirm}};
   vm.createContext(ctx);vm.runInContext(`let working=new Working(),saveTimer=0,firstQueued=0;const state={busy:false,saveError:false,conflicts:[],cache:new Map(),pending:new Map(),generation:0,accessEpoch:0,retryCount:0};${code};globalThis.api={working,state,scheduleSave,saveAll};`,ctx);
   const settle=async()=>{for(let i=0;i<12;i++)await Promise.resolve();};
