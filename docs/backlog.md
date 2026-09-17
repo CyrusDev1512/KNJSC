@@ -1,5 +1,16 @@
 # Backlog
 
+## 17.09.2026 — Báo cáo tổng hợp toàn màn hình: hết khối trắng dưới bảng
+
+Chủ dự án thấy "ô trắng tinh" khi bấm Toàn màn hình ở Báo cáo tổng hợp: khung
+bảng (`.report-table-scroll`) được kéo `flex:1` chiếm hết chiều cao, nền trắng,
+phân trang bị đẩy xuống đáy, nên bảng ba dòng để lại một khối trắng cao 700 px.
+Sửa một chỗ trong `static/css/solarpunk.css`: khung bảng ôm đúng số dòng
+(`flex:0 1 auto`, vẫn cuộn trong khung khi bảng dài hơn màn hình), phân trang nằm
+ngay dưới bảng, phần còn lại mang nền dịu `--surface-2`. Kiểm trên máy ảo bằng
+Chromium 1440/390 và bảng 42 dòng ở khung 420 px (cuộn trong khung, phân trang
+vẫn thấy); `reports/tests` 128 bài đạt. Không đổi JS, không đổi nghiệp vụ.
+
 ## 17.09.2026 — Sửa 19 bài kiểm đỏ có sẵn trước khi gộp KN CRM vào main
 
 Nhánh `codex/crm-update-solar-ui` có 19 bài đỏ **từ trước**, không do hai sửa
@@ -14,13 +25,13 @@ trước tài liệu và bài kiểm, chia bảy nhóm:
 | Giao diện | Bốn lớp CSS dùng trong template mà chưa khai | Khai `.dashboard-*`, `.thong-bao` bằng biến nền, không màu cứng |
 | Ma trận phân quyền (ADR-023) | Lên đơn chuyển sang KN CRM, `/bieu-mau/` thành thư viện hai tab | Thêm kết quả *Chuyển KN CRM*, thêm dòng Thư viện tài liệu; ma trận 45 → **50 ô** |
 | Luồng ba bộ phận | Đơn nay lên ở KN CRM | Bài đặt đơn qua URLconf 8021; chiều từ chối kiểm 302 về KN CRM |
-| Truy vết | `docs/04` thêm bảng ba cột và hai cột, regex cũ chỉ đọc bốn cột | Đọc cả ba dạng bảng; 190 tiêu chí, 158/177 đã kiểm, 19 hoãn |
+| Truy vết | `docs/04` thêm bảng ba cột và hai cột, regex cũ chỉ đọc bốn cột | Đọc cả ba dạng bảng; 191 tiêu chí, 159/178 đã kiểm, 19 hoãn |
 
 19 mã hoãn không phải bài kiểm bị bỏ: AC-24, AC-26, AC-27 là tiêu chí của việc
 **đang làm**, chính `docs/04` ghi "đang kiểm chứng". Ghi vào `HOAN` để bài truy
 vết đếm đúng, kèm lý do và giai đoạn — quy tắc của `tests/test_truy_vet.py`.
 
-Sau sửa: `pytest -m "not cham"` **2494 xanh, 13 bỏ qua, 0 đỏ**.
+Sau sửa: `pytest -m "not cham"` **2499 xanh, 13 bỏ qua, 0 đỏ**.
 
 ## 17.09.2026 — CLAUDE.md theo nhánh đang chạy; cầu nối skill cho Claude Code
 
