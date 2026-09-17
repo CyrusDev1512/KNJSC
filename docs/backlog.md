@@ -22,6 +22,39 @@ vết đếm đúng, kèm lý do và giai đoạn — quy tắc của `tests/tes
 
 Sau sửa: `pytest -m "not cham"` **2494 xanh, 13 bỏ qua, 0 đỏ**.
 
+## 17.09.2026 — CLAUDE.md theo nhánh đang chạy; cầu nối skill cho Claude Code
+
+Chủ dự án yêu cầu hai việc. (1) Viết lại `CLAUDE.md` cho khớp nhánh
+`codex/crm-update-solar-ui`: nhánh chính không phải `main`, VPS và cách phát hành,
+lưới `master-grid.js` thay hai tệp HTMX đã xoá, ba bảng vận đơn, cờ `CRM_OPT_*`
+tắt, mốc 300.000 dòng / 10 người, lệnh dữ liệu giả, hai điều của AGENTS.md hay bị
+quên (duyệt trước, chỉ push khi được yêu cầu), ba lỗi `test_truy_vet` có sẵn, và
+ghi rõ TL-01 → TL-34 rà trên lưới cũ. (2) Skill dùng chung: giữ `.agents/skills`
+là nguồn duy nhất, thêm 10 cầu nối `.claude/skills/<tên>/SKILL.md` sinh bởi
+`scripts/dong-bo-skill.py --tao-cau-noi` (chép `name`/`description`, thân trỏ về
+nguồn; không symlink vì Windows, không chép nội dung vì lệch); `--check` và bài
+`tests/test_dong_bo_skill.py` bắt lệch. Mâu thuẫn còn để ngỏ: PRODUCT.md (Google
+Workspace, 07.09) và ADR-028 (Solarpunk, 14.09) cùng ghi "đã chốt"; chỉ mục ADR
+dừng ở 022 và có hai tệp 022 — chưa sửa, chờ chủ dự án.
+
+## 16.09.2026 — Cột Trùng chưa có tác dụng; nạp 300.000 khách mẫu vào Vận đơn DB
+
+Anh/chị xem bảng vận đơn cũ và thấy cột Trùng chỉ hiện con số 2. Rà mã: cột
+Trùng chỉ đăng ký cho bảng `van_don` cũ, **Vận đơn DB và `van_don_moi` không
+có cột này** (TL-35); đếm theo số điện thoại đúng như gõ nên số ghi khác định
+dạng không bắt được, chỉ đếm trong một bảng, không lọc, không bấm, không tô
+màu (TL-36). Đề xuất đã gửi anh/chị, **chưa làm gì** cho tới khi chốt.
+
+Lệnh mới `nap_khach_mau` (AC-10.9) nạp 300.000 khách giả theo lô vào Vận đơn
+DB: 375.000 dòng, 20 % là khách mua lại, 2 % số dòng mua lại ghi số điện
+thoại khác định dạng để đo TL-36; bảng có profile Vận đơn thì có phân công.
+Chạy ở máy anh/chị: `docker compose -f deploy/docker-compose.yml exec bangtinh
+python manage.py nap_khach_mau --so-khach 300000`, xoá bằng `--xoa-cu --so-khach 0`.
+Số đo máy ảo (4 nhân, Postgres 16 mặc định, 16.09): nạp 375.000 dòng hết **220 giây**;
+bảng có 301.502 số điện thoại khác nhau (1.502 là số ghi khác định dạng của khách
+cũ), **138.694 dòng có số trùng**; bảng DataRecord 896 MB; mở lưới Vận đơn DB lần
+đầu bằng Chromium 2,2 giây, chân trang "375.000 dòng khớp bộ lọc", không lỗi JS.
+
 ## 16.09.2026 — Kiểm chứng cờ và phát hành tối ưu cuộn (đã phát hành phần đã kiểm)
 
 Bản lưới mới qua 137 hồi quy, E2E lưới chung và hai lượt tải chính 100.000

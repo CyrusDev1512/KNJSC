@@ -30,6 +30,8 @@ Hướng dẫn và skill dùng chung được quản lý trong repository; xem
 khi thiết lập/cập nhật máy hoặc sửa skill, không nạp lại ở mọi tác vụ.
 Quy tắc phối hợp ở file này áp dụng chung cho Codex và Claude; CLAUDE.md bổ sung
 ngữ cảnh và hướng dẫn riêng của Claude, không thay thế quy tắc phối hợp chung.
+Codex đọc skill ở `.agents/skills`; Claude Code đọc qua cầu nối sinh tự động ở
+`.claude/skills` (`python scripts/dong-bo-skill.py --tao-cau-noi`), nội dung không chép.
 
 Đầu phiên, đọc [README](README.md), [CLAUDE.md](CLAUDE.md) và các mục dưới đây.
 Dùng quy trình phối hợp ở mục 1 cho Codex; không mặc định các lệnh skill/hook

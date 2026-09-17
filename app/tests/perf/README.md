@@ -33,6 +33,7 @@ Ba bước, máy nào cũng vậy; trên Windows/Mac chỉ cần nháy đúp
 
 ```
 python manage.py seed_perf --xoa-cu --so-dong 100000 --so-thang 24 --dien-day --bang-sale
+python manage.py nap_khach_mau --so-khach 300000     # Vận đơn DB: 375.000 dòng, 300.000 khách, 20 % mua lại
 python manage.py do_hieu_nang --giai-thich --nhan truoc        # một người, không tải → storage/perf/<ngày>-don-le-truoc.md
 locust -f tests/perf/locustfile_kn_crm.py --host http://localhost:8021 \
        --users 100 --spawn-rate 10 --run-time 5m --headless --reset-stats   # → storage/perf/<ngày>-tai-100.md

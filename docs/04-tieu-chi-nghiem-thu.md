@@ -225,6 +225,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-10.6 | Bản sao lưu tự động chỉ giữ tối đa 30 bản gần nhất | NFR-15 | Tự động |
 | AC-10.7 | Đọc trực tiếp cơ sở dữ liệu không thấy mật khẩu dạng đọc được | NFR-4 | Tự động |
 | AC-10.8 | **Kiểm tải KN CRM ở cỡ 100 nghìn khách** (docs/06 tầng 9): chạy `scripts/kiem-tai-kn-crm.*` trên máy có Docker — nạp 100.000 dòng vận đơn (≈ 3 triệu ô, 86 nghìn số điện thoại) và bảng Sale 20.000 dòng có cột tính sẵn, `do_hieu_nang` đo một người, rồi Locust **100 người 5 phút** (70 nhân viên vận đơn di qua di lại, 20 Sale/Marketing, 7 trưởng nhóm dán/xoá, 3 Manager đổi cột tính sẵn giữa phiên) trên gunicorn 3 worker; in **ĐẠT** khi p95 nhóm đọc ≤ 1 s, nhóm ghi ≤ 0,5 s, `moi-nhat/` ≤ 0,3 s, 0 lỗi, tính lại cột 100.000 dòng ≤ 30 s mà p95 người khác vẫn ≤ 1 s (`core/constants.py`) | NFR-2 | Thủ công |
+| AC-10.9 | `manage.py nap_khach_mau --bang <mã> --so-khach N` nạp N khách giả (mã đơn `KH-*`) theo lô 2.000 vào bảng vận đơn chỉ định (mặc định Vận đơn DB): số dòng = N ÷ (1 − tỉ lệ mua lại, mặc định 20 %), mỗi khách ít nhất một dòng, khách mua lại dùng lại số điện thoại để cột Trùng có việc, bảng có profile Vận đơn thì mỗi dòng có phân công Vận đơn/CSKH; `--xoa-cu` xoá sạch dòng `KH-*`; DEBUG tắt thì từ chối như `seed_perf` | NFR-2 | Tự động |
 
 ---
 

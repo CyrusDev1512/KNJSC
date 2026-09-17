@@ -32,3 +32,7 @@ Các đường dẫn ở bảng trên mô tả nguồn nhập lịch sử. Manif
 trên là lịch sử upstream, không áp dụng tự động cho bản KNJSC đã chuẩn hóa.
 Impeccable dùng entrypoint thủ công; engine workflow lưu trong reference để bảo trì.
 Hồ sơ thiết kế chuyển về `.agents/design-state`; chưa kiểm engine với vị trí mới.
+
+17.09.2026: thêm cầu nối `.claude/skills/<tên>/SKILL.md` sinh bằng
+`scripts/dong-bo-skill.py --tao-cau-noi` để Claude Code khám phá được; nội dung vẫn
+chỉ ở `.agents/skills`. Xem `docs/dong-bo-ai-nhieu-may.md`.
