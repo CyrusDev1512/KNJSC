@@ -43,6 +43,9 @@ if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
   # bảng rỗng. Không chạy hai lệnh này thì màn hình Báo cáo tổng hợp lặng lẽ
   # rơi về bản tổng quát cũ và không có gì báo cho người dùng biết vì sao.
   # Cả hai chạy lại nhiều lần được, chỉ ghi cấu hình, không tạo dòng nghiệp vụ.
+  # Lưu ý: lệnh bỏ qua bảng chưa tồn tại mà không báo lỗi. Máy mới tinh chưa có
+  # bao_cao_mkt (du_lieu_mau mới tạo) nên lượt này chỉ cấu hình được van_don_moi;
+  # launcher gọi lại sau du_lieu_mau, và lần bật máy sau thì đủ cả ba nguồn.
   python manage.py configure_erp_reports || echo "CANH BAO: configure_erp_reports loi, Bao cao tong hop se hien ban cu" >&2
   python manage.py configure_delivery_daily_report || echo "CANH BAO: configure_delivery_daily_report loi, xem log tren" >&2
   # Hai việc theo lịch của nhóm Nội bộ (ADR-017) chạy bù lúc máy bật: máy để

@@ -1,5 +1,36 @@
 # Backlog
 
+## 17.09.2026 — Vá nốt đường cấu hình nguồn báo cáo: bốn launcher và VPS
+
+Hôm trước mới gắn `configure_erp_reports` vào `entrypoint.sh`, tưởng là đủ. Dựng
+một máy sạch chạy thử thì lộ ra **hai lỗ nữa**, cùng một loại lỗi im lặng.
+
+**Lỗ 1 — entrypoint không chạy trên đường phổ biến nhất.** Thư mục `app/` gắn từ
+ngoài vào container, nên pull mã mới thì container không khởi động lại và
+entrypoint không chạy. Chính `KN JSC.bat` đã biết điều đó và gọi bù `migrate` với
+`tao_bang_van_don` ở bước 5 — nhưng thiếu hai lệnh `configure_*`. `cap-nhat-local.bat`
+và `.sh` thủng y hệt. Trên VPS thì `RUN_MIGRATIONS=0` nên entrypoint không bao giờ
+chạy phần đó, mà quy trình ở `deploy/production/README.md` cũng không gọi tay.
+
+**Lỗ 2 — thứ tự.** `configure_erp_reports` **bỏ qua bảng chưa tồn tại mà không
+báo lỗi** (`if table is not None`), và `ensure_sale()` thoát sớm khi chưa có bộ
+phận `sale`. Cả `bao_cao_mkt` lẫn bộ phận `sale` đều do `du_lieu_mau` tạo. Bản vá
+đầu tiên đặt hai lệnh **trước** `du_lieu_mau` nên chỉ cấu hình được `van_don_moi`
+— đo trên máy sạch mới thấy, không thì lại lọt.
+
+Đã vá năm tệp: `KN JSC.bat` (gộp cờ `CAU_HINH_BAO_CAO`, chạy sau cả hai khối),
+`scripts/cap-nhat-local.bat`, `scripts/cap-nhat-local.sh`,
+`deploy/production/README.md`, và khối lệnh tay trong `CLAUDE.md`. Máy nào mã
+không đổi thì vẫn không chạy gì thêm, giữ nguyên lời hứa "vài giây là lên".
+
+Đo trên máy sạch (DB trống, `knjsc.settings.dev`):
+
+| Thứ tự chạy | ReportSource | Template `/bao-cao/tong-hop/` |
+|---|---|---|
+| Không có `configure_*` | (rỗng) | `bao_cao_tong_hop.html` — **bản cũ** |
+| `configure_*` **trước** `du_lieu_mau` | chỉ `van_don_moi` | `bao_cao_tong_hop.html` — **vẫn cũ** |
+| `configure_*` **sau** `du_lieu_mau` | đủ ba nguồn | `activity.html` — **bản mới**, có "Toàn màn hình" |
+
 ## 17.09.2026 — Báo cáo tổng hợp toàn màn hình: hết khối trắng dưới bảng
 
 Chủ dự án thấy "ô trắng tinh" khi bấm Toàn màn hình ở Báo cáo tổng hợp: khung

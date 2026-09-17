@@ -38,11 +38,19 @@ docker compose up -d db broker cache
 docker compose --profile maintenance run --rm static-owner
 docker compose run --rm crm python manage.py migrate --noinput
 docker compose run --rm crm python manage.py tao_bang_van_don
+docker compose run --rm crm python manage.py configure_erp_reports
+docker compose run --rm crm python manage.py configure_delivery_daily_report
 docker compose run --rm crm python manage.py collectstatic --noinput
 docker compose up -d crm erp worker heavy beat proxy
 ```
 
 Migration không seed dữ liệu dev. Chưa tự chạy các lệnh này trên VPS.
+`tao_bang_van_don` và hai lệnh `configure_*` là **metadata của bảng động**
+(quyết định 001, ADR-022): `migrate` chỉ tạo bảng rỗng, không sinh định nghĩa
+cột hay ánh xạ nguồn báo cáo. Bỏ chúng thì Bảng tính trả 404 và màn hình Báo
+cáo tổng hợp **lặng lẽ** rơi về bản tổng quát cũ, không báo lỗi gì. Cả ba chạy
+lại nhiều lần được, chỉ ghi cấu hình, không tạo dòng nghiệp vụ. `RUN_MIGRATIONS`
+ở đây là `0` nên `entrypoint.sh` không chạy giúp — phải gọi tay đúng thứ tự trên.
 Trước nâng cấp phải có backup kiểm phục hồi, ghi phiên bản image và cấu hình.
 Quay lui ứng dụng bằng cờ/image đã kiểm; không restore DB hoặc xóa lịch sử
 chỉ để quay lui mã. Named volume giữ dữ liệu qua lần thay container.

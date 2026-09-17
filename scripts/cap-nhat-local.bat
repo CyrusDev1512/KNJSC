@@ -101,6 +101,10 @@ rem Ghi commit vua migrate de KN JSC.bat lan sau biet ma khong doi, khoi migrate
 if not exist "storage" mkdir "storage"
 for /f %%h in ('git rev-parse HEAD 2^>nul') do >"storage\.kn-jsc-lan-truoc" echo %%h
 %COMPOSE% exec -T web python manage.py du_lieu_mau
+rem Nguon bao cao (ADR-022) la metadata cua bang dong, migrate chi tao bang rong.
+rem Chay SAU du_lieu_mau: lenh bo qua bang chua ton tai ma khong bao loi.
+%COMPOSE% exec -T web python manage.py configure_erp_reports
+%COMPOSE% exec -T web python manage.py configure_delivery_daily_report
 start "" %DIA_CHI%
 echo.
 echo Xong - mo http://localhost:8020 (KN ERP) va http://localhost:8021/ (KN CRM, bang tinh)

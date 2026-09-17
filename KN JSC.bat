@@ -204,6 +204,7 @@ if defined MA_DOI (
   if errorlevel 1 goto :loi
   %COMPOSE% exec -T web python manage.py tao_bang_van_don
   %COMPOSE% restart worker beat
+  set "CAU_HINH_BAO_CAO=1"
   if not exist "storage" mkdir "storage"
   if defined HIEN_TAI >"%DAU_VET%" echo %HIEN_TAI%
 )
@@ -211,6 +212,17 @@ if "%LAN_DAU%"=="1" (
   echo May moi, dang nap tai khoan mau - mat khau in ra cuoi lenh ...
   %COMPOSE% exec -T web python manage.py du_lieu_mau
   if errorlevel 1 goto :loi
+  set "CAU_HINH_BAO_CAO=1"
+)
+rem Nguon bao cao (ADR-022) cung la metadata cua bang dong: migrate chi tao bang
+rem rong, anh xa cot do hai lenh duoi sinh ra. Thieu chung thi man hinh Bao cao
+rem tong hop lang le hien ban tong quat cu, khong bao gi cho nguoi dung biet.
+rem Phai chay SAU du_lieu_mau: lenh bo qua bang chua ton tai ma khong bao loi,
+rem ma bao_cao_mkt va bo phan sale la do du_lieu_mau tao. Chay lai nhieu lan
+rem duoc, chi ghi cau hinh, khong tao dong nghiep vu.
+if defined CAU_HINH_BAO_CAO (
+  %COMPOSE% exec -T web python manage.py configure_erp_reports
+  %COMPOSE% exec -T web python manage.py configure_delivery_daily_report
 )
 rem Moi database local nhan cap nhat tai khoan mau mot lan; khong nap lai du lieu.
 %COMPOSE% exec -T web python manage.py cap_nhat_mat_khau_mau

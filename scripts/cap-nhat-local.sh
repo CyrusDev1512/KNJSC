@@ -60,6 +60,12 @@ done
 $COMPOSE exec -T web python manage.py migrate --noinput
 $COMPOSE exec -T web python manage.py tao_bang_van_don
 $COMPOSE exec -T web python manage.py du_lieu_mau
+# Nguồn báo cáo (ADR-022) cũng là metadata của bảng động, migrate chỉ tạo bảng
+# rỗng. Thiếu hai lệnh này thì Báo cáo tổng hợp lặng lẽ hiện bản cũ. Phải chạy
+# SAU du_lieu_mau: lệnh bỏ qua bảng chưa tồn tại mà không báo lỗi, mà bảng
+# bao_cao_mkt và bộ phận sale là do du_lieu_mau tạo.
+$COMPOSE exec -T web python manage.py configure_erp_reports
+$COMPOSE exec -T web python manage.py configure_delivery_daily_report
 
 case "$(uname -s)" in
   Darwin) open "$DIA_CHI" ;;

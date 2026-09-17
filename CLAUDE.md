@@ -68,6 +68,8 @@ Bên trong các tệp đó chỉ là hai lệnh dưới đây, muốn làm tay t
 ```
 docker compose -f deploy/docker-compose.yml up -d
 docker compose -f deploy/docker-compose.yml exec web python manage.py du_lieu_mau
+docker compose -f deploy/docker-compose.yml exec web python manage.py configure_erp_reports
+docker compose -f deploy/docker-compose.yml exec web python manage.py configure_delivery_daily_report
 ```
 
 **Vì sao cần lệnh thứ hai.** Cơ sở dữ liệu không theo kho mã, nên máy mới dựng
@@ -75,6 +77,13 @@ xong là hệ thống trống, **không có tài khoản nào để đăng nhậ
 tạo 12 tài khoản ba bộ phận bốn cấp bậc, bảng Báo cáo Marketing, biểu mẫu, sản
 phẩm và dữ liệu mẫu cho nhóm Nội bộ. Danh sách tài khoản kèm mật khẩu ở
 `docs/tai-khoan-mau.md`; `quantri` vào được trang quản trị Django ở `/quan-tri/`.
+
+**Vì sao hai lệnh cuối, và vì sao phải đứng sau.** Nguồn báo cáo (ADR-022) cũng
+là metadata của bảng động: `migrate` chỉ tạo bảng rỗng, ánh xạ cột do
+`configure_erp_reports` sinh ra. Thiếu chúng thì màn hình Báo cáo tổng hợp **lặng
+lẽ** rơi về bản tổng quát cũ, không báo gì. Và chúng **bỏ qua bảng chưa tồn tại mà
+không báo lỗi**, trong khi `bao_cao_mkt` cùng bộ phận `sale` là do `du_lieu_mau`
+tạo — chạy trước `du_lieu_mau` là chạy hụt. Bốn tệp launcher đã xếp đúng thứ tự này.
 
 Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.sh` gọi
 `tao_bang_van_don` ngay sau `migrate`, vì bảng động (quyết định 001) không do
