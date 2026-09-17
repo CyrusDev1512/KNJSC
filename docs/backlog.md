@@ -1,5 +1,26 @@
 # Backlog
 
+## 17.09.2026 — Phát hành ADR-033 lên VPS: image `knjsc-app:9949062-adr033`
+
+Làm từ máy có SSH, theo bàn giao trong `daily-tasks.md`. Local: `pull --ff-only`
+tới `406c544` (hai commit sau `9949062` chỉ là tài liệu), 0013 đã áp sẵn, Chromium
+8021 với `vd.staff` (Tôi → `?cua_toi=1`, 10.000 → 3.333 dòng, gõ ô ngay) và `quantri`
+(không nút) đạt. VPS lúc 23:26: backup `release-adr033-20260917-232356` **restore thật
+vào DB tạm, số dòng khớp** rồi xoá; kho ff tới `406c544`; build image tại VPS với
+`INSTALL_DEV=0`; `check --deploy` sạch cả CRM lẫn ERP; `migrate` áp đúng **hai**
+migration `forms_builder.0013` và `reports.0003`; ba lệnh metadata và
+`collectstatic` đạt; 5 service cùng image mới, giới hạn tài nguyên giữ nguyên,
+restart 0, log sạch; hai domain 200. Chrome domain thật bằng admin: lưới
+`van_don_moi` 1 dòng và `van_don_db` 6.667 dòng không lỗi JS, Báo cáo tổng hợp bản
+mới có "Toàn màn hình", đăng nhập chung còn chạy. Hai dự báo từ diễn tập:
+`bao_cao_mkt` **0/51 dòng thiếu `loai_tien`** nên không có dải vàng; `bao_cao_sale`
+đã có 50 dòng, chỉ `bao_cao_van_don_ngay` xuất hiện rỗng. 502 thoáng qua 8 giây khi
+thay container CRM, đã ghi. DB thật 31 MB, không phải 1,25 GB.
+[Biên bản](kiem-chung-phat-hanh-vps-20260917.md).
+**Còn nợ:** chưa kiểm trên VPS bằng tài khoản Vận đơn, Sale, CSKH (chủ dự án chưa
+đặt tệp tài khoản kiểm); `app/org/management/commands/du_lieu_mau.py` chưa theo dõi
+trên máy Windows trùng tên lệnh ở `core`, chưa quyết giữ hay xoá.
+
 ## 17.09.2026 — Nút Tôi / Toàn bộ; nhân viên Vận đơn xem và sửa toàn bảng; bỏ Chế độ xem bảng và Chế độ Xem/Chỉnh sửa (ADR-033)
 
 Chủ dự án thử trên VPS, chốt mặc định công ty: nhân viên Vận đơn thấy **và sửa**

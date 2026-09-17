@@ -1,13 +1,24 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 17.09.2026 — Phát hành ADR-033 lên VPS
+
+**Finished VPS 23:26:** image `knjsc-app:9949062-adr033` (build tại VPS, `INSTALL_DEV=0`)
+trên 5 service; backup restore thật vào DB tạm khớp số dòng; `migrate` áp
+`forms_builder.0013` + `reports.0003`; `check --deploy` sạch; hai domain 200; Chrome
+domain thật bằng admin đạt (lưới, Báo cáo tổng hợp bản mới, đăng nhập chung).
+`bao_cao_mkt` không thiếu `loai_tien`; chỉ `bao_cao_van_don_ngay` xuất hiện rỗng.
+Cờ `CRM_OPT_*` giữ 0. [Biên bản](kiem-chung-phat-hanh-vps-20260917.md).
+**To do:** kiểm trên VPS bằng tài khoản Vận đơn, Sale x2, CSKH khi chủ dự án cấp tệp
+tài khoản kiểm; quyết giữ hay xoá `app/org/management/` chưa theo dõi.
+
 ## 17.09.2026 — Tôi / Toàn bộ và quyền sửa Vận đơn (ADR-033)
 
-**Finished local, chưa VPS:** nhân viên Vận đơn xem và sửa toàn bảng; nút Tôi /
+**Finished local, đã lên VPS 23:26 (mục trên):** nhân viên Vận đơn xem và sửa toàn bảng; nút Tôi /
 Toàn bộ theo cột phụ trách, nhớ trên trình duyệt; lưới luôn chỉnh sửa; xoá Chế độ
 xem bảng (ADR-026) và trường `delivery_view_all` (migration 0013). Sau rebase lên đợt
 sửa bài kiểm của Codex: toàn bộ suite Python 0 đỏ. Chromium 1440/390 đạt.
 [Biên bản](kiem-chung-pham-vi-toi-toan-bo-20260917.md).
-**To do:** phát hành VPS (máy chủ dự án, chạy `migrate` 0013).
+~~**To do:** phát hành VPS (máy chủ dự án, chạy `migrate` 0013).~~ Đã phát hành 17.09 23:26.
 
 ## 16.09.2026 — Tối ưu cuộn và cờ: đã phát hành phần đã kiểm
 
