@@ -1,5 +1,9 @@
 # Nhật ký quyết định kiến trúc
 
+Mới 18.09.2026: [ADR-035 — Báo cáo tổng hợp theo ngày × nhân sự, cột Leader, 100 dòng mỗi trang](035-bao-cao-tong-hop-theo-ngay-va-nhan-su.md), bổ sung ADR-022.
+
+Mới 18.09.2026: [ADR-034 — Bảng nhận đơn liệt kê mọi bảng vận đơn đang có](034-bang-nhan-don-liet-ke-moi-bang-van-don.md), sửa điều "bảng cũ không làm đích" của ADR-029.
+
 Mới 17.09.2026: [ADR-033 — Nhân viên Vận đơn xem và sửa toàn bảng; nút Tôi / Toàn bộ thay Chế độ xem](033-pham-vi-toi-toan-bo-va-quyen-sua-van-don.md), thay toàn bộ ADR-026.
 
 Mới: [ADR-027 — Lưới chung và vòng đời bảng](027-crm-update-luoi-chung-va-vong-doi-bang.md), đang kiểm local.
@@ -142,7 +146,9 @@ Trong tình huống nào thì nên xem lại quyết định này.
 | 030 | [Phiên đăng nhập chung ERP/CRM](030-dang-nhap-chung-erp-crm.md) | Đã triển khai | 15.09.2026 |
 | 031 | [Loại tiền theo quốc gia và phương thức thanh toán](031-tien-theo-quoc-gia-va-pttt.md) | Đã triển khai | 16.09.2026 |
 | 032 | [Ngày hệ thống, sửa báo cáo và mẫu Marketing](032-ngay-he-thong-va-sua-bao-cao.md) | Đã triển khai | 16.09.2026 |
-| 033 | [Nhân viên Vận đơn xem và sửa toàn bảng; nút Tôi / Toàn bộ thay Chế độ xem](033-pham-vi-toi-toan-bo-va-quyen-sua-van-don.md) | Đã triển khai local | 17.09.2026 |
+| 033 | [Nhân viên Vận đơn xem và sửa toàn bảng; nút Tôi / Toàn bộ thay Chế độ xem](033-pham-vi-toi-toan-bo-va-quyen-sua-van-don.md) | Đã triển khai VPS 17.09 | 17.09.2026 |
+| 034 | [Bảng nhận đơn liệt kê mọi bảng vận đơn đang có](034-bang-nhan-don-liet-ke-moi-bang-van-don.md) | Đã triển khai local | 18.09.2026 |
+| 035 | [Báo cáo tổng hợp theo ngày × nhân sự, cột Leader, 100 dòng mỗi trang](035-bao-cao-tong-hop-theo-ngay-va-nhan-su.md) | Đã triển khai local | 18.09.2026 |
 
 ---
 

@@ -122,8 +122,8 @@ Ba bảng vận đơn (ADR-018, 029):
 
 | Mã | Nhãn | Là gì |
 |---|---|---|
-| `van_don` | Vận đơn mới (41 cột) | Lịch sử cũ, giữ ID; không làm đích nhận đơn |
-| `van_don_moi` | crmThuận (25 cột) | Đích nhận đơn mặc định; có profile `waybill_service` |
+| `van_don` | Vận đơn mới (45 cột sau nâng cấp) | **Bảng duy nhất của Lên đơn từ 18.09** (chủ dự án chốt, ADR-034): `chuan_bi_bang_nhan_don` bổ sung cột chuẩn rồi chọn; local đã chọn, VPS chọn lúc phát hành |
+| `van_don_moi` | crmThuận (25 cột) | Đích mặc định khi chưa chọn bảng nào (`ACTIVE_WAYBILL_TABLE_CODE`); có profile `waybill_service` |
 | `van_don_db` | Vận đơn DB (26 cột) | Cấu hình 14.09 theo file chủ dự án; đã `chuan_bi_bang_nhan_don`, chưa được chọn |
 
 Admin chọn đích bằng `TableDef.receives_orders` (tối đa một bảng); bảng nào có

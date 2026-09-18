@@ -76,12 +76,20 @@ def report(request, export=False, choices=None):
             # Giới hạn nhóm như báo cáo hiện có; tránh COUNT riêng khi ít nhóm.
             items = list(result.rows[:summary_service.MAX_GROUPS + 1])
             page_source = items if len(items) <= summary_service.MAX_GROUPS else result.rows
-            ctx.update(pagination_context(request, page_source, "nhóm"))
+            # 100 nhóm mỗi trang (ADR-035): bảng theo ngày × nhân sự nhiều dòng hơn bản theo ngày.
+            ctx.update(pagination_context(request, page_source, "nhóm", default_size=100))
             ctx.update(result=result, rows=aggregations.finish_rows(ctx["trang"], result),
                        totals=aggregations.total_cells(result), empty=not result.totals["so_dong"])
-            if getattr(result, 'show_team', False):
-                for row, raw in zip(ctx['rows'], ctx['trang']):
+            show_team, show_person, show_leader = (getattr(result, flag, False) for flag in ("show_team", "show_person", "show_leader"))
+            for row, raw in zip(ctx['rows'], ctx['trang']):
+                if show_team:
                     row['team'] = raw['team_name']
+                if show_person:
+                    row['person'] = raw['person_name']
+                if show_person or show_leader:
+                    row['leader'] = raw['leader_name'] or '—'
+            # Dòng "Tổng trong bộ lọc" ôm cột nhóm và các cột danh tính.
+            ctx["label_span"] = 1 + show_team + 2 * show_person + show_leader
             if source.kind == "delivery":
                 ctx["shipping"] = result.shipping
     return render(request, "reports/activity.html", ctx)

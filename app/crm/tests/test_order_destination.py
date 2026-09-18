@@ -125,3 +125,69 @@ def test_destination_payment_edit_permissions_and_export(client, feedback, desti
     assert client.post(base+'luu-json/',{'operation':str(uuid.uuid4()),'cells':cells(b.record)},content_type='application/json').status_code == 200
     kind, book=export_service.export(staff,destination,QueryDict(),builder='grid')
     assert book.active.max_row == 3
+
+def test_candidates_list_every_waybill_table(client, feedback, destination, departments, nguoi_dung):
+    """AC-11.39 — Bảng nhận đơn liệt kê mọi bảng vận đơn đang có (ADR-034): bảng cũ `van_don`, bảng đang nhận,
+    bảng của bộ phận Vận đơn có cột Mã đơn đúng cấu trúc; bảng báo cáo cùng bộ phận và bảng bộ phận khác không hiện;
+    bảng chưa đủ điều kiện hiện kèm lý do, không chọn được"""
+    from forms_builder.meaning import FieldType, Meaning
+    from forms_builder.models import ColumnDef, TableDef
+    from orders.constants import WAYBILL_TABLE_CODE
+    from orders.services import destination_service
+    old = TableDef.objects.filter(code=WAYBILL_TABLE_CODE).first() or TableDef.objects.create(
+        name='Vận đơn mới', code=WAYBILL_TABLE_CODE, department=departments['vd'], created_by=nguoi_dung['admin'])
+    bao_cao = TableDef.objects.create(name='Báo cáo ngày VD', code='bao_cao_vd_ngay', department=departments['vd'], created_by=nguoi_dung['admin'])
+    ColumnDef.objects.create(table=bao_cao, name='Ngày', code='ngay', field_type=FieldType.DATE, meaning=Meaning.DATE, order=0)
+    khac = TableDef.objects.create(name='Bảng Sale', code='bang_sale_khac', department=departments['sale'], created_by=nguoi_dung['admin'])
+    ColumnDef.objects.create(table=khac, name='Mã đơn', code='ma_don', field_type=FieldType.TEXT, meaning='', order=0)
+    rows = {table.code: reason for table, reason in destination_service.candidates()}
+    assert set(rows) == {feedback[0].code, destination.code, WAYBILL_TABLE_CODE}
+    assert rows[feedback[0].code] == '' and rows[destination.code] == ''
+    assert rows[WAYBILL_TABLE_CODE] != ''            # bảng cũ hiện ra nhưng chưa đủ cấu trúc để chọn
+    client.force_login(nguoi_dung['admin'])
+    assert client.post(URL, {'table': old.pk}).status_code == 400
+    page = client.get(URL)
+    assert page.status_code == 200
+    html = page.content.decode()
+    assert 'Vận đơn mới' in html and 'Báo cáo ngày VD' not in html and 'Bảng Sale' not in html
+
+
+def test_prepare_upgrades_legacy_schema_then_selectable(feedback, departments, nguoi_dung):
+    """AC-11.39 — Bảng cũ thiếu cấu trúc chuẩn (cột chữ tự do thay vì danh sách, thiếu cột) được
+    `prepare_existing` bổ sung: thêm cột thiếu, đổi chữ → danh sách kèm lựa chọn chuẩn, giữ nguyên dòng và
+    giá trị cũ; sau đó đủ điều kiện và chọn được làm bảng nhận đơn; Staff/Leader/Manager bị từ chối"""
+    from core.exceptions import OutOfScopeError
+    from forms_builder.meaning import FieldType
+    from forms_builder.models import ColumnDef, DataRecord, TableDef
+    from orders.constants import WAYBILL_TABLE_CODE
+    from orders.services import destination_service, waybill_service
+    old = TableDef.all_objects.filter(code=WAYBILL_TABLE_CODE).first() or TableDef.objects.create(
+        name='Vận đơn mới', code=WAYBILL_TABLE_CODE, department=departments['vd'], created_by=nguoi_dung['admin'])
+    old.columns.all().delete()          # mô phỏng bảng cũ thiếu cấu trúc chuẩn
+    TableDef.all_objects.filter(pk=old.pk).update(workflow='', receives_orders=False)
+    old.refresh_from_db()
+    skip = {'pttt_thuc_te', 'phu_trach_vd', 'phu_trach_mkt'}
+    for i, (label, code, kind, meaning) in enumerate(waybill_service.COLUMNS):
+        if code in skip:
+            continue
+        loose = code in ('loai_tien', 'pttt')
+        ColumnDef.objects.create(table=old, name=label, code=code, order=i, meaning=meaning,
+                                 field_type=FieldType.TEXT if loose else kind,
+                                 options=[] if loose else list(waybill_service.OPTIONS.get(code) or []))
+    row = DataRecord.objects.create(table=old, department=old.department, created_by=nguoi_dung['admin'],
+                                    data={'ma_don': 'CU-1', 'ten_khach': 'Khách cũ', 'loai_tien': 'usd', 'pttt': 'Tiền mặt'})
+    assert destination_service.eligibility(old) != ''
+    for role in ('staff_vd', 'leader_sale_1', 'manager_sale'):
+        with pytest.raises(OutOfScopeError):
+            destination_service.prepare_existing(nguoi_dung[role], old.pk, expected_rows=1)
+    destination_service.prepare_existing(nguoi_dung['admin'], old.pk, expected_rows=1)
+    old.refresh_from_db()
+    assert destination_service.eligibility(old) == '' and old.workflow == 'waybill'
+    assert set(old.columns.values_list('code', flat=True)) >= {c[1] for c in waybill_service.COLUMNS}
+    loai_tien = old.columns.get(code='loai_tien')
+    assert loai_tien.field_type == FieldType.CHOICE and set(waybill_service.OPTIONS['loai_tien']) <= set(loai_tien.options)
+    row.refresh_from_db()
+    assert row.data['loai_tien'] == 'usd' and row.data['pttt'] == 'Tiền mặt', 'giá trị cũ không bị sửa'
+    assert DataRecord.all_objects.filter(table=old).count() == 1
+    destination_service.configure(nguoi_dung['admin'], old.pk)
+    assert destination_service.current().pk == old.pk

@@ -38,7 +38,8 @@ def test_sale_scope_and_dashboard(client, marketing_scope, nguoi_dung, role, cou
     assert result.totals["so_dong"]==count
     exported=client.get("/bao-cao/tong-hop/xuat/",query)
     rows=list(load_workbook(BytesIO(exported.content),data_only=True).active.values)
-    assert tuple(Decimal(str(v)) if v is not None else None for v in rows[-1][1:])==tuple(aggregations.total_values(result))
+    tong=aggregations.total_values(result)   # dòng tổng: nhãn, ô trống cho Nhân sự/Leader, rồi số liệu (ADR-035)
+    assert tuple(Decimal(str(v)) if v is not None else None for v in rows[-1][-len(tong):])==tuple(tong)
     d=client.get("/",{"sale_nguon":source.table.code,"tu":query["tu"],"den":query["den"]})
     block=next(b for b in d.context["activity"]["blocks"] if b["kind"]=="sale")
     assert block["ok"] and block["data"]["count"]==count
@@ -102,7 +103,7 @@ def test_delivery_filters_match_status_and_export(delivery_source,nguoi_dung,cli
     r=client.get("/bao-cao/tong-hop/xuat/",{"nguon":source.table.code,"sp":"a","thi_truong":"Canada","tu":"2026-08-01","den":"2026-08-31"})
     assert r.status_code==200
     book=load_workbook(BytesIO(r.content),data_only=True)
-    assert list(book.active.values)[-1][1:]==(2,4)
+    assert list(book.active.values)[-1][-2:]==(2,4)   # sau nhãn còn hai ô trống Nhân sự/Leader (ADR-035)
     assert list(book.worksheets[1].values)[-1]==("Đang giao",2)
 
 
@@ -247,3 +248,53 @@ def test_summary_preserves_old_group_links(client, marketing_scope, nguoi_dung, 
     assert response.status_code == 200
     assert response.context["params"]["group"] == new
     assert 'href="/bao-cao/hoat-dong/"' not in response.content.decode()
+
+
+@pytest.mark.parametrize("role,persons", [
+    ("staff_sale_1", {"staff_sale_1"}),
+    ("leader_sale_1", {"staff_sale_1", "staff_sale_1b", "leader_sale_1"}),
+    ("manager_sale", {"staff_sale_1", "staff_sale_1b", "staff_sale_2", "leader_sale_1"}),
+    ("admin", {"staff_sale_1", "staff_sale_1b", "staff_sale_2", "leader_sale_1"}),
+])
+def test_day_view_shows_person_and_leader_in_scope(client, marketing_scope, nguoi_dung, role, persons):
+    """AC-22.10 — Cách xem Tổng hợp nhóm theo ngày × nhân sự: cột Nhân sự và Leader ngay sau Ngày, Leader tra từ
+    Team.leader; Staff chỉ thấy dòng của mình, Leader team mình, Manager cả bộ phận; lọc nhân sự thu hẹp bảng;
+    Excel cùng cột; lọc nhân sự ngoài phạm vi bị 403"""
+    from io import BytesIO
+    from openpyxl import load_workbook
+    source=ReportSource.objects.create(table=marketing_scope.table,kind="sale",columns={"mess":"so_mess","orders":"so_don","sales":"doanh_so","market":"thi_truong"})
+    client.force_login(nguoi_dung[role])
+    query={"nguon":source.table.code,"tu":"2026-08-01","den":"2026-08-31"}
+    r=client.get("/bao-cao/tong-hop/",query)
+    assert r.status_code==200 and r.context["result"].show_person
+    rows=r.context["rows"]
+    assert [row["nhom"] for row in rows]==["01.08.2026"], "mỗi ngày vẫn một dòng — cấu trúc bảng không đổi"
+    assert {p.split(" — ")[0] for p in rows[0]["person"].split(", ")}==persons
+    leaders=set(rows[0]["leader"].split(", "))
+    assert "Leader Sale 1" in leaders                        # Team.leader của Sale 1
+    assert ("Leader Sale 2" in leaders) == ("staff_sale_2" in persons)
+    assert r.context["label_span"]==3
+    html=r.content.decode()
+    assert "<th scope=\"col\">Nhân sự</th><th scope=\"col\">Leader</th>" in html
+    # Lọc theo nhân sự: chỉ còn dòng của người đó; người ngoài phạm vi bị chặn
+    me=nguoi_dung["staff_sale_1"].pk
+    r2=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":me})
+    assert [row["person"].split(" — ")[0] for row in r2.context["rows"]]==["staff_sale_1"] and r2.context["rows"][0]["leader"]=="Leader Sale 1"
+    outsider=nguoi_dung["staff_sale_2"].pk
+    r3=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":outsider})
+    assert (r3.status_code==403) == ("staff_sale_2" not in persons)
+    sheet=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True).active.values)
+    assert sheet[3][:3]==("Ngày","Nhân sự","Leader") and len(sheet[4:-1])==1
+    assert {p.split(" — ")[0] for p in sheet[4][1].split(", ")}==persons and "Leader Sale 1" in sheet[4][2]
+
+
+def test_day_view_pages_by_hundred(client, marketing_scope, nguoi_dung):
+    """AC-22.11 — Báo cáo hoạt động phân trang mặc định 100 nhóm mỗi trang; dòng tổng trong bộ lọc vẫn tính trên
+    toàn bộ kết quả, không theo trang"""
+    source=ReportSource.objects.create(table=marketing_scope.table,kind="sale",columns={"mess":"so_mess","orders":"so_don","sales":"doanh_so","market":"thi_truong"})
+    client.force_login(nguoi_dung["admin"])
+    r=client.get("/bao-cao/tong-hop/",{"nguon":source.table.code,"tu":"2026-08-01","den":"2026-08-31"})
+    assert r.context["trang"].paginator.per_page==100 and r.context["moi_trang"]==100
+    assert r.context["result"].totals["so_dong"]==4
+    r25=client.get("/bao-cao/tong-hop/",{"nguon":source.table.code,"tu":"2026-08-01","den":"2026-08-31","moi_trang":25})
+    assert r25.context["moi_trang"]==25

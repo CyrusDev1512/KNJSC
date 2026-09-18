@@ -39,8 +39,6 @@ def current(*, for_write=False):
 def _schema_error(table):
     if table.deleted_at is not None or not table.is_active:
         return 'Bảng không hoạt động.'
-    if table.code == WAYBILL_TABLE_CODE:
-        return 'Bảng Vận đơn cũ chỉ giữ dữ liệu lịch sử.'
     if table.department.code != 'van-don' or not table.department.is_active:
         return 'Bảng phải thuộc bộ phận Vận đơn đang hoạt động.'
     columns = {c.code: c for c in table.columns.all()}
@@ -84,6 +82,9 @@ def prepare_existing(actor, table_id, *, expected_rows, request=None):
     table = TableDef.all_objects.select_related('department').get(pk=table_id)
     lifecycle_service.lock(table, exclusive=True)
     table.refresh_from_db()
+    if _schema_error(table):
+        _upgrade_schema(actor, table, request=request)
+        table.refresh_from_db()
     reason = _schema_error(table)
     if reason:
         raise BusinessError(reason)
@@ -99,9 +100,72 @@ def prepare_existing(actor, table_id, *, expected_rows, request=None):
     return table
 
 
+def _upgrade_schema(actor, table, *, request=None):
+    """Bổ sung cấu trúc chuẩn Vận đơn cho bảng cũ (ADR-034, 18.09): tạo cột còn thiếu theo
+    `waybill_service.COLUMNS` (xếp cuối), đổi cột chữ tự do thành danh sách chọn khi chuẩn
+    yêu cầu, thêm lựa chọn chuẩn còn thiếu. Không xoá, không đổi tên cột, không sửa dữ liệu:
+    giá trị cũ ngoài danh sách vẫn hiện "(giá trị cũ)" trên lưới. Trả về danh sách việc đã làm."""
+    from forms_builder.meaning import FieldType
+    from forms_builder.services import table_service
+    if table.department.code != 'van-don':
+        return []
+    columns = {c.code: c for c in table.columns.all()}
+    taken_meanings = {c.meaning for c in columns.values() if c.meaning}
+    order = max((c.order for c in columns.values()), default=-1)
+    done = []
+    for label, code, kind, meaning in waybill_service.COLUMNS:
+        options = list(waybill_service.OPTIONS.get(code) or [])
+        column = columns.get(code)
+        if column is None:
+            order += 1
+            table_service.add_column(table, actor=actor, request=request, name=label, code=code, field_type=kind,
+                                     order=order, meaning=meaning if meaning not in taken_meanings else '',
+                                     options=options)
+            if meaning:
+                taken_meanings.add(meaning)
+            done.append(f'thêm cột {code}')
+            continue
+        if column.is_computed:
+            continue                      # cột tính sẵn: để `_schema_error` báo, không tự phá công thức
+        fields = []
+        if column.field_type != kind and kind == FieldType.CHOICE and column.field_type == FieldType.TEXT:
+            column.field_type = FieldType.CHOICE
+            fields.append('field_type')
+        if column.meaning != meaning and meaning and meaning not in taken_meanings:
+            column.meaning = meaning
+            taken_meanings.add(meaning)
+            fields.append('meaning')
+        if options and not set(options).issubset(column.options or []):
+            column.options = list(column.options or []) + [o for o in options if o not in (column.options or [])]
+            fields.append('options')
+        if fields:
+            column.save(update_fields=fields + ['updated_at'] if hasattr(column, 'updated_at') else fields)
+            done.append(f'sửa cột {code}: {", ".join(fields)}')
+    if done:
+        record(AuditAction.UPDATE, actor=actor, target=table, request=request,
+               detail='Bổ sung cấu trúc chuẩn Vận đơn: ' + '; '.join(done))
+    return done
+
+
 def candidates():
-    tables = TableDef.objects.filter(is_active=True, department__code='van-don').exclude(code=WAYBILL_TABLE_CODE).select_related('department').prefetch_related('columns')
-    return [(table, eligibility(table)) for table in tables]
+    """Mọi bảng vận đơn đang có: bảng đã mang profile Vận đơn (kể cả `van_don` cũ — ADR-034)
+    và bảng thuộc bộ phận Vận đơn đủ cấu trúc để nhận đơn. Bảng khác cùng bộ phận (báo cáo
+    ngày…) không hiện vì không phải bảng vận đơn."""
+    tables = TableDef.objects.filter(is_active=True).select_related('department').prefetch_related('columns').order_by('id')
+    return [(table, eligibility(table)) for table in tables if _is_waybill_like(table)]
+
+
+def _is_waybill_like(table):
+    """Bảng vận đơn theo nghĩa nghiệp vụ: có profile Vận đơn, là bảng `van_don` cũ, hoặc
+    bảng của bộ phận Vận đơn có cột Mã đơn đúng cấu trúc (bảng chưa chuyển đổi xong vẫn hiện,
+    kèm lý do chưa chọn được)."""
+    if is_waybill_table(table) or table.code == WAYBILL_TABLE_CODE:
+        return True
+    if table.department.code != 'van-don':
+        return False
+    spec = next((c for c in waybill_service.COLUMNS if c[1] == 'ma_don'), None)
+    column = next((c for c in table.columns.all() if c.code == 'ma_don'), None)
+    return bool(spec and column and column.field_type == spec[2] and column.meaning == spec[3])
 
 
 @transaction.atomic

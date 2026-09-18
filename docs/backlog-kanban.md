@@ -1,5 +1,17 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 18.09.2026 — Bốn góp ý sau ADR-033
+
+**Finished local:** 1.000 dòng trống sẵn và tạo dòng không tải lại (AC-11.37); bảng nhận đơn
+hiện đủ ba bảng vận đơn (ADR-034, AC-11.39); cột ghim đứng đầu, bôi đen đúng (AC-11.38); báo
+cáo Tổng hợp thêm cột Nhân sự/Leader gộp tên theo ngày, 100 dòng/trang, bảng gọn (ADR-035,
+AC-22.10, 22.11). `reports/tests` 133 đạt, hai bài Chromium mới đạt, hồi quy `crm/tests orders/tests forms_builder/tests core` 1.261 bài, 0 đỏ (13 bỏ qua do thiếu môi trường).
+[Biên bản](kiem-chung-gop-y-sau-adr033-20260918.md).
+Chiều 18.09: sửa giật khi gõ rồi Enter (poll tự lưu + thanh thông báo, AC-11.40); hoàn lại cấu trúc báo cáo
+(mỗi ngày một dòng, hai cột gộp tên); `van_don` thành bảng duy nhất của Lên đơn (nâng cấp cấu trúc, local đã chọn).
+**To do:** phát hành VPS (không migration; build image, `collectstatic`, `chuan_bi_bang_nhan_don --table van_don`
+rồi chọn `van_don`, backup trước).
+
 ## 17.09.2026 — Phát hành ADR-033 lên VPS
 
 **Finished VPS 23:26:** image `knjsc-app:9949062-adr033` (build tại VPS, `INSTALL_DEV=0`)

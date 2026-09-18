@@ -6,7 +6,9 @@
   const $ = id => document.getElementById(id), config = JSON.parse($('mg-config').textContent);
   const viewport = $('mg-viewport'), canvas = $('mg-canvas'), editor = $('mg-editor'), reader = $('mg-reader');
   editor.classList.add('mg-inline-editor');
-  const ROW = 28, HEADER = 54, BLOCK = 100, MAX = 2000, CACHE = 10;
+  // DRAFT_BATCH: số dòng trống sẵn cuối lưới cho người có quyền thêm; tới dòng trống
+  // áp chót thì thêm một đợt nữa, không sinh từng dòng sau mỗi lần lưu.
+  const ROW = 28, HEADER = 54, BLOCK = 100, MAX = 2000, CACHE = 10, DRAFT_BATCH = 1000;
   const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
   const requestLog=[];
   const key = `kn-master:${config.user}:${config.table}`;
@@ -64,20 +66,24 @@
     state.layoutKey=layoutKey;state.layoutColumns=state.columns;state.layoutEpoch=(state.layoutEpoch||0)+1;
     const order = preferences.order || [], byCode = new Map(state.columns.map(c => [c.code, c]));
     const arranged = [...new Set([...order, ...state.columns.map(c => c.code)])].filter(c => byCode.has(c));
-    state.visible = arranged.filter(c => !(preferences.hidden || []).includes(c)).map(code => ({...byCode.get(code), width: Math.max(72, Math.min(640, preferences.widths?.[code] || byCode.get(code).width))}));
+    const shown = arranged.filter(c => !(preferences.hidden || []).includes(c)).map(code => ({...byCode.get(code), width: Math.max(72, Math.min(640, preferences.widths?.[code] || byCode.get(code).width))}));
     let x = 46, frozen = 46, lastPinned = null;
-    for (const c of state.visible) {
-      c.x = x; x += c.width;
+    for (const c of shown) {
       // Chừa tối thiểu một dải 64px cho phần cuộn; ở desktop hẹp vẫn giữ đủ
       // ba cột nhận diện khách, còn điện thoại tự giảm số cột ghim để lưới dùng được.
       c.pin = c.frozen && frozen + c.width <= Math.max(230, viewport.clientWidth - 64);
-      if (c.pin) { c.pinX = frozen; frozen += c.width; lastPinned = c; }
+      if (c.pin) { frozen += c.width; lastPinned = c; }
     }
+    // Cột ghim đứng đầu thứ tự nhìn thấy (giữ thứ tự tương đối), rồi mới tới cột cuộn:
+    // chỉ số cột, vùng chọn, phím mũi tên và địa chỉ A1 đều theo đúng thứ tự trên màn hình,
+    // không để lại ô trống ở vị trí gốc của cột ghim, không che cột đứng trước nó.
+    state.visible = [...shown.filter(c => c.pin), ...shown.filter(c => !c.pin)];
+    for (const c of state.visible) { c.x = x; if (c.pin) c.pinX = x; x += c.width; }
     for (const c of state.visible) c.pinEdge = c === lastPinned;
     state.width = Math.max(x, viewport.clientWidth); state.frozen = frozen;
     canvas.style.width = state.width + 'px'; canvas.style.height = Math.max(HEADER + geometry.top(state.total), viewport.clientHeight) + 'px';
   }
-  function ensureDrafts(count=1){
+  function ensureDrafts(count=DRAFT_BATCH){
     if(!config.canCreate)return;
     while(state.drafts.length<count){
       const cells=Object.fromEntries(state.columns.map(c=>[c.code,{value:null,display:'',style:{},class:'',editable:!c.protected}]));
@@ -85,7 +91,36 @@
     }
     state.total=state.persistedTotal+state.drafts.length;
   }
-  function rowAt(index) { return index>=state.persistedTotal?state.drafts[index-state.persistedTotal]:state.cache.get(Math.floor(index / BLOCK))?.rows[index % BLOCK]; }
+  function rowAt(index) {
+    if(index>=state.persistedTotal)return state.drafts[index-state.persistedTotal];
+    const number=Math.floor(index/BLOCK);
+    // `state.stale`: bản cũ giữ lại khi tải lại mềm (poll thấy người khác sửa) — ô không hoá `…`.
+    return (state.cache.get(number)||state.stale?.get(number))?.rows[index%BLOCK];
+  }
+  // Dòng nháp vừa thành bản ghi: nối vào cuối khối cache đang có thay vì xoá cache và tải
+  // lại cả lưới (mỗi lần lưu một dòng mới không còn giật). Trả false khi không nối được
+  // (giao thức nén, khối cuối chưa nạp) để nơi gọi rơi về tải lại như cũ.
+  function absorbCreated(rows,idMap){
+    if(config.protocol===2)return false;
+    const created=new Map(rows.filter(r=>Object.values(idMap).includes(r.id)).map(r=>[r.id,r]));
+    if(created.size!==Object.keys(idMap).length)return false;
+    const first=state.persistedTotal;
+    for(const row of created.values()){
+      const index=state.persistedTotal,number=Math.floor(index/BLOCK);
+      if(index%BLOCK!==0&&!state.cache.has(number))return false;
+      if(!state.cache.has(number))state.cache.set(number,{rows:[],version:state.version,total:index});
+      const block=state.cache.get(number);block.rows[index%BLOCK]=row;block.total=index+1;state.persistedTotal=index+1;
+    }
+    // Bỏ nháp đã thành bản ghi và nối dòng thật trong CÙNG một bước: tổng dòng không đổi,
+    // dòng dưới không xê dịch, ô nhập đang mở ở dòng kế không nhảy. Chỉ bù dòng trống theo
+    // đợt (khi còn dưới nửa đợt), không bù từng dòng sau mỗi Enter.
+    state.drafts=state.drafts.filter(r=>!(String(r.id) in idMap));
+    state.total=state.persistedTotal+state.drafts.length;
+    if(state.drafts.length<DRAFT_BATCH/2)ensureDrafts(DRAFT_BATCH);
+    updateGeometry(()=>{geometry.resize(state.total);let index=first;for(const row of created.values())geometry.set(index++,heights[row.id]||ROW);});
+    if(state.current)state.currentId=rowAt(state.current.r)?.id;
+    return true;
+  }
   function repaint(scrollOnly=false) {
     // Nếu cùng frame có lưu/đổi lựa chọn/cấu trúc, phải vẽ cả thay đổi đó.
     scrollPaint=scheduled?scrollPaint&&scrollOnly:scrollOnly;
@@ -98,8 +133,14 @@
     scheduled=true;selectionPaint=true;scrollPaint=false;
     requestAnimationFrame(()=>{scheduled=false;if(selectionPaint)renderSelection();else render(scrollPaint);});
   }
+  // Tải lại mềm khi người khác vừa sửa: giữ bản đang hiện làm nền, khối mới về tới đâu thay tới đó.
+  function refreshSoft() {
+    state.stale=new Map([...(state.stale||[]),...state.cache]);
+    invalidate(false);
+  }
   function invalidate(clearSelection = true) {
     finishRowResize(false);
+    if(clearSelection)state.stale=null;
     state.generation++; state.pending.forEach(p => p.controller.abort()); state.pending.clear(); state.cache.clear(); state.version = '';
     prefetchFailed.clear();
     clearTimeout(jumpTimer);jumpTimer=0;jumpPending=false;prefetchPaused=false;stableScrolls=0;scrollTop=viewport.scrollTop;
@@ -152,6 +193,7 @@
       });
       working.observe(data.rows);
       state.cache.set(number, data);
+      if(state.stale){state.stale.delete(number);if(!state.stale.size)state.stale=null;}
       if(state.current&&Math.floor(state.current.r/BLOCK)===number&&state.currentId&&rowAt(state.current.r)?.id!==state.currentId){state.current=state.anchor=state.selection=null;state.currentId=null;}
       // Khối tải trước không được đẩy dữ liệu đang nhìn ra khỏi cache.
       const first=Math.floor(geometry.at(Math.max(0,viewport.scrollTop-HEADER))/BLOCK);
@@ -344,7 +386,7 @@
     positionEditor();
     viewport.setAttribute('aria-rowcount',state.total+1);viewport.setAttribute('aria-colcount',state.visible.length+1);
     const s=state.selection;
-    $('mg-count').textContent=state.persistedTotal.toLocaleString('vi-VN')+' dòng khớp bộ lọc'+(config.canCreate?' · Dòng cuối để nhập mới':'');
+    $('mg-count').textContent=state.persistedTotal.toLocaleString('vi-VN')+' dòng khớp bộ lọc'+(config.canCreate?` · ${state.drafts.length.toLocaleString('vi-VN')} dòng trống để nhập`:'');
     $('mg-selection').textContent=s?`${columnLetter(s.c1)}${s.r1+1}:${columnLetter(s.c2)}${s.r2+1} · ${((s.r2-s.r1+1)*(s.c2-s.c1+1)).toLocaleString('vi-VN')} ô được chọn`:'';
     $('mg-undo').disabled=!working.undo.length;
     $('mg-redo').disabled=!working.redo.length;
@@ -355,6 +397,8 @@
   function choose(r,c,extend=false) {
     if(dirty()||!state.total||!state.visible.length)return;
     r=Math.max(0,Math.min(state.total-1,r));c=Math.max(0,Math.min(state.visible.length-1,c));
+    // Tới dòng trống áp chót (dòng 999 của đợt) thì thêm một đợt 1.000 dòng trống nữa.
+    if(config.canCreate&&state.drafts.length&&r>=state.total-2){ensureDrafts(state.drafts.length+DRAFT_BATCH);updateGeometry(()=>geometry.resize(state.total));}
     state.current={r,c};state.currentId=rowAt(r)?.id;if(!extend||!state.anchor)state.anchor={r,c};
     const a=state.anchor;state.selection={r1:Math.min(a.r,r),r2:Math.max(a.r,r),c1:Math.min(a.c,c),c2:Math.max(a.c,c)};
     reader.hidden=true;viewport.focus({preventScroll:true});repaintSelection();
@@ -571,15 +615,20 @@
         const data=await fetch(config.saveUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(payload)}).then(json);
         if(accessEpoch!==state.accessEpoch)return;
         const rows=data.protocol===2?data.render_cells:data.rows;
+        let absorbed=false;
         if(data.id_map){
           working.remap(data.id_map,rows,payload.operation);
           payload.cells=payload.cells.map(c=>({...c,id:data.id_map[String(c.id)]??c.id}));
-          state.drafts=state.drafts.filter(r=>!data.id_map[String(r.id)]);
+          absorbed=absorbCreated(rows,data.id_map);
+          if(!absorbed)state.drafts=state.drafts.filter(r=>!data.id_map[String(r.id)]);
         }
         working.acknowledgeRowVersions(rows);
         working.acknowledge(payload.cells,rows);working.observe(rows);state.retry=null;state.retryCount=0;state.currencyConfirmations=null;
+        if(data.latest)state.poll=JSON.stringify(data.latest);
         updateRows(rows,data.protocol===2);state.lastError='';
-        if(data.id_map){invalidate();message('Đã tạo dòng. Dòng được xếp theo thứ tự hiện tại; nếu không khớp bộ lọc sẽ không hiện trong kết quả.');}
+        // Dòng nối tại chỗ thì không hiện thanh thông báo: thanh này đẩy cả lưới xuống 33 px
+        // rồi rút lại ở lần lưu sau — chính là cú giật khi gõ liên tiếp nhiều dòng.
+        if(data.id_map&&!absorbed){invalidate();message('Đã tạo dòng. Dòng được xếp theo thứ tự hiện tại; nếu không khớp bộ lọc sẽ không hiện trong kết quả.');}
     }catch(error){
       clearTimeout(saveTimer);firstQueued=0;
       if(error.code==='currency_confirmation'){
@@ -972,7 +1021,7 @@
           if(interrupted&&working.count){const retry=element('button','nut','Thử lại');retry.onclick=()=>{state.retryCount=0;saveAll();};$('mg-message').append(retry);}refreshStatus();}
         if(lost.size){reader.querySelector('div').textContent='';$('vd-detail')?.close();$('vd-detail-body')?.replaceChildren();$('vd-assignment')?.close();$('vd-assignment-fields')?.replaceChildren();}
       }
-      if(state.poll&&state.poll!==stamp)invalidate(false);state.poll=stamp;
+      if(state.poll&&state.poll!==stamp)refreshSoft();state.poll=stamp;
     }catch(e){if(e.status===403||e.status===404){clearAccess('Quyền xem đã thay đổi.');}}
   }
   setInterval(poll,8000);

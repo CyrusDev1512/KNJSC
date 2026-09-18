@@ -27,17 +27,22 @@ def build_workbook(title, result, subtitle=""):
     ws.append([])
 
     show_team = getattr(result, 'show_team', False)
-    ws.append((['Team'] if show_team else []) + [result.group_label] + [c.label for c in result.columns])
+    show_person = getattr(result, 'show_person', False)
+    show_leader = show_person or getattr(result, 'show_leader', False)
+    # Cột danh tính đi kèm cột nhóm, cùng thứ tự với màn hình (ADR-035)
+    after = (['Nhân sự'] if show_person else []) + (['Leader'] if show_leader else [])
+    ws.append((['Team'] if show_team else []) + [result.group_label] + after + [c.label for c in result.columns])
     for o in ws[ws.max_row]:
         o.font = dam
 
     so_nhom = 0
     for item in result.rows.iterator():
         nhom, cells = aggregations.row_values(item, result)
-        ws.append(([item['team_name']] if show_team else []) + [aggregations.format_group(nhom, result)] + cells)
+        identity = ([item['person_name']] if show_person else []) + ([item['leader_name'] or '—'] if show_leader else [])
+        ws.append(([item['team_name']] if show_team else []) + [aggregations.format_group(nhom, result)] + identity + cells)
         so_nhom += 1
 
-    ws.append(([''] if show_team else []) + [f"Tổng cộng · {so_nhom} {result.unit}"] + aggregations.total_values(result))
+    ws.append(([''] if show_team else []) + [f"Tổng cộng · {so_nhom} {result.unit}"] + [''] * len(after) + aggregations.total_values(result))
     for o in ws[ws.max_row]:
         o.font = dam
 

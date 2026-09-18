@@ -47,14 +47,16 @@ def test_prepare_preserves_rows_and_destination_then_accepts_new_orders(
 
 
 def test_prepare_rejects_count_drift_bad_schema_and_non_admin(
-        destination, populated, nguoi_dung):
+        destination, populated, nguoi_dung, departments):
     prepare = destination_service.prepare_existing
     with pytest.raises(OutOfScopeError):
         prepare(nguoi_dung['manager_sale'], destination.pk, expected_rows=1)
     with pytest.raises(BusinessError, match='Số dòng'):
         prepare(nguoi_dung['admin'], destination.pk, expected_rows=2)
-    destination.columns.filter(code='ma_don').delete()
-    with pytest.raises(BusinessError, match='Cột'):
+    # Cột thiếu thì `_upgrade_schema` tự bổ sung (ADR-034, 18.09); chỉ lỗi không tự sửa được mới bị từ chối
+    destination.department = departments['sale']
+    destination.save(update_fields=['department'])
+    with pytest.raises(BusinessError, match='bộ phận'):
         prepare(nguoi_dung['admin'], destination.pk, expected_rows=1)
     destination.refresh_from_db()
     assert destination.workflow == '' and not destination.receives_orders

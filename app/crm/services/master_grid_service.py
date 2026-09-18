@@ -281,9 +281,41 @@ def save(user, table, payload, *, request=None):
             result['render_cells'].append({'id':row.pk,'cells':serialize([row],[c for c in columns if c.code in changed_codes],user)[0]['cells']})
     else:
         result['rows']=serialize(fresh,columns,user)
+    # Mốc sau khi lưu đi cùng biên nhận: lưới ghi nhận mốc do mình, replay trả đúng mốc lúc đó.
+    result['latest'] = latest_stamp(user, table)
     receipt.result = result
     receipt.save(update_fields=['result'])
     return result
+
+
+def latest_stamp(user, bang):
+    """Mốc mới nhất của bảng. Phản hồi lưu (`luu-json`) cũng trả mốc này để lưới
+    biết mốc vừa đổi là do chính mình, không tải lại toàn lưới mỗi 8 giây khi đang gõ."""
+    from . import optimization
+    from forms_builder.services import table_service
+    if is_waybill_table(bang) and optimization.enabled('SYNC'):
+        current=optimization.state(bang)
+        return {'delivery_view_version':bang.delivery_view_version,'moc':str(current['revision']),'cot':current['fields'].get('__schema',0),'tinh_lai':table_service.recompute_job_of(bang)}
+    # Mốc theo **cả bảng**, không theo phạm vi từng người: `_bang` đã kiểm quyền
+    # xem bảng, còn mốc chỉ nói "có gì đổi", không lộ dữ liệu; lọc thêm theo phạm
+    # vi là JOIN cản chỉ mục `(table, updated_at)` và thành quét cả bảng (78 ms ×
+    # 100 tab × mỗi 8 giây). `all_objects`: dòng xoá mềm vẫn mang mốc xoá nên xoá
+    # một dòng bất kỳ cũng đổi mốc.
+    records = DataRecord.all_objects.filter(table=bang)
+    if is_waybill_table(bang):
+        from django.db.models import Count
+        records = records.in_scope(user)
+        tong = records.aggregate(moc=Max('updated_at'), count=Count('pk'))
+        moc = f"{tong['moc'].isoformat() if tong['moc'] else ''}:{tong['count']}"
+    else:
+        tong = records.aggregate(moc=Max('updated_at'))
+        moc = tong['moc'].isoformat() if tong['moc'] else ''
+    return {
+        "delivery_view_version": bang.delivery_view_version,
+        "moc": moc,
+        "cot": bang.columns.count(),
+        "tinh_lai": table_service.recompute_job_of(bang),
+    }
 
 
 def history(user, table, params):

@@ -29,7 +29,7 @@ from orders.constants import WAYBILL_TABLE_CODE, ACTIVE_WAYBILL_TABLE_CODE, is_w
 from orders.services import dispatch_service
 from org.models import Department
 
-from .services import grid_service, tong_quan_service, tree_service
+from .services import grid_service, master_grid_service, tong_quan_service, tree_service
 
 
 def _cac_bang(user):
@@ -330,30 +330,9 @@ def bang_tinh_moi_nhat(request, code):
     COUNT(*) là quét cả bảng 100 tab × mỗi 8 giây (K27).
     """
     bang = _bang(request, code)                     # bảng ngoài phạm vi → 404 ở đây
-    from .services import optimization
-    if is_waybill_table(bang) and optimization.enabled('SYNC'):
-        current=optimization.state(bang)
-        return JsonResponse({'delivery_view_version':bang.delivery_view_version,'moc':str(current['revision']),'cot':current['fields'].get('__schema',0),'tinh_lai':table_service.recompute_job_of(bang)})
-    # Mốc theo **cả bảng**, không theo phạm vi từng người: `_bang` đã kiểm quyền
-    # xem bảng, còn mốc chỉ nói "có gì đổi", không lộ dữ liệu; lọc thêm theo phạm
-    # vi là JOIN cản chỉ mục `(table, updated_at)` và thành quét cả bảng (78 ms ×
-    # 100 tab × mỗi 8 giây). `all_objects`: dòng xoá mềm vẫn mang mốc xoá nên xoá
-    # một dòng bất kỳ cũng đổi mốc.
-    records = DataRecord.all_objects.filter(table=bang)
-    if is_waybill_table(bang):
-        from django.db.models import Count
-        records = records.in_scope(request.user)
-        tong = records.aggregate(moc=Max('updated_at'), count=Count('pk'))
-        moc = f"{tong['moc'].isoformat() if tong['moc'] else ''}:{tong['count']}"
-    else:
-        tong = records.aggregate(moc=Max('updated_at'))
-        moc = tong['moc'].isoformat() if tong['moc'] else ''
-    return JsonResponse({
-        "delivery_view_version": bang.delivery_view_version,
-        "moc": moc,
-        "cot": bang.columns.count(),
-        "tinh_lai": table_service.recompute_job_of(bang),
-    })
+    return JsonResponse(master_grid_service.latest_stamp(request.user, bang))
+
+
 
 
 # ── Thư mục chứa bảng — ADR-010 ───────────────────────────────────

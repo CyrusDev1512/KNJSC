@@ -1,5 +1,34 @@
 # Backlog
 
+## 18.09.2026 — Bốn góp ý sau phát hành ADR-033 (local, chưa VPS): 1.000 dòng trống, bảng nhận đơn, cột ghim, báo cáo ngày × nhân sự
+
+Chủ dự án thử trên domain thật và nêu bốn việc; kế hoạch duyệt trong phiên, làm trọn trên local.
+(1) **Lưới 1.000 dòng trống sẵn** (`DRAFT_BATCH`, `absorbCreated` nối dòng vừa tạo vào cache thay
+vì `invalidate()`, `geometry.resize` giữ chiều cao hàng): tạo dòng không còn tải lại khối JSON,
+tới dòng 999 thêm 1.000 — AC-11.37. (2) **Bảng nhận đơn liệt kê mọi bảng vận đơn** (ADR-034,
+`_is_waybill_like`): `van_don` cũ hiện ra nhưng chưa chọn được vì thiếu cột Loại tiền chuẩn;
+báo cáo ngày cùng bộ phận không còn lọt — AC-11.39. (3) **Cột ghim đứng đầu thứ tự nhìn thấy**:
+hết bôi đen sai, hết ô trống và che cột ở Vận đơn DB — AC-11.38. (4) **Báo cáo tổng hợp**
+(ADR-035): Tổng hợp giữ mỗi ngày một dòng, thêm cột Nhân sự và Leader (`Team.leader`) gộp tên ngay
+sau Ngày, Theo nhân viên thêm Leader, Excel cùng cột, 100 nhóm/trang, bảng 13px ô 5×8 px;
+phạm vi Staff/Leader/Manager **đã có sẵn** qua `apply_scope`, chỉ kiểm lại — AC-22.10, 22.11.
+Kiểm: `reports/tests` 133 đạt; hai bài Chromium mới chạy trong container (`playwright install
+chromium`) đạt; hồi quy `crm/tests orders/tests forms_builder/tests core` 1.261 bài, 0 đỏ (13 bỏ qua do thiếu môi trường). Ảnh `storage/gop-y-adr033/`.
+[Biên bản](kiem-chung-gop-y-sau-adr033-20260918.md).
+**Chiều 18.09, ba phản hồi tiếp:** (a) giật khi gõ rồi Enter, cả local — tracer theo frame tìm ra hai
+nguyên nhân thật: poll `moi-nhat/` 8 giây coi mốc do **chính mình** lưu là người khác sửa → `invalidate()`
+hoá 360 ô thành `…` rồi tải lại; và mỗi dòng trống thành bản ghi thì thanh "Đã tạo dòng" ẩn/hiện đẩy lưới
+33 px, tổng dòng +1, nháp bị bỏ trước khi dòng thật nối. Sửa: `luu-json` trả `latest`, `refreshSoft()`
+giữ ô cũ khi tải lại, `absorbCreated` nối trong một bước, bù nháp theo đợt, bỏ thanh thông báo —
+AC-11.40, tracer sau sửa: 0 nhảy, 0 ô `…`, tổng không đổi. (b) Báo cáo tổng hợp **hoàn lại** mỗi ngày
+một dòng (tôi đã tự đổi nhóm, chủ dự án không yêu cầu): hai cột Nhân sự/Leader gộp tên bằng `StringAgg`.
+(c) Chủ dự án chốt **`van_don` là bảng duy nhất của Lên đơn**: `prepare_existing` thêm `_upgrade_schema`
+(42 → 45 cột, giữ 234 dòng), local đã chọn `van_don`, Lên đơn ghi `DH-1809-0001` vào đó; VPS làm lúc phát hành.
+**Còn nợ:** phát hành VPS khi chủ dự án bảo (không migration; chạy `chuan_bi_bang_nhan_don --table van_don`
+rồi chọn, có backup trước); DB mẫu local đặt leader team Sale 1 là tài khoản khác
+`sale.leader` nên ảnh `sale.leader` không có dòng team (dữ liệu mẫu, không phải lỗi); bài
+`.cjs` Codex chưa chạy lại trên máy này.
+
 ## 17.09.2026 — Phát hành ADR-033 lên VPS: image `knjsc-app:9949062-adr033`
 
 Làm từ máy có SSH, theo bàn giao trong `daily-tasks.md`. Local: `pull --ff-only`

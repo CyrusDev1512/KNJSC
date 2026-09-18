@@ -30,9 +30,9 @@ def test_person_filter_matches_export_and_totals(client, source, nguoi_dung, rol
     assert response.context['rows'][0]['team'] == person.profile.team.name
     book = load_workbook(BytesIO(client.get('/bao-cao/tong-hop/xuat/', query).content), data_only=True)
     rows = list(book.active.values)
-    assert rows[3][:2] == ('Team', 'Sale')
+    assert rows[3][:3] == ('Team', 'Sale', 'Leader')
     assert rows[4][0] == person.profile.team.name
-    assert rows[-1][2:5] == (10, 2, 100)
+    assert rows[-1][3:6] == (10, 2, 100)
 
 
 def test_team_filter_and_combination(client, source, nguoi_dung, teams):

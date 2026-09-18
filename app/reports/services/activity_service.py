@@ -4,6 +4,7 @@ from dataclasses import dataclass, replace
 from django.db.models import Count, Sum, F, Value, CharField, Q
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Coalesce, NullIf, Concat
+from django.contrib.postgres.aggregates import StringAgg
 
 from core.managers import apply_scope
 from core.exceptions import OutOfScopeError, BusinessError
@@ -42,6 +43,8 @@ DISPLAY_ORDER = {
 @dataclass(frozen=True)
 class ActivityResult(aggregations.SummaryResult):
     show_team: bool = False
+    show_person: bool = False   # cách xem Tổng hợp: cột Nhân sự + Leader sau cột Ngày (ADR-035)
+    show_leader: bool = False   # cách xem Theo nhân viên: cột Leader sau cột nhóm (ADR-035)
     currency_label: str = ''
     currency_warning: str = ''
 
@@ -129,14 +132,45 @@ def filter_people(qs, source, person='', team=''):
     return qs
 
 
+def _as_activity(result, **flags):
+    if isinstance(result, ActivityResult):
+        return replace(result, **flags)
+    return ActivityResult(**{**result.__dict__, **flags})
+
+
+def person_expressions(source):
+    """Nhân sự của dòng (người lập báo cáo; Vận đơn: người được phân công) và leader team
+    của người đó, tra từ Tổ chức (`Team.leader`) — không đọc tên tự nhập trong ô (ADR-022, 035)."""
+    owner, team = people_paths(source)
+    identity = Concat(F(owner + "__username"), Value(" — "), F(owner + "__profile__full_name"))
+    leader = Coalesce(NullIf(F(team + "__leader__profile__full_name"), Value("")),
+                      F(team + "__leader__username"), Value(""), output_field=CharField())
+    return {"person_name": Coalesce(NullIf(identity, Value(" — ")), Value("Chưa phân công"), output_field=CharField()),
+            "leader_name": leader}
+
+
+def with_day_people(rows, source):
+    """Cách xem Tổng hợp giữ nguyên mỗi ngày một dòng; hai cột Nhân sự và Leader gộp tên
+    (không trùng, theo thứ tự chữ) của những người có dòng trong ngày, theo đúng bộ lọc và
+    phạm vi quyền đang áp — lọc một nhân sự thì chỉ còn người đó (ADR-035)."""
+    expressions = person_expressions(source)
+    return rows.annotate(
+        person_name=StringAgg(expressions["person_name"], delimiter=", ", distinct=True, output_field=CharField()),
+        leader_name=StringAgg(NullIf(expressions["leader_name"], Value("")), delimiter=", ", distinct=True, output_field=CharField()),
+    )
+
+
 def with_person_team(result, source, group):
-    if group != 'person' or not result.ok:
+    if not result.ok:
+        return result
+    if group == 'day':
+        return _as_activity(result, rows=with_day_people(result.rows, source), show_person=True)
+    if group != 'person':
         return result
     _, team = people_paths(source)
-    rows = result.rows.annotate(team_name=Coalesce(F(team+'__name'), Value('Chưa có team')))
-    if isinstance(result, ActivityResult):
-        return replace(result, rows=rows, show_team=True)
-    return ActivityResult(**{**result.__dict__, 'rows':rows}, show_team=True)
+    rows = result.rows.annotate(team_name=Coalesce(F(team+'__name'), Value('Chưa có team')),
+                                leader_name=person_expressions(source)['leader_name'])
+    return _as_activity(result, rows=rows, show_team=True, show_leader=True)
 
 
 def group_expression(source, group):

@@ -4,6 +4,9 @@
   class MasterRowGeometry {
     constructor(total=0) { this.reset(total); }
     reset(total) { this.total=Math.max(0,Math.floor(total));this.tree=new Map();this.heights=new Map(); }
+    // Đổi tổng số hàng mà giữ chiều cao đã đặt: cây Fenwick phụ thuộc tổng, nên dựng lại
+    // từ danh sách hàng khác 28 px (thường rất ít) thay vì xoá sạch như reset().
+    resize(total) { const kept=[...this.heights];this.reset(total);for(const [index,height] of kept)this.set(index,height); }
     height(index) { return this.heights.get(index)||28; }
     set(index,height) {
       if(index<0||index>=this.total)return;
