@@ -80,6 +80,14 @@ vào ở trạng thái ẩn. Lên đơn và nhập tệp vẫn ghi vào cột �
 **Còn nợ:** phát hành VPS; sau phát hành **Admin phải bấm ẩn một lần** thì cột sản phẩm mới tắt, vì
 ẩn là trạng thái trong cơ sở dữ liệu. Cân nhắc sau: số cột `sl_*` vẫn tăng theo danh mục sản phẩm dù
 đang ẩn — bỏ hẳn nhóm cột này thì phải chốt riêng vì mất số liệu 221 dòng nhập từ tệp thật.
+## 19.09.2026 (00:25, CLI) — Đã phát hành VPS `knjsc-app:ea8942c-adr036` (ADR-036, bảy PTTT, ADR-037/038, bố cục và ô Nhân sự chỉ mã)
+
+Từ máy Windows có SSH, theo prompt 18.09: backup kiểm phục hồi (12 / 6.667 / 2 dòng, 51 bảng khớp), ff `5b68dce → ea8942c`,
+build image, năm migration OK, `tao_bang_van_don` 36 cột, **xoá cứng** `van_don_moi` (2 dòng) và `van_don_db` (6.667 dòng)
+sau DỪNG 1, `configure_*`, `collectstatic` 3 tệp mới, `up -d` 5 service lúc 00:19 VN, nginx reload, hai domain 200, 0 lỗi,
+0 restart; DỪNG 2 gật → `gan_ma_nhan_su_cu --xac-nhan` ghi 21 mã (toàn tài khoản mẫu), chạy lại 0 đổi. CSS mới đã phục vụ
+trên domain thật. **Còn nợ:** chủ dự án tự kiểm mục 7 trên domain thật (không có tài khoản kiểm); `pytest -m "not cham"`
+toàn bộ chưa chạy lại ở máy này; `admin`/`quantri` chưa có hồ sơ nên chưa có mã. [Biên bản](kiem-chung-phat-hanh-vps-20260919-adr036-mkt.md).
 
 ## 18.09.2026 (đêm, CLI) — Báo cáo tổng hợp: ô Nhân sự chỉ mã, bảng không tràn ở Toàn màn hình
 

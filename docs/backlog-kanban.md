@@ -23,24 +23,30 @@ dòng Tổng ngày và cột STT (AC-22.15); **tô màu chỉ tiêu** so với d
 
 **Finished local:** `ColumnDef.is_hidden`, migration `forms_builder/0015`, hộp "Cột" có nút ẩn cho cả công ty + nút gộp cho nhóm cột sản phẩm, ba màn hình cùng lọc. Bài AC-39.1 → 39.7 đạt.
 **To do:** phát hành VPS rồi Admin bấm ẩn nhóm cột sản phẩm một lần. **Far plan:** có nên ngừng sinh cột `sl_*` hẳn không.
+## 19.09.2026 — Phát hành ADR-036 + bảy PTTT + ADR-037/038 + Báo cáo tổng hợp lên VPS
+
+**Finished VPS (00:19 19.09):** image `knjsc-app:ea8942c-adr036` trên 5 service; backup kiểm phục hồi; 5 migration; xoá cứng
+crmThuận + Vận đơn DB; 21 mã nhân sự mẫu; hai domain 200, 0 lỗi. [Biên bản](kiem-chung-phat-hanh-vps-20260919-adr036-mkt.md).
+**To do (chủ dự án):** kiểm mục 7 trên domain thật với tài khoản thật; tạo hồ sơ cho `admin`/`quantri`; báo nhân viên (mục 8).
+**To do (CLI):** `pytest -m "not cham"` toàn bộ trên `ea8942c` khi máy rảnh bộ nhớ.
 
 ## 18.09.2026 (tối, CLI) — Bố cục Báo cáo tổng hợp (A)
 
 **Finished local:** bố cục theo bản vẽ (ba trạng thái bộ lọc, chip, ghim cột định danh, gộp Chọn nhanh và Tệp
 của Codex, AC-22.13). Việc B bỏ vì Codex đã làm (ADR-037). Kiểm: `reports/tests` (kèm hai bài Chromium mới) + `core/tests/test_giao_dien.py` + `tests/test_truy_vet.py` trên đầu nhánh `3748ea9` của Codex: 0 đỏ sau khi sửa hai khẳng định (`test_activity` so header cột định danh, chip Nhân sự theo nhãn mã của ADR-037); bộ đếm docs/06 225 tiêu chí, 212 tự động, 188 có bài kiểm; Chromium 8020 sau gộp (`storage/bo-cuc-bao-cao/sau-gop-*.png`): 1440 mở, 390 đóng, chip đủ, 5 nút Chọn nhanh, nhãn `mã · họ tên` của Codex, không tràn ngang, không lỗi JS.
-[Biên bản](kiem-chung-bo-cuc-bao-cao-tong-hop-20260918.md). **To do:** đi cùng đợt phát hành tối 18.09 của Codex.
+[Biên bản](kiem-chung-bo-cuc-bao-cao-tong-hop-20260918.md). ~~**To do:** đi cùng đợt phát hành tối 18.09 của Codex.~~ Đã phát hành 19.09 (mục trên).
 
 ## 18.09.2026 (tối) — Bảy PTTT theo sheet Vận đơn
 
-**Finished local:** `ACTIVE_PAYMENT_METHODS` 7 loại, migration `orders/0010`, AC-11.9 221/221. **To do:** phát hành cùng ADR-036 (cùng dãy lệnh, `tao_bang_van_don` bổ sung lựa chọn PTTT).
+**Finished local:** `ACTIVE_PAYMENT_METHODS` 7 loại, migration `orders/0010`, AC-11.9 221/221. ~~**To do:** phát hành cùng ADR-036.~~ Đã phát hành 19.09 (mục trên).
 
 ## 18.09.2026 (chiều) — Một bảng vận đơn duy nhất (ADR-036)
 
 **Đã phát hành VPS** (xác nhận 19.09, không có biên bản phát hành): `van_don` là bảng duy nhất mang profile Vận đơn + cột Trùng;
 Bảng nhận đơn bỏ; lệnh xoá cứng hai bảng cũ; dòng không chi tiết tạo được. Bài AC-36.x đạt.
 [Biên bản](kiem-chung-mot-bang-van-don-20260918.md).
-**~~To do~~ đã xong:** backup → phát hành → `migrate` 0014 → `tao_bang_van_don` →
-`xoa_bang_van_don_cu` → kiểm Chrome. **Far plan:** khối Đối soát kế toán, Black list, 7 trạng thái
+~~**To do (CLI máy chủ dự án):** backup → phát hành → `migrate` 0014 → `tao_bang_van_don` →
+`xoa_bang_van_don_cu` → kiểm Chrome.~~ Đã phát hành 19.09 (mục trên), kiểm Chrome chờ chủ dự án. **Far plan:** khối Đối soát kế toán, Black list, 7 trạng thái
 vận chuyển theo sheet Vận đơn của "Quản trị nội bộ" — chờ chốt.
 
 ## 18.09.2026 (chiều) — TL-41 cột Đơn vị tiền
