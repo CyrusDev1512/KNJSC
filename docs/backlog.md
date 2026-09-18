@@ -1,5 +1,16 @@
 # Backlog
 
+## 18.09.2026 — Phát hành bốn góp ý lên VPS: image `knjsc-app:0d970f8-gopy`; Vận đơn mới là bảng nhận đơn duy nhất
+
+Theo khuôn 17.09: backup restore thật vào DB tạm khớp số dòng; **diễn tập bước chuẩn bị `van_don` trên bản sao
+dữ liệu thật** (33 → 36 cột, chọn được) rồi mới làm thật; build image tại VPS, `check --deploy` sạch, không
+migration, metadata + `collectstatic`, 5 service cùng image mới, hai domain 200, log sạch. Chrome domain thật:
+Vận đơn DB hết ô trống/che cột, Báo cáo tổng hợp có Nhân sự/Leader mỗi ngày một dòng. Chủ dự án xác nhận bảng
+**"Vận đơn mới" (mã `van_don`, có cột Trùng rồi Ngày)** là bảng nhận đơn duy nhất: đã chuẩn bị (36 cột, 11 dòng
+nguyên) và chọn trên production; trang Bảng nhận đơn hiện "Hiện tại: Vận đơn mới", ba bảng đều chọn được.
+[Biên bản](kiem-chung-phat-hanh-vps-20260918.md). **Còn nợ:** chưa lên đơn thử trên production; chưa kiểm vai
+Vận đơn/Sale/CSKH trên domain thật.
+
 ## 18.09.2026 — Bốn góp ý sau phát hành ADR-033 (local, chưa VPS): 1.000 dòng trống, bảng nhận đơn, cột ghim, báo cáo ngày × nhân sự
 
 Chủ dự án thử trên domain thật và nêu bốn việc; kế hoạch duyệt trong phiên, làm trọn trên local.
