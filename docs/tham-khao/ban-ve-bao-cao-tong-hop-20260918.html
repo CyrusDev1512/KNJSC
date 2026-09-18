@@ -1,0 +1,315 @@
+<title>Bố cục Báo cáo tổng hợp</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
+<style>
+:root, :root[data-theme="light"] {
+  --plane:#e8eddf;--surface:#fffdf7;--surface-2:#f2f5eb;--surface-3:#e5ecdb;
+  --ink:#173b30;--ink-2:#456053;--ink-3:#607365;--rule:#d5dece;--rule-strong:#9eaf9a;
+  --accent:#28583c;--accent-hover:#17412b;--accent-soft:#e4edd8;--accent-ink:#fffef3;
+  --warn:#946500;--warn-soft:#fff2ce;
+  --r-sm:8px;--r-md:12px;--r-lg:20px;--fs-sm:13px;--fs-xs:12px;
+  --shadow-2:0 14px 36px -18px #25452950;
+  --font-van:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --w-ngay:104px;--w-nhan-su:190px;--rail:48px;--panel:260px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --plane:#101f19;--surface:#192c23;--surface-2:#22362a;--surface-3:#2b4130;
+    --ink:#f0f3e7;--ink-2:#c0ceba;--ink-3:#a0b29b;--rule:#3e5342;--rule-strong:#6e856b;
+    --accent:#b7d598;--accent-hover:#d4e8b8;--accent-soft:#334f32;--accent-ink:#142719;
+    --warn:#edc574;--warn-soft:#443b20;--shadow-2:0 14px 36px -18px #00000090;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"] {
+  --plane:#101f19;--surface:#192c23;--surface-2:#22362a;--surface-3:#2b4130;
+  --ink:#f0f3e7;--ink-2:#c0ceba;--ink-3:#a0b29b;--rule:#3e5342;--rule-strong:#6e856b;
+  --accent:#b7d598;--accent-hover:#d4e8b8;--accent-soft:#334f32;--accent-ink:#142719;
+  --warn:#edc574;--warn-soft:#443b20;--shadow-2:0 14px 36px -18px #00000090;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--plane);color:var(--ink);font:14px/1.55 var(--font-van);padding-block:0}
+h1,h2,p{margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+/* Thanh bản vẽ — chỉ có ở mockup, không đưa vào app */
+.demo-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 16px;background:var(--surface-3);border-bottom:1px solid var(--rule);font-size:var(--fs-sm);color:var(--ink-2)}
+.demo-bar strong{color:var(--ink)}
+.demo-bar .nut{margin-left:auto}
+
+.trang{padding:20px 16px 40px;max-width:1440px;margin:0 auto}
+.trang-dau{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
+.trang-dau h1{font-size:26px;font-weight:800;letter-spacing:-.025em;line-height:1.25;text-wrap:balance}
+.trang-dau p{color:var(--ink-2);margin-top:4px;max-width:68ch}
+
+/* Nút và ô nhập — chép khuôn main.css */
+.nut{font-weight:500;display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--rule-strong);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);cursor:pointer;text-decoration:none;white-space:nowrap;line-height:1.3}
+.nut:hover{border-color:var(--ink-3);background:var(--surface-2)}
+.nut-chinh{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.nut-chinh:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.nut-nho{padding:3px 10px;font-size:var(--fs-sm)}
+.nut svg{width:16px;height:16px;flex:none}
+.truong{display:flex;flex-direction:column;gap:5px;min-width:0}
+.truong>label{font-size:var(--fs-sm);font-weight:600;color:var(--ink-2)}
+.o-nhap{width:100%;min-width:0;padding:8px 10px;border:1px solid var(--rule-strong);border-radius:var(--r-sm);background:var(--surface);color:var(--ink)}
+.o-nhap:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.goi-y{font-size:var(--fs-xs);color:var(--ink-3)}
+.nho{font-size:var(--fs-sm);color:var(--ink-2)}
+.bao{padding:10px 14px;border:1px solid var(--rule);border-radius:var(--r-sm);background:var(--surface-2)}
+.bao-cho{border-color:var(--warn);background:var(--warn-soft);color:var(--ink)}
+
+/* ── Khung báo cáo ─────────────────────────────────────────────── */
+.report-view{display:flex;flex-direction:column;gap:12px;min-width:0}
+.report-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.report-focus-title{display:none}
+.report-controls .space{flex:1 1 auto}
+
+/* Chip bộ lọc đang áp — luôn thấy, kể cả khi bộ lọc thu gọn */
+.report-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:28px}
+.report-chips .chip{display:inline-flex;align-items:center;gap:6px;padding:3px 8px 3px 10px;border:1px solid var(--rule);border-radius:999px;background:var(--surface);font-size:var(--fs-sm);color:var(--ink)}
+.report-chips .chip b{font-weight:600;color:var(--ink-2)}
+.report-chips .chip button{border:0;background:transparent;padding:0 2px;cursor:pointer;color:var(--ink-3);line-height:1;font-size:15px}
+.report-chips .chip button:hover{color:var(--ink)}
+.report-chips .xoa{font-size:var(--fs-sm);color:var(--ink-2);text-decoration:underline;background:none;border:0;cursor:pointer;padding:2px 4px}
+
+/* Vùng làm việc: bộ lọc + kết quả. Ba trạng thái qua data-filters. */
+.report-workspace{display:grid;grid-template-columns:var(--panel) minmax(0,1fr);gap:16px;align-items:start;transition:grid-template-columns .2s ease}
+.report-workspace[data-filters="rail"]{grid-template-columns:var(--rail) minmax(0,1fr)}
+.report-filter-panel,.report-results{min-width:0;background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-lg);overflow:hidden}
+
+/* Bộ lọc mở */
+.report-filter-panel{display:flex;flex-direction:column}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 12px 10px 18px;border-bottom:1px solid var(--rule)}
+.panel-head h2{font-size:16px;font-weight:700}
+.panel-head .nut{padding:5px 8px}
+.panel-body{padding:16px 18px 18px;display:grid;gap:12px}
+.panel-body .hang-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.report-filter-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.panel-rail{display:none}
+
+/* Bộ lọc thu gọn thành thanh dọc */
+.report-workspace[data-filters="rail"] .panel-head,
+.report-workspace[data-filters="rail"] .panel-body{display:none}
+.report-workspace[data-filters="rail"] .panel-rail{display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 0;min-height:220px}
+.panel-rail .mo{position:relative;width:34px;height:34px;padding:0;justify-content:center;border-radius:var(--r-sm)}
+.panel-rail .huy-hieu{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:700;display:grid;place-items:center}
+.panel-rail .nhan{writing-mode:vertical-rl;transform:rotate(180deg);font-size:var(--fs-sm);font-weight:600;color:var(--ink-2);letter-spacing:.02em}
+
+/* Kết quả */
+.report-results{display:flex;flex-direction:column}
+.report-results-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 18px 12px}
+.report-results-heading h2{font-size:18px;font-weight:700}
+.report-results-heading p{color:var(--ink-2);font-size:var(--fs-sm)}
+.report-results>.nho,.report-results>.bao{margin:14px 18px 0}
+.report-results>.nho+.report-results-heading{padding-top:8px}
+
+/* Bảng: cuộn trong khung riêng, ghim tiêu đề + tổng + hai cột định danh */
+.report-table-scroll{position:relative;max-height:70vh;overflow:auto;overscroll-behavior:contain;border-top:1px solid var(--rule-strong)}
+.report-table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+.report-table th,.report-table td{border:0;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:8px 10px;background:var(--surface);vertical-align:bottom}
+.report-table td{text-align:right;white-space:nowrap}
+.report-table thead th{position:sticky;top:0;z-index:2;background:var(--accent);color:var(--accent-ink);text-align:right;font-weight:600;line-height:1.2;white-space:normal;min-width:72px;max-width:118px;border-right-color:color-mix(in srgb,var(--accent-ink) 22%,var(--accent));border-bottom-color:var(--accent)}
+.report-table thead th.dinh-danh{text-align:left}
+.report-table .report-total>*{position:sticky;top:41px;z-index:2;background:var(--accent-soft);color:var(--ink);font-weight:700;border-bottom:2px solid var(--rule-strong)}
+.report-table .dinh-danh{text-align:left;white-space:normal;overflow-wrap:anywhere}
+.report-table .col-ngay{position:sticky;left:0;z-index:1;width:var(--w-ngay);min-width:var(--w-ngay);max-width:var(--w-ngay);white-space:nowrap}
+.report-table .col-nhan-su{position:sticky;left:var(--w-ngay);z-index:1;width:var(--w-nhan-su);min-width:var(--w-nhan-su);max-width:var(--w-nhan-su);box-shadow:6px 0 8px -6px #00000040}
+.report-table thead .col-ngay,.report-table thead .col-nhan-su{z-index:3}
+.report-table .report-total .col-ngay,.report-table .report-total .col-nhan-su{z-index:3}
+.report-table tbody tr:not(.report-total):nth-child(odd)>*{background:var(--surface-2)}
+.report-table tbody tr:not(.report-total):hover>*{background:var(--accent-soft)}
+.report-table .col-nhan-su b{font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.01em;margin-right:6px}
+.report-table td.trong{color:var(--ink-3)}
+
+.phan-trang{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 18px;font-size:var(--fs-sm);color:var(--ink-2);border-top:1px solid var(--rule)}
+.phan-trang .trang-nut{margin-left:auto;display:flex;gap:3px}
+.phan-trang .trang-nut .nut{padding:3px 10px}
+.phan-trang .trang-nut .dang{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.phan-trang select{padding:3px 6px;border:1px solid var(--rule-strong);border-radius:6px;background:var(--surface)}
+
+/* ── Toàn màn hình ─────────────────────────────────────────────── */
+.sp-report-focus .report-view{position:fixed;inset:0;z-index:50;gap:0;background:var(--surface)}
+.sp-report-focus .report-controls{padding:8px 12px;border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.sp-report-focus .report-focus-title{display:flex;align-items:baseline;gap:10px;min-width:0;margin-right:auto}
+.sp-report-focus .report-focus-title strong{font-size:15px}
+.sp-report-focus .report-focus-title span{color:var(--ink-2);font-size:var(--fs-sm)}
+.sp-report-focus .report-controls .space{display:none}
+.sp-report-focus .report-chips{padding:6px 12px;border-bottom:1px solid var(--rule);min-height:0}
+.sp-report-focus .report-workspace{flex:1;min-height:0;gap:0;align-items:stretch}
+.sp-report-focus .report-filter-panel{border:0;border-right:1px solid var(--rule);border-radius:0;overflow:auto}
+.sp-report-focus .report-results{border:0;border-radius:0;min-height:0}
+.sp-report-focus .report-results-heading{display:none}
+.sp-report-focus .report-table-scroll{flex:1 1 auto;max-height:none;min-height:0;border-top:0}
+.sp-report-focus .demo-bar,.sp-report-focus .trang-dau{display:none}
+
+/* ── Hẹp: bộ lọc thành ngăn kéo, bảng lấy trọn chiều rộng ───────── */
+.backdrop{display:none}
+@media (max-width:900px){
+  .report-workspace,.report-workspace[data-filters="rail"]{grid-template-columns:minmax(0,1fr)}
+  .report-filter-panel{position:fixed;inset:0 auto 0 0;width:min(320px,88vw);z-index:60;border-radius:0 var(--r-lg) var(--r-lg) 0;box-shadow:var(--shadow-2);transform:translateX(-102%);transition:transform .2s ease;overflow:auto}
+  .report-workspace[data-filters="open"] .report-filter-panel{transform:none}
+  .report-workspace[data-filters="open"]+.backdrop,.report-workspace[data-filters="open"] .backdrop{display:block}
+  .backdrop{position:fixed;inset:0;z-index:55;background:#0d1a1466}
+  .panel-rail{display:none!important}
+  .report-workspace[data-filters="rail"] .panel-head,.report-workspace[data-filters="rail"] .panel-body{display:flex}
+  .report-workspace[data-filters="rail"] .panel-body{display:grid}
+  :root{--w-nhan-su:150px}
+  .trang{padding:14px 16px 32px}
+  .report-results-heading{padding:14px 14px 10px}
+  .phan-trang{padding:10px 14px}
+}
+@media (max-width:480px){
+  :root{--w-ngay:88px;--w-nhan-su:128px}
+  .report-table th,.report-table td{padding:7px 8px}
+}
+</style>
+
+<div class="demo-bar" id="demo-bar">
+  <strong>Bản vẽ</strong> · số liệu mẫu, lấy theo ảnh VPS 18.09 · thử: thu gọn bộ lọc, Toàn màn hình, kéo hẹp cửa sổ dưới 900px
+  <button class="nut nut-nho" id="demo-theme" type="button">Đổi sáng / tối</button>
+</div>
+
+<div class="trang">
+  <header class="trang-dau">
+    <div><h1>Báo cáo tổng hợp</h1><p>Kết quả thực tế trong phạm vi của bạn. Chưa chấm điểm KPI hoặc xếp loại.</p></div>
+  </header>
+
+  <div class="report-view" id="report-view">
+    <div class="report-controls" aria-label="Điều khiển bảng báo cáo">
+      <div class="report-focus-title"><strong>Báo cáo Marketing</strong><span>01/09/2026 – 18/09/2026</span></div>
+      <button type="button" class="nut" id="report-toggle-filters" aria-controls="report-filter-panel" aria-expanded="true">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 3h12M4 8h8M6 13h4"/></svg>
+        <span>Thu gọn bộ lọc</span>
+      </button>
+      <span class="space"></span>
+      <a class="nut" href="#">Xuất Excel</a>
+      <button type="button" class="nut nut-chinh" id="report-toggle-focus" aria-controls="report-view" aria-pressed="false">Toàn màn hình</button>
+    </div>
+
+    <div class="report-chips" id="report-chips" aria-label="Bộ lọc đang áp dụng">
+      <span class="chip"><b>Nguồn</b> Báo cáo Marketing</span>
+      <span class="chip"><b>Kỳ</b> 01/09 – 18/09/2026 <button type="button" aria-label="Bỏ lọc kỳ">×</button></span>
+      <span class="chip"><b>Cách xem</b> Tổng hợp</span>
+      <span class="chip"><b>Team</b> Marketing 1 <button type="button" aria-label="Bỏ lọc team">×</button></span>
+      <button type="button" class="xoa">Xóa lọc</button>
+    </div>
+
+    <div class="report-workspace" id="report-workspace" data-filters="open">
+      <aside class="report-filter-panel" id="report-filter-panel" aria-label="Bộ lọc báo cáo">
+        <div class="panel-head">
+          <h2>Bộ lọc</h2>
+          <button type="button" class="nut" id="panel-collapse" aria-label="Thu gọn bộ lọc" title="Thu gọn">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>
+          </button>
+        </div>
+        <form class="panel-body" onsubmit="return false">
+          <div class="truong"><label for="nguon">Nguồn báo cáo</label><select class="o-nhap" id="nguon"><option>Báo cáo Marketing</option><option>Báo cáo Sale</option><option>Vận đơn</option></select></div>
+          <div class="truong"><label for="nhom">Cách xem</label><select class="o-nhap" id="nhom"><option>Tổng hợp</option><option>Theo nhân sự</option><option>Theo sản phẩm</option><option>Theo thị trường</option></select></div>
+          <div class="hang-2">
+            <div class="truong"><label for="tu">Từ ngày</label><input class="o-nhap" id="tu" value="01/09/2026" inputmode="numeric"></div>
+            <div class="truong"><label for="den">Đến ngày</label><input class="o-nhap" id="den" value="18/09/2026" inputmode="numeric"></div>
+          </div>
+          <div class="truong"><label for="sp">Sản phẩm</label><input class="o-nhap" id="sp" placeholder="Tất cả"></div>
+          <div class="truong"><label for="thi-truong">Thị trường</label><select class="o-nhap" id="thi-truong"><option>Tất cả</option><option>Mỹ</option><option>Canada</option><option>Philippines</option></select></div>
+          <div class="truong"><label for="team">Team</label><select class="o-nhap" id="team"><option>Marketing 1</option><option>Tất cả team trong quyền</option></select></div>
+          <div class="truong"><label for="tim">Tìm nhân sự</label><input type="search" class="o-nhap" id="tim" placeholder="Mã hoặc họ tên"></div>
+          <div class="truong"><label for="nhan-su">Nhân sự</label><select class="o-nhap" id="nhan-su"><option>Tất cả nhân sự trong quyền</option></select><span class="goi-y">Chỉ hiển thị nhân sự có dữ liệu trong phạm vi của bạn.</span></div>
+          <div class="report-filter-actions"><button type="submit" class="nut nut-chinh">Áp dụng</button><a class="nut" href="#">Xóa lọc</a></div>
+        </form>
+        <div class="panel-rail">
+          <button type="button" class="nut mo" id="panel-expand" aria-label="Mở bộ lọc, đang áp 3 bộ lọc" title="Mở bộ lọc">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 3h12M4 8h8M6 13h4"/></svg>
+            <span class="huy-hieu" aria-hidden="true">3</span>
+          </button>
+          <span class="nhan">Bộ lọc</span>
+        </div>
+      </aside>
+      <div class="backdrop" id="backdrop"></div>
+
+      <section class="report-results" aria-label="Kết quả báo cáo">
+        <p class="nho">Đơn vị tiền: VND</p>
+        <div class="report-results-heading"><h2>Báo cáo Marketing</h2><p>01/09/2026 – 18/09/2026 · Tổng trên toàn bộ kết quả khớp bộ lọc</p></div>
+        <div class="report-table-scroll" tabindex="0" role="region" aria-label="Bảng số liệu, cuộn ngang để xem thêm">
+          <table class="report-table">
+            <thead><tr>
+              <th scope="col" class="dinh-danh col-ngay">Ngày</th>
+              <th scope="col" class="dinh-danh col-nhan-su">Nhân sự</th>
+              <th scope="col">Số Mess</th><th scope="col">CPQC</th><th scope="col">Số đơn</th><th scope="col">Doanh số</th><th scope="col">Doanh thu</th><th scope="col">Hóa đơn</th><th scope="col">CPO</th><th scope="col">Giá Mess</th><th scope="col">CPQC / Doanh số</th><th scope="col">Hóa đơn / Doanh thu</th><th scope="col">AOV</th>
+            </tr></thead>
+            <tbody>
+              <tr class="report-total"><th scope="row" class="dinh-danh col-ngay">Tổng</th><th scope="row" class="dinh-danh col-nhan-su">6 dòng trong bộ lọc</th><td>5.635</td><td>2.537.501</td><td>576</td><td>143.750.000</td><td class="trong">—</td><td class="trong">—</td><td>4.405</td><td>450</td><td>1,77%</td><td class="trong">—</td><td>249.566</td></tr>
+              <tr><th scope="row" class="dinh-danh col-ngay">16.09.2026</th><td class="dinh-danh col-nhan-su"><b>QT01</b> Quản trị hệ thống</td><td>10</td><td>1</td><td>1</td><td class="trong">—</td><td class="trong">—</td><td class="trong">—</td><td>1</td><td>0</td><td class="trong">—</td><td class="trong">—</td><td class="trong">—</td></tr>
+              <tr><th scope="row" class="dinh-danh col-ngay">15.09.2026</th><td class="dinh-danh col-nhan-su"><b>PMA01</b> Phạm Minh Anh</td><td>1.265</td><td>547.500</td><td>155</td><td>38.750.000</td><td class="trong">—</td><td class="trong">—</td><td>3.532</td><td>433</td><td>1,41%</td><td class="trong">—</td><td>250.000</td></tr>
+              <tr><th scope="row" class="dinh-danh col-ngay">14.09.2026</th><td class="dinh-danh col-nhan-su"><b>PMA01</b> Phạm Minh Anh</td><td>1.195</td><td>527.500</td><td>135</td><td>33.750.000</td><td class="trong">—</td><td class="trong">—</td><td>3.907</td><td>441</td><td>1,56%</td><td class="trong">—</td><td>250.000</td></tr>
+              <tr><th scope="row" class="dinh-danh col-ngay">13.09.2026</th><td class="dinh-danh col-nhan-su"><b>VHN01</b> Vũ Hoài Nam</td><td>1.125</td><td>507.500</td><td>115</td><td>28.750.000</td><td class="trong">—</td><td class="trong">—</td><td>4.413</td><td>451</td><td>1,77%</td><td class="trong">—</td><td>250.000</td></tr>
+              <tr><th scope="row" class="dinh-danh col-ngay">12.09.2026</th><td class="dinh-danh col-nhan-su"><b>VHN01</b> Vũ Hoài Nam</td><td>1.055</td><td>487.500</td><td>95</td><td>23.750.000</td><td class="trong">—</td><td class="trong">—</td><td>5.132</td><td>462</td><td>2,05%</td><td class="trong">—</td><td>250.000</td></tr>
+              <tr><th scope="row" class="dinh-danh col-ngay">11.09.2026</th><td class="dinh-danh col-nhan-su"><b>NTLH01</b> Nguyễn Thị Lan Hương</td><td>985</td><td>467.500</td><td>75</td><td>18.750.000</td><td class="trong">—</td><td class="trong">—</td><td>6.233</td><td>475</td><td>2,49%</td><td class="trong">—</td><td>250.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="phan-trang">
+          <span>Hiện <b>1–6</b> trên <b>6</b> nhóm</span>
+          <label>Mỗi trang <select id="moi-trang"><option>25</option><option selected>100</option></select></label>
+          <div class="trang-nut"><a class="nut" href="#" aria-disabled="true">‹</a><a class="nut dang" href="#">1</a><a class="nut" href="#" aria-disabled="true">›</a></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const ws = document.getElementById('report-workspace');
+  const toggle = document.getElementById('report-toggle-filters');
+  const focusBtn = document.getElementById('report-toggle-focus');
+  const backdrop = document.getElementById('backdrop');
+  const narrow = () => window.matchMedia('(max-width:900px)').matches;
+  const KEY = 'knjsc-report-layout-mockup';
+  // Rộng: mặc định mở. Hẹp: mặc định đóng — ngăn kéo chỉ mở khi người dùng bấm.
+  let state = {filters: narrow() ? 'rail' : 'open', focus:false};
+  try { Object.assign(state, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (_) {}
+  if (narrow() && state.filters === 'open') state.filters = 'rail';
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (_) {} };
+
+  const render = () => {
+    // Hẹp: chỉ có mở (ngăn kéo) hoặc đóng. Rộng: mở hoặc thanh dọc.
+    const f = narrow() ? (state.filters === 'open' ? 'open' : 'closed') : state.filters;
+    ws.dataset.filters = f;
+    const open = f === 'open';
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.querySelector('span').textContent = open ? 'Thu gọn bộ lọc' : (narrow() ? 'Bộ lọc (3)' : 'Mở bộ lọc');
+    root.classList.toggle('sp-report-focus', state.focus);
+    focusBtn.setAttribute('aria-pressed', String(state.focus));
+    focusBtn.textContent = state.focus ? 'Thoát toàn màn hình' : 'Toàn màn hình';
+  };
+  const setFilters = v => { state.filters = v; save(); render(); };
+  toggle.addEventListener('click', () => setFilters(ws.dataset.filters === 'open' ? 'rail' : 'open'));
+  document.getElementById('panel-collapse').addEventListener('click', () => setFilters('rail'));
+  document.getElementById('panel-expand').addEventListener('click', () => setFilters('open'));
+  backdrop.addEventListener('click', () => setFilters('rail'));
+  focusBtn.addEventListener('click', () => {
+    state.focus = !state.focus;
+    if (state.focus && state.filters === 'open') state.filters = 'rail';   // toàn màn hình: nhường chỗ cho bảng
+    save(); render();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (narrow() && ws.dataset.filters === 'open') { setFilters('rail'); return; }
+    if (state.focus) { state.focus = false; save(); render(); }
+  });
+  window.matchMedia('(max-width:900px)').addEventListener('change', e => { if (e.matches && state.filters === 'open') state.filters = 'rail'; render(); });
+  render();
+
+  // Chỉ có ở bản vẽ: đổi theme để xem cả hai
+  document.getElementById('demo-theme').addEventListener('click', () => {
+    const dark = root.getAttribute('data-theme') === 'dark'
+      || (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    root.setAttribute('data-theme', dark ? 'light' : 'dark');
+  });
+})();
+</script>

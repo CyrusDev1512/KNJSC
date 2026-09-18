@@ -1,5 +1,88 @@
 # Daily tasks — KNJSC
 
+## Bàn giao cho Claude Code CLI — 18.09.2026: bố cục Báo cáo tổng hợp + mã nhân sự
+
+Chủ dự án đã duyệt bản vẽ `docs/tham-khao/ban-ve-bao-cao-tong-hop-20260918.html`
+(mở bằng trình duyệt: thử Thu gọn bộ lọc, Toàn màn hình, đổi sáng/tối, kéo hẹp
+dưới 900px). Dán vào CLI:
+
+> Đọc `docs/daily-tasks.md` mục "Bàn giao cho Claude Code CLI — 18.09.2026" và
+> `docs/tham-khao/ban-ve-bao-cao-tong-hop-20260918.html`. Trình bày kế hoạch theo
+> AGENTS.md rồi làm trọn hai việc A và B.
+
+### Ba quyết định đã đề xuất, chủ dự án chưa phản đối — xác nhận lại ở bước kế hoạch
+
+| Câu | Mặc định làm theo |
+|---|---|
+| Mã cho tên bốn từ | **Đủ chữ cái đầu mọi từ**: Nguyễn Thị Lan Hương → `NTLH01`; không đoán tên đệm |
+| Mã có đổi được sau khi tạo không | **Cố định** như mã nhân viên thật; Admin sửa được trước khi lưu lần đầu |
+| Dữ liệu cũ trên VPS đang chụp tên đăng nhập | **Có lệnh chạy một lần** đổi tên đăng nhập → mã trong cột định danh; chạy trên VPS sau khi gán đủ mã |
+
+### Việc A — Bố cục màn hình Báo cáo tổng hợp theo bản vẽ
+
+Tệp đích: `app/templates/reports/activity.html`, `app/static/css/solarpunk.css`
+(thay khối `.report-workspace` … `.sp-report-focus`, dòng ≈252–297, **không** để
+hai bộ rule chồng nhau), `app/static/js/report-filters.js`.
+
+- Bộ lọc ba trạng thái qua `data-filters` trên `#report-workspace`: `open` (260px),
+  `rail` (thanh 48px, huy hiệu = số bộ lọc đang áp), dưới 900px là ngăn kéo
+  **mặc định đóng**. Toàn màn hình tự chuyển sang `rail`. Escape: đóng ngăn kéo
+  trước, thoát toàn màn hình sau. Giữ việc bật `sp-erp-table-focus` như hiện có.
+- Nhớ trạng thái: đổi `sessionStorage` khoá `knjsc-report-layout` từ
+  `{hidden, focus}` sang `{filters:'open'|'rail', focus}`; đọc khoá cũ thì coi
+  `hidden:true` là `rail`.
+- Hàng chip bộ lọc đang áp, render từ `params` phía máy chủ; nút × của mỗi chip
+  là link cùng URL bỏ đúng tham số đó. Không cần chip "Nguồn".
+- Bảng: tiêu đề và dòng Tổng ghim trên; **cột định danh ghim trái**. Template có
+  cột định danh thay đổi theo `show_team` và cách xem (ngày / nhân sự / sản phẩm /
+  thị trường) — ghim theo lớp `.report-identity` **tổng quát**, chiều rộng bằng
+  biến CSS, không cứng `col-ngay`/`col-nhan-su` như bản vẽ. Tiêu đề dài xuống
+  hai dòng (`white-space:normal; max-width`), ô số `nowrap`, đệm 8px 10px, 13px,
+  `tabular-nums`. Ô định danh không cắt chữ.
+- Chỉ dùng token có sẵn; không thêm thư viện; không đưa `.demo-bar` và nút đổi
+  theme của bản vẽ vào app.
+
+### Việc B — Mã nhân sự xuyên hệ thống (ADR-034, viết ADR trước khi sửa)
+
+Hiện trạng đã rà: `UserProfile` **không có** trường mã; `core/identity.py` đã
+tập trung `employee_code()` và `display_name()` nhưng `employee_code()` trả tên
+đăng nhập; **10 chỗ đi tắt** tự ghép `username` — `reports/services/activity_service.py`
+dòng 97–104 và 145 (chính Báo cáo tổng hợp), `forms_builder/services/choice_service.py`
+47–48, `orders/services/waybill_service.py` 282–283, `orders/services/assignment_service.py`
+72, `crm/services/master_grid_service.py` 309, `forms_builder/query.py` 68,
+`reports/views.py` 103, `crm/choices.py` 26, `crm/payment_views.py` 66,
+`crm/services/statistics_service.py` 317. Lên đơn và biểu mẫu **chụp**
+`employee_code(actor)` vào ô dữ liệu (`nguoi_ban`…) lúc tạo — dữ liệu cũ đang
+chứa tên đăng nhập.
+
+1. `UserProfile.staff_code`: CharField, viết hoa không dấu, ràng buộc duy nhất
+   khi khác rỗng (`UniqueConstraint` có `condition`). Migration `org/0005`, đảo được.
+2. Gợi ý mã ở `TaoTaiKhoanForm` từ chữ cái đầu họ tên + hai số thứ tự, tăng khi
+   trùng; `SuaHoSoForm` chỉ cho sửa khi hồ sơ chưa có dữ liệu chụp mã.
+3. `employee_code()` trả `staff_code`, rỗng thì tên đăng nhập. Thêm bộ lọc `|ma`.
+   Quy ước: bảng, danh sách, lịch sử, Excel — **mã trước, tên sau**; lời chào và
+   avatar giữ tên. Tìm kiếm nhận cả mã (`reports/views.py` 103, `org/views.py` 45).
+4. Sửa 10 chỗ đi tắt cho đi qua `identity`; trong truy vấn ORM dùng
+   `Coalesce(F('...__profile__staff_code'), F('...__username'))`.
+5. Lệnh `gan_ma_nhan_su_cu`: đổi tên đăng nhập → mã trong các cột định danh của
+   bảng động (cột có `meaning=seller` và cột phụ trách), có `--thu` (dry run) và
+   ghi nhật ký. Không chạy tự động; ghi vào quy trình phát hành VPS.
+6. `du_lieu_mau` gán mã cho 12 tài khoản. Tài liệu: ADR-034, `docs/02`, `docs/04`
+   (AC mới → cập nhật bộ đếm `docs/06` theo `tests/test_truy_vet.py`), backlog.
+
+### Kiểm chứng bắt buộc trước khi bàn giao diff
+
+- `pytest -m "not cham"` xanh; bài mới cho A (chips, ba trạng thái, ghim) và B
+  (mã duy nhất, gợi ý mã, `employee_code`, nhãn Báo cáo tổng hợp, tìm theo mã,
+  lệnh gán mã cũ chạy hai lần không đổi gì thêm) — phân quyền kiểm hai chiều.
+- `core/tests/test_giao_dien.py` phải qua: mọi lớp CSS mới trong template đều có
+  trong CSS.
+- Chrome 1440 / 900 / 390, sáng và tối: bộ lọc mở, thu gọn, ngăn kéo, toàn màn
+  hình; cuộn ngang bảng mà cột định danh đứng yên. Ảnh vào biên bản
+  `docs/kiem-chung-bo-cuc-bao-cao-tong-hop-<ngày>.md`.
+- Chỉ push khi được bảo. VPS phát hành đợt này sẽ cần thêm `migrate` (org/0005)
+  và lệnh gán mã cũ — ghi vào mục bàn giao phát hành.
+
 ## Bàn giao cho Claude Code CLI trên máy chủ dự án — 17.09.2026: phát hành VPS
 
 Claude Code trên web **không tới được VPS** (mạng môi trường trả
