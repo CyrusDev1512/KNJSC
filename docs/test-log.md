@@ -1,5 +1,9 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 18.09.2026 (đêm) — Báo cáo tổng hợp chỉ mã nhân sự, Toàn màn hình không tràn
+
+`reports/tests tests/test_truy_vet.py core/tests/test_giao_dien.py`: 751 đạt, 1 bỏ qua (`test_bo_cuc_bao_cao_e2e` — container không có Chromium), 0 đỏ, mã thoát 0. Lần đầu 1 đỏ `test_duplicate_names_remain_separate_accounts` (khẳng định họ tên trong nhãn dòng) — sửa theo mã, ý bài giữ nguyên. Chromium host qua `scripts/kiem-thu-bao-cao-chi-ma.mjs`: ô Nhân sự `mkt.staff`, Toàn màn hình 960px có thanh kéo ngang, 0 lỗi JS. [Biên bản](kiem-chung-bao-cao-chi-ma-20260918.md).
+
 ## 18.09.2026 (tối) — Bảy PTTT theo sheet Vận đơn
 
 Bộ `crm/tests orders/tests forms_builder/tests reports/tests core/tests tests -m "not trinh_duyet and not cham"`: 2.384 đạt, 1 bỏ qua, 0 đỏ, mã thoát 0. `test_market_currency` (AC-33.x) và `test_bang_tinh` AC-11.9 sửa theo 7 PTTT. DB dev: `migrate orders 0010` xuôi/ngược, `sqlmigrate` no-op; `tao_bang_van_don` bổ sung 5 lựa chọn vào `pttt`, `pttt_thuc_te`. Chromium: form Lên đơn 7 PTTT, đơn Western Union → `Order.payment_method = western`, lưới hiện "Western Union". TL-44 đóng.

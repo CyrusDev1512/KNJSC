@@ -71,6 +71,16 @@ def test_bo_loc_ba_trang_thai_va_toan_man_hinh(live_server, trinh_duyet_moi, ngu
         page.wait_for_function(FOCUS)
         assert page.evaluate(ST) == "rail", "toàn màn hình nhường chỗ cho bảng"
         chup(page, "bao-cao-toan-man-hinh-1440")
+        # Toàn màn hình với viewport thấp hơn bảng: khung cuộn co lại trong viewport, thanh kéo ngang và
+        # phân trang vẫn thấy — không tràn ra ngoài (yêu cầu 18.09 tối)
+        page.set_viewport_size({"width": 1440, "height": 240})
+        khung = page.evaluate("""()=>{const s=document.querySelector('.report-table-scroll'),p=document.querySelector('.report-results>.phan-trang');
+            const r=s.getBoundingClientRect();return {day:Math.round(r.bottom),cao:innerHeight,cuon_doc:s.scrollHeight>s.clientHeight,
+            phan_trang:p?Math.round(p.getBoundingClientRect().bottom):null}}""")
+        assert khung["day"] <= khung["cao"] and khung["cuon_doc"], khung
+        assert khung["phan_trang"] is None or khung["phan_trang"] <= khung["cao"], khung
+        chup(page, "bao-cao-toan-man-hinh-thap")
+        page.set_viewport_size({"width": 1440, "height": 900})
         page.keyboard.press("Escape")
         page.wait_for_function(KHONG_FOCUS)
         assert page.evaluate(ST) == "rail"

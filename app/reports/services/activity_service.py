@@ -8,7 +8,7 @@ from django.db.models.functions import Coalesce, NullIf, Concat
 from django.contrib.postgres.aggregates import StringAgg
 
 from core.constants import Currency
-from core.identity import SEPARATOR, code_expression, label_expression
+from core.identity import SEPARATOR, code_expression
 from core.managers import apply_scope
 from core.exceptions import OutOfScopeError, BusinessError
 from forms_builder.models import DataRecord, TableDef
@@ -154,10 +154,11 @@ def _as_activity(result, **flags):
 def person_expressions(source):
     """Nhân sự của dòng (người lập báo cáo; Vận đơn: người được phân công) và leader team
     của người đó, tra từ Tổ chức (`Team.leader`) — không đọc tên tự nhập trong ô (ADR-022, 035).
-    Cả hai là `MÃ · Họ tên` theo `core.identity` (ADR-037)."""
+    Cả hai **chỉ là mã nhân sự** (`core.identity.code_expression`; chưa có mã thì tên đăng nhập) —
+    ngoại lệ của ADR-037 (bổ sung 18.09): ô bảng hẹp và gộp nhiều người, ô chọn/chip vẫn `MÃ · Họ tên`."""
     owner, team = people_paths(source)
-    return {"person_name": Coalesce(label_expression(owner), Value("Chưa phân công"), output_field=CharField()),
-            "leader_name": Coalesce(label_expression(team + "__leader"), Value(""), output_field=CharField())}
+    return {"person_name": Coalesce(code_expression(owner), Value("Chưa phân công"), output_field=CharField()),
+            "leader_name": Coalesce(code_expression(team + "__leader"), Value(""), output_field=CharField())}
 
 
 def with_day_people(rows, source):
@@ -187,7 +188,7 @@ def with_person_team(result, source, group):
 def group_expression(source, group):
     if group == "person":
         prefix = "assignment__delivery" if source.kind == "delivery" else "created_by"
-        return (Coalesce(label_expression(prefix), Value("Chưa phân công"), output_field=CharField()),
+        return (Coalesce(code_expression(prefix), Value("Chưa phân công"), output_field=CharField()),
                 PERSON_LABELS[source.kind])
     if group == "department":
         return F("department__name"), "Phòng ban"
@@ -318,7 +319,7 @@ def marketing_revenue(qs, group, expression, *, start=None, end=None, product=""
         items = items.filter(record__data__contains={"quoc_gia": market})
     keys = {
         "day": F("record__val_date"),
-        "person": Coalesce(label_expression("record__assignment__marketing"), Value("Chưa phân công"), output_field=CharField()),
+        "person": Coalesce(code_expression("record__assignment__marketing"), Value("Chưa phân công"), output_field=CharField()),
         "product": F("product__name"),
         "market": Coalesce(NullIf(KeyTextTransform("quoc_gia", "record__data"), Value("")), Value("Chưa xác định"), output_field=CharField()),
         "department": F("record__assignment__marketing__profile__department__name"),

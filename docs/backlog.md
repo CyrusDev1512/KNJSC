@@ -1,5 +1,22 @@
 # Backlog
 
+## 18.09.2026 (đêm, CLI) — Báo cáo tổng hợp: ô Nhân sự chỉ mã, bảng không tràn ở Toàn màn hình
+
+Chủ dự án so ảnh local với VPS, chọn bố cục local và yêu cầu: ô Nhân sự chỉ hiện mã nhân sự (không họ tên),
+bảng ở Toàn màn hình phải có thanh kéo ngang thay vì tràn. Chốt trong phiên: **chỉ bảng + Excel** (cột Nhân sự,
+Leader, dòng Theo nhân viên); ô chọn Nhân sự và chip giữ `MÃ · Họ tên`; chưa có mã thì tên đăng nhập (VPS
+sau `gan_ma_nhan_su_cu` sẽ ra mã). Sửa: `activity_service` đổi `label_expression` → `code_expression` ở
+`person_expressions`, `group_expression` và khoá `person` của `marketing_revenue` (phải cùng biểu thức để
+`attach_derived` nối được doanh thu suy ra); CSS `--w-nhan-su` 130px, `--w-leader` 120px, và
+`.sp-report-focus .report-workspace{grid-template-rows:minmax(0,1fr)}` — nguyên nhân tràn là hàng grid ngầm
+`auto` khiến khung cuộn cao bằng cả bảng, thanh kéo ngang rơi ra ngoài viewport và bị `.noi-dung{overflow:hidden}`
+cắt. ADR-037 thêm mục "Bổ sung 18.09 (tối)", docs/04 AC-22.10/22.13/mục 37. Kiểm: `reports/tests` + `tests/test_truy_vet.py` + `core/tests/test_giao_dien.py` trong container: 751 đạt, 1 bỏ qua (Chromium),
+0 đỏ sau khi sửa một khẳng định trùng tên; trang thật 8020 và Chromium host (script mới
+`scripts/kiem-thu-bao-cao-chi-ma.mjs`, CDP thuần): ô chỉ mã, ô chọn vẫn `MÃ · Họ tên`, Toàn màn hình 960px có thanh kéo
+ngang, cửa sổ 300px cao vẫn thấy phân trang. **Còn nợ:** phát hành VPS (chỉ `collectstatic`, không migration); bài e2e
+Chromium trong container vẫn bị bỏ qua vì image thiếu thư viện hệ thống.
+[Biên bản](kiem-chung-bao-cao-chi-ma-20260918.md).
+
 ## 18.09.2026 (tối, CLI) — Bố cục Báo cáo tổng hợp theo bản vẽ (Việc A); Việc B bỏ vì Codex đã làm theo THUANLT
 
 Theo bàn giao 18.09 và bản vẽ `docs/tham-khao/ban-ve-bao-cao-tong-hop-20260918.html`: bộ lọc ba trạng

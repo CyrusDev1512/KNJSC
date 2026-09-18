@@ -251,7 +251,7 @@ dialog::backdrop {background:#10291b66;backdrop-filter:blur(3px)}
 .sp-focus-bar .bt-trang-thai.da-luu {color:var(--good)}
 /* ── Báo cáo tổng hợp (bản vẽ 18.09) — bộ lọc ba trạng thái qua data-filters, chip bộ lọc,
    bảng ghim tiêu đề + dòng Tổng + cột định danh. Không có rule cũ chồng lên. ── */
-.report-view {--w-rail:48px;--w-panel:260px;--w-ngay:104px;--w-nhom:170px;--w-team:140px;--w-nhan-su:190px;--w-leader:150px;--head-h:41px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.report-view {--w-rail:48px;--w-panel:260px;--w-ngay:104px;--w-nhom:170px;--w-team:140px;--w-nhan-su:130px;--w-leader:120px;--head-h:41px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .report-controls {display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .report-controls .space {flex:1 1 auto}
 .report-controls [hidden] {display:none!important}
@@ -326,7 +326,7 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
 .sp-report-focus .report-focus-title span {color:var(--ink-2);font-size:var(--fs-sm)}
 .sp-report-focus .report-controls .space {display:none}
 .sp-report-focus .report-chips {padding:6px 12px;border-bottom:1px solid var(--rule);min-height:0}
-.sp-report-focus .report-workspace {position:relative;flex:1;min-height:0;gap:0;align-items:stretch}
+.sp-report-focus .report-workspace {position:relative;flex:1;min-height:0;grid-template-rows:minmax(0,1fr);gap:0;align-items:stretch}
 .sp-report-focus .report-filter-panel {overflow:auto;min-height:0;border:0;border-right:1px solid var(--rule);border-radius:0}
 .sp-report-focus .report-results {border:0;border-radius:0;min-height:0;background:var(--surface-2)}
 .sp-report-focus .report-results-heading {display:none}
@@ -335,7 +335,7 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
 .sp-report-focus .noi-dung>.report-view~* {display:none}
 /* Hẹp: bộ lọc thành ngăn kéo mặc định đóng, bảng lấy trọn chiều rộng */
 @media(max-width:900px) {
-  .report-view {--w-nhan-su:150px}
+  .report-view {--w-nhan-su:110px}
   .report-workspace,.report-workspace[data-filters="rail"] {grid-template-columns:minmax(0,1fr)}
   .report-filter-panel {position:fixed;inset:0 auto 0 0;width:min(320px,88vw);z-index:60;border-radius:0 20px 20px 0;box-shadow:var(--shadow-2);transform:translateX(-102%);transition:transform .2s ease;overflow:auto}
   .report-workspace[data-filters="open"] .report-filter-panel {transform:none}
@@ -348,7 +348,7 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
   .sp-report-focus .report-controls {justify-content:flex-start;gap:6px}
 }
 @media(max-width:480px) {
-  .report-view {--w-ngay:88px;--w-nhom:128px;--w-nhan-su:128px;--w-team:110px;--w-leader:120px}
+  .report-view {--w-ngay:88px;--w-nhom:128px;--w-nhan-su:100px;--w-team:110px;--w-leader:100px}
   .report-table th,.report-table td {padding:7px 8px!important}
   .panel-body .hang-2 {grid-template-columns:1fr}
 }

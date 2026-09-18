@@ -6,7 +6,7 @@ from io import BytesIO
 import pytest
 from openpyxl import load_workbook
 
-from core.identity import identity_label
+from core.identity import employee_code
 from forms_builder.models import DataRecord, FormDef, TableDef
 from forms_builder.services import record_service
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
@@ -96,9 +96,9 @@ def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguo
     assert totals["Doanh thu"] == Decimal("325") and totals["Hóa đơn/Doanh thu"] == Decimal("15") / Decimal("325")
     assert [c.kind for c in result.columns if c.label == "Doanh thu"] == ["derived"]
 
-    # Theo nhân viên: nhãn mã · tên; sản phẩm; thị trường; phòng ban
+    # Theo nhân viên: nhãn chỉ mã (khoá nối doanh thu suy ra cùng biểu thức); sản phẩm; thị trường; phòng ban
     rows = cells(activity_service.build(manager, mkt_source, group="person", **ky))
-    assert rows[identity_label(A)]["Doanh thu"] == Decimal("125") and rows[identity_label(B)]["Doanh thu"] == Decimal("200")
+    assert rows[employee_code(A)]["Doanh thu"] == Decimal("125") and rows[employee_code(B)]["Doanh thu"] == Decimal("200")
     rows = cells(activity_service.build(manager, mkt_source, group="product", **ky))
     assert rows["SP1"]["Doanh thu"] == Decimal("285") and rows["SP2"]["Doanh thu"] == Decimal("40")
     rows = cells(activity_service.build(manager, mkt_source, group="market", **ky))

@@ -70,6 +70,15 @@ phải đổi sang mã; nhãn "username — họ tên" thành "MÃ · Họ tên"
 không sửa tay; lệnh gán mã cũ không đụng giá trị lạ; `EXECUTIVE_OWNER_USERNAMES` vẫn là tên
 đăng nhập (cấu hình, không phải định danh nghiệp vụ).
 
+## Bổ sung 18.09.2026 (tối) — bảng Báo cáo tổng hợp chỉ hiện mã
+
+Chủ dự án so bản local với VPS và chốt: trong **bảng và Excel của Báo cáo tổng hợp**, cột Nhân sự,
+Leader và dòng ở cách xem Theo nhân viên **chỉ hiện mã** (`code_expression`; chưa gán mã thì tên
+đăng nhập, sau `gan_ma_nhan_su_cu` sẽ là mã), không kèm họ tên — vì ô hẹp, cách xem Tổng hợp gộp
+nhiều người trong một ô, kèm tên thì xuống dòng và bảng tràn. Ô chọn Nhân sự, chip bộ lọc, ô Tìm nhân
+sự và mọi màn hình khác **giữ nguyên `MÃ · Họ tên`** theo mục 4. Khoá nối Doanh thu suy ra
+(`marketing_revenue`) đổi cùng biểu thức để vẫn khớp dòng. Không đổi `identity_label()`.
+
 ## Điều kiện xem lại
 
 Khi công ty đổi quy ước mã, hoặc khi cần nhập nhân sự hàng loạt từ HCNS (khi đó gợi ý mã

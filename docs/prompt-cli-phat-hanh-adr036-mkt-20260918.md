@@ -95,6 +95,9 @@ Tuân đúng thứ tự, mỗi bước in kết quả thật; **dừng hỏi tô
 
 ## Việc 3 — Việc A: bố cục Báo cáo tổng hợp theo bản vẽ
 
+> **Đã làm xong trên nhánh** ở `d138be1` (biên bản `docs/kiem-chung-bo-cuc-bao-cao-tong-hop-20260918.md`);
+> giữ mục này để đối chiếu, không làm lại. Khi phát hành chỉ cần `collectstatic` như Việc 2.
+
 Mục "Bàn giao cho Claude Code CLI — 18.09.2026: bố cục Báo cáo tổng hợp + mã nhân sự" trong
 `docs/daily-tasks.md`, **chỉ phần Việc A** (Việc B đã làm xong ở ADR-037), cùng bản vẽ
 `docs/tham-khao/ban-ve-bao-cao-tong-hop-20260918.html`. Ba điểm phải giữ khi viết lại
@@ -104,6 +107,26 @@ Mục "Bàn giao cho Claude Code CLI — 18.09.2026: bố cục Báo cáo tổng
 đã là `MÃ · Họ tên`, không cắt chữ. Kiểm: `pytest -m "not cham"`, `core/tests/test_giao_dien.py`,
 Chrome 1440/900/390 sáng-tối, biên bản `docs/kiem-chung-bo-cuc-bao-cao-tong-hop-<ngày>.md`.
 Bàn giao bằng diff; commit/push khi tôi bảo.
+
+## Việc 4 — Báo cáo tổng hợp: ô Nhân sự chỉ mã, bảng không tràn ở Toàn màn hình (18.09 đêm)
+
+Đã có trên nhánh cùng đợt này (commit "Bao cao tong hop: o Nhan su chi ma..."; biên bản
+`docs/kiem-chung-bao-cao-chi-ma-20260918.md`; ADR-037 mục "Bổ sung 18.09 (tối)"). Chỉ đổi mã Python
+(`reports/services/activity_service.py`), CSS (`static/css/solarpunk.css`) và bài kiểm — **không có
+migration**, không lệnh mới; `collectstatic` ở Việc 2 đã phủ. Kiểm sau phát hành trên domain ERP thật,
+tài khoản của tôi, `/bao-cao/tong-hop/?nguon=bao_cao_mkt&nhom=day`:
+
+1. Ô **Nhân sự** và **Leader** trong bảng chỉ có **mã** (`THUANLT`), không có họ tên; người chưa được
+   gán mã (chưa chạy `gan_ma_nhan_su_cu --xac-nhan`) hiện tên đăng nhập kiểu `mkt.staff` — sau lệnh
+   gán mã phải thành mã. Ô chọn **Nhân sự** và chip bộ lọc vẫn `MÃ · Họ tên`. Xuất Excel: cột Nhân sự
+   cũng chỉ mã.
+2. Cách xem **Theo nhân viên**: dòng theo mã, cột **Doanh thu** (suy ra từ vận đơn) vẫn có số với
+   marketer có đơn — khoá nối đã đổi cùng biểu thức; trống là lỗi, báo tôi.
+3. Bấm **Toàn màn hình** với bảng nhiều dòng (kỳ Tháng này, Tất cả nhân sự) ở cửa sổ khoảng 960px rộng:
+   thanh kéo ngang của bảng nằm ngay dưới bảng trong màn hình, phân trang thấy được, không phải cuộn
+   cả trang. Có Chromium thì chạy `node scripts/kiem-thu-bao-cao-chi-ma.mjs` với
+   `KN_ERP_BASE=https://<domain ERP>` và `KN_USER`/`KN_PASSWORD` của tôi (Node ≥ 22, không cần cài gì).
+4. Ghi kết quả vào biên bản phát hành ở Việc 2 mục 10, không tách biên bản riêng.
 
 ## Không làm trong đợt này, chỉ hỏi tôi khi tới lượt
 

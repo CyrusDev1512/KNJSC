@@ -1,4 +1,4 @@
-from core.identity import identity_label
+from core.identity import employee_code, identity_label
 from datetime import date
 from decimal import Decimal
 import pytest
@@ -218,7 +218,8 @@ def test_duplicate_names_remain_separate_accounts(marketing_scope,nguoi_dung):
     result=activity_service.build(nguoi_dung["admin"],source,group="person")
     rows=list(result.rows)
     assert len(rows)==4
-    assert all("Cùng tên" in row["nhom"] for row in rows)
+    # Nhãn dòng là mã nhân sự, mỗi tài khoản một mã nên trùng họ tên vẫn tách dòng; họ tên không vào ô bảng
+    assert len({row["nhom"] for row in rows})==4 and all("Cùng tên" not in row["nhom"] for row in rows)
 
 
 
@@ -271,24 +272,28 @@ def test_day_view_shows_person_and_leader_in_scope(client, marketing_scope, nguo
     assert r.status_code==200 and r.context["result"].show_person
     rows=r.context["rows"]
     assert [row["nhom"] for row in rows]==["01.08.2026"], "mỗi ngày vẫn một dòng — cấu trúc bảng không đổi"
-    # Mã trước, tên sau (ADR-037): nhãn là identity_label của từng người
-    assert set(rows[0]["person"].split(", "))=={identity_label(nguoi_dung[name]) for name in persons}
+    # Ô bảng chỉ mã nhân sự, không họ tên (ADR-037 bổ sung 18.09); ô chọn Nhân sự vẫn `MÃ · Họ tên`
+    assert set(rows[0]["person"].split(", "))=={employee_code(nguoi_dung[name]) for name in persons}
+    assert all(nguoi_dung[name].profile.full_name not in rows[0]["person"] for name in persons)
     leaders=set(rows[0]["leader"].split(", "))
-    assert identity_label(nguoi_dung["leader_sale_1"]) in leaders    # Team.leader của Sale 1
-    assert (identity_label(nguoi_dung["leader_sale_2"]) in leaders) == ("staff_sale_2" in persons)
+    assert employee_code(nguoi_dung["leader_sale_1"]) in leaders    # Team.leader của Sale 1
+    assert nguoi_dung["leader_sale_1"].profile.full_name not in rows[0]["leader"]
+    assert (employee_code(nguoi_dung["leader_sale_2"]) in leaders) == ("staff_sale_2" in persons)
+    assert {identity_label(nguoi_dung[name]) for name in persons} <= {p["label"] for p in r.context["people"]}
     assert r.context["label_span"]==3
     html=r.content.decode()
     assert 'class="report-identity id-nhan-su" data-pos="2">Nhân sự</th>' in html and 'id-leader report-identity-edge" data-pos="3">Leader</th>' in html   # cột định danh ghim (AC-22.13)
     # Lọc theo nhân sự: chỉ còn dòng của người đó; người ngoài phạm vi bị chặn
     me=nguoi_dung["staff_sale_1"].pk
     r2=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":me})
-    assert [row["person"] for row in r2.context["rows"]]==[identity_label(nguoi_dung["staff_sale_1"])] and r2.context["rows"][0]["leader"]==identity_label(nguoi_dung["leader_sale_1"])
+    assert [row["person"] for row in r2.context["rows"]]==[employee_code(nguoi_dung["staff_sale_1"])] and r2.context["rows"][0]["leader"]==employee_code(nguoi_dung["leader_sale_1"])
     outsider=nguoi_dung["staff_sale_2"].pk
     r3=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":outsider})
     assert (r3.status_code==403) == ("staff_sale_2" not in persons)
     sheet=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True).active.values)
     assert sheet[3][:3]==("Ngày","Nhân sự","Leader") and len(sheet[4:-1])==1
-    assert set(sheet[4][1].split(", "))=={identity_label(nguoi_dung[name]) for name in persons} and identity_label(nguoi_dung["leader_sale_1"]) in sheet[4][2]
+    assert set(sheet[4][1].split(", "))=={employee_code(nguoi_dung[name]) for name in persons} and employee_code(nguoi_dung["leader_sale_1"]) in sheet[4][2]
+    assert nguoi_dung["staff_sale_1"].profile.full_name not in sheet[4][1]   # Excel cũng chỉ mã
 
 
 def test_day_view_pages_by_hundred(client, marketing_scope, nguoi_dung):
