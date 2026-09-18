@@ -170,3 +170,45 @@ def test_zero_money_changes_without_confirmation_and_old_payment_stays(feedback,
     record_service.update_cell(row, 'quoc_gia', 'Canada', actor=nguoi_dung['admin'])
     row.refresh_from_db()
     assert row.data['loai_tien'] == 'CAD' and row.data['pttt'] == 'Thẻ'
+
+
+def test_clearing_country_clears_currency_and_asks_when_row_has_money(client, feedback, nguoi_dung):
+    """AC-33.8 — Xoá ô Quốc gia: Loại tiền cũng trống; dòng đã có tiền hỏi xác nhận như
+    khi đổi quốc gia; xoá cả vùng (kể cả Quốc gia) ghi được một lượt; điền lại thì tiền về đúng."""
+    table, _, rows = feedback
+    client.force_login(nguoi_dung['admin'])
+    url = f'/bang-tinh/{table.code}/luu-json/'
+    # Dòng chưa có tiền: xoá là xong, không hỏi.
+    blank = rows[1]
+    blank.data.update({'gia_tien': '0', 'so_tien_tt': '0'})   # các tổng là cột khoá, đặt thẳng cho bài kiểm
+    blank.save(update_fields=['data'])
+    blank.refresh_from_db()
+    assert client.post(url, payload(blank, 'quoc_gia', ''), content_type='application/json').status_code == 200
+    blank.refresh_from_db()
+    assert blank.data.get('quoc_gia') in (None, '') and blank.data.get('loai_tien') in (None, '')
+    # Dòng có tiền: hỏi xác nhận, xác nhận xong thì cả Quốc gia lẫn Loại tiền trống, số tiền giữ.
+    row = rows[0]
+    change = {'operation': str(uuid.uuid4()), 'kind': 'clear', 'cells': [
+        {'id': row.pk, 'column': c, 'old': row.data.get(c), 'value': ''} for c in ('quoc_gia', 'bang', 'thanh_pho')]}
+    response = client.post(url, change, content_type='application/json')
+    assert response.status_code == 400 and response.json()['code'] == 'currency_confirmation'
+    change['currency_confirmations'] = response.json()['currency_confirmations']
+    confirmed = client.post(url, change, content_type='application/json')
+    assert confirmed.status_code == 200, confirmed.content
+    row.refresh_from_db()
+    assert row.data.get('quoc_gia') in (None, '') and row.data.get('loai_tien') in (None, '')
+    assert row.data.get('bang') in (None, '') and row.data['gia_tien'] == '10.00'
+    # Điền lại Quốc gia: tiền theo quốc gia, vẫn phải xác nhận vì dòng có tiền.
+    again = payload(row, 'quoc_gia', 'Canada')
+    response = client.post(url, again, content_type='application/json')
+    assert response.status_code == 400
+    again['currency_confirmations'] = response.json()['currency_confirmations']
+    assert client.post(url, again, content_type='application/json').status_code == 200
+    row.refresh_from_db()
+    assert row.data['loai_tien'] == 'CAD'
+    # Nhập tệp và lên đơn vẫn bắt buộc quốc gia.
+    from orders.services import currency_service
+    with pytest.raises(BusinessError):
+        currency_service.for_label('')
+    with pytest.raises(BusinessError):
+        currency_service.for_label('Sao Hoả', allow_empty=True)

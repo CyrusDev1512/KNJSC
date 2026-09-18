@@ -1,5 +1,7 @@
 # ADR-031 — Loại tiền theo quốc gia và phương thức thanh toán
 
+> Bổ sung 18.09.2026 (chủ dự án chốt sau video xoá cả bảng bị chặn "Chọn quốc gia hợp lệ"): **xoá trống ô Quốc gia trên lưới thì Loại tiền cũng trống**; dòng đã có tiền phải xác nhận như khi đổi quốc gia; điền lại Quốc gia thì tiền tự về đúng. Nhập tệp và Lên đơn vẫn bắt buộc quốc gia (`currency_service.for_label(..., allow_empty=True)` chỉ dùng cho sửa ô).
+
 Ngày: 16.09.2026. Trạng thái: chủ dự án đã chốt; triển khai local.
 
 ## Quyết định

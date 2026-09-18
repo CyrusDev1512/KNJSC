@@ -1,5 +1,19 @@
 # Backlog
 
+## 18.09.2026 — Lưới như Excel (bấm chọn, gõ là nhập); xoá Quốc gia thì Loại tiền trống
+
+Video chủ dự án trên VPS: Ctrl+A không chọn cả bảng, xoá cả bảng bị "Chọn quốc gia
+hợp lệ để xác định loại tiền" rồi dữ liệu về như cũ. Nguyên nhân (1): sau ADR-033
+bấm ô là mở ô nhập nên Ctrl+A rơi vào ô nhập; (2): xoá trống Quốc gia thì
+`currency_service.for_label('')` ném lỗi, lượt ghi nguyên tử nên bỏ cả lượt. Chốt:
+thao tác **như Excel** (bấm chỉ chọn, gõ phím là nhập với ký tự vừa gõ, Enter/F2/bấm
+đúp mở ô, Tab/Enter chỉ chuyển ô) và **Quốc gia trống thì tiền trống**, dòng có tiền
+hỏi xác nhận, nhập tệp/lên đơn vẫn bắt buộc. Sửa `master-grid.js`, `currency_service`,
+`record_service`, hai script Codex, bài AC-33.8, ADR-033/031 bổ sung, docs 02/04/05/06,
+CLAUDE.md. [Biên bản](kiem-chung-luoi-excel-quoc-gia-trong-20260918.md).
+**Còn nợ:** phát hành VPS; **cột Đơn vị tiền của Báo cáo Marketing/Sale chỉ có VND**
+(kịch bản 15.09 tạo) trong khi báo cáo tự điền USD/CAD/PHP theo quốc gia → "Chưa nộp
+được"; đề xuất `configure_erp_reports` bổ sung ba mã tiền vào cột có sẵn, chờ chủ dự án gật.
 ## 18.09.2026 — Phát hành bốn góp ý lên VPS: image `knjsc-app:0d970f8-gopy`; Vận đơn mới là bảng nhận đơn duy nhất
 
 Theo khuôn 17.09: backup restore thật vào DB tạm khớp số dòng; **diễn tập bước chuẩn bị `van_don` trên bản sao

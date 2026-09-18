@@ -436,14 +436,15 @@
     Object.assign(editor.style,{left:box.left/scale+'px',top:box.top/scale+'px',width:box.width/scale+'px',height:box.height/scale+'px',
       clipPath:`inset(${Math.max(0,top-box.top)/scale}px ${Math.max(0,box.right-right)/scale}px ${Math.max(0,box.bottom-bottom)/scale}px ${Math.max(0,left-box.left)/scale}px)`});
   }
-  async function edit(automatic=false) {
+  async function edit(automatic=false, initial=null) {
     if(dirty()||!state.current)return;
     const cur={...state.current}, generation=state.generation;
     const block=await loadBlock(Math.floor(cur.r/BLOCK));if(generation!==state.generation||!block)return;
     const row=rowAt(cur.r),c=state.visible[cur.c];if(!row||!c)return;
     if(state.current?.r!==cur.r||state.current?.c!==cur.c)return;
-    // Lưới luôn ở chế độ chỉnh sửa (ADR-033): ô sửa được thì mở ô nhập ngay; ô chỉ đọc
-    // hay ô phân công/chi tiết thì mở hộp đọc, còn F2/Enter/bấm đúp vẫn mở hộp riêng.
+    // Như Excel (ADR-033, 18.09): bấm chỉ chọn ô; gõ phím chữ/số là nhập ngay với ký tự vừa gõ
+    // (`initial`); F2/Enter/bấm đúp mở ô nhập giữ giá trị cũ. Ô chỉ đọc, phân công, chi tiết
+    // khi gõ thì mở hộp đọc; F2/Enter/bấm đúp vẫn mở hộp riêng của chúng.
     if(automatic&&(c.assignment||c.detail||!cellValue(row,c.code).editable)){showReader($(`mg-${row.id}-${c.code}`));return;}
     reader.hidden=true;
     if(c.assignment){window.dispatchEvent(new CustomEvent('master-assignment',{detail:{ids:[row.id]}}));return;}
@@ -474,7 +475,9 @@
     editor.hidden=false;
     const cell=$(`mg-${row.id}-${c.code}`);if(cell){const style=getComputedStyle(cell);editor.style.font=style.font;editor.style.color=style.color;editor.style.backgroundColor=style.backgroundColor;}
     positionEditor();input.focus({preventScroll:true});
-    if(input.select)input.select();refreshStatus();repaintSelection();
+    if(initial!==null&&input.tagName!=='SELECT'&&!input.type.match(/^(date|datetime-local|number)$/)){input.value=initial;input.dispatchEvent(new Event('input',{bubbles:true}));if(input.setSelectionRange)input.setSelectionRange(initial.length,initial.length);}
+    else if(input.select)input.select();
+    refreshStatus();repaintSelection();
   }
   function cellValue(row,column) {
     const original=row.cells[column],value=working.value(row.id,column,original.value);
@@ -725,7 +728,7 @@
     let r=cur.r+dr,c=cur.c+dc;
     if(c>=state.visible.length){c=0;r++;}if(c<0){c=state.visible.length-1;r--;}
     if(r<0||r>=state.total){viewport.focus();return;}
-    choose(r,c);ensureVisible();await edit(true);
+    choose(r,c);ensureVisible();viewport.focus({preventScroll:true});
   }
   editor.addEventListener('compositionstart',()=>state.composing=true);
   editor.addEventListener('compositionend',()=>state.composing=false);
@@ -761,11 +764,12 @@
     if(e.key==='Escape'){reader.hidden=true;$('hop-loc').hidden=true;return;}
     if(e.key==='Delete'){e.preventDefault();safe(removeValues)();return;}
     if(e.key==='F2'||e.key==='Enter'){e.preventDefault();safe(edit)();return;}
+    if(!ctrl&&!e.altKey&&e.key.length===1&&state.current){e.preventDefault();safe(()=>edit(true,e.key))();return;}
     let cur=state.current||{r:0,c:0},r=cur.r,c=cur.c,moved=true;
     if(e.key==='ArrowDown')r++;else if(e.key==='ArrowUp')r--;else if(e.key==='ArrowLeft')c--;else if(e.key==='ArrowRight')c++;
     else if(e.key==='Tab')c+=e.shiftKey?-1:1;else if(e.key==='PageDown')r=Math.max(r+1,geometry.at(geometry.top(r)+Math.max(ROW,viewport.clientHeight-HEADER)));else if(e.key==='PageUp')r=Math.min(r-1,geometry.at(Math.max(0,geometry.top(r)-Math.max(ROW,viewport.clientHeight-HEADER))));
     else if(e.key==='Home'){c=0;if(ctrl)r=0;}else if(e.key==='End'){c=state.visible.length-1;if(ctrl)r=state.total-1;}else moved=false;
-    if(moved){e.preventDefault();if(e.key==='Tab'){safe(()=>advance(cur,0,e.shiftKey?-1:1))();return;}choose(r,c,e.shiftKey);ensureVisible();if(!e.shiftKey)safe(()=>edit(true))();}
+    if(moved){e.preventDefault();if(e.key==='Tab'){safe(()=>advance(cur,0,e.shiftKey?-1:1))();return;}choose(r,c,e.shiftKey);ensureVisible();}
   });
   viewport.addEventListener('paste',e=>{e.preventDefault();safe(()=>paste(e.clipboardData.getData('text/plain')))();});
   viewport.addEventListener('pointerdown',e=>{
@@ -796,7 +800,7 @@
   document.addEventListener('pointerup',e=>{if(rowResize){if(e.pointerId===rowResize.pointer){rowResize.y=e.clientY;finishRowResize(true);}return;}if(resizing){resizing=null;persist();}if(drag){const d=drag;drag=null;cancelAnimationFrame(frame);frame=0;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-r]');
     // Rê nhẹ trong cùng ô vẫn là click; chỉ giữ chọn vùng khi đã đi qua ô khác.
     const sameCell=target&&+target.dataset.r===d.r&&+target.dataset.c===d.c&&target.dataset.id===d.id;
-    if(sameCell&&!d.crossed&&!d.shift)setTimeout(()=>safe(()=>edit(true))(),0);
+    if(sameCell&&!d.crossed&&!d.shift)setTimeout(()=>showReader(target),0);
   }});
   viewport.addEventListener('dblclick',e=>{if(!e.target.closest('[data-row-resize],.mg-url-link'))safe(edit)();});
   viewport.addEventListener('click',e=>{

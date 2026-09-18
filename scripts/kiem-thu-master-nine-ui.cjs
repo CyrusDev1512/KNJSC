@@ -45,10 +45,13 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
     await page.screenshot({path:path.join(out,'row-selected.png')});
     await (await cell('ghi_chu')).dblclick({delay:120});await page.locator('#mg-editor textarea').fill('Tiếng Việt\nTự lưu');await page.keyboard.press('Control+Enter');await saved();
     assert.equal((await read()).cells.ghi_chu.value,'Tiếng Việt\nTự lưu');evidence.checks.push('Bấm đúp 120ms, nội dung nhiều dòng, autosave');
-    await (await cell('bang')).click();await page.locator('#mg-editor input').fill('CA');
-    await page.keyboard.press('Tab');await page.locator('#mg-editor input').waitFor();assert.equal(await page.locator('#mg-editor input').getAttribute('aria-label'),'Thành phố');
+    // Như Excel (ADR-033, 18.09): bấm chỉ chọn ô, gõ phím là nhập ngay với ký tự vừa gõ; Tab chỉ chuyển ô.
+    await (await cell('bang')).click();assert(await page.locator('#mg-editor').isHidden(),'Bấm một lần chỉ chọn ô, chưa mở ô nhập');
+    await page.keyboard.type('C');await page.locator('#mg-editor input').waitFor();await page.locator('#mg-editor input').fill('CA');
+    await page.keyboard.press('Tab');await page.waitForFunction(()=>document.getElementById('mg-editor').hidden);
+    await page.keyboard.type('H');await page.locator('#mg-editor input').waitFor();assert.equal(await page.locator('#mg-editor input').getAttribute('aria-label'),'Thành phố');
     await page.locator('#mg-editor input').fill('Hà Nội');await page.keyboard.press('Escape');await saved();assert.equal((await read()).cells.bang.value,'CA');
-    evidence.checks.push('Bấm ô mở ô nhập ngay và Tab mở ô tiếp theo');
+    evidence.checks.push('Bấm chọn ô, gõ là nhập ngay; Tab chuyển ô rồi gõ tiếp');
     await page.keyboard.press('Escape');await page.locator('#mg-format-button').click();await page.getByLabel('Cỡ chữ',{exact:true}).selectOption('18');await saved();
     assert.equal((await read()).cells.bang.style.fs,18);await page.locator('#mg-undo').click();await saved();assert.equal((await read()).cells.bang.style.fs,undefined);await page.locator('#mg-redo').click();await saved();
     evidence.checks.push('Định dạng, Undo/Redo qua server');

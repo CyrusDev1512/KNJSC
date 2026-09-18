@@ -9,12 +9,16 @@ const root=path.resolve(__dirname,'..'),out=path.join(root,'.agents/design-state
     await Promise.all([page.waitForURL(u=>!u.pathname.includes('dang-nhap')),page.locator('button[type=submit]').click()]);
     await page.goto('http://127.0.0.1:8035/bang-tinh/van_don_moi/?f_ma_don=MASTER-00000');
     const cell=page.locator('.mg-cell[data-r="0"][data-code="bang"]');await cell.waitFor();
-    await cell.click();await page.locator('#mg-editor input').waitFor();
-    result.checks.push('Admin click đứng yên mở ô sửa');await page.keyboard.press('Escape');
+    // Như Excel (ADR-033, 18.09): bấm chỉ chọn ô; gõ phím mới mở ô nhập.
+    await cell.click();assert(await page.locator('#mg-editor').isHidden(),'Bấm một lần chỉ chọn ô');await page.keyboard.type('x');await page.locator('#mg-editor input').waitFor();
+    assert.equal(await page.locator('#mg-editor input').inputValue(),'x','Gõ phím phải bắt đầu nhập bằng ký tự vừa gõ');
+    result.checks.push('Admin click chọn ô, gõ phím mở ô sửa với ký tự vừa gõ');await page.keyboard.press('Escape');
     const box=await cell.boundingBox();await page.mouse.move(box.x+30,box.y+12);await page.mouse.down();
     await page.mouse.move(box.x+37,box.y+12,{steps:3});await page.mouse.up();
-    await page.waitForTimeout(150);assert(await page.locator('#mg-editor').isVisible(),'Rê nhẹ 7px trong cùng ô không được làm mất thao tác sửa');
-    result.checks.push('Admin click lệch nhẹ trong cùng ô vẫn mở sửa');
+    await page.waitForTimeout(150);
+    assert((await page.locator('#mg-selection').textContent()).includes('1 ô'),'Rê nhẹ 7px trong cùng ô vẫn là chọn một ô, không kéo vùng');
+    await page.keyboard.press('F2');await page.locator('#mg-editor input').waitFor();
+    result.checks.push('Admin click lệch nhẹ trong cùng ô vẫn là chọn ô; F2 mở sửa');
     const inputBox=await page.locator('#mg-editor').boundingBox(),cellBox=await cell.boundingBox();
     result.geometry={inputBox,cellBox,classes:await page.locator('#mg-editor').getAttribute('class')};
     assert(Math.abs(inputBox.x-cellBox.x)<2&&Math.abs(inputBox.y-cellBox.y)<2&&inputBox.height<=cellBox.height+1,'Trình sửa phải nằm trong ô, không che hàng phía dưới');
@@ -24,7 +28,7 @@ const root=path.resolve(__dirname,'..'),out=path.join(root,'.agents/design-state
       const target=page.locator(`.mg-cell[data-r="0"][data-code="${code}"]`);await target.waitFor();return target;
     }
     for(const code of ['trang_thai_vc','ngay_tt']){
-      await (await findCell(code)).click();const input=page.locator(code==='ngay_tt'?'#mg-editor input[type=date]':'#mg-editor select');await input.waitFor();
+      await (await findCell(code)).click();await page.keyboard.press('Enter');const input=page.locator(code==='ngay_tt'?'#mg-editor input[type=date]':'#mg-editor select');await input.waitFor();
       const before=await input.inputValue();
       const value=code==='ngay_tt'?(before==='2026-09-10'?'2026-09-11':'2026-09-10'):await input.locator('option').evaluateAll((options,old)=>options.find(o=>o.value&&o.value!==old).value,before);
       if(code==='ngay_tt')await input.fill(value);else await input.selectOption(value);
@@ -35,10 +39,10 @@ const root=path.resolve(__dirname,'..'),out=path.join(root,'.agents/design-state
       assert.equal(history.items[0].after,value);assert.equal(history.items[0].actor,'quan_tri');
       result.checks.push('Admin sửa, lưu và ghi lịch sử '+code);
     }
-    await (await findCell('bang')).click();await page.locator('#mg-editor input').fill('Ô 1');await page.keyboard.press('Tab');
-    await page.locator('#mg-editor input[aria-label="Thành phố"]').fill('Ô 2');await page.keyboard.press('Enter');await page.waitForFunction(()=>document.getElementById('bt-trang-thai').textContent==='Đã lưu');
+    await (await findCell('bang')).click();await page.keyboard.press('F2');await page.locator('#mg-editor input').fill('Ô 1');await page.keyboard.press('Tab');
+    await page.keyboard.press('F2');await page.locator('#mg-editor input[aria-label="Thành phố"]').fill('Ô 2');await page.keyboard.press('Enter');await page.waitForFunction(()=>document.getElementById('bt-trang-thai').textContent==='Đã lưu');
     result.checks.push('Tab nhập liên tiếp, autosave không khóa lưới');
-    await (await findCell('bang')).click();await page.evaluate(()=>{const transfer=new DataTransfer();transfer.setData('text/plain','00123\tHà Nội');document.querySelector('#mg-editor input').dispatchEvent(new ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData:transfer}));});
+    await (await findCell('bang')).click();await page.keyboard.press('F2');await page.locator('#mg-editor input').waitFor();await page.evaluate(()=>{const transfer=new DataTransfer();transfer.setData('text/plain','00123\tHà Nội');document.querySelector('#mg-editor input').dispatchEvent(new ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData:transfer}));});
     await page.waitForFunction(()=>document.getElementById('bt-trang-thai').textContent==='Đã lưu');
     const pasted=await page.evaluate(async()=>{const c=JSON.parse(document.getElementById('mg-config').textContent),data=await fetch(c.dataUrl+location.search).then(r=>r.json());return [data.rows[0].cells.bang.value,data.rows[0].cells.thanh_pho.value];});
     assert.deepEqual(pasted,['00123','Hà Nội']);result.checks.push('Dán TSV từ ô đang sửa giữ số 0 đầu và ghi cả vùng');

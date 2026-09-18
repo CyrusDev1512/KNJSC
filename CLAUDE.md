@@ -111,8 +111,9 @@ Bài kiểm của `crm/tests` chạy ở URLconf 8021 nhờ `crm/tests/conftest.
 `grid-focus.js`). Máy chủ trả JSON theo khối 100 dòng (`du-lieu/`), ghi bằng
 `luu-json/` có so phiên bản CAS (409 khi ô vừa bị người khác đổi) và biên nhận
 chống lặp (`GridMutationReceipt`), lịch sử ô (`GridCellHistory`), tự lưu 500 ms,
-nhập ngay trong ô, ghim cột bằng `position: sticky`. Lưới **luôn ở chế độ chỉnh sửa**
-(ADR-033): không còn nút Chế độ Xem/Chỉnh sửa, ô không sửa được mở vùng đọc. Renderer HTML/HTMX ghi ô cũ
+nhập ngay trong ô, ghim cột bằng `position: sticky`. Lưới **thao tác như Excel**
+(ADR-033, 18.09): bấm chỉ chọn ô, gõ phím là nhập ngay, Enter/F2/bấm đúp mở ô, Tab/Enter
+chỉ chuyển ô; không còn nút Chế độ Xem/Chỉnh sửa. Xoá Quốc gia thì Loại tiền trống (ADR-031 bổ sung). Renderer HTML/HTMX ghi ô cũ
 (`bang-tinh.js`, `bang-tinh-o.js`, `_o.html`) **đã bỏ, không đưa lại**. Profile
 nghiệp vụ của bảng lấy qua `forms_builder/record_policies.py` (`register_grid`,
 `register_workflow`), không nhận diện nghiệp vụ bằng mã cột. Cột **Trùng** hiện chỉ

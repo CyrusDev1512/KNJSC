@@ -1,5 +1,18 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 18.09.2026 — Lưới như Excel; xoá Quốc gia
+
+`test_market_currency.py` 16 đạt (thêm AC-33.8). Bộ `crm/tests orders/tests
+reports/tests tests/test_truy_vet.py`: khoảng 550 bài, 0 đỏ, 6 bỏ qua (`cham`), mã thoát 0. Node `grid-interaction-unit` 2 PASS (harness cần stub `config` sau `choose()` mới của `20f5bc5`, đã thêm), `master-queue-unit` 2 PASS. Sau rebase lên `20f5bc5`: `test_market_currency`, `test_truy_vet`, `test_master_grid`, `test_pham_vi_toi_toan_bo`, `test_order_destination` đạt; Chromium kiểm lại mô hình Excel trên JS đã gộp: đạt.
+Chromium crmThuận: bấm chọn `B1:B1`, gõ `X` mở ô nhập với `X`, Enter mở với giá trị
+cũ, mũi tên không mở ô, Ctrl+A chọn `A1:Y1 · 25 ô`; Delete cả dòng bị từ chối đúng
+luật vì Mã đơn bắt buộc (báo rõ dòng/cột); xoá vùng Quốc gia→Thành phố: hỏi xác nhận, Đã lưu, Quốc gia và Loại tiền trống, giá giữ; điền lại Hoa Kỳ → USD.
+[Biên bản](kiem-chung-luoi-excel-quoc-gia-trong-20260918.md).
+
+| Mã | Mức | Chỗ sai | Blocker |
+|---|---|---|---|
+| TL-41 | Cao | Nộp báo cáo ngày Marketing/Sale trên VPS: "Giá trị CAD không có trong danh sách của cột Đơn vị tiền. Chọn: VND" — cột `loai_tien` do `scripts/tao-bao-cao-mau-20260915.py` tạo chỉ có `VND`, còn `daily_service.protected_values` (16.09) tự điền USD/CAD/PHP theo quốc gia; `configure_erp_reports` chỉ `get_or_create` nên không sửa cột cũ | Chủ dự án chọn: sửa `configure_erp_reports` bổ sung ba mã tiền (khuyên) hay sửa tay cột trên VPS |
+
 ## 17.09.2026 — ADR-033: Tôi / Toàn bộ, Vận đơn sửa toàn bảng
 
 `crm/tests/test_pham_vi_toi_toan_bo.py` 8 đạt; `makemigrations --check` sạch;

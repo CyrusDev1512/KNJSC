@@ -320,10 +320,11 @@ Ctrl+S/Lưu dữ liệu gửi ngay. Chờ trạng thái Đã lưu trước khi �
 Đổi lọc/popup giữ nháp; cảnh báo rời trang chỉ xuất hiện khi còn chưa lưu.
 Nhập file, phân công và chi tiết sản phẩm vẫn có nút gửi riêng.
 
-- Lưới luôn ở chế độ chỉnh sửa (ADR-033, 17.09.2026): bấm hoặc chuyển tới ô
-  được phép sửa là nhập ngay; ô không sửa được mở vùng đọc. Tab chuyển ô;
-  Enter xuống hàng cho ô một dòng. Ô nhiều dòng Enter xuống dòng, Ctrl+Enter
-  kết thúc. Nút **Tôi / Toàn bộ** ở bảng Vận đơn lọc theo cột phụ trách của
+- Thao tác như Excel (ADR-033, 18.09.2026): bấm chỉ chọn ô; gõ phím chữ hay số
+  là nhập ngay với ký tự vừa gõ; Enter, F2 hoặc bấm đúp mở ô nhập giữ giá trị cũ.
+  Tab và Enter trong ô nhập chuyển sang ô kế nhưng không tự mở; Ctrl+A chọn cả
+  bảng, Delete xoá vùng chọn. Ô nhiều dòng Enter xuống dòng, Ctrl+Enter kết thúc.
+  Ô không sửa được thì gõ phím mở vùng đọc. Nút **Tôi / Toàn bộ** ở bảng Vận đơn lọc theo cột phụ trách của
   bộ phận mình, nhớ trên trình duyệt, mặc định Toàn bộ.
 - Bấm số hàng để chọn hàng. Dòng đầu mang số 1. Đơn mới ở cuối theo mặc định.
 - Định dạng có cỡ chữ/màu chữ/màu nền, dùng cùng autosave và Undo/Redo.

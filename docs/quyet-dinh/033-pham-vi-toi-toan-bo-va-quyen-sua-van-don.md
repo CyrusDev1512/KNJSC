@@ -73,6 +73,16 @@ Chọn **C**.
    để ép tab đang mở tải lại khi đổi bảng nhận đơn (ADR-029); JS chỉ đổi lời
    báo thành "Cấu hình bảng đã thay đổi. Đang tải lại trang."
 
+## Bổ sung 18.09.2026 — thao tác ô như Excel
+
+Chủ dự án gửi video: sau 17.09 bấm ô là mở ô nhập ngay, nên **Ctrl+A** rơi vào ô
+nhập (chọn chữ) chứ không chọn cả bảng. Chốt (hỏi, trả lời "Như Excel"): **bấm
+chỉ chọn ô; gõ phím chữ hay số là vào nhập ngay với ký tự vừa gõ; Enter, F2, bấm
+đúp mở ô nhập giữ giá trị cũ; Enter và Tab trong ô nhập chỉ chuyển ô, không tự mở
+ô kế; mũi tên chỉ di chuyển.** Ctrl+A, Delete, Ctrl+C/V luôn tác động lên lưới.
+Ô chỉ đọc, phân công, chi tiết: gõ phím thì mở hộp đọc. Điều 5 ở trên đọc theo
+nghĩa này. Chân lưới ghi "Chọn ô rồi gõ để sửa · Enter/F2 mở ô · Ctrl+A chọn hết".
+
 ## Lý do
 
 - Yêu cầu nghiệp vụ là của người làm việc, không phải của Admin: nhân viên

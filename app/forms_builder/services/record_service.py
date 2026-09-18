@@ -338,7 +338,7 @@ def _dat_o(ban_ghi, cot, raw, *, confirmations=None):
         raise BusinessError(f'Cột "{cot.name}" bắt buộc nhập, không để trống được.')
     if source and source.kind in ('sale', 'mkt') and cot.code == source.columns.get('market'):
         from orders.services.currency_service import for_label
-        currency = for_label(moi)
+        currency = for_label(moi, allow_empty=True)  # xoá Thị trường thì Loại tiền cũng trống
         if source.columns.get('currency'):
             ban_ghi.data[source.columns['currency']] = currency
     if policy and hasattr(policy, 'derived_values'):

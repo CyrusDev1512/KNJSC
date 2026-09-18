@@ -17,7 +17,11 @@ def for_market(value):
         raise BusinessError('Chọn quốc gia hợp lệ để xác định loại tiền.')
 
 
-def for_label(label):
+def for_label(label, allow_empty=False):
+    """Nhãn quốc gia → loại tiền. `allow_empty`: quốc gia trống thì tiền cũng trống
+    (xoá ô Quốc gia trên lưới, chủ dự án chốt 18.09.2026); nhập tệp và lên đơn vẫn bắt buộc."""
+    if allow_empty and str(label or '').strip() == '':
+        return ''
     market = next((m for m in Market if m.label.casefold() == str(label).strip().casefold()), None)
     return for_market(market)
 
@@ -26,7 +30,7 @@ class CurrencyConfirmation(BusinessError):
     def __init__(self, confirmations):
         self.currency_confirmations = confirmations
         super().__init__(
-            f'Đổi quốc gia sẽ đổi loại tiền của {len(confirmations)} dòng đã có tiền. '
+            f'Đổi hoặc xoá quốc gia sẽ đổi loại tiền của {len(confirmations)} dòng đã có tiền. '
             'Bạn xác nhận giữ nguyên các số tiền, chỉ đổi loại tiền và không quy đổi tỷ giá?',
             code='currency_confirmation')
 
@@ -45,8 +49,10 @@ def _has_money(row):
 
 
 def change(row, market_label, confirmations=None):
-    currency = for_label(market_label)
-    if currency != row.data.get('loai_tien') and _has_money(row):
+    """Đổi hay xoá Quốc gia trên một dòng: trả `loai_tien` đi kèm; dòng đã có tiền phải xác nhận."""
+    market_label = str(market_label or '').strip()   # '' và None cùng một chữ ký xác nhận
+    currency = for_label(market_label, allow_empty=True)
+    if currency != (row.data.get('loai_tien') or '') and _has_money(row):
         # Gắn xác nhận với phiên bản đã xem; người khác sửa dòng thì phải xác nhận lại.
         snapshot = [row.pk, row.updated_at.isoformat(), row.data.get('quoc_gia'),
                     row.data.get('loai_tien'), market_label, currency]

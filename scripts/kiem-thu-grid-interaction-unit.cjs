@@ -1,6 +1,6 @@
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync(process.env.GRID_INTERACTION_SOURCE||'app/static/js/master-grid.js','utf8');
-const calls=[];const ctx={state:{total:100,visible:[{},{}]},dirty:()=>false,rowAt:r=>({id:r+1}),reader:{},viewport:{focus(){}},repaint:()=>calls.push('full'),repaintSelection:()=>calls.push('selection')};
+const calls=[];const ctx={config:{canCreate:false},state:{total:100,visible:[{},{}],drafts:[]},dirty:()=>false,rowAt:r=>({id:r+1}),reader:{},viewport:{focus(){}},repaint:()=>calls.push('full'),repaintSelection:()=>calls.push('selection')};
 vm.createContext(ctx);vm.runInContext(source.slice(source.indexOf('  function choose('),source.indexOf('  function ensureVisible(')),ctx);
 ctx.choose(1,1);assert.deepEqual(calls,['selection'],'Chọn ô không được dựng lại nội dung lưới');
 assert.equal(ctx.state.currentId,2);

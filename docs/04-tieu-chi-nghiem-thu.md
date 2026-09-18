@@ -496,6 +496,7 @@ giữ tiêu chí cũ.
 | AC-33.5 | `che-do-xem/` trả 404; `TableDef` không còn `delivery_view_all` nhưng còn `delivery_view_version`; Cột & cấp quyền không còn khối Chế độ xem bảng | ADR-033 | Tự động |
 | AC-33.6 | Nút Tôi / Toàn bộ chỉ hiện cho người có cột phụ trách; không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi; `config.myScope` đúng trường | ADR-033 | Tự động |
 | AC-33.7 | Migration 0013 chạy xuôi và ngược trên DB test, giữ `delivery_view_version` và dữ liệu | ADR-033 | Tự động |
+| AC-33.8 | Xoá trống ô Quốc gia thì Loại tiền trống; dòng có tiền hỏi xác nhận rồi ghi được cả lượt xoá; điền lại Quốc gia tiền về đúng; nhập tệp và lên đơn vẫn bắt buộc quốc gia. Lưới như Excel: bấm chỉ chọn, gõ là nhập, Enter/F2/bấm đúp mở ô, Tab/Enter chỉ chuyển ô, Ctrl+A chọn cả bảng (kiểm trình duyệt) | ADR-033 · ADR-031 | Tự động |
 
 ## 27. Lưới dùng chung và vòng đời bảng — ADR-027
 

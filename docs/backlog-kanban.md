@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 18.09.2026 — Lưới như Excel; Quốc gia trống → tiền trống
+
+**Finished local, chưa VPS:** bấm chỉ chọn ô, gõ là nhập, Ctrl+A/Delete tác động lên
+lưới; xoá Quốc gia được, dòng có tiền hỏi xác nhận. Bài AC-33.8 và Chromium đạt.
+[Biên bản](kiem-chung-luoi-excel-quoc-gia-trong-20260918.md).
+**To do:** phát hành VPS; quyết định cách sửa cột Đơn vị tiền (VND) của bảng báo cáo 15.09.
 ## 18.09.2026 — Phát hành bốn góp ý lên VPS
 
 **Finished VPS:** image `knjsc-app:0d970f8-gopy` trên 5 service; backup + diễn tập trên bản sao DB thật; Vận đơn mới
