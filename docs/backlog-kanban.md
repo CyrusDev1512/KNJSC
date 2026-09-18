@@ -1,5 +1,14 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 18.09.2026 (chiều) — Một bảng vận đơn duy nhất (ADR-036)
+
+**Finished local, chưa VPS:** `van_don` là bảng duy nhất mang profile Vận đơn + cột Trùng;
+Bảng nhận đơn bỏ; lệnh xoá cứng hai bảng cũ; dòng không chi tiết tạo được. Bài AC-36.x đạt.
+[Biên bản](kiem-chung-mot-bang-van-don-20260918.md).
+**To do (CLI máy chủ dự án):** backup → phát hành → `migrate` 0014 → `tao_bang_van_don` →
+`xoa_bang_van_don_cu` → kiểm Chrome. **Far plan:** khối Đối soát kế toán, Black list, 7 trạng thái
+vận chuyển theo sheet Vận đơn của "Quản trị nội bộ" — chờ chốt.
+
 ## 18.09.2026 (chiều) — TL-41 cột Đơn vị tiền
 
 **Finished local:** `configure_erp_reports` bổ sung USD/CAD/PHP vào cột có sẵn; AC-22.12 đạt.

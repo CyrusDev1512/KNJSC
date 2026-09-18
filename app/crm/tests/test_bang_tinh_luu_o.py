@@ -50,7 +50,10 @@ def bang_vd(departments, nguoi_dung):
 
 
 def _dong(bang, nguoi, **gia_tri):
-    return record_service.create_record(bang, gia_tri, actor=nguoi)
+    # Bảng vận đơn duy nhất mang profile (ADR-036): đủ cột bắt buộc, tiền theo quốc gia.
+    mac_dinh = {"ma_don": f"DH-{len(gia_tri)}-{gia_tri.get('ten_khach', 'x')}", "ngay": "2026-08-01",
+                "ten_khach": "Khách", "so_dien_thoai": "0900", "quoc_gia": "Hoa Kỳ", "loai_tien": "USD"}
+    return record_service.create_record(bang, {**mac_dinh, **gia_tri}, actor=nguoi)
 
 
 def _goi(*cap):

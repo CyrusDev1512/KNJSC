@@ -666,7 +666,7 @@ chạy, hoặc xoá vùng lưu cơ sở dữ liệu. Cả ba đều có thể l�
 **Máy cá nhân — một lệnh:** nháy đúp `KN JSC.bat` ở thư mục gốc (Windows), hoặc
 chạy `scripts\cap-nhat-local.bat` / `./scripts/cap-nhat-local.sh`. Script tự mở
 Docker Desktop và chờ nó sẵn sàng, kéo mã mới, dựng lại container, migrate, tạo
-các bảng vận đơn chuẩn cùng bảng độc lập **Vận đơn DB**, nạp dữ liệu mẫu (kể cả đặt lại đúng mật khẩu in ra cho tài khoản mẫu
+bảng vận đơn duy nhất **Vận đơn mới** (ADR-036), nạp dữ liệu mẫu (kể cả đặt lại đúng mật khẩu in ra cho tài khoản mẫu
 có sẵn) rồi mở trình duyệt. Muốn xem một nhánh khác thì truyền tên nhánh:
 `scripts\cap-nhat-local.bat <tên nhánh>`. Dừng ở bước nào thì in rõ bước đó.
 
@@ -838,13 +838,13 @@ Phạm vi và kết quả kiểm chứng: [báo cáo chín hạng mục](kiem-ch
 ## Nạp 10.000 vận đơn mẫu — 11.09.2026
 
 Lệnh này chỉ dùng cho môi trường phát triển có `DEBUG=1`. Lệnh chỉ tác động nhóm
-mã `MAU-20260910-*` trong `van_don_moi`; không tạo khách hàng, đơn hoặc dòng sản
+mã `MAU-20260910-*` trong `van_don` (Vận đơn mới); không tạo khách hàng, đơn hoặc dòng sản
 phẩm bên ERP và không sửa vận đơn ngoài tiền tố mẫu.
 
 Sao lưu database trước, rồi từ container `web` chạy xem trước:
 
 ```powershell
-python manage.py nap_du_lieu_van_don_moi --tong-so 10000 --seed 20260911 --dry-run
+python manage.py nap_du_lieu_van_don --tong-so 10000 --seed 20260911 --dry-run
 ```
 
 Kết quả chuẩn trên database có 500 dòng mẫu cũ là 500 dòng cập nhật và 9.500 dòng

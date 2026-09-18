@@ -12,7 +12,7 @@ const phase=process.env.PINNED_PHASE||'after',sleep=ms=>new Promise(r=>setTimeou
   await context.addCookies([{name:'sessionid',value:m.session,url:base}]);const page=await context.newPage(),errors=[],requests=[];
   page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.url().includes('/du-lieu/'))requests.push(r.url());});
   try{
-   await page.goto(base+'/bang-tinh/van_don_moi/');await page.locator('.mg-cell[data-r="0"][data-id]').first().waitFor();
+   await page.goto(base+'/bang-tinh/van_don/');await page.locator('.mg-cell[data-r="0"][data-id]').first().waitFor();
    assert.equal(await page.evaluate(()=>KNJSC_MASTER.diagnostics().total),count);
    const samples=[];
    for(const width of [1440,1280,390])for(const zoom of [1,1.25]){

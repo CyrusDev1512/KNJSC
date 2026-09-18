@@ -208,7 +208,7 @@ def test_filters_and_statistics_use_scoped_rows(feedback, nguoi_dung, delivery_l
     assert grid_service.build_grid(nguoi_dung['admin'], QueryDict('f_phu_trach_mkt__trong=__unassigned__'), table=table).queryset.get().pk == rows[1].pk
     client.force_login(user)
     assert client.get(f'/van-don/chi-tiet/{rows[1].pk}/').status_code == 200
-    assert client.get('/thong-ke/', {'nguon': 'van_don_moi'}).status_code == 200
+    assert client.get('/thong-ke/', {'nguon': 'van_don'}).status_code == 200
 
 
 def test_product_or_without_duplicates_and_states_and(feedback, nguoi_dung):
@@ -343,7 +343,7 @@ def test_download_worker_rechecks_current_assignments(feedback, nguoi_dung, deli
 def test_grid_ui_and_filtered_url(feedback, nguoi_dung, delivery_leader, client):
     client.force_login(delivery_leader)
     params = {'sp': feedback[1][0].code, 'f_trang_thai_tt__trong': 'Chưa thanh toán', 'sap': 'ma_don', 'trang': '2'}
-    response = client.get('/bang-tinh/van_don_moi/', params)
+    response = client.get('/bang-tinh/van_don/', params)
     assert response.status_code == 200
     quick = response.context['quick_filters']
     assert ('sap', 'ma_don') in quick['keep'] and not any(k == 'trang' for k, _ in quick['keep'])
@@ -356,7 +356,7 @@ def test_grid_ui_and_filtered_url(feedback, nguoi_dung, delivery_leader, client)
 def test_erp_reads_new_assignment_scope(feedback, nguoi_dung, client, settings):
     settings.ROOT_URLCONF = 'knjsc.urls'
     client.force_login(nguoi_dung['staff_vd'])
-    response = client.get('/bang/van_don_moi/')
+    response = client.get('/bang/van_don/')
     assert response.status_code == 200
     assert 'Khách 0' in response.content.decode() and 'Khách 1' in response.content.decode()
     assert TableDef.objects.in_scope(nguoi_dung['staff_vd']).with_visible_record_count(nguoi_dung['staff_vd']).get(pk=feedback[0].pk).so_dong == 2
@@ -368,10 +368,10 @@ def test_scoped_grid_does_not_query_per_row(feedback, nguoi_dung, delivery_leade
         created_by=nguoi_dung['staff_sale_1'], data={**rows[0].data, 'ma_don': f'PERF-{i}'}) for i in range(98)])
     WaybillAssignment.objects.bulk_create([WaybillAssignment(record=r, delivery=nguoi_dung['staff_vd']) for r in rows + more])
     client.force_login(nguoi_dung['staff_vd'])
-    client.get('/bang-tinh/van_don_moi/moi-nhat/')
+    client.get('/bang-tinh/van_don/moi-nhat/')
     with django_assert_max_num_queries(22):
-        response = client.get('/bang-tinh/van_don_moi/du-lieu/')
+        response = client.get('/bang-tinh/van_don/du-lieu/')
     assert response.status_code == 200 and len(response.json()['rows']) == 100
     with django_assert_max_num_queries(22):
-        response = client.get('/bang-tinh/van_don_moi/du-lieu/?cua_toi=1')
+        response = client.get('/bang-tinh/van_don/du-lieu/?cua_toi=1')
     assert response.status_code == 200 and len(response.json()['rows']) == 100

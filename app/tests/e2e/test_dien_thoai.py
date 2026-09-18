@@ -34,7 +34,7 @@ def du_lieu(departments, nguoi_dung):
     for i in range(3):
         record_service.create_record(bang, {
             "ma_don": f"DH-{i}", "ngay": "2026-08-01", "ten_khach": f"Khách {i}",
-            "so_dien_thoai": f"09{i}", "trang_thai_vc": "Đang giao",
+            "so_dien_thoai": f"09{i}", "trang_thai_vc": "Đang giao", "quoc_gia": "Hoa Kỳ", "loai_tien": "USD",
         }, actor=nguoi_dung["staff_vd"])
     return bang
 

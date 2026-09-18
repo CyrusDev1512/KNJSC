@@ -1,5 +1,7 @@
 # ADR-034 — Bảng nhận đơn liệt kê mọi bảng vận đơn đang có
 
+> **Đã bị thay thế** bởi [ADR-036](036-mot-bang-van-don-duy-nhat.md) cùng ngày: trang Bảng nhận đơn bỏ hẳn; bước nâng cấp cấu trúc `_upgrade_schema` chuyển thành `waybill_service.upgrade_schema`, chạy tự động trong `tao_bang_van_don`.
+
 | Mục | Nội dung |
 |---|---|
 | Trạng thái | Đã triển khai local, kiểm chứng ở `docs/kiem-chung-gop-y-sau-adr033-20260918.md` |

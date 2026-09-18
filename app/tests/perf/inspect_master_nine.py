@@ -23,7 +23,7 @@ for index in (0, 1, 2, 4):
         finally:
             queries.append({'ms': (time.perf_counter()-start)*1000, 'sql': sql})
     with connection.execute_wrapper(capture):
-        table = table_for(user, 'van_don_moi')
+        table = table_for(user, 'van_don')
         data = block(user, table, QueryDict('offset=1000'))
     result.append({'role_index': index, 'total': data['total'], 'queries': queries})
 Path('/evidence/query-profile.json').write_text(json.dumps(result, indent=2))

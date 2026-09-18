@@ -8,7 +8,7 @@ from forms_builder.models import DataRecord, TableDef
 assert connection.settings_dict['NAME'].startswith('test_knjsc_master_capacity_nine')
 with connection.cursor() as cursor:
     cursor.execute('SET max_parallel_workers_per_gather=0')
-table=TableDef.objects.get(code='van_don_moi')
+table=TableDef.objects.get(code='van_don')
 def measure():
     result=[]
     for i in (0,1,2,4):

@@ -22,7 +22,7 @@ const base='http://127.0.0.1:8812',results=[],errors=[];
     assert(await field.evaluate(el=>Array.from(el.labels).some(label=>label.htmlFor===el.id)));
    }
    results.push({width,role,operation:'overview_load',ms:Date.now()-start});
-   await page.getByLabel(/^Nguồn phân tích(?:\s|$)/).selectOption('van_don_moi');
+   await page.getByLabel(/^Nguồn phân tích(?:\s|$)/).selectOption('van_don');
    await page.getByLabel(/^Từ ngày(?:\s|$)/).fill('2026-09-01');
    await page.getByLabel(/^Đến ngày(?:\s|$)/).fill('2026-09-30');
    await page.getByRole('button',{name:'Áp dụng',exact:true}).click();

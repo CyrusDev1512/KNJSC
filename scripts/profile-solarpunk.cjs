@@ -5,7 +5,7 @@ const fs=require('node:fs');
  for(const port of [18022,18021]){
   const p=await browser.newPage({viewport:{width:1440,height:900}});await p.goto(`http://localhost:${port}/dang-nhap/`);
   await p.locator('[name=username]').fill('quantri');await p.locator('[name=password]').fill('matkhaucuatoi');await Promise.all([p.waitForURL(u=>!u.pathname.includes('dang-nhap')),p.locator('button[type=submit]').click()]);
-  await p.goto(`http://localhost:${port}/bang-tinh/van_don_moi/`);await p.locator('.mg-cell').first().waitFor();
+  await p.goto(`http://localhost:${port}/bang-tinh/van_don/`);await p.locator('.mg-cell').first().waitFor();
   await p.waitForTimeout(300);
   const metrics=await p.evaluate(async()=>{
    const grid=document.querySelector('#mg-viewport'),samples=[],selection=[],edit=[],tasks=[];

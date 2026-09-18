@@ -241,15 +241,19 @@ def test_du_lieu_noi_bo_va_bang_xep_hang_mau():
 
 
 def test_khong_nhet_don_mau_khi_da_co_van_don_that():
-    """AC-18.1 — Máy sạch và chạy lại đều giữ bảng mới trống, không gieo đơn demo."""
+    """AC-18.1 — Một bảng vận đơn duy nhất (ADR-036): máy sạch và chạy lại đều không gieo
+    đơn demo, không sinh bảng thứ hai; dòng thật có sẵn giữ nguyên."""
     from orders.models import Order
 
     _chay()
     assert Order.all_objects.count() == 0
-    assert not DataRecord.all_objects.filter(table__code="van_don_moi").exists()
-    old = TableDef.all_objects.get(code=WAYBILL_TABLE_CODE)
-    row = DataRecord.objects.create(table=old, department=old.department, data={"ma_don": "LICH-SU"})
+    assert not TableDef.all_objects.filter(code__in=("van_don_moi", "van_don_db")).exists()
+    bang = TableDef.all_objects.get(code=WAYBILL_TABLE_CODE)
+    assert bang.name == "Vận đơn mới" and bang.workflow == "waybill"
+    assert not DataRecord.all_objects.filter(table=bang).exists()
+    row = DataRecord.objects.create(table=bang, department=bang.department, data={"ma_don": "LICH-SU"})
     ra = _chay()
     assert Order.all_objects.count() == 0 and "đơn hàng" not in ra
     row.refresh_from_db()
     assert row.data == {"ma_don": "LICH-SU"}
+    assert TableDef.all_objects.filter(code=WAYBILL_TABLE_CODE).count() == 1

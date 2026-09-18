@@ -1,5 +1,7 @@
 # ADR-029 — Bảng nhận đơn cấu hình tại CRM
 
+> **Đã bị thay thế toàn bộ** bởi [ADR-036](036-mot-bang-van-don-duy-nhat.md), 18.09.2026: một bảng vận đơn duy nhất, trang Bảng nhận đơn và `receives_orders` đã xoá.
+
 Ngày 15.09.2026. Chủ dự án duyệt triển khai local từ đề xuất chọn bảng đích mặc định cho Admin.
 Thay phần đích cố định trong ADR-018/023; giữ kiến trúc Django/service và database dùng chung.
 

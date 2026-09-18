@@ -1,11 +1,11 @@
 """Nạp khách hàng giả theo lô vào một bảng vận đơn — để xem lưới và cột Trùng
 ở cỡ thật (300 nghìn khách), không đi qua Order/OrderLine.
 
-    python manage.py nap_khach_mau --so-khach 300000              # vào Vận đơn DB
-    python manage.py nap_khach_mau --bang van_don_moi --so-khach 1000
+    python manage.py nap_khach_mau --so-khach 300000              # vào Vận đơn mới
+    python manage.py nap_khach_mau --bang van_don --so-khach 1000
     python manage.py nap_khach_mau --xoa-cu                       # chỉ xoá dòng KH-*
 
-Khác `nap_du_lieu_van_don_moi` (giữ đúng 10.000 mã MAU-* và chi tiết sản
+Khác `nap_du_lieu_van_don` (giữ đúng 10.000 mã MAU-* và chi tiết sản
 phẩm, tối đa 100.000 dòng, nạp trong một giao dịch), lệnh này **chảy theo lô**
 nên 300.000 khách không giữ hết trong bộ nhớ, và **cố ý có khách mua lại**:
 mặc định 20% dòng là khách đã có số điện thoại trong bảng, để cột Trùng có
@@ -14,7 +14,7 @@ việc để làm. Một phần nhỏ (2%) trong số dòng mua lại ghi số �
 thật: đây là những dòng cột Trùng hiện nay **không** bắt được, nạp vào để đo.
 
 Mã đơn `KH-…` nhận ra được nên xoá lại được mà không đụng dữ liệu thật. Ngẫu
-nhiên theo hạt giống cố định. Bảng có profile Vận đơn (`van_don_moi`, Vận đơn
+nhiên theo hạt giống cố định. Bảng có profile Vận đơn (`van_don`, Vận đơn
 DB) thì mỗi dòng có phân công Vận đơn/CSKH để phạm vi Staff đúng như thật.
 Không chạy trên máy chủ thật khi DEBUG tắt — cùng khoá với `seed_perf`.
 """
@@ -35,13 +35,13 @@ from orders.constants import PaymentStatus, ShippingStatus, is_waybill_table
 from orders.models import Product, WaybillAssignment
 from orders.services import assignment_service
 
-from .nap_du_lieu_van_don_moi import (
+from .nap_du_lieu_van_don import (
     BASE_PRICES, FIRST_NAMES, LAST_NAMES, NOTES, PLACES, POSTAL_LETTERS, STREETS,
 )
 
 PREFIX = "KH-"
 HAT_GIONG = 20260916
-BANG_MAC_DINH = "van_don_db"
+BANG_MAC_DINH = "van_don"
 TI_LE_MUA_LAI = 0.2
 TI_LE_SO_LE = 0.02          # phần dòng mua lại ghi số điện thoại khác định dạng
 SO_THANG = 36
@@ -212,7 +212,7 @@ class Command(BaseCommand):
     help = "Nạp khách hàng giả (mặc định 300.000, 20% mua lại) vào một bảng vận đơn"
 
     def add_arguments(self, parser):
-        parser.add_argument("--bang", default=BANG_MAC_DINH, help="Mã bảng đích, mặc định Vận đơn DB")
+        parser.add_argument("--bang", default=BANG_MAC_DINH, help="Mã bảng đích, mặc định Vận đơn mới")
         parser.add_argument("--so-khach", type=int, default=300_000, dest="so_khach")
         parser.add_argument("--ti-le-mua-lai", type=float, default=TI_LE_MUA_LAI, dest="ti_le",
                             help="Phần dòng là khách mua lại (0 → không trùng), mặc định 0.2")

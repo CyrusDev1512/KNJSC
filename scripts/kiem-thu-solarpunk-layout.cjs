@@ -9,7 +9,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
   await Promise.all([p.waitForURL(u=>!u.pathname.includes('dang-nhap')),p.locator('button[type=submit]').click()]);
   for(const theme of ['light','dark']){
    await p.evaluate(t=>localStorage.setItem('knjsc-nen',t),theme);
-   for(const [url,name]of [['http://localhost:18020/bao-cao/lich-su/','reports'],['http://localhost:18021/bang-tinh/van_don_moi/','grid']]){
+   for(const [url,name]of [['http://localhost:18020/bao-cao/lich-su/','reports'],['http://localhost:18021/bang-tinh/van_don/','grid']]){
     await p.goto(url);await p.evaluate(t=>localStorage.setItem('knjsc-nen',t),theme);await p.reload();await p.waitForTimeout(200);
     assert.equal(await p.locator('html').getAttribute('data-theme'),theme);
     const measure=await p.evaluate(()=>{const main=document.querySelector('.noi-dung'),dock=document.querySelector('.sp-dock');return {overflow:document.documentElement.scrollWidth>innerWidth+2,mainOverflow:!!main&&main.scrollWidth>main.clientWidth+2,overlap:!!main&&!!dock&&main.getBoundingClientRect().bottom>dock.getBoundingClientRect().top+1}});

@@ -1,5 +1,7 @@
 # ADR-018 — Bảng Vận đơn mới theo CRM Tân
 
+> **18.09.2026 — [ADR-036](036-mot-bang-van-don-duy-nhat.md)**: chỉ còn một bảng vận đơn `van_don` "Vận đơn mới" mang profile của ADR này; crmThuận (`van_don_moi`) và Vận đơn DB xoá cứng theo quyết định chủ dự án; Chi tiết sản phẩm không còn bắt buộc khi tạo dòng. Các đoạn "hai bảng" dưới đây là lịch sử.
+
 > Thay thế 16.09.2026: chủ dự án yêu cầu đổi tên hiển thị **Vận đơn**
 > (`van_don_moi`) thành **crmThuận**. Giữ mã, ID, dữ liệu, quyền và cấu hình
 > nhận đơn. Bảng `van_don` vẫn tên **Vận đơn mới**. Đã áp dụng local; chưa VPS.

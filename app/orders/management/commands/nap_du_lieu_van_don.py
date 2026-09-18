@@ -92,7 +92,7 @@ def _preflight(total):
         code=ACTIVE_WAYBILL_TABLE_CODE, is_active=True, deleted_at__isnull=True,
     ).first()
     if table is None:
-        raise CommandError("Chưa có bảng Vận đơn mới (van_don_moi).")
+        raise CommandError("Chưa có bảng Vận đơn mới (van_don) — chạy `manage.py tao_bang_van_don`.")
     products = list(Product.objects.filter(is_active=True).order_by("code", "pk"))
     if not products:
         raise CommandError("Chưa có sản phẩm đang hoạt động.")
@@ -346,7 +346,7 @@ def populate(*, total=DEFAULT_TOTAL, seed=DEFAULT_SEED, dry_run=False):
 
 
 class Command(BaseCommand):
-    help = "Hoàn thiện 10.000 vận đơn mẫu trong van_don_moi, không tạo đơn ERP"
+    help = "Hoàn thiện 10.000 vận đơn mẫu trong bảng Vận đơn mới (van_don), không tạo đơn ERP"
 
     def add_arguments(self, parser):
         parser.add_argument("--tong-so", type=int, default=DEFAULT_TOTAL, dest="tong_so")

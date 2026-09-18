@@ -14,7 +14,7 @@ token=re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"',page.read().decode
 logged=client.open(Request(BASE+'/dang-nhap/',data=urlencode({'username':'erp_admin','password':'erp-test-only-2026','csrfmiddlewaretoken':token}).encode(),headers={'Referer':BASE+'/dang-nhap/'}),timeout=10)
 assert logged.geturl()==BASE+'/'
 results=[]
-for source,groups in [('bao_cao_mkt',1500),('bao_cao_sale',1500),('van_don_moi',2000)]:
+for source,groups in [('bao_cao_mkt',1500),('bao_cao_sale',1500),('van_don',2000)]:
  start=time.perf_counter()
  response=client.open(BASE+'/bao-cao/hoat-dong/xuat/?'+urlencode({'nguon':source,'tu':'2020-01-01','den':'2025-12-31'}),timeout=30)
  content=response.read()
@@ -24,7 +24,7 @@ for source,groups in [('bao_cao_mkt',1500),('bao_cao_sale',1500),('van_don_moi',
  rows=list(book.active.values)
  assert len(rows)-5==groups
  totals=dict(zip(rows[3][1:],rows[-1][1:]))
- if source=='van_don_moi':
+ if source=='van_don':
   assert totals=={'Số đơn':40000,'Số lượng sản phẩm':120000}
   assert sum(r[1] for r in list(book.worksheets[1].values)[1:])==40000
  else:

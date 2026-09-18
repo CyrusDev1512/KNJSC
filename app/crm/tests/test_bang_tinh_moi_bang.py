@@ -166,28 +166,31 @@ def test_thanh_ben_chon_nhanh_khoang_ngay_san_pham(client, bang_sale, bang_vd, s
     assert _so_dong(client, "/bang-tinh/don_sale/?f_san_pham__trong=Kem") == 2
     assert _so_dong(client, "/bang-tinh/don_sale/?f_san_pham__trong=Kem&f_san_pham__trong=Serum") == 3
 
-    # Bảng vận đơn: mỗi sản phẩm một cột số lượng → lọc bằng sp=<mã cột>
+    # Bảng vận đơn (ADR-036): sản phẩm nằm ở chi tiết `WaybillItem`, lọc bằng mã
+    # sản phẩm qua `f_san_pham__trong` (hoặc `sp`), thanh bên đếm số dòng có sản phẩm
     vd = nguoi_dung["staff_vd"]
-    _dong(bang_vd, vd, ma_don="D1", ten_khach="X", so_dien_thoai="0911", sl_retinol_cream=2)
-    _dong(bang_vd, vd, ma_don="D2", ten_khach="Y", so_dien_thoai="0911", sl_retinol_serum=1)
+    def _ct(*ma):
+        return [{"product": m, "quantity": 1, "unit_price": "10.00"} for m in ma]
+    _dong(bang_vd, vd, ma_don="D1", ten_khach="X", so_dien_thoai="0911", chi_tiet_sp=_ct("retinol-cream"))
+    _dong(bang_vd, vd, ma_don="D2", ten_khach="Y", so_dien_thoai="0911", chi_tiet_sp=_ct("retinol-serum"))
     _dong(bang_vd, vd, ma_don="D3", ten_khach="Z", so_dien_thoai="0922")
     client.force_login(vd)
     ben = client.get("/bang-tinh/van_don/").context["ben"]
-    assert ben["san_pham"]["kind"] == "cot_sl" and ben["san_pham"]["param"] == "sp"
-    assert {gt for gt, *_ in ben["san_pham"]["items"]} == {"sl_retinol_cream", "sl_retinol_serum"}
-    assert _so_dong(client, "/bang-tinh/van_don/?sp=sl_retinol_cream") == 1
-    assert _so_dong(client, "/bang-tinh/van_don/?sp=sl_retinol_cream&sp=sl_retinol_serum") == 2
-    assert _so_dong(client, "/bang-tinh/van_don/?sp=khong_co") == 3       # mã lạ bị bỏ qua
-    assert _so_dong(client, "/bang-tinh/van_don/?sp=sl_retinol_cream&trung=1") == 1
+    assert ben["san_pham"]["kind"] == "chi_tiet" and ben["san_pham"]["param"] == "f_san_pham__trong"
+    assert {gt: n for gt, _, n, _ in ben["san_pham"]["items"]} == {"retinol-cream": 1, "retinol-serum": 1}
+    assert _so_dong(client, "/bang-tinh/van_don/?sp=retinol-cream") == 1
+    assert _so_dong(client, "/bang-tinh/van_don/?sp=retinol-cream&sp=retinol-serum") == 2
+    assert _so_dong(client, "/bang-tinh/van_don/?sp=khong_co") == 0       # mã lạ: không dòng nào có sản phẩm đó
+    assert _so_dong(client, "/bang-tinh/van_don/?sp=retinol-cream&trung=1") == 1
 
     # Xuất Excel đúng lưới đang hiện — kể cả hai bộ lọc riêng của lưới (ADR-002)
     from openpyxl import load_workbook
 
-    kq = client.get("/bang-tinh/van_don/xuat/?sp=sl_retinol_cream&sp=sl_retinol_serum&trung=1")
+    kq = client.get("/bang-tinh/van_don/xuat/?sp=retinol-cream&sp=retinol-serum&trung=1")
     assert kq.status_code == 200
     ws = load_workbook(BytesIO(kq.content)).active
     assert ws.max_row - 1 == 2                      # trừ hàng tiêu đề
-    kq = client.get("/bang-tinh/van_don/xuat/?sp=sl_retinol_serum")
+    kq = client.get("/bang-tinh/van_don/xuat/?sp=retinol-serum")
     assert load_workbook(BytesIO(kq.content)).active.max_row - 1 == 1
 
 

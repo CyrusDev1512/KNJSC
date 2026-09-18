@@ -13,7 +13,7 @@ assert manifest['database'].startswith('test_knjsc_opt_')
 slots=itertools.count();samples=[];integrity_errors=[]
 started=time.monotonic();warmup=int(os.environ.get('OPT_WARMUP','60'))
 protocol=int(os.environ.get('OPT_PROTOCOL','1'))
-base='/bang-tinh/van_don_moi/'
+base='/bang-tinh/van_don/'
 
 @events.request.add_listener
 def collect(name,response_time,response_length,exception,response=None,context=None,**kwargs):
@@ -89,7 +89,7 @@ class Editor(HttpUser):
     def statistics(self):
         # Không tăng tải cho lượt chẩn đoán kết nối đã chạy với workload cũ.
         if os.environ.get('OPT_MIXED')=='1':
-            self.client.get('/thong-ke/',params={'nguon':'van_don_moi'},name='read:statistics')
+            self.client.get('/thong-ke/',params={'nguon':'van_don'},name='read:statistics')
 
     @task(1)
     def export(self):

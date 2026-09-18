@@ -19,7 +19,7 @@ actor = next(u for u in ready["users"] if u["role"] == "delivery" and u["index"]
 sale = next(u for u in ready["users"] if u["role"] == "sale" and u["index"] == 0)
 client = Client()
 client.cookies["sessionid"] = actor["session"]
-url = "/bang-tinh/van_don_moi/du-lieu/"
+url = "/bang-tinh/van_don/du-lieu/"
 with override_settings(CRM_OPT_READ=True):
     before_v1 = client.get(url, {"protocol": "1"}).json()
     before_v2 = client.get(url, {"protocol": "2"}).json()

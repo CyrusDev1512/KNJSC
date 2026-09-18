@@ -31,6 +31,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
 from core.constants import PERF_TABLE_ROWS
+from orders.constants import ACTIVE_PAYMENT_LABELS
 from forms_builder.models import DataRecord
 
 PERF_PREFIX = "PERF-"
@@ -87,7 +88,7 @@ def rows(n, *, products, sellers, statuses, payments, staff, start=date(2025, 9,
             "zipcode": f"T{rng.randrange(10):d}Y{rng.randrange(10)}J{rng.randrange(10)}",
             "quoc_gia": "Canada", "loai_tien": "CAD",
             "gia_tien": str(gia),
-            "pttt": rng.choice(["Chuyển khoản", "Thẻ", "Thu hộ khi giao"]),
+            "pttt": rng.choice(ACTIVE_PAYMENT_LABELS),
             "nguoi_ban": rng.choice(sellers) if sellers else "",
             "trang_thai_vc": rng.choice(statuses),
             "nv_van_don": rng.choice(staff) if staff else "",
@@ -185,20 +186,47 @@ def ensure_sale_table(*, actor=None):
 
 
 def _nap(bang, nguon, *, actor, batch, on_progress):
+    """Ghi thô như `nap_khach_mau`: bảng vận đơn mang profile (ADR-036) nên
+    `create_records_bulk` sẽ đi từng dòng qua `create_record`; dữ liệu giả PERF-* không
+    cần chi tiết sản phẩm hay nhật ký từng dòng, ghi thẳng `bulk_create` + cột tách."""
+    from forms_builder import record_policies
     from forms_builder.services import record_service
 
     columns = list(bang.columns.order_by("order", "id"))
-    tao = 0
-    lo = []
-    for gia_tri in nguon:
-        lo.append(gia_tri)
-        if len(lo) >= batch:
+    if not record_policies.for_table(bang):
+        tao, lo = 0, []
+        for gia_tri in nguon:
+            lo.append(gia_tri)
+            if len(lo) >= batch:
+                tao += record_service.create_records_bulk(bang, lo, actor=actor, columns=columns).created
+                lo = []
+                if on_progress:
+                    on_progress(tao)
+        if lo:
             tao += record_service.create_records_bulk(bang, lo, actor=actor, columns=columns).created
-            lo = []
-            if on_progress:
-                on_progress(tao)
+        return tao
+    ma_cot = {c.code for c in columns}
+    ho_so = getattr(actor, "profile", None)
+    team = getattr(ho_so, "team", None)
+    tao, lo = 0, []
+
+    def ghi():
+        nonlocal tao, lo
+        DataRecord.objects.bulk_create(lo, batch_size=500)
+        tao += len(lo)
+        lo = []
+        if on_progress:
+            on_progress(tao)
+
+    for gia_tri in nguon:
+        r = DataRecord(table=bang, data={k: v for k, v in gia_tri.items() if k in ma_cot},
+                       created_by=actor, department=bang.department, team=team)
+        r.sync_indexed_columns(columns)
+        lo.append(r)
+        if len(lo) >= batch:
+            ghi()
     if lo:
-        tao += record_service.create_records_bulk(bang, lo, actor=actor, columns=columns).created
+        ghi()
     return tao
 
 
@@ -239,12 +267,17 @@ def clear():
     Bảng Sale đo tải giữ lại (rỗng) để cột tính sẵn còn đó cho lần nạp sau."""
     from orders.constants import WAYBILL_TABLE_CODE
 
+    from orders.models import WaybillAssignment, WaybillItem
+
     so = 0
     for ds in (
         DataRecord.all_objects.filter(table__code=WAYBILL_TABLE_CODE, data__ma_don__startswith=PERF_PREFIX),
         DataRecord.all_objects.filter(table__code=SALE_TABLE_CODE),
     ):
         so += ds.count()
+        for phu in (WaybillItem._base_manager.filter(record__in=ds.values("pk")),
+                    WaybillAssignment.objects.filter(record__in=ds.values("pk"))):
+            phu._raw_delete(phu.db)
         ds._raw_delete(ds.db)
     return so
 

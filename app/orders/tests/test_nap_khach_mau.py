@@ -54,11 +54,18 @@ def test_nap_khach_co_mua_lai_va_phan_cong(san_sang):
     assert not WaybillAssignment.objects.exists()
 
 
-def test_bang_khong_co_profile_van_don_thi_khong_phan_cong(nguoi_dung, san_sang):
-    """AC-10.9 — bảng vận đơn cũ (không profile) vẫn nạp được nhưng không tạo
+def test_bang_khong_co_profile_van_don_thi_khong_phan_cong(nguoi_dung, san_sang, departments):
+    """AC-10.9 — bảng thường (không profile Vận đơn) vẫn nạp được nhưng không tạo
     phân công; tỉ lệ 0 thì không có số nào trùng."""
-    _goi("--bang", WAYBILL_TABLE_CODE, "--so-khach", "20", "--ti-le-mua-lai", "0")
-    ds = DataRecord.objects.filter(table__code=WAYBILL_TABLE_CODE, data__ma_don__startswith="KH-")
+    from forms_builder.meaning import FieldType, Meaning
+    from forms_builder.models import ColumnDef
+    thuong = TableDef.objects.create(code="bang_thuong", name="Bảng thường", department=departments["vd"])
+    for i, (ma, kieu, nhan) in enumerate((("ma_don", FieldType.TEXT, ""), ("ten_khach", FieldType.TEXT, Meaning.CUSTOMER),
+                                          ("so_dien_thoai", FieldType.TEXT, Meaning.PHONE), ("ngay", FieldType.DATE, Meaning.DATE),
+                                          ("gia_tien", FieldType.MONEY, Meaning.REVENUE))):
+        ColumnDef.objects.create(table=thuong, code=ma, name=ma, field_type=kieu, meaning=nhan, order=i)
+    _goi("--bang", "bang_thuong", "--so-khach", "20", "--ti-le-mua-lai", "0")
+    ds = DataRecord.objects.filter(table=thuong, data__ma_don__startswith="KH-")
     assert ds.count() == 20
     assert ds.values("val_phone").distinct().count() == 20
     assert not WaybillAssignment.objects.exists()

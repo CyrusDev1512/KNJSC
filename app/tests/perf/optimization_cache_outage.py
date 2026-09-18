@@ -24,7 +24,7 @@ else:
 manifest = json.loads(Path(os.environ['OPT_MANIFEST']).read_text())
 actor = manifest['actors'][0]
 user = get_user_model().objects.get(pk=actor['user'])
-table = master_grid_service.table_for(user, 'van_don_moi')
+table = master_grid_service.table_for(user, 'van_don')
 params = QueryDict('', mutable=True)
 params.update({'protocol': '2', 'f_ma_don': actor['code']})
 data = master_grid_service.block(user, table, params)

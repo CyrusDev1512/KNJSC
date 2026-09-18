@@ -18,7 +18,7 @@ const frame=page=>page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>req
   await page.route('**/master-grid.js*',route=>route.fulfill({contentType:'text/javascript',body:source.replace('scheduled = false; render();','scheduled = false; const start=performance.now(); render(); (window.renderSamples ||= []).push(performance.now()-start);')}));
   const result={stage,count,sourceSHA256:require('crypto').createHash('sha256').update(source).digest('hex'),errors,checks:[],samples:{},responsive:[]};
   try{
-   await page.goto(base+'/bang-tinh/van_don_moi/');await page.locator('.mg-cell[data-r="0"][data-id]').first().waitFor();
+   await page.goto(base+'/bang-tinh/van_don/');await page.locator('.mg-cell[data-r="0"][data-id]').first().waitFor();
    await page.evaluate(()=>{
     window.measured=[];window.sampleType='';
     const mark=()=>{if(!window.sampleType)return;const type=window.sampleType,start=performance.now();window.sampleType='';requestAnimationFrame(()=>requestAnimationFrame(()=>window.measured.push({type,ms:performance.now()-start})));};

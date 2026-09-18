@@ -5,7 +5,7 @@ from .test_waybill_feedback import feedback, delivery_leader, cskh_staff, assign
 from forms_builder.models import DataRecord
 
 pytestmark = pytest.mark.django_db
-BASE = '/bang-tinh/van_don_moi/'
+BASE = '/bang-tinh/van_don/'
 
 
 def test_editor_choices_match_validation_source(client, feedback, nguoi_dung, django_assert_num_queries):
@@ -14,11 +14,16 @@ def test_editor_choices_match_validation_source(client, feedback, nguoi_dung, dj
     client.force_login(nguoi_dung['admin'])
     columns = {c.code: c for c in feedback[0].columns.all()}
     from crm.services.master_grid_service import metadata as editor_metadata
-    # Danh sách cột chuẩn của bảng mới không thêm SQL khi dựng options mỗi khối.
+    from orders.services import waybill_service
+    standard = [c for c in columns.values() if c.code in {x[1] for x in waybill_service.COLUMNS}]
+    # Danh sách cột chuẩn của bảng không thêm SQL khi dựng options mỗi khối
+    # (cột giữ lại như Nhân viên vận đơn đọc danh mục người, nên loại ra khỏi phép đếm).
     with django_assert_num_queries(0):
-        editor_metadata(columns.values())
+        editor_metadata(standard)
     metadata = client.get(BASE + 'du-lieu/').json()['columns']
     for item in metadata:
+        if item['code'] not in columns:          # cột ảo Trùng (`__duplicates`) không có ColumnDef
+            continue
         source = choice_registry.for_column(columns[item['code']])
         assert item['options'] == (list(source.options()) if source else [])
     status = next(c for c in metadata if c['code'] == 'trang_thai_vc')
@@ -106,13 +111,13 @@ def test_replay_revoked_scope_denied(client, feedback, nguoi_dung, delivery_lead
 
 def test_statistics_standalone_and_counts_missing_items(client, feedback, nguoi_dung):
     client.force_login(nguoi_dung['admin'])
-    response = client.get('/thong-ke/', {'nguon': 'van_don_moi'})
+    response = client.get('/thong-ke/', {'nguon': 'van_don'})
     assert response.status_code == 200
     assert response.context['summary']['orders'] == 2
     assert response.context['summary']['missing'] == 0
     row = feedback[2][0]
     row.waybill_items.all().delete()
-    response = client.get('/thong-ke/', {'nguon': 'van_don_moi'})
+    response = client.get('/thong-ke/', {'nguon': 'van_don'})
     assert response.context['summary']['orders'] == 2
     assert response.context['summary']['missing'] == 1
     old = client.get('/van-don/thong-ke/?sp=feedback-0')
@@ -133,7 +138,7 @@ def test_waybill_master_has_scoped_design_and_three_frozen_identity_columns(
     assert 'class="mg-root mg-waybill-master"' in html
     metadata = client.get(BASE + 'du-lieu/').json()['columns']
     assert [column['code'] for column in metadata if column['frozen']] == [
-        'ma_don', 'ten_khach', 'so_dien_thoai',
+        '__duplicates', 'ma_don', 'ten_khach', 'so_dien_thoai',      # Trùng gộp vào bảng duy nhất (ADR-036)
     ]
 
 
@@ -209,7 +214,7 @@ def test_concurrent_cells_and_receipt(feedback, nguoi_dung, make_user):
         close_old_connections()
         try:
             actor=get_user_model().objects.get(pk=actor_id if column=='ghi_chu' else second_actor_id)
-            table=service.table_for(actor,'van_don_moi')
+            table=service.table_for(actor,'van_don')
             barrier.wait(timeout=10)
             return service.save(actor,table,{'operation':str(uuid.uuid4()),'cells':[
                 {'id':row.pk,'column':column,'old':row.data.get(column),'value':'đồng thời'}]})
@@ -252,7 +257,7 @@ def test_chart_top_ten_keeps_full_reconciliation(client, feedback, nguoi_dung):
         val_date=source[0].val_date,
         data={**source[0].data,'quoc_gia':f'Thị trường {i:02d}'}) for i in range(28)])
     client.force_login(nguoi_dung['admin'])
-    response=client.get('/thong-ke/',{'nguon':'van_don_moi','chart_market':2})
+    response=client.get('/thong-ke/',{'nguon':'van_don','chart_market':2})
     chart=response.context['charts'][2]
     assert len(chart['groups'])==10
     assert chart['page'].paginator.count==29 and chart['page'].number==2
@@ -293,7 +298,7 @@ def test_blank_statuses_and_currencies_stay_separate(client, feedback, nguoi_dun
     b.data.update(trang_thai_vc='',loai_tien='VND');b.save()
     b.waybill_items.all().delete()
     client.force_login(nguoi_dung['admin'])
-    response=client.get('/thong-ke/', {'nguon': 'van_don_moi'})
+    response=client.get('/thong-ke/', {'nguon': 'van_don'})
     blank=[g for g in response.context['charts'][0]['groups'] if g['label']=='Chưa có trạng thái']
     assert len(blank)==1 and blank[0]['value']==2
     assert response.context['summary']['orders']==2 and response.context['summary']['missing']==1
@@ -315,7 +320,7 @@ def test_concurrent_replay_applies_once(feedback, nguoi_dung):
         close_old_connections()
         try:
             user=get_user_model().objects.get(pk=actor);barrier.wait(timeout=5)
-            return service.save(user,service.table_for(user,'van_don_moi'),payload)['replayed']
+            return service.save(user,service.table_for(user,'van_don'),payload)['replayed']
         finally: connections.close_all()
     with ThreadPoolExecutor(max_workers=2) as pool:
         futures=[pool.submit(worker) for _ in range(2)]; results=[f.result(timeout=10) for f in futures]

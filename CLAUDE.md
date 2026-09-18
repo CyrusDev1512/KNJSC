@@ -87,7 +87,7 @@ tạo — chạy trước `du_lieu_mau` là chạy hụt. Bốn tệp launcher �
 
 Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.sh` gọi
 `tao_bang_van_don` ngay sau `migrate`, vì bảng động (quyết định 001) không do
-`migrate` sinh ra. Lệnh này tạo cả `van_don` cũ lẫn Vận đơn DB (`van_don_db`).
+`migrate` sinh ra. Từ ADR-036 lệnh này tạo hoặc nâng cấp tại chỗ **một** bảng `van_don`.
 
 ### Hai dịch vụ, ba bảng vận đơn
 
@@ -100,7 +100,7 @@ tiếp sang CRM (ADR-023).
 `knjsc.settings.bangtinh`): nơi duy nhất sửa số liệu. Khung sidebar theo Teeze
 (`templates/crm/base_crm.html`, `crm/navigation.py`) cho trang chủ tổng quan, mục
 Bảng tính = trang thư mục `/thu-muc/` (cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng), Nhập tệp,
-Cấp quyền, Lên đơn, Thống kê `/thong-ke/`, Bảng nhận đơn `/cau-hinh/nhan-don/`.
+Cấp quyền, Lên đơn, Thống kê `/thong-ke/`. (Bảng nhận đơn đã bỏ, ADR-036.)
 Lưới `/bang-tinh/<mã bảng>/` toàn màn hình, chỉ lưới có nút ← và nó về thư mục CRM,
 không về ERP (ADR-012, 015). **Leader như Manager trong bộ phận mình**
 (`grant_service._quan_ly_bo_phan`), cấp quyền cho người khác vẫn Manager.
@@ -116,19 +116,19 @@ nhập ngay trong ô, ghim cột bằng `position: sticky`. Lưới **thao tác 
 chỉ chuyển ô; không còn nút Chế độ Xem/Chỉnh sửa. Xoá Quốc gia thì Loại tiền trống (ADR-031 bổ sung). Renderer HTML/HTMX ghi ô cũ
 (`bang-tinh.js`, `bang-tinh-o.js`, `_o.html`) **đã bỏ, không đưa lại**. Profile
 nghiệp vụ của bảng lấy qua `forms_builder/record_policies.py` (`register_grid`,
-`register_workflow`), không nhận diện nghiệp vụ bằng mã cột. Cột **Trùng** hiện chỉ
-đăng ký cho `van_don` cũ (`crm/services/legacy_waybill_grid.py`) — TL-35, TL-36.
+`register_workflow`), không nhận diện nghiệp vụ bằng mã cột. Cột **Trùng** nằm trong
+`crm/services/waybill_grid.py` cùng các hook profile (ADR-036).
 
-Ba bảng vận đơn (ADR-018, 029):
+**Một bảng vận đơn duy nhất** (ADR-036, 18.09): `van_don`, tên hiển thị **Vận đơn mới**,
+`ACTIVE_WAYBILL_TABLE_CODE = WAYBILL_TABLE_CODE = "van_don"`. Cấu trúc = 25 cột chuẩn
+`waybill_service.COLUMNS` + 9 cột giữ từ tệp thật (`dispatch_service.EXTRA_COLUMNS`) + `sl_*`
+theo sản phẩm; `tao_bang_van_don` tạo mới hoặc nâng cấp tại chỗ (`waybill_service.upgrade_schema`).
+crmThuận (`van_don_moi`) và Vận đơn DB (`van_don_db`) đã **xoá cứng** theo quyết định chủ dự án
+(lệnh `xoa_bang_van_don_cu --dong-y-xoa-cung --backup-da-lam`, chỉ chạy sau backup); trang Bảng
+nhận đơn, `receives_orders` đã bỏ (migration 0014). Dòng không có Chi tiết sản phẩm vẫn tạo được.
+Hook lưới ở `crm/services/waybill_grid.py` gộp cột Trùng với profile (TL-35/36 đóng).
 
-| Mã | Nhãn | Là gì |
-|---|---|---|
-| `van_don` | Vận đơn mới (45 cột sau nâng cấp) | **Bảng duy nhất của Lên đơn từ 18.09** (chủ dự án chốt, ADR-034): `chuan_bi_bang_nhan_don` bổ sung cột chuẩn rồi chọn; local đã chọn, VPS chọn lúc phát hành |
-| `van_don_moi` | crmThuận (25 cột) | Đích mặc định khi chưa chọn bảng nào (`ACTIVE_WAYBILL_TABLE_CODE`); có profile `waybill_service` |
-| `van_don_db` | Vận đơn DB (26 cột) | Cấu hình 14.09 theo file chủ dự án; đã `chuan_bi_bang_nhan_don`, chưa được chọn |
-
-Admin chọn đích bằng `TableDef.receives_orders` (tối đa một bảng); bảng nào có
-`workflow = "waybill"` thì mang profile Vận đơn: phân công Vận đơn/CSKH/Marketing
+Bảng có `workflow = "waybill"` mang profile Vận đơn: phân công Vận đơn/CSKH/Marketing
 (`WaybillAssignment`, ADR-020); **nhân viên Vận đơn thấy và sửa mọi dòng, nút Tôi /
 Toàn bộ (`?cua_toi=1`) lọc theo cột phụ trách của bộ phận mình** (ADR-033 thay
 ADR-026, 17.09; Sale/CSKH vẫn theo phân công), chi tiết sản phẩm `WaybillItem`, trạng thái
@@ -178,8 +178,8 @@ ghi 0,5 s, poll 0,3 s (`core/constants.py`, `PERF_*`). Số đã đo và điểm
 | Lệnh | Làm gì |
 |---|---|
 | `manage.py seed_perf --so-dong 100000 --bang-sale` | Dòng giả `PERF-*` vào `van_don` cũ + bảng Sale có cột tính sẵn (ADR-016) |
-| `manage.py nap_du_lieu_van_don_moi` | Đúng 10.000 mẫu `MAU-*` có chi tiết, thanh toán, phân công vào `van_don_moi` |
-| `manage.py nap_khach_mau --so-khach 300000` | 375.000 dòng `KH-*` vào Vận đơn DB, 20 % khách mua lại (AC-10.9); `--xoa-cu` để xoá |
+| `manage.py nap_du_lieu_van_don` | Đúng 10.000 mẫu `MAU-*` có chi tiết, thanh toán, phân công vào `van_don` |
+| `manage.py nap_khach_mau --so-khach 300000` | 375.000 dòng `KH-*` vào `van_don`, 20 % khách mua lại (AC-10.9); `--xoa-cu` để xoá |
 | `manage.py do_hieu_nang`, `tests/perf/locustfile_*.py`, `scripts/kiem-tai-kn-crm.*` | Đo một người và nhiều người; báo cáo vào `storage/perf/` |
 
 Mọi lệnh dữ liệu giả từ chối chạy khi DEBUG tắt. Ghi hàng loạt qua
@@ -271,7 +271,7 @@ của lưới KN CRM (ADR-014), không phải của Bảng dữ liệu.
 | Viết truy vấn | `docs/03-thiet-ke-ky-thuat.md` mục 5 |
 | Viết kiểm thử | `docs/04-tieu-chi-nghiem-thu.md` — tìm mã AC tương ứng |
 | Đụng lưới CRM | ADR-021, 027, 033; `crm/services/master_grid_service.py`, `static/js/master-grid.js` |
-| Đụng vận đơn | ADR-018, 020, 025, 029, 031, 033; `orders/services/waybill_service.py`, `orders/services/assignment_service.py` |
+| Đụng vận đơn | ADR-018, 020, 025, 031, 033, 036; `orders/services/waybill_service.py`, `orders/services/assignment_service.py` |
 
 ---
 

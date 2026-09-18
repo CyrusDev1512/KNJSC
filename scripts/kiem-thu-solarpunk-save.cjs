@@ -7,7 +7,7 @@ const assert=require('node:assert/strict');
  await page.goto('http://localhost:18021/dang-nhap/');
  await page.locator('[name=username]').fill('quantri');await page.locator('[name=password]').fill('matkhaucuatoi');
  await Promise.all([page.waitForURL(u=>!u.pathname.includes('dang-nhap')),page.locator('button[type=submit]').click()]);
- await page.goto('http://localhost:18021/bang-tinh/van_don_moi/');
+ await page.goto('http://localhost:18021/bang-tinh/van_don/');
  const cell=page.locator('.mg-cell[data-code="ten_khach"]').first();await cell.waitFor();
  const original=await cell.innerText();assert.ok(original.startsWith('Khách mẫu Solarpunk'));
  await cell.click();

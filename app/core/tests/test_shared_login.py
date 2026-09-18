@@ -51,8 +51,6 @@ def test_login_identity_and_logout_across_apps(shared, nguoi_dung, first, second
         response = browser.get('/', secure=True)
         assert response.wsgi_request.user.pk == user.pk
         assert response.wsgi_request.user.is_authenticated
-        if second == 'knjsc.urls_bangtinh':
-            assert browser.get('/cau-hinh/nhan-don/', secure=True).status_code == (200 if role == 'admin' else 403)
         assert browser.post('/dang-xuat/', secure=True).status_code == 302
     with override_settings(ROOT_URLCONF=first):
         assert not browser.get('/', secure=True).wsgi_request.user.is_authenticated

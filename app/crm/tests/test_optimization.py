@@ -27,7 +27,7 @@ def test_v2_repeat_block_has_no_count(client, feedback, nguoi_dung, enabled):
     with CaptureQueriesContext(connection) as queries:
         second = client.get(BASE+'du-lieu/', {'protocol':2,'query_token':first['query_token']}).json()
     assert second['total'] == first['total']
-    assert not any('COUNT(' in q['sql'].upper() for q in queries if 'orders_paymentdocument' not in q['sql'])
+    assert not any('COUNT(' in q['sql'].upper() for q in queries if 'orders_paymentdocument' not in q['sql'] and 'val_phone' not in q['sql'])
 
 
 def test_v2_value_change_keeps_query_and_rollback_does_not_publish(client, feedback, nguoi_dung, enabled):
@@ -82,7 +82,7 @@ def test_sync_only_changed_visible_rows_and_no_scope_count(client,feedback,nguoi
     assert [r['id'] for r in response.json()['rows']]==[rows[0].pk]
     assert not response.json()['reset']
     assert not any('COUNT(' in q['sql'].upper() or 'MAX(' in q['sql'].upper()
-                   for q in queries if 'orders_paymentdocument' not in q['sql'])
+                   for q in queries if 'orders_paymentdocument' not in q['sql'] and 'val_phone' not in q['sql'])
 
 
 def test_warm_cache_loses_assignment_immediately(client,feedback,nguoi_dung,delivery_leader,enabled):

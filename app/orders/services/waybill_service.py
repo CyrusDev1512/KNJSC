@@ -24,7 +24,7 @@ from forms_builder import record_policies
 from forms_builder.meaning import FieldType, Meaning
 from forms_builder.models import ColumnDef, DataRecord, TableDef, Grant
 from forms_builder.services import grant_service, record_service
-from orders.constants import ACTIVE_WAYBILL_TABLE_CODE, PaymentStatus, ShippingStatus, Market
+from orders.constants import WAYBILL_TABLE_CODE, PaymentStatus, ShippingStatus, Market, LEGACY_PAYMENT_LABELS
 from orders.models import Product, WaybillItem
 from orders.units import resolve_unit
 from . import assignment_service
@@ -73,44 +73,54 @@ protect_table = True
 
 
 def register():
-    record_policies.register(ACTIVE_WAYBILL_TABLE_CODE, sys.modules[__name__])
+    # Một bảng duy nhất (ADR-036): đăng ký theo mã `van_don` và theo workflow.
+    record_policies.register(WAYBILL_TABLE_CODE, sys.modules[__name__])
     record_policies.register_workflow("waybill", sys.modules[__name__])
 
 
-@transaction.atomic
-def ensure_table(legacy, *, actor=None):
-    # Khoá cùng một bảng cũ để hai dịch vụ khởi động không sao chép quyền hai lần.
-    legacy = TableDef.all_objects.select_for_update().get(pk=legacy.pk)
-    table, created = TableDef.all_objects.get_or_create(
-        code=ACTIVE_WAYBILL_TABLE_CODE,
-        defaults={"name": "crmThuận", "department": legacy.department,
-                  "folder": legacy.folder, "is_shared": True, "created_by": actor,
-                  "description": "Theo CRM Tân: lên đơn, vận hành và thống kê."},
-    )
-    if created:
-        Grant.objects.bulk_create([
-            Grant(table=table, user_id=g.user_id, team_id=g.team_id,
-                  action=g.action, granted_by_id=g.granted_by_id)
-            for g in legacy.grants.filter(deleted_at__isnull=True)
-        ])
-        record(AuditAction.CREATE, actor=actor, target=table,
-               detail="Tạo bảng vận đơn mới theo ADR-018")
-    elif table.name == "Vận đơn":
-        table.name = "crmThuận"
-        table.save(update_fields=["name", "updated_at"])
-        record(AuditAction.UPDATE, actor=actor, target=table,
-               detail="Đổi tên hiển thị Vận đơn thành crmThuận; giữ nguyên bảng và dữ liệu")
-    if legacy.name != "Vận đơn mới":
-        legacy.name = "Vận đơn mới"
-        legacy.save(update_fields=["name", "updated_at"])
-        record(AuditAction.UPDATE, actor=actor, target=legacy, detail="Đổi tên thành Vận đơn mới")
-    existing = set(table.columns.values_list("code", flat=True))
-    for order, (name, code, kind, meaning) in enumerate(COLUMNS):
-        if code not in existing:
-            ColumnDef.objects.create(table=table, name=name, code=code, field_type=kind,
-                                     meaning=meaning, order=order, required=code in REQUIRED,
-                                     is_key=code == "ma_don", options=OPTIONS.get(code, []))
-    return table
+def upgrade_schema(table, *, actor=None, request=None):
+    """Bổ sung cấu trúc chuẩn Vận đơn cho bảng đang có (ADR-034 → ADR-036): tạo cột còn
+    thiếu theo `COLUMNS` (xếp cuối), đổi cột chữ tự do thành danh sách chọn khi chuẩn yêu
+    cầu, thêm lựa chọn chuẩn còn thiếu, gắn nhãn ý nghĩa còn trống. Không xoá, không đổi tên
+    cột, không sửa dữ liệu: giá trị cũ ngoài danh sách vẫn hiện "(giá trị cũ)" trên lưới.
+    Trả về danh sách việc đã làm."""
+    from forms_builder.services import table_service
+    columns = {c.code: c for c in table.columns.all()}
+    taken_meanings = {c.meaning for c in columns.values() if c.meaning}
+    order = max((c.order for c in columns.values()), default=-1)
+    done = []
+    for label, code, kind, meaning in COLUMNS:
+        options = list(OPTIONS.get(code) or [])
+        column = columns.get(code)
+        if column is None:
+            order += 1
+            table_service.add_column(table, actor=actor, request=request, name=label, code=code, field_type=kind,
+                                     order=order, meaning=meaning if meaning not in taken_meanings else '',
+                                     options=options)
+            if meaning:
+                taken_meanings.add(meaning)
+            done.append(f'thêm cột {code}')
+            continue
+        if column.is_computed:
+            continue                      # cột tính sẵn: không tự phá công thức
+        fields = []
+        if column.field_type != kind and kind == FieldType.CHOICE and column.field_type == FieldType.TEXT:
+            column.field_type = FieldType.CHOICE
+            fields.append('field_type')
+        if column.meaning != meaning and meaning and meaning not in taken_meanings:
+            column.meaning = meaning
+            taken_meanings.add(meaning)
+            fields.append('meaning')
+        if options and not set(options).issubset(column.options or []):
+            column.options = list(column.options or []) + [o for o in options if o not in (column.options or [])]
+            fields.append('options')
+        if fields:
+            column.save(update_fields=fields + ['updated_at'])
+            done.append(f'sửa cột {code}: {", ".join(fields)}')
+    if done:
+        record(AuditAction.UPDATE, actor=actor, target=table, request=request,
+               detail='Bổ sung cấu trúc chuẩn Vận đơn: ' + '; '.join(done))
+    return done
 
 
 def money(value):
@@ -161,6 +171,15 @@ def validate_items(raw, *, previous=None, strict_units=False):
     return result
 
 
+def _payment_label(raw):
+    """Nhãn trạng thái thanh toán từ tệp: nhận nhãn cũ (`LEGACY_PAYMENT_LABELS`) và
+    khác hoa thường ("Đã Thanh Toán"), trả về nhãn chuẩn; lạ thì trả nguyên để báo lỗi."""
+    text = raw.strip()
+    text = LEGACY_PAYMENT_LABELS.get(text, text)
+    by_fold = {label.casefold(): label for label in PaymentStatus.labels}
+    return by_fold.get(text.casefold(), text)
+
+
 def totals(items):
     price = sum((i.quantity * i.unit_price for i in items), Decimal(0))
     paid = sum((i.paid_amount for i in items), Decimal(0))
@@ -175,28 +194,45 @@ def totals(items):
 def prepare_values(values):
     if any(values.get(code) not in (None, '') for code in assignment_service.COLUMNS):
         raise BusinessError('Không nhập phân công qua tệp hoặc ô. Dùng hộp Phân công sau khi nhập.')
-    items = validate_items(values.get(DETAIL_CODE))
-    computed = totals(items)
+    # ADR-036 (chủ dự án chốt 18.09): dòng không có Chi tiết sản phẩm vẫn tạo được — nhập
+    # tệp cũ, thêm dòng tay. Có chi tiết thì tổng phải khớp như cũ; Thống kê đếm dòng không
+    # chi tiết là "đơn thiếu chi tiết".
+    raw_items = values.get(DETAIL_CODE)
+    has_items = raw_items not in (None, '', [])
+    items = validate_items(raw_items) if has_items else []
+    computed = totals(items) if has_items else {}
     if 'trang_thai_tt' in values:
         status = values['trang_thai_tt']
+        if isinstance(status, str):
+            status = _payment_label(status)   # tệp cũ: "Chờ thanh toán", "Đã Thanh Toán"…
         if status not in ('', None, *PaymentStatus.labels):
             raise BusinessError('Trạng thái thanh toán không hợp lệ.')
         computed['trang_thai_tt'] = status
     for code in ("so_luong", "gia_tien", "so_tien_tt"):
-        if values.get(code) not in (None, "") and money(values[code]) != Decimal(str(computed[code])):
+        if values.get(code) in (None, ""):
+            continue
+        if has_items and money(values[code]) != Decimal(str(computed[code])):
             raise BusinessError("Tổng số lượng hoặc tiền không khớp chi tiết sản phẩm. Hãy sửa tệp trước khi nhập.")
-    currency = currency_service.for_label(values.get('quoc_gia'))
-    if values.get('loai_tien') not in (None, '', currency):
+        if not has_items and code != "so_luong":
+            money(values[code])   # vẫn kiểm định dạng tiền
+    currency = currency_service.for_label(values.get('quoc_gia'), allow_empty=True)
+    if currency and values.get('loai_tien') not in (None, '', currency):
         raise BusinessError('Loại tiền phải theo quốc gia; sửa tệp trước khi nhập, không tự quy đổi.')
+    if not currency:
+        # Quốc gia trống (tệp cũ, dòng tay): giữ loại tiền tự khai nếu hợp lệ, không thì trống.
+        currency = values.get('loai_tien') if values.get('loai_tien') in Currency.values else ''
+
     result = {**values, **computed, "_items": items, 'loai_tien': currency}
     result.setdefault("trang_thai_vc", ShippingStatus.DA_LEN_DON.label)
     return result
 
 
 def after_create(row, values):
-    for item in values["_items"]:
+    items = values.get("_items") or []
+    for item in items:
         item.record = row
-    WaybillItem.objects.bulk_create(values["_items"])
+    if items:
+        WaybillItem.objects.bulk_create(items)
 
 
 def assert_editable(code):
@@ -249,8 +285,9 @@ def assert_column_change(column, changes=None):
 
 
 def extra_columns(table):
+    # ADR-036: chi tiết sản phẩm không bắt buộc khi nhập tệp; có thì kiểm tổng khớp.
     return [SimpleNamespace(name="Chi tiết sản phẩm (JSON)", code=DETAIL_CODE,
-                            field_type=FieldType.LONG_TEXT, required=True, is_computed=False)] + [
+                            field_type=FieldType.LONG_TEXT, required=False, is_computed=False)] + [
         SimpleNamespace(name=name, code=code, field_type=FieldType.TEXT, required=False, is_computed=True)
         for code, name in [('ma_sale', 'Mã Sale tạo đơn'), ('ma_vd', 'Mã nhân viên Vận đơn'),
                            ('ma_cskh', 'Mã nhân viên CSKH'), ('ma_mkt', 'Mã nhân viên Marketing')]]
@@ -527,7 +564,7 @@ def missing_item_count(records):
 
 
 def grid_column(column):
-    """Khả năng hiển thị chỉ đăng ký cho bảng nghiệp vụ Vận đơn mới."""
+    """Khả năng hiển thị của bảng vận đơn (một bảng duy nhất, ADR-036)."""
     payment_documents = getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
     is_bill = column.code == 'bill'
     return {'detail':column.code in DETAIL_CELLS, 'assignment':column.code in assignment_service.COLUMNS,

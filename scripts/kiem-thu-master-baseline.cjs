@@ -14,7 +14,7 @@ const root=path.resolve(__dirname,'..'), out=path.join(root,'.agents/design-stat
     await page.locator('[name=username]').fill('quan_tri');
     await page.locator('[name=password]').fill('matkhau-kiem-thu-1');
     await Promise.all([page.waitForURL(u=>!u.pathname.includes('dang-nhap')),page.locator('button[type=submit]').click()]);
-    await page.goto('http://127.0.0.1:8031/bang-tinh/van_don_moi/');
+    await page.goto('http://127.0.0.1:8031/bang-tinh/van_don/');
     const measure=()=>page.evaluate(()=>({document:document.documentElement.scrollWidth,viewport:innerWidth,
       grid:document.querySelector('#luoi-vd').getBoundingClientRect().toJSON(),cells:document.querySelectorAll('#luoi-vd td').length,
       columns:[...document.querySelectorAll('#luoi-vd thead tr.bt-hang-chu th')].map(e=>e.getBoundingClientRect().width)}));

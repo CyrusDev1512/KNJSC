@@ -25,7 +25,7 @@ def du_lieu(departments, nguoi_dung):
     ColumnDef.objects.create(table=sale, name="Ngày", code="ngay", field_type=FieldType.DATE, meaning=Meaning.DATE, order=0)
     ColumnDef.objects.create(table=sale, name="Khách", code="khach", field_type=FieldType.TEXT, order=1)
     for i in range(3):
-        record_service.create_record(vd, {"ma_don": f"DH-{i}", "ngay": "2026-09-01", "ten_khach": f"K{i}", "so_dien_thoai": f"09{i}"}, actor=nguoi_dung["staff_vd"])
+        record_service.create_record(vd, {"ma_don": f"DH-{i}", "ngay": "2026-09-01", "ten_khach": f"K{i}", "so_dien_thoai": f"09{i}", "quoc_gia": "Hoa Kỳ", "loai_tien": "USD"}, actor=nguoi_dung["staff_vd"])
     record_service.create_record(sale, {"ngay": "2026-09-03", "khach": "A"}, actor=nguoi_dung["staff_sale_1"])
     record_service.create_record(sale, {"ngay": "2026-09-04", "khach": "B"}, actor=nguoi_dung["staff_sale_2"])
     return {"vd": vd, "sale": sale}
@@ -51,8 +51,8 @@ def test_trang_chu_tong_quan_co_sidebar_theo_pham_vi(client, du_lieu, nguoi_dung
     assert 'href="/thu-muc/"' in ben and 'href="/thu-muc/?bp=van-don"' in ben
     assert "KN ERP" in ben and "Tác vụ nền" in ben
     sl = kq.context["so_lieu"]["data"]
-    assert sl["so_bang"] == 2 and sl["so_dong"] == 3 and sl["dong_thang"] == 3 and sl["dong_hom_nay"] == 3
-    assert set(b.code for b in kq.context["bang"]["data"]) == {"van_don", "van_don_moi"}
+    assert sl["so_bang"] == 1 and sl["so_dong"] == 3 and sl["dong_thang"] == 3 and sl["dong_hom_nay"] == 3
+    assert set(b.code for b in kq.context["bang"]["data"]) == {"van_don"}
     assert kq.context["duoc_tao_bang"] is False and "+ Tạo bảng" not in html
     assert kq.context["hoat_dong"]["ok"]
     # Logo KN CRM ở đầu menu trái bấm về trang chủ; favicon riêng của KN CRM

@@ -17,10 +17,10 @@ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42
   page.on('request',r=>{if(r.url().includes('/chung-tu-thanh-toan/anh/'))report.requests.push(r.url());});
   await page.goto(base+'/dang-nhap/');await page.locator('[name=username]').fill('quan_tri');await page.locator('[name=password]').fill('matkhau-kiem-thu-1');
   await Promise.all([page.waitForURL(u=>!u.pathname.includes('dang-nhap')),page.locator('[type=submit]').click()]);
-  await page.goto(base+'/bang-tinh/van_don_moi/');await page.locator('.mg-cell[data-id]').first().waitFor();
+  await page.goto(base+'/bang-tinh/van_don/');await page.locator('.mg-cell[data-id]').first().waitFor();
   const samples=[];
   for(let i=0;i<12;i++){
-   const start=Date.now();const r=await page.request.get(base+'/bang-tinh/van_don_moi/du-lieu/?offset='+(i*700));
+   const start=Date.now();const r=await page.request.get(base+'/bang-tinh/van_don/du-lieu/?offset='+(i*700));
    assert.equal(r.status(),200);const data=await r.json();assert.equal(data.total,10000);assert.equal(data.rows.length,100);
    samples.push(Date.now()-start);
   }

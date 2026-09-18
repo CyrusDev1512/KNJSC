@@ -15,7 +15,7 @@ from orders.models import Product
 pytestmark = pytest.mark.django_db
 
 
-@pytest.mark.parametrize('code', ['van_don', 'van_don_moi', 'van_don_db'])
+@pytest.mark.parametrize('code', ['van_don'])
 def test_download_template_roundtrip(client, nguoi_dung, code, settings):
     settings.ROOT_URLCONF = 'knjsc.urls_bangtinh'
     call_command('tao_bang_van_don')
@@ -68,12 +68,12 @@ def test_download_template_roundtrip(client, nguoi_dung, code, settings):
 
 def test_template_choices_and_empty_choice_warning(client, nguoi_dung):
     call_command('tao_bang_van_don')
-    table = TableDef.objects.get(code='van_don_db')
-    column = table.columns.get(code='doi_soat')
-    column.options = []
-    column.save(update_fields=['options'])
+    table = TableDef.objects.get(code='van_don')
+    from forms_builder.meaning import FieldType
+    from forms_builder.models import ColumnDef
+    column = ColumnDef.objects.create(table=table, code='kenh_thu', name='Kênh thử', field_type=FieldType.CHOICE, options=[], order=200)
     client.force_login(nguoi_dung['admin'])
-    wb = load_workbook(BytesIO(client.get('/bang/van_don_db/mau-nhap.xlsx').content))
+    wb = load_workbook(BytesIO(client.get('/bang/van_don/mau-nhap.xlsx').content))
     ws = wb.worksheets[0]
     cell = next(c for c in ws[1] if c.value == column.name)
     assert 'chưa có danh sách chọn' in cell.comment.text
@@ -88,15 +88,15 @@ def test_template_requires_import_permission(client, nguoi_dung, settings):
     settings.ROOT_URLCONF = 'knjsc.urls_bangtinh'
     call_command('tao_bang_van_don')
     staff = nguoi_dung['staff_sale_1']
-    table = TableDef.objects.get(code='van_don_db')
+    table = TableDef.objects.get(code='van_don')
     client.force_login(staff)
-    assert client.get('/bang/van_don_db/mau-nhap.xlsx').status_code in (403, 404)
+    assert client.get('/bang/van_don/mau-nhap.xlsx').status_code in (403, 404)
     grant_service.grant(table=table, user=staff, action=GrantAction.VIEW, actor=nguoi_dung['admin'])
     client.force_login(staff)
-    assert client.get('/bang/van_don_db/mau-nhap.xlsx').status_code == 403
-    assert '/bang/van_don_db/mau-nhap.xlsx' not in client.get('/thu-muc/?bp=van-don&tat-ca=1').content.decode()
+    assert client.get('/bang/van_don/mau-nhap.xlsx').status_code == 403
+    assert '/bang/van_don/mau-nhap.xlsx' not in client.get('/thu-muc/?bp=van-don&tat-ca=1').content.decode()
     grant_service.grant(table=table, user=staff, action=GrantAction.EDIT, actor=nguoi_dung['admin'])
     client.force_login(staff)
-    assert client.get('/bang/van_don_db/mau-nhap.xlsx').status_code == 200
+    assert client.get('/bang/van_don/mau-nhap.xlsx').status_code == 200
     client.force_login(nguoi_dung['admin'])
-    assert client.post('/bang/van_don_db/mau-nhap.xlsx').status_code == 405
+    assert client.post('/bang/van_don/mau-nhap.xlsx').status_code == 405

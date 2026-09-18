@@ -37,7 +37,7 @@ class Base(HttpUser):
   assert self.host=='http://knjsc-code-app:8000'
   self.actor=users[self.role].popleft();self.client.cookies.set('sessionid',self.actor['session']);self.client.cookies.set('csrftoken','a'*32)
   self.client.headers.update({'X-CSRFToken':'a'*32,'Referer':self.host+'/','Connection':'keep-alive'})
-  self.client.get('/van-don/len-don/' if self.role=='sale' else '/bang-tinh/van_don_moi/',name=self.role+'/open')
+  self.client.get('/van-don/len-don/' if self.role=='sale' else '/bang-tinh/van_don/',name=self.role+'/open')
   gevent.sleep(random.uniform(0,8))
  def fail(self,response,message):
   response.failure(message)
@@ -45,7 +45,7 @@ class Base(HttpUser):
  def block(self,params,name):
   global expected409
   params={**params,'protocol':PROTOCOL}
-  with self.client.get('/bang-tinh/van_don_moi/du-lieu/',params=params,name=name,catch_response=True,timeout=30) as r:
+  with self.client.get('/bang-tinh/van_don/du-lieu/',params=params,name=name,catch_response=True,timeout=30) as r:
    if r.status_code==409:
     expected409+=1;r.success();return None
    if r.status_code!=200:self.fail(r,'Block HTTP '+str(r.status_code));return None
@@ -65,13 +65,13 @@ class Delivery(Base):
   self.seq+=1
   if time.monotonic()-self.last_poll>=8:
    self.last_poll=time.monotonic()
-   with self.client.get('/bang-tinh/van_don_moi/moi-nhat/',name='grid/poll',catch_response=True,timeout=30) as r:
+   with self.client.get('/bang-tinh/van_don/moi-nhat/',name='grid/poll',catch_response=True,timeout=30) as r:
     if r.status_code==200:
      stamp=r.text
      if self.last_stamp and self.last_stamp!=stamp:self.version=''
      self.last_stamp=stamp
     else:self.fail(r,'Poll failed')
-   if self.ids:self.client.post('/bang-tinh/van_don_moi/quyen-dong/',json={'ids':self.ids},name='grid/scope',timeout=30)
+   if self.ids:self.client.post('/bang-tinh/van_don/quyen-dong/',json={'ids':self.ids},name='grid/scope',timeout=30)
   choice=random.random();params={}
   if choice<.2:
    params={'f_trang_thai_vc__trong':M['status']};self.version='';name='grid/filter'
@@ -86,11 +86,11 @@ class Delivery(Base):
   if not d:return
   self.version=d.get('version','') if name=='grid/scroll' else '';self.ids=[r['id'] for r in d['rows']]
   if PROTOCOL==2 and d.get('query_token') and self.seq%3==0:
-   self.client.post('/bang-tinh/van_don_moi/dong-bo/',json={'query_token':d['query_token'],'revision':d['revision'],'ids':self.ids,'visible':self.ids,'query':d['_test_query']},name='grid/sync-v2',timeout=30)
+   self.client.post('/bang-tinh/van_don/dong-bo/',json={'query_token':d['query_token'],'revision':d['revision'],'ids':self.ids,'visible':self.ids,'query':d['_test_query']},name='grid/sync-v2',timeout=30)
   if self.seq%3==0 and d['rows']:
    row=d['rows'][0];val=f'MIXED-TEST-{self.actor["index"]}-{uuid.uuid4().hex[:12]}'
    payload={'protocol':PROTOCOL,'operation':str(uuid.uuid4()),'cells':[{'id':row['id'],'column':'ghi_chu','old':row['cells']['ghi_chu']['value'],'value':val}]}
-   with self.client.post('/bang-tinh/van_don_moi/luu-json/',json=payload,name='grid/save',catch_response=True,timeout=30) as r:
+   with self.client.post('/bang-tinh/van_don/luu-json/',json=payload,name='grid/save',catch_response=True,timeout=30) as r:
     if r.status_code!=200:self.fail(r,'Save HTTP '+str(r.status_code))
     else:
      saved=r.json();actual=saved['cells'][0]['value'] if saved.get('protocol')==2 else saved['rows'][0]['cells']['ghi_chu']['value']

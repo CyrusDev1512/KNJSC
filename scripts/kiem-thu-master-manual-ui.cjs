@@ -1,7 +1,7 @@
 const {chromium}=require('playwright'),assert=require('assert/strict'),fs=require('fs'),path=require('path');
 const root=path.resolve(__dirname,'..'),base='http://127.0.0.1:8031',signal=path.join(root,'app/.master-browser-ready.json'),result=path.join(root,'app/.master-browser-result.json');
 (async()=>{for(let i=0;i<120&&!fs.existsSync(signal);i++)await new Promise(r=>setTimeout(r,500));assert(fs.existsSync(signal));const browser=await chromium.launch({channel:'chrome',headless:true}),context=await browser.newContext({viewport:{width:1440,height:900},permissions:['clipboard-read','clipboard-write']}),page=await context.newPage(),errors=[];let writes=0;page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.url().includes('/luu-json/')&&r.method()==='POST')writes++;});
-const grid=base+'/bang-tinh/van_don_moi/?f_ma_don=MASTER-00000',cell=()=>page.locator('.mg-cell[data-code="bang"][data-r="0"]');
+const grid=base+'/bang-tinh/van_don/?f_ma_don=MASTER-00000',cell=()=>page.locator('.mg-cell[data-code="bang"][data-r="0"]');
 const open=async()=>{await page.goto(grid);await cell().waitFor();};
 try{await page.goto(base+'/dang-nhap/');await page.locator('[name=username]').fill('quan_tri');await page.locator('[name=password]').fill('matkhau-kiem-thu-1');await Promise.all([page.waitForURL(u=>!u.pathname.includes('dang-nhap')),page.locator('button[type=submit]').click()]);await open();
 await cell().dblclick({delay:120});await page.locator('#mg-editor input').fill('Manual-001');await page.keyboard.press('Enter');await page.waitForTimeout(250);

@@ -19,7 +19,7 @@ class ERPUser(HttpUser):
         self.number=next(counter)%20
         kind=("mkt", "sale", "vd")[self.number % 3]
         self.kind=kind
-        self.source="van_don_moi" if kind == "vd" else "bao_cao_"+kind
+        self.source="van_don" if kind == "vd" else "bao_cao_"+kind
         self.day=0
         role=self.number%5
         self.username = "erp_admin" if role==4 else f"erp_{kind}_manager" if role==3 else f"erp_{kind}_19" if role==2 else f"erp_{kind}_{self.number}"

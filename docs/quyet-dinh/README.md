@@ -1,5 +1,7 @@
 # Nhật ký quyết định kiến trúc
 
+Mới 18.09.2026: [ADR-036 — Một bảng vận đơn duy nhất "Vận đơn mới" (`van_don`)](036-mot-bang-van-don-duy-nhat.md), thay ADR-029/034 và phần hai bảng của ADR-018; xoá cứng crmThuận và Vận đơn DB theo quyết định chủ dự án.
+
 Mới 18.09.2026: [ADR-035 — Báo cáo tổng hợp theo ngày × nhân sự, cột Leader, 100 dòng mỗi trang](035-bao-cao-tong-hop-theo-ngay-va-nhan-su.md), bổ sung ADR-022.
 
 Mới 18.09.2026: [ADR-034 — Bảng nhận đơn liệt kê mọi bảng vận đơn đang có](034-bang-nhan-don-liet-ke-moi-bang-van-don.md), sửa điều "bảng cũ không làm đích" của ADR-029.
@@ -149,6 +151,7 @@ Trong tình huống nào thì nên xem lại quyết định này.
 | 033 | [Nhân viên Vận đơn xem và sửa toàn bảng; nút Tôi / Toàn bộ thay Chế độ xem](033-pham-vi-toi-toan-bo-va-quyen-sua-van-don.md) | Đã triển khai VPS 17.09 | 17.09.2026 |
 | 034 | [Bảng nhận đơn liệt kê mọi bảng vận đơn đang có](034-bang-nhan-don-liet-ke-moi-bang-van-don.md) | Đã triển khai local | 18.09.2026 |
 | 035 | [Báo cáo tổng hợp theo ngày × nhân sự, cột Leader, 100 dòng mỗi trang](035-bao-cao-tong-hop-theo-ngay-va-nhan-su.md) | Đã triển khai local | 18.09.2026 |
+| 036 | [Một bảng vận đơn duy nhất "Vận đơn mới" (`van_don`)](036-mot-bang-van-don-duy-nhat.md) — xoá cứng crmThuận, Vận đơn DB; bỏ Bảng nhận đơn | Đã triển khai local | 18.09.2026 |
 
 ---
 

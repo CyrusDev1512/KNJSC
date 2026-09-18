@@ -13,7 +13,7 @@ pytestmark = pytest.mark.django_db
 
 def upload(rows):
     book = Workbook()
-    book.active.append(['Ngày', 'Tên khách', 'Số điện thoại', 'Mã đơn', 'Loại tiền', 'Đối soát kế toán'])
+    book.active.append(['Ngày', 'Tên khách', 'Số điện thoại', 'Mã đơn', 'Quốc gia', 'Loại tiền', 'Đối soát kế toán'])
     for row in rows:
         book.active.append(row)
     buffer = BytesIO()
@@ -21,15 +21,15 @@ def upload(rows):
     return SimpleUploadedFile('kiem-tra.xlsx', buffer.getvalue())
 
 
-def row(code, phone='001234', choice=None):
-    return ['2026-09-15', 'Khách thử', phone, code, 'CAD', choice]
+def row(code, phone='001234', choice=None, country='Canada'):
+    return ['2026-09-15', 'Khách thử', phone, code, country, 'CAD', choice]
 
 
 def test_preview_detects_bad_values_and_duplicate_orders(nguoi_dung):
     call_command('tao_bang_van_don')
-    table = TableDef.objects.get(code='van_don_db')
+    table = TableDef.objects.get(code='van_don')
     DataRecord.objects.create(table=table, department=table.department, data={'ma_don': 'OLD'})
-    job = import_service.prepare(table, upload([row('NEW'), row('EMPTY', ''), row('BAD', choice='Đã về TK'), row('OLD'), row(' NEW ')]), actor=nguoi_dung['admin'])
+    job = import_service.prepare(table, upload([row('NEW'), row('SAI-QG', country='Sao Hoả'), row('BAD', choice='Không có trong sổ'), row('OLD'), row(' NEW ')]), actor=nguoi_dung['admin'])
     assert job.summary['preview_error_count'] == 4
     assert job.summary['preview_valid_count'] == 1
     assert [n for n, _ in job.summary['preview_errors']] == [3, 4, 5, 6]
@@ -43,7 +43,7 @@ def test_preview_detects_bad_values_and_duplicate_orders(nguoi_dung):
 
 def test_worker_rechecks_duplicates_after_preview(nguoi_dung):
     call_command('tao_bang_van_don')
-    table = TableDef.objects.get(code='van_don_db')
+    table = TableDef.objects.get(code='van_don')
     actor = nguoi_dung['admin']
     first = import_service.prepare(table, upload([row('SAME')]), actor=actor)
     second = import_service.prepare(table, upload([row('SAME')]), actor=actor)
@@ -69,7 +69,7 @@ def test_two_import_workers_do_not_create_duplicate_codes(nguoi_dung, settings, 
     from threading import Barrier
     from django.db import close_old_connections
     call_command('tao_bang_van_don')
-    table = TableDef.objects.get(code='van_don_db')
+    table = TableDef.objects.get(code='van_don')
     actor = nguoi_dung['admin']
     monkeypatch.setattr(import_service, '_day_vao_hang_doi', lambda *args: None)
     jobs = [import_service.prepare(table, upload([row('CONCURRENT')]), actor=actor) for _ in range(2)]

@@ -103,7 +103,7 @@ và đó là chuyện bình thường.
 
 Mỗi ô là một bài kiểm thử. Năm vai trò nhân với mười đường dẫn chính — 50 ô, thêm hai dòng ngày 03.09.2026 (nhập tệp và Bảng tính) và một dòng ngày 17.09.2026 (thư viện tài liệu).
 
-Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ngay tại KN ERP: người có quyền được chuyển sang KN CRM, người không có quyền vẫn bị từ chối tại chỗ. **Thư viện biểu mẫu và tài liệu** dùng chung đường dẫn `/bieu-mau/`: mở ra là tab Tài liệu, ai đăng nhập cũng vào được; tab quản lý biểu mẫu `?tab=forms` vẫn chỉ Manager trở lên, gọi thẳng bằng vai khác trả lỗi từ chối.
+Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ngay tại KN ERP: người có quyền được chuyển sang KN CRM, người không có quyền vẫn bị từ chối tại chỗ. **Thư viện biểu mẫu và tài liệu** dùng chung đường dẫn `/bieu-mau/`: mở ra là tab Tài liệu, ai đăng nhập cũng vào được; tab quản lý biểu mẫu `?tab=forms` vẫn chỉ Manager trở lên, gọi thẳng bằng vai khác trả lỗi từ chối. Từ ADR-036 (một bảng vận đơn) **Bảng tính vận đơn** với Sale các cấp là "Chuyển Lên đơn": lưới `van_don` đưa họ sang `/van-don/len-don/` tại CRM thay vì 404.
 
 | Đường dẫn | Staff Sale | Leader Sale | Manager Sale | Staff Vận đơn | Chưa đăng nhập |
 |---|---|---|---|---|---|
@@ -115,7 +115,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | Bảng vận đơn | Từ chối | Từ chối | Từ chối | Vào được | Chuyển đăng nhập |
 | Quản lý biểu mẫu (`?tab=forms`) | Từ chối | Từ chối | Vào được | Từ chối | Chuyển đăng nhập |
 | Nhập tệp vào bảng của Sale | Từ chối | Vào được | Vào được | Từ chối | Chuyển đăng nhập |
-| Bảng tính vận đơn | Từ chối | Từ chối | Từ chối | Vào được | Chuyển đăng nhập |
+| Bảng tính vận đơn | Chuyển Lên đơn | Chuyển Lên đơn | Chuyển Lên đơn | Vào được | Chuyển đăng nhập |
 | Thư viện tài liệu (`/bieu-mau/`) | Vào được | Vào được | Vào được | Vào được | Chuyển đăng nhập |
 
 ---
@@ -225,7 +225,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-10.6 | Bản sao lưu tự động chỉ giữ tối đa 30 bản gần nhất | NFR-15 | Tự động |
 | AC-10.7 | Đọc trực tiếp cơ sở dữ liệu không thấy mật khẩu dạng đọc được | NFR-4 | Tự động |
 | AC-10.8 | **Kiểm tải KN CRM ở cỡ 100 nghìn khách** (docs/06 tầng 9): chạy `scripts/kiem-tai-kn-crm.*` trên máy có Docker — nạp 100.000 dòng vận đơn (≈ 3 triệu ô, 86 nghìn số điện thoại) và bảng Sale 20.000 dòng có cột tính sẵn, `do_hieu_nang` đo một người, rồi Locust **100 người 5 phút** (70 nhân viên vận đơn di qua di lại, 20 Sale/Marketing, 7 trưởng nhóm dán/xoá, 3 Manager đổi cột tính sẵn giữa phiên) trên gunicorn 3 worker; in **ĐẠT** khi p95 nhóm đọc ≤ 1 s, nhóm ghi ≤ 0,5 s, `moi-nhat/` ≤ 0,3 s, 0 lỗi, tính lại cột 100.000 dòng ≤ 30 s mà p95 người khác vẫn ≤ 1 s (`core/constants.py`) | NFR-2 | Thủ công |
-| AC-10.9 | `manage.py nap_khach_mau --bang <mã> --so-khach N` nạp N khách giả (mã đơn `KH-*`) theo lô 2.000 vào bảng vận đơn chỉ định (mặc định Vận đơn DB): số dòng = N ÷ (1 − tỉ lệ mua lại, mặc định 20 %), mỗi khách ít nhất một dòng, khách mua lại dùng lại số điện thoại để cột Trùng có việc, bảng có profile Vận đơn thì mỗi dòng có phân công Vận đơn/CSKH; `--xoa-cu` xoá sạch dòng `KH-*`; DEBUG tắt thì từ chối như `seed_perf` | NFR-2 | Tự động |
+| AC-10.9 | `manage.py nap_khach_mau --bang <mã> --so-khach N` nạp N khách giả (mã đơn `KH-*`) theo lô 2.000 vào bảng vận đơn chỉ định (mặc định Vận đơn mới `van_don`, ADR-036): số dòng = N ÷ (1 − tỉ lệ mua lại, mặc định 20 %), mỗi khách ít nhất một dòng, khách mua lại dùng lại số điện thoại để cột Trùng có việc, bảng có profile Vận đơn thì mỗi dòng có phân công Vận đơn/CSKH; `--xoa-cu` xoá sạch dòng `KH-*`; DEBUG tắt thì từ chối như `seed_perf` | NFR-2 | Tự động |
 
 ---
 
@@ -249,7 +249,7 @@ vụ `bangtinh`, cổng 8021); KN ERP không còn đường sửa ô.
 | AC-11.6 | Dòng Hủy trước giao, Hủy sau giao, Hoàn đơn được tô màu | FR-7.8 | Tự động |
 | AC-11.7 | Không bảng nào sửa được ô ở Bảng dữ liệu KN ERP — đường sửa ô cũ trả 404, kể cả bảng vận đơn với nhân viên Vận đơn lẫn Admin; cùng ô đó ở lưới KN CRM thì sửa được, bảng chỉ xem ở dịch vụ này thì 403 | FR-7.4 | Tự động |
 | AC-11.8 | Mỗi sản phẩm đang bán có một cột số lượng trên bảng vận đơn; lên đơn điền tự động số lượng, địa chỉ và lần mua | FR-6.3 · FR-6.7 | Tự động |
-| AC-11.9 | Nhập tệp vận đơn thật (ẩn danh) không chỉnh sửa: mọi dòng vào, không dòng lỗi, trạng thái và thanh toán khớp danh sách, điện thoại là chuỗi | FR-7.5 | Tự động |
+| AC-11.9 | Nhập tệp vận đơn thật (ẩn danh) không chỉnh sửa: 220 dòng vào, đúng 1 dòng lỗi nêu rõ PTTT "Cheque" ngoài Zelle/PayPal (ADR-031, ADR-036), trạng thái và thanh toán khớp danh sách (kể cả nhãn cũ, khác hoa thường), điện thoại là chuỗi | FR-7.5 | Tự động |
 | AC-11.10 | Bàn phím: mũi tên và Tab đi giữa các ô, Enter sửa, Esc huỷ, chọn giá trị danh sách thì ô cập nhật không tải lại trang | FR-7.8 | Tự động |
 | AC-11.11 | Bảng tính dùng được trên điện thoại và máy tính bảng | NFR-8 | Thủ công |
 | AC-11.12 | Bảng nào trong phạm vi quyền cũng mở được ở `/bang-tinh/<mã>/`; ngoài phạm vi bị từ chối; `/bang-tinh/` mở bảng vận đơn nếu thấy, không thì bảng đầu tiên trong phạm vi; thanh công cụ hiện nút theo quyền | FR-7.1 · FR-3.6 | Tự động |
@@ -279,7 +279,7 @@ vụ `bangtinh`, cổng 8021); KN ERP không còn đường sửa ô.
 | AC-11.36 | **Lưới không phình theo số ô** (K27): 100 dòng × 39 cột ≤ 13 truy vấn, ô dựng bằng `grid_service.cell_html` với URL ghép chuỗi khớp `reverse('bang_tinh_o')`; cột Trùng đếm một truy vấn theo trang, `?trung=1` lọc bằng danh sách số điện thoại trùng (không subquery từng dòng); dán 500 ô ghi bằng `bulk_update` ≤ 25 truy vấn; `moi-nhat/` ≤ 8 truy vấn, không đếm dòng | NFR-1 | Tự động |
 | AC-11.37 | **1.000 dòng trống sẵn để nhập** (góp ý 17.09.2026): mở bảng có quyền thêm thì cuối lưới có sẵn 1.000 dòng trống, chân trang ghi số dòng trống; gõ một dòng thành bản ghi thật **không tải lại khối JSON**, dòng trống được bù đủ; tới dòng trống áp chót thì thêm 1.000 dòng nữa; tải lại trang chỉ còn dòng thật | FR-7.4 | Tự động |
 | AC-11.38 | **Cột ghim đứng đầu thứ tự nhìn thấy**: cột ghim không ở đầu thứ tự cột (người dùng đổi thứ tự, hoặc bảng vận đơn có Mã đơn/Tên khách/SĐT ở giữa) vẫn được xếp lên đầu khi vẽ — không ô trống ở vị trí gốc, không che cột đứng trước; vùng chọn, phím mũi tên và địa chỉ `A1:E2` theo đúng thứ tự trên màn hình | FR-7.4 | Tự động |
-| AC-11.39 | **Bảng nhận đơn liệt kê mọi bảng vận đơn đang có** (ADR-034): `van_don` cũ, bảng đang nhận và bảng bộ phận Vận đơn có cột Mã đơn đúng cấu trúc; bảng báo cáo cùng bộ phận và bảng bộ phận khác không hiện; bảng chưa đủ điều kiện hiện kèm lý do và không chọn được (400) | ADR-029 · ADR-034 | Tự động |
+| AC-11.39 | ~~**Bảng nhận đơn liệt kê mọi bảng vận đơn đang có** (ADR-034): `van_don` cũ, bảng đang nhận và bảng bộ phận Vận đơn có cột Mã đơn đúng cấu trúc; bảng báo cáo cùng bộ phận và bảng bộ phận khác không hiện; bảng chưa đủ điều kiện hiện kèm lý do và không chọn được (400)~~ **Bỏ theo ADR-036 (18.09.2026): một bảng vận đơn, không còn Bảng nhận đơn / Vận đơn DB** | ADR-029 · ADR-034 | Tự động |
 | AC-11.40 | **Gõ rồi Enter không giật**: dòng nháp thành bản ghi được nối tại chỗ trong cùng một bước (tổng dòng và chiều cao lưới không đổi từng dòng, dòng trống chỉ bù theo đợt, không thanh thông báo đẩy lưới); phản hồi lưu mang mốc `moi-nhat` để lưới không coi mốc do mình vừa lưu là người khác sửa; khi người khác sửa thật thì tải lại **mềm** — giữ ô cũ tới khi khối mới về, không hoá `…` | FR-7.4 · AC-11.26 | Tự động |
 
 ---
@@ -397,7 +397,7 @@ Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ 
 
 | Mã | Đạt khi | Yêu cầu | Kiểm bằng |
 |---|---|---|---|
-| AC-18.1 | Khởi tạo máy sạch và cập nhật máy có dữ liệu đều có hai bảng; chạy lại không trùng, bảng cũ giữ dữ liệu/ID/liên kết/quyền; bảng mới trống, chỉ sao quyền đang hiệu lực một lần | ADR-018 | Tự động |
+| AC-18.1 | Khởi tạo máy sạch và chạy lại trên máy có dữ liệu đều chỉ có **một** bảng vận đơn `van_don` "Vận đơn mới" (ADR-036): chạy lại không sinh bảng thứ hai, dòng/ID/quyền cũ giữ nguyên, không gieo đơn demo | ADR-018 · ADR-036 | Tự động |
 | AC-18.2 | Tạo ở ERP/CRM sinh đúng một dòng bảng mới và chi tiết cùng giao dịch; lỗi chi tiết hoàn tác cả đơn; ngày Việt Nam, người bán từ tài khoản | FR-6.3 · ADR-018 | Tự động |
 | AC-18.3 | Chi tiết nhiều sản phẩm, tiền thu từng sản phẩm, tổng/trạng thái khớp; số tiền chính xác, sửa bản sao không đổi ERP; editor cũ không ghi đè, audit không chứa thông tin khách | ADR-018 · BR-3 · BR-8 | Tự động |
 | AC-18.4 | Ba cấp bậc và Admin kiểm cả hai chiều trên khu nhập, chi tiết GET/POST, thống kê; quyền lên đơn không cấp quyền xem bảng, chỉ có quyền xem không sửa được | FR-3.5 · ADR-018 | Tự động |
@@ -405,7 +405,7 @@ Lỗi phân quyền dẫn tới rò rỉ dữ liệu, và dữ liệu đã lộ 
 | AC-18.6 | Thống kê theo toàn bộ bộ lọc và quyền, bốn kiểu nhóm; tách tiền, distinct đơn, nhóm mã sản phẩm; sửa, xoá mềm, khôi phục phản ánh đúng, Hủy/Hoàn không bị bỏ ngầm | ADR-018 | Tự động |
 | AC-18.7 | Xuất/nhập lại bảo toàn chi tiết và tiền; dòng thiếu chi tiết, tổng không khớp hoặc mã sản phẩm lạ báo lỗi xem trước, không tự phân bổ | FR-7.5 → FR-7.7 · ADR-018 | Tự động |
 | AC-18.8 | Bảng chỉ có Vận hành đơn, Thống kê và tiêu đề nhóm; không có form hoặc yêu cầu tải Lên đơn nhúng. Thống kê thu gọn được, ô tổng mở chi tiết, không có Blacklist; 390px cuộn trong lưới. Hai trang Lên đơn riêng hoạt động như trước | ADR-018, ADR-019 | Tự động |
-| AC-18.9 | Máy sạch có thêm bảng động độc lập `van_don_db`, đúng 26 cột theo cấu hình 14.09.2026; Ngày thanh toán đứng đầu nhóm thanh toán; chạy lệnh khởi tạo nhiều lần không trùng bảng/cột và không tạo dữ liệu | Cấu hình Vận đơn DB 14.09.2026 | Tự động |
+| AC-18.9 | ~~Máy sạch có thêm bảng động độc lập `van_don_db`, đúng 26 cột theo cấu hình 14.09.2026; Ngày thanh toán đứng đầu nhóm thanh toán; chạy lệnh khởi tạo nhiều lần không trùng bảng/cột và không tạo dữ liệu~~ **Bỏ theo ADR-036 (18.09.2026): một bảng vận đơn, không còn Bảng nhận đơn / Vận đơn DB** | Cấu hình Vận đơn DB 14.09.2026 | Tự động |
 
 ## 21. Feedback Vận đơn mới — ADR-020
 
@@ -450,7 +450,7 @@ lưới, bộ lọc và dữ liệu Vận đơn của AC-18/20/21.
 
 | Mã | Đạt khi | Yêu cầu | Kiểm bằng |
 |---|---|---|---|
-| AC-22.1 | `/thong-ke/` tổng hợp tối đa một nguồn mỗi profile; `nguon` phân tích đúng một bảng; mọi bảng hoạt động trong scope đều chọn được; mặc định nguồn cập nhật gần nhất và ưu tiên `van_don_moi` | ADR-022 | Tự động |
+| AC-22.1 | `/thong-ke/` tổng hợp tối đa một nguồn mỗi profile; `nguon` phân tích đúng một bảng; mọi bảng hoạt động trong scope đều chọn được; mặc định nguồn cập nhật gần nhất và ưu tiên `van_don` | ADR-022 | Tự động |
 | AC-22.2 | Nhận diện đúng Vận đơn mới → Marketing → Sale → Chung; bảng cũ có ghi chú lịch sử; thiếu nhãn Ngày được liệt kê, không tự đoán | ADR-022 | Tự động |
 | AC-22.3 | Kỳ trước cùng số ngày; CPO/AOV/tỷ lệ dùng tổng có trọng số; kỳ trước 0 không sinh vô cực; tiền tách loại hoặc ghi đơn vị theo bảng | ADR-022 · BR-3 | Tự động |
 | AC-22.4 | Sale–Vận đơn chỉ đối chiếu tổng cùng kỳ, chênh lệch ghi cần đối chiếu; mỗi màn hình tối đa ba insight đúng thứ tự, trung tính, có bằng chứng/nguồn/link ngày và trạng thái tương ứng | ADR-022 | Tự động + trình duyệt |
@@ -498,6 +498,21 @@ giữ tiêu chí cũ.
 | AC-33.6 | Nút Tôi / Toàn bộ chỉ hiện cho người có cột phụ trách; không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi; `config.myScope` đúng trường | ADR-033 | Tự động |
 | AC-33.7 | Migration 0013 chạy xuôi và ngược trên DB test, giữ `delivery_view_version` và dữ liệu | ADR-033 | Tự động |
 | AC-33.8 | Xoá trống ô Quốc gia thì Loại tiền trống; dòng có tiền hỏi xác nhận rồi ghi được cả lượt xoá; điền lại Quốc gia tiền về đúng; nhập tệp và lên đơn vẫn bắt buộc quốc gia. Lưới như Excel: bấm chỉ chọn, gõ là nhập, Enter/F2/bấm đúp mở ô, Tab/Enter chỉ chuyển ô, Ctrl+A chọn cả bảng (kiểm trình duyệt) | ADR-033 · ADR-031 | Tự động |
+
+## 36. Một bảng vận đơn duy nhất — ADR-036
+
+Thay AC-11.39, AC-18.9 (đã gạch) và vế "hai bảng" của AC-18.1. Sale, CSKH, Marketing,
+Kế toán giữ tiêu chí cũ trên bảng duy nhất.
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-36.1 | Máy sạch: `tao_bang_van_don` tạo đúng một bảng `van_don` "Vận đơn mới", `workflow=waybill`, dùng chung, đủ 25 cột chuẩn + 9 cột giữ lại, Mã đơn là khoá, cột chọn đủ lựa chọn chuẩn, cột bắt buộc đúng; chạy lại không thêm gì; không sinh crmThuận hay Vận đơn DB | ADR-036 | Tự động |
+| AC-36.2 | Bảng cũ có sẵn (cột chữ tự do, tên cũ, dòng, quyền): nâng cấp tại chỗ giữ ID/dòng/quyền/cột tuỳ biến, Loại tiền và PTTT thành danh sách chuẩn, tên "Vận đơn mới", có nhật ký; chạy lại không đổi | ADR-036 | Tự động |
+| AC-36.3 | Lên đơn ghi vào `van_don` kèm chi tiết; lưới có cột Trùng lẫn `detail_url` và cờ detail/assignment/protected/frozen; Sale chưa thấy bảng vào `/bang-tinh/van_don/` được đưa sang Lên đơn; `/bang-tinh/` mặc định `van_don`; Thống kê `nguon=van_don` profile Vận đơn; `/van-don/thong-ke/` chuyển tới `nguon=van_don` | ADR-036 | Tự động |
+| AC-36.4 | Dòng đủ cột bắt buộc, không Chi tiết sản phẩm → tạo được, không item, Thống kê đếm thiếu chi tiết, tổng giữ như nhập; có chi tiết sai tổng vẫn bị từ chối; nhập tệp mẫu cũ vào `van_don` không lỗi cột | ADR-036 | Tự động |
+| AC-36.5 | `xoa_bang_van_don_cu` thiếu cờ → từ chối, không xoá; đủ cờ → hai bảng cũ mất hẳn cùng dòng, chi tiết, phân công, lịch sử ô, biên nhận, quyền, nguồn báo cáo; đơn ERP giữ với `record=None`; `van_don` nguyên; nhật ký DELETE; chạy lại "không có gì để xoá"; không bao giờ xoá `van_don` | ADR-036 | Tự động |
+| AC-36.6 | `/cau-hinh/nhan-don/` 404 với mọi vai; sidebar Admin không còn "Bảng nhận đơn"; `TableDef` không còn `receives_orders`, còn `delivery_view_version`; migration 0014 xuôi/ngược giữ dữ liệu | ADR-036 | Tự động |
+| AC-36.7 | `configure_erp_reports` tạo nguồn Vận đơn cho `van_don`; `nap_du_lieu_van_don` và `nap_khach_mau` (mặc định) nạp vào `van_don` có phân công | ADR-036 | Tự động |
 
 ## 27. Lưới dùng chung và vòng đời bảng — ADR-027
 

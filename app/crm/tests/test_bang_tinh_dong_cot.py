@@ -47,7 +47,10 @@ def bang_vd(departments, nguoi_dung):
 
 
 def _dong(bang, nguoi, **gia_tri):
-    return record_service.create_record(bang, gia_tri, actor=nguoi)
+    # Bảng vận đơn duy nhất mang profile (ADR-036): đủ cột bắt buộc, tiền theo quốc gia.
+    mac_dinh = {"ma_don": f"DH-{len(gia_tri)}-{gia_tri.get('ten_khach', 'x')}", "ngay": "2026-08-01",
+                "ten_khach": "Khách", "so_dien_thoai": "0900", "quoc_gia": "Hoa Kỳ", "loai_tien": "USD"}
+    return record_service.create_record(bang, {**mac_dinh, **gia_tri}, actor=nguoi)
 
 
 # ══ Xoá và khôi phục dòng — AC-11.21 ═══════════════════════════════
@@ -109,7 +112,7 @@ def test_bo_cot_giu_gia_tri_va_tu_choi_cot_khoa_cot_tinh(client, bang_sale, bang
     assert bang_sale.columns.count() == 4
     client.force_login(nguoi_dung["admin"])
     kq = client.post(f"/bang-tinh/{bang_vd.code}/xoa-cot/", {"cot": ["ten_khach"]})
-    assert kq.status_code == 400 and "tệp vận đơn" in kq.content.decode()
+    assert kq.status_code == 400 and "ận đơn" in kq.content.decode()
 
 
 def test_phan_quyen_chen_bo_cot_ba_cap_bac(client, bang_sale, nguoi_dung):

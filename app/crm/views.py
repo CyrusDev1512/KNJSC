@@ -25,7 +25,7 @@ from core.permissions import assert_rank, has_rank, in_departments
 from core.navigation import SALES_ONLY
 from forms_builder.models import DataRecord, Folder, TableDef
 from forms_builder.services import export_service, folder_service, grant_service, table_service
-from orders.constants import WAYBILL_TABLE_CODE, ACTIVE_WAYBILL_TABLE_CODE, is_waybill_table
+from orders.constants import WAYBILL_TABLE_CODE, is_waybill_table
 from orders.services import dispatch_service
 from org.models import Department
 
@@ -47,8 +47,6 @@ def _ma_bang_mac_dinh(user):
     """`/bang-tinh/` mở bảng vận đơn nếu người này thấy nó, không thì bảng đầu
     tiên trong phạm vi; không có bảng nào thì 404 kèm lời giải thích."""
     cac = _cac_bang(user)
-    if cac.filter(code=ACTIVE_WAYBILL_TABLE_CODE).exists():
-        return ACTIVE_WAYBILL_TABLE_CODE
     if cac.filter(code=WAYBILL_TABLE_CODE).exists():
         return WAYBILL_TABLE_CODE
     dau = cac.first()
@@ -173,7 +171,7 @@ def bang_tinh(request):
 def bang_tinh_xem(request, code):
     """Lưới một bảng: lọc theo cột, sắp xếp, phân trang 100 dòng, sửa ô tại chỗ,
     dòng trống để thêm, thanh lọc bên trái, thanh công cụ."""
-    if code == ACTIVE_WAYBILL_TABLE_CODE and not _cac_bang(request.user).filter(code=code).exists():
+    if code == WAYBILL_TABLE_CODE and not _cac_bang(request.user).filter(code=code).exists():
         if in_departments(request.user, SALES_ONLY):
             return redirect("waybill_create")
         raise OutOfScopeError("Bạn không có quyền xem bảng Vận đơn.")
@@ -309,7 +307,7 @@ def bang_tinh_xoa_cot(request, code):
     for c in cac:
         ly_do = table_service.removable_reason(c)
         if not ly_do and grid_service.is_waybill(bang) and (
-            c.code in dispatch_service.GRID_ORDER or c.code.startswith(dispatch_service.PRODUCT_COLUMN_PREFIX)
+            c.code in {cot[1] for cot in dispatch_service.WAYBILL_COLUMNS} or c.code.startswith(dispatch_service.PRODUCT_COLUMN_PREFIX)
         ):
             ly_do = f'"{c.name}" là cột theo tệp vận đơn thật, hệ thống quản lý.'
         if ly_do:

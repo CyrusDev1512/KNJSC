@@ -13,7 +13,7 @@ const expected=process.argv[2];assert.match(expected||'',/^[0-9a-f]{64}$/);
  const result={errors:[],viewports:[]};
  try{
   const anonymous=await browser.newContext(),anon=await anonymous.newPage();
-  await anon.goto('https://crm.thnsolution.io.vn/bang-tinh/van_don_db/');
+  await anon.goto('https://crm.thnsolution.io.vn/bang-tinh/van_don/');
   assert(new URL(anon.url()).pathname.includes('dang-nhap'));result.anonymousBlocked=true;
   await anonymous.close();
   const context=await browser.newContext(),page=await context.newPage();
@@ -25,7 +25,7 @@ const expected=process.argv[2];assert.match(expected||'',/^[0-9a-f]{64}$/);
   await Promise.all([page.waitForURL(u=>!u.pathname.includes('dang-nhap')),page.locator('button[type=submit]').click()]);
   for(const width of [1440,390]){
    await page.setViewportSize({width,height:900});
-   assert.equal((await page.goto('https://crm.thnsolution.io.vn/bang-tinh/van_don_db/')).status(),200);
+   assert.equal((await page.goto('https://crm.thnsolution.io.vn/bang-tinh/van_don/')).status(),200);
    await page.locator('.mg-cell').first().waitFor({timeout:30000});
    const src=await page.locator('script[src*="/master-grid.js"]').getAttribute('src');
    const script=await page.request.get(new URL(src,page.url()).href);assert.equal(script.status(),200);

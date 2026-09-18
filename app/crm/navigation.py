@@ -86,8 +86,6 @@ def build(user, current=""):
         muc.append(CrmNavItem("tac_vu", "Tác vụ nền", u, "◔", current == "tac_vu"))
     if has_rank(user, Rank.MANAGER) and (u := _url("nhat_ky")) is not None:
         muc.append(CrmNavItem("nhat_ky", "Nhật ký", u, "≡", current == "nhat_ky"))
-    if has_rank(user, Rank.ADMIN) and (u := _url('order_destination')):
-        muc.append(CrmNavItem('order_destination', 'Bảng nhận đơn', u, '▦', current == 'order_destination'))
     erp = getattr(settings, "MAIN_APP_URL", "")
     if erp:
         muc.append(CrmNavItem("erp", "KN ERP", erp.rstrip("/") + "/", "↗"))

@@ -74,9 +74,9 @@ def test_all_visible_sources_and_missing_profile_are_explained(
 
 def test_legacy_waybill_source_uses_generic_profile_with_history_note(
         client, departments, nguoi_dung):
-    """AC-22.1 — `van_don` cũ vẫn chọn được nhưng không nhận profile mới."""
+    """AC-22.1 — bảng lịch sử không mang profile Vận đơn vẫn chọn được, dùng profile chung."""
     legacy = make_table(
-        departments["vd"], nguoi_dung["admin"], "van_don", "Vận đơn lịch sử",
+        departments["vd"], nguoi_dung["admin"], "van_don_cu", "Vận đơn lịch sử",
         [col("Ngày", "ngay", FieldType.DATE, Meaning.DATE)],
     )
     client.force_login(nguoi_dung["admin"])
@@ -85,7 +85,7 @@ def test_legacy_waybill_source_uses_generic_profile_with_history_note(
     })
     dashboard = response.context["dashboard"]
     assert dashboard["profile"] == "generic"
-    assert "Nguồn lịch sử" in dashboard["legacy_note"]
+    assert dashboard["legacy_note"] == ""
 
 
 def test_marketing_uses_weighted_totals_and_previous_zero_language(

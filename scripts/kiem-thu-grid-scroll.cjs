@@ -57,7 +57,7 @@ async function main(){
    }
    return route.continue();
   });
-  await page.goto(base+'/bang-tinh/van_don_moi/');await page.locator('.mg-cell[data-id="1"]').first().waitFor();
+  await page.goto(base+'/bang-tinh/van_don/');await page.locator('.mg-cell[data-id="1"]').first().waitFor();
   const cdp=await context.newCDPSession(page);await cdp.send('Performance.enable');
   // Đợi toàn bộ vùng nhìn có dữ liệu; rAF chỉ là cơ hội trình duyệt paint,
   // không gọi đây là phép đo photon/display hardware.
@@ -167,7 +167,7 @@ async function main(){
    await page.locator('.mg-cell[data-id="200001"]').first().waitFor();await page.waitForTimeout(750);
    assert.equal(await page.locator('.mg-cell[data-id="1"]').count(),0);slowOffset=null;
    // Tải đón lỗi không chặn cache; khi thật sự xem vùng lỗi vẫn phải báo.
-   failOffset=200;await page.goto(base+'/bang-tinh/van_don_moi/');await page.locator('.mg-cell[data-id="1"]').first().waitFor();await page.waitForTimeout(350);
+   failOffset=200;await page.goto(base+'/bang-tinh/van_don/');await page.locator('.mg-cell[data-id="1"]').first().waitFor();await page.waitForTimeout(350);
    assert(await page.locator('#mg-message').isHidden());
    await page.locator('#mg-viewport').evaluate(e=>e.scrollTop=220*28);
    await page.locator('#mg-message').filter({hasText:'Lỗi mạng test'}).waitFor();

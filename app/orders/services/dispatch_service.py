@@ -13,6 +13,8 @@ from decimal import Decimal
 from django.db import transaction
 from django.utils import timezone
 
+from core.audit import record
+from core.constants import AuditAction
 from core.exceptions import BusinessError
 from core.identity import employee_code
 from forms_builder.meaning import FieldType, Meaning
@@ -20,62 +22,31 @@ from forms_builder.models import ColumnDef, TableDef
 from forms_builder.services import record_service
 
 from ..constants import (
-    WAYBILL_DEPARTMENT_CODE, WAYBILL_TABLE_CODE, ACTIVE_WAYBILL_TABLE_CODE, Market, PaymentMethod,
+    WAYBILL_DEPARTMENT_CODE, WAYBILL_TABLE_CODE, Market, PaymentMethod,
     PaymentStatus, ShippingStatus,
 )
+from . import waybill_service
 
-#: Cấu trúc chuẩn của bảng vận đơn.
+#: Cấu trúc của bảng vận đơn duy nhất "Vận đơn mới" (ADR-036, 18.09.2026).
 #:
-#: Tám cột đầu lấy đúng theo tệp thật của khách hàng. Sáu cột đánh dấu (+) là
-#: phần thêm, chốt ở backlog Q24 — bộ phận Vận đơn cần liên lạc được với khách
-#: khi giao hỏng, và cần biết đơn của người bán nào để hỏi lại.
+#: 25 cột chuẩn theo `waybill_service.COLUMNS` (profile Vận đơn: chi tiết sản phẩm, phân
+#: công, tiền theo quốc gia) đứng trước; chín cột giữ từ tệp thật và backlog Q24 đứng sau —
+#: Đối soát kế toán, Danh sách đen, Mua lại lần… vẫn có dữ liệu và vẫn dùng. Cột số lượng
+#: theo sản phẩm (`sl_*`) do `sync_product_columns` sinh (AC-11.8).
 #:
 #: Khai ở một chỗ duy nhất (quy tắc 7).
-WAYBILL_COLUMNS = [
-    # (nhãn, tên kỹ thuật, kiểu, nhãn ý nghĩa)
-    ("Mã đơn", "ma_don", FieldType.TEXT, ""),
-    ("Ngày", "ngay", FieldType.DATE, Meaning.DATE),
-    ("Tên khách", "ten_khach", FieldType.TEXT, Meaning.CUSTOMER),
-    ("Số điện thoại", "so_dien_thoai", FieldType.TEXT, Meaning.PHONE),
-    ("Sản phẩm", "san_pham", FieldType.TEXT, Meaning.PRODUCT),
-    ("Quốc gia", "quoc_gia", FieldType.CHOICE, ""),                    # +
-    ("Bang", "bang", FieldType.TEXT, ""),
-    ("Thành phố", "thanh_pho", FieldType.TEXT, ""),
-    ("Mã bưu chính", "zipcode", FieldType.TEXT, ""),
-    ("Số lượng", "so_luong", FieldType.INTEGER, ""),
-    ("Giá tiền", "gia_tien", FieldType.MONEY, Meaning.REVENUE),
-    ("Loại tiền tệ", "loai_tien", FieldType.TEXT, ""),                 # +
-    ("Phương thức thanh toán", "pttt", FieldType.TEXT, ""),
-    ("Người bán", "nguoi_ban", FieldType.TEXT, Meaning.SELLER),        # +
-    ("Phụ trách CSKH", "phu_trach_cskh", FieldType.TEXT, ""),
-    ("Đơn vị phụ", "don_vi_phu", FieldType.TEXT, ""),                  # +
-    ("Facebook", "facebook", FieldType.TEXT, ""),                      # +
-    ("Email", "email", FieldType.TEXT, ""),                            # +
-    ("Trạng thái vận chuyển", "trang_thai_vc", FieldType.CHOICE, Meaning.STATUS),
-    ("Ngày thanh toán", "ngay_tt", FieldType.DATE, ""),
-    ("Trạng thái thanh toán", "trang_thai_tt", FieldType.CHOICE, ""),
-    ("Số tiền thanh toán", "so_tien_tt", FieldType.MONEY, ""),
-    ("Bill", "bill", FieldType.TEXT, ""),
+EXTRA_COLUMNS = [
     ("Danh sách đen", "black_list", FieldType.TEXT, ""),
-    ("Ghi chú", "ghi_chu", FieldType.LONG_TEXT, ""),
-    # Sáu cột thêm ngày 03.09.2026 theo tệp vận đơn thật (ADR-009)
-    ("Địa chỉ", "dia_chi", FieldType.TEXT, ""),
-    ("Nhân viên vận đơn", "nv_van_don", FieldType.CHOICE, ""),
+    ("Đối soát kế toán", "doi_soat", FieldType.CHOICE, ""),
     ("Mua lại lần", "mua_lai", FieldType.INTEGER, ""),
+    ("Nhân viên vận đơn", "nv_van_don", FieldType.CHOICE, ""),
     ("MKT", "mkt", FieldType.TEXT, ""),
     ("Tên người chuyển tiền", "nguoi_chuyen_tien", FieldType.TEXT, ""),
-    ("Đối soát kế toán", "doi_soat", FieldType.CHOICE, ""),
+    ("Đơn vị phụ", "don_vi_phu", FieldType.TEXT, ""),
+    ("Facebook", "facebook", FieldType.TEXT, ""),
+    ("Email", "email", FieldType.TEXT, ""),
 ]
-
-#: Thứ tự cột trên Bảng tính — theo tệp thật: thông tin khách, rồi số lượng
-#: từng sản phẩm, rồi tiền và thanh toán, rồi trạng thái giao. Cột sản phẩm
-#: (`sl_*`) chèn vào chỗ đánh dấu. Cột không có trong danh sách xếp cuối.
-GRID_ORDER = [
-    "ngay", "dia_chi", "thanh_pho", "bang", "quoc_gia", "zipcode",
-    "san_pham", "__san_pham__", "so_luong", "gia_tien", "loai_tien", "pttt",
-    "nguoi_ban", "phu_trach_cskh", "mkt", "ma_don", "trang_thai_vc",
-    "ngay_tt", "ten_khach", "so_tien_tt", "bill", "ghi_chu", "doi_soat",
-]
+WAYBILL_COLUMNS = list(waybill_service.COLUMNS) + EXTRA_COLUMNS
 
 #: Tiền tố tên kỹ thuật của cột số lượng theo sản phẩm
 PRODUCT_COLUMN_PREFIX = "sl_"
@@ -88,43 +59,6 @@ def product_column_code(product):
 
 def is_product_column(code):
     return code.startswith(PRODUCT_COLUMN_PREFIX)
-
-
-def ordered_columns(columns):
-    """Xếp các cột được chốt trước, giữ thứ tự tương đối của cột còn lại.
-
-    Cột sản phẩm động nằm ngay sau Sản phẩm; Đơn vị phụ luôn là cột cuối.
-    """
-    columns = list(columns)
-    priority = {code: index for index, code in enumerate(GRID_ORDER)}
-    product_slot = priority["__san_pham__"]
-    trailing_slot = len(priority) + 1
-
-    def key(column):
-        if column.code == "don_vi_phu":
-            return (trailing_slot + 1, 0, "")
-        if is_product_column(column.code):
-            return (product_slot, 0, column.name)
-        if column.code in priority:
-            return (priority[column.code], 0, "")
-        return (trailing_slot, column.order, column.pk)
-
-    return sorted(columns, key=key)
-
-
-def sync_column_order(table):
-    """Lưu thứ tự hiển thị ổn định để ERP và CRM cùng đọc một cấu trúc."""
-    columns = ordered_columns(table.columns.order_by("order", "id"))
-    changed = []
-    changed_at = timezone.now()
-    for index, column in enumerate(columns):
-        if column.order != index:
-            column.order = index
-            column.updated_at = changed_at
-            changed.append(column)
-    if changed:
-        ColumnDef.objects.bulk_update(changed, ["order", "updated_at"])
-    return len(changed)
 
 
 def product_columns():
@@ -151,9 +85,10 @@ def waybill_table():
 
 @transaction.atomic
 def ensure_waybill_table(*, actor=None):
-    """Tạo bảng vận đơn theo đúng cấu trúc chuẩn, nếu chưa có.
-
-    Gọi được nhiều lần: đã có thì bổ sung cột còn thiếu, không đụng cột đã có.
+    """Tạo bảng vận đơn duy nhất "Vận đơn mới" (`van_don`) theo cấu trúc chuẩn, nếu chưa có;
+    có rồi thì nâng cấp tại chỗ (ADR-036): bổ sung cột thiếu, đổi cột chữ thành danh sách
+    chuẩn, gắn profile Vận đơn (`workflow="waybill"`), bảng dùng chung, cột khoá Mã đơn,
+    cột số lượng theo sản phẩm. Gọi được nhiều lần, không đụng cột đã có, không sửa dữ liệu.
     """
     from org.models import Department
 
@@ -163,17 +98,16 @@ def ensure_waybill_table(*, actor=None):
             f"Chưa có bộ phận với tên kỹ thuật {WAYBILL_DEPARTMENT_CODE}."
         )
 
-    bang = TableDef.all_objects.filter(code=WAYBILL_TABLE_CODE).first()
+    bang = TableDef.all_objects.select_for_update().filter(code=WAYBILL_TABLE_CODE).first()
     if bang is None:
         bang = TableDef.objects.create(
-            name="Bảng vận đơn", code=WAYBILL_TABLE_CODE,
-            description="Nhận bản sao từ đơn hàng. Không ghi ngược về đơn.",
+            name="Vận đơn mới", code=WAYBILL_TABLE_CODE,
+            description="Bảng vận đơn duy nhất: nhận bản sao từ đơn hàng, bộ phận Vận đơn vận hành trên đó.",
             department=bo_phan, created_by=actor,
-            # Hàng đợi việc chung: cả bộ phận Vận đơn thấy và sửa được mọi
-            # dòng. Để phạm vi theo cấp bậc thì nhân viên Vận đơn thấy rỗng,
-            # vì dòng do bên Sale tạo ra
-            is_shared=True,
+            # Hàng đợi việc chung: cả bộ phận Vận đơn thấy và sửa được mọi dòng (ADR-033).
+            is_shared=True, workflow="waybill",
         )
+        record(AuditAction.CREATE, actor=actor, target=bang, detail="Tạo bảng Vận đơn mới (ADR-036)")
 
     da_co = set(bang.columns.values_list("code", flat=True))
     for i, (ten, ma, kieu, nhan) in enumerate(WAYBILL_COLUMNS):
@@ -181,15 +115,27 @@ def ensure_waybill_table(*, actor=None):
             continue
         ColumnDef.objects.create(
             table=bang, name=ten, code=ma, field_type=kieu, meaning=nhan, order=i,
+            is_key=ma == "ma_don",
+            options=list(waybill_service.OPTIONS.get(ma, [])),
         )
+    waybill_service.upgrade_schema(bang, actor=actor)
     sync_product_columns(bang)
-    sync_column_order(bang)
     # Mã đơn là cột khoá của bảng vận đơn — bấm ô Mã đơn trên Bảng tính là lọc
     # ra đúng đơn đó (ADR-010). Chỉ đặt khi bảng chưa có cột khoá nào.
     if not bang.columns.filter(is_key=True).exists():
         bang.columns.filter(code="ma_don").update(is_key=True)
-    from . import waybill_service
-    waybill_service.ensure_table(bang, actor=actor)
+    fields = []
+    if bang.name in ("Bảng vận đơn", "Vận đơn"):
+        bang.name = "Vận đơn mới"; fields.append("name")
+    if bang.workflow != "waybill":
+        bang.workflow = "waybill"; fields.append("workflow")
+        bang.delivery_view_version += 1; fields.append("delivery_view_version")
+    if not bang.is_shared:
+        bang.is_shared = True; fields.append("is_shared")
+    if fields:
+        bang.save(update_fields=fields + ["updated_at"])
+        record(AuditAction.UPDATE, actor=actor, target=bang,
+               detail="Vận đơn mới là bảng vận đơn duy nhất (ADR-036): " + ", ".join(fields))
     bang.refresh_from_db()
     return bang
 
@@ -295,9 +241,8 @@ def push(order, *, actor=None, request=None, lines=None):
     Gọi **bên trong** giao dịch của `order_service.create_order`. Hàm này ném
     lỗi thì cả đơn hàng cũng không được lưu — AC-6.5.
     """
-    from .waybill_service import DETAIL_CODE
-    from . import destination_service
-    bang = destination_service.current(for_write=True)
+    DETAIL_CODE = waybill_service.DETAIL_CODE
+    bang = waybill_table()
     lines = list(lines if lines is not None else order.lines.select_related("product"))
     values = build_values(order, lines)
     values["ngay"] = timezone.localdate(order.created_at).isoformat()

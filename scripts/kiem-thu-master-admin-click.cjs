@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,'..'),out=path.join(root,'.agents/design-state
   try{
     await page.goto('http://127.0.0.1:8035/dang-nhap/');await page.locator('[name=username]').fill('quan_tri');await page.locator('[name=password]').fill('matkhau-kiem-thu-1');
     await Promise.all([page.waitForURL(u=>!u.pathname.includes('dang-nhap')),page.locator('button[type=submit]').click()]);
-    await page.goto('http://127.0.0.1:8035/bang-tinh/van_don_moi/?f_ma_don=MASTER-00000');
+    await page.goto('http://127.0.0.1:8035/bang-tinh/van_don/?f_ma_don=MASTER-00000');
     const cell=page.locator('.mg-cell[data-r="0"][data-code="bang"]');await cell.waitFor();
     // Như Excel (ADR-033, 18.09): bấm chỉ chọn ô; gõ phím mới mở ô nhập.
     await cell.click();assert(await page.locator('#mg-editor').isHidden(),'Bấm một lần chỉ chọn ô');await page.keyboard.type('x');await page.locator('#mg-editor input').waitFor();

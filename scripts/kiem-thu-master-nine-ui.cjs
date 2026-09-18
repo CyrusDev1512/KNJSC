@@ -9,7 +9,7 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
   const browser=await chromium.launch({channel:'chrome',headless:true});
   const context=await browser.newContext({viewport:{width:1440,height:900},permissions:['clipboard-read','clipboard-write']});
   const page=await context.newPage(),errors=[],evidence={checks:[]};page.on('pageerror',e=>errors.push(e.message));
-  async function open(){await page.goto(base+'/bang-tinh/van_don_moi/?f_ma_don=MASTER-00000');await page.locator('.mg-cell[data-id]').first().waitFor();}
+  async function open(){await page.goto(base+'/bang-tinh/van_don/?f_ma_don=MASTER-00000');await page.locator('.mg-cell[data-id]').first().waitFor();}
   async function cell(code){
     await page.evaluate(async code=>{const config=JSON.parse(document.getElementById('mg-config').textContent),data=await fetch(config.dataUrl+location.search).then(r=>r.json());document.getElementById('mg-viewport').scrollLeft=Math.max(0,data.columns.findIndex(c=>c.code===code)*160-520);},code);
     const locator=page.locator(`.mg-cell[data-r="0"][data-code="${code}"]`);await locator.waitFor();return locator;
@@ -24,8 +24,8 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
     const seller=await page.locator('[name=seller] option').evaluateAll(opts=>opts.find(o=>o.textContent.startsWith('staff_sale_1 —')).value);
     await page.locator('[name=seller]').selectOption(seller);await page.locator('[name=product]').selectOption('feedback-0');await page.locator('[name=unit_price]').fill('1');
     await page.getByRole('button',{name:'Lưu đơn',exact:true}).click();await page.locator('.vd-success').waitFor();
-    const created=await page.evaluate(async()=>{const url='/bang-tinh/van_don_moi/du-lieu/';const first=await fetch(url).then(r=>r.json());return (await fetch(url+'?offset='+(first.total-1)).then(r=>r.json())).rows[0];});
-    assert.equal(created.cells.ten_khach.value,'Khách E2E chín hạng mục');const createdUrl=base+'/bang-tinh/van_don_moi/?f_ma_don='+encodeURIComponent(created.cells.ma_don.value);
+    const created=await page.evaluate(async()=>{const url='/bang-tinh/van_don/du-lieu/';const first=await fetch(url).then(r=>r.json());return (await fetch(url+'?offset='+(first.total-1)).then(r=>r.json())).rows[0];});
+    assert.equal(created.cells.ten_khach.value,'Khách E2E chín hạng mục');const createdUrl=base+'/bang-tinh/van_don/?f_ma_don='+encodeURIComponent(created.cells.ma_don.value);
     async function actor(username){const ctx=await browser.newContext({viewport:{width:1440,height:900}}),p=await ctx.newPage();await p.goto(base+'/dang-nhap/');await p.locator('[name=username]').fill(username);await p.locator('[name=password]').fill('matkhau-kiem-thu-1');await Promise.all([p.waitForURL(u=>!u.pathname.includes('dang-nhap')),p.locator('button[type=submit]').click()]);return {ctx,p};}
     const leader=await actor('vd_leader');await leader.p.goto(createdUrl);await leader.p.locator('.mg-number').first().click();await leader.p.locator('#mg-more-button').click();await leader.p.locator('#mg-assign').click();
     await leader.p.locator('#vd-assignment-fields select[name=delivery]').selectOption(String(JSON.parse(fs.readFileSync(signal)).delivery));await leader.p.locator('#vd-assignment-save').click();await leader.p.locator('#vd-assignment').waitFor({state:'hidden'});
@@ -90,7 +90,7 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
     await page.setViewportSize({width:1280,height:900});await page.evaluate(()=>document.body.style.zoom='1.25');await pause(150);await page.screenshot({path:path.join(out,'zoom125.png')});
     evidence.checks.push('Desktop/laptop/mobile/zoom');
     await page.evaluate(()=>document.body.style.zoom='');
-    await page.goto(base+'/bang-tinh/van_don_moi/');await page.locator('.mg-cell[data-id]').first().waitFor();await page.locator('#mg-viewport').focus();await page.keyboard.press('Control+a');await page.keyboard.press('Control+c');await page.waitForFunction(()=>document.getElementById('mg-message').textContent.includes('vượt 2000'));
+    await page.goto(base+'/bang-tinh/van_don/');await page.locator('.mg-cell[data-id]').first().waitFor();await page.locator('#mg-viewport').focus();await page.keyboard.press('Control+a');await page.keyboard.press('Control+c');await page.waitForFunction(()=>document.getElementById('mg-message').textContent.includes('vượt 2000'));
     await page.keyboard.press('Delete');assert.match(await page.locator('#mg-message').textContent(),/vượt 2000/);
     evidence.checks.push('Ctrl+A chọn cả kết quả, copy/Delete vượt 2.000 ô bị chặn');
     await require('./kiem-thu-master-row-height.cjs')({page,context,base});evidence.checks.push('Hồi quy hàng/cột, cache, copy/paste số 0 đầu, phím, cảm ứng, localStorage');

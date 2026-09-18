@@ -170,7 +170,6 @@ class TableDef(ScopedModel):
     )
     is_active = models.BooleanField("Đang dùng", default=True, db_index=True)
     workflow = models.CharField("Nghiệp vụ bảng", max_length=24, blank=True, default="", editable=False)
-    receives_orders = models.BooleanField("Nhận đơn mới", default=False, editable=False)
     delivery_view_version = models.PositiveIntegerField(default=0, editable=False)
     is_shared = models.BooleanField(
         "Bảng dùng chung", default=False, db_index=True,
@@ -182,12 +181,6 @@ class TableDef(ScopedModel):
     )
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["receives_orders"], condition=models.Q(receives_orders=True),
-                name="one_order_destination",
-            ),
-        ]
         verbose_name = "Bảng dữ liệu"
         verbose_name_plural = "Bảng dữ liệu"
         ordering = ["name"]

@@ -75,7 +75,7 @@ async function inspect(browser, sample) {
   assert(await page.evaluate(() => document.activeElement?.matches("input[name=tu]")));
   await page.screenshot({ path: path.join(output, `${sample.name}.png`), fullPage: true });
   if (sample.name === "light-1440") {
-    await page.goto(`${base}/thong-ke/?nguon=van_don_moi&tu=2026-09-01&den=2026-09-11`);
+    await page.goto(`${base}/thong-ke/?nguon=van_don&tu=2026-09-01&den=2026-09-11`);
     await page.locator(".exec-kpis").waitFor();
     const direct = await page.evaluate(() => {
       const insightLinks = [...document.querySelectorAll(".exec-briefing a")];

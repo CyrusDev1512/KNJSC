@@ -70,7 +70,7 @@ def test_dry_run_khong_ghi_du_lieu(du_lieu_nap):
     ids = [row.pk for row in rows]
     output = StringIO()
 
-    call_command("nap_du_lieu_van_don_moi", tong_so=5, seed=20260911,
+    call_command("nap_du_lieu_van_don", tong_so=5, seed=20260911,
                  dry_run=True, stdout=output)
 
     assert "2 dòng cập nhật, 3 dòng tạo mới" in output.getvalue()
@@ -89,7 +89,7 @@ def test_nap_du_lieu_day_du_giu_id_va_chay_lai_an_toan(du_lieu_nap, nguoi_dung):
     output = StringIO()
     erp_counts = (Customer.objects.count(), Order.objects.count(), OrderLine.objects.count())
 
-    call_command("nap_du_lieu_van_don_moi", tong_so=5, seed=20260911,
+    call_command("nap_du_lieu_van_don", tong_so=5, seed=20260911,
                  dry_run=False, stdout=output)
 
     cohort = list(DataRecord.objects.filter(table=table, data__ma_don__startswith=PREFIX)
@@ -135,7 +135,7 @@ def test_nap_du_lieu_day_du_giu_id_va_chay_lai_an_toan(du_lieu_nap, nguoi_dung):
                     .order_by("pk").values_list("pk", flat=True))
     assignment_versions = dict(WaybillAssignment.objects.filter(record__in=cohort)
                                .values_list("record_id", "version"))
-    call_command("nap_du_lieu_van_don_moi", tong_so=5, seed=20260911,
+    call_command("nap_du_lieu_van_don", tong_so=5, seed=20260911,
                  dry_run=False, stdout=StringIO())
     assert list(DataRecord.objects.filter(table=table, data__ma_don__startswith=PREFIX)
                 .order_by("pk").values_list("pk", flat=True)) == ids
@@ -155,7 +155,7 @@ def test_thieu_nhan_su_van_don_thi_khong_thay_doi_gi(du_lieu_nap, nguoi_dung):
     before = list(DataRecord.objects.filter(table=table).values_list("pk", "data"))
 
     with pytest.raises(CommandError, match="nhân sự Vận đơn"):
-        call_command("nap_du_lieu_van_don_moi", tong_so=5, seed=20260911,
+        call_command("nap_du_lieu_van_don", tong_so=5, seed=20260911,
                      dry_run=False, stdout=StringIO())
 
     assert list(DataRecord.objects.filter(table=table).values_list("pk", "data")) == before
@@ -172,7 +172,7 @@ def test_loi_giua_luot_thi_rollback_toan_bo(du_lieu_nap, monkeypatch):
 
     monkeypatch.setattr(WaybillItem.objects, "bulk_create", fail_items)
     with pytest.raises(RuntimeError, match="lỗi giả lập"):
-        call_command("nap_du_lieu_van_don_moi", tong_so=5, seed=20260911,
+        call_command("nap_du_lieu_van_don", tong_so=5, seed=20260911,
                      dry_run=False, stdout=StringIO())
 
     assert list(DataRecord.objects.filter(table=table).values_list("pk", "data")) == before

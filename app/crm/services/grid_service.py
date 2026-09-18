@@ -33,7 +33,7 @@ from forms_builder import choice_registry, query
 from forms_builder.meaning import FieldType
 from forms_builder.models import DataRecord
 from forms_builder.services import record_service
-from orders.constants import WAYBILL_TABLE_CODE, ACTIVE_WAYBILL_TABLE_CODE
+from orders.constants import WAYBILL_TABLE_CODE, is_waybill_table
 from orders.services import dispatch_service
 from orders.services import waybill_service
 
@@ -125,8 +125,9 @@ def waybill_table():
 
 
 def is_waybill(table):
-    """Bảng vận đơn có thêm luật riêng theo tệp thật — ADR-009."""
-    return table.code == WAYBILL_TABLE_CODE
+    """Bảng vận đơn có thêm luật riêng theo tệp thật — ADR-009; từ ADR-036 là bảng duy nhất
+    `van_don` hoặc bảng mang workflow Vận đơn."""
+    return is_waybill_table(table)
 
 
 def key_column(columns):
@@ -156,12 +157,11 @@ def display_columns(table, columns=None):
     """Cột theo thứ tự hiển thị. Bảng vận đơn: theo tệp thật, cột sản phẩm
     chèn vào chỗ đánh dấu, cột lạ xếp cuối. Bảng khác: theo thứ tự tạo cột."""
     columns = list(columns if columns is not None else table.columns.order_by("order", "id"))
-    if table.code == ACTIVE_WAYBILL_TABLE_CODE:
-        order = {c[1]: i for i, c in enumerate(waybill_service.COLUMNS)}
-        return sorted(columns, key=lambda c: (order.get(c.code, len(order)), c.order, c.pk))
     if not is_waybill(table):
         return columns
-    return dispatch_service.ordered_columns(columns)
+    # Cột chuẩn theo thứ tự `waybill_service.COLUMNS`, cột còn lại (extra, `sl_*`) giữ thứ tự tạo.
+    order = {c[1]: i for i, c in enumerate(waybill_service.COLUMNS)}
+    return sorted(columns, key=lambda c: (order.get(c.code, len(order)), c.order, c.pk))
 
 
 def frozen_columns(columns, *, waybill=True):

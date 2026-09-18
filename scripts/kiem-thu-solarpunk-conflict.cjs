@@ -4,7 +4,7 @@ const assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
  const browser=await chromium.launch({channel:'chrome',headless:true});const p=await browser.newPage({viewport:{width:1440,height:900}});
  await p.goto('http://localhost:18021/dang-nhap/');await p.locator('[name=username]').fill('quantri');await p.locator('[name=password]').fill('matkhaucuatoi');
  await Promise.all([p.waitForURL(u=>!u.pathname.includes('dang-nhap')),p.locator('button[type=submit]').click()]);
- await p.goto('http://localhost:18021/bang-tinh/van_don_moi/');
+ await p.goto('http://localhost:18021/bang-tinh/van_don/');
  const cell=p.locator('.mg-cell[data-code="ten_khach"]').first();await cell.waitFor();const original=await cell.innerText();
  assert.ok(original.startsWith('Khách mẫu Solarpunk'));
  let pending;await p.route('**/luu-json/',r=>{pending=r});

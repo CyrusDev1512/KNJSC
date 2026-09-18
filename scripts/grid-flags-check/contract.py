@@ -16,7 +16,7 @@ result = []
 for actor in actors:
     client = Client()
     client.cookies["sessionid"] = actor["session"]
-    base = "/bang-tinh/van_don_moi/"
+    base = "/bang-tinh/van_don/"
     with override_settings(CRM_OPT_READ=False, CRM_OPT_SYNC=False, CRM_OPT_RECEIPTS=False):
         reference = client.get(base + "du-lieu/").json()
     for name, read, sync in [("off", False, False), ("render", False, False), ("read", True, False), ("sync", True, True)]:

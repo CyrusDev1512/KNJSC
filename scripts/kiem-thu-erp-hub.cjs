@@ -69,7 +69,7 @@ async function login(page,base,user){
    await page.locator('[data-product-name]').fill('Sản phẩm E2E '+width+' '+Date.now());
    await page.getByRole('button',{name:'Tạo sản phẩm',exact:true}).click();
    await page.locator('[data-product-result]').filter({hasText:'Đã tạo sản phẩm'}).waitFor();
-   await page.goto(crm+'/bang-tinh/van_don_moi/?f_ma_don='+ready.order);
+   await page.goto(crm+'/bang-tinh/van_don/?f_ma_don='+ready.order);
    await page.locator('#mg-count').filter({hasText:/dòng/}).waitFor();
    const cell=page.locator('.mg-cell[data-r="0"][data-code="bang"]');
    for(let i=0;i<30&&!(await cell.count());i++){await page.locator('#mg-viewport').evaluate(el=>el.scrollLeft+=150);await page.waitForTimeout(80);}

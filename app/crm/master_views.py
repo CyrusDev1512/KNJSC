@@ -133,7 +133,7 @@ def shell(request, table):
         'duoc_quan_ly_cot':grant_service.can_manage_columns(request.user, table),
         'duoc_nhap': grant_service.can_import(request.user, table),
         'ben': sidebar_service.context(request.user, table, grid.columns, qs),
-        'quick_filters': sidebar_service.quick_filters(qs) if (table.code == 'van_don' or is_waybill_table(table)) else {'groups':[], 'keep':grid_service.params_without(qs)},
+        'quick_filters': sidebar_service.quick_filters(qs) if (is_waybill_table(table)) else {'groups':[], 'keep':grid_service.params_without(qs)},
         'config': {'dataUrl': reverse('master_data', args=[table.code]),
                    'deliveryViewVersion': table.delivery_view_version,
                    'myScope': field_for(request.user) if is_waybill_table(table) else None,

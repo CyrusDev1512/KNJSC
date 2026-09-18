@@ -178,7 +178,7 @@ def test_sau_cot_them_co_tren_bang_van_don(bang_van_don, san_pham, nguoi_dung):
     assert don.customer.facebook == "fb.com/an"
     assert don.customer.email == "an@vidu.com"
     assert o["nguoi_ban"]                          # tên người bán, không rỗng
-    assert not {"facebook", "email", "don_vi_phu", "black_list"} & o.keys()
+    assert {"facebook", "email", "don_vi_phu", "black_list"} <= o.keys()   # chín cột giữ lại (ADR-036)
 
 
 def test_bo_phan_van_don_thay_don_cua_sale(bang_van_don, san_pham, nguoi_dung):
@@ -321,7 +321,7 @@ def test_danh_sach_den_chi_canh_bao_khong_chan(bang_van_don, san_pham, nguoi_dun
 
     don = _len_don(nguoi_dung["staff_sale_1"], san_pham, phone="0900000000")
     assert don.pk is not None                      # không chặn
-    assert "black_list" not in don.record.data  # ADR-018: không đưa vào bảng mới
+    assert don.record.data["black_list"] == "Từ chối nhận hàng 2 lần"  # ADR-036: cột Cảnh báo BLACK LIST trên bảng duy nhất
 
 
 def test_khach_cu_khong_bi_tao_trung(bang_van_don, san_pham, nguoi_dung):

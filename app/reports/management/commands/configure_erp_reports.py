@@ -16,7 +16,7 @@ SALE_COLUMNS = (
     ("doanh_so", "Doanh số", "money", "revenue"),
     ("ngay_ra_don", "Ngày ra đơn", "date", ""),
 )
-SOURCES = (("bao_cao_sale", "sale"), ("bao_cao_mkt", "mkt"), ("van_don_moi", "delivery"))
+SOURCES = (("bao_cao_sale", "sale"), ("bao_cao_mkt", "mkt"), ("van_don", "delivery"))
 
 
 def ensure_sale():

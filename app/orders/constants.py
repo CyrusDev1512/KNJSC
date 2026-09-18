@@ -83,8 +83,9 @@ LEGACY_PAYMENT_LABELS = {
 #: Tên kỹ thuật của bảng vận đơn. Đơn hàng ghi một chiều sang bảng này.
 WAYBILL_TABLE_CODE = "van_don"
 
-# Bảng cũ giữ mã để đường dẫn và đơn lịch sử không đổi (ADR-018).
-ACTIVE_WAYBILL_TABLE_CODE = "van_don_moi"
+#: Một bảng vận đơn duy nhất từ 18.09.2026 (ADR-036): "Vận đơn mới", mã `van_don`.
+#: Tên `ACTIVE_WAYBILL_TABLE_CODE` giữ lại làm bí danh cho mã đang dùng khắp nơi.
+ACTIVE_WAYBILL_TABLE_CODE = WAYBILL_TABLE_CODE
 
 #: Tên kỹ thuật và tên hiển thị của bộ phận sở hữu bảng vận đơn. Lệnh
 #: `tao_bang_van_don` tự tạo bộ phận này trên máy sạch nếu chưa có.

@@ -27,6 +27,7 @@ def bang_vd(departments, nguoi_dung):
 def _dong_vd(bang, nguoi, i, sdt):
     return record_service.create_record(bang, {
         "ma_don": f"T{i:04d}", "ten_khach": f"Khách {i}", "so_dien_thoai": sdt, "gia_tien": "10",
+        "ngay": "2026-08-01", "quoc_gia": "Hoa Kỳ", "loai_tien": "USD",
     }, actor=nguoi)
 
 
@@ -59,7 +60,7 @@ def test_luoi_100_dong_ngan_sach_truy_van(client, bang_vd, nguoi_dung, django_as
 
 
 def test_dan_500_o_va_moi_nhat_ngan_sach_truy_van(client, bang_vd, nguoi_dung, django_assert_max_num_queries, settings):
-    """AC-11.36/AC-27.2 — 500 ô qua CAS/receipt/history ≤35 truy vấn cố định; `moi-nhat/` ≤8, không COUNT toàn bảng"""
+    """AC-11.36/AC-27.2 — 500 ô qua CAS/receipt/history ≤35 truy vấn cố định; `moi-nhat/` ≤9, không COUNT toàn bảng"""
     settings.GRID_ONLY_TABLES = set()
     nv = nguoi_dung["staff_vd"]
     dong = [_dong_vd(bang_vd, nv, i, f"09{i:06d}") for i in range(100)]
@@ -67,7 +68,7 @@ def test_dan_500_o_va_moi_nhat_ngan_sach_truy_van(client, bang_vd, nguoi_dung, d
     client.get(f"/bang-tinh/{bang_vd.code}/moi-nhat/")       # lượt đầu ghi mốc phiên, không tính
     o, gt = [], []
     for d in dong:
-        for cot in ("ghi_chu", "thanh_pho", "bang", "zipcode", "pttt"):
+        for cot in ("ghi_chu", "thanh_pho", "bang", "zipcode", "dia_chi"):
             o.append(f"{d.pk}:{cot}")
             gt.append(f"x {d.pk}")
     import uuid
@@ -77,7 +78,7 @@ def test_dan_500_o_va_moi_nhat_ngan_sach_truy_van(client, bang_vd, nguoi_dung, d
         kq = client.post(f'/bang-tinh/{bang_vd.code}/luu-json/',payload,content_type='application/json')
     assert kq.status_code == 200, kq.content[:200]
     assert DataRecord.objects.get(pk=dong[7].pk).data["zipcode"] == f"x {dong[7].pk}"
-    with django_assert_max_num_queries(8):
+    with django_assert_max_num_queries(9):      # +1 phạm vi/phân công của profile Vận đơn (ADR-036)
         kq = client.get(f"/bang-tinh/{bang_vd.code}/moi-nhat/")
     assert kq.status_code == 200 and "so" not in kq.json()
 

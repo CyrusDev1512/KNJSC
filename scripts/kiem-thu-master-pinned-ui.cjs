@@ -7,7 +7,7 @@ const out=path.resolve('.agents/design-state/review/pinned-20260911'),base='http
  try{
   await page.goto(base+'/dang-nhap/');await page.locator('[name=username]').fill('quan_tri');await page.locator('[name=password]').fill('matkhau-kiem-thu-1');
   await Promise.all([page.waitForURL(u=>!u.pathname.includes('dang-nhap')),page.locator('button[type=submit]').click()]);
-  await page.goto(base+'/bang-tinh/van_don_moi/?f_ma_don=MASTER-00000');await page.locator('.mg-cell[data-id]').first().waitFor();
+  await page.goto(base+'/bang-tinh/van_don/?f_ma_don=MASTER-00000');await page.locator('.mg-cell[data-id]').first().waitFor();
   const frames=()=>page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
   const cell=code=>page.locator(`.mg-cell[data-r="0"][data-code="${code}"]`);
   const head=code=>page.locator(`.mg-heading[data-code="${code}"]`);

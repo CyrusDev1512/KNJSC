@@ -14,7 +14,7 @@ from core.permissions import assert_departments, has_rank
 from forms_builder.services import grant_service
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 from orders.units import COMMON_UNITS
-from orders.services import order_service, waybill_service, product_service, destination_service
+from orders.services import order_service, waybill_service, product_service
 from .waybill_forms import WaybillOrderForm
 
 
@@ -103,7 +103,7 @@ def statistics(request):
     table_for(request.user, ACTIVE_WAYBILL_TABLE_CODE)
     suffix = ('?' + request.GET.urlencode()) if request.GET else ''
     separator = '&' if suffix else '?'
-    return redirect(reverse('crm_statistics') + suffix + separator + 'nguon=van_don_moi')
+    return redirect(reverse('crm_statistics') + suffix + separator + 'nguon=van_don')
 
 
 @login_required

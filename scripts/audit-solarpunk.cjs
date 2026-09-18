@@ -14,7 +14,7 @@ const out='artifacts/solarpunk';fs.mkdirSync(out,{recursive:true});
   const erpLinks=await p.locator('.sp-dock a').evaluateAll(a=>a.map(x=>x.href));
   await p.goto('http://localhost:18021/');
   const crmLinks=await p.locator('.crm-nav a').evaluateAll(a=>a.map(x=>x.href));
-  const urls=[...new Set([...erpLinks,...crmLinks,'http://localhost:18021/bang-tinh/van_don_moi/','http://localhost:18021/bang-tinh/bao_cao_mkt/'])].filter(x=>x.startsWith('http://localhost:1802'));
+  const urls=[...new Set([...erpLinks,...crmLinks,'http://localhost:18021/bang-tinh/van_don/','http://localhost:18021/bang-tinh/bao_cao_mkt/'])].filter(x=>x.startsWith('http://localhost:1802'));
   for(const url of urls){
    const r=await p.goto(url);await p.waitForTimeout(200);
    const overflow=await p.evaluate(()=>({body:document.documentElement.scrollWidth>innerWidth+2,main:!!document.querySelector('.noi-dung')&&document.querySelector('.noi-dung').scrollWidth>document.querySelector('.noi-dung').clientWidth+2}));

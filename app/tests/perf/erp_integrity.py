@@ -15,7 +15,7 @@ assert settings.DATABASES['default']['NAME']=='knjsc_erp_verify'
 base=DataRecord.objects.filter(val_date__range=(date(2020,1,1),date(2025,12,31)))
 assert base.count()==100000
 assert DailyReport.objects.filter(record__in=base).count()==60000
-items=WaybillItem.objects.for_records(base.filter(table__code='van_don_moi'))
+items=WaybillItem.objects.for_records(base.filter(table__code='van_don'))
 assert items.count()==80000 and items.aggregate(n=Sum('quantity'))['n']==120000
 results=[]
 for file in Path('/storage/erp-verification').glob('proof-final-*.json'):

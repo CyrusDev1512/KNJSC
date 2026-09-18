@@ -42,6 +42,7 @@ def _dong(bang, nguoi, **gia_tri):
     mac_dinh = {
         "ma_don": f"DH-{gia_tri.get('so_dien_thoai', '0')}-{gia_tri.get('ten_khach', 'x')}",
         "ngay": "2026-08-01", "trang_thai_vc": ShippingStatus.DA_LEN_DON.label,
+        "ten_khach": "Khách", "so_dien_thoai": "0900", "quoc_gia": "Hoa Kỳ", "loai_tien": "USD",   # profile Vận đơn (ADR-036)
     }
     return record_service.create_record(bang, {**mac_dinh, **gia_tri}, actor=nguoi)
 
@@ -80,7 +81,13 @@ def test_ngoai_bo_phan_van_don_bi_tu_choi_moi_duong_dan(client, du_lieu, nguoi_d
     for ma in ("staff_sale_1", "leader_sale_1", "manager_sale", "staff_mkt", "manager_mkt"):
         client.force_login(nguoi_dung[ma])
         for duong in cac_duong:
-            assert client.get(duong).status_code == 404, f"{ma} vào được {duong}"
+            kq = client.get(duong)
+            if duong == "/bang-tinh/van_don/" and "sale" in ma:
+                assert kq.status_code == 302 and "/van-don/len-don/" in kq["Location"], ma   # Sale → Lên đơn
+            elif duong == "/bang-tinh/van_don/":
+                assert kq.status_code == 403, f"{ma} vào được {duong}"                          # MKT: từ chối rõ
+            else:
+                assert kq.status_code == 404, f"{ma} vào được {duong}"
         assert client.post(f"/bang-tinh/van_don/o/{pk}/ghi_chu/", {"gia_tri": "x"}).status_code == 404
         assert client.post("/bang-tinh/van_don/dong-moi/", {"ma_don": "DH-x"}).status_code == 404
         # Bảng vận đơn không hiện trong danh sách bảng ở thanh bên của họ
@@ -89,7 +96,7 @@ def test_ngoai_bo_phan_van_don_bi_tu_choi_moi_duong_dan(client, du_lieu, nguoi_d
 
     for ma in ("staff_vd", "admin"):
         client.force_login(nguoi_dung[ma])
-        assert client.get("/bang-tinh/").context["bang"].code == "van_don_moi", ma
+        assert client.get("/bang-tinh/").context["bang"].code == "van_don", ma
         assert client.get("/bang-tinh/van_don/").status_code == 200
         assert client.get("/bang-tinh/van_don/loc/trang_thai_vc/").status_code == 200
         assert client.get("/bang-tinh/van_don/xuat/").status_code == 200
@@ -234,14 +241,14 @@ def test_moi_san_pham_mot_cot_va_len_don_dien_tu_dong(bang_vd, san_pham, nguoi_d
     assert d["trang_thai_vc"] == "Đã lên đơn" and d["trang_thai_tt"] == "Chưa thanh toán"
     don2 = len_don()
     assert dispatch_service.build_values(don2)["mua_lai"] == 2
-    assert don.record.table.code == "van_don_moi"
-    assert not any(k.startswith("sl_") for k in don.record.data)
+    assert don.record.table.code == "van_don"
+    assert don.record.data.get("sl_retinol_cream") == 5      # cột theo sản phẩm vẫn có trên bảng duy nhất (AC-11.8)
 
 
 # ══ Tệp thật — AC-11.9 ═════════════════════════════════════════════
 
 def test_nhap_tep_van_don_that_khong_chinh_sua(departments, nguoi_dung):
-    """AC-11.9 — Tệp vận đơn thật (ẩn danh) nhập trọn: 221 dòng vào, 0 lỗi, trạng thái và thanh toán khớp danh sách, điện thoại là chuỗi, số lượng là số"""
+    """AC-11.9 — Tệp vận đơn thật (ẩn danh) nhập không chỉnh sửa: 220 dòng vào, 1 dòng lỗi vì PTTT "Cheque" ngoài Zelle/PayPal (ADR-031), trạng thái và thanh toán khớp danh sách, điện thoại là chuỗi, số lượng là số"""
     from core.management.commands.du_lieu_mau import SAN_PHAM
 
     nhom = ProductGroup.objects.create(name="Mỹ phẩm")
@@ -263,12 +270,15 @@ def test_nhap_tep_van_don_that_khong_chinh_sua(departments, nguoi_dung):
     import_service.confirm(job, actor=nguoi_dung["admin"])
     job.refresh_from_db()
     assert job.status == JobStatus.DONE, job.error
-    assert job.summary["created"] == 221 and job.summary["error_count"] == 0, job.summary["errors"][:5]
+    # 221 dòng dữ liệu: một dòng PTTT "Cheque" bị từ chối vì bảng duy nhất mang profile
+    # Vận đơn (ADR-036) và PTTT chỉ còn Zelle/PayPal (ADR-031); lỗi nêu rõ giá trị và cột
+    assert job.summary["created"] == 220 and job.summary["error_count"] == 1, job.summary["errors"][:5]
+    assert "Cheque" in job.summary["errors"][0][1] and "PTTT" in job.summary["errors"][0][1]
 
     from forms_builder.models import DataRecord
 
     dong = list(DataRecord.objects.filter(table=bang))
-    assert len(dong) == 221
+    assert len(dong) == 220
     nhan_vc = {d.data.get("trang_thai_vc") for d in dong} - {None}
     assert nhan_vc <= {c.label for c in ShippingStatus} and "Đã nhận hàng" in nhan_vc
     nhan_tt = {d.data.get("trang_thai_tt") for d in dong} - {None}

@@ -10,7 +10,7 @@ pytestmark = pytest.mark.django_db
 def scope_tables(departments, nguoi_dung):
     tables = []
     for code, department in [('scope_sale', 'sale'), ('scope_mkt', 'mkt'),
-                             ('van_don', 'vd'), ('van_don_moi', 'vd')]:
+                             ('van_don', 'vd')]:
         table = TableDef.objects.create(code=code, name=code, department=departments[department])
         for user in nguoi_dung.values():
             if user.profile.department_id == table.department_id:

@@ -13,7 +13,7 @@ path=Path(os.environ['OPT_MANIFEST'])
 manifest=json.loads(path.read_text())
 assert manifest['database']==os.environ['POSTGRES_DB']
 with transaction.atomic():
-    table=TableDef.objects.get(code='van_don_moi')
+    table=TableDef.objects.get(code='van_don')
     for actor in manifest['actors']:
         user=get_user_model().objects.get(pk=actor['user'])
         qs=build_grid(user,QueryDict(),table=table).queryset

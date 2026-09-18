@@ -147,7 +147,7 @@ def test_executive_capacity(feedback, departments, nguoi_dung):
     sale_url = "/thong-ke/?nguon=sale_exec_capacity&tu=2026-09-01&den=2026-09-11"
     sale_result = _measure(client, sale_url, "sale-20000")
 
-    waybill_url = "/thong-ke/?nguon=van_don_moi&tu=2026-09-01&den=2026-09-11"
+    waybill_url = "/thong-ke/?nguon=van_don&tu=2026-09-01&den=2026-09-11"
     counts = []
     for count in (100_000, 300_000):
         _expand(source[0], table, count)
@@ -166,7 +166,7 @@ def test_executive_capacity(feedback, departments, nguoi_dung):
     assert counts[1]["python_peak_mib"] <= counts[0]["python_peak_mib"] * 1.5 + 5
     overview = _measure(
         client,
-        "/thong-ke/?sale_nguon=sale_exec_capacity&vd_nguon=van_don_moi"
+        "/thong-ke/?sale_nguon=sale_exec_capacity&vd_nguon=van_don"
         "&tu=2026-09-01&den=2026-09-11",
         "overview-20000-300000",
     )

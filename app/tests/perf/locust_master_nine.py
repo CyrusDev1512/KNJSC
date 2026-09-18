@@ -15,7 +15,7 @@ samples = []
 integrity_errors = []
 started = time.monotonic()
 warmup = int(os.environ.get('MASTER_WARMUP', '60'))
-base = '/bang-tinh/van_don_moi/'
+base = '/bang-tinh/van_don/'
 
 
 @events.request.add_listener

@@ -15,7 +15,7 @@ const assert = require('node:assert/strict');
     page.waitForURL(url => !url.pathname.includes('dang-nhap')),
     page.locator('button[type=submit]').click(),
   ]);
-  await page.goto('http://localhost:18021/bang-tinh/van_don_moi/');
+  await page.goto('http://localhost:18021/bang-tinh/van_don/');
   const viewport = page.locator('#mg-viewport');
   let bill;
   for (let left=0; left<=6000; left+=600) {

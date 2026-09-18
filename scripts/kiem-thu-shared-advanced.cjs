@@ -1,10 +1,10 @@
 /* Hồi quy lưới dùng chung trên fixture Vận đơn mới, không chạy độc lập. */
 const assert=require('assert/strict');
 module.exports=async({page,context,base,delivery})=>{
- const url=base+'/bang-tinh/van_don_moi/?sap=ma_don';
+ const url=base+'/bang-tinh/van_don/?sap=ma_don';
  await page.setViewportSize({width:1440,height:900});await page.goto(url);
  await page.locator('.mg-cell[data-id]').first().waitFor();
- const api=base+'/bang-tinh/van_don_moi/';
+ const api=base+'/bang-tinh/van_don/';
  const read=async()=>await(await context.request.get(api+'du-lieu/?sap=ma_don&offset=98')).json();
  const snapshot=await read(),row=snapshot.rows[0];
  await page.locator('#mg-viewport').evaluate(v=>{v.scrollTop=98*28;v.scrollLeft=0;});

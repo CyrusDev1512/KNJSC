@@ -4,7 +4,7 @@ const base='http://127.0.0.1:8135',out=path.resolve('storage/erp-verification/br
 fs.mkdirSync(out,{recursive:true});
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true}),all=[];
- for(const width of [1440,390])for(const source of ['bao_cao_mkt','bao_cao_sale','van_don_moi']){
+ for(const width of [1440,390])for(const source of ['bao_cao_mkt','bao_cao_sale','van_don']){
   const ctx=await browser.newContext({viewport:{width,height:900}}),page=await ctx.newPage();
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(base+'/dang-nhap/');await page.locator('[name=username]').fill('erp_admin');await page.locator('[name=password]').fill('erp-test-only-2026');

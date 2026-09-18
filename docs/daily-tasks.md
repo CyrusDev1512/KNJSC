@@ -1,5 +1,35 @@
 # Daily tasks — KNJSC
 
+## Bàn giao cho Claude Code CLI trên máy chủ dự án — 18.09.2026 (chiều): phát hành ADR-036, một bảng vận đơn
+
+Đọc trước: `docs/quyet-dinh/036-mot-bang-van-don-duy-nhat.md`,
+`docs/kiem-chung-mot-bang-van-don-20260918.md`, mục 18.09 (chiều) ở `docs/backlog.md`.
+
+**Điều nhìn thấy ngay sau phát hành:** chỉ còn một bảng vận đơn "Vận đơn mới"
+(`van_don`); crmThuận và Vận đơn DB **biến mất hẳn** (6.667 + 2 dòng, xoá cứng theo
+lệnh chủ dự án); mục "Bảng nhận đơn" không còn trên sidebar Admin; Lên đơn ghi vào
+Vận đơn mới; nhập tệp không cần Chi tiết sản phẩm.
+
+### Việc, theo thứ tự
+
+1. `git fetch`, checkout `codex/crm-update-solar-ui` ở commit ADR-036; `pytest -m "not cham"`.
+2. SSH VPS, chỉ ghi nhận: `docker compose ps`, image, dung lượng DB, số dòng ba bảng
+   (`van_don`, `van_don_moi`, `van_don_db`), `showmigrations forms_builder`.
+3. **Dừng**, tóm tắt, hỏi chủ dự án xác nhận một lần. Nhắc rõ: lệnh xoá cứng không hoàn tác.
+4. Backup DB, **kiểm phục hồi** vào DB tạm, đếm dòng ba bảng khớp. Không có thì không đi tiếp.
+5. Build image `knjsc-app:<commit>-adr036`; dãy README: `config --quiet` → `up -d db broker
+   cache` → `static-owner` → `migrate --noinput` (kỳ vọng `forms_builder 0014`) →
+   `tao_bang_van_don` (nâng cấp tại chỗ `van_don`, in một bảng) →
+   **`xoa_bang_van_don_cu --dong-y-xoa-cung --backup-da-lam`** (in số lượng từng loại) →
+   `configure_erp_reports` → `configure_delivery_daily_report` → `collectstatic` →
+   `up -d crm erp worker heavy beat proxy` → `nginx -t`, reload.
+6. Kiểm Chrome domain thật: thư mục Vận đơn chỉ một bảng; sidebar Admin không có Bảng nhận
+   đơn; `/bang-tinh/van_don/` 11 dòng, có cột Trùng và nút Tôi/Toàn bộ, bấm ô Sản phẩm mở hộp
+   Chi tiết; Lên đơn một đơn thử → dòng mới ở `van_don` có chi tiết, rồi đánh dấu xoá;
+   Thống kê `nguon=van_don`; ERP Báo cáo tổng hợp nguồn Vận đơn có dữ liệu.
+7. Ghi `docs/kiem-chung-phat-hanh-vps-20260918-adr036.md`, backlog, kanban; commit
+   "Ghi ket qua phat hanh ... (ADR-036) tren VPS", push khi chủ dự án bảo.
+
 ## Bàn giao cho Claude Code CLI — 18.09.2026: bố cục Báo cáo tổng hợp + mã nhân sự
 
 > Cập nhật chiều 18.09: Codex đã phát hành `0d970f8` lên VPS (`8c78471`), nên mục
@@ -150,7 +180,7 @@ hành làm từ máy có SSH vào VPS. Mở Claude Code CLI trong thư mục kho
    `up -d crm erp worker heavy beat proxy`. Rồi `nginx -t` và reload.
 7. Kiểm sau phát hành bằng Chrome trên domain thật:
    - ERP `/bao-cao/tong-hop/` phải là bản **mới**: có nút "Toàn màn hình".
-   - CRM `/bang-tinh/van_don_moi/` mở được, chân trang "N dòng khớp bộ lọc",
+   - CRM `/bang-tinh/van_don/` mở được, chân trang "N dòng khớp bộ lọc",
      console không lỗi JS.
    - Đăng nhập chung ERP/CRM còn hoạt động.
 8. Ghi một mục ngày vào đầu `docs/backlog.md` và một tệp

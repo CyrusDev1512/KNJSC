@@ -109,8 +109,8 @@ def test_cua_toi_reaches_excel_export_and_statistics(client, feedback, nguoi_dun
     export_service.run(job.pk); job.refresh_from_db()
     assert job.status == JobStatus.DONE and job.summary['exported_row_ids'] == [rows[0].pk]
     client.force_login(staff)
-    assert client.get('/thong-ke/', {'nguon': 'van_don_moi'}).context['summary']['orders'] == 2
-    assert client.get('/thong-ke/', {'nguon': 'van_don_moi', 'cua_toi': '1'}).context['summary']['orders'] == 1
+    assert client.get('/thong-ke/', {'nguon': 'van_don'}).context['summary']['orders'] == 2
+    assert client.get('/thong-ke/', {'nguon': 'van_don', 'cua_toi': '1'}).context['summary']['orders'] == 1
 
 
 def test_delivery_view_mode_removed(client, feedback, nguoi_dung):

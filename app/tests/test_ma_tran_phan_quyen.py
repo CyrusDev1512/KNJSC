@@ -32,6 +32,9 @@ CHUYEN_DANG_NHAP = "chuyen_dang_nhap"
 #: Lên đơn chuyển hẳn sang KN CRM (ADR-023). Không phải "vào được" mà cũng
 #: không phải "từ chối": người có quyền được đưa sang đúng nơi làm việc.
 CHUYEN_KN_CRM = "chuyen_kn_crm"
+#: Sale vào lưới Vận đơn (ADR-036, bảng duy nhất) được đưa sang Lên đơn tại CRM —
+#: không phải "vào được" lưới, cũng không phải "từ chối".
+CHUYEN_LEN_DON = "chuyen_len_don"
 
 #: Năm cột của bảng trong tài liệu. `None` là chưa đăng nhập.
 CAC_VAI_TRO = [
@@ -78,8 +81,8 @@ MA_TRAN = {
         "manager_sale": VAO_DUOC, "staff_vd": TU_CHOI, None: CHUYEN_DANG_NHAP,
     },
     "Bảng tính vận đơn": {
-        "staff_sale_1": TU_CHOI, "leader_sale_1": TU_CHOI,
-        "manager_sale": TU_CHOI, "staff_vd": VAO_DUOC, None: CHUYEN_DANG_NHAP,
+        "staff_sale_1": CHUYEN_LEN_DON, "leader_sale_1": CHUYEN_LEN_DON,
+        "manager_sale": CHUYEN_LEN_DON, "staff_vd": VAO_DUOC, None: CHUYEN_DANG_NHAP,
     },
     # Dòng thêm 17.09.2026 — ADR-023 biến `/bieu-mau/` thành thư viện hai tab:
     # tab Tài liệu mở cho mọi người, tab Biểu mẫu vẫn chỉ Manager trở lên. Giữ
@@ -169,6 +172,8 @@ def _ket_qua(ma_http, vi_tri):
         return CHUYEN_DANG_NHAP
     if ma_http == 302 and settings.BANGTINH_URL and vi_tri.startswith(settings.BANGTINH_URL.rstrip("/")):
         return CHUYEN_KN_CRM
+    if ma_http == 302 and "/van-don/len-don/" in vi_tri:
+        return CHUYEN_LEN_DON
     return f"khác ({ma_http})"
 
 

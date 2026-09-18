@@ -15,7 +15,7 @@ manifest=json.loads(Path(os.environ['OPT_MANIFEST']).read_text())
 assert connection.settings_dict['NAME']==manifest['database']
 assert manifest['database'].startswith('test_knjsc_opt_')
 user=get_user_model().objects.get(pk=manifest['actors'][0]['user'])
-table=TableDef.objects.get(code='van_don_moi')
+table=TableDef.objects.get(code='van_don')
 protocol=int(os.environ.get('OPT_PROTOCOL','1'))
 result={'database':manifest['database'],'protocol':protocol}
 http=os.environ.get('OPT_HTTP')
@@ -76,7 +76,7 @@ if os.environ.get('OPT_MEASURE','all') in ('all','storage'):
             start=time.perf_counter()
             if session:
                 request_id=uuid.uuid4().hex;request_ids.append(request_id)
-                response=session.post(http+'/bang-tinh/van_don_moi/luu-json/',json=payload,headers={'X-Request-ID':request_id},timeout=60)
+                response=session.post(http+'/bang-tinh/van_don/luu-json/',json=payload,headers={'X-Request-ID':request_id},timeout=60)
                 assert response.status_code==200,(response.status_code,request_id)
                 reply=response.json()
             else:reply=master_grid_service.save(user,table,payload)

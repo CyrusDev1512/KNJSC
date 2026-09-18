@@ -33,7 +33,7 @@ async function scroll(page,row){
     page.on('request',r=>{if(r.url().includes('/du-lieu/'))requests.push(new URL(r.url()).searchParams.get('offset')||'0')});
     const result={stage,width,errors};results.push(result);
     try{
-      await page.goto(base+'/bang-tinh/van_don_moi/');await page.locator('.mg-cell[data-r="0"][data-id]').first().waitFor();
+      await page.goto(base+'/bang-tinh/van_don/');await page.locator('.mg-cell[data-r="0"][data-id]').first().waitFor();
       await scroll(page,110);await scroll(page,0);await page.waitForTimeout(400);
       const cached=[];for(let i=0;i<40;i++)cached.push(await scroll(page,i%2?18:19));
       result.cached=stats(cached);
@@ -74,7 +74,7 @@ async function scroll(page,row){
       const saved=page.waitForResponse(r=>r.url().includes('/luu-json/'));release();release=null;assert.equal((await saved).status(),200);
       await page.waitForFunction(()=>document.getElementById('bt-trang-thai').textContent!=='Đang lưu');
       await page.unroute('**/luu-json/');await page.reload();await page.locator('.mg-cell[data-r="0"][data-id]').first().waitFor();
-      const response=await page.request.get(base+'/bang-tinh/van_don_moi/du-lieu/');const body=await response.json();
+      const response=await page.request.get(base+'/bang-tinh/van_don/du-lieu/');const body=await response.json();
       assert.equal(body.rows.find(r=>r.id===id).cells.ghi_chu.value,value,'Lưu thật không khớp');
       result.savedAndReloaded=true;result.diagnostics=await page.evaluate(()=>KNJSC_MASTER.diagnostics());
       assert(result.diagnostics.cache<=10);assert.equal(errors.length,0);

@@ -10,7 +10,7 @@ const fs = require('node:fs');
   await page.locator('input[name="username"]').fill('quantri');
   await page.locator('input[name="password"]').fill('matkhaucuatoi');
   await Promise.all([page.waitForURL(u=>!u.pathname.includes('dang-nhap')),page.locator('button[type="submit"]').click()]);
-  await page.goto(origin+'/bang-tinh/van_don_moi/');
+  await page.goto(origin+'/bang-tinh/van_don/');
   fs.mkdirSync('artifacts/solarpunk',{recursive:true});
   await page.screenshot({path:'artifacts/solarpunk/grid-'+(process.env.BASELINE?'before':'after')+'.png'});
   const viewport=page.locator('#mg-viewport');

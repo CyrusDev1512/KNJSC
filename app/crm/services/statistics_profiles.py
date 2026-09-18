@@ -948,10 +948,7 @@ def build_generic(table, records, columns, date_from, date_to, *, summary=False)
         "open_url": open_url,
         "orders": None,
         "time_rows": trend,
-        "legacy_note": (
-            "Nguồn lịch sử; không áp quy tắc riêng của Vận đơn mới."
-            if table.code == "van_don" else ""
-        ),
+        "legacy_note": "",
     }
 
 

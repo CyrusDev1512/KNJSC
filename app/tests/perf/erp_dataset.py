@@ -31,7 +31,7 @@ else:
    u=User.objects.create_user(f"erp_{kind}_{n}",password="erp-test-only-2026")
    UserProfile.objects.create(user=u,full_name=f"ERP {kind} staff {n}",rank="staff",department=dept,team=team,must_change_password=False)
    users.append(u)
-  table=TableDef.objects.create(code="van_don_moi" if kind=="vd" else f"bao_cao_{kind}",name=f"ERP {kind}",department=dept,created_by=manager)
+  table=TableDef.objects.create(code="van_don" if kind=="vd" else f"bao_cao_{kind}",name=f"ERP {kind}",department=dept,created_by=manager)
   specs=[("Ngày","ngay","date","date"),("Marketer" if kind=="mkt" else "Sale","marketer" if kind=="mkt" else "sale","text","seller"),("Sản phẩm","san_pham","choice","product"),("Số Mess","so_mess","integer",""),("Số đơn","so_don","integer",""),("Doanh số","doanh_so","money","revenue"),("Thị trường","thi_truong","choice","")]
   if kind=="mkt":specs.append(("CPQC","cpqc","money",""))
   form=FormDef.objects.create(code=f"bc_{kind}_ngay",name=f"Báo cáo {kind}",table=table,department=dept,created_by=manager)

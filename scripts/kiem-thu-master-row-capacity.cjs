@@ -9,7 +9,7 @@ for(const count of [100000,300000]){
  const page=await context.newPage(),cdp=await context.newCDPSession(page),errors=[],requests=[];let writes=0;
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.url().includes('/du-lieu/'))requests.push(r.url());if(r.url().includes('luu-json'))writes++;});
  try{
-  await page.goto(base+'/bang-tinh/van_don_moi/');await page.locator('.mg-cell[data-id]').first().waitFor();
+  await page.goto(base+'/bang-tinh/van_don/');await page.locator('.mg-cell[data-id]').first().waitFor();
   assert.equal((await page.evaluate(()=>window.KNJSC_MASTER.diagnostics())).total,count);
   await page.evaluate(()=>{window.rowTimings=[];document.addEventListener('pointermove',e=>{if(!(e.buttons&1)||!document.querySelector('.mg-resizing-row'))return;const start=performance.now();requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>rowTimings.push(performance.now()-start))));},true);});
   const before=requests.length,b=await page.locator('[data-row-resize="0"]').boundingBox();

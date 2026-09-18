@@ -12,7 +12,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 client=requests.Session();client.cookies['sessionid']=m['actors'][0]['session']
 results=[]
 for value in ['a'*32,'invalid-request-id']:
-    response=client.get('https://crm-opt-proxy:18443/bang-tinh/van_don_moi/du-lieu/',
+    response=client.get('https://crm-opt-proxy:18443/bang-tinh/van_don/du-lieu/',
         params={'protocol':2,'f_ma_don':m['actors'][0]['code']},headers={'Host':'crm.test.invalid','X-Request-ID':value},verify=False,timeout=10)
     assert response.status_code==200
     request_id=response.headers['X-Request-ID']

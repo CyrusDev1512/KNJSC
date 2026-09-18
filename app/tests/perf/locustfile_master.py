@@ -15,7 +15,7 @@ assert int(os.environ['MASTER_USERS']) in (10, 20)
 slots = itertools.count()
 samples = []
 started = time.monotonic()
-base = '/bang-tinh/van_don_moi/'
+base = '/bang-tinh/van_don/'
 
 @events.request.add_listener
 def record(request_type, name, response_time, response_length, exception, **kwargs):

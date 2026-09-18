@@ -9,7 +9,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
   const browser=await chromium.launch({channel:'chrome',headless:true});
   const context=await browser.newContext({viewport:{width:1440,height:900},permissions:['clipboard-read','clipboard-write']});
   const page=await context.newPage(),errors=[],metrics={};page.on('pageerror',e=>errors.push(e.message));
-  const grid='/bang-tinh/van_don_moi/?sap=ma_don';
+  const grid='/bang-tinh/van_don/?sap=ma_don';
   async function open(url=grid){await page.goto(base+url);await page.locator('.mg-cell[data-id]').first().waitFor();}
   async function saved(){await page.keyboard.press('Control+s');await page.waitForFunction(()=>document.getElementById('bt-trang-thai').textContent==='Đã lưu');await page.locator('.mg-cell[data-id]').first().waitFor();}
   async function cell(code,r=0){const c=page.locator(`.mg-cell[data-r="${r}"][data-code="${code}"]`);if(!await c.count())await page.locator('#mg-viewport').evaluate((e,code)=>{const names=JSON.parse(document.getElementById('mg-config').textContent);e.scrollLeft=code==='ghi_chu'?3000:0;},code);await c.waitFor();return c;}
@@ -51,7 +51,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
     for(let i=0;i<5;i++)await page.keyboard.press('Shift+ArrowDown');
     await page.keyboard.press('Control+c');await page.getByText('Đã sao chép 6 ô.',{exact:true}).waitFor();
     assert.equal((await page.evaluate(()=>navigator.clipboard.readText())).split('\r\n').length,6);
-    await open('/bang-tinh/van_don_moi/?f_ma_don=MASTER-00000');
+    await open('/bang-tinh/van_don/?f_ma_don=MASTER-00000');
     const note=await cell('ghi_chu');await note.click();await page.locator('#mg-reader').waitFor();assert.match(await page.locator('#mg-reader').textContent(),/Nội dung dài/);
     await page.keyboard.press('Escape');await note.dblclick({delay:120});await page.locator('#mg-editor textarea').waitFor();
     const before=await dimensions(),textarea=page.locator('#mg-editor textarea');await textarea.fill('Ghi chú tiếng Việt\nDòng thứ hai');
@@ -64,9 +64,9 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
     await (await cell('ghi_chu')).dblclick({delay:120});assert.equal(await page.locator('#mg-editor textarea').inputValue(),'Ghi chú tiếng Việt\nDòng thứ hai');await page.keyboard.press('Escape');
     // Cùng ô thay đổi giữa lúc đọc và lưu → không ghi đè.
     await (await cell('ghi_chu')).dblclick({delay:120});await page.locator('#mg-editor textarea').fill('Bản nháp của tôi');
-    const snapshot=await context.request.get(base+'/bang-tinh/van_don_moi/du-lieu/?f_ma_don=MASTER-00000').then(r=>r.json());const row=snapshot.rows[0];
+    const snapshot=await context.request.get(base+'/bang-tinh/van_don/du-lieu/?f_ma_don=MASTER-00000').then(r=>r.json());const row=snapshot.rows[0];
     const token=await page.locator('[name=csrfmiddlewaretoken]').first().inputValue();
-    const changed=await context.request.post(base+'/bang-tinh/van_don_moi/luu-json/',{headers:{'X-CSRFToken':token,Referer:base+grid},data:{operation:require('crypto').randomUUID(),cells:[{id:row.id,column:'ghi_chu',old:row.cells.ghi_chu.value,value:'Đồng nghiệp đã sửa'}]}});assert.equal(changed.status(),200);
+    const changed=await context.request.post(base+'/bang-tinh/van_don/luu-json/',{headers:{'X-CSRFToken':token,Referer:base+grid},data:{operation:require('crypto').randomUUID(),cells:[{id:row.id,column:'ghi_chu',old:row.cells.ghi_chu.value,value:'Đồng nghiệp đã sửa'}]}});assert.equal(changed.status(),200);
     await page.locator('#mg-editor button[type=submit]').click();await page.keyboard.press('Control+s');await page.waitForFunction(()=>document.getElementById('bt-trang-thai').textContent==='Xung đột');assert.equal(await page.locator('#mg-editor textarea').inputValue(),'Bản nháp của tôi');
     await page.getByRole('button',{name:'Bỏ bản nháp',exact:true}).click();
     // Server đã lưu nhưng mất phản hồi: giữ nháp và gửi lại đúng UUID.
@@ -78,11 +78,11 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
     await page.getByRole('button',{name:'Thử lại',exact:true}).click();await saved();page.off('request',capture);
     assert.equal(operations.length,2);assert.equal(operations[0],operations[1]);
     // Clipboard ghi thật vào hai ô liền kề, kèm số 0 đầu và tiếng Việt.
-    await open('/bang-tinh/van_don_moi/?f_ma_don=MASTER-00000');
+    await open('/bang-tinh/van_don/?f_ma_don=MASTER-00000');
     await (await cell('bang')).click();
     await page.evaluate(()=>navigator.clipboard.writeText('00123\tThành phố Việt Nam'));
     await page.keyboard.press('Control+v');await page.locator('.mg-cell[data-code="bang"][data-r="0"]').filter({hasText:'00123'}).waitFor();await saved();
-    const pasted=await context.request.get(base+'/bang-tinh/van_don_moi/du-lieu/?f_ma_don=MASTER-00000').then(r=>r.json());
+    const pasted=await context.request.get(base+'/bang-tinh/van_don/du-lieu/?f_ma_don=MASTER-00000').then(r=>r.json());
     assert.equal(pasted.rows[0].cells.bang.value,'00123');assert.equal(pasted.rows[0].cells.thanh_pho.value,'Thành phố Việt Nam');
     await (await cell('bang')).click();await page.keyboard.press('Control+c');await page.getByText('Đã sao chép 1 ô.',{exact:true}).waitFor();
     assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),'00123');
@@ -90,7 +90,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
     assert.match(clipboardHtml,/mso-number-format/);assert.match(clipboardHtml,/00123/);
 
     // Phân công và chi tiết giữ đường ghi chuyên dụng.
-    await open('/bang-tinh/van_don_moi/?f_ma_don=MASTER-00000');await (await cell('ma_don')).click();await page.locator('#mg-more-button').click();await page.locator('#mg-assign').click();
+    await open('/bang-tinh/van_don/?f_ma_don=MASTER-00000');await (await cell('ma_don')).click();await page.locator('#mg-more-button').click();await page.locator('#mg-assign').click();
     await page.locator('#vd-assignment [name=delivery]').selectOption(String(fixture.delivery));
     await page.locator('#vd-assignment-save').click();await page.waitForFunction(()=>!document.getElementById('vd-assignment').open);
     // Thu quyền ngay trước poll đầu tiên: editor và dòng phải bị gỡ.
@@ -98,7 +98,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
     try{
       await staffPage.goto(base+'/dang-nhap/');await staffPage.locator('[name=username]').fill('staff_vd');await staffPage.locator('[name=password]').fill('matkhau-kiem-thu-1');
       await Promise.all([staffPage.waitForURL(u=>!u.pathname.includes('dang-nhap')),staffPage.locator('button[type=submit]').click()]);
-      await staffPage.goto(base+'/bang-tinh/van_don_moi/?f_ma_don=MASTER-00000');await staffPage.locator('.mg-cell[data-id]').first().waitFor();
+      await staffPage.goto(base+'/bang-tinh/van_don/?f_ma_don=MASTER-00000');await staffPage.locator('.mg-cell[data-id]').first().waitFor();
       await staffPage.locator('#mg-viewport').evaluate(e=>e.scrollLeft=3000);await staffPage.locator('.mg-cell[data-code="ghi_chu"][data-id]').first().dblclick({delay:120});await staffPage.locator('#mg-editor textarea').fill('Nháp trước chuyển giao');
       const assignment=await context.request.get(base+'/van-don/phan-cong/?row='+pasted.rows[0].id).then(r=>r.json());
       const revoked=await context.request.post(base+'/van-don/phan-cong/',{headers:{'X-CSRFToken':token,Referer:base+grid},data:{versions:{[pasted.rows[0].id]:assignment.rows[0].version},changes:{delivery:null}}});assert.equal(revoked.status(),200);
@@ -106,7 +106,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
       await staffPage.waitForFunction(()=>document.getElementById('mg-count').textContent.startsWith('0 dòng'),{},{timeout:12000});
       assert.equal(await staffPage.locator('.mg-cell[data-id]').count(),0);
     }finally{await staffContext.close();}
-    await open('/bang-tinh/van_don_moi/?f_ma_don=MASTER-00000');await (await cell('san_pham')).dblclick({delay:120});await page.locator('#vd-detail form').waitFor();await page.keyboard.press('Escape');
+    await open('/bang-tinh/van_don/?f_ma_don=MASTER-00000');await (await cell('san_pham')).dblclick({delay:120});await page.locator('#vd-detail form').waitFor();await page.keyboard.press('Escape');
     await open();await page.locator('#mg-filters-button').click();await page.locator('#mg-filters input[name="tim"]').fill('Khách kiểm thử 0');await page.locator('#mg-filters form button').first().click();await page.waitForURL(u=>u.searchParams.get("tim")==="Khách kiểm thử 0");await page.waitForFunction(()=>document.getElementById('mg-count').textContent.startsWith('1 dòng'));
     await page.reload();await page.locator('.mg-cell[data-id]').first().waitFor();assert.match(await page.locator('#mg-count').textContent(),/^1 dòng/);
     // Hai truy vấn liên tiếp: phản hồi tìm kiếm cũ về trễ không đè kết quả mới.

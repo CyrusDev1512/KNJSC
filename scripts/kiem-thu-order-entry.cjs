@@ -83,7 +83,7 @@ async function login(page,user){
    await page.getByRole('link',{name:'Xem đơn gốc',exact:true}).click();
    assert((await page.locator('.trang-dau').textContent()).includes('quan_tri'));
    assert((await page.getByRole('row').filter({hasText:'Sale đứng đơn'}).textContent()).includes('quan_tri'));
-   await page.goto(base+'/bang-tinh/van_don_moi/?f_ma_don='+ready.order);
+   await page.goto(base+'/bang-tinh/van_don/?f_ma_don='+ready.order);
    await page.locator('#mg-count').filter({hasText:/dòng/}).waitFor();
    for(let i=0;i<30&&!(await page.locator('.mg-cell[data-code="san_pham"]').count());i++){
     await page.locator('#mg-viewport').evaluate(el=>el.scrollLeft+=250);await page.waitForTimeout(80);

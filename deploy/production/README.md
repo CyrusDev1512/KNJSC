@@ -38,6 +38,8 @@ docker compose up -d db broker cache
 docker compose --profile maintenance run --rm static-owner
 docker compose run --rm crm python manage.py migrate --noinput
 docker compose run --rm crm python manage.py tao_bang_van_don
+# Một lần duy nhất khi phát hành ADR-036 (18.09.2026), CHỈ sau backup đã kiểm phục hồi:
+# docker compose run --rm crm python manage.py xoa_bang_van_don_cu --dong-y-xoa-cung --backup-da-lam
 docker compose run --rm crm python manage.py configure_erp_reports
 docker compose run --rm crm python manage.py configure_delivery_daily_report
 docker compose run --rm crm python manage.py collectstatic --noinput

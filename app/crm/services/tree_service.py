@@ -21,6 +21,7 @@ from django.utils import timezone
 
 from forms_builder.models import DataRecord, TableDef
 from forms_builder.services import folder_service, grant_service
+from orders.constants import is_waybill_table
 
 from .sidebar_service import date_column
 
@@ -236,7 +237,7 @@ def _dong_bang(user, table, *, so_dong, cap_nhat, month):
     co_ngay = date_column(list(table.columns.all())) is not None
     return {
         "can_delete":can_delete, "bang": table, "so_dong": so_dong, "cap_nhat": cap_nhat,
-        "can_download_template": table.code in ('van_don', 'van_don_moi', 'van_don_db') and grant_service.can_import(user, table),
+        "can_download_template": is_waybill_table(table) and grant_service.can_import(user, table),
         "quyen": quyen, "lop_quyen": lop, "khong_ngay": not co_ngay,
         "url": grid_url(table, month),
     }

@@ -12,7 +12,7 @@ const percentile=(v,p)=>[...v].sort((a,b)=>a-b)[Math.min(v.length-1,Math.floor(v
     if(last===label){await pause(500);continue;}last=label;
     const context=await browser.newContext({viewport:{width:1440,height:900}});await context.addCookies([{name:'sessionid',value:cfg.session,url:`http://127.0.0.1:${cfg.port}`}]);const page=await context.newPage();
     try{
-      await page.goto(`http://127.0.0.1:${cfg.port}/bang-tinh/van_don_moi/`);await page.locator('.mg-cell[data-id]').first().waitFor({timeout:60000});
+      await page.goto(`http://127.0.0.1:${cfg.port}/bang-tinh/van_don/`);await page.locator('.mg-cell[data-id]').first().waitFor({timeout:60000});
       const cdp=await context.newCDPSession(page);await cdp.send('Performance.enable');
       const values=[];
       for(let i=0;i<100;i++)values.push(await page.evaluate(async i=>{
@@ -86,7 +86,7 @@ const percentile=(v,p)=>[...v].sort((a,b)=>a-b)[Math.min(v.length-1,Math.floor(v
       const ctx=await browser.newContext({viewport:{width:1440,height:900}});await ctx.addCookies([{name:'sessionid',value:cfg.session,url:`http://127.0.0.1:${cfg.port}`}]);const p=await ctx.newPage(),retained={samples:[],ok:false};
       const started=Date.now();
       try{
-        await p.goto(`http://127.0.0.1:${cfg.port}/bang-tinh/van_don_moi/`);await p.locator('.mg-cell[data-id]').first().waitFor();const cdp=await ctx.newCDPSession(p);await cdp.send('Performance.enable');
+        await p.goto(`http://127.0.0.1:${cfg.port}/bang-tinh/van_don/`);await p.locator('.mg-cell[data-id]').first().waitFor();const cdp=await ctx.newCDPSession(p);await cdp.send('Performance.enable');
         for(let minute=0;minute<=30;minute++){
           const wait=started+minute*60000-Date.now();if(wait>0)await pause(wait);
           await p.locator('#mg-viewport').evaluate((e,f)=>e.scrollTop=(e.scrollHeight-e.clientHeight)*f,(minute%10)/10);await pause(300);

@@ -30,7 +30,7 @@ UserProfile.objects.create(user=admin,rank=Rank.ADMIN,must_change_password=False
 c=Client();c.force_login(admin)
 users.append({'role':'admin','index':0,'id':admin.pk,'username':admin.username,'session':c.cookies['sessionid'].value})
 dispatch_service.ensure_waybill_table(actor=admin)
-table=TableDef.objects.get(code='van_don_moi')
+table=TableDef.objects.get(code='van_don')
 products=[Product.objects.create(code=f'test-product-{i}',name=f'San pham TEST {i}',unit='hop') for i in range(8)]
 cols=list(table.columns.all());sellers=[u for u in users if u['role']=='sale'];handlers=[u for u in users if u['role']=='delivery']
 for start in range(0,100000,2000):

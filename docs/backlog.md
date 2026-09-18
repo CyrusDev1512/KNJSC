@@ -1,5 +1,29 @@
 # Backlog
 
+## 18.09.2026 (chiều) — Một bảng vận đơn duy nhất "Vận đơn mới" (ADR-036)
+
+Chủ dự án chốt: cả hệ thống chỉ dùng một bảng vận đơn `van_don`; **xoá cứng** crmThuận
+(`van_don_moi`) và Vận đơn DB (`van_don_db`); **bỏ hẳn** Bảng nhận đơn; **cho phép dòng
+không có Chi tiết sản phẩm**. Đã làm: `ACTIVE_WAYBILL_TABLE_CODE = "van_don"`; `WAYBILL_COLUMNS`
+= 25 cột chuẩn + 9 cột giữ lại; `ensure_waybill_table` tạo mới hoặc nâng cấp tại chỗ
+(`waybill_service.upgrade_schema`, gắn `workflow=waybill`, không ép cột bắt buộc vì tệp thật
+thiếu Mã đơn); `push` ghi thẳng; hook lưới gộp Trùng với profile (`crm/services/waybill_grid.py`,
+TL-35/36 đóng); `prepare_values` chấp nhận không chi tiết và quốc gia trống; xoá
+`destination_service`, `waybill_db_service`, `chuan_bi_bang_nhan_don`, trang/route/nav, cột
+`receives_orders` (migration 0014); lệnh `xoa_bang_van_don_cu --dong-y-xoa-cung --backup-da-lam`;
+`nap_du_lieu_van_don_moi` → `nap_du_lieu_van_don`, `nap_khach_mau` và `seed_perf` (ghi thô) vào
+`van_don`; ma trận phân quyền: Sale vào lưới vận đơn = "Chuyển Lên đơn". Bài mới
+`crm/tests/test_mot_bang_van_don.py` (AC-36.1 → 36.7); xoá 8 tệp test và 3 script Bảng nhận đơn;
+gạch AC-11.39, AC-18.9; ~40 script/perf đổi URL. Tài liệu: ADR-036, đánh dấu ADR-018/029/034,
+docs/02/04/05, CLAUDE.md, `deploy/production/README.md`, `docs/daily-tasks.md` (runbook phát hành
+có bước xoá cứng sau backup). Kiểm: xem test-log 18.09 (chiều) và
+[biên bản](kiem-chung-mot-bang-van-don-20260918.md).
+Kiểm local: pytest 2.384 đạt / 0 đỏ (không `cham`), `cham` 13 đạt 2 xfail; DB dev `xoa_bang_van_don_cu` xoá 385.000 dòng giả trong 56 s; Chromium 8 điểm đạt (xem biên bản). Sửa thêm nhờ kiểm: `_payment_label` nhận "Đã Thanh Toán" của tệp thật; câu chú thích Lên đơn; teardown `test_hieu_nang` (TL-42).
+**Còn nợ:** phát hành VPS (CLI ở máy chủ dự án, phải backup rồi mới chạy lệnh xoá cứng —
+6.667 + 2 dòng mất vĩnh viễn); TL-44 dòng PTTT "Cheque" của tệp thật bị từ chối (ADR-031) — chủ dự án chốt giữ hay thêm nhãn lịch sử; TL-43 lệnh xoá 50.000 dòng treo một lần chưa tái hiện; script Codex chỉ `node --check`, chưa chạy lại; các bảng đặc tả
+"Quản trị nội bộ" (Đối soát kế toán 3 lần, Đối soát với kho, trạng thái vận chuyển 7 giá trị,
+PTTT 7 loại, báo cáo giữa ca) vẫn chờ chủ dự án chốt.
+
 ## 18.09.2026 (chiều) — Phát hành TL-41 lên VPS: image `knjsc-app:5b68dce-tl41`
 
 Chủ dự án chọn "sửa toàn bộ": sửa tay hai cột `loai_tien` trên VPS trước (VND → VND/USD/CAD/PHP, 101 dòng cũ

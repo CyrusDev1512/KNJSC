@@ -18,7 +18,7 @@ const {chromium}=require('playwright'),path=require('path'),fs=require('fs'),ass
    assert.equal(await page.locator('.vd-items tbody tr').count(),1);
    for(const width of [1440,390]){
      await page.setViewportSize({width,height:900});
-     await page.goto(base+'/bang-tinh/van_don_moi/');await page.locator('#mg-count').filter({hasText:/dòng/}).waitFor();
+     await page.goto(base+'/bang-tinh/van_don/');await page.locator('#mg-count').filter({hasText:/dòng/}).waitFor();
      assert.equal(await page.locator('#vd-entry,#vd-statistics').count(),0);
      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
      await page.screenshot({path:path.join(out,`grid-${width}.png`)});

@@ -10,7 +10,7 @@ from . import record_service
 
 def check(table, numbered_rows, columns):
     policy = record_policies.for_table(table)
-    check_codes = table.code in ('van_don', 'van_don_moi', 'van_don_db') or getattr(table, 'workflow', '') == 'waybill'
+    check_codes = getattr(table, 'workflow', '') == 'waybill' or table.code == 'van_don'
     order_column = next((c for c in columns if c.code == 'ma_don'), None)
     check_codes = check_codes and order_column is not None
     choices = {c.code: choice_registry.snapshot(choice_registry.for_column(c))

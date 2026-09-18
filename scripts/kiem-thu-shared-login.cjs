@@ -51,7 +51,6 @@ const result={ok:false,cases:[],errors:[]};
    await crm.locator('[name=market]').selectOption({label:'Hoa Kỳ'});await crm.locator('[name=currency]').selectOption('USD');await crm.locator('[name=payment_method]').selectOption({label:'Thẻ'});
    await crm.locator('[name=product]').selectOption(ready.product);await crm.locator('[name=quantity]').fill('2');await crm.locator('[name=unit_price]').fill('12.50');
    await crm.getByRole('button',{name:'Lưu đơn',exact:true}).click();await crm.locator('.vd-success').waitFor();
-   const access=await crm.goto(origins.crm+'/cau-hinh/nhan-don/');assert.equal(access.status(),user==='quan_tri'?200:403);
    await crm.goto(origins.crm+'/');
    await logout(crm);
    await second.goto(origins[other]+'/');assert(second.url().includes('dang-nhap'));

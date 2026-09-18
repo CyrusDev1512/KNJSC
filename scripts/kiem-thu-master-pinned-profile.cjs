@@ -14,7 +14,7 @@ const out=path.resolve(process.env.PINNED_EVIDENCE||'.agents/design-state/review
    });
    if(phase==='before')await page.route('**/master-grid.css*',route=>route.fulfill({contentType:'text/css',body:fs.readFileSync(path.join(out,'before.css'),'utf8')}));
    page.on('request',r=>{if(r.url().includes('/du-lieu/'))requests.push(r.url());});
-   await page.goto(base+'/bang-tinh/van_don_moi/');await page.locator('.mg-cell[data-r="0"][data-id]').first().waitFor();
+   await page.goto(base+'/bang-tinh/van_don/');await page.locator('.mg-cell[data-r="0"][data-id]').first().waitFor();
    const measured=await page.evaluate(async()=>{
     const v=document.getElementById('mg-viewport'),frame=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))),long=[];
     await frame();window.renderSamples=[];const observer=new PerformanceObserver(l=>long.push(...l.getEntries().map(e=>e.duration)));observer.observe({type:'longtask'});

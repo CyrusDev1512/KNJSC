@@ -54,7 +54,7 @@ for filename in ["mixed_settings.py", "mixed_wsgi.py", "mixed_metrics.py", "setu
         text = text.replace("if T0 and time.time()-T0>=WARM:", "if T0 and WARM<=time.time()-T0<=WARM+float(os.environ.get('MEASURE_SECONDS','3600')):")
         text = text.replace("duration=max(0,time.time()-T0-WARM)", "duration=max(0,min(time.time()-T0-WARM,float(os.environ.get('MEASURE_SECONDS','3600'))))")
         text = text.replace("orders=[];attempts=[];writes={};", "orders=[];attempts=[];writes={};cell_attempts=[];cell_acks=[];")
-        text = text.replace("   with self.client.post('/bang-tinh/van_don_moi/luu-json/'", "   cell_attempts.append({'id':row['id'],'value':val,'actor':self.actor['username']})\n   with self.client.post('/bang-tinh/van_don_moi/luu-json/'")
+        text = text.replace("   with self.client.post('/bang-tinh/van_don/luu-json/'", "   cell_attempts.append({'id':row['id'],'value':val,'actor':self.actor['username']})\n   with self.client.post('/bang-tinh/van_don/luu-json/'")
         text = text.replace("else:writes[str(row['id'])]=val;self.version=''", "else:writes[str(row['id'])]=val;cell_acks.append({'id':row['id'],'value':val,'actor':self.actor['username']});self.version=''")
         text = text.replace("'writes':writes,'all_requests'", "'writes':writes,'cell_attempts':cell_attempts,'cell_acks':cell_acks,'all_requests'")
     if filename == "verify.py":

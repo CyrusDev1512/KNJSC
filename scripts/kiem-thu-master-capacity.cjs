@@ -14,7 +14,7 @@ const out=path.resolve(__dirname,'../.agents/design-state/review/master'),sleep=
    const cdp=await context.newCDPSession(page);
    try{
      await page.addInitScript(()=>{window.longTasks=[];new PerformanceObserver(list=>window.longTasks.push(...list.getEntries().map(e=>e.duration))).observe({type:'longtask',buffered:true});});
-     const start=Date.now();await page.goto(base+'/bang-tinh/van_don_moi/?moi_trang=100');
+     const start=Date.now();await page.goto(base+'/bang-tinh/van_don/?moi_trang=100');
      const selector=m.stage==='after'?'.mg-cell[data-id]':'#luoi-vd td[id]';await page.locator(selector).first().waitFor();
      const metrics={stage:m.stage,rows:m.rows,readyMs:Date.now()-start,interactions:[],scroll:[]};
      for(let i=0;i<30;i++){

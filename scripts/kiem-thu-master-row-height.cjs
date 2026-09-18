@@ -1,7 +1,7 @@
 /* Hồi quy chiều cao hàng; chỉ gọi trong fixture Chrome dùng DB test. */
 const assert=require('assert/strict');
 module.exports=async function rowHeightChecks({page,context,base}){
-  const grid=base+'/bang-tinh/van_don_moi/?sap=ma_don';
+  const grid=base+'/bang-tinh/van_don/?sap=ma_don';
   const open=async(url=grid)=>{await page.goto(url);await page.locator('.mg-cell[data-id]').first().waitFor();};
   const row=r=>page.locator(`.mg-row[aria-rowindex="${r+2}"]`);
   const handle=r=>page.locator(`[data-row-resize="${r}"]`);
@@ -28,14 +28,14 @@ module.exports=async function rowHeightChecks({page,context,base}){
   const stored=await page.evaluate(()=>{const c=JSON.parse(document.getElementById('mg-config').textContent);return JSON.parse(localStorage.getItem(`kn-master:${c.user}:${c.table}`));});
   assert.equal(stored.rowHeights[id],160);assert(Object.entries(stored.rowHeights).every(([id,h])=>/^\d+$/.test(id)&&typeof h==='number'));
   // Cùng ID ở vị trí khác sau lọc; vị trí cũ không được truyền chiều cao.
-  await open(base+'/bang-tinh/van_don_moi/?f_ma_don=MASTER-00001');assert.equal(await height(0),28);
-  await open(base+'/bang-tinh/van_don_moi/?f_ma_don='+encodeURIComponent(firstCode));assert.equal(await height(0),160);
+  await open(base+'/bang-tinh/van_don/?f_ma_don=MASTER-00001');assert.equal(await height(0),28);
+  await open(base+'/bang-tinh/van_don/?f_ma_don='+encodeURIComponent(firstCode));assert.equal(await height(0),160);
   await open(grid+'&chieu=giam');assert.equal(await height(0),28);
   const last=(await page.evaluate(()=>window.KNJSC_MASTER.diagnostics())).total-1;
   await page.locator('#mg-viewport').focus();await page.keyboard.press('Control+End');await page.locator(`.mg-cell[data-r="${last}"][data-id]`).first().waitFor();
   assert.equal(await page.locator(`.mg-cell[data-r="${last}"]`).first().getAttribute('data-id'),id);assert.equal(await height(last),160);
   // Chữ dài xuống dòng và còn cắt dọc vẫn mở vùng đọc.
-  await open(base+'/bang-tinh/van_don_moi/?f_ma_don=MASTER-00001');await drag(0,92);
+  await open(base+'/bang-tinh/van_don/?f_ma_don=MASTER-00001');await drag(0,92);
   await page.locator('#mg-viewport').evaluate(e=>e.scrollLeft=3000);
   const note=page.locator('.mg-cell[data-code="ghi_chu"][data-r="0"]');await note.waitFor();
   assert.equal(await note.evaluate(e=>getComputedStyle(e).whiteSpace),'pre-wrap');await note.click();await page.locator('#mg-reader').waitFor();await page.screenshot({path:require('path').resolve(__dirname,'../.agents/design-state/review/master/row-height-reader.png')});

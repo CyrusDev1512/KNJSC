@@ -1,4 +1,4 @@
-"""Vận đơn mới theo CRM Tân — ADR-018, không thay thế các bài bảng cũ."""
+"""Vận đơn mới theo CRM Tân — ADR-018; từ ADR-036 là bảng vận đơn duy nhất `van_don`."""
 import json
 from datetime import datetime, timezone as dt_timezone
 from decimal import Decimal
@@ -21,22 +21,23 @@ from orders.models import Product, Order, OrderLine, WaybillItem, WaybillAssignm
 from orders.services import dispatch_service, order_service, waybill_service as service
 
 pytestmark = pytest.mark.django_db
-GRID = "/bang-tinh/van_don_moi/"
+GRID = "/bang-tinh/van_don/"
 ENTRY = "/van-don/len-don/"
 STATS = "/thong-ke/"
 
 
 def get_stats(client, params=None):
-    return client.get(STATS, {"nguon": "van_don_moi", **(params or {})})
+    return client.get(STATS, {"nguon": "van_don", **(params or {})})
 
 
 @pytest.fixture
 def setup(departments, nguoi_dung, settings):
     settings.GRID_ONLY_TABLES = set()
-    old = dispatch_service.ensure_waybill_table(actor=nguoi_dung["admin"])
-    new = TableDef.all_objects.get(code=ACTIVE_WAYBILL_TABLE_CODE)
+    # ADR-036: một bảng duy nhất — hai vị trí đầu cùng là `van_don` để các bài cũ
+    # (`setup[0]` "bảng cũ", `setup[1]` "bảng mới") không phải viết lại.
+    table = dispatch_service.ensure_waybill_table(actor=nguoi_dung["admin"])
     products = [Product.objects.create(name="Sản phẩm thử", code=f"new-{i}") for i in range(2)]
-    return old, new, products
+    return table, table, products
 
 
 def lines(products, paid="0.00"):
@@ -59,56 +60,6 @@ def form_data(products):
             "product": [p.code for p in products], "quantity": [2, 2], "unit_price": ["10.10", "10.10"]}
 
 
-def test_initialize_preserves_legacy_and_copies_live_grants_once(departments, nguoi_dung):
-    """AC-18.1 — Khởi tạo trên dữ liệu cũ, không chép dòng; quyền chỉ sao một lần."""
-    old = TableDef.objects.create(code="van_don", name="Vận đơn trước", department=departments["vd"], is_shared=True)
-    historical = DataRecord.objects.create(table=old, data={"ma_don": "LICH-SU"}, department=departments["vd"])
-    live = grant_service.grant(table=old, user=nguoi_dung["staff_mkt"], action=GrantAction.VIEW, actor=nguoi_dung["admin"])
-    revoked = grant_service.grant(table=old, user=nguoi_dung["manager_mkt"], action=GrantAction.VIEW, actor=nguoi_dung["admin"])
-    grant_service.revoke(revoked, actor=nguoi_dung["admin"])
-    dispatch_service.ensure_waybill_table()
-    new = TableDef.all_objects.get(code=ACTIVE_WAYBILL_TABLE_CODE)
-    old.refresh_from_db(); historical.refresh_from_db()
-    assert new.name == "crmThuận"
-    assert old.name == "Vận đơn mới" and old.code == "van_don"
-    assert historical.table_id == old.pk and historical.data == {"ma_don": "LICH-SU"}
-    assert not DataRecord.all_objects.filter(table=new).exists()
-    assert list(new.grants.values_list("user_id", flat=True)) == [live.user_id]
-    copied = new.grants.get()
-    grant_service.revoke(copied, actor=nguoi_dung["admin"])
-    dispatch_service.ensure_waybill_table()
-    assert TableDef.all_objects.filter(code=ACTIVE_WAYBILL_TABLE_CODE).count() == 1
-    assert not new.grants.filter(deleted_at__isnull=True).exists()
-    assert old.grants.filter(pk=live.pk, deleted_at__isnull=True).exists()
-    assert new.columns.count() == len(service.COLUMNS)
-
-
-def test_legacy_waybill_name_and_columns_follow_current_note(departments, nguoi_dung):
-    """Tên hiển thị và thứ tự mới chạy lại an toàn, không làm mất cột tùy biến."""
-    old = TableDef.objects.create(code="van_don", name="Vận đơn cũ", department=departments["vd"], is_shared=True)
-    from forms_builder.meaning import FieldType
-    from forms_builder.models import ColumnDef
-    ColumnDef.objects.create(table=old, code="ZIP", name="ZIP tùy biến", field_type=FieldType.TEXT, order=1)
-    first_id = old.pk
-
-    dispatch_service.ensure_waybill_table(actor=nguoi_dung["admin"])
-    dispatch_service.ensure_waybill_table(actor=nguoi_dung["admin"])
-    old.refresh_from_db()
-    codes = list(old.columns.order_by("order", "id").values_list("code", flat=True))
-
-    assert old.pk == first_id and old.name == "Vận đơn mới"
-    assert old.columns.filter(code="phu_trach_cskh", name="Phụ trách CSKH").count() == 1
-    assert codes[:6] == ["ngay", "dia_chi", "thanh_pho", "bang", "quoc_gia", "zipcode"]
-    assert codes.index("san_pham") < codes.index("so_luong") < codes.index("gia_tien")
-    assert codes.index("nguoi_ban") < codes.index("phu_trach_cskh") < codes.index("mkt")
-    assert codes.index("mkt") < codes.index("ma_don") < codes.index("trang_thai_vc")
-    assert codes.index("ngay_tt") < codes.index("ten_khach") < codes.index("so_tien_tt")
-    assert codes.index("bill") < codes.index("ghi_chu") < codes.index("doi_soat")
-    assert "ZIP" in codes
-    assert codes[-1] == "don_vi_phu"
-    assert TableDef.all_objects.get(code=ACTIVE_WAYBILL_TABLE_CODE).name == "crmThuận"
-
-
 def test_erp_and_crm_each_create_one_new_snapshot(client, setup, nguoi_dung):
     """AC-18.2 — ERP và CRM dùng một dịch vụ, một dòng mới, ngày Việt Nam, người bán tự lấy."""
     actor = nguoi_dung["staff_sale_1"]
@@ -123,10 +74,9 @@ def test_erp_and_crm_each_create_one_new_snapshot(client, setup, nguoi_dung):
     assert response.status_code == 200, response.content.decode()
     assert Order.objects.count() == 2
     assert DataRecord.objects.filter(table=setup[1]).count() == 2
-    assert not DataRecord.objects.filter(table=setup[0]).exists()
     assert WaybillItem.objects.count() == 4
     assert Order.objects.latest("pk").seller_id == actor.pk
-    assert all("black_list" not in r.data for r in DataRecord.objects.filter(table=setup[1]))
+    assert not any(r.data.get("black_list") for r in DataRecord.objects.filter(table=setup[1]))   # khách thường: cột cảnh báo trống
 
 
 def test_snapshot_failure_rolls_back_all_rows(client, setup, nguoi_dung):
@@ -288,7 +238,7 @@ def test_export_import_roundtrip_and_preview_ambiguous(client, setup, nguoi_dung
     job = import_service.prepare(setup[1], SimpleUploadedFile("bad.xlsx", buffer.getvalue()), actor=nguoi_dung["admin"])
     assert job.summary["preview_error_count"] == 1 and job.summary["preview_errors"][0][0] == 2
     client.force_login(nguoi_dung["admin"])
-    html = client.get(f"/bang/van_don_moi/nhap/{job.pk}/").content.decode()
+    html = client.get(f"/bang/van_don/nhap/{job.pk}/").content.decode()
     assert "Chi tiết sản phẩm phải là danh sách JSON" in html
 
 
