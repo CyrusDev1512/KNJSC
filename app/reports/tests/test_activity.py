@@ -278,7 +278,7 @@ def test_day_view_shows_person_and_leader_in_scope(client, marketing_scope, nguo
     assert (identity_label(nguoi_dung["leader_sale_2"]) in leaders) == ("staff_sale_2" in persons)
     assert r.context["label_span"]==3
     html=r.content.decode()
-    assert "<th scope=\"col\">Nhân sự</th><th scope=\"col\">Leader</th>" in html
+    assert 'class="report-identity id-nhan-su" data-pos="2">Nhân sự</th>' in html and 'id-leader report-identity-edge" data-pos="3">Leader</th>' in html   # cột định danh ghim (AC-22.13)
     # Lọc theo nhân sự: chỉ còn dòng của người đó; người ngoài phạm vi bị chặn
     me=nguoi_dung["staff_sale_1"].pk
     r2=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":me})

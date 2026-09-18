@@ -1,5 +1,17 @@
 # Backlog
 
+## 18.09.2026 (tối, CLI) — Bố cục Báo cáo tổng hợp theo bản vẽ (Việc A); Việc B bỏ vì Codex đã làm theo THUANLT
+
+Theo bàn giao 18.09 và bản vẽ `docs/tham-khao/ban-ve-bao-cao-tong-hop-20260918.html`: bộ lọc ba trạng
+thái `data-filters` (mở 260px, thanh dọc 48px có huy hiệu, dưới 900px ngăn kéo mặc định đóng), nhớ phiên
+`{filters, focus}` đọc được khoá cũ, Toàn màn hình → thanh dọc, Escape đóng ngăn kéo trước; hàng chip bộ
+lọc (kể cả Tệp) với × bỏ đúng tham số; bảng ghim tiêu đề + dòng Tổng + cột định danh trái theo lớp
+`.report-identity` tổng quát (vị trí 1–4, `left` bằng biến CSS), bỏ rule cắt tên; thay trọn khối CSS
+`.report-*`, giữ Chọn nhanh kỳ và ô Tệp khách hàng của Codex — AC-22.13. Việc B (mã nhân sự) CLI đã làm
+xong local theo quy tắc `NTLH01` đúng bàn giao sáng, nhưng Codex đã đẩy ADR-037 theo sheet Quy ước
+(`THUANLT`) cùng tên trường và migration; bản CLI bỏ, giữ nhánh cục bộ `backup/a-b-local-20260918`.
+Kiểm: `reports/tests` (kèm hai bài Chromium mới) + `core/tests/test_giao_dien.py` + `tests/test_truy_vet.py` trên đầu nhánh `3748ea9` của Codex: 0 đỏ sau khi sửa hai khẳng định (`test_activity` so header cột định danh, chip Nhân sự theo nhãn mã của ADR-037); bộ đếm docs/06 225 tiêu chí, 212 tự động, 188 có bài kiểm; Chromium 8020 sau gộp (`storage/bo-cuc-bao-cao/sau-gop-*.png`): 1440 mở, 390 đóng, chip đủ, 5 nút Chọn nhanh, nhãn `mã · họ tên` của Codex, không tràn ngang, không lỗi JS. [Biên bản](kiem-chung-bo-cuc-bao-cao-tong-hop-20260918.md).
+
 ## 18.09.2026 (tối) — Bảy PTTT theo sheet Vận đơn (đóng TL-44, bổ sung ADR-031)
 
 Chủ dự án chốt: PTTT căn cứ sheet "Vận đơn" của tệp Quản trị nội bộ — Zelle, PayPal, Visa/Website,

@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 18.09.2026 (tối, CLI) — Bố cục Báo cáo tổng hợp (A)
+
+**Finished local:** bố cục theo bản vẽ (ba trạng thái bộ lọc, chip, ghim cột định danh, gộp Chọn nhanh và Tệp
+của Codex, AC-22.13). Việc B bỏ vì Codex đã làm (ADR-037). Kiểm: `reports/tests` (kèm hai bài Chromium mới) + `core/tests/test_giao_dien.py` + `tests/test_truy_vet.py` trên đầu nhánh `3748ea9` của Codex: 0 đỏ sau khi sửa hai khẳng định (`test_activity` so header cột định danh, chip Nhân sự theo nhãn mã của ADR-037); bộ đếm docs/06 225 tiêu chí, 212 tự động, 188 có bài kiểm; Chromium 8020 sau gộp (`storage/bo-cuc-bao-cao/sau-gop-*.png`): 1440 mở, 390 đóng, chip đủ, 5 nút Chọn nhanh, nhãn `mã · họ tên` của Codex, không tràn ngang, không lỗi JS.
+[Biên bản](kiem-chung-bo-cuc-bao-cao-tong-hop-20260918.md). **To do:** đi cùng đợt phát hành tối 18.09 của Codex.
+
 ## 18.09.2026 (tối) — Bảy PTTT theo sheet Vận đơn
 
 **Finished local:** `ACTIVE_PAYMENT_METHODS` 7 loại, migration `orders/0010`, AC-11.9 221/221. **To do:** phát hành cùng ADR-036 (cùng dãy lệnh, `tao_bang_van_don` bổ sung lựa chọn PTTT).
