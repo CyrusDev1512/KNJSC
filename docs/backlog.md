@@ -36,10 +36,11 @@ Theo kế hoạch đã duyệt từ sheet MKT của `Quản trị nội bộ.xls
 - **Chọn nhanh kỳ** (`summary_service.date_presets`, nút trong bộ lọc, JS áp ngay).
 - Kiểm chứng: `pytest -m "not cham"` toàn bộ xanh; diễn tập máy sạch (migrate → du_lieu_mau →
   configure → gan_ma) và xuôi/ngược ba migration; Chrome — xem
-  [biên bản](kiem-chung-trang-mkt-20260918.md). AC mới: AC-4.7, 4.8, 36.1–36.6, 37.1–37.5
+  [biên bản](kiem-chung-trang-mkt-20260918.md). AC mới: AC-4.7, 4.8, 37.1–37.6, 38.1–38.5
   (`docs/04`), bộ đếm `docs/06` cập nhật. **Còn nợ:** Báo cáo Nội dung (D8, đợt sau); hạn nộp
   (N1/H8); tỉ giá KRW; Việc A (bố cục) của bàn giao CLI cần thêm chip `tep` và giữ nút Chọn nhanh.
-  Phát hành VPS theo mục mới trong `daily-tasks.md`.
+  Phát hành VPS theo mục mới trong `daily-tasks.md`; prompt dán vào Claude Code CLI ở máy chủ dự án:
+  [prompt-cli-phat-hanh-adr036-mkt-20260918.md](prompt-cli-phat-hanh-adr036-mkt-20260918.md).
 ## 18.09.2026 (chiều) — Một bảng vận đơn duy nhất "Vận đơn mới" (ADR-036)
 
 Chủ dự án chốt: cả hệ thống chỉ dùng một bảng vận đơn `van_don`; **xoá cứng** crmThuận

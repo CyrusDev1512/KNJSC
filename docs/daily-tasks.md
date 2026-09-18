@@ -1,5 +1,8 @@
 # Daily tasks — KNJSC
 
+Prompt dán vào Claude Code CLI ở máy chủ dự án để làm hai mục bàn giao 18.09 dưới đây (phát hành
+chung ADR-036 + bảy PTTT + ADR-037/038) rồi Việc A: `docs/prompt-cli-phat-hanh-adr036-mkt-20260918.md`.
+
 ## Bàn giao phát hành VPS — 18.09.2026 (tối): trang MKT hoàn thiện (ADR-037, ADR-038, ADR-031 bổ sung)
 
 Đầu nhánh `codex/crm-update-solar-ui` sau commit "Hoan thanh trang MKT…" (xem `docs/backlog.md`
