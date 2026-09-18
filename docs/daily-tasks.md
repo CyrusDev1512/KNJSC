@@ -2,6 +2,10 @@
 
 ## Bàn giao cho Claude Code CLI — 18.09.2026: bố cục Báo cáo tổng hợp + mã nhân sự
 
+> Cập nhật chiều 18.09: Codex đã phát hành `0d970f8` lên VPS (`8c78471`), nên mục
+> "phát hành VPS 17.09" phía dưới **đã xong**, giữ làm lịch sử. Đợt A+B dưới đây khi
+> phát hành sẽ cần thêm `migrate` (org/0005) và lệnh gán mã cũ.
+
 Chủ dự án đã duyệt bản vẽ `docs/tham-khao/ban-ve-bao-cao-tong-hop-20260918.html`
 (mở bằng trình duyệt: thử Thu gọn bộ lọc, Toàn màn hình, đổi sáng/tối, kéo hẹp
 dưới 900px). Dán vào CLI:
@@ -21,7 +25,7 @@ dưới 900px). Dán vào CLI:
 ### Việc A — Bố cục màn hình Báo cáo tổng hợp theo bản vẽ
 
 Tệp đích: `app/templates/reports/activity.html`, `app/static/css/solarpunk.css`
-(thay khối `.report-workspace` … `.sp-report-focus`, dòng ≈252–297, **không** để
+(thay khối `.report-workspace` … `.sp-report-focus`, dòng ≈252–305, **không** để
 hai bộ rule chồng nhau), `app/static/js/report-filters.js`.
 
 - Bộ lọc ba trạng thái qua `data-filters` trên `#report-workspace`: `open` (260px),
@@ -39,15 +43,22 @@ hai bộ rule chồng nhau), `app/static/js/report-filters.js`.
   biến CSS, không cứng `col-ngay`/`col-nhan-su` như bản vẽ. Tiêu đề dài xuống
   hai dòng (`white-space:normal; max-width`), ô số `nowrap`, đệm 8px 10px, 13px,
   `tabular-nums`. Ô định danh không cắt chữ.
+- **ADR-035 (Codex, 18.09) đã thêm cột Nhân sự và Leader vào cách xem theo ngày**
+  (`show_person`, `show_leader`) — giữ nguyên hai cột đó; cả hai là cột định danh
+  cần ghim và **xuống dòng**. Rule mới `.report-identity {max-width:220px; overflow:hidden;
+  text-overflow:ellipsis}` chính là thứ cắt tên mà chủ dự án phàn nàn — **bỏ**, thay
+  bằng `white-space:normal; overflow-wrap:anywhere` như bản vẽ. Sau việc B, ô Nhân sự
+  hiện `PMA01 · Phạm Minh Anh` (nhiều người trong một ngày thì nối bằng dấu phẩy như
+  `StringAgg` đang làm).
 - Chỉ dùng token có sẵn; không thêm thư viện; không đưa `.demo-bar` và nút đổi
   theme của bản vẽ vào app.
 
-### Việc B — Mã nhân sự xuyên hệ thống (ADR-034, viết ADR trước khi sửa)
+### Việc B — Mã nhân sự xuyên hệ thống (ADR-036, viết ADR trước khi sửa; 034 và 035 đã có)
 
 Hiện trạng đã rà: `UserProfile` **không có** trường mã; `core/identity.py` đã
 tập trung `employee_code()` và `display_name()` nhưng `employee_code()` trả tên
 đăng nhập; **10 chỗ đi tắt** tự ghép `username` — `reports/services/activity_service.py`
-dòng 97–104 và 145 (chính Báo cáo tổng hợp), `forms_builder/services/choice_service.py`
+dòng 100–107, 145–147 và 179–180 (chính Báo cáo tổng hợp, gồm cả cột Nhân sự/Leader của ADR-035), `forms_builder/services/choice_service.py`
 47–48, `orders/services/waybill_service.py` 282–283, `orders/services/assignment_service.py`
 72, `crm/services/master_grid_service.py` 309, `forms_builder/query.py` 68,
 `reports/views.py` 103, `crm/choices.py` 26, `crm/payment_views.py` 66,
@@ -67,7 +78,7 @@ chứa tên đăng nhập.
 5. Lệnh `gan_ma_nhan_su_cu`: đổi tên đăng nhập → mã trong các cột định danh của
    bảng động (cột có `meaning=seller` và cột phụ trách), có `--thu` (dry run) và
    ghi nhật ký. Không chạy tự động; ghi vào quy trình phát hành VPS.
-6. `du_lieu_mau` gán mã cho 12 tài khoản. Tài liệu: ADR-034, `docs/02`, `docs/04`
+6. `du_lieu_mau` gán mã cho 12 tài khoản. Tài liệu: ADR-036, `docs/02`, `docs/04`
    (AC mới → cập nhật bộ đếm `docs/06` theo `tests/test_truy_vet.py`), backlog.
 
 ### Kiểm chứng bắt buộc trước khi bàn giao diff
