@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load knjsc %}
 {% load static %}
 {% block tieu_de %}{{ bang.name }} · Kim Ngân JSC{% endblock %}
 {% block ten_trang %}{{ bang.name }}{% endblock %}
@@ -85,7 +85,7 @@
               {# Ô chỉ để xem — ADR-014; lớp màu cột và cảnh báo tính sẵn ở styling.py #}
               <td class="{{lop_o}}"{% if cot.is_computed %} title="Cột tính sẵn, hệ thống tự tính"{% endif %}>{{ gia_tri|default:"—" }}</td>
             {% endfor %}
-            <td class="nho">{{ ban_ghi.created_by.username|default:"—" }}</td>
+            <td class="nho">{{ ban_ghi.created_by|ma|default:"—" }}</td>
           </tr>
         {% empty %}
           <tr><td colspan="{{ cac_cot|length|add:1 }}">

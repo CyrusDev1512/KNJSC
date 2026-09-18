@@ -127,9 +127,11 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-4.1 | Mỗi bộ phận thấy biểu mẫu riêng của mình, không thấy biểu mẫu bộ phận khác | FR-4.1 | Tự động |
 | AC-4.2 | Nộp báo cáo thì thời điểm nộp được ghi lại chính xác | FR-4.2 | Tự động |
 | AC-4.3 | Người dùng xem lại được danh sách báo cáo cũ của mình | FR-4.3 | Tự động |
-| AC-4.4 | Báo cáo đã nộp không sửa được, kể cả khi gọi thẳng đường dẫn sửa | FR-4.4 | Tự động |
+| AC-4.4 | Báo cáo đã nộp không sửa được ngoài luồng sửa có lịch sử (ADR-032): Staff gọi thẳng đường dẫn sửa bị chặn, ghi bằng mã bị chặn; nộp lại cùng ngày không đè bản cũ (ADR-038) | FR-4.4 | Tự động |
 | AC-4.5 | Leader xem được báo cáo của người trong team | FR-4.5 | Tự động |
-| AC-4.6 | Trường mang nhãn Người bán trên biểu mẫu và báo cáo ngày được hệ thống tự ghi họ tên người gửi (thiếu họ tên thì tên đăng nhập); gửi giá trị khác trong yêu cầu cũng không đổi được; ô trên màn hình chỉ đọc, không gửi lên | FR-4.6 | Tự động |
+| AC-4.6 | Trường mang nhãn Người bán trên biểu mẫu và báo cáo ngày được hệ thống tự ghi **mã nhân sự** người gửi (ADR-037; chưa gán mã thì tên đăng nhập); gửi giá trị khác trong yêu cầu cũng không đổi được; ô trên màn hình chỉ đọc, không gửi lên | FR-4.6 | Tự động |
+| AC-4.7 | Một người nộp cùng biểu mẫu nhiều lần trong ngày được: mỗi lần một bản riêng với thời điểm nộp riêng, không chặn, không đè; màn nộp cho biết hôm nay đã nộp bao nhiêu lần (ADR-038 thay khoá một bản/ngày) | FR-4.2 | Tự động |
+| AC-4.8 | Kế toán thấy báo cáo của mọi bộ phận trong Lịch sử, mở và sửa được có `ReportRevision`, giữ người nộp và ngày; không bỏ được báo cáo của người khác; nhân viên bộ phận khác vẫn bị 404 ở xem lẫn sửa | FR-4.4 · FR-4.5 · ADR-038 | Tự động |
 
 ---
 
@@ -513,6 +515,31 @@ Kế toán giữ tiêu chí cũ trên bảng duy nhất.
 | AC-36.5 | `xoa_bang_van_don_cu` thiếu cờ → từ chối, không xoá; đủ cờ → hai bảng cũ mất hẳn cùng dòng, chi tiết, phân công, lịch sử ô, biên nhận, quyền, nguồn báo cáo; đơn ERP giữ với `record=None`; `van_don` nguyên; nhật ký DELETE; chạy lại "không có gì để xoá"; không bao giờ xoá `van_don` | ADR-036 | Tự động |
 | AC-36.6 | `/cau-hinh/nhan-don/` 404 với mọi vai; sidebar Admin không còn "Bảng nhận đơn"; `TableDef` không còn `receives_orders`, còn `delivery_view_version`; migration 0014 xuôi/ngược giữ dữ liệu | ADR-036 | Tự động |
 | AC-36.7 | `configure_erp_reports` tạo nguồn Vận đơn cho `van_don`; `nap_du_lieu_van_don` và `nap_khach_mau` (mặc định) nạp vào `van_don` có phân công | ADR-036 | Tự động |
+## 37. Mã nhân sự — ADR-037
+
+Bổ sung AC-4.6 và AC-22.10: định danh trên mọi màn hình là **mã nhân sự** (`UserProfile.staff_code`),
+mã trước, tên sau.
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-37.1 | Mã = TÊN + chữ đầu họ + chữ đầu tên đệm, viết hoa không dấu (Lê Thưởng Thuận → `THUANLT`); họ tên không cho mã hợp lệ thì lấy chữ số của tên đăng nhập; hồ sơ lưu mà rỗng thì tự gán nên mọi hồ sơ đều có mã; `employee_code` trả mã | ADR-037 | Tự động |
+| AC-37.2 | Trùng mã thì thêm 2, 3…; trùng tên đăng nhập của người khác cũng nhảy số; gán tay mã đã có người dùng bị từ chối | ADR-037 | Tự động |
+| AC-37.3 | Mã đã gán không đổi được (model lẫn form sửa hồ sơ); hồ sơ cũ còn rỗng thì Admin gán một lần, có nhật ký; gợi ý mã chỉ Admin, Staff/Manager bị 403 | ADR-037 | Tự động |
+| AC-37.4 | Tài khoản mới để trống tên đăng nhập thì tên đăng nhập = mã; đăng nhập bằng mã gõ hoa hay thường đều vào, sai mật khẩu vẫn chặn; tài khoản cũ giữ tên đăng nhập | ADR-037 | Tự động |
+| AC-37.5 | Danh sách nhân sự có cột Mã và tìm theo mã; ô Người bán gợi ý mã; nhãn danh tính `MÃ · Họ tên` ở Báo cáo tổng hợp, Lịch sử, Excel; Staff không vào danh sách nhân sự | ADR-037 | Tự động |
+| AC-37.6 | `gan_ma_nhan_su_cu` xem trước không ghi; chạy thật gán mã hồ sơ rỗng và đổi ô danh tính khớp đúng tên đăng nhập (cả `val_seller`), giữ giá trị lạ; chạy lần hai không đổi thêm | ADR-037 | Tự động |
+
+## 38. Báo cáo Marketing hoàn thiện — ADR-038, ADR-031 bổ sung
+
+Bổ sung AC-4.x (nộp tự do, Kế toán) và AC-22.x (nguồn báo cáo); bảy thị trường theo ADR-031 bổ sung 18.09.2026.
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-38.1 | Bảy thị trường US, CA, PH, EU, KR, JP, AU ↔ tám loại tiền; cột Thị trường và Loại tiền của bảng cấu hình trước 18.09 được bổ sung giá trị mới, giữ giá trị cũ, chạy lại không đổi, cột không phải Chọn một thì báo lỗi; nộp Hàn Quốc → KRW, Úc → AUD, quốc gia lạ bị từ chối; báo cáo một loại tiền mới công bố tổng, lẫn tiền thì cảnh báo; JPY/KRW không phần lẻ; xếp hạng quy đổi EUR/AUD được, KRW chưa có tỉ giá thì báo rõ | ADR-031 bổ sung | Tự động |
+| AC-38.2 | Doanh thu Marketing suy ra từ vận đơn (`WaybillItem.paid_amount` của đơn có Phụ trách Marketing là marketer trong phạm vi, cùng kỳ theo ngày lên đơn, cùng sản phẩm/quốc gia khi lọc) đúng ở mọi cách xem (ngày, nhân viên, sản phẩm, thị trường, phòng ban); tổng bằng tổng các dòng; đơn chưa phân công, marketer khác, ngoài kỳ, khác sản phẩm không vào; Staff chỉ thấy tiền của mình; Excel và Tổng quan cùng số; lọc Tệp khách hàng thì Doanh thu trống | ADR-038 | Tự động |
+| AC-38.3 | Hóa đơn/Doanh thu = Hóa đơn ÷ Doanh thu theo đúng nhãn (thay K/J 09.09) ở báo cáo nguồn và đường cũ; thiếu một vế thì trống; tiền vận đơn lẫn loại tiền với báo cáo thì cảnh báo và để trống chỉ tiêu tiền; `configure_erp_reports` không tạo cột nhập Doanh thu, gỡ trường đó khỏi biểu mẫu, bỏ cột tính từng dòng, chạy lại không đổi | ADR-038 | Tự động |
+| AC-38.4 | Cột Tệp khách hàng (Chọn một) với danh sách mặc định theo sheet MKT có trên bảng và biểu mẫu Marketing; nộp giá trị ngoài danh sách bị từ chối; lọc `tep` đúng giá trị, `__missing__` = chưa có, giá trị lạ → 400; Leader/Manager Marketing thêm giá trị ngay ô chọn, Staff bị từ chối; phụ đề Excel ghi tệp | ADR-038 | Tự động |
+| AC-38.5 | Chọn nhanh kỳ ở Báo cáo tổng hợp: Hôm nay, Hôm qua, 7 ngày (hôm nay − 6 → hôm nay), Tháng này, Tháng trước — đúng ngày theo giờ Việt Nam, điền hai ô ngày và áp ngay; nút khớp khoảng đang lọc được đánh dấu | ADR-038 | Tự động |
 
 ## 27. Lưới dùng chung và vòng đời bảng — ADR-027
 

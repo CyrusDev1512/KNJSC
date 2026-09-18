@@ -21,6 +21,7 @@ from orders.constants import is_waybill_table, waybill_condition
 from django.db import models
 from django.db.models import Q, Exists, OuterRef
 
+from core.constants import ACCOUNTING_DEPARTMENT_CODE
 from core.managers import ScopedQuerySet, apply_department_scope, apply_scope
 from core.scope import get_user_scope
 
@@ -54,7 +55,7 @@ class TableDefQuerySet(ScopedQuerySet):
         from .models import DataRecord
         from org.models import Department
         accounting = Department.objects.filter(pk=getattr(getattr(user, 'profile', None), 'department_id', None),
-            code='ke-toan', is_active=True, deleted_at__isnull=True)
+            code=ACCOUNTING_DEPARTMENT_CODE, is_active=True, deleted_at__isnull=True)
         visible = DataRecord.objects.filter(waybill_condition()).filter(
             Q(created_by_id=user.pk, created_by__profile__department__code='sale')
             | Q(order__created_by_id=user.pk, order__created_by__profile__department__code='sale')
@@ -63,7 +64,8 @@ class TableDefQuerySet(ScopedQuerySet):
         return self.filter(
             Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
             | Q(Exists(visible.filter(table_id=OuterRef('pk'))))
-            | (waybill_condition("") & Q(Exists(accounting)))
+            # Kế toán: bảng vận đơn (ADR-025) và bảng có nguồn báo cáo (ADR-038)
+            | ((waybill_condition("") | Q(erp_report__isnull=False)) & Q(Exists(accounting)))
         )
 
 
@@ -170,6 +172,12 @@ class DataRecordQuerySet(ScopedQuerySet):
         duoc_cap = _cap_them(user, GrantAction.VIEW) | _cap_them(user, GrantAction.EDIT)
         if duoc_cap:
             them |= Q(table_id__in=duoc_cap)
+
+        # Kế toán xem mọi dòng của bảng có nguồn báo cáo (ADR-038) — Bảng dữ liệu chỉ đọc
+        # và màn tổng hợp cũ; vận đơn đã có ở scope_condition
+        from org.services.org_service import is_accountant
+        if is_accountant(user):
+            them |= Q(table__erp_report__isnull=False)
 
         from orders.services.assignment_service import scope_condition
         if table is not None and not is_waybill_table(table):

@@ -1,3 +1,4 @@
+from core.identity import identity_label
 from datetime import date
 from decimal import Decimal
 import pytest
@@ -160,7 +161,8 @@ def test_marketing_exact_excel_formula(bang_mkt,dong_mau,nguoi_dung):
     assert values["CPQC"]==Decimal(500000)
     assert values["CPO"]==Decimal(500000)/24
     assert values["Giá Mess"]==Decimal(500000)/270
-    assert values["Hóa đơn/Doanh thu"]==(Decimal(500000)/270)/(Decimal(500000)/24)
+    # Hóa đơn ÷ Doanh thu theo nhãn (ADR-038): không có vận đơn và Hóa đơn nên trống
+    assert values["Hóa đơn/Doanh thu"] is None
     assert values["Doanh thu"] is None and values["Hóa đơn"] is None
 
 
@@ -269,23 +271,24 @@ def test_day_view_shows_person_and_leader_in_scope(client, marketing_scope, nguo
     assert r.status_code==200 and r.context["result"].show_person
     rows=r.context["rows"]
     assert [row["nhom"] for row in rows]==["01.08.2026"], "mỗi ngày vẫn một dòng — cấu trúc bảng không đổi"
-    assert {p.split(" — ")[0] for p in rows[0]["person"].split(", ")}==persons
+    # Mã trước, tên sau (ADR-037): nhãn là identity_label của từng người
+    assert set(rows[0]["person"].split(", "))=={identity_label(nguoi_dung[name]) for name in persons}
     leaders=set(rows[0]["leader"].split(", "))
-    assert "Leader Sale 1" in leaders                        # Team.leader của Sale 1
-    assert ("Leader Sale 2" in leaders) == ("staff_sale_2" in persons)
+    assert identity_label(nguoi_dung["leader_sale_1"]) in leaders    # Team.leader của Sale 1
+    assert (identity_label(nguoi_dung["leader_sale_2"]) in leaders) == ("staff_sale_2" in persons)
     assert r.context["label_span"]==3
     html=r.content.decode()
     assert "<th scope=\"col\">Nhân sự</th><th scope=\"col\">Leader</th>" in html
     # Lọc theo nhân sự: chỉ còn dòng của người đó; người ngoài phạm vi bị chặn
     me=nguoi_dung["staff_sale_1"].pk
     r2=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":me})
-    assert [row["person"].split(" — ")[0] for row in r2.context["rows"]]==["staff_sale_1"] and r2.context["rows"][0]["leader"]=="Leader Sale 1"
+    assert [row["person"] for row in r2.context["rows"]]==[identity_label(nguoi_dung["staff_sale_1"])] and r2.context["rows"][0]["leader"]==identity_label(nguoi_dung["leader_sale_1"])
     outsider=nguoi_dung["staff_sale_2"].pk
     r3=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":outsider})
     assert (r3.status_code==403) == ("staff_sale_2" not in persons)
     sheet=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True).active.values)
     assert sheet[3][:3]==("Ngày","Nhân sự","Leader") and len(sheet[4:-1])==1
-    assert {p.split(" — ")[0] for p in sheet[4][1].split(", ")}==persons and "Leader Sale 1" in sheet[4][2]
+    assert set(sheet[4][1].split(", "))=={identity_label(nguoi_dung[name]) for name in persons} and identity_label(nguoi_dung["leader_sale_1"]) in sheet[4][2]
 
 
 def test_day_view_pages_by_hundred(client, marketing_scope, nguoi_dung):

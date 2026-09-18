@@ -1,4 +1,5 @@
 """Báo cáo ngày Vận đơn dùng biểu mẫu riêng, không ghi vào bảng đơn hàng."""
+from core.identity import employee_code
 from datetime import date
 
 import pytest
@@ -25,7 +26,7 @@ def test_delivery_daily_configure_submit_history(client, departments, nguoi_dung
         'cong_viec':'Liên hệ hãng vận chuyển', 'ket_qua':'Đã cập nhật đơn',
         'vuong_mac':'Chờ xác nhận địa chỉ'}[f.link.column.code] for f in form.ordered_fields()}
     report = daily_service.submit(form, values, report_date=date(2026,9,16), actor=user)
-    assert report.record.data['nhan_su'] == user.username
+    assert report.record.data['nhan_su'] == employee_code(user)
     assert report.record.table_id == form.table_id
     assert DailyReport.objects.count() == 1
     client.force_login(user)

@@ -1,4 +1,4 @@
-{% extends 'crm/base_crm.html' %}{% load static %}
+{% extends 'crm/base_crm.html' %}{% load static %}{% load knjsc %}
 {% block tieu_de %}Chứng từ thanh toán · KN CRM{% endblock %}
 {% block ten_trang %}Chứng từ thanh toán{% endblock %}
 {% block dau_trang %}<link rel="stylesheet" href="{% static 'css/payments.css' %}">{% endblock %}
@@ -22,7 +22,7 @@
 {% if query.view == 'gallery' %}<div class="payment-gallery">
 {% for doc in page %}<button class="payment-card" data-payment-id="{{ doc.pk }}"><strong>{{ doc.reference }}</strong><span>{{ doc.record.data.ma_don }} · {{ doc.image_count }} ảnh</span>{% if doc.deleted_at %}<span>Đã xóa</span>{% endif %}</button>{% empty %}<p>Chưa có chứng từ phù hợp.</p>{% endfor %}</div>
 {% else %}<div class="payment-table"><table><thead><tr><th>Ref</th><th>Mã đơn / Khách hàng</th><th>Ngày chuyển khoản</th><th>Người tải</th><th>Tải lúc</th><th>Ảnh</th></tr></thead><tbody>
-{% for doc in page %}<tr><td><button class="payment-link" data-payment-id="{{ doc.pk }}">{{ doc.reference }}</button>{% if doc.deleted_at %} · Đã xóa{% endif %}</td><td>{{ doc.record.data.ma_don }}<br>{{ doc.record.data.ten_khach }}</td><td>{{ doc.transfer_date|date:'d/m/Y'|default:'—' }}</td><td>{{ doc.created_by.username }}</td><td>{{ doc.created_at|date:'d/m/Y H:i' }}</td><td>{{ doc.image_count }}</td></tr>{% empty %}<tr><td colspan="6">Chưa có chứng từ phù hợp.</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+{% for doc in page %}<tr><td><button class="payment-link" data-payment-id="{{ doc.pk }}">{{ doc.reference }}</button>{% if doc.deleted_at %} · Đã xóa{% endif %}</td><td>{{ doc.record.data.ma_don }}<br>{{ doc.record.data.ten_khach }}</td><td>{{ doc.transfer_date|date:'d/m/Y'|default:'—' }}</td><td>{{ doc.created_by|ma }}</td><td>{{ doc.created_at|date:'d/m/Y H:i' }}</td><td>{{ doc.image_count }}</td></tr>{% empty %}<tr><td colspan="6">Chưa có chứng từ phù hợp.</td></tr>{% endfor %}</tbody></table></div>{% endif %}
 <nav class="payment-toolbar" aria-label="Phân trang">{% if page.has_previous %}<a href="?{{ params }}&page={{ page.previous_page_number }}">Trước</a>{% endif %}<span>Trang {{ page.number }} / {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a href="?{{ params }}&page={{ page.next_page_number }}">Tiếp</a>{% endif %}</nav>
 </section>
 {% if can_create %}<dialog id="payment-create" class="payment-dialog"><form action="{% url 'payment_create' %}" method="post" enctype="multipart/form-data" id="payment-create-form">{% csrf_token %}<input type="hidden" name="operation" value="{{ operation }}">

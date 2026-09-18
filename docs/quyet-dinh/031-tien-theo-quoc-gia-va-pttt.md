@@ -47,3 +47,23 @@ Chưa có màn hình tự thêm phương thức. Không chỉnh `ColumnDef.optio
 qua danh mục nghiệp vụ này; không xóa mã cũ đang có trong lịch sử.
 
 [Kiểm chứng](../kiem-chung-tien-theo-quoc-gia-20260916.md).
+
+## Bổ sung 18.09.2026 — bảy thị trường, tám loại tiền
+
+Chủ dự án chốt theo sheet Quy ước-Định nghĩa của `Quản trị nội bộ.xlsx` (bảng tỉ giá) và
+sheet MKT (ví dụ báo cáo đi US, Australia, Japan, Korea, Canada, EU):
+
+| Quốc gia | Mã | Loại tiền | Tỉ giá mặc định (VND, `EXCHANGE_RATES_VND`) |
+|---|---|---|---|
+| Hoa Kỳ | `us` | USD | 25.500 |
+| Canada | `ca` | CAD | 17.500 |
+| Philippines | `ph` | PHP | 440 (giữ) |
+| Châu Âu | `eu` | EUR | 28.500 |
+| Hàn Quốc | `kr` | KRW | **chưa có** — số 16.000 trong sheet coi là gõ nhầm, hỏi kế toán; bảng xếp hạng báo "Chưa có tỉ giá cho KRW" cho tới khi điền vào `.env` |
+| Nhật Bản | `jp` | JPY | 155 |
+| Úc | `au` | AUD | 17.000 |
+
+JPY và KRW không có phần lẻ (`CURRENCY_DECIMALS = 0`). Cột `thi_truong` của bảng báo cáo
+và cột `loai_tien` được `configure_erp_reports` **bổ sung** giá trị mới, không thay giá trị
+cũ (cùng cách với TL-41). Migration `orders/0009` cập nhật choices của `Order.market`,
+`Order.currency`; SQL no-op. Quy tắc xác nhận đổi tiền và PTTT Zelle/PayPal giữ nguyên.

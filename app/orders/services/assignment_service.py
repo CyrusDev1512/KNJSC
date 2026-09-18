@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from core.audit import record as audit
+from core.identity import employee_code
 from core.constants import AuditAction, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.scope import get_user_scope
@@ -21,10 +22,9 @@ def department(user):
 
 
 def is_accountant(user):
-    profile = getattr(user, 'profile', None)
-    dept = getattr(profile, 'department', None)
-    return bool(user.is_active and dept and dept.code == 'ke-toan'
-                and dept.is_active and dept.deleted_at is None)
+    """Giữ tên cho các chỗ gọi cũ; luật ở `org_service.is_accountant` (một chỗ duy nhất)."""
+    from org.services.org_service import is_accountant as _is_accountant
+    return _is_accountant(user)
 
 
 def can_assign(user):
@@ -67,16 +67,15 @@ def scope_condition(user, original, *, only_new=False):
 
 
 def label(user):
-    if user is None:
-        return ''
-    return user.get_username()
+    """Mã nhân sự của người được phân công — hiện trên ô `phu_trach_*` (ADR-037)."""
+    return employee_code(user)
 
 
 def candidates(field):
     return get_user_model().objects.filter(is_active=True,
         profile__department__code__in=FIELDS[field]).filter(
         Q(profile__locked_until__isnull=True) | Q(profile__locked_until__lte=timezone.now())
-    ).select_related('profile').order_by('username')
+    ).select_related('profile').order_by('profile__staff_code', 'username')
 
 
 def display(row, code):
@@ -86,7 +85,7 @@ def display(row, code):
 
 def related(queryset):
     return queryset.select_related('assignment__delivery__profile', 'assignment__care__profile',
-                                   'assignment__marketing__profile', 'order__seller')
+                                   'assignment__marketing__profile', 'order__seller', 'order__seller__profile')
 
 
 def integer(value):

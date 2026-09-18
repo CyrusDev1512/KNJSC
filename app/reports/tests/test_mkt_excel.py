@@ -19,7 +19,7 @@ def test_excel_metrics_from_totals(bang_mkt, dong_mau, nguoi_dung):
                             "CPO", "Giá Mess", "CPQC/Doanh số", "Hóa đơn/Doanh thu", "AOV"]
     assert values["Doanh thu"] is None and values["Hóa đơn"] is None
     assert values["CPQC/Doanh số"] == Decimal(500000) / Decimal(3280000)
-    assert abs(values["Hóa đơn/Doanh thu"] - Decimal(24)/Decimal(270)) < Decimal("1e-25")
+    assert values["Hóa đơn/Doanh thu"] is None      # Hóa đơn ÷ Doanh thu theo nhãn (ADR-038)
     assert values["CPO"] == Decimal(500000) / Decimal(24)
     exported = summary_service.build_export(nguoi_dung["manager_mkt"], bang_mkt,
         tab="tong-hop", date_from=date(2026,8,1), date_to=date(2026,8,31), product="")
@@ -33,11 +33,11 @@ def test_dashboard_has_scoped_marketing(bang_mkt, dong_mau, nguoi_dung):
     assert ctx["marketing"]["ok"]
 
 
-@pytest.mark.parametrize("cpqc,mess,orders", [(0,10,2),(10,0,2),(10,5,0),(None,5,2)])
-def test_undefined_ratio_is_not_zero(cpqc,mess,orders):
+@pytest.mark.parametrize("invoice,revenue", [(8,0),(8,None),(None,70),(None,None)])
+def test_undefined_ratio_is_not_zero(invoice,revenue):
     from reports.marketing import Metric
-    m = Metric("m", ("cpqc","mess","orders"), "k_over_j")
-    assert m.compute({"cpqc":cpqc,"mess":mess,"orders":orders}) is None
+    m = Metric("m", ("invoice","revenue"), "divide")
+    assert m.compute({"invoice":invoice,"revenue":revenue}) is None
 
 
 def test_exact_optional_fields_and_empty(bang_mkt, nguoi_dung):
@@ -55,7 +55,7 @@ def test_exact_optional_fields_and_empty(bang_mkt, nguoi_dung):
         return dict(zip([c.label for c in result.columns],aggregations.total_values(result)))
     actual = values(date(2026,8,1))
     assert actual["Doanh thu"] == 70 and actual["Hóa đơn"] == 8
-    assert actual["Hóa đơn/Doanh thu"] == Decimal("0.2")
+    assert actual["Hóa đơn/Doanh thu"] == Decimal(8) / Decimal(70)   # theo nhãn (ADR-038)
     empty = values(date(2026,8,2))
     assert all(v is None for v in empty.values())
 

@@ -1,0 +1,45 @@
+"""ADR-038 — Chọn nhanh kỳ ở Báo cáo tổng hợp."""
+from datetime import date
+
+import pytest
+
+from reports.models import ReportSource
+from reports.services import summary_service
+from reports.tests.test_aggregations import bang_mkt  # noqa: F401
+
+pytestmark = pytest.mark.django_db
+
+
+def test_chon_nhanh_ky(client, bang_mkt, nguoi_dung, monkeypatch):
+    """AC-38.5 — Chọn nhanh: Hôm nay, Hôm qua, 7 ngày, Tháng này, Tháng trước đúng ngày (kể cả qua
+    đầu tháng và đầu năm); màn hình có nút với `data-tu`/`data-den` và JS áp ngay; nút khớp khoảng
+    đang lọc được đánh dấu"""
+    muc = {m["key"]: (m["start"], m["end"]) for m in summary_service.date_presets(date(2026, 9, 18))}
+    assert muc == {
+        "hom-nay": (date(2026, 9, 18), date(2026, 9, 18)),
+        "hom-qua": (date(2026, 9, 17), date(2026, 9, 17)),
+        "7-ngay": (date(2026, 9, 12), date(2026, 9, 18)),
+        "thang-nay": (date(2026, 9, 1), date(2026, 9, 18)),
+        "thang-truoc": (date(2026, 8, 1), date(2026, 8, 31)),
+    }
+    dau_nam = {m["key"]: (m["start"], m["end"]) for m in summary_service.date_presets(date(2027, 1, 1))}
+    assert dau_nam["hom-qua"] == (date(2026, 12, 31), date(2026, 12, 31))
+    assert dau_nam["7-ngay"] == (date(2026, 12, 26), date(2027, 1, 1))
+    assert dau_nam["thang-truoc"] == (date(2026, 12, 1), date(2026, 12, 31))
+    assert [m["label"] for m in summary_service.date_presets(date(2026, 9, 18))] == \
+        ["Hôm nay", "Hôm qua", "7 ngày", "Tháng này", "Tháng trước"]
+    active = [m["key"] for m in summary_service.date_presets(date(2026, 9, 18), start=date(2026, 9, 1), end=date(2026, 9, 18)) if m["active"]]
+    assert active == ["thang-nay"]
+
+    ReportSource.objects.create(table=bang_mkt, kind="mkt", columns={
+        "mess": "so_mess", "orders": "so_don", "sales": "doanh_so", "cost": "cpqc", "market": "thi_truong"})
+    client.force_login(nguoi_dung["manager_mkt"])
+    page = client.get("/bao-cao/tong-hop/", {"nguon": bang_mkt.code})   # mặc định = Tháng này
+    assert page.status_code == 200
+    html = page.content.decode()
+    keys = [m["key"] for m in page.context["presets"] if m["active"]]
+    assert keys == ["thang-nay"]
+    for m in page.context["presets"]:
+        assert f'data-tu="{m["start"]:%Y-%m-%d}" data-den="{m["end"]:%Y-%m-%d}"' in html
+    assert 'class="nut report-preset is-active" data-key="thang-nay"' in html
+    assert "report-filters.js" in html

@@ -90,6 +90,25 @@ def default_range():
     return hom_nay.replace(day=1), hom_nay
 
 
+def date_presets(today=None, *, start=None, end=None):
+    """Chọn nhanh kỳ (ADR-038, sheet MKT): Hôm nay, Hôm qua, 7 ngày, Tháng này, Tháng trước.
+    Mỗi mục `{key, label, start, end, active}`; `active` khi khớp đúng khoảng đang lọc."""
+    from datetime import timedelta
+
+    hom_nay = today or timezone.localdate()
+    dau_thang = hom_nay.replace(day=1)
+    cuoi_thang_truoc = dau_thang - timedelta(days=1)
+    muc = (
+        ("hom-nay", "Hôm nay", hom_nay, hom_nay),
+        ("hom-qua", "Hôm qua", hom_nay - timedelta(days=1), hom_nay - timedelta(days=1)),
+        ("7-ngay", "7 ngày", hom_nay - timedelta(days=6), hom_nay),
+        ("thang-nay", "Tháng này", dau_thang, hom_nay),
+        ("thang-truoc", "Tháng trước", cuoi_thang_truoc.replace(day=1), cuoi_thang_truoc),
+    )
+    return [{"key": key, "label": label, "start": tu, "end": den,
+             "active": (start, end) == (tu, den)} for key, label, tu, den in muc]
+
+
 def parse_day(text, fallback):
     """Đọc một ô ngày trên thanh lọc. Chuỗi hỏng thì rơi về mặc định."""
     try:

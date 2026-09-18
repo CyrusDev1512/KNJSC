@@ -1,4 +1,4 @@
-/* Tìm trong danh sách được server cấp quyền; chỉ gửi bộ lọc khi Áp dụng. */
+/* Tìm trong danh sách được server cấp quyền; chỉ gửi bộ lọc khi Áp dụng (Chọn nhanh kỳ gửi ngay). */
 (() => {
   const root = document.documentElement;
   const view = document.getElementById('report-view');
@@ -60,6 +60,21 @@
       event.preventDefault();
       event.stopPropagation();
     }, true);
+  }
+  // Chọn nhanh kỳ (ADR-038): điền hai ô ngày rồi gửi bộ lọc ngay.
+  const filters = document.querySelector('.report-filters');
+  const fromInput = document.getElementById('tu');
+  const toInput = document.getElementById('den');
+  if (filters && fromInput && toInput) {
+    const presets = filters.querySelectorAll('.report-preset');
+    for (const button of presets) {
+      button.addEventListener('click', () => {
+        fromInput.value = button.dataset.tu;
+        toInput.value = button.dataset.den;
+        for (const other of presets) other.classList.toggle('is-active', other === button);
+        if (typeof filters.requestSubmit === 'function') filters.requestSubmit(); else filters.submit();
+      });
+    }
   }
   const search = document.getElementById('report-person-search');
   const select = document.getElementById('report-person');

@@ -21,9 +21,11 @@ def test_existing_vnd_currency_column_gets_market_currencies(bang_mkt, nguoi_dun
                            code='bc_mkt_test_ngay', name='Báo cáo Marketing ngày')
     configure_source(bang_mkt, 'mkt')
     column = ColumnDef.objects.get(table=bang_mkt, code='loai_tien')
-    assert column.options == ['VND', 'USD', 'CAD', 'PHP'] and column.name == 'Đơn vị tiền'
+    from orders.services.currency_service import MARKET_CURRENCIES
+    du_ma = ['VND'] + [str(c) for c in MARKET_CURRENCIES.values()]
+    assert column.options == du_ma and column.name == 'Đơn vị tiền'
     configure_source(bang_mkt, 'mkt')
-    assert ColumnDef.objects.get(pk=column.pk).options == ['VND', 'USD', 'CAD', 'PHP']
+    assert ColumnDef.objects.get(pk=column.pk).options == du_ma
 
     row = record_service.create_record(bang_mkt, {
         'ngay': '2026-09-18', 'marketer': 'mkt', 'san_pham': 'SP', 'so_mess': 2, 'cpqc': '10',

@@ -21,9 +21,11 @@ from django.conf import settings
 
 from core.models import ScopedModel
 
+from .managers import AllDailyReportManager, DailyReportManager
+
 
 class DailyReport(ScopedModel):
-    """Một lần nộp báo cáo của một người, cho một ngày.
+    """Một lần nộp báo cáo của một người, cho một ngày — có thể nhiều lần một ngày (ADR-038).
 
     Danh tính, ngày và thời điểm nộp bất biến. Nội dung được quản lý sửa qua
     daily_service.amend theo quyết định 16/09/2026, có ReportRevision.
@@ -55,19 +57,16 @@ class DailyReport(ScopedModel):
         on_delete=models.SET_NULL, related_name="daily_reports", db_index=True,
     )
 
+    # Kế toán thấy mọi báo cáo (ADR-038); phần còn lại là thang cấp bậc chuẩn
+    objects = DailyReportManager()
+    all_objects = AllDailyReportManager()
+
     class Meta:
         verbose_name = "Báo cáo hằng ngày"
         verbose_name_plural = "Báo cáo hằng ngày"
         ordering = ["-report_date", "-submitted_at"]
-        constraints = [
-            # Một người nộp một biểu mẫu một lần cho mỗi ngày. Ràng buộc này
-            # là chỗ chặn cuối của BR-2: không nộp đè lên bản đã có
-            models.UniqueConstraint(
-                fields=["form", "created_by", "report_date"],
-                condition=models.Q(deleted_at__isnull=True),
-                name="report_unique_per_person_per_day",
-            ),
-        ]
+        # Không còn ràng buộc một bản/người/ngày (ADR-038, migration 0004): nộp lại
+        # là thêm bản mới, sửa số qua luồng có lịch sử của ADR-032
         indexes = [
             models.Index(fields=["department", "-report_date"], name="report_dept_date_idx"),
             models.Index(fields=["created_by", "-report_date"], name="report_owner_date_idx"),

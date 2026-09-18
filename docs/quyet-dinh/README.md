@@ -1,5 +1,9 @@
 # Nhật ký quyết định kiến trúc
 
+Mới 18.09.2026: [ADR-038 — Hoàn thiện báo cáo Marketing: nộp tự do, Tệp khách hàng, Doanh thu suy ra từ vận đơn, Kế toán sửa, Chọn nhanh](038-bao-cao-marketing-hoan-thien.md), thay khoá một bản/ngày của BR-2 và công thức K/J 09.09; ADR-031 có mục bổ sung bảy thị trường.
+
+Mới 18.09.2026: [ADR-037 — Mã nhân sự theo quy ước THUANLT, cố định, là tên đăng nhập của tài khoản mới](037-ma-nhan-su.md), bổ sung ADR-013 và ADR-035.
+
 Mới 18.09.2026: [ADR-036 — Một bảng vận đơn duy nhất "Vận đơn mới" (`van_don`)](036-mot-bang-van-don-duy-nhat.md), thay ADR-029/034 và phần hai bảng của ADR-018; xoá cứng crmThuận và Vận đơn DB theo quyết định chủ dự án.
 
 Mới 18.09.2026: [ADR-035 — Báo cáo tổng hợp theo ngày × nhân sự, cột Leader, 100 dòng mỗi trang](035-bao-cao-tong-hop-theo-ngay-va-nhan-su.md), bổ sung ADR-022.
@@ -152,6 +156,8 @@ Trong tình huống nào thì nên xem lại quyết định này.
 | 034 | [Bảng nhận đơn liệt kê mọi bảng vận đơn đang có](034-bang-nhan-don-liet-ke-moi-bang-van-don.md) | Đã triển khai local | 18.09.2026 |
 | 035 | [Báo cáo tổng hợp theo ngày × nhân sự, cột Leader, 100 dòng mỗi trang](035-bao-cao-tong-hop-theo-ngay-va-nhan-su.md) | Đã triển khai local | 18.09.2026 |
 | 036 | [Một bảng vận đơn duy nhất "Vận đơn mới" (`van_don`)](036-mot-bang-van-don-duy-nhat.md) — xoá cứng crmThuận, Vận đơn DB; bỏ Bảng nhận đơn | Đã triển khai local | 18.09.2026 |
+| 037 | [Mã nhân sự theo quy ước THUANLT, cố định, là tên đăng nhập của tài khoản mới](037-ma-nhan-su.md) | Đã áp dụng local | 18.09.2026 |
+| 038 | [Hoàn thiện báo cáo Marketing: nộp tự do, Tệp khách hàng, Doanh thu suy ra, Kế toán sửa, Chọn nhanh](038-bao-cao-marketing-hoan-thien.md) | Đã áp dụng local | 18.09.2026 |
 
 ---
 

@@ -65,7 +65,8 @@ class ColumnMap:
             return None
         from orders.services.assignment_service import COLUMNS
         if is_waybill_table(self.table) and code in COLUMNS:
-            return f'assignment__{COLUMNS[code]}__username'
+            # Cột phụ trách hiện mã nhân sự (ADR-037) nên lọc/sắp theo mã
+            return f'assignment__{COLUMNS[code]}__profile__staff_code'
         cot_tach = COLUMN_OF.get(cot.meaning) if cot.meaning else None
         return cot_tach or f"data__{code}"
 

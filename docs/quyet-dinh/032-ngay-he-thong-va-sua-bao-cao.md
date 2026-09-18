@@ -23,7 +23,8 @@ Ngày chốt: **16/09/2026**. Chủ dự án duyệt triển khai local trong ta
 - Báo cáo mới tự lấy hôm nay theo giờ Việt Nam và người đang đăng nhập ở server.
   Ngày sinh, hạn công việc, ngày chuyển khoản và khoảng lọc vẫn được chọn.
 - Biểu mẫu và lưới của nguồn báo cáo Sale/Marketing dùng danh mục quốc gia
-  hệ thống, tiền theo ADR-031: Hoa Kỳ/USD, Canada/CAD, Philippines/PHP.
+  hệ thống, tiền theo ADR-031: Hoa Kỳ/USD, Canada/CAD, Philippines/PHP (từ 18.09.2026 thêm
+  Châu Âu/EUR, Hàn Quốc/KRW, Nhật Bản/JPY, Úc/AUD — ADR-031 bổ sung).
   Người dùng không tự sửa loại tiền, ngày báo cáo hoặc danh tính trên lưới.
 - Không tự quy đổi tỷ giá hoặc gán lại tiền tệ cho báo cáo lịch sử. Báo cáo
   tổng hợp/Excel/Tổng quan không công bố tổng tiền khi phạm vi lẫn đơn vị hoặc

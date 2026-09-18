@@ -22,6 +22,9 @@ def departments(db):
         "sale": Department.objects.create(name="Sale", code="sale"),
         "mkt": Department.objects.create(name="Marketing", code="marketing"),
         "vd": Department.objects.create(name="Vận đơn", code="van-don"),
+        # Kế toán – Kiểm soát nội bộ (org/0004, ADR-038): xem và sửa mọi báo cáo
+        # Migration org/0004 đã tạo sẵn Kế toán trong DB kiểm thử → lấy lại, không tạo trùng
+        "kt": Department.objects.get_or_create(code="ke-toan", defaults={"name": "Kế toán"})[0],
     }
 
 
@@ -63,7 +66,7 @@ def teams(db, departments, make_user):
 
 @pytest.fixture
 def nguoi_dung(db, departments, teams, make_user):
-    """Chín vai trò cộng quản trị viên."""
+    """Chín vai trò cộng quản trị viên và một nhân viên Kế toán (ADR-038)."""
     return {
         "staff_sale_1": make_user("staff_sale_1", Rank.STAFF, departments["sale"], teams["sale1"]),
         "staff_sale_1b": make_user("staff_sale_1b", Rank.STAFF, departments["sale"], teams["sale1"]),
@@ -74,6 +77,7 @@ def nguoi_dung(db, departments, teams, make_user):
         "staff_mkt": make_user("staff_mkt", Rank.STAFF, departments["mkt"]),
         "manager_mkt": make_user("manager_mkt", Rank.MANAGER, departments["mkt"]),
         "staff_vd": make_user("staff_vd", Rank.STAFF, departments["vd"]),
+        "staff_kt": make_user("staff_kt", Rank.STAFF, departments["kt"]),
         "admin": make_user("quan_tri", Rank.ADMIN),
     }
 

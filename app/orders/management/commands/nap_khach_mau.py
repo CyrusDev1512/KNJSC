@@ -29,7 +29,7 @@ from django.db import connection
 from django.db.models import Count
 
 from core.constants import Rank
-from core.identity import display_name
+from core.identity import employee_code
 from forms_builder.models import DataRecord, TableDef
 from orders.constants import PaymentStatus, ShippingStatus, is_waybill_table
 from orders.models import Product, WaybillAssignment
@@ -115,7 +115,7 @@ def rows(so_khach, *, ti_le_mua_lai=TI_LE_MUA_LAI, so_thang=SO_THANG, products, 
             "ma_don": f"{PREFIX}{i + 1:06d}", "ngay": ngay.isoformat(), **khach,
             "san_pham": " + ".join(ten_sp), "so_luong": so_luong, "gia_tien": str(tien),
             "pttt": pttt[rng.randrange(len(pttt))] if pttt else "",
-            "nguoi_ban": display_name(nguoi_ban), "trang_thai_vc": vc,
+            "nguoi_ban": employee_code(nguoi_ban), "trang_thai_vc": vc,
             "trang_thai_tt": tt.label, "so_tien_tt": str(da_tra),
             "ghi_chu": NOTES[rng.randrange(len(NOTES))] if rng.random() < 0.3 else "",
         }

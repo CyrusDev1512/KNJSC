@@ -17,6 +17,7 @@ from core.constants import AuditAction, Rank
 from core.permissions import assert_rank
 
 from ..models import UserProfile
+from . import staff_code_service
 
 
 @sensitive_variables('password', 'temporary')
@@ -24,8 +25,14 @@ def create_with_temporary_password(*, password='', actor, **values):
     """Luồng Admin bàn giao mật khẩu; không đổi hợp đồng create_account."""
     assert_rank(actor, Rank.ADMIN)
     User = get_user_model()
+    # ADR-037: tên đăng nhập để trống thì là mã nhân sự; mã để trống thì gợi ý theo họ tên
+    if not values.get('staff_code'):
+        values['staff_code'] = staff_code_service.suggest(values.get('full_name', ''),
+                                                          values.get('username', ''))
+    if not values.get('username'):
+        values['username'] = values['staff_code']
     if User.objects.filter(username__iexact=values['username']).exists():
-        raise ValidationError('Mã nhân sự này đã có người dùng.')
+        raise ValidationError('Tên đăng nhập này đã có người dùng.')
     candidate = User(username=values['username'], email=values['email'])
     temporary = password
     if not temporary:
@@ -47,7 +54,7 @@ def create_with_temporary_password(*, password='', actor, **values):
         profile = create_account(password=temporary, actor=actor, **values)
     except IntegrityError:
         if User.objects.filter(username__iexact=values['username']).exists():
-            raise ValidationError('Mã nhân sự này đã có người dùng.') from None
+            raise ValidationError('Tên đăng nhập này đã có người dùng.') from None
         raise
     return profile, temporary
 
@@ -56,10 +63,11 @@ def create_with_temporary_password(*, password='', actor, **values):
 @sensitive_variables('password')
 def create_account(*, username, email, full_name, rank=Rank.STAFF,
                    department=None, team=None, password=None, birthday=None,
-                   actor=None, request=None):
+                   staff_code="", actor=None, request=None):
     """Tạo tài khoản kèm hồ sơ nhân sự.
 
-    Mật khẩu đặt lần đầu luôn phải đổi ở lần đăng nhập kế tiếp (FR-1.3).
+    Mật khẩu đặt lần đầu luôn phải đổi ở lần đăng nhập kế tiếp (FR-1.3). Mã nhân sự
+    để trống thì `UserProfile.save()` tự gợi ý theo quy ước THUANLT (ADR-037).
     """
     User = get_user_model()
     user = User(username=username, email=email, is_active=True)
@@ -75,7 +83,7 @@ def create_account(*, username, email, full_name, rank=Rank.STAFF,
     user.save()
 
     profile = UserProfile.objects.create(
-        user=user, full_name=full_name, rank=rank,
+        user=user, full_name=full_name, rank=rank, staff_code=staff_code,
         department=department, team=team, birthday=birthday, must_change_password=True,
     )
     record(
@@ -88,6 +96,7 @@ def create_account(*, username, email, full_name, rank=Rank.STAFF,
 #: Nhãn tiếng Việt của các trường được phép sửa, dùng khi ghi nhật ký
 PROFILE_FIELD_LABELS = {
     "full_name": "Họ tên",
+    "staff_code": "Mã nhân sự",
     "rank": "Cấp bậc",
     "department": "Bộ phận",
     "team": "Team",

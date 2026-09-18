@@ -7,43 +7,44 @@ Ghi chú nhanh cho máy phát triển. Toàn bộ tài khoản dưới đây do 
 |---|---|
 | Địa chỉ | `http://127.0.0.1:8020/` |
 | Mật khẩu chung | `matkhaucuatoi` |
+| Mã nhân sự | Tự gán theo quy ước THUANLT (ADR-037) từ họ tên mẫu; tài khoản mẫu giữ tên đăng nhập cũ, gõ hoa hay thường đều được |
 | Trang quản trị Django | `http://127.0.0.1:8020/quan-tri/` — chỉ `quantri` vào được |
 
 ---
 
 ## Tài khoản quản trị
 
-| Tên đăng nhập | Mật khẩu | Vai trò |
-|---|---|---|
-| `quantri` | `matkhaucuatoi` | Admin — thấy và sửa được mọi bộ phận, vào được trang quản trị Django |
+| Tên đăng nhập | Mã nhân sự | Mật khẩu | Vai trò |
+|---|---|---|---|
+| `quantri` | `VIENQT` | `matkhaucuatoi` | Admin — thấy và sửa được mọi bộ phận, vào được trang quản trị Django |
 
 ---
 
 ## Bộ phận Sale
 
-| Tên đăng nhập | Mật khẩu | Cấp bậc | Team | Họ tên |
-|---|---|---|---|---|
-| `sale.manager` | `matkhaucuatoi` | Manager | — | Lê Quốc Bảo |
-| `sale.leader` | `matkhaucuatoi` | Leader | Sale 1 (trưởng nhóm) | Trần Văn Dũng |
-| `sale.leader2` | `matkhaucuatoi` | Leader | Sale 2 (trưởng nhóm) | Phạm Quốc Anh |
-| `sale.staff` | `matkhaucuatoi` | Staff | Sale 1 | Nguyễn Thị Hà |
-| `sale.staff2` | `matkhaucuatoi` | Staff | Sale 2 | Lý Thu Hằng |
-| `sale.moi` | `matkhaucuatoi` | Staff | — | Nhân viên mới — **bị buộc đổi mật khẩu ngay lần đầu đăng nhập**, cố ý để thử luồng đó |
+| Tên đăng nhập | Mã nhân sự | Mật khẩu | Cấp bậc | Team | Họ tên |
+|---|---|---|---|---|---|
+| `sale.manager` | `BAOLQ` | `matkhaucuatoi` | Manager | — | Lê Quốc Bảo |
+| `sale.leader` | `DUNGTV` | `matkhaucuatoi` | Leader | Sale 1 (trưởng nhóm) | Trần Văn Dũng |
+| `sale.leader2` | `ANHPQ` | `matkhaucuatoi` | Leader | Sale 2 (trưởng nhóm) | Phạm Quốc Anh |
+| `sale.staff` | `HANT` | `matkhaucuatoi` | Staff | Sale 1 | Nguyễn Thị Hà |
+| `sale.staff2` | `HANGLT` | `matkhaucuatoi` | Staff | Sale 2 | Lý Thu Hằng |
+| `sale.moi` | `MOINV` | `matkhaucuatoi` | Staff | — | Nhân viên mới — **bị buộc đổi mật khẩu ngay lần đầu đăng nhập**, cố ý để thử luồng đó |
 
 ## Bộ phận Marketing
 
-| Tên đăng nhập | Mật khẩu | Cấp bậc | Họ tên |
-|---|---|---|---|
-| `mkt.manager` | `matkhaucuatoi` | Manager | Đỗ Thu Trang |
-| `mkt.leader` | `matkhaucuatoi` | Leader | Vũ Hoài Nam |
-| `mkt.staff` | `matkhaucuatoi` | Staff | Phạm Minh Anh |
+| Tên đăng nhập | Mã nhân sự | Mật khẩu | Cấp bậc | Họ tên |
+|---|---|---|---|---|
+| `mkt.manager` | `TRANGDT` | `matkhaucuatoi` | Manager | Đỗ Thu Trang |
+| `mkt.leader` | `NAMVH` | `matkhaucuatoi` | Leader | Vũ Hoài Nam |
+| `mkt.staff` | `ANHPM` | `matkhaucuatoi` | Staff | Phạm Minh Anh |
 
 ## Bộ phận Vận đơn
 
-| Tên đăng nhập | Mật khẩu | Cấp bậc | Họ tên |
-|---|---|---|---|
-| `vd.manager` | `matkhaucuatoi` | Manager | Bùi Kim Chi |
-| `vd.staff` | `matkhaucuatoi` | Staff | Hoàng Văn Tú |
+| Tên đăng nhập | Mã nhân sự | Mật khẩu | Cấp bậc | Họ tên |
+|---|---|---|---|---|
+| `vd.manager` | `CHIBK` | `matkhaucuatoi` | Manager | Bùi Kim Chi |
+| `vd.staff` | `TUHV` | `matkhaucuatoi` | Staff | Hoàng Văn Tú |
 
 ---
 

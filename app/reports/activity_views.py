@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.utils import timezone
 
 from core.audit import record
 from core.constants import AuditAction
@@ -28,6 +29,7 @@ def parameters(request):
         "market": request.GET.get("thi_truong", ""),
         "person": request.GET.get("nhan_su", ""),
         "team": request.GET.get("team", ""),
+        "segment": request.GET.get("tep", ""),
     }
 
 
@@ -36,8 +38,10 @@ def _export(request, source, result, params):
         raise BusinessError("Thu hẹp bộ lọc để xuất báo cáo.")
     record(AuditAction.EXPORT, actor=request.user, target=source.table,
            detail="Xuất báo cáo hoạt động ERP", request=request)
-    book = excel.build_workbook(source.table.name, result,
-                                subtitle=f"{params['start']} đến {params['end']}")
+    subtitle = f"{params['start']} đến {params['end']}"
+    if params.get("segment"):
+        subtitle += " · Tệp khách hàng: " + ("chưa có" if params["segment"] == "__missing__" else params["segment"])
+    book = excel.build_workbook(source.table.name, result, subtitle=subtitle)
     if source.kind == "delivery":
         sheet = book.create_sheet("Trạng thái giao hàng")
         sheet.append(["Trạng thái", "Số đơn"])
@@ -59,9 +63,11 @@ def report(request, export=False, choices=None):
     params = parameters(request)
     ctx = {"sources": choices, "source": source, "groups": service.GROUPS,
            "params": params, "markets": Market.labels, "empty": True,
+           "presets": summary_service.date_presets(timezone.localdate(), start=params["start"], end=params["end"]),
            "query": request.GET.urlencode(), "qs_loc": "&" + request.GET.urlencode()}
     if source:
         ctx['people'], ctx['teams'] = service.people_choices(request.user, source)
+        ctx['segments'] = service.segment_options(source)   # None: nguồn không có Tệp khách hàng
         try:
             result = service.build(request.user, source, **params)
         except BusinessError as error:

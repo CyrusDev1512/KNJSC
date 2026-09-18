@@ -73,7 +73,7 @@ def bang(request):
     # distinct=True vì đếm hai quan hệ trong cùng một lệnh, không thì hai bảng
     # nhân chéo nhau và cả hai con số đều sai
     ds = (TableDef.objects.in_scope(request.user)
-          .select_related("department", "created_by")
+          .select_related("department", "created_by", "created_by__profile")
           .annotate(so_cot=Count("columns", distinct=True))
           .with_visible_record_count(request.user)
           .order_by("name"))
@@ -194,7 +194,7 @@ def bang_xem(request, code):
 
     ds, ban_do_cot = query.build(
         DataRecord.objects.in_scope(request.user)
-                          .select_related("table", "created_by"),
+                          .select_related("table", "created_by", "created_by__profile"),
         bang_hien, filters=bo_loc, search=tim, sort=sap_xep,
         descending=giam_dan, columns=cac_cot,
     )

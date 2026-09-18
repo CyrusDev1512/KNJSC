@@ -78,7 +78,7 @@ def nhat_ky(request):
     request.nav_current = "nhat_ky"
     assert_rank(request.user, Rank.MANAGER, request)
 
-    ds = AuditLog.objects.in_scope(request.user).select_related("actor")
+    ds = AuditLog.objects.in_scope(request.user).select_related("actor", "actor__profile")
 
     hanh_dong = request.GET.get("hanh_dong", "")
     if hanh_dong:
@@ -138,7 +138,7 @@ def _tac_vu_cua_toi(request, pk):
 def tac_vu(request):
     """Danh sách tác vụ nền của mình; Admin thấy hết để biết hàng đợi có kẹt không."""
     request.nav_current = "tac_vu"
-    ds = BackgroundJob.objects.in_scope(request.user).select_related("created_by")
+    ds = BackgroundJob.objects.in_scope(request.user).select_related("created_by", "created_by__profile")
     trang_thai = request.GET.get("trang_thai", "")
     if trang_thai:
         ds = ds.filter(status=trang_thai)

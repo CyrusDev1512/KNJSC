@@ -1,15 +1,20 @@
 """Báo cáo ERP: nguồn tường minh, quyền chuẩn, dữ liệu và trình bày tách biệt."""
 from dataclasses import dataclass, replace
+from decimal import Decimal
 
 from django.db.models import Count, Sum, F, Value, CharField, Q
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Coalesce, NullIf, Concat
 from django.contrib.postgres.aggregates import StringAgg
 
+from core.constants import Currency
+from core.identity import SEPARATOR, code_expression, label_expression
 from core.managers import apply_scope
 from core.exceptions import OutOfScopeError, BusinessError
 from forms_builder.models import DataRecord, TableDef
+from orders.constants import waybill_condition
 from orders.models import WaybillItem
+from reports.constants import MISSING_FILTER
 from reports.models import ReportSource
 from reports import aggregations
 from reports.marketing import Metric, with_totals
@@ -29,10 +34,13 @@ FORMULAS = {
     "cpo": ("CPO", ("cost", "orders"), "divide"),
     "mess_cost": ("Giá Mess", ("cost", "mess"), "divide"),
     "cost_sales": ("CPQC/Doanh số", ("cost", "sales"), "divide"),
-    # BC MKT M5 = K5/J5; không suy ra phép chia hai trường cùng tên.
-    "invoice_revenue": ("Hóa đơn/Doanh thu", ("cost", "mess", "orders"), "k_over_j"),
+    # Đúng theo nhãn: Hóa đơn ÷ Doanh thu (ADR-038 thay xác nhận K/J 09.09.2026)
+    "invoice_revenue": ("Hóa đơn/Doanh thu", ("invoice", "revenue"), "divide"),
     "aov": ("AOV", ("sales", "orders"), "divide"),
 }
+#: Khoá không lấy từ cột bảng mà suy ra từ nguồn khác (ADR-038): Doanh thu Marketing =
+#: tiền đã thu của vận đơn do marketer phụ trách — `marketing_revenue`.
+DERIVED = {"mkt": ("revenue",)}
 DISPLAY_ORDER = {
     "sale": ("mess", "orders", "sales", "conversion", "revenue"),
     "mkt": ("mess", "cost", "orders", "sales", "revenue", "invoice",
@@ -79,7 +87,11 @@ def select_source(user, code, choices=None):
 
 def records(user, source):
     # Quyền báo cáo không dùng ngoại lệ cấp quyền sửa lưới/phân công CRM.
+    # Kế toán thấy mọi dòng của mọi nguồn (ADR-038) — cùng luật với DailyReport.
+    from org.services.org_service import is_accountant
     qs = DataRecord.objects.filter(table=source.table)
+    if is_accountant(user):
+        return qs
     if source.kind == "delivery":
         return apply_scope(qs, user, owner="assignment__delivery_id",
                            team="assignment__delivery__profile__team_id",
@@ -97,14 +109,15 @@ def people_choices(user, source):
     owner, team = people_paths(source)
     qs = records(user, source).order_by()
     pairs = qs.values(
-        person_id=F(owner+'_id'), username=F(owner+'__username'),
+        person_id=F(owner+'_id'), code=code_expression(owner),
         full_name=F(owner+'__profile__full_name'),
         option_team_id=F(team+'_id'), team_name=F(team+'__name')).distinct()
     people, teams = {}, {}
     for pair in pairs:
         if pair['person_id'] is not None:
-            people[pair['person_id']] = pair['username'] + (
-                ' — '+pair['full_name'] if pair['full_name'] else '')
+            # Mã trước, tên sau (ADR-037)
+            people[pair['person_id']] = pair['code'] + (
+                SEPARATOR+pair['full_name'] if pair['full_name'] else '')
         if pair['option_team_id'] is not None:
             teams[pair['option_team_id']] = pair['team_name']
     return tuple([{'id':key, 'label':label} for key, label in sorted(
@@ -140,13 +153,11 @@ def _as_activity(result, **flags):
 
 def person_expressions(source):
     """Nhân sự của dòng (người lập báo cáo; Vận đơn: người được phân công) và leader team
-    của người đó, tra từ Tổ chức (`Team.leader`) — không đọc tên tự nhập trong ô (ADR-022, 035)."""
+    của người đó, tra từ Tổ chức (`Team.leader`) — không đọc tên tự nhập trong ô (ADR-022, 035).
+    Cả hai là `MÃ · Họ tên` theo `core.identity` (ADR-037)."""
     owner, team = people_paths(source)
-    identity = Concat(F(owner + "__username"), Value(" — "), F(owner + "__profile__full_name"))
-    leader = Coalesce(NullIf(F(team + "__leader__profile__full_name"), Value("")),
-                      F(team + "__leader__username"), Value(""), output_field=CharField())
-    return {"person_name": Coalesce(NullIf(identity, Value(" — ")), Value("Chưa phân công"), output_field=CharField()),
-            "leader_name": leader}
+    return {"person_name": Coalesce(label_expression(owner), Value("Chưa phân công"), output_field=CharField()),
+            "leader_name": Coalesce(label_expression(team + "__leader"), Value(""), output_field=CharField())}
 
 
 def with_day_people(rows, source):
@@ -176,9 +187,7 @@ def with_person_team(result, source, group):
 def group_expression(source, group):
     if group == "person":
         prefix = "assignment__delivery" if source.kind == "delivery" else "created_by"
-        identity = Concat(F(prefix + "__username"), Value(" — "),
-                          F(prefix + "__profile__full_name"))
-        return (Coalesce(NullIf(identity, Value(" — ")), Value("Chưa phân công")),
+        return (Coalesce(label_expression(prefix), Value("Chưa phân công"), output_field=CharField()),
                 PERSON_LABELS[source.kind])
     if group == "department":
         return F("department__name"), "Phòng ban"
@@ -193,13 +202,17 @@ def group_expression(source, group):
 def project_metrics(result, source):
     """Tên, thứ tự và công thức BC SALE/BC MKT dùng chung cho mọi cách xem."""
     summed = {c.code: c for c in result.columns if c.kind == "sum"}
+    derived = DERIVED.get(source.kind, ())
     columns, computed = [], []
     for key in DISPLAY_ORDER[source.kind]:
         if key in FORMULAS:
             label, inputs, kind = FORMULAS[key]
             columns.append(aggregations.ReportColumn(key, label, "computed", 4))
-            codes = tuple(source.columns.get(k, "__missing_" + k) for k in inputs)
+            # Khoá suy ra dùng chính tên khoá làm mã trong dict dòng (xem `attach_derived`)
+            codes = tuple(k if k in derived else source.columns.get(k, "__missing_" + k) for k in inputs)
             computed.append(Metric(key, codes, kind))
+        elif key in derived:
+            columns.append(aggregations.ReportColumn(key, INPUT_LABELS[key], "derived", 2))
         else:
             code = source.columns.get(key, "__missing_" + key)
             label = INPUT_LABELS[key]
@@ -212,7 +225,18 @@ def project_metrics(result, source):
     return with_totals(result, result.totals)
 
 
-def filtered_records(user, source, *, start=None, end=None, product="", market="", person="", team=""):
+def segment_options(source):
+    """Danh sách Tệp khách hàng của nguồn (ADR-038); nguồn không có cột thì None."""
+    from forms_builder.services import choice_service
+    code = (source.columns or {}).get("segment")
+    column = source.table.columns.filter(code=code).first() if code else None
+    if column is None:
+        return None
+    choices = choice_service.options_for(column)
+    return list(choices.options()) if choices is not None else []
+
+
+def filtered_records(user, source, *, start=None, end=None, product="", market="", person="", team="", segment=""):
     """Bộ lọc duy nhất cho bảng, trạng thái, Tổng quan và tệp xuất."""
     if start and end and start > end:
         raise BusinessError("Từ ngày phải trước hoặc bằng Đến ngày.")
@@ -224,10 +248,21 @@ def filtered_records(user, source, *, start=None, end=None, product="", market="
     if market:
         code = source.columns["market"]
         qs = qs.annotate(_market=KeyTextTransform(code, "data"))
-        if market == "__missing__":
+        if market == MISSING_FILTER:
             qs = qs.filter(Q(_market__isnull=True) | Q(_market=""))
         else:
             qs = qs.filter(_market=market)
+    if segment:
+        options = segment_options(source)
+        if options is None:
+            raise BusinessError("Nguồn báo cáo này không có Tệp khách hàng.")
+        code = source.columns["segment"]
+        if segment == MISSING_FILTER:
+            qs = qs.annotate(_segment=KeyTextTransform(code, "data")).filter(Q(_segment__isnull=True) | Q(_segment=""))
+        elif segment in options:
+            qs = qs.filter(data__contains={code: segment})   # GIN `record_data_gin`
+        else:
+            raise BusinessError("Tệp khách hàng không có trong danh sách.")
     if product:
         if source.kind == "delivery":
             items = WaybillItem.objects.for_records(qs).filter(product__code=product)
@@ -237,10 +272,11 @@ def filtered_records(user, source, *, start=None, end=None, product="", market="
     return qs
 
 
-def build(user, source, *, group="day", start=None, end=None, product="", market="", person="", team=""):
+def build(user, source, *, group="day", start=None, end=None, product="", market="", person="", team="", segment=""):
     if group not in dict(GROUPS):
         raise BusinessError("Cách nhóm không hợp lệ.")
-    qs = filtered_records(user, source, start=start, end=end, product=product, market=market, person=person, team=team)
+    qs = filtered_records(user, source, start=start, end=end, product=product, market=market,
+                          person=person, team=team, segment=segment)
     if source.kind == "delivery":
         return with_person_team(delivery(qs, source, group, product), source, group)
     expression, label = group_expression(source, group)
@@ -250,23 +286,82 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
         group_expression=expression, group_label=label,
     )
     result = project_metrics(result, source) if result.ok else result
+    derived_currencies = set()
+    if result.ok and DERIVED.get(source.kind) and not segment:
+        # Lọc theo Tệp khách hàng thì Doanh thu để trống: vận đơn không ghi tệp (ADR-038)
+        revenue, derived_currencies = marketing_revenue(
+            qs, group, expression, start=start, end=end, product=product, market=market)
+        result = attach_derived(result, "revenue", revenue)
     if result.ok and source.columns.get('currency'):
-        result = currency_safe_result(result, source, qs)
+        result = currency_safe_result(result, source, qs, derived_currencies)
     return with_person_team(result, source, group)
 
 
-def currency_safe_result(result, source, qs):
-    """Không công bố tổng tiền khi lẫn đơn vị hoặc dữ liệu cũ chưa có đơn vị."""
+def marketing_revenue(qs, group, expression, *, start=None, end=None, product="", market=""):
+    """Doanh thu suy ra (ADR-038): tổng tiền đã thu (`WaybillItem.paid_amount`, chính là
+    `so_tien_tt`) của vận đơn có Phụ trách Marketing là marketer trong phạm vi báo cáo,
+    cùng kỳ theo ngày lên đơn, cùng sản phẩm/quốc gia khi lọc — **một truy vấn**, nhóm
+    theo cùng khoá với báo cáo. Trả `({giá trị nhóm: Decimal}, {loại tiền gặp})`.
+    Đơn chưa phân công Marketing không vào; đơn chưa có loại tiền góp `None` để cảnh báo."""
+    items = (WaybillItem.objects.filter(deleted_at__isnull=True, record__deleted_at__isnull=True)
+             .filter(waybill_condition("record__table__"))
+             .filter(record__assignment__marketing_id__in=qs.order_by().values("created_by_id")))
+    if start:
+        items = items.filter(record__val_date__gte=start)
+    if end:
+        items = items.filter(record__val_date__lte=end)
+    if product:
+        items = items.filter(product__name=product)
+    if market == MISSING_FILTER:
+        items = items.annotate(_market=KeyTextTransform("quoc_gia", "record__data")).filter(Q(_market__isnull=True) | Q(_market=""))
+    elif market:
+        items = items.filter(record__data__contains={"quoc_gia": market})
+    keys = {
+        "day": F("record__val_date"),
+        "person": Coalesce(label_expression("record__assignment__marketing"), Value("Chưa phân công"), output_field=CharField()),
+        "product": F("product__name"),
+        "market": Coalesce(NullIf(KeyTextTransform("quoc_gia", "record__data"), Value("")), Value("Chưa xác định"), output_field=CharField()),
+        "department": F("record__assignment__marketing__profile__department__name"),
+    }
+    rows = (items.order_by().values(nhom=keys[group], currency=KeyTextTransform("loai_tien", "record__data"))
+            .annotate(paid=Sum("paid_amount")))
+    revenue, currencies = {}, set()
+    for row in rows:
+        currencies.add(row["currency"] or None)
+        revenue[row["nhom"]] = revenue.get(row["nhom"], Decimal(0)) + (row["paid"] or Decimal(0))
+    return revenue, currencies
+
+
+def attach_derived(result, code, values):
+    """Gắn giá trị suy ra vào dòng có trong báo cáo; tổng = tổng các dòng đó (AC-5.4).
+    Nhóm chỉ có tiền vận đơn mà không có dòng báo cáo thì không hiện — báo cáo là của
+    dòng báo cáo, không phải của vận đơn."""
+    if not values:
+        return result
+    keys = set(result.rows.values_list("nhom", flat=True))
+    derived = {key: {**result.derived.get(key, {}), code: value} for key, value in values.items() if key in keys}
+    if not derived:
+        return result
+    total = sum((row[code] for row in derived.values()), Decimal(0))
+    result = replace(result, derived=derived, derived_totals={**result.derived_totals, code: total})
+    return with_totals(result, result.totals)
+
+
+def currency_safe_result(result, source, qs, derived_currencies=()):
+    """Không công bố tổng tiền khi lẫn đơn vị hoặc dữ liệu cũ chưa có đơn vị — kể cả tiền
+    vận đơn suy ra (ADR-038)."""
     currencies = list(qs.order_by().values_list('data__'+source.columns['currency'], flat=True).distinct()[:2])
-    if len(currencies) == 1 and currencies[0] in ('USD','CAD','PHP','VND'):
+    mixed = set(currencies) | set(derived_currencies)
+    if len(mixed) == 1 and currencies and currencies[0] in Currency.values:
         return ActivityResult(**result.__dict__, currency_label=currencies[0])
-    if not currencies:
+    if not currencies and not derived_currencies:
         return result
     warning = ('Bộ lọc có nhiều loại tiền hoặc báo cáo cũ chưa xác định loại tiền. '
                'Các chỉ tiêu tiền tạm để trống để tránh cộng sai đơn vị; chọn một thị trường '
                'và bổ sung loại tiền cho báo cáo cũ qua người quản lý.')
     # Số Mess, số đơn và tỉ lệ chốt vẫn có ý nghĩa trên toàn bộ dữ liệu.
     monetary = {source.columns.get(key) for key in ('cost','sales','revenue','invoice')}
+    monetary |= set(DERIVED.get(source.kind, ()))
     monetary |= {'cpo','mess_cost','cost_sales','invoice_revenue','aov'}
     metrics = tuple(metric for metric in result.computed_columns if metric.code not in monetary)
     metrics += tuple(Metric(column.code, (), 'missing') for column in result.columns if column.code in monetary)

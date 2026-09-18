@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load knjsc %}
 {% block tieu_de %}Tác vụ nền · Kim Ngân JSC{% endblock %}
 {% block ten_trang %}Tác vụ nền{% endblock %}
 
@@ -45,7 +45,7 @@
             <td class="ma-o">{{ j.created_at|date:"d.m H:i" }}</td>
             <td class="nho">{{ j.get_kind_display }}</td>
             <td>{{ j.title|default:"—" }}</td>
-            <td class="nho">{{ j.created_by.username|default:"hệ thống" }}</td>
+            <td class="nho">{{ j.created_by|ma|default:"hệ thống" }}</td>
             <td>{% include "core/_chip_tac_vu.html" %}</td>
             <td class="tien">{{ j.percent }}%</td>
             <td class="phai"><a class="nut nut-nho" href="{% url 'tac_vu_xem' j.pk %}">Xem</a></td>

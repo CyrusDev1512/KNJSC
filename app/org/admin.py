@@ -26,9 +26,9 @@ class TeamAdmin(admin.ModelAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ("full_name", "user", "department", "team", "rank",
+    list_display = ("staff_code", "full_name", "user", "department", "team", "rank",
                     "must_change_password", "last_login_at")
     list_filter = ("rank", "department", "must_change_password")
-    search_fields = ("full_name", "user__username", "user__email")
+    search_fields = ("staff_code", "full_name", "user__username", "user__email")
     list_select_related = ("user", "department", "team")
     readonly_fields = ("failed_login_count", "locked_until", "last_login_at", "session_epoch")

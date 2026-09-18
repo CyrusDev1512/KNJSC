@@ -9,6 +9,7 @@ nộp không sửa và không xoá được, nên phải chặn ở ba tầng v�
 
 Mỗi bài phân quyền kiểm **cả hai chiều**.
 """
+from core.identity import employee_code
 from datetime import date
 
 import pytest
@@ -88,12 +89,12 @@ def test_history_search_employee_code_and_identity(client, bm_mkt, nguoi_dung):
     report = _nop(bm_mkt, person)
     original = dict(report.record.data)
     client.force_login(nguoi_dung['manager_mkt'])
-    for term in [person.username.upper(), 'người cùng']:
+    for term in [person.username.upper(), employee_code(person).lower(), 'người cùng']:
         response = client.get('/bao-cao/lich-su/', {'tim':term, 'tu':str(NGAY), 'den':str(NGAY)})
         assert response.context['trang'].paginator.count == 1
-        assert f'data-employee-code="{person.username}"' in response.content.decode()
+        assert f'data-employee-code="{employee_code(person)}"' in response.content.decode()
     detail = client.get(f'/bao-cao/{report.pk}/')
-    assert f'data-employee-code="{person.username}"' in detail.content.decode()
+    assert f'data-employee-code="{employee_code(person)}"' in detail.content.decode()
     report.record.refresh_from_db()
     assert report.record.data == original
     client.force_login(nguoi_dung['staff_sale_1'])
@@ -117,7 +118,7 @@ def test_identity_blank_shared_names_and_query_budget(client, bm_mkt, nguoi_dung
         response=client.get('/bao-cao/lich-su/',{'tim':staff.username,'bieu_mau':bm_mkt.code,
             'bo_phan':bm_mkt.department.code,'tu':str(NGAY),'den':str(NGAY)})
     assert response.context['trang'].paginator.count==1
-    assert f'data-employee-code="{staff.username}"' in response.content.decode()
+    assert f'data-employee-code="{employee_code(staff)}"' in response.content.decode()
     assert client.get('/bao-cao/lich-su/',{'tim':'not-a-person'}).context['trang'].paginator.count==0
 
 
@@ -208,14 +209,14 @@ def test_thieu_truong_bat_buoc_thi_khong_nop_duoc(bm_mkt, nguoi_dung):
 
 # ══ Khoá sau khi nộp — FR-4.4, BR-2 ════════════════════════════════
 
-def test_khong_nop_de_len_ban_da_co(bm_mkt, nguoi_dung):
-    """AC-4.4 — Không nộp đè lên báo cáo đã có của cùng ngày"""
-    _nop(bm_mkt, nguoi_dung["staff_mkt"])
-
-    with pytest.raises(BusinessError) as loi:
-        _nop(bm_mkt, nguoi_dung["staff_mkt"])
-    assert "đã nộp" in str(loi.value)
-    assert DailyReport.objects.count() == 1
+def test_nop_lai_cung_ngay_la_ban_moi_khong_de(bm_mkt, nguoi_dung):
+    """AC-4.4 — Nộp lại cùng ngày không đè lên bản đã có: bản cũ giữ nguyên nội dung, bản mới là
+    dòng riêng (ADR-038 thay khoá một bản/ngày)"""
+    cu = _nop(bm_mkt, nguoi_dung["staff_mkt"])
+    moi = _nop(bm_mkt, nguoi_dung["staff_mkt"], so_mess="9")
+    assert DailyReport.objects.count() == 2 and cu.pk != moi.pk
+    cu.record.refresh_from_db()
+    assert cu.record.data["so_mess"] == 1000 and moi.record.data["so_mess"] == 9
 
 
 def test_sua_bao_cao_bang_ma_thi_no_ngay(bm_mkt, nguoi_dung):

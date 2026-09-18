@@ -67,19 +67,20 @@ def bao_cao_ngay(request):
                 request=request, fields=cac_truong,
             )
             messages.success(
-                request, f"Đã nộp báo cáo cho ngày {ngay:%d.%m.%Y}. Báo cáo đã khoá.")
+                request, f"Đã nộp báo cáo cho ngày {ngay:%d.%m.%Y}. Nhân viên không tự sửa; "
+                         "cần sửa số thì nhờ quản lý hoặc Kế toán trong Lịch sử báo cáo.")
             return redirect("bao_cao_lich_su")
         except BusinessError as e:
             loi.append(str(e))
 
-    da_nop = bool(bm) and daily_service.already_submitted(bm, request.user, ngay)
+    so_lan_da_nop = daily_service.submissions_today(bm, request.user, ngay) if bm else 0
     return render(request, "reports/bao_cao_ngay.html", {
-        "cac_bieu_mau": cac_bieu_mau, "bm": bm, "ngay": ngay,
+        "cac_bieu_mau": cac_bieu_mau, "bm": bm, "ngay": ngay, "so_lan_da_nop": so_lan_da_nop,
         # Ô nhập, ô chọn, ô danh tính — cùng bộ với màn hình điền biểu mẫu
         "cac_o": daily_service.report_widgets(
             bm, cac_truong, du_lieu, user=request.user, day=ngay,
         ) if bm else [],
-        "loi": loi, "da_nop": da_nop,
+        "loi": loi,
         "cac_cot_tinh": bm.table.computed_columns() if bm else [],
     })
 
@@ -101,6 +102,7 @@ def bao_cao_lich_su(request):
     tim = request.GET.get("tim", "").strip()
     if tim:
         ds = ds.filter(Q(created_by__username__icontains=tim)
+                       | Q(created_by__profile__staff_code__icontains=tim)
                        | Q(created_by__profile__full_name__icontains=tim))
     tu = request.GET.get("tu", "").strip()
     if tu:

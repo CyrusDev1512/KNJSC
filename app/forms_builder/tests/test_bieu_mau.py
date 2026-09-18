@@ -9,6 +9,7 @@ Ba thứ phải đúng:
 
 Mỗi bài phân quyền kiểm **cả hai chiều**.
 """
+from core.identity import employee_code
 from decimal import Decimal
 
 import pytest
@@ -176,7 +177,7 @@ def test_du_lieu_ghi_dung_bang_dich(client, bieu_mau, bang_mkt, nguoi_dung):
     bg = DataRecord.objects.get(table=bang_mkt)
     # Trường Marketer mang nhãn Người bán nên hệ thống tự ghi người gửi,
     # bỏ qua giá trị gõ tay — FR-4.6, AC-4.6
-    assert bg.data["marketer"] == "staff_mkt"
+    assert bg.data["marketer"] == employee_code(nguoi_dung["staff_mkt"])
     assert bg.val_revenue == Decimal("1425942850.00")
     assert bg.data["ti_le_chot"] == "6.76"      # cột tính sẵn tự tính
 
@@ -481,8 +482,8 @@ def test_dien_bieu_mau_tu_ghi_nguoi_ban(client, bieu_mau, bang_mkt, nguoi_dung):
     })
     assert kq.status_code == 302
     dong = DataRecord.objects.get(table=bang_mkt)
-    assert dong.data["marketer"] == "staff_mkt"
-    assert dong.val_seller == "staff_mkt"
+    assert dong.data["marketer"] == employee_code(nguoi_dung["staff_mkt"])
+    assert dong.val_seller == employee_code(nguoi_dung["staff_mkt"])
 
 
 def test_nop_bao_cao_ngay_tu_ghi_nguoi_ban(bieu_mau, bang_mkt, nguoi_dung):
@@ -498,8 +499,8 @@ def test_nop_bao_cao_ngay_tu_ghi_nguoi_ban(bieu_mau, bang_mkt, nguoi_dung):
         bieu_mau, {"ngay": "2026-08-28", "marketer": "Giả mạo", "so_mess": "10"},
         report_date=date(2026, 8, 28), actor=nv,
     )
-    assert bao_cao.record.data["marketer"] == "staff_mkt"
-    assert bao_cao.record.val_seller == "staff_mkt"
+    assert bao_cao.record.data["marketer"] == employee_code(nv)
+    assert bao_cao.record.val_seller == employee_code(nv)
 
 
 def test_o_nguoi_ban_tren_man_hinh_chi_doc(client, bieu_mau, nguoi_dung):
@@ -508,7 +509,7 @@ def test_o_nguoi_ban_tren_man_hinh_chi_doc(client, bieu_mau, nguoi_dung):
     for url in (f"/bieu-mau/{bieu_mau.code}/dien/", f"/bao-cao/?bieu_mau={bieu_mau.code}"):
         html = client.get(url).content.decode()
         assert 'name="marketer"' not in html, url
-        assert 'value="staff_mkt" readonly' in html, url
+        assert f'value="{employee_code(nguoi_dung["staff_mkt"])}" readonly' in html, url
         assert "Chính là bạn, hệ thống tự ghi" in html, url
 
 

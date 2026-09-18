@@ -37,6 +37,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-1.4 | Hệ thống phải buộc người dùng đổi mật khẩu trong lần đăng nhập đầu tiên |
 | FR-1.5 | Khi quản trị viên khoá tài khoản hoặc thay đổi quyền, phiên đang mở của người đó phải mất hiệu lực ngay |
 | FR-1.6 | ~~Sau khi đăng nhập, hệ thống phải đưa người dùng tới màn hình phù hợp với bộ phận và cấp bậc của họ~~ **Bỏ theo Q34** — mọi người vào trang tổng quan chung, phân quyền đã ẩn tính năng ngoài phận sự |
+| FR-1.7 | Mỗi nhân sự có **mã nhân sự** theo quy ước công ty (TÊN + chữ đầu họ + chữ đầu tên đệm, viết hoa không dấu; trùng thì thêm số từ 2), cố định sau khi gán; tài khoản mới có tên đăng nhập là mã, đăng nhập không phân biệt hoa/thường; mọi chỗ định danh hiện mã trước, tên sau — ADR-037 |
 
 ---
 
@@ -69,11 +70,11 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | Mã | Yêu cầu |
 |---|---|
 | FR-4.1 | Mỗi bộ phận phải có biểu mẫu báo cáo riêng |
-| FR-4.2 | Hệ thống phải ghi nhận thời điểm nộp của mỗi báo cáo |
+| FR-4.2 | Hệ thống phải ghi nhận thời điểm nộp của mỗi báo cáo; một người nộp cùng biểu mẫu **nhiều lần trong ngày** được, mỗi lần là một bản riêng (ADR-038 thay khoá một bản/ngày) |
 | FR-4.3 | Người dùng phải xem lại được các báo cáo cũ do chính mình nộp |
-| FR-4.4 | Staff không sửa báo cáo đã nộp; Leader trong team, Manager trong bộ phận, Admin toàn hệ thống sửa nội dung có lịch sử và kiểm phiên bản. Giữ ngày/danh tính/thời điểm nộp gốc — quyết định thay thế 16/09/2026, ADR-032 |
-| FR-4.5 | Leader và Manager phải xem được báo cáo của người thuộc phạm vi quản lý |
-| FR-4.6 | Trường danh tính người điền (nhãn Người bán) trên biểu mẫu và báo cáo hằng ngày phải do hệ thống tự ghi theo tài khoản đang đăng nhập; người dùng không phải điền và không đổi được |
+| FR-4.4 | Staff không sửa báo cáo đã nộp; Leader trong team, Manager trong bộ phận, Admin toàn hệ thống và **Kế toán mọi bộ phận** (ADR-038) sửa nội dung có lịch sử và kiểm phiên bản. Giữ ngày/danh tính/thời điểm nộp gốc — quyết định thay thế 16/09/2026, ADR-032 |
+| FR-4.5 | Leader và Manager phải xem được báo cáo của người thuộc phạm vi quản lý; Kế toán xem được báo cáo của mọi bộ phận (ADR-038) |
+| FR-4.6 | Trường danh tính người điền (nhãn Người bán) trên biểu mẫu và báo cáo hằng ngày phải do hệ thống tự ghi **mã nhân sự** của tài khoản đang đăng nhập (ADR-037); người dùng không phải điền và không đổi được |
 
 ---
 
@@ -220,7 +221,7 @@ Những ràng buộc phải luôn đúng, không phụ thuộc màn hình hay th
 | Mã | Quy tắc |
 |---|---|
 | BR-1 | Mỗi người dùng thuộc đúng một bộ phận và một cấp bậc tại một thời điểm |
-| BR-2 | Báo cáo đã nộp không được sửa hoặc xoá |
+| BR-2 | Báo cáo đã nộp không xoá cứng và không sửa ngoài luồng sửa có lịch sử (ADR-032, ADR-038); nộp nhiều lần trong ngày là các bản riêng, không đè |
 | BR-3 | Đơn hàng đã lưu không được sửa hoặc xoá |
 | BR-4 | Xoá dữ liệu là đánh dấu đã xoá, không xoá vĩnh viễn khỏi cơ sở dữ liệu |
 | BR-5 | Mọi thao tác thay đổi dữ liệu phải được ghi vào nhật ký hoạt động |

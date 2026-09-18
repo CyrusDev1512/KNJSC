@@ -1,3 +1,4 @@
+{% load knjsc %}
 <div id="vd-entry" class="vd-entry">
   {{ market_currencies|json_script:"order-market-currencies" }}
   {% if success %}<p role="status" class="vd-success">{{ success }}</p>{% endif %}
@@ -11,7 +12,7 @@
     </div>
     {{ form.non_field_errors }}
     {% include "orders/_nhac_khach.html" %}
-    <p class="vd-note">Sale đứng đơn: {{ user.username }}. Hệ thống tự ghi người đang đăng nhập và thời điểm lưu đơn.</p>
+    <p class="vd-note">Sale đứng đơn: {{ user|ma_ten }}. Hệ thống tự ghi người đang đăng nhập và thời điểm lưu đơn.</p>
     {% include "crm/_waybill_items.html" %}
     {% if duoc_them_sp %}<div class="hang">
       <input class="o-nhap" data-product-name aria-label="Tên sản phẩm mới" maxlength="200" placeholder="Tên sản phẩm mới">

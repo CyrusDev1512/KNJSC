@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load knjsc %}
 {% block tieu_de %}Lịch sử báo cáo · Kim Ngân JSC{% endblock %}
 {% block ten_trang %}Lịch sử báo cáo{% endblock %}
 {% block noi_dung %}
@@ -41,7 +41,7 @@
       <article class="sp-history-item">
         <a class="sp-history-link" href="{% url 'bao_cao_xem' bc.pk %}{% if history_query %}?{{ history_query }}{% endif %}" hx-get="{% url 'bao_cao_xem' bc.pk %}{% if history_query %}?{{ history_query }}{% endif %}" hx-target="#sp-report-reader" hx-select="#sp-report-content" hx-swap="innerHTML">
           <time datetime="{{ bc.report_date|date:'Y-m-d' }}">{{ bc.report_date|date:"d.m" }}<small>{{ bc.report_date|date:"Y" }}</small></time>
-          <span><b>{{ bc.form.name }}</b><small data-employee-code="{{ bc.created_by.username }}">{{ bc.created_by.username }}{% if bc.created_by.profile.full_name %} · {{ bc.created_by.profile.full_name }}{% endif %}</small><small>{{ bc.department }}{% if bc.team %} · {{ bc.team }}{% endif %}</small></span>
+          <span><b>{{ bc.form.name }}</b><small data-employee-code="{{ bc.created_by|ma }}">{{ bc.created_by|ma }}{% if bc.created_by.profile.full_name %} · {{ bc.created_by.profile.full_name }}{% endif %}</small><small>{{ bc.department }}{% if bc.team %} · {{ bc.team }}{% endif %}</small></span>
           <span class="sp-history-time">{{ bc.submitted_at|date:"H:i" }}</span>
         </a>
         <div class="sp-history-extra">{% if bc.record.val_revenue != None %}<span>Doanh số: {{ bc.record.val_revenue }}</span>{% endif %}{% if bc.activity_qs %}<a href="{% url 'bao_cao_tong_hop' %}?{{ bc.activity_qs }}">Báo cáo tổng hợp</a>{% endif %}{% if bc.thong_ke_qs %}<a href="{% url 'bao_cao_tong_hop' %}?{{ bc.thong_ke_qs }}">Thống kê Marketing</a>{% endif %}</div>

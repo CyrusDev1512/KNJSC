@@ -1,5 +1,36 @@
 # Daily tasks — KNJSC
 
+## Bàn giao phát hành VPS — 18.09.2026 (tối): trang MKT hoàn thiện (ADR-037, ADR-038, ADR-031 bổ sung)
+
+Đầu nhánh `codex/crm-update-solar-ui` sau commit "Hoan thanh trang MKT…" (xem `docs/backlog.md`
+mục 18.09 tối). Quy trình chuẩn ở `deploy/production/README.md` **đã thêm hai lệnh `gan_ma_nhan_su_cu`**.
+Thứ tự:
+
+1. Backup có kiểm phục hồi. `.env`: thêm `EXCHANGE_RATES_VND` cho EUR/JPY/AUD nếu muốn khác mặc
+   định (`USD=25500,CAD=17500,PHP=440,EUR=28500,JPY=155,AUD=17000`); **KRW chưa có** — kế toán chốt
+   rồi thêm `KRW=…`, trước đó bảng xếp hạng báo "Chưa có tỉ giá cho KRW" nếu có đơn Hàn Quốc.
+2. `migrate` — ba migration mới, đều đảo được: `org/0005_userprofile_staff_code`,
+   `orders/0009_more_markets_currencies` (SQL no-op), `reports/0004_remove_report_unique_per_person_per_day`
+   (chiều ngược **thất bại nếu đã có người nộp nhiều lần/ngày** → quay lui bằng backup).
+3. `tao_bang_van_don` → `configure_erp_reports` (thêm cột Tệp khách hàng, bổ sung 4 thị trường và
+   4 loại tiền vào cột có sẵn, gỡ trường Doanh thu nhập tay khỏi biểu mẫu MKT, bỏ cột tính
+   `hoa_don_doanh_thu`) → `configure_delivery_daily_report` → `collectstatic`.
+4. `gan_ma_nhan_su_cu` (xem trước) → gửi bảng "tên đăng nhập → mã" cho chủ dự án; muốn mã khác
+   thì Admin gán tay ở Nhân sự → Sửa hồ sơ **trước** khi chạy `gan_ma_nhan_su_cu --xac-nhan`
+   (gán rồi thì cố định). Lệnh chỉ đổi ô danh tính khớp đúng tên đăng nhập; chạy lại không đổi thêm.
+5. `up -d` năm dịch vụ, `nginx -t`, reload. Chrome domain thật: đăng nhập tài khoản cũ như thường;
+   tạo thử một tài khoản mới (mã gợi ý, đăng nhập bằng mã hoa/thường); Marketing nộp báo cáo
+   hai lần cùng ngày có Tệp khách hàng; Kế toán mở Lịch sử → Sửa; Báo cáo tổng hợp MKT có cột
+   Doanh thu (chỉ có số khi vận đơn đã phân công Marketing và đã thu tiền), Chọn nhanh, lọc Tệp.
+6. Báo trước cho nhân viên: định danh hiện **mã · họ tên**; Marketing nộp bao nhiêu lần cũng
+   được; Doanh thu không nhập nữa; Kế toán sửa được số liệu mọi bộ phận.
+
+### Ghi chú cho Việc A (bố cục Báo cáo tổng hợp — mục bàn giao 18.09 phía dưới)
+
+- Bộ lọc có thêm ô **Tệp khách hàng** (`name="tep"`, chỉ hiện với nguồn có `segment`) và hàng
+  nút **Chọn nhanh** (`.report-presets`, `.report-preset[data-tu][data-den]`, JS đã có trong
+  `static/js/report-filters.js` — gộp vào bản viết lại, không bỏ). Chip bộ lọc thêm chip `tep`.
+- Ô Nhân sự/Leader đã hiện `MÃ · Họ tên` (Đợt 1 làm xong); bản vẽ dùng đúng định dạng này.
 ## Bàn giao cho Claude Code CLI trên máy chủ dự án — 18.09.2026 (chiều): phát hành ADR-036, một bảng vận đơn
 
 Đọc trước: `docs/quyet-dinh/036-mot-bang-van-don-duy-nhat.md`,
@@ -84,7 +115,7 @@ hai bộ rule chồng nhau), `app/static/js/report-filters.js`.
 - Chỉ dùng token có sẵn; không thêm thư viện; không đưa `.demo-bar` và nút đổi
   theme của bản vẽ vào app.
 
-### Việc B — Mã nhân sự xuyên hệ thống (ADR-036, viết ADR trước khi sửa; 034 và 035 đã có)
+### Việc B — Mã nhân sự xuyên hệ thống (ADR-037, viết ADR trước khi sửa; 034 và 035 đã có)
 
 Hiện trạng đã rà: `UserProfile` **không có** trường mã; `core/identity.py` đã
 tập trung `employee_code()` và `display_name()` nhưng `employee_code()` trả tên
@@ -109,7 +140,7 @@ chứa tên đăng nhập.
 5. Lệnh `gan_ma_nhan_su_cu`: đổi tên đăng nhập → mã trong các cột định danh của
    bảng động (cột có `meaning=seller` và cột phụ trách), có `--thu` (dry run) và
    ghi nhật ký. Không chạy tự động; ghi vào quy trình phát hành VPS.
-6. `du_lieu_mau` gán mã cho 12 tài khoản. Tài liệu: ADR-036, `docs/02`, `docs/04`
+6. `du_lieu_mau` gán mã cho 12 tài khoản. Tài liệu: ADR-037, `docs/02`, `docs/04`
    (AC mới → cập nhật bộ đếm `docs/06` theo `tests/test_truy_vet.py`), backlog.
 
 ### Kiểm chứng bắt buộc trước khi bàn giao diff

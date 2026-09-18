@@ -25,12 +25,12 @@
   </div>
 {% endif %}
 
-{% if da_nop %}
+{% if so_lan_da_nop %}
   <div class="bao bao-cho">
     <span class="bao-ic">✓</span>
     <div>
-      <b>Bạn đã nộp biểu mẫu này cho ngày {{ ngay|date:"d.m.Y" }}</b>
-      <p>Báo cáo đã nộp được khóa với nhân viên. Liên hệ Leader hoặc quản lý để chỉnh sửa trong lịch sử báo cáo.</p>
+      <b>Hôm nay ({{ ngay|date:"d.m.Y" }}) bạn đã nộp biểu mẫu này {{ so_lan_da_nop }} lần</b>
+      <p>Nộp tiếp là thêm một bản mới, không đè bản cũ. Cần sửa số đã nộp thì nhờ Leader, quản lý hoặc Kế toán sửa trong Lịch sử báo cáo.</p>
     </div>
   </div>
 {% endif %}

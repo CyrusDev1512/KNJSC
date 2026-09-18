@@ -5,6 +5,8 @@ from django.db import transaction
 from forms_builder.models import ColumnDef, FieldDef, FormDef, FormField, FormTableLink, TableDef
 from orders.constants import Market
 from org.models import Department
+from reports.constants import (CUSTOMER_SEGMENT_COLUMN, CUSTOMER_SEGMENT_DEFAULTS,
+                               CUSTOMER_SEGMENT_LABEL, LEGACY_REVENUE_INPUT, LEGACY_ROW_FORMULA)
 from reports.models import ReportSource
 
 SALE_COLUMNS = (
@@ -35,9 +37,13 @@ def ensure_sale():
                            code="bc_sale_ngay", name="Báo cáo Sale ngày")
 
 
-def configure_forms(table):
+def configure_forms(table, skip=()):
+    """Mọi cột nhập của bảng có trường trên biểu mẫu; `skip` là cột cố ý không đưa lên
+    biểu mẫu (Doanh thu nhập tay cũ — ADR-038), gỡ luôn trường đã có."""
+    if skip:
+        FormField.objects.filter(form__table=table, link__column__code__in=list(skip)).delete()
     for form in table.forms.filter(is_active=True):
-        for column in table.columns.filter(is_computed=False):
+        for column in table.columns.filter(is_computed=False).exclude(code__in=list(skip)):
             link = FormTableLink.objects.filter(form_field__form=form, column=column).first()
             if link is not None:
                 if column.code in ("san_pham", "thi_truong"):
@@ -69,57 +75,77 @@ def configure_source(table, kind):
         currencies = [str(c) for c in MARKET_CURRENCIES.values()]
         currency, _ = ColumnDef.objects.get_or_create(table=table, code='loai_tien', defaults={
             'name':'Loại tiền', 'field_type':'choice', 'options':currencies, 'order':91})
-        # Cột có sẵn (kịch bản mẫu 15.09 tạo "Đơn vị tiền" chỉ có VND) phải nhận đủ ba mã
-        # tiền theo quốc gia (ADR-031), vì báo cáo ngày tự điền USD/CAD/PHP; giữ giá trị cũ
-        # để dòng lịch sử vẫn hợp lệ — bổ sung, không thay thế (TL-41).
-        if currency.field_type != 'choice':
-            raise CommandError(f"{table.code}: loai_tien phải là choice")
-        missing = [c for c in currencies if c not in (currency.options or [])]
-        if missing:
-            currency.options = list(currency.options or []) + missing
-            currency.save(update_fields=['options'])
+        # Cột có sẵn (kịch bản mẫu 15.09 tạo "Đơn vị tiền" chỉ có VND) phải nhận đủ mã tiền
+        # theo quốc gia (ADR-031), vì báo cáo ngày tự điền theo Quốc gia; giữ giá trị cũ để
+        # dòng lịch sử vẫn hợp lệ — bổ sung, không thay thế (TL-41). Thị trường cũng vậy:
+        # bảng cấu hình trước 18.09 chỉ có ba nước, phải nhận thêm bốn (ADR-031 bổ sung).
+        _ensure_options(table, currency, currencies)
         market, _ = ColumnDef.objects.get_or_create(
             table=table, code="thi_truong", defaults={"name": "Thị trường",
             "field_type": "choice", "options": list(Market.labels), "order": 90})
-        if market.field_type != "choice":
-            raise CommandError(f"{table.code}: thi_truong phải là choice")
+        _ensure_options(table, market, list(Market.labels))
         mapping = {"mess": "so_mess", "orders": "so_don", "sales": "doanh_so",
                    "cost": "cpqc", "market": "thi_truong", "currency":"loai_tien"}
-        for key, name in (("revenue", "Doanh thu"), ("invoice", "Hóa đơn")):
+        # Marketing: Doanh thu suy ra từ vận đơn (ADR-038), không ánh xạ cột nhập tay
+        keys = (("invoice", "Hóa đơn"),) if kind == "mkt" else (("revenue", "Doanh thu"), ("invoice", "Hóa đơn"))
+        for key, name in keys:
             candidates = list(table.columns.filter(name=name, is_computed=False,
                               field_type__in=["money", "decimal", "integer"]))
             if len(candidates) > 1:
                 raise CommandError(f"{table.code}: nhiều cột {name}, cần xác định nguồn riêng")
             if candidates:
                 mapping[key] = candidates[0].code
-        configure_forms(table)
+        if kind == "mkt":
+            mapping["segment"] = CUSTOMER_SEGMENT_COLUMN
+        configure_forms(table, skip={LEGACY_REVENUE_INPUT} if kind == "mkt" else ())
     ReportSource.objects.update_or_create(table=table, defaults={"kind": kind, "columns": mapping})
 
 
+def _ensure_options(table, column, wanted):
+    """Cột Chọn một nhận đủ các giá trị `wanted`, giữ giá trị cũ; chạy lại không đổi."""
+    if column.field_type != "choice":
+        raise CommandError(f"{table.code}: {column.code} phải là choice")
+    missing = [value for value in wanted if value not in (column.options or [])]
+    if missing:
+        column.options = list(column.options or []) + missing
+        column.save(update_fields=["options"])
+
+
 def configure_marketing(table):
-    """Bổ sung mẫu đã duyệt; giữ nguyên dữ liệu lịch sử và trường nghiệp vụ phụ."""
+    """Bổ sung mẫu đã duyệt (ADR-032, ADR-038); giữ nguyên dữ liệu lịch sử và trường nghiệp vụ phụ.
+
+    Doanh thu không còn là cột nhập: suy ra từ vận đơn ở mức báo cáo, nên cột tính từng
+    dòng Hóa đơn/Doanh thu cũng bỏ (không tính được từ một dòng). Cột nhập cũ `doanh_thu`
+    giữ để đọc báo cáo lịch sử. Thêm cột Tệp khách hàng (Chọn một) với danh sách mặc định.
+    """
     from forms_builder.models import ComputeOp
-    for code, name in (('doanh_thu','Doanh thu'), ('hoa_don','Hóa đơn')):
-        existing = table.columns.filter(name=name, is_computed=False).first()
-        if existing is None:
-            column, _ = ColumnDef.objects.get_or_create(table=table, code=code,
-                defaults={'name':name, 'field_type':'money'})
-            if column.is_computed or column.field_type not in ('money','decimal','integer'):
-                raise CommandError(f'{table.code}.{code}: cấu hình không tương thích.')
+    existing = table.columns.filter(name='Hóa đơn', is_computed=False).first()
+    if existing is None:
+        column, _ = ColumnDef.objects.get_or_create(table=table, code='hoa_don',
+            defaults={'name':'Hóa đơn', 'field_type':'money'})
+        if column.is_computed or column.field_type not in ('money','decimal','integer'):
+            raise CommandError(f'{table.code}.hoa_don: cấu hình không tương thích.')
+    segment, _ = ColumnDef.objects.get_or_create(table=table, code=CUSTOMER_SEGMENT_COLUMN,
+        defaults={'name': CUSTOMER_SEGMENT_LABEL, 'field_type': 'choice',
+                  'options': list(CUSTOMER_SEGMENT_DEFAULTS), 'order': 81})
+    _ensure_options(table, segment, list(CUSTOMER_SEGMENT_DEFAULTS))
     formulas = (
         ('cpo','CPO','cpqc','so_don'), ('gia_mess','Giá Mess','cpqc','so_mess'),
         ('cpqc_doanh_so','CPQC/Doanh số','cpqc','doanh_so'),
-        ('hoa_don_doanh_thu','Hóa đơn/Doanh thu','gia_mess','cpo'),
         ('aov','AOV','doanh_so','so_don'))
     for order, (code, name, left, right) in enumerate(formulas, 8):
         ColumnDef.objects.update_or_create(table=table, code=code, defaults={
             'name':name, 'field_type':'decimal', 'is_computed':True,
             'compute_op':ComputeOp.DIVIDE, 'compute_left':left, 'compute_right':right,
             'compute_decimals':4, 'order':order})
-    for order, code in enumerate(('ngay','marketer','so_mess','cpqc','so_don','doanh_so','doanh_thu','hoa_don')):
+    # Cột tính từng dòng cũ: bỏ định nghĩa, giá trị đã ghi trong JSON không đụng (BR-4)
+    table.columns.filter(code=LEGACY_ROW_FORMULA, is_computed=True).delete()
+    for order, code in enumerate(('ngay','marketer','so_mess','cpqc','so_don','doanh_so','hoa_don')):
         table.columns.filter(code=code).update(order=order)
-    # Sản phẩm, quốc gia và các trường riêng vẫn được giữ để lọc báo cáo.
+    # Sản phẩm, tệp khách hàng, quốc gia và các trường riêng vẫn được giữ để lọc báo cáo.
     table.columns.filter(code='san_pham').update(order=80)
+    table.columns.filter(code=CUSTOMER_SEGMENT_COLUMN).update(order=81)
+    table.columns.filter(code=LEGACY_REVENUE_INPUT).update(order=93)
     table.columns.filter(code='ti_le_chot').update(order=92)
     for field in FormField.objects.filter(form__table=table).select_related('link__column'):
         if getattr(field, 'link', None):

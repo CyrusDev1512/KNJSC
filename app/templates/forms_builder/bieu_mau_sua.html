@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load knjsc %}
 {% block tieu_de %}{{ bm.name }} · Kim Ngân JSC{% endblock %}
 {% block ten_trang %}Trình tạo biểu mẫu{% endblock %}
 
@@ -132,7 +132,7 @@
             <tbody>
               {% for q in cac_quyen %}
                 <tr>
-                  <td>{{ q.user.username|default:q.team }}</td>
+                  <td>{{ q.user|ma|default:q.team }}</td>
                   <td class="nho">{{ q.get_action_display }}</td>
                   <td class="phai">
                     <form method="post" action="{% url 'bieu_mau_thu_quyen' bm.code q.pk %}">

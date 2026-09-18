@@ -52,7 +52,7 @@
       <table class="bang">
         <thead>
           <tr>
-            <th>Họ tên</th><th>Tên đăng nhập</th><th>Bộ phận</th><th>Team</th>
+            <th>Họ tên</th><th>Mã nhân sự</th><th>Tên đăng nhập</th><th>Bộ phận</th><th>Team</th>
             <th>Cấp bậc</th><th>Đăng nhập cuối</th><th>Trạng thái</th>
             {% if duoc_sua %}<th></th>{% endif %}
           </tr>
@@ -61,6 +61,7 @@
           {% for ho_so in trang %}
             <tr>
               <td>{{ ho_so.full_name|default:"—" }}</td>
+              <td class="ma-o">{{ ho_so.staff_code }}</td>
               <td class="ma-o">{{ ho_so.user.username }}</td>
               <td>{{ ho_so.department|default:"—" }}</td>
               <td class="ma-o">{{ ho_so.team|default:"—" }}</td>

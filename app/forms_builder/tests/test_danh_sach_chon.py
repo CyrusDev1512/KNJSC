@@ -4,6 +4,7 @@ Bước 1 kiểm phần định nghĩa: Manager đặt danh sách trong Sửa c�
 danh sách sai. Phần điền biểu mẫu và "Thêm mới…" kiểm ở các bài phía dưới cùng
 tệp. Bảng dữ liệu chỉ để xem (ADR-014) nên ở đó cột Chọn một chỉ là chữ.
 """
+from core.identity import employee_code
 import pytest
 from django.core.exceptions import ValidationError
 
@@ -184,8 +185,9 @@ def test_cot_nguoi_ban_goi_y_nhan_su_bo_phan(bang_sale, nguoi_dung, departments)
     ds = choice_registry.for_column(cot)
     assert not ds.strict and not ds.can_add
     ten = ds.options()
-    assert "Staff Sale 1" in ten and "Manager Sale" in ten      # họ tên trong hồ sơ
-    assert "Staff Mkt" not in ten                               # bộ phận khác
+    # Mã nhân sự (ADR-037), không phải họ tên — đúng chuỗi hệ thống tự ghi vào ô
+    assert employee_code(nguoi_dung["staff_sale_1"]) in ten and employee_code(nguoi_dung["manager_sale"]) in ten
+    assert "Staff Sale 1" not in ten and employee_code(nguoi_dung["staff_mkt"]) not in ten   # bộ phận khác
 
     dong = record_service.create_record(
         bang_sale, {"nguoi_ban": "Người đã nghỉ"}, actor=nguoi_dung["staff_sale_1"])

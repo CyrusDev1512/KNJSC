@@ -43,8 +43,14 @@ docker compose run --rm crm python manage.py tao_bang_van_don
 docker compose run --rm crm python manage.py configure_erp_reports
 docker compose run --rm crm python manage.py configure_delivery_daily_report
 docker compose run --rm crm python manage.py collectstatic --noinput
+docker compose run --rm crm python manage.py gan_ma_nhan_su_cu            # 18.09 ADR-037: xem trước, gửi bảng mã cho chủ dự án
+docker compose run --rm crm python manage.py gan_ma_nhan_su_cu --xac-nhan # rồi mới ghi; chạy lại không đổi thêm
 docker compose up -d crm erp worker heavy beat proxy
 ```
+
+Từ 18.09.2026 (ADR-031 bổ sung) `.env` có thể thêm `EXCHANGE_RATES_VND` cho EUR/JPY/AUD
+và, khi kế toán chốt, KRW (`USD=25500,CAD=17500,PHP=440,EUR=28500,JPY=155,AUD=17000,KRW=…`);
+thiếu biến thì dùng bảng mặc định trong mã, KRW chưa có nên bảng xếp hạng báo rõ.
 
 Migration không seed dữ liệu dev. Chưa tự chạy các lệnh này trên VPS.
 `tao_bang_van_don` và hai lệnh `configure_*` là **metadata của bảng động**

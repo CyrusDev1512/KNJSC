@@ -107,13 +107,14 @@ def test_mot_ngay_cua_cong_ty(client, departments, teams, nguoi_dung):
     assert bao_cao.record.val_revenue == Decimal("1425942850.00")
     assert bao_cao.submitted_at is not None
 
-    # Nộp đè lần hai thì bị chặn — BR-2
+    # Nộp lần hai trong ngày là một bản mới, không đè bản đầu — ADR-038 (thay khoá cũ của BR-2)
     lan_hai = client.post("/bao-cao/", {
         "bieu_mau": "bc_mkt_ngay", "ngay_bao_cao": NGAY.isoformat(),
         "ngay": NGAY.isoformat(), "so_mess": "1", "so_don": "1",
     })
-    assert "đã nộp" in lan_hai.content.decode()
-    assert DailyReport.objects.count() == 1
+    assert lan_hai.status_code == 302
+    assert DailyReport.objects.count() == 2
+    assert DailyReport.objects.get(pk=bao_cao.pk).record.data["ti_le_chot"] == "6.76"
 
     # ── 3. Nhân viên Sale lên đơn, qua giao diện ──
     dispatch_service.ensure_waybill_table(actor=nguoi_dung["admin"])

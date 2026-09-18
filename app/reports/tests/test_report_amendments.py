@@ -1,4 +1,5 @@
 """Quyết định 16/09/2026: ngày hệ thống, sửa có phân quyền và chống ghi đè."""
+from core.identity import employee_code
 import pytest
 from django.utils import timezone
 from reports.models import DailyReport
@@ -70,15 +71,17 @@ def test_marketing_configure_adds_inputs_and_confirmed_formulas(bm_sale):
     ColumnDef.objects.create(table=table, code='cpqc', name='CPQC', field_type='money')
     configure_source(table, 'mkt')
     table.refresh_from_db()
-    assert table.erp_report.columns['revenue'] == 'doanh_thu'
+    # Doanh thu suy ra từ vận đơn (ADR-038): không ánh xạ, không cột nhập; Hóa đơn vẫn nhập
+    assert 'revenue' not in table.erp_report.columns
     assert table.erp_report.columns['invoice'] == 'hoa_don'
+    assert table.erp_report.columns['segment'] == 'tep_khach_hang'
     configure_source(table, 'mkt')
     row = record_service.create_record(table, {'ngay':'2026-09-16', 'so_mess':100,
         'so_don':20, 'cpqc':Decimal('200'), 'doanh_so':Decimal('1000'),
-        'doanh_thu':Decimal('900'), 'hoa_don':Decimal('75'), 'thi_truong':'Canada'})
-    assert {key: Decimal(row.data[key]) for key in ('cpo','gia_mess','cpqc_doanh_so','hoa_don_doanh_thu','aov')} == {
-        'cpo':Decimal('10'), 'gia_mess':Decimal('2'), 'cpqc_doanh_so':Decimal('.2'),
-        'hoa_don_doanh_thu':Decimal('.2'), 'aov':Decimal('50')}
+        'hoa_don':Decimal('75'), 'thi_truong':'Canada'})
+    assert {key: Decimal(row.data[key]) for key in ('cpo','gia_mess','cpqc_doanh_so','aov')} == {
+        'cpo':Decimal('10'), 'gia_mess':Decimal('2'), 'cpqc_doanh_so':Decimal('.2'), 'aov':Decimal('50')}
+    assert 'hoa_don_doanh_thu' not in row.data
 
 
 def test_report_formula_does_not_divide_rounded_intermediates(bm_sale):
@@ -93,11 +96,13 @@ def test_report_formula_does_not_divide_rounded_intermediates(bm_sale):
     table.refresh_from_db()
     row = DataRecord(table=table, data={'cpqc':'0.01', 'so_mess':100000, 'so_don':1000, 'doanh_so':'0'})
     compute_report(row, table, list(table.columns.all()))
-    assert Decimal(row.data['hoa_don_doanh_thu']) == Decimal('.01')
+    # Hóa đơn/Doanh thu không còn tính từng dòng (ADR-038); các tỉ số khác làm tròn đúng chỗ
+    assert 'hoa_don_doanh_thu' not in row.data
+    assert Decimal(row.data['gia_mess']) == Decimal('0.0000') and Decimal(row.data['cpo']) == Decimal('0.0000')
     assert row.data['cpqc_doanh_so'] is None
     row.data['cpqc'] = '0'
     compute_report(row, table, list(table.columns.all()))
-    assert row.data['hoa_don_doanh_thu'] is None
+    assert Decimal(row.data['cpo']) == Decimal('0')
     assert Decimal(row.data['aov']) == 0
 
 
@@ -126,7 +131,7 @@ def test_new_marketing_report_derives_currency_and_keeps_zero(client, bm_sale, n
     ColumnDef.objects.create(table=table, code='cpqc', name='CPQC', field_type='money')
     configure_source(table, 'mkt')
     values = {'ngay':'1999-01-01', 'so_mess':'0', 'cpqc':'0', 'so_don':'0',
-              'doanh_so':'0', 'doanh_thu':'0', 'hoa_don':'0', 'san_pham':'Mẫu',
+              'doanh_so':'0', 'hoa_don':'0', 'san_pham':'Mẫu',
               'thi_truong':'Canada', 'loai_tien':'USD'}
     payload = {f.field.code:values.get(f.link.column.code,'') for f in bm_sale.ordered_fields()}
     client.force_login(nguoi_dung['staff_sale_1'])
@@ -135,8 +140,8 @@ def test_new_marketing_report_derives_currency_and_keeps_zero(client, bm_sale, n
     report = DailyReport.objects.get()
     assert report.record.data['loai_tien'] == 'CAD'
     assert report.record.data['ngay'] == timezone.localdate().isoformat()
-    assert report.record.data['doanh_thu'] == '0'
-    assert report.record.data['hoa_don_doanh_thu'] is None
+    assert report.record.data['hoa_don'] == '0'
+    assert 'doanh_thu' not in report.record.data and 'hoa_don_doanh_thu' not in report.record.data
     client.force_login(nguoi_dung['manager_sale'])
     detail = client.get(f'/bao-cao/{report.pk}/sua/')
     assert 'value="0"' in detail.content.decode()
@@ -177,7 +182,7 @@ def test_report_grid_cannot_override_system_fields(bm_sale, nguoi_dung):
     row = record_service.create_record(table, {'ngay':'1999-01-01','seller':'gia_mao',
         'thi_truong':'Canada','loai_tien':'USD','so_mess':0}, actor=nguoi_dung['staff_sale_1'])
     assert row.data['ngay'] == timezone.localdate().isoformat()
-    assert row.data['seller'] == nguoi_dung['staff_sale_1'].username
+    assert row.data['seller'] == employee_code(nguoi_dung['staff_sale_1'])
     assert row.data['loai_tien'] == 'CAD'
     for code, value in [('ngay','2000-01-01'),('seller','gia_mao'),('loai_tien','USD')]:
         with pytest.raises(BusinessError):

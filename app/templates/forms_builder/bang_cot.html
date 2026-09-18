@@ -1,4 +1,4 @@
-{% extends khung %}
+{% extends khung %}{% load knjsc %}
 {% block tieu_de %}Cột · {{ bang.name }} · Kim Ngân JSC{% endblock %}
 {% block ten_trang %}Cột của {{ bang.name }}{% endblock %}
 
@@ -130,9 +130,9 @@
         <tbody>
           {% for q in cac_quyen %}
             <tr>
-              <td>{{ q.user.username|default:q.team }}</td>
+              <td>{{ q.user|ma|default:q.team }}</td>
               <td class="nho">{{ q.get_action_display }}</td>
-              <td class="nho">{{ q.granted_by.username|default:"—" }}</td>
+              <td class="nho">{{ q.granted_by|ma|default:"—" }}</td>
               <td class="phai">
                 <form method="post" action="{% url 'bang_thu_quyen' bang.code q.pk %}">
                   {% csrf_token %}

@@ -255,6 +255,10 @@ dialog::backdrop {background:#10291b66;backdrop-filter:blur(3px)}
 .report-focus-title {display:none}
 .report-workspace.report-filters-hidden {grid-template-columns:minmax(0,1fr)}
 .report-filter-panel,.report-results {min-width:0;background:var(--surface);border:1px solid var(--rule);border-radius:20px;overflow:hidden}
+.report-presets {display:flex;flex-wrap:wrap;gap:6px}
+.report-presets .nhan-nho {width:100%}
+.report-preset {min-height:30px;padding:4px 10px;font-size:12px;border-radius:999px}
+.report-preset.is-active,.report-preset.is-active:hover {background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .report-filter-panel {padding:16px}
 .report-filter-panel h2,.report-results-heading h2 {font-size:17px;margin:0 0 10px}
 .report-filters {display:grid;gap:10px}

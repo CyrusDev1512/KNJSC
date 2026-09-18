@@ -7,15 +7,21 @@ from django.db import models
 
 
 class Market(models.TextChoices):
-    """Thị trường bán hàng — chốt ngày 29.08.2026, backlog Q23.
+    """Thị trường bán hàng — chốt ngày 29.08.2026 (Q23), mở rộng 18.09.2026 (ADR-031 bổ sung).
 
-    Ba nước gộp từ hai nguồn: `README.md` ghi Canada và Philippines,
-    `CRM_Tân.xlsx` ghi hàng đi US. Thêm nước mới phải kèm tệp chuyển đổi.
+    Ba nước đầu gộp từ hai nguồn: `README.md` ghi Canada và Philippines,
+    `CRM_Tân.xlsx` ghi hàng đi US. Bốn thị trường sau theo sheet Quy ước-Định nghĩa
+    và ví dụ báo cáo MKT của `Quản trị nội bộ.xlsx`. Thêm nước mới phải kèm tệp
+    chuyển đổi và một cặp trong `currency_service.MARKET_CURRENCIES`.
     """
 
     US = "us", "Hoa Kỳ"
     CA = "ca", "Canada"
     PH = "ph", "Philippines"
+    EU = "eu", "Châu Âu"
+    KR = "kr", "Hàn Quốc"
+    JP = "jp", "Nhật Bản"
+    AU = "au", "Úc"
 
 
 class PaymentMethod(models.TextChoices):

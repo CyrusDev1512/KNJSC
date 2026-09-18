@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 from django.db.models import Count, Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from core.constants import Rank
@@ -20,7 +21,7 @@ from core.permissions import assert_rank, is_admin
 
 from .forms import BoPhanForm, SuaHoSoForm, TaoTaiKhoanForm, TeamForm
 from .models import Department, Team, UserProfile
-from .services import account_service, org_service
+from .services import account_service, org_service, staff_code_service
 
 
 # ══ NHÂN SỰ ═══════════════════════════════════════════════════════
@@ -42,6 +43,7 @@ def nhan_su(request):
     if tim:
         ds = ds.filter(
             Q(full_name__icontains=tim)
+            | Q(staff_code__icontains=tim)
             | Q(user__username__icontains=tim)
             | Q(user__email__icontains=tim)
         )
@@ -78,6 +80,7 @@ def nhan_su_moi(request):
         try:
             profile, temporary_password = account_service.create_with_temporary_password(
                 username=d["username"], email=d["email"], full_name=d["full_name"],
+                staff_code=d.get("staff_code", ""),
                 rank=d["rank"], department=d["department"], team=d["team"],
                 password=d["password"], birthday=d.get("birthday"),
                 actor=request.user, request=request,
@@ -92,6 +95,14 @@ def nhan_su_moi(request):
     return render(request, "org/nhan_su_form.html", {
         "form": form, "tieu_de": "Tạo tài khoản", "la_tao_moi": True,
     })
+
+
+@login_required
+def nhan_su_goi_y_ma(request):
+    """Gợi ý mã nhân sự theo họ tên cho màn tạo tài khoản — ADR-037. Chỉ Admin."""
+    assert_rank(request.user, Rank.ADMIN, request)
+    ho_ten = request.GET.get("ho_ten", "").strip()
+    return JsonResponse({"ma": staff_code_service.suggest(ho_ten) if ho_ten else ""})
 
 
 @login_required

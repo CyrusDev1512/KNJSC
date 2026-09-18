@@ -28,7 +28,7 @@
 {% endif %}
 
 <div class="the" style="max-width:640px">
-  <form id="nhan-su-form" class="the-than bm" method="post">
+  <form id="nhan-su-form" class="the-than bm" method="post" data-goi-y-ma="{% url 'nhan_su_goi_y_ma' %}">
     {% csrf_token %}
     {% for truong in form %}
       <div class="truong {% if truong.errors %}co-loi{% endif %}">
@@ -59,3 +59,4 @@
 </script>
 
 {% endblock %}
+{% block cuoi_trang %}{% load static %}<script src="{% static 'js/staff-code.js' %}?v={{ phien_ban_tinh }}" defer></script>{% endblock %}

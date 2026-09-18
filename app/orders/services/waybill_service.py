@@ -19,6 +19,7 @@ from django.utils import timezone
 from core.audit import record
 from core.constants import AuditAction, Currency
 from core.exceptions import BusinessError, OutOfScopeError
+from core.identity import employee_code
 from core.money import parse_money
 from forms_builder import record_policies
 from forms_builder.meaning import FieldType, Meaning
@@ -316,8 +317,8 @@ def export_detail(row):
 def export_values(row):
     order = getattr(row, 'order', None)
     assignment = getattr(row, 'assignment', None)
-    return [export_detail(row), order.seller.username if order and order.seller_id else ''] + [
-        getattr(assignment, field).username if assignment and getattr(assignment, field + '_id') else ''
+    return [export_detail(row), employee_code(order.seller) if order and order.seller_id else ''] + [
+        employee_code(getattr(assignment, field)) if assignment and getattr(assignment, field + '_id') else ''
         for field in assignment_service.FIELDS]
 
 

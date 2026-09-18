@@ -1,3 +1,4 @@
+{% load knjsc %}
 
 
 <div class="trang-dau">
@@ -43,7 +44,7 @@
             <td>{{ bm.department }}</td>
             <td class="tien">{{ bm.so_truong }}</td>
             <td class="ma-o">{{ bm.table.code }}</td>
-            <td class="nho">{% if bm.created_by %}{{ bm.created_by.profile.full_name|default:bm.created_by.username }}{% else %}—{% endif %}</td>
+            <td class="nho">{% if bm.created_by %}{{ bm.created_by|ma_ten }}{% else %}—{% endif %}</td>
             <td class="ma-o">{{ bm.updated_at|date:"d.m H:i" }}</td>
             <td>
               {% if bm.is_active %}

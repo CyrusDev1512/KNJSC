@@ -63,12 +63,12 @@ def library(request):
         documents = documents.filter(Q(reference__icontains=text) | Q(record__data__ma_don__icontains=text))
     for parameter, field in [('uploaded_from', 'created_at__date__gte'), ('uploaded_to', 'created_at__date__lte'),
                              ('transfer_from', 'transfer_date__gte'), ('transfer_to', 'transfer_date__lte'),
-                             ('uploader', 'created_by__username__icontains'), ('status', 'record__data__trang_thai_tt')]:
+                             ('uploader', 'created_by__profile__staff_code__icontains'), ('status', 'record__data__trang_thai_tt')]:
         if value := request.GET.get(parameter):
             if parameter.endswith(('_from', '_to')):
                 value = date.fromisoformat(value)
             documents = documents.filter(**{field: value})
-    documents = documents.select_related('record', 'created_by').annotate(
+    documents = documents.select_related('record', 'created_by', 'created_by__profile').annotate(
         image_count=Count('images', filter=Q(images__deleted_at__isnull=True))).order_by('-created_at', '-id')
     page = Paginator(documents, 50).get_page(request.GET.get('page'))
     params = request.GET.copy()

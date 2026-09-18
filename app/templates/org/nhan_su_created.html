@@ -6,7 +6,10 @@
 <section class="the" style="max-width:640px"><div class="the-than">
   <p>Bàn giao thông tin dưới đây cho nhân sự. Mật khẩu chỉ hiện trong lần tạo này; nhân sự phải đổi ở lần đăng nhập đầu tiên.</p>
   <div class="truong"><label for="created-code">Mã nhân sự</label>
-    <input class="o-nhap" id="created-code" value="{{ created_profile.user.username }}" readonly></div>
+    <input class="o-nhap" id="created-code" value="{{ created_profile.staff_code }}" readonly></div>
+  <div class="truong"><label for="created-username">Tên đăng nhập</label>
+    <input class="o-nhap" id="created-username" value="{{ created_profile.user.username }}" readonly>
+    <span class="goi-y">Gõ hoa hay thường đều đăng nhập được.</span></div>
   <div class="truong"><label for="temporary-password">Mật khẩu tạm</label>
     <input class="o-nhap" id="temporary-password" value="{{ temporary_password }}" readonly autocomplete="off" spellcheck="false">
     <span class="goi-y">Chọn nội dung để sao chép và bàn giao.</span></div>

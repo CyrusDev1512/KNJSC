@@ -28,13 +28,17 @@ def rank_level(rank):
     return RANK_LEVEL.get(rank, 0)
 
 
+#: Mã bộ phận Kế toán – Kiểm soát nội bộ (org/0004): xem/sửa mọi báo cáo (ADR-038),
+#: quản lý chứng từ và phân công vận đơn (ADR-025, 033). Một chỗ duy nhất, không rải.
+ACCOUNTING_DEPARTMENT_CODE = "ke-toan"
+
 #: Liên kết người dùng dán vào (tài liệu, tài nguyên) chỉ nhận hai giao thức web —
 #: kiểm ở tầng dịch vụ, không trông vào form, để "javascript:" không lọt vào href
 LINK_SCHEMES = ("http://", "https://")
 
 
 class Currency(models.TextChoices):
-    """Loại tiền tệ dùng trong phase 1.
+    """Loại tiền tệ theo thị trường (ADR-031, bổ sung 18.09.2026).
 
     Bán xuyên biên giới nên vừa có doanh số bằng USD vừa có chi phí bằng VND.
     Mỗi số tiền phải đi kèm loại tiền của nó, không quy đổi khi lưu.
@@ -45,11 +49,18 @@ class Currency(models.TextChoices):
     # Hai thị trường còn lại — tệp vận đơn thật ghi "Giá tiền(CAD)" (Q41)
     CAD = "CAD", "Đô la Canada"
     PHP = "PHP", "Peso Philippines"
+    # Bốn thị trường thêm 18.09.2026 theo sheet Quy ước-Định nghĩa
+    EUR = "EUR", "Euro"
+    KRW = "KRW", "Won Hàn Quốc"
+    JPY = "JPY", "Yên Nhật"
+    AUD = "AUD", "Đô la Úc"
 
 
-# Số chữ số thập phân theo tập quán từng loại tiền, dùng khi hiển thị
-CURRENCY_DECIMALS = {Currency.VND: 0, Currency.USD: 2}
-CURRENCY_SYMBOL = {Currency.VND: "₫", Currency.USD: "$"}
+# Số chữ số thập phân theo tập quán từng loại tiền, dùng khi hiển thị (thiếu → 2)
+CURRENCY_DECIMALS = {Currency.VND: 0, Currency.USD: 2, Currency.JPY: 0, Currency.KRW: 0}
+# AUD cố ý không có ký hiệu: `parse_money` cắt ký hiệu theo danh sách này và `A$` chứa `$`
+CURRENCY_SYMBOL = {Currency.VND: "₫", Currency.USD: "$", Currency.EUR: "€",
+                   Currency.KRW: "₩", Currency.JPY: "¥"}
 
 
 class AuditAction(models.TextChoices):

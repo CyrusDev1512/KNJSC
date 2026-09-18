@@ -1,0 +1,20 @@
+[
+ "Gợi ý mã từ họ tên 'Lê Thưởng Thuận' → THUANLT",
+ "Tạo xong: mã THUANLT, tên đăng nhập THUANLT",
+ "Đăng nhập 'thuanlt' → http://127.0.0.1:8020/doi-mat-khau/ (buộc đổi mật khẩu lần đầu: True)",
+ "Ô Marketer chỉ đọc hiện mã: True; có ô Tệp khách hàng: True",
+ "Nộp lần 1: → /bao-cao/lich-su/",
+ "Nộp lần 2: → /bao-cao/lich-su/",
+ "Banner sau hai lần nộp: ✓ Hôm nay (18.09.2026) bạn đã nộp biểu mẫu này 4 lần Nộp tiếp là thêm một bản mới, không đè bản cũ. Cần sửa số đã nộp th",
+ "Lịch sử hiện 'ANHPM': True",
+ "Kế toán thấy 7 báo cáo trong Lịch sử (mọi bộ phận)",
+ "Kế toán mở Sửa báo cáo #7: HTTP OK = True",
+ "Kế toán lưu sửa → /bao-cao/7/; có 'Lịch sử chỉnh sửa': True",
+ "Cột: Ngày, Nhân sự, Leader, Số Mess, CPQC, Số đơn, Doanh số, Doanh thu, Hóa đơn, CPO, Giá Mess, CPQC/Doanh số, Hóa đơn/Doanh thu, AOV",
+ "Tổng trong bộ lọc: 15.056 | — | 1.001 | — | — | — | — | — | — | — | —",
+ "Chọn nhanh Hôm nay (chỉ dòng có loại tiền), tổng: 4.684 | — | 307 | — | — | — | — | — | — | — | —",
+ "Chọn nhanh 7 ngày → tu=2026-09-12; nút đánh dấu: 7 ngày",
+ "Lọc Tệp khách hàng = Filipino, tổng: 360 | 36.000.000 | 21 | 105.000.000 | — | 33.973.500 | 1.714.285,7143 | 100.000 | 0,3429 | — | 5.000.000",
+ "Theo nhân viên: Tổng trong bộ lọc, ANHPM · Phạm Minh Anh, NAMVH · Vũ Hoài Nam",
+ "Lỗi JS/console: ['Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID', 'Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID']"
+]

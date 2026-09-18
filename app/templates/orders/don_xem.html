@@ -1,4 +1,4 @@
-{% extends "crm/base_crm.html" %}
+{% extends "crm/base_crm.html" %}{% load knjsc %}
 {% block tieu_de %}Đơn {{ don.code }} · Kim Ngân JSC{% endblock %}
 {% block ten_trang %}Đơn {{ don.code }}{% endblock %}
 
@@ -8,7 +8,7 @@
   <div>
     <div class="nhan-nho">BR-3 · chỉ đọc</div>
     <h1>{{ don.code }}</h1>
-    <p>Lên lúc {{ don.created_at|date:"H:i d.m.Y" }} giờ Việt Nam, bởi {{ don.created_by.username|default:"—" }}.</p>
+    <p>Lên lúc {{ don.created_at|date:"H:i d.m.Y" }} giờ Việt Nam, bởi {{ don.created_by|ma|default:"—" }}.</p>
   </div>
   <div class="hanh-dong">
     <a class="nut" href="{% url 'thu_muc' %}">Quay lại</a>
@@ -103,7 +103,7 @@
             <tr><td>Mã bưu chính</td><td class="phai ma-o">{{ don.zipcode|default:"—" }}</td></tr>
             <tr><td>Số nhà, đường</td><td class="phai">{{ don.address_line|default:"—" }}</td></tr>
             <tr><td>Phương thức thanh toán</td><td class="phai">{{ don.get_payment_method_display }}</td></tr>
-            <tr><td>Sale đứng đơn</td><td class="phai">{{ don.seller.username|default:"—" }}</td></tr>
+            <tr><td>Sale đứng đơn</td><td class="phai">{{ don.seller|ma|default:"—" }}</td></tr>
             <tr><td>Ghi chú</td><td class="phai">{{ don.note|default:"—" }}</td></tr>
           </tbody>
         </table>

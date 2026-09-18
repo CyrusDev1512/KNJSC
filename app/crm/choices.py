@@ -16,15 +16,13 @@ def _nhan(choices):
 
 
 def nhan_vien_van_don():
-    """Mã tài khoản của người đang làm ở bộ phận Vận đơn — như cột
-    "Nhân viên Vận đơn được giao" trong tệp thật ghi PHUONGVH, TIENNLT."""
+    """Mã nhân sự của người đang làm ở bộ phận Vận đơn — như cột
+    "Nhân viên Vận đơn được giao" trong tệp thật ghi PHUONGVH, TIENNLT (ADR-037)."""
     from org.models import UserProfile
 
-    return list(
-        UserProfile.objects.filter(
-            department__code=WAYBILL_DEPARTMENT_CODE, user__is_active=True,
-        ).order_by("user__username").values_list("user__username", flat=True)
-    )
+    return [ma or ten_dn for ma, ten_dn in UserProfile.objects.filter(
+        department__code=WAYBILL_DEPARTMENT_CODE, user__is_active=True,
+    ).order_by("staff_code", "user__username").values_list("staff_code", "user__username")]
 
 
 #: Cột → (hàm danh sách, chặt hay gợi ý). Đăng ký vào sổ chung lúc app khởi động.

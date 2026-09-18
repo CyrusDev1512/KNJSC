@@ -2,10 +2,19 @@
 from django.db import transaction
 
 from core.audit import record
-from core.constants import AuditAction
+from core.constants import ACCOUNTING_DEPARTMENT_CODE, AuditAction
 from core.exceptions import BusinessError
 
 from ..models import Department, Team
+
+
+def is_accountant(user):
+    """Người đang làm ở bộ phận Kế toán còn hoạt động — ngoại lệ phạm vi duy nhất ngoài
+    thang cấp bậc: xem/sửa mọi báo cáo (ADR-038), chứng từ và phân công (ADR-025, 033)."""
+    profile = getattr(user, 'profile', None)
+    dept = getattr(profile, 'department', None)
+    return bool(getattr(user, 'is_active', False) and dept and dept.code == ACCOUNTING_DEPARTMENT_CODE
+                and dept.is_active and dept.deleted_at is None)
 
 
 @transaction.atomic

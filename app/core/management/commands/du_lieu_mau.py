@@ -26,6 +26,7 @@ from django.utils import timezone
 
 from core.constants import Rank
 from orders.constants import WAYBILL_DEPARTMENT_CODE, WAYBILL_DEPARTMENT_NAME
+from reports.constants import CUSTOMER_SEGMENT_DEFAULTS
 
 #: Mật khẩu chung cho mọi tài khoản mẫu. Chỉ dùng ở máy phát triển.
 MAT_KHAU_MAU = "matkhaucuatoi"
@@ -69,6 +70,8 @@ COT_BC_MKT = [
     ("CPQC", "cpqc", "money", ""),
     ("Số đơn", "so_don", "integer", ""),
     ("Doanh số", "doanh_so", "money", "revenue"),
+    # Tệp khách hàng — Chọn một, danh sách mặc định theo sheet MKT (ADR-038)
+    ("Tệp khách hàng", "tep_khach_hang", "choice", ""),
 ]
 
 #: Tài liệu mẫu — chỉ liên kết (tiêu đề, mục, người tải, mô tả) — ADR-017
@@ -157,6 +160,7 @@ COT_TINH_BC_MKT = [
 #: Màu cột và ngưỡng cảnh báo mẫu — như bảng "Dữ liệu chi phí Ads" của người
 #: dùng: tỉ lệ chốt tô vàng cả cột, CPO đỏ khi vượt 1.500.000 (FR-8.8)
 MAU_COT_BC_MKT = {
+    "tep_khach_hang": {"options": list(CUSTOMER_SEGMENT_DEFAULTS)},
     "ti_le_chot": {"highlight": "vang"},
     "cpo": {"highlight": "do", "alert_op": "gt", "alert_value": Decimal("1500000")},
 }
@@ -364,7 +368,7 @@ class Command(BaseCommand):
         for i, (ten, ma, kieu, nhan) in enumerate(COT_BC_MKT):
             table_service.add_column(
                 bang, actor=ql, name=ten, code=ma,
-                field_type=kieu, meaning=nhan, order=i)
+                field_type=kieu, meaning=nhan, order=i, **MAU_COT_BC_MKT.get(ma, {}))
         for j, (ten, ma, phep, a, b, so_le) in enumerate(
                 COT_TINH_BC_MKT, start=len(COT_BC_MKT)):
             table_service.add_column(

@@ -143,6 +143,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# Tên đăng nhập không phân biệt hoa/thường (ADR-037: tài khoản mới đăng nhập bằng mã nhân sự)
+AUTHENTICATION_BACKENDS = ["core.auth_backends.CaseInsensitiveModelBackend"]
+
 LOGIN_URL = "/dang-nhap/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/dang-nhap/"
@@ -200,9 +203,10 @@ MAIN_APP_URL = env("MAIN_APP_URL", "http://localhost:8020/")
 EXECUTIVE_OWNER_USERNAMES = env_list("EXECUTIVE_OWNER_USERNAMES", "")
 
 # Tỉ giá cố định để quy đổi doanh số về VND cho bảng xếp hạng (ADR-017, Q71).
-# Số mặc định là số tạm — backlog N11 chờ anh/chị chốt; đè bằng biến môi
-# trường dạng `EXCHANGE_RATES_VND="USD=25400,CAD=18500,PHP=440"`. Decimal, không
-# dùng số thực (BR-8). VND luôn là 1.
+# Số mặc định theo sheet Quy ước-Định nghĩa 18.09.2026 (ADR-031 bổ sung); đè bằng
+# biến môi trường dạng `EXCHANGE_RATES_VND="USD=25500,CAD=17500,PHP=440"`. Decimal,
+# không dùng số thực (BR-8). VND luôn là 1. **KRW cố ý chưa có** (số 16.000 trong
+# sheet coi là gõ nhầm, chờ kế toán): bảng xếp hạng báo "Chưa có tỉ giá cho KRW".
 from decimal import Decimal  # noqa: E402
 
 
@@ -227,9 +231,12 @@ def env_rates(name, default):
 
 EXCHANGE_RATES_VND = env_rates("EXCHANGE_RATES_VND", {
     "VND": Decimal("1"),
-    "USD": Decimal("25400"),
-    "CAD": Decimal("18500"),
+    "USD": Decimal("25500"),
+    "CAD": Decimal("17500"),
     "PHP": Decimal("440"),
+    "EUR": Decimal("28500"),
+    "JPY": Decimal("155"),
+    "AUD": Decimal("17000"),
 })
 
 # ── Tác vụ nền ──────────────────────────────────────────────────────

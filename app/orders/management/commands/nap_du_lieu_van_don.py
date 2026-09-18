@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from core.audit import record as audit
 from core.constants import AuditAction, Currency, Rank
-from core.identity import display_name
+from core.identity import employee_code
 from forms_builder.models import DataRecord, TableDef
 from forms_builder.services import record_service
 from orders.constants import (
@@ -190,7 +190,7 @@ def _sample(sequence, seed, products, sellers, delivery, *, identity=None):
         "dia_chi": f"{1 + rng.randrange(998)} {rng.choice(STREETS)}",
         "loai_tien": Currency.CAD,
         "pttt": payment_method,
-        "nguoi_ban": display_name(seller),
+        "nguoi_ban": employee_code(seller),
         "trang_thai_vc": shipping,
         "ngay_tt": payment_date.isoformat() if paid else None,
         "bill": f"BILL-MAU-{sequence:05d}" if paid else None,

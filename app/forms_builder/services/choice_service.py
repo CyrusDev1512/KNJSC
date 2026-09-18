@@ -37,17 +37,17 @@ def items(choice_list):
 
 
 def seller_options(column):
-    """Người đang làm ở bộ phận sở hữu bảng, theo đúng luật danh tính
-    (họ tên, không có thì tên đăng nhập) — để ô Người bán gợi ý đúng chuỗi mà
-    báo cáo tổng hợp nhóm theo."""
+    """Người đang làm ở bộ phận sở hữu bảng, theo đúng luật danh tính (mã nhân sự,
+    chưa gán thì tên đăng nhập — `core.identity.employee_code`, ADR-037) — để ô
+    Người bán gợi ý đúng chuỗi mà hệ thống tự ghi và báo cáo tổng hợp nhóm theo."""
     from org.models import UserProfile
 
     ds = (UserProfile.objects
           .filter(department_id=column.table.department_id, user__is_active=True)
-          .order_by("full_name", "user__username")
-          .values_list("full_name", "user__username"))
-    ten = [(ho_ten or "").strip() or ten_dn for ho_ten, ten_dn in ds]
-    return sorted(set(ten), key=str.casefold)
+          .order_by("staff_code", "user__username")
+          .values_list("staff_code", "user__username"))
+    ma = [(ma_nv or "").strip() or ten_dn for ma_nv, ten_dn in ds]
+    return sorted(set(ma), key=str.casefold)
 
 
 def register_sources():

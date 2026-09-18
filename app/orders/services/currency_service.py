@@ -7,7 +7,9 @@ from core.constants import Currency
 from core.exceptions import BusinessError
 from orders.constants import Market
 
-MARKET_CURRENCIES = {Market.US: Currency.USD, Market.CA: Currency.CAD, Market.PH: Currency.PHP}
+MARKET_CURRENCIES = {Market.US: Currency.USD, Market.CA: Currency.CAD, Market.PH: Currency.PHP,
+                     Market.EU: Currency.EUR, Market.KR: Currency.KRW, Market.JP: Currency.JPY,
+                     Market.AU: Currency.AUD}
 
 
 def for_market(value):

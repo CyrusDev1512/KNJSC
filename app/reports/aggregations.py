@@ -23,7 +23,7 @@ Ba điều cần biết khi đọc:
 Nhóm theo thị trường cố ý chưa có — người dùng hoãn ngày 03.09.2026 (Q36),
 chờ chốt nguồn số liệu ở backlog N9.
 """
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from decimal import Decimal
 
 from django.db.models import Count, DecimalField, F, Sum
@@ -82,6 +82,11 @@ class SummaryResult:
     totals: dict = None        # tổng cộng trên TOÀN BỘ kết quả, không theo trang
     computed_columns: tuple = ()
     revenue_alias: str = ""    # khoá của cột doanh thu trong dict dòng, nếu có
+    # Giá trị suy ra ngoài bảng (Doanh thu Marketing từ vận đơn — ADR-038):
+    # `{giá trị nhóm: {mã cột: Decimal}}` và tổng `{mã cột: Decimal}`; trộn vào
+    # dòng trước khi tính lại cột tính nên màn hình, Excel, Tổng quan cùng một số
+    derived: dict = field(default_factory=dict)
+    derived_totals: dict = field(default_factory=dict)
 
 
 def labeled_columns(columns):
@@ -347,6 +352,7 @@ def row_values(item, result):
     """`(giá trị nhóm, dãy ô thô)` của một dòng nhóm — cột tính sẵn đã tính
     lại theo dòng. Dùng cho cả màn hình lẫn tệp xuất."""
     by_code = {k.removeprefix("c_"): v for k, v in item.items() if k.startswith("c_")}
+    by_code.update(result.derived.get(item.get("nhom"), {}))
     by_code.update(_recompute(result.computed_columns, by_code))
     return item.get("nhom"), _cell_values(result, by_code)
 
@@ -354,6 +360,7 @@ def row_values(item, result):
 def total_values(result):
     """Dãy ô thô của dòng tổng cộng, cùng thứ tự cột với dòng chi tiết."""
     by_code = {k.removeprefix("c_"): v for k, v in result.totals.items() if k.startswith("c_")}
+    by_code.update(result.derived_totals)
     by_code.update({c.code: result.totals.get(c.code) for c in result.computed_columns})
     return _cell_values(result, by_code)
 

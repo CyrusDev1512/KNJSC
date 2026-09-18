@@ -10,6 +10,7 @@ from django.db.models import Count, Max, F
 
 from core.constants import GRID_PASTE_CELLS_MAX
 from core.exceptions import BusinessError, OutOfScopeError
+from core.identity import employee_code
 from forms_builder.models import DataRecord, TableDef
 from forms_builder import choice_registry, record_policies
 from forms_builder.services import grant_service, record_service
@@ -338,7 +339,7 @@ def history(user, table, params):
                    .order_by('-pk')[:51])
     return {'items': [{'id': h.pk, 'column': h.column, 'property': h.property,
                       'before': h.before, 'after': h.after, 'time': h.created_at.isoformat(),
-                      'actor': h.receipt.actor.username,
+                      'actor': employee_code(h.receipt.actor),
                       'name': getattr(getattr(h.receipt.actor, 'profile', None), 'full_name', ''),
                       'operation': str(h.receipt.operation), 'kind': h.operation_kind or 'edit'} for h in entries[:50]],
             'next': entries[49].pk if len(entries) > 50 else None}

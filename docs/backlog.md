@@ -1,5 +1,35 @@
 # Backlog
 
+## 18.09.2026 (tối) — Hoàn thành trang MKT: mã nhân sự, bảy thị trường, nộp tự do, Kế toán sửa, Tệp khách hàng, Doanh thu suy ra, Chọn nhanh
+
+Theo kế hoạch đã duyệt từ sheet MKT của `Quản trị nội bộ.xlsx` (ADR-037, ADR-038, ADR-031 bổ sung):
+
+- **Mã nhân sự** `UserProfile.staff_code` (quy tắc THUANLT, cố định, tự gán khi rỗng; tài khoản
+  mới đăng nhập bằng mã, hoa/thường đều được — `core/auth_backends.py`); một nguồn danh tính
+  `core/identity.py` (`employee_code`, `identity_label`, `code_expression`, `label_expression`),
+  bộ lọc `|ma`, `|ma_ten`; mọi chỗ định danh hiện **mã trước, tên sau**; lệnh một lần
+  `gan_ma_nhan_su_cu` (xem trước / `--xac-nhan`). Migration `org/0005`.
+- **Bảy thị trường / tám loại tiền** (EU/EUR, KR/KRW, JP/JPY, AU/AUD thêm), tỉ giá mặc định
+  theo sheet, **KRW để trống** chờ kế toán; `configure_erp_reports` bổ sung giá trị cho cột
+  Thị trường/Loại tiền có sẵn. Migration `orders/0009` (no-op SQL).
+- **Nộp báo cáo không giới hạn số lần/ngày** (bỏ `report_unique_per_person_per_day`, migration
+  `reports/0004` — chiều ngược thất bại nếu đã có trùng); **Kế toán xem và sửa mọi báo cáo**
+  (`reports/managers.py`, `forms_builder/managers.py`, `activity_service.records`, `can_amend`),
+  không bỏ báo cáo người khác. `ACCOUNTING_DEPARTMENT_CODE` và `org_service.is_accountant` một chỗ.
+- **Tệp khách hàng** = cột Chọn một `tep_khach_hang` (danh sách mặc định theo sheet, Leader/Manager
+  MKT thêm ngay ô chọn), ánh xạ `segment`, bộ lọc `tep` (`__missing__`, giá trị lạ → 400).
+- **Doanh thu Marketing suy ra từ vận đơn** (`activity_service.marketing_revenue`, một truy vấn
+  trên `WaybillItem.paid_amount`, đơn có Phụ trách Marketing = marketer, theo ngày lên đơn, cùng
+  sản phẩm/quốc gia khi lọc); `SummaryResult.derived`; **Hóa đơn/Doanh thu = Hóa đơn ÷ Doanh thu**
+  theo nhãn (thay K/J 09.09); `configure_marketing` không tạo cột nhập Doanh thu, gỡ trường khỏi
+  biểu mẫu, bỏ cột tính từng dòng. Lọc Tệp khách hàng thì Doanh thu trống.
+- **Chọn nhanh kỳ** (`summary_service.date_presets`, nút trong bộ lọc, JS áp ngay).
+- Kiểm chứng: `pytest -m "not cham"` toàn bộ xanh; diễn tập máy sạch (migrate → du_lieu_mau →
+  configure → gan_ma) và xuôi/ngược ba migration; Chrome — xem
+  [biên bản](kiem-chung-trang-mkt-20260918.md). AC mới: AC-4.7, 4.8, 36.1–36.6, 37.1–37.5
+  (`docs/04`), bộ đếm `docs/06` cập nhật. **Còn nợ:** Báo cáo Nội dung (D8, đợt sau); hạn nộp
+  (N1/H8); tỉ giá KRW; Việc A (bố cục) của bàn giao CLI cần thêm chip `tep` và giữ nút Chọn nhanh.
+  Phát hành VPS theo mục mới trong `daily-tasks.md`.
 ## 18.09.2026 (chiều) — Một bảng vận đơn duy nhất "Vận đơn mới" (ADR-036)
 
 Chủ dự án chốt: cả hệ thống chỉ dùng một bảng vận đơn `van_don`; **xoá cứng** crmThuận

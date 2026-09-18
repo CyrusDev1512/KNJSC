@@ -86,8 +86,8 @@ Mọi bảng có:
 |---|---|---|
 | Bộ phận | Tên, trạng thái hoạt động | Sale, Marketing, Vận đơn |
 | Team | Tên, thuộc bộ phận nào, người phụ trách | Một bộ phận nhiều team — FR-2.2 |
-| Tài khoản | Email, mật khẩu đã băm, trạng thái khoá | Tách khỏi hồ sơ nhân sự |
-| Hồ sơ người dùng | Họ tên, bộ phận, team, cấp bậc | Cấp bậc: Staff, Leader, Manager |
+| Tài khoản | Tên đăng nhập (tài khoản mới = mã nhân sự, so không phân biệt hoa/thường — ADR-037), email, mật khẩu đã băm, trạng thái khoá | Tách khỏi hồ sơ nhân sự |
+| Hồ sơ người dùng | Họ tên, **mã nhân sự** (`staff_code`, quy ước THUANLT, duy nhất, cố định sau khi gán, tự gán khi rỗng), bộ phận, team, cấp bậc | Cấp bậc: Staff, Leader, Manager; định danh trên mọi màn hình là mã (`core/identity.py`) — ADR-037 |
 | Định nghĩa trường | Tên hiển thị, kiểu dữ liệu, nhãn ý nghĩa | Dùng cho biểu mẫu tự tạo |
 | Biểu mẫu | Tên, bộ phận áp dụng, danh sách trường, thứ tự | FR-8.1 |
 | Bảng dữ liệu | Tên, danh sách cột, cấu hình hiển thị | Nơi dữ liệu từ biểu mẫu ghi vào |
@@ -270,7 +270,8 @@ Người dùng mở biểu mẫu của bộ phận mình
     ↓
 Hệ thống ghi nhận thời điểm nộp
     ↓
-Báo cáo chuyển sang trạng thái đã nộp, không sửa được   ← BR-2
+Báo cáo đã nộp: chỉ sửa qua luồng có lịch sử (ADR-032), Kế toán sửa mọi bộ phận (ADR-038);
+nộp thêm lần nữa trong ngày là bản mới, không đè   ← BR-2
 ```
 
 ### 4.3. Tạo biểu mẫu mới

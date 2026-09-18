@@ -73,7 +73,7 @@ cold Thống kê và tăng RAM app; renderer giữ tắt khi chưa có lợi íc
 ### Đăng nhập
 
 1. Mở trình duyệt, vào địa chỉ được cấp
-2. Nhập email và mật khẩu
+2. Nhập tên đăng nhập (tài khoản mới: chính là **mã nhân sự**, ví dụ `THUANLT`; gõ hoa hay thường đều được — ADR-037) hoặc email, và mật khẩu
 3. Lần đầu đăng nhập, hệ thống yêu cầu đổi mật khẩu — đây là bắt buộc
 
 **Nếu không thao tác quá một tiếng**, hệ thống tự đăng xuất để bảo vệ dữ liệu.
@@ -774,9 +774,11 @@ Không có `worker` thì nhập tệp treo ở "Chờ xử lý" và sau 15 phút
 kẹt; không có `beat` thì không có gì tự chạy đêm.
 
 **Tỉ giá cho bảng xếp hạng** đặt bằng biến môi trường `EXCHANGE_RATES_VND`,
-đúng dạng `USD=25400,CAD=18500,PHP=440` — số nguyên VND, không dấu chấm hay
-phẩy trong số. Sai định dạng thì cả bốn dịch vụ không lên và báo tên biến, để
-không có số sai lặng lẽ vào sổ sao.
+đúng dạng `USD=25500,CAD=17500,PHP=440,EUR=28500,JPY=155,AUD=17000` — số nguyên VND,
+không dấu chấm hay phẩy trong số (mặc định trong mã là bảng này, theo sheet Quy ước
+18.09.2026). **KRW chưa có tỉ giá**: người bán có đơn Hàn Quốc thì bảng xếp hạng báo
+"Chưa có tỉ giá cho KRW" cho tới khi kế toán chốt và thêm `KRW=…` vào biến. Sai định
+dạng thì cả bốn dịch vụ không lên và báo tên biến, để không có số sai lặng lẽ vào sổ sao.
 
 
 ### Bảng master Vận đơn mới — ADR-021
@@ -834,6 +836,21 @@ kéo chiều cao hàng. Dán bảng nhiều ô từ trong ô nhập vẫn dùng 
 2.000 ô và kiểm lỗi toàn lượt. Các ô tổng/chi tiết/phân công giữ cơ chế riêng.
 
 Phạm vi và kết quả kiểm chứng: [báo cáo chín hạng mục](kiem-chung-master-nine.md).
+
+## Gán mã nhân sự cho dữ liệu cũ — 18.09.2026 (ADR-037)
+
+Sau `migrate` org/0005, hồ sơ cũ chưa có mã và ô định danh (`nguoi_ban`, `marketer`,
+`sale`) đang chứa tên đăng nhập. Chạy **một lần** trên VPS, xem trước rồi mới ghi:
+
+```powershell
+python manage.py gan_ma_nhan_su_cu            # in bảng tên đăng nhập → mã và số dòng sẽ đổi, không ghi
+python manage.py gan_ma_nhan_su_cu --xac-nhan # ghi thật, có nhật ký từng bảng
+```
+
+Lệnh chỉ đổi giá trị **khớp đúng** một tên đăng nhập; giá trị lạ giữ nguyên và được
+liệt kê. Chạy lại không đổi thêm gì. Cột phụ trách `phu_trach_*` đọc từ phân công nên
+không cần đổi. Mã gợi ý theo quy tắc THUANLT; muốn mã khác thì gán tay ở Nhân sự → Sửa
+hồ sơ **trước** khi chạy `--xac-nhan` (gán rồi thì cố định).
 
 ## Nạp 10.000 vận đơn mẫu — 11.09.2026
 

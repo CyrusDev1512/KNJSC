@@ -2,6 +2,7 @@
 
 Quyền phân công, CAS, truy vấn dùng chung, Excel và migration.
 """
+from core.identity import employee_code
 import pytest
 from django.http import QueryDict
 
@@ -194,8 +195,9 @@ def test_filters_and_statistics_use_scoped_rows(feedback, nguoi_dung, delivery_l
     options = sidebar_service.product_options(user, table, list(table.columns.all()), QueryDict())
     assert {o[0] for o in options['items']} == {p.code for p in products}
     marketer_col = table.columns.get(code='phu_trach_mkt')
-    assert set(grid_service.filter_options(user, table, marketer_col)) == {('staff_mkt', 1), ('__unassigned__', 1)}
-    params = QueryDict(f'sp={products[0].code}&f_phu_trach_mkt__trong=staff_mkt&f_quoc_gia__trong=US&trang=9')
+    ma_mkt = employee_code(nguoi_dung['staff_mkt'])
+    assert set(grid_service.filter_options(user, table, marketer_col)) == {(ma_mkt, 1), ('__unassigned__', 1)}
+    params = QueryDict(f'sp={products[0].code}&f_phu_trach_mkt__trong={ma_mkt}&f_quoc_gia__trong=US&trang=9')
     # Dùng giá trị thị trường thực tế của dòng, không suy đoán mã/nhãn.
     params = params.copy(); params['f_quoc_gia__trong'] = rows[0].data['quoc_gia']
     grid = grid_service.build_grid(user, params, table=table)
@@ -236,8 +238,8 @@ def test_export_employee_codes_and_async_revoke(feedback, nguoi_dung, delivery_l
     values = list(wb.active.values)
     assert len(values) == 3
     headers = values[0]
-    assert {r[headers.index('Mã Sale tạo đơn')] for r in values[1:]} == {'staff_sale_1', 'staff_sale_2'}
-    assert {r[headers.index('Mã nhân viên Vận đơn')] for r in values[1:]} == {'staff_vd'}
+    assert {r[headers.index('Mã Sale tạo đơn')] for r in values[1:]} == {employee_code(nguoi_dung['staff_sale_1']), employee_code(nguoi_dung['staff_sale_2'])}
+    assert {r[headers.index('Mã nhân viên Vận đơn')] for r in values[1:]} == {employee_code(nguoi_dung['staff_vd'])}
     settings.STORAGE_DIR = tmp_path; settings.EXPORT_DIR = tmp_path / 'exports'
     with patch.object(export_service, 'EXPORT_SYNC_MAX_ROWS', 0), patch('forms_builder.services.import_service._day_vao_hang_doi'):
         _, job = export_service.export(user, table, QueryDict('trang=10'), builder='grid')
@@ -280,7 +282,7 @@ def test_export_date_filter_and_unlinked_sale_blank(feedback, nguoi_dung):
     values = list(wb.active.values)
     assert len(values) == 3
     codes = [r[values[0].index('Mã Sale tạo đơn')] for r in values[1:]]
-    assert 'staff_sale_1' in codes and '' in codes
+    assert employee_code(nguoi_dung['staff_sale_1']) in codes and '' in codes
 
 
 @pytest.mark.django_db(transaction=True)

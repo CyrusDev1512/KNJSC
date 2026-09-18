@@ -1,4 +1,5 @@
 """Mã nhân viên, ngày Việt Nam và đơn vị chụp tại lúc lên đơn."""
+from core.identity import employee_code
 import json
 from datetime import datetime, timezone as utc
 from unittest.mock import patch
@@ -28,10 +29,10 @@ def test_entry_date_and_units_snapshot(client, setup, nguoi_dung):
     assert response.status_code == 200
     order = Order.objects.get()
     assert order.record.data["ngay"] == "2026-09-12"
-    assert order.record.data["nguoi_ban"] == actor.username
+    assert order.record.data["nguoi_ban"] == employee_code(actor)
     assert list(order.lines.values_list("unit", flat=True)) == ["hộp", "túi"]
     assert list(WaybillItem.objects.filter(record=order.record).values_list("unit", flat=True)) == ["hộp", "túi"]
-    assert AuditLog.objects.filter(actor=actor, target_type="Order").get().actor_label == actor.username
+    assert AuditLog.objects.filter(actor=actor, target_type="Order").get().actor_label == employee_code(actor)
     setup[2][0].unit = "chiếc"
     setup[2][0].save()
     assert order.lines.first().unit == "hộp"
@@ -105,8 +106,8 @@ def test_admin_automatically_stands_order(client, setup, nguoi_dung):
     order = Order.objects.get()
     assert order.seller == actor and order.created_by == actor
     assert order.department.code == "sale" and order.team_id is None
-    assert order.record.data["nguoi_ban"] == actor.username
-    assert AuditLog.objects.get(target_type="Order", target_id=str(order.pk)).actor_label == actor.username
+    assert order.record.data["nguoi_ban"] == employee_code(actor)
+    assert AuditLog.objects.get(target_type="Order", target_id=str(order.pk)).actor_label == employee_code(actor)
     client.force_login(nguoi_dung["staff_sale_1"])
     assert client.get(f"/van-don/don-goc/{order.code}/").status_code == 404
 

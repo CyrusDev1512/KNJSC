@@ -12,6 +12,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 
 from core.constants import Rank
+from core.exceptions import BusinessError
 from core.models import SoftDeleteModel, TimestampedModel
 
 from .managers import (
@@ -88,6 +89,11 @@ class UserProfile(TimestampedModel):
         on_delete=models.CASCADE, related_name="profile",
     )
     full_name = models.CharField("Họ tên", max_length=150, blank=True)
+    # Mã nhân sự theo quy ước công ty (ADR-037): TÊN + chữ đầu họ + chữ đầu tên
+    # đệm, viết hoa không dấu — Lê Thưởng Thuận → THUANLT; trùng thì THUANLT2.
+    # Cố định sau lần lưu đầu; lưu mà rỗng thì `save()` tự gán, nên mọi hồ sơ
+    # luôn có mã và mọi chỗ định danh (`core.identity`) đều dùng nó.
+    staff_code = models.CharField("Mã nhân sự", max_length=20, blank=True, default="", db_index=True)
     department = models.ForeignKey(
         Department, verbose_name="Bộ phận",
         null=True, blank=True, on_delete=models.PROTECT,
@@ -122,6 +128,13 @@ class UserProfile(TimestampedModel):
         verbose_name = "Hồ sơ nhân sự"
         verbose_name_plural = "Hồ sơ nhân sự"
         ordering = ["full_name"]
+        constraints = [
+            # Mã duy nhất khi đã gán; hồ sơ cũ chưa gán (rỗng) không chặn nhau
+            models.UniqueConstraint(
+                fields=["staff_code"], condition=~models.Q(staff_code=""),
+                name="profile_staff_code_unique",
+            ),
+        ]
         indexes = [
             models.Index(fields=["department", "rank"], name="profile_dept_rank_idx"),
             # Tìm theo họ tên dùng __icontains — cần GIN với pg_trgm
@@ -152,13 +165,30 @@ class UserProfile(TimestampedModel):
         self.session_epoch += 1
 
     def save(self, *args, **kwargs):
+        from .services import staff_code_service
+
+        self.staff_code = staff_code_service.normalise(self.staff_code)
         if self.pk:
             cu = type(self).objects.filter(pk=self.pk).values(
-                *self.SESSION_SENSITIVE_FIELDS
+                *self.SESSION_SENSITIVE_FIELDS, "staff_code"
             ).first()
+            if cu and cu["staff_code"] and cu["staff_code"] != self.staff_code:
+                # ADR-037: mã như mã nhân viên thật — gán rồi thì không đổi, kể cả Admin
+                raise BusinessError("Mã nhân sự đã cố định, không đổi được.")
             if cu and any(cu[c] != getattr(self, c) for c in self.SESSION_SENSITIVE_FIELDS):
                 self.invalidate_sessions()
                 fields = kwargs.get("update_fields")
                 if fields is not None:
                     kwargs["update_fields"] = list(fields) + ["session_epoch"]
+        if not self.staff_code:
+            # Không để hồ sơ nào thiếu mã: lọc theo mã ở lưới và báo cáo mới không hụt dòng
+            self.staff_code = staff_code_service.suggest(
+                self.full_name, self.user.get_username(),
+                exclude_pk=self.pk, exclude_user_pk=self.user_id,
+            )
+            fields = kwargs.get("update_fields")
+            if fields is not None and "staff_code" not in fields:
+                kwargs["update_fields"] = list(fields) + ["staff_code"]
+        else:
+            staff_code_service.validate(self.staff_code)
         return super().save(*args, **kwargs)

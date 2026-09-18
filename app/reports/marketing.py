@@ -1,7 +1,7 @@
 """Cách trình bày BC MKT của CRM_ Tân.xlsx, chỉ dùng trong báo cáo ERP.
 
-Cột M giữ nguyên tên Hóa đơn/Doanh thu và công thức K/J theo xác nhận
-chủ dự án 09.09.2026. Không suy ra phép chia Hóa đơn cho Doanh thu.
+Hóa đơn/Doanh thu = Hóa đơn ÷ Doanh thu đúng theo nhãn — chủ dự án chốt 18.09.2026
+(ADR-038), thay xác nhận công thức K/J ngày 09.09.2026.
 """
 from dataclasses import dataclass, replace
 from decimal import Decimal
@@ -32,11 +32,7 @@ class Metric:
     def compute(self, values):
         if self.kind == "missing":
             return None
-        args = [values.get(k) for k in self.sources]
-        if self.kind == "k_over_j":
-            cpqc, mess, orders = args
-            return divide(divide(cpqc, mess), divide(cpqc, orders))
-        return divide(*args)
+        return divide(*[values.get(k) for k in self.sources])
 
 
 def adapt(result, columns):
@@ -59,7 +55,7 @@ def adapt(result, columns):
         ("CPO", ("CPQC", "Số đơn"), "divide"),
         ("Giá Mess", ("CPQC", "Số Mess"), "divide"),
         ("CPQC/Doanh số", ("CPQC", "Doanh số"), "divide"),
-        ("Hóa đơn/Doanh thu", ("CPQC", "Số Mess", "Số đơn"), "k_over_j"),
+        ("Hóa đơn/Doanh thu", ("Hóa đơn", "Doanh thu"), "divide"),
         ("AOV", ("Doanh số", "Số đơn"), "divide"),
     )
     for i, (label, inputs, kind) in enumerate(formulas):
@@ -75,5 +71,6 @@ def adapt(result, columns):
 def with_totals(result, totals):
     totals = dict(totals)
     values = {k.removeprefix("c_"): v for k, v in totals.items() if k.startswith("c_")}
+    values.update(getattr(result, "derived_totals", {}) or {})   # Doanh thu suy ra (ADR-038)
     totals.update(aggregations._recompute(result.computed_columns, values))
     return replace(result, totals=totals)

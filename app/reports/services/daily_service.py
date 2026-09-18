@@ -7,7 +7,7 @@ Quyết định 16/09/2026 thay thế khóa tuyệt đối: nhân viên không s
 nộp; Leader/Manager/Admin sửa qua amend, kiểm phạm vi và ghi lịch sử.
 Ngày, chủ sở hữu và thời điểm nộp của DailyReport vẫn bất biến.
 """
-from django.db import IntegrityError, transaction
+from django.db import transaction
 
 from core.audit import record
 from core.constants import AuditAction
@@ -53,12 +53,14 @@ def submit_current(form, values, *, actor, request=None, fields=None):
 
 
 def can_amend(user, report):
+    """Admin; Manager trong bộ phận; Leader trong team; Kế toán mọi bộ phận (ADR-038)."""
     from core.constants import Rank
     from core.scope import get_user_scope
+    from org.services.org_service import is_accountant
     if not user.is_active:
         return False
     scope = get_user_scope(user)
-    return (scope.is_admin or
+    return (scope.is_admin or is_accountant(user) or
             scope.rank == Rank.MANAGER and report.department_id in scope.department_ids or
             scope.rank == Rank.LEADER and report.team_id in scope.team_ids)
 
@@ -153,10 +155,16 @@ def forms_for(user):
 
 
 def already_submitted(form, user, report_date):
-    """Người này đã nộp biểu mẫu đó cho ngày đó chưa."""
+    """Người này đã nộp biểu mẫu đó cho ngày đó chưa (lệnh nạp lịch sử mẫu dùng)."""
+    return submissions_today(form, user, report_date) > 0
+
+
+def submissions_today(form, user, report_date):
+    """Số lần người này đã nộp biểu mẫu đó cho ngày đó — nộp không giới hạn (ADR-038),
+    màn hình chỉ nhắc để khỏi nộp nhầm lần nữa."""
     return DailyReport.objects.filter(
         form=form, created_by=user, report_date=report_date,
-    ).exists()
+    ).count()
 
 
 @transaction.atomic
@@ -203,13 +211,8 @@ def submit(form, values, *, report_date, actor, request=None, fields=None):
         department=getattr(ho_so, "department", None) or form.department,
         team=getattr(ho_so, "team", None),
     )
-    try:
-        bao_cao.save()
-    except IntegrityError:
-        # Ràng buộc duy nhất trong cơ sở dữ liệu là chỗ chặn cuối của BR-2
-        raise BusinessError(
-            f"Bạn đã nộp biểu mẫu này cho ngày {report_date:%d.%m.%Y} rồi."
-        )
+    # Nộp lại trong ngày là một bản mới, không chặn, không đè (ADR-038)
+    bao_cao.save()
 
     record(
         AuditAction.CREATE, actor=actor, target=bao_cao,
@@ -282,8 +285,8 @@ def compute_report(row, table, columns):
     if not source or source.kind != 'mkt':
         return
     by_code = {column.code:column for column in columns}
-    names = {'cpo':'cpo', 'mess_cost':'gia_mess', 'cost_sales':'cpqc_doanh_so',
-             'invoice_revenue':'hoa_don_doanh_thu', 'aov':'aov'}
+    # Hóa đơn/Doanh thu chỉ tính ở mức báo cáo (Doanh thu suy ra từ vận đơn — ADR-038)
+    names = {'cpo':'cpo', 'mess_cost':'gia_mess', 'cost_sales':'cpqc_doanh_so', 'aov':'aov'}
     values = {code:Decimal(str(row.data[code])) if row.data.get(code) not in (None, '') else None
               for code in {source.columns[key] for key in ('cost','orders','mess','sales') if key in source.columns}}
     for metric, code in names.items():

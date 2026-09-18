@@ -1,7 +1,7 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 17.09.2026 cho đúng nhánh đang chạy thật (`codex/crm-update-solar-ui`,
-> phát hành VPS). Lần trước 11.09 ([ADR-023](docs/quyet-dinh/023-dieu-huong-erp-va-len-don-crm.md)).
+> Cập nhật 18.09.2026 (ADR-036 một bảng vận đơn, ADR-037 mã nhân sự, ADR-038 báo cáo Marketing,
+> ADR-031 bổ sung bảy thị trường); lần trước 17.09 cho đúng nhánh đang chạy thật (`codex/crm-update-solar-ui`, phát hành VPS).
 
 Đọc file này trước khi sửa bất kỳ mã nguồn nào trong dự án.
 
@@ -22,7 +22,7 @@ không hỏi lại người dùng những gì họ đã trả lời.
 |---|---|
 | `docs/backlog.md` **các mục ghi ngày ở đầu tệp** rồi **mục 0** | Việc gần nhất và **còn nợ những gì**; từ 14.09 mỗi tác vụ là một mục ghi ngày ở đầu tệp, mục 0 là bản tóm cũ hơn |
 | `docs/backlog-kanban.md`, `docs/test-log.md` | Việc đang ở cột nào và **từng lỗi `TL-xx`** kèm mức, chỗ sai, blocker. Lưu ý: TL-01 → TL-34 rà trên lưới HTMX cũ (07.09); lưới đã thay, phải rà lại trước khi sửa |
-| `docs/quyet-dinh/` | Vì sao làm thế. **Đừng quyết lại những gì đã chốt.** Bảng ở `README.md` trong đó đã đủ tới 033 (17.09); hai tệp cùng số 022 |
+| `docs/quyet-dinh/` | Vì sao làm thế. **Đừng quyết lại những gì đã chốt.** Bảng ở `README.md` trong đó đã đủ tới 038 (18.09: 036 một bảng vận đơn, 037 mã nhân sự, 038 báo cáo Marketing); hai tệp cùng số 022 |
 | `docs/kiem-chung-*.md`, `docs/06-ke-hoach-kiem-thu.md` | Mỗi tác vụ từ 09.09 có một biên bản kiểm chứng: đã đo gì, số bao nhiêu, còn gì chưa kiểm; 06 là kế hoạch kiểm thử chung |
 
 `docs/dashboard-tien-do.html` là tiến độ theo giai đoạn tới 08.09; sau đó tiến độ
@@ -133,7 +133,10 @@ Bảng có `workflow = "waybill"` mang profile Vận đơn: phân công Vận đ
 Toàn bộ (`?cua_toi=1`) lọc theo cột phụ trách của bộ phận mình** (ADR-033 thay
 ADR-026, 17.09; Sale/CSKH vẫn theo phân công), chi tiết sản phẩm `WaybillItem`, trạng thái
 thanh toán sửa trực tiếp (ADR-025; kho chứng từ tắt bằng `PAYMENT_DOCUMENTS_ENABLED`).
-Tiền theo quốc gia US/USD, CA/CAD, PH/PHP, PTTT chỉ Zelle/PayPal (ADR-031).
+Tiền theo quốc gia US/USD, CA/CAD, PH/PHP, EU/EUR, KR/KRW, JP/JPY, AU/AUD (ADR-031 và bổ sung
+18.09; KRW chưa có tỉ giá), PTTT chỉ Zelle/PayPal. **Định danh nhân sự là mã `UserProfile.staff_code`**
+(ADR-037, quy ước `THUANLT`): mọi chỗ hiện mã trước tên sau qua `core/identity.py` và bộ lọc `|ma`,
+`|ma_ten`; không tự ghép `username`; tài khoản mới đăng nhập bằng mã.
 
 **Cờ tối ưu `CRM_OPT_*`** (ADR-024) mặc định tắt, trên VPS cũng tắt: READ/SYNC gây
 lỗi mở editor, RENDER chưa thấy lợi. Không bật cờ khi chưa có biên bản kiểm chứng.
