@@ -1,5 +1,13 @@
 # Backlog
 
+## 18.09.2026 (chiều) — Phát hành TL-41 lên VPS: image `knjsc-app:5b68dce-tl41`
+
+Chủ dự án chọn "sửa toàn bộ": sửa tay hai cột `loai_tien` trên VPS trước (VND → VND/USD/CAD/PHP, 101 dòng cũ
+giữ VND) rồi phát hành `5b68dce` theo khuôn: backup restore thật khớp, không migration, `check --deploy` sạch,
+`configure_erp_reports` chạy lại không đổi, 5 service cùng image, hai domain 200, log sạch. Bản sửa song song tại
+máy này (AC-22.13) đã bỏ để không trùng `5b68dce`. [Biên bản](kiem-chung-phat-hanh-vps-20260918-tl41.md).
+**Còn nợ:** chủ dự án nộp lại báo cáo Canada trên domain thật để xác nhận; kiểm Sale/CSKH trên domain thật.
+
 ## 18.09.2026 (chiều) — TL-41: cột Đơn vị tiền của báo cáo nhận đủ USD/CAD/PHP
 
 Vẫn "Chưa nộp được — CAD không có trong danh sách của cột Đơn vị tiền. Chọn: VND"

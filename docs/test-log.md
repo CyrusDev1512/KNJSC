@@ -11,7 +11,7 @@ luật vì Mã đơn bắt buộc (báo rõ dòng/cột); xoá vùng Quốc gia�
 
 | Mã | Mức | Chỗ sai | Blocker |
 |---|---|---|---|
-| TL-41 | Cao | Nộp báo cáo ngày Marketing/Sale trên VPS: "Giá trị CAD không có trong danh sách của cột Đơn vị tiền. Chọn: VND" — cột `loai_tien` do `scripts/tao-bao-cao-mau-20260915.py` tạo chỉ có `VND`, còn `daily_service.protected_values` (16.09) tự điền USD/CAD/PHP theo quốc gia; `configure_erp_reports` chỉ `get_or_create` nên không sửa cột cũ | **Đã sửa 18.09 chiều**: `configure_source` bổ sung USD/CAD/PHP vào cột `loai_tien` có sẵn (giữ VND, giữ tên), bài AC-22.12; VPS hết lỗi sau khi phát hành và chạy `configure_erp_reports` (có sẵn trong quy trình) |
+| ~~TL-41~~ | Cao | Nộp báo cáo ngày Marketing/Sale trên VPS: "Giá trị CAD không có trong danh sách của cột Đơn vị tiền. Chọn: VND" — cột `loai_tien` do `scripts/tao-bao-cao-mau-20260915.py` tạo chỉ có `VND`, còn `daily_service.protected_values` (16.09) tự điền USD/CAD/PHP theo quốc gia; `configure_erp_reports` chỉ `get_or_create` nên không sửa cột cũ | **Đã sửa và phát hành 18.09 chiều** (`5b68dce`, sửa tay cột trên VPS trước; [biên bản](kiem-chung-phat-hanh-vps-20260918-tl41.md)) |
 
 ## 17.09.2026 — ADR-033: Tôi / Toàn bộ, Vận đơn sửa toàn bảng
 

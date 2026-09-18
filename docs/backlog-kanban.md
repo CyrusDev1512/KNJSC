@@ -3,7 +3,9 @@
 ## 18.09.2026 (chiều) — TL-41 cột Đơn vị tiền
 
 **Finished local:** `configure_erp_reports` bổ sung USD/CAD/PHP vào cột có sẵn; AC-22.12 đạt.
-**To do:** phát hành lên VPS rồi nộp thử báo cáo Marketing với Quốc gia Canada.
+**Finished VPS (chiều 18.09):** sửa tay cột trước, rồi image `knjsc-app:5b68dce-tl41` trên 5 service, backup
+kiểm phục hồi, không migration. [Biên bản](kiem-chung-phat-hanh-vps-20260918-tl41.md).
+**To do:** chủ dự án nộp thử báo cáo Marketing với Quốc gia Canada trên domain thật.
 
 ## 18.09.2026 — Lưới như Excel; Quốc gia trống → tiền trống
 
