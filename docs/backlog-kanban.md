@@ -2,10 +2,13 @@
 
 ## 18.09.2026 — Lưới như Excel; Quốc gia trống → tiền trống
 
-**Finished local, chưa VPS:** bấm chỉ chọn ô, gõ là nhập, Ctrl+A/Delete tác động lên
+**Finished local:** bấm chỉ chọn ô, gõ là nhập, Ctrl+A/Delete tác động lên
 lưới; xoá Quốc gia được, dòng có tiền hỏi xác nhận. Bài AC-33.8 và Chromium đạt.
 [Biên bản](kiem-chung-luoi-excel-quoc-gia-trong-20260918.md).
-**To do:** phát hành VPS; quyết định cách sửa cột Đơn vị tiền (VND) của bảng báo cáo 15.09.
+**Finished VPS (chiều 18.09):** image `knjsc-app:5b7922f-excel` trên 5 service, backup kiểm phục hồi, không
+migration; Chromium domain thật với tài khoản Vận đơn tạm: bấm chọn, gõ nhập, Ctrl+A 407 ô, xoá vùng Quốc gia
+hỏi xác nhận rồi lưu, tiền giữ. [Biên bản](kiem-chung-phat-hanh-vps-20260918-excel.md).
+**To do:** TL-41 — quyết định cách sửa cột Đơn vị tiền (VND) của bảng báo cáo 15.09; kiểm Sale/CSKH domain thật.
 ## 18.09.2026 — Phát hành bốn góp ý lên VPS
 
 **Finished VPS:** image `knjsc-app:0d970f8-gopy` trên 5 service; backup + diễn tập trên bản sao DB thật; Vận đơn mới

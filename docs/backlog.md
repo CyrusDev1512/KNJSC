@@ -1,5 +1,17 @@
 # Backlog
 
+## 18.09.2026 (chiều) — Phát hành lưới như Excel lên VPS: image `knjsc-app:5b7922f-excel`
+
+Theo khuôn 17.09: backup restore thật vào DB tạm khớp số dòng; build tại VPS, `check --deploy` sạch, không
+migration, metadata + `collectstatic`, 5 service cùng image mới, hai domain 200, log sạch (ERP chỉ có
+`DisallowedHost` do bot gọi thẳng IP). Chromium domain thật với tài khoản Vận đơn Staff tạm `kiem.vd`
+trên `van_don`: bấm ô chỉ chọn, gõ phím mở ô nhập với ký tự vừa gõ, Ctrl+A chọn `A1:AK11 · 407 ô`; trên
+dòng kiểm `KIEM-VD-1809` (tạo bằng service vì Vận đơn không tạo dòng trên lưới, `protect_table`) chọn
+Thành phố→Quốc gia rồi Delete: hỏi xác nhận một lần, chấp nhận → Đã lưu, Quốc gia và Loại tiền trống, tiền
+giữ 12, lịch sử ô ghi đủ, 0 lỗi JS. Dòng kiểm đã đánh dấu xoá, `kiem.vd` đã khoá.
+[Biên bản](kiem-chung-phat-hanh-vps-20260918-excel.md). **Còn nợ:** TL-41 (cột Đơn vị tiền chỉ VND) chờ chủ
+dự án chọn cách; chưa kiểm Sale/CSKH và chưa lên đơn thật trên domain thật.
+
 ## 18.09.2026 — Lưới như Excel (bấm chọn, gõ là nhập); xoá Quốc gia thì Loại tiền trống
 
 Video chủ dự án trên VPS: Ctrl+A không chọn cả bảng, xoá cả bảng bị "Chọn quốc gia
@@ -11,7 +23,7 @@ thao tác **như Excel** (bấm chỉ chọn, gõ phím là nhập với ký t�
 hỏi xác nhận, nhập tệp/lên đơn vẫn bắt buộc. Sửa `master-grid.js`, `currency_service`,
 `record_service`, hai script Codex, bài AC-33.8, ADR-033/031 bổ sung, docs 02/04/05/06,
 CLAUDE.md. [Biên bản](kiem-chung-luoi-excel-quoc-gia-trong-20260918.md).
-**Còn nợ:** phát hành VPS; **cột Đơn vị tiền của Báo cáo Marketing/Sale chỉ có VND**
+**Còn nợ:** ~~phát hành VPS~~ (đã phát hành chiều 18.09, mục trên); **cột Đơn vị tiền của Báo cáo Marketing/Sale chỉ có VND**
 (kịch bản 15.09 tạo) trong khi báo cáo tự điền USD/CAD/PHP theo quốc gia → "Chưa nộp
 được"; đề xuất `configure_erp_reports` bổ sung ba mã tiền vào cột có sẵn, chờ chủ dự án gật.
 ## 18.09.2026 — Phát hành bốn góp ý lên VPS: image `knjsc-app:0d970f8-gopy`; Vận đơn mới là bảng nhận đơn duy nhất
