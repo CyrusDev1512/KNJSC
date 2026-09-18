@@ -18,8 +18,9 @@ dưới 900px). Dán vào CLI:
 
 | Câu | Mặc định làm theo |
 |---|---|
-| Mã cho tên bốn từ | **Đủ chữ cái đầu mọi từ**: Nguyễn Thị Lan Hương → `NTLH01`; không đoán tên đệm |
+| Quy tắc mã | **Theo tệp "Quản trị nội bộ.xlsx", sheet Quy ước-Định nghĩa 2.0** (chủ dự án cung cấp 18.09): không dấu, viết hoa, viết liền **TÊN + chữ cái đầu họ + chữ cái đầu tên đệm** — Lê Thưởng Thuận → `THUANLT`; trùng thì thêm số từ 2: `THUANLT2`, `THUANLT3`. Bỏ đề xuất `PMA01` cũ. |
 | Mã có đổi được sau khi tạo không | **Cố định** như mã nhân viên thật; Admin sửa được trước khi lưu lần đầu |
+| **Mã là trường riêng hay chính tên đăng nhập?** | Sheet ghi "Tài khoản login: User = MÃ_NV". **Chưa chốt** — đề xuất: thêm `staff_code`, và **tài khoản tạo mới có tên đăng nhập = mã**; tài khoản đã có giữ tên đăng nhập cũ, chỉ gán mã. Không đổi tên đăng nhập của người đang dùng trên VPS. CLI hỏi chủ dự án trước khi làm. |
 | Dữ liệu cũ trên VPS đang chụp tên đăng nhập | **Có lệnh chạy một lần** đổi tên đăng nhập → mã trong cột định danh; chạy trên VPS sau khi gán đủ mã |
 
 ### Việc A — Bố cục màn hình Báo cáo tổng hợp theo bản vẽ
@@ -48,7 +49,7 @@ hai bộ rule chồng nhau), `app/static/js/report-filters.js`.
   cần ghim và **xuống dòng**. Rule mới `.report-identity {max-width:220px; overflow:hidden;
   text-overflow:ellipsis}` chính là thứ cắt tên mà chủ dự án phàn nàn — **bỏ**, thay
   bằng `white-space:normal; overflow-wrap:anywhere` như bản vẽ. Sau việc B, ô Nhân sự
-  hiện `PMA01 · Phạm Minh Anh` (nhiều người trong một ngày thì nối bằng dấu phẩy như
+  hiện `THUANLT · Lê Thưởng Thuận` (nhiều người trong một ngày thì nối bằng dấu phẩy như
   `StringAgg` đang làm).
 - Chỉ dùng token có sẵn; không thêm thư viện; không đưa `.demo-bar` và nút đổi
   theme của bản vẽ vào app.
@@ -68,8 +69,8 @@ chứa tên đăng nhập.
 
 1. `UserProfile.staff_code`: CharField, viết hoa không dấu, ràng buộc duy nhất
    khi khác rỗng (`UniqueConstraint` có `condition`). Migration `org/0005`, đảo được.
-2. Gợi ý mã ở `TaoTaiKhoanForm` từ chữ cái đầu họ tên + hai số thứ tự, tăng khi
-   trùng; `SuaHoSoForm` chỉ cho sửa khi hồ sơ chưa có dữ liệu chụp mã.
+2. Gợi ý mã ở `TaoTaiKhoanForm` theo quy tắc THUANLT (tên + chữ đầu họ + chữ đầu
+   tên đệm; trùng thì hậu tố 2, 3…); nếu chốt "User = MÃ_NV" thì điền luôn tên đăng nhập; `SuaHoSoForm` chỉ cho sửa khi hồ sơ chưa có dữ liệu chụp mã.
 3. `employee_code()` trả `staff_code`, rỗng thì tên đăng nhập. Thêm bộ lọc `|ma`.
    Quy ước: bảng, danh sách, lịch sử, Excel — **mã trước, tên sau**; lời chào và
    avatar giữ tên. Tìm kiếm nhận cả mã (`reports/views.py` 103, `org/views.py` 45).
