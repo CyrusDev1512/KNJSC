@@ -248,7 +248,7 @@ def test_moi_san_pham_mot_cot_va_len_don_dien_tu_dong(bang_vd, san_pham, nguoi_d
 # ══ Tệp thật — AC-11.9 ═════════════════════════════════════════════
 
 def test_nhap_tep_van_don_that_khong_chinh_sua(departments, nguoi_dung):
-    """AC-11.9 — Tệp vận đơn thật (ẩn danh) nhập không chỉnh sửa: 220 dòng vào, 1 dòng lỗi vì PTTT "Cheque" ngoài Zelle/PayPal (ADR-031), trạng thái và thanh toán khớp danh sách, điện thoại là chuỗi, số lượng là số"""
+    """AC-11.9 — Tệp vận đơn thật (ẩn danh) nhập không chỉnh sửa: 221 dòng vào, 0 lỗi (PTTT "Cheque" nằm trong bảy PTTT theo sheet Vận đơn), trạng thái và thanh toán khớp danh sách, điện thoại là chuỗi, số lượng là số"""
     from core.management.commands.du_lieu_mau import SAN_PHAM
 
     nhom = ProductGroup.objects.create(name="Mỹ phẩm")
@@ -270,15 +270,14 @@ def test_nhap_tep_van_don_that_khong_chinh_sua(departments, nguoi_dung):
     import_service.confirm(job, actor=nguoi_dung["admin"])
     job.refresh_from_db()
     assert job.status == JobStatus.DONE, job.error
-    # 221 dòng dữ liệu: một dòng PTTT "Cheque" bị từ chối vì bảng duy nhất mang profile
-    # Vận đơn (ADR-036) và PTTT chỉ còn Zelle/PayPal (ADR-031); lỗi nêu rõ giá trị và cột
-    assert job.summary["created"] == 220 and job.summary["error_count"] == 1, job.summary["errors"][:5]
-    assert "Cheque" in job.summary["errors"][0][1] and "PTTT" in job.summary["errors"][0][1]
+    # 221 dòng, kể cả dòng PTTT "Cheque": bảy PTTT theo sheet Vận đơn (18.09, bổ sung ADR-031)
+    assert job.summary["created"] == 221 and job.summary["error_count"] == 0, job.summary["errors"][:5]
 
     from forms_builder.models import DataRecord
 
     dong = list(DataRecord.objects.filter(table=bang))
-    assert len(dong) == 220
+    assert len(dong) == 221
+    assert "Cheque" in {d.data.get("pttt") for d in dong}
     nhan_vc = {d.data.get("trang_thai_vc") for d in dong} - {None}
     assert nhan_vc <= {c.label for c in ShippingStatus} and "Đã nhận hàng" in nhan_vc
     nhan_tt = {d.data.get("trang_thai_tt") for d in dong} - {None}

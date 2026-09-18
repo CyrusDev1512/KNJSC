@@ -33,10 +33,20 @@ class PaymentMethod(models.TextChoices):
     WALLET = "wallet", "Ví điện tử"
     ZELLE = "zelle", "Zelle"
     PAYPAL = "paypal", "PayPal"
+    VISA_WEBSITE = "visa_web", "Visa/Website"
+    CHEQUE = "cheque", "Cheque"
+    WESTERN_UNION = "western", "Western Union"
+    RIA = "ria", "RIA"
+    MONEY_GRAM = "moneygram", "Money Gram"
 
 
-# Giữ mã cũ để đọc lịch sử; chỉ hai phương thức này dùng cho thao tác mới.
-ACTIVE_PAYMENT_METHODS = (PaymentMethod.ZELLE, PaymentMethod.PAYPAL)
+# Giữ bốn mã đầu chỉ để đọc lịch sử. Bảy phương thức dùng cho thao tác mới lấy
+# đúng cột PTTT sheet "Vận đơn" của tệp Quản trị nội bộ (chủ dự án chốt 18.09,
+# bổ sung ADR-031 vốn chỉ Zelle/PayPal).
+ACTIVE_PAYMENT_METHODS = (
+    PaymentMethod.ZELLE, PaymentMethod.PAYPAL, PaymentMethod.VISA_WEBSITE, PaymentMethod.CHEQUE,
+    PaymentMethod.WESTERN_UNION, PaymentMethod.RIA, PaymentMethod.MONEY_GRAM,
+)
 ACTIVE_PAYMENT_CHOICES = [(method.value, method.label) for method in ACTIVE_PAYMENT_METHODS]
 ACTIVE_PAYMENT_LABELS = [method.label for method in ACTIVE_PAYMENT_METHODS]
 

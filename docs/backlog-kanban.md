@@ -1,5 +1,9 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 18.09.2026 (tối) — Bảy PTTT theo sheet Vận đơn
+
+**Finished local:** `ACTIVE_PAYMENT_METHODS` 7 loại, migration `orders/0010`, AC-11.9 221/221. **To do:** phát hành cùng ADR-036 (cùng dãy lệnh, `tao_bang_van_don` bổ sung lựa chọn PTTT).
+
 ## 18.09.2026 (chiều) — Một bảng vận đơn duy nhất (ADR-036)
 
 **Finished local, chưa VPS:** `van_don` là bảng duy nhất mang profile Vận đơn + cột Trùng;

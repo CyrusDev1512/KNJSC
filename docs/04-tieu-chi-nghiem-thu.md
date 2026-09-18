@@ -251,7 +251,7 @@ vụ `bangtinh`, cổng 8021); KN ERP không còn đường sửa ô.
 | AC-11.6 | Dòng Hủy trước giao, Hủy sau giao, Hoàn đơn được tô màu | FR-7.8 | Tự động |
 | AC-11.7 | Không bảng nào sửa được ô ở Bảng dữ liệu KN ERP — đường sửa ô cũ trả 404, kể cả bảng vận đơn với nhân viên Vận đơn lẫn Admin; cùng ô đó ở lưới KN CRM thì sửa được, bảng chỉ xem ở dịch vụ này thì 403 | FR-7.4 | Tự động |
 | AC-11.8 | Mỗi sản phẩm đang bán có một cột số lượng trên bảng vận đơn; lên đơn điền tự động số lượng, địa chỉ và lần mua | FR-6.3 · FR-6.7 | Tự động |
-| AC-11.9 | Nhập tệp vận đơn thật (ẩn danh) không chỉnh sửa: 220 dòng vào, đúng 1 dòng lỗi nêu rõ PTTT "Cheque" ngoài Zelle/PayPal (ADR-031, ADR-036), trạng thái và thanh toán khớp danh sách (kể cả nhãn cũ, khác hoa thường), điện thoại là chuỗi | FR-7.5 | Tự động |
+| AC-11.9 | Nhập tệp vận đơn thật (ẩn danh) không chỉnh sửa: 221 dòng vào, 0 lỗi (PTTT "Cheque" thuộc bảy PTTT theo sheet Vận đơn, bổ sung ADR-031), trạng thái và thanh toán khớp danh sách (kể cả nhãn cũ, khác hoa thường), điện thoại là chuỗi | FR-7.5 | Tự động |
 | AC-11.10 | Bàn phím: mũi tên và Tab đi giữa các ô, Enter sửa, Esc huỷ, chọn giá trị danh sách thì ô cập nhật không tải lại trang | FR-7.8 | Tự động |
 | AC-11.11 | Bảng tính dùng được trên điện thoại và máy tính bảng | NFR-8 | Thủ công |
 | AC-11.12 | Bảng nào trong phạm vi quyền cũng mở được ở `/bang-tinh/<mã>/`; ngoài phạm vi bị từ chối; `/bang-tinh/` mở bảng vận đơn nếu thấy, không thì bảng đầu tiên trong phạm vi; thanh công cụ hiện nút theo quyền | FR-7.1 · FR-3.6 | Tự động |

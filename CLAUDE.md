@@ -134,7 +134,8 @@ Toàn bộ (`?cua_toi=1`) lọc theo cột phụ trách của bộ phận mình*
 ADR-026, 17.09; Sale/CSKH vẫn theo phân công), chi tiết sản phẩm `WaybillItem`, trạng thái
 thanh toán sửa trực tiếp (ADR-025; kho chứng từ tắt bằng `PAYMENT_DOCUMENTS_ENABLED`).
 Tiền theo quốc gia US/USD, CA/CAD, PH/PHP, EU/EUR, KR/KRW, JP/JPY, AU/AUD (ADR-031 và bổ sung
-18.09; KRW chưa có tỉ giá), PTTT chỉ Zelle/PayPal. **Định danh nhân sự là mã `UserProfile.staff_code`**
+18.09; KRW chưa có tỉ giá), PTTT bảy loại theo sheet Vận đơn của "Quản trị nội bộ": Zelle, PayPal,
+Visa/Website, Cheque, Western Union, RIA, Money Gram (`ACTIVE_PAYMENT_METHODS`, bổ sung ADR-031 18.09). **Định danh nhân sự là mã `UserProfile.staff_code`**
 (ADR-037, quy ước `THUANLT`): mọi chỗ hiện mã trước tên sau qua `core/identity.py` và bộ lọc `|ma`,
 `|ma_ten`; không tự ghép `username`; tài khoản mới đăng nhập bằng mã.
 

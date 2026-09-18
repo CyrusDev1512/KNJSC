@@ -78,6 +78,7 @@ cấu hình" → "bảng Vận đơn mới".
   `test_destination_*` đã xoá theo ADR-036.
 - Script `.cjs` của Codex chỉ `node --check`, chưa chạy lại trên Chrome thật.
 - VPS: chưa phát hành; số dòng thật của hai bảng cũ (6.667 + 2) lấy từ biên bản 17.09.
-- Tệp thật `vandon-mau.xlsx`: 220/221 dòng vào; dòng PTTT "Cheque" bị từ chối vì
-  PTTT chỉ còn Zelle/PayPal (ADR-031). Chủ dự án chốt: giữ từ chối, hay thêm
-  "Cheque" vào danh sách lịch sử?
+- ~~Tệp thật `vandon-mau.xlsx`: 220/221, dòng PTTT "Cheque" bị từ chối~~ → tối 18.09 chủ dự án
+  chốt bảy PTTT theo sheet Vận đơn (bổ sung ADR-031): `migrate orders 0010`, `tao_bang_van_don`
+  bổ sung 5 lựa chọn cho cột `pttt`/`pttt_thuc_te` có sẵn, tệp thật vào đủ 221/221, form Lên đơn
+  hiện 7 PTTT (Chromium). Bộ kiểm chạy lại: xem test-log 18.09 (tối).

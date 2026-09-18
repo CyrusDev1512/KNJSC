@@ -72,7 +72,7 @@ def test_currency_locked_and_payment_choices_shared(client, feedback, nguoi_dung
     table, _, rows = feedback
     meta = {c['code']: c for c in master_grid_service.metadata(table.columns.all())}
     assert meta['loai_tien']['protected']
-    assert meta['pttt']['options'] == meta['pttt_thuc_te']['options'] == ['Zelle', 'PayPal']
+    assert meta['pttt']['options'] == meta['pttt_thuc_te']['options'] == ['Zelle', 'PayPal', 'Visa/Website', 'Cheque', 'Western Union', 'RIA', 'Money Gram']
     client.force_login(nguoi_dung['admin'])
     url = f'/bang-tinh/{table.code}/luu-json/'
     assert client.post(url, payload(rows[0], 'loai_tien', 'CAD'), content_type='application/json').status_code == 400

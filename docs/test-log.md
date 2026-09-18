@@ -1,8 +1,12 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 18.09.2026 (tối) — Bảy PTTT theo sheet Vận đơn
+
+Bộ `crm/tests orders/tests forms_builder/tests reports/tests core/tests tests -m "not trinh_duyet and not cham"`: 2.384 đạt, 1 bỏ qua, 0 đỏ, mã thoát 0. `test_market_currency` (AC-33.x) và `test_bang_tinh` AC-11.9 sửa theo 7 PTTT. DB dev: `migrate orders 0010` xuôi/ngược, `sqlmigrate` no-op; `tao_bang_van_don` bổ sung 5 lựa chọn vào `pttt`, `pttt_thuc_te`. Chromium: form Lên đơn 7 PTTT, đơn Western Union → `Order.payment_method = western`, lưới hiện "Western Union". TL-44 đóng.
+
 ## 18.09.2026 (chiều) — ADR-036: một bảng vận đơn
 
-`crm/tests orders/tests forms_builder/tests reports/tests core/tests tests -m "not trinh_duyet and not cham"`: 2.384 đạt, 1 bỏ qua, 0 đỏ, mã thoát 0; `cham`: 13 đạt, 6 bỏ qua, 2 xfail K24. `test_mot_bang_van_don.py` 8 đạt (AC-36.1 → 36.7). **TL-42 (mới, đã sửa):** teardown `tests/test_hieu_nang.py` lỗi bị `xfail` nuốt, rò bộ phận `van-don` sang bài máy sạch. **TL-43 (mở, quan sát một lần):** `DELETE` 50.000 dòng của `seed_perf.clear()` treo >17 phút trong một lượt chạy đủ, không tái hiện. **TL-44 (chờ chốt):** tệp thật có PTTT "Cheque" → 1/221 dòng bị từ chối theo ADR-031. TL-35, TL-36 (cột Trùng chỉ có ở bảng cũ / đếm chuỗi thô): **TL-35 đóng** — Trùng
+`crm/tests orders/tests forms_builder/tests reports/tests core/tests tests -m "not trinh_duyet and not cham"`: 2.384 đạt, 1 bỏ qua, 0 đỏ, mã thoát 0; `cham`: 13 đạt, 6 bỏ qua, 2 xfail K24. `test_mot_bang_van_don.py` 8 đạt (AC-36.1 → 36.7). **TL-42 (mới, đã sửa):** teardown `tests/test_hieu_nang.py` lỗi bị `xfail` nuốt, rò bộ phận `van-don` sang bài máy sạch. **TL-43 (mở, quan sát một lần):** `DELETE` 50.000 dòng của `seed_perf.clear()` treo >17 phút trong một lượt chạy đủ, không tái hiện. **TL-44 (đóng 18.09 tối):** tệp thật có PTTT "Cheque" từng bị từ chối; chủ dự án chốt bảy PTTT theo sheet Vận đơn, tệp vào đủ 221 dòng. TL-35, TL-36 (cột Trùng chỉ có ở bảng cũ / đếm chuỗi thô): **TL-35 đóng** — Trùng
 nằm trong hook lưới của bảng duy nhất; TL-36 (chuẩn hoá số điện thoại) vẫn mở.
 [Biên bản](kiem-chung-mot-bang-van-don-20260918.md).
 

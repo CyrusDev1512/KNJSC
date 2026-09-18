@@ -19,6 +19,11 @@ Ngày: 16.09.2026. Trạng thái: chủ dự án đã chốt; triển khai local
 - Ghi lịch sử cả quốc gia và loại tiền; không sửa ngược Order/OrderLine.
 - PTTT lên đơn và PTTT thực tế chỉ cho chọn Zelle hoặc PayPal. Giữ các mã/nhãn
   cũ để đọc lịch sử; không chuyển dữ liệu cũ sang một phương thức mới tùy ý.
+  > **Bổ sung 18.09.2026 (chủ dự án chốt theo sheet "Vận đơn" của tệp Quản trị nội
+  > bộ):** danh sách PTTT dùng cho thao tác mới là **bảy** phương thức, đúng thứ tự
+  > sheet: Zelle, PayPal, Visa/Website, Cheque, Western Union, RIA, Money Gram
+  > (`ACTIVE_PAYMENT_METHODS`, migration `orders/0010`). Bốn mã Thẻ/Chuyển khoản/
+  > Thu hộ/Ví vẫn chỉ để đọc lịch sử. Tệp thật có "Cheque" nhờ đó vào đủ (TL-44).
 - Nhập tệp mới phải có quốc gia hợp lệ; tiền tệ trống được suy ra, tiền tệ
   khác quốc gia bị từ chối để người dùng sửa tệp trước khi nhập.
 

@@ -49,8 +49,8 @@ Vận đơn mới; nhập tệp không cần Chi tiết sản phẩm.
 3. **Dừng**, tóm tắt, hỏi chủ dự án xác nhận một lần. Nhắc rõ: lệnh xoá cứng không hoàn tác.
 4. Backup DB, **kiểm phục hồi** vào DB tạm, đếm dòng ba bảng khớp. Không có thì không đi tiếp.
 5. Build image `knjsc-app:<commit>-adr036`; dãy README: `config --quiet` → `up -d db broker
-   cache` → `static-owner` → `migrate --noinput` (kỳ vọng `forms_builder 0014`) →
-   `tao_bang_van_don` (nâng cấp tại chỗ `van_don`, in một bảng) →
+   cache` → `static-owner` → `migrate --noinput` (kỳ vọng `forms_builder 0014` và `orders 0009` của Codex và `orders 0010`, chỉ đổi choices) →
+   `tao_bang_van_don` (nâng cấp tại chỗ `van_don`, in một bảng; cột PTTT nhận thêm 5 lựa chọn mới) →
    **`xoa_bang_van_don_cu --dong-y-xoa-cung --backup-da-lam`** (in số lượng từng loại) →
    `configure_erp_reports` → `configure_delivery_daily_report` → `collectstatic` →
    `up -d crm erp worker heavy beat proxy` → `nginx -t`, reload.
