@@ -461,6 +461,7 @@ lưới, bộ lọc và dữ liệu Vận đơn của AC-18/20/21.
 | AC-22.9 | Query không tăng theo số dòng hoặc toàn bộ bảng ngoài ba nguồn; p95 đọc ≤1 giây trên 100k/300k Vận đơn và 20k Sale; không có dependency, cache, polling hoặc tác vụ nền mới | ADR-022 · ADR-016 | Tự động + hiệu năng |
 | AC-22.10 | **Tổng hợp thêm cột Nhân sự và Leader** (ADR-035): mỗi ngày vẫn một dòng; cột Nhân sự gộp tên (username — họ tên người lập dòng; Vận đơn: người được phân công) và Leader gộp tên `Team.leader` của những người có dòng trong ngày, ngay sau cột Ngày; Theo nhân viên thêm cột Leader; Staff chỉ thấy dòng của mình, Leader team mình, Manager cả bộ phận, Admin tất cả; lọc `nhan_su` thu hẹp bảng, người ngoài phạm vi 403; Excel cùng cột, dòng tổng để trống ô danh tính; vẫn ≤ 10 truy vấn | ADR-022 · ADR-035 · FR-3.5 | Tự động |
 | AC-22.11 | Báo cáo hoạt động phân trang mặc định **100 nhóm mỗi trang** (vẫn trong 25/50/100), dòng "Tổng trong bộ lọc" tính trên toàn bộ kết quả; bảng theo token 13px, ô đệm 5×8 px, khung cao theo màn hình | ADR-035 · Quy tắc 1 | Tự động + trình duyệt |
+| AC-22.12 | **Cột Loại tiền của bảng báo cáo nhận đủ USD/CAD/PHP** (TL-41, 18.09.2026): `configure_erp_reports` gặp cột `loai_tien` có sẵn (kịch bản mẫu 15.09 chỉ có VND) thì bổ sung ba mã tiền theo quốc gia, giữ giá trị cũ và tên cột, chạy lại không đổi; cột không phải Chọn một thì báo lỗi; sau đó nộp báo cáo với Quốc gia Canada được nhận và Loại tiền = CAD | ADR-031 · ADR-022 | Tự động |
 
 ## 24. CRM-Optimization — ADR-024, đang kiểm chứng
 

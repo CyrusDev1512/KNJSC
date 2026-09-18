@@ -1,5 +1,15 @@
 # Backlog
 
+## 18.09.2026 (chiều) — TL-41: cột Đơn vị tiền của báo cáo nhận đủ USD/CAD/PHP
+
+Vẫn "Chưa nộp được — CAD không có trong danh sách của cột Đơn vị tiền. Chọn: VND"
+sau khi phát hành `5b7922f`, vì việc này chờ chủ dự án chọn cách. Chủ dự án giục,
+làm theo cách khuyên: `configure_erp_reports` gặp cột `loai_tien` có sẵn thì bổ
+sung ba mã tiền theo quốc gia (`MARKET_CURRENCIES`), giữ VND và tên cột, chạy lại
+không đổi, cột không phải Chọn một thì báo lỗi. Bài `reports/tests/test_configure_currency_options.py`
+(AC-22.12). **Trên VPS hết lỗi sau khi phát hành commit này và chạy `configure_erp_reports`**
+(đã nằm trong dãy lệnh phát hành). Không đụng dữ liệu cũ.
+
 ## 18.09.2026 (chiều) — Phát hành lưới như Excel lên VPS: image `knjsc-app:5b7922f-excel`
 
 Theo khuôn 17.09: backup restore thật vào DB tạm khớp số dòng; build tại VPS, `check --deploy` sạch, không

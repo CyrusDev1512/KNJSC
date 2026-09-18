@@ -1,5 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 18.09.2026 (chiều) — TL-41 cột Đơn vị tiền
+
+**Finished local:** `configure_erp_reports` bổ sung USD/CAD/PHP vào cột có sẵn; AC-22.12 đạt.
+**To do:** phát hành lên VPS rồi nộp thử báo cáo Marketing với Quốc gia Canada.
+
 ## 18.09.2026 — Lưới như Excel; Quốc gia trống → tiền trống
 
 **Finished local:** bấm chỉ chọn ô, gõ là nhập, Ctrl+A/Delete tác động lên

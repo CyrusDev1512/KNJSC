@@ -62,3 +62,12 @@ Lượt xoá Quốc gia (dòng `MAU-20260910-0004`, Canada/CAD, giá 247,20):
 - VPS thật; bảng `van_don` cũ 41 cột trên VPS (video) — cùng mã lưới và cùng policy nên
   cùng hành vi, chưa chạy trên dữ liệu đó.
 - IME tiếng Việt thật khi gõ phím đầu tiên (chỉ có sự kiện mô phỏng).
+
+## Bổ sung chiều 18.09 — TL-41
+
+`reports/management/commands/configure_erp_reports.py::configure_source`: cột `loai_tien`
+có sẵn được bổ sung `USD`, `CAD`, `PHP` (thứ tự sau các giá trị cũ), giữ tên "Đơn vị tiền".
+Bài `reports/tests/test_configure_currency_options.py` (AC-22.12): cột `['VND']` → 
+`['VND','USD','CAD','PHP']`, chạy lại không đổi, cột kiểu Văn bản → `CommandError`, nộp
+dòng Quốc gia Canada → `loai_tien = CAD`. `reports/tests` và `test_truy_vet` đạt (docs/06:
+206 tiêu chí, 193 tự động, 169 có bài). Chưa chạy trên VPS.

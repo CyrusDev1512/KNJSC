@@ -65,8 +65,19 @@ def configure_source(table, kind):
             raise CommandError(f"{table.code}: thiếu cột {sorted(missing)}; không tự suy ánh xạ")
         if kind == 'mkt':
             configure_marketing(table)
-        ColumnDef.objects.get_or_create(table=table, code='loai_tien', defaults={
-            'name':'Loại tiền', 'field_type':'choice', 'options':['USD','CAD','PHP'], 'order':91})
+        from orders.services.currency_service import MARKET_CURRENCIES
+        currencies = [str(c) for c in MARKET_CURRENCIES.values()]
+        currency, _ = ColumnDef.objects.get_or_create(table=table, code='loai_tien', defaults={
+            'name':'Loại tiền', 'field_type':'choice', 'options':currencies, 'order':91})
+        # Cột có sẵn (kịch bản mẫu 15.09 tạo "Đơn vị tiền" chỉ có VND) phải nhận đủ ba mã
+        # tiền theo quốc gia (ADR-031), vì báo cáo ngày tự điền USD/CAD/PHP; giữ giá trị cũ
+        # để dòng lịch sử vẫn hợp lệ — bổ sung, không thay thế (TL-41).
+        if currency.field_type != 'choice':
+            raise CommandError(f"{table.code}: loai_tien phải là choice")
+        missing = [c for c in currencies if c not in (currency.options or [])]
+        if missing:
+            currency.options = list(currency.options or []) + missing
+            currency.save(update_fields=['options'])
         market, _ = ColumnDef.objects.get_or_create(
             table=table, code="thi_truong", defaults={"name": "Thị trường",
             "field_type": "choice", "options": list(Market.labels), "order": 90})
