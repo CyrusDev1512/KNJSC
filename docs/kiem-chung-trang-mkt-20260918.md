@@ -26,7 +26,7 @@ Playwright. DB pytest `test_knjsc_db`; DB diễn tập `knjsc_mkt` dựng từ �
 | Sau Đợt 1 + 2 | `pytest -m "not cham"` toàn bộ | 2508 đạt, 12 bỏ qua, **2 đỏ** — hai bài còn so tên đăng nhập (`test_danh_sach_chon`, `test_delivery_daily`), đã đổi sang `employee_code` |
 | Sau Đợt 3 + 4 + 5 | `pytest -m "not cham"` toàn bộ | **2518 đạt, 12 bỏ qua, 0 đỏ** (298 s) |
 | Đợt cuối (trước rebase) | `pytest` đầy đủ gồm bài `cham` và `trinh_duyet` | **2536 đạt, 18 bỏ qua, 2 xfail, 3 lỗi** (392 s) — ba lỗi đều ở `crm/tests/test_luoi_dong_trong_va_ghim_e2e.py` ("Playwright Sync API inside the asyncio loop" khi chạy chung); chạy riêng: 2 đỏ vì `wait_for_function` quá 15 s, **đúng như trên nền `d05293d` chưa có thay đổi này** (worktree riêng) → lỗi môi trường máy ảo, không do đợt này |
-| Sau rebase lên `84ee0f7` | `pytest -m "not cham"` toàn bộ | xem dòng cuối mục này |
+| Sau rebase lên `84ee0f7` (commit `582aa66`) | `pytest -m "not cham"` toàn bộ | **2490 đạt, 9 bỏ qua, 0 đỏ** (260 s; ít bài hơn vì ADR-036 xoá 8 tệp kiểm cũ) |
 | Truy vết | `tests/test_truy_vet.py` | đạt: `docs/04` 219 tiêu chí (206 tự động, 13 thủ công), 182/206 đã có bài kiểm, 24 hoãn không đổi |
 | Migration | `makemigrations --check --dry-run` | "No changes detected" |
 
