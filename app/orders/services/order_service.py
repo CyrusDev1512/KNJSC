@@ -68,24 +68,32 @@ def find_customer(phone):
     return Customer.objects.filter(phone=phone).first()
 
 
-def customer_notice(phone):
+def customer_notice(phone, ten_dang_go=""):
     """Lời nhắc về khách hàng, để hiện ngay lúc gõ số điện thoại.
 
-    Trả về dict rỗng nếu là khách mới. Hai lời nhắc có thể cùng xuất hiện:
-    khách mua lại (FR-6.7) và khách trong danh sách đen (backlog Q25).
+    Trả về dict rỗng nếu là khách mới. Ba lời nhắc có thể cùng xuất hiện: khách mua
+    lại (FR-6.7), khách trong danh sách đen (backlog Q25), và **tên sắp bị đổi**.
 
-    **Danh sách đen chỉ cảnh báo, không chặn.** Chưa có yêu cầu nào cho phép
-    chặn, mà chặn nhầm thì mất đơn thật.
+    Lời nhắc thứ ba là lớp chắn cho việc gõ nhầm số điện thoại. Số điện thoại nhận
+    diện khách, nên gõ nhầm một chữ số là trúng khách khác; `create_order` lấy tên
+    theo lần gõ mới nhất nên sẽ lặng lẽ đổi tên người đó. Báo trước ở đây để người
+    lên đơn thấy mà sửa lại số. **Chỉ cảnh báo, không chặn** — cùng tinh thần danh
+    sách đen: chặn nhầm thì mất đơn thật.
     """
     khach = find_customer(phone)
     if khach is None:
         return {}
+    ten_dang_go = " ".join(str(ten_dang_go or "").split())
     return {
         "customer": khach,
+        "phone": khach.phone,
         "so_don_cu": khach.order_count(),
         "mua_lai": khach.order_count() > 0,
         "danh_sach_den": khach.is_blacklisted,
         "ly_do": khach.blacklist_reason,
+        "ten_dang_luu": khach.name,
+        "ten_dang_go": ten_dang_go,
+        "ten_khac": bool(ten_dang_go) and ten_dang_go != khach.name,
     }
 
 

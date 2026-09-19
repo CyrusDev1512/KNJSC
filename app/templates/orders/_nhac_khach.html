@@ -7,7 +7,7 @@ người quyết định, không phải hệ thống.
 
 Cần: nhac_khach.
 {% endcomment %}
-<div id="nhac-khach">
+<div id="nhac-khach" data-ten-khach="{{ nhac_khach.ten_dang_luu|default:"" }}">
   {% if nhac_khach.danh_sach_den %}
     <div class="bao bao-xau">
       <span class="bao-ic">!</span>
@@ -17,11 +17,22 @@ Cần: nhac_khach.
       </div>
     </div>
   {% endif %}
+  {% if nhac_khach.ten_khac %}
+    <div class="bao bao-cho">
+      <span class="bao-ic">!</span>
+      <div>
+        <b>Lưu đơn sẽ đổi tên khách của số {{ nhac_khach.phone }}</b>
+        <p>Số này đang là <b>{{ nhac_khach.ten_dang_luu }}</b>, anh/chị đang gõ
+           <b>{{ nhac_khach.ten_dang_go }}</b>. Gõ nhầm số thì sửa lại số điện thoại;
+           đúng người mà sai tên cũ thì cứ lưu, tên sẽ được sửa lại.</p>
+      </div>
+    </div>
+  {% endif %}
   {% if nhac_khach.mua_lai %}
     <div class="bao bao-tot">
       <span class="bao-ic">✓</span>
       <div>
-        <b>Khách mua lại — đã có {{ nhac_khach.so_don_cu }} đơn trước đó</b>
+        <b>Khách mua lại — số {{ nhac_khach.phone }}, đã có {{ nhac_khach.so_don_cu }} đơn trước đó</b>
         <p>{{ nhac_khach.customer.name }}{% if nhac_khach.customer.email %} · {{ nhac_khach.customer.email }}{% endif %}</p>
       </div>
     </div>

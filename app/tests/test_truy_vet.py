@@ -142,6 +142,23 @@ def test_doc_duoc_tai_lieu_tieu_chi():
     assert len(TIEU_CHI) >= 40, f"Chỉ đọc được {len(TIEU_CHI)} tiêu chí, chắc chắn thiếu"
 
 
+def test_moi_ma_tieu_chi_chi_xuat_hien_mot_lan():
+    """docs/04 — Mỗi mã tiêu chí chỉ đứng ở đúng một dòng
+
+    `_tieu_chi()` gom vào `dict` nên mã trùng lặng lẽ đè nhau và bài truy vết vẫn
+    xanh, trong khi hai việc khác hẳn nhau cùng mang một mã thì không truy ngược
+    được nữa. Đã xảy ra thật 19.09: AC-6.9 vừa là "Manager thêm sản phẩm mới" vừa
+    là "cùng số điện thoại gõ tên khác".
+    """
+    from collections import Counter
+
+    dem = Counter(ma for ma, _ in DONG_TIEU_CHI.findall(
+        TEP_TIEU_CHI.read_text(encoding="utf-8")))
+    trung = {ma: so for ma, so in dem.items() if so > 1}
+    assert not trung, "Mã tiêu chí bị dùng nhiều lần trong docs/04: " + ", ".join(
+        f"{ma} ({so} dòng)" for ma, so in sorted(trung.items()))
+
+
 def test_moi_tieu_chi_tu_dong_deu_co_bai_kiem():
     """docs/04 mục 18 điều 1 — Mọi tiêu chí Tự động đều có bài kiểm thử
 

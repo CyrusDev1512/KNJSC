@@ -99,4 +99,16 @@
       output.textContent = error.message || 'Chưa tạo được sản phẩm.';
     } finally { button.disabled = false; }
   });
+
+  // Số điện thoại đã có trong danh bạ thì điền sẵn tên khách — chỉ khi ô đang
+  // trống, không bao giờ đè chữ người lên đơn đã gõ. Gõ nhầm số là thấy tên người
+  // lạ nhảy ra ngay, biết sai trước khi lưu.
+  document.body.addEventListener('htmx:afterSwap', event => {
+    const nhac = event.target?.id === 'nhac-khach' ? event.target
+      : event.target?.querySelector?.('#nhac-khach');
+    if (!nhac) return;
+    const ten = (nhac.dataset.tenKhach || '').trim();
+    const o = document.querySelector('[name=customer_name]');
+    if (ten && o && !o.value.trim()) o.value = ten;
+  });
 })();

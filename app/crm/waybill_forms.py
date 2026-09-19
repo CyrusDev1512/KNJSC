@@ -23,11 +23,18 @@ class WaybillOrderForm(forms.Form):
     def __init__(self, *args, **kwargs):
         kwargs.pop('actor', None)
         super().__init__(*args, **kwargs)
-        self.fields["phone"].widget.attrs.update({
+        # Lời nhắc khách phải tính lại khi **một trong hai** ô đổi: gõ nhầm số thì
+        # tên khách lạ hiện ra ngay, còn sửa tên của số đã có thì hiện cảnh báo sắp
+        # đổi tên trong danh bạ. Mỗi ô gửi kèm ô kia, nếu không server chỉ thấy một nửa.
+        nhac = {
             "hx-get": reverse("kiem_khach"),
             "hx-trigger": "change, keyup changed delay:600ms",
             "hx-target": "#nhac-khach", "hx-swap": "outerHTML",
-        })
+        }
+        self.fields["phone"].widget.attrs.update(
+            {**nhac, "hx-include": "[name=customer_name]"})
+        self.fields["customer_name"].widget.attrs.update(
+            {**nhac, "hx-include": "[name=phone]"})
         for field in self.fields.values():
             field.widget.attrs["class"] = "o-nhap"
 

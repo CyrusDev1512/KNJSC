@@ -90,7 +90,7 @@ def _lop_da_khai():
 
 @pytest.mark.parametrize("tep", CAC_TEP_CSS, ids=lambda t: t.name)
 def test_khong_chu_thich_css_nao_nuot_luat(tep):
-    """AC-11.40 — Không chú thích CSS nào nuốt luật: quên `*/` ở dòng tiêu đề mục thì mọi
+    """AC-11.41 — Không chú thích CSS nào nuốt luật: quên `*/` ở dòng tiêu đề mục thì mọi
     luật tới chú thích kế tiếp bị bỏ qua, tệp vẫn hợp lệ nên không ai biết"""
     css = tep.read_text(encoding="utf-8")
     for chu_thich in CHU_THICH_CSS.findall(css):
@@ -100,8 +100,20 @@ def test_khong_chu_thich_css_nao_nuot_luat(tep):
             f"nuốt {chu_thich.count('{')} luật: {chu_thich[:70]!r}")
 
 
+def test_manh_loc_cot_khong_tro_vao_ca_hop():
+    """AC-11.42 — Ô tìm trong mảnh lọc cột phải trỏ vào ruột hộp, không trỏ vào cả `#hop-loc`
+
+    Trỏ vào cả hộp thì lần gõ tìm đầu tiên xoá luôn `#mg-column-filter-body`; lần bấm
+    lọc cột sau không còn đích để thay, htmx bỏ qua và hộp giữ nguyên mục của cột trước.
+    """
+    manh = (Path(__file__).resolve().parents[2] / "templates/crm/_loc_cot.html").read_text(encoding="utf-8")
+    assert 'hx-target="#hop-loc"' not in manh, (
+        "mảnh lọc cột trỏ hx-target vào cả hộp — lần đổi cột sau sẽ sót mục của cột trước")
+    assert 'hx-target="#mg-column-filter-body"' in manh
+
+
 def test_hop_loc_cot_co_du_kieu_dang():
-    """AC-11.40 — Hộp lọc cột có nền, khung và danh sách cuộn được — không nằm trong chú thích"""
+    """AC-11.41 — Hộp lọc cột có nền, khung và danh sách cuộn được — không nằm trong chú thích"""
     css = _bo_chu_thich((Path(__file__).resolve().parents[2] / "static/css/crm-frame.css")
                         .read_text(encoding="utf-8"))
     hop = re.search(r"\.loc-cot-hop\s*\{([^}]*)\}", css)

@@ -206,6 +206,9 @@
 .loc-cot-them[open] > summary { margin-bottom: 6px; }
 .loc-cot-khoang { display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; align-items: center; }
 .loc-cot-trong { display: flex; flex-direction: column; border-top: 1px solid var(--bt-ngan); margin-top: 6px; padding-top: 6px; }
+/* Cột nhiều giá trị: danh sách ô tích gập lại, ô gõ tìm lên đầu — AC-11.43 */
+.loc-cot-ds-gap > summary { font-size: 12px; color: var(--bt-nhat); }
+.loc-cot-ds-gap .loc-cot-ds { margin-top: 6px; }
 .loc-cot-nut { display: flex; flex-wrap: wrap; gap: 6px; }
 .loc-cot-nut-phu {
   padding: 4px 8px; border-radius: 6px; border: 1px solid var(--bt-hop-vien); background: transparent; color: var(--bt-hop-chu);

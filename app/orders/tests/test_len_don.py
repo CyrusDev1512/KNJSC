@@ -304,7 +304,7 @@ def test_nhan_dien_khach_mua_lai(bang_van_don, san_pham, nguoi_dung):
 
 
 def test_don_sau_lay_ten_vua_go_chu_khong_giu_ten_cu(bang_van_don, san_pham, nguoi_dung):
-    """AC-6.9 — Cùng số điện thoại, gõ tên khác: đơn mới ghi tên vừa gõ và danh bạ đổi theo,
+    """AC-6.10 — Cùng số điện thoại, gõ tên khác: đơn mới ghi tên vừa gõ và danh bạ đổi theo,
     có nhật ký; đơn cũ giữ nguyên tên lúc đó"""
     nv = nguoi_dung["staff_sale_1"]
     dau = _len_don(nv, san_pham, phone="0912345678", customer_name="Tên Gõ Nhầm")
@@ -321,7 +321,7 @@ def test_don_sau_lay_ten_vua_go_chu_khong_giu_ten_cu(bang_van_don, san_pham, ngu
 
 
 def test_so_dien_thoai_khac_nhau_thi_moi_khach_mot_ten(bang_van_don, san_pham, nguoi_dung):
-    """AC-6.9 — Chiều ngược lại: hai số điện thoại khác nhau thì mỗi đơn mang đúng tên của mình"""
+    """AC-6.10 — Chiều ngược lại: hai số điện thoại khác nhau thì mỗi đơn mang đúng tên của mình"""
     nv = nguoi_dung["staff_sale_1"]
     mot = _len_don(nv, san_pham, phone="0912345678", customer_name="Khách Một")
     hai = _len_don(nv, san_pham, phone="0987654321", customer_name="Khách Hai")
@@ -332,13 +332,31 @@ def test_so_dien_thoai_khac_nhau_thi_moi_khach_mot_ten(bang_van_don, san_pham, n
 
 
 def test_o_bo_trong_khong_xoa_facebook_email_da_co(bang_van_don, san_pham, nguoi_dung):
-    """AC-6.9 — Facebook và Email chỉ điền thêm khi đang trống; bỏ trống ô không xoá dữ liệu cũ"""
+    """AC-6.10 — Facebook và Email chỉ điền thêm khi đang trống; bỏ trống ô không xoá dữ liệu cũ"""
     nv = nguoi_dung["staff_sale_1"]
     _len_don(nv, san_pham, phone="0912345678", email="an@vidu.com", facebook="fb.com/an")
     _len_don(nv, san_pham, phone="0912345678", email="", facebook="")
 
     khach = Customer.objects.get(phone="0912345678")
     assert khach.email == "an@vidu.com" and khach.facebook == "fb.com/an"
+
+
+def test_loi_nhac_bao_truoc_khi_doi_ten_khach(bang_van_don, san_pham, nguoi_dung):
+    """AC-6.10 — Lời nhắc so tên đang gõ với tên đang lưu: khác thì báo sắp đổi tên và nêu
+    cả hai tên; trùng hoặc bỏ trống thì không báo; khách mới vẫn không báo gì"""
+    _len_don(nguoi_dung["staff_sale_1"], san_pham, phone="0912345678", customer_name="Nguyễn An")
+
+    khac = order_service.customer_notice("0912345678", "Trần Bình")
+    assert khac["ten_khac"] is True
+    assert khac["ten_dang_luu"] == "Nguyễn An" and khac["ten_dang_go"] == "Trần Bình"
+    assert khac["phone"] == "0912345678"
+
+    assert order_service.customer_notice("0912345678", "Nguyễn An")["ten_khac"] is False
+    assert order_service.customer_notice("0912345678", "  Nguyễn   An  ")["ten_khac"] is False, \
+        "thừa khoảng trắng không tính là tên khác"
+    assert order_service.customer_notice("0912345678", "")["ten_khac"] is False
+    assert order_service.customer_notice("0912345678")["ten_khac"] is False
+    assert order_service.customer_notice("0999999999", "Trần Bình") == {}
 
 
 def test_khach_moi_thi_khong_bao_gi(bang_van_don, san_pham, nguoi_dung):

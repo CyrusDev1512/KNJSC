@@ -59,7 +59,8 @@ def kiem_khach(request):
     trước chứ không phải gửi rồi mới biết.
     """
     assert_departments(request.user, SALES_ONLY, request)
-    nhac = order_service.customer_notice(request.GET.get("phone", ""))
+    nhac = order_service.customer_notice(
+        request.GET.get("phone", ""), request.GET.get("customer_name", ""))
     return render(request, "orders/_nhac_khach.html", {"nhac_khach": nhac})
 
 

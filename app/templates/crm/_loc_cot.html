@@ -9,12 +9,33 @@ chua, rong, co, q, giu.
 <form class="loc-cot" method="get" action="{% url 'bang_tinh_xem' bang.code %}" data-cot="{{ cot.code }}">
   {% for k, v in giu %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
   <div class="loc-cot-dau">
-    <span class="loc-cot-meta">Lọc cột <b>{{ cot.name }}</b> · {{ tuy_chon|length }} giá trị{% if tuy_chon|length >= tran %} (hiện {{ tran }} đầu){% endif %}</span>
+    <span class="loc-cot-meta">Lọc cột <b>{{ cot.name }}</b> · {{ tong }} giá trị{% if nhieu %} — quá nhiều để chọn tay{% endif %}</span>
     <button class="loc-cot-dong" type="button" aria-label="Đóng hộp lọc" onclick="document.getElementById('hop-loc').hidden = true">×</button>
   </div>
   <input class="o-nhap loc-cot-tim" type="search" id="loc-q-{{ cot.code }}" name="q" value="{{ q }}" placeholder="Tìm giá trị..." autocomplete="off" aria-label="Tìm giá trị"
-         hx-get="{% url 'bang_tinh_loc_cot' bang.code cot.code %}" hx-trigger="keyup changed delay:300ms" hx-target="#hop-loc" hx-swap="innerHTML" hx-include="closest form">
+         hx-get="{% url 'bang_tinh_loc_cot' bang.code cot.code %}" hx-trigger="keyup changed delay:300ms" hx-target="#mg-column-filter-body" hx-swap="innerHTML" hx-include="closest form">
+  {% if nhieu %}
+  <label class="nhan-nho" for="loc-chua-{{ cot.code }}">Tìm theo chữ trong ô</label>
+  <input class="o-nhap" id="loc-chua-{{ cot.code }}" name="f_{{ cot.code }}__chua" value="{{ chua }}"
+         placeholder="Một phần nội dung, ví dụ Nguyễn">
+  <details class="loc-cot-them loc-cot-ds-gap">
+    <summary>Hoặc chọn từ {{ tuy_chon|length }} giá trị hay gặp nhất</summary>
+    <div class="loc-cot-ds">
+
+    {% for gia_tri, so in tuy_chon %}
+      <label class="loc-cot-muc">
+        <input type="checkbox" name="f_{{ cot.code }}__trong" value="{{ gia_tri }}" {% if gia_tri in dang_chon %}checked{% endif %}>
+        <span class="loc-cot-gt">{% if gia_tri == '__unassigned__' %}Chưa gán{% else %}{{ gia_tri }}{% endif %}</span>
+        <small class="loc-cot-so">({{ so }})</small>
+      </label>
+    {% empty %}
+      <div class="nho mo-nhat loc-cot-rong">Không có giá trị nào.</div>
+    {% endfor %}
+    </div>
+  </details>
+  {% else %}
   <div class="loc-cot-ds">
+
     {% for gia_tri, so in tuy_chon %}
       <label class="loc-cot-muc">
         <input type="checkbox" name="f_{{ cot.code }}__trong" value="{{ gia_tri }}" {% if gia_tri in dang_chon %}checked{% endif %}>
@@ -25,6 +46,7 @@ chua, rong, co, q, giu.
       <div class="nho mo-nhat loc-cot-rong">Không có giá trị nào.</div>
     {% endfor %}
   </div>
+  {% endif %}
 
   <details class="loc-cot-them">
     <summary>Điều kiện khác</summary>
@@ -35,7 +57,7 @@ chua, rong, co, q, giu.
         <label for="loc-den-{{ cot.code }}">Đến</label>
         <input class="o-nhap" id="loc-den-{{ cot.code }}" name="f_{{ cot.code }}__nho_bang" value="{{ den }}" {% if cot.field_type == 'date' %}type="date"{% else %}inputmode="decimal"{% endif %}>
       </div>
-    {% else %}
+    {% elif not nhieu %}
       <label class="nhan-nho" for="loc-chua-{{ cot.code }}">Chứa chữ</label>
       <input class="o-nhap" id="loc-chua-{{ cot.code }}" name="f_{{ cot.code }}__chua" value="{{ chua }}" placeholder="Một phần nội dung">
     {% endif %}

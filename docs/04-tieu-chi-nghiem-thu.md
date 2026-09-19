@@ -160,7 +160,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-6.6 | Người tạo đơn xem lại được đơn cũ của mình | FR-6.5 | Tự động |
 | AC-6.7 | Đơn đã lưu không sửa được, kể cả khi gọi thẳng đường dẫn sửa | FR-6.6 | Tự động |
 | AC-6.8 | Nhập đơn với số điện thoại đã có thì hệ thống báo khách đã mua trước đó | FR-6.7 | Tự động |
-| AC-6.9 | Cùng số điện thoại nhưng gõ tên khác: đơn mới ghi **tên vừa gõ**, danh bạ đổi theo và có nhật ký; đơn cũ giữ nguyên tên lúc đó; số điện thoại khác nhau thì mỗi đơn mang tên của mình; ô Facebook/Email bỏ trống không xoá dữ liệu đã có | FR-6.7 | Tự động |
+| AC-6.10 | Cùng số điện thoại nhưng gõ tên khác: đơn mới ghi **tên vừa gõ**, danh bạ đổi theo và có nhật ký; đơn cũ giữ nguyên tên lúc đó; số điện thoại khác nhau thì mỗi đơn mang tên của mình; ô Facebook/Email bỏ trống không xoá dữ liệu đã có ; trước khi lưu, lời nhắc khách báo trước "sẽ đổi tên khách của số …" kèm cả tên cũ lẫn tên đang gõ, và mảnh nhắc mang sẵn tên để ô Tên khách tự điền khi đang trống | FR-6.7 | Tự động |
 | AC-6.9 | Manager lên đơn thêm được sản phẩm mới ngay tại ô chọn: mã tự sinh không trùng, sản phẩm hiện trong danh sách chọn và có ngay cột số lượng trên bảng vận đơn, mỗi lần thêm có nhật ký; Staff và Leader gửi thẳng bị từ chối có ghi nhật ký; tên trùng bị từ chối | FR-6.8 | Tự động |
 
 ---
@@ -283,7 +283,9 @@ vụ `bangtinh`, cổng 8021); KN ERP không còn đường sửa ô.
 | AC-11.37 | **1.000 dòng trống sẵn để nhập** (góp ý 17.09.2026): mở bảng có quyền thêm thì cuối lưới có sẵn 1.000 dòng trống, chân trang ghi số dòng trống; gõ một dòng thành bản ghi thật **không tải lại khối JSON**, dòng trống được bù đủ; tới dòng trống áp chót thì thêm 1.000 dòng nữa; tải lại trang chỉ còn dòng thật | FR-7.4 | Tự động |
 | AC-11.38 | **Cột ghim đứng đầu thứ tự nhìn thấy**: cột ghim không ở đầu thứ tự cột (người dùng đổi thứ tự, hoặc bảng vận đơn có Mã đơn/Tên khách/SĐT ở giữa) vẫn được xếp lên đầu khi vẽ — không ô trống ở vị trí gốc, không che cột đứng trước; vùng chọn, phím mũi tên và địa chỉ `A1:E2` theo đúng thứ tự trên màn hình | FR-7.4 | Tự động |
 | AC-11.39 | ~~**Bảng nhận đơn liệt kê mọi bảng vận đơn đang có** (ADR-034): `van_don` cũ, bảng đang nhận và bảng bộ phận Vận đơn có cột Mã đơn đúng cấu trúc; bảng báo cáo cùng bộ phận và bảng bộ phận khác không hiện; bảng chưa đủ điều kiện hiện kèm lý do và không chọn được (400)~~ **Bỏ theo ADR-036 (18.09.2026): một bảng vận đơn, không còn Bảng nhận đơn / Vận đơn DB** | ADR-029 · ADR-034 | Tự động |
-| AC-11.40 | Hộp lọc cột có nền, khung và danh sách giá trị cuộn được, không đè lên lưới; không chú thích CSS nào nuốt luật (quên `*/` ở dòng tiêu đề mục); lớp chỉ khai trong chú thích không tính là đã khai | FR-7.3 | Tự động |
+| AC-11.41 | Hộp lọc cột có nền, khung và danh sách giá trị cuộn được, không đè lên lưới; không chú thích CSS nào nuốt luật (quên `*/` ở dòng tiêu đề mục); lớp chỉ khai trong chú thích không tính là đã khai | FR-7.3 | Tự động |
+| AC-11.42 | Ô tìm trong mảnh lọc cột trỏ vào ruột hộp chứ không vào cả `#hop-loc`: đổi sang cột khác thì hộp hiện đúng giá trị của cột đó, không sót mục của cột trước | FR-7.3 | Tự động |
+| AC-11.43 | Hộp lọc cột chọn công cụ theo số giá trị thật: dưới ngưỡng thì giữ danh sách ô tích và ghi đúng tổng; vượt ngưỡng thì mở sẵn ô gõ chữ, danh sách ô tích gập lại và không bày hai ô cùng công dụng; `dem_gia_tri` đếm đúng cho cột tách, cột JSON và khi có ô tìm | FR-7.3 | Tự động |
 | AC-11.40 | **Gõ rồi Enter không giật**: dòng nháp thành bản ghi được nối tại chỗ trong cùng một bước (tổng dòng và chiều cao lưới không đổi từng dòng, dòng trống chỉ bù theo đợt, không thanh thông báo đẩy lưới); phản hồi lưu mang mốc `moi-nhat` để lưới không coi mốc do mình vừa lưu là người khác sửa; khi người khác sửa thật thì tải lại **mềm** — giữ ô cũ tới khi khối mới về, không hoá `…` | FR-7.4 · AC-11.26 | Tự động |
 
 ---

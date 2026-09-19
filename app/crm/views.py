@@ -19,7 +19,8 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from core.audit import record_denied
-from core.constants import GRID_FILTER_OPTIONS_MAX, GRID_INSERT_COLUMNS_MAX, Rank
+from core.constants import (GRID_FILTER_LIST_MAX, GRID_FILTER_OPTIONS_MAX,
+                            GRID_INSERT_COLUMNS_MAX, Rank)
 from core.exceptions import BusinessError, OutOfScopeError
 from core.permissions import assert_rank, has_rank, in_departments
 from core.navigation import SALES_ONLY
@@ -191,10 +192,14 @@ def bang_tinh_loc_cot(request, code, ma_cot):
     bo_loc = {k: request.GET.getlist(k) for k in request.GET.keys() if k.startswith(f"f_{ma_cot}")}
     dang_chon = set(bo_loc.get(f"f_{ma_cot}__trong", []))
     tuy_chon = grid_service.filter_options(request.user, bang, cot, q)
+    # Số giá trị **thật**, không phải số mục đã cắt: cột gần trăm nghìn giá trị thì
+    # danh sách ô tích là sai công cụ, hộp mở sẵn ô gõ tìm thay vì bày 200 mục.
+    tong = grid_service.dem_gia_tri(request.user, bang, cot, q)
     return render(request, "crm/_loc_cot.html", {
         "bang": bang, "cot": cot, "loai": loai, "q": q,
         "tuy_chon": [(gt, so) for gt, so in tuy_chon if gt != ""],
         "so_trong": next((so for gt, so in tuy_chon if gt == ""), 0),
+        "tong": tong, "nhieu": tong > GRID_FILTER_LIST_MAX,
         "tran": GRID_FILTER_OPTIONS_MAX,
         "dang_chon": dang_chon,
         "tu": request.GET.get(f"f_{ma_cot}__lon_bang", ""),

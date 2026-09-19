@@ -97,6 +97,10 @@ HEADER_SCAN_ROWS = 10                    # dò hàng tiêu đề trong bấy nhi
 GRID_PAGE_SIZE = 100                     # Bảng tính vận đơn — dòng mỗi trang
 GRID_FROZEN_COLUMNS = 4
 GRID_FILTER_OPTIONS_MAX = 200            # số giá trị tối đa trong hộp lọc một cột
+#: Trên ngưỡng này thì danh sách ô tích không còn là công cụ đúng — hộp lọc mở
+#: sẵn ô "chứa chữ" và gập danh sách lại. Số tạm, chọn theo cảm nhận sử dụng
+#: chứ chưa có số đo; đổi ở đây là đổi mọi chỗ.
+GRID_FILTER_LIST_MAX = 50
 GRID_FROZEN_COLUMNS_GENERIC = 1          # bảng thường: cố định một cột đầu — ADR-010
 GRID_FROZEN_WIDTH_DEFAULT = 160          # ... rộng bấy nhiêu px
 GRID_SPARE_ROWS = 5                      # dòng trống cuối lưới để gõ bản ghi mới

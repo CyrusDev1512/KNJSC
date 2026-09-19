@@ -1,5 +1,14 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 19.09.2026 (tối) — Lọc cột và lời nhắc khách
+
+**TL-48 (đóng):** hộp lọc cột nhiều giá trị nay mở sẵn ô gõ chữ, đầu hộp ghi số thật (AC-11.43).
+**TL-49 (đóng):** đổi cột thì sót mục của cột trước — gốc là `hx-target` trỏ vào cả `#hop-loc` (AC-11.42).
+**TL-50 (đóng):** gõ nhầm số điện thoại thì danh bạ bị đổi tên âm thầm — nay tự điền tên cũ và cảnh báo trước
+khi lưu (AC-6.10).
+**TL-51 (đóng):** AC-6.9 và AC-11.40 bị dùng hai lần; đổi số và thêm bài chặn trùng mã.
+Bộ đầy đủ: 2.527 đạt, 1 bỏ qua, 0 đỏ. [Biên bản](kiem-chung-loc-cot-va-nhac-khach-20260919.md).
+
 ## 19.09.2026 (chiều) — Hai lỗi chủ dự án báo
 
 **TL-46 (đóng):** hộp lọc cột không nền không khung, chữ đè lên lưới — `crm-frame.css` dòng 184 thiếu `*/`,

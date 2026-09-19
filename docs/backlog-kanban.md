@@ -1,5 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 19.09.2026 (tối) — Lọc cột và lời nhắc khách
+
+**Finished local:** tự điền tên khách + cảnh báo đổi tên (AC-6.10); hộp lọc cột chọn công cụ theo số giá trị (AC-11.43); sửa gốc lỗi sót mục khi đổi cột (AC-11.42); hết trùng mã AC.
+**To do:** phát hành VPS. **Far plan:** thu gọn panel "Bộ lọc"; xem lại ngưỡng 50.
+
 ## 19.09.2026 (chiều) — Hai lỗi chủ dự án báo
 
 **Finished local:** tên khách lấy theo lần gõ mới nhất (AC-6.9); hộp lọc cột lấy lại nền, khung và cuộn sau khi đóng chú thích nuốt 24 luật (TL-46, AC-11.40).

@@ -292,3 +292,28 @@ def test_erp_entry_rejects_legacy_write(client, setup, nguoi_dung, settings):
     assert response.status_code == 405
     assert not Order.objects.exists()
     assert not DataRecord.objects.filter(table=setup[1]).exists()
+
+
+def test_o_nhac_khach_hien_canh_bao_va_mang_ten_de_tu_dien(client, setup, nguoi_dung):
+    """AC-6.10 — Đường dẫn tra khách trả về mảnh có tên để tự điền; gõ tên khác thì mảnh đó
+    hiện cảnh báo nêu số điện thoại và cả hai tên"""
+    table, _, products = setup
+    order_service.create_order(
+        phone="0912345678", customer_name="Nguyễn An",
+        lines=[{"product": products[0].code, "quantity": 1, "unit_price": "10.00"}],
+        actor=nguoi_dung["staff_sale_1"])
+    client.force_login(nguoi_dung["staff_sale_1"])
+
+    kq = client.get("/van-don/len-don/kiem-khach/?phone=0912345678")
+    html = kq.content.decode()
+    assert kq.status_code == 200
+    assert 'data-ten-khach="Nguyễn An"' in html, "thiếu tên để ô Tên khách tự điền"
+    assert "sẽ đổi tên khách" not in html, "chưa gõ tên thì không cảnh báo"
+
+    kq = client.get("/van-don/len-don/kiem-khach/?phone=0912345678&customer_name=Trần Bình")
+    html = kq.content.decode()
+    assert "sẽ đổi tên khách của số 0912345678" in html
+    assert "Nguyễn An" in html and "Trần Bình" in html
+
+    kq = client.get("/van-don/len-don/kiem-khach/?phone=0999999999&customer_name=Trần Bình")
+    assert 'data-ten-khach=""' in kq.content.decode(), "khách mới thì không có gì để điền"

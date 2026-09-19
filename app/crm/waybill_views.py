@@ -59,7 +59,8 @@ def create_order(request):
             error = str(exc) if isinstance(exc, BusinessError) else "Kiểm tra lại thông tin đơn và chi tiết sản phẩm."
     context = {"order_date": timezone.localtime(), "saved_order": saved_order,
                "duoc_them_sp": has_rank(request.user, Rank.MANAGER),
-               "nhac_khach": order_service.customer_notice(form.data.get("phone", "")),
+               "nhac_khach": order_service.customer_notice(
+                   form.data.get("phone", ""), form.data.get("customer_name", "")),
                "form": form, "error": error, "success": success, **item_context(items),
                "ve_url": reverse("thu_muc"), "ve_nhan": "Về Bảng tính — thư mục"}
     from orders.services.currency_service import MARKET_CURRENCIES

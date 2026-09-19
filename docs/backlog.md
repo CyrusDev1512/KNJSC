@@ -1,5 +1,26 @@
 # Backlog
 
+## 19.09.2026 (tối) — Chắn lỗi gõ nhầm số điện thoại; hộp lọc cột chọn đúng công cụ
+
+**Chắn gõ nhầm số.** Bản sửa tên khách buổi chiều làm lỗi đổi dạng: gõ nhầm số là danh bạ bị đổi tên âm thầm.
+Chủ dự án chọn tự điền cộng cảnh báo, không chặn. Hai ô Số điện thoại và Tên khách cùng gọi lời nhắc, mỗi ô gửi
+kèm ô kia; `customer_notice` trả thêm `ten_dang_luu`, `ten_dang_go`, `ten_khac`; ô Tên khách tự điền khi đang
+trống; sửa tên thì hiện khối vàng nêu cả hai tên. AC-6.10 mở rộng.
+
+**Hộp lọc cột theo số giá trị.** Đầu hộp trước đây ghi số mục đã cắt nên cột nhiều giá trị luôn ghi "200 giá
+trị". Nay `dem_gia_tri` đếm thật (0,10–0,17 s trên 100.533 dòng, rẻ ngang lấy danh sách); trên ngưỡng
+`GRID_FILTER_LIST_MAX = 50` thì mở sẵn ô gõ chữ và gập danh sách ô tích. AC-11.43.
+
+**Sót mục khi đổi cột.** Gốc là mảnh lọc trỏ `hx-target` vào cả `#hop-loc`, lần gõ tìm đầu tiên xoá luôn ruột
+hộp nên lần sau htmx không có đích để thay. Sửa gốc, bỏ listener bù vốn che lỗi, thêm bước xoá ruột trước khi
+gọi. AC-11.42. Trước khi sửa: mở cột Quốc gia (3 giá trị) đếm ra 203 mục.
+
+**Mã tiêu chí trùng.** AC-6.9 và AC-11.40 bị dùng hai lần do chính lượt sửa buổi chiều; đổi sang AC-6.10 và
+AC-11.41, thêm bài khẳng định mã trong `docs/04` là duy nhất.
+
+Kiểm: 2.527 đạt / 0 đỏ; [biên bản](kiem-chung-loc-cot-va-nhac-khach-20260919.md).
+**Còn nợ:** phát hành VPS; thu gọn panel "Bộ lọc" (hoãn, chờ hỏi nhân viên); ngưỡng 50 chưa có số đo.
+
 ## 19.09.2026 (chiều) — Hai lỗi chủ dự án báo: tên khách đơn thứ hai, hộp lọc cột trông hỏng
 
 **Lỗi tên khách.** `create_order` dùng `get_or_create` theo số điện thoại nên `defaults` bị bỏ qua khi

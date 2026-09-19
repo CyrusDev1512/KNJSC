@@ -9,6 +9,8 @@ from pathlib import Path
 from urllib.parse import quote
 
 import pytest
+
+from core.constants import GRID_FILTER_LIST_MAX
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 
@@ -134,6 +136,54 @@ def test_loc_tung_cot_va_cong_don(client, du_lieu, nguoi_dung):
     assert any("Trạng thái vận chuyển" in nhan for nhan in chips)
     bo_ten = next(url for nhan, url in chips.items() if "Tên khách" in nhan)
     assert "f_ten_khach" not in bo_ten and "f_trang_thai_vc__trong" in bo_ten
+
+
+def test_hop_loc_cot_chon_cong_cu_theo_so_gia_tri(client, bang_vd, du_lieu, nguoi_dung, settings):
+    """AC-11.43 — Hộp lọc cột ít giá trị giữ danh sách ô tích và ghi đúng tổng; cột vượt
+    ngưỡng thì mở sẵn ô gõ tìm, danh sách ô tích gập lại; `dem_gia_tri` đếm số thật"""
+    from crm.services import grid_service
+
+    settings.GRID_ONLY_TABLES = set()
+    vd = nguoi_dung["staff_vd"]
+    client.force_login(vd)
+
+    # Cột ít giá trị: bốn trạng thái, dưới ngưỡng
+    kq = client.get("/bang-tinh/van_don/loc/trang_thai_vc/")
+    assert kq.context["tong"] == 4 and kq.context["nhieu"] is False
+    html = kq.content.decode()
+    assert "4 giá trị" in html and "quá nhiều để chọn tay" not in html
+    assert "Hoặc chọn từ" not in html, "cột ít giá trị không gập danh sách"
+
+    # Đẩy cột Tên khách vượt ngưỡng
+    for i in range(GRID_FILTER_LIST_MAX + 5):
+        _dong(bang_vd, vd, ten_khach=f"Khách {i:03d}", so_dien_thoai=f"094{i:04d}")
+    tong = grid_service.dem_gia_tri(vd, bang_vd, bang_vd.columns.get(code="ten_khach"))
+    assert tong == GRID_FILTER_LIST_MAX + 5 + 3, "ba khách của fixture cộng số vừa thêm"
+
+    kq = client.get("/bang-tinh/van_don/loc/ten_khach/")
+    assert kq.context["tong"] == tong and kq.context["nhieu"] is True
+    html = kq.content.decode()
+    assert f"{tong} giá trị" in html and "quá nhiều để chọn tay" in html
+    assert "Tìm theo chữ trong ô" in html, "cột nhiều giá trị phải mở sẵn ô gõ tìm"
+    assert "Hoặc chọn từ" in html, "danh sách ô tích phải gập lại"
+    assert html.count('name="f_ten_khach__chua"') == 1, "không bày hai ô Chứa chữ"
+
+    # Ô gõ tìm đó lọc thật
+    assert _so_dong(client, "?f_ten_khach__chua=Khách 001") == 1
+
+
+def test_dem_gia_tri_dung_cho_cot_tach_va_cot_json(client, bang_vd, du_lieu, nguoi_dung):
+    """AC-11.43 — `dem_gia_tri` đếm đúng cho cả cột tách có chỉ mục lẫn cột nằm trong JSON,
+    và thu hẹp theo ô tìm"""
+    from crm.services import grid_service
+
+    vd = nguoi_dung["staff_vd"]
+    cot = {c.code: c for c in bang_vd.columns.all()}
+    assert grid_service.dem_gia_tri(vd, bang_vd, cot["so_dien_thoai"]) == 3   # cột tách val_phone
+    assert grid_service.dem_gia_tri(vd, bang_vd, cot["trang_thai_vc"]) == 4
+    assert grid_service.dem_gia_tri(vd, bang_vd, cot["trang_thai_vc"], "hủy") == 1
+    # Cột chưa ai điền: mọi dòng trống, đúng một giá trị khác nhau
+    assert grid_service.dem_gia_tri(vd, bang_vd, cot["zipcode"]) == 1
 
 
 def test_hop_loc_cot_liet_ke_gia_tri_kem_so_dem(client, du_lieu, nguoi_dung):
