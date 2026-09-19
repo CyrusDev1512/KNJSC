@@ -72,14 +72,48 @@ truy vết: 753 đạt, 0 đỏ; toàn bộ `pytest -m "not cham"`: **2.509 đ�
 `test_query_budget` vẫn trong ngưỡng 10 truy vấn vì Tổng ngày cộng trong bộ nhớ.
 Ảnh `04-khoi-1440-sang.png`, `05-khoi-1440-toi.png`, `06-khoi-390.png`.
 
+## Đợt ba cùng ngày — tô màu chỉ tiêu (AC-22.16)
+
+Chủ dự án: "tô màu theo ngưỡng luôn đi, tô màu cả mấy ô có chỉ số quan trọng nữa".
+
+**Không bịa con số nghiệp vụ.** Mốc so sánh là chính dòng "Tổng trong bộ lọc" của bộ lọc đang
+xem, biên 10 %. Khai ở `app/reports/constants.py`: `FOCUS_METRICS` (Tỉ lệ chốt, CPO, Giá Mess,
+CPQC/Doanh số), `METRIC_DIRECTION` (chiều tốt), `THRESHOLD_BAND`. Chủ dự án chốt ngưỡng tuyệt
+đối thì thay ba hằng số này, không phải sửa mã.
+
+| Tệp | Thay đổi |
+|---|---|
+| `app/reports/constants.py` | Ba hằng số trên, có chú thích vì sao cột nào không tô |
+| `app/reports/aggregations.py` | `ReportColumn.focus`; lớp `Cell(str)` mang thêm `.lop` nên mọi chỗ so sánh chuỗi cũ không đổi; `cell_class()`; `finish_rows`/`subtotal_cells` truyền mốc, `total_cells` không |
+| `templates/reports/activity.html` | `class="o-chi-so"` ở tiêu đề cột chỉ số, `class="{{ c.lop }}"` ở cả ba loại dòng |
+| `app/static/css/solarpunk.css` | `.o-chi-so`, `.o-tot`, `.o-canh-bao` dùng token `--good-soft`/`--warn-soft` nên đúng cả sáng lẫn tối |
+
+**Hai chỗ cố ý không tô, có bài kiểm giữ:**
+- **Cột cộng** (Số Mess, Số đơn, Doanh số, Doanh thu, CPQC, Hóa đơn). Mốc là tổng của mọi dòng
+  nên dòng nào cũng nhỏ hơn, tô là vô nghĩa. Bản đầu tôi làm sai chỗ này, thấy khi viết bài kiểm.
+- **Hóa đơn/Doanh thu**: chưa rõ cao hay thấp mới là tốt, chờ chủ dự án chốt.
+
+Đo trên Chromium (`mkt.manager`, kỳ 01/09–19/09, lọc Thị trường Canada để có một loại tiền):
+
+| Dòng | CPO | Màu | Giá Mess | Màu |
+|---|---|---|---|---|
+| Tổng trong bộ lọc | 2.387.096,7742 | mốc, chỉ nền cột | 129.597,1979 | mốc |
+| 18.09 ANHPM | 3.000.000 | cảnh báo (cao hơn mốc) | 125.984,2520 | trong biên |
+| 17.09 ANHPM | 1.750.000 | đạt (thấp hơn mốc) | 100.000 | đạt |
+| 17.09 NAMVH | 1.714.285,7143 | đạt | 240.000 | cảnh báo |
+
+Ba cột chỉ số có nền ở cả tiêu đề và ô; 6 ô đạt và 6 ô cảnh báo ở cả chế độ sáng lẫn tối, màu
+nền đọc từ trình duyệt là `rgb(226,239,223)` và `rgb(255,242,206)`.
+Bộ nhanh sau đợt này: **2.521 đạt, 9 bỏ qua, 0 đỏ** (260 s).
+Ảnh `07-mau-1440-sang.png`, `08-mau-1440-toi.png`.
+
 ## Chưa làm, chưa kiểm
 
 - Chưa phát hành VPS.
-- Ảnh mẫu còn tô màu ô theo ngưỡng (vàng/xanh/đỏ). Cơ chế ngưỡng đã có ở
-  `forms_builder/styling.py` nhưng gắn với `ColumnDef`, trong khi Tỉ lệ chốt, CPO, Giá Mess của
-  Marketing là `marketing.Metric` không có chỗ lưu ngưỡng; quy tắc màu trong `main.css` lại khoá
-  sau `table.bang.bang-luoi` nên không áp cho `.report-table`. Cần chủ dự án chốt ngưỡng từng chỉ
-  tiêu và chỗ lưu trước khi làm.
+- Ngưỡng **tuyệt đối** theo từng chỉ tiêu (ảnh mẫu có vẻ dùng số cố định) chưa có: hiện so với
+  dòng Tổng của chính bộ lọc. Chủ dự án cho số thì thay `THRESHOLD_BAND` bằng bảng ngưỡng.
+- Chưa có màn hình cho chủ dự án tự sửa ngưỡng; đổi là sửa hằng số rồi phát hành.
+- Chiều tốt của Hóa đơn/Doanh thu chưa chốt nên cột đó chưa tô.
 - Các cột "(TT)" của ảnh mẫu không có dữ liệu tương ứng bên mình.
 - Dữ liệu kiểm chỉ có một ngày hai người; số hàng trên bảng thật = số cặp (ngày, người), phân
   trang 100 nhóm mỗi trang vẫn giữ.

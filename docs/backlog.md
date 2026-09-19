@@ -37,8 +37,12 @@ cộng theo ngày (cộng cả `derived`, tính lại cột tính từ tổng), 
 Tổng ngày và gắn STT đếm lại từ 1, CSS `.report-subtotal` + `--w-stt`, Excel cùng khối. Bài mới
 AC-22.15; docs/04 và bộ đếm docs/06 lên 234. Chromium: 17.09 Tổng ngày 2.370 = 2.320 + 50, cuộn ngang
 cột định danh trôi 0px.
-**Còn nợ:** chưa phát hành VPS; tô màu ô theo ngưỡng như ảnh mẫu còn chờ chủ dự án chốt ngưỡng và chỗ
-lưu (`marketing.Metric` chưa có trường ngưỡng, luật màu `main.css` khoá sau `.bang-luoi`).
+Đợt ba cùng ngày: **tô màu chỉ tiêu** (AC-22.16) — nền cột cho `FOCUS_METRICS`, ô tỉ lệ đổi màu theo
+`METRIC_DIRECTION` so với dòng Tổng của chính bộ lọc, biên `THRESHOLD_BAND` 10 %; ba hằng số khai ở
+`reports/constants.py`. Lớp `Cell(str)` mang thêm `.lop` nên không vỡ chỗ nào so sánh chuỗi. Cột cộng và
+Hóa đơn/Doanh thu cố ý không tô, có bài kiểm giữ. Màu lấy từ token nên đúng cả sáng lẫn tối.
+**Còn nợ:** chưa phát hành VPS; ngưỡng tuyệt đối theo từng chỉ tiêu và màn hình tự sửa ngưỡng chờ chủ
+dự án; chiều tốt của Hóa đơn/Doanh thu chưa chốt.
 
 ## 19.09.2026 — Ẩn cột với cả công ty (ADR-039), tắt nhóm cột sản phẩm
 

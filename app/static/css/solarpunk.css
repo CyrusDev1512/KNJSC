@@ -314,6 +314,13 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
 .report-table thead .report-identity,.report-table .report-total .report-identity {z-index:3}
 .report-table .report-total th.report-identity {font-weight:700}
 .report-table .id-nhan-su b,.report-table .id-leader b {font-weight:700;letter-spacing:.01em;margin-right:4px}
+/* Tô màu chỉ tiêu (AC-22.16): nền cột cho chỉ số quan trọng, ô đạt/cảnh báo so với dòng Tổng.
+   Dùng color-mix trên token nên tự đổi theo chế độ sáng/tối, không khai màu cứng. */
+.report-table .o-chi-so {background:color-mix(in srgb,var(--accent-soft) 45%,transparent)}
+.report-table thead th.o-chi-so {background:var(--accent-hover)}
+.report-table td.o-tot,.report-table tbody tr:hover>td.o-tot {background:var(--good-soft);color:var(--good);font-weight:600}
+.report-table td.o-canh-bao,.report-table tbody tr:hover>td.o-canh-bao {background:var(--warn-soft);color:var(--warn);font-weight:600}
+
 /* Khối theo ngày (AC-22.15): dòng Tổng ngày đứng đầu khối, đậm, không ghim trên như dòng Tổng */
 .report-table .report-subtotal>* {background:var(--accent-soft);color:var(--ink);font-weight:700;border-top:2px solid var(--rule-strong)!important}
 .report-table .report-subtotal th.report-identity {font-weight:700;white-space:nowrap}

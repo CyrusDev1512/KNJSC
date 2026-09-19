@@ -24,6 +24,9 @@ ngày và tổng phồng lên — có bài kiểm giữ. `pytest -m "not cham"`:
 `derived` rồi mới tính lại cột tính, không thì Hóa đơn/Doanh thu của ngày trống. Ba khẳng định cứng
 phải sửa theo: `test_bo_cuc_bao_cao` (cột định danh nay có STT, `colspan` 4), AC-22.10 và AC-22.14
 (lọc `kind` để bỏ dòng Tổng ngày), selector e2e thêm `:not(.report-subtotal)`. 753 đạt, 0 đỏ.
+Đợt ba (tô màu chỉ tiêu, AC-22.16): bản đầu tôi cho cả cột cộng đổi màu — sai, vì mốc là tổng mọi
+dòng nên dòng nào cũng thua; bài kiểm phát hiện ngay, đã giới hạn chỉ tô chỉ tiêu tỉ lệ. Token màu
+là `--good-soft`/`--warn-soft`, không phải `--ok` như tôi đoán lúc đầu.
 [Biên bản](kiem-chung-o-danh-tinh-20260919.md).
 
 ## 19.09.2026 — Ẩn cột với cả công ty (ADR-039)

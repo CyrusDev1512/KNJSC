@@ -11,8 +11,8 @@
 
 **Finished local:** cách xem Tổng hợp mỗi người một hàng trong ngày như ảnh mẫu, Doanh thu suy
 ra theo cặp (ngày, marketer), Excel cùng cấu trúc; đảo ADR-035 quyết định 1. Thêm **khối theo ngày**:
-dòng Tổng ngày và cột STT (AC-22.15). **To do:** phát hành VPS. **Far plan:** tô màu ô theo ngưỡng
-như ảnh mẫu — chờ chủ dự án chốt ngưỡng từng chỉ tiêu và chỗ lưu.
+dòng Tổng ngày và cột STT (AC-22.15); **tô màu chỉ tiêu** so với dòng Tổng (AC-22.16).
+**To do:** phát hành VPS. **Far plan:** ngưỡng tuyệt đối từng chỉ tiêu và màn hình tự sửa ngưỡng.
 
 ## 19.09.2026 — Ẩn cột với cả công ty (ADR-039)
 

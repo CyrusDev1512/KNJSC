@@ -35,6 +35,7 @@ from forms_builder.meaning import (
     COLUMN_OF, FieldType, Meaning, can_group, can_sum,
 )
 from forms_builder.models import ComputeOp
+from reports import constants
 
 #: Cách nhóm trên URL sang nhãn ý nghĩa. Khai một chỗ duy nhất (quy tắc 7).
 #: "thi-truong" cố ý vắng mặt — hoãn theo Q36, chờ chốt backlog N9.
@@ -67,6 +68,11 @@ class ReportColumn:
     kind: str          # "sum" | "computed" | "share"
     decimals: int = 0
     suffix: str = ""   # "%" cho phần trăm và tỉ trọng
+
+    @property
+    def focus(self):
+        """Chỉ số quan trọng — tô nền cả cột (AC-22.16)."""
+        return self.label in constants.FOCUS_METRICS
 
 
 @dataclass(frozen=True)
@@ -328,7 +334,8 @@ def subtotals(items, result):
 
 def subtotal_cells(items, result):
     """`subtotals` ở dạng chuỗi hiển thị, cùng khuôn với `finish_rows`."""
-    return {nhom: _format_cells(result, raw) for nhom, raw in subtotals(items, result).items()}
+    moc = total_values(result) if result.totals else None
+    return {nhom: _format_cells(result, raw, moc) for nhom, raw in subtotals(items, result).items()}
 
 
 def attach_totals(result, totals):
@@ -374,12 +381,45 @@ def _cell_values(result, values_by_code):
     return cells
 
 
-def _format_cells(result, raw_cells):
-    """Chuỗi hiển thị cho một dãy ô thô."""
+class Cell(str):
+    """Chuỗi hiển thị của một ô, mang thêm lớp CSS màu. Là `str` nên mọi chỗ so sánh
+    hay in ra vẫn dùng như cũ; template đọc thêm `{{ c.lop }}` (AC-22.16)."""
+
+    lop = ""
+
+    def __new__(cls, text, lop=""):
+        o = super().__new__(cls, text)
+        o.lop = lop
+        return o
+
+
+def cell_class(cot, gia_tri, moc):
+    """Lớp màu của một ô: nền cột cho chỉ số quan trọng, cộng màu đạt/cảnh báo khi lệch
+    mốc (dòng Tổng trong bộ lọc) quá `THRESHOLD_BAND` về phía tốt hoặc xấu."""
+    lop = ["o-chi-so"] if cot.focus else []
+    chieu = constants.METRIC_DIRECTION.get(cot.label)
+    # Chỉ so tỉ lệ: cột cộng lấy tổng làm mốc thì dòng nào cũng thua, không có nghĩa.
+    if cot.kind == "sum":
+        chieu = None
+    if chieu and gia_tri is not None and moc not in (None, 0):
+        bien = Decimal(constants.THRESHOLD_BAND)
+        ty_le = Decimal(gia_tri) / Decimal(moc)
+        tot = ty_le >= 1 + bien if chieu == "cao" else ty_le <= 1 - bien
+        kem = ty_le <= 1 - bien if chieu == "cao" else ty_le >= 1 + bien
+        if tot:
+            lop.append("o-tot")
+        elif kem:
+            lop.append("o-canh-bao")
+    return " ".join(lop)
+
+
+def _format_cells(result, raw_cells, moc=None):
+    """Chuỗi hiển thị cho một dãy ô thô. `moc` là dãy ô của dòng Tổng để so màu."""
     out = []
-    for cot, gia_tri in zip(result.columns, raw_cells):
+    for i, (cot, gia_tri) in enumerate(zip(result.columns, raw_cells)):
         text = format_number(gia_tri, cot.decimals)
-        out.append(text + cot.suffix if text != "—" else text)
+        hien = text + cot.suffix if text != "—" else text
+        out.append(Cell(hien, cell_class(cot, gia_tri, moc[i] if moc else None)))
     return out
 
 
@@ -420,15 +460,16 @@ def finish_rows(page_items, result):
     """Hoàn thiện các dòng của MỘT trang thành chuỗi hiển thị. Chạy sau khi
     cắt trang để không tính thừa."""
     rows = []
+    moc = total_values(result) if result.totals else None   # mốc so màu (AC-22.16)
     for item in page_items:
         nhom, raw = row_values(item, result)
         rows.append({
             "nhom": format_group(nhom, result),
-            "cells": _format_cells(result, raw),
+            "cells": _format_cells(result, raw, moc),
         })
     return rows
 
 
 def total_cells(result):
-    """Dãy ô hiển thị cho dòng tổng cộng."""
+    """Dãy ô hiển thị cho dòng tổng cộng. Chính nó là mốc nên không tô màu đạt/kém."""
     return _format_cells(result, total_values(result))

@@ -19,3 +19,26 @@ LEGACY_ROW_FORMULA = "hoa_don_doanh_thu"
 
 #: Giá trị lọc "chưa có" cho Thị trường / Tệp khách hàng (`__missing__` trên URL)
 MISSING_FILTER = "__missing__"
+
+# ── Tô màu Báo cáo tổng hợp (AC-22.16, chủ dự án 19.09 theo ảnh mẫu) ──────────
+#
+# Nhận diện theo **nhãn cột** vì mã chỉ tiêu khác nhau giữa hai đường dựng cột
+# (`activity_service.project_metrics` dùng khoá FORMULAS, `marketing.adapt` dùng
+# `__mkt_metric_*`), còn nhãn thì cố định.
+
+#: Chỉ số quan trọng — tô nền cả cột để mắt bắt ngay, như ảnh mẫu.
+FOCUS_METRICS = ("Tỉ lệ chốt", "CPO", "Giá Mess", "CPQC/Doanh số")
+
+#: Chiều tốt của từng chỉ tiêu: "cao" = càng cao càng tốt, "thap" = càng thấp càng tốt.
+#: **Chỉ chỉ tiêu tỉ lệ.** Cột cộng (Số Mess, Số đơn, Doanh số, Doanh thu, CPQC, Hóa đơn)
+#: cố ý không có mặt: mốc là tổng của mọi dòng nên dòng nào cũng nhỏ hơn, tô màu là vô nghĩa.
+#: Hóa đơn/Doanh thu cũng để trống vì chưa rõ cao hay thấp mới là tốt — chờ chủ dự án chốt.
+METRIC_DIRECTION = {
+    "Tỉ lệ chốt": "cao", "AOV": "cao",
+    "CPO": "thap", "Giá Mess": "thap", "CPQC/Doanh số": "thap",
+}
+
+#: Mốc so sánh là dòng "Tổng trong bộ lọc" của chính bộ lọc đang xem — không có con số
+#: tuyệt đối nào bịa ra. Hơn mốc 10 % về phía tốt là đạt, kém mốc 10 % là cảnh báo;
+#: ở giữa để trơn. Chủ dự án chốt ngưỡng tuyệt đối thì thay chỗ này.
+THRESHOLD_BAND = "0.10"

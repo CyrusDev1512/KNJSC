@@ -375,6 +375,48 @@ def test_day_blocks_have_day_subtotal_and_stt(client, bang_mkt, mkt_source, van_
     assert [d[1] for d in sheet[4:-1]]==[None,1,None,1,2]   # openpyxl đọc ô trống là None
 
 
+def test_metric_colours_against_filter_total(client, bang_mkt, mkt_source, van_don, nguoi_dung):
+    """AC-22.16 — Tô màu chỉ tiêu: cột chỉ số quan trọng có nền riêng; ô tỉ lệ so với dòng Tổng trong bộ
+    lọc theo chiều tốt của từng chỉ tiêu (CPO, Giá Mess thấp là đạt), lệch trong biên thì để trơn; cột
+    cộng và chỉ tiêu chưa rõ chiều thì không tô; dòng Tổng là mốc nên không tô đạt/kém"""
+    from reports import aggregations
+    from reports.constants import FOCUS_METRICS, METRIC_DIRECTION
+    from reports.tests.test_mkt_derived_revenue import _bao_cao
+    A, B = van_don["A"], van_don["B"]
+    # A: 20 mess, 8 đơn, CPQC 100 → CPO 12,5 · Giá Mess 5 ; B: 20 mess, 2 đơn, CPQC 100 → CPO 50 · Giá Mess 5
+    # Tổng: 40 mess, 10 đơn, CPQC 200 → CPO 20 · Giá Mess 5
+    _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=20, don=8, cpqc="100")
+    _bao_cao(bang_mkt, B, "2026-08-01", "SP2", mess=20, don=2, cpqc="100")
+    client.force_login(nguoi_dung["manager_mkt"])
+    query={"nguon":bang_mkt.code,"tu":"2026-08-01","den":"2026-08-01"}
+    r=client.get("/bao-cao/tong-hop/",query)
+    cot=[c.label for c in r.context["result"].columns]
+    dong={row["person"]: row for row in r.context["rows"] if row["kind"]=="row"}
+    def lop(row, nhan):
+        return row["cells"][cot.index(nhan)].lop
+    ma_a, ma_b = employee_code(A), employee_code(B)
+    # CPO càng THẤP càng tốt: A 12,5 dưới mốc 20 là đạt; B 50 là cảnh báo. Cả hai có nền cột chỉ số.
+    assert "o-chi-so" in lop(dong[ma_a],"CPO") and "o-tot" in lop(dong[ma_a],"CPO")
+    assert "o-canh-bao" in lop(dong[ma_b],"CPO") and "o-tot" not in lop(dong[ma_b],"CPO")
+    # Giá Mess của cả hai bằng đúng mốc → trong biên, chỉ có nền cột, không màu đạt/kém
+    assert lop(dong[ma_a],"Giá Mess")=="o-chi-so" and lop(dong[ma_b],"Giá Mess")=="o-chi-so"
+    # Cột cộng không tô: mốc là tổng mọi dòng nên dòng nào cũng nhỏ hơn
+    assert "Số đơn" not in METRIC_DIRECTION and "Số Mess" not in METRIC_DIRECTION
+    assert lop(dong[ma_a],"Số đơn")=="" and lop(dong[ma_a],"Số Mess")==""
+    # Chỉ tiêu chưa rõ chiều cũng không tô
+    assert "Hóa đơn/Doanh thu" not in METRIC_DIRECTION and lop(dong[ma_a],"Hóa đơn/Doanh thu")==""
+    # Dòng Tổng là mốc: không màu đạt/kém, vẫn giữ nền cột chỉ số
+    tong=aggregations.total_cells(r.context["result"])
+    assert all("o-tot" not in c.lop and "o-canh-bao" not in c.lop for c in tong)
+    assert "o-chi-so" in tong[cot.index("CPO")].lop
+    # Ô vẫn là chuỗi hiển thị như cũ — mọi chỗ so sánh không đổi
+    assert dong[ma_a]["cells"][cot.index("Số Mess")]=="20"
+    html=r.content.decode()
+    assert '<th scope="col" class="o-chi-so">CPO</th>' in html   # nền cột ở tiêu đề
+    assert 'class="o-chi-so o-tot"' in html and 'class="o-chi-so o-canh-bao"' in html
+    assert {m for m in FOCUS_METRICS if m != "Tỉ lệ chốt"} <= set(cot)   # MKT không có Tỉ lệ chốt
+
+
 def test_day_view_pages_by_hundred(client, marketing_scope, nguoi_dung):
     """AC-22.11 — Báo cáo hoạt động phân trang mặc định 100 nhóm mỗi trang; dòng tổng trong bộ lọc vẫn tính trên
     toàn bộ kết quả, không theo trang"""
