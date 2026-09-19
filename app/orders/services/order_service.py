@@ -141,10 +141,35 @@ def create_order(*, phone, customer_name, lines, actor, request=None,
 
     # Mọi đường tạo đơn cùng thứ tự khóa, trước cả lần ghi khách hàng đầu.
     code = _sinh_ma_don()
+    ten_khach = customer_name.strip()
     khach, moi = Customer.objects.get_or_create(
         phone=phone.strip(),
-        defaults={"name": customer_name.strip(), "facebook": facebook, "email": email},
+        defaults={"name": ten_khach, "facebook": facebook, "email": email},
     )
+    if not moi:
+        # Số điện thoại nhận diện khách (FR-6.7), nhưng **tên lấy theo lần gõ mới
+        # nhất**: trước đây `get_or_create` lặng lẽ giữ tên cũ, nên đơn thứ hai trở
+        # đi của cùng một số luôn mang tên của đơn đầu, kể cả khi tên đầu gõ sai.
+        # Đơn cũ không bị sửa ngược: ô Tên khách của chúng là chữ đã ghi lúc đó.
+        truong_doi, mo_ta = [], []
+        if khach.name != ten_khach:
+            mo_ta.append(f"tên {khach.name} → {ten_khach}")
+            khach.name = ten_khach
+            truong_doi.append("name")
+        # Facebook và Email chỉ điền thêm khi đang trống — ô bỏ trống không xoá dữ liệu cũ.
+        for truong, gia_tri in (("facebook", facebook), ("email", email)):
+            gia_tri = (gia_tri or "").strip()
+            if gia_tri and not getattr(khach, truong):
+                setattr(khach, truong, gia_tri)
+                truong_doi.append(truong)
+                mo_ta.append(f"{truong} {gia_tri}")
+        if truong_doi:
+            khach.save(update_fields=truong_doi + ["updated_at"])
+            record(
+                AuditAction.UPDATE, actor=actor, target=khach,
+                detail=f"Cập nhật khách {khach.phone} khi lên đơn: " + " · ".join(mo_ta),
+                request=request,
+            )
 
     if seller is not None:
         from django.contrib.auth import get_user_model

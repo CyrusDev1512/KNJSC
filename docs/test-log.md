@@ -1,5 +1,16 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 19.09.2026 (chiều) — Hai lỗi chủ dự án báo
+
+**TL-46 (đóng):** hộp lọc cột không nền không khung, chữ đè lên lưới — `crm-frame.css` dòng 184 thiếu `*/`,
+nuốt 24 luật `.loc-cot-*` từ 14.09. Bộ kiểm không bắt được vì quét cả phần trong chú thích; đã sửa cách quét
+và thêm AC-11.40. Thử đưa lỗi trở lại: 4 bài chuyển đỏ đúng, khôi phục thì xanh.
+**TL-47 (đóng):** đơn thứ hai của cùng số điện thoại lấy tên khách của đơn đầu — AC-6.9.
+**TL-48 (mở, chờ chốt):** hộp lọc cột trên 100.522 dòng mở ~5 s, chỉ hiện 200 giá trị đầu.
+Bộ đầy đủ `-m "not trinh_duyet and not cham"`: 2.428 đạt, 1 bỏ qua, 0 đỏ. [Biên bản](kiem-chung-hai-loi-20260919.md).
+
+## 19.09.2026 — Ô danh tính Báo cáo tổng hợp
+
 ## 19.09.2026 — Báo cáo tổng hợp: mỗi người một hàng
 
 **TL-45 (chủ dự án báo bằng ảnh mẫu, đã sửa cùng ngày):** cách xem Tổng hợp gộp mọi người

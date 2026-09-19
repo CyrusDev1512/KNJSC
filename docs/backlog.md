@@ -1,5 +1,24 @@
 # Backlog
 
+## 19.09.2026 (chiều) — Hai lỗi chủ dự án báo: tên khách đơn thứ hai, hộp lọc cột trông hỏng
+
+**Lỗi tên khách.** `create_order` dùng `get_or_create` theo số điện thoại nên `defaults` bị bỏ qua khi
+số đã có; ô Tên khách lấy từ `order.customer.name`, tức tên của lần lên đơn đầu. Chủ dự án chọn: đơn ghi
+tên vừa gõ, danh bạ đổi theo, có nhật ký; đơn cũ giữ nguyên; Facebook/Email chỉ điền thêm khi trống.
+Bài AC-6.9 (ba bài) ở `orders/tests/test_len_don.py`.
+
+**TL-46 hộp lọc cột.** `crm-frame.css` dòng 184 mở chú thích tiêu đề mục mà thiếu `*/`, nuốt 24 luật
+`.loc-cot-*` từ commit `9bac840` (14.09). Hộp lọc hiện ra không nền, không khung, không cuộn, chữ đè
+lên lưới. Sửa bằng cách đóng chú thích; 24 luật sống lại đều thuộc nhóm đó, không đụng chỗ khác.
+`core/tests/test_giao_dien.py` từng bỏ sót vì quét cả phần trong chú thích — đã sửa, thêm AC-11.40.
+
+Kiểm: 2.428 đạt / 0 đỏ; [biên bản](kiem-chung-hai-loi-20260919.md).
+**Còn nợ:** phát hành VPS (cả hai lỗi còn trên domain thật). Hộp lọc cột trên bảng 100.522 dòng mở mất
+~5 giây và chỉ hiện 200 giá trị đầu (`GRID_FILTER_OPTIONS_MAX`) — với cột nhiều giá trị như Tên khách thì
+danh sách gần như vô dụng, chờ chủ dự án chốt có đổi cách lọc không.
+
+## 19.09.2026 — Ô danh tính Báo cáo tổng hợp: mỗi người một dòng (AC-22.14, TL-45)
+
 ## 19.09.2026 — Báo cáo tổng hợp nhóm theo ngày × nhân sự: mỗi người một HÀNG (AC-22.14, TL-45)
 
 Chủ dự án gửi ảnh một hệ thống khác và yêu cầu màn hình giống ảnh: trong một ngày mỗi

@@ -63,13 +63,52 @@ def _lop_trong_tep(duong_dan):
     return lop
 
 
+CHU_THICH_CSS = re.compile(r"/\*.*?\*/", re.DOTALL)
+
+
+def _bo_chu_thich(css):
+    """Bỏ phần trong `/* … */`.
+
+    Lớp chỉ xuất hiện trong chú thích thì **không** tính là đã khai: trình duyệt
+    không đọc nó. Một chú thích quên đóng `*/` nuốt luôn mọi luật phía sau mà
+    tệp vẫn hợp lệ — đã xảy ra thật với hộp lọc cột (TL-46), 24 luật bị nuốt,
+    hộp hiện ra không nền không khung, chữ đè lên lưới.
+    """
+    con_lai = CHU_THICH_CSS.sub(" ", css)
+    return con_lai.split("/*")[0] if "/*" in con_lai else con_lai
+
+
 def _lop_da_khai():
-    """Mọi tên lớp đã khai trong các tệp kiểu dáng dùng chung."""
+    """Mọi tên lớp đã khai trong các tệp kiểu dáng dùng chung, ngoài chú thích."""
     da_khai = set()
     for tep in [*CAC_TEP_CSS, Path(__file__).resolve().parents[2] / "static/css/master-grid.css",
                 Path(__file__).resolve().parents[2] / 'static/css/payments.css']:
-        da_khai |= set(re.findall(r"\.([a-zA-Z][\w-]*)", tep.read_text(encoding="utf-8")))
+        da_khai |= set(re.findall(r"\.([a-zA-Z][\w-]*)",
+                                  _bo_chu_thich(tep.read_text(encoding="utf-8"))))
     return da_khai
+
+
+@pytest.mark.parametrize("tep", CAC_TEP_CSS, ids=lambda t: t.name)
+def test_khong_chu_thich_css_nao_nuot_luat(tep):
+    """AC-11.40 — Không chú thích CSS nào nuốt luật: quên `*/` ở dòng tiêu đề mục thì mọi
+    luật tới chú thích kế tiếp bị bỏ qua, tệp vẫn hợp lệ nên không ai biết"""
+    css = tep.read_text(encoding="utf-8")
+    for chu_thich in CHU_THICH_CSS.findall(css):
+        assert "{" not in chu_thich or "}" not in chu_thich, (
+            f"{tep.name}: chú thích chứa cả `{{` lẫn `}}` — gần như chắc chắn quên đóng `*/` "
+            f"ở dòng {css[:css.index(chu_thich)].count(chr(10)) + 1}, "
+            f"nuốt {chu_thich.count('{')} luật: {chu_thich[:70]!r}")
+
+
+def test_hop_loc_cot_co_du_kieu_dang():
+    """AC-11.40 — Hộp lọc cột có nền, khung và danh sách cuộn được — không nằm trong chú thích"""
+    css = _bo_chu_thich((Path(__file__).resolve().parents[2] / "static/css/crm-frame.css")
+                        .read_text(encoding="utf-8"))
+    hop = re.search(r"\.loc-cot-hop\s*\{([^}]*)\}", css)
+    assert hop, "mất kiểu dáng của hộp lọc cột"
+    assert "background" in hop.group(1) and "border" in hop.group(1)
+    danh_sach = re.search(r"\.loc-cot-ds\s*\{([^}]*)\}", css)
+    assert danh_sach and "overflow" in danh_sach.group(1), "danh sách giá trị phải cuộn được"
 
 
 def _lop_khai_trong_template(duong_dan):

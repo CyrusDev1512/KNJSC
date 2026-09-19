@@ -181,7 +181,7 @@
 .bt-cay-sua[open] > summary { background: var(--bt-tb-on-nen); color: var(--bt-tb-on-chu); }
 .bt-cay-sua > form { margin-top: 4px; padding: 8px; background: var(--bt-hop-hover); border-radius: 4px; }
 
-/* ── 3. Lưới: luôn màu kem, chữ 13px, ô 25px, viền mọi ô ─────────────────
+/* ── 3. Lưới và hộp lọc cột: luôn màu kem, chữ 13px, ô 25px, viền mọi ô ── */
 .loc-cot-hop {
   position: absolute; z-index: 30; padding: 10px;
   background: var(--bt-hop-nen); color: var(--bt-hop-chu);

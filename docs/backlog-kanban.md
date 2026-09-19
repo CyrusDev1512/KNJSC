@@ -1,5 +1,12 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 19.09.2026 (chiều) — Hai lỗi chủ dự án báo
+
+**Finished local:** tên khách lấy theo lần gõ mới nhất (AC-6.9); hộp lọc cột lấy lại nền, khung và cuộn sau khi đóng chú thích nuốt 24 luật (TL-46, AC-11.40).
+**To do:** phát hành VPS. **Far plan:** TL-48 cách lọc cột có quá nhiều giá trị.
+
+## 19.09.2026 — Ô danh tính mỗi người một dòng (AC-22.14, TL-45)
+
 ## 19.09.2026 — Tổng hợp nhóm theo ngày × nhân sự, mỗi người một hàng (AC-22.14, TL-45)
 
 **Finished local:** cách xem Tổng hợp mỗi người một hàng trong ngày như ảnh mẫu, Doanh thu suy

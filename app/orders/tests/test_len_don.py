@@ -303,6 +303,44 @@ def test_nhan_dien_khach_mua_lai(bang_van_don, san_pham, nguoi_dung):
     assert nhac["so_don_cu"] == 1
 
 
+def test_don_sau_lay_ten_vua_go_chu_khong_giu_ten_cu(bang_van_don, san_pham, nguoi_dung):
+    """AC-6.9 — Cùng số điện thoại, gõ tên khác: đơn mới ghi tên vừa gõ và danh bạ đổi theo,
+    có nhật ký; đơn cũ giữ nguyên tên lúc đó"""
+    nv = nguoi_dung["staff_sale_1"]
+    dau = _len_don(nv, san_pham, phone="0912345678", customer_name="Tên Gõ Nhầm")
+    assert dau.record.data["ten_khach"] == "Tên Gõ Nhầm"
+
+    sau = _len_don(nv, san_pham, phone="0912345678", customer_name="Tên Đúng")
+
+    assert sau.record.data["ten_khach"] == "Tên Đúng", "đơn thứ hai từng lấy nhầm tên đơn đầu"
+    assert Customer.objects.get(phone="0912345678").name == "Tên Đúng"
+    assert DataRecord.objects.get(pk=dau.record.pk).data["ten_khach"] == "Tên Gõ Nhầm", \
+        "đơn cũ không bị sửa ngược"
+    assert AuditLog.objects.filter(
+        action=AuditAction.UPDATE, detail__contains="Tên Gõ Nhầm → Tên Đúng").exists()
+
+
+def test_so_dien_thoai_khac_nhau_thi_moi_khach_mot_ten(bang_van_don, san_pham, nguoi_dung):
+    """AC-6.9 — Chiều ngược lại: hai số điện thoại khác nhau thì mỗi đơn mang đúng tên của mình"""
+    nv = nguoi_dung["staff_sale_1"]
+    mot = _len_don(nv, san_pham, phone="0912345678", customer_name="Khách Một")
+    hai = _len_don(nv, san_pham, phone="0987654321", customer_name="Khách Hai")
+
+    assert mot.record.data["ten_khach"] == "Khách Một"
+    assert hai.record.data["ten_khach"] == "Khách Hai"
+    assert Customer.objects.count() == 2
+
+
+def test_o_bo_trong_khong_xoa_facebook_email_da_co(bang_van_don, san_pham, nguoi_dung):
+    """AC-6.9 — Facebook và Email chỉ điền thêm khi đang trống; bỏ trống ô không xoá dữ liệu cũ"""
+    nv = nguoi_dung["staff_sale_1"]
+    _len_don(nv, san_pham, phone="0912345678", email="an@vidu.com", facebook="fb.com/an")
+    _len_don(nv, san_pham, phone="0912345678", email="", facebook="")
+
+    khach = Customer.objects.get(phone="0912345678")
+    assert khach.email == "an@vidu.com" and khach.facebook == "fb.com/an"
+
+
 def test_khach_moi_thi_khong_bao_gi(bang_van_don, san_pham, nguoi_dung):
     """AC-6.8 — Chiều ngược lại: số điện thoại mới thì không báo gì"""
     _len_don(nguoi_dung["staff_sale_1"], san_pham, phone="0912345678")
