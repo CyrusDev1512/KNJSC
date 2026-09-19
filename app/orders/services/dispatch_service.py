@@ -150,12 +150,16 @@ def sync_product_columns(bang=None):
     theo_ma = {c.code: c for c in bang.columns.all()}
     thu_tu = len(WAYBILL_COLUMNS) + 100
     them = 0
+    # Nhóm cột sản phẩm đang bị ẩn với cả công ty (ADR-039) thì sản phẩm mới
+    # cũng vào ở trạng thái ẩn — thêm hàng không làm cả nhóm hiện trở lại.
+    cu = [c for c in theo_ma.values() if is_product_column(c.code)]
+    an_ca_nhom = bool(cu) and all(c.is_hidden for c in cu)
     for i, (ten, ma, _) in enumerate(product_columns()):
         cot = theo_ma.get(ma)
         if cot is None:
             ColumnDef.objects.create(
                 table=bang, name=ten, code=ma, field_type=FieldType.INTEGER,
-                order=thu_tu + i,
+                order=thu_tu + i, is_hidden=an_ca_nhom,
             )
             them += 1
         elif cot.name != ten:

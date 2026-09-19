@@ -335,6 +335,25 @@ def bang_tinh_moi_nhat(request, code):
 
 # ── Thư mục chứa bảng — ADR-010 ───────────────────────────────────
 
+@login_required
+@require_POST
+def bang_tinh_an_cot(request, code):
+    """Ẩn hoặc hiện cột với cả công ty — ADR-039, quản lý bảng hoặc Admin.
+
+    Khác nút "Cột" của lưới vốn chỉ nhớ trong trình duyệt từng người. Không
+    xoá gì: hiện lại là thấy đủ dữ liệu cũ. Trả JSON mã cột đã đổi; lưới tải lại.
+    """
+    bang = _bang(request, code)
+    _kiem_quan_ly_cot(request, bang)
+    ma = [m for m in dict.fromkeys(request.POST.getlist("cot")) if m]
+    an = request.POST.get("an") != "0"
+    try:
+        da_doi = table_service.set_columns_hidden(bang, ma, an, actor=request.user, request=request)
+    except BusinessError as loi:
+        return _bao_loi(request, str(loi))
+    return JsonResponse({"da_doi": da_doi, "an": an})
+
+
 def _kiem_quan_ly_thu_muc(request, department):
     """Quản lý (Leader, Manager) của bộ phận đó hoặc Admin — ADR-015; không thì 403 có ghi nhật ký."""
     assert_rank(request.user, Rank.LEADER, request)

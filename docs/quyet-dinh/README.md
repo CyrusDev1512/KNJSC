@@ -186,3 +186,4 @@ xong nằm ở `../backlog.md` mục 0.
 - [ADR-031 — Tiền theo quốc gia và PTTT](031-tien-theo-quoc-gia-va-pttt.md): US/USD, CA/CAD, PH/PHP; xác nhận đổi tiền, chỉ chọn Zelle/PayPal.
 
 - [ADR-032 — Ngày hệ thống và sửa báo cáo](032-ngay-he-thong-va-sua-bao-cao.md): DD/MM/YYYY, quyền sửa có lịch sử, mẫu Marketing và nguồn tiền.
+- [ADR-039 — Ẩn cột với cả công ty](039-an-cot-voi-ca-cong-ty.md): quản lý bảng ẩn cột trong hộp "Cột"; cột biến khỏi lưới, tệp Excel và Bảng dữ liệu ERP, dữ liệu vẫn giữ.

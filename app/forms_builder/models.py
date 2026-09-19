@@ -225,6 +225,14 @@ class ColumnDef(TimestampedModel):
         "Cột khoá", default=False,
         help_text="Giá trị nhận diện dòng; bấm ô này trên Bảng tính để lọc nhanh. Mỗi bảng một cột.",
     )
+    # Ẩn cột với cả công ty — ADR-039. Khác với nút "Cột" trên lưới (chỉ nhớ
+    # trong trình duyệt của từng người): cột ẩn biến mất khỏi lưới, tệp Excel
+    # xuất ra và Bảng dữ liệu bên ERP với mọi người. Không xoá gì: giá trị các
+    # ô vẫn nằm nguyên trong `DataRecord.data`, hiện lại là thấy đủ (BR-4).
+    is_hidden = models.BooleanField(
+        "Ẩn với mọi người", default=False, db_index=True,
+        help_text="Cột vẫn giữ nguyên dữ liệu nhưng không hiện ở đâu. Quản lý bảng bật tắt trong hộp Cột.",
+    )
 
     # ── Danh sách chọn — FR-8.7, Q58 ──
     # Chỉ cho kiểu Chọn một. Cột mang nhãn Sản phẩm hay Người bán lấy danh

@@ -171,6 +171,48 @@ def remove_column(column, *, actor=None, request=None):
     return bang
 
 
+def visible_columns(columns):
+    """Bỏ các cột đang ẩn với cả công ty — ADR-039.
+
+    Một chỗ duy nhất cho cả ba màn hình (lưới KN CRM, tệp Excel xuất ra, Bảng
+    dữ liệu bên KN ERP) để không nơi hiện nơi không.
+    """
+    return [c for c in columns if not c.is_hidden]
+
+
+@transaction.atomic
+@writing
+def set_columns_hidden(table, codes, hidden, *, actor=None, request=None):
+    """Ẩn hoặc hiện cột với cả công ty — ADR-039. Trả danh sách mã đã đổi.
+
+    Không xoá gì: giá trị các ô vẫn nằm trong `DataRecord.data`, hiện lại là
+    thấy đủ. Ẩn khác hẳn bỏ cột, nên không gọi `assert_column_change` của
+    profile — bảng vận đơn vẫn ẩn được cột thừa mà không phá cấu trúc chuẩn.
+    """
+    cac = list(table.columns.filter(code__in=list(dict.fromkeys(codes))))
+    if not cac:
+        raise BusinessError("Chưa chọn cột nào.")
+    if hidden:
+        for c in cac:
+            if c.is_key:
+                raise BusinessError(f'"{c.name}" là cột khoá, ẩn đi thì không nhận ra dòng nữa.')
+            if c.required:
+                raise BusinessError(f'"{c.name}" là cột bắt buộc nhập, ẩn đi thì không thêm dòng mới được.')
+        con_lai = table.columns.exclude(is_hidden=True).exclude(pk__in=[c.pk for c in cac]).count()
+        if not con_lai:
+            raise BusinessError("Phải chừa lại ít nhất một cột hiện.")
+    da_doi = [c.code for c in cac if c.is_hidden != bool(hidden)]
+    if not da_doi:
+        return []
+    table.columns.filter(code__in=da_doi).update(is_hidden=bool(hidden))
+    record(
+        AuditAction.UPDATE, actor=actor, target=table,
+        detail=("Ẩn" if hidden else "Hiện lại") + f" cột {', '.join(da_doi)} của bảng {table.code}",
+        request=request,
+    )
+    return da_doi
+
+
 @transaction.atomic
 @writing
 def insert_columns(table, *, count=1, anchor=None, after=True, actor=None, request=None):

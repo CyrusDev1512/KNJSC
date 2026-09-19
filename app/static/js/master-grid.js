@@ -812,11 +812,32 @@
   });
   $('mg-undo').onclick=safe(()=>undo());$('mg-redo').onclick=safe(()=>undo(true));
   $('mg-filters-button').onclick=()=>{if(dirty())return;$('mg-filters').hidden=!$('mg-filters').hidden;$('mg-filters-button').setAttribute('aria-expanded',!$('mg-filters').hidden);repaint();};
+  // Ẩn cột với cả công ty — ADR-039. Nút chỉ hiện với quản lý bảng; ô tích
+  // bên trái vẫn là "ẩn cho riêng máy mình" như cũ (localStorage).
+  async function datAnCot(codes,an){
+    const body=new URLSearchParams();for(const ma of codes)body.append('cot',ma);body.append('an',an?'1':'0');
+    const kq=await window.fetch(config.hideColumnsUrl,{method:'POST',headers:{'X-CSRFToken':csrf},body});
+    if(!kq.ok){const t=await kq.json().catch(()=>({}));message(t.loi||'Không đổi được cột.');return;}
+    location.reload();
+  }
   $('mg-columns-button').onclick=()=>{
     if(dirty())return;
     const dialog=$('mg-columns'),body=$('mg-column-list');body.replaceChildren();
+    if(config.canHideColumns&&(config.productColumns||[]).length){
+      const line=element('div','mg-column-option mg-column-group'),button=element('button','nut','Ẩn cột số lượng theo sản phẩm với cả công ty');
+      button.onclick=()=>datAnCot(config.productColumns,true);
+      line.append(element('label','',`${config.productColumns.length} cột sản phẩm`),button);body.append(line);
+    }
     for(const c of state.columns){const line=element('div','mg-column-option'),label=element('label','',c.name),check=element('input','');check.type='checkbox';check.checked=!(preferences.hidden||[]).includes(c.code);check.onchange=()=>{preferences.hidden=(preferences.hidden||[]).filter(code=>code!==c.code);if(!check.checked)preferences.hidden.push(c.code);persist();state.selection=state.current=null;repaint();};label.prepend(check);line.append(label);
-      for(const [text,dir] of [['↑',-1],['↓',1]]){const button=element('button','nut',text);button.setAttribute('aria-label',text+' '+c.name);button.onclick=()=>{const order=(preferences.order||state.columns.map(c=>c.code)).slice(),i=order.indexOf(c.code),j=Math.max(0,Math.min(order.length-1,i+dir));[order[i],order[j]]=[order[j],order[i]];preferences.order=order;persist();state.selection=state.current=null;repaint();};line.append(button);}body.append(line);}
+      for(const [text,dir] of [['↑',-1],['↓',1]]){const button=element('button','nut',text);button.setAttribute('aria-label',text+' '+c.name);button.onclick=()=>{const order=(preferences.order||state.columns.map(c=>c.code)).slice(),i=order.indexOf(c.code),j=Math.max(0,Math.min(order.length-1,i+dir));[order[i],order[j]]=[order[j],order[i]];preferences.order=order;persist();state.selection=state.current=null;repaint();};line.append(button);}
+      if(config.canHideColumns&&!c.code.startsWith('__')){const an=element('button','nut','Ẩn cho cả công ty');an.setAttribute('aria-label','Ẩn '+c.name+' với cả công ty');an.onclick=()=>datAnCot([c.code],true);line.append(an);}
+      body.append(line);}
+    if(config.canHideColumns&&(config.hiddenColumns||[]).length){
+      body.append(element('h3','mg-column-head','Đang ẩn với cả công ty'));
+      for(const c of config.hiddenColumns){const line=element('div','mg-column-option'),hien=element('button','nut','Hiện lại');
+        hien.setAttribute('aria-label','Hiện lại '+c.name);hien.onclick=()=>datAnCot([c.code],false);
+        line.append(element('label','',c.name),hien);body.append(line);}
+    }
     dialog.showModal();
   };
   $('mg-assign')?.addEventListener('click',safe(async()=>{if(dirty())return;const cells=await rangeCells();window.dispatchEvent(new CustomEvent('master-assignment',{detail:{ids:[...new Set(cells.map(c=>c.id))]}}));}));

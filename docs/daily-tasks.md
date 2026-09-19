@@ -1,5 +1,13 @@
 # Daily tasks — KNJSC
 
+## Sau khi phát hành ADR-039 — bấm ẩn nhóm cột sản phẩm một lần
+
+Ẩn cột là trạng thái trong cơ sở dữ liệu, không phải mặc định của mã nguồn: phát hành xong thì
+cột số lượng theo sản phẩm **vẫn hiện** cho tới khi có người bấm. Chủ dự án hoặc Admin làm một lần
+trên domain thật: mở `/bang-tinh/van_don/` → nút **Cột** → **Ẩn cột số lượng theo sản phẩm với cả
+công ty**. Muốn xem lại thì cũng ở hộp đó, mục "Đang ẩn với cả công ty" → **Hiện lại**.
+Migration kèm theo: `forms_builder/0015_columndef_is_hidden` (đảo được, không đụng dữ liệu).
+
 Prompt dán vào Claude Code CLI ở máy chủ dự án để làm hai mục bàn giao 18.09 dưới đây (phát hành
 chung ADR-036 + bảy PTTT + ADR-037/038) rồi Việc A: `docs/prompt-cli-phat-hanh-adr036-mkt-20260918.md`.
 

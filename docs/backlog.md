@@ -1,5 +1,21 @@
 # Backlog
 
+## 19.09.2026 — Ẩn cột với cả công ty (ADR-039), tắt nhóm cột sản phẩm
+
+Chủ dự án muốn tắt nhóm cột số lượng theo sản phẩm `sl_*` trên bảng Vận đơn mới (thêm sản phẩm ở
+Lên đơn là hiện thêm một cột). Nút "Cột" cũ chỉ nhớ trong trình duyệt từng người nên không tắt cho
+cả công ty được. Chốt qua hai câu hỏi: **quản lý bảng ẩn được mọi cột cho cả công ty ngay trong hộp
+"Cột"**, áp dụng **cả ba màn hình** (lưới KN CRM, tệp Excel xuất ra, Bảng dữ liệu ERP). Đã làm:
+`ColumnDef.is_hidden` (migration `forms_builder/0015`, đảo được), `table_service.visible_columns` là
+chỗ lọc duy nhất cho ba màn hình, `set_columns_hidden` có nhật ký và chặn ẩn cột khoá / cột bắt buộc /
+ẩn hết cột; `POST /bang-tinh/<mã>/an-cot/` theo quyền quản lý cột; hộp "Cột" thêm nút từng dòng, nút
+gộp cho nhóm cột sản phẩm và mục "Đang ẩn với cả công ty"; cột sản phẩm sinh sau khi nhóm đã ẩn thì
+vào ở trạng thái ẩn. Lên đơn và nhập tệp vẫn ghi vào cột ẩn để bật lại là có đủ dữ liệu. Bài mới
+`crm/tests/test_an_cot.py` (AC-39.1 → 39.7). Kiểm: [biên bản](kiem-chung-an-cot-20260919.md).
+**Còn nợ:** phát hành VPS; sau phát hành **Admin phải bấm ẩn một lần** thì cột sản phẩm mới tắt, vì
+ẩn là trạng thái trong cơ sở dữ liệu. Cân nhắc sau: số cột `sl_*` vẫn tăng theo danh mục sản phẩm dù
+đang ẩn — bỏ hẳn nhóm cột này thì phải chốt riêng vì mất số liệu 221 dòng nhập từ tệp thật.
+
 ## 18.09.2026 (đêm, CLI) — Báo cáo tổng hợp: ô Nhân sự chỉ mã, bảng không tràn ở Toàn màn hình
 
 Chủ dự án so ảnh local với VPS, chọn bố cục local và yêu cầu: ô Nhân sự chỉ hiện mã nhân sự (không họ tên),

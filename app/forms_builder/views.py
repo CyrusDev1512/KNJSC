@@ -185,7 +185,10 @@ def bang_xem(request, code):
     """Xem, lọc, sắp xếp và phân trang một bảng — FR-7.1 tới FR-7.4. Chỉ xem, không sửa ô (ADR-014)."""
     request.nav_current = "bang"
     bang_hien = _lay_bang(request, code)
-    cac_cot = styling.decorate_columns(list(bang_hien.columns.order_by("order", "id")))
+    # Cột ẩn với cả công ty không hiện ở đây (ADR-039); màn hình "Cấu trúc cột"
+    # vẫn liệt kê đủ để quản lý bảng bật lại được.
+    cac_cot = styling.decorate_columns(
+        table_service.visible_columns(list(bang_hien.columns.order_by("order", "id"))))
 
     bo_loc = _doc_bo_loc(request, cac_cot)
     tim = request.GET.get("tim", "").strip()

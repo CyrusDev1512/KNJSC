@@ -1,5 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 19.09.2026 — Ẩn cột với cả công ty (ADR-039)
+
+**Finished local:** `ColumnDef.is_hidden`, migration `forms_builder/0015`, hộp "Cột" có nút ẩn cho cả công ty + nút gộp cho nhóm cột sản phẩm, ba màn hình cùng lọc. Bài AC-39.1 → 39.7 đạt.
+**To do:** phát hành VPS rồi Admin bấm ẩn nhóm cột sản phẩm một lần. **Far plan:** có nên ngừng sinh cột `sl_*` hẳn không.
+
 ## 18.09.2026 (tối, CLI) — Bố cục Báo cáo tổng hợp (A)
 
 **Finished local:** bố cục theo bản vẽ (ba trạng thái bộ lọc, chip, ghim cột định danh, gộp Chọn nhanh và Tệp

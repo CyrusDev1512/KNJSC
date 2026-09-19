@@ -542,6 +542,22 @@ Bổ sung AC-4.x (nộp tự do, Kế toán) và AC-22.x (nguồn báo cáo); b�
 | AC-38.4 | Cột Tệp khách hàng (Chọn một) với danh sách mặc định theo sheet MKT có trên bảng và biểu mẫu Marketing; nộp giá trị ngoài danh sách bị từ chối; lọc `tep` đúng giá trị, `__missing__` = chưa có, giá trị lạ → 400; Leader/Manager Marketing thêm giá trị ngay ô chọn, Staff bị từ chối; phụ đề Excel ghi tệp | ADR-038 | Tự động |
 | AC-38.5 | Chọn nhanh kỳ ở Báo cáo tổng hợp: Hôm nay, Hôm qua, 7 ngày (hôm nay − 6 → hôm nay), Tháng này, Tháng trước — đúng ngày theo giờ Việt Nam, điền hai ô ngày và áp ngay; nút khớp khoảng đang lọc được đánh dấu | ADR-038 | Tự động |
 
+## 39. Ẩn cột với cả công ty — ADR-039
+
+Nút "Cột" của lưới (ADR-011) chỉ nhớ trong trình duyệt từng người. Từ 19.09.2026 quản lý bảng
+ẩn được cột với **cả công ty**: cột biến khỏi lưới KN CRM, tệp Excel xuất ra và Bảng dữ liệu bên
+KN ERP, nhưng định nghĩa cột và giá trị từng ô vẫn giữ nguyên (không phạm BR-4).
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-39.1 | Quản lý bảng ẩn một cột: cột biến khỏi lưới KN CRM với mọi người, khỏi tệp Excel xuất ra và khỏi Bảng dữ liệu bên KN ERP; giá trị ô vẫn nằm trong bản ghi; có nhật ký hoạt động | FR-8.10 · ADR-039 | Tự động |
+| AC-39.2 | Hiện lại cột đã ẩn: cột về đúng vị trí cũ trên lưới, không xếp xuống cuối; dữ liệu cũ hiện đủ | FR-8.10 · ADR-039 | Tự động |
+| AC-39.3 | Nhân viên và quản lý bộ phận khác bị từ chối (403 khi thấy bảng, 404 khi bảng ngoài phạm vi), không cột nào đổi; Admin và quản lý bộ phận sở hữu bảng thì được | FR-8.10 · ADR-039 | Tự động |
+| AC-39.4 | Từ chối ẩn cột khoá, cột bắt buộc nhập, và lần ẩn làm bảng không còn cột nào hiện; chọn mã cột không có thì báo lỗi | FR-8.10 · ADR-039 | Tự động |
+| AC-39.5 | Ẩn cả nhóm cột số lượng theo sản phẩm bằng một nút; thêm sản phẩm mới sau đó thì cột của nó vào ở trạng thái ẩn, nhóm không tự hiện lại; Lên đơn vẫn ghi số lượng vào cột đang ẩn nên hiện lại là có đủ dữ liệu | FR-8.10 · ADR-039 | Tự động |
+| AC-39.6 | Quản lý bảng thấy mục "Đang ẩn với cả công ty" để bật lại; nhân viên không thấy mục đó và không biết bảng có cột ẩn | FR-8.10 · ADR-039 | Tự động |
+| AC-39.7 | Migration `forms_builder/0015` chạy xuôi và ngược đều được, giữ nguyên cột và dữ liệu | FR-8.10 · ADR-039 | Tự động |
+
 ## 27. Lưới dùng chung và vòng đời bảng — ADR-027
 
 Đây là tiêu chí, chưa phải nhãn hoàn thành. Kết quả tại

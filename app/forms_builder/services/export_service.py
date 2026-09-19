@@ -29,6 +29,7 @@ from core.exceptions import BusinessError
 from core.models import BackgroundJob
 
 from .. import query, record_policies
+from . import table_service
 from ..meaning import FieldType
 from ..models import DataRecord, TableDef
 
@@ -40,7 +41,8 @@ XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 def build_queryset(user, table, params, columns=None):
     """Queryset đúng như màn hình bảng đang hiện — cùng bộ lọc, tìm, sắp xếp."""
-    columns = columns if columns is not None else list(table.columns.order_by("order", "id"))
+    columns = columns if columns is not None else table_service.visible_columns(
+        list(table.columns.order_by("order", "id")))   # cột ẩn không ra tệp — ADR-039
     bo_loc = query.read_filters(params, columns)
     ds, _ = query.build(
         DataRecord.objects.in_scope(user),

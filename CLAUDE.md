@@ -114,7 +114,10 @@ chống lặp (`GridMutationReceipt`), lịch sử ô (`GridCellHistory`), tự 
 nhập ngay trong ô, ghim cột bằng `position: sticky`. Lưới **thao tác như Excel**
 (ADR-033, 18.09): bấm chỉ chọn ô, gõ phím là nhập ngay, Enter/F2/bấm đúp mở ô, Tab/Enter
 chỉ chuyển ô; không còn nút Chế độ Xem/Chỉnh sửa. Xoá Quốc gia thì Loại tiền trống (ADR-031 bổ sung). Renderer HTML/HTMX ghi ô cũ
-(`bang-tinh.js`, `bang-tinh-o.js`, `_o.html`) **đã bỏ, không đưa lại**. Profile
+(`bang-tinh.js`, `bang-tinh-o.js`, `_o.html`) **đã bỏ, không đưa lại**. **Ẩn cột với cả công ty** (ADR-039, 19.09): quản lý bảng bấm trong hộp "Cột" của lưới,
+`ColumnDef.is_hidden`; cột biến khỏi lưới, tệp Excel xuất ra và Bảng dữ liệu ERP nhưng giữ
+nguyên dữ liệu; lọc ở một chỗ duy nhất `table_service.visible_columns`. Nút "Cột" vẫn có ô
+tích "ẩn cho riêng máy mình" (localStorage) như cũ. Profile
 nghiệp vụ của bảng lấy qua `forms_builder/record_policies.py` (`register_grid`,
 `register_workflow`), không nhận diện nghiệp vụ bằng mã cột. Cột **Trùng** nằm trong
 `crm/services/waybill_grid.py` cùng các hook profile (ADR-036).
@@ -274,7 +277,7 @@ của lưới KN CRM (ADR-014), không phải của Bảng dữ liệu.
 | Đụng tới phân quyền | `docs/03-thiet-ke-ky-thuat.md` mục 3; ADR-020, 033 cho vận đơn |
 | Viết truy vấn | `docs/03-thiet-ke-ky-thuat.md` mục 5 |
 | Viết kiểm thử | `docs/04-tieu-chi-nghiem-thu.md` — tìm mã AC tương ứng |
-| Đụng lưới CRM | ADR-021, 027, 033; `crm/services/master_grid_service.py`, `static/js/master-grid.js` |
+| Đụng lưới CRM | ADR-021, 027, 033, 039; `crm/services/master_grid_service.py`, `static/js/master-grid.js` |
 | Đụng vận đơn | ADR-018, 020, 025, 031, 033, 036; `orders/services/waybill_service.py`, `orders/services/assignment_service.py` |
 
 ---

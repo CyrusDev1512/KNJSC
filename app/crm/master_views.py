@@ -1,5 +1,6 @@
 """Điểm vào của bộ lưới JSON dùng chung cho các bảng động."""
 from orders.constants import is_waybill_table
+from orders.services import dispatch_service
 import json
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -135,6 +136,15 @@ def shell(request, table):
         'ben': sidebar_service.context(request.user, table, grid.columns, qs),
         'quick_filters': sidebar_service.quick_filters(qs) if (is_waybill_table(table)) else {'groups':[], 'keep':grid_service.params_without(qs)},
         'config': {'dataUrl': reverse('master_data', args=[table.code]),
+                   # Ẩn cột cho cả công ty — ADR-039. Chỉ quản lý bảng thấy danh
+                   # sách cột đang ẩn để bật lại; người khác không biết là có.
+                   'canHideColumns': grant_service.can_manage_columns(request.user, table),
+                   'hideColumnsUrl': reverse('bang_tinh_an_cot', args=[table.code]),
+                   'hiddenColumns': ([{'code': c.code, 'name': c.name}
+                                      for c in table.columns.filter(is_hidden=True).order_by('order', 'id')]
+                                     if grant_service.can_manage_columns(request.user, table) else []),
+                   'productColumns': [c.code for c in grid.columns
+                                      if c.code.startswith(dispatch_service.PRODUCT_COLUMN_PREFIX)],
                    'deliveryViewVersion': table.delivery_view_version,
                    'myScope': field_for(request.user) if is_waybill_table(table) else None,
                    'canCreate':row_mutations.can_create(request.user,table),

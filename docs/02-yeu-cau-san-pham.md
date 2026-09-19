@@ -140,6 +140,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-8.6 | Hệ thống phải kiểm tra tính tương thích khi nối trường của biểu mẫu với cột của bảng |
 | FR-8.7 | Mọi cột kiểu Chọn một phải hiện thành ô chọn từ danh sách ở mọi chỗ nhập (biểu mẫu, báo cáo ngày, Lên đơn; Bảng dữ liệu chỉ xem nên không có ô chọn — FR-7.4); danh sách do Manager quản lý (đặt trong Sửa cột hoặc thêm ngay tại ô chọn), cột mang nhãn Sản phẩm lấy danh sách từ danh mục sản phẩm; giá trị ngoài danh sách bị từ chối |
 | FR-8.8 | Manager phải đặt được màu nền cho từng cột và ngưỡng cảnh báo cho cột kiểu số; Bảng dữ liệu tô màu tiêu đề và ô theo cài đặt đó, ô vượt ngưỡng tô đỏ, ô đạt tô xanh lá |
+| FR-8.10 | Quản lý bảng ẩn được cột với cả công ty trong hộp "Cột" của lưới: cột biến khỏi lưới KN CRM, tệp Excel xuất ra và Bảng dữ liệu bên KN ERP, dữ liệu ô vẫn giữ và hiện lại được (ADR-039) |
 | FR-8.9 | Bảng dữ liệu phải có viền mọi ô và tiêu đề cột có màu nền |
 
 ---

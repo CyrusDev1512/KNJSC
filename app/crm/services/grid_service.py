@@ -30,6 +30,7 @@ from django.utils import timezone
 
 from core.constants import GRID_FILTER_OPTIONS_MAX, GRID_FROZEN_COLUMNS, GRID_FROZEN_COLUMNS_GENERIC, GRID_FROZEN_WIDTH_DEFAULT
 from forms_builder import choice_registry, query
+from forms_builder.services import table_service
 from forms_builder.meaning import FieldType
 from forms_builder.models import DataRecord
 from forms_builder.services import record_service
@@ -155,8 +156,13 @@ def qs_without(params, exclude=()):
 
 def display_columns(table, columns=None):
     """Cột theo thứ tự hiển thị. Bảng vận đơn: theo tệp thật, cột sản phẩm
-    chèn vào chỗ đánh dấu, cột lạ xếp cuối. Bảng khác: theo thứ tự tạo cột."""
-    columns = list(columns if columns is not None else table.columns.order_by("order", "id"))
+    chèn vào chỗ đánh dấu, cột lạ xếp cuối. Bảng khác: theo thứ tự tạo cột.
+
+    Cột ẩn với cả công ty (ADR-039) bị loại ở đây, nên lưới, tệp Excel xuất ra
+    và mọi thứ dựng từ danh sách này đều không thấy — dữ liệu thì vẫn giữ.
+    """
+    columns = table_service.visible_columns(
+        list(columns if columns is not None else table.columns.order_by("order", "id")))
     if not is_waybill(table):
         return columns
     # Cột chuẩn theo thứ tự `waybill_service.COLUMNS`, cột còn lại (extra, `sl_*`) giữ thứ tự tạo.

@@ -1,5 +1,9 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 19.09.2026 — Ẩn cột với cả công ty (ADR-039)
+
+Bộ `crm/tests orders/tests forms_builder/tests reports/tests core/tests tests -m "not trinh_duyet and not cham"`: 2.416 đạt, 1 bỏ qua, 0 đỏ. `test_an_cot.py` 7 đạt. Hai chỗ vấp đã sửa trong lượt: `test_truy_vet` đỏ vì `docs/04` chưa có mục 39; migration roundtrip vướng trigger `crm_capture_*` treo, xả bằng `SET CONSTRAINTS ALL IMMEDIATE`. Chromium: 6 điểm đạt, gồm tạo sản phẩm "test" ở Lên đơn khi nhóm đang ẩn thì cột mới cũng ẩn. [Biên bản](kiem-chung-an-cot-20260919.md).
+
 ## 18.09.2026 (đêm) — Báo cáo tổng hợp chỉ mã nhân sự, Toàn màn hình không tràn
 
 `reports/tests tests/test_truy_vet.py core/tests/test_giao_dien.py`: 751 đạt, 1 bỏ qua (`test_bo_cuc_bao_cao_e2e` — container không có Chromium), 0 đỏ, mã thoát 0. Lần đầu 1 đỏ `test_duplicate_names_remain_separate_accounts` (khẳng định họ tên trong nhãn dòng) — sửa theo mã, ý bài giữ nguyên. Chromium host qua `scripts/kiem-thu-bao-cao-chi-ma.mjs`: ô Nhân sự `mkt.staff`, Toàn màn hình 960px có thanh kéo ngang, 0 lỗi JS. [Biên bản](kiem-chung-bao-cao-chi-ma-20260918.md).
