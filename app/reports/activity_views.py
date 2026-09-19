@@ -11,7 +11,6 @@ from django.utils import timezone
 from core.audit import record
 from core.constants import AuditAction
 from core.exceptions import BusinessError
-from core.identity import split_labels
 from core.pagination import pagination_context
 from orders.constants import Market
 from reports import aggregations, excel
@@ -88,16 +87,15 @@ def report(request, export=False, choices=None):
             ctx.update(result=result, rows=aggregations.finish_rows(ctx["trang"], result),
                        totals=aggregations.total_cells(result), empty=not result.totals["so_dong"])
             show_team, show_person, show_leader = (getattr(result, flag, False) for flag in ("show_team", "show_person", "show_leader"))
-            # Ô danh tính là danh sách để bảng liệt kê mỗi người một dòng, không nhét chung
-            # một chuỗi rồi để trình duyệt bẻ giữa mã (chủ dự án 19.09). Excel vẫn ghi chuỗi
-            # nối từ `person_name`/`leader_name`, không đổi.
+            # Mỗi dòng là một người (Tổng hợp nhóm theo ngày × nhân sự) nên ô danh tính
+            # chỉ có một nhãn.
             for row, raw in zip(ctx['rows'], ctx['trang']):
                 if show_team:
                     row['team'] = raw['team_name']
                 if show_person:
-                    row['person'] = split_labels(raw['person_name'])
+                    row['person'] = raw['person_name']
                 if show_person or show_leader:
-                    row['leader'] = split_labels(raw['leader_name']) or ['—']
+                    row['leader'] = raw['leader_name'] or '—'
             # Dòng "Tổng trong bộ lọc" ôm cột nhóm và các cột danh tính.
             ctx["label_span"] = 1 + show_team + 2 * show_person + show_leader
             ctx.update(identity_layout(result, show_team, show_person, show_leader))

@@ -1,12 +1,14 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
-## 19.09.2026 — Ô danh tính Báo cáo tổng hợp
+## 19.09.2026 — Báo cáo tổng hợp: mỗi người một hàng
 
-**TL-45 (chủ dự án báo trên màn hình thật, đã sửa cùng ngày):** ngày có nhiều nhân sự thì ô
-Nhân sự là một chuỗi nối dấu phẩy trong cột rộng 130px, `overflow-wrap:anywhere` bẻ **giữa
-mã**. Sửa: mỗi người một dòng riêng (AC-22.14, bổ sung ADR-035); cách nhóm giữ nguyên. Bộ
-`reports/tests core/tests/test_giao_dien.py -m "not trinh_duyet"`: 716 đạt, 0 đỏ. Chromium
-1440 sáng/tối và 390: không ô nào tràn chữ, cột định danh vẫn ghim.
+**TL-45 (chủ dự án báo bằng ảnh mẫu, đã sửa cùng ngày):** cách xem Tổng hợp gộp mọi người
+trong ngày vào một hàng, ô Nhân sự thành chuỗi nối dấu phẩy bị bẻ giữa mã. Bản sửa đầu
+(`98d5c1e`, xuống dòng trong ô) không đúng ý — chủ dự án muốn mỗi người một **hàng** như ảnh.
+Sửa lại: nhóm theo ngày × nhân sự (AC-22.14, đảo ADR-035 quyết định 1). Cạm bẫy đã tránh:
+Doanh thu suy ra phải khoá theo cặp (ngày, marketer), không thì mỗi người nhận trọn tiền cả
+ngày và tổng phồng lên — có bài kiểm giữ. `pytest -m "not cham"`: 2.508 đạt, 0 đỏ. Chromium
+1440 sáng/tối và 390: ngày 17.09 ra hai hàng, dòng Tổng không đổi.
 [Biên bản](kiem-chung-o-danh-tinh-20260919.md).
 
 ## 19.09.2026 — Ẩn cột với cả công ty (ADR-039)

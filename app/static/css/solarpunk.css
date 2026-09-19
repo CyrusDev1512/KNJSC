@@ -307,9 +307,6 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
 .report-table .id-ngay {width:var(--w-ngay);min-width:var(--w-ngay);max-width:var(--w-ngay);white-space:nowrap}
 .report-table .id-nhom {width:var(--w-nhom);min-width:var(--w-nhom);max-width:var(--w-nhom)}
 .report-table .id-team {width:var(--w-team);min-width:var(--w-team);max-width:var(--w-team)}
-/* Ô nhiều người: mỗi người một dòng, không nối bằng dấu phẩy rồi bẻ giữa mã (AC-22.14) */
-.report-table .report-name {display:block}
-.report-table .report-name+.report-name {margin-top:2px}
 .report-table .id-nhan-su {width:var(--w-nhan-su);min-width:var(--w-nhan-su);max-width:var(--w-nhan-su)}
 .report-table .id-leader {width:var(--w-leader);min-width:var(--w-leader);max-width:var(--w-leader)}
 .report-table .report-identity-edge {box-shadow:6px 0 8px -6px #00000040}

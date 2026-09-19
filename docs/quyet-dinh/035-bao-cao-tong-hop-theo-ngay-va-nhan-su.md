@@ -38,18 +38,21 @@ thấy của mình, Leader team mình, Manager cả bộ phận; nhiều dòng h
 5. **Bảng gọn theo token `sheet-body` 13px** của DESIGN.md: chữ 13px, ô đệm 5×8 px, khung
    bảng cao `calc(100vh - 230px)`, panel lọc 224px, cột danh tính tối đa 220px có cắt
    chữ. Không đổi màu, không thêm thư viện; chế độ Toàn màn hình giữ nguyên.
-   > **Bổ sung 19.09.2026 (chủ dự án, sau khi xem màn hình thật):** luật cắt chữ đã bỏ ở
-   > ADR-022/AC-22.13 (bố cục 18.09). Thêm: ô Nhân sự và Leader **liệt kê mỗi người một
-   > dòng** — mỗi nhãn là một `<span class="report-name">` khối riêng — thay vì một chuỗi
-   > nối dấu phẩy để cột hẹp bẻ giữa mã. Cách nhóm **không đổi**, vẫn mỗi ngày một dòng
-   > đúng quyết định 1; muốn mỗi người một hàng thì dùng cách xem Theo nhân viên. Excel
-   > giữ chuỗi nối. Xem AC-22.14 và [biên bản](../kiem-chung-o-danh-tinh-20260919.md).
+   > **Bổ sung 19.09.2026 — đảo quyết định 1.** Chủ dự án gửi ảnh mẫu (một hệ thống khác)
+   > và yêu cầu màn hình giống ảnh: trong một ngày **mỗi marketer là một hàng riêng**. Từ
+   > 19.09 cách xem Tổng hợp nhóm theo **ngày × nhân sự** (`aggregations.summarize(extra_groups=…)`,
+   > `derived_key=("nhom","person_name")`): ngày lặp lại ở từng hàng, mỗi hàng chỉ mang số của
+   > người đó; Doanh thu suy ra (ADR-038) khoá theo cặp (ngày, marketer); dòng Tổng không đổi;
+   > Excel cùng cấu trúc; Vận đơn nhóm theo ngày × người phụ trách. Bỏ `StringAgg` gộp tên và
+   > bản trung gian `98d5c1e` (xuống dòng trong ô). Luật cắt chữ 220px của quyết định 5 đã bỏ
+   > ở AC-22.13. Xem AC-22.10, AC-22.14 và [biên bản](../kiem-chung-o-danh-tinh-20260919.md).
 6. **Excel** xuất đúng các cột đang hiện (Ngày, Nhân sự, Leader, chỉ tiêu; Theo nhân viên:
    Team, người, Leader, chỉ tiêu). Dòng tổng để trống ô danh tính.
 
 ## Hệ quả
 
-- Số dòng của Tổng hợp không đổi so với trước (mỗi ngày một dòng); chỉ thêm hai cột chữ.
+- ~~Số dòng của Tổng hợp không đổi so với trước (mỗi ngày một dòng); chỉ thêm hai cột chữ.~~
+  Từ 19.09 số hàng = số cặp (ngày, người) có dữ liệu — xem Bổ sung ở quyết định 5.
 - Bài kiểm cũ so dòng tổng Excel theo vị trí cột phải trừ hai ô danh tính
   (`test_sale_scope_and_dashboard`, `test_delivery_filters_match_status_and_export`,
   `test_people_filters`) — đã cập nhật.

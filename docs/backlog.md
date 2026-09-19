@@ -1,19 +1,19 @@
 # Backlog
 
-## 19.09.2026 — Ô danh tính Báo cáo tổng hợp: mỗi người một dòng (AC-22.14, TL-45)
+## 19.09.2026 — Báo cáo tổng hợp nhóm theo ngày × nhân sự: mỗi người một HÀNG (AC-22.14, TL-45)
 
-Chủ dự án gửi ảnh hệ thống khác, nói trường nhân viên đang "nhét chung 1 ô thay vì chia ra
-thành hàng". Đã chốt: **giữ nguyên cách nhóm** (Tổng hợp vẫn mỗi ngày một dòng, đúng ADR-035
-quyết định 1 — bản nháp nhóm theo ngày × nhân sự chính chủ dự án đã hoàn lại hôm 18.09), chỉ
-sửa cách hiện cho "đơn giản và mạch lạc". Muốn mỗi người một hàng thì dùng cách xem **Theo
-nhân viên** đã có sẵn. Làm trên nền `ea8942c` của phiên song song (bố cục AC-22.13 đã bỏ luật
-cắt chữ, ô bảng đã chỉ còn mã): thêm `core/identity.JOIN` + `split_labels()`; `activity_views`
-trả ô Nhân sự/Leader là danh sách; template lặp thành `<span class="report-name">`; CSS
-`.report-name {display:block}`. Excel không đổi. Bổ sung ADR-035, AC-22.14 trong `docs/04`,
-bộ đếm `docs/06` lên 226. Kiểm: 716 bài của báo cáo và giao diện đạt; Chromium 1440 sáng/tối
-và 390 — dòng 17.09 hai marketer hiện hai dòng, không ô nào tràn chữ, cột định danh vẫn ghim
+Chủ dự án gửi ảnh một hệ thống khác và yêu cầu màn hình giống ảnh: trong một ngày mỗi
+marketer là một hàng riêng. Bản đầu (`98d5c1e`) chỉ cho các mã xuống dòng trong một ô, chủ
+dự án bác. Đã **đảo quyết định 1 của ADR-035** (ghi thành Bổ sung 19.09 trong chính ADR):
+`aggregations.summarize()` nhận `extra_groups` và `derived_key`; cách xem Tổng hợp nhóm theo
+ngày × nhân sự, ngày lặp lại, mỗi hàng số của riêng người đó; `marketing_revenue` khoá theo
+cặp (ngày, marketer) nên không dồn tiền cả ngày cho từng người; Vận đơn nhóm cùng cách; bỏ
+`StringAgg` gộp tên, bỏ `split_labels`/`JOIN`/`.report-name` của bản đầu. Bài AC-22.10,
+AC-22.14 và `test_mkt_derived_revenue` viết lại theo cặp (ngày, mã). Kiểm: `pytest -m "not
+cham"` 2.508 đạt, 0 đỏ; Chromium 1440 sáng/tối và 390 — ngày 17.09 tách thành hai hàng
+ANHPM 2.320 Mess và NAMVH 50 Mess, dòng Tổng vẫn 15.056, không ô nào tràn chữ
 ([biên bản](kiem-chung-o-danh-tinh-20260919.md), ảnh `docs/kiem-thu/o-danh-tinh-2026-09-19/`).
-**Còn nợ:** chưa phát hành VPS.
+**Còn nợ:** chưa phát hành VPS; chưa làm cột STT và dòng Tổng từng ngày như ảnh mẫu (chưa yêu cầu).
 
 ## 19.09.2026 — Ẩn cột với cả công ty (ADR-039), tắt nhóm cột sản phẩm
 

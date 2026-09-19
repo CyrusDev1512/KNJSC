@@ -91,8 +91,8 @@ Tuân đúng thứ tự, mỗi bước in kết quả thật; **dừng hỏi tô
      Western Union → dòng mới có chi tiết và lưới hiện "Western Union", rồi đánh dấu xoá; lưới
      `pttt`/`pttt_thuc_te` cũng có bảy lựa chọn; Thống kê `nguon=van_don`.
    - Tài khoản cũ đăng nhập như thường; cột Nhân sự/Leader và Lịch sử báo cáo hiện `MÃ · Họ tên`.
-   - Ngày có nhiều người: ô Nhân sự liệt kê **mỗi người một dòng**, không nối dấu phẩy
-     rồi bẻ giữa mã (AC-22.14, bổ sung ADR-035 ngày 19.09).
+   - Ngày có nhiều người: ra **nhiều hàng, mỗi người một hàng**, ngày lặp lại, mỗi hàng số của
+     riêng người đó; dòng Tổng không đổi (AC-22.14, bổ sung ADR-035 ngày 19.09).
    - Admin tạo một tài khoản thử: ô Mã tự gợi ý từ họ tên (THUANLT), đăng nhập bằng mã gõ thường
      vẫn vào; khoá tài khoản thử sau khi kiểm.
    - Marketing nộp báo cáo ngày **hai lần** cùng ngày, có Tệp khách hàng; banner "đã nộp 2 lần".

@@ -83,15 +83,25 @@ def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguo
     ky = dict(start=date(2026, 8, 1), end=date(2026, 8, 2))
 
     def cells(result):
-        return {aggregations.format_group(nhom, result): dict(zip([c.label for c in result.columns], raw))
-                for nhom, raw in (aggregations.row_values(item, result) for item in result.rows)}
+        # Cách xem Tổng hợp nhóm theo ngày × nhân sự (AC-22.14) nên khoá là cặp (ngày, mã)
+        out = {}
+        for item in result.rows:
+            nhom, raw = aggregations.row_values(item, result)
+            khoa = aggregations.format_group(nhom, result)
+            if "person_name" in item:
+                khoa = (khoa, item["person_name"])
+            out[khoa] = dict(zip([c.label for c in result.columns], raw))
+        return out
 
-    # Theo ngày: 01.08 = 60 + 40 (A) + 200 (B); 02.08 = 25; tổng 325; Hóa đơn/Doanh thu = 15/325
+    # Ngày × nhân sự: 01.08 A = 60 + 40, 01.08 B = 200, 02.08 A = 25; tổng 325; tiền của ngày
+    # KHÔNG dồn hết cho một người vì doanh thu suy ra khoá theo cặp (ngày, marketer)
     result = activity_service.build(manager, mkt_source, group="day", **ky)
     assert result.ok and result.currency_label == "CAD"
     rows = cells(result)
-    assert rows["01.08.2026"]["Doanh thu"] == Decimal("300") and rows["02.08.2026"]["Doanh thu"] == Decimal("25")
-    assert rows["01.08.2026"]["Hóa đơn/Doanh thu"] == Decimal("10") / Decimal("300")
+    assert rows[("01.08.2026", employee_code(A))]["Doanh thu"] == Decimal("100")
+    assert rows[("01.08.2026", employee_code(B))]["Doanh thu"] == Decimal("200")
+    assert rows[("02.08.2026", employee_code(A))]["Doanh thu"] == Decimal("25")
+    assert rows[("01.08.2026", employee_code(A))]["Hóa đơn/Doanh thu"] == Decimal("8") / Decimal("100")
     totals = dict(zip([c.label for c in result.columns], aggregations.total_values(result)))
     assert totals["Doanh thu"] == Decimal("325") and totals["Hóa đơn/Doanh thu"] == Decimal("15") / Decimal("325")
     assert [c.kind for c in result.columns if c.label == "Doanh thu"] == ["derived"]
@@ -108,16 +118,19 @@ def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguo
 
     # Lọc sản phẩm: chỉ dòng báo cáo SP1 (của A) và tiền SP1 của A
     rows = cells(activity_service.build(manager, mkt_source, group="day", product="SP1", **ky))
-    assert rows["01.08.2026"]["Doanh thu"] == Decimal("60") and rows["02.08.2026"]["Doanh thu"] == Decimal("25")
+    assert rows[("01.08.2026", employee_code(A))]["Doanh thu"] == Decimal("60")
+    assert rows[("02.08.2026", employee_code(A))]["Doanh thu"] == Decimal("25")
     # Lọc thị trường và kỳ hẹp
     rows = cells(activity_service.build(manager, mkt_source, group="day", market="Canada", start=date(2026, 8, 2), end=date(2026, 8, 2)))
-    assert list(rows) == ["02.08.2026"] and rows["02.08.2026"]["Doanh thu"] == Decimal("25")
+    assert list(rows) == [("02.08.2026", employee_code(A))] and rows[("02.08.2026", employee_code(A))]["Doanh thu"] == Decimal("25")
     # Staff chỉ thấy tiền của mình
     rows = cells(activity_service.build(A, mkt_source, group="day", **ky))
-    assert rows["01.08.2026"]["Doanh thu"] == Decimal("100") and rows["02.08.2026"]["Doanh thu"] == Decimal("25")
+    assert rows[("01.08.2026", employee_code(A))]["Doanh thu"] == Decimal("100")
+    assert rows[("02.08.2026", employee_code(A))]["Doanh thu"] == Decimal("25")
     # Lọc Tệp khách hàng: Doanh thu trống, các cột khác vẫn có
     rows = cells(activity_service.build(manager, mkt_source, group="day", segment="Filipino", **ky))
-    assert list(rows) == ["02.08.2026"] and rows["02.08.2026"]["Doanh thu"] is None and rows["02.08.2026"]["Số Mess"] == 10
+    khoa = ("02.08.2026", employee_code(A))
+    assert list(rows) == [khoa] and rows[khoa]["Doanh thu"] is None and rows[khoa]["Số Mess"] == 10
 
     # Excel và Tổng quan cùng số với màn hình
     client.force_login(manager)

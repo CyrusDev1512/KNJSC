@@ -1,4 +1,4 @@
-from core.identity import JOIN, employee_code, identity_label
+from core.identity import employee_code, identity_label
 from datetime import date
 from decimal import Decimal
 import pytest
@@ -271,14 +271,14 @@ def test_day_view_shows_person_and_leader_in_scope(client, marketing_scope, nguo
     r=client.get("/bao-cao/tong-hop/",query)
     assert r.status_code==200 and r.context["result"].show_person
     rows=r.context["rows"]
-    assert [row["nhom"] for row in rows]==["01.08.2026"], "mỗi ngày vẫn một dòng — cấu trúc bảng không đổi"
-    # Ô bảng chỉ mã nhân sự, không họ tên (ADR-037 bổ sung 18.09); ô chọn Nhân sự vẫn `MÃ · Họ tên`.
-    # Ô danh tính là danh sách, mỗi người một dòng (AC-22.14).
-    assert set(rows[0]["person"])=={employee_code(nguoi_dung[name]) for name in persons}
-    assert all(nguoi_dung[name].profile.full_name not in JOIN.join(rows[0]["person"]) for name in persons)
-    leaders=set(rows[0]["leader"])
+    # Ngày × nhân sự: mỗi người một DÒNG riêng, ngày lặp lại (AC-22.14, chủ dự án 19.09)
+    assert [row["nhom"] for row in rows]==["01.08.2026"]*len(persons)
+    # Ô bảng chỉ mã nhân sự, không họ tên (ADR-037 bổ sung 18.09); ô chọn Nhân sự vẫn `MÃ · Họ tên`
+    assert {row["person"] for row in rows}=={employee_code(nguoi_dung[name]) for name in persons}
+    assert all(nguoi_dung[name].profile.full_name not in row["person"] for row in rows for name in persons)
+    leaders={row["leader"] for row in rows}
     assert employee_code(nguoi_dung["leader_sale_1"]) in leaders    # Team.leader của Sale 1
-    assert nguoi_dung["leader_sale_1"].profile.full_name not in JOIN.join(rows[0]["leader"])
+    assert all(nguoi_dung["leader_sale_1"].profile.full_name not in row["leader"] for row in rows)
     assert (employee_code(nguoi_dung["leader_sale_2"]) in leaders) == ("staff_sale_2" in persons)
     assert {identity_label(nguoi_dung[name]) for name in persons} <= {p["label"] for p in r.context["people"]}
     assert r.context["label_span"]==3
@@ -287,42 +287,37 @@ def test_day_view_shows_person_and_leader_in_scope(client, marketing_scope, nguo
     # Lọc theo nhân sự: chỉ còn dòng của người đó; người ngoài phạm vi bị chặn
     me=nguoi_dung["staff_sale_1"].pk
     r2=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":me})
-    assert [row["person"] for row in r2.context["rows"]]==[[employee_code(nguoi_dung["staff_sale_1"])]] and r2.context["rows"][0]["leader"]==[employee_code(nguoi_dung["leader_sale_1"])]
+    assert [row["person"] for row in r2.context["rows"]]==[employee_code(nguoi_dung["staff_sale_1"])] and r2.context["rows"][0]["leader"]==employee_code(nguoi_dung["leader_sale_1"])
     outsider=nguoi_dung["staff_sale_2"].pk
     r3=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":outsider})
     assert (r3.status_code==403) == ("staff_sale_2" not in persons)
     sheet=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True).active.values)
-    assert sheet[3][:3]==("Ngày","Nhân sự","Leader") and len(sheet[4:-1])==1
-    assert set(sheet[4][1].split(", "))=={employee_code(nguoi_dung[name]) for name in persons} and employee_code(nguoi_dung["leader_sale_1"]) in sheet[4][2]
+    assert sheet[3][:3]==("Ngày","Nhân sự","Leader") and len(sheet[4:-1])==len(persons)   # Excel cũng mỗi người một dòng
+    assert {d[1] for d in sheet[4:-1]}=={employee_code(nguoi_dung[name]) for name in persons}
+    assert employee_code(nguoi_dung["leader_sale_1"]) in {d[2] for d in sheet[4:-1]}
     assert nguoi_dung["staff_sale_1"].profile.full_name not in sheet[4][1]   # Excel cũng chỉ mã
 
 
-def test_day_identity_lists_each_person_on_own_line(client, marketing_scope, nguoi_dung):
-    """AC-22.14 — Ô danh tính liệt kê mỗi người một dòng: ngày có nhiều người không nhét chung một chuỗi
-    nối dấu phẩy rồi bị bẻ giữa mã trong cột hẹp; cách nhóm giữ nguyên mỗi ngày một dòng; Excel giữ chuỗi nối"""
+def test_day_view_groups_by_date_and_person(client, marketing_scope, nguoi_dung):
+    """AC-22.14 — Cách xem Tổng hợp nhóm theo ngày × nhân sự: mỗi người một HÀNG riêng như ảnh mẫu,
+    ngày lặp lại ở từng hàng; tổng trong bộ lọc không đổi; Excel cũng mỗi người một dòng"""
     from io import BytesIO
-    from pathlib import Path
     from openpyxl import load_workbook
     source=ReportSource.objects.create(table=marketing_scope.table,kind="sale",columns={"mess":"so_mess","orders":"so_don","sales":"doanh_so","market":"thi_truong"})
     client.force_login(nguoi_dung["admin"])
     query={"nguon":source.table.code,"tu":"2026-08-01","den":"2026-08-31"}
     r=client.get("/bao-cao/tong-hop/",query)
     rows=r.context["rows"]
-    assert [row["nhom"] for row in rows]==["01.08.2026"], "vẫn mỗi ngày một dòng — không đổi cách nhóm"
-    nguoi=rows[0]["person"]
-    assert len(nguoi)==4 and all(isinstance(nhan,str) for nhan in nguoi)   # bốn người của ngày, từng nhãn riêng
-    html=r.content.decode()
-    for nhan in nguoi:
-        assert f'<span class="report-name">{nhan}</span>' in html
-    assert JOIN.join(nguoi) not in html, "không còn một ô gộp cả bốn người thành chuỗi dài"
-    assert rows[0]["leader"] and all(isinstance(nhan,str) for nhan in rows[0]["leader"])
-    # Excel không đổi: vẫn một ô, các mã nối bằng dấu phẩy
+    # Bốn người cùng nộp ngày 01.08 → bốn hàng, không phải một hàng gộp
+    assert len(rows)==4 and {row["nhom"] for row in rows}=={"01.08.2026"}
+    assert len({row["person"] for row in rows})==4
+    assert all(isinstance(row["person"],str) and "," not in row["person"] for row in rows)
+    # Dòng Tổng vẫn tính trên toàn bộ kết quả, không đổi vì tách hàng
+    assert r.context["result"].totals["so_dong"]==4
+    # Mỗi hàng chỉ mang số của chính người đó
+    assert [row["cells"][0] for row in rows]==["10"]*4
     sheet=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True).active.values)
-    assert set(sheet[4][1].split(JOIN))==set(nguoi)
-    # CSS: mỗi nhãn là một khối riêng trong ô
-    css=(Path(__file__).resolve().parents[2]/"static"/"css"/"solarpunk.css").read_text(encoding="utf-8")
-    luat=next(dong for dong in css.splitlines() if dong.startswith(".report-table .report-name "))
-    assert "display:block" in luat
+    assert len(sheet[4:-1])==4 and len({d[1] for d in sheet[4:-1]})==4
 
 
 def test_day_view_pages_by_hundred(client, marketing_scope, nguoi_dung):

@@ -5,10 +5,9 @@ from decimal import Decimal
 from django.db.models import Count, Sum, F, Value, CharField, Q
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Coalesce, NullIf, Concat
-from django.contrib.postgres.aggregates import StringAgg
 
 from core.constants import Currency
-from core.identity import JOIN, SEPARATOR, code_expression
+from core.identity import SEPARATOR, code_expression
 from core.managers import apply_scope
 from core.exceptions import OutOfScopeError, BusinessError
 from forms_builder.models import DataRecord, TableDef
@@ -161,22 +160,12 @@ def person_expressions(source):
             "leader_name": Coalesce(code_expression(team + "__leader"), Value(""), output_field=CharField())}
 
 
-def with_day_people(rows, source):
-    """Cách xem Tổng hợp giữ nguyên mỗi ngày một dòng; hai cột Nhân sự và Leader gộp tên
-    (không trùng, theo thứ tự chữ) của những người có dòng trong ngày, theo đúng bộ lọc và
-    phạm vi quyền đang áp — lọc một nhân sự thì chỉ còn người đó (ADR-035)."""
-    expressions = person_expressions(source)
-    return rows.annotate(
-        person_name=StringAgg(expressions["person_name"], delimiter=JOIN, distinct=True, output_field=CharField()),
-        leader_name=StringAgg(NullIf(expressions["leader_name"], Value("")), delimiter=JOIN, distinct=True, output_field=CharField()),
-    )
-
-
 def with_person_team(result, source, group):
     if not result.ok:
         return result
     if group == 'day':
-        return _as_activity(result, rows=with_day_people(result.rows, source), show_person=True)
+        # Dòng đã mang sẵn `person_name`, `leader_name` vì nhóm theo ngày × nhân sự
+        return _as_activity(result, show_person=True)
     if group != 'person':
         return result
     _, team = people_paths(source)
@@ -281,10 +270,15 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
     if source.kind == "delivery":
         return with_person_team(delivery(qs, source, group, product), source, group)
     expression, label = group_expression(source, group)
+    # Tổng hợp = ngày × nhân sự: mỗi người một dòng riêng trong ngày (chủ dự án 19.09,
+    # bổ sung ADR-035 — thay quyết định 1 "mỗi ngày một dòng"). Doanh thu suy ra tra theo
+    # cặp (ngày, nhân sự) nên không gán nhầm tiền cả ngày cho từng người.
+    extra = person_expressions(source) if group == "day" else None
     result = aggregations.summarize(
         source.table, qs, group_key="ngay" if group == "day" else "nhan-vien",
         columns=list(source.table.columns.all()),
         group_expression=expression, group_label=label,
+        extra_groups=extra, derived_key=("nhom", "person_name") if extra else ("nhom",),
     )
     result = project_metrics(result, source) if result.ok else result
     derived_currencies = set()
@@ -324,12 +318,17 @@ def marketing_revenue(qs, group, expression, *, start=None, end=None, product=""
         "market": Coalesce(NullIf(KeyTextTransform("quoc_gia", "record__data"), Value("")), Value("Chưa xác định"), output_field=CharField()),
         "department": F("record__assignment__marketing__profile__department__name"),
     }
-    rows = (items.order_by().values(nhom=keys[group], currency=KeyTextTransform("loai_tien", "record__data"))
-            .annotate(paid=Sum("paid_amount")))
+    cot = {"nhom": keys[group], "currency": KeyTextTransform("loai_tien", "record__data")}
+    if group == "day":
+        # Báo cáo nhóm theo ngày × nhân sự nên tiền cũng phải tách theo marketer,
+        # không thì mỗi người trong ngày nhận trọn doanh thu của cả ngày.
+        cot["nguoi"] = keys["person"]
+    rows = items.order_by().values(**cot).annotate(paid=Sum("paid_amount"))
     revenue, currencies = {}, set()
     for row in rows:
         currencies.add(row["currency"] or None)
-        revenue[row["nhom"]] = revenue.get(row["nhom"], Decimal(0)) + (row["paid"] or Decimal(0))
+        khoa = (row["nhom"], row["nguoi"]) if group == "day" else row["nhom"]
+        revenue[khoa] = revenue.get(khoa, Decimal(0)) + (row["paid"] or Decimal(0))
     return revenue, currencies
 
 
@@ -339,7 +338,8 @@ def attach_derived(result, code, values):
     dòng báo cáo, không phải của vận đơn."""
     if not values:
         return result
-    keys = set(result.rows.values_list("nhom", flat=True))
+    khoa = result.derived_key
+    keys = set(result.rows.values_list(khoa[0], flat=True)) if len(khoa) == 1 else set(result.rows.values_list(*khoa))
     derived = {key: {**result.derived.get(key, {}), code: value} for key, value in values.items() if key in keys}
     if not derived:
         return result
@@ -397,10 +397,15 @@ def delivery(qs, source, group, product):
                 .order_by("nhom"))
     else:
         expression, label = group_expression(source, group)
-        rows = qs.order_by().values(
-            nhom=F("val_date") if expression is None else expression
-        ).annotate(so_dong=Count("pk", distinct=True),
-                   c_orders=Count("pk", distinct=True), c_quantity=quantity).order_by("nhom")
+        # Cách xem Tổng hợp của Vận đơn cũng nhóm theo ngày × người phụ trách (AC-22.14)
+        khoa = {"nhom": F("val_date") if expression is None else expression}
+        them = []
+        if group == "day":
+            khoa.update(person_expressions(source))
+            them = ["person_name", "leader_name"]
+        rows = qs.order_by().values(**khoa).annotate(
+            so_dong=Count("pk", distinct=True),
+            c_orders=Count("pk", distinct=True), c_quantity=quantity).order_by("nhom", *them)
     label = "Sản phẩm" if group == "product" else group_expression(source, group)[1]
     return DeliveryResult(
         shipping=shipping, ok=True, group_label=label, group_is_date=group == "day", unit="nhóm",

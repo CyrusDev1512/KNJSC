@@ -87,6 +87,9 @@ class SummaryResult:
     # dòng trước khi tính lại cột tính nên màn hình, Excel, Tổng quan cùng một số
     derived: dict = field(default_factory=dict)
     derived_totals: dict = field(default_factory=dict)
+    #: Khoá tra `derived` của một dòng. Nhóm theo nhiều cột (Tổng hợp = ngày ×
+    #: nhân sự) thì khoá là bộ giá trị theo đúng thứ tự này.
+    derived_key: tuple = ("nhom",)
 
 
 def labeled_columns(columns):
@@ -169,7 +172,8 @@ def _recompute(computed_cols, values_by_code):
 
 
 def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
-              product="", columns=None, with_totals=True, group_expression=None, group_label=None):
+              product="", columns=None, with_totals=True, group_expression=None, group_label=None,
+              extra_groups=None, derived_key=("nhom",)):
     """Một lượt tổng hợp: nhóm + cộng + dòng tổng cộng — FR-5.1 và FR-5.4.
 
     `scoped_qs` phải là `DataRecord.objects.in_scope(user)` (quy tắc 11).
@@ -202,17 +206,18 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
     group_path = COLUMN_OF[meaning]
     # `.order_by()` trắng để xoá Meta.ordering trước khi GROUP BY — xem
     # docstring đầu tệp
-    rows = (
-        qs.order_by()
-        .values(nhom=group_expression if group_expression is not None else F(group_path))
-        .annotate(so_dong=Count("id"), **exprs)
-    )
+    # `extra_groups` tách nhóm nhỏ hơn: Tổng hợp nhóm theo ngày × nhân sự nên
+    # mỗi người một dòng riêng thay vì gộp cả ngày (bổ sung ADR-035, 19.09)
+    khoa_nhom = {"nhom": group_expression if group_expression is not None else F(group_path)}
+    khoa_nhom.update(extra_groups or {})
+    them = [k for k in (extra_groups or {})]
+    rows = qs.order_by().values(**khoa_nhom).annotate(so_dong=Count("id"), **exprs)
     if meaning == Meaning.DATE:
-        rows = rows.order_by("-nhom")
+        rows = rows.order_by("-nhom", *them)
     elif revenue_col is not None and revenue_col in sum_cols:
-        rows = rows.order_by(f"-{_alias(revenue_col.code)}", "nhom")
+        rows = rows.order_by(f"-{_alias(revenue_col.code)}", "nhom", *them)
     else:
-        rows = rows.order_by("nhom")
+        rows = rows.order_by("nhom", *them)
 
     # Dòng tổng cộng: MỘT lệnh riêng trên cùng queryset đã lọc, không cắt
     # trang — nhờ vậy AC-5.4 so nó với tổng các dòng chi tiết mới có nghĩa
@@ -254,6 +259,7 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
         totals=totals,
         computed_columns=tuple(computed_cols),
         revenue_alias=_alias(revenue_col.code) if revenue_col else "",
+        derived_key=tuple(derived_key),
     )
 
 
@@ -348,11 +354,18 @@ def _format_cells(result, raw_cells):
     return out
 
 
+def derived_key_of(item, result):
+    """Khoá tra `derived` của một dòng: giá trị nhóm khi nhóm theo một cột,
+    bộ giá trị khi nhóm theo nhiều cột."""
+    khoa = result.derived_key
+    return item.get(khoa[0]) if len(khoa) == 1 else tuple(item.get(k) for k in khoa)
+
+
 def row_values(item, result):
     """`(giá trị nhóm, dãy ô thô)` của một dòng nhóm — cột tính sẵn đã tính
     lại theo dòng. Dùng cho cả màn hình lẫn tệp xuất."""
     by_code = {k.removeprefix("c_"): v for k, v in item.items() if k.startswith("c_")}
-    by_code.update(result.derived.get(item.get("nhom"), {}))
+    by_code.update(result.derived.get(derived_key_of(item, result), {}))
     by_code.update(_recompute(result.computed_columns, by_code))
     return item.get("nhom"), _cell_values(result, by_code)
 

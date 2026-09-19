@@ -1,10 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
-## 19.09.2026 — Ô danh tính mỗi người một dòng (AC-22.14, TL-45)
+## 19.09.2026 — Tổng hợp nhóm theo ngày × nhân sự, mỗi người một hàng (AC-22.14, TL-45)
 
-**Finished local:** ô Nhân sự/Leader liệt kê từng người một dòng thay vì chuỗi nối dấu phẩy bị
-bẻ giữa mã; cách nhóm và bố cục AC-22.13 giữ nguyên; Excel không đổi. **To do:** phát hành cùng
-đợt VPS đang chờ.
+**Finished local:** cách xem Tổng hợp mỗi người một hàng trong ngày như ảnh mẫu, Doanh thu suy
+ra theo cặp (ngày, marketer), Excel cùng cấu trúc; đảo ADR-035 quyết định 1. **To do:** phát hành
+VPS. **Far plan:** cột STT và dòng Tổng từng ngày như ảnh mẫu nếu chủ dự án muốn.
 
 ## 19.09.2026 — Ẩn cột với cả công ty (ADR-039)
 
