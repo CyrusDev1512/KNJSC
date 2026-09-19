@@ -20,6 +20,10 @@ Sửa lại: nhóm theo ngày × nhân sự (AC-22.14, đảo ADR-035 quyết đ
 Doanh thu suy ra phải khoá theo cặp (ngày, marketer), không thì mỗi người nhận trọn tiền cả
 ngày và tổng phồng lên — có bài kiểm giữ. `pytest -m "not cham"`: 2.508 đạt, 0 đỏ. Chromium
 1440 sáng/tối và 390: ngày 17.09 ra hai hàng, dòng Tổng không đổi.
+Đợt hai cùng ngày (khối theo ngày, AC-22.15): cạm bẫy thứ hai là dòng Tổng ngày phải cộng cả
+`derived` rồi mới tính lại cột tính, không thì Hóa đơn/Doanh thu của ngày trống. Ba khẳng định cứng
+phải sửa theo: `test_bo_cuc_bao_cao` (cột định danh nay có STT, `colspan` 4), AC-22.10 và AC-22.14
+(lọc `kind` để bỏ dòng Tổng ngày), selector e2e thêm `:not(.report-subtotal)`. 753 đạt, 0 đỏ.
 [Biên bản](kiem-chung-o-danh-tinh-20260919.md).
 
 ## 19.09.2026 — Ẩn cột với cả công ty (ADR-039)

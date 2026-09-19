@@ -7,6 +7,7 @@ from reports.services import activity_service
 from reports.models import ReportSource
 from reports.tests.test_aggregations import bang_mkt, dong_mau
 from reports.tests.test_mkt_excel import marketing_scope
+from reports.tests.test_mkt_derived_revenue import mkt_source, van_don
 
 pytestmark=pytest.mark.django_db
 
@@ -270,7 +271,7 @@ def test_day_view_shows_person_and_leader_in_scope(client, marketing_scope, nguo
     query={"nguon":source.table.code,"tu":"2026-08-01","den":"2026-08-31"}
     r=client.get("/bao-cao/tong-hop/",query)
     assert r.status_code==200 and r.context["result"].show_person
-    rows=r.context["rows"]
+    rows=[row for row in r.context["rows"] if row["kind"]=="row"]   # bỏ dòng Tổng ngày (AC-22.15)
     # Ngày × nhân sự: mỗi người một DÒNG riêng, ngày lặp lại (AC-22.14, chủ dự án 19.09)
     assert [row["nhom"] for row in rows]==["01.08.2026"]*len(persons)
     # Ô bảng chỉ mã nhân sự, không họ tên (ADR-037 bổ sung 18.09); ô chọn Nhân sự vẫn `MÃ · Họ tên`
@@ -281,21 +282,25 @@ def test_day_view_shows_person_and_leader_in_scope(client, marketing_scope, nguo
     assert all(nguoi_dung["leader_sale_1"].profile.full_name not in row["leader"] for row in rows)
     assert (employee_code(nguoi_dung["leader_sale_2"]) in leaders) == ("staff_sale_2" in persons)
     assert {identity_label(nguoi_dung[name]) for name in persons} <= {p["label"] for p in r.context["people"]}
-    assert r.context["label_span"]==3
+    assert r.context["label_span"]==4
     html=r.content.decode()
-    assert 'class="report-identity id-nhan-su" data-pos="2">Nhân sự</th>' in html and 'id-leader report-identity-edge" data-pos="3">Leader</th>' in html   # cột định danh ghim (AC-22.13)
+    assert 'class="report-identity id-nhan-su" data-pos="3">Nhân sự</th>' in html and 'id-leader report-identity-edge" data-pos="4">Leader</th>' in html   # cột định danh ghim (AC-22.13)
     # Lọc theo nhân sự: chỉ còn dòng của người đó; người ngoài phạm vi bị chặn
     me=nguoi_dung["staff_sale_1"].pk
     r2=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":me})
-    assert [row["person"] for row in r2.context["rows"]]==[employee_code(nguoi_dung["staff_sale_1"])] and r2.context["rows"][0]["leader"]==employee_code(nguoi_dung["leader_sale_1"])
+    dong2=[row for row in r2.context["rows"] if row["kind"]=="row"]
+    assert [row["person"] for row in dong2]==[employee_code(nguoi_dung["staff_sale_1"])] and dong2[0]["leader"]==employee_code(nguoi_dung["leader_sale_1"])
     outsider=nguoi_dung["staff_sale_2"].pk
     r3=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":outsider})
     assert (r3.status_code==403) == ("staff_sale_2" not in persons)
     sheet=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True).active.values)
-    assert sheet[3][:3]==("Ngày","Nhân sự","Leader") and len(sheet[4:-1])==len(persons)   # Excel cũng mỗi người một dòng
-    assert {d[1] for d in sheet[4:-1]}=={employee_code(nguoi_dung[name]) for name in persons}
-    assert employee_code(nguoi_dung["leader_sale_1"]) in {d[2] for d in sheet[4:-1]}
-    assert nguoi_dung["staff_sale_1"].profile.full_name not in sheet[4][1]   # Excel cũng chỉ mã
+    assert sheet[3][:4]==("Ngày","STT","Nhân sự","Leader")
+    assert sheet[4][0]=="Tổng ngày 01.08.2026"                      # khối ngày (AC-22.15)
+    nguoi_excel=[d for d in sheet[5:-1] if not str(d[0]).startswith("Tổng ngày")]
+    assert len(nguoi_excel)==len(persons)                           # Excel cũng mỗi người một dòng
+    assert {d[2] for d in nguoi_excel}=={employee_code(nguoi_dung[name]) for name in persons}
+    assert employee_code(nguoi_dung["leader_sale_1"]) in {d[3] for d in nguoi_excel}
+    assert nguoi_dung["staff_sale_1"].profile.full_name not in nguoi_excel[0][2]   # Excel cũng chỉ mã
 
 
 def test_day_view_groups_by_date_and_person(client, marketing_scope, nguoi_dung):
@@ -307,7 +312,7 @@ def test_day_view_groups_by_date_and_person(client, marketing_scope, nguoi_dung)
     client.force_login(nguoi_dung["admin"])
     query={"nguon":source.table.code,"tu":"2026-08-01","den":"2026-08-31"}
     r=client.get("/bao-cao/tong-hop/",query)
-    rows=r.context["rows"]
+    rows=[row for row in r.context["rows"] if row["kind"]=="row"]
     # Bốn người cùng nộp ngày 01.08 → bốn hàng, không phải một hàng gộp
     assert len(rows)==4 and {row["nhom"] for row in rows}=={"01.08.2026"}
     assert len({row["person"] for row in rows})==4
@@ -317,7 +322,57 @@ def test_day_view_groups_by_date_and_person(client, marketing_scope, nguoi_dung)
     # Mỗi hàng chỉ mang số của chính người đó
     assert [row["cells"][0] for row in rows]==["10"]*4
     sheet=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True).active.values)
-    assert len(sheet[4:-1])==4 and len({d[1] for d in sheet[4:-1]})==4
+    nguoi_excel=[d for d in sheet[4:-1] if not str(d[0]).startswith("Tổng ngày")]
+    assert len(nguoi_excel)==4 and len({d[2] for d in nguoi_excel})==4
+
+
+def test_day_blocks_have_day_subtotal_and_stt(client, bang_mkt, mkt_source, van_don, nguoi_dung):
+    """AC-22.15 — Cách xem Tổng hợp chia khối theo ngày như ảnh mẫu: mỗi ngày có dòng Tổng ngày đứng đầu,
+    số của nó bằng tổng các dòng con và cột tính được tính lại từ tổng (không phải trung bình), Doanh thu
+    suy ra cộng theo ngày; cột STT đếm lại từ 1 trong từng ngày; dòng Tổng trong bộ lọc không đổi; Excel cùng khối"""
+    from io import BytesIO
+    from decimal import Decimal
+    from openpyxl import load_workbook
+    from reports import aggregations
+    from reports.tests.test_mkt_derived_revenue import _bao_cao
+    A, B = van_don["A"], van_don["B"]
+    _bao_cao(bang_mkt, A, "2026-08-01", "SP1", hoa_don="8")
+    _bao_cao(bang_mkt, B, "2026-08-01", "SP2", hoa_don="2")
+    _bao_cao(bang_mkt, A, "2026-08-02", "SP1", hoa_don="5")
+    client.force_login(nguoi_dung["manager_mkt"])
+    query={"nguon":bang_mkt.code,"tu":"2026-08-01","den":"2026-08-02"}
+    r=client.get("/bao-cao/tong-hop/",query)
+    assert r.status_code==200
+    rows=r.context["rows"]
+    nhan=[(row["kind"], row["nhom"], row.get("stt","")) for row in rows]
+    # Hai khối: 02.08 (một người) rồi 01.08 (hai người), STT đếm lại từ 1 mỗi ngày
+    assert nhan==[("subtotal","02.08.2026",""),("row","02.08.2026",1),
+                  ("subtotal","01.08.2026",""),("row","01.08.2026",1),("row","01.08.2026",2)]
+    cot=[c.label for c in r.context["result"].columns]
+    def o(row, nhan_cot):
+        return row["cells"][cot.index(nhan_cot)]
+    khoi = rows[2]                                   # Tổng ngày 01.08
+    con = [rows[3], rows[4]]
+    # Số cộng được: Tổng ngày = tổng hai dòng con
+    assert o(khoi,"Số Mess")=="20" and [o(d,"Số Mess") for d in con]==["10","10"]
+    assert o(khoi,"Hóa đơn")=="10" and {o(d,"Hóa đơn") for d in con}=={"8","2"}
+    # Doanh thu suy ra của ngày = tổng hai marketer (60+40 của A, 200 của B)
+    assert o(khoi,"Doanh thu")=="300"
+    # Cột tính lại từ tổng, không phải trung bình các dòng con
+    assert o(khoi,"Hóa đơn/Doanh thu")==aggregations.format_number(Decimal(10)/Decimal(300), 4)
+    # Dòng Tổng trong bộ lọc không đổi
+    assert r.context["result"].totals["so_dong"]==3
+    tong=dict(zip(cot, aggregations.total_cells(r.context["result"])))
+    assert tong["Số Mess"]=="30" and tong["Doanh thu"]=="325"
+    html=r.content.decode()
+    assert '<tr class="report-subtotal">' in html and '01.08.2026 · Tổng ngày</th>' in html
+    assert 'class="report-identity id-stt" data-pos="2">1</td>' in html
+    # Excel: cùng khối, cột STT, dòng Tổng ngày in đậm
+    sheet=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True).active.values)
+    assert sheet[3][:4]==("Ngày","STT","Nhân sự","Leader")
+    assert [str(d[0]) for d in sheet[4:-1]]==["Tổng ngày 02.08.2026","02.08.2026",
+                                              "Tổng ngày 01.08.2026","01.08.2026","01.08.2026"]
+    assert [d[1] for d in sheet[4:-1]]==[None,1,None,1,2]   # openpyxl đọc ô trống là None
 
 
 def test_day_view_pages_by_hundred(client, marketing_scope, nguoi_dung):

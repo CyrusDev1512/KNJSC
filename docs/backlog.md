@@ -32,7 +32,13 @@ AC-22.14 và `test_mkt_derived_revenue` viết lại theo cặp (ngày, mã). Ki
 cham"` 2.508 đạt, 0 đỏ; Chromium 1440 sáng/tối và 390 — ngày 17.09 tách thành hai hàng
 ANHPM 2.320 Mess và NAMVH 50 Mess, dòng Tổng vẫn 15.056, không ô nào tràn chữ
 ([biên bản](kiem-chung-o-danh-tinh-20260919.md), ảnh `docs/kiem-thu/o-danh-tinh-2026-09-19/`).
-**Còn nợ:** chưa phát hành VPS; chưa làm cột STT và dòng Tổng từng ngày như ảnh mẫu (chưa yêu cầu).
+Đợt hai cùng ngày (chủ dự án "tiếp tục"): **khối theo ngày** như ảnh mẫu — `aggregations.subtotals()`
+cộng theo ngày (cộng cả `derived`, tính lại cột tính từ tổng), `activity_views.day_blocks()` chèn dòng
+Tổng ngày và gắn STT đếm lại từ 1, CSS `.report-subtotal` + `--w-stt`, Excel cùng khối. Bài mới
+AC-22.15; docs/04 và bộ đếm docs/06 lên 234. Chromium: 17.09 Tổng ngày 2.370 = 2.320 + 50, cuộn ngang
+cột định danh trôi 0px.
+**Còn nợ:** chưa phát hành VPS; tô màu ô theo ngưỡng như ảnh mẫu còn chờ chủ dự án chốt ngưỡng và chỗ
+lưu (`marketing.Metric` chưa có trường ngưỡng, luật màu `main.css` khoá sau `.bang-luoi`).
 
 ## 19.09.2026 — Ẩn cột với cả công ty (ADR-039), tắt nhóm cột sản phẩm
 

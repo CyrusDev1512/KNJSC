@@ -302,6 +302,35 @@ def totals_from_rows(items, result):
     return totals
 
 
+def subtotals(items, result):
+    """Tổng của từng nhóm cha khi dòng đã nhóm theo nhiều cột (Tổng hợp = ngày × nhân sự):
+    `{giá trị nhóm: dãy ô thô}` theo thứ tự xuất hiện. Cộng `c_*` như `totals_from_rows`,
+    cộng thêm giá trị suy ra (`derived`) của từng dòng, rồi tính lại cột tính từ tổng —
+    CPO của ngày là ΣCPQC ÷ Σđơn, không phải trung bình các dòng. Không truy vấn."""
+    theo_nhom = {}
+    for item in items:
+        theo_nhom.setdefault(item.get("nhom"), []).append(item)
+    out = {}
+    for nhom, dong in theo_nhom.items():
+        by_code = {}
+        for cot in result.columns:
+            if cot.kind != "sum":
+                continue
+            gia_tri = [i[_alias(cot.code)] for i in dong if i[_alias(cot.code)] is not None]
+            by_code[cot.code] = sum(gia_tri, Decimal("0")) if gia_tri else None
+        for i in dong:
+            for code, value in result.derived.get(derived_key_of(i, result), {}).items():
+                by_code[code] = (by_code.get(code) or Decimal("0")) + value
+        by_code.update(_recompute(result.computed_columns, by_code))
+        out[nhom] = _cell_values(result, by_code)
+    return out
+
+
+def subtotal_cells(items, result):
+    """`subtotals` ở dạng chuỗi hiển thị, cùng khuôn với `finish_rows`."""
+    return {nhom: _format_cells(result, raw) for nhom, raw in subtotals(items, result).items()}
+
+
 def attach_totals(result, totals):
     """Gắn dòng tổng cộng tính ngoài vào một kết quả `with_totals=False`."""
     return replace(result, totals=totals)

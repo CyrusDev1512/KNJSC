@@ -90,14 +90,19 @@ def report(request, export=False, choices=None):
             # Mỗi dòng là một người (Tổng hợp nhóm theo ngày × nhân sự) nên ô danh tính
             # chỉ có một nhãn.
             for row, raw in zip(ctx['rows'], ctx['trang']):
+                row['kind'] = 'row'
                 if show_team:
                     row['team'] = raw['team_name']
                 if show_person:
                     row['person'] = raw['person_name']
                 if show_person or show_leader:
                     row['leader'] = raw['leader_name'] or '—'
-            # Dòng "Tổng trong bộ lọc" ôm cột nhóm và các cột danh tính.
-            ctx["label_span"] = 1 + show_team + 2 * show_person + show_leader
+            # Dòng "Tổng trong bộ lọc" ôm cột nhóm và các cột danh tính (Tổng hợp có thêm STT).
+            ctx["label_span"] = 1 + show_team + 3 * show_person + show_leader
+            if show_person:
+                # Khối theo ngày như ảnh mẫu: dòng Tổng ngày đứng đầu, STT đánh lại từ 1
+                ca_bo = items if len(items) <= summary_service.MAX_GROUPS else list(ctx["trang"])
+                ctx["rows"] = day_blocks(ctx["rows"], list(ctx["trang"]), ca_bo, result)
             ctx.update(identity_layout(result, show_team, show_person, show_leader))
             if source.kind == "delivery":
                 ctx["shipping"] = result.shipping
@@ -106,19 +111,41 @@ def report(request, export=False, choices=None):
     return render(request, "reports/activity.html", ctx)
 
 
+def day_blocks(rows, page_items, all_items, result):
+    """Cách xem Tổng hợp thành các khối ngày như ảnh mẫu (AC-22.15): trước dòng đầu của mỗi
+    ngày trên trang chèn dòng Tổng ngày (cộng trên TOÀN BỘ dòng của ngày khi đã có trong bộ
+    nhớ; chạm trần `MAX_GROUPS` thì chỉ trên trang), dòng người mang STT đếm lại từ 1 mỗi ngày."""
+    tong_ngay = aggregations.subtotal_cells(all_items, result)
+    stt, dem = {}, {}
+    for item in all_items:
+        khoa = (item.get("nhom"), item.get("person_name"))
+        dem[item.get("nhom")] = dem.get(item.get("nhom"), 0) + 1
+        stt[khoa] = dem[item.get("nhom")]
+    out, ngay_truoc = [], object()
+    for row, item in zip(rows, page_items):
+        ngay = item.get("nhom")
+        if ngay != ngay_truoc:
+            out.append({"kind": "subtotal", "nhom": row["nhom"], "cells": tong_ngay.get(ngay, [])})
+            ngay_truoc = ngay
+        row["stt"] = stt.get((ngay, item.get("person_name")), "")
+        out.append(row)
+    return out
+
+
 #: Chiều rộng cột định danh theo loại (biến CSS khai ở `.report-view`, thu nhỏ theo màn hình).
-IDENTITY_WIDTH = {"team": "--w-team", "ngay": "--w-ngay", "nhom": "--w-nhom", "person": "--w-nhan-su", "leader": "--w-leader"}
-IDENTITY_CLASS = {"team": "id-team", "ngay": "id-ngay", "nhom": "id-nhom", "person": "id-nhan-su", "leader": "id-leader"}
+IDENTITY_WIDTH = {"team": "--w-team", "ngay": "--w-ngay", "nhom": "--w-nhom", "stt": "--w-stt", "person": "--w-nhan-su", "leader": "--w-leader"}
+IDENTITY_CLASS = {"team": "id-team", "ngay": "id-ngay", "nhom": "id-nhom", "stt": "id-stt", "person": "id-nhan-su", "leader": "id-leader"}
 
 
 def identity_layout(result, show_team, show_person, show_leader):
-    """Cột định danh ghim trái (bản vẽ 18.09): thứ tự Team · nhóm · Nhân sự · Leader theo cách xem;
+    """Cột định danh ghim trái (bản vẽ 18.09): thứ tự Team · nhóm · STT · Nhân sự · Leader theo cách xem;
     `left` của cột thứ 2–4 là tổng chiều rộng các cột trước, đặt bằng biến CSS trên `<table>`."""
     kinds = []
     if show_team:
         kinds.append(("team", "Team", "team"))
     kinds.append(("nhom", result.group_label, "ngay" if result.group_is_date else "nhom"))
     if show_person:
+        kinds.append(("stt", "STT", "stt"))
         kinds.append(("person", "Nhân sự", "person"))
     if show_person or show_leader:
         kinds.append(("leader", "Leader", "leader"))

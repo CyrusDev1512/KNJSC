@@ -53,11 +53,14 @@ def test_cot_dinh_danh_ghim_theo_cach_xem(client, nguon, nguoi_dung):
     r = _get(client, nguon)
     cols = r.context["identity_columns"]
     assert [(c["code"], c["kind"], c["pos"], c["edge"]) for c in cols] == [
-        ("nhom", "id-ngay", 1, False), ("person", "id-nhan-su", 2, False), ("leader", "id-leader", 3, True)]
-    assert r.context["identity_style"] == "--id-left-2:calc(var(--w-ngay));--id-left-3:calc(var(--w-ngay) + var(--w-nhan-su))"
+        ("nhom", "id-ngay", 1, False), ("stt", "id-stt", 2, False),
+        ("person", "id-nhan-su", 3, False), ("leader", "id-leader", 4, True)]
+    kieu = ("--id-left-2:calc(var(--w-ngay));--id-left-3:calc(var(--w-ngay) + var(--w-stt))"
+            ";--id-left-4:calc(var(--w-ngay) + var(--w-stt) + var(--w-nhan-su))")
+    assert r.context["identity_style"] == kieu
     html = r.content.decode()
-    assert '<table class="bang report-table" style="--id-left-2:calc(var(--w-ngay));--id-left-3:calc(var(--w-ngay) + var(--w-nhan-su))">' in html
-    assert 'class="report-identity report-identity-edge" data-pos="1" colspan="3">Tổng trong bộ lọc</th>' in html
+    assert f'<table class="bang report-table" style="{kieu}">' in html
+    assert 'class="report-identity report-identity-edge" data-pos="1" colspan="4">Tổng trong bộ lọc</th>' in html
     assert 'class="report-identity id-ngay" data-pos="1">01.08.2026</th>' in html
     r2 = _get(client, nguon, nhom="person")
     cols = r2.context["identity_columns"]

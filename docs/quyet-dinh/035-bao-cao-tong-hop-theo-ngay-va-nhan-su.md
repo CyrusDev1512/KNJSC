@@ -43,7 +43,9 @@ thấy của mình, Leader team mình, Manager cả bộ phận; nhiều dòng h
    > 19.09 cách xem Tổng hợp nhóm theo **ngày × nhân sự** (`aggregations.summarize(extra_groups=…)`,
    > `derived_key=("nhom","person_name")`): ngày lặp lại ở từng hàng, mỗi hàng chỉ mang số của
    > người đó; Doanh thu suy ra (ADR-038) khoá theo cặp (ngày, marketer); dòng Tổng không đổi;
-   > Excel cùng cấu trúc; Vận đơn nhóm theo ngày × người phụ trách. Bỏ `StringAgg` gộp tên và
+   > Excel cùng cấu trúc; Vận đơn nhóm theo ngày × người phụ trách. Mỗi ngày là một **khối**:
+   > dòng **Tổng ngày** đứng đầu (`aggregations.subtotals`, cột tính lại từ tổng, Doanh thu suy ra
+   > cộng theo ngày) và cột **STT** đếm lại từ 1 trong ngày — xem AC-22.15. Bỏ `StringAgg` gộp tên và
    > bản trung gian `98d5c1e` (xuống dòng trong ô). Luật cắt chữ 220px của quyết định 5 đã bỏ
    > ở AC-22.13. Xem AC-22.10, AC-22.14 và [biên bản](../kiem-chung-o-danh-tinh-20260919.md).
 6. **Excel** xuất đúng các cột đang hiện (Ngày, Nhân sự, Leader, chỉ tiêu; Theo nhân viên:

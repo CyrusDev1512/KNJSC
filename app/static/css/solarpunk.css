@@ -251,7 +251,7 @@ dialog::backdrop {background:#10291b66;backdrop-filter:blur(3px)}
 .sp-focus-bar .bt-trang-thai.da-luu {color:var(--good)}
 /* ── Báo cáo tổng hợp (bản vẽ 18.09) — bộ lọc ba trạng thái qua data-filters, chip bộ lọc,
    bảng ghim tiêu đề + dòng Tổng + cột định danh. Không có rule cũ chồng lên. ── */
-.report-view {--w-rail:48px;--w-panel:260px;--w-ngay:104px;--w-nhom:170px;--w-team:140px;--w-nhan-su:130px;--w-leader:120px;--head-h:41px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.report-view {--w-rail:48px;--w-panel:260px;--w-ngay:104px;--w-nhom:170px;--w-team:140px;--w-stt:44px;--w-nhan-su:130px;--w-leader:120px;--head-h:41px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .report-controls {display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .report-controls .space {flex:1 1 auto}
 .report-controls [hidden] {display:none!important}
@@ -307,14 +307,18 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
 .report-table .id-ngay {width:var(--w-ngay);min-width:var(--w-ngay);max-width:var(--w-ngay);white-space:nowrap}
 .report-table .id-nhom {width:var(--w-nhom);min-width:var(--w-nhom);max-width:var(--w-nhom)}
 .report-table .id-team {width:var(--w-team);min-width:var(--w-team);max-width:var(--w-team)}
+.report-table .id-stt {width:var(--w-stt);min-width:var(--w-stt);max-width:var(--w-stt);text-align:right;color:var(--ink-3);white-space:nowrap}
 .report-table .id-nhan-su {width:var(--w-nhan-su);min-width:var(--w-nhan-su);max-width:var(--w-nhan-su)}
 .report-table .id-leader {width:var(--w-leader);min-width:var(--w-leader);max-width:var(--w-leader)}
 .report-table .report-identity-edge {box-shadow:6px 0 8px -6px #00000040}
 .report-table thead .report-identity,.report-table .report-total .report-identity {z-index:3}
 .report-table .report-total th.report-identity {font-weight:700}
 .report-table .id-nhan-su b,.report-table .id-leader b {font-weight:700;letter-spacing:.01em;margin-right:4px}
-.report-table tbody tr:not(.report-total):nth-child(odd)>* {background:var(--surface-2)}
-.report-table tbody tr:not(.report-total):hover>* {background:var(--accent-soft)}
+/* Khối theo ngày (AC-22.15): dòng Tổng ngày đứng đầu khối, đậm, không ghim trên như dòng Tổng */
+.report-table .report-subtotal>* {background:var(--accent-soft);color:var(--ink);font-weight:700;border-top:2px solid var(--rule-strong)!important}
+.report-table .report-subtotal th.report-identity {font-weight:700;white-space:nowrap}
+.report-table tbody tr:not(.report-total):not(.report-subtotal):nth-child(odd)>* {background:var(--surface-2)}
+.report-table tbody tr:not(.report-total):not(.report-subtotal):hover>* {background:var(--accent-soft)}
 .report-table td.trong {color:var(--ink-3)}
 .report-backdrop {display:none}
 /* Toàn màn hình: bộ lọc tự về thanh dọc, bảng lấy trọn chiều cao */
@@ -348,7 +352,7 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
   .sp-report-focus .report-controls {justify-content:flex-start;gap:6px}
 }
 @media(max-width:480px) {
-  .report-view {--w-ngay:88px;--w-nhom:128px;--w-nhan-su:100px;--w-team:110px;--w-leader:100px}
+  .report-view {--w-ngay:88px;--w-nhom:128px;--w-stt:36px;--w-nhan-su:100px;--w-team:110px;--w-leader:100px}
   .report-table th,.report-table td {padding:7px 8px!important}
   .panel-body .hang-2 {grid-template-columns:1fr}
 }

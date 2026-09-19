@@ -45,9 +45,41 @@ Trước đó 17.09 là một hàng gộp 2.370 Mess và 163 đơn. Dòng Tổng
 Ảnh: `docs/kiem-thu/o-danh-tinh-2026-09-19/` — `01-sau-1440-sang.png`, `02-sau-1440-toi.png`
 (đặt `data-theme=dark`), `03-sau-390.png`.
 
+## Đợt hai cùng ngày — khối theo ngày và cột STT (AC-22.15)
+
+Chủ dự án "tiếp tục": làm nốt hai thứ ảnh mẫu có mà ta chưa có.
+
+| Tệp | Thay đổi |
+|---|---|
+| `app/reports/aggregations.py` | `subtotals()` và `subtotal_cells()` — cộng `c_*` của các dòng cùng ngày, **cộng thêm `derived`** của từng dòng, rồi `_recompute` nên cột tính của Tổng ngày tính lại từ tổng, không phải trung bình các dòng. Thuần bộ nhớ, không truy vấn thêm |
+| `app/reports/activity_views.py` | `day_blocks()` chèn dòng Tổng ngày trước dòng đầu của mỗi ngày trên trang và gắn STT đếm lại từ 1 (đếm trên toàn bộ dòng nên không đứt khi sang trang); `identity_layout` thêm cột `stt`; `label_span` thành 4 |
+| `templates/reports/activity.html` | Nhánh `kind == 'subtotal'` cho dòng Tổng ngày; ô STT theo `identity_columns` |
+| `app/static/css/solarpunk.css` | `--w-stt`, `.id-stt`, `.report-subtotal`; sọc chẵn lẻ và hover loại trừ dòng Tổng ngày |
+| `app/reports/excel.py` | Cột STT; dòng `Tổng ngày dd.mm.yyyy` in đậm trước mỗi khối |
+
+Đo trên Chromium (`mkt.manager`, kỳ 01/09–19/09), đọc thẳng từ DOM:
+
+| Dòng | Số Mess | Số đơn |
+|---|---|---|
+| Tổng trong bộ lọc | 15.056 | 1.001 |
+| 17.09.2026 · Tổng ngày | 2.370 | 163 |
+| 17.09.2026 · STT 1 · ANHPM | 2.320 | 156 |
+| 17.09.2026 · STT 2 · NAMVH | 50 | 7 |
+
+2.320 + 50 = 2.370 và 156 + 7 = 163. Không ô nào tràn chữ. Cuộn ngang 300px thì cột định
+danh trôi **0px** (vẫn ghim đúng, AC-22.13 không hỏng). Bài `reports/tests` + giao diện +
+truy vết: 753 đạt, 0 đỏ; toàn bộ `pytest -m "not cham"`: **2.509 đạt, 9 bỏ qua, 0 đỏ** (266 s),
+`test_query_budget` vẫn trong ngưỡng 10 truy vấn vì Tổng ngày cộng trong bộ nhớ.
+Ảnh `04-khoi-1440-sang.png`, `05-khoi-1440-toi.png`, `06-khoi-390.png`.
+
 ## Chưa làm, chưa kiểm
 
 - Chưa phát hành VPS.
-- Ảnh mẫu còn cột STT và dòng Tổng cộng riêng cho từng ngày; chưa yêu cầu nên chưa làm.
+- Ảnh mẫu còn tô màu ô theo ngưỡng (vàng/xanh/đỏ). Cơ chế ngưỡng đã có ở
+  `forms_builder/styling.py` nhưng gắn với `ColumnDef`, trong khi Tỉ lệ chốt, CPO, Giá Mess của
+  Marketing là `marketing.Metric` không có chỗ lưu ngưỡng; quy tắc màu trong `main.css` lại khoá
+  sau `table.bang.bang-luoi` nên không áp cho `.report-table`. Cần chủ dự án chốt ngưỡng từng chỉ
+  tiêu và chỗ lưu trước khi làm.
+- Các cột "(TT)" của ảnh mẫu không có dữ liệu tương ứng bên mình.
 - Dữ liệu kiểm chỉ có một ngày hai người; số hàng trên bảng thật = số cặp (ngày, người), phân
   trang 100 nhóm mỗi trang vẫn giữ.

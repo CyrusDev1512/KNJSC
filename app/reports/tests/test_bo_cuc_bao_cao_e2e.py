@@ -101,7 +101,7 @@ def test_bo_loc_ba_trang_thai_va_toan_man_hinh(live_server, trinh_duyet_moi, ngu
         chup(page, "bao-cao-ngan-keo-390")
         page.keyboard.press("Escape")
         page.wait_for_function(f"{ST}==='closed'")
-        ghim = page.evaluate("""()=>{const s=document.querySelector('.report-table-scroll');const id=s.querySelector('tbody tr:not(.report-total) .report-identity');
+        ghim = page.evaluate("""()=>{const s=document.querySelector('.report-table-scroll');const id=s.querySelector('tbody tr:not(.report-total):not(.report-subtotal) .report-identity');
             const th=s.querySelector('thead th:not(.report-identity)');const a=id.getBoundingClientRect().left,b=th.getBoundingClientRect().left;s.scrollLeft=300;
             return new Promise(r=>requestAnimationFrame(()=>r({cuon:s.scrollLeft,id_dx:Math.round(id.getBoundingClientRect().left-a),th_dx:Math.round(th.getBoundingClientRect().left-b)})))}""")
         assert ghim["cuon"] > 0 and ghim["id_dx"] == 0 and ghim["th_dx"] < 0, ghim

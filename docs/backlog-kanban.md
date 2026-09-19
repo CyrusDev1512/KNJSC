@@ -10,8 +10,9 @@
 ## 19.09.2026 — Tổng hợp nhóm theo ngày × nhân sự, mỗi người một hàng (AC-22.14, TL-45)
 
 **Finished local:** cách xem Tổng hợp mỗi người một hàng trong ngày như ảnh mẫu, Doanh thu suy
-ra theo cặp (ngày, marketer), Excel cùng cấu trúc; đảo ADR-035 quyết định 1. **To do:** phát hành
-VPS. **Far plan:** cột STT và dòng Tổng từng ngày như ảnh mẫu nếu chủ dự án muốn.
+ra theo cặp (ngày, marketer), Excel cùng cấu trúc; đảo ADR-035 quyết định 1. Thêm **khối theo ngày**:
+dòng Tổng ngày và cột STT (AC-22.15). **To do:** phát hành VPS. **Far plan:** tô màu ô theo ngưỡng
+như ảnh mẫu — chờ chủ dự án chốt ngưỡng từng chỉ tiêu và chỗ lưu.
 
 ## 19.09.2026 — Ẩn cột với cả công ty (ADR-039)
 
