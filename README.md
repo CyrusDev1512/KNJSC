@@ -174,7 +174,12 @@ Hai việc chạy song song trên Python 3.12 với PostgreSQL 16:
 | Việc | Lệnh | Cần gì |
 |---|---|---|
 | `pytest (bộ chính)` | `pytest -m "not trinh_duyet"` | Không cần trình duyệt; đã gồm cả bài `cham` |
-| `pytest e2e (Chromium)` | `pytest -m "trinh_duyet"` | Playwright tải sẵn Chromium, có bộ nhớ đệm |
+| `pytest e2e (Chromium)` | `pytest tests/e2e -m "trinh_duyet"` rồi `pytest -m "trinh_duyet" --ignore=tests/e2e` | Playwright tải sẵn Chromium, có bộ nhớ đệm |
+
+Việc e2e chạy **hai lượt pytest** là có lý do: `tests/e2e/conftest.py` giữ một
+Playwright theo phiên, còn hai tệp e2e khác tự mở `sync_playwright()` riêng.
+Chung một tiến trình thì tệp tới sau nổ "Playwright Sync API inside the asyncio
+loop". Hai tiến trình là hai vòng lặp, hết vướng.
 
 Hai điều cần biết khi đọc kết quả:
 

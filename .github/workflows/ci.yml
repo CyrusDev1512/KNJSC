@@ -141,13 +141,25 @@ jobs:
         # và đòi server riêng nên không nằm trong CI.
         run: playwright install --with-deps chromium
 
-      - name: pytest e2e
+      # ── Vì sao hai lượt pytest chứ không một ──────────────────────
+      # `tests/e2e/conftest.py` giữ một Playwright **theo phiên**; hai tệp
+      # e2e khác lại tự mở `sync_playwright()` của riêng chúng. Chạy chung
+      # một tiến trình thì tệp nào tới sau cũng nổ "Playwright Sync API
+      # inside the asyncio loop" — vòng lặp asyncio của phiên trước vẫn còn
+      # sống. Lượt CI đầu tiên (run 1, 19.09.2026) đỏ đúng vì lẽ đó.
+      # Hai tiến trình riêng là hai vòng lặp riêng, không phải cách vá tạm:
+      # chúng vốn là hai bộ thiết bị khác nhau. Gộp lại được khi nào các tệp
+      # kia dùng chung fixture của `tests/e2e/conftest.py`.
+      - name: pytest e2e (tests/e2e)
         working-directory: app
-        # Bài trình duyệt chạy được trong CI: `tests/e2e/` và bài bố cục Báo
-        # cáo tổng hợp. Tám tệp `*_browser*.py` khác cũng mang dấu
-        # `trinh_duyet` nhưng **tự bỏ qua** vì đòi biến môi trường riêng
-        # (KN_MASTER_BROWSER, CRM_UPDATE_BROWSER…): chúng là giá đỡ cho script
-        # Node chạy tay, không phải bài kiểm độc lập. `-rs` in rõ từng cái.
+        run: pytest tests/e2e -m "trinh_duyet" -rs --durations=10
+
+      - name: pytest e2e (bài trình duyệt còn lại)
+        working-directory: app
+        # Tám tệp `*_browser*.py` ở đây **tự bỏ qua** vì đòi biến môi trường
+        # riêng (KN_MASTER_BROWSER, CRM_UPDATE_BROWSER…): chúng là giá đỡ cho
+        # script Node chạy tay, không phải bài kiểm độc lập. `-rs` in rõ từng
+        # cái — bỏ qua không phải là đã kiểm.
         #
         # crm/tests/test_luoi_dong_trong_va_ghim_e2e.py bị loại có chủ ý:
         # **đỏ sẵn từ trước khi có tệp CI này**. Chạy một mình vẫn 3 trên 4
@@ -157,6 +169,7 @@ jobs:
         # Bỏ dòng --deselect này ra khi tệp đó được sửa, đừng bỏ trước.
         run: >-
           pytest -m "trinh_duyet"
+          --ignore=tests/e2e
           --deselect crm/tests/test_luoi_dong_trong_va_ghim_e2e.py
           -rs --durations=10
 
