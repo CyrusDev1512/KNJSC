@@ -1,5 +1,23 @@
 # Backlog
 
+## 19.09.2026 (đêm) — Một bài đầu-cuối đi trọn hành trình nhân viên
+
+**Vì sao.** Hai lỗi chủ dự án báo sáng nay đều nằm **giữa** các màn hình: đổi hộp lọc cột thì sót mục của cột
+trước, lên đơn cho khách cũ thì giữ tên cũ. 2.528 bài pytest và 50 script `kiem-thu-*.cjs` đều không bắt được,
+vì mỗi bài chỉ cắt một mảnh. Rà lại: không script nào nối "đăng nhập → lưới → sửa ô → tải lại → hộp lọc cột →
+đổi vai → lên đơn"; riêng lời nhắc khách chưa từng đi qua trình duyệt (`grep "nhac-khach" scripts/*` rỗng).
+
+**Làm gì.** Thêm `app/tests/e2e/test_hanh_trinh_nhan_vien.py`, dấu `trinh_duyet` + `cham`, chạy cùng pytest
+mỗi lượt nên không mục như script chạy tay. Không thêm tiêu chí mới: bài xác nhận lại AC-11.43, AC-11.42 và
+AC-6.10 ở đúng chỗ nối giữa các màn hình.
+
+**Vì sao là bài pytest chứ không phải script `.cjs` thứ 51.** Kho không có CI; 50 script kia chỉ chạy tay và
+gần như cái nào cũng đòi fixture pytest dựng sẵn server ở cổng riêng (8031, 8035, 8811/8812…). `tests/e2e/`
+thì chạy tự động và tự bỏ qua khi máy thiếu Chromium. Đổi lại, bài chạy trên DB test dựng sẵn chứ không phải
+dữ liệu dev — lặp lại được, nhưng không phản ánh dữ liệu thật.
+
+**Kiểm.** Bài xanh; thử đưa lỗi trở lại hai lần đều đỏ đúng chỗ: trả `hx-target` của mảnh lọc về `#hop-loc`,
+và vô hiệu listener tự điền tên ở `order-entry.js`. Chạy lại `tests/test_truy_vet.py` cùng cả `tests/e2e/`: xanh.
 ## 19.09.2026 (18:47, CLI) — Đã phát hành VPS `knjsc-app:72af235-gop` (ADR-039, AC-22.14/15/16, TL-46/47, lọc cột, nhắc khách)
 
 Từ máy Windows có SSH: rebase và push biên bản đêm trước (`a039387 → 72af235`, GitHub trước đó tưởng chưa có biên bản), backup

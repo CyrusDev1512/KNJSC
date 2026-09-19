@@ -1,5 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên
+
+**Finished local:** `tests/e2e/test_hanh_trinh_nhan_vien.py` — một lượt qua lưới, hộp lọc cột, đổi vai, lên đơn,
+lời nhắc khách; đã thử đưa lỗi trở lại hai lần đều đỏ.
+**To do:** phát hành VPS. **Far plan:** thu gọn panel "Bộ lọc"; xem lại ngưỡng 50; gom p95 từ log VPS.
 ## 19.09.2026 (18:47) — Phát hành gộp ADR-039 + Báo cáo tổng hợp + TL-46/47 + lọc cột lên VPS
 
 **Finished VPS (18:44 19.09):** image `knjsc-app:72af235-gop` trên 5 service; backup kiểm phục hồi; migration `forms_builder 0015`;

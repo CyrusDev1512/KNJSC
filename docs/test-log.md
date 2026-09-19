@@ -1,5 +1,12 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 19.09.2026 (đêm) — Hành trình xuyên màn hình
+
+**Khoảng trống đã lấp:** chỗ nối giữa các màn hình không có bài kiểm nào. Thêm
+`tests/e2e/test_hanh_trinh_nhan_vien.py` đi một lượt: Vận đơn đăng nhập → lưới → gõ ô → tải lại kiểm dữ liệu
+đã xuống DB → đổi hộp lọc cột → đổi vai Sale → lên đơn khách cũ → lời nhắc khách. Không thêm mã AC.
+Đã thử đưa lỗi trở lại hai lần (hx-target `#hop-loc`; tắt listener tự điền tên) — cả hai đều làm bài đỏ.
+
 ## 19.09.2026 (tối) — Lọc cột và lời nhắc khách
 
 **TL-48 (đóng):** hộp lọc cột nhiều giá trị nay mở sẵn ô gõ chữ, đầu hộp ghi số thật (AC-11.43).
