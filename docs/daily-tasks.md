@@ -8,8 +8,9 @@ trên domain thật: mở `/bang-tinh/van_don/` → nút **Cột** → **Ẩn c�
 công ty**. Muốn xem lại thì cũng ở hộp đó, mục "Đang ẩn với cả công ty" → **Hiện lại**.
 Migration kèm theo: `forms_builder/0015_columndef_is_hidden` (đảo được, không đụng dữ liệu).
 
-Prompt dán vào Claude Code CLI ở máy chủ dự án để làm hai mục bàn giao 18.09 dưới đây (phát hành
-chung ADR-036 + bảy PTTT + ADR-037/038) rồi Việc A: `docs/prompt-cli-phat-hanh-adr036-mkt-20260918.md`.
+Prompt dán vào Claude Code CLI ở máy chủ dự án: `docs/prompt-cli-phat-hanh-adr036-mkt-20260918.md`
+— cập nhật 19.09 cho mốc `7a6cfe4`, gộp **một lần phát hành** cho ADR-036, bảy PTTT, ADR-037,
+ADR-038, bố cục Báo cáo tổng hợp, ô Nhân sự chỉ mã, AC-22.14 và ADR-039. Sáu migration.
 
 ## Bàn giao phát hành VPS — 18.09.2026 (tối): trang MKT hoàn thiện (ADR-037, ADR-038, ADR-031 bổ sung)
 

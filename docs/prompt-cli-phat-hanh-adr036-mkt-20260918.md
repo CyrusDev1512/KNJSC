@@ -1,15 +1,18 @@
 # Prompt dán vào Claude Code CLI (máy chủ dự án, có SSH tới VPS)
 
-Toàn bộ phần dưới đây là **một prompt**, chép nguyên vào CLI. Kế hoạch năm đợt trang MKT đã làm
-xong và đã push (`49068b7` trên `codex/crm-update-solar-ui`); máy khác đã chốt thêm bảy PTTT
-(`3748ea9`, đóng TL-44). Việc "nốt" là phát hành VPS gộp ADR-036 + bảy PTTT + ADR-037/038 rồi
-làm Việc A (bố cục Báo cáo tổng hợp).
+Toàn bộ phần dưới đây là **một prompt**, chép nguyên vào CLI. Mọi việc đã làm xong và đã push
+trên `codex/crm-update-solar-ui`; **chỉ còn phát hành**. Một lần phát hành này gộp sáu đợt:
+ADR-036 (một bảng vận đơn), bảy PTTT (bổ sung ADR-031), ADR-037 và ADR-038 (trang MKT), bố cục
+Báo cáo tổng hợp (AC-22.13), ô Nhân sự chỉ mã (bổ sung ADR-037), ô danh tính mỗi người một dòng
+(AC-22.14) và ADR-039 (ẩn cột với cả công ty).
+
+> **Cập nhật 19.09.2026:** mốc HEAD là `7a6cfe4`. So với lần cập nhật trước, thêm ADR-039 nên
+> **sáu** migration chứ không phải năm, và có một việc bấm tay sau phát hành (Việc 5).
 
 ---
 
 Đọc `CLAUDE.md` và `AGENTS.md` trước. Nhánh làm việc là `codex/crm-update-solar-ui`; `git fetch`
-rồi checkout, HEAD phải từ `3748ea9` trở lên ("Bay PTTT theo sheet Van don cua Quan tri noi bo";
-trên đó chỉ còn commit tài liệu). Đây là máy có SSH tới VPS; Claude Code trên web không tới được
+rồi checkout, HEAD phải từ `7a6cfe4` trở lên ("Ghi ket qua pytest sau rebase vao bien ban o danh tinh"). Đây là máy có SSH tới VPS; Claude Code trên web không tới được
 nên các đợt dưới đây đang chờ phát hành. Làm theo AGENTS.md: trình kế hoạch ngắn (mục tiêu, phạm vi, cách làm, cách
 kiểm) để tôi gật rồi tự làm trọn; chỉ commit, push khi tôi bảo; không dán mật khẩu, khoá, IP vào
 chat. Thông tin SSH và đường dẫn kho trên VPS: `<tôi điền>`.
@@ -28,24 +31,28 @@ chat. Thông tin SSH và đường dẫn kho trên VPS: `<tôi điền>`.
 - Biên bản: `docs/kiem-chung-mot-bang-van-don-20260918.md`, `docs/kiem-chung-trang-mkt-20260918.md`
   (ảnh ở `docs/kiem-thu/trang-mkt-2026-09-18/`). Khuôn phát hành các lần trước:
   `docs/kiem-chung-phat-hanh-vps-20260918-tl41.md`, `-excel.md`, `deploy/production/README.md`.
-- `docs/backlog.md` ba mục 18.09 ở đầu tệp (Bảy PTTT, trang MKT, một bảng vận đơn) — phần "Còn nợ".
+- ADR-039 (`docs/quyet-dinh/039-an-cot-voi-ca-cong-ty.md`, biên bản `docs/kiem-chung-an-cot-20260919.md`):
+  ẩn cột cho cả công ty, `ColumnDef.is_hidden`, migration `forms_builder/0015`. Ẩn là **trạng thái
+  trong cơ sở dữ liệu**, phát hành xong cột vẫn hiện cho tới khi có người bấm — xem Việc 5.
+- AC-22.14 (`docs/kiem-chung-o-danh-tinh-20260919.md`): ô Nhân sự/Leader liệt kê mỗi người một dòng.
+- `docs/backlog.md` các mục 19.09 và 18.09 ở đầu tệp — phần "Còn nợ".
 
 ## Việc 1 — Kiểm trên máy này trước khi động vào VPS
 
-1. `pytest -m "not cham"` từ `app/` (kỳ vọng ≈ 2.490 đạt, 0 đỏ; biên bản trang MKT đo trên
-   `49068b7`, bảy PTTT chỉ sửa hai bài AC-11.9 và `test_market_currency`).
+1. `pytest -m "not cham"` từ `app/` (kỳ vọng **2.508 đạt, 9 bỏ qua, 0 đỏ** — số đo trên máy ảo
+   web ở đúng `7a6cfe4`).
 2. `pytest` đầy đủ gồm bài `cham` và `trinh_duyet`. Trên máy ảo web, ba bài của
    `crm/tests/test_luoi_dong_trong_va_ghim_e2e.py` đỏ **cả trên nền cũ lẫn mã mới** (lỗi môi
    trường: "Playwright Sync API inside the asyncio loop", `wait_for_function` quá 15 s). Chạy ở
    máy này để biết chúng có xanh không; đỏ thì ghi vào biên bản, **không sửa test để cho qua**.
 3. `python manage.py makemigrations --check --dry-run` phải "No changes detected".
 
-## Việc 2 — Phát hành VPS gộp ADR-036 + bảy PTTT + ADR-037/038
+## Việc 2 — Phát hành VPS gộp cả sáu đợt
 
 Tuân đúng thứ tự, mỗi bước in kết quả thật; **dừng hỏi tôi ở hai chỗ đánh dấu DỪNG**.
 
 1. SSH vào VPS, **chỉ ghi nhận**: `docker compose ps`, tag image đang chạy, dung lượng DB, số dòng
-   ba bảng `van_don`, `van_don_moi`, `van_don_db`, `showmigrations forms_builder org orders reports`.
+   ba bảng `van_don`, `van_don_moi`, `van_don_db`, `showmigrations forms_builder org orders reports crm`.
    Báo tôi.
 2. Backup DB, **kiểm phục hồi** vào DB tạm, đếm dòng ba bảng khớp. Không khớp thì không đi tiếp.
    **DỪNG 1**: tóm tắt và hỏi tôi xác nhận lệnh xoá cứng crmThuận + Vận đơn DB (không hoàn tác;
@@ -53,12 +60,11 @@ Tuân đúng thứ tự, mỗi bước in kết quả thật; **dừng hỏi tô
 3. `.env` trên VPS: `EXCHANGE_RATES_VND` **không bắt buộc** (mặc định trong mã đã theo sheet:
    USD=25500, CAD=17500, PHP=440, EUR=28500, JPY=155, AUD=17000); **không thêm KRW** — kế toán chưa
    chốt, bảng xếp hạng sẽ báo "Chưa có tỉ giá cho KRW" nếu có đơn Hàn Quốc, đó là chủ ý.
-4. Build image `knjsc-app:<hash HEAD ngắn>-mkt` theo cách máy này vẫn làm (HEAD là `3748ea9` cộng
-   một commit chỉ tài liệu, mã chạy y hệt `3748ea9`).
+4. Build image `knjsc-app:<hash HEAD ngắn>-mkt` theo cách máy này vẫn làm.
 5. Dãy lệnh `deploy/production/README.md`, đúng thứ tự:
    `config --quiet` → `up -d db broker cache` → `static-owner` →
-   `migrate --noinput` (kỳ vọng **năm** migration mới: `forms_builder 0014`, `org 0005`,
-   `orders 0009`, `orders 0010`, `reports 0004`; ghi lại output) →
+   `migrate --noinput` (kỳ vọng **sáu** migration mới: `forms_builder 0014`, `forms_builder 0015`,
+   `org 0005`, `orders 0009`, `orders 0010`, `reports 0004`; ghi lại output) →
    `tao_bang_van_don` (nâng cấp tại chỗ `van_don`, in một bảng; cột PTTT nhận thêm 5 lựa chọn) →
    `xoa_bang_van_don_cu --dong-y-xoa-cung --backup-da-lam` (**chỉ sau DỪNG 1 được gật**; in số
    lượng từng loại) →
@@ -87,13 +93,16 @@ Tuân đúng thứ tự, mỗi bước in kết quả thật; **dừng hỏi tô
      nút Chọn nhanh; dòng cũ chưa có loại tiền vẫn hiện cảnh báo lẫn tiền — đúng ADR-032.
 8. Báo nhân viên trước hoặc ngay sau phát hành: định danh hiện mã · họ tên; Marketing nộp bao
    nhiêu lần cũng được và không nhập Doanh thu nữa; Kế toán sửa được số liệu mọi bộ phận; crmThuận
-   và Vận đơn DB không còn; Bảng nhận đơn không còn; PTTT có bảy lựa chọn theo sheet Vận đơn.
+   và Vận đơn DB không còn; Bảng nhận đơn không còn; PTTT có bảy lựa chọn theo sheet Vận đơn;
+   màn Báo cáo tổng hợp đổi bố cục. Nếu bấm ẩn nhóm cột sản phẩm (Việc 5) thì báo thêm: cột số
+   lượng theo sản phẩm biến khỏi lưới **và khỏi tệp Excel xuất ra**, ai đang đối chiếu bằng tệp
+   xuất phải biết trước.
 9. Quay lui nếu hỏng: image cũ + backup. Lưu ý `reports/0004` không quay lui bằng `migrate` nếu đã
    có người nộp nhiều lần/ngày; `org/0005` quay lui thì mất mã đã gán; `orders/0009`, `orders/0010`
-   chỉ đổi choices, quay lui không đụng dữ liệu.
-10. Ghi `docs/kiem-chung-phat-hanh-vps-20260918-adr036-mkt.md` theo khuôn, một mục ngày ở đầu
+   chỉ đổi choices và `forms_builder/0015` chỉ thêm một cờ, quay lui không đụng dữ liệu.
+10. Ghi `docs/kiem-chung-phat-hanh-vps-20260919-gop.md` theo khuôn, một mục ngày ở đầu
     `docs/backlog.md`, cập nhật `docs/backlog-kanban.md`; commit "Ghi ket qua phat hanh <hash>
-    (ADR-036, bay PTTT, 037, 038) tren VPS", **push khi tôi bảo**.
+    (ADR-036, bay PTTT, 037, 038, 039) tren VPS", **push khi tôi bảo**.
 
 ## Việc 3 — Việc A: bố cục Báo cáo tổng hợp theo bản vẽ
 
@@ -128,6 +137,19 @@ tài khoản của tôi, `/bao-cao/tong-hop/?nguon=bao_cao_mkt&nhom=day`:
    thanh kéo ngang của bảng nằm ngay dưới bảng trong màn hình, phân trang thấy được, không phải cuộn
    cả trang. Có Chromium thì chạy `node scripts/kiem-thu-bao-cao-chi-ma.mjs` với
    `KN_ERP_BASE=https://<domain ERP>` và `KN_USER`/`KN_PASSWORD` của tôi (Node ≥ 22, không cần cài gì).
+4. Ghi kết quả vào biên bản phát hành ở Việc 2 mục 10, không tách biên bản riêng.
+
+## Việc 5 — Sau phát hành: bấm ẩn nhóm cột số lượng theo sản phẩm (ADR-039)
+
+Ẩn cột là **trạng thái trong cơ sở dữ liệu**, không phải mặc định của mã nguồn: phát hành xong
+thì cột `sl_*` **vẫn hiện** cho tới khi có người bấm. Việc này tôi hoặc Admin làm, bạn chỉ hướng
+dẫn và kiểm lại:
+
+1. Mở `/bang-tinh/van_don/` trên domain CRM thật → nút **Cột** → **Ẩn cột số lượng theo sản phẩm
+   với cả công ty**. Muốn xem lại: cũng hộp đó, mục "Đang ẩn với cả công ty" → **Hiện lại**.
+2. Kiểm ba màn hình cùng lọc: lưới KN CRM, tệp Excel xuất ra, Bảng dữ liệu ERP — cột đã ẩn không
+   còn ở cả ba, dữ liệu trong cơ sở dữ liệu vẫn nguyên.
+3. Lên đơn một sản phẩm mới khi nhóm đang ẩn: cột mới sinh ra cũng ở trạng thái ẩn.
 4. Ghi kết quả vào biên bản phát hành ở Việc 2 mục 10, không tách biên bản riêng.
 
 ## Không làm trong đợt này, chỉ hỏi tôi khi tới lượt
