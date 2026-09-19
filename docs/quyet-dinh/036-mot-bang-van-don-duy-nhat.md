@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã triển khai local, kiểm chứng ở `docs/kiem-chung-mot-bang-van-don-20260918.md`; VPS chờ phát hành |
+| Trạng thái | **Đang chạy trên VPS** (xác nhận 19.09, [ghi nhận](../kiem-chung-phat-hanh-vps-20260919-xac-nhan.md)); kiểm chứng local ở `docs/kiem-chung-mot-bang-van-don-20260918.md` |
 | Ngày | 18.09.2026 |
 | Người quyết định | Chủ dự án (ba câu hỏi trả lời trong phiên Claude Code) |
 | Thay thế cho | ADR-018 phần "hai bảng độc lập" (crmThuận song song bảng cũ); toàn bộ ADR-029 và ADR-034 (Bảng nhận đơn); điều "bắt buộc Chi tiết sản phẩm khi tạo dòng" của ADR-018/021 |

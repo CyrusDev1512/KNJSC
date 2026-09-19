@@ -8,6 +8,15 @@ Báo cáo tổng hợp (AC-22.13), ô Nhân sự chỉ mã (bổ sung ADR-037), 
 
 > **Cập nhật 19.09.2026:** mốc HEAD là `7a6cfe4`. So với lần cập nhật trước, thêm ADR-039 nên
 > **sáu** migration chứ không phải năm, và có một việc bấm tay sau phát hành (Việc 5).
+>
+> **Đính chính 19.09 (chiều):** chủ dự án xác nhận **ADR-036 và bảy PTTT đã chạy trên VPS rồi**
+> (Bảng nhận đơn 404, crmThuận và Vận đơn DB đã biến mất, ô PTTT đủ bảy loại) — lần phát hành đó
+> không để lại biên bản nên các mục dưới đây viết như thể chưa chạy. Xem
+> [ghi nhận bổ sung](kiem-chung-phat-hanh-vps-20260919-xac-nhan.md). Hệ quả khi chạy prompt này:
+> `migrate` sẽ báo `forms_builder 0014`, `orders 0009` và `0010` **đã áp**, chỉ còn migration mới;
+> `xoa_bang_van_don_cu` in "không có gì để xoá" — **đúng, không phải lỗi, đừng chạy lại kiểu khác**;
+> `tao_bang_van_don` chỉ nâng cấp tại chỗ. Bước backup và kiểm phục hồi **vẫn giữ nguyên**.
+> ADR-037, ADR-038, bố cục Báo cáo tổng hợp và AC-22.14 **chưa ai xác nhận** — kiểm ở Việc 2.
 
 ---
 

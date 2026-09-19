@@ -67,6 +67,7 @@ Cheque, Western Union, RIA, Money Gram. `ACTIVE_PAYMENT_METHODS` lên 7 (mã m�
 `western`, `ria`, `moneygram`, đều ≤ 12 ký tự nên không đổi cột), migration `orders/0010` chỉ đổi choices;
 form Lên đơn, lưới (`pttt`, `pttt_thuc_te`), nhập tệp và `upgrade_schema` (bổ sung lựa chọn cho bảng có
 sẵn) dùng chung hằng số nên không sửa thêm. Tệp thật `vandon-mau.xlsx` vào đủ 221/221 (AC-11.9 viết lại).
+**Đã phát hành VPS** (xác nhận 19.09: ô PTTT trên domain thật đủ bảy loại).
 Chưa làm theo sheet: trạng thái thanh toán thứ tư "Thanh toán lỗi", 7 trạng thái vận chuyển, khối Đối soát
 kế toán — vẫn chờ chốt như mục dưới. Kiểm: xem test-log 18.09 (tối).
 
@@ -120,8 +121,9 @@ docs/02/04/05, CLAUDE.md, `deploy/production/README.md`, `docs/daily-tasks.md` (
 có bước xoá cứng sau backup). Kiểm: xem test-log 18.09 (chiều) và
 [biên bản](kiem-chung-mot-bang-van-don-20260918.md).
 Kiểm local: pytest 2.384 đạt / 0 đỏ (không `cham`), `cham` 13 đạt 2 xfail; DB dev `xoa_bang_van_don_cu` xoá 385.000 dòng giả trong 56 s; Chromium 8 điểm đạt (xem biên bản). Sửa thêm nhờ kiểm: `_payment_label` nhận "Đã Thanh Toán" của tệp thật; câu chú thích Lên đơn; teardown `test_hieu_nang` (TL-42).
-**Còn nợ:** phát hành VPS (CLI ở máy chủ dự án, phải backup rồi mới chạy lệnh xoá cứng —
-6.667 + 2 dòng mất vĩnh viễn); TL-43 lệnh xoá 50.000 dòng treo một lần chưa tái hiện; script Codex chỉ `node --check`, chưa chạy lại; các bảng đặc tả
+**Đã phát hành VPS** — xác nhận 19.09 bằng ba phép thử trên domain thật (Bảng nhận đơn 404, hai bảng cũ
+biến mất, PTTT đủ bảy loại); lần phát hành đó không để lại biên bản, xem
+[ghi nhận bổ sung](kiem-chung-phat-hanh-vps-20260919-xac-nhan.md). **Còn nợ:** TL-43 lệnh xoá 50.000 dòng treo một lần chưa tái hiện; script Codex chỉ `node --check`, chưa chạy lại; các bảng đặc tả
 "Quản trị nội bộ" (Đối soát kế toán 3 lần, Đối soát với kho, trạng thái vận chuyển 7 giá trị,
 PTTT 7 loại, báo cáo giữa ca) vẫn chờ chủ dự án chốt.
 

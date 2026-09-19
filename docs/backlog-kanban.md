@@ -23,10 +23,10 @@ của Codex, AC-22.13). Việc B bỏ vì Codex đã làm (ADR-037). Kiểm: `re
 
 ## 18.09.2026 (chiều) — Một bảng vận đơn duy nhất (ADR-036)
 
-**Finished local, chưa VPS:** `van_don` là bảng duy nhất mang profile Vận đơn + cột Trùng;
+**Đã phát hành VPS** (xác nhận 19.09, không có biên bản phát hành): `van_don` là bảng duy nhất mang profile Vận đơn + cột Trùng;
 Bảng nhận đơn bỏ; lệnh xoá cứng hai bảng cũ; dòng không chi tiết tạo được. Bài AC-36.x đạt.
 [Biên bản](kiem-chung-mot-bang-van-don-20260918.md).
-**To do (CLI máy chủ dự án):** backup → phát hành → `migrate` 0014 → `tao_bang_van_don` →
+**~~To do~~ đã xong:** backup → phát hành → `migrate` 0014 → `tao_bang_van_don` →
 `xoa_bang_van_don_cu` → kiểm Chrome. **Far plan:** khối Đối soát kế toán, Black list, 7 trạng thái
 vận chuyển theo sheet Vận đơn của "Quản trị nội bộ" — chờ chốt.
 
