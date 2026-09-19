@@ -31,7 +31,7 @@ Không đụng bố cục, cột ghim, chip hay bộ lọc của AC-22.13.
 | Kiểm | Lệnh | Kết quả |
 |---|---|---|
 | Báo cáo + giao diện | `pytest reports/tests core/tests/test_giao_dien.py -m "not trinh_duyet"` | **716 đạt, 0 đỏ** |
-| Toàn bộ bộ nhanh | `pytest -m "not cham"` | **2.494 đạt, 9 bỏ qua, 0 đỏ** (288 s) |
+| Toàn bộ bộ nhanh | `pytest -m "not cham"` | **2.508 đạt, 9 bỏ qua, 0 đỏ** (301 s) — chạy lại sau khi rebase lên `1e09cfd` (ADR-039 ẩn cột) của phiên song song |
 
 Chromium trên server dev 8020, tài khoản `mkt.manager`, nguồn Báo cáo Marketing, kỳ
 01/09–19/09:
