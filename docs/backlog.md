@@ -1,5 +1,14 @@
 # Backlog
 
+## 19.09.2026 (18:47, CLI) — Đã phát hành VPS `knjsc-app:72af235-gop` (ADR-039, AC-22.14/15/16, TL-46/47, lọc cột, nhắc khách)
+
+Từ máy Windows có SSH: rebase và push biên bản đêm trước (`a039387 → 72af235`, GitHub trước đó tưởng chưa có biên bản), backup
+kiểm phục hồi (15 / 52 / 50 / 0 dòng, 51 bảng khớp), ff `ea8942c → 72af235`, build image, **một** migration `forms_builder 0015`,
+`tao_bang_van_don` 37 cột, `configure_*`, `collectstatic`, `gan_ma_nhan_su_cu` xem trước 0 hồ sơ thiếu mã, `up -d` 5 service lúc
+18:44 VN, nginx reload, hai domain 200, 0 lỗi, 0 restart; CSS/JS mới đã phục vụ trên domain thật; `is_hidden` 0/72 cột.
+**Còn nợ:** Admin bấm ẩn nhóm cột sản phẩm một lần (Việc 5) rồi kiểm ba màn hình; chủ dự án kiểm mục 7 hai đợt trên domain
+thật; `pytest` toàn bộ chưa chạy ở máy này. [Biên bản](kiem-chung-phat-hanh-vps-20260919-gop.md).
+
 ## 19.09.2026 (tối) — Chắn lỗi gõ nhầm số điện thoại; hộp lọc cột chọn đúng công cụ
 
 **Chắn gõ nhầm số.** Bản sửa tên khách buổi chiều làm lỗi đổi dạng: gõ nhầm số là danh bạ bị đổi tên âm thầm.
@@ -19,7 +28,7 @@ gọi. AC-11.42. Trước khi sửa: mở cột Quốc gia (3 giá trị) đếm
 AC-11.41, thêm bài khẳng định mã trong `docs/04` là duy nhất.
 
 Kiểm: 2.527 đạt / 0 đỏ; [biên bản](kiem-chung-loc-cot-va-nhac-khach-20260919.md).
-**Còn nợ:** phát hành VPS; thu gọn panel "Bộ lọc" (hoãn, chờ hỏi nhân viên); ngưỡng 50 chưa có số đo.
+**Còn nợ:** ~~phát hành VPS~~ (đã phát hành 18:44 19.09, mục trên); thu gọn panel "Bộ lọc" (hoãn, chờ hỏi nhân viên); ngưỡng 50 chưa có số đo.
 
 ## 19.09.2026 (chiều) — Hai lỗi chủ dự án báo: tên khách đơn thứ hai, hộp lọc cột trông hỏng
 

@@ -1,5 +1,13 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 19.09.2026 (18:47) — Phát hành gộp ADR-039 + Báo cáo tổng hợp + TL-46/47 + lọc cột lên VPS
+
+**Finished VPS (18:44 19.09):** image `knjsc-app:72af235-gop` trên 5 service; backup kiểm phục hồi; migration `forms_builder 0015`;
+hai domain 200, 0 lỗi. Bốn mục 19.09 bên dưới hết "To do: phát hành VPS". [Biên bản](kiem-chung-phat-hanh-vps-20260919-gop.md).
+**To do (Admin):** bấm ẩn nhóm cột sản phẩm với cả công ty một lần, kiểm lưới / Excel / Bảng dữ liệu (Việc 5).
+**To do (chủ dự án):** kiểm mục 7 hai đợt trên domain thật; tạo hồ sơ cho `admin`/`quantri`.
+**To do (CLI):** `pytest` toàn bộ trên `72af235` khi có Docker.
+
 ## 19.09.2026 (tối) — Lọc cột và lời nhắc khách
 
 **Finished local:** tự điền tên khách + cảnh báo đổi tên (AC-6.10); hộp lọc cột chọn công cụ theo số giá trị (AC-11.43); sửa gốc lỗi sót mục khi đổi cột (AC-11.42); hết trùng mã AC.
