@@ -1,0 +1,170 @@
+# Chạy kiểm thử tự động cho mọi pull request và mọi lần đẩy mã lên hai nhánh
+# chính. Trước tệp này kho **không có gì** chạy kiểm thử khi đẩy mã — docs/06
+# mục "Việc còn thiếu trong chính kế hoạch này" điều 1, backlog K17.
+#
+# Hai việc chạy song song, tách vì một bên cần trình duyệt còn bên kia không:
+#
+#   kiem-thu   toàn bộ bài không cần trình duyệt, kể cả bài `cham`   ~5 phút
+#   e2e        bài Playwright với Chromium thật                       ~2 phút
+#
+# Vì sao gộp `cham` vào lượt PR thay vì hẹn giờ chạy đêm: sáu bài sức chứa
+# nặng nhất (100k/300k dòng) **tự bỏ qua** khi thiếu fixture kiểm tải riêng,
+# nên cả nhóm `cham` chỉ tốn khoảng 45 giây. Đo ngày 19.09.2026: 13 đạt,
+# 6 bỏ qua, 2 xfail. Nếu sau này có ai bật các bài đó lên thì tách job riêng.
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - codex/crm-update-solar-ui
+      - main
+  push:
+    branches:
+      - codex/crm-update-solar-ui
+      - main
+  workflow_dispatch:
+
+# Đẩy tiếp lên cùng một nhánh thì huỷ lượt đang chạy, khỏi xếp hàng vô ích
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Khớp mặc định của knjsc/settings/base.py; settings/test.py kế thừa dev.py
+  POSTGRES_DB: knjsc_db
+  POSTGRES_USER: knjsc
+  POSTGRES_PASSWORD: knjsc
+  POSTGRES_HOST: 127.0.0.1
+  POSTGRES_PORT: "5432"
+  DJANGO_SECRET_KEY: khoa-chi-dung-trong-ci-khong-phai-khoa-that
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  # ── Bộ chính: mọi bài không cần trình duyệt ─────────────────────
+  kiem-thu:
+    name: pytest (bộ chính)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    services:
+      db:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: knjsc_db
+          POSTGRES_USER: knjsc
+          POSTGRES_PASSWORD: knjsc
+        ports:
+          - 5432:5432
+        # Bài kiểm tự tạo database riêng `test_knjsc_db`; tài khoản trên là
+        # superuser của image nên tạo được, và `TrigramExtension` của
+        # core/0002_pg_trgm cũng cần đúng quyền đó
+        options: >-
+          --health-cmd "pg_isready -U knjsc -d knjsc_db"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # Cùng phiên bản với deploy/Dockerfile
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: app/requirements-dev.txt
+
+      - name: Cài phụ thuộc
+        working-directory: app
+        run: pip install -r requirements-dev.txt
+
+      - name: Kiểm cấu hình Django
+        working-directory: app
+        run: python manage.py check --settings=knjsc.settings.test
+
+      - name: pytest
+        working-directory: app
+        # `--ds=knjsc.settings.test` đã nằm trong addopts của pytest.ini.
+        # **Không thêm `-q`**: pytest.ini đã có một cái, thêm nữa thành `-qq`
+        # và mất luôn dòng tổng kết "N passed" trong log.
+        # `-rs` in lý do từng bài bỏ qua — bỏ qua không phải là đã kiểm.
+        run: pytest -m "not trinh_duyet" -rs --durations=10
+
+  # ── Bài trình duyệt thật ────────────────────────────────────────
+  e2e:
+    name: pytest e2e (Chromium)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    services:
+      db:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: knjsc_db
+          POSTGRES_USER: knjsc
+          POSTGRES_PASSWORD: knjsc
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U knjsc -d knjsc_db"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: app/requirements-dev.txt
+
+      - name: Cài phụ thuộc
+        working-directory: app
+        run: pip install -r requirements-dev.txt
+
+      # Chromium tải một lần rồi dùng lại; khoá theo phiên bản Playwright ghim
+      # trong requirements-dev.txt, đổi phiên bản là tự tải lại
+      - name: Lấy Chromium từ bộ nhớ đệm
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('app/requirements-dev.txt') }}
+
+      - name: Cài Chromium
+        working-directory: app
+        # `--with-deps` cài cả thư viện hệ thống Chromium cần; vẫn phải chạy
+        # khi trúng đệm vì đệm chỉ giữ trình duyệt, không giữ gói apt.
+        # Không cần Node ở đây: bài e2e là pytest gọi Playwright bản Python.
+        # Hơn 70 script `scripts/kiem-thu-*.cjs` mới cần Node, chúng chạy tay
+        # và đòi server riêng nên không nằm trong CI.
+        run: playwright install --with-deps chromium
+
+      - name: pytest e2e
+        working-directory: app
+        # Bài trình duyệt chạy được trong CI: `tests/e2e/` và bài bố cục Báo
+        # cáo tổng hợp. Tám tệp `*_browser*.py` khác cũng mang dấu
+        # `trinh_duyet` nhưng **tự bỏ qua** vì đòi biến môi trường riêng
+        # (KN_MASTER_BROWSER, CRM_UPDATE_BROWSER…): chúng là giá đỡ cho script
+        # Node chạy tay, không phải bài kiểm độc lập. `-rs` in rõ từng cái.
+        #
+        # crm/tests/test_luoi_dong_trong_va_ghim_e2e.py bị loại có chủ ý:
+        # **đỏ sẵn từ trước khi có tệp CI này**. Chạy một mình vẫn 3 trên 4
+        # bài hỏng (một khẳng định thứ tự cột ghim, hai lần Playwright quá hạn
+        # 15 giây — đo 19.09.2026). Nó mang cả hai dấu `trinh_duyet` và `cham`
+        # nên chưa từng nằm trong con số "2.527 đạt" của dự án.
+        # Bỏ dòng --deselect này ra khi tệp đó được sửa, đừng bỏ trước.
+        run: >-
+          pytest -m "trinh_duyet"
+          --deselect crm/tests/test_luoi_dong_trong_va_ghim_e2e.py
+          -rs --durations=10
+
+      - name: Giữ ảnh chụp màn hình
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: anh-e2e
+          path: storage/e2e/
+          if-no-files-found: ignore
+          retention-days: 7

@@ -165,6 +165,32 @@ Tài khoản mẫu và mật khẩu ở `docs/tai-khoan-mau.md`. Chi tiết ở 
 
 ---
 
+## Kiểm thử tự động khi đẩy mã
+
+`.github/workflows/ci.yml` chạy cho **mọi pull request và mọi lần đẩy mã** lên
+`codex/crm-update-solar-ui` hoặc `main`, và bấm chạy tay được ở tab Actions.
+Hai việc chạy song song trên Python 3.12 với PostgreSQL 16:
+
+| Việc | Lệnh | Cần gì |
+|---|---|---|
+| `pytest (bộ chính)` | `pytest -m "not trinh_duyet"` | Không cần trình duyệt; đã gồm cả bài `cham` |
+| `pytest e2e (Chromium)` | `pytest -m "trinh_duyet"` | Playwright tải sẵn Chromium, có bộ nhớ đệm |
+
+Hai điều cần biết khi đọc kết quả:
+
+- **Bỏ qua không phải là đã kiểm.** Cả hai việc chạy kèm `-rs` nên log in rõ
+  lý do từng bài bỏ qua. Tám tệp `*_browser*.py` và sáu bài sức chứa tự bỏ qua
+  vì đòi biến môi trường và fixture kiểm tải riêng.
+- `crm/tests/test_luoi_dong_trong_va_ghim_e2e.py` **bị loại có chủ ý** vì đỏ
+  sẵn từ trước khi có CI. Lý do đầy đủ ghi trong chính tệp workflow; sửa xong
+  thì bỏ dòng `--deselect` ra.
+
+Hơn 70 script `scripts/kiem-thu-*.cjs` chạy Chrome thật vẫn **chạy tay**, không
+nằm trong CI: chúng đòi server pytest dựng sẵn ở cổng riêng, và kho chưa có
+`package.json` để dựng môi trường Node.
+
+---
+
 ## Quy ước
 
 **Ngôn ngữ.** Toàn bộ tài liệu, giao diện và thông báo bằng tiếng Việt.
