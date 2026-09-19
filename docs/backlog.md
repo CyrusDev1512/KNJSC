@@ -1,5 +1,20 @@
 # Backlog
 
+## 19.09.2026 — Ô danh tính Báo cáo tổng hợp: mỗi người một dòng (AC-22.14, TL-45)
+
+Chủ dự án gửi ảnh hệ thống khác, nói trường nhân viên đang "nhét chung 1 ô thay vì chia ra
+thành hàng". Đã chốt: **giữ nguyên cách nhóm** (Tổng hợp vẫn mỗi ngày một dòng, đúng ADR-035
+quyết định 1 — bản nháp nhóm theo ngày × nhân sự chính chủ dự án đã hoàn lại hôm 18.09), chỉ
+sửa cách hiện cho "đơn giản và mạch lạc". Muốn mỗi người một hàng thì dùng cách xem **Theo
+nhân viên** đã có sẵn. Làm trên nền `ea8942c` của phiên song song (bố cục AC-22.13 đã bỏ luật
+cắt chữ, ô bảng đã chỉ còn mã): thêm `core/identity.JOIN` + `split_labels()`; `activity_views`
+trả ô Nhân sự/Leader là danh sách; template lặp thành `<span class="report-name">`; CSS
+`.report-name {display:block}`. Excel không đổi. Bổ sung ADR-035, AC-22.14 trong `docs/04`,
+bộ đếm `docs/06` lên 226. Kiểm: 716 bài của báo cáo và giao diện đạt; Chromium 1440 sáng/tối
+và 390 — dòng 17.09 hai marketer hiện hai dòng, không ô nào tràn chữ, cột định danh vẫn ghim
+([biên bản](kiem-chung-o-danh-tinh-20260919.md), ảnh `docs/kiem-thu/o-danh-tinh-2026-09-19/`).
+**Còn nợ:** chưa phát hành VPS.
+
 ## 19.09.2026 — Ẩn cột với cả công ty (ADR-039), tắt nhóm cột sản phẩm
 
 Chủ dự án muốn tắt nhóm cột số lượng theo sản phẩm `sl_*` trên bảng Vận đơn mới (thêm sản phẩm ở

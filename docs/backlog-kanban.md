@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 19.09.2026 — Ô danh tính mỗi người một dòng (AC-22.14, TL-45)
+
+**Finished local:** ô Nhân sự/Leader liệt kê từng người một dòng thay vì chuỗi nối dấu phẩy bị
+bẻ giữa mã; cách nhóm và bố cục AC-22.13 giữ nguyên; Excel không đổi. **To do:** phát hành cùng
+đợt VPS đang chờ.
+
 ## 19.09.2026 — Ẩn cột với cả công ty (ADR-039)
 
 **Finished local:** `ColumnDef.is_hidden`, migration `forms_builder/0015`, hộp "Cột" có nút ẩn cho cả công ty + nút gộp cho nhóm cột sản phẩm, ba màn hình cùng lọc. Bài AC-39.1 → 39.7 đạt.

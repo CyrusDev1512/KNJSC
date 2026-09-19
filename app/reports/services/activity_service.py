@@ -8,7 +8,7 @@ from django.db.models.functions import Coalesce, NullIf, Concat
 from django.contrib.postgres.aggregates import StringAgg
 
 from core.constants import Currency
-from core.identity import SEPARATOR, code_expression
+from core.identity import JOIN, SEPARATOR, code_expression
 from core.managers import apply_scope
 from core.exceptions import OutOfScopeError, BusinessError
 from forms_builder.models import DataRecord, TableDef
@@ -167,8 +167,8 @@ def with_day_people(rows, source):
     phạm vi quyền đang áp — lọc một nhân sự thì chỉ còn người đó (ADR-035)."""
     expressions = person_expressions(source)
     return rows.annotate(
-        person_name=StringAgg(expressions["person_name"], delimiter=", ", distinct=True, output_field=CharField()),
-        leader_name=StringAgg(NullIf(expressions["leader_name"], Value("")), delimiter=", ", distinct=True, output_field=CharField()),
+        person_name=StringAgg(expressions["person_name"], delimiter=JOIN, distinct=True, output_field=CharField()),
+        leader_name=StringAgg(NullIf(expressions["leader_name"], Value("")), delimiter=JOIN, distinct=True, output_field=CharField()),
     )
 
 

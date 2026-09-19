@@ -1,5 +1,14 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 19.09.2026 — Ô danh tính Báo cáo tổng hợp
+
+**TL-45 (chủ dự án báo trên màn hình thật, đã sửa cùng ngày):** ngày có nhiều nhân sự thì ô
+Nhân sự là một chuỗi nối dấu phẩy trong cột rộng 130px, `overflow-wrap:anywhere` bẻ **giữa
+mã**. Sửa: mỗi người một dòng riêng (AC-22.14, bổ sung ADR-035); cách nhóm giữ nguyên. Bộ
+`reports/tests core/tests/test_giao_dien.py -m "not trinh_duyet"`: 716 đạt, 0 đỏ. Chromium
+1440 sáng/tối và 390: không ô nào tràn chữ, cột định danh vẫn ghim.
+[Biên bản](kiem-chung-o-danh-tinh-20260919.md).
+
 ## 19.09.2026 — Ẩn cột với cả công ty (ADR-039)
 
 Bộ `crm/tests orders/tests forms_builder/tests reports/tests core/tests tests -m "not trinh_duyet and not cham"`: 2.416 đạt, 1 bỏ qua, 0 đỏ. `test_an_cot.py` 7 đạt. Hai chỗ vấp đã sửa trong lượt: `test_truy_vet` đỏ vì `docs/04` chưa có mục 39; migration roundtrip vướng trigger `crm_capture_*` treo, xả bằng `SET CONSTRAINTS ALL IMMEDIATE`. Chromium: 6 điểm đạt, gồm tạo sản phẩm "test" ở Lên đơn khi nhóm đang ẩn thì cột mới cũng ẩn. [Biên bản](kiem-chung-an-cot-20260919.md).

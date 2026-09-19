@@ -38,6 +38,12 @@ thấy của mình, Leader team mình, Manager cả bộ phận; nhiều dòng h
 5. **Bảng gọn theo token `sheet-body` 13px** của DESIGN.md: chữ 13px, ô đệm 5×8 px, khung
    bảng cao `calc(100vh - 230px)`, panel lọc 224px, cột danh tính tối đa 220px có cắt
    chữ. Không đổi màu, không thêm thư viện; chế độ Toàn màn hình giữ nguyên.
+   > **Bổ sung 19.09.2026 (chủ dự án, sau khi xem màn hình thật):** luật cắt chữ đã bỏ ở
+   > ADR-022/AC-22.13 (bố cục 18.09). Thêm: ô Nhân sự và Leader **liệt kê mỗi người một
+   > dòng** — mỗi nhãn là một `<span class="report-name">` khối riêng — thay vì một chuỗi
+   > nối dấu phẩy để cột hẹp bẻ giữa mã. Cách nhóm **không đổi**, vẫn mỗi ngày một dòng
+   > đúng quyết định 1; muốn mỗi người một hàng thì dùng cách xem Theo nhân viên. Excel
+   > giữ chuỗi nối. Xem AC-22.14 và [biên bản](../kiem-chung-o-danh-tinh-20260919.md).
 6. **Excel** xuất đúng các cột đang hiện (Ngày, Nhân sự, Leader, chỉ tiêu; Theo nhân viên:
    Team, người, Leader, chỉ tiêu). Dòng tổng để trống ô danh tính.
 
