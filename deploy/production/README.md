@@ -84,3 +84,47 @@ chỉ để quay lui mã. Named volume giữ dữ liệu qua lần thay containe
   lỗi; kiểm worker và đường tải vẫn xác nhận quyền người dùng hiện hành.
 - Chỉ nghiệm thu sau ma trận local và phép đo lặp lại trên VPS. Có sai dữ
   liệu/quyền/ghi trùng thì tắt nhóm liên quan và điều tra trước khi phát hành.
+
+## Gom p95 thật của KN CRM từ log — `scripts/gom-p95-vps.py`
+
+Đóng khoản nợ "chưa đo trên VPS, chưa gom p95 thật" (backlog, kanban Far plan).
+
+**Không phải đo mới.** `CRM_REQUEST_METRICS: '1'` đã bật trong `compose.yml` từ
+đầu, nên `core/request_metrics.py` ghi **một dòng JSON mỗi yêu cầu** ra stdout
+container và Docker giữ lại. Số đã nằm đó nhiều ngày; việc còn thiếu là gom.
+Chạy lần đầu là có ngay lịch sử, không cần chờ hứng.
+
+```sh
+cd /opt/knjsc-runtime
+python3 /opt/knjsc/scripts/gom-p95-vps.py --since 24h
+python3 /opt/knjsc/scripts/gom-p95-vps.py --since 7d --json /opt/knjsc-runtime/p95-$(date +%Y%m%d).json
+python3 /opt/knjsc/scripts/gom-p95-vps.py --since 24h --dich-vu erp   # KN ERP
+```
+
+Chỉ đọc log, **không chạm vào dữ liệu, không khởi động lại gì**. Chạy được
+trong giờ làm việc.
+
+| Nhóm | Gồm | Ngưỡng p95 |
+|---|---|---|
+| Hỏi thăm | tuyến kết thúc `moi-nhat/` | 300 ms |
+| Ghi | mọi POST/PUT/PATCH/DELETE | 500 ms |
+| Đọc | phần còn lại | 1000 ms |
+
+Ngưỡng theo `app/core/constants.py` (ADR-016). Nhập tệp, xuất tệp và đăng nhập
+chậm theo bản chất nên **vẫn in ra nhưng không tính vào phán quyết nhóm**.
+
+Mã thoát 0 đạt, 1 có nhóm vượt ngưỡng, 2 thiếu mẫu — cắm được vào cron.
+
+**Đọc kết quả.** Cột `db p95` gần bằng `p95` nghĩa là nghẽn ở cơ sở dữ liệu;
+chênh nhau nhiều nghĩa là nghẽn ở Python hoặc ở hàng đợi gunicorn. Cột `TV` là
+số truy vấn; tuyến nào vọt lên là chỗ nghi N+1 trước tiên.
+
+**Dưới 20 mẫu thì script nói "ít mẫu" và không kết luận chắc.** p95 trên một
+nhúm nhỏ chỉ là giá trị lớn nhất. Nới `--since`, hoặc đo lại sau một ngày làm
+việc thật.
+
+**Cần biết trước khi tin con số:** `compose.yml` chưa đặt `logging:` nên Docker
+dùng `json-file` không giới hạn. Nghĩa là (a) log còn đủ để gom ngược nhiều
+ngày, và (b) nó lớn dần không có trần trên VPS 2 nhân. Kiểm dung lượng bằng
+`docker system df` trước khi đặt giới hạn xoay vòng — đặt giới hạn là **xoá mất
+phần lịch sử chưa gom**, nên gom và lưu `--json` trước đã.
