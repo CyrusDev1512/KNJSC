@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 22.09.2026 (đêm) — Nợ kỹ thuật đợt 3
+
+**Finished local:** khoá so trùng số điện thoại (TL-36, AC-36.8, migration 0016).
+**To do:** chủ dự án xem PR; quyết riêng việc tra khách ở Lên đơn có theo khoá không.
+**Far plan:** món 2 — chip nhắc khi lọc theo cột ẩn.
+
 ## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên
 
 **Finished local:** `tests/e2e/test_hanh_trinh_nhan_vien.py` — một lượt qua lưới, hộp lọc cột, đổi vai, lên đơn,

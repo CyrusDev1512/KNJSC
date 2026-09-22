@@ -1,5 +1,10 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 22.09.2026 (đêm) — TL-36 đóng
+
+**TL-36 (đóng):** cột Trùng so theo khoá 9 số cuối (`val_phone_key`), không so chuỗi đúng như gõ nữa;
+`+1 (416) 555-0123` và `4165550123` đếm là một khách. Ô hiển thị không đổi. AC-11.5 + AC-36.8.
+
 ## 19.09.2026 (đêm) — Hành trình xuyên màn hình
 
 **Khoảng trống đã lấp:** chỗ nối giữa các màn hình không có bài kiểm nào. Thêm
