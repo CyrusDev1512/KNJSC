@@ -252,8 +252,11 @@ def build_grid(user, params, *, table=None):
     """Queryset của lưới đúng như URL mô tả — chưa cắt trang."""
     table = table or waybill_table()
     van_don = is_waybill(table)
-    columns = display_columns(table)
-    bo_loc = query.read_filters(params, columns)
+    # Bộ lọc đọc trên MỌI cột, kể cả cột đang ẩn (bổ sung ADR-039, AC-39.8):
+    # bỏ lặng lẽ thì lưới thiếu dòng không ai hiểu vì sao. Hiển thị vẫn chỉ cột hiện.
+    cot_ca_bang = list(table.columns.order_by("order", "id"))
+    columns = display_columns(table, columns=cot_ca_bang)
+    bo_loc = query.read_filters(params, cot_ca_bang)
     if is_waybill_table(table) and params.getlist(PRODUCT_PARAM) and 'san_pham__trong' in bo_loc:
         bo_loc['san_pham__trong'] = list(dict.fromkeys(bo_loc['san_pham__trong'] + params.getlist(PRODUCT_PARAM)))
     tim = (params.get("tim") or "").strip()
@@ -261,7 +264,7 @@ def build_grid(user, params, *, table=None):
     giam = params.get("chieu") == "giam"
     ds, _ = query.build(
         DataRecord.objects.in_scope(user, table=table), table,
-        filters=bo_loc, search=tim, sort=sap, descending=giam, columns=columns,
+        filters=bo_loc, search=tim, sort=sap, descending=giam, columns=cot_ca_bang,
     )
     chi_trung = False
     san_pham = []
@@ -286,14 +289,14 @@ def build_grid(user, params, *, table=None):
         chi_trung = params.get("trung") == "1"
         if chi_trung:
             ds = ds.filter(val_phone__in=duplicate_phones(table))
-        san_pham = read_products(params, columns)
+        san_pham = read_products(params, cot_ca_bang)
         if san_pham:
             ds = ds.filter(product_any_of(san_pham))
     ds = ds.select_related("table", "created_by")
     return Grid(
         table=table, columns=columns, queryset=ds, filters=bo_loc, search=tim,
         sort=sap, descending=giam, duplicates_only=chi_trung,
-        chips=filter_chips(bo_loc, columns, san_pham),
+        chips=filter_chips(bo_loc, cot_ca_bang, san_pham),
         is_waybill=van_don, key_column=key_column(columns), products=san_pham,
         my_scope=cua_toi,
     )
@@ -307,7 +310,11 @@ def export_queryset(user, table, params):
 
 
 def filter_chips(bo_loc, columns, products=()):
-    """Mỗi bộ lọc đang bật thành một chip `(khoá tham số, nhãn)`."""
+    """Mỗi bộ lọc đang bật thành một chip `(khoá tham số, nhãn, cột đang ẩn?)`.
+
+    Chip của cột đang ẩn mang cờ và nhãn "(cột đang ẩn) …" — lọc vẫn chạy
+    (AC-39.8) nhưng người dùng phải thấy vì sao lưới thiếu dòng, và bỏ được
+    ngay bằng chính nút × của chip."""
     columns = list(columns)
     by_code = {c.code: c for c in columns}
     ten = {c.code: c.name for c in columns}
@@ -327,10 +334,14 @@ def filter_chips(bo_loc, columns, products=()):
             mo_ta = f"{nhan_phep} {', '.join(gia_tri[:3])}" + (" …" if len(gia_tri) > 3 else "")
         else:
             mo_ta = f"{nhan_phep} {gia_tri}"
-        chips.append((f"f_{khoa}", f"{ten.get(code, code)} {mo_ta}"))
+        an = bool(column is not None and column.is_hidden)
+        nhan = f"{ten.get(code, code)} {mo_ta}"
+        chips.append((f"f_{khoa}", f"(cột đang ẩn) {nhan}" if an else nhan, an))
     if products:
         ten_sp = [ten.get(ma, ma) for ma in products]
-        chips.append((PRODUCT_PARAM, "Sản phẩm " + ", ".join(ten_sp[:3]) + (" …" if len(ten_sp) > 3 else "")))
+        an_sp = any(c.is_hidden for c in columns if c.code in products)
+        nhan_sp = "Sản phẩm " + ", ".join(ten_sp[:3]) + (" …" if len(ten_sp) > 3 else "")
+        chips.append((PRODUCT_PARAM, f"(cột đang ẩn) {nhan_sp}" if an_sp else nhan_sp, an_sp))
     return chips
 
 

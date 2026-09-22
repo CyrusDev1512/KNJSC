@@ -1,5 +1,19 @@
 # Backlog
 
+## 22.09.2026 (đêm) — Lọc theo cột ẩn vẫn chạy, kèm lời nhắc (TL-53 đóng)
+
+**Nợ cũ (hệ quả đã biết của ADR-039).** Bộ lọc trỏ tới cột đang ẩn bị bỏ lặng lẽ: URL cũ, liên kết
+Thống kê, bookmark mang `f_<cột ẩn>` thì lưới hiện **thừa dòng** mà không nói gì.
+
+**Chốt của chủ dự án:** vẫn lọc + hiện dòng nhắc kèm nút bỏ lọc. **Sửa:** bộ lọc đọc trên mọi cột
+(`build_grid`, `bang_xem`, `export_service.build_queryset` — tệp xuất vẫn "đúng thứ đang hiện");
+hiển thị vẫn qua `visible_columns`. KN CRM: chip cảnh báo "(cột đang ẩn) …" (`mg-chip-an`, bỏ bằng
+nút × sẵn có); KN ERP: dòng nhắc `bao-cho` cạnh Xoá lọc; tính "bộ lọc nào trỏ cột ẩn" ở một chỗ
+`table_service.hidden_filtered_columns`. AC-39.8 mới (4 bài `crm/tests/test_loc_cot_an.py`, gồm
+chiều bị từ chối), ADR-039 bổ sung 22.09.
+
+**Đo:** biên bản [kiem-chung-loc-cot-an-co-nhac-20260922.md](kiem-chung-loc-cot-an-co-nhac-20260922.md).
+
 ## 19.09.2026 (đêm) — Một bài đầu-cuối đi trọn hành trình nhân viên
 
 **Vì sao.** Hai lỗi chủ dự án báo sáng nay đều nằm **giữa** các màn hình: đổi hộp lọc cột thì sót mục của cột

@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 22.09.2026 (đêm) — Lọc theo cột ẩn vẫn chạy, kèm lời nhắc
+
+**Finished local (nhánh `claude/loc-cot-an-co-nhac`, PR nháp):** TL-53 đóng — bộ lọc cột ẩn không còn
+bị bỏ lặng lẽ; chip cảnh báo KN CRM, dòng nhắc KN ERP, tệp xuất theo đúng bộ lọc. AC-39.8.
+**To do:** chủ dự án duyệt PR; phát hành VPS.
+
 ## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên
 
 **Finished local:** `tests/e2e/test_hanh_trinh_nhan_vien.py` — một lượt qua lưới, hộp lọc cột, đổi vai, lên đơn,

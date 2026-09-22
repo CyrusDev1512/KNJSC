@@ -190,9 +190,9 @@ def overview(request):
     if grid is not None:
         context["luoi"] = grid
         chips = []
-        for key, label in grid.chips:
+        for key, label, an in grid.chips:
             chip_params = params.copy()
             chip_params.pop(key, None)
-            chips.append((label, "?" + chip_params.urlencode()))
+            chips.append((label, "?" + chip_params.urlencode(), an))
         context["chips"] = chips
     return render(request, "crm/statistics.html", context)

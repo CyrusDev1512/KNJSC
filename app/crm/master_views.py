@@ -119,9 +119,9 @@ def shell(request, table):
     for key in ('trang', 'moi_trang', 'offset', 'version'):
         qs.pop(key, None)
     chips = []
-    for key, label in grid.chips:
+    for key, label, an in grid.chips:
         p = qs.copy(); p.pop(key, None)
-        chips.append((label, '?' + p.urlencode()))
+        chips.append((label, '?' + p.urlencode(), an))
     return render(request, 'crm/master_grid.html', {
         'waybill_profile': is_waybill_table(table),
         # Nút Tôi / Toàn bộ: chỉ người có cột phụ trách trong bảng vận đơn (ADR-033)
