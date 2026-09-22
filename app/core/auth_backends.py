@@ -4,6 +4,10 @@ Tài khoản mới có tên đăng nhập = mã nhân sự viết hoa (`THUANLT`
 `thuanlt` vẫn phải vào được. `account_service.create_account` đã chặn hai tài khoản
 chỉ khác hoa/thường (`username__iexact`), nên tra `iexact` không bao giờ nhập nhằng.
 Kiểm mật khẩu, khoá tạm, phiên giữ nguyên của `ModelBackend`.
+
+`get_user` lấy kèm hồ sơ nhân sự, bộ phận và team trong **cùng một lượt hỏi**: mọi
+yêu cầu đã đăng nhập đều đọc `user.profile` (phạm vi quyền, `is_accountant`, nhãn mã
+nhân sự), nên để lười thì mỗi trang trả thêm hai lượt hỏi cơ sở dữ liệu (K24).
 """
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
@@ -25,3 +29,14 @@ class CaseInsensitiveModelBackend(ModelBackend):
         if user.check_password(password) and self.user_can_authenticate(user):
             return user
         return None
+
+    def get_user(self, user_id):
+        """Người dùng của phiên, kèm hồ sơ — bộ phận — team trong một lượt hỏi."""
+        User = get_user_model()
+        try:
+            user = (User._default_manager
+                    .select_related("profile__department", "profile__team")
+                    .get(pk=user_id))
+        except User.DoesNotExist:
+            return None
+        return user if self.user_can_authenticate(user) else None

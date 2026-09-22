@@ -1,5 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 22.09.2026 (tối) — Nợ kỹ thuật đợt 2
+
+**Finished local:** K24 đóng, cắt ba lượt hỏi thừa mỗi trang (ERP 11→9, CRM 13→9).
+**To do:** chủ dự án xem PR. **Far plan:** đo lại trên VPS dưới tải nhiều người (nhánh KNGUARD).
+
 ## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên
 
 **Finished local:** `tests/e2e/test_hanh_trinh_nhan_vien.py` — một lượt qua lưới, hộp lọc cột, đổi vai, lên đơn,

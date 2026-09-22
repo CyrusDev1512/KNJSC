@@ -1,5 +1,11 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 22.09.2026 (tối) — K24 đóng
+
+**K24 (đóng):** hai bài đo hiệu năng bỏ được dấu `xfail`. Cắt ba lượt hỏi thừa mỗi trang — phạm vi quyền hỏi ba
+lần cho cùng một bảng, hồ sơ nhân sự và bộ phận nạp lười. Cả hai màn hình còn 9 lệnh, ngân sách 10 giữ nguyên.
+Toàn bộ `-m "not trinh_duyet"`: 2.549 bài, 0 đỏ, 7 bỏ qua.
+
 ## 19.09.2026 (đêm) — Hành trình xuyên màn hình
 
 **Khoảng trống đã lấp:** chỗ nối giữa các màn hình không có bài kiểm nào. Thêm
