@@ -49,14 +49,13 @@ def _bang_mac_dinh(user):
     tiên trong phạm vi; không có bảng nào thì 404 kèm lời giải thích.
 
     Trả về **chính bảng** chứ không phải mã: người gọi cần đối tượng, và tra lại
-    theo mã là thêm một lượt hỏi phạm vi quyền y hệt lượt vừa chạy (K24)."""
-    cac = _cac_bang(user)
-    dau = None
-    for bang in cac:                      # một lượt, duyệt trong bộ nhớ
-        if bang.code == WAYBILL_TABLE_CODE:
-            return bang
-        if dau is None:
-            dau = bang
+    theo mã là thêm một lượt hỏi phạm vi quyền y hệt lượt vừa chạy (K24). Một
+    truy vấn LIMIT 1, xếp bảng vận đơn lên trước — không kéo cả phạm vi về bộ nhớ."""
+    from django.db.models import Case, When
+
+    dau = (_cac_bang(user)
+           .order_by(Case(When(code=WAYBILL_TABLE_CODE, then=0), default=1), "name")
+           .first())
     if dau is None:
         raise Http404("Chưa có bảng nào trong phạm vi của bạn.")
     return dau
@@ -181,8 +180,8 @@ def bang_tinh_xem(request, code):
 
     Một lượt hỏi phạm vi quyền duy nhất (K24). Trước đây đường `/bang-tinh/` chạy
     **ba** lượt cho cùng một bảng: `exists()` chọn bảng mặc định, `exists()` kiểm
-    riêng bảng vận đơn, rồi `get_object_or_404` lấy bảng."""
-    request.nav_current = "bang_tinh"
+    riêng bảng vận đơn, rồi `get_object_or_404` lấy bảng. `nav_current` do `_luoi`
+    đặt — các nhánh từ chối không vẽ thanh điều hướng."""
     bang = _cac_bang(request.user).filter(code=code).first()
     if bang is None:
         if code != WAYBILL_TABLE_CODE:

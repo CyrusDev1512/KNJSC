@@ -5,9 +5,11 @@ Tài khoản mới có tên đăng nhập = mã nhân sự viết hoa (`THUANLT`
 chỉ khác hoa/thường (`username__iexact`), nên tra `iexact` không bao giờ nhập nhằng.
 Kiểm mật khẩu, khoá tạm, phiên giữ nguyên của `ModelBackend`.
 
-`get_user` lấy kèm hồ sơ nhân sự, bộ phận và team trong **cùng một lượt hỏi**: mọi
-yêu cầu đã đăng nhập đều đọc `user.profile` (phạm vi quyền, `is_accountant`, nhãn mã
-nhân sự), nên để lười thì mỗi trang trả thêm hai lượt hỏi cơ sở dữ liệu (K24).
+`get_user` lấy kèm hồ sơ nhân sự và bộ phận trong **cùng một lượt hỏi**: mọi yêu cầu
+đã đăng nhập đều đọc `user.profile` (phạm vi quyền, nhãn mã nhân sự) và
+`profile.department` (`is_accountant`), nên để lười thì mỗi trang trả thêm hai lượt
+hỏi cơ sở dữ liệu (K24). Không lấy kèm team: phạm vi quyền đọc `department_id` và
+`scope_team_ids()` (truy vấn riêng của Leader), số đo K24 không thấy team bị nạp lười.
 """
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
@@ -31,11 +33,11 @@ class CaseInsensitiveModelBackend(ModelBackend):
         return None
 
     def get_user(self, user_id):
-        """Người dùng của phiên, kèm hồ sơ — bộ phận — team trong một lượt hỏi."""
+        """Người dùng của phiên, kèm hồ sơ và bộ phận trong một lượt hỏi."""
         User = get_user_model()
         try:
             user = (User._default_manager
-                    .select_related("profile__department", "profile__team")
+                    .select_related("profile__department")
                     .get(pk=user_id))
         except User.DoesNotExist:
             return None

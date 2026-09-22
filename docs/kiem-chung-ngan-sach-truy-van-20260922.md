@@ -56,6 +56,30 @@ sau một lượt làm nóng).
 | `pytest tests/test_hieu_nang.py` (bỏ `xfail`, 50.000 dòng thật) | **2 đạt** |
 | `pytest -m "not trinh_duyet"` toàn bộ, gồm cả `cham` | **2.549 bài, 0 đỏ, 7 bỏ qua** |
 
+## Vòng review nội bộ (cùng ngày, trước khi bàn giao)
+
+Chạy review mức high trên chính diff này — 6 phát hiện, sửa 5:
+
+1. `_bang_mac_dinh` từng duyệt **cả phạm vi** trong bộ nhớ để chọn một bảng → đổi thành một
+   truy vấn `LIMIT 1` xếp bảng vận đơn lên trước (`Case/When`), không kéo trăm bảng về chỉ
+   để lấy một.
+2. Bỏ `profile__team` khỏi `get_user`: phạm vi quyền đọc `department_id` và
+   `scope_team_ids()` (truy vấn riêng của Leader), số đo K24 không thấy team bị nạp lười —
+   join đó không được số nào chống lưng.
+3. Lượt làm nóng đổi từ *chính trang sắp đo* sang `/dang-nhap/`: mở trước đúng trang đó thì
+   mọi truy vấn "lượt xem đầu" của nó cũng bị nuốt theo, ngân sách thành đo lượt xem thứ hai.
+4. Bỏ dòng `nav_current` trùng ở `bang_tinh_xem` (đã có trong `_luoi`).
+5. `docs/handoff/project-brief.md` sửa thẳng dòng "hai bài xfail" — lượt trước chỉ đính
+   chính trong backlog mà để nguyên tệp sai, đúng kiểu lệch tài liệu mà chính biên bản này
+   phàn nàn.
+
+**Từ chối một phát hiện:** đổi tên `_luoi`, `_bang_mac_dinh`, `_vao_lam` sang tiếng Anh theo
+quy ước đặt tên. Cả `crm/views.py` và tệp đo đang đặt tên tiếng Việt (`_cac_bang`, `_bang`,
+`bang_tinh_xem`, `_bam_gio`…); đổi riêng ba hàm mới thì tệp thành hai thứ tiếng trộn. Dọn
+tên cả tệp là quyết định riêng của chủ dự án, không giấu vào PR hiệu năng.
+
+Sau vòng sửa, đo lại: **cả ba màn hình vẫn 9 lệnh**, hai bài 50.000 dòng vẫn xanh.
+
 ## Chưa kiểm
 
 - Chưa đo lại thời gian trên VPS; số ở đây là máy ảo.
