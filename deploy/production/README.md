@@ -94,11 +94,24 @@ chỉ để quay lui mã. Named volume giữ dữ liệu qua lần thay containe
 container và Docker giữ lại. Số đã nằm đó nhiều ngày; việc còn thiếu là gom.
 Chạy lần đầu là có ngay lịch sử, không cần chờ hứng.
 
+Trên VPS, sau khi SSH vào. Máy chủ này dùng **hai tệp compose** — `compose.yml`
+của kho mã cộng `compose.vps.yml` riêng của máy (không đưa lên kho, xem các biên
+bản phát hành) — nên phải kể đủ cả hai, y như dãy lệnh phát hành:
+
 ```sh
 cd /opt/knjsc-runtime
-python3 /opt/knjsc/scripts/gom-p95-vps.py --since 24h
-python3 /opt/knjsc/scripts/gom-p95-vps.py --since 7d --json /opt/knjsc-runtime/p95-$(date +%Y%m%d).json
-python3 /opt/knjsc/scripts/gom-p95-vps.py --since 24h --dich-vu erp   # KN ERP
+GOM="python3 /opt/knjsc/scripts/gom-p95-vps.py --compose compose.yml --compose compose.vps.yml"
+$GOM --since 24h
+$GOM --since 7d --json /opt/knjsc-runtime/p95-$(date +%Y%m%d).json
+$GOM --since 24h --dich-vu erp          # KN ERP
+```
+
+**Nếu `docker compose` đòi `KNJSC_IMAGE`** (biến này chỉ đặt lúc phát hành),
+bỏ qua compose và đọc thẳng container — kết quả y hệt:
+
+```sh
+docker logs --since 24h knjsc-production-crm-1 2>&1 \
+  | python3 /opt/knjsc/scripts/gom-p95-vps.py --tep -
 ```
 
 Chỉ đọc log, **không chạm vào dữ liệu, không khởi động lại gì**. Chạy được

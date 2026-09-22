@@ -80,15 +80,41 @@ nhưng mang dấu `*` và không kéo phán quyết nhóm Ghi xuống.
   ngày, nhưng cũng lớn dần không có trần trên VPS 2 nhân. Kiểm bằng
   `docker system df` trước.
 
+## Chạy trên máy local thì không ra gì — và đó là đúng
+
+`CRM_REQUEST_METRICS` **chỉ bật ở `deploy/production/compose.yml`**. Bản local
+(`deploy/docker-compose.yml`) không đặt biến này, mà `settings/base.py` mặc định
+`False`, nên container local **không ghi dòng số đo nào**. Chạy bộ gom ở đó sẽ ra
+bảng rỗng kèm ba nguyên nhân — đúng như thiết kế, không phải hỏng.
+
+Muốn thử trên máy mình thì thêm `CRM_REQUEST_METRICS: '1'` vào dịch vụ `bangtinh`
+trong `deploy/docker-compose.yml`, dựng lại container, bấm vài màn hình cho có
+lưu lượng, rồi `--dich-vu bangtinh`. Số ra là số của máy mình, **không thay được
+số VPS**: khác phần cứng, khác dữ liệu, khác số người dùng.
+
 ## Chỗ trống cho người có SSH
 
 Chạy trên VPS, chép kết quả vào đây rồi đổi ngày trên tiêu đề mục này:
 
+Lệnh Linux, chạy **trong VPS sau khi SSH vào** — không chạy được trên máy
+Windows. Máy chủ dùng **hai tệp compose** (`compose.yml` của kho mã cộng
+`compose.vps.yml` riêng của máy), phải kể đủ cả hai y như dãy lệnh phát hành:
+
 ```sh
+ssh <người dùng>@<máy chủ>
 cd /opt/knjsc-runtime
 docker system df                                    # log còn bao nhiêu
-python3 /opt/knjsc/scripts/gom-p95-vps.py --since 24h
-python3 /opt/knjsc/scripts/gom-p95-vps.py --since 7d --json p95-$(date +%Y%m%d).json
+GOM="python3 /opt/knjsc/scripts/gom-p95-vps.py --compose compose.yml --compose compose.vps.yml"
+$GOM --since 24h
+$GOM --since 7d --json p95-$(date +%Y%m%d).json
+```
+
+Nếu `docker compose` đòi `KNJSC_IMAGE` (biến này chỉ đặt lúc phát hành), đọc
+thẳng container, kết quả y hệt:
+
+```sh
+docker logs --since 7d knjsc-production-crm-1 2>&1 \
+  | python3 /opt/knjsc/scripts/gom-p95-vps.py --tep -
 ```
 
 | Nhóm | Số yêu cầu | p50 | p95 | p99 | Ngưỡng | Kết luận |
