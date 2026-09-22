@@ -1,5 +1,13 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 22.09.2026 — Cột sản phẩm mặc định ẩn
+
+**TL-52 (đóng):** sản phẩm gõ thử mọc cột trên lưới vì ADR-039 chỉ ẩn cột mới khi cả nhóm đã ẩn, mà chưa ai
+bấm nút lần nào. Nay mặc định ẩn (AC-39.5, AC-39.8).
+**TL-53 (mở, đã khoá bằng bài kiểm):** cột đã ẩn thì lưới không đọc bộ lọc của nó — đường dẫn cũ lọc theo
+`sl_*` trả về mọi dòng, không báo lỗi. AC-39.9 giữ hành vi để không trôi; chờ chủ dự án quyết hướng sửa.
+Bộ đầy đủ: 2.530 đạt, 1 bỏ qua, 0 đỏ. [Biên bản](kiem-chung-cot-san-pham-mac-dinh-an-20260922.md).
+
 ## 19.09.2026 (đêm) — Hành trình xuyên màn hình
 
 **Khoảng trống đã lấp:** chỗ nối giữa các màn hình không có bài kiểm nào. Thêm

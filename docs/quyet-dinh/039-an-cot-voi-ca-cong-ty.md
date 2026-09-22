@@ -54,7 +54,7 @@ vào được VPS mới đổi và phải khởi động lại, trong khi chủ 
    dòng mới được), và lần ẩn làm bảng không còn cột nào hiện.
 6. **Sản phẩm mới khi nhóm đang ẩn**: cột sinh ra ở trạng thái ẩn luôn. Thêm hàng không
    làm cả nhóm hiện trở lại — đây là điều chủ dự án hỏi đúng chỗ ("thêm sản phẩm test thì
-   thấy một cột test").
+   thấy một cột test"). **Đổi ở bổ sung 22.09 dưới đây: ẩn là mặc định, không còn điều kiện.**
 7. **Lên đơn vẫn ghi số lượng vào cột đang ẩn.** Tốn không đáng kể và giữ dữ liệu liền
    mạch: bật lại là có đủ, không thủng một đoạn thời gian. Nhập tệp Excel cũ cũng vậy —
    cột ẩn vẫn nhận dữ liệu từ tệp, không mất gì.
@@ -78,3 +78,35 @@ vào được VPS mới đổi và phải khởi động lại, trong khi chủ 
   cột đang hiện.
 - Cột ẩn không ra tệp Excel, nên người nhận tệp thấy ít cột hơn trước. Cần báo trước cho
   ai đang dùng tệp xuất để đối chiếu.
+
+
+## Bổ sung 22.09.2026 — cột sản phẩm mặc định ẩn
+
+**Vì sao đổi.** Quyết định 6 ở trên chỉ ẩn cột sản phẩm mới **khi cả nhóm đã ẩn**
+(`an_ca_nhom = bool(cu) and all(c.is_hidden for c in cu)`). Trên VPS không ai bấm nút lần
+nào — biên bản phát hành 19.09 ghi `is_hidden` 0/72 cột — nên điều kiện luôn sai và mỗi sản
+phẩm gõ thử lại mọc một cột trên lưới. Chủ dự án mở màn hình Cấu trúc cột ngày 22.09 và thấy
+`sl_yuna`, `sl_sda`, `sl_ada`, rồi nhắc rằng điều đã chốt là **tương lai cột sản phẩm không
+hiện ra nữa**, không phải "ẩn được nếu bấm". Bản dựng 19.09 đúng phần nút bật tắt nhưng phần
+"tương lai" thì để lại một bước bấm tay chưa ai làm.
+
+**Đổi gì.**
+
+1. `dispatch_service.sync_product_columns` tạo cột sản phẩm với `is_hidden=True` **luôn**,
+   bỏ điều kiện `an_ca_nhom`. Sản phẩm gõ thử không còn làm lưới rộng thêm.
+2. Migration dữ liệu `orders/0011_an_cot_san_pham_dang_co` ẩn mọi cột `sl_*` đang hiện của
+   bảng có `workflow="waybill"`. Chỉ đổi cờ hiển thị, không xoá cột, không đụng ô nào.
+   Chạy ngược là **không làm gì** (`RunPython.noop`): cột vẫn còn cùng dữ liệu, còn tự hiện
+   lại cả nhóm thì xoá luôn lựa chọn người dùng đã bấm tay.
+3. Bật lại **không đổi**: quản lý bảng vào hộp "Cột", mục "Đang ẩn với cả công ty".
+
+**Hệ quả đã biết, chưa sửa.** `grid_service.build_grid` đọc bộ lọc từ `display_columns`, tức
+danh sách **đã loại cột ẩn**. Nên đường dẫn cũ lọc theo `?f_sl_x__trong=…` giờ **trả về mọi
+dòng chứ không báo lỗi** — lọc bị bỏ qua lặng lẽ. Bài AC-39.9 khoá hành vi này lại để nó
+không trôi; sửa hay không thì chờ chủ dự án quyết, vì hai hướng đều có giá: cho lọc theo cột
+ẩn thì lưới lọc bằng thứ người dùng không thấy (không có chip bộ lọc), còn báo lỗi thì mọi
+đường dẫn cũ vỡ.
+
+**Cái gì không đổi.** `visible_columns` vẫn là chỗ lọc duy nhất; màn hình Cấu trúc cột vẫn
+liệt kê đủ (đó là chỗ quản lý bảng bật lại); Lên đơn và nhập tệp vẫn ghi dữ liệu vào cột ẩn;
+không phạm BR-4.

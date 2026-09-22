@@ -561,9 +561,11 @@ KN ERP, nhưng định nghĩa cột và giá trị từng ô vẫn giữ nguyên
 | AC-39.2 | Hiện lại cột đã ẩn: cột về đúng vị trí cũ trên lưới, không xếp xuống cuối; dữ liệu cũ hiện đủ | FR-8.10 · ADR-039 | Tự động |
 | AC-39.3 | Nhân viên và quản lý bộ phận khác bị từ chối (403 khi thấy bảng, 404 khi bảng ngoài phạm vi), không cột nào đổi; Admin và quản lý bộ phận sở hữu bảng thì được | FR-8.10 · ADR-039 | Tự động |
 | AC-39.4 | Từ chối ẩn cột khoá, cột bắt buộc nhập, và lần ẩn làm bảng không còn cột nào hiện; chọn mã cột không có thì báo lỗi | FR-8.10 · ADR-039 | Tự động |
-| AC-39.5 | Ẩn cả nhóm cột số lượng theo sản phẩm bằng một nút; thêm sản phẩm mới sau đó thì cột của nó vào ở trạng thái ẩn, nhóm không tự hiện lại; Lên đơn vẫn ghi số lượng vào cột đang ẩn nên hiện lại là có đủ dữ liệu | FR-8.10 · ADR-039 | Tự động |
+| AC-39.5 | Nhóm cột số lượng theo sản phẩm **mặc định ẩn với cả công ty**; thêm sản phẩm mới thì cột của nó cũng vào ở trạng thái ẩn dù chưa ai bấm nút; Lên đơn vẫn ghi số lượng vào cột đang ẩn nên hiện lại là có đủ dữ liệu; quản lý bảng bật lại được cả nhóm | FR-8.10 · ADR-039 | Tự động |
 | AC-39.6 | Quản lý bảng thấy mục "Đang ẩn với cả công ty" để bật lại; nhân viên không thấy mục đó và không biết bảng có cột ẩn | FR-8.10 · ADR-039 | Tự động |
 | AC-39.7 | Migration `forms_builder/0015` chạy xuôi và ngược đều được, giữ nguyên cột và dữ liệu | FR-8.10 · ADR-039 | Tự động |
+| AC-39.8 | Cột `sl_*` mọc trước 22.09 được migration `orders/0011` ẩn với cả công ty; chạy ngược không tự hiện lại và không mất dữ liệu ô | FR-8.10 · ADR-039 | Tự động |
+| AC-39.9 | Hệ quả đã biết: lưới không đọc bộ lọc của cột đang ẩn nên đường dẫn cũ lọc theo cột đó trả về mọi dòng; bật lại cột thì lọc chạy như xưa | FR-8.10 · ADR-039 | Tự động |
 
 ## 27. Lưới dùng chung và vòng đời bảng — ADR-027
 

@@ -116,7 +116,10 @@ nhập ngay trong ô, ghim cột bằng `position: sticky`. Lưới **thao tác 
 chỉ chuyển ô; không còn nút Chế độ Xem/Chỉnh sửa. Xoá Quốc gia thì Loại tiền trống (ADR-031 bổ sung). Renderer HTML/HTMX ghi ô cũ
 (`bang-tinh.js`, `bang-tinh-o.js`, `_o.html`) **đã bỏ, không đưa lại**. **Ẩn cột với cả công ty** (ADR-039, 19.09): quản lý bảng bấm trong hộp "Cột" của lưới,
 `ColumnDef.is_hidden`; cột biến khỏi lưới, tệp Excel xuất ra và Bảng dữ liệu ERP nhưng giữ
-nguyên dữ liệu; lọc ở một chỗ duy nhất `table_service.visible_columns`. Nút "Cột" vẫn có ô
+nguyên dữ liệu; lọc ở một chỗ duy nhất `table_service.visible_columns`. **Cột số lượng theo
+sản phẩm `sl_*` mặc định ẩn** (bổ sung 22.09, migration `orders/0011`): `sync_product_columns`
+tạo cột mới với `is_hidden=True` nên sản phẩm gõ thử không mọc cột trên lưới; bật lại ở mục
+"Đang ẩn với cả công ty". Cột đã ẩn thì lưới **không đọc bộ lọc của nó** (AC-39.9). Nút "Cột" vẫn có ô
 tích "ẩn cho riêng máy mình" (localStorage) như cũ. Profile
 nghiệp vụ của bảng lấy qua `forms_builder/record_policies.py` (`register_grid`,
 `register_workflow`), không nhận diện nghiệp vụ bằng mã cột. Cột **Trùng** nằm trong

@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 22.09.2026 — Cột sản phẩm mặc định ẩn
+
+**Finished local:** mặc định ẩn cột `sl_*` (AC-39.5, 39.8), migration `orders/0011`, ADR-039 bổ sung.
+**To do:** phát hành VPS; chủ dự án kiểm 4 bước Lên đơn trên domain thật.
+**Far plan:** quyết hướng cho TL-53 (lọc theo cột ẩn); dọn ba sản phẩm gõ thử; thu gọn panel "Bộ lọc".
+
 ## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên
 
 **Finished local:** `tests/e2e/test_hanh_trinh_nhan_vien.py` — một lượt qua lưới, hộp lọc cột, đổi vai, lên đơn,
