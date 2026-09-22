@@ -1,5 +1,21 @@
 # Backlog
 
+## 22.09.2026 (chiều) — Xoá dữ liệu giả theo lô, không treo nữa (TL-43)
+
+**Vấn đề.** `seed_perf.clear()` xoá cả 50.000 dòng trong **một** lệnh `DELETE`. Có lần đứng hơn 17 phút vì chờ
+khoá, mà màn hình không in gì nên người chạy tưởng máy chết. Không tái hiện được nên trước nay chỉ ghi nợ.
+
+**Sửa.** Xoá theo lô `XOA_MOI_LUOT = 2.000` dòng, mỗi lô một giao dịch riêng có `lock_timeout = 30 s`, và gọi
+`on_progress(đã xoá, tổng)` để lệnh in tiến độ. Quá hạn chờ khoá thì **báo lỗi thay vì treo** — người chạy biết
+có việc khác đang giữ bảng. Con (chi tiết sản phẩm, phân công) vẫn xoá trước cha.
+
+Không đụng dữ liệu thật: chỉ lệnh dữ liệu giả, và bài kiểm khẳng định dòng có mã đơn thật không bị xoá lây.
+AC-10.10, bài ở `core/tests/test_seed_perf_xoa.py` (dùng 5 dòng chứ không phải 50.000 — cái cần khoá là cách
+xoá, không phải tốc độ).
+
+**Còn nợ:** nguyên nhân gốc của lần treo 17 phút vẫn chưa biết, chỉ mới chặn hậu quả. Lần sau gặp thì lỗi
+`lock_timeout` sẽ nói rõ ai đang giữ khoá.
+
 ## 19.09.2026 (đêm) — Một bài đầu-cuối đi trọn hành trình nhân viên
 
 **Vì sao.** Hai lỗi chủ dự án báo sáng nay đều nằm **giữa** các màn hình: đổi hộp lọc cột thì sót mục của cột

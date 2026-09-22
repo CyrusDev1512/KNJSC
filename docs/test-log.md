@@ -1,5 +1,11 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 22.09.2026 (chiều) — Xoá dữ liệu giả theo lô
+
+**TL-43 (đóng phần hậu quả):** xoá 50.000 dòng giả không còn treo im lặng — chia lô 2.000, mỗi lô có hạn chờ
+khoá 30 giây và in tiến độ (AC-10.10). Nguyên nhân gốc của lần đứng 17 phút vẫn chưa tái hiện được; nay nếu
+tái diễn thì báo lỗi kèm thông tin khoá thay vì đứng câm.
+
 ## 19.09.2026 (đêm) — Hành trình xuyên màn hình
 
 **Khoảng trống đã lấp:** chỗ nối giữa các màn hình không có bài kiểm nào. Thêm

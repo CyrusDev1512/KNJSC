@@ -1,5 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 22.09.2026 (chiều) — Nợ kỹ thuật đợt 1
+
+**Finished local:** xoá dữ liệu giả theo lô, có hạn chờ khoá và tiến độ (TL-43, AC-10.10).
+**To do:** chủ dự án xem PR. **Far plan:** nguyên nhân gốc lần treo 17 phút.
+
 ## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên
 
 **Finished local:** `tests/e2e/test_hanh_trinh_nhan_vien.py` — một lượt qua lưới, hộp lọc cột, đổi vai, lên đơn,
