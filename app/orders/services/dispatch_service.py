@@ -150,16 +150,18 @@ def sync_product_columns(bang=None):
     theo_ma = {c.code: c for c in bang.columns.all()}
     thu_tu = len(WAYBILL_COLUMNS) + 100
     them = 0
-    # Nhóm cột sản phẩm đang bị ẩn với cả công ty (ADR-039) thì sản phẩm mới
-    # cũng vào ở trạng thái ẩn — thêm hàng không làm cả nhóm hiện trở lại.
-    cu = [c for c in theo_ma.values() if is_product_column(c.code)]
-    an_ca_nhom = bool(cu) and all(c.is_hidden for c in cu)
+    # Cột sản phẩm **luôn** sinh ra ở trạng thái ẩn với cả công ty (ADR-039 bổ
+    # sung 22.09): chi tiết sản phẩm của mỗi dòng đã nằm trong hộp Chi tiết
+    # (`WaybillItem`, ADR-018), nhóm `sl_*` chỉ làm lưới rộng thêm. Trước đây
+    # chỉ ẩn khi cả nhóm đã ẩn, nên bảng chưa ai bấm ẩn lần nào thì mỗi sản
+    # phẩm gõ thử lại mọc một cột mới trên lưới. Quản lý bảng vẫn bật lại được
+    # bằng mục "Đang ẩn với cả công ty" trong hộp "Cột".
     for i, (ten, ma, _) in enumerate(product_columns()):
         cot = theo_ma.get(ma)
         if cot is None:
             ColumnDef.objects.create(
                 table=bang, name=ten, code=ma, field_type=FieldType.INTEGER,
-                order=thu_tu + i, is_hidden=an_ca_nhom,
+                order=thu_tu + i, is_hidden=True,
             )
             them += 1
         elif cot.name != ten:

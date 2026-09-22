@@ -21,6 +21,14 @@ mặc định — form luôn gửi `tu`/`den` mà view xét "có tham số" thay
 nay thay bằng quy ₫ (ADR-042, AC-42.1/40.2).
 Bộ liên quan: 199 đạt; bộ đầy đủ `-m "not cham and not trinh_duyet"`: 2.532 đạt, 1 bỏ qua, 0 đỏ. [Biên bản](kiem-chung-bao-cao-nhu-anh-mau-20260923.md).
 
+## 22.09.2026 — Cột sản phẩm mặc định ẩn
+
+**TL-52 (đóng):** sản phẩm gõ thử mọc cột trên lưới vì ADR-039 chỉ ẩn cột mới khi cả nhóm đã ẩn, mà chưa ai
+bấm nút lần nào. Nay mặc định ẩn (AC-39.5, AC-39.9).
+**TL-53 (mở, đã khoá bằng bài kiểm):** cột đã ẩn thì lưới không đọc bộ lọc của nó — đường dẫn cũ lọc theo
+`sl_*` từng bị bỏ lặng lẽ — đã đóng cùng ngày ở mục TL-53 phía dưới (lọc vẫn chạy, có nhắc, AC-39.8).
+Bộ đầy đủ: 2.530 đạt, 1 bỏ qua, 0 đỏ. [Biên bản](kiem-chung-cot-san-pham-mac-dinh-an-20260922.md).
+
 ## 22.09.2026 (đêm) — TL-53 ghi nhận và đóng
 
 **TL-53 (đóng):** bộ lọc trỏ tới cột đang ẩn (ADR-039) bị bỏ **lặng lẽ** — URL cũ, liên kết Thống kê,

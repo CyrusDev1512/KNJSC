@@ -55,11 +55,11 @@ def du_lieu(bang_vd, nguoi_dung):
     vd = nguoi_dung["staff_vd"]
     return {
         "an1": _dong(bang_vd, vd, ten_khach="Nguyễn An", so_dien_thoai="0911", ngay="2026-08-01",
-                     trang_thai_vc="Đang giao", sl_retinol_cream=2, ghi_chu="Giao buổi tối"),
+                     trang_thai_vc="Đang giao", sl_retinol_cream=2, so_luong=2, ghi_chu="Giao buổi tối"),
         "an2": _dong(bang_vd, vd, ten_khach="Nguyễn An", so_dien_thoai="0911", ngay="2026-08-05",
-                     trang_thai_vc="Đã nhận hàng", sl_retinol_cream=1),
+                     trang_thai_vc="Đã nhận hàng", sl_retinol_cream=1, so_luong=1),
         "binh": _dong(bang_vd, vd, ten_khach="Trần Bình", so_dien_thoai="0922", ngay="2026-08-10",
-                      trang_thai_vc="Hủy trước giao", sl_retinol_cream=5),
+                      trang_thai_vc="Hủy trước giao", sl_retinol_cream=5, so_luong=5),
         "chi": _dong(bang_vd, vd, ten_khach="Lê Chi", so_dien_thoai="0933", ngay="2026-08-20",
                      trang_thai_vc="Hoàn đơn", ghi_chu="Khách đổi ý"),
     }
@@ -121,9 +121,11 @@ def test_loc_tung_cot_va_cong_don(client, du_lieu, nguoi_dung):
     assert _so_dong(client, f"?f_trang_thai_vc__trong={dg}&f_trang_thai_vc__trong={hd}&f_ten_khach__chua=An") == 1
     # khoảng ngày trên cột tách
     assert _so_dong(client, "?f_ngay__lon_bang=2026-08-05&f_ngay__nho_bang=2026-08-10") == 2
-    # khoảng số trên cột JSON số nguyên (số lượng sản phẩm)
-    assert _so_dong(client, "?f_sl_retinol_cream__lon_bang=2") == 2
-    assert _so_dong(client, "?f_sl_retinol_cream__trong=5") == 1
+    # khoảng số trên cột JSON số nguyên. Dùng `so_luong` chứ không phải `sl_*`: từ
+    # 22.09 nhóm cột sản phẩm mặc định ẩn với cả công ty (ADR-039 bổ sung); lọc theo
+    # cột ẩn vẫn chạy nhưng có chip nhắc riêng — bài AC-39.8 lo chuyện đó
+    assert _so_dong(client, "?f_so_luong__lon_bang=2") == 2
+    assert _so_dong(client, "?f_so_luong__trong=5") == 1
     # ô trống và ô có giá trị
     assert _so_dong(client, "?f_ghi_chu__rong=1") == 2
     assert _so_dong(client, "?f_ghi_chu__co=1") == 2

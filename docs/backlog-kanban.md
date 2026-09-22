@@ -34,6 +34,12 @@ biên bản bốn đợt + 21 ảnh; PR nháp #36.
 **To do:** chủ dự án nghiệm thu; phát hành VPS (Codex, có migration `reports/0005`).
 **Far plan:** `so_tien_tt` gõ tay vào DS Chốt (TT)?; tỉ giá KRW; Tổng quan hiện (TT).
 
+## 22.09.2026 — Cột sản phẩm mặc định ẩn
+
+**Finished local:** mặc định ẩn cột `sl_*` (AC-39.5, 39.8), migration `orders/0011`, ADR-039 bổ sung.
+**To do:** phát hành VPS; chủ dự án kiểm 4 bước Lên đơn trên domain thật.
+**Far plan:** dọn ba sản phẩm gõ thử; thu gọn panel "Bộ lọc". (TL-53 đã đóng cùng ngày — lọc cột ẩn vẫn chạy, AC-39.8.)
+
 ## 22.09.2026 (đêm) — Lọc theo cột ẩn vẫn chạy, kèm lời nhắc
 
 **Finished local (nhánh `claude/loc-cot-an-co-nhac`, PR nháp):** TL-53 đóng — bộ lọc cột ẩn không còn
