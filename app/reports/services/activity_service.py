@@ -335,6 +335,8 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
         currency_code=source.columns.get("currency"),   # quy ₫ ngay trong truy vấn (ADR-040)
     )
     result = project_metrics(result, source) if result.ok else result
+    if result.ok:
+        result = replace(result, thresholds=source.thresholds or {})   # ngưỡng màu Manager đặt (ADR-040)
     thieu_ti_gia = 0
     if result.ok and DERIVED.get(source.kind) and not segment:
         # Lọc theo Tệp khách hàng thì phần đối soát để trống: vận đơn không ghi tệp (ADR-038)
@@ -444,11 +446,12 @@ def currency_note(result, source, qs, thieu_ti_gia=0):
 
 def delivery(qs, source, group, product):
     items = WaybillItem.objects.for_records(qs)
-    if product:
-        items = items.filter(product__code=product)
+    products = _products(product)
+    if products:
+        items = items.filter(product__code__in=products)
     item_filter = Q(waybill_items__deleted_at__isnull=True)
-    if product:
-        item_filter &= Q(waybill_items__product__code=product)
+    if products:
+        item_filter &= Q(waybill_items__product__code__in=products)
     quantity = Sum("waybill_items__quantity", filter=item_filter)
     # Mỗi đơn thuộc đúng một trạng thái; tổng các nhóm này chính là tổng
     # trong bộ lọc. Tái sử dụng cho màn hình/Excel, tránh một lượt SUM riêng.

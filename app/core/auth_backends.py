@@ -4,12 +4,25 @@ Tài khoản mới có tên đăng nhập = mã nhân sự viết hoa (`THUANLT`
 `thuanlt` vẫn phải vào được. `account_service.create_account` đã chặn hai tài khoản
 chỉ khác hoa/thường (`username__iexact`), nên tra `iexact` không bao giờ nhập nhằng.
 Kiểm mật khẩu, khoá tạm, phiên giữ nguyên của `ModelBackend`.
+
+`get_user` lấy kèm hồ sơ nhân sự trong cùng một lệnh: mọi yêu cầu đã đăng nhập đều đọc
+`user.profile` (mốc phiên ở `SessionTimeoutMiddleware`, phạm vi quyền ở `core.scope`), nên
+tách hai lệnh là tốn một truy vấn ở mọi màn hình (AC-10.2). Không có hồ sơ thì `user.profile`
+vẫn báo thiếu như trước.
 """
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 
 
 class CaseInsensitiveModelBackend(ModelBackend):
+    def get_user(self, user_id):
+        User = get_user_model()
+        try:
+            user = User._default_manager.select_related("profile").get(pk=user_id)
+        except User.DoesNotExist:
+            return None
+        return user if self.user_can_authenticate(user) else None
+
     def authenticate(self, request, username=None, password=None, **kwargs):
         User = get_user_model()
         if username is None:

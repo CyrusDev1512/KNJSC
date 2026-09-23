@@ -11,6 +11,8 @@ urlpatterns = [
     path("bao-cao/tong-hop/", views.bao_cao_tong_hop, name="bao_cao_tong_hop"),
     path("bao-cao/tong-hop/xuat/", views.bao_cao_tong_hop_xuat,
          name="bao_cao_tong_hop_xuat"),
+    # Manager bộ phận sở hữu nguồn đặt ngưỡng màu ba bậc (ADR-040 đợt 3)
+    path("bao-cao/tong-hop/nguong/", activity_views.thresholds, name="bao_cao_tong_hop_nguong"),
     path("bao-cao/<int:pk>/", views.bao_cao_xem, name="bao_cao_xem"),
     path("bao-cao/<int:pk>/sua/", views.bao_cao_sua, name="bao_cao_sua"),
     path("bao-cao/<int:pk>/bo/", views.bao_cao_bo, name="bao_cao_bo"),

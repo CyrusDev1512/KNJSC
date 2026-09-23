@@ -121,3 +121,28 @@ def test_dat_lai_mat_khau_khong_ghi_mat_khau_vao_nhat_ky(db, nguoi_dung):
     account_service.reset_password(nguoi_dung["staff_sale_1"].profile, "MatKhauMoi-2026")
     for ban_ghi in AuditLog.objects.all():
         assert "MatKhauMoi-2026" not in ban_ghi.detail
+
+
+def test_phien_dang_nhap_lay_ho_so_cung_mot_lenh(client, nguoi_dung, django_assert_max_num_queries, django_user_model):
+    """AC-10.2 — Backend đăng nhập lấy người dùng kèm hồ sơ trong một lệnh: yêu cầu đã đăng nhập
+    không tốn thêm truy vấn khi đọc `user.profile`; tài khoản không có hồ sơ vẫn vào được và
+    `profile` báo thiếu như trước; tài khoản bị khoá (`is_active=False`) vẫn bị đẩy ra"""
+    from django.contrib.auth import get_user
+
+    client.force_login(nguoi_dung["staff_sale_1"])
+    ho_so = nguoi_dung["staff_sale_1"].profile.pk
+    request = type("R", (), {"session": client.session})()
+    request.session.get("auth_epoch")   # nạp phiên trước, chỉ đếm lệnh lấy người dùng
+    with django_assert_max_num_queries(1):
+        user = get_user(request)
+        assert user.profile.pk == ho_so
+    khong_ho_so = django_user_model.objects.create_user("khongcohoso", password="x-2026!", is_superuser=True)
+    client.force_login(khong_ho_so)
+    request = type("R", (), {"session": client.session})()
+    request.session.get("auth_epoch")
+    with django_assert_max_num_queries(1):
+        user = get_user(request)
+        assert getattr(user, "profile", None) is None
+    assert client.get("/").status_code == 200
+    django_user_model.objects.filter(pk=khong_ho_so.pk).update(is_active=False)
+    assert get_user(type("R", (), {"session": client.session})()).is_anonymous

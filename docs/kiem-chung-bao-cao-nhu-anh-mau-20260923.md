@@ -81,3 +81,63 @@ chữ**; cột định danh **trượt 0 px** khi cuộn ngang 300 px (ghim đú
 - Người đổi team giữa kỳ (sẽ thành hai dòng ở khối toàn kỳ) — chưa có dữ liệu để chụp.
 - Trên 2.000 cặp ngày × người (đường chạm trần) chỉ qua đọc mã, chưa dựng dữ liệu.
 - Excel mở bằng Excel thật; nút Gộp trên điện thoại chưa chụp riêng.
+
+## Đợt 3 — Ngưỡng màu ba bậc, form Ngưỡng cho quản lý, lọc nhiều sản phẩm, "Tuần này"
+
+### Đã đo
+
+**pytest** (Postgres 16 cổng 5434 trong máy ảo, `knjsc.settings.test`), lệnh
+`pytest reports/tests dashboard tests/test_truy_vet.py core/tests/test_giao_dien.py core/tests/test_chuyen_doi.py
+core/tests/test_permissions.py core/tests/test_scope.py org/tests/test_account.py`: **843 đạt, 0 đỏ**. Bài mới
+AC-40.8 → AC-40.11 (`reports/tests/test_nguong_va_loc_san_pham.py`, gồm migration `reports/0005` xuôi và
+ngược), AC-40.12 trong `test_date_presets.py`, AC-10.2 `test_phien_dang_nhap_lay_ho_so_cung_mot_lenh`
+(`org/tests/test_account.py`). Bộ đầy đủ `-m "not cham"` từ `app/`: **2.567 đạt, 9 bỏ qua (bài trình duyệt
+thiếu Chromium trong pytest), 31 bỏ chọn (`cham`), 0 đỏ** trong 4 phút 49 giây. Hai sửa sau lượt đó (form
+hiện mốc theo cách người Việt gõ, CSS ô nhập rộng hơn) chạy lại bộ `reports/tests core/tests/test_giao_dien.py
+tests/test_truy_vet.py org/tests/test_account.py dashboard`: **808 đạt, 0 đỏ**.
+
+**Truy vấn.** Danh sách tick Sản phẩm là một truy vấn thêm trên mỗi màn (DISTINCT tên sản phẩm trong phạm vi
+quyền; nguồn Vận đơn: mã kèm tên từ chi tiết đơn). Nguồn Vận đơn với Leader lên **11** —
+`test_delivery_query_budget` đỏ (11 lệnh: phiên, người dùng, hồ sơ, team phụ trách, quyền cấp, bảng nguồn, cột,
+danh sách nhân sự, **sản phẩm**, trạng thái giao hàng, dòng). Cắt ở chỗ dùng chung thay vì nới ngân sách:
+`CaseInsensitiveModelBackend.get_user` lấy người dùng **kèm hồ sơ** trong một lệnh (`select_related("profile")`),
+vì mọi yêu cầu đã đăng nhập đều đọc `user.profile` (mốc phiên ở `SessionTimeoutMiddleware`, phạm vi ở
+`core.scope`). Kết quả: Vận đơn/Leader 11 → **10**; nguồn MKT thật (AC-40.4) vẫn ≤ 10; mọi màn hình đã đăng
+nhập bớt một truy vấn. Ba bài `django_assert_num_queries` đúng số (1, 0, 1) nằm ở tầng dịch vụ nên không đổi.
+Bài AC-10.2 mới kiểm: người có hồ sơ → 1 lệnh và `user.profile` không tốn thêm; tài khoản không hồ sơ vẫn vào,
+`profile` báo thiếu như trước; tài khoản bị khoá vẫn bị đẩy ra.
+
+**Hai lỗi bắt được khi chụp, sửa ngay trong đợt.** (1) Lưu ngưỡng hụt hai lần liên tiếp thì `next` đã mang
+`nguong=1` lại được nối thêm `&nguong=1` — view bỏ khoá cũ trước khi thêm lại (AC-40.9 thêm khẳng định).
+(2) Form hiện lại mốc đã lưu bằng chuỗi máy (`7.32`, `0.345`) trong khi `parse_money` đọc `0.345` thành 345
+(ba chữ số sau dấu chấm là ngăn nghìn) — người mở form rồi bấm Lưu không đổi gì sẽ lưu sai. Form nay hiện
+theo cách người Việt gõ (`7,32`, `84.526.646`, `0,345`), đúng thứ `parse_money` đọc lại; AC-40.9 kiểm vòng
+hiện → gửi lại y nguyên → mốc không đổi.
+
+**Chromium** trên `knjsc_mkt`, `mkt.manager`, kỳ 01–23.09.2026 (script `scratchpad/chup-dot3.py`,
+`chup-dot3b.py`, `chup-dot3c.py`):
+
+| Ảnh | Thấy gì |
+|---|---|
+| `08-dot3-form-nguong-1440.png` | Nút "Ngưỡng màu" dưới phụ đề; `?nguong=1` mở form sáu chỉ tiêu (Tỉ lệ chốt, Tỉ lệ chốt (TT), Giá Mess, CPO, CPQC/DS Chốt, AOV) với chiều tốt và dấu ≥ / < hay ≤ / > |
+| `09-dot3-ba-bac-mau-1440-sang.png`, `10-dot3-ba-bac-mau-1440-toi.png` | Sau Lưu: thông báo "Đã lưu ngưỡng màu.", trang về đúng URL cũ (không còn `nguong=1`) |
+| `13-dot3-cot-chi-so-ba-mau-1440-sang.png`, `14-dot3-cot-chi-so-ba-mau-1440-toi.png` | Bộ lọc thu gọn, form mở lại hiện mốc đã lưu dạng `7,32`, `84.526.646` |
+| `15-dot3-o-ba-mau-1440-sang.png`, `16-dot3-o-ba-mau-1440-toi.png` | Khung bảng cuộn tới cột chỉ số: ô xanh / vàng / đỏ theo mốc tuyệt đối, dòng TỔNG CỘNG cũng tô |
+| `11-dot3-loc-nhieu-san-pham-1440.png` | Sản phẩm: hộp tick mở, tick 2/4 mục, tóm tắt "2 sản phẩm", chip "Sản phẩm Kem Chống Nắng, Máy massage cầm tay HM-200 ×", URL `sp=…&sp=…`, các bảng chỉ còn dòng khớp |
+| `12-dot3-bo-loc-390.png` | 390 px: ngăn kéo bộ lọc, Chọn nhanh sáu mốc gồm "Tuần này" |
+
+Số đếm từ DOM: mốc đặt quanh dòng TỔNG CỘNG toàn kỳ (Tốt = tổng ±10 %, Kém = tổng ∓10 % theo chiều; Tỉ lệ
+chốt (TT) giữ mốc 0,38 / 0,31 đặt ở lượt chụp đầu — DB mẫu chưa có vận đơn đối soát nên cột này 0 % và đỏ
+toàn bộ, đúng chiều; AOV để trống nên tô tương đối) → **trước** khi đặt: `o-tot` 14,
+`o-canh-bao` 17, `o-xau` 0 (cách tương đối ±10 %, không có đỏ); **sau** khi đặt: `o-tot` 14, `o-canh-bao` 25,
+`o-xau` 28, dòng TỔNG CỘNG mang lớp `o-canh-bao` / `o-xau`. Ô tìm nhanh gõ "x" ẩn 4/4 mục; "Không tick mục nào
+(Tất cả)" trả về Tất cả; Chọn nhanh: Hôm nay · Hôm qua · 7 ngày · **Tuần này** · Tháng này · Tháng trước.
+
+### Chưa kiểm
+
+- Ngưỡng cho nguồn Sale (cùng mã chỉ tiêu, nhãn "Doanh số") chỉ qua bài kiểm, chưa chụp.
+- Hộp tick Sản phẩm với hàng trăm sản phẩm (ô tìm nhanh) chưa đo bằng dữ liệu lớn.
+- Excel khi lọc nhiều sản phẩm: phụ đề "Sản phẩm: …" chỉ qua bài kiểm, chưa mở bằng Excel thật.
+- Hai script `.cjs` (`kiem-thu-erp-browser-perf`, `kiem-thu-erp-delivery-ui`) đã đổi sang hộp tick nhưng chỉ
+  chạy tay khi có Docker — chưa chạy lại.
+

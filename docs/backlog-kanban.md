@@ -7,9 +7,10 @@ DS Chốt (TT) / Tỉ lệ chốt (TT) đối soát từ vận đơn; Tỉ lệ 
 nguồn MKT thật ≤ 10 truy vấn; TL-52, TL-53. AC-40.1 → 40.5.
 **Finished local (đợt 2):** khối toàn kỳ theo nhân sự + mỗi ngày một bảng (STT · Team · Nhân sự · Leader,
 TỔNG CỘNG đầu bảng), Gộp/Không gộp, Excel hai sheet. AC-40.6, 40.7.
-**In progress:** đợt 3 — ngưỡng màu 3 bậc + form Manager, lọc nhiều sản phẩm, "Tuần này".
-**To do:** đợt 4 Bảng dữ liệu
-chi tiết theo ngày + lỗi vặt; đợt 5 docs/02, CLAUDE.md, biên bản cuối; phát hành VPS (Codex).
+**Finished local (đợt 3):** ngưỡng màu 3 bậc do quản lý bộ phận đặt trên màn hình (`ReportSource.thresholds`,
+migration `reports/0005`), lọc nhiều sản phẩm, "Tuần này"; backend đăng nhập lấy hồ sơ cùng một lệnh. AC-40.8 → 40.12.
+**In progress:** đợt 4 — Bảng dữ liệu chi tiết theo ngày + lỗi vặt.
+**To do:** đợt 5 docs/02, CLAUDE.md, biên bản cuối; phát hành VPS (Codex).
 **Far plan:** `so_tien_tt` gõ tay vào DS Chốt (TT)?; tỉ giá KRW; Tổng quan hiện (TT).
 
 ## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên

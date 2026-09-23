@@ -27,7 +27,18 @@ TỔNG CỘNG ngay dưới tiêu đề cột), rồi **mỗi ngày một bảng 
 `reports/_bang_khoi.html` dùng chung, một khung cuộn nhiều bảng; Excel hai sheet "Toan ky theo nhan su" +
 "Theo ngay". AC-40.6, AC-40.7; sửa AC-22.10/13/14/15, AC-38.2. 192 đạt bộ báo cáo.
 
-**Còn nợ.** Đợt 3 ngưỡng màu + lọc nhiều sản phẩm; đợt 4 Bảng dữ liệu; đợt 5 docs/02, CLAUDE.md. Chờ chủ
+**Đợt 3 cùng ngày — ngưỡng màu ba bậc, lọc nhiều sản phẩm, "Tuần này".** `ReportSource.thresholds`
+(migration `reports/0005`, đảo ngược được) do quản lý bộ phận sở hữu nguồn đặt ngay trên màn hình (nút
+"Ngưỡng màu", POST `bao-cao/tong-hop/nguong/`, `threshold_service`, cùng luật `can_manage_columns`, có nhật
+ký); ô chỉ số xanh / vàng / đỏ theo mốc tuyệt đối, dòng TỔNG CỘNG cũng tô, chỉ tiêu chưa đặt giữ ±10 % so với
+TỔNG CỘNG, không bịa số mặc định. Bộ lọc Sản phẩm thành hộp tick nhiều mục (`sp` lặp lại, URL cũ `sp=A` vẫn
+chạy, danh sách theo phạm vi quyền, (TT) cũng lọc theo), Chọn nhanh thêm "Tuần này". Danh sách sản phẩm là
+một truy vấn thêm — bù bằng backend đăng nhập lấy người dùng kèm hồ sơ trong một lệnh
+(`core/auth_backends.py`; mọi màn hình đã đăng nhập bớt một truy vấn, Vận đơn/Leader 11 → 10). AC-40.8 →
+40.12, AC-10.2 thêm một bài. Hai lỗi bắt được khi chụp và sửa ngay: `nguong=1` nối đuôi khi lưu hụt hai lần;
+form hiện mốc đã lưu dạng `0.345` mà `parse_money` đọc thành 345 — nay hiện `0,345`.
+
+**Còn nợ.** Đợt 4 Bảng dữ liệu; đợt 5 docs/02, CLAUDE.md. Chờ chủ
 dự án: `so_tien_tt` gõ tay ở đơn không chi tiết có vào DS Chốt (TT) không; tỉ giá KRW; cột lệch nhẹ giữa
 các bảng (mỗi bảng tự co theo nội dung) có cần ép cùng bề rộng không.
 

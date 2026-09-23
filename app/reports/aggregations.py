@@ -100,6 +100,9 @@ class SummaryResult:
     #: (chưa có tỉ giá hay trống loại tiền) — tiền của chúng không vào tổng.
     converted: bool = False
     unconverted: int = 0
+    #: Ngưỡng màu ba bậc theo mã chỉ tiêu (`ReportSource.thresholds`, ADR-040 đợt 3); rỗng thì
+    #: ô tỉ lệ tô theo cách tương đối so với dòng Tổng (AC-22.16)
+    thresholds: dict = field(default_factory=dict)
 
 
 def labeled_columns(columns):
@@ -448,15 +451,25 @@ class Cell(str):
         return o
 
 
-def cell_class(cot, gia_tri, moc):
-    """Lớp màu của một ô: nền cột cho chỉ số quan trọng, cộng màu đạt/cảnh báo khi lệch
-    mốc (dòng Tổng trong bộ lọc) quá `THRESHOLD_BAND` về phía tốt hoặc xấu."""
+def cell_class(cot, gia_tri, moc, nguong=None):
+    """Lớp màu của một ô: nền cột cho chỉ số quan trọng; có **ngưỡng tuyệt đối** (`nguong`
+    `{"tot","kem"}`, Manager đặt — ADR-040) thì ba bậc: đạt mốc Tốt → `o-tot` (xanh), qua mốc
+    Kém → `o-xau` (đỏ), giữa → `o-canh-bao` (vàng), kể cả dòng Tổng; không có ngưỡng thì so
+    với dòng Tổng trong bộ lọc ±`THRESHOLD_BAND` như cũ (AC-22.16)."""
     lop = ["o-chi-so"] if cot.focus else []
     chieu = constants.METRIC_DIRECTION.get(constants.metric_key(cot.code, cot.label))
     # Chỉ so tỉ lệ: cột cộng lấy tổng làm mốc thì dòng nào cũng thua, không có nghĩa.
     if cot.kind == "sum":
         chieu = None
-    if chieu and gia_tri is not None and moc not in (None, 0):
+    if chieu and gia_tri is not None and nguong:
+        gia_tri, tot, kem = Decimal(gia_tri), Decimal(nguong["tot"]), Decimal(nguong["kem"])
+        if (gia_tri >= tot) if chieu == "cao" else (gia_tri <= tot):
+            lop.append("o-tot")
+        elif (gia_tri < kem) if chieu == "cao" else (gia_tri > kem):
+            lop.append("o-xau")
+        else:
+            lop.append("o-canh-bao")
+    elif chieu and gia_tri is not None and moc not in (None, 0):
         bien = Decimal(constants.THRESHOLD_BAND)
         ty_le = Decimal(gia_tri) / Decimal(moc)
         tot = ty_le >= 1 + bien if chieu == "cao" else ty_le <= 1 - bien
@@ -469,12 +482,15 @@ def cell_class(cot, gia_tri, moc):
 
 
 def _format_cells(result, raw_cells, moc=None):
-    """Chuỗi hiển thị cho một dãy ô thô. `moc` là dãy ô của dòng Tổng để so màu."""
+    """Chuỗi hiển thị cho một dãy ô thô. `moc` là dãy ô của dòng Tổng để so màu; ngưỡng tuyệt
+    đối (nếu Manager đã đặt) tra theo mã chỉ tiêu."""
     out = []
+    nguong = result.thresholds or {}
     for i, (cot, gia_tri) in enumerate(zip(result.columns, raw_cells)):
         text = format_number(gia_tri, cot.decimals)
         hien = text + cot.suffix if text != "—" else text
-        out.append(Cell(hien, cell_class(cot, gia_tri, moc[i] if moc else None)))
+        muc = nguong.get(constants.metric_key(cot.code, cot.label))
+        out.append(Cell(hien, cell_class(cot, gia_tri, moc[i] if moc else None, muc)))
     return out
 
 

@@ -91,8 +91,9 @@ def default_range():
 
 
 def date_presets(today=None, *, start=None, end=None):
-    """Chọn nhanh kỳ (ADR-038, sheet MKT): Hôm nay, Hôm qua, 7 ngày, Tháng này, Tháng trước.
-    Mỗi mục `{key, label, start, end, active}`; `active` khi khớp đúng khoảng đang lọc."""
+    """Chọn nhanh kỳ (ADR-038, sheet MKT): Hôm nay, Hôm qua, 7 ngày, Tuần này (thứ Hai → hôm nay,
+    ADR-040), Tháng này, Tháng trước. Mỗi mục `{key, label, start, end, active}`; `active` khi khớp
+    đúng khoảng đang lọc."""
     from datetime import timedelta
 
     hom_nay = today or timezone.localdate()
@@ -102,6 +103,7 @@ def date_presets(today=None, *, start=None, end=None):
         ("hom-nay", "Hôm nay", hom_nay, hom_nay),
         ("hom-qua", "Hôm qua", hom_nay - timedelta(days=1), hom_nay - timedelta(days=1)),
         ("7-ngay", "7 ngày", hom_nay - timedelta(days=6), hom_nay),
+        ("tuan-nay", "Tuần này", hom_nay - timedelta(days=hom_nay.weekday()), hom_nay),
         ("thang-nay", "Tháng này", dau_thang, hom_nay),
         ("thang-truoc", "Tháng trước", cuoi_thang_truoc.replace(day=1), cuoi_thang_truoc),
     )

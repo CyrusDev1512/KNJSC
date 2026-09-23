@@ -103,6 +103,10 @@ class ReportSource(models.Model):
                                 related_name="erp_report")
     kind = models.CharField(max_length=12, choices=[("sale", "Sale"), ("mkt", "Marketing"), ("delivery", "Vận đơn")])
     columns = models.JSONField(default=dict)
+    #: Ngưỡng màu ba bậc theo mã chỉ tiêu (ADR-040 đợt 3), Manager bộ phận sở hữu đặt:
+    #: `{"cpo": {"tot": "150000", "kem": "300000"}}` — chuỗi Decimal; chỉ tiêu chưa có ngưỡng
+    #: rơi về cách tô tương đối ±10 % so với dòng Tổng (AC-22.16). Không có số mặc định.
+    thresholds = models.JSONField(default=dict, blank=True)
 
     class Meta:
         verbose_name = "Nguồn báo cáo ERP"

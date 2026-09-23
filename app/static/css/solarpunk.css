@@ -320,6 +320,29 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
 .report-table thead th.o-chi-so {background:var(--accent-hover)}
 .report-table td.o-tot,.report-table tbody tr:hover>td.o-tot {background:var(--good-soft);color:var(--good);font-weight:600}
 .report-table td.o-canh-bao,.report-table tbody tr:hover>td.o-canh-bao {background:var(--warn-soft);color:var(--warn);font-weight:600}
+/* Bậc thứ ba khi Manager đặt ngưỡng tuyệt đối (ADR-040 đợt 3): qua mốc Kém là đỏ */
+.report-table td.o-xau,.report-table tbody tr:hover>td.o-xau {background:var(--critical-soft);color:var(--critical);font-weight:600}
+/* Chọn nhiều sản phẩm trong bộ lọc: danh sách tick có ô tìm nhanh, tóm tắt ở ô đóng */
+.report-multi summary {list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.report-multi summary::-webkit-details-marker {display:none}
+.report-multi summary::after {content:"▾";color:var(--ink-3);flex:none}
+.report-multi-tom-tat {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.report-multi-hop {margin-top:6px;border:1px solid var(--rule);border-radius:var(--r-sm);padding:8px;background:var(--surface);display:grid;gap:6px}
+.report-multi-tim {width:100%}
+.report-multi-nut {display:flex;gap:6px;flex-wrap:wrap}
+.report-multi-ds {max-height:180px;overflow:auto;display:grid;gap:2px}
+.report-multi-muc {display:flex;align-items:center;gap:6px;font-size:var(--fs-sm);padding:2px 4px;border-radius:4px;cursor:pointer}
+.report-multi-muc:hover {background:var(--surface-2)}
+.report-multi-muc[hidden] {display:none}
+/* Form Ngưỡng màu của Manager, ngay dưới tiêu đề kết quả */
+.report-nguong {margin:10px 18px 0}
+.report-nguong>summary {display:inline-flex;cursor:pointer;list-style:none}
+.report-nguong>summary::-webkit-details-marker {display:none}
+.report-nguong-form {margin-top:8px;padding:12px;border:1px solid var(--rule);border-radius:var(--r-sm);background:var(--surface-2);display:grid;gap:8px;max-width:760px}
+.report-nguong-bang th,.report-nguong-bang td {padding:4px 8px;vertical-align:middle}
+.report-nguong-o {display:flex;align-items:center;gap:6px}
+.report-nguong-o span {color:var(--ink-3);width:14px;text-align:center}
+.report-nguong-o .o-nhap {width:150px;font-variant-numeric:tabular-nums}
 
 /* Khối theo ngày (AC-22.15): dòng Tổng ngày đứng đầu khối, đậm, không ghim trên như dòng Tổng */
 .report-table .report-subtotal>* {background:var(--accent-soft);color:var(--ink);font-weight:700;border-top:2px solid var(--rule-strong)!important}

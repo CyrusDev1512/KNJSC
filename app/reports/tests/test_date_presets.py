@@ -11,14 +11,15 @@ pytestmark = pytest.mark.django_db
 
 
 def test_chon_nhanh_ky(client, bang_mkt, nguoi_dung, monkeypatch):
-    """AC-38.5 — Chọn nhanh: Hôm nay, Hôm qua, 7 ngày, Tháng này, Tháng trước đúng ngày (kể cả qua
-    đầu tháng và đầu năm); màn hình có nút với `data-tu`/`data-den` và JS áp ngay; nút khớp khoảng
-    đang lọc được đánh dấu"""
+    """AC-38.5 — Chọn nhanh: Hôm nay, Hôm qua, 7 ngày, Tuần này (thứ Hai → hôm nay, ADR-040), Tháng này,
+    Tháng trước đúng ngày (kể cả qua đầu tháng, đầu năm và tuần vắt qua tháng); màn hình có nút với
+    `data-tu`/`data-den` và JS áp ngay; nút khớp khoảng đang lọc được đánh dấu"""
     muc = {m["key"]: (m["start"], m["end"]) for m in summary_service.date_presets(date(2026, 9, 18))}
     assert muc == {
         "hom-nay": (date(2026, 9, 18), date(2026, 9, 18)),
         "hom-qua": (date(2026, 9, 17), date(2026, 9, 17)),
         "7-ngay": (date(2026, 9, 12), date(2026, 9, 18)),
+        "tuan-nay": (date(2026, 9, 14), date(2026, 9, 18)),      # 18.09.2026 là thứ Sáu
         "thang-nay": (date(2026, 9, 1), date(2026, 9, 18)),
         "thang-truoc": (date(2026, 8, 1), date(2026, 8, 31)),
     }
@@ -26,8 +27,10 @@ def test_chon_nhanh_ky(client, bang_mkt, nguoi_dung, monkeypatch):
     assert dau_nam["hom-qua"] == (date(2026, 12, 31), date(2026, 12, 31))
     assert dau_nam["7-ngay"] == (date(2026, 12, 26), date(2027, 1, 1))
     assert dau_nam["thang-truoc"] == (date(2026, 12, 1), date(2026, 12, 31))
+    assert dau_nam["tuan-nay"] == (date(2026, 12, 28), date(2027, 1, 1))     # tuần vắt qua năm
+    assert {m["key"]: m["start"] for m in summary_service.date_presets(date(2026, 9, 21))}["tuan-nay"] == date(2026, 9, 21)   # thứ Hai
     assert [m["label"] for m in summary_service.date_presets(date(2026, 9, 18))] == \
-        ["Hôm nay", "Hôm qua", "7 ngày", "Tháng này", "Tháng trước"]
+        ["Hôm nay", "Hôm qua", "7 ngày", "Tuần này", "Tháng này", "Tháng trước"]
     active = [m["key"] for m in summary_service.date_presets(date(2026, 9, 18), start=date(2026, 9, 1), end=date(2026, 9, 18)) if m["active"]]
     assert active == ["thang-nay"]
 

@@ -1,0 +1,11 @@
+{% comment %}Bộ lọc Sản phẩm tick nhiều mục như ảnh mẫu (ADR-040 đợt 3): tham số `sp` lặp lại, không tick gì
+là Tất cả. Danh sách `products` chỉ gồm sản phẩm có thật trong phạm vi quyền (Leader không thấy hàng team
+khác). JS ở report-filters.js: ô tìm nhanh, Chọn tất cả / Bỏ chọn, nhãn tóm tắt.{% endcomment %}
+<div class="truong"><span class="nhan-nho" id="report-sp-nhan">Sản phẩm{% if source.kind == 'delivery' %} (mã){% endif %}</span>
+<details class="report-multi" id="report-multi-sp"{% if params.product %} open{% endif %}>
+<summary class="o-nhap" aria-labelledby="report-sp-nhan"><span class="report-multi-tom-tat">{% if not params.product %}Tất cả{% elif params.product|length == 1 %}{{ params.product.0 }}{% else %}{{ params.product|length }} sản phẩm{% endif %}</span></summary>
+<div class="report-multi-hop">
+<input type="text" class="o-nhap report-multi-tim" placeholder="Tìm sản phẩm" aria-label="Tìm sản phẩm" autocomplete="off">
+<div class="report-multi-nut"><button type="button" class="nut nut-nho" data-chon="all">Chọn tất cả</button><button type="button" class="nut nut-nho" data-chon="none">Không tick mục nào (Tất cả)</button></div>
+<div class="report-multi-ds">{% for p in products %}<label class="report-multi-muc"><input type="checkbox" name="sp" value="{{ p.value }}"{% if p.value in params.product %} checked{% endif %}> <span>{{ p.label }}</span></label>{% empty %}<span class="nho">Chưa có sản phẩm trong phạm vi của bạn.</span>{% endfor %}</div>
+</div></details></div>

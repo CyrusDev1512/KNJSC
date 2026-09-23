@@ -15,7 +15,7 @@ for(const width of [1440,390])for(const role of ['staff','leader','manager','adm
   await page.locator('#nhom').selectOption(group);await Promise.all([page.waitForURL(u=>u.searchParams.get('nhom')===group),page.getByRole('button',{name:'Áp dụng',exact:true}).click()]);
   assert.equal((await page.locator('tfoot td').allTextContents()).join('|'),[num(count),num(count*3)].join('|'));
  }
- await page.locator('#sp').fill('erp-p0');await page.locator('#thi-truong').selectOption({label:'Canada'});
+ await page.locator('#report-multi-sp summary').click();await page.locator('#report-multi-sp input[value="erp-p0"]').check();await page.locator('#thi-truong').selectOption({label:'Canada'});
  await Promise.all([page.waitForURL(u=>u.searchParams.get('sp')==='erp-p0'),page.getByRole('button',{name:'Áp dụng',exact:true}).click()]);
  const download=page.waitForEvent('download');await page.getByRole('link',{name:'Xuất Excel',exact:true}).click();await (await download).saveAs(path.join(out,`${role}-${width}.xlsx`));
  await page.screenshot({path:path.join(out,`${role}-${width}.png`),fullPage:true});

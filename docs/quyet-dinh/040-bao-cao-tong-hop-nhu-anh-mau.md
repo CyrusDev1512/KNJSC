@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Ngày | 23.09.2026 (đợt 1); các đợt sau bổ sung ngay trong tệp này |
-| Trạng thái | Đang làm theo đợt — đợt 1 và 2 xong local |
+| Trạng thái | Đang làm theo đợt — đợt 1, 2 và 3 xong local |
 | Thay thế / bổ sung | **ADR-038** quyết định "lẫn loại tiền thì cảnh báo và để trống chỉ tiêu tiền" (bỏ); **ADR-031** câu "không quy đổi tỉ giá" chỉ còn đúng cho **lưu trữ**; **ADR-035** bố cục Tổng hợp (bổ sung đợt 2) |
 
 ## Bối cảnh
@@ -55,9 +55,16 @@ Chỗ đối tác thấy sai trước tiên: dữ liệu thật lẫn USD/EUR/CA
    CỘNG đủ cả ngày. Nút **Gộp / Không gộp** (`gop=1`): Gộp = mỗi ngày chỉ còn dòng TỔNG CỘNG, phân
    trang theo ngày — chính là bố cục trước 19.09. Excel hai sheet "Toan ky theo nhan su" và "Theo
    ngay" cùng khối, số thô. Các cách xem khác vẫn một bảng, cột định danh như ADR-035.
-6. **Ngưỡng màu tuyệt đối ba bậc** — đợt 3: `ReportSource.thresholds` do Manager bộ phận sở hữu
-   đặt; chưa đặt thì giữ cách tương đối ±10 % (AC-22.16); không bịa số mặc định. Lọc **nhiều sản
-   phẩm** và mốc "Tuần này".
+6. **Ngưỡng màu tuyệt đối ba bậc** (đợt 3): `ReportSource.thresholds` `{mã chỉ tiêu: {"tot", "kem"}}`
+   (migration `reports/0005`), do quản lý của bộ phận sở hữu nguồn đặt ngay trên màn hình báo cáo (nút
+   "Ngưỡng màu", POST `bao-cao/tong-hop/nguong/`, cùng luật `grant_service.can_manage_columns`, ghi nhật
+   ký); chiều tốt theo `METRIC_DIRECTION`; ô đạt mốc Tốt xanh, qua mốc Kém đỏ (`o-xau`, token
+   `--critical`), giữa vàng; dòng TỔNG CỘNG cũng tô; chỉ tiêu chưa đặt giữ cách tương đối ±10 %
+   (AC-22.16); không bịa số mặc định. Form hiện mốc theo cách người Việt gõ (`7,32`, `84.526.646`) để
+   `parse_money` đọc lại đúng. Bộ lọc **Sản phẩm tick nhiều mục** (`sp` lặp lại, URL cũ `sp=A` vẫn đúng;
+   danh sách chỉ gồm sản phẩm có thật trong phạm vi quyền; (TT) cũng lọc theo) và mốc Chọn nhanh "Tuần
+   này". Danh sách sản phẩm là một truy vấn thêm; bù bằng backend đăng nhập lấy người dùng kèm hồ sơ
+   trong một lệnh (`core/auth_backends.py`), mọi màn hình đã đăng nhập bớt một truy vấn.
 7. **Bảng dữ liệu** — đợt 4: bảng có nguồn báo cáo hiện thành báo cáo chi tiết theo ngày dùng chung
    động cơ (mỗi lần nộp một dòng), `?dang=tho` về liệt kê thô; bảng không có nguồn giữ nguyên.
 

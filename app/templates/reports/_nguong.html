@@ -1,0 +1,12 @@
+{% comment %}Form Ngưỡng màu ba bậc (ADR-040 đợt 3) — chỉ Manager bộ phận sở hữu nguồn thấy. Xanh khi đạt
+mốc Tốt, đỏ khi qua mốc Kém, vàng ở giữa; để trống cả hai thì chỉ tiêu tô theo cách so với dòng Tổng.{% endcomment %}
+{% if nguong %}<details class="report-nguong" id="report-nguong"{% if nguong.mo %} open{% endif %}><summary class="nut nut-nho">Ngưỡng màu</summary>
+<form method="post" action="{% url 'bao_cao_tong_hop_nguong' %}" class="report-nguong-form">{% csrf_token %}
+<input type="hidden" name="nguon" value="{{ source.table.code }}"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+<p class="nho">Xanh khi đạt mốc <b>Tốt</b>, đỏ khi qua mốc <b>Kém</b>, giữa hai mốc là vàng. Để trống cả hai ô thì chỉ tiêu đó tô theo cách so với dòng Tổng (±10 %). Tỉ lệ nhập theo % (8 = 8 %), tiền theo ₫.</p>
+<table class="bang report-nguong-bang"><thead><tr><th scope="col">Chỉ tiêu</th><th scope="col">Chiều tốt</th><th scope="col">Tốt khi</th><th scope="col">Kém khi</th></tr></thead>
+<tbody>{% for r in nguong.rows %}<tr><th scope="row">{{ r.label }}{% if r.unit %} <span class="nho">({{ r.unit }})</span>{% endif %}</th><td class="nho">{{ r.chieu_label }}</td>
+<td><label class="report-nguong-o"><span aria-hidden="true">{{ r.dau_tot }}</span><input class="o-nhap" name="tot_{{ r.code }}" value="{{ r.tot }}" inputmode="decimal" aria-label="{{ r.label }} tốt khi {{ r.dau_tot }}"></label></td>
+<td><label class="report-nguong-o"><span aria-hidden="true">{{ r.dau_kem }}</span><input class="o-nhap" name="kem_{{ r.code }}" value="{{ r.kem }}" inputmode="decimal" aria-label="{{ r.label }} kém khi {{ r.dau_kem }}"></label></td></tr>{% endfor %}</tbody></table>
+<div class="report-filter-actions"><button type="submit" class="nut nut-chinh nut-nho">Lưu ngưỡng</button></div>
+</form></details>{% endif %}
