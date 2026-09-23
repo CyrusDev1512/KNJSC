@@ -9,6 +9,8 @@ phát hiện được rò rỉ dữ liệu.
 """
 from decimal import Decimal
 
+import re
+
 import pytest
 
 from core.constants import AuditAction
@@ -345,3 +347,44 @@ def test_ma_tran_sinh_dung_theo_thanh_dieu_huong(client, nguoi_dung):
     hang = client.get("/ma-tran-quyen/").context["cac_hang"]
     so_muc = sum(len(nhom.items) for nhom in NAVIGATION)
     assert len([h for h in hang if not h["la_nhom"]]) == so_muc
+
+
+def test_phan_trang_va_sap_xep_giu_bo_loc(client, bang_sale, nguoi_dung):
+    """AC-40.14 — Liệt kê thô: liên kết phân trang và sắp xếp giữ tìm kiếm, bộ lọc cột và cỡ trang,
+    cột đang sắp có aria-sort; ô Đúng/sai hiện Có/Không; "Sửa cột" chỉ với quản lý bộ phận sở hữu
+    bảng (quản lý bộ phận khác được cấp quyền xem thì không); trạng thái rỗng không nhắc "phần 3B" """
+    from urllib.parse import parse_qs, urlsplit
+
+    from forms_builder.models import GrantAction
+    from forms_builder.services import grant_service
+
+    ColumnDef.objects.create(table=bang_sale, name="Đã giao", code="da_giao", field_type=FieldType.BOOLEAN, order=6)
+    for i in range(30):
+        _dong(bang_sale, nguoi_dung["manager_sale"], khach=f"Khách {i:02d}", nguoi_ban="Sale A", so_luong=1, da_giao=(i % 2 == 0))
+
+    client.force_login(nguoi_dung["manager_sale"])
+    r = client.get("/bang/don_sale/", {"tim": "Khách", "f_nguoi_ban": "Sale A", "moi_trang": "25", "sap": "khach", "chieu": "giam"})
+    html = r.content.decode()
+    assert r.context["page_obj"].paginator.count == 30 and r.context["page_obj"].paginator.num_pages == 2
+    trang_2 = re.search(r'href="(\?trang=2[^"]*)"', html).group(1).replace("&amp;", "&")
+    assert parse_qs(urlsplit(trang_2).query) == {"trang": ["2"], "moi_trang": ["25"], "tim": ["Khách"],
+                                                 "f_nguoi_ban": ["Sale A"], "sap": ["khach"], "chieu": ["giam"]}
+    sap_doanh_thu = re.search(r'href="(\?sap=doanh_thu[^"]*)"', html).group(1).replace("&amp;", "&")
+    assert parse_qs(urlsplit(sap_doanh_thu).query) == {"sap": ["doanh_thu"], "tim": ["Khách"], "f_nguoi_ban": ["Sale A"], "moi_trang": ["25"]}
+    assert re.search(r'<th class="sap-xep[^"]*" aria-sort="descending">\s*<a href="\?sap=khach', html)
+    assert html.count('aria-sort="') == 1
+    than = _than_bang(html)
+    assert ">Có</td>" in than and ">Không</td>" in than and ">True<" not in than and ">False<" not in than
+    assert 'href="/bang/don_sale/cot/">Sửa cột</a>' in html
+    # Quản lý bộ phận khác được cấp quyền xem: vào được bảng nhưng không có "Sửa cột" (cùng luật bang_cot)
+    grant_service.grant(table=bang_sale, user=nguoi_dung["manager_mkt"], action=GrantAction.VIEW, actor=nguoi_dung["manager_sale"])
+    client.force_login(nguoi_dung["manager_mkt"])
+    r_khac = client.get("/bang/don_sale/")
+    assert r_khac.status_code == 200 and "Sửa cột" not in r_khac.content.decode()
+    assert client.get("/bang/don_sale/cot/").status_code == 403
+    client.force_login(nguoi_dung["staff_sale_1"])
+    assert "Sửa cột" not in client.get("/bang/don_sale/").content.decode()
+    # Rỗng: không còn nhắc "phần 3B"
+    client.force_login(nguoi_dung["manager_sale"])
+    rong = client.get("/bang/don_sale/", {"f_nguoi_ban": "không có ai"}).content.decode()
+    assert "Chưa có dòng nào" in rong and "3B" not in rong

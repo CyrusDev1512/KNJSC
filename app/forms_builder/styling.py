@@ -72,9 +72,16 @@ def cell_class(column, value):
     return " ".join(p for p in phan if p)
 
 
+def display_value(column, value):
+    """Giá trị ô để in ra: cột Đúng/sai lưu bool nên hiện "Có"/"Không" thay vì True/False của Python."""
+    if isinstance(value, bool):
+        return "Có" if value else "Không"
+    return value
+
+
 def row_cells(record, columns):
-    """`[(cột, giá trị, lớp)]` cho một dòng — thay cho `query.read_row` khi vẽ bảng."""
+    """`[(cột, giá trị hiển thị, lớp)]` cho một dòng — thay cho `query.read_row` khi vẽ bảng."""
     return [
-        (cot, gia_tri, cell_class(cot, gia_tri))
+        (cot, display_value(cot, gia_tri), cell_class(cot, gia_tri))
         for cot, gia_tri in query.read_row(record, columns)
     ]

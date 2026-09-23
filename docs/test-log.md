@@ -2,6 +2,16 @@
 
 ## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu, đợt 1
 
+**TL-54 (đóng):** liên kết phân trang của Bảng dữ liệu (liệt kê thô) chỉ mang `trang`/`moi_trang`, mất tìm kiếm
+và bộ lọc cột; liên kết sắp xếp mất luôn cỡ trang — nay dựng bằng `filter_query` (`qs_loc`, `qs_sap`), cột đang
+sắp có `aria-sort`. Bài AC-40.14.
+**TL-55 (đóng):** nút "Sửa cột" ở Bảng dữ liệu hiện với mọi Leader trở lên, kể cả quản lý bộ phận khác chỉ được
+cấp quyền xem (bấm vào 403) — nay theo `grant_service.can_manage_columns`, cùng luật với trang Sửa cột. Bài AC-40.14.
+**TL-56 (đóng):** ô cột Đúng/sai ở Bảng dữ liệu in `True`/`False` — nay "Có"/"Không" (`styling.display_value`),
+chữ trạng thái rỗng bỏ "phần 3B". Bài AC-40.14.
+**TL-57 (đóng, bắt được khi chụp ảnh đợt 3):** form Ngưỡng màu hiện mốc đã lưu dạng chuỗi máy (`0.345`) mà
+`parse_money` đọc thành 345 — mở form rồi bấm Lưu không đổi gì là lưu sai; nay hiện `0,345` / `84.526.646`
+đúng thứ `parse_money` đọc lại; lưu hụt hai lần liên tiếp không còn nối `&nguong=1&nguong=1`. Bài AC-40.9.
 **TL-52 (đóng):** chip "Kỳ" của Báo cáo tổng hợp có dấu × ngay sau lần Áp dụng đầu tiên dù kỳ vẫn là
 mặc định — form luôn gửi `tu`/`den` mà view xét "có tham số" thay vì "khác mặc định". Chủ dự án báo là
 "dấu X lạ" (tưởng ở Bảng dữ liệu; mã Bảng dữ liệu không in dấu × nào). Bài AC-40.5 giữ.

@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Ngày | 23.09.2026 (đợt 1); các đợt sau bổ sung ngay trong tệp này |
-| Trạng thái | Đang làm theo đợt — đợt 1, 2 và 3 xong local |
+| Trạng thái | Năm đợt xong local 23.09.2026 (PR nháp #36 vào nhánh codex); chờ chủ dự án nghiệm thu và Codex phát hành VPS |
 | Thay thế / bổ sung | **ADR-038** quyết định "lẫn loại tiền thì cảnh báo và để trống chỉ tiêu tiền" (bỏ); **ADR-031** câu "không quy đổi tỉ giá" chỉ còn đúng cho **lưu trữ**; **ADR-035** bố cục Tổng hợp (bổ sung đợt 2) |
 
 ## Bối cảnh
@@ -65,8 +65,16 @@ Chỗ đối tác thấy sai trước tiên: dữ liệu thật lẫn USD/EUR/CA
    danh sách chỉ gồm sản phẩm có thật trong phạm vi quyền; (TT) cũng lọc theo) và mốc Chọn nhanh "Tuần
    này". Danh sách sản phẩm là một truy vấn thêm; bù bằng backend đăng nhập lấy người dùng kèm hồ sơ
    trong một lệnh (`core/auth_backends.py`), mọi màn hình đã đăng nhập bớt một truy vấn.
-7. **Bảng dữ liệu** — đợt 4: bảng có nguồn báo cáo hiện thành báo cáo chi tiết theo ngày dùng chung
-   động cơ (mỗi lần nộp một dòng), `?dang=tho` về liệt kê thô; bảng không có nguồn giữ nguyên.
+7. **Bảng dữ liệu** (đợt 4): bảng có nguồn báo cáo Sale/MKT mở ở `/bang/<mã>/` là **báo cáo chi tiết
+   theo ngày** dùng chung động cơ (`activity_service.build(detail=True)` thêm `record_id` vào khoá nhóm):
+   **mỗi lần nộp một dòng** — nộp nhiều lần/ngày (ADR-032) vẫn tách, STT riêng; cùng bố cục khối, Gộp,
+   quy ₫, nhãn theo nguồn, ngưỡng màu và (TT); bộ lọc như Báo cáo tổng hợp trừ Nguồn và Cách xem; 25 dòng
+   một trang (quy tắc 1); Xuất tệp ra Excel cùng khối. (TT) khoá theo (ngày, người) không chia được cho
+   từng lần nộp: khoá có nhiều dòng (`SummaryResult.derived_shared`) thì dòng để "—", TỔNG CỘNG ngày và
+   toàn kỳ cộng mỗi khoá một lần. `?dang=tho` về liệt kê thô từng dòng (mọi liên kết giữ `dang=tho`);
+   bảng không có nguồn (vận đơn, bảng thường) giữ nguyên. Bối cảnh màn hình dùng chung ở
+   `reports/screen.py`. Lỗi vặt của liệt kê thô sửa cùng đợt: phân trang và sắp xếp giữ bộ lọc
+   (`filter_query`), `aria-sort`, Đúng/sai hiện Có/Không, "Sửa cột" theo `can_manage_columns`.
 
 ## Hệ quả
 
@@ -83,3 +91,5 @@ Chỗ đối tác thấy sai trước tiên: dữ liệu thật lẫn USD/EUR/CA
 - `so_tien_tt` gõ tay ở đơn không có chi tiết chưa vào DS Chốt (TT) — backlog, chờ chủ dự án.
 - Người đổi team giữa kỳ sẽ thành hai dòng ở khối toàn kỳ (đợt 2).
 - Ngưỡng màu mặc định không bịa; màn hình chỉ tô ba bậc sau khi Manager đặt (đợt 3).
+- Bảng dữ liệu dạng báo cáo chỉ hiện cột trong ánh xạ nguồn; cột khác (ghi chú, thị trường, loại tiền) xem
+  bằng `?dang=tho` — chờ chủ dự án nói có cần thêm "cột xem thêm" không (đợt 4).

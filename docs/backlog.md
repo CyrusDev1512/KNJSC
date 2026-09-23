@@ -38,9 +38,26 @@ một truy vấn thêm — bù bằng backend đăng nhập lấy người dùng
 40.12, AC-10.2 thêm một bài. Hai lỗi bắt được khi chụp và sửa ngay: `nguong=1` nối đuôi khi lưu hụt hai lần;
 form hiện mốc đã lưu dạng `0.345` mà `parse_money` đọc thành 345 — nay hiện `0,345`.
 
-**Còn nợ.** Đợt 4 Bảng dữ liệu; đợt 5 docs/02, CLAUDE.md. Chờ chủ
+**Đợt 4 cùng ngày — Bảng dữ liệu của bảng có nguồn báo cáo là báo cáo chi tiết theo ngày.**
+`/bang/<mã>/` của bảng có `ReportSource` Sale/MKT dùng chung động cơ với Báo cáo tổng hợp
+(`activity_service.build(detail=True)`: thêm `record_id` vào khoá nhóm nên **mỗi lần nộp một dòng**, quy ₫,
+nhãn và cột theo nguồn, ngưỡng màu, (TT)); bố cục khối toàn kỳ + mỗi ngày một bảng, Gộp, bộ lọc Kỳ / Chọn
+nhanh / Sản phẩm / Thị trường / Tệp / Team / Nhân sự, 25 dòng một trang; `?dang=tho` về liệt kê thô có liên
+kết quay lại; bảng không có nguồn giữ nguyên; Xuất tệp ra Excel cùng khối. (TT) khoá theo (ngày, người) nên
+ngày một người nộp nhiều lần thì dòng đó "—" và TỔNG CỘNG cộng một lần (`derived_shared`). Bối cảnh màn hình
+dùng chung dời sang `reports/screen.py` để forms_builder không import view của reports. Lỗi vặt liệt kê thô:
+phân trang và sắp xếp giữ tìm kiếm, bộ lọc cột, cỡ trang (`filter_query`), `aria-sort`, ô Đúng/sai "Có"/"Không",
+"Sửa cột" chỉ với quản lý bộ phận sở hữu (`can_manage_columns`), bỏ chữ "phần 3B". AC-40.13, AC-40.14.
+
+**Đợt 5 cùng ngày — tài liệu.** docs/02 FR-5.7 → 5.12 và FR-7.16; docs/04 mục 40 (AC-40.1 → 40.14) và bộ đếm
+docs/06; ADR-040 trạng thái cuối + README; test-log TL-52 → TL-57; CLAUDE.md một đoạn ADR-040 và một dòng "Đọc gì
+trước khi làm"; biên bản đủ bốn đợt kèm 21 ảnh. Cả năm đợt nằm trên nhánh `claude/bao-cao-nhu-anh-mau`, PR nháp
+#36 vào `codex/crm-update-solar-ui` — không tự gộp, không phát hành.
+
+**Còn nợ.** Chủ dự án nghiệm thu trên bản chạy thật; Codex phát hành VPS (có migration `reports/0005`). Chờ chủ
 dự án: `so_tien_tt` gõ tay ở đơn không chi tiết có vào DS Chốt (TT) không; tỉ giá KRW; cột lệch nhẹ giữa
-các bảng (mỗi bảng tự co theo nội dung) có cần ép cùng bề rộng không.
+các bảng (mỗi bảng tự co theo nội dung) có cần ép cùng bề rộng không; Bảng dữ liệu dạng báo cáo có cần
+thêm cột ngoài ánh xạ nguồn (ghi chú, thị trường) không, hay `?dang=tho` là đủ.
 
 ## 19.09.2026 (đêm) — Một bài đầu-cuối đi trọn hành trình nhân viên
 

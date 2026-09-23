@@ -308,7 +308,8 @@ def _products(product):
     return [product] if isinstance(product, str) else [p for p in product if p]
 
 
-def build(user, source, *, group="day", start=None, end=None, product="", market="", person="", team="", segment=""):
+def build(user, source, *, group="day", start=None, end=None, product="", market="", person="", team="", segment="",
+          detail=False):
     if group not in dict(GROUPS):
         raise BusinessError("Cách nhóm không hợp lệ.")
     qs = filtered_records(user, source, start=start, end=end, product=product, market=market,
@@ -323,6 +324,9 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
     if group == "day":
         # Ngày × nhân sự, kèm Team để khối theo ngày có cột Team như ảnh (ADR-040)
         extra = {**person_expressions(source), "team_name": team_expressions(source)["team_name"]}
+        if detail:
+            # Bảng dữ liệu (ADR-040 đợt 4): mỗi lần nộp một dòng — nộp nhiều lần/ngày (ADR-032) vẫn tách
+            extra["record_id"] = F("id")
     if group == "person":
         extra = team_expressions(source)   # Team · Leader đi cùng người, không annotate sau
     # Toàn bộ dòng nhóm vào bộ nhớ khi ≤ MAX_GROUPS: tổng, khoá đối soát, tổng ngày và phân
@@ -343,6 +347,14 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
         actual, thieu_ti_gia = marketing_actuals(
             qs, group, expression, start=start, end=end, product=product, market=market)
         result = attach_derived(result, actual, zero=DERIVED_COUNT.get(source.kind, ()))
+    if detail and result.ok and result.derived and isinstance(result.rows, list):
+        # Một người nộp nhiều lần trong ngày: (TT) khoá theo (ngày, người) không chia được cho từng
+        # lần nộp → các dòng đó để trống, TỔNG CỘNG ngày vẫn cộng một lần (G6)
+        dem = {}
+        for item in result.rows:
+            khoa = aggregations.derived_key_of(item, result)
+            dem[khoa] = dem.get(khoa, 0) + 1
+        result = replace(result, derived_shared=frozenset(k for k, n in dem.items() if n > 1))
     if result.ok and source.columns.get('currency'):
         result = currency_note(result, source, qs, thieu_ti_gia)
     return with_person_team(result, source, group)

@@ -55,13 +55,19 @@ def person_row(stt, item, cells, raw=None):
             "nhom": item.get("nhom"), "cells": cells, "raw": raw, "identity": [stt, team, person, leader]}
 
 
+def _row_key(item):
+    """Khoá một dòng người: (ngày, mã); Bảng dữ liệu chi tiết từng lần nộp (ADR-040 đợt 4) có thêm
+    id dòng nên hai lần nộp cùng ngày cùng người vẫn là hai dòng riêng."""
+    return (item.get("nhom"), item.get("person_name"), item.get("record_id"))
+
+
 def stt_by_day(items):
     """STT đếm lại từ 1 trong từng ngày, trên toàn bộ dòng để không đứt khi sang trang."""
     stt, dem = {}, {}
     for item in items:
         ngay = item.get("nhom")
         dem[ngay] = dem.get(ngay, 0) + 1
-        stt[(ngay, item.get("person_name"))] = dem[ngay]
+        stt[_row_key(item)] = dem[ngay]
     return stt
 
 
@@ -105,7 +111,7 @@ def day_blocks(rows, page_items, all_items, result):
             hien_tai = block("day", tieu_de, PERSON_KINDS, [], aggregations.format_cells(result, tong.get(ngay, [])),
                              nhom=ngay, totals_raw=tong.get(ngay, []))
             blocks.append(hien_tai)
-        dong = person_row(stt.get((ngay, item.get("person_name")), ""), item, row["cells"], aggregations.row_values(item, result)[1])
+        dong = person_row(stt.get(_row_key(item), ""), item, row["cells"], aggregations.row_values(item, result)[1])
         dong["nhom"] = row["nhom"]   # chuỗi ngày đã định dạng, như `finish_rows`
         dong["identity"] = list(zip(hien_tai["identity_columns"], dong["identity"]))
         hien_tai["rows"].append(dong)

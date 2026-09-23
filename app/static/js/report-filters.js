@@ -115,8 +115,9 @@
   if (!search || !select) return;
   const source = document.getElementById('nguon');
   const team = document.getElementById('report-team');
-  const initialSource = source.value;
-  source.addEventListener('change', () => {
+  // Bảng dữ liệu dạng báo cáo (ADR-040 đợt 4) không có ô Nguồn: chỉ còn tìm nhân sự
+  const initialSource = source ? source.value : '';
+  if (source) source.addEventListener('change', () => {
     // Danh mục phụ thuộc nguồn: không gửi ID của nguồn cũ sang nguồn mới.
     const changed = source.value !== initialSource;
     select.value = '';

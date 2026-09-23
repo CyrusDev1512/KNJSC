@@ -9,8 +9,11 @@ nguồn MKT thật ≤ 10 truy vấn; TL-52, TL-53. AC-40.1 → 40.5.
 TỔNG CỘNG đầu bảng), Gộp/Không gộp, Excel hai sheet. AC-40.6, 40.7.
 **Finished local (đợt 3):** ngưỡng màu 3 bậc do quản lý bộ phận đặt trên màn hình (`ReportSource.thresholds`,
 migration `reports/0005`), lọc nhiều sản phẩm, "Tuần này"; backend đăng nhập lấy hồ sơ cùng một lệnh. AC-40.8 → 40.12.
-**In progress:** đợt 4 — Bảng dữ liệu chi tiết theo ngày + lỗi vặt.
-**To do:** đợt 5 docs/02, CLAUDE.md, biên bản cuối; phát hành VPS (Codex).
+**Finished local (đợt 4):** Bảng dữ liệu của bảng có nguồn báo cáo là báo cáo chi tiết theo ngày (mỗi lần nộp một
+dòng, cùng động cơ, `?dang=tho` về thô); phân trang/sắp xếp thô giữ bộ lọc, Có/Không, "Sửa cột" đúng luật. AC-40.13, 40.14.
+**Finished local (đợt 5):** docs/02 FR-5.7 → 5.12, FR-7.16; docs/04 mục 40; ADR-040 + README; TL-52 → 57; CLAUDE.md;
+biên bản bốn đợt + 21 ảnh; PR nháp #36.
+**To do:** chủ dự án nghiệm thu; phát hành VPS (Codex, có migration `reports/0005`).
 **Far plan:** `so_tien_tt` gõ tay vào DS Chốt (TT)?; tỉ giá KRW; Tổng quan hiện (TT).
 
 ## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên

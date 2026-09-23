@@ -103,6 +103,9 @@ class SummaryResult:
     #: Ngưỡng màu ba bậc theo mã chỉ tiêu (`ReportSource.thresholds`, ADR-040 đợt 3); rỗng thì
     #: ô tỉ lệ tô theo cách tương đối so với dòng Tổng (AC-22.16)
     thresholds: dict = field(default_factory=dict)
+    #: Khoá đối soát có nhiều hơn một dòng — Bảng dữ liệu chi tiết từng lần nộp (ADR-040 đợt 4):
+    #: dòng của khoá đó không hiện (TT) để khỏi cộng đôi; TỔNG CỘNG ngày/toàn kỳ vẫn đủ
+    derived_shared: frozenset = frozenset()
 
 
 def labeled_columns(columns):
@@ -377,8 +380,13 @@ def subtotals(items, result, key="nhom"):
                 continue
             gia_tri = [i[_alias(cot.code)] for i in dong if i[_alias(cot.code)] is not None]
             by_code[cot.code] = sum(gia_tri, Decimal("0")) if gia_tri else None
+        da_cong = set()   # mỗi khoá đối soát cộng một lần: chi tiết từng lần nộp chia sẻ khoá (ngày, người)
         for i in dong:
-            for code, value in result.derived.get(derived_key_of(i, result), {}).items():
+            khoa = derived_key_of(i, result)
+            if khoa in da_cong:
+                continue
+            da_cong.add(khoa)
+            for code, value in result.derived.get(khoa, {}).items():
                 by_code[code] = (by_code.get(code) or Decimal("0")) + value
         by_code.update(_recompute(result.computed_columns, by_code))
         out[nhom] = _cell_values(result, by_code)
@@ -505,7 +513,9 @@ def row_values(item, result):
     """`(giá trị nhóm, dãy ô thô)` của một dòng nhóm — cột tính sẵn đã tính
     lại theo dòng. Dùng cho cả màn hình lẫn tệp xuất."""
     by_code = {k.removeprefix("c_"): v for k, v in item.items() if k.startswith("c_")}
-    by_code.update(result.derived.get(derived_key_of(item, result), {}))
+    khoa = derived_key_of(item, result)
+    if khoa not in result.derived_shared:   # khoá chung nhiều dòng: (TT) chỉ ở TỔNG CỘNG (ADR-040 đợt 4)
+        by_code.update(result.derived.get(khoa, {}))
     by_code.update(_recompute(result.computed_columns, by_code))
     return item.get("nhom"), _cell_values(result, by_code)
 

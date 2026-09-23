@@ -9,11 +9,17 @@
   <div>
     <div class="nhan-nho">FR-7.1 tới FR-7.4 · {{ bang.department }}</div>
     <h1>{{ bang.name }}</h1>
-    <p>{{ bang.description|default:"Danh sách đã lọc theo phạm vi quyền của bạn." }}</p>
+    {% if khoi %}
+      {# Bảng có nguồn báo cáo: báo cáo chi tiết theo ngày dùng chung động cơ với Báo cáo tổng hợp — ADR-040 đợt 4 #}
+      <p>Báo cáo chi tiết theo ngày: mỗi lần nộp một dòng, TỔNG CỘNG từng ngày và toàn kỳ theo nhân sự, tiền quy ₫.</p>
+    {% else %}
+      <p>{{ bang.description|default:"Danh sách đã lọc theo phạm vi quyền của bạn." }}</p>
+    {% endif %}
   </div>
   <div class="hanh-dong">
     <button class="nut" id="erp-focus-enter" type="button">Tập trung</button>
     <a class="nut" href="{% url 'bang' %}">Danh sách bảng</a>
+    {% if khoi %}<a class="nut" href="?dang=tho">Xem từng dòng thô</a>{% elif co_bao_cao %}<a class="nut" href="{% url 'bang_xem' bang.code %}">Xem báo cáo theo ngày</a>{% endif %}
     {% if duoc_sua %}<a class="nut" href="{% url 'bang_cot' bang.code %}">Sửa cột</a>{% endif %}
     {% if duoc_nhap %}<a class="nut" href="{% url 'bang_nhap' bang.code %}">Nhập tệp</a>{% endif %}
     {# Xuất đúng thứ đang hiện: mang theo bộ lọc, tìm kiếm, sắp xếp — ADR-002 #}
@@ -42,9 +48,13 @@
   </div>
 
 <div class="bang-hop">
-  {# Chỉ cột mang nhãn ý nghĩa mới cho lọc — cột đó có chỉ mục (quy tắc 9) #}
   <div class="erp-table-tools" id="erp-table-tools">
+  {% if khoi %}
+    {% include "forms_builder/_bang_bao_cao_loc.html" %}
+  {% else %}
+  {# Chỉ cột mang nhãn ý nghĩa mới cho lọc — cột đó có chỉ mục (quy tắc 9) #}
   <form class="loc" method="get">
+    {% if dang_tho %}<input type="hidden" name="dang" value="{{ dang_tho }}">{% endif %}
     <div class="truong o-tim">
       <label for="tim">Tìm kiếm</label>
       <input class="o-nhap" id="tim" name="tim" value="{{ tim }}" placeholder="Khách hàng, số điện thoại, người bán, sản phẩm">
@@ -57,19 +67,39 @@
       </div>
     {% endfor %}
     <div class="loc-nut">
-      <a class="nut nut-nho" href="{% url 'bang_xem' bang.code %}">Xoá lọc</a>
+      <a class="nut nut-nho" href="{% url 'bang_xem' bang.code %}{% if dang_tho %}?dang={{ dang_tho }}{% endif %}">Xoá lọc</a>
       <button class="nut nut-nho nut-chinh" type="submit">Lọc</button>
     </div>
   </form>
+  {% endif %}
   </div>
 
+  {% if khoi %}
+  <div class="report-view">
+    <div class="report-controls" aria-label="Điều khiển bảng báo cáo">
+      <div class="report-focus-title"><strong>{{ bang.name }}</strong><span>{{ params.start|date:'d/m/Y' }} – {{ params.end|date:'d/m/Y' }}</span></div>
+      <span class="space"></span>
+      {% if gop_url %}<span class="report-seg" role="group" aria-label="Gộp theo ngày">{% if gop %}<a class="nut" href="{{ khong_gop_url }}" aria-pressed="false">Không gộp</a><a class="nut nut-chinh" href="{{ gop_url }}" aria-pressed="true">Gộp</a>{% else %}<a class="nut nut-chinh" href="{{ khong_gop_url }}" aria-pressed="true">Không gộp</a><a class="nut" href="{{ gop_url }}" aria-pressed="false">Gộp</a>{% endif %}</span>{% endif %}
+    </div>
+    <div class="report-chips" id="report-chips" aria-label="Bộ lọc đang áp dụng">{% for chip in chips %}<span class="report-chip"><b>{{ chip.label }}</b> {{ chip.value }}{% if chip.url %} <a class="chip-xoa" href="{{ chip.url }}" aria-label="Bỏ lọc {{ chip.label }}">×</a>{% endif %}</span>{% endfor %}{% if filters_active %}<a class="chip-clear" href="{{ clear_url }}">Xóa lọc</a>{% endif %}</div>
+    <section class="report-results" aria-label="Kết quả báo cáo">
+      {% if result.currency_warning %}<p class="bao bao-cho" role="status">{{ result.currency_warning }}</p>{% elif result.currency_label %}<p class="nho">Đơn vị: {{ result.currency_label }}</p>{% endif %}
+      {% if source.kind == 'mkt' %}<p class="nho">(TT) = đối soát từ vận đơn do marketer phụ trách theo ngày lên đơn{% if result.derived_shared %}; ngày nào một người nộp nhiều lần thì (TT) chỉ hiện ở dòng TỔNG CỘNG của ngày, không chia cho từng lần nộp{% endif %}{% if params.segment %} — để trống khi lọc theo Tệp khách hàng{% endif %}.</p>{% endif %}
+      {% include "reports/_nguong.html" %}
+      {% if error %}<p class="bao bao-xau" role="alert">{{ error }}</p>{% elif unavailable %}<p>Chưa đủ cấu hình chỉ tiêu cho nguồn báo cáo của bảng này.</p>{% elif empty %}<p>Chưa có dòng nào trong bộ lọc này.</p>{% endif %}
+      {% if result.ok %}<div class="bang-cuon report-table-scroll" tabindex="0" role="region" aria-label="Bảng số liệu, cuộn ngang để xem thêm">{% for b in blocks %}{% include "reports/_bang_khoi.html" %}{% endfor %}</div>{% endif %}
+    </section>
+  </div>
+  {% if result.ok %}<div class="erp-pagination-tools">{% include "components/phan_trang.html" %}</div>{% endif %}
+  {% else %}
   <div class="bang-cuon">
     <table class="bang bang-luoi">
       <thead>
         <tr>
           {% for c in cac_cot %}
-            <th class="sap-xep {{c.lop_cot}} {% if c.field_type == 'money' or c.field_type == 'integer' or c.field_type == 'decimal' %}phai{% endif %}">
-              <a href="?sap={{ c.code }}{% if sap_xep == c.code and not giam_dan %}&chieu=giam{% endif %}">
+            <th class="sap-xep {{c.lop_cot}} {% if c.field_type == 'money' or c.field_type == 'integer' or c.field_type == 'decimal' %}phai{% endif %}"{% if sap_xep == c.code %} aria-sort="{% if giam_dan %}descending{% else %}ascending{% endif %}"{% endif %}>
+              {# Liên kết sắp xếp giữ tìm kiếm, bộ lọc cột và cỡ trang (qs_sap) #}
+              <a href="?sap={{ c.code }}{% if sap_xep == c.code and not giam_dan %}&chieu=giam{% endif %}{{ qs_sap }}">
                 {{ c.name }}
                 <span class="mui">{% if sap_xep == c.code %}{% if giam_dan %}↓{% else %}↑{% endif %}{% else %}↕{% endif %}</span>
               </a>
@@ -89,7 +119,7 @@
           </tr>
         {% empty %}
           <tr><td colspan="{{ cac_cot|length|add:1 }}">
-            {% include "components/rong.html" with rong_tieu_de="Chưa có dòng nào" rong_mo_ta="Bảng đã tạo nhưng chưa có dữ liệu. Biểu mẫu nhập liệu sẽ có ở phần 3B." %}
+            {% include "components/rong.html" with rong_tieu_de="Chưa có dòng nào" rong_mo_ta="Chưa có dòng nào trong phạm vi và bộ lọc của bạn. Số liệu vào bảng qua KN CRM, biểu mẫu hoặc Nhập tệp." %}
           </td></tr>
         {% endfor %}
       </tbody>
@@ -97,6 +127,7 @@
   </div>
 
   <div class="erp-pagination-tools">{% include "components/phan_trang.html" %}</div>
+  {% endif %}
 </div>
 </section>
 
@@ -104,4 +135,5 @@
 {% block cuoi_trang %}
 {{ block.super }}
 <script src="{% static 'js/erp-table-focus.js' %}?v={{ phien_ban_tinh }}" defer></script>
+{% if khoi %}<script src="{% static 'js/report-filters.js' %}?v={{ phien_ban_tinh }}" defer></script>{% endif %}
 {% endblock %}

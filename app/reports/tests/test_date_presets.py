@@ -46,3 +46,20 @@ def test_chon_nhanh_ky(client, bang_mkt, nguoi_dung, monkeypatch):
         assert f'data-tu="{m["start"]:%Y-%m-%d}" data-den="{m["end"]:%Y-%m-%d}"' in html
     assert 'class="nut report-preset is-active" data-key="thang-nay"' in html
     assert "report-filters.js" in html
+
+
+def test_chon_nhanh_tuan_nay():
+    """AC-40.12 — "Tuần này" là thứ Hai tuần này tới hôm nay, kể cả tuần vắt qua tháng; đứng ngay sau "7 ngày"
+    trong dãy Chọn nhanh"""
+    from datetime import date
+
+    from reports.services.summary_service import date_presets
+
+    presets = date_presets(date(2026, 10, 1))          # thứ Năm; tuần bắt đầu thứ Hai 28.09 — vắt qua tháng
+    labels = [p["label"] for p in presets]
+    assert labels.index("Tuần này") == labels.index("7 ngày") + 1
+    tuan = next(p for p in presets if p["label"] == "Tuần này")
+    assert (tuan["start"], tuan["end"]) == (date(2026, 9, 28), date(2026, 10, 1))
+    thu_hai = next(p for p in date_presets(date(2026, 9, 28)) if p["label"] == "Tuần này")
+    assert (thu_hai["start"], thu_hai["end"]) == (date(2026, 9, 28), date(2026, 9, 28))   # đúng thứ Hai: một ngày
+

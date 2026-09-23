@@ -141,3 +141,57 @@ toàn bộ, đúng chiều; AOV để trống nên tô tương đối) → **tr�
 - Hai script `.cjs` (`kiem-thu-erp-browser-perf`, `kiem-thu-erp-delivery-ui`) đã đổi sang hộp tick nhưng chỉ
   chạy tay khi có Docker — chưa chạy lại.
 
+## Đợt 4 — Bảng dữ liệu: bảng có nguồn báo cáo là báo cáo chi tiết theo ngày, lỗi vặt liệt kê thô
+
+### Đã đo
+
+**pytest** (cùng môi trường): bài mới AC-40.13 `reports/tests/test_bang_du_lieu_chi_tiet.py` (dữ liệu cố ý
+xấu: một người nộp **hai lần cùng ngày**, vận đơn đối soát của cả hai người, một đơn chưa phân công, một đơn
+ngoài kỳ) và AC-40.14 `forms_builder/tests/test_man_hinh_bang.py::test_phan_trang_va_sap_xep_giu_bo_loc`
+(30 dòng, hai trang, cột Đúng/sai, quản lý bộ phận khác được cấp quyền xem). Bộ
+`reports/tests forms_builder/tests core/tests tests/test_truy_vet.py dashboard org/tests/test_account.py`:
+1.095 đạt + 4 đỏ ở `test_truy_vet` (AC-40.12 chưa có bài mang mã, bộ đếm docs/06 cũ) → thêm
+`test_chon_nhanh_tuan_nay`, bộ đếm docs/06 253 / 240 / 13 và 216 trên 240 → 39 đạt. Bộ đầy đủ `-m "not cham"`
+từ `app/` sau mọi sửa: **2.577 đạt, 9 bỏ qua (bài trình duyệt thiếu Chromium trong pytest), 31 bỏ chọn
+(`cham`), 0 đỏ** trong 4 phút 59 giây.
+
+**Cách làm và số đo bên trong bài AC-40.13.** `activity_service.build(detail=True)` thêm `record_id` vào
+khoá nhóm nên mỗi lần nộp là một dòng (`so_dong` = 1), cột tính tính lại từ chính dòng, tiền quy ₫ như Báo
+cáo tổng hợp. Phần đối soát (TT) khoá theo cặp (ngày, người) không chia được cho từng lần nộp: `SummaryResult
+.derived_shared` ghi các khoá có nhiều hơn một dòng, `row_values` bỏ (TT) ở dòng đó ("—"), `subtotals` cộng
+mỗi khoá **một lần** nên TỔNG CỘNG ngày = 3 đơn / 300 CAD × 17.500 đúng bằng vận đơn, không cộng đôi; khối
+toàn kỳ A = 3 đơn, B = 1, tổng 4 đúng bằng số vận đơn có phân công trong kỳ. STT đếm theo từng dòng (khoá có
+`record_id`) nên hai lần nộp của A là STT 2 và 3. Màn hình `/bang/bao_cao_mkt/` với Manager: **≤ 10 truy vấn**
+(cột của bảng đọc một lần bằng `prefetch_related_objects` cho cả động cơ lẫn danh sách Tệp khách hàng; nguồn
+báo cáo lấy cùng lệnh với bảng qua `select_related("erp_report")`). `?dang=tho` về liệt kê thô 4 dòng, Xoá lọc
+và phân trang giữ `dang=tho`; Excel hai sheet với TỔNG CỘNG toàn kỳ 43 mess; Staff chỉ thấy dòng mình và không
+thấy form Ngưỡng màu; Manager Sale vào bảng MKT: 404; `/bang/van_don/` (không có nguồn) vẫn là bảng thô.
+
+**Lỗi vặt liệt kê thô (AC-40.14).** Liên kết phân trang trước đây chỉ mang `trang`/`moi_trang` (mất tìm kiếm
+và bộ lọc cột), liên kết sắp xếp mất luôn cỡ trang: nay `qs_loc` (phân trang) và `qs_sap` (sắp xếp) dựng bằng
+`core.pagination.filter_query` — link trang 2 mang đủ `tim`, `f_nguoi_ban`, `moi_trang`, `sap`, `chieu`; cột
+đang sắp có `aria-sort`. Ô Đúng/sai in "Có"/"Không" (`styling.display_value`) thay vì `True`/`False`. Nút
+"Sửa cột" trước hiện với mọi Leader trở lên kể cả quản lý bộ phận khác chỉ được cấp quyền xem (bấm vào 403):
+nay theo `grant_service.can_manage_columns`, cùng luật với `bang_cot`. Chữ trạng thái rỗng bỏ "phần 3B".
+
+**Chromium** trên `knjsc_mkt`, `mkt.manager`, `/bang/bao_cao_mkt/?tu=2026-09-01&den=2026-09-23`
+(script `scratchpad/chup-dot4.py`):
+
+| Ảnh | Thấy gì |
+|---|---|
+| `17-dot4-bang-du-lieu-chi-tiet-1440-sang.png`, `18-…-toi.png` | Bảng dữ liệu của Báo cáo Marketing: nút "Xem từng dòng thô", bộ lọc ngang (Chọn nhanh sáu mốc, Kỳ, Sản phẩm tick nhiều, Thị trường, Tệp, Team, Nhân sự), Không gộp / Gộp, chip Kỳ, cảnh báo 2 dòng chưa quy đổi, khối toàn kỳ + 5 khối ngày (12 dòng, một trang, mặc định 25) |
+| `19-dot4-bang-du-lieu-gop-1440.png` | Gộp: chip "Gộp mỗi ngày một dòng ×", khối "Theo ngày · 5 ngày" |
+| `20-dot4-bang-du-lieu-tho-1440.png` | `?dang=tho`: liệt kê thô như trước, nút "Xem báo cáo theo ngày" |
+| `21-dot4-bang-du-lieu-390.png` | 390 px: khối toàn kỳ, cột định danh ghim |
+
+Số đếm từ DOM: 6 khối (1 toàn kỳ + 5 ngày), Gộp 2 khối, thô 1 bảng `bang-luoi`; **0 ô tràn chữ**, 0 lỗi JS
+(`report-filters.js` chạy không có ô Nguồn nhờ chốt chặn `if (source)`); 0 thông báo đỏ.
+
+### Chưa kiểm
+
+- Bảng có nguồn **Sale** ở Bảng dữ liệu (cùng đường mã, khác nhãn) chỉ qua đọc mã, chưa chụp.
+- Trên 2.000 lần nộp trong kỳ (chạm trần `MAX_GROUPS`): khối ngày chỉ cộng trên trang đang xem như Báo cáo tổng
+  hợp; kỳ mặc định một tháng của bảng báo cáo thật (~ vài trăm dòng) chưa tới ngưỡng này.
+- Cột của bảng không nằm trong ánh xạ nguồn (ghi chú, thị trường, loại tiền…) không hiện ở dạng báo cáo — xem
+  bằng `?dang=tho`; chưa hỏi chủ dự án có muốn thêm cột "xem thêm" không.
+
