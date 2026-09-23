@@ -163,6 +163,35 @@ KN ERP ở `http://127.0.0.1:8020/` (Bảng dữ liệu chỉ xem), KN CRM ở `
 Tài khoản mẫu và mật khẩu ở `docs/tai-khoan-mau.md`. Chi tiết ở `CLAUDE.md` mục
 "Bật hệ thống trên máy mới".
 
+### Chạy script kiểm thử trình duyệt
+
+`scripts/` có 50 script `kiem-thu-*` mở trình duyệt thật để kiểm giao diện; 36 tệp trong
+kho dùng Playwright. **Không cần Node để chạy hệ thống** — chỉ cần khi muốn chạy mấy script
+này. Cài một lần ở thư mục gốc:
+
+```
+node --version      # cần Node 22 trở lên
+npm install         # cài playwright đúng phiên bản ghi trong package.json
+npm run cai-trinh-duyet   # tải Chromium cho Playwright
+```
+
+Rồi chạy script cần dùng, ví dụ:
+
+```
+node scripts/kiem-thu-erp-delivery-ui.cjs
+```
+
+**Đọc vài dòng đầu mỗi script trước khi chạy.** Phần lớn ghi thẳng địa chỉ và điều kiện
+trong mã, không đọc biến môi trường: có script trỏ `http://127.0.0.1:8020`, có script cần
+một server test riêng ở cổng khác hoặc cần pytest dựng sẵn cơ sở dữ liệu. Ảnh và kết quả
+thường ghi vào `storage/`.
+
+Riêng `scripts/kiem-thu-bao-cao-chi-ma.mjs` nói chuyện thẳng với Chrome qua DevTools
+Protocol nên **không cần Playwright**, chỉ cần Node 22 và một bản Chromium có sẵn; nó nhận
+`KN_ERP_BASE`, `KN_USER`, `KN_PASSWORD`, `KN_CHROME`.
+
+`node_modules/` không đưa lên kho.
+
 ---
 
 ## Kiểm thử tự động khi đẩy mã

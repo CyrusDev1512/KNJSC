@@ -1,0 +1,16 @@
+{
+  "name": "knjsc-kiem-thu-trinh-duyet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Phu thuoc Node cho cac script kiem thu trinh duyet o scripts/. Ma ung dung la Django, khong dung Node khi chay that.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "cai-trinh-duyet": "playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "1.56.1"
+  }
+}
