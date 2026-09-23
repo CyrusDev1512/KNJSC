@@ -144,8 +144,9 @@ def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguo
     assert page.status_code == 200
     screen = aggregations.total_values(page.context["result"])
     sheet = list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", query).content), data_only=True).active.values)
+    dong_tong = next(r for r in sheet if r[0] and str(r[0]).startswith("TỔNG CỘNG"))   # khối toàn kỳ (ADR-040)
     # openpyxl đọc số về float: so từng ô với sai số nhỏ, ô trống phải cùng trống
-    for excel_cell, screen_cell in zip(sheet[-1][-len(screen):], screen):
+    for excel_cell, screen_cell in zip(dong_tong[-len(screen):], screen):
         if screen_cell is None:
             assert excel_cell is None
         else:

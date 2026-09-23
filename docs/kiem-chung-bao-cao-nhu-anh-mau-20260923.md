@@ -47,3 +47,37 @@ cho vận đơn nào — đúng quy tắc "không có đơn thì 0, không có t
 - Tệp Excel mở bằng Excel thật (chỉ đọc lại bằng openpyxl trong bài kiểm).
 - Tổng quan (dashboard) chỉ qua bài kiểm, chưa chụp.
 - Dữ liệu thật trên VPS; số ₫ với tỉ giá thật do kế toán chốt (`EXCHANGE_RATES_VND` trên `.env`).
+
+## Đợt 2 — Bố cục khối như ảnh: toàn kỳ theo nhân sự, mỗi ngày một bảng, Gộp, Excel
+
+### Đã đo
+
+**pytest** `reports/tests dashboard tests/test_truy_vet.py`: **192 đạt, 0 đỏ**. Bài mới
+`reports/tests/test_bo_cuc_khoi.py` — AC-40.6 (khối toàn kỳ + mỗi ngày một bảng, ngày tách trang ghi
+"(tiếp)" và lặp TỔNG CỘNG đủ cả ngày, Excel hai sheet) và AC-40.7 (Gộp). Bài phải đổi theo bố cục:
+AC-22.10/22.14/22.15 (vị trí hàng trong Excel, dòng `report-subtotal` cũ), AC-22.13 (cột định danh
+Tổng hợp nay là STT · Team · Nhân sự · Leader), AC-38.2 và `test_sale_scope_and_dashboard` (tìm dòng
+TỔNG CỘNG thay vì dòng cuối), xuất Vận đơn (sheet "Trạng thái giao hàng" tra theo tên). Bộ đếm
+`docs/06` 246 / 233 / 209. Bộ đầy đủ: xem cuối mục.
+
+**Truy vấn:** khối toàn kỳ cộng trong bộ nhớ (`aggregations.subtotals(key="person_name")`), cột Team
+là thêm một cột GROUP BY — bài AC-40.4 (≤ 10) vẫn xanh; chỉ khi vượt `MAX_GROUPS` mới thêm một lượt
+`build(group="person")`.
+
+**Chromium** trên `knjsc_mkt`, `mkt.manager`, kỳ 01–23.09.2026:
+
+| Ảnh | Thấy gì |
+|---|---|
+| `04-dot2-khoi-1440-sang.png` | Khối "Toàn kỳ 01/09 – 23/09/2026 · theo nhân sự · 2 nhân sự": STT · Team · Nhân sự · Leader, TỔNG CỘNG · toàn kỳ ngay dưới hàng tiêu đề cột, hai người ANHPM/NAMVH cộng cả kỳ; dưới là khối "18.09.2026" rồi từng ngày; nút "Không gộp" đang bật |
+| `05-dot2-khoi-1440-toi.png` | Cùng trang chế độ tối |
+| `06-dot2-gop-1440.png` | Gộp: chip "Gộp mỗi ngày một dòng ×", khối "Theo ngày · 5 ngày" mỗi ngày một dòng, khối toàn kỳ vẫn đứng đầu |
+| `07-dot2-khoi-390.png` | 390 px: khối toàn kỳ, cột định danh ghim khi cuộn ngang |
+
+Script `scratchpad/chup-dot2.py`: 6 khối ở trang thường (1 toàn kỳ + 5 ngày), 2 khối khi Gộp; **0 ô tràn
+chữ**; cột định danh **trượt 0 px** khi cuộn ngang 300 px (ghim đúng) ở cả hai trang.
+
+### Chưa kiểm
+
+- Người đổi team giữa kỳ (sẽ thành hai dòng ở khối toàn kỳ) — chưa có dữ liệu để chụp.
+- Trên 2.000 cặp ngày × người (đường chạm trần) chỉ qua đọc mã, chưa dựng dữ liệu.
+- Excel mở bằng Excel thật; nút Gộp trên điện thoại chưa chụp riêng.

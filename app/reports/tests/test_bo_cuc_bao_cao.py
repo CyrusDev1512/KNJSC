@@ -52,16 +52,18 @@ def test_cot_dinh_danh_ghim_theo_cach_xem(client, nguon, nguoi_dung):
     client.force_login(nguoi_dung["admin"])
     r = _get(client, nguon)
     cols = r.context["identity_columns"]
+    # Khối theo ngày như ảnh mẫu (ADR-040): STT · Team · Nhân sự · Leader, không có cột Ngày
     assert [(c["code"], c["kind"], c["pos"], c["edge"]) for c in cols] == [
-        ("nhom", "id-ngay", 1, False), ("stt", "id-stt", 2, False),
+        ("stt", "id-stt", 1, False), ("team", "id-team", 2, False),
         ("person", "id-nhan-su", 3, False), ("leader", "id-leader", 4, True)]
-    kieu = ("--id-left-2:calc(var(--w-ngay));--id-left-3:calc(var(--w-ngay) + var(--w-stt))"
-            ";--id-left-4:calc(var(--w-ngay) + var(--w-stt) + var(--w-nhan-su))")
+    kieu = ("--id-left-2:calc(var(--w-stt));--id-left-3:calc(var(--w-stt) + var(--w-team))"
+            ";--id-left-4:calc(var(--w-stt) + var(--w-team) + var(--w-nhan-su))")
     assert r.context["identity_style"] == kieu
     html = r.content.decode()
     assert f'<table class="bang report-table" style="{kieu}">' in html
-    assert 'class="report-identity report-identity-edge" data-pos="1" colspan="4">Tổng trong bộ lọc</th>' in html
-    assert 'class="report-identity id-ngay" data-pos="1">01.08.2026</th>' in html
+    assert 'class="report-identity report-identity-edge" data-pos="1" colspan="4">TỔNG CỘNG · toàn kỳ</th>' in html
+    # Khối ngày: cột đầu là STT, ngày thành tiêu đề đặt trên bảng (ADR-040)
+    assert 'class="report-identity id-stt" data-pos="1">1</th>' in html and '<h3>01.08.2026</h3>' in html
     r2 = _get(client, nguon, nhom="person")
     cols = r2.context["identity_columns"]
     assert [(c["code"], c["kind"], c["pos"]) for c in cols] == [("team", "id-team", 1), ("nhom", "id-nhom", 2), ("leader", "id-leader", 3)]
@@ -69,7 +71,7 @@ def test_cot_dinh_danh_ghim_theo_cach_xem(client, nguon, nguoi_dung):
     assert cols[-1]["edge"] and r2.context["label_span"] == 3
     r3 = _get(client, nguon, nhom="product")
     assert [c["code"] for c in r3.context["identity_columns"]] == ["nhom"] and r3.context["identity_style"] == ""
-    assert 'data-pos="1" >Tổng trong bộ lọc' in r3.content.decode()
+    assert 'data-pos="1">Tổng trong bộ lọc' in r3.content.decode()
 
 
 def test_staff_khong_thay_chip_team_nguoi_khac(client, nguon, nguoi_dung):

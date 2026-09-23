@@ -13,7 +13,7 @@ from core.constants import AuditAction
 from core.exceptions import BusinessError
 from core.pagination import pagination_context
 from orders.constants import Market
-from reports import aggregations, excel
+from reports import aggregations, excel, layout
 from reports.services import activity_service as service, summary_service
 
 
@@ -33,7 +33,7 @@ def parameters(request):
     }
 
 
-def _export(request, source, result, params):
+def _export(request, source, result, params, gop=False):
     if aggregations.row_count(result) > getattr(settings, "EXPORT_MAX_ROWS", 50000):
         raise BusinessError("Thu hẹp bộ lọc để xuất báo cáo.")
     record(AuditAction.EXPORT, actor=request.user, target=source.table,
@@ -41,7 +41,17 @@ def _export(request, source, result, params):
     subtitle = f"{params['start']} đến {params['end']}"
     if params.get("segment"):
         subtitle += " · Tệp khách hàng: " + ("chưa có" if params["segment"] == "__missing__" else params["segment"])
-    book = excel.build_workbook(source.table.name, result, subtitle=subtitle)
+    blocks = None
+    if getattr(result, "show_person", False):
+        # Xuất theo khối như màn hình (ADR-040), trên toàn bộ dòng — không cắt trang
+        items = list(result.rows)
+        tieu_de = f"Toàn kỳ {params['start']:%d/%m} – {params['end']:%d/%m/%Y} · theo nhân sự"
+        khoi_ky = period_block(request, source, result, items if len(items) <= summary_service.MAX_GROUPS else None, items, params, tieu_de)
+        if gop:
+            blocks = [khoi_ky, layout.days_block(items, layout.days_of(items), result)]
+        else:
+            blocks = [khoi_ky, *layout.day_blocks(aggregations.finish_rows(items, result), items, items, result)]
+    book = excel.build_workbook(source.table.name, result, subtitle=subtitle, blocks=blocks)
     if source.kind == "delivery":
         sheet = book.create_sheet("Trạng thái giao hàng")
         sheet.append(["Trạng thái", "Số đơn"])
@@ -61,6 +71,7 @@ def report(request, export=False, choices=None):
     choices = list(service.sources(request.user)) if choices is None else choices
     source = service.select_source(request.user, request.GET.get("nguon", ""), choices)
     params = parameters(request)
+    gop = request.GET.get("gop") == "1"   # Gộp theo ngày (ADR-040): mỗi ngày một dòng
     # Liên kết phân trang ghép `?trang=N&moi_trang=M` + `qs_loc`: bỏ hai khoá đó khỏi `qs_loc`,
     # không thì giá trị cũ đứng sau thắng và từ trang 2 bấm trang khác vẫn đứng yên (TL-47)
     giu = request.GET.copy()
@@ -81,86 +92,96 @@ def report(request, export=False, choices=None):
         if result.ok:
             if export:
                 try:
-                    return _export(request, source, result, params)
+                    return _export(request, source, result, params, gop)
                 except BusinessError as error:
                     return render(request, "reports/activity.html", {**ctx, "error": str(error)}, status=400)
-            # Giới hạn nhóm như báo cáo hiện có; tránh COUNT riêng khi ít nhóm.
-            items = list(result.rows[:summary_service.MAX_GROUPS + 1])
-            page_source = items if len(items) <= summary_service.MAX_GROUPS else result.rows
-            # 100 nhóm mỗi trang (ADR-035): bảng theo ngày × nhân sự nhiều dòng hơn bản theo ngày.
-            ctx.update(pagination_context(request, page_source, "nhóm", default_size=100))
-            ctx.update(result=result, rows=aggregations.finish_rows(ctx["trang"], result),
-                       totals=aggregations.total_cells(result), empty=not result.totals["so_dong"])
-            show_team, show_person, show_leader = (getattr(result, flag, False) for flag in ("show_team", "show_person", "show_leader"))
-            # Mỗi dòng là một người (Tổng hợp nhóm theo ngày × nhân sự) nên ô danh tính
-            # chỉ có một nhãn.
-            for row, raw in zip(ctx['rows'], ctx['trang']):
-                row['kind'] = 'row'
-                if show_team:
-                    row['team'] = raw['team_name']
-                if show_person:
-                    row['person'] = raw['person_name']
-                if show_person or show_leader:
-                    row['leader'] = raw['leader_name'] or '—'
-            # Dòng "Tổng trong bộ lọc" ôm cột nhóm và các cột danh tính (Tổng hợp có thêm STT).
-            ctx["label_span"] = 1 + show_team + 3 * show_person + show_leader
-            if show_person:
-                # Khối theo ngày như ảnh mẫu: dòng Tổng ngày đứng đầu, STT đánh lại từ 1
-                ca_bo = items if len(items) <= summary_service.MAX_GROUPS else list(ctx["trang"])
-                ctx["rows"] = day_blocks(ctx["rows"], list(ctx["trang"]), ca_bo, result)
-            ctx.update(identity_layout(result, show_team, show_person, show_leader))
+            ctx.update(blocks_context(request, source, result, params, gop))
             if source.kind == "delivery":
                 ctx["shipping"] = result.shipping
     if source:
         ctx.update(filter_chips(request, params, ctx))
+        if source and ctx.get("result") is not None and getattr(ctx["result"], "show_person", False):
+            ctx.update(gop=gop, gop_url=_with(request, gop="1"), khong_gop_url=_with(request, gop=None))
     return render(request, "reports/activity.html", ctx)
 
 
-def day_blocks(rows, page_items, all_items, result):
-    """Cách xem Tổng hợp thành các khối ngày như ảnh mẫu (AC-22.15): trước dòng đầu của mỗi
-    ngày trên trang chèn dòng Tổng ngày (cộng trên TOÀN BỘ dòng của ngày khi đã có trong bộ
-    nhớ; chạm trần `MAX_GROUPS` thì chỉ trên trang), dòng người mang STT đếm lại từ 1 mỗi ngày."""
-    tong_ngay = aggregations.subtotal_cells(all_items, result)
-    stt, dem = {}, {}
-    for item in all_items:
-        khoa = (item.get("nhom"), item.get("person_name"))
-        dem[item.get("nhom")] = dem.get(item.get("nhom"), 0) + 1
-        stt[khoa] = dem[item.get("nhom")]
-    out, ngay_truoc = [], object()
-    for row, item in zip(rows, page_items):
-        ngay = item.get("nhom")
-        if ngay != ngay_truoc:
-            out.append({"kind": "subtotal", "nhom": row["nhom"], "cells": tong_ngay.get(ngay, [])})
-            ngay_truoc = ngay
-        row["stt"] = stt.get((ngay, item.get("person_name")), "")
-        out.append(row)
-    return out
+def _with(request, **doi):
+    """URL hiện tại với vài tham số đổi/bỏ (giá trị None là bỏ), về trang 1."""
+    query = request.GET.copy()
+    for key in ("trang",):
+        query.pop(key, None)
+    for key, value in doi.items():
+        query.pop(key, None)
+        if value is not None:
+            query[key] = value
+    return "?" + query.urlencode()
 
 
-#: Chiều rộng cột định danh theo loại (biến CSS khai ở `.report-view`, thu nhỏ theo màn hình).
-IDENTITY_WIDTH = {"team": "--w-team", "ngay": "--w-ngay", "nhom": "--w-nhom", "stt": "--w-stt", "person": "--w-nhan-su", "leader": "--w-leader"}
-IDENTITY_CLASS = {"team": "id-team", "ngay": "id-ngay", "nhom": "id-nhom", "stt": "id-stt", "person": "id-nhan-su", "leader": "id-leader"}
+def blocks_context(request, source, result, params, gop):
+    """Bố cục khối như ảnh mẫu (ADR-040 đợt 2). Cách xem Tổng hợp: khối toàn kỳ theo nhân sự
+    (cộng trong bộ nhớ, không truy vấn thêm) rồi mỗi ngày một khối có TỔNG CỘNG riêng và STT;
+    Gộp thì một khối mỗi ngày một dòng. Cách xem khác: một khối như cũ. `rows` phẳng, `label_span`,
+    `identity_columns` giữ cho Tổng quan và bài kiểm."""
+    show_team, show_person, show_leader = (getattr(result, flag, False) for flag in ("show_team", "show_person", "show_leader"))
+    # Giới hạn nhóm như báo cáo hiện có; dòng đã ở bộ nhớ khi ≤ MAX_GROUPS (`summarize_in_memory`).
+    items = list(result.rows[:summary_service.MAX_GROUPS + 1])
+    ca_bo = items if len(items) <= summary_service.MAX_GROUPS else None
+    ctx = {"result": result, "totals": aggregations.total_cells(result), "empty": not result.totals["so_dong"]}
+    tieu_de_ky = f"Toàn kỳ {params['start']:%d/%m} – {params['end']:%d/%m/%Y} · theo nhân sự"
+    if show_person and gop:
+        # Gộp: mỗi ngày một dòng — phân trang trên danh sách ngày
+        nguon = ca_bo if ca_bo is not None else items
+        ngay = layout.days_of(nguon)
+        ctx.update(pagination_context(request, ngay, "ngày", default_size=100))
+        blocks = [period_block(request, source, result, ca_bo, items, params, tieu_de_ky),
+                  layout.days_block(nguon, list(ctx["trang"]), result)]
+    else:
+        # 100 nhóm mỗi trang (ADR-035): bảng theo ngày × nhân sự nhiều dòng hơn bản theo ngày.
+        page_source = items if ca_bo is not None else result.rows
+        ctx.update(pagination_context(request, page_source, "nhóm", default_size=100))
+        page_items = list(ctx["trang"])
+        rows = aggregations.finish_rows(page_items, result)
+        if show_person:
+            all_items = ca_bo if ca_bo is not None else page_items
+            blocks = [period_block(request, source, result, ca_bo, items, params, tieu_de_ky),
+                      *layout.day_blocks(rows, page_items, all_items, result)]
+        else:
+            for row, raw in zip(rows, page_items):
+                row["kind"] = "row"
+                if show_team:
+                    row["team"] = raw["team_name"]
+                if show_leader:
+                    row["leader"] = raw["leader_name"] or "—"
+            blocks = [layout.single_block(single_kinds(result, show_team, show_leader), rows, ctx["totals"])]
+    ctx["blocks"] = blocks
+    ctx["rows"] = layout.flat_rows(blocks) if show_person else blocks[0]["rows"]
+    # Khối cuối là khối đang phân trang; cột danh tính của nó là thứ template cũ và bài kiểm đọc
+    dai_dien = blocks[-1]
+    ctx.update(label_span=dai_dien["label_span"], identity_columns=dai_dien["identity_columns"],
+               identity_style=dai_dien["identity_style"])
+    return ctx
 
 
-def identity_layout(result, show_team, show_person, show_leader):
-    """Cột định danh ghim trái (bản vẽ 18.09): thứ tự Team · nhóm · STT · Nhân sự · Leader theo cách xem;
-    `left` của cột thứ 2–4 là tổng chiều rộng các cột trước, đặt bằng biến CSS trên `<table>`."""
+def period_block(request, source, result, ca_bo, items, params, title):
+    """Khối toàn kỳ theo nhân sự: từ dòng trong bộ nhớ khi ≤ MAX_GROUPS; chạm trần thì dùng kết
+    quả cách xem Theo nhân viên (thêm truy vấn, hiếm)."""
+    if ca_bo is not None:
+        return layout.period_block(ca_bo, result, title)
+    ky = {k: v for k, v in params.items() if k != "group"}
+    nguoi = service.build(request.user, source, group="person", **ky)
+    dong = list(nguoi.rows)
+    return layout.period_block_from_rows(aggregations.finish_rows(dong, nguoi), dong, nguoi, title)
+
+
+def single_kinds(result, show_team, show_leader):
+    """Cột định danh của cách xem không theo ngày (bản vẽ 18.09): Team · nhóm · Leader."""
     kinds = []
     if show_team:
         kinds.append(("team", "Team", "team"))
     kinds.append(("nhom", result.group_label, "ngay" if result.group_is_date else "nhom"))
-    if show_person:
-        kinds.append(("stt", "STT", "stt"))
-        kinds.append(("person", "Nhân sự", "person"))
-    if show_person or show_leader:
+    if show_leader:
         kinds.append(("leader", "Leader", "leader"))
-    columns, style, widths = [], [], []
-    for pos, (code, label, width) in enumerate(kinds, start=1):
-        columns.append({"code": code, "label": label, "kind": IDENTITY_CLASS[width], "pos": pos, "edge": pos == len(kinds)})
-        if pos >= 2:
-            style.append(f"--id-left-{pos}:calc({' + '.join(f'var({w})' for w in widths)})")
-        widths.append(IDENTITY_WIDTH[width])
-    return {"identity_columns": columns, "identity_style": ";".join(style)}
+    return kinds
 
 
 def filter_chips(request, params, ctx):
@@ -178,6 +199,8 @@ def filter_chips(request, params, ctx):
     chips = [{"label": "Kỳ", "value": f"{params['start']:%d/%m} – {params['end']:%d/%m/%Y}",
               "url": without("tu", "den") if dang_loc_ky else ""}]
     chips.append({"label": "Cách xem", "value": dict(service.GROUPS).get(params["group"], params["group"]), "url": ""})
+    if request.GET.get("gop") == "1":
+        chips.append({"label": "Gộp", "value": "mỗi ngày một dòng", "url": without("gop")})
     if params["product"]:
         chips.append({"label": "Sản phẩm", "value": params["product"], "url": without("sp")})
     if params["market"]:

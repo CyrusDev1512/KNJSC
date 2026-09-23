@@ -5,8 +5,10 @@
 **Finished local (đợt 1):** tiền quy ₫ ngay trong truy vấn, cảnh báo dòng thiếu tỉ giá; cột Số đơn (TT) /
 DS Chốt (TT) / Tỉ lệ chốt (TT) đối soát từ vận đơn; Tỉ lệ chốt cho MKT, tỉ lệ hiện %; nhãn MKT theo ảnh;
 nguồn MKT thật ≤ 10 truy vấn; TL-52, TL-53. AC-40.1 → 40.5.
-**In progress:** đợt 2 — bảng toàn kỳ theo người, mỗi ngày một bảng, Team, Gộp/Không gộp, Excel.
-**To do:** đợt 3 ngưỡng màu 3 bậc + form Manager, lọc nhiều sản phẩm, "Tuần này"; đợt 4 Bảng dữ liệu
+**Finished local (đợt 2):** khối toàn kỳ theo nhân sự + mỗi ngày một bảng (STT · Team · Nhân sự · Leader,
+TỔNG CỘNG đầu bảng), Gộp/Không gộp, Excel hai sheet. AC-40.6, 40.7.
+**In progress:** đợt 3 — ngưỡng màu 3 bậc + form Manager, lọc nhiều sản phẩm, "Tuần này".
+**To do:** đợt 4 Bảng dữ liệu
 chi tiết theo ngày + lỗi vặt; đợt 5 docs/02, CLAUDE.md, biên bản cuối; phát hành VPS (Codex).
 **Far plan:** `so_tien_tt` gõ tay vào DS Chốt (TT)?; tỉ giá KRW; Tổng quan hiện (TT).
 

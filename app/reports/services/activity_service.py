@@ -319,7 +319,10 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
     # Tổng hợp = ngày × nhân sự: mỗi người một dòng riêng trong ngày (chủ dự án 19.09,
     # bổ sung ADR-035 — thay quyết định 1 "mỗi ngày một dòng"). Doanh thu suy ra tra theo
     # cặp (ngày, nhân sự) nên không gán nhầm tiền cả ngày cho từng người.
-    extra = person_expressions(source) if group == "day" else None
+    extra = None
+    if group == "day":
+        # Ngày × nhân sự, kèm Team để khối theo ngày có cột Team như ảnh (ADR-040)
+        extra = {**person_expressions(source), "team_name": team_expressions(source)["team_name"]}
     if group == "person":
         extra = team_expressions(source)   # Team · Leader đi cùng người, không annotate sau
     # Toàn bộ dòng nhóm vào bộ nhớ khi ≤ MAX_GROUPS: tổng, khoá đối soát, tổng ngày và phân
@@ -470,7 +473,8 @@ def delivery(qs, source, group, product):
         them = []
         if group == "day":
             khoa.update(person_expressions(source))
-            them = ["person_name", "leader_name"]
+            khoa["team_name"] = team_expressions(source)["team_name"]
+            them = ["person_name", "leader_name", "team_name"]
         rows = qs.order_by().values(**khoa).annotate(
             so_dong=Count("pk", distinct=True),
             c_orders=Count("pk", distinct=True), c_quantity=quantity).order_by("nhom", *them)

@@ -40,8 +40,9 @@ def test_sale_scope_and_dashboard(client, marketing_scope, nguoi_dung, role, cou
     assert result.totals["so_dong"]==count
     exported=client.get("/bao-cao/tong-hop/xuat/",query)
     rows=list(load_workbook(BytesIO(exported.content),data_only=True).active.values)
-    tong=aggregations.total_values(result)   # dòng tổng: nhãn, ô trống cho Nhân sự/Leader, rồi số liệu (ADR-035)
-    assert tuple(Decimal(str(v)) if v is not None else None for v in rows[-1][-len(tong):])==tuple(tong)
+    tong=aggregations.total_values(result)   # dòng TỔNG CỘNG của khối toàn kỳ (ADR-040): nhãn, ô trống, rồi số liệu
+    dong_tong=next(r for r in rows if r[0] and str(r[0]).startswith("TỔNG CỘNG"))
+    assert tuple(Decimal(str(v)) if v is not None else None for v in dong_tong[-len(tong):])==tuple(tong)
     d=client.get("/",{"sale_nguon":source.table.code,"tu":query["tu"],"den":query["den"]})
     block=next(b for b in d.context["activity"]["blocks"] if b["kind"]=="sale")
     assert block["ok"] and block["data"]["count"]==count
@@ -105,8 +106,9 @@ def test_delivery_filters_match_status_and_export(delivery_source,nguoi_dung,cli
     r=client.get("/bao-cao/tong-hop/xuat/",{"nguon":source.table.code,"sp":"a","thi_truong":"Canada","tu":"2026-08-01","den":"2026-08-31"})
     assert r.status_code==200
     book=load_workbook(BytesIO(r.content),data_only=True)
-    assert list(book.active.values)[-1][-2:]==(2,4)   # sau nhãn còn hai ô trống Nhân sự/Leader (ADR-035)
-    assert list(book.worksheets[1].values)[-1]==("Đang giao",2)
+    dong_tong=next(r for r in book.active.values if r[0] and str(r[0]).startswith("TỔNG CỘNG"))   # khối toàn kỳ (ADR-040)
+    assert dong_tong[-2:]==(2,4)
+    assert list(book["Trạng thái giao hàng"].values)[-1]==("Đang giao",2)
 
 
 def test_configure_metadata_idempotent(departments):
@@ -295,14 +297,16 @@ def test_day_view_shows_person_and_leader_in_scope(client, marketing_scope, nguo
     outsider=nguoi_dung["staff_sale_2"].pk
     r3=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":outsider})
     assert (r3.status_code==403) == ("staff_sale_2" not in persons)
-    sheet=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True).active.values)
-    assert sheet[3][:4]==("Ngày","STT","Nhân sự","Leader")
-    assert sheet[4][0]=="Tổng ngày 01.08.2026"                      # khối ngày (AC-22.15)
-    nguoi_excel=[d for d in sheet[5:-1] if not str(d[0]).startswith("Tổng ngày")]
+    book=load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True)
+    sheet=list(book.active.values)                                  # khối toàn kỳ theo nhân sự (ADR-040)
+    assert sheet[4][:4]==("STT","Team","Nhân sự","Leader") and str(sheet[5][0]).startswith("TỔNG CỘNG")
+    nguoi_excel=[d for d in sheet[6:] if d and d[0] is not None]
     assert len(nguoi_excel)==len(persons)                           # Excel cũng mỗi người một dòng
     assert {d[2] for d in nguoi_excel}=={employee_code(nguoi_dung[name]) for name in persons}
     assert employee_code(nguoi_dung["leader_sale_1"]) in {d[3] for d in nguoi_excel}
     assert nguoi_dung["staff_sale_1"].profile.full_name not in nguoi_excel[0][2]   # Excel cũng chỉ mã
+    ngay=list(book["Theo ngay"].values)                              # mỗi ngày một khối: tiêu đề, cột, TỔNG CỘNG, người
+    assert ngay[0][0]=="Ngày 01.08.2026" and ngay[1][:4]==("STT","Team","Nhân sự","Leader") and ngay[2][0]=="TỔNG CỘNG"
 
 
 def test_day_view_groups_by_date_and_person(client, marketing_scope, nguoi_dung):
@@ -324,7 +328,7 @@ def test_day_view_groups_by_date_and_person(client, marketing_scope, nguoi_dung)
     # Mỗi hàng chỉ mang số của chính người đó
     assert [row["cells"][0] for row in rows]==["10"]*4
     sheet=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True).active.values)
-    nguoi_excel=[d for d in sheet[4:-1] if not str(d[0]).startswith("Tổng ngày")]
+    nguoi_excel=[d for d in sheet[6:] if d and d[0] is not None]   # sau tiêu đề, hàng cột, TỔNG CỘNG của khối toàn kỳ
     assert len(nguoi_excel)==4 and len({d[2] for d in nguoi_excel})==4
 
 
@@ -367,14 +371,14 @@ def test_day_blocks_have_day_subtotal_and_stt(client, bang_mkt, mkt_source, van_
     tong=dict(zip(cot, aggregations.total_cells(r.context["result"])))
     assert tong["Số Mess"]=="30" and tong["DS Chốt (TT)"]=="5.687.500 ₫"
     html=r.content.decode()
-    assert '<tr class="report-subtotal">' in html and '01.08.2026 · Tổng ngày</th>' in html
-    assert 'class="report-identity id-stt" data-pos="2">1</td>' in html
-    # Excel: cùng khối, cột STT, dòng Tổng ngày in đậm
-    sheet=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True).active.values)
-    assert sheet[3][:4]==("Ngày","STT","Nhân sự","Leader")
-    assert [str(d[0]) for d in sheet[4:-1]]==["Tổng ngày 02.08.2026","02.08.2026",
-                                              "Tổng ngày 01.08.2026","01.08.2026","01.08.2026"]
-    assert [d[1] for d in sheet[4:-1]]==[None,1,None,1,2]   # openpyxl đọc ô trống là None
+    # Mỗi ngày một bảng riêng (ADR-040): tiêu đề ngày trên bảng, TỔNG CỘNG ngay dưới hàng tiêu đề cột, STT ở cột đầu
+    assert html.count('class="report-block report-block-day"')==2 and '<h3>01.08.2026</h3>' in html
+    assert 'data-pos="1" colspan="4">TỔNG CỘNG</th>' in html and 'class="report-identity id-stt" data-pos="1">1</th>' in html
+    assert 'class="report-block report-block-period"' in html and 'TỔNG CỘNG · toàn kỳ</th>' in html
+    # Excel: sheet "Theo ngay" cùng khối — tiêu đề ngày, hàng tiêu đề cột, TỔNG CỘNG, dòng người có STT
+    ngay=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True)["Theo ngay"].values)
+    assert [d[0] for d in ngay if d and d[0] is not None]==["Ngày 02.08.2026","STT","TỔNG CỘNG",1,
+                                                              "Ngày 01.08.2026","STT","TỔNG CỘNG",1,2]
 
 
 def test_metric_colours_against_filter_total(client, bang_mkt, mkt_source, van_don, nguoi_dung):

@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Ngày | 23.09.2026 (đợt 1); các đợt sau bổ sung ngay trong tệp này |
-| Trạng thái | Đang làm theo đợt — đợt 1 xong local |
+| Trạng thái | Đang làm theo đợt — đợt 1 và 2 xong local |
 | Thay thế / bổ sung | **ADR-038** quyết định "lẫn loại tiền thì cảnh báo và để trống chỉ tiêu tiền" (bỏ); **ADR-031** câu "không quy đổi tỉ giá" chỉ còn đúng cho **lưu trữ**; **ADR-035** bố cục Tổng hợp (bổ sung đợt 2) |
 
 ## Bối cảnh
@@ -46,9 +46,15 @@ Chỗ đối tác thấy sai trước tiên: dữ liệu thật lẫn USD/EUR/CA
 4. **Toàn bộ dòng nhóm vào bộ nhớ khi ≤ 2.000** (`summarize_in_memory`): tổng, khoá đối soát,
    tổng ngày, khối toàn kỳ và phân trang dùng chung một danh sách — bỏ được lệnh aggregate và lệnh tra
    khoá; nguồn MKT thật từ 12 xuống dưới 10 truy vấn (AC-40.4). Quá trần thì giữ queryset như cũ.
-5. **Bố cục khối như ảnh** — đợt 2: bảng toàn kỳ theo người đứng đầu, mỗi ngày một bảng có tiêu đề
-   ngày, TỔNG CỘNG đứng đầu bảng, STT, Team, Nhân sự, Leader, không cột Ngày; nút **Gộp / Không gộp**
-   (Gộp = mỗi ngày chỉ còn dòng TỔNG CỘNG, chính là bố cục trước 19.09). Excel theo cùng khối.
+5. **Bố cục khối như ảnh** (đợt 2, `reports/layout.py` + `reports/_bang_khoi.html`): khối **toàn kỳ
+   theo nhân sự** đứng đầu — cộng trong bộ nhớ từ các dòng ngày × người, cột STT · Team · Nhân sự ·
+   Leader, TỔNG CỘNG ngay dưới hàng tiêu đề cột, sắp theo mã; rồi **mỗi ngày một bảng riêng** mới nhất
+   trước, tiêu đề ngày đặt trên bảng, **không cột Ngày**, TỔNG CỘNG ngày bằng tổng dòng con (cột tính
+   tính lại từ tổng), STT đếm lại từ 1; nhiều bảng trong **một** khung cuộn (thead và TỔNG CỘNG dính
+   trong bảng của nó). Phân trang vẫn 100 dòng người; ngày bị tách trang ghi "(tiếp)" và lặp TỔNG
+   CỘNG đủ cả ngày. Nút **Gộp / Không gộp** (`gop=1`): Gộp = mỗi ngày chỉ còn dòng TỔNG CỘNG, phân
+   trang theo ngày — chính là bố cục trước 19.09. Excel hai sheet "Toan ky theo nhan su" và "Theo
+   ngay" cùng khối, số thô. Các cách xem khác vẫn một bảng, cột định danh như ADR-035.
 6. **Ngưỡng màu tuyệt đối ba bậc** — đợt 3: `ReportSource.thresholds` do Manager bộ phận sở hữu
    đặt; chưa đặt thì giữ cách tương đối ±10 % (AC-22.16); không bịa số mặc định. Lọc **nhiều sản
    phẩm** và mốc "Tuần này".

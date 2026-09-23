@@ -13,8 +13,9 @@ from openpyxl.styles import Font
 from . import aggregations
 
 
-def build_workbook(title, result, subtitle=""):
-    """Một sheet: tiêu đề, dòng phụ, bảng số liệu, dòng cuối là tổng cộng."""
+def build_workbook(title, result, subtitle="", blocks=None):
+    """Một sheet: tiêu đề, dòng phụ, bảng số liệu, dòng cuối là tổng cộng. Có `blocks` (cách xem
+    Tổng hợp, ADR-040) thì xuất theo khối như màn hình: sheet toàn kỳ theo nhân sự và sheet theo ngày."""
     wb = Workbook()
     ws = wb.active
     ws.title = "Bao cao tong hop"
@@ -25,6 +26,8 @@ def build_workbook(title, result, subtitle=""):
     unit_note = getattr(result, 'currency_warning', '') or getattr(result, 'currency_label', '')
     ws.append([' · '.join(part for part in (subtitle, unit_note) if part)])
     ws.append([])
+    if blocks:
+        return _khoi(wb, ws, result, blocks, dam)
 
     show_team = getattr(result, 'show_team', False)
     show_person = getattr(result, 'show_person', False)
@@ -58,4 +61,34 @@ def build_workbook(title, result, subtitle=""):
     for o in ws[ws.max_row]:
         o.font = dam
 
+    return wb
+
+
+def _dam(ws, dam):
+    for o in ws[ws.max_row]:
+        o.font = dam
+
+
+def _ghi_khoi(ws, result, b, dam):
+    """Một khối: hàng tiêu đề cột, dòng TỔNG CỘNG đứng đầu như màn hình, rồi các dòng (số thô)."""
+    nhan = [c["label"] for c in b["identity_columns"]]
+    ws.append(nhan + [c.label for c in result.columns]); _dam(ws, dam)
+    ws.append([b["total_label"]] + [''] * (len(nhan) - 1) + list(b["totals_raw"])); _dam(ws, dam)
+    for row in b["rows"]:
+        ws.append([v for _, v in row["identity"]] + list(row["raw"]))
+
+
+def _khoi(wb, ws, result, blocks, dam):
+    """Sheet 1 "Toan ky theo nhan su" = khối toàn kỳ; sheet 2 "Theo ngay" = từng ngày một khối (hoặc
+    mỗi ngày một dòng khi Gộp). Cùng số với màn hình vì cùng `layout` dựng."""
+    ws.title = "Toan ky theo nhan su"
+    ky = blocks[0]
+    ws.append([ky["title"]]); _dam(ws, dam)
+    _ghi_khoi(ws, result, ky, dam)
+    ngay = wb.create_sheet("Theo ngay")
+    for b in blocks[1:]:
+        if b["kind"] == "day":
+            ngay.append([f"Ngày {b['title']}"]); _dam(ngay, dam)
+        _ghi_khoi(ngay, result, b, dam)
+        ngay.append([])
     return wb

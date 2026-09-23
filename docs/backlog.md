@@ -20,9 +20,16 @@ trang kéo `trang` cũ (TL-53), chip Kỳ có × ở kỳ mặc định (TL-52);
 mới; nguồn MKT thật 12 → ≤ 10 truy vấn; Chromium 1440 sáng/tối + 390 trên `knjsc_mkt`.
 [Biên bản](kiem-chung-bao-cao-nhu-anh-mau-20260923.md).
 
-**Còn nợ.** Đợt 2 bố cục khối + Gộp + Excel; đợt 3 ngưỡng màu + lọc nhiều sản phẩm; đợt 4 Bảng dữ liệu;
-đợt 5 docs/02, CLAUDE.md. Chờ chủ dự án: `so_tien_tt` gõ tay ở đơn không chi tiết có vào DS Chốt (TT)
-không; tỉ giá KRW.
+**Đợt 2 cùng ngày — bố cục khối như ảnh.** `reports/layout.py` (thuần, không truy vấn) dựng các khối:
+**toàn kỳ theo nhân sự** đứng đầu (cộng trong bộ nhớ từ dòng ngày × người, STT · Team · Nhân sự · Leader,
+TỔNG CỘNG ngay dưới tiêu đề cột), rồi **mỗi ngày một bảng riêng** không có cột Ngày, TỔNG CỘNG ngày, STT
+đếm lại; ngày tách trang ghi "(tiếp)"; nút **Gộp / Không gộp** (`gop=1`, mỗi ngày một dòng); template
+`reports/_bang_khoi.html` dùng chung, một khung cuộn nhiều bảng; Excel hai sheet "Toan ky theo nhan su" +
+"Theo ngay". AC-40.6, AC-40.7; sửa AC-22.10/13/14/15, AC-38.2. 192 đạt bộ báo cáo.
+
+**Còn nợ.** Đợt 3 ngưỡng màu + lọc nhiều sản phẩm; đợt 4 Bảng dữ liệu; đợt 5 docs/02, CLAUDE.md. Chờ chủ
+dự án: `so_tien_tt` gõ tay ở đơn không chi tiết có vào DS Chốt (TT) không; tỉ giá KRW; cột lệch nhẹ giữa
+các bảng (mỗi bảng tự co theo nội dung) có cần ép cùng bề rộng không.
 
 ## 19.09.2026 (đêm) — Một bài đầu-cuối đi trọn hành trình nhân viên
 

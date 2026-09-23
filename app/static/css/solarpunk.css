@@ -327,6 +327,13 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
 .report-table tbody tr:not(.report-total):not(.report-subtotal):nth-child(odd)>* {background:var(--surface-2)}
 .report-table tbody tr:not(.report-total):not(.report-subtotal):hover>* {background:var(--accent-soft)}
 .report-table td.trong {color:var(--ink-3)}
+/* Khối như ảnh mẫu (ADR-040 đợt 2): nhiều bảng trong một khung cuộn, tiêu đề khối ghim trái;
+   thead và dòng TỔNG CỘNG của từng bảng tự dính trong bảng của nó (sticky bị chặn bởi bảng chứa). */
+.report-block+.report-block {margin-top:14px}
+.report-block-title {position:sticky;left:0;display:flex;align-items:baseline;gap:10px;width:max-content;max-width:100%;padding:10px 12px 6px;background:var(--surface)}
+.report-block-title h3 {margin:0;font-size:14px;font-weight:700;color:var(--ink)}
+.report-block-title span {color:var(--ink-2);font-size:var(--fs-sm)}
+.report-seg {display:inline-flex;gap:4px}
 .report-backdrop {display:none}
 /* Toàn màn hình: bộ lọc tự về thanh dọc, bảng lấy trọn chiều cao */
 .sp-report-focus body::before {content:none}

@@ -357,14 +357,15 @@ def totals_from_rows(items, result):
     return totals
 
 
-def subtotals(items, result):
+def subtotals(items, result, key="nhom"):
     """Tổng của từng nhóm cha khi dòng đã nhóm theo nhiều cột (Tổng hợp = ngày × nhân sự):
     `{giá trị nhóm: dãy ô thô}` theo thứ tự xuất hiện. Cộng `c_*` như `totals_from_rows`,
     cộng thêm giá trị suy ra (`derived`) của từng dòng, rồi tính lại cột tính từ tổng —
-    CPO của ngày là ΣCPQC ÷ Σđơn, không phải trung bình các dòng. Không truy vấn."""
+    CPO của ngày là ΣCPQC ÷ Σđơn, không phải trung bình các dòng. Không truy vấn.
+    `key="person_name"` gom theo người thay vì ngày — khối toàn kỳ theo nhân sự (ADR-040)."""
     theo_nhom = {}
     for item in items:
-        theo_nhom.setdefault(item.get("nhom"), []).append(item)
+        theo_nhom.setdefault(item.get(key), []).append(item)
     out = {}
     for nhom, dong in theo_nhom.items():
         by_code = {}
@@ -381,10 +382,15 @@ def subtotals(items, result):
     return out
 
 
-def subtotal_cells(items, result):
+def subtotal_cells(items, result, key="nhom"):
     """`subtotals` ở dạng chuỗi hiển thị, cùng khuôn với `finish_rows`."""
-    moc = total_values(result) if result.totals else None
-    return {nhom: _format_cells(result, raw, moc) for nhom, raw in subtotals(items, result).items()}
+    return {nhom: format_cells(result, raw) for nhom, raw in subtotals(items, result, key).items()}
+
+
+def format_cells(result, raw_cells):
+    """Dãy ô thô thành chuỗi hiển thị có lớp màu, so với dòng Tổng làm mốc — dùng chung cho
+    dòng người, tổng ngày và khối toàn kỳ."""
+    return _format_cells(result, raw_cells, total_values(result) if result.totals else None)
 
 
 def attach_totals(result, totals):
