@@ -16,7 +16,7 @@ def test_sale_ratio_and_account_identity(bang_mkt,dong_mau,nguoi_dung):
     source=ReportSource.objects.create(table=bang_mkt,kind="sale",columns={"mess":"so_mess","orders":"so_don","sales":"doanh_so","market":"thi_truong"})
     result=activity_service.build(nguoi_dung["manager_mkt"],source,group="person",start=date(2026,8,1),end=date(2026,8,31))
     assert result.totals["so_dong"]==4
-    assert result.totals["conversion"] == Decimal(24)/Decimal(270)
+    assert result.totals["conversion"] == Decimal(24)/Decimal(270)*100   # tỉ lệ hiện % (ADR-040)
     assert len(list(result.rows))==1  # Account ID, not different handwritten names.
 
 
@@ -162,9 +162,11 @@ def test_marketing_exact_excel_formula(bang_mkt,dong_mau,nguoi_dung):
     assert values["CPQC"]==Decimal(500000)
     assert values["CPO"]==Decimal(500000)/24
     assert values["Giá Mess"]==Decimal(500000)/270
-    # Hóa đơn ÷ Doanh thu theo nhãn (ADR-038): không có vận đơn và Hóa đơn nên trống
-    assert values["Hóa đơn/Doanh thu"] is None
-    assert values["Doanh thu"] is None and values["Hóa đơn"] is None
+    # Hóa đơn ÷ DS Chốt (TT) theo nhãn (ADR-038, nhãn MKT theo ảnh ADR-040): không có vận đơn và Hóa đơn nên trống
+    assert values["Hóa đơn/DS Chốt (TT)"] is None
+    assert values["DS Chốt (TT)"] is None and values["Hóa đơn"] is None
+    # Nguồn không ánh xạ Loại tiền thì cộng thô như cũ, không hậu tố ₫
+    assert not result.converted and all(c.suffix != " ₫" for c in result.columns)
 
 
 def test_dashboard_isolates_single_source_failure(client,marketing_scope,nguoi_dung,monkeypatch):
@@ -353,17 +355,17 @@ def test_day_blocks_have_day_subtotal_and_stt(client, bang_mkt, mkt_source, van_
         return row["cells"][cot.index(nhan_cot)]
     khoi = rows[2]                                   # Tổng ngày 01.08
     con = [rows[3], rows[4]]
-    # Số cộng được: Tổng ngày = tổng hai dòng con
+    # Số cộng được: Tổng ngày = tổng hai dòng con; tiền đã quy ₫ (CAD × 17.500, ADR-040)
     assert o(khoi,"Số Mess")=="20" and [o(d,"Số Mess") for d in con]==["10","10"]
-    assert o(khoi,"Hóa đơn")=="10" and {o(d,"Hóa đơn") for d in con}=={"8","2"}
-    # Doanh thu suy ra của ngày = tổng hai marketer (60+40 của A, 200 của B)
-    assert o(khoi,"Doanh thu")=="300"
+    assert o(khoi,"Hóa đơn")=="175.000 ₫" and {o(d,"Hóa đơn") for d in con}=={"140.000 ₫","35.000 ₫"}
+    # DS Chốt (TT) của ngày = tổng hai marketer (60+40 của A, 200 của B) = 300 CAD
+    assert o(khoi,"DS Chốt (TT)")=="5.250.000 ₫"
     # Cột tính lại từ tổng, không phải trung bình các dòng con
-    assert o(khoi,"Hóa đơn/Doanh thu")==aggregations.format_number(Decimal(10)/Decimal(300), 4)
+    assert o(khoi,"Hóa đơn/DS Chốt (TT)")==aggregations.format_number(Decimal(175000)/Decimal(5250000), 4)
     # Dòng Tổng trong bộ lọc không đổi
     assert r.context["result"].totals["so_dong"]==3
     tong=dict(zip(cot, aggregations.total_cells(r.context["result"])))
-    assert tong["Số Mess"]=="30" and tong["Doanh thu"]=="325"
+    assert tong["Số Mess"]=="30" and tong["DS Chốt (TT)"]=="5.687.500 ₫"
     html=r.content.decode()
     assert '<tr class="report-subtotal">' in html and '01.08.2026 · Tổng ngày</th>' in html
     assert 'class="report-identity id-stt" data-pos="2">1</td>' in html
@@ -404,7 +406,7 @@ def test_metric_colours_against_filter_total(client, bang_mkt, mkt_source, van_d
     assert "Số đơn" not in METRIC_DIRECTION and "Số Mess" not in METRIC_DIRECTION
     assert lop(dong[ma_a],"Số đơn")=="" and lop(dong[ma_a],"Số Mess")==""
     # Chỉ tiêu chưa rõ chiều cũng không tô
-    assert "Hóa đơn/Doanh thu" not in METRIC_DIRECTION and lop(dong[ma_a],"Hóa đơn/Doanh thu")==""
+    assert "invoice_revenue" not in METRIC_DIRECTION and lop(dong[ma_a],"Hóa đơn/DS Chốt (TT)")==""
     # Dòng Tổng là mốc: không màu đạt/kém, vẫn giữ nền cột chỉ số
     tong=aggregations.total_cells(r.context["result"])
     assert all("o-tot" not in c.lop and "o-canh-bao" not in c.lop for c in tong)
@@ -414,7 +416,9 @@ def test_metric_colours_against_filter_total(client, bang_mkt, mkt_source, van_d
     html=r.content.decode()
     assert '<th scope="col" class="o-chi-so">CPO</th>' in html   # nền cột ở tiêu đề
     assert 'class="o-chi-so o-tot"' in html and 'class="o-chi-so o-canh-bao"' in html
-    assert {m for m in FOCUS_METRICS if m != "Tỉ lệ chốt"} <= set(cot)   # MKT không có Tỉ lệ chốt
+    # Chỉ số quan trọng khoá theo mã (ADR-040); nhãn MKT theo ảnh mẫu, kể cả Tỉ lệ chốt và Tỉ lệ chốt (TT)
+    nhan={"conversion":"Tỉ lệ chốt","conversion_tt":"Tỉ lệ chốt (TT)","cpo":"CPO","mess_cost":"Giá Mess","cost_sales":"CPQC/DS Chốt"}
+    assert {nhan[m] for m in FOCUS_METRICS} <= set(cot)
 
 
 def test_day_view_pages_by_hundred(client, marketing_scope, nguoi_dung):

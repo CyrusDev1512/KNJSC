@@ -544,8 +544,8 @@ Bổ sung AC-4.x (nộp tự do, Kế toán) và AC-22.x (nguồn báo cáo); b�
 | Mã | Đạt khi | Yêu cầu | Kiểm bằng |
 |---|---|---|---|
 | AC-38.1 | Bảy thị trường US, CA, PH, EU, KR, JP, AU ↔ tám loại tiền; cột Thị trường và Loại tiền của bảng cấu hình trước 18.09 được bổ sung giá trị mới, giữ giá trị cũ, chạy lại không đổi, cột không phải Chọn một thì báo lỗi; nộp Hàn Quốc → KRW, Úc → AUD, quốc gia lạ bị từ chối; báo cáo một loại tiền mới công bố tổng, lẫn tiền thì cảnh báo; JPY/KRW không phần lẻ; xếp hạng quy đổi EUR/AUD được, KRW chưa có tỉ giá thì báo rõ | ADR-031 bổ sung | Tự động |
-| AC-38.2 | Doanh thu Marketing suy ra từ vận đơn (`WaybillItem.paid_amount` của đơn có Phụ trách Marketing là marketer trong phạm vi, cùng kỳ theo ngày lên đơn, cùng sản phẩm/quốc gia khi lọc) đúng ở mọi cách xem (ngày, nhân viên, sản phẩm, thị trường, phòng ban); tổng bằng tổng các dòng; đơn chưa phân công, marketer khác, ngoài kỳ, khác sản phẩm không vào; Staff chỉ thấy tiền của mình; Excel và Tổng quan cùng số; lọc Tệp khách hàng thì Doanh thu trống | ADR-038 | Tự động |
-| AC-38.3 | Hóa đơn/Doanh thu = Hóa đơn ÷ Doanh thu theo đúng nhãn (thay K/J 09.09) ở báo cáo nguồn và đường cũ; thiếu một vế thì trống; tiền vận đơn lẫn loại tiền với báo cáo thì cảnh báo và để trống chỉ tiêu tiền; `configure_erp_reports` không tạo cột nhập Doanh thu, gỡ trường đó khỏi biểu mẫu, bỏ cột tính từng dòng, chạy lại không đổi | ADR-038 | Tự động |
+| AC-38.2 | DS Chốt (TT) — Doanh thu Marketing suy ra từ vận đơn, quy ₫ theo loại tiền từng đơn (ADR-040) (`WaybillItem.paid_amount` của đơn có Phụ trách Marketing là marketer trong phạm vi, cùng kỳ theo ngày lên đơn, cùng sản phẩm/quốc gia khi lọc) đúng ở mọi cách xem (ngày, nhân viên, sản phẩm, thị trường, phòng ban); tổng bằng tổng các dòng; đơn chưa phân công, marketer khác, ngoài kỳ, khác sản phẩm không vào; Staff chỉ thấy tiền của mình; Excel và Tổng quan cùng số; lọc Tệp khách hàng thì Doanh thu trống | ADR-038 | Tự động |
+| AC-38.3 | Hóa đơn/DS Chốt (TT) (nhãn cũ Hóa đơn/Doanh thu) = Hóa đơn ÷ DS Chốt (TT) theo đúng nhãn (thay K/J 09.09) ở báo cáo nguồn và đường cũ; thiếu một vế thì trống; tiền vận đơn khác loại tiền với báo cáo thì quy ₫ rồi cộng, không cảnh báo, không để trống (ADR-040 thay cách cũ); `configure_erp_reports` không tạo cột nhập Doanh thu, gỡ trường đó khỏi biểu mẫu, bỏ cột tính từng dòng, chạy lại không đổi | ADR-038 | Tự động |
 | AC-38.4 | Cột Tệp khách hàng (Chọn một) với danh sách mặc định theo sheet MKT có trên bảng và biểu mẫu Marketing; nộp giá trị ngoài danh sách bị từ chối; lọc `tep` đúng giá trị, `__missing__` = chưa có, giá trị lạ → 400; Leader/Manager Marketing thêm giá trị ngay ô chọn, Staff bị từ chối; phụ đề Excel ghi tệp | ADR-038 | Tự động |
 | AC-38.5 | Chọn nhanh kỳ ở Báo cáo tổng hợp: Hôm nay, Hôm qua, 7 ngày (hôm nay − 6 → hôm nay), Tháng này, Tháng trước — đúng ngày theo giờ Việt Nam, điền hai ô ngày và áp ngay; nút khớp khoảng đang lọc được đánh dấu | ADR-038 | Tự động |
 
@@ -564,6 +564,22 @@ KN ERP, nhưng định nghĩa cột và giá trị từng ô vẫn giữ nguyên
 | AC-39.5 | Ẩn cả nhóm cột số lượng theo sản phẩm bằng một nút; thêm sản phẩm mới sau đó thì cột của nó vào ở trạng thái ẩn, nhóm không tự hiện lại; Lên đơn vẫn ghi số lượng vào cột đang ẩn nên hiện lại là có đủ dữ liệu | FR-8.10 · ADR-039 | Tự động |
 | AC-39.6 | Quản lý bảng thấy mục "Đang ẩn với cả công ty" để bật lại; nhân viên không thấy mục đó và không biết bảng có cột ẩn | FR-8.10 · ADR-039 | Tự động |
 | AC-39.7 | Migration `forms_builder/0015` chạy xuôi và ngược đều được, giữ nguyên cột và dữ liệu | FR-8.10 · ADR-039 | Tự động |
+
+## 40. Báo cáo tổng hợp như ảnh mẫu — ADR-040
+
+Chủ dự án 23.09.2026, theo ảnh mẫu LUMI OMS: Báo cáo tổng hợp là màn hình đối tác thích nhất
+nên giữ mọi chức năng đang có và nâng cấp cho giống ảnh. Đợt 1 là số liệu: tiền quy ₫ ngay trong
+truy vấn rồi mới cộng (thay cách "để trống khi lẫn tiền" của ADR-038), ba cột đối soát từ vận đơn
+"(TT)", Tỉ lệ chốt cho BC MKT, và hai lỗi thật (phân trang, chip Kỳ). Các đợt sau bổ sung tiêu chí
+tiếp theo trong mục này.
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-40.1 | **Tiền quy về ₫ trước khi cộng:** mọi cột kiểu Tiền nhân tỉ giá cố định (`EXCHANGE_RATES_VND`) theo loại tiền của **từng dòng** ngay trong truy vấn rồi mới cộng; hai báo cáo USD và EUR cùng ngày cùng người thành một dòng CPQC = 10×25.500 + 10×28.500 ₫; CPO, Giá Mess, AOV tính trên ₫; dòng Tổng bằng tổng dòng; ô hiện "540.000 ₫" không phần lẻ, tỉ lệ chốt hiện %; nhãn đơn vị nêu tỉ giá; Excel và Tổng quan cùng số; nguồn không ánh xạ Loại tiền vẫn cộng thô như cũ, không hậu tố ₫ | FR-5.4 · BR-8 · ADR-040 | Tự động |
+| AC-40.2 | **Dòng không quy đổi được** (loại tiền chưa có tỉ giá như KRW, hoặc báo cáo cũ trống loại tiền): tiền của dòng đó không vào tổng, các cột đếm (Số Mess, Số đơn) vẫn tính đủ; cảnh báo nêu số dòng và loại tiền thiếu; dòng khác vẫn ra số ₫ | ADR-031 · ADR-040 | Tự động |
+| AC-40.3 | **Cột đối soát (TT) của BC MKT:** Số đơn (TT) = số vận đơn có Phụ trách Marketing là marketer theo ngày lên đơn, kể cả đơn không có chi tiết sản phẩm (đơn đó không góp tiền); DS Chốt (TT) = tiền đã thu của các đơn đó quy ₫; Tỉ lệ chốt (TT) = Số đơn (TT) ÷ Số Mess; lọc sản phẩm chỉ đếm đơn có sản phẩm đó; đơn chưa phân công không vào; Theo nhân viên cộng cả kỳ; Staff chỉ thấy của mình; không có đơn thì Số đơn (TT) là 0 chứ không trống | FR-5.1 · ADR-038 · ADR-040 | Tự động |
+| AC-40.4 | **Ngân sách truy vấn với nguồn Marketing thật** (quy ₫ + đối soát vận đơn): cách xem Tổng hợp và Theo nhân viên mỗi cách không quá 10 truy vấn | Q2 · ADR-040 | Tự động |
+| AC-40.5 | **Phân trang và chip Kỳ:** liên kết phân trang không mang `trang`/`moi_trang` cũ nên từ trang 2 sang trang khác đi đúng; chip Kỳ chỉ có dấu × khi kỳ khác mặc định — gửi đúng kỳ mặc định thì không × và không tính là đang lọc | AC-22.13 · ADR-040 | Tự động |
 
 ## 27. Lưới dùng chung và vòng đời bảng — ADR-027
 

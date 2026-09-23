@@ -37,7 +37,8 @@ def build_workbook(title, result, subtitle=""):
 
     # Tổng hợp xuất theo khối ngày như màn hình (AC-22.15): dòng Tổng ngày trước các dòng
     # của ngày, STT đếm lại từ 1. Các cách xem khác vẫn đi từng dòng.
-    items = list(result.rows) if show_person else result.rows.iterator()
+    # Dòng đã ở bộ nhớ (≤ MAX_GROUPS) thì dùng luôn; queryset lớn thì đi từng dòng
+    items = result.rows if isinstance(result.rows, list) else (list(result.rows) if show_person else result.rows.iterator())
     tong_ngay = aggregations.subtotals(items, result) if show_person else {}
     so_nhom, ngay_truoc, stt = 0, object(), 0
     for item in items:

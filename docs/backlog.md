@@ -1,5 +1,29 @@
 # Backlog
 
+## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu, đợt 1: quy ₫ rồi mới cộng, cột (TT), Tỉ lệ chốt MKT (ADR-040)
+
+**Vì sao.** Chủ dự án so Báo cáo tổng hợp với Bảng dữ liệu và ảnh LUMI OMS: cột CPQC, DS Chốt, CPO, Giá
+Mess đều "—" vì dữ liệu thật lẫn USD/EUR/CAD/VND và ADR-038 chọn "để trống khi lẫn tiền". Chốt 23.09:
+**hai màn hình cùng tồn tại**, Báo cáo tổng hợp ưu tiên số một, giữ mọi chức năng và làm giống ảnh
+(bố cục khối theo ngày, Gộp/Không gộp, cột (TT) đối soát từ vận đơn, tiền ₫, màu 3 bậc, lọc nhiều sản
+phẩm); Bảng dữ liệu cập nhật theo sau. Kế hoạch năm đợt ở ADR-040; đây là đợt 1.
+
+**Làm gì.** `core/money.py` nhận `to_vnd`/`rates_label` (dời từ leaderboard) và `vnd_rate_expression`;
+`aggregations.summarize(currency_code)` nhân tỉ giá từng dòng ngay trong SQL cho cột kiểu Tiền, đếm
+`so_chua_quy_doi`; `summarize_in_memory` lấy dòng nhóm vào bộ nhớ (≤ 2.000) nên bỏ được hai truy vấn;
+`activity_service.marketing_actuals` (một truy vấn trên `DataRecord` vận đơn) thay `marketing_revenue`,
+cho Số đơn (TT) + DS Chốt (TT); `FORMULAS` thêm `conversion_tt`, tỉ lệ hiện %; nhãn MKT theo ảnh;
+`currency_note` thay `currency_safe_result`; chỉ số quan trọng khoá theo mã. Hai lỗi thật: liên kết phân
+trang kéo `trang` cũ (TL-53), chip Kỳ có × ở kỳ mặc định (TL-52); ô Tìm nhân sự bỏ `type=search`.
+
+**Kiểm.** `reports/tests dashboard culture tests/test_ti_gia tests/test_truy_vet`: 199 đạt; AC-40.1 → 40.5
+mới; nguồn MKT thật 12 → ≤ 10 truy vấn; Chromium 1440 sáng/tối + 390 trên `knjsc_mkt`.
+[Biên bản](kiem-chung-bao-cao-nhu-anh-mau-20260923.md).
+
+**Còn nợ.** Đợt 2 bố cục khối + Gộp + Excel; đợt 3 ngưỡng màu + lọc nhiều sản phẩm; đợt 4 Bảng dữ liệu;
+đợt 5 docs/02, CLAUDE.md. Chờ chủ dự án: `so_tien_tt` gõ tay ở đơn không chi tiết có vào DS Chốt (TT)
+không; tỉ giá KRW.
+
 ## 19.09.2026 (đêm) — Một bài đầu-cuối đi trọn hành trình nhân viên
 
 **Vì sao.** Hai lỗi chủ dự án báo sáng nay đều nằm **giữa** các màn hình: đổi hộp lọc cột thì sót mục của cột

@@ -7,11 +7,15 @@ Phase 1 có hai loại tiền là VND và USD. Mỗi số tiền lưu kèm loạ
 nó và không quy đổi khi lưu — quy đổi là việc của lúc lập báo cáo, và tỉ
 giá lúc đó khác tỉ giá lúc chốt đơn.
 """
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
+from django.conf import settings
 from django.db import models
+from django.db.models import Case, DecimalField, Value, When
+from django.db.models.lookups import Exact
 
 from .constants import CURRENCY_DECIMALS, CURRENCY_SYMBOL, Currency
+from .exceptions import BusinessError
 
 # 18 chữ số đủ cho hàng nghìn tỉ đồng, 2 số lẻ đủ cho USD
 MONEY_MAX_DIGITS = 18
@@ -99,3 +103,50 @@ def format_money(amount, currency=Currency.VND):
     if currency == Currency.USD:
         return f"{dau}{ky_hieu}{chuoi}"
     return f"{dau}{chuoi} {ky_hieu}"
+
+
+# ── Quy đổi về VND ─────────────────────────────────────────────────────────────
+#
+# Tỉ giá cố định ở `settings.EXCHANGE_RATES_VND` (Decimal, BR-8). Lưu trữ không quy đổi
+# (ADR-031); quy đổi là việc của lúc lập báo cáo (ADR-040) và xếp hạng (Q71). Trước
+# 23.09.2026 mấy hàm này nằm ở `culture.services.leaderboard_service`.
+
+def vnd_rate(currency):
+    """Tỉ giá của một loại tiền; `None` khi chưa có (KRW) hoặc loại tiền trống."""
+    if not currency:
+        return None
+    return settings.EXCHANGE_RATES_VND.get(str(currency).upper())
+
+
+def to_vnd(amount, currency):
+    """Quy về VND bằng tỉ giá cố định trong settings (Decimal, BR-8); thiếu tỉ giá thì báo rõ."""
+    ti_gia = vnd_rate(currency)
+    if ti_gia is None:
+        raise BusinessError(f"Chưa có tỉ giá cho {currency} trong EXCHANGE_RATES_VND.")
+    return (Decimal(amount) * Decimal(ti_gia)).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+
+
+def format_vnd(so):
+    """15000000 → "15.000.000" — cách nhóm số kiểu Việt Nam."""
+    return f"{int(so):,}".replace(",", ".")
+
+
+def rates_label():
+    """"CAD 18500, PHP 440, USD 25400" — để nhật ký và báo cáo nói rõ đã quy đổi bằng gì."""
+    return ", ".join(
+        f"{ma} {int(gia)}" for ma, gia in sorted(settings.EXCHANGE_RATES_VND.items()) if ma != "VND"
+    )
+
+
+def vnd_rate_expression(currency_expr):
+    """Biểu thức SQL trả tỉ giá theo loại tiền của **từng dòng** — `Case/When` dựng từ bảng tỉ
+    giá — để báo cáo nhân tỉ giá ngay trong truy vấn rồi mới cộng (ADR-040): cộng tiền khác
+    loại là sai, còn quy về ₫ trước thì SUM vẫn kết hợp được nên tổng nhóm, tổng ngày và tổng
+    bộ lọc cùng một số. Loại tiền chưa có tỉ giá hoặc trống → NULL: `Sum` bỏ qua, tầng trên
+    đếm dòng đó để cảnh báo thay vì âm thầm cộng thiếu."""
+    return Case(
+        *[When(Exact(currency_expr, Value(ma)), then=Value(gia))
+          for ma, gia in settings.EXCHANGE_RATES_VND.items()],
+        default=None,
+        output_field=DecimalField(max_digits=12, decimal_places=2),
+    )

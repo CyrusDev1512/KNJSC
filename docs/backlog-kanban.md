@@ -1,5 +1,15 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu (ADR-040)
+
+**Finished local (đợt 1):** tiền quy ₫ ngay trong truy vấn, cảnh báo dòng thiếu tỉ giá; cột Số đơn (TT) /
+DS Chốt (TT) / Tỉ lệ chốt (TT) đối soát từ vận đơn; Tỉ lệ chốt cho MKT, tỉ lệ hiện %; nhãn MKT theo ảnh;
+nguồn MKT thật ≤ 10 truy vấn; TL-52, TL-53. AC-40.1 → 40.5.
+**In progress:** đợt 2 — bảng toàn kỳ theo người, mỗi ngày một bảng, Team, Gộp/Không gộp, Excel.
+**To do:** đợt 3 ngưỡng màu 3 bậc + form Manager, lọc nhiều sản phẩm, "Tuần này"; đợt 4 Bảng dữ liệu
+chi tiết theo ngày + lỗi vặt; đợt 5 docs/02, CLAUDE.md, biên bản cuối; phát hành VPS (Codex).
+**Far plan:** `so_tien_tt` gõ tay vào DS Chốt (TT)?; tỉ giá KRW; Tổng quan hiện (TT).
+
 ## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên
 
 **Finished local:** `tests/e2e/test_hanh_trinh_nhan_vien.py` — một lượt qua lưới, hộp lọc cột, đổi vai, lên đơn,

@@ -17,6 +17,8 @@ from core.audit import record
 from core.constants import AuditAction
 from core.exceptions import BusinessError
 from core.identity import display_name
+# Quy đổi tỉ giá ở `core.money` từ 23.09.2026 (ADR-040, dùng chung với báo cáo); giữ tên ở đây
+from core.money import format_vnd, rates_label, to_vnd  # noqa: F401
 from orders.models import Order
 
 from ..constants import LEADERBOARD_ROWS, MONTHLY_RANK_STARS, PERIOD_FORMAT, StarSource
@@ -47,19 +49,6 @@ def month_range(period=None):
         timezone.make_aware(datetime.combine(dau, time.min), mui),
         timezone.make_aware(datetime.combine(cuoi, time.min), mui),
     )
-
-
-def to_vnd(amount, currency):
-    """Quy về VND bằng tỉ giá cố định trong settings (Decimal, BR-8)."""
-    ti_gia = settings.EXCHANGE_RATES_VND.get(currency)
-    if ti_gia is None:
-        raise BusinessError(f"Chưa có tỉ giá cho {currency} trong EXCHANGE_RATES_VND.")
-    return (Decimal(amount) * Decimal(ti_gia)).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-
-
-def format_vnd(so):
-    """15000000 → "15.000.000" — cách nhóm số kiểu Việt Nam."""
-    return f"{int(so):,}".replace(",", ".")
 
 
 def sales_leaderboard(period=None, *, limit=LEADERBOARD_ROWS, users=None):
@@ -103,11 +92,6 @@ def sales_leaderboard(period=None, *, limit=LEADERBOARD_ROWS, users=None):
     return ket_qua if limit is None else ket_qua[:limit]
 
 
-def rates_label():
-    """"CAD 18500, PHP 440, USD 25400" — để nhật ký nói rõ đã quy đổi bằng gì."""
-    return ", ".join(
-        f"{ma} {int(gia)}" for ma, gia in sorted(settings.EXCHANGE_RATES_VND.items()) if ma != "VND"
-    )
 
 
 @transaction.atomic

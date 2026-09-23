@@ -34,7 +34,7 @@ def parameters(request):
 
 
 def _export(request, source, result, params):
-    if result.rows.count() > getattr(settings, "EXPORT_MAX_ROWS", 50000):
+    if aggregations.row_count(result) > getattr(settings, "EXPORT_MAX_ROWS", 50000):
         raise BusinessError("Thu hẹp bộ lọc để xuất báo cáo.")
     record(AuditAction.EXPORT, actor=request.user, target=source.table,
            detail="Xuất báo cáo hoạt động ERP", request=request)
@@ -61,10 +61,15 @@ def report(request, export=False, choices=None):
     choices = list(service.sources(request.user)) if choices is None else choices
     source = service.select_source(request.user, request.GET.get("nguon", ""), choices)
     params = parameters(request)
+    # Liên kết phân trang ghép `?trang=N&moi_trang=M` + `qs_loc`: bỏ hai khoá đó khỏi `qs_loc`,
+    # không thì giá trị cũ đứng sau thắng và từ trang 2 bấm trang khác vẫn đứng yên (TL-47)
+    giu = request.GET.copy()
+    for key in ("trang", "moi_trang"):
+        giu.pop(key, None)
     ctx = {"sources": choices, "source": source, "groups": service.GROUPS,
            "params": params, "markets": Market.labels, "empty": True,
            "presets": summary_service.date_presets(timezone.localdate(), start=params["start"], end=params["end"]),
-           "query": request.GET.urlencode(), "qs_loc": "&" + request.GET.urlencode()}
+           "query": request.GET.urlencode(), "qs_loc": ("&" + giu.urlencode()) if giu else ""}
     if source:
         ctx['people'], ctx['teams'] = service.people_choices(request.user, source)
         ctx['segments'] = service.segment_options(source)   # None: nguồn không có Tệp khách hàng
@@ -167,8 +172,11 @@ def filter_chips(request, params, ctx):
         for key in keys:
             query.pop(key, None)
         return "?" + query.urlencode()
+    # Form luôn gửi `tu`/`den`, nên "đang lọc kỳ" là kỳ KHÁC mặc định — không phải "có tham số"
+    # (trước đây chip Kỳ có × ngay sau lần Áp dụng đầu tiên, TL-46)
+    dang_loc_ky = (params["start"], params["end"]) != summary_service.default_range()
     chips = [{"label": "Kỳ", "value": f"{params['start']:%d/%m} – {params['end']:%d/%m/%Y}",
-              "url": without("tu", "den") if request.GET.get("tu") or request.GET.get("den") else ""}]
+              "url": without("tu", "den") if dang_loc_ky else ""}]
     chips.append({"label": "Cách xem", "value": dict(service.GROUPS).get(params["group"], params["group"]), "url": ""})
     if params["product"]:
         chips.append({"label": "Sản phẩm", "value": params["product"], "url": without("sp")})

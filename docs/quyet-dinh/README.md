@@ -187,3 +187,4 @@ xong nằm ở `../backlog.md` mục 0.
 
 - [ADR-032 — Ngày hệ thống và sửa báo cáo](032-ngay-he-thong-va-sua-bao-cao.md): DD/MM/YYYY, quyền sửa có lịch sử, mẫu Marketing và nguồn tiền.
 - [ADR-039 — Ẩn cột với cả công ty](039-an-cot-voi-ca-cong-ty.md): quản lý bảng ẩn cột trong hộp "Cột"; cột biến khỏi lưới, tệp Excel và Bảng dữ liệu ERP, dữ liệu vẫn giữ.
+- [ADR-040 — Báo cáo tổng hợp như ảnh mẫu](040-bao-cao-tong-hop-nhu-anh-mau.md): tiền quy ₫ ngay trong truy vấn rồi mới cộng (thay "để trống khi lẫn tiền" của ADR-038); cột đối soát (TT) từ vận đơn; nhãn MKT theo ảnh; bố cục khối theo ngày, Gộp, ngưỡng màu, Bảng dữ liệu chi tiết — làm theo đợt.

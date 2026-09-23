@@ -1,5 +1,16 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu, đợt 1
+
+**TL-52 (đóng):** chip "Kỳ" của Báo cáo tổng hợp có dấu × ngay sau lần Áp dụng đầu tiên dù kỳ vẫn là
+mặc định — form luôn gửi `tu`/`den` mà view xét "có tham số" thay vì "khác mặc định". Chủ dự án báo là
+"dấu X lạ" (tưởng ở Bảng dữ liệu; mã Bảng dữ liệu không in dấu × nào). Bài AC-40.5 giữ.
+**TL-53 (đóng):** từ trang 2 của Báo cáo tổng hợp bấm sang trang khác vẫn đứng yên — `qs_loc` mang theo
+`trang`/`moi_trang` cũ, liên kết `?trang=3&…&trang=2` thì `QueryDict.get` lấy giá trị cuối. Bài AC-40.5.
+**Không phải lỗi (giải thích cho chủ dự án):** cột tiền trống khi lẫn loại tiền là quyết định ADR-038;
+nay thay bằng quy ₫ (ADR-040, AC-40.1/40.2).
+Bộ liên quan: 199 đạt; bộ đầy đủ `-m "not cham and not trinh_duyet"`: 2.532 đạt, 1 bỏ qua, 0 đỏ. [Biên bản](kiem-chung-bao-cao-nhu-anh-mau-20260923.md).
+
 ## 19.09.2026 (đêm) — Hành trình xuyên màn hình
 
 **Khoảng trống đã lấp:** chỗ nối giữa các màn hình không có bài kiểm nào. Thêm

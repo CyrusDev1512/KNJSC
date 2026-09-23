@@ -26,11 +26,11 @@ chờ chốt nguồn số liệu ở backlog N9.
 from dataclasses import dataclass, field, replace
 from decimal import Decimal
 
-from django.db.models import Count, DecimalField, F, Sum
+from django.db.models import Count, DecimalField, ExpressionWrapper, F, Q, Sum
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Cast
 
-from core.money import MONEY_DECIMAL_PLACES, MONEY_MAX_DIGITS
+from core.money import MONEY_DECIMAL_PLACES, MONEY_MAX_DIGITS, vnd_rate_expression
 from forms_builder.meaning import (
     COLUMN_OF, FieldType, Meaning, can_group, can_sum,
 )
@@ -72,7 +72,7 @@ class ReportColumn:
     @property
     def focus(self):
         """Chỉ số quan trọng — tô nền cả cột (AC-22.16)."""
-        return self.label in constants.FOCUS_METRICS
+        return constants.metric_key(self.code, self.label) in constants.FOCUS_METRICS
 
 
 @dataclass(frozen=True)
@@ -96,6 +96,10 @@ class SummaryResult:
     #: Khoá tra `derived` của một dòng. Nhóm theo nhiều cột (Tổng hợp = ngày ×
     #: nhân sự) thì khoá là bộ giá trị theo đúng thứ tự này.
     derived_key: tuple = ("nhom",)
+    #: Tiền đã quy về ₫ ngay trong truy vấn (ADR-040) và số dòng không quy đổi được
+    #: (chưa có tỉ giá hay trống loại tiền) — tiền của chúng không vào tổng.
+    converted: bool = False
+    unconverted: int = 0
 
 
 def labeled_columns(columns):
@@ -125,20 +129,28 @@ def _sum_columns(columns):
     return ket_qua
 
 
-def _sum_exprs(sum_cols):
+#: Cột tiền đã nhân tỉ giá: 18 chữ số × tỉ giá năm chữ số vượt `MONEY_MAX_DIGITS`
+VND_FIELD = DecimalField(max_digits=24, decimal_places=2)
+
+
+def _sum_exprs(sum_cols, converted=False):
     """Biểu thức Sum cho từng cột — cột tách cộng thẳng, cột JSON phải qua
-    text rồi mới cast (xem docstring đầu tệp)."""
+    text rồi mới cast (xem docstring đầu tệp). `converted`: cột kiểu Tiền nhân
+    với tỉ giá `_ti_gia` của dòng (ADR-040) — cột Số nguyên/Số thập phân giữ nguyên."""
     exprs = {}
     for c in sum_cols:
         if c.meaning == Meaning.REVENUE and can_sum(Meaning.REVENUE):
-            exprs[_alias(c.code)] = Sum("val_revenue")
+            gia_tri = F("val_revenue")
         else:
-            exprs[_alias(c.code)] = Sum(Cast(
+            gia_tri = Cast(
                 KeyTextTransform(c.code, "data"),
                 output_field=DecimalField(
                     max_digits=MONEY_MAX_DIGITS, decimal_places=MONEY_DECIMAL_PLACES,
                 ),
-            ))
+            )
+        if converted and c.field_type == FieldType.MONEY:
+            gia_tri = ExpressionWrapper(gia_tri * F("_ti_gia"), output_field=VND_FIELD)
+        exprs[_alias(c.code)] = Sum(gia_tri)
     return exprs
 
 
@@ -179,11 +191,14 @@ def _recompute(computed_cols, values_by_code):
 
 def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
               product="", columns=None, with_totals=True, group_expression=None, group_label=None,
-              extra_groups=None, derived_key=("nhom",)):
+              extra_groups=None, derived_key=("nhom",), currency_code=None):
     """Một lượt tổng hợp: nhóm + cộng + dòng tổng cộng — FR-5.1 và FR-5.4.
 
     `scoped_qs` phải là `DataRecord.objects.in_scope(user)` (quy tắc 11).
     `columns` cho phép truyền danh sách cột đã lấy sẵn để khỏi truy vấn lại.
+    `currency_code` là mã cột Loại tiền của bảng: có nó thì mọi cột kiểu Tiền
+    được nhân tỉ giá của từng dòng ngay trong truy vấn rồi mới cộng (ADR-040);
+    dòng thiếu tỉ giá được đếm vào `so_chua_quy_doi` ở cả dòng nhóm lẫn tổng.
 
     `with_totals=False` bỏ lệnh aggregate dòng tổng cộng — cho màn hình đã
     lấy về toàn bộ dòng nhóm và sẽ tự cộng bằng `totals_from_rows` (SUM kết
@@ -204,8 +219,15 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
         date_from=date_from, date_to=date_to, product=product,
     )
 
+    converted = bool(currency_code)
+    if converted:
+        # Quy ₫ ngay trong truy vấn (ADR-040): tỉ giá theo loại tiền từng dòng; dòng thiếu
+        # tỉ giá hay trống loại tiền → NULL, không vào tổng tiền, được đếm để cảnh báo
+        qs = qs.annotate(_ti_gia=vnd_rate_expression(KeyTextTransform(currency_code, "data")))
     sum_cols = _sum_columns(cols)
-    exprs = _sum_exprs(sum_cols)
+    exprs = _sum_exprs(sum_cols, converted)
+    if converted:
+        exprs["so_chua_quy_doi"] = Count("id", filter=Q(_ti_gia__isnull=True))
     computed_cols = _recomputable(cols, sum_cols)
     revenue_col = by_meaning.get(Meaning.REVENUE)
 
@@ -240,9 +262,12 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
     tinh_duoc = {c.code for c in computed_cols}
     for c in cols:
         if c in sum_cols:
+            tien = converted and c.field_type == FieldType.MONEY
             hien.append(ReportColumn(
                 code=c.code, label=c.name, kind="sum",
-                decimals=0 if c.field_type == FieldType.INTEGER else 2,
+                # ₫ không có phần lẻ; tiền chưa quy đổi giữ hai số lẻ như cũ
+                decimals=0 if c.field_type == FieldType.INTEGER or tien else 2,
+                suffix=" ₫" if tien else "",
             ))
         elif c.is_computed and c.code in tinh_duoc:
             hien.append(ReportColumn(
@@ -266,6 +291,8 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
         computed_columns=tuple(computed_cols),
         revenue_alias=_alias(revenue_col.code) if revenue_col else "",
         derived_key=tuple(derived_key),
+        converted=converted,
+        unconverted=(totals or {}).get("so_chua_quy_doi") or 0,
     )
 
 
@@ -285,6 +312,28 @@ def totals_only(table, scoped_qs, *, date_from=None, date_to=None, product="",
         {c.code: totals[_alias(c.code)] for c in sum_cols},
     ))
     return totals
+
+
+def summarize_in_memory(table, scoped_qs, *, limit, **kwargs):
+    """`summarize` rồi lấy **toàn bộ dòng nhóm vào bộ nhớ** khi không quá `limit`: tổng cộng
+    tính từ chính các dòng (SUM kết hợp được — cùng số với lệnh aggregate), khoá đối soát,
+    tổng ngày, khối toàn kỳ và phân trang đều dùng lại danh sách này — không tốn truy vấn
+    thêm (ADR-040, ngân sách Q2). Quá trần thì giữ queryset và chạy aggregate như cũ."""
+    result = summarize(table, scoped_qs, with_totals=False, **kwargs)
+    if not result.ok:
+        return result
+    items = list(result.rows[:limit + 1])
+    if len(items) > limit:
+        return summarize(table, scoped_qs, with_totals=True, **kwargs)
+    totals = totals_from_rows(items, result)
+    if result.converted:
+        totals["so_chua_quy_doi"] = sum(i.get("so_chua_quy_doi") or 0 for i in items)
+    return replace(result, rows=items, totals=totals, unconverted=totals.get("so_chua_quy_doi", 0))
+
+
+def row_count(result):
+    """Số dòng nhóm — danh sách đã lấy về hay queryset còn chưa chạy."""
+    return len(result.rows) if isinstance(result.rows, list) else result.rows.count()
 
 
 def totals_from_rows(items, result):
@@ -397,7 +446,7 @@ def cell_class(cot, gia_tri, moc):
     """Lớp màu của một ô: nền cột cho chỉ số quan trọng, cộng màu đạt/cảnh báo khi lệch
     mốc (dòng Tổng trong bộ lọc) quá `THRESHOLD_BAND` về phía tốt hoặc xấu."""
     lop = ["o-chi-so"] if cot.focus else []
-    chieu = constants.METRIC_DIRECTION.get(cot.label)
+    chieu = constants.METRIC_DIRECTION.get(constants.metric_key(cot.code, cot.label))
     # Chỉ so tỉ lệ: cột cộng lấy tổng làm mốc thì dòng nào cũng thua, không có nghĩa.
     if cot.kind == "sum":
         chieu = None
