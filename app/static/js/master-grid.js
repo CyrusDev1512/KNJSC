@@ -516,11 +516,13 @@
     if(!row?.cells?.[code])return null;
     const o=cellValue(row,code);return {chu:String(o.display??o.value??''),lop:o.class||''};
   }
-  //: Chắc chắn vừa một dòng: không có ký tự xuống dòng, và dù mỗi ký tự rộng trọn 1 em
-  //  (cỡ chữ theo dd-co-*, mặc định 13 px) vẫn nằm trong bề rộng chữ của ô (bỏ padding 14
-  //  và viền 1). Mọi trường hợp khác đều đo thật, không đoán theo số ký tự.
+  //: Chắc chắn vừa một dòng: không có gì để hiện, hoặc không có ký tự xuống dòng và dù mỗi
+  //  ký tự rộng trọn 1 em (cỡ chữ theo dd-co-*, mặc định 13 px) vẫn nằm trong bề rộng chữ
+  //  của ô (bỏ padding 14 và viền 1). Mọi trường hợp khác đều đo thật, không đoán theo số ký tự.
+  //  `trim()` chứ không chỉ kiểm rỗng: dữ liệu cũ đưa thẳng vào cơ sở dữ liệu có thể chỉ gồm
+  //  khoảng trắng và ký tự xuống dòng — không có chữ nào để đọc thì đừng làm dòng cao lên.
   function vuaMotDong(chu,lop,rong){
-    if(!chu)return true;if(chu.includes('\n'))return false;
+    if(!chu||!chu.trim())return true;if(chu.includes('\n'))return false;
     const co=Number(/\bdd-co-(\d+)\b/.exec(lop)?.[1])||13;return chu.length*co<=rong-15;
   }
   const khoaDo=(rong,lop,chu)=>rong+'|'+lop+'|'+chu;
