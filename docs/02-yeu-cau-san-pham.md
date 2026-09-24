@@ -75,6 +75,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-4.4 | Staff không sửa báo cáo đã nộp; Leader trong team, Manager trong bộ phận, Admin toàn hệ thống và **Kế toán mọi bộ phận** (ADR-038) sửa nội dung có lịch sử và kiểm phiên bản. Giữ ngày/danh tính/thời điểm nộp gốc — quyết định thay thế 16/09/2026, ADR-032 |
 | FR-4.5 | Leader và Manager phải xem được báo cáo của người thuộc phạm vi quản lý; Kế toán xem được báo cáo của mọi bộ phận (ADR-038) |
 | FR-4.6 | Trường danh tính người điền (nhãn Người bán) trên biểu mẫu và báo cáo hằng ngày phải do hệ thống tự ghi **mã nhân sự** của tài khoản đang đăng nhập (ADR-037); người dùng không phải điền và không đổi được |
+| FR-4.7 | Bỏ báo cáo đã nộp: người nộp, Leader trong team, Manager trong bộ phận, Admin; Kế toán không. Bỏ là xoá mềm cả dòng số liệu (BR-4) nên số rời khỏi Báo cáo tổng hợp. Manager bộ phận và Admin khôi phục được từ trang "Đã bỏ" — ADR-041, thay câu khoá quyền của ADR-032 |
 
 ---
 

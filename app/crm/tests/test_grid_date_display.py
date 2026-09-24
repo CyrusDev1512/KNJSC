@@ -22,7 +22,7 @@ def test_date_cell_display(kind, value, expected):
 
 
 def test_date_filter_label_keeps_query_value():
-    column = SimpleNamespace(code='ngay', name='Ngày', field_type='date')
+    column = SimpleNamespace(code='ngay', name='Ngày', field_type='date', is_hidden=False)
     filters = {'ngay__lon_bang': '2026-01-22'}
-    assert filter_chips(filters, [column]) == [('f_ngay__lon_bang', 'Ngày ≥ 22/01/2026')]
+    assert filter_chips(filters, [column]) == [('f_ngay__lon_bang', 'Ngày ≥ 22/01/2026', False)]
     assert filters == {'ngay__lon_bang': '2026-01-22'}

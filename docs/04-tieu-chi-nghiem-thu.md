@@ -132,6 +132,8 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-4.6 | Trường mang nhãn Người bán trên biểu mẫu và báo cáo ngày được hệ thống tự ghi **mã nhân sự** người gửi (ADR-037; chưa gán mã thì tên đăng nhập); gửi giá trị khác trong yêu cầu cũng không đổi được; ô trên màn hình chỉ đọc, không gửi lên | FR-4.6 | Tự động |
 | AC-4.7 | Một người nộp cùng biểu mẫu nhiều lần trong ngày được: mỗi lần một bản riêng với thời điểm nộp riêng, không chặn, không đè; màn nộp cho biết hôm nay đã nộp bao nhiêu lần (ADR-038 thay khoá một bản/ngày) | FR-4.2 | Tự động |
 | AC-4.8 | Kế toán thấy báo cáo của mọi bộ phận trong Lịch sử, mở và sửa được có `ReportRevision`, giữ người nộp và ngày; không bỏ được báo cáo của người khác; nhân viên bộ phận khác vẫn bị 404 ở xem lẫn sửa | FR-4.4 · FR-4.5 · ADR-038 | Tự động |
+| AC-4.9 | Bỏ báo cáo cấp dưới (ADR-041): người nộp, Leader trong team, Manager trong bộ phận và Admin bỏ được — xoá mềm cả báo cáo lẫn dòng số liệu (BR-4), số rời khỏi Báo cáo tổng hợp, có nhật ký DELETE, bấm đúp không nhân đôi; nhân viên khác/Leader team khác/Manager bộ phận khác/Kế toán bị 403 (thấy) hoặc 404 (ngoài phạm vi xem) có nhật ký; service kiểm lại quyền trong giao dịch | FR-4.7 · ADR-041 | Tự động |
+| AC-4.10 | Khôi phục báo cáo đã bỏ (ADR-041): Manager bộ phận mình và Admin thấy trang "Đã bỏ" (phân trang, đúng phạm vi) và khôi phục — báo cáo về Lịch sử, dòng số liệu sống lại nguyên nội dung, số về lại Báo cáo tổng hợp, nhật ký UPDATE; Staff/Leader/Kế toán/Manager bộ phận khác bị 403 có nhật ký; liên kết "Đã bỏ" chỉ hiện với người có quyền | FR-4.7 · ADR-041 | Tự động |
 
 ---
 
@@ -229,6 +231,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-10.7 | Đọc trực tiếp cơ sở dữ liệu không thấy mật khẩu dạng đọc được | NFR-4 | Tự động |
 | AC-10.8 | **Kiểm tải KN CRM ở cỡ 100 nghìn khách** (docs/06 tầng 9): chạy `scripts/kiem-tai-kn-crm.*` trên máy có Docker — nạp 100.000 dòng vận đơn (≈ 3 triệu ô, 86 nghìn số điện thoại) và bảng Sale 20.000 dòng có cột tính sẵn, `do_hieu_nang` đo một người, rồi Locust **100 người 5 phút** (70 nhân viên vận đơn di qua di lại, 20 Sale/Marketing, 7 trưởng nhóm dán/xoá, 3 Manager đổi cột tính sẵn giữa phiên) trên gunicorn 3 worker; in **ĐẠT** khi p95 nhóm đọc ≤ 1 s, nhóm ghi ≤ 0,5 s, `moi-nhat/` ≤ 0,3 s, 0 lỗi, tính lại cột 100.000 dòng ≤ 30 s mà p95 người khác vẫn ≤ 1 s (`core/constants.py`) | NFR-2 | Thủ công |
 | AC-10.9 | `manage.py nap_khach_mau --bang <mã> --so-khach N` nạp N khách giả (mã đơn `KH-*`) theo lô 2.000 vào bảng vận đơn chỉ định (mặc định Vận đơn mới `van_don`, ADR-036): số dòng = N ÷ (1 − tỉ lệ mua lại, mặc định 20 %), mỗi khách ít nhất một dòng, khách mua lại dùng lại số điện thoại để cột Trùng có việc, bảng có profile Vận đơn thì mỗi dòng có phân công Vận đơn/CSKH; `--xoa-cu` xoá sạch dòng `KH-*`; DEBUG tắt thì từ chối như `seed_perf` | NFR-2 | Tự động |
+| AC-10.10 | Dòng giả xoá **theo lô** qua một đường dùng chung `delete_fake_records` (`seed_perf.clear()` lẫn `nap_khach_mau --xoa-cu`): mỗi lô một giao dịch riêng có `SET LOCAL lock_timeout` trên đúng database của queryset, gọi `on_progress(đã xoá, tổng)`; hết hạn chờ khoá thì lỗi nói rõ đã xoá được bao nhiêu thay vì treo (TL-43) | NFR-2 | Tự động |
 
 ---
 
@@ -244,11 +247,11 @@ vụ `bangtinh`, cổng 8021); KN ERP không còn đường sửa ô.
 
 | Mã | Tiêu chí | Yêu cầu | Loại |
 |---|---|---|---|
-| AC-11.1 | Lưới hiện đủ cột của bảng vận đơn; bốn cột đầu và hàng tiêu đề đứng yên khi cuộn | FR-7.8 | Thủ công |
+| AC-11.1 | Lưới hiện đủ cột của bảng vận đơn; **Ngày (lên đơn) là cột dữ liệu đầu tiên** (24.09.2026), năm cột đầu (Trùng, Ngày, Mã đơn, Tên khách, SĐT) và hàng tiêu đề đứng yên khi cuộn | FR-7.8 | Thủ công |
 | AC-11.2 | Lọc theo từng cột — danh sách giá trị kèm số đếm, chứa chữ, khoảng số hoặc ngày, ô trống — nhiều cột cộng dồn, số dòng đúng | FR-7.8 | Tự động |
 | AC-11.3 | Sửa ô tại chỗ đúng kiểu cột; ô danh sách chỉ nhận giá trị trong danh sách, giá trị lạ bị từ chối kèm lý do; mỗi lần sửa ghi một dòng nhật ký | FR-7.4 · BR-5 | Tự động |
 | AC-11.4 | Người ngoài phạm vi bảng vận đơn (không phải quản trị viên) bị từ chối ở mọi đường dẫn Bảng tính của bảng đó, kể cả gọi thẳng và gửi POST | FR-3.6 | Tự động |
-| AC-11.5 | Cột Lọc trùng đếm đúng số dòng cùng số điện thoại và tô màu khi lớn hơn 1; lọc được "chỉ số trùng" | FR-7.8 | Tự động |
+| AC-11.5 | Cột Lọc trùng đếm đúng số dòng cùng **khoá** số điện thoại — 9 chữ số cuối sau khi bỏ ký tự không phải số (TL-36) — và tô màu khi lớn hơn 1; lọc được "chỉ số trùng" | FR-7.8 | Tự động |
 | AC-11.6 | Dòng Hủy trước giao, Hủy sau giao, Hoàn đơn được tô màu | FR-7.8 | Tự động |
 | AC-11.7 | Không bảng nào sửa được ô ở Bảng dữ liệu KN ERP — đường sửa ô cũ trả 404, kể cả bảng vận đơn với nhân viên Vận đơn lẫn Admin; cùng ô đó ở lưới KN CRM thì sửa được, bảng chỉ xem ở dịch vụ này thì 403 | FR-7.4 | Tự động |
 | AC-11.8 | Mỗi sản phẩm đang bán có một cột số lượng trên bảng vận đơn; lên đơn điền tự động số lượng, địa chỉ và lần mua | FR-6.3 · FR-6.7 | Tự động |
@@ -281,11 +284,12 @@ vụ `bangtinh`, cổng 8021); KN ERP không còn đường sửa ô.
 | AC-11.35 | **Đổi cột tính sẵn trên bảng lớn thì tính lại ở tác vụ nền** (ADR-016): bảng nhiều hơn `RECOMPUTE_SYNC_MAX_ROWS` dòng thì thêm/sửa/bỏ cột tính sẵn hay cột mang nhãn tạo `BackgroundJob` "Tính lại cột" chạy theo lô `bulk_update`; cột hiện ngay, màn Sửa cột nói rõ có tác vụ nền, `moi-nhat/` trả tiến độ `tinh_lai` để lưới báo "Đang tính lại cột…" và nạp lại một lần khi xong; giá trị đúng khi xong; bảng nhỏ tính ngay tại chỗ, không có tác vụ | FR-7.9 | Tự động |
 | AC-11.36 | **Lưới không phình theo số ô** (K27): 100 dòng × 39 cột ≤ 13 truy vấn, ô dựng bằng `grid_service.cell_html` với URL ghép chuỗi khớp `reverse('bang_tinh_o')`; cột Trùng đếm một truy vấn theo trang, `?trung=1` lọc bằng danh sách số điện thoại trùng (không subquery từng dòng); dán 500 ô ghi bằng `bulk_update` ≤ 25 truy vấn; `moi-nhat/` ≤ 8 truy vấn, không đếm dòng | NFR-1 | Tự động |
 | AC-11.37 | **1.000 dòng trống sẵn để nhập** (góp ý 17.09.2026): mở bảng có quyền thêm thì cuối lưới có sẵn 1.000 dòng trống, chân trang ghi số dòng trống; gõ một dòng thành bản ghi thật **không tải lại khối JSON**, dòng trống được bù đủ; tới dòng trống áp chót thì thêm 1.000 dòng nữa; tải lại trang chỉ còn dòng thật | FR-7.4 | Tự động |
-| AC-11.38 | **Cột ghim đứng đầu thứ tự nhìn thấy**: cột ghim không ở đầu thứ tự cột (người dùng đổi thứ tự, hoặc bảng vận đơn có Mã đơn/Tên khách/SĐT ở giữa) vẫn được xếp lên đầu khi vẽ — không ô trống ở vị trí gốc, không che cột đứng trước; vùng chọn, phím mũi tên và địa chỉ `A1:E2` theo đúng thứ tự trên màn hình | FR-7.4 | Tự động |
+| AC-11.38 | **Cột ghim đứng đầu thứ tự nhìn thấy**: cột ghim không ở đầu thứ tự cột (người dùng đổi thứ tự, hoặc bảng vận đơn có Ngày/Mã đơn/Tên khách/SĐT ở giữa) vẫn được xếp lên đầu khi vẽ — không ô trống ở vị trí gốc, không che cột đứng trước; vùng chọn, phím mũi tên và địa chỉ `A1:E2` theo đúng thứ tự trên màn hình | FR-7.4 | Tự động |
 | AC-11.39 | ~~**Bảng nhận đơn liệt kê mọi bảng vận đơn đang có** (ADR-034): `van_don` cũ, bảng đang nhận và bảng bộ phận Vận đơn có cột Mã đơn đúng cấu trúc; bảng báo cáo cùng bộ phận và bảng bộ phận khác không hiện; bảng chưa đủ điều kiện hiện kèm lý do và không chọn được (400)~~ **Bỏ theo ADR-036 (18.09.2026): một bảng vận đơn, không còn Bảng nhận đơn / Vận đơn DB** | ADR-029 · ADR-034 | Tự động |
 | AC-11.41 | Hộp lọc cột có nền, khung và danh sách giá trị cuộn được, không đè lên lưới; không chú thích CSS nào nuốt luật (quên `*/` ở dòng tiêu đề mục); lớp chỉ khai trong chú thích không tính là đã khai | FR-7.3 | Tự động |
 | AC-11.42 | Ô tìm trong mảnh lọc cột trỏ vào ruột hộp chứ không vào cả `#hop-loc`: đổi sang cột khác thì hộp hiện đúng giá trị của cột đó, không sót mục của cột trước | FR-7.3 | Tự động |
 | AC-11.43 | Hộp lọc cột chọn công cụ theo số giá trị thật: dưới ngưỡng thì giữ danh sách ô tích và ghi đúng tổng; vượt ngưỡng thì mở sẵn ô gõ chữ, danh sách ô tích gập lại và không bày hai ô cùng công dụng; `dem_gia_tri` đếm đúng cho cột tách, cột JSON và khi có ô tìm | FR-7.3 | Tự động |
+| AC-11.44 | **Ghi chú đọc được ngay trên lưới**: profile bảng Vận đơn (`waybill_service.grid_column`) trả rộng 400 px và cờ `auto_height` cho riêng cột Ghi chú — cột khác và bảng khác giữ 160 px, không cờ; lưới không nhận diện cột theo mã, dòng có cột mang cờ cao vừa nội dung, đo bằng chính lớp CSS của ô (`data-code`, cỡ chữ, đậm): rỗng hoặc vừa một dòng giữ 28 px, có ký tự xuống dòng hay dài thì giãn tới trần 2000 px và không cắt chữ, quá trần thì bấm ô mở hộp đọc; đo lại ngay khi sửa/dán/xoá/định dạng/hoàn tác, khi lưu về, khi người khác sửa, khi đổi rộng hay ẩn/hiện cột và khi phông tải xong — không tải lại trang; tải lại mềm không làm dòng co về 28 px; chiều cao người dùng tự kéo (kể cả về 28 px) thắng và được nhớ, Home về chiều cao tự động; ô nhập văn bản dài cao theo chữ đang gõ (Enter xuống dòng, Ctrl+Enter xong); ô Ghi chú ở Lên đơn là ô nhiều dòng và ký tự xuống dòng gom về một kiểu; tệp Excel xuất ra bật Wrap Text cho cột văn bản dài | FR-7.4 · FR-7.8 | Tự động |
 | AC-11.40 | **Gõ rồi Enter không giật**: dòng nháp thành bản ghi được nối tại chỗ trong cùng một bước (tổng dòng và chiều cao lưới không đổi từng dòng, dòng trống chỉ bù theo đợt, không thanh thông báo đẩy lưới); phản hồi lưu mang mốc `moi-nhat` để lưới không coi mốc do mình vừa lưu là người khác sửa; khi người khác sửa thật thì tải lại **mềm** — giữ ô cũ tới khi khối mới về, không hoá `…` | FR-7.4 · AC-11.26 | Tự động |
 
 ---
@@ -437,7 +441,7 @@ quyền và hợp đồng dữ liệu của AC-18/20. Các bảng khác tiếp t
 
 | Mã | Đạt khi | Yêu cầu | Kiểm bằng |
 |---|---|---|---|
-| AC-21.1 | Chỉ bảng mới chạy controller riêng, không form Lên đơn/thống kê nhúng/thanh công thức; hàng mặc định 28px, kéo 28–400px và xuống dòng; ghi nhớ theo user/bảng/ID local, Escape hủy/↑↓/Home; cuộn/neo đồng bộ, reader/editor không tự giãn hàng | ADR-021 | Tự động |
+| AC-21.1 | Chỉ bảng mới chạy controller riêng, không form Lên đơn/thống kê nhúng/thanh công thức; hàng mặc định 28px, kéo 28–2000px (trần nâng từ 400 theo AC-11.44) và xuống dòng; ghi nhớ theo user/bảng/ID local, Escape hủy/↑↓/Home; cuộn/neo đồng bộ, reader/editor không tự giãn hàng | ADR-021 | Tự động |
 | AC-21.2 | Khối 100/cache 10, DOM hữu hạn; chọn/đi xuyên khối, Ctrl+A toàn kết quả, copy/dán ≤2.000 ô giữ số 0 đầu; sai/khóa không ghi phần, không tạo dòng; IME đúng; nhập trong ô không che hàng dưới, Admin sửa trạng thái/ngày ngay trong ô (lưới luôn chỉnh sửa, ADR-033), rê nhẹ vẫn mở và lỗi danh sách chọn không khóa ô khác | ADR-021 · bổ sung 11.09.2026 | Tự động |
 | AC-21.3 | Tự lưu nền sau kết thúc nhập, gộp 500ms/tối đa 2s; vẫn sửa được khi lưu; Ctrl+S gửi ngay; tối đa 2.000 ô/lượt; CAS cùng ô trả 409, khác ô giữ cả hai; UUID gửi lại không ghi hai lần, UUID khác nội dung bị từ chối; batch atomic, audit không nội dung khách | ADR-021 | Tự động |
 | AC-21.4 | Mọi đọc/ghi/copy chưa tải/poll theo scope, thu quyền không trả dòng hoặc ghi bản nháp; lọc/sắp xếp ổn định, phản hồi cũ bị bỏ; đổi lọc/popup giữ nháp, X luôn thấy được; lỗi lưu giữ nội dung, rời/tải lại bảng cảnh báo nếu còn thay đổi chưa xác nhận | ADR-021 | Tự động |
@@ -523,6 +527,7 @@ Kế toán giữ tiêu chí cũ trên bảng duy nhất.
 | AC-36.5 | `xoa_bang_van_don_cu` thiếu cờ → từ chối, không xoá; đủ cờ → hai bảng cũ mất hẳn cùng dòng, chi tiết, phân công, lịch sử ô, biên nhận, quyền, nguồn báo cáo; đơn ERP giữ với `record=None`; `van_don` nguyên; nhật ký DELETE; chạy lại "không có gì để xoá"; không bao giờ xoá `van_don` | ADR-036 | Tự động |
 | AC-36.6 | `/cau-hinh/nhan-don/` 404 với mọi vai; sidebar Admin không còn "Bảng nhận đơn"; `TableDef` không còn `receives_orders`, còn `delivery_view_version`; migration 0014 xuôi/ngược giữ dữ liệu | ADR-036 | Tự động |
 | AC-36.7 | `configure_erp_reports` tạo nguồn Vận đơn cho `van_don`; `nap_du_lieu_van_don` và `nap_khach_mau` (mặc định) nạp vào `van_don` có phân công | ADR-036 | Tự động |
+| AC-36.8 | Khoá so trùng `val_phone_key` (`phone_key`: bỏ ký tự không phải số, lấy 9 chữ số cuối): `+1 (416) 555-0123` và `4165550123` là một khách trên cột Trùng và `?trung=1`; ô hiển thị giữ nguyên chữ gõ; `sync_indexed_columns` và `bulk_save` cùng ra một khoá; migration `forms_builder/0016` xuôi/ngược được và backfill đúng dòng cũ | FR-7.8 · ADR-036 | Tự động |
 ## 37. Mã nhân sự — ADR-037
 
 Bổ sung AC-4.6 và AC-22.10: định danh trên mọi màn hình là **mã nhân sự** (`UserProfile.staff_code`),
@@ -564,6 +569,7 @@ KN ERP, nhưng định nghĩa cột và giá trị từng ô vẫn giữ nguyên
 | AC-39.5 | Ẩn cả nhóm cột số lượng theo sản phẩm bằng một nút; thêm sản phẩm mới sau đó thì cột của nó vào ở trạng thái ẩn, nhóm không tự hiện lại; Lên đơn vẫn ghi số lượng vào cột đang ẩn nên hiện lại là có đủ dữ liệu | FR-8.10 · ADR-039 | Tự động |
 | AC-39.6 | Quản lý bảng thấy mục "Đang ẩn với cả công ty" để bật lại; nhân viên không thấy mục đó và không biết bảng có cột ẩn | FR-8.10 · ADR-039 | Tự động |
 | AC-39.7 | Migration `forms_builder/0015` chạy xuôi và ngược đều được, giữ nguyên cột và dữ liệu | FR-8.10 · ADR-039 | Tự động |
+| AC-39.8 | Bộ lọc trên URL trỏ tới cột đang ẩn **vẫn lọc đúng dòng** (lưới KN CRM, Bảng dữ liệu KN ERP, tệp Excel xuất ra), không bị bỏ lặng lẽ; KN CRM hiện chip cảnh báo "(cột đang ẩn) …" bỏ được bằng nút ×, KN ERP hiện dòng nhắc kèm tên cột; không lọc cột ẩn thì không có nhắc; lọc cột ẩn không mở đường xem dòng ngoài phạm vi quyền | FR-8.10 · ADR-039 | Tự động |
 
 ## 40. KN CRM chỉ một bảng Vận đơn — ADR-040
 

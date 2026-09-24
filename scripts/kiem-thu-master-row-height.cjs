@@ -13,6 +13,7 @@ module.exports=async function rowHeightChecks({page,context,base}){
   };
   await page.setViewportSize({width:1440,height:900});await open();
   assert(await handle(0).count(),'Phải có tay kéo chiều cao ở số hàng');
+  assert.equal(await handle(0).getAttribute('aria-valuemax'),'2000','Trần 2000 px từ AC-11.44');
   const id=await page.locator('.mg-cell[data-r="0"]').first().getAttribute('data-id');
   const firstCode=await page.locator('.mg-cell[data-r="0"][data-code="ma_don"]').textContent();
   const firstY=(await row(0).boundingBox()).y;assert.equal(await height(0),28);
@@ -22,27 +23,30 @@ module.exports=async function rowHeightChecks({page,context,base}){
   await drag(0,60,{cancel:true});assert.equal(await height(0),160);
   await handle(0).focus();await page.keyboard.press('ArrowDown');assert.equal(await height(0),164);
   await page.keyboard.press('ArrowUp');assert.equal(await height(0),160);
-  await drag(0,700);assert.equal(await height(0),400);
-  await drag(0,-700);assert.equal(await height(0),28);await drag(0,132);
+  // Trần là 2000 px (AC-11.44, kiểm ở bước tùy chọn hỏng bên dưới); ở đây chỉ kéo trong khung nhìn.
+  await drag(0,600);assert.equal(await height(0),760);
+  await drag(0,-800);assert.equal(await height(0),28);await drag(0,132);
   await open();assert.equal(await height(0),160);
   const stored=await page.evaluate(()=>{const c=JSON.parse(document.getElementById('mg-config').textContent);return JSON.parse(localStorage.getItem(`kn-master:${c.user}:${c.table}`));});
   assert.equal(stored.rowHeights[id],160);assert(Object.entries(stored.rowHeights).every(([id,h])=>/^\d+$/.test(id)&&typeof h==='number'));
   // Cùng ID ở vị trí khác sau lọc; vị trí cũ không được truyền chiều cao.
   await open(base+'/bang-tinh/van_don/?f_ma_don=MASTER-00001');assert.equal(await height(0),28);
   await open(base+'/bang-tinh/van_don/?f_ma_don='+encodeURIComponent(firstCode));assert.equal(await height(0),160);
-  await open(grid+'&chieu=giam');assert.equal(await height(0),28);
+  await open(grid+'&chieu=giam');assert(await height(0)>28,'MASTER-01299 có ghi chú dài: dòng tự giãn (AC-11.44)');
   const last=(await page.evaluate(()=>window.KNJSC_MASTER.diagnostics())).total-1;
   await page.locator('#mg-viewport').focus();await page.keyboard.press('Control+End');await page.locator(`.mg-cell[data-r="${last}"][data-id]`).first().waitFor();
   assert.equal(await page.locator(`.mg-cell[data-r="${last}"]`).first().getAttribute('data-id'),id);assert.equal(await height(last),160);
   // Chữ dài xuống dòng và còn cắt dọc vẫn mở vùng đọc.
-  await open(base+'/bang-tinh/van_don/?f_ma_don=MASTER-00001');await drag(0,92);
+  // Dòng ghi chú dài tự giãn cao; ép về 28 rồi mới kéo 92 để ô còn tràn dọc mà hộp đọc mở được.
+  await open(base+'/bang-tinh/van_don/?f_ma_don=MASTER-01299');const tuDong=await height(0);assert(tuDong>28,'dòng ghi chú dài phải tự giãn');
+  await drag(0,-Math.ceil(tuDong));assert.equal(await height(0),28);await drag(0,92);
   await page.locator('#mg-viewport').evaluate(e=>e.scrollLeft=3000);
   const note=page.locator('.mg-cell[data-code="ghi_chu"][data-r="0"]');await note.waitFor();
   assert.equal(await note.evaluate(e=>getComputedStyle(e).whiteSpace),'pre-wrap');await note.click();await page.locator('#mg-reader').waitFor();await page.screenshot({path:require('path').resolve(__dirname,'../.agents/design-state/review/master/row-height-reader.png')});
   await page.keyboard.press('Escape');await note.dblclick({delay:120});await page.locator('#mg-editor textarea').waitFor();
   await page.keyboard.press('Escape');
   await page.locator('#mg-viewport').evaluate(e=>e.scrollLeft=0);
-  await handle(0).focus();await page.keyboard.press('Home');assert.equal(await height(0),28);
+  await handle(0).focus();await page.keyboard.press('Home');assert(await height(0)>28,'Home về chiều cao tự tính của ghi chú dài');
   // Chiều cao không mất khi dữ liệu khối bị loại khỏi LRU.
   await open();for(let n=1;n<=12;n++){await page.locator('#mg-viewport').evaluate((e,n)=>e.scrollTop=n*2800,n);await page.locator(`.mg-cell[data-r="${n*100}"][data-id]`).first().waitFor();}
   assert((await page.evaluate(()=>window.KNJSC_MASTER.diagnostics())).cache<=10);
@@ -85,7 +89,7 @@ module.exports=async function rowHeightChecks({page,context,base}){
   await login('staff_sale_1');await open();assert.equal(await height(0),28);await login('quan_tri');await open();assert.equal(await height(0),160);
   // Dữ liệu tùy chọn hỏng/không hữu hạn không làm hỏng lưới.
   await page.evaluate(id=>{const c=JSON.parse(document.getElementById('mg-config').textContent),key=`kn-master:${c.user}:${c.table}`,p=JSON.parse(localStorage.getItem(key));p.rowHeights={[id]:999999,bad:'400','2':-20};localStorage.setItem(key,JSON.stringify(p));},id);
-  await open();assert.equal(await height(0),400);await handle(0).focus();await page.keyboard.press('Home');assert.equal(await height(0),28);
+  await open();assert.equal(await height(0),2000);await handle(0).focus();await page.keyboard.press('Home');assert.equal(await height(0),28);
   for(const width of [1280,390]){
     await page.setViewportSize({width,height:844});await open();await drag(0,60);assert.equal(await height(0),88);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);

@@ -1,7 +1,8 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 18.09.2026 (ADR-036 một bảng vận đơn, ADR-037 mã nhân sự, ADR-038 báo cáo Marketing,
-> ADR-031 bổ sung bảy thị trường); lần trước 17.09 cho đúng nhánh đang chạy thật (`codex/crm-update-solar-ui`, phát hành VPS).
+> Cập nhật 19.09.2026 (quy tắc nhánh: không đẩy thẳng lên nhánh đang chạy trên VPS, mỗi việc một
+> nhánh `claude/<tên-việc>` và một PR nháp); lần trước 18.09 (ADR-036 một bảng vận đơn, ADR-037 mã
+> nhân sự, ADR-038 báo cáo Marketing, ADR-031 bổ sung bảy thị trường).
 
 Đọc file này trước khi sửa bất kỳ mã nguồn nào trong dự án.
 
@@ -31,9 +32,18 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
 
 ### Nhánh và nơi mã đang chạy
 
-- **Nhánh làm việc chính là `codex/crm-update-solar-ui`**, không phải `main`. `main`
+- **Nhánh đang chạy trên VPS là `codex/crm-update-solar-ui`**, không phải `main`. `main`
   dừng ở 08.09 và tụt sau khoảng 50 commit; VPS và máy chủ dự án chạy từ nhánh codex.
-  Tách nhánh mới từ nhánh codex; PR trỏ về nhánh codex trừ khi chủ dự án nói khác.
+  VPS hiện là môi trường thử nghiệm, chưa có khách. Sắp tới `main` sẽ được fast-forward
+  lên bằng nhánh này và VPS chuyển sang chạy `main`; khi đó **chỉ cần đổi tên nhánh ở
+  mục này**, mọi quy tắc dưới đây giữ nguyên.
+- **Không đẩy thẳng lên nhánh đang chạy trên VPS**, kể cả sửa nhỏ hay chỉ sửa tài liệu
+  (chốt 19.09.2026).
+- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ nhánh đang chạy, làm,
+  commit, push, **mở PR nháp trỏ về nhánh đang chạy**, rồi báo lại kèm liên kết. Không tự
+  gộp; chỉ gộp khi chủ dự án bảo rõ.
+- **Mỗi phiên một việc một nhánh.** Bốn phiên KNCRM, KNERP, KNGUARD và Batch file không
+  dùng chung nhánh; hai phiên cùng đẩy lên một nhánh là giẫm lên nhau.
 - **VPS thật** (2 nhân, 4 GB): `deploy/production/compose.yml`, nginx trước hai
   hostname ERP và CRM, năm container `crm`, `erp`, `worker`, `heavy`, `beat` cùng một
   image tag bất biến `knjsc-app:<commit>-<nhãn>`, DB 1,25 GB. Phát hành do Codex làm

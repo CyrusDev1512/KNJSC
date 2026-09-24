@@ -475,6 +475,12 @@ class DataRecord(ScopedModel):
     val_date = models.DateField("Ngày", null=True, blank=True, db_index=True)
     val_customer = models.CharField("Khách hàng", max_length=200, blank=True, db_index=True)
     val_phone = models.CharField("Số điện thoại", max_length=40, blank=True, db_index=True)
+    #: Khoá so trùng: 9 chữ số cuối sau khi bỏ ký tự không phải số (TL-36) —
+    #: `+1 (416) 555-0123` và `4165550123` là một khách. Ô hiển thị vẫn là
+    #: `val_phone` đúng như gõ; cột này chỉ để GROUP BY, sinh ở `phone_key`.
+    #: `db_default` để code cũ (image chưa mang cột này) vẫn INSERT được trong
+    #: cửa sổ phát hành sau khi migrate — không thì dòng mới nổ NOT NULL
+    val_phone_key = models.CharField("Khoá so trùng số điện thoại", max_length=9, blank=True, default="", db_default="")
     val_revenue = models.DecimalField(
         "Doanh thu", max_digits=MONEY_MAX_DIGITS, decimal_places=MONEY_DECIMAL_PLACES,
         null=True, blank=True, db_index=True,
@@ -493,6 +499,8 @@ class DataRecord(ScopedModel):
             # `moi-nhat/` hỏi Max(updated_at) mỗi 8 giây mỗi tab; cột Trùng đếm theo số điện thoại (K27)
             models.Index(fields=["table", "updated_at"], name="record_table_updated_idx"),
             models.Index(fields=["table", "val_phone"], name="record_table_phone_idx"),
+            # Cột Trùng và ?trung=1 GROUP BY theo khoá (quy tắc 9, TL-36)
+            models.Index(fields=["table", "val_phone_key"], name="record_table_phonekey_idx"),
             # Đếm/phạm vi/cuộn master đọc chỉ mục thay vì JSON của toàn bộ bảng.
             models.Index(fields=["table", "created_at", "id"],
                          include=["deleted_at", "updated_at", "created_by"],
@@ -542,6 +550,8 @@ class DataRecord(ScopedModel):
         for dich in COLUMN_OF.values():
             if dich not in con_dung:
                 setattr(self, dich, _normalise(None, dich))
+        # Khoá so trùng đi theo val_phone, kể cả khi số vừa bị xoá về rỗng
+        self.val_phone_key = phone_key(self.val_phone)
         return self
 
     @classmethod
@@ -564,7 +574,7 @@ class DataRecord(ScopedModel):
         records = sorted(records, key=lambda r: r.pk)
         if not records:
             return 0
-        ten = list(fields or ("data", *COLUMN_OF.values()))
+        ten = list(fields or ("data", *COLUMN_OF.values(), "val_phone_key"))
         if "updated_at" not in ten:
             ten.append("updated_at")
         luc = timezone.now()
@@ -594,6 +604,18 @@ class DataRecord(ScopedModel):
             self.apply_computed_columns(cot)
             self.sync_indexed_columns(cot)
         return super().save(*args, **kwargs)
+
+
+def phone_key(phone):
+    """Khoá so trùng của một số điện thoại — TL-36, một chỗ khai báo duy nhất.
+
+    Bỏ mọi ký tự không phải số rồi lấy **9 chữ số cuối**: khách ở Mỹ/Canada gõ
+    `+1 (416) 555-0123` hay `4165550123` đều ra `165550123`. Chủ dự án chốt
+    22.09.2026: chấp nhận xác suất cực hiếm hai khách trùng 9 số cuối, đổi lấy
+    việc bắt được mã vùng viết kiểu khác nhau. Số rỗng trả chuỗi rỗng — ô trống
+    không bao giờ tính là trùng với nhau."""
+    digits = "".join(ch for ch in str(phone or "") if ch.isdigit())
+    return digits[-9:]
 
 
 def _normalise(gia_tri, cot_dich):

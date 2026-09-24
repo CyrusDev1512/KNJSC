@@ -311,12 +311,17 @@ def test_goi_thang_bao_cao_ngoai_pham_vi_bi_chan(client, bm_mkt, nguoi_dung):
     assert client.get(f"/bao-cao/{bc.pk}/").status_code == 404
 
 
-def test_chi_nguoi_nop_moi_bo_duoc_bao_cao(client, bm_sale, nguoi_dung):
-    """BR-2 — Người khác không bỏ được báo cáo của mình, kể cả Manager"""
+def test_ngoai_quyen_khong_bo_duoc_bao_cao(client, bm_sale, nguoi_dung):
+    """BR-2 · AC-4.9 — Từ ADR-041 Manager bộ phận bỏ được báo cáo cấp dưới (bài
+    riêng ở test_bao_cao_xoa_khoi_phuc); ở đây giữ chiều bị từ chối: nhân viên
+    khác cùng bộ phận và Kế toán vẫn không bỏ được, trả 403 chứ không âm thầm"""
     bc = _nop(bm_sale, nguoi_dung["staff_sale_1"])
-    client.force_login(nguoi_dung["manager_sale"])
-
-    client.post(f"/bao-cao/{bc.pk}/bo/")
+    # staff_sale_1b cùng team nhưng không thấy báo cáo người khác → 404 như xem
+    client.force_login(nguoi_dung["staff_sale_1b"])
+    assert client.post(f"/bao-cao/{bc.pk}/bo/").status_code == 404
+    # Kế toán thấy mọi báo cáo nhưng không được bỏ → 403 rõ ràng
+    client.force_login(nguoi_dung["staff_kt"])
+    assert client.post(f"/bao-cao/{bc.pk}/bo/").status_code == 403
     assert DailyReport.objects.filter(pk=bc.pk).exists()
 
 

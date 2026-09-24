@@ -18,7 +18,10 @@ class WaybillOrderForm(forms.Form):
     currency = forms.CharField(label="Loại tiền", required=False,
         widget=forms.TextInput(attrs={'readonly': True, 'placeholder': 'Tự theo quốc gia'}))
     payment_method = forms.ChoiceField(label="PTTT lên đơn", choices=[("", "— Chọn PTTT —"), *ACTIVE_PAYMENT_CHOICES])
-    note = forms.CharField(label="Ghi chú", max_length=500, required=False)
+    # Ghi chú nhiều dòng: Sale gõ Enter xuống dòng ngay khi lên đơn, bảng Vận đơn hiện đúng
+    # từng dòng (AC-11.44). Trình duyệt gửi textarea theo CRLF; `clean_note` gom về `\n`.
+    note = forms.CharField(label="Ghi chú", max_length=500, required=False,
+                           widget=forms.Textarea(attrs={'rows': 3}))
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('actor', None)
@@ -37,6 +40,10 @@ class WaybillOrderForm(forms.Form):
             {**nhac, "hx-include": "[name=phone]"})
         for field in self.fields.values():
             field.widget.attrs["class"] = "o-nhap"
+
+    def clean_note(self):
+        # Một kiểu xuống dòng duy nhất trong dữ liệu: lưới, hộp đọc và tệp Excel đều đọc `\n`
+        return self.cleaned_data['note'].replace('\r\n', '\n').replace('\r', '\n')
 
     def clean(self):
         cleaned = super().clean()

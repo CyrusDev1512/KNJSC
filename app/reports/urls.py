@@ -8,6 +8,8 @@ urlpatterns = [
     path("bao-cao/hoat-dong/xuat/", activity_views.legacy_redirect, {"export": True}, name="bao_cao_hoat_dong_xuat"),
     path("bao-cao/", views.bao_cao_ngay, name="bao_cao_ngay"),
     path("bao-cao/lich-su/", views.bao_cao_lich_su, name="bao_cao_lich_su"),
+    path("bao-cao/da-bo/", views.bao_cao_da_bo, name="bao_cao_da_bo"),
+    path("bao-cao/<int:pk>/khoi-phuc/", views.bao_cao_khoi_phuc, name="bao_cao_khoi_phuc"),
     path("bao-cao/tong-hop/", views.bao_cao_tong_hop, name="bao_cao_tong_hop"),
     path("bao-cao/tong-hop/xuat/", views.bao_cao_tong_hop_xuat,
          name="bao_cao_tong_hop_xuat"),
