@@ -1,5 +1,12 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 22.09.2026 (đêm) — TL-53 ghi nhận và đóng
+
+**TL-53 (đóng):** bộ lọc trỏ tới cột đang ẩn (ADR-039) bị bỏ **lặng lẽ** — URL cũ, liên kết Thống kê,
+bookmark mang `f_<cột ẩn>` thì lưới hiện thừa dòng mà không nói gì (lỗi ghi nhận trong hội thoại 22.09,
+nay mới có mã). Sửa: bộ lọc đọc trên mọi cột, vẫn lọc; KN CRM chip cảnh báo "(cột đang ẩn) …",
+KN ERP dòng nhắc cạnh Xoá lọc; tệp Excel xuất theo đúng bộ lọc. AC-39.8, ADR-039 bổ sung 22.09.
+
 ## 22.09.2026 (đêm) — TL-36 đóng
 
 **TL-36 (đóng):** cột Trùng so theo khoá 9 số cuối (`val_phone_key`), không so chuỗi đúng như gõ nữa;

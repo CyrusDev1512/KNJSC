@@ -180,6 +180,22 @@ def visible_columns(columns):
     return [c for c in columns if not c.is_hidden]
 
 
+def hidden_filtered_columns(filters, columns):
+    """Tên các cột đang ẩn mà bộ lọc trên URL trỏ tới — cho dòng nhắc (AC-39.8).
+
+    Lọc theo cột ẩn **vẫn chạy** (bổ sung ADR-039 22.09): bỏ lặng lẽ thì lưới
+    hiện thiếu dòng mà không ai hiểu vì sao. Một chỗ duy nhất cho cả chip cảnh
+    báo bên KN CRM lẫn dòng nhắc ở Bảng dữ liệu KN ERP.
+    """
+    an = {c.code: c.name for c in columns if c.is_hidden}
+    ten = []
+    for khoa in filters or {}:
+        code = khoa.partition("__")[0]
+        if code in an and an[code] not in ten:
+            ten.append(an[code])
+    return ten
+
+
 @transaction.atomic
 @writing
 def set_columns_hidden(table, codes, hidden, *, actor=None, request=None):

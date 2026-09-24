@@ -5,6 +5,12 @@
 **Finished local (nhánh `claude/ngay-len-dau-bang-van-don`, PR nháp):** Ngày (lên đơn) là cột
 dữ liệu đầu tiên, nhóm ghim 5 cột; Ngày thanh toán giữ nguyên. **To do:** chủ dự án duyệt PR, phát hành VPS.
 
+## 22.09.2026 (đêm) — Lọc theo cột ẩn vẫn chạy, kèm lời nhắc
+
+**Finished local (nhánh `claude/loc-cot-an-co-nhac`, PR nháp):** TL-53 đóng — bộ lọc cột ẩn không còn
+bị bỏ lặng lẽ; chip cảnh báo KN CRM, dòng nhắc KN ERP, tệp xuất theo đúng bộ lọc. AC-39.8.
+**To do:** chủ dự án duyệt PR; phát hành VPS.
+
 ## 22.09.2026 (đêm) — Nợ kỹ thuật đợt 3
 
 **Finished local:** khoá so trùng số điện thoại (TL-36, AC-36.8, migration 0016).

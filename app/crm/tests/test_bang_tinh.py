@@ -132,7 +132,7 @@ def test_loc_tung_cot_va_cong_don(client, du_lieu, nguoi_dung):
 
     # chip "đang lọc" và liên kết bỏ đúng một bộ lọc
     kq = client.get(f"/bang-tinh/van_don/?f_trang_thai_vc__trong={dg}&f_ten_khach__chua=An")
-    chips = dict(kq.context["chips"])
+    chips = {nhan: url for nhan, url, _an in kq.context["chips"]}
     assert any("Trạng thái vận chuyển" in nhan for nhan in chips)
     bo_ten = next(url for nhan, url in chips.items() if "Tên khách" in nhan)
     assert "f_ten_khach" not in bo_ten and "f_trang_thai_vc__trong" in bo_ten

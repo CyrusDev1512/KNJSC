@@ -566,6 +566,7 @@ KN ERP, nhưng định nghĩa cột và giá trị từng ô vẫn giữ nguyên
 | AC-39.5 | Ẩn cả nhóm cột số lượng theo sản phẩm bằng một nút; thêm sản phẩm mới sau đó thì cột của nó vào ở trạng thái ẩn, nhóm không tự hiện lại; Lên đơn vẫn ghi số lượng vào cột đang ẩn nên hiện lại là có đủ dữ liệu | FR-8.10 · ADR-039 | Tự động |
 | AC-39.6 | Quản lý bảng thấy mục "Đang ẩn với cả công ty" để bật lại; nhân viên không thấy mục đó và không biết bảng có cột ẩn | FR-8.10 · ADR-039 | Tự động |
 | AC-39.7 | Migration `forms_builder/0015` chạy xuôi và ngược đều được, giữ nguyên cột và dữ liệu | FR-8.10 · ADR-039 | Tự động |
+| AC-39.8 | Bộ lọc trên URL trỏ tới cột đang ẩn **vẫn lọc đúng dòng** (lưới KN CRM, Bảng dữ liệu KN ERP, tệp Excel xuất ra), không bị bỏ lặng lẽ; KN CRM hiện chip cảnh báo "(cột đang ẩn) …" bỏ được bằng nút ×, KN ERP hiện dòng nhắc kèm tên cột; không lọc cột ẩn thì không có nhắc; lọc cột ẩn không mở đường xem dòng ngoài phạm vi quyền | FR-8.10 · ADR-039 | Tự động |
 
 ## 27. Lưới dùng chung và vòng đời bảng — ADR-027
 

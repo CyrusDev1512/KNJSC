@@ -11,6 +11,20 @@ hệ quả không được ghi trong ADR, chủ dự án phát hiện trên VPS 
 Tên khách · SĐT (`grid_column`). Lưới CRM, Thống kê, tệp Excel xuất theo cùng một chỗ,
 không migration. AC-11.1/11.38 sửa lời; 3 bài kiểm chỉnh theo (frozen, xuất, e2e ghim).
 
+## 22.09.2026 (đêm) — Lọc theo cột ẩn vẫn chạy, kèm lời nhắc (TL-53 đóng)
+
+**Nợ cũ (hệ quả đã biết của ADR-039).** Bộ lọc trỏ tới cột đang ẩn bị bỏ lặng lẽ: URL cũ, liên kết
+Thống kê, bookmark mang `f_<cột ẩn>` thì lưới hiện **thừa dòng** mà không nói gì.
+
+**Chốt của chủ dự án:** vẫn lọc + hiện dòng nhắc kèm nút bỏ lọc. **Sửa:** bộ lọc đọc trên mọi cột
+(`build_grid`, `bang_xem`, `export_service.build_queryset` — tệp xuất vẫn "đúng thứ đang hiện");
+hiển thị vẫn qua `visible_columns`. KN CRM: chip cảnh báo "(cột đang ẩn) …" (`mg-chip-an`, bỏ bằng
+nút × sẵn có); KN ERP: dòng nhắc `bao-cho` cạnh Xoá lọc; tính "bộ lọc nào trỏ cột ẩn" ở một chỗ
+`table_service.hidden_filtered_columns`. AC-39.8 mới (4 bài `crm/tests/test_loc_cot_an.py`, gồm
+chiều bị từ chối), ADR-039 bổ sung 22.09.
+
+**Đo:** biên bản [kiem-chung-loc-cot-an-co-nhac-20260922.md](kiem-chung-loc-cot-an-co-nhac-20260922.md).
+
 ## 22.09.2026 (đêm) — Khoá so trùng số điện thoại (TL-36 đóng)
 
 **Nợ cũ.** Cột Trùng so `val_phone` đúng như gõ: `+1 (416) 555-0123` và `4165550123` là hai khách. Nhân viên
