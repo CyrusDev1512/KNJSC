@@ -23,13 +23,14 @@ tài liệu được liên kết bên dưới cung cấp chi tiết theo từng 
 - Giao tiếp và báo cáo bằng tiếng Việt. Bàn giao kết quả cùng diff để chủ dự án xem;
   chỉ commit, push, tạo PR hoặc merge khi được yêu cầu.
 
-### Nhánh — chốt 19.09.2026
+### Nhánh — chốt 19.09.2026, đổi sang `main` 24.09.2026
 
-- **`codex/crm-update-solar-ui` là nhánh đang chạy trên VPS.** VPS hiện là môi trường
-  thử nghiệm, chưa có khách. Sắp tới `main` sẽ được fast-forward lên bằng nhánh này và
-  VPS chuyển sang chạy `main`; khi đó chỉ cần đổi tên nhánh ở mục này và ở mục "Nhánh
-  và nơi mã đang chạy" của [CLAUDE.md](CLAUDE.md), các quy tắc dưới đây giữ nguyên.
-- **Không đẩy thẳng lên nhánh đang chạy trên VPS**, kể cả sửa nhỏ hay chỉ sửa tài liệu.
+- **`main` là nhánh chuẩn** từ 24.09.2026: đã fast-forward bằng
+  `codex/crm-update-solar-ui`, hai nhánh trùng nhau. VPS hiện là môi trường thử nghiệm,
+  chưa có khách; Codex chuyển máy chủ dự án sang `checkout main` là mọi phát hành đi từ
+  `main`. Chi tiết trạng thái nhánh ở mục "Nhánh và nơi mã đang chạy" của
+  [CLAUDE.md](CLAUDE.md); các quy tắc dưới đây giữ nguyên.
+- **Không đẩy thẳng lên `main`** (và nhánh codex khi nó còn), kể cả sửa nhỏ hay chỉ sửa tài liệu.
 - **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ nhánh đang chạy, làm,
   commit, push, **mở PR nháp trỏ về nhánh đang chạy**, rồi báo lại kèm liên kết. Không tự
   gộp; chỉ gộp khi chủ dự án bảo rõ.
