@@ -132,7 +132,7 @@ def test_loc_tung_cot_va_cong_don(client, du_lieu, nguoi_dung):
 
     # chip "đang lọc" và liên kết bỏ đúng một bộ lọc
     kq = client.get(f"/bang-tinh/van_don/?f_trang_thai_vc__trong={dg}&f_ten_khach__chua=An")
-    chips = dict(kq.context["chips"])
+    chips = {nhan: url for nhan, url, _an in kq.context["chips"]}
     assert any("Trạng thái vận chuyển" in nhan for nhan in chips)
     bo_ten = next(url for nhan, url in chips.items() if "Tên khách" in nhan)
     assert "f_ten_khach" not in bo_ten and "f_trang_thai_vc__trong" in bo_ten
@@ -227,7 +227,7 @@ def test_bang_du_lieu_chi_xem_bang_tinh_sua_duoc(client,du_lieu,nguoi_dung):
 # ══ Lọc trùng, màu dòng — AC-11.5, AC-11.6 ═════════════════════════
 
 def test_loc_trung_dem_dung_va_to_mau(client, du_lieu, nguoi_dung):
-    """AC-11.5 — Cột Lọc trùng đếm đúng số dòng cùng số điện thoại, tô màu khi > 1, lọc được chỉ số trùng"""
+    """AC-11.5 — Cột Lọc trùng đếm đúng số dòng cùng **khoá** số điện thoại (9 số cuối, TL-36), tô màu khi > 1, lọc được chỉ số trùng"""
     client.force_login(nguoi_dung["staff_vd"])
     kq = client.get("/bang-tinh/van_don/")
     data=client.get('/bang-tinh/van_don/du-lieu/').json()

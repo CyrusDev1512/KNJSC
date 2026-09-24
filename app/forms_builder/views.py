@@ -186,11 +186,12 @@ def bang_xem(request, code):
     request.nav_current = "bang"
     bang_hien = _lay_bang(request, code)
     # Cột ẩn với cả công ty không hiện ở đây (ADR-039); màn hình "Cấu trúc cột"
-    # vẫn liệt kê đủ để quản lý bảng bật lại được.
-    cac_cot = styling.decorate_columns(
-        table_service.visible_columns(list(bang_hien.columns.order_by("order", "id"))))
+    # vẫn liệt kê đủ để quản lý bảng bật lại được. Bộ lọc thì đọc trên MỌI cột:
+    # lọc theo cột ẩn vẫn chạy, kèm dòng nhắc (bổ sung ADR-039, AC-39.8).
+    cot_ca_bang = list(bang_hien.columns.order_by("order", "id"))
+    cac_cot = styling.decorate_columns(table_service.visible_columns(cot_ca_bang))
 
-    bo_loc = _doc_bo_loc(request, cac_cot)
+    bo_loc = _doc_bo_loc(request, cot_ca_bang)
     tim = request.GET.get("tim", "").strip()
     sap_xep = request.GET.get("sap", "")
     giam_dan = request.GET.get("chieu", "") == "giam"
@@ -199,7 +200,7 @@ def bang_xem(request, code):
         DataRecord.objects.in_scope(request.user)
                           .select_related("table", "created_by", "created_by__profile"),
         bang_hien, filters=bo_loc, search=tim, sort=sap_xep,
-        descending=giam_dan, columns=cac_cot,
+        descending=giam_dan, columns=cot_ca_bang,
     )
 
     boi_canh = pagination_context(request, ds, "dòng")
@@ -216,6 +217,8 @@ def bang_xem(request, code):
             for c in cac_cot if ban_do_cot.is_indexed(c.code)
         ],
         "tim": tim, "sap_xep": sap_xep, "giam_dan": giam_dan,
+        # Dòng nhắc khi bộ lọc trên URL trỏ tới cột đang ẩn (AC-39.8)
+        "loc_cot_an": table_service.hidden_filtered_columns(bo_loc, cot_ca_bang),
         "duoc_sua": _duoc_sua_bang(request.user),
         "duoc_nhap": grant_service.can_import(request.user, bang_hien),
         # Nơi sửa duy nhất: lưới KN CRM của đúng bảng này — ADR-012, ADR-014
