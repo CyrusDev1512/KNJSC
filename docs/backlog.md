@@ -1,5 +1,16 @@
 # Backlog
 
+## 24.09.2026 — Ngày (lên đơn) lên đầu bảng Vận đơn mới
+
+**Vì sao.** ADR-036 (18.09) gộp một bảng và lấy thứ tự chuẩn của crmThuận (Mã đơn đầu),
+bỏ mất thứ tự tệp thật (Ngày đầu) mà bảng Vận đơn cũ và Vận đơn DB đang hiển thị —
+hệ quả không được ghi trong ADR, chủ dự án phát hiện trên VPS và chốt 24.09: **Ngày
+(lên đơn) đứng đầu, Ngày thanh toán giữ nguyên chỗ**.
+
+**Sửa:** `ngay` lên đầu `waybill_service.COLUMNS`; nhóm ghim = Trùng · Ngày · Mã đơn ·
+Tên khách · SĐT (`grid_column`). Lưới CRM, Thống kê, tệp Excel xuất theo cùng một chỗ,
+không migration. AC-11.1/11.38 sửa lời; 3 bài kiểm chỉnh theo (frozen, xuất, e2e ghim).
+
 ## 22.09.2026 — Gom p95 thật của KN CRM từ log VPS
 
 **Phát hiện đổi hẳn cách làm.** Tưởng phải dựng đo mới trên VPS, nhưng

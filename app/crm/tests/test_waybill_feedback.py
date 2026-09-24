@@ -276,7 +276,8 @@ def test_export_date_filter_and_unlinked_sale_blank(feedback, nguoi_dung):
     params = QueryDict('f_ngay__lon_bang=2026-08-01&f_ngay__nho_bang=2026-08-01&trang=99')
     _, wb = export_service.export(nguoi_dung['admin'], table, params, builder='grid')
     values = list(wb.active.values)
-    assert len(values) == 2 and values[1][0] == rows[0].data['ma_don']
+    # Cột đầu là Ngày (24.09.2026) — tra Mã đơn theo tiêu đề, không theo vị trí
+    assert len(values) == 2 and values[1][values[0].index('Mã đơn')] == rows[0].data['ma_don']
     imported = DataRecord.objects.create(table=table, department=table.department, data=rows[0].data)
     _, wb = export_service.export(nguoi_dung['admin'], table, params, builder='grid')
     values = list(wb.active.values)
