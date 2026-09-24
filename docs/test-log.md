@@ -54,6 +54,11 @@ dụng. VPS vẫn `knjsc-app:72af235-gop`, chờ merge và CI `main` trước di
 `push=false`. Chưa có PR và chưa merge. Tạo PR từ
 [nhánh đã push](https://github.com/CyrusDev1512/KNJSC/compare/main...claude/sua-e2e-ghi-chu?expand=1).
 
+**Cập nhật cùng ngày:** đã xác định CLI chọn tài khoản bot chỉ đọc, trong khi máy
+có phiên chủ repo được lưu sẵn. Dùng phiên đó riêng cho lệnh tạo PR (không đổi tài
+khoản mặc định) đã tạo thành công [PR nháp #43](https://github.com/CyrusDev1512/KNJSC/pull/43)
+về `main`. CI GitHub được kích hoạt; chưa merge hoặc phát hành VPS.
+
 ## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu, đợt 1
 
 **TL-54 (đóng):** liên kết phân trang của Bảng dữ liệu (liệt kê thô) chỉ mang `trang`/`moi_trang`, mất tìm kiếm
