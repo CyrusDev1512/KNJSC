@@ -34,7 +34,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-1.1 | Hệ thống phải yêu cầu đăng nhập trước khi truy cập bất kỳ dữ liệu nào |
 | FR-1.2 | Hệ thống phải khoá tạm tài khoản trong 15 phút sau 5 lần đăng nhập sai liên tiếp |
 | FR-1.3 | Hệ thống phải đóng phiên khi người dùng không thao tác quá 60 phút |
-| FR-1.4 | Hệ thống phải buộc người dùng đổi mật khẩu trong lần đăng nhập đầu tiên |
+| FR-1.4 | Hệ thống phải buộc người dùng đổi mật khẩu trong lần đăng nhập đầu tiên; form tạo tài khoản không hỏi email và ngày sinh (24.09.2026 — đăng nhập bằng mã nhân sự, ngày sinh bổ sung ở màn Sửa hồ sơ) |
 | FR-1.5 | Khi quản trị viên khoá tài khoản hoặc thay đổi quyền, phiên đang mở của người đó phải mất hiệu lực ngay |
 | FR-1.6 | ~~Sau khi đăng nhập, hệ thống phải đưa người dùng tới màn hình phù hợp với bộ phận và cấp bậc của họ~~ **Bỏ theo Q34** — mọi người vào trang tổng quan chung, phân quyền đã ẩn tính năng ngoài phận sự |
 | FR-1.7 | Mỗi nhân sự có **mã nhân sự** theo quy ước công ty (TÊN + chữ đầu họ + chữ đầu tên đệm, viết hoa không dấu; trùng thì thêm số từ 2), cố định sau khi gán; tài khoản mới có tên đăng nhập là mã, đăng nhập không phân biệt hoa/thường; mọi chỗ định danh hiện mã trước, tên sau — ADR-037 |

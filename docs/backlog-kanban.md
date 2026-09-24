@@ -1,5 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 24.09.2026 (tối) — Gọn form Tạo tài khoản
+
+**Finished local (nhánh `claude/gon-form-tao-tai-khoan`, PR nháp về `main`):** form tạo bỏ ô Email
+và Ngày sinh (AC-1.8); màn Sửa hồ sơ giữ Ngày sinh; dữ liệu cũ nguyên. **To do:** chủ dự án duyệt PR.
+
 ## 24.09.2026 — ADR-041: bỏ & khôi phục báo cáo cấp dưới
 
 **Finished local (nhánh `claude/xoa-khoi-phuc-bao-cao`, PR nháp):** Leader team/Manager bộ phận/Admin

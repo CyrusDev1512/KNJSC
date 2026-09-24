@@ -102,7 +102,7 @@ def test_tai_khoan_moi_dang_nhap_bang_ma(client, departments, nguoi_dung):
     nhập của mình"""
     client.force_login(nguoi_dung["admin"])
     response = client.post("/nhan-su/moi/", {
-        "full_name": "Lê Thưởng Thuận", "staff_code": "", "username": "", "email": "thuan@x.vn",
+        "full_name": "Lê Thưởng Thuận", "staff_code": "", "username": "",
         "rank": Rank.STAFF, "department": departments["mkt"].pk, "password": "MatKhauTam-2026!",
     })
     assert response.status_code == 200 and response.context["created_profile"].staff_code == "THUANLT"
@@ -117,13 +117,13 @@ def test_tai_khoan_moi_dang_nhap_bang_ma(client, departments, nguoi_dung):
     # Tài khoản mới có thể tự đặt tên đăng nhập khác mã; trùng tên đăng nhập bị từ chối
     client.force_login(nguoi_dung["admin"])
     response = client.post("/nhan-su/moi/", {
-        "full_name": "Lê Thưởng Thuận", "staff_code": "", "username": "thuan.le", "email": "t2@x.vn",
+        "full_name": "Lê Thưởng Thuận", "staff_code": "", "username": "thuan.le",
         "rank": Rank.STAFF, "department": departments["mkt"].pk, "password": "MatKhauTam-2026!",
     })
     assert response.status_code == 200 and response.context["created_profile"].staff_code == "THUANLT2"
     assert response.context["created_profile"].user.username == "thuan.le"
     response = client.post("/nhan-su/moi/", {
-        "full_name": "Ai Đó", "staff_code": "", "username": "thuanlt", "email": "t3@x.vn",
+        "full_name": "Ai Đó", "staff_code": "", "username": "thuanlt",
         "rank": Rank.STAFF, "department": departments["mkt"].pk, "password": "MatKhauTam-2026!",
     })
     assert response.status_code == 200 and response.context["form"].errors

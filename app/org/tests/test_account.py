@@ -146,3 +146,42 @@ def test_phien_dang_nhap_lay_ho_so_cung_mot_lenh(client, nguoi_dung, django_asse
     assert client.get("/").status_code == 200
     django_user_model.objects.filter(pk=khong_ho_so.pk).update(is_active=False)
     assert get_user(type("R", (), {"session": client.session})()).is_anonymous
+
+
+def test_form_tao_khong_hoi_email_va_ngay_sinh(client, nguoi_dung, departments):
+    """AC-1.8 — Form tạo tài khoản không còn ô Email và ô Ngày sinh (chốt 24.09.2026):
+    tạo không email vẫn xong (email rỗng), đăng nhập bằng mã như thường và vẫn buộc đổi
+    mật khẩu; ngày sinh bổ sung được ở màn Sửa hồ sơ để thiệp sinh nhật có dữ liệu"""
+    from datetime import date
+
+    from django.contrib.auth import get_user_model
+
+    client.force_login(nguoi_dung["admin"])
+    html = client.get("/nhan-su/moi/").content.decode()
+    assert 'name="email"' not in html and 'name="birthday"' not in html
+
+    tra_loi = client.post("/nhan-su/moi/", {
+        "full_name": "Người Không Email", "staff_code": "", "username": "",
+        "rank": Rank.STAFF, "department": departments["sale"].pk,
+        "password": "MatKhauTam-2026!",
+    })
+    assert tra_loi.status_code == 200
+    ho_so = tra_loi.context["created_profile"]
+    user = get_user_model().objects.get(pk=ho_so.user_id)
+    assert user.email == "" and ho_so.birthday is None
+    assert ho_so.must_change_password
+    client.logout()
+    assert client.login(username=ho_so.staff_code.lower(), password="MatKhauTam-2026!")
+
+    # Màn Sửa hồ sơ vẫn có ô Ngày sinh — đường nhập duy nhất còn lại cho thiệp sinh nhật
+    client.force_login(nguoi_dung["admin"])
+    sua = client.get(f"/nhan-su/{ho_so.pk}/sua/").content.decode()
+    assert 'name="birthday"' in sua and 'name="email"' not in sua
+    tra_loi = client.post(f"/nhan-su/{ho_so.pk}/sua/", {
+        "full_name": ho_so.full_name, "staff_code": ho_so.staff_code,
+        "rank": Rank.STAFF, "department": departments["sale"].pk,
+        "birthday": "1999-01-15",
+    })
+    assert tra_loi.status_code == 302
+    ho_so.refresh_from_db()
+    assert ho_so.birthday == date(1999, 1, 15)

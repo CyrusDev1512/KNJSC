@@ -70,6 +70,7 @@ và đó là chuyện bình thường.
 | AC-1.5 | Người dùng mới đăng nhập lần đầu bị buộc đổi mật khẩu trước khi làm gì khác | FR-1.4 | Tự động |
 | AC-1.6 | Quản trị viên khoá tài khoản đang mở phiên thì yêu cầu tiếp theo của người đó bị từ chối ngay | FR-1.5 | Tự động |
 | AC-1.7 | ~~Sale đăng nhập vào thẳng màn hình lên đơn, Vận đơn vào thẳng bảng vận đơn~~ **Bỏ theo Q34** — mọi người vào trang tổng quan chung | FR-1.6 | Bỏ |
+| AC-1.8 | Form tạo tài khoản không hỏi Email và Ngày sinh (chốt 24.09.2026): tạo không email vẫn xong (email rỗng, không đụng email tài khoản cũ), đăng nhập bằng mã như thường, vẫn buộc đổi mật khẩu; màn Sửa hồ sơ vẫn có ô Ngày sinh để bổ sung cho thiệp sinh nhật | FR-1.4 | Tự động |
 
 ---
 

@@ -26,7 +26,8 @@ class TaoTaiKhoanForm(forms.Form):
         label="Tên đăng nhập", max_length=150, required=False,
         help_text="Để trống thì tên đăng nhập là mã nhân sự.",
     )
-    email = forms.EmailField(label="Email")
+    # Không hỏi email và ngày sinh khi tạo (chốt 24.09.2026): đăng nhập bằng mã nhân sự,
+    # không gửi mail cho nhân viên; ngày sinh bổ sung sau ở màn Sửa hồ sơ (SuaHoSoForm)
     rank = forms.ChoiceField(label="Cấp bậc", choices=Rank.choices, initial=Rank.STAFF)
     department = forms.ModelChoiceField(
         label="Bộ phận", queryset=Department.objects.all(),
@@ -35,11 +36,6 @@ class TaoTaiKhoanForm(forms.Form):
     team = forms.ModelChoiceField(
         label="Team", queryset=Team.objects.all(),
         required=False, empty_label="Chưa gán team",
-    )
-    birthday = forms.DateField(
-        label="Ngày sinh", required=False,
-        widget=forms.DateInput(attrs={"type": "date"}),
-        help_text="Để Bảng tin tự chúc mừng sinh nhật; bỏ trống nếu không muốn.",
     )
     password = forms.CharField(
         label="Mật khẩu tạm", min_length=10, required=False, strip=False,

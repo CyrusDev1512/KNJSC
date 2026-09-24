@@ -33,7 +33,7 @@ def create_with_temporary_password(*, password='', actor, **values):
         values['username'] = values['staff_code']
     if User.objects.filter(username__iexact=values['username']).exists():
         raise ValidationError('Tên đăng nhập này đã có người dùng.')
-    candidate = User(username=values['username'], email=values['email'])
+    candidate = User(username=values['username'], email=values.get('email', ''))
     temporary = password
     if not temporary:
         alphabet = string.ascii_letters + string.digits
@@ -61,7 +61,7 @@ def create_with_temporary_password(*, password='', actor, **values):
 
 @transaction.atomic
 @sensitive_variables('password')
-def create_account(*, username, email, full_name, rank=Rank.STAFF,
+def create_account(*, username, full_name, email="", rank=Rank.STAFF,
                    department=None, team=None, password=None, birthday=None,
                    staff_code="", actor=None, request=None):
     """Tạo tài khoản kèm hồ sơ nhân sự.

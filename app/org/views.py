@@ -79,10 +79,10 @@ def nhan_su_moi(request):
         d = form.cleaned_data
         try:
             profile, temporary_password = account_service.create_with_temporary_password(
-                username=d["username"], email=d["email"], full_name=d["full_name"],
+                username=d["username"], full_name=d["full_name"],
                 staff_code=d.get("staff_code", ""),
                 rank=d["rank"], department=d["department"], team=d["team"],
-                password=d["password"], birthday=d.get("birthday"),
+                password=d["password"],
                 actor=request.user, request=request,
             )
         except ValidationError as error:
