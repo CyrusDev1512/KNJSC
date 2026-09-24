@@ -1,5 +1,51 @@
 # Backlog
 
+## 24.09.2026 — Ngày (lên đơn) lên đầu bảng Vận đơn mới
+
+**Vì sao.** ADR-036 (18.09) gộp một bảng và lấy thứ tự chuẩn của crmThuận (Mã đơn đầu),
+bỏ mất thứ tự tệp thật (Ngày đầu) mà bảng Vận đơn cũ và Vận đơn DB đang hiển thị —
+hệ quả không được ghi trong ADR, chủ dự án phát hiện trên VPS và chốt 24.09: **Ngày
+(lên đơn) đứng đầu, Ngày thanh toán giữ nguyên chỗ**.
+
+**Sửa:** `ngay` lên đầu `waybill_service.COLUMNS`; nhóm ghim = Trùng · Ngày · Mã đơn ·
+Tên khách · SĐT (`grid_column`). Lưới CRM, Thống kê, tệp Excel xuất theo cùng một chỗ,
+không migration. AC-11.1/11.38 sửa lời; 3 bài kiểm chỉnh theo (frozen, xuất, e2e ghim).
+
+## 22.09.2026 — Gom p95 thật của KN CRM từ log VPS
+
+**Phát hiện đổi hẳn cách làm.** Tưởng phải dựng đo mới trên VPS, nhưng
+`deploy/production/compose.yml` đã đặt `CRM_REQUEST_METRICS: '1'` từ đầu, nên
+`core/request_metrics.py` ghi **một dòng JSON mỗi yêu cầu** (`route`, `method`,
+`status`, `ms`, `db_ms`, `queries`) ra stdout container và Docker giữ lại. Số p95
+thật đã nằm trên VPS nhiều ngày rồi; cái thiếu chỉ là bộ gom. Không phải đo mới,
+không phải đụng vào máy chủ đang chạy.
+
+**Làm gì.** `scripts/gom-p95-vps.py` — chạy trên VPS, thư viện chuẩn thuần (quy
+tắc 8), chỉ đọc log. Gom theo ba nhóm đúng ngưỡng ADR-016 (hỏi thăm 300 ms, ghi
+500 ms, đọc 1000 ms), in p50/p95/p99 mỗi nhóm kèm phán quyết, cộng mười tuyến
+chậm nhất kèm `db_ms` và số truy vấn để chỉ thẳng chỗ nghẽn. Mã thoát 0/1/2 nên
+cắm được vào cron. `--json` để lại biên bản máy đọc được.
+
+**Ba cái bẫy đã bịt.** (1) `moi-nhat/` là GET nhưng ngưỡng 300 ms chứ không phải
+1000 ms — xếp nhóm theo phương thức **cộng** đuôi tuyến, không theo danh sách
+liệt kê tay. (2) Nhập tệp 20 giây là đúng thiết kế; tính vào nhóm Ghi thì nhóm
+nào cũng đỏ — vẫn in ra nhưng loại khỏi phán quyết. (3) p95 trên ba mẫu chỉ là
+số lớn nhất; dưới 20 mẫu script nói "ít mẫu", dưới 5 thì không kết luận.
+
+**Kiểm.** `app/tests/test_gom_p95.py` 13 bài đạt, dựng từ dòng log **đúng khuôn
+thật** của `request_metrics` nên đổi khuôn mà quên bộ gom là đỏ; có bài canh ba
+ngưỡng trong script khớp `core/constants.py` (script chạy ngoài container nên
+phải chép, chép thì sẽ trôi). Chạy thử mắt thường trên log giả lập 4.807 dòng
+hình dạng y hệt container `crm` (có tiền tố `crm  |`, có dòng khởi động xen vào):
+đọc được 4.806 bản ghi, `moi-nhat/` vào đúng nhóm Hỏi thăm, tuyến nhập tệp hiện
+trong bảng nhưng mang dấu `*` và không kéo nhóm Ghi xuống.
+
+**Còn nợ — đây mới là nửa việc.** Chưa ai chạy nó trên VPS thật, nên **vẫn chưa
+có con số p95 thật nào**. Việc của người có SSH: chạy `--since 7d`, lưu `--json`,
+điền vào chỗ trống sẵn có ở [biên bản](kiem-chung-gom-p95-vps-20260922.md). Ghi chú thêm:
+`compose.yml` chưa đặt `logging:` nên log `json-file` không có trần — gom và lưu
+trước khi đặt giới hạn xoay vòng, vì đặt giới hạn là xoá mất lịch sử chưa gom.
+
 ## 22.09.2026 (chiều) — Xoá dữ liệu giả theo lô, không treo nữa (TL-43)
 
 **Vấn đề.** `seed_perf.clear()` xoá cả 50.000 dòng trong **một** lệnh `DELETE`. Có lần đứng hơn 17 phút vì chờ
