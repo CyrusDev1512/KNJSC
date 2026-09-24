@@ -41,16 +41,19 @@ XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 def build_queryset(user, table, params, columns=None):
     """Queryset đúng như màn hình bảng đang hiện — cùng bộ lọc, tìm, sắp xếp."""
+    cot_ca_bang = list(table.columns.order_by("order", "id"))
     columns = columns if columns is not None else table_service.visible_columns(
-        list(table.columns.order_by("order", "id")))   # cột ẩn không ra tệp — ADR-039
-    bo_loc = query.read_filters(params, columns)
+        cot_ca_bang)                                   # cột ẩn không ra tệp — ADR-039
+    # ... nhưng bộ lọc đọc trên mọi cột, để tệp đúng như màn hình đang lọc
+    # theo cột ẩn (AC-39.8, ADR-002 "xuất đúng thứ đang hiện")
+    bo_loc = query.read_filters(params, cot_ca_bang)
     ds, _ = query.build(
         DataRecord.objects.in_scope(user),
         table, filters=bo_loc,
         search=(params.get("tim") or "").strip(),
         sort=params.get("sap") or "",
         descending=params.get("chieu") == "giam",
-        columns=columns,
+        columns=cot_ca_bang,
     )
     return ds, columns, bo_loc
 
@@ -110,9 +113,11 @@ def build_workbook(queryset, columns, *, title, exported_ids=None):
     headers = [c.name for c in columns]
     if policy:
         headers += [c.name for c in policy.extra_columns(columns[0].table)]
+    # Cột văn bản dài (ghi chú) bật Wrap Text để ký tự xuống dòng trong ô hiện đủ dòng (AC-11.44)
+    xuong_dong = [i for i, c in enumerate(columns) if c.field_type == FieldType.LONG_TEXT]
     return excel.write_table(
         headers, rows_of(queryset, columns, exported_ids=exported_ids), sheet_title=title,
-        write_only=getattr(settings,'CRM_OPT_EXPORT',False),
+        write_only=getattr(settings,'CRM_OPT_EXPORT',False), wrap_columns=xuong_dong,
     )
 
 

@@ -41,6 +41,9 @@
 .mg-empty {position:absolute;color:var(--ink-2);text-align:center;white-space:normal}
 .mg-footer {flex:none;display:flex;gap:14px;justify-content:space-between;align-items:center;padding:6px 12px;min-height:30px;border-top:1px solid var(--rule);background:var(--surface-2);flex-wrap:wrap;font-size:12px}
 .mg-chips {display:flex;gap:6px;flex-wrap:wrap;padding:0 12px}.mg-chips:not(:empty){padding-block:6px}.mg-chips a{border:1px solid var(--rule);border-radius:4px;padding:3px 8px;color:var(--ink);font-size:12px;text-decoration:none}
+/* Chip của bộ lọc trỏ tới cột đang ẩn — tông cảnh báo (AC-39.8) */
+.mg-chips a.mg-chip-an{background:var(--warn-soft);border-color:var(--warn);color:#8a6100}
+:root:not([data-theme="light"]) .mg-chips a.mg-chip-an{color:var(--warn)}
 #mg-message {padding:8px 12px;border-bottom:1px solid var(--rule);background:var(--surface-2);color:var(--ink)}#mg-message.mg-error{color:var(--critical)}#mg-message button{margin-left:8px}
 #mg-filters {width:300px;flex:none;overflow:auto;border-right:1px solid var(--rule);background:var(--surface);z-index:10}
 .mg-filter-content {padding:14px}.mg-filter-content h2{font-size:17px;margin:0 0 12px}.mg-filter-content form{margin-bottom:16px}.mg-filter-content fieldset{border:0;padding:8px 0;margin:0}.mg-filter-content legend{font-weight:600}.mg-filter-content label:not(.mg-check){display:block;margin-bottom:8px}.mg-check{display:flex;align-items:baseline;gap:6px;font-size:13px;padding:4px 0;overflow-wrap:anywhere}.mg-options{max-height:220px;overflow:auto}

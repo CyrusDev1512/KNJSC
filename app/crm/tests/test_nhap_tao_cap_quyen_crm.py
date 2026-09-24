@@ -45,26 +45,23 @@ def test_tao_bang_sua_cot_nhap_tep_trong_kn_crm(client, bang_sale, nguoi_dung, l
     # Sidebar có Nhập tệp, không có Cấp quyền (Manager mới có)
     ben = client.get("/").content.decode().split('id="thanh-ben"')[1].split('<div class="chinh">')[0]
     assert 'href="/nhap-tep/"' in ben and 'href="/cap-quyen/"' not in ben
-    # Tạo bảng trong khung KN CRM, xong sang màn Cột cũng trong KN CRM
+    # Tạo bảng: nút đã ẩn nhưng đường dẫn còn sống (ADR-040) — bảng thường tạo
+    # xong quản lý tiếp bên KN ERP, màn Cột của nó ở KN CRM trả 404
     kq = client.get("/bang/moi/")
     assert kq.status_code == 200 and KHUNG_CRM in kq.content.decode()
     kq = client.post("/bang/moi/", {"name": "Bảng Leader", "code": "bang_leader", "description": ""})
     assert kq.status_code == 302 and kq["Location"] == "/bang/bang_leader/cot/"
     assert TableDef.objects.get(code="bang_leader").department == departments["sale"]
-    kq = client.get("/bang/bang_leader/cot/")
-    html = kq.content.decode()
-    assert kq.status_code == 200 and KHUNG_CRM in html
-    assert 'href="/danh-sach-bang/"' in html or 'href="/bang/bang_leader/mo/"' in html   # tên bang / bang_xem
+    assert client.get("/bang/bang_leader/cot/").status_code == 404
     assert client.get("/danh-sach-bang/")["Location"] == "/thu-muc/"
-    assert client.get("/bang/bang_leader/mo/")["Location"] == "/bang-tinh/bang_leader/"
-    # Nhập tệp: trang chọn bảng rồi bước 1 của luồng nhập, đều trong khung KN CRM
+    # Nhập tệp: chỉ còn bảng vận đơn (ADR-040) — bảng thường không được liệt kê,
+    # gõ thẳng đường nhập cũng 404
     kq = client.get("/nhap-tep/")
     html = kq.content.decode()
     assert kq.status_code == 200 and KHUNG_CRM in html
-    assert 'href="/bang/don_sale/nhap/"' in html and 'href="/bang/bang_leader/nhap/"' in html
-    assert [b.code for b in kq.context["cac_bang"]] == ["bang_leader", "don_sale"]
-    kq = client.get("/bang/don_sale/nhap/")
-    assert kq.status_code == 200 and KHUNG_CRM in kq.content.decode()
+    assert "don_sale" not in html and "bang_leader" not in html
+    assert [b.code for b in kq.context["cac_bang"]] == []
+    assert client.get("/bang/don_sale/nhap/").status_code == 404
     # Cấp quyền: Leader bị từ chối có nhật ký
     truoc = _tu_choi()
     assert client.get("/cap-quyen/").status_code == 403 and _tu_choi() == truoc + 1
@@ -72,13 +69,14 @@ def test_tao_bang_sua_cot_nhap_tep_trong_kn_crm(client, bang_sale, nguoi_dung, l
     assert client.get("/bang/").status_code == 404
     assert client.get("/bang/don_sale/").status_code == 404
 
-    # Manager: mục Cấp quyền liệt kê bảng bộ phận mình, dẫn tới màn Cột & cấp quyền
+    # Manager: mục Cấp quyền chỉ liệt kê bảng vận đơn — bảng thường không hiện,
+    # gõ thẳng đường cấp quyền 404 (quản lý tiếp bên KN ERP)
     client.force_login(nguoi_dung["manager_sale"])
     ben = client.get("/").content.decode().split('id="thanh-ben"')[1].split('<div class="chinh">')[0]
     assert 'href="/cap-quyen/"' in ben
     kq = client.get("/cap-quyen/")
-    assert kq.status_code == 200 and 'href="/bang/don_sale/cot/"' in kq.content.decode()
-    assert client.post("/bang/don_sale/cap-quyen/", {})["Location"] == "/bang/don_sale/cot/"
+    assert kq.status_code == 200 and 'href="/bang/don_sale/cot/"' not in kq.content.decode()
+    assert client.post("/bang/don_sale/cap-quyen/", {}).status_code == 404
     # Leader bộ phận khác: bảng Sale không có trong danh sách nhập, gõ thẳng 404
     client.force_login(leader_mkt)
     kq = client.get("/nhap-tep/")

@@ -2,6 +2,10 @@
 ((scope) => {
   'use strict';
   class MasterRowGeometry {
+    // Trần chiều cao một dòng — một chỗ duy nhất; master-grid.js đọc `KNJSCRowGeometry.MAX`.
+    // 2000 px thay cho 400 từ 23.09.2026 (AC-11.44): dòng phải giãn đủ cao cho một ghi chú
+    // dài, mà vẫn giữ tổng chiều cao bảng trong ngưỡng trình duyệt chịu được.
+    static MAX=2000;
     constructor(total=0) { this.reset(total); }
     reset(total) { this.total=Math.max(0,Math.floor(total));this.tree=new Map();this.heights=new Map(); }
     // Đổi tổng số hàng mà giữ chiều cao đã đặt: cây Fenwick phụ thuộc tổng, nên dựng lại
@@ -10,7 +14,7 @@
     height(index) { return this.heights.get(index)||28; }
     set(index,height) {
       if(index<0||index>=this.total)return;
-      height=Math.max(28,Math.min(400,Math.round(height)));
+      height=Math.max(28,Math.min(MasterRowGeometry.MAX,Math.round(height)));
       const delta=height-this.height(index);if(!delta)return;
       if(height===28)this.heights.delete(index);else this.heights.set(index,height);
       for(let p=index+1;p<=this.total;p+=p&-p){const sum=(this.tree.get(p)||0)+delta;if(sum)this.tree.set(p,sum);else this.tree.delete(p);}

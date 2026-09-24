@@ -42,6 +42,12 @@
   </div>
 
 <div class="bang-hop">
+  {% if loc_cot_an %}
+  {# Bộ lọc trỏ tới cột đang ẩn vẫn chạy, nhưng phải nói rõ — AC-39.8 #}
+  <p class="bao bao-cho" role="status"><span class="bao-ic">!</span>
+    Đang lọc theo cột đang ẩn: {{ loc_cot_an|join:", " }}.
+    <a href="{% url 'bang_xem' bang.code %}">Bỏ lọc</a></p>
+  {% endif %}
   {# Chỉ cột mang nhãn ý nghĩa mới cho lọc — cột đó có chỉ mục (quy tắc 9) #}
   <div class="erp-table-tools" id="erp-table-tools">
   <form class="loc" method="get">

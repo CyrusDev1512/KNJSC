@@ -23,8 +23,10 @@ def test_master_browser(live_server, feedback, delivery_leader, nguoi_dung, sett
     rows = []
     columns = list(table.columns.all())
     for i in range(1300):
+        # Ghi chú dài chỉ ở hai dòng cuối (MASTER-01298, 01299): từ AC-11.44 dòng có ghi chú dài
+        # tự giãn cao, mà các script Chrome vẫn cần 1298 dòng đầu ở 28 px để cuộn/LRU/poll đo được.
         data = {**source[0].data, 'ma_don': f'MASTER-{i:05d}', 'ten_khach': f'Khách kiểm thử {i}',
-                'ghi_chu': 'Nội dung dài để đọc mà không làm thay đổi chiều cao hàng. ' * 25}
+                'ghi_chu': 'Nội dung dài để đọc trong hộp đọc và giãn dòng. ' * 25 if i >= 1298 else ''}
         r = DataRecord(table=table, data=data, created_by=nguoi_dung['admin'])
         r.sync_indexed_columns(columns)
         rows.append(r)

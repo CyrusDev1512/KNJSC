@@ -1,10 +1,29 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 22.09.2026 (đêm) — TL-53 ghi nhận và đóng
+
+**TL-53 (đóng):** bộ lọc trỏ tới cột đang ẩn (ADR-039) bị bỏ **lặng lẽ** — URL cũ, liên kết Thống kê,
+bookmark mang `f_<cột ẩn>` thì lưới hiện thừa dòng mà không nói gì (lỗi ghi nhận trong hội thoại 22.09,
+nay mới có mã). Sửa: bộ lọc đọc trên mọi cột, vẫn lọc; KN CRM chip cảnh báo "(cột đang ẩn) …",
+KN ERP dòng nhắc cạnh Xoá lọc; tệp Excel xuất theo đúng bộ lọc. AC-39.8, ADR-039 bổ sung 22.09.
+
+## 22.09.2026 (đêm) — TL-36 đóng
+
+**TL-36 (đóng):** cột Trùng so theo khoá 9 số cuối (`val_phone_key`), không so chuỗi đúng như gõ nữa;
+`+1 (416) 555-0123` và `4165550123` đếm là một khách. Ô hiển thị không đổi. AC-11.5 + AC-36.8.
+
 ## 22.09.2026 (tối) — K24 đóng
 
 **K24 (đóng):** hai bài đo hiệu năng bỏ được dấu `xfail`. Cắt ba lượt hỏi thừa mỗi trang — phạm vi quyền hỏi ba
 lần cho cùng một bảng, hồ sơ nhân sự và bộ phận nạp lười. Cả hai màn hình còn 9 lệnh, ngân sách 10 giữ nguyên.
 Toàn bộ `-m "not trinh_duyet"`: 2.549 bài, 0 đỏ, 7 bỏ qua.
+
+## 22.09.2026 (chiều) — Xoá dữ liệu giả theo lô
+
+**TL-43 (đóng phần hậu quả):** xoá dòng giả không còn treo im lặng — một đường dùng chung
+`delete_fake_records` cho cả `seed_perf` lẫn `nap_khach_mau` (375.000 dòng): chia lô 2.000, mỗi lô một giao
+dịch có hạn chờ khoá 30 giây, in tiến độ, hết hạn thì lỗi nói rõ đã xoá bao nhiêu (AC-10.10). Nguyên nhân gốc
+của lần đứng 17 phút vẫn chưa tái hiện được.
 
 ## 19.09.2026 (đêm) — Hành trình xuyên màn hình
 

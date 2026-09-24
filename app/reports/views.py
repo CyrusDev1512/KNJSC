@@ -128,6 +128,8 @@ def bao_cao_lich_su(request):
     boi_canh.update(pagination_context(request, ds, "báo cáo"))
     boi_canh["qs_loc"] = "&" + _history_query(request)
     boi_canh["history_query"] = _history_query(request, include_page=True)
+    # Manager/Admin có mục "Đã bỏ" để khôi phục báo cáo bỏ nhầm — ADR-041
+    boi_canh["duoc_khoi_phuc"] = daily_service.can_restore(request.user)
     daily_service.attach_marketing_links(boi_canh["trang"], forms, tu, den)
     return render(request, "reports/bao_cao_lich_su.html", boi_canh)
 
@@ -302,7 +304,7 @@ def bao_cao_xem(request, pk):
     return render(request, "reports/bao_cao_xem.html", {
         "bao_cao": bao_cao,
         "cac_dong": daily_service.read_report_cells(bao_cao),
-        "duoc_bo": bao_cao.created_by_id == request.user.pk,
+        "duoc_bo": daily_service.can_withdraw(request.user, bao_cao),
         "duoc_sua": daily_service.can_amend(request.user, bao_cao),
         "revisions": revisions,
         "history_query": _history_query(request, include_page=True),
@@ -312,15 +314,53 @@ def bao_cao_xem(request, pk):
 @login_required
 @require_POST
 def bao_cao_bo(request, pk):
-    """Bỏ một báo cáo đã nộp. Không phải sửa — nội dung cũ giữ nguyên (BR-4)."""
+    """Bỏ một báo cáo đã nộp — người nộp, Leader trong team, Manager trong bộ
+    phận, Admin (ADR-041). Không phải sửa — nội dung cũ giữ nguyên (BR-4)."""
+    from core.audit import record_denied
     bao_cao = get_object_or_404(daily_service.history(request.user), pk=pk)
-    if bao_cao.created_by_id != request.user.pk:
-        messages.error(request, "Chỉ người nộp mới bỏ được báo cáo của mình.")
-        return redirect("bao_cao_lich_su")
+    if not daily_service.can_withdraw(request.user, bao_cao):
+        record_denied(request.user, request.get_full_path(), request)
+        return HttpResponse("Bạn không có quyền bỏ báo cáo này.", status=403)
 
     daily_service.withdraw(bao_cao, actor=request.user, request=request)
-    messages.success(request, "Đã bỏ báo cáo. Nộp lại sẽ là một bản ghi mới.")
+    messages.success(request, "Đã bỏ báo cáo. Nộp lại sẽ là một bản ghi mới; quản lý khôi phục được ở mục Đã bỏ.")
     return redirect("bao_cao_lich_su")
+
+
+@login_required
+def bao_cao_da_bo(request):
+    """Danh sách báo cáo đã bỏ — Manager bộ phận mình và Admin khôi phục được
+    (ADR-041). Người khác gọi thẳng bị 403 có nhật ký (quy tắc 8)."""
+    from core.audit import record_denied
+    from .models import DailyReport
+    if not daily_service.can_restore(request.user):
+        record_denied(request.user, request.get_full_path(), request)
+        return HttpResponse("Bạn không có quyền xem báo cáo đã bỏ.", status=403)
+    request.nav_current = "bao_cao_lich_su"
+    ds = (DailyReport.all_objects.in_scope(request.user)
+          .filter(deleted_at__isnull=False)
+          .select_related("form", "record", "created_by", "created_by__profile",
+                          "department", "team", "deleted_by", "deleted_by__profile")
+          .order_by("-updated_at"))
+    boi_canh = pagination_context(request, ds, "báo cáo")
+    return render(request, "reports/bao_cao_da_bo.html", boi_canh)
+
+
+@login_required
+@require_POST
+def bao_cao_khoi_phuc(request, pk):
+    """Khôi phục một báo cáo đã bỏ — Manager bộ phận mình hoặc Admin (ADR-041)."""
+    from core.audit import record_denied
+    from .models import DailyReport
+    bao_cao = get_object_or_404(
+        DailyReport.all_objects.in_scope(request.user).filter(deleted_at__isnull=False), pk=pk)
+    try:
+        daily_service.restore(bao_cao, actor=request.user, request=request)
+    except OutOfScopeError:
+        record_denied(request.user, request.get_full_path(), request)
+        return HttpResponse("Bạn không có quyền khôi phục báo cáo này.", status=403)
+    messages.success(request, "Đã khôi phục báo cáo; số liệu về lại Báo cáo tổng hợp.")
+    return redirect("bao_cao_da_bo")
 
 
 @login_required

@@ -70,3 +70,6 @@ docker-compose.override.yml
 /.test-runtime/
 /deploy/production/certificates/
 /artifacts/solarpunk/
+
+# Phu thuoc Node cua script kiem thu trinh duyet (xem package.json)
+/node_modules/

@@ -28,7 +28,11 @@ class CellConflict(BusinessError):
 
 
 def table_for(user, code):
-    table = TableDef.objects.in_scope(user).filter(code=code, is_active=True).select_related('erp_report').first()
+    # KN CRM chỉ phục vụ bảng vận đơn (ADR-040): bảng khác coi như ngoài phạm vi
+    from . import catalog
+    table = catalog.chi_van_don(
+        TableDef.objects.in_scope(user).filter(code=code, is_active=True)
+    ).select_related('erp_report').first()
     if table is None:
         raise OutOfScopeError()
     return table
