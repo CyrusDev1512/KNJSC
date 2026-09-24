@@ -1,5 +1,27 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 24.09.2026 — Kiểm chứng phát hành main 9c4d285
+
+PR #43 đã merge theo chỉ đạo. [CI đúng SHA](https://github.com/CyrusDev1512/KNJSC/actions/runs/35986294595):
+2.692 đạt/7 skip/41 deselect; E2E 27 đạt/2 skip và 1 đạt/8 skip/1 cảnh báo.
+Không bật kiểm tải 300.000 dòng; các skip không tính đạt.
+
+Diễn tập DB phục hồi từ VPS, mạng nội bộ, không gửi thông báo: image mới và image
+cũ cùng đọc/ghi được trên schema nâng cấp; mỗi image 29 GET cùng kiểm quyền báo cáo,
+lưu/CAS và tạo đơn. Image mới kiểm thêm bỏ/khôi phục theo quyền. Hash dữ liệu khớp
+trước/sau; dữ liệu diễn tập rollback. Harness ban đầu kỳ vọng Staff sửa trả 403,
+đã đối chiếu hợp đồng view trả 404 và sửa đúng assertion; không đổi ứng dụng.
+
+VPS: backup checksum/phục hồi đạt, ba migration/metadata 13 giây, check không lỗi,
+migrate không còn pending, static 156 tệp. Bảo trì 75 giây. Domain thật đã kiểm
+Admin; một đơn mẫu được tạo, sửa ô, tải lại, ghi chú 6 dòng cao 122 px khớp cột ghim,
+rồi bỏ bằng UI. Hash toàn bộ dữ liệu gốc khớp khi loại ID của đơn mẫu. Hai hàng đợi
+xử lý tác vụ kiểm tra không ghi nghiệp vụ. Các giới hạn và kết quả theo dõi trong
+[biên bản phát hành](kiem-chung-phat-hanh-vps-main-20260924.md).
+Theo dõi 16 phút 02 giây: 0 restart/5xx; 2 lần DisallowedHost từ truy cập hostname IP
+trả 400 đúng cấu hình, đã đọc traceback và phân loại riêng. Không có lỗi ứng dụng
+mới ngoài các từ chối đó; không nới ALLOWED_HOSTS để làm kiểm tra xanh.
+
 ## 24.09.2026 — Sửa định vị hai bài E2E ghi chú chặn phát hành `main`
 
 Nền `a120af5`, nhánh `claude/sua-e2e-ghi-chu`. CI run `35981282943` và lượt kiểm

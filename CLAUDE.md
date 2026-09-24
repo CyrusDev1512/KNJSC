@@ -1,7 +1,7 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 24.09.2026 (`main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
-> chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
+> Cập nhật 24.09.2026: VPS đã chạy `main` tại `9c4d285`, image `knjsc-app:9c4d285-main`;
+> PR #43 sửa kiểm thử đã merge theo chỉ đạo, CI đúng SHA đạt. Trước đó gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
 > giãn, cột sản phẩm ẩn mặc định, K24); 23.09 (ADR-042 Báo cáo tổng hợp như ảnh mẫu);
 > 19.09 (quy tắc nhánh: không đẩy thẳng lên nhánh đang chạy trên VPS, mỗi việc một
 > nhánh `claude/<tên-việc>` và một PR nháp).
@@ -34,19 +34,20 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
 
 ### Nhánh và nơi mã đang chạy
 
-- **Nhánh chuẩn là `main`** (từ 24.09.2026): `main` đã fast-forward bằng
-  `codex/crm-update-solar-ui`, hai nhánh trùng nhau tại `ddb9b64` (trọn 11 PR gộp 24.09).
-  Máy chủ dự án có thể còn đứng ở nhánh codex cho tới khi Codex `checkout main` — nội
-  dung y hệt nên phát hành từ nhánh nào cũng ra cùng image; chuyển xong thì mọi phát
-  hành đi từ `main`. VPS hiện là môi trường thử nghiệm, chưa có khách.
+- **VPS đã chạy `main`** (24.09.2026): `/opt/knjsc` ở
+  `9c4d285a3a873fdc05037994fe91d4b30095dd80`, năm dịch vụ cùng
+  `knjsc-app:9c4d285-main`. CI, diễn tập nâng schema, quay lui image cũ và backup
+  phục hồi đã kiểm; xem [biên bản](docs/kiem-chung-phat-hanh-vps-main-20260924.md).
+  Các lần phát hành sau lấy SHA đã kiểm chứng trên `main`, không tự triển khai
+  khi merge. VPS vẫn là môi trường thử nghiệm, chưa có khách.
 - Dự kiến đã bàn 24.09: `codex/crm-update-solar-ui` sẽ **đổi tên thành `staging`** làm
   nhánh gom code chạy thử trước khi vào `main` (đổi tên bằng nút Rename trên GitHub,
-  chưa làm). Hai nhánh lưu trữ `CRM-UPDATE` và `codex/ui-solarpunk` đóng băng, giữ đến
+  chưa làm; đợt phát hành này không đổi tên hoặc bật staging). Hai nhánh lưu trữ `CRM-UPDATE` và `codex/ui-solarpunk` đóng băng, giữ đến
   cuối, có tag `luu-tru/*` đóng dấu.
 - **Không đẩy thẳng lên `main`** (và cả nhánh codex khi nó còn), kể cả sửa nhỏ hay chỉ
   sửa tài liệu (chốt 19.09.2026, giữ nguyên khi đổi sang `main`).
 - **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ `main`, làm, commit,
-  push, **mở PR nháp trỏ về `main`** (khi `staging` hoạt động thì trỏ về `staging`),
+  push, **mở PR nháp trỏ về `main`** (staging chưa hoạt động),
   rồi báo lại kèm liên kết. Không tự gộp; chỉ gộp khi chủ dự án bảo rõ.
 - **Mỗi phiên một việc một nhánh.** Bốn phiên KNCRM, KNERP, KNGUARD và Batch file không
   dùng chung nhánh; hai phiên cùng đẩy lên một nhánh là giẫm lên nhau.

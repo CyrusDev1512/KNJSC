@@ -1,5 +1,18 @@
 # Backlog
 
+## 24.09.2026 — VPS đã chuyển sang main
+
+Đã merge PR #43 theo chỉ đạo; CI `main` tại `9c4d285` đạt. VPS phát hành image
+`knjsc-app:9c4d285-main` sau diễn tập, kiểm image cũ với schema mới và phục hồi backup.
+Bảo trì 17:33:48–17:35:03 (75 giây); không seed/xóa bảng/đổi nhánh cũ thành staging.
+Các ghi chú “chưa phát hành/chờ CI” phía dưới là lịch sử trước đợt này.
+Xem [biên bản và phạm vi kiểm chứng](kiem-chung-phat-hanh-vps-main-20260924.md).
+
+**Còn kiểm riêng:** lời nhắc khách cũ ở Lên đơn chưa có bằng chứng UI ổn định trong
+phiên kiểm phát hành; không tự sửa nghiệp vụ hoặc coi thao tác gõ thử là đã đạt.
+Các bài host-browser/kiểm tải đã bỏ qua theo CI vẫn giữ nguyên khoản nợ; đợt này
+không nghiệm thu toàn bộ hiệu năng hoặc các trường hợp skip.
+
 ## 24.09.2026 — Hai lỗi E2E ghi chú chặn phát hành `main`
 
 CI của `a120af5` và kiểm lại local đều lỗi khi bấm ghi chú cao 2.000 px và đo lưới

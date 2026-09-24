@@ -1,5 +1,18 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 24.09.2026 — Chuyển VPS sang main
+
+**Finished triển khai:** `main` tại `9c4d285`, cả năm dịch vụ dùng
+`knjsc-app:9c4d285-main`; CI đúng SHA đạt, diễn tập nâng cấp/quay lui và backup phục
+hồi đạt. Domain thật đã kiểm phiên đăng nhập, tổng hợp/lọc/xuất, báo cáo ngày và
+lịch sử; CRM tạo đơn thử, sửa/lưu ô, ghi chú giãn hàng, fullscreen và xóa mềm mẫu.
+Theo dõi 16 phút 02 giây: không 5xx/restart; hai HTTP 400 do từ chối hostname IP,
+đã đối chiếu log và giữ nguyên bảo vệ ALLOWED_HOSTS.
+Tài liệu phát hành đi nhánh `claude/phat-hanh-main-20260924`, PR nháp về `main`,
+không tự merge. Các mục chờ phát hành phía dưới được thay bằng biên bản hiện tại;
+không đồng nghĩa đóng các kiểm tra còn bỏ qua.
+Xem [biên bản](kiem-chung-phat-hanh-vps-main-20260924.md).
+
 ## 24.09.2026 — Sửa hai bài E2E ghi chú trước khi chuyển VPS sang `main`
 
 **Finished local:** nhánh `claude/sua-e2e-ghi-chu`; đã tái hiện hai lỗi local, sửa định vị
