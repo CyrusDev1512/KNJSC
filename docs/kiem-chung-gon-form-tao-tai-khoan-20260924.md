@@ -12,8 +12,8 @@ thiệp sinh nhật); dữ liệu email cũ giữ nguyên (BR-4). Không migrati
 | `org/` + `feed/` (thiệp sinh nhật AC-13.4/13.5 nguyên trạng) | 0 đỏ |
 | `tests/test_truy_vet.py` + docs/06 | 265 tiêu chí, 252 tự động, 229 có bài — khớp |
 | 4 test cũ POST kèm `email=` | đã dọn key, vẫn xanh (AC-1.5, AC-37.4) |
-| Suite đầy đủ `-m "not trinh_duyet and not cham"` | (điền sau khi chạy) |
-| `makemigrations --check` | (điền sau) |
+| Suite đầy đủ `-m "not trinh_duyet and not cham"` | **2.679 đạt, 1 bỏ qua, 0 đỏ** (300 s) |
+| `makemigrations --check` | "No changes detected" |
 
 ## Chromium (server dev 8020, DB `knjsc_db`, tài khoản `quantri`)
 
