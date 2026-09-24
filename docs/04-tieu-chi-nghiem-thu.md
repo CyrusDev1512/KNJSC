@@ -249,7 +249,7 @@ vụ `bangtinh`, cổng 8021); KN ERP không còn đường sửa ô.
 | AC-11.2 | Lọc theo từng cột — danh sách giá trị kèm số đếm, chứa chữ, khoảng số hoặc ngày, ô trống — nhiều cột cộng dồn, số dòng đúng | FR-7.8 | Tự động |
 | AC-11.3 | Sửa ô tại chỗ đúng kiểu cột; ô danh sách chỉ nhận giá trị trong danh sách, giá trị lạ bị từ chối kèm lý do; mỗi lần sửa ghi một dòng nhật ký | FR-7.4 · BR-5 | Tự động |
 | AC-11.4 | Người ngoài phạm vi bảng vận đơn (không phải quản trị viên) bị từ chối ở mọi đường dẫn Bảng tính của bảng đó, kể cả gọi thẳng và gửi POST | FR-3.6 | Tự động |
-| AC-11.5 | Cột Lọc trùng đếm đúng số dòng cùng số điện thoại và tô màu khi lớn hơn 1; lọc được "chỉ số trùng" | FR-7.8 | Tự động |
+| AC-11.5 | Cột Lọc trùng đếm đúng số dòng cùng **khoá** số điện thoại — 9 chữ số cuối sau khi bỏ ký tự không phải số (TL-36) — và tô màu khi lớn hơn 1; lọc được "chỉ số trùng" | FR-7.8 | Tự động |
 | AC-11.6 | Dòng Hủy trước giao, Hủy sau giao, Hoàn đơn được tô màu | FR-7.8 | Tự động |
 | AC-11.7 | Không bảng nào sửa được ô ở Bảng dữ liệu KN ERP — đường sửa ô cũ trả 404, kể cả bảng vận đơn với nhân viên Vận đơn lẫn Admin; cùng ô đó ở lưới KN CRM thì sửa được, bảng chỉ xem ở dịch vụ này thì 403 | FR-7.4 | Tự động |
 | AC-11.8 | Mỗi sản phẩm đang bán có một cột số lượng trên bảng vận đơn; lên đơn điền tự động số lượng, địa chỉ và lần mua | FR-6.3 · FR-6.7 | Tự động |
@@ -524,6 +524,7 @@ Kế toán giữ tiêu chí cũ trên bảng duy nhất.
 | AC-36.5 | `xoa_bang_van_don_cu` thiếu cờ → từ chối, không xoá; đủ cờ → hai bảng cũ mất hẳn cùng dòng, chi tiết, phân công, lịch sử ô, biên nhận, quyền, nguồn báo cáo; đơn ERP giữ với `record=None`; `van_don` nguyên; nhật ký DELETE; chạy lại "không có gì để xoá"; không bao giờ xoá `van_don` | ADR-036 | Tự động |
 | AC-36.6 | `/cau-hinh/nhan-don/` 404 với mọi vai; sidebar Admin không còn "Bảng nhận đơn"; `TableDef` không còn `receives_orders`, còn `delivery_view_version`; migration 0014 xuôi/ngược giữ dữ liệu | ADR-036 | Tự động |
 | AC-36.7 | `configure_erp_reports` tạo nguồn Vận đơn cho `van_don`; `nap_du_lieu_van_don` và `nap_khach_mau` (mặc định) nạp vào `van_don` có phân công | ADR-036 | Tự động |
+| AC-36.8 | Khoá so trùng `val_phone_key` (`phone_key`: bỏ ký tự không phải số, lấy 9 chữ số cuối): `+1 (416) 555-0123` và `4165550123` là một khách trên cột Trùng và `?trung=1`; ô hiển thị giữ nguyên chữ gõ; `sync_indexed_columns` và `bulk_save` cùng ra một khoá; migration `forms_builder/0016` xuôi/ngược được và backfill đúng dòng cũ | FR-7.8 · ADR-036 | Tự động |
 ## 37. Mã nhân sự — ADR-037
 
 Bổ sung AC-4.6 và AC-22.10: định danh trên mọi màn hình là **mã nhân sự** (`UserProfile.staff_code`),

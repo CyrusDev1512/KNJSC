@@ -11,6 +11,22 @@ hệ quả không được ghi trong ADR, chủ dự án phát hiện trên VPS 
 Tên khách · SĐT (`grid_column`). Lưới CRM, Thống kê, tệp Excel xuất theo cùng một chỗ,
 không migration. AC-11.1/11.38 sửa lời; 3 bài kiểm chỉnh theo (frozen, xuất, e2e ghim).
 
+## 22.09.2026 (đêm) — Khoá so trùng số điện thoại (TL-36 đóng)
+
+**Nợ cũ.** Cột Trùng so `val_phone` đúng như gõ: `+1 (416) 555-0123` và `4165550123` là hai khách. Nhân viên
+không nhận ra khách cũ, chỉ số mua lại thấp hơn thực tế.
+
+**Chốt của chủ dự án:** bỏ ký tự không phải số, so **9 chữ số cuối**. **Sửa:** cột `val_phone_key`
+(migration `forms_builder/0016`, chỉ mục + backfill 1 lệnh UPDATE), sinh một chỗ duy nhất
+`phone_key` trong `sync_indexed_columns`; `bulk_save` ghi kèm (cả danh sách cột mặc định lẫn
+`nap_du_lieu_van_don` liệt kê cứng); cột Trùng, `?trung=1`, đếm dòng lẻ GROUP BY theo khoá. Ô hiển thị giữ
+nguyên chữ gõ. AC-11.5 sửa lời, AC-36.8 mới (3 bài).
+
+**Không đổi, chờ quyết riêng:** tra khách ở Lên đơn vẫn so số đúng như gõ — đổi là đổi nghiệp vụ nhận diện khách.
+
+**Đo:** suite 2.530 đạt / 0 đỏ; backfill 120 nghìn dòng 112 s — biên bản
+[kiem-chung-khoa-trung-sdt-20260922.md](kiem-chung-khoa-trung-sdt-20260922.md).
+
 ## 22.09.2026 — Gom p95 thật của KN CRM từ log VPS
 
 **Phát hiện đổi hẳn cách làm.** Tưởng phải dựng đo mới trên VPS, nhưng

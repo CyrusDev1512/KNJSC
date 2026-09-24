@@ -185,11 +185,12 @@ def frozen_columns(columns, *, waybill=True):
 
 
 def duplicate_phones(table):
-    """Queryset số điện thoại xuất hiện ở hơn một dòng của bảng — cho `?trung=1`.
-    Một GROUP BY trên chỉ mục `(table, val_phone)` thay vì subquery từng dòng (K27)."""
+    """Queryset **khoá số điện thoại** xuất hiện ở hơn một dòng của bảng — cho `?trung=1`.
+    Một GROUP BY trên chỉ mục `(table, val_phone_key)` thay vì subquery từng dòng (K27).
+    Từ TL-36 so theo khoá 9 số cuối (`phone_key`), không so chuỗi đúng như gõ."""
     return (
-        DataRecord.objects.filter(table=table).exclude(val_phone="")
-        .order_by().values("val_phone").annotate(n=Count("id")).filter(n__gt=1).values("val_phone")
+        DataRecord.objects.filter(table=table).exclude(val_phone_key="")
+        .order_by().values("val_phone_key").annotate(n=Count("id")).filter(n__gt=1).values("val_phone_key")
     )
 
 
@@ -199,15 +200,15 @@ def attach_duplicate_counts(table, records):
     toàn bảng trước khi cắt trang (trang 500 của 100.000 dòng: 50.000 lần, K27).
     Số trống không tính là trùng với nhau. Trả về chính danh sách đã gắn."""
     records = list(records)
-    so = {r.val_phone for r in records if r.val_phone}
+    so = {r.val_phone_key for r in records if r.val_phone_key}
     dem = {}
     if so:
         dem = dict(
-            DataRecord.objects.filter(table=table, val_phone__in=so)
-            .order_by().values_list("val_phone").annotate(n=Count("id"))
+            DataRecord.objects.filter(table=table, val_phone_key__in=so)
+            .order_by().values_list("val_phone_key").annotate(n=Count("id"))
         )
     for r in records:
-        r.so_trung = dem.get(r.val_phone, 0) if r.val_phone else 0
+        r.so_trung = dem.get(r.val_phone_key, 0) if r.val_phone_key else 0
     return records
 
 
@@ -216,11 +217,11 @@ def duplicate_count(table):
     cho **một vài dòng** (dòng vừa tạo, vừa dán); cả trang thì dùng
     `attach_duplicate_counts`. Số trống thì không tính là trùng với nhau."""
     cung_so = (
-        DataRecord.objects.filter(table=table, val_phone=OuterRef("val_phone"))
-        .order_by().values("val_phone").annotate(n=Count("id")).values("n")
+        DataRecord.objects.filter(table=table, val_phone_key=OuterRef("val_phone_key"))
+        .order_by().values("val_phone_key").annotate(n=Count("id")).values("n")
     )
     return Case(
-        When(val_phone="", then=Value(0)),
+        When(val_phone_key="", then=Value(0)),
         default=Subquery(cung_so, output_field=IntegerField()),
         output_field=IntegerField(),
     )
@@ -285,7 +286,7 @@ def build_grid(user, params, *, table=None):
         # dòng trùng thì so với danh sách số điện thoại trùng — một GROUP BY
         chi_trung = params.get("trung") == "1"
         if chi_trung:
-            ds = ds.filter(val_phone__in=duplicate_phones(table))
+            ds = ds.filter(val_phone_key__in=duplicate_phones(table))
         san_pham = read_products(params, columns)
         if san_pham:
             ds = ds.filter(product_any_of(san_pham))

@@ -1,5 +1,10 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 22.09.2026 (đêm) — TL-36 đóng
+
+**TL-36 (đóng):** cột Trùng so theo khoá 9 số cuối (`val_phone_key`), không so chuỗi đúng như gõ nữa;
+`+1 (416) 555-0123` và `4165550123` đếm là một khách. Ô hiển thị không đổi. AC-11.5 + AC-36.8.
+
 ## 22.09.2026 (chiều) — Xoá dữ liệu giả theo lô
 
 **TL-43 (đóng phần hậu quả):** xoá dòng giả không còn treo im lặng — một đường dùng chung

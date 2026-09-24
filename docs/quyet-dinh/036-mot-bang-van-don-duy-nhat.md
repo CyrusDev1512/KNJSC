@@ -86,6 +86,22 @@ Khi công ty cần nhiều bảng vận đơn song song (chi nhánh, năm tài c
 chọn đích, không tái dùng ADR-029.
 
 
+## Bổ sung 22.09.2026 — khoá so trùng số điện thoại (TL-36)
+
+Cột Trùng trước nay so `val_phone` **đúng như gõ**: `+1 (416) 555-0123`, `416 555 0123`
+và `4165550123` là ba khách khác nhau. Chủ dự án chốt quy tắc: **bỏ ký tự không phải số,
+so 9 chữ số cuối** — chấp nhận xác suất cực hiếm hai khách trùng 9 số cuối, đổi lấy việc
+bắt được mã vùng viết kiểu khác nhau.
+
+Cách làm: cột `DataRecord.val_phone_key` (migration `forms_builder/0016`, có chỉ mục
+`(table, val_phone_key)` và backfill dòng cũ), sinh ở một chỗ duy nhất
+`forms_builder.models.phone_key` trong `sync_indexed_columns`. Cột Trùng, `?trung=1` và
+đếm dòng lẻ (`grid_service`) GROUP BY theo khoá. **Ô hiển thị và ô nhập giữ nguyên chữ
+nhân viên gõ.**
+
+**Không đổi:** tra khách ở Lên đơn (`Customer.phone`) vẫn so đúng như gõ — đổi cách nhận
+diện khách là đổi nghiệp vụ, chờ chủ dự án quyết riêng (câu hỏi mở ghi trong PR).
+
 ## Bổ sung 24.09.2026 — Ngày (lên đơn) đứng đầu bảng
 
 Khi gộp một bảng (18.09), "thứ tự chuẩn" lấy theo `waybill_service.COLUMNS` của crmThuận
