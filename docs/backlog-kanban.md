@@ -1,26 +1,74 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
-## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu (ADR-040)
+## 24.09.2026 — ADR-041: bỏ & khôi phục báo cáo cấp dưới
+
+**Finished local (nhánh `claude/xoa-khoi-phuc-bao-cao`, PR nháp):** Leader team/Manager bộ phận/Admin
+bỏ được báo cáo cấp dưới (xoá mềm cả số liệu), Manager/Admin khôi phục ở trang "Đã bỏ"; Kế toán giữ
+nguyên chỉ sửa. **To do:** chủ dự án duyệt PR, kéo về local check.
+
+## 24.09.2026 — ADR-040: CRM chỉ một bảng Vận đơn
+
+**Finished local (nhánh `claude/crm-chi-mot-bang-van-don`, PR nháp):** CRM chỉ phục vụ bảng vận đơn,
+thư mục phẳng không còn Quý/Tháng, dữ liệu và ERP không đổi, Thống kê đọc cả hai bên.
+**To do:** chủ dự án duyệt PR, kéo nhánh về local check, phát hành VPS.
+**Far plan (ghi nhận trong ADR-040):** Leader/Manager sửa & xoá báo cáo cấp dưới; nơi sửa ô cho bảng thường.
+
+## 24.09.2026 — Ngày lên đầu bảng Vận đơn mới
+
+**Finished local (nhánh `claude/ngay-len-dau-bang-van-don`, PR nháp):** Ngày (lên đơn) là cột
+dữ liệu đầu tiên, nhóm ghim 5 cột; Ngày thanh toán giữ nguyên. **To do:** chủ dự án duyệt PR, phát hành VPS.
+
+## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu (ADR-042)
 
 **Finished local (đợt 1):** tiền quy ₫ ngay trong truy vấn, cảnh báo dòng thiếu tỉ giá; cột Số đơn (TT) /
 DS Chốt (TT) / Tỉ lệ chốt (TT) đối soát từ vận đơn; Tỉ lệ chốt cho MKT, tỉ lệ hiện %; nhãn MKT theo ảnh;
-nguồn MKT thật ≤ 10 truy vấn; TL-52, TL-53. AC-40.1 → 40.5.
+nguồn MKT thật ≤ 10 truy vấn; TL-52, TL-58. AC-42.1 → 40.5.
 **Finished local (đợt 2):** khối toàn kỳ theo nhân sự + mỗi ngày một bảng (STT · Team · Nhân sự · Leader,
-TỔNG CỘNG đầu bảng), Gộp/Không gộp, Excel hai sheet. AC-40.6, 40.7.
+TỔNG CỘNG đầu bảng), Gộp/Không gộp, Excel hai sheet. AC-42.6, 40.7.
 **Finished local (đợt 3):** ngưỡng màu 3 bậc do quản lý bộ phận đặt trên màn hình (`ReportSource.thresholds`,
-migration `reports/0005`), lọc nhiều sản phẩm, "Tuần này"; backend đăng nhập lấy hồ sơ cùng một lệnh. AC-40.8 → 40.12.
+migration `reports/0005`), lọc nhiều sản phẩm, "Tuần này"; backend đăng nhập lấy hồ sơ cùng một lệnh. AC-42.8 → 40.12.
 **Finished local (đợt 4):** Bảng dữ liệu của bảng có nguồn báo cáo là báo cáo chi tiết theo ngày (mỗi lần nộp một
-dòng, cùng động cơ, `?dang=tho` về thô); phân trang/sắp xếp thô giữ bộ lọc, Có/Không, "Sửa cột" đúng luật. AC-40.13, 40.14.
-**Finished local (đợt 5):** docs/02 FR-5.7 → 5.12, FR-7.16; docs/04 mục 40; ADR-040 + README; TL-52 → 57; CLAUDE.md;
+dòng, cùng động cơ, `?dang=tho` về thô); phân trang/sắp xếp thô giữ bộ lọc, Có/Không, "Sửa cột" đúng luật. AC-42.13, 40.14.
+**Finished local (đợt 5):** docs/02 FR-5.7 → 5.12, FR-7.16; docs/04 mục 40; ADR-042 + README; TL-52 → 57; CLAUDE.md;
 biên bản bốn đợt + 21 ảnh; PR nháp #36.
 **To do:** chủ dự án nghiệm thu; phát hành VPS (Codex, có migration `reports/0005`).
 **Far plan:** `so_tien_tt` gõ tay vào DS Chốt (TT)?; tỉ giá KRW; Tổng quan hiện (TT).
 
+## 22.09.2026 (đêm) — Lọc theo cột ẩn vẫn chạy, kèm lời nhắc
+
+**Finished local (nhánh `claude/loc-cot-an-co-nhac`, PR nháp):** TL-53 đóng — bộ lọc cột ẩn không còn
+bị bỏ lặng lẽ; chip cảnh báo KN CRM, dòng nhắc KN ERP, tệp xuất theo đúng bộ lọc. AC-39.8.
+**To do:** chủ dự án duyệt PR; phát hành VPS.
+
+## 22.09.2026 (đêm) — Nợ kỹ thuật đợt 3
+
+**Finished local:** khoá so trùng số điện thoại (TL-36, AC-36.8, migration 0016).
+**To do:** chủ dự án xem PR; quyết riêng việc tra khách ở Lên đơn có theo khoá không.
+**Far plan:** món 2 — chip nhắc khi lọc theo cột ẩn.
+
+## 22.09.2026 (tối) — Nợ kỹ thuật đợt 2
+
+**Finished local:** K24 đóng, cắt ba lượt hỏi thừa mỗi trang (ERP 11→9, CRM 13→9).
+**To do:** chủ dự án xem PR. **Far plan:** đo lại trên VPS dưới tải nhiều người (nhánh KNGUARD).
+
+## 22.09.2026 — Bộ gom p95 thật của KN CRM từ log VPS
+
+**Finished local:** `scripts/gom-p95-vps.py` + `app/tests/test_gom_p95.py` (13 bài đạt) — số đo đã nằm sẵn trên
+VPS vì `CRM_REQUEST_METRICS` bật từ đầu, nên chỉ cần gom: ba nhóm theo ngưỡng ADR-016, p50/p95/p99, mười tuyến
+chậm nhất kèm `db_ms` và số truy vấn, mã thoát 0/1/2. Chỉ đọc log, không chạm dữ liệu.
+**To do (người có SSH):** chạy `--since 7d --json` trên VPS rồi điền vào [biên bản](kiem-chung-gom-p95-vps-20260922.md).
+Tới giờ **vẫn chưa có con số p95 thật nào** — bộ gom mới là nửa việc.
+**Far plan:** cắm vào cron hằng tuần; đặt `logging:` xoay vòng cho `compose.yml` **sau khi** đã gom xong lịch sử.
+
+## 22.09.2026 (chiều) — Nợ kỹ thuật đợt 1
+
+**Finished local:** xoá dữ liệu giả theo lô, có hạn chờ khoá và tiến độ (TL-43, AC-10.10).
+**To do:** chủ dự án xem PR. **Far plan:** nguyên nhân gốc lần treo 17 phút.
 ## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên
 
 **Finished local:** `tests/e2e/test_hanh_trinh_nhan_vien.py` — một lượt qua lưới, hộp lọc cột, đổi vai, lên đơn,
 lời nhắc khách; đã thử đưa lỗi trở lại hai lần đều đỏ.
-**To do:** phát hành VPS. **Far plan:** thu gọn panel "Bộ lọc"; xem lại ngưỡng 50; gom p95 từ log VPS.
+**To do:** phát hành VPS. **Far plan:** thu gọn panel "Bộ lọc"; xem lại ngưỡng 50; ~~gom p95 từ log VPS~~ (bộ gom xong 22.09, mục trên).
 ## 19.09.2026 (18:47) — Phát hành gộp ADR-039 + Báo cáo tổng hợp + TL-46/47 + lọc cột lên VPS
 
 **Finished VPS (18:44 19.09):** image `knjsc-app:72af235-gop` trên 5 service; backup kiểm phục hồi; migration `forms_builder 0015`;

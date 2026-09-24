@@ -24,7 +24,7 @@ pytestmark = pytest.mark.django_db
 def test_bay_thi_truong_tam_loai_tien(bang_mkt, nguoi_dung, settings):
     """AC-38.1 — Bảy thị trường (US, CA, PH, EU, KR, JP, AU) ↔ tám loại tiền; cột Thị trường và Loại
     tiền của bảng cấu hình trước 18.09 được bổ sung giá trị mới, giữ giá trị cũ, chạy lại không đổi;
-    nộp Hàn Quốc → KRW, Úc → AUD; báo cáo quy tiền về ₫ nên EUR lẫn JPY vẫn công bố tổng (ADR-040);
+    nộp Hàn Quốc → KRW, Úc → AUD; báo cáo quy tiền về ₫ nên EUR lẫn JPY vẫn công bố tổng (ADR-042);
     JPY/KRW không phần lẻ; KRW chưa có tỉ giá thì báo cáo cảnh báo và không cộng tiền dòng đó, bảng
     xếp hạng báo rõ, không âm thầm ra số"""
     from culture.services.leaderboard_service import to_vnd
@@ -68,7 +68,7 @@ def test_bay_thi_truong_tam_loai_tien(bang_mkt, nguoi_dung, settings):
             "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Sao Hoả"},
             actor=nguoi_dung["staff_mkt"])
 
-    # Báo cáo tổng hợp quy ₫ (ADR-040): EUR một mình hay lẫn JPY đều công bố tổng bằng ₫;
+    # Báo cáo tổng hợp quy ₫ (ADR-042): EUR một mình hay lẫn JPY đều công bố tổng bằng ₫;
     # thêm dòng KRW (chưa có tỉ giá) thì cảnh báo nêu KRW, tiền dòng đó không vào tổng, Số Mess vẫn đếm
     from reports import aggregations
     DataRecord.objects.filter(pk__in=[han.pk, uc.pk]).delete()

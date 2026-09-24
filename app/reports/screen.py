@@ -1,4 +1,4 @@
-"""Bối cảnh màn hình dùng chung của Báo cáo tổng hợp và Bảng dữ liệu dạng báo cáo (ADR-040).
+"""Bối cảnh màn hình dùng chung của Báo cáo tổng hợp và Bảng dữ liệu dạng báo cáo (ADR-042).
 
 `activity_views.report` và `forms_builder.views.bang_xem` (bảng có nguồn báo cáo Sale/MKT, đợt 4)
 cùng đọc tham số, dựng khối bảng, chip bộ lọc và tệp Excel ở đây — forms_builder không import
@@ -26,7 +26,7 @@ def parameters(request):
         "group": aliases.get(group, group),
         "start": summary_service.parse_day(request.GET.get("tu"), start),
         "end": summary_service.parse_day(request.GET.get("den"), end),
-        # Nhiều sản phẩm (ADR-040 đợt 3): `sp` lặp lại; URL cũ `sp=A` vẫn là danh sách một mục
+        # Nhiều sản phẩm (ADR-042 đợt 3): `sp` lặp lại; URL cũ `sp=A` vẫn là danh sách một mục
         "product": [p for p in request.GET.getlist("sp") if p],
         "market": request.GET.get("thi_truong", ""),
         "person": request.GET.get("nhan_su", ""),
@@ -59,7 +59,7 @@ def export_response(request, source, result, params, gop=False, *, detail="Xuấ
         subtitle += " · Tệp khách hàng: " + ("chưa có" if params["segment"] == "__missing__" else params["segment"])
     blocks = None
     if getattr(result, "show_person", False):
-        # Xuất theo khối như màn hình (ADR-040), trên toàn bộ dòng — không cắt trang
+        # Xuất theo khối như màn hình (ADR-042), trên toàn bộ dòng — không cắt trang
         items = list(result.rows)
         tieu_de = f"Toàn kỳ {params['start']:%d/%m} – {params['end']:%d/%m/%Y} · theo nhân sự"
         khoi_ky = period_block(request, source, result, items if len(items) <= summary_service.MAX_GROUPS else None, items, params, tieu_de)
@@ -93,7 +93,7 @@ def product_options(user, source):
 
 
 def blocks_context(request, source, result, params, gop, *, page_size=100):
-    """Bố cục khối như ảnh mẫu (ADR-040 đợt 2). Cách xem Tổng hợp: khối toàn kỳ theo nhân sự
+    """Bố cục khối như ảnh mẫu (ADR-042 đợt 2). Cách xem Tổng hợp: khối toàn kỳ theo nhân sự
     (cộng trong bộ nhớ, không truy vấn thêm) rồi mỗi ngày một khối có TỔNG CỘNG riêng và STT;
     Gộp thì một khối mỗi ngày một dòng. Cách xem khác: một khối như cũ. `rows` phẳng, `label_span`,
     `identity_columns` giữ cho Tổng quan và bài kiểm. `page_size`: Báo cáo tổng hợp 100 nhóm

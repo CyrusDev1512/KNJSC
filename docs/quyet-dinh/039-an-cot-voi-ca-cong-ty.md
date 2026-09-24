@@ -78,3 +78,19 @@ vào được VPS mới đổi và phải khởi động lại, trong khi chủ 
   cột đang hiện.
 - Cột ẩn không ra tệp Excel, nên người nhận tệp thấy ít cột hơn trước. Cần báo trước cho
   ai đang dùng tệp xuất để đối chiếu.
+
+
+## Bổ sung 22.09.2026 — lọc theo cột ẩn vẫn chạy, kèm lời nhắc (TL-53)
+
+Đảo dòng thứ hai của "Hệ quả" ở trên. Bỏ lặng lẽ bộ lọc trỏ tới cột ẩn hoá ra
+tệ hơn: URL cũ, liên kết Thống kê và bookmark vẫn mang `f_<cột ẩn>`, lưới hiện
+**thừa dòng** mà không nói gì. Chủ dự án chốt hướng "vẫn lọc + hiện dòng nhắc
+kèm nút bỏ lọc" (22.09).
+
+Cách làm: bộ lọc đọc trên **mọi** cột (`build_grid`, `bang_xem`,
+`export_service.build_queryset` — tệp xuất vẫn "đúng thứ đang hiện", ADR-002);
+hiển thị vẫn qua `visible_columns` như cũ. Chỗ nào đang lọc theo cột ẩn thì
+KN CRM hiện chip cảnh báo "(cột đang ẩn) …" (class `mg-chip-an`, bỏ bằng nút ×
+sẵn có của chip), Bảng dữ liệu KN ERP hiện dòng nhắc `bao-cho` cạnh nút Xoá
+lọc; danh sách "bộ lọc nào trỏ cột ẩn" tính ở một chỗ
+`table_service.hidden_filtered_columns`. Tiêu chí AC-39.8.

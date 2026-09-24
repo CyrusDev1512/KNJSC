@@ -22,7 +22,7 @@ MISSING_FILTER = "__missing__"
 
 # ── Tô màu Báo cáo tổng hợp (AC-22.16, chủ dự án 19.09 theo ảnh mẫu) ──────────
 #
-# Khoá theo **mã chỉ tiêu** của `activity_service.FORMULAS` (ADR-040, cùng khoá với ngưỡng
+# Khoá theo **mã chỉ tiêu** của `activity_service.FORMULAS` (ADR-042, cùng khoá với ngưỡng
 # do Manager đặt). Đường cũ `marketing.adapt` (nguồn chưa cấu hình) đặt mã `__mkt_metric_*`
 # nên suy mã từ nhãn qua `METRIC_CODE_OF_LABEL` — xem `metric_key`.
 

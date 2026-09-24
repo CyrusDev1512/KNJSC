@@ -1,4 +1,4 @@
-"""ADR-040 đợt 4 — Bảng dữ liệu của bảng có nguồn báo cáo hiện thành báo cáo chi tiết theo ngày."""
+"""ADR-042 đợt 4 — Bảng dữ liệu của bảng có nguồn báo cáo hiện thành báo cáo chi tiết theo ngày."""
 import re
 from datetime import date
 from decimal import Decimal
@@ -23,7 +23,7 @@ def _theo_nhan(result, raw):
 
 def test_bang_du_lieu_nguon_bao_cao_hien_chi_tiet_theo_ngay(client, bang_mkt, mkt_source, van_don, nguoi_dung,
                                                              django_assert_max_num_queries):
-    """AC-40.13 — Bảng có nguồn báo cáo MKT mở ở Bảng dữ liệu là báo cáo chi tiết theo ngày dùng chung
+    """AC-42.13 — Bảng có nguồn báo cáo MKT mở ở Bảng dữ liệu là báo cáo chi tiết theo ngày dùng chung
     động cơ: mỗi lần nộp một dòng (hai lần nộp cùng ngày cùng người là hai dòng, STT riêng), khối toàn
     kỳ theo nhân sự đứng đầu, TỔNG CỘNG ngày đúng; (TT) trên dòng người chỉ khi cặp (ngày, người) nộp
     một lần, nộp nhiều lần thì "—" mà TỔNG CỘNG không cộng đôi; Gộp; `?dang=tho` về liệt kê thô có

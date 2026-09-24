@@ -1,12 +1,122 @@
 # Backlog
 
-## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu, đợt 1: quy ₫ rồi mới cộng, cột (TT), Tỉ lệ chốt MKT (ADR-040)
+## 24.09.2026 — Thử phá lưới ghi chú như người dùng thật (AC-11.44)
+
+**Vì sao.** Chủ dự án yêu cầu kiểm như một người dùng thật các trường hợp dễ gây lỗi, vỡ view, vỡ lưới —
+sau khi việc ghi chú tự giãn dòng hôm 23.09 đã xong và đã mở PR.
+
+**Làm gì.** Dựng `app/tests/e2e/test_pha_luoi_ghi_chu.py`: chín bài, mỗi bài làm một việc dễ làm hỏng lưới
+(nội dung độc, 40 dòng cao liền nhau, cuộn giật cục, kéo đổi rộng cột, ẩn/hiện cột, xoá và hoàn tác, dán từ
+Excel, màn hình điện thoại, phóng to 125 %) rồi **soát hình học lưới**: dòng có hở hay chồng nhau không, mọi
+ô có cao đúng bằng dòng không kể cả ô ghim, còn ô `…` không, chữ có bị cắt không, có lỗi JavaScript không.
+Trước đợt này **chưa bài kiểm nào trong dự án soát những thứ đó** — lưới là lưới ảo hoá, đó đúng là chỗ dễ vỡ nhất.
+
+**Đo được.** 9/9 đạt, 58 giây, không lượt soát nào thấy vỡ lưới. Một từ 3.000 ký tự không dấu cách bẻ được
+(1.498 px); chuỗi giống thẻ HTML hiện thành chữ chứ không thành thẻ; 25 lần phím mũi tên qua vùng dòng cao
+không lần nào ô chọn ra ngoài khung nhìn; kéo cột 400 → 72 px thì dòng 160 → 1.177 px, nới ra 640 px thì còn
+103 px — đo lại đúng cả hai chiều. Biên bản:
+[kiem-chung-ghi-chu-tu-gian-dong-20260923.md](kiem-chung-ghi-chu-tu-gian-dong-20260923.md).
+
+**Bắt được một lỗi thật, đã sửa.** Ghi chú chỉ gồm khoảng trắng và ký tự xuống dòng làm dòng cao 197 px mà
+không hiện chữ nào. Đường người dùng không gặp (mọi lối nhập đều cắt hai đầu trước khi lưu) nhưng dữ liệu ghi
+thẳng vào cơ sở dữ liệu thì còn — đúng loại dữ liệu đang nằm trên VPS. Sửa một dòng ở `vuaMotDong`.
+
+**Còn nợ.** Chủ dự án vẫn **chưa nhìn tận mắt trên máy** — mọi bằng chứng tới giờ đều là máy đo. Script Chrome
+`.cjs` vẫn chưa chạy (không máy nào có Node). Chưa phát hành VPS.
+
+**Ghi nhận ngoài phạm vi, chưa sửa.** Tay kéo đổi rộng cột (`z-index 9`) bị vùng cột ghim (`z-index 10`) đè,
+nên cột nào bị cuộn vào dưới dải ghim rộng 526 px là mất luôn khả năng đổi rộng cho tới khi cuộn ra. Đúng
+thiết kế cột ghim, nhưng khó dùng trên màn hình hẹp. Sửa thì đụng CSS đầu cột dùng chung cho mọi bảng.
+Cùng nhóm: `static/css/grid-formats.css` dòng 1 thiếu dấu `/*` mở nên luật đầu `.dd-dam` (in đậm) bị bỏ.
+
+## 23.09.2026 — Ghi chú đọc được ngay trên lưới (AC-11.44)
+
+**Vì sao.** Bộ phận Vận đơn báo ghi chú bị cắt một dòng, muốn đọc phải bấm mở hộp đọc — bất tiện khi
+lướt bảng. Cột Ghi chú vốn rộng 160 px như mọi cột khác, trong khi nó là cột văn bản dài duy nhất của bảng.
+
+**Làm gì.** Hai lượt trong ngày. Máy chủ: `waybill_service.grid_column` trả `width: 400` **và cờ
+`auto_height`** cho riêng cột `ghi_chu` của bảng `van_don`; lưới chỉ đọc cờ, không nhận diện theo mã cột
+(CLAUDE.md, ADR-021) — bảng khác muốn có thì profile của bảng đó tự trả cờ. Trình duyệt: `master-grid.js` đo
+chiều cao thật của nội dung rồi giãn dòng cho vừa — đo theo lô đúng lúc khối 100 dòng về, nút đo nằm trong
+lưới mang đúng lớp CSS của ô; đo khi có ký tự xuống dòng hoặc chữ không chắc vừa một dòng; đệm theo nội dung
+nên sửa xong là đo lại ngay (sửa ô, dán, xoá, hoàn tác, lưu về, người khác sửa, đổi rộng/ẩn hiện cột, phông
+tải xong); tải lại mềm không co dòng về 28; kéo tay về 28 px được nhớ, Home về tự tính; ô nhập cao theo chữ
+đang gõ. Trần một dòng 2000 px ở một chỗ `MasterRowGeometry.MAX`. Kề bên: ô Ghi chú ở Lên đơn thành ô nhiều
+dòng (gom CRLF về `\n`), tệp Excel xuất ra bật Wrap Text cho cột văn bản dài.
+
+**Chốt với chủ dự án trước khi viết mã:** chỉ cột Ghi chú của bảng Vận đơn, trần 2000 px thay vì bỏ trần;
+lượt 2 chốt thêm hai chỗ kề bên (Lên đơn, Excel). Câu hỏi "ghi chú đã xuống dòng, cách dòng được chưa" trả
+lời bằng rà mã: ký tự xuống dòng đi qua hệ thống nguyên vẹn nhưng ô lưới `nowrap` dồn thành dấu cách —
+lượt 1 chưa xử lý, lượt 2 mới xử lý.
+
+**Đo được.** Ghi chú 26 ký tự: 28 px. `"Dòng 1\nDòng 2"` (13 ký tự): 47 px, đúng hai dòng. 427 ký tự: 160 px,
+8 dòng, không cắt chữ. Gõ hai dòng trong ô: ô nhập 51 px lúc gõ, dòng 28 → 47 px ngay khi đóng ô, không tải
+lại. Kéo tay về 28 → tải lại vẫn 28 → Home về 160. 12.600 ký tự: dừng 2000 px, bấm ô mở hộp đọc. Hiệu năng
+1.000 dòng ghi chú 400 ký tự khác nhau: một lượt đo cả khối p50 15,4 / p95 20,8 / max 21,6 ms, 0 long task.
+Bài kiểm viết trước, đỏ đúng lý do. Biên bản:
+[kiem-chung-ghi-chu-tu-gian-dong-20260923.md](kiem-chung-ghi-chu-tu-gian-dong-20260923.md).
+
+**Còn nợ.** Chủ dự án chưa nhìn tận mắt (mở `/bang-tinh/van_don/?tim=Jimenez`, cuộn tới Ghi chú, gõ thử hai
+dòng). Script Chrome chưa chạy (máy không có Node): `kiem-thu-master-row-height.cjs`, `kiem-thu-master-ui.cjs`
+sửa theo suy luận; ba script `*-capacity.cjs` chắc chắn đỏ vì fixture cho mọi dòng ghi chú dài và nhảy dòng
+bằng `r*28` — làm lại trên máy có Node. Chưa đẩy GitHub, chưa phát hành VPS. Tác dụng phụ đã biết: trần
+2000 px dùng chung nên bảng khác kéo tay tới 2000 px được. Ngoài phạm vi, ghi lại: `static/css/grid-formats.css`
+dòng 1 thiếu `/*` mở nên luật đầu `.dd-dam` (in đậm) bị trình duyệt bỏ.
+
+## 24.09.2026 — ADR-041: Leader/Manager bỏ & khôi phục báo cáo cấp dưới
+
+**Yêu cầu chủ dự án.** "Leader/Manager sửa và xoá báo cáo của nhân sự Sale/MKT" — khoảng
+trống ghi từ ADR-040. Khảo sát: quyền SỬA đã có từ 16.09 (can_amend, ADR-032/038, test đủ);
+thiếu là BỎ (đang khoá cứng người nộp, ADR-032 cấm mở — cần ADR mới).
+
+**Chốt 4 điểm (hỏi–đáp):** sửa giữ nguyên; bỏ = người nộp + Leader team + Manager bộ phận +
+Admin (Kế toán không); bỏ xoá mềm cả dòng số liệu (số rời Báo cáo tổng hợp); CÓ nút khôi
+phục (Manager/Admin, trang "Đã bỏ"). **Sửa:** `can_withdraw`/`restore`/`can_restore` trong
+`daily_service` (kiểm quyền trong giao dịch), view + trang `bao-cao/da-bo/`, liên kết "Đã bỏ"
+trên Lịch sử. AC-4.9/4.10 mới + FR-4.7; bài cũ "chỉ người nộp bỏ được" viết lại. Không migration.
+
+**Đo:** biên bản [kiem-chung-xoa-khoi-phuc-bao-cao-20260924.md](kiem-chung-xoa-khoi-phuc-bao-cao-20260924.md).
+
+**Bổ sung cùng ngày — ma trận phân quyền đầy đủ (chủ dự án yêu cầu "test kĩ phân quyền
+các trường hợp").** `reports/tests/test_ma_tran_phan_quyen_bao_cao.py`: 8 hàm / 21 ca —
+13 vai × sửa/bỏ/khôi phục trên cùng một báo cáo, thêm 4 persona chưa có trong fixture
+(tài khoản khoá, không hồ sơ, CSKH, Leader không dẫn team), kiểm cả 404-ngoài-phạm-vi vs
+403-có-nhật-ký và trang Đã bỏ rỗng với Manager bộ phận khác. Chỉ dùng AC sẵn có nên
+docs/06 không đổi; **không phát hiện lỗ hổng phải vá**. Chi tiết trong biên bản trên.
+
+## 24.09.2026 — ADR-040: KN CRM chỉ một bảng Vận đơn, bỏ cấp Quý/Tháng
+
+**Chốt của chủ dự án (4 điều):** Sale/MKT nhập – xuất đều bên ERP; chưa có tính năng
+Leader/Manager sửa & xoá báo cáo cấp dưới (khoảng trống, chờ làm); CRM chỉ có Bảng tính
+của Vận đơn; Thống kê lấy số liệu từ cả hai bên. **Dữ liệu không đổi một dòng nào.**
+
+**Làm:** lọc một chỗ `crm/services/catalog.chi_van_don` áp ở mọi cửa CRM (trang chủ gồm cả
+Hoạt động gần đây, thư mục, sidebar, lưới + JSON, Nhập tệp, Cấp quyền, guard route
+forms_builder trên 8021); `tree_service.build` phẳng, xoá Quarter/quarters/month_counts;
+nút Tạo bảng ẩn (đường dẫn còn); trang Đã xóa giữ mọi bảng (cửa quản trị). Sửa kèm hai lỗi
+lộ ra: sidebar đổ 500 khi bảng vận đơn thiếu cột chuẩn; mục Thống kê biến mất với người chỉ
+có bảng thường. AC-40.1→40.4 mới; AC-11.12/14/28/29/34 viết lại; docs/06 243/230/207.
+
+**Đo:** biên bản [kiem-chung-crm-mot-bang-20260924.md](kiem-chung-crm-mot-bang-20260924.md), 4 ảnh Chromium.
+
+## 24.09.2026 — Ngày (lên đơn) lên đầu bảng Vận đơn mới
+
+**Vì sao.** ADR-036 (18.09) gộp một bảng và lấy thứ tự chuẩn của crmThuận (Mã đơn đầu),
+bỏ mất thứ tự tệp thật (Ngày đầu) mà bảng Vận đơn cũ và Vận đơn DB đang hiển thị —
+hệ quả không được ghi trong ADR, chủ dự án phát hiện trên VPS và chốt 24.09: **Ngày
+(lên đơn) đứng đầu, Ngày thanh toán giữ nguyên chỗ**.
+
+**Sửa:** `ngay` lên đầu `waybill_service.COLUMNS`; nhóm ghim = Trùng · Ngày · Mã đơn ·
+Tên khách · SĐT (`grid_column`). Lưới CRM, Thống kê, tệp Excel xuất theo cùng một chỗ,
+không migration. AC-11.1/11.38 sửa lời; 3 bài kiểm chỉnh theo (frozen, xuất, e2e ghim).
+
+## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu, đợt 1: quy ₫ rồi mới cộng, cột (TT), Tỉ lệ chốt MKT (ADR-042)
 
 **Vì sao.** Chủ dự án so Báo cáo tổng hợp với Bảng dữ liệu và ảnh LUMI OMS: cột CPQC, DS Chốt, CPO, Giá
 Mess đều "—" vì dữ liệu thật lẫn USD/EUR/CAD/VND và ADR-038 chọn "để trống khi lẫn tiền". Chốt 23.09:
 **hai màn hình cùng tồn tại**, Báo cáo tổng hợp ưu tiên số một, giữ mọi chức năng và làm giống ảnh
 (bố cục khối theo ngày, Gộp/Không gộp, cột (TT) đối soát từ vận đơn, tiền ₫, màu 3 bậc, lọc nhiều sản
-phẩm); Bảng dữ liệu cập nhật theo sau. Kế hoạch năm đợt ở ADR-040; đây là đợt 1.
+phẩm); Bảng dữ liệu cập nhật theo sau. Kế hoạch năm đợt ở ADR-042; đây là đợt 1.
 
 **Làm gì.** `core/money.py` nhận `to_vnd`/`rates_label` (dời từ leaderboard) và `vnd_rate_expression`;
 `aggregations.summarize(currency_code)` nhân tỉ giá từng dòng ngay trong SQL cho cột kiểu Tiền, đếm
@@ -14,9 +124,9 @@ phẩm); Bảng dữ liệu cập nhật theo sau. Kế hoạch năm đợt ở 
 `activity_service.marketing_actuals` (một truy vấn trên `DataRecord` vận đơn) thay `marketing_revenue`,
 cho Số đơn (TT) + DS Chốt (TT); `FORMULAS` thêm `conversion_tt`, tỉ lệ hiện %; nhãn MKT theo ảnh;
 `currency_note` thay `currency_safe_result`; chỉ số quan trọng khoá theo mã. Hai lỗi thật: liên kết phân
-trang kéo `trang` cũ (TL-53), chip Kỳ có × ở kỳ mặc định (TL-52); ô Tìm nhân sự bỏ `type=search`.
+trang kéo `trang` cũ (TL-58), chip Kỳ có × ở kỳ mặc định (TL-52); ô Tìm nhân sự bỏ `type=search`.
 
-**Kiểm.** `reports/tests dashboard culture tests/test_ti_gia tests/test_truy_vet`: 199 đạt; AC-40.1 → 40.5
+**Kiểm.** `reports/tests dashboard culture tests/test_ti_gia tests/test_truy_vet`: 199 đạt; AC-42.1 → 40.5
 mới; nguồn MKT thật 12 → ≤ 10 truy vấn; Chromium 1440 sáng/tối + 390 trên `knjsc_mkt`.
 [Biên bản](kiem-chung-bao-cao-nhu-anh-mau-20260923.md).
 
@@ -25,7 +135,7 @@ mới; nguồn MKT thật 12 → ≤ 10 truy vấn; Chromium 1440 sáng/tối + 
 TỔNG CỘNG ngay dưới tiêu đề cột), rồi **mỗi ngày một bảng riêng** không có cột Ngày, TỔNG CỘNG ngày, STT
 đếm lại; ngày tách trang ghi "(tiếp)"; nút **Gộp / Không gộp** (`gop=1`, mỗi ngày một dòng); template
 `reports/_bang_khoi.html` dùng chung, một khung cuộn nhiều bảng; Excel hai sheet "Toan ky theo nhan su" +
-"Theo ngay". AC-40.6, AC-40.7; sửa AC-22.10/13/14/15, AC-38.2. 192 đạt bộ báo cáo.
+"Theo ngay". AC-42.6, AC-42.7; sửa AC-22.10/13/14/15, AC-38.2. 192 đạt bộ báo cáo.
 
 **Đợt 3 cùng ngày — ngưỡng màu ba bậc, lọc nhiều sản phẩm, "Tuần này".** `ReportSource.thresholds`
 (migration `reports/0005`, đảo ngược được) do quản lý bộ phận sở hữu nguồn đặt ngay trên màn hình (nút
@@ -34,7 +144,7 @@ ký); ô chỉ số xanh / vàng / đỏ theo mốc tuyệt đối, dòng TỔNG
 TỔNG CỘNG, không bịa số mặc định. Bộ lọc Sản phẩm thành hộp tick nhiều mục (`sp` lặp lại, URL cũ `sp=A` vẫn
 chạy, danh sách theo phạm vi quyền, (TT) cũng lọc theo), Chọn nhanh thêm "Tuần này". Danh sách sản phẩm là
 một truy vấn thêm — bù bằng backend đăng nhập lấy người dùng kèm hồ sơ trong một lệnh
-(`core/auth_backends.py`; mọi màn hình đã đăng nhập bớt một truy vấn, Vận đơn/Leader 11 → 10). AC-40.8 →
+(`core/auth_backends.py`; mọi màn hình đã đăng nhập bớt một truy vấn, Vận đơn/Leader 11 → 10). AC-42.8 →
 40.12, AC-10.2 thêm một bài. Hai lỗi bắt được khi chụp và sửa ngay: `nguong=1` nối đuôi khi lưu hụt hai lần;
 form hiện mốc đã lưu dạng `0.345` mà `parse_money` đọc thành 345 — nay hiện `0,345`.
 
@@ -47,10 +157,10 @@ kết quay lại; bảng không có nguồn giữ nguyên; Xuất tệp ra Excel
 ngày một người nộp nhiều lần thì dòng đó "—" và TỔNG CỘNG cộng một lần (`derived_shared`). Bối cảnh màn hình
 dùng chung dời sang `reports/screen.py` để forms_builder không import view của reports. Lỗi vặt liệt kê thô:
 phân trang và sắp xếp giữ tìm kiếm, bộ lọc cột, cỡ trang (`filter_query`), `aria-sort`, ô Đúng/sai "Có"/"Không",
-"Sửa cột" chỉ với quản lý bộ phận sở hữu (`can_manage_columns`), bỏ chữ "phần 3B". AC-40.13, AC-40.14.
+"Sửa cột" chỉ với quản lý bộ phận sở hữu (`can_manage_columns`), bỏ chữ "phần 3B". AC-42.13, AC-42.14.
 
-**Đợt 5 cùng ngày — tài liệu.** docs/02 FR-5.7 → 5.12 và FR-7.16; docs/04 mục 40 (AC-40.1 → 40.14) và bộ đếm
-docs/06; ADR-040 trạng thái cuối + README; test-log TL-52 → TL-57; CLAUDE.md một đoạn ADR-040 và một dòng "Đọc gì
+**Đợt 5 cùng ngày — tài liệu.** docs/02 FR-5.7 → 5.12 và FR-7.16; docs/04 mục 40 (AC-42.1 → 40.14) và bộ đếm
+docs/06; ADR-042 trạng thái cuối + README; test-log TL-52 → TL-57; CLAUDE.md một đoạn ADR-042 và một dòng "Đọc gì
 trước khi làm"; biên bản đủ bốn đợt kèm 21 ảnh. Cả năm đợt nằm trên nhánh `claude/bao-cao-nhu-anh-mau`, PR nháp
 #36 vào `codex/crm-update-solar-ui` — không tự gộp, không phát hành.
 
@@ -58,6 +168,115 @@ trước khi làm"; biên bản đủ bốn đợt kèm 21 ảnh. Cả năm đ�
 dự án: `so_tien_tt` gõ tay ở đơn không chi tiết có vào DS Chốt (TT) không; tỉ giá KRW; cột lệch nhẹ giữa
 các bảng (mỗi bảng tự co theo nội dung) có cần ép cùng bề rộng không; Bảng dữ liệu dạng báo cáo có cần
 thêm cột ngoài ánh xạ nguồn (ghi chú, thị trường) không, hay `?dang=tho` là đủ.
+
+## 22.09.2026 (đêm) — Lọc theo cột ẩn vẫn chạy, kèm lời nhắc (TL-53 đóng)
+
+**Nợ cũ (hệ quả đã biết của ADR-039).** Bộ lọc trỏ tới cột đang ẩn bị bỏ lặng lẽ: URL cũ, liên kết
+Thống kê, bookmark mang `f_<cột ẩn>` thì lưới hiện **thừa dòng** mà không nói gì.
+
+**Chốt của chủ dự án:** vẫn lọc + hiện dòng nhắc kèm nút bỏ lọc. **Sửa:** bộ lọc đọc trên mọi cột
+(`build_grid`, `bang_xem`, `export_service.build_queryset` — tệp xuất vẫn "đúng thứ đang hiện");
+hiển thị vẫn qua `visible_columns`. KN CRM: chip cảnh báo "(cột đang ẩn) …" (`mg-chip-an`, bỏ bằng
+nút × sẵn có); KN ERP: dòng nhắc `bao-cho` cạnh Xoá lọc; tính "bộ lọc nào trỏ cột ẩn" ở một chỗ
+`table_service.hidden_filtered_columns`. AC-39.8 mới (4 bài `crm/tests/test_loc_cot_an.py`, gồm
+chiều bị từ chối), ADR-039 bổ sung 22.09.
+
+**Đo:** biên bản [kiem-chung-loc-cot-an-co-nhac-20260922.md](kiem-chung-loc-cot-an-co-nhac-20260922.md).
+
+## 22.09.2026 (đêm) — Khoá so trùng số điện thoại (TL-36 đóng)
+
+**Nợ cũ.** Cột Trùng so `val_phone` đúng như gõ: `+1 (416) 555-0123` và `4165550123` là hai khách. Nhân viên
+không nhận ra khách cũ, chỉ số mua lại thấp hơn thực tế.
+
+**Chốt của chủ dự án:** bỏ ký tự không phải số, so **9 chữ số cuối**. **Sửa:** cột `val_phone_key`
+(migration `forms_builder/0016`, chỉ mục + backfill 1 lệnh UPDATE), sinh một chỗ duy nhất
+`phone_key` trong `sync_indexed_columns`; `bulk_save` ghi kèm (cả danh sách cột mặc định lẫn
+`nap_du_lieu_van_don` liệt kê cứng); cột Trùng, `?trung=1`, đếm dòng lẻ GROUP BY theo khoá. Ô hiển thị giữ
+nguyên chữ gõ. AC-11.5 sửa lời, AC-36.8 mới (3 bài).
+
+**Không đổi, chờ quyết riêng:** tra khách ở Lên đơn vẫn so số đúng như gõ — đổi là đổi nghiệp vụ nhận diện khách.
+
+**Đo:** suite 2.530 đạt / 0 đỏ; backfill 120 nghìn dòng 112 s — biên bản
+[kiem-chung-khoa-trung-sdt-20260922.md](kiem-chung-khoa-trung-sdt-20260922.md).
+
+## 22.09.2026 (tối) — Cắt ba lượt hỏi thừa mỗi trang, đóng K24
+
+**Nợ cũ.** Hai bài `tests/test_hieu_nang.py` mang `xfail`: thời gian đạt nhưng đếm 12 lệnh truy vấn, ngân sách
+10 (K24). Món 5 trong bảng nợ kỹ thuật.
+
+**Tìm bằng cách nào.** Bọc `connection.execute_wrapper` in ngăn xếp Python của từng truy vấn — không đoán.
+
+**Ba lượt thừa:** `/bang-tinh/` hỏi phạm vi quyền **ba lần** cho cùng một bảng; `user.profile` nạp lười ở mọi
+yêu cầu; `user.profile.department` nạp lười thêm lượt nữa qua `is_accountant`. Hai cái sau trả ở **mọi trang**,
+không riêng lưới.
+
+**Sửa.** `bang_tinh_xem` hỏi một lượt rồi tự phân nhánh (404 / chuyển Lên đơn cho Sale / `OutOfScopeError`);
+`CaseInsensitiveModelBackend.get_user` lấy kèm `profile__department` và `profile__team`. Bài đo thêm một lượt
+làm nóng vì yêu cầu đầu sau đăng nhập ghi `last_seen_at` vào phiên — giá của lần đăng nhập, không phải giá màn
+hình. **Ngân sách giữ nguyên 10, không nới.**
+
+**Đo:** Bảng dữ liệu ERP 11 → **9**; lưới CRM 13 → **9**; `?trung=1` 13 → **9**. Toàn bộ `-m "not trinh_duyet"`
+gồm cả `cham`: 2.549 bài, 0 đỏ. [Biên bản](kiem-chung-ngan-sach-truy-van-20260922.md).
+
+**Đính chính tài liệu:** `docs/handoff/project-brief.md` ghi hai chỗ `xfail`; thực tế chỉ còn một (K24), K23
+không còn trong mã. Nay hết cả cái đó.
+
+## 22.09.2026 — Gom p95 thật của KN CRM từ log VPS
+
+**Phát hiện đổi hẳn cách làm.** Tưởng phải dựng đo mới trên VPS, nhưng
+`deploy/production/compose.yml` đã đặt `CRM_REQUEST_METRICS: '1'` từ đầu, nên
+`core/request_metrics.py` ghi **một dòng JSON mỗi yêu cầu** (`route`, `method`,
+`status`, `ms`, `db_ms`, `queries`) ra stdout container và Docker giữ lại. Số p95
+thật đã nằm trên VPS nhiều ngày rồi; cái thiếu chỉ là bộ gom. Không phải đo mới,
+không phải đụng vào máy chủ đang chạy.
+
+**Làm gì.** `scripts/gom-p95-vps.py` — chạy trên VPS, thư viện chuẩn thuần (quy
+tắc 8), chỉ đọc log. Gom theo ba nhóm đúng ngưỡng ADR-016 (hỏi thăm 300 ms, ghi
+500 ms, đọc 1000 ms), in p50/p95/p99 mỗi nhóm kèm phán quyết, cộng mười tuyến
+chậm nhất kèm `db_ms` và số truy vấn để chỉ thẳng chỗ nghẽn. Mã thoát 0/1/2 nên
+cắm được vào cron. `--json` để lại biên bản máy đọc được.
+
+**Ba cái bẫy đã bịt.** (1) `moi-nhat/` là GET nhưng ngưỡng 300 ms chứ không phải
+1000 ms — xếp nhóm theo phương thức **cộng** đuôi tuyến, không theo danh sách
+liệt kê tay. (2) Nhập tệp 20 giây là đúng thiết kế; tính vào nhóm Ghi thì nhóm
+nào cũng đỏ — vẫn in ra nhưng loại khỏi phán quyết. (3) p95 trên ba mẫu chỉ là
+số lớn nhất; dưới 20 mẫu script nói "ít mẫu", dưới 5 thì không kết luận.
+
+**Kiểm.** `app/tests/test_gom_p95.py` 13 bài đạt, dựng từ dòng log **đúng khuôn
+thật** của `request_metrics` nên đổi khuôn mà quên bộ gom là đỏ; có bài canh ba
+ngưỡng trong script khớp `core/constants.py` (script chạy ngoài container nên
+phải chép, chép thì sẽ trôi). Chạy thử mắt thường trên log giả lập 4.807 dòng
+hình dạng y hệt container `crm` (có tiền tố `crm  |`, có dòng khởi động xen vào):
+đọc được 4.806 bản ghi, `moi-nhat/` vào đúng nhóm Hỏi thăm, tuyến nhập tệp hiện
+trong bảng nhưng mang dấu `*` và không kéo nhóm Ghi xuống.
+
+**Còn nợ — đây mới là nửa việc.** Chưa ai chạy nó trên VPS thật, nên **vẫn chưa
+có con số p95 thật nào**. Việc của người có SSH: chạy `--since 7d`, lưu `--json`,
+điền vào chỗ trống sẵn có ở [biên bản](kiem-chung-gom-p95-vps-20260922.md). Ghi chú thêm:
+`compose.yml` chưa đặt `logging:` nên log `json-file` không có trần — gom và lưu
+trước khi đặt giới hạn xoay vòng, vì đặt giới hạn là xoá mất lịch sử chưa gom.
+
+## 22.09.2026 (chiều) — Xoá dữ liệu giả theo lô, không treo nữa (TL-43)
+
+**Vấn đề.** `seed_perf.clear()` xoá cả 50.000 dòng trong **một** lệnh `DELETE`. Có lần đứng hơn 17 phút vì chờ
+khoá, mà màn hình không in gì nên người chạy tưởng máy chết. Không tái hiện được nên trước nay chỉ ghi nợ.
+
+**Sửa.** Một đường xoá dùng chung `delete_fake_records`: chụp danh sách pk một lần (bộ lọc `ma_don startswith`
+không có chỉ mục, chạy lại mỗi lô là mỗi lô một lượt quét bảng), cắt lô `DELETE_BATCH_SIZE = 2.000`, mỗi lô một
+giao dịch riêng có `SET LOCAL lock_timeout = 30 s` trên **đúng database của queryset**, `on_progress(đã xoá,
+tổng)` cộng dồn. Hết hạn chờ khoá thì lỗi **nói rõ đã xoá được bao nhiêu** rồi mới nổi lên. Con (chi tiết,
+phân công) vẫn xoá trước cha. `nap_khach_mau --xoa-cu` (375.000 dòng — gấp 7 quy mô từng treo) đi cùng đường.
+
+Review nội bộ trước khi bàn giao bắt được 5 chỗ phải sửa lại: nap_khach_mau còn xoá một phát; lọc JSONB chạy
+lại mỗi lô; lỗi hết hạn khoá không kèm số đã xoá; hạn khoá đặt trên connection mặc định trong khi xoá theo
+`ds.db`; tên hằng tiếng Việt trái quy ước đặt tên. Đều đã sửa trong cùng PR.
+
+Không đụng dữ liệu thật: chỉ lệnh dữ liệu giả, và bài kiểm khẳng định dòng có mã đơn thật không bị xoá lây.
+AC-10.10, năm bài ở `core/tests/test_seed_perf_xoa.py` (5 dòng chứ không phải 50.000 — cái cần khoá là cách
+xoá; có bài canh `SET LOCAL` từng lô và bài giả hết hạn khoá đọc được "được 2/5 dòng").
+
+**Còn nợ:** nguyên nhân gốc của lần treo 17 phút vẫn chưa biết, chỉ mới chặn hậu quả. Lần sau gặp thì lỗi
+`lock_timeout` sẽ nói rõ ai đang giữ khoá.
 
 ## 19.09.2026 (đêm) — Một bài đầu-cuối đi trọn hành trình nhân viên
 

@@ -1,21 +1,19 @@
-"""Cây trang chủ KN CRM: Bộ phận ▸ Quý ▸ Tháng ▸ bảng — ADR-012.
+"""Trang thư mục KN CRM: Bộ phận ▸ thư mục ▸ bảng — ADR-012, thu gọn ở ADR-040.
 
-Tháng là **góc nhìn** trên một bảng, không phải bảng riêng (backlog Q55): nút
-tháng mở lưới với `f_<cột Ngày>__lon_bang` và `__nho_bang` đúng ngày đầu và
-cuối tháng — cùng tham số thanh bên đang dùng (ADR-010 mục 5), nên chip, phân
-trang và Tải Excel hiểu ngay.
+Từ 24.09.2026 (ADR-040) KN CRM chỉ phục vụ **bảng vận đơn** và không còn cấp
+Quý ▸ Tháng: lọc thời gian là việc của bộ lọc trên lưới. `Month` và
+`month_of_params` giữ lại cho nhãn "Tháng x/nnnn" trên thanh lưới khi bộ lọc
+ngày trên URL vừa đúng một tháng.
 
-Cây chỉ dựng từ `in_scope` (quy tắc 11): bảng nào người này không được xem thì
-nhánh đó không có; quyền theo bảng do Manager cấp ở KN ERP (Q56). Số dòng
-theo tháng đếm trên cột tách `DataRecord.val_date` (có chỉ mục) qua **một truy
-vấn cho cả bộ phận**, không phải mỗi bảng một lệnh — trần 10 lệnh (AC-10.2).
+Trang chỉ dựng từ `in_scope` (quy tắc 11): bảng nào người này không được xem
+thì không có; quyền theo bảng do Manager cấp ở KN ERP (Q56).
 """
 from calendar import monthrange
 from dataclasses import dataclass, field
 from datetime import date
 
 from django.db.models import Count, Max
-from django.db.models.functions import TruncMonth
+
 from django.urls import reverse
 from django.utils import timezone
 
@@ -54,49 +52,6 @@ class Month:
         return date(self.year, self.month, monthrange(self.year, self.month)[1])
 
 
-@dataclass(frozen=True)
-class Quarter:
-    year: int
-    quarter: int
-    months: tuple = field(default_factory=tuple)
-
-    @property
-    def key(self):
-        return f"{self.year:04d}-{self.quarter}"
-
-    @property
-    def label(self):
-        return f"Quý {self.quarter}/{self.year}"
-
-    @property
-    def count(self):
-        return sum(m.count for m in self.months)
-
-
-def quarter_of(d):
-    return d.year, (d.month - 1) // 3 + 1
-
-
-def parse_month(raw):
-    """`"2026-09"` → `(2026, 9)`; sai dạng thì None."""
-    try:
-        nam, thang = raw.split("-")
-        nam, thang = int(nam), int(thang)
-    except (AttributeError, ValueError):
-        return None
-    return (nam, thang) if 1 <= thang <= 12 and 2000 <= nam <= 2100 else None
-
-
-def parse_quarter(raw):
-    """`"2026-3"` → `(2026, 3)`; sai dạng thì None."""
-    try:
-        nam, quy = raw.split("-")
-        nam, quy = int(nam), int(quy)
-    except (AttributeError, ValueError):
-        return None
-    return (nam, quy) if 1 <= quy <= 4 and 2000 <= nam <= 2100 else None
-
-
 def today():
     return timezone.localdate()
 
@@ -104,9 +59,11 @@ def today():
 # ── Dữ liệu ──────────────────────────────────────────────────────────
 
 def all_tables(user):
-    """Mọi bảng trong phạm vi, kèm bộ phận và cột — hai truy vấn cho cả trang."""
+    """Bảng KN CRM phục vụ trong phạm vi (chỉ vận đơn — ADR-040), kèm bộ phận
+    và cột — hai truy vấn cho cả trang."""
+    from . import catalog
     return list(
-        TableDef.objects.in_scope(user)
+        catalog.chi_van_don(TableDef.objects.in_scope(user))
         .select_related("department")
         .prefetch_related("columns")
         .order_by("name")
@@ -136,19 +93,6 @@ def _records(user, department):
     )
 
 
-def month_counts(user, department):
-    """`{(bảng_id, năm, tháng): số dòng}` theo cột Ngày — một truy vấn."""
-    dong = (
-        _records(user, department)
-        .filter(val_date__isnull=False)
-        .annotate(thang=TruncMonth("val_date"))
-        .values("table_id", "thang")
-        .annotate(n=Count("id"))
-        .order_by()
-    )
-    return {(d["table_id"], d["thang"].year, d["thang"].month): d["n"] for d in dong}
-
-
 def table_stats(user, department):
     """`{bảng_id: (tổng dòng, cập nhật gần nhất)}` — một truy vấn."""
     dong = (
@@ -160,50 +104,21 @@ def table_stats(user, department):
     return {d["table_id"]: (d["n"], d["moc"]) for d in dong}
 
 
-def quarters(dem, *, hom_nay=None):
-    """Từ bảng đếm theo tháng dựng danh sách Quý (mới trước), mỗi quý đủ ba
-    tháng; quý hiện tại luôn có dù trống."""
-    hom_nay = hom_nay or today()
-    theo_thang = {}
-    for (_, nam, thang), n in dem.items():
-        theo_thang[(nam, thang)] = theo_thang.get((nam, thang), 0) + n
-    cac_quy = {quarter_of(date(nam, thang, 1)) for nam, thang in theo_thang}
-    cac_quy.add(quarter_of(hom_nay))
-    ket_qua = []
-    for nam, quy in sorted(cac_quy, reverse=True):
-        thang_dau = (quy - 1) * 3 + 1
-        months = tuple(
-            Month(nam, t, theo_thang.get((nam, t), 0))
-            for t in range(thang_dau + 2, thang_dau - 1, -1)      # mới trước, như quý
-        )
-        ket_qua.append(Quarter(nam, quy, months))
-    return ket_qua
-
-
 # ── Liên kết ─────────────────────────────────────────────────────────
 
 def home_url(department=None, quarter=None, month=None, *, all_tables=False):
-    """Địa chỉ trang thư mục (mục Bảng tính) với cây mở đúng nút — ADR-015."""
-    cap = []
+    """Địa chỉ trang thư mục (mục Bảng tính) mở đúng bộ phận — ADR-015.
+
+    `quarter`/`month`/`all_tables` giữ trong chữ ký cho chỗ gọi cũ nhưng
+    không sinh tham số nữa: cấp Quý ▸ Tháng đã bỏ (ADR-040)."""
     if department is not None:
-        cap.append(("bp", department.code))
-    if month is not None:
-        cap.append(("thang", month.key))
-    elif quarter is not None:
-        cap.append(("quy", quarter.key))
-    if all_tables:
-        cap.append(("tat-ca", "1"))
-    duoi = "&".join(f"{k}={v}" for k, v in cap)
-    return reverse("thu_muc") + ("?" + duoi if duoi else "")
+        return reverse("thu_muc") + f"?bp={department.code}"
+    return reverse("thu_muc")
 
 
 def grid_url(table, month=None):
-    """Địa chỉ lưới của bảng, lọc sẵn theo tháng nếu bảng có cột Ngày."""
-    url = reverse("bang_tinh_xem", args=[table.code])
-    cot = date_column(list(table.columns.all())) if month is not None else None
-    if cot is None:
-        return url
-    return f"{url}?f_{cot.code}__lon_bang={month.first.isoformat()}&f_{cot.code}__nho_bang={month.last.isoformat()}"
+    """Địa chỉ lưới của bảng (tham số `month` đã bỏ theo ADR-040)."""
+    return reverse("bang_tinh_xem", args=[table.code])
 
 
 def month_of_params(params, columns):
@@ -230,23 +145,25 @@ def permission_label(user, table):
     return QUYEN_XEM
 
 
-def _dong_bang(user, table, *, so_dong, cap_nhat, month):
+def _dong_bang(user, table, *, so_dong, cap_nhat):
     quyen, lop = permission_label(user, table)
     from forms_builder.services.lifecycle_service import can_delete as may_delete
     can_delete=may_delete(user,table)
-    co_ngay = date_column(list(table.columns.all())) is not None
     return {
         "can_delete":can_delete, "bang": table, "so_dong": so_dong, "cap_nhat": cap_nhat,
         "can_download_template": is_waybill_table(table) and grant_service.can_import(user, table),
-        "quyen": quyen, "lop_quyen": lop, "khong_ngay": not co_ngay,
-        "url": grid_url(table, month),
+        "quyen": quyen, "lop_quyen": lop,
+        "url": grid_url(table),
     }
 
 
-def build(user, *, bp_code="", quy_raw="", thang_raw="", tat_ca=False, hom_nay=None):
-    """Toàn bộ dữ liệu của trang chủ. Trả None nếu người này không thấy bảng
-    nào; ném `LookupError` nếu `bp` ngoài phạm vi (view trả 404, quy tắc 8)."""
-    hom_nay = hom_nay or today()
+def build(user, *, bp_code="", hom_nay=None):
+    """Toàn bộ dữ liệu của trang thư mục. Trả None nếu người này không thấy
+    bảng nào; ném `LookupError` nếu `bp` ngoài phạm vi (view trả 404, quy tắc 8).
+
+    Từ ADR-040 (24.09.2026) không còn cấp Quý ▸ Tháng: trang liệt kê thẳng
+    các bảng (chỉ vận đơn) theo thư mục; lọc thời gian là việc của bộ lọc
+    trên lưới."""
     moi_bang = all_tables(user)
     cac_bp = departments_of(user, moi_bang)
     if not cac_bp:
@@ -259,86 +176,35 @@ def build(user, *, bp_code="", quy_raw="", thang_raw="", tat_ca=False, hom_nay=N
         (b for b in cac_bp if ho_so is not None and b.pk == ho_so.department_id), cac_bp[0]
     )
 
-    dem = month_counts(user, bp)
-    cac_quy = quarters(dem, hom_nay=hom_nay)
-    thang_chon = parse_month(thang_raw)
-    quy_chon = parse_quarter(quy_raw)
-    if thang_chon is not None:
-        quy_chon = quarter_of(date(thang_chon[0], thang_chon[1], 1))
-    if not tat_ca and thang_chon is None and quy_chon is None:
-        thang_chon = (hom_nay.year, hom_nay.month)
-        quy_chon = quarter_of(hom_nay)
-    if quy_chon is not None and quy_chon not in {(q.year, q.quarter) for q in cac_quy}:
-        # Quý được gõ tay mà chưa có dữ liệu: vẫn mở, ba tháng trống
-        cac_quy.append(Quarter(quy_chon[0], quy_chon[1], tuple(
-            Month(quy_chon[0], t) for t in range((quy_chon[1] - 1) * 3 + 3, (quy_chon[1] - 1) * 3, -1))))
-        cac_quy.sort(key=lambda q: (q.year, q.quarter), reverse=True)
-
-    month = None
-    if thang_chon is not None:
-        for q in cac_quy:
-            for m in q.months:
-                if (m.year, m.month) == thang_chon:
-                    month = m
     bang = tables_of(user, bp, moi_bang)
     thong_ke = table_stats(user, bp)
+    # `folder_service.tree` liệt kê mọi bảng trong phạm vi — giữ lại đúng các
+    # bảng KN CRM phục vụ (chỉ vận đơn, ADR-040) đã lấy ở `all_tables`
+    phuc_vu = {t.pk for t in moi_bang}
+    cay = [(tm, [b for b in ds if b.pk in phuc_vu]) for tm, ds in folder_service.tree(user)]
+    cay = [(tm, ds) for tm, ds in cay
+           if any(b.department_id == bp.pk for b in ds) or (tm is not None and tm.department_id == bp.pk)]
+    cac_nhom = [{
+        "ten": tm.name if tm is not None else ("Không thư mục" if len(cay) > 1 else ""),
+        "cac_bang": [
+            _dong_bang(user, t, so_dong=thong_ke.get(t.pk, (0, None))[0],
+                       cap_nhat=thong_ke.get(t.pk, (0, None))[1])
+            for t in ds if t.department_id == bp.pk
+        ],
+    } for tm, ds in cay]
+    cac_nhom = [n for n in cac_nhom if n["cac_bang"] or n["ten"]]
 
-    if month is not None:
-        cac_nhom = [{"ten": "", "cac_bang": [
-            _dong_bang(user, t, so_dong=sum(n for (tid, y, mo), n in dem.items()
-                                             if tid == t.pk and (y, mo) == (month.year, month.month)),
-                       cap_nhat=thong_ke.get(t.pk, (0, None))[1], month=month)
-            for t in bang if date_column(list(t.columns.all())) is not None
-        ]}]
-        tieu_de = f"{bp.name} · {month.label}"
-        mo_ta = "Mỗi bảng mở với bộ lọc đúng tháng này. Bảng không có cột Ngày nằm ở Toàn bộ bảng."
-        rong_mo_ta = "Chưa bảng nào của bộ phận này có cột Ngày, nên không xếp theo tháng được."
-        nhan_nut = "Góc nhìn theo tháng"
-    else:
-        cay = [(tm, ds) for tm, ds in folder_service.tree(user)
-               if any(b.department_id == bp.pk for b in ds) or (tm is not None and tm.department_id == bp.pk)]
-        cac_nhom = [{
-            "ten": tm.name if tm is not None else ("Không thư mục" if len(cay) > 1 else ""),
-            "cac_bang": [
-                _dong_bang(user, t, so_dong=thong_ke.get(t.pk, (0, None))[0],
-                           cap_nhat=thong_ke.get(t.pk, (0, None))[1], month=None)
-                for t in ds if t.department_id == bp.pk
-            ],
-        } for tm, ds in cay]
-        cac_nhom = [n for n in cac_nhom if n["cac_bang"] or n["ten"]]
-        tieu_de = f"{bp.name} · Toàn bộ bảng"
-        mo_ta = "Mọi bảng của bộ phận trong phạm vi của bạn, không lọc thời gian."
-        rong_mo_ta = "Bộ phận này chưa có bảng nào bạn được xem."
-        nhan_nut = "Toàn bộ"
-
-    cac_bo_phan = []
-    for b in cac_bp:
-        dang = b.pk == bp.pk
-        quy_cua_b = []
-        if dang:
-            for q in cac_quy:
-                q_chon = quy_chon == (q.year, q.quarter)
-                quy_cua_b.append({
-                    "label": q.label, "count": q.count, "dang_chon": q_chon,
-                    "lop": "crm-quy-ten on" if q_chon else "crm-quy-ten",
-                    "months": [{
-                        "label": m.label, "count": m.count,
-                        "dang_chon": month is not None and (m.year, m.month) == (month.year, month.month),
-                        "lop": "crm-thang-lk on" if month is not None and (m.year, m.month) == (month.year, month.month) else "crm-thang-lk",
-                        "url": home_url(b, q, m),
-                    } for m in q.months],
-                })
-        cac_bo_phan.append({
-            "bp": b, "dang_chon": dang, "quy": quy_cua_b,
-            "lop": "crm-bp-ten on" if dang else "crm-bp-ten",
-            "tat_ca_chon": dang and month is None,
-            "lop_tat_ca": "crm-tat-ca on" if dang and month is None else "crm-tat-ca",
-            "url_tat_ca": home_url(b, all_tables=True),
-            "so_bang": len(bang) if dang else "",
-        })
+    cac_bo_phan = [{
+        "bp": b, "dang_chon": b.pk == bp.pk,
+        "lop": "crm-bp-ten on" if b.pk == bp.pk else "crm-bp-ten",
+        "url": home_url(b),
+        "so_bang": len(bang) if b.pk == bp.pk else "",
+    } for b in cac_bp]
 
     return {
-        "bp": bp, "thang": month, "quy": quy_chon, "cac_bo_phan": cac_bo_phan,
-        "cac_nhom": cac_nhom, "tieu_de": tieu_de, "mo_ta": mo_ta,
-        "rong_mo_ta": rong_mo_ta, "nhan_nut": nhan_nut,
+        "bp": bp, "thang": None, "cac_bo_phan": cac_bo_phan,
+        "cac_nhom": cac_nhom, "tieu_de": bp.name,
+        "mo_ta": "Các bảng vận đơn trong phạm vi của bạn. Lọc theo thời gian ngay trên lưới.",
+        "rong_mo_ta": "Bộ phận này chưa có bảng nào bạn được xem.",
+        "nhan_nut": "Bảng tính",
     }

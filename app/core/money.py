@@ -108,7 +108,7 @@ def format_money(amount, currency=Currency.VND):
 # ── Quy đổi về VND ─────────────────────────────────────────────────────────────
 #
 # Tỉ giá cố định ở `settings.EXCHANGE_RATES_VND` (Decimal, BR-8). Lưu trữ không quy đổi
-# (ADR-031); quy đổi là việc của lúc lập báo cáo (ADR-040) và xếp hạng (Q71). Trước
+# (ADR-031); quy đổi là việc của lúc lập báo cáo (ADR-042) và xếp hạng (Q71). Trước
 # 23.09.2026 mấy hàm này nằm ở `culture.services.leaderboard_service`.
 
 def vnd_rate(currency):
@@ -140,7 +140,7 @@ def rates_label():
 
 def vnd_rate_expression(currency_expr):
     """Biểu thức SQL trả tỉ giá theo loại tiền của **từng dòng** — `Case/When` dựng từ bảng tỉ
-    giá — để báo cáo nhân tỉ giá ngay trong truy vấn rồi mới cộng (ADR-040): cộng tiền khác
+    giá — để báo cáo nhân tỉ giá ngay trong truy vấn rồi mới cộng (ADR-042): cộng tiền khác
     loại là sai, còn quy về ₫ trước thì SUM vẫn kết hợp được nên tổng nhóm, tổng ngày và tổng
     bộ lọc cùng một số. Loại tiền chưa có tỉ giá hoặc trống → NULL: `Sum` bỏ qua, tầng trên
     đếm dòng đó để cảnh báo thay vì âm thầm cộng thiếu."""

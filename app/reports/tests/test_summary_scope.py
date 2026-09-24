@@ -115,14 +115,17 @@ def test_staff_chi_thay_tong_cua_minh(client, dong_sale, nguoi_dung, monkeypatch
     assert "Hà" not in noi_dung
 
 
-def test_leader_chi_thay_so_lieu_team_minh(client, dong_sale, nguoi_dung):
+def test_leader_chi_thay_so_lieu_team_minh(client, dong_sale, nguoi_dung, monkeypatch):
     """AC-5.5 — Leader chỉ thấy số liệu của team mình trong báo cáo tổng hợp
 
     Kiểm cả hai chiều: tổng đúng bằng team mình (1.000 + 500 + 700), và số
     của team khác (900, người bán Hằng) không xuất hiện.
     """
+    from django.utils.html import strip_tags
+    # Mã cache static (mtime tệp CSS) có thể chứa "900" — như bài AC-3.1 trên
+    monkeypatch.setattr('core.context_processors.PHIEN_BAN_TINH', 'cache-kiem')
     phan_hoi = _xem(client, nguoi_dung, "leader_sale_1", nhom="nhan-vien")
-    noi_dung = phan_hoi.content.decode()
+    noi_dung = strip_tags(phan_hoi.content.decode())
     assert "2.200" in noi_dung
     assert "900" not in noi_dung
     assert "Hằng" not in noi_dung

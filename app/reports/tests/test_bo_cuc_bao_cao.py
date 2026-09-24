@@ -52,7 +52,7 @@ def test_cot_dinh_danh_ghim_theo_cach_xem(client, nguon, nguoi_dung):
     client.force_login(nguoi_dung["admin"])
     r = _get(client, nguon)
     cols = r.context["identity_columns"]
-    # Khối theo ngày như ảnh mẫu (ADR-040): STT · Team · Nhân sự · Leader, không có cột Ngày
+    # Khối theo ngày như ảnh mẫu (ADR-042): STT · Team · Nhân sự · Leader, không có cột Ngày
     assert [(c["code"], c["kind"], c["pos"], c["edge"]) for c in cols] == [
         ("stt", "id-stt", 1, False), ("team", "id-team", 2, False),
         ("person", "id-nhan-su", 3, False), ("leader", "id-leader", 4, True)]
@@ -62,7 +62,7 @@ def test_cot_dinh_danh_ghim_theo_cach_xem(client, nguon, nguoi_dung):
     html = r.content.decode()
     assert f'<table class="bang report-table" style="{kieu}">' in html
     assert 'class="report-identity report-identity-edge" data-pos="1" colspan="4">TỔNG CỘNG · toàn kỳ</th>' in html
-    # Khối ngày: cột đầu là STT, ngày thành tiêu đề đặt trên bảng (ADR-040)
+    # Khối ngày: cột đầu là STT, ngày thành tiêu đề đặt trên bảng (ADR-042)
     assert 'class="report-identity id-stt" data-pos="1">1</th>' in html and '<h3>01.08.2026</h3>' in html
     r2 = _get(client, nguon, nhom="person")
     cols = r2.context["identity_columns"]

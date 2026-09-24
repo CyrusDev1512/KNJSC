@@ -92,7 +92,7 @@ def default_range():
 
 def date_presets(today=None, *, start=None, end=None):
     """Chọn nhanh kỳ (ADR-038, sheet MKT): Hôm nay, Hôm qua, 7 ngày, Tuần này (thứ Hai → hôm nay,
-    ADR-040), Tháng này, Tháng trước. Mỗi mục `{key, label, start, end, active}`; `active` khi khớp
+    ADR-042), Tháng này, Tháng trước. Mỗi mục `{key, label, start, end, active}`; `active` khi khớp
     đúng khoảng đang lọc."""
     from datetime import timedelta
 

@@ -1,4 +1,4 @@
-"""Ngưỡng màu ba bậc của Báo cáo tổng hợp (ADR-040 đợt 3): một cột JSON trên nguồn báo cáo,
+"""Ngưỡng màu ba bậc của Báo cáo tổng hợp (ADR-042 đợt 3): một cột JSON trên nguồn báo cáo,
 rỗng mặc định — chạy ngược chỉ bỏ cột, không đụng dữ liệu nghiệp vụ."""
 from django.db import migrations, models
 

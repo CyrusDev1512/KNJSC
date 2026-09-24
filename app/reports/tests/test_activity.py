@@ -16,7 +16,7 @@ def test_sale_ratio_and_account_identity(bang_mkt,dong_mau,nguoi_dung):
     source=ReportSource.objects.create(table=bang_mkt,kind="sale",columns={"mess":"so_mess","orders":"so_don","sales":"doanh_so","market":"thi_truong"})
     result=activity_service.build(nguoi_dung["manager_mkt"],source,group="person",start=date(2026,8,1),end=date(2026,8,31))
     assert result.totals["so_dong"]==4
-    assert result.totals["conversion"] == Decimal(24)/Decimal(270)*100   # tỉ lệ hiện % (ADR-040)
+    assert result.totals["conversion"] == Decimal(24)/Decimal(270)*100   # tỉ lệ hiện % (ADR-042)
     assert len(list(result.rows))==1  # Account ID, not different handwritten names.
 
 
@@ -40,7 +40,7 @@ def test_sale_scope_and_dashboard(client, marketing_scope, nguoi_dung, role, cou
     assert result.totals["so_dong"]==count
     exported=client.get("/bao-cao/tong-hop/xuat/",query)
     rows=list(load_workbook(BytesIO(exported.content),data_only=True).active.values)
-    tong=aggregations.total_values(result)   # dòng TỔNG CỘNG của khối toàn kỳ (ADR-040): nhãn, ô trống, rồi số liệu
+    tong=aggregations.total_values(result)   # dòng TỔNG CỘNG của khối toàn kỳ (ADR-042): nhãn, ô trống, rồi số liệu
     dong_tong=next(r for r in rows if r[0] and str(r[0]).startswith("TỔNG CỘNG"))
     assert tuple(Decimal(str(v)) if v is not None else None for v in dong_tong[-len(tong):])==tuple(tong)
     d=client.get("/",{"sale_nguon":source.table.code,"tu":query["tu"],"den":query["den"]})
@@ -106,7 +106,7 @@ def test_delivery_filters_match_status_and_export(delivery_source,nguoi_dung,cli
     r=client.get("/bao-cao/tong-hop/xuat/",{"nguon":source.table.code,"sp":"a","thi_truong":"Canada","tu":"2026-08-01","den":"2026-08-31"})
     assert r.status_code==200
     book=load_workbook(BytesIO(r.content),data_only=True)
-    dong_tong=next(r for r in book.active.values if r[0] and str(r[0]).startswith("TỔNG CỘNG"))   # khối toàn kỳ (ADR-040)
+    dong_tong=next(r for r in book.active.values if r[0] and str(r[0]).startswith("TỔNG CỘNG"))   # khối toàn kỳ (ADR-042)
     assert dong_tong[-2:]==(2,4)
     assert list(book["Trạng thái giao hàng"].values)[-1]==("Đang giao",2)
 
@@ -164,7 +164,7 @@ def test_marketing_exact_excel_formula(bang_mkt,dong_mau,nguoi_dung):
     assert values["CPQC"]==Decimal(500000)
     assert values["CPO"]==Decimal(500000)/24
     assert values["Giá Mess"]==Decimal(500000)/270
-    # Hóa đơn ÷ DS Chốt (TT) theo nhãn (ADR-038, nhãn MKT theo ảnh ADR-040): không có vận đơn và Hóa đơn nên trống
+    # Hóa đơn ÷ DS Chốt (TT) theo nhãn (ADR-038, nhãn MKT theo ảnh ADR-042): không có vận đơn và Hóa đơn nên trống
     assert values["Hóa đơn/DS Chốt (TT)"] is None
     assert values["DS Chốt (TT)"] is None and values["Hóa đơn"] is None
     # Nguồn không ánh xạ Loại tiền thì cộng thô như cũ, không hậu tố ₫
@@ -298,7 +298,7 @@ def test_day_view_shows_person_and_leader_in_scope(client, marketing_scope, nguo
     r3=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":outsider})
     assert (r3.status_code==403) == ("staff_sale_2" not in persons)
     book=load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True)
-    sheet=list(book.active.values)                                  # khối toàn kỳ theo nhân sự (ADR-040)
+    sheet=list(book.active.values)                                  # khối toàn kỳ theo nhân sự (ADR-042)
     assert sheet[4][:4]==("STT","Team","Nhân sự","Leader") and str(sheet[5][0]).startswith("TỔNG CỘNG")
     nguoi_excel=[d for d in sheet[6:] if d and d[0] is not None]
     assert len(nguoi_excel)==len(persons)                           # Excel cũng mỗi người một dòng
@@ -359,7 +359,7 @@ def test_day_blocks_have_day_subtotal_and_stt(client, bang_mkt, mkt_source, van_
         return row["cells"][cot.index(nhan_cot)]
     khoi = rows[2]                                   # Tổng ngày 01.08
     con = [rows[3], rows[4]]
-    # Số cộng được: Tổng ngày = tổng hai dòng con; tiền đã quy ₫ (CAD × 17.500, ADR-040)
+    # Số cộng được: Tổng ngày = tổng hai dòng con; tiền đã quy ₫ (CAD × 17.500, ADR-042)
     assert o(khoi,"Số Mess")=="20" and [o(d,"Số Mess") for d in con]==["10","10"]
     assert o(khoi,"Hóa đơn")=="175.000 ₫" and {o(d,"Hóa đơn") for d in con}=={"140.000 ₫","35.000 ₫"}
     # DS Chốt (TT) của ngày = tổng hai marketer (60+40 của A, 200 của B) = 300 CAD
@@ -371,7 +371,7 @@ def test_day_blocks_have_day_subtotal_and_stt(client, bang_mkt, mkt_source, van_
     tong=dict(zip(cot, aggregations.total_cells(r.context["result"])))
     assert tong["Số Mess"]=="30" and tong["DS Chốt (TT)"]=="5.687.500 ₫"
     html=r.content.decode()
-    # Mỗi ngày một bảng riêng (ADR-040): tiêu đề ngày trên bảng, TỔNG CỘNG ngay dưới hàng tiêu đề cột, STT ở cột đầu
+    # Mỗi ngày một bảng riêng (ADR-042): tiêu đề ngày trên bảng, TỔNG CỘNG ngay dưới hàng tiêu đề cột, STT ở cột đầu
     assert html.count('class="report-block report-block-day"')==2 and '<h3>01.08.2026</h3>' in html
     assert 'data-pos="1" colspan="4">TỔNG CỘNG</th>' in html and 'class="report-identity id-stt" data-pos="1">1</th>' in html
     assert 'class="report-block report-block-period"' in html and 'TỔNG CỘNG · toàn kỳ</th>' in html
@@ -420,7 +420,7 @@ def test_metric_colours_against_filter_total(client, bang_mkt, mkt_source, van_d
     html=r.content.decode()
     assert '<th scope="col" class="o-chi-so">CPO</th>' in html   # nền cột ở tiêu đề
     assert 'class="o-chi-so o-tot"' in html and 'class="o-chi-so o-canh-bao"' in html
-    # Chỉ số quan trọng khoá theo mã (ADR-040); nhãn MKT theo ảnh mẫu, kể cả Tỉ lệ chốt và Tỉ lệ chốt (TT)
+    # Chỉ số quan trọng khoá theo mã (ADR-042); nhãn MKT theo ảnh mẫu, kể cả Tỉ lệ chốt và Tỉ lệ chốt (TT)
     nhan={"conversion":"Tỉ lệ chốt","conversion_tt":"Tỉ lệ chốt (TT)","cpo":"CPO","mess_cost":"Giá Mess","cost_sales":"CPQC/DS Chốt"}
     assert {nhan[m] for m in FOCUS_METRICS} <= set(cot)
 

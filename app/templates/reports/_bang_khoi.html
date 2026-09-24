@@ -1,4 +1,4 @@
-{% comment %}Một khối của Báo cáo tổng hợp (ADR-040 đợt 2): tiêu đề (ngày / toàn kỳ), bảng riêng có
+{% comment %}Một khối của Báo cáo tổng hợp (ADR-042 đợt 2): tiêu đề (ngày / toàn kỳ), bảng riêng có
 thead, dòng TỔNG CỘNG đứng đầu như ảnh mẫu, rồi các dòng. `b` là khối do `reports/layout.py` dựng;
 `result.columns` là cột chỉ tiêu dùng chung.{% endcomment %}<section class="report-block report-block-{{ b.kind }}">{% if b.title %}<div class="report-block-title"><h3>{{ b.title }}</h3>{% if b.count %}<span>{{ b.count }} {% if b.kind == 'days' %}ngày{% else %}nhân sự{% endif %}</span>{% endif %}</div>{% endif %}
 <table class="bang report-table" style="{{ b.identity_style }}"><thead><tr>{% for c in b.identity_columns %}<th scope="col" class="report-identity {{ c.kind }}{% if c.edge %} report-identity-edge{% endif %}" data-pos="{{ c.pos }}">{{ c.label }}</th>{% endfor %}{% for c in result.columns %}<th scope="col"{% if c.focus %} class="o-chi-so"{% endif %}>{{ c.label }}</th>{% endfor %}</tr></thead>

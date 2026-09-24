@@ -15,7 +15,7 @@ from . import aggregations
 
 def build_workbook(title, result, subtitle="", blocks=None):
     """Một sheet: tiêu đề, dòng phụ, bảng số liệu, dòng cuối là tổng cộng. Có `blocks` (cách xem
-    Tổng hợp, ADR-040) thì xuất theo khối như màn hình: sheet toàn kỳ theo nhân sự và sheet theo ngày."""
+    Tổng hợp, ADR-042) thì xuất theo khối như màn hình: sheet toàn kỳ theo nhân sự và sheet theo ngày."""
     wb = Workbook()
     ws = wb.active
     ws.title = "Bao cao tong hop"

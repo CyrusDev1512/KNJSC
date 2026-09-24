@@ -1,4 +1,4 @@
-"""Bố cục khối của Báo cáo tổng hợp như ảnh mẫu (ADR-040, đợt 2) — thuần, không truy vấn.
+"""Bố cục khối của Báo cáo tổng hợp như ảnh mẫu (ADR-042, đợt 2) — thuần, không truy vấn.
 
 Cách xem Tổng hợp: khối ``period`` (toàn kỳ theo nhân sự) đứng đầu, rồi mỗi ngày một
 khối ``day`` có TỔNG CỘNG riêng đứng ngay dưới tiêu đề và STT đếm lại từ 1; **Gộp**
@@ -56,7 +56,7 @@ def person_row(stt, item, cells, raw=None):
 
 
 def _row_key(item):
-    """Khoá một dòng người: (ngày, mã); Bảng dữ liệu chi tiết từng lần nộp (ADR-040 đợt 4) có thêm
+    """Khoá một dòng người: (ngày, mã); Bảng dữ liệu chi tiết từng lần nộp (ADR-042 đợt 4) có thêm
     id dòng nên hai lần nộp cùng ngày cùng người vẫn là hai dòng riêng."""
     return (item.get("nhom"), item.get("person_name"), item.get("record_id"))
 

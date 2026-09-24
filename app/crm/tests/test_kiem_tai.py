@@ -103,7 +103,10 @@ def test_tinh_lai_cot_bang_lon_chay_nen(client, bang_mkt, nguoi_dung, monkeypatc
     assert job.status == JobStatus.DONE and job.total == 5 and job.progress == 5 and job.summary["da_tinh"] == 5
     assert {d.data["gap_doi"] for d in DataRecord.objects.filter(table=bang_mkt)} == {"101.00", "202.00", "303.00", "404.00", "505.00"}
 
-    # Đang chạy thì moi-nhat/ báo tiến độ; xong thì hết
+    # Đang chạy thì moi-nhat/ báo tiến độ; xong thì hết. Endpoint này của KN CRM
+    # và KN CRM chỉ phục vụ bảng vận đơn (ADR-040) — gắn workflow cho bảng đạo cụ
+    bang_mkt.workflow = "waybill"
+    bang_mkt.save(update_fields=["workflow"])
     client.force_login(ql)
     goc = f"/bang-tinh/{bang_mkt.code}/"
     assert client.get(f"{goc}moi-nhat/").json()["tinh_lai"] is None

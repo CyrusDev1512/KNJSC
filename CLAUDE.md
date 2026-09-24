@@ -1,6 +1,6 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 23.09.2026 (ADR-040 Báo cáo tổng hợp như ảnh mẫu, Bảng dữ liệu dạng báo cáo); 19.09 (quy tắc nhánh: không đẩy thẳng lên nhánh đang chạy trên VPS, mỗi việc một
+> Cập nhật 23.09.2026 (ADR-042 Báo cáo tổng hợp như ảnh mẫu, Bảng dữ liệu dạng báo cáo); 19.09 (quy tắc nhánh: không đẩy thẳng lên nhánh đang chạy trên VPS, mỗi việc một
 > nhánh `claude/<tên-việc>` và một PR nháp); lần trước 18.09 (ADR-036 một bảng vận đơn, ADR-037 mã
 > nhân sự, ADR-038 báo cáo Marketing, ADR-031 bổ sung bảy thị trường).
 
@@ -104,7 +104,7 @@ Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.
 **KN ERP** (dịch vụ `web`, cổng 8020, `knjsc/urls.py`): đăng nhập, nhân sự, biểu
 mẫu, báo cáo ngày và báo cáo hoạt động (ADR-022, 032), Bảng dữ liệu **chỉ đọc với
 mọi bảng** (ADR-014), nhóm Nội bộ. Lên đơn không còn ở ERP, chỉ còn URL GET chuyển
-tiếp sang CRM (ADR-023). **Báo cáo tổng hợp như ảnh mẫu LUMI (ADR-040, 23.09):** tiền quy ₫
+tiếp sang CRM (ADR-023). **Báo cáo tổng hợp như ảnh mẫu LUMI (ADR-042, 23.09):** tiền quy ₫
 ngay trong truy vấn rồi mới cộng (không còn để trống khi lẫn loại tiền), cột (TT) đối soát từ
 vận đơn, khối toàn kỳ theo nhân sự + mỗi ngày một bảng, Gộp/Không gộp, ngưỡng màu ba bậc do
 quản lý đặt (`ReportSource.thresholds`), lọc nhiều sản phẩm; bảng có nguồn báo cáo Sale/MKT mở ở
@@ -112,10 +112,15 @@ Bảng dữ liệu là **báo cáo chi tiết theo ngày** (mỗi lần nộp m�
 cảnh màn hình dùng chung ở `reports/screen.py`.
 
 **KN CRM** (dịch vụ `bangtinh`, cổng 8021, `knjsc/urls_bangtinh.py`, settings
-`knjsc.settings.bangtinh`): nơi duy nhất sửa số liệu. Khung sidebar theo Teeze
-(`templates/crm/base_crm.html`, `crm/navigation.py`) cho trang chủ tổng quan, mục
-Bảng tính = trang thư mục `/thu-muc/` (cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng), Nhập tệp,
-Cấp quyền, Lên đơn, Thống kê `/thong-ke/`. (Bảng nhận đơn đã bỏ, ADR-036.)
+`knjsc.settings.bangtinh`): nơi duy nhất sửa số liệu, và **chỉ phục vụ bảng vận
+đơn** (ADR-040, 24.09: Sale/MKT nhập – xuất đều bên ERP; lọc một chỗ
+`crm/services/catalog.chi_van_don`; bảng thường 404 ở mọi cửa kể cả Admin, dữ
+liệu không đổi). Khung sidebar theo Teeze (`templates/crm/base_crm.html`,
+`crm/navigation.py`) cho trang chủ tổng quan (số liệu, bảng, hoạt động — đều chỉ
+vận đơn), mục Bảng tính = trang thư mục `/thu-muc/` **phẳng Bộ phận ▸ thư mục ▸
+bảng, không còn cấp Quý/Tháng** (ADR-040), Nhập tệp, Cấp quyền, Lên đơn, Thống kê
+`/thong-ke/` (Thống kê vẫn đọc cả nguồn Sale/MKT). (Bảng nhận đơn đã bỏ, ADR-036;
+nút Tạo bảng đã ẩn, đường dẫn còn.)
 Lưới `/bang-tinh/<mã bảng>/` toàn màn hình, chỉ lưới có nút ← và nó về thư mục CRM,
 không về ERP (ADR-012, 015). **Leader như Manager trong bộ phận mình**
 (`grant_service._quan_ly_bo_phan`), cấp quyền cho người khác vẫn Manager.

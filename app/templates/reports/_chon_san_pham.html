@@ -1,4 +1,4 @@
-{% comment %}Bộ lọc Sản phẩm tick nhiều mục như ảnh mẫu (ADR-040 đợt 3): tham số `sp` lặp lại, không tick gì
+{% comment %}Bộ lọc Sản phẩm tick nhiều mục như ảnh mẫu (ADR-042 đợt 3): tham số `sp` lặp lại, không tick gì
 là Tất cả. Danh sách `products` chỉ gồm sản phẩm có thật trong phạm vi quyền (Leader không thấy hàng team
 khác). JS ở report-filters.js: ô tìm nhanh, Chọn tất cả / Bỏ chọn, nhãn tóm tắt.{% endcomment %}
 <div class="truong"><span class="nhan-nho" id="report-sp-nhan">Sản phẩm{% if source.kind == 'delivery' %} (mã){% endif %}</span>

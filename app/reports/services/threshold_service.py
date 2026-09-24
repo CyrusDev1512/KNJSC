@@ -1,4 +1,4 @@
-"""Ngưỡng màu ba bậc của Báo cáo tổng hợp (ADR-040 đợt 3).
+"""Ngưỡng màu ba bậc của Báo cáo tổng hợp (ADR-042 đợt 3).
 
 Ảnh mẫu tô ô chỉ số **xanh / vàng / đỏ** theo mốc cố định. Mốc là của nghiệp vụ nên không bịa:
 Manager của bộ phận sở hữu nguồn (cùng luật với sửa cột, `grant_service.can_manage_columns`) đặt

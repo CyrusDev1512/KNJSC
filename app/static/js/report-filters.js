@@ -89,7 +89,7 @@
       });
     }
   }
-  // Chọn nhiều sản phẩm (ADR-040): ô tìm nhanh lọc danh sách, Chọn tất cả / Bỏ chọn, nhãn tóm tắt.
+  // Chọn nhiều sản phẩm (ADR-042): ô tìm nhanh lọc danh sách, Chọn tất cả / Bỏ chọn, nhãn tóm tắt.
   const multi = document.getElementById('report-multi-sp');
   if (multi) {
     const boxes = [...multi.querySelectorAll('input[type=checkbox]')];
@@ -115,7 +115,7 @@
   if (!search || !select) return;
   const source = document.getElementById('nguon');
   const team = document.getElementById('report-team');
-  // Bảng dữ liệu dạng báo cáo (ADR-040 đợt 4) không có ô Nguồn: chỉ còn tìm nhân sự
+  // Bảng dữ liệu dạng báo cáo (ADR-042 đợt 4) không có ô Nguồn: chỉ còn tìm nhân sự
   const initialSource = source ? source.value : '';
   if (source) source.addEventListener('change', () => {
     // Danh mục phụ thuộc nguồn: không gửi ID của nguồn cũ sang nguồn mới.

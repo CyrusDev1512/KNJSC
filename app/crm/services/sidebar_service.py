@@ -123,7 +123,11 @@ def context(user, table, columns, params, today=None):
     if is_waybill_table(table):
         groups = []
         for code, name in [('quoc_gia', 'Thị trường'), ('phu_trach_mkt', 'Marketing')]:
-            column = next(c for c in columns if c.code == code)
+            # Bảng mang workflow vận đơn nhưng thiếu cột chuẩn (chưa qua
+            # `tao_bang_van_don`) thì bỏ nhóm lọc đó, không đổ trang
+            column = next((c for c in columns if c.code == code), None)
+            if column is None:
+                continue
             param = f'f_{code}__trong'
             groups.append({'name': name, 'param': param,
                 'keep': grid_service.params_without(params, exclude=(param,)),

@@ -1,4 +1,4 @@
-"""ADR-040 — Báo cáo tổng hợp theo ảnh mẫu, đợt 1: quy ₫ ngay trong truy vấn, cột đối soát (TT),
+"""ADR-042 — Báo cáo tổng hợp theo ảnh mẫu, đợt 1: quy ₫ ngay trong truy vấn, cột đối soát (TT),
 hai lỗi phân trang và chip Kỳ."""
 from datetime import date, timedelta
 from decimal import Decimal
@@ -37,7 +37,7 @@ def _dong(result):
 
 
 def test_tien_quy_ve_vnd_truoc_khi_cong(client, bang_mkt, mkt_source, nguoi_dung):
-    """AC-40.1 — Mọi cột tiền quy về ₫ theo tỉ giá cố định ngay trong truy vấn rồi mới cộng: hai báo cáo
+    """AC-42.1 — Mọi cột tiền quy về ₫ theo tỉ giá cố định ngay trong truy vấn rồi mới cộng: hai báo cáo
     USD và EUR cùng ngày cùng người thành một dòng CPQC = 10×25.500 + 10×28.500 ₫; CPO, Giá Mess tính
     trên ₫; dòng Tổng bằng tổng dòng; ô hiện "540.000 ₫", tỉ lệ chốt hiện %; nhãn đơn vị nêu tỉ giá; Excel
     cùng số; nguồn không ánh xạ Loại tiền vẫn cộng thô, không hậu tố"""
@@ -77,7 +77,7 @@ def test_tien_quy_ve_vnd_truoc_khi_cong(client, bang_mkt, mkt_source, nguoi_dung
 
 
 def test_dong_thieu_ti_gia_khong_vao_tong_va_co_canh_bao(bang_mkt, mkt_source, nguoi_dung):
-    """AC-40.2 — Dòng có loại tiền chưa có tỉ giá (KRW) hoặc trống loại tiền: tiền không vào tổng, các
+    """AC-42.2 — Dòng có loại tiền chưa có tỉ giá (KRW) hoặc trống loại tiền: tiền không vào tổng, các
     cột đếm vẫn tính đủ, cảnh báo nêu số dòng và loại tiền thiếu; dòng còn lại vẫn ra số ₫"""
     A = nguoi_dung["staff_mkt"]
     _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10, cpqc="10", don=2)          # CAD
@@ -102,7 +102,7 @@ def test_dong_thieu_ti_gia_khong_vao_tong_va_co_canh_bao(bang_mkt, mkt_source, n
 
 
 def test_so_don_tt_va_ti_le_chot_tt_theo_marketer_va_ngay(bang_mkt, mkt_source, van_don, nguoi_dung):
-    """AC-40.3 — Số đơn (TT) = số vận đơn marketer phụ trách theo ngày lên đơn, kể cả đơn không có chi tiết
+    """AC-42.3 — Số đơn (TT) = số vận đơn marketer phụ trách theo ngày lên đơn, kể cả đơn không có chi tiết
     sản phẩm (đơn đó không góp DS Chốt (TT)); Tỉ lệ chốt (TT) = Số đơn (TT) ÷ Số Mess; lọc sản phẩm chỉ
     đếm đơn có sản phẩm đó; đơn chưa phân công không vào; theo nhân viên cộng cả kỳ; Staff chỉ thấy của mình,
     không có đơn thì 0 chứ không trống"""
@@ -137,7 +137,7 @@ def test_so_don_tt_va_ti_le_chot_tt_theo_marketer_va_ngay(bang_mkt, mkt_source, 
 
 
 def test_ngan_sach_truy_van_nguon_mkt_that(client, bang_mkt, mkt_source, van_don, nguoi_dung, django_assert_max_num_queries):
-    """AC-40.4 — Nguồn Marketing cấu hình thật (quy ₫ + đối soát vận đơn) vẫn trong ngân sách 10 truy vấn
+    """AC-42.4 — Nguồn Marketing cấu hình thật (quy ₫ + đối soát vận đơn) vẫn trong ngân sách 10 truy vấn
     ở cách xem Tổng hợp và Theo nhân viên"""
     A = van_don["A"]
     _bao_cao(bang_mkt, A, "2026-08-01", "SP1")
@@ -150,7 +150,7 @@ def test_ngan_sach_truy_van_nguon_mkt_that(client, bang_mkt, mkt_source, van_don
 
 
 def test_sang_trang_va_chip_ky(client, bang_mkt, mkt_source, nguoi_dung):
-    """AC-40.5 — Liên kết phân trang không mang `trang`/`moi_trang` cũ nên từ trang 2 sang trang khác đi
+    """AC-42.5 — Liên kết phân trang không mang `trang`/`moi_trang` cũ nên từ trang 2 sang trang khác đi
     đúng; chip Kỳ chỉ có dấu × khi kỳ khác mặc định, còn gửi đúng kỳ mặc định thì không có × và không tính
     là đang lọc"""
     A = nguoi_dung["staff_mkt"]

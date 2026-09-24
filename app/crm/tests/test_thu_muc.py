@@ -16,15 +16,17 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def cac_bang(departments, nguoi_dung):
+    # KN CRM chỉ phục vụ bảng vận đơn (ADR-040) — bảng đạo cụ mang workflow
+    # để trang thư mục và lưới còn mở; tính năng thư mục không đổi
     return {
         "sale": TableDef.objects.create(
-            name="Đơn hàng Sale", code="don_sale",
+            name="Đơn hàng Sale", code="don_sale", workflow="waybill",
             department=departments["sale"], created_by=nguoi_dung["manager_sale"]),
         "sale2": TableDef.objects.create(
-            name="Khách Sale", code="khach_sale",
+            name="Khách Sale", code="khach_sale", workflow="waybill",
             department=departments["sale"], created_by=nguoi_dung["manager_sale"]),
         "mkt": TableDef.objects.create(
-            name="Báo cáo Marketing", code="bc_mkt",
+            name="Báo cáo Marketing", code="bc_mkt", workflow="waybill",
             department=departments["mkt"], created_by=nguoi_dung["manager_mkt"]),
     }
 

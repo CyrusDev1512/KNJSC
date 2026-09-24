@@ -350,7 +350,7 @@ def test_ma_tran_sinh_dung_theo_thanh_dieu_huong(client, nguoi_dung):
 
 
 def test_phan_trang_va_sap_xep_giu_bo_loc(client, bang_sale, nguoi_dung):
-    """AC-40.14 — Liệt kê thô: liên kết phân trang và sắp xếp giữ tìm kiếm, bộ lọc cột và cỡ trang,
+    """AC-42.14 — Liệt kê thô: liên kết phân trang và sắp xếp giữ tìm kiếm, bộ lọc cột và cỡ trang,
     cột đang sắp có aria-sort; ô Đúng/sai hiện Có/Không; "Sửa cột" chỉ với quản lý bộ phận sở hữu
     bảng (quản lý bộ phận khác được cấp quyền xem thì không); trạng thái rỗng không nhắc "phần 3B" """
     from urllib.parse import parse_qs, urlsplit

@@ -10,7 +10,7 @@
     <div class="nhan-nho">FR-7.1 tới FR-7.4 · {{ bang.department }}</div>
     <h1>{{ bang.name }}</h1>
     {% if khoi %}
-      {# Bảng có nguồn báo cáo: báo cáo chi tiết theo ngày dùng chung động cơ với Báo cáo tổng hợp — ADR-040 đợt 4 #}
+      {# Bảng có nguồn báo cáo: báo cáo chi tiết theo ngày dùng chung động cơ với Báo cáo tổng hợp — ADR-042 đợt 4 #}
       <p>Báo cáo chi tiết theo ngày: mỗi lần nộp một dòng, TỔNG CỘNG từng ngày và toàn kỳ theo nhân sự, tiền quy ₫.</p>
     {% else %}
       <p>{{ bang.description|default:"Danh sách đã lọc theo phạm vi quyền của bạn." }}</p>
@@ -48,6 +48,12 @@
   </div>
 
 <div class="bang-hop">
+  {% if loc_cot_an %}
+  {# Bộ lọc trỏ tới cột đang ẩn vẫn chạy, nhưng phải nói rõ — AC-39.8 #}
+  <p class="bao bao-cho" role="status"><span class="bao-ic">!</span>
+    Đang lọc theo cột đang ẩn: {{ loc_cot_an|join:", " }}.
+    <a href="{% url 'bang_xem' bang.code %}">Bỏ lọc</a></p>
+  {% endif %}
   <div class="erp-table-tools" id="erp-table-tools">
   {% if khoi %}
     {% include "forms_builder/_bang_bao_cao_loc.html" %}

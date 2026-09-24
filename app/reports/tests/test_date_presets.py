@@ -11,7 +11,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_chon_nhanh_ky(client, bang_mkt, nguoi_dung, monkeypatch):
-    """AC-38.5 — Chọn nhanh: Hôm nay, Hôm qua, 7 ngày, Tuần này (thứ Hai → hôm nay, ADR-040), Tháng này,
+    """AC-38.5 — Chọn nhanh: Hôm nay, Hôm qua, 7 ngày, Tuần này (thứ Hai → hôm nay, ADR-042), Tháng này,
     Tháng trước đúng ngày (kể cả qua đầu tháng, đầu năm và tuần vắt qua tháng); màn hình có nút với
     `data-tu`/`data-den` và JS áp ngay; nút khớp khoảng đang lọc được đánh dấu"""
     muc = {m["key"]: (m["start"], m["end"]) for m in summary_service.date_presets(date(2026, 9, 18))}
@@ -49,7 +49,7 @@ def test_chon_nhanh_ky(client, bang_mkt, nguoi_dung, monkeypatch):
 
 
 def test_chon_nhanh_tuan_nay():
-    """AC-40.12 — "Tuần này" là thứ Hai tuần này tới hôm nay, kể cả tuần vắt qua tháng; đứng ngay sau "7 ngày"
+    """AC-42.12 — "Tuần này" là thứ Hai tuần này tới hôm nay, kể cả tuần vắt qua tháng; đứng ngay sau "7 ngày"
     trong dãy Chọn nhanh"""
     from datetime import date
 

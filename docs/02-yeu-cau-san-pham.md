@@ -75,6 +75,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-4.4 | Staff không sửa báo cáo đã nộp; Leader trong team, Manager trong bộ phận, Admin toàn hệ thống và **Kế toán mọi bộ phận** (ADR-038) sửa nội dung có lịch sử và kiểm phiên bản. Giữ ngày/danh tính/thời điểm nộp gốc — quyết định thay thế 16/09/2026, ADR-032 |
 | FR-4.5 | Leader và Manager phải xem được báo cáo của người thuộc phạm vi quản lý; Kế toán xem được báo cáo của mọi bộ phận (ADR-038) |
 | FR-4.6 | Trường danh tính người điền (nhãn Người bán) trên biểu mẫu và báo cáo hằng ngày phải do hệ thống tự ghi **mã nhân sự** của tài khoản đang đăng nhập (ADR-037); người dùng không phải điền và không đổi được |
+| FR-4.7 | Bỏ báo cáo đã nộp: người nộp, Leader trong team, Manager trong bộ phận, Admin; Kế toán không. Bỏ là xoá mềm cả dòng số liệu (BR-4) nên số rời khỏi Báo cáo tổng hợp. Manager bộ phận và Admin khôi phục được từ trang "Đã bỏ" — ADR-041, thay câu khoá quyền của ADR-032 |
 
 ---
 
@@ -88,12 +89,12 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-5.4 | Báo cáo phải hiển thị dòng tổng cộng |
 | FR-5.5 | Báo cáo phải chỉ hiển thị dữ liệu trong phạm vi quyền của người xem |
 | FR-5.6 | Hệ thống phải cho phép xuất báo cáo ra tệp Excel |
-| FR-5.7 | **Tiền quy về ₫ trước khi cộng** (ADR-040): mọi cột tiền nhân tỉ giá cố định theo loại tiền của từng dòng ngay trong truy vấn rồi mới cộng; dòng thiếu tỉ giá không vào tổng và được đếm trong cảnh báo; không còn để trống chỉ tiêu khi lẫn loại tiền |
-| FR-5.8 | Báo cáo Marketing có ba cột **đối soát từ vận đơn**: Số đơn (TT), DS Chốt (TT), Tỉ lệ chốt (TT) — theo marketer phụ trách và ngày lên đơn; Tỉ lệ chốt hiện %; nhãn cột theo ảnh mẫu (DS Chốt, CPQC/DS Chốt, Hóa đơn/DS Chốt (TT)) (ADR-040) |
-| FR-5.9 | Cách xem Tổng hợp có **bố cục khối như ảnh mẫu**: khối toàn kỳ theo nhân sự đứng đầu (STT · Team · Nhân sự · Leader, TỔNG CỘNG ngay dưới tiêu đề), rồi mỗi ngày một bảng riêng có TỔNG CỘNG và STT đếm lại; nút **Gộp / Không gộp** (Gộp = mỗi ngày một dòng); Excel hai sheet cùng khối (ADR-040) |
-| FR-5.10 | **Ngưỡng màu ba bậc** xanh / vàng / đỏ theo mốc tuyệt đối từng chỉ tiêu, do quản lý của bộ phận sở hữu nguồn đặt ngay trên màn hình báo cáo; chưa đặt thì tô tương đối so với dòng Tổng; không có số mặc định (ADR-040) |
-| FR-5.11 | Bộ lọc Sản phẩm **tick nhiều mục** (có ô tìm nhanh, Chọn tất cả), Chọn nhanh có "Tuần này"; danh sách sản phẩm chỉ gồm sản phẩm có thật trong phạm vi quyền (ADR-040) |
-| FR-5.12 | Mọi màn hình báo cáo giữ ngân sách không quá 10 truy vấn (Q2); liên kết phân trang và chip bộ lọc phản ánh đúng trạng thái đang áp (ADR-040) |
+| FR-5.7 | **Tiền quy về ₫ trước khi cộng** (ADR-042): mọi cột tiền nhân tỉ giá cố định theo loại tiền của từng dòng ngay trong truy vấn rồi mới cộng; dòng thiếu tỉ giá không vào tổng và được đếm trong cảnh báo; không còn để trống chỉ tiêu khi lẫn loại tiền |
+| FR-5.8 | Báo cáo Marketing có ba cột **đối soát từ vận đơn**: Số đơn (TT), DS Chốt (TT), Tỉ lệ chốt (TT) — theo marketer phụ trách và ngày lên đơn; Tỉ lệ chốt hiện %; nhãn cột theo ảnh mẫu (DS Chốt, CPQC/DS Chốt, Hóa đơn/DS Chốt (TT)) (ADR-042) |
+| FR-5.9 | Cách xem Tổng hợp có **bố cục khối như ảnh mẫu**: khối toàn kỳ theo nhân sự đứng đầu (STT · Team · Nhân sự · Leader, TỔNG CỘNG ngay dưới tiêu đề), rồi mỗi ngày một bảng riêng có TỔNG CỘNG và STT đếm lại; nút **Gộp / Không gộp** (Gộp = mỗi ngày một dòng); Excel hai sheet cùng khối (ADR-042) |
+| FR-5.10 | **Ngưỡng màu ba bậc** xanh / vàng / đỏ theo mốc tuyệt đối từng chỉ tiêu, do quản lý của bộ phận sở hữu nguồn đặt ngay trên màn hình báo cáo; chưa đặt thì tô tương đối so với dòng Tổng; không có số mặc định (ADR-042) |
+| FR-5.11 | Bộ lọc Sản phẩm **tick nhiều mục** (có ô tìm nhanh, Chọn tất cả), Chọn nhanh có "Tuần này"; danh sách sản phẩm chỉ gồm sản phẩm có thật trong phạm vi quyền (ADR-042) |
+| FR-5.12 | Mọi màn hình báo cáo giữ ngân sách không quá 10 truy vấn (Q2); liên kết phân trang và chip bộ lọc phản ánh đúng trạng thái đang áp (ADR-042) |
 
 ---
 
@@ -131,7 +132,7 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-7.13 | Bảng tính là app riêng **KN CRM** trong hệ sinh thái (dịch vụ riêng, tên miền riêng, mở tab mới từ KN ERP); trang chủ là cây Bộ phận → Quý → Tháng → bảng tự sinh từ cột Ngày, tháng là góc nhìn lọc sẵn trên một bảng; ai không được xem bảng nào thì không thấy nhánh đó, quyền do Manager cấp theo bảng (ADR-012) |
 | FR-7.14 | KN CRM có **khung riêng như một app**: sidebar trái theo Teeze (avatar, tên, cấp bậc; Trang chủ; Bảng tính gập được với mục con là từng bộ phận trong phạm vi; Nhập tệp; Cấp quyền; Tác vụ nền; KN ERP; thu gọn được); trang chủ là **tổng quan theo phạm vi**; mục Bảng tính mở trang thư mục (cây Bộ phận → Quý → Tháng → bảng); bấm bảng mới mở lưới toàn màn hình như Excel, chỉ lưới có nút ← và nó về trang thư mục, không về KN ERP (ADR-015) |
 | FR-7.15 | **Leader được như Manager trong bộ phận mình** ở KN CRM: tạo bảng, sửa cột, chèn/bỏ cột, thư mục, nhập tệp, xuất Excel, sửa và xoá dòng của người khác trong phạm vi; cấp quyền cho người khác vẫn chỉ Manager; ba việc tạo bảng, sửa cột kèm cấp quyền, nhập tệp chạy ngay trong KN CRM (ADR-015) |
-| FR-7.16 | Bảng dữ liệu của **bảng có nguồn báo cáo Sale/MKT** hiện thành **báo cáo chi tiết theo ngày** dùng chung động cơ với Báo cáo tổng hợp: mỗi lần nộp một dòng, khối toàn kỳ theo nhân sự, mỗi ngày một bảng, Gộp, ngưỡng màu, (TT), bộ lọc Kỳ / Sản phẩm / Thị trường / Team / Nhân sự, 25 dòng một trang, Xuất tệp cùng khối; `?dang=tho` xem từng dòng thô; bảng không có nguồn giữ liệt kê thô (ADR-040) |
+| FR-7.16 | Bảng dữ liệu của **bảng có nguồn báo cáo Sale/MKT** hiện thành **báo cáo chi tiết theo ngày** dùng chung động cơ với Báo cáo tổng hợp: mỗi lần nộp một dòng, khối toàn kỳ theo nhân sự, mỗi ngày một bảng, Gộp, ngưỡng màu, (TT), bộ lọc Kỳ / Sản phẩm / Thị trường / Team / Nhân sự, 25 dòng một trang, Xuất tệp cùng khối; `?dang=tho` xem từng dòng thô; bảng không có nguồn giữ liệt kê thô (ADR-042) |
 
 ---
 

@@ -96,14 +96,14 @@ class SummaryResult:
     #: Khoá tra `derived` của một dòng. Nhóm theo nhiều cột (Tổng hợp = ngày ×
     #: nhân sự) thì khoá là bộ giá trị theo đúng thứ tự này.
     derived_key: tuple = ("nhom",)
-    #: Tiền đã quy về ₫ ngay trong truy vấn (ADR-040) và số dòng không quy đổi được
+    #: Tiền đã quy về ₫ ngay trong truy vấn (ADR-042) và số dòng không quy đổi được
     #: (chưa có tỉ giá hay trống loại tiền) — tiền của chúng không vào tổng.
     converted: bool = False
     unconverted: int = 0
-    #: Ngưỡng màu ba bậc theo mã chỉ tiêu (`ReportSource.thresholds`, ADR-040 đợt 3); rỗng thì
+    #: Ngưỡng màu ba bậc theo mã chỉ tiêu (`ReportSource.thresholds`, ADR-042 đợt 3); rỗng thì
     #: ô tỉ lệ tô theo cách tương đối so với dòng Tổng (AC-22.16)
     thresholds: dict = field(default_factory=dict)
-    #: Khoá đối soát có nhiều hơn một dòng — Bảng dữ liệu chi tiết từng lần nộp (ADR-040 đợt 4):
+    #: Khoá đối soát có nhiều hơn một dòng — Bảng dữ liệu chi tiết từng lần nộp (ADR-042 đợt 4):
     #: dòng của khoá đó không hiện (TT) để khỏi cộng đôi; TỔNG CỘNG ngày/toàn kỳ vẫn đủ
     derived_shared: frozenset = frozenset()
 
@@ -142,7 +142,7 @@ VND_FIELD = DecimalField(max_digits=24, decimal_places=2)
 def _sum_exprs(sum_cols, converted=False):
     """Biểu thức Sum cho từng cột — cột tách cộng thẳng, cột JSON phải qua
     text rồi mới cast (xem docstring đầu tệp). `converted`: cột kiểu Tiền nhân
-    với tỉ giá `_ti_gia` của dòng (ADR-040) — cột Số nguyên/Số thập phân giữ nguyên."""
+    với tỉ giá `_ti_gia` của dòng (ADR-042) — cột Số nguyên/Số thập phân giữ nguyên."""
     exprs = {}
     for c in sum_cols:
         if c.meaning == Meaning.REVENUE and can_sum(Meaning.REVENUE):
@@ -203,7 +203,7 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
     `scoped_qs` phải là `DataRecord.objects.in_scope(user)` (quy tắc 11).
     `columns` cho phép truyền danh sách cột đã lấy sẵn để khỏi truy vấn lại.
     `currency_code` là mã cột Loại tiền của bảng: có nó thì mọi cột kiểu Tiền
-    được nhân tỉ giá của từng dòng ngay trong truy vấn rồi mới cộng (ADR-040);
+    được nhân tỉ giá của từng dòng ngay trong truy vấn rồi mới cộng (ADR-042);
     dòng thiếu tỉ giá được đếm vào `so_chua_quy_doi` ở cả dòng nhóm lẫn tổng.
 
     `with_totals=False` bỏ lệnh aggregate dòng tổng cộng — cho màn hình đã
@@ -227,7 +227,7 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
 
     converted = bool(currency_code)
     if converted:
-        # Quy ₫ ngay trong truy vấn (ADR-040): tỉ giá theo loại tiền từng dòng; dòng thiếu
+        # Quy ₫ ngay trong truy vấn (ADR-042): tỉ giá theo loại tiền từng dòng; dòng thiếu
         # tỉ giá hay trống loại tiền → NULL, không vào tổng tiền, được đếm để cảnh báo
         qs = qs.annotate(_ti_gia=vnd_rate_expression(KeyTextTransform(currency_code, "data")))
     sum_cols = _sum_columns(cols)
@@ -324,7 +324,7 @@ def summarize_in_memory(table, scoped_qs, *, limit, **kwargs):
     """`summarize` rồi lấy **toàn bộ dòng nhóm vào bộ nhớ** khi không quá `limit`: tổng cộng
     tính từ chính các dòng (SUM kết hợp được — cùng số với lệnh aggregate), khoá đối soát,
     tổng ngày, khối toàn kỳ và phân trang đều dùng lại danh sách này — không tốn truy vấn
-    thêm (ADR-040, ngân sách Q2). Quá trần thì giữ queryset và chạy aggregate như cũ."""
+    thêm (ADR-042, ngân sách Q2). Quá trần thì giữ queryset và chạy aggregate như cũ."""
     result = summarize(table, scoped_qs, with_totals=False, **kwargs)
     if not result.ok:
         return result
@@ -368,7 +368,7 @@ def subtotals(items, result, key="nhom"):
     `{giá trị nhóm: dãy ô thô}` theo thứ tự xuất hiện. Cộng `c_*` như `totals_from_rows`,
     cộng thêm giá trị suy ra (`derived`) của từng dòng, rồi tính lại cột tính từ tổng —
     CPO của ngày là ΣCPQC ÷ Σđơn, không phải trung bình các dòng. Không truy vấn.
-    `key="person_name"` gom theo người thay vì ngày — khối toàn kỳ theo nhân sự (ADR-040)."""
+    `key="person_name"` gom theo người thay vì ngày — khối toàn kỳ theo nhân sự (ADR-042)."""
     theo_nhom = {}
     for item in items:
         theo_nhom.setdefault(item.get(key), []).append(item)
@@ -461,7 +461,7 @@ class Cell(str):
 
 def cell_class(cot, gia_tri, moc, nguong=None):
     """Lớp màu của một ô: nền cột cho chỉ số quan trọng; có **ngưỡng tuyệt đối** (`nguong`
-    `{"tot","kem"}`, Manager đặt — ADR-040) thì ba bậc: đạt mốc Tốt → `o-tot` (xanh), qua mốc
+    `{"tot","kem"}`, Manager đặt — ADR-042) thì ba bậc: đạt mốc Tốt → `o-tot` (xanh), qua mốc
     Kém → `o-xau` (đỏ), giữa → `o-canh-bao` (vàng), kể cả dòng Tổng; không có ngưỡng thì so
     với dòng Tổng trong bộ lọc ±`THRESHOLD_BAND` như cũ (AC-22.16)."""
     lop = ["o-chi-so"] if cot.focus else []
@@ -514,7 +514,7 @@ def row_values(item, result):
     lại theo dòng. Dùng cho cả màn hình lẫn tệp xuất."""
     by_code = {k.removeprefix("c_"): v for k, v in item.items() if k.startswith("c_")}
     khoa = derived_key_of(item, result)
-    if khoa not in result.derived_shared:   # khoá chung nhiều dòng: (TT) chỉ ở TỔNG CỘNG (ADR-040 đợt 4)
+    if khoa not in result.derived_shared:   # khoá chung nhiều dòng: (TT) chỉ ở TỔNG CỘNG (ADR-042 đợt 4)
         by_code.update(result.derived.get(khoa, {}))
     by_code.update(_recompute(result.computed_columns, by_code))
     return item.get("nhom"), _cell_values(result, by_code)

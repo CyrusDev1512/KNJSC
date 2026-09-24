@@ -1,4 +1,4 @@
-{% comment %}Form Ngưỡng màu ba bậc (ADR-040 đợt 3) — chỉ Manager bộ phận sở hữu nguồn thấy. Xanh khi đạt
+{% comment %}Form Ngưỡng màu ba bậc (ADR-042 đợt 3) — chỉ Manager bộ phận sở hữu nguồn thấy. Xanh khi đạt
 mốc Tốt, đỏ khi qua mốc Kém, vàng ở giữa; để trống cả hai thì chỉ tiêu tô theo cách so với dòng Tổng.{% endcomment %}
 {% if nguong %}<details class="report-nguong" id="report-nguong"{% if nguong.mo %} open{% endif %}><summary class="nut nut-nho">Ngưỡng màu</summary>
 <form method="post" action="{% url 'bao_cao_tong_hop_nguong' %}" class="report-nguong-form">{% csrf_token %}

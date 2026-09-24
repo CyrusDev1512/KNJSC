@@ -1,0 +1,43 @@
+{% extends "base.html" %}{% load knjsc %}
+{% block tieu_de %}Báo cáo đã bỏ · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Báo cáo đã bỏ{% endblock %}
+{% block noi_dung %}
+{% comment %}
+Danh sách báo cáo đã bỏ (xoá mềm — BR-4) trong phạm vi của Manager/Admin, mới bỏ
+trước. Khôi phục trả cả báo cáo lẫn dòng số liệu về Lịch sử và Báo cáo tổng hợp
+(ADR-041). Kế toán không có quyền ở đây — sửa số là việc của Kế toán, bỏ hay
+khôi phục là việc của quản lý trực tiếp.
+{% endcomment %}
+<div class="bang-hop">
+  <p><a class="nut nut-nho" href="{% url 'bao_cao_lich_su' %}">← Lịch sử báo cáo</a></p>
+  <div class="bang-cuon">
+    <table class="bang">
+      <thead>
+        <tr><th>Ngày báo cáo</th><th>Biểu mẫu</th><th>Người nộp</th><th>Bộ phận</th><th>Người bỏ</th><th>Bỏ lúc</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for bc in trang %}
+        <tr>
+          <td>{{ bc.report_date|date:"d/m/Y" }}</td>
+          <td>{{ bc.form.name }}</td>
+          <td>{{ bc.created_by|ma_ten }}</td>
+          <td>{{ bc.department }}{% if bc.team %} · {{ bc.team }}{% endif %}</td>
+          <td>{{ bc.deleted_by|ma_ten }}</td>
+          <td>{{ bc.deleted_at|date:"d/m/Y H:i" }}</td>
+          <td class="phai">
+            <form method="post" action="{% url 'bao_cao_khoi_phuc' bc.pk %}"
+                  onsubmit="return confirm('Khôi phục báo cáo này? Số liệu sẽ về lại Báo cáo tổng hợp.')">
+              {% csrf_token %}
+              <button class="nut nut-nho nut-chinh" type="submit">Khôi phục</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">Không có báo cáo nào đã bỏ trong phạm vi của bạn.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'components/phan_trang.html' %}
+</div>
+{% endblock %}

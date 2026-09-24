@@ -40,7 +40,7 @@ from .services import (
 )
 
 
-#: Bảng có nguồn báo cáo loại này hiện thành báo cáo chi tiết theo ngày ở Bảng dữ liệu (ADR-040 đợt 4)
+#: Bảng có nguồn báo cáo loại này hiện thành báo cáo chi tiết theo ngày ở Bảng dữ liệu (ADR-042 đợt 4)
 NGUON_CHI_TIET = ("sale", "mkt")
 
 
@@ -60,7 +60,7 @@ def _nguon_chi_tiet(bang_hien):
 
 
 def _nguon_bao_cao(request, bang_hien):
-    """Bảng có nguồn báo cáo Sale/MKT hiện thành báo cáo chi tiết theo ngày (ADR-040 đợt 4), trừ khi
+    """Bảng có nguồn báo cáo Sale/MKT hiện thành báo cáo chi tiết theo ngày (ADR-042 đợt 4), trừ khi
     người xem đòi liệt kê thô từng dòng (`?dang=tho`)."""
     if request.GET.get("dang") == "tho":
         return None
@@ -208,11 +208,12 @@ def bang_xem(request, code):
     if nguon is not None:
         return _bang_bao_cao(request, bang_hien, nguon)
     # Cột ẩn với cả công ty không hiện ở đây (ADR-039); màn hình "Cấu trúc cột"
-    # vẫn liệt kê đủ để quản lý bảng bật lại được.
-    cac_cot = styling.decorate_columns(
-        table_service.visible_columns(list(bang_hien.columns.order_by("order", "id"))))
+    # vẫn liệt kê đủ để quản lý bảng bật lại được. Bộ lọc thì đọc trên MỌI cột:
+    # lọc theo cột ẩn vẫn chạy, kèm dòng nhắc (bổ sung ADR-039, AC-39.8).
+    cot_ca_bang = list(bang_hien.columns.order_by("order", "id"))
+    cac_cot = styling.decorate_columns(table_service.visible_columns(cot_ca_bang))
 
-    bo_loc = _doc_bo_loc(request, cac_cot)
+    bo_loc = _doc_bo_loc(request, cot_ca_bang)
     tim = request.GET.get("tim", "").strip()
     sap_xep = request.GET.get("sap", "")
     giam_dan = request.GET.get("chieu", "") == "giam"
@@ -221,7 +222,7 @@ def bang_xem(request, code):
         DataRecord.objects.in_scope(request.user)
                           .select_related("table", "created_by", "created_by__profile"),
         bang_hien, filters=bo_loc, search=tim, sort=sap_xep,
-        descending=giam_dan, columns=cac_cot,
+        descending=giam_dan, columns=cot_ca_bang,
     )
 
     boi_canh = pagination_context(request, ds, "dòng")
@@ -242,9 +243,11 @@ def bang_xem(request, code):
         ],
         "tim": tim, "sap_xep": sap_xep, "giam_dan": giam_dan,
         "co_bao_cao": bool(dang), "dang_tho": dang,
-        # Phân trang và sắp xếp giữ tìm kiếm, bộ lọc cột và cỡ trang (TL-53 phía Bảng dữ liệu)
+        # Phân trang và sắp xếp giữ tìm kiếm, bộ lọc cột và cỡ trang (TL-58 phía Bảng dữ liệu)
         "qs_loc": filter_query(tim=tim, sap=sap_xep, chieu="giam" if giam_dan else "", dang=dang, **loc_cot),
         "qs_sap": filter_query(tim=tim, moi_trang=request.GET.get("moi_trang", ""), dang=dang, **loc_cot),
+        # Dòng nhắc khi bộ lọc trên URL trỏ tới cột đang ẩn (AC-39.8)
+        "loc_cot_an": table_service.hidden_filtered_columns(bo_loc, cot_ca_bang),
         # "Sửa cột" chỉ với quản lý bộ phận sở hữu bảng hoặc Admin — cùng luật `bang_cot` (ADR-015)
         "duoc_sua": grant_service.can_manage_columns(request.user, bang_hien),
         "duoc_nhap": grant_service.can_import(request.user, bang_hien),
@@ -266,7 +269,7 @@ def _tham_so_bao_cao(request):
 
 def _bang_bao_cao(request, bang_hien, nguon):
     """Bảng có nguồn báo cáo Sale/MKT: báo cáo chi tiết theo ngày dùng chung động cơ với Báo cáo
-    tổng hợp (ADR-040 đợt 4) — mỗi lần nộp một dòng, khối toàn kỳ theo nhân sự, mỗi ngày một bảng,
+    tổng hợp (ADR-042 đợt 4) — mỗi lần nộp một dòng, khối toàn kỳ theo nhân sự, mỗi ngày một bảng,
     Gộp, ngưỡng màu, (TT); bộ lọc Kỳ / Sản phẩm / Thị trường / Team / Nhân sự; 25 dòng một trang."""
     from django.utils import timezone
 
@@ -425,7 +428,7 @@ def bang_xuat(request, code):
     bang_hien = _lay_bang(request, code)
     nguon = _nguon_bao_cao(request, bang_hien)
     if nguon is not None:
-        # Dạng báo cáo chi tiết theo ngày: xuất đúng các khối đang hiện (ADR-002, ADR-040 đợt 4)
+        # Dạng báo cáo chi tiết theo ngày: xuất đúng các khối đang hiện (ADR-002, ADR-042 đợt 4)
         from reports import screen
         from reports.services import activity_service
         tham_so = _tham_so_bao_cao(request)

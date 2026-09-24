@@ -53,28 +53,29 @@ def test_trang_chu_tong_quan_co_sidebar_theo_pham_vi(client, du_lieu, nguoi_dung
     sl = kq.context["so_lieu"]["data"]
     assert sl["so_bang"] == 1 and sl["so_dong"] == 3 and sl["dong_thang"] == 3 and sl["dong_hom_nay"] == 3
     assert set(b.code for b in kq.context["bang"]["data"]) == {"van_don"}
-    assert kq.context["duoc_tao_bang"] is False and "+ Tạo bảng" not in html
+    assert "+ Tạo bảng" not in html                    # nút đã ẩn với mọi người (ADR-040)
     assert kq.context["hoat_dong"]["ok"]
     # Logo KN CRM ở đầu menu trái bấm về trang chủ; favicon riêng của KN CRM
     assert 'class="nav-hieu" href="/"' in html and "img/kn-crm.svg" in html
     assert 'rel="icon" type="image/svg+xml" href="/static/img/kn-crm.svg' in html
 
-    # Sale Staff: chỉ dòng của mình, sidebar không có Vận đơn
+    # Sale Staff: bảng Sale là bảng thường — KHÔNG hiện ở KN CRM (ADR-040):
+    # số liệu về 0, sidebar không có mục Sale
     client.force_login(nguoi_dung["staff_sale_1"])
     kq = client.get("/")
     sl = kq.context["so_lieu"]["data"]
-    assert sl["so_dong"] == 1 and sl["so_bang"] == 1
+    assert sl["so_dong"] == 0 and sl["so_bang"] == 0
     ben = _sidebar(kq.content.decode())
-    assert "Sale" in ben and "Vận đơn" not in ben
-    # Leader Sale: cả team, thấy nút Tạo bảng
+    assert 'bp=sale' not in ben and 'bp=van-don' not in ben    # không mục bộ phận nào
+    # Leader Sale: nút "+ Tạo bảng" đã ẩn khỏi giao diện (ADR-040)
     client.force_login(nguoi_dung["leader_sale_1"])
     kq = client.get("/")
-    assert kq.context["duoc_tao_bang"] is True and "+ Tạo bảng" in kq.content.decode()
-    assert kq.context["so_lieu"]["data"]["so_dong"] == 1        # staff_sale_2 ở team khác
-    # Admin: mọi bộ phận có bảng
+    assert "+ Tạo bảng" not in kq.content.decode()
+    assert kq.context["so_lieu"]["data"]["so_dong"] == 0
+    # Admin: chỉ bộ phận có bảng vận đơn
     client.force_login(nguoi_dung["admin"])
     ben = _sidebar(client.get("/").content.decode())
-    assert "Sale" in ben and "Vận đơn" in ben
+    assert 'bp=van-don' in ben and 'bp=sale' not in ben
     # Marketing chưa có bảng nào: trang chủ vẫn 200, số bảng 0 (không phải 404 như trang thư mục)
     client.force_login(nguoi_dung["staff_mkt"])
     kq = client.get("/")
@@ -96,12 +97,15 @@ def test_bang_tinh_thu_muc_roi_luoi_va_quay_ve(client, du_lieu, nguoi_dung):
     assert luoi.status_code == 200
     html = luoi.content.decode()
     assert 'id="thanh-ben"' not in html
-    assert 'class="bt-ve" href="/thu-muc/?bp=van-don&amp;tat-ca=1"' in html
+    assert 'class="bt-ve" href="/thu-muc/?bp=van-don"' in html
     # Logo trên thanh trên của lưới bấm về trang chủ KN CRM
     assert 'class="bt-hieu" href="/"' in html and "img/kn-crm.svg" in html
     assert "Về Bảng tính" in html
+    # Bộ lọc đúng một tháng: nhãn tháng vẫn hiện trên thanh lưới, nút ← không
+    # còn mang tham số tháng (cấp Quý/Tháng đã bỏ — ADR-040)
     luoi = client.get("/bang-tinh/van_don/", {"f_ngay__lon_bang": "2026-09-01", "f_ngay__nho_bang": "2026-09-30"})
-    assert 'class="bt-ve" href="/thu-muc/?bp=van-don&amp;thang=2026-09"' in luoi.content.decode()
+    html = luoi.content.decode()
+    assert "Tháng 9/2026" in html and 'class="bt-ve" href="/thu-muc/?bp=van-don"' in html
     # Sale không mở được nhánh Vận đơn, kể cả gõ thẳng
     client.force_login(nguoi_dung["staff_sale_1"])
     assert client.get("/thu-muc/", {"bp": "van-don"}).status_code == 404

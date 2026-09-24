@@ -184,15 +184,16 @@ def run(*, so_khach, bang=BANG_MAC_DINH, ti_le_mua_lai=TI_LE_MUA_LAI, so_thang=S
     return tao
 
 
-def clear(bang=BANG_MAC_DINH):
-    """Xoá cứng dòng giả KH-* — không phải dữ liệu nghiệp vụ, không cần giữ dấu."""
+def clear(bang=BANG_MAC_DINH, on_progress=None):
+    """Xoá cứng dòng giả KH-* — không phải dữ liệu nghiệp vụ, không cần giữ dấu.
+
+    Đi qua đường xoá theo lô dùng chung với `seed_perf` (TL-43): bộ 300.000 khách
+    là 375.000 dòng, xoá một phát là đúng cái treo 17 phút mà TL-43 ghi, ở quy mô
+    gấp bảy. Phân công của dòng được dọn cùng lô, con trước cha."""
+    from core.management.commands.seed_perf import delete_fake_records
+
     ds = DataRecord.all_objects.filter(table__code=bang, data__ma_don__startswith=PREFIX)
-    so = ds.count()
-    if so:
-        pc = WaybillAssignment.objects.filter(record__in=ds.values("pk"))
-        pc._raw_delete(pc.db)
-        ds._raw_delete(ds.db)
-    return so
+    return delete_fake_records(ds, on_progress=on_progress)
 
 
 def stats(bang=BANG_MAC_DINH):
@@ -234,7 +235,9 @@ class Command(BaseCommand):
             raise CommandError("Chưa có tài khoản quản trị — chạy `manage.py du_lieu_mau` trước.")
         _bang(o["bang"])
         if o["xoa_cu"]:
-            self.stdout.write(f"Đã xoá {clear(o['bang'])} dòng giả KH-* cũ.")
+            tien_do_xoa = lambda da, tong: self.stdout.write(  # noqa: E731
+                f"  đã xoá {da}/{tong} dòng…", ending="\r")
+            self.stdout.write(f"\nĐã xoá {clear(o['bang'], on_progress=tien_do_xoa)} dòng giả KH-* cũ.")
         if o["so_khach"] <= 0:
             return
         bat_dau = time.monotonic()

@@ -138,15 +138,15 @@ def test_cot_ghim_dung_dau_va_boi_den_theo_thu_tu_nhin_thay(live_server, trang, 
     cau_hinh = trang.evaluate("()=>JSON.parse(document.getElementById('mg-config').textContent)")
     khoa = f"kn-master:{cau_hinh['user']}:{cau_hinh['table']}"
     ma = [c.code for c in table.columns.order_by("order")]
-    ghim = ["ma_don", "ten_khach", "so_dien_thoai"]
+    ghim = ["ngay", "ma_don", "ten_khach", "so_dien_thoai"]
     thu_tu = [c for c in ma if c not in ghim][:4] + ghim + [c for c in ma if c not in ghim][4:]
     trang.evaluate("([k,o])=>localStorage.setItem(k,JSON.stringify({order:o}))", [khoa, thu_tu])
     trang.reload()
     trang.locator(".mg-cell[data-id]").first.wait_for()
     _frames(trang)
     dau = trang.evaluate(JS_HEADERS)
-    assert [h["code"] for h in dau[:3]] == ghim and all(h["pin"] for h in dau[:3]) and not dau[3]["pin"]
-    assert dau[3]["code"] == thu_tu[0], "cột thường đầu tiên đứng ngay sau cột ghim, không bị che"
+    assert [h["code"] for h in dau[:4]] == ghim and all(h["pin"] for h in dau[:4]) and not dau[4]["pin"]
+    assert dau[4]["code"] == thu_tu[0], "cột thường đầu tiên đứng ngay sau cột ghim, không bị che"
     assert max(abs(dau[i + 1]["x"] - dau[i]["x"] - dau[i]["w"]) for i in range(len(dau) - 1)) == 0, "không ô trống giữa các cột"
 
     trang.locator(f'.mg-cell[data-r="0"][data-code="{dau[0]["code"]}"]').click()

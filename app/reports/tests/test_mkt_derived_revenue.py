@@ -72,7 +72,7 @@ def van_don(nguoi_dung, departments):
 
 def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguoi_dung):
     """AC-38.2 — DS Chốt (TT) = tiền đã thu của vận đơn do marketer phụ trách, cùng kỳ theo ngày lên
-    đơn, quy ₫ (ADR-040), đúng ở cách xem ngày, nhân viên, sản phẩm, thị trường, phòng ban; tổng = tổng
+    đơn, quy ₫ (ADR-042), đúng ở cách xem ngày, nhân viên, sản phẩm, thị trường, phòng ban; tổng = tổng
     dòng; đơn chưa phân công, marketer khác, ngoài kỳ, khác sản phẩm không vào; Staff chỉ thấy tiền của
     mình; Excel và Tổng quan cùng số; lọc Tệp khách hàng thì DS Chốt (TT) trống"""
     A, B = van_don["A"], van_don["B"]
@@ -107,7 +107,7 @@ def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguo
     totals = dict(zip([c.label for c in result.columns], aggregations.total_values(result)))
     assert totals["DS Chốt (TT)"] == 325 * CAD and totals["Hóa đơn/DS Chốt (TT)"] == (15 * CAD) / (325 * CAD)
     assert [c.kind for c in result.columns if c.label == "DS Chốt (TT)"] == ["derived"]
-    # Cột đối soát số đơn đi cùng (ADR-040): w1, w2 của A và w4 của B ngày 01.08; w3 của A ngày 02.08
+    # Cột đối soát số đơn đi cùng (ADR-042): w1, w2 của A và w4 của B ngày 01.08; w3 của A ngày 02.08
     assert rows[("01.08.2026", employee_code(A))]["Số đơn (TT)"] == 2 and rows[("01.08.2026", employee_code(B))]["Số đơn (TT)"] == 1
     assert totals["Số đơn (TT)"] == 4
 
@@ -144,7 +144,7 @@ def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguo
     assert page.status_code == 200
     screen = aggregations.total_values(page.context["result"])
     sheet = list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", query).content), data_only=True).active.values)
-    dong_tong = next(r for r in sheet if r[0] and str(r[0]).startswith("TỔNG CỘNG"))   # khối toàn kỳ (ADR-040)
+    dong_tong = next(r for r in sheet if r[0] and str(r[0]).startswith("TỔNG CỘNG"))   # khối toàn kỳ (ADR-042)
     # openpyxl đọc số về float: so từng ô với sai số nhỏ, ô trống phải cùng trống
     for excel_cell, screen_cell in zip(dong_tong[-len(screen):], screen):
         if screen_cell is None:
@@ -158,7 +158,7 @@ def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguo
 
 def test_hoa_don_chia_doanh_thu_va_canh_bao_tien(bang_mkt, mkt_source, van_don, nguoi_dung):
     """AC-38.3 — Hóa đơn/DS Chốt (TT) = Hóa đơn ÷ DS Chốt (TT) theo nhãn; thiếu một vế thì trống; tiền
-    vận đơn khác loại tiền với báo cáo thì quy ₫ rồi cộng (ADR-040), không cảnh báo, không để trống;
+    vận đơn khác loại tiền với báo cáo thì quy ₫ rồi cộng (ADR-042), không cảnh báo, không để trống;
     `configure_erp_reports` không tạo cột nhập Doanh thu, gỡ trường đó khỏi biểu mẫu, bỏ cột tính từng
     dòng, chạy lại không đổi"""
     from forms_builder.models import ColumnDef, FieldDef, FormField, FormTableLink
@@ -196,7 +196,7 @@ def test_hoa_don_chia_doanh_thu_va_canh_bao_tien(bang_mkt, mkt_source, van_don, 
     result = activity_service.build(nguoi_dung["manager_mkt"], mkt_source, start=date(2026, 8, 1), end=date(2026, 8, 1))
     totals = dict(zip([c.label for c in result.columns], aggregations.total_values(result)))
     assert totals["DS Chốt (TT)"] == 100 * CAD and totals["Hóa đơn/DS Chốt (TT)"] == Decimal("0.08")
-    # Vận đơn USD của cùng marketer trong kỳ → quy ₫ rồi cộng, không cảnh báo, không trống (ADR-040)
+    # Vận đơn USD của cùng marketer trong kỳ → quy ₫ rồi cộng, không cảnh báo, không trống (ADR-042)
     row = DataRecord.objects.create(table=van_don["table"], department=van_don["table"].department,
                                     created_by=nguoi_dung["admin"], val_date=date(2026, 8, 1),
                                     data={"ngay": "2026-08-01", "quoc_gia": "Hoa Kỳ", "loai_tien": "USD"})

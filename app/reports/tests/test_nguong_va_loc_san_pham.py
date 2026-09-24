@@ -1,4 +1,4 @@
-"""ADR-040 đợt 3 — ngưỡng màu ba bậc do Manager đặt, lọc nhiều sản phẩm."""
+"""ADR-042 đợt 3 — ngưỡng màu ba bậc do Manager đặt, lọc nhiều sản phẩm."""
 import re
 from datetime import date
 from decimal import Decimal
@@ -28,7 +28,7 @@ def _lop(row, cot, nhan):
 
 
 def test_ba_bac_mau_theo_nguong_tuyet_doi(client, bang_mkt, mkt_source, van_don, nguoi_dung):
-    """AC-40.8 — Chỉ tiêu có ngưỡng tô xanh khi đạt mốc Tốt, đỏ khi qua mốc Kém, vàng ở giữa, đúng
+    """AC-42.8 — Chỉ tiêu có ngưỡng tô xanh khi đạt mốc Tốt, đỏ khi qua mốc Kém, vàng ở giữa, đúng
     chiều tốt (Tỉ lệ chốt cao, CPO thấp); dòng TỔNG CỘNG cũng tô; chỉ tiêu chưa có ngưỡng giữ cách
     so với dòng Tổng ±10 %; lớp `o-xau` có trong CSS"""
     A, B = van_don["A"], van_don["B"]
@@ -70,7 +70,7 @@ def test_ba_bac_mau_theo_nguong_tuyet_doi(client, bang_mkt, mkt_source, van_don,
 
 
 def test_form_nguong_ba_cap_bac(client, bang_mkt, mkt_source, nguoi_dung):
-    """AC-40.9 — Admin và quản lý bộ phận sở hữu nguồn (Manager, Leader) thấy form Ngưỡng màu và lưu
+    """AC-42.9 — Admin và quản lý bộ phận sở hữu nguồn (Manager, Leader) thấy form Ngưỡng màu và lưu
     được (302 + nhật ký Sửa); Staff và quản lý bộ phận khác bị 403 có nhật ký từ chối, không thấy form;
     mốc sai thứ tự / thiếu một mốc / không phải số → báo lỗi tiếng Việt, không lưu; để trống cả hai
     mốc thì bỏ ngưỡng của chỉ tiêu đó"""
@@ -139,7 +139,7 @@ def test_form_nguong_ba_cap_bac(client, bang_mkt, mkt_source, nguoi_dung):
 
 @pytest.mark.django_db(transaction=True)
 def test_migration_0005_xuoi_nguoc():
-    """AC-40.10 — Migration `reports/0005` (cột `thresholds`) chạy ngược bỏ cột và chạy xuôi thêm lại,
+    """AC-42.10 — Migration `reports/0005` (cột `thresholds`) chạy ngược bỏ cột và chạy xuôi thêm lại,
     không đụng dữ liệu khác"""
     def cot():
         with connection.cursor() as c:
@@ -156,7 +156,7 @@ def test_migration_0005_xuoi_nguoc():
 
 
 def test_loc_nhieu_san_pham_va_url_cu(client, bang_mkt, mkt_source, van_don, nguoi_dung):
-    """AC-40.11 — `sp` lặp lại lọc nhiều sản phẩm: tổng và phần đối soát (TT) theo đúng các sản phẩm
+    """AC-42.11 — `sp` lặp lại lọc nhiều sản phẩm: tổng và phần đối soát (TT) theo đúng các sản phẩm
     đã chọn; URL cũ một sản phẩm vẫn đúng; danh sách tick chỉ có sản phẩm trong phạm vi quyền; chip
     "N sản phẩm"; phụ đề Excel ghi danh sách; nguồn không có sản phẩm nào thì báo"""
     A, B = van_don["A"], van_don["B"]

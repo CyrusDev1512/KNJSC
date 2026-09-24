@@ -63,11 +63,15 @@ def build(user, current=""):
     if (u := _url("tong_quan")) is not None:
         muc.append(CrmNavItem("tong_quan", "Trang chủ", u, "⌂", current == "tong_quan"))
     if (u := _url("thu_muc")) is not None:
-        # Một truy vấn, không kéo cột như `tree_service.all_tables` — sidebar ở mọi trang
+        # Một truy vấn, không kéo cột như `tree_service.all_tables` — sidebar ở mọi
+        # trang. Mục con Bảng tính chỉ vẽ bộ phận có bảng vận đơn (ADR-040), nhưng
+        # `cac_bang` giữ đủ mọi bảng trong phạm vi: mục Thống kê đọc số liệu từ cả
+        # hai bên nên còn bảng nào (kể cả bảng thường) là còn hiện.
         cac_bang = list(TableDef.objects.in_scope(user).select_related("department").only("id", "department", "code", "workflow"))
+        bang_vd = [b for b in cac_bang if is_waybill_table(b)]
         con = tuple(
             CrmNavItem(f"bp:{d.code}", d.name, tree_service.home_url(d), "▸", current == f"bp:{d.code}")
-            for d in tree_service.departments_of(user, cac_bang)
+            for d in tree_service.departments_of(user, bang_vd)
         )
         # `bang` là nav_current của các view forms_builder (tạo bảng, sửa cột, nhập)
         dang = current in ("thu_muc", "bang") or any(c.current for c in con)

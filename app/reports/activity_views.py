@@ -1,5 +1,5 @@
 """HTTP cho báo cáo hoạt động; tính toán và quyền ở service, bối cảnh màn hình ở `reports.screen`
-(dùng chung với Bảng dữ liệu dạng báo cáo, ADR-040 đợt 4)."""
+(dùng chung với Bảng dữ liệu dạng báo cáo, ADR-042 đợt 4)."""
 from urllib.parse import parse_qsl, urlencode
 
 from django.contrib import messages
@@ -24,7 +24,7 @@ def report(request, export=False, choices=None):
     choices = list(service.sources(request.user)) if choices is None else choices
     source = service.select_source(request.user, request.GET.get("nguon", ""), choices)
     params = parameters(request)
-    gop = request.GET.get("gop") == "1"   # Gộp theo ngày (ADR-040): mỗi ngày một dòng
+    gop = request.GET.get("gop") == "1"   # Gộp theo ngày (ADR-042): mỗi ngày một dòng
     # Liên kết phân trang ghép `?trang=N&moi_trang=M` + `qs_loc`: bỏ hai khoá đó khỏi `qs_loc`,
     # không thì giá trị cũ đứng sau thắng và từ trang 2 bấm trang khác vẫn đứng yên (TL-47)
     giu = request.GET.copy()
@@ -66,7 +66,7 @@ def report(request, export=False, choices=None):
 @login_required
 @require_POST
 def thresholds(request):
-    """Manager bộ phận sở hữu nguồn (hoặc Admin) đặt ngưỡng màu ba bậc (ADR-040 đợt 3): sai thứ tự,
+    """Manager bộ phận sở hữu nguồn (hoặc Admin) đặt ngưỡng màu ba bậc (ADR-042 đợt 3): sai thứ tự,
     thiếu một mốc, không phải số → báo lỗi, không lưu; người khác 403 có nhật ký."""
     code = request.POST.get("nguon", "")
     if not code:

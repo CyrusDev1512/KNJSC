@@ -119,9 +119,9 @@ def shell(request, table):
     for key in ('trang', 'moi_trang', 'offset', 'version'):
         qs.pop(key, None)
     chips = []
-    for key, label in grid.chips:
+    for key, label, an in grid.chips:
         p = qs.copy(); p.pop(key, None)
-        chips.append((label, '?' + p.urlencode()))
+        chips.append((label, '?' + p.urlencode(), an))
     return render(request, 'crm/master_grid.html', {
         'waybill_profile': is_waybill_table(table),
         # Nút Tôi / Toàn bộ: chỉ người có cột phụ trách trong bảng vận đơn (ADR-033)
@@ -129,7 +129,7 @@ def shell(request, table):
         'payment_documents_enabled': getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False),
         'grid_root_class':'mg-root mg-waybill-master' if is_waybill_table(table) else 'mg-root',
         'thang_dang_xem':month, 'bang': table, 'luoi': grid, 'qs_giu': qs.urlencode(), 'chips': chips,
-        've_url': tree_service.home_url(table.department, month=month) if month else tree_service.home_url(table.department, all_tables=True),
+        've_url': tree_service.home_url(table.department),
         've_nhan': 'Về Bảng tính — thư mục', 'can_assign': is_waybill_table(table) and can_assign(request.user),
         'duoc_quan_ly_cot':grant_service.can_manage_columns(request.user, table),
         'duoc_nhap': grant_service.can_import(request.user, table),

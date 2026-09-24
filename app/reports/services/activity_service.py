@@ -29,7 +29,7 @@ INPUT_LABELS = {
     "mess": "Số Mess", "orders": "Số đơn", "orders_tt": "Số đơn (TT)", "sales": "Doanh số",
     "revenue": "Doanh thu", "cost": "CPQC", "invoice": "Hóa đơn",
 }
-#: Nhãn riêng của BC MKT theo ảnh mẫu (ADR-040): số marketer tự khai là "DS Chốt", số đối
+#: Nhãn riêng của BC MKT theo ảnh mẫu (ADR-042): số marketer tự khai là "DS Chốt", số đối
 #: soát từ vận đơn là "(TT)". Sale giữ "Doanh số"/"Doanh thu" (Doanh thu của Sale là cột nhập).
 LABEL_OVERRIDES = {"mkt": {"sales": "DS Chốt", "revenue": "DS Chốt (TT)"}}
 FORMULA_LABEL_OVERRIDES = {"mkt": {"cost_sales": "CPQC/DS Chốt", "invoice_revenue": "Hóa đơn/DS Chốt (TT)"}}
@@ -44,7 +44,7 @@ FORMULAS = {
     "invoice_revenue": ("Hóa đơn/Doanh thu", ("invoice", "revenue"), "divide"),
     "aov": ("AOV", ("sales", "orders"), "divide"),
 }
-#: Khoá không lấy từ cột bảng mà đối soát từ vận đơn do marketer phụ trách (ADR-038, ADR-040,
+#: Khoá không lấy từ cột bảng mà đối soát từ vận đơn do marketer phụ trách (ADR-038, ADR-042,
 #: `marketing_actuals`): tiền đã thu là tiền, số đơn là số đếm — tách để quy ₫ và định dạng đúng.
 DERIVED_MONEY = {"mkt": ("revenue",)}
 DERIVED_COUNT = {"mkt": ("orders_tt",)}
@@ -302,7 +302,7 @@ def filtered_records(user, source, *, start=None, end=None, product="", market="
 
 
 def _products(product):
-    """Sản phẩm đang lọc: một chuỗi (URL cũ, Tổng quan) hay danh sách nhiều mục (ADR-040)."""
+    """Sản phẩm đang lọc: một chuỗi (URL cũ, Tổng quan) hay danh sách nhiều mục (ADR-042)."""
     if not product:
         return []
     return [product] if isinstance(product, str) else [p for p in product if p]
@@ -322,25 +322,25 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
     # cặp (ngày, nhân sự) nên không gán nhầm tiền cả ngày cho từng người.
     extra = None
     if group == "day":
-        # Ngày × nhân sự, kèm Team để khối theo ngày có cột Team như ảnh (ADR-040)
+        # Ngày × nhân sự, kèm Team để khối theo ngày có cột Team như ảnh (ADR-042)
         extra = {**person_expressions(source), "team_name": team_expressions(source)["team_name"]}
         if detail:
-            # Bảng dữ liệu (ADR-040 đợt 4): mỗi lần nộp một dòng — nộp nhiều lần/ngày (ADR-032) vẫn tách
+            # Bảng dữ liệu (ADR-042 đợt 4): mỗi lần nộp một dòng — nộp nhiều lần/ngày (ADR-032) vẫn tách
             extra["record_id"] = F("id")
     if group == "person":
         extra = team_expressions(source)   # Team · Leader đi cùng người, không annotate sau
     # Toàn bộ dòng nhóm vào bộ nhớ khi ≤ MAX_GROUPS: tổng, khoá đối soát, tổng ngày và phân
-    # trang dùng chung một danh sách — không thêm truy vấn (ADR-040)
+    # trang dùng chung một danh sách — không thêm truy vấn (ADR-042)
     result = aggregations.summarize_in_memory(
         source.table, qs, limit=MAX_GROUPS, group_key="ngay" if group == "day" else "nhan-vien",
         columns=list(source.table.columns.all()),
         group_expression=expression, group_label=label,
         extra_groups=extra, derived_key=("nhom", "person_name") if group == "day" else ("nhom",),
-        currency_code=source.columns.get("currency"),   # quy ₫ ngay trong truy vấn (ADR-040)
+        currency_code=source.columns.get("currency"),   # quy ₫ ngay trong truy vấn (ADR-042)
     )
     result = project_metrics(result, source) if result.ok else result
     if result.ok:
-        result = replace(result, thresholds=source.thresholds or {})   # ngưỡng màu Manager đặt (ADR-040)
+        result = replace(result, thresholds=source.thresholds or {})   # ngưỡng màu Manager đặt (ADR-042)
     thieu_ti_gia = 0
     if result.ok and DERIVED.get(source.kind) and not segment:
         # Lọc theo Tệp khách hàng thì phần đối soát để trống: vận đơn không ghi tệp (ADR-038)
@@ -361,7 +361,7 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
 
 
 def marketing_actuals(qs, group, expression, *, start=None, end=None, product="", market=""):
-    """Đối soát từ vận đơn (ADR-038, ADR-040), nhóm theo cùng khoá với báo cáo:
+    """Đối soát từ vận đơn (ADR-038, ADR-042), nhóm theo cùng khoá với báo cáo:
     **Số đơn (TT)** = số vận đơn có Phụ trách Marketing là marketer trong phạm vi báo cáo,
     theo ngày lên đơn, cùng sản phẩm/quốc gia khi lọc; **DS Chốt (TT)** = tổng tiền đã thu
     (`WaybillItem.paid_amount`, chính là `so_tien_tt`) của các đơn đó, **quy ₫** theo loại tiền
@@ -439,7 +439,7 @@ def attach_derived(result, values, *, zero=()):
 
 
 def currency_note(result, source, qs, thieu_ti_gia=0):
-    """Mọi tiền đã quy ₫ ngay trong truy vấn (ADR-040) nên chỉ còn công bố đơn vị và tỉ giá;
+    """Mọi tiền đã quy ₫ ngay trong truy vấn (ADR-042) nên chỉ còn công bố đơn vị và tỉ giá;
     chỉ cảnh báo khi có dòng không quy đổi được (KRW chưa có tỉ giá, báo cáo cũ trống loại
     tiền, vận đơn thiếu tỉ giá): tiền của các dòng đó không vào tổng, cột đếm vẫn tính đủ.
     Đường bình thường không tốn truy vấn; chỉ khi cảnh báo mới tra danh sách loại tiền thiếu."""

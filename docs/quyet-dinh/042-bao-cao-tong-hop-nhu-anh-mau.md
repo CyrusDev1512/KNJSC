@@ -1,4 +1,4 @@
-# ADR-040 — Báo cáo tổng hợp như ảnh mẫu: quy ₫ trước khi cộng, cột đối soát (TT), bố cục khối theo ngày, ngưỡng màu
+# ADR-042 — Báo cáo tổng hợp như ảnh mẫu: quy ₫ trước khi cộng, cột đối soát (TT), bố cục khối theo ngày, ngưỡng màu
 
 | Mục | Nội dung |
 |---|---|
@@ -45,7 +45,7 @@ Chỗ đối tác thấy sai trước tiên: dữ liệu thật lẫn USD/EUR/CA
    (`reports/constants.py`), đường cũ `marketing.adapt` suy mã từ nhãn.
 4. **Toàn bộ dòng nhóm vào bộ nhớ khi ≤ 2.000** (`summarize_in_memory`): tổng, khoá đối soát,
    tổng ngày, khối toàn kỳ và phân trang dùng chung một danh sách — bỏ được lệnh aggregate và lệnh tra
-   khoá; nguồn MKT thật từ 12 xuống dưới 10 truy vấn (AC-40.4). Quá trần thì giữ queryset như cũ.
+   khoá; nguồn MKT thật từ 12 xuống dưới 10 truy vấn (AC-42.4). Quá trần thì giữ queryset như cũ.
 5. **Bố cục khối như ảnh** (đợt 2, `reports/layout.py` + `reports/_bang_khoi.html`): khối **toàn kỳ
    theo nhân sự** đứng đầu — cộng trong bộ nhớ từ các dòng ngày × người, cột STT · Team · Nhân sự ·
    Leader, TỔNG CỘNG ngay dưới hàng tiêu đề cột, sắp theo mã; rồi **mỗi ngày một bảng riêng** mới nhất
@@ -79,10 +79,10 @@ Chỗ đối tác thấy sai trước tiên: dữ liệu thật lẫn USD/EUR/CA
 ## Hệ quả
 
 - `currency_safe_result` bị xoá; `currency_warning` chỉ còn nghĩa "N dòng chưa quy đổi được".
-  AC-38.2, AC-38.3 đổi chữ theo; AC-40.x là tiêu chí mới (`docs/04` mục 40).
+  AC-38.2, AC-38.3 đổi chữ theo; AC-42.x là tiêu chí mới (`docs/04` mục 40).
 - Ô tiền hiện "540.000 ₫" không phần lẻ; tỉ lệ hiện "6,18%". Cột đếm không hậu tố.
 - Số đơn (TT) và DS Chốt (TT) chỉ có ở nguồn MKT (chỉ vận đơn có phân công Marketing).
-- Hai lỗi thật sửa cùng đợt 1: liên kết phân trang kéo theo `trang` cũ (TL-53) và chip Kỳ có × ngay
+- Hai lỗi thật sửa cùng đợt 1: liên kết phân trang kéo theo `trang` cũ (TL-58) và chip Kỳ có × ngay
   cả ở kỳ mặc định vì form luôn gửi `tu`/`den` (TL-52).
 
 ## Giới hạn và việc để lại

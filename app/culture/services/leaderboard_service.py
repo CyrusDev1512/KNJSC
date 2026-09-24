@@ -17,7 +17,7 @@ from core.audit import record
 from core.constants import AuditAction
 from core.exceptions import BusinessError
 from core.identity import display_name
-# Quy đổi tỉ giá ở `core.money` từ 23.09.2026 (ADR-040, dùng chung với báo cáo); giữ tên ở đây
+# Quy đổi tỉ giá ở `core.money` từ 23.09.2026 (ADR-042, dùng chung với báo cáo); giữ tên ở đây
 from core.money import format_vnd, rates_label, to_vnd  # noqa: F401
 from orders.models import Order
 

@@ -148,7 +148,7 @@ def test_new_marketing_report_derives_currency_and_keeps_zero(client, bm_sale, n
 
 
 def test_summary_converts_currencies_to_vnd_before_adding(bm_sale, nguoi_dung):
-    """Báo cáo Sale lẫn CAD và USD: quy ₫ từng dòng rồi mới cộng (ADR-040), không để trống"""
+    """Báo cáo Sale lẫn CAD và USD: quy ₫ từng dòng rồi mới cộng (ADR-042), không để trống"""
     from decimal import Decimal
     from forms_builder.models import DataRecord
     from reports.models import ReportSource

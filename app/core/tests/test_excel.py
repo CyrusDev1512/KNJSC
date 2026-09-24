@@ -195,3 +195,23 @@ def test_ghi_bang_giu_decimal_va_ngay():
     assert ws["A2"].value == datetime(2026, 8, 1)
     assert Decimal(str(ws["B2"].value)) == Decimal("1234.56")
     assert ws["B3"].value is None
+
+
+@pytest.mark.parametrize("ghi_lien", [False, True])
+def test_ghi_bang_xuong_dong_cot_van_ban_dai(ghi_lien):
+    """AC-11.44 — Cột nêu trong `wrap_columns` bật Wrap Text, căn trên và rộng 60 để ghi chú
+    nhiều dòng mở ra thấy đủ dòng; cột khác giữ nguyên — cả chế độ ghi thường và ghi liền"""
+    wb = excel.write_table(
+        ["Mã", "Ghi chú"],
+        [["A1", "Dòng 1\nDòng 2"], ["A2", None]],
+        wrap_columns=[1], write_only=ghi_lien,
+    )
+    dem = io.BytesIO()
+    wb.save(dem)
+    dem.seek(0)
+    ws = load_workbook(dem).active
+    assert ws["B1"].font.b is True
+    assert ws["B2"].value == "Dòng 1\nDòng 2"
+    assert ws["B2"].alignment.wrap_text is True and ws["B2"].alignment.vertical == "top"
+    assert not ws["A2"].alignment.wrap_text
+    assert ws.column_dimensions["B"].width == 60

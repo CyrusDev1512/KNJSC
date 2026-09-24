@@ -1,4 +1,4 @@
-"""ADR-040 đợt 2 — bố cục khối như ảnh mẫu: khối toàn kỳ theo nhân sự, mỗi ngày một bảng, Gộp."""
+"""ADR-042 đợt 2 — bố cục khối như ảnh mẫu: khối toàn kỳ theo nhân sự, mỗi ngày một bảng, Gộp."""
 from datetime import date, timedelta
 from io import BytesIO
 
@@ -18,7 +18,7 @@ def _o(row, cot, nhan):
 
 
 def test_bang_toan_ky_va_moi_ngay_mot_bang(client, bang_mkt, mkt_source, van_don, nguoi_dung):
-    """AC-40.6 — Cách xem Tổng hợp: khối toàn kỳ theo nhân sự đứng đầu (mỗi người một dòng cộng cả
+    """AC-42.6 — Cách xem Tổng hợp: khối toàn kỳ theo nhân sự đứng đầu (mỗi người một dòng cộng cả
     kỳ, STT, Team, Leader, TỔNG CỘNG toàn kỳ ngay dưới tiêu đề cột), rồi mỗi ngày một bảng riêng mới
     nhất trước không có cột Ngày, TỔNG CỘNG ngày bằng tổng dòng con, STT đếm lại; khối toàn kỳ không
     thêm truy vấn; ngày tách trang ghi "(tiếp)" và lặp TỔNG CỘNG; Excel hai sheet cùng khối"""
@@ -76,7 +76,7 @@ def test_bang_toan_ky_va_moi_ngay_mot_bang(client, bang_mkt, mkt_source, van_don
 
 
 def test_gop_chi_con_dong_tong_ngay(client, bang_mkt, mkt_source, van_don, nguoi_dung):
-    """AC-40.7 — Gộp (`gop=1`): mỗi ngày một dòng là TỔNG CỘNG của ngày, phân trang theo ngày, khối
+    """AC-42.7 — Gộp (`gop=1`): mỗi ngày một dòng là TỔNG CỘNG của ngày, phân trang theo ngày, khối
     toàn kỳ vẫn đứng đầu; chip Gộp có × về Không gộp; Excel sheet Theo ngay chỉ dòng ngày, cùng số"""
     A, B = van_don["A"], van_don["B"]
     _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10)
