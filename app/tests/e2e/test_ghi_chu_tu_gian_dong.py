@@ -353,6 +353,122 @@ def test_do_hieu_nang_1000_dong_ghi_chu_400(live_server, trang, dang_nhap,
     assert not loi_js, loi_js
 
 
+def test_nguoi_khac_sua_thi_dong_do_lai_va_dong_cao_khong_co_ve_28(
+        live_server, trang, dang_nhap, kn_crm, feedback, nguoi_dung):  # noqa: F811
+    """AC-11.44 — Người khác sửa ghi chú: lưới hỏi mốc mỗi 8 giây, thấy đổi thì tải lại mềm.
+    Dòng vừa được sửa phải cao lên **không cần tải lại trang**, và dòng đang cao **không
+    được co về 28 px** trong suốt lượt tải lại đó"""
+    bang, _, dong = feedback
+    ma_ngan, ma_dai = _ghi(dong[0], GHI_CHU_NGAN), _ghi(dong[1], GHI_CHU_DAI)
+
+    loi_js = _mo_luoi(trang, live_server, dang_nhap, nguoi_dung, bang)
+    ngan, dai = _o_ghi_chu(trang, ma_ngan), _o_ghi_chu(trang, ma_dai)
+    assert ngan["cao_o"] == CAO_MAC_DINH and dai["cao_o"] > CAO_MAC_DINH, (ngan, dai)
+    trang.wait_for_timeout(1500)   # để lưới kịp ghi mốc đầu tiên trước khi dữ liệu đổi
+
+    # Theo dõi liên tục chiều cao dòng đang cao: nó không được tụt xuống 28 px lúc nào
+    trang.evaluate(
+        """r => { window.__thap_nhat = 9999;
+                  window.__theo_doi = setInterval(() => {
+                      const o = document.querySelector(`.mg-cell[data-code='ghi_chu'][data-r='${r}']`);
+                      if (o) window.__thap_nhat = Math.min(window.__thap_nhat,
+                          Math.round(o.getBoundingClientRect().height));
+                  }, 100); }""", dai["r"])
+
+    # "Người khác" sửa: lưu trọn bản ghi để mốc sửa gần nhất đổi theo
+    dong[0].data["ghi_chu"] = GHI_CHU_DAI
+    dong[0].save()
+
+    # Poll chạy mỗi 8 giây; chờ rộng tay tới 30 giây rồi mới kết luận
+    trang.wait_for_function(
+        """r => { const o = document.querySelector(`.mg-cell[data-code='ghi_chu'][data-r='${r}']`);
+                  return o && o.getBoundingClientRect().height > 28; }""",
+        arg=ngan["r"], timeout=30_000)
+    thap_nhat = trang.evaluate("() => { clearInterval(window.__theo_doi); return window.__thap_nhat; }")
+
+    sau = _o_ghi_chu(trang, ma_ngan)
+    assert sau["cao_o"] > CAO_MAC_DINH and sau["xuong_dong"], sau
+    assert thap_nhat > CAO_MAC_DINH, (
+        f"dòng đang cao đã tụt xuống {thap_nhat} px trong lượt tải lại mềm — chiều cao bị xoá sạch")
+    assert not loi_js, loi_js
+    print(f"\nAC-11.44 người khác sửa — dòng ngắn 28 → {sau['cao_o']} px; "
+          f"dòng đang cao thấp nhất chạm {thap_nhat} px")
+
+
+def test_dong_trong_cuoi_bang_go_ghi_chu_dai(live_server, trang, dang_nhap,
+                                             kn_crm, feedback, nguoi_dung):  # noqa: F811
+    """AC-11.44 — Gõ ghi chú dài vào dòng trống sẵn cuối bảng: dòng giãn ngay lúc gõ, và giữ
+    nguyên chiều cao sau khi dòng nháp thành bản ghi thật"""
+    bang, _, dong = feedback
+    loi_js = _mo_luoi(trang, live_server, dang_nhap, nguoi_dung, bang)
+
+    tong = trang.evaluate("() => window.KNJSC_MASTER.diagnostics().total")
+    that = len(dong)
+    assert tong > that, f"bảng phải có dòng trống sẵn để nhập (tổng {tong}, dòng thật {that})"
+
+    # Dòng trống đầu tiên đứng ngay sau các dòng thật
+    r = that
+    trang.evaluate("r => document.getElementById('mg-viewport').scrollTop = r * 28", r)
+    trang.wait_for_timeout(400)
+    _o_ghi_chu(trang, dong[0].data["ma_don"])       # cuộn ngang tới cột Ghi chú
+    o = trang.locator(f".mg-cell[data-code='ghi_chu'][data-r='{r}']")
+    assert o.count(), f"không thấy ô Ghi chú của dòng trống thứ {r}"
+    o.click()
+    trang.keyboard.press("F2")
+    trang.wait_for_selector("#mg-editor textarea", state="visible")
+    trang.keyboard.type(GHI_CHU_DAI[:200])
+    trang.keyboard.press("Control+Enter")
+    trang.wait_for_timeout(700)
+
+    cao_khi_go = trang.evaluate(
+        f"() => Math.round(document.querySelector(\".mg-cell[data-code='ghi_chu'][data-r='{r}']\")"
+        ".getBoundingClientRect().height)")
+    assert cao_khi_go > CAO_MAC_DINH, f"dòng trống gõ ghi chú dài mà không giãn: {cao_khi_go} px"
+
+    _cho_da_luu(trang)
+    trang.wait_for_timeout(600)
+    cao_sau_luu = trang.evaluate(
+        f"() => {{ const o = document.querySelector(\".mg-cell[data-code='ghi_chu'][data-r='{r}']\");"
+        "return o ? Math.round(o.getBoundingClientRect().height) : null; }")
+    assert cao_sau_luu and cao_sau_luu > CAO_MAC_DINH, (
+        f"dòng nháp thành bản ghi thật xong lại co về {cao_sau_luu} px")
+    assert not loi_js, loi_js
+    print(f"\nAC-11.44 dòng trống — lúc gõ {cao_khi_go} px, sau khi lưu {cao_sau_luu} px")
+
+
+def test_hoan_tac_roi_lam_lai(live_server, trang, dang_nhap,
+                              kn_crm, feedback, nguoi_dung):  # noqa: F811
+    """AC-11.44 — Xoá ghi chú, hoàn tác bằng Ctrl+Z rồi làm lại bằng Ctrl+Y: dòng co rồi cao
+    rồi co lại theo đúng từng bước, không phải tải lại trang"""
+    bang, _, dong = feedback
+    ma = _ghi(dong[1], GHI_CHU_DAI)
+    loi_js = _mo_luoi(trang, live_server, dang_nhap, nguoi_dung, bang)
+    dau = _o_ghi_chu(trang, ma)
+    assert dau["cao_o"] > CAO_MAC_DINH, dau
+
+    def cao():
+        trang.wait_for_timeout(800)
+        return trang.evaluate(
+            f"() => Math.round(document.querySelector(\".mg-cell[data-code='ghi_chu']"
+            f"[data-r='{dau['r']}']\").getBoundingClientRect().height)")
+
+    trang.click(f".mg-cell[data-code='ghi_chu'][data-r='{dau['r']}']")
+    trang.keyboard.press("Delete")
+    sau_xoa = cao()
+    trang.keyboard.press("Control+z")
+    sau_hoan_tac = cao()
+    trang.keyboard.press("Control+y")
+    sau_lam_lai = cao()
+
+    print(f"\nAC-11.44 hoàn tác/làm lại — đầu {dau['cao_o']} → xoá {sau_xoa} → "
+          f"Ctrl+Z {sau_hoan_tac} → Ctrl+Y {sau_lam_lai}")
+    assert sau_xoa == CAO_MAC_DINH, f"xoá ghi chú mà dòng vẫn {sau_xoa} px"
+    assert sau_hoan_tac > CAO_MAC_DINH, f"Ctrl+Z trả lại ghi chú dài mà dòng vẫn {sau_hoan_tac} px"
+    assert sau_lam_lai == CAO_MAC_DINH, f"Ctrl+Y xoá lại ghi chú mà dòng vẫn {sau_lam_lai} px"
+    _cho_da_luu(trang)
+    assert not loi_js, loi_js
+
+
 @pytest.mark.parametrize("nen", ["sang", "toi"])
 def test_anh_doi_chieu(live_server, trinh_duyet, dang_nhap, kn_crm,
                        feedback, nguoi_dung, nen):  # noqa: F811

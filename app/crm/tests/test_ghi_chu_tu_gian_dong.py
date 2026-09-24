@@ -15,14 +15,15 @@ Hai chỗ kề bên cũng thuộc AC-11.44: ô Ghi chú ở Lên đơn là ô nh
 import io
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import QueryDict
 from openpyxl import load_workbook
 
 from crm.services.master_grid_service import metadata
 from crm.tests.test_waybill_feedback import feedback  # noqa: F401  (fixture dùng lại)
 from forms_builder.meaning import FieldType, Meaning
-from forms_builder.models import TableDef
-from forms_builder.services import export_service
+from forms_builder.models import DataRecord, TableDef
+from forms_builder.services import export_service, import_service
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE, Market, PaymentMethod
 from orders.models import Order
 from orders.services import dispatch_service
@@ -123,6 +124,31 @@ def test_len_don_ghi_chu_o_nhieu_dong(client, feedback, nguoi_dung):  # noqa: F8
     # Đơn lưu ghi chú đã gom về `\n`, và dòng vận đơn sinh ra mang y nguyên
     don = Order.objects.get(note="Giao sau 17h\nGọi trước 15 phút")
     assert don.record.data["ghi_chu"] == "Giao sau 17h\nGọi trước 15 phút"
+
+
+def test_nhap_tep_excel_giu_ngat_dong(feedback, nguoi_dung):  # noqa: F811
+    """AC-11.44 — Nhập tệp Excel có ô Ghi chú xuống dòng bằng Alt+Enter: ký tự xuống dòng đi
+    vào dữ liệu nguyên vẹn, chỉ cắt khoảng trắng hai đầu — lưới mới giãn dòng đúng được."""
+    bang, _, dong = feedback
+    cot = list(bang.columns.all())
+    ma_cot = [c.code for c in cot]
+    ghi_chu = "  Giao buổi sáng\nGọi trước 30 phút\nKhách hay vắng  "
+
+    # Xuất một dòng có sẵn ra rồi sửa ô Ghi chú: tệp nhập luôn khớp đúng cấu trúc bảng
+    wb = export_service.build_workbook(DataRecord.objects.filter(pk=dong[0].pk), cot, title="VD")
+    wb.active.cell(2, ma_cot.index("ma_don") + 1, "NHAP-XUONG-DONG")
+    wb.active.cell(2, ma_cot.index("ghi_chu") + 1, ghi_chu)
+    dem = io.BytesIO()
+    wb.save(dem)
+
+    viec = import_service.prepare(
+        bang, SimpleUploadedFile("ghi-chu.xlsx", dem.getvalue()), actor=nguoi_dung["admin"])
+    assert viec.summary["preview_error_count"] == 0, viec.summary
+    import_service.confirm(viec, actor=nguoi_dung["admin"])
+
+    moi = DataRecord.objects.filter(table=bang).order_by("-pk").first()
+    assert moi.data["ma_don"] == "NHAP-XUONG-DONG", moi.data.get("ma_don")
+    assert moi.data["ghi_chu"] == "Giao buổi sáng\nGọi trước 30 phút\nKhách hay vắng"
 
 
 @pytest.mark.parametrize("ghi_lien", [False, True])
