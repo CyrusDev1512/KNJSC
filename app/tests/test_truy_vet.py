@@ -74,7 +74,6 @@ HOAN = {
     # `master-grid.js` không thấy `contextmenu` lẫn dòng trống cuối lưới. Tiêu
     # chí ở `docs/04` chưa được đánh dấu Bỏ vì đó là quyết định của chủ dự án,
     # không phải của người viết kiểm thử.
-    "AC-11.14": "Dòng trống cuối lưới không còn trong master-grid.js — backlog chờ chủ dự án chốt bỏ hay làm lại",
     "AC-11.21": "Menu chuột phải không còn trong master-grid.js — backlog chờ chủ dự án chốt bỏ hay làm lại",
 }
 

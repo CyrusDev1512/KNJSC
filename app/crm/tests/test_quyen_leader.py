@@ -25,6 +25,9 @@ def bang_sale(departments, nguoi_dung):
     bang = TableDef.objects.create(
         name="Đơn hàng Sale", code="don_sale",
         department=departments["sale"], created_by=nguoi_dung["manager_sale"],
+        # KN CRM chỉ phục vụ bảng vận đơn (ADR-040) — bảng đạo cụ mang workflow
+        # để lưới phục vụ; cột tuỳ ý nên profile vận đơn không đổi hành vi bài
+        workflow="waybill",
     )
     ColumnDef.objects.create(table=bang, name="Khách", code="khach", field_type=FieldType.TEXT, order=0)
     return bang

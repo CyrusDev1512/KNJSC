@@ -26,6 +26,9 @@ def bang_sale(departments, nguoi_dung):
     bang = TableDef.objects.create(
         name="Đơn hàng Sale", code="don_sale",
         department=departments["sale"], created_by=nguoi_dung["manager_sale"],
+        # KN CRM chỉ phục vụ bảng vận đơn (ADR-040) — bảng đạo cụ mang workflow
+        # để lưới phục vụ; cột tuỳ ý nên profile vận đơn không đổi hành vi bài
+        workflow="waybill",
     )
     cot = [
         ("Ngày", "ngay", FieldType.DATE, Meaning.DATE, False),
@@ -74,18 +77,26 @@ def _luu(client, bang, *cap):
 
 # ══ Dán được cả hoặc không gì — AC-11.19 ═══════════════════════════
 
-def test_dan_nhieu_o_luu_mot_giao_dich_va_tao_dong_moi(client,bang_sale,nguoi_dung):
+def test_dan_nhieu_o_luu_mot_giao_dich_va_tu_choi_dong_nhap(client,bang_sale,nguoi_dung):
+    # Bảng đạo cụ mang workflow vận đơn (ADR-040): dán nhiều ô trên dòng có sẵn
+    # vẫn một giao dịch; dòng nháp bị từ chối vì dòng vận đơn chỉ sinh từ Lên đơn
+    # (`protect_table`) — kiểm cả chiều bị từ chối (quy tắc 3)
+    # `so_luong` trùng mã cột chuẩn nên bị profile khoá trên lưới — dán vào
+    # `khach`/`doanh_thu` (mã riêng của bảng đạo cụ)
     nv=nguoi_dung['staff_sale_1'];d=_dong(bang_sale,nv,khach='A',doanh_thu='100',so_luong='2');client.force_login(nv)
-    response=_luu(client,bang_sale,(d.pk,'so_luong','4'),('moi-1','khach','Mới'),('moi-1','doanh_thu','50'),('moi-1','so_luong','5'))
+    response=_luu(client,bang_sale,(d.pk,'khach','B'),(d.pk,'doanh_thu','200'))
     assert response.status_code==200,response.content
-    d.refresh_from_db();assert d.data['gia_dv']=='25.00'
-    new=DataRecord.objects.get(pk=response.json()['id_map']['-1']);assert new.data['gia_dv']=='10.00' and new.created_by==nv
+    d.refresh_from_db();assert d.data['khach']=='B' and d.data['gia_dv']=='100.00'
+    tu_choi=_luu(client,bang_sale,(d.pk,'khach','C'),('moi-1','khach','Mới'))
+    assert tu_choi.status_code==403
+    d.refresh_from_db();assert d.data['khach']=='B' and DataRecord.objects.filter(table=bang_sale).count()==1
 
 
 def test_mot_o_sai_thi_khong_o_nao_doi(client,bang_sale,nguoi_dung):
     nv=nguoi_dung['staff_sale_1'];d=_dong(bang_sale,nv,khach='A',doanh_thu='100',so_luong='2');client.force_login(nv)
-    response=_luu(client,bang_sale,(d.pk,'khach','Không'),(d.pk,'so_luong','abc'),('moi-1','khach','Không'))
-    assert response.status_code==400 and response.json()['cell']=={'id':d.pk,'column':'so_luong'}
+    # `doanh_thu` là cột không bị profile khoá — lỗi trả về đúng là sai kiểu dữ liệu
+    response=_luu(client,bang_sale,(d.pk,'khach','Không'),(d.pk,'doanh_thu','abc'))
+    assert response.status_code==400 and response.json()['cell']=={'id':d.pk,'column':'doanh_thu'}
     d.refresh_from_db();assert d.data['khach']=='A' and DataRecord.objects.filter(table=bang_sale).count()==1
 
 

@@ -187,4 +187,5 @@ xong nằm ở `../backlog.md` mục 0.
 
 - [ADR-032 — Ngày hệ thống và sửa báo cáo](032-ngay-he-thong-va-sua-bao-cao.md): DD/MM/YYYY, quyền sửa có lịch sử, mẫu Marketing và nguồn tiền.
 - [ADR-039 — Ẩn cột với cả công ty](039-an-cot-voi-ca-cong-ty.md): quản lý bảng ẩn cột trong hộp "Cột"; cột biến khỏi lưới, tệp Excel và Bảng dữ liệu ERP, dữ liệu vẫn giữ.
+- [ADR-040 — KN CRM chỉ một bảng Vận đơn](040-crm-chi-mot-bang-van-don.md): Sale/MKT nhập – xuất bên ERP; bỏ cấp Quý ▸ Tháng; Thống kê đọc cả hai bên; dữ liệu không đổi.
 - [ADR-041 — Bỏ và khôi phục báo cáo cấp dưới](041-xoa-khoi-phuc-bao-cao.md): Leader team/Manager bộ phận/Admin bỏ (xoá mềm cả dòng số liệu); Manager/Admin khôi phục ở trang "Đã bỏ"; Kế toán không.

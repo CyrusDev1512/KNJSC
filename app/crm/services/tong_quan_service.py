@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from core.models import AuditLog
 from forms_builder.models import DataRecord, TableDef
+from orders.constants import waybill_condition
 
 logger = logging.getLogger(__name__)
 
@@ -31,14 +32,15 @@ def _so_lieu(user):
     hom_nay = timezone.localdate()
     dau_thang = hom_nay.replace(day=1)
     # Một truy vấn cho cả ba số dòng (đếm có điều kiện), một cho số bảng
-    dem = DataRecord.objects.in_scope(user).filter(table__deleted_at__isnull=True).aggregate(
+    # KN CRM chỉ phục vụ bảng vận đơn (ADR-040) — số liệu trang chủ cũng vậy
+    dem = DataRecord.objects.in_scope(user).filter(waybill_condition()).filter(table__deleted_at__isnull=True).aggregate(
         so_dong=Count("id"),
         dong_thang=Count("id", filter=Q(created_at__date__gte=dau_thang)),
         dong_hom_nay=Count("id", filter=Q(created_at__date=hom_nay)),
     )
     return {
         **dem,
-        "so_bang": TableDef.objects.in_scope(user).count(),
+        "so_bang": TableDef.objects.in_scope(user).filter(waybill_condition("")).count(),
         "thang": hom_nay.month, "nam": hom_nay.year,
     }
 
@@ -48,7 +50,7 @@ def _bang_gan_day(user):
     from forms_builder.managers import record_count_scope
     allowed = record_count_scope(user)
     cac_bang = list(
-        TableDef.objects.in_scope(user)
+        TableDef.objects.in_scope(user).filter(waybill_condition(""))
         .select_related("department")
         .annotate(so_dong=Count('records', filter=allowed, distinct=True), cap_nhat=Max('records__updated_at', filter=allowed))
         .order_by("-cap_nhat", "name")[:6]
@@ -59,7 +61,26 @@ def _bang_gan_day(user):
 
 
 def _hoat_dong(user):
-    return list(AuditLog.objects.in_scope(user).select_related("actor").order_by("-created_at")[:8])
+    """Hoạt động gần đây — chỉ việc trên bảng vận đơn (ADR-040, chủ dự án chốt
+    24.09.2026): dòng, bảng/cột vận đơn và đơn gốc; việc trên bảng MKT/Sale bên
+    ERP không hiện ở trang chủ KN CRM."""
+    from django.db.models.functions import Cast
+    from django.db.models import CharField
+    from forms_builder.models import ColumnDef
+    dong_vd = (DataRecord.all_objects.filter(waybill_condition())
+               .annotate(ma=Cast("pk", CharField())).values("ma"))
+    bang_vd = (TableDef.objects.filter(waybill_condition(""))
+               .annotate(ma=Cast("pk", CharField())).values("ma"))
+    cot_vd = (ColumnDef.objects.filter(waybill_condition())
+              .annotate(ma=Cast("pk", CharField())).values("ma"))
+    ve_van_don = (
+        Q(target_type="DataRecord", target_id__in=dong_vd)
+        | Q(target_type="TableDef", target_id__in=bang_vd)
+        | Q(target_type="ColumnDef", target_id__in=cot_vd)
+        | Q(target_type="Order")
+    )
+    return list(AuditLog.objects.in_scope(user).filter(ve_van_don)
+                .select_related("actor").order_by("-created_at")[:8])
 
 
 def tong_quan(user):

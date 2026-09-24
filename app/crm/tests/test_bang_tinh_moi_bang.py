@@ -29,6 +29,8 @@ def bang_sale(departments, nguoi_dung):
     bang = TableDef.objects.create(
         name="Đơn hàng Sale", code="don_sale",
         department=departments["sale"], created_by=nguoi_dung["manager_sale"],
+        # KN CRM chỉ phục vụ bảng vận đơn (ADR-040) — bảng đạo cụ mang workflow
+        workflow="waybill",
     )
     cot = [
         ("Ngày", "ngay", FieldType.DATE, Meaning.DATE),
@@ -92,10 +94,12 @@ def test_moi_bang_trong_pham_vi_mo_duoc_o_bang_tinh(client, bang_sale, bang_mkt,
         kq = client.get("/bang-tinh/don_sale/")
         assert kq.status_code == 200 and kq.context["bang"].code == "don_sale", ma
         assert "don_sale" in [b.code for b in TableDef.objects.in_scope(nguoi_dung[ma])]
-        # bảng không thuộc phạm vi thì 404 — quản trị viên thì thấy tất
-        mong = 200 if ma == "admin" else 404
-        assert client.get("/bang-tinh/bc_mkt/").status_code == mong, ma
-        if ma != "admin":
+        # Bảng thường 404 với MỌI vai, kể cả Admin — KN CRM chỉ phục vụ bảng
+        # vận đơn (AC-40.2); dữ liệu không mất: Admin vẫn thấy bảng ở phạm vi ERP
+        assert client.get("/bang-tinh/bc_mkt/").status_code == 404, ma
+        if ma == "admin":
+            assert "bc_mkt" in [b.code for b in TableDef.objects.in_scope(nguoi_dung[ma])]
+        else:
             assert "bc_mkt" not in [b.code for b in TableDef.objects.in_scope(nguoi_dung[ma])]
 
     for ma in ("staff_vd", "staff_mkt"):
@@ -118,7 +122,8 @@ def test_moi_bang_trong_pham_vi_mo_duoc_o_bang_tinh(client, bang_sale, bang_mkt,
     client.force_login(nguoi_dung["staff_sale_1"])
     html = client.get("/bang-tinh/don_sale/").content.decode()
     assert "Cấu trúc cột" not in html and "Nhập Excel" not in html and "Tải Excel" in html
-    assert client.get("/bang-tinh/don_sale/du-lieu/").json()["capabilities"]["create"]                       # cùng bộ phận thì thêm dòng được
+    # Dòng vận đơn chỉ sinh từ Lên đơn (`protect_table`) — lưới không thêm dòng
+    assert not client.get("/bang-tinh/don_sale/du-lieu/").json()["capabilities"]["create"]
     assert 'id="master-grid"' in html
 
     # Ngân sách truy vấn: thanh bên thêm không quá ba lệnh so với lưới cũ (K24: 12)
@@ -146,7 +151,7 @@ def test_thanh_ben_chon_nhanh_khoang_ngay_san_pham(client, bang_sale, bang_vd, s
 
     kq = client.get("/bang-tinh/don_sale/")
     ben = kq.context["ben"]
-    assert ben["cot_ngay"].code == "ngay" and ben["san_pham"]["kind"] == "gia_tri"
+    assert ben["cot_ngay"].code == "ngay"
     chon_nhanh = {ma: (qs, bat) for ma, _, qs, bat, _ in ben["chon_nhanh"]}
     qs_hom_qua, _ = chon_nhanh["hom_qua"]
     assert f"f_ngay__lon_bang={hom_qua.isoformat()}" in qs_hom_qua
@@ -160,11 +165,8 @@ def test_thanh_ben_chon_nhanh_khoang_ngay_san_pham(client, bang_sale, bang_vd, s
     # từ ngày / đến ngày gõ tay
     assert _so_dong(client, f"/bang-tinh/don_sale/?f_ngay__lon_bang={xa}&f_ngay__nho_bang={hom_qua}") == 2
 
-    # Sản phẩm: chọn một hoặc nhiều — "có một trong"
-    assert ben["san_pham"]["param"] == "f_san_pham__trong"
-    assert {gt for gt, *_ in ben["san_pham"]["items"]} == {"Kem", "Serum"}
-    assert _so_dong(client, "/bang-tinh/don_sale/?f_san_pham__trong=Kem") == 2
-    assert _so_dong(client, "/bang-tinh/don_sale/?f_san_pham__trong=Kem&f_san_pham__trong=Serum") == 3
+    # (Nhóm "Sản phẩm theo giá trị ô" của bảng thường đã chết theo ADR-040 —
+    # KN CRM chỉ phục vụ bảng vận đơn, sản phẩm lọc qua chi tiết WaybillItem dưới đây)
 
     # Bảng vận đơn (ADR-036): sản phẩm nằm ở chi tiết `WaybillItem`, lọc bằng mã
     # sản phẩm qua `f_san_pham__trong` (hoặc `sp`), thanh bên đếm số dòng có sản phẩm
@@ -196,16 +198,18 @@ def test_thanh_ben_chon_nhanh_khoang_ngay_san_pham(client, bang_sale, bang_vd, s
 
 # ══ Dòng trống cuối lưới — AC-11.14 ════════════════════════════════
 
-def test_dong_trong_sinh_dong_that_khi_nhap_o_dau(client,bang_sale,bang_vd,nguoi_dung):
+def test_dong_trong_bi_tu_choi_tren_bang_van_don(client,bang_sale,bang_vd,nguoi_dung):
+    """AC-11.14 đổi theo ADR-040: KN CRM chỉ phục vụ bảng vận đơn, mà dòng vận đơn
+    chỉ sinh từ Lên đơn (`protect_table`) — dòng nháp trên lưới bị từ chối,
+    không dòng nào được tạo; kiểm cả trên bảng thường (404 vì không được phục vụ)"""
     import uuid
     client.force_login(nguoi_dung['staff_sale_1'])
     payload={'operation':str(uuid.uuid4()),'cells':[{'id':-1,'column':'khach','old':None,'value':'Khách mới'}]}
     response=client.post('/bang-tinh/don_sale/luu-json/',payload,content_type='application/json')
-    assert response.status_code==200,response.content
-    created=DataRecord.objects.get(pk=response.json()['id_map']['-1'])
-    assert created.data['khach']=='Khách mới' and created.created_by==nguoi_dung['staff_sale_1']
-    assert client.post('/bang-tinh/don_sale/luu-json/',payload,content_type='application/json').json()['replayed']
-    assert DataRecord.objects.filter(table=bang_sale).count()==1
+    assert response.status_code==403
+    assert DataRecord.objects.filter(table=bang_sale).count()==0
+    client.force_login(nguoi_dung['staff_mkt'])
+    assert client.post('/bang-tinh/bc_mkt_khong_co/luu-json/',payload,content_type='application/json').status_code in (403,404)
 
 
 # ══ Cột khoá — AC-11.16 ════════════════════════════════════════════
@@ -221,7 +225,9 @@ def test_cot_khoa_mot_cot_moi_bang_va_loc_theo_o(client, bang_sale, bang_vd, ngu
         table_service.add_column(bang_sale, actor=ql, name="Mã 2", code="ma2", field_type=FieldType.TEXT, is_key=True)
     with pytest.raises(ValidationError):
         table_service.update_column(bang_sale.columns.get(code="gia_dv"), {"is_key": True}, actor=ql)
-    with pytest.raises(ValidationError):
+    from core.exceptions import BusinessError
+    with pytest.raises(BusinessError):
+        # "ngay" trùng mã chuẩn vận đơn — profile giữ cấu trúc (ADR-036/040)
         table_service.update_column(bang_sale.columns.get(code="ngay"), {"is_key": True}, actor=ql)
     assert bang_sale.columns.filter(is_key=True).count() == 1
     # Bảng vận đơn: Mã đơn là cột khoá sẵn

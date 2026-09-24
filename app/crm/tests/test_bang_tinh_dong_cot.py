@@ -23,6 +23,9 @@ def bang_sale(departments, nguoi_dung):
     bang = TableDef.objects.create(
         name="Đơn hàng Sale", code="don_sale",
         department=departments["sale"], created_by=nguoi_dung["manager_sale"],
+        # KN CRM chỉ phục vụ bảng vận đơn (ADR-040) — bảng đạo cụ mang workflow
+        # để lưới phục vụ; cột tuỳ ý nên profile vận đơn không đổi hành vi bài
+        workflow="waybill",
     )
     cot = [
         ("Ngày", "ngay", FieldType.DATE, Meaning.DATE),
@@ -97,19 +100,26 @@ def test_manager_chen_cot_canh_cot_dang_chon(client, bang_sale, nguoi_dung):
 def test_bo_cot_giu_gia_tri_va_tu_choi_cot_khoa_cot_tinh(client, bang_sale, bang_vd, nguoi_dung):
     """AC-11.22 — Bỏ cột xoá định nghĩa cột nhưng giữ giá trị trong bản ghi (BR-4); cột khoá, cột là vế của cột tính sẵn và cột hệ thống của bảng vận đơn bị từ chối"""
     nv = nguoi_dung["manager_sale"]
-    d = _dong(bang_sale, nv, khach="A", doanh_thu="10", so_luong="2", ngay="2026-01-01")
+    # Cột xoá thử phải KHÔNG trùng mã chuẩn vận đơn: bảng đạo cụ mang workflow
+    # (ADR-040) nên "ngay"/"so_luong" được profile giữ lại như bảng thật
+    ColumnDef.objects.create(table=bang_sale, name="Ghi chú thêm", code="ghi_chu_them",
+                             field_type=FieldType.TEXT, order=9)
+    d = _dong(bang_sale, nv, khach="A", doanh_thu="10", so_luong="2",
+              ngay="2026-01-01", ghi_chu_them="giữ lại")
     client.force_login(nv)
-    kq = client.post(f"/bang-tinh/{bang_sale.code}/xoa-cot/", {"cot": ["ngay"]})
-    assert kq.status_code == 200 and kq.json()["da_bo"] == ["ngay"]
-    assert not bang_sale.columns.filter(code="ngay").exists()
+    kq = client.post(f"/bang-tinh/{bang_sale.code}/xoa-cot/", {"cot": ["ghi_chu_them"]})
+    assert kq.status_code == 200 and kq.json()["da_bo"] == ["ghi_chu_them"]
+    assert not bang_sale.columns.filter(code="ghi_chu_them").exists()
     d.refresh_from_db()
-    assert d.data["ngay"] == "2026-01-01"                                    # giá trị vẫn còn
+    assert d.data["ghi_chu_them"] == "giữ lại"                               # giá trị vẫn còn
+    kq = client.post(f"/bang-tinh/{bang_sale.code}/xoa-cot/", {"cot": ["ngay"]})
+    assert kq.status_code == 400 and "ận đơn" in kq.content.decode()         # mã chuẩn bị giữ
     assert client.post(f"/bang-tinh/{bang_sale.code}/xoa-cot/", {"cot": ["khach"]}).status_code == 400
-    kq = client.post(f"/bang-tinh/{bang_sale.code}/xoa-cot/", {"cot": ["so_luong"]})
+    kq = client.post(f"/bang-tinh/{bang_sale.code}/xoa-cot/", {"cot": ["doanh_thu"]})
     assert kq.status_code == 400 and "cột tính sẵn" in kq.content.decode()
     assert client.post(f"/bang-tinh/{bang_sale.code}/xoa-cot/", {"cot": ["khong_co"]}).status_code == 400
     assert client.post(f"/bang-tinh/{bang_sale.code}/xoa-cot/", {}).status_code == 400
-    assert bang_sale.columns.count() == 4
+    assert bang_sale.columns.count() == 5
     client.force_login(nguoi_dung["admin"])
     kq = client.post(f"/bang-tinh/{bang_vd.code}/xoa-cot/", {"cot": ["ten_khach"]})
     assert kq.status_code == 400 and "ận đơn" in kq.content.decode()

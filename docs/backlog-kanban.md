@@ -6,6 +6,13 @@
 bỏ được báo cáo cấp dưới (xoá mềm cả số liệu), Manager/Admin khôi phục ở trang "Đã bỏ"; Kế toán giữ
 nguyên chỉ sửa. **To do:** chủ dự án duyệt PR, kéo về local check.
 
+## 24.09.2026 — ADR-040: CRM chỉ một bảng Vận đơn
+
+**Finished local (nhánh `claude/crm-chi-mot-bang-van-don`, PR nháp):** CRM chỉ phục vụ bảng vận đơn,
+thư mục phẳng không còn Quý/Tháng, dữ liệu và ERP không đổi, Thống kê đọc cả hai bên.
+**To do:** chủ dự án duyệt PR, kéo nhánh về local check, phát hành VPS.
+**Far plan (ghi nhận trong ADR-040):** Leader/Manager sửa & xoá báo cáo cấp dưới; nơi sửa ô cho bảng thường.
+
 ## 24.09.2026 — Ngày lên đầu bảng Vận đơn mới
 
 **Finished local (nhánh `claude/ngay-len-dau-bang-van-don`, PR nháp):** Ngày (lên đơn) là cột
