@@ -34,6 +34,7 @@ from crm.tests.test_waybill_feedback import feedback  # noqa: F401  (fixture dù
 from forms_builder.models import DataRecord
 
 from .conftest import chup
+from .ghi_chu_helpers import ghi_chu_nhin_thay
 
 pytestmark = [pytest.mark.django_db(transaction=True), pytest.mark.trinh_duyet, pytest.mark.cham]
 
@@ -507,11 +508,12 @@ def test_dien_thoai_390(live_server, trang_dien_thoai, dang_nhap, kn_crm, feedba
     """AC-11.44 — Màn hình cỡ điện thoại 390 px trong khi cột Ghi chú rộng 400 px: lưới cuộn
     trong khung của nó, trang không tràn ngang"""
     print("\n══ 8. ĐIỆN THOẠI 390 px ══")
-    nap_dong([DAI] * 5)
+    dong = nap_dong([DAI] * 5)
     loi_js = _mo(trang_dien_thoai, live_server, dang_nhap, nguoi_dung, feedback[0])
-    _cuon_toi_ghi_chu(trang_dien_thoai)
-    o = _o(trang_dien_thoai, "PHA-0000")
-    print(f"    cột {o['rong']} px trên màn hình 390 px, dòng {o['cao']} px")
+    o = ghi_chu_nhin_thay(trang_dien_thoai, dong[0].pk, DAI)
+    assert o["xuong_dong"] and o["cao_o"] > ROW, o
+    assert o["chu"] == DAI and o["cao_chu"] <= o["cao_o"] + 1, o
+    print(f"    cột {o['rong_o']} px trên màn hình 390 px, dòng {o['cao_o']} px")
     kq = _soat(trang_dien_thoai, "điện thoại")
     chup(trang_dien_thoai, "pha-ghi-chu-dien-thoai")
     assert not kq["tran_trang"], "trang tràn ngang trên điện thoại"

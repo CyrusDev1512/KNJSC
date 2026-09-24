@@ -5,6 +5,17 @@
 **Finished local (nhánh `claude/gon-form-tao-tai-khoan`, PR nháp về `main`):** form tạo bỏ ô Email
 và Ngày sinh (AC-1.8); màn Sửa hồ sơ giữ Ngày sinh; dữ liệu cũ nguyên. **To do:** chủ dự án duyệt PR.
 
+## 24.09.2026 — Sửa hai bài E2E ghi chú trước khi chuyển VPS sang `main`
+
+**Finished local:** nhánh `claude/sua-e2e-ghi-chu`; đã tái hiện hai lỗi local, sửa định vị
+theo ID/vùng nhìn. Hai file: 19 đạt/1 bỏ qua; nhóm E2E theo CI: 27 đạt/2 bỏ qua và
+1 đạt/8 bỏ qua. Cảnh báo dọn DB test đã xử lý sau khi xác nhận 0 kết nối.
+**Đã push:** `a6c4e9a` trên nhánh riêng. Đã tạo [PR nháp #43](https://github.com/CyrusDev1512/KNJSC/pull/43).
+Lỗi tạo PR trước đó do CLI chọn tài khoản bot chỉ đọc; dùng phiên chủ repo đã lưu
+trong tiến trình riêng đã giải quyết, không đổi tài khoản mặc định của task khác.
+**To do:** CI/duyệt PR, merge theo chỉ đạo riêng, CI `main` đạt rồi tiếp tục kế hoạch
+phát hành đã duyệt. Chưa thay đổi VPS. Xem [test-log](test-log.md).
+
 ## 24.09.2026 — ADR-041: bỏ & khôi phục báo cáo cấp dưới
 
 **Finished local (nhánh `claude/xoa-khoi-phuc-bao-cao`, PR nháp):** Leader team/Manager bộ phận/Admin
