@@ -31,7 +31,7 @@
       </div>
     </div>
   </div>
-  <div id="mg-chips" class="mg-chips">{% for label, url in chips %}<a href="{{ url }}">{{ label }} ×</a>{% endfor %}</div>
+  <div id="mg-chips" class="mg-chips">{% for label, url, an in chips %}<a href="{{ url }}"{% if an %} class="mg-chip-an" title="Bộ lọc trỏ tới cột đang ẩn với cả công ty — vẫn lọc, bấm × để bỏ"{% endif %}>{{ label }} ×</a>{% endfor %}</div>
   <div id="mg-message" role="status" hidden></div>
   <div class="mg-workspace">
     <aside id="mg-filters" hidden aria-label="Bộ lọc bảng">{% include 'crm/_master_filters.html' %}</aside>

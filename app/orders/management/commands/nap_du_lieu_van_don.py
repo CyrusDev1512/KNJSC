@@ -272,7 +272,7 @@ def populate(*, total=DEFAULT_TOTAL, seed=DEFAULT_SEED, dry_run=False):
         DataRecord.objects.bulk_create(new_rows, batch_size=500)
     if rows_to_update:
         DataRecord.bulk_save(rows_to_update, fields=(
-            "data", "deleted_at", "deleted_by", "val_date", "val_customer", "val_phone",
+            "data", "deleted_at", "deleted_by", "val_date", "val_customer", "val_phone", "val_phone_key",
             "val_revenue", "val_seller", "val_product", "val_status",
         ))
 

@@ -36,10 +36,12 @@ DETAIL_CODE = "chi_tiet_sp"
 PROTECTED = frozenset({"san_pham", "so_luong", "gia_tien", "so_tien_tt"})
 DETAIL_CELLS = PROTECTED
 COLUMNS = [
+    # Ngày (lên đơn) đứng đầu theo lệnh chủ dự án 24.09.2026 — trả lại vị trí
+    # của tệp thật trước ADR-036; Ngày thanh toán vẫn ở nhóm thanh toán phía sau
+    ("Ngày", "ngay", FieldType.DATE, Meaning.DATE),
     ("Mã đơn", "ma_don", FieldType.TEXT, ""),
     ("Tên khách", "ten_khach", FieldType.TEXT, Meaning.CUSTOMER),
     ("Số điện thoại", "so_dien_thoai", FieldType.TEXT, Meaning.PHONE),
-    ("Ngày", "ngay", FieldType.DATE, Meaning.DATE),
     ("Sản phẩm", "san_pham", FieldType.TEXT, Meaning.PRODUCT),
     ("Quốc gia", "quoc_gia", FieldType.CHOICE, ""),
     ("Bang", "bang", FieldType.TEXT, ""),
@@ -579,7 +581,7 @@ def grid_column(column):
         'protected':column.is_computed or column.code in PROTECTED or column.code == 'loai_tien' or column.code in assignment_service.COLUMNS
             or (is_bill and payment_documents),
         'renderer':'bill' if is_bill and payment_documents else ('url' if is_bill else 'value'),
-        'frozen':column.code in ('ma_don', 'ten_khach', 'so_dien_thoai')}
+        'frozen':column.code in ('ngay', 'ma_don', 'ten_khach', 'so_dien_thoai')}
     if column.code == 'ghi_chu':
         # Cột duy nhất tự giãn dòng của bảng. Lưới chỉ đọc cờ `auto_height` trong metadata,
         # không nhận diện nghiệp vụ bằng mã cột (ADR-021); bảng khác muốn có thì profile
