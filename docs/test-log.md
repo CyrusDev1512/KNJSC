@@ -1,5 +1,64 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 24.09.2026 — Sửa định vị hai bài E2E ghi chú chặn phát hành `main`
+
+Nền `a120af5`, nhánh `claude/sua-e2e-ghi-chu`. CI run `35981282943` và lượt kiểm
+local trước sửa cùng lỗi hai bài: ghi chú cao 2.000 px bị cột ghim chặn điểm bấm;
+bài điện thoại 390 px không tìm được Mã đơn sau cuộn ngang nên trả `None`.
+
+**Đã sửa trong test:** nhận diện ô bằng `data-id` từ fixture, đợi nội dung đúng và
+phần ô nằm trong viewport trừ tiêu đề/cột ghim, xác nhận `elementFromPoint` rồi bấm
+chuột thật. Thời hạn tìm ô 5 giây; lỗi in rect ô, viewport, header, ghim và phần tử
+che điểm bấm. Không force-click, không phát click giả, không đổi ứng dụng/CI hoặc
+bỏ assertion. Hộp đọc phải chứa toàn bộ ghi chú dài; điện thoại kiểm thêm đúng
+nội dung, xuống dòng và chiều cao đủ chứa chữ.
+
+**Môi trường:** container local `knjsc-web-1`, Chromium 141.0.7390.37, settings test;
+database kiểm thử riêng `test_knjsc_e2e_release_20260924`, do pytest tạo.
+Tiền tố lệnh bên dưới:
+
+```powershell
+docker exec -e RUN_MIGRATIONS=0 -e POSTGRES_DB=knjsc_e2e_release_20260924 knjsc-web-1 pytest
+```
+
+| Phạm vi (đối số pytest) | Kết quả |
+|---|---|
+| Hai bài lỗi, trước sửa | 2 lỗi / 28,47 giây; cùng nguyên nhân CI |
+| Hai bài lỗi, sau sửa | 2 đạt / 14,87 giây |
+| `tests/e2e/test_ghi_chu_tu_gian_dong.py tests/e2e/test_pha_luoi_ghi_chu.py -rs --tb=short --durations=5 -o cache_dir=/tmp/pytest-release-e2e` | 19 đạt, 1 bỏ qua / 128,49 giây |
+| `tests/e2e -m trinh_duyet -rs --tb=short --durations=5 -o cache_dir=/tmp/pytest-release-e2e` | 27 đạt, 2 bỏ qua / 163,76 giây |
+| `-m trinh_duyet --ignore=tests/e2e --deselect crm/tests/test_luoi_dong_trong_va_ghim_e2e.py -rs --tb=short --durations=5 -o cache_dir=/tmp/pytest-release-e2e` | 1 đạt, 8 bỏ qua, 2702 không chọn, 1 cảnh báo teardown / 24,62 giây |
+
+Hai bài chọn riêng là `test_ghi_chu_qua_tran_cat_o_2000_va_mo_hop_doc` và
+`test_dien_thoai_390` trong hai file tương ứng. Bài bỏ qua do fixture Vận đơn
+không có dòng trống/quyền thêm dòng, không phải đã nghiệm thu trường hợp đó. Lượt
+`tests/e2e` còn bỏ qua bài 300.000 dòng vì không bật `KN_GHI_CHU_300K`, đúng phạm vi.
+Nhóm còn lại dùng nguyên điều kiện chọn của CI: 8 bài cần Chrome host/proxy/server
+riêng bị bỏ qua; file `test_luoi_dong_trong_va_ghim_e2e.py` đã bị loại sẵn trong
+workflow, không phải thay đổi đợt này. Không tuyên bố đã kiểm những trường hợp đó.
+
+Cảnh báo cuối lượt: pytest chưa xoá được DB test do một kết nối đóng chậm. Sau khi
+tiến trình kết thúc đã kiểm `pg_stat_activity` theo đúng tên DB: 0 kết nối; xoá riêng
+DB tạm này bằng `dropdb` (không force) và xác nhận `pg_database` không còn tên đó.
+
+Ảnh local từ đúng bài kiểm (không đưa ảnh dữ liệu vào Git):
+`storage/e2e/ghi-chu-qua-tran-hop-doc.png` và `storage/e2e/pha-ghi-chu-dien-thoai.png`.
+Đã xem ảnh: hộp đọc mở, lưới điện thoại cuộn riêng. Hai lệnh nhóm E2E theo CI đạt
+trên local; chưa tuyên bố CI GitHub của nhánh sửa hoặc phát hành VPS đạt. Không
+chạy lại suite không trình duyệt vì chỉ đổi test/tiện ích E2E và tài liệu; bộ chính
+của CI nền `a120af5` đã đạt. `git diff --check` đạt; không sửa workflow hoặc mã ứng
+dụng. VPS vẫn `knjsc-app:72af235-gop`, chờ merge và CI `main` trước diễn tập/phát hành.
+
+**Bàn giao:** bản sửa `a6c4e9a` đã push lên `claude/sua-e2e-ghi-chu`. `gh pr create
+--draft --base main` bị từ chối `must be a collaborator`; quyền API hiện `pull=true`,
+`push=false`. Chưa có PR và chưa merge. Tạo PR từ
+[nhánh đã push](https://github.com/CyrusDev1512/KNJSC/compare/main...claude/sua-e2e-ghi-chu?expand=1).
+
+**Cập nhật cùng ngày:** đã xác định CLI chọn tài khoản bot chỉ đọc, trong khi máy
+có phiên chủ repo được lưu sẵn. Dùng phiên đó riêng cho lệnh tạo PR (không đổi tài
+khoản mặc định) đã tạo thành công [PR nháp #43](https://github.com/CyrusDev1512/KNJSC/pull/43)
+về `main`. CI GitHub được kích hoạt; chưa merge hoặc phát hành VPS.
+
 ## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu, đợt 1
 
 **TL-54 (đóng):** liên kết phân trang của Bảng dữ liệu (liệt kê thô) chỉ mang `trang`/`moi_trang`, mất tìm kiếm

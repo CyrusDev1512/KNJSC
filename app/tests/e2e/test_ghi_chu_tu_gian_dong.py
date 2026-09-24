@@ -26,6 +26,7 @@ from crm.tests.test_waybill_feedback import feedback  # noqa: F401  (fixture dù
 from forms_builder.models import DataRecord
 
 from .conftest import chup
+from .ghi_chu_helpers import bam_ghi_chu, ghi_chu_nhin_thay
 
 pytestmark = [pytest.mark.django_db(transaction=True), pytest.mark.trinh_duyet, pytest.mark.cham]
 
@@ -279,17 +280,17 @@ def test_ghi_chu_qua_tran_cat_o_2000_va_mo_hop_doc(live_server, trang, dang_nhap
     """AC-11.44 — Ghi chú dài hơn trần: dòng dừng ở 2000 px, phần còn lại đọc bằng hộp
     đọc khi bấm ô"""
     bang, _, dong = feedback
-    ma = _ghi(dong[1], GHI_CHU_QUA_TRAN)
+    _ghi(dong[1], GHI_CHU_QUA_TRAN)
 
     loi_js = _mo_luoi(trang, live_server, dang_nhap, nguoi_dung, bang)
-    o = _o_ghi_chu(trang, ma)
-    assert o and "loi" not in o, o
+    o = ghi_chu_nhin_thay(trang, dong[1].pk, GHI_CHU_QUA_TRAN)
     assert o["cao_o"] == TRAN, o
     assert o["cao_chu"] > TRAN, "nội dung phải còn dài hơn trần mới có gì để hộp đọc hiện"
 
-    trang.click(f".mg-cell[data-code='ghi_chu'][data-r='{o['r']}']", position={"x": 20, "y": 10})
+    bam_ghi_chu(trang, o)
     trang.wait_for_selector("#mg-reader:not([hidden])", timeout=5_000)
-    assert "Nội dung rất dài" in trang.text_content("#mg-reader")
+    assert GHI_CHU_QUA_TRAN.strip() in trang.text_content("#mg-reader")
+    chup(trang, "ghi-chu-qua-tran-hop-doc")
     assert not loi_js, loi_js
     print(f"\nAC-11.44 quá trần: {dict(o, chu=o['chu'][:40] + '…')}")
 
