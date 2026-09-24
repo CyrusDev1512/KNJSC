@@ -214,11 +214,58 @@ dùng phải làm.
 **Bài học ghi lại:** chẩn đoán phải tự khai báo. Ba lượt đầu chỉ báo "kéo không ăn" nên chỉ
 còn cách đoán; lượt in ra cả chồng phần tử thì trả lời ngay. Bộ bài giữ lại phần chẩn đoán đó.
 
+## Quy mô lớn — trần khung vẽ và hình học 300.000 dòng (24.09)
+
+Trước AC-11.44 mọi dòng đều 28 px nên tổng chiều cao khung vẽ luôn nhỏ. Dòng cao lên thì tổng
+cao lên theo, mà **trình duyệt có trần cứng cho chiều cao một phần tử**: vượt trần là nó cắt
+cụt, dòng nằm dưới điểm cắt không cuộn tới được và **không báo lỗi gì**. Bài
+`tests/e2e/test_hieu_nang_ghi_chu_lon.py` đo đúng chỗ đó.
+
+**Trần đo được trên Chromium trong container: 30.677.722 px** (dò nhị phân, không lấy theo số
+tài liệu — trần thật thấp hơn con số 33,5 triệu thường thấy).
+
+| Mốc | Cần | So với trần |
+|---|---|---|
+| 300k dòng × 28 px (như trước AC-11.44) | 8.400.000 px | 27,4 % — vừa |
+| **100k dòng × 160 px** (đơn một năm, **mọi** dòng ghi chú dài) | 16.000.000 px | **52,2 % — vừa** |
+| 300k dòng × 160 px (mức kiểm dự phòng) | 48.000.000 px | **156,5 % — VƯỢT** |
+| 300k dòng × 2000 px (mọi dòng chạm trần) | 600.000.000 px | 1.955,8 % — vượt xa |
+
+Hai giới hạn rút ra: ở **300.000 dòng**, chiều cao trung bình không được quá **102 px**; nếu
+**mọi** dòng đều cao 160 px thì lưới chỉ chứa được **191.735 dòng**.
+
+**Mức vận hành thật an toàn.** Công ty khoảng 100.000 đơn một năm; kể cả khi mọi đơn đều có ghi
+chú dài thì mới dùng 52 % trần. Chỉ mức kiểm dự phòng 300.000 mới chạm trần, và chỉ khi phần
+lớn dòng có ghi chú dài — thực tế phần lớn ghi chú ngắn hoặc trống.
+
+### Hiệu năng hình học ở 300.000 dòng
+
+Cây Fenwick với 300.000 dòng, 150.000 dòng cao 160 px (tổng 28.200.000 px, 300.000 nút):
+
+| Việc | Đo được | Ngưỡng |
+|---|---|---|
+| Đặt 150.000 chiều cao | 50 ms | — |
+| Đọc tổng chiều cao | 0 ms | — |
+| Tra vị trí một dòng | **0,003 ms** | < 0,5 ms (chạy mỗi khung hình khi cuộn) |
+| **Dựng lại cả cây** | **95 ms** | **< 1000 ms** |
+
+Dòng cuối là quan trọng nhất: **mỗi lượt tải lại mềm đều dựng lại cả cây**, mà lưới hỏi mốc 8
+giây một lần. 95 ms ở mức dự phòng 300.000 dòng nghĩa là việc đổi `geometry.reset` thành
+`geometry.resize` (commit đầu) **an toàn ở quy mô lớn** — trước đó chưa có gì bảo đảm điều này.
+
+### Bài 300.000 dòng thật
+
+`test_300k_dong_ghi_chu_dai_khong_vo_view` dựng 300.000 dòng bằng SQL nhân bản rồi kiểm trình
+duyệt có cắt cụt khung vẽ không và cuộn tới cuối có ra dòng cuối không. **Tự bỏ qua** khi thiếu
+`KN_GHI_CHU_300K=1` vì nặng — tính tới 24.09 **chưa chạy lần nào**.
+
 ## Chưa kiểm — nợ ghi rõ
 
 | Việc | Vì sao |
 |---|---|
 | **Chủ dự án nhìn tận mắt trên máy** | mở `http://127.0.0.1:8021/bang-tinh/van_don/`, cuộn tới cột Ghi chú, gõ thử một ghi chú hai dòng. Tính tới hết 24.09 vẫn chưa xem bằng mắt — mọi bằng chứng đều là máy đo |
+| **Lưới vượt trần khung vẽ khi số dòng × chiều cao trung bình > 30,6 triệu px** | Chưa có gì chặn. Ở mức thật 100.000 đơn một năm thì còn xa trần (52 %), nhưng lưới không hề biết khi nào mình vượt: nó cứ đặt chiều cao, trình duyệt cắt lặng lẽ. Cần quyết định riêng — kẹp tổng chiều cao, hay giới hạn số dòng tự giãn, hay cảnh báo |
+| **Dòng trống cuối bảng gõ ghi chú dài** | Bảng Vận đơn không mở dòng trống để nhập (đơn sinh ở Lên đơn, ADR-036) nên đường `absorbCreated` chưa thể gặp cột tự giãn. Bài kiểm giữ lại nhưng **tự bỏ qua** |
 | **Tay kéo đổi rộng cột nằm dưới vùng cột ghim thì không bấm được** | phát hiện trong đợt thử phá. Đúng thiết kế (cột ghim nổi trên nội dung cuộn), nhưng dải ghim rộng 526 px nên trên màn hình hẹp nó chiếm gần nửa bề ngang — cột bị kéo vào dưới đó là mất luôn khả năng đổi rộng cho tới khi cuộn ra. Không sửa trong đợt này: đụng CSS đầu cột dùng chung cho mọi bảng, ngoài phạm vi đã duyệt |
 | **Script Chrome `.cjs` chưa chạy** | máy không có Node. `kiem-thu-master-row-height.cjs`, `kiem-thu-master-ui.cjs` và fixture `test_master_browser_server.py` sửa theo suy luận; `kiem-thu-master-capacity.cjs`, `kiem-thu-master-row-capacity.cjs`, `kiem-thu-master-nine-capacity.cjs` **chắc chắn đỏ** vì fixture của chúng cho mọi dòng ghi chú dài và script nhảy tới dòng bằng `r*28` — cần làm lại trên máy có Node |
 | **Ký tự rộng hơn 1 em** | `vuaMotDong` coi 1 em/ký tự là trần; emoji hay chữ toàn chiều rộng có thể vượt → dòng giữ 28 px kèm `…` như trước, không mất dữ liệu |
