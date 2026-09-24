@@ -489,6 +489,7 @@ Xếp theo thứ tự nên làm. Mỗi dòng một PR nhỏ, có ảnh trước/
 | P1 | Sắp xếp không ổn định giữa các trang | TL-09 | `main` | |
 | P1 | Cột tiền không mang nhãn Doanh thu sắp xếp và lọc theo chuỗi | TL-10 | `main` | |
 | P1 | Màn Sửa cột cho bỏ cột hệ thống của bảng vận đơn | TL-13 | `main` | |
+| P1 | Lưới biết khi nào vượt trần khung vẽ trình duyệt (30,6 triệu px): kẹp tổng chiều cao, giới hạn số dòng tự giãn, hay cảnh báo — chủ dự án chọn hướng | TL-59 · AC-11.44 | `main` | Từ khi dòng tự giãn (24.09) tổng chiều cao không còn cố định. 100k đơn/năm còn 52 % dư, nhưng mốc kiểm dự phòng 300k dòng thì vượt; hiện trình duyệt cắt lặng lẽ, không báo gì |
 | P1 | Nghiệm thu bấm tay theo `docs/07` một đợt (V4, V5) | — | — | Việc của anh/chị, sau khi các P0 xong |
 | P2 | Hoàn tác ghi đè sửa đổi của người khác không cảnh báo | TL-07 | `main` | |
 | P2 | Trang chủ và trang chọn bảng đếm cả dòng ngoài phạm vi và dòng đã xoá | TL-11 | `main` | |
