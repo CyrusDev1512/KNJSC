@@ -11,7 +11,11 @@ connection. Kiểm RSS thực trước khi nâng giới hạn. Service Thống k
 `SET LOCAL work_mem='64MB'` cho một số aggregate; 8 MB ở cấu hình PostgreSQL không ghi đè
 lựa chọn trong transaction này. Tính cả chi phí đó khi kiểm nhiều người mở Thống kê cùng lúc.
 
-**Đã phát hành 6 lần**, mỗi lần một biên bản ở `docs/`:
+**VPS đã chạy `main` tại `9c4d285` từ 24.09.2026.** Merge không tự phát hành;
+chốt SHA có CI đạt, diễn tập, backup và kiểm chứng trước mỗi lần cập nhật.
+Luôn giữ cả `/opt/knjsc-runtime/compose.yml` và `compose.vps.yml` với giới hạn 4 GB.
+
+**Đã phát hành 7 lần**, mỗi lần một biên bản ở `docs/`:
 
 | # | Ngày | Image |
 |---|---|---|
@@ -21,6 +25,7 @@ lựa chọn trong transaction này. Tính cả chi phí đó khi kiểm nhiều
 | 4 | 18.09.2026 (chiều, lần hai) | `5b7922f-excel` → `5b68dce-tl41` |
 | 5 | 19.09.2026 (00:15) | `5b68dce-tl41` → `ea8942c-adr036` |
 | 6 | 19.09.2026 (18:39) | `ea8942c-adr036` → `72af235-gop` |
+| 7 | 24.09.2026 (17:33–17:35) | `72af235-gop` → `9c4d285-main` — [biên bản](../../docs/kiem-chung-phat-hanh-vps-main-20260924.md) |
 
 Xem `docs/kiem-chung-phat-hanh-vps-*.md`; `docs/kiem-chung-dien-tap-vps-20260917.md` là
 diễn tập trên bản sao, không phải lần phát hành.
