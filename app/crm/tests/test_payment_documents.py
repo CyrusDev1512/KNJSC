@@ -193,8 +193,10 @@ def test_payment_migrations_preserve_legacy_rows(feedback):
     try:
         executor.migrate([('orders', '0006_line_unit_snapshot'), ('org', '0003_userprofile_birthday')])
         assert 'orders_paymentdocument' not in connection.introspection.table_names()
-        row.refresh_from_db()
-        assert row.data == original
+        # Đang đứng ở trạng thái lịch sử: các cột model thêm sau (vd `val_phone_key`,
+        # forms_builder/0016) chưa tồn tại, nên chỉ đọc đúng cột `data` thay vì
+        # `refresh_from_db()` kéo cả model hiện tại
+        assert type(row).all_objects.values_list('data', flat=True).get(pk=row.pk) == original
     finally:
         MigrationExecutor(connection).migrate(targets)
     row.refresh_from_db()
