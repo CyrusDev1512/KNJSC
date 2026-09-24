@@ -590,6 +590,18 @@ tiếp theo trong mục này.
 | AC-40.13 | **Bảng dữ liệu của bảng có nguồn báo cáo Sale/MKT là báo cáo chi tiết theo ngày** dùng chung động cơ với Báo cáo tổng hợp (quy ₫, cột và nhãn theo nguồn, ngưỡng màu, (TT)): **mỗi lần nộp một dòng** — hai lần nộp cùng ngày cùng người là hai dòng với STT riêng; khối toàn kỳ theo nhân sự đứng đầu, mỗi ngày một bảng có TỔNG CỘNG; (TT) trên dòng người chỉ hiện khi cặp (ngày, người) nộp một lần, nộp nhiều lần thì "—" và TỔNG CỘNG ngày vẫn đúng, không cộng đôi; bộ lọc Kỳ, Chọn nhanh, Sản phẩm, Thị trường, Tệp, Team, Nhân sự và Gộp; mặc định 25 dòng một trang; `?dang=tho` về liệt kê thô có liên kết quay lại và mọi liên kết giữ `dang=tho`; bảng không có nguồn giữ nguyên; Staff chỉ thấy dòng của mình, bộ phận khác 404; Xuất tệp ra Excel cùng khối; form Ngưỡng màu cho quản lý; không quá 10 truy vấn | FR-7.1 · FR-5.4 · ADR-014 · ADR-040 | Tự động |
 | AC-40.14 | **Liệt kê thô của Bảng dữ liệu:** liên kết phân trang và sắp xếp giữ tìm kiếm, bộ lọc cột và cỡ trang, cột đang sắp có `aria-sort`; ô Đúng/sai hiện "Có"/"Không"; nút "Sửa cột" chỉ hiện với Admin hoặc quản lý bộ phận sở hữu bảng — quản lý bộ phận khác chỉ được cấp quyền xem không thấy, gọi thẳng vẫn 403; trạng thái rỗng không còn nhắc "phần 3B" | FR-7.2 · FR-7.3 · ADR-015 · ADR-040 | Tự động |
 
+## 41. Form Nộp báo cáo ngày: chọn Team, bắt buộc, bỏ Hóa đơn, bố cục ngang — ADR-041
+
+Chủ dự án góp ý 24.09.2026 sau khi xem thử trên local. Kết quả tại
+[biên bản form nhập báo cáo](kiem-chung-form-nhap-bao-cao-20260924.md).
+
+| Mã | Tiêu chí | Nguồn | Cách kiểm |
+|---|---|---|---|
+| AC-41.1 | **Dropdown Team trên form nộp báo cáo:** liệt kê team đang hoạt động của bộ phận sở hữu biểu mẫu (không lẫn team bộ phận khác), chọn sẵn team trong hồ sơ; nộp với team khác trong bộ phận thì dòng dữ liệu và báo cáo mang team đó — Leader team ấy xem và sửa được, Leader team khác không thấy; team bộ phận khác hay id lạ bị từ chối nêu rõ, không lưu; để trống thì theo hồ sơ; bộ phận không có team thì không có ô Team | FR-4.7 · ADR-041 | Tự động |
+| AC-41.2 | **Bốn trường bắt buộc:** sau `configure_erp_reports` form MKT bắt buộc Số Mess, CPQC, Số đơn, Doanh số (cùng Ngày, Sản phẩm, Thị trường), form Sale bắt buộc Số Mess, Số đơn, Doanh số; trường đã có từ trước cũng bị ép; nộp thiếu bị từ chối nêu tên trường, không tạo dòng; "0" hợp lệ; các ô đó mang `required` phía trình duyệt, ô hệ thống và ô không bắt buộc thì không | FR-4.8 · AC-8.2 · ADR-041 | Tự động |
+| AC-41.3 | **Bỏ Hóa đơn khỏi form nhập MKT:** form đang có trường Hóa đơn thì `configure_erp_reports` gỡ và không tạo lại; cột `hoa_don`, ánh xạ `invoice`, hai cột báo cáo "Hóa đơn" và "Hóa đơn/DS Chốt (TT)" vẫn còn cho dữ liệu cũ; giá trị `hoa_don` gửi thẳng lên bị bỏ qua | FR-4.9 · ADR-041 | Tự động |
+| AC-41.4 | **Bố cục ngang, ô nhỏ:** form là một thẻ trải hết chiều rộng nội dung — hàng điều khiển Biểu mẫu · Team · Ngày, lưới ô nhập ngang (`bm-ngang`, ô cao ≤ 36 px, nhiều ô một hàng ở 1440, hai cột ở 390, không tràn ngang), cột tính sẵn là dòng chip thay cho ô nhập giả; màn Sửa báo cáo cùng lưới; cùng bộ điều khiển và token Solarpunk, sáng và tối | FR-4.10 · ADR-028 · ADR-041 | Tự động + trình duyệt |
+
 ## 27. Lưới dùng chung và vòng đời bảng — ADR-027
 
 Đây là tiêu chí, chưa phải nhãn hoàn thành. Kết quả tại

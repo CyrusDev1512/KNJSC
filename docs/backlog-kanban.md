@@ -1,5 +1,12 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 24.09.2026 — Form Nộp báo cáo ngày (ADR-041)
+
+**Finished local:** dropdown Team ghi vào dòng và báo cáo; Số Mess, CPQC, Số đơn, Doanh số bắt buộc (MKT và Sale);
+Hóa đơn rời form nhập, giữ cột; một thẻ trải ngang, ô 34 px, chip công thức; team MKT 1 trong dữ liệu mẫu. AC-41.1 → 41.4.
+**To do:** chủ dự án nghiệm thu trên local; phát hành VPS cùng ADR-040 (Codex). **Far plan:** quản lý sửa team của
+báo cáo đã nộp.
+
 ## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu (ADR-040)
 
 **Finished local (đợt 1):** tiền quy ₫ ngay trong truy vấn, cảnh báo dòng thiếu tỉ giá; cột Số đơn (TT) /

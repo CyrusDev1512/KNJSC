@@ -280,7 +280,7 @@ def apply_identity(values, fields, actor):
 
 
 @transaction.atomic
-def fill(form, values, *, actor, request=None, fields=None, system_day=None):
+def fill(form, values, *, actor, request=None, fields=None, system_day=None, team=None):
     """Điền một dòng qua biểu mẫu: ép danh tính, kiểm bắt buộc, ghi vào bảng đích.
 
     Một đường duy nhất cho cả màn hình điền biểu mẫu lẫn nộp báo cáo ngày
@@ -298,7 +298,7 @@ def fill(form, values, *, actor, request=None, fields=None, system_day=None):
         raise BusinessError("Chưa điền các trường bắt buộc: " + ", ".join(thieu))
     return record_service.create_record(
         form.table, values_by_column(form, values, fields),
-        actor=actor, request=request, system_day=system_day,
+        actor=actor, request=request, system_day=system_day, team=team,
     )
 
 

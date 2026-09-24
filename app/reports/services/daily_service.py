@@ -43,13 +43,44 @@ def protected_values(form, values, fields, day, owner, *, original=None):
     return values
 
 
-def submit_current(form, values, *, actor, request=None, fields=None):
+def submit_current(form, values, *, actor, request=None, fields=None, team=None):
     """Đường nộp tương tác; submit ngày chỉ định dành cho nhập lịch sử nội bộ."""
     from django.utils import timezone
     fields = fields if fields is not None else list(form.ordered_fields())
     day = timezone.localdate()
     values = protected_values(form, values, fields, day, actor)
-    return submit(form, values, report_date=day, actor=actor, request=request, fields=fields)
+    return submit(form, values, report_date=day, actor=actor, request=request, fields=fields, team=team)
+
+
+# ══ TEAM TRÊN FORM NHẬP — ADR-041 ═══════════════════════════════════════════
+#
+# Dòng báo cáo trước đây lấy team theo hồ sơ người nộp; tài khoản chưa gán team ra "Chưa có
+# team" ở báo cáo. Nay form có dropdown các team của bộ phận sở hữu biểu mẫu, mặc định team
+# hồ sơ; team đã chọn ghi vào cả dòng dữ liệu lẫn DailyReport nên cột Team của báo cáo và
+# phạm vi Leader đi theo lựa chọn đó.
+
+def team_choices(form):
+    """`[(id, tên)]` team đang hoạt động của bộ phận sở hữu biểu mẫu — rỗng thì form không hiện ô Team."""
+    from org.models import Team
+    return list(Team.objects.filter(department=form.department, is_active=True)
+                .order_by("name").values_list("id", "name"))
+
+
+def default_team_id(user):
+    """Team trong hồ sơ người nộp — lựa chọn sẵn trên dropdown."""
+    return getattr(getattr(user, "profile", None), "team_id", None)
+
+
+def resolve_team(form, team_id):
+    """Team người nộp chọn: rỗng → None (giữ cách cũ: theo hồ sơ); id lạ, đã nghỉ hay của bộ phận
+    khác → từ chối rõ, không âm thầm ghi team hồ sơ (quy tắc 8)."""
+    from org.models import Team
+    if team_id in (None, ""):
+        return None
+    try:
+        return Team.objects.get(pk=int(team_id), department=form.department, is_active=True)
+    except (TypeError, ValueError, Team.DoesNotExist):
+        raise BusinessError("Team không thuộc bộ phận của biểu mẫu.")
 
 
 def can_amend(user, report):
@@ -168,11 +199,11 @@ def submissions_today(form, user, report_date):
 
 
 @transaction.atomic
-def submit(form, values, *, report_date, actor, request=None, fields=None):
+def submit(form, values, *, report_date, actor, request=None, fields=None, team=None):
     """Nộp một báo cáo. Ghi dữ liệu vào bảng đích rồi khoá lại.
 
     `values` là dict `{tên trường biểu mẫu: giá trị}`, đúng như màn hình điền
-    biểu mẫu ở Giai đoạn 3.
+    biểu mẫu ở Giai đoạn 3. `team` là team người nộp chọn (ADR-041); None thì theo hồ sơ.
     """
     if not grant_service.can_fill(actor, form):
         raise BusinessError("Bạn không được phân quyền nộp biểu mẫu này.")
@@ -197,7 +228,7 @@ def submit(form, values, *, report_date, actor, request=None, fields=None):
     # Cùng một đường với màn hình điền biểu mẫu: ép danh tính người nộp vào
     # trường Người bán (FR-4.6), kiểm bắt buộc, rồi ghi vào bảng đích
     ban_ghi = form_service.fill(
-        form, values, actor=actor, request=request, fields=fields, system_day=report_date,
+        form, values, actor=actor, request=request, fields=fields, system_day=report_date, team=team,
     )
     columns = list(form.table.columns.all())
     old_data = dict(ban_ghi.data)
@@ -209,7 +240,7 @@ def submit(form, values, *, report_date, actor, request=None, fields=None):
     bao_cao = DailyReport(
         form=form, record=ban_ghi, report_date=report_date, created_by=actor,
         department=getattr(ho_so, "department", None) or form.department,
-        team=getattr(ho_so, "team", None),
+        team=team if team is not None else getattr(ho_so, "team", None),
     )
     # Nộp lại trong ngày là một bản mới, không chặn, không đè (ADR-038)
     bao_cao.save()

@@ -63,7 +63,7 @@ def test_may_trong_chay_xong_thi_dang_nhap_duoc(client):
 
 
 def test_dung_du_co_cau_to_chuc():
-    """FR-2.1, FR-2.2 — Ba bộ phận nghiệp vụ, hai team, mỗi team một trưởng nhóm
+    """FR-2.1, FR-2.2 — Ba bộ phận nghiệp vụ, ba team (Sale 1, Sale 2, MKT 1 — ADR-041), mỗi team một trưởng nhóm
 
     Kế toán là bộ phận thứ tư, do `org/0004` tạo sẵn khi migrate (ADR-025 —
     chứng từ thanh toán), không phải do `du_lieu_mau` dựng, và chưa có nhân sự
@@ -73,7 +73,7 @@ def test_dung_du_co_cau_to_chuc():
 
     assert set(Department.objects.values_list("code", flat=True)) == {
         "sale", "marketing", "van-don", "ke-toan"}
-    assert Team.objects.count() == 2
+    assert Team.objects.count() == 3
     assert all(t.leader_id is not None for t in Team.objects.all()), (
         "Team chưa có trưởng nhóm thì không thử được phạm vi quyền của Leader"
     )

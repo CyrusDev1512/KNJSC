@@ -1,7 +1,8 @@
 {% comment %}
 Một trường trên màn hình điền biểu mẫu và nộp báo cáo ngày — một chỗ duy nhất
 quyết định ô nhập trông thế nào (trước đây hai màn hình chép nhau).
-Cần: o (form_service.Widget), bm (biểu mẫu đang điền).
+Cần: o (form_service.Widget), bm (biểu mẫu đang điền). Trường bắt buộc mang thuộc tính
+`required` để trình duyệt chặn sớm (ADR-041); máy chủ vẫn kiểm lại (AC-8.2).
 {% endcomment %}{% with t=o.t gia_tri=o.gia_tri %}
 <div class="truong" {% if o.report_market %}data-report-market{% endif %}>
   {% if o.currency_map %}{{ o.currency_map|json_script:"report-currency-map" }}{% endif %}
@@ -18,22 +19,22 @@ Cần: o (form_service.Widget), bm (biểu mẫu đang điền).
     <span class="goi-y">{% if bao_cao %}Danh tính người nộp, hệ thống ghi nhận{% else %}Chính là bạn, hệ thống tự ghi{% endif %}</span>
   {% elif o.cac_muc != None %}
     {% url 'bang_them_lua_chon' bm.table.code o.cot.code as them_url %}
-    {% include "components/o_chon.html" with ten=t.field.code id_o="o-"|add:t.field.code nhan=t.field.name cac_muc=o.cac_muc chat=o.chat co_them=o.co_them nhom=t.field.code lop="o-nhap" %}
+    {% include "components/o_chon.html" with ten=t.field.code id_o="o-"|add:t.field.code nhan=t.field.name cac_muc=o.cac_muc chat=o.chat co_them=o.co_them nhom=t.field.code lop="o-nhap" bat_buoc=t.required %}
   {% elif t.field.field_type == "long_text" %}
-    <textarea class="o-nhap" id="o-{{ t.field.code }}" name="{{ t.field.code }}" rows="3">{{ gia_tri }}</textarea>
+    <textarea class="o-nhap" id="o-{{ t.field.code }}" name="{{ t.field.code }}" rows="3"{% if t.required %} required{% endif %}>{{ gia_tri }}</textarea>
   {% elif t.field.field_type == "date" %}
-    <input class="o-nhap" type="date" id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
+    <input class="o-nhap" type="date" id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}"{% if t.required %} required{% endif %}>
   {% elif t.field.field_type == "datetime" %}
-    <input class="o-nhap" type="datetime-local" data-date-time id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
+    <input class="o-nhap" type="datetime-local" data-date-time id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}"{% if t.required %} required{% endif %}>
   {% elif t.field.field_type == "boolean" %}
-    <select class="o-nhap" id="o-{{ t.field.code }}" name="{{ t.field.code }}">
+    <select class="o-nhap" id="o-{{ t.field.code }}" name="{{ t.field.code }}"{% if t.required %} required{% endif %}>
       <option value="">— chọn —</option>
       <option value="co" {% if gia_tri == "co" %}selected{% endif %}>Có</option>
       <option value="khong" {% if gia_tri == "khong" %}selected{% endif %}>Không</option>
     </select>
   {% else %}
     <input class="o-nhap {% if t.field.field_type == 'money' or t.field.field_type == 'integer' or t.field.field_type == 'decimal' %}tien{% endif %}"
-           id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}">
+           id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}"{% if t.required %} required{% endif %}>
   {% endif %}
   {% if t.field.hint %}<span class="goi-y">{{ t.field.hint }}</span>{% endif %}
   {% if not t.link %}<span class="goi-y">Trường này chưa nối cột, dữ liệu sẽ không được lưu.</span>{% endif %}

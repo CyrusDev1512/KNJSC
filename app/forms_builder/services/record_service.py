@@ -140,11 +140,12 @@ def report_input_values(table, columns, values, actor, system_day=None):
 
 @writing
 @transaction.atomic
-def create_record(table, values, *, actor=None, request=None, columns=None, system_day=None):
+def create_record(table, values, *, actor=None, request=None, columns=None, system_day=None, team=None):
     """Thêm một dòng vào bảng.
 
     Bộ phận và team lấy theo hồ sơ người tạo, để phạm vi quyền áp đúng ngay từ
-    lúc sinh ra bản ghi.
+    lúc sinh ra bản ghi. `team` là team người nộp chọn trên form báo cáo ngày
+    (ADR-041); không truyền thì theo hồ sơ như trước.
     """
     policy = record_policies.for_table(table)
     if policy:
@@ -170,7 +171,7 @@ def create_record(table, values, *, actor=None, request=None, columns=None, syst
         # vận đơn: Sale lên đơn, dòng phải thuộc về Vận đơn để họ thấy mà đi
         # giao. Lấy theo người ghi là bộ phận đích không thấy gì cả.
         department=table.department,
-        team=getattr(ho_so, "team", None),
+        team=team if team is not None else getattr(ho_so, "team", None),
     )
     ban_ghi.apply_computed_columns(columns)
     ban_ghi.sync_indexed_columns(columns)

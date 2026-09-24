@@ -1,6 +1,6 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 23.09.2026 (ADR-040 Báo cáo tổng hợp như ảnh mẫu, Bảng dữ liệu dạng báo cáo); 19.09 (quy tắc nhánh: không đẩy thẳng lên nhánh đang chạy trên VPS, mỗi việc một
+> Cập nhật 24.09.2026 (ADR-041 form Nộp báo cáo ngày); 23.09 (ADR-040 Báo cáo tổng hợp như ảnh mẫu, Bảng dữ liệu dạng báo cáo); 19.09 (quy tắc nhánh: không đẩy thẳng lên nhánh đang chạy trên VPS, mỗi việc một
 > nhánh `claude/<tên-việc>` và một PR nháp); lần trước 18.09 (ADR-036 một bảng vận đơn, ADR-037 mã
 > nhân sự, ADR-038 báo cáo Marketing, ADR-031 bổ sung bảy thị trường).
 
@@ -110,6 +110,10 @@ vận đơn, khối toàn kỳ theo nhân sự + mỗi ngày một bảng, Gộp
 quản lý đặt (`ReportSource.thresholds`), lọc nhiều sản phẩm; bảng có nguồn báo cáo Sale/MKT mở ở
 Bảng dữ liệu là **báo cáo chi tiết theo ngày** (mỗi lần nộp một dòng, `?dang=tho` xem thô); bối
 cảnh màn hình dùng chung ở `reports/screen.py`.
+**Form Nộp báo cáo ngày (ADR-041, 24.09):** dropdown Team của bộ phận ghi vào `DataRecord.team` và
+`DailyReport.team`; Số Mess, CPQC, Số đơn, Doanh số bắt buộc — khai một chỗ `configure_erp_reports.REQUIRED_INPUTS`
+(lệnh chạy mỗi lần bật máy nên ép cả trường đã có); Hóa đơn không còn trên form MKT (`MKT_FORM_SKIP`) nhưng cột và
+chỉ tiêu giữ; form là một thẻ trải ngang (`.bm-ngang`, ô 34 px, chip công thức `ColumnDef.formula_text`).
 
 **KN CRM** (dịch vụ `bangtinh`, cổng 8021, `knjsc/urls_bangtinh.py`, settings
 `knjsc.settings.bangtinh`): nơi duy nhất sửa số liệu. Khung sidebar theo Teeze

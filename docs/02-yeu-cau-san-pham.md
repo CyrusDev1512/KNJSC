@@ -75,6 +75,10 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-4.4 | Staff không sửa báo cáo đã nộp; Leader trong team, Manager trong bộ phận, Admin toàn hệ thống và **Kế toán mọi bộ phận** (ADR-038) sửa nội dung có lịch sử và kiểm phiên bản. Giữ ngày/danh tính/thời điểm nộp gốc — quyết định thay thế 16/09/2026, ADR-032 |
 | FR-4.5 | Leader và Manager phải xem được báo cáo của người thuộc phạm vi quản lý; Kế toán xem được báo cáo của mọi bộ phận (ADR-038) |
 | FR-4.6 | Trường danh tính người điền (nhãn Người bán) trên biểu mẫu và báo cáo hằng ngày phải do hệ thống tự ghi **mã nhân sự** của tài khoản đang đăng nhập (ADR-037); người dùng không phải điền và không đổi được |
+| FR-4.7 | Form nộp báo cáo có **dropdown Team** gồm các team đang hoạt động của bộ phận sở hữu biểu mẫu, chọn sẵn team trong hồ sơ; team đã chọn ghi vào dòng dữ liệu và báo cáo nên cột Team của báo cáo và phạm vi Leader đi theo lựa chọn đó (ADR-041) |
+| FR-4.8 | Trên form báo cáo Sale và Marketing, **Số Mess, CPQC, Số đơn, Doanh số là bắt buộc** (Sale không có CPQC); trình duyệt chặn sớm bằng `required`, máy chủ vẫn kiểm lại; "0" là giá trị hợp lệ (ADR-041) |
+| FR-4.9 | Form báo cáo Marketing **không còn ô Hóa đơn**; cột và hai chỉ tiêu Hóa đơn ở báo cáo giữ cho dữ liệu cũ (ADR-041) |
+| FR-4.10 | Form nộp báo cáo trải hết chiều rộng: hàng điều khiển Biểu mẫu · Team · Ngày, lưới ô nhập **ngang, ô nhỏ**, cột tính sẵn chỉ nhắc công thức dạng chip (ADR-041, theo hướng Solarpunk ADR-028) |
 
 ---
 
