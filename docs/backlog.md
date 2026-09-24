@@ -1,5 +1,68 @@
 # Backlog
 
+## 24.09.2026 — Thử phá lưới ghi chú như người dùng thật (AC-11.44)
+
+**Vì sao.** Chủ dự án yêu cầu kiểm như một người dùng thật các trường hợp dễ gây lỗi, vỡ view, vỡ lưới —
+sau khi việc ghi chú tự giãn dòng hôm 23.09 đã xong và đã mở PR.
+
+**Làm gì.** Dựng `app/tests/e2e/test_pha_luoi_ghi_chu.py`: chín bài, mỗi bài làm một việc dễ làm hỏng lưới
+(nội dung độc, 40 dòng cao liền nhau, cuộn giật cục, kéo đổi rộng cột, ẩn/hiện cột, xoá và hoàn tác, dán từ
+Excel, màn hình điện thoại, phóng to 125 %) rồi **soát hình học lưới**: dòng có hở hay chồng nhau không, mọi
+ô có cao đúng bằng dòng không kể cả ô ghim, còn ô `…` không, chữ có bị cắt không, có lỗi JavaScript không.
+Trước đợt này **chưa bài kiểm nào trong dự án soát những thứ đó** — lưới là lưới ảo hoá, đó đúng là chỗ dễ vỡ nhất.
+
+**Đo được.** 9/9 đạt, 58 giây, không lượt soát nào thấy vỡ lưới. Một từ 3.000 ký tự không dấu cách bẻ được
+(1.498 px); chuỗi giống thẻ HTML hiện thành chữ chứ không thành thẻ; 25 lần phím mũi tên qua vùng dòng cao
+không lần nào ô chọn ra ngoài khung nhìn; kéo cột 400 → 72 px thì dòng 160 → 1.177 px, nới ra 640 px thì còn
+103 px — đo lại đúng cả hai chiều. Biên bản:
+[kiem-chung-ghi-chu-tu-gian-dong-20260923.md](kiem-chung-ghi-chu-tu-gian-dong-20260923.md).
+
+**Bắt được một lỗi thật, đã sửa.** Ghi chú chỉ gồm khoảng trắng và ký tự xuống dòng làm dòng cao 197 px mà
+không hiện chữ nào. Đường người dùng không gặp (mọi lối nhập đều cắt hai đầu trước khi lưu) nhưng dữ liệu ghi
+thẳng vào cơ sở dữ liệu thì còn — đúng loại dữ liệu đang nằm trên VPS. Sửa một dòng ở `vuaMotDong`.
+
+**Còn nợ.** Chủ dự án vẫn **chưa nhìn tận mắt trên máy** — mọi bằng chứng tới giờ đều là máy đo. Script Chrome
+`.cjs` vẫn chưa chạy (không máy nào có Node). Chưa phát hành VPS.
+
+**Ghi nhận ngoài phạm vi, chưa sửa.** Tay kéo đổi rộng cột (`z-index 9`) bị vùng cột ghim (`z-index 10`) đè,
+nên cột nào bị cuộn vào dưới dải ghim rộng 526 px là mất luôn khả năng đổi rộng cho tới khi cuộn ra. Đúng
+thiết kế cột ghim, nhưng khó dùng trên màn hình hẹp. Sửa thì đụng CSS đầu cột dùng chung cho mọi bảng.
+Cùng nhóm: `static/css/grid-formats.css` dòng 1 thiếu dấu `/*` mở nên luật đầu `.dd-dam` (in đậm) bị bỏ.
+
+## 23.09.2026 — Ghi chú đọc được ngay trên lưới (AC-11.44)
+
+**Vì sao.** Bộ phận Vận đơn báo ghi chú bị cắt một dòng, muốn đọc phải bấm mở hộp đọc — bất tiện khi
+lướt bảng. Cột Ghi chú vốn rộng 160 px như mọi cột khác, trong khi nó là cột văn bản dài duy nhất của bảng.
+
+**Làm gì.** Hai lượt trong ngày. Máy chủ: `waybill_service.grid_column` trả `width: 400` **và cờ
+`auto_height`** cho riêng cột `ghi_chu` của bảng `van_don`; lưới chỉ đọc cờ, không nhận diện theo mã cột
+(CLAUDE.md, ADR-021) — bảng khác muốn có thì profile của bảng đó tự trả cờ. Trình duyệt: `master-grid.js` đo
+chiều cao thật của nội dung rồi giãn dòng cho vừa — đo theo lô đúng lúc khối 100 dòng về, nút đo nằm trong
+lưới mang đúng lớp CSS của ô; đo khi có ký tự xuống dòng hoặc chữ không chắc vừa một dòng; đệm theo nội dung
+nên sửa xong là đo lại ngay (sửa ô, dán, xoá, hoàn tác, lưu về, người khác sửa, đổi rộng/ẩn hiện cột, phông
+tải xong); tải lại mềm không co dòng về 28; kéo tay về 28 px được nhớ, Home về tự tính; ô nhập cao theo chữ
+đang gõ. Trần một dòng 2000 px ở một chỗ `MasterRowGeometry.MAX`. Kề bên: ô Ghi chú ở Lên đơn thành ô nhiều
+dòng (gom CRLF về `\n`), tệp Excel xuất ra bật Wrap Text cho cột văn bản dài.
+
+**Chốt với chủ dự án trước khi viết mã:** chỉ cột Ghi chú của bảng Vận đơn, trần 2000 px thay vì bỏ trần;
+lượt 2 chốt thêm hai chỗ kề bên (Lên đơn, Excel). Câu hỏi "ghi chú đã xuống dòng, cách dòng được chưa" trả
+lời bằng rà mã: ký tự xuống dòng đi qua hệ thống nguyên vẹn nhưng ô lưới `nowrap` dồn thành dấu cách —
+lượt 1 chưa xử lý, lượt 2 mới xử lý.
+
+**Đo được.** Ghi chú 26 ký tự: 28 px. `"Dòng 1\nDòng 2"` (13 ký tự): 47 px, đúng hai dòng. 427 ký tự: 160 px,
+8 dòng, không cắt chữ. Gõ hai dòng trong ô: ô nhập 51 px lúc gõ, dòng 28 → 47 px ngay khi đóng ô, không tải
+lại. Kéo tay về 28 → tải lại vẫn 28 → Home về 160. 12.600 ký tự: dừng 2000 px, bấm ô mở hộp đọc. Hiệu năng
+1.000 dòng ghi chú 400 ký tự khác nhau: một lượt đo cả khối p50 15,4 / p95 20,8 / max 21,6 ms, 0 long task.
+Bài kiểm viết trước, đỏ đúng lý do. Biên bản:
+[kiem-chung-ghi-chu-tu-gian-dong-20260923.md](kiem-chung-ghi-chu-tu-gian-dong-20260923.md).
+
+**Còn nợ.** Chủ dự án chưa nhìn tận mắt (mở `/bang-tinh/van_don/?tim=Jimenez`, cuộn tới Ghi chú, gõ thử hai
+dòng). Script Chrome chưa chạy (máy không có Node): `kiem-thu-master-row-height.cjs`, `kiem-thu-master-ui.cjs`
+sửa theo suy luận; ba script `*-capacity.cjs` chắc chắn đỏ vì fixture cho mọi dòng ghi chú dài và nhảy dòng
+bằng `r*28` — làm lại trên máy có Node. Chưa đẩy GitHub, chưa phát hành VPS. Tác dụng phụ đã biết: trần
+2000 px dùng chung nên bảng khác kéo tay tới 2000 px được. Ngoài phạm vi, ghi lại: `static/css/grid-formats.css`
+dòng 1 thiếu `/*` mở nên luật đầu `.dd-dam` (in đậm) bị trình duyệt bỏ.
+
 ## 24.09.2026 — ADR-041: Leader/Manager bỏ & khôi phục báo cáo cấp dưới
 
 **Yêu cầu chủ dự án.** "Leader/Manager sửa và xoá báo cáo của nhân sự Sale/MKT" — khoảng

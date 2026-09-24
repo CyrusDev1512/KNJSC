@@ -800,10 +800,13 @@ Bản cập nhật cần migration `crm.0001_initial` (chỉ thêm biên nhận 
 quy trình cập nhật/migration chuẩn. Không hạ migration trên DB đang làm việc
 để kiểm; phép thử đảo chiều nằm trong `crm/tests/test_master_grid.py`.
 
-Kéo mép dưới **số hàng** để chỉnh chiều cao 28–400px. Hàng cao sẽ xuống dòng,
-phần chữ còn thiếu vẫn mở bằng bấm ô. Thả chuột ghi nhớ riêng theo tài khoản,
-bảng và ID vận đơn trên trình duyệt/máy hiện tại; không đồng bộ sang máy khác.
-Escape trong lúc kéo hủy lượt đó. Focus tay nắm: ↑/↓ đổi 4px, Home về 28px.
+Kéo mép dưới **số hàng** để chỉnh chiều cao 28–2000px (trần nâng từ 400 theo AC-11.44).
+Hàng cao sẽ xuống dòng, phần chữ còn thiếu vẫn mở bằng bấm ô. Ở bảng Vận đơn, dòng có
+ghi chú tự cao vừa nội dung — kể cả ghi chú có ngắt dòng — và đo lại ngay khi sửa; thu
+tay về 28px thì 28px được nhớ. Thả chuột ghi nhớ riêng theo tài khoản, bảng và ID vận
+đơn trên trình duyệt/máy hiện tại; không đồng bộ sang máy khác. Escape trong lúc kéo
+hủy lượt đó. Focus tay nắm: ↑/↓ đổi 4px, Home về chiều cao mặc định (tự tính theo ghi
+chú; 28px ở bảng không có cột tự giãn).
 Kéo hàng giữ phần đang nhập vào bản đang làm, không yêu cầu lưu trước. Chỉnh chiều cao không đổi dữ liệu,
 không vào Undo/Redo nội dung và không thay chiều cao trong file Excel xuất.
 

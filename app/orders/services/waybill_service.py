@@ -566,15 +566,29 @@ def missing_item_count(records):
     ).filter(_has_waybill_item=False).count()
 
 
+#: Ghi chú là cột văn bản dài duy nhất của bảng; rộng gấp 2,5 lần mặc định 160 px để
+#: đọc được ngay trên lưới thay vì phải mở hộp đọc (AC-11.44, góp ý Vận đơn 23.09.2026).
+#: Dòng tự giãn cao vừa nội dung là phần việc của `master-grid.js`, theo cờ `auto_height`
+#: mà `grid_column` trả cho cột này.
+RONG_GHI_CHU = 400
+
+
 def grid_column(column):
     """Khả năng hiển thị của bảng vận đơn (một bảng duy nhất, ADR-036)."""
     payment_documents = getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
     is_bill = column.code == 'bill'
-    return {'detail':column.code in DETAIL_CELLS, 'assignment':column.code in assignment_service.COLUMNS,
+    kha_nang = {'detail':column.code in DETAIL_CELLS, 'assignment':column.code in assignment_service.COLUMNS,
         'protected':column.is_computed or column.code in PROTECTED or column.code == 'loai_tien' or column.code in assignment_service.COLUMNS
             or (is_bill and payment_documents),
         'renderer':'bill' if is_bill and payment_documents else ('url' if is_bill else 'value'),
         'frozen':column.code in ('ngay', 'ma_don', 'ten_khach', 'so_dien_thoai')}
+    if column.code == 'ghi_chu':
+        # Cột duy nhất tự giãn dòng của bảng. Lưới chỉ đọc cờ `auto_height` trong metadata,
+        # không nhận diện nghiệp vụ bằng mã cột (ADR-021); bảng khác muốn có thì profile
+        # của bảng đó tự trả cờ.
+        kha_nang['width'] = RONG_GHI_CHU
+        kha_nang['auto_height'] = True
+    return kha_nang
 
 
 def grid_value(row, column):

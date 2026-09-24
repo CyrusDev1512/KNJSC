@@ -133,7 +133,7 @@ mẫu (để số giả không lẫn vào), nên Xếp hạng doanh số ở 3.1
 | ☐ | Bấm ▼ trên chữ cột của Trạng thái vận chuyển, tích hai trạng thái, **Áp dụng** | Số dòng đổi, chân trang ghi đúng `1–n / N` và "Đang lọc 1 cột"; bấm **Bộ lọc** thấy chip, bấm × trên chip thì bỏ lọc đó | AC-11.2, AC-11.24 |
 | ☐ | Bấm ▼ ở Tên khách, mở **Điều kiện khác**, gõ một chữ vào "chứa", Áp dụng | Hai lọc cộng dồn, chip hiện cả hai | AC-11.2 |
 | ☐ | Bấm đúp ô Trạng thái vận chuyển, chọn "Đang giao" | Ô đổi ngay, không tải lại trang; mở Nhật ký bằng `quantri` thấy dòng "Sửa ô van_don.trang_thai_vc" | AC-11.3 |
-| ☐ | Bấm đúp ô Ghi chú, gõ hai dòng, Ctrl+Enter | Ghi chú hiện hai dòng trong ô | AC-11.3 |
+| ☐ | Bấm đúp ô Ghi chú, gõ hai dòng, Ctrl+Enter | Ghi chú hiện hai dòng trong ô; dòng giãn cao ngay, không tải lại | AC-11.3, AC-11.44 |
 | ☐ | Dùng phím: mũi tên đi giữa các ô, Enter sửa, Esc huỷ, Tab sang ô kế; Shift+mũi tên mở rộng vùng, Delete xoá nội dung vùng | Đúng như mô tả, không mất vị trí; Delete xoá đúng các ô đang chọn, Ctrl+Z trả lại | AC-11.10, AC-11.19 |
 | ☐ | Cột A "Lọc trùng" | Hai dòng cùng số điện thoại hiện số 2 tô đỏ; bấm **Bộ lọc**, tích "Chỉ số điện thoại trùng" thì còn đúng các dòng đó | AC-11.5 |
 | ☐ | Đổi một dòng sang "Hủy trước giao" | Cả dòng tô đỏ nhạt; đổi lại "Đã nhận hàng" thì hết | AC-11.6 |
