@@ -1,5 +1,21 @@
 # Backlog
 
+## 24.09.2026 — ADR-040: KN CRM chỉ một bảng Vận đơn, bỏ cấp Quý/Tháng
+
+**Chốt của chủ dự án (4 điều):** Sale/MKT nhập – xuất đều bên ERP; chưa có tính năng
+Leader/Manager sửa & xoá báo cáo cấp dưới (khoảng trống, chờ làm); CRM chỉ có Bảng tính
+của Vận đơn; Thống kê lấy số liệu từ cả hai bên. **Dữ liệu không đổi một dòng nào.**
+
+**Làm:** lọc một chỗ `crm/services/catalog.chi_van_don` áp ở mọi cửa CRM (trang chủ gồm cả
+Hoạt động gần đây, thư mục, sidebar, lưới + JSON, Nhập tệp, Cấp quyền, guard route
+forms_builder trên 8021); `tree_service.build` phẳng, xoá Quarter/quarters/month_counts;
+nút Tạo bảng ẩn (đường dẫn còn); trang Đã xóa giữ mọi bảng (cửa quản trị). Sửa kèm hai lỗi
+lộ ra: sidebar đổ 500 khi bảng vận đơn thiếu cột chuẩn; mục Thống kê biến mất với người chỉ
+có bảng thường. AC-40.1→40.4 mới; AC-11.12/14/28/29/34 viết lại; docs/06 243/230/207.
+
+**Đo:** biên bản [kiem-chung-crm-mot-bang-20260924.md](kiem-chung-crm-mot-bang-20260924.md), 4 ảnh Chromium.
+
+
 ## 19.09.2026 (đêm) — Một bài đầu-cuối đi trọn hành trình nhân viên
 
 **Vì sao.** Hai lỗi chủ dự án báo sáng nay đều nằm **giữa** các màn hình: đổi hộp lọc cột thì sót mục của cột

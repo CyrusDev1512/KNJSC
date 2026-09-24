@@ -61,7 +61,26 @@ def _bang_gan_day(user):
 
 
 def _hoat_dong(user):
-    return list(AuditLog.objects.in_scope(user).select_related("actor").order_by("-created_at")[:8])
+    """Hoạt động gần đây — chỉ việc trên bảng vận đơn (ADR-040, chủ dự án chốt
+    24.09.2026): dòng, bảng/cột vận đơn và đơn gốc; việc trên bảng MKT/Sale bên
+    ERP không hiện ở trang chủ KN CRM."""
+    from django.db.models.functions import Cast
+    from django.db.models import CharField
+    from forms_builder.models import ColumnDef
+    dong_vd = (DataRecord.all_objects.filter(waybill_condition())
+               .annotate(ma=Cast("pk", CharField())).values("ma"))
+    bang_vd = (TableDef.objects.filter(waybill_condition(""))
+               .annotate(ma=Cast("pk", CharField())).values("ma"))
+    cot_vd = (ColumnDef.objects.filter(waybill_condition())
+              .annotate(ma=Cast("pk", CharField())).values("ma"))
+    ve_van_don = (
+        Q(target_type="DataRecord", target_id__in=dong_vd)
+        | Q(target_type="TableDef", target_id__in=bang_vd)
+        | Q(target_type="ColumnDef", target_id__in=cot_vd)
+        | Q(target_type="Order")
+    )
+    return list(AuditLog.objects.in_scope(user).filter(ve_van_don)
+                .select_related("actor").order_by("-created_at")[:8])
 
 
 def tong_quan(user):

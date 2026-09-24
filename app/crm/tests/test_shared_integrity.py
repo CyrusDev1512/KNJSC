@@ -62,8 +62,14 @@ def test_schema_change_keeps_all_values(generic,nguoi_dung):
 
 
 @pytest.mark.parametrize('path',['o/{id}/bill/','luu-o/','dinh-dang/','dong-moi/','xoa-dong/','khoi-phuc-dong/'])
-def test_retired_writes_cannot_bypass_cas(client,generic,nguoi_dung,path):
-    table,row=generic;client.force_login(nguoi_dung['staff_mkt'])
+def test_retired_writes_cannot_bypass_cas(client,generic,nguoi_dung,path,settings):
+    # KN CRM chỉ phục vụ bảng vận đơn (ADR-040) — endpoint cũ kiểm trên bảng thật
+    from orders.services import dispatch_service
+    settings.GRID_ONLY_TABLES=set()
+    table=dispatch_service.ensure_waybill_table(actor=nguoi_dung['admin'])
+    row=record_service.create_record(table,{'ma_don':'CAS-1','ten_khach':'A','so_dien_thoai':'0900',
+        'ngay':'2026-09-24','loai_tien':'USD','bill':'Bình thường'},actor=nguoi_dung['staff_vd'])
+    client.force_login(nguoi_dung['staff_vd'])
     response=client.post('/bang-tinh/'+table.code+'/'+path.format(id=row.pk),{'gia_tri':'Không'})
     assert response.status_code==409
     assert 'tải lại trang' in response.content.decode()

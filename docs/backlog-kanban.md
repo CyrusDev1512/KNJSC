@@ -1,5 +1,13 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 24.09.2026 — ADR-040: CRM chỉ một bảng Vận đơn
+
+**Finished local (nhánh `claude/crm-chi-mot-bang-van-don`, PR nháp):** CRM chỉ phục vụ bảng vận đơn,
+thư mục phẳng không còn Quý/Tháng, dữ liệu và ERP không đổi, Thống kê đọc cả hai bên.
+**To do:** chủ dự án duyệt PR, kéo nhánh về local check, phát hành VPS.
+**Far plan (ghi nhận trong ADR-040):** Leader/Manager sửa & xoá báo cáo cấp dưới; nơi sửa ô cho bảng thường.
+
+
 ## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên
 
 **Finished local:** `tests/e2e/test_hanh_trinh_nhan_vien.py` — một lượt qua lưới, hộp lọc cột, đổi vai, lên đơn,

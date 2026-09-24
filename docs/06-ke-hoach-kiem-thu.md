@@ -35,9 +35,9 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **239** — 226 tự động, 13 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **202 trên 226** |
-| Tiêu chí tự động còn hoãn | **24**, đều thuộc phần đang làm hoặc chờ chốt — xem bảng cuối tệp |
+| Tiêu chí nghiệm thu trong `docs/04` | **243** — 230 tự động, 13 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **207 trên 230** |
+| Tiêu chí tự động còn hoãn | **23**, đều thuộc phần đang làm hoặc chờ chốt — xem bảng cuối tệp |
 | Bao phủ dòng mã | khoảng 85% |
 
 Ba con số đầu **có bài kiểm canh** — `app/tests/test_truy_vet.py` đọc chính
@@ -152,7 +152,7 @@ bài truy vết đếm đúng, chứ không phải để lờ đi.
 | `AC-27.1`, `AC-27.2`, `AC-27.4` → `AC-27.8` | Lưới dùng chung và vòng đời bảng đang làm — ADR-027, Giai đoạn 7K; `AC-27.3` đã có bài kiểm |
 | `AC-11.10`, `AC-11.20` | Bàn phím và hoàn tác **vẫn chạy**; bài kiểm nằm ở `scripts/kiem-thu-master-ui.cjs` và `kiem-thu-shared-grid.cjs`, chạy bằng Chrome thật nên `pytest` không đếm được |
 | `AC-11.25` | Ô địa chỉ hiện `A1:C3` đúng ở lưới mới; phần gõ địa chỉ để nhảy ô chưa rà lại |
-| `AC-11.14`, `AC-11.21` | **Tính năng không còn trong lưới mới** — dòng trống cuối lưới và menu chuột phải. Chờ chủ dự án chốt bỏ tiêu chí hay làm lại tính năng |
+| `AC-11.21` | **Tính năng không còn trong lưới mới** — menu chuột phải. Chờ chủ dự án chốt bỏ tiêu chí hay làm lại tính năng. (Tiêu chí dòng trống 11.14 đã viết lại theo ADR-040 — dòng nháp bị từ chối — và có bài kiểm, 24.09) |
 
 ---
 

@@ -127,7 +127,8 @@ def _chon_bang(request, *, tieu_de, mo_ta, duoc, url_name, nhan_nut, rong_mo_ta)
     """Trang chọn bảng dùng chung cho Nhập tệp và Cấp quyền: bảng trong phạm vi
     mà `duoc(user, bang)` đúng, kèm số dòng, mỗi hàng một nút hành động."""
     cac_bang = []
-    for b in (TableDef.objects.in_scope(request.user).select_related("department")
+    # Chỉ bảng vận đơn — KN CRM không phục vụ bảng thường (ADR-040)
+    for b in (catalog.chi_van_don(TableDef.objects.in_scope(request.user)).select_related("department")
               .with_visible_record_count(request.user).order_by("department__name", "name")):
         if duoc(request.user, b):
             b.url_hanh_dong = reverse(url_name, args=[b.code])

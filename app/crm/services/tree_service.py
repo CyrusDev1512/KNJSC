@@ -178,7 +178,11 @@ def build(user, *, bp_code="", hom_nay=None):
 
     bang = tables_of(user, bp, moi_bang)
     thong_ke = table_stats(user, bp)
-    cay = [(tm, ds) for tm, ds in folder_service.tree(user)
+    # `folder_service.tree` liệt kê mọi bảng trong phạm vi — giữ lại đúng các
+    # bảng KN CRM phục vụ (chỉ vận đơn, ADR-040) đã lấy ở `all_tables`
+    phuc_vu = {t.pk for t in moi_bang}
+    cay = [(tm, [b for b in ds if b.pk in phuc_vu]) for tm, ds in folder_service.tree(user)]
+    cay = [(tm, ds) for tm, ds in cay
            if any(b.department_id == bp.pk for b in ds) or (tm is not None and tm.department_id == bp.pk)]
     cac_nhom = [{
         "ten": tm.name if tm is not None else ("Không thư mục" if len(cay) > 1 else ""),
