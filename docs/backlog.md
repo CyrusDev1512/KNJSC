@@ -110,6 +110,65 @@ hệ quả không được ghi trong ADR, chủ dự án phát hiện trên VPS 
 Tên khách · SĐT (`grid_column`). Lưới CRM, Thống kê, tệp Excel xuất theo cùng một chỗ,
 không migration. AC-11.1/11.38 sửa lời; 3 bài kiểm chỉnh theo (frozen, xuất, e2e ghim).
 
+## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu, đợt 1: quy ₫ rồi mới cộng, cột (TT), Tỉ lệ chốt MKT (ADR-042)
+
+**Vì sao.** Chủ dự án so Báo cáo tổng hợp với Bảng dữ liệu và ảnh LUMI OMS: cột CPQC, DS Chốt, CPO, Giá
+Mess đều "—" vì dữ liệu thật lẫn USD/EUR/CAD/VND và ADR-038 chọn "để trống khi lẫn tiền". Chốt 23.09:
+**hai màn hình cùng tồn tại**, Báo cáo tổng hợp ưu tiên số một, giữ mọi chức năng và làm giống ảnh
+(bố cục khối theo ngày, Gộp/Không gộp, cột (TT) đối soát từ vận đơn, tiền ₫, màu 3 bậc, lọc nhiều sản
+phẩm); Bảng dữ liệu cập nhật theo sau. Kế hoạch năm đợt ở ADR-042; đây là đợt 1.
+
+**Làm gì.** `core/money.py` nhận `to_vnd`/`rates_label` (dời từ leaderboard) và `vnd_rate_expression`;
+`aggregations.summarize(currency_code)` nhân tỉ giá từng dòng ngay trong SQL cho cột kiểu Tiền, đếm
+`so_chua_quy_doi`; `summarize_in_memory` lấy dòng nhóm vào bộ nhớ (≤ 2.000) nên bỏ được hai truy vấn;
+`activity_service.marketing_actuals` (một truy vấn trên `DataRecord` vận đơn) thay `marketing_revenue`,
+cho Số đơn (TT) + DS Chốt (TT); `FORMULAS` thêm `conversion_tt`, tỉ lệ hiện %; nhãn MKT theo ảnh;
+`currency_note` thay `currency_safe_result`; chỉ số quan trọng khoá theo mã. Hai lỗi thật: liên kết phân
+trang kéo `trang` cũ (TL-58), chip Kỳ có × ở kỳ mặc định (TL-52); ô Tìm nhân sự bỏ `type=search`.
+
+**Kiểm.** `reports/tests dashboard culture tests/test_ti_gia tests/test_truy_vet`: 199 đạt; AC-42.1 → 40.5
+mới; nguồn MKT thật 12 → ≤ 10 truy vấn; Chromium 1440 sáng/tối + 390 trên `knjsc_mkt`.
+[Biên bản](kiem-chung-bao-cao-nhu-anh-mau-20260923.md).
+
+**Đợt 2 cùng ngày — bố cục khối như ảnh.** `reports/layout.py` (thuần, không truy vấn) dựng các khối:
+**toàn kỳ theo nhân sự** đứng đầu (cộng trong bộ nhớ từ dòng ngày × người, STT · Team · Nhân sự · Leader,
+TỔNG CỘNG ngay dưới tiêu đề cột), rồi **mỗi ngày một bảng riêng** không có cột Ngày, TỔNG CỘNG ngày, STT
+đếm lại; ngày tách trang ghi "(tiếp)"; nút **Gộp / Không gộp** (`gop=1`, mỗi ngày một dòng); template
+`reports/_bang_khoi.html` dùng chung, một khung cuộn nhiều bảng; Excel hai sheet "Toan ky theo nhan su" +
+"Theo ngay". AC-42.6, AC-42.7; sửa AC-22.10/13/14/15, AC-38.2. 192 đạt bộ báo cáo.
+
+**Đợt 3 cùng ngày — ngưỡng màu ba bậc, lọc nhiều sản phẩm, "Tuần này".** `ReportSource.thresholds`
+(migration `reports/0005`, đảo ngược được) do quản lý bộ phận sở hữu nguồn đặt ngay trên màn hình (nút
+"Ngưỡng màu", POST `bao-cao/tong-hop/nguong/`, `threshold_service`, cùng luật `can_manage_columns`, có nhật
+ký); ô chỉ số xanh / vàng / đỏ theo mốc tuyệt đối, dòng TỔNG CỘNG cũng tô, chỉ tiêu chưa đặt giữ ±10 % so với
+TỔNG CỘNG, không bịa số mặc định. Bộ lọc Sản phẩm thành hộp tick nhiều mục (`sp` lặp lại, URL cũ `sp=A` vẫn
+chạy, danh sách theo phạm vi quyền, (TT) cũng lọc theo), Chọn nhanh thêm "Tuần này". Danh sách sản phẩm là
+một truy vấn thêm — bù bằng backend đăng nhập lấy người dùng kèm hồ sơ trong một lệnh
+(`core/auth_backends.py`; mọi màn hình đã đăng nhập bớt một truy vấn, Vận đơn/Leader 11 → 10). AC-42.8 →
+40.12, AC-10.2 thêm một bài. Hai lỗi bắt được khi chụp và sửa ngay: `nguong=1` nối đuôi khi lưu hụt hai lần;
+form hiện mốc đã lưu dạng `0.345` mà `parse_money` đọc thành 345 — nay hiện `0,345`.
+
+**Đợt 4 cùng ngày — Bảng dữ liệu của bảng có nguồn báo cáo là báo cáo chi tiết theo ngày.**
+`/bang/<mã>/` của bảng có `ReportSource` Sale/MKT dùng chung động cơ với Báo cáo tổng hợp
+(`activity_service.build(detail=True)`: thêm `record_id` vào khoá nhóm nên **mỗi lần nộp một dòng**, quy ₫,
+nhãn và cột theo nguồn, ngưỡng màu, (TT)); bố cục khối toàn kỳ + mỗi ngày một bảng, Gộp, bộ lọc Kỳ / Chọn
+nhanh / Sản phẩm / Thị trường / Tệp / Team / Nhân sự, 25 dòng một trang; `?dang=tho` về liệt kê thô có liên
+kết quay lại; bảng không có nguồn giữ nguyên; Xuất tệp ra Excel cùng khối. (TT) khoá theo (ngày, người) nên
+ngày một người nộp nhiều lần thì dòng đó "—" và TỔNG CỘNG cộng một lần (`derived_shared`). Bối cảnh màn hình
+dùng chung dời sang `reports/screen.py` để forms_builder không import view của reports. Lỗi vặt liệt kê thô:
+phân trang và sắp xếp giữ tìm kiếm, bộ lọc cột, cỡ trang (`filter_query`), `aria-sort`, ô Đúng/sai "Có"/"Không",
+"Sửa cột" chỉ với quản lý bộ phận sở hữu (`can_manage_columns`), bỏ chữ "phần 3B". AC-42.13, AC-42.14.
+
+**Đợt 5 cùng ngày — tài liệu.** docs/02 FR-5.7 → 5.12 và FR-7.16; docs/04 mục 40 (AC-42.1 → 40.14) và bộ đếm
+docs/06; ADR-042 trạng thái cuối + README; test-log TL-52 → TL-57; CLAUDE.md một đoạn ADR-042 và một dòng "Đọc gì
+trước khi làm"; biên bản đủ bốn đợt kèm 21 ảnh. Cả năm đợt nằm trên nhánh `claude/bao-cao-nhu-anh-mau`, PR nháp
+#36 vào `codex/crm-update-solar-ui` — không tự gộp, không phát hành.
+
+**Còn nợ.** Chủ dự án nghiệm thu trên bản chạy thật; Codex phát hành VPS (có migration `reports/0005`). Chờ chủ
+dự án: `so_tien_tt` gõ tay ở đơn không chi tiết có vào DS Chốt (TT) không; tỉ giá KRW; cột lệch nhẹ giữa
+các bảng (mỗi bảng tự co theo nội dung) có cần ép cùng bề rộng không; Bảng dữ liệu dạng báo cáo có cần
+thêm cột ngoài ánh xạ nguồn (ghi chú, thị trường) không, hay `?dang=tho` là đủ.
+
 ## 22.09.2026 (đêm) — Lọc theo cột ẩn vẫn chạy, kèm lời nhắc (TL-53 đóng)
 
 **Nợ cũ (hệ quả đã biết của ADR-039).** Bộ lọc trỏ tới cột đang ẩn bị bỏ lặng lẽ: URL cũ, liên kết

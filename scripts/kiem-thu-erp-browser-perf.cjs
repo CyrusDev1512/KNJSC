@@ -16,7 +16,7 @@ fs.mkdirSync(out,{recursive:true});
   await page.locator('tbody tr').first().waitFor();
   const navigation=await page.evaluate(()=>{const n=performance.getEntriesByType('navigation')[0];return {ttfb:n.responseStart,dom:n.domContentLoadedEventEnd,load:n.loadEventEnd,bytes:n.decodedBodySize,rows:document.querySelectorAll('tbody tr').length,domNodes:document.querySelectorAll('*').length,longTasks:window.erpLongTasks}});
   const frames=await page.locator('.bang-cuon').first().evaluate(e=>new Promise(resolve=>{const gaps=[];let before=performance.now(),i=0;function step(now){gaps.push(now-before);before=now;e.scrollLeft=(i%60)/59*(e.scrollWidth-e.clientWidth);if(++i<180)requestAnimationFrame(step);else resolve(gaps)}requestAnimationFrame(step)}));
-  await page.locator('#sp').pressSequentially('sample',{delay:25});await page.locator('#sp').fill('');
+  await page.locator('#report-multi-sp summary').click();await page.locator('#report-multi-sp .report-multi-tim').pressSequentially('sample',{delay:25});await page.locator('#report-multi-sp .report-multi-tim').fill('');
   const begin=Date.now();await page.locator('#thi-truong').selectOption({label:'Canada'});
   await Promise.all([page.waitForURL(u=>u.searchParams.get('thi_truong')==='Canada'),page.getByRole('button',{name:'Áp dụng',exact:true}).click()]);
   const filterMs=Date.now()-begin;

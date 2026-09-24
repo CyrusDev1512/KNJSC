@@ -1,58 +1,21 @@
-"""HTTP cho báo cáo hoạt động; tính toán và quyền ở service."""
-from io import BytesIO
+"""HTTP cho báo cáo hoạt động; tính toán và quyền ở service, bối cảnh màn hình ở `reports.screen`
+(dùng chung với Bảng dữ liệu dạng báo cáo, ADR-042 đợt 4)."""
+from urllib.parse import parse_qsl, urlencode
 
-from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 
-from core.audit import record
-from core.constants import AuditAction
-from core.exceptions import BusinessError
-from core.pagination import pagination_context
+from core.audit import record_denied
+from core.exceptions import BusinessError, OutOfScopeError
 from orders.constants import Market
-from reports import aggregations, excel
-from reports.services import activity_service as service, summary_service
-
-
-def parameters(request):
-    start, end = summary_service.default_range()
-    group = request.GET.get("nhom", "day")
-    aliases = {"tong-hop": "day", "nhan-vien": "person", "san-pham": "product", "thi-truong": "market"}
-    return {
-        "group": aliases.get(group, group),
-        "start": summary_service.parse_day(request.GET.get("tu"), start),
-        "end": summary_service.parse_day(request.GET.get("den"), end),
-        "product": request.GET.get("sp", ""),
-        "market": request.GET.get("thi_truong", ""),
-        "person": request.GET.get("nhan_su", ""),
-        "team": request.GET.get("team", ""),
-        "segment": request.GET.get("tep", ""),
-    }
-
-
-def _export(request, source, result, params):
-    if result.rows.count() > getattr(settings, "EXPORT_MAX_ROWS", 50000):
-        raise BusinessError("Thu hẹp bộ lọc để xuất báo cáo.")
-    record(AuditAction.EXPORT, actor=request.user, target=source.table,
-           detail="Xuất báo cáo hoạt động ERP", request=request)
-    subtitle = f"{params['start']} đến {params['end']}"
-    if params.get("segment"):
-        subtitle += " · Tệp khách hàng: " + ("chưa có" if params["segment"] == "__missing__" else params["segment"])
-    book = excel.build_workbook(source.table.name, result, subtitle=subtitle)
-    if source.kind == "delivery":
-        sheet = book.create_sheet("Trạng thái giao hàng")
-        sheet.append(["Trạng thái", "Số đơn"])
-        for item in result.shipping:
-            sheet.append([item["label"], item["count"]])
-    data = BytesIO()
-    book.save(data)
-    response = HttpResponse(data.getvalue(),
-                            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    response["Content-Disposition"] = 'attachment; filename="bao-cao-tong-hop.xlsx"'
-    return response
+from reports.screen import blocks_context, export_response as _export, filter_chips, parameters, product_options, with_query as _with
+from reports.services import activity_service as service, summary_service, threshold_service
 
 
 @login_required
@@ -61,13 +24,20 @@ def report(request, export=False, choices=None):
     choices = list(service.sources(request.user)) if choices is None else choices
     source = service.select_source(request.user, request.GET.get("nguon", ""), choices)
     params = parameters(request)
+    gop = request.GET.get("gop") == "1"   # Gộp theo ngày (ADR-042): mỗi ngày một dòng
+    # Liên kết phân trang ghép `?trang=N&moi_trang=M` + `qs_loc`: bỏ hai khoá đó khỏi `qs_loc`,
+    # không thì giá trị cũ đứng sau thắng và từ trang 2 bấm trang khác vẫn đứng yên (TL-47)
+    giu = request.GET.copy()
+    for key in ("trang", "moi_trang"):
+        giu.pop(key, None)
     ctx = {"sources": choices, "source": source, "groups": service.GROUPS,
            "params": params, "markets": Market.labels, "empty": True,
            "presets": summary_service.date_presets(timezone.localdate(), start=params["start"], end=params["end"]),
-           "query": request.GET.urlencode(), "qs_loc": "&" + request.GET.urlencode()}
+           "query": request.GET.urlencode(), "qs_loc": ("&" + giu.urlencode()) if giu else ""}
     if source:
         ctx['people'], ctx['teams'] = service.people_choices(request.user, source)
         ctx['segments'] = service.segment_options(source)   # None: nguồn không có Tệp khách hàng
+        ctx['products'] = product_options(request.user, source)
         try:
             result = service.build(request.user, source, **params)
         except BusinessError as error:
@@ -76,116 +46,50 @@ def report(request, export=False, choices=None):
         if result.ok:
             if export:
                 try:
-                    return _export(request, source, result, params)
+                    return _export(request, source, result, params, gop)
                 except BusinessError as error:
                     return render(request, "reports/activity.html", {**ctx, "error": str(error)}, status=400)
-            # Giới hạn nhóm như báo cáo hiện có; tránh COUNT riêng khi ít nhóm.
-            items = list(result.rows[:summary_service.MAX_GROUPS + 1])
-            page_source = items if len(items) <= summary_service.MAX_GROUPS else result.rows
-            # 100 nhóm mỗi trang (ADR-035): bảng theo ngày × nhân sự nhiều dòng hơn bản theo ngày.
-            ctx.update(pagination_context(request, page_source, "nhóm", default_size=100))
-            ctx.update(result=result, rows=aggregations.finish_rows(ctx["trang"], result),
-                       totals=aggregations.total_cells(result), empty=not result.totals["so_dong"])
-            show_team, show_person, show_leader = (getattr(result, flag, False) for flag in ("show_team", "show_person", "show_leader"))
-            # Mỗi dòng là một người (Tổng hợp nhóm theo ngày × nhân sự) nên ô danh tính
-            # chỉ có một nhãn.
-            for row, raw in zip(ctx['rows'], ctx['trang']):
-                row['kind'] = 'row'
-                if show_team:
-                    row['team'] = raw['team_name']
-                if show_person:
-                    row['person'] = raw['person_name']
-                if show_person or show_leader:
-                    row['leader'] = raw['leader_name'] or '—'
-            # Dòng "Tổng trong bộ lọc" ôm cột nhóm và các cột danh tính (Tổng hợp có thêm STT).
-            ctx["label_span"] = 1 + show_team + 3 * show_person + show_leader
-            if show_person:
-                # Khối theo ngày như ảnh mẫu: dòng Tổng ngày đứng đầu, STT đánh lại từ 1
-                ca_bo = items if len(items) <= summary_service.MAX_GROUPS else list(ctx["trang"])
-                ctx["rows"] = day_blocks(ctx["rows"], list(ctx["trang"]), ca_bo, result)
-            ctx.update(identity_layout(result, show_team, show_person, show_leader))
+            ctx.update(blocks_context(request, source, result, params, gop))
             if source.kind == "delivery":
                 ctx["shipping"] = result.shipping
+            if threshold_service.can_set(request.user, source):
+                # Form Ngưỡng màu chỉ cho quản lý bộ phận sở hữu nguồn; mở sẵn sau khi lưu lỗi (`?nguong=1`)
+                ctx["nguong"] = {"rows": threshold_service.rows(source, {c.code: c.label for c in result.columns}),
+                                 "mo": request.GET.get("nguong") == "1"}
     if source:
         ctx.update(filter_chips(request, params, ctx))
+        if source and ctx.get("result") is not None and getattr(ctx["result"], "show_person", False):
+            ctx.update(gop=gop, gop_url=_with(request, gop="1"), khong_gop_url=_with(request, gop=None))
     return render(request, "reports/activity.html", ctx)
 
 
-def day_blocks(rows, page_items, all_items, result):
-    """Cách xem Tổng hợp thành các khối ngày như ảnh mẫu (AC-22.15): trước dòng đầu của mỗi
-    ngày trên trang chèn dòng Tổng ngày (cộng trên TOÀN BỘ dòng của ngày khi đã có trong bộ
-    nhớ; chạm trần `MAX_GROUPS` thì chỉ trên trang), dòng người mang STT đếm lại từ 1 mỗi ngày."""
-    tong_ngay = aggregations.subtotal_cells(all_items, result)
-    stt, dem = {}, {}
-    for item in all_items:
-        khoa = (item.get("nhom"), item.get("person_name"))
-        dem[item.get("nhom")] = dem.get(item.get("nhom"), 0) + 1
-        stt[khoa] = dem[item.get("nhom")]
-    out, ngay_truoc = [], object()
-    for row, item in zip(rows, page_items):
-        ngay = item.get("nhom")
-        if ngay != ngay_truoc:
-            out.append({"kind": "subtotal", "nhom": row["nhom"], "cells": tong_ngay.get(ngay, [])})
-            ngay_truoc = ngay
-        row["stt"] = stt.get((ngay, item.get("person_name")), "")
-        out.append(row)
-    return out
-
-
-#: Chiều rộng cột định danh theo loại (biến CSS khai ở `.report-view`, thu nhỏ theo màn hình).
-IDENTITY_WIDTH = {"team": "--w-team", "ngay": "--w-ngay", "nhom": "--w-nhom", "stt": "--w-stt", "person": "--w-nhan-su", "leader": "--w-leader"}
-IDENTITY_CLASS = {"team": "id-team", "ngay": "id-ngay", "nhom": "id-nhom", "stt": "id-stt", "person": "id-nhan-su", "leader": "id-leader"}
-
-
-def identity_layout(result, show_team, show_person, show_leader):
-    """Cột định danh ghim trái (bản vẽ 18.09): thứ tự Team · nhóm · STT · Nhân sự · Leader theo cách xem;
-    `left` của cột thứ 2–4 là tổng chiều rộng các cột trước, đặt bằng biến CSS trên `<table>`."""
-    kinds = []
-    if show_team:
-        kinds.append(("team", "Team", "team"))
-    kinds.append(("nhom", result.group_label, "ngay" if result.group_is_date else "nhom"))
-    if show_person:
-        kinds.append(("stt", "STT", "stt"))
-        kinds.append(("person", "Nhân sự", "person"))
-    if show_person or show_leader:
-        kinds.append(("leader", "Leader", "leader"))
-    columns, style, widths = [], [], []
-    for pos, (code, label, width) in enumerate(kinds, start=1):
-        columns.append({"code": code, "label": label, "kind": IDENTITY_CLASS[width], "pos": pos, "edge": pos == len(kinds)})
-        if pos >= 2:
-            style.append(f"--id-left-{pos}:calc({' + '.join(f'var({w})' for w in widths)})")
-        widths.append(IDENTITY_WIDTH[width])
-    return {"identity_columns": columns, "identity_style": ";".join(style)}
-
-
-def filter_chips(request, params, ctx):
-    """Hàng chip bộ lọc đang áp, render từ `params`; × của mỗi chip là link cùng URL bỏ đúng tham số
-    (Kỳ bỏ cả `tu` và `den` để về mặc định; bỏ Team thì bỏ luôn Nhân sự). Không có chip Nguồn;
-    Cách xem không bỏ được."""
-    def without(*keys):
-        query = request.GET.copy()
-        for key in keys:
-            query.pop(key, None)
-        return "?" + query.urlencode()
-    chips = [{"label": "Kỳ", "value": f"{params['start']:%d/%m} – {params['end']:%d/%m/%Y}",
-              "url": without("tu", "den") if request.GET.get("tu") or request.GET.get("den") else ""}]
-    chips.append({"label": "Cách xem", "value": dict(service.GROUPS).get(params["group"], params["group"]), "url": ""})
-    if params["product"]:
-        chips.append({"label": "Sản phẩm", "value": params["product"], "url": without("sp")})
-    if params["market"]:
-        chips.append({"label": "Thị trường", "value": "Chưa xác định" if params["market"] == "__missing__" else params["market"], "url": without("thi_truong")})
-    if params.get("segment"):
-        chips.append({"label": "Tệp", "value": "Chưa có" if params["segment"] == "__missing__" else params["segment"], "url": without("tep")})
-    for key, param, query_key, label in (("teams", "team", "team", "Team"), ("people", "person", "nhan_su", "Nhân sự")):
-        value = params[param]
-        if value:
-            name = next((item["label"] for item in ctx.get(key, ()) if str(item["id"]) == str(value)), value)
-            chips.append({"label": label, "value": name, "url": without(query_key, *(("nhan_su",) if param == "team" else ()))})
-    keep = request.GET.copy()
-    for key in list(keep.keys()):
-        if key != "nguon":
-            keep.pop(key)
-    return {"chips": chips, "filters_active": sum(1 for chip in chips if chip["url"]), "clear_url": "?" + keep.urlencode()}
+@login_required
+@require_POST
+def thresholds(request):
+    """Manager bộ phận sở hữu nguồn (hoặc Admin) đặt ngưỡng màu ba bậc (ADR-042 đợt 3): sai thứ tự,
+    thiếu một mốc, không phải số → báo lỗi, không lưu; người khác 403 có nhật ký."""
+    code = request.POST.get("nguon", "")
+    if not code:
+        return HttpResponseBadRequest("Thiếu nguồn báo cáo.")
+    source = service.select_source(request.user, code)      # ngoài phạm vi → 403
+    if not threshold_service.can_set(request.user, source):
+        record_denied(request.user, request.path, request)
+        raise OutOfScopeError("Chỉ quản lý của bộ phận sở hữu nguồn mới đặt được ngưỡng màu.")
+    next_url = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+        next_url = reverse("bao_cao_tong_hop") + "?nguon=" + code
+    # Bỏ `nguong=1` cũ trước khi thêm lại khi lỗi: lưu hụt hai lần liên tiếp không nối đuôi `&nguong=1`
+    duong, _, hoi = next_url.partition("?")
+    giu = [(k, v) for k, v in parse_qsl(hoi, keep_blank_values=True) if k != "nguong"]
+    next_url = duong + ("?" + urlencode(giu) if giu else "")
+    try:
+        data = threshold_service.parse(request.POST)
+    except BusinessError as error:
+        messages.error(request, str(error))
+        return redirect(next_url + ("&" if giu else "?") + "nguong=1")
+    threshold_service.update(source, data, actor=request.user, request=request)
+    messages.success(request, "Đã lưu ngưỡng màu.")
+    return redirect(next_url)
 
 
 @login_required

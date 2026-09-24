@@ -2,6 +2,7 @@
    Tìm trong danh sách được server cấp quyền; chỉ gửi bộ lọc khi Áp dụng (Chọn nhanh kỳ gửi ngay). */
 (() => {
   const root = document.documentElement;
+  const normalize = text => text.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().trim();
   const view = document.getElementById('report-view');
   const workspace = document.getElementById('report-workspace');
   const panel = document.getElementById('report-filter-panel');
@@ -88,13 +89,35 @@
       });
     }
   }
+  // Chọn nhiều sản phẩm (ADR-042): ô tìm nhanh lọc danh sách, Chọn tất cả / Bỏ chọn, nhãn tóm tắt.
+  const multi = document.getElementById('report-multi-sp');
+  if (multi) {
+    const boxes = [...multi.querySelectorAll('input[type=checkbox]')];
+    const summary = multi.querySelector('.report-multi-tom-tat');
+    const tomTat = () => {
+      const chon = boxes.filter(b => b.checked);
+      summary.textContent = chon.length === 0 ? 'Tất cả' : chon.length === 1 ? chon[0].parentElement.textContent.trim() : `${chon.length} sản phẩm`;
+    };
+    multi.addEventListener('change', tomTat);
+    multi.querySelector('.report-multi-tim').addEventListener('input', event => {
+      const term = normalize(event.target.value);
+      for (const box of boxes) box.parentElement.hidden = Boolean(term) && !normalize(box.parentElement.textContent).includes(term);
+    });
+    for (const nut of multi.querySelectorAll('[data-chon]')) {
+      nut.addEventListener('click', () => {
+        for (const box of boxes) if (!box.parentElement.hidden) box.checked = nut.dataset.chon === 'all';
+        tomTat();
+      });
+    }
+  }
   const search = document.getElementById('report-person-search');
   const select = document.getElementById('report-person');
   if (!search || !select) return;
   const source = document.getElementById('nguon');
   const team = document.getElementById('report-team');
-  const initialSource = source.value;
-  source.addEventListener('change', () => {
+  // Bảng dữ liệu dạng báo cáo (ADR-042 đợt 4) không có ô Nguồn: chỉ còn tìm nhân sự
+  const initialSource = source ? source.value : '';
+  if (source) source.addEventListener('change', () => {
     // Danh mục phụ thuộc nguồn: không gửi ID của nguồn cũ sang nguồn mới.
     const changed = source.value !== initialSource;
     select.value = '';
@@ -106,7 +129,6 @@
       ? 'Bấm Áp dụng để tải danh sách team và nhân sự của nguồn mới.'
       : 'Chỉ hiển thị nhân sự có dữ liệu trong phạm vi của bạn.';
   });
-  const normalize = text => text.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().trim();
   search.addEventListener('input', () => {
     const term = normalize(search.value);
     let count = 0;

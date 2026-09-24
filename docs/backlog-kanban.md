@@ -18,6 +18,22 @@ thư mục phẳng không còn Quý/Tháng, dữ liệu và ERP không đổi, T
 **Finished local (nhánh `claude/ngay-len-dau-bang-van-don`, PR nháp):** Ngày (lên đơn) là cột
 dữ liệu đầu tiên, nhóm ghim 5 cột; Ngày thanh toán giữ nguyên. **To do:** chủ dự án duyệt PR, phát hành VPS.
 
+## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu (ADR-042)
+
+**Finished local (đợt 1):** tiền quy ₫ ngay trong truy vấn, cảnh báo dòng thiếu tỉ giá; cột Số đơn (TT) /
+DS Chốt (TT) / Tỉ lệ chốt (TT) đối soát từ vận đơn; Tỉ lệ chốt cho MKT, tỉ lệ hiện %; nhãn MKT theo ảnh;
+nguồn MKT thật ≤ 10 truy vấn; TL-52, TL-58. AC-42.1 → 40.5.
+**Finished local (đợt 2):** khối toàn kỳ theo nhân sự + mỗi ngày một bảng (STT · Team · Nhân sự · Leader,
+TỔNG CỘNG đầu bảng), Gộp/Không gộp, Excel hai sheet. AC-42.6, 40.7.
+**Finished local (đợt 3):** ngưỡng màu 3 bậc do quản lý bộ phận đặt trên màn hình (`ReportSource.thresholds`,
+migration `reports/0005`), lọc nhiều sản phẩm, "Tuần này"; backend đăng nhập lấy hồ sơ cùng một lệnh. AC-42.8 → 40.12.
+**Finished local (đợt 4):** Bảng dữ liệu của bảng có nguồn báo cáo là báo cáo chi tiết theo ngày (mỗi lần nộp một
+dòng, cùng động cơ, `?dang=tho` về thô); phân trang/sắp xếp thô giữ bộ lọc, Có/Không, "Sửa cột" đúng luật. AC-42.13, 40.14.
+**Finished local (đợt 5):** docs/02 FR-5.7 → 5.12, FR-7.16; docs/04 mục 40; ADR-042 + README; TL-52 → 57; CLAUDE.md;
+biên bản bốn đợt + 21 ảnh; PR nháp #36.
+**To do:** chủ dự án nghiệm thu; phát hành VPS (Codex, có migration `reports/0005`).
+**Far plan:** `so_tien_tt` gõ tay vào DS Chốt (TT)?; tỉ giá KRW; Tổng quan hiện (TT).
+
 ## 22.09.2026 (đêm) — Lọc theo cột ẩn vẫn chạy, kèm lời nhắc
 
 **Finished local (nhánh `claude/loc-cot-an-co-nhac`, PR nháp):** TL-53 đóng — bộ lọc cột ẩn không còn

@@ -1,6 +1,6 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 19.09.2026 (quy tắc nhánh: không đẩy thẳng lên nhánh đang chạy trên VPS, mỗi việc một
+> Cập nhật 23.09.2026 (ADR-042 Báo cáo tổng hợp như ảnh mẫu, Bảng dữ liệu dạng báo cáo); 19.09 (quy tắc nhánh: không đẩy thẳng lên nhánh đang chạy trên VPS, mỗi việc một
 > nhánh `claude/<tên-việc>` và một PR nháp); lần trước 18.09 (ADR-036 một bảng vận đơn, ADR-037 mã
 > nhân sự, ADR-038 báo cáo Marketing, ADR-031 bổ sung bảy thị trường).
 
@@ -104,7 +104,12 @@ Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.
 **KN ERP** (dịch vụ `web`, cổng 8020, `knjsc/urls.py`): đăng nhập, nhân sự, biểu
 mẫu, báo cáo ngày và báo cáo hoạt động (ADR-022, 032), Bảng dữ liệu **chỉ đọc với
 mọi bảng** (ADR-014), nhóm Nội bộ. Lên đơn không còn ở ERP, chỉ còn URL GET chuyển
-tiếp sang CRM (ADR-023).
+tiếp sang CRM (ADR-023). **Báo cáo tổng hợp như ảnh mẫu LUMI (ADR-042, 23.09):** tiền quy ₫
+ngay trong truy vấn rồi mới cộng (không còn để trống khi lẫn loại tiền), cột (TT) đối soát từ
+vận đơn, khối toàn kỳ theo nhân sự + mỗi ngày một bảng, Gộp/Không gộp, ngưỡng màu ba bậc do
+quản lý đặt (`ReportSource.thresholds`), lọc nhiều sản phẩm; bảng có nguồn báo cáo Sale/MKT mở ở
+Bảng dữ liệu là **báo cáo chi tiết theo ngày** (mỗi lần nộp một dòng, `?dang=tho` xem thô); bối
+cảnh màn hình dùng chung ở `reports/screen.py`.
 
 **KN CRM** (dịch vụ `bangtinh`, cổng 8021, `knjsc/urls_bangtinh.py`, settings
 `knjsc.settings.bangtinh`): nơi duy nhất sửa số liệu, và **chỉ phục vụ bảng vận
@@ -293,6 +298,7 @@ của lưới KN CRM (ADR-014), không phải của Bảng dữ liệu.
 | Viết truy vấn | `docs/03-thiet-ke-ky-thuat.md` mục 5 |
 | Viết kiểm thử | `docs/04-tieu-chi-nghiem-thu.md` — tìm mã AC tương ứng |
 | Đụng lưới CRM | ADR-021, 027, 033, 039; `crm/services/master_grid_service.py`, `static/js/master-grid.js` |
+| Đụng Báo cáo tổng hợp hay Bảng dữ liệu | ADR-035, 038, 040; `reports/services/activity_service.py`, `reports/aggregations.py`, `reports/layout.py`, `reports/screen.py` |
 | Đụng vận đơn | ADR-018, 020, 025, 031, 033, 036; `orders/services/waybill_service.py`, `orders/services/assignment_service.py` |
 
 ---

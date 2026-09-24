@@ -32,7 +32,11 @@ class Metric:
     def compute(self, values):
         if self.kind == "missing":
             return None
-        return divide(*[values.get(k) for k in self.sources])
+        ket_qua = divide(*[values.get(k) for k in self.sources])
+        # Tỉ lệ hiện theo % như ảnh mẫu (ADR-042): 0,0618 → 6,18
+        if self.kind == "percent" and ket_qua is not None:
+            return ket_qua * 100
+        return ket_qua
 
 
 def adapt(result, columns):

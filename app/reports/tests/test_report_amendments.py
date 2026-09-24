@@ -147,7 +147,9 @@ def test_new_marketing_report_derives_currency_and_keeps_zero(client, bm_sale, n
     assert 'value="0"' in detail.content.decode()
 
 
-def test_summary_does_not_add_different_currencies(bm_sale, nguoi_dung):
+def test_summary_converts_currencies_to_vnd_before_adding(bm_sale, nguoi_dung):
+    """Báo cáo Sale lẫn CAD và USD: quy ₫ từng dòng rồi mới cộng (ADR-042), không để trống"""
+    from decimal import Decimal
     from forms_builder.models import DataRecord
     from reports.models import ReportSource
     from reports.services.activity_service import build
@@ -161,11 +163,11 @@ def test_summary_does_not_add_different_currencies(bm_sale, nguoi_dung):
     result = build(nguoi_dung['manager_sale'], source)
     values = dict(zip([c.label for c in result.columns], total_values(result)))
     assert values['Số Mess'] == 20
-    assert values['Doanh số'] is None
+    assert values['Doanh số'] == Decimal('100') * 17500 + Decimal('100') * 25500
+    assert result.currency_label.startswith('VND') and not result.currency_warning
     filtered = build(nguoi_dung['manager_sale'], source, market='Canada')
     values = dict(zip([c.label for c in filtered.columns], total_values(filtered)))
-    assert values['Doanh số'] == 100
-    assert filtered.currency_label == 'CAD'
+    assert values['Doanh số'] == Decimal('100') * 17500
 
 
 def test_report_grid_cannot_override_system_fields(bm_sale, nguoi_dung):

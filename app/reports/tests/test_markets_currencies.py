@@ -24,8 +24,9 @@ pytestmark = pytest.mark.django_db
 def test_bay_thi_truong_tam_loai_tien(bang_mkt, nguoi_dung, settings):
     """AC-38.1 — Bảy thị trường (US, CA, PH, EU, KR, JP, AU) ↔ tám loại tiền; cột Thị trường và Loại
     tiền của bảng cấu hình trước 18.09 được bổ sung giá trị mới, giữ giá trị cũ, chạy lại không đổi;
-    nộp Hàn Quốc → KRW, Úc → AUD; báo cáo một loại tiền EUR công bố tổng; JPY/KRW không phần lẻ;
-    bảng xếp hạng quy đổi EUR được còn KRW chưa có tỉ giá thì báo rõ, không âm thầm ra số"""
+    nộp Hàn Quốc → KRW, Úc → AUD; báo cáo quy tiền về ₫ nên EUR lẫn JPY vẫn công bố tổng (ADR-042);
+    JPY/KRW không phần lẻ; KRW chưa có tỉ giá thì báo cáo cảnh báo và không cộng tiền dòng đó, bảng
+    xếp hạng báo rõ, không âm thầm ra số"""
     from culture.services.leaderboard_service import to_vnd
 
     assert [m.label for m in Market] == ["Hoa Kỳ", "Canada", "Philippines", "Châu Âu", "Hàn Quốc", "Nhật Bản", "Úc"]
@@ -67,19 +68,32 @@ def test_bay_thi_truong_tam_loai_tien(bang_mkt, nguoi_dung, settings):
             "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Sao Hoả"},
             actor=nguoi_dung["staff_mkt"])
 
-    # Báo cáo tổng hợp: một loại tiền mới (EUR) vẫn công bố tổng; lẫn KRW/AUD thì cảnh báo
+    # Báo cáo tổng hợp quy ₫ (ADR-042): EUR một mình hay lẫn JPY đều công bố tổng bằng ₫;
+    # thêm dòng KRW (chưa có tỉ giá) thì cảnh báo nêu KRW, tiền dòng đó không vào tổng, Số Mess vẫn đếm
+    from reports import aggregations
     DataRecord.objects.filter(pk__in=[han.pk, uc.pk]).delete()
     source = ReportSource.objects.get(table=bang_mkt)
     record_service.create_record(bang_mkt, {"ngay": "2026-09-18", "marketer": "x", "san_pham": "SP",
         "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Châu Âu"},
         actor=nguoi_dung["staff_mkt"])
     result = activity_service.build(nguoi_dung["manager_mkt"], source, start=None, end=None)
-    assert result.currency_label == "EUR" and not result.currency_warning
+    assert result.currency_label.startswith("VND") and not result.currency_warning
+
+    def tong(result):
+        return dict(zip([c.label for c in result.columns], aggregations.total_values(result)))
+    assert tong(result)["CPQC"] == Decimal("285000")
     record_service.create_record(bang_mkt, {"ngay": "2026-09-18", "marketer": "x", "san_pham": "SP",
         "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Nhật Bản"},
         actor=nguoi_dung["staff_mkt"])
     result = activity_service.build(nguoi_dung["manager_mkt"], source, start=None, end=None)
-    assert result.currency_warning and not result.currency_label
+    assert not result.currency_warning and tong(result)["CPQC"] == Decimal("286550")
+    record_service.create_record(bang_mkt, {"ngay": "2026-09-18", "marketer": "x", "san_pham": "SP",
+        "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Hàn Quốc"},
+        actor=nguoi_dung["staff_mkt"])
+    result = activity_service.build(nguoi_dung["manager_mkt"], source, start=None, end=None)
+    assert "1 dòng" in result.currency_warning and "KRW" in result.currency_warning
+    assert result.currency_label.startswith("VND")
+    assert tong(result)["CPQC"] == Decimal("286550") and tong(result)["Số Mess"] == 6
 
     assert to_vnd(Decimal("10"), "EUR") == Decimal("285000")
     assert to_vnd(Decimal("1"), "AUD") == Decimal("17000")

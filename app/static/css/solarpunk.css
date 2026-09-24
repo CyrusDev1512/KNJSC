@@ -320,6 +320,33 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
 .report-table thead th.o-chi-so {background:var(--accent-hover)}
 .report-table td.o-tot,.report-table tbody tr:hover>td.o-tot {background:var(--good-soft);color:var(--good);font-weight:600}
 .report-table td.o-canh-bao,.report-table tbody tr:hover>td.o-canh-bao {background:var(--warn-soft);color:var(--warn);font-weight:600}
+/* Bậc thứ ba khi Manager đặt ngưỡng tuyệt đối (ADR-040 đợt 3): qua mốc Kém là đỏ */
+.report-table td.o-xau,.report-table tbody tr:hover>td.o-xau {background:var(--critical-soft);color:var(--critical);font-weight:600}
+/* Chọn nhiều sản phẩm trong bộ lọc: danh sách tick có ô tìm nhanh, tóm tắt ở ô đóng */
+.report-multi summary {list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.report-multi summary::-webkit-details-marker {display:none}
+.report-multi summary::after {content:"▾";color:var(--ink-3);flex:none}
+.report-multi-tom-tat {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.report-multi-hop {margin-top:6px;border:1px solid var(--rule);border-radius:var(--r-sm);padding:8px;background:var(--surface);display:grid;gap:6px}
+.report-multi-tim {width:100%}
+.report-multi-nut {display:flex;gap:6px;flex-wrap:wrap}
+.report-multi-ds {max-height:180px;overflow:auto;display:grid;gap:2px}
+.report-multi-muc {display:flex;align-items:center;gap:6px;font-size:var(--fs-sm);padding:2px 4px;border-radius:4px;cursor:pointer}
+.report-multi-muc:hover {background:var(--surface-2)}
+.report-multi-muc[hidden] {display:none}
+/* Form Ngưỡng màu của Manager, ngay dưới tiêu đề kết quả */
+/* Bảng dữ liệu dạng báo cáo (ADR-040 đợt 4): bộ lọc nằm ngang như bảng thô, Chọn nhanh chiếm trọn hàng đầu */
+.loc .report-presets {flex:1 1 100%}
+.bang-hop>.report-view {padding:0 0 12px}
+.bang-hop>.report-view .report-controls {padding:12px 18px 0}
+.report-nguong {margin:10px 18px 0}
+.report-nguong>summary {display:inline-flex;cursor:pointer;list-style:none}
+.report-nguong>summary::-webkit-details-marker {display:none}
+.report-nguong-form {margin-top:8px;padding:12px;border:1px solid var(--rule);border-radius:var(--r-sm);background:var(--surface-2);display:grid;gap:8px;max-width:760px}
+.report-nguong-bang th,.report-nguong-bang td {padding:4px 8px;vertical-align:middle}
+.report-nguong-o {display:flex;align-items:center;gap:6px}
+.report-nguong-o span {color:var(--ink-3);width:14px;text-align:center}
+.report-nguong-o .o-nhap {width:150px;font-variant-numeric:tabular-nums}
 
 /* Khối theo ngày (AC-22.15): dòng Tổng ngày đứng đầu khối, đậm, không ghim trên như dòng Tổng */
 .report-table .report-subtotal>* {background:var(--accent-soft);color:var(--ink);font-weight:700;border-top:2px solid var(--rule-strong)!important}
@@ -327,6 +354,13 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
 .report-table tbody tr:not(.report-total):not(.report-subtotal):nth-child(odd)>* {background:var(--surface-2)}
 .report-table tbody tr:not(.report-total):not(.report-subtotal):hover>* {background:var(--accent-soft)}
 .report-table td.trong {color:var(--ink-3)}
+/* Khối như ảnh mẫu (ADR-040 đợt 2): nhiều bảng trong một khung cuộn, tiêu đề khối ghim trái;
+   thead và dòng TỔNG CỘNG của từng bảng tự dính trong bảng của nó (sticky bị chặn bởi bảng chứa). */
+.report-block+.report-block {margin-top:14px}
+.report-block-title {position:sticky;left:0;display:flex;align-items:baseline;gap:10px;width:max-content;max-width:100%;padding:10px 12px 6px;background:var(--surface)}
+.report-block-title h3 {margin:0;font-size:14px;font-weight:700;color:var(--ink)}
+.report-block-title span {color:var(--ink-2);font-size:var(--fs-sm)}
+.report-seg {display:inline-flex;gap:4px}
 .report-backdrop {display:none}
 /* Toàn màn hình: bộ lọc tự về thanh dọc, bảng lấy trọn chiều cao */
 .sp-report-focus body::before {content:none}

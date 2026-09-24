@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.http import Http404
-from django.db.models import Count
+from django.db.models import Count, prefetch_related_objects
 from io import BytesIO
 
 from django.conf import settings
@@ -40,12 +40,31 @@ from .services import (
 )
 
 
+#: Bảng có nguồn báo cáo loại này hiện thành báo cáo chi tiết theo ngày ở Bảng dữ liệu (ADR-042 đợt 4)
+NGUON_CHI_TIET = ("sale", "mkt")
+
+
 def _lay_bang(request, code):
-    """Lấy bảng trong phạm vi quyền. Ngoài phạm vi thì 404, không phải rỗng."""
+    """Lấy bảng trong phạm vi quyền. Ngoài phạm vi thì 404, không phải rỗng. Kèm nguồn báo cáo
+    (`erp_report`, cùng lệnh) để Bảng dữ liệu biết bảng này có hiện dạng báo cáo không."""
     return get_object_or_404(
-        TableDef.objects.in_scope(request.user).select_related("department"),
+        TableDef.objects.in_scope(request.user).select_related("department", "erp_report"),
         code=code,
     )
+
+
+def _nguon_chi_tiet(bang_hien):
+    """Nguồn báo cáo Sale/MKT của bảng, nếu có — bảng vận đơn và bảng thường trả None."""
+    nguon = getattr(bang_hien, "erp_report", None)
+    return nguon if nguon is not None and nguon.kind in NGUON_CHI_TIET else None
+
+
+def _nguon_bao_cao(request, bang_hien):
+    """Bảng có nguồn báo cáo Sale/MKT hiện thành báo cáo chi tiết theo ngày (ADR-042 đợt 4), trừ khi
+    người xem đòi liệt kê thô từng dòng (`?dang=tho`)."""
+    if request.GET.get("dang") == "tho":
+        return None
+    return _nguon_chi_tiet(bang_hien)
 
 
 def _duoc_sua_bang(user):
@@ -185,6 +204,9 @@ def bang_xem(request, code):
     """Xem, lọc, sắp xếp và phân trang một bảng — FR-7.1 tới FR-7.4. Chỉ xem, không sửa ô (ADR-014)."""
     request.nav_current = "bang"
     bang_hien = _lay_bang(request, code)
+    nguon = _nguon_bao_cao(request, bang_hien)
+    if nguon is not None:
+        return _bang_bao_cao(request, bang_hien, nguon)
     # Cột ẩn với cả công ty không hiện ở đây (ADR-039); màn hình "Cấu trúc cột"
     # vẫn liệt kê đủ để quản lý bảng bật lại được. Bộ lọc thì đọc trên MỌI cột:
     # lọc theo cột ẩn vẫn chạy, kèm dòng nhắc (bổ sung ADR-039, AC-39.8).
@@ -208,6 +230,9 @@ def bang_xem(request, code):
     # từng dòng, không vẽ ô nhập; sửa số liệu là việc của KN CRM. Lớp CSS của
     # ô (màu cột, ngưỡng) tính sẵn ở styling để template chỉ in ra.
     cac_dong = [(bg, styling.row_cells(bg, cac_cot)) for bg in boi_canh["page_obj"]]
+    # Bảng có nguồn báo cáo đang xem thô: mọi liên kết phải mang `dang=tho` để không rơi lại dạng báo cáo
+    dang = "tho" if _nguon_chi_tiet(bang_hien) is not None else ""
+    loc_cot = {f"f_{ma}": gia_tri for ma, gia_tri in bo_loc.items()}
     boi_canh.update({
         "bang": bang_hien, "cac_cot": cac_cot,
         # Ghép sẵn giá trị đang lọc vào từng cột — template không tra được
@@ -217,14 +242,72 @@ def bang_xem(request, code):
             for c in cac_cot if ban_do_cot.is_indexed(c.code)
         ],
         "tim": tim, "sap_xep": sap_xep, "giam_dan": giam_dan,
+        "co_bao_cao": bool(dang), "dang_tho": dang,
+        # Phân trang và sắp xếp giữ tìm kiếm, bộ lọc cột và cỡ trang (TL-58 phía Bảng dữ liệu)
+        "qs_loc": filter_query(tim=tim, sap=sap_xep, chieu="giam" if giam_dan else "", dang=dang, **loc_cot),
+        "qs_sap": filter_query(tim=tim, moi_trang=request.GET.get("moi_trang", ""), dang=dang, **loc_cot),
         # Dòng nhắc khi bộ lọc trên URL trỏ tới cột đang ẩn (AC-39.8)
         "loc_cot_an": table_service.hidden_filtered_columns(bo_loc, cot_ca_bang),
-        "duoc_sua": _duoc_sua_bang(request.user),
+        # "Sửa cột" chỉ với quản lý bộ phận sở hữu bảng hoặc Admin — cùng luật `bang_cot` (ADR-015)
+        "duoc_sua": grant_service.can_manage_columns(request.user, bang_hien),
         "duoc_nhap": grant_service.can_import(request.user, bang_hien),
         # Nơi sửa duy nhất: lưới KN CRM của đúng bảng này — ADR-012, ADR-014
         "bang_tinh_url": settings.BANGTINH_URL.rstrip("/") + f"/bang-tinh/{bang_hien.code}/",
         "cac_dong": cac_dong,
     })
+    return render(request, "forms_builder/bang_xem.html", boi_canh)
+
+
+def _tham_so_bao_cao(request):
+    """Tham số của Bảng dữ liệu dạng báo cáo: như Báo cáo tổng hợp nhưng chỉ một cách xem — ngày ×
+    nhân sự, từng lần nộp."""
+    from reports import screen
+    tham_so = screen.parameters(request)
+    tham_so["group"] = "day"
+    return tham_so
+
+
+def _bang_bao_cao(request, bang_hien, nguon):
+    """Bảng có nguồn báo cáo Sale/MKT: báo cáo chi tiết theo ngày dùng chung động cơ với Báo cáo
+    tổng hợp (ADR-042 đợt 4) — mỗi lần nộp một dòng, khối toàn kỳ theo nhân sự, mỗi ngày một bảng,
+    Gộp, ngưỡng màu, (TT); bộ lọc Kỳ / Sản phẩm / Thị trường / Team / Nhân sự; 25 dòng một trang."""
+    from django.utils import timezone
+
+    from orders.constants import Market
+    from reports import screen
+    from reports.services import activity_service, summary_service, threshold_service
+
+    # Cột của bảng đọc một lần cho cả động cơ báo cáo lẫn danh sách Tệp khách hàng
+    prefetch_related_objects([bang_hien], "columns")
+    tham_so = _tham_so_bao_cao(request)
+    gop = request.GET.get("gop") == "1"
+    giu = request.GET.copy()
+    for key in ("trang", "moi_trang"):
+        giu.pop(key, None)
+    boi_canh = {
+        "bang": bang_hien, "khoi": True, "source": nguon, "params": tham_so, "markets": Market.labels,
+        "presets": summary_service.date_presets(timezone.localdate(), start=tham_so["start"], end=tham_so["end"]),
+        "query": request.GET.urlencode(), "qs_loc": ("&" + giu.urlencode()) if giu else "",
+        "duoc_sua": grant_service.can_manage_columns(request.user, bang_hien),
+        "duoc_nhap": grant_service.can_import(request.user, bang_hien),
+        "bang_tinh_url": settings.BANGTINH_URL.rstrip("/") + f"/bang-tinh/{bang_hien.code}/",
+        "empty": True,
+    }
+    boi_canh["people"], boi_canh["teams"] = activity_service.people_choices(request.user, nguon)
+    boi_canh["segments"] = activity_service.segment_options(nguon)
+    boi_canh["products"] = screen.product_options(request.user, nguon)
+    try:
+        ket_qua = activity_service.build(request.user, nguon, detail=True, **tham_so)
+    except BusinessError as loi:
+        return render(request, "forms_builder/bang_xem.html", {**boi_canh, "error": str(loi)}, status=400)
+    boi_canh["unavailable"] = not ket_qua.ok
+    if ket_qua.ok:
+        boi_canh.update(screen.blocks_context(request, nguon, ket_qua, tham_so, gop, page_size=25))
+        if threshold_service.can_set(request.user, nguon):
+            boi_canh["nguong"] = {"rows": threshold_service.rows(nguon, {c.code: c.label for c in ket_qua.columns}),
+                                  "mo": request.GET.get("nguong") == "1"}
+        boi_canh.update(gop=gop, gop_url=screen.with_query(request, gop="1"), khong_gop_url=screen.with_query(request, gop=None))
+    boi_canh.update(screen.filter_chips(request, tham_so, boi_canh, show_group=False))
     return render(request, "forms_builder/bang_xem.html", boi_canh)
 
 
@@ -343,6 +426,21 @@ def bang_xuat(request, code):
     vì queryset đi qua `in_scope`.
     """
     bang_hien = _lay_bang(request, code)
+    nguon = _nguon_bao_cao(request, bang_hien)
+    if nguon is not None:
+        # Dạng báo cáo chi tiết theo ngày: xuất đúng các khối đang hiện (ADR-002, ADR-042 đợt 4)
+        from reports import screen
+        from reports.services import activity_service
+        tham_so = _tham_so_bao_cao(request)
+        try:
+            ket_qua = activity_service.build(request.user, nguon, detail=True, **tham_so)
+            if not ket_qua.ok:
+                raise BusinessError("Nguồn báo cáo chưa đủ cấu hình chỉ tiêu để xuất dạng báo cáo.")
+            return screen.export_response(request, nguon, ket_qua, tham_so, request.GET.get("gop") == "1",
+                                          detail="Xuất Bảng dữ liệu dạng báo cáo chi tiết theo ngày")
+        except BusinessError as loi:
+            messages.error(request, str(loi))
+            return redirect("bang_xem", code=code)
     try:
         loai, ket_qua = export_service.export(request.user, bang_hien, request.GET, request=request)
     except BusinessError as loi:
