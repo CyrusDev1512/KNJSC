@@ -138,7 +138,8 @@ def test_waybill_master_has_scoped_design_and_three_frozen_identity_columns(
     assert 'class="mg-root mg-waybill-master"' in html
     metadata = client.get(BASE + 'du-lieu/').json()['columns']
     assert [column['code'] for column in metadata if column['frozen']] == [
-        '__duplicates', 'ma_don', 'ten_khach', 'so_dien_thoai',      # Trùng gộp vào bảng duy nhất (ADR-036)
+        # Trùng gộp vào bảng duy nhất (ADR-036); Ngày lên đầu nhóm ghim (24.09.2026)
+        '__duplicates', 'ngay', 'ma_don', 'ten_khach', 'so_dien_thoai',
     ]
 
 

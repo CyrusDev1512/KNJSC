@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 24.09.2026 — Ngày lên đầu bảng Vận đơn mới
+
+**Finished local (nhánh `claude/ngay-len-dau-bang-van-don`, PR nháp):** Ngày (lên đơn) là cột
+dữ liệu đầu tiên, nhóm ghim 5 cột; Ngày thanh toán giữ nguyên. **To do:** chủ dự án duyệt PR, phát hành VPS.
+
+
 ## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên
 
 **Finished local:** `tests/e2e/test_hanh_trinh_nhan_vien.py` — một lượt qua lưới, hộp lọc cột, đổi vai, lên đơn,
