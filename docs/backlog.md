@@ -1,5 +1,17 @@
 # Backlog
 
+## 24.09.2026 — Hai lỗi E2E ghi chú chặn phát hành `main`
+
+CI của `a120af5` và kiểm lại local đều lỗi khi bấm ghi chú cao 2.000 px và đo lưới
+390 px. Bài kiểm nhầm ô đã dựng ngoài vùng nhìn với ô bấm được; bài điện thoại tìm
+dòng qua Mã đơn dù cột đó không còn được ghim ở màn hình hẹp.
+
+Phạm vi đã duyệt: sửa cách định vị trong test bằng ID bản ghi, tính phần ô nhìn thấy
+không bị tiêu đề/cột ghim che, kiểm `elementFromPoint` trước bấm chuột thật. Giữ
+kiểm chiều cao/nội dung, không force-click, không bỏ test và không đổi mã ứng dụng.
+Kết quả và lệnh kiểm ở [test-log](test-log.md). Phát hành VPS vẫn chờ bản sửa vào
+`main`, CI đạt và diễn tập theo kế hoạch; VPS còn `72af235-gop`.
+
 ## 24.09.2026 — Thử phá lưới ghi chú như người dùng thật (AC-11.44)
 
 **Vì sao.** Chủ dự án yêu cầu kiểm như một người dùng thật các trường hợp dễ gây lỗi, vỡ view, vỡ lưới —

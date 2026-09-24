@@ -1,5 +1,13 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 24.09.2026 — Sửa hai bài E2E ghi chú trước khi chuyển VPS sang `main`
+
+**Finished local:** nhánh `claude/sua-e2e-ghi-chu`; đã tái hiện hai lỗi local, sửa định vị
+theo ID/vùng nhìn. Hai file: 19 đạt/1 bỏ qua; nhóm E2E theo CI: 27 đạt/2 bỏ qua và
+1 đạt/8 bỏ qua. Cảnh báo dọn DB test đã xử lý sau khi xác nhận 0 kết nối.
+**To do:** push/PR, merge theo chỉ đạo riêng, CI `main` đạt rồi tiếp tục kế hoạch phát
+hành đã duyệt. Chưa thay đổi VPS. Xem [test-log](test-log.md).
+
 ## 24.09.2026 — ADR-041: bỏ & khôi phục báo cáo cấp dưới
 
 **Finished local (nhánh `claude/xoa-khoi-phuc-bao-cao`, PR nháp):** Leader team/Manager bộ phận/Admin
