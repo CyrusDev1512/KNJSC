@@ -31,6 +31,8 @@ sẵn có (AC-3.6, 4.4, 4.8, 4.9, 4.10) nên bộ đếm docs/06 không đổi:
 | Manager bộ phận khác vào trang Đã bỏ | 200 nhưng danh sách rỗng (phạm vi tự thu hẹp); khôi phục chéo bộ phận 404, báo cáo vẫn đã bỏ |
 
 Không phát hiện lỗ hổng phải vá — mọi ô ma trận đúng như ADR-041/ADR-038 chốt.
+Suite đầy đủ sau khi thêm ma trận: **2.588 đạt, 1 bỏ qua, 0 đỏ** (300 s);
+`makemigrations --check` vẫn sạch.
 
 ## Chromium (server dev 8020, DB `knjsc_db`, tài khoản `quantri`)
 
