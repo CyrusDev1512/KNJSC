@@ -110,9 +110,11 @@ def build_workbook(queryset, columns, *, title, exported_ids=None):
     headers = [c.name for c in columns]
     if policy:
         headers += [c.name for c in policy.extra_columns(columns[0].table)]
+    # Cột văn bản dài (ghi chú) bật Wrap Text để ký tự xuống dòng trong ô hiện đủ dòng (AC-11.44)
+    xuong_dong = [i for i, c in enumerate(columns) if c.field_type == FieldType.LONG_TEXT]
     return excel.write_table(
         headers, rows_of(queryset, columns, exported_ids=exported_ids), sheet_title=title,
-        write_only=getattr(settings,'CRM_OPT_EXPORT',False),
+        write_only=getattr(settings,'CRM_OPT_EXPORT',False), wrap_columns=xuong_dong,
     )
 
 

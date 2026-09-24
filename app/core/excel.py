@@ -26,7 +26,8 @@ from decimal import Decimal
 from pathlib import Path
 
 from openpyxl import Workbook, load_workbook
-from openpyxl.styles import Font
+from openpyxl.styles import Alignment, Font
+from openpyxl.utils import get_column_letter
 from openpyxl.utils.exceptions import InvalidFileException
 
 from .constants import (
@@ -337,24 +338,51 @@ def coerce_cell(value):
 
 # ══ GHI BẢNG ══════════════════════════════════════════════════════
 
-def write_table(headers, rows, *, sheet_title="Du lieu", write_only=False):
+#: Cột văn bản dài trong tệp xuất: đủ rộng để ghi chú nhiều dòng đọc được mà không kéo cột
+RONG_COT_XUONG_DONG = 60
+
+
+def write_table(headers, rows, *, sheet_title="Du lieu", write_only=False, wrap_columns=()):
     """Ghi một bảng thành Workbook: hàng tiêu đề đậm và cố định, số giữ
-    `Decimal` nguyên trạng, ngày là ngày thật để Excel hiểu."""
+    `Decimal` nguyên trạng, ngày là ngày thật để Excel hiểu.
+
+    `wrap_columns` là chỉ số (từ 0) các cột văn bản dài: bật Wrap Text, căn trên và
+    rộng 60 để ghi chú có ký tự xuống dòng mở ra thấy đủ dòng, không dồn một dòng
+    (AC-11.44). Excel không tự bật Wrap Text dù ô có `
+`."""
     wb = Workbook(write_only=write_only)
     ws = wb.create_sheet(sheet_title[:31]) if write_only else wb.active
     ws.title = sheet_title[:31]
     ws.freeze_panes = "A2"
+    xuong_dong = {i: Alignment(wrap_text=True, vertical="top") for i in wrap_columns}
+    # Chế độ ghi liền chỉ nhận kích thước cột trước khi có dòng đầu
+    for i in xuong_dong:
+        ws.column_dimensions[get_column_letter(i + 1)].width = RONG_COT_XUONG_DONG
     if write_only:
         from openpyxl.cell import WriteOnlyCell
         cells=[WriteOnlyCell(ws,value=v) for v in headers]
         for cell in cells:cell.font=Font(bold=True)
         ws.append(cells)
+        for hang in rows:
+            ws.append([_o_ghi_lien(ws, i, v, xuong_dong) for i, v in enumerate(hang)])
     else:
         ws.append(list(headers))
         for o in ws[1]:o.font=Font(bold=True)
-    for hang in rows:
-        ws.append([_o_ghi(v) for v in hang])
+        for hang in rows:
+            ws.append([_o_ghi(v) for v in hang])
+            for i, canh in xuong_dong.items():
+                ws.cell(row=ws.max_row, column=i + 1).alignment = canh
     return wb
+
+
+def _o_ghi_lien(ws, i, v, xuong_dong):
+    """Ô ở chế độ ghi liền: chỉ cột xuống dòng mới cần ô mang định dạng, cột khác ghi giá trị thô."""
+    if i not in xuong_dong:
+        return _o_ghi(v)
+    from openpyxl.cell import WriteOnlyCell
+    o = WriteOnlyCell(ws, value=_o_ghi(v))
+    o.alignment = xuong_dong[i]
+    return o
 
 
 def _o_ghi(v):

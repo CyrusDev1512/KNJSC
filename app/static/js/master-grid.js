@@ -16,10 +16,19 @@
   try { preferences = JSON.parse(localStorage.getItem(key) || '{}'); } catch (_) {}
   if(!preferences||typeof preferences!=='object'||Array.isArray(preferences))preferences={};
   const heights=Object.create(null), geometry=new window.KNJSCRowGeometry();
+  // ── Dòng tự giãn theo cột mang cờ `auto_height` — AC-11.44, góp ý Vận đơn 23.09.2026 ──
+  // Ghi chú dài bị cắt một dòng, phải mở hộp đọc mới xem hết. Cờ do profile bảng trả trong
+  // metadata cột (`waybill_service.grid_column`); lưới không nhận diện nghiệp vụ bằng mã cột.
+  // Đo chiều cao thật của nội dung rồi giãn dòng cho vừa. Đo **theo lô** đúng lúc khối 100
+  // dòng vừa về: dựng cả lô ô ẩn rồi mới đọc, trình duyệt tính bố cục một lần cho cả lô.
+  const CAO_TOI_DA=window.KNJSCRowGeometry.MAX;   // trần một dòng; quá thì đọc nốt bằng hộp đọc
+  const DEM_TOI_DA=4000;                           // số kết quả đo giữ lại (bỏ cũ nhất trước)
+  const caoDaDo=new Map();                         // `${rộng}|${lớp CSS}|${chữ}` → chiều cao đo được
   let working=new window.KNJSCWorkingCopy(!!config.renderOptimized);
   const same=window.KNJSCWorkingCopy.same;
   for(const [id,h] of Object.entries(preferences.rowHeights||{})){
-    if(/^[1-9]\d*$/.test(id)&&Number.isSafeInteger(Number(id))&&typeof h==='number'&&Number.isFinite(h)&&h>28)heights[id]=Math.max(28,Math.min(400,Math.round(h)));
+    // Nhớ cả 28 px: người dùng thu dòng ghi chú về 28 thì 28 thắng chiều cao tự tính (AC-11.44)
+    if(/^[1-9]\d*$/.test(id)&&Number.isSafeInteger(Number(id))&&typeof h==='number'&&Number.isFinite(h)&&h>=ROW)heights[id]=Math.max(ROW,Math.min(CAO_TOI_DA,Math.round(h)));
   }
   preferences.rowHeights=heights;
   const state = {columns: [], visible: [], cache: new Map(), pending: new Map(), total: 0,
@@ -117,7 +126,8 @@
     state.drafts=state.drafts.filter(r=>!(String(r.id) in idMap));
     state.total=state.persistedTotal+state.drafts.length;
     if(state.drafts.length<DRAFT_BATCH/2)ensureDrafts(DRAFT_BATCH);
-    updateGeometry(()=>{geometry.resize(state.total);let index=first;for(const row of created.values())geometry.set(index++,heights[row.id]||ROW);});
+    doChieuCaoTheoLo([...created.values()]);
+    updateGeometry(()=>{geometry.resize(state.total);let index=first;for(const row of created.values())geometry.set(index++,caoDong(row));});
     if(state.current)state.currentId=rowAt(state.current.r)?.id;
     return true;
   }
@@ -145,7 +155,9 @@
     prefetchFailed.clear();
     clearTimeout(jumpTimer);jumpTimer=0;jumpPending=false;prefetchPaused=false;stableScrolls=0;scrollTop=viewport.scrollTop;
     state.queryToken='';state.cursors.clear();
-    updateGeometry(()=>geometry.reset(state.total));
+    // Tải lại mềm giữ chiều cao đã có (tự tính lẫn kéo tay): dòng không co về 28 rồi bật lại
+    // khi khối về (AC-11.44). Đổi lọc/sắp xếp là bộ dòng khác hẳn nên mới xoá sạch.
+    updateGeometry(()=>clearSelection?geometry.reset(state.total):geometry.resize(state.total));
     if (clearSelection) { state.selection = state.anchor = state.current = null; reader.hidden = true; }
     repaint();
   }
@@ -187,9 +199,10 @@
         if(data.previous_cursor)state.cursors.set(number-1,data.previous_cursor);
         while(state.cursors.size>22)state.cursors.delete(state.cursors.keys().next().value);
       }
+      doChieuCaoTheoLo(data.rows);
       updateGeometry(()=>{
-        if(geometry.total!==state.total)geometry.reset(state.total);
-        data.rows.forEach((row,i)=>{if(rowResize?.id!==row.id)geometry.set(number*BLOCK+i,heights[row.id]||ROW);});
+        if(geometry.total!==state.total)geometry.resize(state.total);
+        data.rows.forEach((row,i)=>{if(rowResize?.id!==row.id)geometry.set(number*BLOCK+i,caoDong(row));});
       });
       working.observe(data.rows);
       state.cache.set(number, data);
@@ -347,8 +360,8 @@
       if(row){
         const handle=element('div','mg-row-resize');handle.dataset.rowResize=r;handle.dataset.id=row.id;handle.tabIndex=0;
         handle.setAttribute('role','separator');handle.setAttribute('aria-orientation','horizontal');handle.setAttribute('aria-label','Chiều cao hàng '+(r+1));
-        handle.setAttribute('aria-valuemin','28');handle.setAttribute('aria-valuemax','400');handle.setAttribute('aria-valuenow',rowHeight);
-        handle.title='Kéo chỉnh chiều cao · ↑/↓ 4 px · Home về 28 px';position(handle,0,rowHeight-7,46,7);pins.append(handle);
+        handle.setAttribute('aria-valuemin',String(ROW));handle.setAttribute('aria-valuemax',String(CAO_TOI_DA));handle.setAttribute('aria-valuenow',rowHeight);
+        handle.title='Kéo chỉnh chiều cao · ↑/↓ 4 px · Home về mặc định';position(handle,0,rowHeight-7,46,7);pins.append(handle);
       }
       for (const c of cols) {
         const value = row ? cellValue(row,c.code) : null;
@@ -430,11 +443,19 @@
     if(!cell){editor.style.visibility='hidden';return;}
     const box=cell.getBoundingClientRect(),view=viewport.getBoundingClientRect();
     const scale=view.width/viewport.offsetWidth||1;
+    // Cột tự giãn: khung nhập cao theo chữ đang gõ — không thấp hơn ô, không quá trần — để gõ
+    // ghi chú nhiều dòng thấy đủ dòng (AC-11.44). Hạ về đáy ô trước khi đo để rút lại được
+    // khi xoá dòng; +4 là hai viền 2 px của khung.
+    let cao=box.height;const o=editor.elements.value;
+    if(o?.tagName==='TEXTAREA'&&cotTuGian().some(c=>c.code===d.column)){
+      editor.style.height=box.height/scale+'px';
+      cao=Math.min(CAO_TOI_DA*scale,Math.max(box.height,(o.scrollHeight+4)*scale));
+    }
     const left=Math.max(box.left,view.left+(cell.classList.contains('mg-pinned')?46:state.frozen)*scale);
-    const top=Math.max(box.top,view.top+HEADER*scale),right=Math.min(box.right,view.right),bottom=Math.min(box.bottom,view.bottom);
+    const top=Math.max(box.top,view.top+HEADER*scale),right=Math.min(box.right,view.right),bottom=Math.min(box.top+cao,view.bottom);
     editor.style.visibility=right>left&&bottom>top?'visible':'hidden';
-    Object.assign(editor.style,{left:box.left/scale+'px',top:box.top/scale+'px',width:box.width/scale+'px',height:box.height/scale+'px',
-      clipPath:`inset(${Math.max(0,top-box.top)/scale}px ${Math.max(0,box.right-right)/scale}px ${Math.max(0,box.bottom-bottom)/scale}px ${Math.max(0,left-box.left)/scale}px)`});
+    Object.assign(editor.style,{left:box.left/scale+'px',top:box.top/scale+'px',width:box.width/scale+'px',height:cao/scale+'px',
+      clipPath:`inset(${Math.max(0,top-box.top)/scale}px ${Math.max(0,box.right-right)/scale}px ${Math.max(0,box.top+cao-bottom)/scale}px ${Math.max(0,left-box.left)/scale}px)`});
   }
   async function edit(automatic=false, initial=null) {
     if(dirty()||!state.current)return;
@@ -479,6 +500,86 @@
     else if(input.select)input.select();
     refreshStatus();repaintSelection();
   }
+  // ── Chiều cao dòng theo nội dung — AC-11.44 ─────────────────────────────────
+  //: Cột mang cờ `auto_height` trong metadata: profile bảng quyết định, không phải mã cột.
+  function cotTuGian(){return state.columns.filter(c=>c.auto_height);}
+  //: Độ rộng đang vẽ của một cột, 0 nếu bảng không có hoặc đang ẩn. Cùng công thức kẹp
+  //  72–640 với `layout()`; tính từ tuỳ chọn chứ không đọc `state.visible`, vì
+  //  `state.visible` chỉ cập nhật ở frame vẽ sau nên trễ một nhịp khi vừa kéo cột.
+  function rongCot(code){
+    const goc=state.columns.find(c=>c.code===code);
+    if(!goc||(preferences.hidden||[]).includes(code))return 0;
+    return Math.max(72,Math.min(640,preferences.widths?.[code]||goc.width));
+  }
+  //: Chữ và lớp CSS đúng như ô sẽ vẽ — đọc qua bản đang làm nên giá trị sửa chưa lưu cũng tính.
+  function noiDungO(row,code){
+    if(!row?.cells?.[code])return null;
+    const o=cellValue(row,code);return {chu:String(o.display??o.value??''),lop:o.class||''};
+  }
+  //: Chắc chắn vừa một dòng: không có ký tự xuống dòng, và dù mỗi ký tự rộng trọn 1 em
+  //  (cỡ chữ theo dd-co-*, mặc định 13 px) vẫn nằm trong bề rộng chữ của ô (bỏ padding 14
+  //  và viền 1). Mọi trường hợp khác đều đo thật, không đoán theo số ký tự.
+  function vuaMotDong(chu,lop,rong){
+    if(!chu)return true;if(chu.includes('\n'))return false;
+    const co=Number(/\bdd-co-(\d+)\b/.exec(lop)?.[1])||13;return chu.length*co<=rong-15;
+  }
+  const khoaDo=(rong,lop,chu)=>rong+'|'+lop+'|'+chu;
+  //: Đo cả lô một lượt: dựng hết ô ẩn rồi mới đọc, một lần tính bố cục cho cả lô. Ô đo nằm
+  //  trong `root`, mang `data-code` và đúng lớp của ô thật, để mọi luật CSS theo bảng
+  //  (`.mg-waybill-master .mg-cell[data-code=…]`, `dd-*`) áp y như ô sẽ vẽ. Khoá theo nội
+  //  dung nên sửa chữ là khoá đổi — không bao giờ dùng số đo cũ; chữ trùng nhau đo một lần.
+  function doChieuCaoTheoLo(rows){
+    const cot=cotTuGian();if(!cot.length)return;
+    const can=[],dangDo=new Set();
+    for(const c of cot){
+      const rong=rongCot(c.code);if(!rong)continue;
+      for(const row of rows||[]){
+        const nd=noiDungO(row,c.code);if(!nd||vuaMotDong(nd.chu,nd.lop,rong))continue;
+        const khoa=khoaDo(rong,nd.lop,nd.chu);if(caoDaDo.has(khoa)||dangDo.has(khoa))continue;
+        dangDo.add(khoa);can.push({khoa,code:c.code,rong,...nd});
+      }
+    }
+    if(!can.length)return;
+    performance.mark('mg-ah-start');
+    const khung=element('div','mg-do-chieu-cao');
+    khung.style.cssText='position:absolute;left:-99999px;top:0;width:0;height:0;overflow:hidden;visibility:hidden;contain:layout';
+    for(const m of can){
+      const o=element('div','mg-cell mg-wrap '+m.lop);o.dataset.code=m.code;
+      o.style.cssText=`position:static;width:${m.rong}px;height:auto`;o.textContent=m.chu;khung.append(o);m.o=o;
+    }
+    root.append(khung);
+    for(const m of can)caoDaDo.set(m.khoa,Math.max(ROW,Math.min(CAO_TOI_DA,m.o.offsetHeight)));
+    khung.remove();
+    while(caoDaDo.size>DEM_TOI_DA)caoDaDo.delete(caoDaDo.keys().next().value);
+    performance.measure('mg-auto-height','mg-ah-start');   // bài đo hiệu năng đọc mốc này
+  }
+  //: Chiều cao tự tính của một dòng: lớn nhất qua các cột tự giãn; chỉ đọc kết quả đã đo.
+  function caoTuDong(row){
+    let cao=ROW;if(!row)return cao;
+    for(const c of cotTuGian()){
+      const rong=rongCot(c.code);if(!rong)continue;
+      const nd=noiDungO(row,c.code);if(!nd||vuaMotDong(nd.chu,nd.lop,rong))continue;
+      cao=Math.max(cao,caoDaDo.get(khoaDo(rong,nd.lop,nd.chu))??ROW);
+    }
+    return cao;
+  }
+  //: Chiều cao đang dùng: người dùng tự kéo (kể cả về 28 px) thì thắng, không thì tự tính.
+  const caoDong=row=>heights[row?.id]||caoTuDong(row);
+  //: Đặt lại chiều cao các dòng đã tải, gồm dòng trống đang gõ (chỉ số = persistedTotal + i).
+  //  `ids` giới hạn theo dòng vừa đổi; không truyền thì làm hết (đổi rộng/ẩn cột, phông về).
+  //  Luôn vẽ lại, vì nơi gọi đã đổi giá trị ô trước đó.
+  function apLaiChieuCao(ids=null){
+    const chon=ids?new Set(ids):null,dong=[];
+    for(const [so,khoi] of state.cache)(khoi.rows||[]).forEach((row,i)=>{if(row&&(!chon||chon.has(row.id)))dong.push([so*BLOCK+i,row]);});
+    state.drafts.forEach((row,i)=>{if(!chon||chon.has(row.id))dong.push([state.persistedTotal+i,row]);});
+    if(dong.length){
+      doChieuCaoTheoLo(dong.map(([,row])=>row));
+      updateGeometry(()=>{for(const [i,row] of dong)if(rowResize?.id!==row.id)geometry.set(i,caoDong(row));});
+    }
+    repaint();
+  }
+  // Phông web (display=swap) về sau lần đo đầu thì số đo cũ là của phông tạm — xoá đệm, đo lại.
+  document.fonts?.addEventListener('loadingdone',()=>{if(!state.ready||!caoDaDo.size)return;caoDaDo.clear();apLaiChieuCao();});
   function cellValue(row,column) {
     const original=row.cells[column],value=working.value(row.id,column,original.value);
     const style={...original.style};let classes=original.class||'';
@@ -511,14 +612,17 @@
     if(!state.draft)return true;if(state.composing)return false;
     const d=state.draft;
     if(!discard&&editor.elements.value&&!editor.elements.value.reportValidity())return false;
-    if(!discard){try{const changed=working.stage([{id:d.id,column:d.column,old:d.old,value:editor.elements.value.value}]);if(changed&&state.errorStatus===400)state.saveError=false;}
+    if(!discard){try{const changed=working.stage([{id:d.id,column:d.column,old:d.old,value:editor.elements.value.value}]);if(changed&&state.errorStatus===400)state.saveError=false;if(changed)apLaiChieuCao([d.id]);}
       catch(error){message(error.message,true);return false;}}
     state.draft=null;editor.hidden=true;refreshStatus();if(discard)repaintSelection();else repaint();scheduleSave();return true;
   }
   function cancelEdit() {if(finishEditor(true)){viewport.focus({preventScroll:true});repaintSelection();}}
   function dirty() {return !finishEditor();}
   function rememberHeight(index,id) {
-    const h=geometry.height(index);if(h===ROW)delete heights[id];else heights[id]=h;
+    // Bằng chiều cao tự tính thì thôi nhớ; khác — kể cả kéo về 28 px trên dòng ghi chú dài —
+    // thì nhớ, để tay người dùng thắng chiều cao tự tính (AC-11.44).
+    const h=geometry.height(index),row=rowAt(index),tuDong=row&&String(row.id)===String(id)?caoTuDong(row):ROW;
+    if(h===tuDong)delete heights[id];else heights[id]=h;
     if(!persist())message('Không ghi nhớ được chiều cao trên máy này; tùy chọn chỉ giữ trong lần mở bảng.',true);
   }
   function applyRowResize() {
@@ -563,11 +667,11 @@
   }
   async function submit(cells,kind='edit') {
     if(state.rowRetry){message('Thử lại lượt hoàn tác chưa được xác nhận trước khi sửa tiếp.',true);return false;}
-    try{if(!working.count)state.editSchema=state.schemaVersion;const changed=working.stage(cells);if(changed&&state.errorStatus===400)state.saveError=false;state.kind=kind;refreshStatus();repaint();scheduleSave();return true;}
+    try{if(!working.count)state.editSchema=state.schemaVersion;const changed=working.stage(cells);if(changed&&state.errorStatus===400)state.saveError=false;state.kind=kind;refreshStatus();apLaiChieuCao([...new Set(cells.map(c=>c.id))]);scheduleSave();return true;}
     catch(error){message(error.message,true);return false;}
   }
   async function undo(redo=false) {
-    if(dirty())return;const step=(redo?working.redo:working.undo).at(-1);if(step?.createdRows?.length){await travelCreated(step,redo);return;}working.travel(redo);state.kind=redo?'redo':'undo';refreshStatus();repaint();scheduleSave();
+    if(dirty())return;const step=(redo?working.redo:working.undo).at(-1);if(step?.createdRows?.length){await travelCreated(step,redo);return;}working.travel(redo);state.kind=redo?'redo':'undo';refreshStatus();apLaiChieuCao([...new Set((step||[]).map(c=>c.id))]);scheduleSave();
   }
   async function travelCreated(step,redo){
     if(state.busy)return;
@@ -596,7 +700,7 @@
     for(const block of state.cache.values())block.rows=block.rows.map(r=>byId.has(r.id)?(partial?{...r,cells:{...r.cells,...byId.get(r.id).cells}}:byId.get(r.id)):r);
     // Request đã bắt đầu trước lượt lưu không được ghi đè kết quả vừa xác nhận.
     state.generation++;state.pending.forEach(p=>p.controller.abort());state.pending.clear();if(config.protocol!==2)state.version='';
-    repaint();
+    apLaiChieuCao(rows.map(r=>r.id));   // dòng vừa lưu về hay người khác vừa sửa: đo lại chiều cao (AC-11.44)
   }
   async function saveAll(explicit=true) {
     if(state.rowRetry){await travelCreated(state.rowRetry.step,state.rowRetry.redo);return;}
@@ -715,7 +819,7 @@
     const start={...state.current};
     if(data.length*width>MAX)throw Error(`Chỉ dán tối đa ${MAX} ô một lần.`);
     if(start.c+width>state.visible.length||(!config.canCreate&&start.r+data.length>state.persistedTotal))throw Error('Vùng dán vượt cuối bảng; không tự tạo đơn hoặc cột mới.');
-    ensureDrafts(Math.max(1,start.r+data.length-state.persistedTotal));updateGeometry(()=>geometry.reset(state.total));
+    ensureDrafts(Math.max(1,start.r+data.length-state.persistedTotal));updateGeometry(()=>geometry.resize(state.total));
     if(data.some(r=>r.length!==width))throw Error('Dữ liệu dán có số cột không đồng đều.');
     const gen=state.generation,cells=[];
     for(let i=0;i<data.length;i++){const b=await loadBlock(Math.floor((start.r+i)/BLOCK));if(gen!==state.generation||!b)throw Error('Dữ liệu đã đổi, chọn lại vùng dán.');const row=rowAt(start.r+i);
@@ -733,7 +837,7 @@
   editor.addEventListener('compositionstart',()=>state.composing=true);
   editor.addEventListener('compositionend',()=>state.composing=false);
   editor.addEventListener('submit',e=>{e.preventDefault();if(finishEditor())viewport.focus({preventScroll:true});});
-  editor.addEventListener('input',refreshStatus);
+  editor.addEventListener('input',()=>{refreshStatus();if(editor.elements.value?.tagName==='TEXTAREA')positionEditor();});
   editor.addEventListener('change',refreshStatus);
   editor.addEventListener('paste',e=>{
     const text=e.clipboardData.getData('text/plain');
@@ -755,7 +859,8 @@
       if(['ArrowUp','ArrowDown','Home'].includes(e.key)){
         e.preventDefault();if(dirty())return;
         const r=Number(rowHandle.dataset.rowResize),row=rowAt(r);if(!row||String(row.id)!==rowHandle.dataset.id)return;
-        const h=e.key==='Home'?ROW:geometry.height(r)+(e.key==='ArrowUp'?-4:4);
+        // Home về mặc định: chiều cao tự tính của dòng (28 px khi cột không tự giãn)
+        const h=e.key==='Home'?caoTuDong(row):geometry.height(r)+(e.key==='ArrowUp'?-4:4);
         updateGeometry(()=>geometry.set(r,h));rememberHeight(r,row.id);repaint();
       }
       return;
@@ -792,12 +897,14 @@
     if(drag.moved){viewport.scrollTop+=dy;viewport.scrollLeft+=dx;const target=document.elementFromPoint(Math.min(rect.right-8,Math.max(rect.left+48,drag.x)),Math.min(rect.bottom-8,Math.max(rect.top+HEADER+2,drag.y)))?.closest('[data-r]');if(target){drag.crossed ||= +target.dataset.r!==drag.r||+target.dataset.c!==drag.c;choose(+target.dataset.r,+target.dataset.c,true);}}
     frame=requestAnimationFrame(extendDrag);
   }
+  //: Kết thúc kéo cột (thả chuột, mất focus, huỷ pointer): nhớ độ rộng; cột tự giãn thì đo lại dòng.
+  function ketThucKeoCot(){if(!resizing)return;const ma=resizing.code;resizing=null;persist();if(cotTuGian().some(c=>c.code===ma))apLaiChieuCao();}
   document.addEventListener('pointermove',e=>{
     if(rowResize){if(e.pointerId===rowResize.pointer){rowResize.y=e.clientY;if(!rowFrame)rowFrame=requestAnimationFrame(applyRowResize);}return;}
     if(resizing){preferences.widths||={};preferences.widths[resizing.code]=Math.max(72,Math.min(640,resizing.width+e.clientX-resizing.x));repaint();return;}
     if(drag){drag.x=e.clientX;drag.y=e.clientY;drag.moved ||= Math.abs(e.clientX-drag.startX)+Math.abs(e.clientY-drag.startY)>5;if(!frame)frame=requestAnimationFrame(extendDrag);}
   });
-  document.addEventListener('pointerup',e=>{if(rowResize){if(e.pointerId===rowResize.pointer){rowResize.y=e.clientY;finishRowResize(true);}return;}if(resizing){resizing=null;persist();}if(drag){const d=drag;drag=null;cancelAnimationFrame(frame);frame=0;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-r]');
+  document.addEventListener('pointerup',e=>{if(rowResize){if(e.pointerId===rowResize.pointer){rowResize.y=e.clientY;finishRowResize(true);}return;}if(resizing)ketThucKeoCot();if(drag){const d=drag;drag=null;cancelAnimationFrame(frame);frame=0;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-r]');
     // Rê nhẹ trong cùng ô vẫn là click; chỉ giữ chọn vùng khi đã đi qua ô khác.
     const sameCell=target&&+target.dataset.r===d.r&&+target.dataset.c===d.c&&target.dataset.id===d.id;
     if(sameCell&&!d.crossed&&!d.shift)setTimeout(()=>showReader(target),0);
@@ -829,7 +936,7 @@
       button.onclick=()=>datAnCot(config.productColumns,true);
       line.append(element('label','',`${config.productColumns.length} cột sản phẩm`),button);body.append(line);
     }
-    for(const c of state.columns){const line=element('div','mg-column-option'),label=element('label','',c.name),check=element('input','');check.type='checkbox';check.checked=!(preferences.hidden||[]).includes(c.code);check.onchange=()=>{preferences.hidden=(preferences.hidden||[]).filter(code=>code!==c.code);if(!check.checked)preferences.hidden.push(c.code);persist();state.selection=state.current=null;repaint();};label.prepend(check);line.append(label);
+    for(const c of state.columns){const line=element('div','mg-column-option'),label=element('label','',c.name),check=element('input','');check.type='checkbox';check.checked=!(preferences.hidden||[]).includes(c.code);check.onchange=()=>{preferences.hidden=(preferences.hidden||[]).filter(code=>code!==c.code);if(!check.checked)preferences.hidden.push(c.code);persist();state.selection=state.current=null;if(cotTuGian().some(x=>x.code===c.code))apLaiChieuCao();else repaint();};label.prepend(check);line.append(label);
       for(const [text,dir] of [['↑',-1],['↓',1]]){const button=element('button','nut',text);button.setAttribute('aria-label',text+' '+c.name);button.onclick=()=>{const order=(preferences.order||state.columns.map(c=>c.code)).slice(),i=order.indexOf(c.code),j=Math.max(0,Math.min(order.length-1,i+dir));[order[i],order[j]]=[order[j],order[i]];preferences.order=order;persist();state.selection=state.current=null;repaint();};line.append(button);}
       if(config.canHideColumns&&!c.code.startsWith('__')){const an=element('button','nut','Ẩn cho cả công ty');an.setAttribute('aria-label','Ẩn '+c.name+' với cả công ty');an.onclick=()=>datAnCot([c.code],true);line.append(an);}
       body.append(line);}
@@ -956,7 +1063,7 @@
       for(const block of state.cache.values())for(const row of block.rows)if(conflictIds.has(row.id))refreshed.set(row.id,{...row,cells:{...row.cells}});
       for(const c of state.conflicts){const row=refreshed.get(c.id),cell=row?.cells[c.column];if(!cell)continue;const prop=c.property||'value';row.cells[c.column]=prop==='value'?{...cell,value:c.current,display:String(c.current??'')}:{...cell,style:{...cell.style,[prop]:c.current}};}
       updateRows([...refreshed.values()]);
-      working.resolve(state.conflicts,choices);state.conflicts=[];state.saveError=false;state.retry=null;message();$('mg-conflict').close();saveAll(false);
+      working.resolve(state.conflicts,choices);apLaiChieuCao([...conflictIds]);state.conflicts=[];state.saveError=false;state.retry=null;message();$('mg-conflict').close();saveAll(false);
     };openDialog('mg-conflict');
   }
   $('mg-conflict-button').onclick=showConflicts;
@@ -1050,8 +1157,8 @@
     }catch(e){if(e.status===403||e.status===404){clearAccess('Quyền xem đã thay đổi.');}}
   }
   setInterval(poll,8000);
-  window.addEventListener('blur',()=>{finishRowResize(false);drag=null;resizing=null;cancelAnimationFrame(frame);frame=0;});
-  document.addEventListener('pointercancel',()=>{finishRowResize(false);drag=null;resizing=null;cancelAnimationFrame(frame);frame=0;});
+  window.addEventListener('blur',()=>{finishRowResize(false);drag=null;ketThucKeoCot();cancelAnimationFrame(frame);frame=0;});
+  document.addEventListener('pointercancel',()=>{finishRowResize(false);drag=null;ketThucKeoCot();cancelAnimationFrame(frame);frame=0;});
   viewport.addEventListener('lostpointercapture',e=>{if(rowResize&&e.pointerId===rowResize.pointer)finishRowResize(false);});
   if(config.myScope&&preferences.scope==='toi'&&!query.has('cua_toi')){
     const p=new URLSearchParams(query);p.set('cua_toi','1');

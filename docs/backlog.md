@@ -1,5 +1,40 @@
 # Backlog
 
+## 23.09.2026 — Ghi chú đọc được ngay trên lưới (AC-11.44)
+
+**Vì sao.** Bộ phận Vận đơn báo ghi chú bị cắt một dòng, muốn đọc phải bấm mở hộp đọc — bất tiện khi
+lướt bảng. Cột Ghi chú vốn rộng 160 px như mọi cột khác, trong khi nó là cột văn bản dài duy nhất của bảng.
+
+**Làm gì.** Hai lượt trong ngày. Máy chủ: `waybill_service.grid_column` trả `width: 400` **và cờ
+`auto_height`** cho riêng cột `ghi_chu` của bảng `van_don`; lưới chỉ đọc cờ, không nhận diện theo mã cột
+(CLAUDE.md, ADR-021) — bảng khác muốn có thì profile của bảng đó tự trả cờ. Trình duyệt: `master-grid.js` đo
+chiều cao thật của nội dung rồi giãn dòng cho vừa — đo theo lô đúng lúc khối 100 dòng về, nút đo nằm trong
+lưới mang đúng lớp CSS của ô; đo khi có ký tự xuống dòng hoặc chữ không chắc vừa một dòng; đệm theo nội dung
+nên sửa xong là đo lại ngay (sửa ô, dán, xoá, hoàn tác, lưu về, người khác sửa, đổi rộng/ẩn hiện cột, phông
+tải xong); tải lại mềm không co dòng về 28; kéo tay về 28 px được nhớ, Home về tự tính; ô nhập cao theo chữ
+đang gõ. Trần một dòng 2000 px ở một chỗ `MasterRowGeometry.MAX`. Kề bên: ô Ghi chú ở Lên đơn thành ô nhiều
+dòng (gom CRLF về `\n`), tệp Excel xuất ra bật Wrap Text cho cột văn bản dài.
+
+**Chốt với chủ dự án trước khi viết mã:** chỉ cột Ghi chú của bảng Vận đơn, trần 2000 px thay vì bỏ trần;
+lượt 2 chốt thêm hai chỗ kề bên (Lên đơn, Excel). Câu hỏi "ghi chú đã xuống dòng, cách dòng được chưa" trả
+lời bằng rà mã: ký tự xuống dòng đi qua hệ thống nguyên vẹn nhưng ô lưới `nowrap` dồn thành dấu cách —
+lượt 1 chưa xử lý, lượt 2 mới xử lý.
+
+**Đo được.** Ghi chú 26 ký tự: 28 px. `"Dòng 1\nDòng 2"` (13 ký tự): 47 px, đúng hai dòng. 427 ký tự: 160 px,
+8 dòng, không cắt chữ. Gõ hai dòng trong ô: ô nhập 51 px lúc gõ, dòng 28 → 47 px ngay khi đóng ô, không tải
+lại. Kéo tay về 28 → tải lại vẫn 28 → Home về 160. 12.600 ký tự: dừng 2000 px, bấm ô mở hộp đọc. Hiệu năng
+1.000 dòng ghi chú 400 ký tự khác nhau: một lượt đo cả khối p50 15,4 / p95 20,8 / max 21,6 ms, 0 long task.
+Bài kiểm viết trước, đỏ đúng lý do. Biên bản:
+[kiem-chung-ghi-chu-tu-gian-dong-20260923.md](kiem-chung-ghi-chu-tu-gian-dong-20260923.md).
+
+**Còn nợ.** Chủ dự án chưa nhìn tận mắt (mở `/bang-tinh/van_don/?tim=Jimenez`, cuộn tới Ghi chú, gõ thử hai
+dòng). Script Chrome chưa chạy (máy không có Node): `kiem-thu-master-row-height.cjs`, `kiem-thu-master-ui.cjs`
+sửa theo suy luận; ba script `*-capacity.cjs` chắc chắn đỏ vì fixture cho mọi dòng ghi chú dài và nhảy dòng
+bằng `r*28` — làm lại trên máy có Node. Chưa đẩy GitHub, chưa phát hành VPS. Tác dụng phụ đã biết: trần
+2000 px dùng chung nên bảng khác kéo tay tới 2000 px được. Ngoài phạm vi, ghi lại: `static/css/grid-formats.css`
+dòng 1 thiếu `/*` mở nên luật đầu `.dd-dam` (in đậm) bị trình duyệt bỏ.
+
+
 ## 19.09.2026 (đêm) — Một bài đầu-cuối đi trọn hành trình nhân viên
 
 **Vì sao.** Hai lỗi chủ dự án báo sáng nay đều nằm **giữa** các màn hình: đổi hộp lọc cột thì sót mục của cột
