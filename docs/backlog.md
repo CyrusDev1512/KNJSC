@@ -1,5 +1,20 @@
 # Backlog
 
+## 24.09.2026 — ADR-041: Leader/Manager bỏ & khôi phục báo cáo cấp dưới
+
+**Yêu cầu chủ dự án.** "Leader/Manager sửa và xoá báo cáo của nhân sự Sale/MKT" — khoảng
+trống ghi từ ADR-040. Khảo sát: quyền SỬA đã có từ 16.09 (can_amend, ADR-032/038, test đủ);
+thiếu là BỎ (đang khoá cứng người nộp, ADR-032 cấm mở — cần ADR mới).
+
+**Chốt 4 điểm (hỏi–đáp):** sửa giữ nguyên; bỏ = người nộp + Leader team + Manager bộ phận +
+Admin (Kế toán không); bỏ xoá mềm cả dòng số liệu (số rời Báo cáo tổng hợp); CÓ nút khôi
+phục (Manager/Admin, trang "Đã bỏ"). **Sửa:** `can_withdraw`/`restore`/`can_restore` trong
+`daily_service` (kiểm quyền trong giao dịch), view + trang `bao-cao/da-bo/`, liên kết "Đã bỏ"
+trên Lịch sử. AC-4.9/4.10 mới + FR-4.7; bài cũ "chỉ người nộp bỏ được" viết lại. Không migration.
+
+**Đo:** biên bản [kiem-chung-xoa-khoi-phuc-bao-cao-20260924.md](kiem-chung-xoa-khoi-phuc-bao-cao-20260924.md).
+
+
 ## 19.09.2026 (đêm) — Một bài đầu-cuối đi trọn hành trình nhân viên
 
 **Vì sao.** Hai lỗi chủ dự án báo sáng nay đều nằm **giữa** các màn hình: đổi hộp lọc cột thì sót mục của cột

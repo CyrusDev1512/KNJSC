@@ -132,6 +132,8 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-4.6 | Trường mang nhãn Người bán trên biểu mẫu và báo cáo ngày được hệ thống tự ghi **mã nhân sự** người gửi (ADR-037; chưa gán mã thì tên đăng nhập); gửi giá trị khác trong yêu cầu cũng không đổi được; ô trên màn hình chỉ đọc, không gửi lên | FR-4.6 | Tự động |
 | AC-4.7 | Một người nộp cùng biểu mẫu nhiều lần trong ngày được: mỗi lần một bản riêng với thời điểm nộp riêng, không chặn, không đè; màn nộp cho biết hôm nay đã nộp bao nhiêu lần (ADR-038 thay khoá một bản/ngày) | FR-4.2 | Tự động |
 | AC-4.8 | Kế toán thấy báo cáo của mọi bộ phận trong Lịch sử, mở và sửa được có `ReportRevision`, giữ người nộp và ngày; không bỏ được báo cáo của người khác; nhân viên bộ phận khác vẫn bị 404 ở xem lẫn sửa | FR-4.4 · FR-4.5 · ADR-038 | Tự động |
+| AC-4.9 | Bỏ báo cáo cấp dưới (ADR-041): người nộp, Leader trong team, Manager trong bộ phận và Admin bỏ được — xoá mềm cả báo cáo lẫn dòng số liệu (BR-4), số rời khỏi Báo cáo tổng hợp, có nhật ký DELETE, bấm đúp không nhân đôi; nhân viên khác/Leader team khác/Manager bộ phận khác/Kế toán bị 403 (thấy) hoặc 404 (ngoài phạm vi xem) có nhật ký; service kiểm lại quyền trong giao dịch | FR-4.7 · ADR-041 | Tự động |
+| AC-4.10 | Khôi phục báo cáo đã bỏ (ADR-041): Manager bộ phận mình và Admin thấy trang "Đã bỏ" (phân trang, đúng phạm vi) và khôi phục — báo cáo về Lịch sử, dòng số liệu sống lại nguyên nội dung, số về lại Báo cáo tổng hợp, nhật ký UPDATE; Staff/Leader/Kế toán/Manager bộ phận khác bị 403 có nhật ký; liên kết "Đã bỏ" chỉ hiện với người có quyền | FR-4.7 · ADR-041 | Tự động |
 
 ---
 
