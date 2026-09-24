@@ -32,25 +32,32 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
 
 ### Nhánh và nơi mã đang chạy
 
-- **Nhánh đang chạy trên VPS là `codex/crm-update-solar-ui`**, không phải `main`. `main`
-  dừng ở 08.09 và tụt sau khoảng 50 commit; VPS và máy chủ dự án chạy từ nhánh codex.
-  VPS hiện là môi trường thử nghiệm, chưa có khách. Sắp tới `main` sẽ được fast-forward
-  lên bằng nhánh này và VPS chuyển sang chạy `main`; khi đó **chỉ cần đổi tên nhánh ở
-  mục này**, mọi quy tắc dưới đây giữ nguyên.
-- **Không đẩy thẳng lên nhánh đang chạy trên VPS**, kể cả sửa nhỏ hay chỉ sửa tài liệu
-  (chốt 19.09.2026).
-- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ nhánh đang chạy, làm,
-  commit, push, **mở PR nháp trỏ về nhánh đang chạy**, rồi báo lại kèm liên kết. Không tự
+- **Cập nhật 24.09.2026: `main` là nhánh nền và đích PR cho công việc mới**, đồng thời
+  là nhánh dự kiến chạy trên VPS. Mã đã được hợp nhất vào `main`; nhận định cũ rằng
+  `main` dừng ở 08.09 không còn đúng.
+- VPS trước đây dùng `codex/crm-update-solar-ui`; **chưa xác nhận chuyển sang `main`**
+  chỉ từ trạng thái Git hoặc tài liệu. Khi chủ dự án yêu cầu phát hành, kiểm checkout,
+  commit và image đang chạy, rồi cập nhật biên bản. VPS là môi trường thử nghiệm,
+  chưa có khách; cập nhật hướng dẫn không tự triển khai VPS.
+- **Không đẩy thẳng lên `main` hoặc nhánh còn đang chạy trên VPS**, kể cả sửa tài liệu.
+- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ `origin/main` đã fetch,
+  làm, commit, push, **mở PR nháp trỏ về `main`**, rồi báo lại kèm liên kết. Không tự
   gộp; chỉ gộp khi chủ dự án bảo rõ.
 - **Mỗi phiên một việc một nhánh.** Bốn phiên KNCRM, KNERP, KNGUARD và Batch file không
   dùng chung nhánh; hai phiên cùng đẩy lên một nhánh là giẫm lên nhau.
 - **VPS thật** (2 nhân, 4 GB): `deploy/production/compose.yml`, nginx trước hai
   hostname ERP và CRM, năm container `crm`, `erp`, `worker`, `heavy`, `beat` cùng một
-  image tag bất biến `knjsc-app:<commit>-<nhãn>`, DB 1,25 GB. Phát hành do Codex làm
-  từ máy chủ dự án: backup, `manage.py check`, `up -d`, `nginx -t` rồi reload, Chrome
-  domain thật. Claude Code trên web **không** tới được VPS lẫn máy chủ dự án.
-- Máy ảo của Claude Code trên web là bản clone riêng: chạy được Postgres, Docker,
-  pytest, Playwright, nạp dữ liệu giả; mọi thứ ở đó không đụng máy ai.
+  image tag bất biến `knjsc-app:<commit>-<nhãn>`, DB 1,25 GB. Phiên được chủ dự án giao
+  phát hành và có quyền SSH thực hiện: backup, `manage.py check`, `up -d`, `nginx -t`
+  rồi reload, kiểm trình duyệt domain thật.
+- **Quyền VPS phụ thuộc môi trường thực thi, không phụ thuộc tên Codex/Claude hoặc
+  giao diện desktop/CLI.** Muốn kết nối cần công cụ chạy lệnh, mạng tới SSH, khóa hoặc
+  SSH agent hợp lệ và quyền tài khoản trên VPS. Kiểm các điều kiện đó của chính phiên
+  đang làm việc; không kết luận Claude Desktop không thể SSH chỉ vì là desktop.
+- Phiên local có thể dùng SSH của máy khi được cấp quyền; phiên cloud/máy ảo riêng
+  không mặc nhiên có khóa SSH hay đường dẫn Windows của máy chủ dự án. Không yêu cầu
+  gửi private key vào chat hoặc ghi khóa vào repo; có khả năng kết nối không đồng nghĩa
+  được tự triển khai hay thay đổi VPS ngoài phạm vi chủ dự án giao.
 
 ### Bật hệ thống — nháy đúp một tệp, máy nào cũng vậy
 

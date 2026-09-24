@@ -23,15 +23,18 @@ tài liệu được liên kết bên dưới cung cấp chi tiết theo từng 
 - Giao tiếp và báo cáo bằng tiếng Việt. Bàn giao kết quả cùng diff để chủ dự án xem;
   chỉ commit, push, tạo PR hoặc merge khi được yêu cầu.
 
-### Nhánh — chốt 19.09.2026
+### Nhánh — cập nhật 24.09.2026, chuẩn bị chuyển VPS sang `main`
 
-- **`codex/crm-update-solar-ui` là nhánh đang chạy trên VPS.** VPS hiện là môi trường
-  thử nghiệm, chưa có khách. Sắp tới `main` sẽ được fast-forward lên bằng nhánh này và
-  VPS chuyển sang chạy `main`; khi đó chỉ cần đổi tên nhánh ở mục này và ở mục "Nhánh
-  và nơi mã đang chạy" của [CLAUDE.md](CLAUDE.md), các quy tắc dưới đây giữ nguyên.
-- **Không đẩy thẳng lên nhánh đang chạy trên VPS**, kể cả sửa nhỏ hay chỉ sửa tài liệu.
-- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ nhánh đang chạy, làm,
-  commit, push, **mở PR nháp trỏ về nhánh đang chạy**, rồi báo lại kèm liên kết. Không tự
+- **`main` là nhánh nền và đích PR cho công việc mới**, đồng thời là nhánh dự kiến
+  chạy trên VPS. Mã đã được hợp nhất vào `main`; không còn coi `main` là nhánh cũ tụt sau.
+- **Chưa coi VPS đã chuyển sang `main` chỉ vì tài liệu hoặc Git đã đổi.** Mốc phát hành
+  trước dùng `codex/crm-update-solar-ui`. Khi được yêu cầu chuyển VPS, kiểm checkout,
+  commit và image thực tế, rồi ghi biên bản phát hành. Tác vụ cập nhật hướng dẫn này
+  không tự triển khai VPS. VPS hiện là môi trường thử nghiệm, chưa có khách.
+- **Không đẩy thẳng lên `main` hoặc nhánh còn đang chạy trên VPS**, kể cả sửa nhỏ
+  hay chỉ sửa tài liệu.
+- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ `origin/main` đã fetch,
+  làm, commit, push, **mở PR nháp trỏ về `main`**, rồi báo lại kèm liên kết. Không tự
   gộp; chỉ gộp khi chủ dự án bảo rõ.
 - **Mỗi phiên một việc một nhánh.** Các phiên KNCRM, KNERP, KNGUARD và Batch file không
   dùng chung nhánh; hai phiên cùng đẩy lên một nhánh là giẫm lên nhau.
