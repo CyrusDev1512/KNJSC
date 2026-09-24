@@ -163,11 +163,63 @@ chữ; các dòng khác vẫn 28 px.
 
 ---
 
+## Đợt thử phá 24.09 — đóng vai người dùng thật
+
+Chủ dự án yêu cầu *"kiểm như một người dùng thật các trường hợp dễ xảy ra lỗi, vỡ view, vỡ
+grid"*. Dựng `app/tests/e2e/test_pha_luoi_ghi_chu.py`: chín bài, mỗi bài làm một việc dễ làm
+hỏng lưới rồi **soát hình học** — dòng có hở hay chồng lên nhau không, mọi ô có cao đúng bằng
+dòng không (kể cả ô ghim), còn ô `…` không, chữ có bị cắt không, có lỗi JavaScript không.
+
+**Kết quả cuối: 9/9 đạt, không lượt soát nào thấy vỡ lưới.** Chạy trên máy chủ dự án
+(Chromium trong container `web`), 58 giây.
+
+| Bài | Số đo được |
+|---|---|
+| Nội dung độc (9 kiểu) | một từ 3.000 ký tự không dấu cách → **1.498 px, bẻ được**; emoji ×60 → 160 px; chữ Nhật ×20 → 197 px; `\r\n` → 66 px đúng 3 dòng; chuỗi giống thẻ HTML **hiện thành chữ, không thành thẻ** |
+| 40 dòng cao liền nhau (khung 34.390 px) | Ctrl+End 1,2 s; Ctrl+Home 1,2 s; **25 lần phím mũi tên, 0 lần ô chọn ra ngoài khung nhìn** |
+| 12 lượt cuộn giật cục (150 dòng, khung 58.910 px) | **0/12 lượt có vấn đề** |
+| Kéo đổi rộng cột | 400 px → dòng 160; kéo còn **72 px → dòng 1.177**; nới **640 px → dòng 103**. Đo lại đúng cả hai chiều |
+| Ẩn / hiện cột | ẩn → mọi dòng 28 px; hiện lại → 160 px |
+| Xoá + hoàn tác | 160 → 28 → 160, không tải lại trang |
+| Dán từ Excel | ô có ngắt dòng bên trong → 66 px, giữ nguyên ngắt dòng |
+| Điện thoại 390 px (cột 400 px) | **không tràn ngang trang** |
+| Phóng 125 % rồi thu về | 160 → 160, không lệch |
+
+### Một lỗi thật, đã sửa
+
+Ghi chú **chỉ gồm khoảng trắng và ký tự xuống dòng** làm dòng cao 197 px mà không hiện chữ
+nào: điều kiện đo chỉ kiểm chuỗi rỗng, không kiểm chuỗi toàn khoảng trắng. Qua đường người
+dùng thì không gặp (`parse_value` cắt hai đầu, nhập Excel strip, ô Lên đơn là `CharField`
+cũng strip), nhưng dữ liệu ghi thẳng vào cơ sở dữ liệu thì còn — **đúng loại dữ liệu đang
+nằm trên VPS** — và lúc đang gõ trong ô thì giá trị chưa lưu vẫn được đo. Sửa một dòng ở
+`vuaMotDong`: không có chữ nào đọc được thì coi như vừa một dòng.
+
+### Ba lần đỏ còn lại là lỗi bài kiểm, không phải lỗi sản phẩm
+
+Bài kéo cột đỏ bốn lượt liền. Tôi đoán sai ba lần (tay kéo ngoài khung nhìn → nút lọc che →
+nút chữ cái che) trước khi hỏi thẳng `elementsFromPoint` và thấy chồng phần tử thật:
+
+```
+BUTTON.mg-column-name                      ← trên cùng
+DIV.mg-heading mg-pinned mg-pinned-edge
+DIV.mg-pin-region                          ← z-index 10
+SPAN.mg-resize                             ← tay kéo, z-index 9, bị đè
+```
+
+**Vùng cột ghim đè lên tay kéo.** Bài kiểm cuộn sao cho mép phải cột Ghi chú nằm ở x = 477,
+trong khi dải ghim chiếm x = 0…526. Đây là hành vi đúng của lưới — cột ghim vốn nổi trên nội
+dung cuộn qua dưới nó. Sửa bài kiểm: đẩy cột ra ngoài dải ghim rồi mới kéo, đúng như người
+dùng phải làm.
+
+**Bài học ghi lại:** chẩn đoán phải tự khai báo. Ba lượt đầu chỉ báo "kéo không ăn" nên chỉ
+còn cách đoán; lượt in ra cả chồng phần tử thì trả lời ngay. Bộ bài giữ lại phần chẩn đoán đó.
+
 ## Chưa kiểm — nợ ghi rõ
 
 | Việc | Vì sao |
 |---|---|
-| **Chủ dự án nhìn tận mắt trên máy** | mở `http://127.0.0.1:8021/bang-tinh/van_don/?tim=Jimenez`, cuộn tới cột Ghi chú, gõ thử một ghi chú hai dòng |
+| **Chủ dự án nhìn tận mắt trên máy** | mở `http://127.0.0.1:8021/bang-tinh/van_don/`, cuộn tới cột Ghi chú, gõ thử một ghi chú hai dòng. Tính tới hết 24.09 vẫn chưa xem bằng mắt — mọi bằng chứng đều là máy đo |
+| **Tay kéo đổi rộng cột nằm dưới vùng cột ghim thì không bấm được** | phát hiện trong đợt thử phá. Đúng thiết kế (cột ghim nổi trên nội dung cuộn), nhưng dải ghim rộng 526 px nên trên màn hình hẹp nó chiếm gần nửa bề ngang — cột bị kéo vào dưới đó là mất luôn khả năng đổi rộng cho tới khi cuộn ra. Không sửa trong đợt này: đụng CSS đầu cột dùng chung cho mọi bảng, ngoài phạm vi đã duyệt |
 | **Script Chrome `.cjs` chưa chạy** | máy không có Node. `kiem-thu-master-row-height.cjs`, `kiem-thu-master-ui.cjs` và fixture `test_master_browser_server.py` sửa theo suy luận; `kiem-thu-master-capacity.cjs`, `kiem-thu-master-row-capacity.cjs`, `kiem-thu-master-nine-capacity.cjs` **chắc chắn đỏ** vì fixture của chúng cho mọi dòng ghi chú dài và script nhảy tới dòng bằng `r*28` — cần làm lại trên máy có Node |
 | **Ký tự rộng hơn 1 em** | `vuaMotDong` coi 1 em/ký tự là trần; emoji hay chữ toàn chiều rộng có thể vượt → dòng giữ 28 px kèm `…` như trước, không mất dữ liệu |
 | **Trên VPS** | chưa phát hành; thứ tự cột trên VPS khác máy cá nhân, hình dáng thật có thể khác |

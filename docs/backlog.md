@@ -1,5 +1,34 @@
 # Backlog
 
+## 24.09.2026 — Thử phá lưới ghi chú như người dùng thật (AC-11.44)
+
+**Vì sao.** Chủ dự án yêu cầu kiểm như một người dùng thật các trường hợp dễ gây lỗi, vỡ view, vỡ lưới —
+sau khi việc ghi chú tự giãn dòng hôm 23.09 đã xong và đã mở PR.
+
+**Làm gì.** Dựng `app/tests/e2e/test_pha_luoi_ghi_chu.py`: chín bài, mỗi bài làm một việc dễ làm hỏng lưới
+(nội dung độc, 40 dòng cao liền nhau, cuộn giật cục, kéo đổi rộng cột, ẩn/hiện cột, xoá và hoàn tác, dán từ
+Excel, màn hình điện thoại, phóng to 125 %) rồi **soát hình học lưới**: dòng có hở hay chồng nhau không, mọi
+ô có cao đúng bằng dòng không kể cả ô ghim, còn ô `…` không, chữ có bị cắt không, có lỗi JavaScript không.
+Trước đợt này **chưa bài kiểm nào trong dự án soát những thứ đó** — lưới là lưới ảo hoá, đó đúng là chỗ dễ vỡ nhất.
+
+**Đo được.** 9/9 đạt, 58 giây, không lượt soát nào thấy vỡ lưới. Một từ 3.000 ký tự không dấu cách bẻ được
+(1.498 px); chuỗi giống thẻ HTML hiện thành chữ chứ không thành thẻ; 25 lần phím mũi tên qua vùng dòng cao
+không lần nào ô chọn ra ngoài khung nhìn; kéo cột 400 → 72 px thì dòng 160 → 1.177 px, nới ra 640 px thì còn
+103 px — đo lại đúng cả hai chiều. Biên bản:
+[kiem-chung-ghi-chu-tu-gian-dong-20260923.md](kiem-chung-ghi-chu-tu-gian-dong-20260923.md).
+
+**Bắt được một lỗi thật, đã sửa.** Ghi chú chỉ gồm khoảng trắng và ký tự xuống dòng làm dòng cao 197 px mà
+không hiện chữ nào. Đường người dùng không gặp (mọi lối nhập đều cắt hai đầu trước khi lưu) nhưng dữ liệu ghi
+thẳng vào cơ sở dữ liệu thì còn — đúng loại dữ liệu đang nằm trên VPS. Sửa một dòng ở `vuaMotDong`.
+
+**Còn nợ.** Chủ dự án vẫn **chưa nhìn tận mắt trên máy** — mọi bằng chứng tới giờ đều là máy đo. Script Chrome
+`.cjs` vẫn chưa chạy (không máy nào có Node). Chưa phát hành VPS.
+
+**Ghi nhận ngoài phạm vi, chưa sửa.** Tay kéo đổi rộng cột (`z-index 9`) bị vùng cột ghim (`z-index 10`) đè,
+nên cột nào bị cuộn vào dưới dải ghim rộng 526 px là mất luôn khả năng đổi rộng cho tới khi cuộn ra. Đúng
+thiết kế cột ghim, nhưng khó dùng trên màn hình hẹp. Sửa thì đụng CSS đầu cột dùng chung cho mọi bảng.
+Cùng nhóm: `static/css/grid-formats.css` dòng 1 thiếu dấu `/*` mở nên luật đầu `.dd-dam` (in đậm) bị bỏ.
+
 ## 23.09.2026 — Ghi chú đọc được ngay trên lưới (AC-11.44)
 
 **Vì sao.** Bộ phận Vận đơn báo ghi chú bị cắt một dòng, muốn đọc phải bấm mở hộp đọc — bất tiện khi
