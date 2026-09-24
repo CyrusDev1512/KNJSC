@@ -13,6 +13,11 @@ chậm nhất kèm `db_ms` và số truy vấn, mã thoát 0/1/2. Chỉ đọc l
 **To do (người có SSH):** chạy `--since 7d --json` trên VPS rồi điền vào [biên bản](kiem-chung-gom-p95-vps-20260922.md).
 Tới giờ **vẫn chưa có con số p95 thật nào** — bộ gom mới là nửa việc.
 **Far plan:** cắm vào cron hằng tuần; đặt `logging:` xoay vòng cho `compose.yml` **sau khi** đã gom xong lịch sử.
+
+## 22.09.2026 (chiều) — Nợ kỹ thuật đợt 1
+
+**Finished local:** xoá dữ liệu giả theo lô, có hạn chờ khoá và tiến độ (TL-43, AC-10.10).
+**To do:** chủ dự án xem PR. **Far plan:** nguyên nhân gốc lần treo 17 phút.
 ## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên
 
 **Finished local:** `tests/e2e/test_hanh_trinh_nhan_vien.py` — một lượt qua lưới, hộp lọc cột, đổi vai, lên đơn,

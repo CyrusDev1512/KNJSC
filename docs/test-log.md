@@ -1,5 +1,12 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 22.09.2026 (chiều) — Xoá dữ liệu giả theo lô
+
+**TL-43 (đóng phần hậu quả):** xoá dòng giả không còn treo im lặng — một đường dùng chung
+`delete_fake_records` cho cả `seed_perf` lẫn `nap_khach_mau` (375.000 dòng): chia lô 2.000, mỗi lô một giao
+dịch có hạn chờ khoá 30 giây, in tiến độ, hết hạn thì lỗi nói rõ đã xoá bao nhiêu (AC-10.10). Nguyên nhân gốc
+của lần đứng 17 phút vẫn chưa tái hiện được.
+
 ## 19.09.2026 (đêm) — Hành trình xuyên màn hình
 
 **Khoảng trống đã lấp:** chỗ nối giữa các màn hình không có bài kiểm nào. Thêm

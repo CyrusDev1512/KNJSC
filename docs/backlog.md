@@ -46,6 +46,28 @@ có con số p95 thật nào**. Việc của người có SSH: chạy `--since 7
 `compose.yml` chưa đặt `logging:` nên log `json-file` không có trần — gom và lưu
 trước khi đặt giới hạn xoay vòng, vì đặt giới hạn là xoá mất lịch sử chưa gom.
 
+## 22.09.2026 (chiều) — Xoá dữ liệu giả theo lô, không treo nữa (TL-43)
+
+**Vấn đề.** `seed_perf.clear()` xoá cả 50.000 dòng trong **một** lệnh `DELETE`. Có lần đứng hơn 17 phút vì chờ
+khoá, mà màn hình không in gì nên người chạy tưởng máy chết. Không tái hiện được nên trước nay chỉ ghi nợ.
+
+**Sửa.** Một đường xoá dùng chung `delete_fake_records`: chụp danh sách pk một lần (bộ lọc `ma_don startswith`
+không có chỉ mục, chạy lại mỗi lô là mỗi lô một lượt quét bảng), cắt lô `DELETE_BATCH_SIZE = 2.000`, mỗi lô một
+giao dịch riêng có `SET LOCAL lock_timeout = 30 s` trên **đúng database của queryset**, `on_progress(đã xoá,
+tổng)` cộng dồn. Hết hạn chờ khoá thì lỗi **nói rõ đã xoá được bao nhiêu** rồi mới nổi lên. Con (chi tiết,
+phân công) vẫn xoá trước cha. `nap_khach_mau --xoa-cu` (375.000 dòng — gấp 7 quy mô từng treo) đi cùng đường.
+
+Review nội bộ trước khi bàn giao bắt được 5 chỗ phải sửa lại: nap_khach_mau còn xoá một phát; lọc JSONB chạy
+lại mỗi lô; lỗi hết hạn khoá không kèm số đã xoá; hạn khoá đặt trên connection mặc định trong khi xoá theo
+`ds.db`; tên hằng tiếng Việt trái quy ước đặt tên. Đều đã sửa trong cùng PR.
+
+Không đụng dữ liệu thật: chỉ lệnh dữ liệu giả, và bài kiểm khẳng định dòng có mã đơn thật không bị xoá lây.
+AC-10.10, năm bài ở `core/tests/test_seed_perf_xoa.py` (5 dòng chứ không phải 50.000 — cái cần khoá là cách
+xoá; có bài canh `SET LOCAL` từng lô và bài giả hết hạn khoá đọc được "được 2/5 dòng").
+
+**Còn nợ:** nguyên nhân gốc của lần treo 17 phút vẫn chưa biết, chỉ mới chặn hậu quả. Lần sau gặp thì lỗi
+`lock_timeout` sẽ nói rõ ai đang giữ khoá.
+
 ## 19.09.2026 (đêm) — Một bài đầu-cuối đi trọn hành trình nhân viên
 
 **Vì sao.** Hai lỗi chủ dự án báo sáng nay đều nằm **giữa** các màn hình: đổi hộp lọc cột thì sót mục của cột
