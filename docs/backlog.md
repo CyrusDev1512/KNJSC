@@ -1,5 +1,14 @@
 # Backlog
 
+## 24.09.2026 (tối) — Gọn form Tạo tài khoản: bỏ Email, ẩn Ngày sinh (AC-1.8)
+
+**Chủ dự án chốt:** form tạo không hỏi email (không ai đăng nhập bằng email, không gửi
+mail nhân viên) và không hỏi ngày sinh; ngày sinh bổ sung ở màn Sửa hồ sơ để thiệp sinh
+nhật còn dữ liệu; email/ngày sinh đã có giữ nguyên. **Sửa:** `TaoTaiKhoanForm` bỏ 2
+trường; `create_account(email="")` thành tuỳ chọn; placeholder tìm kiếm đổi "email" →
+"mã nhân sự" (view vẫn tra email cũ). AC-1.8 mới, FR-1.4 bổ sung; biên bản
+[kiem-chung-gon-form-tao-tai-khoan-20260924.md](kiem-chung-gon-form-tao-tai-khoan-20260924.md).
+
 ## 24.09.2026 — Hai lỗi E2E ghi chú chặn phát hành `main`
 
 CI của `a120af5` và kiểm lại local đều lỗi khi bấm ghi chú cao 2.000 px và đo lưới
