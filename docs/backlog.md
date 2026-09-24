@@ -169,6 +169,26 @@ dự án: `so_tien_tt` gõ tay ở đơn không chi tiết có vào DS Chốt (T
 các bảng (mỗi bảng tự co theo nội dung) có cần ép cùng bề rộng không; Bảng dữ liệu dạng báo cáo có cần
 thêm cột ngoài ánh xạ nguồn (ghi chú, thị trường) không, hay `?dang=tho` là đủ.
 
+## 22.09.2026 — Cột sản phẩm mặc định ẩn, không chờ ai bấm
+
+**Chủ dự án báo.** Màn hình Cấu trúc cột vẫn có `sl_yuna`, `sl_sda`, `sl_ada` — ba sản phẩm gõ thử — và nhắc
+rằng điều chốt ở ADR-039 là **tương lai cột sản phẩm không hiện ra nữa**.
+
+**Đối chiếu.** Chủ dự án nhớ đúng ý; bản dựng 19.09 làm có điều kiện: quyết định 6 chỉ ẩn cột mới **khi cả nhóm
+đã ẩn**, mà biên bản phát hành ghi `is_hidden` 0/72 cột và để lại "Việc 5: bấm một lần" — chưa ai bấm nên điều
+kiện luôn sai. Màn hình Cấu trúc cột liệt kê đủ cột ẩn là **cố ý** (chỗ bật lại), không phải lỗi.
+
+**Sửa.** `sync_product_columns` tạo cột sản phẩm với `is_hidden=True` luôn; migration dữ liệu `orders/0011` ẩn
+mọi cột `sl_*` đang hiện của bảng vận đơn, chạy ngược là không làm gì. Bật lại vẫn ở mục "Đang ẩn với cả công
+ty". AC-39.5 viết lại, thêm AC-39.8 và AC-39.9.
+
+**Hệ quả đã biết, chưa sửa:** cột đã ẩn thì `build_grid` không đọc bộ lọc của nó, nên đường dẫn cũ lọc theo
+`?f_sl_x__trong=…` từng bị bỏ lặng lẽ (TL-53) — đã xử lý cùng ngày ở lượt "lọc theo cột ẩn vẫn chạy" (AC-39.8); bài migration là AC-39.9.
+
+**Còn nợ:** ba sản phẩm gõ thử vẫn trong danh mục, vẫn hiện ở ô chọn Sản phẩm của Lên đơn — muốn dọn thì tắt
+bán, chờ xác nhận chúng không dùng cho đơn thật. Kiểm: 2.530 đạt / 0 đỏ;
+[biên bản](kiem-chung-cot-san-pham-mac-dinh-an-20260922.md).
+
 ## 22.09.2026 (đêm) — Lọc theo cột ẩn vẫn chạy, kèm lời nhắc (TL-53 đóng)
 
 **Nợ cũ (hệ quả đã biết của ADR-039).** Bộ lọc trỏ tới cột đang ẩn bị bỏ lặng lẽ: URL cũ, liên kết

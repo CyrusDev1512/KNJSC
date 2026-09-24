@@ -387,4 +387,5 @@ def test_phan_trang_va_sap_xep_giu_bo_loc(client, bang_sale, nguoi_dung):
     # Rỗng: không còn nhắc "phần 3B"
     client.force_login(nguoi_dung["manager_sale"])
     rong = client.get("/bang/don_sale/", {"f_nguoi_ban": "không có ai"}).content.decode()
-    assert "Chưa có dòng nào" in rong and "3B" not in rong
+    # So cả cụm "phần 3B": chuỗi trần "3B" có thể nằm tình cờ trong CSRF token của trang
+    assert "Chưa có dòng nào" in rong and "phần 3B" not in rong
