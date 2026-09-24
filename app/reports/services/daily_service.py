@@ -65,6 +65,39 @@ def can_amend(user, report):
             scope.rank == Rank.LEADER and report.team_id in scope.team_ids)
 
 
+def can_withdraw(user, report):
+    """Người nộp; Leader trong team; Manager trong bộ phận; Admin — ADR-041.
+
+    Kế toán **không** bỏ được báo cáo người khác (giữ đúng ADR-038): sửa số là
+    việc của Kế toán, quyết bỏ hẳn một báo cáo là việc của người quản lý trực tiếp.
+    """
+    from core.constants import Rank
+    from core.scope import get_user_scope
+    if not user.is_active:
+        return False
+    if report.created_by_id == user.pk:
+        return True
+    scope = get_user_scope(user)
+    return (scope.is_admin or
+            scope.rank == Rank.MANAGER and report.department_id in scope.department_ids or
+            scope.rank == Rank.LEADER and report.team_id in scope.team_ids)
+
+
+def can_restore(user, report_or_none=None):
+    """Manager trong bộ phận mình và Admin — ADR-041. Gọi không kèm báo cáo thì
+    trả quyền vào trang "Đã bỏ" (danh sách tự thu hẹp theo `in_scope`)."""
+    from core.constants import Rank
+    from core.scope import get_user_scope
+    if not user.is_active:
+        return False
+    scope = get_user_scope(user)
+    if scope.is_admin:
+        return True
+    if scope.rank != Rank.MANAGER:
+        return False
+    return report_or_none is None or report_or_none.department_id in scope.department_ids
+
+
 def report_widgets(form, fields, values, *, user, day, owner=None):
     widgets = form_service.widgets(form, fields, values, user=user)
     return decorate_widgets(widgets, form, values, user=user, day=day, owner=owner)
@@ -227,16 +260,54 @@ def withdraw(bao_cao, *, actor=None, request=None):
     """Bỏ một báo cáo đã nộp. Đánh dấu xoá, không xoá cứng (BR-4).
 
     Không phải "sửa" — nội dung cũ giữ nguyên trong nhật ký và trong cơ sở dữ
-    liệu. Nộp lại là một bản ghi mới, có thời điểm nộp mới.
+    liệu. Nộp lại là một bản ghi mới, có thời điểm nộp mới. Quyền kiểm ngay
+    trong giao dịch (ADR-041), như `amend`: người nộp, Leader trong team,
+    Manager trong bộ phận, Admin.
     """
-    mo_ta = str(bao_cao)
-    bao_cao.delete(by=actor)
-    bao_cao.record.delete(by=actor)
+    from core.exceptions import OutOfScopeError
+    from ..models import DailyReport
+    hien_tai = DailyReport.all_objects.select_for_update().select_related("record").get(pk=bao_cao.pk)
+    if actor is not None and not can_withdraw(actor, hien_tai):
+        raise OutOfScopeError("Bạn không có quyền bỏ báo cáo này.")
+    if hien_tai.deleted_at is not None:
+        return hien_tai                       # bấm đúp hay hai tab: đã bỏ rồi thì thôi
+    mo_ta = str(hien_tai)
+    hien_tai.delete(by=actor)
+    hien_tai.record.delete(by=actor)
     record(
-        AuditAction.DELETE, actor=actor, target=bao_cao,
+        AuditAction.DELETE, actor=actor, target=hien_tai,
         detail=f"Bỏ báo cáo đã nộp — {mo_ta}", request=request,
     )
-    return bao_cao
+    return hien_tai
+
+
+@transaction.atomic
+def restore(bao_cao, *, actor, request=None):
+    """Khôi phục một báo cáo đã bỏ — ADR-041: Manager bộ phận mình hoặc Admin.
+
+    Trả cả `DailyReport` lẫn dòng số liệu về trạng thái sống, nên Lịch sử và
+    Báo cáo tổng hợp có lại đúng số cũ. `DailyReport.save` chỉ cho ghi các cột
+    xoá mềm nên đi qua `update_fields`.
+    """
+    from core.exceptions import OutOfScopeError
+    from ..models import DailyReport
+    hien_tai = DailyReport.all_objects.select_for_update().select_related("record").get(pk=bao_cao.pk)
+    if not can_restore(actor, hien_tai):
+        raise OutOfScopeError("Bạn không có quyền khôi phục báo cáo này.")
+    if hien_tai.deleted_at is None:
+        return hien_tai
+    hien_tai.deleted_at = None
+    hien_tai.deleted_by = None
+    hien_tai.save(update_fields=["deleted_at", "deleted_by", "updated_at"])
+    dong = hien_tai.record
+    dong.deleted_at = None
+    dong.deleted_by = None
+    dong.save(update_fields=["deleted_at", "deleted_by", "updated_at"])
+    record(
+        AuditAction.UPDATE, actor=actor, target=hien_tai,
+        detail=f"Khôi phục báo cáo đã bỏ — {hien_tai}", request=request,
+    )
+    return hien_tai
 
 
 def history(user):

@@ -1,5 +1,26 @@
 # Backlog
 
+## 24.09.2026 — ADR-041: Leader/Manager bỏ & khôi phục báo cáo cấp dưới
+
+**Yêu cầu chủ dự án.** "Leader/Manager sửa và xoá báo cáo của nhân sự Sale/MKT" — khoảng
+trống ghi từ ADR-040. Khảo sát: quyền SỬA đã có từ 16.09 (can_amend, ADR-032/038, test đủ);
+thiếu là BỎ (đang khoá cứng người nộp, ADR-032 cấm mở — cần ADR mới).
+
+**Chốt 4 điểm (hỏi–đáp):** sửa giữ nguyên; bỏ = người nộp + Leader team + Manager bộ phận +
+Admin (Kế toán không); bỏ xoá mềm cả dòng số liệu (số rời Báo cáo tổng hợp); CÓ nút khôi
+phục (Manager/Admin, trang "Đã bỏ"). **Sửa:** `can_withdraw`/`restore`/`can_restore` trong
+`daily_service` (kiểm quyền trong giao dịch), view + trang `bao-cao/da-bo/`, liên kết "Đã bỏ"
+trên Lịch sử. AC-4.9/4.10 mới + FR-4.7; bài cũ "chỉ người nộp bỏ được" viết lại. Không migration.
+
+**Đo:** biên bản [kiem-chung-xoa-khoi-phuc-bao-cao-20260924.md](kiem-chung-xoa-khoi-phuc-bao-cao-20260924.md).
+
+**Bổ sung cùng ngày — ma trận phân quyền đầy đủ (chủ dự án yêu cầu "test kĩ phân quyền
+các trường hợp").** `reports/tests/test_ma_tran_phan_quyen_bao_cao.py`: 8 hàm / 21 ca —
+13 vai × sửa/bỏ/khôi phục trên cùng một báo cáo, thêm 4 persona chưa có trong fixture
+(tài khoản khoá, không hồ sơ, CSKH, Leader không dẫn team), kiểm cả 404-ngoài-phạm-vi vs
+403-có-nhật-ký và trang Đã bỏ rỗng với Manager bộ phận khác. Chỉ dùng AC sẵn có nên
+docs/06 không đổi; **không phát hiện lỗ hổng phải vá**. Chi tiết trong biên bản trên.
+
 ## 24.09.2026 — Ngày (lên đơn) lên đầu bảng Vận đơn mới
 
 **Vì sao.** ADR-036 (18.09) gộp một bảng và lấy thứ tự chuẩn của crmThuận (Mã đơn đầu),

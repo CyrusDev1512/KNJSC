@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 24.09.2026 — ADR-041: bỏ & khôi phục báo cáo cấp dưới
+
+**Finished local (nhánh `claude/xoa-khoi-phuc-bao-cao`, PR nháp):** Leader team/Manager bộ phận/Admin
+bỏ được báo cáo cấp dưới (xoá mềm cả số liệu), Manager/Admin khôi phục ở trang "Đã bỏ"; Kế toán giữ
+nguyên chỉ sửa. **To do:** chủ dự án duyệt PR, kéo về local check.
+
 ## 24.09.2026 — Ngày lên đầu bảng Vận đơn mới
 
 **Finished local (nhánh `claude/ngay-len-dau-bang-van-don`, PR nháp):** Ngày (lên đơn) là cột
