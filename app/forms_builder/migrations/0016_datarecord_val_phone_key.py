@@ -22,7 +22,8 @@ class Migration(migrations.Migration):
             model_name="datarecord",
             name="val_phone_key",
             field=models.CharField(
-                "Khoá so trùng số điện thoại", max_length=9, blank=True, default=""),
+                "Khoá so trùng số điện thoại", max_length=9, blank=True,
+                default="", db_default=""),
         ),
         migrations.AddIndex(
             model_name="datarecord",

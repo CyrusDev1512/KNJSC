@@ -478,7 +478,9 @@ class DataRecord(ScopedModel):
     #: Khoá so trùng: 9 chữ số cuối sau khi bỏ ký tự không phải số (TL-36) —
     #: `+1 (416) 555-0123` và `4165550123` là một khách. Ô hiển thị vẫn là
     #: `val_phone` đúng như gõ; cột này chỉ để GROUP BY, sinh ở `phone_key`.
-    val_phone_key = models.CharField("Khoá so trùng số điện thoại", max_length=9, blank=True, default="")
+    #: `db_default` để code cũ (image chưa mang cột này) vẫn INSERT được trong
+    #: cửa sổ phát hành sau khi migrate — không thì dòng mới nổ NOT NULL
+    val_phone_key = models.CharField("Khoá so trùng số điện thoại", max_length=9, blank=True, default="", db_default="")
     val_revenue = models.DecimalField(
         "Doanh thu", max_digits=MONEY_MAX_DIGITS, decimal_places=MONEY_DECIMAL_PLACES,
         null=True, blank=True, db_index=True,
