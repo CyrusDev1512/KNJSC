@@ -1,5 +1,31 @@
 # Backlog
 
+## 24.09.2026 — Form Nộp báo cáo ngày: chọn Team, bốn trường bắt buộc, bỏ Hóa đơn, bố cục ngang (ADR-043)
+
+**Vì sao.** Chủ dự án xem thử nhánh ADR-042 trên local và góp ý ngay ở màn Nộp báo cáo ngày: chọn Team bằng
+dropdown "các team đang có"; Số Mess, CPQC, Số đơn, Doanh số bắt buộc; bỏ trường Hóa đơn khi nhập; design lại
+view cho "full view", chia ngang, ô nhập nhỏ. Hỏi đáp chốt: Hóa đơn **chỉ bỏ khỏi form nhập** (báo cáo giữ cột
+và chỉ tiêu cho dữ liệu cũ); bắt buộc áp cho **cả MKT và Sale** (Sale không có CPQC).
+
+**Làm gì.** `daily_service.team_choices/resolve_team` + `submit(team=)` → `form_service.fill(team=)` →
+`record_service.create_record(team=)`: team chọn trên form ghi vào `DataRecord.team` và `DailyReport.team`
+(cột Team của báo cáo và phạm vi Leader đi theo); bộ phận không có team thì không hiện ô. `configure_erp_reports`
+khai một chỗ `REQUIRED_INPUTS` (ép cả trường đã có) và `MKT_FORM_SKIP` (gỡ Hóa đơn, không tạo lại); thuộc tính
+`required` phía trình duyệt ở `_truong_nhap.html`/`o_chon.html`. Template `bao_cao_ngay.html` thành một thẻ trải
+hết chiều rộng: hàng Biểu mẫu · Team · Ngày, lưới `.bm-ngang` ô 34 px, cột tính sẵn là chip công thức
+(`ColumnDef.formula_text`); `bao_cao_sua.html` cùng lưới. Dữ liệu mẫu thêm team MKT 1 (`mkt.leader` trưởng nhóm,
+`mkt.staff` thành viên; tài khoản có sẵn được gán khi chạy lại). Nhánh riêng `claude/form-nhap-bao-cao` từ `main`, PR nháp riêng (ADR-042 đã gộp qua PR #36).
+
+**Kiểm.** AC-43.1 → 41.4 (`reports/tests/test_form_nhap_bao_cao.py`); sửa `test_report_amendments` (dòng mới không
+có `hoa_don`), `test_du_lieu_mau` (ba team). Chromium 1440 sáng/tối + 390 với `mkt.staff` và `sale.staff`: 6 ô một
+hàng ở 1440, 2 cột ở 390, ô cao 34 px, không tràn; trình duyệt chặn khi thiếu CPQC; nộp đủ với team MKT 1 → Lịch
+sử và Bảng dữ liệu hiện MKT 1. Bộ đầy đủ `-m "not cham"`: 2.581 đạt, 0 đỏ.
+[Biên bản](kiem-chung-form-nhap-bao-cao-20260924.md).
+
+**Còn nợ.** Chủ dự án nghiệm thu trên local (checkout `claude/form-nhap-bao-cao`, `KN JSC.bat` chạy lại
+`configure_erp_reports` nên form thật tự mất Hóa đơn và có bắt buộc; muốn `mkt.staff` có team thì chạy
+`du_lieu_mau` một lần). Quản lý sửa lại team của báo cáo đã nộp chưa có (chưa cần).
+
 ## 24.09.2026 (tối) — Gọn form Tạo tài khoản: bỏ Email, ẩn Ngày sinh (AC-1.8)
 
 **Chủ dự án chốt:** form tạo không hỏi email (không ai đăng nhập bằng email, không gửi

@@ -37,16 +37,25 @@ def ensure_sale():
                            code="bc_sale_ngay", name="Báo cáo Sale ngày")
 
 
+#: Trường bắt buộc trên biểu mẫu báo cáo Sale/MKT (chủ dự án 24.09.2026, ADR-043): Số Mess, CPQC,
+#: Số đơn, Doanh số cùng Ngày, Sản phẩm, Thị trường. Sale không có `cpqc` nên tự ra ba trường số.
+REQUIRED_INPUTS = ("ngay", "san_pham", "thi_truong", "so_mess", "cpqc", "so_don", "doanh_so")
+#: Cột nhập cố ý KHÔNG đưa lên biểu mẫu MKT: Doanh thu nhập tay cũ (ADR-038) và Hóa đơn (ADR-043 —
+#: bỏ khỏi form nhập; cột và hai cột báo cáo Hóa đơn, Hóa đơn/DS Chốt (TT) giữ cho dữ liệu cũ)
+MKT_FORM_SKIP = (LEGACY_REVENUE_INPUT, "hoa_don")
+
+
 def configure_forms(table, skip=()):
     """Mọi cột nhập của bảng có trường trên biểu mẫu; `skip` là cột cố ý không đưa lên
-    biểu mẫu (Doanh thu nhập tay cũ — ADR-038), gỡ luôn trường đã có."""
+    biểu mẫu (Doanh thu nhập tay cũ — ADR-038, Hóa đơn — ADR-043), gỡ luôn trường đã có.
+    Trường trong `REQUIRED_INPUTS` luôn bắt buộc, kể cả trường đã có từ trước."""
     if skip:
         FormField.objects.filter(form__table=table, link__column__code__in=list(skip)).delete()
     for form in table.forms.filter(is_active=True):
         for column in table.columns.filter(is_computed=False).exclude(code__in=list(skip)):
             link = FormTableLink.objects.filter(form_field__form=form, column=column).first()
             if link is not None:
-                if column.code in ("san_pham", "thi_truong"):
+                if column.code in REQUIRED_INPUTS:
                     FormField.objects.filter(pk=link.form_field_id).update(required=True)
                 continue
             field, _ = FieldDef.objects.get_or_create(
@@ -55,7 +64,7 @@ def configure_forms(table, skip=()):
                           "meaning": column.meaning})
             form_field = FormField.objects.create(
                 form=form, field=field, order=column.order,
-                required=column.code in ("ngay", "san_pham", "thi_truong"))
+                required=column.code in REQUIRED_INPUTS)
             FormTableLink.objects.create(form_field=form_field, column=column)
 
 
@@ -97,7 +106,7 @@ def configure_source(table, kind):
                 mapping[key] = candidates[0].code
         if kind == "mkt":
             mapping["segment"] = CUSTOMER_SEGMENT_COLUMN
-        configure_forms(table, skip={LEGACY_REVENUE_INPUT} if kind == "mkt" else ())
+        configure_forms(table, skip=set(MKT_FORM_SKIP) if kind == "mkt" else ())
     ReportSource.objects.update_or_create(table=table, defaults={"kind": kind, "columns": mapping})
 
 

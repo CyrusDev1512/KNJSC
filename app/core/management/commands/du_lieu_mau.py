@@ -39,8 +39,9 @@ BO_PHAN = [
     (WAYBILL_DEPARTMENT_NAME, WAYBILL_DEPARTMENT_CODE),
 ]
 
-#: Hai team, đều thuộc Sale — đủ để thử phạm vi quyền của Leader.
-TEAM = [("Sale 1", "sale"), ("Sale 2", "sale")]
+#: Ba team: hai của Sale đủ để thử phạm vi quyền của Leader; MKT 1 để dropdown Team trên form
+#: nộp báo cáo (ADR-043) có gì mà chọn và cột Team của báo cáo Marketing không còn "Chưa có team".
+TEAM = [("Sale 1", "sale"), ("Sale 2", "sale"), ("MKT 1", "marketing")]
 
 #: (tên đăng nhập, họ tên, cấp bậc, mã bộ phận, tên team, buộc đổi mật khẩu)
 TAI_KHOAN = [
@@ -53,8 +54,8 @@ TAI_KHOAN = [
     # Tài khoản mới, giữ nguyên cờ buộc đổi mật khẩu để thử luồng FR-1.4
     ("sale.moi",     "Nhân viên mới", Rank.STAFF,   "sale",      None,     True),
     ("mkt.manager",  "Đỗ Thu Trang",  Rank.MANAGER, "marketing", None,     False),
-    ("mkt.leader",   "Vũ Hoài Nam",   Rank.LEADER,  "marketing", None,     False),
-    ("mkt.staff",    "Phạm Minh Anh", Rank.STAFF,   "marketing", None,     False),
+    ("mkt.leader",   "Vũ Hoài Nam",   Rank.LEADER,  "marketing", "MKT 1",  False),
+    ("mkt.staff",    "Phạm Minh Anh", Rank.STAFF,   "marketing", "MKT 1",  False),
     ("vd.manager",   "Bùi Kim Chi",   Rank.MANAGER, "van-don",   None,     False),
     ("vd.staff",     "Hoàng Văn Tú",  Rank.STAFF,   "van-don",   None,     False),
 ]
@@ -284,6 +285,10 @@ class Command(BaseCommand):
                     account_service.unlock_account(ho_so)
                     ho_so.must_change_password = doi_mk
                     ho_so.save(update_fields=["must_change_password"])
+                    # Tài khoản mẫu có từ trước khi team MKT 1 ra đời (ADR-043): gán team nếu còn trống
+                    if ten_team and ho_so.team_id is None and team.get(ten_team) is not None:
+                        ho_so.team = team[ten_team]
+                        ho_so.save(update_fields=["team"])
                     self.dat_lai_mat_khau += 1
                 ket_qua[ten_dn] = co_san
                 continue
@@ -304,8 +309,8 @@ class Command(BaseCommand):
             ket_qua[ten_dn] = ho_so.user
             self.da_tao["tài khoản"] += 1
 
-        # Gán trưởng nhóm cho hai team Sale
-        for ten_team, ten_dn in (("Sale 1", "sale.leader"), ("Sale 2", "sale.leader2")):
+        # Gán trưởng nhóm cho hai team Sale và team MKT 1
+        for ten_team, ten_dn in (("Sale 1", "sale.leader"), ("Sale 2", "sale.leader2"), ("MKT 1", "mkt.leader")):
             t = team[ten_team]
             if t.leader_id is None:
                 t.leader = ket_qua[ten_dn]
@@ -389,7 +394,8 @@ class Command(BaseCommand):
                 name=ten, code=ma, field_type=kieu, meaning=nhan, department=bp)
             form_service.add_field(
                 bieu_mau, truong, column=bang.columns.get(code=ma),
-                required=(ma in ("ngay", "marketer", "so_mess")), actor=ql)
+                # Bốn trường số bắt buộc (ADR-043) cùng Ngày và danh tính
+                required=(ma in ("ngay", "marketer", "so_mess", "cpqc", "so_don", "doanh_so")), actor=ql)
 
         # Năm dòng số liệu thật, lùi dần từ hôm nay
         cac_cot = list(bang.columns.all())

@@ -71,9 +71,12 @@ def test_marketing_configure_adds_inputs_and_confirmed_formulas(bm_sale):
     ColumnDef.objects.create(table=table, code='cpqc', name='CPQC', field_type='money')
     configure_source(table, 'mkt')
     table.refresh_from_db()
-    # Doanh thu suy ra từ vận đơn (ADR-038): không ánh xạ, không cột nhập; Hóa đơn vẫn nhập
+    # Doanh thu suy ra từ vận đơn (ADR-038): không ánh xạ, không cột nhập; Hóa đơn giữ cột và ánh xạ
+    # cho dữ liệu cũ nhưng không còn trên form nhập (ADR-043)
     assert 'revenue' not in table.erp_report.columns
     assert table.erp_report.columns['invoice'] == 'hoa_don'
+    from forms_builder.models import FormField
+    assert not FormField.objects.filter(form=bm_sale, link__column__code='hoa_don').exists()
     assert table.erp_report.columns['segment'] == 'tep_khach_hang'
     configure_source(table, 'mkt')
     row = record_service.create_record(table, {'ngay':'2026-09-16', 'so_mess':100,
@@ -140,7 +143,7 @@ def test_new_marketing_report_derives_currency_and_keeps_zero(client, bm_sale, n
     report = DailyReport.objects.get()
     assert report.record.data['loai_tien'] == 'CAD'
     assert report.record.data['ngay'] == timezone.localdate().isoformat()
-    assert report.record.data['hoa_don'] == '0'
+    assert 'hoa_don' not in report.record.data          # Hóa đơn không còn trên form nhập (ADR-043)
     assert 'doanh_thu' not in report.record.data and 'hoa_don_doanh_thu' not in report.record.data
     client.force_login(nguoi_dung['manager_sale'])
     detail = client.get(f'/bao-cao/{report.pk}/sua/')
