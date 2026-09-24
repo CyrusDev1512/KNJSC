@@ -179,8 +179,10 @@ class Command(BaseCommand):
             self._do("Hộp lọc Thành phố (khoá JSON)", DOC, self._get(c, f"{goc}loc/thanh_pho/"), giai_thich=gt)
             self._do("Hộp lọc Tên khách (cột tách, 86 nghìn giá trị)", DOC, self._get(c, f"{goc}loc/ten_khach/"), giai_thich=gt)
             self._do("moi-nhat/ (mỗi tab hỏi mỗi 8 giây)", HOI, self._get(c, f"{goc}moi-nhat/"), giai_thich=gt)
-            self._do("tree_service.month_counts (Vận đơn)", DOC,
-                     lambda: tree_service.month_counts(nguoi, van_don.department), giai_thich=gt)
+            # month_counts đã bỏ cùng cấp Quý/Tháng của thư mục (ADR-040);
+            # trang thư mục đo qua table_stats bên trong build
+            self._do("tree_service.build (trang thư mục)", DOC,
+                     lambda: tree_service.build(nguoi), giai_thich=gt)
 
             # ── Ghi ──
             def luu_o(n):

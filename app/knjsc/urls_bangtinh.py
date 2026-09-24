@@ -7,12 +7,28 @@ dùng chung view của `forms_builder`, template kế thừa khung KN CRM qua bi
 `khung`. Không có Bảng dữ liệu, báo cáo, lên đơn, biểu mẫu — những thứ đó ở
 KN ERP. Đây là nơi **duy nhất** có lưới; KN ERP chỉ liên kết sang.
 """
+from functools import wraps
+
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404
 from django.urls import include, path
 from django.views.generic import RedirectView
 
 from crm import views as crm_views
 from forms_builder import views as fb
+
+
+def _chi_bang_van_don(view):
+    """KN CRM chỉ phục vụ bảng vận đơn (ADR-040): các trang quản lý bảng dùng
+    chung với ERP (cột, nhập tệp, cấp quyền) nhận mã bảng khác thì 404 — đúng
+    như bảng ngoài phạm vi, để không lộ là bảng có tồn tại (quy tắc 8)."""
+    @wraps(view)
+    def wrapped(request, code, *args, **kwargs):
+        from forms_builder.models import TableDef
+        from orders.constants import waybill_condition
+        get_object_or_404(TableDef.objects.filter(waybill_condition("")), code=code)
+        return view(request, code, *args, **kwargs)
+    return wrapped
 
 urlpatterns = [
     # Cùng một trang chủ mang hai tên: `tong_quan` để khung và thanh bên dùng
@@ -25,14 +41,14 @@ urlpatterns = [
     # Tạo bảng, sửa cột + cấp quyền, nhập tệp — view của forms_builder, quyền
     # kiểm trong view (Leader trở lên cùng bộ phận; cấp quyền: Manager)
     path("bang/moi/", fb.bang_moi, name="bang_moi"),
-    path("bang/<slug:code>/cot/", fb.bang_cot, name="bang_cot"),
-    path("bang/<slug:code>/cot/<int:pk>/bo/", fb.bang_xoa_cot, name="bang_xoa_cot"),
-    path("bang/<slug:code>/nhap/", fb.bang_nhap, name="bang_nhap"),
-    path("bang/<slug:code>/mau-nhap.xlsx", fb.bang_mau_nhap, name="bang_mau_nhap"),
-    path("bang/<slug:code>/nhap/<int:pk>/", fb.bang_nhap_xem_truoc, name="bang_nhap_xem_truoc"),
-    path("bang/<slug:code>/nhap/<int:pk>/xac-nhan/", fb.bang_nhap_xac_nhan, name="bang_nhap_xac_nhan"),
-    path("bang/<slug:code>/cap-quyen/", fb.bang_cap_quyen, name="bang_cap_quyen"),
-    path("bang/<slug:code>/thu-quyen/<int:pk>/", fb.bang_thu_quyen, name="bang_thu_quyen"),
+    path("bang/<slug:code>/cot/", _chi_bang_van_don(fb.bang_cot), name="bang_cot"),
+    path("bang/<slug:code>/cot/<int:pk>/bo/", _chi_bang_van_don(fb.bang_xoa_cot), name="bang_xoa_cot"),
+    path("bang/<slug:code>/nhap/", _chi_bang_van_don(fb.bang_nhap), name="bang_nhap"),
+    path("bang/<slug:code>/mau-nhap.xlsx", _chi_bang_van_don(fb.bang_mau_nhap), name="bang_mau_nhap"),
+    path("bang/<slug:code>/nhap/<int:pk>/", _chi_bang_van_don(fb.bang_nhap_xem_truoc), name="bang_nhap_xem_truoc"),
+    path("bang/<slug:code>/nhap/<int:pk>/xac-nhan/", _chi_bang_van_don(fb.bang_nhap_xac_nhan), name="bang_nhap_xac_nhan"),
+    path("bang/<slug:code>/cap-quyen/", _chi_bang_van_don(fb.bang_cap_quyen), name="bang_cap_quyen"),
+    path("bang/<slug:code>/thu-quyen/<int:pk>/", _chi_bang_van_don(fb.bang_thu_quyen), name="bang_thu_quyen"),
     path("", include("core.urls")),
     path("", include("crm.urls")),
 ]

@@ -30,12 +30,15 @@ from orders.constants import WAYBILL_TABLE_CODE, is_waybill_table
 from orders.services import dispatch_service
 from org.models import Department
 
-from .services import grid_service, master_grid_service, tong_quan_service, tree_service
+from .services import catalog, grid_service, master_grid_service, tong_quan_service, tree_service
 
 
 def _cac_bang(user):
-    """Mọi bảng người này thấy được — thanh bên liệt kê, bảng mặc định chọn từ đây."""
-    return TableDef.objects.in_scope(user).filter(is_active=True).select_related("department").order_by("name")
+    """Bảng KN CRM phục vụ trong phạm vi người này — thanh bên liệt kê, bảng
+    mặc định chọn từ đây. Từ ADR-040 chỉ còn bảng vận đơn (`catalog.chi_van_don`)."""
+    return catalog.chi_van_don(
+        TableDef.objects.in_scope(user).filter(is_active=True)
+    ).select_related("department").order_by("name")
 
 
 def _bang(request, code):
@@ -88,18 +91,18 @@ def tong_quan(request):
 
 @login_required
 def thu_muc(request):
-    """Mục Bảng tính của KN CRM — trang thư mục: cây Bộ phận ▸ Quý ▸ Tháng ▸ bảng
-    (ADR-012, ADR-015), có sidebar; bấm một bảng mới mở lưới toàn màn hình.
+    """Mục Bảng tính của KN CRM — trang thư mục: Bộ phận ▸ thư mục ▸ bảng
+    (ADR-012, ADR-015; bỏ cấp Quý/Tháng và chỉ còn bảng vận đơn theo ADR-040),
+    có sidebar; bấm một bảng mới mở lưới toàn màn hình.
 
-    Cây chỉ dựng từ phạm vi quyền; `bp` ngoài phạm vi trả 404 có nhật ký
+    Trang chỉ dựng từ phạm vi quyền; `bp` ngoài phạm vi trả 404 có nhật ký
     (quy tắc 8), không phải trang rỗng. Không có bảng nào thì cũng 404 kèm lời.
     """
     request.nav_current = "thu_muc"
     try:
         du_lieu = tree_service.build(
             request.user,
-            bp_code=request.GET.get("bp", ""), quy_raw=request.GET.get("quy", ""),
-            thang_raw=request.GET.get("thang", ""), tat_ca=request.GET.get("tat-ca") == "1",
+            bp_code=request.GET.get("bp", ""),
         )
     except LookupError:
         record_denied(request.user, request.get_full_path(), request)
