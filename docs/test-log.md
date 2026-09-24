@@ -1,5 +1,23 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 24.09.2026 — TL-59 mở: lưới không biết khi nào vượt trần khung vẽ
+
+**TL-59 (mở, chưa quyết cách sửa):** từ AC-11.44 dòng lưới giãn cao theo nội dung, nên tổng chiều
+cao khung vẽ không còn cố định 28 px mỗi dòng. Trần chiều cao khung vẽ đo được trên Chromium trong
+container là **30.677.722 px** — thấp hơn con số 33,5 triệu thường được nhắc. Ở mức vận hành thật
+(100.000 đơn một năm, dòng nào cũng 160 px) tổng là 16 triệu px, còn 52 % dư; nhưng **300.000 dòng
+× 160 px = 48 triệu px là vượt**, mà mốc kiểm dự phòng của dự án chính là 300.000 dòng.
+
+Chỗ hỏng: **lưới không hề biết khi nào mình vượt.** Nó cứ đặt chiều cao, trình duyệt cắt lặng lẽ —
+không lỗi, không cảnh báo, người dùng chỉ thấy cuộn tới cuối mà không ra dòng cuối. Ba hướng bỏ
+ngỏ, cần chủ dự án chọn: kẹp tổng chiều cao khung vẽ, giới hạn số dòng được tự giãn, hay báo cho
+người dùng khi chạm ngưỡng.
+
+Số đo và cách đo ở [biên bản 23.09](kiem-chung-ghi-chu-tu-gian-dong-20260923.md), mục "Quy mô lớn —
+trần khung vẽ và hình học 300.000 dòng". Phân biệt với trần **2000 px của một dòng**: đó là quyết
+định riêng đã chốt, ghi ở `docs/backlog.md` 24.09 và AC-11.44. TL-59 nói về **tổng** chiều cao
+khung vẽ, không phải chiều cao một dòng.
+
 ## 24.09.2026 — Sửa định vị hai bài E2E ghi chú chặn phát hành `main`
 
 Nền `a120af5`, nhánh `claude/sua-e2e-ghi-chu`. CI run `35981282943` và lượt kiểm
