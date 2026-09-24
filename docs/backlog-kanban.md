@@ -5,8 +5,10 @@
 **Finished local:** nhánh `claude/sua-e2e-ghi-chu`; đã tái hiện hai lỗi local, sửa định vị
 theo ID/vùng nhìn. Hai file: 19 đạt/1 bỏ qua; nhóm E2E theo CI: 27 đạt/2 bỏ qua và
 1 đạt/8 bỏ qua. Cảnh báo dọn DB test đã xử lý sau khi xác nhận 0 kết nối.
-**To do:** push/PR, merge theo chỉ đạo riêng, CI `main` đạt rồi tiếp tục kế hoạch phát
-hành đã duyệt. Chưa thay đổi VPS. Xem [test-log](test-log.md).
+**Đã push:** `a6c4e9a` trên nhánh riêng. Tạo PR nháp bị GitHub từ chối
+`must be a collaborator`; GitHub CLI hiện chỉ có quyền đọc repo.
+**To do:** tạo/duyệt PR, merge theo chỉ đạo riêng, CI `main` đạt rồi tiếp tục kế hoạch
+phát hành đã duyệt. Chưa thay đổi VPS. Xem [test-log](test-log.md).
 
 ## 24.09.2026 — ADR-041: bỏ & khôi phục báo cáo cấp dưới
 

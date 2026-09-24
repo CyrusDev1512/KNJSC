@@ -49,6 +49,11 @@ chạy lại suite không trình duyệt vì chỉ đổi test/tiện ích E2E v
 của CI nền `a120af5` đã đạt. `git diff --check` đạt; không sửa workflow hoặc mã ứng
 dụng. VPS vẫn `knjsc-app:72af235-gop`, chờ merge và CI `main` trước diễn tập/phát hành.
 
+**Bàn giao:** bản sửa `a6c4e9a` đã push lên `claude/sua-e2e-ghi-chu`. `gh pr create
+--draft --base main` bị từ chối `must be a collaborator`; quyền API hiện `pull=true`,
+`push=false`. Chưa có PR và chưa merge. Tạo PR từ
+[nhánh đã push](https://github.com/CyrusDev1512/KNJSC/compare/main...claude/sua-e2e-ghi-chu?expand=1).
+
 ## 23.09.2026 — Báo cáo tổng hợp như ảnh mẫu, đợt 1
 
 **TL-54 (đóng):** liên kết phân trang của Bảng dữ liệu (liệt kê thô) chỉ mang `trang`/`moi_trang`, mất tìm kiếm
