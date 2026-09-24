@@ -14,6 +14,13 @@ trên Lịch sử. AC-4.9/4.10 mới + FR-4.7; bài cũ "chỉ người nộp b�
 
 **Đo:** biên bản [kiem-chung-xoa-khoi-phuc-bao-cao-20260924.md](kiem-chung-xoa-khoi-phuc-bao-cao-20260924.md).
 
+**Bổ sung cùng ngày — ma trận phân quyền đầy đủ (chủ dự án yêu cầu "test kĩ phân quyền
+các trường hợp").** `reports/tests/test_ma_tran_phan_quyen_bao_cao.py`: 8 hàm / 21 ca —
+13 vai × sửa/bỏ/khôi phục trên cùng một báo cáo, thêm 4 persona chưa có trong fixture
+(tài khoản khoá, không hồ sơ, CSKH, Leader không dẫn team), kiểm cả 404-ngoài-phạm-vi vs
+403-có-nhật-ký và trang Đã bỏ rỗng với Manager bộ phận khác. Chỉ dùng AC sẵn có nên
+docs/06 không đổi; **không phát hiện lỗ hổng phải vá**. Chi tiết trong biên bản trên.
+
 
 ## 19.09.2026 (đêm) — Một bài đầu-cuối đi trọn hành trình nhân viên
 

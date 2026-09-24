@@ -15,6 +15,23 @@ Chỉ local — không đụng VPS.
 | Truy vết | `tests/test_truy_vet.py` + docs/06 | 241 tiêu chí (228 tự động), 204 đã có bài — khớp |
 | Migration | không có migration mới | `makemigrations --check`: "No changes detected" |
 
+## Ma trận phân quyền đầy đủ (bổ sung cùng ngày, theo yêu cầu chủ dự án)
+
+`reports/tests/test_ma_tran_phan_quyen_bao_cao.py` — 8 hàm / 21 ca, chỉ dùng lại AC
+sẵn có (AC-3.6, 4.4, 4.8, 4.9, 4.10) nên bộ đếm docs/06 không đổi:
+
+| Kiểm gì | Kết quả |
+|---|---|
+| Ma trận sửa × bỏ × khôi phục cho **13 vai** trên cùng một báo cáo (mức service, ba hàm `can_*` phải khớp từng ô) | đạt — gồm 4 persona chưa có trong fixture chung: Leader không dẫn team, Staff CSKH, Manager CSKH, Staff Vận đơn |
+| Tài khoản khoá (`is_active=False`) | mất cả ba quyền dù cấp bậc gì, kể cả Admin/Kế toán và **chính người nộp**; qua HTTP còn bị đá về trang đăng nhập ngay từ tầng phiên (ModelBackend không trả user khoá) |
+| Bộ phận Kế toán bị xoá mềm | ngoại lệ Kế toán tắt theo (`is_accountant` kiểm bộ phận còn sống): hết sửa, hết thấy báo cáo bộ phận khác (404) |
+| Tài khoản không hồ sơ nhân sự | ba hàm `can_*` ném `NoProfileError` (PermissionDenied); mọi đường dẫn báo cáo trả **403, không 500** (AC-3.6) |
+| Người nộp bị gỡ hồ sơ sau khi nộp | ghi nhận hành vi hiện có: nhánh người-nộp của `can_withdraw` vẫn True ở mức service, nhưng qua HTTP bị 403 từ tầng xem nên không có đường bỏ thật |
+| Ngoài phạm vi xem (CSKH, Leader không team) | 404 ở xem/sửa/bỏ (không lộ tồn tại — quy tắc 8), trang Đã bỏ 403 có nhật ký |
+| Manager bộ phận khác vào trang Đã bỏ | 200 nhưng danh sách rỗng (phạm vi tự thu hẹp); khôi phục chéo bộ phận 404, báo cáo vẫn đã bỏ |
+
+Không phát hiện lỗ hổng phải vá — mọi ô ma trận đúng như ADR-041/ADR-038 chốt.
+
 ## Chromium (server dev 8020, DB `knjsc_db`, tài khoản `quantri`)
 
 Ảnh ở `docs/kiem-thu/xoa-khoi-phuc-bao-cao-2026-09-24/`:

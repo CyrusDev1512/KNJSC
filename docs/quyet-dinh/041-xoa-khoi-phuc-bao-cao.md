@@ -53,6 +53,9 @@ Chủ dự án chốt 4 điểm (hỏi–đáp 24.09):
   (lịch sử chỉnh sửa chỉ dành cho sửa nội dung).
 - Tiêu chí: **AC-4.9** (bỏ, hai chiều), **AC-4.10** (khôi phục, hai chiều); FR-4.7 mới.
   Bài cũ "chỉ người nộp mới bỏ được" viết lại theo quyền mới.
+- Ma trận phân quyền đầy đủ (13 vai × sửa/bỏ/khôi phục, kèm tài khoản khoá, không hồ
+  sơ, CSKH, Leader không dẫn team) khoá ở
+  `reports/tests/test_ma_tran_phan_quyen_bao_cao.py` — chủ dự án yêu cầu cùng ngày.
 
 ## Không đổi
 
