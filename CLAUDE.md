@@ -1,8 +1,10 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 23.09.2026 (ADR-042 Báo cáo tổng hợp như ảnh mẫu, Bảng dữ liệu dạng báo cáo); 19.09 (quy tắc nhánh: không đẩy thẳng lên nhánh đang chạy trên VPS, mỗi việc một
-> nhánh `claude/<tên-việc>` và một PR nháp); lần trước 18.09 (ADR-036 một bảng vận đơn, ADR-037 mã
-> nhân sự, ADR-038 báo cáo Marketing, ADR-031 bổ sung bảy thị trường).
+> Cập nhật 24.09.2026 (`main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
+> chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
+> giãn, cột sản phẩm ẩn mặc định, K24); 23.09 (ADR-042 Báo cáo tổng hợp như ảnh mẫu);
+> 19.09 (quy tắc nhánh: không đẩy thẳng lên nhánh đang chạy trên VPS, mỗi việc một
+> nhánh `claude/<tên-việc>` và một PR nháp).
 
 Đọc file này trước khi sửa bất kỳ mã nguồn nào trong dự án.
 
@@ -32,16 +34,20 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
 
 ### Nhánh và nơi mã đang chạy
 
-- **Nhánh đang chạy trên VPS là `codex/crm-update-solar-ui`**, không phải `main`. `main`
-  dừng ở 08.09 và tụt sau khoảng 50 commit; VPS và máy chủ dự án chạy từ nhánh codex.
-  VPS hiện là môi trường thử nghiệm, chưa có khách. Sắp tới `main` sẽ được fast-forward
-  lên bằng nhánh này và VPS chuyển sang chạy `main`; khi đó **chỉ cần đổi tên nhánh ở
-  mục này**, mọi quy tắc dưới đây giữ nguyên.
-- **Không đẩy thẳng lên nhánh đang chạy trên VPS**, kể cả sửa nhỏ hay chỉ sửa tài liệu
-  (chốt 19.09.2026).
-- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ nhánh đang chạy, làm,
-  commit, push, **mở PR nháp trỏ về nhánh đang chạy**, rồi báo lại kèm liên kết. Không tự
-  gộp; chỉ gộp khi chủ dự án bảo rõ.
+- **Nhánh chuẩn là `main`** (từ 24.09.2026): `main` đã fast-forward bằng
+  `codex/crm-update-solar-ui`, hai nhánh trùng nhau tại `ddb9b64` (trọn 11 PR gộp 24.09).
+  Máy chủ dự án có thể còn đứng ở nhánh codex cho tới khi Codex `checkout main` — nội
+  dung y hệt nên phát hành từ nhánh nào cũng ra cùng image; chuyển xong thì mọi phát
+  hành đi từ `main`. VPS hiện là môi trường thử nghiệm, chưa có khách.
+- Dự kiến đã bàn 24.09: `codex/crm-update-solar-ui` sẽ **đổi tên thành `staging`** làm
+  nhánh gom code chạy thử trước khi vào `main` (đổi tên bằng nút Rename trên GitHub,
+  chưa làm). Hai nhánh lưu trữ `CRM-UPDATE` và `codex/ui-solarpunk` đóng băng, giữ đến
+  cuối, có tag `luu-tru/*` đóng dấu.
+- **Không đẩy thẳng lên `main`** (và cả nhánh codex khi nó còn), kể cả sửa nhỏ hay chỉ
+  sửa tài liệu (chốt 19.09.2026, giữ nguyên khi đổi sang `main`).
+- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ `main`, làm, commit,
+  push, **mở PR nháp trỏ về `main`** (khi `staging` hoạt động thì trỏ về `staging`),
+  rồi báo lại kèm liên kết. Không tự gộp; chỉ gộp khi chủ dự án bảo rõ.
 - **Mỗi phiên một việc một nhánh.** Bốn phiên KNCRM, KNERP, KNGUARD và Batch file không
   dùng chung nhánh; hai phiên cùng đẩy lên một nhánh là giẫm lên nhau.
 - **VPS thật** (2 nhân, 4 GB): `deploy/production/compose.yml`, nginx trước hai
