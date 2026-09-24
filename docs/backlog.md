@@ -140,6 +140,28 @@ nguyên chữ gõ. AC-11.5 sửa lời, AC-36.8 mới (3 bài).
 **Đo:** suite 2.530 đạt / 0 đỏ; backfill 120 nghìn dòng 112 s — biên bản
 [kiem-chung-khoa-trung-sdt-20260922.md](kiem-chung-khoa-trung-sdt-20260922.md).
 
+## 22.09.2026 (tối) — Cắt ba lượt hỏi thừa mỗi trang, đóng K24
+
+**Nợ cũ.** Hai bài `tests/test_hieu_nang.py` mang `xfail`: thời gian đạt nhưng đếm 12 lệnh truy vấn, ngân sách
+10 (K24). Món 5 trong bảng nợ kỹ thuật.
+
+**Tìm bằng cách nào.** Bọc `connection.execute_wrapper` in ngăn xếp Python của từng truy vấn — không đoán.
+
+**Ba lượt thừa:** `/bang-tinh/` hỏi phạm vi quyền **ba lần** cho cùng một bảng; `user.profile` nạp lười ở mọi
+yêu cầu; `user.profile.department` nạp lười thêm lượt nữa qua `is_accountant`. Hai cái sau trả ở **mọi trang**,
+không riêng lưới.
+
+**Sửa.** `bang_tinh_xem` hỏi một lượt rồi tự phân nhánh (404 / chuyển Lên đơn cho Sale / `OutOfScopeError`);
+`CaseInsensitiveModelBackend.get_user` lấy kèm `profile__department` và `profile__team`. Bài đo thêm một lượt
+làm nóng vì yêu cầu đầu sau đăng nhập ghi `last_seen_at` vào phiên — giá của lần đăng nhập, không phải giá màn
+hình. **Ngân sách giữ nguyên 10, không nới.**
+
+**Đo:** Bảng dữ liệu ERP 11 → **9**; lưới CRM 13 → **9**; `?trung=1` 13 → **9**. Toàn bộ `-m "not trinh_duyet"`
+gồm cả `cham`: 2.549 bài, 0 đỏ. [Biên bản](kiem-chung-ngan-sach-truy-van-20260922.md).
+
+**Đính chính tài liệu:** `docs/handoff/project-brief.md` ghi hai chỗ `xfail`; thực tế chỉ còn một (K24), K23
+không còn trong mã. Nay hết cả cái đó.
+
 ## 22.09.2026 — Gom p95 thật của KN CRM từ log VPS
 
 **Phát hiện đổi hẳn cách làm.** Tưởng phải dựng đo mới trên VPS, nhưng

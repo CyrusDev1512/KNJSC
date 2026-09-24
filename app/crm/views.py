@@ -47,16 +47,21 @@ def _bang(request, code):
     return get_object_or_404(_cac_bang(request.user), code=code)
 
 
-def _ma_bang_mac_dinh(user):
+def _bang_mac_dinh(user):
     """`/bang-tinh/` mở bảng vận đơn nếu người này thấy nó, không thì bảng đầu
-    tiên trong phạm vi; không có bảng nào thì 404 kèm lời giải thích."""
-    cac = _cac_bang(user)
-    if cac.filter(code=WAYBILL_TABLE_CODE).exists():
-        return WAYBILL_TABLE_CODE
-    dau = cac.first()
+    tiên trong phạm vi; không có bảng nào thì 404 kèm lời giải thích.
+
+    Trả về **chính bảng** chứ không phải mã: người gọi cần đối tượng, và tra lại
+    theo mã là thêm một lượt hỏi phạm vi quyền y hệt lượt vừa chạy (K24). Một
+    truy vấn LIMIT 1, xếp bảng vận đơn lên trước — không kéo cả phạm vi về bộ nhớ."""
+    from django.db.models import Case, When
+
+    dau = (_cac_bang(user)
+           .order_by(Case(When(code=WAYBILL_TABLE_CODE, then=0), default=1), "name")
+           .first())
     if dau is None:
         raise Http404("Chưa có bảng nào trong phạm vi của bạn.")
-    return dau.code
+    return dau
 
 
 def _qs_khac(params, bo_khoa=()):
@@ -169,18 +174,31 @@ def cap_quyen(request):
 @login_required
 def bang_tinh(request):
     """Bảng tính mặc định — bảng vận đơn, hoặc bảng đầu tiên trong phạm vi."""
-    return bang_tinh_xem(request, _ma_bang_mac_dinh(request.user))
+    return _luoi(request, _bang_mac_dinh(request.user))
 
 
 @login_required
 def bang_tinh_xem(request, code):
     """Lưới một bảng: lọc theo cột, sắp xếp, phân trang 100 dòng, sửa ô tại chỗ,
-    dòng trống để thêm, thanh lọc bên trái, thanh công cụ."""
-    if code == WAYBILL_TABLE_CODE and not _cac_bang(request.user).filter(code=code).exists():
+    dòng trống để thêm, thanh lọc bên trái, thanh công cụ.
+
+    Một lượt hỏi phạm vi quyền duy nhất (K24). Trước đây đường `/bang-tinh/` chạy
+    **ba** lượt cho cùng một bảng: `exists()` chọn bảng mặc định, `exists()` kiểm
+    riêng bảng vận đơn, rồi `get_object_or_404` lấy bảng. `nav_current` do `_luoi`
+    đặt — các nhánh từ chối không vẽ thanh điều hướng."""
+    bang = _cac_bang(request.user).filter(code=code).first()
+    if bang is None:
+        if code != WAYBILL_TABLE_CODE:
+            raise Http404("Bảng này không có trong phạm vi của bạn.")
+        # Sale không thấy bảng vận đơn nhưng vẫn lên đơn được (ADR-023)
         if in_departments(request.user, SALES_ONLY):
             return redirect("waybill_create")
         raise OutOfScopeError("Bạn không có quyền xem bảng Vận đơn.")
-    bang = _bang(request, code)
+    return _luoi(request, bang)
+
+
+def _luoi(request, bang):
+    request.nav_current = "bang_tinh"
     from .master_views import shell
     return shell(request, bang)
 

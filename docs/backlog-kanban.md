@@ -30,6 +30,11 @@ bị bỏ lặng lẽ; chip cảnh báo KN CRM, dòng nhắc KN ERP, tệp xuấ
 **To do:** chủ dự án xem PR; quyết riêng việc tra khách ở Lên đơn có theo khoá không.
 **Far plan:** món 2 — chip nhắc khi lọc theo cột ẩn.
 
+## 22.09.2026 (tối) — Nợ kỹ thuật đợt 2
+
+**Finished local:** K24 đóng, cắt ba lượt hỏi thừa mỗi trang (ERP 11→9, CRM 13→9).
+**To do:** chủ dự án xem PR. **Far plan:** đo lại trên VPS dưới tải nhiều người (nhánh KNGUARD).
+
 ## 22.09.2026 — Bộ gom p95 thật của KN CRM từ log VPS
 
 **Finished local:** `scripts/gom-p95-vps.py` + `app/tests/test_gom_p95.py` (13 bài đạt) — số đo đã nằm sẵn trên

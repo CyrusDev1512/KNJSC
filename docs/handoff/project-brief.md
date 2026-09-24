@@ -357,7 +357,7 @@ nhánh cũ không mất gì, nhưng hãy hỏi chủ dự án trước.
 | 1 | **Không có CI** — không gì chạy kiểm thử khi đẩy mã | Chốt chưa dựng vì còn ngỏ ai vận hành sau bàn giao (backlog V2) |
 | 2 | Kiểm tải mới chạy trên máy phát triển, chưa trên VPS thật | VPS 2 nhân 4 GB nhỏ hơn máy đo nhiều |
 | 3 | Bài Playwright và bài 50.000 dòng không chạy trong container `web` | Image không có Chromium; chạy trên máy phát triển |
-| 4 | Hai bài đánh dấu `xfail` | K23 hộp lọc cột trong Playwright; K24 ngân sách 10 truy vấn, thực tế đếm 12–13 |
+| 4 | ~~Hai bài đánh dấu `xfail`~~ **Hết `xfail` từ 22.09** | K23 đã biến khỏi mã từ trước (tài liệu này từng ghi thừa); K24 đóng 22.09 — cắt ba lượt hỏi thừa, hai màn hình còn 9 lệnh, ngân sách 10 giữ nguyên ([biên bản](../kiem-chung-ngan-sach-truy-van-20260922.md)) |
 | 5 | Chưa kiểm khả năng đọc màn hình cho người khiếm thị | Chưa ai nêu yêu cầu |
 | 6 | Cờ tối ưu `CRM_OPT_*` **tắt** ở mọi nơi kể cả VPS | READ/SYNC gây lỗi mở editor; không bật khi chưa có biên bản kiểm chứng |
 | 7 | `PRODUCT.md` ghi hướng thiết kế Google Workspace (07.09), `DESIGN.md` ghi Solarpunk Office (ADR-028) | Hai bên chưa hợp nhất — hỏi trước khi đổi diện mạo |

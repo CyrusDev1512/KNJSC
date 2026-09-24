@@ -12,6 +12,12 @@ KN ERP dòng nhắc cạnh Xoá lọc; tệp Excel xuất theo đúng bộ lọc
 **TL-36 (đóng):** cột Trùng so theo khoá 9 số cuối (`val_phone_key`), không so chuỗi đúng như gõ nữa;
 `+1 (416) 555-0123` và `4165550123` đếm là một khách. Ô hiển thị không đổi. AC-11.5 + AC-36.8.
 
+## 22.09.2026 (tối) — K24 đóng
+
+**K24 (đóng):** hai bài đo hiệu năng bỏ được dấu `xfail`. Cắt ba lượt hỏi thừa mỗi trang — phạm vi quyền hỏi ba
+lần cho cùng một bảng, hồ sơ nhân sự và bộ phận nạp lười. Cả hai màn hình còn 9 lệnh, ngân sách 10 giữ nguyên.
+Toàn bộ `-m "not trinh_duyet"`: 2.549 bài, 0 đỏ, 7 bỏ qua.
+
 ## 22.09.2026 (chiều) — Xoá dữ liệu giả theo lô
 
 **TL-43 (đóng phần hậu quả):** xoá dòng giả không còn treo im lặng — một đường dùng chung
