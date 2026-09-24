@@ -1,16 +1,34 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 24.09.2026 — Ngày lên đầu bảng Vận đơn mới
+
+**Finished local (nhánh `claude/ngay-len-dau-bang-van-don`, PR nháp):** Ngày (lên đơn) là cột
+dữ liệu đầu tiên, nhóm ghim 5 cột; Ngày thanh toán giữ nguyên. **To do:** chủ dự án duyệt PR, phát hành VPS.
+
 ## 22.09.2026 (đêm) — Nợ kỹ thuật đợt 3
 
 **Finished local:** khoá so trùng số điện thoại (TL-36, AC-36.8, migration 0016).
 **To do:** chủ dự án xem PR; quyết riêng việc tra khách ở Lên đơn có theo khoá không.
 **Far plan:** món 2 — chip nhắc khi lọc theo cột ẩn.
 
+## 22.09.2026 — Bộ gom p95 thật của KN CRM từ log VPS
+
+**Finished local:** `scripts/gom-p95-vps.py` + `app/tests/test_gom_p95.py` (13 bài đạt) — số đo đã nằm sẵn trên
+VPS vì `CRM_REQUEST_METRICS` bật từ đầu, nên chỉ cần gom: ba nhóm theo ngưỡng ADR-016, p50/p95/p99, mười tuyến
+chậm nhất kèm `db_ms` và số truy vấn, mã thoát 0/1/2. Chỉ đọc log, không chạm dữ liệu.
+**To do (người có SSH):** chạy `--since 7d --json` trên VPS rồi điền vào [biên bản](kiem-chung-gom-p95-vps-20260922.md).
+Tới giờ **vẫn chưa có con số p95 thật nào** — bộ gom mới là nửa việc.
+**Far plan:** cắm vào cron hằng tuần; đặt `logging:` xoay vòng cho `compose.yml` **sau khi** đã gom xong lịch sử.
+
+## 22.09.2026 (chiều) — Nợ kỹ thuật đợt 1
+
+**Finished local:** xoá dữ liệu giả theo lô, có hạn chờ khoá và tiến độ (TL-43, AC-10.10).
+**To do:** chủ dự án xem PR. **Far plan:** nguyên nhân gốc lần treo 17 phút.
 ## 19.09.2026 (đêm) — Bài đầu-cuối hành trình nhân viên
 
 **Finished local:** `tests/e2e/test_hanh_trinh_nhan_vien.py` — một lượt qua lưới, hộp lọc cột, đổi vai, lên đơn,
 lời nhắc khách; đã thử đưa lỗi trở lại hai lần đều đỏ.
-**To do:** phát hành VPS. **Far plan:** thu gọn panel "Bộ lọc"; xem lại ngưỡng 50; gom p95 từ log VPS.
+**To do:** phát hành VPS. **Far plan:** thu gọn panel "Bộ lọc"; xem lại ngưỡng 50; ~~gom p95 từ log VPS~~ (bộ gom xong 22.09, mục trên).
 ## 19.09.2026 (18:47) — Phát hành gộp ADR-039 + Báo cáo tổng hợp + TL-46/47 + lọc cột lên VPS
 
 **Finished VPS (18:44 19.09):** image `knjsc-app:72af235-gop` trên 5 service; backup kiểm phục hồi; migration `forms_builder 0015`;

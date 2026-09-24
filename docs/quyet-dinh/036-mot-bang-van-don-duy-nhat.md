@@ -101,3 +101,15 @@ nhân viên gõ.**
 
 **Không đổi:** tra khách ở Lên đơn (`Customer.phone`) vẫn so đúng như gõ — đổi cách nhận
 diện khách là đổi nghiệp vụ, chờ chủ dự án quyết riêng (câu hỏi mở ghi trong PR).
+
+## Bổ sung 24.09.2026 — Ngày (lên đơn) đứng đầu bảng
+
+Khi gộp một bảng (18.09), "thứ tự chuẩn" lấy theo `waybill_service.COLUMNS` của crmThuận
+(Mã đơn đứng đầu) và **bỏ mất thứ tự tệp thật** (`dispatch_service.GRID_ORDER`, Ngày đứng
+đầu) mà bảng Vận đơn cũ và Vận đơn DB đang hiển thị — hệ quả nhìn thấy được này không
+được ghi trong ADR, chủ dự án phát hiện trên VPS.
+
+Chủ dự án chốt 24.09: **Ngày (lên đơn) đứng đầu bảng; Ngày thanh toán giữ nguyên chỗ**
+trong nhóm thanh toán. Sửa: đưa `ngay` lên đầu `COLUMNS` (mọi lưới, tệp Excel xuất theo);
+nhóm ghim thành Trùng · Ngày · Mã đơn · Tên khách · SĐT (`grid_column` thêm `ngay`).
+Không migration — thứ tự hiển thị sắp theo `COLUMNS`, không theo cột lưu trong DB.

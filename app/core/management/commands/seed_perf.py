@@ -262,24 +262,77 @@ def run_sale(*, n=SALE_TABLE_ROWS, actor=None, batch=1000, on_progress=None, mon
                 actor=actor, batch=batch, on_progress=on_progress)
 
 
-def clear():
-    """Xoá cứng dòng giả — chúng không phải dữ liệu nghiệp vụ, không cần giữ dấu.
-    Bảng Sale đo tải giữ lại (rỗng) để cột tính sẵn còn đó cho lần nạp sau."""
-    from orders.constants import WAYBILL_TABLE_CODE
+#: Số dòng xoá mỗi lượt. Nhỏ thì nhiều lượt, to thì khoá bảng lâu — 2.000 là mức
+#: giữ mỗi lượt dưới một giây trên máy đo, cùng cỡ `DataRecord.bulk_save`.
+DELETE_BATCH_SIZE = 2_000
+#: Hạn chờ khoá của mỗi lượt xoá. Quá hạn thì Postgres **báo lỗi thay vì treo** —
+#: TL-43 từng thấy một lượt `DELETE` 50.000 dòng đứng hơn 17 phút, nhìn như máy
+#: chết. Chờ 30 giây không lấy được khoá nghĩa là có việc khác đang giữ bảng,
+#: và người chạy cần biết điều đó chứ không phải ngồi đợi.
+DELETE_LOCK_TIMEOUT_MS = 30_000
+
+
+def delete_fake_records(ds, *, on_progress=None):
+    """Xoá cứng **theo lô** các dòng giả của một queryset `DataRecord`, kèm chi tiết
+    sản phẩm và phân công của chúng — đường xoá dùng chung cho `seed_perf` lẫn
+    `nap_khach_mau` (TL-43), để không lệnh nào còn xoá trăm nghìn dòng một phát.
+
+    * Chụp danh sách pk **một lần** rồi cắt lô trong bộ nhớ: bộ lọc
+      `data__ma_don__startswith` không có chỉ mục, để nó chạy lại mỗi lô là mỗi lô
+      một lượt quét bảng. Dòng giả nạp thêm trong lúc đang xoá thuộc lần dọn sau.
+    * Mỗi lô một giao dịch riêng có `lock_timeout` trên **đúng** database của
+      queryset — quá hạn thì lỗi nổi lên kèm số đã xoá, không treo câm.
+    * `on_progress(đã_xoá, tổng)` sau mỗi lô.
+    """
+    from django.db import connections, transaction
+    from django.db.utils import OperationalError
 
     from orders.models import WaybillAssignment, WaybillItem
 
-    so = 0
+    alias = ds.db
+    pks = list(ds.order_by("pk").values_list("pk", flat=True))
+    da_xoa = 0
+    for i in range(0, len(pks), DELETE_BATCH_SIZE):
+        lo = pks[i:i + DELETE_BATCH_SIZE]
+        try:
+            with transaction.atomic(using=alias):
+                with connections[alias].cursor() as c:
+                    c.execute("SET LOCAL lock_timeout = %s", [f"{DELETE_LOCK_TIMEOUT_MS}ms"])
+                # Con phải xoá trước cha: hai bảng này trỏ tới bản ghi bằng khoá ngoại
+                for phu in (WaybillItem._base_manager.filter(record_id__in=lo),
+                            WaybillAssignment.objects.filter(record_id__in=lo)):
+                    phu._raw_delete(alias)
+                DataRecord.all_objects.filter(pk__in=lo)._raw_delete(alias)
+        except OperationalError as loi:
+            raise OperationalError(
+                f"Xoá dở dang: được {da_xoa}/{len(pks)} dòng thì hết hạn chờ khoá "
+                f"({DELETE_LOCK_TIMEOUT_MS} ms) — có việc khác đang giữ bảng. "
+                "Chạy lại lệnh sau khi việc đó xong sẽ xoá nốt phần còn lại.") from loi
+        da_xoa += len(lo)
+        if on_progress:
+            on_progress(da_xoa, len(pks))
+    return da_xoa
+
+
+def clear(on_progress=None):
+    """Xoá cứng dòng giả — chúng không phải dữ liệu nghiệp vụ, không cần giữ dấu.
+    Bảng Sale đo tải giữ lại (rỗng) để cột tính sẵn còn đó cho lần nạp sau.
+
+    Hai bộ dòng đi qua `delete_fake_records`; `on_progress` nhận số **cộng dồn**
+    qua cả hai bộ nên con số chỉ tăng, không nhảy lùi giữa chừng.
+    """
+    from orders.constants import WAYBILL_TABLE_CODE
+
+    tong = 0
     for ds in (
         DataRecord.all_objects.filter(table__code=WAYBILL_TABLE_CODE, data__ma_don__startswith=PERF_PREFIX),
         DataRecord.all_objects.filter(table__code=SALE_TABLE_CODE),
     ):
-        so += ds.count()
-        for phu in (WaybillItem._base_manager.filter(record__in=ds.values("pk")),
-                    WaybillAssignment.objects.filter(record__in=ds.values("pk"))):
-            phu._raw_delete(phu.db)
-        ds._raw_delete(ds.db)
-    return so
+        goc = tong
+        bao = None if on_progress is None else (
+            lambda da, tong_bo, _goc=goc: on_progress(_goc + da, _goc + tong_bo))
+        tong += delete_fake_records(ds, on_progress=bao)
+    return tong
 
 
 def stats(table):
@@ -333,7 +386,11 @@ class Command(BaseCommand):
         from orders.services import dispatch_service
 
         if o["xoa_cu"]:
-            self.stdout.write(f"Đã xoá {clear()} dòng giả cũ.")
+            # Xoá theo lô nên có tiến độ; màn hình câm 17 phút là cách TL-43 làm
+            # người chạy tưởng máy chết
+            tien_do_xoa = lambda da, tong: self.stdout.write(  # noqa: E731
+                f"  đã xoá {da}/{tong} dòng…", ending="\r")
+            self.stdout.write(f"\nĐã xoá {clear(on_progress=tien_do_xoa)} dòng giả cũ.")
         ho_so = UserProfile.objects.filter(rank="admin").select_related("user").first()
         if ho_so is None:
             raise CommandError("Chưa có tài khoản quản trị — chạy `manage.py du_lieu_mau` trước.")
