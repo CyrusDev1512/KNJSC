@@ -1,7 +1,7 @@
 """Dữ liệu trình bày tab Tài liệu; tái sử dụng service và phạm vi hiện có."""
 from django.http import Http404
 from core.constants import Rank
-from core.permissions import has_rank, is_admin
+from core.permissions import can_manage_business, is_admin
 from core.pagination import filter_query, pagination_context
 from org.models import Department
 from .services import document_service
@@ -39,8 +39,8 @@ def document_list_context(request):
     boi_canh.update({
         "cac_muc": cac_muc, "muc_hien": muc_hien, "tim": tim, "qs_loc": qs_loc,
         "tong_tai_lieu": sum(m.so_tai_lieu for m in cac_muc),
-        "duoc_tai_len": has_rank(request.user, Rank.MANAGER),
-        "cac_bo_phan_muc": _bo_phan_tao_muc(request.user) if has_rank(request.user, Rank.MANAGER) else [],
+        "duoc_tai_len": can_manage_business(request.user, Rank.MANAGER),
+        "cac_bo_phan_muc": _bo_phan_tao_muc(request.user) if can_manage_business(request.user, Rank.MANAGER) else [],
         "la_admin": is_admin(request.user),
         "cac_dong": [
             (doc, document_service.can_manage_document(request.user, doc))

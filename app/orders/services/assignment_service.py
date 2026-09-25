@@ -72,7 +72,7 @@ def label(user):
 
 
 def candidates(field):
-    return get_user_model().objects.filter(is_active=True,
+    return get_user_model().objects.filter(is_active=True, profile__deleted_at__isnull=True,
         profile__department__code__in=FIELDS[field]).filter(
         Q(profile__locked_until__isnull=True) | Q(profile__locked_until__lte=timezone.now())
     ).select_related('profile').order_by('profile__staff_code', 'username')

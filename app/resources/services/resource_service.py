@@ -15,7 +15,7 @@ from core.audit import record
 from core.constants import LINK_SCHEMES, AuditAction, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.identity import display_name
-from core.permissions import has_rank
+from core.permissions import can_manage_business
 
 from ..constants import (
     DEFAULT_CATEGORIES, LINK_MAX, NAME_MAX, NOTE_MAX, RESOURCE_FIELD_LABELS, SECRET_STRONG,
@@ -28,7 +28,7 @@ from ..models import Resource, ResourceCategory
 
 def can_manage(user):
     """Manager trở lên thêm, sửa, gỡ tài nguyên và thêm mục — FR-13.1, FR-13.3."""
-    return has_rank(user, Rank.MANAGER)
+    return can_manage_business(user, Rank.MANAGER)
 
 
 def _phai_la_quan_ly(actor):
@@ -53,7 +53,7 @@ def holders(include=None):
     """Ai giữ được tài nguyên: mọi tài khoản đang hoạt động có hồ sơ. `include`
     là mã người giữ hiện tại — đã khoá vẫn phải hiện trong ô chọn khi sửa, không
     thì bấm Lưu là lặng lẽ mất người giữ."""
-    dk = Q(is_active=True, profile__isnull=False)
+    dk = Q(is_active=True, profile__isnull=False, profile__deleted_at__isnull=True)
     if include:
         dk |= Q(pk=include)
     return (

@@ -141,7 +141,8 @@ def test_nguoi_nop_mat_ho_so_van_giu_nhanh_nguoi_nop(bm_sale, nguoi_dung, User):
     `can_restore` ném NoProfileError; qua HTTP người này vẫn bị 403 từ tầng xem
     nên không có đường bỏ thật — chốt lại để đổi hành vi là đổi có chủ đích"""
     bc = _nop(bm_sale, nguoi_dung["staff_sale_1"])
-    nguoi_dung["staff_sale_1"].profile.delete()
+    # Mô phỏng hồ sơ mồ côi lịch sử; delete() nay là luồng xóa mềm có kiểm quyền.
+    nguoi_dung["staff_sale_1"].profile.hard_delete()
     chu = User.objects.get(pk=nguoi_dung["staff_sale_1"].pk)
     assert daily_service.can_withdraw(chu, bc) is True
     with pytest.raises(NoProfileError):

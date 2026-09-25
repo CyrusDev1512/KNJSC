@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block tieu_de %}Xóa tài khoản · Kim Ngân JSC{% endblock %}
+{% block ten_trang %}Xóa tài khoản{% endblock %}
+{% block noi_dung %}
+<section class="the" style="max-width:640px">
+  <div class="the-than">
+    <h1>Xóa tài khoản</h1>
+    <p><strong>{{ ho_so.staff_code }} · {{ ho_so.full_name|default:ho_so.user.username }}</strong></p>
+    <p>Tên đăng nhập: {{ ho_so.user.username }}</p>
+    <p>Tài khoản sẽ không thể đăng nhập và các phiên đang mở sẽ mất hiệu lực. Đơn hàng, báo cáo, phân công và nhật ký lịch sử vẫn được giữ nguyên. Mã nhân sự và tên đăng nhập không được dùng lại.</p>
+    <form method="post">
+      {% csrf_token %}
+      <label><input type="checkbox" name="confirm" value="yes" required> Tôi xác nhận xóa tài khoản này.</label>
+      <div class="hanh-dong" style="margin-top:var(--sp-4)">
+        <a class="nut" href="{% url 'nhan_su' %}">Hủy</a>
+        <button class="nut nut-nguy" type="submit">Xác nhận xóa</button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

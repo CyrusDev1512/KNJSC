@@ -1,5 +1,15 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 25.09.2026 — Quản lý tài khoản theo cấp bậc
+
+**Finished local:** CEO và tách quyền đọc toàn công ty/Admin; Sửa có form mật khẩu
+riêng; Xóa mềm có xác nhận; bảo vệ phiên/lịch sử; ma trận server và Chrome 1440/390.
+**Kiểm chứng:** toàn suite 2.770 đạt/49 bỏ qua; Chrome 8/8 luồng; nhóm tài khoản
+58/58 đạt, giữ trần 10 truy vấn. Bàn giao PR nháp trên nhánh riêng theo ADR-044.
+**To do:** chủ dự án duyệt PR; chưa merge hoặc phát hành VPS. **Far plan:** giao diện
+khôi phục tài khoản (chưa được yêu cầu).
+[Kiểm chứng](kiem-chung-quan-ly-tai-khoan-20260925.md).
+
 ## 24.09.2026 — Form Nộp báo cáo ngày (ADR-043)
 
 **Finished local:** dropdown Team ghi vào dòng và báo cáo; Số Mess, CPQC, Số đơn, Doanh số bắt buộc (MKT và Sale);

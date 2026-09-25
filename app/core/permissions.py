@@ -29,6 +29,20 @@ def is_admin(user):
     return get_rank(user) == Rank.ADMIN
 
 
+def is_company_reader(user):
+    """CEO có phạm vi đọc toàn công ty, không kế thừa quyền ghi của quản lý."""
+    return get_rank(user) == Rank.CEO
+
+
+def can_manage_business(user, minimum=Rank.MANAGER):
+    return not is_company_reader(user) and has_rank(user, minimum)
+
+
+def assert_business_write(user):
+    if is_company_reader(user):
+        raise OutOfScopeError("Giám đốc có quyền xem; không có quyền sửa nghiệp vụ này.")
+
+
 def in_department(user, department_id):
     """Người này có thuộc bộ phận đó không. Admin thì luôn đúng."""
     scope = get_user_scope(user)

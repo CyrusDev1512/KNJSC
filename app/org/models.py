@@ -77,7 +77,7 @@ class Team(TimestampedModel, SoftDeleteModel):
         return f"{self.name}"
 
 
-class UserProfile(TimestampedModel):
+class UserProfile(TimestampedModel, SoftDeleteModel):
     """Hồ sơ nhân sự gắn với một tài khoản đăng nhập.
 
     Tách khỏi bảng tài khoản để mật khẩu và thông tin nhân sự không nằm
@@ -123,11 +123,14 @@ class UserProfile(TimestampedModel):
     session_epoch = models.PositiveIntegerField("Mốc phiên", default=0)
 
     objects = ProfileManager()
+    # Liên kết user.profile và lịch sử phải đọc được hồ sơ đã xóa.
+    all_objects = ProfileManager()
 
     class Meta:
         verbose_name = "Hồ sơ nhân sự"
         verbose_name_plural = "Hồ sơ nhân sự"
         ordering = ["full_name"]
+        base_manager_name = "all_objects"
         constraints = [
             # Mã duy nhất khi đã gán; hồ sơ cũ chưa gán (rỗng) không chặn nhau
             models.UniqueConstraint(
@@ -147,6 +150,12 @@ class UserProfile(TimestampedModel):
 
     def __str__(self):
         return self.full_name or self.user.get_username()
+
+    def delete(self, using=None, keep_parents=False, by=None):
+        if by is None:
+            raise BusinessError("Xóa tài khoản phải có người thực hiện và kiểm quyền.")
+        from .services.account_management import delete_account
+        return delete_account(self.pk, actor=by)
 
     # ── Giao ước với core.scope ────────────────────────────────────
     def scope_team_ids(self):

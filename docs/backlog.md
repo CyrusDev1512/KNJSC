@@ -1,5 +1,26 @@
 # Backlog
 
+## 25.09.2026 — CEO, đặt lại mật khẩu và xóa tài khoản theo cấp bậc (ADR-044)
+
+Triển khai trên `claude/phan-quyen-mat-khau-xoa-tai-khoan` từ main `a23573d`,
+checkout riêng. Ma trận quản lý tài khoản ở một service: Leader → Staff trong
+team, Manager → Leader/Staff trong phòng ban, CEO → cấp dưới toàn công ty,
+Admin → tài khoản khác. Sửa hồ sơ/tạo/khóa vẫn chỉ Admin. Xóa mềm giữ mã,
+liên kết lịch sử; chặn đăng nhập/đặt lại/mở khóa tài khoản đã xóa.
+
+CEO có phạm vi đọc toàn công ty; đã tách khỏi quyền Admin và rà các quyền ghi
+báo cáo/lưới/cấu hình/tiền/phân công. Migration mới 0006; không đổi tài khoản cũ.
+Chrome 1440/390 đã qua 8 luồng quản lý cùng Staff bị từ chối. Kiểm đồng thời,
+migration xuôi/ngược và kiểm ngân sách 10 truy vấn có bài riêng.
+
+**Trạng thái:** hoàn thành local; toàn suite 2.770 đạt/49 bỏ qua, Chrome 8/8 luồng
+đạt; nhóm tài khoản sau rà soát 58/58 đạt. Bàn giao bằng PR nháp; chưa merge/VPS.
+[Quyết định](quyet-dinh/044-ceo-va-quan-ly-tai-khoan.md) ·
+[Biên bản kiểm chứng](kiem-chung-quan-ly-tai-khoan-20260925.md).
+
+**Chưa làm:** giao diện khôi phục tài khoản. Đảo migration mất dấu xóa nên
+không dùng để quay lui dữ liệu vận hành.
+
 ## 24.09.2026 — Form Nộp báo cáo ngày: chọn Team, bốn trường bắt buộc, bỏ Hóa đơn, bố cục ngang (ADR-043)
 
 **Vì sao.** Chủ dự án xem thử nhánh ADR-042 trên local và góp ý ngay ở màn Nộp báo cáo ngày: chọn Team bằng

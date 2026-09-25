@@ -7,6 +7,7 @@ Quyết định 16/09/2026 thay thế khóa tuyệt đối: nhân viên không s
 nộp; Leader/Manager/Admin sửa qua amend, kiểm phạm vi và ghi lịch sử.
 Ngày, chủ sở hữu và thời điểm nộp của DailyReport vẫn bất biến.
 """
+from core.permissions import is_company_reader
 from django.db import transaction
 
 from core.audit import record
@@ -85,6 +86,8 @@ def resolve_team(form, team_id):
 
 def can_amend(user, report):
     """Admin; Manager trong bộ phận; Leader trong team; Kế toán mọi bộ phận (ADR-038)."""
+    if is_company_reader(user):
+        return False
     from core.constants import Rank
     from core.scope import get_user_scope
     from org.services.org_service import is_accountant
@@ -102,6 +105,8 @@ def can_withdraw(user, report):
     Kế toán **không** bỏ được báo cáo người khác (giữ đúng ADR-038): sửa số là
     việc của Kế toán, quyết bỏ hẳn một báo cáo là việc của người quản lý trực tiếp.
     """
+    if is_company_reader(user):
+        return False
     from core.constants import Rank
     from core.scope import get_user_scope
     if not user.is_active:
@@ -117,6 +122,8 @@ def can_withdraw(user, report):
 def can_restore(user, report_or_none=None):
     """Manager trong bộ phận mình và Admin — ADR-041. Gọi không kèm báo cáo thì
     trả quyền vào trang "Đã bỏ" (danh sách tự thu hẹp theo `in_scope`)."""
+    if is_company_reader(user):
+        return False
     from core.constants import Rank
     from core.scope import get_user_scope
     if not user.is_active:

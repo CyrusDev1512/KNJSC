@@ -8,6 +8,7 @@ liệu nằm trong `DataRecord.data`, khoá là tên kỹ thuật của **cột 
 phải của trường biểu mẫu. Thêm, bớt hay đổi thứ tự trường chỉ đổi cách nhập,
 không đụng tới dữ liệu đã có. Đừng phá tính chất đó.
 """
+from core.permissions import assert_business_write
 from dataclasses import dataclass
 
 from django.db import transaction
@@ -28,6 +29,7 @@ from . import choice_service, link_service, record_service
 def create_form(*, name, code, department, table, description="",
                 actor=None, request=None):
     """Tạo biểu mẫu mới, ghi vào một bảng có sẵn — FR-8.1, ADR-007."""
+    assert_business_write(actor)
     lock(table)
     bieu_mau = FormDef(
         name=name, code=code, department=department, table=table,
@@ -45,6 +47,7 @@ def create_form(*, name, code, department, table, description="",
 @transaction.atomic
 def update_form(form, changes, *, actor=None, request=None):
     """Sửa tên, mô tả hoặc trạng thái. Không đổi được tên kỹ thuật và bảng đích."""
+    assert_business_write(actor)
     lock(form.table)
     da_doi = []
     for ten in ("name", "description", "is_active"):
@@ -74,6 +77,7 @@ def update_form(form, changes, *, actor=None, request=None):
 def create_field_def(*, name, code, field_type, department, meaning="", hint="",
                      default_value="", actor=None, request=None):
     """Thêm một định nghĩa trường vào thư viện dùng chung của bộ phận."""
+    assert_business_write(actor)
     truong = FieldDef(
         name=name, code=code, field_type=field_type, meaning=meaning,
         hint=hint, default_value=default_value, department=department,
@@ -96,6 +100,7 @@ def update_field_def(field_def, changes, *, actor=None, request=None):
     kiểm lại toàn bộ chỗ đang dùng nó — không thì biểu mẫu vẫn nhận dữ liệu mà
     ghi vào cột sai kiểu.
     """
+    assert_business_write(actor)
     da_doi, doi_kieu = [], False
     for ten in ("name", "field_type", "meaning", "hint", "default_value"):
         if ten not in changes:
@@ -134,6 +139,7 @@ def add_field(form, field_def, *, column=None, required=False, order=None,
 
     Kiểm khớp kiểu chạy trong `link_service` — FR-8.6.
     """
+    assert_business_write(actor)
     truong = FormField(
         form=form, field=field_def, required=required,
         order=order if order is not None else _thu_tu_ke_tiep(form),
@@ -155,6 +161,7 @@ def add_field(form, field_def, *, column=None, required=False, order=None,
 @transaction.atomic
 def update_field(form_field, changes, *, actor=None, request=None):
     """Sửa cờ bắt buộc, thứ tự, hoặc cột đích của một trường trong biểu mẫu."""
+    assert_business_write(actor)
     da_doi = []
     for ten in ("required", "order"):
         if ten not in changes:
@@ -193,6 +200,7 @@ def remove_field(form_field, *, actor=None, request=None):
     Chỉ bỏ khỏi biểu mẫu, **không** đụng vào định nghĩa trường trong thư viện
     và cũng không đụng vào dữ liệu đã nhập — FR-8.5.
     """
+    assert_business_write(actor)
     bieu_mau, ma = form_field.form, form_field.field.code
     form_field.delete()
     record(
@@ -205,6 +213,7 @@ def remove_field(form_field, *, actor=None, request=None):
 @transaction.atomic
 def reorder(form, ma_truong_theo_thu_tu, *, actor=None, request=None):
     """Sắp xếp lại thứ tự trường. Nhận danh sách khoá chính của `FormField`."""
+    assert_business_write(actor)
     hien_co = {c.pk: c for c in form.fields.all()}
     for i, pk in enumerate(ma_truong_theo_thu_tu):
         truong = hien_co.get(int(pk))
@@ -286,6 +295,7 @@ def fill(form, values, *, actor, request=None, fields=None, system_day=None, tea
     Một đường duy nhất cho cả màn hình điền biểu mẫu lẫn nộp báo cáo ngày
     (ADR-008), nên quy tắc không lệch nhau giữa hai chỗ.
     """
+    assert_business_write(actor)
     fields = fields if fields is not None else list(form.ordered_fields())
     source = getattr(form.table, 'erp_report', None)
     if source and source.kind in ('sale', 'mkt'):

@@ -11,6 +11,7 @@ class Rank(models.TextChoices):
     STAFF = "staff", "Nhân viên"
     LEADER = "leader", "Trưởng nhóm"
     MANAGER = "manager", "Quản lý"
+    CEO = "ceo", "Giám đốc"
     ADMIN = "admin", "Quản trị viên"
 
 
@@ -19,6 +20,7 @@ RANK_LEVEL = {
     Rank.STAFF: 10,
     Rank.LEADER: 20,
     Rank.MANAGER: 30,
+    Rank.CEO: 35,
     Rank.ADMIN: 40,
 }
 

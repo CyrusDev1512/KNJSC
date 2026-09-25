@@ -177,6 +177,8 @@ Bốn điểm từng nằm ở đây đều đã chốt và đã có mục quy�
 Hiện **không còn điểm nào chờ ghi thành mục quyết định**. Danh sách việc chưa
 xong nằm ở `../backlog.md` mục 0.
 
+- [ADR-044 — CEO và quản lý tài khoản](044-ceo-va-quan-ly-tai-khoan.md): phạm vi đọc toàn công ty tách quyền Admin; đặt lại mật khẩu/xóa mềm theo cấp bậc, giữ lịch sử và vô hiệu phiên.
+
 ## Khôi phục quyết định 14.09.2026
 
 - [ADR-022: Báo cáo hoạt động ERP](022-bao-cao-hoat-dong-erp.md).

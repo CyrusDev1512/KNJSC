@@ -16,7 +16,7 @@ from orders.constants import is_waybill_table
 from django.urls import NoReverseMatch, reverse
 
 from core.constants import Rank
-from core.permissions import has_rank, in_departments
+from core.permissions import has_rank, can_manage_business, in_departments, is_company_reader
 from core.navigation import SALES_ONLY
 
 
@@ -58,7 +58,7 @@ def build(user, current=""):
 
     muc = []
     cac_bang = []
-    if in_departments(user, SALES_ONLY) and (u := _url("waybill_create")) is not None:
+    if not is_company_reader(user) and in_departments(user, SALES_ONLY) and (u := _url("waybill_create")) is not None:
         muc.append(CrmNavItem("waybill_create", "Lên đơn", u, "", current == "waybill_create"))
     if (u := _url("tong_quan")) is not None:
         muc.append(CrmNavItem("tong_quan", "Trang chủ", u, "⌂", current == "tong_quan"))
@@ -82,9 +82,9 @@ def build(user, current=""):
             and any(is_waybill_table(t) for t in cac_bang)
             and (u := _url('payment_library'))):
         muc.append(CrmNavItem('payments', 'Chứng từ thanh toán', u, '▧', current == 'payments'))
-    if has_rank(user, Rank.LEADER) and (u := _url("nhap_tep")) is not None:
+    if can_manage_business(user, Rank.LEADER) and (u := _url("nhap_tep")) is not None:
         muc.append(CrmNavItem("nhap_tep", "Nhập tệp", u, "⇪", current == "nhap_tep"))
-    if has_rank(user, Rank.MANAGER) and (u := _url("cap_quyen")) is not None:
+    if can_manage_business(user, Rank.MANAGER) and (u := _url("cap_quyen")) is not None:
         muc.append(CrmNavItem("cap_quyen", "Cấp quyền", u, "✓", current == "cap_quyen"))
     if (u := _url("tac_vu")) is not None:
         muc.append(CrmNavItem("tac_vu", "Tác vụ nền", u, "◔", current == "tac_vu"))

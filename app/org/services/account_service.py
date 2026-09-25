@@ -18,6 +18,7 @@ from core.permissions import assert_rank
 
 from ..models import UserProfile
 from . import staff_code_service
+from .account_management import require_live_profile
 
 
 @sensitive_variables('password', 'temporary')
@@ -141,6 +142,7 @@ def update_profile(profile, changes, *, before=None, actor=None, request=None):
     `changes` là dict tên trường sang giá trị mới. `before` là ảnh chụp giá
     trị cũ lấy bằng `snapshot_profile`; bỏ trống thì so với chính đối tượng.
     """
+    require_live_profile(profile)
     goc = before if before is not None else snapshot_profile(profile, changes.keys())
     da_doi = []
     for ten, moi in changes.items():
@@ -178,6 +180,7 @@ def update_profile(profile, changes, *, before=None, actor=None, request=None):
 @transaction.atomic
 def set_rank(profile, rank, *, actor=None, request=None):
     """Đổi cấp bậc. Phiên đang mở mất hiệu lực ngay (P4)."""
+    require_live_profile(profile)
     cu = profile.rank
     profile.rank = rank
     profile.save(update_fields=["rank"])
@@ -197,6 +200,7 @@ def set_rank(profile, rank, *, actor=None, request=None):
 @transaction.atomic
 def lock_account(profile, *, actor=None, request=None):
     """Khoá tài khoản. Phiên đang mở mất hiệu lực ngay (P4)."""
+    require_live_profile(profile)
     profile.user.is_active = False
     profile.user.save(update_fields=["is_active"])
     profile.invalidate_sessions()
@@ -210,6 +214,7 @@ def lock_account(profile, *, actor=None, request=None):
 
 @transaction.atomic
 def unlock_account(profile, *, actor=None, request=None):
+    require_live_profile(profile)
     profile.user.is_active = True
     profile.user.save(update_fields=["is_active"])
     profile.failed_login_count = 0
@@ -223,8 +228,10 @@ def unlock_account(profile, *, actor=None, request=None):
 
 
 @transaction.atomic
+@sensitive_variables("new_password")
 def reset_password(profile, new_password, *, actor=None, request=None):
     """Đặt lại mật khẩu. Người dùng phải đổi ở lần đăng nhập kế tiếp."""
+    require_live_profile(profile)
     profile.user.set_password(new_password)
     profile.user.save(update_fields=["password"])
     profile.must_change_password = True

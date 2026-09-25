@@ -43,7 +43,7 @@ def seller_options(column):
     from org.models import UserProfile
 
     ds = (UserProfile.objects
-          .filter(department_id=column.table.department_id, user__is_active=True)
+          .filter(department_id=column.table.department_id, user__is_active=True, deleted_at__isnull=True)
           .order_by("staff_code", "user__username")
           .values_list("staff_code", "user__username"))
     ma = [(ma_nv or "").strip() or ten_dn for ma_nv, ten_dn in ds]

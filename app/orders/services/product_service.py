@@ -5,6 +5,7 @@ quyền; ai được *thêm* thì tầng view kiểm (Manager trở lên). Thêm
 phải có ngay cột số lượng `sl_<mã>` trên bảng vận đơn (AC-11.8), nên hàm ở
 đây gọi luôn `dispatch_service.sync_product_columns`.
 """
+from core.permissions import assert_business_write
 from django.db import transaction
 from django.utils.text import slugify
 
@@ -47,6 +48,7 @@ def unique_code(name):
 @transaction.atomic
 def create_product(*, name, code="", group=None, unit="cái", actor=None, request=None):
     """Thêm một sản phẩm vào danh mục và sinh cột số lượng trên bảng vận đơn."""
+    assert_business_write(actor)
     ten = " ".join(str(name or "").split())
     if not ten:
         raise BusinessError("Tên sản phẩm không được để trống.")

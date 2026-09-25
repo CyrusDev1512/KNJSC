@@ -1,5 +1,34 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 25.09.2026 — CEO / đặt lại mật khẩu / xóa mềm tài khoản
+
+Nền `main a23573d`, worktree riêng và PostgreSQL 16 riêng (`knjsc-account-db`),
+không dùng dữ liệu local/VPS đang chạy. TDD đã tái hiện 403 của Leader ở Sửa,
+CEO thiếu phạm vi toàn công ty và CEO vô tình được điền biểu mẫu cùng phòng ban.
+
+- Nhóm ban đầu org/core: chạy hết, không lỗi; một bài Chrome HTTPS được bỏ qua
+  vì cần fixture proxy riêng. Kiểm Chrome của tính năng này chạy riêng bằng Chrome host.
+- Toàn suite lượt đầu: **2.750 đạt, 3 lỗi, 13 lỗi thiết lập, 48 bỏ qua** (374,02s).
+  Một bài lịch sử gọi `profile.delete()` để tạo hồ sơ mồ côi: đã đổi fixture sang
+  `hard_delete()` đúng mục tiêu, giữ các assertion cũ. Hai lỗi/13 lỗi thiết lập
+  còn lại do container chưa mount `scripts/` ở gốc repo; đã sửa cách chạy, không sửa
+  test để bỏ qua. Nhóm xác nhận sau sửa: **88 đạt** (16,48s).
+- Chrome thật: **8/8 luồng** quản lý ở 1440/390, Staff bị chặn, không lỗi JS;
+  fixture hậu kiểm database **1 đạt** (67,88s). Không ghi mật khẩu/cookie vào ảnh.
+
+- Toàn suite lượt cuối: **2.770 đạt, 49 bỏ qua, 0 lỗi** trong **376,34s**.
+  Bỏ qua: Chromium không có trong container và các fixture browser/capacity
+  cần bật riêng; bài tài khoản Chrome đã chạy riêng đạt, không cộng skip thành pass.
+- Sau rà soát Django admin (không gán lại cờ kỹ thuật cho CEO hoặc hồi sinh hồ sơ
+  đang bị xóa): nhóm tài khoản **58 đạt** trong **16,13s**, gồm ngân sách truy vấn.
+- `manage.py check` cho ERP và CRM: không lỗi; `makemigrations --check --dry-run`:
+  không còn thay đổi chưa có migration.
+- Kiểm lại các file cuối (tài khoản, migration/đồng thời và tab Biểu mẫu):
+  **101 đạt, 0 bỏ qua, 0 lỗi** trong **17,30s**.
+
+Lệnh, phạm vi bỏ qua và bằng chứng ở
+[biên bản](kiem-chung-quan-ly-tai-khoan-20260925.md). Không coi bài bỏ qua là đạt.
+
 ## 24.09.2026 — Sửa định vị hai bài E2E ghi chú chặn phát hành `main`
 
 Nền `a120af5`, nhánh `claude/sua-e2e-ghi-chu`. CI run `35981282943` và lượt kiểm
