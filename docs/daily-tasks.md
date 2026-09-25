@@ -1,5 +1,14 @@
 # Daily tasks — KNJSC
 
+## 25.09.2026 — Bàn giao VPS main a23573d
+
+VPS đã cập nhật PR #47/#49, năm dịch vụ `knjsc-app:a23573d-main`, không tự cập nhật
+khi merge GitHub. Không chạy lại các prompt phát hành cũ bên dưới. Cột sản phẩm đã
+ẩn trên VPS; không cần bấm lại chỉ vì đọc mục cũ. Backup và giới hạn kiểm chứng ở
+[biên bản](kiem-chung-phat-hanh-pr47-pr49-20260925.md).
+Việc tiếp: hoàn tất kiểm UI domain còn thiếu; xin duyệt xử lý textbox Team mẫu cũ
+trùng dropdown. Không seed hoặc tự gán lại nhân sự/team để sửa hiển thị.
+
 ## Sau khi phát hành ADR-039 — bấm ẩn nhóm cột sản phẩm một lần
 
 Ẩn cột là trạng thái trong cơ sở dữ liệu, không phải mặc định của mã nguồn: phát hành xong thì

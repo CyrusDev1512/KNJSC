@@ -1,6 +1,8 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 24.09.2026 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
+> Cập nhật 25.09.2026: VPS main `a23573d` / `knjsc-app:a23573d-main`, PR #47/#49;
+> xem biên bản phát hành để biết các mục UI domain chưa kiểm xong.
+> Trước đó 24.09.2026 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
 > chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
 > giãn, cột sản phẩm ẩn mặc định, K24); 23.09 (ADR-042 Báo cáo tổng hợp như ảnh mẫu);
 > 19.09 (quy tắc nhánh: không đẩy thẳng lên nhánh đang chạy trên VPS, mỗi việc một
@@ -34,19 +36,20 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
 
 ### Nhánh và nơi mã đang chạy
 
-- **Nhánh chuẩn là `main`** (từ 24.09.2026): `main` đã fast-forward bằng
-  `codex/crm-update-solar-ui`, hai nhánh trùng nhau tại `ddb9b64` (trọn 11 PR gộp 24.09).
-  Máy chủ dự án có thể còn đứng ở nhánh codex cho tới khi Codex `checkout main` — nội
-  dung y hệt nên phát hành từ nhánh nào cũng ra cùng image; chuyển xong thì mọi phát
-  hành đi từ `main`. VPS hiện là môi trường thử nghiệm, chưa có khách.
+- **VPS đã chạy `main`** từ 24.09 (`9c4d285`); phát hành 25.09.2026 lên
+  `a23573d7aaaabac1eedfa9ec169d68c7b33b2fd6`, image `knjsc-app:a23573d-main`
+  trên năm dịch vụ. Bảo trì 63 giây, theo dõi 15 phút đạt; còn các mục UI domain
+  ghi rõ ở [biên bản](docs/kiem-chung-phat-hanh-pr47-pr49-20260925.md).
+  Phát hành từ SHA đã kiểm chứng trên `main`; merge GitHub không tự cập nhật VPS.
+  VPS là môi trường thử nghiệm, chưa có khách. Mốc quay lui: `9c4d285-main`.
 - Dự kiến đã bàn 24.09: `codex/crm-update-solar-ui` sẽ **đổi tên thành `staging`** làm
   nhánh gom code chạy thử trước khi vào `main` (đổi tên bằng nút Rename trên GitHub,
-  chưa làm). Hai nhánh lưu trữ `CRM-UPDATE` và `codex/ui-solarpunk` đóng băng, giữ đến
+  chưa làm; đợt phát hành 25.09 không đổi tên nhánh hay bật CI/CD). Hai nhánh lưu trữ `CRM-UPDATE` và `codex/ui-solarpunk` đóng băng, giữ đến
   cuối, có tag `luu-tru/*` đóng dấu.
 - **Không đẩy thẳng lên `main`** (và cả nhánh codex khi nó còn), kể cả sửa nhỏ hay chỉ
   sửa tài liệu (chốt 19.09.2026, giữ nguyên khi đổi sang `main`).
 - **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ `main`, làm, commit,
-  push, **mở PR nháp trỏ về `main`** (khi `staging` hoạt động thì trỏ về `staging`),
+  push, **mở PR nháp trỏ về `main`**; chỉ đổi đích khi có quyết định mới,
   rồi báo lại kèm liên kết. Không tự gộp; chỉ gộp khi chủ dự án bảo rõ.
 - **Mỗi phiên một việc một nhánh.** Bốn phiên KNCRM, KNERP, KNGUARD và Batch file không
   dùng chung nhánh; hai phiên cùng đẩy lên một nhánh là giẫm lên nhau.

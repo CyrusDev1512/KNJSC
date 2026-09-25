@@ -1,5 +1,20 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 25.09.2026 — Kiểm phát hành main a23573d (PR #47/#49)
+
+CI đúng SHA: 2697 đạt/7 skip; E2E 27 đạt/2 skip; nhóm browser còn lại 1 đạt/8 skip,
+1 cảnh báo. Diễn tập bản sao VPS: check/migration/config idempotency, quyền/ghi,
+PR47/PR49 và image cũ với metadata mới/khôi phục đạt. Domain Admin/MKT kiểm form,
+báo cáo, ghi lưới và dữ liệu tải lại; bốn trường Marketing chặn thiếu, 0 nộp được.
+Theo dõi 901 giây, không HTTP 5xx/restart; hai DisallowedHost truy cập IP được phân loại.
+Hash dữ liệu cũ khớp sau loại mẫu thử; giữ audit/soft delete.
+
+**Chưa kiểm đủ:** UI domain 390 px, đổi mật khẩu tài khoản mới trên domain, cảnh báo
+trùng điện thoại, lọc cột ẩn và lọc sản phẩm tổng hợp. Có textbox Team mẫu cũ cạnh
+dropdown Team mới; đã ghi backlog, không sửa ứng dụng ngoài phạm vi phát hành.
+Xem [biên bản](kiem-chung-phat-hanh-pr47-pr49-20260925.md) cho từng mức bằng chứng,
+ID kiểm thử, nơi log/backup và quay lui. Skip không tính đạt; không kiểm tải 300k.
+
 ## 24.09.2026 — Sửa định vị hai bài E2E ghi chú chặn phát hành `main`
 
 Nền `a120af5`, nhánh `claude/sua-e2e-ghi-chu`. CI run `35981282943` và lượt kiểm

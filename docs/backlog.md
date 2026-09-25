@@ -1,5 +1,20 @@
 # Backlog
 
+## 25.09.2026 — VPS main đã cập nhật PR #47, #49
+
+Đã phát hành `a23573d` / `knjsc-app:a23573d-main` trên năm dịch vụ; bảo trì 63 giây,
+CI đúng SHA đạt, diễn tập/backup/metadata rollback đạt, theo dõi 15 phút không 5xx
+hoặc restart. Không migration; đã chạy `configure_erp_reports`, không seed/gán lại team.
+[Biên bản và giới hạn nghiệm thu](kiem-chung-phat-hanh-pr47-pr49-20260925.md).
+Mục này thay trạng thái “chưa phát hành” của các ghi chép 24.09 bên dưới.
+
+**Còn nợ:** xác nhận UI domain 390 px (công cụ không áp dụng viewport), luồng mật
+khẩu tài khoản mới trên domain (đã đạt diễn tập), cảnh báo trùng điện thoại, lọc cột
+ẩn và lọc sản phẩm tổng hợp trên domain. Ô `team_mau` cũ còn hiển thị textbox Team
+bên cạnh dropdown Team mới trên form Marketing/Sale: cần duyệt cách ẩn trường nhập
+và giữ dữ liệu lịch sử; chưa tự sửa. Search chung theo mã đơn thử chưa ra, cần rà
+phạm vi tìm kiếm riêng; không kết luận hồi quy khi mã search không đổi đợt này.
+
 ## 24.09.2026 — Form Nộp báo cáo ngày: chọn Team, bốn trường bắt buộc, bỏ Hóa đơn, bố cục ngang (ADR-043)
 
 **Vì sao.** Chủ dự án xem thử nhánh ADR-042 trên local và góp ý ngay ở màn Nộp báo cáo ngày: chọn Team bằng

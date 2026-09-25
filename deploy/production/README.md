@@ -11,7 +11,7 @@ connection. Kiểm RSS thực trước khi nâng giới hạn. Service Thống k
 `SET LOCAL work_mem='64MB'` cho một số aggregate; 8 MB ở cấu hình PostgreSQL không ghi đè
 lựa chọn trong transaction này. Tính cả chi phí đó khi kiểm nhiều người mở Thống kê cùng lúc.
 
-**Đã phát hành 6 lần**, mỗi lần một biên bản ở `docs/`:
+**Đã phát hành 8 lần**; các mốc gần nhất:
 
 | # | Ngày | Image |
 |---|---|---|
@@ -21,6 +21,13 @@ lựa chọn trong transaction này. Tính cả chi phí đó khi kiểm nhiều
 | 4 | 18.09.2026 (chiều, lần hai) | `5b7922f-excel` → `5b68dce-tl41` |
 | 5 | 19.09.2026 (00:15) | `5b68dce-tl41` → `ea8942c-adr036` |
 | 6 | 19.09.2026 (18:39) | `ea8942c-adr036` → `72af235-gop` |
+| 7 | 24.09.2026 | `72af235-gop` → `9c4d285-main` |
+| 8 | 25.09.2026 (09:36) | `9c4d285-main` → `a23573d-main` |
+
+Hiện `/opt/knjsc` checkout `main` tại `a23573d`, cả năm dịch vụ cùng image.
+[Biên bản PR #47/#49](../../docs/kiem-chung-phat-hanh-pr47-pr49-20260925.md)
+ghi backup, quay lui metadata và các mục UI domain còn thiếu. Giữ hai Compose
+runtime thực tế; merge main không tự triển khai VPS.
 
 Xem `docs/kiem-chung-phat-hanh-vps-*.md`; `docs/kiem-chung-dien-tap-vps-20260917.md` là
 diễn tập trên bản sao, không phải lần phát hành.

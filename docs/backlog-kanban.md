@@ -1,5 +1,13 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 25.09.2026 — Phát hành PR #47/#49
+
+**Finished:** VPS main `a23573d`, năm dịch vụ cùng image, cấu hình form, backup đã
+phục hồi thử, dữ liệu cũ khớp, theo dõi 15 phút đạt; dữ liệu thử đã bỏ/khóa, giữ audit.
+**To do:** các kiểm UI domain và ô Team cũ trùng ghi ở [biên bản](kiem-chung-phat-hanh-pr47-pr49-20260925.md).
+Phát hành đã xong; không đánh dấu toàn bộ nghiệm thu UI hoàn tất. Thay trạng thái
+chờ phát hành/chờ merge của các mục PR #47/#49 ngày 24.09 bên dưới.
+
 ## 24.09.2026 — Form Nộp báo cáo ngày (ADR-043)
 
 **Finished local:** dropdown Team ghi vào dòng và báo cáo; Số Mess, CPQC, Số đơn, Doanh số bắt buộc (MKT và Sale);

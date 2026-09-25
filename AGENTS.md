@@ -25,14 +25,14 @@ tài liệu được liên kết bên dưới cung cấp chi tiết theo từng 
 
 ### Nhánh — chốt 19.09.2026, đổi sang `main` 24.09.2026
 
-- **`main` là nhánh chuẩn** từ 24.09.2026: đã fast-forward bằng
-  `codex/crm-update-solar-ui`, hai nhánh trùng nhau. VPS hiện là môi trường thử nghiệm,
-  chưa có khách; Codex chuyển máy chủ dự án sang `checkout main` là mọi phát hành đi từ
-  `main`. Chi tiết trạng thái nhánh ở mục "Nhánh và nơi mã đang chạy" của
-  [CLAUDE.md](CLAUDE.md); các quy tắc dưới đây giữ nguyên.
+- **VPS đã chạy `main`** từ 24.09.2026; cập nhật ngày 25.09 lên `a23573d`, image
+  `knjsc-app:a23573d-main` trên cả năm dịch vụ (PR #47, #49). Các lần phát hành sau
+  lấy một SHA đã kiểm chứng trên `main`; merge GitHub không tự cập nhật VPS.
+  VPS vẫn là môi trường thử nghiệm, chưa có khách. Xem [biên bản và giới hạn nghiệm thu](docs/kiem-chung-phat-hanh-pr47-pr49-20260925.md)
+  và mục "Nhánh và nơi mã đang chạy" của [CLAUDE.md](CLAUDE.md).
 - **Không đẩy thẳng lên `main`** (và nhánh codex khi nó còn), kể cả sửa nhỏ hay chỉ sửa tài liệu.
-- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ nhánh đang chạy, làm,
-  commit, push, **mở PR nháp trỏ về nhánh đang chạy**, rồi báo lại kèm liên kết. Không tự
+- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ `main`, làm,
+  commit, push, **mở PR nháp trỏ về `main`**, rồi báo lại kèm liên kết. Không tự
   gộp; chỉ gộp khi chủ dự án bảo rõ.
 - **Mỗi phiên một việc một nhánh.** Các phiên KNCRM, KNERP, KNGUARD và Batch file không
   dùng chung nhánh; hai phiên cùng đẩy lên một nhánh là giẫm lên nhau.
