@@ -1,5 +1,13 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 25.09.2026 — Phát hành PR #53, main 85227ee
+
+**Finished trong phạm vi kiểm chứng:** Team/menu/CEO/mật khẩu lên năm dịch vụ
+VPS, CI/diễn tập và backup phục hồi đạt; theo dõi 15 phút đạt. UI Marketing
+trên domain thật đạt ở 1440/390; quyền URL trực tiếp chặn 403. Các vai trò
+khác/luồng ghi kiểm ở CI và diễn tập. Ghi chú local-only bên dưới là lịch sử.
+[Biên bản phát hành](phat-hanh-team-quyen-20260925.md).
+
 ## 25.09.2026 — Phát hành Team/menu/CEO/mật khẩu
 
 **In progress:** kiểm local và chuẩn bị PR nháp, CI, diễn tập migration CEO

@@ -1,0 +1,95 @@
+{
+  "sha": "85227ee7c2d289f225ea1b54cd6d5954542a6d11",
+  "services": {
+    "crm": {
+      "image": "knjsc-app:85227ee-main",
+      "running": true,
+      "restarts": 0
+    },
+    "erp": {
+      "image": "knjsc-app:85227ee-main",
+      "running": true,
+      "restarts": 0
+    },
+    "worker": {
+      "image": "knjsc-app:85227ee-main",
+      "running": true,
+      "restarts": 0
+    },
+    "heavy": {
+      "image": "knjsc-app:85227ee-main",
+      "running": true,
+      "restarts": 0
+    },
+    "beat": {
+      "image": "knjsc-app:85227ee-main",
+      "running": true,
+      "restarts": 0
+    }
+  },
+  "monitor_samples": 21,
+  "monitor_last": {
+    "time": "2026-09-25T08:14:14.731559+00:00",
+    "elapsed_seconds": 901,
+    "services": {
+      "crm": {
+        "running": true,
+        "restarts": 0,
+        "image": "knjsc-app:85227ee-main",
+        "raw_error_markers": 0,
+        "rejected_ip_hosts": 0,
+        "errors": 0
+      },
+      "erp": {
+        "running": true,
+        "restarts": 0,
+        "image": "knjsc-app:85227ee-main",
+        "raw_error_markers": 4,
+        "rejected_ip_hosts": 2,
+        "errors": 0
+      },
+      "worker": {
+        "running": true,
+        "restarts": 0,
+        "image": "knjsc-app:85227ee-main",
+        "raw_error_markers": 0,
+        "rejected_ip_hosts": 0,
+        "errors": 0
+      },
+      "heavy": {
+        "running": true,
+        "restarts": 0,
+        "image": "knjsc-app:85227ee-main",
+        "raw_error_markers": 0,
+        "rejected_ip_hosts": 0,
+        "errors": 0
+      },
+      "beat": {
+        "running": true,
+        "restarts": 0,
+        "image": "knjsc-app:85227ee-main",
+        "raw_error_markers": 0,
+        "rejected_ip_hosts": 0,
+        "errors": 0
+      }
+    },
+    "domain_login": {
+      "erp.thnsolution.io.vn": "200",
+      "crm.thnsolution.io.vn": "200"
+    },
+    "http_status_counts": {
+      "200": 52,
+      "400": 2,
+      "301": 1,
+      "302": 1
+    }
+  },
+  "maintenance_start": "2026-09-25T07:58:05Z",
+  "maintenance_end": "2026-09-25T07:59:14Z",
+  "backup_restore_verified": true,
+  "business_unchanged": true,
+  "metadata_unchanged": true,
+  "runtime_change": "KNJSC_IMAGE only",
+  "resources": "knjsc-production-erp-1:0.03%:75.66MiB / 512MiB\nknjsc-production-worker-1:0.06%:94.32MiB / 384MiB\nknjsc-production-beat-1:0.00%:71.23MiB / 192MiB\nknjsc-production-crm-1:0.04%:74.15MiB / 640MiB\nknjsc-production-heavy-1:0.22%:86.77MiB / 512MiB\nknjsc-production-db-1:0.00%:161.3MiB / 1.25GiB\nknjsc-production-cache-1:0.53%:3.109MiB / 192MiB\nknjsc-production-broker-1:0.68%:3.812MiB / 384MiB\nknjsc-production-proxy-1:0.00%:6.336MiB / 512MiB",
+  "finished_at": "2026-09-25T08:14:44.188862+00:00"
+}

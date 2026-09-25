@@ -1,5 +1,19 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 25.09.2026 — CI main 85227ee và phát hành PR #53
+
+CI #36109781426: bộ chính 2.806 đạt/7 skip; E2E 33 đạt/2 skip; browser còn lại
+1 đạt/9 skip, có cảnh báo dọn DB test còn kết nối. Diễn tập 55 kiểm năm vai trò
+và 7 kiểm image cũ/schema mới đạt. Không bật tải 300.000 dòng. Backup cuối
+phục hồi và so hash đạt; migration org.0006 thành công; dữ liệu và metadata
+nguyên trạng. Năm dịch vụ chạy `85227ee-main`, hai hàng đợi thử đạt.
+Theo dõi 15 phút/21 mẫu đạt, không 5xx/restart/lỗi ứng dụng mới; hai Host IP
+bị chặn 400 đã đọc traceback và ghi riêng. UI Marketing domain thật: Team
+chỉ đọc đúng hồ sơ, bỏ input trùng, menu đúng; bốn URL cấm trả 403. Desktop
+1440 và mobile 390 không tràn ngang. Luồng ghi/quyền vai trò khác kiểm tại
+CI và diễn tập, không đổi mật khẩu hoặc nộp báo cáo thử trên dữ liệu thật.
+[Kết quả và giới hạn](phat-hanh-team-quyen-20260925.md).
+
 ## 25.09.2026 — Kiểm trước phát hành Team/menu/CEO/mật khẩu
 
 Chủ dự án yêu cầu kiểm kỹ rồi đưa lên VPS, thay phạm vi local-only trước đó.
