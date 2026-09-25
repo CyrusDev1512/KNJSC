@@ -31,7 +31,7 @@ def _khoi(ten, ham):
 def _so_nhan_su(user):
     from org.models import UserProfile
 
-    ds = UserProfile.objects.in_scope(user)
+    ds = UserProfile.objects.alive().in_scope(user)
     return {
         "tong": ds.count(),
         "hoat_dong": ds.filter(user__is_active=True).count(),

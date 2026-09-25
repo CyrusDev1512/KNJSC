@@ -16,6 +16,8 @@ Hai loại câu hỏi, hai cách trả lời khác nhau:
 - *Ai điền biểu mẫu nào* — phép kiểm ở view, dùng `can_fill`. Không phải chuyện
   queryset, và phải chạy **trước** khi đọc dữ liệu (P1, FR-3.6)
 """
+from core.permissions import assert_business_write
+from core.permissions import is_company_reader
 from orders.constants import is_waybill_table
 from django.conf import settings
 from django.db import transaction
@@ -116,6 +118,8 @@ def can_fill(user, form):
     Trong bộ phận của biểu mẫu thì điền được; ngoài bộ phận thì phải có cấp
     quyền riêng.
     """
+    if is_company_reader(user):
+        return False
     if is_admin(user):
         return True
     ho_so = getattr(user, "profile", None)
@@ -131,6 +135,8 @@ def can_import(user, table):
     phận sở hữu bảng (Leader trở lên — ADR-015), hoặc người/team được cấp
     quyền **sửa** trên bảng đó. Admin luôn được.
     """
+    if is_company_reader(user):
+        return False
     if _quan_ly_bo_phan(user, table.department_id):
         return True
     return table.pk in granted_table_ids(user, GrantAction.EDIT)
@@ -159,6 +165,8 @@ def can_create_record(user, table):
     quyền **sửa**, hoặc Admin. Bảng chỉ xem ở dịch vụ này (ADR-009) thì không,
     cùng luật với `can_edit_record`.
     """
+    if is_company_reader(user):
+        return False
     if is_grid_only(table):
         return False
     if is_admin(user):
@@ -201,6 +209,8 @@ def can_edit_record(user, record_obj):
 
 def can_edit_visible_record(user, record_obj):
     """Chỉ gọi cho dòng đã lấy từ in_scope trong cùng request đọc; không dùng ở đường ghi."""
+    if is_company_reader(user):
+        return False
     if is_submitted_report(record_obj):
         return False
     if is_grid_only(record_obj.table):
@@ -268,6 +278,7 @@ def _mat_hieu_luc_phien(grant):
 def grant(*, table=None, form=None, user=None, team=None, action,
           actor=None, request=None):
     """Cấp quyền riêng cho một người hoặc một team."""
+    assert_business_write(actor)
     quyen = Grant(
         table=table, form=form, user=user, team=team,
         action=action, granted_by=actor,
@@ -289,6 +300,7 @@ def grant(*, table=None, form=None, user=None, team=None, action,
 @transaction.atomic
 def revoke(quyen, *, actor=None, request=None):
     """Thu hồi một quyền đã cấp. Đánh dấu xoá, không xoá cứng (BR-4)."""
+    assert_business_write(actor)
     mo_ta = str(quyen)
     quyen.delete(by=actor)
 

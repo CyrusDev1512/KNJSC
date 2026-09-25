@@ -99,8 +99,7 @@ def test_bang_du_lieu_nguon_bao_cao_hien_chi_tiet_theo_ngay(client, bang_mkt, mk
     # Staff chỉ thấy dòng của mình, không thấy form Ngưỡng màu
     client.force_login(A)
     r_a = client.get(url, ky)
-    assert [row["person"] for row in r_a.context["blocks"][0]["rows"]] == [employee_code(A)]
-    assert employee_code(B) not in r_a.content.decode() and 'id="report-nguong"' not in r_a.content.decode()
+    assert r_a.status_code == 403  # 25.09: Staff dùng Báo cáo tổng hợp, không mở Bảng dữ liệu
     # Bộ phận khác: 404 như mọi bảng
     client.force_login(nguoi_dung["manager_sale"])
     assert client.get(url, ky).status_code == 404

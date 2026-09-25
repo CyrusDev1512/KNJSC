@@ -11,7 +11,7 @@
     <p>{{ bm.description|default:"Điền rồi gửi. Dòng mới sẽ hiện ngay trên bảng dữ liệu." }}</p>
   </div>
   <div class="hanh-dong">
-    <a class="nut" href="{% url 'bang_xem' bm.table.code %}">Xem bảng</a>
+    {% if can_open_tables %}<a class="nut" href="{% url 'bang_xem' bm.table.code %}">Xem bảng</a>{% endif %}
   </div>
 </div>
 

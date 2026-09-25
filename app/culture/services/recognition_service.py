@@ -14,7 +14,7 @@ from django.utils import timezone
 from core.audit import record
 from core.constants import AuditAction, Rank, rank_level
 from core.exceptions import BusinessError, OutOfScopeError
-from core.permissions import get_rank, has_rank
+from core.permissions import get_rank, can_manage_business
 from core.scope import get_user_scope
 from org.models import UserProfile
 
@@ -60,7 +60,7 @@ def active_users():
     """Mọi tài khoản đang hoạt động có hồ sơ, một truy vấn — dùng làm bản đồ id → người."""
     return {
         u.pk: u for u in get_user_model().objects
-        .filter(is_active=True, profile__isnull=False)
+        .filter(is_active=True, profile__isnull=False, profile__deleted_at__isnull=True)
         .select_related("profile", "profile__department")   # ô chọn hiện bộ phận; team không ai đọc
         .order_by("profile__full_name", "username")
     }
@@ -69,14 +69,14 @@ def active_users():
 def active_user(pk):
     """Một tài khoản đang hoạt động có hồ sơ theo mã, không có thì None — một truy vấn."""
     return (
-        get_user_model().objects.filter(pk=pk, is_active=True, profile__isnull=False)
+        get_user_model().objects.filter(pk=pk, is_active=True, profile__isnull=False, profile__deleted_at__isnull=True)
         .select_related("profile", "profile__department", "profile__team").first()
     )
 
 
 def can_recognize(user):
     """Từ Leader trở lên mới ghi nhận được — Q75."""
-    return has_rank(user, Rank.LEADER)
+    return can_manage_business(user, Rank.LEADER)
 
 
 def _cap_duoi_trong_pham_vi(actor):
@@ -87,7 +87,7 @@ def _cap_duoi_trong_pham_vi(actor):
     thap_hon = [r for r in Rank.values if rank_level(r) < muc]
     return (
         UserProfile.objects.in_scope(actor)
-        .filter(rank__in=thap_hon, user__is_active=True)
+        .filter(rank__in=thap_hon, user__is_active=True, deleted_at__isnull=True)
         .exclude(user=actor)
     )
 

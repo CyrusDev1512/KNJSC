@@ -16,7 +16,7 @@ from core.audit import record
 from core.constants import AuditAction, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.identity import display_name
-from core.permissions import has_rank
+from core.permissions import can_manage_business
 from culture.services import recognition_service
 
 from ..constants import (
@@ -30,7 +30,7 @@ from ..models import Comment, Like, Post
 
 def can_moderate(user):
     """Manager và Admin ghim, gỡ ghim và gỡ được bài bất kỳ — FR-10.3."""
-    return has_rank(user, Rank.MANAGER)
+    return can_manage_business(user, Rank.MANAGER)
 
 
 def _owns_or_moderates(user, obj):
@@ -205,7 +205,7 @@ def create_birthday_posts(on=None, *, actor=None, request=None):
     "0 thiệp" lên nhật ký. Trả về số thiệp mới."""
     on = on or timezone.localdate()
     nguoi = (
-        get_user_model().objects.filter(_sinh_nhat_ngay(on), is_active=True)
+        get_user_model().objects.filter(_sinh_nhat_ngay(on), is_active=True, profile__deleted_at__isnull=True)
         .select_related("profile").order_by("pk")
     )
     moi = 0

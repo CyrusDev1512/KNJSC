@@ -9,6 +9,7 @@ này **không có hàm sửa đơn**; thiếu hàm là cách chặn chắc nhấ
 **Đơn và dòng vận đơn cùng một giao dịch** — AC-6.5. Ghi sang bảng vận đơn
 hỏng thì đơn cũng không được lưu; không bao giờ có đơn mồ côi.
 """
+from core.permissions import assert_business_write
 from decimal import InvalidOperation
 
 from django.db import OperationalError, connection, transaction
@@ -134,6 +135,7 @@ def create_order(*, phone, customer_name, lines, actor, request=None,
     `lines` là danh sách dict `{"product": Product|mã, "quantity": int,
     "unit_price": str}`. Đơn phải có ít nhất một dòng — FR-6.1.
     """
+    assert_business_write(actor)
     if not lines:
         raise BusinessError("Đơn hàng phải có ít nhất một dòng sản phẩm.")
     if not (phone or "").strip():
@@ -185,7 +187,7 @@ def create_order(*, phone, customer_name, lines, actor, request=None,
         if seller.pk != actor.pk and not has_rank(actor, Rank.ADMIN):
             raise BusinessError('Chỉ Admin được chọn Sale đứng đơn.')
         seller = get_user_model().objects.select_related('profile__department', 'profile__team').filter(
-            pk=seller.pk, is_active=True, profile__department__code='sale',
+            pk=seller.pk, is_active=True, profile__deleted_at__isnull=True, profile__department__code='sale',
             profile__department__is_active=True, profile__department__deleted_at__isnull=True).filter(
                 Q(profile__locked_until__isnull=True) | Q(profile__locked_until__lte=timezone.now())).first()
         if seller is None:
@@ -254,6 +256,7 @@ def cancel_order(don, *, actor=None, request=None):
     Xoá mềm cả dòng trên bảng vận đơn đi kèm — quên là để lại dòng mồ côi mà
     bộ phận Vận đơn vẫn thấy và vẫn đi giao.
     """
+    assert_business_write(actor)
     ma = don.code
     don.delete(by=actor)
     if don.record_id:

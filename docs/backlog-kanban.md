@@ -1,5 +1,38 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 25.09.2026 — Phát hành Team/menu/CEO/mật khẩu
+
+**In progress:** kiểm local và chuẩn bị PR nháp, CI, diễn tập migration CEO
+trên bản sao VPS. Chưa merge hoặc đổi phiên bản VPS `a23573d-main`.
+[Biên bản](chuan-bi-phat-hanh-team-quyen-20260925.md).
+
+## 25.09.2026 — Đặt lại mật khẩu, phương án 1
+
+**Finished local:** đặt lại không ép đổi lần nữa; Manager/CEO/Admin có nút
+hiện/ẩn nội dung đang nhập theo quyền quản lý. 90 bài đạt; chuột/bàn phím và
+390 px đã kiểm. Không kho mật khẩu, không đổi luồng tạo mới. **To do:** chủ
+dự án thử trên 8020; chưa commit/push/VPS.
+
+## 25.09.2026 — Team và quyền menu ERP, CEO (ADR-045)
+
+**Finished local:** Team hệ thống, Quản trị chỉ Admin, Bảng dữ liệu chỉ
+Manager/CEO/Admin; theo dõi và tải tác vụ cá nhân. Đã tích hợp CEO `604910c` từ
+FIX EROR và kiểm đủ năm vai trò. CEO chỉ xem, không nộp/sửa báo cáo. Nhóm cuối
+117 đạt; kết quả rộng và skip ghi trong biên bản. Giữ CRM như cũ.
+**To do:** chủ dự án xem bản local; chưa tạo commit mới/push/VPS.
+[Biên bản](kiem-chung-team-va-quyen-menu-20260925.md).
+
+## 25.09.2026 — Quản lý tài khoản theo cấp bậc
+
+**Finished local:** CEO và tách quyền đọc toàn công ty/Admin; Sửa có form mật khẩu
+riêng; Xóa mềm có xác nhận; bảo vệ phiên/lịch sử; ma trận server và Chrome 1440/390.
+**Kiểm chứng:** toàn suite 2.770 đạt/49 bỏ qua; Chrome 8/8 luồng; nhóm tài khoản
+58/58 đạt, giữ trần 10 truy vấn. Bàn giao PR nháp trên nhánh riêng theo ADR-044.
+**To do:** chủ dự án duyệt PR; chưa merge hoặc phát hành VPS. **Far plan:** giao diện
+khôi phục tài khoản (chưa được yêu cầu).
+[PR nháp #52](https://github.com/CyrusDev1512/KNJSC/pull/52), code `cd7e7a1` đã push.
+[Kiểm chứng](kiem-chung-quan-ly-tai-khoan-20260925.md).
+
 ## 24.09.2026 — Form Nộp báo cáo ngày (ADR-043)
 
 **Finished local:** dropdown Team ghi vào dòng và báo cáo; Số Mess, CPQC, Số đơn, Doanh số bắt buộc (MKT và Sale);

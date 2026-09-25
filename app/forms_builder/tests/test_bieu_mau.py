@@ -370,13 +370,13 @@ def test_cap_quyen_lam_mat_hieu_luc_phien_dang_mo(client, bang_mkt, nguoi_dung):
     client.post("/dang-nhap/", {
         "username": "staff_sale_1", "password": "matkhau-kiem-thu-1",
     })
-    assert client.get("/bang/").status_code == 200
+    assert client.get("/bao-cao/").status_code == 200
 
     grant_service.grant(
         table=bang_mkt, user=nguoi, action=GrantAction.VIEW,
         actor=nguoi_dung["manager_mkt"],
     )
-    kq = client.get("/bang/")
+    kq = client.get("/bao-cao/")
     assert kq.status_code == 302
     assert "doi_quyen=1" in kq["Location"]
 
@@ -425,7 +425,7 @@ def test_cap_quyen_sua_van_chi_xem_o_bang_du_lieu(client, bang_mkt, nguoi_dung):
 
     bg = record_service.create_record(
         bang_mkt, {"marketer": "Tên cũ"}, actor=nguoi_dung["staff_mkt"])
-    nguoi = nguoi_dung["staff_sale_1"]
+    nguoi = nguoi_dung["manager_sale"]
     for quyen in (GrantAction.VIEW, GrantAction.EDIT):
         grant_service.grant(table=bang_mkt, user=nguoi, action=quyen,
                             actor=nguoi_dung["manager_mkt"])

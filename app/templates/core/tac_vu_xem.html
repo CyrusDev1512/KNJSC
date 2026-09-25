@@ -11,8 +11,8 @@
     <p>Anh/chị có thể làm việc khác, trang này tự cập nhật. Chờ quá 15 phút mà chưa chạy thì quản trị viên đã được cảnh báo.</p>
   </div>
   <div class="hanh-dong">
-    <a class="nut" href="{% url 'tac_vu' %}">Mọi tác vụ</a>
-    {% if job.target_type == "table" %}<a class="nut" href="{% url 'bang_xem' job.target_id %}">Mở bảng</a>{% endif %}
+    {% if can_list_jobs %}<a class="nut" href="{% url 'tac_vu' %}">Mọi tác vụ</a>{% endif %}
+    {% if can_open_tables and job.target_type == "table" %}<a class="nut" href="{% url 'bang_xem' job.target_id %}">Mở bảng</a>{% endif %}
   </div>
 </div>
 

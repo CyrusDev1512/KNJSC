@@ -8,20 +8,24 @@ kiện lọc quyền ở đây (quy tắc 11).
 """
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import SetPasswordForm
 from django.core.exceptions import ValidationError
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
+from django.views.decorators.http import require_POST, require_http_methods
 from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from core.constants import Rank
+from core.exceptions import BusinessError
 from core.pagination import pagination_context
-from core.permissions import assert_rank, is_admin
+from core.permissions import assert_rank, has_rank, is_admin
 
 from .forms import BoPhanForm, SuaHoSoForm, TaoTaiKhoanForm, TeamForm
 from .models import Department, Team, UserProfile
 from .services import account_service, org_service, staff_code_service
+from .services.account_management import AccountPolicy, locked_target, reset_account_password, delete_account
 
 
 # ══ NHÂN SỰ ═══════════════════════════════════════════════════════
@@ -36,7 +40,7 @@ def nhan_su(request):
     request.nav_current = "nhan_su"
     assert_rank(request.user, Rank.LEADER, request)
 
-    ds = (UserProfile.objects.in_scope(request.user)
+    ds = (UserProfile.objects.alive().in_scope(request.user)
           .select_related("user", "department", "team"))
 
     tim = request.GET.get("tim", "").strip()
@@ -59,9 +63,13 @@ def nhan_su(request):
     boi_canh = {
         "tim": tim, "cap_bac": cap_bac, "trang_thai": trang_thai,
         "cac_cap_bac": Rank.choices,
-        "duoc_sua": is_admin(request.user),
+        "duoc_sua": True, "duoc_quan_tri": is_admin(request.user),
     }
     boi_canh.update(pagination_context(request, ds, "người"))
+    policy = AccountPolicy(request.user)
+    for profile in boi_canh["trang"]:
+        profile.can_manage_account = policy.can_manage(profile)
+        profile.can_edit_profile = is_admin(request.user)
     return render(request, "org/nhan_su.html", boi_canh)
 
 
@@ -107,35 +115,76 @@ def nhan_su_goi_y_ma(request):
 
 @login_required
 def nhan_su_sua(request, pk):
-    """Sửa hồ sơ. Chỉ quản trị viên."""
+    """Admin sửa hồ sơ; cấp quản lý chỉ xem và đặt lại mật khẩu."""
     request.nav_current = "nhan_su"
-    assert_rank(request.user, Rank.ADMIN, request)
+    if request.method == "POST":
+        with locked_target(request.user, pk) as (actor, profile):
+            assert_rank(actor, Rank.ADMIN, request)
+            before = account_service.snapshot_profile(profile)
+            form = SuaHoSoForm(request.POST, instance=profile)
+            if form.is_valid():
+                account_service.update_profile(profile, form.cleaned_data, before=before,
+                                               actor=actor, request=request)
+                messages.success(request, f"Đã cập nhật hồ sơ {profile}.")
+                return redirect("nhan_su")
+            return _account_screen(request, profile, profile_form=form)
+    profile = _manageable_profile(request, pk, allow_admin_self=True)
+    return _account_screen(request, profile)
 
-    # Lấy bản ghi trong phạm vi quyền, không lấy thẳng theo khoá chính —
-    # nếu không thì ngày nào nới quyền cho Manager là họ sửa được hồ sơ
-    # người bộ phận khác
-    ho_so = get_object_or_404(
-        UserProfile.objects.in_scope(request.user)
-        .select_related("user", "department", "team"),
-        pk=pk,
-    )
-    # Chụp giá trị cũ trước khi form kiểm tra — form gắn instance sẽ ghi đè
-    # giá trị mới lên chính đối tượng ngay trong lúc kiểm tra
-    goc = account_service.snapshot_profile(ho_so)
-    form = SuaHoSoForm(request.POST or None, instance=ho_so)
-    if request.method == "POST" and form.is_valid():
-        # Đi qua tầng dịch vụ để thay đổi được ghi vào nhật ký — BR-5
-        account_service.update_profile(
-            ho_so, form.cleaned_data, before=goc,
-            actor=request.user, request=request,
-        )
-        messages.success(request, f"Đã cập nhật hồ sơ {ho_so}.")
-        return redirect("nhan_su")
 
+def _manageable_profile(request, pk, *, allow_admin_self=False):
+    profile = get_object_or_404(UserProfile.objects.alive().select_related(
+        "user", "department", "team"), pk=pk)
+    if not (allow_admin_self and is_admin(request.user)):
+        AccountPolicy(request.user).require(profile)
+    return profile
+
+
+def _account_screen(request, profile, *, password_form=None, profile_form=None):
+    request.nav_current = "nhan_su"
     return render(request, "org/nhan_su_form.html", {
-        "form": form, "ho_so": ho_so,
-        "tieu_de": f"Sửa hồ sơ · {ho_so}", "la_tao_moi": False,
+        "ho_so": profile, "tieu_de": f"Sửa hồ sơ · {profile}", "la_tao_moi": False,
+        "form": (profile_form if profile_form is not None else SuaHoSoForm(instance=profile))
+                if is_admin(request.user) else None,
+        "password_form": (password_form if password_form is not None else SetPasswordForm(profile.user))
+                         if AccountPolicy(request.user).can_manage(profile) else None,
+        "can_reveal_new_password": has_rank(request.user, Rank.MANAGER),
     })
+
+
+@login_required
+@require_POST
+@never_cache
+@sensitive_post_parameters("new_password1", "new_password2")
+@sensitive_variables("form")
+def nhan_su_dat_lai_mat_khau(request, pk):
+    profile = _manageable_profile(request, pk)
+    form = SetPasswordForm(profile.user, request.POST)
+    if form.is_valid():
+        try:
+            reset_account_password(pk, form.cleaned_data["new_password1"],
+                                   actor=request.user, request=request)
+        except ValidationError as error:
+            form.add_error(None, error)
+        else:
+            messages.success(request, "Đã đặt lại mật khẩu. Người dùng có thể đăng nhập bằng mật khẩu mới.")
+            return redirect("nhan_su_sua", pk=pk)
+    return _account_screen(request, profile, password_form=form)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def nhan_su_xoa(request, pk):
+    profile = _manageable_profile(request, pk)
+    if request.method == "POST" and request.POST.get("confirm") == "yes":
+        try:
+            delete_account(pk, actor=request.user, request=request)
+        except BusinessError as error:
+            messages.error(request, str(error))
+        else:
+            messages.success(request, f"Đã xóa tài khoản {profile.staff_code}; dữ liệu lịch sử được giữ lại.")
+            return redirect("nhan_su")
+    return render(request, "org/nhan_su_xoa.html", {"ho_so": profile})
 
 
 @login_required
@@ -145,19 +194,17 @@ def nhan_su_doi_trang_thai(request, pk):
     if request.method != "POST":
         return redirect("nhan_su")
 
-    ho_so = get_object_or_404(
-        UserProfile.objects.in_scope(request.user).select_related("user"), pk=pk,
-    )
-    if ho_so.user_id == request.user.pk:
-        messages.error(request, "Không tự khoá tài khoản của chính mình được.")
-        return redirect("nhan_su")
-
-    if ho_so.user.is_active:
-        account_service.lock_account(ho_so, actor=request.user, request=request)
-        messages.success(request, f"Đã khoá {ho_so}. Phiên đang mở của họ bị huỷ ngay.")
-    else:
-        account_service.unlock_account(ho_so, actor=request.user, request=request)
-        messages.success(request, f"Đã mở khoá {ho_so}.")
+    with locked_target(request.user, pk) as (actor, ho_so):
+        assert_rank(actor, Rank.ADMIN, request)
+        if ho_so.user_id == actor.pk:
+            messages.error(request, "Không tự khoá tài khoản của chính mình được.")
+            return redirect("nhan_su")
+        if ho_so.user.is_active:
+            account_service.lock_account(ho_so, actor=actor, request=request)
+            messages.success(request, f"Đã khoá {ho_so}. Phiên đang mở của họ bị huỷ ngay.")
+        else:
+            account_service.unlock_account(ho_so, actor=actor, request=request)
+            messages.success(request, f"Đã mở khoá {ho_so}.")
     return redirect("nhan_su")
 
 

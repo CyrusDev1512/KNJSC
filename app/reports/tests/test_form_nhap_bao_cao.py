@@ -38,13 +38,15 @@ def _du(form, **doi):
     return _payload(form, **gia_tri)
 
 
-def test_chon_team_tren_form_nhap(client, bang_mkt, mkt_source, departments, teams, nguoi_dung, make_user):
-    """AC-43.1 — Form nộp báo cáo có dropdown các team đang hoạt động của bộ phận sở hữu biểu mẫu (không lẫn
+def test_admin_chon_team_tren_form_nhap(client, bang_mkt, mkt_source, departments, teams, nguoi_dung, make_user):
+    """AC-43.1, thay thế 25.09 — Admin nộp báo cáo có dropdown các team đang hoạt động của bộ phận sở hữu biểu mẫu (không lẫn
     team bộ phận khác), chọn sẵn team trong hồ sơ; nộp với team khác trong bộ phận thì dòng dữ liệu và báo cáo
     mang team đó — Leader team ấy xem và sửa được, Leader team khác không thấy; team của bộ phận khác hay id lạ
     bị từ chối, không lưu; để trống thì theo hồ sơ; bộ phận không có team đang hoạt động thì không có ô Team"""
     form = mkt_source.table.forms.get()
-    A = nguoi_dung["staff_mkt"]
+    A = nguoi_dung["admin"]
+    A.profile.department = departments["mkt"]
+    A.profile.save(update_fields=["department"])
     leader_a = make_user("leader_mkt_a", Rank.LEADER, departments["mkt"])
     leader_b = make_user("leader_mkt_b", Rank.LEADER, departments["mkt"])
     team_a = Team.objects.create(name="MKT A", department=departments["mkt"], leader=leader_a)
@@ -82,7 +84,7 @@ def test_chon_team_tren_form_nhap(client, bang_mkt, mkt_source, departments, tea
     # Bộ phận không còn team đang hoạt động → không có ô Team, vẫn nộp được theo hồ sơ
     Team.objects.filter(department=departments["mkt"]).update(is_active=False)
     html = client.get("/bao-cao/", {"bieu_mau": form.code}).content.decode()
-    assert 'id="o-team"' not in html
+    assert '<select class="o-nhap" id="o-team"' not in html
     assert client.post("/bao-cao/", _du(form)).status_code == 302
     assert DailyReport.objects.order_by("-pk").first().team_id == team_a.pk
 

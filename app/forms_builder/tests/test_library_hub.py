@@ -58,7 +58,7 @@ def test_navigation_groups_and_crm_button(client, nguoi_dung):
     client.force_login(nguoi_dung['staff_sale_1'])
     html = client.get('/bieu-mau/').content.decode()
     assert 'Mở KN CRM trong tab mới' in html
-    assert 'Tác vụ nền' in html
+    assert 'Tác vụ nền' not in html
 
 
 @pytest.mark.parametrize('role', ['manager_sale', 'admin'])

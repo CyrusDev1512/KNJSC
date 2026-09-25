@@ -212,8 +212,13 @@ def test_van_don_khong_sua_duoc_o_bang_du_lieu(client, bang_van_don, san_pham, n
     for ai in ("staff_vd", "admin"):
         client.force_login(nguoi_dung[ai])
         assert client.post(duong_dan, {"gia_tri": "Đang giao"}).status_code == 404
-        html = client.get(f"/bang/{bang_van_don.code}/").content.decode()
-        assert "Bảng này chỉ để xem" in html and "hx-post" not in html
+        response = client.get(f"/bang/{bang_van_don.code}/")
+        if ai == "staff_vd":
+            assert response.status_code == 403  # ADR-045: Staff không mở Bảng dữ liệu ERP.
+        else:
+            assert response.status_code == 200
+            html = response.content.decode()
+            assert "Bảng này chỉ để xem" in html and "hx-post" not in html
 
     don.record.refresh_from_db()
     assert don.record.data.get("trang_thai_vc") != "Đang giao"

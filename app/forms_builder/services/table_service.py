@@ -20,6 +20,7 @@ from core.audit import record
 from core.exceptions import BusinessError
 from core.constants import RECOMPUTE_BATCH, RECOMPUTE_SYNC_MAX_ROWS, RECOMPUTE_THREADS, AuditAction, JobKind, JobStatus
 from core.models import BackgroundJob
+from core.permissions import assert_business_write
 
 from ..meaning import FieldType
 from .. import record_policies
@@ -32,6 +33,7 @@ RECOMPUTE_RETRIES = 3
 @transaction.atomic
 def create_table(*, name, code, department, description="", actor=None, request=None):
     """Tạo một bảng mới. Bảng thuộc về bộ phận, không thuộc về team."""
+    assert_business_write(actor)
     bang = TableDef(
         name=name, code=code, department=department,
         description=description, created_by=actor,

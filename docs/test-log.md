@@ -1,5 +1,94 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 25.09.2026 — Kiểm trước phát hành Team/menu/CEO/mật khẩu
+
+Chủ dự án yêu cầu kiểm kỹ rồi đưa lên VPS, thay phạm vi local-only trước đó.
+Bộ chính theo CI: 2.804 đạt, 2 lỗi, 7 skip; đã sửa lớp CSS sai và cập nhật vai
+trò Manager cho bài đo ERP theo ADR-045, giữ ngưỡng kiểm. Nhóm xác nhận 682 đạt.
+E2E: 32 đạt, 1 lỗi fixture Manager thiếu, 2 skip; sửa fixture rồi chạy lại hai
+file mật khẩu/điện thoại: 10 đạt. Nhóm browser còn lại 1 đạt, 9 skip và cảnh báo
+dọn DB test còn kết nối. Không bật fixture 300.000 dòng.
+Chi tiết, lệnh/phạm vi và bước diễn tập tại
+[biên bản chuẩn bị](chuan-bi-phat-hanh-team-quyen-20260925.md).
+VPS vẫn `a23573d-main`; chưa merge hoặc phát hành.
+
+## 25.09.2026 — Bỏ ép đổi sau đặt lại, nút hiện/ẩn mật khẩu mới
+
+Chủ dự án chọn phương án 1, tiếp tục trên `claude/team-bao-cao-va-quyen-menu`
+tại `C:/KNJSC/KNJSC`. Không lưu mật khẩu có thể giải mã, không đọc mật khẩu cũ.
+
+- TDD: **4 lỗi, 1 đạt**; tái hiện đăng nhập bị đẩy về đổi mật khẩu và thiếu nút
+  hiện/ẩn cho Manager/CEO/Admin.
+- Lượt đầu sau sửa: 89 đạt/1 lỗi fixture — thư mục CRM trả 404 vì không có bảng
+  vận đơn. Đổi bước kiểm đăng nhập thành trang tác vụ cá nhân CRM, vốn không
+  yêu cầu bảng mẫu; vẫn yêu cầu HTTP 200, không chấp nhận redirect/404.
+- Lượt cuối: **90 đạt**, 13,24 giây. Kiểm reset hủy cả phiên ERP/CRM cũ, mật khẩu
+  mới đăng nhập được mà không ép đổi, giữ tài khoản khóa, quyền theo phạm vi,
+  không rò mật khẩu vào HTML lỗi/session/audit; tạo mới vẫn buộc đổi lần đầu.
+
+```powershell
+docker exec knjsc-password-tests pytest org/tests/test_account_management.py org/tests/test_account.py org/tests/test_temporary_password.py core/tests/test_shared_login.py -m 'not cham and not trinh_duyet' --tb=short -rs
+```
+
+Container kiểm bind checkout hiện tại, database riêng `test_knjsc_password_test`,
+`RUN_MIGRATIONS=0`. Log RED/GREEN tại `%TEMP%/kn-password-reset-red.log` và
+`%TEMP%/kn-password-reset-green.log`.
+
+Kiểm browser ở preview riêng 18031 bằng Manager mẫu: nút hiện đổi đúng ô từ
+password sang text, ô xác nhận vẫn ẩn; Enter ẩn lại. Không nhập/gửi mật khẩu
+trên UI trong lượt kiểm này; luồng ghi được kiểm tự động trên database test.
+390 px: viewport và scrollWidth đều 390; đã trả viewport về mặc định. Không
+chạy bộ E2E tự động hoặc tải lớn. Bản local 8020 nạp thay đổi; chưa commit/push/VPS.
+
+## 25.09.2026 — Team hệ thống và quyền menu ERP (ADR-045)
+
+Nhánh `claude/team-bao-cao-va-quyen-menu`, nền ban đầu `a23573d`, đã tích hợp
+CEO `604910c` từ FIX EROR. Trước tích hợp: rộng **2.698 đạt**, 2 lỗi số liệu
+tài liệu đã sửa; nhóm xác nhận **56 đạt**, skip CEO khi chưa có định nghĩa.
+
+Sau tích hợp: TDD tái hiện menu nộp CEO còn hiện (1 lỗi/1 đạt); chặn đường nộp,
+ẩn menu/CTA, giữ CEO chỉ xem. Nhóm đầu **80 đạt**. Rộng **2.786 đạt, 1 lỗi,
+1 skip fixture đo cuộn, 63 loại theo marker**, 325,45s. Bài mới kỳ vọng sai
+403 ở màn sửa vốn trả 404 khi không có quyền: đã sửa kỳ vọng, giữ kiểm GET/POST
+và dữ liệu không đổi. Lượt cuối **117 đạt, không skip**, 14,09s, gồm toàn bộ
+file quyền Team/menu/CEO, tài khoản và truy vết. Không đổi mã ứng dụng sau lượt rộng.
+
+Django check và model check đạt. Kiểm UI đủ năm vai trò, Team chỉ đọc/chọn bởi
+Admin, Staff xuất Excel; CEO đọc Marketing/Sale/lịch sử nhưng không nộp/sửa,
+không Quản trị. Desktop 1440 và điện thoại 390 không tràn ở màn đã kiểm.
+Chưa chạy pytest browser suite hoặc kiểm tải; không tính skip thành pass.
+Không tạo commit mới/push/VPS. Xem
+[biên bản và lệnh](kiem-chung-team-va-quyen-menu-20260925.md).
+
+## 25.09.2026 — CEO / đặt lại mật khẩu / xóa mềm tài khoản
+
+Nền `main a23573d`, worktree riêng và PostgreSQL 16 riêng (`knjsc-account-db`),
+không dùng dữ liệu local/VPS đang chạy. TDD đã tái hiện 403 của Leader ở Sửa,
+CEO thiếu phạm vi toàn công ty và CEO vô tình được điền biểu mẫu cùng phòng ban.
+
+- Nhóm ban đầu org/core: chạy hết, không lỗi; một bài Chrome HTTPS được bỏ qua
+  vì cần fixture proxy riêng. Kiểm Chrome của tính năng này chạy riêng bằng Chrome host.
+- Toàn suite lượt đầu: **2.750 đạt, 3 lỗi, 13 lỗi thiết lập, 48 bỏ qua** (374,02s).
+  Một bài lịch sử gọi `profile.delete()` để tạo hồ sơ mồ côi: đã đổi fixture sang
+  `hard_delete()` đúng mục tiêu, giữ các assertion cũ. Hai lỗi/13 lỗi thiết lập
+  còn lại do container chưa mount `scripts/` ở gốc repo; đã sửa cách chạy, không sửa
+  test để bỏ qua. Nhóm xác nhận sau sửa: **88 đạt** (16,48s).
+- Chrome thật: **8/8 luồng** quản lý ở 1440/390, Staff bị chặn, không lỗi JS;
+  fixture hậu kiểm database **1 đạt** (67,88s). Không ghi mật khẩu/cookie vào ảnh.
+
+- Toàn suite lượt cuối: **2.770 đạt, 49 bỏ qua, 0 lỗi** trong **376,34s**.
+  Bỏ qua: Chromium không có trong container và các fixture browser/capacity
+  cần bật riêng; bài tài khoản Chrome đã chạy riêng đạt, không cộng skip thành pass.
+- Sau rà soát Django admin (không gán lại cờ kỹ thuật cho CEO hoặc hồi sinh hồ sơ
+  đang bị xóa): nhóm tài khoản **58 đạt** trong **16,13s**, gồm ngân sách truy vấn.
+- `manage.py check` cho ERP và CRM: không lỗi; `makemigrations --check --dry-run`:
+  không còn thay đổi chưa có migration.
+- Kiểm lại các file cuối (tài khoản, migration/đồng thời và tab Biểu mẫu):
+  **101 đạt, 0 bỏ qua, 0 lỗi** trong **17,30s**.
+
+Lệnh, phạm vi bỏ qua và bằng chứng ở
+[biên bản](kiem-chung-quan-ly-tai-khoan-20260925.md). Không coi bài bỏ qua là đạt.
+
 ## 24.09.2026 — Sửa định vị hai bài E2E ghi chú chặn phát hành `main`
 
 Nền `a120af5`, nhánh `claude/sua-e2e-ghi-chu`. CI run `35981282943` và lượt kiểm

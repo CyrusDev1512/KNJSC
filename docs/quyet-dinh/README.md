@@ -177,6 +177,8 @@ Bốn điểm từng nằm ở đây đều đã chốt và đã có mục quy�
 Hiện **không còn điểm nào chờ ghi thành mục quyết định**. Danh sách việc chưa
 xong nằm ở `../backlog.md` mục 0.
 
+- [ADR-044 — CEO và quản lý tài khoản](044-ceo-va-quan-ly-tai-khoan.md): phạm vi đọc toàn công ty tách quyền Admin; đặt lại mật khẩu/xóa mềm theo cấp bậc, giữ lịch sử và vô hiệu phiên.
+
 ## Khôi phục quyết định 14.09.2026
 
 - [ADR-022: Báo cáo hoạt động ERP](022-bao-cao-hoat-dong-erp.md).
@@ -191,3 +193,5 @@ xong nằm ở `../backlog.md` mục 0.
 - [ADR-041 — Bỏ và khôi phục báo cáo cấp dưới](041-xoa-khoi-phuc-bao-cao.md): Leader team/Manager bộ phận/Admin bỏ (xoá mềm cả dòng số liệu); Manager/Admin khôi phục ở trang "Đã bỏ"; Kế toán không.
 - [ADR-042 — Báo cáo tổng hợp như ảnh mẫu](042-bao-cao-tong-hop-nhu-anh-mau.md): tiền quy ₫ ngay trong truy vấn rồi mới cộng (thay "để trống khi lẫn tiền" của ADR-038); cột đối soát (TT) từ vận đơn; nhãn MKT theo ảnh; bố cục khối theo ngày, Gộp, ngưỡng màu ba bậc do quản lý đặt, lọc nhiều sản phẩm, Bảng dữ liệu của bảng có nguồn là báo cáo chi tiết theo ngày — năm đợt xong local 23.09, chờ nghiệm thu và phát hành.
 - [ADR-043 — Form Nộp báo cáo ngày](043-form-nhap-bao-cao.md): dropdown Team của bộ phận ghi vào dòng và báo cáo; Số Mess, CPQC, Số đơn, Doanh số bắt buộc (một chỗ `REQUIRED_INPUTS`); bỏ Hóa đơn khỏi form nhập, giữ cột và chỉ tiêu; một thẻ trải ngang, ô nhập 34 px, cột tính sẵn dạng chip — xong local 24.09, PR nháp riêng vào `main`.
+
+- [ADR-045 — Team hệ thống và quyền menu ERP](045-team-he-thong-va-quyen-menu-erp.md): Team theo hồ sơ; Quản trị chỉ Admin; CEO chỉ xem; giữ tác vụ cá nhân và quyền CRM.

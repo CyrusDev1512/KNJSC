@@ -9,6 +9,7 @@ Hai tầng phạm vi khác nhau, đừng lẫn:
 - `TableDef.objects.in_scope()` — ai thấy *định nghĩa* bảng nào
 - `DataRecord.objects.in_scope()` — ai thấy *bản ghi* nào trong bảng đó
 """
+from core.permissions import assert_business_write, can_manage_business, is_company_reader
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -70,7 +71,7 @@ def _nguon_bao_cao(request, bang_hien):
 def _duoc_sua_bang(user):
     """Ai được tạo và sửa cấu trúc bảng — FR-8.1 giao cho Manager trở lên;
     ADR-015 mở cho Leader (quản lý của bộ phận)."""
-    return has_rank(user, Rank.LEADER)
+    return can_manage_business(user, Rank.LEADER)
 
 
 def _kiem_sua_cau_truc(request, bang_hien):
@@ -112,6 +113,7 @@ def bang(request):
 @login_required
 def bang_moi(request):
     """Tạo bảng mới — FR-8.1; Leader trở lên (ADR-015)."""
+    assert_business_write(request.user)
     request.nav_current = "bang"
     assert_rank(request.user, Rank.LEADER, request)
 
@@ -134,6 +136,7 @@ def bang_moi(request):
 @login_required
 def bang_cot(request, code):
     """Thêm và sửa cột của một bảng — quản lý của bộ phận sở hữu (ADR-015)."""
+    assert_business_write(request.user)
     request.nav_current = "bang"
     assert_rank(request.user, Rank.LEADER, request)
     bang_hien = _lay_bang(request, code)
@@ -466,6 +469,7 @@ def bang_xuat(request, code):
 @require_POST
 def bang_cap_quyen(request, code):
     """Cấp quyền xem hoặc sửa một bảng cho người ngoài bộ phận — FR-8.4."""
+    assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bang_hien = _lay_bang(request, code)
 
@@ -489,6 +493,7 @@ def bang_cap_quyen(request, code):
 @require_POST
 def bang_thu_quyen(request, code, pk):
     """Thu hồi một quyền đã cấp trên bảng."""
+    assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bang_hien = _lay_bang(request, code)
     quyen = get_object_or_404(Grant, pk=pk, table=bang_hien)
@@ -548,6 +553,7 @@ def bieu_mau(request):
         "tim": tim,
         "duoc_sua": _duoc_sua_bang(request.user),
         "thu_vien": thu_vien.select_related("department").order_by("name"),
+        "duoc_dien": not is_company_reader(request.user),
     }
     boi_canh.update(pagination_context(request, ds, "biểu mẫu"))
     boi_canh.update(active_tab="forms", can_manage_forms=can_manage,
@@ -558,6 +564,7 @@ def bieu_mau(request):
 @login_required
 def bieu_mau_moi(request):
     """Tạo biểu mẫu mới, chọn bảng đích — FR-8.1, FR-8.3."""
+    assert_business_write(request.user)
     request.nav_current = "bieu_mau"
     assert_rank(request.user, Rank.MANAGER, request)
 
@@ -581,6 +588,7 @@ def bieu_mau_moi(request):
 @login_required
 def bieu_mau_sua(request, code):
     """Trình tạo biểu mẫu: thêm trường, nối cột đích, phân quyền."""
+    assert_business_write(request.user)
     request.nav_current = "bieu_mau"
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
@@ -627,6 +635,7 @@ def bieu_mau_sua(request, code):
 @require_POST
 def bieu_mau_bo_truong(request, code, pk):
     """Bỏ một trường khỏi biểu mẫu. Không đụng tới dữ liệu đã nhập — FR-8.5."""
+    assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
     truong = get_object_or_404(FormField, pk=pk, form=bm)
@@ -639,6 +648,7 @@ def bieu_mau_bo_truong(request, code, pk):
 @login_required
 def truong_moi(request):
     """Thêm một định nghĩa trường vào thư viện dùng chung của bộ phận."""
+    assert_business_write(request.user)
     request.nav_current = "bieu_mau"
     assert_rank(request.user, Rank.MANAGER, request)
 
@@ -668,6 +678,7 @@ def truong_moi(request):
 @require_POST
 def bieu_mau_cap_quyen(request, code):
     """Cấp quyền điền biểu mẫu cho người ngoài bộ phận — FR-8.4."""
+    assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
 
@@ -691,6 +702,7 @@ def bieu_mau_cap_quyen(request, code):
 @require_POST
 def bieu_mau_thu_quyen(request, code, pk):
     """Thu hồi quyền điền biểu mẫu."""
+    assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
     quyen = get_object_or_404(Grant, pk=pk, form=bm)

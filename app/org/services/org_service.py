@@ -40,6 +40,8 @@ def assign_member(profile, *, department=None, team=None, actor=None, request=No
     Team phải thuộc đúng bộ phận đang gán. Đổi bộ phận hoặc team làm phiên
     đang mở mất hiệu lực ngay (P4) — việc đó do `UserProfile.save()` lo.
     """
+    from .account_management import require_live_profile
+    require_live_profile(profile)
     if team is not None and department is not None and team.department_id != department.id:
         raise BusinessError(
             f"Team {team} không thuộc bộ phận {department}.", code="team_sai_bo_phan",

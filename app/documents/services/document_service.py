@@ -14,7 +14,7 @@ from core.audit import record
 from core.constants import AuditAction, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.excel import check_size, sniff_kind
-from core.permissions import has_rank, in_department, is_admin
+from core.permissions import can_manage_business, in_department, is_admin
 
 from ..constants import (
     DESCRIPTION_MAX, DOCUMENT_FILE_KINDS, DOCUMENT_SUBDIR, FILE_NAME_MAX, LINK_SCHEMES,
@@ -29,7 +29,7 @@ def can_manage_category(user, department):
     """Ai tạo được mục: Admin mọi mục; Manager chỉ mục của bộ phận mình."""
     if is_admin(user):
         return True
-    if department is None or not has_rank(user, Rank.MANAGER):
+    if department is None or not can_manage_business(user, Rank.MANAGER):
         return False
     return in_department(user, department.pk)
 
@@ -40,7 +40,7 @@ def can_manage_document(user, doc):
         return True
     return (
         doc.department_id is not None
-        and has_rank(user, Rank.MANAGER)
+        and can_manage_business(user, Rank.MANAGER)
         and in_department(user, doc.department_id)
     )
 
@@ -123,7 +123,7 @@ def upload_document(*, title, category, upload=None, link="", description="",
         raise BusinessError("Liên kết phải bắt đầu bằng http:// hoặc https://.")
     if upload is not None and link:
         raise BusinessError("Chọn tệp hoặc dán liên kết, không cả hai.")
-    if not has_rank(actor, Rank.MANAGER):
+    if not can_manage_business(actor, Rank.MANAGER):
         raise OutOfScopeError("Chỉ quản lý trở lên tải được tài liệu lên.")
     if not DocumentCategory.objects.in_scope(actor).filter(pk=category.pk).exists():
         raise OutOfScopeError("Mục này không thuộc phạm vi của bạn.")

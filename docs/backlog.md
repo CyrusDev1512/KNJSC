@@ -1,5 +1,57 @@
 # Backlog
 
+## 25.09.2026 — Chuẩn bị đưa Team/menu/CEO/mật khẩu lên VPS
+
+Chủ dự án đã yêu cầu kiểm kỹ và phát hành. Đang chuẩn bị PR/CI/diễn tập;
+các ghi chú local-only bên dưới mô tả mốc bàn giao trước yêu cầu mới.
+VPS hiện `a23573d-main`, chưa thay đổi. Cần duyệt merge PR cụ thể trước khi
+phát hành từ main. [Biên bản](chuan-bi-phat-hanh-team-quyen-20260925.md).
+
+## 25.09.2026 — Đặt lại mật khẩu không ép đổi lần sau
+
+**Hoàn tất local, chủ dự án chọn phương án 1:** bỏ yêu cầu đổi lần sau khi
+đặt lại; vẫn hủy phiên cũ và giữ khóa tài khoản. Manager/CEO/Admin hiện/ẩn
+mật khẩu đang nhập trong phạm vi quản lý; không đọc/lưu lại mật khẩu rõ.
+90 bài hồi quy đạt; kiểm chuột/bàn phím và form 390 px trên dữ liệu mẫu.
+Giữ quy tắc đổi lần đầu cho tài khoản mới. Cùng nhánh Team/menu đang xem thử,
+chưa commit/push/VPS. Quyết định bổ sung tại ADR-044; chi tiết trong test-log.
+
+## 25.09.2026 — Team hệ thống và quyền menu ERP (ADR-045)
+
+**Hoàn tất local:** Team tự điền cho Staff/Leader/Manager; Admin
+giữ dropdown; bỏ ô Team nhập tay trùng, bảo toàn báo cáo cũ. Quản trị chỉ Admin;
+Bảng dữ liệu ERP chỉ Manager trong phạm vi, CEO toàn công ty và Admin. Giữ luồng
+theo dõi/tải tác vụ cá nhân; không thay quyền CRM. Yêu cầu chặn Sale/MKT vào CRM hoãn.
+
+Nhánh `claude/team-bao-cao-va-quyen-menu` đã kế thừa bản CEO `604910c` từ task
+**FIX EROR**. CEO chỉ xem, không nộp/sửa báo cáo; đã kiểm đủ năm vai trò.
+Hồi quy rộng 2.786 đạt, 1 lỗi kỳ vọng 403/404 đã sửa; nhóm cuối 117 đạt, không skip.
+Giới hạn browser/marker ghi trong biên bản. Không tạo commit mới/push/VPS trong
+phạm vi này. Xem [ADR-045](quyet-dinh/045-team-he-thong-va-quyen-menu-erp.md)
+và [biên bản local](kiem-chung-team-va-quyen-menu-20260925.md).
+
+## 25.09.2026 — CEO, đặt lại mật khẩu và xóa tài khoản theo cấp bậc (ADR-044)
+
+Triển khai trên `claude/phan-quyen-mat-khau-xoa-tai-khoan` từ main `a23573d`,
+checkout riêng. Ma trận quản lý tài khoản ở một service: Leader → Staff trong
+team, Manager → Leader/Staff trong phòng ban, CEO → cấp dưới toàn công ty,
+Admin → tài khoản khác. Sửa hồ sơ/tạo/khóa vẫn chỉ Admin. Xóa mềm giữ mã,
+liên kết lịch sử; chặn đăng nhập/đặt lại/mở khóa tài khoản đã xóa.
+[PR nháp #52](https://github.com/CyrusDev1512/KNJSC/pull/52), code `cd7e7a1` đã push.
+
+CEO có phạm vi đọc toàn công ty; đã tách khỏi quyền Admin và rà các quyền ghi
+báo cáo/lưới/cấu hình/tiền/phân công. Migration mới 0006; không đổi tài khoản cũ.
+Chrome 1440/390 đã qua 8 luồng quản lý cùng Staff bị từ chối. Kiểm đồng thời,
+migration xuôi/ngược và kiểm ngân sách 10 truy vấn có bài riêng.
+
+**Trạng thái:** hoàn thành local; toàn suite 2.770 đạt/49 bỏ qua, Chrome 8/8 luồng
+đạt; nhóm tài khoản sau rà soát 58/58 đạt. Bàn giao bằng PR nháp; chưa merge/VPS.
+[Quyết định](quyet-dinh/044-ceo-va-quan-ly-tai-khoan.md) ·
+[Biên bản kiểm chứng](kiem-chung-quan-ly-tai-khoan-20260925.md).
+
+**Chưa làm:** giao diện khôi phục tài khoản. Đảo migration mất dấu xóa nên
+không dùng để quay lui dữ liệu vận hành.
+
 ## 24.09.2026 — Form Nộp báo cáo ngày: chọn Team, bốn trường bắt buộc, bỏ Hóa đơn, bố cục ngang (ADR-043)
 
 **Vì sao.** Chủ dự án xem thử nhánh ADR-042 trên local và góp ý ngay ở màn Nộp báo cáo ngày: chọn Team bằng

@@ -1,5 +1,9 @@
 # ADR-043 — Form Nộp báo cáo ngày: chọn Team, bốn trường bắt buộc, bỏ Hóa đơn, bố cục ngang
 
+> Thay thế một phần ngày 25.09: [ADR-045](045-team-he-thong-va-quyen-menu-erp.md)
+> khóa Team theo hồ sơ cho Staff/Leader/Manager; Admin giữ dropdown. Các quyết định
+> trường bắt buộc, Hóa đơn và bố cục bên dưới vẫn giữ.
+
 | | |
 |---|---|
 | Ngày | 24.09.2026 |

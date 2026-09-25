@@ -60,7 +60,9 @@ Vấn đề tập trung
 6. Vận đơn được xem dữ liệu nhưng không được thao tác mục đối soát nếu không có quyền.
    Chốt bổ sung: Vận đơn không phụ trách và không cần quan tâm phần số tiền. Phần số tiền thuộc công việc của Kế toán và Kho. Quyền thao tác cụ thể của Kế toán/Kho cần xác định riêng.
 7. Hệ thống cần hạn chế thao tác linh tinh và chỉ cung cấp các thao tác có ý nghĩa với vai trò.
+   - Phần quản lý tài khoản (ADR-044, 25.09.2026): đặt lại mật khẩu và xóa mềm theo Leader/team, Manager/phòng ban, CEO/cấp dưới toàn công ty, Admin/tài khoản khác; không tự xóa, giữ Admin hoạt động và lịch sử, vô hiệu phiên ERP/CRM; CEO không kế thừa quyền ghi/Admin -> đã làm (local; functional, Chrome 1440/390 và trần 10 truy vấn; chưa merge/VPS; docs/kiem-chung-quan-ly-tai-khoan-20260925.md). Không đóng toàn bộ mục phân quyền.
 8. Phần view cho nhân viên phải thuận tiện nhất cho người trực tiếp xử lý.
+   - Nhân sự: form Đặt lại mật khẩu riêng trong Sửa; quản lý không phải Admin chỉ xem hồ sơ; nút Xóa theo cùng ma trận mở bước xác nhận mã/họ tên và giải thích giữ lịch sử -> đã làm (local, ADR-044; không có giao diện khôi phục tài khoản).
    Phần KN CRM — Vận đơn mới: tự lưu nền, lưới luôn chỉnh sửa và nút Tôi / Toàn bộ (ADR-033 thay chế độ Xem/Chỉnh sửa), chọn hàng xanh, định dạng cơ bản, lịch sử ô/xung đột và số hàng từ 1; kiểm chức năng/E2E -> đã làm (phạm vi thao tác đã chốt; chưa đóng nghiệm thu hiệu năng lọc 300k hoặc H7)
 
 Kết quả tính năng cần hướng tới

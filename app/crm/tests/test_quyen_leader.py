@@ -53,20 +53,23 @@ def test_leader_quan_ly_trong_bo_phan_minh(client, bang_sale, nguoi_dung, leader
     assert client.post("/bang-tinh/don_sale/xoa-cot/", {"cot": ["cot_moi_1"]}).status_code == 200
     assert client.get("/bang-tinh/don_sale/").context["duoc_quan_ly_cot"] is True
     assert client.post("/bang-tinh/don_sale/xuat/").status_code in (200, 302)
-    # Ở KN ERP: tạo bảng vào đúng bộ phận mình, Sửa cột, Nhập tệp
+    # 25.09: Leader bị chặn ở ERP, còn thao tác quản lý bảng qua CRM.
     with ERP:
-        assert client.get("/bang/moi/").status_code == 200
-        kq = client.post("/bang/moi/", {"name": "Bảng của Leader", "code": "bang_leader", "description": ""})
-        assert kq.status_code == 302
-        assert TableDef.objects.get(code="bang_leader").department == departments["sale"]
-        assert client.get("/bang/don_sale/cot/").status_code == 200
-        assert client.get("/bang/don_sale/nhap/").status_code == 200
-        # Cấp quyền cho người khác: vẫn chỉ Manager
-        truoc = _tu_choi()
-        assert client.post("/bang/don_sale/cap-quyen/", {}).status_code == 403
-        assert _tu_choi() == truoc + 1
-        client.force_login(nguoi_dung["manager_sale"])
-        assert client.post("/bang/don_sale/cap-quyen/", {}).status_code in (200, 302)
+        assert client.get("/bang/moi/").status_code == 403
+        assert client.get("/bang/don_sale/cot/").status_code == 403
+    # Các thao tác sau chạy trên URLconf CRM, giữ quyền ADR-015.
+    assert client.get("/bang/moi/").status_code == 200
+    kq = client.post("/bang/moi/", {"name": "Bảng của Leader", "code": "bang_leader", "description": ""})
+    assert kq.status_code == 302
+    assert TableDef.objects.get(code="bang_leader").department == departments["sale"]
+    assert client.get("/bang/don_sale/cot/").status_code == 200
+    assert client.get("/bang/don_sale/nhap/").status_code == 200
+    # Cấp quyền cho người khác: vẫn chỉ Manager
+    truoc = _tu_choi()
+    assert client.post("/bang/don_sale/cap-quyen/", {}).status_code == 403
+    assert _tu_choi() == truoc + 1
+    client.force_login(nguoi_dung["manager_sale"])
+    assert client.post("/bang/don_sale/cap-quyen/", {}).status_code in (200, 302)
 
     # Staff: từ chối có nhật ký ở tạo bảng và Sửa cột
     client.force_login(nguoi_dung["staff_sale_1"])
@@ -79,9 +82,8 @@ def test_leader_quan_ly_trong_bo_phan_minh(client, bang_sale, nguoi_dung, leader
 
     # Leader bộ phận khác: không thấy bảng Sale → 404
     client.force_login(leader_mkt)
-    with ERP:
-        assert client.get("/bang/don_sale/cot/").status_code == 404
-        assert client.get("/bang/don_sale/nhap/").status_code == 404
+    assert client.get("/bang/don_sale/cot/").status_code == 404
+    assert client.get("/bang/don_sale/nhap/").status_code == 404
     assert client.post("/bang-tinh/don_sale/them-cot/", {"canh": "khach", "so": 1}).status_code == 404
     # Được cấp quyền Xem: thấy bảng, nhưng cấu trúc và nhập vẫn 403 có nhật ký
     grant_service.grant(table=bang_sale, user=leader_mkt, action=GrantAction.VIEW, actor=nguoi_dung["manager_sale"])
