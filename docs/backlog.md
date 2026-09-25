@@ -7,6 +7,7 @@ checkout riêng. Ma trận quản lý tài khoản ở một service: Leader →
 team, Manager → Leader/Staff trong phòng ban, CEO → cấp dưới toàn công ty,
 Admin → tài khoản khác. Sửa hồ sơ/tạo/khóa vẫn chỉ Admin. Xóa mềm giữ mã,
 liên kết lịch sử; chặn đăng nhập/đặt lại/mở khóa tài khoản đã xóa.
+[PR nháp #52](https://github.com/CyrusDev1512/KNJSC/pull/52), code `cd7e7a1` đã push.
 
 CEO có phạm vi đọc toàn công ty; đã tách khỏi quyền Admin và rà các quyền ghi
 báo cáo/lưới/cấu hình/tiền/phân công. Migration mới 0006; không đổi tài khoản cũ.

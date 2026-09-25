@@ -8,6 +8,7 @@ riêng; Xóa mềm có xác nhận; bảo vệ phiên/lịch sử; ma trận ser
 58/58 đạt, giữ trần 10 truy vấn. Bàn giao PR nháp trên nhánh riêng theo ADR-044.
 **To do:** chủ dự án duyệt PR; chưa merge hoặc phát hành VPS. **Far plan:** giao diện
 khôi phục tài khoản (chưa được yêu cầu).
+[PR nháp #52](https://github.com/CyrusDev1512/KNJSC/pull/52), code `cd7e7a1` đã push.
 [Kiểm chứng](kiem-chung-quan-ly-tai-khoan-20260925.md).
 
 ## 24.09.2026 — Form Nộp báo cáo ngày (ADR-043)

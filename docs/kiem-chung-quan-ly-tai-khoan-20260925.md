@@ -2,6 +2,8 @@
 
 Nền: `main a23573d7aaaabac1eedfa9ec169d68c7b33b2fd6`.
 Nhánh: `claude/phan-quyen-mat-khau-xoa-tai-khoan`.
+Code đã push: `cd7e7a1`. [PR nháp #52](https://github.com/CyrusDev1512/KNJSC/pull/52)
+trỏ về `main`, chưa merge hoặc phát hành VPS.
 Checkout: `C:/KNJSC/account-management`. Không sửa checkout task khác hoặc VPS.
 Quyết định: [ADR-044](quyet-dinh/044-ceo-va-quan-ly-tai-khoan.md).
 
