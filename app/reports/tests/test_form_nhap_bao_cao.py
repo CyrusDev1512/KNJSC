@@ -8,7 +8,7 @@ from django.core.management import call_command
 from django.urls import reverse
 
 from core.constants import Rank
-from forms_builder.models import ColumnDef, DataRecord, FieldDef, FormDef, FormField, FormTableLink
+from forms_builder.models import ColumnDef, DataRecord, FieldDef, FormDef, FormField, FormTableLink, TableDef
 from org.models import Team
 from orders.models import Product
 from reports.management.commands.configure_erp_reports import REQUIRED_INPUTS, configure_source
@@ -170,3 +170,57 @@ def test_bo_cuc_ngang_form_nhap(client, bang_mkt, mkt_source, nguoi_dung):
     html = client.get("/bao-cao/", {"bieu_mau": form.code}).content.decode()
     assert 'class="the-than bm bm-ngang"' in html and '<span class="chip">CPO' in html
     assert 'value="hệ thống tự tính"' not in html and 'form="bm-bao-cao">Nộp báo cáo</button>' in html
+
+
+def test_mot_o_team_tren_form_nhap(client, bang_mkt, departments, nguoi_dung, make_user):
+    """AC-43.5 — Bảng báo cáo có sẵn cột Team dạng chữ (mã `team` hay nhãn "Team", như dữ liệu thật) thì
+    `configure_erp_reports` gỡ ô nhập của cột đó, không tạo lại và ghi ánh xạ `team`; form chỉ còn **một** ô
+    Team là dropdown; khi nộp, hệ thống ghi tên team đã chọn (không chọn thì team hồ sơ) vào cột, chữ gõ tay
+    gửi thẳng lên bị bỏ; người chưa có team và không chọn thì cột trống, vẫn nộp được; Bảng dữ liệu vẫn hiện
+    tên team ở cột đó; bảng Sale do lệnh dựng cũng vậy"""
+    form = FormDef.objects.create(table=bang_mkt, department=bang_mkt.department, code="bc_mkt_team", name="BC MKT")
+    cot_team = ColumnDef.objects.create(table=bang_mkt, code="team_mau", name="Team", field_type="text", order=2)
+    truong = FieldDef.objects.create(name="Team", code="team_cu", field_type="text", department=bang_mkt.department)
+    FormTableLink.objects.create(form_field=FormField.objects.create(form=form, field=truong, order=2), column=cot_team)
+    for _ in range(2):   # gỡ ô nhập của cột Team, chạy lại không tạo lại
+        configure_source(bang_mkt, "mkt")
+        assert not FormField.objects.filter(form=form, link__column=cot_team).exists()
+    assert ReportSource.objects.get(table=bang_mkt).columns["team"] == "team_mau"
+    assert ColumnDef.objects.filter(pk=cot_team.pk).exists()          # cột giữ nguyên (BR-4)
+
+    A = nguoi_dung["staff_mkt"]
+    team_a = Team.objects.create(name="MKT A", department=departments["mkt"])
+    team_b = Team.objects.create(name="MKT B", department=departments["mkt"])
+    A.profile.team = team_a
+    A.profile.save(update_fields=["team"])
+    client.force_login(A)
+    html = client.get("/bao-cao/", {"bieu_mau": form.code}).content.decode()
+    assert html.count(">Team</label>") == 1 and 'id="o-team"' in html
+    assert not re.search(r'name="[a-z0-9_]*team_(mau|cu)"', html)
+    # Chọn team B → cột Team dạng chữ mang "MKT B"; chữ gõ tay gửi thẳng lên bị bỏ
+    r = client.post("/bao-cao/", {**_du(form), "team": str(team_b.pk), "team_mau": "gõ tay", "team_cu": "gõ tay"})
+    assert r.status_code == 302, r.content[:300]
+    bao_cao = DailyReport.objects.get()
+    assert bao_cao.team_id == team_b.pk and bao_cao.record.data["team_mau"] == "MKT B"
+    # Không chọn → team hồ sơ
+    assert client.post("/bao-cao/", {**_du(form), "team": ""}).status_code == 302
+    assert DailyReport.objects.order_by("-pk").first().record.data["team_mau"] == "MKT A"
+    # Người chưa có team, không chọn → cột trống, vẫn nộp được
+    client.force_login(make_user("mkt_khong_team", Rank.STAFF, departments["mkt"]))
+    assert client.post("/bao-cao/", {**_du(form), "team": ""}).status_code == 302
+    moi = DailyReport.objects.order_by("-pk").first()
+    assert moi.team_id is None and not moi.record.data.get("team_mau")
+    # Bảng dữ liệu (chỉ đọc, ADR-014) vẫn hiện tên team ở cột Team
+    client.force_login(nguoi_dung["manager_mkt"])
+    html = client.get(f"/bang/{bang_mkt.code}/", {"dang": "tho"}).content.decode()
+    assert "MKT B" in html and "MKT A" in html
+    # Bảng Sale do lệnh dựng: cột Team mã `team` cũng rời form và có ánh xạ
+    call_command("configure_erp_reports")
+    sale = TableDef.objects.get(code="bao_cao_sale")
+    cot_sale = ColumnDef.objects.create(table=sale, code="team", name="Team", field_type="text", order=1)
+    form_sale = FormDef.objects.get(code="bc_sale_ngay")
+    truong_sale = FieldDef.objects.create(name="Team", code="team_sale_cu", field_type="text", department=sale.department)
+    FormTableLink.objects.create(form_field=FormField.objects.create(form=form_sale, field=truong_sale, order=1), column=cot_sale)
+    call_command("configure_erp_reports")
+    assert ReportSource.objects.get(table=sale).columns["team"] == "team"
+    assert not FormField.objects.filter(form=form_sale, link__column=cot_sale).exists()

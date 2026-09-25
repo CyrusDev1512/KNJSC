@@ -1,5 +1,20 @@
 # Backlog
 
+## 25.09.2026 — Một ô Team duy nhất trên form Nộp báo cáo ngày (ADR-043 bổ sung)
+
+**Vì sao.** Chủ dự án chụp màn hình: form MKT trên dữ liệu thật có **hai ô Team** — dropdown mới (ADR-043)
+ở hàng đầu và ô gõ tay "Team" trong lưới, là cột Team dạng chữ có sẵn trong bảng mà `configure_forms` tự
+đưa lên form. Dữ liệu mẫu không có cột này nên kiểm chứng 24.09 không thấy; lỗi thuộc về Claude.
+
+**Làm gì.** `configure_erp_reports.team_column` nhận diện cột (mã `team` hay nhãn "Team"), gỡ ô nhập của nó
+khỏi form Sale/MKT (cơ chế `skip` của Hóa đơn) và ghi ánh xạ `ReportSource.columns["team"]`;
+`record_service.create_record` ghi tên team của dòng (team chọn trên form, không có thì team hồ sơ) vào cột
+đó, bỏ chữ gõ tay; cột và dữ liệu cũ giữ nguyên. Hằng số `TEAM_COLUMN_CODE/LABEL` ở `reports/constants.py`.
+AC-43.5 (`test_form_nhap_bao_cao.py`), docs/06 lên **270/257/234**. Biên bản
+[kiem-chung-mot-o-team-bao-cao-20260925.md](kiem-chung-mot-o-team-bao-cao-20260925.md). Nhánh
+`claude/mot-o-team-bao-cao`, PR nháp về `main`. **Còn nợ:** không có (nhập Excel vẫn nhận cột Team từ tệp,
+cố ý).
+
 ## 24.09.2026 — Form Nộp báo cáo ngày: chọn Team, bốn trường bắt buộc, bỏ Hóa đơn, bố cục ngang (ADR-043)
 
 **Vì sao.** Chủ dự án xem thử nhánh ADR-042 trên local và góp ý ngay ở màn Nộp báo cáo ngày: chọn Team bằng
