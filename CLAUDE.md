@@ -34,23 +34,25 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
 
 ### Nhánh và nơi mã đang chạy
 
-- **Nhánh chuẩn là `main`** (từ 24.09.2026): `main` đã fast-forward bằng
-  `codex/crm-update-solar-ui`, hai nhánh trùng nhau tại `ddb9b64` (trọn 11 PR gộp 24.09).
-  Máy chủ dự án có thể còn đứng ở nhánh codex cho tới khi Codex `checkout main` — nội
-  dung y hệt nên phát hành từ nhánh nào cũng ra cùng image; chuyển xong thì mọi phát
-  hành đi từ `main`. VPS hiện là môi trường thử nghiệm, chưa có khách.
-- Dự kiến đã bàn 24.09: `codex/crm-update-solar-ui` sẽ **đổi tên thành `staging`** làm
-  nhánh gom code chạy thử trước khi vào `main` (đổi tên bằng nút Rename trên GitHub,
-  chưa làm). Hai nhánh lưu trữ `CRM-UPDATE` và `codex/ui-solarpunk` đóng băng, giữ đến
-  cuối, có tag `luu-tru/*` đóng dấu.
+- **VPS đã chạy `main`**, cập nhật ngày 25.09.2026 tới `85227ee`, image
+  `knjsc-app:85227ee-main` trên cả năm dịch vụ, sau khi chủ dự án duyệt merge
+  PR #53. Mốc quay lui `a23573d-main`; xem
+  [biên bản phát hành](docs/phat-hanh-team-quyen-20260925.md).
+  Phát hành lấy một SHA main đã kiểm chứng; merge GitHub không tự triển khai.
+  VPS vẫn là môi trường thử nghiệm, chưa có khách.
+- Không đổi nhánh cũ thành `staging` hoặc đổi cơ chế tự triển khai trong đợt
+  này. Đề xuất staging ngày 24.09 chưa được thực hiện; PR hiện trỏ về `main`.
+  Hai nhánh lưu trữ `CRM-UPDATE` và `codex/ui-solarpunk` được giữ nguyên.
 - **Không đẩy thẳng lên `main`** (và cả nhánh codex khi nó còn), kể cả sửa nhỏ hay chỉ
   sửa tài liệu (chốt 19.09.2026, giữ nguyên khi đổi sang `main`).
 - **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ `main`, làm, commit,
-  push, **mở PR nháp trỏ về `main`** (khi `staging` hoạt động thì trỏ về `staging`),
+  push, **mở PR nháp trỏ về `main`**,
   rồi báo lại kèm liên kết. Không tự gộp; chỉ gộp khi chủ dự án bảo rõ.
 - **Mỗi phiên một việc một nhánh.** Bốn phiên KNCRM, KNERP, KNGUARD và Batch file không
   dùng chung nhánh; hai phiên cùng đẩy lên một nhánh là giẫm lên nhau.
-- **VPS thật** (2 nhân, 4 GB): `deploy/production/compose.yml`, nginx trước hai
+- **VPS thật** (2 nhân, 4 GB): hai file thực tế
+  `/opt/knjsc-runtime/compose.yml` và `compose.vps.yml` phải được giữ khi phát hành;
+  `deploy/production/` là cấu hình trong repo. Nginx trước hai
   hostname ERP và CRM, năm container `crm`, `erp`, `worker`, `heavy`, `beat` cùng một
   image tag bất biến `knjsc-app:<commit>-<nhãn>`, DB 1,25 GB. Phát hành do Codex làm
   từ máy chủ dự án: backup, `manage.py check`, `up -d`, `nginx -t` rồi reload, Chrome

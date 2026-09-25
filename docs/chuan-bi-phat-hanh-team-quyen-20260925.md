@@ -1,5 +1,9 @@
 # Chuẩn bị phát hành Team, quyền ERP và mật khẩu — 25.09.2026
 
+> Cập nhật: chủ dự án đã duyệt merge PR #53; VPS nhận main `85227ee`.
+> Đây là ghi chép giai đoạn chuẩn bị. Trạng thái sau phát hành và giới hạn
+> kiểm chứng nằm tại [biên bản phát hành](phat-hanh-team-quyen-20260925.md).
+
 ## Phạm vi và mốc quay lui
 
 Chủ dự án yêu cầu kiểm kỹ rồi đưa lên VPS. Bản này gồm định nghĩa CEO và quản

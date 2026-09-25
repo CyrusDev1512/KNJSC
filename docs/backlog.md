@@ -1,5 +1,15 @@
 # Backlog
 
+## 25.09.2026 — VPS đã nhận Team/menu/CEO/mật khẩu từ PR #53
+
+Chủ dự án duyệt merge #53; main `85227ee`, năm dịch vụ dùng image cùng SHA.
+CI 2.806 + 34 bài đạt; diễn tập 55 kiểm và 7 kiểm quay lui đạt. Backup cuối
+phục hồi được, dữ liệu/metadata trước-sau khớp; bảo trì 69 giây. Theo dõi
+15 phút đạt. UI Marketing thật: Team chỉ đọc, không trùng; menu/URL chặn đúng,
+1440/390 px không tràn ngang. Các vai trò khác và luồng ghi kiểm ở CI/diễn tập.
+[Biên bản phát hành](phat-hanh-team-quyen-20260925.md) thay trạng thái
+local-only/chưa merge/chưa VPS tại các mốc lịch sử dưới đây.
+
 ## 25.09.2026 — Chuẩn bị đưa Team/menu/CEO/mật khẩu lên VPS
 
 Chủ dự án đã yêu cầu kiểm kỹ và phát hành. Đang chuẩn bị PR/CI/diễn tập;
