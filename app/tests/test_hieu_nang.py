@@ -36,6 +36,9 @@ def du_lieu_lon(django_db_setup, django_db_blocker):
         UserProfile.objects.create(user=admin, full_name="Perf Admin", rank=Rank.ADMIN, must_change_password=False)
         nv = User.objects.create_user("perf_vd", password="x")
         UserProfile.objects.create(user=nv, full_name="Perf VD", rank=Rank.STAFF, department=vd, must_change_password=False)
+        manager = User.objects.create_user("perf_manager_vd", password="x")
+        UserProfile.objects.create(user=manager, full_name="Perf Manager VD", rank=Rank.MANAGER,
+                                   department=vd, must_change_password=False)
         sale_nv = User.objects.create_user("perf_sale", password="x")
         UserProfile.objects.create(user=sale_nv, full_name="Perf Sale", rank=Rank.STAFF, department=sale, must_change_password=False)
         nhom = ProductGroup.objects.create(name="Mỹ phẩm perf")
@@ -44,11 +47,11 @@ def du_lieu_lon(django_db_setup, django_db_blocker):
             Product.objects.create(name=ten, code=ma, group=nhom)
         bat_dau = time.monotonic()
         tao = seed_perf.run(n=PERF_TABLE_ROWS, actor=admin)
-        yield {"vd": nv, "admin": admin, "tao": tao, "giay_sinh": time.monotonic() - bat_dau}
+        yield {"vd": nv, "manager_vd": manager, "admin": admin, "tao": tao, "giay_sinh": time.monotonic() - bat_dau}
         seed_perf.clear()
         Product.objects.all().delete()
         nhom.delete()
-        for u in (admin, nv, sale_nv):
+        for u in (admin, nv, manager, sale_nv):
             u.delete()
         # Dọn thật (không xoá mềm) vì đây là dữ liệu dựng riêng cho bài đo, ghi
         # thẳng ngoài giao dịch của pytest: bảng vận đơn giả giữ bộ phận bằng
@@ -90,7 +93,8 @@ def test_bang_du_lieu_50000_dong_duoi_2_giay(client, du_lieu_lon, django_assert_
     """AC-7.1 — Bảng 50.000 bản ghi hiện trang đầu dưới 2 giây, không quá 10 lệnh truy vấn"""
     assert du_lieu_lon["tao"] == PERF_TABLE_ROWS
     assert DataRecord.objects.filter(table__code="van_don").count() >= PERF_TABLE_ROWS
-    _vao_lam(client, du_lieu_lon["vd"])
+    # ADR-045: Bảng dữ liệu ERP dành cho Manager trở lên; CRM vẫn dùng Staff.
+    _vao_lam(client, du_lieu_lon["manager_vd"])
     mat = _bam_gio(client, "/bang/van_don/", django_assert_max_num_queries)
     assert mat < PERF_PAGE_SECONDS, f"trang đầu Bảng dữ liệu mất {mat:.2f}s"
     # Có tìm kiếm và sắp xếp trên cột tách vẫn phải dưới ngưỡng

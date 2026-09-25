@@ -19,7 +19,7 @@ from .forms import LoginForm
 from .models import AuditLog, BackgroundJob
 from .navigation import NAVIGATION
 from .pagination import PAGE_SIZES, page_size, paginate
-from .permissions import assert_rank
+from .permissions import assert_admin, is_crm_request
 from .services import auth_service
 
 
@@ -72,11 +72,10 @@ class PasswordChangeView(auth_views.PasswordChangeView):
 def nhat_ky(request):
     """Nhật ký hoạt động.
 
-    Chỉ đọc, không có nút sửa và nút xoá (BR-6). Mỗi người chỉ xem được
-    hoạt động của những người nằm trong phạm vi của mình.
+    Chỉ Admin mở được; chỉ đọc, không sửa hoặc xoá (BR-6, quyết định 25.09).
     """
     request.nav_current = "nhat_ky"
-    assert_rank(request.user, Rank.MANAGER, request)
+    assert_admin(request.user, request)
 
     ds = AuditLog.objects.in_scope(request.user).select_related("actor", "actor__profile")
 
@@ -107,7 +106,7 @@ def ma_tran_quyen(request):
     bao giờ lệch với mã thật — sửa quyền ở một chỗ là bảng này đổi theo.
     """
     request.nav_current = "ma_tran_quyen"
-    assert_rank(request.user, Rank.MANAGER, request)
+    assert_admin(request.user, request)
 
     cac_cap = list(Rank.choices)
     cac_hang = []
@@ -138,6 +137,8 @@ def _tac_vu_cua_toi(request, pk):
 def tac_vu(request):
     """Danh sách tác vụ nền của mình; Admin thấy hết để biết hàng đợi có kẹt không."""
     request.nav_current = "tac_vu"
+    if not is_crm_request(request):
+        assert_admin(request.user, request)
     ds = BackgroundJob.objects.in_scope(request.user).select_related("created_by", "created_by__profile")
     trang_thai = request.GET.get("trang_thai", "")
     if trang_thai:

@@ -11,7 +11,7 @@ def test_menu_matches_server(client, nguoi_dung, role, organization, forms, crea
     user=nguoi_dung[role]
     client.force_login(user)
     for path, expected in [('/',200),('/bao-cao/',200),('/bao-cao/lich-su/',200),
-        ('/bao-cao/tong-hop/',200),('/bang/',200),('/nhan-su/',organization),
+        ('/bao-cao/tong-hop/',200),('/bang/',403 if role in ('staff_sale_1', 'leader_sale_1') else 200),('/nhan-su/',organization),
         ('/bieu-mau/',200),('/bieu-mau/?tab=forms',forms),('/nhan-su/moi/',create)]:
         assert client.get(path).status_code == expected, (role,path)
     if create == 403:

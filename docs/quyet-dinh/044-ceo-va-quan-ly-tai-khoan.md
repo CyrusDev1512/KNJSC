@@ -30,7 +30,8 @@ CEO không có `is_staff/is_superuser`; tác vụ nền vẫn chỉ của mình,
 - Danh sách nhân sự tính nút bằng `AccountPolicy`, một lần lấy scope cho trang.
 - Admin sửa hồ sơ như trước. Các quản lý khác xem thông tin chỉ đọc trong Sửa,
   có form Đặt lại mật khẩu riêng: nhập hai lần, dùng validator Django hiện có.
-- POST đặt lại gọi service, băm mật khẩu, tăng mốc phiên và buộc đổi lần sau;
+- POST đặt lại gọi service, băm mật khẩu, tăng mốc phiên; quyết định ban đầu
+  buộc đổi lần sau đã được thay thế bởi bổ sung 25.09 bên dưới;
   không mở khóa tài khoản. Không hiện lại mật khẩu khi sai và không lưu mật khẩu
   rõ vào session/messages/audit/URL; phản hồi người đăng nhập không được cache.
 - Xóa mở trang xác nhận có mã/họ tên, checkbox, nút Hủy và Xác nhận xóa.
@@ -41,6 +42,21 @@ CEO không có `is_staff/is_superuser`; tác vụ nền vẫn chỉ của mình,
   Các primitive nội bộ cũng khóa User và từ chối hồ sơ đã xóa.
 
 ## Bảo toàn dữ liệu
+
+### Bổ sung 25.09.2026 — đặt lại và hiện/ẩn mật khẩu mới
+
+Chủ dự án chọn phương án 1: sau **đặt lại**, người dùng đăng nhập bằng mật khẩu
+mới và không bị buộc đổi lần nữa. Service đặt `must_change_password=False` cho
+tài khoản vừa được đặt lại; vẫn hủy phiên ERP/CRM cũ, giữ `is_active` của tài
+khoản bị khóa. Không cập nhật hàng loạt cờ của các tài khoản đã có; việc tạo
+tài khoản mới vẫn theo quy tắc buộc đổi lần đầu của AC-1.5.
+
+Manager/CEO/Admin có nút hiện/ẩn ở từng ô mật khẩu mới của form đặt lại trong
+phạm vi `AccountPolicy` hiện hành. Leader giữ quyền đặt lại nhưng không thêm
+nút này. Đây chỉ là cách hiển thị nội dung người quản lý đang nhập, không phải
+quyền đọc mật khẩu cũ. Sau gửi hoặc tải lại trang, ô nhập không chứa mật khẩu.
+Giữ Django password hash; không có kho mật khẩu giải mã, API đọc mật khẩu,
+migration, dependency hoặc mật khẩu trong session/log/audit.
 
 Migration `org.0006_ceo_and_account_soft_delete` thêm `deleted_at`, `deleted_by`
 và lựa chọn rank; không sửa dữ liệu cũ. Xóa mềm vô hiệu tài khoản, bỏ khả năng

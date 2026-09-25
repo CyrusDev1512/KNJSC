@@ -160,8 +160,9 @@ def test_thanh_dieu_huong_an_muc_ngoai_quyen(nguoi_dung):
     assert cac_ma(nguoi_dung["staff_sale_1"]) == khong_doi_cap_bac
     assert "nhan_su" not in cac_ma(nguoi_dung["staff_sale_1"])
     assert "nhan_su" in cac_ma(nguoi_dung["leader_sale_1"])
-    assert "nhat_ky" in cac_ma(nguoi_dung["manager_sale"])
-    assert "ma_tran_quyen" in cac_ma(nguoi_dung["manager_sale"])
+    assert "nhat_ky" not in cac_ma(nguoi_dung["manager_sale"])
+    assert "ma_tran_quyen" not in cac_ma(nguoi_dung["manager_sale"])
+    assert {"nhat_ky", "ma_tran_quyen"} <= cac_ma(nguoi_dung["admin"])
     assert "ma_tran_quyen" not in cac_ma(nguoi_dung["leader_sale_1"])
     assert "bo_phan" not in cac_ma(nguoi_dung["manager_sale"])
     assert "bo_phan" in cac_ma(nguoi_dung["admin"])

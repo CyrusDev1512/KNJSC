@@ -6,6 +6,8 @@ from django.conf import settings
 from .exceptions import NoProfileError
 from .navigation import visible_navigation
 from .scope import get_user_scope
+from .permissions import has_rank, is_admin, is_crm_request, is_company_reader
+from .constants import Rank
 
 
 def _phien_ban_tinh():
@@ -43,6 +45,9 @@ def khung_chung(request):
         "nav_groups": visible_navigation(request.user),
         "nav_current": getattr(request, "nav_current", ""),
         "scope": scope,
+        "can_open_tables": is_crm_request(request) or has_rank(request.user, Rank.MANAGER),
+        "can_list_jobs": is_crm_request(request) or is_admin(request.user),
+        "can_submit_reports": not is_company_reader(request.user),
         "profile": getattr(request.user, "profile", None),
         "phien_ban_tinh": PHIEN_BAN_TINH,
     }

@@ -35,13 +35,17 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **269** — 256 tự động, 13 thủ công |
-| Tiêu chí tự động đã có bài kiểm | **233 trên 256** |
+| Tiêu chí nghiệm thu trong `docs/04` | **275** — 262 tự động, 13 thủ công |
+| Tiêu chí tự động đã có bài kiểm | **239 trên 262** |
 | Tiêu chí tự động còn hoãn | **23**, đều thuộc phần đang làm hoặc chờ chốt — xem bảng cuối tệp |
 | Bao phủ dòng mã | khoảng 85% |
 
 Ba con số đầu **có bài kiểm canh** — `app/tests/test_truy_vet.py` đọc chính
 `docs/04` và đối chiếu với mã, nên chúng không trôi được.
+
+25.09.2026: AC-44.6 kiểm trên vai trò CEO tích hợp từ task FIX EROR, không dùng
+vai trò giả hoặc skip chờ phụ thuộc. Số tiêu chí có bài không phải số đã đạt;
+kết quả từng lượt ghi ở test-log.
 
 Số bài kiểm thử thì đổi mỗi lần thêm bài, nên **không ghi cứng ở đây** — chạy
 lệnh dưới để biết số hiện tại.

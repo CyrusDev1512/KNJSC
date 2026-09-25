@@ -91,13 +91,13 @@ def test_admin_thay_bang_cua_moi_bo_phan(bang_sale, bang_mkt_khac, nguoi_dung):
 
 # ══ Màn hình danh sách bảng ════════════════════════════════════════
 
-def test_staff_vao_duoc_danh_sach_bang(client, bang_sale, nguoi_dung):
+def test_manager_vao_duoc_danh_sach_bang(client, bang_sale, nguoi_dung):
     """FR-7.1 — Màn hình danh sách bảng có phân trang, mặc định 25 dòng
 
     Không phải AC-7.1: tiêu chí đó đòi 50.000 bản ghi tải dưới 2 giây, cần
     seed_perf.py của Giai đoạn 8. Bài này chỉ kiểm phân trang.
     """
-    client.force_login(nguoi_dung["staff_sale_1"])
+    client.force_login(nguoi_dung["manager_sale"])
     kq = client.get("/bang/")
     assert kq.status_code == 200
     assert kq.context["page_obj"].paginator.per_page == 25
@@ -106,7 +106,7 @@ def test_staff_vao_duoc_danh_sach_bang(client, bang_sale, nguoi_dung):
 
 def test_bang_bo_phan_khac_khong_hien_trong_danh_sach(client, bang_sale, bang_mkt_khac, nguoi_dung):
     """AC-3.5 — Bảng của bộ phận khác không xuất hiện trên màn hình danh sách"""
-    client.force_login(nguoi_dung["staff_sale_1"])
+    client.force_login(nguoi_dung["manager_sale"])
     noi_dung = client.get("/bang/").content.decode()
     assert "Đơn hàng Sale" in noi_dung
     assert "Báo cáo Marketing" not in noi_dung
@@ -131,7 +131,7 @@ def test_manager_tao_duoc_bang(client, nguoi_dung):
 
 def test_gọi_thang_bang_bo_phan_khac_bi_chan(client, bang_mkt_khac, nguoi_dung):
     """AC-3.7 — Gọi thẳng đường dẫn của bảng bộ phận khác vẫn bị chặn"""
-    client.force_login(nguoi_dung["staff_sale_1"])
+    client.force_login(nguoi_dung["manager_sale"])
     assert client.get("/bang/bc_mkt/").status_code == 404
 
 
@@ -143,9 +143,10 @@ def test_staff_chi_thay_dong_cua_minh(client, bang_sale, nguoi_dung):
     _dong(bang_sale, nguoi_dung["staff_sale_2"], khach="Khách người khác", so_luong=1)
 
     client.force_login(nguoi_dung["staff_sale_1"])
-    noi_dung = client.get("/bang/don_sale/").content.decode()
-    assert "Khách của tôi" in noi_dung
-    assert "Khách người khác" not in noi_dung
+    assert client.get("/bang/don_sale/").status_code == 403
+    # Phạm vi dữ liệu dùng chung vẫn giới hạn bản thân; chỉ cửa ERP bị đóng.
+    rows = DataRecord.objects.in_scope(nguoi_dung["staff_sale_1"]).filter(table=bang_sale)
+    assert [r.data["khach"] for r in rows] == ["Khách của tôi"]
 
 
 def test_manager_thay_moi_dong_trong_bo_phan(client, bang_sale, nguoi_dung):
@@ -228,17 +229,20 @@ def test_bang_du_lieu_chi_xem_voi_moi_cap_bac(client, bang_sale, nguoi_dung, ai)
 
     client.force_login(nguoi_dung[ai])
     kq = client.get("/bang/don_sale/")
-    assert kq.status_code == 200
-    html = kq.content.decode()
-    assert 'id="erp-table-focus"' in html
-    assert 'id="erp-focus-enter"' in html
-    assert 'erp-table-focus.js' in html
-    than = _than_bang(html)
-    assert "Của tôi" in than
-    for dau in DAU_VET_SUA_O:
-        assert dau not in than, f"còn dấu vết sửa ô: {dau}"
-    assert "Bảng này chỉ để xem" in html
-    assert 'rel="noopener">Mở trong KN CRM</a>' in html
+    if ai in ("staff_sale_1", "leader_sale_1"):
+        assert kq.status_code == 403
+    else:
+        assert kq.status_code == 200
+        html = kq.content.decode()
+        assert 'id="erp-table-focus"' in html
+        assert 'id="erp-focus-enter"' in html
+        assert 'erp-table-focus.js' in html
+        than = _than_bang(html)
+        assert "Của tôi" in than
+        for dau in DAU_VET_SUA_O:
+            assert dau not in than, f"còn dấu vết sửa ô: {dau}"
+        assert "Bảng này chỉ để xem" in html
+        assert 'rel="noopener">Mở trong KN CRM</a>' in html
 
     kq = client.post(_duong_dan_o_cu(bg, "khach"), {"gia_tri": "Đã đổi"})
     assert kq.status_code == 404
@@ -327,10 +331,10 @@ def test_xoa_dong_la_danh_dau(bang_sale, nguoi_dung):
 
 # ══ Ma trận phân quyền ═════════════════════════════════════════════
 
-def test_manager_xem_duoc_ma_tran_quyen(client, nguoi_dung):
+def test_manager_khong_xem_duoc_ma_tran_quyen(client, nguoi_dung):
     """AC-3.6 — Manager vào được màn hình ma trận phân quyền"""
     client.force_login(nguoi_dung["manager_sale"])
-    assert client.get("/ma-tran-quyen/").status_code == 200
+    assert client.get("/ma-tran-quyen/").status_code == 403
 
 
 def test_staff_khong_xem_duoc_ma_tran_quyen(client, nguoi_dung):

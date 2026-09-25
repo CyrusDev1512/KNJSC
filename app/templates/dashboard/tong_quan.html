@@ -110,7 +110,7 @@
           <tbody>
             {% for b in bang_dong.data.cac_bang %}
               <tr>
-                <td><a href="{% url 'bang_xem' b.code %}">{{ b.name }}</a></td>
+                <td>{% if can_open_tables %}<a href="{% url 'bang_xem' b.code %}">{{ b.name }}</a>{% else %}{{ b.name }}{% endif %}</td>
                 <td class="nho">{{ b.department }}</td>
                 <td class="tien">{{ b.so_dong }}</td>
               </tr>
@@ -148,7 +148,7 @@
           {% else %}<span class="chip chip-xau"><i></i>{{ j.get_status_display }} {{ j.created_at|date:"H:i d.m" }}</span>{% endif %}
         {% endwith %}
         <span class="chip chip-nhat"><i></i>{{ sao_luu.data.so_ban }} bản đang giữ</span>
-        <a class="nut nut-nho" href="{% url 'tac_vu' %}?trang_thai=failed">Xem tác vụ</a>
+        {% if can_list_jobs %}<a class="nut nut-nho" href="{% url 'tac_vu' %}?trang_thai=failed">Xem tác vụ</a>{% endif %}
       </div>
     {% else %}
       <div class="phai"><span class="chip chip-xau"><i></i>Tạm chưa khả dụng</span></div>
@@ -177,7 +177,7 @@
         {% if tac_vu.data.ket %}<span class="chip chip-xau"><i></i>{{ tac_vu.data.ket }} kẹt</span>{% endif %}
         <span class="chip chip-cho"><i></i>{{ tac_vu.data.cho }} chờ</span>
         <span class="chip chip-nhan"><i></i>{{ tac_vu.data.chay }} đang chạy</span>
-        <a class="nut nut-nho" href="{% url 'tac_vu' %}">Xem</a>
+        {% if can_list_jobs %}<a class="nut nut-nho" href="{% url 'tac_vu' %}">Xem</a>{% endif %}
       </div>
     {% else %}
       <div class="phai"><span class="chip chip-xau"><i></i>Tạm chưa khả dụng</span></div>

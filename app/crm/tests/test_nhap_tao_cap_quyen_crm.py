@@ -89,9 +89,11 @@ def test_tao_bang_sua_cot_nhap_tep_trong_kn_crm(client, bang_sale, nguoi_dung, l
     assert client.get("/bang/moi/").status_code == 403
     assert _tu_choi() == truoc + 2
 
-    # KN ERP: cùng view, khung ERP
+    # ADR-045: Leader vẫn dùng CRM nhưng không mở các màn bảng ở ERP.
     client.force_login(ld)
     with ERP:
+        assert client.get("/bang/moi/").status_code == 403
+        client.force_login(nguoi_dung["manager_sale"])
         kq = client.get("/bang/moi/")
         html = kq.content.decode()
         assert kq.status_code == 200 and KHUNG_ERP in html and KHUNG_CRM not in html

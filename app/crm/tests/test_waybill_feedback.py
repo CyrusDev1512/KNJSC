@@ -356,12 +356,15 @@ def test_grid_ui_and_filtered_url(feedback, nguoi_dung, delivery_leader, client)
     assert 'Bộ lọc' in html
 
 
-def test_erp_reads_new_assignment_scope(feedback, nguoi_dung, client, settings):
+def test_erp_chan_staff_nhung_giu_pham_vi_du_lieu_crm(feedback, nguoi_dung, client, settings):
     settings.ROOT_URLCONF = 'knjsc.urls'
     client.force_login(nguoi_dung['staff_vd'])
     response = client.get('/bang/van_don/')
+    assert response.status_code == 403
+    settings.ROOT_URLCONF = 'knjsc.urls_bangtinh'
+    response = client.get('/bang-tinh/van_don/du-lieu/')
     assert response.status_code == 200
-    assert 'Khách 0' in response.content.decode() and 'Khách 1' in response.content.decode()
+    assert {r['id'] for r in response.json()['rows']} == {r.pk for r in feedback[2]}
     assert TableDef.objects.in_scope(nguoi_dung['staff_vd']).with_visible_record_count(nguoi_dung['staff_vd']).get(pk=feedback[0].pk).so_dong == 2
 
 

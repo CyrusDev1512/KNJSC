@@ -230,11 +230,11 @@ def unlock_account(profile, *, actor=None, request=None):
 @transaction.atomic
 @sensitive_variables("new_password")
 def reset_password(profile, new_password, *, actor=None, request=None):
-    """Đặt lại mật khẩu. Người dùng phải đổi ở lần đăng nhập kế tiếp."""
+    """Đặt lại mật khẩu, hủy phiên cũ; không buộc người dùng đổi lần nữa."""
     require_live_profile(profile)
     profile.user.set_password(new_password)
     profile.user.save(update_fields=["password"])
-    profile.must_change_password = True
+    profile.must_change_password = False
     profile.failed_login_count = 0
     profile.locked_until = None
     profile.invalidate_sessions()

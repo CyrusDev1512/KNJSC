@@ -18,7 +18,22 @@ from forms_builder.services import form_service, grant_service
 from ..models import DailyReport
 
 
-def protected_values(form, values, fields, day, owner, *, original=None):
+def is_report_team_column(form, column):
+    """Cột Team của bộ mẫu 15.09; không suy từ nhãn tùy ý của bảng khác."""
+    source = getattr(form.table, 'erp_report', None)
+    return bool(source and source.kind in ('sale', 'mkt') and column
+                and column.code == 'team_mau')
+
+
+def submission_team(form, actor, team=None):
+    """25.09: chỉ Admin chọn team; các cấp khác dùng đúng team hồ sơ."""
+    from core.permissions import is_admin
+    if is_admin(actor) and team is not None and team.pk != default_team_id(actor):
+        return resolve_team(form, team.pk)
+    return getattr(getattr(actor, 'profile', None), 'team', None)
+
+
+def protected_values(form, values, fields, day, owner, *, original=None, team=None):
     """Ngày/danh tính do server quản lý; sửa giữ danh tính tại lúc nộp."""
     from forms_builder.meaning import Meaning
     from orders.services.currency_service import for_label
@@ -29,6 +44,10 @@ def protected_values(form, values, fields, day, owner, *, original=None):
         column = form_service._cot_dich(field)
         if column is None:
             continue
+        if is_report_team_column(form, column):
+            selected_team = submission_team(form, owner, team)
+            values[field.field.code] = (original.get(column.code, '') if original is not None
+                                       else selected_team.name if selected_team else '')
         if column.meaning == Meaning.DATE:
             values[field.field.code] = day.isoformat()
         if original is not None and form_service.is_identity_field(field):
@@ -49,16 +68,17 @@ def submit_current(form, values, *, actor, request=None, fields=None, team=None)
     from django.utils import timezone
     fields = fields if fields is not None else list(form.ordered_fields())
     day = timezone.localdate()
-    values = protected_values(form, values, fields, day, actor)
+    team = submission_team(form, actor, team)
+    values = protected_values(form, values, fields, day, actor, team=team)
     return submit(form, values, report_date=day, actor=actor, request=request, fields=fields, team=team)
 
 
 # ══ TEAM TRÊN FORM NHẬP — ADR-043 ═══════════════════════════════════════════
 #
-# Dòng báo cáo trước đây lấy team theo hồ sơ người nộp; tài khoản chưa gán team ra "Chưa có
-# team" ở báo cáo. Nay form có dropdown các team của bộ phận sở hữu biểu mẫu, mặc định team
-# hồ sơ; team đã chọn ghi vào cả dòng dữ liệu lẫn DailyReport nên cột Team của báo cáo và
-# phạm vi Leader đi theo lựa chọn đó.
+# ADR-045 thay một phần ADR-043: Staff/Leader/Manager tự nhận team hồ sơ.
+# Admin vẫn dùng dropdown team của bộ phận sở hữu biểu mẫu; team chọn ghi vào
+# dòng và DailyReport để phạm vi Leader đi theo cùng một nguồn.
+
 
 def team_choices(form):
     """`[(id, tên)]` team đang hoạt động của bộ phận sở hữu biểu mẫu — rỗng thì form không hiện ô Team."""
@@ -138,7 +158,9 @@ def can_restore(user, report_or_none=None):
 
 def report_widgets(form, fields, values, *, user, day, owner=None):
     widgets = form_service.widgets(form, fields, values, user=user)
-    return decorate_widgets(widgets, form, values, user=user, day=day, owner=owner)
+    widgets = decorate_widgets(widgets, form, values, user=user, day=day, owner=owner)
+    # Form nộp đã có duy nhất một ô Team ở phần đầu; màn sửa giữ giá trị lịch sử.
+    return [w for w in widgets if owner is not None or not getattr(w, 'report_team', False)]
 
 
 def decorate_widgets(widgets, form, values, *, user, day, owner=None):
@@ -146,6 +168,11 @@ def decorate_widgets(widgets, form, values, *, user, day, owner=None):
     from core.identity import employee_code
     source = getattr(form.table, 'erp_report', None)
     for widget in widgets:
+        if is_report_team_column(form, widget.cot):
+            team = getattr(getattr(owner or user, 'profile', None), 'team', None)
+            widget.report_team = True
+            widget.system_value = ((values.get(widget.t.field.code) or 'Chưa được gán Team')
+                                   if owner else team.name if team else 'Chưa được gán Team')
         if widget.danh_tinh:
             widget.ten_nguoi_dung = employee_code(owner or user)
         if widget.cot and widget.cot.meaning == Meaning.DATE:

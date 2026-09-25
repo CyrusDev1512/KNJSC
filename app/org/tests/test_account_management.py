@@ -116,9 +116,11 @@ def test_password_errors_do_not_change_hash_or_echo_input(client, actors, first,
     assert user.password == before
 
 
-def test_reset_invalidates_erp_crm_sessions_and_forces_change(client, actors):
+def test_reset_invalidates_erp_crm_sessions_without_forcing_change(client, actors):
     from core.models import AuditLog
     target = actors["staff_sale_1"]
+    target.profile.must_change_password = True
+    target.profile.save(update_fields=["must_change_password"])
     erp, crm = Client(), Client()
     erp.force_login(target)
     crm.force_login(target)
@@ -130,12 +132,33 @@ def test_reset_invalidates_erp_crm_sessions_and_forces_change(client, actors):
         assert "/dang-nhap/" in crm.get("/thu-muc/").url
     assert not erp.login(username=target.username, password="matkhau-kiem-thu-1")
     assert erp.login(username=target.username, password=PASSWORD)
-    assert erp.get("/").url == reverse("doi_mat_khau")
+    assert erp.get("/").status_code == 200
+    with override_settings(ROOT_URLCONF="knjsc.urls_bangtinh"):
+        assert crm.login(username=target.username, password=PASSWORD)
+        # Trang cá nhân CRM không cần tạo bảng vận đơn trong fixture đăng nhập.
+        assert crm.get("/tac-vu/").status_code == 200
     target.refresh_from_db()
     assert target.password != PASSWORD and target.check_password(PASSWORD)
-    assert target.profile.must_change_password
+    assert not target.profile.must_change_password
     assert not AuditLog.objects.filter(detail__contains=PASSWORD).exists()
     assert PASSWORD not in repr(dict(client.session))
+
+
+@pytest.mark.parametrize("role,visible", [
+    ("leader_sale_1", False), ("manager_sale", True), ("ceo", True), ("admin", True),
+])
+def test_password_toggle_only_for_managers_in_authorized_form(client, actors, role, visible):
+    """Chỉ hiện nội dung đang nhập; không đưa hash/mật khẩu cũ vào HTML."""
+    target = actors["staff_sale_1"]
+    client.force_login(actors[role])
+    response = client.get(reverse("nhan_su_sua", args=[target.profile.pk]))
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert html.count('data-password-toggle=') == (2 if visible else 0)
+    assert target.password not in html
+    assert 'type="password"' in html
+    if role == "manager_sale":
+        assert client.get(reverse("nhan_su_sua", args=[actors["staff_mkt"].profile.pk])).status_code == 403
 
 
 def test_reset_keeps_locked_account_locked(client, actors):

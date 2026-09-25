@@ -20,7 +20,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from core.constants import Rank
 from core.exceptions import BusinessError
 from core.pagination import pagination_context
-from core.permissions import assert_rank, is_admin
+from core.permissions import assert_rank, has_rank, is_admin
 
 from .forms import BoPhanForm, SuaHoSoForm, TaoTaiKhoanForm, TeamForm
 from .models import Department, Team, UserProfile
@@ -148,6 +148,7 @@ def _account_screen(request, profile, *, password_form=None, profile_form=None):
                 if is_admin(request.user) else None,
         "password_form": (password_form if password_form is not None else SetPasswordForm(profile.user))
                          if AccountPolicy(request.user).can_manage(profile) else None,
+        "can_reveal_new_password": has_rank(request.user, Rank.MANAGER),
     })
 
 
@@ -166,7 +167,7 @@ def nhan_su_dat_lai_mat_khau(request, pk):
         except ValidationError as error:
             form.add_error(None, error)
         else:
-            messages.success(request, "Đã đặt lại mật khẩu. Người dùng phải đổi ở lần đăng nhập tiếp theo.")
+            messages.success(request, "Đã đặt lại mật khẩu. Người dùng có thể đăng nhập bằng mật khẩu mới.")
             return redirect("nhan_su_sua", pk=pk)
     return _account_screen(request, profile, password_form=form)
 

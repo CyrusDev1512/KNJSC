@@ -299,9 +299,10 @@ def fill(form, values, *, actor, request=None, fields=None, system_day=None, tea
     fields = fields if fields is not None else list(form.ordered_fields())
     source = getattr(form.table, 'erp_report', None)
     if source and source.kind in ('sale', 'mkt'):
-        from reports.services.daily_service import protected_values
+        from reports.services.daily_service import protected_values, submission_team
         from django.utils import timezone
-        values = protected_values(form, values, fields, system_day or timezone.localdate(), actor)
+        team = submission_team(form, actor, team)
+        values = protected_values(form, values, fields, system_day or timezone.localdate(), actor, team=team)
     values = apply_identity(values, fields, actor)
     thieu = missing_required(form, values, fields)
     if thieu:

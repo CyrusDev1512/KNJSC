@@ -636,3 +636,19 @@ Chủ dự án góp ý 24.09.2026 sau khi xem thử trên local. Kết quả t�
 | AC-27.8 | 100k/300k ×10/20, 60s ấm +300s đo; nếu đạt chạy 300k/20/30 phút; đọc/lọc/history p95 ≤1s, lưu ≤0,5s, 2.000 ô ≤5s; không sai/mất/trùng/lộ dữ liệu | Locust + SQL + oracle + tài nguyên |
 
 Tạo bảng trắng và duplicate cấu trúc hoãn; quyền tạo bảng sẵn có giữ nguyên.
+
+
+## 44. Team hệ thống và quyền menu ERP — quyết định 25.09.2026
+
+Thay thế quyền chọn Team của Staff/Leader/Manager ở AC-43.1, cùng các kỳ vọng cũ
+cho phép các cấp này mở màn ERP bị giới hạn dưới đây. CRM và phạm vi dữ liệu
+bản thân/team/bộ phận giữ nguyên; [ADR-045](quyet-dinh/045-team-he-thong-va-quyen-menu-erp.md).
+
+| Mã | Tiêu chí |
+|---|---|
+| AC-44.1 | Staff/Leader/Manager thấy một Team chỉ đọc theo hồ sơ; POST giả Team/tên Team không chuyển báo cáo sang team khác. Admin giữ chọn Team hợp lệ. Không team vẫn nộp; sửa báo cáo cũ giữ team dù hồ sơ đổi team. CEO không nộp báo cáo. |
+| AC-44.2 | Chỉ Admin thấy Quản trị và mở Nhật ký, Ma trận quyền, danh sách Tác vụ ERP; vai trò khác gọi URL trực tiếp bị 403. |
+| AC-44.3 | Staff/Leader không thấy mục Bảng dữ liệu ERP và bị chặn cả đọc/xuất/quản lý bảng; Manager trong phạm vi, CEO/Admin toàn công ty; Biểu mẫu & tài liệu giữ quyền. |
+| AC-44.4 | Staff/Leader/Manager/CEO mở tiến độ, tải file của chính mình; tác vụ người khác 404. Không hiện liên kết danh sách quản trị bị cấm. |
+| AC-44.5 | Leader vẫn quản lý bảng trong phạm vi tại CRM; không siết quyền theo giới hạn ERP, giữ KN CRM và lên đơn theo quyết định hoãn. |
+| AC-44.6 | CEO đọc được bảng nhiều bộ phận, không có quyền sửa ô ERP hoặc quyền Quản trị; không hiện lối nộp báo cáo, GET/POST nộp hoặc sửa trực tiếp bị chặn. Kiểm trên bản CEO thật. |

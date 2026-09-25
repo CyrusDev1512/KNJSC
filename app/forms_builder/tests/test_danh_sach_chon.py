@@ -319,7 +319,7 @@ def test_bang_du_lieu_hien_gia_tri_chon_dang_chu(client, bang_kenh, san_pham, ng
     """AC-8.7 — Trên Bảng dữ liệu cột Chọn một chỉ hiện giá trị dạng chữ: không ô chọn, không "Thêm mới…", kể cả với Manager — chỉ xem, ADR-014"""
     _dong_kenh(bang_kenh, nguoi_dung["staff_sale_1"], kenh="Facebook", san_pham="Retinol Cream")
 
-    for ai in ("manager_sale", "staff_sale_1"):
+    for ai in ("manager_sale", "admin"):
         client.force_login(nguoi_dung[ai])
         html = client.get("/bang/kenh_sale/").content.decode()
         than = html[html.index("<tbody>"):html.index("</tbody>")]
@@ -401,7 +401,7 @@ def test_manager_bo_phan_khac_va_nguoi_duoc_cap_quyen_bi_chan(client, bang_kenh,
             actor=nguoi_dung["manager_sale"],
         )
     client.force_login(nguoi_dung["staff_mkt"])
-    assert client.get("/bang/kenh_sale/").status_code == 200          # thấy bảng nhờ cấp quyền
+    assert client.get("/bang/kenh_sale/").status_code == 403          # quyền bảng không vượt giới hạn ERP 25.09
     assert client.post("/bang/kenh_sale/cot/kenh/lua-chon/", {"nhan_moi": "Zalo"}).status_code == 403
     assert bang_kenh.columns.get(code="kenh").options == ["Facebook", "TikTok"]
 

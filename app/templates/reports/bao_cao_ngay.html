@@ -65,6 +65,12 @@
             </select>
             <span class="goi-y">Dòng ghi cho team này; báo cáo và Leader của team sẽ thấy</span>
           </div>
+          {% else %}
+          <div class="truong">
+            <label for="o-team">Team</label>
+            <input class="o-nhap" id="o-team" value="{{ team_tu_dong }}" readonly>
+            <span class="goi-y">Team trong hồ sơ của bạn, hệ thống tự ghi</span>
+          </div>
           {% endif %}
           <div class="truong">
             <label for="ngay-bao-cao">Báo cáo cho ngày <span class="bat-buoc">*</span></label>
