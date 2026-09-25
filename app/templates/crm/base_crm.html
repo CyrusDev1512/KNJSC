@@ -33,8 +33,9 @@ tên + cấp bậc, mục có icon, nhóm gập được, mục đang chọn tô
 thu gọn còn dải icon), thanh trên với tiêu đề trang, nền sáng/tối, KN ERP,
 đăng xuất. Dùng cho Trang chủ, Bảng tính (thư mục) và các trang không phải
 lưới; lưới giữ `base_bang_tinh.html` toàn màn hình, chỉ lưới mới có nút ←.
-Không có nút ← ở đây: về ERP bằng mục KN ERP, không thể "bấm ← mãi" mà rơi
-sang ERP. Mục menu do `crm/navigation.py` tính, lớp CSS tính sẵn ở Python.
+Không có nút ← ở đây: nút KN ERP trên topbar là lối duy nhất về ERP, không thể
+"bấm ← mãi" mà rơi sang ERP. Mục menu do `crm/navigation.py` tính, lớp CSS
+tính sẵn ở Python.
 {% endcomment %}
 {% if user.is_authenticated %}
 <div class="app" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>

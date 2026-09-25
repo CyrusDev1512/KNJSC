@@ -60,7 +60,7 @@ def test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap(client, bang_vd, nguoi_d
         ).status_code == 200
         assert client.get("/bang/").status_code == 404
         assert client.get("/len-don/").status_code == 404
-        assert client.get("/tac-vu/").status_code == 200, "tải tệp xuất lớn vẫn cần trang tác vụ"
+        assert client.get("/tac-vu/").status_code == 403, "danh sách tác vụ chỉ dành cho Admin"
     dong.refresh_from_db()
     assert dong.data["ghi_chu"] == "sửa ở Bảng tính"
 
