@@ -1,5 +1,13 @@
 # Backlog
 
+## 25.09.2026 — Sidebar KN CRM: bỏ mục ERP trùng, Tác vụ nền chỉ Admin
+
+**Hoàn tất local:** bỏ lối KN ERP trùng ở sidebar và giữ lối trên topbar; chỉ
+Admin thấy/mở danh sách Tác vụ nền. Tác vụ cá nhân vẫn mở được bằng liên kết
+kết quả và giữ kiểm chủ sở hữu. TDD đỏ 5 trường hợp; nhóm cuối 27 đạt, hai cấu
+hình Django check sạch. Thay đổi được bàn giao qua nhánh và PR riêng để phát
+hành từ `main` theo quy trình VPS.
+
 ## 25.09.2026 — Chuẩn bị đưa Team/menu/CEO/mật khẩu lên VPS
 
 Chủ dự án đã yêu cầu kiểm kỹ và phát hành. Đang chuẩn bị PR/CI/diễn tập;

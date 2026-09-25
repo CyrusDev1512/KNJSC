@@ -83,3 +83,17 @@ def test_xem_toan_cong_ty_khong_cho_xem_tac_vu_nguoi_khac(make_user, monkeypatch
     monkeypatch.setattr(managers, 'get_user_scope', lambda _: Scope(
         user_id=user.pk, rank=Rank.MANAGER, all_departments=True))
     assert list(BackgroundJob.objects.in_scope(user)) == [own]
+
+
+@override_settings(ROOT_URLCONF='knjsc.urls_bangtinh')
+@pytest.mark.parametrize('rank', [rank for rank in Rank if rank != Rank.ADMIN])
+def test_danh_sach_tac_vu_crm_chi_admin(client, make_user, rank):
+    """Danh sách vận hành hệ thống không mở cho nhân sự qua URL CRM."""
+    client.force_login(make_user('crm_user', rank))
+    assert client.get('/tac-vu/').status_code == 403
+
+
+@override_settings(ROOT_URLCONF='knjsc.urls_bangtinh')
+def test_danh_sach_tac_vu_crm_admin_duoc_xem(client, make_user):
+    client.force_login(make_user('crm_admin', Rank.ADMIN))
+    assert client.get('/tac-vu/').status_code == 200

@@ -19,7 +19,7 @@ from .forms import LoginForm
 from .models import AuditLog, BackgroundJob
 from .navigation import NAVIGATION
 from .pagination import PAGE_SIZES, page_size, paginate
-from .permissions import assert_admin, is_crm_request
+from .permissions import assert_admin
 from .services import auth_service
 
 
@@ -135,10 +135,9 @@ def _tac_vu_cua_toi(request, pk):
 
 @login_required
 def tac_vu(request):
-    """Danh sách tác vụ nền của mình; Admin thấy hết để biết hàng đợi có kẹt không."""
+    """Danh sách vận hành hệ thống chỉ dành cho Admin."""
     request.nav_current = "tac_vu"
-    if not is_crm_request(request):
-        assert_admin(request.user, request)
+    assert_admin(request.user, request)
     ds = BackgroundJob.objects.in_scope(request.user).select_related("created_by", "created_by__profile")
     trang_thai = request.GET.get("trang_thai", "")
     if trang_thai:

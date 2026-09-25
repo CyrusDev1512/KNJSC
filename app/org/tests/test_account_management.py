@@ -135,8 +135,10 @@ def test_reset_invalidates_erp_crm_sessions_without_forcing_change(client, actor
     assert erp.get("/").status_code == 200
     with override_settings(ROOT_URLCONF="knjsc.urls_bangtinh"):
         assert crm.login(username=target.username, password=PASSWORD)
-        # Trang cá nhân CRM không cần tạo bảng vận đơn trong fixture đăng nhập.
-        assert crm.get("/tac-vu/").status_code == 200
+        # Trang đổi mật khẩu xác nhận phiên CRM mới hoạt động mà không cần dữ
+        # liệu bảng. Danh sách tác vụ nền là màn quản trị và chỉ Admin được mở.
+        assert crm.get("/doi-mat-khau/").status_code == 200
+        assert crm.get("/tac-vu/").status_code == 403
     target.refresh_from_db()
     assert target.password != PASSWORD and target.check_password(PASSWORD)
     assert not target.profile.must_change_password

@@ -1,5 +1,20 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 25.09.2026 — Gỡ mục KN ERP trùng và giới hạn danh sách Tác vụ nền
+
+Chủ dự án báo Staff còn thấy hai mục ở cuối sidebar KN CRM. TDD tái hiện đúng
+**5 lỗi**: sidebar còn KN ERP và Staff/Leader/Manager/CEO đều mở được danh sách
+`/tac-vu/` qua CRM. Sau sửa, sidebar chỉ còn Tác vụ nền với Admin; lối KN ERP
+trên topbar giữ nguyên. Danh sách tác vụ bị chặn 403 với mọi cấp dưới Admin,
+nhưng chi tiết/tiến độ/tải tệp của chính người tạo vẫn giữ để luồng xuất nhập
+không bị đứt. Nhóm điều hướng liên quan **27 đạt**; `manage.py check` của ERP và
+CRM đều không có lỗi. Thay đổi đi qua nhánh/PR riêng và chỉ được phát hành từ
+SHA đã merge vào `main`.
+
+CI lần đầu tìm thấy hai kỳ vọng cũ còn cho Staff mở `/tac-vu/` ở bài xác thực
+và dịch vụ CRM. Đã đổi các kỳ vọng này theo quyền mới, đồng thời vẫn kiểm phiên
+CRM sau đặt lại mật khẩu qua trang đổi mật khẩu; nhóm hồi quy mở rộng **29 đạt**.
+
 ## 25.09.2026 — Kiểm trước phát hành Team/menu/CEO/mật khẩu
 
 Chủ dự án yêu cầu kiểm kỹ rồi đưa lên VPS, thay phạm vi local-only trước đó.
