@@ -39,6 +39,9 @@ Ghi chú nhanh cho máy phát triển. Toàn bộ tài khoản dưới đây do 
 | `mkt.leader` | `NAMVH` | `matkhaucuatoi` | Leader | Vũ Hoài Nam |
 | `mkt.staff` | `ANHPM` | `matkhaucuatoi` | Staff | Phạm Minh Anh |
 
+Từ 24.09.2026 (ADR-043) `mkt.leader` là trưởng nhóm team **MKT 1**, `mkt.staff` thuộc MKT 1; `mkt.manager` không
+thuộc team nào. Form nộp báo cáo có dropdown Team lấy từ đây.
+
 ## Bộ phận Vận đơn
 
 | Tên đăng nhập | Mã nhân sự | Mật khẩu | Cấp bậc | Họ tên |
