@@ -116,3 +116,40 @@ def test_bo_loc_ba_trang_thai_va_toan_man_hinh(live_server, trinh_duyet_moi, ngu
         page.wait_for_function(KHONG_FOCUS)
     finally:
         ctx.close()
+
+
+def test_the_tong_quan_moi_chi_tieu_mot_hang(live_server, trinh_duyet_moi, nguon, nguoi_dung):
+    """AC-22.17 — Thẻ Báo cáo tổng hợp trên Tổng quan: mỗi chỉ tiêu một hàng nhãn–số, số tiền
+    dài (cỡ nghìn tỉ ₫) không bị bẻ giữa chữ số ở màn rộng, 390 px không tràn ngang"""
+    from forms_builder.models import DataRecord
+    dong = DataRecord.objects.filter(table=nguon.table).order_by("pk").first()
+    dong.data["doanh_so"] = "4419192172500"
+    dong.val_revenue = 4419192172500
+    dong.save(update_fields=["data", "val_revenue"])
+    url = f"/?sale_nguon={nguon.table.code}&tu=2026-08-01&den=2026-08-31"
+    do = """() => {
+        const the = [...document.querySelectorAll('.dashboard-activity-card')]
+            .find(t => t.querySelector('.dashboard-metric'));
+        if (!the) return {loi: 'không thấy thẻ có chỉ tiêu'};
+        const hang = [...the.querySelectorAll('.dashboard-metric')].map(m => {
+            const dt = m.querySelector('dt').getBoundingClientRect(), dd = m.querySelector('dd');
+            const b = dd.getBoundingClientRect(), dong = parseFloat(getComputedStyle(dd).lineHeight);
+            return {nhan: m.querySelector('dt').textContent.trim(), so: dd.textContent.trim(),
+                    trai: Math.round(m.getBoundingClientRect().left), cung_hang: Math.abs(b.top - dt.top) < 4,
+                    so_dong: Math.round(b.height / dong)};
+        });
+        return {hang, tran: document.documentElement.scrollWidth - innerWidth};
+    }"""
+    for rong, cao in ((1440, 900), (390, 844)):
+        ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], rong, cao, url)
+        kq = page.evaluate(do)
+        chup(page, f"tong-quan-the-bao-cao-{rong}")
+        ctx.close()
+        assert "loi" not in kq, kq
+        assert kq["tran"] <= 0, f"{rong}px tràn ngang {kq['tran']}px"
+        assert len({h["trai"] for h in kq["hang"]}) == 1, f"{rong}px: chỉ tiêu không xếp mỗi cái một hàng: {kq['hang']}"
+        assert all(h["cung_hang"] for h in kq["hang"]), kq["hang"]
+        if rong == 1440:
+            dai = [h for h in kq["hang"] if len(h["so"]) >= 15]
+            assert dai, f"dữ liệu thử phải có một số tiền dài: {kq['hang']}"
+            assert all(h["so_dong"] == 1 for h in kq["hang"]), f"số bị bẻ dòng ở 1440px: {kq['hang']}"

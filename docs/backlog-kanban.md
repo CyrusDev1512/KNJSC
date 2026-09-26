@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 26.09.2026 — Bố cục thẻ Báo cáo tổng hợp trên Tổng quan (TL-60)
+
+**Finished local (nhánh `claude/sua-bo-cuc-tong-quan`, PR nháp về `main`):** mỗi chỉ tiêu một hàng, số
+tiền không còn bẻ dòng; gỡ luật CSS trùng gây hồi quy 17.09. **To do:** chủ dự án test local rồi quyết
+gộp và phát hành VPS (lỗi đang có trên VPS).
+
 ## 25.09.2026 — Phát hành Team/menu/CEO/mật khẩu
 
 **In progress:** kiểm local và chuẩn bị PR nháp, CI, diễn tập migration CEO

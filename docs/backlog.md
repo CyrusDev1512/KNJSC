@@ -1,5 +1,14 @@
 # Backlog
 
+## 26.09.2026 — Sửa bố cục thẻ Báo cáo tổng hợp trên Tổng quan ERP (TL-60)
+
+**Chủ dự án báo** (ảnh Tổng quan): chỉ tiêu xếp chật nhiều cột, số tiền bị bẻ giữa chữ số. **Nguyên
+nhân:** hồi quy 17.09 — `d84a8c1` chép luật `.dashboard-*` cũ vào `solarpunk.css` để bài khai lớp CSS
+hết đỏ, chồng lên bản sửa 16.09 ở `dashboard.css`. **Sửa:** gỡ khối trùng, bài khai lớp quét cả
+`dashboard.css`; AC-22.17 (tĩnh + Chromium 1440/390) đỏ trên mã cũ, xanh sau sửa. Không đổi template,
+số liệu hay nguồn. Chưa phát hành VPS. Biên bản
+[kiem-chung-bo-cuc-tong-quan-20260926.md](kiem-chung-bo-cuc-tong-quan-20260926.md).
+
 ## 25.09.2026 — Sidebar KN CRM: bỏ mục ERP trùng, Tác vụ nền chỉ Admin
 
 **Hoàn tất local:** bỏ lối KN ERP trùng ở sidebar và giữ lối trên topbar; chỉ
