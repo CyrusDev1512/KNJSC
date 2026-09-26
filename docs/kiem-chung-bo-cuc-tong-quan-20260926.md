@@ -32,11 +32,27 @@ hướng đáy căn giữa ở ~930 px → cửa sổ ~1860 px); đo bằng bài
 | `core/tests/test_giao_dien.py::test_luat_the_bao_cao_tong_quan_chi_khai_mot_cho` (AC-22.17, tĩnh) | **đỏ**: luật `.dashboard-*` lẫn trong `solarpunk.css` | xanh |
 | `reports/tests/test_bo_cuc_bao_cao_e2e.py::test_the_tong_quan_moi_chi_tieu_mot_hang` (AC-22.17, Chromium thật, Manager Sale, Doanh số 4.419.192.172.800) | **đỏ**: 1440 px chỉ tiêu xếp 2 cột (left 537/726), "Doanh số" **bẻ 3 dòng** | xanh: 1440 px một cột, mọi số một dòng, nhãn–số cùng hàng; 390 px không tràn ngang |
 | `core/tests/test_giao_dien.py` trọn tệp + bài trên | — | **624 đạt, 0 bỏ qua, 0 đỏ** |
-| `tests/test_truy_vet.py` (docs/06 → 276 / 263 tự động / 240 có bài) | — | 36 đạt |
+| `tests/test_truy_vet.py` (docs/06 → 277 / 264 tự động / 241 có bài) | — | 36 đạt |
 | Suite đầy đủ `-m "not trinh_duyet and not cham"` | — | **2.799 đạt, 1 bỏ qua, 0 đỏ** (330 s) |
 
 Ảnh `docs/kiem-thu/bo-cuc-tong-quan-2026-09-26/`: `truoc-1440.png` (mã cũ, cùng dữ liệu),
 `sau-1440.png`, `sau-390.png` — chụp từ chính bài Chromium.
+
+## Bổ sung cùng lượt — bỏ ô đơn vị/cảnh báo quy đổi trên thẻ Tổng quan
+
+Chủ dự án gửi ảnh hai ô vàng "32/40 dòng chưa quy đổi được (loại tiền: trống) …" trên thẻ Marketing
+và Sale, yêu cầu xoá. Gỡ `currency_note` khỏi dữ liệu khối (`dashboard_service`), dòng in ở
+`dashboard/_activity.html` và luật `.dashboard-note` thừa trong `dashboard.css`. Cách tính **không
+đổi**; cảnh báo vẫn ở màn Báo cáo tổng hợp chi tiết, Bảng dữ liệu dạng báo cáo, Excel (ADR-042 bổ sung 26.09).
+
+| Bài | Trước sửa | Sau sửa |
+|---|---|---|
+| `reports/tests/test_markets_currencies.py::test_the_tong_quan_khong_hien_o_don_vi_va_canh_bao_quy_doi` (AC-22.18; một dòng KRW chưa có tỉ giá) | **đỏ**: Tổng quan in "1 dòng chưa quy đổi được (loại tiền: KRW) …" | xanh: Tổng quan không còn ô; màn chi tiết vẫn có cảnh báo KRW |
+| `test_markets_currencies`, `test_activity`, `test_giao_dien`, `dashboard/` | — | 667 đạt, 0 đỏ |
+| Suite đầy đủ `-m "not trinh_duyet and not cham"` sau bổ sung | — | **2.800 đạt, 1 bỏ qua, 0 đỏ** (307 s) |
+
+**Lưu ý dữ liệu trên VPS:** 32 dòng Marketing và 40 dòng Sale **trống cột Loại tiền** — tiền của các
+dòng đó đang không vào tổng. Bỏ ô chỉ là bỏ lời nhắc; muốn số đủ phải bổ sung loại tiền cho các dòng đó.
 
 ## Chưa kiểm
 

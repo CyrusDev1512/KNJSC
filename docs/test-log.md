@@ -9,6 +9,8 @@ chỉ để `core/tests/test_giao_dien.py` hết đỏ (bài quét danh sách CS
 `.dashboard-metrics{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}` chồng lên bản sửa. Gỡ khối
 trùng, thêm `dashboard.css` vào danh sách quét. Bài AC-22.17 (tĩnh + Chromium 1440/390) đỏ trên mã cũ —
 "4.419.192.172.800" bẻ 3 dòng — và xanh sau sửa. [Biên bản](kiem-chung-bo-cuc-tong-quan-20260926.md).
+Cùng lượt, theo yêu cầu chủ dự án: thẻ Tổng quan bỏ ô đơn vị/cảnh báo "… dòng chưa quy đổi được"
+(AC-22.18); cảnh báo vẫn ở màn Báo cáo tổng hợp chi tiết.
 
 ## 25.09.2026 — Gỡ mục KN ERP trùng và giới hạn danh sách Tác vụ nền
 

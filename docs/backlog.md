@@ -6,7 +6,9 @@
 nhân:** hồi quy 17.09 — `d84a8c1` chép luật `.dashboard-*` cũ vào `solarpunk.css` để bài khai lớp CSS
 hết đỏ, chồng lên bản sửa 16.09 ở `dashboard.css`. **Sửa:** gỡ khối trùng, bài khai lớp quét cả
 `dashboard.css`; AC-22.17 (tĩnh + Chromium 1440/390) đỏ trên mã cũ, xanh sau sửa. Không đổi template,
-số liệu hay nguồn. Chưa phát hành VPS. Biên bản
+số liệu hay nguồn. **Cùng lượt:** thẻ Tổng quan bỏ ô đơn vị/cảnh báo "… dòng chưa quy đổi được"
+theo yêu cầu (AC-22.18, ADR-042 bổ sung 26.09) — cách tính và cảnh báo ở màn chi tiết giữ nguyên.
+Chưa phát hành VPS. Biên bản
 [kiem-chung-bo-cuc-tong-quan-20260926.md](kiem-chung-bo-cuc-tong-quan-20260926.md).
 
 ## 25.09.2026 — Sidebar KN CRM: bỏ mục ERP trùng, Tác vụ nền chỉ Admin
