@@ -24,6 +24,7 @@ CAC_TEP_CSS = [
     GOC / "static" / "css" / "waybill.css",
     GOC / "static" / "css" / "solarpunk.css",
     GOC / "static" / "css" / "executive-statistics.css",
+    GOC / "static" / "css" / "dashboard.css",
 ]
 
 #: Lớp chỉ dùng làm móc cho JavaScript, cố ý không có kiểu dáng.
@@ -149,6 +150,18 @@ def test_khung_erp_co_dock_thu_gon_va_bang_co_che_do_tap_trung():
     assert 'id="erp-focus-enter"' in table and 'id="erp-native-fullscreen"' in table
     assert "requestFullscreen" in focus and "fullscreenElement" in focus
     assert "event.key !== 'Escape'" in focus and "event.defaultPrevented" in focus
+
+
+def test_luat_the_bao_cao_tong_quan_chi_khai_mot_cho():
+    """AC-22.17 — Luật `.dashboard-*` của khối Báo cáo tổng hợp trên Tổng quan chỉ khai ở
+    `dashboard.css`: 17.09 một bản cũ chép vào `solarpunk.css` chồng lên bản sửa 16.09, chỉ
+    tiêu xếp bốn cột chật và số tiền bị bẻ giữa chữ số"""
+    rieng = GOC / "static/css/dashboard.css"
+    assert rieng in CAC_TEP_CSS, "bài khai lớp phải quét cả dashboard.css"
+    lan = [tep.name for tep in (GOC / "static/css").glob("*.css")
+           if tep != rieng and re.search(r"\.dashboard-[\w-]+[^{}]*\{",
+                                         _bo_chu_thich(tep.read_text(encoding="utf-8")))]
+    assert not lan, f"luật .dashboard-* chỉ được khai ở dashboard.css, đang lẫn trong: {lan}"
 
 
 def test_khung_erp_co_hai_icon_nen_va_mo_rong_trong_tab():
