@@ -1,5 +1,14 @@
 # Backlog
 
+## 26.09.2026 — Bỏ hộp đọc, ô phồng to tại chỗ kiểu Google Sheets (bổ sung ADR-033)
+
+**Chủ dự án chốt** (so với Google Sheets): bấm ô bị cắt chữ thì chính ô đó nở ra đè lên ô
+lân cận hiện đủ nội dung, bấm chỗ khác thu về; bỏ hẳn hộp đọc có tiêu đề + nút ×; tự giãn
+dòng và trần 2000 px giữ nguyên. **Sửa:** `#mg-reader` giữ id và 4 công dụng, chỉ đổi trình
+bày theo khuôn `positionEditor` (fixed + clipPath); bấm đúp lên ô phồng tự mở editor. Bài
+e2e viết lại + 1 bài mới; 3 bài `pha_luoi` đỏ do TLS proxy máy ảo (đối chứng mã gốc cũng đỏ).
+Biên bản [kiem-chung-o-phong-to-20260926.md](kiem-chung-o-phong-to-20260926.md).
+
 ## 25.09.2026 — Sidebar KN CRM: bỏ mục ERP trùng, Tác vụ nền chỉ Admin
 
 **Hoàn tất local:** bỏ lối KN ERP trùng ở sidebar và giữ lối trên topbar; chỉ

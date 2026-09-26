@@ -37,7 +37,7 @@ module.exports=async function rowHeightChecks({page,context,base}){
   await page.locator('#mg-viewport').focus();await page.keyboard.press('Control+End');await page.locator(`.mg-cell[data-r="${last}"][data-id]`).first().waitFor();
   assert.equal(await page.locator(`.mg-cell[data-r="${last}"]`).first().getAttribute('data-id'),id);assert.equal(await height(last),160);
   // Chữ dài xuống dòng và còn cắt dọc vẫn mở vùng đọc.
-  // Dòng ghi chú dài tự giãn cao; ép về 28 rồi mới kéo 92 để ô còn tràn dọc mà hộp đọc mở được.
+  // Dòng ghi chú dài tự giãn cao; ép về 28 rồi mới kéo 92 để ô còn tràn dọc mà ô phồng to mở được.
   await open(base+'/bang-tinh/van_don/?f_ma_don=MASTER-01299');const tuDong=await height(0);assert(tuDong>28,'dòng ghi chú dài phải tự giãn');
   await drag(0,-Math.ceil(tuDong));assert.equal(await height(0),28);await drag(0,92);
   await page.locator('#mg-viewport').evaluate(e=>e.scrollLeft=3000);

@@ -52,7 +52,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
     await page.keyboard.press('Control+c');await page.getByText('Đã sao chép 6 ô.',{exact:true}).waitFor();
     assert.equal((await page.evaluate(()=>navigator.clipboard.readText())).split('\r\n').length,6);
     // Ghi chú dài giờ ở MASTER-01299 và dòng tự giãn cao (AC-11.44): ép dòng về 28 px bằng
-    // tuỳ chọn đã nhớ rồi mở lại, để ô còn tràn mà hộp đọc mở được.
+    // tuỳ chọn đã nhớ rồi mở lại, để ô còn tràn mà ô phồng to mở được.
     await open('/bang-tinh/van_don/?f_ma_don=MASTER-01299');
     const noteId=await page.locator('.mg-cell[data-r="0"]').first().getAttribute('data-id');
     await page.evaluate(id=>{const c=JSON.parse(document.getElementById('mg-config').textContent),key=`kn-master:${c.user}:${c.table}`,p=JSON.parse(localStorage.getItem(key)||'{}');p.rowHeights={...(p.rowHeights||{}),[id]:28};localStorage.setItem(key,JSON.stringify(p));},noteId);
