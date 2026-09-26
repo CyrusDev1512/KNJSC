@@ -49,7 +49,12 @@
 .mg-filter-content {padding:14px}.mg-filter-content h2{font-size:17px;margin:0 0 12px}.mg-filter-content form{margin-bottom:16px}.mg-filter-content fieldset{border:0;padding:8px 0;margin:0}.mg-filter-content legend{font-weight:600}.mg-filter-content label:not(.mg-check){display:block;margin-bottom:8px}.mg-check{display:flex;align-items:baseline;gap:6px;font-size:13px;padding:4px 0;overflow-wrap:anywhere}.mg-options{max-height:220px;overflow:auto}
 .mg-float {position:fixed;z-index:1100;background:var(--surface);color:var(--ink);border:1px solid var(--rule-strong);border-radius:6px;box-shadow:0 6px 24px #0002;padding:12px;box-sizing:border-box;max-width:calc(100vw - 24px);overflow:auto}
 .mg-float[hidden],.mg-root [hidden]{display:none!important}.mg-float strong{display:block;font-size:13px;margin-bottom:9px;padding-right:26px}
-#mg-reader>button{float:right;border:0;background:transparent;color:var(--ink);cursor:pointer;font-size:20px}#mg-reader>div{white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:auto;user-select:text}
+/* Ô phồng to tại chỗ: nhìn như chính ô đó nở ra (cùng phông, cùng đệm), viền như ô đang
+   chọn, nằm trên ô thường nhưng dưới editor (z-index 19 < 20); nội dung dài hơn chỗ cho
+   phép thì cuộn bên trong — đường đọc ghi chú quá trần 2000 px vẫn giữ. */
+#mg-reader.mg-expand{position:fixed;z-index:19;background:var(--surface);color:var(--ink);border:2px solid #2563eb;border-radius:0;box-sizing:border-box;box-shadow:0 6px 24px #0003;padding:0;overflow:hidden}
+#mg-reader.mg-expand[hidden]{display:none!important}
+#mg-reader.mg-expand>div{white-space:pre-wrap;overflow-wrap:anywhere;overflow:auto;user-select:text;height:100%;box-sizing:border-box;padding:4px 7px;font-size:13px;line-height:19px}
 .mg-editor {resize:both;min-width:200px;min-height:150px}.mg-editor #mg-input{min-height:60px}.mg-editor textarea{width:100%;height:120px;resize:none;min-width:0}.mg-editor input,.mg-editor select{width:100%;min-width:0}.mg-editor-actions{display:flex;gap:8px;margin-top:10px}
 .mg-editor.mg-inline-editor{resize:none;min-width:0;min-height:0;max-width:none;max-height:none;padding:0;border:2px solid #2563eb;border-radius:0;box-shadow:none;overflow:hidden;z-index:20}
 .mg-inline-editor>strong,.mg-inline-editor>.mg-close,.mg-inline-editor>.mg-editor-actions{display:none}

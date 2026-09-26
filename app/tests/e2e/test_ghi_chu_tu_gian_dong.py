@@ -17,7 +17,9 @@ Các trường hợp, đúng đặc tả đã chốt:
     ghi chú dài            → cao hơn 28, dưới trần 2000, và **không cắt chữ**
     sửa ngay trong ô       → dòng giãn ngay, không tải lại trang; ô nhập cao theo chữ đang gõ
     kéo tay về 28          → thắng chiều cao tự tính và được nhớ; Home về tự động
-    quá trần               → cắt ở 2000 px, bấm ô mở hộp đọc
+    quá trần               → cắt ở 2000 px; click đơn chỉ chọn ô, bấm đúp mở ô nhập cao
+                             chạm trần (bổ sung ADR-033, 26.09 — như Google Sheets)
+    ô chỉ đọc bị cắt chữ   → bấm đúp thì Ô PHỒNG TO tại chỗ, không mở ô nhập
     1000 dòng ghi chú dài  → đo thời gian tính chiều cao mỗi khối, ghi vào biên bản
 """
 import pytest
@@ -32,7 +34,7 @@ pytestmark = [pytest.mark.django_db(transaction=True), pytest.mark.trinh_duyet, 
 
 #: Chiều cao dòng mặc định của lưới (`ROW` trong master-grid.js)
 CAO_MAC_DINH = 28
-#: Trần chiều cao một dòng — chốt 23.09.2026, ghi chú dài hơn thì đọc bằng hộp đọc
+#: Trần chiều cao một dòng — chốt 23.09.2026, ghi chú dài hơn thì đọc bằng ô phồng to tại chỗ
 TRAN = 2000
 
 GHI_CHU_NGAN = "Khách hẹn giao buổi chiều."
@@ -74,11 +76,11 @@ def _cho_luoi_co_du_lieu(trang):
     )
 
 
-def _mo_luoi(trang, live_server, dang_nhap, nguoi_dung, bang, truy_van=""):
-    """Đăng nhập Vận đơn, mở lưới, đợi dữ liệu và phông chữ — phần mở đầu chung của mọi bài."""
+def _mo_luoi(trang, live_server, dang_nhap, nguoi_dung, bang, truy_van="", nguoi=None):
+    """Đăng nhập (mặc định Vận đơn), mở lưới, đợi dữ liệu và phông chữ — mở đầu chung của mọi bài."""
     loi_js = []
     trang.on("pageerror", lambda e: loi_js.append(str(e)))
-    dang_nhap(trang, nguoi_dung["staff_vd"])
+    dang_nhap(trang, nguoi or nguoi_dung["staff_vd"])
     trang.goto(f"{live_server.url}/bang-tinh/{bang.code}/{truy_van}")
     _cho_luoi_co_du_lieu(trang)
     # Chiều cao đo sau khi phông chữ sẵn sàng, nếu không số đo lệch
@@ -155,7 +157,7 @@ def _ghi(dong, ghi_chu):
 def test_dong_tu_gian_cao_vua_ghi_chu(live_server, trang, dang_nhap,
                                       kn_crm, feedback, nguoi_dung):  # noqa: F811
     """AC-11.44 — Dòng lưới cao vừa ghi chú: rỗng và ngắn giữ 28 px, dài thì giãn ra
-    dưới trần 2000 px và hiện hết chữ, không phải bấm hộp đọc"""
+    dưới trần 2000 px và hiện hết chữ, không phải bấm cho ô phồng to"""
     bang, _, dong = feedback
     assert len(dong) >= 2, "fixture feedback phải có ít nhất hai dòng"
     ma_ngan, ma_dai = _ghi(dong[0], GHI_CHU_NGAN), _ghi(dong[1], GHI_CHU_DAI)
@@ -275,24 +277,157 @@ def test_keo_tay_ve_28_thang_tu_tinh_va_home_ve_tu_dong(live_server, trang, dang
     print(f"\nAC-11.44 kéo tay — tự động {tu_dong['cao_o']} → kéo {keo['cao_o']} → tải lại {sau_tai['cao_o']} → Home {home['cao_o']}")
 
 
-def test_ghi_chu_qua_tran_cat_o_2000_va_mo_hop_doc(live_server, trang, dang_nhap,
-                                                   kn_crm, feedback, nguoi_dung):  # noqa: F811
-    """AC-11.44 — Ghi chú dài hơn trần: dòng dừng ở 2000 px, phần còn lại đọc bằng hộp
-    đọc khi bấm ô"""
+def _khong_mo_gi(trang):
+    """Sau click đơn cả ô phồng lẫn ô nhập đều phải im — chờ một nhịp rồi soát cả hai."""
+    trang.wait_for_timeout(600)
+    return trang.evaluate(
+        """() => ({phong: document.getElementById('mg-reader').hidden,
+                   nhap: document.getElementById('mg-editor').hidden})""")
+
+
+def _diem_bam(trang, record_id, ma_cot):
+    """Điểm bấm được trong ô của bản ghi này, kèm cờ ô đang bị cắt ngang."""
+    return trang.evaluate(
+        """({id, code}) => {
+            const cell = document.querySelector(`.mg-cell[data-code='${code}'][data-id='${id}']`);
+            if(!cell) return {ok: false};
+            const b = cell.getBoundingClientRect();
+            const point = {x: b.left + Math.min(40, b.width / 2), y: b.top + b.height / 2};
+            const hit = document.elementFromPoint(point.x, point.y)?.closest('.mg-cell');
+            return {ok: hit === cell, point, cat: cell.scrollWidth > cell.clientWidth,
+                    chon: cell.classList.contains('mg-current')};
+        }""", {"id": str(record_id), "code": ma_cot})
+
+
+def test_ghi_chu_qua_tran_click_chi_chon_bam_dup_mo_o_nhap(live_server, trang, dang_nhap,
+                                                           kn_crm, feedback, nguoi_dung):  # noqa: F811
+    """AC-11.44 — Ghi chú dài hơn trần: dòng dừng ở 2000 px; CLICK ĐƠN chỉ chọn ô, không
+    phồng không mở gì (góp ý 26.09 — như Google Sheets); BẤM ĐÚP mở ô nhập ngay tại ô,
+    khung nhập giãn hết chỗ khung nhìn (trần 2000 px khi đủ chỗ, maxHeight giữ trong
+    cửa sổ) và textarea chứa trọn nội dung quá trần; Esc đóng"""
     bang, _, dong = feedback
     _ghi(dong[1], GHI_CHU_QUA_TRAN)
 
     loi_js = _mo_luoi(trang, live_server, dang_nhap, nguoi_dung, bang)
     o = ghi_chu_nhin_thay(trang, dong[1].pk, GHI_CHU_QUA_TRAN)
     assert o["cao_o"] == TRAN, o
-    assert o["cao_chu"] > TRAN, "nội dung phải còn dài hơn trần mới có gì để hộp đọc hiện"
+    assert o["cao_chu"] > TRAN, "nội dung phải còn dài hơn trần mới có gì bị giấu"
 
+    # Click đơn: chỉ chọn ô — cả ô phồng lẫn ô nhập đều không mở
     bam_ghi_chu(trang, o)
-    trang.wait_for_selector("#mg-reader:not([hidden])", timeout=5_000)
-    assert GHI_CHU_QUA_TRAN.strip() in trang.text_content("#mg-reader")
-    chup(trang, "ghi-chu-qua-tran-hop-doc")
+    im = _khong_mo_gi(trang)
+    assert im["phong"] and im["nhap"], f"click đơn đã mở thứ không được mở: {im}"
+    assert trang.evaluate(
+        "(id) => document.querySelector(`.mg-cell[data-code=ghi_chu][data-id='${id}']`)"
+        ".classList.contains('mg-current')", str(dong[1].pk)), "click đơn phải chọn ô"
+
+    # Bấm đúp: ô sửa được nên mở Ô NHẬP tại chỗ — positionEditor tự giãn khung chạm trần
+    trang.mouse.dblclick(o["point"]["x"], o["point"]["y"])
+    trang.wait_for_selector("#mg-editor:not([hidden])", timeout=5_000)
+    assert trang.evaluate("() => document.getElementById('mg-reader').hidden"), (
+        "ô sửa được bấm đúp phải ra ô nhập, không phải ô phồng")
+    # Kéo cột Ghi chú vào giữa khung nhìn cho ảnh biên bản; ô nhập bám theo ô (positionEditor)
+    trang.evaluate("""() => { const vp = document.getElementById('mg-viewport');
+        vp.scrollLeft = Math.min(vp.scrollLeft + 420, vp.scrollWidth - vp.clientWidth); }""")
+    trang.wait_for_timeout(300)
+    gia_tri = trang.evaluate("() => document.querySelector('#mg-editor textarea').value")
+    assert gia_tri.strip() == GHI_CHU_QUA_TRAN.strip(), "textarea phải chứa trọn nội dung quá trần"
+    kich = trang.evaluate(
+        """() => { const b = document.getElementById('mg-editor').getBoundingClientRect();
+                   return {cao: Math.round(b.height), tren: Math.round(b.top), man: innerHeight}; }""")
+    # positionEditor đặt height=trần nhưng maxHeight (ResizeObserver) giữ khung trong cửa sổ:
+    # khung phải giãn HẾT chỗ còn lại của khung nhìn, không kẹt ở 28 px
+    gioi_han = min(TRAN, kich["man"] - kich["tren"] - 12)
+    cao_khung = kich["cao"]
+    assert cao_khung >= gioi_han - 4, (
+        f"khung nhập phải giãn hết chỗ khung nhìn (~{gioi_han} px), đo được {kich}")
+    chup(trang, "ghi-chu-qua-tran-bam-dup-o-nhap")
+    trang.keyboard.press("Escape")
+    trang.wait_for_function("document.getElementById('mg-editor').hidden", timeout=3_000)
     assert not loi_js, loi_js
-    print(f"\nAC-11.44 quá trần: {dict(o, chu=o['chu'][:40] + '…')}")
+    print(f"\nAC-11.44 quá trần: khung nhập {cao_khung} px, {dict(o, chu=o['chu'][:40] + '…')}")
+
+
+def test_o_cat_ngang_click_chi_chon_bam_dup_mo_o_nhap(live_server, trang, dang_nhap,
+                                                      kn_crm, feedback, nguoi_dung):  # noqa: F811
+    """AC-11.44 — Ô cột thường bị cắt ngang ở dòng 28 px (Tên khách dài, sửa được):
+    click đơn chỉ chọn ô, KHÔNG phồng (góp ý 26.09); bấm đúp mở ô nhập ngay tại ô
+    với đủ nội dung; Esc đóng"""
+    bang, _, dong = feedback
+    ten_dai = "Nguyễn Thị Rất Dài " * 6
+    dong[0].data["ten_khach"] = ten_dai
+    dong[0].save(update_fields=["data"])
+
+    loi_js = _mo_luoi(trang, live_server, dang_nhap, nguoi_dung, bang)
+    o = _diem_bam(trang, dong[0].pk, "ten_khach")
+    assert o["ok"], o
+    assert o["cat"], "tên phải đang bị cắt ngang thì ca kiểm mới có nghĩa"
+
+    trang.mouse.click(o["point"]["x"], o["point"]["y"])
+    im = _khong_mo_gi(trang)
+    assert im["phong"] and im["nhap"], f"click đơn đã mở thứ không được mở: {im}"
+    assert _diem_bam(trang, dong[0].pk, "ten_khach")["chon"], "click đơn phải chọn ô"
+
+    # Bấm đúp: ô sửa được → ô nhập, giữ nguyên giá trị cũ
+    trang.mouse.dblclick(o["point"]["x"], o["point"]["y"])
+    trang.wait_for_selector("#mg-editor:not([hidden])", timeout=5_000)
+    gia_tri = trang.evaluate("() => document.getElementById('mg-editor').elements.value.value")
+    assert gia_tri.strip() == ten_dai.strip(), gia_tri
+    chup(trang, "o-cat-ngang-bam-dup-o-nhap")
+    trang.keyboard.press("Escape")
+    trang.wait_for_function("document.getElementById('mg-editor').hidden", timeout=3_000)
+    assert not loi_js, loi_js
+
+
+def test_o_chi_doc_bi_cat_bam_dup_phong_to(live_server, trang, dang_nhap, kn_crm,
+                                           feedback, nguoi_dung, make_user, departments):  # noqa: F811
+    """AC-11.44 — Ô CHỈ ĐỌC bị cắt chữ (CSKH được giao chỉ xem — ADR-033): click đơn chỉ
+    chọn; bấm đúp thì Ô PHỒNG TO tại chỗ hiện đủ chữ, KHÔNG mở ô nhập; bấm chỗ khác
+    thì thu về"""
+    from core.constants import Rank
+    from org.models import Department
+    from orders.models import WaybillAssignment
+    from orders.services import assignment_service
+
+    bang, _, dong = feedback
+    ten_dai = "Nguyễn Thị Rất Dài " * 6
+    dong[0].data["ten_khach"] = ten_dai
+    dong[0].save(update_fields=["data"])
+    care = make_user("care_person", Rank.STAFF,
+                     Department.objects.create(code="cskh", name="CSKH"))
+    leader = make_user("vd_leader", Rank.LEADER, departments["vd"])
+    phien_ban = (WaybillAssignment.objects.filter(record=dong[0])
+                 .values_list("version", flat=True).first() or 0)
+    assignment_service.assign(leader, {dong[0].pk: phien_ban}, {"care": care.pk})
+
+    loi_js = _mo_luoi(trang, live_server, dang_nhap, nguoi_dung, bang, nguoi=care)
+    o = _diem_bam(trang, dong[0].pk, "ten_khach")
+    assert o["ok"], o
+    assert o["cat"], "tên phải đang bị cắt ngang thì bấm đúp mới phồng"
+
+    trang.mouse.click(o["point"]["x"], o["point"]["y"])
+    im = _khong_mo_gi(trang)
+    assert im["phong"] and im["nhap"], f"click đơn đã mở thứ không được mở: {im}"
+
+    trang.mouse.dblclick(o["point"]["x"], o["point"]["y"])
+    trang.wait_for_selector("#mg-reader:not([hidden])", timeout=5_000)
+    assert ten_dai.strip() in trang.text_content("#mg-reader")
+    assert trang.evaluate("() => document.getElementById('mg-editor').hidden"), (
+        "ô chỉ đọc không được mở ô nhập")
+    # Phồng TẠI CHỖ: cùng góc trên-trái với ô, rộng không hụt ô
+    phu = trang.evaluate(
+        """(id) => {
+            const cell = document.querySelector(`.mg-cell[data-code=ten_khach][data-id='${id}']`).getBoundingClientRect();
+            const box = document.getElementById('mg-reader').getBoundingClientRect();
+            return {lech_trai: Math.abs(box.left - cell.left), lech_tren: Math.abs(box.top - cell.top),
+                    rong_du: box.width >= cell.width - 2};
+        }""", str(dong[0].pk))
+    assert phu["lech_trai"] < 2 and phu["lech_tren"] < 2 and phu["rong_du"], phu
+    chup(trang, "o-chi-doc-bam-dup-phong-to")
+    # Bấm chỗ khác (chân trang, ngoài lưới) thì thu về
+    trang.click("#mg-count")
+    trang.wait_for_function("document.getElementById('mg-reader').hidden", timeout=3_000)
+    assert not loi_js, loi_js
 
 
 def _phan_tram(so, p):

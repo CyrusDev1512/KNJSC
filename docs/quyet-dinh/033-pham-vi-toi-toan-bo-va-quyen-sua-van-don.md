@@ -80,7 +80,7 @@ nhập (chọn chữ) chứ không chọn cả bảng. Chốt (hỏi, trả lờ
 chỉ chọn ô; gõ phím chữ hay số là vào nhập ngay với ký tự vừa gõ; Enter, F2, bấm
 đúp mở ô nhập giữ giá trị cũ; Enter và Tab trong ô nhập chỉ chuyển ô, không tự mở
 ô kế; mũi tên chỉ di chuyển.** Ctrl+A, Delete, Ctrl+C/V luôn tác động lên lưới.
-Ô chỉ đọc, phân công, chi tiết: gõ phím thì mở hộp đọc. Điều 5 ở trên đọc theo
+Ô chỉ đọc, phân công, chi tiết: gõ phím thì ô phồng to tại chỗ. Điều 5 ở trên đọc theo
 nghĩa này. Chân lưới ghi "Chọn ô rồi gõ để sửa · Enter/F2 mở ô · Ctrl+A chọn hết".
 
 ## Lý do
@@ -118,3 +118,27 @@ Muốn giới hạn thật thì phải là quyết định mới (ví dụ theo 
 Khi công ty cần giới hạn thật quyền xem hoặc sửa của một nhóm nhân viên Vận đơn
 (nhiều chi nhánh, nhân viên thử việc), hoặc khi bộ lọc "Tôi" cần theo team thay
 vì theo người.
+
+## Bổ sung 26.09.2026 — hộp đọc thành ô phồng to tại chỗ
+
+Chủ dự án so với Google Sheets (26.09) và chốt hai đợt (đợt hai sau khi test bản đầu:
+"1 click thì y như chúng ta, 2 click mới là mở rộng"): bỏ hộp đọc dạng panel nổi có
+tiêu đề và nút × đặt dưới ô; thay bằng **ô phồng to tại chỗ**, và **click đơn chỉ chọn
+ô** — không phồng, không mở gì. Bấm đúp thì tuỳ ô:
+
+- **Ô sửa được** → mở ô nhập như trước (ADR-033 18.09); khung nhập của cột văn bản dài
+  tự giãn theo nội dung tới trần 2.000 px trong giới hạn khung nhìn (`positionEditor` +
+  maxHeight) — chính là "mở rộng ô" thấy trong video Sheets.
+- **Ô chỉ đọc đang bị cắt chữ** → chính ô đó nở ra đè lên các ô lân cận hiện đủ nội
+  dung; bấm chỗ khác hay Esc thì thu về. Ô chỉ đọc đã thấy đủ chữ thì chỉ nhắc
+  "Ô này chỉ đọc." như cũ.
+
+Gõ phím trên ô chỉ đọc/phân công/chi tiết vẫn mở ô phồng (mục bổ sung 18.09 ở trên).
+Vẫn là `#mg-reader`, chỉ đổi cách trình bày và cách mở (định vị theo khuôn
+`positionEditor`: fixed đúng rect ô, chia scale, `clipPath` không đè tiêu đề và cột
+ghim; quá chỗ thì cuộn bên trong).
+
+Các công dụng khác của hộp đọc **giữ nguyên**: cột chứng từ chép nguyên nút con; nơi
+duy nhất bôi đen chép chữ được. Bấm đúp lên ô phồng vẫn mở ô nhập/hộp riêng của cột
+(nó che ô thật nên tự chuyển tiếp). Không đụng tự giãn chiều cao dòng và trần
+2.000 px (AC-11.44).
