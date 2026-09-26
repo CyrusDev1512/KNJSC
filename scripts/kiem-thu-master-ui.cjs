@@ -52,13 +52,15 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
     await page.keyboard.press('Control+c');await page.getByText('Đã sao chép 6 ô.',{exact:true}).waitFor();
     assert.equal((await page.evaluate(()=>navigator.clipboard.readText())).split('\r\n').length,6);
     // Ghi chú dài giờ ở MASTER-01299 và dòng tự giãn cao (AC-11.44): ép dòng về 28 px bằng
-    // tuỳ chọn đã nhớ rồi mở lại, để ô còn tràn mà ô phồng to mở được.
+    // tuỳ chọn đã nhớ rồi mở lại, để ô còn tràn. Click đơn CHỈ chọn ô (góp ý 26.09) — ô sửa
+    // được thì bấm đúp mở ô nhập, không phồng.
     await open('/bang-tinh/van_don/?f_ma_don=MASTER-01299');
     const noteId=await page.locator('.mg-cell[data-r="0"]').first().getAttribute('data-id');
     await page.evaluate(id=>{const c=JSON.parse(document.getElementById('mg-config').textContent),key=`kn-master:${c.user}:${c.table}`,p=JSON.parse(localStorage.getItem(key)||'{}');p.rowHeights={...(p.rowHeights||{}),[id]:28};localStorage.setItem(key,JSON.stringify(p));},noteId);
     await open('/bang-tinh/van_don/?f_ma_don=MASTER-01299');
-    const note=await cell('ghi_chu');await note.click();await page.locator('#mg-reader').waitFor();assert.match(await page.locator('#mg-reader').textContent(),/Nội dung dài/);
-    await page.keyboard.press('Escape');await note.dblclick({delay:120});await page.locator('#mg-editor textarea').waitFor();
+    const note=await cell('ghi_chu');await note.click();await page.waitForTimeout(500);
+    assert(await page.evaluate(()=>document.getElementById('mg-reader').hidden),'click đơn không được mở ô phồng');
+    await note.dblclick({delay:120});await page.locator('#mg-editor textarea').waitFor();
     const before=await dimensions(),textarea=page.locator('#mg-editor textarea');await textarea.fill('Ghi chú tiếng Việt\nDòng thứ hai');
     await textarea.dispatchEvent('keydown',{key:'Enter',ctrlKey:true,isComposing:true});assert(await page.locator('#mg-editor').isVisible());
     await page.keyboard.press('Control+a');assert.equal(await textarea.evaluate(e=>e.selectionEnd-e.selectionStart),await textarea.inputValue().then(s=>s.length));

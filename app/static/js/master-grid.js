@@ -17,7 +17,7 @@
   if(!preferences||typeof preferences!=='object'||Array.isArray(preferences))preferences={};
   const heights=Object.create(null), geometry=new window.KNJSCRowGeometry();
   // ── Dòng tự giãn theo cột mang cờ `auto_height` — AC-11.44, góp ý Vận đơn 23.09.2026 ──
-  // Ghi chú dài bị cắt một dòng, phải bấm cho ô phồng to mới xem hết. Cờ do profile bảng trả trong
+  // Ghi chú dài bị cắt một dòng, phải mở ô phồng to mới xem hết. Cờ do profile bảng trả trong
   // metadata cột (`waybill_service.grid_column`); lưới không nhận diện nghiệp vụ bằng mã cột.
   // Đo chiều cao thật của nội dung rồi giãn dòng cho vừa. Đo **theo lô** đúng lúc khối 100
   // dòng vừa về: dựng cả lô ô ẩn rồi mới đọc, trình duyệt tính bố cục một lần cho cả lô.
@@ -431,8 +431,9 @@
     panel.style.top=Math.max(12,Math.min(box?.bottom||90,innerHeight-h-12))+'px';
   }
   function showReader(cell) {
-    // Ô phồng to tại chỗ (bổ sung ADR-033, 26.09): chỉ mở khi ô ĐANG bị cắt chữ — ngang
-    // (dòng 28 px) hay dọc (quá trần 2000 px, dòng bị kéo thấp). Bấm chỗ khác thì thu về.
+    // Ô phồng to tại chỗ (bổ sung ADR-033, 26.09): gọi khi gõ phím hay bấm đúp ô chỉ đọc;
+    // chỉ mở khi ô ĐANG bị cắt chữ — ngang (dòng 28 px) hay dọc (quá trần 2000 px, dòng bị
+    // kéo thấp). Bấm chỗ khác/Esc thì thu về. Click đơn không mở gì — chỉ chọn ô.
     if(!cell||state.draft||drag||(cell.scrollWidth<=cell.clientWidth&&cell.scrollHeight<=cell.clientHeight))return;
     const row=rowAt(+cell.dataset.r),c=state.visible[+cell.dataset.c];if(!row)return;
     const body=reader.firstElementChild;body.textContent=cellValue(row,c.code).display;
@@ -484,12 +485,14 @@
     if(state.current?.r!==cur.r||state.current?.c!==cur.c)return;
     // Như Excel (ADR-033, 18.09): bấm chỉ chọn ô; gõ phím chữ/số là nhập ngay với ký tự vừa gõ
     // (`initial`); F2/Enter/bấm đúp mở ô nhập giữ giá trị cũ. Ô chỉ đọc, phân công, chi tiết
-    // khi gõ thì ô phồng to tại chỗ; F2/Enter/bấm đúp vẫn mở hộp riêng của chúng.
+    // khi gõ thì ô phồng to tại chỗ; phân công/chi tiết F2/Enter/bấm đúp vẫn mở hộp riêng.
     if(automatic&&(c.assignment||c.detail||!cellValue(row,c.code).editable)){showReader($(`mg-${row.id}-${c.code}`));return;}
     reader.hidden=true;
     if(c.assignment){window.dispatchEvent(new CustomEvent('master-assignment',{detail:{ids:[row.id]}}));return;}
     if(c.detail){const d=$('vd-detail');d.showModal();$('vd-detail-body').textContent='Đang tải chi tiết…';await htmx.ajax('GET',row.detail_url,{target:'#vd-detail-body',swap:'innerHTML'});return;}
-    const value=cellValue(row,c.code);if(!value.editable){message('Ô này chỉ đọc.');return;}
+    // Bấm đúp/F2/Enter ô chỉ đọc đang bị cắt chữ thì phồng xem như gõ phím; thấy đủ rồi thì chỉ nhắc.
+    const value=cellValue(row,c.code);
+    if(!value.editable){const o=$(`mg-${row.id}-${c.code}`);if(o&&(o.scrollWidth>o.clientWidth||o.scrollHeight>o.clientHeight))showReader(o);else message('Ô này chỉ đọc.');return;}
     editor.querySelector('strong').textContent=c.name;
     let input;
     const options=Array.isArray(c.options)?c.options:[];
@@ -929,11 +932,8 @@
     if(resizing){preferences.widths||={};preferences.widths[resizing.code]=Math.max(72,Math.min(640,resizing.width+e.clientX-resizing.x));repaint();return;}
     if(drag){drag.x=e.clientX;drag.y=e.clientY;drag.moved ||= Math.abs(e.clientX-drag.startX)+Math.abs(e.clientY-drag.startY)>5;if(!frame)frame=requestAnimationFrame(extendDrag);}
   });
-  document.addEventListener('pointerup',e=>{if(rowResize){if(e.pointerId===rowResize.pointer){rowResize.y=e.clientY;finishRowResize(true);}return;}if(resizing)ketThucKeoCot();if(drag){const d=drag;drag=null;cancelAnimationFrame(frame);frame=0;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-r]');
-    // Rê nhẹ trong cùng ô vẫn là click; chỉ giữ chọn vùng khi đã đi qua ô khác.
-    const sameCell=target&&+target.dataset.r===d.r&&+target.dataset.c===d.c&&target.dataset.id===d.id;
-    if(sameCell&&!d.crossed&&!d.shift)setTimeout(()=>showReader(target),0);
-  }});
+  // Click đơn chỉ chọn ô (ADR-033); phồng to hay mở ô nhập đều đi qua bấm đúp/gõ phím.
+  document.addEventListener('pointerup',e=>{if(rowResize){if(e.pointerId===rowResize.pointer){rowResize.y=e.clientY;finishRowResize(true);}return;}if(resizing)ketThucKeoCot();if(drag){drag=null;cancelAnimationFrame(frame);frame=0;}});
   viewport.addEventListener('dblclick',e=>{if(!e.target.closest('[data-row-resize],.mg-url-link'))safe(edit)();});
   viewport.addEventListener('click',e=>{
     if(e.target.closest('[data-all]'))selectAll();

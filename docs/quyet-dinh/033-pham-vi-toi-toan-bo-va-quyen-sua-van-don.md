@@ -121,13 +121,24 @@ vì theo người.
 
 ## Bổ sung 26.09.2026 — hộp đọc thành ô phồng to tại chỗ
 
-Chủ dự án so với Google Sheets (26.09) và chốt: bỏ hộp đọc dạng panel nổi có tiêu đề
-và nút × đặt dưới ô; thay bằng **ô phồng to tại chỗ** — bấm ô đang bị cắt chữ thì chính
-ô đó nở ra đè lên các ô lân cận hiện đủ nội dung, bấm chỗ khác thì thu về. Vẫn là
-`#mg-reader`, chỉ đổi cách trình bày (định vị theo khuôn `positionEditor`: fixed đúng
-rect ô, chia scale, `clipPath` không đè tiêu đề và cột ghim; quá chỗ thì cuộn bên trong).
+Chủ dự án so với Google Sheets (26.09) và chốt hai đợt (đợt hai sau khi test bản đầu:
+"1 click thì y như chúng ta, 2 click mới là mở rộng"): bỏ hộp đọc dạng panel nổi có
+tiêu đề và nút × đặt dưới ô; thay bằng **ô phồng to tại chỗ**, và **click đơn chỉ chọn
+ô** — không phồng, không mở gì. Bấm đúp thì tuỳ ô:
 
-Bốn công dụng của hộp đọc **giữ nguyên**: mọi ô bị cắt ở mọi cột; gõ phím trên ô chỉ
-đọc/phân công/chi tiết (mục bổ sung 18.09 ở trên); cột chứng từ chép nguyên nút con;
-nơi duy nhất bôi đen chép chữ được. Bấm đúp lên ô phồng vẫn mở ô nhập (nó che ô thật
-nên tự chuyển tiếp). Không đụng tự giãn chiều cao dòng và trần 2.000 px (AC-11.44).
+- **Ô sửa được** → mở ô nhập như trước (ADR-033 18.09); khung nhập của cột văn bản dài
+  tự giãn theo nội dung tới trần 2.000 px trong giới hạn khung nhìn (`positionEditor` +
+  maxHeight) — chính là "mở rộng ô" thấy trong video Sheets.
+- **Ô chỉ đọc đang bị cắt chữ** → chính ô đó nở ra đè lên các ô lân cận hiện đủ nội
+  dung; bấm chỗ khác hay Esc thì thu về. Ô chỉ đọc đã thấy đủ chữ thì chỉ nhắc
+  "Ô này chỉ đọc." như cũ.
+
+Gõ phím trên ô chỉ đọc/phân công/chi tiết vẫn mở ô phồng (mục bổ sung 18.09 ở trên).
+Vẫn là `#mg-reader`, chỉ đổi cách trình bày và cách mở (định vị theo khuôn
+`positionEditor`: fixed đúng rect ô, chia scale, `clipPath` không đè tiêu đề và cột
+ghim; quá chỗ thì cuộn bên trong).
+
+Các công dụng khác của hộp đọc **giữ nguyên**: cột chứng từ chép nguyên nút con; nơi
+duy nhất bôi đen chép chữ được. Bấm đúp lên ô phồng vẫn mở ô nhập/hộp riêng của cột
+(nó che ô thật nên tự chuyển tiếp). Không đụng tự giãn chiều cao dòng và trần
+2.000 px (AC-11.44).

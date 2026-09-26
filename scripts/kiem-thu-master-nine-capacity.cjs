@@ -42,19 +42,22 @@ const percentile=(v,p)=>[...v].sort((a,b)=>a-b)[Math.min(v.length-1,Math.floor(v
           // Kiểm ô đã nạp và click trong cùng lượt JS, tránh chọn placeholder
           // giữa hai lệnh Playwright khi polling vừa làm mới cache.
           const sample=await page.evaluate(async r=>{
+            // Góp ý 26.09: click đơn chỉ chọn ô — chỉ số `reader` giờ đo mở Ô NHẬP bằng bấm đúp
+            // (giữ tên để so sánh lịch sử; ô ghi chú sửa được nên bấm đúp ra ô nhập, không phồng).
             const cell=document.querySelector(`.mg-cell[data-code="ghi_chu"][data-r="${r}"][data-id]`);
             if(!cell||cell.scrollWidth<=cell.clientWidth)return null;
             const box=cell.getBoundingClientRect(),x=box.x+box.width/2,y=box.y+box.height/2,start=performance.now();
             const options={bubbles:true,button:0,pointerId:1,clientX:x,clientY:y};
             cell.dispatchEvent(new PointerEvent('pointerdown',options));cell.dispatchEvent(new PointerEvent('pointerup',options));
+            cell.dispatchEvent(new MouseEvent('dblclick',{bubbles:true,clientX:x,clientY:y}));
             await new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)));
-            return document.getElementById('mg-reader').hidden?null:performance.now()-start;
+            return document.getElementById('mg-editor').hidden?null:performance.now()-start;
           },target);
           if(sample===null){loadingRetries++;await pause(30);continue;}
           readSamples.push(sample);await page.keyboard.press('Escape');
         }
-        if(readSamples.length!==100)throw Error('Không đủ 100 mẫu mở nội dung đã tải');
-        for(const [name,samples] of [['openAndTypeWhileSaving',inputSamples],['reader',readSamples]])metrics.operations[name]={samples:100,p50:percentile(samples,.5),p95:percentile(samples,.95),p99:percentile(samples,.99),method:name==='reader'?'Synthetic pointer on loaded cell to two frames; real pointer covered by E2E':'Playwright action to two frames, includes driver overhead; write response held during typing'};
+        if(readSamples.length!==100)throw Error('Không đủ 100 mẫu mở ô nhập bằng bấm đúp');
+        for(const [name,samples] of [['openAndTypeWhileSaving',inputSamples],['reader',readSamples]])metrics.operations[name]={samples:100,p50:percentile(samples,.5),p95:percentile(samples,.95),p99:percentile(samples,.99),method:name==='reader'?'Synthetic dblclick opens inline editor to two frames (26.09: single click selects only); real pointer covered by E2E':'Playwright action to two frames, includes driver overhead; write response held during typing'};
         metrics.operations.reader.loadingRetries=loadingRetries;
         await page.locator('#mg-viewport').evaluate(e=>e.scrollLeft=0);
       }

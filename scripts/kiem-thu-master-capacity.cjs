@@ -39,8 +39,15 @@ const out=path.resolve(__dirname,'../.agents/design-state/review/master'),sleep=
            el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,clientX:x,clientY:y}));
            if(kind==='resize')el.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,clientX:x+(i%2?2:-2),clientY:y}));
            el.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,button:0,clientX:x,clientY:y}));
+           // Góp ý 26.09: click đơn chỉ chọn ô — chỉ số `reader` giờ đo mở Ô NHẬP bằng bấm đúp (giữ tên so sánh lịch sử)
+           if(kind==='reader')el.dispatchEvent(new MouseEvent('dblclick',{bubbles:true,clientX:x,clientY:y}));
            await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-           if(kind==='reader'&&document.getElementById('mg-reader').hidden)throw Error('Reader chưa mở');
+           if(kind==='reader'){
+             const editor=document.getElementById('mg-editor'),t0=performance.now();
+             while(editor.hidden&&performance.now()-t0<2000)await new Promise(r=>requestAnimationFrame(r));
+             if(editor.hidden)throw Error('Ô nhập chưa mở sau bấm đúp');
+             const ms=performance.now()-begin;document.getElementById('mg-cancel').click();return ms;
+           }
            return performance.now()-begin;
          },{kind,i}));
        }

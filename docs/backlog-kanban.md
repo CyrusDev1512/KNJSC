@@ -2,8 +2,9 @@
 
 ## 26.09.2026 — Ô phồng to tại chỗ thay hộp đọc
 
-**Finished local (nhánh `claude/o-phong-to-tai-cho`, PR nháp về `main`):** bấm ô bị cắt chữ thì ô
-phồng to tại chỗ kiểu Google Sheets, bấm chỗ khác thu về; bỏ hộp đọc cũ; auto-giãn + trần 2000 giữ.
+**Finished local (nhánh `claude/o-phong-to-tai-cho`, PR nháp về `main`):** click đơn chỉ chọn ô
+(chỉnh theo test 26.09); bấm đúp: ô sửa được mở ô nhập tự giãn tới trần, ô chỉ đọc bị cắt chữ
+phồng to tại chỗ kiểu Google Sheets, bấm chỗ khác/Esc thu về; bỏ hộp đọc cũ; auto-giãn + trần 2000 giữ.
 **To do:** chủ dự án kéo nhánh test local rồi quyết gộp.
 
 ## 25.09.2026 — Phát hành Team/menu/CEO/mật khẩu

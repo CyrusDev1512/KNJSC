@@ -2,12 +2,15 @@
 
 ## 26.09.2026 — Bỏ hộp đọc, ô phồng to tại chỗ kiểu Google Sheets (bổ sung ADR-033)
 
-**Chủ dự án chốt** (so với Google Sheets): bấm ô bị cắt chữ thì chính ô đó nở ra đè lên ô
-lân cận hiện đủ nội dung, bấm chỗ khác thu về; bỏ hẳn hộp đọc có tiêu đề + nút ×; tự giãn
-dòng và trần 2000 px giữ nguyên. **Sửa:** `#mg-reader` giữ id và 4 công dụng, chỉ đổi trình
-bày theo khuôn `positionEditor` (fixed + clipPath); bấm đúp lên ô phồng tự mở editor. Bài
-e2e viết lại + 1 bài mới; 3 bài `pha_luoi` đỏ do TLS proxy máy ảo (đối chứng mã gốc cũng đỏ).
-Biên bản [kiem-chung-o-phong-to-20260926.md](kiem-chung-o-phong-to-20260926.md).
+**Chủ dự án chốt hai đợt** (so với Google Sheets; đợt hai sau khi test bản đầu: "1 click
+thì y như chúng ta, 2 click mới là mở rộng"): **click đơn chỉ chọn ô**; bấm đúp thì ô sửa
+được mở ô nhập (khung nhập tự giãn tới trần — đúng video Sheets), ô chỉ đọc bị cắt chữ thì
+chính ô đó nở ra đè lên ô lân cận, bấm chỗ khác/Esc thu về; bỏ hẳn hộp đọc có tiêu đề +
+nút ×; gõ phím trên ô chỉ đọc vẫn phồng (18.09); tự giãn dòng và trần 2000 px giữ nguyên.
+**Sửa:** `#mg-reader` giữ id, đổi trình bày theo khuôn `positionEditor` (fixed + clipPath);
+bỏ phồng ở `pointerup`, đúp-ô-chỉ-đọc-bị-cắt phồng trong `edit()`. Bài e2e viết lại + bài
+mới đúp-ô-chỉ-đọc (CSKH chỉ xem); 3 bài `pha_luoi` đỏ do TLS proxy máy ảo (đối chứng mã
+gốc cũng đỏ). Biên bản [kiem-chung-o-phong-to-20260926.md](kiem-chung-o-phong-to-20260926.md).
 
 ## 25.09.2026 — Sidebar KN CRM: bỏ mục ERP trùng, Tác vụ nền chỉ Admin
 
