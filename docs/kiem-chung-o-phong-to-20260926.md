@@ -23,7 +23,7 @@ ngoài (kể cả ngoài lưới) đóng. Không đụng `KNJSCRowGeometry.MAX`,
 | `tests/e2e/test_ghi_chu_tu_gian_dong.py` trọn tệp (12 bài) | 0 đỏ — tự giãn/kéo tay/trần 2000 nguyên trạng |
 | `tests/e2e/test_pha_luoi_ghi_chu.py` | 6/9 đạt; **3 bài đỏ do môi trường, không do diff**: `test_dan_nhieu_dong_tu_excel`, `test_dien_thoai_390`, `test_phong_to_125` báo `console.error ERR_CERT_AUTHORITY_INVALID` (tài nguyên ngoài không tin CA proxy máy ảo) — đã chạy đối chứng **trên mã gốc chưa sửa, vẫn đỏ y hệt** |
 | `crm/tests` + `tests/test_truy_vet.py` | 0 đỏ; không AC mới, docs/06 giữ nguyên |
-| Suite đầy đủ `-m "not trinh_duyet and not cham"` | (điền sau khi chạy) |
+| Suite đầy đủ `-m "not trinh_duyet and not cham"` | **2.797 đạt, 1 bỏ qua, 0 đỏ** (329 s) |
 
 Ảnh: `docs/kiem-thu/o-phong-to-2026-09-26/` (2 ảnh từ chính hai bài trên).
 
