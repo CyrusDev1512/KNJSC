@@ -29,6 +29,9 @@
     const headHeight = () => {
       const head = view.querySelector('.report-table thead');
       if (head) view.style.setProperty('--head-h', Math.round(head.getBoundingClientRect().height) + 'px');
+      // Nhiều dòng TỔNG CỘNG (mỗi loại tiền một dòng, ADR-046) dính chồng nhau theo chiều cao đo được
+      const total = view.querySelector('.report-table .report-total');
+      if (total) view.style.setProperty('--total-h', total.getBoundingClientRect().height + 'px');
     };
     const render = () => {
       // Hẹp: chỉ có mở (ngăn kéo) hoặc đóng. Rộng: mở hoặc thanh dọc.
@@ -88,6 +91,14 @@
         if (typeof filters.requestSubmit === 'function') filters.requestSubmit(); else filters.submit();
       });
     }
+  }
+  // Ô Chế độ (ADR-046) chỉ có nghĩa ở cách xem Tổng hợp: ẩn khi chọn cách xem khác, hiện lại khi quay về.
+  const cheDo = document.getElementById('report-che-do');
+  const cachXem = document.getElementById('nhom');
+  if (cheDo && cachXem) {
+    const dongBo = () => { cheDo.hidden = cachXem.value !== 'day'; };
+    cachXem.addEventListener('change', dongBo);
+    dongBo();
   }
   // Chọn nhiều sản phẩm (ADR-042): ô tìm nhanh lọc danh sách, Chọn tất cả / Bỏ chọn, nhãn tóm tắt.
   const multi = document.getElementById('report-multi-sp');

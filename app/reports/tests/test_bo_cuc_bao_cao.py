@@ -19,16 +19,18 @@ def _get(client, nguon, **extra):
 
 
 def test_chips_theo_bo_loc_va_link_bo_dung_tham_so(client, nguon, nguoi_dung):
-    """AC-22.13 — Hàng chip render từ bộ lọc đang áp: Kỳ, Cách xem, Team, Nhân sự, Sản phẩm, Thị trường;
-    × của mỗi chip là link cùng URL bỏ đúng tham số đó (bỏ Team thì bỏ luôn Nhân sự); Xóa lọc chỉ giữ nguồn;
-    số bộ lọc bỏ được là huy hiệu của thanh dọc"""
+    """AC-22.13 — Hàng chip render từ bộ lọc đang áp: Kỳ, Cách xem, Chế độ, Team, Nhân sự, Sản phẩm, Thị
+    trường; × của mỗi chip là link cùng URL bỏ đúng tham số đó (bỏ Team thì bỏ luôn Nhân sự); Chế độ là cách
+    hiện số nên không có × và không tính vào huy hiệu (ADR-046); Xóa lọc chỉ giữ nguồn; số bộ lọc bỏ được là
+    huy hiệu của thanh dọc"""
     client.force_login(nguoi_dung["manager_sale"])
     team = nguoi_dung["staff_sale_1"].profile.team_id
     person = nguoi_dung["staff_sale_1"].pk
     r = _get(client, nguon, team=team, nhan_su=person, sp="SP1", thi_truong="__missing__")
     assert r.status_code == 200
     chips = {c["label"]: c for c in r.context["chips"]}
-    assert list(chips) == ["Kỳ", "Cách xem", "Sản phẩm", "Thị trường", "Team", "Nhân sự"]
+    assert list(chips) == ["Kỳ", "Cách xem", "Chế độ", "Sản phẩm", "Thị trường", "Team", "Nhân sự"]
+    assert chips["Chế độ"]["value"] == "Cộng theo ngày" and chips["Chế độ"]["url"] == ""
     assert chips["Kỳ"]["value"] == "01/08 – 31/08/2026" and "tu=" not in chips["Kỳ"]["url"] and "den=" not in chips["Kỳ"]["url"]
     assert chips["Cách xem"]["value"] == "Tổng hợp" and chips["Cách xem"]["url"] == ""
     assert chips["Thị trường"]["value"] == "Chưa xác định" and "thi_truong" not in chips["Thị trường"]["url"]
@@ -38,7 +40,7 @@ def test_chips_theo_bo_loc_va_link_bo_dung_tham_so(client, nguon, nguoi_dung):
     assert r.context["clear_url"] == f"?nguon={nguon.table.code}"
     html = r.content.decode()
     assert f'data-active="5"' in html and 'data-filters="open"' in html and 'class="huy-hieu" aria-hidden="true" >5</span>' in html
-    assert html.count('class="report-chip"') == 6 and 'class="chip-xoa"' in html and 'class="chip-clear"' in html
+    assert html.count('class="report-chip"') == 7 and 'class="chip-xoa"' in html and 'class="chip-clear"' in html
     # Không lọc gì: Kỳ mặc định không bỏ được, không huy hiệu, không Xóa lọc
     r0 = client.get("/bao-cao/tong-hop/", {"nguon": nguon.table.code})
     assert r0.context["filters_active"] == 0 and r0.context["chips"][0]["url"] == "" and 'class="chip-clear"' not in r0.content.decode()

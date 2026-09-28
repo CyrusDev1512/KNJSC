@@ -72,16 +72,17 @@ def van_don(nguoi_dung, departments):
 
 def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguoi_dung):
     """AC-38.2 — DS Chốt (TT) = tiền đã thu của vận đơn do marketer phụ trách, cùng kỳ theo ngày lên
-    đơn, quy ₫ (ADR-042), đúng ở cách xem ngày, nhân viên, sản phẩm, thị trường, phòng ban; tổng = tổng
-    dòng; đơn chưa phân công, marketer khác, ngoài kỳ, khác sản phẩm không vào; Staff chỉ thấy tiền của
-    mình; Excel và Tổng quan cùng số; lọc Tệp khách hàng thì DS Chốt (TT) trống"""
+    đơn, đúng số tiền theo loại tiền của đơn, không quy đổi (ADR-046), đúng ở cách xem ngày, nhân viên,
+    sản phẩm, thị trường, phòng ban; tổng = tổng dòng; đơn chưa phân công, marketer khác, ngoài kỳ, khác
+    sản phẩm không vào; Staff chỉ thấy tiền của mình; Excel và Tổng quan cùng số; lọc Tệp khách hàng thì
+    DS Chốt (TT) trống"""
     A, B = van_don["A"], van_don["B"]
     _bao_cao(bang_mkt, A, "2026-08-01", "SP1", hoa_don="8")
     _bao_cao(bang_mkt, A, "2026-08-02", "SP1", hoa_don="5", tep="Filipino")
     _bao_cao(bang_mkt, B, "2026-08-01", "SP2", hoa_don="2")
     manager = B
     ky = dict(start=date(2026, 8, 1), end=date(2026, 8, 2))
-    CAD = Decimal("17500")   # tỉ giá mặc định; báo cáo và vận đơn của bài này đều CAD
+    # Báo cáo và vận đơn của bài này đều CAD; số giữ nguyên, không nhân tỉ giá (ADR-046)
 
     def cells(result):
         # Cách xem Tổng hợp nhóm theo ngày × nhân sự (AC-22.14) nên khoá là cặp (ngày, mã)
@@ -97,15 +98,15 @@ def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguo
     # Ngày × nhân sự: 01.08 A = 60 + 40, 01.08 B = 200, 02.08 A = 25; tổng 325; tiền của ngày
     # KHÔNG dồn hết cho một người vì doanh thu suy ra khoá theo cặp (ngày, marketer)
     result = activity_service.build(manager, mkt_source, group="day", **ky)
-    assert result.ok and result.currency_label.startswith("VND") and not result.currency_warning
+    assert result.ok and "không quy đổi" in result.currency_label and not result.currency_warning
     rows = cells(result)
-    assert rows[("01.08.2026", employee_code(A))]["DS Chốt (TT)"] == 100 * CAD
-    assert rows[("01.08.2026", employee_code(B))]["DS Chốt (TT)"] == 200 * CAD
-    assert rows[("02.08.2026", employee_code(A))]["DS Chốt (TT)"] == 25 * CAD
-    # Hóa đơn 8 CAD và tiền đã thu 100 CAD cùng quy ₫ nên tỉ số không đổi
-    assert rows[("01.08.2026", employee_code(A))]["Hóa đơn/DS Chốt (TT)"] == (8 * CAD) / (100 * CAD)
+    assert rows[("01.08.2026", employee_code(A))]["DS Chốt (TT)"] == 100
+    assert rows[("01.08.2026", employee_code(B))]["DS Chốt (TT)"] == 200
+    assert rows[("02.08.2026", employee_code(A))]["DS Chốt (TT)"] == 25
+    # Hóa đơn 8 CAD ÷ tiền đã thu 100 CAD
+    assert rows[("01.08.2026", employee_code(A))]["Hóa đơn/DS Chốt (TT)"] == Decimal(8) / Decimal(100)
     totals = dict(zip([c.label for c in result.columns], aggregations.total_values(result)))
-    assert totals["DS Chốt (TT)"] == 325 * CAD and totals["Hóa đơn/DS Chốt (TT)"] == (15 * CAD) / (325 * CAD)
+    assert totals["DS Chốt (TT)"] == 325 and totals["Hóa đơn/DS Chốt (TT)"] == Decimal(15) / Decimal(325)
     assert [c.kind for c in result.columns if c.label == "DS Chốt (TT)"] == ["derived"]
     # Cột đối soát số đơn đi cùng (ADR-042): w1, w2 của A và w4 của B ngày 01.08; w3 của A ngày 02.08
     assert rows[("01.08.2026", employee_code(A))]["Số đơn (TT)"] == 2 and rows[("01.08.2026", employee_code(B))]["Số đơn (TT)"] == 1
@@ -113,25 +114,25 @@ def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguo
 
     # Theo nhân viên: nhãn chỉ mã (khoá nối doanh thu suy ra cùng biểu thức); sản phẩm; thị trường; phòng ban
     rows = cells(activity_service.build(manager, mkt_source, group="person", **ky))
-    assert rows[employee_code(A)]["DS Chốt (TT)"] == 125 * CAD and rows[employee_code(B)]["DS Chốt (TT)"] == 200 * CAD
+    assert rows[employee_code(A)]["DS Chốt (TT)"] == 125 and rows[employee_code(B)]["DS Chốt (TT)"] == 200
     rows = cells(activity_service.build(manager, mkt_source, group="product", **ky))
-    assert rows["SP1"]["DS Chốt (TT)"] == 285 * CAD and rows["SP2"]["DS Chốt (TT)"] == 40 * CAD
+    assert rows["SP1"]["DS Chốt (TT)"] == 285 and rows["SP2"]["DS Chốt (TT)"] == 40
     rows = cells(activity_service.build(manager, mkt_source, group="market", **ky))
-    assert rows["Canada"]["DS Chốt (TT)"] == 325 * CAD
+    assert rows["Canada"]["DS Chốt (TT)"] == 325
     rows = cells(activity_service.build(manager, mkt_source, group="department", **ky))
-    assert rows[bang_mkt.department.name]["DS Chốt (TT)"] == 325 * CAD
+    assert rows[bang_mkt.department.name]["DS Chốt (TT)"] == 325
 
     # Lọc sản phẩm: chỉ dòng báo cáo SP1 (của A) và tiền SP1 của A
     rows = cells(activity_service.build(manager, mkt_source, group="day", product="SP1", **ky))
-    assert rows[("01.08.2026", employee_code(A))]["DS Chốt (TT)"] == 60 * CAD
-    assert rows[("02.08.2026", employee_code(A))]["DS Chốt (TT)"] == 25 * CAD
+    assert rows[("01.08.2026", employee_code(A))]["DS Chốt (TT)"] == 60
+    assert rows[("02.08.2026", employee_code(A))]["DS Chốt (TT)"] == 25
     # Lọc thị trường và kỳ hẹp
     rows = cells(activity_service.build(manager, mkt_source, group="day", market="Canada", start=date(2026, 8, 2), end=date(2026, 8, 2)))
-    assert list(rows) == [("02.08.2026", employee_code(A))] and rows[("02.08.2026", employee_code(A))]["DS Chốt (TT)"] == 25 * CAD
+    assert list(rows) == [("02.08.2026", employee_code(A))] and rows[("02.08.2026", employee_code(A))]["DS Chốt (TT)"] == 25
     # Staff chỉ thấy tiền của mình
     rows = cells(activity_service.build(A, mkt_source, group="day", **ky))
-    assert rows[("01.08.2026", employee_code(A))]["DS Chốt (TT)"] == 100 * CAD
-    assert rows[("02.08.2026", employee_code(A))]["DS Chốt (TT)"] == 25 * CAD
+    assert rows[("01.08.2026", employee_code(A))]["DS Chốt (TT)"] == 100
+    assert rows[("02.08.2026", employee_code(A))]["DS Chốt (TT)"] == 25
     # Lọc Tệp khách hàng: phần đối soát trống, các cột khác vẫn có
     rows = cells(activity_service.build(manager, mkt_source, group="day", segment="Filipino", **ky))
     khoa = ("02.08.2026", employee_code(A))
@@ -153,14 +154,15 @@ def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguo
             assert abs(Decimal(str(excel_cell)) - screen_cell) < Decimal("1e-9")
     dashboard = client.get("/", {"mkt_nguon": bang_mkt.code, "tu": query["tu"], "den": query["den"]})
     block = next(b for b in dashboard.context["activity"]["blocks"] if b["kind"] == "mkt")
-    assert dict(block["data"]["metrics"])["DS Chốt (TT)"] == aggregations.format_number(325 * CAD, 0) + " ₫"
+    # Thẻ Tổng quan: mỗi loại tiền một cột (ADR-046) — ở đây chỉ CAD, số đúng như tiền của đơn
+    assert block["data"]["currencies"] == ["CAD"] and dict(block["data"]["metrics"])["DS Chốt (TT)"] == ["325"]
 
 
 def test_hoa_don_chia_doanh_thu_va_canh_bao_tien(bang_mkt, mkt_source, van_don, nguoi_dung):
-    """AC-38.3 — Hóa đơn/DS Chốt (TT) = Hóa đơn ÷ DS Chốt (TT) theo nhãn; thiếu một vế thì trống; tiền
-    vận đơn khác loại tiền với báo cáo thì quy ₫ rồi cộng (ADR-042), không cảnh báo, không để trống;
-    `configure_erp_reports` không tạo cột nhập Doanh thu, gỡ trường đó khỏi biểu mẫu, bỏ cột tính từng
-    dòng, chạy lại không đổi"""
+    """AC-38.3 — Hóa đơn/DS Chốt (TT) = Hóa đơn ÷ DS Chốt (TT) theo nhãn; thiếu một vế thì trống; vận đơn
+    đối soát theo loại tiền của đơn (ADR-046): đơn USD vào dòng USD của marketer, không cộng vào dòng CAD,
+    không quy đổi; tổng chung có hai loại tiền thì không cộng tiền; `configure_erp_reports` không tạo cột
+    nhập Doanh thu, gỡ trường đó khỏi biểu mẫu, bỏ cột tính từng dòng, chạy lại không đổi"""
     from forms_builder.models import ColumnDef, FieldDef, FormField, FormTableLink
 
     A = van_don["A"]
@@ -184,27 +186,38 @@ def test_hoa_don_chia_doanh_thu_va_canh_bao_tien(bang_mkt, mkt_source, van_don, 
     assert not bang_mkt.columns.filter(code="hoa_don_doanh_thu").exists()
     assert "revenue" not in ReportSource.objects.get(table=bang_mkt).columns
 
-    CAD, USD = Decimal("17500"), Decimal("25500")
-    # Không có vận đơn trong kỳ → DS Chốt (TT) và tỉ số trống, Số đơn (TT) là 0, Hóa đơn (quy ₫) vẫn có
+    # Không có vận đơn trong kỳ → DS Chốt (TT) và tỉ số trống, Số đơn (TT) là 0, Hóa đơn vẫn có
     _bao_cao(bang_mkt, A, "2026-08-05", "SP1", hoa_don="8")
     result = activity_service.build(nguoi_dung["manager_mkt"], mkt_source, start=date(2026, 8, 5), end=date(2026, 8, 5))
     totals = dict(zip([c.label for c in result.columns], aggregations.total_values(result)))
-    assert totals["Hóa đơn"] == 8 * CAD and totals["DS Chốt (TT)"] is None and totals["Hóa đơn/DS Chốt (TT)"] is None
+    assert totals["Hóa đơn"] == 8 and totals["DS Chốt (TT)"] is None and totals["Hóa đơn/DS Chốt (TT)"] is None
     assert totals["Số đơn (TT)"] == 0 and totals["Tỉ lệ chốt (TT)"] == 0
-    # Có vận đơn: đúng Hóa đơn ÷ DS Chốt (TT), cùng loại tiền nên tỉ số như chưa quy đổi
+    # Có vận đơn: đúng Hóa đơn ÷ DS Chốt (TT), cùng loại tiền CAD
     _bao_cao(bang_mkt, A, "2026-08-01", "SP1", hoa_don="8")
     result = activity_service.build(nguoi_dung["manager_mkt"], mkt_source, start=date(2026, 8, 1), end=date(2026, 8, 1))
     totals = dict(zip([c.label for c in result.columns], aggregations.total_values(result)))
-    assert totals["DS Chốt (TT)"] == 100 * CAD and totals["Hóa đơn/DS Chốt (TT)"] == Decimal("0.08")
-    # Vận đơn USD của cùng marketer trong kỳ → quy ₫ rồi cộng, không cảnh báo, không trống (ADR-042)
+    assert totals["DS Chốt (TT)"] == 100 and totals["Hóa đơn/DS Chốt (TT)"] == Decimal("0.08")
+    # Vận đơn USD của cùng marketer: marketer chưa có báo cáo USD ngày đó → không vào dòng CAD, không quy đổi
     row = DataRecord.objects.create(table=van_don["table"], department=van_don["table"].department,
                                     created_by=nguoi_dung["admin"], val_date=date(2026, 8, 1),
                                     data={"ngay": "2026-08-01", "quoc_gia": "Hoa Kỳ", "loai_tien": "USD"})
     WaybillAssignment.objects.create(record=row, marketing=A)
     WaybillItem.objects.create(record=row, product=van_don["sp1"], quantity=1, unit_price="10.00", paid_amount="7.00")
     result = activity_service.build(nguoi_dung["manager_mkt"], mkt_source, start=date(2026, 8, 1), end=date(2026, 8, 1))
-    assert result.currency_label.startswith("VND") and not result.currency_warning
+    assert not result.currency_warning
     totals = dict(zip([c.label for c in result.columns], aggregations.total_values(result)))
-    assert totals["DS Chốt (TT)"] == 100 * CAD + 7 * USD and totals["CPQC"] == 3 * CAD
-    assert totals["Hóa đơn/DS Chốt (TT)"] == (8 * CAD) / (100 * CAD + 7 * USD)
-    assert totals["Số Mess"] == Decimal("10") and totals["Số đơn (TT)"] == 3
+    assert totals["DS Chốt (TT)"] == 100 and totals["CPQC"] == 3 and totals["Số đơn (TT)"] == 2
+    # Marketer nộp thêm báo cáo Hoa Kỳ (USD) cùng ngày → đơn USD vào dòng USD; mỗi loại tiền một dòng tổng
+    ban_ghi = _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=4, cpqc="2", hoa_don="1")
+    ban_ghi.data |= {"thi_truong": "Hoa Kỳ", "loai_tien": "USD"}
+    ban_ghi.save()
+    result = activity_service.build(nguoi_dung["manager_mkt"], mkt_source, start=date(2026, 8, 1), end=date(2026, 8, 1))
+    theo_tien = {tien: dict(zip([c.label for c in result.columns], raw)) for tien, raw in aggregations.total_rows(result)}
+    assert list(theo_tien) == ["USD", "CAD"]
+    assert theo_tien["CAD"]["DS Chốt (TT)"] == 100 and theo_tien["CAD"]["Số đơn (TT)"] == 2 and theo_tien["CAD"]["CPQC"] == 3
+    assert theo_tien["USD"]["DS Chốt (TT)"] == 7 and theo_tien["USD"]["Số đơn (TT)"] == 1 and theo_tien["USD"]["CPQC"] == 2
+    assert theo_tien["USD"]["Hóa đơn/DS Chốt (TT)"] == Decimal(1) / Decimal(7)
+    # Tổng chung: không cộng tiền hai loại, vẫn đếm đủ
+    totals = dict(zip([c.label for c in result.columns], aggregations.total_values(result)))
+    assert totals["DS Chốt (TT)"] is None and totals["CPQC"] is None and totals["Hóa đơn/DS Chốt (TT)"] is None
+    assert totals["Số Mess"] == 14 and totals["Số đơn (TT)"] == 3

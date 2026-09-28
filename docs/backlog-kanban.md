@@ -1,5 +1,13 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 28.09.2026 — Chế độ số liệu, không quy đổi (ADR-046, TL-65)
+
+**Finished local (nhánh `claude/che-do-so-lieu-bao-cao`, PR nháp về `main`):** số tiền giữ đúng như nhập, mỗi
+dòng một loại tiền, TỔNG CỘNG theo loại tiền; bộ lọc Chế độ Cộng theo ngày / Từng lần nộp; (TT) theo loại tiền
+của đơn; thẻ Tổng quan mỗi loại tiền một cột; Bảng dữ liệu thô và ô nhập số có dấu chấm. AC-46.1 → 46.10.
+**To do:** chủ dự án test local rồi quyết gộp; phát hành VPS (Codex). **Chờ quyết:** ngưỡng tiền theo từng
+loại tiền (hiện ngưỡng ₫ chỉ tô dòng VND).
+
 ## 28.09.2026 — Sắp xếp không giật (TL-62)
 
 **Finished local (nhánh `claude/sap-xep-khong-giat`, PR nháp về `main`):** lưới CRM và Bảng dữ liệu ERP

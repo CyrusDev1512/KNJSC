@@ -233,7 +233,7 @@ def bang_xem(request, code):
     # Bảng dữ liệu chỉ để xem với mọi bảng — ADR-014: không tính quyền sửa
     # từng dòng, không vẽ ô nhập; sửa số liệu là việc của KN CRM. Lớp CSS của
     # ô (màu cột, ngưỡng) tính sẵn ở styling để template chỉ in ra.
-    cac_dong = [(bg, styling.row_cells(bg, cac_cot)) for bg in boi_canh["page_obj"]]
+    cac_dong = [(bg, styling.list_cells(bg, cac_cot)) for bg in boi_canh["page_obj"]]
     # Bảng có nguồn báo cáo đang xem thô: mọi liên kết phải mang `dang=tho` để không rơi lại dạng báo cáo
     dang = "tho" if _nguon_chi_tiet(bang_hien) is not None else ""
     loc_cot = {f"f_{ma}": gia_tri for ma, gia_tri in bo_loc.items()}
@@ -267,9 +267,9 @@ def bang_xem(request, code):
 
 def _tham_so_bao_cao(request):
     """Tham số của Bảng dữ liệu dạng báo cáo: như Báo cáo tổng hợp nhưng chỉ một cách xem — ngày ×
-    nhân sự, từng lần nộp."""
+    nhân sự; chế độ mặc định Từng lần nộp, như trước khi có ô Chế độ (ADR-046)."""
     from reports import screen
-    tham_so = screen.parameters(request)
+    tham_so = screen.parameters(request, default_mode="tung-lan")
     tham_so["group"] = "day"
     return tham_so
 
@@ -302,9 +302,10 @@ def _bang_bao_cao(request, bang_hien, nguon):
     }
     boi_canh["people"], boi_canh["teams"] = activity_service.people_choices(request.user, nguon)
     boi_canh["segments"] = activity_service.segment_options(nguon)
+    boi_canh["modes"] = activity_service.MODES if activity_service.has_modes(nguon, "day") else ()
     boi_canh["products"] = screen.product_options(request.user, nguon)
     try:
-        ket_qua = activity_service.build(request.user, nguon, detail=True, **tham_so)
+        ket_qua = activity_service.build(request.user, nguon, **tham_so)
     except BusinessError as loi:
         return render(request, "forms_builder/bang_xem.html", {**boi_canh, "error": str(loi)}, status=400)
     boi_canh["unavailable"] = not ket_qua.ok
@@ -440,7 +441,7 @@ def bang_xuat(request, code):
         from reports.services import activity_service
         tham_so = _tham_so_bao_cao(request)
         try:
-            ket_qua = activity_service.build(request.user, nguon, detail=True, **tham_so)
+            ket_qua = activity_service.build(request.user, nguon, **tham_so)
             if not ket_qua.ok:
                 raise BusinessError("Nguồn báo cáo chưa đủ cấu hình chỉ tiêu để xuất dạng báo cáo.")
             return screen.export_response(request, nguon, ket_qua, tham_so, request.GET.get("gop") == "1",

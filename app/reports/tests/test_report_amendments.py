@@ -150,13 +150,15 @@ def test_new_marketing_report_derives_currency_and_keeps_zero(client, bm_sale, n
     assert 'value="0"' in detail.content.decode()
 
 
-def test_summary_converts_currencies_to_vnd_before_adding(bm_sale, nguoi_dung):
-    """Báo cáo Sale lẫn CAD và USD: quy ₫ từng dòng rồi mới cộng (ADR-042), không để trống"""
+def test_summary_keeps_each_currency_without_conversion(bm_sale, nguoi_dung):
+    """AC-46.1 — Báo cáo Sale lẫn CAD và USD: không quy đổi, không cộng lẫn — mỗi loại tiền một dòng tổng
+    với đúng số đã nhập (ADR-046 thay quy ₫ của ADR-042); tổng chung chỉ còn số đếm; lọc một thị trường
+    thì còn một loại tiền"""
     from decimal import Decimal
     from forms_builder.models import DataRecord
     from reports.models import ReportSource
     from reports.services.activity_service import build
-    from reports.aggregations import total_values
+    from reports.aggregations import total_rows, total_values
     source = ReportSource.objects.create(table=bm_sale.table, kind='sale', columns={
         'mess':'so_mess','orders':'so_don','sales':'doanh_so','market':'thi_truong','currency':'loai_tien'})
     for market, currency in [('Canada','CAD'),('Hoa Kỳ','USD')]:
@@ -164,13 +166,15 @@ def test_summary_converts_currencies_to_vnd_before_adding(bm_sale, nguoi_dung):
             created_by=nguoi_dung['staff_sale_1'], data={'ngay':'2026-09-16','so_mess':10,
             'so_don':2,'doanh_so':'100','thi_truong':market,'loai_tien':currency})
     result = build(nguoi_dung['manager_sale'], source)
+    theo_tien = {tien: dict(zip([c.label for c in result.columns], raw)) for tien, raw in total_rows(result)}
+    assert list(theo_tien) == ['USD', 'CAD']
+    assert theo_tien['USD']['Doanh số'] == Decimal('100') and theo_tien['CAD']['Doanh số'] == Decimal('100')
     values = dict(zip([c.label for c in result.columns], total_values(result)))
-    assert values['Số Mess'] == 20
-    assert values['Doanh số'] == Decimal('100') * 17500 + Decimal('100') * 25500
-    assert result.currency_label.startswith('VND') and not result.currency_warning
+    assert values['Số Mess'] == 20 and values['Doanh số'] is None
+    assert 'không quy đổi' in result.currency_label and not result.currency_warning
     filtered = build(nguoi_dung['manager_sale'], source, market='Canada')
     values = dict(zip([c.label for c in filtered.columns], total_values(filtered)))
-    assert values['Doanh số'] == Decimal('100') * 17500
+    assert values['Doanh số'] == Decimal('100') and [t for t, _ in total_rows(filtered)] == ['CAD']
 
 
 def test_report_grid_cannot_override_system_fields(bm_sale, nguoi_dung):

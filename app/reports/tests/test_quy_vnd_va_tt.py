@@ -1,5 +1,5 @@
-"""ADR-042 — Báo cáo tổng hợp theo ảnh mẫu, đợt 1: quy ₫ ngay trong truy vấn, cột đối soát (TT),
-hai lỗi phân trang và chip Kỳ."""
+"""ADR-042 — Báo cáo tổng hợp theo ảnh mẫu, đợt 1: cột đối soát (TT), hai lỗi phân trang và chip Kỳ.
+Quy ₫ của đợt 1 đã thay bằng ADR-046 (28.09.2026): không quy đổi, mỗi dòng một loại tiền — AC-46.1, 46.2."""
 from datetime import date, timedelta
 from decimal import Decimal
 from io import BytesIO
@@ -18,7 +18,6 @@ from reports.tests.test_mkt_derived_revenue import _bao_cao, mkt_source, van_don
 
 pytestmark = pytest.mark.django_db
 
-USD, EUR, CAD = Decimal("25500"), Decimal("28500"), Decimal("17500")
 
 
 def _tong(result):
@@ -36,69 +35,84 @@ def _dong(result):
     return out
 
 
-def test_tien_quy_ve_vnd_truoc_khi_cong(client, bang_mkt, mkt_source, nguoi_dung):
-    """AC-42.1 — Mọi cột tiền quy về ₫ theo tỉ giá cố định ngay trong truy vấn rồi mới cộng: hai báo cáo
-    USD và EUR cùng ngày cùng người thành một dòng CPQC = 10×25.500 + 10×28.500 ₫; CPO, Giá Mess tính
-    trên ₫; dòng Tổng bằng tổng dòng; ô hiện "540.000 ₫", tỉ lệ chốt hiện %; nhãn đơn vị nêu tỉ giá; Excel
-    cùng số; nguồn không ánh xạ Loại tiền vẫn cộng thô, không hậu tố"""
+def _theo_tien(result):
+    return {tien: dict(zip([c.label for c in result.columns], raw)) for tien, raw in aggregations.total_rows(result)}
+
+
+def test_tien_giu_nguyen_moi_dong_mot_loai_tien(client, bang_mkt, mkt_source, nguoi_dung):
+    """AC-46.1 — Không quy đổi (ADR-046 thay quyết định 1 của ADR-042): hai báo cáo USD và EUR cùng ngày cùng
+    người là hai dòng, mỗi dòng một loại tiền với đúng số đã nhập (CPQC 10 USD, 10 EUR); CPO, Giá Mess tính
+    trong từng loại tiền; TỔNG CỘNG tách theo loại tiền; tổng chung chỉ giữ số đếm (tiền để trống); ô không
+    hậu tố ₫, cột Loại tiền đứng cạnh; chú thích nói rõ không quy đổi; Excel cùng số; nguồn không ánh xạ Loại
+    tiền thì không tách, cộng như cũ"""
     A = nguoi_dung["staff_mkt"]
-    # `_bao_cao` ghi thị trường Canada (CAD); đổi hai dòng sang USD và EUR để cộng phải qua tỉ giá
-    for thi_truong, tien in (("Hoa Kỳ", "USD"), ("Châu Âu", "EUR")):
-        ban_ghi = _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10, cpqc="10", don=2, doanh_so="100")
+    for thi_truong, tien, cpqc in (("Hoa Kỳ", "USD", "10"), ("Châu Âu", "EUR", "13250000")):
+        ban_ghi = _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10, cpqc=cpqc, don=2, doanh_so="100")
         ban_ghi.data |= {"thi_truong": thi_truong, "loai_tien": tien}
         ban_ghi.save()
     ky = dict(start=date(2026, 8, 1), end=date(2026, 8, 1))
     result = activity_service.build(nguoi_dung["manager_mkt"], mkt_source, group="day", **ky)
-    assert result.converted and result.unconverted == 0
-    assert result.currency_label.startswith("VND") and "USD 25500" in result.currency_label and not result.currency_warning
-    dong = _dong(result)[("01.08.2026", employee_code(A))]
-    assert dong["CPQC"] == 10 * USD + 10 * EUR == Decimal("540000")
-    assert dong["Số Mess"] == 20 and dong["CPO"] == Decimal("540000") / 4 and dong["Giá Mess"] == Decimal("540000") / 20
-    assert dong["DS Chốt"] == 100 * USD + 100 * EUR and dong["Tỉ lệ chốt"] == Decimal(4) / Decimal(20) * 100
+    assert result.currency_key == "loai_tien" and not result.currency_warning
+    assert "không quy đổi" in result.currency_label
+    rows = {(item["person_name"], item["loai_tien"]): dict(zip([c.label for c in result.columns],
+                                                              aggregations.row_values(item, result)[1]))
+            for item in result.rows}
+    usd, eur = rows[(employee_code(A), "USD")], rows[(employee_code(A), "EUR")]
+    assert usd["CPQC"] == Decimal("10") and eur["CPQC"] == Decimal("13250000")
+    assert usd["CPO"] == Decimal("5") and usd["Giá Mess"] == Decimal("1") and usd["DS Chốt"] == 100
+    assert usd["Tỉ lệ chốt"] == Decimal(2) / Decimal(10) * 100
+    theo_tien = _theo_tien(result)
+    assert list(theo_tien) == ["USD", "EUR"]
+    assert theo_tien["USD"]["CPQC"] == 10 and theo_tien["EUR"]["CPQC"] == 13250000 and theo_tien["EUR"]["Số Mess"] == 10
     tong = _tong(result)
-    assert tong["CPQC"] == dong["CPQC"] and tong["CPO"] == dong["CPO"]
-    # Chuỗi hiển thị: ₫ không lẻ, tỉ lệ có %; cột đếm không hậu tố
-    rows = aggregations.finish_rows(list(result.rows), result)
+    assert tong["CPQC"] is None and tong["CPO"] is None and tong["Số Mess"] == 20 and tong["Tỉ lệ chốt"] == 20
+    # Chuỗi hiển thị: số đúng như nhập có dấu chấm, không ₫; tỉ lệ có %
     cot = [c.label for c in result.columns]
-    o = dict(zip(cot, rows[0]["cells"]))
-    assert o["CPQC"] == "540.000 ₫" and o["CPO"] == "135.000 ₫" and o["Tỉ lệ chốt"] == "20%" and o["Số Mess"] == "20"
-    # Excel ghi đúng số ₫ như màn hình
     client.force_login(nguoi_dung["manager_mkt"])
     query = {"nguon": bang_mkt.code, "tu": "2026-08-01", "den": "2026-08-01"}
+    trang = client.get("/bao-cao/tong-hop/", query)
+    o = {row["currency"]: dict(zip(cot, row["cells"])) for row in trang.context["rows"] if row["kind"] == "row"}
+    assert o["EUR"]["CPQC"] == "13.250.000" and o["USD"]["CPQC"] == "10" and o["USD"]["Tỉ lệ chốt"] == "20%"
+    assert all("₫" not in str(v) for dong in o.values() for v in dong.values())
+    html = trang.content.decode()
+    assert "TỔNG CỘNG · toàn kỳ · USD" in html and "TỔNG CỘNG · toàn kỳ · EUR" in html and "quy đổi theo tỉ giá" not in html
+    # Excel: khối toàn kỳ có hai dòng TỔNG CỘNG, ô Loại tiền riêng, số thô đúng như nhập
     sheet = list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", query).content), data_only=True).active.values)
-    assert Decimal(str(sheet[-1][cot.index("CPQC") + 4])) == Decimal("540000")
-    assert "VND" in sheet[1][0]
-    # Nguồn không ánh xạ Loại tiền: cộng thô như trước, không hậu tố ₫
+    tong_xls = [d for d in sheet if d and str(d[0]).startswith("TỔNG CỘNG")]
+    assert [d[4] for d in tong_xls] == ["USD", "EUR"]
+    assert Decimal(str(tong_xls[1][5 + cot.index("CPQC")])) == Decimal("13250000")
+    assert "không quy đổi" in sheet[1][0]
+    # Nguồn không ánh xạ Loại tiền: không tách loại tiền, một dòng tổng, không hậu tố ₫
     mkt_source.columns = {k: v for k, v in mkt_source.columns.items() if k != "currency"}
     mkt_source.save()
     result = activity_service.build(nguoi_dung["manager_mkt"], mkt_source, group="day", **ky)
-    assert not result.converted and _tong(result)["CPQC"] == Decimal("20") and not result.currency_label
+    assert not result.currency_key and _tong(result)["CPQC"] == Decimal("13250010") and not result.currency_label
     assert all(c.suffix != " ₫" for c in result.columns)
 
 
-def test_dong_thieu_ti_gia_khong_vao_tong_va_co_canh_bao(bang_mkt, mkt_source, nguoi_dung):
-    """AC-42.2 — Dòng có loại tiền chưa có tỉ giá (KRW) hoặc trống loại tiền: tiền không vào tổng, các
-    cột đếm vẫn tính đủ, cảnh báo nêu số dòng và loại tiền thiếu; dòng còn lại vẫn ra số ₫"""
+def test_dong_chua_co_loai_tien_cong_rieng_va_krw_hien_binh_thuong(bang_mkt, mkt_source, nguoi_dung):
+    """AC-46.2 — Dòng trống loại tiền (báo cáo cũ) thành nhóm riêng "Chưa rõ", không cộng vào loại tiền nào,
+    có cảnh báo nêu số dòng và cách sửa; KRW (chưa có tỉ giá) hiện như mọi loại tiền khác, không còn cảnh báo
+    "chưa quy đổi"; cột đếm vẫn đủ ở từng dòng"""
     A = nguoi_dung["staff_mkt"]
     _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10, cpqc="10", don=2)          # CAD
-    _bao_cao(bang_mkt, A, "2026-08-02", "SP1", mess=10, cpqc="10", don=2)
+    _bao_cao(bang_mkt, A, "2026-08-02", "SP1", mess=10, cpqc="7", don=2)
     krw = DataRecord.objects.filter(table=bang_mkt, val_date=date(2026, 8, 2)).get()
     krw.data |= {"thi_truong": "Hàn Quốc", "loai_tien": "KRW"}
     krw.save()
-    _bao_cao(bang_mkt, A, "2026-08-03", "SP1", mess=10, cpqc="10", don=2)
+    _bao_cao(bang_mkt, A, "2026-08-03", "SP1", mess=10, cpqc="5", don=2)
     trong = DataRecord.objects.filter(table=bang_mkt, val_date=date(2026, 8, 3)).get()
     trong.data.pop("loai_tien")
     trong.save()
     result = activity_service.build(nguoi_dung["manager_mkt"], mkt_source, group="day", start=date(2026, 8, 1), end=date(2026, 8, 3))
-    assert result.unconverted == 2
-    assert "2 dòng" in result.currency_warning and "KRW" in result.currency_warning and "trống" in result.currency_warning
-    assert result.currency_label.startswith("VND")
-    tong = _tong(result)
-    assert tong["CPQC"] == 10 * CAD and tong["Số Mess"] == 30 and tong["Số đơn"] == 6
+    assert "1 dòng chưa có loại tiền" in result.currency_warning and "Chưa rõ" in result.currency_warning
+    assert "quy đổi" not in result.currency_warning
+    theo_tien = _theo_tien(result)
+    assert list(theo_tien) == ["CAD", "KRW", ""]                     # trống đứng cuối
+    assert theo_tien["CAD"]["CPQC"] == 10 and theo_tien["KRW"]["CPQC"] == 7 and theo_tien[""]["CPQC"] == 5
+    assert _tong(result)["Số Mess"] == 30 and _tong(result)["Số đơn"] == 6 and _tong(result)["CPQC"] is None
     dong = _dong(result)
-    assert dong[("01.08.2026", employee_code(A))]["CPQC"] == 10 * CAD
-    assert dong[("02.08.2026", employee_code(A))]["CPQC"] is None and dong[("02.08.2026", employee_code(A))]["Số Mess"] == 10
-    assert dong[("03.08.2026", employee_code(A))]["CPQC"] is None
+    assert dong[("02.08.2026", employee_code(A))]["CPQC"] == 7 and dong[("03.08.2026", employee_code(A))]["CPQC"] == 5
 
 
 def test_so_don_tt_va_ti_le_chot_tt_theo_marketer_va_ngay(bang_mkt, mkt_source, van_don, nguoi_dung):
@@ -118,14 +132,15 @@ def test_so_don_tt_va_ti_le_chot_tt_theo_marketer_va_ngay(bang_mkt, mkt_source, 
     ky = dict(start=date(2026, 8, 1), end=date(2026, 8, 2))
     dong = _dong(activity_service.build(B, mkt_source, group="day", **ky))
     a1, b1, a2 = dong[("01.08.2026", employee_code(A))], dong[("01.08.2026", employee_code(B))], dong[("02.08.2026", employee_code(A))]
-    assert a1["Số đơn (TT)"] == 3 and a1["DS Chốt (TT)"] == 100 * CAD and a1["Tỉ lệ chốt (TT)"] == 30
-    assert b1["Số đơn (TT)"] == 1 and b1["DS Chốt (TT)"] == 200 * CAD and b1["Tỉ lệ chốt (TT)"] == 5
-    assert a2["Số đơn (TT)"] == 1 and a2["DS Chốt (TT)"] == 25 * CAD
+    # DS Chốt (TT) đúng số tiền CAD của đơn, không quy đổi (ADR-046)
+    assert a1["Số đơn (TT)"] == 3 and a1["DS Chốt (TT)"] == 100 and a1["Tỉ lệ chốt (TT)"] == 30
+    assert b1["Số đơn (TT)"] == 1 and b1["DS Chốt (TT)"] == 200 and b1["Tỉ lệ chốt (TT)"] == 5
+    assert a2["Số đơn (TT)"] == 1 and a2["DS Chốt (TT)"] == 25
     tong = _tong(activity_service.build(B, mkt_source, group="day", **ky))
     assert tong["Số đơn (TT)"] == 5 and tong["Tỉ lệ chốt (TT)"] == Decimal(5) / Decimal(40) * 100
     # Lọc sản phẩm SP1: đơn không chi tiết và w2 (SP2) rời khỏi đếm của A
     dong = _dong(activity_service.build(B, mkt_source, group="day", product="SP1", **ky))
-    assert dong[("01.08.2026", employee_code(A))]["Số đơn (TT)"] == 1 and dong[("01.08.2026", employee_code(A))]["DS Chốt (TT)"] == 60 * CAD
+    assert dong[("01.08.2026", employee_code(A))]["Số đơn (TT)"] == 1 and dong[("01.08.2026", employee_code(A))]["DS Chốt (TT)"] == 60
     # Theo nhân viên: cả kỳ
     dong = _dong(activity_service.build(B, mkt_source, group="person", **ky))
     assert dong[employee_code(A)]["Số đơn (TT)"] == 4 and dong[employee_code(B)]["Số đơn (TT)"] == 1

@@ -10,6 +10,8 @@ Tính ở đây, template chỉ in ra `{{ lop }}`. Hai lý do:
 """
 from decimal import Decimal, InvalidOperation
 
+from core.money import format_decimal
+
 from . import query
 from .models import AlertOp, Highlight
 
@@ -83,5 +85,27 @@ def row_cells(record, columns):
     """`[(cột, giá trị hiển thị, lớp)]` cho một dòng — thay cho `query.read_row` khi vẽ bảng."""
     return [
         (cot, display_value(cot, gia_tri), cell_class(cot, gia_tri))
+        for cot, gia_tri in query.read_row(record, columns)
+    ]
+
+
+#: Kiểu cột số — in theo cách viết Việt Nam ở Bảng dữ liệu xem thô
+NUMBER_TYPES = ("integer", "decimal", "money")
+
+
+def list_value(column, value):
+    """Giá trị ô ở Bảng dữ liệu xem thô: như `display_value`, và số có dấu chấm ngăn nghìn
+    (`13250000` → `13.250.000`), giữ nguyên số lẻ đã lưu, không ký hiệu tiền (chủ dự án 28.09)."""
+    if column.field_type in NUMBER_TYPES:
+        hien = format_decimal(value)
+        if hien is not None:
+            return hien
+    return display_value(column, value)
+
+
+def list_cells(record, columns):
+    """`row_cells` cho Bảng dữ liệu xem thô — số đã định dạng để đọc; lớp màu vẫn tính trên số gốc."""
+    return [
+        (cot, list_value(cot, gia_tri), cell_class(cot, gia_tri))
         for cot, gia_tri in query.read_row(record, columns)
     ]

@@ -167,8 +167,9 @@ def test_marketing_exact_excel_formula(bang_mkt,dong_mau,nguoi_dung):
     # Hóa đơn ÷ DS Chốt (TT) theo nhãn (ADR-038, nhãn MKT theo ảnh ADR-042): không có vận đơn và Hóa đơn nên trống
     assert values["Hóa đơn/DS Chốt (TT)"] is None
     assert values["DS Chốt (TT)"] is None and values["Hóa đơn"] is None
-    # Nguồn không ánh xạ Loại tiền thì cộng thô như cũ, không hậu tố ₫
-    assert not result.converted and all(c.suffix != " ₫" for c in result.columns)
+    # Nguồn không ánh xạ Loại tiền: không tách loại tiền, một dòng tổng, không hậu tố ₫ (ADR-046)
+    assert not result.currency_key and all(c.suffix != " ₫" for c in result.columns)
+    assert [tien for tien, _ in aggregations.total_rows(result)] == [""]
 
 
 def test_dashboard_isolates_single_source_failure(client,marketing_scope,nguoi_dung,monkeypatch):
@@ -359,26 +360,27 @@ def test_day_blocks_have_day_subtotal_and_stt(client, bang_mkt, mkt_source, van_
         return row["cells"][cot.index(nhan_cot)]
     khoi = rows[2]                                   # Tổng ngày 01.08
     con = [rows[3], rows[4]]
-    # Số cộng được: Tổng ngày = tổng hai dòng con; tiền đã quy ₫ (CAD × 17.500, ADR-042)
+    # Số cộng được: Tổng ngày = tổng hai dòng con; tiền giữ đúng số đã nhập, không quy đổi (ADR-046)
     assert o(khoi,"Số Mess")=="20" and [o(d,"Số Mess") for d in con]==["10","10"]
-    assert o(khoi,"Hóa đơn")=="175.000 ₫" and {o(d,"Hóa đơn") for d in con}=={"140.000 ₫","35.000 ₫"}
+    assert o(khoi,"Hóa đơn")=="10" and {o(d,"Hóa đơn") for d in con}=={"8","2"}
+    assert khoi["currency"]=="CAD" and {d["currency"] for d in con}=={"CAD"}
     # DS Chốt (TT) của ngày = tổng hai marketer (60+40 của A, 200 của B) = 300 CAD
-    assert o(khoi,"DS Chốt (TT)")=="5.250.000 ₫"
+    assert o(khoi,"DS Chốt (TT)")=="300"
     # Cột tính lại từ tổng, không phải trung bình các dòng con
-    assert o(khoi,"Hóa đơn/DS Chốt (TT)")==aggregations.format_number(Decimal(175000)/Decimal(5250000), 4)
+    assert o(khoi,"Hóa đơn/DS Chốt (TT)")==aggregations.format_number(Decimal(10)/Decimal(300), 4)
     # Dòng Tổng trong bộ lọc không đổi
     assert r.context["result"].totals["so_dong"]==3
     tong=dict(zip(cot, aggregations.total_cells(r.context["result"])))
-    assert tong["Số Mess"]=="30" and tong["DS Chốt (TT)"]=="5.687.500 ₫"
+    assert tong["Số Mess"]=="30" and tong["DS Chốt (TT)"]=="325"
     html=r.content.decode()
     # Mỗi ngày một bảng riêng (ADR-042): tiêu đề ngày trên bảng, TỔNG CỘNG ngay dưới hàng tiêu đề cột, STT ở cột đầu
     assert html.count('class="report-block report-block-day"')==2 and '<h3>01.08.2026</h3>' in html
-    assert 'data-pos="1" colspan="4">TỔNG CỘNG</th>' in html and 'class="report-identity id-stt" data-pos="1">1</th>' in html
-    assert 'class="report-block report-block-period"' in html and 'TỔNG CỘNG · toàn kỳ</th>' in html
+    assert 'data-pos="1" colspan="4">TỔNG CỘNG · CAD</th>' in html and 'class="report-identity id-stt" data-pos="1">1</th>' in html
+    assert 'class="report-block report-block-period"' in html and 'TỔNG CỘNG · toàn kỳ · CAD</th>' in html
     # Excel: sheet "Theo ngay" cùng khối — tiêu đề ngày, hàng tiêu đề cột, TỔNG CỘNG, dòng người có STT
     ngay=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True)["Theo ngay"].values)
-    assert [d[0] for d in ngay if d and d[0] is not None]==["Ngày 02.08.2026","STT","TỔNG CỘNG",1,
-                                                              "Ngày 01.08.2026","STT","TỔNG CỘNG",1,2]
+    assert [d[0] for d in ngay if d and d[0] is not None]==["Ngày 02.08.2026","STT","TỔNG CỘNG · CAD",1,
+                                                              "Ngày 01.08.2026","STT","TỔNG CỘNG · CAD",1,2]
 
 
 def test_metric_colours_against_filter_total(client, bang_mkt, mkt_source, van_don, nguoi_dung):

@@ -24,9 +24,10 @@ pytestmark = pytest.mark.django_db
 def test_bay_thi_truong_tam_loai_tien(bang_mkt, nguoi_dung, settings):
     """AC-38.1 — Bảy thị trường (US, CA, PH, EU, KR, JP, AU) ↔ tám loại tiền; cột Thị trường và Loại
     tiền của bảng cấu hình trước 18.09 được bổ sung giá trị mới, giữ giá trị cũ, chạy lại không đổi;
-    nộp Hàn Quốc → KRW, Úc → AUD; báo cáo quy tiền về ₫ nên EUR lẫn JPY vẫn công bố tổng (ADR-042);
-    JPY/KRW không phần lẻ; KRW chưa có tỉ giá thì báo cáo cảnh báo và không cộng tiền dòng đó, bảng
-    xếp hạng báo rõ, không âm thầm ra số"""
+    nộp Hàn Quốc → KRW, Úc → AUD; báo cáo không quy đổi (ADR-046 thay ADR-042): EUR lẫn JPY thì mỗi loại
+    tiền một dòng tổng với đúng số đã nhập, tổng chung chỉ còn số đếm; KRW chưa có tỉ giá vẫn hiện như
+    mọi loại tiền khác; JPY/KRW không phần lẻ; bảng xếp hạng (còn quy đổi, Q71) báo rõ KRW chưa có tỉ
+    giá, không âm thầm ra số"""
     from culture.services.leaderboard_service import to_vnd
 
     assert [m.label for m in Market] == ["Hoa Kỳ", "Canada", "Philippines", "Châu Âu", "Hàn Quốc", "Nhật Bản", "Úc"]
@@ -68,8 +69,8 @@ def test_bay_thi_truong_tam_loai_tien(bang_mkt, nguoi_dung, settings):
             "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Sao Hoả"},
             actor=nguoi_dung["staff_mkt"])
 
-    # Báo cáo tổng hợp quy ₫ (ADR-042): EUR một mình hay lẫn JPY đều công bố tổng bằng ₫;
-    # thêm dòng KRW (chưa có tỉ giá) thì cảnh báo nêu KRW, tiền dòng đó không vào tổng, Số Mess vẫn đếm
+    # Báo cáo tổng hợp không quy đổi (ADR-046): mỗi loại tiền một dòng tổng, số đúng như nhập;
+    # KRW (chưa có tỉ giá) không còn là ngoại lệ — hiện như mọi loại tiền, không cảnh báo
     from reports import aggregations
     DataRecord.objects.filter(pk__in=[han.pk, uc.pk]).delete()
     source = ReportSource.objects.get(table=bang_mkt)
@@ -77,23 +78,29 @@ def test_bay_thi_truong_tam_loai_tien(bang_mkt, nguoi_dung, settings):
         "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Châu Âu"},
         actor=nguoi_dung["staff_mkt"])
     result = activity_service.build(nguoi_dung["manager_mkt"], source, start=None, end=None)
-    assert result.currency_label.startswith("VND") and not result.currency_warning
+    assert "không quy đổi" in result.currency_label and not result.currency_warning
 
     def tong(result):
         return dict(zip([c.label for c in result.columns], aggregations.total_values(result)))
-    assert tong(result)["CPQC"] == Decimal("285000")
+
+    def theo_tien(result):
+        return {tien: dict(zip([c.label for c in result.columns], raw)) for tien, raw in aggregations.total_rows(result)}
+    assert list(theo_tien(result)) == ["EUR"] and theo_tien(result)["EUR"]["CPQC"] == Decimal("10")
+    assert tong(result)["CPQC"] == Decimal("10")          # một loại tiền: tổng chung chính là tổng EUR
     record_service.create_record(bang_mkt, {"ngay": "2026-09-18", "marketer": "x", "san_pham": "SP",
         "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Nhật Bản"},
         actor=nguoi_dung["staff_mkt"])
     result = activity_service.build(nguoi_dung["manager_mkt"], source, start=None, end=None)
-    assert not result.currency_warning and tong(result)["CPQC"] == Decimal("286550")
+    assert not result.currency_warning and list(theo_tien(result)) == ["EUR", "JPY"]
+    assert theo_tien(result)["EUR"]["CPQC"] == Decimal("10") and theo_tien(result)["JPY"]["CPQC"] == Decimal("10")
+    # Hai loại tiền: tổng chung không cộng tiền (None), vẫn đếm đủ
+    assert tong(result)["CPQC"] is None and tong(result)["CPO"] is None and tong(result)["Số Mess"] == 4
     record_service.create_record(bang_mkt, {"ngay": "2026-09-18", "marketer": "x", "san_pham": "SP",
         "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Hàn Quốc"},
         actor=nguoi_dung["staff_mkt"])
     result = activity_service.build(nguoi_dung["manager_mkt"], source, start=None, end=None)
-    assert "1 dòng" in result.currency_warning and "KRW" in result.currency_warning
-    assert result.currency_label.startswith("VND")
-    assert tong(result)["CPQC"] == Decimal("286550") and tong(result)["Số Mess"] == 6
+    assert not result.currency_warning and list(theo_tien(result)) == ["EUR", "KRW", "JPY"]
+    assert theo_tien(result)["KRW"]["CPQC"] == Decimal("10") and tong(result)["Số Mess"] == 6
 
     assert to_vnd(Decimal("10"), "EUR") == Decimal("285000")
     assert to_vnd(Decimal("1"), "AUD") == Decimal("17000")
@@ -104,7 +111,8 @@ def test_bay_thi_truong_tam_loai_tien(bang_mkt, nguoi_dung, settings):
 
 def test_the_tong_quan_khong_hien_o_don_vi_va_canh_bao_quy_doi(client, bang_mkt, nguoi_dung):
     """AC-22.18 — Thẻ Báo cáo tổng hợp trên Tổng quan không còn ô đơn vị/tỉ giá hay ô cảnh báo
-    "… dòng chưa quy đổi được" (chủ dự án 26.09.2026); cảnh báo vẫn ở màn Báo cáo tổng hợp chi tiết"""
+    "… dòng chưa quy đổi được" (chủ dự án 26.09.2026); từ ADR-046 không còn quy đổi nên cả màn chi
+    tiết cũng không có cảnh báo đó — dòng KRW hiện với loại tiền của nó, thẻ có cột KRW"""
     ColumnDef.objects.create(table=bang_mkt, name="Loại tiền", code="loai_tien", field_type=FieldType.CHOICE,
                              options=["VND", "USD"], order=91)
     FormDef.objects.create(table=bang_mkt, department=bang_mkt.department, code="bc_mkt_tq", name="BC MKT")
@@ -121,6 +129,7 @@ def test_the_tong_quan_khong_hien_o_don_vi_va_canh_bao_quy_doi(client, bang_mkt,
     html = tong_quan.content.decode()
     assert "chưa quy đổi được" not in html and "quy đổi theo tỉ giá cố định" not in html
     assert "dashboard-note" not in html and "currency_note" not in khoi["data"]
+    assert khoi["data"]["currencies"] == ["KRW"]
 
     chi_tiet = client.get("/bao-cao/tong-hop/", {"nguon": bang_mkt.code, **ky}).content.decode()
-    assert "1 dòng chưa quy đổi được" in chi_tiet and "KRW" in chi_tiet
+    assert "chưa quy đổi được" not in chi_tiet and ">KRW</td>" in chi_tiet

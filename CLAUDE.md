@@ -110,8 +110,10 @@ Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.
 **KN ERP** (dịch vụ `web`, cổng 8020, `knjsc/urls.py`): đăng nhập, nhân sự, biểu
 mẫu, báo cáo ngày và báo cáo hoạt động (ADR-022, 032), Bảng dữ liệu **chỉ đọc với
 mọi bảng** (ADR-014), nhóm Nội bộ. Lên đơn không còn ở ERP, chỉ còn URL GET chuyển
-tiếp sang CRM (ADR-023). **Báo cáo tổng hợp như ảnh mẫu LUMI (ADR-042, 23.09):** tiền quy ₫
-ngay trong truy vấn rồi mới cộng (không còn để trống khi lẫn loại tiền), cột (TT) đối soát từ
+tiếp sang CRM (ADR-023). **Báo cáo tổng hợp như ảnh mẫu LUMI (ADR-042, 23.09):** ~~tiền quy ₫~~ — **ADR-046 (28.09) bỏ quy
+đổi**: số tiền giữ đúng như nhập, loại tiền là một chiều nhóm (mỗi dòng một loại tiền, TỔNG CỘNG theo loại
+tiền, `aggregations.total_rows`), bộ lọc **Chế độ** Cộng theo ngày / Từng lần nộp (`che_do`, cột Lần nộp),
+ô số tự chèn dấu chấm (`report-entry.js`); cột (TT) đối soát từ
 vận đơn, khối toàn kỳ theo nhân sự + mỗi ngày một bảng, Gộp/Không gộp, ngưỡng màu ba bậc do
 quản lý đặt (`ReportSource.thresholds`), lọc nhiều sản phẩm; bảng có nguồn báo cáo Sale/MKT mở ở
 Bảng dữ liệu là **báo cáo chi tiết theo ngày** (mỗi lần nộp một dòng, `?dang=tho` xem thô); bối

@@ -18,10 +18,13 @@ from reports import aggregations, excel, layout
 from reports.services import activity_service as service, summary_service
 
 
-def parameters(request):
+def parameters(request, default_mode=service.DEFAULT_MODE):
+    """Tham số bộ lọc trên URL. `che_do` (ADR-046): Cộng theo ngày / Từng lần nộp — giá trị lạ về
+    mặc định của màn hình (`default_mode`: Báo cáo tổng hợp "cong", Bảng dữ liệu "tung-lan")."""
     start, end = summary_service.default_range()
     group = request.GET.get("nhom", "day")
     aliases = {"tong-hop": "day", "nhan-vien": "person", "san-pham": "product", "thi-truong": "market"}
+    mode = request.GET.get("che_do", "")
     return {
         "group": aliases.get(group, group),
         "start": summary_service.parse_day(request.GET.get("tu"), start),
@@ -32,6 +35,7 @@ def parameters(request):
         "person": request.GET.get("nhan_su", ""),
         "team": request.GET.get("team", ""),
         "segment": request.GET.get("tep", ""),
+        "mode": mode if mode in dict(service.MODES) else default_mode,
     }
 
 
@@ -48,25 +52,23 @@ def with_query(request, **doi):
 
 
 def export_response(request, source, result, params, gop=False, *, detail="Xuất báo cáo hoạt động ERP"):
-    """Tệp Excel đúng thứ đang hiện: theo khối khi có cách xem theo nhân sự, trên toàn bộ dòng."""
+    """Tệp Excel đúng thứ đang hiện: cùng khối với màn hình (chế độ, Gộp, loại tiền), trên toàn bộ dòng
+    — không cắt trang."""
     if aggregations.row_count(result) > getattr(settings, "EXPORT_MAX_ROWS", 50000):
         raise BusinessError("Thu hẹp bộ lọc để xuất báo cáo.")
     record(AuditAction.EXPORT, actor=request.user, target=source.table, detail=detail, request=request)
     subtitle = f"{params['start']} đến {params['end']}"
+    if getattr(result, "show_person", False):
+        subtitle += " · Chế độ: " + dict(service.MODES).get(getattr(result, "mode", ""), "")
     if params.get("product"):
         subtitle += " · Sản phẩm: " + ", ".join(params["product"])
     if params.get("segment"):
         subtitle += " · Tệp khách hàng: " + ("chưa có" if params["segment"] == "__missing__" else params["segment"])
-    blocks = None
-    if getattr(result, "show_person", False):
-        # Xuất theo khối như màn hình (ADR-042), trên toàn bộ dòng — không cắt trang
-        items = list(result.rows)
-        tieu_de = f"Toàn kỳ {params['start']:%d/%m} – {params['end']:%d/%m/%Y} · theo nhân sự"
-        khoi_ky = period_block(request, source, result, items if len(items) <= summary_service.MAX_GROUPS else None, items, params, tieu_de)
-        if gop:
-            blocks = [khoi_ky, layout.days_block(items, layout.days_of(items), result)]
-        else:
-            blocks = [khoi_ky, *layout.day_blocks(aggregations.finish_rows(items, result), items, items, result)]
+    items = list(result.rows)
+    ca_bo = items if len(items) <= summary_service.MAX_GROUPS else None
+    # Gộp ở chế độ Cộng theo ngày trang theo ngày; mọi bố cục khác trang theo dòng — ở đây là trọn bộ
+    page = layout.days_of(items) if getattr(result, "show_person", False) and gop and not _tung_lan(result) else items
+    blocks = build_blocks(request, source, result, params, gop, items, page, ca_bo)
     book = excel.build_workbook(source.table.name, result, subtitle=subtitle, blocks=blocks)
     if source.kind == "delivery":
         sheet = book.create_sheet("Trạng thái giao hàng")
@@ -93,41 +95,30 @@ def product_options(user, source):
 
 
 def blocks_context(request, source, result, params, gop, *, page_size=100):
-    """Bố cục khối như ảnh mẫu (ADR-042 đợt 2). Cách xem Tổng hợp: khối toàn kỳ theo nhân sự
-    (cộng trong bộ nhớ, không truy vấn thêm) rồi mỗi ngày một khối có TỔNG CỘNG riêng và STT;
-    Gộp thì một khối mỗi ngày một dòng. Cách xem khác: một khối như cũ. `rows` phẳng, `label_span`,
-    `identity_columns` giữ cho Tổng quan và bài kiểm. `page_size`: Báo cáo tổng hợp 100 nhóm
-    (ADR-035), Bảng dữ liệu chi tiết 25 dòng (quy tắc 1)."""
-    show_team, show_person, show_leader = (getattr(result, flag, False) for flag in ("show_team", "show_person", "show_leader"))
+    """Bố cục khối như ảnh mẫu (ADR-042 đợt 2), phân trang trên màn hình. Cách xem Tổng hợp, chế độ
+    Cộng theo ngày: khối toàn kỳ theo nhân sự (cộng trong bộ nhớ, không truy vấn thêm) rồi mỗi ngày một
+    khối có TỔNG CỘNG riêng và STT; Gộp thì một khối mỗi ngày một dòng. Chế độ Từng lần nộp (ADR-046):
+    khối toàn kỳ rồi mỗi ngày một khối, mỗi lần nộp một dòng; Gộp thì một khối mọi lần nộp. Cách xem
+    khác: một khối.
+    Nguồn có loại tiền thì mỗi dòng một loại tiền và TỔNG CỘNG tách theo loại tiền. `rows` phẳng,
+    `label_span`, `identity_columns` giữ cho Tổng quan và bài kiểm. `page_size`: Báo cáo tổng hợp 100
+    nhóm (ADR-035), Bảng dữ liệu chi tiết 25 dòng (quy tắc 1)."""
+    show_person = getattr(result, "show_person", False)
     # Giới hạn nhóm như báo cáo hiện có; dòng đã ở bộ nhớ khi ≤ MAX_GROUPS (`summarize_in_memory`).
     items = list(result.rows[:summary_service.MAX_GROUPS + 1])
     ca_bo = items if len(items) <= summary_service.MAX_GROUPS else None
     ctx = {"result": result, "totals": aggregations.total_cells(result), "empty": not result.totals["so_dong"]}
-    tieu_de_ky = f"Toàn kỳ {params['start']:%d/%m} – {params['end']:%d/%m/%Y} · theo nhân sự"
-    if show_person and gop:
-        # Gộp: mỗi ngày một dòng — phân trang trên danh sách ngày
+    if show_person and gop and not _tung_lan(result):
+        # Gộp: mỗi ngày một dòng (mỗi loại tiền) — phân trang trên danh sách ngày
         nguon = ca_bo if ca_bo is not None else items
-        ngay = layout.days_of(nguon)
-        ctx.update(pagination_context(request, ngay, "ngày", default_size=page_size))
-        blocks = [period_block(request, source, result, ca_bo, items, params, tieu_de_ky),
-                  layout.days_block(nguon, list(ctx["trang"]), result)]
+        ctx.update(pagination_context(request, layout.days_of(nguon), "ngày", default_size=page_size))
+        page = list(ctx["trang"])
     else:
         page_source = items if ca_bo is not None else result.rows
-        ctx.update(pagination_context(request, page_source, "nhóm", default_size=page_size))
-        page_items = list(ctx["trang"])
-        rows = aggregations.finish_rows(page_items, result)
-        if show_person:
-            all_items = ca_bo if ca_bo is not None else page_items
-            blocks = [period_block(request, source, result, ca_bo, items, params, tieu_de_ky),
-                      *layout.day_blocks(rows, page_items, all_items, result)]
-        else:
-            for row, raw in zip(rows, page_items):
-                row["kind"] = "row"
-                if show_team:
-                    row["team"] = raw["team_name"]
-                if show_leader:
-                    row["leader"] = raw["leader_name"] or "—"
-            blocks = [layout.single_block(single_kinds(result, show_team, show_leader), rows, ctx["totals"])]
+        ctx.update(pagination_context(request, page_source, "lần nộp" if _tung_lan(result) else "nhóm",
+                                      default_size=page_size))
+        page = list(ctx["trang"])
+    blocks = build_blocks(request, source, result, params, gop, items, page, ca_bo)
     ctx["blocks"] = blocks
     ctx["rows"] = layout.flat_rows(blocks) if show_person else blocks[0]["rows"]
     # Khối cuối là khối đang phân trang; cột danh tính của nó là thứ template cũ và bài kiểm đọc
@@ -137,12 +128,49 @@ def blocks_context(request, source, result, params, gop, *, page_size=100):
     return ctx
 
 
+def _tung_lan(result):
+    return getattr(result, "show_person", False) and getattr(result, "mode", "") == "tung-lan"
+
+
+def build_blocks(request, source, result, params, gop, items, page, ca_bo):
+    """Các khối để in — dùng chung cho màn hình (`page` là trang đang xem) và Excel (`page` là toàn bộ).
+    `items` là tối đa MAX_GROUPS + 1 dòng đầu; `ca_bo` là toàn bộ dòng khi không chạm trần."""
+    show_team, show_person, show_leader = (getattr(result, flag, False) for flag in ("show_team", "show_person", "show_leader"))
+    tieu_de_ky = f"Toàn kỳ {params['start']:%d/%m} – {params['end']:%d/%m/%Y} · theo nhân sự"
+    if show_person and _tung_lan(result):
+        # Từng lần nộp: khối toàn kỳ theo nhân sự vẫn đứng đầu (Bảng dữ liệu có từ ADR-042 đợt 4), bên dưới
+        # mỗi lần nộp một dòng — theo ngày, hoặc Gộp thành một khối mọi lần nộp trong kỳ (ADR-046)
+        rows = aggregations.finish_rows(page, result)
+        ky = period_block(request, source, result, ca_bo, items, params, tieu_de_ky)
+        if gop:
+            return [ky, layout.submissions_block(rows, page, result)]
+        all_items = ca_bo if ca_bo is not None else page
+        return [ky, *layout.day_blocks(rows, page, all_items, result)]
+    if show_person and gop:
+        nguon = ca_bo if ca_bo is not None else items
+        return [period_block(request, source, result, ca_bo, items, params, tieu_de_ky),
+                layout.days_block(nguon, page, result)]
+    rows = aggregations.finish_rows(page, result)
+    if show_person:
+        all_items = ca_bo if ca_bo is not None else page
+        return [period_block(request, source, result, ca_bo, items, params, tieu_de_ky),
+                *layout.day_blocks(rows, page, all_items, result)]
+    for row, item in zip(rows, page):
+        row["kind"] = "row"
+        row["raw"] = aggregations.row_values(item, result)[1]   # số thô cho Excel
+        if show_team:
+            row["team"] = item["team_name"]
+        if show_leader:
+            row["leader"] = item["leader_name"] or "—"
+    return [layout.single_block(single_kinds(result, show_team, show_leader), rows, result, page)]
+
+
 def period_block(request, source, result, ca_bo, items, params, title):
     """Khối toàn kỳ theo nhân sự: từ dòng trong bộ nhớ khi ≤ MAX_GROUPS; chạm trần thì dùng kết
     quả cách xem Theo nhân viên (thêm truy vấn, hiếm)."""
     if ca_bo is not None:
         return layout.period_block(ca_bo, result, title)
-    ky = {k: v for k, v in params.items() if k != "group"}
+    ky = {k: v for k, v in params.items() if k not in ("group", "mode")}
     nguoi = service.build(request.user, source, group="person", **ky)
     dong = list(nguoi.rows)
     return layout.period_block_from_rows(aggregations.finish_rows(dong, nguoi), dong, nguoi, title)
@@ -175,8 +203,13 @@ def filter_chips(request, params, ctx, *, show_group=True):
               "url": without("tu", "den") if dang_loc_ky else ""}]
     if show_group:
         chips.append({"label": "Cách xem", "value": dict(service.GROUPS).get(params["group"], params["group"]), "url": ""})
+    if ctx.get("source") is not None and service.has_modes(ctx["source"], params["group"]):
+        # Chế độ là cách hiện số, không phải bộ lọc thu hẹp dữ liệu: luôn hiện, không có × (ADR-046)
+        chips.append({"label": "Chế độ", "value": dict(service.MODES).get(params["mode"], params["mode"]), "url": ""})
     if request.GET.get("gop") == "1":
-        chips.append({"label": "Gộp", "value": "mỗi ngày một dòng", "url": without("gop")})
+        # Gộp ở chế độ Từng lần nộp là một bảng mọi lần nộp, không phải mỗi ngày một dòng (ADR-046)
+        gop = "mọi lần nộp một bảng" if params.get("mode") == "tung-lan" and params["group"] == "day" else "mỗi ngày một dòng"
+        chips.append({"label": "Gộp", "value": gop, "url": without("gop")})
     if params["product"]:
         sp = params["product"]
         chips.append({"label": "Sản phẩm", "value": ", ".join(sp) if len(sp) <= 2 else f"{len(sp)} sản phẩm", "url": without("sp")})

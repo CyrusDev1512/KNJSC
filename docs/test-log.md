@@ -1,5 +1,21 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 28.09.2026 — CPQC nhập 13 250 000 mà báo cáo hiện số khổng lồ; số không có dấu chấm
+
+**TL-65 (đóng):** chủ dự án báo trên VPS: CPQC nhập **13 250 000**, Báo cáo tổng hợp và Bảng dữ liệu hiện một
+con số khổng lồ khác; muốn thấy **13.250.000**. Tái hiện local: báo cáo Canada → loại tiền CAD (tự theo Thị
+trường), ADR-042 quyết định 1 nhân mọi cột tiền với tỉ giá rồi mới cộng → 13.250.000 × 17.500 =
+231.875.000.000 ₫. Chủ dự án: số phải giữ nguyên, loại tiền đã có ở cột bên cạnh, không ai yêu cầu quy đổi.
+Sửa theo [ADR-046](quyet-dinh/046-che-do-so-lieu-khong-quy-doi.md): không quy đổi, mỗi dòng một loại tiền,
+TỔNG CỘNG theo loại tiền, bộ lọc Chế độ Cộng theo ngày / Từng lần nộp; Bảng dữ liệu xem thô in số có dấu chấm;
+ô số trên form tự chèn dấu chấm. AC-46.1 → 46.10.
+[Biên bản](kiem-chung-che-do-so-lieu-20260928.md).
+
+**TL-66 (đóng, lỗi ngầm):** cách xem Theo nhân viên khi quá trần `MAX_GROUPS` (dòng còn là queryset) gắn
+`team_name` hai lần → Django báo "annotation conflicts with a field" → trang 500. Đường này cũng chạy khi
+Tổng hợp quá trần (khối toàn kỳ dựng từ cách xem Theo nhân viên). Chưa ai gặp vì cần hơn 2.000 nhóm; lộ ra khi
+viết AC-46.9 (ép trần 2). Sửa `activity_service.with_person_team`: dòng đã nhóm kèm team/leader, không gắn lại.
+
 ## 28.09.2026 — Bấm đảo thứ tự làm trang giật
 
 **TL-62 (đóng):** chủ dự án báo bấm sắp xếp (ví dụ theo Quốc gia) thì "cả trang bị load". Lưới KN CRM xử

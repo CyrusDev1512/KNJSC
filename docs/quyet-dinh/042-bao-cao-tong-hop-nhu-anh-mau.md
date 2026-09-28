@@ -5,6 +5,7 @@
 | Ngày | 23.09.2026 (đợt 1); các đợt sau bổ sung ngay trong tệp này |
 | Trạng thái | Năm đợt xong local 23.09.2026 (PR nháp #36 vào nhánh codex); chờ chủ dự án nghiệm thu và Codex phát hành VPS |
 | Thay thế / bổ sung | **ADR-038** quyết định "lẫn loại tiền thì cảnh báo và để trống chỉ tiêu tiền" (bỏ); **ADR-031** câu "không quy đổi tỉ giá" chỉ còn đúng cho **lưu trữ**; **ADR-035** bố cục Tổng hợp (bổ sung đợt 2) |
+| Bị thay một phần | **Quyết định 1 (quy ₫) thay bằng [ADR-046](046-che-do-so-lieu-khong-quy-doi.md) ngày 28.09.2026**: không quy đổi, mỗi dòng một loại tiền, TỔNG CỘNG theo loại tiền. Các quyết định còn lại giữ |
 
 ## Bối cảnh
 
