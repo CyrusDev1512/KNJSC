@@ -195,3 +195,7 @@
 .vd-assign-cell{padding:0;border:2px solid #2563eb;border-radius:0;box-shadow:0 4px 14px #0003;overflow:visible;z-index:20}
 .vd-assign-cell select{display:block;width:100%;min-height:26px;border:0;border-radius:0;padding:0 6px;font-size:13px;background:var(--surface);color:var(--ink)}
 .vd-assign-cell p:not(:empty){margin:0;padding:4px 6px;font-size:12px;background:var(--surface);color:var(--critical);border-top:1px solid var(--rule)}
+/* Nhãn bộ lọc nằm trên thanh công cụ, giữa Cột và Định dạng (AC-21.14): chiếm chỗ trống còn lại, nhiều
+   nhãn thì cuộn ngang tại chỗ — bật/tắt lọc không đẩy trang tính xuống. */
+.mg-toolbar .mg-chips{flex:1 1 0;min-width:0;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding:0;scrollbar-width:thin}
+.mg-toolbar .mg-chips:not(:empty){padding-block:0;min-width:min(140px,100%)}.mg-toolbar .mg-chips a{flex:none;white-space:nowrap}
