@@ -124,6 +124,10 @@ Google bị chặn (yêu cầu hỏng duy nhất `fonts.googleapis.com`); ở m�
 bảng nằm dưới đáy khung nhìn nên con trỏ rơi vào thanh dock — đã sửa kịch bản cuộn trang cho bảng hiện ra
 trước như người dùng.
 
+Chạy lại bộ kiểm thử liên quan trên cùng commit, từng tệp trình duyệt một lượt riêng: `reports/tests` trọn thư
+mục (gồm 3 bài Chromium) **216 đạt**; `forms_builder/tests` **156 đạt**; `core/tests/test_ra_soat.py` **31 đạt**;
+`tests/e2e/test_dien_thoai.py` **4 đạt**; `tests/e2e/test_luong_nhap_xuat.py` **1 đạt** — 408 bài, 0 đỏ, 0 bỏ qua.
+
 ## Chưa kiểm
 
 - Máy thật của chủ dự án (Windows, GPU, tỉ lệ màn hình): số trên là Chromium không màn hình vẽ bằng CPU;
