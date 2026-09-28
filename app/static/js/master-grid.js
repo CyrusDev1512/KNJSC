@@ -804,7 +804,7 @@
     if(state.draft&&lost.has(state.draft.id)){cancelEdit();$('mg-input').replaceChildren();}
     state.accessEpoch++;state.historyId=null;reader.hidden=true;reader.querySelector('div').textContent='';
     for(const id of ['mg-history','mg-conflict','mg-format']){$(id).close();$(id+'-body').replaceChildren();}
-    $('vd-detail')?.close();$('vd-detail-body')?.replaceChildren();$('vd-assignment')?.close();$('vd-assignment-fields')?.replaceChildren();
+    $('vd-detail')?.close();$('vd-detail-body')?.replaceChildren();
     invalidate();
     return lost.size?'Có dòng đã mất quyền xem. Nháp trên dòng đó được gỡ; nháp còn quyền được giữ. Kiểm tra trước khi bấm Thử lại.':text+' Nháp vẫn được giữ vì bạn còn quyền xem.';
   }
@@ -966,7 +966,6 @@
     }
     dialog.showModal();
   };
-  $('mg-assign')?.addEventListener('click',safe(async()=>{if(dirty())return;const cells=await rangeCells();window.dispatchEvent(new CustomEvent('master-assignment',{detail:{ids:[...new Set(cells.map(c=>c.id))]}}));}));
   document.addEventListener('submit',e=>{const form=e.target;if(form===editor||!form.matches('#mg-search, #mg-filters form, #hop-loc form'))return;e.preventDefault();let p=new URLSearchParams(new FormData(form));if(form.id==='mg-search'){p=new URLSearchParams(query);p.set('tim',form.elements.tim.value);}navigate(p);});
   document.addEventListener('click',e=>{
     const a=e.target.closest('a');if(a&&(a.closest('#mg-chips')||a.closest('#hop-loc'))){e.preventDefault();const p=new URL(a.href).searchParams;
@@ -998,7 +997,7 @@
   window.addEventListener('resize',()=>{closeMore();reader.hidden=true;if(state.draft)floatAt(editor,editor.getBoundingClientRect());});
   document.body.addEventListener('htmx:beforeSwap',e=>{
     // Phản hồi đã gửi trước lúc xóa bảng không được đưa dữ liệu cũ trở lại DOM.
-    if(state.unavailable&&e.detail.target?.matches('#mg-column-filter-body, #hop-loc, #vd-detail-body, #vd-assignment-fields')){
+    if(state.unavailable&&e.detail.target?.matches('#mg-column-filter-body, #hop-loc, #vd-detail-body')){
       e.detail.shouldSwap=false;e.preventDefault();
     }
   });
@@ -1144,7 +1143,7 @@
       else if($(id).tagName==='DIALOG')$(id).close();
       else{$(id).hidden=true;if(id==='mg-filters')$('mg-filters-button').setAttribute('aria-expanded','false');}
     }
-    if(e.target.closest('#mg-more a,#mg-assign'))closeMore();
+    if(e.target.closest('#mg-more a'))closeMore();
   });
   document.addEventListener('keydown',e=>{
     if(e.isComposing||e.keyCode===229)return;
@@ -1165,7 +1164,7 @@
     working=new window.KNJSCWorkingCopy(!!config.renderOptimized);state.conflicts=[];state.saveError=true;clearTimeout(saveTimer);
     state.accessEpoch++;
     for(const id of ['mg-history','mg-conflict','mg-format']){$(id).close();$(id+'-body').replaceChildren();}
-    $('vd-detail')?.close();$('vd-detail-body')?.replaceChildren();$('vd-assignment')?.close();$('vd-assignment-fields')?.replaceChildren();
+    $('vd-detail')?.close();$('vd-detail-body')?.replaceChildren();
     invalidate();state.total=state.persistedTotal=0;state.drafts=[];state.ready=true;state.lastError=text;
     canvas.replaceChildren();message(text,true);if(hadDraft)status('Chưa lưu');repaint();
   }
@@ -1213,7 +1212,7 @@
           working.forget(lost);if(state.draft&&lost.has(state.draft.id)){cancelEdit();$('mg-input').replaceChildren();}state.conflicts=state.conflicts.filter(c=>!lost.has(c.id));
           for(const id of ['mg-history','mg-conflict','mg-format']){$(id).close();$(id+'-body').replaceChildren();}state.historyId=null;reader.hidden=true;invalidate();message('Có dòng đã ra ngoài quyền xem; phần sửa trên dòng đó không được lưu. Nháp còn quyền được giữ.',true);
           if(interrupted&&working.count){const retry=element('button','nut','Thử lại');retry.onclick=()=>{state.retryCount=0;saveAll();};$('mg-message').append(retry);}refreshStatus();}
-        if(lost.size){reader.querySelector('div').textContent='';$('vd-detail')?.close();$('vd-detail-body')?.replaceChildren();$('vd-assignment')?.close();$('vd-assignment-fields')?.replaceChildren();}
+        if(lost.size){reader.querySelector('div').textContent='';$('vd-detail')?.close();$('vd-detail-body')?.replaceChildren();}
       }
       if(state.poll&&state.poll!==stamp)refreshSoft();state.poll=stamp;
     }catch(e){if(e.status===403||e.status===404){clearAccess('Quyền xem đã thay đổi.');}}
