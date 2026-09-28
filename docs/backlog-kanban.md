@@ -6,6 +6,11 @@
 25/25 mục trình duyệt và 408 bài liên quan):** lăn chuột trên bảng không còn kẹt, cuộn Không gộp hết rớt khung.
 **To do:** phát hành VPS (Codex); chốt hai việc tuỳ chọn đổi giao diện (khe bảng lúc mở trang, bớt cột ghim trái).
 
+## 28.09.2026 — Nút Tôi theo tài khoản, lịch sử từng ô
+
+**Finished local (nhánh `claude/toi-va-lich-su-o`, PR nháp về `main`):** TL-64 đóng, AC-21.13 mới.
+**To do:** chủ dự án test local rồi quyết gộp.
+
 ## 26.09.2026 — Bố cục thẻ Báo cáo tổng hợp trên Tổng quan (TL-60)
 
 **Finished local (nhánh `claude/sua-bo-cuc-tong-quan`, PR nháp về `main`):** mỗi chỉ tiêu một hàng, số

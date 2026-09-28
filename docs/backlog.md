@@ -10,6 +10,24 @@ phải vẽ lại. Áp luôn cho Bảng dữ liệu dạng báo cáo (cùng khun
 lộ khoảng 250 px ở đáy thẻ; bốn cột ghim trái; bấm Gộp/Không gộp vẫn tải lại cả trang. Chưa phát hành VPS.
 Biên bản [kiem-chung-cuon-bao-cao-tong-hop-20260928.md](kiem-chung-cuon-bao-cao-tong-hop-20260928.md).
 
+## 28.09.2026 — Máy chạy thử tự nhận CSS/JS mới, không cần Ctrl+F5 (AC-10.11)
+
+**Chủ dự án gặp** khi thử PR #61: kéo mã chỉ đổi JS/CSS thì trình duyệt vẫn chạy bản cũ. **Nguyên
+nhân:** số `?v=` sau đường dẫn tệp tĩnh tính một lần lúc tiến trình khởi động, mà runserver chỉ tự
+khởi động lại khi mã Python đổi. **Sửa:** DEBUG bật thì quét lại mỗi lần tải trang
+(`core.context_processors.phien_ban_hien_tai`, 32 tệp, 0,24 ms); DEBUG tắt (VPS) giữ nguyên. Không đổi
+template, không thêm thư viện. Biên bản
+[kiem-chung-tu-nhan-js-css-20260928.md](kiem-chung-tu-nhan-js-css-20260928.md).
+
+## 28.09.2026 — Nút "Tôi" theo tài khoản (TL-64) và lịch sử từng ô trên lưới (AC-21.13)
+
+**Chủ dự án yêu cầu** "bộ lọc cá nhân theo tài khoản CRM" — chính là nút Tôi / Toàn bộ đang sai — và
+"lịch sử chỉnh sửa trực tiếp trên bảng Vận đơn", chọn kiểu từng ô. **Làm:** "Tôi" = dòng tôi lên đơn
+hoặc đứng đơn, cộng dòng giao tôi ở mọi cột phụ trách; nút hiện cho mọi tài khoản (ADR-033 bổ sung
+28.09). Chuột phải một ô thì khung lịch sử hiện cạnh ô (dùng lại API `lich-su/` đã kiểm quyền); ô bị
+người khác sửa trong 24 giờ có dấu góc cam (một truy vấn mỗi khối, trần 22 truy vấn giữ). Không
+migration. Biên bản [kiem-chung-toi-va-lich-su-o-20260928.md](kiem-chung-toi-va-lich-su-o-20260928.md).
+
 ## 26.09.2026 — Sửa bố cục thẻ Báo cáo tổng hợp trên Tổng quan ERP (TL-60)
 
 **Chủ dự án báo** (ảnh Tổng quan): chỉ tiêu xếp chật nhiều cột, số tiền bị bẻ giữa chữ số. **Nguyên
