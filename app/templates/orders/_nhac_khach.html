@@ -33,7 +33,7 @@ Cần: nhac_khach.
       <span class="bao-ic">✓</span>
       <div>
         <b>Khách mua lại — số {{ nhac_khach.phone }}, đã có {{ nhac_khach.so_don_cu }} đơn trước đó</b>
-        <p>{{ nhac_khach.customer.name }}{% if nhac_khach.customer.email %} · {{ nhac_khach.customer.email }}{% endif %}</p>
+        {% if nhac_khach.customer %}<p>{{ nhac_khach.customer.name }}{% if nhac_khach.customer.email %} · {{ nhac_khach.customer.email }}{% endif %}</p>{% endif %}
       </div>
     </div>
   {% endif %}

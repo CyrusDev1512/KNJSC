@@ -162,7 +162,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-6.5 | Nếu ghi sang bảng vận đơn thất bại thì đơn hàng cũng không được lưu | FR-6.3 | Tự động |
 | AC-6.6 | Người tạo đơn xem lại được đơn cũ của mình | FR-6.5 | Tự động |
 | AC-6.7 | Đơn đã lưu không sửa được, kể cả khi gọi thẳng đường dẫn sửa | FR-6.6 | Tự động |
-| AC-6.8 | Nhập đơn với số điện thoại đã có thì hệ thống báo khách đã mua trước đó | FR-6.7 | Tự động |
+| AC-6.8 | Nhập đơn với số điện thoại đã có thì hệ thống báo khách đã mua trước đó; "đã có" đếm theo **dòng đang sống trên bảng Vận đơn** cùng số (khoá 9 số cuối, như cột Trùng) — dòng đã xoá hay đơn của bảng cũ đã xoá cứng không tính, dòng nhập thẳng vào bảng có tính; cột "Mua lại lần" của đơn mới đếm cùng cách (chủ dự án 28.09.2026) | FR-6.7 | Tự động |
 | AC-6.10 | Cùng số điện thoại nhưng gõ tên khác: đơn mới ghi **tên vừa gõ**, danh bạ đổi theo và có nhật ký; đơn cũ giữ nguyên tên lúc đó; số điện thoại khác nhau thì mỗi đơn mang tên của mình; ô Facebook/Email bỏ trống không xoá dữ liệu đã có ; trước khi lưu, lời nhắc khách báo trước "sẽ đổi tên khách của số …" kèm cả tên cũ lẫn tên đang gõ, và mảnh nhắc mang sẵn tên để ô Tên khách tự điền khi đang trống | FR-6.7 | Tự động |
 | AC-6.9 | Manager lên đơn thêm được sản phẩm mới ngay tại ô chọn: mã tự sinh không trùng, sản phẩm hiện trong danh sách chọn và có ngay cột số lượng trên bảng vận đơn, mỗi lần thêm có nhật ký; Staff và Leader gửi thẳng bị từ chối có ghi nhật ký; tên trùng bị từ chối | FR-6.8 | Tự động |
 
@@ -184,6 +184,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-7.10 | Cột tính sẵn cho ra đúng kết quả, đối chiếu với số liệu thật của khách hàng | FR-7.8 · ADR-006 | Tự động |
 | AC-7.11 | Chia cho không hoặc thiếu toán hạng thì cột tính sẵn để trống, không hỏng cả dòng | FR-7.8 · ADR-006 | Tự động |
 | AC-7.12 | Đổi công thức của một cột thì bản ghi cũ được tính lại, không còn giữ số cũ | FR-7.8 · ADR-006 | Tự động |
+| AC-7.13 | Bảng dữ liệu ERP: bấm tiêu đề cột để sắp xếp chỉ thay khối bảng bằng HTMX, trang không tải lại; địa chỉ trang mang tham số sắp xếp; bấm lần nữa đảo chiều; qua HTMX vẫn chặn đúng (Staff 403, bảng bộ phận khác 404) (28.09.2026, TL-62) | FR-7.3 | Tự động + trình duyệt |
 
 ---
 
@@ -454,6 +455,7 @@ quyền và hợp đồng dữ liệu của AC-18/20. Các bảng khác tiếp t
 | AC-21.9 | Cỡ chữ/màu chữ/màu nền giữ thuộc tính khác; CAS riêng từng thuộc tính; định dạng/Undo/Redo nguyên tử; phản hồi lượt cũ không xóa nháp mới, retry giữ UUID/nội dung; lỗi quyền/kiểu/xung đột không retry tự động | ADR-021 | Tự động |
 | AC-21.10 | Lịch sử chỉ nối thêm, trước/sau theo ô, tài khoản/thời điểm/nhóm thao tác; 50 mục/trang, kiểm quyền hiện hành, replay không trùng; xung đột đối chiếu trong phiên và gửi lại bằng CAS mới, không ghi đè cưỡng bức | ADR-021 | Tự động |
 | AC-21.11 | Admin CRM bắt buộc chọn Sale hoạt động/hợp lệ; creator là Admin, seller/phòng ban/team theo Sale; Sale đọc đơn đứng tên; người khác không giả mạo seller; lỗi tạo đơn/chi tiết/vận đơn rollback cả lượt | ADR-021 | Tự động |
+| AC-21.12 | **Sắp xếp không giật** (chủ dự án 28.09.2026, TL-62): bấm tiêu đề cột trên lưới thì mũi tên đổi ngay, dòng đang hiện giữ tới khi dữ liệu đã sắp xếp về rồi thay một lượt (không ô "…"), giữ vị trí cuộn ngang và chiều cao dòng, không tải lại trang HTML; bỏ chip lọc sau đó vẫn giữ thứ tự vừa chọn | ADR-021 | Trình duyệt |
 | AC-21.13 | **Lịch sử từng ô trên lưới** (chủ dự án 28.09.2026): chuột phải một ô mở khung ngay cạnh ô — mã và tên người sửa, giờ Việt Nam, giá trị trước → sau, "Cũ hơn" để xem tiếp; Esc, bấm ra ngoài hay cuộn thì đóng; ô bị **người khác** sửa giá trị trong 24 giờ (`GRID_RECENT_EDIT_HOURS`) có dấu góc, một truy vấn mỗi khối; người không xem được dòng thì lịch sử trả 403 | ADR-021 | Tự động + trình duyệt |
 | AC-21.14 | **Nhãn bộ lọc trên thanh công cụ** (chủ dự án 28.09.2026): nhãn các bộ lọc đang bật nằm trên thanh công cụ lưới, giữa nút Cột (và Tôi / Toàn bộ) và nút Định dạng, cùng hàng; bật hay bỏ lọc không đẩy trang tính xuống (đỉnh lưới giữ nguyên ở 1440 và 1280 px); nhiều nhãn thì cuộn ngang trong chỗ của nó, không tràn trang | ADR-021 | Trình duyệt |
 
@@ -482,6 +484,7 @@ lưới, bộ lọc và dữ liệu Vận đơn của AC-18/20/21.
 | AC-22.16 | **Tô màu chỉ tiêu** (chủ dự án 19.09.2026, theo ảnh mẫu): cột **chỉ số quan trọng** (`FOCUS_METRICS`: Tỉ lệ chốt, CPO, Giá Mess, CPQC/Doanh số) có nền riêng ở cả tiêu đề và ô; ô **tỉ lệ** so với dòng "Tổng trong bộ lọc" theo chiều tốt khai ở `METRIC_DIRECTION` — hơn mốc 10 % về phía tốt là đạt, kém 10 % là cảnh báo, trong biên để trơn; **cột cộng không tô** (mốc là tổng mọi dòng nên dòng nào cũng nhỏ hơn) và chỉ tiêu chưa rõ chiều (Hóa đơn/Doanh thu) cũng không tô; dòng Tổng là mốc nên chỉ có nền cột; màu lấy từ token nên đúng ở cả chế độ sáng và tối | ADR-035 · ADR-038 | Tự động + trình duyệt |
 | AC-22.17 | **Thẻ Báo cáo tổng hợp trên Tổng quan đọc được** (TL-60, 26.09.2026): mỗi chỉ tiêu một hàng nhãn trái – số phải; số tiền dài (cỡ nghìn tỉ ₫) nằm một dòng ở màn 1440 px, không bẻ giữa chữ số; 390 px không tràn ngang; luật `.dashboard-*` chỉ khai ở `dashboard.css` và bài khai lớp CSS quét cả tệp đó | ADR-035 | Tự động + trình duyệt |
 | AC-22.18 | **Thẻ Tổng quan không có ô đơn vị/cảnh báo quy đổi** (chủ dự án 26.09.2026): thẻ Báo cáo tổng hợp trên Tổng quan không hiện dòng tỉ giá lẫn ô "… dòng chưa quy đổi được"; cách tính không đổi, cảnh báo vẫn hiện ở màn Báo cáo tổng hợp chi tiết | ADR-042 | Tự động |
+| AC-22.19 | **Lăn chuột trên bảng không bị kẹt** (TL-63, chủ dự án 28.09.2026): con trỏ đặt trên khung bảng Báo cáo tổng hợp (và Bảng dữ liệu dạng báo cáo, cùng khung `.report-table-scroll`) — bảng vừa khung theo chiều dọc mà tràn ngang thì trang cuộn ngay; bảng dài thì bảng cuộn trước, cuộn hết bảng thì trang cuộn tiếp; khung bảng có nền đặc để cuộn không phải vẽ lại | ADR-042 | Trình duyệt |
 
 ## 24. CRM-Optimization — ADR-024, đang kiểm chứng
 
@@ -501,6 +504,12 @@ Các mục dưới là điều kiện nghiệm thu, **không phải kết quả 
 
 Không gộp skip thành đạt. VPS chưa có thì chỉ báo kết quả local; không dùng
 cấu hình dự kiến thay phép đo. Cờ không đạt hồi quy phải để tắt.
+
+## 32. Ô ngày DD/MM/YYYY — ADR-032
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-32.1 | **Ô ngày tự chèn "/"** (chủ dự án 28.09.2026): mọi ô ngày ERP/CRM (`date-inputs.js`) chèn "/" sau 2 số ngày và 2 số tháng; dấu cách, chấm, gạch ngang đổi thành "/"; gõ liền 8 số thành DD/MM/YYYY; rời ô thì thêm số 0 cho ngày tháng một chữ số; Backspace không bị chèn lại "/"; ngày sai vẫn báo lỗi; giá trị gửi đi vẫn là ISO | ADR-032 | Trình duyệt |
 
 ## 33. Phạm vi Tôi / Toàn bộ và quyền sửa Vận đơn — ADR-033
 

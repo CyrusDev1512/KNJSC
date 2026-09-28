@@ -184,6 +184,28 @@ def test_sap_xep_theo_cot_ca_hai_chieu(client, bang_sale, nguoi_dung):
         Decimal("300.00"), Decimal("200.00"), Decimal("100.00")]
 
 
+def test_sap_xep_bang_htmx_chi_tra_khoi_bang_va_van_chan_quyen(client, bang_sale, bang_mkt_khac, nguoi_dung):
+    """AC-7.13 — Bấm tiêu đề cột qua HTMX: Manager nhận riêng khối bảng đã sắp xếp (không cả
+    trang); chiều từ chối giữ nguyên qua HTMX — Staff 403, bảng bộ phận khác 404"""
+    for tien in ("300", "100"):
+        _dong(bang_sale, nguoi_dung["manager_sale"], doanh_thu=tien, so_luong=1)
+    htmx = {"HTTP_HX_REQUEST": "true"}
+
+    client.force_login(nguoi_dung["manager_sale"])
+    kq = client.get("/bang/don_sale/", {"sap": "doanh_thu"}, **htmx)
+    html = kq.content.decode()
+    assert kq.status_code == 200
+    assert html.lstrip().startswith('<div id="bang-du-lieu">') and "<html" not in html.lower()
+    assert [bg.val_revenue for bg in kq.context["page_obj"]] == [Decimal("100.00"), Decimal("300.00")]
+    assert 'hx-target="#bang-du-lieu"' in html and 'aria-sort="ascending"' in html
+    # Không qua HTMX thì vẫn cả trang như cũ
+    assert "<html" in client.get("/bang/don_sale/", {"sap": "doanh_thu"}).content.decode().lower()
+    assert client.get("/bang/bc_mkt/", {"sap": "doanh_thu"}, **htmx).status_code == 404
+
+    client.force_login(nguoi_dung["staff_sale_1"])
+    assert client.get("/bang/don_sale/", {"sap": "doanh_thu"}, **htmx).status_code == 403
+
+
 def test_chi_cot_co_chi_muc_moi_duoc_loc(client, bang_sale, nguoi_dung):
     """Quy tắc 9 — Thanh lọc chỉ hiện cột có chỉ mục"""
     client.force_login(nguoi_dung["manager_sale"])
