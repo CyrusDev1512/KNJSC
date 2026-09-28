@@ -1,5 +1,13 @@
 # Backlog
 
+## 28.09.2026 — Bấm đảo thứ tự không còn làm trang giật (TL-62)
+
+**Chủ dự án báo** bấm sắp xếp theo Quốc gia thì cả trang bị load. **Sửa:** lưới KN CRM khi chỉ đổi thứ
+tự thì đi đường tải lại mềm có sẵn — mũi tên đổi ngay, giữ dòng đang hiện tới khi dữ liệu mới về, giữ
+cuộn ngang và chiều cao dòng, bỏ tải lại trang HTML; chip lọc giữ thứ tự đang dùng. Bảng dữ liệu ERP:
+tiêu đề cột dùng HTMX thay riêng khối bảng. Cách máy chủ sắp xếp và phân quyền không đổi. Phân trang
+ERP vẫn tải trang như cũ. Biên bản [kiem-chung-sap-xep-khong-giat-20260928.md](kiem-chung-sap-xep-khong-giat-20260928.md).
+
 ## 26.09.2026 — Sửa bố cục thẻ Báo cáo tổng hợp trên Tổng quan ERP (TL-60)
 
 **Chủ dự án báo** (ảnh Tổng quan): chỉ tiêu xếp chật nhiều cột, số tiền bị bẻ giữa chữ số. **Nguyên

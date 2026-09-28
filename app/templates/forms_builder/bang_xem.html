@@ -98,41 +98,7 @@
   </div>
   {% if result.ok %}<div class="erp-pagination-tools">{% include "components/phan_trang.html" %}</div>{% endif %}
   {% else %}
-  <div class="bang-cuon">
-    <table class="bang bang-luoi">
-      <thead>
-        <tr>
-          {% for c in cac_cot %}
-            <th class="sap-xep {{c.lop_cot}} {% if c.field_type == 'money' or c.field_type == 'integer' or c.field_type == 'decimal' %}phai{% endif %}"{% if sap_xep == c.code %} aria-sort="{% if giam_dan %}descending{% else %}ascending{% endif %}"{% endif %}>
-              {# Liên kết sắp xếp giữ tìm kiếm, bộ lọc cột và cỡ trang (qs_sap) #}
-              <a href="?sap={{ c.code }}{% if sap_xep == c.code and not giam_dan %}&chieu=giam{% endif %}{{ qs_sap }}">
-                {{ c.name }}
-                <span class="mui">{% if sap_xep == c.code %}{% if giam_dan %}↓{% else %}↑{% endif %}{% else %}↕{% endif %}</span>
-              </a>
-            </th>
-          {% endfor %}
-          <th>Người tạo</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for ban_ghi, cac_o in cac_dong %}
-          <tr>
-            {% for cot, gia_tri, lop_o in cac_o %}
-              {# Ô chỉ để xem — ADR-014; lớp màu cột và cảnh báo tính sẵn ở styling.py #}
-              <td class="{{lop_o}}"{% if cot.is_computed %} title="Cột tính sẵn, hệ thống tự tính"{% endif %}>{{ gia_tri|default:"—" }}</td>
-            {% endfor %}
-            <td class="nho">{{ ban_ghi.created_by|ma|default:"—" }}</td>
-          </tr>
-        {% empty %}
-          <tr><td colspan="{{ cac_cot|length|add:1 }}">
-            {% include "components/rong.html" with rong_tieu_de="Chưa có dòng nào" rong_mo_ta="Chưa có dòng nào trong phạm vi và bộ lọc của bạn. Số liệu vào bảng qua KN CRM, biểu mẫu hoặc Nhập tệp." %}
-          </td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <div class="erp-pagination-tools">{% include "components/phan_trang.html" %}</div>
+  {% include "forms_builder/_bang_xem_bang.html" %}
   {% endif %}
 </div>
 </section>

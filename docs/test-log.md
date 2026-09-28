@@ -1,5 +1,15 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 28.09.2026 — Bấm đảo thứ tự làm trang giật
+
+**TL-62 (đóng):** chủ dự án báo bấm sắp xếp (ví dụ theo Quốc gia) thì "cả trang bị load". Lưới KN CRM xử
+lý đổi thứ tự như mở bảng mới (`navigate` → `invalidate(true)`): cuộn về cột đầu, đứng hình tới khi dữ
+liệu về (mũi tên tiêu đề chưa đổi vì `render` dừng khi `state.ready=false`), đặt lại chiều cao mọi dòng,
+và tải lại cả trang HTML chỉ để lấy khung lọc. Bảng dữ liệu ERP thì tiêu đề là liên kết thường, tải lại
+trang thật. Sửa: lưới đi đường tải lại mềm (`refreshSoft`) khi chỉ đổi thứ tự — giữ dòng cũ, cuộn ngang,
+chiều cao; mũi tên đổi ngay; không tải HTML; chip lọc giữ thứ tự đang dùng. ERP dùng HTMX thay riêng khối
+bảng (`_bang_xem_bang.html`). AC-21.12, AC-7.13. [Biên bản](kiem-chung-sap-xep-khong-giat-20260928.md).
+
 ## 26.09.2026 — Thẻ Báo cáo tổng hợp trên Tổng quan xếp chật, số tiền bị bẻ dòng
 
 **TL-60 (đóng, hồi quy):** chủ dự án chụp Tổng quan ERP: chỉ tiêu trong thẻ Marketing/Sale xếp nhiều

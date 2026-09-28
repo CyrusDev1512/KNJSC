@@ -641,13 +641,21 @@
     try{if(d.handle.hasPointerCapture(d.pointer))d.handle.releasePointerCapture(d.pointer);}catch(_){}
     root.classList.remove('mg-resizing-row');repaint();
   }
-  async function navigate(params,push=true) {
+  async function navigate(params,push=true,onlyOrder=false) {
     if(dirty())return false;
     for(const k of ['trang','moi_trang','offset','version','q'])params.delete(k);
     query=params;const url=config.filterUrl+(params.size?'?'+params:'');
     if(push)history.pushState({},'',url);
     $('mg-search').elements.tim.value=params.get('tim')||'';
     document.querySelectorAll('[data-query-link]').forEach(a=>{const u=new URL(a.href);u.search=params.toString();a.href=u.href;});
+    if(onlyOrder){
+      // Chỉ đổi thứ tự (bấm tiêu đề cột, AC-21.12): cùng bộ dòng nên đi đường tải lại mềm —
+      // dòng đang hiện giữ tới khi khối mới về, giữ cuộn ngang và chiều cao dòng, mũi tên đổi
+      // ngay; bộ lọc không đổi nên không tải lại trang HTML.
+      viewport.scrollTop=0;state.lastError='';
+      state.selection=state.anchor=state.current=null;reader.hidden=true;
+      refreshSoft();syncScopeButtons();repaint();return true;
+    }
     viewport.scrollTop=viewport.scrollLeft=0;state.lastError='';state.ready=false;invalidate();
     // HTML chỉ cho điều khiển lọc/chip, không chứa dữ liệu dòng.
     const gen=state.generation;
@@ -916,7 +924,7 @@
     if(e.target.closest('[data-all]'))selectAll();
     const col=e.target.closest('[data-select-column]');if(col&&!dirty()&&state.total){choose(0,+col.dataset.selectColumn);if(state.selection)state.selection.r2=state.total-1;repaint();}
     const row=e.target.closest('[data-select-row]');if(row&&!dirty()&&state.visible.length){choose(+row.dataset.selectRow,0);if(state.selection)state.selection.c2=state.visible.length-1;repaint();}
-    const sort=e.target.closest('[data-sort]');if(sort){const p=new URLSearchParams(query);p.set('sap',sort.dataset.sort);p.set('chieu',query.get('sap')===sort.dataset.sort&&query.get('chieu')!=='giam'?'giam':'tang');navigate(p);}
+    const sort=e.target.closest('[data-sort]');if(sort){const p=new URLSearchParams(query);p.set('sap',sort.dataset.sort);p.set('chieu',query.get('sap')===sort.dataset.sort&&query.get('chieu')!=='giam'?'giam':'tang');navigate(p,true,true);}
     const filter=e.target.closest('[data-filter]');if(filter){const box=filter.getBoundingClientRect();$('hop-loc').hidden=false;Object.assign($('hop-loc').style,{position:'fixed',left:Math.max(8,Math.min(box.left,innerWidth-370))+'px',top:Math.min(box.bottom,innerHeight-340)+'px',maxHeight:'70vh',overflow:'auto'});const than=$('mg-column-filter-body');than.replaceChildren(element('p','loc-cot-rong','Đang tải…'));
     htmx.ajax('GET',config.filterUrl+'loc/'+filter.dataset.filter+'/?'+query,{target:'#mg-column-filter-body',swap:'innerHTML'});}
   });
@@ -953,7 +961,10 @@
   $('mg-assign')?.addEventListener('click',safe(async()=>{if(dirty())return;const cells=await rangeCells();window.dispatchEvent(new CustomEvent('master-assignment',{detail:{ids:[...new Set(cells.map(c=>c.id))]}}));}));
   document.addEventListener('submit',e=>{const form=e.target;if(form===editor||!form.matches('#mg-search, #mg-filters form, #hop-loc form'))return;e.preventDefault();let p=new URLSearchParams(new FormData(form));if(form.id==='mg-search'){p=new URLSearchParams(query);p.set('tim',form.elements.tim.value);}navigate(p);});
   document.addEventListener('click',e=>{
-    const a=e.target.closest('a');if(a&&(a.closest('#mg-chips')||a.closest('#hop-loc'))){e.preventDefault();navigate(new URL(a.href).searchParams);return;}
+    const a=e.target.closest('a');if(a&&(a.closest('#mg-chips')||a.closest('#hop-loc'))){e.preventDefault();const p=new URL(a.href).searchParams;
+      // Chip dựng sẵn từ lần tải trang; đổi thứ tự không tải lại nên lấy thứ tự đang dùng (AC-21.12)
+      if(a.closest('#mg-chips'))for(const k of ['sap','chieu']){if(query.get(k))p.set(k,query.get(k));else p.delete(k);}
+      navigate(p);return;}
     const button=e.target.closest('.loc-chon-tat-ca,.loc-bo-chon');if(button)button.closest('form').querySelectorAll('input[type=checkbox]').forEach(c=>c.checked=button.classList.contains('loc-chon-tat-ca'));
   },true);
   window.addEventListener('popstate',()=>navigate(new URLSearchParams(location.search),false));
