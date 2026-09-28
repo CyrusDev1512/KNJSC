@@ -2,7 +2,7 @@
 
 ## 28.09.2026 — Nút "Tôi" không ra dòng của tài khoản; thêm lịch sử từng ô
 
-**TL-63 (đóng):** nút Tôi lọc theo cột phụ trách của bộ phận mình, mà Lên đơn không điền ai vào cột đó.
+**TL-64 (đóng):** nút Tôi lọc theo cột phụ trách của bộ phận mình, mà Lên đơn không điền ai vào cột đó.
 Đo trên dữ liệu thử: Sale tự lên 1 đơn → "Toàn bộ" 1, **"Tôi" 0**; nhân viên Vận đơn chưa được giao →
 "Tôi" 0; Admin, Kế toán không có nút. Sửa theo chốt của chủ dự án: "Tôi" = dòng tôi lên đơn / đứng đơn
 cộng dòng giao tôi ở bất kỳ cột phụ trách nào (`assignment_service.mine_condition`), nút cho mọi tài

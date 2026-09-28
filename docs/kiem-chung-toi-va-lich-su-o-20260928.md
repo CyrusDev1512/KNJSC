@@ -1,10 +1,10 @@
-# Kiểm chứng — Nút "Tôi" theo tài khoản (TL-63) và lịch sử từng ô (AC-21.13) — 28.09.2026
+# Kiểm chứng — Nút "Tôi" theo tài khoản (TL-64) và lịch sử từng ô (AC-21.13) — 28.09.2026
 
 Nhánh `claude/toi-va-lich-su-o` tách từ `main` (`a0313be`), máy ảo Claude Code, PostgreSQL 16, Chromium.
 Chủ dự án yêu cầu "bộ lọc cá nhân theo tài khoản CRM" (làm rõ: chính là nút Tôi / Toàn bộ đang sai) và
 "lịch sử chỉnh sửa trực tiếp trên bảng Vận đơn" (chọn kiểu: lịch sử từng ô).
 
-## 1. Nút "Tôi" (TL-63)
+## 1. Nút "Tôi" (TL-64)
 
 **Nguyên nhân.** `grid_service.build_grid` lọc "Tôi" theo **cột phụ trách của bộ phận mình**
 (`assignment_service.field_for`: Vận đơn → delivery, Sale/CSKH → care, Marketing → marketing), mà Lên

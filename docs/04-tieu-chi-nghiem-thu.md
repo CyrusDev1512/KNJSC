@@ -510,7 +510,7 @@ giữ tiêu chí cũ.
 |---|---|---|---|
 | AC-33.1 | Nhân viên Vận đơn thấy mọi dòng bảng Vận đơn kể cả chưa phân công hay người khác phụ trách; sửa được qua lưới JSON và `record_service`; chi tiết mở được; số dòng thư mục đếm đủ | ADR-033 | Tự động |
 | AC-33.2 | CSKH được giao chỉ xem (ghi 403); Sale không sửa dòng Sale khác; Admin gõ vào cột `phu_trach_*` vẫn 400, phân công chỉ qua hộp Phân công | ADR-033 · ADR-020 | Tự động |
-| AC-33.3 | `cua_toi=1` (bổ sung 28.09.2026, TL-63): dòng tôi lên đơn hoặc tôi là Sale đứng đơn, cộng dòng tôi được phân công ở bất kỳ cột phụ trách nào (Vận đơn, CSKH, Marketing) — áp cho mọi tài khoản, chỉ thu hẹp trong phạm vi quyền; Sale thấy ngay đơn mình vừa lên dù chưa ai phân công; bảng thường bỏ qua; khối dữ liệu đổi phiên bản; 100 dòng không vượt trần 22 truy vấn | ADR-033 | Tự động |
+| AC-33.3 | `cua_toi=1` (bổ sung 28.09.2026, TL-64): dòng tôi lên đơn hoặc tôi là Sale đứng đơn, cộng dòng tôi được phân công ở bất kỳ cột phụ trách nào (Vận đơn, CSKH, Marketing) — áp cho mọi tài khoản, chỉ thu hẹp trong phạm vi quyền; Sale thấy ngay đơn mình vừa lên dù chưa ai phân công; bảng thường bỏ qua; khối dữ liệu đổi phiên bản; 100 dòng không vượt trần 22 truy vấn | ADR-033 | Tự động |
 | AC-33.4 | `cua_toi=1` đi theo Tải Excel trực tiếp và nền, và Thống kê | ADR-033 | Tự động |
 | AC-33.5 | `che-do-xem/` trả 404; `TableDef` không còn `delivery_view_all` nhưng còn `delivery_view_version`; Cột & cấp quyền không còn khối Chế độ xem bảng | ADR-033 | Tự động |
 | AC-33.6 | Nút Tôi / Toàn bộ hiện với mọi tài khoản trên bảng Vận đơn (bổ sung 28.09.2026); không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi; `config.myScope` bật trên bảng Vận đơn | ADR-033 | Tự động |

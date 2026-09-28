@@ -1,6 +1,6 @@
 # Backlog
 
-## 28.09.2026 — Nút "Tôi" theo tài khoản (TL-63) và lịch sử từng ô trên lưới (AC-21.13)
+## 28.09.2026 — Nút "Tôi" theo tài khoản (TL-64) và lịch sử từng ô trên lưới (AC-21.13)
 
 **Chủ dự án yêu cầu** "bộ lọc cá nhân theo tài khoản CRM" — chính là nút Tôi / Toàn bộ đang sai — và
 "lịch sử chỉnh sửa trực tiếp trên bảng Vận đơn", chọn kiểu từng ô. **Làm:** "Tôi" = dòng tôi lên đơn
