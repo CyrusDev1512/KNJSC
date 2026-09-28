@@ -476,7 +476,7 @@
     // khi gõ thì mở hộp đọc; F2/Enter/bấm đúp vẫn mở hộp riêng của chúng.
     if(automatic&&(c.assignment||c.detail||!cellValue(row,c.code).editable)){showReader($(`mg-${row.id}-${c.code}`));return;}
     reader.hidden=true;
-    if(c.assignment){window.dispatchEvent(new CustomEvent('master-assignment',{detail:{ids:[row.id]}}));return;}
+    if(c.assignment){window.dispatchEvent(new CustomEvent('master-assignment-cell',{detail:{id:row.id,field:c.assignment,cell:`mg-${row.id}-${c.code}`}}));return;}
     if(c.detail){const d=$('vd-detail');d.showModal();$('vd-detail-body').textContent='Đang tải chi tiết…';await htmx.ajax('GET',row.detail_url,{target:'#vd-detail-body',swap:'innerHTML'});return;}
     const value=cellValue(row,c.code);if(!value.editable){message('Ô này chỉ đọc.');return;}
     editor.querySelector('strong').textContent=c.name;
