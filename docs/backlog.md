@@ -1,5 +1,14 @@
 # Backlog
 
+## 28.09.2026 — Máy chạy thử tự nhận CSS/JS mới, không cần Ctrl+F5 (AC-10.11)
+
+**Chủ dự án gặp** khi thử PR #61: kéo mã chỉ đổi JS/CSS thì trình duyệt vẫn chạy bản cũ. **Nguyên
+nhân:** số `?v=` sau đường dẫn tệp tĩnh tính một lần lúc tiến trình khởi động, mà runserver chỉ tự
+khởi động lại khi mã Python đổi. **Sửa:** DEBUG bật thì quét lại mỗi lần tải trang
+(`core.context_processors.phien_ban_hien_tai`, 32 tệp, 0,24 ms); DEBUG tắt (VPS) giữ nguyên. Không đổi
+template, không thêm thư viện. Biên bản
+[kiem-chung-tu-nhan-js-css-20260928.md](kiem-chung-tu-nhan-js-css-20260928.md).
+
 ## 26.09.2026 — Sửa bố cục thẻ Báo cáo tổng hợp trên Tổng quan ERP (TL-60)
 
 **Chủ dự án báo** (ảnh Tổng quan): chỉ tiêu xếp chật nhiều cột, số tiền bị bẻ giữa chữ số. **Nguyên
