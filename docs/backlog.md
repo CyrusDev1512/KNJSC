@@ -13,6 +13,13 @@ migration, dữ liệu không đổi. Cùng lượt sửa lỗi ngầm TL-66 (Th
 ngưỡng tiền theo từng loại tiền; khối toàn kỳ giữ ở chế độ Từng lần nộp (mockup không vẽ, Bảng dữ liệu đang có).
 Chưa phát hành VPS. Biên bản [kiem-chung-che-do-so-lieu-20260928.md](kiem-chung-che-do-so-lieu-20260928.md).
 
+## 28.09.2026 — Nhãn bộ lọc nằm trên thanh công cụ, không đẩy lưới (AC-21.14)
+
+**Chủ dự án yêu cầu** nhãn bộ lọc đang bật nằm giữa Cột và Định dạng, không đẩy trang tính xuống.
+**Làm:** `#mg-chips` chuyển vào thanh công cụ, chiếm chỗ trống, cuộn ngang khi nhiều nhãn. Trước sửa đỉnh
+lưới tụt 103 → 137 px khi bật lọc; sau sửa giữ nguyên (Chromium 1440/1280). Không đổi JS, máy chủ.
+Biên bản [kiem-chung-nhan-loc-tren-thanh-cong-cu-20260928.md](kiem-chung-nhan-loc-tren-thanh-cong-cu-20260928.md).
+
 ## 28.09.2026 — Bấm đảo thứ tự không còn làm trang giật (TL-62)
 
 **Chủ dự án báo** bấm sắp xếp theo Quốc gia thì cả trang bị load. **Sửa:** lưới KN CRM khi chỉ đổi thứ
