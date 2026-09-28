@@ -457,6 +457,7 @@ quyền và hợp đồng dữ liệu của AC-18/20. Các bảng khác tiếp t
 | AC-21.11 | Admin CRM bắt buộc chọn Sale hoạt động/hợp lệ; creator là Admin, seller/phòng ban/team theo Sale; Sale đọc đơn đứng tên; người khác không giả mạo seller; lỗi tạo đơn/chi tiết/vận đơn rollback cả lượt | ADR-021 | Tự động |
 | AC-21.12 | **Sắp xếp không giật** (chủ dự án 28.09.2026, TL-62): bấm tiêu đề cột trên lưới thì mũi tên đổi ngay, dòng đang hiện giữ tới khi dữ liệu đã sắp xếp về rồi thay một lượt (không ô "…"), giữ vị trí cuộn ngang và chiều cao dòng, không tải lại trang HTML; bỏ chip lọc sau đó vẫn giữ thứ tự vừa chọn | ADR-021 | Trình duyệt |
 | AC-21.13 | **Lịch sử từng ô trên lưới** (chủ dự án 28.09.2026): chuột phải một ô mở khung ngay cạnh ô — mã và tên người sửa, giờ Việt Nam, giá trị trước → sau, "Cũ hơn" để xem tiếp; Esc, bấm ra ngoài hay cuộn thì đóng; ô bị **người khác** sửa giá trị trong 24 giờ (`GRID_RECENT_EDIT_HOURS`) có dấu góc, một truy vấn mỗi khối; người không xem được dòng thì lịch sử trả 403 | ADR-021 | Tự động + trình duyệt |
+| AC-21.14 | **Nhãn bộ lọc trên thanh công cụ** (chủ dự án 28.09.2026): nhãn các bộ lọc đang bật nằm trên thanh công cụ lưới, giữa nút Cột (và Tôi / Toàn bộ) và nút Định dạng, cùng hàng; bật hay bỏ lọc không đẩy trang tính xuống (đỉnh lưới giữ nguyên ở 1440 và 1280 px); nhiều nhãn thì cuộn ngang trong chỗ của nó, không tràn trang | ADR-021 | Trình duyệt |
 
 ## 23. Bàn điều hành KN CRM — ADR-022
 
