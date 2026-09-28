@@ -60,3 +60,33 @@ def test_chuot_phai_o_xem_lich_su_va_dau_o_vua_sua(live_server, trang, dang_nhap
     trang.keyboard.press("Escape")
     trang.wait_for_function("() => document.getElementById('mg-cell-history').hidden", timeout=3_000)
     assert not loi_js, loi_js
+
+
+def test_chuot_phai_len_hop_doc_van_mo_lich_su_o(live_server, trang, dang_nhap, kn_crm, feedback,
+                                                 nguoi_dung, make_user, departments):  # noqa: F811
+    """AC-21.13 — Bấm ô Ghi chú dài thì hộp đọc hiện đè gần ô; chuột phải lên chính hộp đó (hay lên ô
+    khi hộp đang mở) vẫn mở lịch sử của ô Ghi chú, không ra menu của trình duyệt (chủ dự án 28.09)"""
+    bang, _, dong = feedback
+    khac = make_user("vd_khac", Rank.STAFF, departments["vd"])
+    c = Client()
+    c.force_login(khac)
+    dai = "Ghi chú rất dài " * 30
+    assert write(c, dong[0], column="ghi_chu", old=dong[0].data.get("ghi_chu"), value=dai).status_code == 200
+
+    dang_nhap(trang, nguoi_dung["staff_vd"])
+    trang.goto(f"{live_server.url}/bang-tinh/{bang.code}/")
+    o = f".mg-cell[data-code='ghi_chu'][data-id='{dong[0].pk}']"
+    trang.wait_for_selector(".mg-cell[data-code='ten_khach']")
+    trang.wait_for_function(f"""() => {{ const v = document.getElementById('mg-viewport');
+        if (document.querySelector("{o}")) return true; v.scrollLeft += 300; return false; }}""", timeout=10_000)
+    trang.locator(o).scroll_into_view_if_needed()
+    trang.click(o)
+    trang.wait_for_selector("#mg-reader:not([hidden])", timeout=5_000)
+
+    chan = trang.evaluate("""() => { const e = new MouseEvent('contextmenu', {bubbles: true, cancelable: true,
+        clientX: 1, clientY: 1}); return !document.querySelector('#mg-reader div').dispatchEvent(e); }""")
+    assert chan, "chuột phải lên hộp đọc phải chặn menu trình duyệt"
+    trang.wait_for_selector("#mg-cell-history:not([hidden])", timeout=5_000)
+    trang.wait_for_function("() => document.querySelector('#mg-cell-history .mg-history-item')", timeout=5_000)
+    assert "Ghi chú" in trang.text_content("#mg-cell-history strong")
+    assert trang.evaluate("() => document.getElementById('mg-reader').hidden"), "hộp đọc phải nhường chỗ cho lịch sử"

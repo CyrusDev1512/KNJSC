@@ -435,7 +435,7 @@
     const row=rowAt(+cell.dataset.r),c=state.visible[+cell.dataset.c];if(!row)return;
     reader.querySelector('strong').textContent=c.name;reader.querySelector('div').textContent=cellValue(row,c.code).display;
     if(c.renderer==='bill')reader.querySelector('div').replaceChildren(...[...cell.childNodes].map(node=>node.cloneNode(true)));
-    floatAt(reader,cell.getBoundingClientRect());
+    reader.dataset.cell=cell.id;floatAt(reader,cell.getBoundingClientRect());
   }
   function positionEditor(){
     if(!state.draft)return;
@@ -1079,6 +1079,11 @@
   viewport.addEventListener('contextmenu',e=>{
     const cell=e.target.closest('.mg-cell[data-r]')||(e.target===viewport?canvas.querySelector('.mg-cell.mg-current'):null);
     if(!cell||dirty())return;e.preventDefault();safe(()=>showCellHistory(cell))();
+  });
+  // Hộp đọc nổi ngay cạnh ô nên người dùng hay chuột phải lên chính nó: vẫn là lịch sử của ô đó.
+  reader.addEventListener('contextmenu',e=>{
+    const cell=reader.dataset.cell&&document.getElementById(reader.dataset.cell);
+    if(!cell||!viewport.contains(cell)||dirty())return;e.preventDefault();safe(()=>showCellHistory(cell))();
   });
   viewport.addEventListener('scroll',()=>{cellHistory.hidden=true;},{passive:true});
   function propertyName(property){return ({value:'Nội dung',fs:'Cỡ chữ',c:'Màu chữ',bg:'Màu nền'})[property||'value']||property;}

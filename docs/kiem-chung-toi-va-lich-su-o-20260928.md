@@ -40,6 +40,7 @@ quyền: Marketing vẫn không xem bảng vận đơn. Excel và Thống kê đ
 | `crm/tests/test_pham_vi_toi_toan_bo.py` trọn tệp (gồm AC-33.4 Excel/Thống kê, trần 22 truy vấn) | — | 8 đạt |
 | `crm/tests/test_lich_su_o.py` (AC-21.13) | **đỏ**: khối không có `recent` | xanh: người khác sửa → dấu 2 ô; chính mình → không; sửa 25 giờ trước → không; lịch sử theo ô đúng cột, có mã người sửa; người ngoài phạm vi 403 và không thấy dòng |
 | `tests/e2e/test_lich_su_o_tren_luoi.py` (AC-21.13, Chromium) | **đỏ**: ô không có dấu góc | xanh: dấu góc đúng ô, chuột phải mở khung cạnh ô với "Khách 0 → Khách Đã Sửa" và mã người sửa, Esc đóng |
+| `tests/e2e/test_lich_su_o_tren_luoi.py::test_chuot_phai_len_hop_doc_van_mo_lich_su_o` (AC-21.13, bổ sung sau khi chủ dự án thử local: bấm ô Ghi chú dài → hộp đọc hiện → chuột phải lên hộp ra menu Chrome) | **đỏ**: sự kiện chuột phải không bị chặn | xanh: chuột phải lên hộp đọc mở lịch sử ô Ghi chú, hộp đọc đóng |
 | `tests/test_truy_vet.py` + `core/tests/test_giao_dien.py` (docs/06 → 278 / 265 / 242) | — | 659 đạt |
 | Suite đầy đủ `-m "not trinh_duyet and not cham"` | — | **2.802 đạt, 1 bỏ qua, 0 đỏ** (361 s) |
 
