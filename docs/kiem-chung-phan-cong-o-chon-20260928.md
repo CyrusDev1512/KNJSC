@@ -29,7 +29,7 @@ Không migration, không đổi quyền, nút "Phân công" nhiều dòng giữ 
 | `tests/e2e/test_phan_cong_o_chon.py` (AC-21.15, Chromium) | **đỏ**: không có ô chọn | 2 đạt: Leader bấm đúp → ô chọn đè đúng ô, có "Chưa gán" và mã nhân viên; Esc không đổi; chọn chuột → lưu, ô hiện mã; Enter mở, Home chưa lưu, Enter lưu "Chưa gán"; nhân viên thường không có ô chọn |
 | `test_waybill_feedback`, `test_mot_bang_van_don`, `test_shared_grid`, `test_master_grid`, `test_truy_vet`, `test_giao_dien` (docs/06 → 280 / 267 / 244) | — | đạt |
 | Suite đầy đủ `-m "not trinh_duyet and not cham"` | — | **2.806 đạt, 1 bỏ qua, 0 đỏ** (371 s) |
-| `tests/e2e/test_phan_cong_o_chon.py` chạy lại 4 lần sau khi sửa ô chọn tràn mép phải (ô chọn rộng tối thiểu 140 px, không ra ngoài màn hình) | — | lần đầu ngay sau suite: 1 ERROR ở khâu dựng/dọn cơ sở dữ liệu kiểm thử (không phải khẳng định đỏ); 3 lần sau: 2 đạt |
+| `tests/e2e/test_phan_cong_o_chon.py` chạy lặp | — | ERROR chập chờn ở **teardown** (4/6 lần): lưới vừa lưu còn làm mới máy chủ khi pytest TRUNCATE dọn bảng → `DeadlockDetected`, rồi bài sau hỏng setup vì dữ liệu chưa dọn. Không phải khẳng định đỏ. Sửa bài kiểm: rời lưới (`about:blank`) và đợi 1 s trước khi dọn → **6/6 lần đạt** |
 
 Ảnh: `docs/kiem-thu/phan-cong-o-chon-2026-09-28/phan-cong-o-chon.png`.
 
