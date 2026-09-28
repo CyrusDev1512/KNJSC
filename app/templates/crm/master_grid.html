@@ -39,9 +39,11 @@
       <div id="mg-canvas" class="mg-canvas"></div>
     </div>
   </div>
-  <footer class="mg-footer"><span id="mg-count">Đang tải…</span><span id="mg-selection"></span><span>Chọn ô rồi gõ để sửa · Enter/F2 mở ô · Ctrl+A chọn hết · Ctrl+C/V sao chép/dán · Ô văn bản dài: Enter xuống dòng, Ctrl+Enter xong · Esc đóng</span></footer>
+  <footer class="mg-footer"><span id="mg-count">Đang tải…</span><span id="mg-selection"></span><span>Chọn ô rồi gõ để sửa · Enter/F2 mở ô · Ctrl+A chọn hết · Ctrl+C/V sao chép/dán · Ô văn bản dài: Enter xuống dòng, Ctrl+Enter xong · Chuột phải: lịch sử ô · Esc đóng</span></footer>
 </section>
 <div id="mg-reader" class="mg-float" role="region" aria-label="Nội dung ô" hidden><button type="button" aria-label="Đóng nội dung">×</button><strong></strong><div></div></div>
+{# Lịch sử từng ô (AC-21.13, 28.09): chuột phải một ô thì khung này hiện ngay cạnh ô #}
+<div id="mg-cell-history" class="mg-float mg-cell-history" role="dialog" aria-label="Lịch sử ô" hidden><button class="mg-close" type="button" data-master-close="mg-cell-history" aria-label="Đóng lịch sử ô">×</button><strong></strong><div class="mg-cell-history-list"></div></div>
 <form id="mg-editor" class="mg-float mg-editor mg-inline-editor" hidden aria-label="Sửa ngay trong ô"><button class="mg-close" type="button" data-master-close="editor" aria-label="Đóng ô nhập">×</button><strong></strong><div id="mg-input"></div><div class="mg-editor-actions"><button class="nut nut-chinh" type="submit">Xong</button><button class="nut" type="button" id="mg-cancel">Hủy</button></div></form>
 <dialog id="mg-columns" class="mg-dialog"><header class="mg-dialog-head"><h2>Cột hiển thị</h2><button class="mg-close" type="button" data-master-close="mg-columns" aria-label="Đóng cột hiển thị">×</button></header><div class="mg-dialog-body" id="mg-column-list"></div></dialog>
 <dialog id="mg-format" class="mg-dialog mg-tools-dialog" aria-labelledby="mg-format-title"><header class="mg-dialog-head"><h2 id="mg-format-title">Định dạng vùng chọn</h2><button class="mg-close" data-master-close="mg-format" aria-label="Đóng định dạng">×</button></header><div class="mg-dialog-body" id="mg-format-body"></div></dialog>

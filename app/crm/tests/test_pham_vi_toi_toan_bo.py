@@ -56,31 +56,37 @@ def test_care_and_sale_stay_view_only(client, feedback, nguoi_dung, delivery_lea
         record_service.update_cell(rows[1], 'ghi_chu', 'x', actor=cskh_staff)
 
 
-def test_cua_toi_filters_by_department_field_and_ignored_for_admin(client, feedback, nguoi_dung, delivery_leader, cskh_staff, ke_toan, departments):
-    """AC-33.3 — `cua_toi=1`: Vận đơn lọc theo Phụ trách Vận đơn, CSKH theo Phụ
-    trách CSKH; Admin, Kế toán và bảng thường bỏ qua; khối dữ liệu đổi phiên bản."""
-    table, _, rows = feedback
+def test_cua_toi_la_dong_cua_toi_hoac_giao_toi(client, feedback, nguoi_dung, delivery_leader, cskh_staff, ke_toan, departments):
+    """AC-33.3 — `cua_toi=1` (bổ sung 28.09.2026): dòng tôi lên đơn hoặc tôi là Sale đứng đơn, CỘNG dòng
+    tôi được phân công ở bất kỳ cột phụ trách nào (Vận đơn, CSKH, Marketing) — áp cho mọi tài khoản;
+    Sale thấy ngay đơn mình vừa lên dù chưa ai phân công; bảng thường bỏ qua; khối dữ liệu đổi phiên bản."""
+    table, _, rows = feedback          # rows[0] do staff_sale_1 lên, rows[1] do staff_sale_2 lên
     staff = nguoi_dung['staff_vd']
-    assign_rows(delivery_leader, [rows[0]], delivery=staff.pk, care=cskh_staff.pk)
-    assign_rows(delivery_leader, [rows[1]], delivery=delivery_leader.pk, care=nguoi_dung['staff_sale_1'].pk)
-    assert assignment_service.field_for(staff) == 'delivery'
-    assert assignment_service.field_for(cskh_staff) == 'care'
-    assert assignment_service.field_for(nguoi_dung['staff_sale_1']) == 'care'
-    assert assignment_service.field_for(nguoi_dung['staff_mkt']) == 'marketing'
-    assert assignment_service.field_for(nguoi_dung['admin']) is None
-    assert assignment_service.field_for(ke_toan) is None
 
     def ids(user, qs=''):
         grid = grid_service.build_grid(user, QueryDict(qs), table=table)
         return set(grid.queryset.values_list('pk', flat=True)), grid.my_scope
 
+    # Chưa ai phân công: Sale vẫn thấy đơn mình lên; Vận đơn chưa có dòng nào của mình
+    assert ids(nguoi_dung['staff_sale_1'], 'cua_toi=1') == ({rows[0].pk}, True)
+    assert ids(staff, 'cua_toi=1') == (set(), True)
+
+    assign_rows(delivery_leader, [rows[0]], delivery=staff.pk, care=cskh_staff.pk)
+    assign_rows(delivery_leader, [rows[1]], delivery=delivery_leader.pk, care=nguoi_dung['staff_sale_1'].pk,
+                marketing=nguoi_dung['staff_mkt'].pk)
+
     assert ids(staff) == ({r.pk for r in rows}, False)
     assert ids(staff, 'cua_toi=1') == ({rows[0].pk}, True)
     assert ids(delivery_leader, 'cua_toi=1') == ({rows[1].pk}, True)
     assert ids(cskh_staff, 'cua_toi=1') == ({rows[0].pk}, True)
-    assert ids(nguoi_dung['staff_sale_1'], 'cua_toi=1') == ({rows[1].pk}, True)
-    assert ids(nguoi_dung['admin'], 'cua_toi=1') == ({r.pk for r in rows}, False)
-    assert ids(ke_toan, 'cua_toi=1') == ({r.pk for r in rows}, False)
+    # Sale: đơn tự lên (rows[0]) + đơn được giao chăm sóc (rows[1])
+    assert ids(nguoi_dung['staff_sale_1'], 'cua_toi=1') == ({r.pk for r in rows}, True)
+    assert ids(nguoi_dung['staff_sale_2'], 'cua_toi=1') == ({rows[1].pk}, True)
+    # "Tôi" chỉ thu hẹp trong phạm vi quyền: Marketing không xem bảng vận đơn nên vẫn không có dòng nào
+    assert ids(nguoi_dung['staff_mkt'], 'cua_toi=1') == (set(), True)
+    # Admin, Kế toán cũng có "Tôi": không lên đơn, không được giao thì không có dòng nào
+    assert ids(nguoi_dung['admin'], 'cua_toi=1') == (set(), True)
+    assert ids(ke_toan, 'cua_toi=1') == (set(), True)
 
     thuong = TableDef.objects.create(code='bang-thuong', name='Bảng thường', department=departments['vd'])
     DataRecord.objects.create(table=thuong, department=thuong.department, created_by=staff, data={})
@@ -126,10 +132,10 @@ def test_delivery_view_mode_removed(client, feedback, nguoi_dung):
 
 
 def test_shell_renders_scope_toggle_by_role(client, feedback, nguoi_dung, delivery_leader, ke_toan):
-    """AC-33.6 — Nút Tôi / Toàn bộ chỉ hiện cho người có cột phụ trách; không còn
-    nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi."""
+    """AC-33.6 — Nút Tôi / Toàn bộ hiện với mọi tài khoản trên bảng Vận đơn (bổ sung 28.09.2026);
+    không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi."""
     for user, expected in ((nguoi_dung['staff_vd'], True), (delivery_leader, True),
-                           (nguoi_dung['staff_sale_1'], True), (nguoi_dung['admin'], False), (ke_toan, False)):
+                           (nguoi_dung['staff_sale_1'], True), (nguoi_dung['admin'], True), (ke_toan, True)):
         client.force_login(user)
         response = client.get(BASE)
         assert response.status_code == 200, user.username
@@ -138,7 +144,7 @@ def test_shell_renders_scope_toggle_by_role(client, feedback, nguoi_dung, delive
         assert 'id="mg-mode"' not in html and 'Chế độ: Xem' not in html
     client.force_login(nguoi_dung['staff_vd'])
     html = client.get(BASE).content.decode()
-    assert '"myScope": "delivery"' in html
+    assert '"myScope": true' in html
     assert 'data-pham-vi="toan_bo" aria-pressed="true"' in html
     html = client.get(BASE + '?cua_toi=1').content.decode()
     assert 'data-pham-vi="toi" aria-pressed="true"' in html

@@ -233,6 +233,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-10.8 | **Kiểm tải KN CRM ở cỡ 100 nghìn khách** (docs/06 tầng 9): chạy `scripts/kiem-tai-kn-crm.*` trên máy có Docker — nạp 100.000 dòng vận đơn (≈ 3 triệu ô, 86 nghìn số điện thoại) và bảng Sale 20.000 dòng có cột tính sẵn, `do_hieu_nang` đo một người, rồi Locust **100 người 5 phút** (70 nhân viên vận đơn di qua di lại, 20 Sale/Marketing, 7 trưởng nhóm dán/xoá, 3 Manager đổi cột tính sẵn giữa phiên) trên gunicorn 3 worker; in **ĐẠT** khi p95 nhóm đọc ≤ 1 s, nhóm ghi ≤ 0,5 s, `moi-nhat/` ≤ 0,3 s, 0 lỗi, tính lại cột 100.000 dòng ≤ 30 s mà p95 người khác vẫn ≤ 1 s (`core/constants.py`) | NFR-2 | Thủ công |
 | AC-10.9 | `manage.py nap_khach_mau --bang <mã> --so-khach N` nạp N khách giả (mã đơn `KH-*`) theo lô 2.000 vào bảng vận đơn chỉ định (mặc định Vận đơn mới `van_don`, ADR-036): số dòng = N ÷ (1 − tỉ lệ mua lại, mặc định 20 %), mỗi khách ít nhất một dòng, khách mua lại dùng lại số điện thoại để cột Trùng có việc, bảng có profile Vận đơn thì mỗi dòng có phân công Vận đơn/CSKH; `--xoa-cu` xoá sạch dòng `KH-*`; DEBUG tắt thì từ chối như `seed_perf` | NFR-2 | Tự động |
 | AC-10.10 | Dòng giả xoá **theo lô** qua một đường dùng chung `delete_fake_records` (`seed_perf.clear()` lẫn `nap_khach_mau --xoa-cu`): mỗi lô một giao dịch riêng có `SET LOCAL lock_timeout` trên đúng database của queryset, gọi `on_progress(đã xoá, tổng)`; hết hạn chờ khoá thì lỗi nói rõ đã xoá được bao nhiêu thay vì treo (TL-43) | NFR-2 | Tự động |
+| AC-10.11 | **Máy chạy thử tự nhận CSS/JS mới** (chủ dự án 28.09.2026): DEBUG bật thì số phiên bản `?v=` sau đường dẫn CSS/JS quét lại mỗi lần tải trang (`core.context_processors.phien_ban_hien_tai`), sửa riêng tệp tĩnh là lần tải trang kế tiếp lấy bản mới, không phải Ctrl+F5; DEBUG tắt (VPS) giữ số tính một lần lúc khởi động | NFR-6 | Tự động |
 
 ---
 
@@ -453,6 +454,7 @@ quyền và hợp đồng dữ liệu của AC-18/20. Các bảng khác tiếp t
 | AC-21.9 | Cỡ chữ/màu chữ/màu nền giữ thuộc tính khác; CAS riêng từng thuộc tính; định dạng/Undo/Redo nguyên tử; phản hồi lượt cũ không xóa nháp mới, retry giữ UUID/nội dung; lỗi quyền/kiểu/xung đột không retry tự động | ADR-021 | Tự động |
 | AC-21.10 | Lịch sử chỉ nối thêm, trước/sau theo ô, tài khoản/thời điểm/nhóm thao tác; 50 mục/trang, kiểm quyền hiện hành, replay không trùng; xung đột đối chiếu trong phiên và gửi lại bằng CAS mới, không ghi đè cưỡng bức | ADR-021 | Tự động |
 | AC-21.11 | Admin CRM bắt buộc chọn Sale hoạt động/hợp lệ; creator là Admin, seller/phòng ban/team theo Sale; Sale đọc đơn đứng tên; người khác không giả mạo seller; lỗi tạo đơn/chi tiết/vận đơn rollback cả lượt | ADR-021 | Tự động |
+| AC-21.13 | **Lịch sử từng ô trên lưới** (chủ dự án 28.09.2026): chuột phải một ô mở khung ngay cạnh ô — mã và tên người sửa, giờ Việt Nam, giá trị trước → sau, "Cũ hơn" để xem tiếp; Esc, bấm ra ngoài hay cuộn thì đóng; ô bị **người khác** sửa giá trị trong 24 giờ (`GRID_RECENT_EDIT_HOURS`) có dấu góc, một truy vấn mỗi khối; người không xem được dòng thì lịch sử trả 403 | ADR-021 | Tự động + trình duyệt |
 
 ## 23. Bàn điều hành KN CRM — ADR-022
 
@@ -479,6 +481,7 @@ lưới, bộ lọc và dữ liệu Vận đơn của AC-18/20/21.
 | AC-22.16 | **Tô màu chỉ tiêu** (chủ dự án 19.09.2026, theo ảnh mẫu): cột **chỉ số quan trọng** (`FOCUS_METRICS`: Tỉ lệ chốt, CPO, Giá Mess, CPQC/Doanh số) có nền riêng ở cả tiêu đề và ô; ô **tỉ lệ** so với dòng "Tổng trong bộ lọc" theo chiều tốt khai ở `METRIC_DIRECTION` — hơn mốc 10 % về phía tốt là đạt, kém 10 % là cảnh báo, trong biên để trơn; **cột cộng không tô** (mốc là tổng mọi dòng nên dòng nào cũng nhỏ hơn) và chỉ tiêu chưa rõ chiều (Hóa đơn/Doanh thu) cũng không tô; dòng Tổng là mốc nên chỉ có nền cột; màu lấy từ token nên đúng ở cả chế độ sáng và tối | ADR-035 · ADR-038 | Tự động + trình duyệt |
 | AC-22.17 | **Thẻ Báo cáo tổng hợp trên Tổng quan đọc được** (TL-60, 26.09.2026): mỗi chỉ tiêu một hàng nhãn trái – số phải; số tiền dài (cỡ nghìn tỉ ₫) nằm một dòng ở màn 1440 px, không bẻ giữa chữ số; 390 px không tràn ngang; luật `.dashboard-*` chỉ khai ở `dashboard.css` và bài khai lớp CSS quét cả tệp đó | ADR-035 | Tự động + trình duyệt |
 | AC-22.18 | **Thẻ Tổng quan không có ô đơn vị/cảnh báo quy đổi** (chủ dự án 26.09.2026): thẻ Báo cáo tổng hợp trên Tổng quan không hiện dòng tỉ giá lẫn ô "… dòng chưa quy đổi được"; cách tính không đổi, cảnh báo vẫn hiện ở màn Báo cáo tổng hợp chi tiết | ADR-042 | Tự động |
+| AC-22.19 | **Lăn chuột trên bảng không bị kẹt** (TL-63, chủ dự án 28.09.2026): con trỏ đặt trên khung bảng Báo cáo tổng hợp (và Bảng dữ liệu dạng báo cáo, cùng khung `.report-table-scroll`) — bảng vừa khung theo chiều dọc mà tràn ngang thì trang cuộn ngay; bảng dài thì bảng cuộn trước, cuộn hết bảng thì trang cuộn tiếp; khung bảng có nền đặc để cuộn không phải vẽ lại | ADR-042 | Trình duyệt |
 
 ## 24. CRM-Optimization — ADR-024, đang kiểm chứng
 
@@ -515,10 +518,10 @@ giữ tiêu chí cũ.
 |---|---|---|---|
 | AC-33.1 | Nhân viên Vận đơn thấy mọi dòng bảng Vận đơn kể cả chưa phân công hay người khác phụ trách; sửa được qua lưới JSON và `record_service`; chi tiết mở được; số dòng thư mục đếm đủ | ADR-033 | Tự động |
 | AC-33.2 | CSKH được giao chỉ xem (ghi 403); Sale không sửa dòng Sale khác; Admin gõ vào cột `phu_trach_*` vẫn 400, phân công chỉ qua hộp Phân công | ADR-033 · ADR-020 | Tự động |
-| AC-33.3 | `cua_toi=1` lọc theo cột phụ trách của bộ phận (Vận đơn → delivery, Sale/CSKH → care, Marketing → marketing); Admin, Kế toán, bảng thường bỏ qua; khối dữ liệu đổi phiên bản; 100 dòng không vượt trần 22 truy vấn | ADR-033 | Tự động |
+| AC-33.3 | `cua_toi=1` (bổ sung 28.09.2026, TL-64): dòng tôi lên đơn hoặc tôi là Sale đứng đơn, cộng dòng tôi được phân công ở bất kỳ cột phụ trách nào (Vận đơn, CSKH, Marketing) — áp cho mọi tài khoản, chỉ thu hẹp trong phạm vi quyền; Sale thấy ngay đơn mình vừa lên dù chưa ai phân công; bảng thường bỏ qua; khối dữ liệu đổi phiên bản; 100 dòng không vượt trần 22 truy vấn | ADR-033 | Tự động |
 | AC-33.4 | `cua_toi=1` đi theo Tải Excel trực tiếp và nền, và Thống kê | ADR-033 | Tự động |
 | AC-33.5 | `che-do-xem/` trả 404; `TableDef` không còn `delivery_view_all` nhưng còn `delivery_view_version`; Cột & cấp quyền không còn khối Chế độ xem bảng | ADR-033 | Tự động |
-| AC-33.6 | Nút Tôi / Toàn bộ chỉ hiện cho người có cột phụ trách; không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi; `config.myScope` đúng trường | ADR-033 | Tự động |
+| AC-33.6 | Nút Tôi / Toàn bộ hiện với mọi tài khoản trên bảng Vận đơn (bổ sung 28.09.2026); không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi; `config.myScope` bật trên bảng Vận đơn | ADR-033 | Tự động |
 | AC-33.7 | Migration 0013 chạy xuôi và ngược trên DB test, giữ `delivery_view_version` và dữ liệu | ADR-033 | Tự động |
 | AC-33.8 | Xoá trống ô Quốc gia thì Loại tiền trống; dòng có tiền hỏi xác nhận rồi ghi được cả lượt xoá; điền lại Quốc gia tiền về đúng; nhập tệp và lên đơn vẫn bắt buộc quốc gia. Lưới như Excel: bấm chỉ chọn, gõ là nhập, Enter/F2/bấm đúp mở ô, Tab/Enter chỉ chuyển ô, Ctrl+A chọn cả bảng (kiểm trình duyệt) | ADR-033 · ADR-031 | Tự động |
 
