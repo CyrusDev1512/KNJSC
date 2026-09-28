@@ -8,7 +8,11 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, transaction
 from django.db.models import Count, Max, F
 
-from core.constants import GRID_PASTE_CELLS_MAX
+from datetime import timedelta
+
+from django.utils import timezone
+
+from core.constants import GRID_PASTE_CELLS_MAX, GRID_RECENT_EDIT_HOURS
 from core.exceptions import BusinessError, OutOfScopeError
 from core.identity import employee_code
 from forms_builder.models import DataRecord, TableDef
@@ -81,6 +85,7 @@ def serialize(rows, columns, user, *, meta=None):
     policy = record_policies.grid_for(table) if table else None
     extras = policy.grid_extras(rows, columns) if policy and hasattr(policy, 'grid_extras') else {}
     config = {c['code']:c for c in (meta if meta is not None else metadata(columns))}
+    recent = recent_edits(rows, user)
     result = []
     for row in rows:
         editable = grant_service.can_edit_visible_record(user, row)
@@ -96,8 +101,24 @@ def serialize(rows, columns, user, *, meta=None):
             if code in cells:cells[code].update(properties)
         cells.update(extra.get('virtual_cells', {}))
         result.append({'id':row.pk, 'class':extra.get('row_class',''), 'cells':cells, 'editable':editable,
-            'updated':row.updated_at.isoformat(), 'detail_url':extra.get('detail_url')})
+            'updated':row.updated_at.isoformat(), 'detail_url':extra.get('detail_url'),
+            'recent':sorted(recent.get(row.pk, ()))})
     return result
+
+
+def recent_edits(rows, user):
+    """Ô bị **người khác** sửa giá trị trong `GRID_RECENT_EDIT_HOURS` giờ — dấu góc trên lưới
+    (AC-21.13). Một truy vấn cho cả khối, theo chỉ mục (record, -id); chỉ các dòng người xem đã
+    được thấy. Trả {id dòng: {mã cột}}."""
+    ids = [r.pk for r in rows]
+    if not ids:
+        return {}
+    since = timezone.now() - timedelta(hours=GRID_RECENT_EDIT_HOURS)
+    found = {}
+    for record_id, column in (GridCellHistory.objects.filter(record_id__in=ids, property='value', created_at__gte=since)
+                              .exclude(receipt__actor=user).values_list('record_id', 'column').distinct()):
+        found.setdefault(record_id, set()).add(column)
+    return found
 
 
 
