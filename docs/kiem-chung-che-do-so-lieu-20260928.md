@@ -80,7 +80,7 @@ p95 đọc 1 s.
 ## Chưa kiểm / để lại
 
 - Chưa chạy trên VPS; chưa đo máy thật của chủ dự án.
-- Ngưỡng tiền theo từng loại tiền chưa có: ngưỡng ₫ nay chỉ tô dòng VND (gần như chỉ báo cáo cũ) — chờ chủ dự án.
-- Khối toàn kỳ vẫn đứng đầu ở chế độ Từng lần nộp (mockup không vẽ; Bảng dữ liệu đang có) — chờ chủ dự án xác
-  nhận giữ hay bỏ.
+- Ngưỡng tiền theo từng loại tiền không làm — chủ dự án 28.09: chưa cần (ngưỡng ₫ nay chỉ tô dòng VND; tô
+  tương đối và ngưỡng tỉ lệ vẫn chạy).
+- Khối toàn kỳ đứng đầu ở chế độ Từng lần nộp (mockup không vẽ; Bảng dữ liệu đang có) — chủ dự án 28.09: giữ.
 - Màn dưới 480 px: sáu cột ghim ở Từng lần nộp chiếm gần hết bề ngang.

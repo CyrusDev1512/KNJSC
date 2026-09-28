@@ -9,8 +9,8 @@ mặc định Cộng theo ngày, Loại tiền vẫn tự theo Thị trường, 
 loại tiền là một chiều nhóm, TỔNG CỘNG theo loại tiền ở mọi khối, Excel, thẻ Tổng quan; bộ lọc Chế độ (Báo cáo
 tổng hợp mặc định Cộng theo ngày, Bảng dữ liệu mặc định Từng lần nộp như trước), cột Lần nộp "Lần N · giờ"; (TT)
 theo loại tiền của đơn; ngưỡng tiền ₫ chỉ tô dòng VND; Bảng dữ liệu thô và ô nhập số có dấu chấm. Không
-migration, dữ liệu không đổi. Cùng lượt sửa lỗi ngầm TL-66 (Theo nhân viên quá trần 500). **Chờ chủ dự án:**
-ngưỡng tiền theo từng loại tiền; khối toàn kỳ giữ ở chế độ Từng lần nộp (mockup không vẽ, Bảng dữ liệu đang có).
+migration, dữ liệu không đổi. Cùng lượt sửa lỗi ngầm TL-66 (Theo nhân viên quá trần 500). **Chủ dự án chốt**
+cùng ngày: chưa cần ngưỡng tiền theo từng loại tiền; giữ khối toàn kỳ ở chế độ Từng lần nộp.
 Chưa phát hành VPS. Biên bản [kiem-chung-che-do-so-lieu-20260928.md](kiem-chung-che-do-so-lieu-20260928.md).
 
 ## 28.09.2026 — Phân công ngay trong ô bằng ô chọn (AC-21.15)

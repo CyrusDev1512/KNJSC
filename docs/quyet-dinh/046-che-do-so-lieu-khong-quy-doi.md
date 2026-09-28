@@ -40,7 +40,8 @@ chế độ Từng lần nộp.
    - **Từng lần nộp** (`tung-lan`): mỗi lần nộp một dòng, số đúng như nhập; cột **Lần nộp** "Lần 2 · 16:40" —
      số thứ tự trong ngày của người đó theo giờ nộp (hàm cửa sổ `ROW_NUMBER` trong SQL nên đúng cả khi phân
      trang), kèm ngày nộp nếu khác ngày báo cáo. Mặc định của **Bảng dữ liệu dạng báo cáo** (giữ đúng "mỗi lần
-     nộp một dòng" của ADR-042 đợt 4). Khối toàn kỳ theo nhân sự vẫn đứng đầu (Bảng dữ liệu có từ đợt 4); Gộp
+     nộp một dòng" của ADR-042 đợt 4). Khối toàn kỳ theo nhân sự vẫn đứng đầu (Bảng dữ liệu có từ đợt 4; mockup không vẽ, chủ dự án
+     28.09.2026 chốt **giữ**); Gộp
      thì một khối "Mọi lần nộp trong kỳ" (Ngày · Nhân sự · Lần nộp · Loại tiền).
    - Chỉ cách xem Tổng hợp của nguồn Sale/MKT có chế độ (`activity_service.has_modes`); cách xem khác và nguồn
      Vận đơn bỏ qua `che_do`, ô Chế độ ẩn (JS khi đổi Cách xem; Vận đơn không render).
@@ -72,8 +73,10 @@ chế độ Từng lần nộp.
 
 ## Giới hạn và việc để lại
 
-- **Ngưỡng tiền theo từng loại tiền** (CPO ≤ 5 USD, ≤ 7 CAD…) chưa có: ngưỡng tiền hiện đặt theo ₫ nên gần như
-  không tô dòng nào (dòng VND chỉ còn ở báo cáo cũ). Cần form ngưỡng theo loại tiền — chờ chủ dự án.
+- **Ngưỡng tiền theo từng loại tiền** (CPO ≤ 5 USD, ≤ 7 CAD…) không làm — chủ dự án 28.09.2026: **chưa cần**.
+  Ngưỡng tiền đặt theo ₫ nên gần như không tô dòng nào (dòng VND chỉ còn ở báo cáo cũ); chỉ tiêu tiền vẫn được
+  tô tương đối theo TỔNG CỘNG cùng loại tiền, ngưỡng tỉ lệ vẫn tô mọi dòng. Làm form ngưỡng theo loại tiền khi
+  quản lý thấy thiếu.
 - Đơn vận đơn khác loại tiền với mọi báo cáo của marketer trong ngày không hiện ở (TT).
 - Người nộp báo cáo cho ngày khác (nộp bù) có "Lần N" tính theo giờ nộp, kèm ngày nộp để phân biệt.
 - Cột ghim trái nhiều hơn (tới sáu cột ở Từng lần nộp): màn hẹp dưới 480 px còn ít chỗ cho cột số.
