@@ -90,6 +90,40 @@ python -m pytest --ds=knjsc.settings.test -m "not trinh_duyet and not cham"
 Cảnh báo `database "test_knjsc_db" is being accessed by other users` lúc dọn cơ sở dữ liệu kiểm thử có cả
 khi chạy riêng hai bài trình duyệt cũ — có sẵn, không do bài mới.
 
+## Kiểm kĩ trước khi gộp (28.09.2026, theo lệnh chủ dự án)
+
+Cùng máy chủ thử và dữ liệu giả ở trên, tệp CSS đã sửa (commit `8072b8e`), Chromium 1440×900 trừ khi ghi khác.
+**25/25 mục đạt.**
+
+| Mục | Kết quả |
+|---|---|
+| Mặc định Không gộp: khối toàn kỳ + mỗi ngày một bảng; bấm Gộp: khối toàn kỳ + một bảng mỗi ngày một dòng, URL có `gop=1` | đạt |
+| Dòng TỔNG CỘNG toàn kỳ giống hệt ở Gộp và Không gộp (80.855 Mess, 7.690 đơn, 1.819 đơn TT…) | đạt |
+| Đang ở trang 2 có lọc Team, bấm Gộp: giữ nguồn/kỳ/Team, về trang 1, chip Team còn | đạt |
+| Bấm qua lại 20 lần: lần nào cũng đúng chế độ, 0 lỗi JavaScript, mỗi lần tải 0,43–0,64 s | đạt |
+| Sau 20 lần bấm, lăn trên bảng: bảng cuộn trước (500 px sau 5 nấc, trang 0), hết bảng (4.549) thì trang tới cuối (626) | đạt |
+| Lăn ngược lên: bảng về đầu trước (trang giữ 626), rồi trang về 0 | đạt |
+| Tiêu đề cột vẫn dính đầu khung khi đã cuộn 1.500 px | đạt |
+| Lăn ngang: bảng cuộn hết 782 px, cột tên ghim trái đứng yên, trang không trôi ngang lẫn dọc | đạt |
+| Bàn phím sau khi bấm vào bảng: PageDown 585 px, End xuống cuối, Home về đầu | đạt |
+| Toàn màn hình: bảng cuộn hết 4.613 px, khung trang đứng yên, Escape thoát | đạt |
+| Cách xem Theo nhân viên / sản phẩm / thị trường / phòng ban: lăn trên bảng cuộn bảng rồi tới trang | đạt (4/4) |
+| Bảng ngắn (Gộp, 7 ngày, 1 người; tràn ngang 688 px): lăn trên bảng thì trang cuộn hết 626 px | đạt |
+| Màn hẹp 390×844: không tràn ngang; bảng cuộn trước, hết bảng (4.361) thì trang tới cuối (813) | đạt |
+| Nền tối và nền sáng: nền khung bảng trùng nền thẻ kết quả | đạt |
+| Bảng dữ liệu `bao_cao_mkt`: bảng cuộn trước (trang giữ nguyên), hết bảng thì trang tới cuối | đạt |
+| Không lỗi JavaScript cả lượt; yêu cầu hỏng duy nhất là phông Google bị proxy máy ảo chặn | đạt |
+
+Khung hình (trace, lăn 40 nấc xuống + 40 nấc lên): Không gộp mở mới rớt 0/199, sau 20 lần bấm rớt 5/185; Gộp
+lăn **trên bảng** rớt 10/116 (bảng Gộp chỉ cuộn 1.469 px, phần còn lại chuyển sang cuộn trang — trước khi sửa
+phần đó không cuộn gì). Cuộn trang với con trỏ **ngoài bảng** (Gộp, hai lần mỗi bản): CSS cũ rớt 23 và 29
+khung, CSS mới rớt 1 và 0 — nền đặc của khung bảng làm mượt cả việc cuộn trang.
+
+Hai lần viết đầu của kịch bản trượt vì cách đo, không vì mã: lỗi console `ERR_CERT_AUTHORITY_INVALID` là phông
+Google bị chặn (yêu cầu hỏng duy nhất `fonts.googleapis.com`); ở màn 390 px và Bảng dữ liệu, lúc mở trang khung
+bảng nằm dưới đáy khung nhìn nên con trỏ rơi vào thanh dock — đã sửa kịch bản cuộn trang cho bảng hiện ra
+trước như người dùng.
+
 ## Chưa kiểm
 
 - Máy thật của chủ dự án (Windows, GPU, tỉ lệ màn hình): số trên là Chromium không màn hình vẽ bằng CPU;
