@@ -1,5 +1,16 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 28.09.2026 — Lăn chuột trên bảng Báo cáo tổng hợp bị kẹt, cuộn giật
+
+**TL-63 (đóng):** chủ dự án báo bấm qua lại Gộp/Không gộp rồi lăn chuột thì lag, chậm hơn nhiều; con trỏ
+đặt trên bảng thì không cuộn được. Nguyên nhân: khung bảng `.report-table-scroll` (chép từ bản vẽ 18.09) có
+`overscroll-behavior: contain` nên cú lăn không truyền ra trang — bảng vừa khung dọc mà tràn ngang (bảng
+thật nhiều cột) thì lăn trên bảng không cuộn gì, trang 0/626 px; bảng dài thì cuộn hết bảng là dừng, trang
+đứng yên. Khung bảng lại trong suốt nên mỗi khung cuộn trình duyệt raster lại: 78–81 khung rớt / 80 nấc ở
+Không gộp. Sửa trong `solarpunk.css`: bỏ `contain`, thêm nền đặc `var(--surface)` (cùng màu nền thẻ) —
+trang cuộn tiếp, còn 0–4 khung rớt. Bấm qua lại không làm cuộn chậm dần (đo 30 lần liên tiếp), chỉ để lại
+trang cũ chờ thu rác. AC-22.19. [Biên bản](kiem-chung-cuon-bao-cao-tong-hop-20260928.md).
+
 ## 26.09.2026 — Thẻ Báo cáo tổng hợp trên Tổng quan xếp chật, số tiền bị bẻ dòng
 
 **TL-60 (đóng, hồi quy):** chủ dự án chụp Tổng quan ERP: chỉ tiêu trong thẻ Marketing/Sale xếp nhiều

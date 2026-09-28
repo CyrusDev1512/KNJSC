@@ -1,5 +1,15 @@
 # Backlog
 
+## 28.09.2026 — Cuộn Báo cáo tổng hợp không còn kẹt, bớt giật (TL-63)
+
+**Chủ dự án báo** bấm qua lại Gộp/Không gộp rồi lăn chuột thì lag, chậm; con trỏ trên bảng thì không cuộn
+được. **Sửa:** một quy tắc CSS của khung bảng (`solarpunk.css`, `.report-table-scroll`): bỏ
+`overscroll-behavior: contain` để cú lăn truyền ra trang khi bảng hết chỗ cuộn, thêm nền đặc để cuộn không
+phải vẽ lại. Áp luôn cho Bảng dữ liệu dạng báo cáo (cùng khung). Không đổi template, JS, số liệu. AC-22.19
+đỏ trên mã cũ, xanh sau sửa. **Còn nợ, chờ chủ dự án chốt vì đổi giao diện:** lúc mở trang khung bảng chỉ
+lộ khoảng 250 px ở đáy thẻ; bốn cột ghim trái; bấm Gộp/Không gộp vẫn tải lại cả trang. Chưa phát hành VPS.
+Biên bản [kiem-chung-cuon-bao-cao-tong-hop-20260928.md](kiem-chung-cuon-bao-cao-tong-hop-20260928.md).
+
 ## 26.09.2026 — Sửa bố cục thẻ Báo cáo tổng hợp trên Tổng quan ERP (TL-60)
 
 **Chủ dự án báo** (ảnh Tổng quan): chỉ tiêu xếp chật nhiều cột, số tiền bị bẻ giữa chữ số. **Nguyên

@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 28.09.2026 — Cuộn Báo cáo tổng hợp (TL-63)
+
+**Finished local (nhánh `claude/cuon-bao-cao-tong-hop`, PR nháp về `main`):** lăn chuột trên bảng không
+còn kẹt, cuộn Không gộp hết rớt khung. **To do:** chủ dự án test local rồi quyết gộp; chốt hai việc tuỳ
+chọn đổi giao diện (khe bảng lúc mở trang, bớt cột ghim trái).
+
 ## 26.09.2026 — Bố cục thẻ Báo cáo tổng hợp trên Tổng quan (TL-60)
 
 **Finished local (nhánh `claude/sua-bo-cuc-tong-quan`, PR nháp về `main`):** mỗi chỉ tiêu một hàng, số
