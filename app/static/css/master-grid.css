@@ -194,8 +194,8 @@
 .mg-cell-history .mg-history-item{padding:6px 0}.mg-cell-history .mg-history-item>strong{font-size:11px;margin:0;color:var(--ink-2);padding-right:0}
 .mg-cell-history .mg-history-item pre{margin:2px 0 0;max-height:96px}
 /* Bôi đen chữ trong lưới xanh như Excel/Google Sheets, không theo màu chọn vàng của giao diện chung. */
-.mg-root ::selection,.mg-float ::selection{background:#b4d5fe;color:#111}
-:root[data-theme="dark"] .mg-root ::selection,:root[data-theme="dark"] .mg-float ::selection{background:#264f78;color:#fff}
+.mg-root ::selection,.mg-float ::selection,#mg-reader ::selection{background:#b4d5fe;color:#111}
+:root[data-theme="dark"] .mg-root ::selection,:root[data-theme="dark"] .mg-float ::selection,:root[data-theme="dark"] #mg-reader ::selection{background:#264f78;color:#fff}
 /* Ô chọn phân công đè đúng ô "Phụ trách …" như ô nhập tại chỗ (AC-21.15). */
 .vd-assign-cell{padding:0;border:2px solid #2563eb;border-radius:0;box-shadow:0 4px 14px #0003;overflow:visible;z-index:20}
 .vd-assign-cell select{display:block;width:100%;min-height:26px;border:0;border-radius:0;padding:0 6px;font-size:13px;background:var(--surface);color:var(--ink)}

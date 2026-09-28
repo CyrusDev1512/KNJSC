@@ -46,3 +46,11 @@ Ghi ở ADR-033 bổ sung 26.09.
   thật (máy ảo không có bộ dữ liệu MASTER-*; ba script capacity vốn được PR #38 đánh
   dấu "cần làm lại").
 - Chưa phát hành VPS.
+
+## Gộp với `main` 28.09.2026 (trước khi gộp PR #56)
+
+`main` đã có lịch sử ô (AC-21.13: chuột phải lên hộp đọc cũng mở lịch sử), bôi đen xanh trong lưới, ô chọn
+phân công và bỏ nút Phân công. Gỡ xung đột: giữ ô phồng của nhánh này, thêm `reader.dataset.cell` để chuột
+phải lên ô phồng vẫn mở lịch sử đúng ô; giữ khung `#mg-cell-history`; luật bôi đen xanh thêm `#mg-reader`
+(ô phồng không còn lớp `.mg-float`). Bài `test_chuot_phai_len_hop_doc_van_mo_lich_su_o` viết lại theo cách
+mở mới: Kế toán (chỉ đọc) click đơn thì không mở gì, bấm đúp thì ô phồng, chuột phải lên ô phồng mở lịch sử.
