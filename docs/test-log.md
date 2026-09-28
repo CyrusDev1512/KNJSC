@@ -10,6 +10,39 @@ trang thật. Sửa: lưới đi đường tải lại mềm (`refreshSoft`) khi
 chiều cao; mũi tên đổi ngay; không tải HTML; chip lọc giữ thứ tự đang dùng. ERP dùng HTMX thay riêng khối
 bảng (`_bang_xem_bang.html`). AC-21.12, AC-7.13. [Biên bản](kiem-chung-sap-xep-khong-giat-20260928.md).
 
+## 28.09.2026 — Báo "khách mua lại" sai; ô ngày phải gõ tay "/"; đảo thứ tự tải lại trang
+
+**TL-61 (đóng):** Lên đơn báo "Khách mua lại — đã có N đơn" dù số đó không còn trên bảng tính. Lời báo
+đếm **đơn hàng** (`Customer.order_count`), còn xoá dòng trên lưới chỉ xoá mềm dòng; lệnh xoá cứng hai
+bảng vận đơn cũ giữ đơn và chỉ cắt liên kết (`record=None`). Tái hiện: xoá dòng duy nhất của một số →
+lưới 0 dòng, Lên đơn vẫn "đã có 1 đơn". Sửa: đếm **dòng đang sống trên bảng Vận đơn** cùng khoá số
+(`dispatch_service.rows_with_phone`, cùng thước đo cột Trùng); cột "Mua lại lần" đếm cùng cách. AC-6.8.
+**TL-62 (mở lúc ghi mục này; đã đóng ở mục "Bấm đảo thứ tự" ngay trên):** bấm tiêu đề cột để đảo thứ tự thì lưới CRM xoá sạch ô (hiện "…"),
+cuộn về cột đầu, bỏ vùng chọn và tải lại cả trang HTML chỉ để lấy khung lọc; Bảng dữ liệu ERP thì tải
+lại cả trang thật. Hướng sửa đã trình: giữ dòng cũ tới khi dữ liệu mới về, giữ cuộn ngang, bỏ tải HTML;
+ERP dùng HTMX thay phần bảng.
+Ô ngày tự chèn "/" là tính năng mới (AC-32.1), không phải lỗi. [Biên bản](kiem-chung-mua-lai-va-o-ngay-20260928.md).
+
+## 28.09.2026 — Lăn chuột trên bảng Báo cáo tổng hợp bị kẹt, cuộn giật
+
+**TL-63 (đóng):** chủ dự án báo bấm qua lại Gộp/Không gộp rồi lăn chuột thì lag, chậm hơn nhiều; con trỏ
+đặt trên bảng thì không cuộn được. Nguyên nhân: khung bảng `.report-table-scroll` (chép từ bản vẽ 18.09) có
+`overscroll-behavior: contain` nên cú lăn không truyền ra trang — bảng vừa khung dọc mà tràn ngang (bảng
+thật nhiều cột) thì lăn trên bảng không cuộn gì, trang 0/626 px; bảng dài thì cuộn hết bảng là dừng, trang
+đứng yên. Khung bảng lại trong suốt nên mỗi khung cuộn trình duyệt raster lại: 78–81 khung rớt / 80 nấc ở
+Không gộp. Sửa trong `solarpunk.css`: bỏ `contain`, thêm nền đặc `var(--surface)` (cùng màu nền thẻ) —
+trang cuộn tiếp, còn 0–4 khung rớt. Bấm qua lại không làm cuộn chậm dần (đo 30 lần liên tiếp), chỉ để lại
+trang cũ chờ thu rác. AC-22.19. [Biên bản](kiem-chung-cuon-bao-cao-tong-hop-20260928.md).
+
+## 28.09.2026 — Nút "Tôi" không ra dòng của tài khoản; thêm lịch sử từng ô
+
+**TL-64 (đóng):** nút Tôi lọc theo cột phụ trách của bộ phận mình, mà Lên đơn không điền ai vào cột đó.
+Đo trên dữ liệu thử: Sale tự lên 1 đơn → "Toàn bộ" 1, **"Tôi" 0**; nhân viên Vận đơn chưa được giao →
+"Tôi" 0; Admin, Kế toán không có nút. Sửa theo chốt của chủ dự án: "Tôi" = dòng tôi lên đơn / đứng đơn
+cộng dòng giao tôi ở bất kỳ cột phụ trách nào (`assignment_service.mine_condition`), nút cho mọi tài
+khoản. AC-33.3, AC-33.6. Cùng lượt: lịch sử từng ô trên lưới (tính năng mới, AC-21.13).
+[Biên bản](kiem-chung-toi-va-lich-su-o-20260928.md).
+
 ## 26.09.2026 — Thẻ Báo cáo tổng hợp trên Tổng quan xếp chật, số tiền bị bẻ dòng
 
 **TL-60 (đóng, hồi quy):** chủ dự án chụp Tổng quan ERP: chỉ tiêu trong thẻ Marketing/Sale xếp nhiều

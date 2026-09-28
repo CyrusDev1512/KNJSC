@@ -153,3 +153,69 @@ def test_the_tong_quan_moi_chi_tieu_mot_hang(live_server, trinh_duyet_moi, nguon
             dai = [h for h in kq["hang"] if len(h["so"]) >= 15]
             assert dai, f"dữ liệu thử phải có một số tiền dài: {kq['hang']}"
             assert all(h["so_dong"] == 1 for h in kq["hang"]), f"số bị bẻ dòng ở 1440px: {kq['hang']}"
+
+
+#: Điểm giữa phần nhìn thấy của khung bảng (giao với khung cuộn của trang) — chỗ người dùng đặt chuột
+DIEM_TREN_BANG = """()=>{const s=document.querySelector('.report-table-scroll').getBoundingClientRect(),
+    m=document.querySelector('main.noi-dung').getBoundingClientRect();
+    const tren=Math.max(s.top,m.top)+30,duoi=Math.min(s.bottom,m.bottom,innerHeight)-20;
+    return [Math.round(s.left+s.width/2),Math.round((tren+duoi)/2)]}"""
+#: [bảng đã cuộn, bảng cuộn tối đa, trang đã cuộn, trang cuộn tối đa]
+VI_TRI = """()=>{const s=document.querySelector('.report-table-scroll'),m=document.querySelector('main.noi-dung');
+    return [s.scrollTop,s.scrollHeight-s.clientHeight,m.scrollTop,m.scrollHeight-m.clientHeight]}"""
+
+
+def _lan(page, nac):
+    """Lăn bánh xe `nac` nấc xuống tại giữa phần nhìn thấy của khung bảng; trả VI_TRI."""
+    x, y = page.evaluate(DIEM_TREN_BANG)
+    assert page.evaluate(f"()=>document.querySelector('.report-table-scroll').contains(document.elementFromPoint({x},{y}))"), \
+        "con trỏ phải nằm trên bảng"
+    page.mouse.move(x, y)
+    for _ in range(nac):
+        page.mouse.wheel(0, 100)
+        page.wait_for_timeout(15)
+    page.wait_for_timeout(250)
+    return page.evaluate(VI_TRI)
+
+
+def test_lan_chuot_tren_bang_khong_ket(live_server, trinh_duyet_moi, nguon, nguoi_dung):
+    """AC-22.19 — Lăn chuột với con trỏ đặt trên bảng không bị kẹt (TL-63, chủ dự án 28.09.2026): bảng ngắn
+    hơn khung (không có gì để cuộn dọc) thì trang cuộn ngay; bảng dài thì bảng cuộn trước, cuộn hết bảng
+    thì trang cuộn tiếp — khung bảng không chặn cuộn truyền ra trang"""
+    from datetime import date, timedelta
+    from forms_builder.models import DataRecord
+
+    # Bảng ngắn: Theo nhân viên, bốn người — một khối, vừa khung theo chiều dọc nhưng rộng hơn khung
+    # (bảng thật nhiều cột luôn cuộn ngang): đúng lúc khung cuộn được một chiều thì nó nuốt cú lăn dọc
+    url = f"/bao-cao/tong-hop/?nguon={nguon.table.code}&nhom=person&tu=2026-08-01&den=2026-08-31"
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1000, 760, url)
+    try:
+        bang, bang_max, trang, trang_max = page.evaluate(VI_TRI)
+        ngang = page.evaluate("()=>{const s=document.querySelector('.report-table-scroll');return s.scrollWidth-s.clientWidth}")
+        assert bang_max <= 0 < trang_max and ngang > 0, \
+            f"tiền đề: bảng vừa khung dọc, tràn ngang, trang cuộn được — {[bang_max, ngang, trang_max]}"
+        _, _, trang, _ = _lan(page, 10)
+        assert trang > 0, "bảng ngắn: lăn chuột trên bảng mà trang không cuộn"
+    finally:
+        ctx.close()
+
+    # Bảng dài: thêm 29 ngày cho bốn người — Tổng hợp không gộp là 25 khối ngày mỗi trang
+    mau = list(DataRecord.objects.filter(table=nguon.table))
+    DataRecord.objects.bulk_create([
+        DataRecord(table=d.table, created_by=d.created_by, department=d.department, team=d.team,
+                   val_date=date(2026, 8, 1) + timedelta(days=i), val_seller=d.val_seller,
+                   val_product=d.val_product, val_revenue=d.val_revenue,
+                   data={**d.data, "ngay": (date(2026, 8, 1) + timedelta(days=i)).isoformat()})
+        for i in range(1, 30) for d in mau])
+    url = f"/bao-cao/tong-hop/?nguon={nguon.table.code}&tu=2026-08-01&den=2026-08-31"
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1440, 760, url)
+    try:
+        _, bang_max, _, trang_max = page.evaluate(VI_TRI)
+        assert bang_max > 1000 and trang_max > 0, f"tiền đề: bảng dài hơn khung — {[bang_max, trang_max]}"
+        bang, _, trang, _ = _lan(page, 5)
+        assert bang > 0 and trang == 0, f"bảng dài: bảng phải cuộn trước — {[bang, trang]}"
+        bang, bang_max, trang, _ = _lan(page, bang_max // 100 + 10)
+        assert bang >= bang_max - 1, f"bảng chưa cuộn hết — {[bang, bang_max]}"
+        assert trang > 0, "bảng dài: cuộn hết bảng rồi mà trang không cuộn tiếp"
+    finally:
+        ctx.close()
