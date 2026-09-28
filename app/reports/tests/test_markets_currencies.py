@@ -100,3 +100,27 @@ def test_bay_thi_truong_tam_loai_tien(bang_mkt, nguoi_dung, settings):
     assert "KRW" not in settings.EXCHANGE_RATES_VND
     with pytest.raises(BusinessError, match="KRW"):
         to_vnd(Decimal("1000"), "KRW")
+
+
+def test_the_tong_quan_khong_hien_o_don_vi_va_canh_bao_quy_doi(client, bang_mkt, nguoi_dung):
+    """AC-22.18 — Thẻ Báo cáo tổng hợp trên Tổng quan không còn ô đơn vị/tỉ giá hay ô cảnh báo
+    "… dòng chưa quy đổi được" (chủ dự án 26.09.2026); cảnh báo vẫn ở màn Báo cáo tổng hợp chi tiết"""
+    ColumnDef.objects.create(table=bang_mkt, name="Loại tiền", code="loai_tien", field_type=FieldType.CHOICE,
+                             options=["VND", "USD"], order=91)
+    FormDef.objects.create(table=bang_mkt, department=bang_mkt.department, code="bc_mkt_tq", name="BC MKT")
+    configure_source(bang_mkt, "mkt")
+    record_service.create_record(bang_mkt, {"ngay": "2026-09-18", "marketer": "x", "san_pham": "SP",
+        "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Hàn Quốc"},
+        actor=nguoi_dung["staff_mkt"])
+    client.force_login(nguoi_dung["manager_mkt"])
+    ky = {"tu": "2026-09-01", "den": "2026-09-30"}
+
+    tong_quan = client.get("/", {"mkt_nguon": bang_mkt.code, **ky})
+    khoi = next(b for b in tong_quan.context["activity"]["blocks"] if b["kind"] == "mkt")
+    assert khoi["ok"] and khoi["data"]["state"] == "ready", khoi
+    html = tong_quan.content.decode()
+    assert "chưa quy đổi được" not in html and "quy đổi theo tỉ giá cố định" not in html
+    assert "dashboard-note" not in html and "currency_note" not in khoi["data"]
+
+    chi_tiet = client.get("/bao-cao/tong-hop/", {"nguon": bang_mkt.code, **ky}).content.decode()
+    assert "1 dòng chưa quy đổi được" in chi_tiet and "KRW" in chi_tiet

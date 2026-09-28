@@ -93,3 +93,10 @@ Chỗ đối tác thấy sai trước tiên: dữ liệu thật lẫn USD/EUR/CA
 - Ngưỡng màu mặc định không bịa; màn hình chỉ tô ba bậc sau khi Manager đặt (đợt 3).
 - Bảng dữ liệu dạng báo cáo chỉ hiện cột trong ánh xạ nguồn; cột khác (ghi chú, thị trường, loại tiền) xem
   bằng `?dang=tho` — chờ chủ dự án nói có cần thêm "cột xem thêm" không (đợt 4).
+
+## Bổ sung 26.09.2026 — thẻ Tổng quan bỏ ô đơn vị và cảnh báo quy đổi
+
+Chủ dự án yêu cầu xoá ô vàng trên các thẻ Báo cáo tổng hợp của **Tổng quan** ERP ("… dòng chưa quy
+đổi được …" và dòng "VND (₫), quy đổi theo tỉ giá cố định …"). Thẻ Tổng quan chỉ còn nguồn và chỉ
+tiêu. Cách tính **không đổi**: dòng thiếu tỉ giá hoặc trống loại tiền vẫn không vào tổng tiền; cảnh
+báo vẫn hiện ở màn Báo cáo tổng hợp chi tiết, Bảng dữ liệu dạng báo cáo và tệp Excel (AC-22.18).

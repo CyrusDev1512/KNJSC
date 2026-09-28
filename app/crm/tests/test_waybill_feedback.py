@@ -381,3 +381,28 @@ def test_scoped_grid_does_not_query_per_row(feedback, nguoi_dung, delivery_leade
     with django_assert_max_num_queries(22):
         response = client.get('/bang-tinh/van_don/du-lieu/?cua_toi=1')
     assert response.status_code == 200 and len(response.json()['rows']) == 100
+
+
+def test_phan_cong_trong_o_doc_nguoi_dang_giao_theo_id(feedback, nguoi_dung, delivery_leader, client):
+    """AC-21.15 — Ô chọn phân công ngay trong ô cần biết người đang được giao (ID) để chọn sẵn; Leader
+    Vận đơn đọc được, nhân viên Vận đơn thường bị từ chối 403 (quyền phân công không đổi)"""
+    row = feedback[2][0]
+    assign_rows(delivery_leader, [row], delivery=nguoi_dung['staff_vd'].pk)
+    client.force_login(delivery_leader)
+    data = client.get('/van-don/phan-cong/', {'row': row.pk}).json()
+    assert data['rows'][0]['current_id'] == {'delivery': nguoi_dung['staff_vd'].pk, 'care': None, 'marketing': None}
+    assert {c['id'] for c in next(f for f in data['fields'] if f['key'] == 'delivery')['choices']} >= {nguoi_dung['staff_vd'].pk}
+    client.force_login(nguoi_dung['staff_vd'])
+    assert client.get('/van-don/phan-cong/', {'row': row.pk}).status_code == 403
+
+
+def test_cot_phu_trach_mang_ten_truong_phan_cong(feedback):
+    """AC-21.15 — Cột phụ trách báo cho lưới biết trường phân công của nó (delivery/care/marketing), khai
+    một chỗ ở `assignment_service.COLUMNS`; cột thường không mang"""
+    from orders.services import waybill_service
+    table = feedback[0]
+    cols = {c.code: waybill_service.grid_column(c) for c in table.columns.all()}
+    assert cols['phu_trach_vd']['assignment'] == 'delivery'
+    assert cols['phu_trach_cskh']['assignment'] == 'care'
+    assert cols['phu_trach_mkt']['assignment'] == 'marketing'
+    assert not cols['ten_khach']['assignment']

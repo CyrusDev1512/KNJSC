@@ -12,6 +12,77 @@ bỏ phồng ở `pointerup`, đúp-ô-chỉ-đọc-bị-cắt phồng trong `ed
 mới đúp-ô-chỉ-đọc (CSKH chỉ xem); 3 bài `pha_luoi` đỏ do TLS proxy máy ảo (đối chứng mã
 gốc cũng đỏ). Biên bản [kiem-chung-o-phong-to-20260926.md](kiem-chung-o-phong-to-20260926.md).
 
+## 28.09.2026 — Phân công ngay trong ô bằng ô chọn (AC-21.15)
+
+**Chủ dự án yêu cầu** phân công nhân viên bằng ô chọn giống "Trạng thái vận chuyển". **Làm:** bấm đúp,
+Enter hay F2 ô "Phụ trách …" mở ô chọn đè đúng ô (mã nhân viên đúng bộ phận, "Chưa gán"), chuột chọn là
+lưu, Enter lưu, Esc đóng; vẫn qua endpoint phân công (quyền, CAS, nhật ký như cũ); nút Phân công nhiều
+dòng giữ nguyên. ADR-020 bổ sung 28.09. Không migration. Biên bản
+[kiem-chung-phan-cong-o-chon-20260928.md](kiem-chung-phan-cong-o-chon-20260928.md).
+
+## 28.09.2026 — Nhãn bộ lọc nằm trên thanh công cụ, không đẩy lưới (AC-21.14)
+
+**Chủ dự án yêu cầu** nhãn bộ lọc đang bật nằm giữa Cột và Định dạng, không đẩy trang tính xuống.
+**Làm:** `#mg-chips` chuyển vào thanh công cụ, chiếm chỗ trống, cuộn ngang khi nhiều nhãn. Trước sửa đỉnh
+lưới tụt 103 → 137 px khi bật lọc; sau sửa giữ nguyên (Chromium 1440/1280). Không đổi JS, máy chủ.
+Biên bản [kiem-chung-nhan-loc-tren-thanh-cong-cu-20260928.md](kiem-chung-nhan-loc-tren-thanh-cong-cu-20260928.md).
+
+## 28.09.2026 — Bấm đảo thứ tự không còn làm trang giật (TL-62)
+
+**Chủ dự án báo** bấm sắp xếp theo Quốc gia thì cả trang bị load. **Sửa:** lưới KN CRM khi chỉ đổi thứ
+tự thì đi đường tải lại mềm có sẵn — mũi tên đổi ngay, giữ dòng đang hiện tới khi dữ liệu mới về, giữ
+cuộn ngang và chiều cao dòng, bỏ tải lại trang HTML; chip lọc giữ thứ tự đang dùng. Bảng dữ liệu ERP:
+tiêu đề cột dùng HTMX thay riêng khối bảng. Cách máy chủ sắp xếp và phân quyền không đổi. Phân trang
+ERP vẫn tải trang như cũ. Biên bản [kiem-chung-sap-xep-khong-giat-20260928.md](kiem-chung-sap-xep-khong-giat-20260928.md).
+
+## 28.09.2026 — "Khách mua lại" theo bảng tính (TL-61) và ô ngày tự chèn "/" (AC-32.1)
+
+**Chủ dự án báo ba việc, chốt làm 2 + 3 trước.** (2) Lên đơn báo khách mua lại dù số không còn trên bảng
+tính: nay đếm dòng đang sống trên bảng Vận đơn cùng số (như cột Trùng), dòng đã xoá và đơn của bảng cũ
+đã xoá cứng không tính, dòng nhập thẳng vào bảng có tính; cột "Mua lại lần" cùng cách. Không migration,
+không xoá dữ liệu. (3) Mọi ô ngày ERP/CRM (`date-inputs.js`, cả ô ngày trên lưới) tự chèn "/", đổi dấu
+cách/chấm/gạch ngang, gõ liền 8 số, rời ô thêm số 0. **Còn nợ:** (1) đảo thứ tự tải lại trang — TL-62,
+chờ làm lượt sau. Biên bản [kiem-chung-mua-lai-va-o-ngay-20260928.md](kiem-chung-mua-lai-va-o-ngay-20260928.md).
+
+## 28.09.2026 — Cuộn Báo cáo tổng hợp không còn kẹt, bớt giật (TL-63)
+
+**Chủ dự án báo** bấm qua lại Gộp/Không gộp rồi lăn chuột thì lag, chậm; con trỏ trên bảng thì không cuộn
+được. **Sửa:** một quy tắc CSS của khung bảng (`solarpunk.css`, `.report-table-scroll`): bỏ
+`overscroll-behavior: contain` để cú lăn truyền ra trang khi bảng hết chỗ cuộn, thêm nền đặc để cuộn không
+phải vẽ lại. Áp luôn cho Bảng dữ liệu dạng báo cáo (cùng khung). Không đổi template, JS, số liệu. AC-22.19
+đỏ trên mã cũ, xanh sau sửa. **Còn nợ, chờ chủ dự án chốt vì đổi giao diện:** lúc mở trang khung bảng chỉ
+lộ khoảng 250 px ở đáy thẻ; bốn cột ghim trái; bấm Gộp/Không gộp vẫn tải lại cả trang. Chưa phát hành VPS.
+Biên bản [kiem-chung-cuon-bao-cao-tong-hop-20260928.md](kiem-chung-cuon-bao-cao-tong-hop-20260928.md).
+
+## 28.09.2026 — Máy chạy thử tự nhận CSS/JS mới, không cần Ctrl+F5 (AC-10.11)
+
+**Chủ dự án gặp** khi thử PR #61: kéo mã chỉ đổi JS/CSS thì trình duyệt vẫn chạy bản cũ. **Nguyên
+nhân:** số `?v=` sau đường dẫn tệp tĩnh tính một lần lúc tiến trình khởi động, mà runserver chỉ tự
+khởi động lại khi mã Python đổi. **Sửa:** DEBUG bật thì quét lại mỗi lần tải trang
+(`core.context_processors.phien_ban_hien_tai`, 32 tệp, 0,24 ms); DEBUG tắt (VPS) giữ nguyên. Không đổi
+template, không thêm thư viện. Biên bản
+[kiem-chung-tu-nhan-js-css-20260928.md](kiem-chung-tu-nhan-js-css-20260928.md).
+
+## 28.09.2026 — Nút "Tôi" theo tài khoản (TL-64) và lịch sử từng ô trên lưới (AC-21.13)
+
+**Chủ dự án yêu cầu** "bộ lọc cá nhân theo tài khoản CRM" — chính là nút Tôi / Toàn bộ đang sai — và
+"lịch sử chỉnh sửa trực tiếp trên bảng Vận đơn", chọn kiểu từng ô. **Làm:** "Tôi" = dòng tôi lên đơn
+hoặc đứng đơn, cộng dòng giao tôi ở mọi cột phụ trách; nút hiện cho mọi tài khoản (ADR-033 bổ sung
+28.09). Chuột phải một ô thì khung lịch sử hiện cạnh ô (dùng lại API `lich-su/` đã kiểm quyền); ô bị
+người khác sửa trong 24 giờ có dấu góc cam (một truy vấn mỗi khối, trần 22 truy vấn giữ). Không
+migration. Biên bản [kiem-chung-toi-va-lich-su-o-20260928.md](kiem-chung-toi-va-lich-su-o-20260928.md).
+
+## 26.09.2026 — Sửa bố cục thẻ Báo cáo tổng hợp trên Tổng quan ERP (TL-60)
+
+**Chủ dự án báo** (ảnh Tổng quan): chỉ tiêu xếp chật nhiều cột, số tiền bị bẻ giữa chữ số. **Nguyên
+nhân:** hồi quy 17.09 — `d84a8c1` chép luật `.dashboard-*` cũ vào `solarpunk.css` để bài khai lớp CSS
+hết đỏ, chồng lên bản sửa 16.09 ở `dashboard.css`. **Sửa:** gỡ khối trùng, bài khai lớp quét cả
+`dashboard.css`; AC-22.17 (tĩnh + Chromium 1440/390) đỏ trên mã cũ, xanh sau sửa. Không đổi template,
+số liệu hay nguồn. **Cùng lượt:** thẻ Tổng quan bỏ ô đơn vị/cảnh báo "… dòng chưa quy đổi được"
+theo yêu cầu (AC-22.18, ADR-042 bổ sung 26.09) — cách tính và cảnh báo ở màn chi tiết giữ nguyên.
+Chưa phát hành VPS. Biên bản
+[kiem-chung-bo-cuc-tong-quan-20260926.md](kiem-chung-bo-cuc-tong-quan-20260926.md).
+
 ## 25.09.2026 — Sidebar KN CRM: bỏ mục ERP trùng, Tác vụ nền chỉ Admin
 
 **Hoàn tất local:** bỏ lối KN ERP trùng ở sidebar và giữ lối trên topbar; chỉ

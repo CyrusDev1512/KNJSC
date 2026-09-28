@@ -82,19 +82,21 @@ def customer_notice(phone, ten_dang_go=""):
     sách đen: chặn nhầm thì mất đơn thật.
     """
     khach = find_customer(phone)
-    if khach is None:
+    # "Mua lại" đếm dòng đang sống trên bảng vận đơn, không đếm đơn hàng (28.09.2026)
+    so_dong = dispatch_service.rows_with_phone(phone)
+    if khach is None and not so_dong:
         return {}
     ten_dang_go = " ".join(str(ten_dang_go or "").split())
     return {
         "customer": khach,
-        "phone": khach.phone,
-        "so_don_cu": khach.order_count(),
-        "mua_lai": khach.order_count() > 0,
-        "danh_sach_den": khach.is_blacklisted,
-        "ly_do": khach.blacklist_reason,
-        "ten_dang_luu": khach.name,
+        "phone": khach.phone if khach else (phone or "").strip(),
+        "so_don_cu": so_dong,
+        "mua_lai": so_dong > 0,
+        "danh_sach_den": bool(khach and khach.is_blacklisted),
+        "ly_do": khach.blacklist_reason if khach else "",
+        "ten_dang_luu": khach.name if khach else "",
         "ten_dang_go": ten_dang_go,
-        "ten_khac": bool(ten_dang_go) and ten_dang_go != khach.name,
+        "ten_khac": bool(khach and ten_dang_go and ten_dang_go != khach.name),
     }
 
 

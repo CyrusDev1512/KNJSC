@@ -18,7 +18,7 @@ from core.constants import AuditAction
 from core.exceptions import BusinessError
 from core.identity import employee_code
 from forms_builder.meaning import FieldType, Meaning
-from forms_builder.models import ColumnDef, TableDef
+from forms_builder.models import ColumnDef, DataRecord, TableDef, phone_key
 from forms_builder.services import record_service
 
 from ..constants import (
@@ -228,17 +228,31 @@ def build_values(order, lines=None):
     }
 
 
-def _lan_mua(order):
-    """Khách mua lần thứ mấy — FR-6.7, cột "Mua lại lần ?" của tệp thật.
-    Lần đầu là 1. Đếm đơn của cùng khách tới thời điểm này."""
-    from ..models import Order
+def rows_with_phone(phone, before=None):
+    """Số dòng **đang sống** trên bảng vận đơn cùng khoá số điện thoại — thước đo "khách
+    mua lại" (FR-6.7), cùng cách đếm với cột Trùng của lưới (`grid_service.attach_duplicate_counts`).
 
-    if not getattr(order, "customer_id", None):
+    Không đếm đơn hàng: dòng đã xoá khỏi lưới hay đơn của bảng cũ đã xoá cứng (đơn còn, dòng
+    mất) không còn là "đã có trên bảng tính" (chủ dự án 28.09.2026). Đếm toàn bảng, không theo
+    phạm vi người xem — như cột Trùng; chỉ trả một con số, không lộ dòng. `before` là khoá
+    chính của một dòng: chỉ đếm các dòng tạo trước nó."""
+    key = phone_key(phone)
+    bang = TableDef.all_objects.filter(code=WAYBILL_TABLE_CODE).first() if key else None
+    if bang is None:
+        return 0
+    rows = DataRecord.objects.filter(table=bang, val_phone_key=key)
+    if before:
+        rows = rows.filter(pk__lt=before)
+    return rows.count()
+
+
+def _lan_mua(order):
+    """Khách mua lần thứ mấy — FR-6.7, cột "Mua lại lần ?" của tệp thật. Lần đầu là 1;
+    đếm các dòng đang sống cùng số điện thoại có trước dòng của đơn này (`rows_with_phone`)."""
+    khach = getattr(order, "customer", None) if getattr(order, "customer_id", None) else None
+    if khach is None:
         return 1
-    ds = Order.objects.filter(customer_id=order.customer_id)
-    if order.pk:
-        ds = ds.filter(pk__lte=order.pk)
-    return max(ds.count(), 1)
+    return rows_with_phone(khach.phone, before=getattr(order, "record_id", None)) + 1
 
 
 def push(order, *, actor=None, request=None, lines=None):

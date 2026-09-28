@@ -40,6 +40,14 @@ def field_for(user):
     return next((f for f, depts in FIELDS.items() if dept in depts), None)
 
 
+def mine_condition(user):
+    """Nút "Tôi" trên bảng vận đơn (ADR-033 bổ sung 28.09.2026): dòng của tài khoản đang đăng nhập —
+    tôi lên đơn hoặc tôi là Sale đứng đơn, CỘNG dòng tôi được phân công ở bất kỳ cột phụ trách
+    nào. Chỉ thu hẹp trong phạm vi quyền sẵn có, không mở thêm dòng nào."""
+    return (Q(created_by=user) | Q(order__seller=user) | Q(assignment__delivery=user)
+            | Q(assignment__care=user) | Q(assignment__marketing=user))
+
+
 def scope_condition(user, original, *, only_new=False):
     """Chỉ thay ngoại lệ của bảng mới; original là điều kiện quyền bảng cũ.
 

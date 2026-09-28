@@ -81,3 +81,12 @@ làm nhắc việc/AI, không thay grid hoặc công thức. Chưa nghiệm thu 
 100 nghìn khách/năm hoặc 10–20 người nhập liệu liên tục từ các test chức năng.
 Xem [tiêu chí nghiệm thu](../04-tieu-chi-nghiem-thu.md),
 [test-log](../test-log.md) và [câu hỏi còn mở](../USER_INQUIRY.md).
+
+## Bổ sung 28.09.2026 — Phân công ngay trong ô (AC-21.15)
+
+Chủ dự án yêu cầu "phân công nhân viên bằng bảng chọn, giống Trạng thái vận chuyển". Bấm đúp, Enter
+hay F2 ô "Phụ trách Vận đơn/CSKH/Marketing" không còn mở hộp Phân công giữa màn hình mà mở **ô chọn đè
+đúng ô**: "— Chưa gán —" và mã nhân viên đúng bộ phận, chọn sẵn người đang giao. Chọn bằng chuột là lưu;
+phím di chuyển không tự lưu, Enter lưu, Esc hay bấm ra ngoài thì đóng không đổi. **Quyền không đổi:**
+chỉ Leader/Manager Vận đơn và Admin có ô chọn; lưu vẫn qua `van-don/phan-cong/` (CAS theo phiên bản,
+nhật ký, không ghi JSON của ô). Nút "Phân công" nhiều dòng trong menu "…" giữ nguyên.

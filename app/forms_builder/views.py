@@ -25,6 +25,7 @@ from django.views.decorators.http import require_POST, require_GET
 from core.constants import IMPORT_MAX_ROWS, UPLOAD_MAX_BYTES, JobStatus, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import pagination_context, filter_query
+from core.htmx import is_htmx
 from core.audit import record_denied
 from core.permissions import assert_rank, has_rank, is_admin
 
@@ -258,6 +259,9 @@ def bang_xem(request, code):
         "bang_tinh_url": settings.BANGTINH_URL.rstrip("/") + f"/bang-tinh/{bang_hien.code}/",
         "cac_dong": cac_dong,
     })
+    # Bấm tiêu đề cột để sắp xếp: HTMX chỉ thay khối bảng, trang không tải lại (AC-7.13)
+    if is_htmx(request):
+        return render(request, "forms_builder/_bang_xem_bang.html", boi_canh)
     return render(request, "forms_builder/bang_xem.html", boi_canh)
 
 

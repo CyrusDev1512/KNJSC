@@ -26,6 +26,20 @@
     }
     return text.replace(/^(\d{4})-(\d{2})-(\d{2})(?:T| )?/, (_, y, m, d) => `${d}/${m}/${y}${time ? ' ' : ''}`);
   }
+  // Gõ ngày không phải tự gõ "/" (chủ dự án 28.09.2026, AC-32.1): dấu cách, chấm, gạch ngang
+  // thành "/"; đủ 2 số ngày hay 2 số tháng thì chèn "/"; gõ liền 8 số thành DD/MM/YYYY.
+  function autoSlash(raw) {
+    const s = raw.replace(/[\s.\-]/g, '/').replace(/\/{2,}/g, '/');
+    if (/^\d+$/.test(s)) {
+      const d = s.slice(0, 8);
+      return d.slice(0, 2) + (d.length >= 2 ? '/' + d.slice(2, 4) : '') + (d.length >= 4 ? '/' + d.slice(4) : '');
+    }
+    const p = s.split('/');
+    if (p.length === 2 && /^\d{3,}$/.test(p[1])) { p.push(p[1].slice(2)); p[1] = p[1].slice(0, 2); }
+    if (p.length > 2) p[2] = p.slice(2).join('').slice(0, 4);
+    const out = p.slice(0, 3).join('/');
+    return p.length === 2 && /^\d{2}$/.test(p[1]) ? out + '/' : out;
+  }
   function enhance(input) {
     if (!(input instanceof HTMLInputElement) || enhanced.has(input) || input.hasAttribute('data-date-native')) return;
     if (!['date', 'datetime-local'].includes(input.type) && !input.hasAttribute('data-date-time')) return;
@@ -58,6 +72,20 @@
       }
     });
     input.value = initial;
+    if (!time) {
+      // Chỉ khi đang gõ ở cuối ô; Backspace/Delete để yên, không chèn lại "/" vừa xoá.
+      input.addEventListener('input', event => {
+        const raw = nativeValue.get.call(input);
+        if ((event.inputType || '').startsWith('delete') || event.isComposing || input.selectionStart !== raw.length) return;
+        const next = autoSlash(raw);
+        if (next !== raw) { nativeValue.set.call(input, next); input.setSelectionRange(next.length, next.length); }
+      });
+      // Rời ô: ngày tháng một chữ số thêm số 0 (3/9/2026 → 03/09/2026)
+      input.addEventListener('change', () => {
+        const iso = canonical(nativeValue.get.call(input));
+        if (iso) nativeValue.set.call(input, display(iso, false));
+      });
+    }
     input.addEventListener('input', validate);
     input.addEventListener('change', validate);
     // Giữ lịch chọn ngày; ô hiển thị không bị hệ điều hành đổi sang M/D/Y.

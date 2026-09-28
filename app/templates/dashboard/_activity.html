@@ -11,7 +11,6 @@
 {% elif b.data.state == 'no_source' %}<p>Chưa có nguồn báo cáo trong phạm vi của bạn.</p>
 {% elif b.data.state == 'unavailable' %}<p>Chưa đủ cấu hình chỉ tiêu cho nguồn này.</p>
 {% else %}<p class="dashboard-source">Nguồn: {{ b.data.source.table.name }}</p>
-{% if b.data.currency_note %}<p class="dashboard-note">{{ b.data.currency_note }}</p>{% endif %}
 {% if b.data.state == 'empty' %}<p>Chưa có dữ liệu trong khoảng ngày này.</p>{% else %}<dl class="dashboard-metrics">{% for label,value in b.data.metrics %}<div class="dashboard-metric"><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}</dl>{% endif %}
 <div class="dashboard-links"><a href="{{ b.data.url }}">Xem báo cáo chi tiết</a><div><a href="{{ b.data.person_url }}">Kết quả theo nhân viên</a><a href="{{ b.data.department_url }}">Theo phòng ban</a></div></div>
 {% endif %}</div></section>{% endfor %}</div></section>

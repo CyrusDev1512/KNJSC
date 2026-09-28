@@ -184,3 +184,23 @@
 }
 
 :where(.mg-row.dong-xau) .mg-cell {background:var(--critical-soft)}
+/* Lịch sử từng ô (AC-21.13): ô bị người khác sửa trong 24 giờ có dấu góc; ô ghim vốn sticky nên đã là khung định vị */
+.mg-cell.mg-moi-sua:not(.mg-pinned){position:relative}
+.mg-cell.mg-moi-sua::after{content:'';position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 8px 8px 0;border-color:transparent #d97706 transparent transparent;pointer-events:none}
+.mg-cell-history>.mg-close{position:absolute;top:6px;right:6px}.mg-cell-history .mg-cell-history-list{display:grid}.mg-cell-history .mg-history-item pre{margin:6px 0 0}.mg-cell-history .mg-history-item:last-of-type{border-bottom:0}.mg-cell-history-more{justify-self:start;margin-top:8px}
+
+/* Lịch sử ô gọn như ghi chú của Google Sheets: hẹp, chữ nhỏ, đứng bên phải ô. */
+.mg-cell-history{padding:8px 10px;font-size:12px}.mg-cell-history>strong{font-size:12px;margin-bottom:4px}
+.mg-cell-history .mg-history-item{padding:6px 0}.mg-cell-history .mg-history-item>strong{font-size:11px;margin:0;color:var(--ink-2);padding-right:0}
+.mg-cell-history .mg-history-item pre{margin:2px 0 0;max-height:96px}
+/* Bôi đen chữ trong lưới xanh như Excel/Google Sheets, không theo màu chọn vàng của giao diện chung. */
+.mg-root ::selection,.mg-float ::selection{background:#b4d5fe;color:#111}
+:root[data-theme="dark"] .mg-root ::selection,:root[data-theme="dark"] .mg-float ::selection{background:#264f78;color:#fff}
+/* Ô chọn phân công đè đúng ô "Phụ trách …" như ô nhập tại chỗ (AC-21.15). */
+.vd-assign-cell{padding:0;border:2px solid #2563eb;border-radius:0;box-shadow:0 4px 14px #0003;overflow:visible;z-index:20}
+.vd-assign-cell select{display:block;width:100%;min-height:26px;border:0;border-radius:0;padding:0 6px;font-size:13px;background:var(--surface);color:var(--ink)}
+.vd-assign-cell p:not(:empty){margin:0;padding:4px 6px;font-size:12px;background:var(--surface);color:var(--critical);border-top:1px solid var(--rule)}
+/* Nhãn bộ lọc nằm trên thanh công cụ, giữa Cột và Định dạng (AC-21.14): chiếm chỗ trống còn lại, nhiều
+   nhãn thì cuộn ngang tại chỗ — bật/tắt lọc không đẩy trang tính xuống. */
+.mg-toolbar .mg-chips{flex:1 1 0;min-width:0;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding:0;scrollbar-width:thin}
+.mg-toolbar .mg-chips:not(:empty){padding-block:0;min-width:min(140px,100%)}.mg-toolbar .mg-chips a{flex:none;white-space:nowrap}
