@@ -338,7 +338,9 @@ Nhập file, phân công và chi tiết sản phẩm vẫn có nút gửi riêng
   là nhập ngay với ký tự vừa gõ; Enter, F2 hoặc bấm đúp mở ô nhập giữ giá trị cũ.
   Tab và Enter trong ô nhập chuyển sang ô kế nhưng không tự mở; Ctrl+A chọn cả
   bảng, Delete xoá vùng chọn. Ô nhiều dòng Enter xuống dòng, Ctrl+Enter kết thúc.
-  Ô không sửa được thì gõ phím mở vùng đọc. Nút **Tôi / Toàn bộ** ở bảng Vận đơn lọc theo cột phụ trách của
+  Ô không sửa được thì gõ phím hay bấm đúp mở vùng đọc khi đang bị cắt chữ (ô
+  phồng to tại chỗ, bổ sung ADR-033 26.09); click đơn chỉ chọn ô, không mở gì.
+  Nút **Tôi / Toàn bộ** ở bảng Vận đơn lọc theo cột phụ trách của
   bộ phận mình, nhớ trên trình duyệt, mặc định Toàn bộ.
 - Bấm số hàng để chọn hàng. Dòng đầu mang số 1. Đơn mới ở cuối theo mặc định.
 - Định dạng có cỡ chữ/màu chữ/màu nền, dùng cùng autosave và Undo/Redo.
