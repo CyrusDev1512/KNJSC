@@ -430,6 +430,14 @@
     panel.style.left=Math.max(12,Math.min(box?.left||12,innerWidth-w-12))+'px';
     panel.style.top=Math.max(12,Math.min(box?.bottom||90,innerHeight-h-12))+'px';
   }
+  // Khung lịch sử ô nằm bên phải ô, ngang hàng ô; hết chỗ bên phải thì sang bên trái.
+  function floatBeside(panel, box) {
+    panel.hidden=false;const w=Math.min(300,innerWidth-24),h=Math.min(320,innerHeight-24);
+    panel.style.width=w+'px';panel.style.maxHeight=h+'px';
+    const left=box.right+4+w+12<=innerWidth?box.right+4:box.left-4-w;
+    panel.style.left=Math.max(12,Math.min(left,innerWidth-w-12))+'px';
+    panel.style.top=Math.max(12,Math.min(box.top,innerHeight-panel.offsetHeight-12))+'px';
+  }
   function showReader(cell) {
     if(!cell||state.draft||drag||(cell.scrollWidth<=cell.clientWidth&&cell.scrollHeight<=cell.clientHeight))return;
     const row=rowAt(+cell.dataset.r),c=state.visible[+cell.dataset.c];if(!row)return;
@@ -1061,7 +1069,7 @@
     choose(r,ci);reader.hidden=true;
     const serial=++cellHistorySerial,list=cellHistory.querySelector('.mg-cell-history-list');let before=null;
     cellHistory.querySelector('strong').textContent=`Lịch sử ô · ${c.name} · dòng ${r+1}`;
-    list.replaceChildren(element('p','','Đang tải…'));floatAt(cellHistory,cell.getBoundingClientRect());
+    const box=cell.getBoundingClientRect();list.replaceChildren(element('p','','Đang tải…'));floatBeside(cellHistory,box);
     const load=async()=>{
       const p=new URLSearchParams({record:row.id,column:c.code});if(before)p.set('before',before);
       const data=await fetch(config.historyUrl+'?'+p).then(json);if(serial!==cellHistorySerial)return;
@@ -1075,6 +1083,7 @@
       if(before){const more=element('button','nut mg-cell-history-more','Cũ hơn');more.type='button';more.onclick=()=>safe(load)();list.append(more);}
     };
     try{await load();}catch(e){if(serial===cellHistorySerial)list.replaceChildren(element('p','',e.message||'Không tải được lịch sử ô.'));}
+    if(serial===cellHistorySerial&&!cellHistory.hidden)floatBeside(cellHistory,box);
   }
   viewport.addEventListener('contextmenu',e=>{
     const cell=e.target.closest('.mg-cell[data-r]')||(e.target===viewport?canvas.querySelector('.mg-cell.mg-current'):null);

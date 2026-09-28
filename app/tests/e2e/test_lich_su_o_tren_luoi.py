@@ -54,8 +54,10 @@ def test_chuot_phai_o_xem_lich_su_va_dau_o_vua_sua(live_server, trang, dang_nhap
     assert "Tên khách" in khung
     vi_tri = trang.evaluate(f"""() => {{ const o = document.querySelector("{o}").getBoundingClientRect();
         const k = document.getElementById('mg-cell-history').getBoundingClientRect();
-        return {{gan: Math.abs(k.top - o.bottom) < 40 || Math.abs(k.bottom - o.top) < 40}}; }}""")
-    assert vi_tri["gan"], "khung lịch sử phải nằm ngay cạnh ô"
+        return {{phai: k.left >= o.right - 1 && k.left - o.right < 16, ngang_hang: Math.abs(k.top - o.top) < 8,
+                 rong: k.width}}; }}""")
+    assert vi_tri["phai"] and vi_tri["ngang_hang"], f"khung lịch sử phải nằm bên phải ô, ngang hàng ô: {vi_tri}"
+    assert vi_tri["rong"] <= 320, f"khung lịch sử phải gọn, rộng tối đa 320 px: {vi_tri}"
     chup(trang, "lich-su-o-tren-luoi")
     trang.keyboard.press("Escape")
     trang.wait_for_function("() => document.getElementById('mg-cell-history').hidden", timeout=3_000)
@@ -90,3 +92,20 @@ def test_chuot_phai_len_hop_doc_van_mo_lich_su_o(live_server, trang, dang_nhap, 
     trang.wait_for_function("() => document.querySelector('#mg-cell-history .mg-history-item')", timeout=5_000)
     assert "Ghi chú" in trang.text_content("#mg-cell-history strong")
     assert trang.evaluate("() => document.getElementById('mg-reader').hidden"), "hộp đọc phải nhường chỗ cho lịch sử"
+
+
+def test_boi_den_trong_luoi_mau_xanh_nhu_excel(live_server, trang, dang_nhap, kn_crm, feedback, nguoi_dung):  # noqa: F811
+    """AC-21.13 — Bôi đen chữ trong ô đang nhập của lưới là nền xanh nhạt như Excel/Google Sheets,
+    không phải màu vàng ô liu của giao diện chung (chủ dự án 28.09)"""
+    bang, _, dong = feedback
+    dang_nhap(trang, nguoi_dung["staff_vd"])
+    trang.goto(f"{live_server.url}/bang-tinh/{bang.code}/")
+    o = f".mg-cell[data-code='ten_khach'][data-id='{dong[0].pk}']"
+    trang.wait_for_selector(o)
+    trang.click(o)
+    trang.keyboard.press("F2")
+    trang.wait_for_selector("#mg-editor:not([hidden]) #mg-input :is(input,textarea)")
+    mau = trang.evaluate("""() => getComputedStyle(document.querySelector('#mg-input :is(input,textarea)'),
+        '::selection').backgroundColor""")
+    assert mau == "rgb(180, 213, 254)", mau
+    chup(trang, "boi-den-xanh")

@@ -41,10 +41,12 @@ quyền: Marketing vẫn không xem bảng vận đơn. Excel và Thống kê đ
 | `crm/tests/test_lich_su_o.py` (AC-21.13) | **đỏ**: khối không có `recent` | xanh: người khác sửa → dấu 2 ô; chính mình → không; sửa 25 giờ trước → không; lịch sử theo ô đúng cột, có mã người sửa; người ngoài phạm vi 403 và không thấy dòng |
 | `tests/e2e/test_lich_su_o_tren_luoi.py` (AC-21.13, Chromium) | **đỏ**: ô không có dấu góc | xanh: dấu góc đúng ô, chuột phải mở khung cạnh ô với "Khách 0 → Khách Đã Sửa" và mã người sửa, Esc đóng |
 | `tests/e2e/test_lich_su_o_tren_luoi.py::test_chuot_phai_len_hop_doc_van_mo_lich_su_o` (AC-21.13, bổ sung sau khi chủ dự án thử local: bấm ô Ghi chú dài → hộp đọc hiện → chuột phải lên hộp ra menu Chrome) | **đỏ**: sự kiện chuột phải không bị chặn | xanh: chuột phải lên hộp đọc mở lịch sử ô Ghi chú, hộp đọc đóng |
+| `…::test_chuot_phai_o_xem_lich_su_va_dau_o_vua_sua` sửa theo góp ý thứ hai (khung gọn, bên phải ô) | **đỏ**: khung rộng 440 px, nằm dưới ô | xanh: khung rộng 300 px, mép trái sát mép phải ô, ngang hàng ô; hết chỗ bên phải thì sang trái |
+| `…::test_boi_den_trong_luoi_mau_xanh_nhu_excel` (bôi đen chữ trong ô đang nhập) | **đỏ**: `rgb(243, 237, 187)` màu vàng chọn của Solarpunk | xanh: `#b4d5fe` như Excel/Sheets; giao diện tối `#264f78`; chỉ áp trong lưới và khung nổi, trang ERP giữ màu chung |
 | `tests/test_truy_vet.py` + `core/tests/test_giao_dien.py` (docs/06 → 278 / 265 / 242) | — | 659 đạt |
 | Suite đầy đủ `-m "not trinh_duyet and not cham"` | — | **2.802 đạt, 1 bỏ qua, 0 đỏ** (361 s) |
 
-Ảnh: `docs/kiem-thu/toi-va-lich-su-o-2026-09-28/lich-su-o-tren-luoi.png`.
+Ảnh: `docs/kiem-thu/toi-va-lich-su-o-2026-09-28/lich-su-o-tren-luoi.png`, `boi-den-xanh.png`.
 
 ## Chưa kiểm
 
