@@ -1,5 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 28.09.2026 — Khách mua lại theo bảng tính, ô ngày tự chèn "/"
+
+**Finished local (nhánh `claude/mua-lai-va-o-ngay`, PR nháp về `main`):** TL-61 đóng, AC-32.1 mới.
+**To do:** chủ dự án test local rồi quyết gộp; TL-62 (đảo thứ tự tải lại trang) làm lượt sau.
+
 ## 28.09.2026 — Cuộn Báo cáo tổng hợp (TL-63)
 
 **Finished (nhánh `claude/cuon-bao-cao-tong-hop`, PR #60 về `main`, chủ dự án lệnh gộp 28.09 sau khi kiểm kĩ

@@ -1,5 +1,18 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 28.09.2026 — Báo "khách mua lại" sai; ô ngày phải gõ tay "/"; đảo thứ tự tải lại trang
+
+**TL-61 (đóng):** Lên đơn báo "Khách mua lại — đã có N đơn" dù số đó không còn trên bảng tính. Lời báo
+đếm **đơn hàng** (`Customer.order_count`), còn xoá dòng trên lưới chỉ xoá mềm dòng; lệnh xoá cứng hai
+bảng vận đơn cũ giữ đơn và chỉ cắt liên kết (`record=None`). Tái hiện: xoá dòng duy nhất của một số →
+lưới 0 dòng, Lên đơn vẫn "đã có 1 đơn". Sửa: đếm **dòng đang sống trên bảng Vận đơn** cùng khoá số
+(`dispatch_service.rows_with_phone`, cùng thước đo cột Trùng); cột "Mua lại lần" đếm cùng cách. AC-6.8.
+**TL-62 (mở, chủ dự án xếp sau):** bấm tiêu đề cột để đảo thứ tự thì lưới CRM xoá sạch ô (hiện "…"),
+cuộn về cột đầu, bỏ vùng chọn và tải lại cả trang HTML chỉ để lấy khung lọc; Bảng dữ liệu ERP thì tải
+lại cả trang thật. Hướng sửa đã trình: giữ dòng cũ tới khi dữ liệu mới về, giữ cuộn ngang, bỏ tải HTML;
+ERP dùng HTMX thay phần bảng.
+Ô ngày tự chèn "/" là tính năng mới (AC-32.1), không phải lỗi. [Biên bản](kiem-chung-mua-lai-va-o-ngay-20260928.md).
+
 ## 28.09.2026 — Lăn chuột trên bảng Báo cáo tổng hợp bị kẹt, cuộn giật
 
 **TL-63 (đóng):** chủ dự án báo bấm qua lại Gộp/Không gộp rồi lăn chuột thì lag, chậm hơn nhiều; con trỏ
