@@ -365,7 +365,7 @@
       }
       for (const c of cols) {
         const value = row ? cellValue(row,c.code) : null;
-        const cell = element('div','mg-cell '+(value?.class || '')+(rowHeight>ROW?' mg-wrap':'')+(c.pin?' mg-pinned':'')+(c.pinEdge?' mg-pinned-edge':'')+(selected(r,c.i)?' mg-selected':'')+(state.current?.r===r&&state.current?.c===c.i?' mg-current':''),row ? (value?.display ?? value?.value ?? '') : '…');
+        const cell = element('div','mg-cell '+(value?.class || '')+(rowHeight>ROW?' mg-wrap':'')+(c.pin?' mg-pinned':'')+(c.pinEdge?' mg-pinned-edge':'')+(selected(r,c.i)?' mg-selected':'')+(state.current?.r===r&&state.current?.c===c.i?' mg-current':'')+(row?.recent?.includes(c.code)?' mg-moi-sua':''),row ? (value?.display ?? value?.value ?? '') : '…');
         cell.dataset.r=r;cell.dataset.c=c.i;cell.dataset.code=c.code;
         if(c.renderer==='bill'&&row){
           cell.replaceChildren();
@@ -1047,6 +1047,40 @@
     };
     more.onclick=()=>{trail.push(pageCursor);load(false,cursor);};back.onclick=()=>load(false,trail.pop());filter.onchange=()=>load(true);openDialog('mg-history');await load(true);
   });
+  // Lịch sử từng ô (AC-21.13): chuột phải (hay phím Menu) mở khung ngay cạnh ô, đọc API lịch sử
+  // theo dòng + cột (máy chủ kiểm quyền dòng); Esc, bấm ra ngoài hay cuộn thì đóng.
+  const cellHistory=$('mg-cell-history');let cellHistorySerial=0;
+  function historyValue(c,v){
+    if(v===null||v===undefined||v==='')return '(trống)';
+    if(window.KNDate&&(c?.type==='date'||c?.type==='datetime'))return window.KNDate.display(v,c.type==='datetime');
+    return typeof v==='object'?JSON.stringify(v):String(v);
+  }
+  async function showCellHistory(cell){
+    const r=+cell.dataset.r,ci=+cell.dataset.c,c=state.visible[ci],row=rowAt(r);
+    if(!row||!c||typeof row.id!=='number')return;
+    choose(r,ci);reader.hidden=true;
+    const serial=++cellHistorySerial,list=cellHistory.querySelector('.mg-cell-history-list');let before=null;
+    cellHistory.querySelector('strong').textContent=`Lịch sử ô · ${c.name} · dòng ${r+1}`;
+    list.replaceChildren(element('p','','Đang tải…'));floatAt(cellHistory,cell.getBoundingClientRect());
+    const load=async()=>{
+      const p=new URLSearchParams({record:row.id,column:c.code});if(before)p.set('before',before);
+      const data=await fetch(config.historyUrl+'?'+p).then(json);if(serial!==cellHistorySerial)return;
+      if(!before)list.replaceChildren();list.querySelector('.mg-cell-history-more')?.remove();
+      if(!before&&!data.items.length)list.append(element('p','','Ô này chưa có lịch sử sửa.'));
+      for(const h of data.items){const item=element('section','mg-history-item');
+        item.append(element('strong','',`${h.actor}${h.name?' · '+h.name:''} · ${new Date(h.time).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})}`));
+        if(h.property&&h.property!=='value')item.append(element('p','',propertyName(h.property)));
+        item.append(element('pre','',`${historyValue(c,h.before)} → ${historyValue(c,h.after)}`));list.append(item);}
+      before=data.next;
+      if(before){const more=element('button','nut mg-cell-history-more','Cũ hơn');more.type='button';more.onclick=()=>safe(load)();list.append(more);}
+    };
+    try{await load();}catch(e){if(serial===cellHistorySerial)list.replaceChildren(element('p','',e.message||'Không tải được lịch sử ô.'));}
+  }
+  viewport.addEventListener('contextmenu',e=>{
+    const cell=e.target.closest('.mg-cell[data-r]')||(e.target===viewport?canvas.querySelector('.mg-cell.mg-current'):null);
+    if(!cell||dirty())return;e.preventDefault();safe(()=>showCellHistory(cell))();
+  });
+  viewport.addEventListener('scroll',()=>{cellHistory.hidden=true;},{passive:true});
   function propertyName(property){return ({value:'Nội dung',fs:'Cỡ chữ',c:'Màu chữ',bg:'Màu nền'})[property||'value']||property;}
   function showConflicts(){
     const body=$('mg-conflict-body');body.replaceChildren();
@@ -1074,6 +1108,7 @@
   });
   window.addEventListener('online',()=>{if(state.retry&&!state.busy&&!state.conflicts.length){state.retryCount=0;saveAll(false);}});
   document.addEventListener('pointerdown',e=>{
+    if(!cellHistory.hidden&&!cellHistory.contains(e.target))cellHistory.hidden=true;
     if(!editor.contains(e.target))finishEditor();
     if(!e.target.closest('.mg-more-wrap'))closeMore();
   },true);
@@ -1089,7 +1124,7 @@
   document.addEventListener('keydown',e=>{
     if(e.isComposing||e.keyCode===229)return;
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();safe(saveAll)();return;}
-    if(e.key==='Escape'){closeMore();$('mg-filters').hidden=true;$('mg-filters-button').setAttribute('aria-expanded','false');$('hop-loc').hidden=true;}
+    if(e.key==='Escape'){closeMore();cellHistory.hidden=true;$('mg-filters').hidden=true;$('mg-filters-button').setAttribute('aria-expanded','false');$('hop-loc').hidden=true;}
   },true);
   async function refresh(){state.lastError='';invalidate();}
   window.addEventListener('master-refresh',refresh);

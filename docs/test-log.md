@@ -1,5 +1,14 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 28.09.2026 — Nút "Tôi" không ra dòng của tài khoản; thêm lịch sử từng ô
+
+**TL-63 (đóng):** nút Tôi lọc theo cột phụ trách của bộ phận mình, mà Lên đơn không điền ai vào cột đó.
+Đo trên dữ liệu thử: Sale tự lên 1 đơn → "Toàn bộ" 1, **"Tôi" 0**; nhân viên Vận đơn chưa được giao →
+"Tôi" 0; Admin, Kế toán không có nút. Sửa theo chốt của chủ dự án: "Tôi" = dòng tôi lên đơn / đứng đơn
+cộng dòng giao tôi ở bất kỳ cột phụ trách nào (`assignment_service.mine_condition`), nút cho mọi tài
+khoản. AC-33.3, AC-33.6. Cùng lượt: lịch sử từng ô trên lưới (tính năng mới, AC-21.13).
+[Biên bản](kiem-chung-toi-va-lich-su-o-20260928.md).
+
 ## 26.09.2026 — Thẻ Báo cáo tổng hợp trên Tổng quan xếp chật, số tiền bị bẻ dòng
 
 **TL-60 (đóng, hồi quy):** chủ dự án chụp Tổng quan ERP: chỉ tiêu trong thẻ Marketing/Sale xếp nhiều

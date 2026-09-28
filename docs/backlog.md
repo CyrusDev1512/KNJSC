@@ -1,5 +1,14 @@
 # Backlog
 
+## 28.09.2026 — Nút "Tôi" theo tài khoản (TL-63) và lịch sử từng ô trên lưới (AC-21.13)
+
+**Chủ dự án yêu cầu** "bộ lọc cá nhân theo tài khoản CRM" — chính là nút Tôi / Toàn bộ đang sai — và
+"lịch sử chỉnh sửa trực tiếp trên bảng Vận đơn", chọn kiểu từng ô. **Làm:** "Tôi" = dòng tôi lên đơn
+hoặc đứng đơn, cộng dòng giao tôi ở mọi cột phụ trách; nút hiện cho mọi tài khoản (ADR-033 bổ sung
+28.09). Chuột phải một ô thì khung lịch sử hiện cạnh ô (dùng lại API `lich-su/` đã kiểm quyền); ô bị
+người khác sửa trong 24 giờ có dấu góc cam (một truy vấn mỗi khối, trần 22 truy vấn giữ). Không
+migration. Biên bản [kiem-chung-toi-va-lich-su-o-20260928.md](kiem-chung-toi-va-lich-su-o-20260928.md).
+
 ## 26.09.2026 — Sửa bố cục thẻ Báo cáo tổng hợp trên Tổng quan ERP (TL-60)
 
 **Chủ dự án báo** (ảnh Tổng quan): chỉ tiêu xếp chật nhiều cột, số tiền bị bẻ giữa chữ số. **Nguyên

@@ -453,6 +453,7 @@ quyền và hợp đồng dữ liệu của AC-18/20. Các bảng khác tiếp t
 | AC-21.9 | Cỡ chữ/màu chữ/màu nền giữ thuộc tính khác; CAS riêng từng thuộc tính; định dạng/Undo/Redo nguyên tử; phản hồi lượt cũ không xóa nháp mới, retry giữ UUID/nội dung; lỗi quyền/kiểu/xung đột không retry tự động | ADR-021 | Tự động |
 | AC-21.10 | Lịch sử chỉ nối thêm, trước/sau theo ô, tài khoản/thời điểm/nhóm thao tác; 50 mục/trang, kiểm quyền hiện hành, replay không trùng; xung đột đối chiếu trong phiên và gửi lại bằng CAS mới, không ghi đè cưỡng bức | ADR-021 | Tự động |
 | AC-21.11 | Admin CRM bắt buộc chọn Sale hoạt động/hợp lệ; creator là Admin, seller/phòng ban/team theo Sale; Sale đọc đơn đứng tên; người khác không giả mạo seller; lỗi tạo đơn/chi tiết/vận đơn rollback cả lượt | ADR-021 | Tự động |
+| AC-21.13 | **Lịch sử từng ô trên lưới** (chủ dự án 28.09.2026): chuột phải một ô mở khung ngay cạnh ô — mã và tên người sửa, giờ Việt Nam, giá trị trước → sau, "Cũ hơn" để xem tiếp; Esc, bấm ra ngoài hay cuộn thì đóng; ô bị **người khác** sửa giá trị trong 24 giờ (`GRID_RECENT_EDIT_HOURS`) có dấu góc, một truy vấn mỗi khối; người không xem được dòng thì lịch sử trả 403 | ADR-021 | Tự động + trình duyệt |
 
 ## 23. Bàn điều hành KN CRM — ADR-022
 
@@ -509,10 +510,10 @@ giữ tiêu chí cũ.
 |---|---|---|---|
 | AC-33.1 | Nhân viên Vận đơn thấy mọi dòng bảng Vận đơn kể cả chưa phân công hay người khác phụ trách; sửa được qua lưới JSON và `record_service`; chi tiết mở được; số dòng thư mục đếm đủ | ADR-033 | Tự động |
 | AC-33.2 | CSKH được giao chỉ xem (ghi 403); Sale không sửa dòng Sale khác; Admin gõ vào cột `phu_trach_*` vẫn 400, phân công chỉ qua hộp Phân công | ADR-033 · ADR-020 | Tự động |
-| AC-33.3 | `cua_toi=1` lọc theo cột phụ trách của bộ phận (Vận đơn → delivery, Sale/CSKH → care, Marketing → marketing); Admin, Kế toán, bảng thường bỏ qua; khối dữ liệu đổi phiên bản; 100 dòng không vượt trần 22 truy vấn | ADR-033 | Tự động |
+| AC-33.3 | `cua_toi=1` (bổ sung 28.09.2026, TL-63): dòng tôi lên đơn hoặc tôi là Sale đứng đơn, cộng dòng tôi được phân công ở bất kỳ cột phụ trách nào (Vận đơn, CSKH, Marketing) — áp cho mọi tài khoản, chỉ thu hẹp trong phạm vi quyền; Sale thấy ngay đơn mình vừa lên dù chưa ai phân công; bảng thường bỏ qua; khối dữ liệu đổi phiên bản; 100 dòng không vượt trần 22 truy vấn | ADR-033 | Tự động |
 | AC-33.4 | `cua_toi=1` đi theo Tải Excel trực tiếp và nền, và Thống kê | ADR-033 | Tự động |
 | AC-33.5 | `che-do-xem/` trả 404; `TableDef` không còn `delivery_view_all` nhưng còn `delivery_view_version`; Cột & cấp quyền không còn khối Chế độ xem bảng | ADR-033 | Tự động |
-| AC-33.6 | Nút Tôi / Toàn bộ chỉ hiện cho người có cột phụ trách; không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi; `config.myScope` đúng trường | ADR-033 | Tự động |
+| AC-33.6 | Nút Tôi / Toàn bộ hiện với mọi tài khoản trên bảng Vận đơn (bổ sung 28.09.2026); không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi; `config.myScope` bật trên bảng Vận đơn | ADR-033 | Tự động |
 | AC-33.7 | Migration 0013 chạy xuôi và ngược trên DB test, giữ `delivery_view_version` và dữ liệu | ADR-033 | Tự động |
 | AC-33.8 | Xoá trống ô Quốc gia thì Loại tiền trống; dòng có tiền hỏi xác nhận rồi ghi được cả lượt xoá; điền lại Quốc gia tiền về đúng; nhập tệp và lên đơn vẫn bắt buộc quốc gia. Lưới như Excel: bấm chỉ chọn, gõ là nhập, Enter/F2/bấm đúp mở ô, Tab/Enter chỉ chuyển ô, Ctrl+A chọn cả bảng (kiểm trình duyệt) | ADR-033 · ADR-031 | Tự động |
 

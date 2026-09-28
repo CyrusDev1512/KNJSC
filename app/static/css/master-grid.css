@@ -179,3 +179,8 @@
 }
 
 :where(.mg-row.dong-xau) .mg-cell {background:var(--critical-soft)}
+/* Lịch sử từng ô (AC-21.13): ô bị người khác sửa trong 24 giờ có dấu góc; ô ghim vốn sticky nên đã là khung định vị */
+.mg-cell.mg-moi-sua:not(.mg-pinned){position:relative}
+.mg-cell.mg-moi-sua::after{content:'';position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 8px 8px 0;border-color:transparent #d97706 transparent transparent;pointer-events:none}
+.mg-cell-history>.mg-close{position:absolute;top:6px;right:6px}.mg-cell-history .mg-cell-history-list{display:grid}.mg-cell-history .mg-history-item pre{margin:6px 0 0}.mg-cell-history .mg-history-item:last-of-type{border-bottom:0}.mg-cell-history-more{justify-self:start;margin-top:8px}
+
