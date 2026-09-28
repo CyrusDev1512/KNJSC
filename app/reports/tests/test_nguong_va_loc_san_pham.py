@@ -1,7 +1,6 @@
 """ADR-042 đợt 3 — ngưỡng màu ba bậc do Manager đặt, lọc nhiều sản phẩm."""
 import re
 from datetime import date
-from decimal import Decimal
 from io import BytesIO
 
 import pytest

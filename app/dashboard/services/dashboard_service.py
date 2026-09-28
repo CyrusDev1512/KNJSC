@@ -186,7 +186,6 @@ def _activity(user, params):
 def _activity_block(user, choices, code, start, end):
     from urllib.parse import urlencode
     from django.urls import reverse
-    from reports import aggregations
     from reports.services import activity_service
 
     source = activity_service.select_source(user, code, choices)
