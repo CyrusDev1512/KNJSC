@@ -40,7 +40,8 @@ def mo_luoi_toi_o(trang, live_server, bang, o):
 def test_leader_chon_nguoi_ngay_trong_o_phu_trach(live_server, trang, dang_nhap, kn_crm, feedback,
                                                   nguoi_dung, make_user, departments):  # noqa: F811
     """AC-21.15 — Leader Vận đơn bấm đúp ô Phụ trách Vận đơn: ô chọn hiện ngay trong ô, có mã nhân viên
-    Vận đơn; chọn là lưu (qua endpoint phân công, có CAS), ô hiện mã người vừa giao; Esc đóng không đổi"""
+    Vận đơn; chọn là lưu (qua endpoint phân công, có CAS), ô hiện mã người vừa giao; Esc đóng không đổi;
+    không còn nút/hộp Phân công trong menu …"""
     bang, _, dong = feedback
     leader = make_user("vd_leader", Rank.LEADER, departments["vd"])
     nv = nguoi_dung["staff_vd"]
@@ -49,6 +50,8 @@ def test_leader_chon_nguoi_ngay_trong_o_phu_trach(live_server, trang, dang_nhap,
     dang_nhap(trang, leader)
     o = f".mg-cell[data-code='phu_trach_vd'][data-id='{dong[0].pk}']"
     mo_luoi_toi_o(trang, live_server, bang, o)
+    # Chủ dự án 28.09: bỏ nút "Phân công" trong menu "…" và hộp Phân công nhiều dòng — chỉ còn ô chọn.
+    assert trang.locator("#mg-assign").count() == 0 and trang.locator("#vd-assignment").count() == 0
 
     trang.dblclick(o)
     trang.wait_for_selector("#vd-assign-cell[data-ready]:not([hidden])", timeout=5_000)

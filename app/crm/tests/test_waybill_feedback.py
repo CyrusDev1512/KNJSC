@@ -351,7 +351,8 @@ def test_grid_ui_and_filtered_url(feedback, nguoi_dung, delivery_leader, client)
     quick = response.context['quick_filters']
     assert ('sap', 'ma_don') in quick['keep'] and not any(k == 'trang' for k, _ in quick['keep'])
     html = response.content.decode()
-    assert 'Phân công' in html and 'Thanh toán 1 phần' in html
+    # Chủ dự án 28.09.2026: bỏ nút/hộp Phân công nhiều dòng; Leader phân công bằng ô chọn trong ô (AC-21.15).
+    assert 'id="vd-assign-cell"' in html and 'id="mg-assign"' not in html and 'Thanh toán 1 phần' in html
     assert 'id="vd-entry"' not in html
     assert 'Bộ lọc' in html
 

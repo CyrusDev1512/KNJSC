@@ -12,6 +12,12 @@ bỏ phồng ở `pointerup`, đúp-ô-chỉ-đọc-bị-cắt phồng trong `ed
 mới đúp-ô-chỉ-đọc (CSKH chỉ xem); 3 bài `pha_luoi` đỏ do TLS proxy máy ảo (đối chứng mã
 gốc cũng đỏ). Biên bản [kiem-chung-o-phong-to-20260926.md](kiem-chung-o-phong-to-20260926.md).
 
+## 28.09.2026 — Bỏ nút và hộp "Phân công" nhiều dòng
+
+**Chủ dự án bảo bỏ** nút "Phân công" trong menu "…" của lưới Vận đơn. Bỏ cả hộp phân công nhiều dòng và
+phần JS/CSS của nó; chỉ còn ô chọn trong ô (AC-21.15). Endpoint, quyền, CAS không đổi. ADR-020 bổ sung.
+Biên bản: mục bổ sung trong [kiem-chung-phan-cong-o-chon-20260928.md](kiem-chung-phan-cong-o-chon-20260928.md).
+
 ## 28.09.2026 — Phân công ngay trong ô bằng ô chọn (AC-21.15)
 
 **Chủ dự án yêu cầu** phân công nhân viên bằng ô chọn giống "Trạng thái vận chuyển". **Làm:** bấm đúp,

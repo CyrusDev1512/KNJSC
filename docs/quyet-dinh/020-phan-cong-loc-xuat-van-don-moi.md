@@ -89,4 +89,7 @@ hay F2 ô "Phụ trách Vận đơn/CSKH/Marketing" không còn mở hộp Phân
 đúng ô**: "— Chưa gán —" và mã nhân viên đúng bộ phận, chọn sẵn người đang giao. Chọn bằng chuột là lưu;
 phím di chuyển không tự lưu, Enter lưu, Esc hay bấm ra ngoài thì đóng không đổi. **Quyền không đổi:**
 chỉ Leader/Manager Vận đơn và Admin có ô chọn; lưu vẫn qua `van-don/phan-cong/` (CAS theo phiên bản,
-nhật ký, không ghi JSON của ô). Nút "Phân công" nhiều dòng trong menu "…" giữ nguyên.
+nhật ký, không ghi JSON của ô).
+
+**Cùng ngày, sau khi thử:** chủ dự án bảo bỏ nút "Phân công" trong menu "…" cùng hộp phân công
+nhiều dòng — chỉ còn một cách phân công là ô chọn trong ô. Endpoint `van-don/phan-cong/` giữ nguyên.

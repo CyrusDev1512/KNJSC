@@ -27,7 +27,6 @@
           <small>Xuất dữ liệu đã lưu trên hệ thống.</small>
         </details>
         {% if duoc_quan_ly_cot %}<a class="nut" href="{% url 'bang_cot' bang.code %}">Cấu trúc cột & cấp quyền</a>{% endif %}
-        {% if can_assign %}<button class="nut" id="mg-assign">Phân công</button>{% endif %}
         <button class="nut" disabled>Chia sẻ link <small>Chưa triển khai</small></button>
       </div>
     </div>
@@ -58,7 +57,7 @@
 {% block cuoi_trang %}
 {% if waybill_profile and payment_documents_enabled %}<link rel="stylesheet" href="{% static 'css/payments.css' %}">
 <script src="{% static 'js/payments.js' %}" defer></script>{% endif %}
-{% if can_assign %}{% include 'crm/_assignment.html' with master_grid=True %}{% endif %}
+{% if can_assign %}{% include 'crm/_assignment.html' %}{% endif %}
 <script src="{% static 'js/master-row-geometry.js' %}?v={{ phien_ban_tinh }}" defer></script>
 <script src="{% static 'js/master-working-copy.js' %}?v={{ phien_ban_tinh }}" defer></script>
 <script src="{% static 'js/master-grid.js' %}?v={{ phien_ban_tinh }}" defer></script>
