@@ -22,13 +22,6 @@ def kn_crm(settings):
     return settings
 
 
-def roi_luoi(trang):
-    """Rời lưới trước khi pytest dọn cơ sở dữ liệu: lưới vừa lưu còn làm mới/poll máy chủ, dọn bảng đúng
-    lúc đó thì TRUNCATE kẹt khoá với request đang chạy (deadlock ở teardown)."""
-    trang.goto("about:blank")
-    trang.wait_for_timeout(1_000)
-
-
 def mo_luoi_toi_o(trang, live_server, bang, o):
     trang.goto(f"{live_server.url}/bang-tinh/{bang.code}/")
     trang.wait_for_selector(".mg-cell[data-code='ten_khach']")
@@ -91,7 +84,6 @@ def test_leader_chon_nguoi_ngay_trong_o_phu_trach(live_server, trang, dang_nhap,
                             timeout=8_000)
     assert WaybillAssignment.objects.get(record=dong[0]).delivery_id is None
     assert not loi_js, loi_js
-    roi_luoi(trang)
 
 
 def test_nhan_vien_thuong_khong_co_o_chon_phan_cong(live_server, trang, dang_nhap, kn_crm, feedback,
@@ -104,4 +96,3 @@ def test_nhan_vien_thuong_khong_co_o_chon_phan_cong(live_server, trang, dang_nha
     trang.dblclick(o)
     trang.wait_for_timeout(800)
     assert not trang.evaluate("() => { const e = document.getElementById('vd-assign-cell'); return !!e && !e.hidden; }")
-    roi_luoi(trang)

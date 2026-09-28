@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 28.09.2026 — CI trình duyệt kẹt khoá khi dọn bảng (TL-67)
+
+**Finished local (nhánh `claude/e2e-cho-may-chu-truoc-khi-don`, PR nháp về `main`):** bài có máy chủ thử chờ máy
+chủ xử lý xong rồi mới dọn bảng; chạy lặp bài từng lỗi 0/30 kẹt khoá (trước 4/30). **To do:** chủ dự án gộp trước
+PR #65 để `main` xanh.
+
 ## 26.09.2026 — Ô phồng to tại chỗ thay hộp đọc
 
 **Finished local (nhánh `claude/o-phong-to-tai-cho`, PR nháp về `main`):** click đơn chỉ chọn ô
