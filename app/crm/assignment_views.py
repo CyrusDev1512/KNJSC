@@ -32,7 +32,10 @@ def assignment(request):
         return JsonResponse({
             'rows': [{'id': r.pk, 'version': getattr(getattr(r, 'assignment', None), 'version', 0),
                       'current': {field: service.label(getattr(getattr(r, 'assignment', None), field, None))
-                                  for field in service.FIELDS}} for r in rows],
+                                  for field in service.FIELDS},
+                      # Ô chọn phân công trong ô (AC-21.15) chọn sẵn người đang được giao.
+                      'current_id': {field: getattr(getattr(r, 'assignment', None), field + '_id', None)
+                                     for field in service.FIELDS}} for r in rows],
             'fields': [{'key': field, 'label': service.LABELS[field],
                         'choices': [{'id': u.pk, 'label': service.label(u)} for u in service.candidates(field)]}
                        for field in service.FIELDS]})

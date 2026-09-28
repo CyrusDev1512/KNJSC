@@ -13,6 +13,14 @@ migration, dữ liệu không đổi. Cùng lượt sửa lỗi ngầm TL-66 (Th
 ngưỡng tiền theo từng loại tiền; khối toàn kỳ giữ ở chế độ Từng lần nộp (mockup không vẽ, Bảng dữ liệu đang có).
 Chưa phát hành VPS. Biên bản [kiem-chung-che-do-so-lieu-20260928.md](kiem-chung-che-do-so-lieu-20260928.md).
 
+## 28.09.2026 — Phân công ngay trong ô bằng ô chọn (AC-21.15)
+
+**Chủ dự án yêu cầu** phân công nhân viên bằng ô chọn giống "Trạng thái vận chuyển". **Làm:** bấm đúp,
+Enter hay F2 ô "Phụ trách …" mở ô chọn đè đúng ô (mã nhân viên đúng bộ phận, "Chưa gán"), chuột chọn là
+lưu, Enter lưu, Esc đóng; vẫn qua endpoint phân công (quyền, CAS, nhật ký như cũ); nút Phân công nhiều
+dòng giữ nguyên. ADR-020 bổ sung 28.09. Không migration. Biên bản
+[kiem-chung-phan-cong-o-chon-20260928.md](kiem-chung-phan-cong-o-chon-20260928.md).
+
 ## 28.09.2026 — Nhãn bộ lọc nằm trên thanh công cụ, không đẩy lưới (AC-21.14)
 
 **Chủ dự án yêu cầu** nhãn bộ lọc đang bật nằm giữa Cột và Định dạng, không đẩy trang tính xuống.

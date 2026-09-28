@@ -1,7 +1,7 @@
 # Kiểm chứng — Chế độ số liệu: không quy đổi, mỗi dòng một loại tiền (ADR-046, TL-65) — 28.09.2026
 
 Nhánh `claude/che-do-so-lieu-bao-cao` tách từ `main` (`85f7fc1`), đặt lại lên `309b447` (sau #59) trước khi đẩy,
-rồi gộp `main` `e63e286` (#63) khi PR bị xung đột tài liệu; máy ảo Claude Code, PostgreSQL 16 cục bộ,
+rồi gộp `main` hai lần khi PR bị xung đột tài liệu (`e63e286` sau #63, `f783001` sau #64); máy ảo Claude Code, PostgreSQL 16 cục bộ,
 Chromium không màn hình (Playwright). Không migration, không thư viện mới.
 
 Chủ dự án báo trên VPS: CPQC nhập **13 250 000** mà Báo cáo tổng hợp và Bảng dữ liệu hiện số khổng lồ; muốn thấy
@@ -38,10 +38,11 @@ PostgreSQL 16 cục bộ cổng 5434, settings test, không Docker.
 |---|---|
 | `pytest reports/tests forms_builder/tests core/tests tests/test_truy_vet.py -m "not trinh_duyet"` | 1.204 đạt |
 | `pytest reports/tests forms_builder/tests tests/test_truy_vet.py -m "not trinh_duyet"` (sau hai sửa cuối: khoá (TT) dùng chung ở đường quá trần, chip Gộp) | 415 đạt |
-| `tests/test_truy_vet.py` | Đạt — 292 tiêu chí, 279 tự động, 256 có bài (AC-46.1 → 46.10 đủ, AC-42.1/42.2 rút; tính cả tiêu chí của PR #59 và AC-21.14 của PR #63 gộp trước) |
+| `tests/test_truy_vet.py` | Đạt — 293 tiêu chí, 280 tự động, 257 có bài (AC-46.1 → 46.10 đủ, AC-42.1/42.2 rút; tính cả tiêu chí của PR #59, AC-21.14 của #63 và AC-21.15 của #64 gộp trước) |
 | `pytest -m "not trinh_duyet" --ignore=tests/perf` — bộ đầy đủ kể cả bài chậm (`cham`) | **2.835 đạt**, 7 bỏ qua (thiếu điều kiện ngoài, như trước), 54 bài trình duyệt để chạy riêng — 7 phút |
 | Bài trình duyệt, lượt 1 như CI: `pytest tests/e2e -m trinh_duyet` (sau khi gộp `main` #63) | 33 đạt, 2 bỏ qua (bảng không có dòng trống; kiểm tải 300k cần biến riêng), **9 đỏ — không do PR này**: cả 9 ở `test_pha_luoi_ghi_chu.py` (lưới CRM, PR không đụng), mọi khẳng định giao diện đạt, chỉ trượt ở `assert not loi_js` vì lỗi console `ERR_CERT_AUTHORITY_INVALID` — phông Google bị proxy của máy ảo chặn (như biên bản cuộn báo cáo 28.09). Chạy chính tệp đó trên `main` `e63e286`: đỏ y hệt 9 bài, cùng lỗi. CI GitHub không qua proxy này (CI #88 của `main` xanh cả hai việc) |
 | Bài trình duyệt, lượt 2 như CI: `pytest -m trinh_duyet --ignore=tests/e2e --deselect crm/tests/test_luoi_dong_trong_va_ghim_e2e.py` | **4 đạt** — ba bài `test_bo_cuc_bao_cao_e2e.py` (bộ lọc ba trạng thái, lăn chuột trên bảng, thẻ Tổng quan) và `test_o_nhap_so_e2e.py` (AC-46.10: gõ, xoá lùi, 8000.50 → 8.000,5, kiểu Việt Nam, phần lẻ, dán, số nguyên, nộp thật lưu 13250000 CAD); 9 bỏ qua (giá đỡ script Node cần Chrome host, như CI) |
+| `pytest -m "not trinh_duyet" --ignore=tests/perf` sau khi gộp `main` #63 (commit `5874fb3`), bộ đầy đủ kể cả bài chậm | **2.845 đạt**, 7 bỏ qua (thiếu điều kiện ngoài, như trước), 60 bài trình duyệt chạy riêng ở hai dòng trên — 7 phút 48 |
 | Sau khi bỏ hai import thừa: `org/tests/test_org_scope.py`, `reports/tests/test_che_do_so_lieu.py`, `test_activity.py`, `test_mkt_excel.py`, `test_nguong_va_loc_san_pham.py`, `core/tests/test_ra_soat.py` | 118 đạt |
 
 Một lượt trình duyệt chạy chung một tiến trình bị bỏ, không tính: tôi lỡ chạy song song một pytest khác trên cùng database
