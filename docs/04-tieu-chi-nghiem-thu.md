@@ -162,7 +162,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-6.5 | Nếu ghi sang bảng vận đơn thất bại thì đơn hàng cũng không được lưu | FR-6.3 | Tự động |
 | AC-6.6 | Người tạo đơn xem lại được đơn cũ của mình | FR-6.5 | Tự động |
 | AC-6.7 | Đơn đã lưu không sửa được, kể cả khi gọi thẳng đường dẫn sửa | FR-6.6 | Tự động |
-| AC-6.8 | Nhập đơn với số điện thoại đã có thì hệ thống báo khách đã mua trước đó | FR-6.7 | Tự động |
+| AC-6.8 | Nhập đơn với số điện thoại đã có thì hệ thống báo khách đã mua trước đó; "đã có" đếm theo **dòng đang sống trên bảng Vận đơn** cùng số (khoá 9 số cuối, như cột Trùng) — dòng đã xoá hay đơn của bảng cũ đã xoá cứng không tính, dòng nhập thẳng vào bảng có tính; cột "Mua lại lần" của đơn mới đếm cùng cách (chủ dự án 28.09.2026) | FR-6.7 | Tự động |
 | AC-6.10 | Cùng số điện thoại nhưng gõ tên khác: đơn mới ghi **tên vừa gõ**, danh bạ đổi theo và có nhật ký; đơn cũ giữ nguyên tên lúc đó; số điện thoại khác nhau thì mỗi đơn mang tên của mình; ô Facebook/Email bỏ trống không xoá dữ liệu đã có ; trước khi lưu, lời nhắc khách báo trước "sẽ đổi tên khách của số …" kèm cả tên cũ lẫn tên đang gõ, và mảnh nhắc mang sẵn tên để ô Tên khách tự điền khi đang trống | FR-6.7 | Tự động |
 | AC-6.9 | Manager lên đơn thêm được sản phẩm mới ngay tại ô chọn: mã tự sinh không trùng, sản phẩm hiện trong danh sách chọn và có ngay cột số lượng trên bảng vận đơn, mỗi lần thêm có nhật ký; Staff và Leader gửi thẳng bị từ chối có ghi nhật ký; tên trùng bị từ chối | FR-6.8 | Tự động |
 
@@ -498,6 +498,12 @@ Các mục dưới là điều kiện nghiệm thu, **không phải kết quả 
 
 Không gộp skip thành đạt. VPS chưa có thì chỉ báo kết quả local; không dùng
 cấu hình dự kiến thay phép đo. Cờ không đạt hồi quy phải để tắt.
+
+## 32. Ô ngày DD/MM/YYYY — ADR-032
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-32.1 | **Ô ngày tự chèn "/"** (chủ dự án 28.09.2026): mọi ô ngày ERP/CRM (`date-inputs.js`) chèn "/" sau 2 số ngày và 2 số tháng; dấu cách, chấm, gạch ngang đổi thành "/"; gõ liền 8 số thành DD/MM/YYYY; rời ô thì thêm số 0 cho ngày tháng một chữ số; Backspace không bị chèn lại "/"; ngày sai vẫn báo lỗi; giá trị gửi đi vẫn là ISO | ADR-032 | Trình duyệt |
 
 ## 33. Phạm vi Tôi / Toàn bộ và quyền sửa Vận đơn — ADR-033
 

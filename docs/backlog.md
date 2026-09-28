@@ -1,5 +1,14 @@
 # Backlog
 
+## 28.09.2026 — "Khách mua lại" theo bảng tính (TL-61) và ô ngày tự chèn "/" (AC-32.1)
+
+**Chủ dự án báo ba việc, chốt làm 2 + 3 trước.** (2) Lên đơn báo khách mua lại dù số không còn trên bảng
+tính: nay đếm dòng đang sống trên bảng Vận đơn cùng số (như cột Trùng), dòng đã xoá và đơn của bảng cũ
+đã xoá cứng không tính, dòng nhập thẳng vào bảng có tính; cột "Mua lại lần" cùng cách. Không migration,
+không xoá dữ liệu. (3) Mọi ô ngày ERP/CRM (`date-inputs.js`, cả ô ngày trên lưới) tự chèn "/", đổi dấu
+cách/chấm/gạch ngang, gõ liền 8 số, rời ô thêm số 0. **Còn nợ:** (1) đảo thứ tự tải lại trang — TL-62,
+chờ làm lượt sau. Biên bản [kiem-chung-mua-lai-va-o-ngay-20260928.md](kiem-chung-mua-lai-va-o-ngay-20260928.md).
+
 ## 26.09.2026 — Sửa bố cục thẻ Báo cáo tổng hợp trên Tổng quan ERP (TL-60)
 
 **Chủ dự án báo** (ảnh Tổng quan): chỉ tiêu xếp chật nhiều cột, số tiền bị bẻ giữa chữ số. **Nguyên
