@@ -184,6 +184,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-7.10 | Cột tính sẵn cho ra đúng kết quả, đối chiếu với số liệu thật của khách hàng | FR-7.8 · ADR-006 | Tự động |
 | AC-7.11 | Chia cho không hoặc thiếu toán hạng thì cột tính sẵn để trống, không hỏng cả dòng | FR-7.8 · ADR-006 | Tự động |
 | AC-7.12 | Đổi công thức của một cột thì bản ghi cũ được tính lại, không còn giữ số cũ | FR-7.8 · ADR-006 | Tự động |
+| AC-7.13 | Bảng dữ liệu ERP: bấm tiêu đề cột để sắp xếp chỉ thay khối bảng bằng HTMX, trang không tải lại; địa chỉ trang mang tham số sắp xếp; bấm lần nữa đảo chiều; qua HTMX vẫn chặn đúng (Staff 403, bảng bộ phận khác 404) (28.09.2026, TL-62) | FR-7.3 | Tự động + trình duyệt |
 
 ---
 
@@ -454,6 +455,7 @@ quyền và hợp đồng dữ liệu của AC-18/20. Các bảng khác tiếp t
 | AC-21.9 | Cỡ chữ/màu chữ/màu nền giữ thuộc tính khác; CAS riêng từng thuộc tính; định dạng/Undo/Redo nguyên tử; phản hồi lượt cũ không xóa nháp mới, retry giữ UUID/nội dung; lỗi quyền/kiểu/xung đột không retry tự động | ADR-021 | Tự động |
 | AC-21.10 | Lịch sử chỉ nối thêm, trước/sau theo ô, tài khoản/thời điểm/nhóm thao tác; 50 mục/trang, kiểm quyền hiện hành, replay không trùng; xung đột đối chiếu trong phiên và gửi lại bằng CAS mới, không ghi đè cưỡng bức | ADR-021 | Tự động |
 | AC-21.11 | Admin CRM bắt buộc chọn Sale hoạt động/hợp lệ; creator là Admin, seller/phòng ban/team theo Sale; Sale đọc đơn đứng tên; người khác không giả mạo seller; lỗi tạo đơn/chi tiết/vận đơn rollback cả lượt | ADR-021 | Tự động |
+| AC-21.12 | **Sắp xếp không giật** (chủ dự án 28.09.2026, TL-62): bấm tiêu đề cột trên lưới thì mũi tên đổi ngay, dòng đang hiện giữ tới khi dữ liệu đã sắp xếp về rồi thay một lượt (không ô "…"), giữ vị trí cuộn ngang và chiều cao dòng, không tải lại trang HTML; bỏ chip lọc sau đó vẫn giữ thứ tự vừa chọn | ADR-021 | Trình duyệt |
 | AC-21.13 | **Lịch sử từng ô trên lưới** (chủ dự án 28.09.2026): chuột phải một ô mở khung ngay cạnh ô — mã và tên người sửa, giờ Việt Nam, giá trị trước → sau, "Cũ hơn" để xem tiếp; Esc, bấm ra ngoài hay cuộn thì đóng; ô bị **người khác** sửa giá trị trong 24 giờ (`GRID_RECENT_EDIT_HOURS`) có dấu góc, một truy vấn mỗi khối; người không xem được dòng thì lịch sử trả 403 | ADR-021 | Tự động + trình duyệt |
 
 ## 23. Bàn điều hành KN CRM — ADR-022

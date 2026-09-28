@@ -1,5 +1,15 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 28.09.2026 — Bấm đảo thứ tự làm trang giật
+
+**TL-62 (đóng):** chủ dự án báo bấm sắp xếp (ví dụ theo Quốc gia) thì "cả trang bị load". Lưới KN CRM xử
+lý đổi thứ tự như mở bảng mới (`navigate` → `invalidate(true)`): cuộn về cột đầu, đứng hình tới khi dữ
+liệu về (mũi tên tiêu đề chưa đổi vì `render` dừng khi `state.ready=false`), đặt lại chiều cao mọi dòng,
+và tải lại cả trang HTML chỉ để lấy khung lọc. Bảng dữ liệu ERP thì tiêu đề là liên kết thường, tải lại
+trang thật. Sửa: lưới đi đường tải lại mềm (`refreshSoft`) khi chỉ đổi thứ tự — giữ dòng cũ, cuộn ngang,
+chiều cao; mũi tên đổi ngay; không tải HTML; chip lọc giữ thứ tự đang dùng. ERP dùng HTMX thay riêng khối
+bảng (`_bang_xem_bang.html`). AC-21.12, AC-7.13. [Biên bản](kiem-chung-sap-xep-khong-giat-20260928.md).
+
 ## 28.09.2026 — Báo "khách mua lại" sai; ô ngày phải gõ tay "/"; đảo thứ tự tải lại trang
 
 **TL-61 (đóng):** Lên đơn báo "Khách mua lại — đã có N đơn" dù số đó không còn trên bảng tính. Lời báo
@@ -7,7 +17,7 @@
 bảng vận đơn cũ giữ đơn và chỉ cắt liên kết (`record=None`). Tái hiện: xoá dòng duy nhất của một số →
 lưới 0 dòng, Lên đơn vẫn "đã có 1 đơn". Sửa: đếm **dòng đang sống trên bảng Vận đơn** cùng khoá số
 (`dispatch_service.rows_with_phone`, cùng thước đo cột Trùng); cột "Mua lại lần" đếm cùng cách. AC-6.8.
-**TL-62 (mở, chủ dự án xếp sau):** bấm tiêu đề cột để đảo thứ tự thì lưới CRM xoá sạch ô (hiện "…"),
+**TL-62 (mở lúc ghi mục này; đã đóng ở mục "Bấm đảo thứ tự" ngay trên):** bấm tiêu đề cột để đảo thứ tự thì lưới CRM xoá sạch ô (hiện "…"),
 cuộn về cột đầu, bỏ vùng chọn và tải lại cả trang HTML chỉ để lấy khung lọc; Bảng dữ liệu ERP thì tải
 lại cả trang thật. Hướng sửa đã trình: giữ dòng cũ tới khi dữ liệu mới về, giữ cuộn ngang, bỏ tải HTML;
 ERP dùng HTMX thay phần bảng.

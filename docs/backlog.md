@@ -1,5 +1,13 @@
 # Backlog
 
+## 28.09.2026 — Bấm đảo thứ tự không còn làm trang giật (TL-62)
+
+**Chủ dự án báo** bấm sắp xếp theo Quốc gia thì cả trang bị load. **Sửa:** lưới KN CRM khi chỉ đổi thứ
+tự thì đi đường tải lại mềm có sẵn — mũi tên đổi ngay, giữ dòng đang hiện tới khi dữ liệu mới về, giữ
+cuộn ngang và chiều cao dòng, bỏ tải lại trang HTML; chip lọc giữ thứ tự đang dùng. Bảng dữ liệu ERP:
+tiêu đề cột dùng HTMX thay riêng khối bảng. Cách máy chủ sắp xếp và phân quyền không đổi. Phân trang
+ERP vẫn tải trang như cũ. Biên bản [kiem-chung-sap-xep-khong-giat-20260928.md](kiem-chung-sap-xep-khong-giat-20260928.md).
+
 ## 28.09.2026 — "Khách mua lại" theo bảng tính (TL-61) và ô ngày tự chèn "/" (AC-32.1)
 
 **Chủ dự án báo ba việc, chốt làm 2 + 3 trước.** (2) Lên đơn báo khách mua lại dù số không còn trên bảng

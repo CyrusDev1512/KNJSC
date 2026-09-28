@@ -1,5 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 28.09.2026 — Sắp xếp không giật (TL-62)
+
+**Finished local (nhánh `claude/sap-xep-khong-giat`, PR nháp về `main`):** lưới CRM và Bảng dữ liệu ERP
+bấm tiêu đề cột không còn tải lại/giật. **To do:** chủ dự án test local rồi quyết gộp.
+
 ## 28.09.2026 — Khách mua lại theo bảng tính, ô ngày tự chèn "/"
 
 **Finished local (nhánh `claude/mua-lai-va-o-ngay`, PR nháp về `main`):** TL-61 đóng, AC-32.1 mới.
