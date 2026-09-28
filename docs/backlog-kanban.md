@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 28.09.2026 — Cuộn Báo cáo tổng hợp (TL-63)
+
+**Finished (nhánh `claude/cuon-bao-cao-tong-hop`, PR #60 về `main`, chủ dự án lệnh gộp 28.09 sau khi kiểm kĩ
+25/25 mục trình duyệt và 408 bài liên quan):** lăn chuột trên bảng không còn kẹt, cuộn Không gộp hết rớt khung.
+**To do:** phát hành VPS (Codex); chốt hai việc tuỳ chọn đổi giao diện (khe bảng lúc mở trang, bớt cột ghim trái).
+
 ## 28.09.2026 — Nút Tôi theo tài khoản, lịch sử từng ô
 
 **Finished local (nhánh `claude/toi-va-lich-su-o`, PR nháp về `main`):** TL-64 đóng, AC-21.13 mới.
