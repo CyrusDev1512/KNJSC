@@ -26,16 +26,19 @@ chờ chốt nguồn số liệu ở backlog N9.
 from dataclasses import dataclass, field, replace
 from decimal import Decimal
 
-from django.db.models import Count, DecimalField, ExpressionWrapper, F, Q, Sum
+from django.db.models import Count, DecimalField, F, Sum
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Cast
 
-from core.money import MONEY_DECIMAL_PLACES, MONEY_MAX_DIGITS, vnd_rate_expression
+from core.money import MONEY_DECIMAL_PLACES, MONEY_MAX_DIGITS, currency_rank, currency_rank_expression
 from forms_builder.meaning import (
     COLUMN_OF, FieldType, Meaning, can_group, can_sum,
 )
 from forms_builder.models import ComputeOp
 from reports import constants
+
+#: Ngưỡng màu của chỉ tiêu tiền đặt theo ₫ — chỉ áp cho dòng loại tiền này (ADR-046)
+VND = "VND"
 
 #: Cách nhóm trên URL sang nhãn ý nghĩa. Khai một chỗ duy nhất (quy tắc 7).
 #: "thi-truong" cố ý vắng mặt — hoãn theo Q36, chờ chốt backlog N9.
@@ -65,9 +68,12 @@ class ReportColumn:
 
     code: str
     label: str
-    kind: str          # "sum" | "computed" | "share"
+    kind: str          # "sum" | "computed" | "share" | "derived"
     decimals: int = 0
     suffix: str = ""   # "%" cho phần trăm và tỉ trọng
+    #: Giá trị là một số tiền theo loại tiền của dòng (CPQC, DS Chốt, CPO, Giá Mess, AOV…), không
+    #: phải số đếm hay tỉ số: không cộng qua các loại tiền, ngưỡng ₫ chỉ áp cho dòng VND (ADR-046)
+    money: bool = False
 
     @property
     def focus(self):
@@ -96,10 +102,15 @@ class SummaryResult:
     #: Khoá tra `derived` của một dòng. Nhóm theo nhiều cột (Tổng hợp = ngày ×
     #: nhân sự) thì khoá là bộ giá trị theo đúng thứ tự này.
     derived_key: tuple = ("nhom",)
-    #: Tiền đã quy về ₫ ngay trong truy vấn (ADR-042) và số dòng không quy đổi được
-    #: (chưa có tỉ giá hay trống loại tiền) — tiền của chúng không vào tổng.
-    converted: bool = False
-    unconverted: int = 0
+    #: Khoá loại tiền trong dict dòng (`"loai_tien"`) khi nguồn có cột Loại tiền: tiền giữ đúng số
+    #: đã nhập, mỗi dòng một loại tiền, không quy đổi (ADR-046 thay quyết định 1 của ADR-042).
+    #: Rỗng = nguồn không có loại tiền (Vận đơn, bảng thường): một dòng tổng như cũ.
+    currency_key: str = ""
+    #: Tổng thô theo từng loại tiền `({currency_key, "so_dong", "c_*"}, …)` theo `currency_rank`
+    currency_sums: tuple = ()
+    #: Dòng TỔNG CỘNG theo loại tiền đã gộp phần đối soát và tính lại cột tính: `((mã tiền, tổng), …)`
+    #: — dựng bởi `with_currency_totals`, đọc bằng `total_rows`
+    currency_totals: tuple = ()
     #: Ngưỡng màu ba bậc theo mã chỉ tiêu (`ReportSource.thresholds`, ADR-042 đợt 3); rỗng thì
     #: ô tỉ lệ tô theo cách tương đối so với dòng Tổng (AC-22.16)
     thresholds: dict = field(default_factory=dict)
@@ -135,14 +146,10 @@ def _sum_columns(columns):
     return ket_qua
 
 
-#: Cột tiền đã nhân tỉ giá: 18 chữ số × tỉ giá năm chữ số vượt `MONEY_MAX_DIGITS`
-VND_FIELD = DecimalField(max_digits=24, decimal_places=2)
-
-
-def _sum_exprs(sum_cols, converted=False):
+def _sum_exprs(sum_cols):
     """Biểu thức Sum cho từng cột — cột tách cộng thẳng, cột JSON phải qua
-    text rồi mới cast (xem docstring đầu tệp). `converted`: cột kiểu Tiền nhân
-    với tỉ giá `_ti_gia` của dòng (ADR-042) — cột Số nguyên/Số thập phân giữ nguyên."""
+    text rồi mới cast (xem docstring đầu tệp). Tiền cộng nguyên số đã nhập: nhóm
+    đã tách theo loại tiền thì không bao giờ cộng lẫn (ADR-046)."""
     exprs = {}
     for c in sum_cols:
         if c.meaning == Meaning.REVENUE and can_sum(Meaning.REVENUE):
@@ -154,10 +161,13 @@ def _sum_exprs(sum_cols, converted=False):
                     max_digits=MONEY_MAX_DIGITS, decimal_places=MONEY_DECIMAL_PLACES,
                 ),
             )
-        if converted and c.field_type == FieldType.MONEY:
-            gia_tri = ExpressionWrapper(gia_tri * F("_ti_gia"), output_field=VND_FIELD)
         exprs[_alias(c.code)] = Sum(gia_tri)
     return exprs
+
+
+#: Khoá của loại tiền và hạng xếp của nó trong dict dòng khi nhóm theo loại tiền (ADR-046)
+CURRENCY_KEY = "loai_tien"
+CURRENCY_RANK_KEY = "hang_tien"
 
 
 def _recomputable(columns, sum_cols):
@@ -197,14 +207,17 @@ def _recompute(computed_cols, values_by_code):
 
 def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
               product="", columns=None, with_totals=True, group_expression=None, group_label=None,
-              extra_groups=None, derived_key=("nhom",), currency_code=None):
+              extra_groups=None, derived_key=("nhom",), currency_expression=None, order=None,
+              annotations=None):
     """Một lượt tổng hợp: nhóm + cộng + dòng tổng cộng — FR-5.1 và FR-5.4.
 
     `scoped_qs` phải là `DataRecord.objects.in_scope(user)` (quy tắc 11).
     `columns` cho phép truyền danh sách cột đã lấy sẵn để khỏi truy vấn lại.
-    `currency_code` là mã cột Loại tiền của bảng: có nó thì mọi cột kiểu Tiền
-    được nhân tỉ giá của từng dòng ngay trong truy vấn rồi mới cộng (ADR-042);
-    dòng thiếu tỉ giá được đếm vào `so_chua_quy_doi` ở cả dòng nhóm lẫn tổng.
+    `currency_expression` là biểu thức loại tiền của từng dòng: có nó thì loại tiền thành một
+    chiều nhóm (`loai_tien`, kèm hạng xếp `hang_tien`) — mỗi dòng kết quả một loại tiền, tiền giữ
+    đúng số đã nhập, không quy đổi, và dòng tổng tách theo loại tiền (`currency_sums`, ADR-046).
+    `order` thay thứ tự dòng mặc định; `annotations` gắn thêm biểu thức sau khi nhóm (số thứ tự
+    lần nộp bằng hàm cửa sổ).
 
     `with_totals=False` bỏ lệnh aggregate dòng tổng cộng — cho màn hình đã
     lấy về toàn bộ dòng nhóm và sẽ tự cộng bằng `totals_from_rows` (SUM kết
@@ -225,15 +238,8 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
         date_from=date_from, date_to=date_to, product=product,
     )
 
-    converted = bool(currency_code)
-    if converted:
-        # Quy ₫ ngay trong truy vấn (ADR-042): tỉ giá theo loại tiền từng dòng; dòng thiếu
-        # tỉ giá hay trống loại tiền → NULL, không vào tổng tiền, được đếm để cảnh báo
-        qs = qs.annotate(_ti_gia=vnd_rate_expression(KeyTextTransform(currency_code, "data")))
     sum_cols = _sum_columns(cols)
-    exprs = _sum_exprs(sum_cols, converted)
-    if converted:
-        exprs["so_chua_quy_doi"] = Count("id", filter=Q(_ti_gia__isnull=True))
+    exprs = _sum_exprs(sum_cols)
     computed_cols = _recomputable(cols, sum_cols)
     revenue_col = by_meaning.get(Meaning.REVENUE)
 
@@ -244,10 +250,23 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
     # mỗi người một dòng riêng thay vì gộp cả ngày (bổ sung ADR-035, 19.09)
     khoa_nhom = {"nhom": group_expression if group_expression is not None else F(group_path)}
     khoa_nhom.update(extra_groups or {})
+    tien = {}
+    if currency_expression is not None:
+        # Loại tiền là một chiều nhóm: không dòng nào cộng hai loại tiền (ADR-046)
+        tien = {CURRENCY_KEY: currency_expression, CURRENCY_RANK_KEY: currency_rank_expression(currency_expression)}
+        khoa_nhom.update(tien)
     them = [k for k in (extra_groups or {})]
     rows = qs.order_by().values(**khoa_nhom).annotate(so_dong=Count("id"), **exprs)
-    if meaning == Meaning.DATE:
-        rows = rows.order_by("-nhom", *them)
+    if annotations:
+        rows = rows.annotate(**annotations)
+    if order is not None:
+        rows = rows.order_by(*order)
+    elif meaning == Meaning.DATE:
+        rows = rows.order_by("-nhom", *them, *([CURRENCY_RANK_KEY] if tien else []))
+    elif tien:
+        # Nhiều loại tiền thì xếp theo doanh thu là vô nghĩa (không so được USD với PHP):
+        # xếp theo nhóm, các loại tiền của cùng nhóm đứng liền nhau
+        rows = rows.order_by("nhom", CURRENCY_RANK_KEY, *them)
     elif revenue_col is not None and revenue_col in sum_cols:
         rows = rows.order_by(f"-{_alias(revenue_col.code)}", "nhom", *them)
     else:
@@ -256,11 +275,17 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
     # Dòng tổng cộng: MỘT lệnh riêng trên cùng queryset đã lọc, không cắt
     # trang — nhờ vậy AC-5.4 so nó với tổng các dòng chi tiết mới có nghĩa
     totals = None
+    currency_sums = ()
     if with_totals:
         totals = qs.order_by().aggregate(so_dong=Count("id"), **exprs)
         totals.update(_recompute(
             computed_cols, {c.code: totals[_alias(c.code)] for c in sum_cols},
         ))
+        if tien:
+            # Tổng theo loại tiền: thêm một lệnh nhóm theo loại tiền (chỉ ở đường dòng quá nhiều)
+            currency_sums = tuple(
+                qs.order_by().values(**tien).annotate(so_dong=Count("id"), **exprs)
+                .order_by(CURRENCY_RANK_KEY, CURRENCY_KEY))
 
     # Danh sách cột hiển thị, sau cột nhóm: cột cộng và cột tính theo đúng
     # thứ tự cột của bảng, rồi Tỉ trọng nếu là tab sản phẩm có doanh thu
@@ -268,12 +293,12 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
     tinh_duoc = {c.code for c in computed_cols}
     for c in cols:
         if c in sum_cols:
-            tien = converted and c.field_type == FieldType.MONEY
             hien.append(ReportColumn(
                 code=c.code, label=c.name, kind="sum",
-                # ₫ không có phần lẻ; tiền chưa quy đổi giữ hai số lẻ như cũ
-                decimals=0 if c.field_type == FieldType.INTEGER or tien else 2,
-                suffix=" ₫" if tien else "",
+                # Tiền giữ hai số lẻ (bỏ khi số chẵn — `format_number`); không hậu tố ₫ vì
+                # không quy đổi, loại tiền nằm ở cột riêng (ADR-046)
+                decimals=0 if c.field_type == FieldType.INTEGER else 2,
+                money=c.field_type == FieldType.MONEY,
             ))
         elif c.is_computed and c.code in tinh_duoc:
             hien.append(ReportColumn(
@@ -297,8 +322,8 @@ def summarize(table, scoped_qs, *, group_key, date_from=None, date_to=None,
         computed_columns=tuple(computed_cols),
         revenue_alias=_alias(revenue_col.code) if revenue_col else "",
         derived_key=tuple(derived_key),
-        converted=converted,
-        unconverted=(totals or {}).get("so_chua_quy_doi") or 0,
+        currency_key=CURRENCY_KEY if tien else "",
+        currency_sums=currency_sums,
     )
 
 
@@ -332,9 +357,89 @@ def summarize_in_memory(table, scoped_qs, *, limit, **kwargs):
     if len(items) > limit:
         return summarize(table, scoped_qs, with_totals=True, **kwargs)
     totals = totals_from_rows(items, result)
-    if result.converted:
-        totals["so_chua_quy_doi"] = sum(i.get("so_chua_quy_doi") or 0 for i in items)
-    return replace(result, rows=items, totals=totals, unconverted=totals.get("so_chua_quy_doi", 0))
+    return replace(result, rows=items, totals=totals, currency_sums=currency_sums_from_rows(items, result))
+
+
+def currency_sums_from_rows(items, result):
+    """Tổng thô theo loại tiền từ chính các dòng nhóm đã lấy về — cùng khuôn với lệnh nhóm theo
+    loại tiền của `summarize` (SUM kết hợp được), không truy vấn. Nguồn không tách loại tiền → ()."""
+    khoa = result.currency_key
+    if not khoa:
+        return ()
+    theo_tien = {}
+    for item in items:
+        theo_tien.setdefault(item.get(khoa) or "", []).append(item)
+    out = []
+    for tien in sorted(theo_tien, key=lambda t: (currency_rank(t), t)):
+        tong = totals_from_rows(theo_tien[tien], replace(result, computed_columns=()))
+        out.append({khoa: tien, CURRENCY_RANK_KEY: currency_rank(tien), **tong})
+    return tuple(out)
+
+
+def with_currency_totals(result):
+    """Dòng TỔNG CỘNG theo từng loại tiền (ADR-046): tổng thô của loại tiền đó cộng phần đối soát
+    (`derived`) của các khoá thuộc loại tiền đó — mỗi khoá một lần — rồi tính lại cột tính từ tổng.
+    Tổng chung (`totals`) giữ số đếm; khi có hơn một loại tiền thì cột tiền của nó để trống (None) vì
+    cộng hai loại tiền là sai (quy tắc bắt buộc 6) — mọi chỗ hiện tiền đọc `total_rows`."""
+    khoa = result.currency_key
+    if not khoa or not result.ok:
+        return result
+    vi_tri = result.derived_key.index(khoa) if khoa in result.derived_key else None
+    doi_soat = {}
+    for key, muc in (result.derived or {}).items():
+        tien = (key[vi_tri] if vi_tri is not None and isinstance(key, tuple) else "") or ""
+        dich = doi_soat.setdefault(tien, {})
+        for code, value in muc.items():
+            if value is not None:
+                dich[code] = (dich.get(code) or Decimal(0)) + value
+    currency_totals = []
+    for sums in result.currency_sums:
+        tien = sums.get(khoa) or ""
+        values = {k.removeprefix("c_"): v for k, v in sums.items() if k.startswith("c_")}
+        values.update(doi_soat.get(tien, {}))
+        tong = dict(sums)
+        tong.update({code: v for code, v in doi_soat.get(tien, {}).items()})
+        tong.update(_recompute(result.computed_columns, values))
+        currency_totals.append((tien, tong))
+    result = replace(result, currency_totals=tuple(currency_totals))
+    if len(currency_totals) > 1 and result.totals is not None:
+        # Tổng chung lẫn nhiều loại tiền: bỏ mọi số tiền, giữ số đếm và tỉ lệ đếm/đếm
+        tien_cot = {c.code for c in result.columns if c.money and c.kind in ("sum", "derived")}
+        totals = {k: (None if k.removeprefix("c_") in tien_cot else v) for k, v in result.totals.items()}
+        derived_totals = {k: (None if k in tien_cot else v) for k, v in (result.derived_totals or {}).items()}
+        values = {k.removeprefix("c_"): v for k, v in totals.items() if k.startswith("c_")}
+        values.update(derived_totals)
+        totals.update(_recompute(result.computed_columns, values))
+        result = replace(result, totals=totals, derived_totals=derived_totals)
+    return result
+
+
+def total_rows(result):
+    """Các dòng TỔNG CỘNG để hiện: `[(mã tiền, dãy ô thô)]` — mỗi loại tiền một dòng khi nguồn tách
+    loại tiền (ADR-046), còn không thì một dòng `("", tổng chung)` như cũ."""
+    if not result.currency_key:
+        return [("", total_values(result))]
+    return [(tien, _cell_values(result, _total_by_code(tong, result))) for tien, tong in result.currency_totals]
+
+
+def _total_by_code(tong, result):
+    """`{mã cột: giá trị}` của một dòng tổng theo loại tiền (đã gộp đối soát, đã tính lại)."""
+    by_code = {k.removeprefix("c_"): v for k, v in tong.items() if k.startswith("c_")}
+    by_code.update({code: tong.get(code) for code in _derived_codes(result)})
+    by_code.update({c.code: tong.get(c.code) for c in result.computed_columns})
+    return by_code
+
+
+def _derived_codes(result):
+    return {c.code for c in result.columns if c.kind == "derived"}
+
+
+def currency_total_values(result, tien):
+    """Dãy ô thô của dòng TỔNG CỘNG toàn kỳ cho một loại tiền — mốc so màu của dòng cùng loại tiền."""
+    for ma, raw in total_rows(result):
+        if ma == (tien or ""):
+            return raw
+    return None
 
 
 def row_count(result):
@@ -368,10 +473,13 @@ def subtotals(items, result, key="nhom"):
     `{giá trị nhóm: dãy ô thô}` theo thứ tự xuất hiện. Cộng `c_*` như `totals_from_rows`,
     cộng thêm giá trị suy ra (`derived`) của từng dòng, rồi tính lại cột tính từ tổng —
     CPO của ngày là ΣCPQC ÷ Σđơn, không phải trung bình các dòng. Không truy vấn.
-    `key="person_name"` gom theo người thay vì ngày — khối toàn kỳ theo nhân sự (ADR-042)."""
+    `key="person_name"` gom theo người thay vì ngày — khối toàn kỳ theo nhân sự (ADR-042).
+    `key` là bộ nhiều khoá thì nhóm theo bộ giá trị — `("nhom", "loai_tien")` là tổng từng ngày
+    của từng loại tiền, không bao giờ cộng hai loại tiền (ADR-046)."""
     theo_nhom = {}
     for item in items:
-        theo_nhom.setdefault(item.get(key), []).append(item)
+        nhom = tuple(item.get(k) for k in key) if isinstance(key, tuple) else item.get(key)
+        theo_nhom.setdefault(nhom, []).append(item)
     out = {}
     for nhom, dong in theo_nhom.items():
         by_code = {}
@@ -398,10 +506,18 @@ def subtotal_cells(items, result, key="nhom"):
     return {nhom: format_cells(result, raw) for nhom, raw in subtotals(items, result, key).items()}
 
 
-def format_cells(result, raw_cells):
+def format_cells(result, raw_cells, currency=None):
     """Dãy ô thô thành chuỗi hiển thị có lớp màu, so với dòng Tổng làm mốc — dùng chung cho
-    dòng người, tổng ngày và khối toàn kỳ."""
-    return _format_cells(result, raw_cells, total_values(result) if result.totals else None)
+    dòng người, tổng ngày và khối toàn kỳ. Nguồn tách loại tiền thì mốc là dòng TỔNG CỘNG toàn kỳ
+    **cùng loại tiền** `currency` (ADR-046)."""
+    return _format_cells(result, raw_cells, _moc(result, currency), currency)
+
+
+def _moc(result, currency):
+    """Dãy ô thô làm mốc so màu: tổng cùng loại tiền khi tách loại tiền, tổng chung khi không."""
+    if result.currency_key:
+        return currency_total_values(result, currency)
+    return total_values(result) if result.totals else None
 
 
 def attach_totals(result, totals):
@@ -489,15 +605,20 @@ def cell_class(cot, gia_tri, moc, nguong=None):
     return " ".join(lop)
 
 
-def _format_cells(result, raw_cells, moc=None):
+def _format_cells(result, raw_cells, moc=None, currency=None):
     """Chuỗi hiển thị cho một dãy ô thô. `moc` là dãy ô của dòng Tổng để so màu; ngưỡng tuyệt
-    đối (nếu Manager đã đặt) tra theo mã chỉ tiêu."""
+    đối (nếu Manager đã đặt) tra theo mã chỉ tiêu. Ngưỡng của chỉ tiêu tiền (CPO, Giá Mess, AOV)
+    đặt theo ₫ nên chỉ áp cho dòng VND; dòng loại tiền khác không tô theo ngưỡng đó (ADR-046)."""
     out = []
     nguong = result.thresholds or {}
+    khac_vnd = bool(result.currency_key) and (currency or "") != VND
     for i, (cot, gia_tri) in enumerate(zip(result.columns, raw_cells)):
         text = format_number(gia_tri, cot.decimals)
         hien = text + cot.suffix if text != "—" else text
         muc = nguong.get(constants.metric_key(cot.code, cot.label))
+        if muc and cot.money and khac_vnd:
+            out.append(Cell(hien, "o-chi-so" if cot.focus else ""))
+            continue
         out.append(Cell(hien, cell_class(cot, gia_tri, moc[i] if moc else None, muc)))
     return out
 
@@ -539,14 +660,14 @@ def format_group(value, result):
 
 def finish_rows(page_items, result):
     """Hoàn thiện các dòng của MỘT trang thành chuỗi hiển thị. Chạy sau khi
-    cắt trang để không tính thừa."""
+    cắt trang để không tính thừa. Mốc so màu (AC-22.16) là dòng Tổng cùng loại tiền."""
     rows = []
-    moc = total_values(result) if result.totals else None   # mốc so màu (AC-22.16)
     for item in page_items:
         nhom, raw = row_values(item, result)
+        tien = item.get(result.currency_key) if result.currency_key else None
         rows.append({
             "nhom": format_group(nhom, result),
-            "cells": _format_cells(result, raw, moc),
+            "cells": _format_cells(result, raw, _moc(result, tien), tien),
         })
     return rows
 

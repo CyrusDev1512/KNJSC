@@ -1,12 +1,25 @@
 # Backlog
 
+## 28.09.2026 — Chế độ số liệu: không quy đổi, mỗi dòng một loại tiền (ADR-046, TL-65)
+
+**Chủ dự án báo** CPQC nhập 13 250 000 mà báo cáo hiện số khổng lồ (bị quy ₫ theo loại tiền của thị trường —
+lựa chọn của người viết ADR-042, không phải yêu cầu); muốn số giữ nguyên, có dấu chấm, nộp hai lần 8000 và
+7000 thì hiện đúng như thế. Chọn "cách 3: xem theo chế độ, chế độ nằm trong bộ lọc", duyệt mockup và ba câu:
+mặc định Cộng theo ngày, Loại tiền vẫn tự theo Thị trường, giữ TỔNG CỘNG ở Từng lần nộp. **Làm:** bỏ quy đổi;
+loại tiền là một chiều nhóm, TỔNG CỘNG theo loại tiền ở mọi khối, Excel, thẻ Tổng quan; bộ lọc Chế độ (Báo cáo
+tổng hợp mặc định Cộng theo ngày, Bảng dữ liệu mặc định Từng lần nộp như trước), cột Lần nộp "Lần N · giờ"; (TT)
+theo loại tiền của đơn; ngưỡng tiền ₫ chỉ tô dòng VND; Bảng dữ liệu thô và ô nhập số có dấu chấm. Không
+migration, dữ liệu không đổi. Cùng lượt sửa lỗi ngầm TL-66 (Theo nhân viên quá trần 500). **Chủ dự án chốt**
+cùng ngày: chưa cần ngưỡng tiền theo từng loại tiền; giữ khối toàn kỳ ở chế độ Từng lần nộp.
+Chưa phát hành VPS. Biên bản [kiem-chung-che-do-so-lieu-20260928.md](kiem-chung-che-do-so-lieu-20260928.md).
+
 ## 28.09.2026 — CI trình duyệt không còn đỏ chập chờn khi dọn bảng (TL-67)
 
 **Chủ dự án yêu cầu** sửa bằng được lỗi đỏ trên `main` trước khi làm tiếp (CI #94, #96 đỏ sau khi gộp #63, #64).
 **Nguyên nhân:** bài trình duyệt kết thúc lúc lưới còn gọi máy chủ; pytest dọn bảng (TRUNCATE) kẹt khoá với truy
 vấn đang chạy. **Sửa:** bài có máy chủ thử chờ máy chủ xử lý xong mọi yêu cầu dở (đếm bằng tín hiệu của Django,
 tối đa 5 s) rồi mới dọn bảng; chỉ mã kiểm thử, không đụng mã ứng dụng. Chạy lặp bài từng lỗi: trước sửa 4/30 lần
-kẹt khoá, sau sửa 0/30. Gộp PR này trước PR #65 để `main` xanh. Biên bản
+kẹt khoá, sau sửa 0/30. Đã gộp vào `main` 29.09.2026 (PR #67), trước PR #65. Biên bản
 [kiem-chung-e2e-cho-may-chu-20260928.md](kiem-chung-e2e-cho-may-chu-20260928.md).
 
 ## 26.09.2026 — Bỏ hộp đọc, ô phồng to tại chỗ kiểu Google Sheets (bổ sung ADR-033)

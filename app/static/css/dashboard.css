@@ -35,6 +35,17 @@
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
+/* Nguồn có loại tiền (ADR-046): mỗi chỉ tiêu một hàng (TL-60), mỗi loại tiền một cột. Số không bao giờ
+   bẻ giữa chữ số — thẻ hẹp mà nhiều loại tiền thì bảng cuộn ngang */
+.dashboard-metrics-cuon { overflow-x: auto; }
+.dashboard-metrics-bang { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.dashboard-metrics-bang th, .dashboard-metrics-bang td { padding: 8px 0 8px 12px; border-bottom: 1px solid var(--rule); vertical-align: baseline; }
+.dashboard-metrics-bang tr > :first-child { padding-left: 0; }
+.dashboard-metrics-bang tbody tr:last-child > * { border-bottom: 0; }
+.dashboard-metrics-bang thead th { color: var(--ink-2); font-size: var(--fs-sm); font-weight: 600; text-align: right; white-space: nowrap; }
+.dashboard-metrics-bang thead th:first-child { text-align: left; }
+.dashboard-metrics-bang tbody th { color: var(--ink-2); font-weight: 400; text-align: left; min-width: 72px; }
+.dashboard-metrics-bang td { text-align: right; font-weight: 600; white-space: nowrap; }
 .dashboard-links {
   margin-top: 16px;
   padding-top: 12px;

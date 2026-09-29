@@ -1,0 +1,5 @@
+{% comment %}Ô Chế độ số liệu trong bộ lọc (ADR-046, mockup 28.09): Cộng theo ngày / Từng lần nộp. Chỉ nguồn
+Sale/MKT có; chỉ cách xem Tổng hợp dùng — JS ẩn ô khi đổi sang cách xem khác. Áp dụng khi bấm Áp dụng
+như mọi bộ lọc khác. Cần `modes`, `params`.{% endcomment %}
+{% if modes %}<fieldset class="truong report-che-do" id="report-che-do"><legend>Chế độ</legend>
+<div class="report-che-do-ds" role="radiogroup" aria-label="Chế độ số liệu">{% for code, label in modes %}<label class="report-che-do-muc"><input type="radio" name="che_do" value="{{ code }}"{% if params.mode == code %} checked{% endif %}><span><b>{{ label }}</b>{% if code == 'cong' %}<small>Mỗi người mỗi ngày một dòng cho mỗi loại tiền; nộp nhiều lần thì cộng, chỉ cộng cùng loại tiền.</small>{% else %}<small>Mỗi lần nộp một dòng kèm giờ nộp; số đúng như nhập, không cộng.</small>{% endif %}</span></label>{% endfor %}</div></fieldset>{% endif %}

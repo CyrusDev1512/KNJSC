@@ -2,14 +2,13 @@
 from dataclasses import dataclass, replace
 from decimal import Decimal
 
-from django.db.models import Count, Sum, F, Value, CharField, Q
+from django.db.models import Count, Sum, F, Value, CharField, Q, Window
 from django.db.models.fields.json import KeyTextTransform
-from django.db.models.functions import Coalesce, NullIf, Concat
+from django.db.models.functions import Coalesce, NullIf, Concat, RowNumber
 
 from core.identity import SEPARATOR, code_expression
 from core.managers import apply_scope
 from core.exceptions import OutOfScopeError, BusinessError
-from core.money import rates_label, to_vnd, vnd_rate
 from forms_builder.models import DataRecord, TableDef
 from orders.constants import waybill_condition
 from orders.models import WaybillItem
@@ -24,6 +23,12 @@ GROUPS = (
     ("product", "Theo sản phẩm"), ("market", "Theo thị trường"),
     ("department", "Hiệu suất theo phòng ban"),
 )
+#: Chế độ số liệu (ADR-046) — nằm trong bộ lọc, tham số `che_do`. "cong": mỗi người mỗi ngày một
+#: dòng cho mỗi loại tiền, nộp nhiều lần thì cộng (cùng loại tiền); "tung-lan": mỗi lần nộp một dòng,
+#: số đúng như nhập. Chỉ cách xem Tổng hợp (ngày × nhân sự) có chế độ; Báo cáo tổng hợp mặc định
+#: "cong", Bảng dữ liệu dạng báo cáo mặc định "tung-lan" — giữ đúng như trước khi có bộ lọc này.
+MODES = (("cong", "Cộng theo ngày"), ("tung-lan", "Từng lần nộp"))
+DEFAULT_MODE = "cong"
 PERSON_LABELS = {"sale": "Sale", "mkt": "Marketer", "delivery": "Người phụ trách Vận đơn"}
 INPUT_LABELS = {
     "mess": "Số Mess", "orders": "Số đơn", "orders_tt": "Số đơn (TT)", "sales": "Doanh số",
@@ -45,11 +50,11 @@ FORMULAS = {
     "aov": ("AOV", ("sales", "orders"), "divide"),
 }
 #: Khoá không lấy từ cột bảng mà đối soát từ vận đơn do marketer phụ trách (ADR-038, ADR-042,
-#: `marketing_actuals`): tiền đã thu là tiền, số đơn là số đếm — tách để quy ₫ và định dạng đúng.
+#: `marketing_actuals`): tiền đã thu là tiền (theo loại tiền của đơn, ADR-046), số đơn là số đếm.
 DERIVED_MONEY = {"mkt": ("revenue",)}
 DERIVED_COUNT = {"mkt": ("orders_tt",)}
 DERIVED = {kind: DERIVED_MONEY.get(kind, ()) + DERIVED_COUNT.get(kind, ()) for kind in ("sale", "mkt", "delivery")}
-#: Công thức tiền ÷ số đếm: kết quả vẫn là tiền (₫ khi đã quy đổi)
+#: Công thức tiền ÷ số đếm: kết quả vẫn là tiền, theo loại tiền của dòng
 MONEY_FORMULAS = ("cpo", "mess_cost", "aov")
 DISPLAY_ORDER = {
     "sale": ("mess", "orders", "sales", "conversion", "revenue"),
@@ -65,6 +70,7 @@ class ActivityResult(aggregations.SummaryResult):
     show_leader: bool = False   # cách xem Theo nhân viên: cột Leader sau cột nhóm (ADR-035)
     currency_label: str = ''
     currency_warning: str = ''
+    mode: str = DEFAULT_MODE    # chế độ số liệu của cách xem Tổng hợp (ADR-046)
 
 
 @dataclass(frozen=True)
@@ -186,11 +192,9 @@ def with_person_team(result, source, group):
         return _as_activity(result, show_person=True)
     if group != 'person':
         return result
-    if isinstance(result.rows, list):
-        # Dòng đã lấy về bộ nhớ và đã nhóm kèm team/leader (`team_expressions` trong `build`)
-        return _as_activity(result, show_team=True, show_leader=True)
-    rows = result.rows.annotate(**team_expressions(source))
-    return _as_activity(result, rows=rows, show_team=True, show_leader=True)
+    # Dòng đã nhóm kèm team/leader (`team_expressions` là khoá nhóm trong `build`), dù đã lấy về bộ nhớ hay
+    # còn là queryset (quá trần MAX_GROUPS) — annotate lại thì Django báo trùng tên `team_name`
+    return _as_activity(result, show_team=True, show_leader=True)
 
 
 def group_expression(source, group):
@@ -208,14 +212,28 @@ def group_expression(source, group):
     return None, "Ngày"
 
 
-def _formula_format(key, kind, vnd):
-    """(số lẻ, hậu tố) của cột công thức: tỉ lệ hiện % hai số lẻ; tiền ÷ số đếm là tiền —
-    ₫ không lẻ khi đã quy đổi; tỉ số tiền/tiền bốn số lẻ."""
+def has_modes(source, group):
+    """Chế độ số liệu chỉ có ở cách xem Tổng hợp của nguồn Sale/MKT — Vận đơn không có lần nộp."""
+    return source is not None and source.kind in ("sale", "mkt") and group == "day"
+
+
+def _formula_format(key, kind):
+    """(số lẻ, hậu tố) của cột công thức: tỉ lệ hiện % hai số lẻ; tiền ÷ số đếm là tiền theo loại
+    tiền của dòng — hai số lẻ, không hậu tố (ADR-046); tỉ số tiền/tiền bốn số lẻ."""
     if kind == "percent":
         return 2, "%"
-    if key in MONEY_FORMULAS and vnd:
-        return 0, " ₫"
+    if key in MONEY_FORMULAS:
+        return 2, ""
     return 4, ""
+
+
+def currency_expression(source):
+    """Loại tiền của từng dòng báo cáo — cột ánh xạ `currency` (tự điền theo Thị trường khi nộp);
+    trống thì là "" (nhóm "Chưa rõ"). Nguồn không ánh xạ Loại tiền → None: không tách loại tiền."""
+    code = (source.columns or {}).get("currency")
+    if not code:
+        return None
+    return Coalesce(KeyTextTransform(code, "data"), Value(""), output_field=CharField())
 
 
 def project_metrics(result, source):
@@ -224,22 +242,19 @@ def project_metrics(result, source):
     derived = DERIVED.get(source.kind, ())
     labels = {**INPUT_LABELS, **LABEL_OVERRIDES.get(source.kind, {})}
     formula_labels = FORMULA_LABEL_OVERRIDES.get(source.kind, {})
-    vnd = result.converted
     columns, computed = [], []
     for key in DISPLAY_ORDER[source.kind]:
         if key in FORMULAS:
             label, inputs, kind = FORMULAS[key]
-            so_le, hau_to = _formula_format(key, kind, vnd)
-            columns.append(aggregations.ReportColumn(key, formula_labels.get(key, label), "computed", so_le, hau_to))
+            so_le, hau_to = _formula_format(key, kind)
+            columns.append(aggregations.ReportColumn(key, formula_labels.get(key, label), "computed", so_le, hau_to,
+                                                     money=key in MONEY_FORMULAS))
             # Khoá suy ra dùng chính tên khoá làm mã trong dict dòng (xem `attach_derived`)
             codes = tuple(k if k in derived else source.columns.get(k, "__missing_" + k) for k in inputs)
             computed.append(Metric(key, codes, kind))
         elif key in derived:
-            if key in DERIVED_MONEY.get(source.kind, ()):
-                so_le, hau_to = (0, " ₫") if vnd else (2, "")
-            else:
-                so_le, hau_to = 0, ""
-            columns.append(aggregations.ReportColumn(key, labels[key], "derived", so_le, hau_to))
+            tien = key in DERIVED_MONEY.get(source.kind, ())
+            columns.append(aggregations.ReportColumn(key, labels[key], "derived", 2 if tien else 0, "", money=tien))
         else:
             code = source.columns.get(key, "__missing_" + key)
             label = labels[key]
@@ -309,24 +324,39 @@ def _products(product):
 
 
 def build(user, source, *, group="day", start=None, end=None, product="", market="", person="", team="", segment="",
-          detail=False):
+          mode=DEFAULT_MODE):
+    """Một lượt báo cáo trong phạm vi quyền. Tiền giữ đúng số đã nhập, không quy đổi: nguồn có cột
+    Loại tiền thì loại tiền là một chiều nhóm — mỗi dòng một loại tiền, TỔNG CỘNG tách theo loại tiền
+    (ADR-046). `mode="tung-lan"` (chỉ cách xem Tổng hợp): mỗi lần nộp một dòng, kèm giờ nộp và số thứ
+    tự lần nộp trong ngày của người đó."""
     if group not in dict(GROUPS):
         raise BusinessError("Cách nhóm không hợp lệ.")
+    if mode not in dict(MODES):
+        raise BusinessError("Chế độ số liệu không hợp lệ.")
     qs = filtered_records(user, source, start=start, end=end, product=product, market=market,
                           person=person, team=team, segment=segment)
     if source.kind == "delivery":
         return with_person_team(delivery(qs, source, group, product), source, group)
     expression, label = group_expression(source, group)
+    tien = currency_expression(source)
+    tung_lan = group == "day" and mode == "tung-lan"
+    khoa_tien = (aggregations.CURRENCY_KEY,) if tien is not None else ()
     # Tổng hợp = ngày × nhân sự: mỗi người một dòng riêng trong ngày (chủ dự án 19.09,
     # bổ sung ADR-035 — thay quyết định 1 "mỗi ngày một dòng"). Doanh thu suy ra tra theo
-    # cặp (ngày, nhân sự) nên không gán nhầm tiền cả ngày cho từng người.
-    extra = None
+    # cặp (ngày, nhân sự, loại tiền) nên không gán nhầm tiền cả ngày cho từng người.
+    extra, order, annotations = None, None, None
     if group == "day":
         # Ngày × nhân sự, kèm Team để khối theo ngày có cột Team như ảnh (ADR-042)
         extra = {**person_expressions(source), "team_name": team_expressions(source)["team_name"]}
-        if detail:
-            # Bảng dữ liệu (ADR-042 đợt 4): mỗi lần nộp một dòng — nộp nhiều lần/ngày (ADR-032) vẫn tách
-            extra["record_id"] = F("id")
+        order = ("-nhom", "person_name", *((aggregations.CURRENCY_RANK_KEY,) if tien is not None else ()),
+                 "team_name", "leader_name")
+        if tung_lan:
+            # Mỗi lần nộp một dòng (ADR-032 cho nộp nhiều lần/ngày): khoá nhóm thêm id dòng và giờ nộp;
+            # "Lần N" đếm trong ngày của từng người theo giờ nộp — hàm cửa sổ, đúng cả khi phân trang
+            extra.update(record_id=F("id"), gio=F("created_at"))
+            order = ("-nhom", "person_name", "gio", "record_id")
+            annotations = {"lan": Window(RowNumber(), partition_by=[F("nhom"), F("person_name")],
+                                         order_by=[F("gio").asc(), F("record_id").asc()])}
     if group == "person":
         extra = team_expressions(source)   # Team · Leader đi cùng người, không annotate sau
     # Toàn bộ dòng nhóm vào bộ nhớ khi ≤ MAX_GROUPS: tổng, khoá đối soát, tổng ngày và phân
@@ -335,40 +365,55 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
         source.table, qs, limit=MAX_GROUPS, group_key="ngay" if group == "day" else "nhan-vien",
         columns=list(source.table.columns.all()),
         group_expression=expression, group_label=label,
-        extra_groups=extra, derived_key=("nhom", "person_name") if group == "day" else ("nhom",),
-        currency_code=source.columns.get("currency"),   # quy ₫ ngay trong truy vấn (ADR-042)
+        extra_groups=extra, order=order, annotations=annotations,
+        derived_key=(("nhom", "person_name") if group == "day" else ("nhom",)) + khoa_tien,
+        currency_expression=tien,
     )
     result = project_metrics(result, source) if result.ok else result
     if result.ok:
         result = replace(result, thresholds=source.thresholds or {})   # ngưỡng màu Manager đặt (ADR-042)
-    thieu_ti_gia = 0
     if result.ok and DERIVED.get(source.kind) and not segment:
         # Lọc theo Tệp khách hàng thì phần đối soát để trống: vận đơn không ghi tệp (ADR-038)
-        actual, thieu_ti_gia = marketing_actuals(
-            qs, group, expression, start=start, end=end, product=product, market=market)
+        actual = marketing_actuals(qs, group, expression, start=start, end=end, product=product, market=market,
+                                   by_currency=tien is not None)
         result = attach_derived(result, actual, zero=DERIVED_COUNT.get(source.kind, ()))
-    if detail and result.ok and result.derived and isinstance(result.rows, list):
-        # Một người nộp nhiều lần trong ngày: (TT) khoá theo (ngày, người) không chia được cho từng
-        # lần nộp → các dòng đó để trống, TỔNG CỘNG ngày vẫn cộng một lần (G6)
+    if tung_lan and result.ok and result.derived:
+        # Một người nộp nhiều lần trong ngày (cùng loại tiền): (TT) khoá theo (ngày, người, loại tiền)
+        # không chia được cho từng lần nộp → các dòng đó để trống, TỔNG CỘNG ngày vẫn cộng một lần (G6)
+        result = replace(result, derived_shared=_shared_keys(result, qs, source, tien))
+    if result.ok:
+        result = currency_note(result)
+    result = with_person_team(result, source, group)
+    return _as_activity(result, mode=mode if group == "day" else DEFAULT_MODE)
+
+
+def _shared_keys(result, qs, source, tien):
+    """Khoá đối soát có nhiều lần nộp (chế độ Từng lần nộp): đếm trên dòng trong bộ nhớ; dòng quá trần
+    (còn là queryset) thì một lệnh đếm theo đúng khoá (ngày, người, loại tiền) trên cùng tập đã lọc."""
+    if isinstance(result.rows, list):
         dem = {}
         for item in result.rows:
             khoa = aggregations.derived_key_of(item, result)
             dem[khoa] = dem.get(khoa, 0) + 1
-        result = replace(result, derived_shared=frozenset(k for k, n in dem.items() if n > 1))
-    if result.ok and source.columns.get('currency'):
-        result = currency_note(result, source, qs, thieu_ti_gia)
-    return with_person_team(result, source, group)
+        return frozenset(k for k, n in dem.items() if n > 1)
+    khoa = {"nhom": F("val_date"), "person_name": person_expressions(source)["person_name"]}
+    if tien is not None:
+        khoa[aggregations.CURRENCY_KEY] = tien
+    nhieu = qs.order_by().values(**khoa).annotate(_lan=Count("id")).filter(_lan__gt=1)
+    return frozenset(tuple(dong[k] for k in result.derived_key) for dong in nhieu)
 
 
-def marketing_actuals(qs, group, expression, *, start=None, end=None, product="", market=""):
+def marketing_actuals(qs, group, expression, *, start=None, end=None, product="", market="", by_currency=True):
     """Đối soát từ vận đơn (ADR-038, ADR-042), nhóm theo cùng khoá với báo cáo:
     **Số đơn (TT)** = số vận đơn có Phụ trách Marketing là marketer trong phạm vi báo cáo,
     theo ngày lên đơn, cùng sản phẩm/quốc gia khi lọc; **DS Chốt (TT)** = tổng tiền đã thu
-    (`WaybillItem.paid_amount`, chính là `so_tien_tt`) của các đơn đó, **quy ₫** theo loại tiền
-    từng đơn. **Một truy vấn trên `DataRecord` vận đơn** — đếm trên đơn chứ không trên chi tiết,
-    vì đơn không có chi tiết sản phẩm (ADR-036) vẫn là một đơn; nó chỉ không góp tiền.
-    Trả `({khoá: {"orders_tt": n, "revenue": Decimal ₫}}, số đơn thiếu tỉ giá)`; đơn chưa
-    phân công Marketing không vào."""
+    (`WaybillItem.paid_amount`, chính là `so_tien_tt`) của các đơn đó, **theo loại tiền của đơn,
+    không quy đổi** (ADR-046): khoá có thêm loại tiền nên tiền USD chỉ vào dòng USD của marketer.
+    **Một truy vấn trên `DataRecord` vận đơn** — đếm trên đơn chứ không trên chi tiết, vì đơn không
+    có chi tiết sản phẩm (ADR-036) vẫn là một đơn; nó chỉ không góp tiền. Trả
+    `{khoá: {"orders_tt": n, "revenue": Decimal}}`; đơn chưa phân công Marketing không vào.
+    `by_currency=False` (nguồn không có cột Loại tiền): khoá không có loại tiền và bỏ phần tiền,
+    vì cộng tiền nhiều loại là sai — chỉ còn số đơn."""
     orders = (DataRecord.objects.filter(waybill_condition("table__"))
               .filter(assignment__marketing_id__in=qs.order_by().values("created_by_id")))
     if start:
@@ -393,24 +438,25 @@ def marketing_actuals(qs, group, expression, *, start=None, end=None, product=""
         "market": Coalesce(NullIf(KeyTextTransform("quoc_gia", "data"), Value("")), Value("Chưa xác định"), output_field=CharField()),
         "department": F("assignment__marketing__profile__department__name"),
     }
-    cot = {"nhom": keys[group], "currency": KeyTextTransform("loai_tien", "data")}
+    cot = {"nhom": keys[group],
+           "currency": Coalesce(KeyTextTransform("loai_tien", "data"), Value(""), output_field=CharField())}
     if group == "day":
         # Báo cáo nhóm theo ngày × nhân sự nên số đối soát cũng tách theo marketer,
         # không thì mỗi người trong ngày nhận trọn số của cả ngày.
         cot["nguoi"] = keys["person"]
     rows = (orders.order_by().values(**cot)
             .annotate(orders=Count("id", distinct=True), paid=Sum("waybill_items__paid_amount", filter=item_filter)))
-    actual, thieu = {}, 0
+    actual = {}
     for row in rows:
-        khoa = (row["nhom"], row["nguoi"]) if group == "day" else row["nhom"]
-        muc = actual.setdefault(khoa, {"orders_tt": 0, "revenue": Decimal(0)})
+        khoa = (row["nhom"], row["nguoi"]) if group == "day" else (row["nhom"],)
+        if by_currency:
+            khoa += (row["currency"] or "",)
+        khoa = khoa if len(khoa) > 1 else khoa[0]
+        muc = actual.setdefault(khoa, {"orders_tt": 0} if not by_currency else {"orders_tt": 0, "revenue": Decimal(0)})
         muc["orders_tt"] += row["orders"]
-        if row["paid"]:
-            if vnd_rate(row["currency"]) is None:
-                thieu += row["orders"]
-            else:
-                muc["revenue"] += to_vnd(row["paid"], row["currency"])
-    return actual, thieu
+        if by_currency and row["paid"]:
+            muc["revenue"] += row["paid"]
+    return actual
 
 
 def attach_derived(result, values, *, zero=()):
@@ -438,22 +484,25 @@ def attach_derived(result, values, *, zero=()):
     return with_totals(result, result.totals)
 
 
-def currency_note(result, source, qs, thieu_ti_gia=0):
-    """Mọi tiền đã quy ₫ ngay trong truy vấn (ADR-042) nên chỉ còn công bố đơn vị và tỉ giá;
-    chỉ cảnh báo khi có dòng không quy đổi được (KRW chưa có tỉ giá, báo cáo cũ trống loại
-    tiền, vận đơn thiếu tỉ giá): tiền của các dòng đó không vào tổng, cột đếm vẫn tính đủ.
-    Đường bình thường không tốn truy vấn; chỉ khi cảnh báo mới tra danh sách loại tiền thiếu."""
-    label = "VND (₫), quy đổi theo tỉ giá cố định: " + rates_label()
-    thieu = (result.unconverted or 0) + thieu_ti_gia
-    if not thieu:
-        return ActivityResult(**result.__dict__, currency_label=label)
-    ma_thieu = sorted({c or "trống" for c in qs.order_by()
-                       .values_list("data__" + source.columns["currency"], flat=True).distinct()
-                       if vnd_rate(c) is None})
-    warning = (f"{thieu} dòng chưa quy đổi được (loại tiền: {', '.join(ma_thieu) or 'của vận đơn'}): tiền của "
-               "các dòng đó không vào tổng, các cột đếm vẫn tính đủ. Bổ sung tỉ giá trong EXCHANGE_RATES_VND "
-               "hoặc loại tiền cho báo cáo cũ qua người quản lý.")
-    return ActivityResult(**result.__dict__, currency_label=label, currency_warning=warning)
+#: Nhãn của loại tiền trống (báo cáo cũ chưa có Loại tiền) — một nhóm riêng, không cộng vào loại nào
+UNKNOWN_CURRENCY_LABEL = "Chưa rõ"
+
+
+def currency_note(result):
+    """Chú thích đơn vị (ADR-046): số tiền giữ đúng như đã nhập, mỗi dòng một loại tiền, không quy
+    đổi. Cảnh báo khi có dòng chưa có loại tiền (báo cáo cũ): chúng cộng riêng ở nhóm "Chưa rõ",
+    không vào loại tiền nào. Đọc từ tổng theo loại tiền đã có — không tốn truy vấn."""
+    if not result.currency_key:
+        return result
+    label = ("Số tiền giữ đúng như đã nhập, không quy đổi tỉ giá; mỗi dòng một loại tiền, "
+             "TỔNG CỘNG tách theo loại tiền.")
+    thieu = sum(s.get("so_dong") or 0 for s in result.currency_sums if not s.get(result.currency_key))
+    warning = ""
+    if thieu:
+        warning = (f"{thieu} dòng chưa có loại tiền: cộng riêng ở nhóm “{UNKNOWN_CURRENCY_LABEL}”, "
+                   "không vào loại tiền nào. Sửa báo cáo đó (chọn Thị trường) để hệ thống tự điền "
+                   "loại tiền.")
+    return _as_activity(result, currency_label=label, currency_warning=warning)
 
 
 def delivery(qs, source, group, product):

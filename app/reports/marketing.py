@@ -73,8 +73,10 @@ def adapt(result, columns):
 
 
 def with_totals(result, totals):
+    """Tính lại cột tính trên dòng tổng chung và dựng lại các dòng TỔNG CỘNG theo loại tiền
+    (ADR-046) — gọi lại mỗi khi cột, công thức hay phần đối soát đổi."""
     totals = dict(totals)
     values = {k.removeprefix("c_"): v for k, v in totals.items() if k.startswith("c_")}
     values.update(getattr(result, "derived_totals", {}) or {})   # Doanh thu suy ra (ADR-038)
     totals.update(aggregations._recompute(result.computed_columns, values))
-    return replace(result, totals=totals)
+    return aggregations.with_currency_totals(replace(result, totals=totals))

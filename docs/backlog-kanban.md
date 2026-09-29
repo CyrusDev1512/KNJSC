@@ -1,10 +1,17 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 28.09.2026 — Chế độ số liệu, không quy đổi (ADR-046, TL-65)
+
+**Finished local (nhánh `claude/che-do-so-lieu-bao-cao`, PR nháp về `main`):** số tiền giữ đúng như nhập, mỗi
+dòng một loại tiền, TỔNG CỘNG theo loại tiền; bộ lọc Chế độ Cộng theo ngày / Từng lần nộp; (TT) theo loại tiền
+của đơn; thẻ Tổng quan mỗi loại tiền một cột; Bảng dữ liệu thô và ô nhập số có dấu chấm. AC-46.1 → 46.10.
+**To do:** chủ dự án test local rồi quyết gộp; phát hành VPS (Codex). **Đã chốt 28.09:** chưa cần ngưỡng
+tiền theo từng loại tiền (ngưỡng ₫ chỉ tô dòng VND); giữ khối toàn kỳ ở chế độ Từng lần nộp.
+
 ## 28.09.2026 — CI trình duyệt kẹt khoá khi dọn bảng (TL-67)
 
-**Finished local (nhánh `claude/e2e-cho-may-chu-truoc-khi-don`, PR nháp về `main`):** bài có máy chủ thử chờ máy
-chủ xử lý xong rồi mới dọn bảng; chạy lặp bài từng lỗi 0/30 kẹt khoá (trước 4/30). **To do:** chủ dự án gộp trước
-PR #65 để `main` xanh.
+**Đã gộp vào `main` 29.09.2026 (PR #67):** bài có máy chủ thử chờ máy chủ xử lý xong rồi mới dọn bảng; chạy lặp
+bài từng lỗi 0/30 kẹt khoá (trước 4/30).
 
 ## 26.09.2026 — Ô phồng to tại chỗ thay hộp đọc
 

@@ -186,7 +186,6 @@ def _activity(user, params):
 def _activity_block(user, choices, code, start, end):
     from urllib.parse import urlencode
     from django.urls import reverse
-    from reports import aggregations
     from reports.services import activity_service
 
     source = activity_service.select_source(user, code, choices)
@@ -200,5 +199,17 @@ def _activity_block(user, choices, code, start, end):
             "department_url": base + urlencode({**params, "nhom": "department"})}
     if result.ok:
         data.update(state="ready" if result.totals["so_dong"] else "empty", count=result.totals["so_dong"],
-                    metrics=list(zip([c.label for c in result.columns], aggregations.total_cells(result))))
+                    **_metrics_by_currency(result))
     return data
+
+
+def _metrics_by_currency(result):
+    """Chỉ tiêu của thẻ: mỗi chỉ tiêu một hàng (TL-60), mỗi loại tiền một cột — số giữ đúng như đã nhập,
+    không quy đổi, không cộng hai loại tiền (ADR-046). Nguồn không tách loại tiền: một cột như cũ.
+    Trả `{"currencies": [mã…], "metrics": [(nhãn, [ô theo từng loại tiền])]}`."""
+    from reports import aggregations, layout
+
+    tong = aggregations.total_rows(result)
+    o = [aggregations.format_cells(result, raw, tien) for tien, raw in tong]
+    return {"currencies": [layout.currency_label(tien) for tien, _ in tong] if result.currency_key else [],
+            "metrics": [(c.label, [cot[i] for cot in o]) for i, c in enumerate(result.columns)]}
