@@ -10,13 +10,16 @@
     <h1>{{ tieu_de }}</h1>
     {% if la_tao_moi %}
       <p>Tài khoản mới bắt buộc đổi mật khẩu ở lần đăng nhập đầu tiên.</p>
-    {% else %}
+    {% elif form %}
       <p>Đổi cấp bậc, bộ phận hoặc team làm phiên đang mở của người này mất hiệu lực ngay.</p>
+    {% else %}
+      <p>Bạn được đặt lại mật khẩu trong phạm vi quản lý. Chỉ Admin được sửa hồ sơ.</p>
     {% endif %}
   </div>
   <div class="hanh-dong"><a class="nut" href="{% url 'nhan_su' %}">Quay lại</a></div>
 </div>
 
+{% if form %}
 {% if form.non_field_errors %}
   <div class="bao bao-xau">
     <span class="bao-ic">!</span>
@@ -51,7 +54,62 @@
   </div>
 </div>
 
+{% else %}
+<section class="the" style="max-width:640px">
+  <div class="the-than">
+    <h2>{{ ho_so.staff_code }} · {{ ho_so.full_name|default:ho_so.user.username }}</h2>
+    <p>Tên đăng nhập: {{ ho_so.user.username }}</p>
+    <p>{{ ho_so.get_rank_display }} · {{ ho_so.department|default:"—" }} · {{ ho_so.team|default:"—" }}</p>
+    <p>Trạng thái: {% if ho_so.user.is_active %}Hoạt động{% else %}Bị khóa{% endif %}</p>
+  </div>
+</section>
+{% endif %}
+
+{% if password_form %}
+<section class="the" style="max-width:640px;margin-top:var(--sp-4)">
+  <form class="the-than bm" method="post" action="{% url 'nhan_su_dat_lai_mat_khau' ho_so.pk %}">
+    {% csrf_token %}
+    <h2>Đặt lại mật khẩu</h2>
+    <p>Các phiên ERP/CRM hiện tại sẽ mất hiệu lực. Người dùng đăng nhập bằng mật khẩu mới, không cần đổi lại. Tài khoản bị khóa vẫn giữ trạng thái khóa.</p>
+    {{ password_form.non_field_errors }}
+    {% for truong in password_form %}
+    <div class="truong">
+      <label for="{{ truong.id_for_label }}">{{ truong.label }}</label>
+      {{ truong }}
+      {% if can_reveal_new_password %}
+      <button class="nut nut-nho" type="button" data-password-toggle="{{ truong.id_for_label }}"
+              aria-controls="{{ truong.id_for_label }}" aria-pressed="false">Hiện mật khẩu</button>
+      {% endif %}
+      {{ truong.errors }}
+      {% if truong.help_text %}<div class="goi-y">{{ truong.help_text|safe }}</div>{% endif %}
+    </div>
+    {% endfor %}
+    <button class="nut nut-chinh" type="submit">Đặt lại mật khẩu</button>
+  </form>
+</section>
+{% endif %}
+
 <script>
+  // Chỉ đổi cách hiển thị nội dung đang nhập, không truy vấn/lưu mật khẩu.
+  document.querySelectorAll("[data-password-toggle]").forEach(function (button) {
+    var input = document.getElementById(button.dataset.passwordToggle);
+    if (!input) return;
+    function conceal() {
+      input.type = "password";
+      button.textContent = "Hiện mật khẩu";
+      button.setAttribute("aria-pressed", "false");
+    }
+    button.addEventListener("click", function () {
+      if (input.type === "password") {
+        input.type = "text";
+        button.textContent = "Ẩn mật khẩu";
+        button.setAttribute("aria-pressed", "true");
+      } else {
+        conceal();
+      }
+    });
+    window.addEventListener("pagehide", conceal);
+  });
   /* Gắn lớp giao diện cho các ô do Django sinh ra */
   document.querySelectorAll(".bm input, .bm select, .bm textarea").forEach(function (o) {
     if (o.type !== "checkbox" && o.type !== "hidden") o.classList.add("o-nhap");

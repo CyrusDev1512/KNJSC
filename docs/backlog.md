@@ -1,5 +1,226 @@
 # Backlog
 
+## 25.09.2026 — Một ô Team duy nhất trên form Nộp báo cáo ngày (ADR-043 bổ sung)
+
+**Vì sao.** Chủ dự án chụp màn hình: form MKT trên dữ liệu thật có **hai ô Team** — dropdown mới (ADR-043)
+ở hàng đầu và ô gõ tay "Team" trong lưới, là cột Team dạng chữ có sẵn trong bảng mà `configure_forms` tự
+đưa lên form. Dữ liệu mẫu không có cột này nên kiểm chứng 24.09 không thấy; lỗi thuộc về Claude.
+
+**Làm gì.** `configure_erp_reports.team_column` nhận diện cột (mã `team` hay nhãn "Team"), gỡ ô nhập của nó
+khỏi form Sale/MKT (cơ chế `skip` của Hóa đơn) và ghi ánh xạ `ReportSource.columns["team"]`;
+`record_service.create_record` ghi tên team của dòng (team chọn trên form, không có thì team hồ sơ) vào cột
+đó, bỏ chữ gõ tay; cột và dữ liệu cũ giữ nguyên. Hằng số `TEAM_COLUMN_CODE/LABEL` ở `reports/constants.py`.
+AC-43.5 (`test_form_nhap_bao_cao.py`), docs/06 lên **270/257/234**. Biên bản
+[kiem-chung-mot-o-team-bao-cao-20260925.md](kiem-chung-mot-o-team-bao-cao-20260925.md). Nhánh
+`claude/mot-o-team-bao-cao`, PR nháp về `main`. **Còn nợ:** không có (nhập Excel vẫn nhận cột Team từ tệp,
+cố ý).
+
+## 28.09.2026 — Chế độ số liệu: không quy đổi, mỗi dòng một loại tiền (ADR-046, TL-65)
+
+**Chủ dự án báo** CPQC nhập 13 250 000 mà báo cáo hiện số khổng lồ (bị quy ₫ theo loại tiền của thị trường —
+lựa chọn của người viết ADR-042, không phải yêu cầu); muốn số giữ nguyên, có dấu chấm, nộp hai lần 8000 và
+7000 thì hiện đúng như thế. Chọn "cách 3: xem theo chế độ, chế độ nằm trong bộ lọc", duyệt mockup và ba câu:
+mặc định Cộng theo ngày, Loại tiền vẫn tự theo Thị trường, giữ TỔNG CỘNG ở Từng lần nộp. **Làm:** bỏ quy đổi;
+loại tiền là một chiều nhóm, TỔNG CỘNG theo loại tiền ở mọi khối, Excel, thẻ Tổng quan; bộ lọc Chế độ (Báo cáo
+tổng hợp mặc định Cộng theo ngày, Bảng dữ liệu mặc định Từng lần nộp như trước), cột Lần nộp "Lần N · giờ"; (TT)
+theo loại tiền của đơn; ngưỡng tiền ₫ chỉ tô dòng VND; Bảng dữ liệu thô và ô nhập số có dấu chấm. Không
+migration, dữ liệu không đổi. Cùng lượt sửa lỗi ngầm TL-66 (Theo nhân viên quá trần 500). **Chủ dự án chốt**
+cùng ngày: chưa cần ngưỡng tiền theo từng loại tiền; giữ khối toàn kỳ ở chế độ Từng lần nộp.
+Chưa phát hành VPS. Biên bản [kiem-chung-che-do-so-lieu-20260928.md](kiem-chung-che-do-so-lieu-20260928.md).
+
+## 28.09.2026 — CI trình duyệt không còn đỏ chập chờn khi dọn bảng (TL-67)
+
+**Chủ dự án yêu cầu** sửa bằng được lỗi đỏ trên `main` trước khi làm tiếp (CI #94, #96 đỏ sau khi gộp #63, #64).
+**Nguyên nhân:** bài trình duyệt kết thúc lúc lưới còn gọi máy chủ; pytest dọn bảng (TRUNCATE) kẹt khoá với truy
+vấn đang chạy. **Sửa:** bài có máy chủ thử chờ máy chủ xử lý xong mọi yêu cầu dở (đếm bằng tín hiệu của Django,
+tối đa 5 s) rồi mới dọn bảng; chỉ mã kiểm thử, không đụng mã ứng dụng. Chạy lặp bài từng lỗi: trước sửa 4/30 lần
+kẹt khoá, sau sửa 0/30. Đã gộp vào `main` 29.09.2026 (PR #67), trước PR #65. Biên bản
+[kiem-chung-e2e-cho-may-chu-20260928.md](kiem-chung-e2e-cho-may-chu-20260928.md).
+
+## 26.09.2026 — Bỏ hộp đọc, ô phồng to tại chỗ kiểu Google Sheets (bổ sung ADR-033)
+
+**Chủ dự án chốt hai đợt** (so với Google Sheets; đợt hai sau khi test bản đầu: "1 click
+thì y như chúng ta, 2 click mới là mở rộng"): **click đơn chỉ chọn ô**; bấm đúp thì ô sửa
+được mở ô nhập (khung nhập tự giãn tới trần — đúng video Sheets), ô chỉ đọc bị cắt chữ thì
+chính ô đó nở ra đè lên ô lân cận, bấm chỗ khác/Esc thu về; bỏ hẳn hộp đọc có tiêu đề +
+nút ×; gõ phím trên ô chỉ đọc vẫn phồng (18.09); tự giãn dòng và trần 2000 px giữ nguyên.
+**Sửa:** `#mg-reader` giữ id, đổi trình bày theo khuôn `positionEditor` (fixed + clipPath);
+bỏ phồng ở `pointerup`, đúp-ô-chỉ-đọc-bị-cắt phồng trong `edit()`. Bài e2e viết lại + bài
+mới đúp-ô-chỉ-đọc (CSKH chỉ xem); 3 bài `pha_luoi` đỏ do TLS proxy máy ảo (đối chứng mã
+gốc cũng đỏ). Biên bản [kiem-chung-o-phong-to-20260926.md](kiem-chung-o-phong-to-20260926.md).
+
+## 28.09.2026 — Bỏ nút và hộp "Phân công" nhiều dòng
+
+**Chủ dự án bảo bỏ** nút "Phân công" trong menu "…" của lưới Vận đơn. Bỏ cả hộp phân công nhiều dòng và
+phần JS/CSS của nó; chỉ còn ô chọn trong ô (AC-21.15). Endpoint, quyền, CAS không đổi. ADR-020 bổ sung.
+Biên bản: mục bổ sung trong [kiem-chung-phan-cong-o-chon-20260928.md](kiem-chung-phan-cong-o-chon-20260928.md).
+
+## 28.09.2026 — Phân công ngay trong ô bằng ô chọn (AC-21.15)
+
+**Chủ dự án yêu cầu** phân công nhân viên bằng ô chọn giống "Trạng thái vận chuyển". **Làm:** bấm đúp,
+Enter hay F2 ô "Phụ trách …" mở ô chọn đè đúng ô (mã nhân viên đúng bộ phận, "Chưa gán"), chuột chọn là
+lưu, Enter lưu, Esc đóng; vẫn qua endpoint phân công (quyền, CAS, nhật ký như cũ); nút Phân công nhiều
+dòng giữ nguyên. ADR-020 bổ sung 28.09. Không migration. Biên bản
+[kiem-chung-phan-cong-o-chon-20260928.md](kiem-chung-phan-cong-o-chon-20260928.md).
+
+## 28.09.2026 — Nhãn bộ lọc nằm trên thanh công cụ, không đẩy lưới (AC-21.14)
+
+**Chủ dự án yêu cầu** nhãn bộ lọc đang bật nằm giữa Cột và Định dạng, không đẩy trang tính xuống.
+**Làm:** `#mg-chips` chuyển vào thanh công cụ, chiếm chỗ trống, cuộn ngang khi nhiều nhãn. Trước sửa đỉnh
+lưới tụt 103 → 137 px khi bật lọc; sau sửa giữ nguyên (Chromium 1440/1280). Không đổi JS, máy chủ.
+Biên bản [kiem-chung-nhan-loc-tren-thanh-cong-cu-20260928.md](kiem-chung-nhan-loc-tren-thanh-cong-cu-20260928.md).
+
+## 28.09.2026 — Bấm đảo thứ tự không còn làm trang giật (TL-62)
+
+**Chủ dự án báo** bấm sắp xếp theo Quốc gia thì cả trang bị load. **Sửa:** lưới KN CRM khi chỉ đổi thứ
+tự thì đi đường tải lại mềm có sẵn — mũi tên đổi ngay, giữ dòng đang hiện tới khi dữ liệu mới về, giữ
+cuộn ngang và chiều cao dòng, bỏ tải lại trang HTML; chip lọc giữ thứ tự đang dùng. Bảng dữ liệu ERP:
+tiêu đề cột dùng HTMX thay riêng khối bảng. Cách máy chủ sắp xếp và phân quyền không đổi. Phân trang
+ERP vẫn tải trang như cũ. Biên bản [kiem-chung-sap-xep-khong-giat-20260928.md](kiem-chung-sap-xep-khong-giat-20260928.md).
+
+## 28.09.2026 — "Khách mua lại" theo bảng tính (TL-61) và ô ngày tự chèn "/" (AC-32.1)
+
+**Chủ dự án báo ba việc, chốt làm 2 + 3 trước.** (2) Lên đơn báo khách mua lại dù số không còn trên bảng
+tính: nay đếm dòng đang sống trên bảng Vận đơn cùng số (như cột Trùng), dòng đã xoá và đơn của bảng cũ
+đã xoá cứng không tính, dòng nhập thẳng vào bảng có tính; cột "Mua lại lần" cùng cách. Không migration,
+không xoá dữ liệu. (3) Mọi ô ngày ERP/CRM (`date-inputs.js`, cả ô ngày trên lưới) tự chèn "/", đổi dấu
+cách/chấm/gạch ngang, gõ liền 8 số, rời ô thêm số 0. **Còn nợ:** (1) đảo thứ tự tải lại trang — TL-62,
+chờ làm lượt sau. Biên bản [kiem-chung-mua-lai-va-o-ngay-20260928.md](kiem-chung-mua-lai-va-o-ngay-20260928.md).
+
+## 28.09.2026 — Cuộn Báo cáo tổng hợp không còn kẹt, bớt giật (TL-63)
+
+**Chủ dự án báo** bấm qua lại Gộp/Không gộp rồi lăn chuột thì lag, chậm; con trỏ trên bảng thì không cuộn
+được. **Sửa:** một quy tắc CSS của khung bảng (`solarpunk.css`, `.report-table-scroll`): bỏ
+`overscroll-behavior: contain` để cú lăn truyền ra trang khi bảng hết chỗ cuộn, thêm nền đặc để cuộn không
+phải vẽ lại. Áp luôn cho Bảng dữ liệu dạng báo cáo (cùng khung). Không đổi template, JS, số liệu. AC-22.19
+đỏ trên mã cũ, xanh sau sửa. **Còn nợ, chờ chủ dự án chốt vì đổi giao diện:** lúc mở trang khung bảng chỉ
+lộ khoảng 250 px ở đáy thẻ; bốn cột ghim trái; bấm Gộp/Không gộp vẫn tải lại cả trang. Chưa phát hành VPS.
+Biên bản [kiem-chung-cuon-bao-cao-tong-hop-20260928.md](kiem-chung-cuon-bao-cao-tong-hop-20260928.md).
+
+## 28.09.2026 — Máy chạy thử tự nhận CSS/JS mới, không cần Ctrl+F5 (AC-10.11)
+
+**Chủ dự án gặp** khi thử PR #61: kéo mã chỉ đổi JS/CSS thì trình duyệt vẫn chạy bản cũ. **Nguyên
+nhân:** số `?v=` sau đường dẫn tệp tĩnh tính một lần lúc tiến trình khởi động, mà runserver chỉ tự
+khởi động lại khi mã Python đổi. **Sửa:** DEBUG bật thì quét lại mỗi lần tải trang
+(`core.context_processors.phien_ban_hien_tai`, 32 tệp, 0,24 ms); DEBUG tắt (VPS) giữ nguyên. Không đổi
+template, không thêm thư viện. Biên bản
+[kiem-chung-tu-nhan-js-css-20260928.md](kiem-chung-tu-nhan-js-css-20260928.md).
+
+## 28.09.2026 — Nút "Tôi" theo tài khoản (TL-64) và lịch sử từng ô trên lưới (AC-21.13)
+
+**Chủ dự án yêu cầu** "bộ lọc cá nhân theo tài khoản CRM" — chính là nút Tôi / Toàn bộ đang sai — và
+"lịch sử chỉnh sửa trực tiếp trên bảng Vận đơn", chọn kiểu từng ô. **Làm:** "Tôi" = dòng tôi lên đơn
+hoặc đứng đơn, cộng dòng giao tôi ở mọi cột phụ trách; nút hiện cho mọi tài khoản (ADR-033 bổ sung
+28.09). Chuột phải một ô thì khung lịch sử hiện cạnh ô (dùng lại API `lich-su/` đã kiểm quyền); ô bị
+người khác sửa trong 24 giờ có dấu góc cam (một truy vấn mỗi khối, trần 22 truy vấn giữ). Không
+migration. Biên bản [kiem-chung-toi-va-lich-su-o-20260928.md](kiem-chung-toi-va-lich-su-o-20260928.md).
+
+## 26.09.2026 — Sửa bố cục thẻ Báo cáo tổng hợp trên Tổng quan ERP (TL-60)
+
+**Chủ dự án báo** (ảnh Tổng quan): chỉ tiêu xếp chật nhiều cột, số tiền bị bẻ giữa chữ số. **Nguyên
+nhân:** hồi quy 17.09 — `d84a8c1` chép luật `.dashboard-*` cũ vào `solarpunk.css` để bài khai lớp CSS
+hết đỏ, chồng lên bản sửa 16.09 ở `dashboard.css`. **Sửa:** gỡ khối trùng, bài khai lớp quét cả
+`dashboard.css`; AC-22.17 (tĩnh + Chromium 1440/390) đỏ trên mã cũ, xanh sau sửa. Không đổi template,
+số liệu hay nguồn. **Cùng lượt:** thẻ Tổng quan bỏ ô đơn vị/cảnh báo "… dòng chưa quy đổi được"
+theo yêu cầu (AC-22.18, ADR-042 bổ sung 26.09) — cách tính và cảnh báo ở màn chi tiết giữ nguyên.
+Chưa phát hành VPS. Biên bản
+[kiem-chung-bo-cuc-tong-quan-20260926.md](kiem-chung-bo-cuc-tong-quan-20260926.md).
+
+## 25.09.2026 — Sidebar KN CRM: bỏ mục ERP trùng, Tác vụ nền chỉ Admin
+
+**Hoàn tất local:** bỏ lối KN ERP trùng ở sidebar và giữ lối trên topbar; chỉ
+Admin thấy/mở danh sách Tác vụ nền. Tác vụ cá nhân vẫn mở được bằng liên kết
+kết quả và giữ kiểm chủ sở hữu. TDD đỏ 5 trường hợp; nhóm cuối 27 đạt, hai cấu
+hình Django check sạch. Thay đổi được bàn giao qua nhánh và PR riêng để phát
+hành từ `main` theo quy trình VPS.
+
+## 25.09.2026 — Chuẩn bị đưa Team/menu/CEO/mật khẩu lên VPS
+
+Chủ dự án đã yêu cầu kiểm kỹ và phát hành. Đang chuẩn bị PR/CI/diễn tập;
+các ghi chú local-only bên dưới mô tả mốc bàn giao trước yêu cầu mới.
+VPS hiện `a23573d-main`, chưa thay đổi. Cần duyệt merge PR cụ thể trước khi
+phát hành từ main. [Biên bản](chuan-bi-phat-hanh-team-quyen-20260925.md).
+
+## 25.09.2026 — Đặt lại mật khẩu không ép đổi lần sau
+
+**Hoàn tất local, chủ dự án chọn phương án 1:** bỏ yêu cầu đổi lần sau khi
+đặt lại; vẫn hủy phiên cũ và giữ khóa tài khoản. Manager/CEO/Admin hiện/ẩn
+mật khẩu đang nhập trong phạm vi quản lý; không đọc/lưu lại mật khẩu rõ.
+90 bài hồi quy đạt; kiểm chuột/bàn phím và form 390 px trên dữ liệu mẫu.
+Giữ quy tắc đổi lần đầu cho tài khoản mới. Cùng nhánh Team/menu đang xem thử,
+chưa commit/push/VPS. Quyết định bổ sung tại ADR-044; chi tiết trong test-log.
+
+## 25.09.2026 — Team hệ thống và quyền menu ERP (ADR-045)
+
+**Hoàn tất local:** Team tự điền cho Staff/Leader/Manager; Admin
+giữ dropdown; bỏ ô Team nhập tay trùng, bảo toàn báo cáo cũ. Quản trị chỉ Admin;
+Bảng dữ liệu ERP chỉ Manager trong phạm vi, CEO toàn công ty và Admin. Giữ luồng
+theo dõi/tải tác vụ cá nhân; không thay quyền CRM. Yêu cầu chặn Sale/MKT vào CRM hoãn.
+
+Nhánh `claude/team-bao-cao-va-quyen-menu` đã kế thừa bản CEO `604910c` từ task
+**FIX EROR**. CEO chỉ xem, không nộp/sửa báo cáo; đã kiểm đủ năm vai trò.
+Hồi quy rộng 2.786 đạt, 1 lỗi kỳ vọng 403/404 đã sửa; nhóm cuối 117 đạt, không skip.
+Giới hạn browser/marker ghi trong biên bản. Không tạo commit mới/push/VPS trong
+phạm vi này. Xem [ADR-045](quyet-dinh/045-team-he-thong-va-quyen-menu-erp.md)
+và [biên bản local](kiem-chung-team-va-quyen-menu-20260925.md).
+
+## 25.09.2026 — CEO, đặt lại mật khẩu và xóa tài khoản theo cấp bậc (ADR-044)
+
+Triển khai trên `claude/phan-quyen-mat-khau-xoa-tai-khoan` từ main `a23573d`,
+checkout riêng. Ma trận quản lý tài khoản ở một service: Leader → Staff trong
+team, Manager → Leader/Staff trong phòng ban, CEO → cấp dưới toàn công ty,
+Admin → tài khoản khác. Sửa hồ sơ/tạo/khóa vẫn chỉ Admin. Xóa mềm giữ mã,
+liên kết lịch sử; chặn đăng nhập/đặt lại/mở khóa tài khoản đã xóa.
+[PR nháp #52](https://github.com/CyrusDev1512/KNJSC/pull/52), code `cd7e7a1` đã push.
+
+CEO có phạm vi đọc toàn công ty; đã tách khỏi quyền Admin và rà các quyền ghi
+báo cáo/lưới/cấu hình/tiền/phân công. Migration mới 0006; không đổi tài khoản cũ.
+Chrome 1440/390 đã qua 8 luồng quản lý cùng Staff bị từ chối. Kiểm đồng thời,
+migration xuôi/ngược và kiểm ngân sách 10 truy vấn có bài riêng.
+
+**Trạng thái:** hoàn thành local; toàn suite 2.770 đạt/49 bỏ qua, Chrome 8/8 luồng
+đạt; nhóm tài khoản sau rà soát 58/58 đạt. Bàn giao bằng PR nháp; chưa merge/VPS.
+[Quyết định](quyet-dinh/044-ceo-va-quan-ly-tai-khoan.md) ·
+[Biên bản kiểm chứng](kiem-chung-quan-ly-tai-khoan-20260925.md).
+
+**Chưa làm:** giao diện khôi phục tài khoản. Đảo migration mất dấu xóa nên
+không dùng để quay lui dữ liệu vận hành.
+
+## 24.09.2026 — Form Nộp báo cáo ngày: chọn Team, bốn trường bắt buộc, bỏ Hóa đơn, bố cục ngang (ADR-043)
+
+**Vì sao.** Chủ dự án xem thử nhánh ADR-042 trên local và góp ý ngay ở màn Nộp báo cáo ngày: chọn Team bằng
+dropdown "các team đang có"; Số Mess, CPQC, Số đơn, Doanh số bắt buộc; bỏ trường Hóa đơn khi nhập; design lại
+view cho "full view", chia ngang, ô nhập nhỏ. Hỏi đáp chốt: Hóa đơn **chỉ bỏ khỏi form nhập** (báo cáo giữ cột
+và chỉ tiêu cho dữ liệu cũ); bắt buộc áp cho **cả MKT và Sale** (Sale không có CPQC).
+
+**Làm gì.** `daily_service.team_choices/resolve_team` + `submit(team=)` → `form_service.fill(team=)` →
+`record_service.create_record(team=)`: team chọn trên form ghi vào `DataRecord.team` và `DailyReport.team`
+(cột Team của báo cáo và phạm vi Leader đi theo); bộ phận không có team thì không hiện ô. `configure_erp_reports`
+khai một chỗ `REQUIRED_INPUTS` (ép cả trường đã có) và `MKT_FORM_SKIP` (gỡ Hóa đơn, không tạo lại); thuộc tính
+`required` phía trình duyệt ở `_truong_nhap.html`/`o_chon.html`. Template `bao_cao_ngay.html` thành một thẻ trải
+hết chiều rộng: hàng Biểu mẫu · Team · Ngày, lưới `.bm-ngang` ô 34 px, cột tính sẵn là chip công thức
+(`ColumnDef.formula_text`); `bao_cao_sua.html` cùng lưới. Dữ liệu mẫu thêm team MKT 1 (`mkt.leader` trưởng nhóm,
+`mkt.staff` thành viên; tài khoản có sẵn được gán khi chạy lại). Nhánh riêng `claude/form-nhap-bao-cao` từ `main`, PR nháp riêng (ADR-042 đã gộp qua PR #36).
+
+**Kiểm.** AC-43.1 → 41.4 (`reports/tests/test_form_nhap_bao_cao.py`); sửa `test_report_amendments` (dòng mới không
+có `hoa_don`), `test_du_lieu_mau` (ba team). Chromium 1440 sáng/tối + 390 với `mkt.staff` và `sale.staff`: 6 ô một
+hàng ở 1440, 2 cột ở 390, ô cao 34 px, không tràn; trình duyệt chặn khi thiếu CPQC; nộp đủ với team MKT 1 → Lịch
+sử và Bảng dữ liệu hiện MKT 1. Bộ đầy đủ `-m "not cham"`: 2.581 đạt, 0 đỏ.
+[Biên bản](kiem-chung-form-nhap-bao-cao-20260924.md).
+
+**Còn nợ.** Chủ dự án nghiệm thu trên local (checkout `claude/form-nhap-bao-cao`, `KN JSC.bat` chạy lại
+`configure_erp_reports` nên form thật tự mất Hóa đơn và có bắt buộc; muốn `mkt.staff` có team thì chạy
+`du_lieu_mau` một lần). Quản lý sửa lại team của báo cáo đã nộp chưa có (chưa cần).
+
+## 24.09.2026 (tối) — Gọn form Tạo tài khoản: bỏ Email, ẩn Ngày sinh (AC-1.8)
+
+**Chủ dự án chốt:** form tạo không hỏi email (không ai đăng nhập bằng email, không gửi
+mail nhân viên) và không hỏi ngày sinh; ngày sinh bổ sung ở màn Sửa hồ sơ để thiệp sinh
+nhật còn dữ liệu; email/ngày sinh đã có giữ nguyên. **Sửa:** `TaoTaiKhoanForm` bỏ 2
+trường; `create_account(email="")` thành tuỳ chọn; placeholder tìm kiếm đổi "email" →
+"mã nhân sự" (view vẫn tra email cũ). AC-1.8 mới, FR-1.4 bổ sung; biên bản
+[kiem-chung-gon-form-tao-tai-khoan-20260924.md](kiem-chung-gon-form-tao-tai-khoan-20260924.md).
+
 ## 24.09.2026 — Hai lỗi E2E ghi chú chặn phát hành `main`
 
 CI của `a120af5` và kiểm lại local đều lỗi khi bấm ghi chú cao 2.000 px và đo lưới

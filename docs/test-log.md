@@ -1,5 +1,193 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 28.09.2026 — CPQC nhập 13 250 000 mà báo cáo hiện số khổng lồ; số không có dấu chấm
+
+**TL-65 (đóng):** chủ dự án báo trên VPS: CPQC nhập **13 250 000**, Báo cáo tổng hợp và Bảng dữ liệu hiện một
+con số khổng lồ khác; muốn thấy **13.250.000**. Tái hiện local: báo cáo Canada → loại tiền CAD (tự theo Thị
+trường), ADR-042 quyết định 1 nhân mọi cột tiền với tỉ giá rồi mới cộng → 13.250.000 × 17.500 =
+231.875.000.000 ₫. Chủ dự án: số phải giữ nguyên, loại tiền đã có ở cột bên cạnh, không ai yêu cầu quy đổi.
+Sửa theo [ADR-046](quyet-dinh/046-che-do-so-lieu-khong-quy-doi.md): không quy đổi, mỗi dòng một loại tiền,
+TỔNG CỘNG theo loại tiền, bộ lọc Chế độ Cộng theo ngày / Từng lần nộp; Bảng dữ liệu xem thô in số có dấu chấm;
+ô số trên form tự chèn dấu chấm. AC-46.1 → 46.10.
+[Biên bản](kiem-chung-che-do-so-lieu-20260928.md).
+
+**TL-66 (đóng, lỗi ngầm):** cách xem Theo nhân viên khi quá trần `MAX_GROUPS` (dòng còn là queryset) gắn
+`team_name` hai lần → Django báo "annotation conflicts with a field" → trang 500. Đường này cũng chạy khi
+Tổng hợp quá trần (khối toàn kỳ dựng từ cách xem Theo nhân viên). Chưa ai gặp vì cần hơn 2.000 nhóm; lộ ra khi
+viết AC-46.9 (ép trần 2). Sửa `activity_service.with_person_team`: dòng đã nhóm kèm team/leader, không gắn lại.
+
+## 28.09.2026 — CI trình duyệt đỏ chập chờn: kẹt khoá khi dọn bảng
+
+**TL-67 (đóng):** CI trên `main` đỏ hai lượt liền sau khi gộp #63 (lượt #94) và #64 (lượt #96): bước
+`pytest tests/e2e` báo "44 passed, 1 error", lỗi lúc dọn bài cuối `test_bo_chip_loc_sau_khi_sap_xep_giu_thu_tu_moi`
+(`Database test_knjsc_db couldn't be flushed`, Postgres `deadlock detected`). Bài kết thúc ngay sau khi bấm × bỏ
+chip lọc, lúc lưới vừa gửi yêu cầu tải lại dữ liệu; trình duyệt đóng nhưng luồng máy chủ thử còn đang truy vấn
+đúng lúc pytest-django dọn bảng bằng TRUNCATE, hai bên chờ khoá của nhau. Tái hiện trên máy ảo khi chạy lặp riêng
+bài đó: 2/10 rồi 4/30 lần kẹt khoá. Sửa ở hạ tầng kiểm thử, không đụng mã ứng dụng: `tests/live_server_requests.py`
+đếm yêu cầu máy chủ thử đang xử lý dở (tín hiệu `request_started`/`request_finished`, chỉ `WSGIHandler`); fixture tự
+chạy `_live_server_idle_before_flush` ở `conftest.py` gốc (dựng sau CSDL nên dọn trước nó) chờ số đó về 0, tối đa
+5 s, rồi mới để pytest dọn bảng, áp cho mọi bài có `live_server`. Bỏ đoạn chờ cứng 1 s (`roi_luoi`) #64 tự thêm cho
+bài phân công. Sau sửa: 0/30. [Biên bản](kiem-chung-e2e-cho-may-chu-20260928.md).
+
+## 28.09.2026 — Bấm đảo thứ tự làm trang giật
+
+**TL-62 (đóng):** chủ dự án báo bấm sắp xếp (ví dụ theo Quốc gia) thì "cả trang bị load". Lưới KN CRM xử
+lý đổi thứ tự như mở bảng mới (`navigate` → `invalidate(true)`): cuộn về cột đầu, đứng hình tới khi dữ
+liệu về (mũi tên tiêu đề chưa đổi vì `render` dừng khi `state.ready=false`), đặt lại chiều cao mọi dòng,
+và tải lại cả trang HTML chỉ để lấy khung lọc. Bảng dữ liệu ERP thì tiêu đề là liên kết thường, tải lại
+trang thật. Sửa: lưới đi đường tải lại mềm (`refreshSoft`) khi chỉ đổi thứ tự — giữ dòng cũ, cuộn ngang,
+chiều cao; mũi tên đổi ngay; không tải HTML; chip lọc giữ thứ tự đang dùng. ERP dùng HTMX thay riêng khối
+bảng (`_bang_xem_bang.html`). AC-21.12, AC-7.13. [Biên bản](kiem-chung-sap-xep-khong-giat-20260928.md).
+
+## 28.09.2026 — Báo "khách mua lại" sai; ô ngày phải gõ tay "/"; đảo thứ tự tải lại trang
+
+**TL-61 (đóng):** Lên đơn báo "Khách mua lại — đã có N đơn" dù số đó không còn trên bảng tính. Lời báo
+đếm **đơn hàng** (`Customer.order_count`), còn xoá dòng trên lưới chỉ xoá mềm dòng; lệnh xoá cứng hai
+bảng vận đơn cũ giữ đơn và chỉ cắt liên kết (`record=None`). Tái hiện: xoá dòng duy nhất của một số →
+lưới 0 dòng, Lên đơn vẫn "đã có 1 đơn". Sửa: đếm **dòng đang sống trên bảng Vận đơn** cùng khoá số
+(`dispatch_service.rows_with_phone`, cùng thước đo cột Trùng); cột "Mua lại lần" đếm cùng cách. AC-6.8.
+**TL-62 (mở lúc ghi mục này; đã đóng ở mục "Bấm đảo thứ tự" ngay trên):** bấm tiêu đề cột để đảo thứ tự thì lưới CRM xoá sạch ô (hiện "…"),
+cuộn về cột đầu, bỏ vùng chọn và tải lại cả trang HTML chỉ để lấy khung lọc; Bảng dữ liệu ERP thì tải
+lại cả trang thật. Hướng sửa đã trình: giữ dòng cũ tới khi dữ liệu mới về, giữ cuộn ngang, bỏ tải HTML;
+ERP dùng HTMX thay phần bảng.
+Ô ngày tự chèn "/" là tính năng mới (AC-32.1), không phải lỗi. [Biên bản](kiem-chung-mua-lai-va-o-ngay-20260928.md).
+
+## 28.09.2026 — Lăn chuột trên bảng Báo cáo tổng hợp bị kẹt, cuộn giật
+
+**TL-63 (đóng):** chủ dự án báo bấm qua lại Gộp/Không gộp rồi lăn chuột thì lag, chậm hơn nhiều; con trỏ
+đặt trên bảng thì không cuộn được. Nguyên nhân: khung bảng `.report-table-scroll` (chép từ bản vẽ 18.09) có
+`overscroll-behavior: contain` nên cú lăn không truyền ra trang — bảng vừa khung dọc mà tràn ngang (bảng
+thật nhiều cột) thì lăn trên bảng không cuộn gì, trang 0/626 px; bảng dài thì cuộn hết bảng là dừng, trang
+đứng yên. Khung bảng lại trong suốt nên mỗi khung cuộn trình duyệt raster lại: 78–81 khung rớt / 80 nấc ở
+Không gộp. Sửa trong `solarpunk.css`: bỏ `contain`, thêm nền đặc `var(--surface)` (cùng màu nền thẻ) —
+trang cuộn tiếp, còn 0–4 khung rớt. Bấm qua lại không làm cuộn chậm dần (đo 30 lần liên tiếp), chỉ để lại
+trang cũ chờ thu rác. AC-22.19. [Biên bản](kiem-chung-cuon-bao-cao-tong-hop-20260928.md).
+
+## 28.09.2026 — Nút "Tôi" không ra dòng của tài khoản; thêm lịch sử từng ô
+
+**TL-64 (đóng):** nút Tôi lọc theo cột phụ trách của bộ phận mình, mà Lên đơn không điền ai vào cột đó.
+Đo trên dữ liệu thử: Sale tự lên 1 đơn → "Toàn bộ" 1, **"Tôi" 0**; nhân viên Vận đơn chưa được giao →
+"Tôi" 0; Admin, Kế toán không có nút. Sửa theo chốt của chủ dự án: "Tôi" = dòng tôi lên đơn / đứng đơn
+cộng dòng giao tôi ở bất kỳ cột phụ trách nào (`assignment_service.mine_condition`), nút cho mọi tài
+khoản. AC-33.3, AC-33.6. Cùng lượt: lịch sử từng ô trên lưới (tính năng mới, AC-21.13).
+[Biên bản](kiem-chung-toi-va-lich-su-o-20260928.md).
+
+## 26.09.2026 — Thẻ Báo cáo tổng hợp trên Tổng quan xếp chật, số tiền bị bẻ dòng
+
+**TL-60 (đóng, hồi quy):** chủ dự án chụp Tổng quan ERP: chỉ tiêu trong thẻ Marketing/Sale xếp nhiều
+cột chật, số tiền bị bẻ giữa chữ số ("626.1 / 00.65 / 3.751 ₫"). Bản sửa 16.09 (`da6e2c0`, `dashboard.css`:
+mỗi chỉ tiêu một hàng) đã đúng; 17.09 `d84a8c1` chép một bộ luật `.dashboard-*` cũ vào `solarpunk.css`
+chỉ để `core/tests/test_giao_dien.py` hết đỏ (bài quét danh sách CSS không có `dashboard.css`), và
+`.dashboard-metrics{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}` chồng lên bản sửa. Gỡ khối
+trùng, thêm `dashboard.css` vào danh sách quét. Bài AC-22.17 (tĩnh + Chromium 1440/390) đỏ trên mã cũ —
+"4.419.192.172.800" bẻ 3 dòng — và xanh sau sửa. [Biên bản](kiem-chung-bo-cuc-tong-quan-20260926.md).
+Cùng lượt, theo yêu cầu chủ dự án: thẻ Tổng quan bỏ ô đơn vị/cảnh báo "… dòng chưa quy đổi được"
+(AC-22.18); cảnh báo vẫn ở màn Báo cáo tổng hợp chi tiết.
+
+## 25.09.2026 — Gỡ mục KN ERP trùng và giới hạn danh sách Tác vụ nền
+
+Chủ dự án báo Staff còn thấy hai mục ở cuối sidebar KN CRM. TDD tái hiện đúng
+**5 lỗi**: sidebar còn KN ERP và Staff/Leader/Manager/CEO đều mở được danh sách
+`/tac-vu/` qua CRM. Sau sửa, sidebar chỉ còn Tác vụ nền với Admin; lối KN ERP
+trên topbar giữ nguyên. Danh sách tác vụ bị chặn 403 với mọi cấp dưới Admin,
+nhưng chi tiết/tiến độ/tải tệp của chính người tạo vẫn giữ để luồng xuất nhập
+không bị đứt. Nhóm điều hướng liên quan **27 đạt**; `manage.py check` của ERP và
+CRM đều không có lỗi. Thay đổi đi qua nhánh/PR riêng và chỉ được phát hành từ
+SHA đã merge vào `main`.
+
+CI lần đầu tìm thấy hai kỳ vọng cũ còn cho Staff mở `/tac-vu/` ở bài xác thực
+và dịch vụ CRM. Đã đổi các kỳ vọng này theo quyền mới, đồng thời vẫn kiểm phiên
+CRM sau đặt lại mật khẩu qua trang đổi mật khẩu; nhóm hồi quy mở rộng **29 đạt**.
+
+## 25.09.2026 — Kiểm trước phát hành Team/menu/CEO/mật khẩu
+
+Chủ dự án yêu cầu kiểm kỹ rồi đưa lên VPS, thay phạm vi local-only trước đó.
+Bộ chính theo CI: 2.804 đạt, 2 lỗi, 7 skip; đã sửa lớp CSS sai và cập nhật vai
+trò Manager cho bài đo ERP theo ADR-045, giữ ngưỡng kiểm. Nhóm xác nhận 682 đạt.
+E2E: 32 đạt, 1 lỗi fixture Manager thiếu, 2 skip; sửa fixture rồi chạy lại hai
+file mật khẩu/điện thoại: 10 đạt. Nhóm browser còn lại 1 đạt, 9 skip và cảnh báo
+dọn DB test còn kết nối. Không bật fixture 300.000 dòng.
+Chi tiết, lệnh/phạm vi và bước diễn tập tại
+[biên bản chuẩn bị](chuan-bi-phat-hanh-team-quyen-20260925.md).
+VPS vẫn `a23573d-main`; chưa merge hoặc phát hành.
+
+## 25.09.2026 — Bỏ ép đổi sau đặt lại, nút hiện/ẩn mật khẩu mới
+
+Chủ dự án chọn phương án 1, tiếp tục trên `claude/team-bao-cao-va-quyen-menu`
+tại `C:/KNJSC/KNJSC`. Không lưu mật khẩu có thể giải mã, không đọc mật khẩu cũ.
+
+- TDD: **4 lỗi, 1 đạt**; tái hiện đăng nhập bị đẩy về đổi mật khẩu và thiếu nút
+  hiện/ẩn cho Manager/CEO/Admin.
+- Lượt đầu sau sửa: 89 đạt/1 lỗi fixture — thư mục CRM trả 404 vì không có bảng
+  vận đơn. Đổi bước kiểm đăng nhập thành trang tác vụ cá nhân CRM, vốn không
+  yêu cầu bảng mẫu; vẫn yêu cầu HTTP 200, không chấp nhận redirect/404.
+- Lượt cuối: **90 đạt**, 13,24 giây. Kiểm reset hủy cả phiên ERP/CRM cũ, mật khẩu
+  mới đăng nhập được mà không ép đổi, giữ tài khoản khóa, quyền theo phạm vi,
+  không rò mật khẩu vào HTML lỗi/session/audit; tạo mới vẫn buộc đổi lần đầu.
+
+```powershell
+docker exec knjsc-password-tests pytest org/tests/test_account_management.py org/tests/test_account.py org/tests/test_temporary_password.py core/tests/test_shared_login.py -m 'not cham and not trinh_duyet' --tb=short -rs
+```
+
+Container kiểm bind checkout hiện tại, database riêng `test_knjsc_password_test`,
+`RUN_MIGRATIONS=0`. Log RED/GREEN tại `%TEMP%/kn-password-reset-red.log` và
+`%TEMP%/kn-password-reset-green.log`.
+
+Kiểm browser ở preview riêng 18031 bằng Manager mẫu: nút hiện đổi đúng ô từ
+password sang text, ô xác nhận vẫn ẩn; Enter ẩn lại. Không nhập/gửi mật khẩu
+trên UI trong lượt kiểm này; luồng ghi được kiểm tự động trên database test.
+390 px: viewport và scrollWidth đều 390; đã trả viewport về mặc định. Không
+chạy bộ E2E tự động hoặc tải lớn. Bản local 8020 nạp thay đổi; chưa commit/push/VPS.
+
+## 25.09.2026 — Team hệ thống và quyền menu ERP (ADR-045)
+
+Nhánh `claude/team-bao-cao-va-quyen-menu`, nền ban đầu `a23573d`, đã tích hợp
+CEO `604910c` từ FIX EROR. Trước tích hợp: rộng **2.698 đạt**, 2 lỗi số liệu
+tài liệu đã sửa; nhóm xác nhận **56 đạt**, skip CEO khi chưa có định nghĩa.
+
+Sau tích hợp: TDD tái hiện menu nộp CEO còn hiện (1 lỗi/1 đạt); chặn đường nộp,
+ẩn menu/CTA, giữ CEO chỉ xem. Nhóm đầu **80 đạt**. Rộng **2.786 đạt, 1 lỗi,
+1 skip fixture đo cuộn, 63 loại theo marker**, 325,45s. Bài mới kỳ vọng sai
+403 ở màn sửa vốn trả 404 khi không có quyền: đã sửa kỳ vọng, giữ kiểm GET/POST
+và dữ liệu không đổi. Lượt cuối **117 đạt, không skip**, 14,09s, gồm toàn bộ
+file quyền Team/menu/CEO, tài khoản và truy vết. Không đổi mã ứng dụng sau lượt rộng.
+
+Django check và model check đạt. Kiểm UI đủ năm vai trò, Team chỉ đọc/chọn bởi
+Admin, Staff xuất Excel; CEO đọc Marketing/Sale/lịch sử nhưng không nộp/sửa,
+không Quản trị. Desktop 1440 và điện thoại 390 không tràn ở màn đã kiểm.
+Chưa chạy pytest browser suite hoặc kiểm tải; không tính skip thành pass.
+Không tạo commit mới/push/VPS. Xem
+[biên bản và lệnh](kiem-chung-team-va-quyen-menu-20260925.md).
+
+## 25.09.2026 — CEO / đặt lại mật khẩu / xóa mềm tài khoản
+
+Nền `main a23573d`, worktree riêng và PostgreSQL 16 riêng (`knjsc-account-db`),
+không dùng dữ liệu local/VPS đang chạy. TDD đã tái hiện 403 của Leader ở Sửa,
+CEO thiếu phạm vi toàn công ty và CEO vô tình được điền biểu mẫu cùng phòng ban.
+
+- Nhóm ban đầu org/core: chạy hết, không lỗi; một bài Chrome HTTPS được bỏ qua
+  vì cần fixture proxy riêng. Kiểm Chrome của tính năng này chạy riêng bằng Chrome host.
+- Toàn suite lượt đầu: **2.750 đạt, 3 lỗi, 13 lỗi thiết lập, 48 bỏ qua** (374,02s).
+  Một bài lịch sử gọi `profile.delete()` để tạo hồ sơ mồ côi: đã đổi fixture sang
+  `hard_delete()` đúng mục tiêu, giữ các assertion cũ. Hai lỗi/13 lỗi thiết lập
+  còn lại do container chưa mount `scripts/` ở gốc repo; đã sửa cách chạy, không sửa
+  test để bỏ qua. Nhóm xác nhận sau sửa: **88 đạt** (16,48s).
+- Chrome thật: **8/8 luồng** quản lý ở 1440/390, Staff bị chặn, không lỗi JS;
+  fixture hậu kiểm database **1 đạt** (67,88s). Không ghi mật khẩu/cookie vào ảnh.
+
+- Toàn suite lượt cuối: **2.770 đạt, 49 bỏ qua, 0 lỗi** trong **376,34s**.
+  Bỏ qua: Chromium không có trong container và các fixture browser/capacity
+  cần bật riêng; bài tài khoản Chrome đã chạy riêng đạt, không cộng skip thành pass.
+- Sau rà soát Django admin (không gán lại cờ kỹ thuật cho CEO hoặc hồi sinh hồ sơ
+  đang bị xóa): nhóm tài khoản **58 đạt** trong **16,13s**, gồm ngân sách truy vấn.
+- `manage.py check` cho ERP và CRM: không lỗi; `makemigrations --check --dry-run`:
+  không còn thay đổi chưa có migration.
+- Kiểm lại các file cuối (tài khoản, migration/đồng thời và tab Biểu mẫu):
+  **101 đạt, 0 bỏ qua, 0 lỗi** trong **17,30s**.
+
+Lệnh, phạm vi bỏ qua và bằng chứng ở
+[biên bản](kiem-chung-quan-ly-tai-khoan-20260925.md). Không coi bài bỏ qua là đạt.
+
 ## 24.09.2026 — Sửa định vị hai bài E2E ghi chú chặn phát hành `main`
 
 Nền `a120af5`, nhánh `claude/sua-e2e-ghi-chu`. CI run `35981282943` và lượt kiểm

@@ -40,6 +40,14 @@ def field_for(user):
     return next((f for f, depts in FIELDS.items() if dept in depts), None)
 
 
+def mine_condition(user):
+    """Nút "Tôi" trên bảng vận đơn (ADR-033 bổ sung 28.09.2026): dòng của tài khoản đang đăng nhập —
+    tôi lên đơn hoặc tôi là Sale đứng đơn, CỘNG dòng tôi được phân công ở bất kỳ cột phụ trách
+    nào. Chỉ thu hẹp trong phạm vi quyền sẵn có, không mở thêm dòng nào."""
+    return (Q(created_by=user) | Q(order__seller=user) | Q(assignment__delivery=user)
+            | Q(assignment__care=user) | Q(assignment__marketing=user))
+
+
 def scope_condition(user, original, *, only_new=False):
     """Chỉ thay ngoại lệ của bảng mới; original là điều kiện quyền bảng cũ.
 
@@ -72,7 +80,7 @@ def label(user):
 
 
 def candidates(field):
-    return get_user_model().objects.filter(is_active=True,
+    return get_user_model().objects.filter(is_active=True, profile__deleted_at__isnull=True,
         profile__department__code__in=FIELDS[field]).filter(
         Q(profile__locked_until__isnull=True) | Q(profile__locked_until__lte=timezone.now())
     ).select_related('profile').order_by('profile__staff_code', 'username')

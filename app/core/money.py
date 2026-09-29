@@ -7,11 +7,11 @@ Phase 1 có hai loại tiền là VND và USD. Mỗi số tiền lưu kèm loạ
 nó và không quy đổi khi lưu — quy đổi là việc của lúc lập báo cáo, và tỉ
 giá lúc đó khác tỉ giá lúc chốt đơn.
 """
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 from django.conf import settings
 from django.db import models
-from django.db.models import Case, DecimalField, Value, When
+from django.db.models import Case, IntegerField, Value, When
 from django.db.models.lookups import Exact
 
 from .constants import CURRENCY_DECIMALS, CURRENCY_SYMBOL, Currency
@@ -105,11 +105,54 @@ def format_money(amount, currency=Currency.VND):
     return f"{dau}{chuoi} {ky_hieu}"
 
 
+def format_decimal(value):
+    """Số lưu dạng chuỗi máy (`"13250000"`, `"8000.5"`) → cách viết Việt Nam, **giữ nguyên số lẻ đã
+    lưu**, không làm tròn, không ký hiệu tiền (loại tiền nằm ở cột riêng): `13.250.000`, `8.000,5`.
+    `parse_money` đọc lại đúng chuỗi này. Không phải số thì trả None để người gọi hiện nguyên giá trị."""
+    if isinstance(value, bool) or value in (None, ""):
+        return None
+    try:
+        so = Decimal(str(value).strip())
+    except (InvalidOperation, ValueError):
+        return None
+    if not so.is_finite():
+        return None
+    nguyen, _, le = format(abs(so), "f").partition(".")
+    nhom = f"{int(nguyen):,}".replace(",", ".")
+    dau = "-" if so < 0 else ""
+    return f"{dau}{nhom},{le}" if le else f"{dau}{nhom}"
+
+
+# ── Thứ tự loại tiền trên báo cáo ─────────────────────────────────────────────
+#
+# Báo cáo không quy đổi (ADR-046): mỗi dòng một loại tiền, TỔNG CỘNG tách theo loại tiền. Mọi khối,
+# dòng tổng và tệp Excel xếp loại tiền cùng một thứ tự: theo `Currency`, mã lạ sau, trống cuối.
+
+def currency_rank(code):
+    """Hạng của một loại tiền để xếp: `Currency` theo thứ tự khai, mã lạ sau đó, trống (chưa rõ) cuối."""
+    ma = Currency.values
+    if not code:
+        return len(ma) + 1
+    return ma.index(code) if code in ma else len(ma)
+
+
+def currency_rank_expression(currency_expr):
+    """`currency_rank` bằng SQL — để truy vấn nhóm theo loại tiền xếp dòng đúng thứ tự ngay trong
+    ORDER BY, kể cả khi dòng quá nhiều phải phân trang bằng truy vấn."""
+    ma = Currency.values
+    return Case(
+        When(Exact(currency_expr, Value("")), then=Value(len(ma) + 1)),
+        *[When(Exact(currency_expr, Value(code)), then=Value(i)) for i, code in enumerate(ma)],
+        default=Value(len(ma)),
+        output_field=IntegerField(),
+    )
+
+
 # ── Quy đổi về VND ─────────────────────────────────────────────────────────────
 #
 # Tỉ giá cố định ở `settings.EXCHANGE_RATES_VND` (Decimal, BR-8). Lưu trữ không quy đổi
-# (ADR-031); quy đổi là việc của lúc lập báo cáo (ADR-042) và xếp hạng (Q71). Trước
-# 23.09.2026 mấy hàm này nằm ở `culture.services.leaderboard_service`.
+# (ADR-031). Từ 28.09.2026 chỉ Bảng xếp hạng doanh số còn quy đổi (Q71); Báo cáo tổng hợp
+# giữ đúng số đã nhập theo loại tiền của dòng (ADR-046 thay quyết định 1 của ADR-042).
 
 def vnd_rate(currency):
     """Tỉ giá của một loại tiền; `None` khi chưa có (KRW) hoặc loại tiền trống."""
@@ -135,18 +178,4 @@ def rates_label():
     """"CAD 18500, PHP 440, USD 25400" — để nhật ký và báo cáo nói rõ đã quy đổi bằng gì."""
     return ", ".join(
         f"{ma} {int(gia)}" for ma, gia in sorted(settings.EXCHANGE_RATES_VND.items()) if ma != "VND"
-    )
-
-
-def vnd_rate_expression(currency_expr):
-    """Biểu thức SQL trả tỉ giá theo loại tiền của **từng dòng** — `Case/When` dựng từ bảng tỉ
-    giá — để báo cáo nhân tỉ giá ngay trong truy vấn rồi mới cộng (ADR-042): cộng tiền khác
-    loại là sai, còn quy về ₫ trước thì SUM vẫn kết hợp được nên tổng nhóm, tổng ngày và tổng
-    bộ lọc cùng một số. Loại tiền chưa có tỉ giá hoặc trống → NULL: `Sum` bỏ qua, tầng trên
-    đếm dòng đó để cảnh báo thay vì âm thầm cộng thiếu."""
-    return Case(
-        *[When(Exact(currency_expr, Value(ma)), then=Value(gia))
-          for ma, gia in settings.EXCHANGE_RATES_VND.items()],
-        default=None,
-        output_field=DecimalField(max_digits=12, decimal_places=2),
     )

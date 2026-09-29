@@ -1,4 +1,5 @@
 """Kho chứng từ: quyền theo dòng, giao dịch nguyên tử và file riêng tư."""
+from core.permissions import is_company_reader
 from orders.constants import waybill_condition
 import hashlib
 import json
@@ -26,10 +27,14 @@ SUBDIR = 'chung-tu-thanh-toan'
 
 
 def can_manage(user):
+    if is_company_reader(user):
+        return False
     return user.is_active and (get_user_scope(user).is_admin or assignment_service.is_accountant(user))
 
 
 def can_create(user):
+    if is_company_reader(user):
+        return False
     return can_manage(user) or (user.is_active and assignment_service.department(user) == 'van-don')
 
 

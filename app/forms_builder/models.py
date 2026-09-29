@@ -387,6 +387,18 @@ class ColumnDef(TimestampedModel):
         if loi:
             raise ValidationError(loi)
 
+    #: Ký hiệu ngắn của từng phép tính — chip "Hệ thống tự tính" trên form nộp báo cáo (ADR-043)
+    FORMULA_SYMBOL = {"add": "{a} + {b}", "subtract": "{a} − {b}", "multiply": "{a} × {b}",
+                      "divide": "{a} ÷ {b}", "percent": "{a} ÷ {b} × 100"}
+
+    @property
+    def formula_text(self):
+        """`cpqc ÷ so_don` — công thức viết gọn để nhắc trên form; cột không tính sẵn thì rỗng."""
+        mau = self.FORMULA_SYMBOL.get(self.compute_op)
+        if not self.is_computed or not mau:
+            return ""
+        return mau.format(a=self.compute_left, b=self.compute_right)
+
     def compute(self, values):
         """Tính giá trị của cột này từ một dòng dữ liệu.
 

@@ -8,7 +8,7 @@ pytestmark = pytest.mark.django_db
 @pytest.mark.parametrize('password', ['', 'TayNhap-Kn2026!'])
 def test_admin_creates_temporary_password(client, nguoi_dung, departments, password):
     client.force_login(nguoi_dung['admin'])
-    payload = dict(username='HungPT', email='hung@example.test', full_name='Phạm Hùng',
+    payload = dict(username='HungPT', full_name='Phạm Hùng',
                    rank='staff', department=departments['sale'].pk, password=password)
     response = client.post('/nhan-su/moi/', payload)
     assert response.status_code == 200
@@ -35,7 +35,7 @@ def test_admin_creates_temporary_password(client, nguoi_dung, departments, passw
 @pytest.mark.parametrize('password', ['123456789012', 'password123'])
 def test_reject_weak_manual_password(client, nguoi_dung, departments, password):
     client.force_login(nguoi_dung['admin'])
-    response=client.post('/nhan-su/moi/', dict(username='WeakUser', email='w@example.test',
+    response=client.post('/nhan-su/moi/', dict(username='WeakUser',
         full_name='Weak User', rank='staff', department=departments['sale'].pk, password=password))
     assert response.status_code==200 and response.context['form'].errors
     assert not get_user_model().objects.filter(username='WeakUser').exists()

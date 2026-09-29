@@ -49,7 +49,8 @@ def test_trang_chu_tong_quan_co_sidebar_theo_pham_vi(client, du_lieu, nguoi_dung
     ben = _sidebar(html)
     assert "Trang chủ" in ben and "Bảng tính" in ben and "Vận đơn" in ben and "Sale" not in ben
     assert 'href="/thu-muc/"' in ben and 'href="/thu-muc/?bp=van-don"' in ben
-    assert "KN ERP" in ben and "Tác vụ nền" in ben
+    assert "KN ERP" not in ben and "Tác vụ nền" not in ben
+    assert "KN ERP" in html, "lối về ERP trên topbar vẫn phải còn"
     sl = kq.context["so_lieu"]["data"]
     assert sl["so_bang"] == 1 and sl["so_dong"] == 3 and sl["dong_thang"] == 3 and sl["dong_hom_nay"] == 3
     assert set(b.code for b in kq.context["bang"]["data"]) == {"van_don"}
@@ -76,6 +77,7 @@ def test_trang_chu_tong_quan_co_sidebar_theo_pham_vi(client, du_lieu, nguoi_dung
     client.force_login(nguoi_dung["admin"])
     ben = _sidebar(client.get("/").content.decode())
     assert 'bp=van-don' in ben and 'bp=sale' not in ben
+    assert "KN ERP" not in ben and "Tác vụ nền" in ben
     # Marketing chưa có bảng nào: trang chủ vẫn 200, số bảng 0 (không phải 404 như trang thư mục)
     client.force_login(nguoi_dung["staff_mkt"])
     kq = client.get("/")

@@ -26,7 +26,8 @@ class TaoTaiKhoanForm(forms.Form):
         label="Tên đăng nhập", max_length=150, required=False,
         help_text="Để trống thì tên đăng nhập là mã nhân sự.",
     )
-    email = forms.EmailField(label="Email")
+    # Không hỏi email và ngày sinh khi tạo (chốt 24.09.2026): đăng nhập bằng mã nhân sự,
+    # không gửi mail cho nhân viên; ngày sinh bổ sung sau ở màn Sửa hồ sơ (SuaHoSoForm)
     rank = forms.ChoiceField(label="Cấp bậc", choices=Rank.choices, initial=Rank.STAFF)
     department = forms.ModelChoiceField(
         label="Bộ phận", queryset=Department.objects.all(),
@@ -35,11 +36,6 @@ class TaoTaiKhoanForm(forms.Form):
     team = forms.ModelChoiceField(
         label="Team", queryset=Team.objects.all(),
         required=False, empty_label="Chưa gán team",
-    )
-    birthday = forms.DateField(
-        label="Ngày sinh", required=False,
-        widget=forms.DateInput(attrs={"type": "date"}),
-        help_text="Để Bảng tin tự chúc mừng sinh nhật; bỏ trống nếu không muốn.",
     )
     password = forms.CharField(
         label="Mật khẩu tạm", min_length=10, required=False, strip=False,
@@ -72,8 +68,8 @@ class TaoTaiKhoanForm(forms.Form):
             raise forms.ValidationError(
                 f"Team {team} thuộc bộ phận {team.department}, không thuộc {bo_phan}."
             )
-        if du_lieu.get("rank") != Rank.ADMIN and not bo_phan:
-            raise forms.ValidationError("Phải chọn bộ phận, trừ khi cấp bậc là Quản trị viên.")
+        if du_lieu.get("rank") not in (Rank.ADMIN, Rank.CEO) and not bo_phan:
+            raise forms.ValidationError("Phải chọn bộ phận, trừ khi cấp bậc là Giám đốc hoặc Quản trị viên.")
         if "staff_code" in du_lieu and "username" in du_lieu and du_lieu.get("full_name"):
             if not du_lieu["staff_code"]:
                 du_lieu["staff_code"] = staff_code_service.suggest(
@@ -160,6 +156,6 @@ class TeamForm(forms.ModelForm):
         self.fields["department"].empty_label = "Chọn bộ phận"
         # Chỉ người có cấp bậc Trưởng nhóm mới được chọn làm leader
         self.fields["leader"].queryset = get_user_model().objects.filter(
-            profile__rank=Rank.LEADER
+            profile__rank=Rank.LEADER, profile__deleted_at__isnull=True, is_active=True,
         ).select_related("profile")
         self.fields["leader"].empty_label = "Chưa có trưởng nhóm"

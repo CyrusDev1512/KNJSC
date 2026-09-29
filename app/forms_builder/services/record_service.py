@@ -138,31 +138,47 @@ def report_input_values(table, columns, values, actor, system_day=None):
     return values
 
 
+def report_team_column(table):
+    """Mã cột Team dạng chữ của bảng báo cáo Sale/MKT — ánh xạ `team` do `configure_erp_reports`
+    ghi khi bảng có cột như thế (ADR-043 bổ sung 25.09) — hoặc None."""
+    source = getattr(table, 'erp_report', None)
+    if source is None or source.kind not in ('sale', 'mkt'):
+        return None
+    return source.columns.get('team') or None
+
+
 @writing
 @transaction.atomic
-def create_record(table, values, *, actor=None, request=None, columns=None, system_day=None):
+def create_record(table, values, *, actor=None, request=None, columns=None, system_day=None, team=None):
     """Thêm một dòng vào bảng.
 
     Bộ phận và team lấy theo hồ sơ người tạo, để phạm vi quyền áp đúng ngay từ
-    lúc sinh ra bản ghi.
+    lúc sinh ra bản ghi. `team` là team người nộp chọn trên form báo cáo ngày
+    (ADR-043); không truyền thì theo hồ sơ như trước.
     """
     policy = record_policies.for_table(table)
     if policy:
         values = policy.prepare_values(values)
     columns = columns if columns is not None else list(table.columns.all())
     values = report_input_values(table, columns, values, actor, system_day)
+    # Team của dòng: team người nộp chọn trên form báo cáo (ADR-043), không có thì team hồ sơ
+    team = team if team is not None else getattr(getattr(actor, "profile", None), "team", None)
+    team_code = report_team_column(table)
     du_lieu = {}
     for cot in columns:
-        if cot.is_computed:
+        if cot.is_computed or cot.code == team_code:
             continue
         if cot.code in values:
             du_lieu[cot.code] = parse_value(cot, values[cot.code])
+    if team_code:
+        # Cột Team dạng chữ không còn là ô nhập (một ô Team duy nhất trên form — ADR-043 bổ sung
+        # 25.09): hệ thống ghi tên team của dòng, chữ gõ tay gửi thẳng lên bị bỏ
+        du_lieu[team_code] = team.name if team is not None else None
 
     thieu = _thieu_bat_buoc(columns, du_lieu)
     if thieu:
         raise BusinessError("Chưa điền các trường bắt buộc: " + ", ".join(thieu))
 
-    ho_so = getattr(actor, "profile", None)
     ban_ghi = DataRecord(
         table=table, data=du_lieu, created_by=actor,
         # Dòng thuộc về bộ phận **sở hữu bảng**, không phải bộ phận người ghi.
@@ -170,7 +186,7 @@ def create_record(table, values, *, actor=None, request=None, columns=None, syst
         # vận đơn: Sale lên đơn, dòng phải thuộc về Vận đơn để họ thấy mà đi
         # giao. Lấy theo người ghi là bộ phận đích không thấy gì cả.
         department=table.department,
-        team=getattr(ho_so, "team", None),
+        team=team,
     )
     ban_ghi.apply_computed_columns(columns)
     ban_ghi.sync_indexed_columns(columns)

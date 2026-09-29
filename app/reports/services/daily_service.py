@@ -7,6 +7,7 @@ Quyết định 16/09/2026 thay thế khóa tuyệt đối: nhân viên không s
 nộp; Leader/Manager/Admin sửa qua amend, kiểm phạm vi và ghi lịch sử.
 Ngày, chủ sở hữu và thời điểm nộp của DailyReport vẫn bất biến.
 """
+from core.permissions import is_company_reader
 from django.db import transaction
 
 from core.audit import record
@@ -17,7 +18,22 @@ from forms_builder.services import form_service, grant_service
 from ..models import DailyReport
 
 
-def protected_values(form, values, fields, day, owner, *, original=None):
+def is_report_team_column(form, column):
+    """Cột Team của bộ mẫu 15.09; không suy từ nhãn tùy ý của bảng khác."""
+    source = getattr(form.table, 'erp_report', None)
+    return bool(source and source.kind in ('sale', 'mkt') and column
+                and column.code == 'team_mau')
+
+
+def submission_team(form, actor, team=None):
+    """25.09: chỉ Admin chọn team; các cấp khác dùng đúng team hồ sơ."""
+    from core.permissions import is_admin
+    if is_admin(actor) and team is not None and team.pk != default_team_id(actor):
+        return resolve_team(form, team.pk)
+    return getattr(getattr(actor, 'profile', None), 'team', None)
+
+
+def protected_values(form, values, fields, day, owner, *, original=None, team=None):
     """Ngày/danh tính do server quản lý; sửa giữ danh tính tại lúc nộp."""
     from forms_builder.meaning import Meaning
     from orders.services.currency_service import for_label
@@ -28,6 +44,10 @@ def protected_values(form, values, fields, day, owner, *, original=None):
         column = form_service._cot_dich(field)
         if column is None:
             continue
+        if is_report_team_column(form, column):
+            selected_team = submission_team(form, owner, team)
+            values[field.field.code] = (original.get(column.code, '') if original is not None
+                                       else selected_team.name if selected_team else '')
         if column.meaning == Meaning.DATE:
             values[field.field.code] = day.isoformat()
         if original is not None and form_service.is_identity_field(field):
@@ -43,17 +63,51 @@ def protected_values(form, values, fields, day, owner, *, original=None):
     return values
 
 
-def submit_current(form, values, *, actor, request=None, fields=None):
+def submit_current(form, values, *, actor, request=None, fields=None, team=None):
     """Đường nộp tương tác; submit ngày chỉ định dành cho nhập lịch sử nội bộ."""
     from django.utils import timezone
     fields = fields if fields is not None else list(form.ordered_fields())
     day = timezone.localdate()
-    values = protected_values(form, values, fields, day, actor)
-    return submit(form, values, report_date=day, actor=actor, request=request, fields=fields)
+    team = submission_team(form, actor, team)
+    values = protected_values(form, values, fields, day, actor, team=team)
+    return submit(form, values, report_date=day, actor=actor, request=request, fields=fields, team=team)
+
+
+# ══ TEAM TRÊN FORM NHẬP — ADR-043 ═══════════════════════════════════════════
+#
+# ADR-045 thay một phần ADR-043: Staff/Leader/Manager tự nhận team hồ sơ.
+# Admin vẫn dùng dropdown team của bộ phận sở hữu biểu mẫu; team chọn ghi vào
+# dòng và DailyReport để phạm vi Leader đi theo cùng một nguồn.
+
+
+def team_choices(form):
+    """`[(id, tên)]` team đang hoạt động của bộ phận sở hữu biểu mẫu — rỗng thì form không hiện ô Team."""
+    from org.models import Team
+    return list(Team.objects.filter(department=form.department, is_active=True)
+                .order_by("name").values_list("id", "name"))
+
+
+def default_team_id(user):
+    """Team trong hồ sơ người nộp — lựa chọn sẵn trên dropdown."""
+    return getattr(getattr(user, "profile", None), "team_id", None)
+
+
+def resolve_team(form, team_id):
+    """Team người nộp chọn: rỗng → None (giữ cách cũ: theo hồ sơ); id lạ, đã nghỉ hay của bộ phận
+    khác → từ chối rõ, không âm thầm ghi team hồ sơ (quy tắc 8)."""
+    from org.models import Team
+    if team_id in (None, ""):
+        return None
+    try:
+        return Team.objects.get(pk=int(team_id), department=form.department, is_active=True)
+    except (TypeError, ValueError, Team.DoesNotExist):
+        raise BusinessError("Team không thuộc bộ phận của biểu mẫu.")
 
 
 def can_amend(user, report):
     """Admin; Manager trong bộ phận; Leader trong team; Kế toán mọi bộ phận (ADR-038)."""
+    if is_company_reader(user):
+        return False
     from core.constants import Rank
     from core.scope import get_user_scope
     from org.services.org_service import is_accountant
@@ -71,6 +125,8 @@ def can_withdraw(user, report):
     Kế toán **không** bỏ được báo cáo người khác (giữ đúng ADR-038): sửa số là
     việc của Kế toán, quyết bỏ hẳn một báo cáo là việc của người quản lý trực tiếp.
     """
+    if is_company_reader(user):
+        return False
     from core.constants import Rank
     from core.scope import get_user_scope
     if not user.is_active:
@@ -86,6 +142,8 @@ def can_withdraw(user, report):
 def can_restore(user, report_or_none=None):
     """Manager trong bộ phận mình và Admin — ADR-041. Gọi không kèm báo cáo thì
     trả quyền vào trang "Đã bỏ" (danh sách tự thu hẹp theo `in_scope`)."""
+    if is_company_reader(user):
+        return False
     from core.constants import Rank
     from core.scope import get_user_scope
     if not user.is_active:
@@ -100,7 +158,9 @@ def can_restore(user, report_or_none=None):
 
 def report_widgets(form, fields, values, *, user, day, owner=None):
     widgets = form_service.widgets(form, fields, values, user=user)
-    return decorate_widgets(widgets, form, values, user=user, day=day, owner=owner)
+    widgets = decorate_widgets(widgets, form, values, user=user, day=day, owner=owner)
+    # Form nộp đã có duy nhất một ô Team ở phần đầu; màn sửa giữ giá trị lịch sử.
+    return [w for w in widgets if owner is not None or not getattr(w, 'report_team', False)]
 
 
 def decorate_widgets(widgets, form, values, *, user, day, owner=None):
@@ -108,6 +168,11 @@ def decorate_widgets(widgets, form, values, *, user, day, owner=None):
     from core.identity import employee_code
     source = getattr(form.table, 'erp_report', None)
     for widget in widgets:
+        if is_report_team_column(form, widget.cot):
+            team = getattr(getattr(owner or user, 'profile', None), 'team', None)
+            widget.report_team = True
+            widget.system_value = ((values.get(widget.t.field.code) or 'Chưa được gán Team')
+                                   if owner else team.name if team else 'Chưa được gán Team')
         if widget.danh_tinh:
             widget.ten_nguoi_dung = employee_code(owner or user)
         if widget.cot and widget.cot.meaning == Meaning.DATE:
@@ -201,11 +266,11 @@ def submissions_today(form, user, report_date):
 
 
 @transaction.atomic
-def submit(form, values, *, report_date, actor, request=None, fields=None):
+def submit(form, values, *, report_date, actor, request=None, fields=None, team=None):
     """Nộp một báo cáo. Ghi dữ liệu vào bảng đích rồi khoá lại.
 
     `values` là dict `{tên trường biểu mẫu: giá trị}`, đúng như màn hình điền
-    biểu mẫu ở Giai đoạn 3.
+    biểu mẫu ở Giai đoạn 3. `team` là team người nộp chọn (ADR-043); None thì theo hồ sơ.
     """
     if not grant_service.can_fill(actor, form):
         raise BusinessError("Bạn không được phân quyền nộp biểu mẫu này.")
@@ -230,7 +295,7 @@ def submit(form, values, *, report_date, actor, request=None, fields=None):
     # Cùng một đường với màn hình điền biểu mẫu: ép danh tính người nộp vào
     # trường Người bán (FR-4.6), kiểm bắt buộc, rồi ghi vào bảng đích
     ban_ghi = form_service.fill(
-        form, values, actor=actor, request=request, fields=fields, system_day=report_date,
+        form, values, actor=actor, request=request, fields=fields, system_day=report_date, team=team,
     )
     columns = list(form.table.columns.all())
     old_data = dict(ban_ghi.data)
@@ -242,7 +307,7 @@ def submit(form, values, *, report_date, actor, request=None, fields=None):
     bao_cao = DailyReport(
         form=form, record=ban_ghi, report_date=report_date, created_by=actor,
         department=getattr(ho_so, "department", None) or form.department,
-        team=getattr(ho_so, "team", None),
+        team=team if team is not None else getattr(ho_so, "team", None),
     )
     # Nộp lại trong ngày là một bản mới, không chặn, không đè (ADR-038)
     bao_cao.save()

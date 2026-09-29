@@ -8,6 +8,7 @@ import pytest
 
 from forms_builder.services import record_service
 from orders.services import dispatch_service
+from core.constants import Rank
 
 from .conftest import chup
 
@@ -22,8 +23,8 @@ pytestmark = [pytest.mark.django_db(transaction=True), pytest.mark.trinh_duyet, 
 ERP, CRM = "knjsc.urls", "knjsc.urls_bangtinh"
 MAN_HINH = [
     ("tong-quan", "/", "staff_vd", ERP),
-    ("bang-du-lieu", "/bang/van_don/", "staff_vd", ERP),
-    ("bao-cao-ngay", "/bao-cao-ngay/", "staff_mkt", ERP),
+    ("bang-du-lieu", "/bang/van_don/", "manager_vd", ERP),
+    ("bao-cao-ngay", "/bao-cao/", "staff_mkt", ERP),
     ("nhap-tep", "/bang/van_don/nhap/", "admin", ERP),
 ]
 
@@ -41,13 +42,16 @@ def du_lieu(departments, nguoi_dung):
 
 @pytest.mark.parametrize("ten,duong_dan,vai,urlconf", MAN_HINH, ids=[m[0] for m in MAN_HINH])
 def test_khong_tran_ngang_tren_dien_thoai(live_server, trang_dien_thoai, dang_nhap, du_lieu,
-                                          nguoi_dung, settings, ten, duong_dan, vai, urlconf):
+                                          nguoi_dung, make_user, settings, ten, duong_dan, vai, urlconf):
     """AC-10.4 — Trên màn hình 390px mỗi màn hình chính không tràn ngang, và có ảnh chụp để đối chiếu"""
     settings.ROOT_URLCONF = urlconf
     settings.GRID_ONLY_TABLES = set() if urlconf == CRM else settings.GRID_ONLY_TABLES
     page = trang_dien_thoai
-    dang_nhap(page, nguoi_dung[vai])
-    page.goto(live_server.url + duong_dan)
+    user = (make_user('mobile_manager_vd', Rank.MANAGER, du_lieu.department)
+            if vai == 'manager_vd' else nguoi_dung[vai])
+    dang_nhap(page, user)
+    response = page.goto(live_server.url + duong_dan)
+    assert response.status == 200, "Phải kiểm bố cục màn nghiệp vụ, không phải trang lỗi quyền."
     page.wait_for_load_state("networkidle")
     assert page.locator("h1").count() >= 1
     do = page.evaluate("({rong: document.documentElement.scrollWidth, khung: window.innerWidth})")

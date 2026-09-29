@@ -16,6 +16,11 @@ from django.contrib.auth.backends import ModelBackend
 
 
 class CaseInsensitiveModelBackend(ModelBackend):
+    def user_can_authenticate(self, user):
+        profile = getattr(user, "profile", None)
+        return (super().user_can_authenticate(user)
+                and not (profile and profile.deleted_at is not None))
+
     def authenticate(self, request, username=None, password=None, **kwargs):
         User = get_user_model()
         if username is None:
@@ -23,7 +28,8 @@ class CaseInsensitiveModelBackend(ModelBackend):
         if username is None or password is None:
             return None
         try:
-            user = User._default_manager.get(**{f"{User.USERNAME_FIELD}__iexact": username})
+            user = User._default_manager.select_related("profile__department").get(
+                **{f"{User.USERNAME_FIELD}__iexact": username})
         except (User.DoesNotExist, User.MultipleObjectsReturned):
             # Chạy băm một lần để thời gian trả lời không lộ tài khoản có tồn tại hay không
             User().set_password(password)

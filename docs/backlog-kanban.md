@@ -1,5 +1,102 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 25.09.2026 — Một ô Team duy nhất trên form báo cáo (ADR-043 bổ sung)
+
+**Finished local (nhánh `claude/mot-o-team-bao-cao`, PR nháp về `main`):** cột Team dạng chữ có sẵn rời form
+nhập, hệ thống ghi tên team đã chọn vào cột; AC-43.5. **To do:** chủ dự án gộp; Codex phát hành cùng #49.
+
+## 28.09.2026 — Chế độ số liệu, không quy đổi (ADR-046, TL-65)
+
+**Finished local (nhánh `claude/che-do-so-lieu-bao-cao`, PR nháp về `main`):** số tiền giữ đúng như nhập, mỗi
+dòng một loại tiền, TỔNG CỘNG theo loại tiền; bộ lọc Chế độ Cộng theo ngày / Từng lần nộp; (TT) theo loại tiền
+của đơn; thẻ Tổng quan mỗi loại tiền một cột; Bảng dữ liệu thô và ô nhập số có dấu chấm. AC-46.1 → 46.10.
+**To do:** chủ dự án test local rồi quyết gộp; phát hành VPS (Codex). **Đã chốt 28.09:** chưa cần ngưỡng
+tiền theo từng loại tiền (ngưỡng ₫ chỉ tô dòng VND); giữ khối toàn kỳ ở chế độ Từng lần nộp.
+
+## 28.09.2026 — CI trình duyệt kẹt khoá khi dọn bảng (TL-67)
+
+**Đã gộp vào `main` 29.09.2026 (PR #67):** bài có máy chủ thử chờ máy chủ xử lý xong rồi mới dọn bảng; chạy lặp
+bài từng lỗi 0/30 kẹt khoá (trước 4/30).
+
+## 26.09.2026 — Ô phồng to tại chỗ thay hộp đọc
+
+**Finished local (nhánh `claude/o-phong-to-tai-cho`, PR nháp về `main`):** click đơn chỉ chọn ô
+(chỉnh theo test 26.09); bấm đúp: ô sửa được mở ô nhập tự giãn tới trần, ô chỉ đọc bị cắt chữ
+phồng to tại chỗ kiểu Google Sheets, bấm chỗ khác/Esc thu về; bỏ hộp đọc cũ; auto-giãn + trần 2000 giữ.
+**To do:** chủ dự án kéo nhánh test local rồi quyết gộp.
+
+## 28.09.2026 — Sắp xếp không giật (TL-62)
+
+**Finished local (nhánh `claude/sap-xep-khong-giat`, PR nháp về `main`):** lưới CRM và Bảng dữ liệu ERP
+bấm tiêu đề cột không còn tải lại/giật. **To do:** chủ dự án test local rồi quyết gộp.
+
+## 28.09.2026 — Khách mua lại theo bảng tính, ô ngày tự chèn "/"
+
+**Finished local (nhánh `claude/mua-lai-va-o-ngay`, PR nháp về `main`):** TL-61 đóng, AC-32.1 mới.
+**To do:** chủ dự án test local rồi quyết gộp; TL-62 (đảo thứ tự tải lại trang) làm lượt sau.
+
+## 28.09.2026 — Cuộn Báo cáo tổng hợp (TL-63)
+
+**Finished (nhánh `claude/cuon-bao-cao-tong-hop`, PR #60 về `main`, chủ dự án lệnh gộp 28.09 sau khi kiểm kĩ
+25/25 mục trình duyệt và 408 bài liên quan):** lăn chuột trên bảng không còn kẹt, cuộn Không gộp hết rớt khung.
+**To do:** phát hành VPS (Codex); chốt hai việc tuỳ chọn đổi giao diện (khe bảng lúc mở trang, bớt cột ghim trái).
+
+## 28.09.2026 — Nút Tôi theo tài khoản, lịch sử từng ô
+
+**Finished local (nhánh `claude/toi-va-lich-su-o`, PR nháp về `main`):** TL-64 đóng, AC-21.13 mới.
+**To do:** chủ dự án test local rồi quyết gộp.
+
+## 26.09.2026 — Bố cục thẻ Báo cáo tổng hợp trên Tổng quan (TL-60)
+
+**Finished local (nhánh `claude/sua-bo-cuc-tong-quan`, PR nháp về `main`):** mỗi chỉ tiêu một hàng, số
+tiền không còn bẻ dòng; gỡ luật CSS trùng gây hồi quy 17.09. Bỏ ô đơn vị/cảnh báo quy đổi trên thẻ. **To do:** chủ dự án test local rồi quyết
+gộp và phát hành VPS (lỗi đang có trên VPS).
+
+## 25.09.2026 — Phát hành Team/menu/CEO/mật khẩu
+
+**In progress:** kiểm local và chuẩn bị PR nháp, CI, diễn tập migration CEO
+trên bản sao VPS. Chưa merge hoặc đổi phiên bản VPS `a23573d-main`.
+[Biên bản](chuan-bi-phat-hanh-team-quyen-20260925.md).
+
+## 25.09.2026 — Đặt lại mật khẩu, phương án 1
+
+**Finished local:** đặt lại không ép đổi lần nữa; Manager/CEO/Admin có nút
+hiện/ẩn nội dung đang nhập theo quyền quản lý. 90 bài đạt; chuột/bàn phím và
+390 px đã kiểm. Không kho mật khẩu, không đổi luồng tạo mới. **To do:** chủ
+dự án thử trên 8020; chưa commit/push/VPS.
+
+## 25.09.2026 — Team và quyền menu ERP, CEO (ADR-045)
+
+**Finished local:** Team hệ thống, Quản trị chỉ Admin, Bảng dữ liệu chỉ
+Manager/CEO/Admin; theo dõi và tải tác vụ cá nhân. Đã tích hợp CEO `604910c` từ
+FIX EROR và kiểm đủ năm vai trò. CEO chỉ xem, không nộp/sửa báo cáo. Nhóm cuối
+117 đạt; kết quả rộng và skip ghi trong biên bản. Giữ CRM như cũ.
+**To do:** chủ dự án xem bản local; chưa tạo commit mới/push/VPS.
+[Biên bản](kiem-chung-team-va-quyen-menu-20260925.md).
+
+## 25.09.2026 — Quản lý tài khoản theo cấp bậc
+
+**Finished local:** CEO và tách quyền đọc toàn công ty/Admin; Sửa có form mật khẩu
+riêng; Xóa mềm có xác nhận; bảo vệ phiên/lịch sử; ma trận server và Chrome 1440/390.
+**Kiểm chứng:** toàn suite 2.770 đạt/49 bỏ qua; Chrome 8/8 luồng; nhóm tài khoản
+58/58 đạt, giữ trần 10 truy vấn. Bàn giao PR nháp trên nhánh riêng theo ADR-044.
+**To do:** chủ dự án duyệt PR; chưa merge hoặc phát hành VPS. **Far plan:** giao diện
+khôi phục tài khoản (chưa được yêu cầu).
+[PR nháp #52](https://github.com/CyrusDev1512/KNJSC/pull/52), code `cd7e7a1` đã push.
+[Kiểm chứng](kiem-chung-quan-ly-tai-khoan-20260925.md).
+
+## 24.09.2026 — Form Nộp báo cáo ngày (ADR-043)
+
+**Finished local:** dropdown Team ghi vào dòng và báo cáo; Số Mess, CPQC, Số đơn, Doanh số bắt buộc (MKT và Sale);
+Hóa đơn rời form nhập, giữ cột; một thẻ trải ngang, ô 34 px, chip công thức; team MKT 1 trong dữ liệu mẫu. AC-43.1 → 43.4.
+**To do:** chủ dự án nghiệm thu trên local; phát hành VPS (Codex). **Far plan:** quản lý sửa team của
+báo cáo đã nộp.
+
+## 24.09.2026 (tối) — Gọn form Tạo tài khoản
+
+**Finished local (nhánh `claude/gon-form-tao-tai-khoan`, PR nháp về `main`):** form tạo bỏ ô Email
+và Ngày sinh (AC-1.8); màn Sửa hồ sơ giữ Ngày sinh; dữ liệu cũ nguyên. **To do:** chủ dự án duyệt PR.
+
 ## 24.09.2026 — Sửa hai bài E2E ghi chú trước khi chuyển VPS sang `main`
 
 **Finished local:** nhánh `claude/sua-e2e-ghi-chu`; đã tái hiện hai lỗi local, sửa định vị

@@ -1,0 +1,84 @@
+# ADR-043 — Form Nộp báo cáo ngày: chọn Team, bốn trường bắt buộc, bỏ Hóa đơn, bố cục ngang
+
+> Thay thế một phần ngày 25.09: [ADR-045](045-team-he-thong-va-quyen-menu-erp.md)
+> khóa Team theo hồ sơ cho Staff/Leader/Manager; Admin giữ dropdown. Các quyết định
+> trường bắt buộc, Hóa đơn và bố cục bên dưới vẫn giữ.
+
+| | |
+|---|---|
+| Ngày | 24.09.2026 |
+| Trạng thái | Gộp vào `main` 25.09 (PR #49). **Bổ sung 25.09** (một ô Team duy nhất) trên nhánh `claude/mot-o-team-bao-cao`, PR nháp về `main` |
+| Bổ sung | ADR-032 (ngày hệ thống, sửa báo cáo — giữ), ADR-037 (danh tính tự ghi — giữ), ADR-038 (Hóa đơn: giữ cột và chỉ tiêu, bỏ ô nhập), ADR-028 (Solarpunk — áp cho form) |
+
+## Bối cảnh
+
+Chủ dự án xem thử nhánh ADR-042 trên local và góp ý về màn **Nộp báo cáo ngày** (`/bao-cao/`):
+chọn Team bằng dropdown các team đang có; Số Mess, CPQC, Số đơn, Doanh số bắt buộc; bỏ trường Hóa đơn
+khi nhập; thiết kế lại view cho "full view", chia ngang, ô nhập nhỏ.
+
+Trước đó: form không có ô Team — dòng lấy team theo hồ sơ người nộp nên tài khoản chưa gán team ra
+"Chưa có team" ở báo cáo; chỉ Số Mess (MKT) bắt buộc và dấu `*` chỉ là chữ; `configure_erp_reports`
+tự đưa mọi cột nhập lên form kể cả `hoa_don`; hai thẻ `max-width:860px`, lưới `.bm` một cột, ô cao 40 px
+rộng hết thẻ.
+
+## Quyết định
+
+1. **Dropdown Team** (`daily_service.team_choices/resolve_team`): team đang hoạt động của bộ phận sở hữu
+   biểu mẫu, chọn sẵn team hồ sơ; ai cũng chọn được team khác trong bộ phận; team đã chọn ghi vào
+   `DataRecord.team` **và** `DailyReport.team` (`create_record(team=)`, `fill(team=)`, `submit(team=)`) nên
+   cột Team của Báo cáo tổng hợp / Bảng dữ liệu và phạm vi Leader (`apply_scope`, `can_amend`) đi theo lựa
+   chọn. Team bộ phận khác hay id lạ → từ chối rõ (quy tắc 8); để trống → theo hồ sơ; bộ phận không có
+   team → không hiện ô. Màn Sửa báo cáo không đổi team (giữ như ngày, danh tính — ADR-032).
+2. **Bắt buộc** khai một chỗ: `configure_erp_reports.REQUIRED_INPUTS = (ngay, san_pham, thi_truong, so_mess,
+   cpqc, so_don, doanh_so)`; trường mới lẫn trường đã có đều bị ép `required=True` mỗi lần chạy (lệnh chạy ở
+   mỗi lần bật máy). Sale không có `cpqc` nên tự ra ba trường số. Phía trình duyệt thêm thuộc tính `required`
+   (`_truong_nhap.html`, `o_chon.html`); máy chủ vẫn là nơi quyết (`form_service.missing_required`, AC-8.2).
+3. **Hóa đơn** rời form nhập MKT bằng `MKT_FORM_SKIP = (doanh_thu cũ, hoa_don)` — cơ chế `skip` sẵn có gỡ
+   trường đang có và không tạo lại. Cột `hoa_don`, ánh xạ `invoice`, chỉ tiêu "Hóa đơn" và "Hóa đơn/DS Chốt
+   (TT)" **giữ** cho dữ liệu cũ (chủ dự án chốt "chỉ bỏ khỏi form nhập"); dòng mới hiện "—".
+4. **Bố cục** theo quy trình Impeccable thủ công (đọc DESIGN.md, design.json, craft-floor; không chạy engine):
+   một thẻ, không thẻ lồng thẻ; hàng điều khiển Biểu mẫu · Team · Ngày trên nền phụ; lưới `.bm-ngang`
+   `repeat(auto-fill, minmax(168px, 1fr))`, ô `.o-nhap` 34 px, nhãn 13 px, số tabular; cột tính sẵn là dòng chip
+   `.bm-tinh` thay cho năm ô nhập giả; ô chữ dài (Vận đơn) chiếm trọn hàng; ≤ 600 px hai cột. Chỉ thêm lớp
+   trong phạm vi `.bm-ngang/.bm-dau/.bm-tinh`, không đụng `.bm`, `.truong`, `.o-nhap` dùng chung ở ~20 form.
+5. **Dữ liệu mẫu** thêm team MKT 1 (trưởng nhóm `mkt.leader`, thành viên `mkt.staff`); tài khoản mẫu có sẵn
+   mà chưa có team thì được gán khi chạy lại `du_lieu_mau`.
+
+## Hệ quả
+
+- Tiêu chí AC-43.1 → 43.5 (`docs/04` mục 43); FR-4.8 → FR-4.11.
+- `test_new_marketing_report_derives_currency_and_keeps_zero` đổi: dòng mới không có `hoa_don`.
+- Script `.cjs` điền form (`kiem-thu-erp-ui`, `kiem-thu-erp-identity`) phải điền đủ bốn trường số.
+
+## Giới hạn, việc để lại
+
+- Team chọn sai (nhân viên chọn team bạn) thì Leader team đó thấy và sửa được báo cáo — chấp nhận, vì đó là
+  lựa chọn có chủ ý; quản lý sửa lại team qua Lịch sử chưa có (chưa cần).
+- FieldDef `erp_<pk>_hoa_don` mồ côi sau khi gỡ trường để nguyên, không hại.
+
+## Bổ sung 25.09.2026 — một ô Team duy nhất
+
+**Lỗi của bản 24.09.** Bảng Báo cáo Marketing trên dữ liệu thật có sẵn **cột Team dạng chữ** (từ sheet
+gốc); `configure_forms` tự đưa mọi cột nhập lên form nên cột đó thành ô gõ tay, đứng ngay cạnh dropdown
+Team mới: form có **hai ô Team**. Dữ liệu mẫu `du_lieu_mau` không có cột này nên kiểm chứng 24.09 không
+thấy — chủ dự án chỉ ra bằng ảnh chụp 25.09.
+
+**Quyết định.** Form chỉ có **một** ô Team là dropdown (cùng nguồn với form Tạo tài khoản, là thứ Báo cáo
+tổng hợp gom nhóm và phạm vi Leader dùng). Cột Team dạng chữ **giữ nguyên** (BR-4) nhưng rời form nhập,
+hệ thống tự ghi tên team của dòng vào đó khi nộp — như ô Marketer "hệ thống tự ghi":
+
+1. `configure_erp_reports.team_column(table)`: cột không tính, mã `team` hoặc nhãn "Team" (không phân biệt
+   hoa thường; nhiều cột thì ưu tiên mã `team`), kiểu chữ hoặc Chọn một. Có thì `configure_source` thêm mã
+   vào `skip` của `configure_forms` (gỡ trường đang có, không tạo lại — cơ chế của Hóa đơn) cho **cả Sale
+   và MKT**, và ghi ánh xạ `ReportSource.columns["team"]`. Hằng số `TEAM_COLUMN_CODE/LABEL` ở
+   `reports/constants.py`. Lệnh chạy mỗi lần bật máy và trong `entrypoint.sh` nên dữ liệu thật và VPS tự áp.
+2. `record_service.create_record`: cột theo ánh xạ `team` không đọc giá trị gửi lên (chữ gõ tay bị bỏ) mà
+   nhận tên team của dòng — team chọn trên form, không có thì team hồ sơ; không có team thì để trống.
+   Sửa báo cáo (`amend`) chỉ ghi lại cột có trường trên form nên không đụng cột này.
+
+**Không đổi.** Dòng cũ giữ chữ đã gõ; nhập Excel (`create_records_bulk`) vẫn nhận cột Team từ tệp; Bảng dữ
+liệu và tệp xuất vẫn có cột Team. Tiêu chí AC-43.5.
+
+> Gộp vào `main` 29.09.2026 (PR #51), sau ADR-045: ô Team duy nhất ở trên chỉ **chọn được với Admin**;
+> Staff/Leader/Manager bị khoá Team theo hồ sơ (ADR-045 thay phần chọn Team cho mọi vai trò). Cột Team dạng
+> chữ vẫn rời form nhập và ghi tên team của dòng. Bài `test_mot_o_team_tren_form_nhap` viết lại theo đó.

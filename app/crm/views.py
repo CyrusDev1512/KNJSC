@@ -5,6 +5,7 @@ Bảng lấy qua `TableDef.objects.in_scope` (quy tắc 11): ngoài phạm vi �
 (`GRID_ONLY_TABLES` có `van_don`), ở dịch vụ `bangtinh` sửa được — cùng mã,
 chỉ khác cấu hình. Quyền sửa ô và thêm dòng kiểm ở máy chủ, không phải chỉ ẩn nút.
 """
+from core.permissions import assert_business_write
 from io import BytesIO
 
 from django.conf import settings
@@ -22,7 +23,7 @@ from core.audit import record_denied
 from core.constants import (GRID_FILTER_LIST_MAX, GRID_FILTER_OPTIONS_MAX,
                             GRID_INSERT_COLUMNS_MAX, Rank)
 from core.exceptions import BusinessError, OutOfScopeError
-from core.permissions import assert_rank, has_rank, in_departments
+from core.permissions import assert_rank, can_manage_business, in_departments
 from core.navigation import SALES_ONLY
 from forms_builder.models import DataRecord, Folder, TableDef
 from forms_builder.services import export_service, folder_service, grant_service, table_service
@@ -88,7 +89,7 @@ def tong_quan(request):
     boi_canh = tong_quan_service.tong_quan(request.user)
     boi_canh.update({
         "erp_url": _ngoai("/"),
-        "duoc_tao_bang": has_rank(request.user, Rank.LEADER),
+        "duoc_tao_bang": can_manage_business(request.user, Rank.LEADER),
         "tao_bang_url": reverse("bang_moi"),
     })
     return render(request, "crm/tong_quan.html", boi_canh)
@@ -119,9 +120,9 @@ def thu_muc(request):
     boi_canh = dict(du_lieu)
     boi_canh.update({
         "erp_url": _ngoai("/"),
-        "duoc_quan_ly_thu_muc": has_rank(request.user, Rank.LEADER)
+        "duoc_quan_ly_thu_muc": can_manage_business(request.user, Rank.LEADER)
                                 and grant_service.can_manage_folders(request.user, bp),
-        "duoc_cap_quyen": has_rank(request.user, Rank.MANAGER),
+        "duoc_cap_quyen": can_manage_business(request.user, Rank.MANAGER),
         "cap_quyen_url": reverse("cap_quyen"),
         "tao_bang_url": reverse("bang_moi"),
     })
@@ -141,7 +142,7 @@ def _chon_bang(request, *, tieu_de, mo_ta, duoc, url_name, nhan_nut, rong_mo_ta)
     return render(request, "crm/chon_bang.html", {
         "tieu_de": tieu_de, "mo_ta": mo_ta, "cac_bang": cac_bang, "nhan_nut": nhan_nut,
         "rong_tieu_de": "Không có bảng nào", "rong_mo_ta": rong_mo_ta,
-        "duoc_tao_bang": has_rank(request.user, Rank.LEADER), "erp_url": _ngoai("/"),
+        "duoc_tao_bang": can_manage_business(request.user, Rank.LEADER), "erp_url": _ngoai("/"),
     })
 
 
@@ -149,6 +150,7 @@ def _chon_bang(request, *, tieu_de, mo_ta, duoc, url_name, nhan_nut, rong_mo_ta)
 def nhap_tep(request):
     """Mục Nhập tệp trên sidebar — Leader trở lên (ADR-015): chọn bảng rồi vào
     luồng nhập 4 bước của forms_builder chạy ngay trong KN CRM."""
+    assert_business_write(request.user)
     request.nav_current = "nhap_tep"
     assert_rank(request.user, Rank.LEADER, request)
     return _chon_bang(
@@ -162,6 +164,7 @@ def nhap_tep(request):
 def cap_quyen(request):
     """Mục Cấp quyền trên sidebar — Manager (ADR-015): chọn bảng của bộ phận
     mình rồi vào màn Cột kèm cấp quyền của forms_builder, ngay trong KN CRM."""
+    assert_business_write(request.user)
     request.nav_current = "cap_quyen"
     assert_rank(request.user, Rank.MANAGER, request)
     return _chon_bang(

@@ -6,6 +6,7 @@ from core.audit import record
 from core.constants import Rank, AuditAction, JobKind, JobStatus
 from core.exceptions import BusinessError, OutOfScopeError
 from core.scope import get_user_scope
+from core.permissions import assert_business_write
 from core.models import BackgroundJob
 from forms_builder.models import TableDef, FormDef
 from forms_builder import record_policies
@@ -33,6 +34,7 @@ def writing(fn):
     first = next(iter(signature(fn).parameters))
     @wraps(fn)
     def wrapped(*args, **kwargs):
+        assert_business_write(kwargs.get("actor"))
         subject = args[0] if args else kwargs[first]
         objects = [c[0] for c in subject] if isinstance(subject, (list, tuple)) else [subject]
         tables = {obj.table_id if hasattr(obj,'table_id') else obj.pk:

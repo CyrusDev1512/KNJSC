@@ -1,8 +1,8 @@
 """Manager áp phạm vi cho module org.
 
-Hồ sơ nhân sự không kế thừa `ScopedModel` vì nó không bị xoá mềm và người
-sở hữu chính là cột `user`. Nhưng phạm vi quyền vẫn phải áp qua đúng một
-hàm chung — `core.managers.apply_scope`.
+Hồ sơ giữ manager gồm cả tài khoản đã xóa để đọc lịch sử. Danh sách quản lý
+và bộ chọn người mới gọi `alive()`. Phạm vi dùng chung `apply_scope` với chủ
+sở hữu ở cột `user`.
 
 Bộ phận và team thì có xoá mềm, nên manager mặc định của chúng phải loại
 sẵn bản ghi đã xoá — giống `ScopedManager`. Không làm vậy thì mọi nơi gọi
@@ -15,6 +15,12 @@ from core.managers import SoftDeleteQuerySet, apply_department_scope, apply_scop
 
 
 class ProfileQuerySet(models.QuerySet):
+    def alive(self):
+        return self.filter(deleted_at__isnull=True)
+
+    def delete(self):
+        raise RuntimeError("Xóa tài khoản phải qua dịch vụ quản lý tài khoản.")
+
     def in_scope(self, user):
         """Staff thấy hồ sơ của chính mình, Leader thấy team mình phụ trách,
         Manager thấy cả bộ phận, Admin thấy tất cả."""

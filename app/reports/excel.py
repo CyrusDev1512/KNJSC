@@ -14,8 +14,9 @@ from . import aggregations
 
 
 def build_workbook(title, result, subtitle="", blocks=None):
-    """Một sheet: tiêu đề, dòng phụ, bảng số liệu, dòng cuối là tổng cộng. Có `blocks` (cách xem
-    Tổng hợp, ADR-042) thì xuất theo khối như màn hình: sheet toàn kỳ theo nhân sự và sheet theo ngày."""
+    """Một sheet: tiêu đề, dòng phụ, bảng số liệu, dòng cuối là tổng cộng. Có `blocks` (Báo cáo tổng
+    hợp, ADR-042/046) thì xuất theo khối như màn hình — mọi cách xem, chế độ và loại tiền; không có
+    `blocks` là đường cũ của báo cáo theo bảng (`summary_service`)."""
     wb = Workbook()
     ws = wb.active
     ws.title = "Bao cao tong hop"
@@ -70,25 +71,41 @@ def _dam(ws, dam):
 
 
 def _ghi_khoi(ws, result, b, dam):
-    """Một khối: hàng tiêu đề cột, dòng TỔNG CỘNG đứng đầu như màn hình, rồi các dòng (số thô)."""
+    """Một khối: hàng tiêu đề cột, các dòng TỔNG CỘNG đứng đầu như màn hình (mỗi loại tiền một dòng,
+    ô Loại tiền riêng — ADR-046), rồi các dòng (số thô, đúng như màn hình, không quy đổi)."""
     nhan = [c["label"] for c in b["identity_columns"]]
     ws.append(nhan + [c.label for c in result.columns]); _dam(ws, dam)
-    ws.append([b["total_label"]] + [''] * (len(nhan) - 1) + list(b["totals_raw"])); _dam(ws, dam)
+    for tong in b["total_rows"]:
+        dinh_danh = [tong["label"]] + [''] * (b["total_span"] - 1)
+        if b["tien_column"] is not None:
+            dinh_danh.append(tong["currency"])
+        ws.append(dinh_danh + list(tong["raw"])); _dam(ws, dam)
     for row in b["rows"]:
         ws.append([v for _, v in row["identity"]] + list(row["raw"]))
 
 
+#: Tên sheet theo khối đứng đầu (tên sheet Excel không dấu, ≤ 31 ký tự)
+SHEET = {"day": "Theo ngay", "days": "Theo ngay", "submissions": "Tung lan nop", "single": "Bao cao tong hop"}
+
+
 def _khoi(wb, ws, result, blocks, dam):
-    """Sheet 1 "Toan ky theo nhan su" = khối toàn kỳ; sheet 2 "Theo ngay" = từng ngày một khối (hoặc
-    mỗi ngày một dòng khi Gộp). Cùng số với màn hình vì cùng `layout` dựng."""
-    ws.title = "Toan ky theo nhan su"
-    ky = blocks[0]
-    ws.append([ky["title"]]); _dam(ws, dam)
-    _ghi_khoi(ws, result, ky, dam)
-    ngay = wb.create_sheet("Theo ngay")
-    for b in blocks[1:]:
-        if b["kind"] == "day":
+    """Chế độ Cộng theo ngày: sheet 1 "Toan ky theo nhan su" = khối toàn kỳ; sheet 2 "Theo ngay" = từng
+    ngày một khối (hoặc mỗi ngày một dòng khi Gộp). Chế độ Từng lần nộp và các cách xem một khối: một
+    sheet gồm mọi khối. Cùng số với màn hình vì cùng `layout` dựng."""
+    if blocks[0]["kind"] == "period":
+        ws.title = "Toan ky theo nhan su"
+        ky = blocks[0]
+        ws.append([ky["title"]]); _dam(ws, dam)
+        _ghi_khoi(ws, result, ky, dam)
+        ngay, con_lai = wb.create_sheet("Theo ngay"), blocks[1:]
+    else:
+        ws.title = SHEET.get(blocks[0]["kind"], "Bao cao tong hop")
+        ngay, con_lai = ws, blocks
+    for b in con_lai:
+        if b["kind"] == "day" and b["title"]:
             ngay.append([f"Ngày {b['title']}"]); _dam(ngay, dam)
+        elif b["kind"] == "submissions":
+            ngay.append([b["title"]]); _dam(ngay, dam)
         _ghi_khoi(ngay, result, b, dam)
         ngay.append([])
     return wb

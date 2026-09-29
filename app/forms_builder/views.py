@@ -9,6 +9,7 @@ Hai tầng phạm vi khác nhau, đừng lẫn:
 - `TableDef.objects.in_scope()` — ai thấy *định nghĩa* bảng nào
 - `DataRecord.objects.in_scope()` — ai thấy *bản ghi* nào trong bảng đó
 """
+from core.permissions import assert_business_write, can_manage_business, is_company_reader
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -24,6 +25,7 @@ from django.views.decorators.http import require_POST, require_GET
 from core.constants import IMPORT_MAX_ROWS, UPLOAD_MAX_BYTES, JobStatus, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import pagination_context, filter_query
+from core.htmx import is_htmx
 from core.audit import record_denied
 from core.permissions import assert_rank, has_rank, is_admin
 
@@ -70,7 +72,7 @@ def _nguon_bao_cao(request, bang_hien):
 def _duoc_sua_bang(user):
     """Ai được tạo và sửa cấu trúc bảng — FR-8.1 giao cho Manager trở lên;
     ADR-015 mở cho Leader (quản lý của bộ phận)."""
-    return has_rank(user, Rank.LEADER)
+    return can_manage_business(user, Rank.LEADER)
 
 
 def _kiem_sua_cau_truc(request, bang_hien):
@@ -112,6 +114,7 @@ def bang(request):
 @login_required
 def bang_moi(request):
     """Tạo bảng mới — FR-8.1; Leader trở lên (ADR-015)."""
+    assert_business_write(request.user)
     request.nav_current = "bang"
     assert_rank(request.user, Rank.LEADER, request)
 
@@ -134,6 +137,7 @@ def bang_moi(request):
 @login_required
 def bang_cot(request, code):
     """Thêm và sửa cột của một bảng — quản lý của bộ phận sở hữu (ADR-015)."""
+    assert_business_write(request.user)
     request.nav_current = "bang"
     assert_rank(request.user, Rank.LEADER, request)
     bang_hien = _lay_bang(request, code)
@@ -229,7 +233,7 @@ def bang_xem(request, code):
     # Bảng dữ liệu chỉ để xem với mọi bảng — ADR-014: không tính quyền sửa
     # từng dòng, không vẽ ô nhập; sửa số liệu là việc của KN CRM. Lớp CSS của
     # ô (màu cột, ngưỡng) tính sẵn ở styling để template chỉ in ra.
-    cac_dong = [(bg, styling.row_cells(bg, cac_cot)) for bg in boi_canh["page_obj"]]
+    cac_dong = [(bg, styling.list_cells(bg, cac_cot)) for bg in boi_canh["page_obj"]]
     # Bảng có nguồn báo cáo đang xem thô: mọi liên kết phải mang `dang=tho` để không rơi lại dạng báo cáo
     dang = "tho" if _nguon_chi_tiet(bang_hien) is not None else ""
     loc_cot = {f"f_{ma}": gia_tri for ma, gia_tri in bo_loc.items()}
@@ -255,14 +259,17 @@ def bang_xem(request, code):
         "bang_tinh_url": settings.BANGTINH_URL.rstrip("/") + f"/bang-tinh/{bang_hien.code}/",
         "cac_dong": cac_dong,
     })
+    # Bấm tiêu đề cột để sắp xếp: HTMX chỉ thay khối bảng, trang không tải lại (AC-7.13)
+    if is_htmx(request):
+        return render(request, "forms_builder/_bang_xem_bang.html", boi_canh)
     return render(request, "forms_builder/bang_xem.html", boi_canh)
 
 
 def _tham_so_bao_cao(request):
     """Tham số của Bảng dữ liệu dạng báo cáo: như Báo cáo tổng hợp nhưng chỉ một cách xem — ngày ×
-    nhân sự, từng lần nộp."""
+    nhân sự; chế độ mặc định Từng lần nộp, như trước khi có ô Chế độ (ADR-046)."""
     from reports import screen
-    tham_so = screen.parameters(request)
+    tham_so = screen.parameters(request, default_mode="tung-lan")
     tham_so["group"] = "day"
     return tham_so
 
@@ -295,9 +302,10 @@ def _bang_bao_cao(request, bang_hien, nguon):
     }
     boi_canh["people"], boi_canh["teams"] = activity_service.people_choices(request.user, nguon)
     boi_canh["segments"] = activity_service.segment_options(nguon)
+    boi_canh["modes"] = activity_service.MODES if activity_service.has_modes(nguon, "day") else ()
     boi_canh["products"] = screen.product_options(request.user, nguon)
     try:
-        ket_qua = activity_service.build(request.user, nguon, detail=True, **tham_so)
+        ket_qua = activity_service.build(request.user, nguon, **tham_so)
     except BusinessError as loi:
         return render(request, "forms_builder/bang_xem.html", {**boi_canh, "error": str(loi)}, status=400)
     boi_canh["unavailable"] = not ket_qua.ok
@@ -433,7 +441,7 @@ def bang_xuat(request, code):
         from reports.services import activity_service
         tham_so = _tham_so_bao_cao(request)
         try:
-            ket_qua = activity_service.build(request.user, nguon, detail=True, **tham_so)
+            ket_qua = activity_service.build(request.user, nguon, **tham_so)
             if not ket_qua.ok:
                 raise BusinessError("Nguồn báo cáo chưa đủ cấu hình chỉ tiêu để xuất dạng báo cáo.")
             return screen.export_response(request, nguon, ket_qua, tham_so, request.GET.get("gop") == "1",
@@ -466,6 +474,7 @@ def bang_xuat(request, code):
 @require_POST
 def bang_cap_quyen(request, code):
     """Cấp quyền xem hoặc sửa một bảng cho người ngoài bộ phận — FR-8.4."""
+    assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bang_hien = _lay_bang(request, code)
 
@@ -489,6 +498,7 @@ def bang_cap_quyen(request, code):
 @require_POST
 def bang_thu_quyen(request, code, pk):
     """Thu hồi một quyền đã cấp trên bảng."""
+    assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bang_hien = _lay_bang(request, code)
     quyen = get_object_or_404(Grant, pk=pk, table=bang_hien)
@@ -548,6 +558,7 @@ def bieu_mau(request):
         "tim": tim,
         "duoc_sua": _duoc_sua_bang(request.user),
         "thu_vien": thu_vien.select_related("department").order_by("name"),
+        "duoc_dien": not is_company_reader(request.user),
     }
     boi_canh.update(pagination_context(request, ds, "biểu mẫu"))
     boi_canh.update(active_tab="forms", can_manage_forms=can_manage,
@@ -558,6 +569,7 @@ def bieu_mau(request):
 @login_required
 def bieu_mau_moi(request):
     """Tạo biểu mẫu mới, chọn bảng đích — FR-8.1, FR-8.3."""
+    assert_business_write(request.user)
     request.nav_current = "bieu_mau"
     assert_rank(request.user, Rank.MANAGER, request)
 
@@ -581,6 +593,7 @@ def bieu_mau_moi(request):
 @login_required
 def bieu_mau_sua(request, code):
     """Trình tạo biểu mẫu: thêm trường, nối cột đích, phân quyền."""
+    assert_business_write(request.user)
     request.nav_current = "bieu_mau"
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
@@ -627,6 +640,7 @@ def bieu_mau_sua(request, code):
 @require_POST
 def bieu_mau_bo_truong(request, code, pk):
     """Bỏ một trường khỏi biểu mẫu. Không đụng tới dữ liệu đã nhập — FR-8.5."""
+    assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
     truong = get_object_or_404(FormField, pk=pk, form=bm)
@@ -639,6 +653,7 @@ def bieu_mau_bo_truong(request, code, pk):
 @login_required
 def truong_moi(request):
     """Thêm một định nghĩa trường vào thư viện dùng chung của bộ phận."""
+    assert_business_write(request.user)
     request.nav_current = "bieu_mau"
     assert_rank(request.user, Rank.MANAGER, request)
 
@@ -668,6 +683,7 @@ def truong_moi(request):
 @require_POST
 def bieu_mau_cap_quyen(request, code):
     """Cấp quyền điền biểu mẫu cho người ngoài bộ phận — FR-8.4."""
+    assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
 
@@ -691,6 +707,7 @@ def bieu_mau_cap_quyen(request, code):
 @require_POST
 def bieu_mau_thu_quyen(request, code, pk):
     """Thu hồi quyền điền biểu mẫu."""
+    assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
     quyen = get_object_or_404(Grant, pk=pk, form=bm)

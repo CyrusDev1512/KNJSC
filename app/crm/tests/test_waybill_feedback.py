@@ -351,17 +351,21 @@ def test_grid_ui_and_filtered_url(feedback, nguoi_dung, delivery_leader, client)
     quick = response.context['quick_filters']
     assert ('sap', 'ma_don') in quick['keep'] and not any(k == 'trang' for k, _ in quick['keep'])
     html = response.content.decode()
-    assert 'Phân công' in html and 'Thanh toán 1 phần' in html
+    # Chủ dự án 28.09.2026: bỏ nút/hộp Phân công nhiều dòng; Leader phân công bằng ô chọn trong ô (AC-21.15).
+    assert 'id="vd-assign-cell"' in html and 'id="mg-assign"' not in html and 'Thanh toán 1 phần' in html
     assert 'id="vd-entry"' not in html
     assert 'Bộ lọc' in html
 
 
-def test_erp_reads_new_assignment_scope(feedback, nguoi_dung, client, settings):
+def test_erp_chan_staff_nhung_giu_pham_vi_du_lieu_crm(feedback, nguoi_dung, client, settings):
     settings.ROOT_URLCONF = 'knjsc.urls'
     client.force_login(nguoi_dung['staff_vd'])
     response = client.get('/bang/van_don/')
+    assert response.status_code == 403
+    settings.ROOT_URLCONF = 'knjsc.urls_bangtinh'
+    response = client.get('/bang-tinh/van_don/du-lieu/')
     assert response.status_code == 200
-    assert 'Khách 0' in response.content.decode() and 'Khách 1' in response.content.decode()
+    assert {r['id'] for r in response.json()['rows']} == {r.pk for r in feedback[2]}
     assert TableDef.objects.in_scope(nguoi_dung['staff_vd']).with_visible_record_count(nguoi_dung['staff_vd']).get(pk=feedback[0].pk).so_dong == 2
 
 
@@ -378,3 +382,28 @@ def test_scoped_grid_does_not_query_per_row(feedback, nguoi_dung, delivery_leade
     with django_assert_max_num_queries(22):
         response = client.get('/bang-tinh/van_don/du-lieu/?cua_toi=1')
     assert response.status_code == 200 and len(response.json()['rows']) == 100
+
+
+def test_phan_cong_trong_o_doc_nguoi_dang_giao_theo_id(feedback, nguoi_dung, delivery_leader, client):
+    """AC-21.15 — Ô chọn phân công ngay trong ô cần biết người đang được giao (ID) để chọn sẵn; Leader
+    Vận đơn đọc được, nhân viên Vận đơn thường bị từ chối 403 (quyền phân công không đổi)"""
+    row = feedback[2][0]
+    assign_rows(delivery_leader, [row], delivery=nguoi_dung['staff_vd'].pk)
+    client.force_login(delivery_leader)
+    data = client.get('/van-don/phan-cong/', {'row': row.pk}).json()
+    assert data['rows'][0]['current_id'] == {'delivery': nguoi_dung['staff_vd'].pk, 'care': None, 'marketing': None}
+    assert {c['id'] for c in next(f for f in data['fields'] if f['key'] == 'delivery')['choices']} >= {nguoi_dung['staff_vd'].pk}
+    client.force_login(nguoi_dung['staff_vd'])
+    assert client.get('/van-don/phan-cong/', {'row': row.pk}).status_code == 403
+
+
+def test_cot_phu_trach_mang_ten_truong_phan_cong(feedback):
+    """AC-21.15 — Cột phụ trách báo cho lưới biết trường phân công của nó (delivery/care/marketing), khai
+    một chỗ ở `assignment_service.COLUMNS`; cột thường không mang"""
+    from orders.services import waybill_service
+    table = feedback[0]
+    cols = {c.code: waybill_service.grid_column(c) for c in table.columns.all()}
+    assert cols['phu_trach_vd']['assignment'] == 'delivery'
+    assert cols['phu_trach_cskh']['assignment'] == 'care'
+    assert cols['phu_trach_mkt']['assignment'] == 'marketing'
+    assert not cols['ten_khach']['assignment']

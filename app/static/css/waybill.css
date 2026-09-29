@@ -22,11 +22,6 @@
 .vd-page :focus-visible, .vd-dialog :focus-visible { outline: 2px solid #237b55; outline-offset: 2px; }
 @media (max-width: 1000px) { .vd-fields { grid-template-columns: repeat(3, minmax(140px, 1fr)); } }
 /* Feedback: giữ bộ lọc và phân công trong khung lưới hiện có. */
-.vd-assignment-fields { display:grid; gap:16px; }
-.vd-assignment-fields label { display:grid; gap:6px; min-width:0; }
-.vd-assignment-fields select { width:100%; min-width:0; }
-.vd-assignment-fields small { overflow-wrap:anywhere; }
-#vd-assignment-status { min-height:1.5em; }
 
 @media (max-width:600px) { .vd-fields { grid-template-columns:1fr; } .vd-page {padding:8px;} .vd-dialog {padding:14px;} }
 

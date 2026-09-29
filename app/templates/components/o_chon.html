@@ -2,18 +2,18 @@
 Ô chọn từ danh sách, có mục "＋ Thêm mới…" cho người được thêm — FR-8.7, Q58.
 Danh sách chặt là hộp chọn; danh sách gợi ý là ô chữ kèm danh sách gợi ý (datalist).
 Cần: ten, nhan, gia_tri, cac_muc, chat, co_them, them_url, nhom, lop.
-Tuỳ chọn: id_o (id để nhãn trỏ tới), hau_to (phân biệt datalist giữa các dòng).
+Tuỳ chọn: id_o (id để nhãn trỏ tới), hau_to (phân biệt datalist giữa các dòng), bat_buoc (thuộc tính required).
 static/js/chon.js bắt mục "Thêm mới…", gửi giá trị mới rồi chép danh sách trả
 về vào mọi ô chọn cùng nhóm (data-nhom).
 {% endcomment %}<span class="o-chon">
 {% if chat %}
-  <select class="{{lop}}" name="{{ ten }}"{% if id_o %} id="{{ id_o }}"{% endif %} aria-label="{{ nhan }}" data-nhom="{{ nhom }}">
+  <select class="{{lop}}" name="{{ ten }}"{% if id_o %} id="{{ id_o }}"{% endif %}{% if bat_buoc %} required{% endif %} aria-label="{{ nhan }}" data-nhom="{{ nhom }}">
     {% include "components/o_chon_muc.html" %}
   </select>
 {% else %}
   <input class="{{lop}}" name="{{ ten }}"{% if id_o %} id="{{ id_o }}"{% endif %} aria-label="{{ nhan }}"
          value="{{ gia_tri|default_if_none:'' }}" list="ds-{{ nhom }}-{{ hau_to|default:'0' }}"
-         autocomplete="off" data-nhom="{{ nhom }}">
+         autocomplete="off" data-nhom="{{ nhom }}"{% if bat_buoc %} required{% endif %}>
   <datalist id="ds-{{ nhom }}-{{ hau_to|default:'0' }}">{% for gt, nhan_muc in cac_muc %}<option value="{{ gt }}">{% endfor %}</datalist>
 {% endif %}
 {% if co_them %}

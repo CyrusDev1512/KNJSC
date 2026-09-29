@@ -1,4 +1,5 @@
 """Trang lên đơn riêng, chi tiết và thống kê vận đơn — ADR-018, ADR-019."""
+from core.permissions import assert_business_write
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
@@ -41,6 +42,7 @@ def item_context(items=None):
 @login_required
 @require_http_methods(["GET", "POST"])
 def create_order(request):
+    assert_business_write(request.user)
     assert_departments(request.user, SALES_ONLY, request)
     form = WaybillOrderForm(request.POST if request.method == "POST" else None, actor=request.user)
     error, success, items = "", "", None

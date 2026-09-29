@@ -36,31 +36,37 @@ def test_bang_toan_ky_va_moi_ngay_mot_bang(client, bang_mkt, mkt_source, van_don
     ky, ngay2, ngay1 = blocks
     # Khối toàn kỳ: hai người, sắp theo mã, cộng cả kỳ; cột định danh STT · Team · Nhân sự · Leader
     assert ky["title"].startswith("Toàn kỳ 01/08 – 02/08/2026") and ky["count"] == 2
-    assert [c["code"] for c in ky["identity_columns"]] == ["stt", "team", "person", "leader"] and ky["label_span"] == 4
+    # Nguồn có Loại tiền (ADR-046): cột Loại tiền cuối cột định danh, nhãn TỔNG CỘNG trải bốn cột trước nó
+    assert [c["code"] for c in ky["identity_columns"]] == ["stt", "team", "person", "leader", "tien"]
+    assert ky["label_span"] == 5 and ky["total_span"] == 4 and {row["currency"] for row in ky["rows"]} == {"CAD"}
     nguoi = {row["person"]: row for row in ky["rows"]}
     assert [row["stt"] for row in ky["rows"]] == [1, 2] and set(nguoi) == {employee_code(A), employee_code(B)}
     assert _o(nguoi[employee_code(A)], cot, "Số Mess") == "20" and _o(nguoi[employee_code(B)], cot, "Số Mess") == "30"
     assert _o(nguoi[employee_code(A)], cot, "Số đơn") == "3"
     assert nguoi[employee_code(A)]["team"] == (A.profile.team.name if A.profile.team_id else "Chưa có team")
-    assert ky["total_label"] == "TỔNG CỘNG · toàn kỳ" and ky["totals"] == aggregations.total_cells(r.context["result"])
+    assert [t["label"] for t in ky["total_rows"]] == ["TỔNG CỘNG · toàn kỳ · CAD"]
+    assert ky["total_rows"][0]["cells"] == aggregations.total_cells(r.context["result"])
     # Khối ngày: mới nhất trước, không cột Ngày, TỔNG CỘNG ngày = tổng dòng con, STT từ 1
     assert ngay2["title"] == "02.08.2026" and ngay1["title"] == "01.08.2026"
     assert all("nhom" not in [c["code"] for c in b["identity_columns"]] for b in (ngay1, ngay2))
     assert [row["stt"] for row in ngay1["rows"]] == [1, 2] and [row["stt"] for row in ngay2["rows"]] == [1]
-    assert dict(zip(cot, ngay1["totals"]))["Số Mess"] == "40" and dict(zip(cot, ngay1["totals"]))["Số đơn"] == "5"
-    assert ngay1["total_label"] == "TỔNG CỘNG"
+    tong1 = dict(zip(cot, ngay1["total_rows"][0]["cells"]))
+    assert tong1["Số Mess"] == "40" and tong1["Số đơn"] == "5"
+    assert [t["label"] for t in ngay1["total_rows"]] == ["TỔNG CỘNG · CAD"]
     html = r.content.decode()
     assert html.count('<table class="bang report-table"') == 3 and html.count('class="report-block-title"') == 3
-    assert '<h3>02.08.2026</h3>' in html and 'data-pos="1" colspan="4">TỔNG CỘNG · toàn kỳ</th>' in html
+    assert '<h3>02.08.2026</h3>' in html and 'data-pos="1" colspan="4">TỔNG CỘNG · toàn kỳ · CAD</th>' in html
+    assert 'class="report-identity id-tien report-identity-edge" data-pos="5">CAD</td>' in html
     # Excel: sheet toàn kỳ và sheet theo ngày, cùng số
     book = load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", query).content), data_only=True)
     ky_xls = list(book["Toan ky theo nhan su"].values)
-    assert ky_xls[4][:4] == ("STT", "Team", "Nhân sự", "Leader") and str(ky_xls[5][0]).startswith("TỔNG CỘNG")
+    assert ky_xls[4][:5] == ("STT", "Team", "Nhân sự", "Leader", "Loại tiền") and str(ky_xls[5][0]).startswith("TỔNG CỘNG")
+    assert ky_xls[5][4] == "CAD"
     assert {d[2] for d in ky_xls[6:8]} == {employee_code(A), employee_code(B)}
     dong_a = next(d for d in ky_xls[6:8] if d[2] == employee_code(A))
-    assert dong_a[4 + cot.index("Số Mess")] == 20
+    assert dong_a[4] == "CAD" and dong_a[5 + cot.index("Số Mess")] == 20
     ngay_xls = [d[0] for d in book["Theo ngay"].values if d and d[0] is not None]
-    assert ngay_xls == ["Ngày 02.08.2026", "STT", "TỔNG CỘNG", 1, "Ngày 01.08.2026", "STT", "TỔNG CỘNG", 1, 2]
+    assert ngay_xls == ["Ngày 02.08.2026", "STT", "TỔNG CỘNG · CAD", 1, "Ngày 01.08.2026", "STT", "TỔNG CỘNG · CAD", 1, 2]
     # Ngày bị tách trang: 13 ngày × 2 người = 26 dòng, trang 25 dòng → trang 2 còn một người của ngày 01.08
     for i in range(1, 13):
         ngay = (date(2026, 8, 1) + timedelta(days=i)).isoformat()
@@ -72,7 +78,7 @@ def test_bang_toan_ky_va_moi_ngay_mot_bang(client, bang_mkt, mkt_source, van_don
     assert khoi[0]["kind"] == "period" and khoi[0]["count"] == 2      # khối toàn kỳ vẫn đủ cả kỳ trên trang 2
     assert [b["title"] for b in khoi[1:]] == ["01.08.2026 (tiếp)"]
     assert len(khoi[1]["rows"]) == 1 and khoi[1]["rows"][0]["stt"] == 2
-    assert dict(zip(cot, khoi[1]["totals"]))["Số Mess"] == "40"       # TỔNG CỘNG đủ cả ngày, không chỉ trang
+    assert dict(zip(cot, khoi[1]["total_rows"][0]["cells"]))["Số Mess"] == "40"   # TỔNG CỘNG đủ cả ngày, không chỉ trang
 
 
 def test_gop_chi_con_dong_tong_ngay(client, bang_mkt, mkt_source, van_don, nguoi_dung):
@@ -91,7 +97,7 @@ def test_gop_chi_con_dong_tong_ngay(client, bang_mkt, mkt_source, van_don, nguoi
     ngay = blocks[1]
     assert [row["nhom"] for row in ngay["rows"]] == ["02.08.2026", "01.08.2026"]
     assert [_o(row, cot, "Số Mess") for row in ngay["rows"]] == ["10", "40"]
-    assert [c["code"] for c in ngay["identity_columns"]] == ["nhom"] and r.context["ten_don_vi"] == "ngày"
+    assert [c["code"] for c in ngay["identity_columns"]] == ["nhom", "tien"] and r.context["ten_don_vi"] == "ngày"
     chips = {c["label"]: c for c in r.context["chips"]}
     assert chips["Gộp"]["url"] and "gop=" not in chips["Gộp"]["url"]
     html = r.content.decode()
@@ -102,4 +108,4 @@ def test_gop_chi_con_dong_tong_ngay(client, bang_mkt, mkt_source, van_don, nguoi
     # Excel khi Gộp: sheet Theo ngay = hàng tiêu đề (Ngày, …), TỔNG CỘNG toàn kỳ, rồi mỗi ngày một dòng
     ngay_xls = list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", query).content), data_only=True)["Theo ngay"].values)
     assert ngay_xls[0][0] == "Ngày" and str(ngay_xls[1][0]).startswith("TỔNG CỘNG")
-    assert [d[0] for d in ngay_xls[2:4]] == ["02.08.2026", "01.08.2026"] and ngay_xls[3][1 + cot.index("Số Mess")] == 40
+    assert [d[0] for d in ngay_xls[2:4]] == ["02.08.2026", "01.08.2026"] and ngay_xls[3][2 + cot.index("Số Mess")] == 40

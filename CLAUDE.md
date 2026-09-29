@@ -1,6 +1,6 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 24.09.2026 (`main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
+> Cập nhật 25.09.2026 (ADR-043 bổ sung: một ô Team duy nhất trên form báo cáo); 24.09 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
 > chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
 > giãn, cột sản phẩm ẩn mặc định, K24); 23.09 (ADR-042 Báo cáo tổng hợp như ảnh mẫu);
 > 19.09 (quy tắc nhánh: không đẩy thẳng lên nhánh đang chạy trên VPS, mỗi việc một
@@ -110,12 +110,21 @@ Riêng **bảng vận đơn** thì không cần lệnh nào: `deploy/entrypoint.
 **KN ERP** (dịch vụ `web`, cổng 8020, `knjsc/urls.py`): đăng nhập, nhân sự, biểu
 mẫu, báo cáo ngày và báo cáo hoạt động (ADR-022, 032), Bảng dữ liệu **chỉ đọc với
 mọi bảng** (ADR-014), nhóm Nội bộ. Lên đơn không còn ở ERP, chỉ còn URL GET chuyển
-tiếp sang CRM (ADR-023). **Báo cáo tổng hợp như ảnh mẫu LUMI (ADR-042, 23.09):** tiền quy ₫
-ngay trong truy vấn rồi mới cộng (không còn để trống khi lẫn loại tiền), cột (TT) đối soát từ
+tiếp sang CRM (ADR-023). **Báo cáo tổng hợp như ảnh mẫu LUMI (ADR-042, 23.09):** ~~tiền quy ₫~~ — **ADR-046 (28.09) bỏ quy
+đổi**: số tiền giữ đúng như nhập, loại tiền là một chiều nhóm (mỗi dòng một loại tiền, TỔNG CỘNG theo loại
+tiền, `aggregations.total_rows`), bộ lọc **Chế độ** Cộng theo ngày / Từng lần nộp (`che_do`, cột Lần nộp),
+ô số tự chèn dấu chấm (`report-entry.js`); cột (TT) đối soát từ
 vận đơn, khối toàn kỳ theo nhân sự + mỗi ngày một bảng, Gộp/Không gộp, ngưỡng màu ba bậc do
 quản lý đặt (`ReportSource.thresholds`), lọc nhiều sản phẩm; bảng có nguồn báo cáo Sale/MKT mở ở
 Bảng dữ liệu là **báo cáo chi tiết theo ngày** (mỗi lần nộp một dòng, `?dang=tho` xem thô); bối
 cảnh màn hình dùng chung ở `reports/screen.py`.
+**Form Nộp báo cáo ngày (ADR-043, 24.09):** dropdown Team của bộ phận ghi vào `DataRecord.team` và
+`DailyReport.team`; Số Mess, CPQC, Số đơn, Doanh số bắt buộc — khai một chỗ `configure_erp_reports.REQUIRED_INPUTS`
+(lệnh chạy mỗi lần bật máy nên ép cả trường đã có); Hóa đơn không còn trên form MKT (`MKT_FORM_SKIP`) nhưng cột và
+chỉ tiêu giữ; form là một thẻ trải ngang (`.bm-ngang`, ô 34 px, chip công thức `ColumnDef.formula_text`).
+**Một ô Team duy nhất** (bổ sung 25.09): bảng có sẵn cột Team dạng chữ (mã `team` hay nhãn "Team",
+`configure_erp_reports.team_column`) thì cột rời form nhập, ánh xạ `ReportSource.columns["team"]`, và
+`record_service.create_record` ghi tên team của dòng vào đó; cột và dữ liệu cũ giữ.
 
 **KN CRM** (dịch vụ `bangtinh`, cổng 8021, `knjsc/urls_bangtinh.py`, settings
 `knjsc.settings.bangtinh`): nơi duy nhất sửa số liệu, và **chỉ phục vụ bảng vận
@@ -196,6 +205,8 @@ Kèm đo bao phủ thì thêm `--cov`. Bỏ bài chạy chậm thì thêm `-m "n
 trình duyệt mang dấu `trinh_duyet` và tự bỏ qua khi thiếu Chromium — bỏ qua không
 phải là đã kiểm. Ngoài Docker: từ `app/`, `python -m pytest --ds=knjsc.settings.test`
 với Postgres đang chạy. **Không chạy hai pytest cùng lúc** trên một database kiểm thử.
+Bài có `live_server` tự chờ máy chủ thử xử lý xong mọi yêu cầu rồi pytest mới dọn bảng
+(`tests/live_server_requests.py`, TL-67): bài trình duyệt không cần tự `goto("about:blank")` hay chờ cứng.
 
 **Đừng chạy `migrate ... zero` trên cơ sở dữ liệu phát triển** — nó xoá bảng
 thật. Bài kiểm thử tự lo việc đó trên cơ sở dữ liệu riêng.

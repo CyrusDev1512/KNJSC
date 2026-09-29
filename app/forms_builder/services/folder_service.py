@@ -6,6 +6,7 @@ mềm, và xếp bảng vào thư mục cùng bộ phận. Mọi thay đổi ghi
 """
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from core.permissions import assert_business_write
 
 from core.audit import record
 from core.constants import AuditAction
@@ -28,6 +29,7 @@ def _kiem_ten(name, department, exclude_pk=None):
 
 @transaction.atomic
 def create_folder(*, name, department, actor=None, request=None):
+    assert_business_write(actor)
     ten = _kiem_ten(name, department)
     thu_muc = Folder(name=ten, department=department, created_by=actor)
     try:
@@ -42,6 +44,7 @@ def create_folder(*, name, department, actor=None, request=None):
 
 @transaction.atomic
 def rename_folder(folder, name, *, actor=None, request=None):
+    assert_business_write(actor)
     ten = _kiem_ten(name, folder.department, exclude_pk=folder.pk)
     if ten == folder.name:
         return folder
@@ -56,6 +59,7 @@ def rename_folder(folder, name, *, actor=None, request=None):
 @transaction.atomic
 def delete_folder(folder, *, actor=None, request=None):
     """Xoá mềm thư mục; bảng bên trong về "không thư mục" (không xoá bảng)."""
+    assert_business_write(actor)
     so_bang = TableDef.all_objects.filter(folder=folder).update(folder=None)
     folder.delete(by=actor)
     record(AuditAction.DELETE, actor=actor, target=folder,
@@ -66,6 +70,7 @@ def delete_folder(folder, *, actor=None, request=None):
 @transaction.atomic
 def move_table(table, folder, *, actor=None, request=None):
     """Xếp bảng vào thư mục (`None` = bỏ ra ngoài). Thư mục phải cùng bộ phận với bảng."""
+    assert_business_write(actor)
     if folder is not None and folder.department_id != table.department_id:
         raise BusinessError("Thư mục phải thuộc cùng bộ phận với bảng.")
     if table.folder_id == getattr(folder, "pk", None):

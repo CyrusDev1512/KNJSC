@@ -32,7 +32,7 @@ class Scope:
 
     @property
     def is_admin(self):
-        return self.all_departments
+        return self.rank == Rank.ADMIN
 
 
 def _granted_scope(profile):
@@ -62,6 +62,7 @@ def get_user_scope(user):
         Staff    chỉ bản ghi do chính người đó tạo
         Leader   toàn bộ team người đó phụ trách, cộng bản ghi của mình
         Manager  toàn bộ bộ phận của mình
+        CEO      toàn công ty, không có quyền Admin
         Admin    tất cả các bộ phận
     """
     da_co = getattr(user, CACHE_ATTR, None) if user is not None else None
@@ -89,7 +90,7 @@ def _compute_user_scope(user):
     rank = profile.rank
     granted_departments, granted_teams = _granted_scope(profile)
 
-    if rank == Rank.ADMIN:
+    if rank in (Rank.ADMIN, Rank.CEO):
         return Scope(user_id=user.pk, rank=rank, all_departments=True)
 
     department_ids = frozenset(
