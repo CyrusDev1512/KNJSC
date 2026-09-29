@@ -115,6 +115,25 @@ Sửa sau khi chủ dự án thử và duyệt mockup: nền cột chỉ số ph
 nhìn y như cũ); mỗi bảng tự đo `--head-h`, `--total-h` của mình và đo lại khi bảng đổi cỡ (`ResizeObserver`),
 chạy cả ở Bảng dữ liệu. AC-22.21. [Biên bản](kiem-chung-dong-tong-dinh-20260930.md).
 
+## 29.09.2026 — Kiểm chứng phát hành VPS c7065fe
+
+CI GitHub run `36590419922` xác nhận `success` đúng SHA phát hành. Phiên này không
+chạy lại pytest; kiểm image production qua `check`/`check --deploy` cho CRM và ERP
+(4/4 không lỗi), `migrate --check`, backup phục hồi thử và hash 42 DataRecord trước/sau.
+Kiểm trực tiếp trên domain bằng in-app browser: Admin mở báo cáo theo nhân viên,
+hai chế độ số liệu, tổng theo tiền; form Sale/MKT một ô Team; CRM Tôi/Toàn bộ và
+menu không còn Phân công. Không gọi kiểm đọc là đã kiểm autosave/phân công/lịch sử ghi.
+VPS không có tài khoản Leader/Staff Vận đơn hoạt động nên chưa kiểm trực tiếp hai vai.
+Kết quả theo dõi, p95, quyền Staff và kiểm kê cập nhật tại
+[biên bản phát hành](kiem-chung-phat-hanh-vps-20260929.md).
+
+Chốt: theo dõi **15 phút 43 giây**, 0 restart, 0 HTTP 5xx; có 8 `DisallowedHost`
+HTTP 400 do Host bằng IP, ghi riêng với cảnh báo Celery. Quyền view server **6/6**
+trong giao dịch rollback. p95 CRM đọc 285 ms (7 mẫu), hỏi thăm 60 ms (52 mẫu),
+POST quyền dòng 51 ms (50 mẫu, không phải lưu ô); ERP đọc 164 ms (15 mẫu).
+Chưa đủ bằng chứng nghiệm thu hiệu năng tải thực hoặc ghi lưới. Kiểm kê READ ONLY
+xong, dọn rác chờ chủ dự án chỉ mặt theo B2, không tự đánh dấu đã hoàn tất phần B.
+
 ## 29.09.2026 — Ba bài trong `test_luoi_dong_trong_va_ghim_e2e.py` đỏ vì đặc tả đã đổi
 
 **TL-68 (đóng):** rà `main` 206e1b0 trước khi phát hành VPS, nhóm trình duyệt có **3 bài đỏ**, cả ba trong

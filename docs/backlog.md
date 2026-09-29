@@ -82,6 +82,19 @@ Vận đơn; `nhom=department` cũ mở thành Theo team (`GROUP_ALIASES`). Ph�
 Kiểm: `reports/tests/test_bao_cao_theo_team.py` (5 bài, đỏ trước khi sửa — kể cả lỗi thiếu cột Leader ở nguồn
 Vận đơn tìm ra khi viết bài), bài phòng ban cũ trong `test_mkt_derived_revenue.py` đổi sang team.
 
+## 29.09.2026 — Phát hành c7065fe và kiểm kê dữ liệu rác VPS
+
+Đã chuyển VPS từ image thực tế `97bff53-main` sang `c7065fe-adr046` lúc 23:40 VN;
+CI đúng SHA đạt, backup phục hồi thử thành công, bốn lệnh check CRM/ERP không lỗi,
+không có migration mới. Đã chạy đủ ba lệnh cấu hình metadata (không dựa entrypoint).
+Hash toàn bộ 42 DataRecord và số cột trước/sau khớp. VPS có 38 cột Vận đơn từ trước,
+không phải 45 trong dữ liệu local. Chi tiết và các mục kiểm trực tiếp còn thiếu tại
+[biên bản](kiem-chung-phat-hanh-vps-20260929.md).
+
+Phần dọn rác: kiểm kê chỉ đọc sau cửa sổ theo dõi; chủ dự án cần chỉ rõ nhóm và
+xoá mềm/cứng trước bước ghi. Chưa xoá dòng, bảng, audit hoặc tệp storage; chưa viết
+lệnh xoá. Không coi dòng có tên/mã bất thường hay hồ sơ không còn đơn là rác đã xác nhận.
+
 ## 29.09.2026 — Rà kỹ `main` 206e1b0 trước khi phát hành VPS (không sửa mã)
 
 **Chủ dự án yêu cầu** kiểm thử kỹ `main` hiện tại (đơn vị, chức năng, UX) rồi phát hành lên VPS. VPS đang
