@@ -1,5 +1,74 @@
 # Backlog
 
+## 29.09.2026 — Rà kỹ `main` 206e1b0 trước khi phát hành VPS (không sửa mã)
+
+**Chủ dự án yêu cầu** kiểm thử kỹ `main` hiện tại (đơn vị, chức năng, UX) rồi phát hành lên VPS. VPS đang
+chạy `85227ee`; giữa hai bản là 14 PR, **không có migration mới** (`git diff --name-only 85227ee..206e1b0 --
+'*/migrations/*'` rỗng; `showmigrations` không còn mục chờ). Trong nhóm tệp ảnh hưởng tới phát hành, chỉ
+`configure_erp_reports.py` đổi (+27/−3); `Dockerfile`, `requirements.txt`, `entrypoint.sh` và
+`deploy/production/` giữ nguyên — nghĩa là đầu vào dựng image không đổi, nhưng vẫn phải dựng image mới vì
+mã ứng dụng được COPY vào ảnh.
+
+**Số đo** (máy Windows của chủ dự án, Docker Desktop, PostgreSQL 16, Chrome thật):
+
+| Lượt | Kết quả |
+|---|---|
+| `-m "not trinh_duyet and not cham"` | **2.839 đạt · 1 bỏ qua · 0 đỏ** (2.840 thu thập) |
+| `-m "cham and not trinh_duyet"` | **15 đạt · 6 bỏ qua** (đều là fixture kiểm tải riêng) · 2.904 loại |
+| Nhóm theo PR mới | lưới/vận đơn 69 · lên đơn 36 · báo cáo 59 · nền 675 — đều đạt |
+| Trình duyệt (25 tệp, mỗi tệp một lượt pytest riêng) | **50 đạt · 3 đỏ · 11 bỏ qua** — không bài nào bỏ qua vì thiếu Chromium |
+
+Nhóm trình duyệt chạy được nhờ dựng một image phụ chỉ để kiểm (`knjsc-web:latest` + `playwright install
+--with-deps chromium`), không đụng kho mã; kiểm tay chạy bằng Chrome thật trên máy.
+
+**Kiểm tay đều đạt:** nút Tôi/Toàn bộ (Sale thấy đơn mình lên; NV Vận đơn thấy dòng được giao; Admin, Kế
+toán, Sale, Vận đơn đều có nút; Marketing 403 cả trang lẫn `du-lieu/`); phân công trong ô (ô chọn đè đúng ô,
+chọn là lưu, F5 vẫn đúng, NV thường 403, hai tab → **HTTP 409** "Phân công vừa được thay đổi", menu "…" không
+còn mục Phân công); lịch sử ô (dấu góc cam, khung 300 px, mã + tên người sửa, giờ VN, trước → sau, Esc/cuộn
+đóng, người ngoài phạm vi 403); Lên đơn (xoá dòng xong **không** báo mua lại dù hồ sơ khách còn `order_count`
+= 1; có dòng thì báo đúng số lần); Báo cáo tổng hợp (CPQC 13.250.000 giữ nguyên, không số quy ₫ khổng lồ,
+TỔNG CỘNG tách theo loại tiền, Chế độ hai lựa chọn, cột Lần nộp có "Lần 2", cả 5 cách xem và Gộp/Không gộp
+đều 200); form Nộp báo cáo (đúng một ô Team, Staff khoá theo hồ sơ, Admin chọn được, bốn trường bắt buộc,
+máy chủ chặn khi thiếu); Tác vụ nền (Admin 200, Staff 403, không có liên kết); Tổng quan (mỗi chỉ tiêu một
+hàng, hết ô cảnh báo quy đổi). UX ở 1440/1280/390 px, sáng và tối: đảo thứ tự không tải lại và giữ cuộn
+ngang, nhãn lọc nằm giữa "Cột" và "Định dạng" (đỉnh lưới không đổi), bấm một lần chỉ chọn ô, gõ là nhập ngay,
+Enter/F2/bấm đúp đều mở, bôi đen `#b4d5fe` sáng / `#264f78` tối, gõ nhanh 12 ô và dán 30 ô đều về "Đã lưu",
+ô ngày `03 09 2026` và `03092026` → `03/09/2026`, Gộp/Không gộp 10 lần rồi lăn chuột trên bảng vẫn cuộn được,
+console sạch trên 16 trang.
+
+**Ba việc phát hiện thêm:**
+
+1. **TL-68 (đã sửa cùng ngày):** ba bài đỏ ở `crm/tests/test_luoi_dong_trong_va_ghim_e2e.py` — đỏ sẵn từ
+   trước (đã chứng minh bằng cách chạy lại trên chính `85227ee`), CI cố ý `--deselect`. Nguyên nhân là bài
+   kiểm tụt sau ADR-036 và ADR-040, không phải lỗi ứng dụng. Chủ dự án ban đầu chốt "phát hành trước, sửa
+   sau" rồi đổi ý ngay trong phiên: sửa luôn. Xem mục 29.09.2026 thứ hai ở dưới và [test-log](test-log.md).
+2. **Đính chính cho người phát hành:** `deploy/production/compose.yml` đặt `RUN_MIGRATIONS: '0'`, nên trên VPS
+   `entrypoint.sh` **không** tự chạy `configure_erp_reports` như ở local. Bỏ sót lệnh này thì PR #51 (một ô
+   Team) và PR #65 (ADR-046) không có hiệu lực, màn hình lặng lẽ chạy cấu hình cũ.
+3. **Hai thư mục lạc trên máy chủ dự án** làm `scripts/dong-bo-skill.py --check` và
+   `tests/test_dong_bo_skill.py` đỏ: `.claude/skills/impeccable/scripts/` (tệp chạy `impeccable.exe` 14 MB —
+   CLAUDE.md ghi Impeccable là hướng dẫn thủ công, không tự chạy engine) và `.impeccable/review/` (6 ảnh
+   review thiết kế — thuộc mục "không đưa lên kho mã"). Cả hai chưa theo dõi, không nằm trong kho. Chủ dự án
+   đồng ý xoá 29.09; sau khi xoá `--check` in PASS và bài kiểm 2 đạt.
+
+**Còn nợ:** phát hành VPS (Claude Code chạy trên máy cá nhân, không tới được VPS — prompt bàn giao cho
+Codex đã đưa chủ dự án).
+
+## 29.09.2026 — Sửa ba bài đỏ của lưới cho khớp ADR-036 và ADR-040 (TL-68)
+
+**Chủ dự án yêu cầu** sửa ba bài đỏ rồi gộp vào `main`. Đây **không phải lỗi ứng dụng**: bài kiểm tụt lại
+sau hai quyết định đã chốt.
+
+**Làm gì.** Rút **AC-11.37** ("1.000 dòng trống sẵn") khỏi `docs/04` — hành vi không còn đường nào xảy ra vì
+KN CRM 404 mọi bảng không phải vận đơn (ADR-040) và bảng vận đơn đặt `protect_table = True`; bỏ bài tương ứng
+cùng fixture `bang_thuong`. **AC-11.40** bỏ mệnh đề về dòng trống, bài chuyển sang bảng vận đơn với sáu dòng
+thật; sửa `_go_va_enter` cho khớp ADR-033 bổ sung 26.09 (bấm một lần chỉ chọn ô, gõ ký tự đầu mới mở ô nhập).
+**AC-11.38** lấy nhóm cột ghim từ chính lưới thay vì chốt cứng bốn cột — cột Trùng của ADR-036 cũng ghim.
+`docs/06` về 293 / 280 / 257. Bỏ dòng `--deselect` trong `ci.yml`. Không đụng mã ứng dụng.
+
+**Còn nợ:** `row_mutations.create` và phần đệm 1.000 dòng trống giờ là **mã chết** trong KN CRM — bỏ hay giữ
+cần quyết định riêng (giữ thì có sẵn khi nào mở lại quyền thêm dòng trên lưới). Chưa ai quyết, chưa đụng.
+
 ## 25.09.2026 — Một ô Team duy nhất trên form Nộp báo cáo ngày (ADR-043 bổ sung)
 
 **Vì sao.** Chủ dự án chụp màn hình: form MKT trên dữ liệu thật có **hai ô Team** — dropdown mới (ADR-043)

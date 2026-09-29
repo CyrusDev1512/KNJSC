@@ -1,5 +1,50 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 29.09.2026 — Ba bài trong `test_luoi_dong_trong_va_ghim_e2e.py` đỏ vì đặc tả đã đổi
+
+**TL-68 (đóng):** rà `main` 206e1b0 trước khi phát hành VPS, nhóm trình duyệt có **3 bài đỏ**, cả ba trong
+`crm/tests/test_luoi_dong_trong_va_ghim_e2e.py`. **Không phải hồi quy:** `.github/workflows/ci.yml` cố ý
+`--deselect` đúng tệp này ("đỏ sẵn từ trước khi có tệp CI này"), và chạy lại tệp đó trên chính commit
+`85227ee` đang chạy trên VPS cũng ra **3 failed, cùng ba bài, cùng thông báo**. Nhưng hệ quả là **AC-11.37,
+AC-11.38 và AC-11.40 hiện không có bài kiểm nào canh**.
+
+Nguyên nhân không phải lỗi ứng dụng mà là **bài kiểm và đặc tả tụt lại sau hai quyết định đã chốt**:
+
+- `test_mot_nghin_dong_trong_san_va_tao_dong_khong_tai_lai` (AC-11.37) và `test_go_lien_tiep_roi_enter_khong_giat`
+  (AC-11.40) mở `/bang-tinh/so_tay_kiem/` — một **bảng thường**. Từ [ADR-040](quyet-dinh/040-crm-chi-mot-bang-van-don.md)
+  (24.09) KN CRM **404 mọi bảng không phải vận đơn**; log của chính lượt chạy ghi `Not Found: /bang-tinh/so_tay_kiem/`,
+  gọi thật cũng ra 404. Lưới không hiện vì trang là 404, nên Playwright hết 15 giây chờ `.mg-cell[data-id]`.
+- Không chuyển bài sang `van_don` được: `waybill_service.protect_table = True` (khai cấp module, đăng ký cho
+  cả mã `van_don` lẫn `workflow="waybill"`) làm `row_mutations.can_create()` trả `False` với **mọi** tài khoản.
+  Cộng với ADR-040 thì **"1.000 dòng trống sẵn" không còn đường nào xảy ra trong KN CRM** — AC-11.37 mô tả
+  hành vi không còn tồn tại. AC-11.40 còn **một nửa**: gõ liên tiếp trên **dòng có sẵn** vẫn chạy (kiểm tay
+  29.09: 12 ô liên tiếp, 12/12 xuống cơ sở dữ liệu, trạng thái về "Đã lưu").
+- `test_cot_ghim_dung_dau_va_boi_den_theo_thu_tu_nhin_thay` (AC-11.38): **ứng dụng đúng, bài kiểm sai.** Bài
+  chốt cứng bốn cột ghim `["ngay","ma_don","ten_khach","so_dien_thoai"]` và khẳng định cột thứ 5 không ghim;
+  thực tế có **năm** cột ghim liền nhau vì cột **Trùng** khai `'frozen': True` trong
+  `crm/services/waybill_grid.py` — cố ý ghim theo [ADR-036](quyet-dinh/036-mot-bang-van-don-duy-nhat.md) (18.09). Lặp lại
+  đúng kịch bản của bài trên bảng `van_don` thật cho ra `__duplicates, ngay, ma_don, ten_khach, so_dien_thoai`
+  đều ghim, `san_pham` không ghim. Ba mệnh đề đầu của khẳng định đều đúng, chỉ `not dau[4]["pin"]` sai.
+
+**Đã sửa cùng ngày** sau khi chủ dự án đổi ý từ "phát hành trước, sửa sau" sang sửa ngay:
+
+- **AC-11.37 rút** khỏi `docs/04` kèm lý do, bỏ bài `test_mot_nghin_dong_trong_san_va_tao_dong_khong_tai_lai`
+  và fixture `bang_thuong`. Mã bù dòng trống (`row_mutations.create`, phần đệm 1.000 dòng) **vẫn còn trong
+  nguồn nhưng không đường nào gọi tới** — bỏ hay giữ là quyết định riêng, đã ghi backlog, lượt này không đụng.
+- **AC-11.40** bỏ mệnh đề "dòng nháp thành bản ghi nối tại chỗ, dòng trống bù theo đợt"; bài chuyển sang
+  **bảng vận đơn** với fixture `van_don_sau_dong` (sáu dòng thật qua `order_service.create_order`), gõ liên
+  tiếp 5 dòng cột Tên khách rồi 3 dòng cột Thành phố. Sửa luôn `_go_va_enter` cho khớp ADR-033 bổ sung
+  26.09: bấm một lần chỉ chọn ô, **gõ ký tự đầu mới mở ô nhập**, Enter chỉ chuyển ô (bản cũ chờ ô nhập tự mở
+  sau khi bấm — hành vi trước 26.09).
+- **AC-11.38** thôi chốt cứng bốn cột ghim: lấy nhóm ghim từ chính lưới rồi khẳng định mọi cột ghim đứng
+  trước cột thường, bốn cột ghim của vận đơn nằm trong nhóm đó, cột thường đầu tiên nối ngay sau, không ô
+  trống; địa chỉ vùng chọn tính theo số cột ghim thay vì viết cứng `A1:E2`. Thêm/bớt cột ghim sau này không
+  làm đỏ lại.
+
+`docs/06` về **293 tiêu chí — 280 tự động, 257 có bài kiểm**. Bỏ dòng
+`--deselect crm/tests/test_luoi_dong_trong_va_ghim_e2e.py` trong `ci.yml`. Sau sửa tệp đó **2 đạt** (80 s).
+[Biên bản](kiem-chung-sua-bai-luoi-dong-trong-20260929.md).
+
 ## 28.09.2026 — CPQC nhập 13 250 000 mà báo cáo hiện số khổng lồ; số không có dấu chấm
 
 **TL-65 (đóng):** chủ dự án báo trên VPS: CPQC nhập **13 250 000**, Báo cáo tổng hợp và Bảng dữ liệu hiện một
