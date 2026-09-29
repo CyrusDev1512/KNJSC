@@ -11,7 +11,7 @@ connection. Kiểm RSS thực trước khi nâng giới hạn. Service Thống k
 `SET LOCAL work_mem='64MB'` cho một số aggregate; 8 MB ở cấu hình PostgreSQL không ghi đè
 lựa chọn trong transaction này. Tính cả chi phí đó khi kiểm nhiều người mở Thống kê cùng lúc.
 
-**Đã phát hành 6 lần**, mỗi lần một biên bản ở `docs/`:
+**Các mốc phát hành đã ghi nhận** (biên bản tại `docs/`):
 
 | # | Ngày | Image |
 |---|---|---|
@@ -21,6 +21,13 @@ lựa chọn trong transaction này. Tính cả chi phí đó khi kiểm nhiều
 | 4 | 18.09.2026 (chiều, lần hai) | `5b7922f-excel` → `5b68dce-tl41` |
 | 5 | 19.09.2026 (00:15) | `5b68dce-tl41` → `ea8942c-adr036` |
 | 6 | 19.09.2026 (18:39) | `ea8942c-adr036` → `72af235-gop` |
+| — | Mốc 25.09, kiểm lại trực tiếp 29.09 | Runtime `97bff53-main`; chưa có đủ biên bản để khôi phục toàn bộ các lần chuyển image trung gian |
+| 7 | 29.09.2026 (23:40) | `97bff53-main` → `c7065fe-adr046` |
+
+Lượt 29.09: [biên bản phát hành](../../docs/kiem-chung-phat-hanh-vps-20260929.md).
+Số thứ tự chỉ đếm các lượt có biên bản trong bảng; không suy ra ngày 25.09 chỉ có
+một lần phát hành. Bản bàn giao ghi VPS ở `85227ee` đã được thay bằng kiểm trực tiếp
+`97bff53-main`; dùng mốc runtime thực tế làm image quay lui.
 
 Xem `docs/kiem-chung-phat-hanh-vps-*.md`; `docs/kiem-chung-dien-tap-vps-20260917.md` là
 diễn tập trên bản sao, không phải lần phát hành.
@@ -47,7 +54,9 @@ diễn tập trên bản sao, không phải lần phát hành.
   không bỏ consumer hàng đợi cũ khi vẫn còn tác vụ đang chờ. Mỗi worker
   concurrency 1, prefetch 1. Không auto-retry import có nguy cơ tạo trùng.
 
-Dãy lệnh phát hành tại `deploy/production`, đã chạy thật 6 lần (chỉ chạy khi được phép):
+Dãy lệnh phát hành chuẩn (chỉ chạy khi được phép). VPS dùng thư mục
+`/opt/knjsc-runtime` và phải truyền đủ `-f compose.yml -f compose.vps.yml` cho mọi
+lệnh dưới đây; không áp nguyên cấu hình tài nguyên mặc định của kho mã lên VPS:
 
 ```sh
 docker compose config --quiet
