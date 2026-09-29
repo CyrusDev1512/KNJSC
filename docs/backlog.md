@@ -13,6 +13,33 @@ migration, dữ liệu không đổi. Cùng lượt sửa lỗi ngầm TL-66 (Th
 cùng ngày: chưa cần ngưỡng tiền theo từng loại tiền; giữ khối toàn kỳ ở chế độ Từng lần nộp.
 Chưa phát hành VPS. Biên bản [kiem-chung-che-do-so-lieu-20260928.md](kiem-chung-che-do-so-lieu-20260928.md).
 
+## 28.09.2026 — CI trình duyệt không còn đỏ chập chờn khi dọn bảng (TL-67)
+
+**Chủ dự án yêu cầu** sửa bằng được lỗi đỏ trên `main` trước khi làm tiếp (CI #94, #96 đỏ sau khi gộp #63, #64).
+**Nguyên nhân:** bài trình duyệt kết thúc lúc lưới còn gọi máy chủ; pytest dọn bảng (TRUNCATE) kẹt khoá với truy
+vấn đang chạy. **Sửa:** bài có máy chủ thử chờ máy chủ xử lý xong mọi yêu cầu dở (đếm bằng tín hiệu của Django,
+tối đa 5 s) rồi mới dọn bảng; chỉ mã kiểm thử, không đụng mã ứng dụng. Chạy lặp bài từng lỗi: trước sửa 4/30 lần
+kẹt khoá, sau sửa 0/30. Đã gộp vào `main` 29.09.2026 (PR #67), trước PR #65. Biên bản
+[kiem-chung-e2e-cho-may-chu-20260928.md](kiem-chung-e2e-cho-may-chu-20260928.md).
+
+## 26.09.2026 — Bỏ hộp đọc, ô phồng to tại chỗ kiểu Google Sheets (bổ sung ADR-033)
+
+**Chủ dự án chốt hai đợt** (so với Google Sheets; đợt hai sau khi test bản đầu: "1 click
+thì y như chúng ta, 2 click mới là mở rộng"): **click đơn chỉ chọn ô**; bấm đúp thì ô sửa
+được mở ô nhập (khung nhập tự giãn tới trần — đúng video Sheets), ô chỉ đọc bị cắt chữ thì
+chính ô đó nở ra đè lên ô lân cận, bấm chỗ khác/Esc thu về; bỏ hẳn hộp đọc có tiêu đề +
+nút ×; gõ phím trên ô chỉ đọc vẫn phồng (18.09); tự giãn dòng và trần 2000 px giữ nguyên.
+**Sửa:** `#mg-reader` giữ id, đổi trình bày theo khuôn `positionEditor` (fixed + clipPath);
+bỏ phồng ở `pointerup`, đúp-ô-chỉ-đọc-bị-cắt phồng trong `edit()`. Bài e2e viết lại + bài
+mới đúp-ô-chỉ-đọc (CSKH chỉ xem); 3 bài `pha_luoi` đỏ do TLS proxy máy ảo (đối chứng mã
+gốc cũng đỏ). Biên bản [kiem-chung-o-phong-to-20260926.md](kiem-chung-o-phong-to-20260926.md).
+
+## 28.09.2026 — Bỏ nút và hộp "Phân công" nhiều dòng
+
+**Chủ dự án bảo bỏ** nút "Phân công" trong menu "…" của lưới Vận đơn. Bỏ cả hộp phân công nhiều dòng và
+phần JS/CSS của nó; chỉ còn ô chọn trong ô (AC-21.15). Endpoint, quyền, CAS không đổi. ADR-020 bổ sung.
+Biên bản: mục bổ sung trong [kiem-chung-phan-cong-o-chon-20260928.md](kiem-chung-phan-cong-o-chon-20260928.md).
+
 ## 28.09.2026 — Phân công ngay trong ô bằng ô chọn (AC-21.15)
 
 **Chủ dự án yêu cầu** phân công nhân viên bằng ô chọn giống "Trạng thái vận chuyển". **Làm:** bấm đúp,

@@ -16,6 +16,19 @@ TỔNG CỘNG theo loại tiền, bộ lọc Chế độ Cộng theo ngày / T�
 Tổng hợp quá trần (khối toàn kỳ dựng từ cách xem Theo nhân viên). Chưa ai gặp vì cần hơn 2.000 nhóm; lộ ra khi
 viết AC-46.9 (ép trần 2). Sửa `activity_service.with_person_team`: dòng đã nhóm kèm team/leader, không gắn lại.
 
+## 28.09.2026 — CI trình duyệt đỏ chập chờn: kẹt khoá khi dọn bảng
+
+**TL-67 (đóng):** CI trên `main` đỏ hai lượt liền sau khi gộp #63 (lượt #94) và #64 (lượt #96): bước
+`pytest tests/e2e` báo "44 passed, 1 error", lỗi lúc dọn bài cuối `test_bo_chip_loc_sau_khi_sap_xep_giu_thu_tu_moi`
+(`Database test_knjsc_db couldn't be flushed`, Postgres `deadlock detected`). Bài kết thúc ngay sau khi bấm × bỏ
+chip lọc, lúc lưới vừa gửi yêu cầu tải lại dữ liệu; trình duyệt đóng nhưng luồng máy chủ thử còn đang truy vấn
+đúng lúc pytest-django dọn bảng bằng TRUNCATE, hai bên chờ khoá của nhau. Tái hiện trên máy ảo khi chạy lặp riêng
+bài đó: 2/10 rồi 4/30 lần kẹt khoá. Sửa ở hạ tầng kiểm thử, không đụng mã ứng dụng: `tests/live_server_requests.py`
+đếm yêu cầu máy chủ thử đang xử lý dở (tín hiệu `request_started`/`request_finished`, chỉ `WSGIHandler`); fixture tự
+chạy `_live_server_idle_before_flush` ở `conftest.py` gốc (dựng sau CSDL nên dọn trước nó) chờ số đó về 0, tối đa
+5 s, rồi mới để pytest dọn bảng, áp cho mọi bài có `live_server`. Bỏ đoạn chờ cứng 1 s (`roi_luoi`) #64 tự thêm cho
+bài phân công. Sau sửa: 0/30. [Biên bản](kiem-chung-e2e-cho-may-chu-20260928.md).
+
 ## 28.09.2026 — Bấm đảo thứ tự làm trang giật
 
 **TL-62 (đóng):** chủ dự án báo bấm sắp xếp (ví dụ theo Quốc gia) thì "cả trang bị load". Lưới KN CRM xử

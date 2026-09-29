@@ -202,6 +202,8 @@ Kèm đo bao phủ thì thêm `--cov`. Bỏ bài chạy chậm thì thêm `-m "n
 trình duyệt mang dấu `trinh_duyet` và tự bỏ qua khi thiếu Chromium — bỏ qua không
 phải là đã kiểm. Ngoài Docker: từ `app/`, `python -m pytest --ds=knjsc.settings.test`
 với Postgres đang chạy. **Không chạy hai pytest cùng lúc** trên một database kiểm thử.
+Bài có `live_server` tự chờ máy chủ thử xử lý xong mọi yêu cầu rồi pytest mới dọn bảng
+(`tests/live_server_requests.py`, TL-67): bài trình duyệt không cần tự `goto("about:blank")` hay chờ cứng.
 
 **Đừng chạy `migrate ... zero` trên cơ sở dữ liệu phát triển** — nó xoá bảng
 thật. Bài kiểm thử tự lo việc đó trên cơ sở dữ liệu riêng.

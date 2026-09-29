@@ -37,3 +37,16 @@ Không migration, không đổi quyền, nút "Phân công" nhiều dòng giữ 
 
 - Hai người cùng đổi một ô phụ trách: dựa vào CAS có sẵn của endpoint (đã có bài `test_two_assigners_do_not_silently_overwrite`), chưa thử bằng hai trình duyệt.
 - Chưa phát hành VPS.
+
+## Bổ sung 28.09.2026 — bỏ nút và hộp "Phân công" nhiều dòng
+
+Chủ dự án mở "…" → Phân công khi chưa bôi đen dòng nào, thấy hộp báo "Chọn ít nhất một dòng…" và bảo bỏ
+nút này. Nhánh `claude/bo-nut-phan-cong`: bỏ `#mg-assign`, hộp `#vd-assignment` (mẫu `_assignment.html` chỉ
+còn ô chọn `#vd-assign-cell` kèm CSRF), phần JS hộp trong `waybill-feedback.js`, các chỗ `master-grid.js`
+còn đóng hộp, kiểu `.vd-assignment-fields` trong `waybill.css`. Endpoint và quyền không đổi.
+
+| Kiểm | Trước sửa | Sau sửa |
+|---|---|---|
+| `tests/e2e/test_phan_cong_o_chon.py::test_leader_chon_nguoi_ngay_trong_o_phu_trach` thêm khẳng định không còn `#mg-assign`/`#vd-assignment` | **đỏ** (dòng 54) | 2 đạt |
+| `crm/tests/test_waybill_feedback.py::test_grid_ui_and_filtered_url` (ghim nút cũ) sửa thành: có `#vd-assign-cell`, không có `#mg-assign` | — | đạt |
+| `test_waybill_feedback`, `test_master_grid`, `test_mot_bang_van_don`, `test_giao_dien`, `test_truy_vet` | — | đạt |

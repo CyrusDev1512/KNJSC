@@ -27,7 +27,6 @@
           <small>Xuất dữ liệu đã lưu trên hệ thống.</small>
         </details>
         {% if duoc_quan_ly_cot %}<a class="nut" href="{% url 'bang_cot' bang.code %}">Cấu trúc cột & cấp quyền</a>{% endif %}
-        {% if can_assign %}<button class="nut" id="mg-assign">Phân công</button>{% endif %}
         <button class="nut" disabled>Chia sẻ link <small>Chưa triển khai</small></button>
       </div>
     </div>
@@ -41,7 +40,8 @@
   </div>
   <footer class="mg-footer"><span id="mg-count">Đang tải…</span><span id="mg-selection"></span><span>Chọn ô rồi gõ để sửa · Enter/F2 mở ô · Ctrl+A chọn hết · Ctrl+C/V sao chép/dán · Ô văn bản dài: Enter xuống dòng, Ctrl+Enter xong · Chuột phải: lịch sử ô · Esc đóng</span></footer>
 </section>
-<div id="mg-reader" class="mg-float" role="region" aria-label="Nội dung ô" hidden><button type="button" aria-label="Đóng nội dung">×</button><strong></strong><div></div></div>
+{# Ô phồng to tại chỗ (bổ sung ADR-033, 26.09): gõ phím hay bấm đúp ô chỉ đọc bị cắt chữ thì ô nở đè lên ô lân cận như Google Sheets, bấm chỗ khác thì thu về — click đơn chỉ chọn ô; không còn hộp đọc có tiêu đề và nút × #}
+<div id="mg-reader" class="mg-expand" role="region" aria-label="Nội dung ô" hidden><div></div></div>
 {# Lịch sử từng ô (AC-21.13, 28.09): chuột phải một ô thì khung này hiện ngay cạnh ô #}
 <div id="mg-cell-history" class="mg-float mg-cell-history" role="dialog" aria-label="Lịch sử ô" hidden><button class="mg-close" type="button" data-master-close="mg-cell-history" aria-label="Đóng lịch sử ô">×</button><strong></strong><div class="mg-cell-history-list"></div></div>
 <form id="mg-editor" class="mg-float mg-editor mg-inline-editor" hidden aria-label="Sửa ngay trong ô"><button class="mg-close" type="button" data-master-close="editor" aria-label="Đóng ô nhập">×</button><strong></strong><div id="mg-input"></div><div class="mg-editor-actions"><button class="nut nut-chinh" type="submit">Xong</button><button class="nut" type="button" id="mg-cancel">Hủy</button></div></form>
@@ -57,7 +57,7 @@
 {% block cuoi_trang %}
 {% if waybill_profile and payment_documents_enabled %}<link rel="stylesheet" href="{% static 'css/payments.css' %}">
 <script src="{% static 'js/payments.js' %}" defer></script>{% endif %}
-{% if can_assign %}{% include 'crm/_assignment.html' with master_grid=True %}{% endif %}
+{% if can_assign %}{% include 'crm/_assignment.html' %}{% endif %}
 <script src="{% static 'js/master-row-geometry.js' %}?v={{ phien_ban_tinh }}" defer></script>
 <script src="{% static 'js/master-working-copy.js' %}?v={{ phien_ban_tinh }}" defer></script>
 <script src="{% static 'js/master-grid.js' %}?v={{ phien_ban_tinh }}" defer></script>

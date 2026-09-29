@@ -1,7 +1,8 @@
 # Kiểm chứng — Chế độ số liệu: không quy đổi, mỗi dòng một loại tiền (ADR-046, TL-65) — 28.09.2026
 
 Nhánh `claude/che-do-so-lieu-bao-cao` tách từ `main` (`85f7fc1`), đặt lại lên `309b447` (sau #59) trước khi đẩy,
-rồi gộp `main` hai lần khi PR bị xung đột tài liệu (`e63e286` sau #63, `f783001` sau #64); máy ảo Claude Code, PostgreSQL 16 cục bộ,
+rồi gộp `main` ba lần khi PR bị xung đột tài liệu (`e63e286` sau #63, `f783001` sau #64, `bdde9d2` sau #66, #56
+và #67); máy ảo Claude Code, PostgreSQL 16 cục bộ,
 Chromium không màn hình (Playwright). Không migration, không thư viện mới.
 
 Chủ dự án báo trên VPS: CPQC nhập **13 250 000** mà Báo cáo tổng hợp và Bảng dữ liệu hiện số khổng lồ; muốn thấy
@@ -44,6 +45,9 @@ PostgreSQL 16 cục bộ cổng 5434, settings test, không Docker.
 | Bài trình duyệt, lượt 2 như CI: `pytest -m trinh_duyet --ignore=tests/e2e --deselect crm/tests/test_luoi_dong_trong_va_ghim_e2e.py` | **4 đạt** — ba bài `test_bo_cuc_bao_cao_e2e.py` (bộ lọc ba trạng thái, lăn chuột trên bảng, thẻ Tổng quan) và `test_o_nhap_so_e2e.py` (AC-46.10: gõ, xoá lùi, 8000.50 → 8.000,5, kiểu Việt Nam, phần lẻ, dán, số nguyên, nộp thật lưu 13250000 CAD); 9 bỏ qua (giá đỡ script Node cần Chrome host, như CI) |
 | `pytest -m "not trinh_duyet" --ignore=tests/perf` sau khi gộp `main` #63 (commit `5874fb3`), bộ đầy đủ kể cả bài chậm | **2.845 đạt**, 7 bỏ qua (thiếu điều kiện ngoài, như trước), 60 bài trình duyệt chạy riêng ở hai dòng trên — 7 phút 48 |
 | Sau khi bỏ hai import thừa: `org/tests/test_org_scope.py`, `reports/tests/test_che_do_so_lieu.py`, `test_activity.py`, `test_mkt_excel.py`, `test_nguong_va_loc_san_pham.py`, `core/tests/test_ra_soat.py` | 118 đạt |
+| Sau khi gộp `main` `bdde9d2` (#66, #56, #67): `pytest -m "not trinh_duyet" --ignore=tests/perf` | **2.853 đạt**, 7 bỏ qua — 8 phút 17 |
+| Sau khi gộp `bdde9d2`: bài trình duyệt lượt 2 như CI | 4 đạt (ba bài bố cục báo cáo và `test_o_nhap_so_e2e.py`), 9 bỏ qua |
+| Sau khi gộp `bdde9d2`: `pytest tests/e2e -m trinh_duyet` | 37 đạt, 2 bỏ qua; 9 bài `test_pha_luoi_ghi_chu.py` đỏ chỉ vì phông Google bị proxy chặn, như trên. Không lỗi lúc dọn, không `deadlock` (đã có fixture chờ máy chủ của #67) |
 
 Một lượt trình duyệt chạy chung một tiến trình bị bỏ, không tính: tôi lỡ chạy song song một pytest khác trên cùng database
 kiểm thử (sai quy tắc "không chạy hai pytest cùng lúc"), database bị xoá giữa chừng nên 42 bài lỗi kết nối. Hai lượt

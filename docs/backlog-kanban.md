@@ -8,6 +8,18 @@ của đơn; thẻ Tổng quan mỗi loại tiền một cột; Bảng dữ li�
 **To do:** chủ dự án test local rồi quyết gộp; phát hành VPS (Codex). **Đã chốt 28.09:** chưa cần ngưỡng
 tiền theo từng loại tiền (ngưỡng ₫ chỉ tô dòng VND); giữ khối toàn kỳ ở chế độ Từng lần nộp.
 
+## 28.09.2026 — CI trình duyệt kẹt khoá khi dọn bảng (TL-67)
+
+**Đã gộp vào `main` 29.09.2026 (PR #67):** bài có máy chủ thử chờ máy chủ xử lý xong rồi mới dọn bảng; chạy lặp
+bài từng lỗi 0/30 kẹt khoá (trước 4/30).
+
+## 26.09.2026 — Ô phồng to tại chỗ thay hộp đọc
+
+**Finished local (nhánh `claude/o-phong-to-tai-cho`, PR nháp về `main`):** click đơn chỉ chọn ô
+(chỉnh theo test 26.09); bấm đúp: ô sửa được mở ô nhập tự giãn tới trần, ô chỉ đọc bị cắt chữ
+phồng to tại chỗ kiểu Google Sheets, bấm chỗ khác/Esc thu về; bỏ hộp đọc cũ; auto-giãn + trần 2000 giữ.
+**To do:** chủ dự án kéo nhánh test local rồi quyết gộp.
+
 ## 28.09.2026 — Sắp xếp không giật (TL-62)
 
 **Finished local (nhánh `claude/sap-xep-khong-giat`, PR nháp về `main`):** lưới CRM và Bảng dữ liệu ERP

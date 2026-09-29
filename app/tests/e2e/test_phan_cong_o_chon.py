@@ -22,13 +22,6 @@ def kn_crm(settings):
     return settings
 
 
-def roi_luoi(trang):
-    """Rời lưới trước khi pytest dọn cơ sở dữ liệu: lưới vừa lưu còn làm mới/poll máy chủ, dọn bảng đúng
-    lúc đó thì TRUNCATE kẹt khoá với request đang chạy (deadlock ở teardown)."""
-    trang.goto("about:blank")
-    trang.wait_for_timeout(1_000)
-
-
 def mo_luoi_toi_o(trang, live_server, bang, o):
     trang.goto(f"{live_server.url}/bang-tinh/{bang.code}/")
     trang.wait_for_selector(".mg-cell[data-code='ten_khach']")
@@ -40,7 +33,8 @@ def mo_luoi_toi_o(trang, live_server, bang, o):
 def test_leader_chon_nguoi_ngay_trong_o_phu_trach(live_server, trang, dang_nhap, kn_crm, feedback,
                                                   nguoi_dung, make_user, departments):  # noqa: F811
     """AC-21.15 — Leader Vận đơn bấm đúp ô Phụ trách Vận đơn: ô chọn hiện ngay trong ô, có mã nhân viên
-    Vận đơn; chọn là lưu (qua endpoint phân công, có CAS), ô hiện mã người vừa giao; Esc đóng không đổi"""
+    Vận đơn; chọn là lưu (qua endpoint phân công, có CAS), ô hiện mã người vừa giao; Esc đóng không đổi;
+    không còn nút/hộp Phân công trong menu …"""
     bang, _, dong = feedback
     leader = make_user("vd_leader", Rank.LEADER, departments["vd"])
     nv = nguoi_dung["staff_vd"]
@@ -49,6 +43,8 @@ def test_leader_chon_nguoi_ngay_trong_o_phu_trach(live_server, trang, dang_nhap,
     dang_nhap(trang, leader)
     o = f".mg-cell[data-code='phu_trach_vd'][data-id='{dong[0].pk}']"
     mo_luoi_toi_o(trang, live_server, bang, o)
+    # Chủ dự án 28.09: bỏ nút "Phân công" trong menu "…" và hộp Phân công nhiều dòng — chỉ còn ô chọn.
+    assert trang.locator("#mg-assign").count() == 0 and trang.locator("#vd-assignment").count() == 0
 
     trang.dblclick(o)
     trang.wait_for_selector("#vd-assign-cell[data-ready]:not([hidden])", timeout=5_000)
@@ -88,7 +84,6 @@ def test_leader_chon_nguoi_ngay_trong_o_phu_trach(live_server, trang, dang_nhap,
                             timeout=8_000)
     assert WaybillAssignment.objects.get(record=dong[0]).delivery_id is None
     assert not loi_js, loi_js
-    roi_luoi(trang)
 
 
 def test_nhan_vien_thuong_khong_co_o_chon_phan_cong(live_server, trang, dang_nhap, kn_crm, feedback,
@@ -101,4 +96,3 @@ def test_nhan_vien_thuong_khong_co_o_chon_phan_cong(live_server, trang, dang_nha
     trang.dblclick(o)
     trang.wait_for_timeout(800)
     assert not trang.evaluate("() => { const e = document.getElementById('vd-assign-cell'); return !!e && !e.hidden; }")
-    roi_luoi(trang)
