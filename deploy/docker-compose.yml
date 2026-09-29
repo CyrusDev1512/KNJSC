@@ -63,6 +63,19 @@ services:
       - ../storage:/storage
       # Chỉ đọc: bài kiểm truy vết đọc docs/04 để đối chiếu mã tiêu chí
       - ../docs:/docs:ro
+      # Chỉ đọc: hai bài kiểm tính gốc kho bằng `Path(__file__).parents[2]`, trong
+      # container là `/`. Thiếu ba thư mục này thì chúng lỗi FileNotFoundError ở máy
+      # cá nhân trong khi vẫn xanh trên CI (CI lấy cả kho, không qua compose):
+      #   tests/test_dong_bo_skill.py  → /scripts/dong-bo-skill.py, /.agents, /.claude
+      #                                  và bốn tệp ngữ cảnh chung ở gốc kho
+      #   tests/test_gom_p95.py        → /scripts/gom-p95-vps.py
+      - ../scripts:/scripts:ro
+      - ../.agents:/.agents:ro
+      - ../.claude:/.claude:ro
+      - ../AGENTS.md:/AGENTS.md:ro
+      - ../CLAUDE.md:/CLAUDE.md:ro
+      - ../PRODUCT.md:/PRODUCT.md:ro
+      - ../DESIGN.md:/DESIGN.md:ro
     ports:
       - "8020:8000"
     depends_on:
