@@ -1,5 +1,10 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 25.09.2026 — Một ô Team duy nhất trên form báo cáo (ADR-043 bổ sung)
+
+**Finished local (nhánh `claude/mot-o-team-bao-cao`, PR nháp về `main`):** cột Team dạng chữ có sẵn rời form
+nhập, hệ thống ghi tên team đã chọn vào cột; AC-43.5. **To do:** chủ dự án gộp; Codex phát hành cùng #49.
+
 ## 28.09.2026 — Chế độ số liệu, không quy đổi (ADR-046, TL-65)
 
 **Finished local (nhánh `claude/che-do-so-lieu-bao-cao`, PR nháp về `main`):** số tiền giữ đúng như nhập, mỗi
@@ -83,7 +88,7 @@ khôi phục tài khoản (chưa được yêu cầu).
 ## 24.09.2026 — Form Nộp báo cáo ngày (ADR-043)
 
 **Finished local:** dropdown Team ghi vào dòng và báo cáo; Số Mess, CPQC, Số đơn, Doanh số bắt buộc (MKT và Sale);
-Hóa đơn rời form nhập, giữ cột; một thẻ trải ngang, ô 34 px, chip công thức; team MKT 1 trong dữ liệu mẫu. AC-43.1 → 41.4.
+Hóa đơn rời form nhập, giữ cột; một thẻ trải ngang, ô 34 px, chip công thức; team MKT 1 trong dữ liệu mẫu. AC-43.1 → 43.4.
 **To do:** chủ dự án nghiệm thu trên local; phát hành VPS (Codex). **Far plan:** quản lý sửa team của
 báo cáo đã nộp.
 

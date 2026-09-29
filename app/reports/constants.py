@@ -17,6 +17,13 @@ LEGACY_REVENUE_INPUT = "doanh_thu"
 #: Cột tính từng dòng "Hóa đơn/Doanh thu" của mẫu cũ — bỏ, vì chỉ tính được ở mức báo cáo.
 LEGACY_ROW_FORMULA = "hoa_don_doanh_thu"
 
+#: Cột "Team" dạng chữ có sẵn trong bảng báo cáo Sale/MKT của dữ liệu thật (mã `team` hoặc nhãn
+#: "Team"). ADR-043 bổ sung 25.09: không còn là ô nhập — form chỉ có một ô Team là dropdown; khi nộp,
+#: hệ thống tự ghi tên team của dòng vào cột này (ánh xạ `ReportSource.columns["team"]` do
+#: `configure_erp_reports` đặt; `record_service.create_record` ghi).
+TEAM_COLUMN_CODE = "team"
+TEAM_COLUMN_LABEL = "Team"
+
 #: Giá trị lọc "chưa có" cho Thị trường / Tệp khách hàng (`__missing__` trên URL)
 MISSING_FILTER = "__missing__"
 
