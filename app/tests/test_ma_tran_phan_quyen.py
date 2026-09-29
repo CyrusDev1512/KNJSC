@@ -69,7 +69,7 @@ MA_TRAN = {
     },
     "Bảng vận đơn": {
         "staff_sale_1": TU_CHOI, "leader_sale_1": TU_CHOI,
-        "manager_sale": TU_CHOI, "staff_vd": VAO_DUOC, None: CHUYEN_DANG_NHAP,
+        "manager_sale": TU_CHOI, "staff_vd": TU_CHOI, None: CHUYEN_DANG_NHAP,
     },
     "Quản lý biểu mẫu": {
         "staff_sale_1": TU_CHOI, "leader_sale_1": TU_CHOI,
@@ -77,7 +77,7 @@ MA_TRAN = {
     },
     # Hai dòng thêm 03.09.2026 — nhập tệp (Q45) và Bảng tính (AC-11.4)
     "Nhập tệp vào bảng của Sale": {
-        "staff_sale_1": TU_CHOI, "leader_sale_1": VAO_DUOC,
+        "staff_sale_1": TU_CHOI, "leader_sale_1": TU_CHOI,
         "manager_sale": VAO_DUOC, "staff_vd": TU_CHOI, None: CHUYEN_DANG_NHAP,
     },
     "Bảng tính vận đơn": {

@@ -14,21 +14,26 @@ from reports.tests.test_mkt_derived_revenue import _bao_cao, mkt_source, van_don
 
 pytestmark = pytest.mark.django_db
 
-CAD = Decimal("17500")
-
-
 def _theo_nhan(result, raw):
     return dict(zip([c.label for c in result.columns], raw))
+
+
+def _tong(block):
+    """Dòng TỔNG CỘNG duy nhất của khối — dữ liệu mẫu chỉ một loại tiền (CAD)."""
+    assert [t["currency"] for t in block["total_rows"]] == ["CAD"]
+    return block["total_rows"][0]["raw"]
 
 
 def test_bang_du_lieu_nguon_bao_cao_hien_chi_tiet_theo_ngay(client, bang_mkt, mkt_source, van_don, nguoi_dung,
                                                              django_assert_max_num_queries):
     """AC-42.13 — Bảng có nguồn báo cáo MKT mở ở Bảng dữ liệu là báo cáo chi tiết theo ngày dùng chung
-    động cơ: mỗi lần nộp một dòng (hai lần nộp cùng ngày cùng người là hai dòng, STT riêng), khối toàn
-    kỳ theo nhân sự đứng đầu, TỔNG CỘNG ngày đúng; (TT) trên dòng người chỉ khi cặp (ngày, người) nộp
-    một lần, nộp nhiều lần thì "—" mà TỔNG CỘNG không cộng đôi; Gộp; `?dang=tho` về liệt kê thô có
-    liên kết quay lại; bảng không có nguồn giữ nguyên; Staff chỉ thấy dòng mình, bộ phận khác 404;
-    Excel cùng khối; form Ngưỡng màu cho quản lý; không quá 10 truy vấn"""
+    động cơ: mặc định chế độ Từng lần nộp (ADR-046) — mỗi lần nộp một dòng (hai lần nộp cùng ngày cùng
+    người là hai dòng, STT riêng, cột Lần nộp), khối toàn kỳ theo nhân sự đứng đầu, TỔNG CỘNG ngày đúng
+    theo loại tiền; (TT) trên dòng người chỉ khi bộ (ngày, người, loại tiền) nộp một lần, nộp nhiều lần
+    thì "—" mà TỔNG CỘNG không cộng đôi; Gộp thành một khối mọi lần nộp, chế độ Cộng theo ngày thì Gộp
+    mỗi ngày một dòng; `?dang=tho` về liệt kê thô có liên kết quay lại; bảng không có nguồn giữ nguyên;
+    Staff chỉ thấy dòng mình, bộ phận khác 404; Excel cùng khối; form Ngưỡng màu cho quản lý; không quá
+    10 truy vấn"""
     A, B = van_don["A"], van_don["B"]
     _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10, don=2, cpqc="3")
     _bao_cao(bang_mkt, A, "2026-08-01", "SP2", mess=20, don=4, cpqc="5")   # A nộp lần hai cùng ngày
@@ -49,32 +54,44 @@ def test_bang_du_lieu_nguon_bao_cao_hien_chi_tiet_theo_ngay(client, bang_mkt, mk
     # TỔNG CỘNG = 35 mess, 7 đơn
     assert [(row["person"], row["stt"]) for row in d01["rows"]] == [
         (employee_code(B), 1), (employee_code(A), 2), (employee_code(A), 3)]
-    assert _theo_nhan(result, d01["totals_raw"])["Số Mess"] == 35
-    assert _theo_nhan(result, d01["totals_raw"])["Số đơn"] == 7
+    # Cột Lần nộp: A nộp hai lần — "Lần 1 · giờ", "Lần 2 · giờ"; mọi dòng là CAD
+    lan = [dict((c["code"], v) for c, v in row["identity"])["lan"] for row in d01["rows"]]
+    assert lan[0].startswith("Lần 1 · ") and lan[1].startswith("Lần 1 · ") and lan[2].startswith("Lần 2 · ")
+    assert {row["currency"] for row in d01["rows"]} == {"CAD"}
+    assert _theo_nhan(result, _tong(d01))["Số Mess"] == 35
+    assert _theo_nhan(result, _tong(d01))["Số đơn"] == 7
     assert [_theo_nhan(result, row["raw"])["Số Mess"] for row in d01["rows"]] == [5, 10, 20]
-    # (TT) khoá theo (ngày, người): A nộp hai lần ngày 01.08 → hai dòng đó "—", B một lần → có số;
-    # TỔNG CỘNG ngày = w1 + w2 (A) + w4 (B) = 3 đơn, 300 CAD quy ₫ — không cộng đôi phần của A
-    assert result.derived_shared == frozenset({(date(2026, 8, 1), employee_code(A))})
+    # (TT) khoá theo (ngày, người, loại tiền): A nộp hai lần ngày 01.08 → hai dòng đó "—", B một lần → có
+    # số; TỔNG CỘNG ngày = w1 + w2 (A) + w4 (B) = 3 đơn, 300 CAD đúng như tiền của đơn — không cộng đôi
+    assert result.derived_shared == frozenset({(date(2026, 8, 1), employee_code(A), "CAD")})
     tt = [(_theo_nhan(result, row["raw"])["Số đơn (TT)"], _theo_nhan(result, row["raw"])["DS Chốt (TT)"]) for row in d01["rows"]]
-    assert tt == [(1, 200 * CAD), (None, None), (None, None)]
+    assert tt == [(1, Decimal(200)), (None, None), (None, None)]
     assert str(d01["rows"][1]["cells"][[c.label for c in result.columns].index("Số đơn (TT)")]) == "—"
-    assert _theo_nhan(result, d01["totals_raw"])["Số đơn (TT)"] == 3
-    assert _theo_nhan(result, d01["totals_raw"])["DS Chốt (TT)"] == 300 * CAD
-    assert _theo_nhan(result, d02["totals_raw"])["Số đơn (TT)"] == 1
+    assert _theo_nhan(result, _tong(d01))["Số đơn (TT)"] == 3
+    assert _theo_nhan(result, _tong(d01))["DS Chốt (TT)"] == 300
+    assert _theo_nhan(result, _tong(d02))["Số đơn (TT)"] == 1
     # Khối toàn kỳ: mỗi người một dòng cộng cả kỳ; A = 38 mess, 3 đơn (TT); B = 5 mess, 1 đơn (TT)
     assert [row["person"] for row in toan_ky["rows"]] == sorted([employee_code(A), employee_code(B)])
     theo_nguoi = {row["person"]: _theo_nhan(result, row["raw"]) for row in toan_ky["rows"]}
     assert theo_nguoi[employee_code(A)]["Số Mess"] == 38 and theo_nguoi[employee_code(A)]["Số đơn (TT)"] == 3
     assert theo_nguoi[employee_code(B)]["Số Mess"] == 5 and theo_nguoi[employee_code(B)]["Số đơn (TT)"] == 1
-    assert _theo_nhan(result, toan_ky["totals_raw"])["Số Mess"] == 43
-    assert _theo_nhan(result, toan_ky["totals_raw"])["Số đơn (TT)"] == 4
-    assert _theo_nhan(result, toan_ky["totals_raw"])["DS Chốt (TT)"] == 325 * CAD
+    assert _theo_nhan(result, _tong(toan_ky))["Số Mess"] == 43
+    assert _theo_nhan(result, _tong(toan_ky))["Số đơn (TT)"] == 4
+    assert _theo_nhan(result, _tong(toan_ky))["DS Chốt (TT)"] == 325
     html = r.content.decode()
     assert 'id="report-nguong"' in html and "Xem từng dòng thô" in html and 'rel="noopener">Mở trong KN CRM</a>' in html
-    assert '<table class="bang bang-luoi">' not in html and "nộp nhiều lần thì (TT) chỉ hiện ở dòng TỔNG CỘNG" in html
+    assert '<table class="bang bang-luoi">' not in html and "nộp nhiều lần (cùng loại tiền) thì (TT) chỉ hiện ở dòng TỔNG CỘNG" in html
+    assert 'name="che_do" value="tung-lan" checked' in html
     assert r.context["moi_trang"] == 25                     # quy tắc 1: mặc định 25 dòng
-    # Gộp: mỗi ngày một dòng
+    # Gộp ở chế độ mặc định (Từng lần nộp): một khối mọi lần nộp trong kỳ
     r_gop = client.get(url, {**ky, "gop": "1"})
+    assert [b["kind"] for b in r_gop.context["blocks"]] == ["period", "submissions"]
+    assert len(r_gop.context["blocks"][1]["rows"]) == 4
+    # Chế độ Cộng theo ngày: mỗi người mỗi ngày một dòng; Gộp thì mỗi ngày một dòng
+    r_cong = client.get(url, {**ky, "che_do": "cong"})
+    assert [(row["person"], row["stt"]) for row in r_cong.context["blocks"][2]["rows"]] == [
+        (employee_code(B), 1), (employee_code(A), 2)]
+    r_gop = client.get(url, {**ky, "che_do": "cong", "gop": "1"})
     assert [b["kind"] for b in r_gop.context["blocks"]] == ["period", "days"]
     assert [row["nhom"] for row in r_gop.context["blocks"][1]["rows"]] == ["02.08.2026", "01.08.2026"]
     # Liệt kê thô: bảng cũ, có liên kết quay lại, phân trang và Xoá lọc giữ `dang=tho`
@@ -90,7 +107,7 @@ def test_bang_du_lieu_nguon_bao_cao_hien_chi_tiet_theo_ngay(client, bang_mkt, mk
     book = load_workbook(BytesIO(r_xls.content))
     assert "Toan ky theo nhan su" in book.sheetnames and "Theo ngay" in book.sheetnames
     sheet = book["Toan ky theo nhan su"]
-    tong = next(row for row in sheet.iter_rows(values_only=True) if row and row[0] and "TỔNG CỘNG" in str(row[0]))
+    tong = next(row for row in sheet.iter_rows(values_only=True) if row and str(row[0]).startswith("TỔNG CỘNG"))
     assert 43 in tong
     # Ngân sách truy vấn (Q2)
     client.get(url, ky)
@@ -99,8 +116,7 @@ def test_bang_du_lieu_nguon_bao_cao_hien_chi_tiet_theo_ngay(client, bang_mkt, mk
     # Staff chỉ thấy dòng của mình, không thấy form Ngưỡng màu
     client.force_login(A)
     r_a = client.get(url, ky)
-    assert [row["person"] for row in r_a.context["blocks"][0]["rows"]] == [employee_code(A)]
-    assert employee_code(B) not in r_a.content.decode() and 'id="report-nguong"' not in r_a.content.decode()
+    assert r_a.status_code == 403  # 25.09: Staff dùng Báo cáo tổng hợp, không mở Bảng dữ liệu
     # Bộ phận khác: 404 như mọi bảng
     client.force_login(nguoi_dung["manager_sale"])
     assert client.get(url, ky).status_code == 404

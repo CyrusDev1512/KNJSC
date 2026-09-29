@@ -9,6 +9,7 @@ này **không có hàm sửa đơn**; thiếu hàm là cách chặn chắc nhấ
 **Đơn và dòng vận đơn cùng một giao dịch** — AC-6.5. Ghi sang bảng vận đơn
 hỏng thì đơn cũng không được lưu; không bao giờ có đơn mồ côi.
 """
+from core.permissions import assert_business_write
 from decimal import InvalidOperation
 
 from django.db import OperationalError, connection, transaction
@@ -81,19 +82,21 @@ def customer_notice(phone, ten_dang_go=""):
     sách đen: chặn nhầm thì mất đơn thật.
     """
     khach = find_customer(phone)
-    if khach is None:
+    # "Mua lại" đếm dòng đang sống trên bảng vận đơn, không đếm đơn hàng (28.09.2026)
+    so_dong = dispatch_service.rows_with_phone(phone)
+    if khach is None and not so_dong:
         return {}
     ten_dang_go = " ".join(str(ten_dang_go or "").split())
     return {
         "customer": khach,
-        "phone": khach.phone,
-        "so_don_cu": khach.order_count(),
-        "mua_lai": khach.order_count() > 0,
-        "danh_sach_den": khach.is_blacklisted,
-        "ly_do": khach.blacklist_reason,
-        "ten_dang_luu": khach.name,
+        "phone": khach.phone if khach else (phone or "").strip(),
+        "so_don_cu": so_dong,
+        "mua_lai": so_dong > 0,
+        "danh_sach_den": bool(khach and khach.is_blacklisted),
+        "ly_do": khach.blacklist_reason if khach else "",
+        "ten_dang_luu": khach.name if khach else "",
         "ten_dang_go": ten_dang_go,
-        "ten_khac": bool(ten_dang_go) and ten_dang_go != khach.name,
+        "ten_khac": bool(khach and ten_dang_go and ten_dang_go != khach.name),
     }
 
 
@@ -134,6 +137,7 @@ def create_order(*, phone, customer_name, lines, actor, request=None,
     `lines` là danh sách dict `{"product": Product|mã, "quantity": int,
     "unit_price": str}`. Đơn phải có ít nhất một dòng — FR-6.1.
     """
+    assert_business_write(actor)
     if not lines:
         raise BusinessError("Đơn hàng phải có ít nhất một dòng sản phẩm.")
     if not (phone or "").strip():
@@ -185,7 +189,7 @@ def create_order(*, phone, customer_name, lines, actor, request=None,
         if seller.pk != actor.pk and not has_rank(actor, Rank.ADMIN):
             raise BusinessError('Chỉ Admin được chọn Sale đứng đơn.')
         seller = get_user_model().objects.select_related('profile__department', 'profile__team').filter(
-            pk=seller.pk, is_active=True, profile__department__code='sale',
+            pk=seller.pk, is_active=True, profile__deleted_at__isnull=True, profile__department__code='sale',
             profile__department__is_active=True, profile__department__deleted_at__isnull=True).filter(
                 Q(profile__locked_until__isnull=True) | Q(profile__locked_until__lte=timezone.now())).first()
         if seller is None:
@@ -254,6 +258,7 @@ def cancel_order(don, *, actor=None, request=None):
     Xoá mềm cả dòng trên bảng vận đơn đi kèm — quên là để lại dòng mồ côi mà
     bộ phận Vận đơn vẫn thấy và vẫn đi giao.
     """
+    assert_business_write(actor)
     ma = don.code
     don.delete(by=actor)
     if don.record_id:

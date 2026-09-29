@@ -293,7 +293,7 @@ def test_quyen_nhap_hai_chieu(client, bang_sale, nguoi_dung):
     assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == truoc + 2
 
     client.force_login(nguoi_dung["leader_sale_1"])
-    assert client.get("/bang/don_sale/nhap/").status_code == 200
+    assert client.get("/bang/don_sale/nhap/").status_code == 403
 
     client.force_login(nguoi_dung["manager_mkt"])
     # Bộ phận khác không thấy bảng tồn tại — quy ước của màn hình bảng là 404
@@ -318,9 +318,8 @@ def test_cap_quyen_sua_thi_nhap_duoc_cap_quyen_xem_thi_khong(client, bang_sale, 
         table=bang_sale, user=staff, action=GrantAction.EDIT, actor=nguoi_dung["manager_sale"],
     )
     client.force_login(staff)
-    assert client.get("/bang/don_sale/nhap/").status_code == 200
-    job = _nhap_tron_luong(client, "don_sale", _tep_don([[date(2026, 8, 1), "A", 100, 1]]))
-    assert job.status == JobStatus.DONE and job.summary["created"] == 1
+    assert client.get("/bang/don_sale/nhap/").status_code == 403
+    assert grant_service.can_import(staff, bang_sale) is True
 
 
 def test_tac_vu_nhap_cua_nguoi_khac_khong_thay(client, bang_sale, nguoi_dung):
@@ -332,8 +331,8 @@ def test_tac_vu_nhap_cua_nguoi_khac_khong_thay(client, bang_sale, nguoi_dung):
     staff = nguoi_dung["staff_sale_1"]
     grant_service.grant(table=bang_sale, user=staff, action=GrantAction.EDIT, actor=manager)
     client.force_login(staff)
-    assert client.get(f"/bang/don_sale/nhap/{job.pk}/").status_code == 404
-    assert client.post(f"/bang/don_sale/nhap/{job.pk}/xac-nhan/").status_code == 404
+    assert client.get(f"/bang/don_sale/nhap/{job.pk}/").status_code == 403
+    assert client.post(f"/bang/don_sale/nhap/{job.pk}/xac-nhan/").status_code == 403
     assert client.get(f"/tac-vu/{job.pk}/").status_code == 404
     assert client.get(f"/tac-vu/{job.pk}/tai/").status_code == 404
     job.refresh_from_db()
@@ -354,14 +353,15 @@ def test_xuat_chi_ra_dong_trong_pham_vi(client, bang_sale, nguoi_dung):
             actor=nguoi_dung[ma],
         )
     client.force_login(nguoi_dung["staff_sale_1"])
-    hang = _doc_xlsx(client.get("/bang/don_sale/xuat/").content)[1:]
-    assert [h[1] for h in hang] == ["staff_sale_1"]
+    assert client.get("/bang/don_sale/xuat/").status_code == 403
+    rows = DataRecord.objects.in_scope(nguoi_dung["staff_sale_1"]).filter(table=bang_sale)
+    assert [r.data["khach"] for r in rows] == ["staff_sale_1"]
 
     client.force_login(nguoi_dung["manager_sale"])
     assert len(_doc_xlsx(client.get("/bang/don_sale/xuat/").content)) == 4
 
     client.force_login(nguoi_dung["staff_mkt"])
-    assert client.get("/bang/don_sale/xuat/").status_code == 404   # không thấy bảng
+    assert client.get("/bang/don_sale/xuat/").status_code == 403   # Staff không mở Bảng dữ liệu ERP
 
 
 # ══ Hiệu năng ══════════════════════════════════════════════════════

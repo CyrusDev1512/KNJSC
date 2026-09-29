@@ -177,6 +177,8 @@ Bốn điểm từng nằm ở đây đều đã chốt và đã có mục quy�
 Hiện **không còn điểm nào chờ ghi thành mục quyết định**. Danh sách việc chưa
 xong nằm ở `../backlog.md` mục 0.
 
+- [ADR-044 — CEO và quản lý tài khoản](044-ceo-va-quan-ly-tai-khoan.md): phạm vi đọc toàn công ty tách quyền Admin; đặt lại mật khẩu/xóa mềm theo cấp bậc, giữ lịch sử và vô hiệu phiên.
+
 ## Khôi phục quyết định 14.09.2026
 
 - [ADR-022: Báo cáo hoạt động ERP](022-bao-cao-hoat-dong-erp.md).
@@ -189,5 +191,8 @@ xong nằm ở `../backlog.md` mục 0.
 - [ADR-039 — Ẩn cột với cả công ty](039-an-cot-voi-ca-cong-ty.md): quản lý bảng ẩn cột trong hộp "Cột"; cột biến khỏi lưới, tệp Excel và Bảng dữ liệu ERP, dữ liệu vẫn giữ.
 - [ADR-040 — KN CRM chỉ một bảng Vận đơn](040-crm-chi-mot-bang-van-don.md): Sale/MKT nhập – xuất bên ERP; bỏ cấp Quý ▸ Tháng; Thống kê đọc cả hai bên; dữ liệu không đổi.
 - [ADR-041 — Bỏ và khôi phục báo cáo cấp dưới](041-xoa-khoi-phuc-bao-cao.md): Leader team/Manager bộ phận/Admin bỏ (xoá mềm cả dòng số liệu); Manager/Admin khôi phục ở trang "Đã bỏ"; Kế toán không.
-- [ADR-042 — Báo cáo tổng hợp như ảnh mẫu](042-bao-cao-tong-hop-nhu-anh-mau.md): tiền quy ₫ ngay trong truy vấn rồi mới cộng (thay "để trống khi lẫn tiền" của ADR-038); cột đối soát (TT) từ vận đơn; nhãn MKT theo ảnh; bố cục khối theo ngày, Gộp, ngưỡng màu ba bậc do quản lý đặt, lọc nhiều sản phẩm, Bảng dữ liệu của bảng có nguồn là báo cáo chi tiết theo ngày — năm đợt xong local 23.09, chờ nghiệm thu và phát hành.
+- [ADR-042 — Báo cáo tổng hợp như ảnh mẫu](042-bao-cao-tong-hop-nhu-anh-mau.md): ~~tiền quy ₫ ngay trong truy vấn rồi mới cộng~~ (quyết định 1 thay bằng ADR-046 ngày 28.09); cột đối soát (TT) từ vận đơn; nhãn MKT theo ảnh; bố cục khối theo ngày, Gộp, ngưỡng màu ba bậc do quản lý đặt, lọc nhiều sản phẩm, Bảng dữ liệu của bảng có nguồn là báo cáo chi tiết theo ngày — năm đợt xong local 23.09, chờ nghiệm thu và phát hành.
 - [ADR-043 — Form Nộp báo cáo ngày](043-form-nhap-bao-cao.md): dropdown Team của bộ phận ghi vào dòng và báo cáo; Số Mess, CPQC, Số đơn, Doanh số bắt buộc (một chỗ `REQUIRED_INPUTS`); bỏ Hóa đơn khỏi form nhập, giữ cột và chỉ tiêu; một thẻ trải ngang, ô nhập 34 px, cột tính sẵn dạng chip — xong local 24.09, PR nháp riêng vào `main`.
+
+- [ADR-045 — Team hệ thống và quyền menu ERP](045-team-he-thong-va-quyen-menu-erp.md): Team theo hồ sơ; Quản trị chỉ Admin; CEO chỉ xem; giữ tác vụ cá nhân và quyền CRM.
+- [ADR-046 — Chế độ số liệu, không quy đổi](046-che-do-so-lieu-khong-quy-doi.md): số tiền giữ đúng như nhập, mỗi dòng một loại tiền, TỔNG CỘNG theo loại tiền (thay quyết định 1 của ADR-042); bộ lọc Chế độ Cộng theo ngày / Từng lần nộp (cột Lần nộp); (TT) theo loại tiền của đơn; ô số tự chèn dấu chấm — xong local 28.09, PR nháp vào `main`.

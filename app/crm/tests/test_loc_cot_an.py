@@ -97,7 +97,9 @@ def test_loc_cot_an_khong_mo_rong_pham_vi(client, cot_an, nguoi_dung):
     nhân viên Sale vẫn chỉ thấy dòng của mình dù bộ lọc cột ẩn khớp cả dòng người khác"""
     bang, ma, rows = cot_an
     client.force_login(nguoi_dung["staff_sale_2"])
-    kq = client.get(f"/bang/{bang.code}/?f_{ma}__lon_bang=1")
+    assert client.get(f"/bang/{bang.code}/?f_{ma}__lon_bang=1").status_code == 403
+    with override_settings(ROOT_URLCONF="knjsc.urls_bangtinh"):
+        kq = client.get(f"/bang-tinh/{bang.code}/du-lieu/?f_{ma}__lon_bang=1")
     assert kq.status_code == 200
-    thay = [d.pk for d, _ in kq.context["cac_dong"]]
+    thay = [d["id"] for d in kq.json()["rows"]]
     assert rows[0].pk not in thay  # dòng của staff_sale_1 khớp bộ lọc nhưng ngoài phạm vi

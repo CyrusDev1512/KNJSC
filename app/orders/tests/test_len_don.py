@@ -212,8 +212,13 @@ def test_van_don_khong_sua_duoc_o_bang_du_lieu(client, bang_van_don, san_pham, n
     for ai in ("staff_vd", "admin"):
         client.force_login(nguoi_dung[ai])
         assert client.post(duong_dan, {"gia_tri": "Đang giao"}).status_code == 404
-        html = client.get(f"/bang/{bang_van_don.code}/").content.decode()
-        assert "Bảng này chỉ để xem" in html and "hx-post" not in html
+        response = client.get(f"/bang/{bang_van_don.code}/")
+        if ai == "staff_vd":
+            assert response.status_code == 403  # ADR-045: Staff không mở Bảng dữ liệu ERP.
+        else:
+            assert response.status_code == 200
+            html = response.content.decode()
+            assert "Bảng này chỉ để xem" in html and "hx-post" not in html
 
     don.record.refresh_from_db()
     assert don.record.data.get("trang_thai_vc") != "Đang giao"
@@ -301,6 +306,47 @@ def test_nhan_dien_khach_mua_lai(bang_van_don, san_pham, nguoi_dung):
 
     assert nhac["mua_lai"] is True
     assert nhac["so_don_cu"] == 1
+
+
+def test_mua_lai_dem_theo_dong_con_tren_bang_van_don(bang_van_don, san_pham, nguoi_dung):
+    """AC-6.8 — "Khách mua lại" đếm theo dòng đang sống trên bảng Vận đơn, cùng thước đo với cột
+    Trùng (chủ dự án 28.09.2026): xoá dòng trên lưới, hay đơn chỉ còn trong bảng cũ đã xoá cứng
+    (mất liên kết dòng), thì không còn báo; dòng nhập thẳng vào bảng vẫn được tính"""
+    from forms_builder.services import record_service
+    vd = nguoi_dung["staff_vd"]
+
+    don = _len_don(nguoi_dung["staff_sale_1"], san_pham, phone="0912345678")
+    assert order_service.customer_notice("0912345678")["so_don_cu"] == 1
+    don.record.delete(by=vd)   # xoá mềm như delete_record, bỏ qua bước kiểm quyền
+    nhac = order_service.customer_notice("0912345678")
+    assert nhac["mua_lai"] is False and nhac["so_don_cu"] == 0, "dòng đã xoá khỏi lưới vẫn bị tính"
+
+    # Đơn của bảng cũ đã xoá cứng: đơn còn nhưng không còn dòng nào (xoa_bang_van_don_cu)
+    cu = _len_don(nguoi_dung["staff_sale_1"], san_pham, phone="0987654321")
+    dong_cu = cu.record
+    Order.objects.filter(pk=cu.pk).update(record=None)
+    DataRecord.all_objects.filter(pk=dong_cu.pk).update(table=TableDef.objects.create(
+        name="Bảng cũ", code="van_don_cu_da_xoa", department=bang_van_don.department))
+    assert order_service.customer_notice("0987654321")["mua_lai"] is False
+
+    # Dòng nhập thẳng vào bảng (không qua Lên đơn) vẫn là khách đã có trên bảng tính
+    record_service.create_record(bang_van_don, {"ten_khach": "Khách Nhập Tệp", "so_dien_thoai": "+84 900 111 222"},
+                                 actor=vd)
+    nhap = order_service.customer_notice("0900111222")
+    assert nhap["mua_lai"] is True and nhap["so_don_cu"] == 1
+
+
+def test_cot_mua_lai_lan_khong_tinh_dong_da_xoa(bang_van_don, san_pham, nguoi_dung):
+    """AC-6.8 — Cột "Mua lại lần" của đơn mới đếm cùng thước đo: đơn trước đã xoá khỏi lưới thì
+    đơn mới là lần 1; đơn trước còn thì lần 2"""
+    nv = nguoi_dung["staff_sale_1"]
+    dau = _len_don(nv, san_pham, phone="0912345678")
+    dau.record.delete(by=nguoi_dung["staff_vd"])
+    hai = _len_don(nv, san_pham, phone="0912345678")
+    assert hai.record.data["mua_lai"] == 1
+    ba = _len_don(nv, san_pham, phone="0912345678")
+    assert ba.record.data["mua_lai"] == 2
+    assert dispatch_service.build_values(ba)["mua_lai"] == 2, "dựng lại giá trị không được tự đếm chính mình"
 
 
 def test_don_sau_lay_ten_vua_go_chu_khong_giu_ten_cu(bang_van_don, san_pham, nguoi_dung):

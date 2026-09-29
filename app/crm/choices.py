@@ -21,7 +21,7 @@ def nhan_vien_van_don():
     from org.models import UserProfile
 
     return [ma or ten_dn for ma, ten_dn in UserProfile.objects.filter(
-        department__code=WAYBILL_DEPARTMENT_CODE, user__is_active=True,
+        department__code=WAYBILL_DEPARTMENT_CODE, user__is_active=True, deleted_at__isnull=True,
     ).order_by("staff_code", "user__username").values_list("staff_code", "user__username")]
 
 

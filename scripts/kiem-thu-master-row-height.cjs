@@ -36,14 +36,16 @@ module.exports=async function rowHeightChecks({page,context,base}){
   const last=(await page.evaluate(()=>window.KNJSC_MASTER.diagnostics())).total-1;
   await page.locator('#mg-viewport').focus();await page.keyboard.press('Control+End');await page.locator(`.mg-cell[data-r="${last}"][data-id]`).first().waitFor();
   assert.equal(await page.locator(`.mg-cell[data-r="${last}"]`).first().getAttribute('data-id'),id);assert.equal(await height(last),160);
-  // Chữ dài xuống dòng và còn cắt dọc vẫn mở vùng đọc.
-  // Dòng ghi chú dài tự giãn cao; ép về 28 rồi mới kéo 92 để ô còn tràn dọc mà hộp đọc mở được.
+  // Chữ dài xuống dòng, còn cắt dọc: click đơn CHỈ chọn ô (góp ý 26.09), bấm đúp mở ô nhập.
+  // Dòng ghi chú dài tự giãn cao; ép về 28 rồi mới kéo 92 để ô còn tràn dọc.
   await open(base+'/bang-tinh/van_don/?f_ma_don=MASTER-01299');const tuDong=await height(0);assert(tuDong>28,'dòng ghi chú dài phải tự giãn');
   await drag(0,-Math.ceil(tuDong));assert.equal(await height(0),28);await drag(0,92);
   await page.locator('#mg-viewport').evaluate(e=>e.scrollLeft=3000);
   const note=page.locator('.mg-cell[data-code="ghi_chu"][data-r="0"]');await note.waitFor();
-  assert.equal(await note.evaluate(e=>getComputedStyle(e).whiteSpace),'pre-wrap');await note.click();await page.locator('#mg-reader').waitFor();await page.screenshot({path:require('path').resolve(__dirname,'../.agents/design-state/review/master/row-height-reader.png')});
-  await page.keyboard.press('Escape');await note.dblclick({delay:120});await page.locator('#mg-editor textarea').waitFor();
+  assert.equal(await note.evaluate(e=>getComputedStyle(e).whiteSpace),'pre-wrap');await note.click();await page.waitForTimeout(500);
+  assert(await page.evaluate(()=>document.getElementById('mg-reader').hidden),'click đơn không được mở ô phồng');
+  await note.dblclick({delay:120});await page.locator('#mg-editor textarea').waitFor();
+  await page.screenshot({path:require('path').resolve(__dirname,'../.agents/design-state/review/master/row-height-editor.png')});
   await page.keyboard.press('Escape');
   await page.locator('#mg-viewport').evaluate(e=>e.scrollLeft=0);
   await handle(0).focus();await page.keyboard.press('Home');assert(await height(0)>28,'Home về chiều cao tự tính của ghi chú dài');

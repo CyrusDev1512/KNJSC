@@ -38,13 +38,15 @@ def _du(form, **doi):
     return _payload(form, **gia_tri)
 
 
-def test_chon_team_tren_form_nhap(client, bang_mkt, mkt_source, departments, teams, nguoi_dung, make_user):
-    """AC-43.1 — Form nộp báo cáo có dropdown các team đang hoạt động của bộ phận sở hữu biểu mẫu (không lẫn
+def test_admin_chon_team_tren_form_nhap(client, bang_mkt, mkt_source, departments, teams, nguoi_dung, make_user):
+    """AC-43.1, thay thế 25.09 — Admin nộp báo cáo có dropdown các team đang hoạt động của bộ phận sở hữu biểu mẫu (không lẫn
     team bộ phận khác), chọn sẵn team trong hồ sơ; nộp với team khác trong bộ phận thì dòng dữ liệu và báo cáo
     mang team đó — Leader team ấy xem và sửa được, Leader team khác không thấy; team của bộ phận khác hay id lạ
     bị từ chối, không lưu; để trống thì theo hồ sơ; bộ phận không có team đang hoạt động thì không có ô Team"""
     form = mkt_source.table.forms.get()
-    A = nguoi_dung["staff_mkt"]
+    A = nguoi_dung["admin"]
+    A.profile.department = departments["mkt"]
+    A.profile.save(update_fields=["department"])
     leader_a = make_user("leader_mkt_a", Rank.LEADER, departments["mkt"])
     leader_b = make_user("leader_mkt_b", Rank.LEADER, departments["mkt"])
     team_a = Team.objects.create(name="MKT A", department=departments["mkt"], leader=leader_a)
@@ -82,7 +84,7 @@ def test_chon_team_tren_form_nhap(client, bang_mkt, mkt_source, departments, tea
     # Bộ phận không còn team đang hoạt động → không có ô Team, vẫn nộp được theo hồ sơ
     Team.objects.filter(department=departments["mkt"]).update(is_active=False)
     html = client.get("/bao-cao/", {"bieu_mau": form.code}).content.decode()
-    assert 'id="o-team"' not in html
+    assert '<select class="o-nhap" id="o-team"' not in html
     assert client.post("/bao-cao/", _du(form)).status_code == 302
     assert DailyReport.objects.order_by("-pk").first().team_id == team_a.pk
 
@@ -175,7 +177,7 @@ def test_bo_cuc_ngang_form_nhap(client, bang_mkt, mkt_source, nguoi_dung):
 def test_mot_o_team_tren_form_nhap(client, bang_mkt, departments, nguoi_dung, make_user):
     """AC-43.5 — Bảng báo cáo có sẵn cột Team dạng chữ (mã `team` hay nhãn "Team", như dữ liệu thật) thì
     `configure_erp_reports` gỡ ô nhập của cột đó, không tạo lại và ghi ánh xạ `team`; form chỉ còn **một** ô
-    Team là dropdown; khi nộp, hệ thống ghi tên team đã chọn (không chọn thì team hồ sơ) vào cột, chữ gõ tay
+    Team; khi nộp, hệ thống ghi tên team (Staff theo hồ sơ — ADR-045; Admin chọn dropdown) vào cột, chữ gõ tay
     gửi thẳng lên bị bỏ; người chưa có team và không chọn thì cột trống, vẫn nộp được; Bảng dữ liệu vẫn hiện
     tên team ở cột đó; bảng Sale do lệnh dựng cũng vậy"""
     form = FormDef.objects.create(table=bang_mkt, department=bang_mkt.department, code="bc_mkt_team", name="BC MKT")
@@ -197,14 +199,16 @@ def test_mot_o_team_tren_form_nhap(client, bang_mkt, departments, nguoi_dung, ma
     html = client.get("/bao-cao/", {"bieu_mau": form.code}).content.decode()
     assert html.count(">Team</label>") == 1 and 'id="o-team"' in html
     assert not re.search(r'name="[a-z0-9_]*team_(mau|cu)"', html)
-    # Chọn team B → cột Team dạng chữ mang "MKT B"; chữ gõ tay gửi thẳng lên bị bỏ
+    # ADR-045 (25.09, sau ADR-043): Staff bị khoá Team theo hồ sơ — gửi team B lên vẫn ghi team A; chữ gõ
+    # tay gửi thẳng lên cột Team bị bỏ
     r = client.post("/bao-cao/", {**_du(form), "team": str(team_b.pk), "team_mau": "gõ tay", "team_cu": "gõ tay"})
     assert r.status_code == 302, r.content[:300]
     bao_cao = DailyReport.objects.get()
-    assert bao_cao.team_id == team_b.pk and bao_cao.record.data["team_mau"] == "MKT B"
-    # Không chọn → team hồ sơ
-    assert client.post("/bao-cao/", {**_du(form), "team": ""}).status_code == 302
-    assert DailyReport.objects.order_by("-pk").first().record.data["team_mau"] == "MKT A"
+    assert bao_cao.team_id == team_a.pk and bao_cao.record.data["team_mau"] == "MKT A"
+    # Admin còn dropdown: chọn team B → cột Team dạng chữ mang "MKT B"
+    client.force_login(nguoi_dung["admin"])
+    assert client.post("/bao-cao/", {**_du(form), "bieu_mau": form.code, "team": str(team_b.pk)}).status_code == 302
+    assert DailyReport.objects.order_by("-pk").first().record.data["team_mau"] == "MKT B"
     # Người chưa có team, không chọn → cột trống, vẫn nộp được
     client.force_login(make_user("mkt_khong_team", Rank.STAFF, departments["mkt"]))
     assert client.post("/bao-cao/", {**_du(form), "team": ""}).status_code == 302

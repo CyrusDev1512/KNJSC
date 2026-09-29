@@ -273,7 +273,7 @@ class GrantForm(forms.Form):
         from org.models import Team
 
         self.fields["user"].queryset = get_user_model().objects.filter(
-            is_active=True).order_by("username")
+            is_active=True, profile__deleted_at__isnull=True).order_by("username")
         self.fields["team"].queryset = Team.objects.all()
         self.fields["action"].choices = (
             [(GrantAction.VIEW, GrantAction.VIEW.label),

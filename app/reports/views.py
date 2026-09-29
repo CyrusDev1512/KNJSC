@@ -44,6 +44,8 @@ def bao_cao_ngay(request):
     Biểu mẫu đổi theo bộ phận: danh sách lấy qua `FormDef.objects.in_scope`
     nên mỗi bộ phận chỉ thấy biểu mẫu của mình (AC-4.1).
     """
+    from core.permissions import assert_business_write
+    assert_business_write(request.user)
     request.nav_current = "bao_cao_ngay"
 
     cac_bieu_mau = list(daily_service.forms_for(request.user))
@@ -57,8 +59,10 @@ def bao_cao_ngay(request):
     ngay = timezone.localdate()
     cac_truong = list(bm.ordered_fields()) if bm else []
     du_lieu, loi = {}, []
-    # Dropdown Team (ADR-043): team của bộ phận sở hữu biểu mẫu, chọn sẵn team hồ sơ
-    cac_team = daily_service.team_choices(bm) if bm else []
+    from core.permissions import is_admin
+    duoc_chon_team = is_admin(request.user)
+    team_ho_so = getattr(getattr(request.user, 'profile', None), 'team', None)
+    cac_team = daily_service.team_choices(bm) if bm and duoc_chon_team else []
     team_chon = request.POST.get("team") if request.method == "POST" else None
     if team_chon is None:
         team_chon = daily_service.default_team_id(request.user)
@@ -67,7 +71,7 @@ def bao_cao_ngay(request):
         du_lieu = {t.field.code: request.POST.get(t.field.code, "").strip()
                    for t in cac_truong}
         try:
-            team = daily_service.resolve_team(bm, request.POST.get("team")) if cac_team else None
+            team = daily_service.resolve_team(bm, request.POST.get("team")) if duoc_chon_team and cac_team else team_ho_so
             daily_service.submit_current(
                 bm, du_lieu, actor=request.user,
                 request=request, fields=cac_truong, team=team,
@@ -83,6 +87,7 @@ def bao_cao_ngay(request):
     return render(request, "reports/bao_cao_ngay.html", {
         "cac_bieu_mau": cac_bieu_mau, "bm": bm, "ngay": ngay, "so_lan_da_nop": so_lan_da_nop,
         "cac_team": cac_team, "team_chon": str(team_chon or ""),
+        "team_tu_dong": team_ho_so.name if team_ho_so else 'Chưa được gán Team',
         # Ô nhập, ô chọn, ô danh tính — cùng bộ với màn hình điền biểu mẫu
         "cac_o": daily_service.report_widgets(
             bm, cac_truong, du_lieu, user=request.user, day=ngay,

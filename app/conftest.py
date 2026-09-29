@@ -3,10 +3,29 @@
 Dựng đủ chín vai trò của ma trận phân quyền: ba bộ phận nhân ba cấp bậc,
 cộng một quản trị viên.
 """
+import warnings
+
 import pytest
 from django.contrib.auth import get_user_model
 
 from core.constants import Rank
+from tests.live_server_requests import LIVE_SERVER_REQUESTS
+
+
+@pytest.fixture(autouse=True)
+def _live_server_idle_before_flush(request):
+    """TL-67 — Bài có máy chủ thử: trình duyệt đóng xong thì chờ máy chủ xử lý hết yêu cầu dở rồi mới
+    để pytest-django dọn bảng, không thì TRUNCATE kẹt khoá với truy vấn đang chạy
+    (`tests/live_server_requests.py`)."""
+    if "live_server" not in request.fixturenames:
+        yield
+        return
+    # CSDL dựng trước fixture này nên dọn sau nó; các fixture của bài (trang, trình duyệt) dựng sau
+    # nên đóng trước — lúc chờ ở dưới, tab đã đóng và pytest chưa TRUNCATE
+    request.getfixturevalue("transactional_db")
+    yield
+    if not LIVE_SERVER_REQUESTS.wait_idle():
+        warnings.warn("Máy chủ thử còn yêu cầu dở sau 5 giây, dọn bảng có thể kẹt khoá (TL-67)", stacklevel=1)
 
 
 @pytest.fixture

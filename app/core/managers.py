@@ -165,7 +165,7 @@ class BackgroundJobQuerySet(models.QuerySet):
 
     def in_scope(self, user):
         scope = get_user_scope(user)
-        if scope.all_departments:
+        if scope.is_admin:
             return self
         return self.filter(created_by_id=scope.user_id)
 

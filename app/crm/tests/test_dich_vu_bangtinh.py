@@ -60,7 +60,7 @@ def test_dich_vu_bangtinh_chi_co_bang_tinh_va_dang_nhap(client, bang_vd, nguoi_d
         ).status_code == 200
         assert client.get("/bang/").status_code == 404
         assert client.get("/len-don/").status_code == 404
-        assert client.get("/tac-vu/").status_code == 200, "tải tệp xuất lớn vẫn cần trang tác vụ"
+        assert client.get("/tac-vu/").status_code == 403, "danh sách tác vụ chỉ dành cho Admin"
     dong.refresh_from_db()
     assert dong.data["ghi_chu"] == "sửa ở Bảng tính"
 
@@ -88,6 +88,8 @@ def test_erp_chi_con_lien_ket_sang_kn_crm(client, bang_vd, nguoi_dung, settings)
     client.force_login(nguoi_dung["staff_vd"])
     assert client.get("/bang-tinh/").status_code == 404, "lưới không còn ở ERP"
     assert client.get("/bang-tinh/van_don/").status_code == 404
+    assert client.get("/bang/van_don/").status_code == 403
+    client.force_login(nguoi_dung["admin"])
     html = client.get("/bang/van_don/").content.decode()
     assert 'href="http://localhost:8021/bang-tinh/van_don/" target="_blank" rel="noopener">Mở trong KN CRM</a>' in html
 

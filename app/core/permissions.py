@@ -4,11 +4,17 @@ Nguyên tắc P1: quyền kiểm ở máy chủ, không chỉ ẩn chức năng 
 Nguyên tắc P3: ra ngoài phạm vi thì trả lỗi từ chối, không trả danh sách rỗng.
 """
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.conf import settings
 
 from .audit import record_denied
 from .constants import Rank, rank_level
 from .exceptions import OutOfScopeError
 from .scope import get_user_scope
+
+
+def is_crm_request(request):
+    """Các URL dùng chung cần giữ riêng chính sách ERP và CRM."""
+    return (getattr(request, 'urlconf', None) or settings.ROOT_URLCONF) == 'knjsc.urls_bangtinh'
 
 
 def get_rank(user):
@@ -27,6 +33,20 @@ def has_rank(user, minimum):
 def is_admin(user):
     """Admin có tất cả các quyền, ở mọi bộ phận."""
     return get_rank(user) == Rank.ADMIN
+
+
+def is_company_reader(user):
+    """CEO có phạm vi đọc toàn công ty, không kế thừa quyền ghi của quản lý."""
+    return get_rank(user) == Rank.CEO
+
+
+def can_manage_business(user, minimum=Rank.MANAGER):
+    return not is_company_reader(user) and has_rank(user, minimum)
+
+
+def assert_business_write(user):
+    if is_company_reader(user):
+        raise OutOfScopeError("Giám đốc có quyền xem; không có quyền sửa nghiệp vụ này.")
 
 
 def in_department(user, department_id):
@@ -56,6 +76,13 @@ def in_departments(user, codes):
 def assert_rank(user, minimum, request=None):
     """Chặn nếu cấp bậc thấp hơn mức yêu cầu."""
     if not has_rank(user, minimum):
+        record_denied(user, getattr(request, "path", ""), request)
+        raise OutOfScopeError()
+
+
+def assert_admin(user, request=None):
+    """Quản trị hệ thống khác quyền xem toàn công ty của CEO."""
+    if not is_admin(user):
         record_denied(user, getattr(request, "path", ""), request)
         raise OutOfScopeError()
 

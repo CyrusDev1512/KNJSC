@@ -277,11 +277,10 @@ def build_grid(user, params, *, table=None):
         if san_pham and 'san_pham__trong' not in bo_loc:
             ds = ds.filter(pk__in=WaybillItem.objects.filter(deleted_at__isnull=True,
                 product__code__in=san_pham).values('record_id'))
-        # "Tôi": dòng có người xem ở cột phụ trách của bộ phận mình. Admin, Kế
-        # toán và bộ phận không có cột phụ trách thì tham số bị bỏ qua (ADR-033)
-        truong = assignment_service.field_for(user) if params.get(MY_SCOPE_PARAM) == "1" else None
-        if truong:
-            ds = ds.filter(**{f"assignment__{truong}_id": user.pk})
+        # "Tôi": dòng tôi lên đơn / đứng đơn hoặc được giao ở bất kỳ cột phụ trách nào
+        # (ADR-033 bổ sung 28.09.2026) — với mọi tài khoản
+        if params.get(MY_SCOPE_PARAM) == "1":
+            ds = ds.filter(assignment_service.mine_condition(user))
             cua_toi = True
         ds = assignment_service.related(ds)
     if van_don:

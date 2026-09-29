@@ -20,6 +20,7 @@
 <form method="get" class="panel-body report-filters">
 <div class="truong"><label for="nguon">Nguồn báo cáo</label><select class="o-nhap" name="nguon" id="nguon">{% for s in sources %}<option value="{{ s.table.code }}" {% if source.pk == s.pk %}selected{% endif %}>{{ s.table.name }}</option>{% endfor %}</select></div>
 <div class="truong"><label for="nhom">Cách xem</label><select class="o-nhap" name="nhom" id="nhom">{% for code,label in groups %}<option value="{{ code }}" {% if params.group == code %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+{% include "reports/_che_do.html" %}
 <div class="truong report-presets" role="group" aria-label="Chọn nhanh kỳ"><span class="nhan-nho">Chọn nhanh</span>{% for p in presets %}<button type="button" class="nut report-preset{% if p.active %} is-active{% endif %}" data-key="{{ p.key }}" data-tu="{{ p.start|date:'Y-m-d' }}" data-den="{{ p.end|date:'Y-m-d' }}">{{ p.label }}</button>{% endfor %}</div>
 <div class="hang-2">
 <div class="truong"><label for="tu">Từ ngày</label><input class="o-nhap" type="date" id="tu" name="tu" value="{{ params.start|date:'Y-m-d' }}"></div>
@@ -36,8 +37,8 @@
 </aside>
 <div class="report-backdrop" id="report-backdrop"></div>
 <section class="report-results" aria-label="Kết quả báo cáo">
-{% if result.currency_warning %}<p class="bao bao-cho" role="status">{{ result.currency_warning }}</p>{% elif result.currency_label %}<p class="nho">Đơn vị: {{ result.currency_label }}</p>{% endif %}
-{% if source %}<div class="report-results-heading"><h2>{{ source.table.name }}</h2><p>{{ params.start|date:'d/m/Y' }} – {{ params.end|date:'d/m/Y' }} · Tổng trên toàn bộ kết quả khớp bộ lọc{% if source.kind == 'mkt' %} · (TT) = đối soát từ vận đơn do marketer phụ trách theo ngày lên đơn: Số đơn (TT) là số đơn, DS Chốt (TT) là tiền đã thu{% if params.segment %} — để trống khi lọc theo Tệp khách hàng{% endif %}{% endif %}</p></div>{% include "reports/_nguong.html" %}{% endif %}
+{% if result.currency_warning %}<p class="bao bao-cho" role="status">{{ result.currency_warning }}</p>{% endif %}{% if result.currency_label %}<p class="nho">{{ result.currency_label }}</p>{% endif %}
+{% if source %}<div class="report-results-heading"><h2>{{ source.table.name }}</h2><p>{{ params.start|date:'d/m/Y' }} – {{ params.end|date:'d/m/Y' }} · Tổng trên toàn bộ kết quả khớp bộ lọc{% if source.kind == 'mkt' %} · (TT) = đối soát từ vận đơn do marketer phụ trách theo ngày lên đơn: Số đơn (TT) là số đơn, DS Chốt (TT) là tiền đã thu theo loại tiền của đơn{% if result.derived_shared %}; ngày nào một người nộp nhiều lần (cùng loại tiền) thì (TT) chỉ hiện ở dòng TỔNG CỘNG của ngày{% endif %}{% if params.segment %} — để trống khi lọc theo Tệp khách hàng{% endif %}{% endif %}</p></div>{% include "reports/_nguong.html" %}{% endif %}
 {% if error %}<p class="bao bao-xau" role="alert">{{ error }}</p>{% elif not source %}<p>Chưa có nguồn báo cáo trong phạm vi của bạn.</p>{% elif unavailable %}<p>Chưa đủ cấu hình chỉ tiêu cho nguồn này.</p>{% elif empty %}<p>Chưa có dữ liệu trong bộ lọc này.</p>{% endif %}
 {% if result.ok %}<div class="bang-cuon report-table-scroll" tabindex="0" role="region" aria-label="Bảng số liệu, cuộn ngang để xem thêm">{% for b in blocks %}{% include "reports/_bang_khoi.html" %}{% endfor %}</div>{% include 'components/phan_trang.html' %}{% endif %}</section></div></div>
 {% if shipping %}<section class="bang-hop"><h2>Trạng thái giao hàng</h2><ul>{% for g in shipping %}<li>{{ g.label|default:'Chưa xác định' }}: {{ g.count }} đơn</li>{% endfor %}</ul></section>{% endif %}

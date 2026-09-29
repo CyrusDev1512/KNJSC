@@ -577,7 +577,7 @@ def grid_column(column):
     """Khả năng hiển thị của bảng vận đơn (một bảng duy nhất, ADR-036)."""
     payment_documents = getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
     is_bill = column.code == 'bill'
-    kha_nang = {'detail':column.code in DETAIL_CELLS, 'assignment':column.code in assignment_service.COLUMNS,
+    kha_nang = {'detail':column.code in DETAIL_CELLS, 'assignment':assignment_service.COLUMNS.get(column.code, False),
         'protected':column.is_computed or column.code in PROTECTED or column.code == 'loai_tien' or column.code in assignment_service.COLUMNS
             or (is_bill and payment_documents),
         'renderer':'bill' if is_bill and payment_documents else ('url' if is_bill else 'value'),

@@ -5,8 +5,9 @@ Manager của bộ phận sở hữu nguồn (cùng luật với sửa cột, `g
 trên chính màn hình báo cáo, lưu ở `ReportSource.thresholds` `{mã chỉ tiêu: {"tot", "kem"}}`.
 Chỉ tiêu chưa có ngưỡng giữ cách tô tương đối ±10 % so với dòng Tổng (AC-22.16).
 
-Đơn vị nhập theo đúng ô hiển thị: tỉ lệ theo % (8 = 8 %), tiền theo ₫ đã quy đổi, tỉ số CPQC/DS
-Chốt là số thuần. Chiều tốt lấy từ `reports.constants.METRIC_DIRECTION`.
+Đơn vị nhập theo đúng ô hiển thị: tỉ lệ theo % (8 = 8 %), tỉ số CPQC/DS Chốt là số thuần, tiền theo
+₫ — báo cáo không quy đổi (ADR-046) nên ngưỡng tiền chỉ tô dòng VND. Chiều tốt lấy từ
+`reports.constants.METRIC_DIRECTION`.
 """
 from decimal import Decimal, InvalidOperation
 

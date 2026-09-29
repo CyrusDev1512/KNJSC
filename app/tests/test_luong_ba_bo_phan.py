@@ -201,14 +201,16 @@ def test_moi_bo_phan_chi_thay_phan_cua_minh(client, departments, teams, nguoi_du
 
     client.force_login(nguoi_dung["staff_mkt"])
     assert client.get("/len-don/").status_code == 403      # Marketing không lên đơn
-    assert client.get("/bang/van_don/").status_code == 404  # không thấy bảng vận đơn
+    assert client.get("/bang/van_don/").status_code == 403  # ADR-045: Staff không vào bảng ERP.
 
     client.force_login(nguoi_dung["staff_vd"])
     assert client.get("/len-don/").status_code == 403      # Vận đơn không lên đơn
-    assert client.get("/bang/van_don/").status_code == 200  # nhưng thấy bảng của mình
+    assert client.get("/bang/van_don/").status_code == 403
+    with override_settings(ROOT_URLCONF="knjsc.urls_bangtinh"):
+        assert client.get("/bang-tinh/van_don/du-lieu/").status_code == 200
 
     client.force_login(nguoi_dung["staff_sale_1"])
     # Sale vẫn có quyền, nhưng KN ERP đưa sang KN CRM chứ không mở tại chỗ (ADR-023)
     kq = client.get("/len-don/")
     assert kq.status_code == 302 and "/van-don/len-don/" in kq["Location"]
-    assert client.get("/bang/van_don/").status_code == 404  # không thấy bảng vận đơn
+    assert client.get("/bang/van_don/").status_code == 403

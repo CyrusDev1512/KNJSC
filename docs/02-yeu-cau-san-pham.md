@@ -93,12 +93,13 @@ BR-x       Quy tắc nghiệp vụ     — ràng buộc luôn đúng
 | FR-5.4 | Báo cáo phải hiển thị dòng tổng cộng |
 | FR-5.5 | Báo cáo phải chỉ hiển thị dữ liệu trong phạm vi quyền của người xem |
 | FR-5.6 | Hệ thống phải cho phép xuất báo cáo ra tệp Excel |
-| FR-5.7 | **Tiền quy về ₫ trước khi cộng** (ADR-042): mọi cột tiền nhân tỉ giá cố định theo loại tiền của từng dòng ngay trong truy vấn rồi mới cộng; dòng thiếu tỉ giá không vào tổng và được đếm trong cảnh báo; không còn để trống chỉ tiêu khi lẫn loại tiền |
+| FR-5.7 | **Số tiền giữ đúng như đã nhập, không quy đổi** (ADR-046 thay ADR-042 ngày 28.09.2026): mỗi dòng một loại tiền (cột Loại tiền cạnh cột số), TỔNG CỘNG tách theo loại tiền, không bao giờ cộng hai loại tiền; dòng chưa có loại tiền thành nhóm "Chưa rõ" có cảnh báo |
 | FR-5.8 | Báo cáo Marketing có ba cột **đối soát từ vận đơn**: Số đơn (TT), DS Chốt (TT), Tỉ lệ chốt (TT) — theo marketer phụ trách và ngày lên đơn; Tỉ lệ chốt hiện %; nhãn cột theo ảnh mẫu (DS Chốt, CPQC/DS Chốt, Hóa đơn/DS Chốt (TT)) (ADR-042) |
 | FR-5.9 | Cách xem Tổng hợp có **bố cục khối như ảnh mẫu**: khối toàn kỳ theo nhân sự đứng đầu (STT · Team · Nhân sự · Leader, TỔNG CỘNG ngay dưới tiêu đề), rồi mỗi ngày một bảng riêng có TỔNG CỘNG và STT đếm lại; nút **Gộp / Không gộp** (Gộp = mỗi ngày một dòng); Excel hai sheet cùng khối (ADR-042) |
 | FR-5.10 | **Ngưỡng màu ba bậc** xanh / vàng / đỏ theo mốc tuyệt đối từng chỉ tiêu, do quản lý của bộ phận sở hữu nguồn đặt ngay trên màn hình báo cáo; chưa đặt thì tô tương đối so với dòng Tổng; không có số mặc định (ADR-042) |
 | FR-5.11 | Bộ lọc Sản phẩm **tick nhiều mục** (có ô tìm nhanh, Chọn tất cả), Chọn nhanh có "Tuần này"; danh sách sản phẩm chỉ gồm sản phẩm có thật trong phạm vi quyền (ADR-042) |
 | FR-5.12 | Mọi màn hình báo cáo giữ ngân sách không quá 10 truy vấn (Q2); liên kết phân trang và chip bộ lọc phản ánh đúng trạng thái đang áp (ADR-042) |
+| FR-5.13 | **Chế độ số liệu** trong bộ lọc (ADR-046): Cộng theo ngày (mỗi người mỗi ngày một dòng cho mỗi loại tiền, nộp nhiều lần thì cộng) hoặc Từng lần nộp (mỗi lần nộp một dòng, số đúng như nhập, cột Lần nộp); Báo cáo tổng hợp mặc định Cộng theo ngày, Bảng dữ liệu dạng báo cáo mặc định Từng lần nộp; Excel theo chế độ đang chọn |
 
 ---
 
@@ -338,7 +339,9 @@ Nhập file, phân công và chi tiết sản phẩm vẫn có nút gửi riêng
   là nhập ngay với ký tự vừa gõ; Enter, F2 hoặc bấm đúp mở ô nhập giữ giá trị cũ.
   Tab và Enter trong ô nhập chuyển sang ô kế nhưng không tự mở; Ctrl+A chọn cả
   bảng, Delete xoá vùng chọn. Ô nhiều dòng Enter xuống dòng, Ctrl+Enter kết thúc.
-  Ô không sửa được thì gõ phím mở vùng đọc. Nút **Tôi / Toàn bộ** ở bảng Vận đơn lọc theo cột phụ trách của
+  Ô không sửa được thì gõ phím hay bấm đúp mở vùng đọc khi đang bị cắt chữ (ô
+  phồng to tại chỗ, bổ sung ADR-033 26.09); click đơn chỉ chọn ô, không mở gì.
+  Nút **Tôi / Toàn bộ** ở bảng Vận đơn lọc theo cột phụ trách của
   bộ phận mình, nhớ trên trình duyệt, mặc định Toàn bộ.
 - Bấm số hàng để chọn hàng. Dòng đầu mang số 1. Đơn mới ở cuối theo mặc định.
 - Định dạng có cỡ chữ/màu chữ/màu nền, dùng cùng autosave và Undo/Redo.

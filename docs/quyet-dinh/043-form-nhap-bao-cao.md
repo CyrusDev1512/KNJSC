@@ -1,5 +1,9 @@
 # ADR-043 — Form Nộp báo cáo ngày: chọn Team, bốn trường bắt buộc, bỏ Hóa đơn, bố cục ngang
 
+> Thay thế một phần ngày 25.09: [ADR-045](045-team-he-thong-va-quyen-menu-erp.md)
+> khóa Team theo hồ sơ cho Staff/Leader/Manager; Admin giữ dropdown. Các quyết định
+> trường bắt buộc, Hóa đơn và bố cục bên dưới vẫn giữ.
+
 | | |
 |---|---|
 | Ngày | 24.09.2026 |
@@ -74,3 +78,7 @@ hệ thống tự ghi tên team của dòng vào đó khi nộp — như ô Mark
 
 **Không đổi.** Dòng cũ giữ chữ đã gõ; nhập Excel (`create_records_bulk`) vẫn nhận cột Team từ tệp; Bảng dữ
 liệu và tệp xuất vẫn có cột Team. Tiêu chí AC-43.5.
+
+> Gộp vào `main` 29.09.2026 (PR #51), sau ADR-045: ô Team duy nhất ở trên chỉ **chọn được với Admin**;
+> Staff/Leader/Manager bị khoá Team theo hồ sơ (ADR-045 thay phần chọn Team cho mọi vai trò). Cột Team dạng
+> chữ vẫn rời form nhập và ghi tên team của dòng. Bài `test_mot_o_team_tren_form_nhap` viết lại theo đó.

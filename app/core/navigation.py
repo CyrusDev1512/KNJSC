@@ -12,7 +12,7 @@ from django.conf import settings
 from django.urls import NoReverseMatch, reverse
 
 from .constants import Rank
-from .permissions import has_rank, in_departments
+from .permissions import has_rank, in_departments, is_admin, is_company_reader
 
 #: Lên đơn là chức năng của bộ phận Sale — `docs/04` mục 3 ghi rõ Vận đơn
 #: bị từ chối ở màn hình này.
@@ -87,13 +87,13 @@ NAVIGATION = (
         NavItem("bao_cao_tong_hop", "Báo cáo tổng hợp", "bao_cao_tong_hop"),
     )),
     NavGroup("Dữ liệu", (
-        NavItem("bang", "Bảng dữ liệu", "bang"),
+        NavItem("bang", "Bảng dữ liệu", "bang", Rank.MANAGER),
         NavItem("bieu_mau", "Biểu mẫu & tài liệu", "bieu_mau"),
     )),
     NavGroup("Quản trị", (
-        NavItem("nhat_ky", "Nhật ký hoạt động", "nhat_ky", Rank.MANAGER),
-        NavItem("ma_tran_quyen", "Ma trận phân quyền", "ma_tran_quyen", Rank.MANAGER),
-        NavItem("tac_vu", "Tác vụ nền", "tac_vu"),
+        NavItem("nhat_ky", "Nhật ký hoạt động", "nhat_ky", Rank.ADMIN),
+        NavItem("ma_tran_quyen", "Ma trận phân quyền", "ma_tran_quyen", Rank.ADMIN),
+        NavItem("tac_vu", "Tác vụ nền", "tac_vu", Rank.ADMIN),
     )),
 )
 
@@ -107,6 +107,8 @@ def visible_navigation(user):
              "new_tab": m.new_tab and m.is_external()}
             for m in group.items
             if has_rank(user, m.min_rank) and in_departments(user, m.departments)
+            and (m.min_rank != Rank.ADMIN or is_admin(user))
+            and (m.code != 'bao_cao_ngay' or not is_company_reader(user))
             and not (m.exclude_departments and in_departments(user, m.exclude_departments))
             and (href := m.href())
         ]

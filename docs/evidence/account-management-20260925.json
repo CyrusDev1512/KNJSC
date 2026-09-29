@@ -1,0 +1,102 @@
+{
+  "base": "a23573d7aaaabac1eedfa9ec169d68c7b33b2fd6",
+  "full_suite": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "49",
+    "tests": "2819",
+    "time": "376.317",
+    "timestamp": "2026-09-25T11:10:40.588230+07:00"
+  },
+  "skip_reasons": {
+    "Chỉ xuất fixture đo cuộn riêng": 1,
+    "cần Playwright và Chromium — pip install -r requirements-dev.txt && playwright install chromium — BrowserType.launch: Executable doesn't exist at /home/knjsc/.cache/ms-playwright/c": 32,
+    "Kiểm tải riêng 300.000 dòng — đặt KN_GHI_CHU_300K=1 để chạy": 1,
+    "Cần Chrome và proxy HTTPS riêng": 1,
+    "Cần Chrome host và server test riêng": 2,
+    "Kiểm tải chủ động trên DB test riêng": 2,
+    "Cần Chrome host / DB test riêng": 1,
+    "Cần Chrome host": 1,
+    "Cần Chrome host / server test riêng": 1,
+    "Kiểm tải riêng, có giới hạn và DB test": 1,
+    "Phép đo dung lượng trên DB test riêng": 1,
+    "Chrome 100k/300k trên DB test riêng": 1,
+    "Fixture kiểm tải tối ưu riêng": 1,
+    "Cần Chrome host và server DB test": 1,
+    "Cần Chrome host và cổng test riêng": 1,
+    "Cần Chrome host và DB test riêng": 1
+  },
+  "account_suite": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "58",
+    "time": "16.123",
+    "timestamp": "2026-09-25T11:16:16.007450+07:00"
+  },
+  "chrome": {
+    "ok": true,
+    "cases": [
+      {
+        "role": "leader",
+        "width": 1440,
+        "passed": true,
+        "elapsed_ms": 5062
+      },
+      {
+        "role": "manager",
+        "width": 1440,
+        "passed": true,
+        "elapsed_ms": 5480
+      },
+      {
+        "role": "ceo",
+        "width": 1440,
+        "passed": true,
+        "elapsed_ms": 4004
+      },
+      {
+        "role": "admin",
+        "width": 1440,
+        "passed": true,
+        "elapsed_ms": 3802
+      },
+      {
+        "role": "leader",
+        "width": 390,
+        "passed": true,
+        "elapsed_ms": 4135
+      },
+      {
+        "role": "manager",
+        "width": 390,
+        "passed": true,
+        "elapsed_ms": 5462
+      },
+      {
+        "role": "ceo",
+        "width": 390,
+        "passed": true,
+        "elapsed_ms": 4963
+      },
+      {
+        "role": "admin",
+        "width": 390,
+        "passed": true,
+        "elapsed_ms": 3860
+      }
+    ],
+    "errors": []
+  },
+  "affected_final": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "101",
+    "time": "17.285",
+    "timestamp": "2026-09-25T11:18:31.112035+07:00"
+  }
+}

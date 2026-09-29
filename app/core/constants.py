@@ -11,6 +11,7 @@ class Rank(models.TextChoices):
     STAFF = "staff", "Nhân viên"
     LEADER = "leader", "Trưởng nhóm"
     MANAGER = "manager", "Quản lý"
+    CEO = "ceo", "Giám đốc"
     ADMIN = "admin", "Quản trị viên"
 
 
@@ -19,6 +20,7 @@ RANK_LEVEL = {
     Rank.STAFF: 10,
     Rank.LEADER: 20,
     Rank.MANAGER: 30,
+    Rank.CEO: 35,
     Rank.ADMIN: 40,
 }
 
@@ -110,6 +112,8 @@ GRID_FILLER_COLUMNS = 2                  # ... và ít nhất hai cột trống 
 GRID_ROW_NUMBER_WIDTH = 46               # cột số dòng bên trái (px)
 GRID_SPARE_ROWS_MAX = 2000               # "+100 dòng" không vượt quá bấy nhiêu dòng trống
 GRID_PASTE_CELLS_MAX = 2000              # số ô tối đa lưu trong một lần dán / kéo điền / hoàn tác
+#: Ô bị người khác sửa trong chừng này giờ mang dấu góc trên lưới — AC-21.13 (28.09.2026)
+GRID_RECENT_EDIT_HOURS = 24
 GRID_INSERT_COLUMNS_MAX = 10             # số cột tối đa chèn một lần bằng menu chuột phải
 GRID_POLL_SECONDS = 8                    # Bảng tính hỏi máy chủ có gì mới mỗi bấy nhiêu giây
 PERF_TABLE_ROWS = 50_000                 # AC-7.1 — 50.000 bản ghi tải trang đầu

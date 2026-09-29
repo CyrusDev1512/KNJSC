@@ -3,6 +3,7 @@
 Tầng dịch vụ, không biết gì về HTTP (điều cấm 2). Mọi thao tác ghi đều ghi
 nhật ký (BR-5) và nằm trong một giao dịch.
 """
+from core.permissions import is_company_reader
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
@@ -11,7 +12,7 @@ from core.audit import record
 from core.constants import AuditAction, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.identity import display_name
-from core.permissions import has_rank
+from core.permissions import can_manage_business
 from org.models import UserProfile
 
 from ..constants import (
@@ -26,9 +27,11 @@ from ..models import Task
 def assignable_users(actor):
     """Ai được giao việc cho ai — đúng luật phạm vi hồ sơ nhân sự (FR-11.1):
     Staff chỉ mình, Leader team mình, Manager cả bộ phận, Admin tất cả."""
+    if is_company_reader(actor):
+        return get_user_model().objects.filter(pk=actor.pk, profile__deleted_at__isnull=True)
     return (
         get_user_model().objects
-        .filter(profile__in=UserProfile.objects.in_scope(actor), is_active=True)
+        .filter(profile__in=UserProfile.objects.alive().in_scope(actor), is_active=True)
         .select_related("profile")
         .order_by("profile__full_name", "username")
     )
@@ -38,16 +41,16 @@ def can_change_status(user, task):
     """Người làm, người tạo, hoặc Leader trở lên (đã nằm trong phạm vi)."""
     return (
         task.assignee_id == user.pk or task.created_by_id == user.pk
-        or has_rank(user, Rank.LEADER)
+        or can_manage_business(user, Rank.LEADER)
     )
 
 
 def can_edit(user, task):
-    return task.created_by_id == user.pk or has_rank(user, Rank.LEADER)
+    return task.created_by_id == user.pk or can_manage_business(user, Rank.LEADER)
 
 
 def can_delete(user, task):
-    return task.created_by_id == user.pk or has_rank(user, Rank.MANAGER)
+    return task.created_by_id == user.pk or can_manage_business(user, Rank.MANAGER)
 
 
 # ══ ĐỌC ═══════════════════════════════════════════════════════════

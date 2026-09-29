@@ -31,8 +31,9 @@ def test_person_filter_matches_export_and_totals(client, source, nguoi_dung, rol
     book = load_workbook(BytesIO(client.get('/bao-cao/tong-hop/xuat/', query).content), data_only=True)
     rows = list(book.active.values)
     assert rows[3][:3] == ('Team', 'Sale', 'Leader')
-    assert rows[4][0] == person.profile.team.name
-    assert rows[-1][3:6] == (10, 2, 100)
+    # Excel theo khối như màn hình (ADR-046): dòng Tổng đứng đầu, rồi các dòng
+    assert rows[4][0] == 'Tổng trong bộ lọc' and rows[4][3:6] == (10, 2, 100)
+    assert rows[5][0] == person.profile.team.name and rows[5][3:6] == (10, 2, 100)
 
 
 def test_team_filter_and_combination(client, source, nguoi_dung, teams):

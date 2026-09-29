@@ -1,7 +1,6 @@
 """ADR-042 đợt 3 — ngưỡng màu ba bậc do Manager đặt, lọc nhiều sản phẩm."""
 import re
 from datetime import date
-from decimal import Decimal
 from io import BytesIO
 
 import pytest
@@ -20,8 +19,6 @@ from reports.tests.test_mkt_derived_revenue import _bao_cao, mkt_source, van_don
 
 pytestmark = pytest.mark.django_db
 
-CAD = Decimal("17500")
-
 
 def _lop(row, cot, nhan):
     return row["cells"][cot.index(nhan)].lop
@@ -30,13 +27,14 @@ def _lop(row, cot, nhan):
 def test_ba_bac_mau_theo_nguong_tuyet_doi(client, bang_mkt, mkt_source, van_don, nguoi_dung):
     """AC-42.8 — Chỉ tiêu có ngưỡng tô xanh khi đạt mốc Tốt, đỏ khi qua mốc Kém, vàng ở giữa, đúng
     chiều tốt (Tỉ lệ chốt cao, CPO thấp); dòng TỔNG CỘNG cũng tô; chỉ tiêu chưa có ngưỡng giữ cách
-    so với dòng Tổng ±10 %; lớp `o-xau` có trong CSS"""
+    so với dòng Tổng ±10 %; lớp `o-xau` có trong CSS. Không quy đổi (ADR-046): ngưỡng tiền (CPO) đặt
+    theo ₫ nên chỉ tô dòng VND — dòng CAD không tô theo ngưỡng đó; ngưỡng tỉ lệ tô mọi loại tiền"""
     A, B = van_don["A"], van_don["B"]
-    # A: 20 mess, 8 đơn, CPQC 100 CAD → CPO 218.750 ₫, Tỉ lệ chốt 40 %
-    # B: 20 mess, 2 đơn, CPQC 100 CAD → CPO 875.000 ₫, Tỉ lệ chốt 10 %
-    # Tổng: 40 mess, 10 đơn, CPQC 200 CAD → CPO 350.000 ₫, Tỉ lệ chốt 25 %
-    _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=20, don=8, cpqc="100")
-    _bao_cao(bang_mkt, B, "2026-08-01", "SP2", mess=20, don=2, cpqc="100")
+    # A: 20 mess, 8 đơn, CPQC 100 CAD → CPO 12,5 CAD, Tỉ lệ chốt 40 %
+    # B: 20 mess, 2 đơn, CPQC 100 CAD → CPO 50 CAD, Tỉ lệ chốt 10 %
+    # Tổng CAD: 40 mess, 10 đơn, CPQC 200 → CPO 20, Tỉ lệ chốt 25 %
+    ban_ghi_a = _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=20, don=8, cpqc="100")
+    ban_ghi_b = _bao_cao(bang_mkt, B, "2026-08-01", "SP2", mess=20, don=2, cpqc="100")
     mkt_source.thresholds = {"cpo": {"tot": "300000", "kem": "800000"}, "conversion": {"tot": "30", "kem": "15"}}
     mkt_source.save()
     client.force_login(B)
@@ -46,14 +44,14 @@ def test_ba_bac_mau_theo_nguong_tuyet_doi(client, bang_mkt, mkt_source, van_don,
     cot = [c.label for c in result.columns]
     dong = {row["person"]: row for row in r.context["rows"] if row["kind"] == "row"}
     a, b = dong[employee_code(A)], dong[employee_code(B)]
-    assert a["cells"][cot.index("CPO")] == "218.750 ₫" and b["cells"][cot.index("CPO")] == "875.000 ₫"
-    # CPO càng thấp càng tốt: A ≤ 300.000 → xanh; B > 800.000 → đỏ
-    assert "o-tot" in _lop(a, cot, "CPO") and "o-xau" in _lop(b, cot, "CPO")
+    assert a["cells"][cot.index("CPO")] == "12,50" and b["cells"][cot.index("CPO")] == "50"
+    # Ngưỡng CPO tính bằng ₫: dòng CAD không tô theo ngưỡng đó, chỉ giữ nền cột chỉ số
+    assert _lop(a, cot, "CPO") == "o-chi-so" and _lop(b, cot, "CPO") == "o-chi-so"
     # Tỉ lệ chốt càng cao càng tốt: A 40 % ≥ 30 → xanh; B 10 % < 15 → đỏ
     assert "o-tot" in _lop(a, cot, "Tỉ lệ chốt") and "o-xau" in _lop(b, cot, "Tỉ lệ chốt")
-    # Giữa hai mốc là vàng: dòng TỔNG CỘNG (CPO 350.000, Tỉ lệ chốt 25 %) cũng tô khi có ngưỡng tuyệt đối
+    # Giữa hai mốc là vàng: dòng TỔNG CỘNG (Tỉ lệ chốt 25 %) cũng tô khi có ngưỡng tuyệt đối
     tong = aggregations.total_cells(result)
-    assert "o-canh-bao" in tong[cot.index("CPO")].lop and "o-canh-bao" in tong[cot.index("Tỉ lệ chốt")].lop
+    assert "o-canh-bao" in tong[cot.index("Tỉ lệ chốt")].lop and tong[cot.index("CPO")].lop == "o-chi-so"
     # Giá Mess chưa có ngưỡng → cách tương đối: cả hai bằng mốc → chỉ nền cột
     assert _lop(a, cot, "Giá Mess") == "o-chi-so" and tong[cot.index("Giá Mess")].lop == "o-chi-so"
     html = r.content.decode()
@@ -67,6 +65,17 @@ def test_ba_bac_mau_theo_nguong_tuyet_doi(client, bang_mkt, mkt_source, van_don,
     dong0 = {row["person"]: row for row in r0.context["rows"] if row["kind"] == "row"}
     assert "o-tot" in _lop(dong0[employee_code(A)], cot, "CPO") and "o-canh-bao" in _lop(dong0[employee_code(B)], cot, "CPO")
     assert 'class="o-chi-so o-xau"' not in r0.content.decode()
+    # Dòng VND (báo cáo cũ): ngưỡng ₫ áp đúng — CPQC 100.000 ₫, 2 đơn → CPO 50.000 ≤ 300.000 → xanh;
+    # dòng CAD của A vẫn không tô theo ngưỡng ₫, và so màu tương đối với tổng CAD của riêng nó
+    mkt_source.thresholds = {"cpo": {"tot": "300000", "kem": "800000"}}
+    mkt_source.save()
+    ban_ghi_b.data |= {"cpqc": "100000", "loai_tien": "VND"}
+    ban_ghi_b.save()
+    r1 = client.get("/bao-cao/tong-hop/", query)
+    dong1 = {(row["person"], row["currency"]): row for row in r1.context["rows"] if row["kind"] == "row"}
+    assert "o-tot" in _lop(dong1[(employee_code(B), "VND")], cot, "CPO")
+    assert _lop(dong1[(employee_code(A), "CAD")], cot, "CPO") == "o-chi-so"
+    assert ban_ghi_a.data["loai_tien"] == "CAD"
 
 
 def test_form_nguong_ba_cap_bac(client, bang_mkt, mkt_source, nguoi_dung):
@@ -169,16 +178,16 @@ def test_loc_nhieu_san_pham_va_url_cu(client, bang_mkt, mkt_source, van_don, ngu
     assert r.status_code == 200 and r.context["result"].totals["c_so_mess"] == 30
     cot = [c.label for c in r.context["result"].columns]
     a = next(row for row in r.context["rows"] if row["kind"] == "row" and row["person"] == employee_code(A))
-    assert a["cells"][cot.index("DS Chốt (TT)")] == aggregations.format_number(100 * CAD, 0) + " ₫"   # w1 SP1 60 + w2 SP2 40
+    assert a["cells"][cot.index("DS Chốt (TT)")] == "100"   # w1 SP1 60 + w2 SP2 40, đúng số CAD của đơn
     assert {c["label"]: c["value"] for c in r.context["chips"]}["Sản phẩm"] == "SP1, SP2"
     assert [p["value"] for p in r.context["products"]] == ["SP1", "SP2", "SP3"]
     html = r.content.decode()
-    assert 'id="report-multi-sp"' in html and html.count('name="sp" value="SP1" checked') == 1 and html.count(' checked') == 2
+    assert 'id="report-multi-sp"' in html and html.count('name="sp" value="SP1" checked') == 1 and len(re.findall(r'name="sp" value="[^"]+" checked', html)) == 2
     # URL cũ một sản phẩm
     r1 = client.get("/bao-cao/tong-hop/", {**query, "sp": "SP1"})
     assert r1.context["result"].totals["c_so_mess"] == 10
     a1 = next(row for row in r1.context["rows"] if row["kind"] == "row")
-    assert a1["cells"][cot.index("DS Chốt (TT)")] == aggregations.format_number(60 * CAD, 0) + " ₫"
+    assert a1["cells"][cot.index("DS Chốt (TT)")] == "60"
     assert {c["label"]: c["value"] for c in r1.context["chips"]}["Sản phẩm"] == "SP1"
     # Ba sản phẩm → chip đếm; phụ đề Excel ghi danh sách
     r3 = client.get("/bao-cao/tong-hop/", {**query, "sp": ["SP1", "SP2", "SP3"]})

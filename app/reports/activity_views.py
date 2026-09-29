@@ -35,6 +35,8 @@ def report(request, export=False, choices=None):
            "presets": summary_service.date_presets(timezone.localdate(), start=params["start"], end=params["end"]),
            "query": request.GET.urlencode(), "qs_loc": ("&" + giu.urlencode()) if giu else ""}
     if source:
+        # Ô Chế độ (ADR-046) chỉ cho nguồn có lần nộp; JS ẩn khi Cách xem không phải Tổng hợp
+        ctx['modes'] = service.MODES if service.has_modes(source, "day") else ()
         ctx['people'], ctx['teams'] = service.people_choices(request.user, source)
         ctx['segments'] = service.segment_options(source)   # None: nguồn không có Tệp khách hàng
         ctx['products'] = product_options(request.user, source)
