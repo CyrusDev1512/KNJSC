@@ -1,5 +1,14 @@
 # Backlog
 
+## 28.09.2026 — CI trình duyệt không còn đỏ chập chờn khi dọn bảng (TL-67)
+
+**Chủ dự án yêu cầu** sửa bằng được lỗi đỏ trên `main` trước khi làm tiếp (CI #94, #96 đỏ sau khi gộp #63, #64).
+**Nguyên nhân:** bài trình duyệt kết thúc lúc lưới còn gọi máy chủ; pytest dọn bảng (TRUNCATE) kẹt khoá với truy
+vấn đang chạy. **Sửa:** bài có máy chủ thử chờ máy chủ xử lý xong mọi yêu cầu dở (đếm bằng tín hiệu của Django,
+tối đa 5 s) rồi mới dọn bảng; chỉ mã kiểm thử, không đụng mã ứng dụng. Chạy lặp bài từng lỗi: trước sửa 4/30 lần
+kẹt khoá, sau sửa 0/30. Gộp PR này trước PR #65 để `main` xanh. Biên bản
+[kiem-chung-e2e-cho-may-chu-20260928.md](kiem-chung-e2e-cho-may-chu-20260928.md).
+
 ## 26.09.2026 — Bỏ hộp đọc, ô phồng to tại chỗ kiểu Google Sheets (bổ sung ADR-033)
 
 **Chủ dự án chốt hai đợt** (so với Google Sheets; đợt hai sau khi test bản đầu: "1 click
