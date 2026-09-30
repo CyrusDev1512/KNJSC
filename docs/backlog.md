@@ -1,5 +1,15 @@
 # Backlog
 
+## 30.09.2026 — Báo cáo tổng hợp: cách xem "Hiệu suất theo team" thay "Hiệu suất theo phòng ban" (AC-22.20)
+
+**Chủ dự án yêu cầu** xem theo team thay vì phòng ban: bảng báo cáo nào cũng thuộc một bộ phận nên "phòng ban"
+chỉ ra một dòng bằng TỔNG CỘNG. **Làm:** `activity_service.GROUPS` đổi `department` → `team` ("Hiệu suất theo team"): mỗi
+team một dòng (mỗi loại tiền một dòng, ADR-046), cột Leader của team, người chưa có team gom "Chưa có team";
+DS Chốt (TT) đối soát theo team của marketer phụ trách vận đơn; nguồn Vận đơn theo team của người phụ trách
+Vận đơn; `nhom=department` cũ mở thành Theo team (`GROUP_ALIASES`). Phạm vi quyền không đổi. Không migration.
+Kiểm: `reports/tests/test_bao_cao_theo_team.py` (5 bài, đỏ trước khi sửa — kể cả lỗi thiếu cột Leader ở nguồn
+Vận đơn tìm ra khi viết bài), bài phòng ban cũ trong `test_mkt_derived_revenue.py` đổi sang team.
+
 ## 29.09.2026 — Rà kỹ `main` 206e1b0 trước khi phát hành VPS (không sửa mã)
 
 **Chủ dự án yêu cầu** kiểm thử kỹ `main` hiện tại (đơn vị, chức năng, UX) rồi phát hành lên VPS. VPS đang

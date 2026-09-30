@@ -73,7 +73,7 @@ def van_don(nguoi_dung, departments):
 def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguoi_dung):
     """AC-38.2 — DS Chốt (TT) = tiền đã thu của vận đơn do marketer phụ trách, cùng kỳ theo ngày lên
     đơn, đúng số tiền theo loại tiền của đơn, không quy đổi (ADR-046), đúng ở cách xem ngày, nhân viên,
-    sản phẩm, thị trường, phòng ban; tổng = tổng dòng; đơn chưa phân công, marketer khác, ngoài kỳ, khác
+    sản phẩm, thị trường, team; tổng = tổng dòng; đơn chưa phân công, marketer khác, ngoài kỳ, khác
     sản phẩm không vào; Staff chỉ thấy tiền của mình; Excel và Tổng quan cùng số; lọc Tệp khách hàng thì
     DS Chốt (TT) trống"""
     A, B = van_don["A"], van_don["B"]
@@ -112,15 +112,16 @@ def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguo
     assert rows[("01.08.2026", employee_code(A))]["Số đơn (TT)"] == 2 and rows[("01.08.2026", employee_code(B))]["Số đơn (TT)"] == 1
     assert totals["Số đơn (TT)"] == 4
 
-    # Theo nhân viên: nhãn chỉ mã (khoá nối doanh thu suy ra cùng biểu thức); sản phẩm; thị trường; phòng ban
+    # Theo nhân viên: nhãn chỉ mã (khoá nối doanh thu suy ra cùng biểu thức); sản phẩm; thị trường; team
     rows = cells(activity_service.build(manager, mkt_source, group="person", **ky))
     assert rows[employee_code(A)]["DS Chốt (TT)"] == 125 and rows[employee_code(B)]["DS Chốt (TT)"] == 200
     rows = cells(activity_service.build(manager, mkt_source, group="product", **ky))
     assert rows["SP1"]["DS Chốt (TT)"] == 285 and rows["SP2"]["DS Chốt (TT)"] == 40
     rows = cells(activity_service.build(manager, mkt_source, group="market", **ky))
     assert rows["Canada"]["DS Chốt (TT)"] == 325
-    rows = cells(activity_service.build(manager, mkt_source, group="department", **ky))
-    assert rows[bang_mkt.department.name]["DS Chốt (TT)"] == 325
+    # Theo team thay Phòng ban (AC-22.20): A và B chưa gán team → một dòng "Chưa có team" = cả kỳ
+    rows = cells(activity_service.build(manager, mkt_source, group="team", **ky))
+    assert rows["Chưa có team"]["DS Chốt (TT)"] == 325
 
     # Lọc sản phẩm: chỉ dòng báo cáo SP1 (của A) và tiền SP1 của A
     rows = cells(activity_service.build(manager, mkt_source, group="day", product="SP1", **ky))

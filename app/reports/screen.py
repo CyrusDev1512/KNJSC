@@ -23,7 +23,8 @@ def parameters(request, default_mode=service.DEFAULT_MODE):
     mặc định của màn hình (`default_mode`: Báo cáo tổng hợp "cong", Bảng dữ liệu "tung-lan")."""
     start, end = summary_service.default_range()
     group = request.GET.get("nhom", "day")
-    aliases = {"tong-hop": "day", "nhan-vien": "person", "san-pham": "product", "thi-truong": "market"}
+    aliases = {"tong-hop": "day", "nhan-vien": "person", "san-pham": "product", "thi-truong": "market",
+               **service.GROUP_ALIASES}
     mode = request.GET.get("che_do", "")
     return {
         "group": aliases.get(group, group),
