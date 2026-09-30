@@ -317,7 +317,8 @@ dialog::backdrop {background:#10291b66;backdrop-filter:blur(3px)}
 table.report-table thead th {position:sticky;top:0;z-index:2;background:var(--accent);color:var(--accent-ink);text-align:right;font-family:var(--font-van);font-weight:600;letter-spacing:0;text-transform:none;line-height:1.2;white-space:normal;min-width:72px;max-width:118px;border-right-color:color-mix(in srgb,var(--accent-ink) 22%,var(--accent))!important}
 table.report-table thead th.report-identity {text-align:left;max-width:none}
 /* Nhiều dòng TỔNG CỘNG (mỗi loại tiền một dòng, ADR-046) dính lần lượt dưới hàng tiêu đề: dòng thứ i
-   lùi xuống i × --total-h; ô dòng tổng không xuống dòng nên chiều cao cố định (JS đo lại khi có) */
+   lùi xuống i × --total-h; ô dòng tổng không xuống dòng nên chiều cao cố định. report-filters.js đo
+   --head-h, --total-h cho từng bảng và đo lại khi bảng đổi cỡ (TL-69); số ở .report-view chỉ là mặc định */
 .report-table .report-total>* {position:sticky;top:calc(var(--head-h) + var(--total-i,0) * var(--total-h));z-index:2;background:var(--accent-soft);color:var(--ink);font-weight:700;white-space:nowrap;border-bottom:2px solid var(--rule-strong)!important}
 .report-table .report-identity {text-align:left;font-weight:400;white-space:normal;overflow-wrap:anywhere;position:sticky;z-index:1;left:0}
 .report-table .report-identity[data-pos="2"] {left:var(--id-left-2)}
@@ -343,8 +344,10 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
 .report-table .report-total th.report-identity {font-weight:700}
 .report-table .id-nhan-su b,.report-table .id-leader b {font-weight:700;letter-spacing:.01em;margin-right:4px}
 /* Tô màu chỉ tiêu (AC-22.16): nền cột cho chỉ số quan trọng, ô đạt/cảnh báo so với dòng Tổng.
-   Dùng color-mix trên token nên tự đổi theo chế độ sáng/tối, không khai màu cứng. */
-.report-table .o-chi-so {background:color-mix(in srgb,var(--accent-soft) 45%,transparent)}
+   Dùng color-mix trên token nên tự đổi theo chế độ sáng/tối, không khai màu cứng. Pha với nền bảng chứ
+   không với trong suốt: ô ở dòng TỔNG CỘNG đang dính phải đặc, không thì dòng cuộn bên dưới lộ chữ
+   (TL-69); đứng yên nhìn y như cũ vì dưới ô vốn là nền --surface của khung bảng. */
+.report-table .o-chi-so {background:color-mix(in srgb,var(--accent-soft) 45%,var(--surface))}
 .report-table thead th.o-chi-so {background:var(--accent-hover)}
 .report-table td.o-tot,.report-table tbody tr:hover>td.o-tot {background:var(--good-soft);color:var(--good);font-weight:600}
 .report-table td.o-canh-bao,.report-table tbody tr:hover>td.o-canh-bao {background:var(--warn-soft);color:var(--warn);font-weight:600}

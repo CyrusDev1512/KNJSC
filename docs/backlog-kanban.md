@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 30.09.2026 — Dòng TỔNG CỘNG dính không lộ chữ, sát tiêu đề (TL-69)
+
+**Finished local (nhánh `claude/sua-dong-tong-dinh-mo`, PR nháp về `main`):** nền cột chỉ số đặc ở dòng tổng
+đang dính; mỗi bảng tự đo tiêu đề và đo lại khi đổi cỡ; Bảng dữ liệu dạng báo cáo hết bị dòng tổng đè lên
+tiêu đề. AC-22.21. **To do:** chủ dự án gộp; Codex phát hành VPS.
+
 ## 25.09.2026 — Một ô Team duy nhất trên form báo cáo (ADR-043 bổ sung)
 
 **Finished local (nhánh `claude/mot-o-team-bao-cao`, PR nháp về `main`):** cột Team dạng chữ có sẵn rời form
