@@ -21,8 +21,13 @@ from reports.services.summary_service import MAX_GROUPS
 GROUPS = (
     ("day", "Tổng hợp"), ("person", "Theo nhân viên"),
     ("product", "Theo sản phẩm"), ("market", "Theo thị trường"),
-    ("department", "Hiệu suất theo phòng ban"),
+    ("team", "Theo team"),
 )
+#: Cách xem cũ đã thay (chủ dự án 30.09.2026): bảng báo cáo nào cũng thuộc một bộ phận nên "Hiệu suất theo
+#: phòng ban" chỉ ra một dòng = TỔNG CỘNG; đường dẫn cũ `nhom=department` mở thành Theo team (AC-22.20).
+GROUP_ALIASES = {"department": "team"}
+#: Nhãn nhóm của dòng người chưa gán team — dùng chung cho dòng báo cáo và khoá đối soát vận đơn
+NO_TEAM = "Chưa có team"
 #: Chế độ số liệu (ADR-046) — nằm trong bộ lọc, tham số `che_do`. "cong": mỗi người mỗi ngày một
 #: dòng cho mỗi loại tiền, nộp nhiều lần thì cộng (cùng loại tiền); "tung-lan": mỗi lần nộp một dòng,
 #: số đúng như nhập. Chỉ cách xem Tổng hợp (ngày × nhân sự) có chế độ; Báo cáo tổng hợp mặc định
@@ -180,7 +185,7 @@ def person_expressions(source):
 def team_expressions(source):
     """Team và leader của người trong dòng — cột nhóm thêm cho cách xem Theo nhân viên."""
     _, team = people_paths(source)
-    return {"team_name": Coalesce(F(team + "__name"), Value("Chưa có team")),
+    return {"team_name": Coalesce(F(team + "__name"), Value(NO_TEAM)),
             "leader_name": person_expressions(source)["leader_name"]}
 
 
@@ -190,6 +195,9 @@ def with_person_team(result, source, group):
     if group == 'day':
         # Dòng đã mang sẵn `person_name`, `leader_name` vì nhóm theo ngày × nhân sự
         return _as_activity(result, show_person=True)
+    if group == 'team':
+        # Một team một dòng: cột nhóm chính là Team, thêm Leader của team (AC-22.20)
+        return _as_activity(result, show_leader=True)
     if group != 'person':
         return result
     # Dòng đã nhóm kèm team/leader (`team_expressions` là khoá nhóm trong `build`), dù đã lấy về bộ nhớ hay
@@ -202,8 +210,9 @@ def group_expression(source, group):
         prefix = "assignment__delivery" if source.kind == "delivery" else "created_by"
         return (Coalesce(code_expression(prefix), Value("Chưa phân công"), output_field=CharField()),
                 PERSON_LABELS[source.kind])
-    if group == "department":
-        return F("department__name"), "Phòng ban"
+    if group == "team":
+        _, team = people_paths(source)
+        return Coalesce(F(team + "__name"), Value(NO_TEAM), output_field=CharField()), "Team"
     if group == "market":
         return (Coalesce(NullIf(KeyTextTransform(source.columns["market"], "data"), Value("")),
                          Value("Chưa xác định"), output_field=CharField()), "Thị trường")
@@ -359,6 +368,8 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
                                          order_by=[F("gio").asc(), F("record_id").asc()])}
     if group == "person":
         extra = team_expressions(source)   # Team · Leader đi cùng người, không annotate sau
+    if group == "team":
+        extra = {"leader_name": person_expressions(source)["leader_name"]}   # Leader của team
     # Toàn bộ dòng nhóm vào bộ nhớ khi ≤ MAX_GROUPS: tổng, khoá đối soát, tổng ngày và phân
     # trang dùng chung một danh sách — không thêm truy vấn (ADR-042)
     result = aggregations.summarize_in_memory(
@@ -436,7 +447,8 @@ def marketing_actuals(qs, group, expression, *, start=None, end=None, product=""
         "person": Coalesce(code_expression("assignment__marketing"), Value("Chưa phân công"), output_field=CharField()),
         "product": F("waybill_items__product__name"),
         "market": Coalesce(NullIf(KeyTextTransform("quoc_gia", "data"), Value("")), Value("Chưa xác định"), output_field=CharField()),
-        "department": F("assignment__marketing__profile__department__name"),
+        # Team của marketer phụ trách vận đơn — khớp nhãn team của dòng báo cáo (AC-22.20)
+        "team": Coalesce(F("assignment__marketing__profile__team__name"), Value(NO_TEAM), output_field=CharField()),
     }
     cot = {"nhom": keys[group],
            "currency": Coalesce(KeyTextTransform("loai_tien", "data"), Value(""), output_field=CharField())}
@@ -539,6 +551,10 @@ def delivery(qs, source, group, product):
             khoa.update(person_expressions(source))
             khoa["team_name"] = team_expressions(source)["team_name"]
             them = ["person_name", "leader_name", "team_name"]
+        if group == "team":
+            # Theo team: Leader của team người phụ trách Vận đơn (AC-22.20)
+            khoa["leader_name"] = person_expressions(source)["leader_name"]
+            them = ["leader_name"]
         rows = qs.order_by().values(**khoa).annotate(
             so_dong=Count("pk", distinct=True),
             c_orders=Count("pk", distinct=True), c_quantity=quantity).order_by("nhom", *them)
