@@ -21,7 +21,7 @@ from reports.services.summary_service import MAX_GROUPS
 GROUPS = (
     ("day", "Tổng hợp"), ("person", "Theo nhân viên"),
     ("product", "Theo sản phẩm"), ("market", "Theo thị trường"),
-    ("team", "Theo team"),
+    ("team", "Hiệu suất theo team"),
 )
 #: Cách xem cũ đã thay (chủ dự án 30.09.2026): bảng báo cáo nào cũng thuộc một bộ phận nên "Hiệu suất theo
 #: phòng ban" chỉ ra một dòng = TỔNG CỘNG; đường dẫn cũ `nhom=department` mở thành Theo team (AC-22.20).

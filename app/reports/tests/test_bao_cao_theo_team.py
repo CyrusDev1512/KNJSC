@@ -44,9 +44,9 @@ def _dong(result):
 
 
 def test_cach_xem_theo_team_thay_phong_ban():
-    """AC-22.20 — Danh sách Cách xem có "Theo team", không còn "Hiệu suất theo phòng ban\""""
+    """AC-22.20 — Danh sách Cách xem có "Hiệu suất theo team", không còn "Hiệu suất theo phòng ban\""""
     nhan = dict(activity_service.GROUPS)
-    assert nhan.get("team") == "Theo team" and "department" not in nhan
+    assert nhan.get("team") == "Hiệu suất theo team" and "department" not in nhan
 
 
 def test_moi_team_mot_dong_kem_leader_va_doi_soat(bang_mkt, mkt_source, van_don, hai_team, nguoi_dung):  # noqa: F811
@@ -76,7 +76,7 @@ def test_leader_chi_thay_team_minh(bang_mkt, mkt_source, van_don, hai_team):  # 
 
 
 def test_man_hinh_theo_team_va_url_cu_phong_ban(client, bang_mkt, mkt_source, van_don, hai_team, nguoi_dung):  # noqa: F811
-    """AC-22.20 — Màn Báo cáo tổng hợp có lựa chọn "Theo team" và hiện cột Team, Leader; đường dẫn cũ
+    """AC-22.20 — Màn Báo cáo tổng hợp có lựa chọn "Hiệu suất theo team" và hiện cột Team, Leader; đường dẫn cũ
     `nhom=department` (đánh dấu trang, tệp đã gửi) mở thành Theo team thay vì báo lỗi; Staff không có
     quyền xem vẫn bị chặn như cũ"""
     _bao_cao(bang_mkt, hai_team["A"], "2026-08-01", "SP1")
@@ -85,7 +85,7 @@ def test_man_hinh_theo_team_va_url_cu_phong_ban(client, bang_mkt, mkt_source, va
         r = client.get("/bao-cao/tong-hop/", {"nguon": mkt_source.table.code, "nhom": nhom, "tu": "2026-08-01", "den": "2026-08-02"})
         html = r.content.decode()
         assert r.status_code == 200, nhom
-        assert '<option value="team" selected>Theo team</option>' in html, nhom
+        assert '<option value="team" selected>Hiệu suất theo team</option>' in html, nhom
         assert "MKT 1" in html and "Phòng ban" not in html
     # Tải Excel theo team: có cột Team và Leader, dòng MKT 1
     from io import BytesIO
