@@ -58,6 +58,55 @@ GHI_CHU_400 = ("Khách hẹn giao chiều, gọi trước khi tới; địa ch�
 #: Ngưỡng đỏ cho một lượt đo chiều cao cả khối 100 dòng (p95); mục tiêu báo cáo 16 ms
 NGUONG_DO_MOT_KHOI_MS = 100
 
+#: Hạn tổng của vòng cuộn hết bảng. Bình thường cả vòng chỉ vài giây; `page.evaluate` không nhận timeout nên
+#: không có hạn này thì lưới ngừng tải dữ liệu là bài treo tới khi CI hết 20 phút (TL-71)
+HAN_CUON_MS = 60_000
+
+#: Cuộn từng khung tới cuối bảng, mỗi khung chờ ô Mã đơn có dữ liệu (tối đa 8 giây). Chờ bằng setTimeout, chỉ
+#: mượn requestAnimationFrame có hẹn 1 giây: trang ngừng vẽ thì rAF không bao giờ gọi lại. Dừng thì trả trạng
+#: thái trang để bài đỏ có chỗ lần: vị trí cuộn, ô chưa có dòng, yêu cầu mạng dở, rAF còn chạy không (TL-71)
+CUON_HET_BANG = """async (han_ms) => {
+    const vp = document.getElementById('mg-viewport');
+    const han = performance.now() + han_ms;
+    const ngu = ms => new Promise(r => setTimeout(r, ms));
+    const doi_ve = () => Promise.race([
+        new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))), ngu(1000)]);
+    const o_ma = () => [...document.querySelectorAll(".mg-body .mg-cell[data-code='ma_don']")];
+    const du_lieu_ve = () => { const o = o_ma(); return o.length > 0 && o.every(e => e.dataset.id); };
+    const het_bang = () => vp.scrollTop + vp.clientHeight >= vp.scrollHeight - 1;
+    const mang = {dang_cho: 0, xong: 0, loi: 0};
+    const goc = window.fetch;
+    window.fetch = function (...a) {
+        mang.dang_cho++;
+        return goc.apply(this, a).then(r => { mang.xong++; return r; }, e => { mang.loi++; throw e; })
+            .finally(() => { mang.dang_cho--; });
+    };
+    let buoc = 0;
+    const trang_thai = async () => {
+        const raf_chay = await Promise.race([
+            new Promise(r => requestAnimationFrame(() => r(true))), ngu(1000).then(() => false)]);
+        const o = o_ma();
+        return {buoc, het_bang: het_bang(), vi_tri: Math.round(vp.scrollTop), cao_bang: vp.scrollHeight,
+                tong: window.KNJSC_MASTER.diagnostics().total, o_ma: o.length,
+                o_ma_chua_co_dong: o.filter(e => !e.dataset.id).length, mang: {...mang}, raf_chay,
+                thong_bao: ((document.getElementById('mg-message') || {}).textContent || '').trim().slice(0, 160)};
+    };
+    const cuon = async () => {
+        while (!het_bang() && buoc < 600 && performance.now() < han) {
+            vp.scrollTop += vp.clientHeight; buoc++;
+            await doi_ve();
+            const t0 = performance.now();
+            while (!du_lieu_ve() && performance.now() - t0 < 8000 && performance.now() < han) await ngu(16);
+        }
+        return trang_thai();
+    };
+    try {
+        return await Promise.race([cuon(), ngu(han_ms + 5000).then(trang_thai)]);
+    } finally {
+        window.fetch = goc;
+    }
+}"""
+
 
 @pytest.fixture
 def kn_crm(settings):
@@ -83,8 +132,10 @@ def _mo_luoi(trang, live_server, dang_nhap, nguoi_dung, bang, truy_van="", nguoi
     dang_nhap(trang, nguoi or nguoi_dung["staff_vd"])
     trang.goto(f"{live_server.url}/bang-tinh/{bang.code}/{truy_van}")
     _cho_luoi_co_du_lieu(trang)
-    # Chiều cao đo sau khi phông chữ sẵn sàng, nếu không số đo lệch
-    trang.evaluate("() => document.fonts.ready")
+    # Chiều cao đo sau khi phông chữ sẵn sàng, nếu không số đo lệch. Đua với hẹn 10 giây: phông tải chậm thì
+    # đo luôn chứ không chờ mãi — `page.evaluate` không nhận timeout (TL-71)
+    trang.evaluate(
+        "() => Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 10000))]).then(() => true)")
     trang.wait_for_timeout(500)
     return loi_js
 
@@ -458,24 +509,10 @@ def test_do_hieu_nang_1000_dong_ghi_chu_400(live_server, trang, dang_nhap,
                        ...l.getEntries().map(e => Math.round(e.duration))))
                      .observe({type: 'longtask', buffered: true}); }"""
     )
-    cuon = trang.evaluate(
-        """async () => {
-            const vp = document.getElementById('mg-viewport');
-            const doi_ve = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-            const cho_du_lieu = () => new Promise(res => { const t0 = performance.now();
-                (function k() {
-                    const o = [...document.querySelectorAll(".mg-body .mg-cell[data-code='ma_don']")];
-                    if ((o.length && o.every(e => e.dataset.id)) || performance.now() - t0 > 8000) res();
-                    else requestAnimationFrame(k);
-                })(); });
-            let buoc = 0;
-            while (vp.scrollTop + vp.clientHeight < vp.scrollHeight - 1 && buoc < 600) {
-                vp.scrollTop += vp.clientHeight; buoc++;
-                await doi_ve(); await cho_du_lieu();
-            }
-            return {buoc, cao_bang: vp.scrollHeight, tong: window.KNJSC_MASTER.diagnostics().total};
-        }"""
-    )
+    cuon = trang.evaluate(CUON_HET_BANG, HAN_CUON_MS)
+    assert cuon["het_bang"], (
+        f"cuộn không tới được cuối bảng trong {HAN_CUON_MS // 1000} giây — lưới ngừng tải dữ liệu hay ngừng "
+        f"vẽ (TL-71): {cuon}")
     do = trang.evaluate(
         "() => performance.getEntriesByName('mg-auto-height').map(e => Math.round(e.duration * 10) / 10)")
     viec_dai = trang.evaluate("() => window.__viec_dai")

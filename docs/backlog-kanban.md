@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 01.10.2026 — Bài 18 không còn treo được (TL-71)
+
+**Finished local (nhánh `claude/sua-bai-18-khong-treo`, PR nháp về `main`):** vòng cuộn của bài đo hiệu năng
+1000 dòng có hạn 60 giây và trả trạng thái trang khi dừng; chờ phông tối đa 10 giây. **To do:** chủ dự án gộp
+(sau #74).
+
 ## 30.09.2026 — Dòng TỔNG CỘNG dính không lộ chữ, sát tiêu đề (TL-69)
 
 **Finished local (nhánh `claude/sua-dong-tong-dinh-mo`, PR nháp về `main`):** nền cột chỉ số đặc ở dòng tổng

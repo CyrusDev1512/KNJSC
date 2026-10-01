@@ -1,5 +1,15 @@
 # Backlog
 
+## 01.10.2026 — Bài đo hiệu năng 1000 dòng ghi chú không còn treo được (TL-71)
+
+Chủ dự án duyệt kế hoạch sau PR #74 (chẩn đoán CI e2e treo): sửa bài 18
+`test_do_hieu_nang_1000_dong_ghi_chu_400` cho không treo được nữa, PR nháp riêng, nhánh `claude/sua-bai-18-khong-treo`.
+Vòng cuộn hết bảng có hạn tổng 60 giây, chờ khung vẽ và dữ liệu đều có hẹn `setTimeout`, dừng thì trả trạng thái
+trang và bài đỏ kèm trạng thái đó. `_mo_luoi` chờ phông tối đa 10 giây. Không đụng mã ứng dụng, AC-11.44 giữ
+nguyên. [Biên bản](kiem-chung-bai-18-khong-treo-20261001.md). **Còn:** gộp #74 rồi PR này. Lần sau CI có đỏ ở bài 18
+thì đọc trạng thái trang trong thông báo để sửa gốc (lưới ngừng tải dữ liệu hay ngừng vẽ). `_o_ghi_chu` và các bài
+khác còn dùng rAF không hẹn; sửa nếu treo lan sang.
+
 ## 01.10.2026 — Báo cáo tổng hợp: bỏ ô Cách xem và ô Chế độ, luôn từng lần nộp; nút Chọn nhanh sáng một
 
 **Chủ dự án báo** (ảnh bộ lọc): (1) ngày 01.10 "Hôm nay" và "Tháng này" cùng sáng; (2) Cách xem và Chế độ trùng

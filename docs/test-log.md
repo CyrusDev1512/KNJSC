@@ -1,5 +1,24 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 01.10.2026 — Bài đo hiệu năng 1000 dòng ghi chú không còn treo được (TL-71, sửa bài)
+
+**TL-71 (phần sửa bài):** chẩn đoán ở PR #74 khoanh lần treo CI 20 phút (lượt #107, #120) vào bài 18
+`tests/e2e/test_ghi_chu_tu_gian_dong.py::test_do_hieu_nang_1000_dong_ghi_chu_400`. Thủ phạm là hai lời gọi
+`trang.evaluate` không giới hạn thời gian. Sửa ở bài kiểm, không đụng mã ứng dụng:
+
+- Vòng cuộn hết bảng (`CUON_HET_BANG`) có hạn tổng 60 giây. Chờ khung vẽ và chờ dữ liệu đều có hẹn bằng
+  `setTimeout`. Dừng thì trả trạng thái trang: vị trí cuộn, ô Mã đơn chưa có dòng, yêu cầu mạng dở, rAF còn chạy
+  không, thông báo của lưới. Bài kiểm cuộn tới được cuối bảng, không thì đỏ kèm trạng thái đó.
+- `_mo_luoi` chờ `document.fonts.ready` tối đa 10 giây.
+
+Ép tình huống bằng một bài tạm (không commit):
+- chặn mọi yêu cầu `du-lieu/` → vòng dừng đúng 10,0 giây (hạn thử 10 giây), báo 2 ô chưa có dòng và 3 yêu cầu dở;
+- chặn rAF → dừng ở 11,0 giây, `raf_chay: false`;
+- bình thường → hết bảng trong 8 giây.
+
+Lần sau nếu lưới thật sự ngừng tải dữ liệu, CI đỏ sau khoảng 1 phút kèm đủ thông tin để sửa gốc.
+[Biên bản](kiem-chung-bai-18-khong-treo-20261001.md).
+
 ## 01.10.2026 — Hai bài báo cáo đỏ từ ngày 01.10 vì ngầm coi hôm nay là tháng 9
 
 **TL-70 (đóng):** CI trên `main` sau khi gộp #71 (lượt #118) đỏ 2 bài ở "pytest (bộ chính)", 2.857 bài khác đạt.
