@@ -6,9 +6,20 @@ Chủ dự án duyệt kế hoạch sau PR #74 (chẩn đoán CI e2e treo): sử
 `test_do_hieu_nang_1000_dong_ghi_chu_400` cho không treo được nữa, PR nháp riêng, nhánh `claude/sua-bai-18-khong-treo`.
 Vòng cuộn hết bảng có hạn tổng 60 giây, chờ khung vẽ và dữ liệu đều có hẹn `setTimeout`, dừng thì trả trạng thái
 trang và bài đỏ kèm trạng thái đó. `_mo_luoi` chờ phông tối đa 10 giây. Không đụng mã ứng dụng, AC-11.44 giữ
-nguyên. [Biên bản](kiem-chung-bai-18-khong-treo-20261001.md). Đã gộp vào `main` 01.10.2026 (PR #75, sau #74).
-**Còn:** lần sau CI có đỏ ở bài 18 thì đọc trạng thái trang trong thông báo để sửa gốc (lưới ngừng tải dữ liệu
-hay ngừng vẽ). `_o_ghi_chu` và các bài khác còn dùng rAF không hẹn; sửa nếu treo lan sang.
+nguyên. [Biên bản](kiem-chung-bai-18-khong-treo-20261001.md).
+
+**Lần 2, cùng ngày.** Chủ dự án bảo gộp #75; sau khi gộp `main` vào nhánh, lượt CI #126 vẫn treo ở bài 18, vì hạn
+đặt trong trang không chạy khi trang không còn chạy JS. Playwright 1.56 cũng không trả lỗi cho `evaluate` lẫn
+`wait_for_function` khi tab kẹt hay sập (thử tại máy). Chủ dự án duyệt kế hoạch mới:
+- **`_chay_co_han`:** chờ kết quả qua console bằng `expect_console_message`, hạn đếm trong Python.
+- **`_DevToolsCuaTab`:** quá hạn thì hỏi DevTools qua phiên của trình duyệt — tab sập chưa, CPU tiến trình vẽ,
+  ngăn xếp JS.
+
+Ép kẹt và ép sập đều đỏ đúng hạn kèm chẩn đoán. Gộp vào `main` 01.10.2026 (PR #75, sau #74).
+
+**Còn:**
+- Gốc lỗi chưa biết. Lần sau CI đỏ ở bài 18 thì đọc chẩn đoán trong log (khối `== TL-71`) để sửa gốc.
+- `_o_ghi_chu` và các bài khác còn `evaluate` chờ rAF không hẹn; nếu treo lan sang thì chuyển sang `_chay_co_han`.
 
 ## 01.10.2026 — CI e2e treo 20 phút: khoanh vùng và thêm chẩn đoán (TL-71)
 

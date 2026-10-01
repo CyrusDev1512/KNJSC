@@ -22,7 +22,11 @@ Các trường hợp, đúng đặc tả đã chốt:
     ô chỉ đọc bị cắt chữ   → bấm đúp thì Ô PHỒNG TO tại chỗ, không mở ô nhập
     1000 dòng ghi chú dài  → đo thời gian tính chiều cao mỗi khối, ghi vào biên bản
 """
+import json
+import time
+
 import pytest
+from playwright.sync_api import Error as LoiPlaywright
 
 from crm.tests.test_waybill_feedback import feedback  # noqa: F401  (fixture dùng lại)
 from forms_builder.models import DataRecord
@@ -58,9 +62,14 @@ GHI_CHU_400 = ("Khách hẹn giao chiều, gọi trước khi tới; địa ch�
 #: Ngưỡng đỏ cho một lượt đo chiều cao cả khối 100 dòng (p95); mục tiêu báo cáo 16 ms
 NGUONG_DO_MOT_KHOI_MS = 100
 
-#: Hạn tổng của vòng cuộn hết bảng. Bình thường cả vòng chỉ vài giây; `page.evaluate` không nhận timeout nên
-#: không có hạn này thì lưới ngừng tải dữ liệu là bài treo tới khi CI hết 20 phút (TL-71)
+#: Hạn tổng của vòng cuộn hết bảng, đếm trong trang. Bình thường cả vòng chỉ vài giây; lưới ngừng tải dữ liệu
+#: thì vòng dừng ở hạn này và trả trạng thái trang (TL-71)
 HAN_CUON_MS = 60_000
+#: Hạn chờ vòng cuộn, đếm ở Python: dài hơn hạn trong trang (cộng 5 giây chờ trạng thái) để trang còn sống luôn
+#: tự trả kết quả trước. Hạn này vẫn hết khi trang không còn chạy JS — tab sập hay luồng chính kẹt (TL-71, #126)
+HAN_CHO_CUON_MS = HAN_CUON_MS + 15_000
+#: Tiền tố dòng console mà trang dùng để trả kết quả cho `_chay_co_han`
+DAU_KET_QUA = "__kq_co_han:"
 
 #: Cuộn từng khung tới cuối bảng, mỗi khung chờ ô Mã đơn có dữ liệu (tối đa 8 giây). Chờ bằng setTimeout, chỉ
 #: mượn requestAnimationFrame có hẹn 1 giây: trang ngừng vẽ thì rAF không bao giờ gọi lại. Dừng thì trả trạng
@@ -138,6 +147,131 @@ def _mo_luoi(trang, live_server, dang_nhap, nguoi_dung, bang, truy_van="", nguoi
         "() => Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 10000))]).then(() => true)")
     trang.wait_for_timeout(500)
     return loi_js
+
+
+def _chay_co_han(trang, ham_js, doi_so, han_ms, capsys):
+    """Chạy hàm JS bất đồng bộ `ham_js(doi_so)` trong trang, chờ kết quả tối đa `han_ms` (TL-71).
+
+    Không chờ bằng `page.evaluate`, cũng không bằng `wait_for_function`: lượt CI #126 và thử tại máy cho thấy
+    cả hai đứng mãi khi luồng chính của trang không còn chạy JS. `evaluate` không có hạn, và Playwright 1.56
+    không trả lỗi cho lời gọi đang chờ khi tab sập; `wait_for_function` hết hạn thì còn gọi vào trang để huỷ
+    vòng chờ rồi đợi câu trả lời. Ở đây hàm chạy nền, xong thì in kết quả ra console; Python chờ dòng console
+    đó bằng `expect_console_message`, hạn đếm ngay trong Python nên hết được dù trang kẹt hay sập. Quá hạn thì
+    in chẩn đoán ra log rồi đỏ."""
+    sap = []
+
+    def bao_sap(_trang):
+        sap.append(True)
+
+    trang.on("crash", bao_sap)
+    devtools = _DevToolsCuaTab(trang)     # gắn trước khi chạy: tab đã kẹt thì không bật Debugger được nữa
+    try:
+        with trang.expect_console_message(lambda m: m.text.startswith(DAU_KET_QUA), timeout=han_ms) as tin:
+            trang.evaluate(
+                "a => { Promise.resolve().then(() => (" + ham_js + ")(a)).then("
+                "kq => console.log('" + DAU_KET_QUA + "' + JSON.stringify({kq})), "
+                "e => console.log('" + DAU_KET_QUA + "' + JSON.stringify({loi: String(e && e.stack || e)}))); }",
+                doi_so)
+    except LoiPlaywright as loi:
+        chan_doan = devtools.hoi(loi, bool(sap))
+        # In ngay ra log: lỡ bước dọn sau đó có đứng thì phần tóm tắt cuối phiên của pytest không bao giờ in
+        with capsys.disabled():
+            print(f"\n== TL-71: trang không trả kết quả trong {han_ms // 1000} giây — chẩn đoán ==\n"
+                  f"{json.dumps(chan_doan, ensure_ascii=False, indent=1)}\n", flush=True)
+        pytest.fail(f"trang không trả kết quả trong {han_ms // 1000} giây (TL-71): {chan_doan}")
+    finally:
+        trang.remove_listener("crash", bao_sap)
+        devtools.go()
+    ket_qua = json.loads(tin.value.text[len(DAU_KET_QUA):])
+    assert "loi" not in ket_qua, f"hàm JS trong trang ném lỗi: {ket_qua['loi']}"
+    return ket_qua["kq"]
+
+
+class _DevToolsCuaTab:
+    """DevTools gắn vào tab trước khi chạy, để lúc trang không trả lời còn hỏi được chuyện gì đã xảy ra (TL-71).
+
+    Mọi lệnh đi qua phiên DevTools của *trình duyệt* — tiến trình chính, luôn trả lời — rồi tới tab bằng
+    `Target.sendMessageToTarget`: gửi là xong, câu trả lời của tab về sau thành sự kiện. Nên tab kẹt hay sập thì
+    chẩn đoán cũng không đứng theo. Thử tại máy: lệnh gửi thẳng vào tab đang kẹt (`Debugger.enable`) hay vừa
+    sập (`Page.crash`) đều đứng mãi. Debugger bật ngay từ đầu vì tab đã kẹt thì không bật được nữa. Gắn không
+    được thì bài vẫn chạy, chỉ thiếu chẩn đoán."""
+
+    def __init__(self, trang):
+        self.ma = None
+        self.nhan = []
+        self.phien = trang.context.browser.new_browser_cdp_session()
+        self.phien.on("Target.receivedMessageFromTarget", self._nhan_tin)
+        try:
+            tab = [t for t in self.phien.send("Target.getTargets")["targetInfos"] if t["type"] == "page"]
+            tab = next((t for t in tab if t["url"] == trang.url), tab[0] if len(tab) == 1 else None)
+            assert tab, f"không thấy tab {trang.url}"
+            self.ma = self.phien.send("Target.attachToTarget", {"targetId": tab["targetId"], "flatten": False})[
+                "sessionId"]
+            self._gui(1, "Debugger.enable")
+            assert self._cho(lambda m: m.get("id") == 1, 5), "tab không trả lời Debugger.enable"
+            self.loi_gan = None
+        except (LoiPlaywright, AssertionError) as e:
+            self.loi_gan = str(e).splitlines()[0]
+
+    def _nhan_tin(self, su_kien):
+        tin = json.loads(su_kien["message"])
+        if "id" in tin or tin.get("method") == "Debugger.paused":     # bỏ qua dòng Debugger.scriptParsed
+            self.nhan.append(tin)
+
+    def _gui(self, so, lenh):
+        self.phien.send("Target.sendMessageToTarget",
+                        {"sessionId": self.ma, "message": json.dumps({"id": so, "method": lenh})})
+
+    def _cho(self, dieu_kien, giay):
+        """Chờ tin từ tab tối đa `giay` giây. Mỗi vòng gọi trình duyệt một lệnh vô hại, vì Playwright đồng bộ
+        chỉ nhận sự kiện trong lúc có lời gọi đang chờ."""
+        han = time.monotonic() + giay
+        while True:
+            tim = next((m for m in self.nhan if dieu_kien(m)), None)
+            if tim or time.monotonic() >= han:
+                return tim
+            time.sleep(0.05)
+            self.phien.send("Browser.getVersion")
+
+    def hoi(self, loi, sap):
+        """Playwright báo gì, tab sập chưa; CPU từng tiến trình trong 2 giây — tiến trình vẽ (`renderer`) quay gần
+        2 giây là luồng chính đang bận (vòng lặp không thoát, bố cục chạy mãi), gần 0 là đang chờ một thứ không
+        tới; ngăn xếp JS lúc ngắt — `Debugger.pause` ngắt được cả vòng lặp không thoát, như nút Tạm dừng của
+        DevTools. Bước nào hỏng thì ghi lại rồi làm bước sau."""
+        tin = {"playwright": str(loi).splitlines()[0], "tab_sap": sap}
+        try:
+            truoc = {p["id"]: p["cpuTime"] for p in self.phien.send("SystemInfo.getProcessInfo")["processInfo"]}
+            time.sleep(2)
+            tin["cpu_2_giay"] = {
+                f"{p['type']} {p['id']}": round(p["cpuTime"] - truoc.get(p["id"], p["cpuTime"]), 2)
+                for p in self.phien.send("SystemInfo.getProcessInfo")["processInfo"]}
+        except LoiPlaywright as e:
+            tin["cpu_2_giay"] = f"không đọc được: {str(e).splitlines()[0]}"
+        if self.loi_gan:
+            tin["ngan_xep_js"] = f"không gắn được DevTools: {self.loi_gan}"
+        elif sap:
+            tin["ngan_xep_js"] = "bỏ qua — tab đã sập"
+        else:
+            try:
+                self._gui(2, "Debugger.pause")
+                dung = self._cho(lambda m: m.get("method") == "Debugger.paused", 3)
+                tin["ngan_xep_js"] = [
+                    f"{f['functionName'] or '(ẩn danh)'} {f['url'].rsplit('/', 1)[-1]}:"
+                    f"{f['location']['lineNumber'] + 1}:{f['location']['columnNumber'] + 1}"
+                    for f in dung["params"]["callFrames"][:12]
+                ] if dung else "không dừng được trong 3 giây — luồng chính kẹt ngoài JS"
+            except LoiPlaywright as e:
+                tin["ngan_xep_js"] = f"không lấy được: {str(e).splitlines()[0]}"
+        return tin
+
+    def go(self):
+        """Gỡ khỏi tab: tab đang bị ngắt thì chạy tiếp, phần đo sau đó không bị Debugger ảnh hưởng."""
+        try:
+            if self.ma:
+                self.phien.send("Target.detachFromTarget", {"sessionId": self.ma})
+            self.phien.detach()
+        except LoiPlaywright:
+            pass
 
 
 def _o_ghi_chu(trang, ma_don):
@@ -487,7 +621,7 @@ def _phan_tram(so, p):
 
 
 def test_do_hieu_nang_1000_dong_ghi_chu_400(live_server, trang, dang_nhap,
-                                            kn_crm, feedback, nguoi_dung):  # noqa: F811
+                                            kn_crm, feedback, nguoi_dung, capsys):  # noqa: F811
     """AC-11.44 — 1000 dòng, dòng nào cũng có ghi chú 400 ký tự khác nhau: cuộn hết bảng,
     mỗi khối 100 dòng đo chiều cao một lượt; p95 một lượt dưới ngưỡng đỏ 100 ms, ghi số
     vào biên bản kiểm chứng"""
@@ -509,7 +643,7 @@ def test_do_hieu_nang_1000_dong_ghi_chu_400(live_server, trang, dang_nhap,
                        ...l.getEntries().map(e => Math.round(e.duration))))
                      .observe({type: 'longtask', buffered: true}); }"""
     )
-    cuon = trang.evaluate(CUON_HET_BANG, HAN_CUON_MS)
+    cuon = _chay_co_han(trang, CUON_HET_BANG, HAN_CUON_MS, HAN_CHO_CUON_MS, capsys)
     assert cuon["het_bang"], (
         f"cuộn không tới được cuối bảng trong {HAN_CUON_MS // 1000} giây — lưới ngừng tải dữ liệu hay ngừng "
         f"vẽ (TL-71): {cuon}")

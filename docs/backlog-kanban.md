@@ -3,8 +3,9 @@
 ## 01.10.2026 — Bài 18 không còn treo được (TL-71)
 
 **Đã gộp vào `main` 01.10.2026 (PR #75):** vòng cuộn của bài đo hiệu năng 1000 dòng có hạn 60 giây và trả
-trạng thái trang khi dừng; chờ phông tối đa 10 giây. **To do:** CI còn đỏ ở bài 18 thì đọc trạng thái trang trong
-thông báo để sửa gốc.
+trạng thái trang khi dừng. Python chờ kết quả qua console (`_chay_co_han`) nên trang kẹt hay sập vẫn hết hạn;
+quá hạn thì in ngăn xếp JS, CPU tiến trình vẽ, dấu tab sập (`_DevToolsCuaTab`). **To do:** CI còn đỏ ở bài 18 thì
+đọc khối `== TL-71` trong log để sửa gốc.
 
 ## 01.10.2026 — CI e2e treo 20 phút (TL-71)
 

@@ -208,7 +208,10 @@ với Postgres đang chạy. **Không chạy hai pytest cùng lúc** trên một
 Bài có `live_server` tự chờ máy chủ thử xử lý xong mọi yêu cầu rồi pytest mới dọn bảng
 (`tests/live_server_requests.py`, TL-67): bài trình duyệt không cần tự `goto("about:blank")` hay chờ cứng.
 Bài treo thì thêm `-vv -o faulthandler_timeout=120` như hai bước e2e của CI: quá hạn là in ngăn xếp các luồng
-và cả greenlet của Playwright (`conftest.py` gốc), thấy bài đang chờ ở dòng nào (TL-71).
+và cả greenlet của Playwright (`conftest.py` gốc), thấy bài đang chờ ở dòng nào (TL-71). Chờ một việc dài trong
+trang thì dùng `_chay_co_han` của `tests/e2e/test_ghi_chu_tu_gian_dong.py` (kết quả qua console, hạn đếm trong
+Python, quá hạn in ngăn xếp JS): `page.evaluate` chờ promise và `wait_for_function` đều đứng mãi khi tab kẹt hay
+sập (Playwright 1.56).
 
 **Đừng chạy `migrate ... zero` trên cơ sở dữ liệu phát triển** — nó xoá bảng
 thật. Bài kiểm thử tự lo việc đó trên cơ sở dữ liệu riêng.
