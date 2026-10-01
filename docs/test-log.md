@@ -1,5 +1,61 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 01.10.2026 — Bài 18 treo lần nữa trên PR #75: chờ qua console, hỏi DevTools khi quá hạn (TL-71)
+
+**TL-71 (mở — bài không còn treo được, gốc lỗi chưa biết):** lượt #126 (`d49a470`, PR #75 sau khi gộp `main`)
+job e2e lại đứng ở bài 18 tới khi bước bị cắt sau 10 phút. Ngăn xếp greenlet (#74) chỉ đúng dòng
+`trang.evaluate(CUON_HET_BANG, HAN_CUON_MS)`. Hạn 65 giây đặt trong trang không chạy sau hơn 9 phút, tức trang
+không còn chạy JS: tab sập hoặc luồng chính kẹt. Đọc driver Playwright 1.56 rồi thử tại máy thì thấy:
+
+- **`evaluate`:** không có hạn. Khi tab sập, lời gọi đang chờ không bao giờ được trả lỗi, vì callback CDP không có
+  trả lời.
+- **`wait_for_function`:** hết hạn thì còn gọi `abort()` vào trang rồi chờ câu trả lời. Trên trang kẹt, hạn 4 giây
+  mà đứng hơn 40 giây.
+- **Lệnh CDP gửi thẳng vào tab:** tab đang kẹt (`Debugger.enable`) hay vừa sập (`Page.crash`) thì lệnh cũng
+  đứng mãi.
+
+Sửa ở bài kiểm, không đụng mã ứng dụng:
+
+- **`_chay_co_han`:** hàm chạy nền trong trang, kết quả trả qua `console.log`. Python chờ bằng
+  `expect_console_message`, hạn đếm ngay trong Python nên hết được dù trang kẹt hay sập. Bài 18 chờ 75 giây.
+- **`_DevToolsCuaTab`:** gắn Debugger từ trước khi chạy, mọi lệnh đi qua phiên DevTools của trình duyệt
+  (`Target.sendMessageToTarget`, gửi là xong). Quá hạn thì ghi lại:
+  - tab sập chưa;
+  - CPU từng tiến trình trong 2 giây;
+  - ngăn xếp JS lúc `Debugger.pause`.
+
+  Kết quả in ngay ra log bằng `capsys.disabled()`.
+
+Ép tình huống bằng bài tạm (không commit):
+
+| Ca | Kết quả |
+|---|---|
+| Vòng `for (;;)`, hạn thử 8 giây | Đỏ sau 10,2 giây; tiến trình vẽ chạy 1,98 trong 2 giây; ngăn xếp `quay_mai_tam :3:3` |
+| Giết tiến trình vẽ | Đỏ sau 4,0 giây, `Page crashed` |
+
+Bài chạy sau đó trong cùng phiên vẫn đạt. Bình thường bài 18 đạt, p95 như bản cũ. Lần sau CI gặp lại sẽ đỏ
+sau khoảng 80 giây kèm ngăn xếp JS hay dấu tab sập; khi đó mới sửa gốc, có thể ở lưới.
+[Biên bản](kiem-chung-bai-18-khong-treo-20261001.md), mục "Lần 2".
+
+## 01.10.2026 — Bài đo hiệu năng 1000 dòng ghi chú không còn treo được (TL-71, sửa bài)
+
+**TL-71 (phần sửa bài):** chẩn đoán ở PR #74 khoanh lần treo CI 20 phút (lượt #107, #120) vào bài 18
+`tests/e2e/test_ghi_chu_tu_gian_dong.py::test_do_hieu_nang_1000_dong_ghi_chu_400`. Thủ phạm là hai lời gọi
+`trang.evaluate` không giới hạn thời gian. Sửa ở bài kiểm, không đụng mã ứng dụng:
+
+- Vòng cuộn hết bảng (`CUON_HET_BANG`) có hạn tổng 60 giây. Chờ khung vẽ và chờ dữ liệu đều có hẹn bằng
+  `setTimeout`. Dừng thì trả trạng thái trang: vị trí cuộn, ô Mã đơn chưa có dòng, yêu cầu mạng dở, rAF còn chạy
+  không, thông báo của lưới. Bài kiểm cuộn tới được cuối bảng, không thì đỏ kèm trạng thái đó.
+- `_mo_luoi` chờ `document.fonts.ready` tối đa 10 giây.
+
+Ép tình huống bằng một bài tạm (không commit):
+- chặn mọi yêu cầu `du-lieu/` → vòng dừng đúng 10,0 giây (hạn thử 10 giây), báo 2 ô chưa có dòng và 3 yêu cầu dở;
+- chặn rAF → dừng ở 11,0 giây, `raf_chay: false`;
+- bình thường → hết bảng trong 8 giây.
+
+Lần sau nếu lưới thật sự ngừng tải dữ liệu, CI đỏ sau khoảng 1 phút kèm đủ thông tin để sửa gốc.
+[Biên bản](kiem-chung-bai-18-khong-treo-20261001.md).
+
 ## 01.10.2026 — CI e2e treo tới hết 20 phút ở bài đo hiệu năng 1000 dòng ghi chú
 
 **TL-71 (mở — đã khoanh vùng và thêm chẩn đoán, chưa sửa gốc):** lượt #120 trên `main` (01.10, sau #72) và lượt

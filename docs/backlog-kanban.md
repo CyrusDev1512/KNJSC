@@ -1,10 +1,17 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 01.10.2026 — Bài 18 không còn treo được (TL-71)
+
+**Đã gộp vào `main` 01.10.2026 (PR #75):** vòng cuộn của bài đo hiệu năng 1000 dòng có hạn 60 giây và trả
+trạng thái trang khi dừng. Python chờ kết quả qua console (`_chay_co_han`) nên trang kẹt hay sập vẫn hết hạn;
+quá hạn thì in ngăn xếp JS, CPU tiến trình vẽ, dấu tab sập (`_DevToolsCuaTab`). **To do:** CI còn đỏ ở bài 18 thì
+đọc khối `== TL-71` trong log để sửa gốc.
+
 ## 01.10.2026 — CI e2e treo 20 phút (TL-71)
 
-**Finished local (nhánh `claude/chan-doan-e2e-treo`, PR nháp về `main`):** đã khoanh vùng bài 18
+**Đã gộp vào `main` 01.10.2026 (PR #74):** đã khoanh vùng bài 18
 `test_do_hieu_nang_1000_dong_ghi_chu_400`; CI in tên từng bài, in ngăn xếp các luồng và greenlet khi bài đứng quá
-2 phút, hạn giờ từng bước. **To do:** chủ dự án gộp; lần treo sau đọc ngăn xếp rồi sửa gốc bài 18.
+2 phút, hạn giờ từng bước. Sửa bài 18 cho không treo được: mục trên (PR #75).
 
 ## 30.09.2026 — Dòng TỔNG CỘNG dính không lộ chữ, sát tiêu đề (TL-69)
 
