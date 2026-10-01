@@ -112,7 +112,7 @@ mẫu, báo cáo ngày và báo cáo hoạt động (ADR-022, 032), Bảng dữ 
 mọi bảng** (ADR-014), nhóm Nội bộ. Lên đơn không còn ở ERP, chỉ còn URL GET chuyển
 tiếp sang CRM (ADR-023). **Báo cáo tổng hợp như ảnh mẫu LUMI (ADR-042, 23.09):** ~~tiền quy ₫~~ — **ADR-046 (28.09) bỏ quy
 đổi**: số tiền giữ đúng như nhập, loại tiền là một chiều nhóm (mỗi dòng một loại tiền, TỔNG CỘNG theo loại
-tiền, `aggregations.total_rows`), bộ lọc **Chế độ** Cộng theo ngày / Từng lần nộp (`che_do`, cột Lần nộp),
+tiền, `aggregations.total_rows`), màn hình **luôn Từng lần nộp** (cột Lần nộp; 01.10 bỏ ô Cách xem `nhom` và ô Chế độ `che_do`, URL cũ bị bỏ qua — các cách nhóm khác chỉ còn ở `activity_service.build` cho Tổng quan),
 ô số tự chèn dấu chấm (`report-entry.js`); cột (TT) đối soát từ
 vận đơn, khối toàn kỳ theo nhân sự + mỗi ngày một bảng, Gộp/Không gộp, ngưỡng màu ba bậc do
 quản lý đặt (`ReportSource.thresholds`), lọc nhiều sản phẩm; bảng có nguồn báo cáo Sale/MKT mở ở

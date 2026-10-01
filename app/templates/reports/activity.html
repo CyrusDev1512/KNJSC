@@ -19,11 +19,9 @@
 <div class="panel-head"><h2>Bộ lọc</h2><button type="button" class="nut report-nut-icon" id="report-panel-collapse" aria-label="Thu gọn bộ lọc" title="Thu gọn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></button></div>
 <form method="get" class="panel-body report-filters">
 <div class="truong"><label for="nguon">Nguồn báo cáo</label><select class="o-nhap" name="nguon" id="nguon">{% for s in sources %}<option value="{{ s.table.code }}" {% if source.pk == s.pk %}selected{% endif %}>{{ s.table.name }}</option>{% endfor %}</select></div>
-<div class="truong"><label for="nhom">Cách xem</label><select class="o-nhap" name="nhom" id="nhom">{% for code,label in groups %}<option value="{{ code }}" {% if params.group == code %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
-{% include "reports/_che_do.html" %}
 <div class="truong report-presets" role="group" aria-label="Chọn nhanh kỳ"><span class="nhan-nho">Chọn nhanh</span>{% for p in presets %}<button type="button" class="nut report-preset{% if p.active %} is-active{% endif %}" data-key="{{ p.key }}" data-tu="{{ p.start|date:'Y-m-d' }}" data-den="{{ p.end|date:'Y-m-d' }}">{{ p.label }}</button>{% endfor %}</div>
 <div class="hang-2">
-<div class="truong"><label for="tu">Từ ngày</label><input class="o-nhap" type="date" id="tu" name="tu" value="{{ params.start|date:'Y-m-d' }}"></div>
+<div class="truong"><label for="tu">Từ ngày</label><input class="o-nhap" type="date" id="tu" name="tu" value="{{ params.start|date:'Y-m-d' }}"><input type="hidden" name="ky" id="ky" value="{{ params.ky }}"></div>
 <div class="truong"><label for="den">Đến ngày</label><input class="o-nhap" type="date" id="den" name="den" value="{{ params.end|date:'Y-m-d' }}"></div>
 </div>
 {% include "reports/_chon_san_pham.html" %}

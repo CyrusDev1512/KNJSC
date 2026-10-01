@@ -16,6 +16,9 @@ Chạy lại hai bài trên `b1d081d` (trước #71) cũng đỏ y hệt: lỗi 
 
 Chỉ sửa bài kiểm, không đổi mã ứng dụng.
 
+> **Cập nhật cùng ngày:** chủ dự án coi hai nút cùng sáng là lỗi hiển thị. Từ AC-22.22 chỉ một nút sáng (nút
+> vừa bấm nếu khớp kỳ, không thì nút khớp đầu tiên); dòng kiểm "ngày 1 hai nút cùng sáng" đổi theo.
+
 ## 30.09.2026 — Báo cáo tổng hợp cuộn thì số chồng mờ, đau mắt; dòng TỔNG CỘNG lệch khỏi tiêu đề
 
 **TL-69 (đóng):** chủ dự án gửi video VPS (`main` c7065fe): Báo cáo Marketing, Không gộp, Toàn màn hình, cuộn

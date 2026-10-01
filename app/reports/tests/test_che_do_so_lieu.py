@@ -63,42 +63,32 @@ def _dinh_danh(row):
 
 
 def test_che_do_cong_theo_ngay_va_tung_lan_nop(client, bang_mkt, mkt_source, bon_lan_nop, nguoi_dung):
-    """AC-46.3 — Chế độ nằm trong bộ lọc (`che_do`): Báo cáo tổng hợp mặc định Cộng theo ngày — mỗi người mỗi
-    ngày một dòng cho mỗi loại tiền, nộp nhiều lần thì cộng cùng loại tiền (8.000 + 7.000 = 15.000 CAD, USD
-    dòng riêng); Từng lần nộp — mỗi lần nộp một dòng, số đúng như nhập (8.000 và 7.000), cột Lần nộp
-    "Lần N · giờ" đếm theo giờ nộp trong ngày của từng người, khối toàn kỳ vẫn đứng đầu, TỔNG CỘNG ngày theo
-    loại tiền; Gộp ở Từng lần nộp là một khối mọi lần nộp; chip Chế độ không có ×; giá trị lạ về mặc định;
-    cách xem khác bỏ qua chế độ; nguồn Vận đơn không có ô Chế độ"""
+    """AC-46.3 — Màn hình luôn Từng lần nộp (không còn ô Chế độ, 01.10.2026): mỗi lần nộp một dòng, số đúng như
+    nhập (8.000 và 7.000), cột Lần nộp "Lần N · giờ" đếm theo giờ nộp trong ngày của từng người, khối toàn kỳ
+    vẫn đứng đầu và cộng theo người cùng loại tiền, TỔNG CỘNG ngày theo loại tiền; Gộp là một khối mọi lần nộp.
+    Tầng service vẫn có Cộng theo ngày (Tổng quan dùng): mỗi người mỗi ngày một dòng cho mỗi loại tiền, nộp
+    nhiều lần thì cộng cùng loại tiền (8.000 + 7.000 = 15.000 CAD, USD dòng riêng)"""
     A, B = bon_lan_nop["A"], bon_lan_nop["B"]
+    ma_a, ma_b = employee_code(A), employee_code(B)
     client.force_login(B)                                 # manager_mkt thấy cả bộ phận
     ky = {"nguon": bang_mkt.code, "tu": "2026-08-01", "den": "2026-08-01"}
 
-    # Mặc định: Cộng theo ngày
-    r = client.get("/bao-cao/tong-hop/", ky)
-    assert r.status_code == 200 and r.context["result"].mode == "cong" and r.context["params"]["mode"] == "cong"
-    cot = [c.label for c in r.context["result"].columns]
-    ky_khoi, ngay = r.context["blocks"]
-    assert [c["code"] for c in ngay["identity_columns"]] == ["stt", "team", "person", "leader", "tien"]
-    dong = {(row["person"], row["currency"]): row for row in ngay["rows"]}
-    assert set(dong) == {(employee_code(A), "CAD"), (employee_code(A), "USD"), (employee_code(B), "CAD")}
-    assert _o(dong[(employee_code(A), "CAD")], cot, "CPQC") == "15.000"
-    assert _o(dong[(employee_code(A), "USD")], cot, "CPQC") == "500"
-    assert [t["label"] for t in ngay["total_rows"]] == ["TỔNG CỘNG · USD", "TỔNG CỘNG · CAD"]
-    assert _o(ngay["total_rows"][1], cot, "CPQC") == "18.000" and _o(ngay["total_rows"][0], cot, "CPQC") == "500"
-    chips = {c["label"]: c for c in r.context["chips"]}
-    assert chips["Chế độ"]["value"] == "Cộng theo ngày" and chips["Chế độ"]["url"] == ""
-    html = r.content.decode()
-    assert 'id="report-che-do"' in html and 'name="che_do" value="cong" checked' in html
+    # Tầng service, Cộng theo ngày
+    cong = activity_service.build(B, mkt_source, start=NGAY, end=NGAY)
+    cot = [c.label for c in cong.columns]
+    assert cong.mode == "cong"
+    dong = {(i["person_name"], i["loai_tien"]): dict(zip(cot, aggregations.row_values(i, cong)[1])) for i in cong.rows}
+    assert set(dong) == {(ma_a, "CAD"), (ma_a, "USD"), (ma_b, "CAD")}
+    assert dong[(ma_a, "CAD")]["CPQC"] == 15000 and dong[(ma_a, "USD")]["CPQC"] == 500
 
-    # Từng lần nộp
-    r = client.get("/bao-cao/tong-hop/", {**ky, "che_do": "tung-lan"})
+    # Màn hình: Từng lần nộp
+    r = client.get("/bao-cao/tong-hop/", ky)
     result = r.context["result"]
-    assert result.mode == "tung-lan"
+    assert r.status_code == 200 and result.mode == "tung-lan" and r.context["params"]["mode"] == "tung-lan"
     ky_khoi, ngay = r.context["blocks"]
     assert ky_khoi["kind"] == "period" and ngay["kind"] == "day"
     assert [c["code"] for c in ngay["identity_columns"]] == ["stt", "team", "person", "leader", "lan", "tien"]
     hang = [(row["person"], _dinh_danh(row)["lan"], row["currency"], _o(row, cot, "CPQC")) for row in ngay["rows"]]
-    ma_a, ma_b = employee_code(A), employee_code(B)
     mong = sorted([(ma_a, "Lần 1 · 09:12", "CAD", "8.000"), (ma_a, "Lần 2 · 10:00", "USD", "500"),
                    (ma_a, "Lần 3 · 16:40", "CAD", "7.000"), (ma_b, "Lần 1 · 11:05", "CAD", "3.000")],
                   key=lambda h: (h[0], h[1]))
@@ -113,30 +103,22 @@ def test_che_do_cong_theo_ngay_va_tung_lan_nop(client, bang_mkt, mkt_source, bon
     assert result.derived_shared == frozenset({(NGAY, ma_a, "CAD")})
     tt = {(_dinh_danh(row)["lan"], row["person"]): _o(row, cot, "Số đơn (TT)") for row in ngay["rows"]}
     assert tt[("Lần 1 · 09:12", ma_a)] == "—" and tt[("Lần 2 · 10:00", ma_a)] == "0" and tt[("Lần 1 · 11:05", ma_b)] == "1"
-    chips = {c["label"]: c for c in r.context["chips"]}
-    # Chế độ không tính là bộ lọc: huy hiệu chỉ đếm chip Kỳ (kỳ 01.08 khác mặc định)
-    assert chips["Chế độ"]["value"] == "Từng lần nộp" and chips["Chế độ"]["url"] == "" and r.context["filters_active"] == 1
+    # Huy hiệu chỉ đếm chip Kỳ (kỳ 01.08 khác mặc định); không còn chip Chế độ
+    assert "Chế độ" not in {c["label"] for c in r.context["chips"]} and r.context["filters_active"] == 1
     html = r.content.decode()
-    assert 'name="che_do" value="tung-lan" checked' in html and "Lần 3 · 16:40" in html and ">8.000</td>" in html
+    assert 'name="che_do"' not in html and "Lần 3 · 16:40" in html and ">8.000</td>" in html
 
-    # Gộp ở Từng lần nộp: một khối mọi lần nộp — Ngày · Nhân sự · Lần nộp · Loại tiền
-    r = client.get("/bao-cao/tong-hop/", {**ky, "che_do": "tung-lan", "gop": "1"})
+    # Gộp: một khối mọi lần nộp — Ngày · Nhân sự · Lần nộp · Loại tiền
+    r = client.get("/bao-cao/tong-hop/", {**ky, "gop": "1"})
     assert [b["kind"] for b in r.context["blocks"]] == ["period", "submissions"]
     moi_lan = r.context["blocks"][1]
     assert [c["code"] for c in moi_lan["identity_columns"]] == ["nhom", "person", "lan", "tien"]
     assert len(moi_lan["rows"]) == 4 and moi_lan["count"] == 4
     assert [t["label"] for t in moi_lan["total_rows"]] == ["TỔNG CỘNG · toàn kỳ · USD", "TỔNG CỘNG · toàn kỳ · CAD"]
 
-    # Giá trị lạ về mặc định; cách xem khác bỏ qua chế độ và không có chip Chế độ
-    assert client.get("/bao-cao/tong-hop/", {**ky, "che_do": "abc"}).context["result"].mode == "cong"
-    r = client.get("/bao-cao/tong-hop/", {**ky, "che_do": "tung-lan", "nhom": "person"})
-    assert r.context["result"].mode == "cong" and "Chế độ" not in {c["label"] for c in r.context["chips"]}
-    dong = {(row["nhom"], row["currency"]): row for row in r.context["rows"]}
-    assert _o(dong[(ma_a, "CAD")], cot, "CPQC") == "15.000" and _o(dong[(ma_a, "USD")], cot, "CPQC") == "500"
-
 
 def test_nguon_van_don_khong_co_che_do(client, delivery_source, nguoi_dung):
-    """AC-46.3 — Nguồn Vận đơn không có lần nộp: không có ô Chế độ, không chip Chế độ, `che_do` bị bỏ qua"""
+    """AC-46.3 — Nguồn Vận đơn không có lần nộp: mỗi ngày như cũ, không ô hay chip Chế độ, `che_do` bị bỏ qua"""
     client.force_login(nguoi_dung["manager_sale"])
     r = client.get("/bao-cao/tong-hop/", {"nguon": delivery_source.table.code, "che_do": "tung-lan"})
     assert r.status_code == 200
@@ -145,9 +127,9 @@ def test_nguon_van_don_khong_co_che_do(client, delivery_source, nguoi_dung):
 
 
 def test_excel_theo_che_do(client, bang_mkt, mkt_source, bon_lan_nop, nguoi_dung):
-    """AC-46.4 — Tệp Excel theo đúng chế độ đang chọn: phụ đề ghi Chế độ; Từng lần nộp thì sheet Theo ngay có
-    cột Lần nộp và Loại tiền, mỗi lần nộp một dòng với số thô đúng như nhập (8000, 7000); Gộp thì một khối mọi
-    lần nộp; Cộng theo ngày thì cộng cùng loại tiền; các cách xem khác cũng xuất theo khối như màn hình"""
+    """AC-46.4 — Tệp Excel đúng như màn hình (Từng lần nộp): phụ đề không còn "Chế độ:"; sheet Theo ngay có cột
+    Lần nộp và Loại tiền, mỗi lần nộp một dòng với số thô đúng như nhập (8000, 7000), TỔNG CỘNG theo loại
+    tiền; Gộp thì một khối mọi lần nộp"""
     A = bon_lan_nop["A"]
     client.force_login(bon_lan_nop["B"])
     ky = {"nguon": bang_mkt.code, "tu": "2026-08-01", "den": "2026-08-01"}
@@ -156,8 +138,8 @@ def test_excel_theo_che_do(client, bang_mkt, mkt_source, bon_lan_nop, nguoi_dung
     def sach(query):
         return load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", query).content), data_only=True)
 
-    book = sach({**ky, "che_do": "tung-lan"})
-    assert "Chế độ: Từng lần nộp" in book["Toan ky theo nhan su"]["A2"].value
+    book = sach(ky)
+    assert "Chế độ" not in book["Toan ky theo nhan su"]["A2"].value
     ngay = list(book["Theo ngay"].values)
     dau = ngay[1]
     assert dau[:6] == ("STT", "Team", "Nhân sự", "Leader", "Lần nộp", "Loại tiền")
@@ -167,21 +149,10 @@ def test_excel_theo_che_do(client, bang_mkt, mkt_source, bon_lan_nop, nguoi_dung
     tong = [d for d in ngay if d and str(d[0]).startswith("TỔNG CỘNG")]
     assert [(d[0], d[5], d[6 + cot.index("CPQC")]) for d in tong] == [("TỔNG CỘNG · USD", "USD", 500), ("TỔNG CỘNG · CAD", "CAD", 18000)]
 
-    book = sach({**ky, "che_do": "tung-lan", "gop": "1"})
+    book = sach({**ky, "gop": "1"})
     moi_lan = list(book["Theo ngay"].values)
     assert moi_lan[0][0] == "Mọi lần nộp trong kỳ" and moi_lan[1][:4] == ("Ngày", "Nhân sự", "Lần nộp", "Loại tiền")
     assert len([d for d in moi_lan[2:] if d and d[0] and not str(d[0]).startswith("TỔNG")]) == 4
-
-    book = sach(ky)
-    assert "Chế độ: Cộng theo ngày" in book["Toan ky theo nhan su"]["A2"].value
-    ngay = list(book["Theo ngay"].values)
-    # Cộng theo ngày: A một dòng mỗi loại tiền, USD xếp trước CAD (thứ tự `Currency`)
-    assert [(d[4], d[4 + 1 + cot.index("CPQC")]) for d in ngay if d and d[2] == employee_code(A)] == [("USD", 500), ("CAD", 15000)]
-
-    # Cách xem Theo nhân viên: một khối, TỔNG trong bộ lọc theo loại tiền đứng đầu, cột Loại tiền
-    ws = list(sach({**ky, "nhom": "person"}).active.values)
-    assert ws[3][:4] == ("Team", "Marketer", "Leader", "Loại tiền")
-    assert [(d[0], d[3]) for d in ws[4:6]] == [("Tổng trong bộ lọc · USD", "USD"), ("Tổng trong bộ lọc · CAD", "CAD")]
 
 
 def test_doi_soat_tt_theo_loai_tien_cua_don(bang_mkt, mkt_source, van_don, nguoi_dung):
@@ -284,10 +255,9 @@ def test_ngan_sach_truy_van_va_duong_qua_tran(client, bang_mkt, mkt_source, van_
     _nop(bang_mkt, B, 12, 0, cpqc="50")
     client.force_login(B)
     ky = {"nguon": bang_mkt.code, "tu": "2026-08-01", "den": "2026-08-01"}
-    for che_do in ("cong", "tung-lan"):
-        client.get("/bao-cao/tong-hop/", {**ky, "che_do": che_do})
-        with django_assert_max_num_queries(10):
-            assert client.get("/bao-cao/tong-hop/", {**ky, "che_do": che_do}).status_code == 200
+    client.get("/bao-cao/tong-hop/", ky)
+    with django_assert_max_num_queries(10):
+        assert client.get("/bao-cao/tong-hop/", ky).status_code == 200
     # Ép đường quá trần: MAX_GROUPS = 2 → dòng là queryset, phân trang bằng truy vấn
     monkeypatch.setattr(activity_service, "MAX_GROUPS", 2)
     monkeypatch.setattr(summary_service, "MAX_GROUPS", 2)
@@ -301,7 +271,7 @@ def test_ngan_sach_truy_van_va_duong_qua_tran(client, bang_mkt, mkt_source, van_
     # toàn bộ ngày của A, không đếm lại từ 1 ở đầu trang
     for phut in range(23):
         _nop(bang_mkt, A, 13, phut, cpqc="1")
-    trang2 = client.get("/bao-cao/tong-hop/", {**ky, "che_do": "tung-lan", "moi_trang": "25", "trang": "2"})
+    trang2 = client.get("/bao-cao/tong-hop/", {**ky, "moi_trang": "25", "trang": "2"})
     assert trang2.status_code == 200 and trang2.context["page_obj"].number == 2
     lan = [(row["person"], dict((c["code"], v) for c, v in row["identity"])["lan"])
            for b in trang2.context["blocks"][1:] for row in b["rows"]]
@@ -314,14 +284,11 @@ def test_ngan_sach_truy_van_va_duong_qua_tran(client, bang_mkt, mkt_source, van_
 
 
 def test_mode_parameter_defaults(rf):
-    """AC-46.3 — Tham số `che_do`: Báo cáo tổng hợp mặc định Cộng theo ngày, Bảng dữ liệu truyền mặc định Từng
-    lần nộp; giá trị lạ về mặc định của màn hình"""
-    assert screen.parameters(rf.get("/", {}))["mode"] == "cong"
-    assert screen.parameters(rf.get("/", {}), default_mode="tung-lan")["mode"] == "tung-lan"
-    assert screen.parameters(rf.get("/", {"che_do": "tung-lan"}))["mode"] == "tung-lan"
-    assert screen.parameters(rf.get("/", {"che_do": "xyz"}), default_mode="tung-lan")["mode"] == "tung-lan"
+    """AC-46.3 — `screen.parameters` luôn trả Từng lần nộp cho cả hai màn hình, bỏ qua `che_do` trên URL cũ
+    (01.10.2026); tầng service vẫn giữ hai chế độ"""
+    for query in ({}, {"che_do": "cong"}, {"che_do": "tung-lan"}, {"che_do": "xyz"}):
+        assert screen.parameters(rf.get("/", query))["mode"] == "tung-lan"
     assert dict(activity_service.MODES) == {"cong": "Cộng theo ngày", "tung-lan": "Từng lần nộp"}
-
 
 
 def test_chuoi_o_so_may_chu_doc_lai_dung():

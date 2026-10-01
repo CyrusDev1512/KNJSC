@@ -177,7 +177,8 @@ def test_loc_nhieu_san_pham_va_url_cu(client, bang_mkt, mkt_source, van_don, ngu
     r = client.get("/bao-cao/tong-hop/", {**query, "sp": ["SP1", "SP2"]})
     assert r.status_code == 200 and r.context["result"].totals["c_so_mess"] == 30
     cot = [c.label for c in r.context["result"].columns]
-    a = next(row for row in r.context["rows"] if row["kind"] == "row" and row["person"] == employee_code(A))
+    # Khối toàn kỳ: A nộp hai lần trong ngày (SP1, SP2) nên (TT) cộng ở dòng toàn kỳ của A, không ở từng lần nộp
+    a = next(row for row in r.context["blocks"][0]["rows"] if row["person"] == employee_code(A))
     assert a["cells"][cot.index("DS Chốt (TT)")] == "100"   # w1 SP1 60 + w2 SP2 40, đúng số CAD của đơn
     assert {c["label"]: c["value"] for c in r.context["chips"]}["Sản phẩm"] == "SP1, SP2"
     assert [p["value"] for p in r.context["products"]] == ["SP1", "SP2", "SP3"]

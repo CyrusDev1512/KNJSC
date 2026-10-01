@@ -4,6 +4,7 @@
 |---|---|
 | Ngày | 28.09.2026 |
 | Trạng thái | Xong local 28.09.2026, PR nháp vào `main`; chờ chủ dự án nghiệm thu và Codex phát hành VPS |
+| Bổ sung | 01.10.2026: bỏ ô Cách xem và ô Chế độ trên màn hình, luôn Từng lần nộp; nút Chọn nhanh sáng một (mục cuối) |
 | Thay thế / bổ sung | **Thay quyết định 1 của ADR-042** (quy ₫ trong truy vấn rồi mới cộng). Bổ sung ADR-042 đợt 2 (bố cục khối), đợt 3 (ngưỡng màu), đợt 4 (Bảng dữ liệu); ADR-038 phần (TT) |
 
 ## Bối cảnh
@@ -80,3 +81,26 @@ chế độ Từng lần nộp.
 - Đơn vận đơn khác loại tiền với mọi báo cáo của marketer trong ngày không hiện ở (TT).
 - Người nộp báo cáo cho ngày khác (nộp bù) có "Lần N" tính theo giờ nộp, kèm ngày nộp để phân biệt.
 - Cột ghim trái nhiều hơn (tới sáu cột ở Từng lần nộp): màn hẹp dưới 480 px còn ít chỗ cho cột số.
+
+## Bổ sung 01.10.2026 — bỏ ô Cách xem và ô Chế độ, luôn Từng lần nộp
+
+Chủ dự án thử bộ lọc Báo cáo tổng hợp và thấy hai ô **Cách xem** và **Chế độ** trùng ý nhau, rồi chốt: *"không
+cần cộng theo ngày, chỉ cần từng lần nộp"* và *"bỏ luôn ô và chức năng cách xem, để mặc định là từng lần nộp
+luôn; thị trường, sản phẩm, thời gian đều có các filter bên dưới rồi"*.
+
+- **Màn hình:** Báo cáo tổng hợp và Bảng dữ liệu dạng báo cáo không còn ô Cách xem (`nhom`) và ô Chế độ
+  (`che_do`), không chip của hai ô đó; luôn Tổng hợp × Từng lần nộp (`activity_service.SCREEN_GROUP`,
+  `SCREEN_MODE`, đọc ở một chỗ `reports.screen.parameters`). URL cũ mang hai tham số vẫn mở, chỉ bị bỏ qua.
+  Phụ đề Excel bỏ "Chế độ:". Gộp ở nguồn Sale/MKT là một bảng mọi lần nộp (AC-42.7 đổi chữ). Nguồn Vận đơn
+  không có lần nộp nên vẫn mỗi ngày như cũ.
+- **Mất khỏi màn hình:** cách xem Theo nhân viên, Theo sản phẩm, Theo thị trường và **Hiệu suất theo team**
+  (vừa thêm 30.09, AC-22.20). Thay vào đó lọc Nhân sự, Sản phẩm, Thị trường, Team; khối toàn kỳ đầu trang vẫn
+  cộng theo nhân sự.
+- **Tầng service giữ nguyên:** `activity_service.build(group=…, mode=…)` vẫn có mọi cách nhóm và Cộng theo
+  ngày — Tổng quan dùng, khối toàn kỳ quá trần dùng `group="person"`, bài kiểm tầng service giữ. Không đưa ô
+  Cách xem/Chế độ lại màn hình khi chủ dự án chưa yêu cầu.
+- **Nút Chọn nhanh sáng một** (cùng ngày): ngày 01 "Hôm nay" và "Tháng này" cùng khoảng nên từng sáng cả hai
+  (TL-70 ghi là đúng; chủ dự án coi là lỗi). `summary_service.date_presets(key=…)` chỉ tô một nút: nút vừa
+  bấm (ô ẩn `ky`) nếu khớp kỳ, không thì nút khớp đầu tiên (AC-22.22).
+- Không migration, không thư viện mới, phạm vi quyền không đổi. AC-22.22, AC-22.23 mới; AC-22.20, 38.5, 42.6,
+  42.7, 46.3, 46.4 đổi chữ.

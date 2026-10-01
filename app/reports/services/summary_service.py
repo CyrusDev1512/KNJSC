@@ -90,10 +90,11 @@ def default_range():
     return hom_nay.replace(day=1), hom_nay
 
 
-def date_presets(today=None, *, start=None, end=None):
+def date_presets(today=None, *, start=None, end=None, key=None):
     """Chọn nhanh kỳ (ADR-038, sheet MKT): Hôm nay, Hôm qua, 7 ngày, Tuần này (thứ Hai → hôm nay,
-    ADR-042), Tháng này, Tháng trước. Mỗi mục `{key, label, start, end, active}`; `active` khi khớp
-    đúng khoảng đang lọc."""
+    ADR-042), Tháng này, Tháng trước. Mỗi mục `{key, label, start, end, active}`. Chỉ **một** mục
+    `active` (chủ dự án 01.10.2026: ngày 01 "Hôm nay" và "Tháng này" cùng khoảng nên từng sáng cả hai):
+    mục `key` — nút vừa bấm, ô ẩn `ky` — nếu khoảng của nó khớp kỳ đang lọc, không thì mục khớp đầu tiên."""
     from datetime import timedelta
 
     hom_nay = today or timezone.localdate()
@@ -107,8 +108,9 @@ def date_presets(today=None, *, start=None, end=None):
         ("thang-nay", "Tháng này", dau_thang, hom_nay),
         ("thang-truoc", "Tháng trước", cuoi_thang_truoc.replace(day=1), cuoi_thang_truoc),
     )
-    return [{"key": key, "label": label, "start": tu, "end": den,
-             "active": (start, end) == (tu, den)} for key, label, tu, den in muc]
+    khop = [ma for ma, _, tu, den in muc if (start, end) == (tu, den)]
+    sang = key if key in khop else (khop[0] if khop else None)
+    return [{"key": ma, "label": label, "start": tu, "end": den, "active": ma == sang} for ma, label, tu, den in muc]
 
 
 def parse_day(text, fallback):

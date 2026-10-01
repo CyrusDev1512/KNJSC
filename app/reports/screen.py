@@ -18,16 +18,13 @@ from reports import aggregations, excel, layout
 from reports.services import activity_service as service, summary_service
 
 
-def parameters(request, default_mode=service.DEFAULT_MODE):
-    """Tham số bộ lọc trên URL. `che_do` (ADR-046): Cộng theo ngày / Từng lần nộp — giá trị lạ về
-    mặc định của màn hình (`default_mode`: Báo cáo tổng hợp "cong", Bảng dữ liệu "tung-lan")."""
+def parameters(request):
+    """Tham số bộ lọc trên URL. Cách xem và chế độ cố định Tổng hợp × Từng lần nộp (chủ dự án 01.10.2026,
+    bổ sung ADR-046): `nhom`, `che_do` của URL cũ bị bỏ qua. `ky` là nút Chọn nhanh vừa bấm — chỉ để tô đúng
+    một nút khi hai nút cùng khoảng (ngày 01: Hôm nay = Tháng này)."""
     start, end = summary_service.default_range()
-    group = request.GET.get("nhom", "day")
-    aliases = {"tong-hop": "day", "nhan-vien": "person", "san-pham": "product", "thi-truong": "market",
-               **service.GROUP_ALIASES}
-    mode = request.GET.get("che_do", "")
     return {
-        "group": aliases.get(group, group),
+        "group": service.SCREEN_GROUP,
         "start": summary_service.parse_day(request.GET.get("tu"), start),
         "end": summary_service.parse_day(request.GET.get("den"), end),
         # Nhiều sản phẩm (ADR-042 đợt 3): `sp` lặp lại; URL cũ `sp=A` vẫn là danh sách một mục
@@ -36,8 +33,14 @@ def parameters(request, default_mode=service.DEFAULT_MODE):
         "person": request.GET.get("nhan_su", ""),
         "team": request.GET.get("team", ""),
         "segment": request.GET.get("tep", ""),
-        "mode": mode if mode in dict(service.MODES) else default_mode,
+        "mode": service.SCREEN_MODE,
+        "ky": request.GET.get("ky", ""),
     }
+
+
+def build_arguments(params):
+    """Tham số cho `activity_service.build`: mọi bộ lọc trừ `ky` (chỉ để tô nút Chọn nhanh)."""
+    return {key: value for key, value in params.items() if key != "ky"}
 
 
 def with_query(request, **doi):
@@ -59,8 +62,6 @@ def export_response(request, source, result, params, gop=False, *, detail="Xuấ
         raise BusinessError("Thu hẹp bộ lọc để xuất báo cáo.")
     record(AuditAction.EXPORT, actor=request.user, target=source.table, detail=detail, request=request)
     subtitle = f"{params['start']} đến {params['end']}"
-    if getattr(result, "show_person", False):
-        subtitle += " · Chế độ: " + dict(service.MODES).get(getattr(result, "mode", ""), "")
     if params.get("product"):
         subtitle += " · Sản phẩm: " + ", ".join(params["product"])
     if params.get("segment"):
@@ -171,7 +172,7 @@ def period_block(request, source, result, ca_bo, items, params, title):
     quả cách xem Theo nhân viên (thêm truy vấn, hiếm)."""
     if ca_bo is not None:
         return layout.period_block(ca_bo, result, title)
-    ky = {k: v for k, v in params.items() if k not in ("group", "mode")}
+    ky = {k: v for k, v in build_arguments(params).items() if k not in ("group", "mode")}
     nguoi = service.build(request.user, source, group="person", **ky)
     dong = list(nguoi.rows)
     return layout.period_block_from_rows(aggregations.finish_rows(dong, nguoi), dong, nguoi, title)
@@ -188,10 +189,10 @@ def single_kinds(result, show_team, show_leader):
     return kinds
 
 
-def filter_chips(request, params, ctx, *, show_group=True):
+def filter_chips(request, params, ctx):
     """Hàng chip bộ lọc đang áp, render từ `params`; × của mỗi chip là link cùng URL bỏ đúng tham số
-    (Kỳ bỏ cả `tu` và `den` để về mặc định; bỏ Team thì bỏ luôn Nhân sự). Không có chip Nguồn;
-    Cách xem không bỏ được (Bảng dữ liệu chỉ có một cách xem nên không có chip này)."""
+    (Kỳ bỏ cả `tu` và `den` để về mặc định, kèm `ky`; bỏ Team thì bỏ luôn Nhân sự). Không có chip Nguồn;
+    không còn chip Cách xem và Chế độ (chủ dự án 01.10.2026: luôn từng lần nộp)."""
     def without(*keys):
         query = request.GET.copy()
         for key in keys:
@@ -201,16 +202,12 @@ def filter_chips(request, params, ctx, *, show_group=True):
     # (trước đây chip Kỳ có × ngay sau lần Áp dụng đầu tiên, TL-46)
     dang_loc_ky = (params["start"], params["end"]) != summary_service.default_range()
     chips = [{"label": "Kỳ", "value": f"{params['start']:%d/%m} – {params['end']:%d/%m/%Y}",
-              "url": without("tu", "den") if dang_loc_ky else ""}]
-    if show_group:
-        chips.append({"label": "Cách xem", "value": dict(service.GROUPS).get(params["group"], params["group"]), "url": ""})
-    if ctx.get("source") is not None and service.has_modes(ctx["source"], params["group"]):
-        # Chế độ là cách hiện số, không phải bộ lọc thu hẹp dữ liệu: luôn hiện, không có × (ADR-046)
-        chips.append({"label": "Chế độ", "value": dict(service.MODES).get(params["mode"], params["mode"]), "url": ""})
+              "url": without("tu", "den", "ky") if dang_loc_ky else ""}]
     if request.GET.get("gop") == "1":
-        # Gộp ở chế độ Từng lần nộp là một bảng mọi lần nộp, không phải mỗi ngày một dòng (ADR-046)
-        gop = "mọi lần nộp một bảng" if params.get("mode") == "tung-lan" and params["group"] == "day" else "mỗi ngày một dòng"
-        chips.append({"label": "Gộp", "value": gop, "url": without("gop")})
+        # Gộp nguồn có lần nộp là một bảng mọi lần nộp; Vận đơn không có lần nộp nên mỗi ngày một dòng
+        tung_lan = ctx.get("source") is not None and service.has_modes(ctx["source"], params["group"])
+        chips.append({"label": "Gộp", "value": "mọi lần nộp một bảng" if tung_lan else "mỗi ngày một dòng",
+                      "url": without("gop")})
     if params["product"]:
         sp = params["product"]
         chips.append({"label": "Sản phẩm", "value": ", ".join(sp) if len(sp) <= 2 else f"{len(sp)} sản phẩm", "url": without("sp")})

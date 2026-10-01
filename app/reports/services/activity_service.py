@@ -28,12 +28,16 @@ GROUPS = (
 GROUP_ALIASES = {"department": "team"}
 #: Nhãn nhóm của dòng người chưa gán team — dùng chung cho dòng báo cáo và khoá đối soát vận đơn
 NO_TEAM = "Chưa có team"
-#: Chế độ số liệu (ADR-046) — nằm trong bộ lọc, tham số `che_do`. "cong": mỗi người mỗi ngày một
-#: dòng cho mỗi loại tiền, nộp nhiều lần thì cộng (cùng loại tiền); "tung-lan": mỗi lần nộp một dòng,
-#: số đúng như nhập. Chỉ cách xem Tổng hợp (ngày × nhân sự) có chế độ; Báo cáo tổng hợp mặc định
-#: "cong", Bảng dữ liệu dạng báo cáo mặc định "tung-lan" — giữ đúng như trước khi có bộ lọc này.
+#: Chế độ số liệu (ADR-046). "cong": mỗi người mỗi ngày một dòng cho mỗi loại tiền, nộp nhiều lần thì
+#: cộng (cùng loại tiền); "tung-lan": mỗi lần nộp một dòng, số đúng như nhập. Chỉ cách xem Tổng hợp
+#: (ngày × nhân sự) có chế độ; mặc định của service là "cong" (Tổng quan dùng).
 MODES = (("cong", "Cộng theo ngày"), ("tung-lan", "Từng lần nộp"))
 DEFAULT_MODE = "cong"
+# Màn Báo cáo tổng hợp và Bảng dữ liệu dạng báo cáo không còn ô Cách xem và ô Chế độ (chủ dự án 01.10.2026,
+# bổ sung ADR-046): luôn Tổng hợp × Từng lần nộp; thị trường, sản phẩm, thời gian đã có bộ lọc riêng. Các
+# cách nhóm và chế độ khác vẫn ở `build()` cho Tổng quan và khối toàn kỳ quá trần.
+SCREEN_GROUP = "day"
+SCREEN_MODE = "tung-lan"
 PERSON_LABELS = {"sale": "Sale", "mkt": "Marketer", "delivery": "Người phụ trách Vận đơn"}
 INPUT_LABELS = {
     "mess": "Số Mess", "orders": "Số đơn", "orders_tt": "Số đơn (TT)", "sales": "Doanh số",

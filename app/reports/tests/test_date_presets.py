@@ -34,10 +34,10 @@ def test_chon_nhanh_ky(client, bang_mkt, nguoi_dung, monkeypatch):
         ["Hôm nay", "Hôm qua", "7 ngày", "Tuần này", "Tháng này", "Tháng trước"]
     active = [m["key"] for m in summary_service.date_presets(date(2026, 9, 18), start=date(2026, 9, 1), end=date(2026, 9, 18)) if m["active"]]
     assert active == ["thang-nay"]
-    # Ngày 1 đầu tháng: Hôm nay và Tháng này cùng là một ngày nên cả hai nút cùng được đánh dấu (TL-70)
+    # Ngày 1 đầu tháng: Hôm nay và Tháng này cùng là một ngày nhưng chỉ một nút sáng — nút khớp đầu tiên, hoặc
+    # nút vừa bấm (`ky`); chủ dự án 01.10.2026 coi hai nút cùng sáng là lỗi hiển thị (AC-22.22, thay ghi chú TL-70)
     ngay_1 = date(2026, 10, 1)
-    assert [m["key"] for m in summary_service.date_presets(ngay_1, start=ngay_1, end=ngay_1) if m["active"]] == \
-        ["hom-nay", "thang-nay"]
+    assert [m["key"] for m in summary_service.date_presets(ngay_1, start=ngay_1, end=ngay_1) if m["active"]] == ["hom-nay"]
 
     ReportSource.objects.create(table=bang_mkt, kind="mkt", columns={
         "mess": "so_mess", "orders": "so_don", "sales": "doanh_so", "cost": "cpqc", "market": "thi_truong"})

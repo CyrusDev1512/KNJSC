@@ -241,7 +241,7 @@ def test_export_limit_before_workbook(client,bang_mkt,dong_mau,nguoi_dung,settin
     assert "Thu hẹp bộ lọc" in response.content.decode()
 
 
-@pytest.mark.parametrize("query",[{"nhom":"unknown"},{"tu":"2026-08-31","den":"2026-08-01"}])
+@pytest.mark.parametrize("query",[{"tu":"2026-08-31","den":"2026-08-01"}])
 def test_invalid_filters_show_error(client,marketing_scope,nguoi_dung,query):
     ReportSource.objects.create(table=marketing_scope.table,kind="sale",columns={"market":"thi_truong"})
     client.force_login(nguoi_dung["manager_sale"])
@@ -249,13 +249,14 @@ def test_invalid_filters_show_error(client,marketing_scope,nguoi_dung,query):
     assert response.status_code==400 and response.context["error"]
 
 
-@pytest.mark.parametrize("old,new",[("tong-hop","day"),("nhan-vien","person"),("san-pham","product"),("thi-truong","market")])
-def test_summary_preserves_old_group_links(client, marketing_scope, nguoi_dung, old, new):
+@pytest.mark.parametrize("old",["tong-hop","nhan-vien","san-pham","thi-truong","unknown"])
+def test_summary_preserves_old_group_links(client, marketing_scope, nguoi_dung, old):
+    # Đường dẫn cũ mang `nhom` vẫn mở; cách xem không còn trên màn hình nên luôn Tổng hợp (01.10.2026)
     ReportSource.objects.create(table=marketing_scope.table, kind="sale", columns={"market":"thi_truong"})
     client.force_login(nguoi_dung["manager_sale"])
     response = client.get("/bao-cao/tong-hop/", {"nguon":marketing_scope.table.code,"nhom":old})
     assert response.status_code == 200
-    assert response.context["params"]["group"] == new
+    assert response.context["params"]["group"] == "day"
     assert 'href="/bao-cao/hoat-dong/"' not in response.content.decode()
 
 
@@ -287,9 +288,10 @@ def test_day_view_shows_person_and_leader_in_scope(client, marketing_scope, nguo
     assert all(nguoi_dung["leader_sale_1"].profile.full_name not in row["leader"] for row in rows)
     assert (employee_code(nguoi_dung["leader_sale_2"]) in leaders) == ("staff_sale_2" in persons)
     assert {identity_label(nguoi_dung[name]) for name in persons} <= {p["label"] for p in r.context["people"]}
-    assert r.context["label_span"]==4
+    assert r.context["label_span"]==5                               # thêm cột Lần nộp (01.10.2026)
     html=r.content.decode()
-    assert 'class="report-identity id-nhan-su" data-pos="3">Nhân sự</th>' in html and 'id-leader report-identity-edge" data-pos="4">Leader</th>' in html   # cột định danh ghim (AC-22.13)
+    assert 'class="report-identity id-nhan-su" data-pos="3">Nhân sự</th>' in html and 'id-leader" data-pos="4">Leader</th>' in html   # cột định danh ghim (AC-22.13)
+    assert 'id-lan report-identity-edge" data-pos="5">Lần nộp</th>' in html
     # Lọc theo nhân sự: chỉ còn dòng của người đó; người ngoài phạm vi bị chặn
     me=nguoi_dung["staff_sale_1"].pk
     r2=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":me})
@@ -375,7 +377,7 @@ def test_day_blocks_have_day_subtotal_and_stt(client, bang_mkt, mkt_source, van_
     html=r.content.decode()
     # Mỗi ngày một bảng riêng (ADR-042): tiêu đề ngày trên bảng, TỔNG CỘNG ngay dưới hàng tiêu đề cột, STT ở cột đầu
     assert html.count('class="report-block report-block-day"')==2 and '<h3>01.08.2026</h3>' in html
-    assert 'data-pos="1" colspan="4">TỔNG CỘNG · CAD</th>' in html and 'class="report-identity id-stt" data-pos="1">1</th>' in html
+    assert 'data-pos="1" colspan="5">TỔNG CỘNG · CAD</th>' in html and 'class="report-identity id-stt" data-pos="1">1</th>' in html
     assert 'class="report-block report-block-period"' in html and 'TỔNG CỘNG · toàn kỳ · CAD</th>' in html
     # Excel: sheet "Theo ngay" cùng khối — tiêu đề ngày, hàng tiêu đề cột, TỔNG CỘNG, dòng người có STT
     ngay=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True)["Theo ngay"].values)
