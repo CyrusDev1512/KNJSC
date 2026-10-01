@@ -6,9 +6,21 @@ Chủ dự án duyệt kế hoạch sau PR #74 (chẩn đoán CI e2e treo): sử
 `test_do_hieu_nang_1000_dong_ghi_chu_400` cho không treo được nữa, PR nháp riêng, nhánh `claude/sua-bai-18-khong-treo`.
 Vòng cuộn hết bảng có hạn tổng 60 giây, chờ khung vẽ và dữ liệu đều có hẹn `setTimeout`, dừng thì trả trạng thái
 trang và bài đỏ kèm trạng thái đó. `_mo_luoi` chờ phông tối đa 10 giây. Không đụng mã ứng dụng, AC-11.44 giữ
-nguyên. [Biên bản](kiem-chung-bai-18-khong-treo-20261001.md). **Còn:** gộp #74 rồi PR này. Lần sau CI có đỏ ở bài 18
-thì đọc trạng thái trang trong thông báo để sửa gốc (lưới ngừng tải dữ liệu hay ngừng vẽ). `_o_ghi_chu` và các bài
-khác còn dùng rAF không hẹn; sửa nếu treo lan sang.
+nguyên. [Biên bản](kiem-chung-bai-18-khong-treo-20261001.md). Đã gộp vào `main` 01.10.2026 (PR #75, sau #74).
+**Còn:** lần sau CI có đỏ ở bài 18 thì đọc trạng thái trang trong thông báo để sửa gốc (lưới ngừng tải dữ liệu
+hay ngừng vẽ). `_o_ghi_chu` và các bài khác còn dùng rAF không hẹn; sửa nếu treo lan sang.
+
+## 01.10.2026 — CI e2e treo 20 phút: khoanh vùng và thêm chẩn đoán (TL-71)
+
+Lượt CI #120 trên `main` sau khi gộp #72: bộ chính xanh (TL-70 hết đỏ), còn job e2e bị GitHub huỷ ở phút 20 vì
+một bài treo. Lượt #107 (29.09) cũng vậy, lúc đó chạy lại cho xanh rồi bỏ qua, chưa ghi lại. Khoanh vùng bằng WAL
+của Postgres, số ảnh tải lên và tái hiện tại máy: bài 18
+`test_do_hieu_nang_1000_dong_ghi_chu_400`; luồng chính chờ Playwright mãi, không phải khoá CSDL. Chủ dự án duyệt
+("làm đi, chạy lại job e2e trên main luôn"): chạy lại job e2e của #120 thì xanh; nhánh `claude/chan-doan-e2e-treo` cho CI in
+tên từng bài, in ngăn xếp các luồng và greenlet khi một bài đứng quá 2 phút, hạn giờ từng bước. Không đụng mã ứng
+dụng, không thư viện mới. Bỏ `log_lock_waits` đã đề xuất vì ngăn xếp lúc treo cho thấy không ai chờ khoá.
+[Biên bản](kiem-chung-e2e-treo-20261001.md). Đã gộp vào `main` 01.10.2026 (PR #74). Chặn tổng thời gian vòng cuộn
+của bài 18: mục trên (PR #75).
 
 ## 01.10.2026 — Báo cáo tổng hợp: bỏ ô Cách xem và ô Chế độ, luôn từng lần nộp; nút Chọn nhanh sáng một
 

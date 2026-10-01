@@ -3,6 +3,10 @@
 Dựng đủ chín vai trò của ma trận phân quyền: ba bộ phận nhân ba cấp bậc,
 cộng một quản trị viên.
 """
+import gc
+import os
+import threading
+import traceback
 import warnings
 
 import pytest
@@ -10,6 +14,41 @@ from django.contrib.auth import get_user_model
 
 from core.constants import Rank
 from tests.live_server_requests import LIVE_SERVER_REQUESTS
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_protocol(item, nextitem):
+    """TL-71 — Bài đứng quá `faulthandler_timeout` (CI đặt cho hai bước e2e): ngoài ngăn xếp các luồng do
+    faulthandler in, in thêm ngăn xếp các greenlet. Playwright đồng bộ chạy thân bài trong một greenlet, nên
+    lúc treo faulthandler chỉ thấy luồng chính đứng trong vòng lặp asyncio của Playwright, không thấy bài đang
+    chờ ở dòng nào. Không đặt `faulthandler_timeout` (chạy thường) thì không làm gì."""
+    giay = float(item.config.getini("faulthandler_timeout") or 0)
+    if giay <= 0:
+        yield
+        return
+    # Chậm hơn faulthandler một giây cho hai bản in khỏi xen nhau
+    canh = threading.Timer(giay + 1, _in_ngan_xep_greenlet, args=(item,))
+    canh.daemon = True
+    canh.start()
+    try:
+        yield
+    finally:
+        canh.cancel()
+
+
+def _in_ngan_xep_greenlet(item):
+    try:
+        import greenlet
+        from _pytest.faulthandler import fault_handler_stderr_fd_key
+        fd = item.config.stash[fault_handler_stderr_fd_key]    # stderr thật; stderr thường đang bị pytest bắt
+    except (ImportError, KeyError):
+        return
+    dong = [f"\n== TL-71: {item.nodeid} đứng quá faulthandler_timeout — ngăn xếp các greenlet ==\n"]
+    for g in gc.get_objects():
+        if isinstance(g, greenlet.greenlet) and g.gr_frame is not None:
+            dong.append(f"-- {g!r}\n")
+            dong.extend(traceback.format_stack(g.gr_frame))
+    os.write(fd, "".join(dong).encode())
 
 
 @pytest.fixture(autouse=True)

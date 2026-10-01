@@ -2,9 +2,15 @@
 
 ## 01.10.2026 — Bài 18 không còn treo được (TL-71)
 
-**Finished local (nhánh `claude/sua-bai-18-khong-treo`, PR nháp về `main`):** vòng cuộn của bài đo hiệu năng
-1000 dòng có hạn 60 giây và trả trạng thái trang khi dừng; chờ phông tối đa 10 giây. **To do:** chủ dự án gộp
-(sau #74).
+**Đã gộp vào `main` 01.10.2026 (PR #75):** vòng cuộn của bài đo hiệu năng 1000 dòng có hạn 60 giây và trả
+trạng thái trang khi dừng; chờ phông tối đa 10 giây. **To do:** CI còn đỏ ở bài 18 thì đọc trạng thái trang trong
+thông báo để sửa gốc.
+
+## 01.10.2026 — CI e2e treo 20 phút (TL-71)
+
+**Đã gộp vào `main` 01.10.2026 (PR #74):** đã khoanh vùng bài 18
+`test_do_hieu_nang_1000_dong_ghi_chu_400`; CI in tên từng bài, in ngăn xếp các luồng và greenlet khi bài đứng quá
+2 phút, hạn giờ từng bước. Sửa bài 18 cho không treo được: mục trên (PR #75).
 
 ## 30.09.2026 — Dòng TỔNG CỘNG dính không lộ chữ, sát tiêu đề (TL-69)
 
