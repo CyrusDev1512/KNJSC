@@ -266,12 +266,9 @@ def bang_xem(request, code):
 
 
 def _tham_so_bao_cao(request):
-    """Tham số của Bảng dữ liệu dạng báo cáo: như Báo cáo tổng hợp nhưng chỉ một cách xem — ngày ×
-    nhân sự; chế độ mặc định Từng lần nộp, như trước khi có ô Chế độ (ADR-046)."""
+    """Tham số của Bảng dữ liệu dạng báo cáo: như Báo cáo tổng hợp — ngày × nhân sự, từng lần nộp."""
     from reports import screen
-    tham_so = screen.parameters(request, default_mode="tung-lan")
-    tham_so["group"] = "day"
-    return tham_so
+    return screen.parameters(request)
 
 
 def _bang_bao_cao(request, bang_hien, nguon):
@@ -293,7 +290,8 @@ def _bang_bao_cao(request, bang_hien, nguon):
         giu.pop(key, None)
     boi_canh = {
         "bang": bang_hien, "khoi": True, "source": nguon, "params": tham_so, "markets": Market.labels,
-        "presets": summary_service.date_presets(timezone.localdate(), start=tham_so["start"], end=tham_so["end"]),
+        "presets": summary_service.date_presets(timezone.localdate(), start=tham_so["start"], end=tham_so["end"],
+                                                    key=tham_so["ky"]),
         "query": request.GET.urlencode(), "qs_loc": ("&" + giu.urlencode()) if giu else "",
         "duoc_sua": grant_service.can_manage_columns(request.user, bang_hien),
         "duoc_nhap": grant_service.can_import(request.user, bang_hien),
@@ -302,10 +300,9 @@ def _bang_bao_cao(request, bang_hien, nguon):
     }
     boi_canh["people"], boi_canh["teams"] = activity_service.people_choices(request.user, nguon)
     boi_canh["segments"] = activity_service.segment_options(nguon)
-    boi_canh["modes"] = activity_service.MODES if activity_service.has_modes(nguon, "day") else ()
     boi_canh["products"] = screen.product_options(request.user, nguon)
     try:
-        ket_qua = activity_service.build(request.user, nguon, **tham_so)
+        ket_qua = activity_service.build(request.user, nguon, **screen.build_arguments(tham_so))
     except BusinessError as loi:
         return render(request, "forms_builder/bang_xem.html", {**boi_canh, "error": str(loi)}, status=400)
     boi_canh["unavailable"] = not ket_qua.ok
@@ -315,7 +312,7 @@ def _bang_bao_cao(request, bang_hien, nguon):
             boi_canh["nguong"] = {"rows": threshold_service.rows(nguon, {c.code: c.label for c in ket_qua.columns}),
                                   "mo": request.GET.get("nguong") == "1"}
         boi_canh.update(gop=gop, gop_url=screen.with_query(request, gop="1"), khong_gop_url=screen.with_query(request, gop=None))
-    boi_canh.update(screen.filter_chips(request, tham_so, boi_canh, show_group=False))
+    boi_canh.update(screen.filter_chips(request, tham_so, boi_canh))
     return render(request, "forms_builder/bang_xem.html", boi_canh)
 
 
@@ -441,7 +438,7 @@ def bang_xuat(request, code):
         from reports.services import activity_service
         tham_so = _tham_so_bao_cao(request)
         try:
-            ket_qua = activity_service.build(request.user, nguon, **tham_so)
+            ket_qua = activity_service.build(request.user, nguon, **screen.build_arguments(tham_so))
             if not ket_qua.ok:
                 raise BusinessError("Nguồn báo cáo chưa đủ cấu hình chỉ tiêu để xuất dạng báo cáo.")
             return screen.export_response(request, nguon, ket_qua, tham_so, request.GET.get("gop") == "1",

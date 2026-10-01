@@ -22,18 +22,18 @@ def source(marketing_scope):
 def test_person_filter_matches_export_and_totals(client, source, nguoi_dung, role):
     client.force_login(nguoi_dung[role])
     person = nguoi_dung['staff_sale_1']
-    query = {'nguon':source.table.code, 'nhan_su':str(person.pk),
-             'tu':'2026-08-01', 'den':'2026-08-31', 'nhom':'person'}
+    query = {'nguon':source.table.code, 'nhan_su':str(person.pk), 'tu':'2026-08-01', 'den':'2026-08-31'}
     response = client.get('/bao-cao/tong-hop/', query)
     assert response.status_code == 200
     assert response.context['result'].totals['so_dong'] == 1
-    assert response.context['rows'][0]['team'] == person.profile.team.name
+    toan_ky = response.context['blocks'][0]
+    assert [row['team'] for row in toan_ky['rows']] == [person.profile.team.name]
     book = load_workbook(BytesIO(client.get('/bao-cao/tong-hop/xuat/', query).content), data_only=True)
     rows = list(book.active.values)
-    assert rows[3][:3] == ('Team', 'Sale', 'Leader')
-    # Excel theo khối như màn hình (ADR-046): dòng Tổng đứng đầu, rồi các dòng
-    assert rows[4][0] == 'Tổng trong bộ lọc' and rows[4][3:6] == (10, 2, 100)
-    assert rows[5][0] == person.profile.team.name and rows[5][3:6] == (10, 2, 100)
+    assert rows[4][:4] == ('STT', 'Team', 'Nhân sự', 'Leader')
+    # Excel theo khối như màn hình (ADR-046): dòng TỔNG CỘNG đứng đầu, rồi dòng của người đã lọc
+    assert str(rows[5][0]).startswith('TỔNG CỘNG') and rows[5][4:7] == (10, 2, 100)
+    assert rows[6][1] == person.profile.team.name and rows[6][4:7] == (10, 2, 100)
 
 
 def test_team_filter_and_combination(client, source, nguoi_dung, teams):

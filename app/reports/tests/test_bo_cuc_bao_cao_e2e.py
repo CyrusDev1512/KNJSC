@@ -187,9 +187,11 @@ def test_lan_chuot_tren_bang_khong_ket(live_server, trinh_duyet_moi, nguon, nguo
     from datetime import date, timedelta
     from forms_builder.models import DataRecord
 
-    # Bảng ngắn: Theo nhân viên, bốn người — một khối, vừa khung theo chiều dọc nhưng rộng hơn khung
-    # (bảng thật nhiều cột luôn cuộn ngang): đúng lúc khung cuộn được một chiều thì nó nuốt cú lăn dọc
-    url = f"/bao-cao/tong-hop/?nguon={nguon.table.code}&nhom=person&tu=2026-08-01&den=2026-08-31"
+    # Bảng ngắn: lọc một nhân sự — khối toàn kỳ và một khối ngày mỗi khối một dòng, vừa khung theo chiều dọc
+    # nhưng rộng hơn khung (bảng thật nhiều cột luôn cuộn ngang): đúng lúc khung cuộn được một chiều thì nó
+    # nuốt cú lăn dọc
+    url = (f"/bao-cao/tong-hop/?nguon={nguon.table.code}&tu=2026-08-01&den=2026-08-31"
+           f"&nhan_su={nguoi_dung['staff_sale_1'].pk}")
     ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1000, 760, url)
     try:
         bang, bang_max, trang, trang_max = page.evaluate(VI_TRI)
@@ -345,5 +347,34 @@ def test_dong_tong_dinh_nen_dac_va_sat_tieu_de(live_server, trinh_duyet_moi, mkt
         page.evaluate(TOI_KHUNG_BANG)
         _kiem_dinh(page.evaluate(VI_TRI_DINH), "Bảng dữ liệu")
         chup(page, "bang-du-lieu-dong-tong-dinh")
+    finally:
+        ctx.close()
+
+
+def test_chon_nhanh_ngay_dau_thang_chi_sang_mot_nut(live_server, trinh_duyet_moi, nguon, nguoi_dung, monkeypatch):
+    """AC-22.22 — Ngày 01.10 bấm "Tháng này" (cùng khoảng 01/10 – 01/10 với "Hôm nay"): trang tải lại chỉ "Tháng
+    này" sáng, URL mang `ky=thang-nay`; bấm "Hôm nay" thì chỉ "Hôm nay" sáng; sửa tay ô ngày thì ô ẩn `ky` trống;
+    bộ lọc không còn ô Cách xem, Chế độ"""
+    from datetime import date
+    from django.utils import timezone
+
+    localdate = timezone.localdate
+    monkeypatch.setattr(timezone, "localdate",
+                        lambda value=None, timezone=None: date(2026, 10, 1) if value is None else localdate(value, timezone))
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1440, 900,
+                    f"/bao-cao/tong-hop/?nguon={nguon.table.code}")
+    sang = "()=>[...document.querySelectorAll('.report-preset.is-active')].map(b=>b.dataset.key)"
+    try:
+        assert page.locator("#nhom").count() == 0 and page.locator("#report-che-do").count() == 0
+        with page.expect_navigation():
+            page.click(".report-preset[data-key=thang-nay]")
+        page.wait_for_load_state("networkidle")
+        assert "ky=thang-nay" in page.url and page.evaluate(sang) == ["thang-nay"]
+        with page.expect_navigation():
+            page.click(".report-preset[data-key=hom-nay]")
+        page.wait_for_load_state("networkidle")
+        assert page.evaluate(sang) == ["hom-nay"]
+        page.fill("#tu", "2026-09-15")
+        assert page.input_value("#ky") == ""
     finally:
         ctx.close()

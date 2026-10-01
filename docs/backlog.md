@@ -1,5 +1,26 @@
 # Backlog
 
+## 01.10.2026 — Báo cáo tổng hợp: bỏ ô Cách xem và ô Chế độ, luôn từng lần nộp; nút Chọn nhanh sáng một
+
+**Chủ dự án báo** (ảnh bộ lọc): (1) ngày 01.10 "Hôm nay" và "Tháng này" cùng sáng; (2) Cách xem và Chế độ trùng
+nhau — chốt *"không cần cộng theo ngày, chỉ cần từng lần nộp"*, *"bỏ luôn ô và chức năng cách xem, để mặc định là
+từng lần nộp luôn; thị trường, sản phẩm, thời gian đều có các filter bên dưới rồi"*. Kế hoạch được duyệt.
+
+**Làm:** `reports/screen.parameters` cố định Tổng hợp × Từng lần nộp (`activity_service.SCREEN_GROUP/SCREEN_MODE`),
+bỏ đọc `nhom`, `che_do` (URL cũ vẫn mở); bỏ ô Cách xem, ô Chế độ (`_che_do.html` xoá), chip của hai ô, "Chế độ:"
+ở phụ đề Excel, khối CSS `.report-che-do*`, đoạn JS ẩn/hiện ô Chế độ — ở cả Báo cáo tổng hợp và Bảng dữ liệu dạng
+báo cáo. `summary_service.date_presets(key=…)` chỉ tô một nút; nút Chọn nhanh ghi ô ẩn `ky`, sửa tay ô ngày thì
+xoá `ky`. Tầng service giữ mọi cách nhóm và Cộng theo ngày (Tổng quan dùng). **Mất khỏi màn hình:** Theo nhân
+viên / sản phẩm / thị trường / Hiệu suất theo team (#70) — dùng bộ lọc tương ứng. Không migration, không thư viện,
+quyền không đổi. ADR-046 bổ sung 01.10; AC-22.22, 22.23 mới; AC-22.20, 38.5, 42.6, 42.7, 46.3, 46.4 đổi chữ;
+docs/06 297 tiêu chí, 261/284. TL-70 ghi "hai nút cùng sáng là đúng" — nay thay bằng AC-22.22.
+
+**Kiểm:** bài mới `reports/tests/test_tung_lan_nop_mac_dinh.py` (4 bài) đỏ trên mã cũ, xanh sau sửa; 23 trường hợp bài cũ
+ghim cách xem/chế độ trên màn hình viết lại theo quyết định mới (số liệu theo nhóm chuyển sang tầng service);
+bài trình duyệt AC-22.22 mới và `test_bo_cuc_bao_cao_e2e.py` 5/5 đạt. [Biên bản](kiem-chung-tong-hop-tung-lan-nop-20261001.md).
+**Còn:** chủ dự án xem và gộp; phát hành VPS. Hai kịch bản tay cũ `scripts/kiem-thu-erp-ui.cjs`,
+`kiem-thu-erp-delivery-ui.cjs` còn chọn `#nhom` (đã lỗi thời từ bố cục khối ADR-042, không chạy trong CI).
+
 ## 01.10.2026 — Hai bài báo cáo đỏ từ ngày 01.10 (TL-70)
 
 CI trên `main` sau khi gộp #71 đỏ 2 bài báo cáo; chạy lại trên bản trước #71 cũng đỏ, vì cả hai ngầm coi hôm nay

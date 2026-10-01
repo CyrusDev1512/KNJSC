@@ -76,16 +76,16 @@ def test_leader_chi_thay_team_minh(bang_mkt, mkt_source, van_don, hai_team):  # 
 
 
 def test_man_hinh_theo_team_va_url_cu_phong_ban(client, bang_mkt, mkt_source, van_don, hai_team, nguoi_dung):  # noqa: F811
-    """AC-22.20 — Màn Báo cáo tổng hợp có lựa chọn "Hiệu suất theo team" và hiện cột Team, Leader; đường dẫn cũ
-    `nhom=department` (đánh dấu trang, tệp đã gửi) mở thành Theo team thay vì báo lỗi; Staff không có
-    quyền xem vẫn bị chặn như cũ"""
+    """AC-22.20 — Màn Báo cáo tổng hợp không còn ô Cách xem (01.10.2026, AC-22.23): đường dẫn cũ `nhom=team`,
+    `nhom=department` (đánh dấu trang, tệp đã gửi) vẫn mở, ra từng lần nộp có cột Team và Leader; Excel cũng có
+    cột Team, Leader và dòng của team"""
     _bao_cao(bang_mkt, hai_team["A"], "2026-08-01", "SP1")
     client.force_login(nguoi_dung["admin"])
     for nhom in ("team", "department"):
         r = client.get("/bao-cao/tong-hop/", {"nguon": mkt_source.table.code, "nhom": nhom, "tu": "2026-08-01", "den": "2026-08-02"})
         html = r.content.decode()
         assert r.status_code == 200, nhom
-        assert '<option value="team" selected>Hiệu suất theo team</option>' in html, nhom
+        assert r.context["params"]["group"] == "day" and 'name="nhom"' not in html, nhom
         assert "MKT 1" in html and "Phòng ban" not in html
     # Tải Excel theo team: có cột Team và Leader, dòng MKT 1
     from io import BytesIO

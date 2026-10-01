@@ -14,7 +14,8 @@ from django.views.decorators.http import require_POST
 from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
 from orders.constants import Market
-from reports.screen import blocks_context, export_response as _export, filter_chips, parameters, product_options, with_query as _with
+from reports.screen import (blocks_context, build_arguments, export_response as _export, filter_chips, parameters,
+                           product_options, with_query as _with)
 from reports.services import activity_service as service, summary_service, threshold_service
 
 
@@ -30,18 +31,16 @@ def report(request, export=False, choices=None):
     giu = request.GET.copy()
     for key in ("trang", "moi_trang"):
         giu.pop(key, None)
-    ctx = {"sources": choices, "source": source, "groups": service.GROUPS,
-           "params": params, "markets": Market.labels, "empty": True,
-           "presets": summary_service.date_presets(timezone.localdate(), start=params["start"], end=params["end"]),
+    ctx = {"sources": choices, "source": source, "params": params, "markets": Market.labels, "empty": True,
+           "presets": summary_service.date_presets(timezone.localdate(), start=params["start"], end=params["end"],
+                                                    key=params["ky"]),
            "query": request.GET.urlencode(), "qs_loc": ("&" + giu.urlencode()) if giu else ""}
     if source:
-        # Ô Chế độ (ADR-046) chỉ cho nguồn có lần nộp; JS ẩn khi Cách xem không phải Tổng hợp
-        ctx['modes'] = service.MODES if service.has_modes(source, "day") else ()
         ctx['people'], ctx['teams'] = service.people_choices(request.user, source)
         ctx['segments'] = service.segment_options(source)   # None: nguồn không có Tệp khách hàng
         ctx['products'] = product_options(request.user, source)
         try:
-            result = service.build(request.user, source, **params)
+            result = service.build(request.user, source, **build_arguments(params))
         except BusinessError as error:
             return render(request, "reports/activity.html", {**ctx, "error": str(error)}, status=400)
         ctx["unavailable"] = not result.ok

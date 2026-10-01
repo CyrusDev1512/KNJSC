@@ -86,28 +86,24 @@
     }, true);
     narrowQuery.addEventListener('change', event => { if (event.matches && state.filters === 'open') state.filters = 'rail'; render(); });
   }
-  // Chọn nhanh kỳ (ADR-038): điền hai ô ngày rồi gửi bộ lọc ngay.
+  // Chọn nhanh kỳ (ADR-038): điền hai ô ngày rồi gửi bộ lọc ngay. Ô ẩn `ky` nhớ nút vừa bấm để máy chủ chỉ
+  // tô một nút khi hai nút cùng khoảng (ngày 01: Hôm nay = Tháng này); sửa tay ô ngày thì bỏ `ky`.
   const filters = document.querySelector('.report-filters');
   const fromInput = document.getElementById('tu');
   const toInput = document.getElementById('den');
+  const presetKey = document.getElementById('ky');
   if (filters && fromInput && toInput) {
     const presets = filters.querySelectorAll('.report-preset');
     for (const button of presets) {
       button.addEventListener('click', () => {
         fromInput.value = button.dataset.tu;
         toInput.value = button.dataset.den;
+        if (presetKey) presetKey.value = button.dataset.key;
         for (const other of presets) other.classList.toggle('is-active', other === button);
         if (typeof filters.requestSubmit === 'function') filters.requestSubmit(); else filters.submit();
       });
     }
-  }
-  // Ô Chế độ (ADR-046) chỉ có nghĩa ở cách xem Tổng hợp: ẩn khi chọn cách xem khác, hiện lại khi quay về.
-  const cheDo = document.getElementById('report-che-do');
-  const cachXem = document.getElementById('nhom');
-  if (cheDo && cachXem) {
-    const dongBo = () => { cheDo.hidden = cachXem.value !== 'day'; };
-    cachXem.addEventListener('change', dongBo);
-    dongBo();
+    if (presetKey) for (const input of [fromInput, toInput]) input.addEventListener('input', () => { presetKey.value = ''; });
   }
   // Chọn nhiều sản phẩm (ADR-042): ô tìm nhanh lọc danh sách, Chọn tất cả / Bỏ chọn, nhãn tóm tắt.
   const multi = document.getElementById('report-multi-sp');

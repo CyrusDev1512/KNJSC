@@ -19,20 +19,17 @@ def _get(client, nguon, **extra):
 
 
 def test_chips_theo_bo_loc_va_link_bo_dung_tham_so(client, nguon, nguoi_dung):
-    """AC-22.13 — Hàng chip render từ bộ lọc đang áp: Kỳ, Cách xem, Chế độ, Team, Nhân sự, Sản phẩm, Thị
-    trường; × của mỗi chip là link cùng URL bỏ đúng tham số đó (bỏ Team thì bỏ luôn Nhân sự); Chế độ là cách
-    hiện số nên không có × và không tính vào huy hiệu (ADR-046); Xóa lọc chỉ giữ nguồn; số bộ lọc bỏ được là
-    huy hiệu của thanh dọc"""
+    """AC-22.13 — Hàng chip render từ bộ lọc đang áp: Kỳ, Team, Nhân sự, Sản phẩm, Thị trường (không còn chip
+    Cách xem, Chế độ — 01.10.2026); × của mỗi chip là link cùng URL bỏ đúng tham số đó (bỏ Team thì bỏ luôn
+    Nhân sự); Xóa lọc chỉ giữ nguồn; số bộ lọc bỏ được là huy hiệu của thanh dọc"""
     client.force_login(nguoi_dung["manager_sale"])
     team = nguoi_dung["staff_sale_1"].profile.team_id
     person = nguoi_dung["staff_sale_1"].pk
     r = _get(client, nguon, team=team, nhan_su=person, sp="SP1", thi_truong="__missing__")
     assert r.status_code == 200
     chips = {c["label"]: c for c in r.context["chips"]}
-    assert list(chips) == ["Kỳ", "Cách xem", "Chế độ", "Sản phẩm", "Thị trường", "Team", "Nhân sự"]
-    assert chips["Chế độ"]["value"] == "Cộng theo ngày" and chips["Chế độ"]["url"] == ""
+    assert list(chips) == ["Kỳ", "Sản phẩm", "Thị trường", "Team", "Nhân sự"]
     assert chips["Kỳ"]["value"] == "01/08 – 31/08/2026" and "tu=" not in chips["Kỳ"]["url"] and "den=" not in chips["Kỳ"]["url"]
-    assert chips["Cách xem"]["value"] == "Tổng hợp" and chips["Cách xem"]["url"] == ""
     assert chips["Thị trường"]["value"] == "Chưa xác định" and "thi_truong" not in chips["Thị trường"]["url"]
     assert chips["Team"]["value"] == "Sale 1" and "team=" not in chips["Team"]["url"] and "nhan_su=" not in chips["Team"]["url"]
     assert "Staff Sale 1" in chips["Nhân sự"]["value"] and "nhan_su=" not in chips["Nhân sự"]["url"] and f"team={team}" in chips["Nhân sự"]["url"]
@@ -40,7 +37,7 @@ def test_chips_theo_bo_loc_va_link_bo_dung_tham_so(client, nguon, nguoi_dung):
     assert r.context["clear_url"] == f"?nguon={nguon.table.code}"
     html = r.content.decode()
     assert f'data-active="5"' in html and 'data-filters="open"' in html and 'class="huy-hieu" aria-hidden="true" >5</span>' in html
-    assert html.count('class="report-chip"') == 7 and 'class="chip-xoa"' in html and 'class="chip-clear"' in html
+    assert html.count('class="report-chip"') == 5 and 'class="chip-xoa"' in html and 'class="chip-clear"' in html
     # Không lọc gì: Kỳ mặc định không bỏ được, không huy hiệu, không Xóa lọc
     r0 = client.get("/bao-cao/tong-hop/", {"nguon": nguon.table.code})
     assert r0.context["filters_active"] == 0 and r0.context["chips"][0]["url"] == "" and 'class="chip-clear"' not in r0.content.decode()
@@ -48,32 +45,25 @@ def test_chips_theo_bo_loc_va_link_bo_dung_tham_so(client, nguon, nguoi_dung):
 
 
 def test_cot_dinh_danh_ghim_theo_cach_xem(client, nguon, nguoi_dung):
-    """AC-22.13 — Cột định danh ghim trái theo lớp tổng quát `.report-identity`, vị trí 1–4 và `left` bằng biến
-    CSS đặt trên bảng: Tổng hợp = Ngày · Nhân sự · Leader; Theo nhân viên = Team · người · Leader; cột cuối mang
-    lớp mép; dòng Tổng ôm đủ các cột định danh"""
+    """AC-22.13 — Cột định danh ghim trái theo lớp tổng quát `.report-identity`, vị trí 1–5 và `left` bằng biến
+    CSS đặt trên bảng: khối ngày = STT · Team · Nhân sự · Leader · Lần nộp (luôn từng lần nộp, 01.10.2026); cột
+    cuối mang lớp mép; dòng Tổng ôm đủ các cột định danh"""
     client.force_login(nguoi_dung["admin"])
     r = _get(client, nguon)
     cols = r.context["identity_columns"]
-    # Khối theo ngày như ảnh mẫu (ADR-042): STT · Team · Nhân sự · Leader, không có cột Ngày
+    # Khối theo ngày như ảnh mẫu (ADR-042): STT · Team · Nhân sự · Leader · Lần nộp, không có cột Ngày
     assert [(c["code"], c["kind"], c["pos"], c["edge"]) for c in cols] == [
         ("stt", "id-stt", 1, False), ("team", "id-team", 2, False),
-        ("person", "id-nhan-su", 3, False), ("leader", "id-leader", 4, True)]
+        ("person", "id-nhan-su", 3, False), ("leader", "id-leader", 4, False), ("lan", "id-lan", 5, True)]
     kieu = ("--id-left-2:calc(var(--w-stt));--id-left-3:calc(var(--w-stt) + var(--w-team))"
-            ";--id-left-4:calc(var(--w-stt) + var(--w-team) + var(--w-nhan-su))")
+            ";--id-left-4:calc(var(--w-stt) + var(--w-team) + var(--w-nhan-su))"
+            ";--id-left-5:calc(var(--w-stt) + var(--w-team) + var(--w-nhan-su) + var(--w-leader))")
     assert r.context["identity_style"] == kieu
     html = r.content.decode()
     assert f'<table class="bang report-table" style="{kieu}">' in html
     assert 'class="report-identity report-identity-edge" data-pos="1" colspan="4">TỔNG CỘNG · toàn kỳ</th>' in html
     # Khối ngày: cột đầu là STT, ngày thành tiêu đề đặt trên bảng (ADR-042)
     assert 'class="report-identity id-stt" data-pos="1">1</th>' in html and '<h3>01.08.2026</h3>' in html
-    r2 = _get(client, nguon, nhom="person")
-    cols = r2.context["identity_columns"]
-    assert [(c["code"], c["kind"], c["pos"]) for c in cols] == [("team", "id-team", 1), ("nhom", "id-nhom", 2), ("leader", "id-leader", 3)]
-    assert r2.context["identity_style"] == "--id-left-2:calc(var(--w-team));--id-left-3:calc(var(--w-team) + var(--w-nhom))"
-    assert cols[-1]["edge"] and r2.context["label_span"] == 3
-    r3 = _get(client, nguon, nhom="product")
-    assert [c["code"] for c in r3.context["identity_columns"]] == ["nhom"] and r3.context["identity_style"] == ""
-    assert 'data-pos="1">Tổng trong bộ lọc' in r3.content.decode()
 
 
 def test_staff_khong_thay_chip_team_nguoi_khac(client, nguon, nguoi_dung):

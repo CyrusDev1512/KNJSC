@@ -81,19 +81,15 @@ def test_bang_du_lieu_nguon_bao_cao_hien_chi_tiet_theo_ngay(client, bang_mkt, mk
     html = r.content.decode()
     assert 'id="report-nguong"' in html and "Xem từng dòng thô" in html and 'rel="noopener">Mở trong KN CRM</a>' in html
     assert '<table class="bang bang-luoi">' not in html and "nộp nhiều lần (cùng loại tiền) thì (TT) chỉ hiện ở dòng TỔNG CỘNG" in html
-    assert 'name="che_do" value="tung-lan" checked' in html
+    assert 'name="che_do"' not in html and 'name="nhom"' not in html     # luôn từng lần nộp (01.10.2026)
     assert r.context["moi_trang"] == 25                     # quy tắc 1: mặc định 25 dòng
     # Gộp ở chế độ mặc định (Từng lần nộp): một khối mọi lần nộp trong kỳ
     r_gop = client.get(url, {**ky, "gop": "1"})
     assert [b["kind"] for b in r_gop.context["blocks"]] == ["period", "submissions"]
     assert len(r_gop.context["blocks"][1]["rows"]) == 4
-    # Chế độ Cộng theo ngày: mỗi người mỗi ngày một dòng; Gộp thì mỗi ngày một dòng
+    # URL cũ `che_do=cong` vẫn mở và vẫn mỗi lần nộp một dòng (01.10.2026)
     r_cong = client.get(url, {**ky, "che_do": "cong"})
-    assert [(row["person"], row["stt"]) for row in r_cong.context["blocks"][2]["rows"]] == [
-        (employee_code(B), 1), (employee_code(A), 2)]
-    r_gop = client.get(url, {**ky, "che_do": "cong", "gop": "1"})
-    assert [b["kind"] for b in r_gop.context["blocks"]] == ["period", "days"]
-    assert [row["nhom"] for row in r_gop.context["blocks"][1]["rows"]] == ["02.08.2026", "01.08.2026"]
+    assert r_cong.status_code == 200 and r_cong.context["result"].mode == "tung-lan"
     # Liệt kê thô: bảng cũ, có liên kết quay lại, phân trang và Xoá lọc giữ `dang=tho`
     r_tho = client.get(url, {"dang": "tho"})
     html_tho = r_tho.content.decode()

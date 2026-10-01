@@ -11,7 +11,7 @@
     <h1>{{ bang.name }}</h1>
     {% if khoi %}
       {# Bảng có nguồn báo cáo: báo cáo chi tiết theo ngày dùng chung động cơ với Báo cáo tổng hợp — ADR-042 đợt 4 #}
-      <p>Báo cáo chi tiết theo ngày: mặc định mỗi lần nộp một dòng (đổi ở ô Chế độ), TỔNG CỘNG từng ngày theo loại tiền; số tiền giữ đúng như đã nhập, không quy đổi.</p>
+      <p>Báo cáo chi tiết theo ngày: mỗi lần nộp một dòng, TỔNG CỘNG từng ngày theo loại tiền; số tiền giữ đúng như đã nhập, không quy đổi.</p>
     {% else %}
       <p>{{ bang.description|default:"Danh sách đã lọc theo phạm vi quyền của bạn." }}</p>
     {% endif %}

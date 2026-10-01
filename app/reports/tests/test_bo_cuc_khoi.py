@@ -18,10 +18,11 @@ def _o(row, cot, nhan):
 
 
 def test_bang_toan_ky_va_moi_ngay_mot_bang(client, bang_mkt, mkt_source, van_don, nguoi_dung):
-    """AC-42.6 — Cách xem Tổng hợp: khối toàn kỳ theo nhân sự đứng đầu (mỗi người một dòng cộng cả
+    """AC-42.6 — Báo cáo tổng hợp: khối toàn kỳ theo nhân sự đứng đầu (mỗi người một dòng cộng cả
     kỳ, STT, Team, Leader, TỔNG CỘNG toàn kỳ ngay dưới tiêu đề cột), rồi mỗi ngày một bảng riêng mới
-    nhất trước không có cột Ngày, TỔNG CỘNG ngày bằng tổng dòng con, STT đếm lại; khối toàn kỳ không
-    thêm truy vấn; ngày tách trang ghi "(tiếp)" và lặp TỔNG CỘNG; Excel hai sheet cùng khối"""
+    nhất trước không có cột Ngày, mỗi lần nộp một dòng (01.10.2026), TỔNG CỘNG ngày bằng tổng dòng con,
+    STT đếm lại; khối toàn kỳ không thêm truy vấn; ngày tách trang ghi "(tiếp)" và lặp TỔNG CỘNG; Excel
+    hai sheet cùng khối"""
     A, B = van_don["A"], van_don["B"]
     _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10, don=2)
     _bao_cao(bang_mkt, B, "2026-08-01", "SP2", mess=30, don=3)
@@ -67,8 +68,9 @@ def test_bang_toan_ky_va_moi_ngay_mot_bang(client, bang_mkt, mkt_source, van_don
     assert dong_a[4] == "CAD" and dong_a[5 + cot.index("Số Mess")] == 20
     ngay_xls = [d[0] for d in book["Theo ngay"].values if d and d[0] is not None]
     assert ngay_xls == ["Ngày 02.08.2026", "STT", "TỔNG CỘNG · CAD", 1, "Ngày 01.08.2026", "STT", "TỔNG CỘNG · CAD", 1, 2]
-    # Ngày bị tách trang: 13 ngày × 2 người = 26 dòng, trang 25 dòng → trang 2 còn một người của ngày 01.08
-    for i in range(1, 13):
+    # Ngày bị tách trang: 13 ngày × 2 lần nộp = 26 dòng, trang 25 dòng → trang 2 còn một người của ngày 01.08
+    _bao_cao(bang_mkt, B, "2026-08-02", "SP2", mess=30)
+    for i in range(2, 13):
         ngay = (date(2026, 8, 1) + timedelta(days=i)).isoformat()
         _bao_cao(bang_mkt, A, ngay, "SP1", mess=10)
         _bao_cao(bang_mkt, B, ngay, "SP2", mess=30)
@@ -82,8 +84,9 @@ def test_bang_toan_ky_va_moi_ngay_mot_bang(client, bang_mkt, mkt_source, van_don
 
 
 def test_gop_chi_con_dong_tong_ngay(client, bang_mkt, mkt_source, van_don, nguoi_dung):
-    """AC-42.7 — Gộp (`gop=1`): mỗi ngày một dòng là TỔNG CỘNG của ngày, phân trang theo ngày, khối
-    toàn kỳ vẫn đứng đầu; chip Gộp có × về Không gộp; Excel sheet Theo ngay chỉ dòng ngày, cùng số"""
+    """AC-42.7 — Gộp (`gop=1`) nguồn Sale/MKT: một bảng mọi lần nộp trong kỳ (Ngày · Nhân sự · Lần nộp ·
+    Loại tiền, 01.10.2026), khối toàn kỳ vẫn đứng đầu; chip Gộp có × về Không gộp; Excel sheet Theo ngay
+    cùng khối, cùng số"""
     A, B = van_don["A"], van_don["B"]
     _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10)
     _bao_cao(bang_mkt, B, "2026-08-01", "SP2", mess=30)
@@ -93,19 +96,21 @@ def test_gop_chi_con_dong_tong_ngay(client, bang_mkt, mkt_source, van_don, nguoi
     r = client.get("/bao-cao/tong-hop/", query)
     blocks = r.context["blocks"]
     cot = [c.label for c in r.context["result"].columns]
-    assert [b["kind"] for b in blocks] == ["period", "days"] and blocks[0]["count"] == 2
-    ngay = blocks[1]
-    assert [row["nhom"] for row in ngay["rows"]] == ["02.08.2026", "01.08.2026"]
-    assert [_o(row, cot, "Số Mess") for row in ngay["rows"]] == ["10", "40"]
-    assert [c["code"] for c in ngay["identity_columns"]] == ["nhom", "tien"] and r.context["ten_don_vi"] == "ngày"
+    assert [b["kind"] for b in blocks] == ["period", "submissions"] and blocks[0]["count"] == 2
+    moi_lan = blocks[1]
+    assert [row["nhom"] for row in moi_lan["rows"]] == ["02.08.2026", "01.08.2026", "01.08.2026"]
+    assert sorted(_o(row, cot, "Số Mess") for row in moi_lan["rows"]) == ["10", "10", "30"]
+    assert [c["code"] for c in moi_lan["identity_columns"]] == ["nhom", "person", "lan", "tien"]
+    assert dict(zip(cot, moi_lan["total_rows"][0]["cells"]))["Số Mess"] == "50"
     chips = {c["label"]: c for c in r.context["chips"]}
-    assert chips["Gộp"]["url"] and "gop=" not in chips["Gộp"]["url"]
+    assert chips["Gộp"]["value"] == "mọi lần nộp một bảng" and chips["Gộp"]["url"] and "gop=" not in chips["Gộp"]["url"]
     html = r.content.decode()
     assert 'aria-pressed="true">Gộp</a>' in html and html.count('<table class="bang report-table"') == 2
     # Không gộp là mặc định: không có chip, hai khối ngày
     r0 = client.get("/bao-cao/tong-hop/", {k: v for k, v in query.items() if k != "gop"})
     assert "Gộp" not in {c["label"] for c in r0.context["chips"]} and [b["kind"] for b in r0.context["blocks"]] == ["period", "day", "day"]
-    # Excel khi Gộp: sheet Theo ngay = hàng tiêu đề (Ngày, …), TỔNG CỘNG toàn kỳ, rồi mỗi ngày một dòng
+    # Excel khi Gộp: sheet Theo ngay = tiêu đề khối, hàng cột (Ngày, …), TỔNG CỘNG toàn kỳ, rồi mỗi lần nộp một dòng
     ngay_xls = list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", query).content), data_only=True)["Theo ngay"].values)
-    assert ngay_xls[0][0] == "Ngày" and str(ngay_xls[1][0]).startswith("TỔNG CỘNG")
-    assert [d[0] for d in ngay_xls[2:4]] == ["02.08.2026", "01.08.2026"] and ngay_xls[3][2 + cot.index("Số Mess")] == 40
+    assert ngay_xls[0][0] == "Mọi lần nộp trong kỳ" and ngay_xls[1][0] == "Ngày" and str(ngay_xls[2][0]).startswith("TỔNG CỘNG")
+    assert [d[0] for d in ngay_xls[3:6]] == ["02.08.2026", "01.08.2026", "01.08.2026"]
+    assert ngay_xls[2][4 + cot.index("Số Mess")] == 50
