@@ -1,5 +1,24 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 01.10.2026 — CI e2e treo tới hết 20 phút ở bài đo hiệu năng 1000 dòng ghi chú
+
+**TL-71 (mở — đã khoanh vùng và thêm chẩn đoán, chưa sửa gốc):** lượt #120 trên `main` (01.10, sau #72) và lượt
+#107 (29.09, PR #51) bị GitHub huỷ ở phút 20: bước `pytest tests/e2e` treo, log trống vì `-q` của pytest.ini in
+mọi dấu chấm trên một dòng chưa xuống dòng. Chạy lại thì xanh; không do mã của PR nào. Khoanh vùng bài 18
+`tests/e2e/test_ghi_chu_tu_gian_dong.py::test_do_hieu_nang_1000_dong_ghi_chu_400` bằng ba dấu vết:
+
+- Postgres của CI ngừng ghi ở 21.424 kB WAL (#120) và 21.437 kB (#107). Dựng lại tại máy: chèn xong 1000 dòng
+  của bài 18 là 20.753 kB, treo thêm 30 giây thì autovacuum dọn bảng vừa chèn, lên 21.454 kB rồi đứng yên.
+- Lượt treo tải lên 13 ảnh: đúng số ảnh của bài 1–17.
+- Tái hiện tại máy một lần (Python 3.12 như CI, không Redis), đúng bài 18: luồng chính chờ Playwright mãi, máy
+  chủ thử rảnh, không phiên nào chờ khoá Postgres.
+
+Nghi phạm: hai lời gọi `trang.evaluate` không có giới hạn thời gian của bài 18 — vòng cuộn hết bảng (tối đa 600
+bước, mỗi bước chờ dữ liệu tới 8 giây) và `document.fonts.ready` trong `_mo_luoi`. Đã thêm chẩn đoán cho CI:
+mỗi bài một dòng (`-vv`), bài đứng quá 2 phút thì in ngăn xếp các luồng và các greenlet của Playwright
+(`faulthandler_timeout`, `conftest.py` gốc), hạn giờ từng bước. Lần treo sau đọc ngăn xếp rồi sửa gốc.
+[Biên bản](kiem-chung-e2e-treo-20261001.md).
+
 ## 01.10.2026 — Hai bài báo cáo đỏ từ ngày 01.10 vì ngầm coi hôm nay là tháng 9
 
 **TL-70 (đóng):** CI trên `main` sau khi gộp #71 (lượt #118) đỏ 2 bài ở "pytest (bộ chính)", 2.857 bài khác đạt.

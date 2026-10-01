@@ -150,9 +150,24 @@ jobs:
       # Hai tiến trình riêng là hai vòng lặp riêng, không phải cách vá tạm:
       # chúng vốn là hai bộ thiết bị khác nhau. Gộp lại được khi nào các tệp
       # kia dùng chung fixture của `tests/e2e/conftest.py`.
+      #
+      # ── Khi một bài treo (TL-71) ───────────────────────────────────
+      # Lượt #107 (29.09) và #120 (01.10) đứng im tới khi job hết 20 phút,
+      # log trống trơn: với `-q` của pytest.ini, mọi dấu chấm nằm trên một
+      # dòng chưa xuống dòng. Nên ở hai bước dưới:
+      #   -vv                         mỗi bài một dòng (pytest.ini có -q, nên
+      #                               cần hai v mới ra tên bài); dòng cuối cùng
+      #                               là bài vừa xong, bài treo là bài kế tiếp
+      #   -o faulthandler_timeout=120 bài nào đứng quá 2 phút thì in ngăn xếp
+      #                               mọi luồng, kèm ngăn xếp greenlet của
+      #                               Playwright (`conftest.py` gốc) — bài
+      #                               chậm nhất hiện mất chừng 30 giây
+      #   timeout-minutes             bước treo tự dừng, job còn thời gian giữ
+      #                               ảnh và in log Postgres
       - name: pytest e2e (tests/e2e)
         working-directory: app
-        run: pytest tests/e2e -m "trinh_duyet" -rs --durations=10
+        timeout-minutes: 10
+        run: pytest tests/e2e -m "trinh_duyet" -vv -rs --durations=10 -o faulthandler_timeout=120
 
       - name: pytest e2e (bài trình duyệt còn lại)
         working-directory: app
@@ -165,10 +180,14 @@ jobs:
         # vì đỏ sẵn từ trước khi có tệp CI này. Sửa 29.09.2026 (TL-68): ba bài
         # đỏ là do bài kiểm tụt sau ADR-036 và ADR-040, không phải lỗi ứng dụng
         # — nay chạy lại trong lượt này.
+        #
+        # -vv, faulthandler_timeout, timeout-minutes: như bước trên (TL-71).
+        timeout-minutes: 8
         run: >-
           pytest -m "trinh_duyet"
           --ignore=tests/e2e
-          -rs --durations=10
+          -vv -rs --durations=10
+          -o faulthandler_timeout=120
 
       - name: Giữ ảnh chụp màn hình
         if: always()

@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 01.10.2026 — CI e2e treo 20 phút (TL-71)
+
+**Finished local (nhánh `claude/chan-doan-e2e-treo`, PR nháp về `main`):** đã khoanh vùng bài 18
+`test_do_hieu_nang_1000_dong_ghi_chu_400`; CI in tên từng bài, in ngăn xếp các luồng và greenlet khi bài đứng quá
+2 phút, hạn giờ từng bước. **To do:** chủ dự án gộp; lần treo sau đọc ngăn xếp rồi sửa gốc bài 18.
+
 ## 30.09.2026 — Dòng TỔNG CỘNG dính không lộ chữ, sát tiêu đề (TL-69)
 
 **Finished local (nhánh `claude/sua-dong-tong-dinh-mo`, PR nháp về `main`):** nền cột chỉ số đặc ở dòng tổng
