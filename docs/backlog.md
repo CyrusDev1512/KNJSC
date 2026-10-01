@@ -1,5 +1,12 @@
 # Backlog
 
+## 01.10.2026 — Hai bài báo cáo đỏ từ ngày 01.10 (TL-70)
+
+CI trên `main` sau khi gộp #71 đỏ 2 bài báo cáo; chạy lại trên bản trước #71 cũng đỏ, vì cả hai ngầm coi hôm nay
+là tháng 9/2026. Chủ dự án duyệt cách sửa ("làm"): bài Chọn nhanh cố định "hôm nay" giữa tháng khi mở màn hình
+và ghi rõ ngày 1 hai nút Hôm nay, Tháng này cùng sáng; bài thẻ Tổng quan truyền ngày hệ thống khi tạo báo cáo.
+Chỉ sửa bài kiểm. Kiểm ngày 01.10: hai tệp và bài truy vết 40 đạt, `reports` 229 đạt.
+
 ## 30.09.2026 — Dòng TỔNG CỘNG dính: lộ chữ mờ và lệch khỏi tiêu đề (TL-69)
 
 **Chủ dự án báo** bằng video VPS: Báo cáo tổng hợp MKT cuộn thì số mờ, đau mắt. Tái hiện trên máy thử và chỉ ra

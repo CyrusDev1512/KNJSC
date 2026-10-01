@@ -1,4 +1,5 @@
 """ADR-031 bổ sung 18.09.2026 — bảy thị trường, tám loại tiền, tỉ giá theo sheet Quy ước."""
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -117,9 +118,11 @@ def test_the_tong_quan_khong_hien_o_don_vi_va_canh_bao_quy_doi(client, bang_mkt,
                              options=["VND", "USD"], order=91)
     FormDef.objects.create(table=bang_mkt, department=bang_mkt.department, code="bc_mkt_tq", name="BC MKT")
     configure_source(bang_mkt, "mkt")
+    # Ngày của nguồn báo cáo do hệ thống đặt (ADR-032): truyền ngày hệ thống, không thì báo cáo mang ngày chạy
+    # bài và rơi khỏi kỳ tháng 9 khi bài chạy từ tháng 10 (TL-70)
     record_service.create_record(bang_mkt, {"ngay": "2026-09-18", "marketer": "x", "san_pham": "SP",
         "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Hàn Quốc"},
-        actor=nguoi_dung["staff_mkt"])
+        actor=nguoi_dung["staff_mkt"], system_day=date(2026, 9, 18))
     client.force_login(nguoi_dung["manager_mkt"])
     ky = {"tu": "2026-09-01", "den": "2026-09-30"}
 
