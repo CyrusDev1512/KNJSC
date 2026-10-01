@@ -2,6 +2,7 @@
 from datetime import date
 
 import pytest
+from django.utils import timezone
 
 from reports.models import ReportSource
 from reports.services import summary_service
@@ -33,9 +34,18 @@ def test_chon_nhanh_ky(client, bang_mkt, nguoi_dung, monkeypatch):
         ["Hôm nay", "Hôm qua", "7 ngày", "Tuần này", "Tháng này", "Tháng trước"]
     active = [m["key"] for m in summary_service.date_presets(date(2026, 9, 18), start=date(2026, 9, 1), end=date(2026, 9, 18)) if m["active"]]
     assert active == ["thang-nay"]
+    # Ngày 1 đầu tháng: Hôm nay và Tháng này cùng là một ngày nên cả hai nút cùng được đánh dấu (TL-70)
+    ngay_1 = date(2026, 10, 1)
+    assert [m["key"] for m in summary_service.date_presets(ngay_1, start=ngay_1, end=ngay_1) if m["active"]] == \
+        ["hom-nay", "thang-nay"]
 
     ReportSource.objects.create(table=bang_mkt, kind="mkt", columns={
         "mess": "so_mess", "orders": "so_don", "sales": "doanh_so", "cost": "cpqc", "market": "thi_truong"})
+    # Màn hình lấy "hôm nay" từ đồng hồ thật: cố định giữa tháng như phần trên, không thì ngày 1 nào bài cũng
+    # đỏ vì Tháng này trùng Hôm nay (TL-70). Chỉ thay lời gọi không đối số; đổi một thời điểm ra ngày vẫn như cũ
+    localdate = timezone.localdate
+    monkeypatch.setattr(timezone, "localdate",
+                        lambda value=None, timezone=None: date(2026, 9, 18) if value is None else localdate(value, timezone))
     client.force_login(nguoi_dung["manager_mkt"])
     page = client.get("/bao-cao/tong-hop/", {"nguon": bang_mkt.code})   # mặc định = Tháng này
     assert page.status_code == 200

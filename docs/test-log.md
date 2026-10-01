@@ -1,5 +1,21 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 01.10.2026 — Hai bài báo cáo đỏ từ ngày 01.10 vì ngầm coi hôm nay là tháng 9
+
+**TL-70 (đóng):** CI trên `main` sau khi gộp #71 (lượt #118) đỏ 2 bài ở "pytest (bộ chính)", 2.857 bài khác đạt.
+Chạy lại hai bài trên `b1d081d` (trước #71) cũng đỏ y hệt: lỗi không do #71, mà do hôm nay là 01.10.
+
+- `reports/tests/test_date_presets.py::test_chon_nhanh_ky` (AC-38.5): phần mở màn hình lấy "hôm nay" từ đồng
+  hồ thật. Ngày 1 đầu tháng, "Hôm nay" và "Tháng này" cùng là 01.10 – 01.10 nên cả hai nút được đánh dấu. Màn
+  hình làm vậy là đúng; bài chờ đúng một nút nên tháng nào cũng đỏ đúng ngày 1. Sửa: cố định "hôm nay" là
+  18.09.2026 khi mở màn hình, như phần đầu của chính bài; thêm một dòng kiểm rằng ngày 1 thì hai nút cùng sáng.
+- `reports/tests/test_markets_currencies.py::test_the_tong_quan_khong_hien_o_don_vi_va_canh_bao_quy_doi`
+  (AC-22.18): tạo báo cáo ghi "18.09" mà không truyền ngày hệ thống. Từ ADR-032 hệ thống tự đặt ngày nộp là
+  hôm nay, nên báo cáo mang ngày 01.10 và rơi khỏi kỳ tháng 9 bài đang xem. Sửa: truyền `system_day`, như các
+  bài báo cáo khác.
+
+Chỉ sửa bài kiểm, không đổi mã ứng dụng.
+
 ## 30.09.2026 — Báo cáo tổng hợp cuộn thì số chồng mờ, đau mắt; dòng TỔNG CỘNG lệch khỏi tiêu đề
 
 **TL-69 (đóng):** chủ dự án gửi video VPS (`main` c7065fe): Báo cáo Marketing, Không gộp, Toàn màn hình, cuộn
