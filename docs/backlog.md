@@ -1,5 +1,17 @@
 # Backlog
 
+## 01.10.2026 — CI e2e treo 20 phút: khoanh vùng và thêm chẩn đoán (TL-71)
+
+Lượt CI #120 trên `main` sau khi gộp #72: bộ chính xanh (TL-70 hết đỏ), còn job e2e bị GitHub huỷ ở phút 20 vì
+một bài treo. Lượt #107 (29.09) cũng vậy, lúc đó chạy lại cho xanh rồi bỏ qua, chưa ghi lại. Khoanh vùng bằng WAL
+của Postgres, số ảnh tải lên và tái hiện tại máy: bài 18
+`test_do_hieu_nang_1000_dong_ghi_chu_400`; luồng chính chờ Playwright mãi, không phải khoá CSDL. Chủ dự án duyệt
+("làm đi, chạy lại job e2e trên main luôn"): chạy lại job e2e của #120 thì xanh; nhánh `claude/chan-doan-e2e-treo` cho CI in
+tên từng bài, in ngăn xếp các luồng và greenlet khi một bài đứng quá 2 phút, hạn giờ từng bước. Không đụng mã ứng
+dụng, không thư viện mới. Bỏ `log_lock_waits` đã đề xuất vì ngăn xếp lúc treo cho thấy không ai chờ khoá.
+[Biên bản](kiem-chung-e2e-treo-20261001.md). **Còn:** sửa gốc bài 18 khi lần treo sau có ngăn xếp, hoặc trình
+cách chặn tổng thời gian vòng cuộn của bài để chủ dự án duyệt.
+
 ## 01.10.2026 — Báo cáo tổng hợp: bỏ ô Cách xem và ô Chế độ, luôn từng lần nộp; nút Chọn nhanh sáng một
 
 **Chủ dự án báo** (ảnh bộ lọc): (1) ngày 01.10 "Hôm nay" và "Tháng này" cùng sáng; (2) Cách xem và Chế độ trùng

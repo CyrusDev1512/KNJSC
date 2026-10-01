@@ -207,6 +207,8 @@ phải là đã kiểm. Ngoài Docker: từ `app/`, `python -m pytest --ds=knjsc
 với Postgres đang chạy. **Không chạy hai pytest cùng lúc** trên một database kiểm thử.
 Bài có `live_server` tự chờ máy chủ thử xử lý xong mọi yêu cầu rồi pytest mới dọn bảng
 (`tests/live_server_requests.py`, TL-67): bài trình duyệt không cần tự `goto("about:blank")` hay chờ cứng.
+Bài treo thì thêm `-vv -o faulthandler_timeout=120` như hai bước e2e của CI: quá hạn là in ngăn xếp các luồng
+và cả greenlet của Playwright (`conftest.py` gốc), thấy bài đang chờ ở dòng nào (TL-71).
 
 **Đừng chạy `migrate ... zero` trên cơ sở dữ liệu phát triển** — nó xoá bảng
 thật. Bài kiểm thử tự lo việc đó trên cơ sở dữ liệu riêng.
