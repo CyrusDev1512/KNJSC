@@ -1,5 +1,16 @@
 # Backlog
 
+## 30.09.2026 — Dòng TỔNG CỘNG dính: lộ chữ mờ và lệch khỏi tiêu đề (TL-69)
+
+**Chủ dự án báo** bằng video VPS: Báo cáo tổng hợp MKT cuộn thì số mờ, đau mắt. Tái hiện trên máy thử và chỉ ra
+hai nguyên nhân: nền cột chỉ số trong suốt ở dòng tổng đang dính, và số đo tiêu đề cũ sau Toàn màn hình. Làm
+mockup HTML cho chủ dự án thử trước; chủ dự án duyệt ("ổn rồi, sửa vào mã thật đi"). **Làm:** `solarpunk.css`
+một dòng (nền cột chỉ số pha với nền bảng); `report-filters.js` đo từng bảng, đo lại khi bảng đổi cỡ, chạy cả ở
+Bảng dữ liệu dạng báo cáo. Ở Bảng dữ liệu là lỗi thứ ba cùng gốc: dòng tổng luôn dính ở 41 px, đè lên tiêu đề.
+Bài trình duyệt AC-22.21 đỏ trên mã cũ ở cả ba lỗi, xanh sau khi sửa. Không migration, không thêm thư viện,
+không đổi nghiệp vụ. **Còn:** chủ dự án gộp; Codex phát hành VPS.
+[Biên bản](kiem-chung-dong-tong-dinh-20260930.md).
+
 ## 30.09.2026 — Báo cáo tổng hợp: cách xem "Hiệu suất theo team" thay "Hiệu suất theo phòng ban" (AC-22.20)
 
 **Chủ dự án yêu cầu** xem theo team thay vì phòng ban: bảng báo cáo nào cũng thuộc một bộ phận nên "phòng ban"

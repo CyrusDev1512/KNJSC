@@ -8,6 +8,24 @@
   const panel = document.getElementById('report-filter-panel');
   const filterToggle = document.getElementById('report-toggle-filters');
   const focusToggle = document.getElementById('report-toggle-focus');
+  // Dòng TỔNG CỘNG (mỗi loại tiền một dòng, ADR-046) dính ngay dưới hàng tiêu đề của chính bảng đó, dòng thứ i
+  // lùi thêm i × --total-h. Mỗi bảng tự đo và đo lại mỗi khi bảng đổi cỡ — khung giãn 0,2 s sau Toàn màn hình
+  // hay thu bộ lọc, phông tải muộn — chứ không chỉ khi đổi cỡ cửa sổ (TL-69). Chạy cho mọi bảng báo cáo trên
+  // trang, kể cả Bảng dữ liệu dạng báo cáo (cùng khối bảng, không có khung bộ lọc).
+  const reportTables = document.querySelectorAll('.report-table');
+  const measureTable = table => {
+    const head = table.tHead;
+    if (head) table.style.setProperty('--head-h', head.getBoundingClientRect().height + 'px');
+    const total = table.querySelector('.report-total');
+    if (total) table.style.setProperty('--total-h', total.getBoundingClientRect().height + 'px');
+  };
+  reportTables.forEach(measureTable);
+  if ('ResizeObserver' in window) {
+    const observer = new ResizeObserver(entries => entries.forEach(entry => measureTable(entry.target)));
+    reportTables.forEach(table => observer.observe(table));
+  } else {
+    window.addEventListener('resize', () => reportTables.forEach(measureTable));
+  }
   if (view && workspace && panel && filterToggle && focusToggle) {
     const storageKey = 'knjsc-report-layout';
     const narrowQuery = window.matchMedia('(max-width:900px)');
@@ -26,13 +44,6 @@
       try { sessionStorage.setItem(storageKey, JSON.stringify({filters: state.filters, focus: state.focus})); } catch (_) {}
     };
     const label = filterToggle.querySelector('span');
-    const headHeight = () => {
-      const head = view.querySelector('.report-table thead');
-      if (head) view.style.setProperty('--head-h', Math.round(head.getBoundingClientRect().height) + 'px');
-      // Nhiều dòng TỔNG CỘNG (mỗi loại tiền một dòng, ADR-046) dính chồng nhau theo chiều cao đo được
-      const total = view.querySelector('.report-table .report-total');
-      if (total) view.style.setProperty('--total-h', total.getBoundingClientRect().height + 'px');
-    };
     const render = () => {
       // Hẹp: chỉ có mở (ngăn kéo) hoặc đóng. Rộng: mở hoặc thanh dọc.
       const shown = narrow() ? (state.filters === 'open' ? 'open' : 'closed') : state.filters;
@@ -46,7 +57,6 @@
       root.classList.toggle('sp-erp-table-focus', state.focus);
       focusToggle.setAttribute('aria-pressed', String(state.focus));
       focusToggle.textContent = state.focus ? 'Thoát toàn màn hình' : 'Toàn màn hình';
-      headHeight();
     };
     const setFilters = value => { state.filters = value; persist(); render(); };
     const setFocus = value => {
@@ -75,7 +85,6 @@
       event.stopPropagation();
     }, true);
     narrowQuery.addEventListener('change', event => { if (event.matches && state.filters === 'open') state.filters = 'rail'; render(); });
-    window.addEventListener('resize', headHeight);
   }
   // Chọn nhanh kỳ (ADR-038): điền hai ô ngày rồi gửi bộ lọc ngay.
   const filters = document.querySelector('.report-filters');

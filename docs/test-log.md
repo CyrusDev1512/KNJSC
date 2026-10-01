@@ -1,5 +1,26 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 30.09.2026 — Báo cáo tổng hợp cuộn thì số chồng mờ, đau mắt; dòng TỔNG CỘNG lệch khỏi tiêu đề
+
+**TL-69 (đóng):** chủ dự án gửi video VPS (`main` c7065fe): Báo cáo Marketing, Không gộp, Toàn màn hình, cuộn
+bảng thì "bị mờ và đau mắt". Từ [ADR-046](quyet-dinh/046-che-do-so-lieu-khong-quy-doi.md) mỗi loại tiền một
+dòng TỔNG CỘNG, nên khi cuộn có tới bốn dòng tổng dính chồng trên đầu bảng. Lộ ra ba lỗi:
+
+- **Lộ chữ:** nền 5 cột chỉ số (Tỉ lệ chốt, Tỉ lệ chốt (TT), Giá Mess, CPO, CPQC/DS Chốt) là
+  `color-mix(… 45%, transparent)` (19.09, AC-22.16). Quy tắc này cùng độ ưu tiên và đứng sau nền đặc của dòng
+  tổng nên đè mất: ô dòng tổng ở 5 cột chỉ đục 0,45, dòng đang cuộn bên dưới lộ qua thành số chồng lên số.
+- **Lệch khi khung giãn:** `report-filters.js` đo chiều cao hàng tiêu đề của bảng đầu đúng lúc bấm Toàn màn
+  hình hay thu bộ lọc, khi khung còn đang giãn (hiệu ứng 0,2 s), rồi chỉ đo lại khi đổi cỡ cửa sổ; bảng các
+  ngày khác cũng dùng số của bảng đầu. Trong video tiêu đề cao 45 px mà dòng tổng dính ở 74 px, hở 29 px cho
+  dòng đang cuộn lọt qua.
+- **Bảng dữ liệu dạng báo cáo** (cùng `reports/_bang_khoi.html`): khung không có id `report-view` nên đoạn đo
+  không bao giờ chạy, dòng tổng luôn dính ở 41 px mặc định. Tiêu đề cao 75 px thì dòng tổng đè 34 px, che tên
+  cột khi cuộn. Chưa ai báo; lộ ra khi đọc mã lúc sửa.
+
+Sửa sau khi chủ dự án thử và duyệt mockup: nền cột chỉ số pha với `--surface` thay vì với trong suốt (đứng yên
+nhìn y như cũ); mỗi bảng tự đo `--head-h`, `--total-h` của mình và đo lại khi bảng đổi cỡ (`ResizeObserver`),
+chạy cả ở Bảng dữ liệu. AC-22.21. [Biên bản](kiem-chung-dong-tong-dinh-20260930.md).
+
 ## 29.09.2026 — Ba bài trong `test_luoi_dong_trong_va_ghim_e2e.py` đỏ vì đặc tả đã đổi
 
 **TL-68 (đóng):** rà `main` 206e1b0 trước khi phát hành VPS, nhóm trình duyệt có **3 bài đỏ**, cả ba trong

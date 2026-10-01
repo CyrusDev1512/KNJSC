@@ -6,6 +6,8 @@ import pytest
 
 from reports.models import ReportSource
 from reports.tests.test_aggregations import bang_mkt, dong_mau  # noqa: F401 — fixture
+from reports.tests.test_che_do_so_lieu import _nop
+from reports.tests.test_mkt_derived_revenue import mkt_source, van_don  # noqa: F401 — fixture
 from reports.tests.test_mkt_excel import marketing_scope  # noqa: F401 — fixture
 from tests.e2e.conftest import LY_DO, MAT_KHAU, chup, sync_playwright
 
@@ -217,5 +219,131 @@ def test_lan_chuot_tren_bang_khong_ket(live_server, trinh_duyet_moi, nguon, nguo
         bang, bang_max, trang, _ = _lan(page, bang_max // 100 + 10)
         assert bang >= bang_max - 1, f"bảng chưa cuộn hết — {[bang, bang_max]}"
         assert trang > 0, "bảng dài: cuộn hết bảng rồi mà trang không cuộn tiếp"
+    finally:
+        ctx.close()
+
+
+@pytest.fixture
+def mkt_ba_loai_tien(bang_mkt, mkt_source, van_don):
+    """Sáu ngày, hai marketer, ba loại tiền: mỗi khối có ba dòng TỔNG CỘNG dính chồng (ADR-046) và bảng đủ
+    dài để cuộn, như video 30.09 (TL-69)."""
+    from datetime import date, timedelta
+
+    A, B = van_don["A"], van_don["B"]
+    for i in range(6):
+        ngay = date(2026, 8, 1) + timedelta(days=i)
+        _nop(bang_mkt, A, 9, 0, cpqc="8000", ngay=ngay)
+        _nop(bang_mkt, A, 10, 0, cpqc="500", thi_truong="Hoa Kỳ", tien="USD", ngay=ngay)
+        _nop(bang_mkt, B, 11, 0, cpqc="3000", thi_truong="Philippines", tien="PHP", ngay=ngay)
+    return bang_mkt
+
+
+#: Mỗi bảng báo cáo: chiều cao thật của hàng tiêu đề và dòng TỔNG CỘNG, so với --head-h/--total-h mà dòng tổng
+#: dính theo
+DO_BANG = """()=>[...document.querySelectorAll('.report-table')].map(t=>{const cs=getComputedStyle(t),
+    tong=t.querySelector('.report-total');return {tieu_de:t.tHead.getBoundingClientRect().height,
+    head_h:parseFloat(cs.getPropertyValue('--head-h')),dong_tong:tong?tong.getBoundingClientRect().height:null,
+    total_h:parseFloat(cs.getPropertyValue('--total-h'))}})"""
+#: Màu tính ra của ô → [r, g, b, a] trong 0–1; Chrome trả rgb()/rgba(), hoặc color(srgb …) cho color-mix
+MAU = r"""const mau=c=>{let m=/^rgba?\(([^)]+)\)$/.exec(c);if(m){const p=m[1].split(',').map(parseFloat);
+    return [p[0]/255,p[1]/255,p[2]/255,p.length>3?p[3]:1]}m=/^color\(srgb ([^)]+)\)$/.exec(c);if(m){
+    const [rgb,a]=m[1].split('/');return [...rgb.trim().split(/\s+/).map(parseFloat),a===undefined?1:parseFloat(a)]}
+    throw new Error('màu lạ: '+c)};"""
+#: Ô nào của dòng TỔNG CỘNG có nền trong suốt (chữ dòng đang cuộn bên dưới lộ ra), và ô chỉ số ở dòng tổng lệch
+#: bao nhiêu phần 255 so với màu cũ lúc đứng yên: 45 % --accent-soft phủ trên nền bảng --surface
+NEN_DONG_TONG = "()=>{" + MAU + r"""
+    const o=[...document.querySelectorAll('.report-total>*')];
+    const trong=o.filter(c=>mau(getComputedStyle(c).backgroundColor)[3]<1).map(c=>c.className||c.tagName);
+    const thu=v=>{const d=document.createElement('div');d.style.background=`var(${v})`;document.body.append(d);
+        const c=mau(getComputedStyle(d).backgroundColor);d.remove();return c};
+    const a=thu('--accent-soft'),s=thu('--surface');
+    const chi_so=document.querySelector('.report-total>td.o-chi-so:not(.o-tot):not(.o-canh-bao):not(.o-xau)');
+    const c=chi_so&&mau(getComputedStyle(chi_so).backgroundColor);
+    return {so_o:o.length,trong:[...new Set(trong)],co_o_chi_so:!!chi_so,
+            lech_mau:c?Math.max(...[0,1,2].map(i=>Math.abs(c[i]-(0.45*a[i]+0.55*s[i]))))*255:null}}"""
+#: Cuộn khung bảng vào giữa khối đầu (hàng tiêu đề đã dính trên cùng); trả khoảng hở (px) giữa đáy tiêu đề và
+#: dòng TỔNG CỘNG đầu, giữa các dòng tổng liền nhau
+VI_TRI_DINH = """()=>new Promise(r=>{const s=document.querySelector('.report-table-scroll'),t=s.querySelector('.report-table');
+    const muon=t.offsetTop+60;s.scrollTop=muon;requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const k=s.getBoundingClientRect().top,th=t.querySelector('thead th:not(.report-identity)').getBoundingClientRect();
+    const tong=[...t.querySelectorAll('.report-total')].map(tr=>tr.querySelector('td:not(.report-identity)').getBoundingClientRect());
+    r({da_cuon:s.scrollTop>=muon-1,tieu_de_dinh:Math.round(th.top-k),ho_dau:Math.round(tong[0].top-th.bottom),
+       ho_giua:tong.slice(1).map((b,i)=>Math.round(b.top-tong[i].bottom))})}))})"""
+
+#: Cuộn trang tới khung bảng (màn thường: bảng nằm dưới bộ lọc) để ảnh chụp thấy chỗ dòng tổng dính
+TOI_KHUNG_BANG = "()=>document.querySelector('.report-table-scroll').scrollIntoView({block:'start'})"
+
+
+def _lech(bangs):
+    """Bảng có dòng tổng dính sai chỗ: --head-h khác chiều cao tiêu đề thật, hay --total-h khác dòng tổng, quá 1 px."""
+    return [(i, b) for i, b in enumerate(bangs) if abs(b["head_h"] - b["tieu_de"]) > 1
+            or (b["dong_tong"] is not None and abs(b["total_h"] - b["dong_tong"]) > 1)]
+
+
+def _kiem_nen(nen, noi):
+    assert nen["so_o"] and nen["co_o_chi_so"], f"{noi}: tiền đề — cần dòng TỔNG CỘNG có ô chỉ số: {nen}"
+    assert not nen["trong"], f"{noi}: ô dòng TỔNG CỘNG nền trong suốt, chữ dòng cuộn bên dưới lộ ra: {nen['trong']}"
+    assert nen["lech_mau"] <= 1.5, f"{noi}: màu ô chỉ số ở dòng tổng khác trước {nen['lech_mau']:.1f}/255"
+
+
+def _kiem_dinh(vi_tri, noi):
+    assert vi_tri["da_cuon"] and vi_tri["tieu_de_dinh"] in (0, 1), \
+        f"{noi}: tiền đề — khung phải cuộn, tiêu đề dính: {vi_tri}"
+    assert abs(vi_tri["ho_dau"]) <= 1, f"{noi}: dòng TỔNG CỘNG đầu cách đáy tiêu đề {vi_tri['ho_dau']} px"
+    assert all(abs(h) <= 1 for h in vi_tri["ho_giua"]), f"{noi}: các dòng TỔNG CỘNG không liền nhau: {vi_tri['ho_giua']}"
+
+
+def test_dong_tong_dinh_nen_dac_va_sat_tieu_de(live_server, trinh_duyet_moi, mkt_ba_loai_tien, nguoi_dung):
+    """AC-22.21 — Dòng TỔNG CỘNG dính đọc được (TL-69, chủ dự án 30.09.2026): mọi ô của dòng TỔNG CỘNG có nền
+    đặc ở chế độ sáng và tối, kể cả cột chỉ số (màu nhìn như cũ: 45 % nền chỉ số trên nền bảng), nên dòng đang
+    cuộn bên dưới không lộ chữ; dòng tổng đầu dính sát dưới hàng tiêu đề của chính bảng đó và các dòng tổng
+    xếp liền nhau — đúng cả khi khung bảng giãn mà cửa sổ không đổi cỡ (Toàn màn hình, thu bộ lọc: hiệu ứng
+    0,2 s), ở màn hẹp và ở Bảng dữ liệu dạng báo cáo (cùng khối bảng)"""
+    manager = nguoi_dung["manager_mkt"]
+    ky = "tu=2026-08-01&den=2026-08-06"
+    url = f"/bao-cao/tong-hop/?nguon={mkt_ba_loai_tien.code}&{ky}"
+    ctx, page = _mo(trinh_duyet_moi, live_server, manager, 2400, 800, url)
+    try:
+        _kiem_nen(page.evaluate(NEN_DONG_TONG), "sáng")
+        # Bộ lọc rộng ra làm bảng hẹp lại, tiêu đề xuống nhiều dòng; rồi bấm Toàn màn hình: bộ lọc thu về thanh
+        # dọc trong 0,2 s, bảng giãn ra mà cửa sổ không đổi cỡ — như video 30.09
+        page.evaluate("()=>document.getElementById('report-view').style.setProperty('--w-panel','1100px')")
+        page.wait_for_function("()=>Math.round(document.getElementById('report-filter-panel').getBoundingClientRect().width)===1100")
+        cao_hep = page.evaluate(DO_BANG)[0]["tieu_de"]
+        page.click("#report-toggle-focus")
+        page.wait_for_function(FOCUS)
+        page.wait_for_function("()=>Math.round(document.getElementById('report-filter-panel').getBoundingClientRect().width)===48")
+        page.wait_for_timeout(150)   # vài khung hình để trình duyệt báo bảng đã đổi cỡ
+        bangs = page.evaluate(DO_BANG)
+        assert cao_hep - bangs[0]["tieu_de"] >= 5, \
+            f"tiền đề: bảng giãn thì tiêu đề phải thấp đi — {cao_hep:.0f} → {bangs[0]['tieu_de']:.0f} px"
+        assert len(bangs) == 7 and not _lech(bangs), f"dòng TỔNG CỘNG dính theo số đo cũ: {_lech(bangs)}"
+        _kiem_dinh(page.evaluate(VI_TRI_DINH), "toàn màn hình")
+        chup(page, "bao-cao-dong-tong-dinh-2400")
+        page.evaluate("()=>{document.documentElement.dataset.theme='dark'}")
+        _kiem_nen(page.evaluate(NEN_DONG_TONG), "tối")
+        chup(page, "bao-cao-dong-tong-dinh-toi")
+    finally:
+        ctx.close()
+    ctx, page = _mo(trinh_duyet_moi, live_server, manager, 390, 844, url)
+    try:
+        assert not page.evaluate("()=>document.documentElement.scrollWidth>document.documentElement.clientWidth")
+        _kiem_nen(page.evaluate(NEN_DONG_TONG), "390 px")
+        lech = _lech(page.evaluate(DO_BANG))
+        assert not lech, f"390 px: dòng TỔNG CỘNG dính sai chỗ: {lech}"
+        page.evaluate(TOI_KHUNG_BANG)
+        _kiem_dinh(page.evaluate(VI_TRI_DINH), "390 px")
+        chup(page, "bao-cao-dong-tong-dinh-390")
+    finally:
+        ctx.close()
+    ctx, page = _mo(trinh_duyet_moi, live_server, manager, 1440, 900, f"/bang/{mkt_ba_loai_tien.code}/?{ky}")
+    try:
+        assert page.locator(".report-table").count() > 1, "tiền đề: Bảng dữ liệu hiện dạng báo cáo"
+        _kiem_nen(page.evaluate(NEN_DONG_TONG), "Bảng dữ liệu")
+        lech = _lech(page.evaluate(DO_BANG))
+        assert not lech, f"Bảng dữ liệu: dòng TỔNG CỘNG dính sai chỗ: {lech}"
+        page.evaluate(TOI_KHUNG_BANG)
+        _kiem_dinh(page.evaluate(VI_TRI_DINH), "Bảng dữ liệu")
+        chup(page, "bang-du-lieu-dong-tong-dinh")
     finally:
         ctx.close()
