@@ -1,5 +1,15 @@
 # Backlog
 
+## 02.10.2026 — Tạo sản phẩm ở Lên đơn: Leader trở lên; nút thêm dòng đổi tên (AC-6.9)
+
+**Chủ dự án báo:** Sale Staff lên đơn ở KN CRM vẫn tạo thêm được sản phẩm; chỉ Leader trở lên được thêm. **Dò mã:**
+Staff không tạo được — đường thêm `san-pham-moi` chặn dưới Manager (AC-6.9 đã kiểm); thứ Staff thấy là nút
+**"Thêm sản phẩm"** chỉ thêm *một dòng* chọn sản phẩm có sẵn vào đơn, trùng nghĩa nên hiểu nhầm. **Làm:**
+`product_service.CREATE_RANK = Rank.LEADER` khai một chỗ, view `san_pham_moi` và hộp "Tạo sản phẩm" cùng đọc —
+Leader Sale nay thêm được, Staff vẫn 403; nút thêm dòng đổi thành "＋ Thêm dòng" (cả màn sửa chi tiết vận
+đơn); ba kịch bản tay `scripts/kiem-thu-*.cjs` đổi theo. Không migration, không thư viện. Nhánh
+`claude/tao-san-pham-leader`, PR nháp về `Staging`.
+
 ## 02.10.2026 — Xem trước chỉ số khi nộp báo cáo ngày (AC-43.6)
 
 **Khách hàng yêu cầu**, chủ dự án chốt mockup: Marketing gõ số thì thấy ngay CPO, Giá Mess, CPQC/Doanh số, AOV,
