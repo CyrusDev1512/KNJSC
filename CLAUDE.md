@@ -45,8 +45,15 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
   cuối, có tag `luu-tru/*` đóng dấu.
 - **Chỉ giữ bốn nhánh nền** trên GitHub (chủ dự án chốt 02.10.2026): `main`, `Staging`,
   `CRM-UPDATE`, `codex/ui-solarpunk`. Nhánh việc (`claude/…`, `codex/…`) gộp xong là **xoá
-  ngay**; không để nhánh đã gộp nằm lại. Máy không tự xoá được nhánh trên GitHub (Claude
-  Code trên web bị chặn) thì báo chủ dự án đúng lệnh `git push origin --delete <nhánh>`.
+  ngay**; không để nhánh đã gộp nằm lại. Mỗi lần gộp PR làm đủ ba bước:
+  1. Xoá nhánh vừa gộp: `git push origin --delete <nhánh>`.
+  2. Rà nhánh thừa: `git fetch --prune origin`, rồi với mỗi nhánh ngoài bốn nhánh nền mà
+     `git rev-list --count origin/main..origin/<nhánh>` bằng 0 (đã nằm trọn trong `main`) thì xoá
+     luôn. Nhánh còn commit chưa gộp thì **không xoá**, báo chủ dự án.
+  3. Không xoá được (Claude Code trên web bị chặn xoá nhánh) thì đưa chủ dự án **một lệnh**
+     `git push origin --delete <nhánh 1> <nhánh 2> …` gồm mọi nhánh thừa đã kiểm ở bước 2.
+  GitHub nên bật Settings → General → "Automatically delete head branches" để nhánh tự xoá
+  khi gộp PR.
 - **Không đẩy thẳng lên `main`** (và cả nhánh codex khi nó còn), kể cả sửa nhỏ hay chỉ
   sửa tài liệu (chốt 19.09.2026, giữ nguyên khi đổi sang `main`).
 - **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ `main`, làm, commit,

@@ -36,7 +36,9 @@ tài liệu được liên kết bên dưới cung cấp chi tiết theo từng 
   gộp; chỉ gộp khi chủ dự án bảo rõ.
 - **Chỉ giữ bốn nhánh nền** (chốt 02.10.2026): `main`, `Staging`, `CRM-UPDATE`,
   `codex/ui-solarpunk`. Nhánh sửa lỗi hay thêm tính năng gộp xong là **xoá ngay**, không để
-  lại; không xoá được thì báo chủ dự án lệnh `git push origin --delete <nhánh>`.
+  lại; đồng thời xoá mọi nhánh ngoài bốn nhánh nền đã nằm trọn trong `main`. Không xoá được
+  thì đưa chủ dự án một lệnh `git push origin --delete …` gồm đủ các nhánh đó (chi tiết ở
+  CLAUDE.md, mục "Nhánh và nơi mã đang chạy").
 - **Phát hành VPS:** Codex hoặc Claude Code CLI, khi chủ dự án yêu cầu, chạy trên máy có SSH
   tới VPS, theo khuôn `docs/kiem-chung-phat-hanh-vps-20260929.md` và
   `deploy/production/README.md`; mỗi lượt một biên bản.
