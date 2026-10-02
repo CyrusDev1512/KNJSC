@@ -896,7 +896,8 @@
       const pick=e=>{const b=e.target.closest('[data-choice]');if(!b)return;choice=b.dataset.choice;dialog.close();};
       dialog.addEventListener('click',pick);
       dialog.addEventListener('close',()=>{dialog.removeEventListener('click',pick);viewport.focus({preventScroll:true});resolve(choice);},{once:true});
-      dialog.showModal();dialog.querySelector('[data-choice="details"]').focus();
+      // Con trỏ đứng ở Huỷ: ấn Delete rồi Enter theo thói quen không được bỏ mất chi tiết
+      dialog.showModal();dialog.querySelector('.vd-actions [data-choice="cancel"]').focus();
     });
   }
   async function clearDetails(details){

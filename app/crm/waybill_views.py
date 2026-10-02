@@ -30,17 +30,13 @@ def read_items(data):
     return [dict(zip(keys, values)) for values in zip(*arrays)]
 
 
-def without_blank_rows(items):
-    """Hộp Chi tiết: dòng chưa chọn sản phẩm là dòng trống còn lại sau khi Bỏ dòng cuối — bỏ qua, để
-    lưu được đơn không còn sản phẩm (chủ dự án 02.10.2026). Dòng trống mà có tiền thì báo, không đoán."""
-    kept = []
+def require_products(items):
+    """Hộp Chi tiết: dòng chưa chọn sản phẩm thì báo, không lặng lẽ bỏ qua — lỡ tay bấm Lưu với dòng trống
+    không được làm mất chi tiết hay chữ ở ô Sản phẩm. Muốn đơn không còn sản phẩm thì Bỏ dòng hết rồi Lưu."""
     for number, item in enumerate(items, 1):
-        if item.get("product"):
-            kept.append(item)
-            continue
-        if any(waybill_service.money(item.get(k) or "0") for k in ("unit_price", "paid_amount")):
-            raise BusinessError(f"Dòng {number} chưa chọn sản phẩm nhưng có tiền. Chọn sản phẩm hoặc bỏ dòng.")
-    return kept
+        if not item.get("product"):
+            raise BusinessError(f"Dòng {number} chưa chọn sản phẩm. Chọn sản phẩm hoặc bấm Bỏ dòng.")
+    return items
 
 
 def item_context(items=None):
@@ -99,7 +95,7 @@ def detail(request, pk):
             raise OutOfScopeError()
         try:
             items = read_items(request.POST)
-            waybill_service.update_items(request.user, pk, without_blank_rows(items), request.POST.get("version"),
+            waybill_service.update_items(request.user, pk, require_products(items), request.POST.get("version"),
                                          request=request)
             response = HttpResponse("Đã lưu chi tiết sản phẩm.")
             response["HX-Trigger"] = '{"waybillChanged":{"kind":"detail"}}'

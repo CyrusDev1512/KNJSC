@@ -93,7 +93,7 @@ def test_cau_hinh_luoi_ghi_cot_tong_va_duong_bo(client, setup, nguoi_dung):  # n
 def test_bo_dong_cuoi_luu_don_khong_san_pham(client, setup, nguoi_dung):  # noqa: F811
     """AC-36.10 — Hộp Chi tiết: Bỏ dòng hết (không còn dòng nào) rồi Lưu → đơn không còn sản phẩm, bốn ô tổng
     trống; mở lại hộp thì vẫn có sẵn một dòng chọn sản phẩm trống như trước, có dòng mẫu và nút Thêm dòng; chọn
-    lại sản phẩm lưu được như thường. Dòng chưa chọn sản phẩm mà không tiền thì bỏ qua; có tiền thì báo lỗi"""
+    lại sản phẩm lưu được như thường. Còn dòng chưa chọn sản phẩm thì báo lỗi, không lưu"""
     row = order(setup, nguoi_dung["staff_sale_1"]).record
     client.force_login(nguoi_dung["staff_vd"])
     chi_tiet = f"/van-don/chi-tiet/{row.pk}/"
@@ -117,8 +117,9 @@ def test_bo_dong_cuoi_luu_don_khong_san_pham(client, setup, nguoi_dung):  # noqa
     assert client.post(chi_tiet, data).status_code == 200
     row.refresh_from_db()
     assert _con_chi_tiet(row) == 2 and row.data["gia_tien"] == "40.40"
-    assert client.post(chi_tiet, {**trong, "version": row.updated_at.isoformat()}).status_code == 200
-    assert _con_chi_tiet(row) == 0
+    # Dòng chọn sản phẩm còn trống (chưa chọn) rồi Lưu: báo lỗi như bản cũ, không lặng lẽ xoá đơn
+    r = client.post(chi_tiet, {**trong, "version": row.updated_at.isoformat()})
+    assert r.status_code == 400 and _con_chi_tiet(row) == 2
 
 
 def test_len_don_van_can_mot_san_pham(client, setup, nguoi_dung):  # noqa: F811
@@ -140,7 +141,8 @@ def test_dich_vu_bo_chi_tiet_rong(setup, nguoi_dung):  # noqa: F811
 
 def test_don_nhap_tep_khong_chi_tiet_xoa_duoc_chu_san_pham(client, setup, nguoi_dung):  # noqa: F811
     """AC-36.10 — Đơn nhập từ tệp không có Chi tiết (ô Sản phẩm chỉ là chữ "A ×2 + B ×3"): hộp Chi tiết như cũ
-    (một dòng chọn sản phẩm trống); Bỏ dòng rồi Lưu → chữ và bốn ô tổng trống; Delete trên lưới cũng xoá được"""
+    (một dòng chọn sản phẩm trống); lỡ bấm Lưu khi dòng còn trống → báo lỗi, không mất chữ và tổng; Bỏ dòng rồi
+    Lưu → chữ và bốn ô tổng trống; Delete trên lưới cũng xoá được"""
     from django.utils import timezone
     row = order(setup, nguoi_dung["staff_sale_1"]).record
     WaybillItem.objects.filter(record=row).update(deleted_at=timezone.now())     # như dòng nhập tệp
@@ -151,7 +153,12 @@ def test_don_nhap_tep_khong_chi_tiet_xoa_duoc_chu_san_pham(client, setup, nguoi_
     html = client.get(chi_tiet).content.decode()
     than_bang = html.split("<tbody>")[1].split("</tbody>")[0]
     assert than_bang.count("<tr") == 1 and " selected" not in than_bang
-    assert client.post(chi_tiet, {"version": row.updated_at.isoformat()}).status_code == 200
+    # Lỡ tay bấm Lưu ngay khi dòng chọn còn trống: không mất chữ sản phẩm và tổng tiền
+    trong = {"product": [""], "unit": [""], "quantity": ["1"], "unit_price": ["0.00"], "paid_amount": ["0.00"]}
+    assert client.post(chi_tiet, {**trong, "version": row.updated_at.isoformat()}).status_code == 400
+    row.refresh_from_db()
+    assert row.data["san_pham"] == "Retinol Cream ×2 + Retinol Serum ×3" and row.data["gia_tien"] == "40.40"
+    assert client.post(chi_tiet, {"version": row.updated_at.isoformat()}).status_code == 200      # Bỏ dòng rồi Lưu
     row.refresh_from_db()
     assert all(row.data.get(k) in (None, "") for k in TONG)
     row.data["san_pham"] = "Retinol Cream ×2"
@@ -159,3 +166,58 @@ def test_don_nhap_tep_khong_chi_tiet_xoa_duoc_chu_san_pham(client, setup, nguoi_
     assert _bo(client, _o(row, "san_pham")).status_code == 200
     row.refresh_from_db()
     assert row.data.get("san_pham") in (None, "")
+
+
+@pytest.mark.parametrize("ai", ["staff_vd", "staff_sale_1", "staff_sale_2", "staff_mkt", "manager_sale", "admin"])
+def test_quyen_bo_chi_tiet_trung_quyen_sua_o_thuong(client, setup, nguoi_dung, ai):  # noqa: F811
+    """AC-36.9 — Ai sửa được ô thường của dòng (Ghi chú) thì mới bỏ được chi tiết, và ngược lại: Delete ô Sản
+    phẩm không mở rộng hay thu hẹp quyền so với lưới"""
+    row = order(setup, nguoi_dung["staff_sale_1"]).record
+    client.force_login(nguoi_dung[ai])
+    ghi = client.post(GRID + "luu-json/", {"operation": str(uuid.uuid4()), "cells": [
+        {"id": row.pk, "column": "ghi_chu", "old": row.data.get("ghi_chu"), "value": "thử quyền"}]},
+        content_type="application/json").status_code
+    row.refresh_from_db()
+    bo = _bo(client, _o(row, "san_pham")).status_code
+    assert (ghi == 200) == (bo == 200), (ai, ghi, bo)
+    assert (_con_chi_tiet(row) == 0) == (bo == 200)
+
+
+def test_sau_khi_bo_luoi_thong_ke_excel_van_chay(client, setup, nguoi_dung):  # noqa: F811
+    """AC-36.9 — Sau khi bỏ chi tiết: lưới đọc dòng (du-lieu) có ô Sản phẩm trống, Thống kê mở được và đếm đơn
+    thiếu chi tiết, tệp Excel xuất được với Chi tiết sản phẩm "[]"; nhiều dòng bỏ một lượt"""
+    from forms_builder.services import export_service
+    from forms_builder.models import DataRecord
+    rows = [order(setup, nguoi_dung["staff_sale_1"]).record for _ in range(3)]
+    client.force_login(nguoi_dung["staff_vd"])
+    r = _bo(client, _o(rows[0], "san_pham", "gia_tien") + _o(rows[1], "so_luong"))
+    assert r.status_code == 200 and sorted(d["id"] for d in r.json()["rows"]) == sorted([rows[0].pk, rows[1].pk])
+    assert [_con_chi_tiet(x) for x in rows] == [0, 0, 2]
+    du_lieu = client.get(GRID + "du-lieu/")
+    assert du_lieu.status_code == 200
+    o = {d["id"]: d["cells"]["san_pham"]["value"] for d in du_lieu.json()["rows"]}
+    assert o[rows[0].pk] in (None, "") and o[rows[2].pk]
+    tk = client.get("/thong-ke/", {"nguon": "van_don"})
+    assert tk.status_code == 200
+    columns = list(setup[1].columns.all())
+    sach = export_service.build_workbook(DataRecord.objects.in_scope(nguoi_dung["admin"]).filter(pk=rows[0].pk),
+                                         columns, title="Vận đơn")
+    assert sach.active.max_row == 2
+
+
+def test_bao_cao_tong_hop_erp_van_mo_sau_khi_bo(client, setup, nguoi_dung, settings):  # noqa: F811
+    """AC-36.9 — Báo cáo tổng hợp nguồn Vận đơn (ERP) và Bảng dữ liệu vẫn mở được khi có đơn đã bỏ chi tiết
+    (bốn ô tổng trống), số đơn vẫn đếm đơn đó"""
+    from django.core.management import call_command
+    from django.urls import clear_url_caches
+    from orders.services import waybill_service
+    rows = [order(setup, nguoi_dung["staff_sale_1"]).record for _ in range(2)]
+    waybill_service.clear_items(nguoi_dung["staff_vd"], setup[1],
+                                [{"id": rows[0].pk, "column": "gia_tien", "old": rows[0].data["gia_tien"]}])
+    call_command("configure_erp_reports", verbosity=0)
+    settings.ROOT_URLCONF = "knjsc.urls"
+    clear_url_caches()
+    client.force_login(nguoi_dung["admin"])
+    for url, query in (("/bao-cao/tong-hop/", {"nguon": "van_don"}), ("/bang/van_don/", {})):
+        r = client.get(url, query)
+        assert r.status_code == 200, (url, r.status_code)

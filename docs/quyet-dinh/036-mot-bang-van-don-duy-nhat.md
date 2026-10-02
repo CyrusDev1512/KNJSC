@@ -128,8 +128,9 @@ tiết" như dòng nhập tệp không chi tiết đã có từ ngày 18.09.
   không hoàn tác bằng Ctrl+Z được; muốn thêm lại thì mở Chi tiết.
 - **Hộp Chi tiết:** giữ nguyên như cũ; chỉ khác là Bỏ dòng xoá được cả dòng cuối, nút Thêm dòng lấy dòng mẫu
   (`<template data-item-template>`) để thêm lại. Lưu khi không còn dòng là bỏ hết chi tiết (`update_items` nhận
-  danh sách rỗng), kể cả đơn nhập từ tệp chỉ có chữ ở ô Sản phẩm. Dòng chưa chọn sản phẩm mà có tiền thì báo
-  lỗi, không đoán. Không đoán chi tiết từ chữ gộp.
+  danh sách rỗng), kể cả đơn nhập từ tệp chỉ có chữ ở ô Sản phẩm. Còn dòng chưa chọn sản phẩm thì báo
+  lỗi, không lặng lẽ bỏ qua: lỡ bấm Lưu khi mở đơn chưa có chi tiết không được xoá chữ và tổng. Hộp hỏi lại
+  của Delete đặt con trỏ ở Huỷ để ấn Delete rồi Enter không bỏ mất chi tiết.
 - **Lên đơn mới** vẫn phải có ít nhất một sản phẩm.
 - **Không đổi:** cột số lượng theo sản phẩm `sl_*` (ẩn mặc định) chỉ ghi khi lên đơn, sửa Chi tiết cũng
   không cập nhật nó. Bỏ chi tiết cũng giữ nguyên như thế.
