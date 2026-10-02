@@ -80,7 +80,8 @@ chế độ Từng lần nộp.
   quản lý thấy thiếu.
 - Đơn vận đơn khác loại tiền với mọi báo cáo của marketer trong ngày không hiện ở (TT).
 - Người nộp báo cáo cho ngày khác (nộp bù) có "Lần N" tính theo giờ nộp, kèm ngày nộp để phân biệt.
-- Cột ghim trái nhiều hơn (tới sáu cột ở Từng lần nộp): màn hẹp dưới 480 px còn ít chỗ cho cột số.
+- ~~Cột ghim trái nhiều hơn (tới sáu cột ở Từng lần nộp): màn hẹp dưới 480 px còn ít chỗ cho cột số.~~ Đã sửa
+  02.10.2026 (ADR-042 bổ sung): chỉ còn cột đầu, Nhân sự, Loại tiền đứng yên.
 
 ## Bổ sung 01.10.2026 — bỏ ô Cách xem và ô Chế độ, luôn Từng lần nộp
 

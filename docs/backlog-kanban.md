@@ -1,5 +1,19 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 02.10.2026 — Ba chỗ sửa Báo cáo tổng hợp (AC-22.24, 22.25, 22.26)
+
+**Finished local (nhánh `claude/ba-cho-sua-bao-cao`, PR nháp về `Staging`):**
+- mở trang đã thấy hàng tiêu đề và các dòng TỔNG CỘNG, nhờ nút Giải thích số liệu và cảnh báo một dòng;
+- chỉ STT/Ngày, Nhân sự, Loại tiền đứng yên, kéo xong bảng tự nhích;
+- Gộp / Không gộp đổi bảng tại chỗ, giữ đúng ngày đang xem.
+
+**To do:**
+- chủ dự án gộp vào `Staging`;
+- chủ dự án thử ở máy mình, rồi gộp `main`;
+- phát hành VPS.
+
+**Far Plan:** các vấn đề UX đã xem 02.10, ghi ở mục backlog cùng ngày.
+
 ## 01.10.2026 — Bài 18 không còn treo được (TL-71)
 
 **Đã gộp vào `main` 01.10.2026 (PR #75):** vòng cuộn của bài đo hiệu năng 1000 dòng có hạn 60 giây và trả

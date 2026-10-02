@@ -1,5 +1,57 @@
 # Backlog
 
+## 02.10.2026 — Ba chỗ sửa Báo cáo tổng hợp (AC-22.24, 22.25, 22.26)
+
+Chủ dự án xem mockup "Ba chỗ sửa Báo cáo tổng hợp" (artifact claude.ai `JRdYXcoJB9iKTDjuR2YHPY`) và bảo sửa ba chỗ
+này trước. Chỉ đổi cách hiển thị; số liệu, cách tính, quyền, Excel giữ nguyên. Không migration, không thư viện.
+
+1. **Vừa mở trang đã thấy số.**
+   - Tên bảng, khoảng ngày, nút Ngưỡng màu và nút Giải thích số liệu nằm một hàng.
+   - Đoạn (TT) và câu loại tiền thu vào panel Giải thích số liệu. Cảnh báo loại tiền còn một dòng.
+   - Form ngưỡng thành panel. Thân form tách ra `_nguong_form.html`.
+2. **Kéo ngang không còn cột bị che.**
+   - Chỉ cột đầu, Nhân sự, Loại tiền đứng yên (`layout.identity`, lớp `report-troi`).
+   - Dòng TỔNG CỘNG mỗi cột một ô, nhãn ngắn ở ô Nhân sự.
+   - Kéo xong, bảng tự nhích theo hướng kéo.
+3. **Gộp / Không gộp không tải lại trang.**
+   - `report-filters.js` lấy trang bằng fetch rồi thay phần bảng, ghi lịch sử bằng `pushState`.
+   - Mốc `data-ngay` giữ đúng ngày đang xem.
+   - Link giữ `trang` ở chế độ Từng lần nộp.
+
+Đo trên dữ liệu cỡ thật, 1366×768:
+- Khung bảng lúc mở bắt đầu ở 402 px (trước 603), thấy 4/5 dòng TỔNG CỘNG.
+- Vùng đứng yên 262 px (trước 522–638).
+- Đổi chế độ mất 0,39–0,49 s, không tải lại trang.
+
+Nhánh `claude/ba-cho-sua-bao-cao` tách từ `Staging`, PR nháp về `Staging`. ADR-042 bổ sung 02.10.
+[Biên bản](kiem-chung-ba-cho-sua-bao-cao-20261002.md).
+
+**Còn:**
+- Chủ dự án gộp vào `Staging`, rồi thử ở máy mình (`scripts\cap-nhat-local.bat Staging`), rồi mới gộp `main`.
+- Phát hành VPS là bước riêng.
+
+**Vấn đề UX đã xem 02.10.2026, chủ dự án chưa cần sửa.** Có trang đánh giá kèm ảnh, artifact claude.ai
+`SkWtGZgMH4A2n7EaFeEprS`, đóng vai nhân viên MKT, trưởng nhóm và trưởng phòng. Ghi lại để phiên sau khỏi hỏi lại:
+
+- **Một số gõ nhầm làm lệch cả báo cáo.** Ví dụ CPQC 13.250.000 vào dòng USD. Màu so với dòng tổng đã lệch nên ai
+  cũng xanh, dòng sai chỉ vàng. Chưa đặt ngưỡng thì không có ô đỏ nào.
+- **Ô tiền trên form không ghi đơn vị** và đứng trước ô Thị trường.
+  - **Câu hỏi cho chủ dự án:** tiền quảng cáo trả bằng tiền gì? Nếu là tiền Việt mà doanh số là đô thì một dòng không
+    thể chỉ có một loại tiền.
+- **Điện thoại.** Sau lượt sửa này thấy được một cột số. Cách hiện bảng trên màn hẹp vẫn chưa thiết kế riêng.
+- **Không biết ai chưa nộp.** Báo cáo nộp sau nửa đêm bị tính sang ngày mới, và không nộp bù được (N1 còn mở).
+- **Ba link trên thẻ Marketing ở Tổng quan dẫn về cùng một trang.** Đó là "Kết quả theo nhân viên", "Theo phòng ban"
+  và link báo cáo chi tiết. Sót lại sau khi bỏ ô Cách xem 01.10. Chưa có chỗ so sánh team.
+- **Đặt ngưỡng tiền (₫) làm cột đó mất hết màu.** Không thị trường nào dùng ₫.
+- **Dòng TỔNG CỘNG dính chiếm gần nửa khung bảng** khi có 5 loại tiền.
+- **Leader đặt được ngưỡng màu chung của cả phòng** (AC-42.9 đã chốt). Form không ghi ai đặt.
+- **Lặt vặt:**
+  - Tổng quan của nhân viên mở ra là bộ lọc;
+  - công thức trên form hiện tên mã máy, đã đổi ở AC-43.6;
+  - không sắp xếp được theo cột;
+  - hai cột Hóa đơn luôn trống;
+  - viết tắt không có chú thích.
+
 ## 02.10.2026 — Tạo sản phẩm ở Lên đơn: Leader trở lên; nút thêm dòng đổi tên (AC-6.9)
 
 **Chủ dự án báo:** Sale Staff lên đơn ở KN CRM vẫn tạo thêm được sản phẩm; chỉ Leader trở lên được thêm. **Dò mã:**

@@ -181,7 +181,12 @@ tiền, `aggregations.total_rows`), màn hình **luôn Từng lần nộp** (c�
 vận đơn, khối toàn kỳ theo nhân sự + mỗi ngày một bảng, Gộp/Không gộp, ngưỡng màu ba bậc do
 quản lý đặt (`ReportSource.thresholds`), lọc nhiều sản phẩm; bảng có nguồn báo cáo Sale/MKT mở ở
 Bảng dữ liệu là **báo cáo chi tiết theo ngày** (mỗi lần nộp một dòng, `?dang=tho` xem thô); bối
-cảnh màn hình dùng chung ở `reports/screen.py`.
+cảnh màn hình dùng chung ở `reports/screen.py`. **Ba chỗ sửa (02.10, ADR-042 bổ sung):**
+- **Kéo ngang:** chỉ cột đầu (STT/Ngày), Nhân sự, Loại tiền đứng yên (`layout.identity`; cột khác mang `report-troi`).
+  Dòng TỔNG CỘNG mỗi cột một ô, nhãn ngắn ở ô Nhân sự; kéo xong thì bảng tự nhích.
+- **Phần chữ trên bảng:** đoạn (TT) và câu loại tiền nằm trong panel "Giải thích số liệu".
+- **Gộp / Không gộp:** đổi bảng bằng `fetch` trong `report-filters.js`, không tải lại trang. Link giữ `trang`, mốc
+  `data-ngay` giữ đúng ngày đang xem.
 **Form Nộp báo cáo ngày (ADR-043, 24.09):** dropdown Team của bộ phận ghi vào `DataRecord.team` và
 `DailyReport.team`; Số Mess, CPQC, Số đơn, Doanh số bắt buộc — khai một chỗ `configure_erp_reports.REQUIRED_INPUTS`
 (lệnh chạy mỗi lần bật máy nên ép cả trường đã có); Hóa đơn không còn trên form MKT (`MKT_FORM_SKIP`) nhưng cột và

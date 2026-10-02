@@ -315,11 +315,22 @@ dialog::backdrop {background:#10291b66;backdrop-filter:blur(3px)}
 .panel-rail .huy-hieu[hidden] {display:none}
 .panel-rail .nhan {writing-mode:vertical-rl;transform:rotate(180deg);font-size:var(--fs-sm);font-weight:600;color:var(--ink-2);letter-spacing:.02em}
 .report-results {display:flex;flex-direction:column}
-.report-results-heading {display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 18px 12px}
+/* Vừa mở trang đã thấy số (chủ dự án duyệt mockup 02.10.2026): tên bảng, khoảng ngày và hai nút trên một hàng;
+   panel Giải thích số liệu và Ngưỡng màu nằm ngay dưới hàng, ẩn sẵn (trong luồng trang: khung kết quả cắt tràn,
+   và form ngưỡng không được tự đóng làm mất số đang gõ); cảnh báo dòng chưa có loại tiền còn một dòng gọn */
+.report-results-heading {display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;padding:8px 18px 6px}
 .report-results-heading h2 {font-size:18px;font-weight:700;margin:0}
-.report-results-heading p {margin:0;color:var(--ink-2);font-size:var(--fs-sm)}
+.report-results-heading .report-ky {color:var(--ink-2);font-size:var(--fs-sm)}
+.report-results-heading .space {flex:1 1 auto}
 .report-results>p {margin:14px 18px 0}
-.report-results>p+.report-results-heading {padding-top:8px}
+.report-giai-thich {display:grid;gap:6px;margin:0 18px 8px;padding:10px 14px;border:1px solid var(--rule);border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink-2);font-size:var(--fs-sm)}
+.report-giai-thich p {margin:0;max-width:120ch}
+.report-giai-thich .report-giai-canh {color:var(--ink);font-weight:600}
+.report-results>.report-nguong {margin:0 18px 8px}
+.report-results>.report-nguong .report-nguong-form {margin-top:0}
+.report-giai-thich[hidden],.report-results>.report-nguong[hidden] {display:none}
+.report-results>.report-canh-gon {margin:0 18px 6px;padding:4px 12px;font-size:var(--fs-sm)}
+.report-canh-gon>span {min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 /* Khung bảng (TL-63): không chặn cuộn truyền ra trang — `overscroll-behavior:contain` làm lăn chuột trên bảng
    bị nuốt khi bảng hết chỗ cuộn hay chỉ cuộn ngang được; nền đặc để trình duyệt cuộn lớp đã vẽ, không vẽ lại. */
 .report-table-scroll {position:relative;max-height:calc(100vh - 230px);overflow:auto;background:var(--surface);border-top:1px solid var(--rule-strong)}
@@ -353,7 +364,15 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
 .report-table .id-tien {width:var(--w-tien);min-width:var(--w-tien);max-width:var(--w-tien);white-space:nowrap;font-family:var(--font-ma);font-size:12px;letter-spacing:.02em}
 .report-table .report-identity-edge {box-shadow:6px 0 8px -6px #00000040}
 .report-table thead .report-identity,.report-table .report-total .report-identity {z-index:3}
-.report-table .report-total th.report-identity {font-weight:700}
+.report-table .report-total th.report-identity {font-weight:700;white-space:normal}
+/* Kéo ngang (chủ dự án duyệt mockup 02.10.2026): chỉ cột đầu, Nhân sự, Loại tiền đứng yên; cột định danh khác
+   (`report-troi`: Team, Leader, Lần nộp) trôi theo và nằm dưới cột đứng yên. Ở thân bảng là ô thường; ở hàng
+   tiêu đề và dòng TỔNG CỘNG vẫn dính theo chiều dọc, chỉ bỏ dính ngang (nền đặc lấy từ quy tắc dòng tổng). Đặt
+   sau các quy tắc `left`/`z-index` cùng độ ưu tiên ở trên để thắng */
+.report-table tbody tr:not(.report-total)>.report-troi {position:static}
+.report-table thead .report-troi,.report-table .report-total>.report-troi {left:auto;z-index:2}
+/* Bóng mép chỉ khi đã kéo ngang (report-filters.js đặt data-keo): chưa kéo thì không có gì nằm dưới cột đứng yên */
+.report-table-scroll:not([data-keo]) .report-identity-edge {box-shadow:none}
 .report-table .id-nhan-su b,.report-table .id-leader b {font-weight:700;letter-spacing:.01em;margin-right:4px}
 /* Tô màu chỉ tiêu (AC-22.16): nền cột cho chỉ số quan trọng, ô đạt/cảnh báo so với dòng Tổng.
    Dùng color-mix trên token nên tự đổi theo chế độ sáng/tối, không khai màu cứng. Pha với nền bảng chứ
@@ -417,7 +436,8 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
 .sp-report-focus .report-workspace {position:relative;flex:1;min-height:0;grid-template-rows:minmax(0,1fr);gap:0;align-items:stretch}
 .sp-report-focus .report-filter-panel {overflow:auto;min-height:0;border:0;border-right:1px solid var(--rule);border-radius:0}
 .sp-report-focus .report-results {border:0;border-radius:0;min-height:0;background:var(--surface-2)}
-.sp-report-focus .report-results-heading {display:none}
+.sp-report-focus .report-results-heading {padding:6px 12px}
+.sp-report-focus .report-results-heading h2,.sp-report-focus .report-results-heading .report-ky {display:none}
 .sp-report-focus .report-table-scroll {flex:0 1 auto;min-height:0;max-height:none;border-top:0;background:var(--surface);border-bottom:1px solid var(--rule-strong)}
 .sp-report-focus .report-results>.phan-trang {flex:none;background:var(--surface)}
 .sp-report-focus .noi-dung>.report-view~* {display:none}
@@ -431,7 +451,8 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
   .panel-rail {display:none!important}
   .report-workspace[data-filters="rail"] .panel-head {display:flex}
   .report-workspace[data-filters="rail"] .panel-body {display:grid}
-  .report-results-heading {padding:14px 14px 10px}
+  .report-results-heading {padding:8px 14px 6px}
+  .report-giai-thich,.report-results>.report-nguong,.report-results>.report-canh-gon {margin-left:14px;margin-right:14px}
   .sp-report-focus .report-focus-title {flex-basis:100%;justify-content:space-between}
   .sp-report-focus .report-controls {justify-content:flex-start;gap:6px}
 }
