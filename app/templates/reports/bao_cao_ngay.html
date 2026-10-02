@@ -89,12 +89,13 @@
         {% endfor %}
       </div>
 
-      {% comment %}Cột tính sẵn hệ thống tự tính khi nộp (ADR-006): chỉ nhắc công thức, không vẽ ô nhập giả
-         để lưới ô nhập gọn và người nộp biết mình phải điền gì.{% endcomment %}
+      {% comment %}Xem trước chỉ số (AC-43.6, chủ dự án chốt 02.10.2026): mỗi cột tính sẵn một thẻ, report-entry.js
+         tính ngay khi gõ theo công thức của cột (trái, phép, phải, số lẻ). Chỉ là xem trước — khi nộp máy chủ
+         vẫn tự tính và lưu (ADR-006). Không có JS thì thẻ hiện "—" kèm công thức, đọc được như chip cũ.{% endcomment %}
       {% if cac_cot_tinh %}
-      <div class="bm-tinh">
-        <span class="nho">Hệ thống tự tính khi nộp:</span>
-        {% for c in cac_cot_tinh %}<span class="chip">{{ c.name }} <span class="g">= {{ c.formula_text }}</span></span>{% endfor %}
+      <div class="bm-tinh" aria-live="polite">
+        <div class="bm-tinh-dau"><b>Xem trước chỉ số</b><span class="nho">Tính ngay khi gõ · khi nộp hệ thống tự tính lại và lưu · ô thiếu số thì để trống</span></div>
+        <div class="chi-so" id="xem-truoc-chi-so">{% for c, don_vi, so_le in cac_cot_tinh %}<div class="cs" data-ma="{{ c.code }}" data-trai="{{ c.compute_left }}" data-phai="{{ c.compute_right }}" data-phep="{{ c.compute_op }}" data-le="{{ so_le }}" data-don-vi="{{ don_vi }}"><div class="ten">{{ c.name }}</div><div class="gt">—</div><div class="ct">{{ c.formula_text }}</div></div>{% endfor %}</div>
       </div>
       {% endif %}
 
