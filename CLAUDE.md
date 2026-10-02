@@ -65,6 +65,19 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
 
 #### Đường đi của một thay đổi — chốt 02.10.2026
 
+**Hai nhánh, hai vai khác hẳn nhau. Đừng lẫn.**
+
+- **`Staging` là nơi làm việc bẩn.** Gom code, chạy thử, sửa, **xoá**, thử sai rồi
+  làm lại. Nó được phép hỏng; hỏng ở đây là đúng chỗ. `Staging` đi trước `main`
+  bao nhiêu cũng **bình thường**, không phải dấu hiệu tắc nghẽn.
+- **`main` luôn sạch.** Sạch nghĩa là: lấy **bất kỳ** commit nào trên `main` cũng
+  phát hành lên VPS được ngay, không cần hỏi "commit này đã thử chưa". Thứ gì chưa
+  chắc thì **ở lại `Staging`** — không đẩy sang `main` cho kịp deadline.
+
+Hệ quả: hỏng thì sửa ở `Staging` rồi gộp lên, **không sửa nóng thẳng trên `main`**.
+Và `main` không nhận commit "để đó rồi sửa sau": nhận một cái là `main` hết sạch,
+mà đã hết sạch một lần thì không ai tin nó nữa.
+
 **Không có đường tắt nào tới VPS.** Mọi chỉnh sửa, kể cả sửa một dòng tài liệu, đi
 đủ bốn chặng theo đúng thứ tự:
 
@@ -76,7 +89,7 @@ nhánh claude/<tên-việc>  →  Staging  →  (kiểm kỹ ở máy local)  �
 |---|---|---|
 | 1. Nhánh việc → `Staging` | Claude/Codex mở PR nháp, chủ dự án gộp | PR xanh CI; chủ dự án duyệt |
 | 2. `Staging` → kiểm ở local | Người, trên máy mình | Bật hệ thống thật và **dùng thử bằng tay** |
-| 3. `Staging` → `main` | Chủ dự án bảo gộp | Đã kiểm ở chặng 2 và không thấy vấn đề |
+| 3. `Staging` → `main` | Chủ dự án bảo gộp | Đã kiểm ở chặng 2 và không thấy vấn đề. Còn nghi ngờ thì **để lại `Staging`** |
 | 4. `main` → VPS | Codex hoặc Claude Code CLI, khi được yêu cầu | Chỉ phát hành từ `main`, không từ nhánh khác |
 
 **Chặng 2 là chặng không được bỏ, và nó không phải là `pytest`.** Bài kiểm xanh chỉ
@@ -88,7 +101,8 @@ thì có đúng như mong đợi không.* Bật bằng `KN JSC.bat` (Windows) ho
 
 **Phát hành VPS chỉ đi từ `main`.** Không phát hành từ `Staging`, từ nhánh việc, hay
 từ bản sửa tay trên máy chủ — kể cả khi đang gấp. Bản đang chạy trên VPS phải luôn
-truy ngược được về đúng một commit của `main`.
+truy ngược được về đúng một commit của `main`. Đây chính là lý do `main` phải sạch:
+giữ được điều đó thì quay lui chỉ là chọn một commit cũ hơn của `main`.
 
 **Gấp tới mấy cũng không nhảy chặng.** Cần sửa nóng thì vẫn mở nhánh việc, vẫn qua
 `Staging`, chỉ là làm nhanh cả bốn chặng. Bỏ chặng để nhanh hơn mười phút là cách
