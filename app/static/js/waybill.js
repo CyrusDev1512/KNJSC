@@ -1,10 +1,6 @@
 /* Chi tiết là một giao dịch; tổng tiền luôn do máy chủ tính bằng Decimal. */
 (function () {
   'use strict';
-  function emptyNote(form) {
-    var note = form && form.querySelector('[data-items-empty]');
-    if (note) note.hidden = form.querySelector('.vd-items tbody').rows.length > 0;
-  }
   function showDetail(cell) {
     var dialog = document.getElementById('vd-detail');
     document.getElementById('vd-detail-body').textContent = 'Đang tải chi tiết…';
@@ -25,15 +21,14 @@
       row.querySelectorAll('select').forEach(function (select) { select.value = ''; });
       row.querySelectorAll('input').forEach(function (input) { input.value = input.name === 'quantity' ? '1' : '0.00'; });
       body.appendChild(row); row.querySelector('select').focus();
-      emptyNote(form);
     }
     var remove = event.target.closest('[data-remove-item]');
-    // Hộp Chi tiết (bảng có `data-allow-empty`): Bỏ dòng xoá được cả dòng cuối, còn nút Thêm dòng để
-    // thêm lại; Lưu khi không còn dòng là đơn không sản phẩm (chủ dự án 02.10.2026). Lên đơn vẫn giữ ≥1 dòng.
+    // Hộp Chi tiết (bảng có `data-allow-empty`): Bỏ dòng xoá được cả dòng cuối, Thêm dòng thêm lại được;
+    // Lưu khi không còn dòng là đơn không sản phẩm (chủ dự án 02.10.2026). Lên đơn vẫn giữ ≥1 dòng.
     if (remove) {
       var tr = remove.closest('tr'), table = tr.closest('table');
       if (tr.parentNode.rows.length > 1 || table.hasAttribute('data-allow-empty')) {
-        var owner = tr.closest('form'); tr.remove(); emptyNote(owner);
+        tr.remove();
       }
     }
   }, true);

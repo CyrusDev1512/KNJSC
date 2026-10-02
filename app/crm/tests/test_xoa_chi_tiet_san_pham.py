@@ -98,7 +98,7 @@ def test_bo_dong_cuoi_luu_don_khong_san_pham(client, setup, nguoi_dung):  # noqa
     client.force_login(nguoi_dung["staff_vd"])
     chi_tiet = f"/van-don/chi-tiet/{row.pk}/"
     html = client.get(chi_tiet).content.decode()
-    assert "data-allow-empty" in html and "data-items-empty hidden" in html and "data-item-template" in html
+    assert "data-allow-empty" in html and "data-item-template" in html
     trong = {"product": [""], "unit": [""], "quantity": ["1"], "unit_price": ["0.00"], "paid_amount": ["0.00"]}
     r = client.post(chi_tiet, {**trong, "unit_price": ["5.00"], "version": row.updated_at.isoformat()})
     assert r.status_code == 400 and "chưa chọn sản phẩm" in r.content.decode()
@@ -112,7 +112,7 @@ def test_bo_dong_cuoi_luu_don_khong_san_pham(client, setup, nguoi_dung):  # noqa
     html = client.get(chi_tiet).content.decode()
     than_bang = html.split("<tbody>")[1].split("</tbody>")[0]
     assert than_bang.count("<tr") == 1 and 'name="product"' in than_bang and " selected" not in than_bang
-    assert "data-items-empty hidden" in html and "data-add-item" in html
+    assert "data-add-item" in html
     data = {**form_data(setup[2]), "paid_amount": ["0.00", "0.00"], "version": row.updated_at.isoformat()}
     assert client.post(chi_tiet, data).status_code == 200
     row.refresh_from_db()
@@ -139,9 +139,8 @@ def test_dich_vu_bo_chi_tiet_rong(setup, nguoi_dung):  # noqa: F811
 
 
 def test_don_nhap_tep_khong_chi_tiet_xoa_duoc_chu_san_pham(client, setup, nguoi_dung):  # noqa: F811
-    """AC-36.10 — Đơn nhập từ tệp không có Chi tiết (ô Sản phẩm chỉ là chữ "A ×2 + B ×3"): hộp Chi tiết nói rõ
-    đơn chỉ có chữ đó, chưa có chi tiết; Lưu khi không có dòng → chữ và bốn ô tổng trống; Delete trên lưới cũng
-    xoá được"""
+    """AC-36.10 — Đơn nhập từ tệp không có Chi tiết (ô Sản phẩm chỉ là chữ "A ×2 + B ×3"): hộp Chi tiết như cũ
+    (một dòng chọn sản phẩm trống); Bỏ dòng rồi Lưu → chữ và bốn ô tổng trống; Delete trên lưới cũng xoá được"""
     from django.utils import timezone
     row = order(setup, nguoi_dung["staff_sale_1"]).record
     WaybillItem.objects.filter(record=row).update(deleted_at=timezone.now())     # như dòng nhập tệp
@@ -150,7 +149,8 @@ def test_don_nhap_tep_khong_chi_tiet_xoa_duoc_chu_san_pham(client, setup, nguoi_
     client.force_login(nguoi_dung["staff_vd"])
     chi_tiet = f"/van-don/chi-tiet/{row.pk}/"
     html = client.get(chi_tiet).content.decode()
-    assert "chưa có chi tiết" in html and "Retinol Cream ×2 + Retinol Serum ×3" in html
+    than_bang = html.split("<tbody>")[1].split("</tbody>")[0]
+    assert than_bang.count("<tr") == 1 and " selected" not in than_bang
     assert client.post(chi_tiet, {"version": row.updated_at.isoformat()}).status_code == 200
     row.refresh_from_db()
     assert all(row.data.get(k) in (None, "") for k in TONG)

@@ -74,8 +74,8 @@ def test_delete_o_san_pham_hoi_lai_roi_bo_chi_tiet(live_server, trang, dang_nhap
 
 
 def test_bo_dong_cuoi_trong_hop_chi_tiet(live_server, trang, dang_nhap, kn_crm, setup, nguoi_dung):  # noqa: F811
-    """AC-36.10 — Hộp Chi tiết hai dòng: Bỏ dòng hai lần thì bảng không còn dòng nào, hiện "Đơn chưa có sản
-    phẩm", nút Thêm dòng vẫn còn và thêm lại được một dòng; bỏ dòng đó rồi Lưu → đơn không còn sản phẩm, ô
+    """AC-36.10 — Hộp Chi tiết hai dòng: Bỏ dòng hai lần thì bảng không còn dòng nào, nút Thêm dòng vẫn còn và
+    thêm lại được một dòng; bỏ dòng đó rồi Lưu → đơn không còn sản phẩm, ô
     Sản phẩm trên lưới trống; mở lại hộp thì vẫn có sẵn một ô chọn sản phẩm như trước"""
     dong = order(setup, nguoi_dung["staff_sale_1"]).record
     loi_js = []
@@ -87,15 +87,12 @@ def test_bo_dong_cuoi_trong_hop_chi_tiet(live_server, trang, dang_nhap, kn_crm, 
     trang.wait_for_selector("#vd-detail-body [data-remove-item]", timeout=8_000)
     chon = "#vd-detail-body .vd-items select[name='product']"
     assert trang.locator(chon).count() == 2
-    assert trang.locator("#vd-detail-body [data-items-empty]").is_hidden()
     trang.locator("#vd-detail-body [data-remove-item]").first.click()
     trang.locator("#vd-detail-body [data-remove-item]").first.click()
     assert trang.locator(chon).count() == 0
-    assert trang.locator("#vd-detail-body [data-items-empty]").is_visible()
     chup(trang, "bo-dong-cuoi")
     trang.click("#vd-detail-body [data-add-item]")                   # thêm lại được
     assert trang.locator(chon).count() == 1 and trang.eval_on_selector(chon, "s => s.value") == ""
-    assert trang.locator("#vd-detail-body [data-items-empty]").is_hidden()
     trang.locator("#vd-detail-body [data-remove-item]").first.click()
     trang.click("#vd-detail-body button[type='submit']")
     trang.wait_for_function("() => !document.getElementById('vd-detail').open", timeout=8_000)

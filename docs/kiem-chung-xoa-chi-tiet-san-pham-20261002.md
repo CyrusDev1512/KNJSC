@@ -14,7 +14,7 @@
 |---|---|---|
 | Bài mới trên mã cũ | `python -m pytest crm/tests/test_xoa_chi_tiet_san_pham.py` | 9/9 **đỏ** đúng chỗ: chưa có `bo-chi-tiet/`, `update_items` từ chối danh sách rỗng ("Cần từ 1 đến 200 dòng"), Lên đơn chưa báo "ít nhất 1 sản phẩm" |
 | Bài mới sau sửa | như trên | 9/9 đạt: Vận đơn Staff/Leader/Manager bỏ được; quyền Xem và Sale ngoài phạm vi 403, chưa đăng nhập 302, không đổi; giá trị cũ lệch 409; cột Ghi chú hay gói rỗng 400 |
-| Trình duyệt | `python -m pytest tests/e2e/test_xoa_chi_tiet_san_pham_e2e.py` | 2/2 đạt, chạy 3 lần đều đạt: Delete ô Sản phẩm → hộp hỏi lại, Huỷ không đổi; bôi đen Sản phẩm → Số lượng (có Chi tiết số nhà) → "Bỏ chi tiết và xoá" → ô Sản phẩm trống, chi tiết 0, Chi tiết số nhà trống, thông báo "Đã bỏ chi tiết sản phẩm của 1 dòng"; hộp Chi tiết Bỏ dòng hai lần → không còn dòng, hiện "Đơn chưa có sản phẩm", Thêm dòng thêm lại được, Lưu → đơn không còn sản phẩm, mở lại không có dòng; không lỗi JS |
+| Trình duyệt | `python -m pytest tests/e2e/test_xoa_chi_tiet_san_pham_e2e.py` | 2/2 đạt, chạy 3 lần đều đạt: Delete ô Sản phẩm → hộp hỏi lại, Huỷ không đổi; bôi đen Sản phẩm → Số lượng (có Chi tiết số nhà) → "Bỏ chi tiết và xoá" → ô Sản phẩm trống, chi tiết 0, Chi tiết số nhà trống, thông báo "Đã bỏ chi tiết sản phẩm của 1 dòng"; hộp Chi tiết Bỏ dòng hai lần → không còn dòng, Thêm dòng thêm lại được, Lưu → đơn không còn sản phẩm, mở lại vẫn có một dòng chọn sản phẩm trống như cũ; không lỗi JS |
 | Ảnh màn hình | `storage/e2e/xoa-chi-tiet-hoi-lai.png`, `bo-dong-cuoi.png` (1366×800) | Hộp hỏi lại và dòng trống đúng mockup |
 | Toàn bộ | `python -m pytest -m "not trinh_duyet and not cham"` | 2.872 bài: **0 đỏ, 0 lỗi** (thoát mã 0) |
 

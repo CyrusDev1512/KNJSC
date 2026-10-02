@@ -108,7 +108,7 @@ def detail(request, pk):
             error = str(exc)
     return render(request, "crm/_waybill_detail.html", {
         "original_order": order_service.orders_of(request.user).filter(record_id=row.pk).first(),
-        "row": row, "editable": editable, "error": error, **item_context(items), "chua_chi_tiet": not stored,
+        "row": row, "editable": editable, "error": error, **item_context(items),
         "version": request.POST.get("version") if error else row.updated_at.isoformat(),
     }, status=400 if error else 200)
 

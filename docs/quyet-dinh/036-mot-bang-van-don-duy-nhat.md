@@ -126,12 +126,10 @@ tiết" như dòng nhập tệp không chi tiết đã có từ ngày 18.09.
   `POST bang-tinh/<mã>/bo-chi-tiet/` → `waybill_service.clear_items`: so giá trị cũ như ô thường (lệch là
   409), xoá mềm `WaybillItem`, bốn ô tổng trống, có nhật ký. Trạng thái thanh toán giữ (ADR-025). Bước này
   không hoàn tác bằng Ctrl+Z được; muốn thêm lại thì mở Chi tiết.
-- **Hộp Chi tiết:** Bỏ dòng xoá được cả dòng cuối; bảng hiện "Đơn chưa có sản phẩm", nút Thêm dòng lấy dòng
-  mẫu (`<template data-item-template>`) để thêm lại. Lưu khi không còn dòng là bỏ hết chi tiết
-  (`update_items` nhận danh sách rỗng). Dòng chưa chọn sản phẩm mà có tiền thì báo lỗi, không đoán. Ban đầu
-  dòng cuối chỉ thành dòng trống; chủ dự án thử ở local thấy "bỏ dòng vẫn không được" nên đổi thành xoá hẳn.
-  Đơn nhập từ tệp không có chi tiết (ô Sản phẩm chỉ là chữ) thì hộp nói rõ "chỉ ghi chữ …", Lưu là xoá chữ
-  đó; không đoán chi tiết từ chữ gộp.
+- **Hộp Chi tiết:** giữ nguyên như cũ; chỉ khác là Bỏ dòng xoá được cả dòng cuối, nút Thêm dòng lấy dòng mẫu
+  (`<template data-item-template>`) để thêm lại. Lưu khi không còn dòng là bỏ hết chi tiết (`update_items` nhận
+  danh sách rỗng), kể cả đơn nhập từ tệp chỉ có chữ ở ô Sản phẩm. Dòng chưa chọn sản phẩm mà có tiền thì báo
+  lỗi, không đoán. Không đoán chi tiết từ chữ gộp.
 - **Lên đơn mới** vẫn phải có ít nhất một sản phẩm.
 - **Không đổi:** cột số lượng theo sản phẩm `sl_*` (ẩn mặc định) chỉ ghi khi lên đơn, sửa Chi tiết cũng
   không cập nhật nó. Bỏ chi tiết cũng giữ nguyên như thế.

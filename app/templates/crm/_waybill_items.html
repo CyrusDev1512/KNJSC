@@ -6,6 +6,5 @@
   </tbody>
 </table>
 </div>
-{% if with_payment %}<p class="vd-note" data-items-empty{% if items %} hidden{% endif %}>{% if chua_chi_tiet and row.data.san_pham %}Đơn này chưa có chi tiết sản phẩm: ô Sản phẩm chỉ ghi chữ «{{ row.data.san_pham }}» (thường do nhập từ tệp). Bấm Lưu để xoá chữ này cùng Số lượng, Giá tiền, Số tiền thanh toán; hoặc ＋ Thêm dòng để nhập chi tiết.{% else %}Đơn chưa có sản phẩm. Bấm ＋ Thêm dòng để chọn, hoặc Lưu để giữ đơn không sản phẩm.{% endif %}</p>{% endif %}
 <template data-item-template>{% include "crm/_waybill_item_row.html" with item=None %}</template>
 <button type="button" class="nut" data-add-item><span aria-hidden="true">＋</span> Thêm dòng</button>
