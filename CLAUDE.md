@@ -1,6 +1,7 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 25.09.2026 (ADR-043 bổ sung: một ô Team duy nhất trên form báo cáo); 24.09 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
+> Cập nhật 02.10.2026 (Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền, nhánh việc gộp xong là
+> xoá); 25.09.2026 (ADR-043 bổ sung: một ô Team duy nhất trên form báo cáo); 24.09 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
 > chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
 > giãn, cột sản phẩm ẩn mặc định, K24); 23.09 (ADR-042 Báo cáo tổng hợp như ảnh mẫu);
 > 19.09 (quy tắc nhánh: không đẩy thẳng lên nhánh đang chạy trên VPS, mỗi việc một
@@ -39,22 +40,31 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
   Máy chủ dự án có thể còn đứng ở nhánh codex cho tới khi Codex `checkout main` — nội
   dung y hệt nên phát hành từ nhánh nào cũng ra cùng image; chuyển xong thì mọi phát
   hành đi từ `main`. VPS hiện là môi trường thử nghiệm, chưa có khách.
-- Dự kiến đã bàn 24.09: `codex/crm-update-solar-ui` sẽ **đổi tên thành `staging`** làm
-  nhánh gom code chạy thử trước khi vào `main` (đổi tên bằng nút Rename trên GitHub,
-  chưa làm). Hai nhánh lưu trữ `CRM-UPDATE` và `codex/ui-solarpunk` đóng băng, giữ đến
+- `codex/crm-update-solar-ui` đã **đổi tên thành `Staging`** (nhánh gom code chạy thử trước
+  khi vào `main`). Hai nhánh lưu trữ `CRM-UPDATE` và `codex/ui-solarpunk` đóng băng, giữ đến
   cuối, có tag `luu-tru/*` đóng dấu.
+- **Chỉ giữ bốn nhánh nền** trên GitHub (chủ dự án chốt 02.10.2026): `main`, `Staging`,
+  `CRM-UPDATE`, `codex/ui-solarpunk`. Nhánh việc (`claude/…`, `codex/…`) gộp xong là **xoá
+  ngay**; không để nhánh đã gộp nằm lại. Máy không tự xoá được nhánh trên GitHub (Claude
+  Code trên web bị chặn) thì báo chủ dự án đúng lệnh `git push origin --delete <nhánh>`.
 - **Không đẩy thẳng lên `main`** (và cả nhánh codex khi nó còn), kể cả sửa nhỏ hay chỉ
   sửa tài liệu (chốt 19.09.2026, giữ nguyên khi đổi sang `main`).
 - **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ `main`, làm, commit,
-  push, **mở PR nháp trỏ về `main`** (khi `staging` hoạt động thì trỏ về `staging`),
-  rồi báo lại kèm liên kết. Không tự gộp; chỉ gộp khi chủ dự án bảo rõ.
+  push, **mở PR nháp trỏ về `main`** (chủ dự án bảo trỏ về `Staging` thì trỏ về `Staging`),
+  rồi báo lại kèm liên kết. Không tự gộp; chỉ gộp khi chủ dự án bảo rõ; gộp xong xoá nhánh.
 - **Mỗi phiên một việc một nhánh.** Bốn phiên KNCRM, KNERP, KNGUARD và Batch file không
   dùng chung nhánh; hai phiên cùng đẩy lên một nhánh là giẫm lên nhau.
 - **VPS thật** (2 nhân, 4 GB): `deploy/production/compose.yml`, nginx trước hai
   hostname ERP và CRM, năm container `crm`, `erp`, `worker`, `heavy`, `beat` cùng một
-  image tag bất biến `knjsc-app:<commit>-<nhãn>`, DB 1,25 GB. Phát hành do Codex làm
-  từ máy chủ dự án: backup, `manage.py check`, `up -d`, `nginx -t` rồi reload, Chrome
-  domain thật. Claude Code trên web **không** tới được VPS lẫn máy chủ dự án.
+  image tag bất biến `knjsc-app:<commit>-<nhãn>`, DB 1,25 GB. **Phát hành do Codex hoặc
+  Claude Code CLI** làm khi chủ dự án yêu cầu, chạy trên máy có SSH tới VPS (máy chủ dự án
+  hoặc máy Windows của chủ dự án): backup và phục hồi thử, build image, `manage.py check`,
+  `migrate`, `tao_bang_van_don`, `configure_erp_reports`, `configure_delivery_daily_report`,
+  `collectstatic`, `up -d`, `nginx -t` rồi reload, kiểm domain thật. Làm theo khuôn
+  [biên bản 29.09](docs/kiem-chung-phat-hanh-vps-20260929.md) và
+  [deploy/production/README.md](deploy/production/README.md); mỗi lượt một biên bản
+  `docs/kiem-chung-phat-hanh-vps-<ngày>.md`. Không ghi địa chỉ, cổng hay khoá SSH vào kho.
+  Chỉ Claude Code **trên web** (máy ảo đám mây) là không tới được VPS lẫn máy chủ dự án.
 - Máy ảo của Claude Code trên web là bản clone riêng: chạy được Postgres, Docker,
   pytest, Playwright, nạp dữ liệu giả; mọi thứ ở đó không đụng máy ai.
 

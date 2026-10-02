@@ -1,5 +1,14 @@
 # Backlog
 
+## 02.10.2026 — Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền
+
+**Chủ dự án chốt:** (1) Claude Code CLI cũng được phát hành lên VPS như Codex — trước đây CLAUDE.md ghi "Phát hành
+do Codex làm" nên CLI tự từ chối; (2) nhánh sửa lỗi hay thêm tính năng gộp xong phải xoá, chỉ giữ bốn nhánh nền
+`main`, `Staging`, `CRM-UPDATE`, `codex/ui-solarpunk`. **Làm:** sửa CLAUDE.md và AGENTS.md theo hai điều trên;
+đưa biên bản phát hành 29.09 (`c7065fe`, Codex) từ nhánh `claude/phat-hanh-vps-c7065fe` vào `main` làm khuôn phát
+hành. Chỉ sửa tài liệu. **Còn:** chủ dự án xoá các nhánh việc đã gộp; bật "Automatically delete head branches"
+trên GitHub để nhánh tự xoá sau khi gộp.
+
 ## 01.10.2026 — Bài đo hiệu năng 1000 dòng ghi chú không còn treo được (TL-71)
 
 Chủ dự án duyệt kế hoạch sau PR #74 (chẩn đoán CI e2e treo): sửa bài 18

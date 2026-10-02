@@ -34,6 +34,12 @@ tài liệu được liên kết bên dưới cung cấp chi tiết theo từng 
 - **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ nhánh đang chạy, làm,
   commit, push, **mở PR nháp trỏ về nhánh đang chạy**, rồi báo lại kèm liên kết. Không tự
   gộp; chỉ gộp khi chủ dự án bảo rõ.
+- **Chỉ giữ bốn nhánh nền** (chốt 02.10.2026): `main`, `Staging`, `CRM-UPDATE`,
+  `codex/ui-solarpunk`. Nhánh sửa lỗi hay thêm tính năng gộp xong là **xoá ngay**, không để
+  lại; không xoá được thì báo chủ dự án lệnh `git push origin --delete <nhánh>`.
+- **Phát hành VPS:** Codex hoặc Claude Code CLI, khi chủ dự án yêu cầu, chạy trên máy có SSH
+  tới VPS, theo khuôn `docs/kiem-chung-phat-hanh-vps-20260929.md` và
+  `deploy/production/README.md`; mỗi lượt một biên bản.
 - **Mỗi phiên một việc một nhánh.** Các phiên KNCRM, KNERP, KNGUARD và Batch file không
   dùng chung nhánh; hai phiên cùng đẩy lên một nhánh là giẫm lên nhau.
 
