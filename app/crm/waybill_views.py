@@ -45,7 +45,8 @@ def without_blank_rows(items):
 
 def item_context(items=None):
     products = product_service.entry_products()
-    items = items or [{"quantity": 1, "paid_amount": "0.00"}]
+    # Lên đơn mở với một dòng trống; hộp Chi tiết của đơn đã bỏ hết sản phẩm thì không có dòng nào
+    items = [{"quantity": 1, "paid_amount": "0.00"}] if items is None else items
     units = list(dict.fromkeys([*COMMON_UNITS, *(p["unit"] for p in products),
                                *(i.get("unit", "") for i in items)]))
     return {"items": items, "products": products, "units": [u for u in units if u]}

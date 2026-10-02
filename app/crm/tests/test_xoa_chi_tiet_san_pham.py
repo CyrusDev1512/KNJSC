@@ -91,29 +91,32 @@ def test_cau_hinh_luoi_ghi_cot_tong_va_duong_bo(client, setup, nguoi_dung):  # n
 
 
 def test_bo_dong_cuoi_luu_don_khong_san_pham(client, setup, nguoi_dung):  # noqa: F811
-    """AC-36.10 — Hộp Chi tiết: bỏ hết dòng (còn một dòng trống chưa chọn sản phẩm) rồi Lưu → đơn không
-    còn sản phẩm, bốn ô tổng trống; dòng trống mà có tiền thì báo lỗi, không lưu"""
+    """AC-36.10 — Hộp Chi tiết: Bỏ dòng hết (không còn dòng nào) rồi Lưu → đơn không còn sản phẩm, bốn ô tổng
+    trống; mở lại hộp thì không có dòng, có ghi chú "Đơn chưa có sản phẩm", dòng mẫu và nút Thêm dòng; chọn lại
+    sản phẩm lưu được như thường. Dòng chưa chọn sản phẩm mà không tiền thì bỏ qua; có tiền thì báo lỗi"""
     row = order(setup, nguoi_dung["staff_sale_1"]).record
     client.force_login(nguoi_dung["staff_vd"])
     chi_tiet = f"/van-don/chi-tiet/{row.pk}/"
+    html = client.get(chi_tiet).content.decode()
+    assert "data-allow-empty" in html and "data-items-empty hidden" in html and "data-item-template" in html
     trong = {"product": [""], "unit": [""], "quantity": ["1"], "unit_price": ["0.00"], "paid_amount": ["0.00"]}
-    co_tien = {**trong, "unit_price": ["5.00"], "version": row.updated_at.isoformat()}
-    r = client.post(chi_tiet, co_tien)
+    r = client.post(chi_tiet, {**trong, "unit_price": ["5.00"], "version": row.updated_at.isoformat()})
     assert r.status_code == 400 and "chưa chọn sản phẩm" in r.content.decode()
     assert _con_chi_tiet(row) == 2
-    r = client.post(chi_tiet, {**trong, "version": row.updated_at.isoformat()})
+    r = client.post(chi_tiet, {"version": row.updated_at.isoformat()})          # không còn dòng nào
     assert r.status_code == 200, r.content.decode()
     row.refresh_from_db()
     assert _con_chi_tiet(row) == 0 and all(row.data.get(k) in (None, "") for k in TONG)
     assert AuditLog.objects.filter(detail__contains="Bỏ toàn bộ chi tiết sản phẩm").exists()
-    # Mở lại hộp: một dòng trống để chọn lại sản phẩm, lưu lại được như thường
     html = client.get(chi_tiet).content.decode()
-    assert html.count('name="product"') == 1 and "data-add-item" in html
-    row.refresh_from_db()
+    than_bang = html.split("<tbody>")[1].split("</tbody>")[0]
+    assert "<tr" not in than_bang and "data-items-empty>" in html and "data-add-item" in html
     data = {**form_data(setup[2]), "paid_amount": ["0.00", "0.00"], "version": row.updated_at.isoformat()}
     assert client.post(chi_tiet, data).status_code == 200
     row.refresh_from_db()
     assert _con_chi_tiet(row) == 2 and row.data["gia_tien"] == "40.40"
+    assert client.post(chi_tiet, {**trong, "version": row.updated_at.isoformat()}).status_code == 200
+    assert _con_chi_tiet(row) == 0
 
 
 def test_len_don_van_can_mot_san_pham(client, setup, nguoi_dung):  # noqa: F811
