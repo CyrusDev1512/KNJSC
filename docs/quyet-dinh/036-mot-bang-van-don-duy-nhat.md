@@ -130,6 +130,8 @@ tiết" như dòng nhập tệp không chi tiết đã có từ ngày 18.09.
   mẫu (`<template data-item-template>`) để thêm lại. Lưu khi không còn dòng là bỏ hết chi tiết
   (`update_items` nhận danh sách rỗng). Dòng chưa chọn sản phẩm mà có tiền thì báo lỗi, không đoán. Ban đầu
   dòng cuối chỉ thành dòng trống; chủ dự án thử ở local thấy "bỏ dòng vẫn không được" nên đổi thành xoá hẳn.
+  Đơn nhập từ tệp không có chi tiết (ô Sản phẩm chỉ là chữ) thì hộp nói rõ "chỉ ghi chữ …", Lưu là xoá chữ
+  đó; không đoán chi tiết từ chữ gộp.
 - **Lên đơn mới** vẫn phải có ít nhất một sản phẩm.
 - **Không đổi:** cột số lượng theo sản phẩm `sl_*` (ẩn mặc định) chỉ ghi khi lên đơn, sửa Chi tiết cũng
   không cập nhật nó. Bỏ chi tiết cũng giữ nguyên như thế.

@@ -134,3 +134,26 @@ def test_dich_vu_bo_chi_tiet_rong(setup, nguoi_dung):  # noqa: F811
     row.refresh_from_db()
     assert _con_chi_tiet(row) == 0 and all(row.data.get(k) in (None, "") for k in TONG)
     assert WaybillAssignment.objects.filter(record=row, delivery__isnull=False).exists()
+
+
+def test_don_nhap_tep_khong_chi_tiet_xoa_duoc_chu_san_pham(client, setup, nguoi_dung):  # noqa: F811
+    """AC-36.10 — Đơn nhập từ tệp không có Chi tiết (ô Sản phẩm chỉ là chữ "A ×2 + B ×3"): hộp Chi tiết nói rõ
+    đơn chỉ có chữ đó, chưa có chi tiết; Lưu khi không có dòng → chữ và bốn ô tổng trống; Delete trên lưới cũng
+    xoá được"""
+    from django.utils import timezone
+    row = order(setup, nguoi_dung["staff_sale_1"]).record
+    WaybillItem.objects.filter(record=row).update(deleted_at=timezone.now())     # như dòng nhập tệp
+    row.data["san_pham"] = "Retinol Cream ×2 + Retinol Serum ×3"
+    row.save()
+    client.force_login(nguoi_dung["staff_vd"])
+    chi_tiet = f"/van-don/chi-tiet/{row.pk}/"
+    html = client.get(chi_tiet).content.decode()
+    assert "chưa có chi tiết" in html and "Retinol Cream ×2 + Retinol Serum ×3" in html
+    assert client.post(chi_tiet, {"version": row.updated_at.isoformat()}).status_code == 200
+    row.refresh_from_db()
+    assert all(row.data.get(k) in (None, "") for k in TONG)
+    row.data["san_pham"] = "Retinol Cream ×2"
+    row.save()
+    assert _bo(client, _o(row, "san_pham")).status_code == 200
+    row.refresh_from_db()
+    assert row.data.get("san_pham") in (None, "")

@@ -9,7 +9,8 @@ Chủ dự án: "ấn delete thì xoá được luôn ô sản phẩm + ấn b�
    mềm, bốn ô trống; Trạng thái thanh toán giữ. Không Ctrl+Z được; muốn thêm lại thì mở Chi tiết.
 2. **Bỏ dòng ở dòng cuối** của hộp Chi tiết: dòng biến mất, bảng hiện "Đơn chưa có sản phẩm", Thêm dòng thêm lại
    được; Lưu là đơn không còn sản phẩm. (Bản đầu chỉ làm dòng cuối thành trống; chủ dự án thử local thấy chưa
-   đúng ý nên sửa.)
+   đúng ý nên sửa.) Đơn nhập từ tệp không có chi tiết (vd. `TEST-VDB-*`, ô Sản phẩm chỉ là chữ) thì hộp Chi tiết
+   nói rõ điều đó; Lưu hay Delete xoá được chữ này.
    Lên đơn mới vẫn bắt ít nhất một sản phẩm.
 
 Mã: `waybill_service.clear_items`, `update_items` nhận danh sách rỗng, `POST bang-tinh/<mã>/bo-chi-tiet/`
