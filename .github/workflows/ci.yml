@@ -16,11 +16,11 @@ name: CI
 on:
   pull_request:
     branches:
-      - codex/crm-update-solar-ui
+      - Staging
       - main
   push:
     branches:
-      - codex/crm-update-solar-ui
+      - Staging
       - main
   workflow_dispatch:
 

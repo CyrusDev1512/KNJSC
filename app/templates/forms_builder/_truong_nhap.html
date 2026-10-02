@@ -35,7 +35,7 @@ Cần: o (form_service.Widget), bm (biểu mẫu đang điền). Trường bắt
   {% elif t.field.field_type == "money" or t.field.field_type == "integer" or t.field.field_type == "decimal" %}
     {# Ô số: report-entry.js viết theo cách Việt Nam — chấm ngăn nghìn tự chèn, phẩy thập phân (ADR-046) #}
     <input class="o-nhap tien" id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}"
-           data-kieu="{{ t.field.field_type }}" inputmode="{% if t.field.field_type == 'integer' %}numeric{% else %}decimal{% endif %}"
+           data-kieu="{{ t.field.field_type }}"{% if o.cot %} data-cot="{{ o.cot.code }}"{% endif %} inputmode="{% if t.field.field_type == 'integer' %}numeric{% else %}decimal{% endif %}"
            autocomplete="off" title="Dấu chấm ngăn nghìn tự chèn; phần lẻ dùng dấu phẩy"{% if t.required %} required{% endif %}>
   {% else %}
     <input class="o-nhap" id="o-{{ t.field.code }}" name="{{ t.field.code }}" value="{{ gia_tri }}"{% if t.required %} required{% endif %}>

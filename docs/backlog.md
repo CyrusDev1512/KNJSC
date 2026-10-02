@@ -1,5 +1,15 @@
 # Backlog
 
+## 02.10.2026 — Xem trước chỉ số khi nộp báo cáo ngày (AC-43.6)
+
+**Khách hàng yêu cầu**, chủ dự án chốt mockup: Marketing gõ số thì thấy ngay CPO, Giá Mess, CPQC/Doanh số, AOV,
+Tỉ lệ chốt trước khi nộp. **Làm:** khối "Xem trước chỉ số" thay dòng chip trên form Nộp báo cáo
+(`bao_cao_ngay.html`), mỗi cột tính sẵn một thẻ; `daily_service.preview_columns` suy đơn vị và số lẻ;
+`report-entry.js` tính ngay khi gõ; ô số mang `data-cot`; CSS theo Solarpunk, sáng/tối, điện thoại. Máy chủ vẫn
+tự tính khi nộp. Không migration, không thư viện. ADR-043 bổ sung 02.10. Nhánh `claude/xem-truoc-chi-so`, PR nháp
+về `Staging`. [Biên bản](kiem-chung-xem-truoc-chi-so-20261002.md). **Còn:** chủ dự án gộp vào `Staging`; phát
+hành VPS là bước riêng.
+
 ## 02.10.2026 — Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền
 
 **Chủ dự án chốt:** (1) Claude Code CLI cũng được phát hành lên VPS như Codex — trước đây CLAUDE.md ghi "Phát hành

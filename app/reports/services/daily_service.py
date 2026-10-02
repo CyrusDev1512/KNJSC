@@ -156,6 +156,41 @@ def can_restore(user, report_or_none=None):
     return report_or_none is None or report_or_none.department_id in scope.department_ids
 
 
+#: Đơn vị trên thẻ xem trước chỉ số (AC-43.6): "tien" — số tiền theo loại tiền của dòng (CPO, Giá Mess,
+#: AOV); "phan-tram" — tỉ lệ (Tỉ lệ chốt); rỗng — tỉ số không đơn vị (CPQC/Doanh số) hay số thường.
+PREVIEW_MONEY, PREVIEW_PERCENT = "tien", "phan-tram"
+
+
+def preview_columns(table):
+    """Cột tính sẵn của bảng cho thẻ "Xem trước chỉ số" của form Nộp báo cáo (khách hàng yêu cầu, chủ dự án chốt
+    02.10.2026): danh sách `(cột, đơn vị, số lẻ hiện)`. Một lệnh đọc mọi cột rồi suy đơn vị từ kiểu hai cột của
+    công thức — không truy vấn theo từng thẻ. Số lẻ hiện như Báo cáo tổng hợp: tiền và phần trăm tối đa hai số
+    lẻ, tỉ số khác theo số lẻ của cột. Thẻ chỉ là xem trước: máy chủ vẫn tự tính khi nộp (`ColumnDef.compute`)."""
+    from forms_builder.meaning import FieldType
+    from forms_builder.models import ComputeOp
+
+    columns = list(table.columns.all().order_by("order", "id"))
+    kinds = {c.code: c.field_type for c in columns}
+
+    def unit(column):
+        trai = kinds.get(column.compute_left) == FieldType.MONEY
+        phai = kinds.get(column.compute_right) == FieldType.MONEY
+        if column.compute_op == ComputeOp.PERCENT:
+            return PREVIEW_PERCENT
+        if column.compute_op == ComputeOp.DIVIDE:
+            return PREVIEW_MONEY if trai and not phai else ""
+        if column.compute_op == ComputeOp.MULTIPLY:
+            return PREVIEW_MONEY if trai != phai else ""
+        return PREVIEW_MONEY if trai else ""
+
+    result = []
+    for column in columns:
+        if column.is_computed:
+            don_vi = unit(column)
+            result.append((column, don_vi, min(column.compute_decimals, 2) if don_vi else column.compute_decimals))
+    return result
+
+
 def report_widgets(form, fields, values, *, user, day, owner=None):
     widgets = form_service.widgets(form, fields, values, user=user)
     widgets = decorate_widgets(widgets, form, values, user=user, day=day, owner=owner)

@@ -156,7 +156,7 @@ def test_hoa_don_khong_con_tren_form_nhap(client, bang_mkt, nguoi_dung):
 
 def test_bo_cuc_ngang_form_nhap(client, bang_mkt, mkt_source, nguoi_dung):
     """AC-43.4 — Form nộp báo cáo là một thẻ trải hết chiều rộng: hàng điều khiển Biểu mẫu · Team · Ngày, lưới
-    ô nhập ngang (`bm-ngang`, ô cao ≤ 36 px), cột tính sẵn hiện dạng chip thay cho ô nhập giả; không còn
+    ô nhập ngang (`bm-ngang`, ô cao ≤ 36 px), cột tính sẵn hiện dạng thẻ xem trước (AC-43.6) thay cho ô nhập giả; không còn
     `max-width:860px`; màn Sửa báo cáo cùng lưới; phần đo bằng mắt ở biên bản"""
     mau = (GOC / "templates" / "reports" / "bao_cao_ngay.html").read_text(encoding="utf-8")
     assert "max-width:860px" not in mau and 'class="the-than bm bm-ngang"' in mau and 'class="bm-tinh"' in mau
@@ -170,7 +170,7 @@ def test_bo_cuc_ngang_form_nhap(client, bang_mkt, mkt_source, nguoi_dung):
     form = mkt_source.table.forms.get()
     client.force_login(nguoi_dung["staff_mkt"])
     html = client.get("/bao-cao/", {"bieu_mau": form.code}).content.decode()
-    assert 'class="the-than bm bm-ngang"' in html and '<span class="chip">CPO' in html
+    assert 'class="the-than bm bm-ngang"' in html and '<div class="ten">CPO</div>' in html
     assert 'value="hệ thống tự tính"' not in html and 'form="bm-bao-cao">Nộp báo cáo</button>' in html
 
 

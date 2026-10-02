@@ -93,7 +93,8 @@ def bao_cao_ngay(request):
             bm, cac_truong, du_lieu, user=request.user, day=ngay,
         ) if bm else [],
         "loi": loi,
-        "cac_cot_tinh": bm.table.computed_columns() if bm else [],
+        # Thẻ "Xem trước chỉ số" (AC-43.6): mỗi cột tính sẵn một thẻ, kèm đơn vị
+        "cac_cot_tinh": daily_service.preview_columns(bm.table) if bm else [],
     })
 
 
