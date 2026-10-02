@@ -1,6 +1,7 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 02.10.2026 (Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền, nhánh việc gộp xong là
+> Cập nhật 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
+> `main` → VPS**; Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền, nhánh việc gộp xong là
 > xoá); 25.09.2026 (ADR-043 bổ sung: một ô Team duy nhất trên form báo cáo); 24.09 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
 > chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
 > giãn, cột sản phẩm ẩn mặc định, K24); 23.09 (ADR-042 Báo cáo tổng hợp như ảnh mẫu);
@@ -56,11 +57,57 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
   khi gộp PR.
 - **Không đẩy thẳng lên `main`** (và cả nhánh codex khi nó còn), kể cả sửa nhỏ hay chỉ
   sửa tài liệu (chốt 19.09.2026, giữ nguyên khi đổi sang `main`).
-- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ `main`, làm, commit,
-  push, **mở PR nháp trỏ về `main`** (chủ dự án bảo trỏ về `Staging` thì trỏ về `Staging`),
-  rồi báo lại kèm liên kết. Không tự gộp; chỉ gộp khi chủ dự án bảo rõ; gộp xong xoá nhánh.
+- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ `Staging`, làm, commit,
+  push, **mở PR nháp trỏ về `Staging`** — xem "Đường đi của một thay đổi" ngay dưới đây.
+  Rồi báo lại kèm liên kết. Không tự gộp; chỉ gộp khi chủ dự án bảo rõ; gộp xong xoá nhánh.
 - **Mỗi phiên một việc một nhánh.** Bốn phiên KNCRM, KNERP, KNGUARD và Batch file không
   dùng chung nhánh; hai phiên cùng đẩy lên một nhánh là giẫm lên nhau.
+
+#### Đường đi của một thay đổi — chốt 02.10.2026
+
+**Hai nhánh, hai vai khác hẳn nhau. Đừng lẫn.**
+
+- **`Staging` là nơi làm việc bẩn.** Gom code, chạy thử, sửa, **xoá**, thử sai rồi
+  làm lại. Nó được phép hỏng; hỏng ở đây là đúng chỗ. `Staging` đi trước `main`
+  bao nhiêu cũng **bình thường**, không phải dấu hiệu tắc nghẽn.
+- **`main` luôn sạch.** Sạch nghĩa là: lấy **bất kỳ** commit nào trên `main` cũng
+  phát hành lên VPS được ngay, không cần hỏi "commit này đã thử chưa". Thứ gì chưa
+  chắc thì **ở lại `Staging`** — không đẩy sang `main` cho kịp deadline.
+
+Hệ quả: hỏng thì sửa ở `Staging` rồi gộp lên, **không sửa nóng thẳng trên `main`**.
+Và `main` không nhận commit "để đó rồi sửa sau": nhận một cái là `main` hết sạch,
+mà đã hết sạch một lần thì không ai tin nó nữa.
+
+**Không có đường tắt nào tới VPS.** Mọi chỉnh sửa, kể cả sửa một dòng tài liệu, đi
+đủ bốn chặng theo đúng thứ tự:
+
+```
+nhánh claude/<tên-việc>  →  Staging  →  (kiểm kỹ ở máy local)  →  main  →  VPS
+```
+
+| Chặng | Ai làm | Điều kiện để đi tiếp |
+|---|---|---|
+| 1. Nhánh việc → `Staging` | Claude/Codex mở PR nháp, chủ dự án gộp | PR xanh CI; chủ dự án duyệt |
+| 2. `Staging` → kiểm ở local | Người, trên máy mình | Bật hệ thống thật và **dùng thử bằng tay** |
+| 3. `Staging` → `main` | Chủ dự án bảo gộp | Đã kiểm ở chặng 2 và không thấy vấn đề. Còn nghi ngờ thì **để lại `Staging`** |
+| 4. `main` → VPS | Codex hoặc Claude Code CLI, khi được yêu cầu | Chỉ phát hành từ `main`, không từ nhánh khác |
+
+**Chặng 2 là chặng không được bỏ, và nó không phải là `pytest`.** Bài kiểm xanh chỉ
+nói mã làm đúng thứ nó được viết để làm. Chặng này hỏi câu khác: *mở lên dùng thử
+thì có đúng như mong đợi không.* Bật bằng `KN JSC.bat` (Windows) hoặc
+`./scripts/cap-nhat-local.sh`, mở KN ERP `127.0.0.1:8020` và KN CRM `127.0.0.1:8021`,
+đi lại đúng thao tác mà thay đổi này đụng tới. Nhiều lỗi nặng nhất của dự án
+(TL-02, TL-19, TL-41) đều là loại bài kiểm xanh nhưng người dùng gặp ngay.
+
+**Phát hành VPS chỉ đi từ `main`.** Không phát hành từ `Staging`, từ nhánh việc, hay
+từ bản sửa tay trên máy chủ — kể cả khi đang gấp. Bản đang chạy trên VPS phải luôn
+truy ngược được về đúng một commit của `main`. Đây chính là lý do `main` phải sạch:
+giữ được điều đó thì quay lui chỉ là chọn một commit cũ hơn của `main`.
+
+**Gấp tới mấy cũng không nhảy chặng.** Cần sửa nóng thì vẫn mở nhánh việc, vẫn qua
+`Staging`, chỉ là làm nhanh cả bốn chặng. Bỏ chặng để nhanh hơn mười phút là cách
+tạo ra một bản VPS không ai biết trong đó có gì.
+
 - **VPS thật** (2 nhân, 4 GB): `deploy/production/compose.yml`, nginx trước hai
   hostname ERP và CRM, năm container `crm`, `erp`, `worker`, `heavy`, `beat` cùng một
   image tag bất biến `knjsc-app:<commit>-<nhãn>`, DB 1,25 GB. **Phát hành do Codex hoặc
