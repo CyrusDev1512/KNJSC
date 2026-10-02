@@ -45,8 +45,7 @@ def without_blank_rows(items):
 
 def item_context(items=None):
     products = product_service.entry_products()
-    # Lên đơn mở với một dòng trống; hộp Chi tiết của đơn đã bỏ hết sản phẩm thì không có dòng nào
-    items = [{"quantity": 1, "paid_amount": "0.00"}] if items is None else items
+    items = items or [{"quantity": 1, "paid_amount": "0.00"}]
     units = list(dict.fromkeys([*COMMON_UNITS, *(p["unit"] for p in products),
                                *(i.get("unit", "") for i in items)]))
     return {"items": items, "products": products, "units": [u for u in units if u]}
@@ -109,7 +108,7 @@ def detail(request, pk):
             error = str(exc)
     return render(request, "crm/_waybill_detail.html", {
         "original_order": order_service.orders_of(request.user).filter(record_id=row.pk).first(),
-        "row": row, "editable": editable, "error": error, **item_context(items),
+        "row": row, "editable": editable, "error": error, **item_context(items), "chua_chi_tiet": not stored,
         "version": request.POST.get("version") if error else row.updated_at.isoformat(),
     }, status=400 if error else 200)
 

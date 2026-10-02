@@ -76,7 +76,7 @@ def test_delete_o_san_pham_hoi_lai_roi_bo_chi_tiet(live_server, trang, dang_nhap
 def test_bo_dong_cuoi_trong_hop_chi_tiet(live_server, trang, dang_nhap, kn_crm, setup, nguoi_dung):  # noqa: F811
     """AC-36.10 — Hộp Chi tiết hai dòng: Bỏ dòng hai lần thì bảng không còn dòng nào, hiện "Đơn chưa có sản
     phẩm", nút Thêm dòng vẫn còn và thêm lại được một dòng; bỏ dòng đó rồi Lưu → đơn không còn sản phẩm, ô
-    Sản phẩm trên lưới trống; mở lại hộp thì không có dòng"""
+    Sản phẩm trên lưới trống; mở lại hộp thì vẫn có sẵn một ô chọn sản phẩm như trước"""
     dong = order(setup, nguoi_dung["staff_sale_1"]).record
     loi_js = []
     trang.on("pageerror", lambda e: loi_js.append(str(e)))
@@ -102,7 +102,7 @@ def test_bo_dong_cuoi_trong_hop_chi_tiet(live_server, trang, dang_nhap, kn_crm, 
     trang.wait_for_function(f"""() => {{ const o = document.querySelector("{_o(dong, 'san_pham')}");
         return o && !o.textContent.includes('Sản phẩm thử'); }}""", timeout=8_000)
     assert _con(dong) == 0
-    trang.dblclick(_o(dong, "san_pham"))
-    trang.wait_for_selector("#vd-detail-body [data-items-empty]:not([hidden])", timeout=8_000)
-    assert trang.locator(chon).count() == 0
+    trang.dblclick(_o(dong, "san_pham"))                             # mở lại: vẫn có sẵn ô chọn sản phẩm
+    trang.wait_for_selector(chon, timeout=8_000)
+    assert trang.locator(chon).count() == 1 and trang.eval_on_selector(chon, "s => s.value") == ""
     assert not loi_js, loi_js
