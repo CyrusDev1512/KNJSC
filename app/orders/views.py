@@ -10,7 +10,6 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST, require_GET
 
-from core.constants import Rank
 from core.exceptions import BusinessError
 from core.navigation import SALES_ONLY
 from core.permissions import assert_departments, assert_rank
@@ -32,11 +31,11 @@ def _muc_san_pham():
 def san_pham_moi(request):
     """Thêm sản phẩm ngay tại ô chọn trên màn hình Lên đơn — FR-6.8, Q61.
 
-    Chỉ Manager trở lên của bộ phận Sale (màn hình này là của Sale). Trả về
-    các `<option>` mới với sản phẩm vừa thêm được chọn sẵn.
+    Chỉ Leader trở lên của bộ phận Sale (`product_service.CREATE_RANK`; màn hình này là
+    của Sale). Trả về các `<option>` mới với sản phẩm vừa thêm được chọn sẵn.
     """
     assert_departments(request.user, SALES_ONLY, request)
-    assert_rank(request.user, Rank.MANAGER, request)
+    assert_rank(request.user, product_service.CREATE_RANK, request)
     try:
         san_pham = product_service.create_product(
             name=request.POST.get("nhan_moi", ""), actor=request.user, request=request,

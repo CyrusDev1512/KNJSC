@@ -1,7 +1,7 @@
 """Danh mục sản phẩm: thêm sản phẩm và cung cấp danh sách cho ô chọn — FR-6.8, Q61.
 
 Tầng dịch vụ (điều cấm 2). Danh mục dùng chung cả công ty, không áp phạm vi
-quyền; ai được *thêm* thì tầng view kiểm (Manager trở lên). Thêm sản phẩm là
+quyền; ai được *thêm* thì tầng view kiểm (`CREATE_RANK`: Leader trở lên). Thêm sản phẩm là
 phải có ngay cột số lượng `sl_<mã>` trên bảng vận đơn (AC-11.8), nên hàm ở
 đây gọi luôn `dispatch_service.sync_product_columns`.
 """
@@ -10,7 +10,7 @@ from django.db import transaction
 from django.utils.text import slugify
 
 from core.audit import record
-from core.constants import AuditAction
+from core.constants import AuditAction, Rank
 from core.exceptions import BusinessError
 from forms_builder import choice_registry
 from forms_builder.meaning import Meaning
@@ -18,7 +18,12 @@ from forms_builder.models import TableDef
 
 from ..constants import WAYBILL_TABLE_CODE
 from ..models import Product
+
 from . import dispatch_service
+
+#: Cấp thấp nhất được thêm sản phẩm ở màn Lên đơn (chủ dự án 02.10.2026: "chỉ Leader trở lên"; trước đó Manager).
+#: View chặn và template ẩn hộp "Tạo sản phẩm" cùng đọc hằng này.
+CREATE_RANK = Rank.LEADER
 
 #: Mã sản phẩm là SlugField 60 ký tự; chừa chỗ cho hậu tố "-2", "-3"…
 CODE_BASE_MAX = 50

@@ -25,6 +25,13 @@ Không có lỗi TL mới; ba chỗ sửa hiển thị chủ dự án duyệt qu
 - **Bài đo vùng đứng yên** phải đo đúng khối nằm giữa phần khung đang thấy, giống phần nhích cột. Mỗi khối là một
   bảng riêng nên cột lệch nhau.
 
+## 02.10.2026 — "Sale Staff tạo được sản phẩm ở Lên đơn" là nhầm nút thêm dòng
+
+**TL-72 (đóng):** chủ dự án báo Staff Sale vẫn tạo thêm được sản phẩm. Kiểm lại: đường thêm sản phẩm
+(`/van-don/len-don/san-pham-moi/`) chặn Staff (403, có nhật ký — AC-6.9), hộp "Tạo sản phẩm" không hiện với Staff.
+Nút Staff bấm là **"Thêm sản phẩm"** của bảng chi tiết, chỉ thêm một dòng chọn sản phẩm có sẵn. Sửa: nút đổi
+thành "＋ Thêm dòng"; quyền thêm sản phẩm hạ từ Manager xuống Leader trở lên theo yêu cầu.
+
 ## 01.10.2026 — Bài 18 treo lần nữa trên PR #75: chờ qua console, hỏi DevTools khi quá hạn (TL-71)
 
 **TL-71 (mở — bài không còn treo được, gốc lỗi chưa biết):** lượt #126 (`d49a470`, PR #75 sau khi gộp `main`)
