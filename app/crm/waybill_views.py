@@ -10,7 +10,6 @@ from django.views.decorators.http import require_http_methods
 
 from core.exceptions import BusinessError, OutOfScopeError
 from core.navigation import SALES_ONLY
-from core.constants import Rank
 from core.permissions import assert_departments, has_rank
 from forms_builder.services import grant_service
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
@@ -60,7 +59,7 @@ def create_order(request):
         except (BusinessError, ValidationError, ValueError) as exc:
             error = str(exc) if isinstance(exc, BusinessError) else "Kiểm tra lại thông tin đơn và chi tiết sản phẩm."
     context = {"order_date": timezone.localtime(), "saved_order": saved_order,
-               "duoc_them_sp": has_rank(request.user, Rank.MANAGER),
+               "duoc_them_sp": has_rank(request.user, product_service.CREATE_RANK),
                "nhac_khach": order_service.customer_notice(
                    form.data.get("phone", ""), form.data.get("customer_name", "")),
                "form": form, "error": error, "success": success, **item_context(items),

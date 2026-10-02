@@ -12,7 +12,7 @@ const {chromium}=require('playwright'),path=require('path'),fs=require('fs'),ass
    await page.locator('[name=password]').fill(process.env.KN_TEST_PASSWORD||'matkhaucuatoi');
    await Promise.all([page.waitForURL(u=>!u.pathname.includes('dang-nhap')),page.locator('button[type=submit]').click()]);
    await page.goto(base+'/van-don/len-don/');
-   await page.getByRole('button',{name:'Thêm sản phẩm',exact:true}).click();
+   await page.getByRole('button',{name:'Thêm dòng',exact:true}).click();
    assert.equal(await page.locator('.vd-items tbody tr').count(),2);
    await page.locator('.vd-items tbody tr').last().getByRole('button',{name:'Bỏ dòng'}).click();
    assert.equal(await page.locator('.vd-items tbody tr').count(),1);

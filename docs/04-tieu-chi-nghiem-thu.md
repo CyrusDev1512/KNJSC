@@ -164,7 +164,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-6.7 | Đơn đã lưu không sửa được, kể cả khi gọi thẳng đường dẫn sửa | FR-6.6 | Tự động |
 | AC-6.8 | Nhập đơn với số điện thoại đã có thì hệ thống báo khách đã mua trước đó; "đã có" đếm theo **dòng đang sống trên bảng Vận đơn** cùng số (khoá 9 số cuối, như cột Trùng) — dòng đã xoá hay đơn của bảng cũ đã xoá cứng không tính, dòng nhập thẳng vào bảng có tính; cột "Mua lại lần" của đơn mới đếm cùng cách (chủ dự án 28.09.2026) | FR-6.7 | Tự động |
 | AC-6.10 | Cùng số điện thoại nhưng gõ tên khác: đơn mới ghi **tên vừa gõ**, danh bạ đổi theo và có nhật ký; đơn cũ giữ nguyên tên lúc đó; số điện thoại khác nhau thì mỗi đơn mang tên của mình; ô Facebook/Email bỏ trống không xoá dữ liệu đã có ; trước khi lưu, lời nhắc khách báo trước "sẽ đổi tên khách của số …" kèm cả tên cũ lẫn tên đang gõ, và mảnh nhắc mang sẵn tên để ô Tên khách tự điền khi đang trống | FR-6.7 | Tự động |
-| AC-6.9 | Manager lên đơn thêm được sản phẩm mới ngay tại ô chọn: mã tự sinh không trùng, sản phẩm hiện trong danh sách chọn và có ngay cột số lượng trên bảng vận đơn, mỗi lần thêm có nhật ký; Staff và Leader gửi thẳng bị từ chối có ghi nhật ký; tên trùng bị từ chối | FR-6.8 | Tự động |
+| AC-6.9 | **Leader trở lên** của bộ phận Sale (chủ dự án 02.10.2026; trước đó Manager) lên đơn thêm được sản phẩm mới ngay tại ô chọn: mã tự sinh không trùng, sản phẩm hiện trong danh sách chọn và có ngay cột số lượng trên bảng vận đơn, mỗi lần thêm có nhật ký; Staff gửi thẳng bị từ chối có ghi nhật ký, không thấy hộp "Tạo sản phẩm"; bộ phận khác bị chặn; tên trùng bị từ chối; nút thêm một dòng vào đơn ghi "Thêm dòng", không ghi "Thêm sản phẩm" | FR-6.8 | Tự động |
 
 ---
 
