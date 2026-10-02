@@ -30,6 +30,19 @@ def read_items(data):
     return [dict(zip(keys, values)) for values in zip(*arrays)]
 
 
+def without_blank_rows(items):
+    """Hộp Chi tiết: dòng chưa chọn sản phẩm là dòng trống còn lại sau khi Bỏ dòng cuối — bỏ qua, để
+    lưu được đơn không còn sản phẩm (chủ dự án 02.10.2026). Dòng trống mà có tiền thì báo, không đoán."""
+    kept = []
+    for number, item in enumerate(items, 1):
+        if item.get("product"):
+            kept.append(item)
+            continue
+        if any(waybill_service.money(item.get(k) or "0") for k in ("unit_price", "paid_amount")):
+            raise BusinessError(f"Dòng {number} chưa chọn sản phẩm nhưng có tiền. Chọn sản phẩm hoặc bỏ dòng.")
+    return kept
+
+
 def item_context(items=None):
     products = product_service.entry_products()
     items = items or [{"quantity": 1, "paid_amount": "0.00"}]
@@ -49,6 +62,8 @@ def create_order(request):
     if request.method == "POST":
         try:
             items = read_items(request.POST)
+            if not any(i.get("product") for i in items):
+                raise BusinessError("Chọn ít nhất 1 sản phẩm cho đơn.")
             waybill_service.validate_items(items, strict_units=True)
             if form.is_valid():
                 order = order_service.create_order(**form.cleaned_data, lines=items, actor=request.user, request=request)
@@ -84,7 +99,8 @@ def detail(request, pk):
             raise OutOfScopeError()
         try:
             items = read_items(request.POST)
-            waybill_service.update_items(request.user, pk, items, request.POST.get("version"), request=request)
+            waybill_service.update_items(request.user, pk, without_blank_rows(items), request.POST.get("version"),
+                                         request=request)
             response = HttpResponse("Đã lưu chi tiết sản phẩm.")
             response["HX-Trigger"] = '{"waybillChanged":{"kind":"detail"}}'
             return response

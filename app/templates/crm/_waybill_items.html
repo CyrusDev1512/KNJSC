@@ -3,7 +3,7 @@
   <thead><tr><th scope="col">Sản phẩm</th><th scope="col">Đơn vị</th><th scope="col">Số lượng</th><th scope="col">Đơn giá</th>{% if with_payment %}<th scope="col">Đã thanh toán</th>{% endif %}<th scope="col">Thao tác</th></tr></thead>
   <tbody>
     {% for item in items %}<tr>
-      <td><select class="o-nhap" name="product" aria-label="Sản phẩm" required>
+      <td><select class="o-nhap" name="product" aria-label="Sản phẩm"{% if not with_payment %} required{% endif %}>
         <option value="">Chọn sản phẩm</option>
         {% for p in products %}<option value="{{ p.code }}" data-unit="{{ p.unit }}" {% if p.code == item.product %}selected{% endif %}>{{ p.name }}{% if not p.is_active %} (ngừng bán){% endif %}</option>{% endfor %}
       </select></td>

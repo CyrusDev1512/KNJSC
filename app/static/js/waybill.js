@@ -22,7 +22,16 @@
       body.appendChild(row); row.querySelector('select').focus();
     }
     var remove = event.target.closest('[data-remove-item]');
-    if (remove && remove.closest('tbody').rows.length > 1) remove.closest('tr').remove();
+    // Dòng cuối không biến mất mà thành dòng trống: chọn lại sản phẩm được, hay Lưu để đơn không còn
+    // sản phẩm (chủ dự án 02.10.2026). Form Lên đơn vẫn bắt chọn sản phẩm (ô chọn có `required`).
+    if (remove) {
+      var tr = remove.closest('tr');
+      if (tr.parentNode.rows.length > 1) tr.remove();
+      else {
+        tr.querySelectorAll('select').forEach(function (select) { select.value = ''; });
+        tr.querySelectorAll('input').forEach(function (input) { input.value = input.name === 'quantity' ? '1' : '0.00'; });
+      }
+    }
   }, true);
   document.addEventListener('change', function (event) {
     if (!event.target.matches('select[name="product"]')) return;

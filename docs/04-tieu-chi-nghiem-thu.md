@@ -551,6 +551,8 @@ Kế toán giữ tiêu chí cũ trên bảng duy nhất.
 | AC-36.6 | `/cau-hinh/nhan-don/` 404 với mọi vai; sidebar Admin không còn "Bảng nhận đơn"; `TableDef` không còn `receives_orders`, còn `delivery_view_version`; migration 0014 xuôi/ngược giữ dữ liệu | ADR-036 | Tự động |
 | AC-36.7 | `configure_erp_reports` tạo nguồn Vận đơn cho `van_don`; `nap_du_lieu_van_don` và `nap_khach_mau` (mặc định) nạp vào `van_don` có phân công | ADR-036 | Tự động |
 | AC-36.8 | Khoá so trùng `val_phone_key` (`phone_key`: bỏ ký tự không phải số, lấy 9 chữ số cuối): `+1 (416) 555-0123` và `4165550123` là một khách trên cột Trùng và `?trung=1`; ô hiển thị giữ nguyên chữ gõ; `sync_indexed_columns` và `bulk_save` cùng ra một khoá; migration `forms_builder/0016` xuôi/ngược được và backfill đúng dòng cũ | FR-7.8 · ADR-036 | Tự động |
+| AC-36.9 | Lưới Vận đơn: bôi đen có ô Sản phẩm, Số lượng, Giá tiền hay Số tiền thanh toán rồi Delete → hộp hỏi lại (Huỷ / Chỉ xoá ô thường / Bỏ chi tiết và xoá); chọn bỏ → máy chủ (`bo-chi-tiet/`) xoá mềm toàn bộ Chi tiết sản phẩm của dòng, bốn ô tổng trống, Trạng thái thanh toán giữ, có nhật ký; ô thường trong vùng xoá như cũ; Vận đơn Staff, Leader, Manager được, chỉ có quyền Xem hay ngoài phạm vi → 403 không đổi; giá trị cũ lệch → 409; cột khác → 400 | Chủ dự án 02.10.2026 · ADR-036 | Tự động |
+| AC-36.10 | Hộp Chi tiết: Bỏ dòng ở dòng cuối không biến mất mà thành dòng trống (Chọn sản phẩm); Lưu → đơn không còn sản phẩm, bốn ô tổng trống; dòng trống mà có tiền → báo lỗi, không lưu; mở lại hộp chọn lại sản phẩm được; Lên đơn mới vẫn bắt ít nhất 1 sản phẩm | Chủ dự án 02.10.2026 · ADR-036 | Tự động |
 ## 37. Mã nhân sự — ADR-037
 
 Bổ sung AC-4.6 và AC-22.10: định danh trên mọi màn hình là **mã nhân sự** (`UserProfile.staff_code`),
