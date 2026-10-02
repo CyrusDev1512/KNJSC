@@ -19,6 +19,17 @@ quá hạn thì in ngăn xếp JS, CPU tiến trình vẽ, dấu tab sập (`_De
 đang dính; mỗi bảng tự đo tiêu đề và đo lại khi đổi cỡ; Bảng dữ liệu dạng báo cáo hết bị dòng tổng đè lên
 tiêu đề. AC-22.21. **To do:** chủ dự án gộp; Codex phát hành VPS.
 
+## 29.09.2026 — Phát hành VPS c7065fe, kiểm kê trước dọn rác
+
+**Đã chuyển runtime:** `97bff53-main` → `c7065fe-adr046`, backup đã phục hồi thử,
+metadata báo cáo đã cập nhật, toàn bộ 42 DataRecord giữ nguyên hash.
+**Đã kiểm:** theo dõi 15 phút 43 giây, 0 restart/0 HTTP 5xx; smoke đọc bằng Admin,
+quyền server 6/6 trong transaction rollback. Kiểm kê: 25 vận đơn sống (18 thiếu mã/tên),
+3 xoá mềm, 2 Order không liên kết, 7 Customer không có vận đơn sống; chưa xoá gì.
+**Còn thiếu nghiệm thu:** ghi lưới/phân công/lịch sử và trình duyệt các vai còn lại.
+**Chờ chủ dự án:** chọn nhóm rác/cách xoá; không xoá cấu trúc bảng hoặc audit.
+Xem [biên bản](kiem-chung-phat-hanh-vps-20260929.md) để phân biệt mục đã kiểm và còn thiếu.
+
 ## 25.09.2026 — Một ô Team duy nhất trên form báo cáo (ADR-043 bổ sung)
 
 **Finished local (nhánh `claude/mot-o-team-bao-cao`, PR nháp về `main`):** cột Team dạng chữ có sẵn rời form

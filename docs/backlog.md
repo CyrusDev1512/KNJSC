@@ -1,5 +1,14 @@
 # Backlog
 
+## 02.10.2026 — Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền
+
+**Chủ dự án chốt:** (1) Claude Code CLI cũng được phát hành lên VPS như Codex — trước đây CLAUDE.md ghi "Phát hành
+do Codex làm" nên CLI tự từ chối; (2) nhánh sửa lỗi hay thêm tính năng gộp xong phải xoá, chỉ giữ bốn nhánh nền
+`main`, `Staging`, `CRM-UPDATE`, `codex/ui-solarpunk`. **Làm:** sửa CLAUDE.md và AGENTS.md theo hai điều trên;
+đưa biên bản phát hành 29.09 (`c7065fe`, Codex) từ nhánh `claude/phat-hanh-vps-c7065fe` vào `main` làm khuôn phát
+hành. Chỉ sửa tài liệu. **Còn:** chủ dự án xoá các nhánh việc đã gộp; bật "Automatically delete head branches"
+trên GitHub để nhánh tự xoá sau khi gộp.
+
 ## 01.10.2026 — Bài đo hiệu năng 1000 dòng ghi chú không còn treo được (TL-71)
 
 Chủ dự án duyệt kế hoạch sau PR #74 (chẩn đoán CI e2e treo): sửa bài 18
@@ -81,6 +90,19 @@ DS Chốt (TT) đối soát theo team của marketer phụ trách vận đơn; n
 Vận đơn; `nhom=department` cũ mở thành Theo team (`GROUP_ALIASES`). Phạm vi quyền không đổi. Không migration.
 Kiểm: `reports/tests/test_bao_cao_theo_team.py` (5 bài, đỏ trước khi sửa — kể cả lỗi thiếu cột Leader ở nguồn
 Vận đơn tìm ra khi viết bài), bài phòng ban cũ trong `test_mkt_derived_revenue.py` đổi sang team.
+
+## 29.09.2026 — Phát hành c7065fe và kiểm kê dữ liệu rác VPS
+
+Đã chuyển VPS từ image thực tế `97bff53-main` sang `c7065fe-adr046` lúc 23:40 VN;
+CI đúng SHA đạt, backup phục hồi thử thành công, bốn lệnh check CRM/ERP không lỗi,
+không có migration mới. Đã chạy đủ ba lệnh cấu hình metadata (không dựa entrypoint).
+Hash toàn bộ 42 DataRecord và số cột trước/sau khớp. VPS có 38 cột Vận đơn từ trước,
+không phải 45 trong dữ liệu local. Chi tiết và các mục kiểm trực tiếp còn thiếu tại
+[biên bản](kiem-chung-phat-hanh-vps-20260929.md).
+
+Phần dọn rác: kiểm kê chỉ đọc sau cửa sổ theo dõi; chủ dự án cần chỉ rõ nhóm và
+xoá mềm/cứng trước bước ghi. Chưa xoá dòng, bảng, audit hoặc tệp storage; chưa viết
+lệnh xoá. Không coi dòng có tên/mã bất thường hay hồ sơ không còn đơn là rác đã xác nhận.
 
 ## 29.09.2026 — Rà kỹ `main` 206e1b0 trước khi phát hành VPS (không sửa mã)
 
