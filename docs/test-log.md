@@ -1,5 +1,30 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 02.10.2026 — Ba chỗ sửa Báo cáo tổng hợp: bài kiểm mới và bài cũ đổi theo
+
+Không có lỗi TL mới; ba chỗ sửa hiển thị chủ dự án duyệt qua mockup. Số đo ở
+[biên bản](kiem-chung-ba-cho-sua-bao-cao-20261002.md).
+
+**Bài mới, chạy đỏ trên mã cũ trước khi sửa:**
+
+| AC | Phía máy chủ | Phía trình duyệt |
+|---|---|---|
+| AC-22.24 | `test_dau_bang_gon_mot_hang_va_giai_thich_so_lieu` | `test_mo_trang_da_thay_so`: trước khi sửa, khung bảng ở 583 px, chưa thấy dòng tổng nào |
+| AC-22.25 | `test_chi_ghim_cot_dau_nhan_su_loai_tien` | `test_keo_ngang_khong_con_cot_bi_che`: trước khi sửa, vùng đứng yên 522 px |
+| AC-22.26 | `test_gop_giu_trang_va_moc_ngay`, `test_gop_van_don_van_ve_trang_dau` | `test_gop_khong_tai_lai_trang`: trước khi sửa, không có mốc `data-ngay` |
+
+**Bài cũ đổi theo hành vi mới:**
+- `test_bo_cuc_bao_cao.py` (AC-22.13): `sticky`, `edge`, `identity_style`.
+- `test_bo_cuc_khoi.py` (AC-42.6).
+- `test_activity.py` (AC-22.10, 22.15).
+- `test_quy_vnd_va_tt.py`: ô dòng TỔNG CỘNG không còn `colspan` và nhãn dài; nhãn dài chỉ còn trong Excel.
+
+**Hai sai sót trong bài kiểm, gặp khi viết và đã sửa:**
+- **Bộ chọn Playwright `a:has-text('Gộp')`** khớp không phân biệt hoa thường và khớp một phần chữ, nên trúng cả nút
+  "Không gộp". Đã dùng `:text-is(...)`.
+- **Bài đo vùng đứng yên** phải đo đúng khối nằm giữa phần khung đang thấy, giống phần nhích cột. Mỗi khối là một
+  bảng riêng nên cột lệch nhau.
+
 ## 01.10.2026 — Bài 18 treo lần nữa trên PR #75: chờ qua console, hỏi DevTools khi quá hạn (TL-71)
 
 **TL-71 (mở — bài không còn treo được, gốc lỗi chưa biết):** lượt #126 (`d49a470`, PR #75 sau khi gộp `main`)

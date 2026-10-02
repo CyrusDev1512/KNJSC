@@ -290,8 +290,11 @@ def test_day_view_shows_person_and_leader_in_scope(client, marketing_scope, nguo
     assert {identity_label(nguoi_dung[name]) for name in persons} <= {p["label"] for p in r.context["people"]}
     assert r.context["label_span"]==5                               # thêm cột Lần nộp (01.10.2026)
     html=r.content.decode()
-    assert 'class="report-identity id-nhan-su" data-pos="3">Nhân sự</th>' in html and 'id-leader" data-pos="4">Leader</th>' in html   # cột định danh ghim (AC-22.13)
-    assert 'id-lan report-identity-edge" data-pos="5">Lần nộp</th>' in html
+    # Cột định danh (AC-22.13): STT, Nhân sự đứng yên (nguồn không có Loại tiền thì Nhân sự mang mép); Leader, Lần
+    # nộp trôi theo khi kéo ngang (02.10.2026)
+    assert 'class="report-identity id-nhan-su report-identity-edge" data-pos="3">Nhân sự</th>' in html
+    assert 'class="report-identity report-troi id-leader" data-pos="4">Leader</th>' in html
+    assert 'class="report-identity report-troi id-lan" data-pos="5">Lần nộp</th>' in html
     # Lọc theo nhân sự: chỉ còn dòng của người đó; người ngoài phạm vi bị chặn
     me=nguoi_dung["staff_sale_1"].pk
     r2=client.get("/bao-cao/tong-hop/",{**query,"nhan_su":me})
@@ -377,8 +380,11 @@ def test_day_blocks_have_day_subtotal_and_stt(client, bang_mkt, mkt_source, van_
     html=r.content.decode()
     # Mỗi ngày một bảng riêng (ADR-042): tiêu đề ngày trên bảng, TỔNG CỘNG ngay dưới hàng tiêu đề cột, STT ở cột đầu
     assert html.count('class="report-block report-block-day"')==2 and '<h3>01.08.2026</h3>' in html
-    assert 'data-pos="1" colspan="5">TỔNG CỘNG · CAD</th>' in html and 'class="report-identity id-stt" data-pos="1">1</th>' in html
-    assert 'class="report-block report-block-period"' in html and 'TỔNG CỘNG · toàn kỳ · CAD</th>' in html
+    # Dòng TỔNG CỘNG mỗi cột định danh một ô: nhãn ở ô Nhân sự, mã tiền ở ô Loại tiền (02.10.2026)
+    assert '<th scope="row" class="report-identity id-nhan-su" data-pos="3">TỔNG CỘNG</th>' in html
+    assert 'class="report-identity id-tien report-identity-edge" data-pos="6">CAD</td>' in html
+    assert 'class="report-identity id-stt" data-pos="1">1</th>' in html
+    assert 'class="report-block report-block-period"' in html and 'class="report-identity id-tien report-identity-edge" data-pos="5">CAD</td>' in html
     # Excel: sheet "Theo ngay" cùng khối — tiêu đề ngày, hàng tiêu đề cột, TỔNG CỘNG, dòng người có STT
     ngay=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True)["Theo ngay"].values)
     assert [d[0] for d in ngay if d and d[0] is not None]==["Ngày 02.08.2026","STT","TỔNG CỘNG · CAD",1,

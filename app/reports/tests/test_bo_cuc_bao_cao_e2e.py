@@ -378,3 +378,204 @@ def test_chon_nhanh_ngay_dau_thang_chi_sang_mot_nut(live_server, trinh_duyet_moi
         assert page.input_value("#ky") == ""
     finally:
         ctx.close()
+
+
+# ── Ba chỗ sửa Báo cáo tổng hợp (chủ dự án duyệt mockup 02.10.2026) ─────────────────────────────────────────────
+
+#: Phần khung bảng lộ ra lúc mở trang: đáy phần nhìn thấy (cửa sổ, khung cuộn của trang, thanh menu dưới), đáy dòng
+#: TỔNG CỘNG cuối của khối đầu, và số dòng số liệu của khối đầu nằm trọn trong phần nhìn thấy
+LO_RA = """()=>{const k=document.querySelector('.report-table-scroll'),m=document.querySelector('main.noi-dung');
+    const t=k.querySelector('.report-table'),dock=document.querySelector('.sp-dock');
+    const day=Math.min(innerHeight,m.getBoundingClientRect().bottom,dock?dock.getBoundingClientRect().top:innerHeight);
+    const tong=[...t.querySelectorAll('.report-total')];const cuoi=tong.length?tong[tong.length-1]:t.tHead;
+    return {khung:Math.round(k.getBoundingClientRect().top),day:Math.round(day),so_tong:tong.length,
+            tieu_de:Math.round(t.tHead.getBoundingClientRect().bottom),can:Math.round(cuoi.getBoundingClientRect().bottom),
+            thay_tong:tong.filter(r=>r.getBoundingClientRect().bottom<=day).length,
+            dong_so:[...t.querySelectorAll('tbody tr:not(.report-total)')].filter(r=>r.getBoundingClientRect().bottom<=day).length}}"""
+
+#: Vùng đứng yên của khối đang xem — khối nằm ở giữa phần khung bảng đang thấy, cùng cách chọn với phần nhích cột
+#: (mỗi khối là một bảng riêng nên cột lệch nhau) — và các ô tiêu đề số bị vắt qua mép của nó
+VUNG_GHIM = """()=>{const k=document.querySelector('.report-table-scroll'),kb=k.getBoundingClientRect();
+    const mb=document.querySelector('main.noi-dung').getBoundingClientRect();
+    const giua=(Math.max(kb.top,mb.top,0)+Math.min(kb.bottom,mb.bottom,innerHeight))/2;
+    const khois=[...k.querySelectorAll('.report-block')];
+    const khoi=khois.find(b=>{const r=b.getBoundingClientRect();return r.top<=giua&&r.bottom>=giua})||khois[0];
+    const ths=[...khoi.querySelector('.report-table').tHead.rows[0].cells];
+    const yen=ths.filter(th=>th.classList.contains('report-identity')&&!th.classList.contains('report-troi'));
+    const mep=Math.max(...yen.map(th=>th.getBoundingClientRect().right));
+    const vat=ths.filter(th=>!th.classList.contains('report-identity')).filter(th=>{const r=th.getBoundingClientRect();
+        return r.left<mep-1&&r.right>mep+1}).map(th=>th.textContent.trim());
+    const vi_tri=Object.fromEntries(yen.map(th=>[th.textContent.trim(),Math.round(th.getBoundingClientRect().left-kb.left)]));
+    const team=ths.find(th=>th.textContent.trim()==='Team');
+    return {rong:Math.round(mep-kb.left),vat,vi_tri,cuon:k.scrollLeft,
+            team_khuat:!team||team.getBoundingClientRect().right<=mep+1}}"""
+
+
+def _cho_yen(page, ham="()=>document.querySelector('.report-table-scroll').scrollLeft"):
+    """Chờ khung bảng cuộn xong, kể cả lần nhích mượt bắt đầu sau `scrollend`: giá trị `ham` đứng yên qua bốn lần
+    đo liền nhau cách 150 ms (0,6 s), tối đa khoảng 9 s."""
+    truoc, yen = None, 0
+    for _ in range(60):
+        page.wait_for_timeout(150)
+        gia_tri = page.evaluate(ham)
+        yen = yen + 1 if gia_tri == truoc else 0
+        if yen >= 3:
+            return gia_tri
+        truoc = gia_tri
+    return truoc
+
+
+def test_mo_trang_da_thay_so(live_server, trinh_duyet_moi, mkt_ba_loai_tien, van_don, nguoi_dung):
+    """AC-22.24 — Vừa mở Báo cáo tổng hợp đã thấy số (chủ dự án duyệt mockup 02.10.2026): ở laptop 1366×768, bộ lọc
+    mở như mặc định, có cảnh báo dòng chưa có loại tiền, khung bảng lộ đủ tiêu đề khối, hàng tiêu đề cột và mọi
+    dòng TỔNG CỘNG của khối đầu mà không phải cuộn; cảnh báo cao một dòng; nút Giải thích số liệu mở và đóng panel,
+    Escape đóng panel và trả focus về nút; Toàn màn hình vẫn có hai nút; 390 px không tràn ngang"""
+    from datetime import date
+
+    _nop(mkt_ba_loai_tien, van_don["B"], 12, 0, cpqc="100", thi_truong="", tien="", ngay=date(2026, 8, 6))
+    url = f"/bao-cao/tong-hop/?nguon={mkt_ba_loai_tien.code}&tu=2026-08-01&den=2026-08-06"
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 1366, 768, url)
+    try:
+        assert page.evaluate(ST) == "open"
+        lo = page.evaluate(LO_RA)
+        chup(page, "bao-cao-mo-trang-1366")
+        assert lo["so_tong"] == 4, f"tiền đề: bốn dòng TỔNG CỘNG (CAD, USD, PHP, Chưa rõ) — {lo}"
+        # Trước khi sửa: khung bảng bắt đầu ở 583 px, chưa thấy trọn hàng tiêu đề cột. Sau: thấy hàng tiêu đề và các
+        # dòng TỔNG CỘNG (số) ngay khi mở — đo tại máy 4/4 dòng; đặt mức ≥ 3 để phông chữ khác máy không làm đỏ oan
+        assert lo["tieu_de"] <= lo["day"] and lo["thay_tong"] >= 3, f"mở trang chưa thấy số — {lo}"
+        canh = page.evaluate("""()=>{const s=document.querySelector('.report-canh-gon>span');
+            return {cao:s.getBoundingClientRect().height,dong:parseFloat(getComputedStyle(s).lineHeight)}}""")
+        assert canh["cao"] <= canh["dong"] * 1.5, f"cảnh báo loại tiền dài hơn một dòng — {canh}"
+        nut = page.locator("button[aria-controls=report-giai-thich]")
+        panel = page.locator("#report-giai-thich")
+        assert panel.is_hidden() and nut.get_attribute("aria-expanded") == "false"
+        nut.click()
+        assert panel.is_visible() and nut.get_attribute("aria-expanded") == "true"
+        assert "(TT) = đối soát từ vận đơn" in panel.inner_text()
+        chup(page, "bao-cao-giai-thich-mo")
+        page.keyboard.press("Escape")
+        assert panel.is_hidden() and nut.get_attribute("aria-expanded") == "false"
+        assert page.evaluate("()=>document.activeElement.getAttribute('aria-controls')") == "report-giai-thich"
+        nut.click()
+        nut.click()
+        assert panel.is_hidden(), "bấm lại nút thì đóng panel"
+        page.click("#report-toggle-focus")
+        page.wait_for_function(FOCUS)
+        assert nut.is_visible() and page.locator("button[aria-controls=report-nguong]").is_visible(), \
+            "Toàn màn hình vẫn có nút Giải thích số liệu và Ngưỡng màu"
+        page.keyboard.press("Escape")
+        page.wait_for_function(KHONG_FOCUS)
+    finally:
+        ctx.close()
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 390, 844, url)
+    try:
+        assert not page.evaluate("()=>document.documentElement.scrollWidth>document.documentElement.clientWidth")
+        chup(page, "bao-cao-mo-trang-390")
+    finally:
+        ctx.close()
+
+
+def test_keo_ngang_khong_con_cot_bi_che(live_server, trinh_duyet_moi, mkt_ba_loai_tien, nguoi_dung):
+    """AC-22.25 — Kéo ngang không còn cột số bị che (chủ dự án duyệt mockup 02.10.2026): ở 1366×768 vùng đứng yên chỉ
+    STT · Nhân sự · Loại tiền (≤ 262 px); kéo ngang rồi dừng thì ba cột đó nằm đúng chỗ, Team đã trôi khuất và không
+    ô tiêu đề số nào vắt qua mép vùng đứng yên (bảng tự nhích); bấm mũi tên phải trên bàn phím thì vẫn tiến tiếp; cuộn
+    dọc thì mọi ô dòng TỔNG CỘNG, kể cả ô Team, vẫn dính dưới tiêu đề; Bảng dữ liệu dạng báo cáo cùng cách"""
+    ky = "tu=2026-08-01&den=2026-08-06"
+    for url, noi in ((f"/bao-cao/tong-hop/?nguon={mkt_ba_loai_tien.code}&{ky}", "Báo cáo tổng hợp"),
+                     (f"/bang/{mkt_ba_loai_tien.code}/?{ky}", "Bảng dữ liệu")):
+        ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 1366, 768, url)
+        try:
+            page.evaluate(TOI_KHUNG_BANG)
+            page.evaluate("()=>{document.querySelector('.report-table-scroll').scrollLeft=400}")
+            _cho_yen(page)
+            sau = page.evaluate(VUNG_GHIM)
+            # STT 44 + Nhân sự 130 + Loại tiền 88 (chữ "Loại tiền" không xuống dòng) = 262 px, như mockup; trước đây 522–638
+            assert sau["rong"] <= 262, f"{noi}: vùng đứng yên rộng {sau['rong']} px — {sau}"
+            chup(page, f"keo-ngang-{'bang' if noi == 'Bảng dữ liệu' else 'bao-cao'}")
+            assert sau["cuon"] > 0 and sau["vi_tri"] == {"STT": 0, "Nhân sự": 44, "Loại tiền": 174}, f"{noi}: {sau}"
+            assert sau["team_khuat"], f"{noi}: Team còn đứng yên — {sau}"
+            assert not sau["vat"], f"{noi}: cột số bị vắt qua mép vùng đứng yên: {sau['vat']}"
+            if noi == "Báo cáo tổng hợp":
+                page.focus(".report-table-scroll")
+                for _ in range(3):
+                    truoc = page.evaluate("()=>document.querySelector('.report-table-scroll').scrollLeft")
+                    page.keyboard.press("ArrowRight")
+                    sau_phim = _cho_yen(page)
+                    assert sau_phim > truoc, f"mũi tên phải bị kéo lùi: {truoc} → {sau_phim}"
+                    assert not page.evaluate(VUNG_GHIM)["vat"]
+                dinh = page.evaluate("""()=>new Promise(r=>{const s=document.querySelector('.report-table-scroll'),
+                    t=s.querySelector('.report-table');s.scrollTop=t.offsetTop+60;requestAnimationFrame(()=>requestAnimationFrame(()=>{
+                    const tr=t.querySelector('.report-total'),so=tr.querySelector('td:not(.report-identity)').getBoundingClientRect();
+                    r([...tr.querySelectorAll('.report-troi')].map(o=>Math.round(o.getBoundingClientRect().top-so.top)))}))})""")
+                assert dinh and all(d == 0 for d in dinh), f"ô trôi của dòng TỔNG CỘNG không dính cùng dòng: {dinh}"
+        finally:
+            ctx.close()
+
+
+#: Ngày của dòng/khối đầu tiên nằm dưới phần dính (tiêu đề và dòng tổng) trong khung bảng
+NGAY_DANG_XEM = """()=>{const k=document.querySelector('.report-table-scroll'),kb=k.getBoundingClientRect();
+    const gop=!!k.querySelector('.report-block-submissions');
+    if(!gop){const b=[...k.querySelectorAll('.report-block[data-ngay]')].find(x=>x.getBoundingClientRect().bottom>kb.top+80);
+        return b?b.dataset.ngay:null}
+    const t=k.querySelector('.report-block-submissions .report-table');
+    const tong=[...t.querySelectorAll('.report-total')].map(tr=>tr.firstElementChild.getBoundingClientRect().bottom);
+    const day_dinh=Math.max(t.tHead.rows[0].cells[0].getBoundingClientRect().bottom,...tong);
+    const r=[...t.querySelectorAll('tbody tr[data-ngay]')].find(x=>x.getBoundingClientRect().top>=day_dinh-2);
+    return r?r.dataset.ngay:null}"""
+
+
+def test_gop_khong_tai_lai_trang(live_server, trinh_duyet_moi, mkt_ba_loai_tien, nguoi_dung):
+    """AC-22.26 — Bấm Gộp / Không gộp không tải lại trang (chủ dự án duyệt mockup 02.10.2026): chỉ phần bảng đổi,
+    địa chỉ trang đổi theo (`gop=1`), nút, chip Gộp và link Xuất Excel đổi theo, focus ở lại nút vừa bấm, dòng tổng
+    vẫn dính đúng chỗ, bảng giữ đúng ngày đang xem; Back và tải lại ra đúng chế độ; máy chủ trả lỗi thì tải cả trang
+    như cũ; ở Bảng dữ liệu bấm Gộp vẫn tải cả trang"""
+    ky = "tu=2026-08-01&den=2026-08-06"
+    url = f"/bao-cao/tong-hop/?nguon={mkt_ba_loai_tien.code}&{ky}"
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 1366, 768, url)
+    try:
+        page.evaluate("()=>{window.__moc=1}")
+        page.evaluate(TOI_KHUNG_BANG)
+        page.evaluate("""()=>{const k=document.querySelector('.report-table-scroll');
+            const b=k.querySelector('.report-block[data-ngay="2026-08-04"]');k.scrollTop+=b.getBoundingClientRect().top-k.getBoundingClientRect().top}""")
+        assert page.evaluate(NGAY_DANG_XEM) == "2026-08-04"
+        page.click(".report-seg a:text-is('Gộp')")
+        page.wait_for_function("()=>location.search.includes('gop=1')&&!!document.querySelector('.report-block-submissions')")
+        page.wait_for_function("()=>!document.querySelector('.report-table-scroll').hasAttribute('aria-busy')")
+        assert page.evaluate("()=>window.__moc") == 1, "trang đã tải lại"
+        assert page.evaluate(NGAY_DANG_XEM) == "2026-08-04", "Gộp xong không còn ở ngày đang xem"
+        assert page.locator(".report-seg a:text-is('Gộp')").get_attribute("aria-pressed") == "true"
+        assert page.locator(".report-seg a:text-is('Không gộp')").get_attribute("aria-pressed") == "false"
+        assert "gop=1" in page.locator("#report-xuat").get_attribute("href")
+        assert "Gộp" in page.locator("#report-chips").inner_text()
+        assert page.evaluate("()=>document.activeElement.textContent.trim()") == "Gộp"
+        assert not _lech(page.evaluate(DO_BANG)), "dòng TỔNG CỘNG của bảng mới dính sai chỗ"
+        chup(page, "bao-cao-gop-khong-tai-lai")
+        page.click(".report-seg a:text-is('Không gộp')")
+        page.wait_for_function("()=>!location.search.includes('gop=1')&&!document.querySelector('.report-block-submissions')")
+        page.wait_for_function("()=>!document.querySelector('.report-table-scroll').hasAttribute('aria-busy')")
+        assert page.evaluate("()=>window.__moc") == 1 and page.evaluate(NGAY_DANG_XEM) == "2026-08-04"
+        page.go_back()
+        page.wait_for_function("()=>location.search.includes('gop=1')&&!!document.querySelector('.report-block-submissions')")
+        assert page.evaluate("()=>window.__moc") == 1, "Back đã tải lại trang"
+        page.reload(wait_until="networkidle")
+        assert page.evaluate("()=>window.__moc") is None
+        assert page.locator(".report-seg a:text-is('Gộp')").get_attribute("aria-pressed") == "true"
+        # Máy chủ trả lỗi: tải cả trang như hôm nay, không để màn hình nửa vời
+        page.route(lambda u: "gop=" not in u and "/bao-cao/tong-hop/?" in u,
+                   lambda route: route.fulfill(status=500, body="loi may chu", content_type="text/plain"))
+        page.evaluate("()=>{window.__moc=2}")
+        with page.expect_navigation():
+            page.click(".report-seg a:text-is('Không gộp')")
+        assert "loi may chu" in page.content()
+    finally:
+        ctx.close()
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 1366, 768,
+                    f"/bang/{mkt_ba_loai_tien.code}/?{ky}")
+    try:
+        page.evaluate("()=>{window.__moc=1}")
+        with page.expect_navigation():
+            page.click(".report-seg a:text-is('Gộp')")
+        page.wait_for_load_state("networkidle")
+        assert page.evaluate("()=>window.__moc") is None and "gop=1" in page.url
+    finally:
+        ctx.close()

@@ -15,7 +15,7 @@ from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
 from orders.constants import Market
 from reports.screen import (blocks_context, build_arguments, export_response as _export, filter_chips, parameters,
-                           product_options, with_query as _with)
+                           product_options, tung_lan, with_query as _with)
 from reports.services import activity_service as service, summary_service, threshold_service
 
 
@@ -60,7 +60,12 @@ def report(request, export=False, choices=None):
     if source:
         ctx.update(filter_chips(request, params, ctx))
         if source and ctx.get("result") is not None and getattr(ctx["result"], "show_person", False):
-            ctx.update(gop=gop, gop_url=_with(request, gop="1"), khong_gop_url=_with(request, gop=None))
+            # Từng lần nộp: hai chế độ chia trang theo cùng các lần nộp → giữ trang (đổi chế độ vẫn ở đúng ngày đang
+            # xem, chủ dự án duyệt mockup 02.10.2026); Vận đơn Gộp chia theo ngày → về trang 1 như cũ. Bỏ `nguong`
+            # để đổi chế độ không mở lại panel ngưỡng
+            giu = tung_lan(ctx["result"])
+            ctx.update(gop=gop, gop_url=_with(request, giu_trang=giu, gop="1", nguong=None),
+                       khong_gop_url=_with(request, giu_trang=giu, gop=None, nguong=None))
     return render(request, "reports/activity.html", ctx)
 
 

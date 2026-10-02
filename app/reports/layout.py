@@ -4,8 +4,8 @@ Cách xem Tổng hợp: khối ``period`` (toàn kỳ theo nhân sự) đứng �
 khối ``day`` có TỔNG CỘNG riêng đứng ngay dưới tiêu đề và STT đếm lại từ 1; **Gộp**
 (`?gop=1`) thì thay các khối ngày bằng một khối ``days`` mỗi ngày một dòng — chính là
 bố cục trước 19.09. Các cách xem khác là một khối ``single`` như cũ. Mọi khối mang sẵn
-cột định danh (ghim trái, `left` tính bằng biến CSS), dòng đã định dạng và các dòng tổng —
-template `reports/_bang_khoi.html` chỉ in.
+cột định danh (cột đứng yên khi kéo ngang có `left` tính bằng biến CSS, cột còn lại trôi theo),
+dòng đã định dạng và các dòng tổng — template `reports/_bang_khoi.html` chỉ in.
 
 **Không quy đổi tiền (ADR-046).** Nguồn có cột Loại tiền thì mỗi dòng một loại tiền: khối có thêm
 cột định danh **Loại tiền** (cuối cùng, sát cột số) và **mỗi loại tiền một dòng TỔNG CỘNG**
@@ -36,19 +36,33 @@ LAN_KIND = ("lan", "Lần nộp", "lan")
 TIEN_KIND = ("tien", "Loại tiền", "tien")
 TOTAL_LABEL = {"period": "TỔNG CỘNG · toàn kỳ", "day": "TỔNG CỘNG", "days": "TỔNG CỘNG · toàn kỳ",
                "submissions": "TỔNG CỘNG · toàn kỳ", "single": "Tổng trong bộ lọc"}
+#: Nhãn ngắn của dòng TỔNG CỘNG trên màn hình: nằm gọn trong ô Nhân sự (tiêu đề khối đã nói toàn kỳ hay
+#: ngày nào, mã tiền ở ô Loại tiền); Excel vẫn ghi nhãn dài `TOTAL_LABEL` kèm loại tiền
+TOTAL_SHORT = {"single": "Tổng trong bộ lọc"}
+#: Cột định danh đứng yên khi kéo ngang, ngoài cột đầu (STT, hay Ngày ở khối Gộp) — chủ dự án duyệt mockup
+#: 02.10.2026: đủ biết dòng của ai, ngày nào, tiền gì; Team, Leader, Lần nộp giữ chỗ nhưng trôi theo, nhường
+#: chỗ cho cột số
+STICKY_CODES = ("person", "nhom", "tien")
 #: Nhãn của loại tiền trống (báo cáo cũ chưa có Loại tiền) — cùng chữ với cảnh báo của dịch vụ
 UNKNOWN_CURRENCY = "Chưa rõ"
 
 
 def identity(kinds):
-    """Cột định danh ghim trái: `left` của cột thứ 2+ là tổng chiều rộng các cột trước (biến
-    CSS đặt trên `<table>`). Trả `(columns, style)`; mỗi cột `{code, label, kind, pos, edge}`."""
+    """Cột định danh: cột đầu và các cột `STICKY_CODES` đứng yên khi kéo ngang, `left` của chúng là tổng
+    chiều rộng các cột *đứng yên* đứng trước (biến CSS đặt trên `<table>`; mỗi cột rộng cố định nên cộng ra
+    đúng); cột khác trôi theo. Bóng mép ở cột đứng yên cuối. Trả `(columns, style)`; mỗi cột
+    `{code, label, kind, pos, sticky, edge}`."""
     columns, style, widths = [], [], []
     for pos, (code, label, width) in enumerate(kinds, start=1):
-        columns.append({"code": code, "label": label, "kind": CSS[width], "pos": pos, "edge": pos == len(kinds)})
-        if pos >= 2:
-            style.append(f"--id-left-{pos}:calc({' + '.join(f'var({w})' for w in widths)})")
-        widths.append(WIDTH[width])
+        sticky = pos == 1 or code in STICKY_CODES
+        columns.append({"code": code, "label": label, "kind": CSS[width], "pos": pos, "sticky": sticky, "edge": False})
+        if sticky:
+            if widths:
+                style.append(f"--id-left-{pos}:calc({' + '.join(f'var({w})' for w in widths)})")
+            widths.append(WIDTH[width])
+    dung_yen = [c for c in columns if c["sticky"]]
+    if dung_yen:
+        dung_yen[-1]["edge"] = True
     return columns, ";".join(style)
 
 
@@ -82,11 +96,15 @@ def block(kind, title, kinds, rows, total_rows, **extra):
     for row in rows:
         # Cặp (cột, giá trị) để template in đúng thứ tự mà không cần chỉ mục
         row["identity"] = list(zip(columns, row["identity"]))
-    # Dòng TỔNG CỘNG: nhãn trải qua các cột định danh, trừ cột Loại tiền khi có (ô riêng)
+    # Excel: nhãn TỔNG CỘNG trải qua các cột định danh, trừ cột Loại tiền khi có (ô riêng). Màn hình in mỗi
+    # cột định danh một ô (cột trôi không được che cột số), nhãn ngắn ở ô `total_at`: Nhân sự, không có thì cột đầu
     span = len(columns) - (1 if columns and columns[-1]["code"] == "tien" else 0)
+    codes = [c["code"] for c in columns]
     return {"kind": kind, "title": title, "identity_columns": columns, "identity_style": style,
             "label_span": len(columns), "total_span": span, "tien_column": columns[-1] if span < len(columns) else None,
-            "total_label": TOTAL_LABEL[kind], "rows": rows, "total_rows": total_rows, **extra}
+            "total_label": TOTAL_LABEL[kind], "total_short": TOTAL_SHORT.get(kind, "TỔNG CỘNG"),
+            "total_at": "person" if "person" in codes else (codes[0] if codes else None),
+            "rows": rows, "total_rows": total_rows, **extra}
 
 
 def submission_label(item):
@@ -230,7 +248,8 @@ def days_block(all_items, page_days, result):
     for ngay in page_days:
         for tien, raw in tong.get(ngay, []):
             nhan = aggregations.format_group(ngay, result)
-            rows.append({"kind": "row", "nhom": nhan, "raw": raw, "currency": currency_label(tien) if result.currency_key else None,
+            rows.append({"kind": "row", "nhom": nhan, "ngay": ngay, "raw": raw,
+                         "currency": currency_label(tien) if result.currency_key else None,
                          "cells": aggregations.format_cells(result, raw, tien),
                          "identity": [nhan] + ([currency_label(tien)] if result.currency_key else [])})
     return block("days", "Theo ngày", kinds, rows, overall_totals("days", result), count=len(page_days))
@@ -244,6 +263,7 @@ def submissions_block(rows, page_items, result, title="Mọi lần nộp trong k
     for row, item in zip(rows, page_items):
         dong = person_row("", item, row["cells"], aggregations.row_values(item, result)[1], kinds, result)
         dong["nhom"] = row["nhom"]
+        dong["ngay"] = item.get("nhom")   # ngày gốc: mốc `data-ngay` để đổi Gộp / Không gộp vẫn ở đúng ngày
         vi_tri = [code for code, _, _ in kinds].index("nhom")
         dong["identity"][vi_tri] = row["nhom"]
         out.append(dong)

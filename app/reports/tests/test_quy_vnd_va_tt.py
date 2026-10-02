@@ -75,7 +75,10 @@ def test_tien_giu_nguyen_moi_dong_mot_loai_tien(client, bang_mkt, mkt_source, ng
     assert o["EUR"]["CPQC"] == "13.250.000" and o["USD"]["CPQC"] == "10" and o["USD"]["Tỉ lệ chốt"] == "20%"
     assert all("₫" not in str(v) for dong in o.values() for v in dong.values())
     html = trang.content.decode()
-    assert "TỔNG CỘNG · toàn kỳ · USD" in html and "TỔNG CỘNG · toàn kỳ · EUR" in html and "quy đổi theo tỉ giá" not in html
+    # Khối toàn kỳ: mỗi loại tiền một dòng TỔNG CỘNG, mã tiền ở ô Loại tiền (vị trí 5) — nhãn dài chỉ còn ở Excel
+    tong_ky = [f'class="report-identity id-tien report-identity-edge" data-pos="5">{tien}</td>' for tien in ("USD", "EUR")]
+    assert all(o in html for o in tong_ky) and html.index(tong_ky[0]) < html.index(tong_ky[1])
+    assert "quy đổi theo tỉ giá" not in html
     # Excel: khối toàn kỳ có hai dòng TỔNG CỘNG, ô Loại tiền riêng, số thô đúng như nhập
     sheet = list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", query).content), data_only=True).active.values)
     tong_xls = [d for d in sheet if d and str(d[0]).startswith("TỔNG CỘNG")]

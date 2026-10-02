@@ -43,11 +43,12 @@ def build_arguments(params):
     return {key: value for key, value in params.items() if key != "ky"}
 
 
-def with_query(request, **doi):
-    """URL hiện tại với vài tham số đổi/bỏ (giá trị None là bỏ), về trang 1."""
+def with_query(request, *, giu_trang=False, **doi):
+    """URL hiện tại với vài tham số đổi/bỏ (giá trị None là bỏ), về trang 1 — trừ khi `giu_trang` (link Gộp /
+    Không gộp ở chế độ Từng lần nộp: hai chế độ chia trang như nhau, giữ trang để còn ở đúng ngày đang xem)."""
     query = request.GET.copy()
-    for key in ("trang",):
-        query.pop(key, None)
+    if not giu_trang:
+        query.pop("trang", None)
     for key, value in doi.items():
         query.pop(key, None)
         if value is not None:
@@ -69,7 +70,7 @@ def export_response(request, source, result, params, gop=False, *, detail="Xuấ
     items = list(result.rows)
     ca_bo = items if len(items) <= summary_service.MAX_GROUPS else None
     # Gộp ở chế độ Cộng theo ngày trang theo ngày; mọi bố cục khác trang theo dòng — ở đây là trọn bộ
-    page = layout.days_of(items) if getattr(result, "show_person", False) and gop and not _tung_lan(result) else items
+    page = layout.days_of(items) if getattr(result, "show_person", False) and gop and not tung_lan(result) else items
     blocks = build_blocks(request, source, result, params, gop, items, page, ca_bo)
     book = excel.build_workbook(source.table.name, result, subtitle=subtitle, blocks=blocks)
     if source.kind == "delivery":
@@ -110,14 +111,14 @@ def blocks_context(request, source, result, params, gop, *, page_size=100):
     items = list(result.rows[:summary_service.MAX_GROUPS + 1])
     ca_bo = items if len(items) <= summary_service.MAX_GROUPS else None
     ctx = {"result": result, "totals": aggregations.total_cells(result), "empty": not result.totals["so_dong"]}
-    if show_person and gop and not _tung_lan(result):
+    if show_person and gop and not tung_lan(result):
         # Gộp: mỗi ngày một dòng (mỗi loại tiền) — phân trang trên danh sách ngày
         nguon = ca_bo if ca_bo is not None else items
         ctx.update(pagination_context(request, layout.days_of(nguon), "ngày", default_size=page_size))
         page = list(ctx["trang"])
     else:
         page_source = items if ca_bo is not None else result.rows
-        ctx.update(pagination_context(request, page_source, "lần nộp" if _tung_lan(result) else "nhóm",
+        ctx.update(pagination_context(request, page_source, "lần nộp" if tung_lan(result) else "nhóm",
                                       default_size=page_size))
         page = list(ctx["trang"])
     blocks = build_blocks(request, source, result, params, gop, items, page, ca_bo)
@@ -130,7 +131,8 @@ def blocks_context(request, source, result, params, gop, *, page_size=100):
     return ctx
 
 
-def _tung_lan(result):
+def tung_lan(result):
+    """Chế độ Từng lần nộp (nguồn Sale/MKT): Gộp và Không gộp chia trang theo cùng danh sách lần nộp."""
     return getattr(result, "show_person", False) and getattr(result, "mode", "") == "tung-lan"
 
 
@@ -139,7 +141,7 @@ def build_blocks(request, source, result, params, gop, items, page, ca_bo):
     `items` là tối đa MAX_GROUPS + 1 dòng đầu; `ca_bo` là toàn bộ dòng khi không chạm trần."""
     show_team, show_person, show_leader = (getattr(result, flag, False) for flag in ("show_team", "show_person", "show_leader"))
     tieu_de_ky = f"Toàn kỳ {params['start']:%d/%m} – {params['end']:%d/%m/%Y} · theo nhân sự"
-    if show_person and _tung_lan(result):
+    if show_person and tung_lan(result):
         # Từng lần nộp: khối toàn kỳ theo nhân sự vẫn đứng đầu (Bảng dữ liệu có từ ADR-042 đợt 4), bên dưới
         # mỗi lần nộp một dòng — theo ngày, hoặc Gộp thành một khối mọi lần nộp trong kỳ (ADR-046)
         rows = aggregations.finish_rows(page, result)
@@ -205,8 +207,8 @@ def filter_chips(request, params, ctx):
               "url": without("tu", "den", "ky") if dang_loc_ky else ""}]
     if request.GET.get("gop") == "1":
         # Gộp nguồn có lần nộp là một bảng mọi lần nộp; Vận đơn không có lần nộp nên mỗi ngày một dòng
-        tung_lan = ctx.get("source") is not None and service.has_modes(ctx["source"], params["group"])
-        chips.append({"label": "Gộp", "value": "mọi lần nộp một bảng" if tung_lan else "mỗi ngày một dòng",
+        co_lan_nop = ctx.get("source") is not None and service.has_modes(ctx["source"], params["group"])
+        chips.append({"label": "Gộp", "value": "mọi lần nộp một bảng" if co_lan_nop else "mỗi ngày một dòng",
                       "url": without("gop")})
     if params["product"]:
         sp = params["product"]
