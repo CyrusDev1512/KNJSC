@@ -152,10 +152,10 @@ def test_hoa_don_khong_con_tren_form_nhap(client, bang_mkt, nguoi_dung):
     r = client.post("/bao-cao/", {**_du(form), "hoa_don": "5", "hd_cu": "5"})
     assert r.status_code == 302, r.content[:300]
     assert "hoa_don" not in DailyReport.objects.get().record.data
-    # Báo cáo tổng hợp vẫn có hai cột Hóa đơn cho dữ liệu cũ
+    # Báo cáo tổng hợp MKT không còn hai cột Hóa đơn (chủ dự án 03.10.2026, ADR-047); cột dữ liệu vẫn giữ ở trên
     result = activity_service.build(nguoi_dung["manager_mkt"], source, group="day", start=date.today(), end=date.today())
     nhan = [c.label for c in result.columns]
-    assert "Hóa đơn" in nhan and "Hóa đơn/DS Chốt (TT)" in nhan
+    assert "Hóa đơn" not in nhan and "Hóa đơn/DS Chốt (TT)" not in nhan
 
 
 def test_bo_cuc_ngang_form_nhap(client, bang_mkt, mkt_source, nguoi_dung):

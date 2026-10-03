@@ -28,15 +28,21 @@ theo Thị trường; dữ liệu mẫu MKT có CPQC 438.446.060 mang nhãn CAD.
 4. **Không tỉ giá ở bất cứ đâu.**
 5. **(TT) đối soát của báo cáo MKT không khoá theo loại tiền**: Số đơn (TT) đếm đơn mọi loại tiền của marketer vào dòng
    VND của người đó (`activity_service.build` → `by_currency=False`). **DS Chốt (TT)** (tiền khách trả trên vận đơn,
-   bằng USD/CAD…) **để trống "—"** vì không quy đổi; Hóa đơn/DS Chốt (TT) cũng trống. Dòng TỔNG CỘNG · VND nhận đủ
+   bằng USD/CAD…) **để trống "—"** vì không quy đổi; Dòng TỔNG CỘNG · VND nhận đủ
    phần đối soát (`aggregations.with_currency_totals`: một loại tiền thì cả đối soát thuộc loại tiền đó).
 6. Báo cáo tổng hợp MKT chỉ còn **một dòng TỔNG CỘNG · VND**; ngưỡng tiền (CPO, Giá Mess, AOV) đặt theo ₫ nay tô được
    dòng MKT.
+7. **Ẩn hai cột Hóa đơn và Hóa đơn/DS Chốt (TT)** khỏi báo cáo MKT (màn hình, Excel, Tổng quan — `DISPLAY_ORDER`);
+   cột dữ liệu Hóa đơn trong bảng giữ nguyên (chủ dự án 03.10.2026).
+
+8. Sửa kèm lỗi giật bảng khi kéo ngang tới sát mép phải (`report-filters.js`, sai số đích nhích 2 px): lộ ra khi bảng
+   MKT bớt hai cột.
 
 ## Hệ quả
 
 - Sale giữ cơ chế nhiều loại tiền của ADR-046 (mỗi dòng một loại tiền, TỔNG CỘNG theo loại tiền).
-- Mất DS Chốt (TT) trên báo cáo MKT cho tới khi chủ dự án duyệt một cách quy đổi tiền vận đơn (tỉ giá).
+- DS Chốt (TT) của báo cáo MKT trống cho tới khi chủ dự án duyệt một cách quy đổi tiền vận đơn (tỉ giá); trên VPS cột này
+  vốn đang "—" (chủ dự án 03.10.2026) nên không mất số đang dùng.
 - Bài kiểm ADR-038/042/046 dùng nguồn MKT viết lại theo luật mới; bài cơ chế nhiều loại tiền ghi nhãn thẳng vào dòng để
   vẫn kiểm cơ chế dùng cho Sale.
 

@@ -5,7 +5,7 @@
 | Yêu cầu | Chủ dự án 03.10.2026: "Bỏ cả bốn ô" Sản phẩm, Thị trường, Tệp khách hàng, Loại tiền khỏi form Nộp báo cáo Marketing; tiền vẫn VND (ADR-047), làm Marketing trước |
 | Quyết định | [ADR-048](quyet-dinh/048-form-mkt-bo-bon-o.md) |
 | Tiêu chí | AC-48.1 → 48.6 (mới); AC-22.13, 22.24, 22.25, 38.4, 42.7, 42.11, 43.2, 43.6, 46.4, 47.2 đổi chữ |
-| Nhánh | `claude/mkt-bo-bon-o` từ `claude/bao-cao-mkt-vnd` `5e96bb7` (PR #83, chưa gộp), PR nháp về `Staging` — gộp #83 trước |
+| Nhánh | `claude/mkt-bo-bon-o` từ `claude/bao-cao-mkt-vnd` `5e96bb7` (PR #83, chưa gộp), sau gộp thêm `50979fc` của #83 (ẩn cột Hóa đơn); [PR #84](https://github.com/CyrusDev1512/KNJSC/pull/84) nháp về `Staging` — gộp #83 trước |
 | Môi trường | Máy ảo Claude Code trên web: Python 3.11.15, Django 5.2.6, PostgreSQL 16.13 cục bộ, Redis, Chromium của Playwright 1.56 |
 
 ## Đã đo
@@ -16,12 +16,14 @@
 | Bài mới sau sửa | `python -m pytest reports/tests/test_mkt_bo_bon_o.py crm/tests/test_thong_ke_mkt_bo_san_pham.py`; `reports/tests/test_o_nhap_so_e2e.py` | 6/6 đạt |
 | Bài cũ theo luật cũ | `reports forms_builder crm dashboard core tests/test_truy_vet.py -m "not trinh_duyet"` | 12 bài đỏ đúng dự kiến (form MKT có bốn ô, lọc `sp`/`tep` trên nguồn MKT, cột Loại tiền của bảng MKT) và bài truy vết (AC-48.x chưa vào docs/04); sửa bài theo ADR-048, thêm AC-48.x vào docs/04 và bộ đếm docs/06 |
 | Các tệp bài vừa sửa | 12 tệp `reports/tests/…` liên quan và hai tệp bài mới, `-m "not trinh_duyet"` | Đạt hết |
+| Toàn bộ, commit đầu `807c65f` | `python -m pytest -m "not trinh_duyet"` | **2.880 đạt, 7 bỏ qua, 0 đỏ** (gồm bài truy vết docs/04–06) |
+| Sau khi gộp `50979fc` của #83 | `reports forms_builder dashboard tests/test_truy_vet.py` + hai tệp Thống kê CRM, `-m "not trinh_duyet"` | 458 đạt, 0 đỏ; chỉ xung đột ở docs/04 (AC-47.5 đứng trước mục 48) và bộ đếm docs/06 (312 — 299 tự động; 276 trên 299) |
 | Bước trình duyệt 1 như CI | `python -m pytest tests/e2e -m trinh_duyet -vv -rs --durations=10 -o faulthandler_timeout=120` | 37 đạt, 2 bỏ qua, 9 đỏ — cả 9 là `test_pha_luoi_ghi_chu.py` vì chứng chỉ proxy (xem dưới); lượt 02.10 trên máy này cũng đúng 9 bài đó |
 
 ## Chưa kiểm / để lại
 
-- **Đang chạy lúc ghi biên bản này** (bổ sung kết quả ở commit sau): toàn bộ `-m "not trinh_duyet"` (tới 70 % chưa có
-  bài đỏ), bước trình duyệt 2 như CI, kiểm tay trước/sau trên máy chủ thử với dữ liệu MKT cỡ thật.
+- **Đang chạy lúc ghi biên bản này** (bổ sung kết quả ở commit sau): bước trình duyệt 2 như CI, kiểm tay trước/sau
+  trên máy chủ thử với dữ liệu MKT cỡ thật. Toàn bộ bài máy chủ trên bản đã gộp `50979fc` do CI của PR #84 chạy.
 - Chưa chạy trên máy chủ dự án và VPS. Lên VPS: bước `configure_erp_reports` có sẵn trong quy trình phát hành gỡ bốn
   ô; không có tệp chuyển đổi mới (`reports/0006` thuộc #83).
 - 9 bài `tests/e2e/test_pha_luoi_ghi_chu.py` đỏ trên máy ảo này vì trình duyệt không tin chứng chỉ của proxy

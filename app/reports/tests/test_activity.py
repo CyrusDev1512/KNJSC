@@ -164,9 +164,9 @@ def test_marketing_exact_excel_formula(bang_mkt,dong_mau,nguoi_dung):
     assert values["CPQC"]==Decimal(500000)
     assert values["CPO"]==Decimal(500000)/24
     assert values["Giá Mess"]==Decimal(500000)/270
-    # Hóa đơn ÷ DS Chốt (TT) theo nhãn (ADR-038, nhãn MKT theo ảnh ADR-042): không có vận đơn và Hóa đơn nên trống
-    assert values["Hóa đơn/DS Chốt (TT)"] is None
-    assert values["DS Chốt (TT)"] is None and values["Hóa đơn"] is None
+    # Hóa đơn và Hóa đơn/DS Chốt (TT) ẩn khỏi báo cáo MKT (ADR-047); DS Chốt (TT) trống khi không có vận đơn
+    assert "Hóa đơn" not in values and "Hóa đơn/DS Chốt (TT)" not in values
+    assert values["DS Chốt (TT)"] is None
     # Nguồn không ánh xạ Loại tiền: không tách loại tiền, một dòng tổng, không hậu tố ₫ (ADR-046)
     assert not result.currency_key and all(c.suffix != " ₫" for c in result.columns)
     assert [tien for tien, _ in aggregations.total_rows(result)] == [""]
@@ -367,10 +367,10 @@ def test_day_blocks_have_day_subtotal_and_stt(client, bang_mkt, mkt_source, van_
     con = [rows[3], rows[4]]
     # Số cộng được: Tổng ngày = tổng hai dòng con; tiền giữ đúng số đã nhập, không quy đổi (ADR-046)
     assert o(khoi,"Số Mess")=="20" and [o(d,"Số Mess") for d in con]==["10","10"]
-    assert o(khoi,"Hóa đơn")=="10" and {o(d,"Hóa đơn") for d in con}=={"8","2"}
+    assert "Hóa đơn" not in cot and "Hóa đơn/DS Chốt (TT)" not in cot       # ẩn khỏi báo cáo MKT (ADR-047)
     # Báo cáo MKT nộp bằng tiền Việt (ADR-047); DS Chốt (TT) để trống vì vận đơn bằng CAD, không quy đổi
     assert khoi["currency"]=="VND" and {d["currency"] for d in con}=={"VND"}
-    assert o(khoi,"DS Chốt (TT)")=="—" and o(khoi,"Hóa đơn/DS Chốt (TT)")=="—"
+    assert o(khoi,"DS Chốt (TT)")=="—"
     # Số đơn (TT) của ngày = tổng hai marketer (2 đơn của A, 1 của B)
     assert o(khoi,"Số đơn (TT)")=="3"
     # Dòng Tổng trong bộ lọc không đổi
@@ -420,8 +420,8 @@ def test_metric_colours_against_filter_total(client, bang_mkt, mkt_source, van_d
     # Cột cộng không tô: mốc là tổng mọi dòng nên dòng nào cũng nhỏ hơn
     assert "Số đơn" not in METRIC_DIRECTION and "Số Mess" not in METRIC_DIRECTION
     assert lop(dong[ma_a],"Số đơn")=="" and lop(dong[ma_a],"Số Mess")==""
-    # Chỉ tiêu chưa rõ chiều cũng không tô
-    assert "invoice_revenue" not in METRIC_DIRECTION and lop(dong[ma_a],"Hóa đơn/DS Chốt (TT)")==""
+    # Chỉ tiêu chưa rõ chiều cũng không tô (Hóa đơn/DS Chốt (TT) đã ẩn khỏi báo cáo MKT, ADR-047)
+    assert "invoice_revenue" not in METRIC_DIRECTION and "Hóa đơn/DS Chốt (TT)" not in cot
     # Dòng Tổng là mốc: không màu đạt/kém, vẫn giữ nền cột chỉ số
     tong=aggregations.total_cells(r.context["result"])
     assert all("o-tot" not in c.lop and "o-canh-bao" not in c.lop for c in tong)

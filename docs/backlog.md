@@ -34,6 +34,7 @@ làm Marketing trước (duyệt mockup Cách A).
 - Báo cáo cũ đổi nhãn sang VND, số giữ nguyên: tệp chuyển đổi `reports/0006` (chạy ngược được, đã thử xuôi–ngược–xuôi).
 - Báo cáo tổng hợp MKT: một dòng TỔNG CỘNG · VND; Số đơn (TT) vẫn đối soát; **DS Chốt (TT) trống** vì vận đơn bằng
   ngoại tệ và không có tỉ giá được duyệt.
+- Ẩn hai cột Hóa đơn và Hóa đơn/DS Chốt (TT) khỏi báo cáo MKT; cột dữ liệu giữ (AC-47.5).
 - 18 bài cũ viết lại theo luật mới. [Biên bản](kiem-chung-bao-cao-mkt-tien-viet-20261003.md).
 
 Nhánh `claude/bao-cao-mkt-vnd` từ `Staging`, PR nháp về `Staging`.
