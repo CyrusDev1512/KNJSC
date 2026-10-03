@@ -28,13 +28,14 @@ def test_ba_bac_mau_theo_nguong_tuyet_doi(client, bang_mkt, mkt_source, van_don,
     """AC-42.8 — Chỉ tiêu có ngưỡng tô xanh khi đạt mốc Tốt, đỏ khi qua mốc Kém, vàng ở giữa, đúng
     chiều tốt (Tỉ lệ chốt cao, CPO thấp); dòng TỔNG CỘNG cũng tô; chỉ tiêu chưa có ngưỡng giữ cách
     so với dòng Tổng ±10 %; lớp `o-xau` có trong CSS. Không quy đổi (ADR-046): ngưỡng tiền (CPO) đặt
-    theo ₫ nên chỉ tô dòng VND — dòng CAD không tô theo ngưỡng đó; ngưỡng tỉ lệ tô mọi loại tiền"""
+    theo ₫ nên chỉ tô dòng VND — báo cáo MKT nay luôn VND (ADR-047) nên ngưỡng CPO tô được; ngưỡng tỉ lệ tô
+    mọi loại tiền"""
     A, B = van_don["A"], van_don["B"]
-    # A: 20 mess, 8 đơn, CPQC 100 CAD → CPO 12,5 CAD, Tỉ lệ chốt 40 %
-    # B: 20 mess, 2 đơn, CPQC 100 CAD → CPO 50 CAD, Tỉ lệ chốt 10 %
-    # Tổng CAD: 40 mess, 10 đơn, CPQC 200 → CPO 20, Tỉ lệ chốt 25 %
-    ban_ghi_a = _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=20, don=8, cpqc="100")
-    ban_ghi_b = _bao_cao(bang_mkt, B, "2026-08-01", "SP2", mess=20, don=2, cpqc="100")
+    # A: 20 mess, 8 đơn, CPQC 2.000.000 ₫ → CPO 250.000 ₫, Tỉ lệ chốt 40 %
+    # B: 20 mess, 2 đơn, CPQC 2.000.000 ₫ → CPO 1.000.000 ₫, Tỉ lệ chốt 10 %
+    # Tổng: 40 mess, 10 đơn, CPQC 4.000.000 → CPO 400.000, Tỉ lệ chốt 25 %
+    ban_ghi_a = _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=20, don=8, cpqc="2000000")
+    ban_ghi_b = _bao_cao(bang_mkt, B, "2026-08-01", "SP2", mess=20, don=2, cpqc="2000000")
     mkt_source.thresholds = {"cpo": {"tot": "300000", "kem": "800000"}, "conversion": {"tot": "30", "kem": "15"}}
     mkt_source.save()
     client.force_login(B)
@@ -44,9 +45,9 @@ def test_ba_bac_mau_theo_nguong_tuyet_doi(client, bang_mkt, mkt_source, van_don,
     cot = [c.label for c in result.columns]
     dong = {row["person"]: row for row in r.context["rows"] if row["kind"] == "row"}
     a, b = dong[employee_code(A)], dong[employee_code(B)]
-    assert a["cells"][cot.index("CPO")] == "12,50" and b["cells"][cot.index("CPO")] == "50"
-    # Ngưỡng CPO tính bằng ₫: dòng CAD không tô theo ngưỡng đó, chỉ giữ nền cột chỉ số
-    assert _lop(a, cot, "CPO") == "o-chi-so" and _lop(b, cot, "CPO") == "o-chi-so"
+    assert a["cells"][cot.index("CPO")] == "250.000" and b["cells"][cot.index("CPO")] == "1.000.000"
+    # Ngưỡng CPO tính bằng ₫, dòng VND: A 250.000 ≤ 300.000 → xanh; B 1.000.000 > 800.000 → đỏ
+    assert "o-tot" in _lop(a, cot, "CPO") and "o-xau" in _lop(b, cot, "CPO")
     # Tỉ lệ chốt càng cao càng tốt: A 40 % ≥ 30 → xanh; B 10 % < 15 → đỏ
     assert "o-tot" in _lop(a, cot, "Tỉ lệ chốt") and "o-xau" in _lop(b, cot, "Tỉ lệ chốt")
     # Giữa hai mốc là vàng: dòng TỔNG CỘNG (Tỉ lệ chốt 25 %) cũng tô khi có ngưỡng tuyệt đối
@@ -65,17 +66,16 @@ def test_ba_bac_mau_theo_nguong_tuyet_doi(client, bang_mkt, mkt_source, van_don,
     dong0 = {row["person"]: row for row in r0.context["rows"] if row["kind"] == "row"}
     assert "o-tot" in _lop(dong0[employee_code(A)], cot, "CPO") and "o-canh-bao" in _lop(dong0[employee_code(B)], cot, "CPO")
     assert 'class="o-chi-so o-xau"' not in r0.content.decode()
-    # Dòng VND (báo cáo cũ): ngưỡng ₫ áp đúng — CPQC 100.000 ₫, 2 đơn → CPO 50.000 ≤ 300.000 → xanh;
-    # dòng CAD của A vẫn không tô theo ngưỡng ₫, và so màu tương đối với tổng CAD của riêng nó
+    # Ngưỡng ₫ áp cho mọi dòng MKT vì báo cáo MKT luôn VND (ADR-047): CPQC 100.000 ₫, 2 đơn → CPO 50.000
+    # ≤ 300.000 → xanh
     mkt_source.thresholds = {"cpo": {"tot": "300000", "kem": "800000"}}
     mkt_source.save()
-    ban_ghi_b.data |= {"cpqc": "100000", "loai_tien": "VND"}
+    ban_ghi_b.data |= {"cpqc": "100000"}
     ban_ghi_b.save()
     r1 = client.get("/bao-cao/tong-hop/", query)
     dong1 = {(row["person"], row["currency"]): row for row in r1.context["rows"] if row["kind"] == "row"}
     assert "o-tot" in _lop(dong1[(employee_code(B), "VND")], cot, "CPO")
-    assert _lop(dong1[(employee_code(A), "CAD")], cot, "CPO") == "o-chi-so"
-    assert ban_ghi_a.data["loai_tien"] == "CAD"
+    assert ban_ghi_a.data["loai_tien"] == "VND"
 
 
 def test_form_nguong_ba_cap_bac(client, bang_mkt, mkt_source, nguoi_dung):
@@ -165,21 +165,42 @@ def test_migration_0005_xuoi_nguoc():
 
 
 def test_loc_nhieu_san_pham_va_url_cu(client, bang_mkt, mkt_source, van_don, nguoi_dung):
-    """AC-42.11 — `sp` lặp lại lọc nhiều sản phẩm: tổng và phần đối soát (TT) theo đúng các sản phẩm
-    đã chọn; URL cũ một sản phẩm vẫn đúng; danh sách tick chỉ có sản phẩm trong phạm vi quyền; chip
-    "N sản phẩm"; phụ đề Excel ghi danh sách; nguồn không có sản phẩm nào thì báo"""
+    """AC-42.11 — Lọc nhiều sản phẩm: tầng dịch vụ nhận nhiều sản phẩm — tổng và phần đối soát (TT) theo đúng các
+    sản phẩm đã chọn, một sản phẩm (URL cũ) vẫn đúng, cách xem theo sản phẩm chỉ còn các mục đã chọn; màn Báo cáo
+    tổng hợp nguồn Sale: `sp` lặp lại lọc nhiều sản phẩm, URL cũ một sản phẩm vẫn đúng, danh sách tick chỉ có sản
+    phẩm trong phạm vi quyền, chip "N sản phẩm", phụ đề Excel ghi danh sách. Nguồn Marketing không còn bộ lọc Sản
+    phẩm (ADR-048, AC-48.3)"""
     A, B = van_don["A"], van_don["B"]
     _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10)
     _bao_cao(bang_mkt, A, "2026-08-01", "SP2", mess=20)
     _bao_cao(bang_mkt, B, "2026-08-01", "SP3", mess=40)
+    ky = dict(start=date(2026, 8, 1), end=date(2026, 8, 1))
+
+    def theo_nguoi(**loc):
+        result = activity_service.build(B, mkt_source, group="person", **ky, **loc)
+        nhan = [c.label for c in result.columns]
+        dong = {}
+        for item in result.rows:
+            nhom, raw = aggregations.row_values(item, result)
+            dong[aggregations.format_group(nhom, result)] = dict(zip(nhan, raw))
+        return result, dong
+
+    # Tầng dịch vụ: hai sản phẩm → tổng và (TT) theo đúng hai sản phẩm (A: w1 SP1 + w2 SP2)
+    result, dong = theo_nguoi(product=["SP1", "SP2"])
+    assert result.totals["c_so_mess"] == 30 and dong[employee_code(A)]["Số đơn (TT)"] == 2
+    # Một sản phẩm (URL cũ)
+    result, dong = theo_nguoi(product="SP1")
+    assert result.totals["c_so_mess"] == 10 and dong[employee_code(A)]["Số đơn (TT)"] == 1
+    # Cách xem theo sản phẩm với hai mục
+    rows = activity_service.build(B, mkt_source, group="product", product=["SP1", "SP3"], **ky).rows
+    assert {row["nhom"] for row in rows} == {"SP1", "SP3"}
+
+    # Màn Báo cáo tổng hợp: bộ lọc Sản phẩm nay chỉ còn ở nguồn Sale (nguồn Marketing bỏ — ADR-048)
+    ReportSource.objects.filter(pk=mkt_source.pk).update(kind="sale")
     client.force_login(B)
     query = {"nguon": bang_mkt.code, "tu": "2026-08-01", "den": "2026-08-01"}
     r = client.get("/bao-cao/tong-hop/", {**query, "sp": ["SP1", "SP2"]})
     assert r.status_code == 200 and r.context["result"].totals["c_so_mess"] == 30
-    cot = [c.label for c in r.context["result"].columns]
-    # Khối toàn kỳ: A nộp hai lần trong ngày (SP1, SP2) nên (TT) cộng ở dòng toàn kỳ của A, không ở từng lần nộp
-    a = next(row for row in r.context["blocks"][0]["rows"] if row["person"] == employee_code(A))
-    assert a["cells"][cot.index("DS Chốt (TT)")] == "100"   # w1 SP1 60 + w2 SP2 40, đúng số CAD của đơn
     assert {c["label"]: c["value"] for c in r.context["chips"]}["Sản phẩm"] == "SP1, SP2"
     assert [p["value"] for p in r.context["products"]] == ["SP1", "SP2", "SP3"]
     html = r.content.decode()
@@ -187,8 +208,6 @@ def test_loc_nhieu_san_pham_va_url_cu(client, bang_mkt, mkt_source, van_don, ngu
     # URL cũ một sản phẩm
     r1 = client.get("/bao-cao/tong-hop/", {**query, "sp": "SP1"})
     assert r1.context["result"].totals["c_so_mess"] == 10
-    a1 = next(row for row in r1.context["rows"] if row["kind"] == "row")
-    assert a1["cells"][cot.index("DS Chốt (TT)")] == "60"
     assert {c["label"]: c["value"] for c in r1.context["chips"]}["Sản phẩm"] == "SP1"
     # Ba sản phẩm → chip đếm; phụ đề Excel ghi danh sách
     r3 = client.get("/bao-cao/tong-hop/", {**query, "sp": ["SP1", "SP2", "SP3"]})
@@ -198,6 +217,3 @@ def test_loc_nhieu_san_pham_va_url_cu(client, bang_mkt, mkt_source, van_don, ngu
     # Staff A chỉ thấy sản phẩm của mình trong danh sách tick
     client.force_login(A)
     assert [p["value"] for p in client.get("/bao-cao/tong-hop/", query).context["products"]] == ["SP1", "SP2"]
-    # Cách xem theo sản phẩm với hai mục
-    rows = activity_service.build(B, mkt_source, group="product", product=["SP1", "SP3"], start=date(2026, 8, 1), end=date(2026, 8, 1)).rows
-    assert {row["nhom"] for row in rows} == {"SP1", "SP3"}

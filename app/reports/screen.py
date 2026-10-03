@@ -13,29 +13,47 @@ from core.audit import record
 from core.constants import AuditAction
 from core.exceptions import BusinessError
 from core.pagination import pagination_context
+from orders.constants import Market
 from orders.models import WaybillItem
 from reports import aggregations, excel, layout
+from reports.constants import NO_DIMENSION_FILTER_KINDS
 from reports.services import activity_service as service, summary_service
 
 
-def parameters(request):
+def dimension_filters(source):
+    """Nguồn có bộ lọc Sản phẩm / Thị trường / Tệp khách hàng không — nguồn MKT thì không (ADR-048)."""
+    return source is None or source.kind not in NO_DIMENSION_FILTER_KINDS
+
+
+def parameters(request, source=None):
     """Tham số bộ lọc trên URL. Cách xem và chế độ cố định Tổng hợp × Từng lần nộp (chủ dự án 01.10.2026,
     bổ sung ADR-046): `nhom`, `che_do` của URL cũ bị bỏ qua. `ky` là nút Chọn nhanh vừa bấm — chỉ để tô đúng
-    một nút khi hai nút cùng khoảng (ngày 01: Hôm nay = Tháng này)."""
+    một nút khi hai nút cùng khoảng (ngày 01: Hôm nay = Tháng này). Nguồn không có bộ lọc theo sản phẩm, thị
+    trường, tệp (MKT, ADR-048) thì `sp`, `thi_truong`, `tep` của URL cũ bị bỏ qua — không lỗi, không chip."""
     start, end = summary_service.default_range()
+    co_loc = dimension_filters(source)
     return {
         "group": service.SCREEN_GROUP,
         "start": summary_service.parse_day(request.GET.get("tu"), start),
         "end": summary_service.parse_day(request.GET.get("den"), end),
         # Nhiều sản phẩm (ADR-042 đợt 3): `sp` lặp lại; URL cũ `sp=A` vẫn là danh sách một mục
-        "product": [p for p in request.GET.getlist("sp") if p],
-        "market": request.GET.get("thi_truong", ""),
+        "product": [p for p in request.GET.getlist("sp") if p] if co_loc else [],
+        "market": request.GET.get("thi_truong", "") if co_loc else "",
         "person": request.GET.get("nhan_su", ""),
         "team": request.GET.get("team", ""),
-        "segment": request.GET.get("tep", ""),
+        "segment": request.GET.get("tep", "") if co_loc else "",
         "mode": service.SCREEN_MODE,
         "ky": request.GET.get("ky", ""),
     }
+
+
+def filter_options(user, source):
+    """Lựa chọn của ba bộ lọc Sản phẩm, Thị trường, Tệp khách hàng; None là không hiện bộ lọc đó (nguồn MKT,
+    ADR-048; Tệp khách hàng chỉ nguồn có cột này)."""
+    if not dimension_filters(source):
+        return {"products": None, "markets": None, "segments": None}
+    return {"products": product_options(user, source), "markets": Market.labels,
+            "segments": service.segment_options(source)}
 
 
 def build_arguments(params):

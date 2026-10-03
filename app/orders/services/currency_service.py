@@ -12,6 +12,18 @@ MARKET_CURRENCIES = {Market.US: Currency.USD, Market.CA: Currency.CAD, Market.PH
                      Market.AU: Currency.AUD}
 
 
+#: Loại tiền cố định của báo cáo ngày theo loại nguồn (ADR-047): báo cáo Marketing nộp bằng tiền Việt, không
+#: theo Thị trường (chủ dự án 03.10.2026). Loại nguồn không có ở đây (Sale) thì loại tiền theo Thị trường.
+REPORT_CURRENCY = {"mkt": Currency.VND.value}
+
+
+def report_currency(kind, market, allow_empty=False):
+    """Loại tiền của một dòng báo cáo ngày — một chỗ cho nộp, sửa, đổi Thị trường và form."""
+    if kind in REPORT_CURRENCY:
+        return REPORT_CURRENCY[kind]
+    return for_label(market, allow_empty=allow_empty)
+
+
 def for_market(value):
     try:
         return MARKET_CURRENCIES[Market(value)]

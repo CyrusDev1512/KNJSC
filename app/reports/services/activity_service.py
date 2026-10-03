@@ -12,6 +12,7 @@ from core.exceptions import OutOfScopeError, BusinessError
 from forms_builder.models import DataRecord, TableDef
 from orders.constants import waybill_condition
 from orders.models import WaybillItem
+from orders.services.currency_service import REPORT_CURRENCY
 from reports.constants import MISSING_FILTER
 from reports.models import ReportSource
 from reports import aggregations
@@ -67,8 +68,9 @@ DERIVED = {kind: DERIVED_MONEY.get(kind, ()) + DERIVED_COUNT.get(kind, ()) for k
 MONEY_FORMULAS = ("cpo", "mess_cost", "aov")
 DISPLAY_ORDER = {
     "sale": ("mess", "orders", "sales", "conversion", "revenue"),
+    # Hóa đơn và Hóa đơn/DS Chốt (TT) ẩn khỏi báo cáo MKT (chủ dự án 03.10.2026, ADR-047); cột dữ liệu giữ
     "mkt": ("mess", "cost", "orders", "orders_tt", "sales", "revenue", "conversion", "conversion_tt",
-            "mess_cost", "cpo", "cost_sales", "aov", "invoice", "invoice_revenue"),
+            "mess_cost", "cpo", "cost_sales", "aov"),
 }
 
 
@@ -80,6 +82,8 @@ class ActivityResult(aggregations.SummaryResult):
     currency_label: str = ''
     currency_warning: str = ''
     mode: str = DEFAULT_MODE    # chế độ số liệu của cách xem Tổng hợp (ADR-046)
+    source_kind: str = ''       # loại nguồn — `layout.HIDDEN_IDENTITY` ẩn cột định danh theo nó (ADR-047)
+    fixed_currency: str = ''    # mọi dòng đúng loại tiền cố định của nguồn (MKT: VND) → "Tiền: ₫" ở hàng tiêu đề (ADR-048)
 
 
 @dataclass(frozen=True)
@@ -353,7 +357,10 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
     expression, label = group_expression(source, group)
     tien = currency_expression(source)
     tung_lan = group == "day" and mode == "tung-lan"
-    khoa_tien = (aggregations.CURRENCY_KEY,) if tien is not None else ()
+    # Nguồn nộp bằng một loại tiền cố định (MKT: tiền Việt, ADR-047): đối soát (TT) không khoá theo loại tiền
+    # — đơn hàng USD/CAD vẫn đếm vào Số đơn (TT) của marketer; DS Chốt (TT) để trống vì không quy đổi
+    tt_theo_tien = tien is not None and source.kind not in REPORT_CURRENCY
+    khoa_tien = (aggregations.CURRENCY_KEY,) if tt_theo_tien else ()
     # Tổng hợp = ngày × nhân sự: mỗi người một dòng riêng trong ngày (chủ dự án 19.09,
     # bổ sung ADR-035 — thay quyết định 1 "mỗi ngày một dòng"). Doanh thu suy ra tra theo
     # cặp (ngày, nhân sự, loại tiền) nên không gán nhầm tiền cả ngày cho từng người.
@@ -390,16 +397,16 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
     if result.ok and DERIVED.get(source.kind) and not segment:
         # Lọc theo Tệp khách hàng thì phần đối soát để trống: vận đơn không ghi tệp (ADR-038)
         actual = marketing_actuals(qs, group, expression, start=start, end=end, product=product, market=market,
-                                   by_currency=tien is not None)
+                                   by_currency=tt_theo_tien)
         result = attach_derived(result, actual, zero=DERIVED_COUNT.get(source.kind, ()))
     if tung_lan and result.ok and result.derived:
         # Một người nộp nhiều lần trong ngày (cùng loại tiền): (TT) khoá theo (ngày, người, loại tiền)
         # không chia được cho từng lần nộp → các dòng đó để trống, TỔNG CỘNG ngày vẫn cộng một lần (G6)
-        result = replace(result, derived_shared=_shared_keys(result, qs, source, tien))
+        result = replace(result, derived_shared=_shared_keys(result, qs, source, tien if tt_theo_tien else None))
     if result.ok:
-        result = currency_note(result)
+        result = fixed_currency(currency_note(result), source)
     result = with_person_team(result, source, group)
-    return _as_activity(result, mode=mode if group == "day" else DEFAULT_MODE)
+    return _as_activity(result, mode=mode if group == "day" else DEFAULT_MODE, source_kind=source.kind)
 
 
 def _shared_keys(result, qs, source, tien):
@@ -519,6 +526,20 @@ def currency_note(result):
                    "không vào loại tiền nào. Sửa báo cáo đó (chọn Thị trường) để hệ thống tự điền "
                    "loại tiền.")
     return _as_activity(result, currency_label=label, currency_warning=warning)
+
+
+def fixed_currency(result, source):
+    """Nguồn nộp bằng một loại tiền cố định (MKT: VND, ADR-047) mà mọi dòng đúng loại đó: đơn vị ghi một lần trên màn
+    hình — `fixed_currency` mang mã tiền cho chữ "Tiền: ₫" ở hàng tiêu đề, câu loại tiền thành "Mọi số tiền là …"
+    (ADR-048). Cột Loại tiền của báo cáo MKT thì luôn ẩn theo `layout.HIDDEN_IDENTITY` (ADR-047 bổ sung; chủ dự án
+    03.10.2026 chọn ẩn cả khi dữ liệu lỡ lẫn loại tiền). Có dòng mang loại tiền khác thì không ghi "Tiền: ₫"."""
+    co_dinh = REPORT_CURRENCY.get(source.kind)
+    if not co_dinh or not result.currency_key:
+        return result
+    if any((s.get(result.currency_key) or "") != co_dinh for s in result.currency_sums):
+        return result
+    don_vi = "tiền Việt (₫)" if co_dinh == "VND" else co_dinh
+    return _as_activity(result, fixed_currency=co_dinh, currency_label=f"Mọi số tiền là {don_vi}, không quy đổi.")
 
 
 def delivery(qs, source, group, product):
