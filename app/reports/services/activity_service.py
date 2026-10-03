@@ -82,7 +82,8 @@ class ActivityResult(aggregations.SummaryResult):
     currency_label: str = ''
     currency_warning: str = ''
     mode: str = DEFAULT_MODE    # chế độ số liệu của cách xem Tổng hợp (ADR-046)
-    fixed_currency: str = ''    # mọi dòng một loại tiền cố định của nguồn (MKT: VND) → bảng bỏ cột Loại tiền (ADR-048)
+    source_kind: str = ''       # loại nguồn — `layout.HIDDEN_IDENTITY` ẩn cột định danh theo nó (ADR-047)
+    fixed_currency: str = ''    # mọi dòng đúng loại tiền cố định của nguồn (MKT: VND) → "Tiền: ₫" ở hàng tiêu đề (ADR-048)
 
 
 @dataclass(frozen=True)
@@ -405,7 +406,7 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
     if result.ok:
         result = fixed_currency(currency_note(result), source)
     result = with_person_team(result, source, group)
-    return _as_activity(result, mode=mode if group == "day" else DEFAULT_MODE)
+    return _as_activity(result, mode=mode if group == "day" else DEFAULT_MODE, source_kind=source.kind)
 
 
 def _shared_keys(result, qs, source, tien):
@@ -528,9 +529,10 @@ def currency_note(result):
 
 
 def fixed_currency(result, source):
-    """Nguồn nộp bằng một loại tiền cố định (MKT: VND, ADR-047) mà mọi dòng đúng loại đó: cột Loại tiền chỉ lặp một
-    chữ nên bảng bỏ cột này (ADR-048), đơn vị ghi một lần — `fixed_currency` mang mã tiền cho màn hình. Có dòng mang
-    loại tiền khác (nhãn ghi tay, dữ liệu chưa đổi) thì giữ cột như ADR-046, không giấu chuyện lẫn tiền."""
+    """Nguồn nộp bằng một loại tiền cố định (MKT: VND, ADR-047) mà mọi dòng đúng loại đó: đơn vị ghi một lần trên màn
+    hình — `fixed_currency` mang mã tiền cho chữ "Tiền: ₫" ở hàng tiêu đề, câu loại tiền thành "Mọi số tiền là …"
+    (ADR-048). Cột Loại tiền của báo cáo MKT thì luôn ẩn theo `layout.HIDDEN_IDENTITY` (ADR-047 bổ sung; chủ dự án
+    03.10.2026 chọn ẩn cả khi dữ liệu lỡ lẫn loại tiền). Có dòng mang loại tiền khác thì không ghi "Tiền: ₫"."""
     co_dinh = REPORT_CURRENCY.get(source.kind)
     if not co_dinh or not result.currency_key:
         return result

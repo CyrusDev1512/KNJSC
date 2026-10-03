@@ -3,8 +3,7 @@
 {% block tieu_de %}Báo cáo tổng hợp · KNERP{% endblock %}
 {% block ten_trang %}Báo cáo tổng hợp{% endblock %}
 {% block noi_dung %}
-<div class="trang-dau"><div><h1>Báo cáo tổng hợp</h1><p>Kết quả thực tế trong phạm vi của bạn. Chưa chấm điểm KPI hoặc xếp loại.</p></div>
-</div>
+{# Không còn đầu trang: tên trang đã ở thanh trên, nhường chỗ cho bảng (chủ dự án 03.10.2026) #}
 <div class="report-view" id="report-view">
 <div class="report-controls" aria-label="Điều khiển bảng báo cáo">
 <div class="report-focus-title"><strong>{{ source.table.name|default:'Báo cáo tổng hợp' }}</strong><span>{{ params.start|date:'d/m/Y' }} – {{ params.end|date:'d/m/Y' }}</span></div>

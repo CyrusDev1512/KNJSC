@@ -38,6 +38,10 @@ theo Thị trường; dữ liệu mẫu MKT có CPQC 438.446.060 mang nhãn CAD.
 8. Sửa kèm lỗi giật bảng khi kéo ngang tới sát mép phải (`report-filters.js`, sai số đích nhích 2 px): lộ ra khi bảng
    MKT bớt hai cột.
 
+9. **Ẩn hai cột Lần nộp và Loại tiền** khỏi báo cáo MKT (màn hình, Bảng dữ liệu, Excel) — một chỗ
+   `layout.HIDDEN_IDENTITY`, `ActivityResult.source_kind`; chỉ đổi hiển thị, không đổi cách cộng tổng; Sale giữ
+   (chủ dự án 03.10.2026).
+
 ## Hệ quả
 
 - Sale giữ cơ chế nhiều loại tiền của ADR-046 (mỗi dòng một loại tiền, TỔNG CỘNG theo loại tiền).

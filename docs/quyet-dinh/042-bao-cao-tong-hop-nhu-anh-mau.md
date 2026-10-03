@@ -135,3 +135,17 @@ giữ nguyên.
      các lần nộp. Vận đơn vẫn về trang 1.
    - **Lỗi.** Máy chủ lỗi hay hết phiên thì tải cả trang như trước.
    - **Số đo.** Đổi chế độ mất 0,39–0,49 s và trang không chớp. Tải cả trang mất 0,74 s.
+
+## Bổ sung 03.10.2026 — bảng vừa màn hình, bộ lọc cuộn riêng
+
+Chủ dự án: "xoá cái header báo cáo tổng hợp, kéo view của bảng dài hơn, càng full view càng tốt"; "bộ lọc cũng nên có
+thanh kéo lên kéo xuống".
+
+- Bỏ đầu trang `<h1>Báo cáo tổng hợp</h1>` và câu phụ; tên trang vẫn ở thanh trên.
+- Khung bảng cao tới sát đáy vùng nội dung `main.noi-dung` (sát thanh menu dưới đáy), tính từ chỗ khung đứng khi trang
+  ở đầu: `report-filters.js` đặt `--report-fit` khi tải, đổi cỡ, thu/mở bộ lọc, đổi Gộp; khung nằm thấp (Bảng dữ liệu,
+  màn hình thấp) thì cao bằng cả vùng nội dung. Mép dưới và thanh kéo ngang của bảng luôn trong tầm nhìn; hàng phân
+  trang ngay dưới, cuộn trang là thấy. Toàn màn hình giữ như cũ.
+- Bộ lọc bên trái (màn ≥ 901 px, ngoài Toàn màn hình) `position: sticky`, cao `--report-panel-fit`, phần ô lọc
+  `overflow: auto` — như bộ lọc lưới KN CRM. AC-42.15.
+

@@ -9,9 +9,7 @@ from reports.tests.test_aggregations import bang_mkt, dong_mau
 from reports.tests.test_mkt_excel import marketing_scope
 from reports.tests.test_mkt_derived_revenue import mkt_source, van_don
 
-pytestmark=pytest.mark.django_db
-
-
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("du_cot_dinh_danh")]   # cơ chế cột Lần nộp / Loại tiền (AC-47.6)
 def test_sale_ratio_and_account_identity(bang_mkt,dong_mau,nguoi_dung):
     source=ReportSource.objects.create(table=bang_mkt,kind="sale",columns={"mess":"so_mess","orders":"so_don","sales":"doanh_so","market":"thi_truong"})
     result=activity_service.build(nguoi_dung["manager_mkt"],source,group="person",start=date(2026,8,1),end=date(2026,8,31))
@@ -380,12 +378,11 @@ def test_day_blocks_have_day_subtotal_and_stt(client, bang_mkt, mkt_source, van_
     html=r.content.decode()
     # Mỗi ngày một bảng riêng (ADR-042): tiêu đề ngày trên bảng, TỔNG CỘNG ngay dưới hàng tiêu đề cột, STT ở cột đầu
     assert html.count('class="report-block report-block-day"')==2 and '<h3>01.08.2026</h3>' in html
-    # Dòng TỔNG CỘNG mỗi cột định danh một ô, nhãn ở ô Nhân sự (02.10.2026); báo cáo MKT toàn VND không còn cột
-    # Loại tiền (ADR-048) nên Nhân sự là cột đứng yên cuối, mang bóng mép
-    assert '<th scope="row" class="report-identity id-nhan-su report-identity-edge" data-pos="3">TỔNG CỘNG</th>' in html
-    assert "id-tien" not in html
+    # Dòng TỔNG CỘNG mỗi cột định danh một ô: nhãn ở ô Nhân sự, mã tiền ở ô Loại tiền (02.10.2026)
+    assert '<th scope="row" class="report-identity id-nhan-su" data-pos="3">TỔNG CỘNG</th>' in html
+    assert 'class="report-identity id-tien report-identity-edge" data-pos="6">VND</td>' in html
     assert 'class="report-identity id-stt" data-pos="1">1</th>' in html
-    assert 'class="report-block report-block-period"' in html
+    assert 'class="report-block report-block-period"' in html and 'class="report-identity id-tien report-identity-edge" data-pos="5">VND</td>' in html
     # Excel: sheet "Theo ngay" cùng khối — tiêu đề ngày, hàng tiêu đề cột, TỔNG CỘNG, dòng người có STT
     ngay=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True)["Theo ngay"].values)
     assert [d[0] for d in ngay if d and d[0] is not None]==["Ngày 02.08.2026","STT","TỔNG CỘNG · VND",1,

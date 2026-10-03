@@ -183,8 +183,9 @@ quản lý đặt (`ReportSource.thresholds`), lọc nhiều sản phẩm; bản
 Bảng dữ liệu là **báo cáo chi tiết theo ngày** (mỗi lần nộp một dòng, `?dang=tho` xem thô); bối
 cảnh màn hình dùng chung ở `reports/screen.py`. **Ba chỗ sửa (02.10, ADR-042 bổ sung):**
 - **Kéo ngang:** chỉ cột đầu (STT/Ngày), Nhân sự, Loại tiền đứng yên (`layout.identity`; cột khác mang `report-troi`).
-  Dòng TỔNG CỘNG mỗi cột một ô, nhãn ngắn ở ô Nhân sự; kéo xong thì bảng tự nhích. Báo cáo MKT toàn VND không có
-  cột Loại tiền (ADR-048, `layout.shows_currency`): đứng yên còn STT · Nhân sự, đơn vị ghi "Tiền: ₫" ở hàng tiêu đề.
+  Dòng TỔNG CỘNG mỗi cột một ô, nhãn ngắn ở ô Nhân sự; kéo xong thì bảng tự nhích. Báo cáo MKT luôn ẩn cột Lần nộp,
+  Loại tiền (`layout.HIDDEN_IDENTITY`, ADR-047 bổ sung): đứng yên còn STT · Nhân sự; đơn vị ghi "Tiền: ₫" ở hàng tiêu
+  đề khi mọi dòng VND (`ActivityResult.fixed_currency`, ADR-048).
 - **Phần chữ trên bảng:** đoạn (TT) và câu loại tiền nằm trong panel "Giải thích số liệu".
 - **Gộp / Không gộp:** đổi bảng bằng `fetch` trong `report-filters.js`, không tải lại trang. Link giữ `trang`, mốc
   `data-ngay` giữ đúng ngày đang xem.

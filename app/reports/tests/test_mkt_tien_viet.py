@@ -127,3 +127,36 @@ def test_bao_cao_mkt_khong_con_cot_hoa_don(client, bang_mkt, mkt_source, nguoi_d
     sach = load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", ky).content), data_only=True)
     chu = " ".join(str(o) for ws in sach.worksheets for hang in ws.iter_rows(values_only=True) for o in hang if o)
     assert "Hóa đơn" not in chu
+
+
+def test_bao_cao_mkt_an_lan_nop_va_loai_tien(client, bang_mkt, mkt_source, nguoi_dung):  # noqa: F811
+    """AC-47.6 — Báo cáo tổng hợp và Bảng dữ liệu dạng báo cáo của nguồn MKT không còn cột Lần nộp và Loại tiền ở
+    khối toàn kỳ, khối ngày và khối Gộp; Excel cũng không; hai lần nộp cùng ngày vẫn là hai dòng; nguồn Sale giữ cả
+    hai cột"""
+    from io import BytesIO
+    from openpyxl import load_workbook
+    from reports.models import ReportSource
+    A = nguoi_dung["staff_mkt"]
+    _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10)
+    _bao_cao(bang_mkt, A, "2026-08-01", "SP2", mess=20)
+    client.force_login(nguoi_dung["manager_mkt"])
+    ky = {"nguon": bang_mkt.code, "tu": "2026-08-01", "den": "2026-08-01"}
+    for url, query in (("/bao-cao/tong-hop/", ky), (f"/bang/{bang_mkt.code}/", {"tu": "2026-08-01", "den": "2026-08-01"})):
+        for gop in ({}, {"gop": "1"}):
+            r = client.get(url, {**query, **gop})
+            assert r.status_code == 200
+            for b in r.context["blocks"]:
+                ma = [c["code"] for c in b["identity_columns"]]
+                assert "lan" not in ma and "tien" not in ma, (url, gop, b["kind"], ma)
+            html = r.content.decode()
+            assert "id-lan" not in html and "id-tien" not in html, (url, gop)
+    r = client.get("/bao-cao/tong-hop/", ky)
+    assert len(r.context["blocks"][1]["rows"]) == 2                    # hai lần nộp vẫn hai dòng
+    sach = load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", ky).content), data_only=True)
+    chu = {str(o) for ws in sach.worksheets for hang in ws.iter_rows(values_only=True) for o in hang if o}
+    assert "Lần nộp" not in chu and "Loại tiền" not in chu
+    # Nguồn Sale: giữ Lần nộp và Loại tiền
+    ReportSource.objects.filter(pk=mkt_source.pk).update(kind="sale")
+    r = client.get("/bao-cao/tong-hop/", ky)
+    ma = [c["code"] for c in r.context["blocks"][1]["identity_columns"]]
+    assert "lan" in ma and "tien" in ma

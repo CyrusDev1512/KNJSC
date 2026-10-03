@@ -4,7 +4,7 @@
 
 **Finished local (nhánh `claude/mkt-bo-bon-o`, PR nháp về `Staging`, phụ thuộc PR #83):**
 - form MKT không còn Sản phẩm, Thị trường, Tệp khách hàng, Loại tiền; nộp và sửa không đòi Thị trường;
-- nguồn MKT không còn ba bộ lọc đó; bảng toàn VND không có cột Loại tiền, đơn vị ghi "Tiền: ₫";
+- nguồn MKT không còn ba bộ lọc đó; đơn vị ghi "Tiền: ₫" ở hàng tiêu đề (cột Loại tiền MKT ẩn theo #83, AC-47.6);
 - Thống kê CRM nguồn MKT bỏ biểu đồ theo sản phẩm.
 
 **To do:**

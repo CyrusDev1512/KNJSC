@@ -4,7 +4,7 @@
 |---|---|
 | Ngày | 03.10.2026 |
 | Trạng thái | Xong local 03.10.2026, PR nháp về `Staging` — phụ thuộc PR #83 (ADR-047), gộp #83 trước; chờ chủ dự án thử local rồi gộp |
-| Thay thế / bổ sung | Bổ sung ADR-047 (tiền Việt); ADR-043 (form Nộp báo cáo — thêm bốn ô vào `MKT_FORM_SKIP`); ADR-038 (Tệp khách hàng rời form và bộ lọc Marketing); ADR-042 (lọc theo sản phẩm, thị trường, tệp chỉ còn ở nguồn Sale); ADR-046 (cột Loại tiền không hiện khi báo cáo chỉ có một loại tiền cố định) |
+| Thay thế / bổ sung | Bổ sung ADR-047 (tiền Việt); ADR-043 (form Nộp báo cáo — thêm bốn ô vào `MKT_FORM_SKIP`); ADR-038 (Tệp khách hàng rời form và bộ lọc Marketing); ADR-042 (lọc theo sản phẩm, thị trường, tệp chỉ còn ở nguồn Sale). Cột Loại tiền, Lần nộp của báo cáo MKT ẩn theo ADR-047 bổ sung (AC-47.6, PR #83) — ADR-048 chỉ ghi đơn vị "Tiền: ₫" một lần |
 
 ## Bối cảnh
 
@@ -34,15 +34,15 @@ gì. Sản phẩm và Tệp khách hàng chỉ phục vụ việc lọc.
    chip, không lọc. Phần này nằm ở một chỗ: `reports.screen.parameters` và `filter_options`, với danh sách loại nguồn
    khai ở `reports.constants.NO_DIMENSION_FILTER_KINDS`. Tầng dịch vụ (`activity_service.build`) vẫn nhận các tham
    số này cho Sale, Vận đơn và cho dữ liệu cũ.
-5. **Bảng báo cáo Marketing toàn VND không có cột Loại tiền.**
-   - `activity_service.build` đặt `fixed_currency` khi nguồn có loại tiền cố định và mọi dòng đúng loại tiền đó;
-     `layout.with_currency` khi ấy bỏ cột.
-   - Khi kéo ngang, vùng đứng yên còn STT · Nhân sự.
-   - Đơn vị ghi một lần: "Tiền: ₫" ở hàng tiêu đề kết quả, và câu "Mọi số tiền là tiền Việt (₫), không quy đổi."
-     trong Giải thích số liệu (Bảng dữ liệu cũng có câu này).
+5. **Đơn vị tiền của bảng báo cáo Marketing ghi một lần.** Cột Loại tiền (và Lần nộp) của báo cáo MKT đã ẩn theo
+   ADR-047 bổ sung (PR #83, `layout.HIDDEN_IDENTITY`, AC-47.6); khi kéo ngang, vùng đứng yên còn STT · Nhân sự.
+   - `activity_service.build` đặt `fixed_currency` khi nguồn có loại tiền cố định và mọi dòng đúng loại tiền đó.
+   - Khi đó hàng tiêu đề kết quả ghi "Tiền: ₫", và câu loại tiền trong Giải thích số liệu thành "Mọi số tiền là tiền
+     Việt (₫), không quy đổi." (Bảng dữ liệu cũng có câu này).
    - Excel giữ nhãn "TỔNG CỘNG · … · VND".
-   - Có dòng mang loại tiền khác (dữ liệu ghi tay, không qua form) thì cột tự hiện lại, để không che chuyện lẫn
-     tiền.
+   - Dữ liệu lỡ mang loại tiền khác (nhãn ghi tay, không qua form): cột vẫn ẩn như mọi báo cáo MKT — chủ dự án
+     03.10.2026 chọn cách của #83 thay cho phương án "hiện lại cột" ban đầu của ADR-048 — nhưng hàng tiêu đề không
+     còn ghi "Tiền: ₫".
 6. **Thống kê KN CRM nguồn Marketing bỏ biểu đồ "Đóng góp theo sản phẩm"**, vì dòng mới không có sản phẩm nên cột
    "Chưa có sản phẩm" sẽ chiếm gần hết biểu đồ. Sale giữ biểu đồ này.
 

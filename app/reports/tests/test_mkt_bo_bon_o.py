@@ -141,10 +141,10 @@ def test_bo_loc_mkt_an_va_tham_so_cu_bi_bo_qua(client, bang_mkt, mkt_source, ngu
 
 
 def test_bang_mkt_toan_vnd_khong_cot_loai_tien(client, bang_mkt, mkt_source, nguoi_dung):  # noqa: F811
-    """AC-48.4 — Báo cáo Marketing toàn VND: bảng không còn cột Loại tiền, cột đứng yên cuối là Nhân sự (bóng mép ở
-    ô Nhân sự), câu đơn vị "Mọi số tiền là tiền Việt (₫), không quy đổi" và chữ "Tiền: ₫" ở hàng tiêu đề; Excel
-    không có cột Loại tiền nhưng giữ nhãn "TỔNG CỘNG · toàn kỳ · VND"; dữ liệu lẫn loại tiền khác (nhãn ghi tay)
-    thì cột Loại tiền hiện lại"""
+    """AC-48.4 — Báo cáo Marketing toàn VND: bảng không có cột Loại tiền (ẩn theo ADR-047 bổ sung), cột đứng yên cuối
+    là Nhân sự (bóng mép ở ô Nhân sự); đơn vị ghi một lần: câu "Mọi số tiền là tiền Việt (₫), không quy đổi" và chữ
+    "Tiền: ₫" ở hàng tiêu đề; Excel không có cột Loại tiền nhưng giữ nhãn "TỔNG CỘNG · toàn kỳ · VND"; dữ liệu lỡ lẫn
+    loại tiền khác (nhãn ghi tay) thì cột vẫn ẩn (chủ dự án 03.10.2026) nhưng hàng tiêu đề không còn ghi "Tiền: ₫" nữa"""
     A = nguoi_dung["staff_mkt"]
     _bao_cao(bang_mkt, A, "2026-08-01", "SP1")
     lech = _bao_cao(bang_mkt, A, "2026-08-02", "SP1")
@@ -157,10 +157,10 @@ def test_bang_mkt_toan_vnd_khong_cot_loai_tien(client, bang_mkt, mkt_source, ngu
     assert "Mọi số tiền là tiền Việt (₫), không quy đổi" in html and "Tiền: ₫" in html
     o = _o_trong_bang(client.get("/bao-cao/tong-hop/xuat/", {**KY, "nguon": bang_mkt.code}).content)
     assert "Loại tiền" not in o and "TỔNG CỘNG · toàn kỳ · VND" in o
-    # Một dòng mang nhãn khác (dữ liệu ghi tay, không qua form) → cột quay lại, không giấu chuyện lẫn tiền
+    # Một dòng mang nhãn khác (dữ liệu ghi tay, không qua form): cột vẫn ẩn như mọi báo cáo MKT, nhưng hàng tiêu đề
+    # không còn khẳng định mọi số là ₫
     DataRecord.all_objects.filter(pk=lech.pk).update(data={**lech.data, "loai_tien": "CAD"})
     r = client.get("/bao-cao/tong-hop/", {**KY, "nguon": bang_mkt.code})
     assert r.context["result"].fixed_currency == ""
     html = r.content.decode()
-    assert ">Loại tiền</th>" in html and 'class="report-identity id-tien report-identity-edge"' in html
-    assert "Tiền: ₫" not in html
+    assert ">Loại tiền</th>" not in html and "id-tien" not in html and "Tiền: ₫" not in html

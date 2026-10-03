@@ -16,17 +16,18 @@ Không có lỗi TL mới; việc theo quyết định của chủ dự án (ADR
 | AC-48.5 | `reports/tests/test_o_nhap_so_e2e.py::test_form_mkt_khong_bon_o_van_hien_vnd_va_nop_duoc` (trình duyệt) | form còn ô Sản phẩm |
 | AC-48.6 | `crm/tests/test_thong_ke_mkt_bo_san_pham.py` | Thống kê MKT còn biểu đồ "Đóng góp theo sản phẩm" |
 
-**Bài cũ đổi theo hành vi mới (12 bài phía máy chủ, 2 bài trình duyệt):**
+**Bài cũ đổi theo hành vi mới (6 bài phía máy chủ, 2 bài trình duyệt):**
 - Form và bộ lọc: AC-43.2 (bộ ô bắt buộc MKT; kiểm Sản phẩm, Thị trường chuyển sang form Sale), AC-38.4 (Tệp khách
   hàng rời form, màn bỏ qua `tep`), AC-42.11 (lọc nhiều sản phẩm: tầng dịch vụ trên nguồn MKT, giao diện trên nguồn
   Sale), AC-47.2 (form không còn ô Loại tiền), `test_product_options.py` ca MKT (form không còn đường thêm sản
   phẩm), AC-22.24 (không còn biến thể "lọc theo Tệp khách hàng").
-- Bố cục báo cáo MKT toàn VND, không còn cột Loại tiền: AC-42.6, 42.7, 22.25, 22.26 (`test_bo_cuc_khoi.py`), AC-22.15
-  (`test_activity.py`), AC-22.18 (`test_markets_currencies.py`).
 - Trình duyệt: AC-46.10 và AC-43.6 trong `test_o_nhap_so_e2e.py` thôi chọn Thị trường, Sản phẩm.
 
-Bài trình duyệt AC-22.21, 22.24, 22.25, 22.26 dùng dữ liệu MKT ba loại tiền ghi tay nên vẫn có cột Loại tiền, không
-cần đổi.
+**Gộp bản mới của PR #83 (`af927c4`, AC-47.6: MKT luôn ẩn cột Lần nộp, Loại tiền).** Nhánh này lúc đầu tự bỏ cột Loại
+tiền khi mọi dòng VND và cho cột hiện lại khi lẫn loại tiền; chủ dự án 03.10.2026 chọn cách của #83 (luôn ẩn). Vì
+vậy: bố cục lấy `layout.HIDDEN_IDENTITY` của #83; sáu bài bố cục đã sửa (AC-42.6, 42.7, 22.25, 22.26, 22.15, 22.18)
+trả về bản của #83, chạy với fixture `du_cot_dinh_danh` để vẫn kiểm cơ chế hai cột; AC-48.4 đổi nửa sau: dữ liệu lẫn
+loại tiền thì cột vẫn ẩn, chỉ không còn ghi "Tiền: ₫".
 
 ## 02.10.2026 — Ba chỗ sửa Báo cáo tổng hợp: bài kiểm mới và bài cũ đổi theo
 

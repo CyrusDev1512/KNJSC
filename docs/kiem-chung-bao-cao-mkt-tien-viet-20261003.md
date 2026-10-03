@@ -4,7 +4,7 @@
 |---|---|
 | Yêu cầu | Chủ quản: mọi số trong báo cáo nộp là tiền Việt; chủ dự án: Báo cáo tổng hợp hiện tại đổi sang VND, không tỉ giá, làm Marketing trước |
 | Quyết định | [ADR-047](quyet-dinh/047-bao-cao-mkt-tien-viet.md) |
-| Tiêu chí | AC-47.1 → 47.5 (mới); AC-38.2, 38.3, 46.5 đổi chữ |
+| Tiêu chí | AC-47.1 → 47.6, AC-42.15 (mới); AC-38.2, 38.3, 46.5 đổi chữ |
 | Nhánh | `claude/bao-cao-mkt-vnd` từ `Staging` `fd08cb3`, PR nháp về `Staging` |
 | Môi trường | Máy ảo Claude Code trên web: Python 3, PostgreSQL 16 cục bộ, Chromium Playwright có sẵn |
 
@@ -21,6 +21,15 @@
 | Ẩn Hóa đơn, Hóa đơn/DS Chốt (TT) | `test_bao_cao_mkt_khong_con_cot_hoa_don` | Đỏ trên mã trước, đạt sau: màn hình và Excel không còn hai cột; cột dữ liệu `hoa_don` giữ; 6 bài cũ nhắc hai cột viết lại |
 | Lỗi giật bảng ở mép phải (lộ ra khi bảng bớt hai cột) | `test_keo_ngang_khong_con_cot_bi_che` | Kéo tới gần mép phải: trình duyệt chỉ tới 569 khi đích là 570 → lần nhích sau tưởng kéo lùi, giật bảng về 551. Sửa `report-filters.js` (sai số 2 px). Ở đúng mép phải không nhích ngược nữa nên một cột có thể bị vùng đứng yên che một phần — bài kiểm chỉ nới điều kiện "không vắt" ở mép phải. Chạy 3 lần đều đạt |
 | Toàn bộ | `python -m pytest -m "not trinh_duyet and not cham"` | **2.861 đạt, 1 bỏ qua, 0 đỏ** (sau khi ẩn hai cột) |
+
+## Lượt 3 (03.10.2026) — ẩn Lần nộp / Loại tiền MKT, bảng vừa màn hình, bộ lọc cuộn riêng
+
+| Kiểm | Kết quả |
+|---|---|
+| `test_bao_cao_mkt_an_lan_nop_va_loai_tien` (AC-47.6) | Đỏ trước (khối toàn kỳ còn `tien`), đạt sau; Sale giữ hai cột. 12 bài cũ kiểm cơ chế Lần nộp / Loại tiền bằng dữ liệu MKT chạy với fixture `du_cot_dinh_danh` (hiện đủ cột) — cơ chế vẫn dùng cho Sale |
+| Bấm thật, CSDL nháp, `mkt.manager` | 1366×768: không còn h1; khung bảng từ 260 → 636 px (cao 376), đáy vùng nội dung 669 (đệm 32); trước đây khung 538 px nhưng mép dưới nằm ngoài màn hình. 1366×600: khung 350 px. Bảng dữ liệu `/bang/bao_cao_mkt/`: khung 518 px (nằm thấp → cao bằng vùng nội dung). Lăn trên bộ lọc: bộ lọc cuộn 400 px, trang và bảng 0. Toàn màn hình như cũ |
+| `test_bang_vua_man_hinh_va_bo_loc_cuon_rieng` (AC-42.15) | Đạt 3 lần liền |
+| Bài trình duyệt cũ | `test_lan_chuot_tren_bang_khong_ket` đổi cửa sổ thử 1000×760 → 1000×900 (tiền đề "bảng ngắn vừa khung dọc"); `test_keo_ngang…` dùng `du_cot_dinh_danh` |
 
 ## Chưa kiểm / để lại
 

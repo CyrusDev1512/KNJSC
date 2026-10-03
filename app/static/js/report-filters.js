@@ -12,6 +12,29 @@
   const filterToggle = document.getElementById('report-toggle-filters');
   const focusToggle = document.getElementById('report-toggle-focus');
   const giamChuyenDong = window.matchMedia('(prefers-reduced-motion: reduce)');
+  // Khung bảng vừa khít màn hình (chủ dự án 03.10.2026): cao tới đáy vùng nội dung `main.noi-dung` (sát thanh menu
+  // dưới đáy) tính từ chỗ khung đứng khi trang ở đầu; bộ lọc cao vừa vùng nội dung và cuộn riêng (CSS). Không đủ
+  // chỗ (khung nằm thấp) thì cao bằng cả vùng nội dung. Đo lại khi tải, đổi cỡ cửa sổ, thu/mở bộ lọc, đổi Gộp / Không gộp.
+  const vuaManHinh = () => {
+    const khung = document.querySelector('.report-table-scroll');
+    if (!khung) return;
+    const main = document.querySelector('main.noi-dung');
+    const vung = main ? main.getBoundingClientRect() : {top: 0, bottom: window.innerHeight};
+    const cuon = main ? main.scrollTop : window.scrollY;
+    const day = main ? parseFloat(getComputedStyle(main).paddingBottom) || 0 : 0;
+    const tren = khung.getBoundingClientRect().top - vung.top + cuon;
+    const cao = vung.bottom - vung.top;
+    // Hàng phân trang nằm ngay dưới khung, cuộn trang là thấy — không chừa chỗ để bảng được cao nhất; mép dưới
+    // khung (và thanh kéo ngang) luôn nằm trong vùng nhìn thấy
+    let vua = cao - tren - day;
+    // Khung nằm thấp (Bảng dữ liệu có phần thông tin, bộ lọc ngang ở trên; màn hình thấp): cuộn trang tới khung
+    // thì bảng cao bằng cả vùng nội dung, không co lại còn một mẩu
+    if (vua < 320) vua = cao - day - (main ? parseFloat(getComputedStyle(main).paddingTop) || 0 : 0);
+    root.style.setProperty('--report-fit', Math.max(240, Math.floor(vua)) + 'px');
+    root.style.setProperty('--report-panel-fit', Math.max(320, Math.floor(cao - 24)) + 'px');
+  };
+  vuaManHinh();
+  window.addEventListener('resize', vuaManHinh);
   // Dòng TỔNG CỘNG (mỗi loại tiền một dòng, ADR-046) dính ngay dưới hàng tiêu đề của chính bảng đó, dòng thứ i
   // lùi thêm i × --total-h. Mỗi bảng tự đo và đo lại mỗi khi bảng đổi cỡ — khung giãn 0,2 s sau Toàn màn hình
   // hay thu bộ lọc, phông tải muộn — chứ không chỉ khi đổi cỡ cửa sổ (TL-69). Chạy cho mọi bảng báo cáo trên
@@ -161,6 +184,7 @@
       root.classList.toggle('sp-erp-table-focus', state.focus);
       focusToggle.setAttribute('aria-pressed', String(state.focus));
       focusToggle.textContent = state.focus ? 'Thoát toàn màn hình' : 'Toàn màn hình';
+      vuaManHinh();
     };
     const setFilters = value => { state.filters = value; persist(); render(); };
     const setFocus = value => {
@@ -271,6 +295,7 @@
       const chips = document.getElementById('report-chips');
       const chipsMoi = moi.querySelector('#report-chips');
       if (chips && chipsMoi) chips.replaceWith(chipsMoi);
+      vuaManHinh();   // hàng chip có thể đổi chiều cao
       chepThuocTinh(document.getElementById('report-xuat'), moi.querySelector('#report-xuat'), 'href');
       chepThuocTinh(view.querySelector('#report-nguong input[name=next]'), moi.querySelector('#report-nguong input[name=next]'), 'value');
       chepThuocTinh(workspace, moi.querySelector('#report-workspace'), 'data-active');

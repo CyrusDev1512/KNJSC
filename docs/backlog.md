@@ -11,9 +11,10 @@ Tiền vẫn là VND (ADR-047), làm Marketing trước, DS Chốt (TT) chờ KN
 - **Thẻ "Xem trước chỉ số" giữ chữ VND:** đơn vị lấy qua `data-tien`.
 - **Bộ lọc nguồn MKT:** Báo cáo tổng hợp, Bảng dữ liệu, Excel không còn lọc Sản phẩm/Thị trường/Tệp; URL cũ có `sp`,
   `thi_truong`, `tep` vẫn mở được, tham số bị bỏ qua (`screen.parameters`, `NO_DIMENSION_FILTER_KINDS`).
-- **Bảng MKT toàn VND không có cột Loại tiền:** "Tiền: ₫" ở hàng tiêu đề; có dòng lẫn loại tiền thì cột hiện lại.
+- **Đơn vị tiền ghi một lần:** "Tiền: ₫" ở hàng tiêu đề khi mọi dòng VND. Cột Loại tiền (và Lần nộp) MKT ẩn theo
+  #83 (AC-47.6); phương án "hiện lại cột khi lẫn loại tiền" bỏ — chủ dự án 03.10 chọn luôn ẩn như #83.
 - **Thống kê CRM:** nguồn MKT bỏ biểu đồ theo sản phẩm, Sale giữ.
-- 6 bài mới đỏ trên nền rồi xanh; 14 bài cũ sửa theo luật mới (12 phía máy chủ, 2 trình duyệt). [Biên bản](kiem-chung-mkt-bo-bon-o-20261003.md).
+- 6 bài mới đỏ trên nền rồi xanh; 8 bài cũ sửa theo luật mới (6 phía máy chủ, 2 trình duyệt). [Biên bản](kiem-chung-mkt-bo-bon-o-20261003.md).
 
 Nhánh `claude/mkt-bo-bon-o` tách từ `claude/bao-cao-mkt-vnd` (PR #83, chưa gộp), PR nháp về `Staging`: **gộp #83
 trước**. Không migration mới, không thư viện mới.
@@ -35,6 +36,8 @@ làm Marketing trước (duyệt mockup Cách A).
 - Báo cáo tổng hợp MKT: một dòng TỔNG CỘNG · VND; Số đơn (TT) vẫn đối soát; **DS Chốt (TT) trống** vì vận đơn bằng
   ngoại tệ và không có tỉ giá được duyệt.
 - Ẩn hai cột Hóa đơn và Hóa đơn/DS Chốt (TT) khỏi báo cáo MKT; cột dữ liệu giữ (AC-47.5).
+- Ẩn cột Lần nộp và Loại tiền của báo cáo MKT (AC-47.6); bỏ đầu trang Báo cáo tổng hợp, khung bảng kéo tới sát đáy,
+  bộ lọc cuộn riêng (AC-42.15, ADR-042 bổ sung 03.10).
 - 18 bài cũ viết lại theo luật mới. [Biên bản](kiem-chung-bao-cao-mkt-tien-viet-20261003.md).
 
 Nhánh `claude/bao-cao-mkt-vnd` từ `Staging`, PR nháp về `Staging`.
