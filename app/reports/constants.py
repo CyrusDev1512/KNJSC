@@ -27,6 +27,11 @@ TEAM_COLUMN_LABEL = "Team"
 #: Giá trị lọc "chưa có" cho Thị trường / Tệp khách hàng (`__missing__` trên URL)
 MISSING_FILTER = "__missing__"
 
+#: Loại nguồn báo cáo không còn lọc theo Sản phẩm / Thị trường / Tệp khách hàng: form Marketing đã bỏ ba ô này
+#: (ADR-048, chủ dự án 03.10.2026) nên báo cáo mới không mang chúng, lọc vào là mất hết báo cáo mới. Báo cáo tổng
+#: hợp, Bảng dữ liệu và tệp Excel của nguồn này không hiện ba bộ lọc và bỏ qua tham số `sp`, `thi_truong`, `tep`.
+NO_DIMENSION_FILTER_KINDS = ("mkt",)
+
 # ── Tô màu Báo cáo tổng hợp (AC-22.16, chủ dự án 19.09 theo ảnh mẫu) ──────────
 #
 # Khoá theo **mã chỉ tiêu** của `activity_service.FORMULAS` (ADR-042, cùng khoá với ngưỡng

@@ -95,6 +95,8 @@ def bao_cao_ngay(request):
         "loi": loi,
         # Thẻ "Xem trước chỉ số" (AC-43.6): mỗi cột tính sẵn một thẻ, kèm đơn vị
         "cac_cot_tinh": daily_service.preview_columns(bm.table) if bm else [],
+        # Hậu tố tiền của thẻ khi form không có ô Loại tiền (MKT luôn VND, ADR-047/048)
+        "tien_co_dinh": daily_service.fixed_currency(bm),
     })
 
 

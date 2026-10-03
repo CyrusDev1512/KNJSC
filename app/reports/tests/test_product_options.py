@@ -24,7 +24,12 @@ def test_add_product_using_rendered_report_endpoint(client, bang_mkt, nguoi_dung
     client.force_login(nguoi_dung[role])
     page = client.get('/bao-cao/', {'bieu_mau':f'bc_{kind}_ngay'})
     assert page.status_code == 200
-    url = re.search(r'hx-post="([^"]+/cot/san_pham/lua-chon/)"', page.content.decode()).group(1)
+    found = re.search(r'hx-post="([^"]+/cot/san_pham/lua-chon/)"', page.content.decode())
+    if kind == 'mkt':
+        # Form Marketing không còn ô Sản phẩm (ADR-048, AC-48.1) nên không có đường thêm sản phẩm từ form này
+        assert found is None
+        return
+    url = found.group(1)
     response = client.post(url, {'nhan_moi':'Sản phẩm mẫu báo cáo'}, HTTP_HX_REQUEST='true')
     assert response.status_code == 200
     assert Product.objects.filter(name='Sản phẩm mẫu báo cáo').count() == 1

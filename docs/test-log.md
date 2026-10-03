@@ -1,5 +1,35 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 03.10.2026 — Form báo cáo Marketing bỏ bốn ô: bài kiểm mới và bài cũ đổi theo
+
+Không có lỗi TL mới; việc theo quyết định của chủ dự án (ADR-048). Số đo ở
+[biên bản](kiem-chung-mkt-bo-bon-o-20261003.md).
+
+**Bài mới, chạy đỏ trên mã nền (`claude/bao-cao-mkt-vnd` `5e96bb7`) trước khi sửa:**
+
+| AC | Bài | Đỏ trên mã nền vì |
+|---|---|---|
+| AC-48.1 | `reports/tests/test_mkt_bo_bon_o.py::test_form_mkt_bo_bon_o_sale_giu_nguyen` | form MKT còn đủ bốn ô |
+| AC-48.2 | `…::test_nop_va_sua_mkt_khong_can_thi_truong` | lệnh cấu hình không gỡ cờ bắt buộc cấp cột |
+| AC-48.3 | `…::test_bo_loc_mkt_an_va_tham_so_cu_bi_bo_qua` | URL cũ `thi_truong=Klingon` trả 400 |
+| AC-48.4 | `…::test_bang_mkt_toan_vnd_khong_cot_loai_tien` | kết quả chưa có `fixed_currency`, bảng còn cột Loại tiền |
+| AC-48.5 | `reports/tests/test_o_nhap_so_e2e.py::test_form_mkt_khong_bon_o_van_hien_vnd_va_nop_duoc` (trình duyệt) | form còn ô Sản phẩm |
+| AC-48.6 | `crm/tests/test_thong_ke_mkt_bo_san_pham.py` | Thống kê MKT còn biểu đồ "Đóng góp theo sản phẩm" |
+| AC-48.7 | `…::test_form_sale_bo_ngay_ra_don` (thêm sau, khi chủ dự án bảo bỏ Ngày ra đơn của Sale) | form Sale còn ô Ngày ra đơn |
+
+**Bài cũ đổi theo hành vi mới (6 bài phía máy chủ, 2 bài trình duyệt):**
+- Form và bộ lọc: AC-43.2 (bộ ô bắt buộc MKT; kiểm Sản phẩm, Thị trường chuyển sang form Sale), AC-38.4 (Tệp khách
+  hàng rời form, màn bỏ qua `tep`), AC-42.11 (lọc nhiều sản phẩm: tầng dịch vụ trên nguồn MKT, giao diện trên nguồn
+  Sale), AC-47.2 (form không còn ô Loại tiền), `test_product_options.py` ca MKT (form không còn đường thêm sản
+  phẩm), AC-22.24 (không còn biến thể "lọc theo Tệp khách hàng").
+- Trình duyệt: AC-46.10 và AC-43.6 trong `test_o_nhap_so_e2e.py` thôi chọn Thị trường, Sản phẩm.
+
+**Gộp bản mới của PR #83 (`af927c4`, AC-47.6: MKT luôn ẩn cột Lần nộp, Loại tiền).** Nhánh này lúc đầu tự bỏ cột Loại
+tiền khi mọi dòng VND và cho cột hiện lại khi lẫn loại tiền; chủ dự án 03.10.2026 chọn cách của #83 (luôn ẩn). Vì
+vậy: bố cục lấy `layout.HIDDEN_IDENTITY` của #83; sáu bài bố cục đã sửa (AC-42.6, 42.7, 22.25, 22.26, 22.15, 22.18)
+trả về bản của #83, chạy với fixture `du_cot_dinh_danh` để vẫn kiểm cơ chế hai cột; AC-48.4 đổi nửa sau: dữ liệu lẫn
+loại tiền thì cột vẫn ẩn, chỉ không còn ghi "Tiền: ₫".
+
 ## 02.10.2026 — Ba chỗ sửa Báo cáo tổng hợp: bài kiểm mới và bài cũ đổi theo
 
 Không có lỗi TL mới; ba chỗ sửa hiển thị chủ dự án duyệt qua mockup. Số đo ở

@@ -90,19 +90,20 @@ def test_admin_chon_team_tren_form_nhap(client, bang_mkt, mkt_source, department
 
 
 def test_bon_truong_bat_buoc(client, bang_mkt, mkt_source, nguoi_dung):
-    """AC-43.2 — Sau `configure_erp_reports`, form MKT bắt buộc Số Mess, CPQC, Số đơn, Doanh số (cùng Ngày,
-    Sản phẩm, Thị trường) và form Sale bắt buộc Số Mess, Số đơn, Doanh số; nộp thiếu CPQC bị từ chối nêu tên
-    trường và không tạo dòng; "0" là giá trị hợp lệ; các ô đó mang thuộc tính `required`, ô hệ thống và ô
-    không bắt buộc thì không"""
+    """AC-43.2 — Sau `configure_erp_reports`, form MKT bắt buộc Số Mess, CPQC, Số đơn, Doanh số (cùng Ngày; Sản
+    phẩm, Thị trường đã rời form MKT — ADR-048) và form Sale bắt buộc Số Mess, Số đơn, Doanh số cùng Sản phẩm, Thị
+    trường; nộp thiếu CPQC bị từ chối nêu tên trường và không tạo dòng; "0" là giá trị hợp lệ; các ô đó mang thuộc
+    tính `required`, ô hệ thống và ô không bắt buộc thì không"""
     form = mkt_source.table.forms.get()
     bat_buoc = {f.link.column.code for f in form.ordered_fields() if f.required and getattr(f, "link", None)}
-    assert {"so_mess", "cpqc", "so_don", "doanh_so", "ngay", "san_pham", "thi_truong"} <= bat_buoc
-    assert "tep_khach_hang" not in bat_buoc and "cpqc" in REQUIRED_INPUTS
+    assert {"so_mess", "cpqc", "so_don", "doanh_so", "ngay"} <= bat_buoc
+    assert not {"san_pham", "thi_truong", "tep_khach_hang"} & bat_buoc and "cpqc" in REQUIRED_INPUTS
     # Form Sale do lệnh dựng: ba trường số (không có CPQC)
     call_command("configure_erp_reports")
     sale = FormDef.objects.get(code="bc_sale_ngay")
     bat_buoc_sale = {f.link.column.code for f in sale.ordered_fields() if f.required and getattr(f, "link", None)}
-    assert {"so_mess", "so_don", "doanh_so"} <= bat_buoc_sale and "ngay_ra_don" not in bat_buoc_sale
+    assert {"so_mess", "so_don", "doanh_so"} <= bat_buoc_sale
+    assert "ngay_ra_don" not in {f.link.column.code for f in sale.ordered_fields() if getattr(f, "link", None)}  # ADR-048
     # Trường đã có từ trước với required=False cũng bị ép bắt buộc khi chạy lại
     FormField.objects.filter(form=form, link__column__code="so_don").update(required=False)
     configure_source(bang_mkt, "mkt")
@@ -111,10 +112,8 @@ def test_bon_truong_bat_buoc(client, bang_mkt, mkt_source, nguoi_dung):
     html = client.get("/bao-cao/", {"bieu_mau": form.code}).content.decode()
     for ma in ("so_mess", "cpqc", "so_don", "doanh_so"):
         assert re.search(rf'name="[a-z0-9_]*{ma}"[^>]*\srequired', html), ma
-    # Sản phẩm: ô chọn hay ô chữ tuỳ kiểu cột của bảng, đều mang required; Thị trường luôn là ô chọn chặt
-    assert re.search(r'name="[a-z0-9_]*san_pham"[^>]*\srequired', html)
-    assert re.search(r'<select class="o-nhap" name="[a-z0-9_]*thi_truong"[^>]*\srequired', html)
-    assert not re.search(r'name="[a-z0-9_]*tep_khach_hang"[^>]*\srequired', html)
+    # Form MKT không còn Sản phẩm, Thị trường, Tệp khách hàng (ADR-048)
+    assert not re.search(r'name="[a-z0-9_]*(san_pham|thi_truong|tep_khach_hang)"', html)
     assert 'name="marketer"' not in html and not re.search(r'readonly[^>]*\srequired', html)
     # Thiếu CPQC → từ chối, nêu tên trường, không tạo dòng
     thieu = _du(form)
@@ -125,6 +124,12 @@ def test_bon_truong_bat_buoc(client, bang_mkt, mkt_source, nguoi_dung):
     # "0" hợp lệ
     assert client.post("/bao-cao/", _du(form, cpqc="0", so_don="0", doanh_so="0")).status_code == 302
     assert DailyReport.objects.count() == 1
+    # Form Sale giữ Sản phẩm (ô chọn hay ô chữ tuỳ kiểu cột của bảng, đều mang required) và Thị trường (ô chọn chặt)
+    assert {"san_pham", "thi_truong"} <= bat_buoc_sale
+    client.force_login(nguoi_dung["staff_sale_1"])
+    html_sale = client.get("/bao-cao/", {"bieu_mau": sale.code}).content.decode()
+    assert re.search(r'name="[a-z0-9_]*san_pham"[^>]*\srequired', html_sale)
+    assert re.search(r'<select class="o-nhap" name="[a-z0-9_]*thi_truong"[^>]*\srequired', html_sale)
 
 
 def test_hoa_don_khong_con_tren_form_nhap(client, bang_mkt, nguoi_dung):

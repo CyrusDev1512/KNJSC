@@ -165,21 +165,42 @@ def test_migration_0005_xuoi_nguoc():
 
 
 def test_loc_nhieu_san_pham_va_url_cu(client, bang_mkt, mkt_source, van_don, nguoi_dung):
-    """AC-42.11 — `sp` lặp lại lọc nhiều sản phẩm: tổng và phần đối soát (TT) theo đúng các sản phẩm
-    đã chọn; URL cũ một sản phẩm vẫn đúng; danh sách tick chỉ có sản phẩm trong phạm vi quyền; chip
-    "N sản phẩm"; phụ đề Excel ghi danh sách; nguồn không có sản phẩm nào thì báo"""
+    """AC-42.11 — Lọc nhiều sản phẩm: tầng dịch vụ nhận nhiều sản phẩm — tổng và phần đối soát (TT) theo đúng các
+    sản phẩm đã chọn, một sản phẩm (URL cũ) vẫn đúng, cách xem theo sản phẩm chỉ còn các mục đã chọn; màn Báo cáo
+    tổng hợp nguồn Sale: `sp` lặp lại lọc nhiều sản phẩm, URL cũ một sản phẩm vẫn đúng, danh sách tick chỉ có sản
+    phẩm trong phạm vi quyền, chip "N sản phẩm", phụ đề Excel ghi danh sách. Nguồn Marketing không còn bộ lọc Sản
+    phẩm (ADR-048, AC-48.3)"""
     A, B = van_don["A"], van_don["B"]
     _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10)
     _bao_cao(bang_mkt, A, "2026-08-01", "SP2", mess=20)
     _bao_cao(bang_mkt, B, "2026-08-01", "SP3", mess=40)
+    ky = dict(start=date(2026, 8, 1), end=date(2026, 8, 1))
+
+    def theo_nguoi(**loc):
+        result = activity_service.build(B, mkt_source, group="person", **ky, **loc)
+        nhan = [c.label for c in result.columns]
+        dong = {}
+        for item in result.rows:
+            nhom, raw = aggregations.row_values(item, result)
+            dong[aggregations.format_group(nhom, result)] = dict(zip(nhan, raw))
+        return result, dong
+
+    # Tầng dịch vụ: hai sản phẩm → tổng và (TT) theo đúng hai sản phẩm (A: w1 SP1 + w2 SP2)
+    result, dong = theo_nguoi(product=["SP1", "SP2"])
+    assert result.totals["c_so_mess"] == 30 and dong[employee_code(A)]["Số đơn (TT)"] == 2
+    # Một sản phẩm (URL cũ)
+    result, dong = theo_nguoi(product="SP1")
+    assert result.totals["c_so_mess"] == 10 and dong[employee_code(A)]["Số đơn (TT)"] == 1
+    # Cách xem theo sản phẩm với hai mục
+    rows = activity_service.build(B, mkt_source, group="product", product=["SP1", "SP3"], **ky).rows
+    assert {row["nhom"] for row in rows} == {"SP1", "SP3"}
+
+    # Màn Báo cáo tổng hợp: bộ lọc Sản phẩm nay chỉ còn ở nguồn Sale (nguồn Marketing bỏ — ADR-048)
+    ReportSource.objects.filter(pk=mkt_source.pk).update(kind="sale")
     client.force_login(B)
     query = {"nguon": bang_mkt.code, "tu": "2026-08-01", "den": "2026-08-01"}
     r = client.get("/bao-cao/tong-hop/", {**query, "sp": ["SP1", "SP2"]})
     assert r.status_code == 200 and r.context["result"].totals["c_so_mess"] == 30
-    cot = [c.label for c in r.context["result"].columns]
-    # Khối toàn kỳ: A nộp hai lần trong ngày (SP1, SP2) nên (TT) cộng ở dòng toàn kỳ của A, không ở từng lần nộp
-    a = next(row for row in r.context["blocks"][0]["rows"] if row["person"] == employee_code(A))
-    assert a["cells"][cot.index("Số đơn (TT)")] == "2"   # w1 SP1 + w2 SP2
     assert {c["label"]: c["value"] for c in r.context["chips"]}["Sản phẩm"] == "SP1, SP2"
     assert [p["value"] for p in r.context["products"]] == ["SP1", "SP2", "SP3"]
     html = r.content.decode()
@@ -187,8 +208,6 @@ def test_loc_nhieu_san_pham_va_url_cu(client, bang_mkt, mkt_source, van_don, ngu
     # URL cũ một sản phẩm
     r1 = client.get("/bao-cao/tong-hop/", {**query, "sp": "SP1"})
     assert r1.context["result"].totals["c_so_mess"] == 10
-    a1 = next(row for row in r1.context["rows"] if row["kind"] == "row")
-    assert a1["cells"][cot.index("Số đơn (TT)")] == "1"
     assert {c["label"]: c["value"] for c in r1.context["chips"]}["Sản phẩm"] == "SP1"
     # Ba sản phẩm → chip đếm; phụ đề Excel ghi danh sách
     r3 = client.get("/bao-cao/tong-hop/", {**query, "sp": ["SP1", "SP2", "SP3"]})
@@ -198,6 +217,3 @@ def test_loc_nhieu_san_pham_va_url_cu(client, bang_mkt, mkt_source, van_don, ngu
     # Staff A chỉ thấy sản phẩm của mình trong danh sách tick
     client.force_login(A)
     assert [p["value"] for p in client.get("/bao-cao/tong-hop/", query).context["products"]] == ["SP1", "SP2"]
-    # Cách xem theo sản phẩm với hai mục
-    rows = activity_service.build(B, mkt_source, group="product", product=["SP1", "SP3"], start=date(2026, 8, 1), end=date(2026, 8, 1)).rows
-    assert {row["nhom"] for row in rows} == {"SP1", "SP3"}

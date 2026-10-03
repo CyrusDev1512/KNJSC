@@ -83,6 +83,7 @@ class ActivityResult(aggregations.SummaryResult):
     currency_warning: str = ''
     mode: str = DEFAULT_MODE    # chế độ số liệu của cách xem Tổng hợp (ADR-046)
     source_kind: str = ''       # loại nguồn — `layout.HIDDEN_IDENTITY` ẩn cột định danh theo nó (ADR-047)
+    fixed_currency: str = ''    # mọi dòng đúng loại tiền cố định của nguồn (MKT: VND) → "Tiền: ₫" ở hàng tiêu đề (ADR-048)
 
 
 @dataclass(frozen=True)
@@ -403,7 +404,7 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
         # không chia được cho từng lần nộp → các dòng đó để trống, TỔNG CỘNG ngày vẫn cộng một lần (G6)
         result = replace(result, derived_shared=_shared_keys(result, qs, source, tien if tt_theo_tien else None))
     if result.ok:
-        result = currency_note(result)
+        result = fixed_currency(currency_note(result), source)
     result = with_person_team(result, source, group)
     return _as_activity(result, mode=mode if group == "day" else DEFAULT_MODE, source_kind=source.kind)
 
@@ -525,6 +526,20 @@ def currency_note(result):
                    "không vào loại tiền nào. Sửa báo cáo đó (chọn Thị trường) để hệ thống tự điền "
                    "loại tiền.")
     return _as_activity(result, currency_label=label, currency_warning=warning)
+
+
+def fixed_currency(result, source):
+    """Nguồn nộp bằng một loại tiền cố định (MKT: VND, ADR-047) mà mọi dòng đúng loại đó: đơn vị ghi một lần trên màn
+    hình — `fixed_currency` mang mã tiền cho chữ "Tiền: ₫" ở hàng tiêu đề, câu loại tiền thành "Mọi số tiền là …"
+    (ADR-048). Cột Loại tiền của báo cáo MKT thì luôn ẩn theo `layout.HIDDEN_IDENTITY` (ADR-047 bổ sung; chủ dự án
+    03.10.2026 chọn ẩn cả khi dữ liệu lỡ lẫn loại tiền). Có dòng mang loại tiền khác thì không ghi "Tiền: ₫"."""
+    co_dinh = REPORT_CURRENCY.get(source.kind)
+    if not co_dinh or not result.currency_key:
+        return result
+    if any((s.get(result.currency_key) or "") != co_dinh for s in result.currency_sums):
+        return result
+    don_vi = "tiền Việt (₫)" if co_dinh == "VND" else co_dinh
+    return _as_activity(result, fixed_currency=co_dinh, currency_label=f"Mọi số tiền là {don_vi}, không quy đổi.")
 
 
 def delivery(qs, source, group, product):

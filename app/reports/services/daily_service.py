@@ -161,6 +161,14 @@ def can_restore(user, report_or_none=None):
 PREVIEW_MONEY, PREVIEW_PERCENT = "tien", "phan-tram"
 
 
+def fixed_currency(form):
+    """Loại tiền cố định của biểu mẫu báo cáo (MKT: VND, ADR-047) — hậu tố thẻ "Xem trước chỉ số" khi form không còn
+    ô Loại tiền (ADR-048); nguồn tiền theo Thị trường (Sale) hay biểu mẫu không có nguồn thì trống."""
+    from orders.services.currency_service import REPORT_CURRENCY
+    source = getattr(form.table, "erp_report", None) if form is not None else None
+    return REPORT_CURRENCY.get(source.kind, "") if source is not None else ""
+
+
 def preview_columns(table):
     """Cột tính sẵn của bảng cho thẻ "Xem trước chỉ số" của form Nộp báo cáo (khách hàng yêu cầu, chủ dự án chốt
     02.10.2026): danh sách `(cột, đơn vị, số lẻ hiện)`. Một lệnh đọc mọi cột rồi suy đơn vị từ kiểu hai cột của
@@ -324,16 +332,20 @@ def submit(form, values, *, report_date, actor, request=None, fields=None, team=
     if source is not None and source.kind in ("sale", "mkt"):
         from forms_builder.meaning import Meaning
         from orders.constants import Market
+        from orders.services.currency_service import REPORT_CURRENCY
 
         fields = fields if fields is not None else list(form.ordered_fields())
         linked = {f.link.column.code: (f, values.get(f.field.code, ""))
                   for f in fields if getattr(f, "link", None)}
-        selected = linked.get(source.columns["market"])
-        if selected is None or selected[1] not in Market.labels:
-            raise BusinessError("Hãy chọn thị trường trong danh mục quốc gia.")
+        if source.kind not in REPORT_CURRENCY:
+            # Thị trường quyết định loại tiền nên bắt buộc (Sale, ADR-031); báo cáo MKT nộp bằng tiền Việt và form
+            # không còn ô Thị trường (ADR-047, ADR-048)
+            selected = linked.get(source.columns["market"])
+            if selected is None or selected[1] not in Market.labels:
+                raise BusinessError("Hãy chọn thị trường trong danh mục quốc gia.")
         for field, value in linked.values():
             if field.link.column.meaning == Meaning.DATE and str(value) != report_date.isoformat():
-                raise BusinessError("Ngày trong biểu mẫu phải trùng ngày báo cáo; Ngày ra đơn là thông tin riêng.")
+                raise BusinessError("Ngày trong biểu mẫu phải trùng ngày báo cáo.")
 
     # Cùng một đường với màn hình điền biểu mẫu: ép danh tính người nộp vào
     # trường Người bán (FR-4.6), kiểm bắt buộc, rồi ghi vào bảng đích
