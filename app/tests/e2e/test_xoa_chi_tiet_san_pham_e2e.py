@@ -121,6 +121,23 @@ def _cho_luu(trang):
                             timeout=8_000)
 
 
+def _cho_db(trang, dong, dat, han=8.0):
+    """Chờ tới khi dòng trong DB thoả `dat`.
+
+    Không dựa vào chữ "Đã lưu": ngay sau khi bấm nút trong hộp hỏi, lượt lưu chưa bắt đầu nên thanh trạng
+    thái vẫn còn "Đã lưu" của lần trước — đọc DB lúc đó là đọc sớm (CI 02.10.2026, chập chờn 1/3 lượt).
+    Nghỉ bằng `wait_for_timeout`, không `time.sleep`: Playwright bản đồng bộ chỉ chạy trình xử lý sự kiện
+    (ở đây là bấm OK hộp xác nhận quốc gia) khi Python đang gọi vào nó.
+    """
+    import time
+    het = time.monotonic() + han
+    while True:
+        dong.refresh_from_db()
+        if dat(dong) or time.monotonic() > het:
+            return
+        trang.wait_for_timeout(100)
+
+
 def test_delete_roi_enter_hay_esc_khong_mat_gi(live_server, trang, dang_nhap, kn_crm, setup,  # noqa: F811
                                                nguoi_dung):
     """AC-36.9 — Người dùng ấn Delete rồi Enter theo thói quen, hay Esc, hay bấm ×: con trỏ đứng ở Huỷ nên
@@ -160,14 +177,14 @@ def test_chi_xoa_o_thuong_va_ctrl_z(live_server, trang, dang_nhap, kn_crm, setup
     trang.keyboard.press("Delete")
     trang.wait_for_selector("#mg-bo-chi-tiet[open]", timeout=5_000)
     trang.click("#mg-bo-chi-tiet [data-choice='normal']")
+    _cho_db(trang, dong, lambda d: d.data.get("dia_chi") in (None, ""))
     _cho_luu(trang)
-    dong.refresh_from_db()
     assert _con(dong) == 2 and dong.data.get("dia_chi") in (None, "") and dong.data["san_pham"]
     trang.keyboard.press("Control+z")
     trang.wait_for_function(f"""() => document.querySelector("{_o(dong, 'dia_chi')}")?.textContent
         .includes('12 Phố Thử')""", timeout=8_000)
+    _cho_db(trang, dong, lambda d: d.data.get("dia_chi") == "12 Phố Thử")
     _cho_luu(trang)
-    dong.refresh_from_db()
     assert dong.data.get("dia_chi") == "12 Phố Thử" and _con(dong) == 2
     assert not loi_js, loi_js
 
