@@ -8,7 +8,6 @@ import pytest
 
 from core.money import parse_money
 from forms_builder.models import DataRecord
-from orders.models import Product
 from reports.models import DailyReport
 from reports.tests.test_aggregations import bang_mkt  # noqa: F401
 from reports.tests.test_bo_cuc_bao_cao_e2e import _mo, trinh_duyet_moi  # noqa: F401
@@ -33,7 +32,6 @@ def test_o_so_tu_chen_dau_cham_va_may_chu_nhan_dung(live_server, trinh_duyet_moi
     luật `parse_money` — "8000.50" thành "8.000,5" chứ không thành 800.050 (dấu chấm tự chèn trước đó bị bỏ khi
     người dùng tự gõ dấu); gõ kiểu Việt Nam "13.250.000" giữ đúng số; gõ thêm vào phần lẻ không gộp vào phần nguyên; dán "13 250 000" thành "13.250.000";
     ô số nguyên không có phần lẻ; nộp thật thì máy chủ lưu đúng 13250000, không quy đổi"""
-    Product.objects.get_or_create(code="sp1", defaults={"name": "SP1"})
     form = mkt_source.table.forms.get()
     ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["staff_mkt"], 1280, 900, f"/bao-cao/?bieu_mau={form.code}")
     try:
@@ -90,18 +88,13 @@ def test_o_so_tu_chen_dau_cham_va_may_chu_nhan_dung(live_server, trinh_duyet_moi
             page.click(_o(form, ma))
             page.keyboard.type(gia_tri)
         assert page.input_value(_o(form, "doanh_so")) == "25.000.000"
-        page.select_option(_o(form, "thi_truong"), "Canada")
-        san_pham = _o(form, "san_pham")
-        if page.evaluate(f"document.querySelector('{san_pham}').tagName") == "SELECT":
-            page.select_option(san_pham, "SP1")
-        else:
-            page.fill(san_pham, "SP1")
+        # Form MKT không còn Thị trường, Sản phẩm (ADR-048): nộp chỉ với các ô số
         with page.expect_navigation():
             page.click('button[form="bm-bao-cao"]')
         bao_cao = DailyReport.objects.get()
         du_lieu = DataRecord.objects.get(pk=bao_cao.record_id).data
         assert Decimal(str(du_lieu["cpqc"])) == Decimal("13250000") and du_lieu["so_mess"] == 1234
-        assert Decimal(str(du_lieu["doanh_so"])) == Decimal("25000000") and du_lieu["loai_tien"] == "CAD"
+        assert Decimal(str(du_lieu["doanh_so"])) == Decimal("25000000") and du_lieu["loai_tien"] == "VND"
     finally:
         ctx.close()
 
@@ -109,11 +102,10 @@ def test_o_so_tu_chen_dau_cham_va_may_chu_nhan_dung(live_server, trinh_duyet_moi
 
 def test_xem_truoc_chi_so_khi_go(live_server, trinh_duyet_moi, du_chi_so, mkt_source, nguoi_dung):
     """AC-43.6 — Gõ Số Mess 120, CPQC 13.250.000, Số đơn 8, Doanh số 24.000.000 thì thẻ xem trước hiện ngay CPO
-    "1.656.250 CAD", Giá Mess "110.416,67 CAD" (hai số lẻ như Báo cáo tổng hợp), CPQC/Doanh số "0,5521", AOV
-    "3.000.000 CAD", Tỉ lệ chốt "6,67 %"; xoá Số đơn thì CPO, AOV về "—"; Số đơn 0 thì báo chia cho 0; đổi Thị
-    trường Hoa Kỳ thì hậu tố USD; thẻ có ô vừa sửa sáng viền; nộp thật thì máy chủ lưu đúng số đã xem trước;
-    không lỗi JavaScript"""
-    Product.objects.get_or_create(code="sp1", defaults={"name": "SP1"})
+    "1.656.250 VND", Giá Mess "110.416,67 VND" (hai số lẻ như Báo cáo tổng hợp), CPQC/Doanh số "0,5521", AOV
+    "3.000.000 VND", Tỉ lệ chốt "6,67 %"; xoá Số đơn thì CPO, AOV về "—"; Số đơn 0 thì báo chia cho 0; hậu tố là
+    VND dù form MKT không còn ô Loại tiền (báo cáo MKT bằng tiền Việt, ADR-047, ADR-048); thẻ có ô vừa sửa sáng viền;
+    nộp thật thì máy chủ lưu đúng số đã xem trước; không lỗi JavaScript"""
     form = mkt_source.table.forms.get()
     ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["staff_mkt"], 1280, 900, f"/bao-cao/?bieu_mau={form.code}")
     loi = []
@@ -124,31 +116,26 @@ def test_xem_truoc_chi_so_khi_go(live_server, trinh_duyet_moi, du_chi_so, mkt_so
 
     try:
         assert the("cpo").startswith("—")
-        page.select_option(_o(form, "thi_truong"), "Canada")
         for ma, gia_tri in (("so_mess", "120"), ("cpqc", "13250000"), ("so_don", "8"), ("doanh_so", "24000000")):
             page.click(_o(form, ma))
             page.keyboard.type(gia_tri)
-        assert the("cpo") == "1.656.250 CAD"
-        assert the("gia_mess") == "110.416,67 CAD"
+        assert the("cpo") == "1.656.250 VND"
+        assert the("gia_mess") == "110.416,67 VND"
         assert the("cpqc_doanh_so") == "0,5521"
-        assert the("aov") == "3.000.000 CAD"
+        assert the("aov") == "3.000.000 VND"
         assert the("ti_le_chot") == "6,67 %"
         assert "vua" in page.get_attribute('.cs[data-ma="aov"]', "class")       # vừa gõ Doanh số
         assert "vua" not in page.get_attribute('.cs[data-ma="ti_le_chot"]', "class")
         page.fill(_o(form, "so_don"), "")
         page.dispatch_event(_o(form, "so_don"), "input")
-        assert the("cpo").startswith("—") and the("aov").startswith("—") and the("gia_mess") == "110.416,67 CAD"
+        assert the("cpo").startswith("—") and the("aov").startswith("—") and the("gia_mess") == "110.416,67 VND"
         page.click(_o(form, "so_don"))
         page.keyboard.type("0")
         assert "chia cho 0" in the("cpo")
         page.fill(_o(form, "so_don"), "")
         page.click(_o(form, "so_don"))
         page.keyboard.type("8")
-        page.select_option(_o(form, "thi_truong"), "Hoa Kỳ")
-        assert the("cpo") == "1.656.250 USD"
-        page.select_option(_o(form, "thi_truong"), "Canada")
-        page.select_option(_o(form, "san_pham"), "SP1") if page.evaluate(
-            f"document.querySelector('{_o(form, 'san_pham')}').tagName") == "SELECT" else page.fill(_o(form, "san_pham"), "SP1")
+        assert the("cpo") == "1.656.250 VND"
         with page.expect_navigation():
             page.click('button[form="bm-bao-cao"]')
         du_lieu = DataRecord.objects.get(pk=DailyReport.objects.get().record_id).data
@@ -156,6 +143,32 @@ def test_xem_truoc_chi_so_khi_go(live_server, trinh_duyet_moi, du_chi_so, mkt_so
         luu = {ma: Decimal(str(du_lieu[ma])) for ma in ("cpo", "gia_mess", "cpqc_doanh_so", "aov", "ti_le_chot")}
         assert luu == {"cpo": Decimal("1656250"), "gia_mess": Decimal("110416.6667"),
                        "cpqc_doanh_so": Decimal("0.5521"), "aov": Decimal("3000000"), "ti_le_chot": Decimal("6.67")}
+        assert loi == []
+    finally:
+        ctx.close()
+
+
+def test_form_mkt_khong_bon_o_van_hien_vnd_va_nop_duoc(live_server, trinh_duyet_moi, bang_mkt, mkt_source, nguoi_dung):
+    """AC-48.5 — Form Nộp báo cáo Marketing trên trình duyệt không còn ô Sản phẩm, Thị trường, Tệp khách hàng, Loại
+    tiền; gõ CPQC và Số đơn thì thẻ CPO hiện hậu tố "VND"; bấm Nộp chỉ với các ô số thì lưu được, dòng mang Loại
+    tiền VND; không lỗi JavaScript"""
+    form = mkt_source.table.forms.get()
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["staff_mkt"], 1280, 900, f"/bao-cao/?bieu_mau={form.code}")
+    loi = []
+    page.on("pageerror", lambda e: loi.append(str(e)))
+    try:
+        for ma in ("san_pham", "thi_truong", "tep_khach_hang", "loai_tien"):
+            assert page.locator(f'[name$="{ma}"]').count() == 0, ma
+        assert page.locator("[data-report-currency]").count() == 0
+        for ma, gia_tri in (("so_mess", "50"), ("cpqc", "2000000"), ("so_don", "4"), ("doanh_so", "9000000")):
+            page.click(_o(form, ma))
+            page.keyboard.type(gia_tri)
+        gia = page.locator('.cs[data-ma="cpo"] .gt').inner_text().replace("\n", " ").replace("\xa0", " ").strip()
+        assert gia == "500.000 VND"
+        with page.expect_navigation():
+            page.click('button[form="bm-bao-cao"]')
+        du_lieu = DataRecord.objects.get(pk=DailyReport.objects.get().record_id).data
+        assert du_lieu["loai_tien"] == "VND" and Decimal(str(du_lieu["cpqc"])) == Decimal("2000000")
         assert loi == []
     finally:
         ctx.close()

@@ -326,14 +326,8 @@ def build_marketing(table, records, columns, date_from, date_to, *, summary=Fals
             "10 nhóm dẫn đầu; bảng đối chiếu giữ toàn bộ nhóm",
             value_label="Số đơn",
         ))
-    if column_by_meaning(columns, Meaning.PRODUCT) and not summary:
-        chart_items.append(charts.bar(
-            "Đóng góp theo sản phẩm",
-            _group_rows(current, "val_product", _sum_json(orders.code),
-                        blank="Chưa có sản phẩm"),
-            "Không cộng lặp với biểu đồ Marketer",
-            value_label="Số đơn",
-        ))
+    # Không còn biểu đồ "Đóng góp theo sản phẩm": form báo cáo Marketing đã bỏ ô Sản phẩm (ADR-048), báo cáo mới
+    # không có sản phẩm nên cột "Chưa có sản phẩm" sẽ chiếm gần hết biểu đồ. Sale giữ biểu đồ này.
     open_url = source_url(table, date_col, date_from, date_to)
     if total["rows"]:
         insight_items = [insights.item(

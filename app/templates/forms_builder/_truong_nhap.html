@@ -7,7 +7,7 @@ Cần: o (form_service.Widget), bm (biểu mẫu đang điền). Trường bắt
 <div class="truong" {% if o.report_market %}data-report-market{% endif %}>
   {% if o.currency_map %}{{ o.currency_map|json_script:"report-currency-map" }}{% endif %}
   <label for="o-{{ t.field.code }}">
-    {{ t.field.name }}{% if t.required %} <span class="bat-buoc">*</span>{% endif %}
+    {{ t.field.name }}{% if o.don_vi %} ({{ o.don_vi }}){% endif %}{% if t.required %} <span class="bat-buoc">*</span>{% endif %}
     <span class="ky-thuat">{{ t.field.code }}</span>
   </label>
   {% if o.system_value %}

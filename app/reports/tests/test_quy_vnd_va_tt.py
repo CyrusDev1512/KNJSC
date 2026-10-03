@@ -16,10 +16,7 @@ from reports.services import activity_service, summary_service
 from reports.tests.test_aggregations import bang_mkt  # noqa: F401
 from reports.tests.test_mkt_derived_revenue import _bao_cao, mkt_source, van_don  # noqa: F401
 
-pytestmark = pytest.mark.django_db
-
-
-
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("du_cot_dinh_danh")]   # cơ chế cột Lần nộp / Loại tiền (AC-47.6)
 def _tong(result):
     return dict(zip([c.label for c in result.columns], aggregations.total_values(result)))
 
@@ -98,7 +95,7 @@ def test_dong_chua_co_loai_tien_cong_rieng_va_krw_hien_binh_thuong(bang_mkt, mkt
     có cảnh báo nêu số dòng và cách sửa; KRW (chưa có tỉ giá) hiện như mọi loại tiền khác, không còn cảnh báo
     "chưa quy đổi"; cột đếm vẫn đủ ở từng dòng"""
     A = nguoi_dung["staff_mkt"]
-    _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10, cpqc="10", don=2)          # CAD
+    _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10, cpqc="10", don=2)          # VND (báo cáo MKT, ADR-047)
     _bao_cao(bang_mkt, A, "2026-08-02", "SP1", mess=10, cpqc="7", don=2)
     krw = DataRecord.objects.filter(table=bang_mkt, val_date=date(2026, 8, 2)).get()
     krw.data |= {"thi_truong": "Hàn Quốc", "loai_tien": "KRW"}
@@ -111,8 +108,8 @@ def test_dong_chua_co_loai_tien_cong_rieng_va_krw_hien_binh_thuong(bang_mkt, mkt
     assert "1 dòng chưa có loại tiền" in result.currency_warning and "Chưa rõ" in result.currency_warning
     assert "quy đổi" not in result.currency_warning
     theo_tien = _theo_tien(result)
-    assert list(theo_tien) == ["CAD", "KRW", ""]                     # trống đứng cuối
-    assert theo_tien["CAD"]["CPQC"] == 10 and theo_tien["KRW"]["CPQC"] == 7 and theo_tien[""]["CPQC"] == 5
+    assert list(theo_tien) == ["VND", "KRW", ""]                     # trống đứng cuối
+    assert theo_tien["VND"]["CPQC"] == 10 and theo_tien["KRW"]["CPQC"] == 7 and theo_tien[""]["CPQC"] == 5
     assert _tong(result)["Số Mess"] == 30 and _tong(result)["Số đơn"] == 6 and _tong(result)["CPQC"] is None
     dong = _dong(result)
     assert dong[("02.08.2026", employee_code(A))]["CPQC"] == 7 and dong[("03.08.2026", employee_code(A))]["CPQC"] == 5
@@ -135,15 +132,15 @@ def test_so_don_tt_va_ti_le_chot_tt_theo_marketer_va_ngay(bang_mkt, mkt_source, 
     ky = dict(start=date(2026, 8, 1), end=date(2026, 8, 2))
     dong = _dong(activity_service.build(B, mkt_source, group="day", **ky))
     a1, b1, a2 = dong[("01.08.2026", employee_code(A))], dong[("01.08.2026", employee_code(B))], dong[("02.08.2026", employee_code(A))]
-    # DS Chốt (TT) đúng số tiền CAD của đơn, không quy đổi (ADR-046)
-    assert a1["Số đơn (TT)"] == 3 and a1["DS Chốt (TT)"] == 100 and a1["Tỉ lệ chốt (TT)"] == 30
-    assert b1["Số đơn (TT)"] == 1 and b1["DS Chốt (TT)"] == 200 and b1["Tỉ lệ chốt (TT)"] == 5
-    assert a2["Số đơn (TT)"] == 1 and a2["DS Chốt (TT)"] == 25
+    # Báo cáo MKT bằng tiền Việt, vận đơn bằng CAD (ADR-047): DS Chốt (TT) trống, không quy đổi
+    assert a1["Số đơn (TT)"] == 3 and a1["DS Chốt (TT)"] is None and a1["Tỉ lệ chốt (TT)"] == 30
+    assert b1["Số đơn (TT)"] == 1 and b1["Tỉ lệ chốt (TT)"] == 5
+    assert a2["Số đơn (TT)"] == 1
     tong = _tong(activity_service.build(B, mkt_source, group="day", **ky))
     assert tong["Số đơn (TT)"] == 5 and tong["Tỉ lệ chốt (TT)"] == Decimal(5) / Decimal(40) * 100
     # Lọc sản phẩm SP1: đơn không chi tiết và w2 (SP2) rời khỏi đếm của A
     dong = _dong(activity_service.build(B, mkt_source, group="day", product="SP1", **ky))
-    assert dong[("01.08.2026", employee_code(A))]["Số đơn (TT)"] == 1 and dong[("01.08.2026", employee_code(A))]["DS Chốt (TT)"] == 60
+    assert dong[("01.08.2026", employee_code(A))]["Số đơn (TT)"] == 1
     # Theo nhân viên: cả kỳ
     dong = _dong(activity_service.build(B, mkt_source, group="person", **ky))
     assert dong[employee_code(A)]["Số đơn (TT)"] == 4 and dong[employee_code(B)]["Số đơn (TT)"] == 1

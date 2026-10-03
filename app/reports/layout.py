@@ -43,6 +43,10 @@ TOTAL_SHORT = {"single": "Tổng trong bộ lọc"}
 #: 02.10.2026: đủ biết dòng của ai, ngày nào, tiền gì; Team, Leader, Lần nộp giữ chỗ nhưng trôi theo, nhường
 #: chỗ cho cột số
 STICKY_CODES = ("person", "nhom", "tien")
+#: Cột định danh ẩn theo loại nguồn (chủ dự án 03.10.2026, ADR-047): báo cáo MKT luôn VND nên cột Loại tiền thừa,
+#: cột Lần nộp cũng bỏ — hai lần nộp cùng ngày vẫn là hai dòng. Chỉ đổi hiển thị (màn hình và Excel), không đổi
+#: cách cộng tổng. Sale giữ đủ.
+HIDDEN_IDENTITY = {"mkt": ("lan", "tien")}
 #: Nhãn của loại tiền trống (báo cáo cũ chưa có Loại tiền) — cùng chữ với cảnh báo của dịch vụ
 UNKNOWN_CURRENCY = "Chưa rõ"
 
@@ -71,9 +75,15 @@ def currency_label(code):
     return code or UNKNOWN_CURRENCY
 
 
+def visible(kinds, result):
+    """Bỏ các cột định danh ẩn của loại nguồn (`HIDDEN_IDENTITY`)."""
+    an = HIDDEN_IDENTITY.get(getattr(result, "source_kind", ""), ())
+    return tuple(k for k in kinds if k[0] not in an)
+
+
 def with_currency(kinds, result):
-    """Thêm cột Loại tiền vào cuối cột định danh khi nguồn tách loại tiền (ADR-046)."""
-    return tuple(kinds) + ((TIEN_KIND,) if result.currency_key else ())
+    """Thêm cột Loại tiền vào cuối cột định danh khi nguồn tách loại tiền (ADR-046), trừ cột ẩn của nguồn."""
+    return visible(tuple(kinds) + ((TIEN_KIND,) if result.currency_key else ()), result)
 
 
 def total_row(kind, result, tien, raw, *, label=None):
@@ -251,7 +261,7 @@ def days_block(all_items, page_days, result):
             rows.append({"kind": "row", "nhom": nhan, "ngay": ngay, "raw": raw,
                          "currency": currency_label(tien) if result.currency_key else None,
                          "cells": aggregations.format_cells(result, raw, tien),
-                         "identity": [nhan] + ([currency_label(tien)] if result.currency_key else [])})
+                         "identity": [nhan] + ([currency_label(tien)] if "tien" in [k[0] for k in kinds] else [])})
     return block("days", "Theo ngày", kinds, rows, overall_totals("days", result), count=len(page_days))
 
 

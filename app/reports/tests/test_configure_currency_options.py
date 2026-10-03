@@ -14,7 +14,7 @@ pytestmark = pytest.mark.django_db
 
 def test_existing_vnd_currency_column_gets_market_currencies(bang_mkt, nguoi_dung):
     """AC-22.12 — Cột `loai_tien` có sẵn chỉ VND: cấu hình bổ sung USD/CAD/PHP, giữ tên
-    và VND, chạy lại không đổi; cột không phải Chọn một thì báo lỗi; nộp Canada → CAD."""
+    và VND, chạy lại không đổi; cột không phải Chọn một thì báo lỗi; báo cáo MKT nộp Canada → VND (ADR-047)."""
     ColumnDef.objects.create(table=bang_mkt, name='Đơn vị tiền', code='loai_tien',
                              field_type=FieldType.CHOICE, options=['VND'], order=91)
     FormDef.objects.create(table=bang_mkt, department=bang_mkt.department,
@@ -30,7 +30,7 @@ def test_existing_vnd_currency_column_gets_market_currencies(bang_mkt, nguoi_dun
     row = record_service.create_record(bang_mkt, {
         'ngay': '2026-09-18', 'marketer': 'mkt', 'san_pham': 'SP', 'so_mess': 2, 'cpqc': '10',
         'so_don': 1, 'doanh_so': '20', 'thi_truong': 'Canada'}, actor=nguoi_dung['staff_mkt'])
-    assert row.data['loai_tien'] == 'CAD'
+    assert row.data['loai_tien'] == 'VND'      # báo cáo MKT nộp bằng tiền Việt (ADR-047), không theo Canada
 
     column.field_type = FieldType.TEXT
     column.save(update_fields=['field_type'])
