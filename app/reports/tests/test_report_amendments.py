@@ -141,7 +141,7 @@ def test_new_marketing_report_derives_currency_and_keeps_zero(client, bm_sale, n
     response = client.post('/bao-cao/', {**payload,'bieu_mau':bm_sale.code, 'ngay_bao_cao':'1999-01-01'})
     assert response.status_code == 302
     report = DailyReport.objects.get()
-    assert report.record.data['loai_tien'] == 'CAD'
+    assert report.record.data['loai_tien'] == 'VND'      # báo cáo MKT nộp bằng tiền Việt (ADR-047)
     assert report.record.data['ngay'] == timezone.localdate().isoformat()
     assert 'hoa_don' not in report.record.data          # Hóa đơn không còn trên form nhập (ADR-043)
     assert 'doanh_thu' not in report.record.data and 'hoa_don_doanh_thu' not in report.record.data

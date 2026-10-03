@@ -368,27 +368,27 @@ def test_day_blocks_have_day_subtotal_and_stt(client, bang_mkt, mkt_source, van_
     # Số cộng được: Tổng ngày = tổng hai dòng con; tiền giữ đúng số đã nhập, không quy đổi (ADR-046)
     assert o(khoi,"Số Mess")=="20" and [o(d,"Số Mess") for d in con]==["10","10"]
     assert o(khoi,"Hóa đơn")=="10" and {o(d,"Hóa đơn") for d in con}=={"8","2"}
-    assert khoi["currency"]=="CAD" and {d["currency"] for d in con}=={"CAD"}
-    # DS Chốt (TT) của ngày = tổng hai marketer (60+40 của A, 200 của B) = 300 CAD
-    assert o(khoi,"DS Chốt (TT)")=="300"
-    # Cột tính lại từ tổng, không phải trung bình các dòng con
-    assert o(khoi,"Hóa đơn/DS Chốt (TT)")==aggregations.format_number(Decimal(10)/Decimal(300), 4)
+    # Báo cáo MKT nộp bằng tiền Việt (ADR-047); DS Chốt (TT) để trống vì vận đơn bằng CAD, không quy đổi
+    assert khoi["currency"]=="VND" and {d["currency"] for d in con}=={"VND"}
+    assert o(khoi,"DS Chốt (TT)")=="—" and o(khoi,"Hóa đơn/DS Chốt (TT)")=="—"
+    # Số đơn (TT) của ngày = tổng hai marketer (2 đơn của A, 1 của B)
+    assert o(khoi,"Số đơn (TT)")=="3"
     # Dòng Tổng trong bộ lọc không đổi
     assert r.context["result"].totals["so_dong"]==3
     tong=dict(zip(cot, aggregations.total_cells(r.context["result"])))
-    assert tong["Số Mess"]=="30" and tong["DS Chốt (TT)"]=="325"
+    assert tong["Số Mess"]=="30" and tong["DS Chốt (TT)"]=="—"
     html=r.content.decode()
     # Mỗi ngày một bảng riêng (ADR-042): tiêu đề ngày trên bảng, TỔNG CỘNG ngay dưới hàng tiêu đề cột, STT ở cột đầu
     assert html.count('class="report-block report-block-day"')==2 and '<h3>01.08.2026</h3>' in html
     # Dòng TỔNG CỘNG mỗi cột định danh một ô: nhãn ở ô Nhân sự, mã tiền ở ô Loại tiền (02.10.2026)
     assert '<th scope="row" class="report-identity id-nhan-su" data-pos="3">TỔNG CỘNG</th>' in html
-    assert 'class="report-identity id-tien report-identity-edge" data-pos="6">CAD</td>' in html
+    assert 'class="report-identity id-tien report-identity-edge" data-pos="6">VND</td>' in html
     assert 'class="report-identity id-stt" data-pos="1">1</th>' in html
-    assert 'class="report-block report-block-period"' in html and 'class="report-identity id-tien report-identity-edge" data-pos="5">CAD</td>' in html
+    assert 'class="report-block report-block-period"' in html and 'class="report-identity id-tien report-identity-edge" data-pos="5">VND</td>' in html
     # Excel: sheet "Theo ngay" cùng khối — tiêu đề ngày, hàng tiêu đề cột, TỔNG CỘNG, dòng người có STT
     ngay=list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/",query).content),data_only=True)["Theo ngay"].values)
-    assert [d[0] for d in ngay if d and d[0] is not None]==["Ngày 02.08.2026","STT","TỔNG CỘNG · CAD",1,
-                                                              "Ngày 01.08.2026","STT","TỔNG CỘNG · CAD",1,2]
+    assert [d[0] for d in ngay if d and d[0] is not None]==["Ngày 02.08.2026","STT","TỔNG CỘNG · VND",1,
+                                                              "Ngày 01.08.2026","STT","TỔNG CỘNG · VND",1,2]
 
 
 def test_metric_colours_against_filter_total(client, bang_mkt, mkt_source, van_don, nguoi_dung):

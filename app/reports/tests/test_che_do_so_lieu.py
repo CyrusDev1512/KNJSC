@@ -99,10 +99,11 @@ def test_che_do_cong_theo_ngay_va_tung_lan_nop(client, bang_mkt, mkt_source, bon
         ("TỔNG CỘNG · USD", "500"), ("TỔNG CỘNG · CAD", "18.000")]
     # Khối toàn kỳ vẫn cộng theo người và loại tiền
     assert {(row["person"], row["currency"]): _o(row, cot, "CPQC") for row in ky_khoi["rows"]}[(ma_a, "CAD")] == "15.000"
-    # (TT): hai lần nộp CAD của A dùng chung khoá (ngày, A, CAD) → "—"; lần USD và của B có số riêng
-    assert result.derived_shared == frozenset({(NGAY, ma_a, "CAD")})
+    # (TT) của báo cáo MKT khoá theo (ngày, người), không theo loại tiền (ADR-047): ba lần nộp của A dùng chung
+    # khoá → "—"; B một lần → có số riêng
+    assert result.derived_shared == frozenset({(NGAY, ma_a)})
     tt = {(_dinh_danh(row)["lan"], row["person"]): _o(row, cot, "Số đơn (TT)") for row in ngay["rows"]}
-    assert tt[("Lần 1 · 09:12", ma_a)] == "—" and tt[("Lần 2 · 10:00", ma_a)] == "0" and tt[("Lần 1 · 11:05", ma_b)] == "1"
+    assert tt[("Lần 1 · 09:12", ma_a)] == "—" and tt[("Lần 2 · 10:00", ma_a)] == "—" and tt[("Lần 1 · 11:05", ma_b)] == "1"
     # Huy hiệu chỉ đếm chip Kỳ (kỳ 01.08 khác mặc định); không còn chip Chế độ
     assert "Chế độ" not in {c["label"] for c in r.context["chips"]} and r.context["filters_active"] == 1
     html = r.content.decode()
@@ -156,11 +157,11 @@ def test_excel_theo_che_do(client, bang_mkt, mkt_source, bon_lan_nop, nguoi_dung
 
 
 def test_doi_soat_tt_theo_loai_tien_cua_don(bang_mkt, mkt_source, van_don, nguoi_dung):
-    """AC-46.5 — (TT) đối soát theo loại tiền của vận đơn, không quy đổi: đơn USD của marketer vào dòng USD của
-    marketer đó, đơn CAD vào dòng CAD; marketer không có báo cáo USD trong ngày thì đơn USD không vào đâu;
-    TỔNG CỘNG theo loại tiền cộng đúng phần đối soát của loại tiền đó"""
+    """AC-46.5 — (TT) của báo cáo Marketing (thay bởi ADR-047, 03.10.2026): báo cáo nộp bằng tiền Việt nên (TT)
+    không khoá theo loại tiền — đơn USD lẫn đơn CAD của marketer đều vào Số đơn (TT) của dòng VND của người đó;
+    DS Chốt (TT) để trống vì không quy đổi tỉ giá; TỔNG CỘNG · VND cộng đúng Số đơn (TT)"""
     A = van_don["A"]
-    _nop(bang_mkt, A, 9, 0, cpqc="10")                                          # CAD
+    _bao_cao(bang_mkt, A, NGAY.isoformat(), "SP1", mess=10)
     don_usd = DataRecord.objects.create(table=van_don["table"], department=van_don["table"].department,
                                         created_by=nguoi_dung["admin"], val_date=NGAY,
                                         data={"ngay": "2026-08-01", "quoc_gia": "Hoa Kỳ", "loai_tien": "USD"})
@@ -169,16 +170,12 @@ def test_doi_soat_tt_theo_loai_tien_cua_don(bang_mkt, mkt_source, van_don, nguoi
     result = activity_service.build(nguoi_dung["manager_mkt"], mkt_source, start=NGAY, end=NGAY)
     cot = [c.label for c in result.columns]
     dong = {(i["person_name"], i["loai_tien"]): dict(zip(cot, aggregations.row_values(i, result)[1])) for i in result.rows}
-    assert set(dong) == {(employee_code(A), "CAD")}
-    assert dong[(employee_code(A), "CAD")]["DS Chốt (TT)"] == 100 and dong[(employee_code(A), "CAD")]["Số đơn (TT)"] == 2
-    _nop(bang_mkt, A, 15, 0, cpqc="4", thi_truong="Hoa Kỳ", tien="USD")
-    result = activity_service.build(nguoi_dung["manager_mkt"], mkt_source, start=NGAY, end=NGAY)
-    dong = {(i["person_name"], i["loai_tien"]): dict(zip(cot, aggregations.row_values(i, result)[1])) for i in result.rows}
-    assert dong[(employee_code(A), "USD")]["DS Chốt (TT)"] == 7 and dong[(employee_code(A), "USD")]["Số đơn (TT)"] == 1
-    assert dong[(employee_code(A), "CAD")]["DS Chốt (TT)"] == 100
+    assert set(dong) == {(employee_code(A), "VND")}
+    # w1, w2 (CAD) + đơn USD = 3 đơn của A ngày 01.08
+    assert dong[(employee_code(A), "VND")]["Số đơn (TT)"] == 3 and dong[(employee_code(A), "VND")]["DS Chốt (TT)"] is None
     theo_tien = {t: dict(zip(cot, raw)) for t, raw in aggregations.total_rows(result)}
-    assert theo_tien["USD"]["DS Chốt (TT)"] == 7 and theo_tien["CAD"]["DS Chốt (TT)"] == 325 - 25 - 200
-    assert theo_tien["USD"]["Tỉ lệ chốt (TT)"] == Decimal(1) / Decimal(10) * 100
+    assert list(theo_tien) == ["VND"] and theo_tien["VND"]["Số đơn (TT)"] == 3
+    assert theo_tien["VND"]["Tỉ lệ chốt (TT)"] == Decimal(3) / Decimal(10) * 100
 
 
 def test_mau_so_voi_tong_cung_loai_tien_va_nguong_tien_chi_vnd(client, bang_mkt, mkt_source, van_don, nguoi_dung):
@@ -263,8 +260,9 @@ def test_ngan_sach_truy_van_va_duong_qua_tran(client, bang_mkt, mkt_source, van_
     monkeypatch.setattr(summary_service, "MAX_GROUPS", 2)
     result = activity_service.build(B, mkt_source, start=NGAY, end=NGAY, mode="tung-lan")
     assert not isinstance(result.rows, list)
-    # Khoá (TT) dùng chung vẫn được đánh dấu bằng một lệnh đếm: A ba lần CAD trong ngày → (ngày, A, CAD)
-    assert result.derived_shared == frozenset({(NGAY, employee_code(A), "CAD")})
+    # Khoá (TT) dùng chung vẫn được đánh dấu bằng một lệnh đếm: A bốn lần trong ngày → (ngày, A) — báo cáo MKT
+    # không khoá (TT) theo loại tiền (ADR-047)
+    assert result.derived_shared == frozenset({(NGAY, employee_code(A))})
     theo_tien = {t: dict(zip([c.label for c in result.columns], raw)) for t, raw in aggregations.total_rows(result)}
     assert theo_tien["CAD"]["CPQC"] == 1000 + 2000 + 4000 + 50 and theo_tien["USD"]["CPQC"] == 3000
     # A nộp thêm 23 lần (tổng 27) → trang 2 (25 dòng một trang) bắt đầu ở lần 26 của A: số lần đếm trên

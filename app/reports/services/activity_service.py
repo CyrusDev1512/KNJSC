@@ -12,6 +12,7 @@ from core.exceptions import OutOfScopeError, BusinessError
 from forms_builder.models import DataRecord, TableDef
 from orders.constants import waybill_condition
 from orders.models import WaybillItem
+from orders.services.currency_service import REPORT_CURRENCY
 from reports.constants import MISSING_FILTER
 from reports.models import ReportSource
 from reports import aggregations
@@ -353,7 +354,10 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
     expression, label = group_expression(source, group)
     tien = currency_expression(source)
     tung_lan = group == "day" and mode == "tung-lan"
-    khoa_tien = (aggregations.CURRENCY_KEY,) if tien is not None else ()
+    # Nguồn nộp bằng một loại tiền cố định (MKT: tiền Việt, ADR-047): đối soát (TT) không khoá theo loại tiền
+    # — đơn hàng USD/CAD vẫn đếm vào Số đơn (TT) của marketer; DS Chốt (TT) để trống vì không quy đổi
+    tt_theo_tien = tien is not None and source.kind not in REPORT_CURRENCY
+    khoa_tien = (aggregations.CURRENCY_KEY,) if tt_theo_tien else ()
     # Tổng hợp = ngày × nhân sự: mỗi người một dòng riêng trong ngày (chủ dự án 19.09,
     # bổ sung ADR-035 — thay quyết định 1 "mỗi ngày một dòng"). Doanh thu suy ra tra theo
     # cặp (ngày, nhân sự, loại tiền) nên không gán nhầm tiền cả ngày cho từng người.
@@ -390,12 +394,12 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
     if result.ok and DERIVED.get(source.kind) and not segment:
         # Lọc theo Tệp khách hàng thì phần đối soát để trống: vận đơn không ghi tệp (ADR-038)
         actual = marketing_actuals(qs, group, expression, start=start, end=end, product=product, market=market,
-                                   by_currency=tien is not None)
+                                   by_currency=tt_theo_tien)
         result = attach_derived(result, actual, zero=DERIVED_COUNT.get(source.kind, ()))
     if tung_lan and result.ok and result.derived:
         # Một người nộp nhiều lần trong ngày (cùng loại tiền): (TT) khoá theo (ngày, người, loại tiền)
         # không chia được cho từng lần nộp → các dòng đó để trống, TỔNG CỘNG ngày vẫn cộng một lần (G6)
-        result = replace(result, derived_shared=_shared_keys(result, qs, source, tien))
+        result = replace(result, derived_shared=_shared_keys(result, qs, source, tien if tt_theo_tien else None))
     if result.ok:
         result = currency_note(result)
     result = with_person_team(result, source, group)

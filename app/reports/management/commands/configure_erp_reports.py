@@ -97,8 +97,10 @@ def configure_source(table, kind):
             raise CommandError(f"{table.code}: thiếu cột {sorted(missing)}; không tự suy ánh xạ")
         if kind == 'mkt':
             configure_marketing(table)
-        from orders.services.currency_service import MARKET_CURRENCIES
-        currencies = [str(c) for c in MARKET_CURRENCIES.values()]
+        from orders.services.currency_service import MARKET_CURRENCIES, REPORT_CURRENCY
+        # Báo cáo MKT nộp bằng tiền Việt (ADR-047): VND phải có trong lựa chọn của cột Loại tiền
+        currencies = list(dict.fromkeys([*([REPORT_CURRENCY[kind]] if kind in REPORT_CURRENCY else []),
+                                         *(str(c) for c in MARKET_CURRENCIES.values())]))
         currency, _ = ColumnDef.objects.get_or_create(table=table, code='loai_tien', defaults={
             'name':'Loại tiền', 'field_type':'choice', 'options':currencies, 'order':91})
         # Cột có sẵn (kịch bản mẫu 15.09 tạo "Đơn vị tiền" chỉ có VND) phải nhận đủ mã tiền

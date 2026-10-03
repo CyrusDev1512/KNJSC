@@ -187,6 +187,9 @@ cảnh màn hình dùng chung ở `reports/screen.py`. **Ba chỗ sửa (02.10, 
 - **Phần chữ trên bảng:** đoạn (TT) và câu loại tiền nằm trong panel "Giải thích số liệu".
 - **Gộp / Không gộp:** đổi bảng bằng `fetch` trong `report-filters.js`, không tải lại trang. Link giữ `trang`, mốc
   `data-ngay` giữ đúng ngày đang xem.
+**Báo cáo Marketing nộp bằng tiền Việt (ADR-047, 03.10):** Loại tiền MKT luôn VND, không theo Thị trường (một chỗ
+`currency_service.report_currency`); báo cáo cũ đổi nhãn sang VND bằng `reports/0006`, số giữ nguyên; không tỉ giá; Số đơn (TT)
+không khoá theo loại tiền, DS Chốt (TT) trống. Sale vẫn theo Thị trường.
 **Form Nộp báo cáo ngày (ADR-043, 24.09):** dropdown Team của bộ phận ghi vào `DataRecord.team` và
 `DailyReport.team`; Số Mess, CPQC, Số đơn, Doanh số bắt buộc — khai một chỗ `configure_erp_reports.REQUIRED_INPUTS`
 (lệnh chạy mỗi lần bật máy nên ép cả trường đã có); Hóa đơn không còn trên form MKT (`MKT_FORM_SKIP`) nhưng cột và

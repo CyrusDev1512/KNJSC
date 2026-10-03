@@ -46,13 +46,13 @@ def test_bang_toan_ky_va_moi_ngay_mot_bang(client, bang_mkt, mkt_source, van_don
     # Nguồn có Loại tiền (ADR-046): cột Loại tiền cuối cột định danh; Excel trải nhãn TỔNG CỘNG qua bốn cột trước
     # nó, màn hình in mỗi cột định danh một ô (02.10.2026)
     assert [c["code"] for c in ky["identity_columns"]] == ["stt", "team", "person", "leader", "tien"]
-    assert ky["label_span"] == 5 and ky["total_span"] == 4 and {row["currency"] for row in ky["rows"]} == {"CAD"}
+    assert ky["label_span"] == 5 and ky["total_span"] == 4 and {row["currency"] for row in ky["rows"]} == {"VND"}
     nguoi = {row["person"]: row for row in ky["rows"]}
     assert [row["stt"] for row in ky["rows"]] == [1, 2] and set(nguoi) == {employee_code(A), employee_code(B)}
     assert _o(nguoi[employee_code(A)], cot, "Số Mess") == "20" and _o(nguoi[employee_code(B)], cot, "Số Mess") == "30"
     assert _o(nguoi[employee_code(A)], cot, "Số đơn") == "3"
     assert nguoi[employee_code(A)]["team"] == (A.profile.team.name if A.profile.team_id else "Chưa có team")
-    assert [t["label"] for t in ky["total_rows"]] == ["TỔNG CỘNG · toàn kỳ · CAD"]
+    assert [t["label"] for t in ky["total_rows"]] == ["TỔNG CỘNG · toàn kỳ · VND"]
     assert ky["total_rows"][0]["cells"] == aggregations.total_cells(r.context["result"])
     # Khối ngày: mới nhất trước, không cột Ngày, TỔNG CỘNG ngày = tổng dòng con, STT từ 1
     assert ngay2["title"] == "02.08.2026" and ngay1["title"] == "01.08.2026"
@@ -60,21 +60,21 @@ def test_bang_toan_ky_va_moi_ngay_mot_bang(client, bang_mkt, mkt_source, van_don
     assert [row["stt"] for row in ngay1["rows"]] == [1, 2] and [row["stt"] for row in ngay2["rows"]] == [1]
     tong1 = dict(zip(cot, ngay1["total_rows"][0]["cells"]))
     assert tong1["Số Mess"] == "40" and tong1["Số đơn"] == "5"
-    assert [t["label"] for t in ngay1["total_rows"]] == ["TỔNG CỘNG · CAD"]
+    assert [t["label"] for t in ngay1["total_rows"]] == ["TỔNG CỘNG · VND"]
     html = r.content.decode()
     assert html.count('<table class="bang report-table"') == 3 and html.count('class="report-block-title"') == 3
     assert '<h3>02.08.2026</h3>' in html and '<th scope="row" class="report-identity id-nhan-su" data-pos="3">TỔNG CỘNG</th>' in html
-    assert 'class="report-identity id-tien report-identity-edge" data-pos="5">CAD</td>' in html
+    assert 'class="report-identity id-tien report-identity-edge" data-pos="5">VND</td>' in html
     # Excel: sheet toàn kỳ và sheet theo ngày, cùng số
     book = load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", query).content), data_only=True)
     ky_xls = list(book["Toan ky theo nhan su"].values)
     assert ky_xls[4][:5] == ("STT", "Team", "Nhân sự", "Leader", "Loại tiền") and str(ky_xls[5][0]).startswith("TỔNG CỘNG")
-    assert ky_xls[5][4] == "CAD"
+    assert ky_xls[5][4] == "VND"
     assert {d[2] for d in ky_xls[6:8]} == {employee_code(A), employee_code(B)}
     dong_a = next(d for d in ky_xls[6:8] if d[2] == employee_code(A))
-    assert dong_a[4] == "CAD" and dong_a[5 + cot.index("Số Mess")] == 20
+    assert dong_a[4] == "VND" and dong_a[5 + cot.index("Số Mess")] == 20
     ngay_xls = [d[0] for d in book["Theo ngay"].values if d and d[0] is not None]
-    assert ngay_xls == ["Ngày 02.08.2026", "STT", "TỔNG CỘNG · CAD", 1, "Ngày 01.08.2026", "STT", "TỔNG CỘNG · CAD", 1, 2]
+    assert ngay_xls == ["Ngày 02.08.2026", "STT", "TỔNG CỘNG · VND", 1, "Ngày 01.08.2026", "STT", "TỔNG CỘNG · VND", 1, 2]
     # Ngày bị tách trang: 13 ngày × 2 lần nộp = 26 dòng, trang 25 dòng → trang 2 còn một người của ngày 01.08
     _bao_cao(bang_mkt, B, "2026-08-02", "SP2", mess=30)
     for i in range(2, 13):
@@ -173,7 +173,7 @@ def test_chi_ghim_cot_dau_nhan_su_loai_tien(client, bang_mkt, mkt_source, van_do
         assert 'class="report-identity report-troi id-lan" data-pos="5">Lần nộp</th>' in vung, noi
         assert 'class="report-identity id-stt" data-pos="1">STT</th>' in vung, noi
         assert '<th scope="row" class="report-identity id-nhan-su" data-pos="3">TỔNG CỘNG</th>' in vung, noi
-        assert 'class="report-identity id-tien report-identity-edge" data-pos="5">CAD</td>' in vung, noi
+        assert 'class="report-identity id-tien report-identity-edge" data-pos="5">VND</td>' in vung, noi
         assert "TỔNG CỘNG · toàn kỳ" not in vung, f"{noi}: nhãn dài chỉ còn trong Excel"
     # Lớp trôi có quy tắc CSS (bài kiểm lớp CSS không bắt được lớp dính liền thẻ template)
     css = (settings.BASE_DIR / "static" / "css" / "solarpunk.css").read_text(encoding="utf-8")
@@ -181,7 +181,7 @@ def test_chi_ghim_cot_dau_nhan_su_loai_tien(client, bang_mkt, mkt_source, van_do
     # Excel giữ nhãn dài và thứ tự cột định danh
     book = load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", query).content), data_only=True)
     ky_xls = list(book["Toan ky theo nhan su"].values)
-    assert ky_xls[4][:5] == ("STT", "Team", "Nhân sự", "Leader", "Loại tiền") and ky_xls[5][0] == "TỔNG CỘNG · toàn kỳ · CAD"
+    assert ky_xls[4][:5] == ("STT", "Team", "Nhân sự", "Leader", "Loại tiền") and ky_xls[5][0] == "TỔNG CỘNG · toàn kỳ · VND"
 
 
 def test_gop_giu_trang_va_moc_ngay(client, bang_mkt, mkt_source, van_don, nguoi_dung):
