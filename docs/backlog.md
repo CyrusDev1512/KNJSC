@@ -51,6 +51,26 @@ Nhánh `claude/bao-cao-mkt-vnd` từ `Staging`, PR nháp về `Staging`.
 - Chủ dự án thử local rồi gộp `Staging`. Lên VPS: `migrate` tự đổi nhãn báo cáo cũ.
 - Báo cáo Sale bằng tiền Việt (sau); DS Chốt (TT) bằng VND cần tỉ giá được duyệt.
 
+## 02.10.2026 — Delete xoá được ô Sản phẩm, Bỏ dòng xoá được dòng cuối (AC-36.9, 36.10)
+
+Chủ dự án: "ấn delete thì xoá được luôn ô sản phẩm + ấn bỏ dòng cũng xoá được"; duyệt mockup rồi bảo triển khai.
+
+1. **Delete trên lưới Vận đơn.** Vùng chọn có ô Sản phẩm, Số lượng, Giá tiền hay Số tiền thanh toán thì hiện hộp
+   hỏi lại: Huỷ / Chỉ xoá ô thường / Bỏ chi tiết và xoá. Chọn bỏ thì toàn bộ chi tiết sản phẩm của dòng bị xoá
+   mềm, bốn ô trống; Trạng thái thanh toán giữ. Không Ctrl+Z được; muốn thêm lại thì mở Chi tiết.
+2. **Bỏ dòng ở dòng cuối** của hộp Chi tiết: dòng biến mất, Thêm dòng thêm lại được; Lưu là đơn không còn sản
+   phẩm. Hộp Chi tiết giữ nguyên như cũ, không thêm chữ giải thích (chủ dự án chốt sau khi thử local).
+
+Mã: `waybill_service.clear_items`, `update_items` nhận danh sách rỗng, `POST bang-tinh/<mã>/bo-chi-tiet/`
+(`master_views.clear_details`), `master-grid.js` (`removeValues`, `askClearDetails`), `waybill.js`. Không
+migration, không thư viện. ADR-036 bổ sung 02.10. [Biên bản](kiem-chung-xoa-chi-tiet-san-pham-20261002.md).
+
+Nhánh `claude/xoa-o-san-pham-bo-dong` từ `Staging`, PR nháp về `Staging`.
+
+**Còn:**
+- Chủ dự án thử lại ở máy mình (bôi đen ô Sản phẩm → Delete; mở Chi tiết → Bỏ dòng hết → Lưu), rồi gộp vào `Staging`.
+- Cột `sl_*` (ẩn mặc định) vẫn chỉ ghi lúc lên đơn, như trước; bỏ chi tiết không xoá nó.
+
 ## 02.10.2026 — Ba chỗ sửa Báo cáo tổng hợp (AC-22.24, 22.25, 22.26)
 
 Chủ dự án xem mockup "Ba chỗ sửa Báo cáo tổng hợp" (artifact claude.ai `JRdYXcoJB9iKTDjuR2YHPY`) và bảo sửa ba chỗ

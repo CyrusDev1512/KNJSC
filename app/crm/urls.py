@@ -30,6 +30,7 @@ urlpatterns = [
     path('thong-ke/', statistics_views.overview, name='crm_statistics'),
     path('bang-tinh/<slug:code>/du-lieu/', master_views.data, name='master_data'),
     path('bang-tinh/<slug:code>/luu-json/', master_views.save, name='master_save'),
+    path('bang-tinh/<slug:code>/bo-chi-tiet/', master_views.clear_details, name='master_clear_details'),
     path('bang-tinh/<slug:code>/lich-su/', master_views.history, name='master_history'),
     path('bang-tinh/<slug:code>/quyen-dong/', master_views.scope, name='master_scope'),
     path('bang-tinh/<slug:code>/dong-bo/', master_views.sync, name='master_sync'),

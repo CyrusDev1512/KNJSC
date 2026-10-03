@@ -702,7 +702,7 @@
     for(let r=s.r1;r<=s.r2;r++){
       const b=await loadBlock(Math.floor(r/BLOCK));if(gen!==state.generation||!b)throw Error('Dữ liệu đã đổi; chọn lại vùng cần thao tác.');
       const row=rowAt(r);if(!row)throw Error('Dòng không còn trong kết quả.');
-      for(let c=s.c1;c<=s.c2;c++){const col=state.visible[c],v=cellValue(row,col.code);result.push({id:row.id,column:col.code,old:v.value,value:v.value,style:v.style,editable:v.editable,r,c});}
+      for(let c=s.c1;c<=s.c2;c++){const col=state.visible[c],v=cellValue(row,col.code);result.push({id:row.id,column:col.code,old:v.value,value:v.value,style:v.style,editable:v.editable,rowEditable:row.editable,r,c});}
     }return result;
   }
   async function submit(cells,kind='edit') {
@@ -773,6 +773,7 @@
         working.acknowledge(payload.cells,rows);working.observe(rows);state.retry=null;state.retryCount=0;state.currencyConfirmations=null;
         if(data.latest)state.poll=JSON.stringify(data.latest);
         updateRows(rows,data.protocol===2);state.lastError='';
+        if(state.notice){message(state.notice);state.notice='';}
         // Dòng nối tại chỗ thì không hiện thanh thông báo: thanh này đẩy cả lưới xuống 33 px
         // rồi rút lại ở lần lưu sau — chính là cú giật khi gõ liên tiếp nhiều dòng.
         if(data.id_map&&!absorbed){invalidate();message('Đã tạo dòng. Dòng được xếp theo thứ tự hiện tại; nếu không khớp bộ lọc sẽ không hiện trong kết quả.');}
@@ -866,7 +867,49 @@
       for(let j=0;j<width;j++){const c=state.visible[start.c+j],v=cellValue(row,c.code);if(!v.editable)throw Error(`Ô ${columnLetter(start.c+j)}${start.r+i+1} bị khóa; chưa dán ô nào.`);if(/^\s*=/.test(data[i][j]))throw Error('Không nhập công thức; hãy dán giá trị từ Excel.');cells.push({id:row.id,column:c.code,old:v.value,value:data[i][j]});}}
     await submit(cells,'paste');
   }
-  async function removeValues(){if(dirty())return;const cells=await rangeCells(),writable=cells.filter(c=>c.editable);if(!writable.length){message(`Bỏ qua ${cells.length} ô khóa; không có nội dung được xóa.`);return;}if(await submit(writable.map(c=>({...c,value:''})),'clear')){if(cells.length>writable.length)message(`Đã xóa nội dung; bỏ qua ${cells.length-writable.length} ô khóa.`);}}
+  async function removeValues(){
+    if(dirty())return;const cells=await rangeCells(),writable=cells.filter(c=>c.editable);
+    // Bốn ô tổng của Vận đơn không sửa riêng được: Delete trên chúng hỏi lại rồi bỏ toàn bộ Chi tiết
+    // sản phẩm của dòng (chủ dự án 02.10.2026). Không hoàn tác được bằng Ctrl+Z; mở Chi tiết để nhập lại.
+    const detailCodes=new Set(config.detailColumns||[]);
+    const details=cells.filter(c=>detailCodes.has(c.column)&&c.rowEditable&&c.id>0&&c.value!==null&&c.value!=='');
+    let cleared=0,skipped=cells.length-writable.length;
+    if(details.length){
+      const rows=new Set(details.map(c=>c.id)).size,choice=await askClearDetails(rows,writable.length);
+      if(choice==='cancel')return;
+      if(choice==='details'){
+        if(!await clearDetails(details))return;
+        cleared=rows;skipped-=cells.filter(c=>detailCodes.has(c.column)&&c.rowEditable).length;
+      }
+    }
+    const done=cleared?`Đã bỏ chi tiết sản phẩm của ${cleared} dòng`:'';
+    if(!writable.length){message(done?`${done}.`+(skipped?` Bỏ qua ${skipped} ô khóa.`:''):`Bỏ qua ${cells.length} ô khóa; không có nội dung được xóa.`);return;}
+    // Lượt lưu xoá thanh thông báo khi bắt đầu; `notice` hiện lại sau khi lưu xong.
+    if(await submit(writable.map(c=>({...c,value:''})),'clear')){if(done||skipped){state.notice=(done?`${done}; đã xóa ô thường`:'Đã xóa nội dung')+(skipped?`; bỏ qua ${skipped} ô khóa.`:'.');message(state.notice);}}
+  }
+  function askClearDetails(rows,normal){
+    const dialog=$('mg-bo-chi-tiet');if(!dialog)return Promise.resolve('cancel');
+    $('mg-bo-chi-tiet-so').textContent=String(rows);
+    dialog.querySelector('[data-choice="normal"]').hidden=!normal;
+    return new Promise(resolve=>{
+      let choice='cancel';
+      const pick=e=>{const b=e.target.closest('[data-choice]');if(!b)return;choice=b.dataset.choice;dialog.close();};
+      dialog.addEventListener('click',pick);
+      dialog.addEventListener('close',()=>{dialog.removeEventListener('click',pick);viewport.focus({preventScroll:true});resolve(choice);},{once:true});
+      // Con trỏ đứng ở Huỷ: ấn Delete rồi Enter theo thói quen không được bỏ mất chi tiết
+      dialog.showModal();dialog.querySelector('.vd-actions [data-choice="cancel"]').focus();
+    });
+  }
+  async function clearDetails(details){
+    status('Đang lưu');
+    try{
+      const data=await fetch(config.clearDetailsUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
+        body:JSON.stringify({operation:crypto.randomUUID(),cells:details.map(c=>({id:c.id,column:c.column,old:c.old}))})}).then(json);
+      if(data.latest)state.poll=JSON.stringify(data.latest);
+      invalidate(false);return true;
+    }catch(error){message(error.message,true);return false;}
+    finally{refreshStatus();}
+  }
   const safe=fn=>(...args)=>Promise.resolve().then(()=>fn(...args)).catch(e=>message(e.message,true));
   async function advance(cur, dr=0, dc=0){
     let r=cur.r+dr,c=cur.c+dc;
