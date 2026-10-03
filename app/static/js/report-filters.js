@@ -12,6 +12,33 @@
   const filterToggle = document.getElementById('report-toggle-filters');
   const focusToggle = document.getElementById('report-toggle-focus');
   const giamChuyenDong = window.matchMedia('(prefers-reduced-motion: reduce)');
+  // Khung bảng vừa khít màn hình (chủ dự án 03.10.2026): cao tới đáy vùng nội dung `main.noi-dung` (sát thanh menu
+  // dưới đáy) tính từ chỗ khung đứng khi trang ở đầu; bộ lọc cao vừa vùng nội dung và cuộn riêng (CSS). Không đủ
+  // chỗ (khung nằm thấp) thì cao bằng cả vùng nội dung. Đo lại khi tải, đổi cỡ cửa sổ, thu/mở bộ lọc, đổi Gộp / Không gộp.
+  const vuaManHinh = () => {
+    const khung = document.querySelector('.report-table-scroll');
+    if (!khung) return;
+    const main = document.querySelector('main.noi-dung');
+    const vung = main ? main.getBoundingClientRect() : {top: 0, bottom: window.innerHeight};
+    const cuon = main ? main.scrollTop : window.scrollY;
+    const day = main ? parseFloat(getComputedStyle(main).paddingBottom) || 0 : 0;
+    const tren = khung.getBoundingClientRect().top - vung.top + cuon;
+    const cao = vung.bottom - vung.top;
+    // Chừa chỗ cho phần dưới khung trong cùng hộp kết quả (hàng phân trang) và mép dưới của hộp: phân trang luôn
+    // nhìn thấy và bấm được — không chừa thì nút trang 2 nằm đúng mép bị che, bấm không trúng (lỗi 03.10.2026)
+    let duoiKhung = 0;
+    for (let e = khung.nextElementSibling; e; e = e.nextElementSibling) duoiKhung += e.getBoundingClientRect().height;
+    const hop = getComputedStyle(khung.parentElement);
+    duoiKhung += (parseFloat(hop.paddingBottom) || 0) + (parseFloat(hop.borderBottomWidth) || 0);
+    let vua = cao - tren - day - duoiKhung;
+    // Khung nằm thấp (Bảng dữ liệu có phần thông tin, bộ lọc ngang ở trên; màn hình thấp): cuộn trang tới khung
+    // thì bảng cao bằng cả vùng nội dung, không co lại còn một mẩu
+    if (vua < 240) vua = cao - day - duoiKhung - (main ? parseFloat(getComputedStyle(main).paddingTop) || 0 : 0);
+    root.style.setProperty('--report-fit', Math.max(240, Math.floor(vua)) + 'px');
+    root.style.setProperty('--report-panel-fit', Math.max(320, Math.floor(cao - 24)) + 'px');
+  };
+  vuaManHinh();
+  window.addEventListener('resize', vuaManHinh);
   // Dòng TỔNG CỘNG (mỗi loại tiền một dòng, ADR-046) dính ngay dưới hàng tiêu đề của chính bảng đó, dòng thứ i
   // lùi thêm i × --total-h. Mỗi bảng tự đo và đo lại mỗi khi bảng đổi cỡ — khung giãn 0,2 s sau Toàn màn hình
   // hay thu bộ lọc, phông tải muộn — chứ không chỉ khi đổi cỡ cửa sổ (TL-69). Chạy cho mọi bảng báo cáo trên
@@ -58,7 +85,9 @@
     const truoc = viTriNgang.get(khung) || {left: 0, dich: null};
     const left = khung.scrollLeft;
     const xong = () => viTriNgang.set(khung, {left, dich: null});
-    if (truoc.dich !== null && Math.abs(left - truoc.dich) < 1) return xong();   // vừa nhích xong
+    // Vừa nhích xong. Sai 2 px: đích ở mép phải có khi chỉ tới được 569 khi tính ra 570 (bề rộng lẻ) — không thì
+    // lần sau tưởng là kéo lùi rồi giật bảng ngược về cột trước
+    if (truoc.dich !== null && Math.abs(left - truoc.dich) < 2) return xong();
     if (Math.abs(left - truoc.left) < 1) return xong();                           // chỉ cuộn dọc
     const khoi = khoiDangXem(khung);
     const bang = khoi && khoi.querySelector('.report-table');
@@ -159,6 +188,7 @@
       root.classList.toggle('sp-erp-table-focus', state.focus);
       focusToggle.setAttribute('aria-pressed', String(state.focus));
       focusToggle.textContent = state.focus ? 'Thoát toàn màn hình' : 'Toàn màn hình';
+      vuaManHinh();
     };
     const setFilters = value => { state.filters = value; persist(); render(); };
     const setFocus = value => {
@@ -269,6 +299,7 @@
       const chips = document.getElementById('report-chips');
       const chipsMoi = moi.querySelector('#report-chips');
       if (chips && chipsMoi) chips.replaceWith(chipsMoi);
+      vuaManHinh();   // hàng chip có thể đổi chiều cao
       chepThuocTinh(document.getElementById('report-xuat'), moi.querySelector('#report-xuat'), 'href');
       chepThuocTinh(view.querySelector('#report-nguong input[name=next]'), moi.querySelector('#report-nguong input[name=next]'), 'value');
       chepThuocTinh(workspace, moi.querySelector('#report-workspace'), 'data-active');

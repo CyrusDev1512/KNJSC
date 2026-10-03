@@ -101,7 +101,7 @@ def test_o_so_tu_chen_dau_cham_va_may_chu_nhan_dung(live_server, trinh_duyet_moi
         bao_cao = DailyReport.objects.get()
         du_lieu = DataRecord.objects.get(pk=bao_cao.record_id).data
         assert Decimal(str(du_lieu["cpqc"])) == Decimal("13250000") and du_lieu["so_mess"] == 1234
-        assert Decimal(str(du_lieu["doanh_so"])) == Decimal("25000000") and du_lieu["loai_tien"] == "CAD"
+        assert Decimal(str(du_lieu["doanh_so"])) == Decimal("25000000") and du_lieu["loai_tien"] == "VND"
     finally:
         ctx.close()
 
@@ -109,9 +109,9 @@ def test_o_so_tu_chen_dau_cham_va_may_chu_nhan_dung(live_server, trinh_duyet_moi
 
 def test_xem_truoc_chi_so_khi_go(live_server, trinh_duyet_moi, du_chi_so, mkt_source, nguoi_dung):
     """AC-43.6 — Gõ Số Mess 120, CPQC 13.250.000, Số đơn 8, Doanh số 24.000.000 thì thẻ xem trước hiện ngay CPO
-    "1.656.250 CAD", Giá Mess "110.416,67 CAD" (hai số lẻ như Báo cáo tổng hợp), CPQC/Doanh số "0,5521", AOV
-    "3.000.000 CAD", Tỉ lệ chốt "6,67 %"; xoá Số đơn thì CPO, AOV về "—"; Số đơn 0 thì báo chia cho 0; đổi Thị
-    trường Hoa Kỳ thì hậu tố USD; thẻ có ô vừa sửa sáng viền; nộp thật thì máy chủ lưu đúng số đã xem trước;
+    "1.656.250 VND", Giá Mess "110.416,67 VND" (hai số lẻ như Báo cáo tổng hợp), CPQC/Doanh số "0,5521", AOV
+    "3.000.000 VND", Tỉ lệ chốt "6,67 %"; xoá Số đơn thì CPO, AOV về "—"; Số đơn 0 thì báo chia cho 0; đổi Thị
+    trường Hoa Kỳ thì hậu tố vẫn VND (báo cáo MKT bằng tiền Việt, ADR-047); thẻ có ô vừa sửa sáng viền; nộp thật thì máy chủ lưu đúng số đã xem trước;
     không lỗi JavaScript"""
     Product.objects.get_or_create(code="sp1", defaults={"name": "SP1"})
     form = mkt_source.table.forms.get()
@@ -128,16 +128,16 @@ def test_xem_truoc_chi_so_khi_go(live_server, trinh_duyet_moi, du_chi_so, mkt_so
         for ma, gia_tri in (("so_mess", "120"), ("cpqc", "13250000"), ("so_don", "8"), ("doanh_so", "24000000")):
             page.click(_o(form, ma))
             page.keyboard.type(gia_tri)
-        assert the("cpo") == "1.656.250 CAD"
-        assert the("gia_mess") == "110.416,67 CAD"
+        assert the("cpo") == "1.656.250 VND"
+        assert the("gia_mess") == "110.416,67 VND"
         assert the("cpqc_doanh_so") == "0,5521"
-        assert the("aov") == "3.000.000 CAD"
+        assert the("aov") == "3.000.000 VND"
         assert the("ti_le_chot") == "6,67 %"
         assert "vua" in page.get_attribute('.cs[data-ma="aov"]', "class")       # vừa gõ Doanh số
         assert "vua" not in page.get_attribute('.cs[data-ma="ti_le_chot"]', "class")
         page.fill(_o(form, "so_don"), "")
         page.dispatch_event(_o(form, "so_don"), "input")
-        assert the("cpo").startswith("—") and the("aov").startswith("—") and the("gia_mess") == "110.416,67 CAD"
+        assert the("cpo").startswith("—") and the("aov").startswith("—") and the("gia_mess") == "110.416,67 VND"
         page.click(_o(form, "so_don"))
         page.keyboard.type("0")
         assert "chia cho 0" in the("cpo")
@@ -145,7 +145,7 @@ def test_xem_truoc_chi_so_khi_go(live_server, trinh_duyet_moi, du_chi_so, mkt_so
         page.click(_o(form, "so_don"))
         page.keyboard.type("8")
         page.select_option(_o(form, "thi_truong"), "Hoa Kỳ")
-        assert the("cpo") == "1.656.250 USD"
+        assert the("cpo") == "1.656.250 VND"
         page.select_option(_o(form, "thi_truong"), "Canada")
         page.select_option(_o(form, "san_pham"), "SP1") if page.evaluate(
             f"document.querySelector('{_o(form, 'san_pham')}').tagName") == "SELECT" else page.fill(_o(form, "san_pham"), "SP1")

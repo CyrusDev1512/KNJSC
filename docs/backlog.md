@@ -1,5 +1,29 @@
 # Backlog
 
+## 03.10.2026 — Báo cáo Marketing nộp bằng tiền Việt (ADR-047, AC-47.1 → 47.4)
+
+Chủ quản: mọi số trong báo cáo nộp là tiền Việt. Chủ dự án: Báo cáo tổng hợp hiện tại đổi sang VND, không tỉ giá,
+làm Marketing trước (duyệt mockup Cách A).
+
+- Form MKT: Loại tiền luôn VND, ô tiền ghi "(₫)". Một chỗ quyết định: `currency_service.report_currency`.
+- Báo cáo cũ đổi nhãn sang VND, số giữ nguyên: tệp chuyển đổi `reports/0006` (chạy ngược được, đã thử xuôi–ngược–xuôi).
+- Báo cáo tổng hợp MKT: một dòng TỔNG CỘNG · VND; Số đơn (TT) vẫn đối soát; **DS Chốt (TT) trống** vì vận đơn bằng
+  ngoại tệ và không có tỉ giá được duyệt.
+- Ẩn hai cột Hóa đơn và Hóa đơn/DS Chốt (TT) khỏi báo cáo MKT; cột dữ liệu giữ (AC-47.5).
+- Ẩn cột Lần nộp và Loại tiền của báo cáo MKT (AC-47.6); bỏ đầu trang Báo cáo tổng hợp, khung bảng kéo tới sát đáy,
+  bộ lọc cuộn riêng (AC-42.15, ADR-042 bổ sung 03.10).
+- Lệnh `nap_bao_cao_mau` (AC-42.16) để thử nhiều dòng: 20 người × 3 lần × 33 ngày = 1.980 báo cáo nạp trong 26 s;
+  Báo cáo tổng hợp mở 0,75 s, 100 dòng/trang, 20 trang.
+- Sửa lỗi không bấm được trang 2: khung bảng chừa chỗ cho hàng phân trang (lượt 3 kéo khung sát đáy làm hàng đó
+  bị che nửa).
+- 18 bài cũ viết lại theo luật mới. [Biên bản](kiem-chung-bao-cao-mkt-tien-viet-20261003.md).
+
+Nhánh `claude/bao-cao-mkt-vnd` từ `Staging`, PR nháp về `Staging`.
+
+**Còn:**
+- Chủ dự án thử local rồi gộp `Staging`. Lên VPS: `migrate` tự đổi nhãn báo cáo cũ.
+- Báo cáo Sale bằng tiền Việt (sau); DS Chốt (TT) bằng VND cần tỉ giá được duyệt.
+
 ## 02.10.2026 — Ba chỗ sửa Báo cáo tổng hợp (AC-22.24, 22.25, 22.26)
 
 Chủ dự án xem mockup "Ba chỗ sửa Báo cáo tổng hợp" (artifact claude.ai `JRdYXcoJB9iKTDjuR2YHPY`) và bảo sửa ba chỗ

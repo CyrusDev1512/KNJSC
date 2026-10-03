@@ -19,9 +19,7 @@ from reports.models import ReportSource
 from reports.services import activity_service
 from reports.tests.test_aggregations import bang_mkt  # noqa: F401
 
-pytestmark = pytest.mark.django_db
-
-
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("du_cot_dinh_danh")]   # cơ chế cột Lần nộp / Loại tiền (AC-47.6)
 def test_bay_thi_truong_tam_loai_tien(bang_mkt, nguoi_dung, settings):
     """AC-38.1 — Bảy thị trường (US, CA, PH, EU, KR, JP, AU) ↔ tám loại tiền; cột Thị trường và Loại
     tiền của bảng cấu hình trước 18.09 được bổ sung giá trị mới, giữ giá trị cũ, chạy lại không đổi;
@@ -64,20 +62,28 @@ def test_bay_thi_truong_tam_loai_tien(bang_mkt, nguoi_dung, settings):
     uc = record_service.create_record(bang_mkt, {"ngay": "2026-09-18", "marketer": "x", "san_pham": "SP",
         "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Úc"},
         actor=nguoi_dung["staff_mkt"])
-    assert han.data["loai_tien"] == "KRW" and uc.data["loai_tien"] == "AUD"
+    # Báo cáo MKT nộp bằng tiền Việt (ADR-047): thị trường nào cũng VND; Thị trường lạ vẫn bị chặn
+    assert han.data["loai_tien"] == "VND" and uc.data["loai_tien"] == "VND"
     with pytest.raises(BusinessError):
         record_service.create_record(bang_mkt, {"ngay": "2026-09-18", "marketer": "x", "san_pham": "SP",
             "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Sao Hoả"},
             actor=nguoi_dung["staff_mkt"])
 
     # Báo cáo tổng hợp không quy đổi (ADR-046): mỗi loại tiền một dòng tổng, số đúng như nhập;
-    # KRW (chưa có tỉ giá) không còn là ngoại lệ — hiện như mọi loại tiền, không cảnh báo
+    # KRW (chưa có tỉ giá) không còn là ngoại lệ — hiện như mọi loại tiền, không cảnh báo.
+    # Báo cáo MKT nay luôn VND (ADR-047); cơ chế nhiều loại tiền vẫn dùng cho Sale, nên ghi nhãn theo thị trường
+    # thẳng vào dòng để kiểm cơ chế đó
+
+    def nop_theo_thi_truong(thi_truong):
+        dong = record_service.create_record(bang_mkt, {"ngay": "2026-09-18", "marketer": "x", "san_pham": "SP",
+            "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": thi_truong},
+            actor=nguoi_dung["staff_mkt"])
+        DataRecord.objects.filter(pk=dong.pk).update(data={**dong.data, "loai_tien": for_label(thi_truong)})
+
     from reports import aggregations
     DataRecord.objects.filter(pk__in=[han.pk, uc.pk]).delete()
     source = ReportSource.objects.get(table=bang_mkt)
-    record_service.create_record(bang_mkt, {"ngay": "2026-09-18", "marketer": "x", "san_pham": "SP",
-        "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Châu Âu"},
-        actor=nguoi_dung["staff_mkt"])
+    nop_theo_thi_truong("Châu Âu")
     result = activity_service.build(nguoi_dung["manager_mkt"], source, start=None, end=None)
     assert "không quy đổi" in result.currency_label and not result.currency_warning
 
@@ -88,17 +94,13 @@ def test_bay_thi_truong_tam_loai_tien(bang_mkt, nguoi_dung, settings):
         return {tien: dict(zip([c.label for c in result.columns], raw)) for tien, raw in aggregations.total_rows(result)}
     assert list(theo_tien(result)) == ["EUR"] and theo_tien(result)["EUR"]["CPQC"] == Decimal("10")
     assert tong(result)["CPQC"] == Decimal("10")          # một loại tiền: tổng chung chính là tổng EUR
-    record_service.create_record(bang_mkt, {"ngay": "2026-09-18", "marketer": "x", "san_pham": "SP",
-        "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Nhật Bản"},
-        actor=nguoi_dung["staff_mkt"])
+    nop_theo_thi_truong("Nhật Bản")
     result = activity_service.build(nguoi_dung["manager_mkt"], source, start=None, end=None)
     assert not result.currency_warning and list(theo_tien(result)) == ["EUR", "JPY"]
     assert theo_tien(result)["EUR"]["CPQC"] == Decimal("10") and theo_tien(result)["JPY"]["CPQC"] == Decimal("10")
     # Hai loại tiền: tổng chung không cộng tiền (None), vẫn đếm đủ
     assert tong(result)["CPQC"] is None and tong(result)["CPO"] is None and tong(result)["Số Mess"] == 4
-    record_service.create_record(bang_mkt, {"ngay": "2026-09-18", "marketer": "x", "san_pham": "SP",
-        "so_mess": 2, "cpqc": "10", "so_don": 1, "doanh_so": "20", "thi_truong": "Hàn Quốc"},
-        actor=nguoi_dung["staff_mkt"])
+    nop_theo_thi_truong("Hàn Quốc")
     result = activity_service.build(nguoi_dung["manager_mkt"], source, start=None, end=None)
     assert not result.currency_warning and list(theo_tien(result)) == ["EUR", "KRW", "JPY"]
     assert theo_tien(result)["KRW"]["CPQC"] == Decimal("10") and tong(result)["Số Mess"] == 6
@@ -132,7 +134,7 @@ def test_the_tong_quan_khong_hien_o_don_vi_va_canh_bao_quy_doi(client, bang_mkt,
     html = tong_quan.content.decode()
     assert "chưa quy đổi được" not in html and "quy đổi theo tỉ giá cố định" not in html
     assert "dashboard-note" not in html and "currency_note" not in khoi["data"]
-    assert khoi["data"]["currencies"] == ["KRW"]
+    assert khoi["data"]["currencies"] == ["VND"]          # báo cáo MKT luôn VND (ADR-047)
 
     chi_tiet = client.get("/bao-cao/tong-hop/", {"nguon": bang_mkt.code, **ky}).content.decode()
-    assert "chưa quy đổi được" not in chi_tiet and ">KRW</td>" in chi_tiet
+    assert "chưa quy đổi được" not in chi_tiet and ">VND</td>" in chi_tiet

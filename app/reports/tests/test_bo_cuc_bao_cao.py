@@ -113,8 +113,8 @@ def test_dau_bang_gon_mot_hang_va_giai_thich_so_lieu(client, bang_mkt, mkt_sourc
     panel = _doan(html, '<div class="report-giai-thich" id="report-giai-thich" hidden>')
     assert nhan_tien in panel and canh_bao in panel
     assert ("Tổng trên toàn bộ kết quả khớp bộ lọc · (TT) = đối soát từ vận đơn do marketer phụ trách theo ngày lên "
-            "đơn: Số đơn (TT) là số đơn, DS Chốt (TT) là tiền đã thu theo loại tiền của đơn; ngày nào một người nộp "
-            "nhiều lần (cùng loại tiền) thì (TT) chỉ hiện ở dòng TỔNG CỘNG của ngày") in panel
+            "đơn: Số đơn (TT) là số đơn; DS Chốt (TT) để trống vì báo cáo nộp bằng tiền Việt còn vận đơn thu bằng "
+            "ngoại tệ, không quy đổi; ngày nào một người nộp nhiều lần thì (TT) chỉ hiện ở dòng TỔNG CỘNG của ngày") in panel
     assert html.count(nhan_tien) == 1, "câu loại tiền chỉ còn trong panel"
     # Cảnh báo một dòng gọn: toàn văn ở title
     assert (f'<p class="bao bao-cho report-canh-gon" role="status" title="{canh_bao}"><span>{canh_bao}</span></p>'

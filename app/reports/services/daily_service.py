@@ -36,7 +36,7 @@ def submission_team(form, actor, team=None):
 def protected_values(form, values, fields, day, owner, *, original=None, team=None):
     """Ngày/danh tính do server quản lý; sửa giữ danh tính tại lúc nộp."""
     from forms_builder.meaning import Meaning
-    from orders.services.currency_service import for_label
+    from orders.services.currency_service import report_currency
     values = form_service.apply_identity(values, fields, owner)
     source = getattr(form.table, 'erp_report', None)
     market = None
@@ -55,7 +55,7 @@ def protected_values(form, values, fields, day, owner, *, original=None, team=No
         if source and source.kind in ('sale', 'mkt') and column.code == source.columns.get('market'):
             market = values.get(field.field.code)
     if source and source.kind in ('sale', 'mkt'):
-        currency = for_label(market)
+        currency = report_currency(source.kind, market)
         for field in fields:
             column = form_service._cot_dich(field)
             if column and column.code == source.columns.get('currency', 'loai_tien'):
@@ -216,13 +216,21 @@ def decorate_widgets(widgets, form, values, *, user, day, owner=None):
         if source and source.kind in ('sale', 'mkt') and widget.cot:
             if widget.cot.code == source.columns.get('market'):
                 widget.report_market = True
-                from orders.services.currency_service import MARKET_CURRENCIES
-                widget.currency_map = {market.label:str(currency) for market, currency in MARKET_CURRENCIES.items()}
+                from orders.services.currency_service import MARKET_CURRENCIES, report_currency
+                widget.currency_map = {market.label: str(report_currency(source.kind, market.label))
+                                       for market in MARKET_CURRENCIES}
                 widget.cac_muc = [(label, label) for label in widget.currency_map]
                 widget.chat, widget.co_them = True, False
             if widget.cot.code == source.columns.get('currency', 'loai_tien'):
-                widget.system_value = values.get(widget.t.field.code) or 'Chọn quốc gia'
+                from orders.services.currency_service import REPORT_CURRENCY
+                widget.system_value = (REPORT_CURRENCY.get(source.kind) or values.get(widget.t.field.code)
+                                       or 'Chọn quốc gia')
                 widget.report_currency = True
+            # Báo cáo nộp bằng một loại tiền cố định (MKT: tiền Việt, ADR-047): ô tiền ghi rõ "(₫)"
+            from orders.services.currency_service import REPORT_CURRENCY
+            from forms_builder.meaning import FieldType
+            if source.kind in REPORT_CURRENCY and widget.cot.field_type == FieldType.MONEY:
+                widget.don_vi = '₫' if REPORT_CURRENCY[source.kind] == 'VND' else REPORT_CURRENCY[source.kind]
     return widgets
 
 

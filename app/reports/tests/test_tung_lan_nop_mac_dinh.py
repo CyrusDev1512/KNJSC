@@ -18,6 +18,8 @@ from reports.tests.test_che_do_so_lieu import bon_lan_nop  # noqa: F401
 from reports.tests.test_mkt_derived_revenue import mkt_source, van_don  # noqa: F401
 from reports.tests.test_mkt_excel import marketing_scope  # noqa: F401
 
+pytestmark = pytest.mark.usefixtures("du_cot_dinh_danh")   # cơ chế cột Lần nộp / Loại tiền (AC-47.6)
+
 
 def _sang(presets):
     return [p["key"] for p in presets if p["active"]]

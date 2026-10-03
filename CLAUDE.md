@@ -187,6 +187,9 @@ cảnh màn hình dùng chung ở `reports/screen.py`. **Ba chỗ sửa (02.10, 
 - **Phần chữ trên bảng:** đoạn (TT) và câu loại tiền nằm trong panel "Giải thích số liệu".
 - **Gộp / Không gộp:** đổi bảng bằng `fetch` trong `report-filters.js`, không tải lại trang. Link giữ `trang`, mốc
   `data-ngay` giữ đúng ngày đang xem.
+**Báo cáo Marketing nộp bằng tiền Việt (ADR-047, 03.10):** Loại tiền MKT luôn VND, không theo Thị trường (một chỗ
+`currency_service.report_currency`); báo cáo cũ đổi nhãn sang VND bằng `reports/0006`, số giữ nguyên; không tỉ giá; Số đơn (TT)
+không khoá theo loại tiền, DS Chốt (TT) trống. Sale vẫn theo Thị trường.
 **Form Nộp báo cáo ngày (ADR-043, 24.09):** dropdown Team của bộ phận ghi vào `DataRecord.team` và
 `DailyReport.team`; Số Mess, CPQC, Số đơn, Doanh số bắt buộc — khai một chỗ `configure_erp_reports.REQUIRED_INPUTS`
 (lệnh chạy mỗi lần bật máy nên ép cả trường đã có); Hóa đơn không còn trên form MKT (`MKT_FORM_SKIP`) nhưng cột và
@@ -301,6 +304,7 @@ ghi 0,5 s, poll 0,3 s (`core/constants.py`, `PERF_*`). Số đã đo và điểm
 | `manage.py seed_perf --so-dong 100000 --bang-sale` | Dòng giả `PERF-*` vào `van_don` cũ + bảng Sale có cột tính sẵn (ADR-016) |
 | `manage.py nap_du_lieu_van_don` | Đúng 10.000 mẫu `MAU-*` có chi tiết, thanh toán, phân công vào `van_don` |
 | `manage.py nap_khach_mau --so-khach 300000` | 375.000 dòng `KH-*` vào `van_don`, 20 % khách mua lại (AC-10.9); `--xoa-cu` để xoá |
+| `manage.py nap_bao_cao_mau --nguoi 20 --lan 3` | Báo cáo Marketing mẫu từ ngày 1 tháng trước tới hôm nay (tài khoản `mau_bc_mkt_*` khoá đăng nhập); `--xoa-cu` để xoá |
 | `manage.py do_hieu_nang`, `tests/perf/locustfile_*.py`, `scripts/kiem-tai-kn-crm.*` | Đo một người và nhiều người; báo cáo vào `storage/perf/` |
 
 Mọi lệnh dữ liệu giả từ chối chạy khi DEBUG tắt. Ghi hàng loạt qua
