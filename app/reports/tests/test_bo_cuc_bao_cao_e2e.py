@@ -494,15 +494,22 @@ def test_keo_ngang_khong_con_cot_bi_che(live_server, trinh_duyet_moi, mkt_ba_loa
             chup(page, f"keo-ngang-{'bang' if noi == 'Bảng dữ liệu' else 'bao-cao'}")
             assert sau["cuon"] > 0 and sau["vi_tri"] == {"STT": 0, "Nhân sự": 44, "Loại tiền": 174}, f"{noi}: {sau}"
             assert sau["team_khuat"], f"{noi}: Team còn đứng yên — {sau}"
-            assert not sau["vat"], f"{noi}: cột số bị vắt qua mép vùng đứng yên: {sau['vat']}"
+            het = page.evaluate("()=>{const s=document.querySelector('.report-table-scroll');return s.scrollWidth-s.clientWidth}")
+            assert sau["cuon"] >= het - 2 or not sau["vat"], f"{noi}: cột số bị vắt qua mép vùng đứng yên: {sau['vat']}"
             if noi == "Báo cáo tổng hợp":
                 page.focus(".report-table-scroll")
                 for _ in range(3):
-                    truoc = page.evaluate("()=>document.querySelector('.report-table-scroll').scrollLeft")
+                    truoc, het = page.evaluate("""()=>{const s=document.querySelector('.report-table-scroll');
+                        return [s.scrollLeft, s.scrollWidth-s.clientWidth]}""")
+                    if truoc >= het - 2:
+                        break          # đã tới mép phải: không còn chỗ tiến
                     page.keyboard.press("ArrowRight")
                     sau_phim = _cho_yen(page)
-                    assert sau_phim > truoc, f"mũi tên phải bị kéo lùi: {truoc} → {sau_phim}"
-                    assert not page.evaluate(VUNG_GHIM)["vat"]
+                    assert sau_phim > truoc, f"mũi tên phải bị kéo lùi: {truoc} → {sau_phim} (mép {het})"
+                    # Không cột số nào vắt qua mép vùng đứng yên — trừ khi đã tới mép phải: bảng không cuộn thêm được
+                    # nữa, và nhích ngược về cột trước là giật bảng lùi (lỗi sửa 03.10.2026)
+                    if sau_phim < het - 2:
+                        assert not page.evaluate(VUNG_GHIM)["vat"]
                 dinh = page.evaluate("""()=>new Promise(r=>{const s=document.querySelector('.report-table-scroll'),
                     t=s.querySelector('.report-table');s.scrollTop=t.offsetTop+60;requestAnimationFrame(()=>requestAnimationFrame(()=>{
                     const tr=t.querySelector('.report-total'),so=tr.querySelector('td:not(.report-identity)').getBoundingClientRect();

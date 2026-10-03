@@ -105,3 +105,24 @@ def test_bao_cao_tong_hop_mkt_mot_tong_vnd_va_so_don_tt(bang_mkt, mkt_source, va
     assert dong[employee_code(A)]["Số đơn (TT)"] == 2 and dong[employee_code(B)]["Số đơn (TT)"] == 1
     assert dong[employee_code(A)]["DS Chốt (TT)"] is None
     assert dong[employee_code(A)]["CPQC"] == 13250000
+
+
+def test_bao_cao_mkt_khong_con_cot_hoa_don(client, bang_mkt, mkt_source, nguoi_dung):  # noqa: F811
+    """AC-47.5 — Báo cáo tổng hợp MKT (màn hình, Excel) không còn cột Hóa đơn và Hóa đơn/DS Chốt (TT); dữ liệu cột
+    Hóa đơn trong bảng giữ nguyên; các cột khác giữ thứ tự"""
+    from io import BytesIO
+    from openpyxl import load_workbook
+    dong = _bao_cao(bang_mkt, nguoi_dung["staff_mkt"], "2026-08-01", "SP1", hoa_don="8")
+    result = activity_service.build(nguoi_dung["manager_mkt"], mkt_source, start=date(2026, 8, 1), end=date(2026, 8, 1))
+    nhan = [c.label for c in result.columns]
+    assert "Hóa đơn" not in nhan and "Hóa đơn/DS Chốt (TT)" not in nhan
+    assert nhan[:4] == ["Số Mess", "CPQC", "Số đơn", "Số đơn (TT)"] and "DS Chốt (TT)" in nhan and "AOV" in nhan
+    dong.refresh_from_db()
+    assert str(dong.data["hoa_don"]) == "8"
+    client.force_login(nguoi_dung["manager_mkt"])
+    ky = {"nguon": bang_mkt.code, "tu": "2026-08-01", "den": "2026-08-01"}
+    html = client.get("/bao-cao/tong-hop/", ky).content.decode()
+    assert ">Hóa đơn<" not in html and "Hóa đơn/DS Chốt" not in html
+    sach = load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", ky).content), data_only=True)
+    chu = " ".join(str(o) for ws in sach.worksheets for hang in ws.iter_rows(values_only=True) for o in hang if o)
+    assert "Hóa đơn" not in chu

@@ -68,8 +68,9 @@ DERIVED = {kind: DERIVED_MONEY.get(kind, ()) + DERIVED_COUNT.get(kind, ()) for k
 MONEY_FORMULAS = ("cpo", "mess_cost", "aov")
 DISPLAY_ORDER = {
     "sale": ("mess", "orders", "sales", "conversion", "revenue"),
+    # Hóa đơn và Hóa đơn/DS Chốt (TT) ẩn khỏi báo cáo MKT (chủ dự án 03.10.2026, ADR-047); cột dữ liệu giữ
     "mkt": ("mess", "cost", "orders", "orders_tt", "sales", "revenue", "conversion", "conversion_tt",
-            "mess_cost", "cpo", "cost_sales", "aov", "invoice", "invoice_revenue"),
+            "mess_cost", "cpo", "cost_sales", "aov"),
 }
 
 

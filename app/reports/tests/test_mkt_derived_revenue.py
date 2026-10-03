@@ -103,9 +103,8 @@ def test_doanh_thu_suy_ra_tu_van_don(client, bang_mkt, mkt_source, van_don, nguo
     # Báo cáo MKT nộp bằng tiền Việt (ADR-047), vận đơn bằng CAD: không quy đổi tỉ giá nên DS Chốt (TT) và
     # Hóa đơn/DS Chốt (TT) để trống ở mọi dòng và TỔNG CỘNG; Số đơn (TT) vẫn đối soát như cũ
     assert rows[("01.08.2026", employee_code(A))]["DS Chốt (TT)"] is None
-    assert rows[("01.08.2026", employee_code(A))]["Hóa đơn/DS Chốt (TT)"] is None
     totals = dict(zip([c.label for c in result.columns], aggregations.total_values(result)))
-    assert totals["DS Chốt (TT)"] is None and totals["Hóa đơn/DS Chốt (TT)"] is None
+    assert totals["DS Chốt (TT)"] is None and "Hóa đơn/DS Chốt (TT)" not in totals   # cột ẩn (ADR-047)
     assert [c.kind for c in result.columns if c.label == "DS Chốt (TT)"] == ["derived"]
     # Cột đối soát số đơn đi cùng (ADR-042): w1, w2 của A và w4 của B ngày 01.08; w3 của A ngày 02.08
     assert rows[("01.08.2026", employee_code(A))]["Số đơn (TT)"] == 2 and rows[("01.08.2026", employee_code(B))]["Số đơn (TT)"] == 1
@@ -184,11 +183,12 @@ def test_hoa_don_chia_doanh_thu_va_canh_bao_tien(bang_mkt, mkt_source, van_don, 
     assert not bang_mkt.columns.filter(code="hoa_don_doanh_thu").exists()
     assert "revenue" not in ReportSource.objects.get(table=bang_mkt).columns
 
-    # Không có vận đơn trong kỳ → DS Chốt (TT) và tỉ số trống, Số đơn (TT) là 0, Hóa đơn vẫn có
+    # Không có vận đơn trong kỳ → DS Chốt (TT) trống, Số đơn (TT) là 0; Hóa đơn và Hóa đơn/DS Chốt (TT) ẩn khỏi
+    # báo cáo MKT (ADR-047) nhưng cột dữ liệu Hóa đơn vẫn giữ
     _bao_cao(bang_mkt, A, "2026-08-05", "SP1", hoa_don="8")
     result = activity_service.build(nguoi_dung["manager_mkt"], mkt_source, start=date(2026, 8, 5), end=date(2026, 8, 5))
     totals = dict(zip([c.label for c in result.columns], aggregations.total_values(result)))
-    assert totals["Hóa đơn"] == 8 and totals["DS Chốt (TT)"] is None and totals["Hóa đơn/DS Chốt (TT)"] is None
+    assert "Hóa đơn" not in totals and "Hóa đơn/DS Chốt (TT)" not in totals and totals["DS Chốt (TT)"] is None
     assert totals["Số đơn (TT)"] == 0 and totals["Tỉ lệ chốt (TT)"] == 0
     # Có vận đơn CAD và USD của cùng marketer: báo cáo MKT bằng tiền Việt (ADR-047) → Số đơn (TT) đếm cả hai, DS
     # Chốt (TT) và Hóa đơn/DS Chốt (TT) trống vì không quy đổi; một dòng TỔNG CỘNG · VND
@@ -203,4 +203,4 @@ def test_hoa_don_chia_doanh_thu_va_canh_bao_tien(bang_mkt, mkt_source, van_don, 
     theo_tien = {tien: dict(zip([c.label for c in result.columns], raw)) for tien, raw in aggregations.total_rows(result)}
     assert list(theo_tien) == ["VND"]
     assert theo_tien["VND"]["Số đơn (TT)"] == 3 and theo_tien["VND"]["CPQC"] == 3
-    assert theo_tien["VND"]["DS Chốt (TT)"] is None and theo_tien["VND"]["Hóa đơn/DS Chốt (TT)"] is None
+    assert theo_tien["VND"]["DS Chốt (TT)"] is None and "Hóa đơn/DS Chốt (TT)" not in theo_tien["VND"]

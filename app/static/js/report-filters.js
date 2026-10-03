@@ -58,7 +58,9 @@
     const truoc = viTriNgang.get(khung) || {left: 0, dich: null};
     const left = khung.scrollLeft;
     const xong = () => viTriNgang.set(khung, {left, dich: null});
-    if (truoc.dich !== null && Math.abs(left - truoc.dich) < 1) return xong();   // vừa nhích xong
+    // Vừa nhích xong. Sai 2 px: đích ở mép phải có khi chỉ tới được 569 khi tính ra 570 (bề rộng lẻ) — không thì
+    // lần sau tưởng là kéo lùi rồi giật bảng ngược về cột trước
+    if (truoc.dich !== null && Math.abs(left - truoc.dich) < 2) return xong();
     if (Math.abs(left - truoc.left) < 1) return xong();                           // chỉ cuộn dọc
     const khoi = khoiDangXem(khung);
     const bang = khoi && khoi.querySelector('.report-table');

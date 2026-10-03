@@ -710,3 +710,4 @@ quy ra VND"; không có tỉ giá nào được duyệt; làm Marketing trước
 | AC-47.2 | Nộp báo cáo MKT chọn Canada → lưu VND; đổi Thị trường trên dòng vẫn VND; form hiện Loại tiền VND với mọi thị trường, ô tiền ghi "(₫)"; báo cáo Sale vẫn Canada → CAD | ADR-047 | Tự động |
 | AC-47.3 | Tệp chuyển đổi `reports/0006`: dòng báo cáo MKT cũ mang CAD/USD/trống đổi nhãn sang VND, **số giữ nguyên**, VND có trong lựa chọn của cột; bảng Sale không đổi; chạy ngược thì nhãn lấy lại theo Thị trường | ADR-047 · quy tắc 4 | Tự động |
 | AC-47.4 | Báo cáo tổng hợp MKT: một dòng TỔNG CỘNG · VND; Số đơn (TT) đếm đúng đơn của marketer dù đơn bằng CAD/USD; DS Chốt (TT) trống (không quy đổi); số tiền đúng như nhập; ngưỡng tiền đặt theo ₫ tô được dòng MKT | ADR-047 | Tự động |
+| AC-47.5 | Báo cáo tổng hợp MKT (màn hình, Excel, Tổng quan) không còn cột Hóa đơn và Hóa đơn/DS Chốt (TT); cột dữ liệu Hóa đơn trong bảng giữ nguyên | Chủ dự án 03.10.2026 · ADR-047 | Tự động |
