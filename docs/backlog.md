@@ -14,6 +14,8 @@ làm Marketing trước (duyệt mockup Cách A).
   bộ lọc cuộn riêng (AC-42.15, ADR-042 bổ sung 03.10).
 - Lệnh `nap_bao_cao_mau` (AC-42.16) để thử nhiều dòng: 20 người × 3 lần × 33 ngày = 1.980 báo cáo nạp trong 26 s;
   Báo cáo tổng hợp mở 0,75 s, 100 dòng/trang, 20 trang.
+- Sửa lỗi không bấm được trang 2: khung bảng chừa chỗ cho hàng phân trang (lượt 3 kéo khung sát đáy làm hàng đó
+  bị che nửa).
 - 18 bài cũ viết lại theo luật mới. [Biên bản](kiem-chung-bao-cao-mkt-tien-viet-20261003.md).
 
 Nhánh `claude/bao-cao-mkt-vnd` từ `Staging`, PR nháp về `Staging`.

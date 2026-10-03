@@ -144,8 +144,8 @@ thanh kéo lên kéo xuống".
 - Bỏ đầu trang `<h1>Báo cáo tổng hợp</h1>` và câu phụ; tên trang vẫn ở thanh trên.
 - Khung bảng cao tới sát đáy vùng nội dung `main.noi-dung` (sát thanh menu dưới đáy), tính từ chỗ khung đứng khi trang
   ở đầu: `report-filters.js` đặt `--report-fit` khi tải, đổi cỡ, thu/mở bộ lọc, đổi Gộp; khung nằm thấp (Bảng dữ liệu,
-  màn hình thấp) thì cao bằng cả vùng nội dung. Mép dưới và thanh kéo ngang của bảng luôn trong tầm nhìn; hàng phân
-  trang ngay dưới, cuộn trang là thấy. Toàn màn hình giữ như cũ.
+  màn hình thấp) thì cao bằng cả vùng nội dung. Mép dưới, thanh kéo ngang của bảng và hàng phân trang luôn trong tầm
+  nhìn — khung chừa chỗ cho hàng phân trang (không chừa thì nút trang 2 nằm đúng mép bị che, bấm không trúng). Toàn màn hình giữ như cũ.
 - Bộ lọc bên trái (màn ≥ 901 px, ngoài Toàn màn hình) `position: sticky`, cao `--report-panel-fit`, phần ô lọc
   `overflow: auto` — như bộ lọc lưới KN CRM. AC-42.15.
 
