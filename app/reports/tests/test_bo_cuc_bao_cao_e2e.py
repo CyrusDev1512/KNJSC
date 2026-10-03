@@ -591,8 +591,8 @@ def test_gop_khong_tai_lai_trang(live_server, trinh_duyet_moi, mkt_ba_loai_tien,
 
 def test_bang_vua_man_hinh_va_bo_loc_cuon_rieng(live_server, trinh_duyet_moi, mkt_ba_loai_tien, nguoi_dung):
     """AC-42.15 — Chủ dự án 03.10.2026: Báo cáo tổng hợp không còn đầu trang "Báo cáo tổng hợp / Kết quả thực tế…"
-    (tên trang ở thanh trên); khung bảng kéo dài tới sát đáy vùng nội dung (mép dưới và thanh kéo ngang luôn nhìn
-    thấy, cách đáy ≤ 40 px); bộ lọc bên trái đứng yên, cao vừa vùng nội dung và cuộn riêng: lăn chuột trên bộ lọc chỉ
+    (tên trang ở thanh trên); khung bảng kéo dài tới ngay trên hàng phân trang, hàng phân trang nằm trọn trong vùng
+    nhìn thấy và bấm được (mép dưới, thanh kéo ngang luôn nhìn thấy); bộ lọc bên trái đứng yên, cao vừa vùng nội dung và cuộn riêng: lăn chuột trên bộ lọc chỉ
     cuộn bộ lọc, trang và bảng đứng yên; báo cáo MKT không có cột Lần nộp, Loại tiền"""
     url = f"/bao-cao/tong-hop/?nguon={mkt_ba_loai_tien.code}&tu=2026-08-01&den=2026-08-06"
     for w, h in ((1366, 768), (1366, 600)):
@@ -604,13 +604,18 @@ def test_bang_vua_man_hinh_va_bo_loc_cuon_rieng(live_server, trinh_duyet_moi, mk
                 return {h1:[...m.querySelectorAll('h1')].map(x=>x.textContent),
                     chu:m.textContent.includes('Kết quả thực tế trong phạm vi'),
                     tren:k.top-mb.top, khoang:Math.round(mb.bottom-k.bottom), cao:Math.round(k.height),
+                    pt:(()=>{const t=document.querySelector('.report-results>.phan-trang');if(!t)return null;const r=t.getBoundingClientRect();
+                        const e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+                        return {tren:Math.round(r.top-k.bottom),duoi:Math.round(mb.bottom-r.bottom),trung:!!(e&&e.closest('.phan-trang'))}})(),
                     loc:[pb.scrollHeight,pb.clientHeight],
                     cot:[...document.querySelectorAll('.report-table thead th.report-identity')].map(t=>t.textContent.trim())}}""")
             assert do["h1"] == [] and not do["chu"], do
             assert "Lần nộp" not in do["cot"] and "Loại tiền" not in do["cot"], do
             if h == 768:
-                # Khung đứng gần đầu vùng nội dung thì kéo tới sát đáy (đệm dưới của vùng nội dung 32 px)
-                assert 0 <= do["khoang"] <= 40 and do["cao"] >= 300, do
+                # Khung kéo tới ngay trên hàng phân trang; hàng phân trang nằm trọn trong vùng nhìn thấy và bấm trúng
+                # được (lỗi 03.10.2026: kéo khung sát đáy làm nút trang 2 nằm đúng mép bị che, bấm không trúng)
+                assert do["cao"] >= 280 and do["pt"] and 0 <= do["pt"]["tren"] <= 4, do
+                assert 0 <= do["pt"]["duoi"] <= 48 and do["pt"]["trung"], do
             assert do["loc"][0] > do["loc"][1], f"bộ lọc phải có thanh cuộn riêng ở {w}×{h}: {do}"
             truoc = page.evaluate("()=>[document.querySelector('main.noi-dung').scrollTop,document.querySelector('.report-table-scroll').scrollTop]")
             hop = page.locator(".report-filter-panel>.panel-body").bounding_box()

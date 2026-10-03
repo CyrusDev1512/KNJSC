@@ -24,12 +24,16 @@
     const day = main ? parseFloat(getComputedStyle(main).paddingBottom) || 0 : 0;
     const tren = khung.getBoundingClientRect().top - vung.top + cuon;
     const cao = vung.bottom - vung.top;
-    // Hàng phân trang nằm ngay dưới khung, cuộn trang là thấy — không chừa chỗ để bảng được cao nhất; mép dưới
-    // khung (và thanh kéo ngang) luôn nằm trong vùng nhìn thấy
-    let vua = cao - tren - day;
+    // Chừa chỗ cho phần dưới khung trong cùng hộp kết quả (hàng phân trang) và mép dưới của hộp: phân trang luôn
+    // nhìn thấy và bấm được — không chừa thì nút trang 2 nằm đúng mép bị che, bấm không trúng (lỗi 03.10.2026)
+    let duoiKhung = 0;
+    for (let e = khung.nextElementSibling; e; e = e.nextElementSibling) duoiKhung += e.getBoundingClientRect().height;
+    const hop = getComputedStyle(khung.parentElement);
+    duoiKhung += (parseFloat(hop.paddingBottom) || 0) + (parseFloat(hop.borderBottomWidth) || 0);
+    let vua = cao - tren - day - duoiKhung;
     // Khung nằm thấp (Bảng dữ liệu có phần thông tin, bộ lọc ngang ở trên; màn hình thấp): cuộn trang tới khung
     // thì bảng cao bằng cả vùng nội dung, không co lại còn một mẩu
-    if (vua < 320) vua = cao - day - (main ? parseFloat(getComputedStyle(main).paddingTop) || 0 : 0);
+    if (vua < 240) vua = cao - day - duoiKhung - (main ? parseFloat(getComputedStyle(main).paddingTop) || 0 : 0);
     root.style.setProperty('--report-fit', Math.max(240, Math.floor(vua)) + 'px');
     root.style.setProperty('--report-panel-fit', Math.max(320, Math.floor(cao - 24)) + 'px');
   };

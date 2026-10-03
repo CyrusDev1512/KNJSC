@@ -31,6 +31,25 @@
 | `test_bang_vua_man_hinh_va_bo_loc_cuon_rieng` (AC-42.15) | Đạt 3 lần liền |
 | Bài trình duyệt cũ | `test_lan_chuot_tren_bang_khong_ket` đổi cửa sổ thử 1000×760 → 1000×900 (tiền đề "bảng ngắn vừa khung dọc"); `test_keo_ngang…` dùng `du_cot_dinh_danh` |
 
+## Lượt 4 — nhiều dòng (`nap_bao_cao_mau`, AC-42.16)
+
+| Kiểm | Kết quả |
+|---|---|
+| `test_nap_bao_cao_mau_thang_truoc_toi_hom_nay` | DEBUG tắt từ chối; 2 người × 2 lần × 33 ngày = 132 báo cáo; chạy lại không trùng; VND; `--xoa-cu` chỉ xoá mẫu |
+| CSDL nháp: `nap_bao_cao_mau --nguoi 20 --lan 3` | 1.980 báo cáo trong 26 s |
+| Mở Báo cáo tổng hợp (Chromium, `runserver`, 1366×768) | 1.986 lần nộp, 100 dòng/trang (tối đa của ô Mỗi trang), 20 trang; tải trang 0,71–0,77 s; khung bảng 376 px; không lỗi JS |
+
+## Lượt 5 — lỗi không bấm được trang 2 (chủ dự án báo 03.10.2026)
+
+Nguyên nhân: lượt 3 kéo khung bảng tới sát đáy vùng nội dung mà không chừa hàng phân trang → hàng đó nằm đúng mép
+đáy, nửa dưới bị che; giữa nút "2" rơi vào vùng che nên bấm không trúng (Playwright tự cuộn nên bài cũ không bắt).
+Sửa `report-filters.js`: chừa chiều cao hàng phân trang và mép dưới hộp kết quả.
+
+| Kiểm | Kết quả |
+|---|---|
+| Bấm chuột thật vào giữa nút "2", CSDL nháp 184 lần nộp | 1366×768: khung 310 px, nút nằm trong vùng nhìn thấy, sang "Hiện 101–184"; 1920×1080: khung 622 px, sang trang 2. 1366×600: không đủ chỗ cho cả bảng và hàng phân trang — phải cuộn trang mới thấy hàng đó |
+| `test_bang_vua_man_hinh_va_bo_loc_cuon_rieng` thêm điều kiện hàng phân trang nằm trọn và `elementFromPoint` trúng | Đỏ trên JS cũ (khung 376, phân trang bị che), đạt trên JS mới 3 lần liền |
+
 ## Chưa kiểm / để lại
 
 - Chưa chạy trên máy chủ dự án và VPS; lên VPS `migrate` tự đổi nhãn báo cáo MKT cũ.
