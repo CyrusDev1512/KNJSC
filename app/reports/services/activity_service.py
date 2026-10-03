@@ -82,6 +82,7 @@ class ActivityResult(aggregations.SummaryResult):
     currency_label: str = ''
     currency_warning: str = ''
     mode: str = DEFAULT_MODE    # chế độ số liệu của cách xem Tổng hợp (ADR-046)
+    source_kind: str = ''       # loại nguồn — `layout.HIDDEN_IDENTITY` ẩn cột định danh theo nó (ADR-047)
 
 
 @dataclass(frozen=True)
@@ -404,7 +405,7 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
     if result.ok:
         result = currency_note(result)
     result = with_person_team(result, source, group)
-    return _as_activity(result, mode=mode if group == "day" else DEFAULT_MODE)
+    return _as_activity(result, mode=mode if group == "day" else DEFAULT_MODE, source_kind=source.kind)
 
 
 def _shared_keys(result, qs, source, tien):

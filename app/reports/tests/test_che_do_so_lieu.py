@@ -22,8 +22,7 @@ from reports.tests.test_aggregations import bang_mkt  # noqa: F401
 from reports.tests.test_mkt_derived_revenue import _bao_cao, mkt_source, van_don  # noqa: F401
 from reports.tests.test_mkt_excel import marketing_scope  # noqa: F401
 
-pytestmark = pytest.mark.django_db
-
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("du_cot_dinh_danh")]   # cơ chế cột Lần nộp / Loại tiền (AC-47.6)
 NGAY = date(2026, 8, 1)
 
 

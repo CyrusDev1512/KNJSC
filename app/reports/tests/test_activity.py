@@ -9,9 +9,7 @@ from reports.tests.test_aggregations import bang_mkt, dong_mau
 from reports.tests.test_mkt_excel import marketing_scope
 from reports.tests.test_mkt_derived_revenue import mkt_source, van_don
 
-pytestmark=pytest.mark.django_db
-
-
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("du_cot_dinh_danh")]   # cơ chế cột Lần nộp / Loại tiền (AC-47.6)
 def test_sale_ratio_and_account_identity(bang_mkt,dong_mau,nguoi_dung):
     source=ReportSource.objects.create(table=bang_mkt,kind="sale",columns={"mess":"so_mess","orders":"so_don","sales":"doanh_so","market":"thi_truong"})
     result=activity_service.build(nguoi_dung["manager_mkt"],source,group="person",start=date(2026,8,1),end=date(2026,8,31))

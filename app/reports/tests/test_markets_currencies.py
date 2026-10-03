@@ -19,9 +19,7 @@ from reports.models import ReportSource
 from reports.services import activity_service
 from reports.tests.test_aggregations import bang_mkt  # noqa: F401
 
-pytestmark = pytest.mark.django_db
-
-
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("du_cot_dinh_danh")]   # cơ chế cột Lần nộp / Loại tiền (AC-47.6)
 def test_bay_thi_truong_tam_loai_tien(bang_mkt, nguoi_dung, settings):
     """AC-38.1 — Bảy thị trường (US, CA, PH, EU, KR, JP, AU) ↔ tám loại tiền; cột Thị trường và Loại
     tiền của bảng cấu hình trước 18.09 được bổ sung giá trị mới, giữ giá trị cũ, chạy lại không đổi;
