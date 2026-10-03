@@ -13,6 +13,7 @@ from openpyxl import load_workbook
 
 from forms_builder.models import ColumnDef, DataRecord, FormDef
 from forms_builder.services import record_service
+from orders.models import Product
 from reports import aggregations
 from reports.management.commands.configure_erp_reports import configure_source
 from reports.models import DailyReport, ReportSource
@@ -164,3 +165,30 @@ def test_bang_mkt_toan_vnd_khong_cot_loai_tien(client, bang_mkt, mkt_source, ngu
     assert r.context["result"].fixed_currency == ""
     html = r.content.decode()
     assert ">Loại tiền</th>" not in html and "id-tien" not in html and "Tiền: ₫" not in html
+
+
+def test_form_sale_bo_ngay_ra_don(client, nguoi_dung):
+    """AC-48.7 — Sau `configure_erp_reports`, form Nộp báo cáo Sale không còn ô Ngày ra đơn (chạy lại vẫn không đưa về);
+    cột Ngày ra đơn và dữ liệu cũ của cột giữ nguyên; cờ bắt buộc cấp cột (nếu từng bật tay) bị gỡ; trang nộp Sale không
+    còn ô đó, nộp Sale đủ các ô còn lại vẫn lưu được"""
+    Product.objects.get_or_create(code="sp1", defaults={"name": "SP1"})
+    call_command("configure_erp_reports")
+    sale = FormDef.objects.get(code="bc_sale_ngay")
+    nguoi_ban = nguoi_dung["staff_sale_1"]
+    cu = record_service.create_record(sale.table, {"ngay": "2026-08-01", "san_pham": "SP1", "so_mess": 5, "so_don": 1,
+                                                   "doanh_so": "10", "ngay_ra_don": "2026-07-30", "thi_truong": "Canada"},
+                                      actor=nguoi_ban, system_day=date(2026, 8, 1))
+    assert "ngay_ra_don" not in _cot_tren_form(sale)
+    cot = ColumnDef.objects.get(table=sale.table, code="ngay_ra_don")
+    ColumnDef.objects.filter(pk=cot.pk).update(required=True)
+    call_command("configure_erp_reports")
+    assert "ngay_ra_don" not in _cot_tren_form(FormDef.objects.get(code="bc_sale_ngay"))
+    assert not ColumnDef.objects.get(pk=cot.pk).required
+    assert DataRecord.objects.get(pk=cu.pk).data["ngay_ra_don"] == "2026-07-30"     # dữ liệu cũ giữ
+    client.force_login(nguoi_ban)
+    html = client.get("/bao-cao/", {"bieu_mau": sale.code}).content.decode()
+    assert 'ngay_ra_don"' not in html and "Ngày ra đơn" not in html
+    r = client.post("/bao-cao/", _payload(sale, so_mess="10", so_don="2", doanh_so="100", san_pham="SP1",
+                                          thi_truong="Canada"))
+    assert r.status_code == 302, r.content.decode()[:400]
+    assert DailyReport.objects.filter(form=sale).count() == 1

@@ -49,6 +49,9 @@ REQUIRED_INPUTS = ("ngay", "san_pham", "thi_truong", "so_mess", "cpqc", "so_don"
 #: Loại tiền hệ thống tự ghi VND; cột, ánh xạ và dữ liệu cũ giữ nguyên)
 MKT_REMOVED_INPUTS = ("san_pham", "thi_truong", CUSTOMER_SEGMENT_COLUMN, "loai_tien")
 MKT_FORM_SKIP = (LEGACY_REVENUE_INPUT, "hoa_don", *MKT_REMOVED_INPUTS)
+#: Cột nhập cố ý KHÔNG đưa lên biểu mẫu Sale: Ngày ra đơn (ADR-048 bổ sung, chủ dự án 03.10.2026 — cột và dữ liệu
+#: cũ giữ nguyên)
+SALE_FORM_SKIP = ("ngay_ra_don",)
 
 
 def team_column(table):
@@ -129,11 +132,12 @@ def configure_source(table, kind):
                 mapping[key] = candidates[0].code
         if kind == "mkt":
             mapping["segment"] = CUSTOMER_SEGMENT_COLUMN
-        skip = set(MKT_FORM_SKIP) if kind == "mkt" else set()
-        if kind == "mkt":
-            # Bốn ô đã rời form MKT (ADR-048): cờ bắt buộc cấp cột (nếu từng bật tay ở "Sửa cột") mà còn thì
-            # `create_record` vẫn từ chối mọi lần nộp — gỡ cờ, cột và dữ liệu giữ nguyên
-            table.columns.filter(code__in=MKT_REMOVED_INPUTS, required=True).update(required=False)
+        skip = set(MKT_FORM_SKIP if kind == "mkt" else SALE_FORM_SKIP if kind == "sale" else ())
+        # Ô đã rời form (ADR-048: bốn ô MKT, Ngày ra đơn của Sale): cờ bắt buộc cấp cột (nếu từng bật tay ở "Sửa cột")
+        # mà còn thì `create_record` vẫn từ chối mọi lần nộp — gỡ cờ, cột và dữ liệu giữ nguyên
+        removed = MKT_REMOVED_INPUTS if kind == "mkt" else SALE_FORM_SKIP if kind == "sale" else ()
+        if removed:
+            table.columns.filter(code__in=removed, required=True).update(required=False)
         team = team_column(table)
         if team is not None:
             # Một ô Team duy nhất trên form (dropdown, ADR-043): cột Team dạng chữ rời form nhập;

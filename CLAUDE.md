@@ -195,7 +195,8 @@ không khoá theo loại tiền, DS Chốt (TT) trống. Sale vẫn theo Thị t
 **Form MKT bỏ bốn ô (ADR-048, 03.10):** Sản phẩm, Thị trường, Tệp khách hàng, Loại tiền rời form MKT (cùng
 `MKT_FORM_SKIP`; cột, ánh xạ, dữ liệu cũ giữ; dòng mới vẫn VND ở tầng ghi); nộp/sửa MKT không đòi Thị trường; nguồn
 MKT không còn ba bộ lọc đó, tham số cũ `sp`/`thi_truong`/`tep` bị bỏ qua (`reports.constants.NO_DIMENSION_FILTER_KINDS`,
-`screen.parameters`); Thống kê CRM nguồn MKT không còn biểu đồ theo sản phẩm. Sale không đổi.
+`screen.parameters`); Thống kê CRM nguồn MKT không còn biểu đồ theo sản phẩm. Form Sale bỏ ô Ngày ra đơn
+(`SALE_FORM_SKIP`, cột và dữ liệu cũ giữ); phần khác của Sale không đổi.
 **Form Nộp báo cáo ngày (ADR-043, 24.09):** dropdown Team của bộ phận ghi vào `DataRecord.team` và
 `DailyReport.team`; Số Mess, CPQC, Số đơn, Doanh số bắt buộc — khai một chỗ `configure_erp_reports.REQUIRED_INPUTS`
 (lệnh chạy mỗi lần bật máy nên ép cả trường đã có); Hóa đơn không còn trên form MKT (`MKT_FORM_SKIP`) nhưng cột và

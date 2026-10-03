@@ -15,6 +15,7 @@ Không có lỗi TL mới; việc theo quyết định của chủ dự án (ADR
 | AC-48.4 | `…::test_bang_mkt_toan_vnd_khong_cot_loai_tien` | kết quả chưa có `fixed_currency`, bảng còn cột Loại tiền |
 | AC-48.5 | `reports/tests/test_o_nhap_so_e2e.py::test_form_mkt_khong_bon_o_van_hien_vnd_va_nop_duoc` (trình duyệt) | form còn ô Sản phẩm |
 | AC-48.6 | `crm/tests/test_thong_ke_mkt_bo_san_pham.py` | Thống kê MKT còn biểu đồ "Đóng góp theo sản phẩm" |
+| AC-48.7 | `…::test_form_sale_bo_ngay_ra_don` (thêm sau, khi chủ dự án bảo bỏ Ngày ra đơn của Sale) | form Sale còn ô Ngày ra đơn |
 
 **Bài cũ đổi theo hành vi mới (6 bài phía máy chủ, 2 bài trình duyệt):**
 - Form và bộ lọc: AC-43.2 (bộ ô bắt buộc MKT; kiểm Sản phẩm, Thị trường chuyển sang form Sale), AC-38.4 (Tệp khách

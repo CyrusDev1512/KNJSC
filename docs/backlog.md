@@ -14,6 +14,7 @@ Tiền vẫn là VND (ADR-047), làm Marketing trước, DS Chốt (TT) chờ KN
 - **Đơn vị tiền ghi một lần:** "Tiền: ₫" ở hàng tiêu đề khi mọi dòng VND. Cột Loại tiền (và Lần nộp) MKT ẩn theo
   #83 (AC-47.6); phương án "hiện lại cột khi lẫn loại tiền" bỏ — chủ dự án 03.10 chọn luôn ẩn như #83.
 - **Thống kê CRM:** nguồn MKT bỏ biểu đồ theo sản phẩm, Sale giữ.
+- **Bổ sung: form Sale bỏ ô Ngày ra đơn** (chủ dự án 03.10, trước khi gộp; `SALE_FORM_SKIP`, cột và dữ liệu cũ giữ, AC-48.7).
 - 6 bài mới đỏ trên nền rồi xanh; 8 bài cũ sửa theo luật mới (6 phía máy chủ, 2 trình duyệt). [Biên bản](kiem-chung-mkt-bo-bon-o-20261003.md).
 
 Nhánh `claude/mkt-bo-bon-o` tách từ `claude/bao-cao-mkt-vnd` (PR #83, chưa gộp), PR nháp về `Staging`: **gộp #83

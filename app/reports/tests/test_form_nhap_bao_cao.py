@@ -102,7 +102,8 @@ def test_bon_truong_bat_buoc(client, bang_mkt, mkt_source, nguoi_dung):
     call_command("configure_erp_reports")
     sale = FormDef.objects.get(code="bc_sale_ngay")
     bat_buoc_sale = {f.link.column.code for f in sale.ordered_fields() if f.required and getattr(f, "link", None)}
-    assert {"so_mess", "so_don", "doanh_so"} <= bat_buoc_sale and "ngay_ra_don" not in bat_buoc_sale
+    assert {"so_mess", "so_don", "doanh_so"} <= bat_buoc_sale
+    assert "ngay_ra_don" not in {f.link.column.code for f in sale.ordered_fields() if getattr(f, "link", None)}  # ADR-048
     # Trường đã có từ trước với required=False cũng bị ép bắt buộc khi chạy lại
     FormField.objects.filter(form=form, link__column__code="so_don").update(required=False)
     configure_source(bang_mkt, "mkt")

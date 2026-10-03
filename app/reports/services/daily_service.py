@@ -345,7 +345,7 @@ def submit(form, values, *, report_date, actor, request=None, fields=None, team=
                 raise BusinessError("Hãy chọn thị trường trong danh mục quốc gia.")
         for field, value in linked.values():
             if field.link.column.meaning == Meaning.DATE and str(value) != report_date.isoformat():
-                raise BusinessError("Ngày trong biểu mẫu phải trùng ngày báo cáo; Ngày ra đơn là thông tin riêng.")
+                raise BusinessError("Ngày trong biểu mẫu phải trùng ngày báo cáo.")
 
     # Cùng một đường với màn hình điền biểu mẫu: ép danh tính người nộp vào
     # trường Người bán (FR-4.6), kiểm bắt buộc, rồi ghi vào bảng đích

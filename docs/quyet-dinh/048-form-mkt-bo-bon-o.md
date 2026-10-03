@@ -46,6 +46,13 @@ gì. Sản phẩm và Tệp khách hàng chỉ phục vụ việc lọc.
 6. **Thống kê KN CRM nguồn Marketing bỏ biểu đồ "Đóng góp theo sản phẩm"**, vì dòng mới không có sản phẩm nên cột
    "Chưa có sản phẩm" sẽ chiếm gần hết biểu đồ. Sale giữ biểu đồ này.
 
+## Bổ sung 03.10.2026 — form Sale bỏ ô Ngày ra đơn
+
+Chủ dự án: "bỏ ngày lên đơn trong báo cáo của sale" (ô **Ngày ra đơn** của form Nộp báo cáo Sale), làm luôn trong
+PR #84 trước khi gộp. Cùng cách với bốn ô MKT: `configure_erp_reports.SALE_FORM_SKIP` gỡ ô khỏi form Sale và không tạo
+lại, gỡ cờ bắt buộc cấp cột nếu có; cột `ngay_ra_don` và dữ liệu cũ giữ nguyên (xem ở Bảng dữ liệu dạng thô). Câu báo
+lỗi ngày nộp bỏ đoạn nhắc tới Ngày ra đơn. Không đổi gì khác của báo cáo Sale.
+
 ## Hệ quả
 
 - **Mất:** không còn lọc hay xem báo cáo Marketing mới theo sản phẩm, thị trường, tệp khách, và không tính được CPO
