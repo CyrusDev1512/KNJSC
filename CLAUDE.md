@@ -183,13 +183,18 @@ quản lý đặt (`ReportSource.thresholds`), lọc nhiều sản phẩm; bản
 Bảng dữ liệu là **báo cáo chi tiết theo ngày** (mỗi lần nộp một dòng, `?dang=tho` xem thô); bối
 cảnh màn hình dùng chung ở `reports/screen.py`. **Ba chỗ sửa (02.10, ADR-042 bổ sung):**
 - **Kéo ngang:** chỉ cột đầu (STT/Ngày), Nhân sự, Loại tiền đứng yên (`layout.identity`; cột khác mang `report-troi`).
-  Dòng TỔNG CỘNG mỗi cột một ô, nhãn ngắn ở ô Nhân sự; kéo xong thì bảng tự nhích.
+  Dòng TỔNG CỘNG mỗi cột một ô, nhãn ngắn ở ô Nhân sự; kéo xong thì bảng tự nhích. Báo cáo MKT toàn VND không có
+  cột Loại tiền (ADR-048, `layout.shows_currency`): đứng yên còn STT · Nhân sự, đơn vị ghi "Tiền: ₫" ở hàng tiêu đề.
 - **Phần chữ trên bảng:** đoạn (TT) và câu loại tiền nằm trong panel "Giải thích số liệu".
 - **Gộp / Không gộp:** đổi bảng bằng `fetch` trong `report-filters.js`, không tải lại trang. Link giữ `trang`, mốc
   `data-ngay` giữ đúng ngày đang xem.
 **Báo cáo Marketing nộp bằng tiền Việt (ADR-047, 03.10):** Loại tiền MKT luôn VND, không theo Thị trường (một chỗ
 `currency_service.report_currency`); báo cáo cũ đổi nhãn sang VND bằng `reports/0006`, số giữ nguyên; không tỉ giá; Số đơn (TT)
 không khoá theo loại tiền, DS Chốt (TT) trống. Sale vẫn theo Thị trường.
+**Form MKT bỏ bốn ô (ADR-048, 03.10):** Sản phẩm, Thị trường, Tệp khách hàng, Loại tiền rời form MKT (cùng
+`MKT_FORM_SKIP`; cột, ánh xạ, dữ liệu cũ giữ; dòng mới vẫn VND ở tầng ghi); nộp/sửa MKT không đòi Thị trường; nguồn
+MKT không còn ba bộ lọc đó, tham số cũ `sp`/`thi_truong`/`tep` bị bỏ qua (`reports.constants.NO_DIMENSION_FILTER_KINDS`,
+`screen.parameters`); Thống kê CRM nguồn MKT không còn biểu đồ theo sản phẩm. Sale không đổi.
 **Form Nộp báo cáo ngày (ADR-043, 24.09):** dropdown Team của bộ phận ghi vào `DataRecord.team` và
 `DailyReport.team`; Số Mess, CPQC, Số đơn, Doanh số bắt buộc — khai một chỗ `configure_erp_reports.REQUIRED_INPUTS`
 (lệnh chạy mỗi lần bật máy nên ép cả trường đã có); Hóa đơn không còn trên form MKT (`MKT_FORM_SKIP`) nhưng cột và

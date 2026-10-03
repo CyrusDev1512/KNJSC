@@ -139,4 +139,5 @@ def test_the_tong_quan_khong_hien_o_don_vi_va_canh_bao_quy_doi(client, bang_mkt,
     assert khoi["data"]["currencies"] == ["VND"]          # báo cáo MKT luôn VND (ADR-047)
 
     chi_tiet = client.get("/bao-cao/tong-hop/", {"nguon": bang_mkt.code, **ky}).content.decode()
-    assert "chưa quy đổi được" not in chi_tiet and ">VND</td>" in chi_tiet
+    # Báo cáo MKT toàn VND (ADR-048): không còn cột Loại tiền, đơn vị ghi một lần ở hàng tiêu đề
+    assert "chưa quy đổi được" not in chi_tiet and "Tiền: ₫" in chi_tiet and ">VND</td>" not in chi_tiet

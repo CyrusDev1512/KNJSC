@@ -71,9 +71,15 @@ def currency_label(code):
     return code or UNKNOWN_CURRENCY
 
 
+def shows_currency(result):
+    """Có cột Loại tiền không: nguồn tách loại tiền (ADR-046), trừ khi cả kết quả chỉ một loại tiền cố định của
+    nguồn (MKT toàn VND — ADR-048): cột chỉ lặp một chữ, đơn vị ghi một lần ở hàng tiêu đề."""
+    return bool(result.currency_key) and not getattr(result, "fixed_currency", "")
+
+
 def with_currency(kinds, result):
-    """Thêm cột Loại tiền vào cuối cột định danh khi nguồn tách loại tiền (ADR-046)."""
-    return tuple(kinds) + ((TIEN_KIND,) if result.currency_key else ())
+    """Thêm cột Loại tiền vào cuối cột định danh khi nguồn tách loại tiền (ADR-046) và kết quả cần cột đó."""
+    return tuple(kinds) + ((TIEN_KIND,) if shows_currency(result) else ())
 
 
 def total_row(kind, result, tien, raw, *, label=None):
@@ -251,7 +257,7 @@ def days_block(all_items, page_days, result):
             rows.append({"kind": "row", "nhom": nhan, "ngay": ngay, "raw": raw,
                          "currency": currency_label(tien) if result.currency_key else None,
                          "cells": aggregations.format_cells(result, raw, tien),
-                         "identity": [nhan] + ([currency_label(tien)] if result.currency_key else [])})
+                         "identity": [nhan] + ([currency_label(tien)] if shows_currency(result) else [])})
     return block("days", "Theo ngày", kinds, rows, overall_totals("days", result), count=len(page_days))
 
 

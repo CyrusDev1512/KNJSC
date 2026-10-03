@@ -6,8 +6,8 @@
       của máy chủ — "8000.50" thành "8.000,5", không bao giờ thành 800.050. Chữ trên ô luôn là đúng số
       máy chủ sẽ lưu. Số nguyên (Số Mess, Số đơn) không có phần lẻ: máy chủ bỏ mọi dấu, ô cũng vậy.
    3) Xem trước chỉ số (AC-43.6): mỗi thẻ `.cs` mang công thức của một cột tính sẵn; gõ số là tính ngay, làm
-      tròn như máy chủ (nửa về chẵn), hậu tố loại tiền theo ô Loại tiền. Chỉ là xem trước — máy chủ tự tính
-      lại khi nộp. */
+      tròn như máy chủ (nửa về chẵn), hậu tố loại tiền theo ô Loại tiền; form không có ô đó (MKT luôn VND, ADR-048)
+      thì theo `data-tien` của khung thẻ. Chỉ là xem trước — máy chủ tự tính lại khi nộp. */
 (() => {
   const map = document.getElementById('report-currency-map');
   const output = document.querySelector('[data-report-currency]');
@@ -131,7 +131,8 @@
     const xemTruoc = vuaSua => {
       const so = {};
       for (const o of oSo) so[o.dataset.cot] = giaTri(o);
-      const tien = output && /^[A-Z]{3}$/.test(output.value) ? output.value : '';
+      const tien = output && /^[A-Z]{3}$/.test(output.value) ? output.value
+        : (document.getElementById('xem-truoc-chi-so').dataset.tien || '');
       for (const the of theXemTruoc) {
         const a = so[the.dataset.trai], b = so[the.dataset.phai], o = the.querySelector('.gt');
         const kq = a == null || b == null ? null : tinh(the.dataset.phep, a, b);

@@ -1,12 +1,13 @@
 {% comment %}Bộ lọc của Bảng dữ liệu dạng báo cáo chi tiết theo ngày (ADR-042 đợt 4): cùng tham số với
 Báo cáo tổng hợp (Kỳ, Chọn nhanh, Sản phẩm tick nhiều, Thị trường, Tệp, Team, Nhân sự) nhưng không có
-Nguồn. Luôn từng lần nộp, không ô Cách xem hay Chế độ (01.10.2026). JS ở report-filters.js.{% endcomment %}
+Nguồn. Luôn từng lần nộp, không ô Cách xem hay Chế độ (01.10.2026). Nguồn MKT không có Sản phẩm, Thị trường,
+Tệp (form đã bỏ ba ô này, ADR-048: `screen.filter_options` trả None). JS ở report-filters.js.{% endcomment %}
 <form method="get" class="loc report-filters">
   <div class="truong report-presets" role="group" aria-label="Chọn nhanh kỳ"><span class="nhan-nho">Chọn nhanh</span>{% for p in presets %}<button type="button" class="nut nut-nho report-preset{% if p.active %} is-active{% endif %}" data-key="{{ p.key }}" data-tu="{{ p.start|date:'Y-m-d' }}" data-den="{{ p.end|date:'Y-m-d' }}">{{ p.label }}</button>{% endfor %}</div>
   <div class="truong"><label for="tu">Từ ngày</label><input class="o-nhap" type="date" id="tu" name="tu" value="{{ params.start|date:'Y-m-d' }}"><input type="hidden" name="ky" id="ky" value="{{ params.ky }}"></div>
   <div class="truong"><label for="den">Đến ngày</label><input class="o-nhap" type="date" id="den" name="den" value="{{ params.end|date:'Y-m-d' }}"></div>
-  {% include "reports/_chon_san_pham.html" %}
-  <div class="truong"><label for="thi-truong">Thị trường</label><select class="o-nhap" name="thi_truong" id="thi-truong"><option value="">Tất cả</option><option value="__missing__" {% if params.market == '__missing__' %}selected{% endif %}>Chưa xác định</option>{% for m in markets %}<option {% if params.market == m %}selected{% endif %}>{{ m }}</option>{% endfor %}</select></div>
+  {% if products is not None %}{% include "reports/_chon_san_pham.html" %}{% endif %}
+  {% if markets %}<div class="truong"><label for="thi-truong">Thị trường</label><select class="o-nhap" name="thi_truong" id="thi-truong"><option value="">Tất cả</option><option value="__missing__" {% if params.market == '__missing__' %}selected{% endif %}>Chưa xác định</option>{% for m in markets %}<option {% if params.market == m %}selected{% endif %}>{{ m }}</option>{% endfor %}</select></div>{% endif %}
   {% if segments is not None %}<div class="truong"><label for="tep">Tệp khách hàng</label><select class="o-nhap" name="tep" id="tep"><option value="">Tất cả</option><option value="__missing__" {% if params.segment == '__missing__' %}selected{% endif %}>Chưa có</option>{% for s in segments %}<option {% if params.segment == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>{% endif %}
   <div class="truong"><label for="report-team">Team</label><select class="o-nhap" name="team" id="report-team"><option value="">Tất cả team trong quyền</option>{% for t in teams %}<option value="{{ t.id }}" {% if params.team == t.id|stringformat:'s' %}selected{% endif %}>{{ t.label }}</option>{% endfor %}</select></div>
   <div class="truong"><label for="report-person-search">Tìm nhân sự</label><input type="text" class="o-nhap" id="report-person-search" placeholder="Mã hoặc họ tên" aria-controls="report-person" autocomplete="off"></div>

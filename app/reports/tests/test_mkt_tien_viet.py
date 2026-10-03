@@ -37,21 +37,22 @@ def test_loai_tien_bao_cao_khai_mot_cho():
 
 
 def test_nop_va_sua_bao_cao_mkt_luon_vnd(client, bang_mkt, mkt_source, nguoi_dung):  # noqa: F811
-    """AC-47.2 — Nộp báo cáo MKT chọn Canada → lưu VND; đổi Thị trường trên dòng (sửa ô) vẫn VND; form hiện
-    Loại tiền VND với mọi thị trường và ô tiền ghi "(₫)" """
+    """AC-47.2 — Nộp báo cáo MKT chọn Canada → lưu VND; đổi Thị trường trên dòng (sửa ô) vẫn VND; form không còn
+    ô Thị trường, Loại tiền (ADR-048) — loại tiền do hệ thống ghi — và ô tiền ghi "(₫)" """
     A = nguoi_dung["staff_mkt"]
     dong = _bao_cao(bang_mkt, A, "2026-08-01", "SP1")          # Thị trường Canada
     assert _tien(dong) == "VND"
     record_service.update_cell(dong, "thi_truong", "Hoa Kỳ", actor=nguoi_dung["admin"])
     assert _tien(dong) == "VND"
+    # Form không có ô Loại tiền nên phần nộp không ghi nhãn tiền; dòng nhận VND ở tầng ghi (report_input_values)
     gia_tri = daily_service.protected_values(mkt_source.table.forms.get(), {"thi_truong": "Canada"},
                                              list(mkt_source.table.forms.get().ordered_fields()),
                                              date(2026, 8, 1), A)
-    assert [v for k, v in gia_tri.items() if k.endswith("loai_tien")] == ["VND"]
+    assert not [k for k in gia_tri if k.endswith("loai_tien")]
     form = mkt_source.table.forms.get()
     client.force_login(A)
     html = client.get(f"/bao-cao/?bieu_mau={form.code}").content.decode()
-    assert '"Canada": "VND"' in html and '"Hoa K\\u1ef3": "VND"' in html
+    assert "report-currency-map" not in html
     assert "CPQC (₫)" in html and "Doanh số (₫)" in html and "Số Mess (₫)" not in html
 
 

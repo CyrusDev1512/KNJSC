@@ -86,9 +86,10 @@ def _doan(html, mo, dong="</div>"):
 def test_dau_bang_gon_mot_hang_va_giai_thich_so_lieu(client, bang_mkt, mkt_source, van_don, nguoi_dung):
     """AC-22.24 — Vừa mở Báo cáo tổng hợp đã thấy số (chủ dự án duyệt mockup 02.10.2026): tên bảng, khoảng ngày,
     nút Ngưỡng màu (chỉ người đặt được ngưỡng) và nút Giải thích số liệu nằm một hàng; câu loại tiền và đoạn
-    "Tổng trên toàn bộ kết quả khớp bộ lọc · (TT) = …" (cả hai biến thể) thu vào panel Giải thích số liệu ẩn sẵn,
-    giữ nguyên từng chữ; cảnh báo dòng chưa có loại tiền còn một dòng gọn, toàn văn ở `title` và trong panel;
-    `?nguong=1` mở sẵn panel ngưỡng; Bảng dữ liệu giữ ô Ngưỡng màu dạng mở rộng như cũ"""
+    "Tổng trên toàn bộ kết quả khớp bộ lọc · (TT) = …" (kèm biến thể nộp nhiều lần) thu vào panel Giải thích số liệu
+    ẩn sẵn, giữ nguyên từng chữ; cảnh báo dòng chưa có loại tiền còn một dòng gọn, toàn văn ở `title` và trong panel;
+    `?nguong=1` mở sẵn panel ngưỡng; Bảng dữ liệu giữ ô Ngưỡng màu dạng mở rộng như cũ. Nguồn Marketing không còn lọc
+    theo Tệp khách hàng (ADR-048) nên biến thể "để trống khi lọc theo Tệp khách hàng" bỏ"""
     A, B = van_don["A"], van_don["B"]
     _nop(bang_mkt, A, 9, 0, cpqc="8000")
     _nop(bang_mkt, A, 10, 0, cpqc="500")      # A nộp hai lần cùng ngày cùng loại tiền: (TT) chỉ ở dòng TỔNG CỘNG
@@ -123,9 +124,9 @@ def test_dau_bang_gon_mot_hang_va_giai_thich_so_lieu(client, bang_mkt, mkt_sourc
     assert '<div class="report-nguong" id="report-nguong" hidden>' in html
     mo = client.get("/bao-cao/tong-hop/", {**ky, "nguong": "1"}).content.decode()
     assert '<div class="report-nguong" id="report-nguong">' in mo and 'aria-controls="report-nguong" aria-expanded="true"' in mo
-    # Lọc theo Tệp khách hàng: biến thể "để trống" vẫn còn trong panel
+    # Tham số `tep` cũ bị bỏ qua (ADR-048): không còn biến thể "để trống khi lọc theo Tệp khách hàng"
     tep = client.get("/bao-cao/tong-hop/", {**ky, "tep": "__missing__"}).content.decode()
-    assert "— để trống khi lọc theo Tệp khách hàng" in _doan(tep, 'id="report-giai-thich"')
+    assert "Tệp khách hàng" not in _doan(tep, 'id="report-giai-thich"')
     # Staff: có Giải thích số liệu, không có nút và panel ngưỡng
     client.force_login(A)
     nv = client.get("/bao-cao/tong-hop/", ky).content.decode()

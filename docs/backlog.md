@@ -1,5 +1,30 @@
 # Backlog
 
+## 03.10.2026 — Form báo cáo Marketing bỏ bốn ô (ADR-048, AC-48.1 → 48.6)
+
+Chủ dự án chọn **"Bỏ cả bốn ô"**: Sản phẩm, Thị trường, Tệp khách hàng, Loại tiền rời form Nộp báo cáo Marketing.
+Tiền vẫn là VND (ADR-047), làm Marketing trước, DS Chốt (TT) chờ KN CRM.
+
+- **Form MKT:** bốn ô vào `MKT_FORM_SKIP`. `configure_erp_reports` gỡ ô và cờ bắt buộc cấp cột, không tạo lại. Cột,
+  ánh xạ, dữ liệu cũ giữ; dòng mới vẫn ghi VND ở tầng ghi.
+- **Nộp/Sửa không đòi Thị trường:** `daily_service.submit` chỉ còn kiểm Thị trường cho Sale.
+- **Thẻ "Xem trước chỉ số" giữ chữ VND:** đơn vị lấy qua `data-tien`.
+- **Bộ lọc nguồn MKT:** Báo cáo tổng hợp, Bảng dữ liệu, Excel không còn lọc Sản phẩm/Thị trường/Tệp; URL cũ có `sp`,
+  `thi_truong`, `tep` vẫn mở được, tham số bị bỏ qua (`screen.parameters`, `NO_DIMENSION_FILTER_KINDS`).
+- **Bảng MKT toàn VND không có cột Loại tiền:** "Tiền: ₫" ở hàng tiêu đề; có dòng lẫn loại tiền thì cột hiện lại.
+- **Thống kê CRM:** nguồn MKT bỏ biểu đồ theo sản phẩm, Sale giữ.
+- 6 bài mới đỏ trên nền rồi xanh; 14 bài cũ sửa theo luật mới (12 phía máy chủ, 2 trình duyệt). [Biên bản](kiem-chung-mkt-bo-bon-o-20261003.md).
+
+Nhánh `claude/mkt-bo-bon-o` tách từ `claude/bao-cao-mkt-vnd` (PR #83, chưa gộp), PR nháp về `Staging`: **gộp #83
+trước**. Không migration mới, không thư viện mới.
+
+**Còn:**
+- Gộp #83 rồi PR này vào `Staging`; chủ dự án thử local `scripts\cap-nhat-local.bat claude/mkt-bo-bon-o` (hay
+  `Staging` sau khi gộp): nộp một báo cáo MKT, mở Báo cáo tổng hợp nguồn MKT, xem form Sale còn đủ ô.
+- Lên VPS: bước `configure_erp_reports` có sẵn trong quy trình sẽ gỡ bốn ô.
+- Báo cáo Sale (sau); DS Chốt (TT) bằng VND chờ KN CRM.
+- `scripts/kiem-thu-erp-ui.cjs` (kịch bản tay) còn bước chọn ô Cách xem `#nhom` đã bỏ từ 01.10 — chưa sửa.
+
 ## 03.10.2026 — Báo cáo Marketing nộp bằng tiền Việt (ADR-047, AC-47.1 → 47.4)
 
 Chủ quản: mọi số trong báo cáo nộp là tiền Việt. Chủ dự án: Báo cáo tổng hợp hiện tại đổi sang VND, không tỉ giá,
