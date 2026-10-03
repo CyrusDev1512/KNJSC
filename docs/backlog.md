@@ -1,5 +1,15 @@
 # Backlog
 
+## 03.10.2026 — `du_lieu_mau` bỏ qua tài khoản mẫu đã xoá
+
+Lỗi trên máy local của chủ dự án: `mkt.leader` đã bị xoá mềm, `KN JSC.bat` chạy `du_lieu_mau` thì dừng ở
+"Tài khoản đã xóa không thể sửa hoặc mở khóa." vì lệnh đặt lại mật khẩu cho mọi tài khoản mẫu có sẵn.
+
+- Tài khoản mẫu đã xoá giờ được **bỏ qua**: không mở lại, không đặt lại mật khẩu; cuối lệnh in tên và đánh
+  dấu "(da xoa)". Các tài khoản mẫu khác vẫn đặt lại mật khẩu như cũ.
+- Bài kiểm `tests/test_du_lieu_mau.py::test_chay_lai_bo_qua_tai_khoan_mau_da_xoa` (đỏ trước, xanh sau).
+- Không migration, không đổi quyền. Nhánh `claude/du-lieu-mau-bo-qua-tk-xoa`, PR nháp về `Staging`.
+
 ## 02.10.2026 — Ba chỗ sửa Báo cáo tổng hợp (AC-22.24, 22.25, 22.26)
 
 Chủ dự án xem mockup "Ba chỗ sửa Báo cáo tổng hợp" (artifact claude.ai `JRdYXcoJB9iKTDjuR2YHPY`) và bảo sửa ba chỗ
