@@ -17,7 +17,7 @@ from django.db.models.functions import NullIf
 from django.utils import timezone
 
 from core.audit import record
-from core.constants import AuditAction, Currency
+from core.constants import AuditAction, Currency, GRID_PASTE_CELLS_MAX
 from core.exceptions import BusinessError, OutOfScopeError
 from core.identity import employee_code
 from core.money import parse_money
@@ -35,6 +35,8 @@ from orders.constants import ACTIVE_PAYMENT_LABELS
 DETAIL_CODE = "chi_tiet_sp"
 PROTECTED = frozenset({"san_pham", "so_luong", "gia_tien", "so_tien_tt"})
 DETAIL_CELLS = PROTECTED
+#: Bốn ô tổng khi đơn không còn chi tiết (chủ dự án 02.10.2026: Delete ô Sản phẩm, Bỏ dòng cuối)
+EMPTY_TOTALS = {"san_pham": "", "so_luong": None, "gia_tien": None, "so_tien_tt": None}
 COLUMNS = [
     # Ngày (lên đơn) đứng đầu theo lệnh chủ dự án 24.09.2026 — trả lại vị trí
     # của tệp thật trước ADR-036; Ngày thanh toán vẫn ở nhóm thanh toán phía sau
@@ -136,12 +138,15 @@ def money(value):
         raise BusinessError("Số tiền phải không âm và có tối đa hai chữ số thập phân.")
 
 
-def validate_items(raw, *, previous=None, strict_units=False):
+def validate_items(raw, *, previous=None, strict_units=False, allow_empty=False):
+    """`allow_empty`: đơn đã có được bỏ hết chi tiết (hộp Chi tiết); lên đơn mới và nhập tệp thì không."""
     if isinstance(raw, str):
         try:
             raw = json.loads(raw)
         except (ValueError, TypeError):
             raise BusinessError("Chi tiết sản phẩm phải là danh sách JSON từ tệp xuất của bảng này.")
+    if allow_empty and raw == []:
+        return []
     if not isinstance(raw, list) or not raw or len(raw) > 200:
         raise BusinessError("Cần từ 1 đến 200 dòng chi tiết sản phẩm; không thể suy ra từ tổng tiền hoặc tên gộp.")
     codes = [d.get("product") for d in raw if isinstance(d, dict)]
@@ -360,7 +365,10 @@ def update_items(user, pk, raw, version, *, request=None):
     if version != row.updated_at.isoformat():
         raise BusinessError("Vận đơn vừa được người khác sửa. Đóng rồi mở lại chi tiết để lấy dữ liệu mới.")
     previous = list(WaybillItem.objects.filter(record=row, deleted_at__isnull=True))
-    items = validate_items(raw, previous=previous)
+    items = validate_items(raw, previous=previous, allow_empty=True)
+    if not items:
+        _clear(user, row, request=request)
+        return row
     WaybillItem.objects.in_scope(user).filter(record=row).update(deleted_at=timezone.now(), deleted_by=user)
     after_create(row, {"_items": items})
     computed = totals(items)
@@ -370,6 +378,41 @@ def update_items(user, pk, raw, version, *, request=None):
     record(AuditAction.UPDATE, actor=user, target=row,
            detail=f"Sửa {len(items)} dòng chi tiết sản phẩm và thanh toán vận đơn", request=request)
     return row
+
+
+def _clear(user, row, *, request=None):
+    """Bỏ toàn bộ chi tiết của một dòng đã khoá: xoá mềm, bốn ô tổng trống; trạng thái thanh toán giữ
+    (ADR-025 sửa trực tiếp). Đơn thành "thiếu chi tiết" như dòng nhập tệp không chi tiết (ADR-036)."""
+    WaybillItem.objects.filter(record=row, deleted_at__isnull=True).update(deleted_at=timezone.now(),
+                                                                            deleted_by=user)
+    row.data.update(EMPTY_TOTALS)
+    row.save()
+    record(AuditAction.UPDATE, actor=user, target=row,
+           detail="Bỏ toàn bộ chi tiết sản phẩm của vận đơn", request=request)
+
+
+@transaction.atomic
+def clear_items(user, table, cells, *, request=None):
+    """Delete trên ô tổng của lưới (chủ dự án 02.10.2026): bốn ô tổng không sửa riêng được (AC-18.5), nên
+    xoá chúng là bỏ toàn bộ chi tiết của dòng. `cells` như lưới gửi `[{id, column, old}]`; so giá trị cũ
+    như ô thường (CAS) — lệch thì 409, không bỏ gì. Trả danh sách dòng đã bỏ."""
+    if (not isinstance(cells, list) or not 1 <= len(cells) <= GRID_PASTE_CELLS_MAX
+            or any(not isinstance(c, dict) or type(c.get('id')) is not int or c.get('column') not in DETAIL_CELLS
+                   or 'old' not in c for c in cells)):
+        raise BusinessError("Chỉ bỏ chi tiết qua các ô Sản phẩm, Số lượng, Giá tiền, Số tiền thanh toán.")
+    ids = sorted({c['id'] for c in cells})
+    rows = {r.pk: r for r in DataRecord.objects.filter(table=table, pk__in=ids).select_related('table')
+            .order_by('pk').select_for_update(of=('self',))}
+    allowed = set(DataRecord.objects.in_scope(user, table=table).filter(pk__in=ids).values_list('pk', flat=True))
+    if set(rows) != set(ids) or allowed != set(ids):
+        raise OutOfScopeError("Bạn không có quyền sửa vận đơn này.")
+    if any(not grant_service.can_edit_visible_record(user, row) for row in rows.values()):
+        raise OutOfScopeError("Bạn không có quyền sửa vận đơn này.")
+    if any(rows[c['id']].data.get(c['column']) != c['old'] for c in cells):
+        raise BusinessError("Ô vừa được người khác sửa. Tải lại bảng rồi xoá lại.", code='conflict')
+    for pk in ids:
+        _clear(user, rows[pk], request=request)
+    return [rows[pk] for pk in ids]
 
 
 def statistics(records, group="total"):
