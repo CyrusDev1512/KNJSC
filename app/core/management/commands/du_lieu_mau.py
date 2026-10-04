@@ -222,6 +222,7 @@ class Command(BaseCommand):
                        "ngày sinh": 0, "bài": 0, "bình luận": 0, "lượt thích": 0,
                        "thiệp sinh nhật": 0, "mục tài nguyên": 0, "tài nguyên": 0}
         self.dat_lai_mat_khau = 0
+        self.da_xoa = []
 
         bo_phan = self._bo_phan()
         team = self._team(bo_phan)
@@ -280,7 +281,12 @@ class Command(BaseCommand):
                 # khẩu mà cơ sở dữ liệu giữ một mật khẩu khác, đăng nhập hỏng
                 # mà không ai hiểu vì sao (03.09.2026, máy Windows của người dùng)
                 ho_so = getattr(co_san, "profile", None)
-                if ho_so is not None:
+                if ho_so is not None and ho_so.deleted_at is not None:
+                    # Tài khoản mẫu đã bị xoá mềm trên máy này là ý của người
+                    # dùng: không mở lại, chỉ báo tên. Gọi `reset_password` thì
+                    # tầng dịch vụ từ chối và cả lệnh dừng giữa chừng (03.10.2026)
+                    self.da_xoa.append(ten_dn)
+                elif ho_so is not None:
                     account_service.reset_password(ho_so, self.mat_khau)
                     account_service.unlock_account(ho_so)
                     ho_so.must_change_password = doi_mk
@@ -538,6 +544,9 @@ class Command(BaseCommand):
         if self.dat_lai_mat_khau:
             self.stdout.write(
                 f"Da dat lai mat khau va mo khoa {self.dat_lai_mat_khau} tai khoan mau co san")
+        if self.da_xoa:
+            self.stdout.write(self.style.WARNING(
+                "Bo qua tai khoan mau da xoa (khong mo lai): " + ", ".join(self.da_xoa)))
         self.stdout.write(
             f"Hien co: {TableDef.objects.count()} bang, "
             f"{DataRecord.objects.count()} dong, {len(nguoi)} tai khoan")
@@ -546,5 +555,6 @@ class Command(BaseCommand):
                           + self.mat_khau)
         self.stdout.write("")
         for ten_dn, ho_ten, cap_bac, ma_bp, _, _ in TAI_KHOAN:
+            ghi_chu = "  (da xoa)" if ten_dn in self.da_xoa else ""
             self.stdout.write(
-                f"  {ten_dn:14} {cap_bac:8} {ma_bp or 'moi bo phan':12} {ho_ten}")
+                f"  {ten_dn:14} {cap_bac:8} {ma_bp or 'moi bo phan':12} {ho_ten}{ghi_chu}")

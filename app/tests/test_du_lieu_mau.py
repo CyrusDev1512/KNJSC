@@ -204,6 +204,31 @@ def test_chay_lai_dat_lai_dung_mat_khau_da_in(client):
     assert UserProfile.objects.get(user__username="sale.moi").must_change_password is True
 
 
+
+def test_chay_lai_bo_qua_tai_khoan_mau_da_xoa(client):
+    """docs/04 mục 17.1 — Tài khoản mẫu đã bị xoá trên máy thì chạy lại lệnh vẫn xong, không mở lại tài khoản đó
+
+    Lỗi thật ngày 03.10.2026: trên máy local `mkt.leader` đã bị xoá mềm; lệnh
+    gọi `reset_password` cho mọi tài khoản mẫu có sẵn, gặp hồ sơ đã xoá thì
+    `BusinessError` và cả lệnh dừng giữa chừng. Tài khoản đã xoá là ý của
+    người dùng: bỏ qua, nói rõ tên, các tài khoản khác vẫn được đặt lại.
+    """
+    from org.services import account_management
+
+    _chay(mat_khau="mat-khau-lan-mot")
+    quan_tri = UserProfile.objects.get(user__username="quantri").user
+    da_xoa = UserProfile.objects.get(user__username="mkt.leader")
+    account_management.delete_account(da_xoa.pk, actor=quan_tri)
+
+    ra = _chay(mat_khau="mat-khau-lan-hai")
+
+    assert "mkt.leader" in ra and "da xoa" in ra
+    assert client.login(username="mkt.staff", password="mat-khau-lan-hai")
+    assert not client.login(username="mkt.leader", password="mat-khau-lan-hai")
+    con_lai = UserProfile.all_objects.select_related("user").get(pk=da_xoa.pk)
+    assert con_lai.deleted_at is not None and con_lai.user.is_active is False
+
+
 # ══ Nhóm Nội bộ và bảng xếp hạng mẫu — ADR-017, rà soát 07.09 ═══════
 
 TI_GIA_MAC_DINH = {"VND": 1, "USD": 25400, "CAD": 18500, "PHP": 440}
