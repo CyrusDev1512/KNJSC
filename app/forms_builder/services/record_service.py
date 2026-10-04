@@ -125,7 +125,7 @@ def report_input_values(table, columns, values, actor, system_day=None):
         return values
     from core.identity import employee_code
     from forms_builder.meaning import Meaning
-    from orders.services.currency_service import for_label
+    from orders.services.currency_service import report_currency
     values = dict(values)
     for column in columns:
         if column.meaning == Meaning.DATE:
@@ -134,7 +134,7 @@ def report_input_values(table, columns, values, actor, system_day=None):
             values[column.code] = employee_code(actor)
     currency_code = source.columns.get('currency')
     if currency_code:
-        values[currency_code] = for_label(values.get(source.columns.get('market')))
+        values[currency_code] = report_currency(source.kind, values.get(source.columns.get('market')))
     return values
 
 
@@ -353,8 +353,9 @@ def _dat_o(ban_ghi, cot, raw, *, confirmations=None):
     if cot.required and moi in (None, ""):
         raise BusinessError(f'Cột "{cot.name}" bắt buộc nhập, không để trống được.')
     if source and source.kind in ('sale', 'mkt') and cot.code == source.columns.get('market'):
-        from orders.services.currency_service import for_label
-        currency = for_label(moi, allow_empty=True)  # xoá Thị trường thì Loại tiền cũng trống
+        from orders.services.currency_service import report_currency
+        # Xoá Thị trường thì Loại tiền cũng trống — trừ nguồn có loại tiền cố định (MKT luôn VND, ADR-047)
+        currency = report_currency(source.kind, moi, allow_empty=True)
         if source.columns.get('currency'):
             ban_ghi.data[source.columns['currency']] = currency
     if policy and hasattr(policy, 'derived_values'):

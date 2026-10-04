@@ -1,5 +1,67 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 03.10.2026 — Form báo cáo Marketing bỏ bốn ô: bài kiểm mới và bài cũ đổi theo
+
+Không có lỗi TL mới; việc theo quyết định của chủ dự án (ADR-048). Số đo ở
+[biên bản](kiem-chung-mkt-bo-bon-o-20261003.md).
+
+**Bài mới, chạy đỏ trên mã nền (`claude/bao-cao-mkt-vnd` `5e96bb7`) trước khi sửa:**
+
+| AC | Bài | Đỏ trên mã nền vì |
+|---|---|---|
+| AC-48.1 | `reports/tests/test_mkt_bo_bon_o.py::test_form_mkt_bo_bon_o_sale_giu_nguyen` | form MKT còn đủ bốn ô |
+| AC-48.2 | `…::test_nop_va_sua_mkt_khong_can_thi_truong` | lệnh cấu hình không gỡ cờ bắt buộc cấp cột |
+| AC-48.3 | `…::test_bo_loc_mkt_an_va_tham_so_cu_bi_bo_qua` | URL cũ `thi_truong=Klingon` trả 400 |
+| AC-48.4 | `…::test_bang_mkt_toan_vnd_khong_cot_loai_tien` | kết quả chưa có `fixed_currency`, bảng còn cột Loại tiền |
+| AC-48.5 | `reports/tests/test_o_nhap_so_e2e.py::test_form_mkt_khong_bon_o_van_hien_vnd_va_nop_duoc` (trình duyệt) | form còn ô Sản phẩm |
+| AC-48.6 | `crm/tests/test_thong_ke_mkt_bo_san_pham.py` | Thống kê MKT còn biểu đồ "Đóng góp theo sản phẩm" |
+| AC-48.7 | `…::test_form_sale_bo_ngay_ra_don` (thêm sau, khi chủ dự án bảo bỏ Ngày ra đơn của Sale) | form Sale còn ô Ngày ra đơn |
+
+**Bài cũ đổi theo hành vi mới (6 bài phía máy chủ, 2 bài trình duyệt):**
+- Form và bộ lọc: AC-43.2 (bộ ô bắt buộc MKT; kiểm Sản phẩm, Thị trường chuyển sang form Sale), AC-38.4 (Tệp khách
+  hàng rời form, màn bỏ qua `tep`), AC-42.11 (lọc nhiều sản phẩm: tầng dịch vụ trên nguồn MKT, giao diện trên nguồn
+  Sale), AC-47.2 (form không còn ô Loại tiền), `test_product_options.py` ca MKT (form không còn đường thêm sản
+  phẩm), AC-22.24 (không còn biến thể "lọc theo Tệp khách hàng").
+- Trình duyệt: AC-46.10 và AC-43.6 trong `test_o_nhap_so_e2e.py` thôi chọn Thị trường, Sản phẩm.
+
+**Gộp bản mới của PR #83 (`af927c4`, AC-47.6: MKT luôn ẩn cột Lần nộp, Loại tiền).** Nhánh này lúc đầu tự bỏ cột Loại
+tiền khi mọi dòng VND và cho cột hiện lại khi lẫn loại tiền; chủ dự án 03.10.2026 chọn cách của #83 (luôn ẩn). Vì
+vậy: bố cục lấy `layout.HIDDEN_IDENTITY` của #83; sáu bài bố cục đã sửa (AC-42.6, 42.7, 22.25, 22.26, 22.15, 22.18)
+trả về bản của #83, chạy với fixture `du_cot_dinh_danh` để vẫn kiểm cơ chế hai cột; AC-48.4 đổi nửa sau: dữ liệu lẫn
+loại tiền thì cột vẫn ẩn, chỉ không còn ghi "Tiền: ₫".
+
+## 02.10.2026 — Ba chỗ sửa Báo cáo tổng hợp: bài kiểm mới và bài cũ đổi theo
+
+Không có lỗi TL mới; ba chỗ sửa hiển thị chủ dự án duyệt qua mockup. Số đo ở
+[biên bản](kiem-chung-ba-cho-sua-bao-cao-20261002.md).
+
+**Bài mới, chạy đỏ trên mã cũ trước khi sửa:**
+
+| AC | Phía máy chủ | Phía trình duyệt |
+|---|---|---|
+| AC-22.24 | `test_dau_bang_gon_mot_hang_va_giai_thich_so_lieu` | `test_mo_trang_da_thay_so`: trước khi sửa, khung bảng ở 583 px, chưa thấy dòng tổng nào |
+| AC-22.25 | `test_chi_ghim_cot_dau_nhan_su_loai_tien` | `test_keo_ngang_khong_con_cot_bi_che`: trước khi sửa, vùng đứng yên 522 px |
+| AC-22.26 | `test_gop_giu_trang_va_moc_ngay`, `test_gop_van_don_van_ve_trang_dau` | `test_gop_khong_tai_lai_trang`: trước khi sửa, không có mốc `data-ngay` |
+
+**Bài cũ đổi theo hành vi mới:**
+- `test_bo_cuc_bao_cao.py` (AC-22.13): `sticky`, `edge`, `identity_style`.
+- `test_bo_cuc_khoi.py` (AC-42.6).
+- `test_activity.py` (AC-22.10, 22.15).
+- `test_quy_vnd_va_tt.py`: ô dòng TỔNG CỘNG không còn `colspan` và nhãn dài; nhãn dài chỉ còn trong Excel.
+
+**Hai sai sót trong bài kiểm, gặp khi viết và đã sửa:**
+- **Bộ chọn Playwright `a:has-text('Gộp')`** khớp không phân biệt hoa thường và khớp một phần chữ, nên trúng cả nút
+  "Không gộp". Đã dùng `:text-is(...)`.
+- **Bài đo vùng đứng yên** phải đo đúng khối nằm giữa phần khung đang thấy, giống phần nhích cột. Mỗi khối là một
+  bảng riêng nên cột lệch nhau.
+
+## 02.10.2026 — "Sale Staff tạo được sản phẩm ở Lên đơn" là nhầm nút thêm dòng
+
+**TL-72 (đóng):** chủ dự án báo Staff Sale vẫn tạo thêm được sản phẩm. Kiểm lại: đường thêm sản phẩm
+(`/van-don/len-don/san-pham-moi/`) chặn Staff (403, có nhật ký — AC-6.9), hộp "Tạo sản phẩm" không hiện với Staff.
+Nút Staff bấm là **"Thêm sản phẩm"** của bảng chi tiết, chỉ thêm một dòng chọn sản phẩm có sẵn. Sửa: nút đổi
+thành "＋ Thêm dòng"; quyền thêm sản phẩm hạ từ Manager xuống Leader trở lên theo yêu cầu.
+
 ## 01.10.2026 — Bài 18 treo lần nữa trên PR #75: chờ qua console, hỏi DevTools khi quá hạn (TL-71)
 
 **TL-71 (mở — bài không còn treo được, gốc lỗi chưa biết):** lượt #126 (`d49a470`, PR #75 sau khi gộp `main`)

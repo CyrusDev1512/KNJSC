@@ -385,9 +385,13 @@ def with_currency_totals(result):
     if not khoa or not result.ok:
         return result
     vi_tri = result.derived_key.index(khoa) if khoa in result.derived_key else None
+    # Đối soát không khoá theo loại tiền (nguồn nộp bằng một loại tiền cố định — MKT, ADR-047): chỉ một loại
+    # tiền trong kết quả thì cả phần đối soát thuộc về loại tiền đó; nhiều loại thì không chia được, để trống
+    cac_tien = {(sums.get(khoa) or "") for sums in result.currency_sums}
+    mot_tien = next(iter(cac_tien)) if vi_tri is None and len(cac_tien) == 1 else ""
     doi_soat = {}
     for key, muc in (result.derived or {}).items():
-        tien = (key[vi_tri] if vi_tri is not None and isinstance(key, tuple) else "") or ""
+        tien = (key[vi_tri] if vi_tri is not None and isinstance(key, tuple) else mot_tien) or ""
         dich = doi_soat.setdefault(tien, {})
         for code, value in muc.items():
             if value is not None:

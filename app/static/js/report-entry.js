@@ -4,7 +4,10 @@
       ADR-046). Gõ toàn chữ số (có thể kèm khoảng trắng) thì dấu chấm tự chèn ngay khi gõ. Người dùng tự
       gõ "." hay "," thì để nguyên cho gõ xong, rời ô mới viết lại theo đúng luật `core.money.parse_money`
       của máy chủ — "8000.50" thành "8.000,5", không bao giờ thành 800.050. Chữ trên ô luôn là đúng số
-      máy chủ sẽ lưu. Số nguyên (Số Mess, Số đơn) không có phần lẻ: máy chủ bỏ mọi dấu, ô cũng vậy. */
+      máy chủ sẽ lưu. Số nguyên (Số Mess, Số đơn) không có phần lẻ: máy chủ bỏ mọi dấu, ô cũng vậy.
+   3) Xem trước chỉ số (AC-43.6): mỗi thẻ `.cs` mang công thức của một cột tính sẵn; gõ số là tính ngay, làm
+      tròn như máy chủ (nửa về chẵn), hậu tố loại tiền theo ô Loại tiền; form không có ô đó (MKT luôn VND, ADR-048)
+      thì theo `data-tien` của khung thẻ. Chỉ là xem trước — máy chủ tự tính lại khi nộp. */
 (() => {
   const map = document.getElementById('report-currency-map');
   const output = document.querySelector('[data-report-currency]');
@@ -98,5 +101,60 @@
       o.setSelectionRange(i, i);
     });
     o.addEventListener('change', () => chuanHoa(o));
+  }
+
+  const theXemTruoc = [...document.querySelectorAll('#xem-truoc-chi-so .cs')];
+  if (theXemTruoc.length) {
+    const oSo = [...document.querySelectorAll('input.o-nhap.tien[data-cot]')];
+    const giaTri = o => {
+      const so = docSo(o.value, o.dataset.kieu);
+      return so ? Number((so.am ? '-' : '') + so.nguyen + (so.le ? '.' + so.le : '')) : null;
+    };
+    // Làm tròn nửa về chẵn như Decimal.quantize của máy chủ
+    const lamTron = (x, le) => {
+      const f = 10 ** le, v = x * f, duoi = Math.floor(v);
+      if (Math.abs(v - duoi - 0.5) < 1e-9) return (duoi % 2 === 0 ? duoi : duoi + 1) / f;
+      return Math.round(v) / f;
+    };
+    const vietKetQua = (x, le) => {
+      const [nguyen, phan = ''] = Math.abs(x).toFixed(le).split('.');
+      const gon = phan.replace(/0+$/, '');
+      return (x < 0 ? '-' : '') + nhom(nguyen) + (gon ? ',' + gon : '');
+    };
+    const tinh = (phep, a, b) => {
+      if (phep === 'add') return a + b;
+      if (phep === 'subtract') return a - b;
+      if (phep === 'multiply') return a * b;
+      if (b === 0) return NaN;
+      return phep === 'percent' ? a / b * 100 : a / b;
+    };
+    const xemTruoc = vuaSua => {
+      const so = {};
+      for (const o of oSo) so[o.dataset.cot] = giaTri(o);
+      const tien = output && /^[A-Z]{3}$/.test(output.value) ? output.value
+        : (document.getElementById('xem-truoc-chi-so').dataset.tien || '');
+      for (const the of theXemTruoc) {
+        const a = so[the.dataset.trai], b = so[the.dataset.phai], o = the.querySelector('.gt');
+        const kq = a == null || b == null ? null : tinh(the.dataset.phep, a, b);
+        const co = kq !== null && Number.isFinite(kq);
+        the.classList.toggle('trong', !co);
+        the.classList.toggle('vua', co && !!vuaSua && (the.dataset.trai === vuaSua || the.dataset.phai === vuaSua));
+        the.classList.toggle('canh-bao', co && the.dataset.donVi === 'phan-tram' && kq > 100);
+        if (!co) { o.textContent = kq === null ? '— chưa đủ số' : '— chia cho 0'; continue; }
+        o.textContent = vietKetQua(lamTron(kq, Number(the.dataset.le)), Number(the.dataset.le));
+        const donVi = the.dataset.donVi === 'phan-tram' ? '%' : the.dataset.donVi === 'tien' ? tien : '';
+        if (donVi) {
+          const nho = document.createElement('small');
+          nho.textContent = donVi;
+          o.append(' ', nho);
+        }
+      }
+    };
+    for (const o of oSo) {
+      o.addEventListener('input', () => xemTruoc(o.dataset.cot));
+      o.addEventListener('change', () => xemTruoc(o.dataset.cot));
+    }
+    if (market) market.addEventListener('change', () => xemTruoc());
+    xemTruoc();
   }
 })();

@@ -1,6 +1,7 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 02.10.2026 (Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền, nhánh việc gộp xong là
+> Cập nhật 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
+> `main` → VPS**; Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền, nhánh việc gộp xong là
 > xoá); 25.09.2026 (ADR-043 bổ sung: một ô Team duy nhất trên form báo cáo); 24.09 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
 > chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
 > giãn, cột sản phẩm ẩn mặc định, K24); 23.09 (ADR-042 Báo cáo tổng hợp như ảnh mẫu);
@@ -56,11 +57,57 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
   khi gộp PR.
 - **Không đẩy thẳng lên `main`** (và cả nhánh codex khi nó còn), kể cả sửa nhỏ hay chỉ
   sửa tài liệu (chốt 19.09.2026, giữ nguyên khi đổi sang `main`).
-- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ `main`, làm, commit,
-  push, **mở PR nháp trỏ về `main`** (chủ dự án bảo trỏ về `Staging` thì trỏ về `Staging`),
-  rồi báo lại kèm liên kết. Không tự gộp; chỉ gộp khi chủ dự án bảo rõ; gộp xong xoá nhánh.
+- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ `Staging`, làm, commit,
+  push, **mở PR nháp trỏ về `Staging`** — xem "Đường đi của một thay đổi" ngay dưới đây.
+  Rồi báo lại kèm liên kết. Không tự gộp; chỉ gộp khi chủ dự án bảo rõ; gộp xong xoá nhánh.
 - **Mỗi phiên một việc một nhánh.** Bốn phiên KNCRM, KNERP, KNGUARD và Batch file không
   dùng chung nhánh; hai phiên cùng đẩy lên một nhánh là giẫm lên nhau.
+
+#### Đường đi của một thay đổi — chốt 02.10.2026
+
+**Hai nhánh, hai vai khác hẳn nhau. Đừng lẫn.**
+
+- **`Staging` là nơi làm việc bẩn.** Gom code, chạy thử, sửa, **xoá**, thử sai rồi
+  làm lại. Nó được phép hỏng; hỏng ở đây là đúng chỗ. `Staging` đi trước `main`
+  bao nhiêu cũng **bình thường**, không phải dấu hiệu tắc nghẽn.
+- **`main` luôn sạch.** Sạch nghĩa là: lấy **bất kỳ** commit nào trên `main` cũng
+  phát hành lên VPS được ngay, không cần hỏi "commit này đã thử chưa". Thứ gì chưa
+  chắc thì **ở lại `Staging`** — không đẩy sang `main` cho kịp deadline.
+
+Hệ quả: hỏng thì sửa ở `Staging` rồi gộp lên, **không sửa nóng thẳng trên `main`**.
+Và `main` không nhận commit "để đó rồi sửa sau": nhận một cái là `main` hết sạch,
+mà đã hết sạch một lần thì không ai tin nó nữa.
+
+**Không có đường tắt nào tới VPS.** Mọi chỉnh sửa, kể cả sửa một dòng tài liệu, đi
+đủ bốn chặng theo đúng thứ tự:
+
+```
+nhánh claude/<tên-việc>  →  Staging  →  (kiểm kỹ ở máy local)  →  main  →  VPS
+```
+
+| Chặng | Ai làm | Điều kiện để đi tiếp |
+|---|---|---|
+| 1. Nhánh việc → `Staging` | Claude/Codex mở PR nháp, chủ dự án gộp | PR xanh CI; chủ dự án duyệt |
+| 2. `Staging` → kiểm ở local | Người, trên máy mình | Bật hệ thống thật và **dùng thử bằng tay** |
+| 3. `Staging` → `main` | Chủ dự án bảo gộp | Đã kiểm ở chặng 2 và không thấy vấn đề. Còn nghi ngờ thì **để lại `Staging`** |
+| 4. `main` → VPS | Codex hoặc Claude Code CLI, khi được yêu cầu | Chỉ phát hành từ `main`, không từ nhánh khác |
+
+**Chặng 2 là chặng không được bỏ, và nó không phải là `pytest`.** Bài kiểm xanh chỉ
+nói mã làm đúng thứ nó được viết để làm. Chặng này hỏi câu khác: *mở lên dùng thử
+thì có đúng như mong đợi không.* Bật bằng `KN JSC.bat` (Windows) hoặc
+`./scripts/cap-nhat-local.sh`, mở KN ERP `127.0.0.1:8020` và KN CRM `127.0.0.1:8021`,
+đi lại đúng thao tác mà thay đổi này đụng tới. Nhiều lỗi nặng nhất của dự án
+(TL-02, TL-19, TL-41) đều là loại bài kiểm xanh nhưng người dùng gặp ngay.
+
+**Phát hành VPS chỉ đi từ `main`.** Không phát hành từ `Staging`, từ nhánh việc, hay
+từ bản sửa tay trên máy chủ — kể cả khi đang gấp. Bản đang chạy trên VPS phải luôn
+truy ngược được về đúng một commit của `main`. Đây chính là lý do `main` phải sạch:
+giữ được điều đó thì quay lui chỉ là chọn một commit cũ hơn của `main`.
+
+**Gấp tới mấy cũng không nhảy chặng.** Cần sửa nóng thì vẫn mở nhánh việc, vẫn qua
+`Staging`, chỉ là làm nhanh cả bốn chặng. Bỏ chặng để nhanh hơn mười phút là cách
+tạo ra một bản VPS không ai biết trong đó có gì.
+
 - **VPS thật** (2 nhân, 4 GB): `deploy/production/compose.yml`, nginx trước hai
   hostname ERP và CRM, năm container `crm`, `erp`, `worker`, `heavy`, `beat` cùng một
   image tag bất biến `knjsc-app:<commit>-<nhãn>`, DB 1,25 GB. **Phát hành do Codex hoặc
@@ -134,7 +181,22 @@ tiền, `aggregations.total_rows`), màn hình **luôn Từng lần nộp** (c�
 vận đơn, khối toàn kỳ theo nhân sự + mỗi ngày một bảng, Gộp/Không gộp, ngưỡng màu ba bậc do
 quản lý đặt (`ReportSource.thresholds`), lọc nhiều sản phẩm; bảng có nguồn báo cáo Sale/MKT mở ở
 Bảng dữ liệu là **báo cáo chi tiết theo ngày** (mỗi lần nộp một dòng, `?dang=tho` xem thô); bối
-cảnh màn hình dùng chung ở `reports/screen.py`.
+cảnh màn hình dùng chung ở `reports/screen.py`. **Ba chỗ sửa (02.10, ADR-042 bổ sung):**
+- **Kéo ngang:** chỉ cột đầu (STT/Ngày), Nhân sự, Loại tiền đứng yên (`layout.identity`; cột khác mang `report-troi`).
+  Dòng TỔNG CỘNG mỗi cột một ô, nhãn ngắn ở ô Nhân sự; kéo xong thì bảng tự nhích. Báo cáo MKT luôn ẩn cột Lần nộp,
+  Loại tiền (`layout.HIDDEN_IDENTITY`, ADR-047 bổ sung): đứng yên còn STT · Nhân sự; đơn vị ghi "Tiền: ₫" ở hàng tiêu
+  đề khi mọi dòng VND (`ActivityResult.fixed_currency`, ADR-048).
+- **Phần chữ trên bảng:** đoạn (TT) và câu loại tiền nằm trong panel "Giải thích số liệu".
+- **Gộp / Không gộp:** đổi bảng bằng `fetch` trong `report-filters.js`, không tải lại trang. Link giữ `trang`, mốc
+  `data-ngay` giữ đúng ngày đang xem.
+**Báo cáo Marketing nộp bằng tiền Việt (ADR-047, 03.10):** Loại tiền MKT luôn VND, không theo Thị trường (một chỗ
+`currency_service.report_currency`); báo cáo cũ đổi nhãn sang VND bằng `reports/0006`, số giữ nguyên; không tỉ giá; Số đơn (TT)
+không khoá theo loại tiền, DS Chốt (TT) trống. Sale vẫn theo Thị trường.
+**Form MKT bỏ bốn ô (ADR-048, 03.10):** Sản phẩm, Thị trường, Tệp khách hàng, Loại tiền rời form MKT (cùng
+`MKT_FORM_SKIP`; cột, ánh xạ, dữ liệu cũ giữ; dòng mới vẫn VND ở tầng ghi); nộp/sửa MKT không đòi Thị trường; nguồn
+MKT không còn ba bộ lọc đó, tham số cũ `sp`/`thi_truong`/`tep` bị bỏ qua (`reports.constants.NO_DIMENSION_FILTER_KINDS`,
+`screen.parameters`); Thống kê CRM nguồn MKT không còn biểu đồ theo sản phẩm. Form Sale bỏ ô Ngày ra đơn
+(`SALE_FORM_SKIP`, cột và dữ liệu cũ giữ); phần khác của Sale không đổi.
 **Form Nộp báo cáo ngày (ADR-043, 24.09):** dropdown Team của bộ phận ghi vào `DataRecord.team` và
 `DailyReport.team`; Số Mess, CPQC, Số đơn, Doanh số bắt buộc — khai một chỗ `configure_erp_reports.REQUIRED_INPUTS`
 (lệnh chạy mỗi lần bật máy nên ép cả trường đã có); Hóa đơn không còn trên form MKT (`MKT_FORM_SKIP`) nhưng cột và
@@ -249,6 +311,7 @@ ghi 0,5 s, poll 0,3 s (`core/constants.py`, `PERF_*`). Số đã đo và điểm
 | `manage.py seed_perf --so-dong 100000 --bang-sale` | Dòng giả `PERF-*` vào `van_don` cũ + bảng Sale có cột tính sẵn (ADR-016) |
 | `manage.py nap_du_lieu_van_don` | Đúng 10.000 mẫu `MAU-*` có chi tiết, thanh toán, phân công vào `van_don` |
 | `manage.py nap_khach_mau --so-khach 300000` | 375.000 dòng `KH-*` vào `van_don`, 20 % khách mua lại (AC-10.9); `--xoa-cu` để xoá |
+| `manage.py nap_bao_cao_mau --nguoi 20 --lan 3` | Báo cáo Marketing mẫu từ ngày 1 tháng trước tới hôm nay (tài khoản `mau_bc_mkt_*` khoá đăng nhập); `--xoa-cu` để xoá |
 | `manage.py do_hieu_nang`, `tests/perf/locustfile_*.py`, `scripts/kiem-tai-kn-crm.*` | Đo một người và nhiều người; báo cáo vào `storage/perf/` |
 
 Mọi lệnh dữ liệu giả từ chối chạy khi DEBUG tắt. Ghi hàng loạt qua

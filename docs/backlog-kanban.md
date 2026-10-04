@@ -1,5 +1,33 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 03.10.2026 — Form báo cáo Marketing bỏ bốn ô (ADR-048, AC-48.1 → 48.6)
+
+**Finished local (nhánh `claude/mkt-bo-bon-o`, PR nháp về `Staging`, phụ thuộc PR #83):**
+- form MKT không còn Sản phẩm, Thị trường, Tệp khách hàng, Loại tiền; nộp và sửa không đòi Thị trường;
+- nguồn MKT không còn ba bộ lọc đó; đơn vị ghi "Tiền: ₫" ở hàng tiêu đề (cột Loại tiền MKT ẩn theo #83, AC-47.6);
+- Thống kê CRM nguồn MKT bỏ biểu đồ theo sản phẩm.
+
+**To do:**
+- chủ dự án gộp #83 rồi PR này vào `Staging`;
+- chủ dự án thử ở máy mình, rồi gộp `main`;
+- phát hành VPS (`configure_erp_reports` gỡ bốn ô, không migration mới).
+
+**Far Plan:** báo cáo Sale bằng tiền Việt; DS Chốt (TT) bằng VND sau khi KN CRM quy vận đơn về tiền Việt.
+
+## 02.10.2026 — Ba chỗ sửa Báo cáo tổng hợp (AC-22.24, 22.25, 22.26)
+
+**Finished local (nhánh `claude/ba-cho-sua-bao-cao`, PR nháp về `Staging`):**
+- mở trang đã thấy hàng tiêu đề và các dòng TỔNG CỘNG, nhờ nút Giải thích số liệu và cảnh báo một dòng;
+- chỉ STT/Ngày, Nhân sự, Loại tiền đứng yên, kéo xong bảng tự nhích;
+- Gộp / Không gộp đổi bảng tại chỗ, giữ đúng ngày đang xem.
+
+**To do:**
+- chủ dự án gộp vào `Staging`;
+- chủ dự án thử ở máy mình, rồi gộp `main`;
+- phát hành VPS.
+
+**Far Plan:** các vấn đề UX đã xem 02.10, ghi ở mục backlog cùng ngày.
+
 ## 01.10.2026 — Bài 18 không còn treo được (TL-71)
 
 **Đã gộp vào `main` 01.10.2026 (PR #75):** vòng cuộn của bài đo hiệu năng 1000 dòng có hạn 60 giây và trả

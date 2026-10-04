@@ -51,7 +51,7 @@ def test_cach_xem_theo_team_thay_phong_ban():
 
 def test_moi_team_mot_dong_kem_leader_va_doi_soat(bang_mkt, mkt_source, van_don, hai_team, nguoi_dung):  # noqa: F811
     """AC-22.20 — Theo team: mỗi team một dòng cộng đúng các lần nộp của người trong team, cột Leader là mã
-    leader của team; người chưa có team gom "Chưa có team"; DS Chốt (TT) theo team của marketer phụ trách"""
+    leader của team; người chưa có team gom "Chưa có team"; Số đơn (TT) theo team của marketer phụ trách"""
     A, C, B = hai_team["A"], hai_team["C"], van_don["B"]
     _bao_cao(bang_mkt, A, "2026-08-01", "SP1", mess=10)
     _bao_cao(bang_mkt, A, "2026-08-02", "SP1", mess=5)
@@ -63,8 +63,10 @@ def test_moi_team_mot_dong_kem_leader_va_doi_soat(bang_mkt, mkt_source, van_don,
     assert set(rows) == {"MKT 1", "MKT 2", "Chưa có team"}
     assert rows["MKT 1"][1]["Số Mess"] == 15 and rows["MKT 2"][1]["Số Mess"] == 7 and rows["Chưa có team"][1]["Số Mess"] == 3
     assert rows["MKT 1"][0]["leader_name"] == employee_code(hai_team["leader"])
-    # Vận đơn: A (MKT 1) phụ trách 60 + 40 + 25; B (chưa có team) 200
-    assert rows["MKT 1"][1]["DS Chốt (TT)"] == 125 and rows["Chưa có team"][1]["DS Chốt (TT)"] == 200
+    # Vận đơn: A (MKT 1) phụ trách w1, w2, w3; B (chưa có team) w4 — Số đơn (TT) theo team của marketer; DS Chốt
+    # (TT) trống vì báo cáo MKT bằng VND còn vận đơn bằng CAD, không quy đổi (ADR-047)
+    assert rows["MKT 1"][1]["Số đơn (TT)"] == 3 and rows["Chưa có team"][1]["Số đơn (TT)"] == 1
+    assert rows["MKT 1"][1]["DS Chốt (TT)"] is None
 
 
 def test_leader_chi_thay_team_minh(bang_mkt, mkt_source, van_don, hai_team):  # noqa: F811

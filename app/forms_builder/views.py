@@ -265,10 +265,11 @@ def bang_xem(request, code):
     return render(request, "forms_builder/bang_xem.html", boi_canh)
 
 
-def _tham_so_bao_cao(request):
-    """Tham số của Bảng dữ liệu dạng báo cáo: như Báo cáo tổng hợp — ngày × nhân sự, từng lần nộp."""
+def _tham_so_bao_cao(request, nguon):
+    """Tham số của Bảng dữ liệu dạng báo cáo: như Báo cáo tổng hợp — ngày × nhân sự, từng lần nộp; nguồn MKT bỏ
+    qua `sp`, `thi_truong`, `tep` (ADR-048)."""
     from reports import screen
-    return screen.parameters(request)
+    return screen.parameters(request, nguon)
 
 
 def _bang_bao_cao(request, bang_hien, nguon):
@@ -277,19 +278,18 @@ def _bang_bao_cao(request, bang_hien, nguon):
     Gộp, ngưỡng màu, (TT); bộ lọc Kỳ / Sản phẩm / Thị trường / Team / Nhân sự; 25 dòng một trang."""
     from django.utils import timezone
 
-    from orders.constants import Market
     from reports import screen
     from reports.services import activity_service, summary_service, threshold_service
 
     # Cột của bảng đọc một lần cho cả động cơ báo cáo lẫn danh sách Tệp khách hàng
     prefetch_related_objects([bang_hien], "columns")
-    tham_so = _tham_so_bao_cao(request)
+    tham_so = _tham_so_bao_cao(request, nguon)
     gop = request.GET.get("gop") == "1"
     giu = request.GET.copy()
     for key in ("trang", "moi_trang"):
         giu.pop(key, None)
     boi_canh = {
-        "bang": bang_hien, "khoi": True, "source": nguon, "params": tham_so, "markets": Market.labels,
+        "bang": bang_hien, "khoi": True, "source": nguon, "params": tham_so,
         "presets": summary_service.date_presets(timezone.localdate(), start=tham_so["start"], end=tham_so["end"],
                                                     key=tham_so["ky"]),
         "query": request.GET.urlencode(), "qs_loc": ("&" + giu.urlencode()) if giu else "",
@@ -299,8 +299,8 @@ def _bang_bao_cao(request, bang_hien, nguon):
         "empty": True,
     }
     boi_canh["people"], boi_canh["teams"] = activity_service.people_choices(request.user, nguon)
-    boi_canh["segments"] = activity_service.segment_options(nguon)
-    boi_canh["products"] = screen.product_options(request.user, nguon)
+    # Sản phẩm, Thị trường, Tệp khách hàng: None là không hiện bộ lọc (nguồn MKT — ADR-048)
+    boi_canh.update(screen.filter_options(request.user, nguon))
     try:
         ket_qua = activity_service.build(request.user, nguon, **screen.build_arguments(tham_so))
     except BusinessError as loi:
@@ -436,7 +436,7 @@ def bang_xuat(request, code):
         # Dạng báo cáo chi tiết theo ngày: xuất đúng các khối đang hiện (ADR-002, ADR-042 đợt 4)
         from reports import screen
         from reports.services import activity_service
-        tham_so = _tham_so_bao_cao(request)
+        tham_so = _tham_so_bao_cao(request, nguon)
         try:
             ket_qua = activity_service.build(request.user, nguon, **screen.build_arguments(tham_so))
             if not ket_qua.ok:

@@ -38,8 +38,11 @@ fs.mkdirSync(out,{recursive:true});
   assert.equal(await page.locator(`#o-${kind}_${kind==='mkt'?'marketer':'sale'}`).inputValue(),username);
   const dailyLoadMs=await page.evaluate(()=>performance.getEntriesByType('navigation')[0].loadEventEnd);
   for(const [name,value] of Object.entries({ngay:day,so_mess:'100',so_don:'5',doanh_so:'1000',...(kind==='mkt'?{cpqc:'200'}:{})}))await page.locator(`[name=${kind}_${name}]`).fill(value);
-  await page.locator(`[name=${kind}_san_pham]`).selectOption({label:'ERP product 0'});
-  await page.locator(`[name=${kind}_thi_truong]`).selectOption({label:'Canada'});
+  // ADR-048: form Marketing không còn Sản phẩm / Thị trường; chỉ Sale còn hai ô này.
+  if(kind==='sale'){
+   await page.locator(`[name=${kind}_san_pham]`).selectOption({label:'ERP product 0'});
+   await page.locator(`[name=${kind}_thi_truong]`).selectOption({label:'Canada'});
+  }
   await Promise.all([page.waitForURL('**/bao-cao/lich-su/'),page.getByRole('button',{name:'Nộp báo cáo',exact:true}).click()]);
   await page.locator('#tu').fill(day);await page.locator('#den').fill(day);
   await Promise.all([page.waitForURL(u=>u.searchParams.get('tu')===day),page.getByRole('button',{name:'Lọc',exact:true}).click()]);
@@ -51,8 +54,10 @@ fs.mkdirSync(out,{recursive:true});
    await Promise.all([page.waitForURL(u=>u.searchParams.get('nhom')===group),page.getByRole('button',{name:'Áp dụng',exact:true}).click()]);
    assert.match(await page.locator('tfoot').innerText(),kind==='sale'?/100\s+5\s+1\.000\s+0,05/:/100\s+200\s+5\s+1\.000/);
   }
-  await page.locator('#thi-truong').selectOption({label:'Canada'});
-  await Promise.all([page.waitForURL(u=>u.searchParams.get('thi_truong')==='Canada'),page.getByRole('button',{name:'Áp dụng',exact:true}).click()]);
+  if(kind==='sale'){
+   await page.locator('#thi-truong').selectOption({label:'Canada'});
+   await Promise.all([page.waitForURL(u=>u.searchParams.get('thi_truong')==='Canada'),page.getByRole('button',{name:'Áp dụng',exact:true}).click()]);
+  }
   const downloaded=page.waitForEvent('download');await page.getByRole('link',{name:'Xuất Excel',exact:true}).click();
   await (await downloaded).saveAs(path.join(out,`${role}-${width}.xlsx`));
   await page.screenshot({path:path.join(out,`${role}-${width}.png`),fullPage:true});

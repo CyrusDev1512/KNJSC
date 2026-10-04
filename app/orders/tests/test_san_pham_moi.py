@@ -84,14 +84,22 @@ def test_manager_sale_them_san_pham_tai_o_chon(client, san_pham, nguoi_dung):
     assert kq.status_code == 400 and "không được để trống" in kq.content.decode()
 
 
-def test_staff_va_leader_sale_bi_403_co_nhat_ky(client, san_pham, nguoi_dung):
-    """AC-6.9 — Staff và Leader gửi thẳng đường dẫn thêm sản phẩm thì bị từ chối và có nhật ký"""
-    for ma in ("staff_sale_1", "leader_sale_1"):
-        truoc = AuditLog.objects.filter(action=AuditAction.DENIED).count()
-        client.force_login(nguoi_dung[ma])
-        assert client.post("/van-don/len-don/san-pham-moi/", {"nhan_moi": "Mới"}).status_code == 403, ma
-        assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == truoc + 1
+def test_staff_sale_bi_403_co_nhat_ky(client, san_pham, nguoi_dung):
+    """AC-6.9 — Staff Sale gửi thẳng đường dẫn thêm sản phẩm thì bị từ chối và có nhật ký, không tạo sản phẩm"""
+    truoc = AuditLog.objects.filter(action=AuditAction.DENIED).count()
+    client.force_login(nguoi_dung["staff_sale_1"])
+    assert client.post("/van-don/len-don/san-pham-moi/", {"nhan_moi": "Mới"}).status_code == 403
+    assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == truoc + 1
     assert Product.objects.count() == 1
+
+
+def test_leader_sale_them_duoc_san_pham(client, san_pham, nguoi_dung):
+    """AC-6.9 — Leader Sale trở lên thêm được sản phẩm ở Lên đơn (chủ dự án 02.10.2026: "chỉ Leader trở lên"),
+    có nhật ký thêm sản phẩm"""
+    client.force_login(nguoi_dung["leader_sale_1"])
+    kq = client.post("/van-don/len-don/san-pham-moi/", {"nhan_moi": "Đèn ngủ cảm ứng"})
+    assert kq.status_code == 200 and Product.objects.filter(code="den-ngu-cam-ung").exists()
+    assert AuditLog.objects.filter(action=AuditAction.CREATE, detail__contains="den-ngu-cam-ung").exists()
 
 
 def test_manager_bo_phan_khac_bi_chan(client, san_pham, nguoi_dung):
@@ -102,13 +110,17 @@ def test_manager_bo_phan_khac_bi_chan(client, san_pham, nguoi_dung):
 
 
 def test_len_don_hien_them_moi_chi_cho_manager(client, san_pham, nguoi_dung):
-    """AC-6.9 — Ô chọn sản phẩm trên Lên đơn có mục Thêm mới và hộp thêm cho Manager; Staff không thấy"""
-    client.force_login(nguoi_dung["manager_sale"])
-    html = client.get("/van-don/len-don/").content.decode()
-    assert 'data-create-product=' in html
-    assert 'value="hm200"' in html and "Máy massage cầm tay HM-200" in html
+    """AC-6.9 — Hộp "Tạo sản phẩm" trên Lên đơn hiện cho Leader và Manager Sale, Staff không thấy; nút thêm một
+    dòng vào đơn ghi "Thêm dòng" (không còn "Thêm sản phẩm" dễ hiểu nhầm là tạo sản phẩm mới)"""
+    for ma in ("manager_sale", "leader_sale_1"):
+        client.force_login(nguoi_dung[ma])
+        html = client.get("/van-don/len-don/").content.decode()
+        assert 'data-create-product=' in html, ma
+        assert 'value="hm200"' in html and "Máy massage cầm tay HM-200" in html
 
     client.force_login(nguoi_dung["staff_sale_1"])
     html = client.get("/van-don/len-don/").content.decode()
     assert 'data-create-product=' not in html
     assert 'value="hm200"' in html and "Máy massage cầm tay HM-200" in html
+    assert '<button type="button" class="nut" data-add-item><span aria-hidden="true">＋</span> Thêm dòng</button>' in html
+    assert ">Thêm sản phẩm</button>" not in html

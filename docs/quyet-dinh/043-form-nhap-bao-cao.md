@@ -82,3 +82,16 @@ liệu và tệp xuất vẫn có cột Team. Tiêu chí AC-43.5.
 > Gộp vào `main` 29.09.2026 (PR #51), sau ADR-045: ô Team duy nhất ở trên chỉ **chọn được với Admin**;
 > Staff/Leader/Manager bị khoá Team theo hồ sơ (ADR-045 thay phần chọn Team cho mọi vai trò). Cột Team dạng
 > chữ vẫn rời form nhập và ghi tên team của dòng. Bài `test_mot_o_team_tren_form_nhap` viết lại theo đó.
+
+## Bổ sung 02.10.2026 — xem trước chỉ số khi nộp
+
+Khách hàng yêu cầu Marketing thấy ngay CPO, Giá Mess, CPQC/Doanh số, AOV, Tỉ lệ chốt khi đang gõ, trước khi
+nộp; chủ dự án chốt mockup cùng ngày. Dòng chip "Hệ thống tự tính khi nộp" thành khối **Xem trước chỉ số**:
+mỗi cột tính sẵn một thẻ (tên, giá trị, công thức nhỏ), sinh từ cột của bảng nên Sale và MKT dùng chung.
+
+- `report-entry.js` tính bằng JS thuần theo công thức của cột (`data-trai/phai/phep/le` trên thẻ, `data-cot`
+  trên ô số), đọc số theo đúng luật `parse_money`, làm tròn nửa về chẵn như `Decimal.quantize`.
+- Đơn vị và số lẻ suy một chỗ, `daily_service.preview_columns`: tiền ÷ số đếm là tiền theo loại tiền của dòng,
+  hai số lẻ (như Báo cáo tổng hợp, dù cột lưu bốn); phần trăm hai số lẻ; tỉ số khác theo số lẻ của cột.
+- Chỉ là xem trước: khi nộp máy chủ vẫn tính và lưu như cũ (ADR-006). Không đổi nghiệp vụ, quyền, cấu trúc
+  dữ liệu; không migration, không thư viện. AC-43.6.

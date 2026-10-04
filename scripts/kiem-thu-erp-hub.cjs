@@ -47,7 +47,7 @@ async function login(page,base,user){
    await page.locator('[name=product]').selectOption(ready.products[0]);
    await page.locator('[name=quantity]').fill('2');
    await page.locator('[name=unit_price]').fill('10.10');
-   await page.getByRole('button',{name:'Thêm sản phẩm',exact:true}).click();
+   await page.getByRole('button',{name:'Thêm dòng',exact:true}).click();
    await page.locator('[name=product]').last().selectOption(ready.products[1]);
    await page.locator('[name=unit_price]').last().fill('5.20');
    await page.locator('[data-order-summary]').filter({hasText:/25.40/}).waitFor();

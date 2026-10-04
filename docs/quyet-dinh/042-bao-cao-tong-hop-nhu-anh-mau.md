@@ -101,3 +101,51 @@ Chủ dự án yêu cầu xoá ô vàng trên các thẻ Báo cáo tổng hợp 
 đổi được …" và dòng "VND (₫), quy đổi theo tỉ giá cố định …"). Thẻ Tổng quan chỉ còn nguồn và chỉ
 tiêu. Cách tính **không đổi**: dòng thiếu tỉ giá hoặc trống loại tiền vẫn không vào tổng tiền; cảnh
 báo vẫn hiện ở màn Báo cáo tổng hợp chi tiết, Bảng dữ liệu dạng báo cáo và tệp Excel (AC-22.18).
+
+## Bổ sung 02.10.2026 — ba chỗ sửa hiển thị (mockup "Ba chỗ sửa Báo cáo tổng hợp")
+
+Chủ dự án xem mockup so sánh trước/sau ở laptop 1366×768 rồi bảo sửa ba chỗ này trước (các vấn đề UX khác trong
+lượt đánh giá cùng ngày để sau, ghi ở backlog). Chỉ đổi cách hiển thị: số liệu, cách tính, quyền xem và tệp Excel
+giữ nguyên.
+
+1. **Vừa mở trang đã thấy số** (AC-22.24). Tên bảng, khoảng ngày, nút Ngưỡng màu và nút mới **Giải thích số liệu**
+   nằm một hàng. Câu loại tiền, đoạn "Tổng trên toàn bộ kết quả khớp bộ lọc · (TT) = …" và toàn văn cảnh báo thu vào
+   panel Giải thích số liệu, không bỏ chữ nào. Cảnh báo dòng chưa có loại tiền còn một dòng (toàn văn ở `title`).
+   - Panel nằm **trong luồng trang**, ngay dưới hàng tiêu đề, không làm popover nổi. Khung kết quả `overflow:hidden`
+     sẽ cắt mất popover thường. Popover tự đóng khi bấm ra ngoài thì mất số quản lý đang gõ dở ở form ngưỡng, còn
+     cách neo popover chưa chạy được trên mọi trình duyệt.
+   - Thân form ngưỡng tách ra `_nguong_form.html`. Bảng dữ liệu vẫn dùng vỏ `<details>`.
+   - Đo trên dữ liệu cỡ thật (22 người, 4 loại tiền + Chưa rõ), 1366×768, bộ lọc mở: khung bảng bắt đầu ở 402 px
+     thay vì 603 px. Lúc mở thấy trọn hàng tiêu đề cột và 4/5 dòng TỔNG CỘNG, trước đây chưa thấy dòng số nào.
+2. **Kéo ngang không còn cột số bị che** (AC-22.25). Chỉ cột đầu (STT, hay Ngày ở khối Gộp), Nhân sự và Loại tiền
+   đứng yên. Team, Leader, Lần nộp giữ chỗ nhưng trôi theo.
+   - **Dòng TỔNG CỘNG.** Không còn ô nhãn trải ngang (`colspan`), vì ô đó rộng 434–550 px và sẽ che cột số khi
+     Team/Leader trôi đi. Mỗi cột định danh một ô, nhãn ngắn "TỔNG CỘNG" ở ô Nhân sự, mã tiền ở ô Loại tiền.
+   - **Nhích cột.** Kéo xong, bảng tự nhích theo hướng đang kéo để cột số đầu tiên sau vùng đứng yên của khối đang
+     xem hiện trọn. Mỗi khối là một bảng riêng nên cột lệch nhau giữa các khối.
+   - **Số đo.** Vùng đứng yên 262 px thay vì 522 px (khối toàn kỳ) và 638 px (khối ngày). Thấy trọn 7 cột số thay
+     vì 2–4. Điện thoại 390 px trước đây không thấy cột số nào, nay thấy một cột.
+3. **Bấm Gộp / Không gộp không tải lại trang** (AC-22.26, chỉ Báo cáo tổng hợp).
+   - **Cách làm.** `report-filters.js` tải trang của chế độ kia bằng `fetch`, rồi chỉ thay khung bảng, phân trang và
+     chip. Link Excel, số bộ lọc và ô `next` của form ngưỡng được cập nhật. `history.pushState` đổi địa chỉ, nên
+     Back và tải lại vẫn ra đúng chế độ. Bảng giữ đúng ngày đang xem nhờ mốc `data-ngay`.
+   - **Không dùng `hx-push-url`.** htmx chép cả trang báo cáo, gồm số liệu kinh doanh, vào localStorage làm bộ nhớ
+     lịch sử.
+   - **Phân trang.** Ở chế độ Từng lần nộp, link Gộp / Không gộp giữ `trang`, vì hai chế độ chia trang theo cùng
+     các lần nộp. Vận đơn vẫn về trang 1.
+   - **Lỗi.** Máy chủ lỗi hay hết phiên thì tải cả trang như trước.
+   - **Số đo.** Đổi chế độ mất 0,39–0,49 s và trang không chớp. Tải cả trang mất 0,74 s.
+
+## Bổ sung 03.10.2026 — bảng vừa màn hình, bộ lọc cuộn riêng
+
+Chủ dự án: "xoá cái header báo cáo tổng hợp, kéo view của bảng dài hơn, càng full view càng tốt"; "bộ lọc cũng nên có
+thanh kéo lên kéo xuống".
+
+- Bỏ đầu trang `<h1>Báo cáo tổng hợp</h1>` và câu phụ; tên trang vẫn ở thanh trên.
+- Khung bảng cao tới sát đáy vùng nội dung `main.noi-dung` (sát thanh menu dưới đáy), tính từ chỗ khung đứng khi trang
+  ở đầu: `report-filters.js` đặt `--report-fit` khi tải, đổi cỡ, thu/mở bộ lọc, đổi Gộp; khung nằm thấp (Bảng dữ liệu,
+  màn hình thấp) thì cao bằng cả vùng nội dung. Mép dưới, thanh kéo ngang của bảng và hàng phân trang luôn trong tầm
+  nhìn — khung chừa chỗ cho hàng phân trang (không chừa thì nút trang 2 nằm đúng mép bị che, bấm không trúng). Toàn màn hình giữ như cũ.
+- Bộ lọc bên trái (màn ≥ 901 px, ngoài Toàn màn hình) `position: sticky`, cao `--report-panel-fit`, phần ô lọc
+  `overflow: auto` — như bộ lọc lưới KN CRM. AC-42.15.
+

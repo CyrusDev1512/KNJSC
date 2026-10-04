@@ -36,7 +36,7 @@ def submission_team(form, actor, team=None):
 def protected_values(form, values, fields, day, owner, *, original=None, team=None):
     """Ngày/danh tính do server quản lý; sửa giữ danh tính tại lúc nộp."""
     from forms_builder.meaning import Meaning
-    from orders.services.currency_service import for_label
+    from orders.services.currency_service import report_currency
     values = form_service.apply_identity(values, fields, owner)
     source = getattr(form.table, 'erp_report', None)
     market = None
@@ -55,7 +55,7 @@ def protected_values(form, values, fields, day, owner, *, original=None, team=No
         if source and source.kind in ('sale', 'mkt') and column.code == source.columns.get('market'):
             market = values.get(field.field.code)
     if source and source.kind in ('sale', 'mkt'):
-        currency = for_label(market)
+        currency = report_currency(source.kind, market)
         for field in fields:
             column = form_service._cot_dich(field)
             if column and column.code == source.columns.get('currency', 'loai_tien'):
@@ -156,6 +156,49 @@ def can_restore(user, report_or_none=None):
     return report_or_none is None or report_or_none.department_id in scope.department_ids
 
 
+#: Đơn vị trên thẻ xem trước chỉ số (AC-43.6): "tien" — số tiền theo loại tiền của dòng (CPO, Giá Mess,
+#: AOV); "phan-tram" — tỉ lệ (Tỉ lệ chốt); rỗng — tỉ số không đơn vị (CPQC/Doanh số) hay số thường.
+PREVIEW_MONEY, PREVIEW_PERCENT = "tien", "phan-tram"
+
+
+def fixed_currency(form):
+    """Loại tiền cố định của biểu mẫu báo cáo (MKT: VND, ADR-047) — hậu tố thẻ "Xem trước chỉ số" khi form không còn
+    ô Loại tiền (ADR-048); nguồn tiền theo Thị trường (Sale) hay biểu mẫu không có nguồn thì trống."""
+    from orders.services.currency_service import REPORT_CURRENCY
+    source = getattr(form.table, "erp_report", None) if form is not None else None
+    return REPORT_CURRENCY.get(source.kind, "") if source is not None else ""
+
+
+def preview_columns(table):
+    """Cột tính sẵn của bảng cho thẻ "Xem trước chỉ số" của form Nộp báo cáo (khách hàng yêu cầu, chủ dự án chốt
+    02.10.2026): danh sách `(cột, đơn vị, số lẻ hiện)`. Một lệnh đọc mọi cột rồi suy đơn vị từ kiểu hai cột của
+    công thức — không truy vấn theo từng thẻ. Số lẻ hiện như Báo cáo tổng hợp: tiền và phần trăm tối đa hai số
+    lẻ, tỉ số khác theo số lẻ của cột. Thẻ chỉ là xem trước: máy chủ vẫn tự tính khi nộp (`ColumnDef.compute`)."""
+    from forms_builder.meaning import FieldType
+    from forms_builder.models import ComputeOp
+
+    columns = list(table.columns.all().order_by("order", "id"))
+    kinds = {c.code: c.field_type for c in columns}
+
+    def unit(column):
+        trai = kinds.get(column.compute_left) == FieldType.MONEY
+        phai = kinds.get(column.compute_right) == FieldType.MONEY
+        if column.compute_op == ComputeOp.PERCENT:
+            return PREVIEW_PERCENT
+        if column.compute_op == ComputeOp.DIVIDE:
+            return PREVIEW_MONEY if trai and not phai else ""
+        if column.compute_op == ComputeOp.MULTIPLY:
+            return PREVIEW_MONEY if trai != phai else ""
+        return PREVIEW_MONEY if trai else ""
+
+    result = []
+    for column in columns:
+        if column.is_computed:
+            don_vi = unit(column)
+            result.append((column, don_vi, min(column.compute_decimals, 2) if don_vi else column.compute_decimals))
+    return result
+
+
 def report_widgets(form, fields, values, *, user, day, owner=None):
     widgets = form_service.widgets(form, fields, values, user=user)
     widgets = decorate_widgets(widgets, form, values, user=user, day=day, owner=owner)
@@ -181,13 +224,21 @@ def decorate_widgets(widgets, form, values, *, user, day, owner=None):
         if source and source.kind in ('sale', 'mkt') and widget.cot:
             if widget.cot.code == source.columns.get('market'):
                 widget.report_market = True
-                from orders.services.currency_service import MARKET_CURRENCIES
-                widget.currency_map = {market.label:str(currency) for market, currency in MARKET_CURRENCIES.items()}
+                from orders.services.currency_service import MARKET_CURRENCIES, report_currency
+                widget.currency_map = {market.label: str(report_currency(source.kind, market.label))
+                                       for market in MARKET_CURRENCIES}
                 widget.cac_muc = [(label, label) for label in widget.currency_map]
                 widget.chat, widget.co_them = True, False
             if widget.cot.code == source.columns.get('currency', 'loai_tien'):
-                widget.system_value = values.get(widget.t.field.code) or 'Chọn quốc gia'
+                from orders.services.currency_service import REPORT_CURRENCY
+                widget.system_value = (REPORT_CURRENCY.get(source.kind) or values.get(widget.t.field.code)
+                                       or 'Chọn quốc gia')
                 widget.report_currency = True
+            # Báo cáo nộp bằng một loại tiền cố định (MKT: tiền Việt, ADR-047): ô tiền ghi rõ "(₫)"
+            from orders.services.currency_service import REPORT_CURRENCY
+            from forms_builder.meaning import FieldType
+            if source.kind in REPORT_CURRENCY and widget.cot.field_type == FieldType.MONEY:
+                widget.don_vi = '₫' if REPORT_CURRENCY[source.kind] == 'VND' else REPORT_CURRENCY[source.kind]
     return widgets
 
 
@@ -281,16 +332,20 @@ def submit(form, values, *, report_date, actor, request=None, fields=None, team=
     if source is not None and source.kind in ("sale", "mkt"):
         from forms_builder.meaning import Meaning
         from orders.constants import Market
+        from orders.services.currency_service import REPORT_CURRENCY
 
         fields = fields if fields is not None else list(form.ordered_fields())
         linked = {f.link.column.code: (f, values.get(f.field.code, ""))
                   for f in fields if getattr(f, "link", None)}
-        selected = linked.get(source.columns["market"])
-        if selected is None or selected[1] not in Market.labels:
-            raise BusinessError("Hãy chọn thị trường trong danh mục quốc gia.")
+        if source.kind not in REPORT_CURRENCY:
+            # Thị trường quyết định loại tiền nên bắt buộc (Sale, ADR-031); báo cáo MKT nộp bằng tiền Việt và form
+            # không còn ô Thị trường (ADR-047, ADR-048)
+            selected = linked.get(source.columns["market"])
+            if selected is None or selected[1] not in Market.labels:
+                raise BusinessError("Hãy chọn thị trường trong danh mục quốc gia.")
         for field, value in linked.values():
             if field.link.column.meaning == Meaning.DATE and str(value) != report_date.isoformat():
-                raise BusinessError("Ngày trong biểu mẫu phải trùng ngày báo cáo; Ngày ra đơn là thông tin riêng.")
+                raise BusinessError("Ngày trong biểu mẫu phải trùng ngày báo cáo.")
 
     # Cùng một đường với màn hình điền biểu mẫu: ép danh tính người nộp vào
     # trường Người bán (FR-4.6), kiểm bắt buộc, rồi ghi vào bảng đích

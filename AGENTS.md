@@ -23,19 +23,31 @@ tài liệu được liên kết bên dưới cung cấp chi tiết theo từng 
 - Giao tiếp và báo cáo bằng tiếng Việt. Bàn giao kết quả cùng diff để chủ dự án xem;
   chỉ commit, push, tạo PR hoặc merge khi được yêu cầu.
 
-### Nhánh — chốt 19.09.2026, đổi sang `main` 24.09.2026
+### Nhánh — chốt 19.09.2026; đổi sang `main` 24.09.2026; thêm quy trình `Staging` 02.10.2026
 
-- **`main` là nhánh chuẩn** từ 24.09.2026: đã fast-forward bằng
-  `codex/crm-update-solar-ui`, hai nhánh trùng nhau. VPS hiện là môi trường thử nghiệm,
-  chưa có khách; Codex chuyển máy chủ dự án sang `checkout main` là mọi phát hành đi từ
-  `main`. Chi tiết trạng thái nhánh ở mục "Nhánh và nơi mã đang chạy" của
-  [CLAUDE.md](CLAUDE.md); các quy tắc dưới đây giữ nguyên.
-- **Không đẩy thẳng lên `main`** (và nhánh codex khi nó còn), kể cả sửa nhỏ hay chỉ sửa tài liệu.
-- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` từ nhánh đang chạy, làm,
-  commit, push, **mở PR nháp trỏ về nhánh đang chạy**, rồi báo lại kèm liên kết. Không tự
-  gộp; chỉ gộp khi chủ dự án bảo rõ.
-- **Chỉ giữ bốn nhánh nền** (chốt 02.10.2026): `main`, `Staging`, `CRM-UPDATE`,
-  `codex/ui-solarpunk`. Nhánh sửa lỗi hay thêm tính năng gộp xong là **xoá ngay**, không để
+- **`main` là nguồn phát hành VPS** từ 24.09.2026. Trước mỗi tác vụ, fetch và kiểm
+  nhánh/commit thực tế trên GitHub; khi phát hành, đối chiếu thêm commit và image đang
+  chạy trên VPS. Không suy trạng thái hiện tại từ SHA hoặc biên bản của lần trước.
+- **Hai nhánh hai vai** (chốt 02.10.2026):
+  - **`Staging` là nơi làm việc bẩn** — gom code, chạy thử, sửa, xoá, thử sai rồi làm
+    lại; được phép hỏng. Đi trước `main` bao nhiêu cũng bình thường.
+  - **`main` luôn sạch** — lấy bất kỳ commit nào cũng phát hành lên VPS được ngay.
+    Thứ gì chưa chắc thì ở lại `Staging`.
+- **Đường đi của một thay đổi:** nhánh việc → `Staging` → kiểm tay ở máy local →
+  `main` → VPS. Không nhảy chặng, kể cả khi gấp. Chi tiết bốn chặng ở mục
+  "Đường đi của một thay đổi" trong [CLAUDE.md](CLAUDE.md).
+  PR vào `Staging` phải đạt CI và được chủ dự án duyệt gộp. Kiểm tay là người dùng
+  mở hệ thống local và thử luồng bị ảnh hưởng; `pytest`/CI xanh không thay chặng này.
+- **Không đẩy thẳng lên `main` hay `Staging`**, kể cả sửa nhỏ hay chỉ sửa tài liệu.
+- **Mọi việc đi qua một nhánh riêng:** tách `claude/<tên-việc>` hoặc `codex/<tên-việc>`
+  từ `Staging` mới nhất đã fetch, làm, commit, push, **mở PR nháp trỏ về `Staging`**,
+  rồi báo lại kèm liên kết. Không tự gộp; chỉ gộp khi chủ dự án bảo rõ.
+- **Hỏng thì sửa ở `Staging` rồi gộp lên, không sửa nóng thẳng trên `main`.**
+- **Chỉ giữ bốn nhánh nền** (chốt 02.10.2026; tên trên GitHub được đối chiếu cùng ngày):
+  `main`, `Staging`, `PHASE-1`, `UI-SOLAR-PUNK`. Trước khi dọn nhánh, đối chiếu danh
+  sách nền với GitHub và quyết định mới nhất; nếu tên đã đổi hoặc chưa rõ thì báo
+  chủ dự án, không coi nhánh nền là nhánh thừa chỉ vì tên khác tài liệu cũ.
+  Nhánh sửa lỗi hay thêm tính năng gộp xong là **xoá ngay**, không để
   lại; đồng thời xoá mọi nhánh ngoài bốn nhánh nền đã nằm trọn trong `main`. Không xoá được
   thì đưa chủ dự án một lệnh `git push origin --delete …` gồm đủ các nhánh đó (chi tiết ở
   CLAUDE.md, mục "Nhánh và nơi mã đang chạy").

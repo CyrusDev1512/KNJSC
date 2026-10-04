@@ -14,8 +14,8 @@ from django.views.decorators.http import require_POST
 from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
 from orders.constants import Market
-from reports.screen import (blocks_context, build_arguments, export_response as _export, filter_chips, parameters,
-                           product_options, with_query as _with)
+from reports.screen import (blocks_context, build_arguments, export_response as _export, filter_chips, filter_options,
+                           parameters, tung_lan, with_query as _with)
 from reports.services import activity_service as service, summary_service, threshold_service
 
 
@@ -24,7 +24,7 @@ def report(request, export=False, choices=None):
     request.nav_current = "bao_cao_tong_hop"
     choices = list(service.sources(request.user)) if choices is None else choices
     source = service.select_source(request.user, request.GET.get("nguon", ""), choices)
-    params = parameters(request)
+    params = parameters(request, source)
     gop = request.GET.get("gop") == "1"   # Gộp theo ngày (ADR-042): mỗi ngày một dòng
     # Liên kết phân trang ghép `?trang=N&moi_trang=M` + `qs_loc`: bỏ hai khoá đó khỏi `qs_loc`,
     # không thì giá trị cũ đứng sau thắng và từ trang 2 bấm trang khác vẫn đứng yên (TL-47)
@@ -37,8 +37,8 @@ def report(request, export=False, choices=None):
            "query": request.GET.urlencode(), "qs_loc": ("&" + giu.urlencode()) if giu else ""}
     if source:
         ctx['people'], ctx['teams'] = service.people_choices(request.user, source)
-        ctx['segments'] = service.segment_options(source)   # None: nguồn không có Tệp khách hàng
-        ctx['products'] = product_options(request.user, source)
+        # Sản phẩm, Thị trường, Tệp khách hàng: None là không hiện bộ lọc (nguồn MKT — ADR-048; nguồn không có Tệp)
+        ctx.update(filter_options(request.user, source))
         try:
             result = service.build(request.user, source, **build_arguments(params))
         except BusinessError as error:
@@ -60,7 +60,12 @@ def report(request, export=False, choices=None):
     if source:
         ctx.update(filter_chips(request, params, ctx))
         if source and ctx.get("result") is not None and getattr(ctx["result"], "show_person", False):
-            ctx.update(gop=gop, gop_url=_with(request, gop="1"), khong_gop_url=_with(request, gop=None))
+            # Từng lần nộp: hai chế độ chia trang theo cùng các lần nộp → giữ trang (đổi chế độ vẫn ở đúng ngày đang
+            # xem, chủ dự án duyệt mockup 02.10.2026); Vận đơn Gộp chia theo ngày → về trang 1 như cũ. Bỏ `nguong`
+            # để đổi chế độ không mở lại panel ngưỡng
+            giu = tung_lan(ctx["result"])
+            ctx.update(gop=gop, gop_url=_with(request, giu_trang=giu, gop="1", nguong=None),
+                       khong_gop_url=_with(request, giu_trang=giu, gop=None, nguong=None))
     return render(request, "reports/activity.html", ctx)
 
 

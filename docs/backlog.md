@@ -1,5 +1,179 @@
 # Backlog
 
+## 04.10.2026 — Kiểm toàn diện `Staging` trước khi gộp `main`
+
+Chủ dự án bảo kiểm kỹ functional, unit, e2e, UI/UX rồi tự gộp `Staging` vào `main` (auto approve). Phạm vi là 9 PR
+`Staging` hơn `main`: #77–#85.
+
+- Unit/functional: 2.917 đạt, 0 đỏ. Migration `reports/0006` chạy xuôi, ngược, xuôi lại đều được.
+- E2E: 9 bài lưới ghi chú chỉ đỏ trên máy ảo (phông Google qua proxy); chặn phông thì 9/9 đạt. Bài e2e của đợt này
+  chạy 3 lần đều đạt 21/21.
+- Bật hệ thống thật từ `main`, nạp dữ liệu như máy chủ dự án, xoá `mkt.leader`, rồi nâng lên `Staging`. Báo cáo MKT cũ
+  thành VND, số giữ nguyên; `du_lieu_mau` không còn vỡ.
+- Đóng vai 9 tài khoản, đi qua form, Báo cáo tổng hợp, lưới Vận đơn 10.000 dòng, Lên đơn, Thống kê, quyền. Không
+  thấy lỗi mới.
+- Có 4 lỗi sẵn từ trước trên `main` (liên kết CRM/ERP dẫn tới 403/404; Doanh số ở Lịch sử thiếu dấu chấm). Đã tách
+  thành việc riêng, không chặn gộp.
+
+[Biên bản](kiem-chung-staging-len-main-20261004.md). Nhánh `claude/kiem-chung-staging-len-main`.
+
+**Còn:**
+- Docker image, Windows thật, VPS: máy ảo không tới được. Chủ dự án thử `KN JSC.bat` sau khi `main` cập nhật.
+- Sửa 4 lỗi có sẵn ở mục 6 của biên bản.
+
+## 03.10.2026 — `du_lieu_mau` bỏ qua tài khoản mẫu đã xoá
+
+Lỗi trên máy local của chủ dự án: `mkt.leader` đã bị xoá mềm, `KN JSC.bat` chạy `du_lieu_mau` thì dừng ở
+"Tài khoản đã xóa không thể sửa hoặc mở khóa." vì lệnh đặt lại mật khẩu cho mọi tài khoản mẫu có sẵn.
+
+- Tài khoản mẫu đã xoá giờ được **bỏ qua**: không mở lại, không đặt lại mật khẩu; cuối lệnh in tên và đánh
+  dấu "(da xoa)". Các tài khoản mẫu khác vẫn đặt lại mật khẩu như cũ.
+- Bài kiểm `tests/test_du_lieu_mau.py::test_chay_lai_bo_qua_tai_khoan_mau_da_xoa` (đỏ trước, xanh sau).
+- Không migration, không đổi quyền. Nhánh `claude/du-lieu-mau-bo-qua-tk-xoa`, PR nháp về `Staging`.
+
+## 03.10.2026 — Form báo cáo Marketing bỏ bốn ô (ADR-048, AC-48.1 → 48.6)
+
+Chủ dự án chọn **"Bỏ cả bốn ô"**: Sản phẩm, Thị trường, Tệp khách hàng, Loại tiền rời form Nộp báo cáo Marketing.
+Tiền vẫn là VND (ADR-047), làm Marketing trước, DS Chốt (TT) chờ KN CRM.
+
+- **Form MKT:** bốn ô vào `MKT_FORM_SKIP`. `configure_erp_reports` gỡ ô và cờ bắt buộc cấp cột, không tạo lại. Cột,
+  ánh xạ, dữ liệu cũ giữ; dòng mới vẫn ghi VND ở tầng ghi.
+- **Nộp/Sửa không đòi Thị trường:** `daily_service.submit` chỉ còn kiểm Thị trường cho Sale.
+- **Thẻ "Xem trước chỉ số" giữ chữ VND:** đơn vị lấy qua `data-tien`.
+- **Bộ lọc nguồn MKT:** Báo cáo tổng hợp, Bảng dữ liệu, Excel không còn lọc Sản phẩm/Thị trường/Tệp; URL cũ có `sp`,
+  `thi_truong`, `tep` vẫn mở được, tham số bị bỏ qua (`screen.parameters`, `NO_DIMENSION_FILTER_KINDS`).
+- **Đơn vị tiền ghi một lần:** "Tiền: ₫" ở hàng tiêu đề khi mọi dòng VND. Cột Loại tiền (và Lần nộp) MKT ẩn theo
+  #83 (AC-47.6); phương án "hiện lại cột khi lẫn loại tiền" bỏ — chủ dự án 03.10 chọn luôn ẩn như #83.
+- **Thống kê CRM:** nguồn MKT bỏ biểu đồ theo sản phẩm, Sale giữ.
+- **Bổ sung: form Sale bỏ ô Ngày ra đơn** (chủ dự án 03.10, trước khi gộp; `SALE_FORM_SKIP`, cột và dữ liệu cũ giữ, AC-48.7).
+- 6 bài mới đỏ trên nền rồi xanh; 8 bài cũ sửa theo luật mới (6 phía máy chủ, 2 trình duyệt). [Biên bản](kiem-chung-mkt-bo-bon-o-20261003.md).
+
+Nhánh `claude/mkt-bo-bon-o` tách từ `claude/bao-cao-mkt-vnd` (PR #83, chưa gộp), PR nháp về `Staging`: **gộp #83
+trước**. Không migration mới, không thư viện mới.
+
+**Còn:**
+- Gộp #83 rồi PR này vào `Staging`; chủ dự án thử local `scripts\cap-nhat-local.bat claude/mkt-bo-bon-o` (hay
+  `Staging` sau khi gộp): nộp một báo cáo MKT, mở Báo cáo tổng hợp nguồn MKT, xem form Sale còn đủ ô.
+- Lên VPS: bước `configure_erp_reports` có sẵn trong quy trình sẽ gỡ bốn ô.
+- Báo cáo Sale (sau); DS Chốt (TT) bằng VND chờ KN CRM.
+- `scripts/kiem-thu-erp-ui.cjs` (kịch bản tay) còn bước chọn ô Cách xem `#nhom` đã bỏ từ 01.10 — chưa sửa.
+
+## 03.10.2026 — Báo cáo Marketing nộp bằng tiền Việt (ADR-047, AC-47.1 → 47.4)
+
+Chủ quản: mọi số trong báo cáo nộp là tiền Việt. Chủ dự án: Báo cáo tổng hợp hiện tại đổi sang VND, không tỉ giá,
+làm Marketing trước (duyệt mockup Cách A).
+
+- Form MKT: Loại tiền luôn VND, ô tiền ghi "(₫)". Một chỗ quyết định: `currency_service.report_currency`.
+- Báo cáo cũ đổi nhãn sang VND, số giữ nguyên: tệp chuyển đổi `reports/0006` (chạy ngược được, đã thử xuôi–ngược–xuôi).
+- Báo cáo tổng hợp MKT: một dòng TỔNG CỘNG · VND; Số đơn (TT) vẫn đối soát; **DS Chốt (TT) trống** vì vận đơn bằng
+  ngoại tệ và không có tỉ giá được duyệt.
+- Ẩn hai cột Hóa đơn và Hóa đơn/DS Chốt (TT) khỏi báo cáo MKT; cột dữ liệu giữ (AC-47.5).
+- Ẩn cột Lần nộp và Loại tiền của báo cáo MKT (AC-47.6); bỏ đầu trang Báo cáo tổng hợp, khung bảng kéo tới sát đáy,
+  bộ lọc cuộn riêng (AC-42.15, ADR-042 bổ sung 03.10).
+- Lệnh `nap_bao_cao_mau` (AC-42.16) để thử nhiều dòng: 20 người × 3 lần × 33 ngày = 1.980 báo cáo nạp trong 26 s;
+  Báo cáo tổng hợp mở 0,75 s, 100 dòng/trang, 20 trang.
+- Sửa lỗi không bấm được trang 2: khung bảng chừa chỗ cho hàng phân trang (lượt 3 kéo khung sát đáy làm hàng đó
+  bị che nửa).
+- 18 bài cũ viết lại theo luật mới. [Biên bản](kiem-chung-bao-cao-mkt-tien-viet-20261003.md).
+
+Nhánh `claude/bao-cao-mkt-vnd` từ `Staging`, PR nháp về `Staging`.
+
+**Còn:**
+- Chủ dự án thử local rồi gộp `Staging`. Lên VPS: `migrate` tự đổi nhãn báo cáo cũ.
+- Báo cáo Sale bằng tiền Việt (sau); DS Chốt (TT) bằng VND cần tỉ giá được duyệt.
+
+## 02.10.2026 — Delete xoá được ô Sản phẩm, Bỏ dòng xoá được dòng cuối (AC-36.9, 36.10)
+
+Chủ dự án: "ấn delete thì xoá được luôn ô sản phẩm + ấn bỏ dòng cũng xoá được"; duyệt mockup rồi bảo triển khai.
+
+1. **Delete trên lưới Vận đơn.** Vùng chọn có ô Sản phẩm, Số lượng, Giá tiền hay Số tiền thanh toán thì hiện hộp
+   hỏi lại: Huỷ / Chỉ xoá ô thường / Bỏ chi tiết và xoá. Chọn bỏ thì toàn bộ chi tiết sản phẩm của dòng bị xoá
+   mềm, bốn ô trống; Trạng thái thanh toán giữ. Không Ctrl+Z được; muốn thêm lại thì mở Chi tiết.
+2. **Bỏ dòng ở dòng cuối** của hộp Chi tiết: dòng biến mất, Thêm dòng thêm lại được; Lưu là đơn không còn sản
+   phẩm. Hộp Chi tiết giữ nguyên như cũ, không thêm chữ giải thích (chủ dự án chốt sau khi thử local).
+
+Mã: `waybill_service.clear_items`, `update_items` nhận danh sách rỗng, `POST bang-tinh/<mã>/bo-chi-tiet/`
+(`master_views.clear_details`), `master-grid.js` (`removeValues`, `askClearDetails`), `waybill.js`. Không
+migration, không thư viện. ADR-036 bổ sung 02.10. [Biên bản](kiem-chung-xoa-chi-tiet-san-pham-20261002.md).
+
+Nhánh `claude/xoa-o-san-pham-bo-dong` từ `Staging`, PR nháp về `Staging`.
+
+**Còn:**
+- Chủ dự án thử lại ở máy mình (bôi đen ô Sản phẩm → Delete; mở Chi tiết → Bỏ dòng hết → Lưu), rồi gộp vào `Staging`.
+- Cột `sl_*` (ẩn mặc định) vẫn chỉ ghi lúc lên đơn, như trước; bỏ chi tiết không xoá nó.
+
+## 02.10.2026 — Ba chỗ sửa Báo cáo tổng hợp (AC-22.24, 22.25, 22.26)
+
+Chủ dự án xem mockup "Ba chỗ sửa Báo cáo tổng hợp" (artifact claude.ai `JRdYXcoJB9iKTDjuR2YHPY`) và bảo sửa ba chỗ
+này trước. Chỉ đổi cách hiển thị; số liệu, cách tính, quyền, Excel giữ nguyên. Không migration, không thư viện.
+
+1. **Vừa mở trang đã thấy số.**
+   - Tên bảng, khoảng ngày, nút Ngưỡng màu và nút Giải thích số liệu nằm một hàng.
+   - Đoạn (TT) và câu loại tiền thu vào panel Giải thích số liệu. Cảnh báo loại tiền còn một dòng.
+   - Form ngưỡng thành panel. Thân form tách ra `_nguong_form.html`.
+2. **Kéo ngang không còn cột bị che.**
+   - Chỉ cột đầu, Nhân sự, Loại tiền đứng yên (`layout.identity`, lớp `report-troi`).
+   - Dòng TỔNG CỘNG mỗi cột một ô, nhãn ngắn ở ô Nhân sự.
+   - Kéo xong, bảng tự nhích theo hướng kéo.
+3. **Gộp / Không gộp không tải lại trang.**
+   - `report-filters.js` lấy trang bằng fetch rồi thay phần bảng, ghi lịch sử bằng `pushState`.
+   - Mốc `data-ngay` giữ đúng ngày đang xem.
+   - Link giữ `trang` ở chế độ Từng lần nộp.
+
+Đo trên dữ liệu cỡ thật, 1366×768:
+- Khung bảng lúc mở bắt đầu ở 402 px (trước 603), thấy 4/5 dòng TỔNG CỘNG.
+- Vùng đứng yên 262 px (trước 522–638).
+- Đổi chế độ mất 0,39–0,49 s, không tải lại trang.
+
+Nhánh `claude/ba-cho-sua-bao-cao` tách từ `Staging`, PR nháp về `Staging`. ADR-042 bổ sung 02.10.
+[Biên bản](kiem-chung-ba-cho-sua-bao-cao-20261002.md).
+
+**Còn:**
+- Chủ dự án gộp vào `Staging`, rồi thử ở máy mình (`scripts\cap-nhat-local.bat Staging`), rồi mới gộp `main`.
+- Phát hành VPS là bước riêng.
+
+**Vấn đề UX đã xem 02.10.2026, chủ dự án chưa cần sửa.** Có trang đánh giá kèm ảnh, artifact claude.ai
+`SkWtGZgMH4A2n7EaFeEprS`, đóng vai nhân viên MKT, trưởng nhóm và trưởng phòng. Ghi lại để phiên sau khỏi hỏi lại:
+
+- **Một số gõ nhầm làm lệch cả báo cáo.** Ví dụ CPQC 13.250.000 vào dòng USD. Màu so với dòng tổng đã lệch nên ai
+  cũng xanh, dòng sai chỉ vàng. Chưa đặt ngưỡng thì không có ô đỏ nào.
+- **Ô tiền trên form không ghi đơn vị** và đứng trước ô Thị trường.
+  - **Câu hỏi cho chủ dự án:** tiền quảng cáo trả bằng tiền gì? Nếu là tiền Việt mà doanh số là đô thì một dòng không
+    thể chỉ có một loại tiền.
+- **Điện thoại.** Sau lượt sửa này thấy được một cột số. Cách hiện bảng trên màn hẹp vẫn chưa thiết kế riêng.
+- **Không biết ai chưa nộp.** Báo cáo nộp sau nửa đêm bị tính sang ngày mới, và không nộp bù được (N1 còn mở).
+- **Ba link trên thẻ Marketing ở Tổng quan dẫn về cùng một trang.** Đó là "Kết quả theo nhân viên", "Theo phòng ban"
+  và link báo cáo chi tiết. Sót lại sau khi bỏ ô Cách xem 01.10. Chưa có chỗ so sánh team.
+- **Đặt ngưỡng tiền (₫) làm cột đó mất hết màu.** Không thị trường nào dùng ₫.
+- **Dòng TỔNG CỘNG dính chiếm gần nửa khung bảng** khi có 5 loại tiền.
+- **Leader đặt được ngưỡng màu chung của cả phòng** (AC-42.9 đã chốt). Form không ghi ai đặt.
+- **Lặt vặt:**
+  - Tổng quan của nhân viên mở ra là bộ lọc;
+  - công thức trên form hiện tên mã máy, đã đổi ở AC-43.6;
+  - không sắp xếp được theo cột;
+  - hai cột Hóa đơn luôn trống;
+  - viết tắt không có chú thích.
+
+## 02.10.2026 — Tạo sản phẩm ở Lên đơn: Leader trở lên; nút thêm dòng đổi tên (AC-6.9)
+
+**Chủ dự án báo:** Sale Staff lên đơn ở KN CRM vẫn tạo thêm được sản phẩm; chỉ Leader trở lên được thêm. **Dò mã:**
+Staff không tạo được — đường thêm `san-pham-moi` chặn dưới Manager (AC-6.9 đã kiểm); thứ Staff thấy là nút
+**"Thêm sản phẩm"** chỉ thêm *một dòng* chọn sản phẩm có sẵn vào đơn, trùng nghĩa nên hiểu nhầm. **Làm:**
+`product_service.CREATE_RANK = Rank.LEADER` khai một chỗ, view `san_pham_moi` và hộp "Tạo sản phẩm" cùng đọc —
+Leader Sale nay thêm được, Staff vẫn 403; nút thêm dòng đổi thành "＋ Thêm dòng" (cả màn sửa chi tiết vận
+đơn); ba kịch bản tay `scripts/kiem-thu-*.cjs` đổi theo. Không migration, không thư viện. Nhánh
+`claude/tao-san-pham-leader`, PR nháp về `Staging`.
+
+## 02.10.2026 — Xem trước chỉ số khi nộp báo cáo ngày (AC-43.6)
+
+**Khách hàng yêu cầu**, chủ dự án chốt mockup: Marketing gõ số thì thấy ngay CPO, Giá Mess, CPQC/Doanh số, AOV,
+Tỉ lệ chốt trước khi nộp. **Làm:** khối "Xem trước chỉ số" thay dòng chip trên form Nộp báo cáo
+(`bao_cao_ngay.html`), mỗi cột tính sẵn một thẻ; `daily_service.preview_columns` suy đơn vị và số lẻ;
+`report-entry.js` tính ngay khi gõ; ô số mang `data-cot`; CSS theo Solarpunk, sáng/tối, điện thoại. Máy chủ vẫn
+tự tính khi nộp. Không migration, không thư viện. ADR-043 bổ sung 02.10. Nhánh `claude/xem-truoc-chi-so`, PR nháp
+về `Staging`. [Biên bản](kiem-chung-xem-truoc-chi-so-20261002.md). **Còn:** chủ dự án gộp vào `Staging`; phát
+hành VPS là bước riêng.
+
 ## 02.10.2026 — Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền
 
 **Chủ dự án chốt:** (1) Claude Code CLI cũng được phát hành lên VPS như Codex — trước đây CLAUDE.md ghi "Phát hành

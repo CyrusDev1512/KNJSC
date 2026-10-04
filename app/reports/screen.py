@@ -13,29 +13,47 @@ from core.audit import record
 from core.constants import AuditAction
 from core.exceptions import BusinessError
 from core.pagination import pagination_context
+from orders.constants import Market
 from orders.models import WaybillItem
 from reports import aggregations, excel, layout
+from reports.constants import NO_DIMENSION_FILTER_KINDS
 from reports.services import activity_service as service, summary_service
 
 
-def parameters(request):
+def dimension_filters(source):
+    """Nguồn có bộ lọc Sản phẩm / Thị trường / Tệp khách hàng không — nguồn MKT thì không (ADR-048)."""
+    return source is None or source.kind not in NO_DIMENSION_FILTER_KINDS
+
+
+def parameters(request, source=None):
     """Tham số bộ lọc trên URL. Cách xem và chế độ cố định Tổng hợp × Từng lần nộp (chủ dự án 01.10.2026,
     bổ sung ADR-046): `nhom`, `che_do` của URL cũ bị bỏ qua. `ky` là nút Chọn nhanh vừa bấm — chỉ để tô đúng
-    một nút khi hai nút cùng khoảng (ngày 01: Hôm nay = Tháng này)."""
+    một nút khi hai nút cùng khoảng (ngày 01: Hôm nay = Tháng này). Nguồn không có bộ lọc theo sản phẩm, thị
+    trường, tệp (MKT, ADR-048) thì `sp`, `thi_truong`, `tep` của URL cũ bị bỏ qua — không lỗi, không chip."""
     start, end = summary_service.default_range()
+    co_loc = dimension_filters(source)
     return {
         "group": service.SCREEN_GROUP,
         "start": summary_service.parse_day(request.GET.get("tu"), start),
         "end": summary_service.parse_day(request.GET.get("den"), end),
         # Nhiều sản phẩm (ADR-042 đợt 3): `sp` lặp lại; URL cũ `sp=A` vẫn là danh sách một mục
-        "product": [p for p in request.GET.getlist("sp") if p],
-        "market": request.GET.get("thi_truong", ""),
+        "product": [p for p in request.GET.getlist("sp") if p] if co_loc else [],
+        "market": request.GET.get("thi_truong", "") if co_loc else "",
         "person": request.GET.get("nhan_su", ""),
         "team": request.GET.get("team", ""),
-        "segment": request.GET.get("tep", ""),
+        "segment": request.GET.get("tep", "") if co_loc else "",
         "mode": service.SCREEN_MODE,
         "ky": request.GET.get("ky", ""),
     }
+
+
+def filter_options(user, source):
+    """Lựa chọn của ba bộ lọc Sản phẩm, Thị trường, Tệp khách hàng; None là không hiện bộ lọc đó (nguồn MKT,
+    ADR-048; Tệp khách hàng chỉ nguồn có cột này)."""
+    if not dimension_filters(source):
+        return {"products": None, "markets": None, "segments": None}
+    return {"products": product_options(user, source), "markets": Market.labels,
+            "segments": service.segment_options(source)}
 
 
 def build_arguments(params):
@@ -43,11 +61,12 @@ def build_arguments(params):
     return {key: value for key, value in params.items() if key != "ky"}
 
 
-def with_query(request, **doi):
-    """URL hiện tại với vài tham số đổi/bỏ (giá trị None là bỏ), về trang 1."""
+def with_query(request, *, giu_trang=False, **doi):
+    """URL hiện tại với vài tham số đổi/bỏ (giá trị None là bỏ), về trang 1 — trừ khi `giu_trang` (link Gộp /
+    Không gộp ở chế độ Từng lần nộp: hai chế độ chia trang như nhau, giữ trang để còn ở đúng ngày đang xem)."""
     query = request.GET.copy()
-    for key in ("trang",):
-        query.pop(key, None)
+    if not giu_trang:
+        query.pop("trang", None)
     for key, value in doi.items():
         query.pop(key, None)
         if value is not None:
@@ -69,7 +88,7 @@ def export_response(request, source, result, params, gop=False, *, detail="Xuấ
     items = list(result.rows)
     ca_bo = items if len(items) <= summary_service.MAX_GROUPS else None
     # Gộp ở chế độ Cộng theo ngày trang theo ngày; mọi bố cục khác trang theo dòng — ở đây là trọn bộ
-    page = layout.days_of(items) if getattr(result, "show_person", False) and gop and not _tung_lan(result) else items
+    page = layout.days_of(items) if getattr(result, "show_person", False) and gop and not tung_lan(result) else items
     blocks = build_blocks(request, source, result, params, gop, items, page, ca_bo)
     book = excel.build_workbook(source.table.name, result, subtitle=subtitle, blocks=blocks)
     if source.kind == "delivery":
@@ -110,14 +129,14 @@ def blocks_context(request, source, result, params, gop, *, page_size=100):
     items = list(result.rows[:summary_service.MAX_GROUPS + 1])
     ca_bo = items if len(items) <= summary_service.MAX_GROUPS else None
     ctx = {"result": result, "totals": aggregations.total_cells(result), "empty": not result.totals["so_dong"]}
-    if show_person and gop and not _tung_lan(result):
+    if show_person and gop and not tung_lan(result):
         # Gộp: mỗi ngày một dòng (mỗi loại tiền) — phân trang trên danh sách ngày
         nguon = ca_bo if ca_bo is not None else items
         ctx.update(pagination_context(request, layout.days_of(nguon), "ngày", default_size=page_size))
         page = list(ctx["trang"])
     else:
         page_source = items if ca_bo is not None else result.rows
-        ctx.update(pagination_context(request, page_source, "lần nộp" if _tung_lan(result) else "nhóm",
+        ctx.update(pagination_context(request, page_source, "lần nộp" if tung_lan(result) else "nhóm",
                                       default_size=page_size))
         page = list(ctx["trang"])
     blocks = build_blocks(request, source, result, params, gop, items, page, ca_bo)
@@ -130,7 +149,8 @@ def blocks_context(request, source, result, params, gop, *, page_size=100):
     return ctx
 
 
-def _tung_lan(result):
+def tung_lan(result):
+    """Chế độ Từng lần nộp (nguồn Sale/MKT): Gộp và Không gộp chia trang theo cùng danh sách lần nộp."""
     return getattr(result, "show_person", False) and getattr(result, "mode", "") == "tung-lan"
 
 
@@ -139,7 +159,7 @@ def build_blocks(request, source, result, params, gop, items, page, ca_bo):
     `items` là tối đa MAX_GROUPS + 1 dòng đầu; `ca_bo` là toàn bộ dòng khi không chạm trần."""
     show_team, show_person, show_leader = (getattr(result, flag, False) for flag in ("show_team", "show_person", "show_leader"))
     tieu_de_ky = f"Toàn kỳ {params['start']:%d/%m} – {params['end']:%d/%m/%Y} · theo nhân sự"
-    if show_person and _tung_lan(result):
+    if show_person and tung_lan(result):
         # Từng lần nộp: khối toàn kỳ theo nhân sự vẫn đứng đầu (Bảng dữ liệu có từ ADR-042 đợt 4), bên dưới
         # mỗi lần nộp một dòng — theo ngày, hoặc Gộp thành một khối mọi lần nộp trong kỳ (ADR-046)
         rows = aggregations.finish_rows(page, result)
@@ -205,8 +225,8 @@ def filter_chips(request, params, ctx):
               "url": without("tu", "den", "ky") if dang_loc_ky else ""}]
     if request.GET.get("gop") == "1":
         # Gộp nguồn có lần nộp là một bảng mọi lần nộp; Vận đơn không có lần nộp nên mỗi ngày một dòng
-        tung_lan = ctx.get("source") is not None and service.has_modes(ctx["source"], params["group"])
-        chips.append({"label": "Gộp", "value": "mọi lần nộp một bảng" if tung_lan else "mỗi ngày một dòng",
+        co_lan_nop = ctx.get("source") is not None and service.has_modes(ctx["source"], params["group"])
+        chips.append({"label": "Gộp", "value": "mọi lần nộp một bảng" if co_lan_nop else "mỗi ngày một dòng",
                       "url": without("gop")})
     if params["product"]:
         sp = params["product"]

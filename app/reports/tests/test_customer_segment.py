@@ -16,9 +16,11 @@ pytestmark = pytest.mark.django_db
 
 
 def test_tep_khach_hang(client, bang_mkt, nguoi_dung):
-    """AC-38.4 — Cột Tệp khách hàng với danh sách mặc định có trên bảng và biểu mẫu Marketing; nộp giá trị
-    ngoài danh sách bị từ chối; lọc `tep` đúng giá trị, `__missing__` = chưa có, giá trị lạ → 400;
-    Leader/Manager Marketing thêm giá trị ngay ô chọn, Staff bị từ chối; phụ đề Excel ghi tệp"""
+    """AC-38.4 — Cột Tệp khách hàng với danh sách mặc định có trên bảng Marketing (giữ dữ liệu cũ) nhưng không còn
+    trên biểu mẫu (ADR-048); ghi giá trị ngoài danh sách bị từ chối; tầng dịch vụ lọc `segment` đúng giá trị,
+    `__missing__` = chưa có, giá trị lạ → lỗi; màn Báo cáo tổng hợp nguồn Marketing bỏ qua tham số `tep` (không lọc,
+    không lỗi 400, không có ô chọn, phụ đề Excel không ghi tệp — AC-48.3); Leader/Manager Marketing thêm giá trị vào
+    cột được, Staff bị từ chối"""
     from io import BytesIO
     from openpyxl import load_workbook
 
@@ -26,7 +28,7 @@ def test_tep_khach_hang(client, bang_mkt, nguoi_dung):
     configure_source(bang_mkt, "mkt")
     column = ColumnDef.objects.get(table=bang_mkt, code=CUSTOMER_SEGMENT_COLUMN)
     assert column.field_type == "choice" and column.options == list(CUSTOMER_SEGMENT_DEFAULTS)
-    assert FormField.objects.filter(form=form, link__column=column).exists()
+    assert not FormField.objects.filter(form=form, link__column=column).exists()   # rời biểu mẫu (ADR-048)
     source = ReportSource.objects.get(table=bang_mkt)
     assert source.columns["segment"] == CUSTOMER_SEGMENT_COLUMN
     assert activity_service.segment_options(source) == list(CUSTOMER_SEGMENT_DEFAULTS)
@@ -50,16 +52,16 @@ def test_tep_khach_hang(client, bang_mkt, nguoi_dung):
 
     client.force_login(manager)
     query = {"nguon": bang_mkt.code, "tu": "2026-08-01", "den": "2026-08-31"}
+    # Màn nguồn Marketing bỏ qua `tep` (ADR-048): không lọc mất dòng, không ô chọn, giá trị lạ không còn lỗi 400
     page = client.get("/bao-cao/tong-hop/", {**query, "tep": "Filipino"})
-    assert page.status_code == 200 and page.context["result"].totals["so_dong"] == 1
-    assert page.context["segments"] == list(CUSTOMER_SEGMENT_DEFAULTS)
-    assert '<option selected>Filipino</option>' in page.content.decode()
-    assert client.get("/bao-cao/tong-hop/", {**query, "tep": "Klingon"}).status_code == 400
+    assert page.status_code == 200 and page.context["result"].totals["so_dong"] == 2
+    assert page.context["segments"] is None and 'name="tep"' not in page.content.decode()
+    assert client.get("/bao-cao/tong-hop/", {**query, "tep": "Klingon"}).status_code == 200
     sheet = list(load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", {**query, "tep": "Filipino"}).content),
                                data_only=True).active.values)
-    assert "Tệp khách hàng: Filipino" in sheet[1][0]
+    assert "Tệp khách hàng" not in str(sheet[1][0])
 
-    # Thêm giá trị ngay ô chọn: Manager Marketing được, Staff bị từ chối
+    # Thêm giá trị vào cột (đường dẫn ô chọn dùng chung): Manager Marketing được, Staff bị từ chối
     url = f"/bang/{bang_mkt.code}/cot/{CUSTOMER_SEGMENT_COLUMN}/lua-chon/"
     assert client.post(url, {"nhan_moi": "Thai"}).status_code == 200
     assert "Thai" in ColumnDef.objects.get(pk=column.pk).options

@@ -10,7 +10,6 @@ from django.views.decorators.http import require_http_methods
 
 from core.exceptions import BusinessError, OutOfScopeError
 from core.navigation import SALES_ONLY
-from core.constants import Rank
 from core.permissions import assert_departments, has_rank
 from forms_builder.services import grant_service
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
@@ -29,6 +28,15 @@ def read_items(data):
     if len({len(a) for a in arrays}) != 1:
         raise BusinessError("Chi tiết sản phẩm thiếu ô. Hãy kiểm tra lại từng dòng.")
     return [dict(zip(keys, values)) for values in zip(*arrays)]
+
+
+def require_products(items):
+    """Hộp Chi tiết: dòng chưa chọn sản phẩm thì báo, không lặng lẽ bỏ qua — lỡ tay bấm Lưu với dòng trống
+    không được làm mất chi tiết hay chữ ở ô Sản phẩm. Muốn đơn không còn sản phẩm thì Bỏ dòng hết rồi Lưu."""
+    for number, item in enumerate(items, 1):
+        if not item.get("product"):
+            raise BusinessError(f"Dòng {number} chưa chọn sản phẩm. Chọn sản phẩm hoặc bấm Bỏ dòng.")
+    return items
 
 
 def item_context(items=None):
@@ -50,6 +58,8 @@ def create_order(request):
     if request.method == "POST":
         try:
             items = read_items(request.POST)
+            if not any(i.get("product") for i in items):
+                raise BusinessError("Chọn ít nhất 1 sản phẩm cho đơn.")
             waybill_service.validate_items(items, strict_units=True)
             if form.is_valid():
                 order = order_service.create_order(**form.cleaned_data, lines=items, actor=request.user, request=request)
@@ -60,7 +70,7 @@ def create_order(request):
         except (BusinessError, ValidationError, ValueError) as exc:
             error = str(exc) if isinstance(exc, BusinessError) else "Kiểm tra lại thông tin đơn và chi tiết sản phẩm."
     context = {"order_date": timezone.localtime(), "saved_order": saved_order,
-               "duoc_them_sp": has_rank(request.user, Rank.MANAGER),
+               "duoc_them_sp": has_rank(request.user, product_service.CREATE_RANK),
                "nhac_khach": order_service.customer_notice(
                    form.data.get("phone", ""), form.data.get("customer_name", "")),
                "form": form, "error": error, "success": success, **item_context(items),
@@ -85,7 +95,8 @@ def detail(request, pk):
             raise OutOfScopeError()
         try:
             items = read_items(request.POST)
-            waybill_service.update_items(request.user, pk, items, request.POST.get("version"), request=request)
+            waybill_service.update_items(request.user, pk, require_products(items), request.POST.get("version"),
+                                         request=request)
             response = HttpResponse("Đã lưu chi tiết sản phẩm.")
             response["HX-Trigger"] = '{"waybillChanged":{"kind":"detail"}}'
             return response
