@@ -15,14 +15,22 @@
     if (event.target.closest('[data-close-detail]')) document.getElementById('vd-detail').close();
     var add = event.target.closest('[data-add-item]');
     if (add) {
-      var body = add.closest('form').querySelector('.vd-items tbody');
-      var row = body.rows[0].cloneNode(true);
+      var form = add.closest('form'), body = form.querySelector('.vd-items tbody');
+      // Còn dòng thì chép dòng đầu (giữ sản phẩm vừa tạo ở Lên đơn); hết dòng thì lấy dòng mẫu.
+      var row = (body.rows[0] || form.querySelector('template[data-item-template]').content.firstElementChild).cloneNode(true);
       row.querySelectorAll('select').forEach(function (select) { select.value = ''; });
       row.querySelectorAll('input').forEach(function (input) { input.value = input.name === 'quantity' ? '1' : '0.00'; });
       body.appendChild(row); row.querySelector('select').focus();
     }
     var remove = event.target.closest('[data-remove-item]');
-    if (remove && remove.closest('tbody').rows.length > 1) remove.closest('tr').remove();
+    // Hộp Chi tiết (bảng có `data-allow-empty`): Bỏ dòng xoá được cả dòng cuối, Thêm dòng thêm lại được;
+    // Lưu khi không còn dòng là đơn không sản phẩm (chủ dự án 02.10.2026). Lên đơn vẫn giữ ≥1 dòng.
+    if (remove) {
+      var tr = remove.closest('tr'), table = tr.closest('table');
+      if (tr.parentNode.rows.length > 1 || table.hasAttribute('data-allow-empty')) {
+        tr.remove();
+      }
+    }
   }, true);
   document.addEventListener('change', function (event) {
     if (!event.target.matches('select[name="product"]')) return;

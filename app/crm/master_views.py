@@ -1,6 +1,6 @@
 """Điểm vào của bộ lưới JSON dùng chung cho các bảng động."""
 from orders.constants import is_waybill_table
-from orders.services import dispatch_service
+from orders.services import dispatch_service, waybill_service
 import json
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -59,6 +59,33 @@ def save(request, code):
             'conflicts': getattr(exc, 'conflicts', []), 'cell': {'id': getattr(exc, 'pk', None),
             'column': getattr(exc, 'column', None)}}, status=409 if exc.code == 'conflict' else 400)
     except (ValueError, TypeError, json.JSONDecodeError):
+        return JsonResponse({'error': 'Dữ liệu gửi lên không hợp lệ.'}, status=400)
+
+
+@login_required
+@require_POST
+def clear_details(request, code):
+    """Delete trên ô tổng của Vận đơn = bỏ toàn bộ Chi tiết sản phẩm của dòng (chủ dự án 02.10.2026)."""
+    from forms_builder.models import DataRecord
+    from orders.services import assignment_service
+    try:
+        table = service.table_for(request.user, code)
+        if not is_waybill_table(table):
+            raise BusinessError('Bảng này không có Chi tiết sản phẩm.')
+        rows = waybill_service.clear_items(request.user, table, json.loads(request.body).get('cells'),
+                                           request=request)
+        columns = grid_service.display_columns(table)
+        for column in columns:
+            column.table = table
+        fresh = assignment_service.related(DataRecord.objects.in_scope(request.user, table=table)
+                                           .filter(pk__in=[r.pk for r in rows]).select_related('table'))
+        return JsonResponse({'rows': service.serialize(fresh.order_by('pk'), columns, request.user),
+                             'latest': service.latest_stamp(request.user, table)})
+    except OutOfScopeError:
+        return JsonResponse({'error': 'Bạn không còn quyền sửa các dòng này.'}, status=403)
+    except BusinessError as exc:
+        return JsonResponse({'error': str(exc)}, status=409 if exc.code == 'conflict' else 400)
+    except (ValueError, TypeError, AttributeError, json.JSONDecodeError):
         return JsonResponse({'error': 'Dữ liệu gửi lên không hợp lệ.'}, status=400)
 
 
@@ -155,6 +182,10 @@ def shell(request, table):
                    'syncUrl':reverse('master_sync',args=[table.code]) if is_waybill_table(table) and optimization.enabled('SYNC') and optimization.enabled('READ') else None,
                    'palette': dict(PALETTE), 'styleClasses': grid_service.STYLE_CLASSES,
                    'saveUrl': reverse('master_save', args=[table.code]),
+                   # Delete trên bốn ô tổng hỏi lại rồi bỏ toàn bộ chi tiết (chủ dự án 02.10.2026)
+                   'detailColumns': sorted(waybill_service.DETAIL_CELLS) if is_waybill_table(table) else [],
+                   'clearDetailsUrl': (reverse('master_clear_details', args=[table.code])
+                                       if is_waybill_table(table) else None),
                    'historyUrl': reverse('master_history', args=[table.code]),
                    'scopeUrl': reverse('master_scope', args=[table.code]),
                    'filterUrl': reverse('bang_tinh_xem', args=[table.code]),
