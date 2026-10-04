@@ -1,5 +1,16 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 04.10.2026 — Báo cáo Sale bỏ cột Lần nộp; bộ lọc kéo tới được nút Áp dụng (AC-47.7, AC-42.17, TL-73)
+
+**Finished local (nhánh `claude/knerp-erp-chinh-sua-hfi7w8`, PR nháp về `Staging`):**
+- báo cáo Sale không còn cột Lần nộp ở màn hình, Bảng dữ liệu, Excel; giữ Loại tiền;
+- bộ lọc Báo cáo tổng hợp cao vừa từ chỗ nó đứng tới đáy vùng nội dung: kéo tới cuối là thấy nút Áp dụng, không phải
+  cuộn cả trang (Sale và MKT, mọi cỡ màn hình đã đo).
+
+**To do:**
+- chủ dự án gộp vào `Staging`, thử ở máy mình, rồi gộp `main`;
+- phát hành VPS (không migration).
+
 ## 03.10.2026 — Form báo cáo Marketing bỏ bốn ô (ADR-048, AC-48.1 → 48.6)
 
 **Finished local (nhánh `claude/mkt-bo-bon-o`, PR nháp về `Staging`, phụ thuộc PR #83):**

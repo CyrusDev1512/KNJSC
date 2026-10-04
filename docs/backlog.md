@@ -1,5 +1,26 @@
 # Backlog
 
+## 04.10.2026 — Báo cáo Sale bỏ cột Lần nộp; bộ lọc kéo tới được nút Áp dụng (AC-47.7, AC-42.17, TL-73)
+
+Chủ dự án thử `Staging` ở máy local, báo hai chỗ trên Báo cáo tổng hợp.
+
+- **"Cái lần nộp này đã bỏ rồi mà":** cột Lần nộp mới chỉ ẩn ở báo cáo MKT (#83, AC-47.6). Hỏi lại thì chủ dự án chọn
+  bỏ luôn ở Sale. `layout.HIDDEN_IDENTITY` thêm `"sale": ("lan",)`: Sale ẩn cột Lần nộp ở màn hình, Bảng dữ liệu dạng
+  báo cáo và Excel, **giữ Loại tiền** (Sale nhiều loại tiền, ADR-046). Hai lần nộp cùng ngày vẫn hai dòng. ADR-047 bổ
+  sung 04.10.
+- **Bộ lọc không kéo tới được nút Áp dụng, phải cuộn cả trang (TL-73):** bộ lọc cao bằng cả vùng nội dung trừ 24 px
+  nhưng đứng dưới hàng chip, nên đáy lọt dưới thanh menu 71 px ở mọi cỡ màn hình, cả Sale lẫn MKT. `report-filters.js`
+  nay tính chiều cao bộ lọc từ chỗ nó đứng tới đáy vùng nội dung, như khung bảng. Đo lại ở 5 cỡ màn hình: nút Áp dụng
+  nằm trên đáy vùng nội dung 51 px, bấm trúng; trang không còn phải cuộn.
+- Bài mới: `reports/tests/test_sale_an_lan_nop.py` (AC-47.7), `test_bo_cuc_bao_cao_e2e.py::test_ap_dung_trong_man_hinh_
+  khong_can_cuon_trang` (AC-42.17, trình duyệt) — đỏ trên `Staging`, xanh sau sửa. Bài cũ đổi: AC-47.6 (Sale giữ Loại
+  tiền, không còn Lần nộp), AC-22.13 (khối ngày Sale bốn cột).
+- Không migration, không đổi quyền, không đổi số liệu.
+
+[Biên bản](kiem-chung-bo-loc-lan-nop-20261004.md). Nhánh `claude/knerp-erp-chinh-sua-hfi7w8`, PR nháp về `Staging`.
+
+**Còn:** chủ dự án thử ở máy local: báo cáo Sale không còn cột Lần nộp; kéo bộ lọc tới cuối thấy nút Áp dụng.
+
 ## 04.10.2026 — Kiểm toàn diện `Staging` trước khi gộp `main`
 
 Chủ dự án bảo kiểm kỹ functional, unit, e2e, UI/UX rồi tự gộp `Staging` vào `main` (auto approve). Phạm vi là 9 PR

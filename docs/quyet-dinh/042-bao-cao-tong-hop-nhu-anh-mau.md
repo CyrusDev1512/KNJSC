@@ -148,4 +148,9 @@ thanh kéo lên kéo xuống".
   nhìn — khung chừa chỗ cho hàng phân trang (không chừa thì nút trang 2 nằm đúng mép bị che, bấm không trúng). Toàn màn hình giữ như cũ.
 - Bộ lọc bên trái (màn ≥ 901 px, ngoài Toàn màn hình) `position: sticky`, cao `--report-panel-fit`, phần ô lọc
   `overflow: auto` — như bộ lọc lưới KN CRM. AC-42.15.
+- **Sửa 04.10.2026 (TL-73, AC-42.17):** `--report-panel-fit` trước là cả chiều cao vùng nội dung trừ 24 px, trong khi bộ
+  lọc đứng dưới hàng chip (thấp hơn đỉnh vùng nội dung 115 px) — đáy bộ lọc lọt dưới thanh menu 71 px, kéo bộ lọc tới
+  cuối vẫn không thấy nút Áp dụng, phải cuộn cả trang. Nay bộ lọc cao từ chỗ nó đứng khi trang ở đầu (đỉnh lưới
+  `.report-workspace`, không đo chính bộ lọc vì nó `sticky`) tới đáy vùng nội dung, như khung bảng: đáy bộ lọc thẳng
+  đáy hộp kết quả, trang không phải cuộn.
 

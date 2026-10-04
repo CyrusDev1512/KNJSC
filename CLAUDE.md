@@ -185,7 +185,9 @@ cảnh màn hình dùng chung ở `reports/screen.py`. **Ba chỗ sửa (02.10, 
 - **Kéo ngang:** chỉ cột đầu (STT/Ngày), Nhân sự, Loại tiền đứng yên (`layout.identity`; cột khác mang `report-troi`).
   Dòng TỔNG CỘNG mỗi cột một ô, nhãn ngắn ở ô Nhân sự; kéo xong thì bảng tự nhích. Báo cáo MKT luôn ẩn cột Lần nộp,
   Loại tiền (`layout.HIDDEN_IDENTITY`, ADR-047 bổ sung): đứng yên còn STT · Nhân sự; đơn vị ghi "Tiền: ₫" ở hàng tiêu
-  đề khi mọi dòng VND (`ActivityResult.fixed_currency`, ADR-048).
+  đề khi mọi dòng VND (`ActivityResult.fixed_currency`, ADR-048). Báo cáo Sale ẩn cột Lần nộp, giữ Loại tiền (04.10,
+  AC-47.7). Bộ lọc bên trái cao từ chỗ nó đứng tới đáy vùng nội dung (`--report-panel-fit`, TL-73): kéo tới cuối là
+  thấy nút Áp dụng.
 - **Phần chữ trên bảng:** đoạn (TT) và câu loại tiền nằm trong panel "Giải thích số liệu".
 - **Gộp / Không gộp:** đổi bảng bằng `fetch` trong `report-filters.js`, không tải lại trang. Link giữ `trang`, mốc
   `data-ngay` giữ đúng ngày đang xem.

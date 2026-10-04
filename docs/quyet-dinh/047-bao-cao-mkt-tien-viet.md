@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Ngày | 03.10.2026 |
-| Trạng thái | Xong local 03.10.2026, PR nháp về `Staging`; chờ chủ dự án thử local rồi gộp |
+| Trạng thái | Đã gộp `Staging` (#83) và `main` (#87); bổ sung 04.10.2026 (Sale ẩn cột Lần nộp) ở PR nháp về `Staging` |
 | Thay thế / bổ sung | Bổ sung ADR-046 (không quy đổi — vẫn giữ); thay phần "Loại tiền tự theo Thị trường" của ADR-031 **cho báo cáo Marketing**; ADR-038 phần DS Chốt (TT) |
 
 ## Bối cảnh
@@ -40,7 +40,15 @@ theo Thị trường; dữ liệu mẫu MKT có CPQC 438.446.060 mang nhãn CAD.
 
 9. **Ẩn hai cột Lần nộp và Loại tiền** khỏi báo cáo MKT (màn hình, Bảng dữ liệu, Excel) — một chỗ
    `layout.HIDDEN_IDENTITY`, `ActivityResult.source_kind`; chỉ đổi hiển thị, không đổi cách cộng tổng; Sale giữ
-   (chủ dự án 03.10.2026).
+   (chủ dự án 03.10.2026). Từ 04.10.2026 Sale ẩn cột Lần nộp, giữ Loại tiền — xem bổ sung dưới.
+
+## Bổ sung 04.10.2026 — báo cáo Sale ẩn cột Lần nộp
+
+Chủ dự án thử Staging 04.10.2026, nhìn báo cáo Sale: "tôi nhớ là cái lần nộp này đã bỏ rồi mà"; được hỏi lại thì chọn
+**bỏ cột Lần nộp ở Sale**. `layout.HIDDEN_IDENTITY` thêm `"sale": ("lan",)`: cột Lần nộp rời màn hình, Bảng dữ liệu
+dạng báo cáo và Excel của báo cáo Sale, ở khối toàn kỳ, khối ngày và khối Gộp. **Sale giữ cột Loại tiền**, vì một người
+nộp được nhiều loại tiền (Canada CAD, Hoa Kỳ USD…) và không cộng lẫn tiền tệ (ADR-046). Hai lần nộp cùng ngày vẫn là
+hai dòng; chỉ đổi hiển thị, không đổi cách cộng tổng. AC-47.7.
 
 ## Hệ quả
 
