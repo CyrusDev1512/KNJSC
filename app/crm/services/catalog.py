@@ -13,3 +13,11 @@ from orders.constants import waybill_condition
 def chi_van_don(queryset, prefix=""):
     """Thu hẹp một queryset bảng (hoặc dòng, với prefix="table__") về bảng vận đơn."""
     return queryset.filter(waybill_condition(prefix))
+
+
+def co_bang_van_don(user):
+    """Người này có bảng vận đơn nào đang dùng trong phạm vi không — không có thì trang thư mục 404, nên mọi nút
+    dẫn tới đó phải ẩn hoặc đổi đích (AC-40.6)."""
+    from forms_builder.models import TableDef
+
+    return chi_van_don(TableDef.objects.in_scope(user).filter(is_active=True)).exists()

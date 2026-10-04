@@ -264,7 +264,8 @@ def test_bang_du_lieu_chi_xem_voi_moi_cap_bac(client, bang_sale, nguoi_dung, ai)
         for dau in DAU_VET_SUA_O:
             assert dau not in than, f"còn dấu vết sửa ô: {dau}"
         assert "Bảng này chỉ để xem" in html
-        assert 'rel="noopener">Mở trong KN CRM</a>' in html
+        # Bảng thường: KN CRM không phục vụ (ADR-040) nên không có nút sang CRM (AC-40.7)
+        assert 'rel="noopener">Mở trong KN CRM</a>' not in html
 
     kq = client.post(_duong_dan_o_cu(bg, "khach"), {"gia_tri": "Đã đổi"})
     assert kq.status_code == 404
