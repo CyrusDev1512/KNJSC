@@ -131,8 +131,8 @@ def test_bao_cao_mkt_khong_con_cot_hoa_don(client, bang_mkt, mkt_source, nguoi_d
 
 def test_bao_cao_mkt_an_lan_nop_va_loai_tien(client, bang_mkt, mkt_source, nguoi_dung):  # noqa: F811
     """AC-47.6 — Báo cáo tổng hợp và Bảng dữ liệu dạng báo cáo của nguồn MKT không còn cột Lần nộp và Loại tiền ở
-    khối toàn kỳ, khối ngày và khối Gộp; Excel cũng không; hai lần nộp cùng ngày vẫn là hai dòng; nguồn Sale giữ cả
-    hai cột"""
+    khối toàn kỳ, khối ngày và khối Gộp; Excel cũng không; hai lần nộp cùng ngày vẫn là hai dòng; nguồn Sale giữ cột
+    Loại tiền (cột Lần nộp của Sale ẩn từ 04.10.2026, AC-47.7)"""
     from io import BytesIO
     from openpyxl import load_workbook
     from reports.models import ReportSource
@@ -155,8 +155,8 @@ def test_bao_cao_mkt_an_lan_nop_va_loai_tien(client, bang_mkt, mkt_source, nguoi
     sach = load_workbook(BytesIO(client.get("/bao-cao/tong-hop/xuat/", ky).content), data_only=True)
     chu = {str(o) for ws in sach.worksheets for hang in ws.iter_rows(values_only=True) for o in hang if o}
     assert "Lần nộp" not in chu and "Loại tiền" not in chu
-    # Nguồn Sale: giữ Lần nộp và Loại tiền
+    # Nguồn Sale: giữ Loại tiền, Lần nộp ẩn như MKT (AC-47.7)
     ReportSource.objects.filter(pk=mkt_source.pk).update(kind="sale")
     r = client.get("/bao-cao/tong-hop/", ky)
     ma = [c["code"] for c in r.context["blocks"][1]["identity_columns"]]
-    assert "lan" in ma and "tien" in ma
+    assert "lan" not in ma and "tien" in ma

@@ -629,3 +629,37 @@ def test_bang_vua_man_hinh_va_bo_loc_cuon_rieng(live_server, trinh_duyet_moi, mk
             chup(page, f"bang-vua-man-hinh-{h}")
         finally:
             ctx.close()
+
+
+#: Trang đang ở đầu, kéo thanh cuộn của bộ lọc tới cuối rồi đo: đáy bộ lọc, nút Áp dụng so với đáy vùng nội dung, và
+#: điểm giữa nút có trúng chính nút không (ngoài vùng nội dung thì trúng thanh menu dưới hay ra ngoài khung nhìn)
+AP_DUNG = """()=>{const m=document.querySelector('main.noi-dung'),mb=m.getBoundingClientRect(),
+    p=document.querySelector('.report-filter-panel'),pb=p.querySelector('.panel-body');
+    pb.scrollTop=pb.scrollHeight;
+    const b=[...pb.querySelectorAll('button[type=submit]')].find(x=>x.textContent.trim()==='Áp dụng'),r=b.getBoundingClientRect(),
+        e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+    return {cuonTrang:m.scrollTop,mainDuoi:Math.round(mb.bottom),panelDuoi:Math.round(p.getBoundingClientRect().bottom),
+        apDung:[Math.round(r.top),Math.round(r.bottom)],bamTrung:!!(e&&e.closest('button')===b),
+        cuonLoc:[pb.scrollHeight,pb.clientHeight,Math.round(pb.scrollTop)]}}"""
+
+
+@pytest.mark.parametrize("ten_nguon, ten_nguoi", [("nguon", "manager_sale"), ("mkt_ba_loai_tien", "manager_mkt")])
+def test_ap_dung_trong_man_hinh_khong_can_cuon_trang(live_server, trinh_duyet_moi, nguoi_dung, request, ten_nguon, ten_nguoi):
+    """AC-42.17 — Chủ dự án 04.10.2026: thanh cuộn của bộ lọc kéo được tới nút Áp dụng mà không phải cuộn cả trang —
+    trang đang ở đầu, kéo bộ lọc tới cuối thì đáy bộ lọc không quá đáy vùng nội dung, nút Áp dụng nằm trọn trong vùng
+    nhìn thấy và bấm trúng; nguồn Sale và MKT, 1366×768 và 1366×600"""
+    # Hai fixture cùng dựng trên một bảng mẫu nên mỗi nguồn một lượt chạy riêng
+    goc = request.getfixturevalue(ten_nguon)
+    code = getattr(goc, "table", goc).code
+    for w, h in ((1366, 768), (1366, 600)):
+        ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung[ten_nguoi], w, h,
+                        f"/bao-cao/tong-hop/?nguon={code}&tu=2026-08-01&den=2026-08-06")
+        try:
+            do = page.evaluate(AP_DUNG)
+            noi = f"{ten_nguon} {w}×{h}: {do}"
+            assert do["cuonTrang"] == 0, noi
+            assert do["panelDuoi"] <= do["mainDuoi"], f"đáy bộ lọc lọt dưới vùng nội dung — {noi}"
+            assert do["apDung"][1] <= do["mainDuoi"] and do["bamTrung"], f"nút Áp dụng không bấm được — {noi}"
+            chup(page, f"ap-dung-{ten_nguon}-{h}")
+        finally:
+            ctx.close()
