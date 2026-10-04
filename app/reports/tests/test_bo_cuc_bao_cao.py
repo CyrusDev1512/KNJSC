@@ -47,23 +47,24 @@ def test_chips_theo_bo_loc_va_link_bo_dung_tham_so(client, nguon, nguoi_dung):
 
 
 def test_cot_dinh_danh_ghim_theo_cach_xem(client, nguon, nguoi_dung):
-    """AC-22.13 — Cột định danh theo lớp tổng quát `.report-identity`, vị trí 1–5: khối ngày = STT · Team · Nhân sự ·
-    Leader · Lần nộp (luôn từng lần nộp, 01.10.2026); chỉ STT và Nhân sự (nguồn không có Loại tiền) đứng yên, `left`
-    bằng biến CSS đặt trên bảng, cột đứng yên cuối mang lớp mép; Team, Leader, Lần nộp trôi theo (`report-troi`,
-    02.10.2026); dòng Tổng mỗi cột định danh một ô, nhãn ở ô Nhân sự"""
+    """AC-22.13 — Cột định danh theo lớp tổng quát `.report-identity`, vị trí 1–4: khối ngày của nguồn Sale = STT ·
+    Team · Nhân sự · Leader (luôn từng lần nộp, 01.10.2026; cột Lần nộp ẩn từ 04.10.2026, AC-47.7); chỉ STT và Nhân sự
+    (nguồn không có Loại tiền) đứng yên, `left` bằng biến CSS đặt trên bảng, cột đứng yên cuối mang lớp mép; Team,
+    Leader trôi theo (`report-troi`, 02.10.2026); dòng Tổng mỗi cột định danh một ô, nhãn ở ô Nhân sự"""
     client.force_login(nguoi_dung["admin"])
     r = _get(client, nguon)
     cols = r.context["identity_columns"]
-    # Khối theo ngày như ảnh mẫu (ADR-042): STT · Team · Nhân sự · Leader · Lần nộp, không có cột Ngày
+    # Khối theo ngày như ảnh mẫu (ADR-042): STT · Team · Nhân sự · Leader, không có cột Ngày, không còn Lần nộp
     assert [(c["code"], c["kind"], c["pos"], c["sticky"], c["edge"]) for c in cols] == [
         ("stt", "id-stt", 1, True, False), ("team", "id-team", 2, False, False),
-        ("person", "id-nhan-su", 3, True, True), ("leader", "id-leader", 4, False, False), ("lan", "id-lan", 5, False, False)]
+        ("person", "id-nhan-su", 3, True, True), ("leader", "id-leader", 4, False, False)]
     kieu = "--id-left-3:calc(var(--w-stt))"
     assert r.context["identity_style"] == kieu
     html = r.content.decode()
     assert f'<table class="bang report-table" style="{kieu}">' in html
     assert '<th scope="row" class="report-identity id-nhan-su report-identity-edge" data-pos="3">TỔNG CỘNG</th>' in html
-    assert 'class="report-identity report-troi id-lan" data-pos="5">Lần nộp</th>' in html
+    assert 'class="report-identity report-troi id-leader" data-pos="4">Leader</th>' in html
+    assert "id-lan" not in html and ">Lần nộp</th>" not in html
     # Khối ngày: cột đầu là STT, ngày thành tiêu đề đặt trên bảng (ADR-042)
     assert 'class="report-identity id-stt" data-pos="1">1</th>' in html and '<h3>01.08.2026</h3>' in html
 

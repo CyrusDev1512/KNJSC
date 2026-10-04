@@ -16,14 +16,22 @@
   // dưới đáy) tính từ chỗ khung đứng khi trang ở đầu; bộ lọc cao vừa vùng nội dung và cuộn riêng (CSS). Không đủ
   // chỗ (khung nằm thấp) thì cao bằng cả vùng nội dung. Đo lại khi tải, đổi cỡ cửa sổ, thu/mở bộ lọc, đổi Gộp / Không gộp.
   const vuaManHinh = () => {
-    const khung = document.querySelector('.report-table-scroll');
-    if (!khung) return;
     const main = document.querySelector('main.noi-dung');
     const vung = main ? main.getBoundingClientRect() : {top: 0, bottom: window.innerHeight};
     const cuon = main ? main.scrollTop : window.scrollY;
     const day = main ? parseFloat(getComputedStyle(main).paddingBottom) || 0 : 0;
-    const tren = khung.getBoundingClientRect().top - vung.top + cuon;
     const cao = vung.bottom - vung.top;
+    // Bộ lọc cao từ chỗ nó đứng khi trang ở đầu tới đáy vùng nội dung, như khung bảng: đáy bộ lọc thẳng đáy hộp kết
+    // quả, kéo bộ lọc tới cuối là thấy nút Áp dụng mà không phải cuộn cả trang (lỗi 04.10.2026: bộ lọc cao bằng cả
+    // vùng nội dung nhưng đứng dưới hàng chip, đáy lọt dưới thanh menu 71 px). Đo đỉnh lưới bộ lọc + kết quả, không đo
+    // chính bộ lọc: bộ lọc `sticky`, trang đã cuộn thì nó đứng ở `top` chứ không ở chỗ thật
+    if (workspace) {
+      const trenLoc = workspace.getBoundingClientRect().top - vung.top + cuon;
+      root.style.setProperty('--report-panel-fit', Math.max(200, Math.floor(cao - trenLoc - day)) + 'px');
+    }
+    const khung = document.querySelector('.report-table-scroll');
+    if (!khung) return;
+    const tren = khung.getBoundingClientRect().top - vung.top + cuon;
     // Chừa chỗ cho phần dưới khung trong cùng hộp kết quả (hàng phân trang) và mép dưới của hộp: phân trang luôn
     // nhìn thấy và bấm được — không chừa thì nút trang 2 nằm đúng mép bị che, bấm không trúng (lỗi 03.10.2026)
     let duoiKhung = 0;
@@ -35,7 +43,6 @@
     // thì bảng cao bằng cả vùng nội dung, không co lại còn một mẩu
     if (vua < 240) vua = cao - day - duoiKhung - (main ? parseFloat(getComputedStyle(main).paddingTop) || 0 : 0);
     root.style.setProperty('--report-fit', Math.max(240, Math.floor(vua)) + 'px');
-    root.style.setProperty('--report-panel-fit', Math.max(320, Math.floor(cao - 24)) + 'px');
   };
   vuaManHinh();
   window.addEventListener('resize', vuaManHinh);

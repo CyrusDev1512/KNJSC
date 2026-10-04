@@ -45,8 +45,8 @@ TOTAL_SHORT = {"single": "Tổng trong bộ lọc"}
 STICKY_CODES = ("person", "nhom", "tien")
 #: Cột định danh ẩn theo loại nguồn (chủ dự án 03.10.2026, ADR-047): báo cáo MKT luôn VND nên cột Loại tiền thừa,
 #: cột Lần nộp cũng bỏ — hai lần nộp cùng ngày vẫn là hai dòng. Chỉ đổi hiển thị (màn hình và Excel), không đổi
-#: cách cộng tổng. Sale giữ đủ.
-HIDDEN_IDENTITY = {"mkt": ("lan", "tien")}
+#: cách cộng tổng. Sale bỏ cột Lần nộp từ 04.10.2026 nhưng giữ Loại tiền: một người nộp được nhiều loại tiền (ADR-046).
+HIDDEN_IDENTITY = {"mkt": ("lan", "tien"), "sale": ("lan",)}
 #: Nhãn của loại tiền trống (báo cáo cũ chưa có Loại tiền) — cùng chữ với cảnh báo của dịch vụ
 UNKNOWN_CURRENCY = "Chưa rõ"
 
