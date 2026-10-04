@@ -1,5 +1,26 @@
 # Backlog
 
+## 04.10.2026 — Kiểm toàn diện `Staging` trước khi gộp `main`
+
+Chủ dự án bảo kiểm kỹ functional, unit, e2e, UI/UX rồi tự gộp `Staging` vào `main` (auto approve). Phạm vi là 9 PR
+`Staging` hơn `main`: #77–#85.
+
+- Unit/functional: 2.917 đạt, 0 đỏ. Migration `reports/0006` chạy xuôi, ngược, xuôi lại đều được.
+- E2E: 9 bài lưới ghi chú chỉ đỏ trên máy ảo (phông Google qua proxy); chặn phông thì 9/9 đạt. Bài e2e của đợt này
+  chạy 3 lần đều đạt 21/21.
+- Bật hệ thống thật từ `main`, nạp dữ liệu như máy chủ dự án, xoá `mkt.leader`, rồi nâng lên `Staging`. Báo cáo MKT cũ
+  thành VND, số giữ nguyên; `du_lieu_mau` không còn vỡ.
+- Đóng vai 9 tài khoản, đi qua form, Báo cáo tổng hợp, lưới Vận đơn 10.000 dòng, Lên đơn, Thống kê, quyền. Không
+  thấy lỗi mới.
+- Có 4 lỗi sẵn từ trước trên `main` (liên kết CRM/ERP dẫn tới 403/404; Doanh số ở Lịch sử thiếu dấu chấm). Đã tách
+  thành việc riêng, không chặn gộp.
+
+[Biên bản](kiem-chung-staging-len-main-20261004.md). Nhánh `claude/kiem-chung-staging-len-main`.
+
+**Còn:**
+- Docker image, Windows thật, VPS: máy ảo không tới được. Chủ dự án thử `KN JSC.bat` sau khi `main` cập nhật.
+- Sửa 4 lỗi có sẵn ở mục 6 của biên bản.
+
 ## 03.10.2026 — `du_lieu_mau` bỏ qua tài khoản mẫu đã xoá
 
 Lỗi trên máy local của chủ dự án: `mkt.leader` đã bị xoá mềm, `KN JSC.bat` chạy `du_lieu_mau` thì dừng ở
