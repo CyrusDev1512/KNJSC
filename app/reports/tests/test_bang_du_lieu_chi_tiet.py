@@ -79,7 +79,9 @@ def test_bang_du_lieu_nguon_bao_cao_hien_chi_tiet_theo_ngay(client, bang_mkt, mk
     assert _theo_nhan(result, _tong(toan_ky))["Số đơn (TT)"] == 4
     assert _theo_nhan(result, _tong(toan_ky))["DS Chốt (TT)"] is None
     html = r.content.decode()
-    assert 'id="report-nguong"' in html and "Xem từng dòng thô" in html and 'rel="noopener">Mở trong KN CRM</a>' in html
+    assert 'id="report-nguong"' in html and "Xem từng dòng thô" in html
+    # Bảng báo cáo: KN CRM không phục vụ (ADR-040) — không nút sang CRM, sửa số ở Lịch sử báo cáo (AC-40.7)
+    assert 'rel="noopener">Mở trong KN CRM</a>' not in html and "sửa trong Lịch sử báo cáo" in html
     assert '<table class="bang bang-luoi">' not in html and "nộp nhiều lần thì (TT) chỉ hiện ở dòng TỔNG CỘNG" in html
     assert 'name="che_do"' not in html and 'name="nhom"' not in html     # luôn từng lần nộp (01.10.2026)
     assert r.context["moi_trang"] == 25                     # quy tắc 1: mặc định 25 dòng

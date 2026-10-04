@@ -78,7 +78,9 @@ def don_xem(request, code):
     return render(request, "orders/don_xem.html", {
         "van_don_url": reverse("bang_tinh_xem", args=[row.table.code]) if row else None,
         "don": don,
-        "ve_url": "/thu-muc/", "ve_nhan": "Về Bảng tính — thư mục",
+        # Không thấy dòng vận đơn (Sale không có bảng vận đơn) thì thư mục 404 — quay về Lên đơn (AC-40.6)
+        **({"ve_url": reverse("thu_muc"), "ve_nhan": "Về Bảng tính — thư mục"} if row
+           else {"ve_url": reverse("waybill_create"), "ve_nhan": "Về Lên đơn"}),
         "cac_dong": list(don.lines.select_related("product")),
         "duoc_bo": don.created_by_id == request.user.pk,
     })

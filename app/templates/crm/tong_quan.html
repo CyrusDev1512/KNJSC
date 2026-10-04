@@ -19,7 +19,7 @@ dáng với Tổng quan KN ERP. Mọi số đã lọc qua `in_scope`. Từ đây
   </div>
   <div class="hanh-dong">
     <a class="nut" href="{% url 'crm_statistics' %}">Mở Bàn điều hành</a>
-    <a class="nut nut-chinh" href="{% url 'thu_muc' %}">Mở Bảng tính</a>
+    {% if co_bang_tinh %}<a class="nut nut-chinh" href="{% url 'thu_muc' %}">Mở Bảng tính</a>{% endif %}
     {# Nút "+ Tạo bảng" đã ẩn: KN CRM chỉ phục vụ bảng vận đơn (ADR-040) #}
   </div>
 </div>
@@ -58,7 +58,7 @@ dáng với Tổng quan KN ERP. Mọi số đã lọc qua `in_scope`. Từ đây
   <div class="the">
     <div class="the-dau">
       <h2>Bảng trong phạm vi</h2>
-      <div class="phai"><a class="nut nut-nho" href="{% url 'thu_muc' %}">Xem theo tháng</a></div>
+      {% if co_bang_tinh %}<div class="phai"><a class="nut nut-nho" href="{% url 'thu_muc' %}">Xem theo tháng</a></div>{% endif %}
     </div>
     {% if bang.ok %}
       <div class="bang-cuon">

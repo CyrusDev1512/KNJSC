@@ -24,8 +24,8 @@
     {% if duoc_nhap %}<a class="nut" href="{% url 'bang_nhap' bang.code %}">Nhập tệp</a>{% endif %}
     {# Xuất đúng thứ đang hiện: mang theo bộ lọc, tìm kiếm, sắp xếp — ADR-002 #}
     <a class="nut" href="{% url 'bang_xuat' bang.code %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Xuất tệp</a>
-    {# Nơi sửa duy nhất là lưới KN CRM của đúng bảng này — ADR-012, ADR-014 #}
-    <a class="nut nut-chinh" href="{{ bang_tinh_url }}" target="_blank" rel="noopener">Mở trong KN CRM</a>
+    {# Nơi sửa duy nhất là lưới KN CRM của đúng bảng này — ADR-012, ADR-014; CRM chỉ phục vụ bảng vận đơn (ADR-040) #}
+    {% if bang_tinh_url %}<a class="nut nut-chinh" href="{{ bang_tinh_url }}" target="_blank" rel="noopener">Mở trong KN CRM</a>{% endif %}
   </div>
 </div>
 
@@ -33,7 +33,8 @@
   <span class="bao-ic">i</span>
   <div>
     <b>Bảng này chỉ để xem</b>
-    <p>Sửa số liệu ở <a href="{{ bang_tinh_url }}" target="_blank" rel="noopener">KN CRM</a> — một nơi sửa duy nhất cho mọi bảng (ADR-014).</p>
+    {% if bang_tinh_url %}<p>Sửa số liệu ở <a href="{{ bang_tinh_url }}" target="_blank" rel="noopener">KN CRM</a> — một nơi sửa duy nhất cho mọi bảng (ADR-014).</p>
+    {% elif khoi or co_bao_cao %}<p>Số đã nộp do Leader hoặc quản lý sửa trong Lịch sử báo cáo.</p>{% endif %}
   </div>
 </div>
 

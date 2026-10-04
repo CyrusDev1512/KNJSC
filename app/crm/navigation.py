@@ -75,7 +75,9 @@ def build(user, current=""):
         )
         # `bang` là nav_current của các view forms_builder (tạo bảng, sửa cột, nhập)
         dang = current in ("thu_muc", "bang") or any(c.current for c in con)
-        muc.append(CrmNavItem("thu_muc", "Bảng tính", u, "▦", current in ("thu_muc", "bang"), con, mo=dang))
+        # Không có bảng vận đơn nào thì trang thư mục 404 (ADR-040): không hiện mục dẫn tới đó (AC-40.6)
+        if bang_vd:
+            muc.append(CrmNavItem("thu_muc", "Bảng tính", u, "▦", current in ("thu_muc", "bang"), con, mo=dang))
     if cac_bang and (u := _url('crm_statistics')):
         muc.append(CrmNavItem('statistics', 'Bàn điều hành', u, '▥', current == 'statistics'))
     if (getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False)
@@ -88,6 +90,7 @@ def build(user, current=""):
         muc.append(CrmNavItem("cap_quyen", "Cấp quyền", u, "✓", current == "cap_quyen"))
     if has_rank(user, Rank.ADMIN) and (u := _url("tac_vu")) is not None:
         muc.append(CrmNavItem("tac_vu", "Tác vụ nền", u, "◔", current == "tac_vu"))
-    if has_rank(user, Rank.MANAGER) and (u := _url("nhat_ky")) is not None:
+    # Trang Nhật ký chỉ Admin mở được (quyết định 25.09, AC-44.2) — mục cũng chỉ Admin thấy (AC-40.5)
+    if has_rank(user, Rank.ADMIN) and (u := _url("nhat_ky")) is not None:
         muc.append(CrmNavItem("nhat_ky", "Nhật ký", u, "≡", current == "nhat_ky"))
     return muc

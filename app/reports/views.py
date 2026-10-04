@@ -146,6 +146,7 @@ def bao_cao_lich_su(request):
     # Manager/Admin có mục "Đã bỏ" để khôi phục báo cáo bỏ nhầm — ADR-041
     boi_canh["duoc_khoi_phuc"] = daily_service.can_restore(request.user)
     daily_service.attach_marketing_links(boi_canh["trang"], forms, tu, den)
+    daily_service.attach_revenue_labels(boi_canh["trang"])
     return render(request, "reports/bao_cao_lich_su.html", boi_canh)
 
 

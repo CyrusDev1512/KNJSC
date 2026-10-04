@@ -135,6 +135,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-4.8 | Kế toán thấy báo cáo của mọi bộ phận trong Lịch sử, mở và sửa được có `ReportRevision`, giữ người nộp và ngày; không bỏ được báo cáo của người khác; nhân viên bộ phận khác vẫn bị 404 ở xem lẫn sửa | FR-4.4 · FR-4.5 · ADR-038 | Tự động |
 | AC-4.9 | Bỏ báo cáo cấp dưới (ADR-041): người nộp, Leader trong team, Manager trong bộ phận và Admin bỏ được — xoá mềm cả báo cáo lẫn dòng số liệu (BR-4), số rời khỏi Báo cáo tổng hợp, có nhật ký DELETE, bấm đúp không nhân đôi; nhân viên khác/Leader team khác/Manager bộ phận khác/Kế toán bị 403 (thấy) hoặc 404 (ngoài phạm vi xem) có nhật ký; service kiểm lại quyền trong giao dịch | FR-4.7 · ADR-041 | Tự động |
 | AC-4.10 | Khôi phục báo cáo đã bỏ (ADR-041): Manager bộ phận mình và Admin thấy trang "Đã bỏ" (phân trang, đúng phạm vi) và khôi phục — báo cáo về Lịch sử, dòng số liệu sống lại nguyên nội dung, số về lại Báo cáo tổng hợp, nhật ký UPDATE; Staff/Leader/Kế toán/Manager bộ phận khác bị 403 có nhật ký; liên kết "Đã bỏ" chỉ hiện với người có quyền | FR-4.7 · ADR-041 | Tự động |
+| AC-4.11 | Lịch sử báo cáo hiện Doanh số theo cách viết Việt Nam kèm loại tiền của dòng ("45.000.000 VND", "1.250.000 CAD", "720,5 USD"), không còn số máy kiểu "45000000,00" (kiểm toàn diện 04.10.2026) | FR-4.3 | Tự động |
 
 ---
 
@@ -605,6 +606,9 @@ KN ERP, nhưng định nghĩa cột và giá trị từng ô vẫn giữ nguyên
 | AC-40.2 | KN CRM từ chối bảng thường ở mọi cửa như ngoài phạm vi (404/403, kể cả Admin): trang lưới, JSON đọc/ghi/lịch sử, xuất Excel, hộp lọc, màn Cột, Nhập tệp, Cấp quyền, mẫu nhập; bảng vận đơn vẫn phục vụ bình thường — kiểm cả hai chiều | FR-3.6 · ADR-040 | Tự động |
 | AC-40.3 | Dữ liệu bảng thường **không đổi một dòng nào**: KN ERP vẫn xem Bảng dữ liệu, sửa cột, báo cáo như cũ; lọc theo cột ẩn/quyền không đổi; Thống kê KN CRM vẫn đọc nguồn Sale/MKT | BR-4 · ADR-040 | Tự động |
 | AC-40.4 | Lõi lưới dùng chung không nhận nhầm cột trùng tên nghiệp vụ trên bảng thường (mức dịch vụ — bảng thường không còn cửa HTTP ở KN CRM) | FR-7.8 · ADR-040 | Tự động |
+| AC-40.5 | Mục "Nhật ký" trên thanh bên KN CRM chỉ hiện cho Admin, đúng như trang Nhật ký chỉ Admin mở được (AC-44.2); Manager không thấy mục, gọi thẳng vẫn 403 (kiểm toàn diện 04.10.2026) | AC-44.2 · ADR-040 | Tự động |
+| AC-40.6 | KN CRM không hiện liên kết dẫn tới trang bị từ chối: người không có bảng vận đơn trong phạm vi (Marketing, Sale chưa có đơn) không thấy "Bảng tính" ở thanh bên và trang chủ, nút ← của Lên đơn và "Quay lại" của đơn gốc về trang mở được; Nhập tệp, Cấp quyền không còn "+ Tạo bảng"; mọi liên kết trên trang chủ và các trang của thanh bên mở ra không 403/404 với 9 vai; quyền không đổi | FR-3.6 · ADR-040 | Tự động |
+| AC-40.7 | Bảng dữ liệu KN ERP chỉ có nút "Mở trong KN CRM" và câu "Sửa số liệu ở KN CRM" với bảng vận đơn; bảng thường và bảng báo cáo Sale/MKT không có liên kết nào sang KN CRM (ở đó là 404), bảng báo cáo ghi "Số đã nộp do Leader hoặc quản lý sửa trong Lịch sử báo cáo" | ADR-014 · ADR-040 | Tự động |
 
 ## 42. Báo cáo tổng hợp như ảnh mẫu — ADR-042
 

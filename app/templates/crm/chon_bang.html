@@ -15,9 +15,7 @@ Dáng theo Teeze: tiêu đề + mô tả, dòng "Tổng cộng N bảng", bảng
     <h1>{{ tieu_de }}</h1>
     <p>{{ mo_ta }}</p>
   </div>
-  {% if duoc_tao_bang %}
-    <div class="hanh-dong"><a class="nut nut-chinh" href="{% url 'bang_moi' %}">+ Tạo bảng</a></div>
-  {% endif %}
+  {# Nút "+ Tạo bảng" đã ẩn như ở trang chủ: KN CRM chỉ phục vụ bảng vận đơn (ADR-040, AC-40.6) #}
 </div>
 
 <div class="the">
