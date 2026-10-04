@@ -95,6 +95,11 @@ việc đề xuất để sửa riêng:
 3. ERP, `/bang/bao_cao_mkt/`: nút "Mở trong KN CRM" dẫn tới trang CRM 404 (ADR-040).
 4. ERP, Lịch sử báo cáo: "Doanh số: 45000000,00" không có dấu chấm ngăn nghìn, không có đơn vị tiền.
 
+**Đã sửa cùng ngày** (nhánh `claude/sua-lien-ket-cut`, AC-40.5 → 40.7, AC-4.11). Bài kiểm mới đỏ trên mã cũ, xanh sau
+khi sửa. Quét lại 8 vai trên hệ thống thật: không còn liên kết 403/404 nào. Riêng tệp mẫu Excel là tải tệp, không
+phải lỗi. Khi sửa còn tìm thêm hai chỗ cùng loại: nút ← của Lên đơn và nút "Quay lại" của đơn gốc dẫn Sale chưa có
+đơn tới `/thu-muc/` 404.
+
 Ghi chú UX, chưa coi là lỗi: ở Báo cáo tổng hợp, mở "Giải thích số liệu" hay "Ngưỡng màu" thì bảng bị đẩy xuống và
 thanh phân trang ra khỏi màn hình. Lăn chuột thì thấy lại và bấm trúng.
 

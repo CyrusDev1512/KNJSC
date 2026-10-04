@@ -15,6 +15,7 @@ from forms_builder.services import grant_service
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 from orders.units import COMMON_UNITS
 from orders.services import order_service, waybill_service, product_service
+from .services import catalog
 from .waybill_forms import WaybillOrderForm
 
 
@@ -74,7 +75,10 @@ def create_order(request):
                "nhac_khach": order_service.customer_notice(
                    form.data.get("phone", ""), form.data.get("customer_name", "")),
                "form": form, "error": error, "success": success, **item_context(items),
-               "ve_url": reverse("thu_muc"), "ve_nhan": "Về Bảng tính — thư mục"}
+               # Không có bảng vận đơn (Sale) thì thư mục 404 — ← về trang chủ KN CRM (AC-40.6)
+               **({"ve_url": reverse("thu_muc"), "ve_nhan": "Về Bảng tính — thư mục"}
+                  if catalog.co_bang_van_don(request.user)
+                  else {"ve_url": reverse("tong_quan"), "ve_nhan": "Về trang chủ KN CRM"})}
     from orders.services.currency_service import MARKET_CURRENCIES
     context['market_currencies'] = MARKET_CURRENCIES
     template = "crm/_waybill_entry.html" if request.headers.get("HX-Request") else "crm/waybill_entry.html"

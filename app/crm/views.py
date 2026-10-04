@@ -89,8 +89,8 @@ def tong_quan(request):
     boi_canh = tong_quan_service.tong_quan(request.user)
     boi_canh.update({
         "erp_url": _ngoai("/"),
-        "duoc_tao_bang": can_manage_business(request.user, Rank.LEADER),
-        "tao_bang_url": reverse("bang_moi"),
+        # Không có bảng vận đơn thì trang thư mục 404 (ADR-040): ẩn nút dẫn tới đó (AC-40.6)
+        "co_bang_tinh": catalog.co_bang_van_don(request.user),
     })
     return render(request, "crm/tong_quan.html", boi_canh)
 
@@ -141,8 +141,7 @@ def _chon_bang(request, *, tieu_de, mo_ta, duoc, url_name, nhan_nut, rong_mo_ta)
             cac_bang.append(b)
     return render(request, "crm/chon_bang.html", {
         "tieu_de": tieu_de, "mo_ta": mo_ta, "cac_bang": cac_bang, "nhan_nut": nhan_nut,
-        "rong_tieu_de": "Không có bảng nào", "rong_mo_ta": rong_mo_ta,
-        "duoc_tao_bang": can_manage_business(request.user, Rank.LEADER), "erp_url": _ngoai("/"),
+        "rong_tieu_de": "Không có bảng nào", "rong_mo_ta": rong_mo_ta, "erp_url": _ngoai("/"),
     })
 
 

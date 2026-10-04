@@ -11,7 +11,7 @@
     <p>Lên lúc {{ don.created_at|date:"H:i d.m.Y" }} giờ Việt Nam, bởi {{ don.created_by|ma|default:"—" }}.</p>
   </div>
   <div class="hanh-dong">
-    <a class="nut" href="{% url 'thu_muc' %}">Quay lại</a>
+    <a class="nut" href="{{ ve_url }}">Quay lại</a>
     {% if van_don_url %}
       <a class="nut" href="{{ van_don_url }}">Xem trên bảng vận đơn</a>
     {% endif %}

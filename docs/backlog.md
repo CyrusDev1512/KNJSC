@@ -21,6 +21,27 @@ Chủ dự án thử `Staging` ở máy local, báo hai chỗ trên Báo cáo t�
 
 **Còn:** chủ dự án thử ở máy local: báo cáo Sale không còn cột Lần nộp; kéo bộ lọc tới cuối thấy nút Áp dụng.
 
+## 04.10.2026 — Sửa 4 lỗi có sẵn: liên kết dẫn tới 403/404, Doanh số ở Lịch sử (AC-40.5 → 40.7, AC-4.11)
+
+Chủ dự án bảo sửa luôn 4 lỗi mà đợt kiểm toàn diện 04.10 tìm ra. Không đổi quyền, không migration, không thêm thư viện.
+
+1. **Nhật ký ở thanh bên KN CRM** chỉ hiện cho Admin, khớp với trang Nhật ký (AC-44.2). Trước đây Manager thấy mục
+   này, bấm vào bị 403.
+2. **KN CRM khi không có bảng vận đơn** (Marketing, Sale chưa có đơn): không còn "Bảng tính" ở thanh bên và trang
+   chủ. Nút ← của Lên đơn và "Quay lại" của đơn gốc về trang mở được. Nhập tệp và Cấp quyền bỏ "+ Tạo bảng"; nút này
+   dẫn qua "Quay lại" tới `/danh-sach-bang/` 404.
+3. **Bảng dữ liệu ERP:** nút "Mở trong KN CRM" chỉ còn ở bảng vận đơn. Bảng báo cáo ghi chỗ sửa là Lịch sử báo cáo.
+4. **Lịch sử báo cáo:** Doanh số viết "45.000.000 VND", "720,5 USD" thay cho "45000000,00".
+
+Bài kiểm:
+- Mới: `crm/tests/test_lien_ket_khong_cut.py` (có bài bấm mọi liên kết theo 9 vai), `forms_builder/tests/test_mo_trong_crm.py`,
+  `reports/tests/test_lich_su_doanh_so.py`.
+- Sửa hai bài cũ đang ghim hành vi lỗi (đòi nút sang CRM trên bảng thường và bảng báo cáo).
+- Quét lại trên hệ thống thật: không còn liên kết hỏng.
+- ADR-040 có mục bổ sung 04.10.
+
+Nhánh `claude/sua-lien-ket-cut`, PR về `Staging`.
+
 ## 04.10.2026 — Kiểm toàn diện `Staging` trước khi gộp `main`
 
 Chủ dự án bảo kiểm kỹ functional, unit, e2e, UI/UX rồi tự gộp `Staging` vào `main` (auto approve). Phạm vi là 9 PR

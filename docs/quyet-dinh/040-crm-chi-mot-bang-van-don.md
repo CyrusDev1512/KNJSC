@@ -67,6 +67,21 @@ không hiện và không mở được ở dịch vụ 8021; ERP đọc ghi như
 - Nơi sửa từng ô cho bảng thường: hiện không có; nếu nghiệp vụ cần thì quyết
   riêng (mở sửa bên ERP là đổi ADR-014).
 
+## Bổ sung 04.10.2026 — không hiện liên kết dẫn tới chỗ bị từ chối
+
+Kiểm toàn diện 04.10 thấy nhiều nút vẫn trỏ vào những cửa mà quyết định này đã đóng. Nay chỉ ẩn hoặc đổi đích; quyền
+không đổi.
+
+- Người không có bảng vận đơn trong phạm vi (Marketing, Sale chưa có đơn) không thấy "Bảng tính" ở thanh bên và
+  trang chủ. Nút ← của Lên đơn về trang chủ KN CRM; "Quay lại" của đơn gốc về Lên đơn. Một chỗ kiểm:
+  `crm/services/catalog.co_bang_van_don`.
+- Nhập tệp và Cấp quyền không còn "+ Tạo bảng", như trang chủ đã bỏ. Đường dẫn `bang/moi/` vẫn giữ.
+- Mục "Nhật ký" ở thanh bên KN CRM chỉ hiện cho Admin, khớp với trang Nhật ký (AC-44.2).
+- Bảng dữ liệu KN ERP chỉ có nút "Mở trong KN CRM" với bảng vận đơn (`forms_builder.views._bang_tinh_url`). Bảng
+  báo cáo ghi "Số đã nộp do Leader hoặc quản lý sửa trong Lịch sử báo cáo".
+
+Tiêu chí: AC-40.5, AC-40.6, AC-40.7.
+
 ## Không đổi
 
 Dữ liệu mọi bảng; toàn bộ KN ERP (biểu mẫu, Báo cáo tổng hợp, Bảng dữ liệu chỉ
