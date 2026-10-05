@@ -256,13 +256,23 @@ def bang_xem(request, code):
         "duoc_sua": grant_service.can_manage_columns(request.user, bang_hien),
         "duoc_nhap": grant_service.can_import(request.user, bang_hien),
         # Nơi sửa duy nhất: lưới KN CRM của đúng bảng này — ADR-012, ADR-014
-        "bang_tinh_url": settings.BANGTINH_URL.rstrip("/") + f"/bang-tinh/{bang_hien.code}/",
+        "bang_tinh_url": _bang_tinh_url(bang_hien),
         "cac_dong": cac_dong,
     })
     # Bấm tiêu đề cột để sắp xếp: HTMX chỉ thay khối bảng, trang không tải lại (AC-7.13)
     if is_htmx(request):
         return render(request, "forms_builder/_bang_xem_bang.html", boi_canh)
     return render(request, "forms_builder/bang_xem.html", boi_canh)
+
+
+def _bang_tinh_url(bang):
+    """Lưới KN CRM của bảng này, hoặc None khi CRM không phục vụ bảng (ADR-040: chỉ bảng vận đơn) — khi đó Bảng dữ
+    liệu không hiện nút nào sang KN CRM, vì bấm vào là 404 (AC-40.7)."""
+    from orders.constants import is_waybill_table
+
+    if not is_waybill_table(bang):
+        return None
+    return settings.BANGTINH_URL.rstrip("/") + f"/bang-tinh/{bang.code}/"
 
 
 def _tham_so_bao_cao(request, nguon):
@@ -295,7 +305,7 @@ def _bang_bao_cao(request, bang_hien, nguon):
         "query": request.GET.urlencode(), "qs_loc": ("&" + giu.urlencode()) if giu else "",
         "duoc_sua": grant_service.can_manage_columns(request.user, bang_hien),
         "duoc_nhap": grant_service.can_import(request.user, bang_hien),
-        "bang_tinh_url": settings.BANGTINH_URL.rstrip("/") + f"/bang-tinh/{bang_hien.code}/",
+        "bang_tinh_url": _bang_tinh_url(bang_hien),
         "empty": True,
     }
     boi_canh["people"], boi_canh["teams"] = activity_service.people_choices(request.user, nguon)

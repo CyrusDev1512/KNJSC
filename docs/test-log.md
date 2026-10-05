@@ -1,5 +1,27 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 04.10.2026 — Bộ lọc không kéo tới được nút Áp dụng (TL-73); báo cáo Sale bỏ cột Lần nộp
+
+**TL-73 (đóng) — mức vừa, Báo cáo tổng hợp:** chủ dự án thử `Staging` ở máy local: "thanh kéo không kéo được hết
+xuống chỗ áp dụng mà phải kéo cả page xuống". Dựng lại trên máy ảo: ở cả 5 cỡ màn hình đã đo (1280×720 → 1920×937),
+cả nguồn Sale lẫn MKT, kéo bộ lọc tới cuối thì nút Áp dụng vẫn nằm dưới đáy vùng nội dung 71 px, bấm không trúng.
+- **Chỗ sai:** `report-filters.js` đặt `--report-panel-fit` bằng chiều cao vùng nội dung trừ 24 px, trong khi bộ lọc
+  đứng dưới hàng chip, thấp hơn đỉnh vùng nội dung 115 px. Đáy bộ lọc vì thế lọt dưới thanh menu, chỉ cuộn cả trang mới
+  thấy.
+- **Vì sao CI không bắt:** AC-42.15 chỉ kiểm bộ lọc có thanh cuộn riêng và lăn chuột không cuộn trang, không kiểm đáy
+  bộ lọc có nằm trong vùng nhìn thấy.
+- **Sửa:** chiều cao bộ lọc tính từ đỉnh lưới `.report-workspace` (chỗ bộ lọc đứng khi trang ở đầu) tới đáy vùng nội
+  dung, như khung bảng. Bài mới AC-42.17
+  `reports/tests/test_bo_cuc_bao_cao_e2e.py::test_ap_dung_trong_man_hinh_khong_can_cuon_trang` (trình duyệt, Sale và
+  MKT, 1366×768 và 1366×600): đỏ trên `Staging` (đáy bộ lọc 759 > đáy vùng nội dung 669), xanh sau sửa.
+
+**Báo cáo Sale bỏ cột Lần nộp (chủ dự án chọn 04.10.2026, không phải lỗi):** bài mới AC-47.7
+`reports/tests/test_sale_an_lan_nop.py::test_bao_cao_sale_an_lan_nop_giu_loai_tien` đỏ trên `Staging` (khối ngày Sale
+còn cột `lan`), xanh sau sửa. Bài cũ đổi theo: AC-47.6 (Sale giữ Loại tiền, không còn Lần nộp), AC-22.13
+`test_bo_cuc_bao_cao.py::test_cot_dinh_danh_ghim_theo_cach_xem` (khối ngày Sale còn STT · Team · Nhân sự · Leader).
+
+Số đo ở [biên bản](kiem-chung-bo-loc-lan-nop-20261004.md).
+
 ## 03.10.2026 — Form báo cáo Marketing bỏ bốn ô: bài kiểm mới và bài cũ đổi theo
 
 Không có lỗi TL mới; việc theo quyết định của chủ dự án (ADR-048). Số đo ở

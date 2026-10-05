@@ -1,5 +1,47 @@
 # Backlog
 
+## 04.10.2026 — Báo cáo Sale bỏ cột Lần nộp; bộ lọc kéo tới được nút Áp dụng (AC-47.7, AC-42.17, TL-73)
+
+Chủ dự án thử `Staging` ở máy local, báo hai chỗ trên Báo cáo tổng hợp.
+
+- **"Cái lần nộp này đã bỏ rồi mà":** cột Lần nộp mới chỉ ẩn ở báo cáo MKT (#83, AC-47.6). Hỏi lại thì chủ dự án chọn
+  bỏ luôn ở Sale. `layout.HIDDEN_IDENTITY` thêm `"sale": ("lan",)`: Sale ẩn cột Lần nộp ở màn hình, Bảng dữ liệu dạng
+  báo cáo và Excel, **giữ Loại tiền** (Sale nhiều loại tiền, ADR-046). Hai lần nộp cùng ngày vẫn hai dòng. ADR-047 bổ
+  sung 04.10.
+- **Bộ lọc không kéo tới được nút Áp dụng, phải cuộn cả trang (TL-73):** bộ lọc cao bằng cả vùng nội dung trừ 24 px
+  nhưng đứng dưới hàng chip, nên đáy lọt dưới thanh menu 71 px ở mọi cỡ màn hình, cả Sale lẫn MKT. `report-filters.js`
+  nay tính chiều cao bộ lọc từ chỗ nó đứng tới đáy vùng nội dung, như khung bảng. Đo lại ở 5 cỡ màn hình: nút Áp dụng
+  nằm trên đáy vùng nội dung 51 px, bấm trúng; trang không còn phải cuộn.
+- Bài mới: `reports/tests/test_sale_an_lan_nop.py` (AC-47.7), `test_bo_cuc_bao_cao_e2e.py::test_ap_dung_trong_man_hinh_
+  khong_can_cuon_trang` (AC-42.17, trình duyệt) — đỏ trên `Staging`, xanh sau sửa. Bài cũ đổi: AC-47.6 (Sale giữ Loại
+  tiền, không còn Lần nộp), AC-22.13 (khối ngày Sale bốn cột).
+- Không migration, không đổi quyền, không đổi số liệu.
+
+[Biên bản](kiem-chung-bo-loc-lan-nop-20261004.md). Nhánh `claude/knerp-erp-chinh-sua-hfi7w8`, PR nháp về `Staging`.
+
+**Còn:** chủ dự án thử ở máy local: báo cáo Sale không còn cột Lần nộp; kéo bộ lọc tới cuối thấy nút Áp dụng.
+
+## 04.10.2026 — Sửa 4 lỗi có sẵn: liên kết dẫn tới 403/404, Doanh số ở Lịch sử (AC-40.5 → 40.7, AC-4.11)
+
+Chủ dự án bảo sửa luôn 4 lỗi mà đợt kiểm toàn diện 04.10 tìm ra. Không đổi quyền, không migration, không thêm thư viện.
+
+1. **Nhật ký ở thanh bên KN CRM** chỉ hiện cho Admin, khớp với trang Nhật ký (AC-44.2). Trước đây Manager thấy mục
+   này, bấm vào bị 403.
+2. **KN CRM khi không có bảng vận đơn** (Marketing, Sale chưa có đơn): không còn "Bảng tính" ở thanh bên và trang
+   chủ. Nút ← của Lên đơn và "Quay lại" của đơn gốc về trang mở được. Nhập tệp và Cấp quyền bỏ "+ Tạo bảng"; nút này
+   dẫn qua "Quay lại" tới `/danh-sach-bang/` 404.
+3. **Bảng dữ liệu ERP:** nút "Mở trong KN CRM" chỉ còn ở bảng vận đơn. Bảng báo cáo ghi chỗ sửa là Lịch sử báo cáo.
+4. **Lịch sử báo cáo:** Doanh số viết "45.000.000 VND", "720,5 USD" thay cho "45000000,00".
+
+Bài kiểm:
+- Mới: `crm/tests/test_lien_ket_khong_cut.py` (có bài bấm mọi liên kết theo 9 vai), `forms_builder/tests/test_mo_trong_crm.py`,
+  `reports/tests/test_lich_su_doanh_so.py`.
+- Sửa hai bài cũ đang ghim hành vi lỗi (đòi nút sang CRM trên bảng thường và bảng báo cáo).
+- Quét lại trên hệ thống thật: không còn liên kết hỏng.
+- ADR-040 có mục bổ sung 04.10.
+
+Nhánh `claude/sua-lien-ket-cut`, PR về `Staging`.
+
 ## 04.10.2026 — Kiểm toàn diện `Staging` trước khi gộp `main`
 
 Chủ dự án bảo kiểm kỹ functional, unit, e2e, UI/UX rồi tự gộp `Staging` vào `main` (auto approve). Phạm vi là 9 PR

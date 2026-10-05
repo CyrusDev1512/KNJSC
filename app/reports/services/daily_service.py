@@ -550,3 +550,23 @@ def attach_marketing_links(page, forms, date_from, date_to):
             report.thong_ke_qs = urlencode({"nguon": table.code, "nhom": "tong-hop",
                 "tu": date_from or report.report_date.isoformat(),
                 "den": date_to or report.report_date.isoformat()})
+
+
+def attach_revenue_labels(page):
+    """Gắn `revenue_label` cho từng báo cáo trong trang Lịch sử: Doanh số viết kiểu Việt Nam kèm loại tiền của dòng
+    — "45.000.000 VND", "720,5 USD" (AC-4.11). Loại tiền đọc từ cột Loại tiền của nguồn báo cáo đã có sẵn trong
+    `record.data`, không thêm truy vấn theo từng dòng; báo cáo không có nguồn thì chỉ hiện số."""
+    from core.money import format_decimal
+
+    for report in page:
+        record = report.record
+        revenue = getattr(record, "val_revenue", None) if record else None
+        if revenue is None:
+            report.revenue_label = None
+            continue
+        # normalize() bỏ ",00" thừa của cột DECIMAL; format_decimal viết dạng "f" nên 4.5E+7 vẫn ra 45.000.000
+        so = format_decimal(revenue.normalize())
+        source = getattr(report.form.table, "erp_report", None)
+        cot_tien = ((source.columns or {}).get("currency") if source else None)
+        tien = str((record.data or {}).get(cot_tien) or "").strip() if cot_tien else ""
+        report.revenue_label = f"{so} {tien}".strip()
