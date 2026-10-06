@@ -17,9 +17,9 @@ from django.db import transaction
 from django.utils import timezone
 
 from core.audit import record
-from core.constants import AuditAction
+from core.constants import CELL_TEXT_MAX_CHARS, AuditAction
 from core.exceptions import BusinessError
-from core.money import parse_money
+from core.money import check_amount, parse_money
 
 from .. import choice_registry, record_policies
 from ..meaning import FieldType
@@ -59,6 +59,15 @@ def parse_value(column, raw, *, choices=None):
             if isinstance(raw, float) and raw.is_integer():
                 raw = str(int(raw))
             raw = str(raw)
+            # Postgres không chứa được NUL trong JSONB (lỗi 500), và một ô Excel giữ tối đa 32.767 ký tự — tệp xuất có
+            # ô dài hơn thì Excel báo hỏng. Chặn ở đây là chặn cho mọi đường ghi: lưới, nhập tệp, form (AC-21.16)
+            if "\x00" in raw:
+                raise BusinessError(f'Cột "{column.name}" có ký tự điều khiển không hợp lệ (NUL). Gõ lại nội dung ô.')
+            if len(raw) > CELL_TEXT_MAX_CHARS:
+                raise BusinessError(
+                    f'Cột "{column.name}" dài {len(raw):,} ký tự, vượt trần {CELL_TEXT_MAX_CHARS:,} ký tự một ô '
+                    "(trần của Excel).".replace(",", ".")
+                )
             if kieu == FieldType.CHOICE:
                 # Cột Chọn một chỉ nhận giá trị trong danh sách (sổ crm, nhãn
                 # ý nghĩa, hay danh sách trên cột — Q58), và đưa về đúng nhãn
@@ -85,7 +94,7 @@ def parse_value(column, raw, *, choices=None):
             # Số thật từ Excel nhận nguyên trạng — đưa "1234.567" qua
             # parse_money sẽ bị hiểu là 1.234.567 theo tập quán Việt Nam.
             if isinstance(raw, (int, float, Decimal)) and not isinstance(raw, bool):
-                return str(Decimal(str(raw)))
+                return str(check_amount(Decimal(str(raw)), raw))
             # Tiền và số thập phân luôn qua Decimal, không qua float (BR-8).
             # Đọc theo tập quán Việt Nam để nhận lại được đúng thứ màn hình
             # đang hiện — xem core.money.parse_money

@@ -1,5 +1,104 @@
 # Backlog
 
+## 06.10.2026 — Săn lỗi 10: fuzz — 139 lỗi 500 ở ERP, 178 ở CRM, năm gốc, đã sửa ở cửa vào (AC-10.16, AC-21.16)
+
+- Bắn 12 dữ liệu lạ vào mọi tham số GET và form POST theo vai (hơn 20.000 yêu cầu). Năm gốc:
+  1. ký tự NUL lọt vào câu truy vấn (108 chỗ ở ERP: ô tìm, bộ lọc Báo cáo tổng hợp, Bảng tin…);
+  2. bộ lọc cột sai kiểu trên URL (`?f_ngay=-1`) ở Bảng dữ liệu, lưới, Thống kê CRM;
+  3. chuỗi dài hơn cột (tên mục Tài nguyên 5.000 ký tự);
+  4. mã không phải số đưa vào `get_object_or_404` (tạo thư mục, trang Cột);
+  5. JSON lưới có NUL; ô lưới nhận 200.000 ký tự, quá trần một ô Excel.
+- Đã sửa ở cửa vào, không vá từng view: middleware chuẩn hoá chữ từ chối NUL; `DataLimitMiddleware` đổi lỗi
+  "quá dài"/"số tràn" của Postgres thành 400 tiếng Việt; `apply_filters` bỏ qua bộ lọc sai kiểu; `parse_value` chặn NUL
+  và ô quá 32.767 ký tự; hai view kiểm mã là số. Lời 400 đúng kiểu người gọi (JSON, HTMX, trang có nút Quay lại).
+
+[Biên bản](kiem-chung-san-loi-fuzz-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 7: chất lượng bộ kiểm bằng đột biến tay — 17 đột biến, 2 lọt đã lấp (AC-21.17)
+
+- Cố ý làm hỏng 17 quy tắc quan trọng (phạm vi quyền, CAS, xoá mềm, nhật ký, khoá đăng nhập, phiên, tiền tệ, công
+  thức Excel…), mỗi lần một chỗ: 15 bị bài có sẵn hoặc bài của đợt này bắt ngay.
+- **Lọt 1:** quy tắc đọc `1.234` là một nghìn hai trăm ba mươi tư không có bài canh trước đợt này — đã lấp bởi bài của
+  bước 5.
+- **Lọt 2:** bỏ dòng chặn CEO sửa dòng mà không bài nào đỏ; CEO có hồ sơ trong bộ phận Vận đơn sẽ sửa được lưới. Mã
+  hiện tại đúng, thiếu bài canh — đã thêm (AC-21.17).
+
+[Biên bản](kiem-chung-san-loi-dot-bien-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 8: đối soát số liệu — mọi con số khớp; Thống kê CRM viết số khác ERP (AC-22.27)
+
+- Báo cáo Marketing tháng 9 (1.801 lần nộp): cơ sở dữ liệu = Báo cáo tổng hợp = cộng dòng nhân sự = Excel (toàn kỳ và
+  cộng 30 ngày) = Bảng dữ liệu = Thống kê CRM, đến từng đồng; các tỉ số tính lại bằng tay đều khớp. Vận đơn cả năm
+  (10.032 đơn, CAD và USD): số đơn, giá trị, đã thanh toán, số lượng khớp; không cộng lẫn loại tiền.
+- **Lỗi nhẹ (đã sửa):** Thống kê CRM viết `48311822000`, ERP viết `48.311.822.000`; nhãn biểu đồ `13026,00`. Bộ lọc
+  mẫu mới `so` dùng lại `core.money.format_decimal`.
+- Cần chủ dự án xem: Excel ghi tỉ lệ chốt là số thực đủ chữ số.
+
+[Biên bản](kiem-chung-san-loi-doi-soat-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 9: dò mật khẩu song song vượt giới hạn 5 lần; nhật ký sạch (AC-1.9)
+
+- **Lỗi nghiêm trọng:** 40 lần đăng nhập sai gửi cùng lúc thì cả 40 lần được thử mật khẩu. Nay mỗi lần thử giữ chỗ
+  trong bộ đếm (khoá dòng) trước khi kiểm mật khẩu: 5 lần được thử, 35 lần bị chặn. Luật cũ giữ nguyên.
+- Đạt: nhật ký ứng dụng, nginx VPS, nhật ký hoạt động không chứa mật khẩu, số điện thoại, tên khách.
+- **Cần chủ dự án chọn:** (1) tài khoản có thật bị khoá thì báo "đang khoá tạm", lộ tài khoản có thật; (2) gõ nhầm mật
+  khẩu vào ô tên đăng nhập thì chuỗi đó vào nhật ký hoạt động; (3) chặn dò rải nhiều tài khoản theo IP (văn phòng chung
+  IP). Ghi nhẹ: mỗi lần 403 ghi một traceback vào nhật ký.
+
+[Biên bản](kiem-chung-san-loi-dang-nhap-nhat-ky-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 6: Redis tắt treo 19 giây; đĩa đầy lỗi 500; Postgres khởi động lại vẫn lỗi; thiếu trang 500/404 (AC-10.13 → 10.15)
+
+- **Redis tắt:** xuất Excel lưới treo 19 giây rồi lỗi 500, tác vụ kẹt "Chờ xử lý" mãi. Nay không lưu kết quả Celery,
+  gửi thử lại ngắn; không gửi được thì tác vụ Thất bại có lời giải thích, báo ngay trên lưới (0,94 giây). Mọi thao
+  tác khác vẫn chạy khi Redis tắt.
+- **Đĩa `storage` đầy:** tải tài liệu, nhập tệp lỗi 500. Nay 507 "hết chỗ lưu tệp" và báo người vận hành; tác vụ xuất
+  nền nói rõ.
+- **Không có `500.html`, `404.html`:** VPS hiện trang trắng chữ Anh. Đã thêm hai trang tiếng Việt.
+- **Postgres khởi động lại** (gunicorn như VPS): Postgres đã chạy lại mà 8/16 yêu cầu vẫn lỗi 500 do kết nối giữ lại.
+  Bật `CONN_HEALTH_CHECKS`: 0/48.
+- Máy chủ dự án và VPS cần **khởi động lại container** để nhận cấu hình mới (không cần dựng lại image vì requirements
+  không đổi).
+
+[Biên bản](kiem-chung-san-loi-su-co-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 5: ô số nhận "NaN" thành trang lỗi 500; "Hôm nay" lệch ngày lúc sáng sớm (AC-9.7, AC-9.8)
+
+- **Lỗi vừa:** gõ `NaN`, `Infinity`, `1e400` hay số 24 chữ số vào ô Doanh số là trang lỗi 500. `parse_money` nay chỉ
+  nhận chữ số, dấu chấm, phẩy, một dấu trừ; số quá 16 chữ số phần nguyên báo lỗi tiếng Việt. Ô số của tệp Excel qua
+  cùng kiểm tra.
+- **Lỗi vừa:** chip "Hôm nay", "Tháng này" của lưới lấy ngày theo đồng hồ máy chủ (giờ quốc tế): từ 0 tới 7 giờ sáng
+  "Hôm nay" là hôm qua. Nay theo giờ Việt Nam; tên tệp Excel xuất từ lưới cũng vậy.
+- Đạt: chia cho không (Số đơn = 0) ở Báo cáo tổng hợp, Excel, Thống kê CRM; dán số kiểu Mỹ `1,234.5`; Lên đơn chặn
+  `NaN`.
+- **Cần chủ dự án chốt:** báo cáo ngày đang nhận Doanh số âm (`-5000`). Cho hay chặn?
+
+[Biên bản](kiem-chung-san-loi-gio-tien-so-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 4: chữ Việt gõ từ Mac không tìm ra được (AC-9.6)
+
+- Gõ bằng bộ gõ (sự kiện ghép chữ), kiểu Unikey, gõ nhanh trong lưới: đạt.
+- **Lỗi nghiêm trọng:** chữ Việt dạng tổ hợp (macOS gửi "e" + dấu rời) lưu nguyên dạng. Đo trên hệ thống thật: tên khách
+  nhập từ Mac thì tìm "Ngọc Ánh" từ Windows ra 0 kết quả; tra trùng, gộp nhóm cũng trượt. Tệp Excel/CSV soạn trên Mac
+  cùng lỗi.
+- Đã sửa ở cửa vào: `core.middleware.UnicodeNFCMiddleware` đưa GET, form POST, JSON của lưới về NFC (trừ mật khẩu);
+  `core.excel` chuẩn hoá ô tệp nhập. Bắn lại trên hệ thống thật đạt.
+- Xem lại sau: dữ liệu cũ không tự đổi; biên bản có câu SQL chỉ đọc để đếm trên VPS, số lớn thì viết lệnh chuẩn hoá.
+
+[Biên bản](kiem-chung-san-loi-go-tieng-viet-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 3: mất mạng thì báo "Failed to fetch" hoặc im lặng (AC-10.12)
+
+- Lưới trên mạng 3G và mất mạng rồi có lại: dữ liệu đúng, tự lưu lại đúng một lần. Nộp báo cáo khi phản hồi rớt: 1 báo
+  cáo.
+- **Lỗi vừa:** lưới báo "Failed to fetch" (chữ Anh thô); Lên đơn lúc mất mạng không báo gì về việc lưu; mọi yêu cầu
+  HTMX gửi hỏng đều im lặng.
+- Đã sửa bằng `static/js/loi-mang.js` nạp ở cả bốn khung trang: lời tiếng Việt "Mất kết nối mạng…", ô báo ở đáy màn
+  hình khi HTMX gửi hỏng, quá hạn hay máy chủ 5xx.
+- Chưa kiểm: nhập tệp lớn qua mạng chậm trên VPS (giới hạn thời gian nginx), Safari/Firefox.
+
+[Biên bản](kiem-chung-san-loi-duong-truyen-20261006.md). Nhánh `claude/san-loi-tiep`.
+
 ## 06.10.2026 — Săn lỗi 2: bảo mật — Excel chạy công thức, tệp "bom nén", Django có lỗ hổng (AC-7.14, AC-7.15)
 
 - **Xuất Excel chạy công thức người dùng gõ** (`=HYPERLINK…` ở tên khách, ghi chú). Đã sửa ở `core/excel`: mọi ô

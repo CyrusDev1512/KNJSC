@@ -143,9 +143,11 @@ def bang_cot(request, code):
     bang_hien = _lay_bang(request, code)
     _kiem_sua_cau_truc(request, bang_hien)
 
-    sua_pk = request.GET.get("cot")
+    sua_pk = (request.GET.get("cot") or "").strip()
     dang_sua = None
     if sua_pk:
+        if not sua_pk.isdigit():   # `?cot=abc` là 404, không để nổ ValueError thành 500 (AC-10.16)
+            raise Http404
         dang_sua = get_object_or_404(ColumnDef, pk=sua_pk, table=bang_hien)
 
     form = ColumnForm(request.POST or None, instance=dang_sua, table=bang_hien)

@@ -1,0 +1,46 @@
+<!doctype html>
+{% comment %}
+Trang lỗi máy chủ — AC-10.14 (NFR-6: không trang trắng, luôn tiếng Việt). Tự đứng, không kế thừa khung trang, không
+{% static %}: lúc lỗi có thể chính cơ sở dữ liệu hay tệp tĩnh đang hỏng. `het_dia` do DiskFullMiddleware đặt (mã 507), `loi_400`
+do `core.middleware.tra_loi_400` (dữ liệu gửi lên có NUL, quá dài, số tràn).
+{% endcomment %}
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if loi_400 %}Dữ liệu chưa hợp lệ{% elif het_dia %}Máy chủ hết chỗ lưu tệp{% else %}Hệ thống gặp lỗi{% endif %} · Kim Ngân JSC</title>
+<style>
+  :root { --nen: #f6f7f2; --the: #fff; --chu: #1d2a22; --phu: #4d5b52; --do: #b3261e; --vien: #dfe3da; }
+  @media (prefers-color-scheme: dark) { :root { --nen: #141a16; --the: #1d241f; --chu: #e8ede6; --phu: #b5c0b8; --do: #f2b8b5; --vien: #2f3a33; } }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px; box-sizing: border-box;
+         background: var(--nen); color: var(--chu); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .the { width: 100%; max-width: 520px; background: var(--the); border: 1px solid var(--vien); border-radius: 16px; padding: 32px; box-sizing: border-box; }
+  .nhan { color: var(--do); font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+  h1 { font-size: 26px; line-height: 1.2; margin: 8px 0 12px; }
+  p { color: var(--phu); margin: 0 0 12px; }
+  a { display: inline-block; margin-top: 12px; padding: 10px 18px; border-radius: 10px; background: var(--chu); color: var(--the); text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+<main class="the" role="alert">
+  {% if loi_400 %}
+  <div class="nhan">Lỗi 400</div>
+  <h1>Dữ liệu chưa hợp lệ</h1>
+  <p>{{ loi_400 }}</p>
+  <p>Chưa có gì được lưu.</p>
+  <a href="javascript:history.back()">Quay lại</a>
+  {% elif het_dia %}
+  <div class="nhan">Lỗi 507</div>
+  <h1>Máy chủ hết chỗ lưu tệp</h1>
+  <p>Máy chủ đã hết chỗ lưu tệp nên tệp chưa được lưu. Quản trị viên đã được báo.</p>
+  <p>Giữ lại tệp trên máy mình; thử lại sau khi được báo đã dọn chỗ.</p>
+  {% else %}
+  <div class="nhan">Lỗi 500</div>
+  <h1>Hệ thống gặp lỗi</h1>
+  <p>Thao tác vừa rồi chưa hoàn tất; dữ liệu vừa gửi có thể chưa được lưu. Lỗi đã được ghi lại để quản trị viên xem.</p>
+  <p>Quay lại trang trước, kiểm tra dữ liệu rồi thử lại. Lặp lại nhiều lần thì báo quản trị viên kèm giờ xảy ra.</p>
+  {% endif %}
+  <a href="/">Về trang chủ</a>
+</main>
+</body>
+</html>

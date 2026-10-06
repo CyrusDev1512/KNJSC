@@ -7,6 +7,7 @@ Phase 1 có hai loại tiền là VND và USD. Mỗi số tiền lưu kèm loạ
 nó và không quy đổi khi lưu — quy đổi là việc của lúc lập báo cáo, và tỉ
 giá lúc đó khác tỉ giá lúc chốt đơn.
 """
+import re
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 from django.conf import settings
@@ -21,6 +22,11 @@ from .exceptions import BusinessError
 MONEY_MAX_DIGITS = 18
 MONEY_DECIMAL_PLACES = 2
 ZERO = Decimal("0.00")
+#: Phần nguyên dài nhất một cột tiền giữ được (18 chữ số, 2 số lẻ) — AC-9.7
+MONEY_MAX_INTEGER_DIGITS = MONEY_MAX_DIGITS - MONEY_DECIMAL_PLACES
+#: Sau khi bỏ dấu ngăn nghìn: chỉ chữ số và một dấu thập phân. `Decimal` nhận cả "NaN", "Infinity", "1e400" —
+#: những thứ đó không phải số người Việt gõ, và cơ sở dữ liệu từ chối thành trang lỗi 500 (AC-9.7)
+_CHI_CHU_SO = re.compile(r"\d+(\.\d+)?")
 
 
 def money_field(verbose_name, **kwargs):
@@ -65,7 +71,8 @@ def parse_money(text):
         return None
 
     am = chuoi.startswith("-")
-    chuoi = chuoi.lstrip("-+")
+    if chuoi[:1] in "-+":
+        chuoi = chuoi[1:]
 
     co_cham, co_phay = "." in chuoi, "," in chuoi
     if co_cham and co_phay:
@@ -82,8 +89,24 @@ def parse_money(text):
         if not la_thap_phan:
             chuoi = chuoi.replace(".", "")
 
-    so = Decimal(chuoi)
+    if not _CHI_CHU_SO.fullmatch(chuoi):
+        raise InvalidOperation(text)
+    so = check_amount(Decimal(chuoi), text)
     return -so if am else so
+
+
+def check_amount(so, text=None):
+    """Chặn số không ghi được vào cột tiền: không hữu hạn, hay phần nguyên quá 16 chữ số (AC-9.7).
+
+    Trả lại chính số đó. Dùng cả cho ô số thật của tệp Excel, vốn không qua `parse_money`.
+    """
+    if not so.is_finite():
+        raise InvalidOperation(text)
+    if so != 0 and so.adjusted() >= MONEY_MAX_INTEGER_DIGITS:
+        raise BusinessError(
+            f"Số {text if text is not None else so} quá lớn: tối đa {MONEY_MAX_INTEGER_DIGITS} chữ số phần nguyên."
+        )
+    return so
 
 
 def format_money(amount, currency=Currency.VND):

@@ -269,7 +269,7 @@ def _doc_xlsx(nguon, max_rows):
         tran = None if max_rows is None else max_rows + HEADER_SCAN_ROWS + 1
         rows = []
         for i, hang in enumerate(ws.iter_rows(values_only=True)):
-            rows.append(list(hang))
+            rows.append([_o_nfc(v) for v in hang])
             if tran is not None and i + 1 >= tran:
                 break
         ten = ws.title
@@ -304,9 +304,14 @@ def _doc_csv(nguon, max_rows):
 
 
 def _o_csv(o):
-    """Ô CSV luôn là chuỗi; ô rỗng thành None cho đồng nhất với Excel."""
-    o = o.strip()
+    """Ô CSV luôn là chuỗi; ô rỗng thành None cho đồng nhất với Excel. Chữ về dạng NFC (AC-9.6)."""
+    o = unicodedata.normalize("NFC", o.strip())
     return o if o else None
+
+
+def _o_nfc(v):
+    """Ô chữ của tệp .xlsx về dạng NFC — tệp soạn trên Mac có thể mang chữ Việt dạng tổ hợp (AC-9.6)."""
+    return unicodedata.normalize("NFC", v) if isinstance(v, str) else v
 
 
 # ══ TIÊU ĐỀ VÀ Ô ═════════════════════════════════════════════════

@@ -408,8 +408,10 @@ def _ve(request):
 def thu_muc_moi(request):
     """Tạo thư mục: từ lưới (`ve` = bảng đang mở, thư mục thuộc bộ phận của
     bảng) hoặc từ trang chủ KN CRM (`bo_phan` = khoá bộ phận đang chọn)."""
-    ma_bp = request.POST.get("bo_phan", "")
+    ma_bp = request.POST.get("bo_phan", "").strip()
     if ma_bp:
+        if not ma_bp.isdigit():   # mã lạ là 404, không để get_object_or_404 nổ ValueError thành 500 (AC-10.16)
+            raise Http404
         bo_phan = get_object_or_404(Department, pk=ma_bp)
         ve_trang_chu = tree_service.home_url(bo_phan, all_tables=True)
     else:
