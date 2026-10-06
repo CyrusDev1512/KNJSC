@@ -58,8 +58,21 @@ Cái giá: một lượt hỏi Postgres rất nhẹ ở đầu mỗi yêu cầu 
 
 ## D. Chạy dài
 
-Đang chạy (110 phút, gunicorn như VPS, 5 người đọc mỗi giây + 1 người nộp báo cáo mỗi 30 giây); kết quả ghi bổ sung
-vào mục này khi xong.
+110 phút trên gunicorn như VPS (gthread, 2 worker × 4 luồng, `CONN_HEALTH_CHECKS` bật): 5 người mở trang mỗi giây
+(trang chủ, Báo cáo tổng hợp, Gộp, Lịch sử báo cáo, Bảng dữ liệu Vận đơn, form nộp) và 1 người nộp báo cáo Marketing
+mỗi 30 giây. Mỗi phút ghi: số yêu cầu, lỗi, p95, RAM các tiến trình gunicorn, số kết nối Postgres vào database.
+
+| Chỉ số | Kết quả |
+|---|---|
+| Yêu cầu | 33.196 (khoảng 302 mỗi phút, đều suốt 110 phút) |
+| Lỗi 5xx, lỗi mạng | **0** |
+| 4xx | 3.283 — đúng quyền: vai không được mở trang đó (403/404), không phải lỗi |
+| p95 từng phút | 0,29 → 0,62 giây; các phút trên 0,45 giây trùng lúc máy ảo chạy song song bộ kiểm toàn phần và đột biến |
+| RAM worker gunicorn | 99–100 MB mỗi worker từ phút 1 tới phút 110, **không tăng dần** (tiến trình chủ 23 MB) |
+| Kết nối Postgres | 9–17, trừ phút 3–4 lên 59: cùng lúc bắn 40 lần đăng nhập song song vào `runserver` chung database (bước 9); sau đó về 10–12 |
+
+Không thấy rò bộ nhớ hay rò kết nối trong 110 phút. Chưa kiểm: chạy nhiều ngày, và chạy trên VPS 4 GB thật (mục 4 của
+[kịch bản ngoài máy ảo](kich-ban-kiem-ngoai-may-ao-20261006.md)).
 
 ## Bài kiểm
 
