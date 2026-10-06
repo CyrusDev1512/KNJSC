@@ -1,5 +1,18 @@
 # Backlog
 
+## 06.10.2026 — Săn lỗi 2: bảo mật — Excel chạy công thức, tệp "bom nén", Django có lỗ hổng (AC-7.14, AC-7.15)
+
+- **Xuất Excel chạy công thức người dùng gõ** (`=HYPERLINK…` ở tên khách, ghi chú). Đã sửa ở `core/excel`: mọi ô
+  thành chữ, ở mọi đường xuất.
+- **Tệp nhập 220 KB làm máy chủ ăn 1,85 GB RAM.** Đã chặn trước khi đọc: trần 500 cột mỗi dòng, giải nén ≤ 200 MB.
+- **Django 5.2.6 có 62 lỗ hổng đã công bố.** Đã nâng bản vá lên 5.2.17; python-dotenv lên 1.2.2. Máy chủ dự án và
+  VPS phải dựng lại image.
+- Đạt, không phải sửa: quét IDOR theo 3 vai × 28 mẫu đường dẫn; phiên bị đá ra sau khoá, đặt lại mật khẩu, xoá;
+  `check --deploy` 0 cảnh báo.
+- Còn: nginx chưa `server_tokens off`, chưa có CSP — cần duyệt vì đụng VPS.
+
+[Biên bản](kiem-chung-san-loi-bao-mat-20261006.md). Nhánh `claude/san-loi-bao-mat`.
+
 ## 06.10.2026 — Săn lỗi 1: gửi lặp ra báo cáo đôi, đơn đôi (AC-4.12, AC-6.11)
 
 Đợt săn lỗi chủ dự án duyệt (7 bước, ngoài unit/e2e). Bước 1 là đồng thời và bấm lặp.

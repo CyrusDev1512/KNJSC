@@ -88,6 +88,10 @@ class AuditAction(models.TextChoices):
 
 UPLOAD_MAX_BYTES = 10 * 1024 * 1024     # NFR-11 — 10 MB mỗi tệp tải lên
 IMPORT_MAX_ROWS = 10_000                 # NFR-13 — trần cứng mỗi lần nhập
+#: Trần chống tệp "bom nén" (AC-7.15): tệp 220 KB một dòng 2 triệu ô từng ăn 1,85 GB RAM khi đọc. Bảng thật
+#: rộng nhất ~45 cột; 10.000 dòng × vài chục cột giải nén chỉ vài chục MB.
+IMPORT_MAX_COLUMNS = 500                 # ô trên một dòng của tệp nhập
+XLSX_MAX_UNCOMPRESSED_BYTES = 200 * 1024 * 1024   # tổng dung lượng giải nén của một tệp .xlsx
 IMPORT_PERF_ROWS = 2_000                 # NFR-3  — mốc đo: 2.000 dòng dưới 60 giây
 IMPORT_PERF_SECONDS = 60
 EXPORT_SYNC_MAX_ROWS = 2_000             # trên mức này thì xuất chạy nền
