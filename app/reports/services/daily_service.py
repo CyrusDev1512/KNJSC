@@ -63,14 +63,25 @@ def protected_values(form, values, fields, day, owner, *, original=None, team=No
     return values
 
 
-def submit_current(form, values, *, actor, request=None, fields=None, team=None):
-    """Đường nộp tương tác; submit ngày chỉ định dành cho nhập lịch sử nội bộ."""
+def submit_current(form, values, *, actor, request=None, fields=None, team=None, submission_key=None):
+    """Đường nộp tương tác; submit ngày chỉ định dành cho nhập lịch sử nội bộ.
+
+    `submission_key` là mã lần nộp của form (AC-4.12): gửi lại đúng mã đó không ghi bản mới — báo cáo trả về mang
+    `duplicate = True`."""
     from django.utils import timezone
+
+    from core.submission import run_once
     fields = fields if fields is not None else list(form.ordered_fields())
     day = timezone.localdate()
     team = submission_team(form, actor, team)
     values = protected_values(form, values, fields, day, actor, team=team)
-    return submit(form, values, report_date=day, actor=actor, request=request, fields=fields, team=team)
+    report, new = run_once(
+        actor, submission_key, "daily_report",
+        create=lambda: submit(form, values, report_date=day, actor=actor, request=request, fields=fields, team=team),
+        load=lambda pk: DailyReport.objects.get(pk=pk),
+    )
+    report.duplicate = not new
+    return report
 
 
 # ══ TEAM TRÊN FORM NHẬP — ADR-043 ═══════════════════════════════════════════

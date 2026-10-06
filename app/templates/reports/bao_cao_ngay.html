@@ -40,6 +40,8 @@
      lưới ô nhập trải ngang hết chiều rộng, ô nhỏ; cột tính sẵn là dòng chip thay cho ô nhập giả.{% endcomment %}
   <form method="post" id="bm-bao-cao">
     {% csrf_token %}
+    {# Mã lần nộp dùng một lần: gửi lại đúng lần này không ghi thêm báo cáo (AC-4.12) #}
+    <input type="hidden" name="ma_lan_nop" value="{{ ma_lan_nop }}">
     <div class="the">
       <div class="the-than bm bm-dau">
         <div class="bm-hang bm-hang-2">

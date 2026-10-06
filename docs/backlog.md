@@ -1,5 +1,18 @@
 # Backlog
 
+## 06.10.2026 — Săn lỗi 1: gửi lặp ra báo cáo đôi, đơn đôi (AC-4.12, AC-6.11)
+
+Đợt săn lỗi chủ dự án duyệt (7 bước, ngoài unit/e2e). Bước 1 là đồng thời và bấm lặp.
+
+- 20 người lên đơn cùng một giây: không trùng mã, không trùng khách. Bấm đúp nút: đã chặn. Nhập tệp: đã có khoá.
+- **Lỗi nghiêm trọng:** cùng một lần nộp gửi lặp ở tầng mạng (mạng gửi lại, Back rồi Nộp, hai yêu cầu cùng lúc) thì
+  ra 2–3 báo cáo, hay 2 đơn. Doanh số bị cộng đôi trong Báo cáo tổng hợp.
+- Đã sửa bằng mã lần nộp dùng một lần (`ma_lan_nop`) và bảng biên nhận `core.SubmissionReceipt` (migration
+  `core/0007`), cùng khuôn với `GridMutationReceipt`. Bài kiểm có hai luồng thật. Bắn lại trên hệ thống thật đạt.
+- Xem lại sau: bảng biên nhận chỉ ghi thêm, chưa có lệnh dọn (mỗi lần nộp một dòng nhỏ).
+
+[Biên bản](kiem-chung-san-loi-dong-thoi-20261006.md). Nhánh `claude/san-loi-dong-thoi`, PR về `Staging`.
+
 ## 04.10.2026 — Báo cáo Sale bỏ cột Lần nộp; bộ lọc kéo tới được nút Áp dụng (AC-47.7, AC-42.17, TL-73)
 
 Chủ dự án thử `Staging` ở máy local, báo hai chỗ trên Báo cáo tổng hợp.
