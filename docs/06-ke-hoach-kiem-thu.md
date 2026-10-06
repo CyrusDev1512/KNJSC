@@ -35,8 +35,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 
 | | Số |
 |---|---|
-| Tiêu chí nghiệm thu trong `docs/04` | **336** — 323 tự động, 13 thủ công (02.10: thêm AC-43.6; AC-22.24, 22.25, 22.26; AC-36.9, 36.10; 03.10: AC-47.1 → 47.6, AC-42.15, 42.16, AC-48.1 → 48.7; 04.10: AC-4.11, AC-40.5 → 40.7; AC-42.17, AC-47.7; 06.10: AC-4.12, AC-6.11, AC-7.14, AC-7.15, AC-10.12, AC-9.6 → 9.8, AC-10.13 → 10.15, AC-1.9) |
-| Tiêu chí tự động đã có bài kiểm | **300 trên 323** |
+| Tiêu chí nghiệm thu trong `docs/04` | **337** — 324 tự động, 13 thủ công (02.10: thêm AC-43.6; AC-22.24, 22.25, 22.26; AC-36.9, 36.10; 03.10: AC-47.1 → 47.6, AC-42.15, 42.16, AC-48.1 → 48.7; 04.10: AC-4.11, AC-40.5 → 40.7; AC-42.17, AC-47.7; 06.10: AC-4.12, AC-6.11, AC-7.14, AC-7.15, AC-10.12, AC-9.6 → 9.8, AC-10.13 → 10.15, AC-1.9, AC-22.27) |
+| Tiêu chí tự động đã có bài kiểm | **301 trên 324** |
 | Tiêu chí tự động còn hoãn | **23**, đều thuộc phần đang làm hoặc chờ chốt — xem bảng cuối tệp |
 | Bao phủ dòng mã | khoảng 85% |
 

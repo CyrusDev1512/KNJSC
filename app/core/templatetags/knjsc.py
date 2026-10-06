@@ -5,10 +5,13 @@ Một luật hiển thị tên cho cả hệ thống (`core.identity`, Q59, ADR-
 trước, tên sau) thay vì tự ghép `profile.full_name|default:username`, và `{% avatar u %}`
 thay vì chép lại ô chữ cái đầu tên ở từng chỗ.
 """
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+
 from django import template
 from django.utils.html import format_html
 
 from core.identity import display_name, employee_code, identity_label
+from core.money import format_decimal
 
 register = template.Library()
 
@@ -29,6 +32,19 @@ def ma(user):
 def ma_ten(user):
     """`MÃ · Họ tên` — mã trước, tên sau; không có họ tên thì chỉ mã."""
     return identity_label(user)
+
+
+@register.filter
+def so(value):
+    """Số trên màn hình theo cách viết Việt Nam như ERP: dấu chấm ngăn nghìn, phẩy thập phân, tối đa hai số lẻ, số
+    nguyên không kèm ",00" — `48311822000` → `48.311.822.000`, `762792.694` → `762.792,69` (AC-22.27). Không phải số
+    (như "—") thì trả nguyên. `floatformat` không nhóm được vì locale `vi` của Django không khai `NUMBER_GROUPING`."""
+    try:
+        d = Decimal(str(value)).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    except (InvalidOperation, ValueError, TypeError):
+        return value
+    d = d.quantize(Decimal(1)) if d == d.to_integral_value() else d.normalize()
+    return format_decimal(d) or value
 
 
 @register.simple_tag

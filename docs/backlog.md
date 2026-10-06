@@ -1,5 +1,16 @@
 # Backlog
 
+## 06.10.2026 — Săn lỗi 8: đối soát số liệu — mọi con số khớp; Thống kê CRM viết số khác ERP (AC-22.27)
+
+- Báo cáo Marketing tháng 9 (1.801 lần nộp): cơ sở dữ liệu = Báo cáo tổng hợp = cộng dòng nhân sự = Excel (toàn kỳ và
+  cộng 30 ngày) = Bảng dữ liệu = Thống kê CRM, đến từng đồng; các tỉ số tính lại bằng tay đều khớp. Vận đơn cả năm
+  (10.032 đơn, CAD và USD): số đơn, giá trị, đã thanh toán, số lượng khớp; không cộng lẫn loại tiền.
+- **Lỗi nhẹ (đã sửa):** Thống kê CRM viết `48311822000`, ERP viết `48.311.822.000`; nhãn biểu đồ `13026,00`. Bộ lọc
+  mẫu mới `so` dùng lại `core.money.format_decimal`.
+- Cần chủ dự án xem: Excel ghi tỉ lệ chốt là số thực đủ chữ số.
+
+[Biên bản](kiem-chung-san-loi-doi-soat-20261006.md). Nhánh `claude/san-loi-tiep`.
+
 ## 06.10.2026 — Săn lỗi 9: dò mật khẩu song song vượt giới hạn 5 lần; nhật ký sạch (AC-1.9)
 
 - **Lỗi nghiêm trọng:** 40 lần đăng nhập sai gửi cùng lúc thì cả 40 lần được thử mật khẩu. Nay mỗi lần thử giữ chỗ
