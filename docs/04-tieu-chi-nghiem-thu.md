@@ -71,6 +71,7 @@ và đó là chuyện bình thường.
 | AC-1.6 | Quản trị viên khoá tài khoản đang mở phiên thì yêu cầu tiếp theo của người đó bị từ chối ngay | FR-1.5 | Tự động |
 | AC-1.7 | ~~Sale đăng nhập vào thẳng màn hình lên đơn, Vận đơn vào thẳng bảng vận đơn~~ **Bỏ theo Q34** — mọi người vào trang tổng quan chung | FR-1.6 | Bỏ |
 | AC-1.8 | Form tạo tài khoản không hỏi Email và Ngày sinh (chốt 24.09.2026): tạo không email vẫn xong (email rỗng, không đụng email tài khoản cũ), đăng nhập bằng mã như thường, vẫn buộc đổi mật khẩu; màn Sửa hồ sơ vẫn có ô Ngày sinh để bổ sung cho thiệp sinh nhật | FR-1.4 | Tự động |
+| AC-1.9 | Đăng nhập sai gửi **cùng lúc** nhiều lần vào một tài khoản không vượt được giới hạn: máy chủ thử mật khẩu nhiều nhất 5 lần, các lần còn lại báo đang khoá tạm đúng số phút; sai 4 lần rồi lần 5 đúng vẫn vào được (săn lỗi 06.10.2026) | FR-1.2 | Tự động |
 
 ---
 

@@ -1,5 +1,16 @@
 # Backlog
 
+## 06.10.2026 — Săn lỗi 9: dò mật khẩu song song vượt giới hạn 5 lần; nhật ký sạch (AC-1.9)
+
+- **Lỗi nghiêm trọng:** 40 lần đăng nhập sai gửi cùng lúc thì cả 40 lần được thử mật khẩu. Nay mỗi lần thử giữ chỗ
+  trong bộ đếm (khoá dòng) trước khi kiểm mật khẩu: 5 lần được thử, 35 lần bị chặn. Luật cũ giữ nguyên.
+- Đạt: nhật ký ứng dụng, nginx VPS, nhật ký hoạt động không chứa mật khẩu, số điện thoại, tên khách.
+- **Cần chủ dự án chọn:** (1) tài khoản có thật bị khoá thì báo "đang khoá tạm", lộ tài khoản có thật; (2) gõ nhầm mật
+  khẩu vào ô tên đăng nhập thì chuỗi đó vào nhật ký hoạt động; (3) chặn dò rải nhiều tài khoản theo IP (văn phòng chung
+  IP). Ghi nhẹ: mỗi lần 403 ghi một traceback vào nhật ký.
+
+[Biên bản](kiem-chung-san-loi-dang-nhap-nhat-ky-20261006.md). Nhánh `claude/san-loi-tiep`.
+
 ## 06.10.2026 — Săn lỗi 6: Redis tắt treo 19 giây; đĩa đầy lỗi 500; Postgres khởi động lại vẫn lỗi; thiếu trang 500/404 (AC-10.13 → 10.15)
 
 - **Redis tắt:** xuất Excel lưới treo 19 giây rồi lỗi 500, tác vụ kẹt "Chờ xử lý" mãi. Nay không lưu kết quả Celery,
