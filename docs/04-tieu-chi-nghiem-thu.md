@@ -74,6 +74,7 @@ và đó là chuyện bình thường.
 | AC-1.9 | Đăng nhập sai gửi **cùng lúc** nhiều lần vào một tài khoản không vượt được giới hạn: máy chủ thử mật khẩu nhiều nhất 5 lần, các lần còn lại báo đang khoá tạm đúng số phút; sai 4 lần rồi lần 5 đúng vẫn vào được (săn lỗi 06.10.2026) | FR-1.2 | Tự động |
 | AC-1.10 | Đi giữa KN ERP và KN CRM không mất đăng nhập: trên máy local, liên kết sang dịch vụ kia giữ đúng host đang mở (127.0.0.1 hay localhost), chỉ đổi cổng; trên VPS giữ đúng địa chỉ cấu hình (06.10.2026) | FR-1.1 · ADR-009 | Tự động |
 | AC-1.11 | Cấu hình VPS sai thì phát hành dừng: ERP, CRM ở hai tên miền mà cookie phiên chưa đặt cho tên miền cha chung → `check --deploy` báo lỗi; CRM ở tên miền thật mà thiếu `BANGTINH_GOC` → dừng khởi động thay vì chạy cấu hình dev (06.10.2026) | FR-1.1 · NFR-6 | Tự động |
+| AC-1.12 | Cùng một đường dẫn ở KN ERP và KN CRM: từng vai được vào hay bị chặn đúng bảng đã chốt ở cả hai dịch vụ (ERP quản lý bảng chỉ Manager, ADR-045; CRM Leader như Manager trong bộ phận, ADR-015); đường dẫn chung mới phải được ghi quyền cho cả hai bên (06.10.2026) | FR-3.5 · FR-3.6 · ADR-045 | Tự động |
 
 ---
 
