@@ -5,6 +5,7 @@ Bảng lấy qua `TableDef.objects.in_scope` (quy tắc 11): ngoài phạm vi �
 (`GRID_ONLY_TABLES` có `van_don`), ở dịch vụ `bangtinh` sửa được — cùng mã,
 chỉ khác cấu hình. Quyền sửa ô và thêm dòng kiểm ở máy chủ, không phải chỉ ẩn nút.
 """
+from core.lien_ket import erp_url
 from core.permissions import assert_business_write
 from io import BytesIO
 
@@ -69,9 +70,9 @@ def _qs_khac(params, bo_khoa=()):
     return grid_service.qs_without(params, bo_khoa)
 
 
-def _ngoai(duong_dan):
-    """Địa chỉ ở dịch vụ chính — Bảng tính có thể chạy ở dịch vụ riêng (ADR-009)."""
-    return settings.MAIN_APP_URL.rstrip("/") + duong_dan
+def _ngoai(request, duong_dan):
+    """Địa chỉ ở dịch vụ chính — Bảng tính có thể chạy ở dịch vụ riêng (ADR-009); cùng host đang mở (AC-1.10)."""
+    return erp_url(request).rstrip("/") + duong_dan
 
 
 
@@ -88,7 +89,7 @@ def tong_quan(request):
     request.nav_current = "tong_quan"
     boi_canh = tong_quan_service.tong_quan(request.user)
     boi_canh.update({
-        "erp_url": _ngoai("/"),
+        "erp_url": _ngoai(request, "/"),
         # Không có bảng vận đơn thì trang thư mục 404 (ADR-040): ẩn nút dẫn tới đó (AC-40.6)
         "co_bang_tinh": catalog.co_bang_van_don(request.user),
     })
@@ -119,7 +120,7 @@ def thu_muc(request):
     request.nav_current = f"bp:{bp.code}"
     boi_canh = dict(du_lieu)
     boi_canh.update({
-        "erp_url": _ngoai("/"),
+        "erp_url": _ngoai(request, "/"),
         "duoc_quan_ly_thu_muc": can_manage_business(request.user, Rank.LEADER)
                                 and grant_service.can_manage_folders(request.user, bp),
         "duoc_cap_quyen": can_manage_business(request.user, Rank.MANAGER),
@@ -141,7 +142,7 @@ def _chon_bang(request, *, tieu_de, mo_ta, duoc, url_name, nhan_nut, rong_mo_ta)
             cac_bang.append(b)
     return render(request, "crm/chon_bang.html", {
         "tieu_de": tieu_de, "mo_ta": mo_ta, "cac_bang": cac_bang, "nhan_nut": nhan_nut,
-        "rong_tieu_de": "Không có bảng nào", "rong_mo_ta": rong_mo_ta, "erp_url": _ngoai("/"),
+        "rong_tieu_de": "Không có bảng nào", "rong_mo_ta": rong_mo_ta, "erp_url": _ngoai(request, "/"),
     })
 
 

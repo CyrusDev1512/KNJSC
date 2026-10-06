@@ -16,6 +16,17 @@ chủ (Giai đoạn 8) đặt thêm `SESSION_COOKIE_DOMAIN` và `CSRF_TRUSTED_OR
 """
 import os
 
+from django.core.exceptions import ImproperlyConfigured
+
+_MAY_LOCAL = {"localhost", "127.0.0.1", "0.0.0.0", "web", "bangtinh", "::1", ""}
+if "BANGTINH_GOC" not in os.environ and set(
+        h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")) - _MAY_LOCAL:
+    # Chạy ở tên miền thật mà quên BANGTINH_GOC thì trước đây lặng lẽ lấy cấu hình dev (DEBUG bật, cookie không
+    # Secure). Dừng hẳn và nói rõ — AC-1.11
+    raise ImproperlyConfigured(
+        "Dịch vụ KN CRM chạy ở tên miền thật nhưng thiếu BANGTINH_GOC. Đặt BANGTINH_GOC=prod (máy chủ) "
+        "hoặc BANGTINH_GOC=dev (máy local)."
+    )
 if os.environ.get("BANGTINH_GOC", "dev") == "prod":
     from .prod import *  # noqa: F401,F403
 else:
