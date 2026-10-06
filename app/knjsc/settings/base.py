@@ -66,6 +66,8 @@ MIDDLEWARE = [
     "core.request_metrics.RequestMetricsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    # Chữ Việt về một dạng NFC trước khi view nào đọc (AC-9.6)
+    "core.middleware.UnicodeNFCMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",

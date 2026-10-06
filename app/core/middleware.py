@@ -1,9 +1,11 @@
 """Middleware của core.
 
-Ba việc: hết phiên khi không thao tác, buộc đổi mật khẩu lần đầu, và chặn
-trình duyệt lưu lại trang có dữ liệu.
+Bốn việc: hết phiên khi không thao tác, buộc đổi mật khẩu lần đầu, chặn
+trình duyệt lưu lại trang có dữ liệu, và đưa chữ người dùng gửi lên về dạng NFC.
 """
+import json
 import time
+import unicodedata
 
 from django.conf import settings
 from django.contrib.auth import logout
@@ -102,3 +104,71 @@ class NoCacheForAuthenticatedMiddleware:
         if request.user.is_authenticated and not request.path.startswith("/static"):
             add_never_cache_headers(response)
         return response
+
+
+#: Ô không chuẩn hoá: mật khẩu phải giữ đúng từng byte người dùng gõ, không thì mật khẩu đặt từ máy này
+#: không đăng nhập được từ máy kia nếu hai bên khác dạng (AC-9.6)
+_KHONG_CHUAN_HOA = ("password", "mat_khau", "mat-khau", "csrfmiddlewaretoken")
+
+
+def _nfc_querydict(qd):
+    """Bản sao của QueryDict với mọi giá trị chữ ở dạng NFC; trả None khi không có gì phải đổi."""
+    doi = False
+    moi = qd.copy()
+    for khoa, cac_gia_tri in qd.lists():
+        if any(k in khoa.lower() for k in _KHONG_CHUAN_HOA):
+            continue
+        chuan = [unicodedata.normalize("NFC", v) if isinstance(v, str) else v for v in cac_gia_tri]
+        if chuan != cac_gia_tri:
+            moi.setlist(khoa, chuan)
+            doi = True
+    if not doi:
+        return None
+    moi._mutable = False
+    return moi
+
+
+def _nfc_json(v):
+    if isinstance(v, str):
+        return unicodedata.normalize("NFC", v)
+    if isinstance(v, list):
+        return [_nfc_json(x) for x in v]
+    if isinstance(v, dict):
+        return {(_nfc_json(k) if isinstance(k, str) else k): _nfc_json(x) for k, x in v.items()}
+    return v
+
+
+class UnicodeNFCMiddleware:
+    """Mọi chữ người dùng gửi lên về một dạng Unicode NFC — AC-9.6 (săn lỗi 06.10.2026).
+
+    macOS gửi chữ Việt dạng tổ hợp ("e" + dấu rời), Windows dạng dựng sẵn: nhìn y hệt nhưng so là khác, nên tên khách
+    gõ từ Mac thì người dùng Windows tìm không ra, tra trùng và gộp nhóm trượt. Chuẩn hoá ở cửa vào để mọi tầng sau
+    (ghi, tìm, lọc) chỉ thấy một dạng: tham số GET (tìm kiếm, lọc), form POST, thân JSON (lưới). Ô mật khẩu giữ
+    nguyên. Tệp tải lên do `core.excel` chuẩn hoá khi đọc ô.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.GET:
+            moi = _nfc_querydict(request.GET)
+            if moi is not None:
+                request.GET = moi
+        if request.method in ("POST", "PUT", "PATCH"):
+            loai = request.META.get("CONTENT_TYPE", "")
+            if loai.startswith("application/json"):
+                # Đọc ra rồi chuẩn hoá từng chuỗi: JSON có thể mã hoá chữ thành "\u0302", chuẩn hoá văn bản thô không thấy
+                try:
+                    goc = json.loads(request.body or b"null")
+                except (ValueError, UnicodeDecodeError):
+                    goc = None
+                if goc is not None:
+                    chuan = _nfc_json(goc)
+                    if chuan != goc:
+                        request._body = json.dumps(chuan, ensure_ascii=False).encode("utf-8")
+            elif loai.startswith(("application/x-www-form-urlencoded", "multipart/form-data")):
+                moi = _nfc_querydict(request.POST)
+                if moi is not None:
+                    request.POST = moi
+        return self.get_response(request)

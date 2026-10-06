@@ -1,5 +1,29 @@
 # Backlog
 
+## 06.10.2026 — Săn lỗi 4: chữ Việt gõ từ Mac không tìm ra được (AC-9.6)
+
+- Gõ bằng bộ gõ (sự kiện ghép chữ), kiểu Unikey, gõ nhanh trong lưới: đạt.
+- **Lỗi nghiêm trọng:** chữ Việt dạng tổ hợp (macOS gửi "e" + dấu rời) lưu nguyên dạng. Đo trên hệ thống thật: tên khách
+  nhập từ Mac thì tìm "Ngọc Ánh" từ Windows ra 0 kết quả; tra trùng, gộp nhóm cũng trượt. Tệp Excel/CSV soạn trên Mac
+  cùng lỗi.
+- Đã sửa ở cửa vào: `core.middleware.UnicodeNFCMiddleware` đưa GET, form POST, JSON của lưới về NFC (trừ mật khẩu);
+  `core.excel` chuẩn hoá ô tệp nhập. Bắn lại trên hệ thống thật đạt.
+- Xem lại sau: dữ liệu cũ không tự đổi; biên bản có câu SQL chỉ đọc để đếm trên VPS, số lớn thì viết lệnh chuẩn hoá.
+
+[Biên bản](kiem-chung-san-loi-go-tieng-viet-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 3: mất mạng thì báo "Failed to fetch" hoặc im lặng (AC-10.12)
+
+- Lưới trên mạng 3G và mất mạng rồi có lại: dữ liệu đúng, tự lưu lại đúng một lần. Nộp báo cáo khi phản hồi rớt: 1 báo
+  cáo.
+- **Lỗi vừa:** lưới báo "Failed to fetch" (chữ Anh thô); Lên đơn lúc mất mạng không báo gì về việc lưu; mọi yêu cầu
+  HTMX gửi hỏng đều im lặng.
+- Đã sửa bằng `static/js/loi-mang.js` nạp ở cả bốn khung trang: lời tiếng Việt "Mất kết nối mạng…", ô báo ở đáy màn
+  hình khi HTMX gửi hỏng, quá hạn hay máy chủ 5xx.
+- Chưa kiểm: nhập tệp lớn qua mạng chậm trên VPS (giới hạn thời gian nginx), Safari/Firefox.
+
+[Biên bản](kiem-chung-san-loi-duong-truyen-20261006.md). Nhánh `claude/san-loi-tiep`.
+
 ## 06.10.2026 — Săn lỗi 2: bảo mật — Excel chạy công thức, tệp "bom nén", Django có lỗ hổng (AC-7.14, AC-7.15)
 
 - **Xuất Excel chạy công thức người dùng gõ** (`=HYPERLINK…` ở tên khách, ghi chú). Đã sửa ở `core/excel`: mọi ô

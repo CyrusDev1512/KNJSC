@@ -219,6 +219,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-9.3 | Không có đường nào sửa hoặc xoá được bản ghi nhật ký | BR-6 | Tự động |
 | AC-9.4 | Thời gian hiển thị theo giờ Việt Nam, dữ liệu lưu theo giờ quốc tế | BR-7 | Tự động |
 | AC-9.5 | Cộng 1.000 dòng tiền cho kết quả chính xác tuyệt đối, không sai số | BR-8 | Tự động |
+| AC-9.6 | Chữ Việt gõ từ máy nào cũng lưu và tìm như nhau: dạng tổ hợp (macOS, NFD) ở form, JSON của lưới, ô tìm kiếm và ô của tệp nhập Excel/CSV đều về dạng dựng sẵn NFC trước khi ghi hay tìm; ô mật khẩu giữ nguyên (săn lỗi 06.10.2026) | Tìm kiếm, tra trùng khách | Tự động |
 
 ---
 
