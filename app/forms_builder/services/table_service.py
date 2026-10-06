@@ -24,7 +24,7 @@ from core.permissions import assert_business_write
 
 from ..meaning import FieldType
 from .. import record_policies
-from ..models import COLUMN_OF, DERIVED_FIELDS, ColumnDef, DataRecord, TableDef
+from ..models import DERIVED_FIELDS, ColumnDef, DataRecord, TableDef
 
 logger = logging.getLogger(__name__)
 RECOMPUTE_RETRIES = 3

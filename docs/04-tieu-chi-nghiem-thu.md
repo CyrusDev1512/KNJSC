@@ -172,6 +172,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-6.10 | Cùng số điện thoại nhưng gõ tên khác: đơn mới ghi **tên vừa gõ**, danh bạ đổi theo và có nhật ký; đơn cũ giữ nguyên tên lúc đó; số điện thoại khác nhau thì mỗi đơn mang tên của mình; ô Facebook/Email bỏ trống không xoá dữ liệu đã có ; trước khi lưu, lời nhắc khách báo trước "sẽ đổi tên khách của số …" kèm cả tên cũ lẫn tên đang gõ, và mảnh nhắc mang sẵn tên để ô Tên khách tự điền khi đang trống | FR-6.7 | Tự động |
 | AC-6.9 | **Leader trở lên** của bộ phận Sale (chủ dự án 02.10.2026; trước đó Manager) lên đơn thêm được sản phẩm mới ngay tại ô chọn: mã tự sinh không trùng, sản phẩm hiện trong danh sách chọn và có ngay cột số lượng trên bảng vận đơn, mỗi lần thêm có nhật ký; Staff gửi thẳng bị từ chối có ghi nhật ký, không thấy hộp "Tạo sản phẩm"; bộ phận khác bị chặn; tên trùng bị từ chối; nút thêm một dòng vào đơn ghi "Thêm dòng", không ghi "Thêm sản phẩm" | FR-6.8 | Tự động |
 | AC-6.11 | Một lần bấm Lưu đơn chỉ ra một đơn: form Lên đơn có mã lần nộp dùng một lần; gửi lại đúng lần đó (kể cả hai yêu cầu cùng lúc) chỉ ra một đơn một mã, lần sau báo lại mã đơn đã lưu "không tạo đơn mới"; lưu xong form có mã mới (săn lỗi 06.10.2026) | FR-6.1 | Tự động |
+| AC-6.12 | Xoá dòng vận đơn của một đơn thì đơn gốc bị bỏ (xoá mềm, có nhật ký); khôi phục dòng thì đơn sống lại; Bỏ đơn vẫn xoá cả dòng như cũ (06.10.2026) | FR-6.4 · BR-4 | Tự động |
 
 ---
 
@@ -194,6 +195,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-7.13 | Bảng dữ liệu ERP: bấm tiêu đề cột để sắp xếp chỉ thay khối bảng bằng HTMX, trang không tải lại; địa chỉ trang mang tham số sắp xếp; bấm lần nữa đảo chiều; qua HTMX vẫn chặn đúng (Staff 403, bảng bộ phận khác 404) (28.09.2026, TL-62) | FR-7.3 | Tự động + trình duyệt |
 | AC-7.14 | Tệp Excel xuất ra (Bảng dữ liệu trực tiếp và chạy nền, Báo cáo tổng hợp, tệp mẫu nhập) không có ô công thức nào: chữ người dùng gõ bắt đầu bằng "=" (tên khách, ghi chú, tên bảng…) ghi thành chữ đúng nguyên văn, không chạy khi mở tệp (săn lỗi bảo mật 06.10.2026) | NFR-9 · ADR-002 | Tự động |
 | AC-7.15 | Tệp nhập nhỏ mà giải nén khổng lồ bị từ chối với lời tiếng Việt **trước** khi đọc vào bộ nhớ: dòng vượt 500 cột (.xlsx và CSV), tổng giải nén .xlsx vượt 200 MB; tệp thật vài chục cột × 10.000 dòng vẫn nhập được (săn lỗi bảo mật 06.10.2026) | NFR-11 · NFR-13 | Tự động |
+| AC-7.16 | Ô ngày lưu dạng số trong tệp Excel (45000) nhập thành ngày đúng (15/03/2023); chữ "45000", số âm, số 0, số quá lớn và True/False ở cột Ngày vẫn bị từ chối (06.10.2026) | FR-7.5 | Tự động |
 
 ---
 
@@ -211,6 +213,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-8.8 | Cột Chọn một mang nhãn Sản phẩm lấy danh sách từ danh mục sản phẩm đang bán; quản lý bộ phận sở hữu bảng (Leader, Manager — ADR-015, hoặc Admin) thêm giá trị mới ngay tại ô chọn và có ghi nhật ký, trùng thì lấy giá trị có sẵn; Staff gửi thẳng bị từ chối có ghi nhật ký, Manager bộ phận khác bị chặn; bảng vận đơn giữ nguyên sổ danh sách của Bảng tính | FR-8.7 · FR-3.6 | Tự động |
 | AC-8.9 | Manager (hoặc Leader cùng bộ phận — ADR-015) đặt màu cột và ngưỡng cảnh báo trong Sửa cột; ngưỡng chỉ nhận cột kiểu số; tiêu đề và ô của cột mang màu đã đặt, ô vượt ngưỡng tô đỏ, ô đạt tô xanh lá, ô trống không tô; màn hình xem báo cáo cũng mang màu | FR-8.8 | Tự động |
 | AC-8.10 | Bảng dữ liệu có viền mọi ô, tiêu đề cột nền xanh lá, màu cột và ô cảnh báo nhìn rõ trên cả nền sáng lẫn nền tối, cả ở màn hình Bảng dữ liệu và xem báo cáo | FR-8.9 | Thủ công |
+| AC-8.11 | Đổi kiểu cột: còn giá trị cũ (kể cả ở dòng đã xoá) không chuyển được sang kiểu mới thì từ chối, nêu số dòng và ví dụ, cột và dữ liệu giữ nguyên; chuyển được hết thì ghi lại theo kiểu mới ("1.500" → 1500) (06.10.2026) | FR-8.6 | Tự động |
 
 ---
 
@@ -573,6 +576,10 @@ Kế toán giữ tiêu chí cũ trên bảng duy nhất.
 | AC-36.8 | Khoá so trùng `val_phone_key` (`phone_key`: bỏ ký tự không phải số, lấy 9 chữ số cuối): `+1 (416) 555-0123` và `4165550123` là một khách trên cột Trùng và `?trung=1`; ô hiển thị giữ nguyên chữ gõ; `sync_indexed_columns` và `bulk_save` cùng ra một khoá; migration `forms_builder/0016` xuôi/ngược được và backfill đúng dòng cũ | FR-7.8 · ADR-036 | Tự động |
 | AC-36.9 | Lưới Vận đơn: bôi đen có ô Sản phẩm, Số lượng, Giá tiền hay Số tiền thanh toán rồi Delete → hộp hỏi lại (Huỷ / Chỉ xoá ô thường / Bỏ chi tiết và xoá); chọn bỏ → máy chủ (`bo-chi-tiet/`) xoá mềm toàn bộ Chi tiết sản phẩm của dòng, bốn ô tổng trống, Trạng thái thanh toán giữ, có nhật ký; ô thường trong vùng xoá như cũ; Vận đơn Staff, Leader, Manager được, chỉ có quyền Xem hay ngoài phạm vi → 403 không đổi; giá trị cũ lệch → 409; cột khác → 400 | Chủ dự án 02.10.2026 · ADR-036 | Tự động |
 | AC-36.10 | Hộp Chi tiết giữ như cũ (đơn chưa có chi tiết mở ra vẫn có một dòng chọn sản phẩm trống); Bỏ dòng xoá được cả dòng cuối, Thêm dòng thêm lại được; Lưu khi không còn dòng → đơn không còn sản phẩm, bốn ô tổng trống (cả đơn nhập từ tệp chỉ có chữ ở ô Sản phẩm); còn dòng chưa chọn sản phẩm (kể cả lỡ bấm Lưu ngay khi mở đơn chưa có chi tiết) → báo "chưa chọn sản phẩm", không đổi gì; Lên đơn mới vẫn bắt ít nhất 1 sản phẩm | Chủ dự án 02.10.2026 · ADR-036 | Tự động |
+| AC-36.11 | Bảng vận đơn: mỗi mã đơn chỉ một dòng chưa xoá, chặn ở tầng cơ sở dữ liệu (ràng buộc `record_ma_don_unique`); trùng thì lời tiếng Việt nêu mã ở lưới, nhập tệp, Lên đơn, khôi phục dòng; mã trống và bảng thường không bị ràng buộc; dòng đã xoá không giữ mã; Lên đơn bỏ qua mã đã có trên bảng (06.10.2026) | ADR-036 · FR-6.4 | Tự động |
+| AC-36.12 | Migration `forms_builder/0017` điền khoá mã đơn cho dòng cũ; còn hai dòng sống cùng mã thì dừng và liệt kê mã, không tạo ràng buộc nửa vời; chạy xuôi, ngược, xuôi được (06.10.2026) | ADR-036 | Tự động |
+| AC-36.13 | `tao_bang_van_don`, `configure_erp_reports` đổi cấu trúc cột (nhãn, kiểu, công thức, nghiệp vụ bảng) thì tính lại cột tách và cột tính sẵn của dòng cũ; cấu trúc không đổi thì không đụng dòng nào (06.10.2026) | ADR-016 · ADR-036 | Tự động |
+| AC-36.14 | Lệnh chỉ đọc `kiem_tra_du_lieu` báo cột tách lệch `data`, giá trị ngoài danh sách chọn, mã đơn trùng, `sl_*` lệch Chi tiết sản phẩm, đơn mồ côi; thoát mã 1 khi còn lệch; `--sua` tính lại cột tách (06.10.2026) | ADR-036 | Tự động |
 ## 37. Mã nhân sự — ADR-037
 
 Bổ sung AC-4.6 và AC-22.10: định danh trên mọi màn hình là **mã nhân sự** (`UserProfile.staff_code`),

@@ -8,7 +8,8 @@ thấy số sai. Năm phép rà, mỗi phép trả `(số chỗ lệch, vài ví
 2. **Mã đơn trùng** giữa các dòng chưa xoá của bảng vận đơn (đọc từ `data`, bắt được cả dữ liệu trước migration
    `forms_builder/0017`).
 3. **Đơn mồ côi**: đơn còn sống mà dòng vận đơn đã xoá hay không có; dòng còn sống mà đơn đã bỏ.
-4. **Cột `sl_*` lệch Chi tiết sản phẩm** (`WaybillItem` còn sống) — chỉ báo, cột ẩn mặc định.
+4. **Cột `sl_*` lệch Chi tiết sản phẩm** (`WaybillItem` còn sống) — chỉ để biết, **không** tính vào mã thoát: cột ẩn
+   mặc định và chưa có đường nào giữ nó theo Chi tiết (sửa Chi tiết trên lưới, `nap_du_lieu_van_don` đều không ghi).
 5. **Giá trị ngoài danh sách chọn** của cột Chọn một (danh sách bị sửa sau khi đã nhập).
 """
 from collections import defaultdict
@@ -81,14 +82,18 @@ def don_mo_coi():
 
 def so_luong_lech(table):
     kq = _ket_qua()
+    # Chỉ so sản phẩm đã có cột: sản phẩm thêm sau lần chạy `sync_product_columns` gần nhất chưa có ô để ghi
+    co_cot = set(table.columns.filter(code__startswith=PRODUCT_COLUMN_PREFIX).values_list("code", flat=True))
     tong = defaultdict(dict)
     for record_id, product_code, qty in (WaybillItem.objects.filter(record__table=table, deleted_at__isnull=True)
                                          .values_list("record_id", "product__code", "quantity")):
         ma = product_column_code_of(product_code)
+        if ma not in co_cot:
+            continue
         tong[record_id][ma] = tong[record_id].get(ma, 0) + qty
     for pk, data in DataRecord.objects.filter(table=table).values_list("pk", "data").order_by("pk"):
         co = {k: _so(v) for k, v in data.items()
-              if k.startswith(PRODUCT_COLUMN_PREFIX) and v not in (None, "", 0, "0")}
+              if k in co_cot and v not in (None, "", 0, "0")}
         if co != tong.get(pk, {}):
             _ghi(kq, f"dòng #{pk}")
     return kq
@@ -125,10 +130,11 @@ def run(*, tables=None, fix=False, on_line=print):
     van_don = set(TableDef.all_objects.filter(waybill_condition("")).values_list("pk", flat=True))
     tong = 0
 
-    def bao(ten, kq):
+    def bao(ten, kq, *, tinh=True):
         nonlocal tong
-        tong += kq["so"]
-        on_line(f"  {'ĐẠT' if not kq['so'] else 'LỆCH'} · {ten}: {kq['so']}"
+        tong += kq["so"] if tinh else 0
+        nhan = "ĐẠT" if not kq["so"] else ("LỆCH" if tinh else "BIẾT")
+        on_line(f"  {nhan} · {ten}: {kq['so']}"
                 + (" — " + "; ".join(kq["vi_du"]) if kq["vi_du"] else ""))
 
     for t in bang:
@@ -142,7 +148,7 @@ def run(*, tables=None, fix=False, on_line=print):
         bao("giá trị ngoài danh sách chọn", ngoai_danh_sach(t))
         if t.pk in van_don:
             bao("mã đơn trùng (dòng chưa xoá)", ma_don_trung(t))
-            bao("sl_* lệch Chi tiết sản phẩm", so_luong_lech(t))
+            bao("sl_* lệch Chi tiết sản phẩm (không tính vào mã thoát)", so_luong_lech(t), tinh=False)
     on_line("Đơn hàng")
     bao("đơn mồ côi", don_mo_coi())
     return tong

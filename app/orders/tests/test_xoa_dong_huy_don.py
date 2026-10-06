@@ -23,10 +23,11 @@ def sp(db):
     return {"massage": Product.objects.create(name="Máy thử", code="may_thu", group=nhom)}
 
 
-def test_xoa_dong_thi_bo_don_khoi_phuc_thi_lay_lai(bang_van_don, sp, nguoi_dung):
+def test_xoa_dong_thi_bo_don_khoi_phuc_thi_lay_lai(bang_van_don, sp, nguoi_dung, settings):
     """AC-6.12 — Xoá dòng vận đơn của một đơn thì đơn bị bỏ (xoá mềm, có nhật ký nêu mã đơn); khôi phục dòng thì
     đơn sống lại, cũng có nhật ký"""
-    nv, vd = nguoi_dung["staff_sale_1"], nguoi_dung["admin"]
+    settings.GRID_ONLY_TABLES = set()          # đúng cấu hình dịch vụ CRM: bảng vận đơn sửa được
+    nv, vd = nguoi_dung["staff_sale_1"], nguoi_dung["staff_vd"]
     don = _len_don(nv, sp)
     dong = DataRecord.objects.get(pk=don.record_id)
 

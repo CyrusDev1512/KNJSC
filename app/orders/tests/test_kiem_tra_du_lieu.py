@@ -8,6 +8,7 @@ from django.core.management import call_command
 
 from forms_builder.models import DataRecord
 from orders.models import Order, Product, ProductGroup
+from orders.services import dispatch_service
 from orders.tests.test_len_don import _len_don, bang_van_don  # noqa: F401 — fixture dùng chung
 
 pytestmark = pytest.mark.django_db
@@ -17,6 +18,7 @@ pytestmark = pytest.mark.django_db
 def don(bang_van_don, nguoi_dung):
     nhom = ProductGroup.objects.create(name="Nhóm thử")
     sp = {"massage": Product.objects.create(name="Máy thử", code="may-thu", group=nhom)}
+    dispatch_service.sync_product_columns()         # cột sl_may_thu như khi bật máy
     return _len_don(nguoi_dung["staff_sale_1"], sp)
 
 
@@ -39,7 +41,7 @@ def test_du_lieu_sach_thi_dat_va_khong_ghi_gi(don, capsys):
 
 def test_bat_duoc_tung_loai_lech_va_sua_cot_tach(don, capsys):
     """AC-36.14 — Bắt được: cột tách lệch data, giá trị ngoài danh sách chọn, sl_* lệch Chi tiết, mã đơn trùng, đơn
-    mồ côi; thoát mã 1. `--sua` tính lại cột tách, các lỗi còn lại chỉ báo"""
+    mồ côi; thoát mã 1 (sl_* chỉ để biết, không tính). `--sua` tính lại cột tách, các lỗi còn lại chỉ báo"""
     dong = DataRecord.objects.get(pk=don.record_id)
     DataRecord.objects.filter(pk=dong.pk).update(val_customer="Sai")
     DataRecord.objects.filter(pk=dong.pk).update(data={**dong.data, "quoc_gia": "Sao Hoả", "sl_may_thu": 9})
@@ -47,7 +49,7 @@ def test_bat_duoc_tung_loai_lech_va_sua_cot_tach(don, capsys):
     assert ma == 1
     assert "LỆCH · cột tách / cột tính sẵn lệch data: 1" in ra
     assert 'quoc_gia: "Sao Hoả"' in ra
-    assert "LỆCH · sl_* lệch Chi tiết sản phẩm: 1" in ra
+    assert "BIẾT · sl_* lệch Chi tiết sản phẩm (không tính vào mã thoát): 1" in ra
 
     ma, ra = _chay(capsys, "--bang", "van_don", "--sua")
     assert "Đã tính lại 1 dòng" in ra and "ĐẠT · cột tách / cột tính sẵn lệch data: 0" in ra

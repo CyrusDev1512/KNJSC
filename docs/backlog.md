@@ -1,5 +1,19 @@
 # Backlog
 
+## 06.10.2026 — Database và phân quyền theo URL: mã đơn không trùng ở DB, đơn đi theo dòng, lệnh kiem_tra_du_lieu (AC-1.10 → 1.12, 6.12, 7.16, 8.11, 36.11 → 36.14)
+
+- **Đổi URL mất quyền:** link ERP ↔ CRM giữ host đang mở (127.0.0.1 hay localhost); VPS thiếu cookie domain thì
+  `check --deploy` dừng; CRM thiếu `BANGTINH_GOC` thì dừng. Ma trận mọi đường dẫn × 8 vai × 2 dịch vụ: khác biệt đều có
+  chủ ý (ADR-015, 045), khoá thành bài kiểm.
+- **Dữ liệu:** ràng buộc `record_ma_don_unique` (migration `forms_builder/0017`, dừng nếu đang có mã trùng); Lên đơn nhảy
+  qua mã đã có trên bảng; xoá/khôi phục dòng vận đơn kéo theo đơn gốc; đổi kiểu cột chuyển hoặc từ chối giá trị cũ; lệnh
+  nâng cấp cấu trúc tính lại dòng cũ; ô ngày dạng số của Excel nhập được.
+- **Lệnh mới `kiem_tra_du_lieu`** (chỉ đọc, `--sua`): chạy trên VPS trước phát hành. DB thử bắt được 5 dòng báo cáo MKT
+  lệch cột tính sẵn (đã `--sua`).
+- **Còn nợ:** `sl_*` không theo Chi tiết sản phẩm (cột ẩn, lệnh chỉ báo); `/bang-da-xoa/` trả rỗng thay 403 cho Staff.
+
+[Biên bản](kiem-chung-database-phan-quyen-20261006.md). Nhánh `claude/database-phan-quyen`.
+
 ## 06.10.2026 — Săn lỗi 10: fuzz — 139 lỗi 500 ở ERP, 178 ở CRM, năm gốc, đã sửa ở cửa vào (AC-10.16, AC-21.16)
 
 - Bắn 12 dữ liệu lạ vào mọi tham số GET và form POST theo vai (hơn 20.000 yêu cầu). Năm gốc:

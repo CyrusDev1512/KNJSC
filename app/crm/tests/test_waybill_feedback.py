@@ -278,7 +278,9 @@ def test_export_date_filter_and_unlinked_sale_blank(feedback, nguoi_dung):
     values = list(wb.active.values)
     # Cột đầu là Ngày (24.09.2026) — tra Mã đơn theo tiêu đề, không theo vị trí
     assert len(values) == 2 and values[1][values[0].index('Mã đơn')] == rows[0].data['ma_don']
-    imported = DataRecord.objects.create(table=table, department=table.department, data=rows[0].data)
+    # Dòng nhập tệp không gắn đơn: mã đơn riêng — bảng vận đơn không nhận hai dòng sống cùng mã (06.10.2026)
+    imported = DataRecord.objects.create(table=table, department=table.department,
+                                         data={**rows[0].data, 'ma_don': rows[0].data['ma_don'] + '-NHAP'})
     _, wb = export_service.export(nguoi_dung['admin'], table, params, builder='grid')
     values = list(wb.active.values)
     assert len(values) == 3
