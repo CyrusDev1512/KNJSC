@@ -31,8 +31,8 @@ from openpyxl.utils import get_column_letter
 from openpyxl.utils.exceptions import InvalidFileException
 
 from .constants import (
-    FILE_EXTENSIONS, FILE_MAGIC, HEADER_SCAN_ROWS, UPLOAD_MAX_BYTES,
-    ZIP_KINDS, FileKind,
+    FILE_EXTENSIONS, FILE_MAGIC, HEADER_SCAN_ROWS, IMPORT_MAX_COLUMNS, UPLOAD_MAX_BYTES,
+    XLSX_MAX_UNCOMPRESSED_BYTES, ZIP_KINDS, FileKind,
 )
 from .exceptions import BusinessError
 
@@ -214,7 +214,49 @@ def _gioi_han(rows, max_rows):
     return rows, False
 
 
+_QUA_RONG = (f"Tệp có dòng vượt {IMPORT_MAX_COLUMNS} cột — không phải bảng dữ liệu thường. "
+             "Kiểm tra lại tệp (xoá cột thừa ở bên phải) rồi tải lên lại.")
+
+
+def _kiem_bom_xlsx(nguon):
+    """Chặn tệp .xlsx nhỏ mà giải nén khổng lồ **trước** khi openpyxl đọc (AC-7.15): tổng dung lượng giải nén có
+    trần, và mỗi dòng của mọi sheet được đếm ô bằng cách đọc dòng chảy (iterparse, xoá phần tử đã đọc) — openpyxl
+    nạp trọn một dòng vào bộ nhớ trước khi trả, nên dòng hàng triệu ô phải bị chặn ở đây."""
+    from xml.etree.ElementTree import iterparse
+
+    if hasattr(nguon, "seek"):
+        nguon.seek(0)
+    try:
+        with zipfile.ZipFile(nguon) as z:
+            if sum(i.file_size for i in z.infolist()) > XLSX_MAX_UNCOMPRESSED_BYTES:
+                raise UploadRejected(
+                    f"Tệp Excel giải nén ra hơn {format_size(XLSX_MAX_UNCOMPRESSED_BYTES)} — quá lớn để nhập. "
+                    "Chia nhỏ tệp rồi tải lên lại.")
+            for ten in z.namelist():
+                if not (ten.startswith("xl/worksheets/") and ten.endswith(".xml")):
+                    continue
+                with z.open(ten) as sheet:
+                    so_o = 0
+                    for su_kien, pt in iterparse(sheet, events=("start", "end")):
+                        ten_the = pt.tag.rsplit("}", 1)[-1]
+                        if su_kien == "start":
+                            if ten_the == "row":
+                                so_o = 0
+                            elif ten_the == "c":
+                                so_o += 1
+                                if so_o > IMPORT_MAX_COLUMNS:
+                                    raise UploadRejected(_QUA_RONG)
+                        elif ten_the in ("c", "row"):
+                            pt.clear()
+    except (zipfile.BadZipFile, OSError, ValueError, SyntaxError):
+        pass        # tệp hỏng: để load_workbook báo lỗi như cũ
+    finally:
+        if hasattr(nguon, "seek"):
+            nguon.seek(0)
+
+
 def _doc_xlsx(nguon, max_rows):
+    _kiem_bom_xlsx(nguon)
     try:
         wb = load_workbook(nguon, read_only=True, data_only=True)
     except (InvalidFileException, zipfile.BadZipFile, KeyError, OSError, ValueError) as loi:
@@ -252,10 +294,11 @@ def _doc_csv(nguon, max_rows):
         phan_cach = csv.Sniffer().sniff(mau, delimiters=",;\t").delimiter
     except csv.Error:
         phan_cach = ","
-    rows = [
-        [_o_csv(o) for o in hang]
-        for hang in csv.reader(io.StringIO(text), delimiter=phan_cach)
-    ]
+    rows = []
+    for hang in csv.reader(io.StringIO(text), delimiter=phan_cach):
+        if len(hang) > IMPORT_MAX_COLUMNS:          # AC-7.15
+            raise UploadRejected(_QUA_RONG)
+        rows.append([_o_csv(o) for o in hang])
     rows, cat = _gioi_han(rows, None if max_rows is None else max_rows + HEADER_SCAN_ROWS)
     return SheetData(sheet_name="CSV", rows=rows, truncated=cat)
 
@@ -361,7 +404,10 @@ def write_table(headers, rows, *, sheet_title="Du lieu", write_only=False, wrap_
     if write_only:
         from openpyxl.cell import WriteOnlyCell
         cells=[WriteOnlyCell(ws,value=v) for v in headers]
-        for cell in cells:cell.font=Font(bold=True)
+        for cell in cells:
+            cell.font=Font(bold=True)
+            if _la_cong_thuc(cell.value):
+                cell.data_type = "s"
         ws.append(cells)
         for hang in rows:
             ws.append([_o_ghi_lien(ws, i, v, xuong_dong) for i, v in enumerate(hang)])
@@ -372,16 +418,37 @@ def write_table(headers, rows, *, sheet_title="Du lieu", write_only=False, wrap_
             ws.append([_o_ghi(v) for v in hang])
             for i, canh in xuong_dong.items():
                 ws.cell(row=ws.max_row, column=i + 1).alignment = canh
+        neutralise_formulas(wb)
     return wb
 
 
+def neutralise_formulas(wb):
+    """Mọi ô openpyxl hiểu là công thức (chuỗi bắt đầu bằng "=") ghi lại thành **chữ**, giữ nguyên nội dung — dữ liệu
+    do người dùng gõ không được chạy như công thức khi mở tệp xuất (chèn công thức vào bảng tính, AC-7.14). Hệ thống
+    không xuất công thức có chủ ý nào. Gọi ngay trước khi lưu sổ."""
+    for ws in wb.worksheets:
+        for hang in ws.iter_rows():
+            for o in hang:
+                if o.data_type == "f":
+                    o.data_type = "s"
+    return wb
+
+
+def _la_cong_thuc(v):
+    return isinstance(v, str) and v.startswith("=")
+
+
 def _o_ghi_lien(ws, i, v, xuong_dong):
-    """Ô ở chế độ ghi liền: chỉ cột xuống dòng mới cần ô mang định dạng, cột khác ghi giá trị thô."""
-    if i not in xuong_dong:
+    """Ô ở chế độ ghi liền: chỉ cột xuống dòng mới cần ô mang định dạng, cột khác ghi giá trị thô. Chữ bắt đầu bằng
+    "=" ghi thành ô chữ — chế độ này không quét lại được sau khi ghi (AC-7.14)."""
+    if i not in xuong_dong and not _la_cong_thuc(v):
         return _o_ghi(v)
     from openpyxl.cell import WriteOnlyCell
     o = WriteOnlyCell(ws, value=_o_ghi(v))
-    o.alignment = xuong_dong[i]
+    if _la_cong_thuc(v):
+        o.data_type = "s"
+    if i in xuong_dong:
+        o.alignment = xuong_dong[i]
     return o
 
 

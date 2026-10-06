@@ -188,6 +188,8 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-7.11 | Chia cho không hoặc thiếu toán hạng thì cột tính sẵn để trống, không hỏng cả dòng | FR-7.8 · ADR-006 | Tự động |
 | AC-7.12 | Đổi công thức của một cột thì bản ghi cũ được tính lại, không còn giữ số cũ | FR-7.8 · ADR-006 | Tự động |
 | AC-7.13 | Bảng dữ liệu ERP: bấm tiêu đề cột để sắp xếp chỉ thay khối bảng bằng HTMX, trang không tải lại; địa chỉ trang mang tham số sắp xếp; bấm lần nữa đảo chiều; qua HTMX vẫn chặn đúng (Staff 403, bảng bộ phận khác 404) (28.09.2026, TL-62) | FR-7.3 | Tự động + trình duyệt |
+| AC-7.14 | Tệp Excel xuất ra (Bảng dữ liệu trực tiếp và chạy nền, Báo cáo tổng hợp, tệp mẫu nhập) không có ô công thức nào: chữ người dùng gõ bắt đầu bằng "=" (tên khách, ghi chú, tên bảng…) ghi thành chữ đúng nguyên văn, không chạy khi mở tệp (săn lỗi bảo mật 06.10.2026) | NFR-9 · ADR-002 | Tự động |
+| AC-7.15 | Tệp nhập nhỏ mà giải nén khổng lồ bị từ chối với lời tiếng Việt **trước** khi đọc vào bộ nhớ: dòng vượt 500 cột (.xlsx và CSV), tổng giải nén .xlsx vượt 200 MB; tệp thật vài chục cột × 10.000 dòng vẫn nhập được (săn lỗi bảo mật 06.10.2026) | NFR-11 · NFR-13 | Tự động |
 
 ---
 

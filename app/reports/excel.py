@@ -10,6 +10,8 @@ phục vụ báo cáo tổng hợp và có thể được gộp về đó sau.
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
+from core.excel import neutralise_formulas
+
 from . import aggregations
 
 
@@ -62,7 +64,7 @@ def build_workbook(title, result, subtitle="", blocks=None):
     for o in ws[ws.max_row]:
         o.font = dam
 
-    return wb
+    return neutralise_formulas(wb)
 
 
 def _dam(ws, dam):
@@ -108,4 +110,4 @@ def _khoi(wb, ws, result, blocks, dam):
             ngay.append([b["title"]]); _dam(ngay, dam)
         _ghi_khoi(ngay, result, b, dam)
         ngay.append([])
-    return wb
+    return neutralise_formulas(wb)
