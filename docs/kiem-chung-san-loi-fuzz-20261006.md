@@ -55,9 +55,16 @@ Không vá từng view: ba chặn chung ở cửa vào, cộng một chặn ở 
 6. Hai view lấy mã từ form/URL đưa thẳng vào `get_object_or_404` (tạo thư mục, trang Cột): mã không phải số là 404, cùng
    khuôn với Tài liệu vốn đã chặn. Rà toàn bộ mã: chỉ còn ba chỗ kiểu này, cả ba đã chặn.
 
-## Lượt 2 — mã sau khi sửa
+## Lượt 3 — mã sau mọi bản sửa (DB chép mới, CRM chạy trước, 6 luồng)
 
-_điền sau_
+| Vai | Trang | Yêu cầu | Lỗi 500 |
+|---|---|---|---|
+| `vd.manager` @ CRM | 48 | 10.932 | 0 |
+| `sale.staff` @ CRM | 35 | 4.800 | 0 |
+| `sale.staff` @ ERP | 49 | 5.904 | 0 |
+| `quantri` @ ERP | 55 | 8.839 | 0 |
+
+Nhật ký máy chủ: 15.549 yêu cầu ERP, 16.451 yêu cầu CRM, **0 lỗi 500**, 0 ngoại lệ trong script (28 phút).
 
 ## Bài kiểm
 
