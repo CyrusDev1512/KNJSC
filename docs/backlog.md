@@ -1,5 +1,18 @@
 # Backlog
 
+## 06.10.2026 — Săn lỗi 5: ô số nhận "NaN" thành trang lỗi 500; "Hôm nay" lệch ngày lúc sáng sớm (AC-9.7, AC-9.8)
+
+- **Lỗi vừa:** gõ `NaN`, `Infinity`, `1e400` hay số 24 chữ số vào ô Doanh số là trang lỗi 500. `parse_money` nay chỉ
+  nhận chữ số, dấu chấm, phẩy, một dấu trừ; số quá 16 chữ số phần nguyên báo lỗi tiếng Việt. Ô số của tệp Excel qua
+  cùng kiểm tra.
+- **Lỗi vừa:** chip "Hôm nay", "Tháng này" của lưới lấy ngày theo đồng hồ máy chủ (giờ quốc tế): từ 0 tới 7 giờ sáng
+  "Hôm nay" là hôm qua. Nay theo giờ Việt Nam; tên tệp Excel xuất từ lưới cũng vậy.
+- Đạt: chia cho không (Số đơn = 0) ở Báo cáo tổng hợp, Excel, Thống kê CRM; dán số kiểu Mỹ `1,234.5`; Lên đơn chặn
+  `NaN`.
+- **Cần chủ dự án chốt:** báo cáo ngày đang nhận Doanh số âm (`-5000`). Cho hay chặn?
+
+[Biên bản](kiem-chung-san-loi-gio-tien-so-20261006.md). Nhánh `claude/san-loi-tiep`.
+
 ## 06.10.2026 — Săn lỗi 4: chữ Việt gõ từ Mac không tìm ra được (AC-9.6)
 
 - Gõ bằng bộ gõ (sự kiện ghép chữ), kiểu Unikey, gõ nhanh trong lưới: đạt.

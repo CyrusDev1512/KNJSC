@@ -220,6 +220,8 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-9.4 | Thời gian hiển thị theo giờ Việt Nam, dữ liệu lưu theo giờ quốc tế | BR-7 | Tự động |
 | AC-9.5 | Cộng 1.000 dòng tiền cho kết quả chính xác tuyệt đối, không sai số | BR-8 | Tự động |
 | AC-9.6 | Chữ Việt gõ từ máy nào cũng lưu và tìm như nhau: dạng tổ hợp (macOS, NFD) ở form, JSON của lưới, ô tìm kiếm và ô của tệp nhập Excel/CSV đều về dạng dựng sẵn NFC trước khi ghi hay tìm; ô mật khẩu giữ nguyên (săn lỗi 06.10.2026) | Tìm kiếm, tra trùng khách | Tự động |
+| AC-9.7 | Ô tiền và số thập phân chỉ nhận chữ số với dấu chấm, phẩy và một dấu trừ: "NaN", "Infinity", "1e400", "+-5" bị từ chối; số vượt 16 chữ số phần nguyên báo lỗi tiếng Việt nói rõ trần; nộp báo cáo với các giá trị đó ở lại form, không trang lỗi 500, không thêm báo cáo; cách viết Việt Nam và số dán kiểu Mỹ vẫn đọc đúng (săn lỗi 06.10.2026) | BR-8 · NFR-6 | Tự động |
+| AC-9.8 | Ngày "hôm nay" của chip chọn nhanh trên lưới và tên tệp Excel xuất từ lưới theo giờ Việt Nam, kể cả từ 0 giờ tới 7 giờ sáng khi máy chủ chạy giờ quốc tế (săn lỗi 06.10.2026) | BR-7 | Tự động |
 
 ---
 

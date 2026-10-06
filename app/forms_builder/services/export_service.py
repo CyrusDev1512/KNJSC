@@ -19,6 +19,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.http import QueryDict
+from django.utils import timezone
 
 from core import excel
 from core.audit import record
@@ -122,7 +123,7 @@ def build_workbook(queryset, columns, *, title, exported_ids=None):
 
 
 def file_name(table):
-    return f"{table.code}-{datetime.now():%Y%m%d-%H%M}.xlsx"
+    return f"{table.code}-{timezone.localtime():%Y%m%d-%H%M}.xlsx"   # giờ Việt Nam (AC-9.8)
 
 
 def export(user, table, params, *, request=None, builder="table"):

@@ -19,7 +19,7 @@ from django.utils import timezone
 from core.audit import record
 from core.constants import AuditAction
 from core.exceptions import BusinessError
-from core.money import parse_money
+from core.money import check_amount, parse_money
 
 from .. import choice_registry, record_policies
 from ..meaning import FieldType
@@ -85,7 +85,7 @@ def parse_value(column, raw, *, choices=None):
             # Số thật từ Excel nhận nguyên trạng — đưa "1234.567" qua
             # parse_money sẽ bị hiểu là 1.234.567 theo tập quán Việt Nam.
             if isinstance(raw, (int, float, Decimal)) and not isinstance(raw, bool):
-                return str(Decimal(str(raw)))
+                return str(check_amount(Decimal(str(raw)), raw))
             # Tiền và số thập phân luôn qua Decimal, không qua float (BR-8).
             # Đọc theo tập quán Việt Nam để nhận lại được đúng thứ màn hình
             # đang hiện — xem core.money.parse_money
