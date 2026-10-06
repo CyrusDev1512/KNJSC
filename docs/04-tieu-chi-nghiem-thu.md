@@ -136,6 +136,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-4.9 | Bỏ báo cáo cấp dưới (ADR-041): người nộp, Leader trong team, Manager trong bộ phận và Admin bỏ được — xoá mềm cả báo cáo lẫn dòng số liệu (BR-4), số rời khỏi Báo cáo tổng hợp, có nhật ký DELETE, bấm đúp không nhân đôi; nhân viên khác/Leader team khác/Manager bộ phận khác/Kế toán bị 403 (thấy) hoặc 404 (ngoài phạm vi xem) có nhật ký; service kiểm lại quyền trong giao dịch | FR-4.7 · ADR-041 | Tự động |
 | AC-4.10 | Khôi phục báo cáo đã bỏ (ADR-041): Manager bộ phận mình và Admin thấy trang "Đã bỏ" (phân trang, đúng phạm vi) và khôi phục — báo cáo về Lịch sử, dòng số liệu sống lại nguyên nội dung, số về lại Báo cáo tổng hợp, nhật ký UPDATE; Staff/Leader/Kế toán/Manager bộ phận khác bị 403 có nhật ký; liên kết "Đã bỏ" chỉ hiện với người có quyền | FR-4.7 · ADR-041 | Tự động |
 | AC-4.11 | Lịch sử báo cáo hiện Doanh số theo cách viết Việt Nam kèm loại tiền của dòng ("45.000.000 VND", "1.250.000 CAD", "720,5 USD"), không còn số máy kiểu "45000000,00" (kiểm toàn diện 04.10.2026) | FR-4.3 | Tự động |
+| AC-4.12 | Một lần nộp chỉ ghi một báo cáo: form có mã lần nộp dùng một lần; gửi lại đúng lần đó (mạng gửi lại, Back rồi Nộp, hai yêu cầu cùng lúc) không ghi thêm và báo "đã ghi lúc…"; nộp lỗi rồi sửa lại cùng mã vẫn ghi được một lần; mở form mới là mã mới (vẫn nộp nhiều lần trong ngày, AC-4.7); mã tính riêng từng người (săn lỗi 06.10.2026) | BR-2 · FR-4.2 | Tự động |
 
 ---
 
@@ -166,6 +167,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-6.8 | Nhập đơn với số điện thoại đã có thì hệ thống báo khách đã mua trước đó; "đã có" đếm theo **dòng đang sống trên bảng Vận đơn** cùng số (khoá 9 số cuối, như cột Trùng) — dòng đã xoá hay đơn của bảng cũ đã xoá cứng không tính, dòng nhập thẳng vào bảng có tính; cột "Mua lại lần" của đơn mới đếm cùng cách (chủ dự án 28.09.2026) | FR-6.7 | Tự động |
 | AC-6.10 | Cùng số điện thoại nhưng gõ tên khác: đơn mới ghi **tên vừa gõ**, danh bạ đổi theo và có nhật ký; đơn cũ giữ nguyên tên lúc đó; số điện thoại khác nhau thì mỗi đơn mang tên của mình; ô Facebook/Email bỏ trống không xoá dữ liệu đã có ; trước khi lưu, lời nhắc khách báo trước "sẽ đổi tên khách của số …" kèm cả tên cũ lẫn tên đang gõ, và mảnh nhắc mang sẵn tên để ô Tên khách tự điền khi đang trống | FR-6.7 | Tự động |
 | AC-6.9 | **Leader trở lên** của bộ phận Sale (chủ dự án 02.10.2026; trước đó Manager) lên đơn thêm được sản phẩm mới ngay tại ô chọn: mã tự sinh không trùng, sản phẩm hiện trong danh sách chọn và có ngay cột số lượng trên bảng vận đơn, mỗi lần thêm có nhật ký; Staff gửi thẳng bị từ chối có ghi nhật ký, không thấy hộp "Tạo sản phẩm"; bộ phận khác bị chặn; tên trùng bị từ chối; nút thêm một dòng vào đơn ghi "Thêm dòng", không ghi "Thêm sản phẩm" | FR-6.8 | Tự động |
+| AC-6.11 | Một lần bấm Lưu đơn chỉ ra một đơn: form Lên đơn có mã lần nộp dùng một lần; gửi lại đúng lần đó (kể cả hai yêu cầu cùng lúc) chỉ ra một đơn một mã, lần sau báo lại mã đơn đã lưu "không tạo đơn mới"; lưu xong form có mã mới (săn lỗi 06.10.2026) | FR-6.1 | Tự động |
 
 ---
 

@@ -229,3 +229,23 @@ class BackgroundJob(TimestampedModel):
         if summary is not None:
             self.summary = {**self.summary, **summary}
         self.save(update_fields=["status", "finished_at", "error", "summary", "updated_at"])
+
+
+class SubmissionReceipt(models.Model):
+    """Biên nhận một lần nộp form ghi dữ liệu (nộp báo cáo, lưu đơn) — chống gửi lặp (AC-4.12, AC-6.11).
+
+    Mỗi lần mở form có một mã `key` dùng một lần. Lần gửi đầu tạo biên nhận rồi mới ghi; cùng người gửi lại đúng mã
+    đó (mạng gửi lại, Back rồi nộp lại, hai yêu cầu tới cùng lúc) thì ràng buộc duy nhất chặn, trả lại đối tượng đã
+    ghi. Cùng khuôn với `crm.GridMutationReceipt` của lưới. Chỉ ghi thêm; đối tượng ghi bằng `kind` + `object_id`
+    như nhật ký — core không trỏ khoá ngoại sang module nghiệp vụ.
+    """
+
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
+    key = models.UUIDField("Mã lần nộp")
+    kind = models.CharField("Loại", max_length=30)
+    object_id = models.BigIntegerField("Đối tượng đã ghi", null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "submission_receipt"
+        constraints = [models.UniqueConstraint(fields=["actor", "key"], name="core_submission_actor_key")]

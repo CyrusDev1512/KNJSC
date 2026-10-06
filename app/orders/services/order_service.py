@@ -127,6 +127,15 @@ def _sinh_ma_don():
     return f"{dau}{so:04d}"
 
 
+def create_order_once(submission_key, **kwargs):
+    """Lên đơn từ form: gửi lại đúng mã lần nộp thì trả lại đơn đã lưu, không tạo đơn mới (AC-6.11).
+    Trả `(đơn, mới_tạo)`."""
+    from core.submission import run_once
+    return run_once(kwargs["actor"], submission_key, "order",
+                    create=lambda: create_order(**kwargs),
+                    load=lambda pk: Order.all_objects.select_related("record").get(pk=pk))
+
+
 @transaction.atomic
 def create_order(*, phone, customer_name, lines, actor, request=None,
                  facebook="", email="", market=Market.US, state="", city="",
