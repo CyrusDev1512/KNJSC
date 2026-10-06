@@ -110,17 +110,18 @@ def test_len_don_trung_ma_thi_khong_luu_don(bang_vd, nguoi_dung):
 
 
 def test_ma_don_moi_bo_qua_ma_da_co_tren_bang(bang_vd, nguoi_dung):
-    """AC-36.11 — Bảng đã có dòng mang mã cùng tiền tố hôm nay mà không có đơn (nhập từ hệ thống cũ): Lên đơn lấy số
-    kế tiếp sau mã đó, không đụng mã và không hỏng"""
+    """AC-36.11 — Bảng đã có dòng mang đúng mã kế tiếp của hôm nay mà không có đơn (nhập từ hệ thống cũ): Lên đơn nhảy
+    qua mã đó, không đụng mã và không hỏng"""
     from django.utils import timezone
     from orders.models import Product, ProductGroup
     from orders.tests.test_len_don import _len_don
 
     dau = f"DH-{timezone.localdate():%d%m}-"
-    _dong(bang_vd, nguoi_dung["staff_vd"], f"{dau}0041")
+    _dong(bang_vd, nguoi_dung["staff_vd"], f"{dau}0001")
+    _dong(bang_vd, nguoi_dung["staff_vd"], f"{dau}0002")
     nhom = ProductGroup.objects.create(name="Nhóm thử")
     sp = {"massage": Product.objects.create(name="Máy thử", code="may_thu", group=nhom)}
-    assert _len_don(nguoi_dung["staff_sale_1"], sp).code == f"{dau}0042"
+    assert _len_don(nguoi_dung["staff_sale_1"], sp).code == f"{dau}0003"
 
 
 def test_migration_dung_khi_con_ma_trung_va_dao_duoc(bang_vd, nguoi_dung):
