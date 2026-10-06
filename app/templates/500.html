@@ -1,13 +1,14 @@
 <!doctype html>
 {% comment %}
 Trang lỗi máy chủ — AC-10.14 (NFR-6: không trang trắng, luôn tiếng Việt). Tự đứng, không kế thừa khung trang, không
-{% static %}: lúc lỗi có thể chính cơ sở dữ liệu hay tệp tĩnh đang hỏng. `het_dia` do DiskFullMiddleware đặt (mã 507).
+{% static %}: lúc lỗi có thể chính cơ sở dữ liệu hay tệp tĩnh đang hỏng. `het_dia` do DiskFullMiddleware đặt (mã 507), `loi_400`
+do `core.middleware.tra_loi_400` (dữ liệu gửi lên có NUL, quá dài, số tràn).
 {% endcomment %}
 <html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% if het_dia %}Máy chủ hết chỗ lưu tệp{% else %}Hệ thống gặp lỗi{% endif %} · Kim Ngân JSC</title>
+<title>{% if loi_400 %}Dữ liệu chưa hợp lệ{% elif het_dia %}Máy chủ hết chỗ lưu tệp{% else %}Hệ thống gặp lỗi{% endif %} · Kim Ngân JSC</title>
 <style>
   :root { --nen: #f6f7f2; --the: #fff; --chu: #1d2a22; --phu: #4d5b52; --do: #b3261e; --vien: #dfe3da; }
   @media (prefers-color-scheme: dark) { :root { --nen: #141a16; --the: #1d241f; --chu: #e8ede6; --phu: #b5c0b8; --do: #f2b8b5; --vien: #2f3a33; } }
@@ -22,7 +23,13 @@ Trang lỗi máy chủ — AC-10.14 (NFR-6: không trang trắng, luôn tiếng 
 </head>
 <body>
 <main class="the" role="alert">
-  {% if het_dia %}
+  {% if loi_400 %}
+  <div class="nhan">Lỗi 400</div>
+  <h1>Dữ liệu chưa hợp lệ</h1>
+  <p>{{ loi_400 }}</p>
+  <p>Chưa có gì được lưu.</p>
+  <a href="javascript:history.back()">Quay lại</a>
+  {% elif het_dia %}
   <div class="nhan">Lỗi 507</div>
   <h1>Máy chủ hết chỗ lưu tệp</h1>
   <p>Máy chủ đã hết chỗ lưu tệp nên tệp chưa được lưu. Quản trị viên đã được báo.</p>

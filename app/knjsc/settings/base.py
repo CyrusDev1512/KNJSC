@@ -70,6 +70,8 @@ MIDDLEWARE = [
     "core.middleware.UnicodeNFCMiddleware",
     # Đĩa đầy khi ghi tệp: 507 tiếng Việt + báo người vận hành (AC-10.14)
     "core.middleware.DiskFullMiddleware",
+    # Chuỗi dài hơn cột, số tràn cột: 400 tiếng Việt thay vì 500 (AC-10.16)
+    "core.middleware.DataLimitMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",

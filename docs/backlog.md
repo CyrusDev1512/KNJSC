@@ -1,5 +1,19 @@
 # Backlog
 
+## 06.10.2026 — Săn lỗi 10: fuzz — 139 lỗi 500 ở ERP, 178 ở CRM, năm gốc, đã sửa ở cửa vào (AC-10.16, AC-21.16)
+
+- Bắn 12 dữ liệu lạ vào mọi tham số GET và form POST theo vai (hơn 20.000 yêu cầu). Năm gốc:
+  1. ký tự NUL lọt vào câu truy vấn (108 chỗ ở ERP: ô tìm, bộ lọc Báo cáo tổng hợp, Bảng tin…);
+  2. bộ lọc cột sai kiểu trên URL (`?f_ngay=-1`) ở Bảng dữ liệu, lưới, Thống kê CRM;
+  3. chuỗi dài hơn cột (tên mục Tài nguyên 5.000 ký tự);
+  4. mã không phải số đưa vào `get_object_or_404` (tạo thư mục, trang Cột);
+  5. JSON lưới có NUL; ô lưới nhận 200.000 ký tự, quá trần một ô Excel.
+- Đã sửa ở cửa vào, không vá từng view: middleware chuẩn hoá chữ từ chối NUL; `DataLimitMiddleware` đổi lỗi
+  "quá dài"/"số tràn" của Postgres thành 400 tiếng Việt; `apply_filters` bỏ qua bộ lọc sai kiểu; `parse_value` chặn NUL
+  và ô quá 32.767 ký tự; hai view kiểm mã là số. Lời 400 đúng kiểu người gọi (JSON, HTMX, trang có nút Quay lại).
+
+[Biên bản](kiem-chung-san-loi-fuzz-20261006.md). Nhánh `claude/san-loi-tiep`.
+
 ## 06.10.2026 — Săn lỗi 7: chất lượng bộ kiểm bằng đột biến tay — 17 đột biến, 2 lọt đã lấp (AC-21.17)
 
 - Cố ý làm hỏng 17 quy tắc quan trọng (phạm vi quyền, CAS, xoá mềm, nhật ký, khoá đăng nhập, phiên, tiền tệ, công

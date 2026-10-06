@@ -14,7 +14,7 @@ ghép sai thì hoặc nổ, hoặc tệ hơn là trả nhầm dữ liệu.
 """
 from orders.constants import is_waybill_table
 from django.conf import settings
-from django.core.exceptions import FieldError
+from django.core.exceptions import FieldError, ValidationError
 from django.db.models import Q
 
 from .meaning import COLUMN_OF
@@ -156,7 +156,8 @@ def apply_filters(queryset, column_map, filters):
                 # Giữ phép bằng bên dưới để không thay ngữ nghĩa lọc hiện có.
                 queryset = queryset.filter(data__contains={code: gia_tri})
             queryset = queryset.filter(**{f"{duong_dan}__{phep}": gia_tri})
-        except (FieldError, ValueError, TypeError):
+        except (FieldError, ValidationError, ValueError, TypeError):
+            # ValidationError: giá trị sai kiểu cho cột tách ngày/tiền (`?f_ngay=-1`) — trước đây là lỗi 500 (AC-10.16)
             continue
     return queryset
 
