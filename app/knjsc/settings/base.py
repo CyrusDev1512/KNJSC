@@ -68,6 +68,8 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     # Chữ Việt về một dạng NFC trước khi view nào đọc (AC-9.6)
     "core.middleware.UnicodeNFCMiddleware",
+    # Đĩa đầy khi ghi tệp: 507 tiếng Việt + báo người vận hành (AC-10.14)
+    "core.middleware.DiskFullMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -109,6 +111,9 @@ DATABASES = {
         "HOST": env("POSTGRES_HOST", "localhost"),
         "PORT": env("POSTGRES_PORT", "5432"),
         "CONN_MAX_AGE": 60,
+        # Kiểm kết nối giữ lại trước khi dùng: Postgres khởi động lại thì mỗi kết nối cũ của gunicorn làm hỏng một
+        # yêu cầu dù Postgres đã khoẻ (đo 8/16 lỗi 500) — AC-10.15
+        "CONN_HEALTH_CHECKS": True,
     }
 }
 
@@ -244,6 +249,9 @@ EXCHANGE_RATES_VND = env_rates("EXCHANGE_RATES_VND", {
 # ── Tác vụ nền ──────────────────────────────────────────────────────
 CELERY_BROKER_URL = env("REDIS_URL", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+# Không lưu kết quả tác vụ: tiến độ và kết quả đã ở `BackgroundJob`, không chỗ nào đọc kết quả Celery. Lưu thì mỗi lần
+# gửi tác vụ lúc Redis tắt treo web 19 giây (bộ lưu kết quả thử lại 20 lần) rồi báo phải khởi động lại — AC-10.13
+CELERY_TASK_IGNORE_RESULT = True
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", False)
 # Lịch định kỳ — docs/03 mục 8 và 9. Giờ theo CELERY_TIMEZONE (Việt Nam).

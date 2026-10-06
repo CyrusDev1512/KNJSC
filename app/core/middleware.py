@@ -10,10 +10,11 @@ import unicodedata
 from django.conf import settings
 from django.contrib.auth import logout
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.cache import add_never_cache_headers
 
+from .alerts import bao_het_dia, la_het_dia
 from .htmx import is_htmx
 
 # Những đường dẫn luôn cho qua, nếu không sẽ chuyển hướng vòng tròn
@@ -172,3 +173,20 @@ class UnicodeNFCMiddleware:
                 if moi is not None:
                     request.POST = moi
         return self.get_response(request)
+
+
+class DiskFullMiddleware:
+    """Ghi tệp thất bại vì đĩa đầy: trả 507 với lời tiếng Việt và báo người vận hành, thay vì trang lỗi 500 chung chung
+    (AC-10.14, săn lỗi 06.10.2026). Tải tài liệu, nhập tệp, chứng từ đều ghi vào `storage`."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_exception(self, request, exception):
+        if not la_het_dia(exception):
+            return None
+        bao_het_dia(request.path)
+        return render(request, "500.html", {"het_dia": True}, status=507)

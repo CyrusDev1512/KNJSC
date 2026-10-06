@@ -1,5 +1,20 @@
 # Backlog
 
+## 06.10.2026 — Săn lỗi 6: Redis tắt treo 19 giây; đĩa đầy lỗi 500; Postgres khởi động lại vẫn lỗi; thiếu trang 500/404 (AC-10.13 → 10.15)
+
+- **Redis tắt:** xuất Excel lưới treo 19 giây rồi lỗi 500, tác vụ kẹt "Chờ xử lý" mãi. Nay không lưu kết quả Celery,
+  gửi thử lại ngắn; không gửi được thì tác vụ Thất bại có lời giải thích, báo ngay trên lưới (0,94 giây). Mọi thao
+  tác khác vẫn chạy khi Redis tắt.
+- **Đĩa `storage` đầy:** tải tài liệu, nhập tệp lỗi 500. Nay 507 "hết chỗ lưu tệp" và báo người vận hành; tác vụ xuất
+  nền nói rõ.
+- **Không có `500.html`, `404.html`:** VPS hiện trang trắng chữ Anh. Đã thêm hai trang tiếng Việt.
+- **Postgres khởi động lại** (gunicorn như VPS): Postgres đã chạy lại mà 8/16 yêu cầu vẫn lỗi 500 do kết nối giữ lại.
+  Bật `CONN_HEALTH_CHECKS`: 0/48.
+- Máy chủ dự án và VPS cần **khởi động lại container** để nhận cấu hình mới (không cần dựng lại image vì requirements
+  không đổi).
+
+[Biên bản](kiem-chung-san-loi-su-co-20261006.md). Nhánh `claude/san-loi-tiep`.
+
 ## 06.10.2026 — Săn lỗi 5: ô số nhận "NaN" thành trang lỗi 500; "Hôm nay" lệch ngày lúc sáng sớm (AC-9.7, AC-9.8)
 
 - **Lỗi vừa:** gõ `NaN`, `Infinity`, `1e400` hay số 24 chữ số vào ô Doanh số là trang lỗi 500. `parse_money` nay chỉ

@@ -22,6 +22,7 @@ from django.http import QueryDict
 from django.utils import timezone
 
 from core import excel
+from core.alerts import HET_DIA, bao_het_dia, la_het_dia
 from core.audit import record
 from core.constants import (
     EXPORT_SYNC_MAX_ROWS, AuditAction, JobKind, JobStatus,
@@ -166,6 +167,10 @@ def export(user, table, params, *, request=None, builder="table"):
     from .import_service import _day_vao_hang_doi
 
     _day_vao_hang_doi(chay_tac_vu_xuat, job.pk)
+    job.refresh_from_db(fields=["status", "error"])
+    if job.status == JobStatus.FAILED:
+        # Hàng đợi chết: báo ngay ở chỗ người dùng đang đứng, không đưa họ sang trang tác vụ đã hỏng (AC-10.13)
+        raise BusinessError(job.error)
     return "job", job
 
 
@@ -199,9 +204,13 @@ def run(job_id):
         job.mark_done(result_path=f"{EXPORT_SUBDIR}/{ten}")
     except BusinessError as loi:
         job.mark_failed(str(loi))
-    except Exception:
+    except Exception as loi:
         logger.exception("Tác vụ xuất #%s thất bại", job.pk)
-        job.mark_failed("Xuất thất bại vì lỗi hệ thống. Hãy thử lại sau.")
+        if la_het_dia(loi):
+            bao_het_dia(f"tác vụ xuất #{job.pk}")
+            job.mark_failed(HET_DIA)
+        else:
+            job.mark_failed("Xuất thất bại vì lỗi hệ thống. Hãy thử lại sau.")
     return job
 
 
