@@ -10,13 +10,15 @@ lại. Ba quyết định định hình nó:
   áp cho mọi dòng, không thuộc về ô. Nhờ vậy sắp xếp hay lọc không làm sai.
 - **ADR-007** — biểu mẫu luôn ghi vào bảng có sẵn, không tự sinh bảng mới.
 """
+from contextlib import contextmanager
 from decimal import Decimal, DivisionByZero, InvalidOperation
 
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import IntegrityError, models, transaction
 
+from core.exceptions import BusinessError
 from core.models import ScopedModel, SoftDeleteModel, TimestampedModel
 from core.money import MONEY_DECIMAL_PLACES, MONEY_MAX_DIGITS
 
@@ -26,6 +28,9 @@ from .managers import (
     DataRecordManager, FormDefManager, TableDefManager,
 )
 from . import choice_registry
+
+#: Ràng buộc mỗi mã đơn một dòng sống ở bảng vận đơn — tên dùng để nhận ra lỗi trùng trong `IntegrityError`
+ORDER_CODE_CONSTRAINT = "record_ma_don_unique"
 from .meaning import COLUMN_OF, FieldType, Meaning, allows, type_fits
 
 #: Kiểu dữ liệu được làm cột khoá — chuỗi ngắn hoặc số nguyên, thứ so bằng được
@@ -500,6 +505,11 @@ class DataRecord(ScopedModel):
     val_seller = models.CharField("Người bán", max_length=200, blank=True, db_index=True)
     val_product = models.CharField("Sản phẩm", max_length=200, blank=True, db_index=True)
     val_status = models.CharField("Trạng thái", max_length=100, blank=True, db_index=True)
+    #: Mã đơn đã cắt khoảng trắng, **chỉ ở bảng vận đơn** (bảng thường để rỗng). Ràng buộc
+    #: `record_ma_don_unique` giữ mỗi mã một dòng sống — đối soát với hãng vận chuyển, kế toán theo mã
+    #: đơn (chốt 06.10.2026). Sinh ở `sync_indexed_columns`; dòng đã xoá không giữ mã
+    val_order_code = models.CharField("Mã đơn (khoá chống trùng)", max_length=200, blank=True, default="",
+                                      db_default="")
 
     class Meta:
         verbose_name = "Bản ghi"
@@ -519,6 +529,12 @@ class DataRecord(ScopedModel):
                          name="record_master_cover_idx"),
             # Cột JSON dùng để lọc phải có chỉ mục GIN — quy tắc 12
             GinIndex(fields=["data"], name="record_data_gin"),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["table", "val_order_code"], name=ORDER_CODE_CONSTRAINT,
+                condition=models.Q(deleted_at__isnull=True) & ~models.Q(val_order_code=""),
+            ),
         ]
 
     def __str__(self):
@@ -564,6 +580,7 @@ class DataRecord(ScopedModel):
                 setattr(self, dich, _normalise(None, dich))
         # Khoá so trùng đi theo val_phone, kể cả khi số vừa bị xoá về rỗng
         self.val_phone_key = phone_key(self.val_phone)
+        self.val_order_code = order_code(self.table, self.data) if self.table_id else ""
         return self
 
     @classmethod
@@ -586,7 +603,7 @@ class DataRecord(ScopedModel):
         records = sorted(records, key=lambda r: r.pk)
         if not records:
             return 0
-        ten = list(fields or ("data", *COLUMN_OF.values(), "val_phone_key"))
+        ten = list(fields or ("data", *DERIVED_FIELDS))
         if "updated_at" not in ten:
             ten.append("updated_at")
         luc = timezone.now()
@@ -604,7 +621,7 @@ class DataRecord(ScopedModel):
                 tham_so.extend(c.get_db_prep_save(getattr(r, c.attname), connection) for c in cac_cot)
             sql = (f"UPDATE {qn(cls._meta.db_table)} AS r SET {dat} FROM (VALUES "
                    + ", ".join([khuon] * len(lo)) + f") AS v({cot_v}) WHERE r.id = v.id")
-            with connection.cursor() as c:
+            with _ma_don_khong_trung(), connection.cursor() as c:
                 c.execute(sql, tham_so)
         return len(records)
 
@@ -615,7 +632,45 @@ class DataRecord(ScopedModel):
             cot = list(self.table.columns.all())
             self.apply_computed_columns(cot)
             self.sync_indexed_columns(cot)
-        return super().save(*args, **kwargs)
+        if not self.val_order_code:
+            return super().save(*args, **kwargs)
+        with _ma_don_khong_trung(self.val_order_code):
+            return super().save(*args, **kwargs)
+
+
+#: Cột tách sinh từ `data` — `bulk_save` ghi mặc định, `resync_table` so lệch, `kiem_tra_du_lieu` đối chiếu
+DERIVED_FIELDS = (*COLUMN_OF.values(), "val_phone_key", "val_order_code")
+
+
+def order_code(table, data):
+    """Khoá chống trùng mã đơn của một dòng: mã đã cắt khoảng trắng ở bảng vận đơn, rỗng ở bảng khác."""
+    from orders.constants import is_waybill_table
+    if not is_waybill_table(table):
+        return ""
+    return str((data or {}).get("ma_don") or "").strip()[:200]
+
+
+@contextmanager
+def _ma_don_khong_trung(ma=None):
+    """Ghi trong một điểm lưu: trùng mã đơn thì chỉ lệnh này hỏng, giao dịch ngoài (lượt nhập nhiều dòng) vẫn
+    đi tiếp được, và người dùng nhận lời tiếng Việt thay vì trang lỗi 500."""
+    try:
+        with transaction.atomic():
+            yield
+    except IntegrityError as loi:
+        if ORDER_CODE_CONSTRAINT not in str(loi):
+            raise
+        if ma is None:
+            chi_tiet = getattr(getattr(loi, "__cause__", None), "diag", None)
+            ma = _ma_trong_loi(getattr(chi_tiet, "message_detail", "") or str(loi))
+        raise BusinessError(f"Mã đơn {ma} đã có ở một dòng khác trong bảng. Mỗi mã đơn chỉ một dòng.") from None
+
+
+def _ma_trong_loi(chi_tiet):
+    """Postgres ghi `Key (table_id, val_order_code)=(5, DH-1) already exists.` — lấy lại mã để báo."""
+    import re
+    m = re.search(r"\)=\([^,]*, (.*)\) already exists", chi_tiet)
+    return m.group(1) if m else ""
 
 
 def phone_key(phone):

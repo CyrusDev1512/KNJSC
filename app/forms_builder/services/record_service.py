@@ -10,7 +10,7 @@ vẫn hiện đúng còn lọc và thống kê thì sai.
 """
 from .lifecycle_service import writing, available, lock as table_lock
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
@@ -26,6 +26,9 @@ from ..meaning import FieldType
 from ..models import DataRecord
 
 #: Giá trị người dùng gõ vào được hiểu là "đúng"
+#: Ngày số của Excel: ngày 0 là 30/12/1899; trần 2.958.466 là 31/12/9999 — số lớn hơn không phải ngày
+EXCEL_EPOCH = date(1899, 12, 30)
+EXCEL_SERIAL_MAX = 2958466
 TRUE_WORDS = frozenset({"1", "true", "co", "có", "x", "yes", "dung", "đúng"})
 
 
@@ -102,6 +105,12 @@ def parse_value(column, raw, *, choices=None):
         if kieu == FieldType.DATE:
             if isinstance(raw, (date, datetime)):
                 return raw.strftime("%Y-%m-%d")
+            if isinstance(raw, (int, float, Decimal)) and not isinstance(raw, bool):
+                # Ô ngày mất định dạng trong tệp Excel: số ngày kể từ 30/12/1899 (45000 = 15/03/2023, AC-7.16).
+                # Chỉ số thật của ô Excel; chữ "45000" vẫn đi nhánh dưới và bị từ chối
+                if not 1 <= raw < EXCEL_SERIAL_MAX:
+                    raise ValueError(raw)
+                return (EXCEL_EPOCH + timedelta(days=int(raw))).isoformat()
             return date.fromisoformat(str(raw)).isoformat()
         if kieu == FieldType.DATETIME:
             if isinstance(raw, datetime):
@@ -465,8 +474,10 @@ def _update_locked_cells(cells, *, actor, request=None, columns=None, confirmati
 
 @writing
 @transaction.atomic
+@transaction.atomic
 def restore_record(ban_ghi, *, actor=None, request=None):
-    """Khôi phục một dòng đã xoá mềm — hoàn tác xoá trên Bảng tính (ADR-011)."""
+    """Khôi phục một dòng đã xoá mềm — hoàn tác xoá trên Bảng tính (ADR-011).
+    Bảng nghiệp vụ có `after_restore` (Vận đơn: khôi phục đơn gốc) chạy trong cùng giao dịch."""
     policy = record_policies.for_table(ban_ghi.table)
     if policy:
         policy.refresh_for_update(ban_ghi, actor, include_deleted=True)
@@ -479,13 +490,17 @@ def restore_record(ban_ghi, *, actor=None, request=None):
         AuditAction.UPDATE, actor=actor, target=ban_ghi,
         detail=f"Khôi phục dòng đã xoá của bảng {ban_ghi.table.code}", request=request,
     )
+    if policy and hasattr(policy, "after_restore"):
+        policy.after_restore(ban_ghi, actor=actor, request=request)
     return ban_ghi
 
 
 @writing
 @transaction.atomic
+@transaction.atomic
 def delete_record(ban_ghi, *, actor=None, request=None):
-    """Xoá một dòng. Đánh dấu chứ không xoá khỏi cơ sở dữ liệu (BR-4)."""
+    """Xoá một dòng. Đánh dấu chứ không xoá khỏi cơ sở dữ liệu (BR-4).
+    Bảng nghiệp vụ có `after_delete` (Vận đơn: bỏ đơn gốc) chạy trong cùng giao dịch."""
     policy = record_policies.for_table(ban_ghi.table)
     if policy:
         policy.refresh_for_update(ban_ghi, actor)
@@ -495,6 +510,8 @@ def delete_record(ban_ghi, *, actor=None, request=None):
         AuditAction.DELETE, actor=actor, target=ban_ghi,
         detail=f"Xoá dòng khỏi bảng {ma_bang}", request=request,
     )
+    if policy and hasattr(policy, "after_delete"):
+        policy.after_delete(ban_ghi, actor=actor, request=request)
     return ban_ghi
 
 
