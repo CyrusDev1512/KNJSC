@@ -1,5 +1,16 @@
 # Backlog
 
+## 06.10.2026 — Săn lỗi 7: chất lượng bộ kiểm bằng đột biến tay — 17 đột biến, 2 lọt đã lấp (AC-21.17)
+
+- Cố ý làm hỏng 17 quy tắc quan trọng (phạm vi quyền, CAS, xoá mềm, nhật ký, khoá đăng nhập, phiên, tiền tệ, công
+  thức Excel…), mỗi lần một chỗ: 15 bị bài có sẵn hoặc bài của đợt này bắt ngay.
+- **Lọt 1:** quy tắc đọc `1.234` là một nghìn hai trăm ba mươi tư không có bài canh trước đợt này — đã lấp bởi bài của
+  bước 5.
+- **Lọt 2:** bỏ dòng chặn CEO sửa dòng mà không bài nào đỏ; CEO có hồ sơ trong bộ phận Vận đơn sẽ sửa được lưới. Mã
+  hiện tại đúng, thiếu bài canh — đã thêm (AC-21.17).
+
+[Biên bản](kiem-chung-san-loi-dot-bien-20261006.md). Nhánh `claude/san-loi-tiep`.
+
 ## 06.10.2026 — Săn lỗi 8: đối soát số liệu — mọi con số khớp; Thống kê CRM viết số khác ERP (AC-22.27)
 
 - Báo cáo Marketing tháng 9 (1.801 lần nộp): cơ sở dữ liệu = Báo cáo tổng hợp = cộng dòng nhân sự = Excel (toàn kỳ và
