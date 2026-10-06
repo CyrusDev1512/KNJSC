@@ -359,6 +359,7 @@ Solarpunk Office (ADR-028, `DESIGN.md`); PRODUCT.md còn ghi hướng Google Wor
 | Làm từng giai đoạn cho chạy thật, không dựng vỏ hết màn hình trước | Backlog **Q22** |
 | Mỗi lượt xong thì ghi một mục có ngày ở đầu `docs/backlog.md`, kèm biên bản `docs/kiem-chung-<việc>-<ngày>.md` khi có đo | Không thì phiên sau không biết đang ở đâu |
 | Ưu tiên hiện tại: sửa feedback khách hàng; nhắc việc chủ động và AI là giai đoạn sau | Chủ dự án chốt 09.09.2026 |
+| **Trả lời ngắn kiểu Codex**: báo cáo cuối gồm bảng *Mục · Trước · Sau* cho những gì đã đổi, rồi các dòng **Vấn đề đã gặp** (lỗi, trở ngại, chỗ làm lại, việc chưa kiểm được), **Kiểm** (có số), **Cần anh**, link; không tường thuật từng bước; CI xanh thì không nhắn | Chủ dự án chốt 06.10.2026 |
 
 ---
 
