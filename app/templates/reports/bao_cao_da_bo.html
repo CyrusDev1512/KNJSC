@@ -10,6 +10,7 @@ khôi phục là việc của quản lý trực tiếp.
 {% endcomment %}
 <div class="bang-hop">
   <p><a class="nut nut-nho" href="{% url 'bao_cao_lich_su' %}">← Lịch sử báo cáo</a></p>
+  <div data-vung-trang="ds">{# phan-trang.js chỉ thay vùng này khi chuyển trang (AC-10.19) #}
   <div class="bang-cuon">
     <table class="bang">
       <thead>
@@ -39,5 +40,6 @@ khôi phục là việc của quản lý trực tiếp.
     </table>
   </div>
   {% include 'components/phan_trang.html' %}
+  </div>
 </div>
 {% endblock %}

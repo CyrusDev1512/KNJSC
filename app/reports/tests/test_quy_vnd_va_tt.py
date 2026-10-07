@@ -1,8 +1,10 @@
 """ADR-042 — Báo cáo tổng hợp theo ảnh mẫu, đợt 1: cột đối soát (TT), hai lỗi phân trang và chip Kỳ.
 Quy ₫ của đợt 1 đã thay bằng ADR-046 (28.09.2026): không quy đổi, mỗi dòng một loại tiền — AC-46.1, 46.2."""
+import re
 from datetime import date, timedelta
 from decimal import Decimal
 from io import BytesIO
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from openpyxl import load_workbook
@@ -177,7 +179,11 @@ def test_sang_trang_va_chip_ky(client, bang_mkt, mkt_source, nguoi_dung):
     assert r.status_code == 200 and r.context["page_obj"].number == 2
     assert "trang=" not in r.context["qs_loc"] and "moi_trang=" not in r.context["qs_loc"]
     html = r.content.decode()
-    assert '?trang=1&moi_trang=25&amp;nguon=' in html      # link trang 1 không kéo theo trang=2 cũ
+    # Link trang 1 thay đúng trang=2 cũ thành trang=1, giữ bộ lọc (AC-10.18: liên kết giữ mọi tham số của URL)
+    lk1 = next(h for h in (x.replace("&amp;", "&") for x in re.findall(r'(?<!data-)href="(\?[^"]+)"', html))
+               if parse_qs(urlsplit(h).query).get("trang") == ["1"])
+    q1 = parse_qs(urlsplit(lk1).query)
+    assert q1["trang"] == ["1"] and q1["nguon"] == [bang_mkt.code]
     assert r.context["chips"][0]["url"] and r.context["filters_active"] == 1     # kỳ tháng 8 khác mặc định
     tu, den = summary_service.default_range()
     r0 = client.get("/bao-cao/tong-hop/", {"nguon": bang_mkt.code, "tu": tu.isoformat(), "den": den.isoformat()})

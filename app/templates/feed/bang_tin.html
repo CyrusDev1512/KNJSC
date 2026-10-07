@@ -28,6 +28,7 @@
       </form>
     </div>
 
+    <div data-vung-trang="ds">{# phan-trang.js chỉ thay vùng này khi chuyển trang (AC-10.19) #}
     {% for bai in trang %}
       {% include "feed/_bai.html" with bai=bai da_thich=bai.da_thich so_thich=bai.so_thich so_binh_luan=bai.so_binh_luan %}
     {% empty %}
@@ -36,6 +37,7 @@
       </div></div>
     {% endfor %}
     {% if page_obj.paginator.num_pages > 1 %}<div class="the">{% include "components/phan_trang.html" %}</div>{% endif %}
+    </div>
   </div>
 
   {% include "feed/_ben_phai.html" %}

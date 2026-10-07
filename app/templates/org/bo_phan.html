@@ -19,6 +19,7 @@
   <div class="doc">
     <div class="the">
       <div class="the-dau"><h2>Bộ phận</h2></div>
+      <div data-vung-trang="bo-phan">{# phan-trang.js chỉ thay vùng này khi chuyển trang (AC-10.19) #}
       <div class="bang-cuon">
         <table class="bang">
           <thead><tr><th>Tên</th><th>Mã</th><th class="phai">Team</th><th class="phai">Nhân sự</th><th>Trạng thái</th></tr></thead>
@@ -41,6 +42,7 @@
         </table>
       </div>
       {% include "components/phan_trang.html" with page_obj=pt_bo_phan.page_obj moi_trang=pt_bo_phan.moi_trang cac_co_trang=pt_bo_phan.cac_co_trang ten_don_vi=pt_bo_phan.ten_don_vi tham_so=pt_bo_phan.tham_so tham_so_co=pt_bo_phan.tham_so_co %}
+      </div>
     </div>
 
     <div class="the">
@@ -63,6 +65,7 @@
   <div class="doc">
     <div class="the">
       <div class="the-dau"><h2>Team</h2></div>
+      <div data-vung-trang="team">{# phan-trang.js chỉ thay vùng này khi chuyển trang (AC-10.19) #}
       <div class="bang-cuon">
         <table class="bang">
           <thead><tr><th>Tên</th><th>Bộ phận</th><th>Trưởng nhóm</th><th class="phai">Thành viên</th></tr></thead>
@@ -81,6 +84,7 @@
         </table>
       </div>
       {% include "components/phan_trang.html" with page_obj=pt_team.page_obj moi_trang=pt_team.moi_trang cac_co_trang=pt_team.cac_co_trang ten_don_vi=pt_team.ten_don_vi tham_so=pt_team.tham_so tham_so_co=pt_team.tham_so_co %}
+      </div>
     </div>
 
     <div class="the">

@@ -22,6 +22,7 @@
 <div class="luoi luoi-phu" style="margin-top:var(--sp-4)">
   <div class="the">
     <div class="the-dau"><h2>Ghi nhận nhận được</h2></div>
+    <div data-vung-trang="ds">{# phan-trang.js chỉ thay vùng này khi chuyển trang (AC-10.19) #}
     <div>
       {% for gn in trang %}
         {% include "culture/_ghi_nhan.html" with gn=gn %}
@@ -30,6 +31,7 @@
       {% endfor %}
     </div>
     {% if page_obj.paginator.count %}{% include "components/phan_trang.html" %}{% endif %}
+    </div>
   </div>
   <div class="the">
     <div class="the-dau"><h2>Sao theo tháng</h2></div>

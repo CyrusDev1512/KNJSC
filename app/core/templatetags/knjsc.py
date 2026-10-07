@@ -55,3 +55,23 @@ def avatar(user, lon=False):
     return format_html(
         '<div class="avatar{}" aria-hidden="true">{}</div>', " avatar-lon" if lon else "", chu,
     )
+
+
+@register.simple_tag(takes_context=True)
+def trang_url(context, dat, gia_tri, bo="", qs_loc=""):
+    """Liên kết của thanh phân trang (AC-10.18): giữ **mọi** tham số của URL đang mở, đặt `dat=gia_tri`, bỏ `bo`.
+
+    Chuỗi lọc `qs_loc` màn hình truyền (bắt đầu bằng "&") được chồng lên trước, để màn hình nào đã truyền vẫn y như cũ.
+    Màn hình quên truyền không còn mất bộ lọc khi chuyển trang, và trang có hai bảng phân trang không làm bảng kia về
+    trang 1. Mã hoá bằng `QueryDict.urlencode`, nên chữ có "&", "#" không làm vỡ liên kết."""
+    from django.http import QueryDict
+
+    request = context.get("request")
+    tham_so = request.GET.copy() if request is not None else QueryDict(mutable=True)
+    if qs_loc:
+        for khoa, cac in QueryDict(str(qs_loc).lstrip("&")).lists():
+            tham_so.setlist(khoa, cac)
+    if bo:
+        tham_so.pop(bo, None)
+    tham_so[dat] = str(gia_tri)
+    return "?" + tham_so.urlencode()
