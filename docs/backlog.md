@@ -1,5 +1,16 @@
 # Backlog
 
+## 07.10.2026 — ERP mở rộng mặc định, phân trang không mất lọc và không tải lại trang, lưới CRM bớt việc thừa (AC-10.17 → 10.22)
+
+- ERP mở lên ở chế độ mở rộng, không ảnh nền; bấm nút mới hiện nền, máy nhớ lựa chọn.
+- Thanh phân trang dùng chung giữ mọi tham số URL (Nhân sự, Nhật ký hết mất bộ lọc; trang hai bảng không giẫm nhau) và chỉ
+  thay vùng danh sách khi chuyển trang.
+- Lưới CRM ở 385.034 dòng: mở lưới 2,9 → 0,39 s, đổi lọc 2,9 → 0,03 s, hỏi "có gì mới" 608 → 34 ms (vd.manager).
+- **Còn nợ, cần chủ dự án quyết:** trang chủ KN CRM 150–258 giây ở 385.000 dòng (khối "Bảng gần đây"); menu khung CRM
+  0,4 s mọi trang; thư mục 1,5 s; đọc khối lưới 0,2–0,9 s (mốc phiên bản theo phạm vi, điểm nghẽn từ 16.09).
+
+[Biên bản](kiem-chung-phan-trang-luoi-erp-mo-rong-20261007.md). Nhánh `claude/phan-trang-luoi-erp-mo-rong`.
+
 ## 06.10.2026 — Database và phân quyền theo URL: mã đơn không trùng ở DB, đơn đi theo dòng, lệnh kiem_tra_du_lieu (AC-1.10 → 1.12, 6.12, 7.16, 8.11, 36.11 → 36.14)
 
 - **Đổi URL mất quyền:** link ERP ↔ CRM giữ host đang mở (127.0.0.1 hay localhost); VPS thiếu cookie domain thì
