@@ -1,5 +1,24 @@
 # Backlog
 
+## 07.10.2026 — Báo cáo tổng hợp: đầu trang gọn, menu ⋯, bảng cao tới thanh trên (AC-42.18 → 42.21, TL-74, TL-75)
+
+- **Chủ dự án duyệt mockup v2** (07.10):
+  - trên bảng không còn hàng nút, hàng chip, hàng tên bảng;
+  - tên báo cáo, kỳ, ⋯ và chip lên thanh trên cùng;
+  - menu ⋯ gom Không gộp / Gộp, Ngưỡng màu, Giải thích số liệu, Toàn màn hình, Xuất Excel;
+  - Toàn màn hình còn một hàng mảnh có ⋯; màn hẹp có nút "Lọc (n)".
+- **Khác mockup một chỗ:** ⋯ đứng trước chip (mockup để sau). Chip chỉ lấy chỗ thừa, nên tên báo cáo không bị cắt khi
+  nhiều chip và ⋯ không nhảy chỗ.
+- **TL-74:** bảng hụt 96 px khi thanh menu dưới đã thu. Sửa bằng đo lại theo cỡ vùng nội dung. Ở 1366×768 khung bảng
+  342 → 578 px.
+- **TL-75:** Escape không thoát toàn màn hình khi đang lọc sản phẩm. Sửa một dòng.
+- **Còn nợ:**
+  - Bảng dữ liệu dạng báo cáo giữ hàng nút cũ và chưa đo lại khi thu/mở thanh menu (chủ dự án: "bảng dữ liệu chưa
+    cần");
+  - chưa thử Safari, Firefox.
+
+[Biên bản](kiem-chung-bao-cao-menu-ba-cham-20261007.md). Nhánh `claude/bao-cao-menu-ba-cham`.
+
 ## 06.10.2026 — Database và phân quyền theo URL: mã đơn không trùng ở DB, đơn đi theo dòng, lệnh kiem_tra_du_lieu (AC-1.10 → 1.12, 6.12, 7.16, 8.11, 36.11 → 36.14)
 
 - **Đổi URL mất quyền:** link ERP ↔ CRM giữ host đang mở (127.0.0.1 hay localhost); VPS thiếu cookie domain thì

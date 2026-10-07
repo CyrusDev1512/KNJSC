@@ -64,8 +64,9 @@ def report(request, export=False, choices=None):
             # xem, chủ dự án duyệt mockup 02.10.2026); Vận đơn Gộp chia theo ngày → về trang 1 như cũ. Bỏ `nguong`
             # để đổi chế độ không mở lại panel ngưỡng
             giu = tung_lan(ctx["result"])
+            # `gop_moi_lan`: câu mô tả mục Gộp trong menu ⋯ — mọi lần nộp một bảng, hay (Vận đơn) mỗi ngày một dòng
             ctx.update(gop=gop, gop_url=_with(request, giu_trang=giu, gop="1", nguong=None),
-                       khong_gop_url=_with(request, giu_trang=giu, gop=None, nguong=None))
+                       khong_gop_url=_with(request, giu_trang=giu, gop=None, nguong=None), gop_moi_lan=giu)
     return render(request, "reports/activity.html", ctx)
 
 
