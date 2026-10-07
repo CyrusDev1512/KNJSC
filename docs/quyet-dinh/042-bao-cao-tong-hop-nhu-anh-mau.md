@@ -154,3 +154,34 @@ thanh kéo lên kéo xuống".
   `.report-workspace`, không đo chính bộ lọc vì nó `sticky`) tới đáy vùng nội dung, như khung bảng: đáy bộ lọc thẳng
   đáy hộp kết quả, trang không phải cuộn.
 
+## Bổ sung 07.10.2026 — đầu trang gọn, menu ⋯
+
+Chủ dự án: "sửa cái view bảng kéo dài lên trên chỗ xuất excel, ngoài ra mấy cái kiểu xuất excel, gộp với không gộp cho
+thành 1 dấu 3 chấm, bấm vào thì rơi ra drop down"; xem mockup lần một xong: "cho view bảng cao đến đoạn này luôn, mấy
+cái chức năng cho bên trong". Duyệt mockup v2 cùng ngày, kèm "bảng dữ liệu chưa cần".
+
+- **Bỏ ba hàng trên bảng:** hàng nút (Mở bộ lọc · Xuất Excel · Không gộp · Gộp · Toàn màn hình), hàng chip, hàng tên
+  bảng.
+- **Thanh trên cùng** (khối `thanh_tren_giua` của `base.html`, rỗng ở mọi trang khác):
+  - tên báo cáo là tên trang;
+  - ngay sau là kỳ gọn kèm "· Tiền: ₫", nút ⋯, rồi chip lọc trừ Kỳ (chip Gộp chỉ "Gộp ×").
+  - ⋯ đứng trước chip (mockup để sau). Chip chỉ lấy phần chỗ còn thừa, bị cắt thì mờ ở mép, nên ⋯ không nhảy chỗ khi
+    chip đổi và tên báo cáo không bị cắt vì chip.
+  - "Xóa lọc" chỉ hiện khi bỏ được nhiều hơn chip duy nhất đang có, hay khi kỳ khác mặc định (kỳ không còn ×).
+- **Menu ⋯** là hộp mở/đóng thường, Tab đi qua được. Gồm:
+  - Không gộp / Gộp: ✓ ở cách đang xem, đổi tại chỗ như bổ sung 02.10;
+  - Ngưỡng màu (chỉ người đặt được ngưỡng), Giải thích số liệu: hai panel giữ chỗ ở đầu hộp bảng, có nút Đóng;
+  - Toàn màn hình, Xuất Excel.
+- **Toàn màn hình:** thanh trên cùng thu thành hàng mảnh (tên, kỳ, ⋯, chip) thay vì ẩn hẳn như bảng ERP, để vẫn thoát,
+  đổi Gộp, xuất Excel được. Escape lần một đóng menu, lần hai thoát. Bản in giữ tên báo cáo và kỳ.
+- **Màn ≤ 900 px:** chip và kỳ ẩn, nút "Lọc (n)" mở ngăn bộ lọc; logo không kèm chữ để tên báo cáo còn chỗ.
+- **TL-74:** `report-filters.js` đo lại khung bảng theo cỡ vùng nội dung (`ResizeObserver` trên `main`).
+  - Trước đây nó đo trước khi `solarpunk-shell.js` thu thanh menu dưới, nên bảng hụt 96 px tới khi đổi cỡ cửa sổ. Nó
+    cũng không đo lại khi thu/mở thanh menu hay bật tắt Mở rộng ERP.
+  - Nút Menu nổi (khi thanh menu thu) được đè mép dưới hộp bảng nhưng không được đè phần điều khiển của hàng phân
+    trang: chừa đúng phần đè (`--report-nhuong`).
+- **TL-75:** Escape thoát toàn màn hình được cả khi đang lọc sản phẩm.
+- **Số đo** ở 1366×768 (Mở rộng ERP, menu thu, bộ lọc thanh dọc): khung bảng 342 → 578 px, đỉnh khung 232 → 92 px.
+  Tiêu chí AC-42.18 → 42.21.
+- **Bảng dữ liệu dạng báo cáo** giữ hàng nút như cũ (dùng chung `report-filters.js` nhưng không có `#report-view` và
+  menu ⋯); làm giống khi chủ dự án muốn.
