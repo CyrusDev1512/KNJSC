@@ -124,3 +124,23 @@ def test_redis_hong_van_dung(client, feedback, nguoi_dung, dem, monkeypatch):  #
     assert _ghi(client, feedback[2][0], 'Khi Redis mất').status_code == 200
     assert _khoi(client, version=cu['version'])[0] == 409
     assert _khoi(client)[1]['total'] == 2
+
+
+@pytest.mark.django_db
+def test_panel_bo_loc_dem_khong_tra_so_cu(client, feedback, nguoi_dung, dem):  # noqa: F811
+    """AC-10.26 — Số đếm của panel Bộ lọc (giá trị cột, sản phẩm) đọc qua cùng bộ đệm: lặp lại không đếm lại; sửa ô
+    trên lưới thì lần mở sau ra số mới"""
+    from django.http import QueryDict
+    from crm.services import grid_service, sidebar_service
+
+    table, _, rows = feedback
+    vd = nguoi_dung['staff_vd']
+    cot = table.columns.get(code='ghi_chu')
+    sp = lambda: sorted((i[0], i[2]) for i in sidebar_service.product_options(vd, table, [], QueryDict())['items'])  # noqa: E731
+    truoc, sp_truoc = grid_service.filter_options(vd, table, cot), sp()
+    assert len(dem._cache) >= 2
+    assert grid_service.filter_options(vd, table, cot) == truoc and sp() == sp_truoc
+    client.force_login(vd)
+    assert _ghi(client, rows[0], 'Giá trị panel mới').status_code == 200
+    assert ('Giá trị panel mới', 1) in grid_service.filter_options(vd, table, cot)
+    assert sp() == sp_truoc

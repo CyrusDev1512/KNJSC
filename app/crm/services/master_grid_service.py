@@ -129,20 +129,8 @@ def stamp(user, table):
 
 
 def _khoa_dem(user, table):
-    """Khoá bộ đệm của mốc và tổng số dòng một khối (AC-10.26) — đổi khi bất cứ thứ gì có thể đổi kết quả đổi.
-
-    Một truy vấn theo chỉ mục: `GridRevision` do trigger tăng khi commit mọi thay đổi dòng, đơn, phân công, chi tiết,
-    cột, quyền, hồ sơ, team, bộ phận, tài khoản, sản phẩm (kể cả xoá cứng); `MAX(updated_at)` cả bảng bắt thêm ghi
-    chưa commit trong cùng giao dịch. Cộng phạm vi người xem và ngày Việt Nam. Khoá lệch chỉ làm tính lại, không 409.
-    """
-    from crm.models import GridRevision
     from . import optimization
-    with connection.cursor() as cursor:
-        cursor.execute(f'SELECT (SELECT MAX(updated_at) FROM {DataRecord._meta.db_table} WHERE table_id = %s), '
-                       f'(SELECT revision FROM {GridRevision._meta.db_table} WHERE table_id = %s)', [table.pk, table.pk])
-        moc = cursor.fetchone()
-    return optimization.digest([connection.settings_dict['NAME'], optimization.scope_key(user), table.pk,
-                                table.delivery_view_version, moc, timezone.localdate()])
+    return optimization.khoa_bang(user, table)
 
 
 def _stamp_dem(user, table, khoa=None):

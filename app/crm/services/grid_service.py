@@ -468,6 +468,13 @@ def filter_options(user, table, column, search="", limit=GRID_FILTER_OPTIONS_MAX
             and is_waybill_table(table) and column.code == 'bill'):
         from orders.services.payment_service import filter_options as payment_options
         return payment_options(ds, search, limit)
+    # Đếm theo nhóm trên mọi dòng thấy được (0,3–0,4 s mỗi cột ở 385.000 dòng): đệm theo khoá phạm vi + mốc bảng
+    from . import optimization
+    khoa = optimization.digest([optimization.khoa_bang(user, table), column.code, search, limit])
+    return optimization.cached('grid-options:' + khoa, lambda: _dem_lua_chon(user, table, column, ds, search, limit))
+
+
+def _dem_lua_chon(user, table, column, ds, search, limit):
     if is_waybill_table(table) and column.code == 'san_pham':
         from orders.models import WaybillItem
         items = WaybillItem.objects.for_records(ds).filter(product__code__icontains=search).order_by().values('product__code').annotate(n=Count('record_id', distinct=True)).order_by('-n', 'product__code')[:limit]
