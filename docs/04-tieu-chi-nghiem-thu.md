@@ -261,6 +261,10 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-10.20 | Lưới CRM: mở lưới không đếm sẵn số liệu cho panel Bộ lọc đang ẩn; panel tải khi người dùng mở (`bo-loc/?panel=1`), đổi bộ lọc chỉ lấy chip (và panel nếu đã mở) qua mảnh `bo-loc/`, không tải lại trang lưới; mảnh theo đúng quyền xem bảng (07.10.2026) | NFR-1 · ADR-021 | Tự động |
 | AC-10.21 | `moi-nhat/` của bảng Vận đơn lấy mốc trên cả bảng (chỉ mục `(table, updated_at)`), không JOIN phân công, không COUNT; sửa ô, xoá, đổi phân công vẫn đổi mốc; mốc không chứa dữ liệu (07.10.2026) | NFR-1 · K27 | Tự động |
 | AC-10.22 | Lượt hỏi 8 giây của lưới chỉ gửi danh sách dòng đi kiểm quyền khi mốc đổi (cộng một lượt dự phòng mỗi 10 lần hỏi); máy chủ vẫn chặn mọi lần đọc/ghi ngoài phạm vi (07.10.2026) | NFR-1 | Tự động |
+| AC-10.23 | Phạm vi bảng (`TableDef.in_scope`) chỉ hỏi tới dòng dữ liệu với người phòng Sale/CSKH, mỗi nhánh (dòng mình tạo, đơn mình tạo/bán, dòng mình chăm sóc) một truy vấn con theo chỉ mục; tập bảng thấy được y nguyên cho mọi vai (07.10.2026) | NFR-1 · FR-3 | Tự động |
+| AC-10.24 | Trang chủ KN CRM đếm từng bảng vận đơn theo phạm vi của bảng đó, "hôm nay"/"tháng này" so khoảng giờ Việt Nam theo chỉ mục, Hoạt động gần đây lọc theo lô; mọi con số, danh sách bảng gần đây và hoạt động y nguyên công thức cũ (07.10.2026) | NFR-1 | Tự động |
+| AC-10.25 | Thư mục CRM, panel Bộ lọc và phạm vi dòng Sale/CSKH đếm theo phạm vi từng bảng, không OR qua JOIN; số dòng, mốc và danh sách lọc y nguyên cho mọi vai (07.10.2026) | NFR-1 · FR-3 | Tự động |
+| AC-10.26 | Khối lưới `du-lieu/` đệm mốc phiên bản và tổng số dòng theo khoá gồm phạm vi người xem, `GridRevision` và `MAX(updated_at)` của bảng: đọc lại không quét phạm vi; sửa trong phạm vi vẫn 409, đổi phân công hay xoá không trả số cũ, bộ đệm lỗi vẫn đúng (07.10.2026) | NFR-1 · ADR-021 | Tự động |
 
 ---
 

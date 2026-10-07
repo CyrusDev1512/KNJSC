@@ -77,6 +77,8 @@ Riêng truy vấn mốc: theo phạm vi kèm COUNT 418–595 ms, theo cả bản
 
 VPS hiện ít dòng nên chưa lộ; tới mốc 100.000 đơn/năm thì trang chủ CRM sẽ không mở được.
 
+**Đã sửa ở nhánh `claude/crm-nhanh-bang-lon`** — [biên bản](kiem-chung-crm-nhanh-bang-lon-20261007.md).
+
 ## Bài kiểm
 
 Mới (đều đỏ trên mã trước, xanh sau): `tests/e2e/test_erp_mo_rong_mac_dinh.py`, `core/tests/test_phan_trang_giu_tham_so.py`,

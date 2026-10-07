@@ -128,6 +128,16 @@ def stamp(user, table):
     return digest([s, table.delivery_view_version])
 
 
+def _khoa_dem(user, table):
+    from . import optimization
+    return optimization.khoa_bang(user, table)
+
+
+def _stamp_dem(user, table, khoa=None):
+    from . import optimization
+    return optimization.cached('grid-stamp:' + (khoa or _khoa_dem(user, table)), lambda: stamp(user, table))
+
+
 def block(user, table, params):
     # Tổng, phiên bản và các dòng thuộc cùng snapshot. Không buộc trình duyệt
     # tải lại chỉ vì một người vừa sửa ô trong thời gian đọc khối này.
@@ -156,19 +166,23 @@ def _block(user, table, params, *, snapshot=False):
         column.table = table
     meta = metadata(grid.columns)
     filters = sorted((k, params.getlist(k)) for k in params if k not in {'offset', 'version', 'trang', 'moi_trang'})
-    version = digest([stamp(user, table), meta, filters])
+    # Hai phép quét phạm vi đắt nhất của khối (COUNT + MAX, COUNT theo bộ lọc) đọc qua bộ đệm: cuộn lưới không quét lại
+    # 385.000 dòng cho mỗi 100 dòng. Bên trong snapshot nên khoá, mốc và dòng cùng một thời điểm.
+    khoa = _khoa_dem(user, table)
+    version = digest([_stamp_dem(user, table, khoa), meta, filters])
     if params.get('version') and params['version'] != version:
         raise BusinessError('Dữ liệu đã thay đổi. Đang tải lại vùng đang xem.', code='conflict')
     ordering = list(grid.queryset.query.order_by) or ['pk']
     if 'pk' not in ordering and '-pk' not in ordering:
         ordering.append('pk')
     qs = grid.queryset.order_by(*ordering)
-    total = qs.count()
+    total = optimization.cached('grid-count:' + digest([khoa, meta, filters]), qs.count)
     # OFFSET chỉ đi qua ID/thứ tự, không JOIN và mang JSON cùng thông tin
     # tài khoản cho hàng trăm nghìn dòng sẽ bị bỏ. Tải chi tiết đúng 100 ID.
     ids = list(qs.select_related(None).values_list('pk', flat=True)[offset:offset + BLOCK_SIZE])
     by_id = {r.pk: r for r in grant_service.with_report_lock(qs.filter(pk__in=ids)).order_by()}
     rows = [by_id[pk] for pk in ids if pk in by_id]
+    # Kiểm lại ngoài snapshot luôn đọc thẳng (một truy vấn như trước), không qua khoá đệm
     if not snapshot and version != digest([stamp(user, table), meta, filters]):
         raise BusinessError('Dữ liệu đang cập nhật. Thử lại vùng đang xem.', code='conflict')
     return {'columns': meta, 'rows': serialize(rows, grid.columns, user, meta=meta), 'total': total,

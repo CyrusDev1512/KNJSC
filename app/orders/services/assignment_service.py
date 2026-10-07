@@ -48,6 +48,21 @@ def mine_condition(user):
             | Q(assignment__care=user) | Q(assignment__marketing=user))
 
 
+def _don_cua(user):
+    """Dòng có đơn gốc do người này lên hoặc đứng đơn. Truy vấn con theo chỉ mục `created_by`/`seller` của đơn thay
+    cho OR qua LEFT JOIN đơn hàng trên mọi dòng — cùng tập dòng (đơn–dòng một-một; đơn đã xoá vẫn tính như JOIN cũ),
+    phạm vi Sale nhanh 1,7–2,5 lần ở 385.000 dòng (AC-10.25)."""
+    from orders.models import Order
+    return Q(pk__in=Order.all_objects.filter(Q(created_by_id=user.pk) | Q(seller_id=user.pk), record__isnull=False)
+             .values('record_id'))
+
+
+def _cham_soc(user):
+    """Dòng người này được phân công chăm sóc — truy vấn con theo chỉ mục `care` (phân công–dòng một-một)."""
+    from orders.models import WaybillAssignment
+    return Q(pk__in=WaybillAssignment.objects.filter(care_id=user.pk).values('record_id'))
+
+
 def scope_condition(user, original, *, only_new=False):
     """Chỉ thay ngoại lệ của bảng mới; original là điều kiện quyền bảng cũ.
 
@@ -61,10 +76,9 @@ def scope_condition(user, original, *, only_new=False):
     if can_assign(user) or is_accountant(user) or dept == 'van-don':
         allowed = Q()
     elif dept == 'cskh':
-        allowed = Q(assignment__care_id=user.pk)
+        allowed = _cham_soc(user)
     elif dept == 'sale':
-        own = Q(created_by_id=user.pk) | Q(order__created_by_id=user.pk) | Q(order__seller_id=user.pk)
-        allowed = own | Q(assignment__care_id=user.pk)
+        allowed = Q(created_by_id=user.pk) | _don_cua(user) | _cham_soc(user)
         if scope.rank != Rank.STAFF:
             allowed |= original
     else:
