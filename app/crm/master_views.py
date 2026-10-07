@@ -136,19 +136,48 @@ def sync(request,code):
     except (ValueError,TypeError,AttributeError):return JsonResponse({'error':'Dữ liệu đồng bộ không hợp lệ.'},status=400)
 
 
+def _query_va_chip(request, grid):
+    """Tham số lọc đang áp (bỏ tham số trang) và chip "đang lọc" kèm link bỏ từng chip."""
+    qs = request.GET.copy()
+    for key in ('trang', 'moi_trang', 'offset', 'version', 'panel'):
+        qs.pop(key, None)
+    chips = []
+    for key, label, an in grid.chips:
+        p = qs.copy(); p.pop(key, None)
+        chips.append((label, '?' + p.urlencode(), an))
+    return qs, chips
+
+
+def filters(request, table):
+    """Chip "đang lọc" và (khi `panel=1`) nội dung panel Bộ lọc của lưới — một mảnh HTML, không có dòng dữ liệu.
+
+    Panel Bộ lọc của bảng Vận đơn đếm số dòng theo sản phẩm, thị trường, marketer trên cả bảng trong phạm vi người
+    xem (ba lượt GROUP BY). Trước đây trang lưới tính sẵn mỗi lần mở dù panel đang ẩn, và đổi bộ lọc thì tải lại cả trang
+    lưới chỉ để lấy panel và chip. Nay: mở lưới không tính; lưới gọi mảnh này khi người dùng mở panel, và khi đổi bộ
+    lọc chỉ lấy chip (cùng panel nếu panel đã mở) — mục a, b của biên bản 07.10.2026."""
+    grid = grid_service.build_grid(request.user, request.GET, table=table)
+    qs, chips = _query_va_chip(request, grid)
+    ctx = {'bang': table, 'luoi': grid, 'chips': chips, 'panel': request.GET.get('panel') == '1', 'config': True}
+    if ctx['panel']:
+        ctx['ben'] = sidebar_service.context(request.user, table, grid.columns, qs)
+        ctx['quick_filters'] = (sidebar_service.quick_filters(qs) if is_waybill_table(table)
+                                else {'groups': [], 'keep': grid_service.params_without(qs)})
+    # Dựng không qua context processor: mảnh không có khung trang, mà menu khung CRM (`crm_nav`) tốn một lượt hỏi phạm vi
+    # bảng (0,4 s ở 385.000 dòng). Mảnh chỉ có form GET nên không cần CSRF
+    from django.http import HttpResponse
+    from django.template.loader import render_to_string
+    response = HttpResponse(render_to_string('crm/_master_filters_manh.html', ctx))
+    response.context = ctx      # bài kiểm đọc `context` như với `render`
+    return response
+
+
 def shell(request, table):
     from django.conf import settings
     from .services import optimization, row_mutations
     from forms_builder.services.record_service import PALETTE
     grid = grid_service.build_grid(request.user, request.GET, table=table)
     month = tree_service.month_of_params(request.GET, grid.columns)
-    qs = request.GET.copy()
-    for key in ('trang', 'moi_trang', 'offset', 'version'):
-        qs.pop(key, None)
-    chips = []
-    for key, label, an in grid.chips:
-        p = qs.copy(); p.pop(key, None)
-        chips.append((label, '?' + p.urlencode(), an))
+    qs, chips = _query_va_chip(request, grid)
     return render(request, 'crm/master_grid.html', {
         'waybill_profile': is_waybill_table(table),
         # Nút Tôi / Toàn bộ: chỉ người có cột phụ trách trong bảng vận đơn (ADR-033)
@@ -160,8 +189,7 @@ def shell(request, table):
         've_nhan': 'Về Bảng tính — thư mục', 'can_assign': is_waybill_table(table) and can_assign(request.user),
         'duoc_quan_ly_cot':grant_service.can_manage_columns(request.user, table),
         'duoc_nhap': grant_service.can_import(request.user, table),
-        'ben': sidebar_service.context(request.user, table, grid.columns, qs),
-        'quick_filters': sidebar_service.quick_filters(qs) if (is_waybill_table(table)) else {'groups':[], 'keep':grid_service.params_without(qs)},
+        # Panel Bộ lọc không tính sẵn: lưới tải nó khi người dùng mở (`filters`)
         'config': {'dataUrl': reverse('master_data', args=[table.code]),
                    # Ẩn cột cho cả công ty — ADR-039. Chỉ quản lý bảng thấy danh
                    # sách cột đang ẩn để bật lại; người khác không biết là có.
@@ -189,5 +217,6 @@ def shell(request, table):
                    'historyUrl': reverse('master_history', args=[table.code]),
                    'scopeUrl': reverse('master_scope', args=[table.code]),
                    'filterUrl': reverse('bang_tinh_xem', args=[table.code]),
+                   'filtersUrl': reverse('master_filters', args=[table.code]),
                    'user': request.user.pk, 'table': table.code},
     })

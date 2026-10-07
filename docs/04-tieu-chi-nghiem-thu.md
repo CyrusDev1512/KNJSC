@@ -258,6 +258,9 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-10.17 | Mở ERP lần đầu ở một máy: chế độ "Mở rộng giao diện ERP" đã bật (không ảnh nền, không viền, không lề), không bật Fullscreen API; bấm nút tắt thì hiện nền và máy đó nhớ; bấm lại thì về mở rộng (chủ dự án 07.10.2026) | NFR-7 | Tự động |
 | AC-10.18 | Liên kết của thanh phân trang dùng chung giữ mọi tham số đang có trên URL, chỉ thay số trang (đổi cỡ trang thì về trang 1): chuyển trang không mất bộ lọc (Nhân sự, Nhật ký từng mất), trang hai bảng phân trang không làm bảng kia về trang 1 (07.10.2026) | Q4 | Tự động |
 | AC-10.19 | Chuyển trang và đổi "Mỗi trang" ở danh sách ERP (Nhân sự, Nhật ký, Tác vụ, Bảng dữ liệu, Lịch sử báo cáo, Báo cáo tổng hợp, Công việc, Tài nguyên, Tài liệu, Bảng tin, Đánh giá nhân sự…) không tải lại cả trang: chỉ vùng danh sách đổi, URL đổi theo, Back/Forward tại chỗ; JS lỗi hay hết phiên thì tải cả trang như cũ (07.10.2026) | Q4 · NFR-7 | Tự động |
+| AC-10.20 | Lưới CRM: mở lưới không đếm sẵn số liệu cho panel Bộ lọc đang ẩn; panel tải khi người dùng mở (`bo-loc/?panel=1`), đổi bộ lọc chỉ lấy chip (và panel nếu đã mở) qua mảnh `bo-loc/`, không tải lại trang lưới; mảnh theo đúng quyền xem bảng (07.10.2026) | NFR-1 · ADR-021 | Tự động |
+| AC-10.21 | `moi-nhat/` của bảng Vận đơn lấy mốc trên cả bảng (chỉ mục `(table, updated_at)`), không JOIN phân công, không COUNT; sửa ô, xoá, đổi phân công vẫn đổi mốc; mốc không chứa dữ liệu (07.10.2026) | NFR-1 · K27 | Tự động |
+| AC-10.22 | Lượt hỏi 8 giây của lưới chỉ gửi danh sách dòng đi kiểm quyền khi mốc đổi (cộng một lượt dự phòng mỗi 10 lần hỏi); máy chủ vẫn chặn mọi lần đọc/ghi ngoài phạm vi (07.10.2026) | NFR-1 | Tự động |
 
 ---
 

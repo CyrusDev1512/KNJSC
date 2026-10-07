@@ -327,15 +327,12 @@ def latest_stamp(user, bang):
     # vi là JOIN cản chỉ mục `(table, updated_at)` và thành quét cả bảng (78 ms ×
     # 100 tab × mỗi 8 giây). `all_objects`: dòng xoá mềm vẫn mang mốc xoá nên xoá
     # một dòng bất kỳ cũng đổi mốc.
-    records = DataRecord.all_objects.filter(table=bang)
-    if is_waybill_table(bang):
-        from django.db.models import Count
-        records = records.in_scope(user)
-        tong = records.aggregate(moc=Max('updated_at'), count=Count('pk'))
-        moc = f"{tong['moc'].isoformat() if tong['moc'] else ''}:{tong['count']}"
-    else:
-        tong = records.aggregate(moc=Max('updated_at'))
-        moc = tong['moc'].isoformat() if tong['moc'] else ''
+    # Bảng vận đơn từng tính mốc theo phạm vi kèm COUNT (JOIN phân công): 418–595 ms mỗi lần ở 385.000 dòng, mỗi tab
+    # mỗi 8 giây — đúng điều đoạn trên cấm. Mốc cả bảng 0,8 ms (chỉ mục `(table, updated_at)`) vẫn bắt được mọi đổi:
+    # thêm, sửa, xoá mềm, khôi phục, và đổi phân công (`assignment_service.assign` chạm `updated_at` của dòng) —
+    # mục c, biên bản 07.10.2026. Không bắt xoá cứng (chỉ có ở lệnh dọn dữ liệu giả).
+    tong = DataRecord.all_objects.filter(table=bang).aggregate(moc=Max('updated_at'))
+    moc = tong['moc'].isoformat() if tong['moc'] else ''
     return {
         "delivery_view_version": bang.delivery_view_version,
         "moc": moc,
