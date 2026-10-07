@@ -1,5 +1,49 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 07.10.2026 — Đầu trang Báo cáo tổng hợp gọn, menu ⋯ (AC-42.18 → 42.21); bảng hụt 96 px khi thu thanh menu (TL-74)
+
+**TL-74 (đóng) — mức vừa, Báo cáo tổng hợp:** thanh menu dưới đã thu từ trước (`knjsc-erp-dock-collapsed`) thì vừa mở
+trang đáy hộp bảng cách đáy vùng nội dung 96 px, đúng chiều cao thanh menu, cho tới khi đổi cỡ cửa sổ. Thấy khi đo cho
+mockup 07.10 (ảnh chủ dự án gửi).
+- **Chỗ sai:**
+  - `report-filters.js` nằm trong `{% block noi_dung %}` nên chạy trước `solarpunk-shell.js` (cùng `defer`, theo thứ tự
+    trong trang). Nó đo `--report-fit` khi thanh menu còn hiện; shell thu thanh menu sau đó và không ai đo lại.
+  - Bấm Thu gọn / Menu hay bật tắt Mở rộng ERP cũng không đo lại, vì cửa sổ không đổi cỡ.
+- **Vì sao CI không bắt:** mọi bài bố cục mở trang với thanh menu đang hiện (mặc định).
+- **Sửa:** đo lại theo cỡ `main.noi-dung` (`ResizeObserver` trên viền ngoài; viền ngoài không theo nội dung nên không
+  lặp), chỉ ở Báo cáo tổng hợp. Nút Menu nổi không được đè phần điều khiển của hàng phân trang: chừa đúng phần đè.
+- **Bài mới AC-42.21** `reports/tests/test_bo_cuc_bao_cao_e2e.py::test_bang_vua_khi_thu_mo_thanh_menu`:
+  - đỏ trên `Staging`: hụt 96 px, khung 342 px;
+  - xanh sau sửa: hụt 0, khung ≥ 570 px.
+- **Còn:** Bảng dữ liệu dạng báo cáo cũng không đo lại khi thu/mở thanh menu. Lúc mở trang thì đúng, vì nó nạp script
+  sau shell. Để nguyên theo lời chủ dự án "bảng dữ liệu chưa cần".
+
+**TL-75 (đóng) — mức nhẹ, Báo cáo tổng hợp:** đang lọc theo sản phẩm thì Escape không thoát toàn màn hình, không đóng
+ngăn kéo bộ lọc. Agent rà kế hoạch phát hiện.
+- **Chỗ sai:** ô Sản phẩm là `<details class="report-multi">`, mở sẵn khi đang lọc. Bộ Escape của bố cục bỏ qua mọi lúc
+  có `details[open]`, vốn để nhường cho hộp nổi.
+- **Sửa:** bỏ `details.report-multi` khỏi phép kiểm đó.
+- **Bài:** AC-42.20, đoạn `sp=SP1`.
+
+**Bài cũ đổi theo cấu trúc mới (cùng mã AC, chỉ đổi chỗ bấm, không nới điều kiện):**
+- AC-22.13: thu bộ lọc bằng nút ‹, Toàn màn hình qua menu, trang in bốn chip;
+- AC-22.21: Toàn màn hình qua menu;
+- AC-22.24: hai nút thành mục menu, Escape trả focus về ⋯;
+- AC-22.26: mục `[data-che-do]`, `aria-current`, focus về ⋯;
+- AC-42.7: `aria-current` của mục Gộp.
+
+**AC-22.19 (`test_lan_chuot_tren_bang_khong_ket`) — bài dựa vào lệch tình cờ:**
+- Cảnh "bảng ngắn thì trang cuộn ngay" cần trang cuộn được. Từ 03.10 (bố cục vừa khít) trang chỉ cuộn được nhờ lệch
+  1 px ở đáy (viền `main` cộng phần lẻ khi làm tròn).
+- Bỏ ba hàng trên bảng thì lệch còn 0,14 px: trang không cuộn, tiền đề của bài đỏ.
+- Sửa phần dựng của bài: chèn 300 px dưới khung báo cáo, như mục Trạng thái giao hàng của nguồn Vận đơn. Điều kiện kiểm
+  giữ nguyên.
+
+**Lỗi tự gây trong lượt, đã sửa trước khi đẩy:** chú thích `{# … #}` viết trên hai dòng nên Django in nó thành chữ, đẩy
+bảng xuống 60 px. Thấy khi đo trên máy chủ thử; bài AC-42.18 nay kiểm cú pháp template không lọt ra trang.
+
+Số đo ở [biên bản](kiem-chung-bao-cao-menu-ba-cham-20261007.md).
+
 ## 04.10.2026 — Bộ lọc không kéo tới được nút Áp dụng (TL-73); báo cáo Sale bỏ cột Lần nộp
 
 **TL-73 (đóng) — mức vừa, Báo cáo tổng hợp:** chủ dự án thử `Staging` ở máy local: "thanh kéo không kéo được hết

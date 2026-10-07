@@ -191,6 +191,9 @@ cảnh màn hình dùng chung ở `reports/screen.py`. **Ba chỗ sửa (02.10, 
 - **Phần chữ trên bảng:** đoạn (TT) và câu loại tiền nằm trong panel "Giải thích số liệu".
 - **Gộp / Không gộp:** đổi bảng bằng `fetch` trong `report-filters.js`, không tải lại trang. Link giữ `trang`, mốc
   `data-ngay` giữ đúng ngày đang xem.
+- **Đầu trang gọn (07.10, ADR-042 bổ sung):** trên bảng không còn hàng nút, hàng chip, hàng tên bảng — tên báo cáo, kỳ,
+  ⋯, chip ở thanh trên cùng (khối `thanh_tren_giua` của `base.html`); menu ⋯ gom Gộp / Không gộp, Ngưỡng màu, Giải thích
+  số liệu, Toàn màn hình, Xuất Excel; bảng đo lại theo cỡ `main` (TL-74). Bảng dữ liệu giữ hàng nút cũ.
 **Báo cáo Marketing nộp bằng tiền Việt (ADR-047, 03.10):** Loại tiền MKT luôn VND, không theo Thị trường (một chỗ
 `currency_service.report_currency`); báo cáo cũ đổi nhãn sang VND bằng `reports/0006`, số giữ nguyên; không tỉ giá; Số đơn (TT)
 không khoá theo loại tiền, DS Chốt (TT) trống. Sale vẫn theo Thị trường.

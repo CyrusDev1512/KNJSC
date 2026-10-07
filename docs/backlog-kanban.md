@@ -1,5 +1,18 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 07.10.2026 — Báo cáo tổng hợp: đầu trang gọn, menu ⋯ (AC-42.18 → 42.21, TL-74, TL-75)
+
+**Finished local (nhánh `claude/bao-cao-menu-ba-cham`, PR nháp về `Staging`):**
+- tên báo cáo, kỳ, ⋯, chip lên thanh trên cùng; Xuất Excel, Gộp / Không gộp, Ngưỡng màu, Giải thích số liệu, Toàn màn
+  hình vào menu ⋯; bảng cao tới thanh trên;
+- bảng vừa khít khi thanh menu dưới thu (TL-74); Escape thoát toàn màn hình khi đang lọc sản phẩm (TL-75).
+
+**To do:**
+- chủ dự án gộp vào `Staging`, thử ở máy mình (thu/mở thanh menu, menu ⋯, Toàn màn hình, màn hẹp), rồi gộp `main`;
+- phát hành VPS (không migration).
+
+**Far plan:** Bảng dữ liệu dạng báo cáo cùng kiểu đầu trang khi chủ dự án muốn.
+
 ## 04.10.2026 — Báo cáo Sale bỏ cột Lần nộp; bộ lọc kéo tới được nút Áp dụng (AC-47.7, AC-42.17, TL-73)
 
 **Finished local (nhánh `claude/knerp-erp-chinh-sua-hfi7w8`, PR nháp về `Staging`):**
