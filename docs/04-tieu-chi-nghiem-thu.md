@@ -255,6 +255,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-10.14 | Lỗi máy chủ và trang không có hiện trang tiếng Việt (500, 404), không phải trang trắng chữ Anh khi DEBUG tắt; đĩa đầy khi ghi tệp (tải tài liệu, nhập tệp) trả 507 "hết chỗ lưu tệp, tệp chưa được lưu" và báo người vận hành; tác vụ xuất nền gặp đĩa đầy cũng nói rõ (săn lỗi 06.10.2026) | NFR-6 | Tự động |
 | AC-10.15 | Postgres khởi động lại: kết nối giữ lại bị cắt không làm hỏng yêu cầu nào sau khi Postgres chạy lại (`CONN_HEALTH_CHECKS`) (săn lỗi 06.10.2026) | NFR-6 | Tự động |
 | AC-10.16 | Ký tự NUL ở bất kỳ đầu vào nào (tham số GET, form POST, thân JSON): trả 400 với lời tiếng Việt, không lỗi 500; chữ thường, chữ Việt, tab, xuống dòng, emoji vẫn đi qua (săn lỗi 06.10.2026, fuzz) | NFR-6 | Tự động |
+| AC-10.17 | Mở ERP lần đầu ở một máy: chế độ "Mở rộng giao diện ERP" đã bật (không ảnh nền, không viền, không lề), không bật Fullscreen API; bấm nút tắt thì hiện nền và máy đó nhớ; bấm lại thì về mở rộng (chủ dự án 07.10.2026) | NFR-7 | Tự động |
 
 ---
 
