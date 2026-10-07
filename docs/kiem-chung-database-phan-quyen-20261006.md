@@ -75,3 +75,25 @@ dòng sang dòng khác: đã sửa helper cho mỗi dòng một mã, không nớ
   còn mã trùng thì migration sẽ dừng và phải dọn trước.
 - Tên miền cha thật cho `SESSION_COOKIE_DOMAIN`/`CSRF_COOKIE_DOMAIN` trong `.env` VPS: chủ dự án đặt, không ghi vào kho.
 - Đổi kiểu cột trên bảng 100.000 dòng: chuyển trong cùng yêu cầu web, chưa đo thời gian.
+
+## 6. Kiểm lại trước khi gộp vào Staging (07.10.2026)
+
+Máy ảo khởi động lại; mã nhánh `47fae59`, không sửa mã trong lúc chạy bộ kiểm.
+
+| Kiểm | Kết quả |
+|---|---|
+| `pytest -m "not trinh_duyet"` một lượt | **3.056 đạt, 7 bỏ qua, 0 đỏ** (thoát mã 0) |
+| Bài trình duyệt lượt 1 (`tests/e2e`) | Lần đầu: 47 đạt, **10 đỏ** — 9 bài `test_pha_luoi_ghi_chu` lỗi chứng chỉ Google Fonts của máy ảo (như `Staging`), và **`test_len_don_mat_mang_bao_chua_luu_roi_luu_mot_don` đỏ chập chờn** (chạy riêng: đỏ 2/5) |
+| Bài trình duyệt lượt 2 | 16 đạt, 9 bỏ qua |
+| Migration 0017 trên DB thử | Ngược 7,1 giây, xuôi 14,7 giây, ngược, xuôi; 10.033 dòng có khoá; `makemigrations --check` không đổi |
+| `kiem_tra_du_lieu` | Thoát mã 0 trong 6,3 giây; chỉ còn dòng BIẾT của `sl_*` |
+| Đi tay bằng Playwright | ERP → CRM → ERP giữ đăng nhập ở `127.0.0.1`; Báo cáo tổng hợp, Bảng dữ liệu, Thống kê CRM mở 200; lưới đổi mã thành mã đã có → "Lỗi lưu" + lời tiếng Việt, tải lại vẫn mã cũ; đổi mã mới → "Đã lưu"; Sale lên đơn ra `DH-0710-0001` |
+| Bắn lại lỗi cũ | NUL → 400 (ERP, CRM); tên mục Tài nguyên 5.000 ký tự → 400; mã không phải số → 404; Doanh số `NaN` gửi thẳng máy chủ → lời tiếng Việt (trên trình duyệt ô số tự bỏ chữ nên không gửi được `NaN`); 40 lần sai mật khẩu cùng lúc → 5 lần thử thật, 35 bị khoá |
+
+### Bài đỏ chập chờn: gốc là lỗi thật, đã sửa
+
+Ô số điện thoại của Lên đơn tra khách bằng HTMX (`change`, `keyup … delay:600ms`). Bấm Lưu đơn lúc mất mạng thì hiện lời
+"Mất kết nối mạng…", nhưng nếu yêu cầu tra khách chạy xong ngay sau đó, `loi-mang.js` coi là "một yêu cầu sau thành công" và
+**tắt lời báo** — người dùng tưởng đơn đã lưu. Bài mới `test_loi_bao_chua_luu_khong_bi_yeu_cau_khac_xoa` tái hiện chắc
+chắn (đỏ trên mã cũ). Sửa: chỉ tắt lời báo khi chính phần tử bị lỗi gửi lại thành công (hoặc đã bị thay khỏi trang).
+Sau sửa: hai bài mất mạng đạt **10/10** lần lặp; lượt 1 bài trình duyệt **49 đạt**, còn đúng 9 bài lỗi chứng chỉ.

@@ -55,13 +55,25 @@
     if (o) o.remove();
   }
 
-  document.addEventListener('htmx:sendError', function () { bao(MAT_MANG); });
-  document.addEventListener('htmx:timeout', function () { bao(MAT_MANG); });
+  // Phần tử có yêu cầu hỏng (form Lên đơn…): chỉ khi chính nó gửi lại thành công mới tắt lời báo. Yêu cầu khác của
+  // trang (tra khách theo số điện thoại chạy ngầm) thành công không có nghĩa thay đổi đã lưu — trước đây nó xoá lời báo
+  // và người dùng tưởng đơn đã lưu
+  var hong = null;
+  function phanTu(e) { return e.detail && e.detail.elt; }
+  document.addEventListener('htmx:sendError', function (e) { hong = phanTu(e); bao(MAT_MANG); });
+  document.addEventListener('htmx:timeout', function (e) { hong = phanTu(e); bao(MAT_MANG); });
   document.addEventListener('htmx:responseError', function (e) {
     var ma = e.detail && e.detail.xhr ? e.detail.xhr.status : 0;
-    if (ma >= 500) bao('Máy chủ đang gặp lỗi (mã ' + ma + '). Dữ liệu trên màn hình vẫn giữ; thử lại sau ít phút, ' +
-      'lặp lại thì báo quản trị.');
+    if (ma >= 500) {
+      hong = phanTu(e);
+      bao('Máy chủ đang gặp lỗi (mã ' + ma + '). Dữ liệu trên màn hình vẫn giữ; thử lại sau ít phút, ' +
+        'lặp lại thì báo quản trị.');
+    }
   });
-  // Không tự tắt khi có mạng lại: người dùng vẫn phải bấm gửi lại. Tắt khi họ đóng hoặc khi một yêu cầu sau thành công.
-  document.addEventListener('htmx:afterRequest', function (e) { if (e.detail && e.detail.successful) tat(); });
+  // Không tự tắt khi có mạng lại: người dùng vẫn phải bấm gửi lại. Tắt khi họ đóng, khi chính phần tử đó gửi lại thành
+  // công, hoặc khi phần tử đó không còn trên trang (đã bị thay bằng kết quả mới)
+  document.addEventListener('htmx:afterRequest', function (e) {
+    if (!e.detail || !e.detail.successful) return;
+    if (!hong || phanTu(e) === hong || !hong.isConnected) { hong = null; tat(); }
+  });
 })();
