@@ -1,18 +1,38 @@
 {% extends "base.html" %}
 {% load static %}
 {% block tieu_de %}Báo cáo tổng hợp · KNERP{% endblock %}
-{% block ten_trang %}Báo cáo tổng hợp{% endblock %}
-{% block noi_dung %}
-{# Không còn đầu trang: tên trang đã ở thanh trên, nhường chỗ cho bảng (chủ dự án 03.10.2026) #}
-<div class="report-view" id="report-view">
-<div class="report-controls" aria-label="Điều khiển bảng báo cáo">
-<div class="report-focus-title"><strong>{{ source.table.name|default:'Báo cáo tổng hợp' }}</strong><span>{{ params.start|date:'d/m/Y' }} – {{ params.end|date:'d/m/Y' }}</span></div>
-<button type="button" class="nut report-nut-icon" id="report-toggle-filters" aria-controls="report-filter-panel" aria-expanded="true" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 3h12M4 8h8M6 13h4"/></svg><span>Thu gọn bộ lọc</span></button>
-<span class="space"></span>
-{% if source %}<a class="nut" id="report-xuat" href="{% url 'bao_cao_tong_hop_xuat' %}?{{ query }}">Xuất Excel</a>{% endif %}{% if gop_url %}<span class="report-seg" role="group" aria-label="Gộp theo ngày">{% if gop %}<a class="nut" href="{{ khong_gop_url }}" aria-pressed="false">Không gộp</a><a class="nut nut-chinh" href="{{ gop_url }}" aria-pressed="true">Gộp</a>{% else %}<a class="nut nut-chinh" href="{{ khong_gop_url }}" aria-pressed="true">Không gộp</a><a class="nut" href="{{ gop_url }}" aria-pressed="false">Gộp</a>{% endif %}</span>{% endif %}
-<button type="button" class="nut nut-chinh" id="report-toggle-focus" aria-controls="report-view" aria-pressed="false" hidden>Toàn màn hình</button>
+{% block ten_trang %}{% if source %}{{ source.table.name }}{% else %}Báo cáo tổng hợp{% endif %}{% endblock %}
+{% block thanh_tren_giua %}
+{% comment %}Đầu trang gọn (chủ dự án duyệt mockup 07.10.2026): trên bảng không còn hàng nút, hàng chip, hàng tên bảng.
+Tên báo cáo là tên trang; kỳ, nút ⋯ và chip lọc nằm ngay sau nó trên thanh trên cùng — ⋯ đứng trước chip để không nhảy
+chỗ khi chip đổi, chip lấy phần chỗ còn lại và bị cắt khi chật. Menu ⋯ gom Không gộp / Gộp, Ngưỡng màu, Giải thích số
+liệu, Toàn màn hình, Xuất Excel. Hai nút bố cục (lọc, toàn màn hình) luôn in vì report-filters.js cần cả hai mới chạy.
+Chip đầu luôn là Kỳ (`screen.filter_chips`) nên bỏ: kỳ đã là chữ ngay bên cạnh, vì vậy "Xóa lọc" còn khi kỳ khác mặc
+định; một chip duy nhất có × thì × làm việc đó, không lặp "Xóa lọc".{% endcomment %}
+<div class="bc-dau">
+{% if source %}<span class="bc-dau-ky">{% if params.start.year == params.end.year %}{{ params.start|date:'d/m' }}{% else %}{{ params.start|date:'d/m/Y' }}{% endif %} – {{ params.end|date:'d/m/Y' }}{% if result.fixed_currency %} · Tiền: {% if result.fixed_currency == 'VND' %}₫{% else %}{{ result.fixed_currency }}{% endif %}{% endif %}</span>{% endif %}
+<button type="button" class="nut nut-nho report-nut-icon" id="report-toggle-filters" aria-controls="report-filter-panel" aria-expanded="true" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 3h12M4 8h8M6 13h4"/></svg><span>Lọc</span></button>
+<div class="report-them">
+<button type="button" class="nut nut-nho report-them-nut" id="report-them-nut" aria-expanded="false" aria-controls="report-them-menu" aria-label="Thêm thao tác" title="Thêm thao tác"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="12.8" cy="8" r="1.5"/></svg></button>
+<div class="report-them-menu" id="report-them-menu" hidden>
+{% if gop_url %}<p class="report-them-nhan">Cách bày bảng</p>
+<a class="report-them-muc" data-che-do="khong-gop" aria-current="{% if gop %}false{% else %}true{% endif %}" href="{{ khong_gop_url }}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5"/></svg><span><b>Không gộp</b><small>Mỗi ngày một bảng riêng</small></span></a>
+<a class="report-them-muc" data-che-do="gop" aria-current="{% if gop %}true{% else %}false{% endif %}" href="{{ gop_url }}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5"/></svg><span><b>Gộp</b><small>{% if gop_moi_lan %}Một bảng mọi lần nộp trong kỳ{% else %}Một bảng, mỗi ngày một dòng{% endif %}</small></span></a>
+<hr>{% endif %}
+{% if nguong %}<button type="button" class="report-them-muc" data-mo-ra aria-controls="report-nguong" aria-expanded="{% if nguong.mo %}true{% else %}false{% endif %}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h7M12.5 4.5h1M2.5 11.5h1M6.5 11.5h7"/><circle cx="11" cy="4.5" r="1.5"/><circle cx="5" cy="11.5" r="1.5"/></svg><span><b>Ngưỡng màu</b><small>Đặt màu tốt, cảnh báo, xấu</small></span></button>{% endif %}
+{% if source %}<button type="button" class="report-them-muc" data-mo-ra aria-controls="report-giai-thich" aria-expanded="false"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.8"/><path d="M8 7.3v3.6M8 5.1v.1"/></svg><span><b>Giải thích số liệu</b><small>Cách tính tổng, (TT), loại tiền</small></span></button>
+<hr>{% endif %}
+<button type="button" class="report-them-muc" id="report-toggle-focus" aria-pressed="false" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg><span><b>Toàn màn hình</b><small>Esc để thoát</small></span></button>
+{% if source %}<a class="report-them-muc" id="report-xuat" href="{% url 'bao_cao_tong_hop_xuat' %}?{{ query }}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.8 7.5 8 10.7l3.2-3.2M3 13.5h10"/></svg><span><b>Xuất Excel</b><small>Theo đúng bộ lọc đang xem</small></span></a>{% endif %}
 </div>
-{% if source %}<div class="report-chips" id="report-chips" aria-label="Bộ lọc đang áp dụng">{% for chip in chips %}<span class="report-chip"><b>{{ chip.label }}</b> {{ chip.value }}{% if chip.url %} <a class="chip-xoa" href="{{ chip.url }}" aria-label="Bỏ lọc {{ chip.label }}">×</a>{% endif %}</span>{% endfor %}{% if filters_active %}<a class="chip-clear" href="{{ clear_url }}">Xóa lọc</a>{% endif %}</div>{% endif %}
+</div>
+{% if source %}<div class="report-chips" id="report-chips" aria-label="Bộ lọc đang áp dụng">{% for chip in chips %}{% if not forloop.first %}<span class="report-chip" title="{{ chip.label }}: {{ chip.value }}"><b>{{ chip.label }}</b>{% if chip.label != 'Gộp' %} {{ chip.value }}{% endif %}{% if chip.url %} <a class="chip-xoa" href="{{ chip.url }}" aria-label="Bỏ lọc {{ chip.label }}">×</a>{% endif %}</span>{% endif %}{% endfor %}{% if filters_active > 1 or chips.0.url %}<a class="chip-clear" href="{{ clear_url }}">Xóa lọc</a>{% endif %}</div>{% endif %}
+</div>
+{% endblock %}
+{% block noi_dung %}
+{% comment %}Không còn đầu trang: tên trang đã ở thanh trên, nhường chỗ cho bảng (chủ dự án 03.10.2026); từ 07.10.2026
+hàng nút, hàng chip, hàng tên bảng cũng lên thanh trên cùng (khối thanh_tren_giua ở trên).{% endcomment %}
+<div class="report-view" id="report-view">
 <div class="report-workspace" id="report-workspace" data-filters="open" data-active="{{ filters_active|default:0 }}">
 <aside class="report-filter-panel" id="report-filter-panel" aria-label="Bộ lọc báo cáo">
 <div class="panel-head"><h2>Bộ lọc</h2><button type="button" class="nut report-nut-icon" id="report-panel-collapse" aria-label="Thu gọn bộ lọc" title="Thu gọn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></button></div>
@@ -34,12 +54,12 @@
 </aside>
 <div class="report-backdrop" id="report-backdrop"></div>
 <section class="report-results" aria-label="Kết quả báo cáo">
-{% comment %}Vừa mở trang đã thấy số (chủ dự án duyệt mockup 02.10.2026): tên bảng, khoảng ngày và hai nút trên một
-hàng; câu loại tiền, đoạn (TT) và toàn văn cảnh báo thu vào panel Giải thích số liệu, không bỏ chữ nào; form ngưỡng
-là panel thứ hai; cảnh báo dòng chưa có loại tiền còn một dòng gọn (toàn văn ở title và trong panel).{% endcomment %}
-{% if source %}<div class="report-results-heading"><h2>{{ source.table.name }}</h2><span class="report-ky">{{ params.start|date:'d/m/Y' }} – {{ params.end|date:'d/m/Y' }}{% if result.fixed_currency %} · Tiền: {% if result.fixed_currency == 'VND' %}₫{% else %}{{ result.fixed_currency }}{% endif %}{% endif %}</span><span class="space"></span>{% if nguong %}<button type="button" class="nut nut-nho" data-mo-ra aria-controls="report-nguong" aria-expanded="{% if nguong.mo %}true{% else %}false{% endif %}">Ngưỡng màu</button>{% endif %}<button type="button" class="nut nut-nho" data-mo-ra aria-controls="report-giai-thich" aria-expanded="false">Giải thích số liệu</button></div>
-<div class="report-giai-thich" id="report-giai-thich" hidden>{% if result.currency_warning %}<p class="report-giai-canh">{{ result.currency_warning }}</p>{% endif %}{% if result.currency_label %}<p>{{ result.currency_label }}</p>{% endif %}<p>Tổng trên toàn bộ kết quả khớp bộ lọc{% if source.kind == 'mkt' %} · (TT) = đối soát từ vận đơn do marketer phụ trách theo ngày lên đơn: Số đơn (TT) là số đơn; DS Chốt (TT) để trống vì báo cáo nộp bằng tiền Việt còn vận đơn thu bằng ngoại tệ, không quy đổi{% if result.derived_shared %}; ngày nào một người nộp nhiều lần thì (TT) chỉ hiện ở dòng TỔNG CỘNG của ngày{% endif %}{% endif %}</p></div>
-{% if nguong %}<div class="report-nguong" id="report-nguong"{% if not nguong.mo %} hidden{% endif %}>{% include "reports/_nguong_form.html" %}</div>{% endif %}{% endif %}
+{% comment %}Vừa mở trang đã thấy số (chủ dự án duyệt mockup 02.10.2026): câu loại tiền, đoạn (TT) và toàn văn cảnh
+báo thu vào panel Giải thích số liệu, không bỏ chữ nào; form ngưỡng là panel thứ hai; cảnh báo dòng chưa có loại tiền
+còn một dòng gọn (toàn văn ở title và trong panel). Từ 07.10.2026 hai panel mở từ menu ⋯ trên thanh trên cùng, vẫn ở
+đầu hộp bảng, có nút Đóng.{% endcomment %}
+{% if source %}<div class="report-giai-thich" id="report-giai-thich" hidden><button type="button" class="nut nut-nho bc-dong" data-dong="report-giai-thich" aria-label="Đóng Giải thích số liệu">Đóng</button>{% if result.currency_warning %}<p class="report-giai-canh">{{ result.currency_warning }}</p>{% endif %}{% if result.currency_label %}<p>{{ result.currency_label }}</p>{% endif %}<p>Tổng trên toàn bộ kết quả khớp bộ lọc{% if source.kind == 'mkt' %} · (TT) = đối soát từ vận đơn do marketer phụ trách theo ngày lên đơn: Số đơn (TT) là số đơn; DS Chốt (TT) để trống vì báo cáo nộp bằng tiền Việt còn vận đơn thu bằng ngoại tệ, không quy đổi{% if result.derived_shared %}; ngày nào một người nộp nhiều lần thì (TT) chỉ hiện ở dòng TỔNG CỘNG của ngày{% endif %}{% endif %}</p></div>
+{% if nguong %}<div class="report-nguong" id="report-nguong"{% if not nguong.mo %} hidden{% endif %}><button type="button" class="nut nut-nho bc-dong" data-dong="report-nguong" aria-label="Đóng Ngưỡng màu">Đóng</button>{% include "reports/_nguong_form.html" %}</div>{% endif %}{% endif %}
 {% if result.currency_warning %}<p class="bao bao-cho report-canh-gon" role="status" title="{{ result.currency_warning }}"><span>{{ result.currency_warning }}</span></p>{% endif %}
 {% if error %}<p class="bao bao-xau" role="alert">{{ error }}</p>{% elif not source %}<p>Chưa có nguồn báo cáo trong phạm vi của bạn.</p>{% elif unavailable %}<p>Chưa đủ cấu hình chỉ tiêu cho nguồn này.</p>{% elif empty %}<p>Chưa có dữ liệu trong bộ lọc này.</p>{% endif %}
 {% if result.ok %}<div class="bang-cuon report-table-scroll" tabindex="0" role="region" aria-label="Bảng số liệu, cuộn ngang để xem thêm">{% for b in blocks %}{% include "reports/_bang_khoi.html" %}{% endfor %}</div>{% include 'components/phan_trang.html' %}{% endif %}</section></div></div>
