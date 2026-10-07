@@ -56,9 +56,12 @@ def test_khoi_lap_khong_quet_lai_pham_vi(client, feedback, nguoi_dung, dem, monk
     goi.clear()
     with CaptureQueriesContext(connection) as lan_dau:
         _, a = _khoi(client)
+    lan_dau_goi, goi[:] = len(goi), []
     with CaptureQueriesContext(connection) as lan_hai:
         _, b = _khoi(client)
-    assert len(goi) == 1
+    # Trong bài, khối chạy trong giao dịch của fixture nên còn một lần kiểm mốc đọc thẳng ở cuối (máy thật đọc trong
+    # snapshot, không có lần này); lần đọc qua bộ đệm chỉ chạy ở lượt đầu
+    assert (lan_dau_goi, len(goi)) == (2, 1)
     assert len(lan_dau) - len(lan_hai) == 2
     assert (a['total'], a['version']) == (b['total'], b['version']) == (2, a['version'])
     # Bộ lọc khác là mục đệm khác: tổng đúng theo lọc

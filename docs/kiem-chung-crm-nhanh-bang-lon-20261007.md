@@ -65,6 +65,9 @@ Trước sửa, máy chủ mất 150–258 giây cho trang chủ CRM (trang ngay
 | `pytest -m "not trinh_duyet"` | 3.100 đạt, 7 bỏ qua, 0 đỏ |
 | Bài trình duyệt lượt 1 (`tests/e2e`) | 53 đạt, 9 đỏ — đúng 9 bài `test_pha_luoi_ghi_chu` lỗi chứng chỉ Google Fonts của máy ảo (`ERR_CERT_AUTHORITY_INVALID`), như `Staging` |
 | Bài trình duyệt lượt 2 | 16 đạt, 9 bỏ qua |
+| `pytest -m "not trinh_duyet"` khi **tắt Redis** (như CI) | 3.100 đạt, 7 bỏ qua, 0 đỏ — sau khi sửa lỗi CI dưới đây |
+
+CI lần đầu đỏ ở `test_kiem_tai::test_luoi_100_dong_ngan_sach_truy_van`. CI không có Redis, nên khối lưới chạy ngoài snapshot (trong giao dịch của bài kiểm) tốn 16 truy vấn, vượt trần 14: mỗi lần kiểm mốc đều thêm một truy vấn khoá. Đã sửa: lần kiểm mốc thứ hai đọc thẳng `stamp` như trước, trần nới lên 15 cho đúng một truy vấn khoá.
 
 ## Rủi ro và chưa kiểm
 
