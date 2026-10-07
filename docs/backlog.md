@@ -1,5 +1,17 @@
 # Backlog
 
+## 07.10.2026 — KN CRM nhanh khi bảng Vận đơn lớn: trang chủ, menu, thư mục, khối lưới, panel Bộ lọc (AC-10.23 → 10.26)
+
+- Ở 385.034 dòng (vd.manager): trang chủ CRM 150–258 s → 0,14 s; menu mọi trang 0,37 s → 6 ms; thư mục 1,3 → 0,11 s;
+  đọc lại khối lưới 243 → 111 ms; mở lại panel Bộ lọc 2,7 → 0,03 s. sale.staff: thư mục 1,45 → 0,32 s, khối 0,9 → 0,18 s.
+- Kết quả và phân quyền y nguyên: bài so cách cũ/cách mới cho mọi vai (phạm vi bảng, phạm vi dòng Sale/CSKH, số liệu
+  trang chủ, thư mục, panel).
+- Khối lưới và panel đệm trong Redis theo khoá phạm vi người xem + `GridRevision` + mốc cả bảng; 409 như cũ.
+- **Còn nợ:** panel Bộ lọc lần đầu vẫn ~0,9 s (đếm theo nhóm trên mọi dòng); trigger `GridRevision` phải theo kịp mọi
+  nguồn quyền mới; chưa đo trên VPS.
+
+[Biên bản](kiem-chung-crm-nhanh-bang-lon-20261007.md). Nhánh `claude/crm-nhanh-bang-lon` (xếp trên PR #96).
+
 ## 07.10.2026 — ERP mở rộng mặc định, phân trang không mất lọc và không tải lại trang, lưới CRM bớt việc thừa (AC-10.17 → 10.22)
 
 - ERP mở lên ở chế độ mở rộng, không ảnh nền; bấm nút mới hiện nền, máy nhớ lựa chọn.
