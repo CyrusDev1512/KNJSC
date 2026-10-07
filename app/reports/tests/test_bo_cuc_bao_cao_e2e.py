@@ -31,8 +31,12 @@ def trinh_duyet_moi():
         browser.close()
 
 
-def _mo(browser, live_server, user, width, height, url):
+def _mo(browser, live_server, user, width, height, url, khung_thuong=False):
     ctx = browser.new_context(viewport={"width": width, "height": height}, locale="vi-VN")
+    if khung_thuong:
+        # Bài dựng tiền đề theo khung có lề (trang cuộn được, bảng tràn ngang đủ xa): từ 07.10.2026 ERP mặc định mở
+        # rộng (AC-10.17), khung rộng hơn nên dữ liệu thử ít cột không còn đủ tràn — đặt về khung thường như máy đã tắt
+        ctx.add_init_script("try{localStorage.setItem('knjsc-erp-immersive','0')}catch(e){}")
     page = ctx.new_page()
     page.set_default_timeout(15_000)
     page.goto(live_server.url + "/dang-nhap/")
@@ -193,7 +197,7 @@ def test_lan_chuot_tren_bang_khong_ket(live_server, trinh_duyet_moi, nguon, nguo
     url = (f"/bao-cao/tong-hop/?nguon={nguon.table.code}&tu=2026-08-01&den=2026-08-31"
            f"&nhan_su={nguoi_dung['staff_sale_1'].pk}")
     # 1000×900: khung bảng vừa khít màn hình từ 03.10.2026 nên cần màn cao hơn để bảng ngắn lọt vừa khung dọc
-    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1000, 900, url)
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1000, 900, url, khung_thuong=True)
     try:
         bang, bang_max, trang, trang_max = page.evaluate(VI_TRI)
         ngang = page.evaluate("()=>{const s=document.querySelector('.report-table-scroll');return s.scrollWidth-s.clientWidth}")
@@ -213,7 +217,7 @@ def test_lan_chuot_tren_bang_khong_ket(live_server, trinh_duyet_moi, nguon, nguo
                    data={**d.data, "ngay": (date(2026, 8, 1) + timedelta(days=i)).isoformat()})
         for i in range(1, 30) for d in mau])
     url = f"/bao-cao/tong-hop/?nguon={nguon.table.code}&tu=2026-08-01&den=2026-08-31"
-    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1440, 760, url)
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1440, 760, url, khung_thuong=True)
     try:
         _, bang_max, _, trang_max = page.evaluate(VI_TRI)
         assert bang_max > 1000 and trang_max > 0, f"tiền đề: bảng dài hơn khung — {[bang_max, trang_max]}"
@@ -484,7 +488,7 @@ def test_keo_ngang_khong_con_cot_bi_che(live_server, trinh_duyet_moi, mkt_ba_loa
     ky = "tu=2026-08-01&den=2026-08-06"
     for url, noi in ((f"/bao-cao/tong-hop/?nguon={mkt_ba_loai_tien.code}&{ky}", "Báo cáo tổng hợp"),
                      (f"/bang/{mkt_ba_loai_tien.code}/?{ky}", "Bảng dữ liệu")):
-        ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 1366, 768, url)
+        ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 1366, 768, url, khung_thuong=True)
         try:
             page.evaluate(TOI_KHUNG_BANG)
             page.evaluate("()=>{document.querySelector('.report-table-scroll').scrollLeft=400}")

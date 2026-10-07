@@ -84,6 +84,18 @@ Mới (đều đỏ trên mã trước, xanh sau): `tests/e2e/test_erp_mo_rong_m
 `tests/e2e/test_luoi_hoi_nhe.py`. Bài cũ đọc định dạng liên kết trang cũ hay `context["ben"]` của trang lưới: đổi sang đọc
 theo tham số và mảnh `bo-loc/`, giữ nguyên ý kiểm.
 
+## Kiểm toàn phần
+
+| Lượt | Kết quả |
+|---|---|
+| `pytest -m "not trinh_duyet"` | 3.088 đạt, 7 bỏ qua, 0 đỏ |
+| Bài trình duyệt lượt 1 (`tests/e2e`) | 53 đạt, 9 đỏ — đúng 9 bài `test_pha_luoi_ghi_chu` lỗi chứng chỉ Google Fonts của máy ảo, như `Staging` |
+| Bài trình duyệt lượt 2 | Lần đầu 2 đỏ ở `reports/tests/test_bo_cuc_bao_cao_e2e.py`; sau khi sửa 16 đạt |
+
+Hai bài đỏ đó dựng tiền đề theo khung thường (trang cuộn được; bảng thử ít cột tràn ngang đủ xa để cột Loại tiền chạm chỗ
+đứng yên). Mặc định mở rộng làm khung rộng hơn nên tiền đề hết đúng. Đo trên dữ liệu thật ở 1366×768 thì hai chế độ cùng
+bề rộng cột (Nhân sự 130 px) — không phải lỗi bố cục. Hai bài chạy ở khung thường như máy đã tắt mở rộng (`khung_thuong`).
+
 ## Chưa kiểm
 
 - Đo trên VPS thật (2 nhân, 4 GB).
