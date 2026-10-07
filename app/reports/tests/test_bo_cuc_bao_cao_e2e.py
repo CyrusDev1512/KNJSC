@@ -33,11 +33,16 @@ def trinh_duyet_moi():
         browser.close()
 
 
-def _mo(browser, live_server, user, width, height, url, *, luu=None, phien=None):
+def _mo(browser, live_server, user, width, height, url, *, luu=None, phien=None, khung_thuong=False):
     """Đăng nhập rồi mở `url`. `luu`/`phien`: localStorage/sessionStorage đặt sẵn trước khi trang chạy, như người dùng
-    đã chọn từ trước (Mở rộng ERP, thu thanh menu, trạng thái bộ lọc) — đặt lại ở mỗi lần tải trang."""
+    đã chọn từ trước (Mở rộng ERP, thu thanh menu, trạng thái bộ lọc) — đặt lại ở mỗi lần tải trang.
+
+    `khung_thuong`: bài dựng tiền đề theo khung có lề (trang cuộn được, bảng tràn ngang đủ xa). Từ 07.10.2026 ERP mặc
+    định mở rộng (AC-10.17), khung rộng hơn nên dữ liệu thử ít cột không còn đủ tràn — đặt về khung thường như máy đã
+    tắt mở rộng."""
+    luu = {**({"knjsc-erp-immersive": "0"} if khung_thuong else {}), **(luu or {})}
     ctx = browser.new_context(viewport={"width": width, "height": height}, locale="vi-VN")
-    dat = [f"localStorage.setItem({json.dumps(k)},{json.dumps(v)});" for k, v in (luu or {}).items()]
+    dat = [f"localStorage.setItem({json.dumps(k)},{json.dumps(v)});" for k, v in luu.items()]
     dat += [f"sessionStorage.setItem({json.dumps(k)},{json.dumps(v)});" for k, v in (phien or {}).items()]
     if dat:
         ctx.add_init_script("try{" + "".join(dat) + "}catch(e){}")
@@ -209,7 +214,7 @@ def test_lan_chuot_tren_bang_khong_ket(live_server, trinh_duyet_moi, nguon, nguo
     url = (f"/bao-cao/tong-hop/?nguon={nguon.table.code}&tu=2026-08-01&den=2026-08-31"
            f"&nhan_su={nguoi_dung['staff_sale_1'].pk}")
     # 1000×900: khung bảng vừa khít màn hình từ 03.10.2026 nên cần màn cao hơn để bảng ngắn lọt vừa khung dọc
-    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1000, 900, url)
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1000, 900, url, khung_thuong=True)
     try:
         page.evaluate(THEM_DUOI)
         bang, bang_max, trang, trang_max = page.evaluate(VI_TRI)
@@ -230,7 +235,7 @@ def test_lan_chuot_tren_bang_khong_ket(live_server, trinh_duyet_moi, nguon, nguo
                    data={**d.data, "ngay": (date(2026, 8, 1) + timedelta(days=i)).isoformat()})
         for i in range(1, 30) for d in mau])
     url = f"/bao-cao/tong-hop/?nguon={nguon.table.code}&tu=2026-08-01&den=2026-08-31"
-    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1440, 760, url)
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1440, 760, url, khung_thuong=True)
     try:
         page.evaluate(THEM_DUOI)
         _, bang_max, _, trang_max = page.evaluate(VI_TRI)
@@ -505,7 +510,7 @@ def test_keo_ngang_khong_con_cot_bi_che(live_server, trinh_duyet_moi, mkt_ba_loa
     ky = "tu=2026-08-01&den=2026-08-06"
     for url, noi in ((f"/bao-cao/tong-hop/?nguon={mkt_ba_loai_tien.code}&{ky}", "Báo cáo tổng hợp"),
                      (f"/bang/{mkt_ba_loai_tien.code}/?{ky}", "Bảng dữ liệu")):
-        ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 1366, 768, url)
+        ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 1366, 768, url, khung_thuong=True)
         try:
             page.evaluate(TOI_KHUNG_BANG)
             page.evaluate("()=>{document.querySelector('.report-table-scroll').scrollLeft=400}")

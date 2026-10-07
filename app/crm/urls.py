@@ -66,4 +66,5 @@ urlpatterns = [
     path("bang-tinh/<slug:code>/xoa-cot/", views.bang_tinh_xoa_cot, name="bang_tinh_xoa_cot"),
     path("bang-tinh/<slug:code>/an-cot/", views.bang_tinh_an_cot, name="bang_tinh_an_cot"),
     path("bang-tinh/<slug:code>/moi-nhat/", views.bang_tinh_moi_nhat, name="bang_tinh_moi_nhat"),
+    path("bang-tinh/<slug:code>/bo-loc/", views.bang_tinh_bo_loc, name="master_filters"),
 ]

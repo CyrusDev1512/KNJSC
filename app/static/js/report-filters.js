@@ -126,6 +126,8 @@
   };
   ganBang();
   if (!observer) window.addEventListener('resize', () => doBang([...document.querySelectorAll('.report-table')]));
+  // Chuyển trang thay vùng bảng (phan-trang.js, AC-10.19): gắn lại đo chiều cao dòng dính cho bảng mới
+  document.addEventListener('knjsc:vung-moi', () => { ganBang(); vuaManHinh(); });
 
   // ② Kéo ngang: chỉ cột đầu, Nhân sự, Loại tiền đứng yên. Đã kéo thì hiện bóng mép (`data-keo`); kéo xong thì
   // nhích cho cột số đầu tiên sau vùng đứng yên hiện trọn — theo hướng đang kéo, để mũi tên phải vẫn tiến tiếp.
@@ -400,7 +402,7 @@
       if (!cu || !moi) return;
       if (moi.hasAttribute(ten)) cu.setAttribute(ten, moi.getAttribute(ten)); else cu.removeAttribute(ten);
     };
-    const doiCheDo = async (url, ghiLichSu) => {
+    const doiCheDo = async (url, ghiLichSu, veDau = false) => {
       const khung = view.querySelector('.report-table-scroll');
       if (!khung) { location.assign(url); return; }
       const id = ++luot;
@@ -455,7 +457,8 @@
       veLaiBoLoc();
       ganBang();
       khungMoi.scrollLeft = ngang;
-      if (ngay) toiNgay(khungMoi, ngay); else khungMoi.scrollTop = doc;
+      if (veDau) khungMoi.scrollTop = 0;   // sang trang khác: xem từ dòng đầu trang mới
+      else if (ngay) toiNgay(khungMoi, ngay); else khungMoi.scrollTop = doc;
       khungMoi.toggleAttribute('data-keo', khungMoi.scrollLeft > 0);
     };
     document.addEventListener('click', event => {
@@ -465,6 +468,12 @@
       dongMenu();
       if (muc.getAttribute('aria-current') === 'true') return;   // đang ở cách này rồi
       doiCheDo(muc.href, true);
+    });
+    // Chuyển trang (thanh phân trang dùng chung phát `knjsc:phan-trang`, AC-10.19): cùng đường đổi bảng tại chỗ như Gộp
+    view.addEventListener('knjsc:phan-trang', event => {
+      if (!event.target.closest('.report-results')) return;
+      event.preventDefault();
+      doiCheDo(event.detail.url, true, true);
     });
     // Back / Forward giữa hai chế độ: đổi bảng tại chỗ, không thêm mục lịch sử; chỉ đổi phần # thì bỏ qua
     window.addEventListener('popstate', () => {

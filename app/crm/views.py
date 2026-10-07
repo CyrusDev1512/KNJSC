@@ -361,6 +361,13 @@ def bang_tinh_moi_nhat(request, code):
     return JsonResponse(master_grid_service.latest_stamp(request.user, bang))
 
 
+@login_required
+def bang_tinh_bo_loc(request, code):
+    """Chip đang lọc và panel Bộ lọc của lưới, tải khi cần (`master_views.filters`). Bảng ngoài phạm vi → 404."""
+    from . import master_views
+    return master_views.filters(request, _bang(request, code))
+
+
 
 
 # ── Thư mục chứa bảng — ADR-010 ───────────────────────────────────

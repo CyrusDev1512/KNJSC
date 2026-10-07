@@ -47,6 +47,7 @@
 #mg-message {padding:8px 12px;border-bottom:1px solid var(--rule);background:var(--surface-2);color:var(--ink)}#mg-message.mg-error{color:var(--critical)}#mg-message button{margin-left:8px}
 #mg-filters {width:300px;flex:none;overflow:auto;border-right:1px solid var(--rule);background:var(--surface);z-index:10}
 .mg-filter-content {padding:14px}.mg-filter-content h2{font-size:17px;margin:0 0 12px}.mg-filter-content form{margin-bottom:16px}.mg-filter-content fieldset{border:0;padding:8px 0;margin:0}.mg-filter-content legend{font-weight:600}.mg-filter-content label:not(.mg-check){display:block;margin-bottom:8px}.mg-check{display:flex;align-items:baseline;gap:6px;font-size:13px;padding:4px 0;overflow-wrap:anywhere}.mg-options{max-height:220px;overflow:auto}
+.mg-filters-tai{padding:14px;margin:0;opacity:.75}
 .mg-float {position:fixed;z-index:1100;background:var(--surface);color:var(--ink);border:1px solid var(--rule-strong);border-radius:6px;box-shadow:0 6px 24px #0002;padding:12px;box-sizing:border-box;max-width:calc(100vw - 24px);overflow:auto}
 .mg-float[hidden],.mg-root [hidden]{display:none!important}.mg-float strong{display:block;font-size:13px;margin-bottom:9px;padding-right:26px}
 /* Ô phồng to tại chỗ: nhìn như chính ô đó nở ra (cùng phông, cùng đệm), viền như ô đang

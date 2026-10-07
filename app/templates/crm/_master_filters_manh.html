@@ -1,0 +1,3 @@
+{% comment %}Mảnh tải khi cần của lưới (`master_views.filters`): chip đang lọc, và panel Bộ lọc khi `panel=1`.{% endcomment %}
+<div id="mg-chips" class="mg-chips">{% include 'crm/_master_chips.html' %}</div>
+{% if panel %}<div id="mg-filters-body">{% include 'crm/_master_filters.html' %}</div>{% endif %}

@@ -149,7 +149,8 @@ def test_thanh_ben_chon_nhanh_khoang_ngay_san_pham(client, bang_sale, bang_vd, s
     _dong(bang_sale, st, ngay=xa.isoformat(), khach="C", san_pham="Kem", doanh_thu="10", so_luong="1")
     client.force_login(st)
 
-    kq = client.get("/bang-tinh/don_sale/")
+    # Panel Bộ lọc tải khi mở (AC-10.20): số liệu thanh bên ở mảnh `bo-loc/?panel=1`
+    kq = client.get("/bang-tinh/don_sale/bo-loc/?panel=1")
     ben = kq.context["ben"]
     assert ben["cot_ngay"].code == "ngay"
     chon_nhanh = {ma: (qs, bat) for ma, _, qs, bat, _ in ben["chon_nhanh"]}
@@ -159,7 +160,7 @@ def test_thanh_ben_chon_nhanh_khoang_ngay_san_pham(client, bang_sale, bang_vd, s
     assert _so_dong(client, "/bang-tinh/don_sale/?" + qs_hom_qua) == 1
     assert _so_dong(client, "/bang-tinh/don_sale/?" + chon_nhanh["7_ngay"][0]) == 2
     # mốc đang bật thì chip đánh dấu, và chọn nhanh giữ các bộ lọc khác
-    kq = client.get("/bang-tinh/don_sale/?" + qs_hom_qua + "&f_khach__chua=B")
+    kq = client.get("/bang-tinh/don_sale/bo-loc/?panel=1&" + qs_hom_qua + "&f_khach__chua=B")
     assert dict((ma, bat) for ma, _, _, bat, _ in kq.context["ben"]["chon_nhanh"])["hom_qua"] is True
     assert "f_khach__chua" in dict((ma, qs) for ma, _, qs, _, _ in kq.context["ben"]["chon_nhanh"])["hom_nay"]
     # từ ngày / đến ngày gõ tay
@@ -177,7 +178,7 @@ def test_thanh_ben_chon_nhanh_khoang_ngay_san_pham(client, bang_sale, bang_vd, s
     _dong(bang_vd, vd, ma_don="D2", ten_khach="Y", so_dien_thoai="0911", chi_tiet_sp=_ct("retinol-serum"))
     _dong(bang_vd, vd, ma_don="D3", ten_khach="Z", so_dien_thoai="0922")
     client.force_login(vd)
-    ben = client.get("/bang-tinh/van_don/").context["ben"]
+    ben = client.get("/bang-tinh/van_don/bo-loc/?panel=1").context["ben"]
     assert ben["san_pham"]["kind"] == "chi_tiet" and ben["san_pham"]["param"] == "f_san_pham__trong"
     assert {gt: n for gt, _, n, _ in ben["san_pham"]["items"]} == {"retinol-cream": 1, "retinol-serum": 1}
     assert _so_dong(client, "/bang-tinh/van_don/?sp=retinol-cream") == 1

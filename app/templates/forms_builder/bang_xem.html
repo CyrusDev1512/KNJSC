@@ -82,6 +82,7 @@
   </div>
 
   {% if khoi %}
+  <div data-vung-trang="bao-cao">{# phan-trang.js chỉ thay vùng này khi chuyển trang (AC-10.19) #}
   <div class="report-view">
     <div class="report-controls" aria-label="Điều khiển bảng báo cáo">
       <div class="report-focus-title"><strong>{{ bang.name }}</strong><span>{{ params.start|date:'d/m/Y' }} – {{ params.end|date:'d/m/Y' }}</span></div>
@@ -98,6 +99,7 @@
     </section>
   </div>
   {% if result.ok %}<div class="erp-pagination-tools">{% include "components/phan_trang.html" %}</div>{% endif %}
+  </div>
   {% else %}
   {% include "forms_builder/_bang_xem_bang.html" %}
   {% endif %}

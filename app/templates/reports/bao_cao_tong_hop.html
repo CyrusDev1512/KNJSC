@@ -105,6 +105,7 @@
     </div>
     <div style="padding:var(--sp-4)"></div>
   {% else %}
+    <div data-vung-trang="ds">{# phan-trang.js chỉ thay vùng này khi chuyển trang (AC-10.19) #}
     <div class="bang-cuon">
       <table class="bang">
         <thead>
@@ -141,6 +142,7 @@
       Mọi lần xuất Excel đều ghi vào nhật ký — nguyên tắc P5.
     </p>
     {% include "components/phan_trang.html" %}
+    </div>
   {% endif %}
 </div>
 

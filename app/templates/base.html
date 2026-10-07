@@ -14,8 +14,9 @@
   /* Đặt nền trước khi vẽ để tránh nháy sáng */
   try { var n = localStorage.getItem("knjsc-nen"); document.documentElement.dataset.theme = n === "dark" ? "dark" : "light"; } catch (e) {}
   {% if user.is_authenticated %}
-  /* Khôi phục bố cục trước khi nạp CSS để chuyển trang không nháy về khung nhỏ. */
-  try { if (localStorage.getItem("knjsc-erp-immersive") === "1") document.documentElement.classList.add("sp-erp-immersive"); } catch (e) {}
+  /* Khôi phục bố cục trước khi nạp CSS để chuyển trang không nháy về khung nhỏ. Mặc định mở rộng, không ảnh nền
+     (chủ dự án 07.10.2026, AC-10.17); chỉ máy đã bấm tắt ("0") mới về khung bo góc trên ảnh nền. */
+  try { if (localStorage.getItem("knjsc-erp-immersive") !== "0") document.documentElement.classList.add("sp-erp-immersive"); } catch (e) { document.documentElement.classList.add("sp-erp-immersive"); }
   {% endif %}
 </script>
 {% block dau_trang %}{% endblock %}
@@ -151,6 +152,7 @@
 </script>
 
 <script src="{% static 'js/htmx.min.js' %}?v={{ phien_ban_tinh }}" defer></script>
+<script src="{% static 'js/phan-trang.js' %}?v={{ phien_ban_tinh }}" defer></script>
 <script src="{% static 'js/solarpunk-shell.js' %}?v={{ phien_ban_tinh }}" defer></script>
 <script src="{% static 'js/chon.js' %}?v={{ phien_ban_tinh }}" defer></script>
 {% block cuoi_trang %}{% endblock %}

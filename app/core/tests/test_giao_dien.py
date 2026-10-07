@@ -178,6 +178,8 @@ def test_khung_erp_co_hai_icon_nen_va_mo_rong_trong_tab():
     assert "requestFullscreen" not in shell and "fullscreenchange" not in shell
     assert "Mở rộng giao diện ERP" in base
     assert "knjsc-erp-immersive" in base and "localStorage.getItem" in base
+    # Mặc định mở rộng, chỉ "0" mới tắt (AC-10.17)
+    assert 'getItem("knjsc-erp-immersive") !== "0"' in base
     assert "knjsc-erp-immersive" in shell and "localStorage.setItem" in shell
     assert "addEventListener('storage'" in shell
     assert "sp-erp-immersive body.sp-erp::before" in css

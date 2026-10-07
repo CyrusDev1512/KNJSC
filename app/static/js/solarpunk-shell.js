@@ -17,7 +17,7 @@
       setImmersive(!active);
     });
     window.addEventListener('storage', event => {
-      if (event.key === storageKey) setImmersive(event.newValue === '1', false);
+      if (event.key === storageKey) setImmersive(event.newValue !== '0', false);   // mặc định bật (AC-10.17)
     });
     document.addEventListener('keydown', event => {
       if (event.key !== 'Escape' || event.defaultPrevented || !root.classList.contains('sp-erp-immersive')) return;

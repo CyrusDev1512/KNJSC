@@ -687,13 +687,19 @@
       refreshSoft();syncScopeButtons();repaint();return true;
     }
     viewport.scrollTop=viewport.scrollLeft=0;state.lastError='';state.ready=false;invalidate();
-    // HTML chỉ cho điều khiển lọc/chip, không chứa dữ liệu dòng.
-    const gen=state.generation;
-    fetch(url,{headers:{'X-Master-Filters':'1'}}).then(r=>r.text()).then(html=>{
-      if(gen!==state.generation)return;const doc=new DOMParser().parseFromString(html,'text/html');
-      for(const id of ['mg-filters','mg-chips']){const e=doc.getElementById(id);if(e)$(id).innerHTML=e.innerHTML;}
-    }).catch(()=>{});
+    // Chỉ lấy chip đang lọc (và panel Bộ lọc nếu đã mở) — mảnh nhỏ `bo-loc/`, không tải lại cả trang lưới (mục b).
+    loadFilters(!!$('mg-filters').dataset.loaded);
     syncScopeButtons();repaint();return true;
+  }
+  // Panel Bộ lọc tải khi người dùng mở lần đầu (mục a, 07.10.2026): mở lưới không phải đếm theo sản phẩm, thị trường…
+  function loadFilters(panel){
+    const gen=state.generation;const p=new URLSearchParams(query);if(panel)p.set('panel','1');
+    return fetch(config.filtersUrl+(p.size?'?'+p:''),{headers:{'X-Master-Filters':'1'}}).then(r=>{if(!r.ok)throw Error(r.status);return r.text();}).then(html=>{
+      if(gen!==state.generation)return;const doc=new DOMParser().parseFromString(html,'text/html');
+      const chips=doc.getElementById('mg-chips');if(chips)$('mg-chips').innerHTML=chips.innerHTML;
+      const body=doc.getElementById('mg-filters-body');
+      if(panel&&body){$('mg-filters-body').innerHTML=body.innerHTML;$('mg-filters').dataset.loaded='1';}
+    }).catch(()=>{if(panel&&!$('mg-filters').dataset.loaded)$('mg-filters-body').innerHTML='<p class="mg-filters-tai" role="alert">Không tải được bộ lọc. Đóng rồi mở lại để thử lại.</p>';});
   }
   async function rangeCells() {
     const s=state.selection;if(!s)return [];
@@ -1003,7 +1009,7 @@
     htmx.ajax('GET',config.filterUrl+'loc/'+filter.dataset.filter+'/?'+query,{target:'#mg-column-filter-body',swap:'innerHTML'});}
   });
   $('mg-undo').onclick=safe(()=>undo());$('mg-redo').onclick=safe(()=>undo(true));
-  $('mg-filters-button').onclick=()=>{if(dirty())return;$('mg-filters').hidden=!$('mg-filters').hidden;$('mg-filters-button').setAttribute('aria-expanded',!$('mg-filters').hidden);repaint();};
+  $('mg-filters-button').onclick=()=>{if(dirty())return;$('mg-filters').hidden=!$('mg-filters').hidden;$('mg-filters-button').setAttribute('aria-expanded',!$('mg-filters').hidden);if(!$('mg-filters').hidden&&!$('mg-filters').dataset.loaded)loadFilters(true);repaint();};
   // Ẩn cột với cả công ty — ADR-039. Nút chỉ hiện với quản lý bảng; ô tích
   // bên trái vẫn là "ẩn cho riêng máy mình" như cũ (localStorage).
   async function datAnCot(codes,an){
@@ -1270,6 +1276,11 @@
       }
       const data=await fetch(config.filterUrl+'moi-nhat/').then(json),stamp=JSON.stringify(data);
       if(reloadForViewMode(data))return;
+      // Kiểm quyền từng dòng đang giữ chỉ khi mốc đổi (mục d, 07.10.2026): dòng ra khỏi phạm vi luôn kèm mốc đổi (đổi
+      // phân công cũng chạm `updated_at`). Thêm một lượt dự phòng mỗi 10 lần hỏi cho đổi phạm vi không chạm dòng (đổi
+      // team của người khác). Máy chủ vẫn chặn mọi lần đọc/ghi ngoài phạm vi; lượt này chỉ để dọn nháp và bộ đệm sớm.
+      state.scopeTick=(state.scopeTick||0)+1;
+      if(state.poll===stamp&&state.scopeTick%10!==0)return;
       const ids=new Set(working.pending().map(c=>c.id));
       if(state.draft)ids.add(state.draft.id);if(state.historyId)ids.add(state.historyId);
       for(const block of state.cache.values())block.rows.forEach(r=>ids.add(r.id));
