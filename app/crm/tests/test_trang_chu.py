@@ -170,8 +170,9 @@ def test_tree_service_dung_mot_truy_van_moi_bang_dem(du_lieu, nguoi_dung, django
     `month_of_params` chỉ nhận bộ lọc trọn tháng; bảng thường không vào
     `all_tables` (ADR-040)"""
     vd = nguoi_dung["staff_vd"]
+    bang_bp = list(tree_service.all_tables(vd))      # trang thư mục truyền sẵn danh sách bảng (AC-10.25)
     with django_assert_max_num_queries(2):
-        tk = tree_service.table_stats(vd, du_lieu["vd"].department)
+        tk = tree_service.table_stats(vd, du_lieu["vd"].department, bang_bp)
     assert tk[du_lieu["vd"].pk][0] == 4
     sale = nguoi_dung["manager_sale"]
     ma = [b.code for b in tree_service.all_tables(sale)]

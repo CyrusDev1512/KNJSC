@@ -84,3 +84,42 @@ def test_khong_hoi_dong_voi_nguoi_khong_phai_sale_cskh(the_gioi):
         sql = str(TableDef.objects.in_scope(the_gioi[ten]).query)
         assert "forms_builder_datarecord" not in sql, ten
     assert "EXISTS" in str(TableDef.objects.in_scope(the_gioi["staff_sale_1"]).query)
+
+
+def _dong_cu(user, table=None, tat_ca=False):
+    """Tập dòng theo điều kiện phạm vi Sale/CSKH cũ (OR qua JOIN đơn hàng, phân công) — mốc để so."""
+    from unittest import mock
+    from orders.services import assignment_service as a
+
+    def cu(user, original, *, only_new=False):
+        scope = get_user_scope(user)
+        dept = a.department(user)
+        new = waybill_condition()
+        if a.can_assign(user) or a.is_accountant(user) or dept == 'van-don':
+            allowed = Q()
+        elif dept == 'cskh':
+            allowed = Q(assignment__care_id=user.pk)
+        elif dept == 'sale':
+            allowed = (Q(created_by_id=user.pk) | Q(order__created_by_id=user.pk) | Q(order__seller_id=user.pk)
+                       | Q(assignment__care_id=user.pk))
+            if scope.rank != Rank.STAFF:
+                allowed |= original
+        else:
+            allowed = original
+        return allowed if only_new else (~new & original) | (new & allowed)
+    with mock.patch.object(a, "scope_condition", cu):
+        ql = DataRecord.all_objects if tat_ca else DataRecord.objects
+        return set(ql.in_scope(user, **({"table": table} if table else {})).values_list("pk", flat=True))
+
+
+def test_pham_vi_dong_sale_cskh_trung_cach_cu(the_gioi):
+    """AC-10.25 — Phạm vi dòng (chung, theo từng bảng, gồm cả dòng đã xoá) của mọi vai trùng điều kiện cũ: Sale qua
+    dòng mình tạo, đơn mình lên hay đứng đơn, dòng được chăm sóc; CSKH qua chăm sóc"""
+    cac_bang = list(TableDef.objects.all())
+    for ten, user in the_gioi.items():
+        for tat_ca in (False, True):
+            ql = DataRecord.all_objects if tat_ca else DataRecord.objects
+            assert set(ql.in_scope(user).values_list("pk", flat=True)) == _dong_cu(user, tat_ca=tat_ca), ten
+            for b in cac_bang:
+                assert set(ql.in_scope(user, table=b).values_list("pk", flat=True)) == _dong_cu(user, b, tat_ca), (ten, b.code)
+    assert _dong_cu(the_gioi["staff_sale_2"]) and _dong_cu(the_gioi["cskh"])     # thế giới có đủ các nhánh

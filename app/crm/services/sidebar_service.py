@@ -94,7 +94,10 @@ def product_options(user, table, columns, params):
         from django.db.models import Count
         from orders.models import WaybillItem
         chosen = params.getlist('sp') + params.getlist('f_san_pham__trong')
-        items = WaybillItem.objects.in_scope(user).filter(record__table=table).order_by().values(
+        from forms_builder.models import DataRecord
+        # Phạm vi theo bảng: cùng tập dòng với phạm vi chung lọc theo bảng, đi nhánh gọn (AC-10.25)
+        items = WaybillItem.objects.for_records(DataRecord.objects.in_scope(user, table=table)).filter(
+            record__table=table).order_by().values(
             'product__code', 'product__name').annotate(n=Count('record_id', distinct=True)).order_by('product__code')
         return {'kind': 'chi_tiet', 'param': 'f_san_pham__trong', 'items': [
             (i['product__code'], f"{i['product__code']} — {i['product__name']}", i['n'], i['product__code'] in chosen)

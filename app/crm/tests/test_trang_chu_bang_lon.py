@@ -63,3 +63,45 @@ def test_trang_chu_khong_dem_qua_join_tren_moi_dong(the_gioi):
     sql = " ".join(x["sql"] for x in q.captured_queries)
     assert "COUNT(DISTINCT" not in sql
     assert '"forms_builder_datarecord"."id")::varchar' not in sql and "::date" not in sql
+
+
+def test_thong_ke_thu_muc_trung_cach_cu_moi_vai(the_gioi):
+    """AC-10.25 — Số dòng và mốc cập nhật từng bảng ở trang thư mục trùng cách tính cũ (phạm vi chung lọc theo bộ
+    phận) cho mọi vai và mọi bộ phận; vẫn một truy vấn đếm"""
+    from crm.services import tree_service
+    from org.models import Department
+    for ten, user in the_gioi.items():
+        for bp in Department.objects.all():
+            cu = {d["table_id"]: (d["n"], d["moc"]) for d in DataRecord.objects.in_scope(user).filter(
+                table__department=bp, table__deleted_at__isnull=True).values("table_id")
+                .annotate(n=Count("id"), moc=Max("updated_at")).order_by()}
+            assert tree_service.table_stats(user, bp) == cu, (ten, bp.code)
+
+
+def test_so_dem_panel_bo_loc_trung_cach_cu_moi_vai(the_gioi):
+    """AC-10.25 — Số đếm của panel Bộ lọc lưới (sản phẩm, thị trường, marketer) trùng cách tính cũ (phạm vi chung lọc
+    theo bảng) cho mọi vai; nay đi phạm vi theo bảng"""
+    from crm.services import grid_service, sidebar_service
+    from orders.models import WaybillItem
+    for code in ("van_don", "vd_mkt"):
+        bang = TableDef.objects.get(code=code)
+        cot = {c.code: c for c in bang.columns.all()}
+        for ten, user in the_gioi.items():
+            cu_sp = list(WaybillItem.objects.in_scope(user).filter(record__table=bang).order_by()
+                         .values('product__code').annotate(n=Count('record_id', distinct=True)).order_by('product__code'))
+            moi_sp = sidebar_service.product_options(user, bang, list(bang.columns.all()), _qd())["items"]
+            assert [(i["product__code"], i["n"]) for i in cu_sp] == [(gt, n) for gt, _, n, _ in moi_sp], (ten, code)
+            for ma in ("quoc_gia", "phu_trach_mkt"):
+                if ma not in cot:
+                    continue
+                ds_cu = DataRecord.objects.in_scope(user).filter(table=bang)
+                moi = grid_service.filter_options(user, bang, cot[ma])
+                path, _ = grid_service._nguon_gia_tri(user, bang, cot[ma], queryset=ds_cu)
+                cu = [((('__unassigned__' if ma == "phu_trach_mkt" else '') if h['gt'] is None else str(h['gt'])), h['n'])
+                      for h in path.order_by().values("gt").annotate(n=Count("id")).order_by("-n", "gt")]
+                assert moi == cu, (ten, code, ma)
+
+
+def _qd():
+    from django.http import QueryDict
+    return QueryDict("")
