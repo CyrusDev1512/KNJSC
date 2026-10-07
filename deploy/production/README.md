@@ -42,6 +42,11 @@ diễn tập trên bản sao, không phải lần phát hành.
   `POSTGRES_PASSWORD`, `CRM_HOST`, `ERP_HOST`, `CSRF_TRUSTED_ORIGINS`.
   Điền `BANGTINH_URL`/`MAIN_APP_URL` bằng URL HTTPS thực, cùng cấu hình email
   và operator theo hướng dẫn vận hành. Không copy secret từ máy dev.
+- **Đăng nhập chung hai tên miền:** đặt `SESSION_COOKIE_DOMAIN` và `CSRF_COOKIE_DOMAIN`
+  là tên miền cha chung của `ERP_HOST` và `CRM_HOST` (dạng `.ten-mien.vn`). Thiếu thì
+  sang dịch vụ kia phải đăng nhập lại; `manage.py check --deploy` báo lỗi `core.E001`
+  và dừng phát hành (AC-1.11). Dịch vụ `crm` phải có `BANGTINH_GOC=prod` (đã đặt trong
+  `compose.yml`); thiếu thì container dừng khởi động thay vì chạy cấu hình dev.
 - Đặt chứng chỉ hợp lệ cho cả hai hostname tại `certificates/fullchain.pem`
   và `certificates/privkey.pem`. Chứng chỉ/private key không đưa vào Git.
   Quy trình cấp/gia hạn chứng chỉ cần được cấu hình trên máy chủ thực.

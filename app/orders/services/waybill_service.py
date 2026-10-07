@@ -77,6 +77,31 @@ OPTIONS = {
 protect_table = True
 
 
+def after_delete(row, *, actor=None, request=None):
+    """Xoá dòng vận đơn thì bỏ luôn đơn gốc (chủ dự án chốt 06.10.2026): không để đơn còn sống mà không còn
+    dòng nào trên bảng. Chiều ngược của `order_service.cancel_order`."""
+    from orders.models import Order
+    don = Order.all_objects.filter(record_id=row.pk, deleted_at__isnull=True).first()
+    if don is None:
+        return
+    don.delete(by=actor)
+    record(AuditAction.DELETE, actor=actor, target=don,
+           detail=f"Bỏ đơn {don.code} theo dòng vận đơn vừa xoá", request=request)
+
+
+def after_restore(row, *, actor=None, request=None):
+    """Khôi phục dòng vận đơn thì khôi phục đơn gốc đã bỏ cùng nó."""
+    from orders.models import Order
+    don = Order.all_objects.filter(record_id=row.pk, deleted_at__isnull=False).first()
+    if don is None:
+        return
+    don.deleted_at = None
+    don.deleted_by = None
+    don.save(update_fields=["deleted_at", "deleted_by", "updated_at"])
+    record(AuditAction.UPDATE, actor=actor, target=don,
+           detail=f"Khôi phục đơn {don.code} theo dòng vận đơn", request=request)
+
+
 def register():
     # Một bảng duy nhất (ADR-036): đăng ký theo mã `van_don` và theo workflow.
     record_policies.register(WAYBILL_TABLE_CODE, sys.modules[__name__])

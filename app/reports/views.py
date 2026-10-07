@@ -20,6 +20,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from core.lien_ket import crm_url
 from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import pagination_context
 from core.submission import new_key as new_submission_key
@@ -242,7 +243,7 @@ def bao_cao_tong_hop(request):
         # Đuôi nối vào liên kết phân trang để không mất trạng thái lọc
         "qs_loc": "&" + _query_loc(tham_so, bang),
         "crm_dashboard_url": (
-            settings.BANGTINH_URL.rstrip("/") + "/thong-ke/"
+            crm_url(request).rstrip("/") + "/thong-ke/"
             if settings.BANGTINH_URL else ""
         ),
     }

@@ -19,7 +19,7 @@ from core.exceptions import BusinessError
 from core.identity import employee_code
 from forms_builder.meaning import FieldType, Meaning
 from forms_builder.models import ColumnDef, DataRecord, TableDef, phone_key
-from forms_builder.services import record_service
+from forms_builder.services import record_service, table_service
 
 from ..constants import (
     WAYBILL_DEPARTMENT_CODE, WAYBILL_TABLE_CODE, Market, PaymentMethod,
@@ -54,7 +54,11 @@ PRODUCT_COLUMN_PREFIX = "sl_"
 
 def product_column_code(product):
     """Tên kỹ thuật cột số lượng của một sản phẩm: `sl_` + mã sản phẩm."""
-    return (PRODUCT_COLUMN_PREFIX + product.code.replace("-", "_"))[:60]
+    return product_column_code_of(product.code)
+
+
+def product_column_code_of(code):
+    return (PRODUCT_COLUMN_PREFIX + code.replace("-", "_"))[:60]
 
 
 def is_product_column(code):
@@ -99,6 +103,7 @@ def ensure_waybill_table(*, actor=None):
         )
 
     bang = TableDef.all_objects.select_for_update().filter(code=WAYBILL_TABLE_CODE).first()
+    truoc = table_service.schema_signature(bang) if bang is not None else None
     if bang is None:
         bang = TableDef.objects.create(
             name="Vận đơn mới", code=WAYBILL_TABLE_CODE,
@@ -136,6 +141,7 @@ def ensure_waybill_table(*, actor=None):
         bang.save(update_fields=fields + ["updated_at"])
         record(AuditAction.UPDATE, actor=actor, target=bang,
                detail="Vận đơn mới là bảng vận đơn duy nhất (ADR-036): " + ", ".join(fields))
+    table_service.resync_if_changed(bang, truoc, actor=actor)
     bang.refresh_from_db()
     return bang
 

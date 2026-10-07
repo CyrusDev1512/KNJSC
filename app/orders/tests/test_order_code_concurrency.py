@@ -6,6 +6,7 @@ from threading import Barrier, Event
 from unittest.mock import patch
 
 import pytest
+from forms_builder.models import DataRecord
 from django.contrib.auth import get_user_model
 from django.db import close_old_connections, connection, connections, transaction
 from django.test import Client
@@ -119,6 +120,9 @@ def test_vietnam_date_and_non_numeric_legacy_suffix(bang_van_don, san_pham, nguo
     with patch('django.utils.timezone.now', return_value=datetime(2026, 9, 10, 18, tzinfo=utc_timezone.utc)):
         old = _len_don(actor, san_pham)
         Order.all_objects.filter(pk=old.pk).update(code='DH-1109-legacy')
+        # Dòng vận đơn của đơn cũ mang cùng mã cũ: mã số trên bảng cũng giữ chỗ (06.10.2026)
+        DataRecord.all_objects.filter(pk=old.record_id).update(
+            data={**old.record.data, 'ma_don': 'DH-1109-legacy'}, val_order_code='DH-1109-legacy')
         assert _len_don(actor, san_pham).code == 'DH-1109-0001'
 
 

@@ -75,3 +75,35 @@ def test_len_don_mat_mang_bao_chua_luu_roi_luu_mot_don(live_server, trang, dang_
     assert _cho_db(trang, lambda: Order.objects.count() == 1)
     trang.wait_for_timeout(1_000)
     assert Order.objects.count() == 1
+
+
+def test_loi_bao_chua_luu_khong_bi_yeu_cau_khac_xoa(live_server, trang, dang_nhap, kn_crm, setup, nguoi_dung):  # noqa: F811
+    """AC-10.12 — Lên đơn: bấm Lưu đơn lúc mất mạng thì lời báo "Mất kết nối mạng…" còn nguyên dù một yêu cầu khác của
+    trang (tra khách theo số điện thoại) thành công ngay sau đó — trước đây yêu cầu tra khách xong là lời báo biến mất,
+    người dùng tưởng đơn đã lưu (bài trên đỏ chập chờn 2/5 lần vì đúng cuộc đua này); Lưu đơn thành công thì lời báo tắt"""
+    dang_nhap(trang, nguoi_dung["staff_sale_1"])
+    trang.goto(f"{live_server.url}/van-don/len-don/")
+    f = trang.locator("form:has([name=customer_name])")
+    f.locator("[name=customer_name]").fill("Khách Mất Mạng")
+    f.locator("[name=market]").select_option("us")
+    f.locator("[name=payment_method]").select_option(index=1)
+    f.locator("[name=product]").first.select_option(setup[2][0].code)
+    f.locator("[name=quantity]").first.fill("1")
+    f.locator("[name=unit_price]").first.fill("10")
+    f.locator("[name=phone]").fill("0901000222")
+    trang.wait_for_timeout(1_000)                      # tra khách lần đầu chạy xong lúc còn mạng
+    trang.context.set_offline(True)
+    f.locator("button[type=submit]").click()
+    bao = trang.locator(".loi-mang-noi")
+    bao.wait_for(timeout=8_000)
+    trang.context.set_offline(False)
+    # Một yêu cầu khác của trang thành công: tra khách theo số vừa sửa
+    with trang.expect_response(lambda r: "kiem-khach" in r.url and r.ok, timeout=8_000):
+        f.locator("[name=phone]").fill("0901000333")
+        f.locator("[name=phone]").dispatch_event("change")
+    trang.wait_for_timeout(300)
+    assert bao.is_visible(), "lời báo chưa lưu biến mất sau khi tra khách xong"
+    assert not Order.objects.exists()
+    f.locator("button[type=submit]").click()
+    assert _cho_db(trang, lambda: Order.objects.count() == 1)
+    trang.locator(".loi-mang-noi").wait_for(state="detached", timeout=8_000)
