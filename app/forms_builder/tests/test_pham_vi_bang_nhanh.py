@@ -12,9 +12,9 @@ from core.constants import ACCOUNTING_DEPARTMENT_CODE, Rank
 from core.scope import get_user_scope
 from core.managers import apply_department_scope
 from forms_builder.models import DataRecord, GrantAction, TableDef
-from forms_builder.services import grant_service, record_service, table_service
+from forms_builder.services import grant_service
 from orders.constants import waybill_condition
-from orders.models import Order, Product, ProductGroup, WaybillAssignment
+from orders.models import Product, ProductGroup, WaybillAssignment
 from orders.services import dispatch_service
 from orders.tests.test_len_don import _len_don
 from org.models import Department
@@ -49,7 +49,7 @@ def the_gioi(nguoi_dung, departments, make_user, settings):
     dòng do Sale tạo, đơn Sale bán hộ, phân công CSKH và Sale; một quyền xem riêng; người Kế toán, CSKH, CEO."""
     settings.GRID_ONLY_TABLES = set()
     admin = nguoi_dung["admin"]
-    vd = dispatch_service.ensure_waybill_table(actor=admin)
+    dispatch_service.ensure_waybill_table(actor=admin)
     vd2 = TableDef.objects.create(name="Vận đơn MKT", code="vd_mkt", department=departments["mkt"],
                                   created_by=admin, workflow="waybill")
     thuong = {k: TableDef.objects.create(name=f"Thường {k}", code=f"thuong_{k}", department=departments[k], created_by=admin)
