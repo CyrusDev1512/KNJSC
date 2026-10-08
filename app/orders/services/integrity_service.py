@@ -124,6 +124,15 @@ def ngoai_danh_sach(table):
     return kq
 
 
+def _co_khoa_ma_don():
+    """Cột khoá mã đơn `val_order_code` (migration forms_builder/0017) đã có chưa. Chưa có thì không nạp được bản ghi
+    đầy đủ — lời báo của chính 0017 khi dừng vì mã trùng chỉ tới lệnh này, nên phép rà phải chạy được ở trạng thái đó."""
+    from django.db import connection
+    with connection.cursor() as con_tro:
+        cot = connection.introspection.get_table_description(con_tro, DataRecord._meta.db_table)
+    return any(c.name == "val_order_code" for c in cot)
+
+
 def run(*, tables=None, fix=False, on_line=print):
     """Chạy năm phép rà, in từng dòng qua `on_line`. Trả tổng số chỗ lệch **sau** khi sửa (`fix`)."""
     bang = list(tables if tables is not None else TableDef.all_objects.filter(deleted_at__isnull=True).order_by("code"))
@@ -137,14 +146,21 @@ def run(*, tables=None, fix=False, on_line=print):
         on_line(f"  {nhan} · {ten}: {kq['so']}"
                 + (" — " + "; ".join(kq["vi_du"]) if kq["vi_du"] else ""))
 
+    co_khoa = _co_khoa_ma_don()
+    if not co_khoa:
+        on_line("Chưa chạy migration forms_builder/0017: chỉ rà những gì đọc từ data, rà cột tách sau khi migrate"
+                + ("; --sua không ghi gì." if fix else "."))
     for t in bang:
         on_line(f"Bảng {t.code} ({DataRecord.all_objects.filter(table=t).count()} dòng)")
-        kq = lech_cot_tach(t)
-        if kq["so"] and fix:
-            resync_table(t)
-            on_line(f"  Đã tính lại {kq['so']} dòng lệch.")
+        if co_khoa:
             kq = lech_cot_tach(t)
-        bao("cột tách / cột tính sẵn lệch data", kq)
+            if kq["so"] and fix:
+                resync_table(t)
+                on_line(f"  Đã tính lại {kq['so']} dòng lệch.")
+                kq = lech_cot_tach(t)
+            bao("cột tách / cột tính sẵn lệch data", kq)
+        else:
+            on_line("  BỎ QUA · cột tách / cột tính sẵn lệch data: chưa có cột khoá mã đơn")
         bao("giá trị ngoài danh sách chọn", ngoai_danh_sach(t))
         if t.pk in van_don:
             bao("mã đơn trùng (dòng chưa xoá)", ma_don_trung(t))

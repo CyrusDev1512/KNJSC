@@ -24,6 +24,7 @@ from core.money import parse_money
 from forms_builder import record_policies
 from forms_builder.meaning import FieldType, Meaning
 from forms_builder.models import ColumnDef, DataRecord, TableDef, Grant
+from forms_builder.services.record_service import same_value
 from forms_builder.services import grant_service, record_service
 from orders.constants import WAYBILL_TABLE_CODE, PaymentStatus, ShippingStatus, Market, LEGACY_PAYMENT_LABELS
 from orders.models import Product, WaybillItem
@@ -433,7 +434,7 @@ def clear_items(user, table, cells, *, request=None):
         raise OutOfScopeError("Bạn không có quyền sửa vận đơn này.")
     if any(not grant_service.can_edit_visible_record(user, row) for row in rows.values()):
         raise OutOfScopeError("Bạn không có quyền sửa vận đơn này.")
-    if any(rows[c['id']].data.get(c['column']) != c['old'] for c in cells):
+    if any(not same_value(rows[c['id']].data.get(c['column']), c['old']) for c in cells):
         raise BusinessError("Ô vừa được người khác sửa. Tải lại bảng rồi xoá lại.", code='conflict')
     for pk in ids:
         _clear(user, rows[pk], request=request)

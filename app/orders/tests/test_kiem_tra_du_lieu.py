@@ -67,3 +67,30 @@ def test_bang_khong_co_bao_loi(capsys, db):
     from django.core.management.base import CommandError
     with pytest.raises(CommandError, match="khong_co"):
         call_command("kiem_tra_du_lieu", "--bang", "khong_co")
+
+
+def test_chay_duoc_truoc_migration_0017_va_liet_ke_ma_trung(don, nguoi_dung, capsys):
+    """AC-36.14 — Trước migration `forms_builder/0017` (VPS trước phát hành, hay khi 0017 vừa dừng vì mã trùng — lời
+    báo của nó chỉ tới lệnh này): lệnh không hỏng mà liệt kê mã đơn trùng, ghi rõ phép rà cột tách bỏ qua; `--sua`
+    không ghi gì (diễn tập phát hành 08.10.2026)"""
+    from django.db import connection
+    from django.db.migrations.executor import MigrationExecutor
+    from forms_builder.services import record_service
+    dong = DataRecord.objects.get(pk=don.record_id)
+    khac = record_service.create_record(dong.table, {"ma_don": "DH-KT-2", "ten_khach": "Khách thử"},
+                                        actor=nguoi_dung["staff_vd"])
+    with connection.cursor() as cursor:
+        cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+    try:
+        MigrationExecutor(connection).migrate([("forms_builder", "0016_datarecord_val_phone_key")])
+        DataRecord.objects.filter(pk=khac.pk).update(data={**khac.data, "ma_don": dong.data["ma_don"]})
+        moc = sorted(DataRecord.all_objects.filter(pk__in=[dong.pk, khac.pk]).values_list("updated_at", flat=True))
+        ma, ra = _chay(capsys, "--bang", dong.table.code)
+        assert ma == 1 and f"{dong.data['ma_don']} (2 dòng)" in ra and "BỎ QUA" in ra, ra
+        ma, ra = _chay(capsys, "--bang", dong.table.code, "--sua")
+        assert ma == 1 and "(2 dòng)" in ra, ra
+        assert sorted(DataRecord.all_objects.filter(pk__in=[dong.pk, khac.pk]).values_list("updated_at", flat=True)) == moc
+        DataRecord.objects.filter(pk=khac.pk).update(data={**khac.data, "ma_don": "DH-KT-2"})
+    finally:
+        executor = MigrationExecutor(connection)
+        executor.migrate(executor.loader.graph.leaf_nodes())
