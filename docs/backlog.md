@@ -1,5 +1,23 @@
 # Backlog
 
+## 08.10.2026 — Vì sao mở bảng tính lần đầu chậm hơn số đã báo (chỉ đo, không đổi mã)
+
+- Số đã báo là thời gian máy chủ đo khi nóng. Lần đầu người dùng còn chờ thêm:
+  - đăng nhập: riêng kiểm mật khẩu **0,62 s** (PBKDF2 1 triệu vòng, mặc định Django);
+  - tải 18 tệp JS/CSS lần đầu: 323 KB;
+  - khối dữ liệu đầu.
+- Đo trong trình duyệt ở 385k, từ lúc bấm Đăng nhập tới khi thấy lưới:
+  - ngay sau khi bật máy: 1,84 s;
+  - trình duyệt mới, máy chủ đã nóng: 1,24–1,34 s;
+  - mở lại lưới: 0,34–0,45 s.
+- CRM vừa khởi động, Postgres lạnh, Redis trống đều không đáng kể (≤ 0,1 s), nên bỏ hai sửa đổi đã dự kiến.
+- **Chờ chủ dự án chọn:**
+  - kiểm mật khẩu bằng Argon2 (cần thư viện `argon2-cffi`);
+  - và/hoặc tải sẵn JS/CSS của lưới ở trang chủ CRM;
+  - và cho số đo trên máy Windows.
+
+[Biên bản](kiem-chung-mo-luoi-lan-dau-20261008.md). Nhánh `claude/mo-luoi-lan-dau-nhanh`.
+
 ## 07.10.2026 — KN CRM nhanh khi bảng Vận đơn lớn: trang chủ, menu, thư mục, khối lưới, panel Bộ lọc (AC-10.23 → 10.26)
 
 - Ở 385.034 dòng (vd.manager): trang chủ CRM 150–258 s → 0,14 s; menu mọi trang 0,37 s → 6 ms; thư mục 1,3 → 0,11 s;
