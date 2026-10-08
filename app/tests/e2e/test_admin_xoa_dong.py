@@ -59,3 +59,39 @@ def test_staff_khong_co_nut_xoa_dong(live_server, trang, dang_nhap, kn_crm, setu
     trang.click("#mg-more-button")
     assert trang.locator("#mg-delete-rows").count() == 0
     assert trang.locator("#mg-xoa-dong").count() == 0
+
+
+def test_xoa_het_dong_dang_loc_roi_hoan_tac_hien_lai(live_server, trang, dang_nhap, kn_crm, setup, nguoi_dung):
+    """AC-21.20 — Lưới đang tìm chỉ còn đúng một dòng: Admin xoá dòng đó (lưới rỗng, "0 dòng") rồi Ctrl+Z thì dòng
+    hiện lại ngay, không tải lại trang và không đợi lượt hỏi "có gì mới" 8 giây (TL-77)"""
+    from urllib.parse import quote
+
+    from crm.tests.test_waybill_new import lines
+    from orders.services import order_service
+
+    order(setup, nguoi_dung["staff_sale_1"])            # dòng khác, không khớp ô tìm
+    don = order_service.create_order(phone="0907770777", customer_name="Khách TL-77", lines=lines(setup[2]),
+                                     actor=nguoi_dung["staff_sale_1"])
+    loi_js = []
+    trang.on("pageerror", lambda e: loi_js.append(str(e)))
+    dang_nhap(trang, nguoi_dung["admin"])
+    trang.goto(f"{live_server.url}/bang-tinh/van_don/?tim={quote('Khách TL-77')}")
+    trang.wait_for_selector(".mg-cell[data-code='ma_don']")
+    assert _so_dong(trang) == "1"
+
+    trang.locator("[data-select-row='0']").click()
+    trang.click("#mg-more-button")
+    trang.click("#mg-delete-rows")
+    trang.locator("#mg-xoa-dong").wait_for(state="visible")
+    trang.locator("#mg-xoa-dong [data-choice='delete']").click()
+    trang.wait_for_function("() => document.getElementById('mg-count').innerText.startsWith('0 ')")
+    assert not Order.objects.filter(pk=don.pk).exists()
+
+    trang.evaluate("() => { window.__chua_tai_lai = 1; }")
+    trang.locator("#mg-viewport, .mg-viewport").first.focus()
+    trang.keyboard.press("Control+z")
+    trang.wait_for_function("() => document.getElementById('mg-count').innerText.startsWith('1 ')", timeout=6000)
+    trang.wait_for_selector(f".mg-cell[data-id='{don.record_id}']", timeout=6000)
+    assert trang.evaluate("() => window.__chua_tai_lai") == 1
+    assert Order.objects.filter(pk=don.pk).exists()
+    assert not loi_js, loi_js

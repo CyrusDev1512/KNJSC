@@ -108,6 +108,10 @@ def bang(request):
         "duoc_sua": _duoc_sua_bang(request.user),
     }
     boi_canh.update(pagination_context(request, ds, "bảng"))
+    # Nút "Cột" theo đúng luật trang Cột của từng bảng, không theo cấp bậc chung: quản lý bộ phận khác thấy bảng
+    # (được cấp quyền xem, có dòng vận đơn) bấm vào sẽ 403 (TL-78). Không tốn truy vấn: hồ sơ đã nạp sẵn.
+    for b in boi_canh["trang"]:
+        b.duoc_sua_cot = grant_service.can_manage_columns(request.user, b)
     return render(request, "forms_builder/bang.html", boi_canh)
 
 

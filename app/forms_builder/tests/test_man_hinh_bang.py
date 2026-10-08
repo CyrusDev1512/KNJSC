@@ -418,3 +418,24 @@ def test_phan_trang_va_sap_xep_giu_bo_loc(client, bang_sale, nguoi_dung):
     rong = client.get("/bang/don_sale/", {"f_nguoi_ban": "không có ai"}).content.decode()
     # So cả cụm "phần 3B": chuỗi trần "3B" có thể nằm tình cờ trong CSRF token của trang
     assert "Chưa có dòng nào" in rong and "phần 3B" not in rong
+
+
+def test_danh_sach_bang_chi_hien_nut_cot_cho_bang_quan_ly_duoc(client, bang_sale, nguoi_dung):
+    """AC-40.8 — Danh sách Bảng dữ liệu `/bang/` chỉ hiện nút "Cột" ở bảng người xem quản lý được cột (cùng luật
+    trang Cột): quản lý bộ phận khác thấy bảng nhờ được cấp quyền xem thì không có nút, trang Cột vẫn 403; quản lý
+    bộ phận sở hữu và Admin có nút (TL-78)"""
+    from forms_builder.models import GrantAction
+    from forms_builder.services import grant_service
+
+    nut_cot = 'href="/bang/don_sale/cot/">Cột</a>'
+    grant_service.grant(table=bang_sale, user=nguoi_dung["manager_mkt"], action=GrantAction.VIEW,
+                        actor=nguoi_dung["manager_sale"])
+    client.force_login(nguoi_dung["manager_mkt"])
+    html = client.get("/bang/").content.decode()
+    assert 'href="/bang/don_sale/"' in html and nut_cot not in html
+    assert client.get("/bang/don_sale/cot/").status_code == 403
+    for ai in ("manager_sale", "admin"):
+        client.force_login(nguoi_dung[ai])
+        assert nut_cot in client.get("/bang/").content.decode(), ai
+    client.force_login(nguoi_dung["leader_sale_1"])
+    assert client.get("/bang/").status_code == 403
