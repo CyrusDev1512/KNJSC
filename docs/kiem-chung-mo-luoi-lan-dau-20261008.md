@@ -66,3 +66,75 @@ Launcher chỉ `git pull` nhánh đang đứng: máy còn ở `main` thì chưa 
 | 3 | Trang chủ và thư mục CRM tải sẵn (prefetch) JS/CSS của lưới | Bớt ~0,2 s lần mở lưới đầu, hơn nữa ở máy Windows | Sửa một template, không thêm thư viện |
 
 Không đề xuất giảm số vòng PBKDF2: nhanh hơn nhưng yếu hơn trước dò mật khẩu.
+
+## 6. So sánh `main` (= mã trước 06.10) và `Staging` — chủ dự án hỏi 08.10.2026
+
+Chủ dự án: "trước khi tối ưu lưới đợt này đâu có load lâu thế… rốt cuộc trước 06.10 và sau thì cái nào nhanh chậm hơn".
+`main` (`a73f743`) cùng cây tệp với `Staging` trước 06.10 (`87ff1a6`).
+
+**Cách đo.** Cùng máy ảo, cùng dữ liệu, cùng thao tác. Mỗi mốc mã chạy trên một worktree riêng, DB đi tiến theo migration
+của mốc đó.
+
+Trước mỗi mốc:
+- `ANALYZE`;
+- khởi động lại Postgres, xoá page cache, xoá Redis;
+- bật lại ERP và CRM bằng `runserver` như máy local.
+
+Sau đó đăng nhập `vd.manager` rồi đo:
+- lần đầu sau khi bật máy;
+- đăng nhập tới khi thấy lưới, ba trình duyệt mới, lấy trung vị;
+- mở lại lưới sáu lần, lấy trung vị;
+- đăng nhập tới trang chủ CRM, chặn ở 30 s.
+
+DB nhỏ gồm `du_lieu_mau` và `nap_du_lieu_van_don` (10.000 dòng). DB lớn là bản sao 385.034 dòng, đưa về cấu trúc
+trước 06.10.
+
+Đơn vị trong hai bảng dưới là giây.
+
+**DB 10.000 dòng**
+
+| Mốc | Lần đầu sau bật máy | Đăng nhập → lưới | Mở lại lưới | Khối dữ liệu | Đăng nhập → trang chủ |
+|---|---|---|---|---|---|
+| **`main`** (trước 06.10) | 1,42 | 1,39 | 0,65 | 0,13 | 1,07 |
+| Sau các PR 06.10 (#91–#94) | 1,64 | 1,39 | 0,63 | 0,13 | 1,19 |
+| Sau #95 | 1,44 | 1,43 | 0,63 | 0,12 | 1,13 |
+| Sau #96 | 1,38 | 1,36 | 0,54 | 0,14 | 1,14 |
+| **`Staging`** (sau #98) | **1,29** | **1,19** | **0,43** | **0,10** | **1,01** |
+| `Staging`, Redis không với tới (như Docker local) | 1,33 | 1,21 | 0,51 | 0,11 | 1,07 |
+
+**DB 385.034 dòng**
+
+| Mốc | Lần đầu sau bật máy | Đăng nhập → lưới | Mở lại lưới | Khối dữ liệu | Đăng nhập → trang chủ |
+|---|---|---|---|---|---|
+| **`main`** (trước 06.10) | 5,17 | 3,83 | 2,91 | 0,25 | > 30 |
+| Sau các PR 06.10 | 4,58 | 3,88 | 2,99 | 0,24 | > 30 |
+| Sau #95 (vừa chạy migration `0017`, xem dưới) | 5,23 | 4,59 | 3,76 | 0,65 | > 30 |
+| Sau #96 | 2,26 | 2,08 | 1,21 | 0,23 | > 30 |
+| **`Staging`** (sau #98) | **1,88** | **1,34** | **0,47** | **0,10** | **1,11** |
+| `Staging`, Redis không với tới | 1,84 | 1,32 | 0,59 | 0,24 | 1,16 |
+
+**Kết luận: `Staging` không chậm hơn `main` ở chỗ nào đo được.**
+- Dữ liệu nhỏ: nhanh hơn một chút. Mở lại lưới 0,65 → 0,43 s.
+- Dữ liệu lớn: nhanh hơn rõ.
+  - Mở lại lưới 2,91 → 0,47 s.
+  - Đăng nhập tới lưới 3,83 → 1,34 s.
+  - Trang chủ CRM trên 30 s → 1,1 s.
+- Đăng nhập khoảng 0,7 s ở mọi mốc, vì kiểm mật khẩu không đổi.
+
+**Ba điều có thể làm máy local thấy chậm dù mã không chậm:**
+1. **Ngay sau khi cập nhật lên mã có #95.** Migration `forms_builder/0017` điền khoá mã đơn cho **mọi dòng**, tức ghi lại cả
+   bảng một lần.
+   - Tới khi Postgres tự dọn dòng chết (autovacuum), đọc lưới chậm hơn. Đo ở dòng "Sau #95": khối dữ liệu 0,24 → 0,65 s,
+     mở lại lưới 2,99 → 3,76 s.
+   - Trên máy ảo autovacuum chạy sau khoảng 1 phút, máy yếu hơn có thể lâu hơn.
+   - Cùng hiện tượng, lượt đo đầu trên DB 10.000 dòng ngay sau khi nạp dữ liệu (chưa có thống kê bảng) cho `main` 4,55 s
+     và 2,26 s. Gấp 3 lần, hết ngay khi `ANALYZE`.
+2. **Lần cập nhật này dựng lại image** (Django 5.2.6 → 5.2.17). Các yêu cầu đầu sau khi bật lại container chậm hơn.
+3. **Docker local chưa trỏ bộ đệm CRM tới Redis.** `deploy/docker-compose.yml` không đặt `CRM_CACHE_URL` (VPS có đặt),
+   nên trong container bộ đệm thêm ở #98 trỏ vào `localhost`, không có Redis.
+   - Hệ thống vẫn chạy đúng, chỉ không được nhanh thêm.
+   - Đo: mở lại lưới 0,47 → 0,59 s ở 385k.
+
+**Đề xuất (chờ duyệt):**
+- launcher chạy `ANALYZE` ngay sau `migrate` khi mã đổi;
+- `deploy/docker-compose.yml` đặt `CRM_CACHE_URL=redis://redis:6379/2` cho `web` và `bangtinh`.
