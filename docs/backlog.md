@@ -1,5 +1,24 @@
 # Backlog
 
+## 08.10.2026 — Vì sao mở bảng tính lần đầu chậm hơn số đã báo (chỉ đo, không đổi mã)
+
+- Số đã báo là thời gian máy chủ đo khi nóng. Lần đầu người dùng còn chờ thêm:
+  - đăng nhập: riêng kiểm mật khẩu **0,62 s** (PBKDF2 1 triệu vòng, mặc định Django);
+  - tải 18 tệp JS/CSS lần đầu: 323 KB;
+  - khối dữ liệu đầu.
+- Đo trong trình duyệt ở 385k, từ lúc bấm Đăng nhập tới khi thấy lưới:
+  - ngay sau khi bật máy: 1,84 s;
+  - trình duyệt mới, máy chủ đã nóng: 1,24–1,34 s;
+  - mở lại lưới: 0,34–0,45 s.
+- CRM vừa khởi động, Postgres lạnh, Redis trống đều không đáng kể (≤ 0,1 s), nên bỏ hai sửa đổi đã dự kiến.
+- **Chờ chủ dự án chọn:**
+  - kiểm mật khẩu bằng Argon2 (cần thư viện `argon2-cffi`);
+  - số đo trên máy Windows (ảnh F12 → Network lúc mở bảng tính).
+- Tải sẵn JS/CSS của lưới: **rút** (chủ dự án 08.10: cùng kiểu "làm sẵn" đã bỏ ở #96). Đệm Redis của #98 để nguyên, chỉ
+  gỡ khi chủ dự án bảo.
+
+[Biên bản](kiem-chung-mo-luoi-lan-dau-20261008.md). Nhánh `claude/mo-luoi-lan-dau-nhanh`.
+
 ## 08.10.2026 — Chỉ Admin xoá dòng (ADR-049, AC-21.18, 21.19, 6.13)
 
 - Lưới có thêm "Xoá dòng đang chọn" trong menu "…", **chỉ Admin**:
