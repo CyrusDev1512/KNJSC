@@ -1,5 +1,36 @@
 # Backlog
 
+## 08.10.2026 — Diễn tập phát hành Staging 450b6da lên VPS (đang c7065fe) trên bản sao giống VPS
+
+- **Đã kiểm.** Diễn tập trên máy ảo với nginx HTTPS hai tên miền, 2 lõi, RAM như VPS, dữ liệu ghi bằng bản cũ. Các phần:
+  - dãy README, biến thể dừng dịch vụ ghi;
+  - cửa sổ code cũ trên schema mới; trình duyệt mở từ bản cũ;
+  - ma trận quyền 8 vai × 2 host (128 ô, sai 0); sự cố cache, broker, db;
+  - quay lui rồi tiến lại; dữ liệu xấu (mã trùng, NBSP, NFD);
+  - hiệu năng 100.000 dòng; bảo mật và log.
+- **Kết luận: phát hành được nếu đổi dãy lệnh.** README đã ghi dãy mới. Dãy cũ có 4 chỗ hỏng tái hiện được:
+  - quay lui để JS mới chạy trên server cũ, panel Bộ lọc lỗi (TL-78);
+  - code cũ chạy trên schema mới để lọt mã trùng và ghi MKT bằng CAD (TL-79);
+  - `up -d` tạo lại DB (TL-82);
+  - quay lui thiếu `configure` cũ làm nộp MKT hỏng.
+- **Đã sửa mã (TDD):**
+  - ô chữ NFD bị 409 mãi (TL-76);
+  - `kiem_tra_du_lieu` hỏng khi 0017 chưa áp (TL-77).
+- **Hiệu năng, 100k dòng, 2 lõi** (bản mới so với bản cũ):
+  - đọc khối lưới p95 310 → 210 ms;
+  - lưu ô p95 220 → 100 ms;
+  - mở lưới p95 2.400 → 55 ms;
+  - migrate 0017 mất 46,7 s và làm bảng phình gấp đôi, phải `VACUUM`.
+- **Còn nợ, cần chủ dự án hoặc phiên phát hành:**
+  - thêm `log_min_error_statement=panic` cho DB (TL-80);
+  - `kiem_tra_du_lieu` đọc theo lô (TL-81);
+  - xác nhận số MKT trên VPS vốn nhập bằng VND (tiền đề của `reports/0006`);
+  - máy đã từng thoát mở rộng giữ giao diện cũ (có đặt lại không);
+  - `server_tokens off`;
+  - Safari, Firefox, Windows, 300k dòng, dữ liệu VPS thật chưa kiểm.
+
+[Biên bản](kiem-chung-dien-tap-phat-hanh-staging-20261008.md). Nhánh `claude/dien-tap-phat-hanh-vps`.
+
 ## 08.10.2026 — Vì sao mở bảng tính lần đầu chậm hơn số đã báo (chỉ đo, không đổi mã)
 
 - Số đã báo là thời gian máy chủ đo khi nóng. Lần đầu người dùng còn chờ thêm:

@@ -63,22 +63,54 @@ Dãy lệnh phát hành chuẩn (chỉ chạy khi được phép). VPS dùng th�
 `/opt/knjsc-runtime` và phải truyền đủ `-f compose.yml -f compose.vps.yml` cho mọi
 lệnh dưới đây; không áp nguyên cấu hình tài nguyên mặc định của kho mã lên VPS:
 
+Dãy dưới đây đã diễn tập ngày 08.10.2026 trên bản sao giống VPS (2 lõi, RAM như VPS, nginx HTTPS hai tên
+miền). Biên bản [kiem-chung-dien-tap-phat-hanh-staging-20261008](../../docs/kiem-chung-dien-tap-phat-hanh-staging-20261008.md)
+ghi số đo và lý do từng bước.
+
 ```sh
+# 0. Chỉ đọc: tree của main đúng bản đã kiểm; .env đủ hai cookie domain, *_URL https; không còn việc nền đang chạy.
+#    Chạy SQL kiểm mã đơn trùng và ô chữ NFD trong biên bản 08.10 — chỉ in số đếm.
 docker compose config --quiet
 docker compose up -d db broker cache
+# 1. Backup + phục hồi thử vào DB tạm (khuôn biên bản 29.09).
+# 2. Image mới: kiểm cấu hình phát hành trên CẢ HAI dịch vụ. --fail-level WARNING bắt được BANGTINH_GOC gõ sai (DEBUG bật)
+KNJSC_IMAGE=<mới> docker compose run --rm --no-deps crm python manage.py check --deploy --fail-level WARNING
+KNJSC_IMAGE=<mới> docker compose run --rm --no-deps erp python manage.py check --deploy --fail-level WARNING
+# 3. Dừng mọi dịch vụ ghi: code cũ chạy trên schema mới sẽ để lọt mã đơn trùng và ghi sai loại tiền MKT
+docker compose stop crm erp worker heavy beat
 docker compose --profile maintenance run --rm static-owner
-docker compose run --rm crm python manage.py migrate --noinput
-docker compose run --rm crm python manage.py tao_bang_van_don
+# 4. Migrate có lock_timeout. Thoát khác 0 thì DỪNG, không đổi image. Do mã trùng: xem `kiem_tra_du_lieu` hoặc SQL,
+#    bật lại bản cũ, sửa mã trên lưới, chạy lại. Do khoá: chạy lại.
+KNJSC_IMAGE=<mới> docker compose run --rm --no-deps -e PGOPTIONS='-c lock_timeout=10s' crm python manage.py migrate --noinput
+KNJSC_IMAGE=<mới> docker compose run --rm --no-deps crm python manage.py tao_bang_van_don
 # ĐÃ CHẠY một lần khi phát hành ADR-036 (19.09.2026, lần 5) sau backup đã kiểm phục hồi.
 # Chạy lại chỉ in "không có gì để xoá" — đúng, không phải lỗi:
 # docker compose run --rm crm python manage.py xoa_bang_van_don_cu --dong-y-xoa-cung --backup-da-lam
-docker compose run --rm crm python manage.py configure_erp_reports
-docker compose run --rm crm python manage.py configure_delivery_daily_report
-docker compose run --rm crm python manage.py collectstatic --noinput
-docker compose run --rm crm python manage.py gan_ma_nhan_su_cu            # ADR-037: xem trước, gửi bảng mã cho chủ dự án
-docker compose run --rm crm python manage.py gan_ma_nhan_su_cu --xac-nhan # rồi mới ghi; chạy lại không đổi thêm
-docker compose up -d crm erp worker heavy beat proxy
+KNJSC_IMAGE=<mới> docker compose run --rm --no-deps crm python manage.py configure_erp_reports
+KNJSC_IMAGE=<mới> docker compose run --rm --no-deps crm python manage.py configure_delivery_daily_report
+# 5. --clear: collectstatic so theo giờ sửa tệp, bỏ sót tệp đã đổi sau mỗi lần quay lui
+KNJSC_IMAGE=<mới> docker compose run --rm --no-deps crm python manage.py collectstatic --noinput --clear
+KNJSC_IMAGE=<mới> docker compose run --rm --no-deps crm python manage.py gan_ma_nhan_su_cu            # ADR-037: xem trước
+# KNJSC_IMAGE=<mới> docker compose run --rm --no-deps crm python manage.py gan_ma_nhan_su_cu --xac-nhan  # rồi mới ghi
+# 6. Đổi KNJSC_IMAGE trong .env rồi bật lại. --no-deps: không có thì Compose tạo lại cả db vì .env đổi
+docker compose up -d --no-deps crm erp worker heavy beat
+docker compose exec proxy nginx -t && docker compose exec proxy nginx -s reload
+# 7. Sau: RestartCount/OOMKilled; rà dữ liệu bằng `run --rm` (exec trong crm có thể hết RAM khi bảng lớn); VACUUM ANALYZE
+docker compose run --rm crm python manage.py kiem_tra_du_lieu --bang van_don
+docker compose exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c 'VACUUM ANALYZE forms_builder_datarecord'
 ```
+
+Lệnh `db` nên có thêm `-c log_min_error_statement=panic`. Không có thì mỗi lần vi phạm ràng buộc (ví dụ mã đơn trùng),
+Postgres ghi nguyên câu SQL kèm dữ liệu ô vào log, vì Django gửi giá trị nằm luôn trong câu.
+
+**Quay lui** (đã diễn tập 08.10.2026), làm theo thứ tự:
+1. `stop crm erp worker heavy beat`.
+2. Dùng image cũ chạy `configure_erp_reports`, `configure_delivery_daily_report` và
+   `collectstatic --noinput --clear`. Thiếu `configure` cũ thì nộp báo cáo MKT hỏng; thiếu `--clear` thì JS mới chạy trên
+   server cũ.
+3. Đổi `.env` về image cũ, `up -d --no-deps crm erp worker heavy beat`, reload nginx.
+4. Không đảo migration nào: đảo `reports/0006` làm mất dữ liệu.
+5. Trước khi tiến lại: `kiem_tra_du_lieu`, sửa mã trùng trên lưới, rồi `kiem_tra_du_lieu --sua`.
 
 Từ 18.09.2026 (ADR-031 bổ sung) `.env` có thể thêm `EXCHANGE_RATES_VND` cho EUR/JPY/AUD
 và, khi kế toán chốt, KRW (`USD=25500,CAD=17500,PHP=440,EUR=28500,JPY=155,AUD=17000,KRW=…`);
