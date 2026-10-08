@@ -5,7 +5,10 @@
 - Phạm vi: 10 PR #91 → #100 chưa vào `main`, 2 migration mới (`core/0007`, `forms_builder/0017`).
 - Unit, functional, backend: 3.124 đạt, 0 đỏ, cả khi có và không có Redis. `check` và `check --deploy` đạt.
 - Migration xuôi ngược giữ nguyên dữ liệu. Cập nhật từ `main` lên `Staging` trên dữ liệu sạch: 8 giây, dữ liệu y nguyên.
-- Smoke 12 tài khoản: 0 lỗi 5xx. UI/UX đóng vai từng PR ở ba cỡ màn hình: đạt, trừ các lỗi dưới.
+- Smoke 12 tài khoản: 0 lỗi 5xx. UI/UX đóng vai từng PR ở ba cỡ màn hình: đạt, trừ các lỗi dưới. Quét liên kết 11 vai:
+  517 trang, không 5xx.
+- E2E: hai lượt như CI đạt (9 bài phông Google đỏ do máy ảo, chạy lại có vá tạm thì đạt); 6 tệp mới chạy 3 lần không
+  chập chờn. Hiệu năng không tụt so với `Staging` sau #98 (đo xen kẽ, chênh trong dao động máy).
 - **Lỗi mới, chưa sửa** (chi tiết ở [test-log](test-log.md)):
   - TL-76: dữ liệu có mã đơn trùng thì cập nhật lên `0017` kẹt, và không dọn trùng trên lưới được;
   - TL-77: Ctrl+Z sau khi xoá dòng duy nhất đang lọc, lưới không hiện lại;

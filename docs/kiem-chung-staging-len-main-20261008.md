@@ -6,7 +6,7 @@
 | Phạm vi | `Staging` `450b6da` hơn `main` `a73f743` 10 PR, 175 tệp (+7.011 / −411): #91 săn lỗi đồng thời · #92 bảo mật · #93 săn lỗi tiếp · #94 tài liệu · #95 ma trận quyền, mã đơn duy nhất, xoá dòng bỏ đơn gốc, `kiem_tra_du_lieu` · #97 Báo cáo tổng hợp đầu trang gọn · #96 ERP mở rộng mặc định, phân trang, lưới bớt việc thừa · #98 CRM nhanh khi bảng lớn · #99 chỉ Admin xoá dòng · #100 biên bản đo |
 | Migration mới | `core/0007_submission_receipt`, `forms_builder/0017_datarecord_val_order_code` |
 | Môi trường | Máy ảo Claude Code trên web: Python 3.11 (CI 3.12), Django 5.2.17, PostgreSQL 16, Redis, Celery worker và beat, Chromium Playwright 1194. Mỗi loại kiểm một DB riêng |
-| Kết luận | _điền ở cuối_ |
+| Kết luận | **Đạt để gộp `main`**, kèm hai việc trước khi cập nhật máy có dữ liệu thật: (1) chạy câu rà mã đơn trùng ở mục 8 (TL-76); (2) VPS đặt `SESSION_COOKIE_DOMAIN`, `CSRF_COOKIE_DOMAIN` (mục 1). Ba lỗi mới TL-76, TL-77, TL-78 ghi lại, **chưa sửa**, không chặn dùng hằng ngày. Chặng 2 (chủ dự án tự thử ở local) vẫn phải làm |
 
 ## 1. Unit, functional, backend
 
@@ -112,7 +112,24 @@ Không trang nào trả 5xx hay có lỗi JS.
 
 ## 7. Hiệu năng — chỉ kiểm không tụt
 
-_điền khi xong_
+Cách đo như biên bản #100 mục 6 (`vd.manager`, trình duyệt thật, trước mỗi lượt `ANALYZE`, khởi động lại Postgres, xoá
+page cache và Redis). So **đầu `Staging` `450b6da`** với **`Staging` sau #98 `4419643`**, chạy xen kẽ trên cùng máy,
+không chạy gì khác song song. Đơn vị giây.
+
+| Đo | DB 10.000 dòng (trung bình 2 lượt, đổi thứ tự) | DB 385.034 dòng (1 lượt) |
+|---|---|---|
+| Lần đầu sau bật máy | 1,73 → 1,71 | 2,62 → 2,11 |
+| Đăng nhập → thấy lưới | 1,43 → 1,49 | 1,50 → 1,56 |
+| Mở lại lưới | 0,59 → 0,60 | 0,61 → 0,58 |
+| Khối dữ liệu | 0,15 → 0,14 | 0,17 → 0,13 |
+| Đăng nhập → trang chủ CRM | 1,25 → 1,16 | 1,30 → 1,43 |
+
+**Không tụt.** Chênh lệch theo cả hai chiều, nằm trong dao động của máy:
+- Riêng bước đăng nhập (kiểm mật khẩu, mã như nhau) đã dao động 0,82–0,94 s giữa các lượt.
+- Lúc đo, máy ảo chậm hơn buổi sáng: biên bản #100 đo bước này 0,7 s.
+
+Lượt đo đầu tiên bị bỏ vì lúc đó có lệnh khác đang chạy trên DB: số chậm hơn 25–50 % ở mọi mục, kể cả bước đăng nhập
+vốn không đổi mã.
 
 ## 8. Lỗi mới — chưa sửa
 
@@ -151,6 +168,7 @@ máy ảo: DB sạch ra rỗng; DB có cặp trùng ra `MAU-20260910-0001 | 2`.
 ## 10. Chưa kiểm được
 
 - Docker image và `KN JSC.bat` thật: proxy chặn `apt-get`. `Dockerfile`, `entrypoint.sh` không đổi trong đợt này;
-  `requirements.txt` đổi Django 5.2.6 → 5.2.17 (#92), nên máy local sẽ dựng lại image lần đầu.
+  `requirements.txt` đổi Django 5.2.6 → 5.2.17 và python-dotenv 1.0.1 → 1.2.2 (#92), nên máy local sẽ dựng lại image
+  ở lần bật đầu tiên (cần mạng để tải thư viện).
 - Máy Windows, VPS.
 - Chặng 2: chủ dự án tự thử ở local. Lượt này không thay được.
