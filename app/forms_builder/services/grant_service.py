@@ -180,11 +180,11 @@ def can_create_record(user, table):
 
 
 def can_delete_record(user, record_obj):
-    """Ai xoá (mềm) được một dòng trên Bảng tính — ADR-011, backlog Q52.
+    """Ai xoá (mềm) hay khôi phục được một dòng trên Bảng tính — ADR-049: **chỉ Admin** (chủ dự án 08.10.2026).
 
-    Cùng luật với sửa ô: xoá mềm chỉ là một cách sửa khác, khôi phục được.
-    Đặt tên riêng để sau này tách luật mà không phải sửa từng view."""
-    return can_edit_record(user, record_obj)
+    Thay luật cũ (ADR-011, backlog Q52: bằng quyền sửa). Vẫn đi qua `can_edit_record` để giữ phạm vi dòng, bảng chỉ
+    xem và báo cáo đã khoá."""
+    return is_admin(user) and can_edit_record(user, record_obj)
 
 
 def can_manage_columns(user, table):

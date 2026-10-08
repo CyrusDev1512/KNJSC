@@ -19,8 +19,8 @@ from django.utils import timezone
 
 from core.audit import record
 from core.constants import AuditAction, Rank
-from core.permissions import has_rank
-from core.exceptions import BusinessError
+from core.permissions import has_rank, is_admin
+from core.exceptions import BusinessError, OutOfScopeError
 from core.money import parse_money
 
 from forms_builder.models import DataRecord
@@ -273,9 +273,12 @@ def cancel_order(don, *, actor=None, request=None):
     """Bỏ một đơn đã lưu. Đánh dấu xoá, không xoá cứng (BR-4).
 
     Xoá mềm cả dòng trên bảng vận đơn đi kèm — quên là để lại dòng mồ côi mà
-    bộ phận Vận đơn vẫn thấy và vẫn đi giao.
+    bộ phận Vận đơn vẫn thấy và vẫn đi giao. **Chỉ Admin** (ADR-049, chủ dự án
+    08.10.2026): cùng luật với nút Xoá dòng trên lưới, vì bỏ đơn là xoá dòng.
     """
     assert_business_write(actor)
+    if actor is None or not is_admin(actor):
+        raise OutOfScopeError("Chỉ Quản trị mới bỏ được đơn.")
     ma = don.code
     don.delete(by=actor)
     if don.record_id:

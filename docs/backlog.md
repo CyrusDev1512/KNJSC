@@ -13,10 +13,24 @@
 - CRM vừa khởi động, Postgres lạnh, Redis trống đều không đáng kể (≤ 0,1 s), nên bỏ hai sửa đổi đã dự kiến.
 - **Chờ chủ dự án chọn:**
   - kiểm mật khẩu bằng Argon2 (cần thư viện `argon2-cffi`);
-  - và/hoặc tải sẵn JS/CSS của lưới ở trang chủ CRM;
-  - và cho số đo trên máy Windows.
+  - số đo trên máy Windows (ảnh F12 → Network lúc mở bảng tính).
+- Tải sẵn JS/CSS của lưới: **rút** (chủ dự án 08.10: cùng kiểu "làm sẵn" đã bỏ ở #96). Đệm Redis của #98 để nguyên, chỉ
+  gỡ khi chủ dự án bảo.
 
 [Biên bản](kiem-chung-mo-luoi-lan-dau-20261008.md). Nhánh `claude/mo-luoi-lan-dau-nhanh`.
+
+## 08.10.2026 — Chỉ Admin xoá dòng (ADR-049, AC-21.18, 21.19, 6.13)
+
+- Lưới có thêm "Xoá dòng đang chọn" trong menu "…", **chỉ Admin**:
+  - xoá mềm, đơn gốc bị bỏ theo;
+  - Ctrl+Z khôi phục cả dòng và đơn;
+  - lượt `delete_rows`/`restore_rows` qua `luu-json/` (CAS, biên nhận).
+- Mọi vai khác bị 403 có nhật ký. Bỏ đơn ở trang đơn gốc cũng chỉ Admin.
+- Shift + bấm số dòng chọn liền nhiều dòng.
+- Ctrl+Z gỡ dòng vừa gõ không đổi; bảng vận đơn vốn không cho tạo dòng trên lưới.
+- **Còn nợ:** chưa đi tay phần đơn gốc trên dữ liệu có đơn; chưa thử trên Windows và VPS.
+
+[Biên bản](kiem-chung-chi-admin-xoa-dong-20261008.md). Nhánh `claude/chi-admin-xoa-dong`.
 
 ## 07.10.2026 — KN CRM nhanh khi bảng Vận đơn lớn: trang chủ, menu, thư mục, khối lưới, panel Bộ lọc (AC-10.23 → 10.26)
 

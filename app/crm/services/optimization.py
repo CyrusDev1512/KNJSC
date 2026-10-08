@@ -135,7 +135,7 @@ def block(user,table,params):
     # Cờ READ chỉ đổi cách đọc/cache; giữ hợp đồng schema và quyền của lưới.
     result={'protocol':2,'rows':master.serialize(rows,grid.columns,user,meta=meta),'total':total,'version':identity,'query_token':query_token,'revision':current['revision'],'offset':offset,'block_size':master.BLOCK_SIZE,'metadata_version':mv,
             'schema_version':mv,
-            'capabilities':{'create':row_mutations.can_create(user,table),'structure':grant_service.can_manage_columns(user,table)}}
+            'capabilities':{'create':row_mutations.can_create(user,table),'structure':grant_service.can_manage_columns(user,table),'delete':row_mutations.can_delete(user,table)}}
     if params.get('metadata_version')!=mv:result['columns']=meta
     if selected and simple:
         def cursor(item,next_offset,back):return token({'q':identity,'id':item[0],'time':item[1].isoformat(),'offset':next_offset,'back':back})

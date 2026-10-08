@@ -79,9 +79,13 @@ def test_preview_uses_decimal_without_creating_order(client, setup, nguoi_dung):
     assert client.post('/van-don/len-don/tom-tat/', form_data(setup[2])).status_code == 403
 
 
-def test_creator_can_cancel_original_order(client, setup, nguoi_dung):
+def test_admin_bo_don_goc_nguoi_len_don_thi_khong(client, setup, nguoi_dung):
+    """AC-6.13 — Người lên đơn không tự bỏ được đơn nữa (đơn còn nguyên); Admin bỏ được, dòng vận đơn xoá mềm"""
     saved = order(setup, nguoi_dung['staff_sale_1'])
     client.force_login(nguoi_dung['staff_sale_1'])
+    client.post(f'/van-don/don-goc/{saved.code}/bo/')
+    assert Order.objects.filter(pk=saved.pk).exists()
+    client.force_login(nguoi_dung['admin'])
     response = client.post(f'/van-don/don-goc/{saved.code}/bo/')
     assert response.status_code == 302 and response.url == '/thu-muc/'
     assert not Order.objects.filter(pk=saved.pk).exists()
