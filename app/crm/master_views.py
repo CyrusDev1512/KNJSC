@@ -195,6 +195,7 @@ def shell(request, table):
         've_url': tree_service.home_url(table.department),
         've_nhan': 'Về Bảng tính — thư mục', 'can_assign': is_waybill_table(table) and can_assign(request.user),
         'duoc_quan_ly_cot':grant_service.can_manage_columns(request.user, table),
+        'duoc_xoa_dong': row_mutations.can_delete(request.user, table),
         'duoc_nhap': grant_service.can_import(request.user, table),
         # Panel Bộ lọc không tính sẵn: lưới tải nó khi người dùng mở (`filters`)
         'config': {'dataUrl': reverse('master_data', args=[table.code]),
