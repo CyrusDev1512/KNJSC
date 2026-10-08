@@ -124,6 +124,20 @@ Chi tiết, cách tái hiện, cách sửa đề xuất ở [test-log](test-log.
 | TL-77 | Nhẹ | Ctrl+Z sau khi xoá dòng duy nhất đang lọc: máy chủ khôi phục đúng, lưới không hiện lại tới khi tải trang | Không |
 | TL-78 | Nhẹ, có từ trước | Danh sách Bảng dữ liệu hiện nút "Cột" của `van_don` cho `sale.manager`, bấm 403 | Không — `main` cũng vậy |
 
+**Rà mã đơn trùng trước khi cập nhật (TL-76), chỉ đọc, chạy được trên dữ liệu cũ.** Ra rỗng là cập nhật được; ra dòng
+nào thì sửa mã hay xoá dòng thừa trên lưới **trước khi** kéo mã mới.
+
+```sql
+SELECT btrim(r.data->>'ma_don') AS ma_don, count(*) AS so_dong
+FROM forms_builder_datarecord r JOIN forms_builder_tabledef t ON t.id = r.table_id
+WHERE (t.code = 'van_don' OR t.workflow = 'waybill') AND r.deleted_at IS NULL
+  AND btrim(coalesce(r.data->>'ma_don', '')) <> ''
+GROUP BY r.table_id, btrim(r.data->>'ma_don') HAVING count(*) > 1;
+```
+
+Máy local: `docker compose -f deploy/docker-compose.yml exec db psql -U knjsc -d knjsc_db -c "<câu trên>"`. Đã thử trên
+máy ảo: DB sạch ra rỗng; DB có cặp trùng ra `MAU-20260910-0001 | 2`.
+
 ## 9. Ghi chú, có từ trước (`main` cũng vậy)
 
 - Ô Tìm của lưới không tìm theo Mã đơn. Nó chỉ tìm các cột có nhãn nghiệp vụ: khách, SĐT, Sale, sản phẩm, trạng thái
