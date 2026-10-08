@@ -70,7 +70,12 @@ DB `knjsc_ht` dựng như máy mới: chuỗi lệnh launcher, `nap_du_lieu_van_
 
 ## 5. E2E
 
-_điền khi xong_
+| Kiểm | Lệnh | Kết quả |
+|---|---|---|
+| Lượt 1 của CI | `pytest tests/e2e -m trinh_duyet -vv -rs -o faulthandler_timeout=120` | 55 đạt, 2 bỏ qua có chủ ý, 9 đỏ — xem dòng dưới; 7 phút 20 giây |
+| 9 bài đỏ `tests/e2e/test_pha_luoi_ghi_chu.py` | Như trên | Đỏ vì Chromium của máy ảo không tải được phông Google qua proxy (`ERR_CERT_AUTHORITY_INVALID`), bài coi đó là lỗi console. Như lượt 04.10. Chạy lại với phông Google trả rỗng cho cả tab máy tính lẫn tab điện thoại (vá `conftest` tạm, **không commit**, đã gỡ): **9/9 đạt**. Trên CI có mạng thật thì xanh |
+| Lượt 2 của CI | `pytest -m trinh_duyet --ignore=tests/e2e …` | 19 đạt, 9 bỏ qua (giá đỡ cho script Node, đòi biến môi trường riêng) |
+| 6 tệp e2e mới hoặc đã sửa trong đợt này, chạy 3 lần liền | `test_admin_xoa_dong`, `test_erp_mo_rong_mac_dinh`, `test_luoi_hoi_nhe`, `test_mat_mang_e2e`, `test_phan_trang_khong_tai_lai`; `reports/tests/test_bo_cuc_bao_cao_e2e.py` | **9/9 và 14/14 đạt cả 3 lần**, không chập chờn |
 
 ## 6. UI/UX — đóng vai bằng Playwright trên hệ thống thật
 
