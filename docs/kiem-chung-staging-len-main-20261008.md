@@ -96,9 +96,14 @@ Mọi bước dưới **không có lỗi JS và không có trả lời 5xx**; t�
 | #98 | 7 vai | Trang chủ và thư mục CRM so với đếm theo phạm vi cũ trong DB | Khớp cả 7: `quantri`, `vd.manager`, `vd.staff` 10.002; `sale.manager` 1.667; `sale.leader` 3.335; `sale.staff` 1.668; `sale.staff2` 1.667 |
 | Bố cục | 4 vai × 4–6 trang × 1366×768, 1920×1080, 390×844 | 57 lượt mở trang, không trang nào tràn ngang |
 
-**Quét liên kết** (mỗi vai đi hết liên kết trong trang, tối đa 70 trang):
+**Quét liên kết** (11 tài khoản, mỗi vai đi hết liên kết trong trang, tối đa 70 trang):
 
-_điền khi xong_
+| Dịch vụ | Trang đã mở | Vấn đề |
+|---|---|---|
+| ERP | 445 | `sale.manager`: nút "Cột" của `van_don` ra 403 (**TL-78**, có từ trước). 20 lượt "tải tài liệu" chuyển ra Google Docs, máy ảo chặn mạng ngoài — không phải lỗi |
+| CRM | 72 | Hai lượt mở `mau-nhap.xlsx` là tải tệp mẫu, không phải trang — không phải lỗi |
+
+Không trang nào trả 5xx hay có lỗi JS.
 
 ## 7. Hiệu năng — chỉ kiểm không tụt
 
