@@ -8,10 +8,11 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
+from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.services import grant_service
 from orders.services.assignment_service import can_assign
-from .services import master_grid_service as service, grid_service, sidebar_service, tree_service
+from .services import master_grid_service as service, grid_service, row_mutations, sidebar_service, tree_service
 
 
 @login_required
@@ -48,10 +49,16 @@ def data(request, code):
 @login_required
 @require_POST
 def save(request, code):
+    payload = None
     try:
         table = service.table_for(request.user, code)
-        return JsonResponse(service.save(request.user, table, json.loads(request.body), request=request))
+        payload = json.loads(request.body)
+        return JsonResponse(service.save(request.user, table, payload, request=request))
     except OutOfScopeError:
+        if isinstance(payload, dict) and payload.get('kind') in row_mutations.DELETE_KINDS:
+            # Xoá dòng chỉ Admin (ADR-049): ghi nhật ký từ chối sau khi giao dịch của lượt ghi đã huỷ
+            record_denied(request.user, request.path, request)
+            return JsonResponse({'error': 'Chỉ Quản trị mới xoá hay khôi phục được dòng.'}, status=403)
         return JsonResponse({'error': 'Bạn không còn quyền sửa các dòng này.'}, status=403)
     except BusinessError as exc:
         return JsonResponse({'error': str(exc), 'code':exc.code,
@@ -203,6 +210,8 @@ def shell(request, table):
                    'deliveryViewVersion': table.delivery_view_version,
                    'myScope': is_waybill_table(table),
                    'canCreate':row_mutations.can_create(request.user,table),
+                   # Xoá dòng chỉ Admin (ADR-049); máy chủ vẫn kiểm từng dòng
+                   'canDelete':row_mutations.can_delete(request.user,table),
                    'requestMetrics':getattr(settings,'CRM_REQUEST_METRICS',False),
                    'protocol':2 if is_waybill_table(table) and optimization.enabled('READ') else 1,
                    'compact':optimization.enabled('RECEIPTS'),

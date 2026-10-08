@@ -287,7 +287,7 @@ def test_bo_don_la_danh_dau_va_go_ca_dong_tren_bang(bang_van_don, san_pham, nguo
     """
     don = _len_don(nguoi_dung["staff_sale_1"], san_pham)
     ma_dong = don.record_id
-    order_service.cancel_order(don, actor=nguoi_dung["staff_sale_1"])
+    order_service.cancel_order(don, actor=nguoi_dung["admin"])      # Bỏ đơn chỉ Admin (ADR-049)
 
     assert not Order.objects.filter(pk=don.pk).exists()
     assert Order.all_objects.get(pk=don.pk).deleted_at is not None
@@ -467,9 +467,9 @@ def test_goi_thang_don_ngoai_pham_vi_bi_chan(client, bang_van_don, san_pham, ngu
     assert client.get(f"/don-hang/{don.code}/").status_code == 404
 
 
-def test_chi_nguoi_len_don_moi_bo_duoc(client, bang_van_don, san_pham, nguoi_dung, settings):
+def test_manager_khong_bo_duoc_don(client, bang_van_don, san_pham, nguoi_dung, settings):
+    """AC-6.13 — Manager Sale không bỏ được đơn của nhân viên mình: Bỏ đơn chỉ Admin (ADR-049)"""
     settings.ROOT_URLCONF = "knjsc.urls_bangtinh"
-    """BR-3 — Người khác không bỏ được đơn của mình, kể cả Manager"""
     don = _len_don(nguoi_dung["staff_sale_1"], san_pham)
     client.force_login(nguoi_dung["manager_sale"])
 
