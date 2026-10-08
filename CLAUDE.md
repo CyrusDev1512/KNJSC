@@ -239,7 +239,9 @@ nguyên dữ liệu; lọc ở một chỗ duy nhất `table_service.visible_col
 sản phẩm `sl_*` mặc định ẩn** (bổ sung 22.09, migration `orders/0011`): `sync_product_columns`
 tạo cột mới với `is_hidden=True` nên sản phẩm gõ thử không mọc cột trên lưới; bật lại ở mục
 "Đang ẩn với cả công ty". Cột đã ẩn thì lưới **không đọc bộ lọc của nó** (AC-39.9). Nút "Cột" vẫn có ô
-tích "ẩn cho riêng máy mình" (localStorage) như cũ. Profile
+tích "ẩn cho riêng máy mình" (localStorage) như cũ. **Xoá dòng chỉ Admin** (ADR-049, 08.10): mục "Xoá dòng
+đang chọn" trong menu "…" (lượt `delete_rows`/`restore_rows` qua `luu-json/`, đơn gốc bị bỏ theo, Ctrl+Z khôi phục); vai khác
+403 có nhật ký; Bỏ đơn ở trang đơn gốc cũng chỉ Admin (`order_service.cancel_order`). Profile
 nghiệp vụ của bảng lấy qua `forms_builder/record_policies.py` (`register_grid`,
 `register_workflow`), không nhận diện nghiệp vụ bằng mã cột. Cột **Trùng** nằm trong
 `crm/services/waybill_grid.py` cùng các hook profile (ADR-036).

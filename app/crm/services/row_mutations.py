@@ -2,6 +2,7 @@
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from core.exceptions import BusinessError, OutOfScopeError
+from core.permissions import is_admin
 from forms_builder.models import DataRecord
 from forms_builder.services import grant_service, record_service
 from forms_builder import record_policies
@@ -11,6 +12,50 @@ from crm.models import GridMutationReceipt, GridCellHistory
 def can_create(user, table):
     policy=record_policies.for_table(table)
     return not (policy and getattr(policy,'protect_table',False)) and grant_service.can_create_record(user,table)
+
+
+#: Loại lượt ghi xoá/khôi phục dòng bất kỳ — ADR-049, chỉ Admin. Giá trị là hành động mỗi dòng phải mang.
+DELETE_KINDS = {'delete_rows': 'delete', 'restore_rows': 'restore'}
+
+
+def can_delete(user, table):
+    """Lưới có mục "Xoá dòng" không — ADR-049 (chủ dự án 08.10.2026): chỉ Admin, bảng sửa được ở dịch vụ này.
+    Từng dòng vẫn kiểm lại ở `remove` qua `grant_service.can_delete_record`."""
+    return user.is_active and is_admin(user) and not grant_service.is_grid_only(table)
+
+
+def remove(user, table, kind, actions, receipt, *, replay=False, request=None):
+    """Admin xoá mềm hay khôi phục các dòng đã chọn — ADR-049. Cả lượt cùng thành công hoặc cùng huỷ.
+
+    So phiên bản từng dòng (`updated_at`) như mọi lần ghi lưới: dòng vừa đổi thì 409, không dòng nào bị đụng.
+    Xoá/khôi phục đi qua `record_service`, nên dòng vận đơn kéo theo đơn gốc và có nhật ký (AC-6.12); khôi phục
+    khi mã đơn đã có dòng sống thì bị từ chối (AC-36.11). Gửi lại cùng mã thao tác chỉ kiểm lại quyền hiện hành."""
+    if not can_delete(user,table):raise OutOfScopeError()
+    ids=[a.get('id') for a in actions]
+    if any(type(pk) is not int or pk<=0 for pk in ids) or len(set(ids))!=len(ids):
+        raise BusinessError('Định danh dòng không hợp lệ.')
+    rows=list(grant_service.with_report_lock(DataRecord.all_objects.filter(table=table,pk__in=ids))
+              .select_related('table').select_for_update(of=('self',)).order_by('pk'))
+    visible=set(DataRecord.all_objects.in_scope(user,table=table).filter(pk__in=ids).values_list('pk',flat=True))
+    if visible!=set(ids) or len(rows)!=len(ids):raise OutOfScopeError()
+    by_id={r.pk:r for r in rows}
+    if any(not grant_service.can_delete_record(user,r) for r in rows):raise OutOfScopeError()
+    if replay:return None
+    deleted=DELETE_KINDS[kind]=='delete'
+    history=[]
+    for action in actions:
+        row=by_id[action['id']]
+        if row.updated_at.isoformat()!=action.get('version') or (row.deleted_at is not None)==deleted:
+            raise BusinessError('Dòng đã thay đổi. Tải lại vùng đang xem rồi chọn lại dòng cần xoá.',code='conflict')
+    for action in actions:
+        row=by_id[action['id']]
+        if deleted:record_service.delete_record(row,actor=user,request=request)
+        else:record_service.restore_record(row,actor=user,request=request)
+        history.append(GridCellHistory(record=row,receipt=receipt,column='__row__',property='value',
+                                       before=not deleted,after=deleted))
+    GridCellHistory.objects.bulk_create(history)
+    fresh=DataRecord.all_objects.filter(pk__in=ids).order_by('pk').values_list('pk','updated_at','deleted_at')
+    return [{'id':pk,'version':updated.isoformat(),'deleted':gone is not None} for pk,updated,gone in fresh]
 
 
 def create(user, table, cells, columns):

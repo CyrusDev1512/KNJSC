@@ -187,7 +187,8 @@ def _block(user, table, params, *, snapshot=False):
         raise BusinessError('Dữ liệu đang cập nhật. Thử lại vùng đang xem.', code='conflict')
     return {'columns': meta, 'rows': serialize(rows, grid.columns, user, meta=meta), 'total': total,
             'offset': offset, 'version': version, 'block_size': BLOCK_SIZE,
-            'schema_version':digest(meta), 'capabilities':{'create':row_mutations.can_create(user,table), 'structure':grant_service.can_manage_columns(user,table)}}
+            'schema_version':digest(meta), 'capabilities':{'create':row_mutations.can_create(user,table), 'structure':grant_service.can_manage_columns(user,table),
+                             'delete':row_mutations.can_delete(user,table)}}
 
 
 @transaction.atomic
@@ -218,9 +219,13 @@ def save(user, table, payload, *, request=None):
             raise BusinessError('Một ô xuất hiện nhiều lần trong lượt ghi.')
         seen.add(key)
     kind = payload.get('kind', 'edit')
-    if kind not in ('edit','paste','clear','format','undo','redo'):
+    if kind not in ('edit','paste','clear','format','undo','redo', *row_mutations.DELETE_KINDS):
         raise BusinessError('Loại thao tác không hợp lệ.')
-    if row_actions and (any(not isinstance(a,dict) or a.get('action') != ('restore' if kind=='redo' else 'delete') for a in row_actions) or kind not in ('undo','redo') or any(a.get('id') in {c['id'] for c in cells} for a in row_actions if isinstance(a,dict))):
+    if kind in row_mutations.DELETE_KINDS:
+        # Xoá/khôi phục dòng bất kỳ (Admin, ADR-049): lượt riêng, không kèm sửa ô, mọi dòng cùng một hành động
+        if not row_actions or cells or any(not isinstance(a,dict) or a.get('action') != row_mutations.DELETE_KINDS[kind] for a in row_actions):
+            raise BusinessError('Lượt xoá dòng chỉ gồm các dòng cần xoá hoặc khôi phục, không kèm sửa ô.')
+    elif row_actions and (any(not isinstance(a,dict) or a.get('action') != ('restore' if kind=='redo' else 'delete') for a in row_actions) or kind not in ('undo','redo') or any(a.get('id') in {c['id'] for c in cells} for a in row_actions if isinstance(a,dict))):
         raise BusinessError('Không thể sửa và xóa cùng một dòng trong lượt.')
     from . import optimization
     compact=payload.get('protocol')==2 and optimization.enabled('RECEIPTS')
@@ -244,7 +249,10 @@ def save(user, table, payload, *, request=None):
     created_ids = set(mapping.values()) if created else set()
     lock_ids = {c['id'] for c in cells} | {a['id'] for a in row_actions if isinstance(a,dict) and type(a.get('id')) is int}
     list(DataRecord.all_objects.filter(table=table,pk__in=lock_ids).order_by('pk').select_for_update(of=('self',)).values_list('pk',flat=True))
-    row_results = row_mutations.change(user, table, row_actions, receipt, replay=not created)
+    if kind in row_mutations.DELETE_KINDS:
+        row_results = row_mutations.remove(user, table, kind, row_actions, receipt, replay=not created, request=request)
+    else:
+        row_results = row_mutations.change(user, table, row_actions, receipt, replay=not created)
     ids = {c['id'] for c in cells}
     rows = list(grant_service.with_report_lock(DataRecord.objects.filter(table=table, pk__in=ids)).select_related('table', 'assignment')
                 .select_for_update(of=('self',)).order_by('pk'))

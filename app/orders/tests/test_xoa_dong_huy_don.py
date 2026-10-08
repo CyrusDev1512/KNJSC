@@ -45,6 +45,6 @@ def test_bo_don_van_xoa_ca_dong(bang_van_don, sp, nguoi_dung):
     """AC-6.12 — Chiều cũ giữ nguyên: Bỏ đơn xoá mềm cả đơn lẫn dòng; dòng của đơn khác không bị đụng"""
     nv = nguoi_dung["staff_sale_1"]
     a, b = _len_don(nv, sp), _len_don(nv, sp, phone="0911111111")
-    order_service.cancel_order(a, actor=nguoi_dung["manager_sale"])
+    order_service.cancel_order(a, actor=nguoi_dung["admin"])
     assert DataRecord.all_objects.get(pk=a.record_id).deleted_at is not None
     assert DataRecord.objects.filter(pk=b.record_id).exists() and Order.objects.filter(pk=b.pk).exists()

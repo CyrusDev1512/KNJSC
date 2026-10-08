@@ -106,7 +106,7 @@ def test_deleted_and_previous_year_codes_stay_reserved(bang_van_don, san_pham, n
     actor = nguoi_dung['staff_sale_1']
     with patch('django.utils.timezone.now', return_value=datetime(2026, 9, 11, 3, tzinfo=utc_timezone.utc)):
         first = _len_don(actor, san_pham)
-        order_service.cancel_order(first, actor=actor)
+        order_service.cancel_order(first, actor=nguoi_dung['admin'])
         second = _len_don(actor, san_pham)
         assert first.code == 'DH-1109-0001' and second.code == 'DH-1109-0002'
     with patch('django.utils.timezone.now', return_value=datetime(2026, 9, 12, 3, tzinfo=utc_timezone.utc)):

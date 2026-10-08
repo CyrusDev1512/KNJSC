@@ -173,7 +173,7 @@ def test_bang_xep_hang_doanh_so_thang_nay(client, nguoi_dung, san_pham):
     _don(n["staff_sale_1"], san_pham, "100.00")
     _don(n["manager_sale"], san_pham, "200.00")                              # 1 đơn = 5.000.000
     # Hai đơn to hơn tất cả nhưng không được tính: một đã bỏ, một của tháng trước
-    order_service.cancel_order(_don(n["staff_sale_1"], san_pham, "9999.00"), actor=n["staff_sale_1"])
+    order_service.cancel_order(_don(n["staff_sale_1"], san_pham, "9999.00"), actor=n["admin"])
     _lui_ve_thang_truoc(_don(n["staff_sale_1"], san_pham, "9999.00"))
 
     bang = leaderboard_service.sales_leaderboard()
