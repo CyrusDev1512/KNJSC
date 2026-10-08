@@ -138,3 +138,38 @@ trước 06.10.
 **Đề xuất (chờ duyệt):**
 - launcher chạy `ANALYZE` ngay sau `migrate` khi mã đổi;
 - `deploy/docker-compose.yml` đặt `CRM_CACHE_URL=redis://redis:6379/2` cho `web` và `bangtinh`.
+
+## 7. Tái hiện lần cập nhật máy local từ `main` lên `Staging` (08.10.2026)
+
+Chủ dự án: trước đây mở nhanh ở **cả VPS lẫn máy local**; chưa để ý bây giờ chậm lúc nào. VPS vẫn chạy `main`, chưa phát
+hành gì mới, nên chỉ còn lần cập nhật máy local lên `Staging` là có thể làm khác đi.
+
+**Các bước tái hiện**, theo đúng thứ tự launcher chạy khi mã đổi:
+1. DB ở trạng thái `main` ổn định (`VACUUM ANALYZE`). Đo `main`.
+2. Dùng mã `Staging` chạy `migrate` (gồm `forms_builder/0017`: điền khoá mã đơn cho mọi dòng), `tao_bang_van_don`,
+   `configure_erp_reports`, `configure_delivery_daily_report`.
+3. Bật `Staging`, mở bảng tính ngay. Rồi cứ ~33 giây một lần trong 6 phút, mỗi lần một trình duyệt mới. Cuối cùng chạy
+   `VACUUM ANALYZE` tay và đo lại.
+
+Cột trong bảng tính bằng giây: "Đăng nhập → lưới" / "Mở lại lưới".
+
+| | 10.000 dòng | 385.034 dòng |
+|---|---|---|
+| `main` ổn định | 1,42–1,46 / 0,63–0,65 | 4,94–6,61 / 3,59 |
+| Thời gian chạy `migrate` lúc cập nhật | 5 s | **169 s** (ghi lại 384.699 dòng) |
+| `Staging` ngay sau cập nhật | 1,27 / 0,53 | 2,34 / 0,40 |
+| `Staging` 30 s – 2 phút sau (còn dòng chết, chờ autovacuum) | 1,19–1,37 / 0,47–0,60 | 1,77–1,89 / 0,38–0,46 |
+| `Staging` sau khi autovacuum tự chạy (~17 s ở 10k, ~75 s ở 385k) | 1,18–1,28 / 0,45–0,59 | 1,28–1,37 / 0,40–0,55 |
+| `Staging` sau `VACUUM ANALYZE` tay | 1,24–1,26 / 0,39–0,57 | 1,28–1,35 / 0,44–0,57 |
+
+**Kết luận:**
+- Ngay cả trong những phút đầu sau cập nhật, `Staging` không chậm hơn `main`.
+- Thứ duy nhất lần cập nhật làm chậm đi là **chính lúc cập nhật**: `migrate` ghi lại toàn bộ dòng, 5 s ở 10k và gần 3 phút
+  ở 385k trên máy ảo; máy Windows chạy Docker có thể lâu hơn. Ngoài ra là khoảng 1–2 phút sau đó, lần mở đầu chậm thêm
+  ~0,5 s ở 385k.
+- Lần cập nhật này còn dựng lại image Docker (Django 5.2.6 → 5.2.17). Trên Windows bước này tốn vài phút trước khi hệ
+  thống bật lên.
+
+**Chưa kiểm được trên máy ảo:** Docker Desktop trên Windows, nơi mã và JS/CSS đọc qua thư mục gắn từ Windows. Ảnh hưởng
+này như nhau với `main` và `Staging`. Để chỉ đúng chỗ chậm trên máy chủ dự án, cần số đo từ chính máy đó: số giây mở
+bảng tính, và ảnh F12 → Network khi mở.
