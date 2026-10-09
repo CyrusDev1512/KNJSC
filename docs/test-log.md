@@ -1,5 +1,54 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 08.10.2026 — Kiểm toàn diện `Staging` `450b6da` trước khi gộp `main` (TL-76 → TL-78, chưa sửa)
+
+Theo yêu cầu chủ dự án, lượt này chỉ kiểm và báo; ba lỗi dưới **chưa sửa**. Biên bản:
+[kiem-chung-staging-len-main-20261008.md](kiem-chung-staging-len-main-20261008.md).
+
+**TL-76 (mở) — mức vừa, cập nhật lên mã có `forms_builder/0017`:** dữ liệu đang có hai dòng vận đơn chưa xoá cùng mã
+đơn thì cập nhật kẹt, và cách gỡ mà lời báo chỉ ra không làm được.
+- **Thấy gì:**
+  - `migrate` dừng đúng, liệt kê mã trùng, `forms_builder` không đổi dở (`core/0007` vẫn áp, vô hại).
+  - Nhưng mã mới đã chạy: ERP `/bang/van_don/` và CRM `/bang-tinh/van_don/du-lieu/` trả 500 "column
+    forms_builder_datarecord.val_order_code does not exist". Lưới mở được khung nhưng không có dòng, nên **không sửa hay
+    xoá dòng trùng trên lưới được** như lời báo của migration ("Sửa mã hoặc xoá dòng thừa trên lưới rồi chạy lại migrate").
+  - `kiem_tra_du_lieu` (lời báo bảo chạy để xem danh sách đủ; docstring `0017` bảo "rà trước khi phát hành") đổ cùng lỗi
+    khi chưa có `0017`.
+  - Máy local: container `web` chạy `migrate` mỗi lần bật (`RUN_MIGRATIONS=1`, `set -e`). Gặp trùng thì lần khởi động
+    lại sau ERP không lên.
+  - VPS: quy trình phát hành chạy `migrate` trước `up -d`, nên dừng ở bước đó, bản cũ vẫn chạy. Chỉ an toàn nếu người
+    phát hành dừng đúng chỗ.
+- **Tái hiện** (DB `knjsc_nc2`):
+  1. Dựng dữ liệu bằng mã `main`.
+  2. Sửa dòng thứ hai cho trùng mã dòng đầu (`MAU-20260910-0001`).
+  3. Chuyển sang mã `Staging`. `kiem_tra_du_lieu` báo `ProgrammingError`; `migrate` báo `RuntimeError … MAU-20260910-0001
+     (2 dòng)`; hai trang trên trả 500.
+  4. Xoá mềm dòng thừa bằng SQL rồi `migrate`: qua.
+- **Vì sao CI không bắt:** bài migration chạy trên dữ liệu không trùng; không bài nào chạy mã mới trên lược đồ cũ.
+- **Cách sửa đề xuất (chưa làm):**
+  1. Phép rà mã trùng của `kiem_tra_du_lieu` đọc thẳng `data` (SQL hoặc `.values()`), không nạp cả model, để chạy được
+     trước `migrate`.
+  2. Đổi lời báo của `0017` theo cách gỡ làm được: lệnh dọn trùng chạy trước `migrate`, hoặc quay về mã cũ để dọn trên lưới.
+  3. Hướng dẫn phát hành và launcher: rà trùng trước khi cập nhật bất kỳ máy nào.
+
+**TL-77 (mở) — mức nhẹ, lưới Vận đơn (#99):** Admin xoá dòng khi lưới đang tìm hay lọc chỉ còn đúng dòng đó, rồi bấm
+Ctrl+Z. Máy chủ khôi phục đúng: dòng và đơn gốc sống lại, lưới báo "Đã khôi phục 1 dòng.". Nhưng lưới vẫn ghi "0 dòng
+khớp bộ lọc", không hiện lại dòng cho tới khi tải lại trang.
+- Không lọc, hay lọc còn nhiều dòng: Ctrl+Z hiện lại đúng (10.001 → 10.002 dòng).
+- **Tái hiện:** `quantri` mở `/bang-tinh/van_don/?tim=Khách thử lượt 08.10` (1 dòng) → chọn dòng → Xoá dòng → còn 0 →
+  Ctrl+Z → sau 12 giây vẫn 0 → tải lại trang thì ra 1.
+- **Vì sao CI không bắt:** `tests/e2e/test_admin_xoa_dong.py` xoá 2 trong 3 dòng rồi hoàn tác, lưới chưa lúc nào rỗng.
+- **Cách sửa đề xuất (chưa làm):** khôi phục xong mà vùng đang xem rỗng thì đọc lại khối đầu. Thêm bài e2e: xoá hết dòng
+  đang lọc rồi Ctrl+Z.
+
+**TL-78 (mở, có từ trước) — mức nhẹ, ERP Bảng dữ liệu:** `sale.manager` thấy nút "Cột" của bảng `van_don` ở danh sách
+`/bang/`, bấm vào thì 403.
+- `main` cũng vậy (đã chạy mã `main` trên cùng dữ liệu): nút hiện theo quyền chung `_duoc_sua_bang(user)`, còn trang Cột
+  kiểm quyền theo từng bảng (`can_manage_columns`).
+- Lượt 04.10 không thấy vì dữ liệu mẫu khi đó chưa cho Sale dòng vận đơn nào, nên `van_don` chưa nằm trong danh sách của
+  Sale. Lượt này `nap_du_lieu_van_don` gán dòng cho Sale.
+- **Cách sửa đề xuất (chưa làm):** danh sách hiện nút "Cột" theo `can_manage_columns(user, b)` của từng bảng.
+
 ## 07.10.2026 — Đầu trang Báo cáo tổng hợp gọn, menu ⋯ (AC-42.18 → 42.21); bảng hụt 96 px khi thu thanh menu (TL-74)
 
 **TL-74 (đóng) — mức vừa, Báo cáo tổng hợp:** thanh menu dưới đã thu từ trước (`knjsc-erp-dock-collapsed`) thì vừa mở

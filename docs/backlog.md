@@ -1,5 +1,23 @@
 # Backlog
 
+## 08.10.2026 — Kiểm toàn diện `Staging` `450b6da` trước khi gộp `main` (chỉ kiểm, không đổi mã)
+
+- Phạm vi: 10 PR #91 → #100 chưa vào `main`, 2 migration mới (`core/0007`, `forms_builder/0017`).
+- Unit, functional, backend: 3.124 đạt, 0 đỏ, cả khi có và không có Redis. `check` và `check --deploy` đạt.
+- Migration xuôi ngược giữ nguyên dữ liệu. Cập nhật từ `main` lên `Staging` trên dữ liệu sạch: 8 giây, dữ liệu y nguyên.
+- Smoke 12 tài khoản: 0 lỗi 5xx. UI/UX đóng vai từng PR ở ba cỡ màn hình: đạt, trừ các lỗi dưới. Quét liên kết 11 vai:
+  517 trang, không 5xx.
+- E2E: hai lượt như CI đạt (9 bài phông Google đỏ do máy ảo, chạy lại có vá tạm thì đạt); 6 tệp mới chạy 3 lần không
+  chập chờn. Hiệu năng không tụt so với `Staging` sau #98 (đo xen kẽ, chênh trong dao động máy).
+- **Lỗi mới, chưa sửa** (chi tiết ở [test-log](test-log.md)):
+  - TL-76: dữ liệu có mã đơn trùng thì cập nhật lên `0017` kẹt, và không dọn trùng trên lưới được;
+  - TL-77: Ctrl+Z sau khi xoá dòng duy nhất đang lọc, lưới không hiện lại;
+  - TL-78 (có từ trước): nút "Cột" của `van_don` hiện cho `sale.manager`, bấm ra 403.
+- **Trước khi phát hành VPS:** đặt `SESSION_COOKIE_DOMAIN`, `CSRF_COOKIE_DOMAIN` (AC-1.11), rà mã đơn trùng (TL-76).
+- **Còn nợ:** chặng 2 (chủ dự án tự thử ở local); Docker image, Windows, VPS chưa kiểm được từ máy ảo.
+
+[Biên bản](kiem-chung-staging-len-main-20261008.md). Nhánh `claude/kiem-staging-len-main`.
+
 ## 08.10.2026 — Vì sao mở bảng tính lần đầu chậm hơn số đã báo (chỉ đo, không đổi mã)
 
 - Số đã báo là thời gian máy chủ đo khi nóng. Lần đầu người dùng còn chờ thêm:
