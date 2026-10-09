@@ -1,47 +1,47 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
-## 08.10.2026 — Diễn tập phát hành Staging 450b6da lên VPS (TL-76 → TL-83)
+## 08.10.2026 — Diễn tập phát hành Staging 450b6da lên VPS (TL-79 → TL-85)
 
 Diễn tập trên máy ảo giống VPS: nginx HTTPS hai tên miền, 2 lõi, RAM như VPS, dữ liệu ghi bằng bản `c7065fe`. Biên bản:
 [kiem-chung-dien-tap-phat-hanh-staging-20261008.md](kiem-chung-dien-tap-phat-hanh-staging-20261008.md).
 
-**TL-76 (đóng) — mức vừa, lưới CRM:** ô lưu chữ dạng tổ hợp (NFD, gõ trên Mac trước khi có chuẩn hoá) bị 409 "Có ô vừa
+**TL-79 (đóng) — mức vừa, lưới CRM:** ô lưu chữ dạng tổ hợp (NFD, gõ trên Mac trước khi có chuẩn hoá) bị 409 "Có ô vừa
 được thay đổi" ở mọi lần sửa ô đó.
 - **Chỗ sai:** `UnicodeNFCMiddleware` đưa giá trị cũ lưới gửi lên về NFC, còn phép so phiên bản ô so với giá trị NFD đã lưu.
 - **Sửa:** `record_service.same_value` so hai chuỗi ở dạng NFC. Dùng ở `master_grid_service.save` và `waybill_service.clear_items`.
 - **Bài mới AC-9.6:** `crm/tests/test_chu_viet_mot_dang.py::test_o_cu_dang_to_hop_van_sua_duoc_tren_luoi`. Đỏ trên `450b6da`
   (409), xanh sau khi sửa. Kiểm lại trên VPS giả: HTTP 200.
 
-**TL-77 (đóng) — mức vừa, công cụ phát hành:** `kiem_tra_du_lieu` hỏng với `ProgrammingError: column val_order_code does
+**TL-76 (đóng) — mức vừa, công cụ phát hành:** `kiem_tra_du_lieu` hỏng với `ProgrammingError: column val_order_code does
 not exist` khi `forms_builder/0017` chưa áp. Đó đúng là lúc lời báo của 0017 (dừng vì mã trùng) chỉ tới lệnh này.
 - **Sửa:** chưa có cột khoá mã đơn thì phép rà cột tách bị bỏ qua (có ghi rõ), các phép đọc từ `data` vẫn chạy và liệt kê
   mã trùng; `--sua` không ghi gì.
 - **Bài mới AC-36.14:** `orders/tests/test_kiem_tra_du_lieu.py::test_chay_duoc_truoc_migration_0017_va_liet_ke_ma_trung`.
 
-**TL-78 (mở, quy trình) — mức cao, quay lui:** cách quay lui của biên bản 29.09 (đổi image, `collectstatic` bằng image cũ)
+**TL-80 (mở, quy trình) — mức cao, quay lui:** cách quay lui của biên bản 29.09 (đổi image, `collectstatic` bằng image cũ)
 chép 0 tệp static, vì `collectstatic` so theo giờ sửa tệp. 7 tệp JS/CSS vẫn bản mới trên server cũ, mở panel Bộ lọc thì 404
 và lỗi JS. Tiến lại sau quay lui cũng sót theo chiều ngược. **Cách sửa:** luôn dùng `collectstatic --noinput --clear`
 (README đã ghi).
 
-**TL-79 (mở, quy trình) — mức cao, phát hành:** theo thứ tự README thì code cũ chạy trên schema mới cho tới `up -d`:
+**TL-81 (mở, quy trình) — mức cao, phát hành:** theo thứ tự README thì code cũ chạy trên schema mới cho tới `up -d`:
 - trùng mã đơn lọt ràng buộc (code cũ ghi khoá rỗng), đổi mã để khoá cũ nằm lại;
 - báo cáo MKT lưu CAD/USD, trái ADR-047;
 - sau `configure_erp_reports` mới, nộp MKT bằng bản cũ hỏng.
 
 **Cách sửa:** dừng `crm erp worker heavy beat` trước `migrate`, gián đoạn khoảng 20 s (README đã ghi).
 
-**TL-80 (mở, cấu hình VPS) — mức vừa, quy tắc 6:** vi phạm `record_ma_don_unique` thì Postgres ghi nguyên câu `UPDATE`
+**TL-82 (mở, cấu hình VPS) — mức vừa, quy tắc 6:** vi phạm `record_ma_don_unique` thì Postgres ghi nguyên câu `UPDATE`
 (giá trị nằm trong câu) vào log, gồm cả nội dung ô. **Cách sửa:** thêm `-c log_min_error_statement=panic` vào lệnh `db`.
 Việc của phiên phát hành, vì VPS có thể đè lệnh `db` trong `compose.vps.yml`.
 
-**TL-81 (mở) — mức vừa, công cụ:** ở 100.000 dòng, `kiem_tra_du_lieu` chạy bằng `exec` trong container crm (640 MiB, dùng
+**TL-83 (mở) — mức vừa, công cụ:** ở 100.000 dòng, `kiem_tra_du_lieu` chạy bằng `exec` trong container crm (640 MiB, dùng
 chung với gunicorn) bị diệt vì hết RAM; chạy riêng cần khoảng 410 MiB. **Tạm thời:** chạy bằng `docker compose run --rm`.
 Đọc theo lô để sau.
 
-**TL-82 (mở, quy trình) — mức vừa:** `up -d crm erp worker heavy beat proxy` theo README tạo lại container `db` khi `.env`
+**TL-84 (mở, quy trình) — mức vừa:** `up -d crm erp worker heavy beat proxy` theo README tạo lại container `db` khi `.env`
 đổi (DB tắt 3 s). **Cách sửa:** `up -d --no-deps crm erp worker heavy beat`, rồi reload nginx.
 
-**TL-83 (mở, quy trình) — mức vừa:** `BANGTINH_GOC` gõ sai (khác đúng `prod`) thì CRM chạy `DEBUG=True` mà
+**TL-85 (mở, quy trình) — mức vừa:** `BANGTINH_GOC` gõ sai (khác đúng `prod`) thì CRM chạy `DEBUG=True` mà
 `check --deploy` vẫn thoát 0. **Cách sửa:** chạy `check --deploy --fail-level WARNING` trên crm và erp (README đã ghi).
 
 ## 07.10.2026 — Đầu trang Báo cáo tổng hợp gọn, menu ⋯ (AC-42.18 → 42.21); bảng hụt 96 px khi thu thanh menu (TL-74)

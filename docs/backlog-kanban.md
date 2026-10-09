@@ -1,18 +1,18 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
-## 08.10.2026 — Diễn tập phát hành Staging lên VPS (TL-76 → TL-83)
+## 08.10.2026 — Diễn tập phát hành Staging lên VPS (TL-79 → TL-85)
 
 **Finished local (nhánh `claude/dien-tap-phat-hanh-vps`, PR nháp về `Staging`):**
 - diễn tập trọn lượt trên bản sao giống VPS;
 - README có dãy phát hành và quay lui đã kiểm;
-- sửa ô NFD 409 mãi (TL-76) và `kiem_tra_du_lieu` trước 0017 (TL-77).
+- sửa ô NFD 409 mãi (TL-79) và `kiem_tra_du_lieu` trước 0017 (TL-76).
 
 **To do:**
 - chủ dự án gộp vào `Staging`;
-- phiên KN CRM theo dãy mới khi phát hành, thêm `log_min_error_statement=panic` cho DB (TL-80);
+- phiên KN CRM theo dãy mới khi phát hành, thêm `log_min_error_statement=panic` cho DB (TL-82);
 - chạy các câu SQL chỉ đọc trên VPS trước khi phát hành.
 
-**Far plan:** `kiem_tra_du_lieu` đọc theo lô (TL-81); thử Safari, Firefox, Windows.
+**Far plan:** `kiem_tra_du_lieu` đọc theo lô (TL-83); thử Safari, Firefox, Windows.
 
 ## 07.10.2026 — Báo cáo tổng hợp: đầu trang gọn, menu ⋯ (AC-42.18 → 42.21, TL-74, TL-75)
 
