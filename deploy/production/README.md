@@ -23,6 +23,11 @@ lựa chọn trong transaction này. Tính cả chi phí đó khi kiểm nhiều
 | 6 | 19.09.2026 (18:39) | `ea8942c-adr036` → `72af235-gop` |
 | — | Mốc 25.09, kiểm lại trực tiếp 29.09 | Runtime `97bff53-main`; chưa có đủ biên bản để khôi phục toàn bộ các lần chuyển image trung gian |
 | 7 | 29.09.2026 (23:40) | `97bff53-main` → `c7065fe-adr046` |
+| 8 | 09.10.2026 (11:06 VN) | `c7065fe-adr046` → `e979323-main-r2` |
+
+Lượt 09.10: [biên bản phát hành và giới hạn nghiệm thu](../../docs/kiem-chung-phat-hanh-vps-20261009.md).
+Runtime đã chuyển sang main `e979323`; tag `e979323-main` đầu tiên lỗi quyền đóng gói
+và không được phát hành. Dùng tag r2 đã kiểm, không ghi đè tag bất biến.
 
 Lượt 29.09: [biên bản phát hành](../../docs/kiem-chung-phat-hanh-vps-20260929.md).
 Số thứ tự chỉ đếm các lượt có biên bản trong bảng; không suy ra ngày 25.09 chỉ có
