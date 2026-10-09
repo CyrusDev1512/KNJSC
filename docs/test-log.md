@@ -1,5 +1,46 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 08.10.2026 — Diễn tập phát hành Staging 450b6da lên VPS (TL-79 → TL-85)
+
+Diễn tập trên máy ảo giống VPS: nginx HTTPS hai tên miền, 2 lõi, RAM như VPS, dữ liệu ghi bằng bản `c7065fe`. Biên bản:
+[kiem-chung-dien-tap-phat-hanh-staging-20261008.md](kiem-chung-dien-tap-phat-hanh-staging-20261008.md).
+
+**TL-79 (đóng) — mức vừa, lưới CRM:** ô lưu chữ dạng tổ hợp (NFD, gõ trên Mac trước khi có chuẩn hoá) bị 409 "Có ô vừa
+được thay đổi" ở mọi lần sửa ô đó.
+- **Chỗ sai:** `UnicodeNFCMiddleware` đưa giá trị cũ lưới gửi lên về NFC, còn phép so phiên bản ô so với giá trị NFD đã lưu.
+- **Sửa:** `record_service.same_value` so hai chuỗi ở dạng NFC. Dùng ở `master_grid_service.save` và `waybill_service.clear_items`.
+- **Bài mới AC-9.6:** `crm/tests/test_chu_viet_mot_dang.py::test_o_cu_dang_to_hop_van_sua_duoc_tren_luoi`. Đỏ trên `450b6da`
+  (409), xanh sau khi sửa. Kiểm lại trên VPS giả: HTTP 200.
+
+Diễn tập cũng gặp `kiem_tra_du_lieu` hỏng (`ProgrammingError: column val_order_code does not exist`) khi
+`forms_builder/0017` chưa áp. Lỗi này trùng gốc với **TL-76** ở phần dưới, ghi chung ở đó.
+
+**TL-80 (mở, quy trình) — mức cao, quay lui:** cách quay lui của biên bản 29.09 (đổi image, `collectstatic` bằng image cũ)
+chép 0 tệp static, vì `collectstatic` so theo giờ sửa tệp. 7 tệp JS/CSS vẫn bản mới trên server cũ, mở panel Bộ lọc thì 404
+và lỗi JS. Tiến lại sau quay lui cũng sót theo chiều ngược. **Cách sửa:** luôn dùng `collectstatic --noinput --clear`
+(README đã ghi).
+
+**TL-81 (mở, quy trình) — mức cao, phát hành:** theo thứ tự README thì code cũ chạy trên schema mới cho tới `up -d`:
+- trùng mã đơn lọt ràng buộc (code cũ ghi khoá rỗng), đổi mã để khoá cũ nằm lại;
+- báo cáo MKT lưu CAD/USD, trái ADR-047;
+- sau `configure_erp_reports` mới, nộp MKT bằng bản cũ hỏng.
+
+**Cách sửa:** dừng `crm erp worker heavy beat` trước `migrate`, gián đoạn khoảng 20 s (README đã ghi).
+
+**TL-82 (mở, cấu hình VPS) — mức vừa, quy tắc 6:** vi phạm `record_ma_don_unique` thì Postgres ghi nguyên câu `UPDATE`
+(giá trị nằm trong câu) vào log, gồm cả nội dung ô. **Cách sửa:** thêm `-c log_min_error_statement=panic` vào lệnh `db`.
+Việc của phiên phát hành, vì VPS có thể đè lệnh `db` trong `compose.vps.yml`.
+
+**TL-83 (mở) — mức vừa, công cụ:** ở 100.000 dòng, `kiem_tra_du_lieu` chạy bằng `exec` trong container crm (640 MiB, dùng
+chung với gunicorn) bị diệt vì hết RAM; chạy riêng cần khoảng 410 MiB. **Tạm thời:** chạy bằng `docker compose run --rm`.
+Đọc theo lô để sau.
+
+**TL-84 (mở, quy trình) — mức vừa:** `up -d crm erp worker heavy beat proxy` theo README tạo lại container `db` khi `.env`
+đổi (DB tắt 3 s). **Cách sửa:** `up -d --no-deps crm erp worker heavy beat`, rồi reload nginx.
+
+**TL-85 (mở, quy trình) — mức vừa:** `BANGTINH_GOC` gõ sai (khác đúng `prod`) thì CRM chạy `DEBUG=True` mà
+`check --deploy` vẫn thoát 0. **Cách sửa:** chạy `check --deploy --fail-level WARNING` trên crm và erp (README đã ghi).
+
 ## 08.10.2026 — Kiểm toàn diện `Staging` `450b6da` trước khi gộp `main` (TL-76 → TL-78, đã sửa cùng ngày)
 
 Lượt kiểm chỉ kiểm và báo; chủ dự án bảo sửa luôn cả ba (nhánh `claude/sua-tl-76-77-78`,
@@ -38,6 +79,8 @@ Lượt kiểm chỉ kiểm và báo; chủ dự án bảo sửa luôn cả ba (
   - `migrate` dừng **trước khi áp migration nào** (`pre_migrate`, `integrity_service.chan_migrate_khi_trung_ma`),
     nêu mã trùng và lệnh `kiem_tra_du_lieu --sua` kèm cách chạy ở máy local. `0017` giữ nguyên (quy tắc 5).
   - `deploy/production/README.md` ghi bước gỡ cạnh `migrate`.
+- **Diễn tập phát hành 08.10 (#102) gặp cùng lỗi** và đã sửa riêng theo cách khác: bỏ qua phép rà cột tách, `--sua`
+  không ghi gì. Hoà giải 09.10: chủ dự án chọn bản sửa ở trên; bản và bài kiểm của #102 bỏ.
 
 **TL-77 (đóng) — mức nhẹ, lưới Vận đơn (#99):** Admin xoá dòng khi lưới đang tìm hay lọc chỉ còn đúng dòng đó, rồi bấm
 Ctrl+Z. Máy chủ khôi phục đúng: dòng và đơn gốc sống lại, lưới báo "Đã khôi phục 1 dòng.". Nhưng lưới vẫn ghi "0 dòng

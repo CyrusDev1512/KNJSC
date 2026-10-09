@@ -73,3 +73,22 @@ def test_o_tep_nhap_chuan_hoa():
     wb.save(b)
     b.seek(0)
     assert excel.read_table(b, "xlsx", max_rows=10).rows[1][0] == NFC
+
+
+def test_o_cu_dang_to_hop_van_sua_duoc_tren_luoi(client, setup, nguoi_dung, settings):  # noqa: F811
+    """AC-9.6 — Ô lưu dạng tổ hợp từ trước khi có chuẩn hoá (dữ liệu cũ gõ trên Mac): lưới gửi đúng chữ đang thấy làm
+    giá trị cũ, cửa vào đưa nó về dạng dựng sẵn, nên phép so phiên bản phải coi hai dạng là một — không thì ô đó báo xung
+    đột mãi, không sửa được nữa (diễn tập phát hành 08.10.2026)"""
+    from .test_waybill_new import order
+    settings.GRID_ONLY_TABLES = set()
+    dong = order(setup, nguoi_dung["staff_sale_1"]).record
+    DataRecord.objects.filter(pk=dong.pk).update(data={**dong.data, "dia_chi": NFD})   # dữ liệu cũ, đi vòng cửa vào
+    client.force_login(nguoi_dung["staff_vd"])
+    meta = client.get(f"/bang-tinh/{setup[0].code}/du-lieu/?bat_dau=0").json()
+    kq = client.post(f"/bang-tinh/{setup[0].code}/luu-json/", json.dumps({
+        "operation": "1b3c0f0e-5a54-4f1a-9a3e-0d2f6c2b7e11", "kind": "edit", "schema_version": meta.get("schema_version"),
+        "cells": [{"id": dong.pk, "column": "dia_chi", "old": NFD, "value": "Số 7 Lê Lợi"}]}),
+        content_type="application/json")
+    assert kq.status_code == 200, kq.content[:300]
+    dong.refresh_from_db()
+    assert dong.data["dia_chi"] == "Số 7 Lê Lợi"

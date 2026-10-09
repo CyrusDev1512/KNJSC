@@ -9,6 +9,7 @@ tính lại bảy cột tách `val_*` trong bộ nhớ, nhưng `update_fields` c
 vẫn hiện đúng còn lọc và thống kê thì sai.
 """
 from .lifecycle_service import writing, available, lock as table_lock
+import unicodedata
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
@@ -39,6 +40,15 @@ def _goi_y_danh_sach(choice_list):
     if not muc:
         return "Cột chưa có danh sách chọn — quản lý thêm ở Sửa cột."
     return "Chọn: " + ", ".join(muc[:10]) + ("…" if len(muc) > 10 else "")
+
+
+def same_value(a, b):
+    """Hai giá trị ô có là một không, như người dùng thấy — AC-9.6. Chữ khác dạng Unicode là một: ô lưu dạng tổ hợp
+    từ trước khi có chuẩn hoá (gõ trên Mac), còn giá trị cũ lưới gửi lên đã qua cửa vào `UnicodeNFCMiddleware` thành
+    dạng dựng sẵn. Phép so phiên bản ô (CAS) phải dùng hàm này, không thì ô đó báo xung đột mãi (diễn tập 08.10.2026)."""
+    if isinstance(a, str) and isinstance(b, str):
+        return unicodedata.normalize("NFC", a) == unicodedata.normalize("NFC", b)
+    return a == b
 
 
 def parse_value(column, raw, *, choices=None):

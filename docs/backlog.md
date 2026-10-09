@@ -1,5 +1,57 @@
 # Backlog
 
+## 09.10.2026 — `Staging` vào `main` (#104); gộp #101; hoà giải #102 với #103
+
+- **#104:** `Staging` `450b6da` vào `main` bằng merge commit, ra `main` `b55405a`.
+  - Tree `415f4627…` đúng bản đã diễn tập. CI xanh.
+  - VPS chưa phát hành, vì phiên web không tới được VPS. Bước 2–6, kèm 4 câu SQL rà trước, đã bàn giao cho phiên có SSH.
+- **#101** (biên bản kiểm `Staging`) đã vào `Staging`.
+- **Hoà giải #102 với #103:** nhánh `claude/dien-tap-phat-hanh-vps` gộp nhánh của #103. **Thứ tự gộp: #103, rồi #102.**
+  - `kiem_tra_du_lieu` trước `0017`: chủ dự án chọn cách của #103 (`--sua` đổi mã dòng thừa thành `TRUNG-…`).
+    Bỏ bản D6 và bài kiểm D6 của #102.
+  - Mã TL: TL-76 → TL-78 giữ cho #101 và #103. Lượt diễn tập đổi sang TL-79 → TL-85. Lỗi `kiem_tra_du_lieu` trước `0017`
+    gộp vào TL-76.
+  - README: dùng dãy phát hành của #102. Bước 4 ghi cách gỡ khi `migrate` dừng vì mã trùng.
+  - Kiểm trên nhánh đã hoà giải:
+    - gộp thử `Staging` + #103 và `Staging` + #102, cả hai không xung đột;
+    - `pytest -m "not trinh_duyet"`: 3.128 đạt, 7 bỏ qua, 0 đỏ (3.127 của #103, thêm bài AC-9.6 của #102, bỏ bài D6);
+    - `makemigrations --check` sạch;
+    - e2e `test_admin_xoa_dong.py`: 3/3.
+- **Còn nợ:**
+  - phát hành VPS, do phiên có SSH làm;
+  - xoá nhánh `claude/kiem-staging-len-main`: phiên web bị chặn xoá.
+
+## 08.10.2026 — Diễn tập phát hành Staging 450b6da lên VPS (đang c7065fe) trên bản sao giống VPS
+
+- **Đã kiểm.** Diễn tập trên máy ảo với nginx HTTPS hai tên miền, 2 lõi, RAM như VPS, dữ liệu ghi bằng bản cũ. Các phần:
+  - dãy README, biến thể dừng dịch vụ ghi;
+  - cửa sổ code cũ trên schema mới; trình duyệt mở từ bản cũ;
+  - ma trận quyền 8 vai × 2 host (128 ô, sai 0); sự cố cache, broker, db;
+  - quay lui rồi tiến lại; dữ liệu xấu (mã trùng, NBSP, NFD);
+  - hiệu năng 100.000 dòng; bảo mật và log.
+- **Kết luận: phát hành được nếu đổi dãy lệnh.** README đã ghi dãy mới. Dãy cũ có 4 chỗ hỏng tái hiện được:
+  - quay lui để JS mới chạy trên server cũ, panel Bộ lọc lỗi (TL-80);
+  - code cũ chạy trên schema mới để lọt mã trùng và ghi MKT bằng CAD (TL-81);
+  - `up -d` tạo lại DB (TL-84);
+  - quay lui thiếu `configure` cũ làm nộp MKT hỏng.
+- **Đã sửa mã (TDD):**
+  - ô chữ NFD bị 409 mãi (TL-79);
+  - `kiem_tra_du_lieu` hỏng khi 0017 chưa áp (TL-76; hoà giải 09.10 dùng bản sửa của #103).
+- **Hiệu năng, 100k dòng, 2 lõi** (bản mới so với bản cũ):
+  - đọc khối lưới p95 310 → 210 ms;
+  - lưu ô p95 220 → 100 ms;
+  - mở lưới p95 2.400 → 55 ms;
+  - migrate 0017 mất 46,7 s và làm bảng phình gấp đôi, phải `VACUUM`.
+- **Còn nợ, cần chủ dự án hoặc phiên phát hành:**
+  - thêm `log_min_error_statement=panic` cho DB (TL-82);
+  - `kiem_tra_du_lieu` đọc theo lô (TL-83);
+  - xác nhận số MKT trên VPS vốn nhập bằng VND (tiền đề của `reports/0006`);
+  - máy đã từng thoát mở rộng giữ giao diện cũ (có đặt lại không);
+  - `server_tokens off`;
+  - Safari, Firefox, Windows, 300k dòng, dữ liệu VPS thật chưa kiểm.
+
+[Biên bản](kiem-chung-dien-tap-phat-hanh-staging-20261008.md). Nhánh `claude/dien-tap-phat-hanh-vps`.
+
 ## 08.10.2026 — Sửa TL-76, TL-77, TL-78 (AC-36.15, 36.16, AC-21.20, AC-40.8)
 
 - **TL-76:**
