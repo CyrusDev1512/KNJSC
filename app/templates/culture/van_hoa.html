@@ -55,6 +55,7 @@
 
     <div class="the">
       <div class="the-dau"><h2>Ghi nhận mới nhất</h2><span class="phai nho mo-nhat">{{ page_obj.paginator.count }} ghi nhận</span></div>
+      <div data-vung-trang="ds">{# phan-trang.js chỉ thay vùng này khi chuyển trang (AC-10.19) #}
       <div>
         {% for gn in trang %}
           {% include "culture/_ghi_nhan.html" with gn=gn %}
@@ -63,6 +64,7 @@
         {% endfor %}
       </div>
       {% if page_obj.paginator.count %}{% include "components/phan_trang.html" %}{% endif %}
+      </div>
     </div>
   </div>
 

@@ -1,0 +1,19 @@
+{% extends "base_tran.html" %}
+{# Trang không có — AC-10.14 (NFR-6: luôn tiếng Việt). Cùng khuôn với 403.html #}
+{% block tieu_de %}Không tìm thấy trang · Kim Ngân JSC{% endblock %}
+
+{% block ngoai_khung %}
+<div style="min-height:100vh;display:grid;place-items:center;padding:var(--sp-5)">
+  <div class="the" style="width:100%;max-width:520px;padding:var(--sp-6)">
+    <div class="nhan-nho" style="color:var(--critical)">Lỗi 404</div>
+    <h1 style="font-size:var(--fs-2xl);font-weight:800;letter-spacing:-.025em;margin:var(--sp-2) 0 var(--sp-3)">
+      Không tìm thấy trang
+    </h1>
+    <p style="color:var(--ink-2);margin:0 0 var(--sp-4)">
+      Đường dẫn không có, hoặc dữ liệu đã bị xoá hay không còn mở ở đây. Kiểm tra lại đường dẫn, hoặc đi từ trang chủ.
+    </p>
+    <hr class="ke">
+    <a class="nut nut-chinh" href="/">Về trang chủ</a>
+  </div>
+</div>
+{% endblock %}

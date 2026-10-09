@@ -15,6 +15,8 @@ from forms_builder.services import grant_service
 from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
 from orders.units import COMMON_UNITS
 from orders.services import order_service, waybill_service, product_service
+from core.submission import new_key as new_submission_key
+
 from .services import catalog
 from .waybill_forms import WaybillOrderForm
 
@@ -63,14 +65,19 @@ def create_order(request):
                 raise BusinessError("Chọn ít nhất 1 sản phẩm cho đơn.")
             waybill_service.validate_items(items, strict_units=True)
             if form.is_valid():
-                order = order_service.create_order(**form.cleaned_data, lines=items, actor=request.user, request=request)
+                order, moi = order_service.create_order_once(
+                    request.POST.get("ma_lan_nop"), **form.cleaned_data, lines=items, actor=request.user, request=request)
                 saved_at = timezone.localtime(order.created_at)
-                success = f"Đã lưu đơn {order.code} vào {order.record.table.name} lúc {saved_at:%H:%M} ngày {saved_at:%d/%m/%Y}."
+                success = (f"Đã lưu đơn {order.code} vào {order.record.table.name} lúc {saved_at:%H:%M} ngày {saved_at:%d/%m/%Y}."
+                           if moi else f"Đơn {order.code} đã lưu từ lần bấm trước lúc {saved_at:%H:%M}, không tạo đơn mới.")
                 saved_order = order
                 form, items = WaybillOrderForm(actor=request.user), None
         except (BusinessError, ValidationError, ValueError) as exc:
             error = str(exc) if isinstance(exc, BusinessError) else "Kiểm tra lại thông tin đơn và chi tiết sản phẩm."
     context = {"order_date": timezone.localtime(), "saved_order": saved_order,
+               # Mã lần nộp dùng một lần (AC-6.11): lưu lỗi thì giữ mã để sửa rồi lưu lại vẫn là một đơn
+               "ma_lan_nop": (request.POST.get("ma_lan_nop") if request.method == "POST" and not saved_order else "")
+                             or new_submission_key(),
                "duoc_them_sp": has_rank(request.user, product_service.CREATE_RANK),
                "nhac_khach": order_service.customer_notice(
                    form.data.get("phone", ""), form.data.get("customer_name", "")),

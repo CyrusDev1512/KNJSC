@@ -2,6 +2,8 @@
 
 Chạy trong container `web` khi đã `playwright install chromium`; thiếu thì tự bỏ qua.
 """
+import json
+
 import pytest
 
 from reports.models import ReportSource
@@ -31,8 +33,19 @@ def trinh_duyet_moi():
         browser.close()
 
 
-def _mo(browser, live_server, user, width, height, url):
+def _mo(browser, live_server, user, width, height, url, *, luu=None, phien=None, khung_thuong=False):
+    """Đăng nhập rồi mở `url`. `luu`/`phien`: localStorage/sessionStorage đặt sẵn trước khi trang chạy, như người dùng
+    đã chọn từ trước (Mở rộng ERP, thu thanh menu, trạng thái bộ lọc) — đặt lại ở mỗi lần tải trang.
+
+    `khung_thuong`: bài dựng tiền đề theo khung có lề (trang cuộn được, bảng tràn ngang đủ xa). Từ 07.10.2026 ERP mặc
+    định mở rộng (AC-10.17), khung rộng hơn nên dữ liệu thử ít cột không còn đủ tràn — đặt về khung thường như máy đã
+    tắt mở rộng."""
+    luu = {**({"knjsc-erp-immersive": "0"} if khung_thuong else {}), **(luu or {})}
     ctx = browser.new_context(viewport={"width": width, "height": height}, locale="vi-VN")
+    dat = [f"localStorage.setItem({json.dumps(k)},{json.dumps(v)});" for k, v in luu.items()]
+    dat += [f"sessionStorage.setItem({json.dumps(k)},{json.dumps(v)});" for k, v in (phien or {}).items()]
+    if dat:
+        ctx.add_init_script("try{" + "".join(dat) + "}catch(e){}")
     page = ctx.new_page()
     page.set_default_timeout(15_000)
     page.goto(live_server.url + "/dang-nhap/")
@@ -51,15 +64,16 @@ def nguon(marketing_scope):
 
 
 def test_bo_loc_ba_trang_thai_va_toan_man_hinh(live_server, trinh_duyet_moi, nguon, nguoi_dung):
-    """AC-22.13 — Màn rộng: bộ lọc mở 260px, thu gọn thành thanh dọc 48px có huy hiệu, nhớ trong phiên; Toàn màn
-    hình tự chuyển sang thanh dọc, Escape thoát; màn hẹp: ngăn kéo mặc định đóng, mở phủ backdrop, Escape đóng trước
-    rồi mới thoát toàn màn hình; cuộn ngang bảng thì cột định danh đứng yên"""
+    """AC-22.13 — Màn rộng: bộ lọc mở 260px, thu gọn (nút ‹ của bộ lọc) thành thanh dọc 48px có huy hiệu, nhớ trong
+    phiên; Toàn màn hình (mục của menu ⋯ từ 07.10.2026) tự chuyển sang thanh dọc, Escape thoát; màn hẹp: ngăn kéo mặc
+    định đóng, nút "Lọc" trên thanh trên cùng mở phủ backdrop, Escape đóng trước rồi mới thoát toàn màn hình; cuộn
+    ngang bảng thì cột định danh đứng yên"""
     url = f"/bao-cao/tong-hop/?nguon={nguon.table.code}&tu=2026-08-01&den=2026-08-31&team={nguoi_dung['staff_sale_1'].profile.team_id}"
     ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1440, 900, url)
     try:
         assert page.evaluate(ST) == "open"
         assert page.evaluate("()=>Math.round(document.getElementById('report-filter-panel').getBoundingClientRect().width)") == 260
-        page.click("#report-toggle-filters")
+        page.click("#report-panel-collapse")
         page.wait_for_function(f"{ST}==='rail'")
         # Lưới chuyển cột có hiệu ứng 0,2 s — chờ tới bề rộng đích thay vì đo ngay.
         page.wait_for_function("()=>Math.round(document.getElementById('report-filter-panel').getBoundingClientRect().width)===48")
@@ -69,7 +83,7 @@ def test_bo_loc_ba_trang_thai_va_toan_man_hinh(live_server, trinh_duyet_moi, ngu
         assert page.evaluate(ST) == "rail", "nhớ trạng thái trong phiên"
         page.click("#report-panel-expand")
         page.wait_for_function(f"{ST}==='open'")
-        page.click("#report-toggle-focus")
+        _bam_menu(page, "#report-toggle-focus")
         page.wait_for_function(FOCUS)
         assert page.evaluate(ST) == "rail", "toàn màn hình nhường chỗ cho bảng"
         chup(page, "bao-cao-toan-man-hinh-1440")
@@ -107,7 +121,7 @@ def test_bo_loc_ba_trang_thai_va_toan_man_hinh(live_server, trinh_duyet_moi, ngu
             const th=s.querySelector('thead th:not(.report-identity)');const a=id.getBoundingClientRect().left,b=th.getBoundingClientRect().left;s.scrollLeft=300;
             return new Promise(r=>requestAnimationFrame(()=>r({cuon:s.scrollLeft,id_dx:Math.round(id.getBoundingClientRect().left-a),th_dx:Math.round(th.getBoundingClientRect().left-b)})))}""")
         assert ghim["cuon"] > 0 and ghim["id_dx"] == 0 and ghim["th_dx"] < 0, ghim
-        page.click("#report-toggle-focus")
+        _bam_menu(page, "#report-toggle-focus")
         page.wait_for_function(FOCUS)
         page.click("#report-toggle-filters")
         page.wait_for_function(f"{ST}==='open'")
@@ -167,6 +181,13 @@ VI_TRI = """()=>{const s=document.querySelector('.report-table-scroll'),m=docume
     return [s.scrollTop,s.scrollHeight-s.clientHeight,m.scrollTop,m.scrollHeight-m.clientHeight]}"""
 
 
+#: Trang có phần dưới khung báo cáo (như mục "Trạng thái giao hàng" của nguồn Vận đơn) nên cuộn được. Bố cục vừa khít
+#: (AC-42.15) không để lại gì cho trang Sale/MKT cuộn; trước 07.10.2026 bài này nhờ trang lệch 1 px tình cờ ở đáy (viền
+#: `main` cộng phần lẻ khi làm tròn), lệch ấy còn 0,14 px khi các hàng trên bảng lên thanh trên cùng
+THEM_DUOI = """()=>document.querySelector('main.noi-dung').insertAdjacentHTML('beforeend',
+    '<div style="height:300px" aria-hidden="true"></div>')"""
+
+
 def _lan(page, nac):
     """Lăn bánh xe `nac` nấc xuống tại giữa phần nhìn thấy của khung bảng; trả VI_TRI."""
     x, y = page.evaluate(DIEM_TREN_BANG)
@@ -183,7 +204,7 @@ def _lan(page, nac):
 def test_lan_chuot_tren_bang_khong_ket(live_server, trinh_duyet_moi, nguon, nguoi_dung):
     """AC-22.19 — Lăn chuột với con trỏ đặt trên bảng không bị kẹt (TL-63, chủ dự án 28.09.2026): bảng ngắn
     hơn khung (không có gì để cuộn dọc) thì trang cuộn ngay; bảng dài thì bảng cuộn trước, cuộn hết bảng
-    thì trang cuộn tiếp — khung bảng không chặn cuộn truyền ra trang"""
+    thì trang cuộn tiếp — khung bảng không chặn cuộn truyền ra trang (trang có phần dưới khung báo cáo để cuộn)"""
     from datetime import date, timedelta
     from forms_builder.models import DataRecord
 
@@ -193,8 +214,9 @@ def test_lan_chuot_tren_bang_khong_ket(live_server, trinh_duyet_moi, nguon, nguo
     url = (f"/bao-cao/tong-hop/?nguon={nguon.table.code}&tu=2026-08-01&den=2026-08-31"
            f"&nhan_su={nguoi_dung['staff_sale_1'].pk}")
     # 1000×900: khung bảng vừa khít màn hình từ 03.10.2026 nên cần màn cao hơn để bảng ngắn lọt vừa khung dọc
-    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1000, 900, url)
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1000, 900, url, khung_thuong=True)
     try:
+        page.evaluate(THEM_DUOI)
         bang, bang_max, trang, trang_max = page.evaluate(VI_TRI)
         ngang = page.evaluate("()=>{const s=document.querySelector('.report-table-scroll');return s.scrollWidth-s.clientWidth}")
         assert bang_max <= 0 < trang_max and ngang > 0, \
@@ -213,8 +235,9 @@ def test_lan_chuot_tren_bang_khong_ket(live_server, trinh_duyet_moi, nguon, nguo
                    data={**d.data, "ngay": (date(2026, 8, 1) + timedelta(days=i)).isoformat()})
         for i in range(1, 30) for d in mau])
     url = f"/bao-cao/tong-hop/?nguon={nguon.table.code}&tu=2026-08-01&den=2026-08-31"
-    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1440, 760, url)
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1440, 760, url, khung_thuong=True)
     try:
+        page.evaluate(THEM_DUOI)
         _, bang_max, _, trang_max = page.evaluate(VI_TRI)
         assert bang_max > 1000 and trang_max > 0, f"tiền đề: bảng dài hơn khung — {[bang_max, trang_max]}"
         bang, _, trang, _ = _lan(page, 5)
@@ -313,7 +336,7 @@ def test_dong_tong_dinh_nen_dac_va_sat_tieu_de(live_server, trinh_duyet_moi, mkt
         page.evaluate("()=>document.getElementById('report-view').style.setProperty('--w-panel','1100px')")
         page.wait_for_function("()=>Math.round(document.getElementById('report-filter-panel').getBoundingClientRect().width)===1100")
         cao_hep = page.evaluate(DO_BANG)[0]["tieu_de"]
-        page.click("#report-toggle-focus")
+        _bam_menu(page, "#report-toggle-focus")
         page.wait_for_function(FOCUS)
         page.wait_for_function("()=>Math.round(document.getElementById('report-filter-panel').getBoundingClientRect().width)===48")
         page.wait_for_timeout(150)   # vài khung hình để trình duyệt báo bảng đã đổi cỡ
@@ -429,8 +452,9 @@ def _cho_yen(page, ham="()=>document.querySelector('.report-table-scroll').scrol
 def test_mo_trang_da_thay_so(live_server, trinh_duyet_moi, mkt_ba_loai_tien, van_don, nguoi_dung):
     """AC-22.24 — Vừa mở Báo cáo tổng hợp đã thấy số (chủ dự án duyệt mockup 02.10.2026): ở laptop 1366×768, bộ lọc
     mở như mặc định, có cảnh báo dòng chưa có loại tiền, khung bảng lộ đủ tiêu đề khối, hàng tiêu đề cột và mọi
-    dòng TỔNG CỘNG của khối đầu mà không phải cuộn; cảnh báo cao một dòng; nút Giải thích số liệu mở và đóng panel,
-    Escape đóng panel và trả focus về nút; Toàn màn hình vẫn có hai nút; 390 px không tràn ngang"""
+    dòng TỔNG CỘNG của khối đầu mà không phải cuộn; cảnh báo cao một dòng; mục Giải thích số liệu (menu ⋯ từ
+    07.10.2026) mở và đóng panel, Escape đóng panel và trả focus về ⋯; Toàn màn hình vẫn có hai mục; 390 px không tràn
+    ngang"""
     from datetime import date
 
     _nop(mkt_ba_loai_tien, van_don["B"], 12, 0, cpqc="100", thi_truong="", tien="", ngay=date(2026, 8, 6))
@@ -447,24 +471,26 @@ def test_mo_trang_da_thay_so(live_server, trinh_duyet_moi, mkt_ba_loai_tien, van
         canh = page.evaluate("""()=>{const s=document.querySelector('.report-canh-gon>span');
             return {cao:s.getBoundingClientRect().height,dong:parseFloat(getComputedStyle(s).lineHeight)}}""")
         assert canh["cao"] <= canh["dong"] * 1.5, f"cảnh báo loại tiền dài hơn một dòng — {canh}"
-        nut = page.locator("button[aria-controls=report-giai-thich]")
+        nut = page.locator("#report-them-menu button[aria-controls=report-giai-thich]")
         panel = page.locator("#report-giai-thich")
         assert panel.is_hidden() and nut.get_attribute("aria-expanded") == "false"
-        nut.click()
+        _bam_menu(page, "button[aria-controls=report-giai-thich]")
         assert panel.is_visible() and nut.get_attribute("aria-expanded") == "true"
         assert "(TT) = đối soát từ vận đơn" in panel.inner_text()
         chup(page, "bao-cao-giai-thich-mo")
         page.keyboard.press("Escape")
         assert panel.is_hidden() and nut.get_attribute("aria-expanded") == "false"
-        assert page.evaluate("()=>document.activeElement.getAttribute('aria-controls')") == "report-giai-thich"
-        nut.click()
-        nut.click()
-        assert panel.is_hidden(), "bấm lại nút thì đóng panel"
-        page.click("#report-toggle-focus")
+        assert page.evaluate("()=>document.activeElement.id") == "report-them-nut", "Escape trả focus về ⋯ (mục menu đang ẩn)"
+        _bam_menu(page, "button[aria-controls=report-giai-thich]")
+        _bam_menu(page, "button[aria-controls=report-giai-thich]")
+        assert panel.is_hidden(), "chọn lại mục thì đóng panel"
+        _bam_menu(page, "#report-toggle-focus")
         page.wait_for_function(FOCUS)
-        assert nut.is_visible() and page.locator("button[aria-controls=report-nguong]").is_visible(), \
-            "Toàn màn hình vẫn có nút Giải thích số liệu và Ngưỡng màu"
-        page.keyboard.press("Escape")
+        _mo_menu(page)
+        assert nut.is_visible() and page.locator("#report-them-menu button[aria-controls=report-nguong]").is_visible(), \
+            "Toàn màn hình vẫn có Giải thích số liệu và Ngưỡng màu (trong menu ⋯)"
+        page.keyboard.press("Escape")        # lần một đóng menu
+        page.keyboard.press("Escape")        # lần hai thoát toàn màn hình
         page.wait_for_function(KHONG_FOCUS)
     finally:
         ctx.close()
@@ -484,7 +510,7 @@ def test_keo_ngang_khong_con_cot_bi_che(live_server, trinh_duyet_moi, mkt_ba_loa
     ky = "tu=2026-08-01&den=2026-08-06"
     for url, noi in ((f"/bao-cao/tong-hop/?nguon={mkt_ba_loai_tien.code}&{ky}", "Báo cáo tổng hợp"),
                      (f"/bang/{mkt_ba_loai_tien.code}/?{ky}", "Bảng dữ liệu")):
-        ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 1366, 768, url)
+        ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 1366, 768, url, khung_thuong=True)
         try:
             page.evaluate(TOI_KHUNG_BANG)
             page.evaluate("()=>{document.querySelector('.report-table-scroll').scrollLeft=400}")
@@ -533,10 +559,10 @@ NGAY_DANG_XEM = """()=>{const k=document.querySelector('.report-table-scroll'),k
 
 
 def test_gop_khong_tai_lai_trang(live_server, trinh_duyet_moi, mkt_ba_loai_tien, nguoi_dung):
-    """AC-22.26 — Bấm Gộp / Không gộp không tải lại trang (chủ dự án duyệt mockup 02.10.2026): chỉ phần bảng đổi,
-    địa chỉ trang đổi theo (`gop=1`), nút, chip Gộp và link Xuất Excel đổi theo, focus ở lại nút vừa bấm, dòng tổng
-    vẫn dính đúng chỗ, bảng giữ đúng ngày đang xem; Back và tải lại ra đúng chế độ; máy chủ trả lỗi thì tải cả trang
-    như cũ; ở Bảng dữ liệu bấm Gộp vẫn tải cả trang"""
+    """AC-22.26 — Bấm Gộp / Không gộp (mục của menu ⋯ từ 07.10.2026) không tải lại trang (chủ dự án duyệt mockup
+    02.10.2026): chỉ phần bảng đổi, địa chỉ trang đổi theo (`gop=1`), mục menu (`aria-current`), chip Gộp và link
+    Xuất Excel đổi theo, focus về ⋯, dòng tổng vẫn dính đúng chỗ, bảng giữ đúng ngày đang xem; Back và tải lại ra
+    đúng chế độ; máy chủ trả lỗi thì tải cả trang như cũ; ở Bảng dữ liệu bấm Gộp vẫn tải cả trang"""
     ky = "tu=2026-08-01&den=2026-08-06"
     url = f"/bao-cao/tong-hop/?nguon={mkt_ba_loai_tien.code}&{ky}"
     ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 1366, 768, url)
@@ -546,19 +572,19 @@ def test_gop_khong_tai_lai_trang(live_server, trinh_duyet_moi, mkt_ba_loai_tien,
         page.evaluate("""()=>{const k=document.querySelector('.report-table-scroll');
             const b=k.querySelector('.report-block[data-ngay="2026-08-04"]');k.scrollTop+=b.getBoundingClientRect().top-k.getBoundingClientRect().top}""")
         assert page.evaluate(NGAY_DANG_XEM) == "2026-08-04"
-        page.click(".report-seg a:text-is('Gộp')")
+        _bam_menu(page, "[data-che-do=gop]")
         page.wait_for_function("()=>location.search.includes('gop=1')&&!!document.querySelector('.report-block-submissions')")
         page.wait_for_function("()=>!document.querySelector('.report-table-scroll').hasAttribute('aria-busy')")
         assert page.evaluate("()=>window.__moc") == 1, "trang đã tải lại"
         assert page.evaluate(NGAY_DANG_XEM) == "2026-08-04", "Gộp xong không còn ở ngày đang xem"
-        assert page.locator(".report-seg a:text-is('Gộp')").get_attribute("aria-pressed") == "true"
-        assert page.locator(".report-seg a:text-is('Không gộp')").get_attribute("aria-pressed") == "false"
+        assert page.locator("[data-che-do=gop]").get_attribute("aria-current") == "true"
+        assert page.locator("[data-che-do=khong-gop]").get_attribute("aria-current") == "false"
         assert "gop=1" in page.locator("#report-xuat").get_attribute("href")
         assert "Gộp" in page.locator("#report-chips").inner_text()
-        assert page.evaluate("()=>document.activeElement.textContent.trim()") == "Gộp"
+        assert page.evaluate("()=>document.activeElement.id") == "report-them-nut"
         assert not _lech(page.evaluate(DO_BANG)), "dòng TỔNG CỘNG của bảng mới dính sai chỗ"
         chup(page, "bao-cao-gop-khong-tai-lai")
-        page.click(".report-seg a:text-is('Không gộp')")
+        _bam_menu(page, "[data-che-do=khong-gop]")
         page.wait_for_function("()=>!location.search.includes('gop=1')&&!document.querySelector('.report-block-submissions')")
         page.wait_for_function("()=>!document.querySelector('.report-table-scroll').hasAttribute('aria-busy')")
         assert page.evaluate("()=>window.__moc") == 1 and page.evaluate(NGAY_DANG_XEM) == "2026-08-04"
@@ -567,13 +593,14 @@ def test_gop_khong_tai_lai_trang(live_server, trinh_duyet_moi, mkt_ba_loai_tien,
         assert page.evaluate("()=>window.__moc") == 1, "Back đã tải lại trang"
         page.reload(wait_until="networkidle")
         assert page.evaluate("()=>window.__moc") is None
-        assert page.locator(".report-seg a:text-is('Gộp')").get_attribute("aria-pressed") == "true"
+        assert page.locator("[data-che-do=gop]").get_attribute("aria-current") == "true"
         # Máy chủ trả lỗi: tải cả trang như hôm nay, không để màn hình nửa vời
         page.route(lambda u: "gop=" not in u and "/bao-cao/tong-hop/?" in u,
                    lambda route: route.fulfill(status=500, body="loi may chu", content_type="text/plain"))
         page.evaluate("()=>{window.__moc=2}")
+        _mo_menu(page)
         with page.expect_navigation():
-            page.click(".report-seg a:text-is('Không gộp')")
+            page.click("#report-them-menu [data-che-do=khong-gop]")
         assert "loi may chu" in page.content()
     finally:
         ctx.close()
@@ -661,5 +688,232 @@ def test_ap_dung_trong_man_hinh_khong_can_cuon_trang(live_server, trinh_duyet_mo
             assert do["panelDuoi"] <= do["mainDuoi"], f"đáy bộ lọc lọt dưới vùng nội dung — {noi}"
             assert do["apDung"][1] <= do["mainDuoi"] and do["bamTrung"], f"nút Áp dụng không bấm được — {noi}"
             chup(page, f"ap-dung-{ten_nguon}-{h}")
+        finally:
+            ctx.close()
+
+
+# ── Đầu trang gọn và menu ⋯ (chủ dự án duyệt mockup 07.10.2026) ──────────────────────────────────────────────────
+
+def _mo_menu(page):
+    """Mở menu ⋯ trên thanh trên cùng nếu đang đóng; trả locator hộp menu."""
+    menu = page.locator("#report-them-menu")
+    if not menu.is_visible():
+        page.click("#report-them-nut")
+        menu.wait_for(state="visible")
+    return menu
+
+
+def _bam_menu(page, chon):
+    """Mở menu ⋯ rồi bấm mục `chon` (bộ chọn CSS trong hộp menu)."""
+    _mo_menu(page).locator(chon).click()
+
+
+#: Mục menu nào không bấm trúng được: điểm giữa mục bị phần tử khác đè (bảng, tiêu đề dính, khung bị cắt)
+MUC_BI_CHE = """()=>[...document.querySelectorAll('#report-them-menu .report-them-muc')].filter(m=>{
+    const r=m.getBoundingClientRect(),e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+    return !(e&&m.contains(e))}).map(m=>m.textContent.trim())"""
+#: Phần tử đang giữ focus: id, hay panel mà nút Đóng đóng, hay chữ
+DANG_FOCUS = """()=>{const e=document.activeElement;return e?(e.id||e.dataset.dong||e.textContent.trim()):null}"""
+MO_RONG = "()=>document.documentElement.classList.contains('sp-erp-immersive')"
+
+
+def test_menu_ba_cham_mo_dong_va_panel(live_server, trinh_duyet_moi, mkt_ba_loai_tien, nguoi_dung):
+    """AC-42.19 — Menu ⋯ trên thanh trên cùng (mockup 07.10.2026): bấm thì mở, bấm ra ngoài, Escape hay Tab đi tiếp
+    thì đóng; Escape đóng menu trả focus về ⋯ và không thoát Mở rộng ERP; mục menu nằm trên bảng, bấm trúng; Giải thích
+    số liệu và Ngưỡng màu mở panel ở đầu hộp bảng, focus nút Đóng; Đóng hay Escape đóng panel, focus về ⋯; focus ở ⋯
+    mà panel đang mở thì Escape đóng panel; 390 px: menu nằm trọn trong khung nhìn"""
+    url = f"/bao-cao/tong-hop/?nguon={mkt_ba_loai_tien.code}&tu=2026-08-01&den=2026-08-06"
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 1366, 768, url,
+                    luu={"knjsc-erp-immersive": "1"})
+    try:
+        nut, menu = page.locator("#report-them-nut"), page.locator("#report-them-menu")
+        assert menu.is_hidden() and nut.get_attribute("aria-expanded") == "false"
+        nut.click()
+        assert menu.is_visible() and nut.get_attribute("aria-expanded") == "true"
+        assert menu.locator(".report-them-muc b").all_inner_texts() == [
+            "Không gộp", "Gộp", "Ngưỡng màu", "Giải thích số liệu", "Toàn màn hình", "Xuất Excel"]
+        assert page.evaluate(MUC_BI_CHE) == [], "mục menu bị che"
+        chup(page, "bao-cao-menu-mo")
+        # Bấm vào chỗ trống trong vùng nội dung: menu đóng
+        x, y = page.evaluate("()=>{const r=document.querySelector('main.noi-dung').getBoundingClientRect();return [r.left+6,r.bottom-6]}")
+        page.mouse.click(x, y)
+        assert menu.is_hidden() and nut.get_attribute("aria-expanded") == "false"
+        # Escape: đóng menu, focus về ⋯, vẫn Mở rộng ERP
+        nut.click()
+        page.keyboard.press("Escape")
+        assert menu.is_hidden() and page.evaluate(DANG_FOCUS) == "report-them-nut" and page.evaluate(MO_RONG)
+        # Bàn phím: Enter mở, Tab đi qua sáu mục, Tab nữa ra khỏi menu thì menu đóng
+        page.keyboard.press("Enter")
+        assert menu.is_visible()
+        for _ in range(6):
+            page.keyboard.press("Tab")
+        assert menu.is_visible() and page.evaluate(DANG_FOCUS) == "report-xuat"
+        page.keyboard.press("Tab")
+        assert menu.is_hidden()
+        # Giải thích số liệu: panel ở đầu hộp bảng, focus nút Đóng; bấm Đóng thì focus về ⋯
+        giai_thich = page.locator("#report-giai-thich")
+        muc = page.locator("#report-them-menu [aria-controls=report-giai-thich]")
+        _bam_menu(page, "[aria-controls=report-giai-thich]")
+        assert menu.is_hidden() and giai_thich.is_visible() and muc.get_attribute("aria-expanded") == "true"
+        tren, day, cao = page.evaluate("""()=>{const p=document.getElementById('report-giai-thich').getBoundingClientRect(),
+            h=document.querySelector('.report-results').getBoundingClientRect();return [Math.round(p.top-h.top),Math.round(p.bottom),innerHeight]}""")
+        assert 0 <= tren <= 24 and day <= cao, f"panel phải ở đầu hộp bảng, trong khung nhìn — {[tren, day, cao]}"
+        assert page.evaluate(DANG_FOCUS) == "report-giai-thich", "focus phải ở nút Đóng của panel"
+        chup(page, "bao-cao-giai-thich-tu-menu")
+        page.click("#report-giai-thich [data-dong]")
+        assert giai_thich.is_hidden() and muc.get_attribute("aria-expanded") == "false"
+        assert page.evaluate(DANG_FOCUS) == "report-them-nut"
+        # Ngưỡng màu: Escape trong panel đóng panel, focus về ⋯, vẫn Mở rộng ERP
+        nguong = page.locator("#report-nguong")
+        _bam_menu(page, "[aria-controls=report-nguong]")
+        assert nguong.is_visible()
+        page.keyboard.press("Escape")
+        assert nguong.is_hidden() and page.evaluate(DANG_FOCUS) == "report-them-nut" and page.evaluate(MO_RONG)
+        # Focus ở ⋯ mà panel đang mở: Escape đóng panel trước
+        _bam_menu(page, "[aria-controls=report-giai-thich]")
+        page.focus("#report-them-nut")
+        page.keyboard.press("Escape")
+        assert giai_thich.is_hidden() and page.evaluate(MO_RONG)
+    finally:
+        ctx.close()
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 390, 844, url)
+    try:
+        _mo_menu(page)
+        trai, phai, rong, tran = page.evaluate("""()=>{const r=document.getElementById('report-them-menu').getBoundingClientRect();
+            return [r.left,r.right,innerWidth,document.documentElement.scrollWidth>document.documentElement.clientWidth]}""")
+        assert trai >= 0 and phai <= rong and not tran, f"390 px: menu tràn khung nhìn — {[trai, phai, rong, tran]}"
+        assert page.evaluate(MUC_BI_CHE) == []
+        chup(page, "bao-cao-menu-390")
+    finally:
+        ctx.close()
+
+
+#: Thanh trên cùng: cao, tràn ngang, bề rộng tên báo cáo, nút ⋯ nằm trong khung nhìn
+THANH_TREN = """()=>{const t=document.querySelector('header.topbar').getBoundingClientRect(),
+    b=document.querySelector('.duong-dan b').getBoundingClientRect(),n=document.getElementById('report-them-nut').getBoundingClientRect();
+    return {cao:Math.round(t.height),tran:document.documentElement.scrollWidth>document.documentElement.clientWidth,
+        ten:Math.round(b.width),nut:n.width>0&&n.left>=0&&n.right<=innerWidth}}"""
+#: Hàng mảnh của Toàn màn hình: cao, logo và khối bên phải có hiện không, tên, kỳ, ⋯, và vùng nội dung lấp phần còn lại
+HANG_MANH = """()=>{const t=document.querySelector('header.topbar'),tr=t.getBoundingClientRect(),
+    hien=s=>{const e=document.querySelector(s);return !!e&&e.getClientRects().length>0&&getComputedStyle(e).visibility!=='hidden'},
+    m=document.querySelector('main.noi-dung').getBoundingClientRect();
+    return {cao:Math.round(tr.height),logo:hien('.sp-brand'),phai:hien('.topbar-phai'),ten:document.querySelector('.duong-dan b').textContent.trim(),
+        ky:hien('.bc-dau-ky'),nut:hien('#report-them-nut'),mainTren:Math.round(m.top-tr.bottom),mainDuoi:Math.round(innerHeight-m.bottom)}}"""
+
+
+def test_toan_man_hinh_hang_manh_man_hep_va_in(live_server, trinh_duyet_moi, nguon, nguoi_dung):
+    """AC-42.20 — Thanh trên cùng một hàng, không tràn ở 1024/1366/1920 px; Toàn màn hình chọn từ menu ⋯ thì thanh
+    trên cùng thu thành hàng mảnh còn tên báo cáo, kỳ, chip, ⋯ (logo, khối người dùng ẩn), vùng bảng lấp phần còn
+    lại, mục đổi thành "Thoát toàn màn hình", Escape lần một đóng menu, lần hai thoát; đang lọc sản phẩm (ô Sản phẩm
+    mở sẵn) Escape vẫn thoát (TL-75); màn hẹp 390 và 768 px: chip ẩn, nút "Lọc (n)" mở ngăn bộ lọc; bản in còn tên
+    báo cáo và kỳ"""
+    url = (f"/bao-cao/tong-hop/?nguon={nguon.table.code}&tu=2026-08-01&den=2026-08-31"
+           f"&team={nguoi_dung['staff_sale_1'].profile.team_id}")
+    for rong in (1024, 1366, 1920):
+        ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], rong, 800, url)
+        try:
+            do = page.evaluate(THANH_TREN)
+            chup(page, f"bao-cao-thanh-tren-{rong}")
+            assert do["cao"] <= 70 and not do["tran"] and do["ten"] >= 60 and do["nut"], f"{rong} px: {do}"
+            assert page.locator(".bc-dau .report-chips").is_visible() and page.locator("#report-toggle-filters").is_hidden()
+        finally:
+            ctx.close()
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], 1366, 768, url)
+    try:
+        _bam_menu(page, "#report-toggle-focus")
+        page.wait_for_function(FOCUS)
+        hang = page.evaluate(HANG_MANH)
+        assert hang["cao"] <= 52 and not hang["logo"] and not hang["phai"], f"hàng mảnh: {hang}"
+        assert hang["ten"] == nguon.table.name and hang["ky"] and hang["nut"], f"hàng mảnh: {hang}"
+        assert abs(hang["mainTren"]) <= 1 and abs(hang["mainDuoi"]) <= 1, f"vùng bảng không lấp phần còn lại: {hang}"
+        assert page.evaluate(DANG_FOCUS) == "report-them-nut"
+        _mo_menu(page)
+        assert page.locator("#report-toggle-focus b").inner_text() == "Thoát toàn màn hình"
+        assert page.evaluate(MUC_BI_CHE) == [], "toàn màn hình: mục menu bị bảng che"
+        chup(page, "bao-cao-toan-man-hinh-hang-manh")
+        page.keyboard.press("Escape")
+        assert page.locator("#report-them-menu").is_hidden() and page.evaluate(FOCUS), "Escape lần một chỉ đóng menu"
+        page.keyboard.press("Escape")
+        page.wait_for_function(KHONG_FOCUS)
+        # TL-75: lọc sản phẩm thì ô Sản phẩm (`<details>`) mở sẵn — Escape vẫn phải thoát toàn màn hình
+        page.goto(live_server.url + url + "&sp=SP1", wait_until="networkidle")
+        assert page.locator("details.report-multi[open]").count() == 1, "tiền đề: ô Sản phẩm mở sẵn"
+        _bam_menu(page, "#report-toggle-focus")
+        page.wait_for_function(FOCUS)
+        page.keyboard.press("Escape")
+        page.wait_for_function(KHONG_FOCUS)
+        # Bản in: thanh trên cùng chỉ còn tên báo cáo và kỳ
+        page.emulate_media(media="print")
+        assert page.locator(".duong-dan b").is_visible() and page.locator(".bc-dau-ky").is_visible()
+        assert page.locator(".topbar-phai").is_hidden() and page.locator("#report-them-nut").is_hidden()
+        page.emulate_media(media="screen")
+    finally:
+        ctx.close()
+    for rong, cao in ((390, 844), (768, 1024)):
+        ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_sale"], rong, cao, url)
+        try:
+            assert page.locator(".bc-dau .report-chips").is_hidden() and page.locator("#report-them-nut").is_visible()
+            loc = page.locator("#report-toggle-filters")
+            assert loc.is_visible() and loc.inner_text().strip() == "Lọc (2)", "Kỳ tự chọn + Team"
+            assert not page.evaluate("()=>document.documentElement.scrollWidth>document.documentElement.clientWidth")
+            chup(page, f"bao-cao-thanh-tren-{rong}")
+            loc.click()
+            page.wait_for_function(f"{ST}==='open'")
+        finally:
+            ctx.close()
+
+
+#: Hộp kết quả so với đáy vùng nội dung (đáy `main` trừ viền và lề dưới), khung bảng, phần chừa cho nút Menu nổi
+#: (`--report-nhuong`), trang cuộn được bao nhiêu, và phần tử nào của hàng phân trang bị nút Menu nổi đè lên
+DAY_BANG = """()=>{const m=document.querySelector('main.noi-dung'),mr=m.getBoundingClientRect(),cs=getComputedStyle(m),
+    h=document.querySelector('.report-results').getBoundingClientRect(),k=document.querySelector('.report-table-scroll').getBoundingClientRect(),
+    n=document.getElementById('sp-dock-expand'),nr=n?n.getBoundingClientRect():null,co_nut=!!(nr&&nr.width),
+    day=mr.bottom-parseFloat(cs.borderBottomWidth)-parseFloat(cs.paddingBottom);
+    const pt=[...document.querySelectorAll('.report-results>.phan-trang>span,.report-results>.phan-trang>label,.report-results>.phan-trang .trang-nut>*')];
+    const che=co_nut?pt.filter(o=>{const r=o.getBoundingClientRect();return r.right>nr.left&&r.left<nr.right&&r.bottom>nr.top&&r.top<nr.bottom})
+        .map(o=>o.textContent.trim()||o.tagName):[];
+    return {hut:Math.round(day-h.bottom),khungCao:Math.round(k.height),cuon:m.scrollHeight-m.clientHeight,co_nut,che,so_pt:pt.length,
+        nhuong:parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--report-nhuong'))||0}}"""
+CUOI_TRANG = "()=>{const m=document.querySelector('main.noi-dung');m.scrollTop=m.scrollHeight}"
+
+
+def test_bang_vua_khi_thu_mo_thanh_menu(live_server, trinh_duyet_moi, mkt_ba_loai_tien, nguoi_dung):
+    """AC-42.21 — TL-74: thanh menu dưới đã thu từ trước thì vừa mở trang đáy hộp bảng đã sát đáy vùng nội dung (trước
+    hụt 96 px vì đo trước khi thanh menu thu), trang không phải cuộn (≤ 1 px); bấm Menu mở thanh menu, bấm Thu gọn,
+    tắt Mở rộng ERP mà không đổi cỡ cửa sổ thì bảng vẫn vừa; ở 1366×768 (Mở rộng ERP, menu thu, bộ lọc thanh dọc)
+    khung bảng cao ≥ 570 px; nút Menu nổi không đè phần nào của hàng phân trang — bộ lọc mở, và 390 px khi cuộn tới
+    cuối trang"""
+    url = f"/bao-cao/tong-hop/?nguon={mkt_ba_loai_tien.code}&tu=2026-08-01&den=2026-08-06&moi_trang=25"
+    thanh_doc = {"knjsc-report-layout": json.dumps({"filters": "rail", "focus": False})}
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], 1366, 768, url,
+                    luu={"knjsc-erp-immersive": "1", "knjsc-erp-dock-collapsed": "1"}, phien=thanh_doc)
+    try:
+        page.wait_for_timeout(300)
+        do = page.evaluate(DAY_BANG)
+        chup(page, "bao-cao-menu-thu-mo-trang")
+        assert do["co_nut"] and do["so_pt"], f"tiền đề: thanh menu đã thu, có hàng phân trang — {do}"
+        assert abs(do["hut"] - do["nhuong"]) <= 2 and do["cuon"] <= 1 and not do["che"], f"mở trang: {do}"
+        assert do["khungCao"] >= 570, f"khung bảng chưa cao như mockup — {do}"
+        for nut, co_nut in (("#sp-dock-expand", False), ("#sp-dock-collapse", True), ("#sp-erp-fullscreen", True)):
+            page.click(nut)
+            page.wait_for_timeout(300)
+            do = page.evaluate(DAY_BANG)
+            assert do["co_nut"] == co_nut and abs(do["hut"] - do["nhuong"]) <= 2 and do["cuon"] <= 1 and not do["che"], \
+                f"sau khi bấm {nut}: {do}"
+    finally:
+        ctx.close()
+    for rong, cao, loc in ((1366, 768, "open"), (390, 844, "rail")):
+        ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["manager_mkt"], rong, cao, url,
+                        luu={"knjsc-erp-dock-collapsed": "1"},
+                        phien={"knjsc-report-layout": json.dumps({"filters": loc, "focus": False})})
+        try:
+            page.wait_for_timeout(300)
+            page.evaluate(CUOI_TRANG)
+            page.wait_for_timeout(100)
+            do = page.evaluate(DAY_BANG)
+            chup(page, f"bao-cao-menu-thu-phan-trang-{rong}")
+            assert do["co_nut"] and do["so_pt"] and not do["che"], f"{rong} px: nút Menu nổi đè hàng phân trang — {do}"
+            if rong > 900:
+                assert abs(do["hut"] - do["nhuong"]) <= 2 and do["cuon"] <= 1, f"{rong} px: {do}"
         finally:
             ctx.close()

@@ -28,6 +28,10 @@ const fs = require('node:fs');
     assert.equal(await page.locator('#nut-nen').getAttribute('aria-label'), 'Chuyển sang nền sáng');
     if (width === 1440) await page.locator('#nut-nen').click();
 
+    // Mặc định mở rộng (AC-10.17): máy chưa chọn gì thì đã bật; tắt trước để kiểm lại đường bật bằng nút
+    assert.equal(await page.evaluate(() => document.documentElement.classList.contains('sp-erp-immersive')), true);
+    await page.locator('#sp-erp-fullscreen').click();
+    await page.waitForFunction(() => !document.documentElement.classList.contains('sp-erp-immersive'));
     await page.locator('#sp-erp-fullscreen').click();
     await page.waitForFunction(() => document.documentElement.classList.contains('sp-erp-immersive'));
     assert.equal(

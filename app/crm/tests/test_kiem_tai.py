@@ -49,7 +49,8 @@ def test_luoi_100_dong_ngan_sach_truy_van(client, bang_vd, nguoi_dung, django_as
     with django_assert_max_num_queries(13):
         kq = client.get(f"/bang-tinh/{bang_vd.code}/")
     assert kq.status_code == 200 and b'id="master-grid"' in kq.content
-    with django_assert_max_num_queries(14):  # snapshot lồng fixture kiểm mốc hai lần
+    # snapshot lồng fixture kiểm mốc hai lần; +1 truy vấn khoá bộ đệm mốc/tổng (AC-10.26) khi Redis trống hoặc tắt như CI
+    with django_assert_max_num_queries(15):
         kq = client.get(f"/bang-tinh/{bang_vd.code}/du-lieu/?trung=1")
     assert kq.status_code == 200
     dong = grid_service.attach_duplicate_counts(bang_vd, DataRecord.objects.filter(table=bang_vd).order_by("pk")[:20])

@@ -19,11 +19,13 @@ from django.utils import timezone
 
 from core.audit import record
 from core.constants import AuditAction, Rank
-from core.permissions import has_rank
-from core.exceptions import BusinessError
+from core.permissions import has_rank, is_admin
+from core.exceptions import BusinessError, OutOfScopeError
 from core.money import parse_money
 
-from ..constants import Market, PaymentMethod, ACTIVE_PAYMENT_METHODS, ACTIVE_PAYMENT_LABELS
+from forms_builder.models import DataRecord
+
+from ..constants import Market, PaymentMethod, ACTIVE_PAYMENT_METHODS, ACTIVE_PAYMENT_LABELS, waybill_condition
 from . import currency_service
 from ..models import Customer, Order, OrderLine, Product
 from ..units import resolve_unit
@@ -124,7 +126,22 @@ def _sinh_ma_don():
             .aggregate(last=Max(Cast(Substr("code", len(dau) + 1),
                                     DecimalField(max_digits=22, decimal_places=0))))["last"])
     so = int(cuoi) + 1 if cuoi is not None else 1
+    # Bảng vận đơn có thể đã giữ mã này mà không có đơn (nhập từ hệ thống cũ, gõ tay trên lưới); mã đơn không được
+    # trùng một dòng sống (ràng buộc `record_ma_don_unique`), nên nhảy qua. Dò đúng mã qua chỉ mục duy nhất — không
+    # quét cả bảng như tìm số lớn nhất theo tiền tố (23 ms ở 10.000 dòng, tăng theo số dòng)
+    while DataRecord.all_objects.filter(waybill_condition(), deleted_at__isnull=True,
+                                        val_order_code=f"{dau}{so:04d}").exists():
+        so += 1
     return f"{dau}{so:04d}"
+
+
+def create_order_once(submission_key, **kwargs):
+    """Lên đơn từ form: gửi lại đúng mã lần nộp thì trả lại đơn đã lưu, không tạo đơn mới (AC-6.11).
+    Trả `(đơn, mới_tạo)`."""
+    from core.submission import run_once
+    return run_once(kwargs["actor"], submission_key, "order",
+                    create=lambda: create_order(**kwargs),
+                    load=lambda pk: Order.all_objects.select_related("record").get(pk=pk))
 
 
 @transaction.atomic
@@ -256,9 +273,12 @@ def cancel_order(don, *, actor=None, request=None):
     """Bỏ một đơn đã lưu. Đánh dấu xoá, không xoá cứng (BR-4).
 
     Xoá mềm cả dòng trên bảng vận đơn đi kèm — quên là để lại dòng mồ côi mà
-    bộ phận Vận đơn vẫn thấy và vẫn đi giao.
+    bộ phận Vận đơn vẫn thấy và vẫn đi giao. **Chỉ Admin** (ADR-049, chủ dự án
+    08.10.2026): cùng luật với nút Xoá dòng trên lưới, vì bỏ đơn là xoá dòng.
     """
     assert_business_write(actor)
+    if actor is None or not is_admin(actor):
+        raise OutOfScopeError("Chỉ Quản trị mới bỏ được đơn.")
     ma = don.code
     don.delete(by=actor)
     if don.record_id:

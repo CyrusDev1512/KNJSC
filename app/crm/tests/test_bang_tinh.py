@@ -4,6 +4,7 @@ Chạy qua HTTP ở app KN CRM (`conftest.py` đặt URLconf `knjsc.urls_bangtin
 với cả hai cấu hình bảng chỉ xem và sửa được (`GRID_ONLY_TABLES` rỗng — đúng
 dịch vụ 8021 khi chạy thật). Mỗi bài phân quyền kiểm cả hai chiều.
 """
+import itertools
 from datetime import date
 from pathlib import Path
 from urllib.parse import quote
@@ -40,9 +41,13 @@ def bang_vd(departments, nguoi_dung, san_pham):
     return dispatch_service.ensure_waybill_table(actor=nguoi_dung["admin"])
 
 
+#: Mã đơn mỗi dòng một số: bảng vận đơn không nhận hai dòng sống cùng mã (ràng buộc 06.10.2026)
+_MA = itertools.count(1)
+
+
 def _dong(bang, nguoi, **gia_tri):
     mac_dinh = {
-        "ma_don": f"DH-{gia_tri.get('so_dien_thoai', '0')}-{gia_tri.get('ten_khach', 'x')}",
+        "ma_don": f"DH-{next(_MA)}-{gia_tri.get('ten_khach', 'x')}",
         "ngay": "2026-08-01", "trang_thai_vc": ShippingStatus.DA_LEN_DON.label,
         "ten_khach": "Khách", "so_dien_thoai": "0900", "quoc_gia": "Hoa Kỳ", "loai_tien": "USD",   # profile Vận đơn (ADR-036)
     }

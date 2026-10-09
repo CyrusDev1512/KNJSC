@@ -12,7 +12,7 @@ from django.utils import timezone
 from core.audit import record as audit
 from core.constants import AuditAction, Currency, Rank
 from core.identity import employee_code
-from forms_builder.models import DataRecord, TableDef
+from forms_builder.models import DERIVED_FIELDS, DataRecord, TableDef
 from forms_builder.services import record_service
 from orders.constants import (
     ACTIVE_WAYBILL_TABLE_CODE,
@@ -271,10 +271,7 @@ def populate(*, total=DEFAULT_TOTAL, seed=DEFAULT_SEED, dry_run=False):
     if new_rows:
         DataRecord.objects.bulk_create(new_rows, batch_size=500)
     if rows_to_update:
-        DataRecord.bulk_save(rows_to_update, fields=(
-            "data", "deleted_at", "deleted_by", "val_date", "val_customer", "val_phone", "val_phone_key",
-            "val_revenue", "val_seller", "val_product", "val_status",
-        ))
+        DataRecord.bulk_save(rows_to_update, fields=("data", "deleted_at", "deleted_by", *DERIVED_FIELDS))
 
     items_to_create = []
     items_to_update = []

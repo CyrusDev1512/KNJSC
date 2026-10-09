@@ -10,9 +10,10 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST, require_GET
 
-from core.exceptions import BusinessError
+from core.audit import record_denied
+from core.exceptions import BusinessError, OutOfScopeError
 from core.navigation import SALES_ONLY
-from core.permissions import assert_departments, assert_rank
+from core.permissions import assert_departments, assert_rank, is_admin
 
 from .models import Product
 from .services import order_service, product_service
@@ -82,19 +83,21 @@ def don_xem(request, code):
         **({"ve_url": reverse("thu_muc"), "ve_nhan": "Về Bảng tính — thư mục"} if row
            else {"ve_url": reverse("waybill_create"), "ve_nhan": "Về Lên đơn"}),
         "cac_dong": list(don.lines.select_related("product")),
-        "duoc_bo": don.created_by_id == request.user.pk,
+        # Bỏ đơn chỉ Admin (ADR-049); máy chủ vẫn kiểm ở order_service.cancel_order
+        "duoc_bo": is_admin(request.user),
     })
 
 
 @login_required
 @require_POST
 def don_bo(request, code):
-    """Bỏ một đơn đã lưu. Xoá mềm cả dòng trên bảng vận đơn (BR-4)."""
+    """Bỏ một đơn đã lưu. Xoá mềm cả dòng trên bảng vận đơn (BR-4). Chỉ Admin — ADR-049."""
     don = get_object_or_404(order_service.orders_of(request.user), code=code)
-    if don.created_by_id != request.user.pk:
-        messages.error(request, "Chỉ người lên đơn mới bỏ được đơn của mình.")
+    try:
+        order_service.cancel_order(don, actor=request.user, request=request)
+    except OutOfScopeError as loi:
+        record_denied(request.user, request.path, request)
+        messages.error(request, str(loi) or "Bạn không có quyền bỏ đơn này.")
         return redirect("thu_muc")
-
-    order_service.cancel_order(don, actor=request.user, request=request)
     messages.success(request, f"Đã bỏ đơn {code}. Dòng trên bảng vận đơn cũng đã gỡ.")
     return redirect("thu_muc")

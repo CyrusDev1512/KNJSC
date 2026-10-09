@@ -24,7 +24,7 @@ from core.permissions import assert_business_write
 
 from ..meaning import FieldType
 from .. import record_policies
-from ..models import COLUMN_OF, ColumnDef, DataRecord, TableDef
+from ..models import DERIVED_FIELDS, ColumnDef, DataRecord, TableDef
 
 logger = logging.getLogger(__name__)
 RECOMPUTE_RETRIES = 3
@@ -136,6 +136,9 @@ def update_column(column, changes, *, actor=None, request=None):
         return column
 
     column.full_clean()
+    if "field_type" in changes and not column.is_computed:
+        doi_kieu = _chuyen_kieu(column)
+        phai_tinh_lai = phai_tinh_lai or doi_kieu
     column.save()
 
     # ADR-006: đổi công thức mà không tính lại thì bản ghi cũ giữ số cũ, bản
@@ -149,6 +152,41 @@ def update_column(column, changes, *, actor=None, request=None):
         detail=f"Sửa cột {column.code} — " + " · ".join(da_doi), request=request,
     )
     return column
+
+
+def _chuyen_kieu(column):
+    """Đổi kiểu cột: thử chuyển mọi giá trị cũ sang kiểu mới (AC-8.11), kể cả dòng đã xoá.
+
+    Còn giá trị không chuyển được thì từ chối cả lượt, nêu số dòng và vài ví dụ để người quản lý sửa ô trước. Chuyển
+    được hết thì ghi lại các ô có dạng đổi ("1.500" → 1500), cột tách đi theo. Trả về có ghi dòng nào không."""
+    from .record_service import parse_value, save_rows
+    ma = column.code
+    gia_tri = list(DataRecord.all_objects.filter(table=column.table, data__has_key=ma)
+                   .values_list("pk", f"data__{ma}"))
+    moi, hong = {}, []
+    for pk, cu in gia_tri:
+        try:
+            sau = parse_value(column, cu)
+        except BusinessError:
+            hong.append(cu)
+            continue
+        if sau != cu:
+            moi[pk] = sau
+    if hong:
+        vi_du = ", ".join(f'"{v}"' for v in hong[:3])
+        raise BusinessError(
+            f'Không đổi được kiểu cột "{column.name}" sang {FieldType(column.field_type).label}: {len(hong)} dòng có giá '
+            f"trị không chuyển được, ví dụ {vi_du}. Sửa các ô đó (kể cả dòng đã xoá) rồi đổi lại.")
+    cot = list(column.table.columns.all())
+    cot = [column if c.pk == column.pk else c for c in cot]
+    pks = sorted(moi)
+    for i in range(0, len(pks), RECOMPUTE_BATCH):
+        lo = list(DataRecord.all_objects.select_for_update().filter(pk__in=pks[i:i + RECOMPUTE_BATCH]).order_by("pk"))
+        for ban_ghi in lo:
+            ban_ghi.data[ma] = moi[ban_ghi.pk]
+            ban_ghi.sync_indexed_columns(cot)
+        save_rows(lo)
+    return bool(pks)
 
 
 @transaction.atomic
@@ -326,11 +364,11 @@ def resync_table(table, *, batch=RECOMPUTE_BATCH, on_progress=None):
                     lo = list(DataRecord.all_objects.select_for_update().filter(pk__in=pks[i:i + batch]).order_by("pk"))
                     doi, cot_doi = [], set()
                     for ban_ghi in lo:
-                        truoc = (dict(ban_ghi.data), *(getattr(ban_ghi, c) for c in COLUMN_OF.values()))
+                        truoc = (dict(ban_ghi.data), *(getattr(ban_ghi, c) for c in DERIVED_FIELDS))
                         ban_ghi.apply_computed_columns(cot)
                         ban_ghi.sync_indexed_columns(cot)
-                        sau = (ban_ghi.data, *(getattr(ban_ghi, c) for c in COLUMN_OF.values()))
-                        khac = [c for c, a, b in zip(("data", *COLUMN_OF.values()), truoc, sau) if not _giong(a, b)]
+                        sau = (ban_ghi.data, *(getattr(ban_ghi, c) for c in DERIVED_FIELDS))
+                        khac = [c for c, a, b in zip(("data", *DERIVED_FIELDS), truoc, sau) if not _giong(a, b)]
                         if not khac:
                             continue                   # dòng không đổi thì không ghi, không đổi mốc
                         doi.append(ban_ghi)
@@ -382,6 +420,26 @@ def _giong(a, b):
 
 
 @writing
+def schema_signature(table):
+    """Những gì quyết định cột tính sẵn và cột tách của một dòng: nghiệp vụ bảng (khoá mã đơn) và kiểu, nhãn, công
+    thức từng cột. Lệnh nâng cấp cấu trúc chụp trước và sau; khác nhau thì dòng cũ phải tính lại."""
+    return (table.code, table.workflow, list(table.columns.order_by("code").values_list(
+        "code", "field_type", "meaning", "is_computed", "compute_op", "compute_left", "compute_right",
+        "compute_decimals")))
+
+
+def resync_if_changed(table, before, *, actor=None):
+    """Nâng cấp cấu trúc bằng lệnh (`tao_bang_van_don`, `configure_erp_reports`) tạo hay sửa cột thẳng trong DB, không
+    qua `add_column`/`update_column` nên không ai tính lại dòng cũ: cột mới mang nhãn Doanh thu thì `val_revenue`
+    của dòng cũ vẫn trống, báo cáo cộng thiếu mà không báo gì. Gọi sau lệnh: cấu trúc đổi thì `schedule_resync`."""
+    table.refresh_from_db()
+    if before is None or schema_signature(table) == before:
+        return None
+    if not DataRecord.all_objects.filter(table=table).exists():
+        return None
+    return schedule_resync(table, actor=actor) or True
+
+
 def schedule_resync(table, *, actor=None):
     """Tính lại cột của bảng: ngay tại chỗ khi bảng có tới `RECOMPUTE_SYNC_MAX_ROWS`
     dòng, còn không thì giao **tác vụ nền** (ADR-016) — cột hiện ngay, giá trị

@@ -190,7 +190,7 @@
       if(config.protocol===2&&data.protocol!==2){config.protocol=1;config.syncUrl=null;state.queryToken='';state.metadataVersion='';state.cursors.clear();state.version='';}
       if (state.version && state.version !== data.version) { invalidate(); return; }
       if(data.schema_version)state.schemaVersion=data.schema_version;
-      if(data.capabilities)config.canCreate=data.capabilities.create;
+      if(data.capabilities){config.canCreate=data.capabilities.create;config.canDelete=!!data.capabilities.delete;const xoa=$('mg-delete-rows');if(xoa)xoa.hidden=!config.canDelete;}
       state.version = data.version; state.persistedTotal = data.total;state.total=data.total;if(data.columns)state.columns = data.columns;ensureDrafts(); state.ready = true;
       if(data.protocol===2){
         if(!state.queryToken)state.revision=data.revision;
@@ -687,13 +687,19 @@
       refreshSoft();syncScopeButtons();repaint();return true;
     }
     viewport.scrollTop=viewport.scrollLeft=0;state.lastError='';state.ready=false;invalidate();
-    // HTML chỉ cho điều khiển lọc/chip, không chứa dữ liệu dòng.
-    const gen=state.generation;
-    fetch(url,{headers:{'X-Master-Filters':'1'}}).then(r=>r.text()).then(html=>{
-      if(gen!==state.generation)return;const doc=new DOMParser().parseFromString(html,'text/html');
-      for(const id of ['mg-filters','mg-chips']){const e=doc.getElementById(id);if(e)$(id).innerHTML=e.innerHTML;}
-    }).catch(()=>{});
+    // Chỉ lấy chip đang lọc (và panel Bộ lọc nếu đã mở) — mảnh nhỏ `bo-loc/`, không tải lại cả trang lưới (mục b).
+    loadFilters(!!$('mg-filters').dataset.loaded);
     syncScopeButtons();repaint();return true;
+  }
+  // Panel Bộ lọc tải khi người dùng mở lần đầu (mục a, 07.10.2026): mở lưới không phải đếm theo sản phẩm, thị trường…
+  function loadFilters(panel){
+    const gen=state.generation;const p=new URLSearchParams(query);if(panel)p.set('panel','1');
+    return fetch(config.filtersUrl+(p.size?'?'+p:''),{headers:{'X-Master-Filters':'1'}}).then(r=>{if(!r.ok)throw Error(r.status);return r.text();}).then(html=>{
+      if(gen!==state.generation)return;const doc=new DOMParser().parseFromString(html,'text/html');
+      const chips=doc.getElementById('mg-chips');if(chips)$('mg-chips').innerHTML=chips.innerHTML;
+      const body=doc.getElementById('mg-filters-body');
+      if(panel&&body){$('mg-filters-body').innerHTML=body.innerHTML;$('mg-filters').dataset.loaded='1';}
+    }).catch(()=>{if(panel&&!$('mg-filters').dataset.loaded)$('mg-filters-body').innerHTML='<p class="mg-filters-tai" role="alert">Không tải được bộ lọc. Đóng rồi mở lại để thử lại.</p>';});
   }
   async function rangeCells() {
     const s=state.selection;if(!s)return [];
@@ -711,7 +717,7 @@
     catch(error){message(error.message,true);return false;}
   }
   async function undo(redo=false) {
-    if(dirty())return;const step=(redo?working.redo:working.undo).at(-1);if(step?.createdRows?.length){await travelCreated(step,redo);return;}working.travel(redo);state.kind=redo?'redo':'undo';refreshStatus();apLaiChieuCao([...new Set((step||[]).map(c=>c.id))]);scheduleSave();
+    if(dirty())return;const step=(redo?working.redo:working.undo).at(-1);if(step?.createdRows?.length){await travelCreated(step,redo);return;}if(step?.deletedRows?.length){await travelDeleted(step,redo);return;}working.travel(redo);state.kind=redo?'redo':'undo';refreshStatus();apLaiChieuCao([...new Set((step||[]).map(c=>c.id))]);scheduleSave();
   }
   async function travelCreated(step,redo){
     if(state.busy)return;
@@ -730,6 +736,60 @@
       state.rowRetry=null;(redo?working.redo:working.undo).pop();(redo?working.undo:working.redo).push(step);invalidate();
     }catch(error){if(error.status&&error.status<500)state.rowRetry=null;message(error.message,true);if(state.rowRetry){const retry=element('button','nut','Thử lại hoàn tác');retry.onclick=()=>travelCreated(step,redo);$('mg-message').append(retry);}}finally{state.busy=false;refreshStatus();}
   }
+  // Xoá dòng — chỉ Admin (ADR-049, chủ dự án 08.10.2026). Máy chủ kiểm lại từng dòng; ở đây chỉ hiện nút đúng người.
+  // Một lượt `delete_rows`/`restore_rows` qua luu-json: biên nhận chống lặp, so phiên bản từng dòng (409 nếu vừa đổi).
+  async function selectedSavedRows(){
+    const s=state.selection;if(!s)throw Error('Chọn dòng cần xoá trước: bấm số dòng ở cột trái, giữ Shift để chọn nhiều dòng.');
+    if(s.r2-s.r1+1>MAX)throw Error(`Chỉ xoá tối đa ${MAX.toLocaleString('vi-VN')} dòng một lượt.`);
+    const gen=state.generation,rows=[];
+    for(let r=s.r1;r<=s.r2;r++){
+      const b=await loadBlock(Math.floor(r/BLOCK));if(gen!==state.generation||!b)throw Error('Dữ liệu đã đổi; chọn lại dòng cần xoá.');
+      const row=rowAt(r);if(!row)throw Error('Dòng không còn trong kết quả.');
+      if(row.id>0)rows.push({id:row.id,version:row.updated});
+    }
+    return rows;
+  }
+  function askDeleteRows(count){
+    const dialog=$('mg-xoa-dong');if(!dialog)return Promise.resolve('cancel');
+    $('mg-xoa-dong-so').textContent=count.toLocaleString('vi-VN');
+    return new Promise(resolve=>{
+      let choice='cancel';
+      const pick=e=>{const b=e.target.closest('[data-choice]');if(!b)return;choice=b.dataset.choice;dialog.close();};
+      dialog.addEventListener('click',pick);
+      dialog.addEventListener('close',()=>{dialog.removeEventListener('click',pick);viewport.focus({preventScroll:true});resolve(choice);},{once:true});
+      // Con trỏ đứng ở Huỷ: Enter theo thói quen không xoá mất dòng
+      dialog.showModal();dialog.querySelector('.vd-actions [data-choice="cancel"]').focus();
+    });
+  }
+  async function deleteRows(){
+    if(!config.canDelete||state.busy||dirty())return;
+    if(working.count||state.retry){await saveAll();if(working.count||state.retry)return;}
+    const rows=await selectedSavedRows();
+    if(!rows.length){message('Vùng chọn không có dòng đã lưu nào để xoá.',true);return;}
+    if(await askDeleteRows(rows.length)!=='delete')return;
+    const step=[];step.deletedRows=rows;
+    await travelDeleted(step,true,true);
+  }
+  async function travelDeleted(step,redo,fresh=false){
+    // redo = xoá (lần đầu hoặc Ctrl+Y), không redo = khôi phục (Ctrl+Z)
+    if(state.busy)return;
+    if(state.rowRetry && (state.rowRetry.step!==step || state.rowRetry.redo!==redo)){message('Hãy thử lại lượt hoàn tác chưa được xác nhận.',true);return;}
+    if(working.count||state.retry){await saveAll();if(working.count||state.retry)return;}
+    const payload=state.rowRetry?.payload||{operation:crypto.randomUUID(),kind:redo?'delete_rows':'restore_rows',cells:[],
+      row_changes:step.deletedRows.map(r=>({id:r.id,version:r.version,action:redo?'delete':'restore'}))};
+    state.rowRetry={payload,step,redo,fresh};
+    state.busy=true;status('Đang lưu');
+    try{
+      const result=await fetch(config.saveUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(payload)}).then(json);
+      for(const row of result.row_results||[]){const item=step.deletedRows.find(r=>r.id===row.id);if(item)item.version=row.version;}
+      state.rowRetry=null;
+      if(fresh){working.undo.push(step);if(working.undo.length>100)working.undo.shift();working.redo=[];}
+      else{(redo?working.redo:working.undo).pop();(redo?working.undo:working.redo).push(step);}
+      const n=step.deletedRows.length.toLocaleString('vi-VN');
+      state.notice=redo?`Đã xoá ${n} dòng. Ctrl+Z để khôi phục.`:`Đã khôi phục ${n} dòng.`;
+      invalidate();message(state.notice);
+    }catch(error){if(error.status&&error.status<500)state.rowRetry=null;message(error.message,true);if(state.rowRetry){const retry=element('button','nut',redo?'Thử lại xoá dòng':'Thử lại khôi phục');retry.onclick=()=>travelDeleted(step,redo,fresh);$('mg-message').append(retry);}}finally{state.busy=false;refreshStatus();}
+  }
   function scheduleSave(){
     if(state.saveError||state.conflicts.length||!working.count)return;
     firstQueued ||= Date.now();clearTimeout(saveTimer);
@@ -743,7 +803,7 @@
     apLaiChieuCao(rows.map(r=>r.id));   // dòng vừa lưu về hay người khác vừa sửa: đo lại chiều cao (AC-11.44)
   }
   async function saveAll(explicit=true) {
-    if(state.rowRetry){await travelCreated(state.rowRetry.step,state.rowRetry.redo);return;}
+    if(state.rowRetry){const t=state.rowRetry;await (t.step.deletedRows?travelDeleted(t.step,t.redo,t.fresh):travelCreated(t.step,t.redo));return;}
     if(explicit&&!finishEditor())return;
     if(state.busy||state.conflicts.length||state.unavailable)return;
     clearTimeout(saveTimer);firstQueued=0;
@@ -997,13 +1057,13 @@
   viewport.addEventListener('click',e=>{
     if(e.target.closest('[data-all]'))selectAll();
     const col=e.target.closest('[data-select-column]');if(col&&!dirty()&&state.total){choose(0,+col.dataset.selectColumn);if(state.selection)state.selection.r2=state.total-1;repaint();}
-    const row=e.target.closest('[data-select-row]');if(row&&!dirty()&&state.visible.length){choose(+row.dataset.selectRow,0);if(state.selection)state.selection.c2=state.visible.length-1;repaint();}
+    const row=e.target.closest('[data-select-row]');if(row&&!dirty()&&state.visible.length){choose(+row.dataset.selectRow,0,e.shiftKey);if(state.selection){state.selection.c1=0;state.selection.c2=state.visible.length-1;}repaint();}   // Shift+bấm số dòng: chọn liền nhiều dòng như Excel
     const sort=e.target.closest('[data-sort]');if(sort){const p=new URLSearchParams(query);p.set('sap',sort.dataset.sort);p.set('chieu',query.get('sap')===sort.dataset.sort&&query.get('chieu')!=='giam'?'giam':'tang');navigate(p,true,true);}
     const filter=e.target.closest('[data-filter]');if(filter){const box=filter.getBoundingClientRect();$('hop-loc').hidden=false;Object.assign($('hop-loc').style,{position:'fixed',left:Math.max(8,Math.min(box.left,innerWidth-370))+'px',top:Math.min(box.bottom,innerHeight-340)+'px',maxHeight:'70vh',overflow:'auto'});const than=$('mg-column-filter-body');than.replaceChildren(element('p','loc-cot-rong','Đang tải…'));
     htmx.ajax('GET',config.filterUrl+'loc/'+filter.dataset.filter+'/?'+query,{target:'#mg-column-filter-body',swap:'innerHTML'});}
   });
   $('mg-undo').onclick=safe(()=>undo());$('mg-redo').onclick=safe(()=>undo(true));
-  $('mg-filters-button').onclick=()=>{if(dirty())return;$('mg-filters').hidden=!$('mg-filters').hidden;$('mg-filters-button').setAttribute('aria-expanded',!$('mg-filters').hidden);repaint();};
+  $('mg-filters-button').onclick=()=>{if(dirty())return;$('mg-filters').hidden=!$('mg-filters').hidden;$('mg-filters-button').setAttribute('aria-expanded',!$('mg-filters').hidden);if(!$('mg-filters').hidden&&!$('mg-filters').dataset.loaded)loadFilters(true);repaint();};
   // Ẩn cột với cả công ty — ADR-039. Nút chỉ hiện với quản lý bảng; ô tích
   // bên trái vẫn là "ẩn cho riêng máy mình" như cũ (localStorage).
   async function datAnCot(codes,an){
@@ -1193,6 +1253,7 @@
     };openDialog('mg-conflict');
   }
   $('mg-conflict-button').onclick=showConflicts;
+  if($('mg-delete-rows'))$('mg-delete-rows').onclick=()=>{closeMore();safe(deleteRows)();};
   window.addEventListener('beforeunload',e=>{
     if(working.count||state.retry||state.rowRetry||state.busy||(state.draft&&!same(editor.elements.value?.value,state.draft.old))){e.preventDefault();e.returnValue='';}
   });
@@ -1270,6 +1331,11 @@
       }
       const data=await fetch(config.filterUrl+'moi-nhat/').then(json),stamp=JSON.stringify(data);
       if(reloadForViewMode(data))return;
+      // Kiểm quyền từng dòng đang giữ chỉ khi mốc đổi (mục d, 07.10.2026): dòng ra khỏi phạm vi luôn kèm mốc đổi (đổi
+      // phân công cũng chạm `updated_at`). Thêm một lượt dự phòng mỗi 10 lần hỏi cho đổi phạm vi không chạm dòng (đổi
+      // team của người khác). Máy chủ vẫn chặn mọi lần đọc/ghi ngoài phạm vi; lượt này chỉ để dọn nháp và bộ đệm sớm.
+      state.scopeTick=(state.scopeTick||0)+1;
+      if(state.poll===stamp&&state.scopeTick%10!==0)return;
       const ids=new Set(working.pending().map(c=>c.id));
       if(state.draft)ids.add(state.draft.id);if(state.historyId)ids.add(state.historyId);
       for(const block of state.cache.values())block.rows.forEach(r=>ids.add(r.id));

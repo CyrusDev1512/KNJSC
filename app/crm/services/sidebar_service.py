@@ -11,7 +11,9 @@ Cột ngày là cột mang nhãn ý nghĩa **Ngày**, cột sản phẩm là c�
 một cột số lượng (Q39), nên khối Sản phẩm của nó lọc bằng `sp=<mã cột>`.
 """
 from orders.constants import is_waybill_table
-from datetime import date, timedelta
+from datetime import timedelta
+
+from django.utils import timezone
 
 from forms_builder.meaning import Meaning
 
@@ -37,7 +39,8 @@ def product_column(columns):
 
 def preset_range(key, today=None):
     """`(từ, đến)` của một mốc chọn nhanh, hoặc `(None, None)` nếu mã lạ."""
-    hom_nay = today or date.today()
+    # Ngày theo giờ Việt Nam, không theo đồng hồ máy chủ (container chạy giờ quốc tế) — AC-9.8
+    hom_nay = today or timezone.localdate()
     if key == "hom_nay":
         return hom_nay, hom_nay
     if key == "hom_qua":
@@ -91,8 +94,13 @@ def product_options(user, table, columns, params):
         from django.db.models import Count
         from orders.models import WaybillItem
         chosen = params.getlist('sp') + params.getlist('f_san_pham__trong')
-        items = WaybillItem.objects.in_scope(user).filter(record__table=table).order_by().values(
-            'product__code', 'product__name').annotate(n=Count('record_id', distinct=True)).order_by('product__code')
+        from forms_builder.models import DataRecord
+        # Phạm vi theo bảng: cùng tập dòng với phạm vi chung lọc theo bảng, đi nhánh gọn (AC-10.25)
+        from . import optimization
+        items = optimization.cached('grid-products:' + optimization.khoa_bang(user, table), lambda: list(
+            WaybillItem.objects.for_records(DataRecord.objects.in_scope(user, table=table)).filter(
+                record__table=table).order_by().values(
+                'product__code', 'product__name').annotate(n=Count('record_id', distinct=True)).order_by('product__code')))
         return {'kind': 'chi_tiet', 'param': 'f_san_pham__trong', 'items': [
             (i['product__code'], f"{i['product__code']} — {i['product__name']}", i['n'], i['product__code'] in chosen)
             for i in items]}

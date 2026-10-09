@@ -128,6 +128,16 @@ def stamp(user, table):
     return digest([s, table.delivery_view_version])
 
 
+def _khoa_dem(user, table):
+    from . import optimization
+    return optimization.khoa_bang(user, table)
+
+
+def _stamp_dem(user, table, khoa=None):
+    from . import optimization
+    return optimization.cached('grid-stamp:' + (khoa or _khoa_dem(user, table)), lambda: stamp(user, table))
+
+
 def block(user, table, params):
     # Tổng, phiên bản và các dòng thuộc cùng snapshot. Không buộc trình duyệt
     # tải lại chỉ vì một người vừa sửa ô trong thời gian đọc khối này.
@@ -156,24 +166,29 @@ def _block(user, table, params, *, snapshot=False):
         column.table = table
     meta = metadata(grid.columns)
     filters = sorted((k, params.getlist(k)) for k in params if k not in {'offset', 'version', 'trang', 'moi_trang'})
-    version = digest([stamp(user, table), meta, filters])
+    # Hai phép quét phạm vi đắt nhất của khối (COUNT + MAX, COUNT theo bộ lọc) đọc qua bộ đệm: cuộn lưới không quét lại
+    # 385.000 dòng cho mỗi 100 dòng. Bên trong snapshot nên khoá, mốc và dòng cùng một thời điểm.
+    khoa = _khoa_dem(user, table)
+    version = digest([_stamp_dem(user, table, khoa), meta, filters])
     if params.get('version') and params['version'] != version:
         raise BusinessError('Dữ liệu đã thay đổi. Đang tải lại vùng đang xem.', code='conflict')
     ordering = list(grid.queryset.query.order_by) or ['pk']
     if 'pk' not in ordering and '-pk' not in ordering:
         ordering.append('pk')
     qs = grid.queryset.order_by(*ordering)
-    total = qs.count()
+    total = optimization.cached('grid-count:' + digest([khoa, meta, filters]), qs.count)
     # OFFSET chỉ đi qua ID/thứ tự, không JOIN và mang JSON cùng thông tin
     # tài khoản cho hàng trăm nghìn dòng sẽ bị bỏ. Tải chi tiết đúng 100 ID.
     ids = list(qs.select_related(None).values_list('pk', flat=True)[offset:offset + BLOCK_SIZE])
     by_id = {r.pk: r for r in grant_service.with_report_lock(qs.filter(pk__in=ids)).order_by()}
     rows = [by_id[pk] for pk in ids if pk in by_id]
+    # Kiểm lại ngoài snapshot luôn đọc thẳng (một truy vấn như trước), không qua khoá đệm
     if not snapshot and version != digest([stamp(user, table), meta, filters]):
         raise BusinessError('Dữ liệu đang cập nhật. Thử lại vùng đang xem.', code='conflict')
     return {'columns': meta, 'rows': serialize(rows, grid.columns, user, meta=meta), 'total': total,
             'offset': offset, 'version': version, 'block_size': BLOCK_SIZE,
-            'schema_version':digest(meta), 'capabilities':{'create':row_mutations.can_create(user,table), 'structure':grant_service.can_manage_columns(user,table)}}
+            'schema_version':digest(meta), 'capabilities':{'create':row_mutations.can_create(user,table), 'structure':grant_service.can_manage_columns(user,table),
+                             'delete':row_mutations.can_delete(user,table)}}
 
 
 @transaction.atomic
@@ -204,9 +219,13 @@ def save(user, table, payload, *, request=None):
             raise BusinessError('Một ô xuất hiện nhiều lần trong lượt ghi.')
         seen.add(key)
     kind = payload.get('kind', 'edit')
-    if kind not in ('edit','paste','clear','format','undo','redo'):
+    if kind not in ('edit','paste','clear','format','undo','redo', *row_mutations.DELETE_KINDS):
         raise BusinessError('Loại thao tác không hợp lệ.')
-    if row_actions and (any(not isinstance(a,dict) or a.get('action') != ('restore' if kind=='redo' else 'delete') for a in row_actions) or kind not in ('undo','redo') or any(a.get('id') in {c['id'] for c in cells} for a in row_actions if isinstance(a,dict))):
+    if kind in row_mutations.DELETE_KINDS:
+        # Xoá/khôi phục dòng bất kỳ (Admin, ADR-049): lượt riêng, không kèm sửa ô, mọi dòng cùng một hành động
+        if not row_actions or cells or any(not isinstance(a,dict) or a.get('action') != row_mutations.DELETE_KINDS[kind] for a in row_actions):
+            raise BusinessError('Lượt xoá dòng chỉ gồm các dòng cần xoá hoặc khôi phục, không kèm sửa ô.')
+    elif row_actions and (any(not isinstance(a,dict) or a.get('action') != ('restore' if kind=='redo' else 'delete') for a in row_actions) or kind not in ('undo','redo') or any(a.get('id') in {c['id'] for c in cells} for a in row_actions if isinstance(a,dict))):
         raise BusinessError('Không thể sửa và xóa cùng một dòng trong lượt.')
     from . import optimization
     compact=payload.get('protocol')==2 and optimization.enabled('RECEIPTS')
@@ -230,7 +249,10 @@ def save(user, table, payload, *, request=None):
     created_ids = set(mapping.values()) if created else set()
     lock_ids = {c['id'] for c in cells} | {a['id'] for a in row_actions if isinstance(a,dict) and type(a.get('id')) is int}
     list(DataRecord.all_objects.filter(table=table,pk__in=lock_ids).order_by('pk').select_for_update(of=('self',)).values_list('pk',flat=True))
-    row_results = row_mutations.change(user, table, row_actions, receipt, replay=not created)
+    if kind in row_mutations.DELETE_KINDS:
+        row_results = row_mutations.remove(user, table, kind, row_actions, receipt, replay=not created, request=request)
+    else:
+        row_results = row_mutations.change(user, table, row_actions, receipt, replay=not created)
     ids = {c['id'] for c in cells}
     rows = list(grant_service.with_report_lock(DataRecord.objects.filter(table=table, pk__in=ids)).select_related('table', 'assignment')
                 .select_for_update(of=('self',)).order_by('pk'))
@@ -327,15 +349,12 @@ def latest_stamp(user, bang):
     # vi là JOIN cản chỉ mục `(table, updated_at)` và thành quét cả bảng (78 ms ×
     # 100 tab × mỗi 8 giây). `all_objects`: dòng xoá mềm vẫn mang mốc xoá nên xoá
     # một dòng bất kỳ cũng đổi mốc.
-    records = DataRecord.all_objects.filter(table=bang)
-    if is_waybill_table(bang):
-        from django.db.models import Count
-        records = records.in_scope(user)
-        tong = records.aggregate(moc=Max('updated_at'), count=Count('pk'))
-        moc = f"{tong['moc'].isoformat() if tong['moc'] else ''}:{tong['count']}"
-    else:
-        tong = records.aggregate(moc=Max('updated_at'))
-        moc = tong['moc'].isoformat() if tong['moc'] else ''
+    # Bảng vận đơn từng tính mốc theo phạm vi kèm COUNT (JOIN phân công): 418–595 ms mỗi lần ở 385.000 dòng, mỗi tab
+    # mỗi 8 giây — đúng điều đoạn trên cấm. Mốc cả bảng 0,8 ms (chỉ mục `(table, updated_at)`) vẫn bắt được mọi đổi:
+    # thêm, sửa, xoá mềm, khôi phục, và đổi phân công (`assignment_service.assign` chạm `updated_at` của dòng) —
+    # mục c, biên bản 07.10.2026. Không bắt xoá cứng (chỉ có ở lệnh dọn dữ liệu giả).
+    tong = DataRecord.all_objects.filter(table=bang).aggregate(moc=Max('updated_at'))
+    moc = tong['moc'].isoformat() if tong['moc'] else ''
     return {
         "delivery_view_version": bang.delivery_view_version,
         "moc": moc,

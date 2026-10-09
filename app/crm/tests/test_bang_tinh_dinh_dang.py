@@ -3,6 +3,7 @@
 Định dạng lưu trong `DataRecord.style`, mọi người cùng thấy; quyền = quyền
 sửa ô. Mỗi bài phân quyền kiểm cả hai chiều.
 """
+import itertools
 import uuid
 import pytest
 from django.test import override_settings
@@ -43,9 +44,13 @@ def bang_vd(departments, nguoi_dung):
     return dispatch_service.ensure_waybill_table(actor=nguoi_dung["admin"])
 
 
+#: Mã đơn mỗi dòng một số: bảng vận đơn không nhận hai dòng sống cùng mã (ràng buộc 06.10.2026)
+_MA = itertools.count(1)
+
+
 def _dong(bang, nguoi, **gia_tri):
     # Bảng vận đơn duy nhất mang profile (ADR-036): đủ cột bắt buộc, tiền theo quốc gia.
-    mac_dinh = {"ma_don": f"DH-{len(gia_tri)}-{gia_tri.get('ten_khach', 'x')}", "ngay": "2026-08-01",
+    mac_dinh = {"ma_don": f"DH-{next(_MA)}-{gia_tri.get('ten_khach', 'x')}", "ngay": "2026-08-01",
                 "ten_khach": "Khách", "so_dien_thoai": "0900", "quoc_gia": "Hoa Kỳ", "loai_tien": "USD"}
     return record_service.create_record(bang, {**mac_dinh, **gia_tri}, actor=nguoi)
 

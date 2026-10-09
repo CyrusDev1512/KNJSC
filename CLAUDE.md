@@ -191,6 +191,9 @@ cảnh màn hình dùng chung ở `reports/screen.py`. **Ba chỗ sửa (02.10, 
 - **Phần chữ trên bảng:** đoạn (TT) và câu loại tiền nằm trong panel "Giải thích số liệu".
 - **Gộp / Không gộp:** đổi bảng bằng `fetch` trong `report-filters.js`, không tải lại trang. Link giữ `trang`, mốc
   `data-ngay` giữ đúng ngày đang xem.
+- **Đầu trang gọn (07.10, ADR-042 bổ sung):** trên bảng không còn hàng nút, hàng chip, hàng tên bảng — tên báo cáo, kỳ,
+  ⋯, chip ở thanh trên cùng (khối `thanh_tren_giua` của `base.html`); menu ⋯ gom Gộp / Không gộp, Ngưỡng màu, Giải thích
+  số liệu, Toàn màn hình, Xuất Excel; bảng đo lại theo cỡ `main` (TL-74). Bảng dữ liệu giữ hàng nút cũ.
 **Báo cáo Marketing nộp bằng tiền Việt (ADR-047, 03.10):** Loại tiền MKT luôn VND, không theo Thị trường (một chỗ
 `currency_service.report_currency`); báo cáo cũ đổi nhãn sang VND bằng `reports/0006`, số giữ nguyên; không tỉ giá; Số đơn (TT)
 không khoá theo loại tiền, DS Chốt (TT) trống. Sale vẫn theo Thị trường.
@@ -236,7 +239,9 @@ nguyên dữ liệu; lọc ở một chỗ duy nhất `table_service.visible_col
 sản phẩm `sl_*` mặc định ẩn** (bổ sung 22.09, migration `orders/0011`): `sync_product_columns`
 tạo cột mới với `is_hidden=True` nên sản phẩm gõ thử không mọc cột trên lưới; bật lại ở mục
 "Đang ẩn với cả công ty". Cột đã ẩn thì lưới **không đọc bộ lọc của nó** (AC-39.9). Nút "Cột" vẫn có ô
-tích "ẩn cho riêng máy mình" (localStorage) như cũ. Profile
+tích "ẩn cho riêng máy mình" (localStorage) như cũ. **Xoá dòng chỉ Admin** (ADR-049, 08.10): mục "Xoá dòng
+đang chọn" trong menu "…" (lượt `delete_rows`/`restore_rows` qua `luu-json/`, đơn gốc bị bỏ theo, Ctrl+Z khôi phục); vai khác
+403 có nhật ký; Bỏ đơn ở trang đơn gốc cũng chỉ Admin (`order_service.cancel_order`). Profile
 nghiệp vụ của bảng lấy qua `forms_builder/record_policies.py` (`register_grid`,
 `register_workflow`), không nhận diện nghiệp vụ bằng mã cột. Cột **Trùng** nằm trong
 `crm/services/waybill_grid.py` cùng các hook profile (ADR-036).
@@ -359,6 +364,7 @@ Solarpunk Office (ADR-028, `DESIGN.md`); PRODUCT.md còn ghi hướng Google Wor
 | Làm từng giai đoạn cho chạy thật, không dựng vỏ hết màn hình trước | Backlog **Q22** |
 | Mỗi lượt xong thì ghi một mục có ngày ở đầu `docs/backlog.md`, kèm biên bản `docs/kiem-chung-<việc>-<ngày>.md` khi có đo | Không thì phiên sau không biết đang ở đâu |
 | Ưu tiên hiện tại: sửa feedback khách hàng; nhắc việc chủ động và AI là giai đoạn sau | Chủ dự án chốt 09.09.2026 |
+| **Trả lời ngắn kiểu Codex**: báo cáo cuối gồm bảng *Mục · Trước · Sau* cho những gì đã đổi, rồi các dòng **Vấn đề đã gặp** (lỗi, trở ngại, chỗ làm lại, việc chưa kiểm được), **Kiểm** (có số), **Cần anh**, link; không tường thuật từng bước; CI xanh thì không nhắn | Chủ dự án chốt 06.10.2026 |
 
 ---
 

@@ -295,6 +295,12 @@ def confirm(job, *, actor, request=None):
     return job
 
 
+#: Gửi vào hàng đợi chỉ thử lại ngắn: mặc định của Celery treo người dùng gần 20 giây khi Redis tắt (AC-10.13)
+HANG_DOI_THU_LAI = {"max_retries": 2, "interval_start": 0, "interval_step": 0.5, "interval_max": 1}
+HANG_DOI_CHET = ("Không gửi được vào hàng đợi tác vụ nền: dịch vụ hàng đợi (Redis) đang không chạy. "
+                 "Thử lại sau ít phút; lặp lại thì báo quản trị.")
+
+
 def _day_vao_hang_doi(task, job_id):
     """Đẩy tác vụ sau khi giao dịch hiện tại ghi xong — worker đọc trước khi
     commit sẽ thấy trạng thái cũ và bỏ qua. Chạy eager (kiểm thử) thì gọi
@@ -302,7 +308,21 @@ def _day_vao_hang_doi(task, job_id):
     if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
         task.delay(job_id)
     else:
-        transaction.on_commit(lambda: task.delay(job_id))
+        transaction.on_commit(lambda: _gui(task, job_id))
+
+
+def _gui(task, job_id):
+    """Gửi một tác vụ; hàng đợi chết thì tác vụ thành Thất bại có lời giải thích thay vì nằm "Chờ xử lý" mãi và
+    người dùng nhận trang lỗi 500 (AC-10.13)."""
+    from kombu.exceptions import OperationalError
+
+    try:
+        task.apply_async((job_id,), retry=True, retry_policy=HANG_DOI_THU_LAI)
+    except (OperationalError, OSError):
+        logger.exception("Không gửi được tác vụ #%s vào hàng đợi", job_id)
+        job = BackgroundJob.objects.filter(pk=job_id, status=JobStatus.PENDING).first()
+        if job is not None:
+            job.mark_failed(HANG_DOI_CHET)
 
 
 def run(job_id):

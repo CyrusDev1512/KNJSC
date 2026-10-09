@@ -1,5 +1,218 @@
 # Backlog
 
+## 08.10.2026 — Vì sao mở bảng tính lần đầu chậm hơn số đã báo (chỉ đo, không đổi mã)
+
+- Số đã báo là thời gian máy chủ đo khi nóng. Lần đầu người dùng còn chờ thêm:
+  - đăng nhập: riêng kiểm mật khẩu **0,62 s** (PBKDF2 1 triệu vòng, mặc định Django);
+  - tải 18 tệp JS/CSS lần đầu: 323 KB;
+  - khối dữ liệu đầu.
+- Đo trong trình duyệt ở 385k, từ lúc bấm Đăng nhập tới khi thấy lưới:
+  - ngay sau khi bật máy: 1,84 s;
+  - trình duyệt mới, máy chủ đã nóng: 1,24–1,34 s;
+  - mở lại lưới: 0,34–0,45 s.
+- CRM vừa khởi động, Postgres lạnh, Redis trống đều không đáng kể (≤ 0,1 s), nên bỏ hai sửa đổi đã dự kiến.
+- **Chờ chủ dự án chọn:**
+  - kiểm mật khẩu bằng Argon2 (cần thư viện `argon2-cffi`);
+  - số đo trên máy Windows (ảnh F12 → Network lúc mở bảng tính).
+- Tải sẵn JS/CSS của lưới: **rút** (chủ dự án 08.10: cùng kiểu "làm sẵn" đã bỏ ở #96). Đệm Redis của #98 để nguyên, chỉ
+  gỡ khi chủ dự án bảo.
+
+[Biên bản](kiem-chung-mo-luoi-lan-dau-20261008.md). Nhánh `claude/mo-luoi-lan-dau-nhanh`.
+
+## 08.10.2026 — Chỉ Admin xoá dòng (ADR-049, AC-21.18, 21.19, 6.13)
+
+- Lưới có thêm "Xoá dòng đang chọn" trong menu "…", **chỉ Admin**:
+  - xoá mềm, đơn gốc bị bỏ theo;
+  - Ctrl+Z khôi phục cả dòng và đơn;
+  - lượt `delete_rows`/`restore_rows` qua `luu-json/` (CAS, biên nhận).
+- Mọi vai khác bị 403 có nhật ký. Bỏ đơn ở trang đơn gốc cũng chỉ Admin.
+- Shift + bấm số dòng chọn liền nhiều dòng.
+- Ctrl+Z gỡ dòng vừa gõ không đổi; bảng vận đơn vốn không cho tạo dòng trên lưới.
+- **Còn nợ:** chưa đi tay phần đơn gốc trên dữ liệu có đơn; chưa thử trên Windows và VPS.
+
+[Biên bản](kiem-chung-chi-admin-xoa-dong-20261008.md). Nhánh `claude/chi-admin-xoa-dong`.
+
+## 07.10.2026 — KN CRM nhanh khi bảng Vận đơn lớn: trang chủ, menu, thư mục, khối lưới, panel Bộ lọc (AC-10.23 → 10.26)
+
+- Ở 385.034 dòng (vd.manager): trang chủ CRM 150–258 s → 0,14 s; menu mọi trang 0,37 s → 6 ms; thư mục 1,3 → 0,11 s;
+  đọc lại khối lưới 243 → 111 ms; mở lại panel Bộ lọc 2,7 → 0,03 s. sale.staff: thư mục 1,45 → 0,32 s, khối 0,9 → 0,18 s.
+- Kết quả và phân quyền y nguyên: bài so cách cũ/cách mới cho mọi vai (phạm vi bảng, phạm vi dòng Sale/CSKH, số liệu
+  trang chủ, thư mục, panel).
+- Khối lưới và panel đệm trong Redis theo khoá phạm vi người xem + `GridRevision` + mốc cả bảng; 409 như cũ.
+- **Còn nợ:** panel Bộ lọc lần đầu vẫn ~0,9 s (đếm theo nhóm trên mọi dòng); trigger `GridRevision` phải theo kịp mọi
+  nguồn quyền mới; chưa đo trên VPS.
+
+[Biên bản](kiem-chung-crm-nhanh-bang-lon-20261007.md). Nhánh `claude/crm-nhanh-bang-lon` (xếp trên PR #96).
+
+## 07.10.2026 — ERP mở rộng mặc định, phân trang không mất lọc và không tải lại trang, lưới CRM bớt việc thừa (AC-10.17 → 10.22)
+
+- ERP mở lên ở chế độ mở rộng, không ảnh nền; bấm nút mới hiện nền, máy nhớ lựa chọn.
+- Thanh phân trang dùng chung giữ mọi tham số URL (Nhân sự, Nhật ký hết mất bộ lọc; trang hai bảng không giẫm nhau) và chỉ
+  thay vùng danh sách khi chuyển trang.
+- Lưới CRM ở 385.034 dòng: mở lưới 2,9 → 0,39 s, đổi lọc 2,9 → 0,03 s, hỏi "có gì mới" 608 → 34 ms (vd.manager).
+- **Còn nợ, cần chủ dự án quyết:** trang chủ KN CRM 150–258 giây ở 385.000 dòng (khối "Bảng gần đây"); menu khung CRM
+  0,4 s mọi trang; thư mục 1,5 s; đọc khối lưới 0,2–0,9 s (mốc phiên bản theo phạm vi, điểm nghẽn từ 16.09).
+
+[Biên bản](kiem-chung-phan-trang-luoi-erp-mo-rong-20261007.md). Nhánh `claude/phan-trang-luoi-erp-mo-rong`.
+
+## 07.10.2026 — Báo cáo tổng hợp: đầu trang gọn, menu ⋯, bảng cao tới thanh trên (AC-42.18 → 42.21, TL-74, TL-75)
+
+- **Chủ dự án duyệt mockup v2** (07.10):
+  - trên bảng không còn hàng nút, hàng chip, hàng tên bảng;
+  - tên báo cáo, kỳ, ⋯ và chip lên thanh trên cùng;
+  - menu ⋯ gom Không gộp / Gộp, Ngưỡng màu, Giải thích số liệu, Toàn màn hình, Xuất Excel;
+  - Toàn màn hình còn một hàng mảnh có ⋯; màn hẹp có nút "Lọc (n)".
+- **Khác mockup một chỗ:** ⋯ đứng trước chip (mockup để sau). Chip chỉ lấy chỗ thừa, nên tên báo cáo không bị cắt khi
+  nhiều chip và ⋯ không nhảy chỗ.
+- **TL-74:** bảng hụt 96 px khi thanh menu dưới đã thu. Sửa bằng đo lại theo cỡ vùng nội dung. Ở 1366×768 khung bảng
+  342 → 578 px.
+- **TL-75:** Escape không thoát toàn màn hình khi đang lọc sản phẩm. Sửa một dòng.
+- **Còn nợ:**
+  - Bảng dữ liệu dạng báo cáo giữ hàng nút cũ và chưa đo lại khi thu/mở thanh menu (chủ dự án: "bảng dữ liệu chưa
+    cần");
+  - chưa thử Safari, Firefox.
+
+[Biên bản](kiem-chung-bao-cao-menu-ba-cham-20261007.md). Nhánh `claude/bao-cao-menu-ba-cham`.
+
+## 06.10.2026 — Database và phân quyền theo URL: mã đơn không trùng ở DB, đơn đi theo dòng, lệnh kiem_tra_du_lieu (AC-1.10 → 1.12, 6.12, 7.16, 8.11, 36.11 → 36.14)
+
+- **Đổi URL mất quyền:** link ERP ↔ CRM giữ host đang mở (127.0.0.1 hay localhost); VPS thiếu cookie domain thì
+  `check --deploy` dừng; CRM thiếu `BANGTINH_GOC` thì dừng. Ma trận mọi đường dẫn × 8 vai × 2 dịch vụ: khác biệt đều có
+  chủ ý (ADR-015, 045), khoá thành bài kiểm.
+- **Dữ liệu:** ràng buộc `record_ma_don_unique` (migration `forms_builder/0017`, dừng nếu đang có mã trùng); Lên đơn nhảy
+  qua mã đã có trên bảng; xoá/khôi phục dòng vận đơn kéo theo đơn gốc; đổi kiểu cột chuyển hoặc từ chối giá trị cũ; lệnh
+  nâng cấp cấu trúc tính lại dòng cũ; ô ngày dạng số của Excel nhập được.
+- **Lệnh mới `kiem_tra_du_lieu`** (chỉ đọc, `--sua`): chạy trên VPS trước phát hành. DB thử bắt được 5 dòng báo cáo MKT
+  lệch cột tính sẵn (đã `--sua`).
+- **Còn nợ:** `sl_*` không theo Chi tiết sản phẩm (cột ẩn, lệnh chỉ báo); `/bang-da-xoa/` trả rỗng thay 403 cho Staff.
+
+[Biên bản](kiem-chung-database-phan-quyen-20261006.md). Nhánh `claude/database-phan-quyen`.
+
+## 06.10.2026 — Săn lỗi 10: fuzz — 139 lỗi 500 ở ERP, 178 ở CRM, năm gốc, đã sửa ở cửa vào (AC-10.16, AC-21.16)
+
+- Bắn 12 dữ liệu lạ vào mọi tham số GET và form POST theo vai (hơn 20.000 yêu cầu). Năm gốc:
+  1. ký tự NUL lọt vào câu truy vấn (108 chỗ ở ERP: ô tìm, bộ lọc Báo cáo tổng hợp, Bảng tin…);
+  2. bộ lọc cột sai kiểu trên URL (`?f_ngay=-1`) ở Bảng dữ liệu, lưới, Thống kê CRM;
+  3. chuỗi dài hơn cột (tên mục Tài nguyên 5.000 ký tự);
+  4. mã không phải số đưa vào `get_object_or_404` (tạo thư mục, trang Cột);
+  5. JSON lưới có NUL; ô lưới nhận 200.000 ký tự, quá trần một ô Excel.
+- Đã sửa ở cửa vào, không vá từng view: middleware chuẩn hoá chữ từ chối NUL; `DataLimitMiddleware` đổi lỗi
+  "quá dài"/"số tràn" của Postgres thành 400 tiếng Việt; `apply_filters` bỏ qua bộ lọc sai kiểu; `parse_value` chặn NUL
+  và ô quá 32.767 ký tự; hai view kiểm mã là số. Lời 400 đúng kiểu người gọi (JSON, HTMX, trang có nút Quay lại).
+
+[Biên bản](kiem-chung-san-loi-fuzz-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 7: chất lượng bộ kiểm bằng đột biến tay — 17 đột biến, 2 lọt đã lấp (AC-21.17)
+
+- Cố ý làm hỏng 17 quy tắc quan trọng (phạm vi quyền, CAS, xoá mềm, nhật ký, khoá đăng nhập, phiên, tiền tệ, công
+  thức Excel…), mỗi lần một chỗ: 15 bị bài có sẵn hoặc bài của đợt này bắt ngay.
+- **Lọt 1:** quy tắc đọc `1.234` là một nghìn hai trăm ba mươi tư không có bài canh trước đợt này — đã lấp bởi bài của
+  bước 5.
+- **Lọt 2:** bỏ dòng chặn CEO sửa dòng mà không bài nào đỏ; CEO có hồ sơ trong bộ phận Vận đơn sẽ sửa được lưới. Mã
+  hiện tại đúng, thiếu bài canh — đã thêm (AC-21.17).
+
+[Biên bản](kiem-chung-san-loi-dot-bien-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 8: đối soát số liệu — mọi con số khớp; Thống kê CRM viết số khác ERP (AC-22.27)
+
+- Báo cáo Marketing tháng 9 (1.801 lần nộp): cơ sở dữ liệu = Báo cáo tổng hợp = cộng dòng nhân sự = Excel (toàn kỳ và
+  cộng 30 ngày) = Bảng dữ liệu = Thống kê CRM, đến từng đồng; các tỉ số tính lại bằng tay đều khớp. Vận đơn cả năm
+  (10.032 đơn, CAD và USD): số đơn, giá trị, đã thanh toán, số lượng khớp; không cộng lẫn loại tiền.
+- **Lỗi nhẹ (đã sửa):** Thống kê CRM viết `48311822000`, ERP viết `48.311.822.000`; nhãn biểu đồ `13026,00`. Bộ lọc
+  mẫu mới `so` dùng lại `core.money.format_decimal`.
+- Cần chủ dự án xem: Excel ghi tỉ lệ chốt là số thực đủ chữ số.
+
+[Biên bản](kiem-chung-san-loi-doi-soat-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 9: dò mật khẩu song song vượt giới hạn 5 lần; nhật ký sạch (AC-1.9)
+
+- **Lỗi nghiêm trọng:** 40 lần đăng nhập sai gửi cùng lúc thì cả 40 lần được thử mật khẩu. Nay mỗi lần thử giữ chỗ
+  trong bộ đếm (khoá dòng) trước khi kiểm mật khẩu: 5 lần được thử, 35 lần bị chặn. Luật cũ giữ nguyên.
+- Đạt: nhật ký ứng dụng, nginx VPS, nhật ký hoạt động không chứa mật khẩu, số điện thoại, tên khách.
+- **Cần chủ dự án chọn:** (1) tài khoản có thật bị khoá thì báo "đang khoá tạm", lộ tài khoản có thật; (2) gõ nhầm mật
+  khẩu vào ô tên đăng nhập thì chuỗi đó vào nhật ký hoạt động; (3) chặn dò rải nhiều tài khoản theo IP (văn phòng chung
+  IP). Ghi nhẹ: mỗi lần 403 ghi một traceback vào nhật ký.
+
+[Biên bản](kiem-chung-san-loi-dang-nhap-nhat-ky-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 6: Redis tắt treo 19 giây; đĩa đầy lỗi 500; Postgres khởi động lại vẫn lỗi; thiếu trang 500/404 (AC-10.13 → 10.15)
+
+- **Redis tắt:** xuất Excel lưới treo 19 giây rồi lỗi 500, tác vụ kẹt "Chờ xử lý" mãi. Nay không lưu kết quả Celery,
+  gửi thử lại ngắn; không gửi được thì tác vụ Thất bại có lời giải thích, báo ngay trên lưới (0,94 giây). Mọi thao
+  tác khác vẫn chạy khi Redis tắt.
+- **Đĩa `storage` đầy:** tải tài liệu, nhập tệp lỗi 500. Nay 507 "hết chỗ lưu tệp" và báo người vận hành; tác vụ xuất
+  nền nói rõ.
+- **Không có `500.html`, `404.html`:** VPS hiện trang trắng chữ Anh. Đã thêm hai trang tiếng Việt.
+- **Postgres khởi động lại** (gunicorn như VPS): Postgres đã chạy lại mà 8/16 yêu cầu vẫn lỗi 500 do kết nối giữ lại.
+  Bật `CONN_HEALTH_CHECKS`: 0/48.
+- Máy chủ dự án và VPS cần **khởi động lại container** để nhận cấu hình mới (không cần dựng lại image vì requirements
+  không đổi).
+
+[Biên bản](kiem-chung-san-loi-su-co-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 5: ô số nhận "NaN" thành trang lỗi 500; "Hôm nay" lệch ngày lúc sáng sớm (AC-9.7, AC-9.8)
+
+- **Lỗi vừa:** gõ `NaN`, `Infinity`, `1e400` hay số 24 chữ số vào ô Doanh số là trang lỗi 500. `parse_money` nay chỉ
+  nhận chữ số, dấu chấm, phẩy, một dấu trừ; số quá 16 chữ số phần nguyên báo lỗi tiếng Việt. Ô số của tệp Excel qua
+  cùng kiểm tra.
+- **Lỗi vừa:** chip "Hôm nay", "Tháng này" của lưới lấy ngày theo đồng hồ máy chủ (giờ quốc tế): từ 0 tới 7 giờ sáng
+  "Hôm nay" là hôm qua. Nay theo giờ Việt Nam; tên tệp Excel xuất từ lưới cũng vậy.
+- Đạt: chia cho không (Số đơn = 0) ở Báo cáo tổng hợp, Excel, Thống kê CRM; dán số kiểu Mỹ `1,234.5`; Lên đơn chặn
+  `NaN`.
+- **Cần chủ dự án chốt:** báo cáo ngày đang nhận Doanh số âm (`-5000`). Cho hay chặn?
+
+[Biên bản](kiem-chung-san-loi-gio-tien-so-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 4: chữ Việt gõ từ Mac không tìm ra được (AC-9.6)
+
+- Gõ bằng bộ gõ (sự kiện ghép chữ), kiểu Unikey, gõ nhanh trong lưới: đạt.
+- **Lỗi nghiêm trọng:** chữ Việt dạng tổ hợp (macOS gửi "e" + dấu rời) lưu nguyên dạng. Đo trên hệ thống thật: tên khách
+  nhập từ Mac thì tìm "Ngọc Ánh" từ Windows ra 0 kết quả; tra trùng, gộp nhóm cũng trượt. Tệp Excel/CSV soạn trên Mac
+  cùng lỗi.
+- Đã sửa ở cửa vào: `core.middleware.UnicodeNFCMiddleware` đưa GET, form POST, JSON của lưới về NFC (trừ mật khẩu);
+  `core.excel` chuẩn hoá ô tệp nhập. Bắn lại trên hệ thống thật đạt.
+- Xem lại sau: dữ liệu cũ không tự đổi; biên bản có câu SQL chỉ đọc để đếm trên VPS, số lớn thì viết lệnh chuẩn hoá.
+
+[Biên bản](kiem-chung-san-loi-go-tieng-viet-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 3: mất mạng thì báo "Failed to fetch" hoặc im lặng (AC-10.12)
+
+- Lưới trên mạng 3G và mất mạng rồi có lại: dữ liệu đúng, tự lưu lại đúng một lần. Nộp báo cáo khi phản hồi rớt: 1 báo
+  cáo.
+- **Lỗi vừa:** lưới báo "Failed to fetch" (chữ Anh thô); Lên đơn lúc mất mạng không báo gì về việc lưu; mọi yêu cầu
+  HTMX gửi hỏng đều im lặng.
+- Đã sửa bằng `static/js/loi-mang.js` nạp ở cả bốn khung trang: lời tiếng Việt "Mất kết nối mạng…", ô báo ở đáy màn
+  hình khi HTMX gửi hỏng, quá hạn hay máy chủ 5xx.
+- Chưa kiểm: nhập tệp lớn qua mạng chậm trên VPS (giới hạn thời gian nginx), Safari/Firefox.
+
+[Biên bản](kiem-chung-san-loi-duong-truyen-20261006.md). Nhánh `claude/san-loi-tiep`.
+
+## 06.10.2026 — Săn lỗi 2: bảo mật — Excel chạy công thức, tệp "bom nén", Django có lỗ hổng (AC-7.14, AC-7.15)
+
+- **Xuất Excel chạy công thức người dùng gõ** (`=HYPERLINK…` ở tên khách, ghi chú). Đã sửa ở `core/excel`: mọi ô
+  thành chữ, ở mọi đường xuất.
+- **Tệp nhập 220 KB làm máy chủ ăn 1,85 GB RAM.** Đã chặn trước khi đọc: trần 500 cột mỗi dòng, giải nén ≤ 200 MB.
+- **Django 5.2.6 có 62 lỗ hổng đã công bố.** Đã nâng bản vá lên 5.2.17; python-dotenv lên 1.2.2. Máy chủ dự án và
+  VPS phải dựng lại image.
+- Đạt, không phải sửa: quét IDOR theo 3 vai × 28 mẫu đường dẫn; phiên bị đá ra sau khoá, đặt lại mật khẩu, xoá;
+  `check --deploy` 0 cảnh báo.
+- Còn: nginx chưa `server_tokens off`, chưa có CSP — cần duyệt vì đụng VPS.
+
+[Biên bản](kiem-chung-san-loi-bao-mat-20261006.md). Nhánh `claude/san-loi-bao-mat`.
+
+## 06.10.2026 — Săn lỗi 1: gửi lặp ra báo cáo đôi, đơn đôi (AC-4.12, AC-6.11)
+
+Đợt săn lỗi chủ dự án duyệt (7 bước, ngoài unit/e2e). Bước 1 là đồng thời và bấm lặp.
+
+- 20 người lên đơn cùng một giây: không trùng mã, không trùng khách. Bấm đúp nút: đã chặn. Nhập tệp: đã có khoá.
+- **Lỗi nghiêm trọng:** cùng một lần nộp gửi lặp ở tầng mạng (mạng gửi lại, Back rồi Nộp, hai yêu cầu cùng lúc) thì
+  ra 2–3 báo cáo, hay 2 đơn. Doanh số bị cộng đôi trong Báo cáo tổng hợp.
+- Đã sửa bằng mã lần nộp dùng một lần (`ma_lan_nop`) và bảng biên nhận `core.SubmissionReceipt` (migration
+  `core/0007`), cùng khuôn với `GridMutationReceipt`. Bài kiểm có hai luồng thật. Bắn lại trên hệ thống thật đạt.
+- Xem lại sau: bảng biên nhận chỉ ghi thêm, chưa có lệnh dọn (mỗi lần nộp một dòng nhỏ).
+
+[Biên bản](kiem-chung-san-loi-dong-thoi-20261006.md). Nhánh `claude/san-loi-dong-thoi`, PR về `Staging`.
+
 ## 04.10.2026 — Báo cáo Sale bỏ cột Lần nộp; bộ lọc kéo tới được nút Áp dụng (AC-47.7, AC-42.17, TL-73)
 
 Chủ dự án thử `Staging` ở máy local, báo hai chỗ trên Báo cáo tổng hợp.

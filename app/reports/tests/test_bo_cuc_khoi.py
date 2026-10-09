@@ -110,7 +110,8 @@ def test_gop_chi_con_dong_tong_ngay(client, bang_mkt, mkt_source, van_don, nguoi
     chips = {c["label"]: c for c in r.context["chips"]}
     assert chips["Gộp"]["value"] == "mọi lần nộp một bảng" and chips["Gộp"]["url"] and "gop=" not in chips["Gộp"]["url"]
     html = r.content.decode()
-    assert 'aria-pressed="true">Gộp</a>' in html and html.count('<table class="bang report-table"') == 2
+    # Mục Gộp của menu ⋯ đánh dấu cách đang xem (07.10.2026, AC-42.18)
+    assert 'data-che-do="gop" aria-current="true"' in html and html.count('<table class="bang report-table"') == 2
     # Không gộp là mặc định: không có chip, hai khối ngày
     r0 = client.get("/bao-cao/tong-hop/", {k: v for k, v in query.items() if k != "gop"})
     assert "Gộp" not in {c["label"] for c in r0.context["chips"]} and [b["kind"] for b in r0.context["blocks"]] == ["period", "day", "day"]

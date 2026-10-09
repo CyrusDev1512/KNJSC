@@ -87,20 +87,21 @@ def tables_of(user, department, tables=None):
     return [t for t in tables if t.department_id == department.pk]
 
 
-def _records(user, department):
-    return DataRecord.objects.in_scope(user).filter(
-        table__department=department, table__deleted_at__isnull=True,
-    )
+def table_stats(user, department, tables=None):
+    """`{bảng_id: (tổng dòng, cập nhật gần nhất)}` — một truy vấn đếm.
 
-
-def table_stats(user, department):
-    """`{bảng_id: (tổng dòng, cập nhật gần nhất)}` — một truy vấn."""
-    dong = (
-        _records(user, department)
-        .values("table_id")
-        .annotate(n=Count("id"), moc=Max("updated_at"))
-        .order_by()
-    )
+    Ghép (UNION ALL) phần đếm của từng bảng trong bộ phận, mỗi phần qua `in_scope(user, table=...)`: cùng tập dòng với
+    `in_scope(user).filter(table=...)` nhưng đi nhánh gọn của bảng vận đơn thay vì quét phạm vi chung trên mọi bảng
+    (0,54 s → AC-10.25 ở 385.000 dòng). Bảng đang tắt không có dòng nào trong phạm vi, như cũ."""
+    from forms_builder.models import TableDef
+    # Trang thư mục đã có danh sách bảng của bộ phận (`tables`) — khỏi hỏi lại
+    cac_bang = ([b for b in tables if b.department_id == department.pk and b.is_active] if tables is not None
+                else list(TableDef.objects.filter(department=department, is_active=True).only("id", "code", "workflow")))
+    phan = [DataRecord.objects.in_scope(user, table=b).values("table_id")
+            .annotate(n=Count("id"), moc=Max("updated_at")).order_by() for b in cac_bang]
+    if not phan:
+        return {}
+    dong = phan[0].union(*phan[1:], all=True) if len(phan) > 1 else phan[0]
     return {d["table_id"]: (d["n"], d["moc"]) for d in dong}
 
 
@@ -177,7 +178,7 @@ def build(user, *, bp_code="", hom_nay=None):
     )
 
     bang = tables_of(user, bp, moi_bang)
-    thong_ke = table_stats(user, bp)
+    thong_ke = table_stats(user, bp, moi_bang)
     # `folder_service.tree` liệt kê mọi bảng trong phạm vi — giữ lại đúng các
     # bảng KN CRM phục vụ (chỉ vận đơn, ADR-040) đã lấy ở `all_tables`
     phuc_vu = {t.pk for t in moi_bang}

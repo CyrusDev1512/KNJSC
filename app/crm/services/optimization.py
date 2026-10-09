@@ -59,6 +59,22 @@ def scope_key(user):
     return [user.pk,user.is_active,user.is_superuser,*(getattr(p,k,None) for k in ('rank','department_id','team_id','session_epoch'))]
 
 
+def khoa_bang(user, table):
+    """Khoá bộ đệm cho các phép đếm theo phạm vi của một bảng (AC-10.26) — đổi khi bất cứ thứ gì có thể đổi kết quả.
+
+    Một truy vấn theo chỉ mục: `GridRevision` do trigger tăng khi commit mọi thay đổi dòng, đơn, phân công, chi tiết,
+    cột, quyền, hồ sơ, team, bộ phận, tài khoản, sản phẩm (kể cả xoá cứng); `MAX(updated_at)` cả bảng bắt thêm ghi
+    chưa commit trong cùng giao dịch. Cộng phạm vi người xem và ngày Việt Nam. Khoá lệch chỉ làm tính lại.
+    """
+    from django.utils import timezone
+    with connection.cursor() as cursor:
+        cursor.execute(f'SELECT (SELECT MAX(updated_at) FROM {DataRecord._meta.db_table} WHERE table_id = %s), '
+                       f'(SELECT revision FROM {GridRevision._meta.db_table} WHERE table_id = %s)', [table.pk, table.pk])
+        moc = cursor.fetchone()
+    return digest([connection.settings_dict['NAME'], scope_key(user), table.pk, table.delivery_view_version, moc,
+                   timezone.localdate()])
+
+
 def authority(user,table):
     from django.contrib.auth import get_user_model
     from forms_builder.models import TableDef
@@ -119,7 +135,7 @@ def block(user,table,params):
     # Cờ READ chỉ đổi cách đọc/cache; giữ hợp đồng schema và quyền của lưới.
     result={'protocol':2,'rows':master.serialize(rows,grid.columns,user,meta=meta),'total':total,'version':identity,'query_token':query_token,'revision':current['revision'],'offset':offset,'block_size':master.BLOCK_SIZE,'metadata_version':mv,
             'schema_version':mv,
-            'capabilities':{'create':row_mutations.can_create(user,table),'structure':grant_service.can_manage_columns(user,table)}}
+            'capabilities':{'create':row_mutations.can_create(user,table),'structure':grant_service.can_manage_columns(user,table),'delete':row_mutations.can_delete(user,table)}}
     if params.get('metadata_version')!=mv:result['columns']=meta
     if selected and simple:
         def cursor(item,next_offset,back):return token({'q':identity,'id':item[0],'time':item[1].isoformat(),'offset':next_offset,'back':back})

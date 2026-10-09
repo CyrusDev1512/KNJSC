@@ -20,8 +20,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from core.lien_ket import crm_url
 from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import pagination_context
+from core.submission import new_key as new_submission_key
 
 from forms_builder.services import form_service
 
@@ -72,13 +74,18 @@ def bao_cao_ngay(request):
                    for t in cac_truong}
         try:
             team = daily_service.resolve_team(bm, request.POST.get("team")) if duoc_chon_team and cac_team else team_ho_so
-            daily_service.submit_current(
+            bao_cao = daily_service.submit_current(
                 bm, du_lieu, actor=request.user,
                 request=request, fields=cac_truong, team=team,
+                submission_key=request.POST.get("ma_lan_nop"),
             )
-            messages.success(
-                request, f"Đã nộp báo cáo cho ngày {ngay:%d.%m.%Y}. Nhân viên không tự sửa; "
-                         "cần sửa số thì nhờ quản lý hoặc Kế toán trong Lịch sử báo cáo.")
+            if bao_cao.duplicate:
+                gio = timezone.localtime(bao_cao.submitted_at)
+                messages.info(request, f"Lần nộp này đã được ghi lúc {gio:%H:%M}, không tạo thêm báo cáo mới.")
+            else:
+                messages.success(
+                    request, f"Đã nộp báo cáo cho ngày {ngay:%d.%m.%Y}. Nhân viên không tự sửa; "
+                             "cần sửa số thì nhờ quản lý hoặc Kế toán trong Lịch sử báo cáo.")
             return redirect("bao_cao_lich_su")
         except BusinessError as e:
             loi.append(str(e))
@@ -93,6 +100,8 @@ def bao_cao_ngay(request):
             bm, cac_truong, du_lieu, user=request.user, day=ngay,
         ) if bm else [],
         "loi": loi,
+        # Mã lần nộp dùng một lần (AC-4.12): nộp lỗi thì giữ mã cũ để sửa rồi nộp lại vẫn là một lần
+        "ma_lan_nop": (request.POST.get("ma_lan_nop") if request.method == "POST" else "") or new_submission_key(),
         # Thẻ "Xem trước chỉ số" (AC-43.6): mỗi cột tính sẵn một thẻ, kèm đơn vị
         "cac_cot_tinh": daily_service.preview_columns(bm.table) if bm else [],
         # Hậu tố tiền của thẻ khi form không có ô Loại tiền (MKT luôn VND, ADR-047/048)
@@ -234,7 +243,7 @@ def bao_cao_tong_hop(request):
         # Đuôi nối vào liên kết phân trang để không mất trạng thái lọc
         "qs_loc": "&" + _query_loc(tham_so, bang),
         "crm_dashboard_url": (
-            settings.BANGTINH_URL.rstrip("/") + "/thong-ke/"
+            crm_url(request).rstrip("/") + "/thong-ke/"
             if settings.BANGTINH_URL else ""
         ),
     }

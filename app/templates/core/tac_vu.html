@@ -36,6 +36,7 @@
     </div>
   </form>
 
+  <div data-vung-trang="ds">{# phan-trang.js chỉ thay vùng này khi chuyển trang (AC-10.19) #}
   <div class="bang-cuon">
     <table class="bang">
       <thead><tr><th>Lúc</th><th>Loại</th><th>Việc</th><th>Người</th><th>Trạng thái</th><th class="phai">Tiến độ</th><th></th></tr></thead>
@@ -59,6 +60,7 @@
     </table>
   </div>
   {% include "components/phan_trang.html" with qs_loc=qs_loc %}
+  </div>
 </div>
 
 {% endblock %}

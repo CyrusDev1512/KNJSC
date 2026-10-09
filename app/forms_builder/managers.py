@@ -52,21 +52,46 @@ class TableDefQuerySet(ScopedQuerySet):
             return trong_bo_phan
 
         duoc_cap = _cap_them(user, GrantAction.VIEW)
-        from .models import DataRecord
         from org.models import Department
         accounting = Department.objects.filter(pk=getattr(getattr(user, 'profile', None), 'department_id', None),
             code=ACCOUNTING_DEPARTMENT_CODE, is_active=True, deleted_at__isnull=True)
-        visible = DataRecord.objects.filter(waybill_condition()).filter(
-            Q(created_by_id=user.pk, created_by__profile__department__code='sale')
-            | Q(order__created_by_id=user.pk, order__created_by__profile__department__code='sale')
-            | Q(order__seller_id=user.pk, order__seller__profile__department__code='sale')
-            | Q(assignment__care_id=user.pk, assignment__care__profile__department__code__in=['sale', 'cskh']))
-        return self.filter(
-            Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
-            | Q(Exists(visible.filter(table_id=OuterRef('pk'))))
-            # Kế toán: bảng vận đơn (ADR-025) và bảng có nguồn báo cáo (ADR-038)
-            | ((waybill_condition("") | Q(erp_report__isnull=False)) & Q(Exists(accounting)))
-        )
+        dieu_kien = (Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
+                     # Kế toán: bảng vận đơn (ADR-025) và bảng có nguồn báo cáo (ADR-038)
+                     | ((waybill_condition("") | Q(erp_report__isnull=False)) & Q(Exists(accounting))))
+        qua_dong = _bang_van_don_qua_dong(user)
+        if qua_dong is not None:
+            dieu_kien |= qua_dong
+        return self.filter(dieu_kien)
+
+
+def _bang_van_don_qua_dong(user):
+    """Bảng vận đơn người này thấy nhờ có dòng của mình trên đó (ADR-020, 033): Sale qua dòng mình tạo, đơn mình
+    lên hay đứng đơn, dòng mình được giao chăm sóc; CSKH qua dòng được giao chăm sóc. Điều kiện cũ đòi phòng của
+    **chính người dùng** là `sale` (hay `cskh` với chăm sóc), nên người phòng khác không bao giờ khớp — với họ trả
+    None, khỏi một truy vấn con quét mọi dòng vận đơn (0,4 s ở 385.000 dòng, mỗi trang KN CRM, AC-10.23). Với Sale/CSKH,
+    một `EXISTS` có OR qua JOIN đơn hàng và phân công tách thành từng `EXISTS` đi theo chỉ mục — cùng tập bảng.
+    Dòng đã xoá không tính, đơn đã xoá vẫn tính (như cách cũ: JOIN không lọc xoá mềm của đơn)."""
+    from .models import DataRecord
+    from orders.models import Order, WaybillAssignment
+    ho_so = getattr(user, "profile", None)
+    phong = getattr(getattr(ho_so, "department", None), "code", None) if ho_so is not None else None
+    dieu_kien = []
+    if phong == "sale":
+        dieu_kien.append(Exists(DataRecord.objects.filter(waybill_condition(), table_id=OuterRef("pk"),
+                                                          created_by_id=user.pk)))
+        dieu_kien.append(Exists(Order.all_objects.filter(
+            Q(created_by_id=user.pk) | Q(seller_id=user.pk), waybill_condition("record__table__"),
+            record__table_id=OuterRef("pk"), record__deleted_at__isnull=True)))
+    if phong in ("sale", "cskh"):
+        dieu_kien.append(Exists(WaybillAssignment.objects.filter(
+            waybill_condition("record__table__"), care_id=user.pk, record__table_id=OuterRef("pk"),
+            record__deleted_at__isnull=True)))
+    if not dieu_kien:
+        return None
+    gop = Q(dieu_kien[0])
+    for them in dieu_kien[1:]:
+        gop |= Q(them)
+    return gop
 
 
 class TableDefManager(models.Manager.from_queryset(TableDefQuerySet)):

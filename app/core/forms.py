@@ -29,7 +29,8 @@ class LoginForm(AuthenticationForm):
         username = self.cleaned_data.get("username")
         if username:
             nguoi_dung = auth_service.find_user(username)
-            if nguoi_dung and auth_service.is_locked(nguoi_dung):
+            # Giữ chỗ lần thử trước khi kiểm mật khẩu — đang khoá thì không kiểm (AC-1.9)
+            if nguoi_dung and not auth_service.reserve_attempt(nguoi_dung):
                 phut = max(1, round(auth_service.lock_remaining(nguoi_dung) / 60))
                 raise forms.ValidationError(
                     f"Tài khoản đang bị khoá tạm. Vui lòng thử lại sau {phut} phút."

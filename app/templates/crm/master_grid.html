@@ -10,7 +10,7 @@
     <button class="nut" id="mg-filters-button" aria-expanded="false">Bộ lọc</button>
     <button class="nut" id="mg-columns-button">Cột</button>
     {% if pham_vi_toi %}<div id="mg-pham-vi" class="mg-scope" role="group" aria-label="Phạm vi dòng"><button class="nut" type="button" data-pham-vi="toi" aria-pressed="{{ luoi.my_scope|yesno:'true,false' }}" title="Chỉ dòng tôi phụ trách">Tôi</button><button class="nut" type="button" data-pham-vi="toan_bo" aria-pressed="{{ luoi.my_scope|yesno:'false,true' }}" title="Mọi dòng trong quyền xem">Toàn bộ</button></div>{% endif %}
-    <div id="mg-chips" class="mg-chips">{% for label, url, an in chips %}<a href="{{ url }}"{% if an %} class="mg-chip-an" title="Bộ lọc trỏ tới cột đang ẩn với cả công ty — vẫn lọc, bấm × để bỏ"{% endif %}>{{ label }} ×</a>{% endfor %}</div>
+    <div id="mg-chips" class="mg-chips">{% include 'crm/_master_chips.html' %}</div>
     <button class="nut" id="mg-format-button">Định dạng</button>
     <button class="nut" id="mg-undo" title="Ctrl+Z" disabled>Hoàn tác</button><button class="nut" id="mg-redo" title="Ctrl+Y" disabled>Làm lại</button>
 
@@ -21,6 +21,7 @@
         <button class="nut" id="mg-save" disabled>Lưu dữ liệu <small>Ctrl+S</small></button>
         <button class="nut" id="mg-history-button">Lịch sử</button>
         <button class="nut" id="mg-conflict-button">Xung đột (0)</button>
+        {% if duoc_xoa_dong %}<button class="nut nut-nguy" id="mg-delete-rows" type="button" title="Chỉ Quản trị — ADR-049">Xoá dòng đang chọn</button>{% endif %}
         <details><summary>Nhập/Xuất</summary>
           {% if duoc_nhap %}<a class="nut" href="{% url 'bang_nhap' bang.code %}">Nhập Excel</a>{% endif %}
           <a class="nut" data-query-link href="{% url 'bang_tinh_xuat' bang.code %}?{{ qs_giu }}">Tải Excel</a>
@@ -33,7 +34,8 @@
   </div>
   <div id="mg-message" role="status" hidden></div>
   <div class="mg-workspace">
-    <aside id="mg-filters" hidden aria-label="Bộ lọc bảng">{% include 'crm/_master_filters.html' %}</aside>
+    {# Nội dung panel tải khi người dùng mở (`bo-loc/?panel=1`): mở lưới không phải đếm theo sản phẩm, thị trường… #}
+    <aside id="mg-filters" hidden aria-label="Bộ lọc bảng"><div id="mg-filters-body"><p class="mg-filters-tai" role="status">Đang tải bộ lọc…</p></div></aside>
     <div id="mg-viewport" class="mg-viewport" role="grid" tabindex="0" aria-label="{{ bang.name }}" aria-multiselectable="true">
       <div id="mg-canvas" class="mg-canvas"></div>
     </div>
@@ -45,6 +47,7 @@
 {# Lịch sử từng ô (AC-21.13, 28.09): chuột phải một ô thì khung này hiện ngay cạnh ô #}
 <div id="mg-cell-history" class="mg-float mg-cell-history" role="dialog" aria-label="Lịch sử ô" hidden><button class="mg-close" type="button" data-master-close="mg-cell-history" aria-label="Đóng lịch sử ô">×</button><strong></strong><div class="mg-cell-history-list"></div></div>
 <form id="mg-editor" class="mg-float mg-editor mg-inline-editor" hidden aria-label="Sửa ngay trong ô"><button class="mg-close" type="button" data-master-close="editor" aria-label="Đóng ô nhập">×</button><strong></strong><div id="mg-input"></div><div class="mg-editor-actions"><button class="nut nut-chinh" type="submit">Xong</button><button class="nut" type="button" id="mg-cancel">Hủy</button></div></form>
+{% if duoc_xoa_dong %}<dialog id="mg-xoa-dong" class="mg-dialog mg-tools-dialog" aria-labelledby="mg-xoa-dong-title"><header class="mg-dialog-head"><h2 id="mg-xoa-dong-title">Xoá dòng đang chọn?</h2><button class="mg-close" type="button" data-choice="cancel" aria-label="Huỷ">×</button></header><div class="mg-dialog-body"><p>Xoá <b id="mg-xoa-dong-so">0</b> dòng. Dòng chỉ được đánh dấu xoá, dữ liệu vẫn giữ.</p>{% if waybill_profile %}<p class="vd-note">Đơn gốc của các dòng này cũng bị bỏ. Khôi phục dòng thì đơn sống lại.</p>{% endif %}<p class="vd-note">Hoàn tác ngay bằng Ctrl+Z hoặc nút Hoàn tác.</p><div class="vd-actions"><button class="nut" type="button" data-choice="cancel">Huỷ</button><button class="nut nut-nguy" type="button" data-choice="delete">Xoá dòng</button></div></div></dialog>{% endif %}
 <dialog id="mg-columns" class="mg-dialog"><header class="mg-dialog-head"><h2>Cột hiển thị</h2><button class="mg-close" type="button" data-master-close="mg-columns" aria-label="Đóng cột hiển thị">×</button></header><div class="mg-dialog-body" id="mg-column-list"></div></dialog>
 <dialog id="mg-format" class="mg-dialog mg-tools-dialog" aria-labelledby="mg-format-title"><header class="mg-dialog-head"><h2 id="mg-format-title">Định dạng vùng chọn</h2><button class="mg-close" data-master-close="mg-format" aria-label="Đóng định dạng">×</button></header><div class="mg-dialog-body" id="mg-format-body"></div></dialog>
 <dialog id="mg-history" class="mg-dialog mg-tools-dialog" aria-labelledby="mg-history-title"><header class="mg-dialog-head"><h2 id="mg-history-title">Lịch sử dòng</h2><button class="mg-close" data-master-close="mg-history" aria-label="Đóng lịch sử">×</button></header><div class="mg-dialog-body" id="mg-history-body"></div></dialog>

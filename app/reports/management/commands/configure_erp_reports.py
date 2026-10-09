@@ -4,6 +4,7 @@ from django.db import transaction
 from django.db.models import Q
 
 from forms_builder.models import ColumnDef, FieldDef, FormDef, FormField, FormTableLink, TableDef
+from forms_builder.services import table_service
 from orders.constants import Market
 from org.models import Department
 from reports.constants import (CUSTOMER_SEGMENT_COLUMN, CUSTOMER_SEGMENT_DEFAULTS,
@@ -209,5 +210,8 @@ class Command(BaseCommand):
         for code, kind in SOURCES:
             table = TableDef.objects.filter(code=code, is_active=True).first()
             if table is not None:
+                truoc = table_service.schema_signature(table)
                 configure_source(table, kind)
+                # Cột mới mang nhãn hay công thức: dòng báo cáo cũ được tính lại, không lặng lẽ thiếu số
+                table_service.resync_if_changed(table, truoc)
                 self.stdout.write(f"Configured {code}; existing report rows unchanged")

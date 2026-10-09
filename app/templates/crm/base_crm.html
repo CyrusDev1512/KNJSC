@@ -24,6 +24,7 @@
 </script>
 {% block dau_trang %}{% endblock %}
 <link rel="stylesheet" href="{% static 'css/solarpunk.css' %}?v={{ phien_ban_tinh }}">
+<script src="{% static 'js/loi-mang.js' %}?v={{ phien_ban_tinh }}" defer></script>
 <script src="{% static 'js/date-inputs.js' %}?v={{ phien_ban_tinh }}" defer></script>
 </head>
 <body class="sp-crm">
@@ -134,6 +135,7 @@ tính sẵn ở Python.
 </script>
 
 <script src="{% static 'js/htmx.min.js' %}?v={{ phien_ban_tinh }}" defer></script>
+<script src="{% static 'js/phan-trang.js' %}?v={{ phien_ban_tinh }}" defer></script>
 {% block cuoi_trang %}{% endblock %}
 {% endif %}
 </body>

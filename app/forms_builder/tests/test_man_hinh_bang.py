@@ -195,7 +195,7 @@ def test_sap_xep_bang_htmx_chi_tra_khoi_bang_va_van_chan_quyen(client, bang_sale
     kq = client.get("/bang/don_sale/", {"sap": "doanh_thu"}, **htmx)
     html = kq.content.decode()
     assert kq.status_code == 200
-    assert html.lstrip().startswith('<div id="bang-du-lieu">') and "<html" not in html.lower()
+    assert html.lstrip().startswith('<div id="bang-du-lieu"') and "<html" not in html.lower()
     assert [bg.val_revenue for bg in kq.context["page_obj"]] == [Decimal("100.00"), Decimal("300.00")]
     assert 'hx-target="#bang-du-lieu"' in html and 'aria-sort="ascending"' in html
     # Không qua HTMX thì vẫn cả trang như cũ
@@ -393,7 +393,9 @@ def test_phan_trang_va_sap_xep_giu_bo_loc(client, bang_sale, nguoi_dung):
     r = client.get("/bang/don_sale/", {"tim": "Khách", "f_nguoi_ban": "Sale A", "moi_trang": "25", "sap": "khach", "chieu": "giam"})
     html = r.content.decode()
     assert r.context["page_obj"].paginator.count == 30 and r.context["page_obj"].paginator.num_pages == 2
-    trang_2 = re.search(r'href="(\?trang=2[^"]*)"', html).group(1).replace("&amp;", "&")
+    # Liên kết trang giữ mọi tham số của URL, chỉ thay số trang (AC-10.18) — thứ tự tham số không còn cố định
+    trang_2 = next(h for h in (x.replace("&amp;", "&") for x in re.findall(r'(?<!data-)href="(\?[^"]+)"', html))
+                   if parse_qs(urlsplit(h).query).get("trang") == ["2"])
     assert parse_qs(urlsplit(trang_2).query) == {"trang": ["2"], "moi_trang": ["25"], "tim": ["Khách"],
                                                  "f_nguoi_ban": ["Sale A"], "sap": ["khach"], "chieu": ["giam"]}
     sap_doanh_thu = re.search(r'href="(\?sap=doanh_thu[^"]*)"', html).group(1).replace("&amp;", "&")

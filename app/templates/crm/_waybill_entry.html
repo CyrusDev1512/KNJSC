@@ -6,6 +6,8 @@
   {% if error %}<p role="alert" class="vd-error">{{ error }}</p>{% endif %}
   <form data-order-preview="{% url 'waybill_preview' %}" method="post" action="{% url 'waybill_create' %}" hx-post="{% url 'waybill_create' %}" hx-target="#vd-entry" hx-swap="outerHTML">
     {% csrf_token %}
+    {# Mã lần nộp dùng một lần: gửi lại đúng lần này không tạo đơn mới (AC-6.11) #}
+    <input type="hidden" name="ma_lan_nop" value="{{ ma_lan_nop }}">
     <div class="vd-fields">
       <div class="truong"><label for="order-date">Ngày giờ (Việt Nam)</label><input id="order-date" class="o-nhap" type="text" value="{{ order_date|date:'d/m/Y H:i' }}" data-order-clock="{{ order_date|date:'c' }}" readonly aria-describedby="order-date-help"><small id="order-date-help">Tự ghi thời điểm thực tế khi lưu đơn.</small></div>
       {% for field in form %}<div class="truong"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>{{ field }}{{ field.errors }}</div>{% endfor %}

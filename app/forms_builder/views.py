@@ -9,6 +9,7 @@ Hai tầng phạm vi khác nhau, đừng lẫn:
 - `TableDef.objects.in_scope()` — ai thấy *định nghĩa* bảng nào
 - `DataRecord.objects.in_scope()` — ai thấy *bản ghi* nào trong bảng đó
 """
+from core.lien_ket import crm_url
 from core.permissions import assert_business_write, can_manage_business, is_company_reader
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -17,7 +18,6 @@ from django.http import Http404
 from django.db.models import Count, prefetch_related_objects
 from io import BytesIO
 
-from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST, require_GET
@@ -143,9 +143,11 @@ def bang_cot(request, code):
     bang_hien = _lay_bang(request, code)
     _kiem_sua_cau_truc(request, bang_hien)
 
-    sua_pk = request.GET.get("cot")
+    sua_pk = (request.GET.get("cot") or "").strip()
     dang_sua = None
     if sua_pk:
+        if not sua_pk.isdigit():   # `?cot=abc` là 404, không để nổ ValueError thành 500 (AC-10.16)
+            raise Http404
         dang_sua = get_object_or_404(ColumnDef, pk=sua_pk, table=bang_hien)
 
     form = ColumnForm(request.POST or None, instance=dang_sua, table=bang_hien)
@@ -256,7 +258,7 @@ def bang_xem(request, code):
         "duoc_sua": grant_service.can_manage_columns(request.user, bang_hien),
         "duoc_nhap": grant_service.can_import(request.user, bang_hien),
         # Nơi sửa duy nhất: lưới KN CRM của đúng bảng này — ADR-012, ADR-014
-        "bang_tinh_url": _bang_tinh_url(bang_hien),
+        "bang_tinh_url": _bang_tinh_url(request, bang_hien),
         "cac_dong": cac_dong,
     })
     # Bấm tiêu đề cột để sắp xếp: HTMX chỉ thay khối bảng, trang không tải lại (AC-7.13)
@@ -265,14 +267,14 @@ def bang_xem(request, code):
     return render(request, "forms_builder/bang_xem.html", boi_canh)
 
 
-def _bang_tinh_url(bang):
+def _bang_tinh_url(request, bang):
     """Lưới KN CRM của bảng này, hoặc None khi CRM không phục vụ bảng (ADR-040: chỉ bảng vận đơn) — khi đó Bảng dữ
     liệu không hiện nút nào sang KN CRM, vì bấm vào là 404 (AC-40.7)."""
     from orders.constants import is_waybill_table
 
     if not is_waybill_table(bang):
         return None
-    return settings.BANGTINH_URL.rstrip("/") + f"/bang-tinh/{bang.code}/"
+    return crm_url(request).rstrip("/") + f"/bang-tinh/{bang.code}/"
 
 
 def _tham_so_bao_cao(request, nguon):
@@ -305,7 +307,7 @@ def _bang_bao_cao(request, bang_hien, nguon):
         "query": request.GET.urlencode(), "qs_loc": ("&" + giu.urlencode()) if giu else "",
         "duoc_sua": grant_service.can_manage_columns(request.user, bang_hien),
         "duoc_nhap": grant_service.can_import(request.user, bang_hien),
-        "bang_tinh_url": _bang_tinh_url(bang_hien),
+        "bang_tinh_url": _bang_tinh_url(request, bang_hien),
         "empty": True,
     }
     boi_canh["people"], boi_canh["teams"] = activity_service.people_choices(request.user, nguon)
