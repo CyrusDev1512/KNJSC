@@ -276,7 +276,7 @@ def save(user, table, payload, *, request=None):
         if row.pk in created_ids:continue
         prop = c.get('property', 'value')
         current = row.data.get(column.code) if prop == 'value' else (row.style or {}).get(column.code, {}).get(prop)
-        if current != c['old']:
+        if not record_service.same_value(current, c['old']):
             conflicts.append({**c, 'current': current, 'name': column.name})
         if prop == 'value':
             changes.append((row, column.code, c['value']))

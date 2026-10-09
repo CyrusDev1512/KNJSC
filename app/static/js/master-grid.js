@@ -232,7 +232,11 @@
     state.pending.set(number, {controller, promise, speculative, viewportOwned:speculative||viewportOwned}); return promise;
   }
   function loadViewport(start,end) {
-    if(!state.total||state.lastError||state.unavailable)return;
+    if(state.lastError||state.unavailable)return;
+    // Vùng xem rỗng (bảng không có dòng nháp như Vận đơn) vẫn phải đọc lại khối đầu sau invalidate: không thì Ctrl+Z
+    // khôi phục, lượt hỏi "có gì mới" hay tải lại vùng xem không bao giờ thấy dòng quay lại (TL-77). Khối đầu đã đệm thì
+    // loadBlock trả ngay, không lặp tải.
+    if(!state.total){loadBlock(0,false,true).catch(()=>{});return;}
     // Sau nhảy xa chỉ ưu tiên vùng thực sự nhìn thấy, chưa tải cả overscan.
     const first=Math.floor((prefetchPaused?geometry.at(viewport.scrollTop):start)/BLOCK);
     const last=Math.floor((prefetchPaused?geometry.at(viewport.scrollTop+viewport.clientHeight-HEADER-1):Math.max(start,end-1))/BLOCK);

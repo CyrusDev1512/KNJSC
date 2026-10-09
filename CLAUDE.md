@@ -1,6 +1,6 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
+> Cập nhật 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
 > `main` → VPS**; Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền, nhánh việc gộp xong là
 > xoá); 25.09.2026 (ADR-043 bổ sung: một ô Team duy nhất trên form báo cáo); 24.09 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
 > chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
@@ -112,9 +112,11 @@ tạo ra một bản VPS không ai biết trong đó có gì.
   hostname ERP và CRM, năm container `crm`, `erp`, `worker`, `heavy`, `beat` cùng một
   image tag bất biến `knjsc-app:<commit>-<nhãn>`, DB 1,25 GB. **Phát hành do Codex hoặc
   Claude Code CLI** làm khi chủ dự án yêu cầu, chạy trên máy có SSH tới VPS (máy chủ dự án
-  hoặc máy Windows của chủ dự án): backup và phục hồi thử, build image, `manage.py check`,
-  `migrate`, `tao_bang_van_don`, `configure_erp_reports`, `configure_delivery_daily_report`,
-  `collectstatic`, `up -d`, `nginx -t` rồi reload, kiểm domain thật. Làm theo khuôn
+  hoặc máy Windows của chủ dự án): backup và phục hồi thử, build image, `check --deploy --fail-level WARNING`
+  (crm và erp), **dừng các dịch vụ ghi** rồi mới `migrate` (có `lock_timeout`), `tao_bang_van_don`,
+  `configure_erp_reports`, `configure_delivery_daily_report`, `collectstatic --clear`, `up -d --no-deps`,
+  `nginx -t` rồi reload, kiểm domain thật. Dãy và cách quay lui đã diễn tập 08.10 ở README; cách quay lui cũ để static
+  mới chạy trên server cũ ([biên bản diễn tập](docs/kiem-chung-dien-tap-phat-hanh-staging-20261008.md)). Làm theo khuôn
   [biên bản 29.09](docs/kiem-chung-phat-hanh-vps-20260929.md) và
   [deploy/production/README.md](deploy/production/README.md); mỗi lượt một biên bản
   `docs/kiem-chung-phat-hanh-vps-<ngày>.md`. Không ghi địa chỉ, cổng hay khoá SSH vào kho.
