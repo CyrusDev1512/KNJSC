@@ -1,11 +1,12 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
-## 08.10.2026 — Kiểm toàn diện `Staging` `450b6da` trước khi gộp `main` (TL-76 → TL-78, chưa sửa)
+## 08.10.2026 — Kiểm toàn diện `Staging` `450b6da` trước khi gộp `main` (TL-76 → TL-78, đã sửa cùng ngày)
 
-Theo yêu cầu chủ dự án, lượt này chỉ kiểm và báo; ba lỗi dưới **chưa sửa**. Biên bản:
+Lượt kiểm chỉ kiểm và báo; chủ dự án bảo sửa luôn cả ba (nhánh `claude/sua-tl-76-77-78`,
+[biên bản sửa](kiem-chung-sua-tl76-tl78-20261008.md)). Biên bản kiểm:
 [kiem-chung-staging-len-main-20261008.md](kiem-chung-staging-len-main-20261008.md).
 
-**TL-76 (mở) — mức vừa, cập nhật lên mã có `forms_builder/0017`:** dữ liệu đang có hai dòng vận đơn chưa xoá cùng mã
+**TL-76 (đóng) — mức vừa, cập nhật lên mã có `forms_builder/0017`:** dữ liệu đang có hai dòng vận đơn chưa xoá cùng mã
 đơn thì cập nhật kẹt, và cách gỡ mà lời báo chỉ ra không làm được.
 - **Thấy gì:**
   - `migrate` dừng đúng, liệt kê mã trùng, `forms_builder` không đổi dở (`core/0007` vẫn áp, vô hại).
@@ -30,24 +31,35 @@ Theo yêu cầu chủ dự án, lượt này chỉ kiểm và báo; ba lỗi dư
      trước `migrate`.
   2. Đổi lời báo của `0017` theo cách gỡ làm được: lệnh dọn trùng chạy trước `migrate`, hoặc quay về mã cũ để dọn trên lưới.
   3. Hướng dẫn phát hành và launcher: rà trùng trước khi cập nhật bất kỳ máy nào.
+- **Đã sửa 08.10 (AC-36.15, AC-36.16):**
+  - `kiem_tra_du_lieu` thấy DB chưa có khoá mã đơn thì chỉ rà mã trùng, đúng điều kiện của `0017`, đọc thẳng `data`.
+    `--sua` giữ dòng gắn đơn gốc (không có thì dòng tạo trước), đổi mã dòng thừa thành `TRUNG-<số dòng>-<mã cũ>`,
+    ghi nhật ký từng dòng.
+  - `migrate` dừng **trước khi áp migration nào** (`pre_migrate`, `integrity_service.chan_migrate_khi_trung_ma`),
+    nêu mã trùng và lệnh `kiem_tra_du_lieu --sua` kèm cách chạy ở máy local. `0017` giữ nguyên (quy tắc 5).
+  - `deploy/production/README.md` ghi bước gỡ cạnh `migrate`.
 
-**TL-77 (mở) — mức nhẹ, lưới Vận đơn (#99):** Admin xoá dòng khi lưới đang tìm hay lọc chỉ còn đúng dòng đó, rồi bấm
+**TL-77 (đóng) — mức nhẹ, lưới Vận đơn (#99):** Admin xoá dòng khi lưới đang tìm hay lọc chỉ còn đúng dòng đó, rồi bấm
 Ctrl+Z. Máy chủ khôi phục đúng: dòng và đơn gốc sống lại, lưới báo "Đã khôi phục 1 dòng.". Nhưng lưới vẫn ghi "0 dòng
 khớp bộ lọc", không hiện lại dòng cho tới khi tải lại trang.
 - Không lọc, hay lọc còn nhiều dòng: Ctrl+Z hiện lại đúng (10.001 → 10.002 dòng).
 - **Tái hiện:** `quantri` mở `/bang-tinh/van_don/?tim=Khách thử lượt 08.10` (1 dòng) → chọn dòng → Xoá dòng → còn 0 →
   Ctrl+Z → sau 12 giây vẫn 0 → tải lại trang thì ra 1.
 - **Vì sao CI không bắt:** `tests/e2e/test_admin_xoa_dong.py` xoá 2 trong 3 dòng rồi hoàn tác, lưới chưa lúc nào rỗng.
-- **Cách sửa đề xuất (chưa làm):** khôi phục xong mà vùng đang xem rỗng thì đọc lại khối đầu. Thêm bài e2e: xoá hết dòng
-  đang lọc rồi Ctrl+Z.
+- **Gốc:** `loadViewport` trả về ngay khi `state.total === 0`; bảng vận đơn không có dòng nháp nên vùng xem đã rỗng thì
+  không ai đọc lại khối đầu sau `invalidate()`. Cùng gốc làm lượt hỏi "có gì mới", `refresh()` và nút tải lại vùng
+  xem cũng kẹt khi vùng rỗng.
+- **Đã sửa 08.10 (AC-21.20):** vùng xem rỗng thì `loadViewport` đọc lại khối đầu (đã đệm thì trả ngay, không lặp tải).
+  Bài e2e mới đỏ trên mã cũ (quá 6 giây không hiện lại), xanh sau sửa.
 
-**TL-78 (mở, có từ trước) — mức nhẹ, ERP Bảng dữ liệu:** `sale.manager` thấy nút "Cột" của bảng `van_don` ở danh sách
+**TL-78 (đóng, có từ trước) — mức nhẹ, ERP Bảng dữ liệu:** `sale.manager` thấy nút "Cột" của bảng `van_don` ở danh sách
 `/bang/`, bấm vào thì 403.
 - `main` cũng vậy (đã chạy mã `main` trên cùng dữ liệu): nút hiện theo quyền chung `_duoc_sua_bang(user)`, còn trang Cột
   kiểm quyền theo từng bảng (`can_manage_columns`).
 - Lượt 04.10 không thấy vì dữ liệu mẫu khi đó chưa cho Sale dòng vận đơn nào, nên `van_don` chưa nằm trong danh sách của
   Sale. Lượt này `nap_du_lieu_van_don` gán dòng cho Sale.
-- **Cách sửa đề xuất (chưa làm):** danh sách hiện nút "Cột" theo `can_manage_columns(user, b)` của từng bảng.
+- **Đã sửa 08.10 (AC-40.8):** `bang()` gắn `duoc_sua_cot = can_manage_columns(user, b)` cho từng bảng của trang
+  (không thêm truy vấn); nút "Tạo bảng" vẫn theo quyền chung.
 
 ## 07.10.2026 — Đầu trang Báo cáo tổng hợp gọn, menu ⋯ (AC-42.18 → 42.21); bảng hụt 96 px khi thu thanh menu (TL-74)
 

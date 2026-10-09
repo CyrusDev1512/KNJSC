@@ -11,9 +11,16 @@ thấy số sai. Năm phép rà, mỗi phép trả `(số chỗ lệch, vài ví
 4. **Cột `sl_*` lệch Chi tiết sản phẩm** (`WaybillItem` còn sống) — chỉ để biết, **không** tính vào mã thoát: cột ẩn
    mặc định và chưa có đường nào giữ nó theo Chi tiết (sửa Chi tiết trên lưới, `nap_du_lieu_van_don` đều không ghi).
 5. **Giá trị ngoài danh sách chọn** của cột Chọn một (danh sách bị sửa sau khi đã nhập).
+
+**Trước migration `forms_builder/0017`** (mã mới vừa cập nhật, DB chưa có cột khoá mã đơn) chỉ phép rà mã đơn trùng
+chạy được — các phép khác nạp cả dòng `DataRecord`, gồm cột chưa có. Lúc đó lệnh rà đúng như migration sẽ rà, và
+`--sua` đổi mã các dòng thừa để migrate chạy được (TL-76). `migrate` cũng dừng sớm với lời chỉ cách gỡ này
+(`chan_migrate_khi_trung_ma`, nối ở `orders/apps.py`), thay vì dừng giữa chừng ở `0017`.
 """
 from collections import defaultdict
 
+from django.core.management.base import CommandError
+from django.db import connections, transaction
 from django.db.models import Count, Q
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Trim
@@ -124,8 +131,111 @@ def ngoai_danh_sach(table):
     return kq
 
 
+#: Migration tạo cột khoá mã đơn và ràng buộc mỗi mã một dòng sống
+MIGRATION_KHOA_MA_DON = ("forms_builder", "0017_datarecord_val_order_code")
+TIEN_TO_DOI_MA = "TRUNG"
+
+# Cùng điều kiện, cùng khoá với `forms_builder/0017` (điền khoá rồi rà trùng), đọc thẳng `data` nên chạy được trên DB
+# chưa có cột khoá: rà trước đúng như migration sẽ rà. Kể cả bảng vận đơn đã xoá mềm, như migration.
+_SQL_MA_TRUNG = """
+SELECT r.table_id, left(btrim(coalesce(r.data->>'ma_don', '')), 200) AS ma, array_agg(r.id ORDER BY r.id)
+FROM forms_builder_datarecord r JOIN forms_builder_tabledef t ON t.id = r.table_id
+WHERE (t.code = 'van_don' OR t.workflow = 'waybill') AND r.deleted_at IS NULL
+  AND btrim(coalesce(r.data->>'ma_don', '')) <> ''
+GROUP BY r.table_id, left(btrim(coalesce(r.data->>'ma_don', '')), 200)
+HAVING count(*) > 1
+ORDER BY 2
+"""
+
+
+def chua_co_khoa_ma_don(using="default"):
+    """DB chưa chạy `forms_builder/0017`: bảng dòng chưa có cột `val_order_code` (mã mới chạy trên lược đồ cũ)."""
+    ket_noi = connections[using]
+    with ket_noi.cursor() as cursor:
+        if DataRecord._meta.db_table not in ket_noi.introspection.table_names(cursor):
+            return False
+        cot = ket_noi.introspection.get_table_description(cursor, DataRecord._meta.db_table)
+    return "val_order_code" not in {c.name for c in cot}
+
+
+def nhom_ma_trung(using="default"):
+    """Các nhóm dòng sống cùng mã đơn trong một bảng vận đơn: `[{"table_id", "ma", "ids"}]`, id tăng dần."""
+    with connections[using].cursor() as cursor:
+        cursor.execute(_SQL_MA_TRUNG)
+        return [{"table_id": bang, "ma": ma, "ids": list(ids)} for bang, ma, ids in cursor.fetchall()]
+
+
+def doi_ma_trung(nhom, on_line=print, using="default"):
+    """Mỗi nhóm trùng giữ một dòng, đổi mã các dòng thừa thành `TRUNG-<số dòng>-<mã cũ>` — không xoá, không mất dữ
+    liệu; người dùng sửa lại mã đúng trên lưới sau khi cập nhật (lọc Mã đơn bắt đầu bằng `TRUNG-`).
+
+    Giữ dòng gắn đơn gốc mang đúng mã đó (mã đơn hàng là duy nhất nên nhiều nhất một dòng như vậy), không có thì giữ
+    dòng tạo trước. Ghi bằng SQL trên `data` để chạy được trước `0017`; mỗi dòng đổi một dòng nhật ký. Trả số dòng đã đổi.
+    """
+    from core.audit import record
+    from core.constants import AuditAction
+
+    so = 0
+    with transaction.atomic(using=using), connections[using].cursor() as cursor:
+        for g in nhom:
+            giu = (Order.all_objects.using(using).filter(record_id__in=g["ids"], code=g["ma"])
+                   .values_list("record_id", flat=True).first()) or g["ids"][0]
+            for pk in g["ids"]:
+                if pk == giu:
+                    continue
+                moi = f"{TIEN_TO_DOI_MA}-{pk}-{g['ma']}"[:200]
+                cursor.execute(
+                    f"UPDATE {DataRecord._meta.db_table} SET data = jsonb_set(data, '{{ma_don}}', to_jsonb(%s::text)), "
+                    "updated_at = now() WHERE id = %s", [moi, pk])
+                record(AuditAction.UPDATE, target=("DataRecord", pk), actor_label="kiem_tra_du_lieu",
+                       detail=f"Đổi mã đơn trùng {g['ma']} → {moi}, giữ dòng #{giu} (trước migration 0017)")
+                on_line(f"  Đổi mã dòng #{pk}: {g['ma']} → {moi} (giữ dòng #{giu})")
+                so += 1
+    return so
+
+
+def _truoc_khoa_ma_don(*, fix, on_line):
+    on_line("Cơ sở dữ liệu chưa chạy migration forms_builder 0017 (khoá mã đơn): chỉ rà mã đơn trùng.")
+    nhom = nhom_ma_trung()
+    if nhom and fix:
+        so = doi_ma_trung(nhom, on_line)
+        on_line(f"  Đã đổi mã {so} dòng thừa. Sau khi cập nhật, sửa lại mã đúng trên lưới: lọc Mã đơn bắt đầu bằng "
+                f"{TIEN_TO_DOI_MA}-.")
+        nhom = nhom_ma_trung()
+    vi_du = "; ".join(f"{g['ma']} ({len(g['ids'])} dòng)" for g in nhom[:VI_DU])
+    on_line(f"  {'LỆCH' if nhom else 'ĐẠT'} · mã đơn trùng (dòng chưa xoá): {len(nhom)}" + (f" — {vi_du}" if vi_du else ""))
+    on_line("  Chạy `python manage.py kiem_tra_du_lieu --sua` để đổi mã các dòng thừa, rồi chạy migrate." if nhom
+            else "  Không còn mã đơn trùng: chạy migrate được.")
+    return len(nhom)
+
+
+def chan_migrate_khi_trung_ma(sender, plan=None, using="default", **kwargs):
+    """`pre_migrate` của forms_builder: kế hoạch có `0017` (chiều xuôi) mà dữ liệu còn mã đơn trùng thì dừng ngay, trước
+    khi áp migration nào, kèm cách gỡ chạy được trên DB cũ (TL-76). Không có `0017` trong kế hoạch (DB đã nâng cấp)
+    hay bảng chưa có (DB mới) thì không làm gì."""
+    app, ten = MIGRATION_KHOA_MA_DON
+    if not any(m.app_label == app and m.name == ten and not lui for m, lui in (plan or [])):
+        return
+    ket_noi = connections[using]
+    with ket_noi.cursor() as cursor:
+        if DataRecord._meta.db_table not in ket_noi.introspection.table_names(cursor):
+            return
+    nhom = nhom_ma_trung(using)
+    if nhom:
+        raise CommandError(
+            "Bảng vận đơn đang có mã đơn trùng giữa các dòng chưa xoá: "
+            + ", ".join(f"{g['ma']} ({len(g['ids'])} dòng)" for g in nhom[:20])
+            + ". Chưa áp migration nào. Chạy `python manage.py kiem_tra_du_lieu --sua` để đổi mã các dòng thừa thành "
+            f"{TIEN_TO_DOI_MA}-<số dòng>-<mã cũ> (giữ dòng gắn đơn gốc), rồi chạy lại migrate. Máy local: "
+            "docker compose -f deploy/docker-compose.yml run --rm -e RUN_MIGRATIONS=0 web python manage.py "
+            "kiem_tra_du_lieu --sua")
+
+
 def run(*, tables=None, fix=False, on_line=print):
-    """Chạy năm phép rà, in từng dòng qua `on_line`. Trả tổng số chỗ lệch **sau** khi sửa (`fix`)."""
+    """Chạy năm phép rà, in từng dòng qua `on_line`. Trả tổng số chỗ lệch **sau** khi sửa (`fix`).
+    DB chưa có khoá mã đơn (trước `0017`): chỉ rà mã đơn trùng, `fix` thì đổi mã dòng thừa."""
+    if chua_co_khoa_ma_don():
+        return _truoc_khoa_ma_don(fix=fix, on_line=on_line)
     bang = list(tables if tables is not None else TableDef.all_objects.filter(deleted_at__isnull=True).order_by("code"))
     van_don = set(TableDef.all_objects.filter(waybill_condition("")).values_list("pk", flat=True))
     tong = 0

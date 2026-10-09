@@ -68,6 +68,9 @@ docker compose config --quiet
 docker compose up -d db broker cache
 docker compose --profile maintenance run --rm static-owner
 docker compose run --rm crm python manage.py migrate --noinput
+# migrate dừng vì "mã đơn trùng" (lần đầu lên bản có forms_builder/0017): chưa áp gì. Chạy lệnh dưới — đổi mã các dòng
+# thừa thành TRUNG-<số dòng>-<mã cũ>, giữ dòng gắn đơn gốc — rồi migrate lại (TL-76):
+# docker compose run --rm crm python manage.py kiem_tra_du_lieu --sua
 docker compose run --rm crm python manage.py tao_bang_van_don
 # ĐÃ CHẠY một lần khi phát hành ADR-036 (19.09.2026, lần 5) sau backup đã kiểm phục hồi.
 # Chạy lại chỉ in "không có gì để xoá" — đúng, không phải lỗi:

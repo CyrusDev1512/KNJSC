@@ -1,5 +1,19 @@
 # Backlog
 
+## 08.10.2026 — Sửa TL-76, TL-77, TL-78 (AC-36.15, 36.16, AC-21.20, AC-40.8)
+
+- **TL-76:**
+  - `kiem_tra_du_lieu` chạy được trên DB chưa có `0017`: chỉ rà mã đơn trùng.
+  - `--sua` đổi mã dòng thừa thành `TRUNG-<số dòng>-<mã cũ>`, giữ dòng gắn đơn gốc, ghi nhật ký.
+  - `migrate` dừng trước khi áp gì, chỉ đúng lệnh gỡ.
+- **TL-77:** vùng xem rỗng vẫn đọc lại khối đầu, nên Ctrl+Z, lượt hỏi "có gì mới" và tải lại vùng xem đều hiện lại dòng.
+- **TL-78:** nút "Cột" ở danh sách Bảng dữ liệu theo quyền từng bảng.
+- **Còn nợ:**
+  - sau khi cập nhật, ai có dòng `TRUNG-…` thì sửa lại mã đúng trên lưới;
+  - các chỗ có thể sai quyền ghi ở biên bản mục 5, chưa chạy thử, chờ chủ dự án quyết.
+
+[Biên bản](kiem-chung-sua-tl76-tl78-20261008.md). Nhánh `claude/sua-tl-76-77-78` (xếp trên #101).
+
 ## 08.10.2026 — Kiểm toàn diện `Staging` `450b6da` trước khi gộp `main` (chỉ kiểm, không đổi mã)
 
 - Phạm vi: 10 PR #91 → #100 chưa vào `main`, 2 migration mới (`core/0007`, `forms_builder/0017`).
