@@ -190,8 +190,10 @@ và các thao tác khôi phục/hoàn tác giữ lịch sử, không xóa audit.
 có thêm các bản thử này; không nhầm với tăng dữ liệu ngoài dự kiến.
 
 Ảnh và XLSX tải qua UI giữ ngoài Git trong hồ sơ máy kiểm thử: ảnh tổng hợp
-1440 px, form MKT 390 px và ghi chú dòng thử. Ảnh ghi chú cho thấy nội dung nhiều
-dòng, không đưa thông tin khách thật vào PR. XLSX đã tải thành công, chưa mở đối
+1440 px, form MKT 390 px và ghi chú dòng thử. Ảnh ghi chú chụp khi cột đang cuộn
+một phần dưới vùng ghim, không dùng ảnh đó để chứng minh đọc đủ nội dung; DOM
+xác nhận ba dòng và chiều cao ô khi chọn là 66 px. Không đưa thông tin khách thật
+vào PR. XLSX đã tải thành công, chưa mở đối
 chiếu từng ô trên production; kiểm nội dung xuất có bằng chứng diễn tập/CI.
 
 **Chưa kiểm lại qua UI production:** toàn bộ vai trò ngoài Admin, giả lập mất mạng,
@@ -216,3 +218,7 @@ Nhắc người dùng tải lại các trang đang mở, đặc biệt form báo
 300.000 dòng, không tuyên bố hiệu năng đa người dùng từ lưu lượng ít mẫu.
 Tài liệu đi qua nhánh `claude/phat-hanh-vps-e979323` từ Staging đã fetch, PR nháp
 về Staging; không tự merge. Không chứa thông tin kết nối SSH hoặc dữ liệu khách.
+
+Nhánh tài liệu đã push; lệnh tạo PR nháp bị GitHub từ chối:
+`GraphQL: must be a collaborator (createPullRequest)`. Chưa có PR được tạo;
+bàn giao liên kết nhánh và đường so sánh về Staging để chủ dự án tạo PR nháp.
