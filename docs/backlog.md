@@ -12,7 +12,11 @@
   - Mã TL: TL-76 → TL-78 giữ cho #101 và #103. Lượt diễn tập đổi sang TL-79 → TL-85. Lỗi `kiem_tra_du_lieu` trước `0017`
     gộp vào TL-76.
   - README: dùng dãy phát hành của #102. Bước 4 ghi cách gỡ khi `migrate` dừng vì mã trùng.
-  - Kiểm: gộp thử `Staging` + #103 và `Staging` + #102 sau hoà giải, cả hai không xung đột.
+  - Kiểm trên nhánh đã hoà giải:
+    - gộp thử `Staging` + #103 và `Staging` + #102, cả hai không xung đột;
+    - `pytest -m "not trinh_duyet"`: 3.128 đạt, 7 bỏ qua, 0 đỏ (3.127 của #103, thêm bài AC-9.6 của #102, bỏ bài D6);
+    - `makemigrations --check` sạch;
+    - e2e `test_admin_xoa_dong.py`: 3/3.
 - **Còn nợ:**
   - phát hành VPS, do phiên có SSH làm;
   - xoá nhánh `claude/kiem-staging-len-main`: phiên web bị chặn xoá.
