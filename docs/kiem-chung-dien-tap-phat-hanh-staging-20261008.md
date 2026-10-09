@@ -205,7 +205,7 @@ Kịch bản: 10 người dùng Vận đơn, 3 phút, qua nginx HTTPS (đọc kh
 | D3 | Vừa | `up -d` theo README tạo lại DB khi `.env` đổi | `up -d --no-deps crm erp worker heavy beat` |
 | D4 | Vừa | Quay lui thiếu `configure` của bản cũ, nộp MKT hỏng | Viết lại quy trình quay lui (dưới) |
 | D5 | Vừa | Ô lưu chữ NFD (gõ trên Mac) bị 409 ở mọi lần sửa | **Đã sửa:** `record_service.same_value` so ở dạng NFC, dùng ở lưu ô và bỏ chi tiết |
-| D6 | Vừa | `kiem_tra_du_lieu` hỏng khi `0017` chưa áp, đúng lúc lời báo của 0017 chỉ tới nó | **Đã sửa:** bỏ qua phép rà cột tách (ghi rõ), vẫn liệt kê mã trùng; `--sua` không ghi gì |
+| D6 | Vừa | `kiem_tra_du_lieu` hỏng khi `0017` chưa áp, đúng lúc lời báo của 0017 chỉ tới nó | **Đã sửa** bằng bản TL-76 của #103 (hoà giải 09.10, chủ dự án chọn): trước `0017` lệnh chỉ rà mã đơn trùng đúng điều kiện của migration; `--sua` đổi mã dòng thừa thành `TRUNG-<số dòng>-<mã cũ>`, giữ dòng gắn đơn gốc; `migrate` dừng trước khi áp migration nào |
 | D7 | Vừa | Vi phạm ràng buộc mã đơn thì Postgres ghi nguyên câu `UPDATE` có dữ liệu khách vào log (quy tắc 6) | Thêm `-c log_min_error_statement=panic` vào lệnh `db`, ở chỗ VPS đang đặt lệnh đó |
 | D8 | Vừa | `kiem_tra_du_lieu` chạy bằng `exec` trong crm có thể hết RAM khi bảng lớn | Dùng `docker compose run --rm`; đọc theo lô để sau (backlog) |
 | D9 | Vừa | `check --deploy` thường không chặn `BANGTINH_GOC` gõ sai (DEBUG bật) | Luôn chạy `--fail-level WARNING` trên crm và erp |
@@ -239,7 +239,8 @@ Chạy ở `/opt/knjsc-runtime`, mọi lệnh đều với `docker compose -f co
 - Chạy `run --rm --no-deps -e PGOPTIONS='-c lock_timeout=10s' crm python manage.py migrate --noinput`.
 - Thoát khác 0 thì **dừng, không đổi image**:
   - do mã trùng: chạy `kiem_tra_du_lieu` (cần bản sửa D6) hoặc câu SQL 1;
-  - bật lại bản cũ, sửa mã trên lưới, rồi chạy lại.
+  - bật lại bản cũ, sửa mã trên lưới, rồi chạy lại. Có bản sửa D6 (#103) thì `migrate` dừng trước khi áp gì, và thay
+    cho sửa tay có thể dùng image mới chạy `kiem_tra_du_lieu --sua` (đổi mã dòng thừa thành `TRUNG-<số dòng>-<mã cũ>`).
 - Do khoá thì chạy lại.
 
 **5–7. Cấu hình và chuyển image**

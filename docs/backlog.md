@@ -1,5 +1,22 @@
 # Backlog
 
+## 09.10.2026 — `Staging` vào `main` (#104); gộp #101; hoà giải #102 với #103
+
+- **#104:** `Staging` `450b6da` vào `main` bằng merge commit, ra `main` `b55405a`.
+  - Tree `415f4627…` đúng bản đã diễn tập. CI xanh.
+  - VPS chưa phát hành, vì phiên web không tới được VPS. Bước 2–6, kèm 4 câu SQL rà trước, đã bàn giao cho phiên có SSH.
+- **#101** (biên bản kiểm `Staging`) đã vào `Staging`.
+- **Hoà giải #102 với #103:** nhánh `claude/dien-tap-phat-hanh-vps` gộp nhánh của #103. **Thứ tự gộp: #103, rồi #102.**
+  - `kiem_tra_du_lieu` trước `0017`: chủ dự án chọn cách của #103 (`--sua` đổi mã dòng thừa thành `TRUNG-…`).
+    Bỏ bản D6 và bài kiểm D6 của #102.
+  - Mã TL: TL-76 → TL-78 giữ cho #101 và #103. Lượt diễn tập đổi sang TL-79 → TL-85. Lỗi `kiem_tra_du_lieu` trước `0017`
+    gộp vào TL-76.
+  - README: dùng dãy phát hành của #102. Bước 4 ghi cách gỡ khi `migrate` dừng vì mã trùng.
+  - Kiểm: gộp thử `Staging` + #103 và `Staging` + #102 sau hoà giải, cả hai không xung đột.
+- **Còn nợ:**
+  - phát hành VPS, do phiên có SSH làm;
+  - xoá nhánh `claude/kiem-staging-len-main`: phiên web bị chặn xoá.
+
 ## 08.10.2026 — Diễn tập phát hành Staging 450b6da lên VPS (đang c7065fe) trên bản sao giống VPS
 
 - **Đã kiểm.** Diễn tập trên máy ảo với nginx HTTPS hai tên miền, 2 lõi, RAM như VPS, dữ liệu ghi bằng bản cũ. Các phần:
@@ -15,7 +32,7 @@
   - quay lui thiếu `configure` cũ làm nộp MKT hỏng.
 - **Đã sửa mã (TDD):**
   - ô chữ NFD bị 409 mãi (TL-79);
-  - `kiem_tra_du_lieu` hỏng khi 0017 chưa áp (TL-76).
+  - `kiem_tra_du_lieu` hỏng khi 0017 chưa áp (TL-76; hoà giải 09.10 dùng bản sửa của #103).
 - **Hiệu năng, 100k dòng, 2 lõi** (bản mới so với bản cũ):
   - đọc khối lưới p95 310 → 210 ms;
   - lưu ô p95 220 → 100 ms;
