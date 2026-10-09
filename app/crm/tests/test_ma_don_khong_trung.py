@@ -148,3 +148,85 @@ def test_migration_dung_khi_con_ma_trung_va_dao_duoc(bang_vd, nguoi_dung):
     with pytest.raises(BusinessError):
         _dong(bang_vd, vd, "DH-MG-2")
     assert TableDef.all_objects.filter(pk=bang_vd.pk).exists()
+
+
+def _ve_0016_co_trung(bang_vd, nguoi_dung):
+    """Lùi `forms_builder` về 0016 (mã mới chạy trên DB cũ, như lúc vừa cập nhật) rồi tạo trùng có từ trước: dòng thường
+    tạo trước (số dòng nhỏ hơn) mang mã của dòng gắn đơn gốc tạo sau. Trả (dòng thường, dòng gắn đơn, đơn)."""
+    from orders.models import Product, ProductGroup
+    from orders.tests.test_len_don import _len_don
+
+    thuong = _dong(bang_vd, nguoi_dung["staff_vd"], "DH-TAM")
+    nhom = ProductGroup.objects.create(name="Nhóm thử")
+    don = _len_don(nguoi_dung["staff_sale_1"], {"massage": Product.objects.create(name="Máy thử", code="may_thu", group=nhom)})
+    with connection.cursor() as cursor:
+        cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+    MigrationExecutor(connection).migrate([("forms_builder", "0016_datarecord_val_phone_key")])
+    DataRecord.objects.filter(pk=thuong.pk).update(data={**thuong.data, "ma_don": f" {don.code} "})
+    return thuong, don.record, don
+
+
+def _ve_moi_nhat():
+    executor = MigrationExecutor(connection)
+    executor.migrate(executor.loader.graph.leaf_nodes())
+
+
+def _cot_khoa_ma_don():
+    with connection.cursor() as cursor:
+        return "val_order_code" in {c.name for c in connection.introspection.get_table_description(
+            cursor, DataRecord._meta.db_table)}
+
+
+def test_kiem_tra_du_lieu_truoc_0017_liet_ke_va_doi_ma_trung(bang_vd, nguoi_dung, capsys):
+    """AC-36.15 — DB chưa chạy `forms_builder/0017` (mã mới vừa cập nhật): `kiem_tra_du_lieu` không đổ, chỉ rà mã đơn
+    trùng đúng như migration sẽ rà, liệt kê và thoát mã 1; `--sua` giữ dòng gắn đơn gốc, đổi mã dòng thừa thành
+    `TRUNG-<số dòng>-<mã cũ>`, ghi nhật ký từng dòng; sau đó migrate chạy được (TL-76)"""
+    from django.core.management import call_command
+
+    from core.models import AuditLog
+
+    try:
+        thuong, gan_don, don = _ve_0016_co_trung(bang_vd, nguoi_dung)
+        assert not _cot_khoa_ma_don()
+        with pytest.raises(SystemExit) as thoat:
+            call_command("kiem_tra_du_lieu")
+        ra = capsys.readouterr().out
+        assert thoat.value.code == 1
+        assert "chưa chạy migration forms_builder 0017" in ra and f"{don.code} (2 dòng)" in ra and "--sua" in ra
+
+        call_command("kiem_tra_du_lieu", "--sua")
+        ra = capsys.readouterr().out
+        moi = f"TRUNG-{thuong.pk}-{don.code}"
+        assert moi in ra and "Dữ liệu khớp." in ra
+        ma = dict(DataRecord.all_objects.filter(pk__in=[thuong.pk, gan_don.pk]).values_list("pk", "data__ma_don"))
+        assert ma == {thuong.pk: moi, gan_don.pk: don.code}
+        nhat_ky = AuditLog.objects.filter(target_type="DataRecord", target_id=str(thuong.pk), actor_label="kiem_tra_du_lieu")
+        assert nhat_ky.count() == 1 and don.code in nhat_ky.get().detail and moi in nhat_ky.get().detail
+        _ve_moi_nhat()
+    finally:
+        _ve_moi_nhat()
+    assert _cot_khoa_ma_don()
+    assert DataRecord.objects.get(pk=thuong.pk).val_order_code == moi
+
+
+def test_migrate_dung_truoc_khi_ap_khi_con_ma_trung(bang_vd, nguoi_dung):
+    """AC-36.16 — `manage.py migrate` trên DB còn mã đơn trùng dừng trước khi áp bất cứ migration nào, nêu mã trùng và
+    cách gỡ chạy được trên DB cũ (`kiem_tra_du_lieu --sua`), không bảo sửa trên lưới; gỡ xong thì migrate chạy được (TL-76)"""
+    from django.core.management import call_command
+    from django.core.management.base import CommandError
+    from django.db.migrations.recorder import MigrationRecorder
+
+    try:
+        _, _, don = _ve_0016_co_trung(bang_vd, nguoi_dung)
+        with pytest.raises(CommandError) as loi:
+            call_command("migrate", "forms_builder", verbosity=0)
+        assert don.code in str(loi.value) and "kiem_tra_du_lieu --sua" in str(loi.value)
+        assert "trên lưới" not in str(loi.value)
+        assert not MigrationRecorder(connection).migration_qs.filter(
+            app="forms_builder", name="0017_datarecord_val_order_code").exists()
+        assert not _cot_khoa_ma_don()
+        call_command("kiem_tra_du_lieu", "--sua", stdout=__import__("io").StringIO())
+        call_command("migrate", "forms_builder", verbosity=0)
+        assert _cot_khoa_ma_don()
+    finally:
+        _ve_moi_nhat()

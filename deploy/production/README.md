@@ -79,8 +79,11 @@ KNJSC_IMAGE=<mới> docker compose run --rm --no-deps erp python manage.py check
 # 3. Dừng mọi dịch vụ ghi: code cũ chạy trên schema mới sẽ để lọt mã đơn trùng và ghi sai loại tiền MKT
 docker compose stop crm erp worker heavy beat
 docker compose --profile maintenance run --rm static-owner
-# 4. Migrate có lock_timeout. Thoát khác 0 thì DỪNG, không đổi image. Do mã trùng: xem `kiem_tra_du_lieu` hoặc SQL,
-#    bật lại bản cũ, sửa mã trên lưới, chạy lại. Do khoá: chạy lại.
+# 4. Migrate có lock_timeout. Thoát khác 0 thì DỪNG, không đổi image. Do khoá: chạy lại.
+#    Do "mã đơn trùng" (lần đầu lên bản có forms_builder/0017): migrate dừng trước khi áp migration nào (TL-76). Bật lại
+#    bản cũ rồi sửa mã trên lưới, hoặc dùng image mới chạy lệnh dưới — đổi mã các dòng thừa thành
+#    TRUNG-<số dòng>-<mã cũ>, giữ dòng gắn đơn gốc — rồi chạy lại:
+#    KNJSC_IMAGE=<mới> docker compose run --rm --no-deps crm python manage.py kiem_tra_du_lieu --sua
 KNJSC_IMAGE=<mới> docker compose run --rm --no-deps -e PGOPTIONS='-c lock_timeout=10s' crm python manage.py migrate --noinput
 KNJSC_IMAGE=<mới> docker compose run --rm --no-deps crm python manage.py tao_bang_van_don
 # ĐÃ CHẠY một lần khi phát hành ADR-036 (19.09.2026, lần 5) sau backup đã kiểm phục hồi.

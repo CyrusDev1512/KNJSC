@@ -494,6 +494,7 @@ quyền và hợp đồng dữ liệu của AC-18/20. Các bảng khác tiếp t
 | AC-21.17 | CEO đọc toàn công ty mở được lưới và thấy dòng nhưng không ô nào sửa được và ghi bị từ chối 403 — kể cả khi hồ sơ CEO gắn vào chính bộ phận của bảng dùng chung (săn lỗi 06.10.2026, đột biến) | ADR-020 | Tự động |
 | AC-21.18 | **Chỉ Admin xoá dòng trên lưới** (ADR-049, chủ dự án 08.10.2026): Admin chọn dòng (bấm số dòng, Shift để chọn liền), menu "…" → Xoá dòng đang chọn → hộp xác nhận (con trỏ ở Huỷ) → dòng xoá mềm có người xoá, dòng vận đơn kéo theo đơn gốc có nhật ký, lịch sử dòng ghi lại, tổng giảm; Ctrl+Z khôi phục dòng và đơn. Ghi qua `luu-json/` (`delete_rows`/`restore_rows`): một dòng vừa đổi thì cả lượt 409, gửi lại cùng mã thao tác không xoá lần hai, khôi phục khi mã đơn đã có dòng sống thì 400 nêu mã, lượt không kèm sửa ô | ADR-049 · BR-4 | Tự động + trình duyệt |
 | AC-21.19 | Mọi vai không phải Admin (Manager, Leader và Staff Vận đơn; người lên đơn, Leader, Manager Sale; CSKH phụ trách; Kế toán; CEO) không có mục Xoá dòng (`capabilities.delete` = false); gửi thẳng lượt xoá hay khôi phục thì 403 có nhật ký từ chối, dòng và đơn giữ nguyên | ADR-049 · FR-3.5 | Tự động + trình duyệt |
+| AC-21.20 | Lưới đang tìm hay lọc chỉ còn đúng một dòng: Admin xoá dòng đó (lưới rỗng, "0 dòng") rồi Ctrl+Z thì dòng hiện lại ngay, không tải lại trang, không đợi lượt hỏi "có gì mới"; vùng xem rỗng vẫn đọc lại khối đầu sau mọi lần tải lại vùng (TL-77, 08.10.2026) | ADR-049 · TL-77 | Tự động |
 
 ## 23. Bàn điều hành KN CRM — ADR-022
 
@@ -593,6 +594,8 @@ Kế toán giữ tiêu chí cũ trên bảng duy nhất.
 | AC-36.12 | Migration `forms_builder/0017` điền khoá mã đơn cho dòng cũ; còn hai dòng sống cùng mã thì dừng và liệt kê mã, không tạo ràng buộc nửa vời; chạy xuôi, ngược, xuôi được (06.10.2026) | ADR-036 | Tự động |
 | AC-36.13 | `tao_bang_van_don`, `configure_erp_reports` đổi cấu trúc cột (nhãn, kiểu, công thức, nghiệp vụ bảng) thì tính lại cột tách và cột tính sẵn của dòng cũ; cấu trúc không đổi thì không đụng dòng nào (06.10.2026) | ADR-016 · ADR-036 | Tự động |
 | AC-36.14 | Lệnh chỉ đọc `kiem_tra_du_lieu` báo cột tách lệch `data`, giá trị ngoài danh sách chọn, mã đơn trùng, `sl_*` lệch Chi tiết sản phẩm, đơn mồ côi; thoát mã 1 khi còn lệch; `--sua` tính lại cột tách (06.10.2026) | ADR-036 | Tự động |
+| AC-36.15 | DB chưa chạy `forms_builder/0017` mà mã mới đã cập nhật: `kiem_tra_du_lieu` không đổ, chỉ rà mã đơn trùng đúng như migration sẽ rà, liệt kê và thoát mã 1; `--sua` giữ dòng gắn đơn gốc (không có thì dòng tạo trước), đổi mã dòng thừa thành `TRUNG-<số dòng>-<mã cũ>`, ghi nhật ký từng dòng; sau đó migrate chạy được (TL-76, 08.10.2026) | ADR-036 · BR-6 · TL-76 | Tự động |
+| AC-36.16 | `manage.py migrate` trên DB còn mã đơn trùng dừng trước khi áp bất cứ migration nào, nêu mã trùng và cách gỡ chạy được trên DB cũ (`kiem_tra_du_lieu --sua`), không bảo sửa trên lưới; gỡ xong thì migrate chạy được (TL-76, 08.10.2026) | ADR-036 · TL-76 | Tự động |
 ## 37. Mã nhân sự — ADR-037
 
 Bổ sung AC-4.6 và AC-22.10: định danh trên mọi màn hình là **mã nhân sự** (`UserProfile.staff_code`),
@@ -648,6 +651,7 @@ KN ERP, nhưng định nghĩa cột và giá trị từng ô vẫn giữ nguyên
 | AC-40.5 | Mục "Nhật ký" trên thanh bên KN CRM chỉ hiện cho Admin, đúng như trang Nhật ký chỉ Admin mở được (AC-44.2); Manager không thấy mục, gọi thẳng vẫn 403 (kiểm toàn diện 04.10.2026) | AC-44.2 · ADR-040 | Tự động |
 | AC-40.6 | KN CRM không hiện liên kết dẫn tới trang bị từ chối: người không có bảng vận đơn trong phạm vi (Marketing, Sale chưa có đơn) không thấy "Bảng tính" ở thanh bên và trang chủ, nút ← của Lên đơn và "Quay lại" của đơn gốc về trang mở được; Nhập tệp, Cấp quyền không còn "+ Tạo bảng"; mọi liên kết trên trang chủ và các trang của thanh bên mở ra không 403/404 với 9 vai; quyền không đổi | FR-3.6 · ADR-040 | Tự động |
 | AC-40.7 | Bảng dữ liệu KN ERP chỉ có nút "Mở trong KN CRM" và câu "Sửa số liệu ở KN CRM" với bảng vận đơn; bảng thường và bảng báo cáo Sale/MKT không có liên kết nào sang KN CRM (ở đó là 404), bảng báo cáo ghi "Số đã nộp do Leader hoặc quản lý sửa trong Lịch sử báo cáo" | ADR-014 · ADR-040 | Tự động |
+| AC-40.8 | Danh sách Bảng dữ liệu `/bang/` chỉ hiện nút "Cột" ở bảng người xem quản lý được cột (cùng luật trang Cột): quản lý bộ phận khác thấy bảng nhờ được cấp quyền xem hay có dòng vận đơn thì không có nút, trang Cột vẫn 403; quản lý bộ phận sở hữu và Admin có nút (TL-78, 08.10.2026) | ADR-040 · TL-78 | Tự động |
 
 ## 42. Báo cáo tổng hợp như ảnh mẫu — ADR-042
 
