@@ -1,5 +1,21 @@
 # Backlog
 
+## 09.10.2026 — VPS đã chuyển sang main e979323; hoàn tất kiểm chính và theo dõi
+
+- Chủ dự án xác nhận local đạt và duyệt bảo trì ngay. VPS đã chạy
+  `knjsc-app:e979323-main-r2`; tag đầu lỗi quyền entrypoint không được phát hành.
+- Diễn tập nâng cấp/quay lui/tiến lại đạt; backup cuối phục hồi khớp 51 bảng.
+  Ba migration, cấu hình và static đã áp; 44 dòng giữ ID, 11 nhãn tiền MKT đổi VND
+  đúng migration. Không seed hay đổi số tiền/người/ngày nộp.
+- Bảo trì 11:04:01–11:06:26 VN. PostgreSQL đã `log_min_error_statement=panic`
+  (TL-82); năm ứng dụng cùng image mới. Static trên hai domain khớp image.
+- Đủ 15 phút theo dõi: không 5xx/restart/OOM; Admin kiểm nộp MKT/Sale, lịch sử,
+  tổng hợp/XLSX, lên đơn/lưu ô, lọc/toàn màn hình và hoàn tác dòng cuối. Bản thử đã
+  xóa mềm. Các vai khác và ca chưa kiểm trên VPS được ghi riêng trong biên bản.
+- Giữ nợ TL-83, hai đơn mồ côi baseline và các hạng mục ngoài phạm vi.
+
+[Biên bản và giới hạn kiểm chứng](kiem-chung-phat-hanh-vps-20261009.md).
+
 ## 09.10.2026 — `Staging` vào `main` (#104); gộp #101; hoà giải #102 với #103
 
 - **#104:** `Staging` `450b6da` vào `main` bằng merge commit, ra `main` `b55405a`.

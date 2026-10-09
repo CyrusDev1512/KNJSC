@@ -1,5 +1,19 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 09.10.2026 — Phát hành main e979323
+
+**Finished:** build r2, diễn tập nâng/quay lui/tiến lại, backup/restore cuối,
+chuyển năm ứng dụng, ba migration, static, PostgreSQL panic và kiểm hàng đợi.
+Bảo trì 2 phút 25 giây. Không đổi mã nguồn.
+
+**Finished:** theo dõi đủ 15 phút, không 5xx/restart/OOM; Admin kiểm các luồng
+báo cáo, tổng hợp/XLSX và lên đơn/lưu ô/hoàn tác trên domain thật. Bản thử đã xóa
+mềm. Giới hạn vai trò và các ca chưa thao tác trên VPS ghi trong biên bản.
+Tài liệu trên `claude/phat-hanh-vps-e979323`, PR nháp về Staging, không tự gộp.
+
+**To do ngoài lượt này:** TL-83 đọc kiểm toàn vẹn theo lô; xử lý hai đơn mồ côi
+chỉ khi có quyết định dữ liệu riêng. [Biên bản](kiem-chung-phat-hanh-vps-20261009.md).
+
 ## 08.10.2026 — Diễn tập phát hành Staging lên VPS (TL-79 → TL-85)
 
 **Finished local (nhánh `claude/dien-tap-phat-hanh-vps`, PR nháp về `Staging`):**

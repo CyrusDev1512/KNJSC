@@ -1,5 +1,28 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 09.10.2026 — Phát hành e979323-main-r2 trên VPS
+
+- CI đúng SHA: 3.128/65/19 đạt theo ba nhóm; 7/2/9 skip giữ riêng trong biên bản.
+- Diễn tập bằng image r2 trên dữ liệu phục hồi thật: 50 kiểm HTTP quyền,
+  lên đơn/nộp báo cáo chống lặp, NFD/CAS/mã trùng, lịch sử/tổng hợp/XLSX đạt.
+  Mã trùng ở DB probe làm migrate dừng trước cả ba migration.
+- Quay lui image cũ + hai configure + static `--clear`, rồi tiến lại: đạt,
+  không đảo migration hoặc đổi dữ liệu nghiệp vụ.
+- TL-80/81/84/85: dãy phát hành đã dùng static `--clear`, dừng mọi app trước
+  migration, `--no-deps`, check deploy `--fail-level WARNING` cho hai dịch vụ.
+- **TL-82 đã xử lý cấu hình VPS:** SHOW `log_min_error_statement` là `panic`.
+  TL-83 chỉ áp biện pháp chạy trong container riêng, chưa sửa cách đọc theo lô.
+- Lỗi đóng gói của phiên: umask 077 làm entrypoint không đọc được ở image đầu;
+  đã build tag r2 bất biến với mode đúng, không sửa ứng dụng. Script kiểm toàn vẹn
+  dừng ở exit 1 của hai orphan baseline; đã đối chiếu và xử lý exit rõ ràng để tiếp tục.
+- Đủ 15 phút theo dõi, không 5xx/restart/OOM. Một DisallowedHost do request dùng
+  IP bị từ chối 400; một proxy 499 được ghi riêng, không che khỏi biên bản.
+- Admin kiểm nộp MKT/Sale, sửa/bỏ/khôi phục, tổng hợp/XLSX, lên đơn/tự lưu ô,
+  lọc/toàn màn hình/ghi chú và hoàn tác dòng cuối đang lọc. Ba dòng thử đã xóa mềm,
+  giữ audit; các vai khác và ca lỗi chỉ có bằng chứng bản sao/CI được ghi rõ.
+
+[Biên bản](kiem-chung-phat-hanh-vps-20261009.md) ghi backup, số liệu và giới hạn.
+
 ## 08.10.2026 — Diễn tập phát hành Staging 450b6da lên VPS (TL-79 → TL-85)
 
 Diễn tập trên máy ảo giống VPS: nginx HTTPS hai tên miền, 2 lõi, RAM như VPS, dữ liệu ghi bằng bản `c7065fe`. Biên bản:
@@ -27,7 +50,7 @@ và lỗi JS. Tiến lại sau quay lui cũng sót theo chiều ngược. **Các
 
 **Cách sửa:** dừng `crm erp worker heavy beat` trước `migrate`, gián đoạn khoảng 20 s (README đã ghi).
 
-**TL-82 (mở, cấu hình VPS) — mức vừa, quy tắc 6:** vi phạm `record_ma_don_unique` thì Postgres ghi nguyên câu `UPDATE`
+**TL-82 (đã xử lý trên VPS 09.10.2026, cấu hình) — mức vừa, quy tắc 6:** vi phạm `record_ma_don_unique` thì Postgres ghi nguyên câu `UPDATE`
 (giá trị nằm trong câu) vào log, gồm cả nội dung ô. **Cách sửa:** thêm `-c log_min_error_statement=panic` vào lệnh `db`.
 Việc của phiên phát hành, vì VPS có thể đè lệnh `db` trong `compose.vps.yml`.
 
