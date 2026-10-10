@@ -787,3 +787,25 @@ tiền vẫn là VND (ADR-047); cột và dữ liệu cũ giữ. Bổ sung cùng
 | AC-48.5 | Trình duyệt: form Nộp báo cáo Marketing không còn bốn ô; gõ CPQC và Số đơn thì thẻ CPO hiện kèm "VND" (đơn vị lấy từ `data-tien` khi không có ô Loại tiền); bấm Nộp chỉ với các ô số thì lưu được, dòng mang Loại tiền VND; không lỗi JavaScript | ADR-048 · AC-43.6 | Tự động + trình duyệt |
 | AC-48.6 | Thống kê KN CRM nguồn Marketing không còn biểu đồ "Đóng góp theo sản phẩm" (biểu đồ theo Marketer vẫn còn); nguồn Sale vẫn có biểu đồ theo sản phẩm | ADR-048 | Tự động |
 | AC-48.7 | Sau `configure_erp_reports` form Nộp báo cáo Sale không còn ô Ngày ra đơn, chạy lại vẫn không đưa về; cột Ngày ra đơn và dữ liệu cũ giữ nguyên; cờ bắt buộc cấp cột (nếu từng bật tay) bị gỡ; trang nộp Sale không còn ô đó, nộp Sale đủ các ô còn lại vẫn lưu được | ADR-048 bổ sung · ADR-043 | Tự động |
+
+## 50. Admin sửa lần nộp ngay trên Báo cáo tổng hợp — ADR-050
+
+Chủ dự án 10.10.2026: "tôi muốn quản trị có chức năng khi vào báo cáo tổng hợp có thể sửa dữ liệu". Duyệt mockup tương
+tác: chỉ Admin thấy nút ✎; sửa trong hộp đè lên bảng, lưu xong bảng đổi tại chỗ; dòng Toàn kỳ, TỔNG CỘNG, Vận đơn giữ
+nguyên. Quyền sửa ở máy chủ không đổi (`can_amend`, ADR-032).
+[ADR-050](quyet-dinh/050-admin-sua-tu-tong-hop.md);
+[biên bản](kiem-chung-admin-sua-bao-cao-20261010.md).
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-50.1 | Admin mở Báo cáo tổng hợp nguồn Sale/MKT: mỗi dòng lần nộp (khối ngày, và khối Gộp) có đúng một nút ✎ ở ô đầu, trỏ `/bao-cao/<id>/sua/?khung=1&lan=N` của đúng lần nộp (N là Lần của dòng, đầu hộp ghi đúng số đó), dòng mang `data-lan-nop`; khối Toàn kỳ và mọi dòng TỔNG CỘNG không có ✎ | ADR-050 | Tự động |
+| AC-50.2 | Manager, Staff, Kế toán, CEO mở cùng trang vẫn 200 nhưng không có ✎, không có hộp sửa; quyền sửa ở máy chủ không đổi (Manager vẫn sửa được qua Lịch sử báo cáo) | ADR-050 | Tự động |
+| AC-50.3 | Bảng dữ liệu dạng báo cáo (dùng chung bảng khối) không có ✎ kể cả với Admin (ADR-014); nguồn Vận đơn không có ✎ | ADR-050, ADR-014 | Tự động |
+| AC-50.4 | `GET /bao-cao/<id>/sua/?khung=1` trả phần form không có khung trang: ô sửa của lần nộp, phiên bản, Xem trước chỉ số, nút Lịch sử sửa (n) với n là tổng số lần sửa (danh sách hiện 50 lần gần nhất); Admin và Manager bộ phận 200; người nộp (Staff), CEO, Manager bộ phận khác 404 | ADR-050 | Tự động |
+| AC-50.5 | Lưu trong hộp trả 204 (không chuyển trang, không flash), `X-Bao-Cao-Doi: 1`, số mới vào DB, một ReportRevision của người sửa và một nhật ký Sửa; lưu lại đúng số cũ thì 204, `X-Bao-Cao-Doi: 0`, không thêm lịch sử; ngày và người nộp giữ nguyên | ADR-050, ADR-032 | Tự động |
+| AC-50.6 | Để trống ô bắt buộc rồi Lưu trong hộp: 400, phần form báo "Chưa điền các trường bắt buộc: …", không ghi gì | ADR-050 | Tự động |
+| AC-50.7 | Người khác lưu trước khi Admin bấm Lưu: 409, không ghi đè; hộp nạp số mới nhất và phiên bản mới, ô khác với lúc mở hộp tô vàng (`vua-doi`), câu báo nêu mã người vừa sửa (chỉ khi lần ghi cuối của dòng là một lần sửa; không thì câu chung, không nhắc ô tô vàng khi không ô nào đổi); Lưu lại với phiên bản mới thì được | ADR-050 | Tự động |
+| AC-50.8 | Câu truy vấn số liệu từng lần nộp giữ nguyên như trước ADR-050 với mọi vai (không nối bảng báo cáo ngày, không chậm theo cỡ kỳ); trang có ✎ (Admin) tra mã báo cáo ngày bằng đúng một truy vấn nhỏ theo các dòng đang hiện, vẫn ≤ 10 truy vấn như AC-46.9; Manager và Bảng dữ liệu không tra | ADR-050 | Tự động |
+| AC-50.9 | Trình duyệt: bấm ✎ mở hộp, con trỏ ở ô đầu, gõ số tự chèn dấu chấm, Xem trước chỉ số tính ngay; Lưu → hộp đóng, báo "Đã lưu", ô của dòng, TỔNG CỘNG ngày và TỔNG CỘNG toàn kỳ đổi đúng mà không tải lại trang, dòng sáng lên, focus về ✎; Escape chỉ đóng hộp; 409 trong trình duyệt nạp số mới, tô vàng ô bị đổi, Lưu lại được; không lỗi console | ADR-050 | Tự động (trình duyệt) |
+| AC-50.10 | Điện thoại 390 px: ✎ nằm trong ô STT đứng yên, hộp sửa chiếm cả màn hình, trang không cuộn ngang, Huỷ đóng hộp, không lỗi console | ADR-050 | Tự động (trình duyệt) |
+| AC-50.11 | Lưu trong hộp gặp lỗi thì báo ngay trong hộp, giữ số vừa gõ, không báo "Đã lưu", không ghi gì: mất mạng (hay quá 30 giây không trả lời), máy chủ lỗi 5xx, bị từ chối 403, báo cáo vừa bị bỏ (404), hết phiên. Đang lưu thì ✕ và Huỷ khoá, Escape không đóng hộp; lưu xong mới đóng, đúng một lần sửa | ADR-050 | Tự động (trình duyệt) |

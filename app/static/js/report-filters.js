@@ -480,6 +480,9 @@
       const dich = location.pathname + location.search;
       if (dich !== hienTai) doiCheDo(location.href, false);
     });
+    // Admin vừa lưu trong hộp sửa (report-sua.js, ADR-050): thay bảng tại chỗ theo đúng URL đang xem — giữ lọc, trang,
+    // ngày đang xem, vị trí kéo ngang; `xong` báo cho hộp biết bảng mới đã vào để cho dòng vừa sửa sáng lên
+    document.addEventListener('knjsc:bao-cao-da-sua', event => { event.detail.xong = doiCheDo(location.href, false); });
   }
   // Chọn nhanh kỳ (ADR-038): điền hai ô ngày rồi gửi bộ lọc ngay. Ô ẩn `ky` nhớ nút vừa bấm để máy chủ chỉ
   // tô một nút khi hai nút cùng khoảng (ngày 01: Hôm nay = Tháng này); sửa tay ô ngày thì bỏ `ky`.

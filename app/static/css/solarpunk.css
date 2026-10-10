@@ -501,6 +501,60 @@ table.report-table thead th.report-identity {text-align:left;max-width:none}
 @media screen and (max-width:900px) {.bc-dau .report-chips,.bc-dau-ky {display:none}}
 /* Màn hẹp: logo không kèm chữ "KN JSC" để tên báo cáo còn đọc được cạnh nút Lọc và ⋯ */
 @media (max-width:900px) {.topbar:has(.bc-dau) .sp-brand strong {display:none}}
+/* ── Admin sửa lần nộp ngay trên Báo cáo tổng hợp (ADR-050, chủ dự án duyệt mockup tương tác 10.10.2026) ──
+   Nút ✎ ở ô đầu mỗi dòng lần nộp, chỉ Admin (`[data-sua]`): ô đầu (STT, hay Ngày khi Gộp) rộng thêm cho nút — cột đứng
+   yên tính lề trái theo các biến này nên không đè nhau. Hộp sửa là <dialog> đè lên bảng, điện thoại chiếm cả màn hình;
+   dòng vừa sửa sáng vàng vài giây; báo "Đã lưu" nổi ở đầu trang (điện thoại: trên thanh menu dưới). */
+.report-view[data-sua] {--w-stt:70px;--w-ngay:132px}
+@media(max-width:480px) {.report-view[data-sua] {--w-stt:62px;--w-ngay:120px}}
+.report-stt-sua {display:flex;align-items:center;justify-content:space-between;gap:6px}
+.report-sua {display:inline-grid;place-items:center;flex:none;width:26px;height:26px;padding:0;border:1px solid var(--rule);
+  border-radius:8px;background:var(--surface);color:var(--ink-2);cursor:pointer}
+.report-sua svg {width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.report-table tbody tr:hover .report-sua,.report-sua:focus-visible {color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
+.report-table tbody tr .report-sua:hover {background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.report-sua:focus-visible {outline:2px solid var(--accent);outline-offset:2px}
+.report-table tbody tr.report-vua-sua>* {background:var(--sp-selected)!important}
+.report-table tbody tr.report-vua-sua>:first-child {box-shadow:inset 3px 0 0 var(--accent)}
+dialog.report-sua-hop {width:min(920px,calc(100vw - 32px));max-height:calc(100dvh - 48px);padding:0;border:1px solid var(--rule);
+  border-radius:18px;background:var(--surface);color:var(--ink);box-shadow:0 12px 36px #0004;overflow:hidden}
+dialog.report-sua-hop[open] {display:flex;flex-direction:column}
+dialog.report-sua-hop::backdrop {background:rgb(14 34 24 / .42);backdrop-filter:blur(2px)}
+.report-sua-form {display:flex;flex-direction:column;flex:1;min-height:0;margin:0}
+.report-sua-dau {display:flex;align-items:flex-start;gap:12px;padding:16px 22px 14px;border-bottom:1px solid var(--rule)}
+.report-sua-dau>div {min-width:0}
+.report-sua-dau h2 {margin:0;font-size:18px;line-height:1.3;text-wrap:balance}
+.report-sua-dau p {margin:5px 0 0;color:var(--ink-2);font-size:13px;line-height:1.45}
+.report-sua-dau p b {color:var(--ink)}
+.report-sua-dong {margin-left:auto;min-width:34px}
+.report-sua-than {flex:1;min-height:0;overflow:auto}
+.report-sua-ghi {margin:12px 22px 0;color:var(--ink-3);font-size:12.5px}
+.report-sua-hop .bao {margin:12px 22px 0;padding:10px 14px;font-size:13.5px}
+.report-sua-hop .truong.vua-doi .o-nhap {border-color:var(--warn);background:var(--warn-soft)}
+.report-sua-hop .truong.vua-doi label::after {content:"vừa đổi";margin-left:6px;font-size:11px;font-weight:600;color:var(--warn)}
+.report-sua-chan {display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 22px;border-top:1px solid var(--rule);background:var(--surface-2)}
+.report-sua-lich-su {margin-right:auto;padding:4px 0;border:0;background:none;color:var(--accent);font:inherit;font-size:13px;
+  text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.report-sua-lich-su:focus-visible {outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.report-sua-form[aria-busy] .nut-chinh {opacity:.75;cursor:progress}
+.report-sua-form[aria-busy] .report-sua-than {opacity:.6;pointer-events:none}
+.report-sua-lich {margin:4px 22px 16px;padding:12px 14px;border:1px solid var(--rule);border-radius:12px;background:var(--surface-2)}
+.report-sua-lich h3 {margin:0 0 8px;font-size:13px}
+.report-sua-lich ol {margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:13px;line-height:1.45}
+.report-sua-lich .mo-nhat {margin:0;font-size:12.5px}
+.report-sua-bao {position:fixed;left:50%;top:76px;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:8px;
+  max-width:calc(100vw - 32px);padding:10px 16px;border-radius:12px;background:var(--ink);color:var(--surface);
+  box-shadow:0 8px 24px #0003;font-size:14px}
+.report-sua-bao svg {width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:600px) {
+  dialog.report-sua-hop {width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border:0;border-radius:0}
+  .report-sua-dau,.report-sua-chan {padding-inline:16px}
+  .report-sua-hop .bm-ngang,.report-sua-hop .bm-tinh {padding-inline:16px}
+  .report-sua-ghi,.report-sua-hop .bao,.report-sua-lich {margin-inline:16px}
+  .report-sua-lich-su {flex-basis:100%;order:3;text-align:center;margin:0}
+  .report-sua-chan .nut {flex:1;justify-content:center}
+  .report-sua-bao {top:auto;bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+}
 /* Toàn màn hình: thanh trên cùng thu thành một hàng mảnh (tên báo cáo, kỳ, ⋯, chip) thay vì ẩn hẳn như bảng ERP
    (`sp-erp-table-focus`) — vẫn mở được menu ⋯: Thoát toàn màn hình, Gộp, Xuất Excel. Giữ position và z-index của
    thanh trên để menu đè lên tiêu đề dính của bảng */

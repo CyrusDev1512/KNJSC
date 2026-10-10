@@ -1,6 +1,6 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
+> Cập nhật 10.10.2026 (ADR-050 Admin sửa lần nộp ngay trên Báo cáo tổng hợp); 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
 > `main` → VPS**; Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền, nhánh việc gộp xong là
 > xoá); 25.09.2026 (ADR-043 bổ sung: một ô Team duy nhất trên form báo cáo); 24.09 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
 > chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
@@ -196,6 +196,11 @@ cảnh màn hình dùng chung ở `reports/screen.py`. **Ba chỗ sửa (02.10, 
 - **Đầu trang gọn (07.10, ADR-042 bổ sung):** trên bảng không còn hàng nút, hàng chip, hàng tên bảng — tên báo cáo, kỳ,
   ⋯, chip ở thanh trên cùng (khối `thanh_tren_giua` của `base.html`); menu ⋯ gom Gộp / Không gộp, Ngưỡng màu, Giải thích
   số liệu, Toàn màn hình, Xuất Excel; bảng đo lại theo cỡ `main` (TL-74). Bảng dữ liệu giữ hàng nút cũ.
+- **Admin sửa lần nộp ngay trên bảng (10.10, ADR-050):** nút ✎ ở ô đầu mỗi dòng lần nộp, chỉ Admin (cờ `sua_bao_cao`;
+  khối Toàn kỳ, TỔNG CỘNG, Vận đơn, Bảng dữ liệu không có). Câu truy vấn số liệu không đổi; mã báo cáo ngày tra một truy
+  vấn theo dòng đang hiện (`daily_service.attach_report_ids`). Hộp sửa là `bao_cao_sua?khung=1`, cùng `can_amend` và `amend`
+  có lịch sử. Lưu 204, bảng đổi tại chỗ qua `knjsc:bao-cao-da-sua`; 409 nạp số mới, ô bị đổi tô vàng (`goc-…`); đang lưu
+  thì khoá đóng hộp. JS: `report-sua.js`; `report-entry.js` gắn theo vùng (`knjsc:form-moi`).
 **Báo cáo Marketing nộp bằng tiền Việt (ADR-047, 03.10):** Loại tiền MKT luôn VND, không theo Thị trường (một chỗ
 `currency_service.report_currency`); báo cáo cũ đổi nhãn sang VND bằng `reports/0006`, số giữ nguyên; không tỉ giá; Số đơn (TT)
 không khoá theo loại tiền, DS Chốt (TT) trống. Sale vẫn theo Thị trường.

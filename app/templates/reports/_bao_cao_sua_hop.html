@@ -1,0 +1,23 @@
+{% comment %}Hộp sửa một lần nộp trên Báo cáo tổng hợp — chỉ Admin thấy nút ✎ mở hộp (ADR-050, chủ dự án duyệt mockup
+10.10.2026). Máy chủ trả phần này cho `GET/POST /bao-cao/<id>/sua/?khung=1`; report-sua.js đặt vào <dialog id="report-sua-hop">.
+Ô ẩn `goc-…` giữ số lúc mở hộp: lưu gặp 409 thì máy chủ so với số mới nhất để tô vàng ô người khác vừa đổi.{% endcomment %}
+<form method="post" action="{% url 'bao_cao_sua' bao_cao.pk %}?khung=1{% if lan %}&amp;lan={{ lan }}{% endif %}" class="report-sua-form" data-khung data-bao-cao="{{ bao_cao.pk }}" novalidate>
+{% csrf_token %}<input type="hidden" name="version" value="{{ version }}">
+{% for ma, gia_tri in goc %}<input type="hidden" name="goc-{{ ma }}" value="{{ gia_tri }}">{% endfor %}
+<header class="report-sua-dau"><div><h2 id="report-sua-tieu-de">Sửa {{ bm.name }}</h2>
+<p>Ngày <b>{{ bao_cao.report_date|date:"d/m/Y" }}</b> · {% include "reports/_employee_identity.html" with person=bao_cao.created_by only %} · {% if lan %}Lần {{ lan }}, {% endif %}nộp {{ bao_cao.submitted_at|date:"H:i d/m" }}</p></div>
+<button type="button" class="nut nut-nho report-sua-dong" data-dong aria-label="Đóng hộp sửa">✕</button></header>
+<div class="report-sua-than">
+<div id="report-sua-loi" aria-live="assertive">{% for error in loi %}{% if xung_dot %}<div class="bao bao-cho" role="alert">{% else %}<div class="bao bao-xau" role="alert">{% endif %}<span>{{ error }}</span></div>{% endfor %}</div>
+<p class="report-sua-ghi">Ngày, nhân sự, team và giờ nộp giữ nguyên. Mọi thay đổi được lưu vào lịch sử sửa.</p>
+{% include "reports/_o_sua.html" %}
+<section class="report-sua-lich" id="report-sua-lich" hidden aria-label="Lịch sử sửa lần nộp này">
+<h3>Lịch sử sửa</h3>
+{% if so_lan_sua > lich_su|length %}<p class="mo-nhat">Hiện {{ lich_su|length }} lần sửa gần nhất.</p>{% endif %}
+{% if lich_su %}<ol>{% for lan_sua in lich_su %}<li><b>{{ lan_sua.created_at|date:"d/m/Y H:i" }}</b> · {% include "reports/_employee_identity.html" with person=lan_sua.actor only %}<br>{% for doi in lan_sua.display_changes %}{{ doi.name }}: {{ doi.before }} → {{ doi.after }}{% if not forloop.last %}; {% endif %}{% endfor %}</li>{% endfor %}</ol>
+{% else %}<p class="mo-nhat">Chưa có lần sửa nào.</p>{% endif %}
+</section>
+</div>
+<footer class="report-sua-chan"><button type="button" class="report-sua-lich-su" aria-expanded="false" aria-controls="report-sua-lich">Lịch sử sửa ({{ so_lan_sua }})</button>
+<button type="button" class="nut" data-dong>Huỷ</button><button type="submit" class="nut nut-chinh">Lưu chỉnh sửa</button></footer>
+</form>

@@ -13,10 +13,11 @@ from django.views.decorators.http import require_POST
 
 from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
+from core.permissions import is_admin
 from orders.constants import Market
 from reports.screen import (blocks_context, build_arguments, export_response as _export, filter_chips, filter_options,
                            parameters, tung_lan, with_query as _with)
-from reports.services import activity_service as service, summary_service, threshold_service
+from reports.services import activity_service as service, daily_service, summary_service, threshold_service
 
 
 @login_required
@@ -51,6 +52,11 @@ def report(request, export=False, choices=None):
                 except BusinessError as error:
                     return render(request, "reports/activity.html", {**ctx, "error": str(error)}, status=400)
             ctx.update(blocks_context(request, source, result, params, gop))
+            # Nút ✎ sửa từng lần nộp ngay trên bảng: chỉ Admin, chỉ nguồn nộp báo cáo (ADR-050). Quyền sửa ở máy chủ
+            # vẫn là `daily_service.can_amend`; Bảng dữ liệu dùng chung bảng khối nhưng không đặt cờ này (ADR-014)
+            ctx["sua_bao_cao"] = is_admin(request.user) and source.kind in ("sale", "mkt")
+            if ctx["sua_bao_cao"]:
+                daily_service.attach_report_ids(request.user, ctx["blocks"])
             if source.kind == "delivery":
                 ctx["shipping"] = result.shipping
             if threshold_service.can_set(request.user, source):
