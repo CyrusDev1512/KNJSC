@@ -404,6 +404,8 @@ def bao_cao_sua(request, pk):
     if not daily_service.can_amend(request.user, report):
         raise Http404('Báo cáo không thuộc phạm vi được sửa.')
     khung = request.GET.get('khung') == '1'
+    lan = request.GET.get('lan', '')   # "Lần N" của dòng bảng vừa bấm ✎ — chỉ là nhãn đầu hộp
+    lan = int(lan) if lan.isdigit() else None
     request.nav_current = 'bao_cao_lich_su'
     fields = list(report.form.ordered_fields())
     values = _gia_tri_dang_luu(report, fields)
@@ -443,6 +445,6 @@ def bao_cao_sua(request, pk):
         # Ngày và người nộp đã ở đầu hộp: hộp chỉ còn ô sửa được (Loại tiền chỉ đọc vẫn hiện, theo Thị trường)
         ctx.update(cac_o=[o for o in cac_o if not getattr(o, 'report_date', False) and not o.danh_tinh],
                    goc=sorted(goc.items()), lich_su=daily_service.revision_changes(report),
-                   lan=daily_service.submission_number(request.user, report))
+                   so_lan_sua=report.revisions.count(), lan=lan)
         return render(request, 'reports/_bao_cao_sua_hop.html', ctx, status=status)
     return render(request, 'reports/bao_cao_sua.html', {**ctx, 'cac_o': cac_o}, status=status)

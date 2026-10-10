@@ -316,6 +316,19 @@ def revision_changes(report, limit=50):
     return revisions
 
 
+def attach_report_ids(user, blocks):
+    """Gắn `report_id` (báo cáo ngày của dòng) cho các dòng lần nộp đang hiện — nút ✎ của Admin trên Báo cáo tổng hợp
+    (ADR-050). Một truy vấn theo đúng các dòng của trang, qua phạm vi quyền; câu truy vấn số liệu giữ như cũ nên không
+    chậm theo cỡ kỳ. Dòng không có báo cáo ngày (nhập ngoài form) không có ✎."""
+    dong = [d for b in blocks for d in b["rows"] if d.get("record_id")]
+    if not dong:
+        return
+    ma = dict(DailyReport.objects.in_scope(user).filter(record_id__in={d["record_id"] for d in dong})
+              .values_list("record_id", "id"))
+    for d in dong:
+        d["report_id"] = ma.get(d["record_id"])
+
+
 def conflict_note(report, to_vang=True):
     """Câu báo trong hộp sửa khi lưu gặp 409: ai vừa sửa, lúc nào, và hộp đã làm gì (ADR-050, mockup 10.10.2026).
 
@@ -330,12 +343,6 @@ def conflict_note(report, to_vang=True):
         ai = 'Báo cáo vừa được người khác sửa.'
     return (f'{ai} Hộp đã nạp số mới nhất{" (ô tô vàng)" if to_vang else ""}, số bạn vừa gõ chưa được lưu. '
             'Xem lại rồi bấm Lưu.')
-
-
-def submission_number(user, report):
-    """"Lần N" của một lần nộp trong ngày của người nộp, đếm theo giờ nộp — nhãn đầu hộp sửa (ADR-050)."""
-    return history(user).filter(form=report.form, created_by=report.created_by, report_date=report.report_date,
-                                submitted_at__lte=report.submitted_at).count()
 
 
 def forms_for(user):

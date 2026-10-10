@@ -197,9 +197,10 @@ cảnh màn hình dùng chung ở `reports/screen.py`. **Ba chỗ sửa (02.10, 
   ⋯, chip ở thanh trên cùng (khối `thanh_tren_giua` của `base.html`); menu ⋯ gom Gộp / Không gộp, Ngưỡng màu, Giải thích
   số liệu, Toàn màn hình, Xuất Excel; bảng đo lại theo cỡ `main` (TL-74). Bảng dữ liệu giữ hàng nút cũ.
 - **Admin sửa lần nộp ngay trên bảng (10.10, ADR-050):** nút ✎ ở ô đầu mỗi dòng lần nộp, chỉ Admin (cờ `sua_bao_cao`;
-  khối Toàn kỳ, TỔNG CỘNG, Vận đơn, Bảng dữ liệu không có). Hộp sửa là `bao_cao_sua?khung=1`, cùng `can_amend` và `amend`
-  có lịch sử. Lưu 204, bảng đổi tại chỗ qua `knjsc:bao-cao-da-sua`; 409 nạp số mới, ô bị đổi tô vàng (`goc-…`).
-  JS: `report-sua.js`; `report-entry.js` gắn theo vùng (`knjsc:form-moi`).
+  khối Toàn kỳ, TỔNG CỘNG, Vận đơn, Bảng dữ liệu không có). Câu truy vấn số liệu không đổi; mã báo cáo ngày tra một truy
+  vấn theo dòng đang hiện (`daily_service.attach_report_ids`). Hộp sửa là `bao_cao_sua?khung=1`, cùng `can_amend` và `amend`
+  có lịch sử. Lưu 204, bảng đổi tại chỗ qua `knjsc:bao-cao-da-sua`; 409 nạp số mới, ô bị đổi tô vàng (`goc-…`); đang lưu
+  thì khoá đóng hộp. JS: `report-sua.js`; `report-entry.js` gắn theo vùng (`knjsc:form-moi`).
 **Báo cáo Marketing nộp bằng tiền Việt (ADR-047, 03.10):** Loại tiền MKT luôn VND, không theo Thị trường (một chỗ
 `currency_service.report_currency`); báo cáo cũ đổi nhãn sang VND bằng `reports/0006`, số giữ nguyên; không tỉ giá; Số đơn (TT)
 không khoá theo loại tiền, DS Chốt (TT) trống. Sale vẫn theo Thị trường.

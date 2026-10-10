@@ -1,6 +1,6 @@
 # Backlog
 
-## 10.10.2026 — Admin sửa lần nộp ngay trên Báo cáo tổng hợp (ADR-050, AC-50.1 → 50.10)
+## 10.10.2026 — Admin sửa lần nộp ngay trên Báo cáo tổng hợp (ADR-050, AC-50.1 → 50.11)
 
 - **Chủ dự án:** "tôi muốn quản trị có chức năng khi vào báo cáo tổng hợp có thể sửa dữ liệu". Làm theo
   [mockup tương tác](https://claude.ai/artifact/AiyWUW9ycAGuRsdniXRWnN) chủ dự án đã duyệt:
@@ -14,16 +14,32 @@
   - Gặp 409: hộp nạp số mới, tô vàng ô người khác vừa đổi, bỏ số vừa gõ; câu báo nêu mã người sửa và giờ sửa.
   - Trang Sửa báo cáo có thêm Xem trước chỉ số, vì dùng chung phần ô sửa với hộp.
   - Không đổi quyền, không migration.
+- **Kiểm kỹ trước khi gộp** (chủ dự án: "test kĩ rồi gộp vào staging"):
+  - Rà mã độc lập ra 9 phát hiện. Sửa 7:
+    - đang lưu thì khoá đóng hộp, quá 30 giây thì thôi chờ;
+    - báo 403 và 404 đúng lý do;
+    - "Lần N" lấy theo dòng bảng;
+    - Escape chặn ở chính hộp;
+    - đếm đúng tổng số lần sửa;
+    - id báo cáo lấy từ data;
+    - bỏ LEFT JOIN khỏi câu số liệu.
+
+    Giữ 2: hành vi 409 theo mockup đã duyệt, và `da_doi`.
+  - Đo trên DB 2.400 lần nộp: LEFT JOIN làm mọi người dùng chậm thêm 4,7 → 21,8 ms. Đổi sang tra mã báo cáo một truy vấn
+    theo dòng đang hiện, chỉ ở trang có ✎. Phần thêm của Admin còn +5,9 ms (+4,8 %) và +3,4 ms (+1,4 %); vai khác không
+    đổi.
 - **Kiểm:**
-  - bài kiểm mới 10/10; trình duyệt 2/2; `pytest reports -m cham` 19/19;
-  - `pytest -m "not cham"`: 3.140 đạt, 10 bỏ qua, 4 đỏ;
-  - bốn bài đỏ là hai bài truy vết (docs/04 sửa giữa lượt, bộ đếm docs/06) và hai bài quét lớp CSS (biến điều kiện
-    trong `class="…"`); đã sửa, bốn tệp liên quan chạy lại 744/744;
-  - thử tay trên 8020 với dữ liệu mẫu: 16/16.
+  - bài kiểm mới 12/12; trình duyệt 3/3 (AC-50.11 mới: đường lỗi và khoá hộp khi đang lưu); `pytest reports -m cham`
+    20/20;
+  - lượt 1 `pytest -m "not cham"`: 3.140 đạt, 10 bỏ qua, 4 đỏ. Bốn bài đỏ là hai bài truy vết và hai bài quét lớp CSS,
+    đã sửa;
+  - lượt 2 `pytest -m "not trinh_duyet"`: đang chạy lúc commit, kết quả ghi ở biên bản;
+  - thử tay: lượt 1 16/16; lượt 2 47/47, gồm đường lỗi thật, bàn phím, 4 cỡ màn hình × 2 chế độ, chế độ tối, trang 2,
+    đang lọc, Excel.
 - **Còn nợ:**
-  - chủ dự án thử ở local;
+  - chủ dự án thử ở local trên `Staging` sau khi gộp;
   - Safari, Firefox, Windows;
-  - đo hộp sửa trên bảng lớn (khối 100 dòng, chạm trần `MAX_GROUPS`).
+  - một năm dữ liệu chưa đo.
 
 [Biên bản](kiem-chung-admin-sua-bao-cao-20261010.md). Nhánh `claude/knerp-erp-chinh-sua-hfi7w8`.
 

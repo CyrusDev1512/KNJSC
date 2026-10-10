@@ -57,14 +57,17 @@ def _khoi(html, loai):
 
 def test_nut_sua_chi_o_dong_lan_nop(client, mkt, nguoi_dung):
     """AC-50.1 — Admin mở Báo cáo tổng hợp nguồn Marketing: mỗi dòng lần nộp (khối ngày) có đúng một nút ✎ ở ô đầu,
-    trỏ hộp sửa `/bao-cao/<id>/sua/?khung=1` của đúng lần nộp đó, dòng mang `data-lan-nop`; khối Toàn kỳ và mọi dòng
-    TỔNG CỘNG không có ✎. Chế độ Gộp (một bảng mọi lần nộp) cũng vậy"""
+    mở hộp sửa `/bao-cao/<id>/sua/?khung=1&lan=N` của đúng lần nộp đó: dòng mang `data-lan-nop` (id báo cáo ngày),
+    nút mang `data-lan` (Lần của dòng, để đầu hộp ghi đúng số bảng đang hiện), hộp mang mẫu URL `data-sua-mau`; khối
+    Toàn kỳ và mọi dòng TỔNG CỘNG không có ✎. Chế độ Gộp (một bảng mọi lần nộp) cũng vậy"""
     client.force_login(nguoi_dung["admin"])
     mong = {str(r.pk) for r in mkt["lan"]}
+    lan = {(str(mkt["lan"][0].pk), "1"), (str(mkt["lan"][1].pk), "2"), (str(mkt["lan"][2].pk), "1")}
     for them in ({}, {"gop": "1"}):
         html = client.get("/bao-cao/tong-hop/", {**mkt["nguon"], **them}).content.decode()
         assert html.count(NUT) == 3, them
-        assert set(re.findall(r'data-sua-url="/bao-cao/(\d+)/sua/\?khung=1"', html)) == mong
+        assert set(re.findall(r'<tr[^>]*data-lan-nop="(\d+)"[^>]*>.*?data-lan="(\d+)"', html, re.S)) == lan
+        assert 'data-sua-mau="/bao-cao/987654321/sua/?khung=1"' in html
         assert set(re.findall(r'data-lan-nop="(\d+)"', html)) == mong
         assert NUT not in _khoi(html, "period")
         for tong in re.findall(r'<tr class="report-total".*?</tr>', html, re.S):
@@ -73,11 +76,12 @@ def test_nut_sua_chi_o_dong_lan_nop(client, mkt, nguoi_dung):
     assert _khoi(html, "day").count(NUT) == 3 and 'id="report-sua-hop"' in html
 
 
-def test_vai_khac_khong_thay_nut_sua(client, mkt, nguoi_dung, make_user):
-    """AC-50.2 — Chỉ Admin thấy ✎: Manager, Staff, Kế toán, CEO mở cùng trang vẫn 200 nhưng không có nút, không có
-    hộp sửa; quyền sửa ở máy chủ không đổi (Manager vẫn sửa được qua Lịch sử báo cáo)"""
+def test_vai_khac_khong_thay_nut_sua(client, mkt, nguoi_dung, make_user, departments):
+    """AC-50.2 — Chỉ Admin thấy ✎: Manager, Leader, Staff, Kế toán, CEO mở cùng trang vẫn 200 nhưng không có nút,
+    không có hộp sửa; quyền sửa ở máy chủ không đổi (Manager vẫn sửa được qua Lịch sử báo cáo)"""
     ceo = make_user("ceo_bc", Rank.CEO)
-    for nguoi in (nguoi_dung["manager_mkt"], nguoi_dung["staff_mkt"], nguoi_dung["staff_kt"], ceo):
+    leader = make_user("leader_mkt_bc", Rank.LEADER, departments["mkt"])
+    for nguoi in (nguoi_dung["manager_mkt"], leader, nguoi_dung["staff_mkt"], nguoi_dung["staff_kt"], ceo):
         client.force_login(nguoi)
         r = client.get("/bao-cao/tong-hop/", mkt["nguon"])
         html = r.content.decode()
@@ -117,6 +121,11 @@ def test_hop_sua_tra_phan_form(client, mkt, nguoi_dung, make_user):
     assert f'name="version" value="{bao_cao.record.updated_at.isoformat()}"' in html
     assert f'name="{_ma_truong(mkt["bm"], "so_mess")}"' in html and 'id="xem-truoc-chi-so"' in html
     assert "Lịch sử sửa (0)" in html and employee_code(nguoi_dung["staff_mkt"]) in html
+    assert f'data-bao-cao="{bao_cao.pk}"' in html
+    # "Lần N" ở đầu hộp lấy đúng số của dòng bảng vừa bấm (`lan` trên URL của ✎); không có thì không ghi
+    assert "Lần " not in re.search(r'<header class="report-sua-dau">.*?</header>', html, re.S).group(0)
+    hop_lan = client.get(url + "&lan=2").content.decode()
+    assert "Lần 2, nộp" in hop_lan and "?khung=1&amp;lan=2" in hop_lan
     client.force_login(nguoi_dung["manager_mkt"])
     assert client.get(url).status_code == 200
     for nguoi in (nguoi_dung["staff_mkt"], make_user("ceo_hop", Rank.CEO), nguoi_dung["manager_sale"]):
@@ -206,6 +215,42 @@ def test_xung_dot_khong_do_lan_sua_thi_khong_neu_ten(client, mkt, nguoi_dung):
     assert r.status_code == 409 and "Báo cáo vừa được người khác sửa." in html
     assert employee_code(nguoi_dung["manager_mkt"]) + " vừa sửa" not in html
     assert "ô tô vàng" not in html and "truong vua-doi" not in html
+
+
+def test_hop_sua_lich_su_dai(client, mkt, nguoi_dung):
+    """AC-50.4 — Báo cáo sửa hơn 50 lần: nút ghi đúng tổng số lần sửa, danh sách trong hộp hiện 50 lần gần nhất và nói
+    rõ chỉ là phần gần nhất"""
+    from reports.models import ReportRevision
+    bao_cao = mkt["lan"][0]
+    ReportRevision.objects.bulk_create(
+        [ReportRevision(report=bao_cao, actor=nguoi_dung["admin"], before={}, after={}) for _ in range(51)])
+    client.force_login(nguoi_dung["admin"])
+    html = client.get(f"/bao-cao/{bao_cao.pk}/sua/?khung=1").content.decode()
+    assert "Lịch sử sửa (51)" in html and "Hiện 50 lần sửa gần nhất" in html
+
+
+def test_ma_bao_cao_chi_tra_cho_dong_dang_hien(client, mkt, nguoi_dung):
+    """AC-50.8 — Câu truy vấn số liệu từng lần nộp giữ nguyên như trước ADR-050 với mọi vai (không nối bảng báo cáo
+    ngày, nên không chậm theo cỡ kỳ); trang có ✎ (Admin) tra mã báo cáo ngày bằng đúng một truy vấn nhỏ theo các
+    dòng đang hiện; Manager và Bảng dữ liệu không tra"""
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    def cau(nguoi, url, tham_so):
+        client.force_login(nguoi)
+        with CaptureQueriesContext(connection) as q:
+            assert client.get(url, tham_so).status_code == 200
+        return [x["sql"] for x in q.captured_queries]
+
+    def tra_ma(ds):
+        return [s for s in ds if '"reports_dailyreport"' in s and '"record_id" IN' in s]
+
+    ds = cau(nguoi_dung["admin"], "/bao-cao/tong-hop/", mkt["nguon"])
+    assert not any('"reports_dailyreport"' in s for s in ds if "ROW_NUMBER" in s)
+    assert len(tra_ma(ds)) == 1
+    for nguoi, url, tham_so in ((nguoi_dung["manager_mkt"], "/bao-cao/tong-hop/", mkt["nguon"]),
+                                (nguoi_dung["admin"], f"/bang/{mkt['bm'].table.code}/", KY)):
+        assert not tra_ma(cau(nguoi, url, tham_so)), url
 
 
 def test_ngan_sach_truy_van_khi_co_nut_sua(client, mkt, nguoi_dung, django_assert_max_num_queries):

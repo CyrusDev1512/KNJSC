@@ -245,9 +245,11 @@ def day_blocks(rows, page_items, all_items, result):
 
 
 def _gan_lan_nop(dong, item):
-    """Dòng là đúng một lần nộp (chế độ Từng lần nộp): mang id báo cáo ngày cho nút ✎ của Admin và nhãn "Lần N ·
+    """Dòng là đúng một lần nộp (chế độ Từng lần nộp): mang id dòng số liệu (`daily_service.attach_report_ids` tra ra
+    id báo cáo ngày cho nút ✎ của Admin), số Lần của dòng (đầu hộp sửa ghi đúng số bảng đang hiện) và nhãn "Lần N ·
     giờ" cho nhãn đọc màn hình của nút (ADR-050). Khối toàn kỳ, TỔNG CỘNG, Vận đơn không gọi hàm này."""
-    dong["report_id"] = item.get("report_id")
+    dong["record_id"] = item.get("record_id")
+    dong["lan_so"] = item.get("lan")
     dong["lan_nhan"] = submission_label(item)
 
 

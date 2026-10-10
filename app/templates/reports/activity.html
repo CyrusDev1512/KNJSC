@@ -67,7 +67,8 @@ còn một dòng gọn (toàn văn ở title và trong panel). Từ 07.10.2026 h
 {% if source.kind == 'delivery' %}<p>Vận đơn theo dõi hoạt động giao hàng; phần số tiền thuộc Kế toán và Kho. Một đơn nhiều sản phẩm được đếm một lần trong tổng.</p>{% endif %}
 {% if sua_bao_cao %}{% comment %}Hộp sửa một lần nộp (ADR-050, chủ dự án duyệt mockup 10.10.2026): chỉ Admin; report-sua.js nạp phần form
 `/bao-cao/<id>/sua/?khung=1` vào đây, report-entry.js gắn ô số và Xem trước chỉ số cho nội dung mới.{% endcomment %}
-<dialog class="report-sua-hop" id="report-sua-hop" aria-labelledby="report-sua-tieu-de"></dialog>
+<dialog class="report-sua-hop" id="report-sua-hop" aria-labelledby="report-sua-tieu-de" data-sua-mau="{% url 'bao_cao_sua' 987654321 %}?khung=1"></dialog>
+<svg hidden><symbol id="report-but-sua" viewBox="0 0 16 16"><path d="M11.2 2.3l2.5 2.5-8 8-3.1.6.6-3.1z"/><path d="M9.6 3.9l2.5 2.5"/></symbol></svg>
 <script src="{% static 'js/report-entry.js' %}?v={{ phien_ban_tinh }}" defer></script>
 <script src="{% static 'js/report-sua.js' %}?v={{ phien_ban_tinh }}" defer></script>{% endif %}
 <script src="{% static 'js/report-filters.js' %}?v={{ phien_ban_tinh }}" defer></script>

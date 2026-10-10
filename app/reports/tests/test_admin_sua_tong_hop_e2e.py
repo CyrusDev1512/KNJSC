@@ -124,3 +124,96 @@ def test_hop_sua_tren_dien_thoai(live_server, trinh_duyet_moi, mkt, nguoi_dung):
         assert not loi, loi
     finally:
         ctx.close()
+
+
+# Giả lập đường lỗi ngay trong trang: chỉ đổi `fetch` của lượt POST (lượt lưu), lượt GET mở hộp và tải bảng đi thật
+GIA_FETCH = """(kieu) => {
+  const goc = window.__fetchGoc || (window.__fetchGoc = window.fetch);
+  window.fetch = (u, o) => {
+    if (!o || o.method !== 'POST' || kieu === 'thuong') return goc(u, o);
+    if (kieu === 'mat-mang') return Promise.reject(new TypeError('Failed to fetch'));
+    if (kieu === 'cham') return new Promise(r => setTimeout(r, 1500)).then(() => goc(u, o));
+    return Promise.resolve(new Response('loi', {status: Number(kieu)}));
+  };
+}"""
+
+
+def test_hop_sua_bao_loi_khi_luu_hong(live_server, trinh_duyet_moi, mkt, nguoi_dung):  # noqa: F811
+    """AC-50.11 — Lưu trong hộp gặp lỗi thì báo ngay trong hộp, giữ số vừa gõ, không báo "Đã lưu", không ghi gì: mất
+    mạng, máy chủ lỗi 500, bị từ chối 403 (phiên hay quyền đổi), báo cáo vừa bị bỏ (404), hết phiên (về trang đăng
+    nhập). Đang lưu thì ✕ và Huỷ bị khoá, Escape không đóng hộp; lưu xong hộp mới đóng, đúng một lần sửa"""
+    from reports.models import ReportRevision
+
+    bao_cao, bm = mkt["lan"][0], mkt["bm"]
+    o_mess = _ma_truong(bm, "so_mess")
+    ctx, page = _mo(trinh_duyet_moi, live_server, nguoi_dung["admin"], 1366, 768, _url(mkt))
+    loi = []
+    page.on("pageerror", lambda e: loi.append(str(e)))
+    page.on("console", lambda m: loi.append(m.text) if m.type == "error" and "fonts.g" not in m.text
+            and "status of 404" not in m.text else None)   # 404 của báo cáo vừa bị bỏ là đúng thiết kế
+    hop = page.locator("#report-sua-hop")
+    o = hop.locator(f"[name='{o_mess}']")
+    luu = hop.locator("button[type=submit]")
+
+    def mo_hop(dong):
+        page.locator(f'tr[data-lan-nop="{dong.pk}"] .report-sua').click()
+        page.wait_for_function(HOP_MO)
+
+    def go(so):
+        o.press("Control+a")
+        o.press_sequentially(so, delay=5)
+
+    def da_luu():
+        return "Đã lưu" in " ".join(page.locator(".report-sua-bao").all_inner_texts())
+
+    try:
+        # Đang lưu (máy chủ chậm 1,5 giây): ✕ và Huỷ khoá, Escape không đóng hộp; lưu xong đóng, đúng một lần sửa
+        so_lan = ReportRevision.objects.filter(report=bao_cao).count()
+        mo_hop(bao_cao)
+        go("999")
+        page.evaluate(GIA_FETCH, "cham")
+        luu.click()
+        page.wait_for_selector("#report-sua-hop form[aria-busy]")
+        assert all(n.is_disabled() for n in hop.locator("[data-dong]").all())
+        page.keyboard.press("Escape")
+        assert page.evaluate(HOP_MO)
+        page.wait_for_function(HOP_DONG)
+        page.wait_for_function(f"()=>document.querySelector('tr[data-lan-nop=\"{bao_cao.pk}\"].report-vua-sua')")
+        assert da_luu() and ReportRevision.objects.filter(report=bao_cao).count() == so_lan + 1
+
+        # Mất mạng, 500, 403: báo trong hộp, giữ số đã gõ, nút Lưu mở lại, không báo "Đã lưu", không ghi gì
+        page.evaluate("()=>document.querySelector('.report-sua-bao')?.remove()")
+        mo_hop(bao_cao)
+        go("4321")
+        for kieu, chu in (("mat-mang", "không kết nối được máy chủ"), ("500", "(500)"), ("403", "Tải lại trang")):
+            page.evaluate(GIA_FETCH, kieu)
+            luu.click()
+            page.wait_for_function("(chu)=>document.querySelector('#report-sua-loi .bao-xau')?.textContent.includes(chu)",
+                                   arg=chu)
+            assert o.input_value() == "4.321" and page.evaluate(HOP_MO) and not da_luu(), kieu
+            assert luu.is_enabled() and luu.inner_text() == "Lưu chỉnh sửa", kieu
+        bao_cao.record.refresh_from_db()
+        assert bao_cao.record.data["so_mess"] == 999
+
+        # Báo cáo vừa bị bỏ giữa lúc mở hộp và lúc Lưu: 404, báo trong hộp
+        page.evaluate(GIA_FETCH, "thuong")
+        daily_service.withdraw(bao_cao, actor=nguoi_dung["admin"])
+        luu.click()
+        page.wait_for_function("()=>document.querySelector('#report-sua-loi .bao-xau')?.textContent.includes('bị bỏ')")
+        assert o.input_value() == "4.321" and not da_luu()
+        page.locator("#report-sua-hop .report-sua-chan [data-dong]").click()
+        page.wait_for_function(HOP_DONG)
+
+        # Hết phiên: máy chủ chuyển về trang đăng nhập — báo trong hộp, không báo "Đã lưu"
+        khac = mkt["lan"][1]
+        mo_hop(khac)
+        go("555")
+        ctx.clear_cookies(name="sessionid")
+        luu.click()
+        page.wait_for_function("()=>document.querySelector('#report-sua-loi .bao-xau')?.textContent.includes('hết')")
+        assert o.input_value() == "555" and not da_luu()
+        khac.record.refresh_from_db()
+        assert khac.record.data["so_mess"] == 80
+        assert not loi, loi
+    finally:
+        ctx.close()

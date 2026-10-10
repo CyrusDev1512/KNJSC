@@ -1,16 +1,22 @@
 /* Hộp sửa một lần nộp trên Báo cáo tổng hợp — chỉ Admin (ADR-050, chủ dự án duyệt mockup tương tác 10.10.2026).
-   Bấm ✎ ở ô đầu một dòng lần nộp: nạp phần form `/bao-cao/<id>/sua/?khung=1` vào <dialog id="report-sua-hop">, con
-   trỏ ở ô sửa đầu tiên; report-entry.js gắn ô số và Xem trước chỉ số qua sự kiện `knjsc:form-moi`. Lưu gửi bằng fetch:
+   Bấm ✎ ở ô đầu một dòng lần nộp: nạp phần form `/bao-cao/<id>/sua/?khung=1&lan=N` vào <dialog id="report-sua-hop">
+   (URL ghép từ mẫu `data-sua-mau` của hộp, id ở `data-lan-nop` của dòng, Lần ở `data-lan` của nút), con trỏ ở ô sửa
+   đầu tiên; report-entry.js gắn ô số và Xem trước chỉ số qua sự kiện `knjsc:form-moi`. Lưu gửi bằng fetch:
    - 204: đóng hộp, báo đã lưu; có đổi số thì phát `knjsc:bao-cao-da-sua` — report-filters.js thay bảng tại chỗ (giữ
      lọc, trang, ngày đang xem, vị trí kéo ngang) rồi dòng vừa sửa sáng lên vài giây;
    - 400/409: thay nội dung hộp bằng phần form máy chủ trả (409: số mới nhất, ô người khác vừa đổi tô vàng);
-   - lỗi mạng, 5xx, hết phiên: báo trong hộp, giữ số đã gõ, không bao giờ báo "Đã lưu" (CLAUDE.md, bắt buộc 13).
-   Escape chỉ đóng hộp; đóng hộp thì focus về ✎ của đúng dòng đó (bảng có thể vừa được thay). */
+   - lỗi mạng, 5xx, hết phiên, bị từ chối, báo cáo vừa bị bỏ: báo trong hộp, giữ số đã gõ, không bao giờ báo
+     "Đã lưu" (CLAUDE.md, bắt buộc 13). Máy chủ không trả lời sau HET_GIO thì thôi chờ, báo như mất mạng.
+   Đang lưu thì ✕, Huỷ, Escape không đóng hộp: kết quả lượt lưu luôn có chỗ hiện. Escape chỉ đóng hộp; đóng hộp thì
+   focus về ✎ của đúng dòng đó (bảng có thể vừa được thay). */
 (() => {
   const hop = document.getElementById('report-sua-hop');
   if (!hop) return;
-  let urlMo = null;
+  const HET_GIO = 30000;
+  let idMo = null;
   let dangMo = false;
+  let dangLuu = false;
+  let phien = 0;   // mỗi lần mở hộp một phiên: kết quả của lượt lưu cũ không được đụng vào hộp của lần mở sau
   let henBao = null;
 
   const baoNoi = (chu, loai) => {
@@ -54,6 +60,7 @@
   const datBan = (form, ban) => {
     if (!form) return;
     form.toggleAttribute('aria-busy', ban);
+    for (const dong of form.querySelectorAll('[data-dong]')) dong.disabled = ban;
     const nut = form.querySelector('button[type=submit]');
     if (nut) {
       nut.disabled = ban;
@@ -61,16 +68,19 @@
     }
   };
 
-  const nutCua = url => [...document.querySelectorAll('.report-sua[data-sua-url]')].find(n => n.dataset.suaUrl === url);
+  const nutCua = id => document.querySelector(`tr[data-lan-nop="${id}"] .report-sua`);
+  const urlCua = (nut, id) => `${hop.dataset.suaMau.replace('987654321', id)}&lan=${nut.dataset.lan || ''}`;
 
   document.addEventListener('click', async event => {
-    const nut = event.target.closest('.report-sua[data-sua-url]');
+    const nut = event.target.closest('tr[data-lan-nop] .report-sua');
     if (!nut || dangMo) return;
+    const id = nut.closest('tr').dataset.lanNop;
     dangMo = true;
     try {
-      const tra = await fetch(nut.dataset.suaUrl, {credentials: 'same-origin'});
+      const tra = await fetch(urlCua(nut, id), {credentials: 'same-origin'});
       if (!tra.ok || tra.redirected) throw new Error(String(tra.status));
-      urlMo = nut.dataset.suaUrl;
+      idMo = id;
+      phien += 1;
       datNoiDung(await tra.text());
       hop.showModal();
       oDau()?.focus();
@@ -82,7 +92,7 @@
   });
 
   hop.addEventListener('click', event => {
-    if (event.target.closest('[data-dong]')) { hop.close(); return; }
+    if (event.target.closest('[data-dong]')) { if (!dangLuu) hop.close(); return; }
     const nutLich = event.target.closest('.report-sua-lich-su');
     if (!nutLich) return;
     const lich = hop.querySelector('#report-sua-lich');
@@ -93,13 +103,17 @@
     if (mo) lich.scrollIntoView({block: 'nearest'});
   });
 
-  // Escape khi hộp mở chỉ đóng hộp: không để phím đi tiếp tới các phím tắt của trang (thoát toàn màn hình, đóng panel)
-  window.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && hop.open) event.stopPropagation();
-  }, true);
+  // Escape khi hộp mở chỉ đóng hộp: chặn ở chính hộp (pha nổi bọt, phím tắt bên trong hộp vẫn chạy) để phím không
+  // tới phím tắt của trang (thoát chế độ mở rộng ERP ở solarpunk-shell.js); đang lưu thì giữ hộp
+  hop.addEventListener('keydown', event => {
+    if (event.key === 'Escape') event.stopPropagation();
+  });
+  hop.addEventListener('cancel', event => {
+    if (dangLuu) event.preventDefault();
+  });
 
   hop.addEventListener('close', () => {
-    const nut = urlMo && nutCua(urlMo);
+    const nut = idMo && nutCua(idMo);
     if (nut) nut.focus({preventScroll: true});
   });
 
@@ -117,25 +131,43 @@
     const form = event.target.closest('form[data-khung]');
     if (!form) return;
     event.preventDefault();
-    if (form.hasAttribute('aria-busy')) return;   // đang gửi: không gửi hai lần
+    if (dangLuu) return;   // đang gửi: không gửi hai lần
+    const cua = phien;
+    const id = form.dataset.baoCao;
+    dangLuu = true;
     datBan(form, true);
-    let tra;
+    const huy = new AbortController();
+    const hen = setTimeout(() => huy.abort(), HET_GIO);
+    let tra = null;
+    let matMang = '';
     try {
-      tra = await fetch(form.action, {method: 'POST', body: new FormData(form), credentials: 'same-origin'});
-    } catch (_) {
-      datBan(form, false);
-      baoLoi('Chưa lưu được: không kết nối được máy chủ. Số vừa gõ vẫn còn trong hộp; kiểm tra mạng rồi bấm Lưu lại.');
-      return;
+      tra = await fetch(form.action, {method: 'POST', body: new FormData(form), credentials: 'same-origin',
+                                      signal: huy.signal});
+    } catch (loi) {
+      matMang = loi.name === 'AbortError' ? 'máy chủ không trả lời sau 30 giây' : 'không kết nối được máy chủ';
+    } finally {
+      clearTimeout(hen);
+      dangLuu = false;
     }
-    if (tra.status === 204) {
+    // Hộp vẫn là của lần nộp này? Chromium vẫn cho Escape lần thứ hai đóng hộp dù đang lưu, rồi mở được hộp khác
+    const conHop = hop.open && cua === phien;
+    if (tra && tra.status === 204) {
       const coDoi = tra.headers.get('X-Bao-Cao-Doi') !== '0';
-      const id = (form.action.match(/\/bao-cao\/(\d+)\/sua\//) || [])[1];
-      hop.close();
+      if (conHop) hop.close();
       if (!coDoi) { baoNoi('Không có số nào đổi; không ghi lịch sử.'); return; }
       baoNoi('Đã lưu chỉnh sửa · đã ghi lịch sử', 'da-luu');
       const suKien = new CustomEvent('knjsc:bao-cao-da-sua', {detail: {id}});
       document.dispatchEvent(suKien);
       if (suKien.detail.xong) { await suKien.detail.xong; sangDong(id); } else location.reload();
+      return;
+    }
+    if (!conHop) {
+      baoNoi(`Chưa lưu được lần sửa vừa rồi${matMang ? ': ' + matMang : ''}. Bấm ✎ để mở lại.`);
+      return;
+    }
+    if (matMang) {
+      datBan(form, false);
+      baoLoi(`Chưa lưu được: ${matMang}. Số vừa gõ vẫn còn trong hộp; kiểm tra mạng rồi bấm Lưu lại.`);
       return;
     }
     if ((tra.status === 400 || tra.status === 409) && !tra.redirected) {
@@ -144,8 +176,11 @@
       return;
     }
     datBan(form, false);
-    if (tra.redirected) baoLoi('Phiên đăng nhập đã hết. Đăng nhập lại rồi thử lại; số vừa gõ chưa được lưu.');
-    else if (tra.status === 403 || tra.status === 404) baoLoi('Bạn không còn quyền sửa báo cáo này; số vừa gõ chưa được lưu.');
-    else baoLoi(`Chưa lưu được: máy chủ báo lỗi (${tra.status}). Số vừa gõ vẫn còn trong hộp; thử bấm Lưu lại sau ít phút.`);
+    if (tra.redirected) baoLoi('Phiên đăng nhập đã hết. Tải lại trang, đăng nhập rồi sửa lại; số vừa gõ chưa được lưu.');
+    else if (tra.status === 403) {
+      baoLoi('Máy chủ từ chối lưu (403): phiên đăng nhập hay quyền vừa đổi. Tải lại trang rồi thử lại; số vừa gõ chưa được lưu.');
+    } else if (tra.status === 404) {
+      baoLoi('Báo cáo này không còn để sửa (có thể vừa bị bỏ). Tải lại trang để xem; số vừa gõ chưa được lưu.');
+    } else baoLoi(`Chưa lưu được: máy chủ báo lỗi (${tra.status}). Số vừa gõ vẫn còn trong hộp; thử bấm Lưu lại sau ít phút.`);
   });
 })();
