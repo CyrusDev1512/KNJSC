@@ -33,7 +33,7 @@
     20/20;
   - lượt 1 `pytest -m "not cham"`: 3.140 đạt, 10 bỏ qua, 4 đỏ. Bốn bài đỏ là hai bài truy vết và hai bài quét lớp CSS,
     đã sửa;
-  - lượt 2 `pytest -m "not trinh_duyet"`: đang chạy lúc commit, kết quả ghi ở biên bản;
+  - lượt 2 `pytest -m "not trinh_duyet"`: 3.161 đạt, 7 bỏ qua, 0 đỏ; CI trên `8de45e9` xanh cả bộ chính lẫn e2e;
   - thử tay: lượt 1 16/16; lượt 2 47/47, gồm đường lỗi thật, bàn phím, 4 cỡ màn hình × 2 chế độ, chế độ tối, trang 2,
     đang lọc, Excel.
 - **Còn nợ:**

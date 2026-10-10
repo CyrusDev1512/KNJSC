@@ -186,8 +186,10 @@ Script Playwright (scratchpad `kiem-ky/thu-ky.py`) chạy trên mã cuối cùng
 ### Toàn bộ (lượt 2)
 
 - `pytest reports -m cham` (trình duyệt): **20/20 đạt**, gồm ba bài AC-50.9, 50.10, 50.11.
-- `pytest -m "not trinh_duyet"` (như bộ chính của CI) trên máy ảo: đang chạy lúc commit này. Kết quả ghi ở commit sau;
-  CI của PR chạy cùng bộ.
+- `pytest -m "not trinh_duyet"` (như bộ chính của CI) trên máy ảo, mã `8de45e9`: **3.161 đạt, 7 bỏ qua, 0 đỏ** (9 phút 59 giây).
+  Bảy bài bỏ qua là bài kiểm tải hay đo riêng, tự bỏ khi không có DB riêng, như mọi lượt trước.
+- CI của PR trên `8de45e9`: bộ chính và e2e (Chromium) **đều xanh**.
+- `manage.py check`, `makemigrations --check`, `node --check` ba tệp JS, `git diff --check`: sạch.
 
 ## Chưa kiểm
 
