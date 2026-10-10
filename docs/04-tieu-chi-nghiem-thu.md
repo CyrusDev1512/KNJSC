@@ -174,6 +174,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-6.11 | Một lần bấm Lưu đơn chỉ ra một đơn: form Lên đơn có mã lần nộp dùng một lần; gửi lại đúng lần đó (kể cả hai yêu cầu cùng lúc) chỉ ra một đơn một mã, lần sau báo lại mã đơn đã lưu "không tạo đơn mới"; lưu xong form có mã mới (săn lỗi 06.10.2026) | FR-6.1 | Tự động |
 | AC-6.12 | Xoá dòng vận đơn của một đơn thì đơn gốc bị bỏ (xoá mềm, có nhật ký); khôi phục dòng thì đơn sống lại; Bỏ đơn vẫn xoá cả dòng như cũ (06.10.2026); từ 08.10 chỉ Admin xoá dòng và bỏ đơn (AC-21.18, AC-6.13) | FR-6.4 · BR-4 | Tự động |
 | AC-6.13 | **Bỏ đơn chỉ Admin** (ADR-049, 08.10.2026): trang đơn gốc chỉ hiện nút "Bỏ đơn này" cho Admin; người lên đơn và Manager Sale gửi thẳng yêu cầu thì bị từ chối có nhật ký, đơn và dòng vận đơn giữ nguyên; `order_service.cancel_order` từ chối mọi người không phải Admin; Admin bỏ được, đơn và dòng xoá mềm | FR-6.4 · BR-4 · ADR-049 | Tự động |
+| AC-6.14 | Tóm tắt Lên đơn không tính được thì nói rõ vì sao, mỗi trường hợp một lời (chủ dự án 10.10.2026): bị chuyển về đăng nhập → "Phiên đăng nhập đã hết…"; máy chủ trả 403 → "Tài khoản đang đăng nhập không lên đơn được, hoặc vừa đăng nhập lại ở tab khác…"; máy chủ lỗi → "Máy chủ đang lỗi…"; mất mạng → "Mất kết nối mạng…"; lỗi nhập liệu vẫn hiện lời của máy chủ; tính được thì ra số dòng, số sản phẩm, tổng tiền | FR-6.1 | Tự động |
 
 ---
 
@@ -569,7 +570,7 @@ giữ tiêu chí cũ.
 | AC-33.3 | `cua_toi=1` (bổ sung 28.09.2026, TL-64): dòng tôi lên đơn hoặc tôi là Sale đứng đơn, cộng dòng tôi được phân công ở bất kỳ cột phụ trách nào (Vận đơn, CSKH, Marketing) — áp cho mọi tài khoản, chỉ thu hẹp trong phạm vi quyền; Sale thấy ngay đơn mình vừa lên dù chưa ai phân công; bảng thường bỏ qua; khối dữ liệu đổi phiên bản; 100 dòng không vượt trần 22 truy vấn | ADR-033 | Tự động |
 | AC-33.4 | `cua_toi=1` đi theo Tải Excel trực tiếp và nền, và Thống kê | ADR-033 | Tự động |
 | AC-33.5 | `che-do-xem/` trả 404; `TableDef` không còn `delivery_view_all` nhưng còn `delivery_view_version`; Cột & cấp quyền không còn khối Chế độ xem bảng | ADR-033 | Tự động |
-| AC-33.6 | Nút Tôi / Toàn bộ hiện với mọi tài khoản trên bảng Vận đơn (bổ sung 28.09.2026); không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi; `config.myScope` bật trên bảng Vận đơn | ADR-033 | Tự động |
+| AC-33.6 | Nút Tôi / Toàn bộ hiện trên bảng Vận đơn với tài khoản thấy rộng hơn dòng của mình: Vận đơn, Sale Leader và Manager, Admin, Kế toán (bổ sung 28.09.2026); **ẩn với Sale staff và CSKH**, vì "Toàn bộ" của họ cũng chỉ là dòng của mình (bổ sung 10.10.2026, `assignment_service.only_own_rows`); không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi; `config.myScope` theo đúng việc hiện nút | ADR-033 | Tự động |
 | AC-33.7 | Migration 0013 chạy xuôi và ngược trên DB test, giữ `delivery_view_version` và dữ liệu | ADR-033 | Tự động |
 | AC-33.8 | Xoá trống ô Quốc gia thì Loại tiền trống; dòng có tiền hỏi xác nhận rồi ghi được cả lượt xoá; điền lại Quốc gia tiền về đúng; nhập tệp và lên đơn vẫn bắt buộc quốc gia. Lưới như Excel: bấm chỉ chọn, gõ là nhập, Enter/F2/bấm đúp mở ô, Tab/Enter chỉ chuyển ô, Ctrl+A chọn cả bảng (kiểm trình duyệt) | ADR-033 · ADR-031 | Tự động |
 

@@ -1,5 +1,23 @@
 # Backlog
 
+## 10.10.2026 — Phản hồi khi thử ở local: nút Tôi / Toàn bộ, tóm tắt Lên đơn, số dòng ở thư mục
+
+- **Nút Tôi / Toàn bộ ẩn với Sale staff và CSKH** (ADR-033 bổ sung, AC-33.6, TL-87). Phạm vi của hai vai này
+  chỉ là dòng của mình nên "Toàn bộ" gây nhầm. Quyền xem và sửa không đổi; các vai khác giữ nút.
+- **Tóm tắt Lên đơn nói rõ vì sao không tính được** (AC-6.14, TL-86): hết phiên, tài khoản không lên đơn được
+  (hay vừa đăng nhập lại ở tab khác), máy chủ lỗi, mất mạng. Lỗi chủ dự án gặp không tái hiện được trên máy ảo.
+- **Số dòng ở thư mục gồm dòng bị xoá trắng** (TL-88): phím Delete chỉ xoá nội dung ô. Chủ dự án chọn giữ luật:
+  Admin dọn bằng "Xoá dòng đang chọn". Không sửa mã.
+- **Kiểm:**
+  - `pytest -m "not trinh_duyet"`: 3.128 đạt, 7 bỏ qua, 0 đỏ;
+  - bài trình duyệt AC-6.14 đạt; các bài Lên đơn có sẵn 46 đạt;
+  - thử trên trình duyệt thật: `sale.staff` không còn nút và lưới không tự lọc, `vd.staff` giữ nút.
+- **Còn nợ:**
+  - Admin dọn các dòng trống đang có;
+  - vai khác vẫn tạo được dòng trống bằng phím Delete, vì chỉ Admin được xoá dòng.
+
+[PR #106](https://github.com/CyrusDev1512/KNJSC/pull/106). Nhánh `claude/an-nut-toan-bo-sale-cskh`.
+
 ## 09.10.2026 — `Staging` vào `main` (#104); gộp #101; hoà giải #102 với #103
 
 - **#104:** `Staging` `450b6da` vào `main` bằng merge commit, ra `main` `b55405a`.
