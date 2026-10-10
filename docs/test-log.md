@@ -1,5 +1,26 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 10.10.2026 — Phản hồi của chủ dự án khi thử ở local (TL-86 → TL-88)
+
+**TL-86 (đóng) — mức nhẹ, Lên đơn:** tóm tắt chỉ có một câu chung "Không tải được tóm tắt. Kiểm tra kết nối hoặc
+đăng nhập lại." cho mọi trường hợp. Chủ dự án gặp khi thử, không nhớ lúc đó đã làm gì.
+- **Thử lại trên máy ảo** (`sale.staff`, trình duyệt thật): nhập thường, thêm và bỏ dòng, đổi thị trường, lưu đơn
+  rồi nhập đơn tiếp đều ra tóm tắt đúng; 13 kiểu nhập sai đều ra lời cụ thể của máy chủ.
+- **Câu chung chỉ hiện khi tab không còn là phiên Sale hay Admin:** hết phiên sau 1 giờ không thao tác; đăng xuất
+  hay đăng nhập tài khoản khác ở tab khác (ERP 8020 và CRM 8021 dùng chung cookie trên 127.0.0.1, tài khoản không
+  phải Sale bị 403); máy chủ đang khởi động lại.
+- **Đã sửa (AC-6.14):** mỗi trường hợp một lời — hết phiên, tài khoản không lên đơn được, máy chủ lỗi, mất mạng.
+
+**TL-87 (đóng) — mức nhẹ, lưới Vận đơn:** Sale staff bấm "Toàn bộ" vẫn chỉ thấy đơn của mình. Quyền đúng, nhưng
+nút gây nhầm. **Đã sửa:** ẩn nút với Sale staff và CSKH (ADR-033 bổ sung 10.10.2026, AC-33.6).
+
+**TL-88 (không sửa mã) — mức vừa, thư mục KN CRM:** số dòng ở thư mục (27) lớn hơn số dòng còn nội dung (1), với
+mọi vai.
+- **Gốc:** phím Delete trên lưới chỉ xoá nội dung ô như Excel; dòng vẫn còn, đơn gốc của dòng vẫn sống, thư mục
+  đếm cả dòng đó. Xoá dòng thật chỉ có ở menu "…" → "Xoá dòng đang chọn", và chỉ Admin (ADR-049).
+- **Chủ dự án chọn:** giữ luật; Admin dọn dòng trống bằng "Xoá dòng đang chọn" (đơn gốc bỏ theo, Ctrl+Z khôi
+  phục được). Không sửa mã.
+
 ## 08.10.2026 — Diễn tập phát hành Staging 450b6da lên VPS (TL-79 → TL-85)
 
 Diễn tập trên máy ảo giống VPS: nginx HTTPS hai tên miền, 2 lõi, RAM như VPS, dữ liệu ghi bằng bản `c7065fe`. Biên bản:

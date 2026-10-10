@@ -88,6 +88,16 @@ def scope_condition(user, original, *, only_new=False):
     return allowed if only_new else (~new & original) | (new & allowed)
 
 
+def only_own_rows(user):
+    """Phạm vi bảng vận đơn chỉ là dòng của chính mình — Sale staff và CSKH, theo đúng các nhánh của
+    `scope_condition`. "Toàn bộ" của họ không thêm dòng nào so với "Tôi", nên lưới không hiện nút
+    Tôi / Toàn bộ (chủ dự án 10.10.2026, ADR-033 bổ sung)."""
+    if can_assign(user) or is_accountant(user):
+        return False
+    dept = department(user)
+    return dept == 'cskh' or (dept == 'sale' and get_user_scope(user).rank == Rank.STAFF)
+
+
 def label(user):
     """Mã nhân sự của người được phân công — hiện trên ô `phu_trach_*` (ADR-037)."""
     return employee_code(user)

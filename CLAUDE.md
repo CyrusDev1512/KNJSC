@@ -260,7 +260,7 @@ Hook lưới ở `crm/services/waybill_grid.py` gộp cột Trùng với profile
 Bảng có `workflow = "waybill"` mang profile Vận đơn: phân công Vận đơn/CSKH/Marketing
 (`WaybillAssignment`, ADR-020); **nhân viên Vận đơn thấy và sửa mọi dòng, nút Tôi /
 Toàn bộ (`?cua_toi=1`) lọc theo cột phụ trách của bộ phận mình** (ADR-033 thay
-ADR-026, 17.09; Sale/CSKH vẫn theo phân công), chi tiết sản phẩm `WaybillItem`, trạng thái
+ADR-026, 17.09; Sale/CSKH vẫn theo phân công; nút ẩn với Sale staff và CSKH, 10.10), chi tiết sản phẩm `WaybillItem`, trạng thái
 thanh toán sửa trực tiếp (ADR-025; kho chứng từ tắt bằng `PAYMENT_DOCUMENTS_ENABLED`).
 Tiền theo quốc gia US/USD, CA/CAD, PH/PHP, EU/EUR, KR/KRW, JP/JPY, AU/AUD (ADR-031 và bổ sung
 18.09; KRW chưa có tỉ giá), PTTT bảy loại theo sheet Vận đơn của "Quản trị nội bộ": Zelle, PayPal,
