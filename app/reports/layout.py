@@ -239,8 +239,16 @@ def day_blocks(rows, page_items, all_items, result):
                           kinds, result)
         dong["nhom"] = row["nhom"]   # chuỗi ngày đã định dạng, như `finish_rows`
         dong["identity"] = list(zip(hien_tai["identity_columns"], dong["identity"]))
+        _gan_lan_nop(dong, item)
         hien_tai["rows"].append(dong)
     return blocks
+
+
+def _gan_lan_nop(dong, item):
+    """Dòng là đúng một lần nộp (chế độ Từng lần nộp): mang id báo cáo ngày cho nút ✎ của Admin và nhãn "Lần N ·
+    giờ" cho nhãn đọc màn hình của nút (ADR-050). Khối toàn kỳ, TỔNG CỘNG, Vận đơn không gọi hàm này."""
+    dong["report_id"] = item.get("report_id")
+    dong["lan_nhan"] = submission_label(item)
 
 
 def _index_of(items, item):
@@ -276,6 +284,7 @@ def submissions_block(rows, page_items, result, title="Mọi lần nộp trong k
         dong["ngay"] = item.get("nhom")   # ngày gốc: mốc `data-ngay` để đổi Gộp / Không gộp vẫn ở đúng ngày
         vi_tri = [code for code, _, _ in kinds].index("nhom")
         dong["identity"][vi_tri] = row["nhom"]
+        _gan_lan_nop(dong, item)
         out.append(dong)
     return block("submissions", title, kinds, out, overall_totals("submissions", result), count=len(out))
 

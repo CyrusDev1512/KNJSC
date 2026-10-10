@@ -1,5 +1,32 @@
 # Backlog
 
+## 10.10.2026 — Admin sửa lần nộp ngay trên Báo cáo tổng hợp (ADR-050, AC-50.1 → 50.10)
+
+- **Chủ dự án:** "tôi muốn quản trị có chức năng khi vào báo cáo tổng hợp có thể sửa dữ liệu". Làm theo
+  [mockup tương tác](https://claude.ai/artifact/AiyWUW9ycAGuRsdniXRWnN) chủ dự án đã duyệt:
+  - chỉ Admin thấy ✎;
+  - sửa trong hộp đè lên bảng, lưu xong bảng đổi tại chỗ;
+  - dòng Toàn kỳ, TỔNG CỘNG và nguồn Vận đơn giữ nguyên.
+- **Đã làm:**
+  - ✎ ở ô đầu mỗi dòng lần nộp Sale/MKT, cả khối ngày lẫn khối Gộp. Bảng dữ liệu và các vai khác không có ✎.
+  - Hộp sửa dùng đúng luồng Sửa báo cáo (`bao_cao_sua?khung=1`), nên quyền, so phiên bản, lịch sử và nhật ký như cũ.
+  - Lưu xong bảng thay tại chỗ bằng đường Gộp / Không gộp; dòng vừa sửa sáng vàng; báo "Đã lưu".
+  - Gặp 409: hộp nạp số mới, tô vàng ô người khác vừa đổi, bỏ số vừa gõ; câu báo nêu mã người sửa và giờ sửa.
+  - Trang Sửa báo cáo có thêm Xem trước chỉ số, vì dùng chung phần ô sửa với hộp.
+  - Không đổi quyền, không migration.
+- **Kiểm:**
+  - bài kiểm mới 10/10; trình duyệt 2/2; `pytest reports -m cham` 19/19;
+  - `pytest -m "not cham"`: 3.140 đạt, 10 bỏ qua, 4 đỏ;
+  - bốn bài đỏ là hai bài truy vết (docs/04 sửa giữa lượt, bộ đếm docs/06) và hai bài quét lớp CSS (biến điều kiện
+    trong `class="…"`); đã sửa, bốn tệp liên quan chạy lại 744/744;
+  - thử tay trên 8020 với dữ liệu mẫu: 16/16.
+- **Còn nợ:**
+  - chủ dự án thử ở local;
+  - Safari, Firefox, Windows;
+  - đo hộp sửa trên bảng lớn (khối 100 dòng, chạm trần `MAX_GROUPS`).
+
+[Biên bản](kiem-chung-admin-sua-bao-cao-20261010.md). Nhánh `claude/knerp-erp-chinh-sua-hfi7w8`.
+
 ## 10.10.2026 — Phản hồi khi thử ở local: nút Tôi / Toàn bộ, tóm tắt Lên đơn, số dòng ở thư mục
 
 - **Nút Tôi / Toàn bộ ẩn với Sale staff và CSKH** (ADR-033 bổ sung, AC-33.6, TL-87). Phạm vi của hai vai này

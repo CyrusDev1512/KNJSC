@@ -9,6 +9,7 @@ Ngày, chủ sở hữu và thời điểm nộp của DailyReport vẫn bất b
 """
 from core.permissions import is_company_reader
 from django.db import transaction
+from django.utils import timezone
 
 from core.audit import record
 from core.constants import AuditAction
@@ -292,12 +293,49 @@ def amend(report, values, *, version, actor, request=None):
             row.data[column.code] = record_service.parse_value(column, mapped[column.code])
     compute_report(row, report.form.table, columns)
     row.sync_indexed_columns(columns)
-    if row.data != before:
+    # `da_doi`: lần lưu này có đổi số không — hộp sửa trên Báo cáo tổng hợp báo "không có số nào đổi" (ADR-050)
+    current.da_doi = row.data != before
+    if current.da_doi:
         row.save(skip_sync=True)
         ReportRevision.objects.create(report=current, actor=actor, before=before, after=row.data)
         record(AuditAction.UPDATE, actor=actor, target=current,
                detail='Sửa nội dung báo cáo; giữ nguyên người nộp và ngày báo cáo.', request=request)
     return current
+
+
+def revision_changes(report, limit=50):
+    """Các lần sửa gần nhất của một báo cáo, mỗi lần gắn `display_changes` [{name, before, after}] chỉ gồm cột đổi —
+    trang Xem báo cáo và hộp sửa trên Báo cáo tổng hợp (ADR-050) dùng chung."""
+    revisions = list(report.revisions.select_related('actor', 'actor__profile')[:limit])
+    columns = {c.code: c for c in report.form.table.columns.all()}
+    for revision in revisions:
+        revision.display_changes = [{'name': columns[code].name,
+            'before': display_report_value(columns[code], revision.before.get(code)),
+            'after': display_report_value(columns[code], revision.after.get(code))}
+            for code in columns if revision.before.get(code) != revision.after.get(code)]
+    return revisions
+
+
+def conflict_note(report, to_vang=True):
+    """Câu báo trong hộp sửa khi lưu gặp 409: ai vừa sửa, lúc nào, và hộp đã làm gì (ADR-050, mockup 10.10.2026).
+
+    `report.record` phải là bản mới nhất. Chỉ nêu mã người sửa khi lần ghi cuối của dòng chính là một lần sửa: `amend`
+    ghi lịch sử ngay sau khi lưu dòng, nên lần sửa đó không cũ hơn `updated_at`. Dòng đổi theo đường khác thì không đổ
+    cho ai. `to_vang`: có ô nào khác số lúc mở hộp không."""
+    from core.identity import employee_code
+    moi_nhat = report.revisions.select_related('actor', 'actor__profile').order_by('-created_at').first()
+    if moi_nhat and moi_nhat.created_at >= report.record.updated_at:
+        ai = f'{employee_code(moi_nhat.actor)} vừa sửa báo cáo này lúc {timezone.localtime(moi_nhat.created_at):%H:%M}.'
+    else:
+        ai = 'Báo cáo vừa được người khác sửa.'
+    return (f'{ai} Hộp đã nạp số mới nhất{" (ô tô vàng)" if to_vang else ""}, số bạn vừa gõ chưa được lưu. '
+            'Xem lại rồi bấm Lưu.')
+
+
+def submission_number(user, report):
+    """"Lần N" của một lần nộp trong ngày của người nộp, đếm theo giờ nộp — nhãn đầu hộp sửa (ADR-050)."""
+    return history(user).filter(form=report.form, created_by=report.created_by, report_date=report.report_date,
+                                submitted_at__lte=report.submitted_at).count()
 
 
 def forms_for(user):

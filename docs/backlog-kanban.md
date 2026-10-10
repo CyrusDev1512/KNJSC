@@ -1,5 +1,19 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 10.10.2026 — Admin sửa lần nộp ngay trên Báo cáo tổng hợp (ADR-050, AC-50.1 → 50.10)
+
+**Finished local (nhánh `claude/knerp-erp-chinh-sua-hfi7w8`, PR nháp về `Staging`):**
+- Admin bấm ✎ ở dòng lần nộp Sale/MKT, sửa trong hộp, lưu xong bảng đổi tại chỗ;
+- gặp 409 thì hộp nạp số mới và tô vàng ô bị đổi;
+- Toàn kỳ, TỔNG CỘNG, Vận đơn, Bảng dữ liệu và các vai khác không có ✎; quyền sửa không đổi.
+
+**To do:**
+- chủ dự án gộp vào `Staging`;
+- thử ở máy mình: sửa một lần nộp MKT và một lần nộp Sale, hai người cùng sửa, điện thoại;
+- gộp `main`, phát hành VPS (không migration).
+
+**Far plan:** thử Safari, Firefox, Windows; đo hộp sửa trên bảng lớn.
+
 ## 08.10.2026 — Diễn tập phát hành Staging lên VPS (TL-79 → TL-85)
 
 **Finished local (nhánh `claude/dien-tap-phat-hanh-vps`, PR nháp về `Staging`):**

@@ -319,13 +319,7 @@ def bao_cao_xem(request, pk):
     bao_cao = get_object_or_404(
         daily_service.history(request.user), pk=pk,
     )
-    revisions = list(bao_cao.revisions.select_related('actor', 'actor__profile')[:50])
-    columns = {c.code: c for c in bao_cao.form.table.columns.all()}
-    for revision in revisions:
-        revision.display_changes = [{'name':columns[code].name,
-            'before':daily_service.display_report_value(columns[code], revision.before.get(code)),
-            'after':daily_service.display_report_value(columns[code], revision.after.get(code))}
-            for code in columns if revision.before.get(code) != revision.after.get(code)]
+    revisions = daily_service.revision_changes(bao_cao)
     return render(request, "reports/bao_cao_xem.html", {
         "bao_cao": bao_cao,
         "cac_dong": daily_service.read_report_cells(bao_cao),
@@ -388,34 +382,67 @@ def bao_cao_khoi_phuc(request, pk):
     return redirect("bao_cao_da_bo")
 
 
-@login_required
-def bao_cao_sua(request, pk):
-    """Sửa nội dung trong phạm vi quản lý, giữ báo cáo gốc và lịch sử."""
-    report = get_object_or_404(daily_service.history(request.user), pk=pk)
-    if not daily_service.can_amend(request.user, report):
-        raise Http404('Báo cáo không thuộc phạm vi được sửa.')
-    request.nav_current = 'bao_cao_lich_su'
-    fields = list(report.form.ordered_fields())
+def _gia_tri_dang_luu(report, fields):
+    """Giá trị đang lưu của một báo cáo theo mã trường form. Giá trị lưu Decimal dùng dấu chấm, ô nhập tiền dùng
+    dấu phẩy thập phân."""
     values = {f.field.code: report.record.data.get(f.link.column.code, '')
               for f in fields if getattr(f, 'link', None)}
-    # Giá trị lưu Decimal dùng dấu chấm, ô nhập tiền dùng dấu phẩy thập phân.
     for f in fields:
         if f.field.field_type in ('money', 'decimal') and f.field.code in values:
             values[f.field.code] = str(values[f.field.code] if values[f.field.code] is not None else '').replace('.', ',')
+    return values
+
+
+@login_required
+def bao_cao_sua(request, pk):
+    """Sửa nội dung trong phạm vi quản lý, giữ báo cáo gốc và lịch sử.
+
+    `?khung=1` (ADR-050): chỉ phần form cho hộp sửa mở từ nút ✎ của Admin trên Báo cáo tổng hợp — cùng quyền, cùng
+    `amend`. Lưu được trả 204 (`X-Bao-Cao-Doi` báo có đổi số không) để bảng đổi tại chỗ; 400 trả lại phần form kèm
+    lỗi; 409 trả phần form đã nạp số mới nhất và phiên bản mới, ô bị đổi so với lúc mở hộp (ô ẩn `goc-…`) tô vàng."""
+    report = get_object_or_404(daily_service.history(request.user), pk=pk)
+    if not daily_service.can_amend(request.user, report):
+        raise Http404('Báo cáo không thuộc phạm vi được sửa.')
+    khung = request.GET.get('khung') == '1'
+    request.nav_current = 'bao_cao_lich_su'
+    fields = list(report.form.ordered_fields())
+    values = _gia_tri_dang_luu(report, fields)
+    goc, vua_doi = dict(values), set()
     version, errors, status = report.record.updated_at.isoformat(), [], 200
     if request.method == 'POST':
+        goc = {ma: request.POST.get(f'goc-{ma}', gia_tri) for ma, gia_tri in values.items()}
         values.update({f.field.code: request.POST[f.field.code] for f in fields if f.field.code in request.POST})
         version = request.POST.get('version', '')
         try:
-            daily_service.amend(report, values, version=version, actor=request.user, request=request)
+            report = daily_service.amend(report, values, version=version, actor=request.user, request=request)
+            if khung:
+                phan_hoi = HttpResponse(status=204)
+                phan_hoi['X-Bao-Cao-Doi'] = '1' if report.da_doi else '0'
+                return phan_hoi
             messages.success(request, 'Đã cập nhật báo cáo và ghi lịch sử chỉnh sửa.')
             return redirect('bao_cao_xem', pk=pk)
         except daily_service.ReportConflict as error:
             errors, status = [str(error)], 409
+            if khung:
+                # Hộp nạp số mới nhất, bỏ số vừa gõ chưa lưu; ô khác lúc mở hộp tô vàng (mockup 10.10.2026)
+                report.record.refresh_from_db()
+                values = _gia_tri_dang_luu(report, fields)
+                vua_doi = {ma for ma, gia_tri in values.items() if str(gia_tri) != str(goc.get(ma, gia_tri))}
+                goc, version = dict(values), report.record.updated_at.isoformat()
+                errors = [daily_service.conflict_note(report, to_vang=bool(vua_doi))]
         except BusinessError as error:
             errors, status = [str(error)], 400
-    return render(request, 'reports/bao_cao_sua.html', {
-        'bao_cao': report, 'bm': report.form, 'version': version, 'loi': errors,
-        'cac_o': daily_service.report_widgets(report.form, fields, values,
-            user=request.user, day=report.report_date, owner=report.created_by),
-    }, status=status)
+    cac_o = daily_service.report_widgets(report.form, fields, values,
+                                        user=request.user, day=report.report_date, owner=report.created_by)
+    for o in cac_o:
+        o.vua_doi = o.t.field.code in vua_doi
+    ctx = {'bao_cao': report, 'bm': report.form, 'version': version, 'loi': errors, 'xung_dot': status == 409,
+           'cac_cot_tinh': daily_service.preview_columns(report.form.table),
+           'tien_co_dinh': daily_service.fixed_currency(report.form)}
+    if khung:
+        # Ngày và người nộp đã ở đầu hộp: hộp chỉ còn ô sửa được (Loại tiền chỉ đọc vẫn hiện, theo Thị trường)
+        ctx.update(cac_o=[o for o in cac_o if not getattr(o, 'report_date', False) and not o.danh_tinh],
+                   goc=sorted(goc.items()), lich_su=daily_service.revision_changes(report),
+                   lan=daily_service.submission_number(request.user, report))
+        return render(request, 'reports/_bao_cao_sua_hop.html', ctx, status=status)
+    return render(request, 'reports/bao_cao_sua.html', {**ctx, 'cac_o': cac_o}, status=status)

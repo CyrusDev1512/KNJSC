@@ -372,8 +372,9 @@ def build(user, source, *, group="day", start=None, end=None, product="", market
                  "team_name", "leader_name")
         if tung_lan:
             # Mỗi lần nộp một dòng (ADR-032 cho nộp nhiều lần/ngày): khoá nhóm thêm id dòng và giờ nộp;
-            # "Lần N" đếm trong ngày của từng người theo giờ nộp — hàm cửa sổ, đúng cả khi phân trang
-            extra.update(record_id=F("id"), gio=F("created_at"))
+            # "Lần N" đếm trong ngày của từng người theo giờ nộp — hàm cửa sổ, đúng cả khi phân trang.
+            # `report_id` (báo cáo ngày 1-1 với dòng, LEFT JOIN cùng câu) cho nút ✎ của Admin (ADR-050)
+            extra.update(record_id=F("id"), gio=F("created_at"), report_id=F("daily_report__id"))
             order = ("-nhom", "person_name", "gio", "record_id")
             annotations = {"lan": Window(RowNumber(), partition_by=[F("nhom"), F("person_name")],
                                          order_by=[F("gio").asc(), F("record_id").asc()])}

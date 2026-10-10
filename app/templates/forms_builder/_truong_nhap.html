@@ -1,10 +1,11 @@
 {% comment %}
 Một trường trên màn hình điền biểu mẫu và nộp báo cáo ngày — một chỗ duy nhất
 quyết định ô nhập trông thế nào (trước đây hai màn hình chép nhau).
-Cần: o (form_service.Widget), bm (biểu mẫu đang điền). Trường bắt buộc mang thuộc tính
+Cần: o (form_service.Widget), bm (biểu mẫu đang điền). `o.vua_doi`: hộp sửa gặp 409, ô này vừa bị người
+khác đổi (ADR-050). Trường bắt buộc mang thuộc tính
 `required` để trình duyệt chặn sớm (ADR-043); máy chủ vẫn kiểm lại (AC-8.2).
 {% endcomment %}{% with t=o.t gia_tri=o.gia_tri %}
-<div class="truong" {% if o.report_market %}data-report-market{% endif %}>
+<div class="truong{% if o.vua_doi %} vua-doi{% endif %}" {% if o.report_market %}data-report-market{% endif %}>
   {% if o.currency_map %}{{ o.currency_map|json_script:"report-currency-map" }}{% endif %}
   <label for="o-{{ t.field.code }}">
     {{ t.field.name }}{% if o.don_vi %} ({{ o.don_vi }}){% endif %}{% if t.required %} <span class="bat-buoc">*</span>{% endif %}
