@@ -1,5 +1,27 @@
 # Backlog
 
+## 12.10.2026 — Kiểm `Staging` `cc26520` rồi gộp `main` (#106, #107)
+
+- **Chủ dự án:** "test kĩ rồi gộp staging vào main đi" (chặng 3).
+- **Phạm vi:**
+  - `Staging` hơn `main` đúng #106 và #107, 34 tệp, không có migration;
+  - `main` không có nội dung riêng; gộp thử ra đúng tree `4a11b71` của `Staging`.
+- **Kiểm** trên worktree đúng `cc26520`, theo khuôn lượt 08.10:
+  - `pytest -m "not trinh_duyet"`: 3.161 đạt, 7 bỏ qua, 0 đỏ;
+  - `check` (test, dev, bangtinh) và `check --deploy` (prod): như 08.10;
+  - cập nhật DB dựng bằng `main` sang `Staging` theo chuỗi launcher: không có migration nào phải chạy, dữ liệu y nguyên,
+    "Dữ liệu khớp.";
+  - quét liên kết 12 tài khoản × ERP và CRM: 945 lượt, 0 trả lời 5xx;
+  - e2e #106: 9/9, chạy 2 lần; e2e #107: 20/20, chạy 2 lần; CI xanh trên cùng tree;
+  - đóng vai thay chặng 2 (theo lệnh chủ dự án): #106 và bố cục 33/33, #107 47/47.
+- **Lỗi mới:** TL-89, liên kết "xem bảng" ở Thống kê KN CRM nguồn Sale/MKT bị 404. Có từ trước, không chặn, chưa sửa.
+- **Còn nợ:**
+  - phát hành VPS (chặng 4): chủ dự án bảo riêng, phiên có SSH làm; không có migration;
+  - sửa TL-89;
+  - xoá nhánh thừa.
+
+[Biên bản](kiem-chung-staging-len-main-20261012.md).
+
 ## 10.10.2026 — Admin sửa lần nộp ngay trên Báo cáo tổng hợp (ADR-050, AC-50.1 → 50.11)
 
 - **Chủ dự án:** "tôi muốn quản trị có chức năng khi vào báo cáo tổng hợp có thể sửa dữ liệu". Làm theo

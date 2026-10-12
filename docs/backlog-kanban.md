@@ -1,5 +1,17 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 12.10.2026 — Kiểm `Staging` rồi gộp `main` (#106, #107)
+
+**Finished local:** kiểm toàn diện `Staging` `cc26520`: unit, cấu hình, cập nhật từ `main`, smoke, e2e, đóng vai. Đạt để gộp
+`main`.
+
+**To do:**
+- gộp `Staging` → `main` (chủ dự án đã bảo 12.10);
+- phát hành VPS khi chủ dự án bảo (phiên có SSH, không có migration);
+- sửa TL-89 (liên kết chết ở Thống kê CRM).
+
+**Far plan:** thử Safari, Firefox, Windows.
+
 ## 10.10.2026 — Admin sửa lần nộp ngay trên Báo cáo tổng hợp (ADR-050, AC-50.1 → 50.11)
 
 **Finished local (nhánh `claude/knerp-erp-chinh-sua-hfi7w8`, PR nháp về `Staging`):**
