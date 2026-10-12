@@ -1,5 +1,24 @@
 # Backlog
 
+## 12.10.2026 — Sửa TL-89: nút của Thống kê KN CRM (AC-40.9)
+
+- **Chủ dự án:** "sửa TL-89 đi", chọn đích Báo cáo tổng hợp KN ERP.
+- **Lỗi:** ở Thống kê KN CRM, nút "Mở dữ liệu" / "Mở bảng nguồn" của nguồn Sale/MKT trỏ lưới `/bang-tinh/bao_cao_*/`, luôn
+  404 từ ADR-040.
+- **Đã làm** (một chỗ quyết định đích: `crm/services/statistics_profiles.source_url`):
+  - nguồn Sale/MKT mở Báo cáo tổng hợp KN ERP của đúng nguồn, cùng kỳ, giữ host đang mở (AC-1.10);
+  - Vận đơn giữ lưới KN CRM; bảng khác không có nút;
+  - không đổi quyền, không migration, không thêm truy vấn.
+- **Kiểm:**
+  - bài kiểm mới 16 (14 đỏ trước khi sửa → 16/16);
+  - `pytest -m "not trinh_duyet"`: 3.177 đạt, 7 bỏ qua, 0 đỏ;
+  - hệ thống thật, 12 tài khoản: 66 trang Thống kê, 114 nút, 20 đích ERP và 32 đích lưới đều 200, đúng nguồn, đúng kỳ;
+    quét liên kết 937 lượt, 0 trả lời 4xx/5xx (lượt cũ: 404 với 9 tài khoản);
+  - đóng vai trình duyệt 26/26; số truy vấn trang Thống kê giữ nguyên ở 3 vai × 5 trang.
+- **Còn nợ:** chặng 2 (chủ dự án bấm thử ở máy mình); phát hành VPS cùng lượt sau.
+
+[Biên bản](kiem-chung-tl89-thong-ke-lien-ket-20261012.md).
+
 ## 12.10.2026 — Kiểm `Staging` `cc26520` rồi gộp `main` (#106, #107)
 
 - **Chủ dự án:** "test kĩ rồi gộp staging vào main đi" (chặng 3).
@@ -17,7 +36,7 @@
 - **Lỗi mới:** TL-89, liên kết "xem bảng" ở Thống kê KN CRM nguồn Sale/MKT bị 404. Có từ trước, không chặn, chưa sửa.
 - **Còn nợ:**
   - phát hành VPS (chặng 4): chủ dự án bảo riêng, phiên có SSH làm; không có migration;
-  - sửa TL-89;
+  - sửa TL-89: đã sửa cùng ngày, xem mục trên;
   - xoá nhánh thừa.
 
 [Biên bản](kiem-chung-staging-len-main-20261012.md).

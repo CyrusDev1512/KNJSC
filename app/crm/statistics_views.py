@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 
+from core.lien_ket import theo_host_dang_mo
 from core.pagination import paginate
 from orders.services import waybill_service
 
@@ -104,6 +105,20 @@ def _legacy_waybill_context(request, table, records, group, dashboard, grouped=N
     }
 
 
+def _links_for_host(request, dashboard):
+    """Nút sang Báo cáo tổng hợp KN ERP giữ host đang mở (AC-1.10, AC-40.9). Khoá bộ nhớ đệm Thống kê không theo host
+    nên số liệu lưu địa chỉ theo cấu hình; đổi ở đây, trên bản riêng của mỗi lần trả lời."""
+    if not dashboard:
+        return
+    items = [dashboard, *dashboard.get("sections", {}).values()]
+    for item in items:
+        if item.get("open_url"):
+            item["open_url"] = theo_host_dang_mo(item["open_url"], request)
+        for insight in item.get("insights", []):
+            if insight.get("href"):
+                insight["href"] = theo_host_dang_mo(insight["href"], request)
+
+
 def _paginate_charts(request, dashboard):
     if not dashboard:
         return
@@ -161,6 +176,7 @@ def overview(request):
                     _legacy_waybill_context(request, table, records, group, dashboard,grouped)
                 )
         _paginate_charts(request, dashboard)
+        _links_for_host(request, dashboard)
 
     params = request.GET.copy()
     for page_key in ("trang", "chart_market", "chart_product", "lam_moi"):

@@ -1,6 +1,6 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 10.10.2026 (ADR-050 Admin sửa lần nộp ngay trên Báo cáo tổng hợp); 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
+> Cập nhật 12.10.2026 (TL-89: nút Thống kê KN CRM của nguồn Sale/MKT sang Báo cáo tổng hợp ERP, AC-40.9); 10.10.2026 (ADR-050 Admin sửa lần nộp ngay trên Báo cáo tổng hợp); 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
 > `main` → VPS**; Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền, nhánh việc gộp xong là
 > xoá); 25.09.2026 (ADR-043 bổ sung: một ô Team duy nhất trên form báo cáo); 24.09 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
 > chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
@@ -225,7 +225,8 @@ liệu không đổi). Khung sidebar theo Teeze (`templates/crm/base_crm.html`,
 `crm/navigation.py`) cho trang chủ tổng quan (số liệu, bảng, hoạt động — đều chỉ
 vận đơn), mục Bảng tính = trang thư mục `/thu-muc/` **phẳng Bộ phận ▸ thư mục ▸
 bảng, không còn cấp Quý/Tháng** (ADR-040), Nhập tệp, Cấp quyền, Lên đơn, Thống kê
-`/thong-ke/` (Thống kê vẫn đọc cả nguồn Sale/MKT). (Bảng nhận đơn đã bỏ, ADR-036;
+`/thong-ke/` (Thống kê vẫn đọc cả nguồn Sale/MKT; nút "Mở dữ liệu" của nguồn đó mở Báo cáo tổng hợp ERP đúng
+nguồn, đúng kỳ, bảng khác không có nút — một chỗ `statistics_profiles.source_url`, AC-40.9). (Bảng nhận đơn đã bỏ, ADR-036;
 nút Tạo bảng đã ẩn, đường dẫn còn.)
 Lưới `/bang-tinh/<mã bảng>/` toàn màn hình, chỉ lưới có nút ← và nó về thư mục CRM,
 không về ERP (ADR-012, 015). **Leader như Manager trong bộ phận mình**

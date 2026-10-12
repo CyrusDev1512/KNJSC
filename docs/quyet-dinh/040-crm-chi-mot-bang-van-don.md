@@ -82,6 +82,22 @@ không đổi.
 
 Tiêu chí: AC-40.5, AC-40.6, AC-40.7.
 
+## Bổ sung 12.10.2026 — nút của Thống kê KN CRM (TL-89)
+
+Thống kê KN CRM vẫn đọc nguồn Sale/MKT, nhưng nút "Mở dữ liệu" và "Mở bảng nguồn" của nguồn đó trỏ vào lưới
+`/bang-tinh/bao_cao_*/`, mà lưới đó 404 từ quyết định này. Chủ dự án chọn đích mới; quyền không đổi.
+
+- **Nguồn Sale/MKT** (bảng có nguồn báo cáo ERP): mở Báo cáo tổng hợp KN ERP của đúng nguồn, cùng khoảng ngày. Không
+  dùng Bảng dữ liệu vì trang đó chỉ Manager trở lên mở được. Báo cáo tổng hợp lọc nguồn theo cùng phạm vi với Thống kê,
+  nên vai nào thấy nguồn ở Thống kê thì mở được.
+- **Vận đơn:** giữ lưới KN CRM như cũ.
+- **Bảng khác:** không có nút.
+
+Một chỗ quyết định đích: `crm/services/statistics_profiles.source_url`. Liên kết sang ERP giữ host đang mở (AC-1.10) ở
+`crm/statistics_views._links_for_host`, vì bộ nhớ đệm Thống kê không theo host.
+
+Tiêu chí: AC-40.9.
+
 ## Không đổi
 
 Dữ liệu mọi bảng; toàn bộ KN ERP (biểu mẫu, Báo cáo tổng hợp, Bảng dữ liệu chỉ
