@@ -1,5 +1,15 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 12.10.2026 — Kiểm `Staging` `cc26520` trước khi gộp `main` (TL-89)
+
+**TL-89 (mở) — mức nhẹ, Thống kê KN CRM:**
+- **Lỗi:** với nguồn Sale/MKT, trang `/thong-ke/` có liên kết "xem bảng" mở `/bang-tinh/bao_cao_*/?f_ngay__lon_bang=…`. Từ
+  ADR-040, KN CRM chỉ phục vụ bảng vận đơn, nên liên kết đó luôn 404, với mọi vai thấy nguồn, kể cả Admin.
+- **Nguồn:** `crm/services/statistics_profiles.source_url`.
+- **Có từ trước #106, #107:** `main` cũng có. Không chặn gộp.
+- **Đề xuất:** nguồn không phải vận đơn thì trỏ sang Bảng dữ liệu ERP (`/bang/<mã>/?tu=…&den=…`), hoặc ẩn liên kết.
+- [Biên bản](kiem-chung-staging-len-main-20261012.md) mục 7.
+
 ## 10.10.2026 — Phản hồi của chủ dự án khi thử ở local (TL-86 → TL-88)
 
 **TL-86 (đóng) — mức nhẹ, Lên đơn:** tóm tắt chỉ có một câu chung "Không tải được tóm tắt. Kiểm tra kết nối hoặc

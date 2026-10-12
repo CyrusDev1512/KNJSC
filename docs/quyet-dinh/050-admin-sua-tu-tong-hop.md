@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Ngày | 10.10.2026 |
-| Trạng thái | Kiểm kỹ xong 10.10.2026, chủ dự án bảo gộp vào `Staging`; sau đó thử local rồi mới gộp `main` |
+| Trạng thái | Gộp `Staging` 10.10.2026. Chủ dự án bảo gộp `main` 12.10.2026 sau lượt kiểm `Staging` (`kiem-chung-staging-len-main-20261012.md`). Chưa phát hành VPS |
 | Thay thế / bổ sung | Bổ sung ADR-032 (luồng Sửa báo cáo có lịch sử) và ADR-042 (Báo cáo tổng hợp): thêm một lối vào luồng sửa đó ngay trên bảng. Không đổi quyền sửa |
 
 ## Bối cảnh
