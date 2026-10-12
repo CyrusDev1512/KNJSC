@@ -32,7 +32,7 @@ Chip đầu luôn là Kỳ (`screen.filter_chips`) nên bỏ: kỳ đã là ch�
 {% block noi_dung %}
 {% comment %}Không còn đầu trang: tên trang đã ở thanh trên, nhường chỗ cho bảng (chủ dự án 03.10.2026); từ 07.10.2026
 hàng nút, hàng chip, hàng tên bảng cũng lên thanh trên cùng (khối thanh_tren_giua ở trên).{% endcomment %}
-<div class="report-view" id="report-view">
+<div class="report-view" id="report-view"{% if sua_bao_cao %} data-sua{% endif %}>
 <div class="report-workspace" id="report-workspace" data-filters="open" data-active="{{ filters_active|default:0 }}">
 <aside class="report-filter-panel" id="report-filter-panel" aria-label="Bộ lọc báo cáo">
 <div class="panel-head"><h2>Bộ lọc</h2><button type="button" class="nut report-nut-icon" id="report-panel-collapse" aria-label="Thu gọn bộ lọc" title="Thu gọn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></button></div>
@@ -65,5 +65,11 @@ còn một dòng gọn (toàn văn ở title và trong panel). Từ 07.10.2026 h
 {% if result.ok %}<div class="bang-cuon report-table-scroll" tabindex="0" role="region" aria-label="Bảng số liệu, cuộn ngang để xem thêm">{% for b in blocks %}{% include "reports/_bang_khoi.html" %}{% endfor %}</div>{% include 'components/phan_trang.html' %}{% endif %}</section></div></div>
 {% if shipping %}<section class="bang-hop"><h2>Trạng thái giao hàng</h2><ul>{% for g in shipping %}<li>{{ g.label|default:'Chưa xác định' }}: {{ g.count }} đơn</li>{% endfor %}</ul></section>{% endif %}
 {% if source.kind == 'delivery' %}<p>Vận đơn theo dõi hoạt động giao hàng; phần số tiền thuộc Kế toán và Kho. Một đơn nhiều sản phẩm được đếm một lần trong tổng.</p>{% endif %}
+{% if sua_bao_cao %}{% comment %}Hộp sửa một lần nộp (ADR-050, chủ dự án duyệt mockup 10.10.2026): chỉ Admin; report-sua.js nạp phần form
+`/bao-cao/<id>/sua/?khung=1` vào đây, report-entry.js gắn ô số và Xem trước chỉ số cho nội dung mới.{% endcomment %}
+<dialog class="report-sua-hop" id="report-sua-hop" aria-labelledby="report-sua-tieu-de" data-sua-mau="{% url 'bao_cao_sua' 987654321 %}?khung=1"></dialog>
+<svg hidden><symbol id="report-but-sua" viewBox="0 0 16 16"><path d="M11.2 2.3l2.5 2.5-8 8-3.1.6.6-3.1z"/><path d="M9.6 3.9l2.5 2.5"/></symbol></svg>
+<script src="{% static 'js/report-entry.js' %}?v={{ phien_ban_tinh }}" defer></script>
+<script src="{% static 'js/report-sua.js' %}?v={{ phien_ban_tinh }}" defer></script>{% endif %}
 <script src="{% static 'js/report-filters.js' %}?v={{ phien_ban_tinh }}" defer></script>
 {% endblock %}

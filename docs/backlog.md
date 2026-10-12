@@ -1,5 +1,88 @@
 # Backlog
 
+## 12.10.2026 — Kiểm `Staging` `cc26520` rồi gộp `main` (#106, #107)
+
+- **Chủ dự án:** "test kĩ rồi gộp staging vào main đi" (chặng 3).
+- **Phạm vi:**
+  - `Staging` hơn `main` đúng #106 và #107, 34 tệp, không có migration;
+  - `main` không có nội dung riêng; gộp thử ra đúng tree `4a11b71` của `Staging`.
+- **Kiểm** trên worktree đúng `cc26520`, theo khuôn lượt 08.10:
+  - `pytest -m "not trinh_duyet"`: 3.161 đạt, 7 bỏ qua, 0 đỏ;
+  - `check` (test, dev, bangtinh) và `check --deploy` (prod): như 08.10;
+  - cập nhật DB dựng bằng `main` sang `Staging` theo chuỗi launcher: không có migration nào phải chạy, dữ liệu y nguyên,
+    "Dữ liệu khớp.";
+  - quét liên kết 12 tài khoản × ERP và CRM: 945 lượt, 0 trả lời 5xx;
+  - e2e #106: 9/9, chạy 2 lần; e2e #107: 20/20, chạy 2 lần; CI xanh trên cùng tree;
+  - đóng vai thay chặng 2 (theo lệnh chủ dự án): #106 và bố cục 33/33, #107 47/47.
+- **Lỗi mới:** TL-89, liên kết "xem bảng" ở Thống kê KN CRM nguồn Sale/MKT bị 404. Có từ trước, không chặn, chưa sửa.
+- **Còn nợ:**
+  - phát hành VPS (chặng 4): chủ dự án bảo riêng, phiên có SSH làm; không có migration;
+  - sửa TL-89;
+  - xoá nhánh thừa.
+
+[Biên bản](kiem-chung-staging-len-main-20261012.md).
+
+## 10.10.2026 — Admin sửa lần nộp ngay trên Báo cáo tổng hợp (ADR-050, AC-50.1 → 50.11)
+
+- **Chủ dự án:** "tôi muốn quản trị có chức năng khi vào báo cáo tổng hợp có thể sửa dữ liệu". Làm theo
+  [mockup tương tác](https://claude.ai/artifact/AiyWUW9ycAGuRsdniXRWnN) chủ dự án đã duyệt:
+  - chỉ Admin thấy ✎;
+  - sửa trong hộp đè lên bảng, lưu xong bảng đổi tại chỗ;
+  - dòng Toàn kỳ, TỔNG CỘNG và nguồn Vận đơn giữ nguyên.
+- **Đã làm:**
+  - ✎ ở ô đầu mỗi dòng lần nộp Sale/MKT, cả khối ngày lẫn khối Gộp. Bảng dữ liệu và các vai khác không có ✎.
+  - Hộp sửa dùng đúng luồng Sửa báo cáo (`bao_cao_sua?khung=1`), nên quyền, so phiên bản, lịch sử và nhật ký như cũ.
+  - Lưu xong bảng thay tại chỗ bằng đường Gộp / Không gộp; dòng vừa sửa sáng vàng; báo "Đã lưu".
+  - Gặp 409: hộp nạp số mới, tô vàng ô người khác vừa đổi, bỏ số vừa gõ; câu báo nêu mã người sửa và giờ sửa.
+  - Trang Sửa báo cáo có thêm Xem trước chỉ số, vì dùng chung phần ô sửa với hộp.
+  - Không đổi quyền, không migration.
+- **Kiểm kỹ trước khi gộp** (chủ dự án: "test kĩ rồi gộp vào staging"):
+  - Rà mã độc lập ra 9 phát hiện. Sửa 7:
+    - đang lưu thì khoá đóng hộp, quá 30 giây thì thôi chờ;
+    - báo 403 và 404 đúng lý do;
+    - "Lần N" lấy theo dòng bảng;
+    - Escape chặn ở chính hộp;
+    - đếm đúng tổng số lần sửa;
+    - id báo cáo lấy từ data;
+    - bỏ LEFT JOIN khỏi câu số liệu.
+
+    Giữ 2: hành vi 409 theo mockup đã duyệt, và `da_doi`.
+  - Đo trên DB 2.400 lần nộp: LEFT JOIN làm mọi người dùng chậm thêm 4,7 → 21,8 ms. Đổi sang tra mã báo cáo một truy vấn
+    theo dòng đang hiện, chỉ ở trang có ✎. Phần thêm của Admin còn +5,9 ms (+4,8 %) và +3,4 ms (+1,4 %); vai khác không
+    đổi.
+- **Kiểm:**
+  - bài kiểm mới 12/12; trình duyệt 3/3 (AC-50.11 mới: đường lỗi và khoá hộp khi đang lưu); `pytest reports -m cham`
+    20/20;
+  - lượt 1 `pytest -m "not cham"`: 3.140 đạt, 10 bỏ qua, 4 đỏ. Bốn bài đỏ là hai bài truy vết và hai bài quét lớp CSS,
+    đã sửa;
+  - lượt 2 `pytest -m "not trinh_duyet"`: 3.161 đạt, 7 bỏ qua, 0 đỏ; CI trên `8de45e9` xanh cả bộ chính lẫn e2e;
+  - thử tay: lượt 1 16/16; lượt 2 47/47, gồm đường lỗi thật, bàn phím, 4 cỡ màn hình × 2 chế độ, chế độ tối, trang 2,
+    đang lọc, Excel.
+- **Còn nợ:**
+  - chủ dự án thử ở local trên `Staging` sau khi gộp;
+  - Safari, Firefox, Windows;
+  - một năm dữ liệu chưa đo.
+
+[Biên bản](kiem-chung-admin-sua-bao-cao-20261010.md). Nhánh `claude/knerp-erp-chinh-sua-hfi7w8`.
+
+## 10.10.2026 — Phản hồi khi thử ở local: nút Tôi / Toàn bộ, tóm tắt Lên đơn, số dòng ở thư mục
+
+- **Nút Tôi / Toàn bộ ẩn với Sale staff và CSKH** (ADR-033 bổ sung, AC-33.6, TL-87). Phạm vi của hai vai này
+  chỉ là dòng của mình nên "Toàn bộ" gây nhầm. Quyền xem và sửa không đổi; các vai khác giữ nút.
+- **Tóm tắt Lên đơn nói rõ vì sao không tính được** (AC-6.14, TL-86): hết phiên, tài khoản không lên đơn được
+  (hay vừa đăng nhập lại ở tab khác), máy chủ lỗi, mất mạng. Lỗi chủ dự án gặp không tái hiện được trên máy ảo.
+- **Số dòng ở thư mục gồm dòng bị xoá trắng** (TL-88): phím Delete chỉ xoá nội dung ô. Chủ dự án chọn giữ luật:
+  Admin dọn bằng "Xoá dòng đang chọn". Không sửa mã.
+- **Kiểm:**
+  - `pytest -m "not trinh_duyet"`: 3.128 đạt, 7 bỏ qua, 0 đỏ;
+  - bài trình duyệt AC-6.14 đạt; các bài Lên đơn có sẵn 46 đạt;
+  - thử trên trình duyệt thật: `sale.staff` không còn nút và lưới không tự lọc, `vd.staff` giữ nút.
+- **Còn nợ:**
+  - Admin dọn các dòng trống đang có;
+  - vai khác vẫn tạo được dòng trống bằng phím Delete, vì chỉ Admin được xoá dòng.
+
+[PR #106](https://github.com/CyrusDev1512/KNJSC/pull/106). Nhánh `claude/an-nut-toan-bo-sale-cskh`.
+
 ## 09.10.2026 — `Staging` vào `main` (#104); gộp #101; hoà giải #102 với #103
 
 - **#104:** `Staging` `450b6da` vào `main` bằng merge commit, ra `main` `b55405a`.

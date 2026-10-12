@@ -163,11 +163,13 @@ def test_bo_cuc_ngang_form_nhap(client, bang_mkt, mkt_source, nguoi_dung):
     """AC-43.4 — Form nộp báo cáo là một thẻ trải hết chiều rộng: hàng điều khiển Biểu mẫu · Team · Ngày, lưới
     ô nhập ngang (`bm-ngang`, ô cao ≤ 36 px), cột tính sẵn hiện dạng thẻ xem trước (AC-43.6) thay cho ô nhập giả; không còn
     `max-width:860px`; màn Sửa báo cáo cùng lưới; phần đo bằng mắt ở biên bản"""
-    mau = (GOC / "templates" / "reports" / "bao_cao_ngay.html").read_text(encoding="utf-8")
+    # Khối Xem trước chỉ số và lưới ô sửa là include dùng chung với hộp sửa trên Báo cáo tổng hợp (ADR-050)
+    doc = lambda *ten: "".join((GOC / "templates" / "reports" / t).read_text(encoding="utf-8") for t in ten)  # noqa: E731
+    mau = doc("bao_cao_ngay.html", "_xem_truoc_chi_so.html")
     assert "max-width:860px" not in mau and 'class="the-than bm bm-ngang"' in mau and 'class="bm-tinh"' in mau
     assert "o-tinh" not in mau and mau.count('<div class="the">') == 1
-    sua = (GOC / "templates" / "reports" / "bao_cao_sua.html").read_text(encoding="utf-8")
-    assert "max-width:860px" not in sua and "bm-ngang" in sua
+    sua = doc("bao_cao_sua.html", "_o_sua.html")
+    assert "max-width:860px" not in sua and "bm-ngang" in sua and '{% include "reports/_o_sua.html" %}' in sua
     css = (GOC / "static" / "css" / "solarpunk.css").read_text(encoding="utf-8")
     cao = re.search(r"\.bm-ngang \.o-nhap \{[^}]*min-height:(\d+)px", css)
     assert cao and int(cao.group(1)) <= 36

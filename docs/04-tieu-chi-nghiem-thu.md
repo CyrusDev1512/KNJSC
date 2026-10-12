@@ -174,6 +174,7 @@ Hai ô đáng chú ý sau ADR-023. **Màn hình lên đơn** không còn mở ng
 | AC-6.11 | Một lần bấm Lưu đơn chỉ ra một đơn: form Lên đơn có mã lần nộp dùng một lần; gửi lại đúng lần đó (kể cả hai yêu cầu cùng lúc) chỉ ra một đơn một mã, lần sau báo lại mã đơn đã lưu "không tạo đơn mới"; lưu xong form có mã mới (săn lỗi 06.10.2026) | FR-6.1 | Tự động |
 | AC-6.12 | Xoá dòng vận đơn của một đơn thì đơn gốc bị bỏ (xoá mềm, có nhật ký); khôi phục dòng thì đơn sống lại; Bỏ đơn vẫn xoá cả dòng như cũ (06.10.2026); từ 08.10 chỉ Admin xoá dòng và bỏ đơn (AC-21.18, AC-6.13) | FR-6.4 · BR-4 | Tự động |
 | AC-6.13 | **Bỏ đơn chỉ Admin** (ADR-049, 08.10.2026): trang đơn gốc chỉ hiện nút "Bỏ đơn này" cho Admin; người lên đơn và Manager Sale gửi thẳng yêu cầu thì bị từ chối có nhật ký, đơn và dòng vận đơn giữ nguyên; `order_service.cancel_order` từ chối mọi người không phải Admin; Admin bỏ được, đơn và dòng xoá mềm | FR-6.4 · BR-4 · ADR-049 | Tự động |
+| AC-6.14 | Tóm tắt Lên đơn không tính được thì nói rõ vì sao, mỗi trường hợp một lời (chủ dự án 10.10.2026): bị chuyển về đăng nhập → "Phiên đăng nhập đã hết…"; máy chủ trả 403 → "Tài khoản đang đăng nhập không lên đơn được, hoặc vừa đăng nhập lại ở tab khác…"; máy chủ lỗi → "Máy chủ đang lỗi…"; mất mạng → "Mất kết nối mạng…"; lỗi nhập liệu vẫn hiện lời của máy chủ; tính được thì ra số dòng, số sản phẩm, tổng tiền | FR-6.1 | Tự động |
 
 ---
 
@@ -569,7 +570,7 @@ giữ tiêu chí cũ.
 | AC-33.3 | `cua_toi=1` (bổ sung 28.09.2026, TL-64): dòng tôi lên đơn hoặc tôi là Sale đứng đơn, cộng dòng tôi được phân công ở bất kỳ cột phụ trách nào (Vận đơn, CSKH, Marketing) — áp cho mọi tài khoản, chỉ thu hẹp trong phạm vi quyền; Sale thấy ngay đơn mình vừa lên dù chưa ai phân công; bảng thường bỏ qua; khối dữ liệu đổi phiên bản; 100 dòng không vượt trần 22 truy vấn | ADR-033 | Tự động |
 | AC-33.4 | `cua_toi=1` đi theo Tải Excel trực tiếp và nền, và Thống kê | ADR-033 | Tự động |
 | AC-33.5 | `che-do-xem/` trả 404; `TableDef` không còn `delivery_view_all` nhưng còn `delivery_view_version`; Cột & cấp quyền không còn khối Chế độ xem bảng | ADR-033 | Tự động |
-| AC-33.6 | Nút Tôi / Toàn bộ hiện với mọi tài khoản trên bảng Vận đơn (bổ sung 28.09.2026); không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi; `config.myScope` bật trên bảng Vận đơn | ADR-033 | Tự động |
+| AC-33.6 | Nút Tôi / Toàn bộ hiện trên bảng Vận đơn với tài khoản thấy rộng hơn dòng của mình: Vận đơn, Sale Leader và Manager, Admin, Kế toán (bổ sung 28.09.2026); **ẩn với Sale staff và CSKH**, vì "Toàn bộ" của họ cũng chỉ là dòng của mình (bổ sung 10.10.2026, `assignment_service.only_own_rows`); không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi; `config.myScope` theo đúng việc hiện nút | ADR-033 | Tự động |
 | AC-33.7 | Migration 0013 chạy xuôi và ngược trên DB test, giữ `delivery_view_version` và dữ liệu | ADR-033 | Tự động |
 | AC-33.8 | Xoá trống ô Quốc gia thì Loại tiền trống; dòng có tiền hỏi xác nhận rồi ghi được cả lượt xoá; điền lại Quốc gia tiền về đúng; nhập tệp và lên đơn vẫn bắt buộc quốc gia. Lưới như Excel: bấm chỉ chọn, gõ là nhập, Enter/F2/bấm đúp mở ô, Tab/Enter chỉ chuyển ô, Ctrl+A chọn cả bảng (kiểm trình duyệt) | ADR-033 · ADR-031 | Tự động |
 
@@ -786,3 +787,25 @@ tiền vẫn là VND (ADR-047); cột và dữ liệu cũ giữ. Bổ sung cùng
 | AC-48.5 | Trình duyệt: form Nộp báo cáo Marketing không còn bốn ô; gõ CPQC và Số đơn thì thẻ CPO hiện kèm "VND" (đơn vị lấy từ `data-tien` khi không có ô Loại tiền); bấm Nộp chỉ với các ô số thì lưu được, dòng mang Loại tiền VND; không lỗi JavaScript | ADR-048 · AC-43.6 | Tự động + trình duyệt |
 | AC-48.6 | Thống kê KN CRM nguồn Marketing không còn biểu đồ "Đóng góp theo sản phẩm" (biểu đồ theo Marketer vẫn còn); nguồn Sale vẫn có biểu đồ theo sản phẩm | ADR-048 | Tự động |
 | AC-48.7 | Sau `configure_erp_reports` form Nộp báo cáo Sale không còn ô Ngày ra đơn, chạy lại vẫn không đưa về; cột Ngày ra đơn và dữ liệu cũ giữ nguyên; cờ bắt buộc cấp cột (nếu từng bật tay) bị gỡ; trang nộp Sale không còn ô đó, nộp Sale đủ các ô còn lại vẫn lưu được | ADR-048 bổ sung · ADR-043 | Tự động |
+
+## 50. Admin sửa lần nộp ngay trên Báo cáo tổng hợp — ADR-050
+
+Chủ dự án 10.10.2026: "tôi muốn quản trị có chức năng khi vào báo cáo tổng hợp có thể sửa dữ liệu". Duyệt mockup tương
+tác: chỉ Admin thấy nút ✎; sửa trong hộp đè lên bảng, lưu xong bảng đổi tại chỗ; dòng Toàn kỳ, TỔNG CỘNG, Vận đơn giữ
+nguyên. Quyền sửa ở máy chủ không đổi (`can_amend`, ADR-032).
+[ADR-050](quyet-dinh/050-admin-sua-tu-tong-hop.md);
+[biên bản](kiem-chung-admin-sua-bao-cao-20261010.md).
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-50.1 | Admin mở Báo cáo tổng hợp nguồn Sale/MKT: mỗi dòng lần nộp (khối ngày, và khối Gộp) có đúng một nút ✎ ở ô đầu, trỏ `/bao-cao/<id>/sua/?khung=1&lan=N` của đúng lần nộp (N là Lần của dòng, đầu hộp ghi đúng số đó), dòng mang `data-lan-nop`; khối Toàn kỳ và mọi dòng TỔNG CỘNG không có ✎ | ADR-050 | Tự động |
+| AC-50.2 | Manager, Staff, Kế toán, CEO mở cùng trang vẫn 200 nhưng không có ✎, không có hộp sửa; quyền sửa ở máy chủ không đổi (Manager vẫn sửa được qua Lịch sử báo cáo) | ADR-050 | Tự động |
+| AC-50.3 | Bảng dữ liệu dạng báo cáo (dùng chung bảng khối) không có ✎ kể cả với Admin (ADR-014); nguồn Vận đơn không có ✎ | ADR-050, ADR-014 | Tự động |
+| AC-50.4 | `GET /bao-cao/<id>/sua/?khung=1` trả phần form không có khung trang: ô sửa của lần nộp, phiên bản, Xem trước chỉ số, nút Lịch sử sửa (n) với n là tổng số lần sửa (danh sách hiện 50 lần gần nhất); Admin và Manager bộ phận 200; người nộp (Staff), CEO, Manager bộ phận khác 404 | ADR-050 | Tự động |
+| AC-50.5 | Lưu trong hộp trả 204 (không chuyển trang, không flash), `X-Bao-Cao-Doi: 1`, số mới vào DB, một ReportRevision của người sửa và một nhật ký Sửa; lưu lại đúng số cũ thì 204, `X-Bao-Cao-Doi: 0`, không thêm lịch sử; ngày và người nộp giữ nguyên | ADR-050, ADR-032 | Tự động |
+| AC-50.6 | Để trống ô bắt buộc rồi Lưu trong hộp: 400, phần form báo "Chưa điền các trường bắt buộc: …", không ghi gì | ADR-050 | Tự động |
+| AC-50.7 | Người khác lưu trước khi Admin bấm Lưu: 409, không ghi đè; hộp nạp số mới nhất và phiên bản mới, ô khác với lúc mở hộp tô vàng (`vua-doi`), câu báo nêu mã người vừa sửa (chỉ khi lần ghi cuối của dòng là một lần sửa; không thì câu chung, không nhắc ô tô vàng khi không ô nào đổi); Lưu lại với phiên bản mới thì được | ADR-050 | Tự động |
+| AC-50.8 | Câu truy vấn số liệu từng lần nộp giữ nguyên như trước ADR-050 với mọi vai (không nối bảng báo cáo ngày, không chậm theo cỡ kỳ); trang có ✎ (Admin) tra mã báo cáo ngày bằng đúng một truy vấn nhỏ theo các dòng đang hiện, vẫn ≤ 10 truy vấn như AC-46.9; Manager và Bảng dữ liệu không tra | ADR-050 | Tự động |
+| AC-50.9 | Trình duyệt: bấm ✎ mở hộp, con trỏ ở ô đầu, gõ số tự chèn dấu chấm, Xem trước chỉ số tính ngay; Lưu → hộp đóng, báo "Đã lưu", ô của dòng, TỔNG CỘNG ngày và TỔNG CỘNG toàn kỳ đổi đúng mà không tải lại trang, dòng sáng lên, focus về ✎; Escape chỉ đóng hộp; 409 trong trình duyệt nạp số mới, tô vàng ô bị đổi, Lưu lại được; không lỗi console | ADR-050 | Tự động (trình duyệt) |
+| AC-50.10 | Điện thoại 390 px: ✎ nằm trong ô STT đứng yên, hộp sửa chiếm cả màn hình, trang không cuộn ngang, Huỷ đóng hộp, không lỗi console | ADR-050 | Tự động (trình duyệt) |
+| AC-50.11 | Lưu trong hộp gặp lỗi thì báo ngay trong hộp, giữ số vừa gõ, không báo "Đã lưu", không ghi gì: mất mạng (hay quá 30 giây không trả lời), máy chủ lỗi 5xx, bị từ chối 403, báo cáo vừa bị bỏ (404), hết phiên. Đang lưu thì ✕ và Huỷ khoá, Escape không đóng hộp; lưu xong mới đóng, đúng một lần sửa | ADR-050 | Tự động (trình duyệt) |

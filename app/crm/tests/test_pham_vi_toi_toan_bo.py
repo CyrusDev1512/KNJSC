@@ -11,7 +11,7 @@ from core.exceptions import OutOfScopeError
 from crm.services import grid_service
 from forms_builder.models import DataRecord, TableDef
 from forms_builder.services import export_service, record_service
-from orders.services import assignment_service
+from orders.services import assignment_service, order_service
 
 from .test_master_grid import BASE, write
 from .test_waybill_feedback import assign_rows, cskh_staff, delivery_leader, feedback, visible  # noqa: F401
@@ -131,16 +131,25 @@ def test_delivery_view_mode_removed(client, feedback, nguoi_dung):
     assert 'Chế độ xem bảng' not in html
 
 
-def test_shell_renders_scope_toggle_by_role(client, feedback, nguoi_dung, delivery_leader, ke_toan):
-    """AC-33.6 — Nút Tôi / Toàn bộ hiện với mọi tài khoản trên bảng Vận đơn (bổ sung 28.09.2026);
-    không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi."""
+def test_shell_renders_scope_toggle_by_role(client, feedback, nguoi_dung, delivery_leader, ke_toan, cskh_staff):
+    """AC-33.6 — Nút Tôi / Toàn bộ hiện trên bảng Vận đơn với tài khoản thấy rộng hơn dòng của mình (Vận đơn,
+    Sale Leader và Manager, Admin, Kế toán); ẩn với Sale staff và CSKH vì "Toàn bộ" của họ cũng chỉ là dòng của
+    mình (bổ sung 10.10.2026); không còn nút Chế độ: Xem; `?cua_toi=1` đánh dấu nút Tôi."""
+    table, products, rows = feedback
+    assign_rows(delivery_leader, [rows[0]], care=cskh_staff.pk)
+    for i, ten in enumerate(('leader_sale_1', 'manager_sale')):
+        order_service.create_order(phone=f'09000001{i}0', customer_name=f'Khách {ten}', actor=nguoi_dung[ten],
+                                   lines=[{'product': products[0].code, 'quantity': 1, 'unit_price': '10.00'}])
     for user, expected in ((nguoi_dung['staff_vd'], True), (delivery_leader, True),
-                           (nguoi_dung['staff_sale_1'], True), (nguoi_dung['admin'], True), (ke_toan, True)):
+                           (nguoi_dung['leader_sale_1'], True), (nguoi_dung['manager_sale'], True),
+                           (nguoi_dung['admin'], True), (ke_toan, True),
+                           (nguoi_dung['staff_sale_1'], False), (cskh_staff, False)):
         client.force_login(user)
         response = client.get(BASE)
         assert response.status_code == 200, user.username
         html = response.content.decode()
         assert ('id="mg-pham-vi"' in html) is expected, user.username
+        assert f'"myScope": {"true" if expected else "false"}' in html, user.username
         assert 'id="mg-mode"' not in html and 'Chế độ: Xem' not in html
     client.force_login(nguoi_dung['staff_vd'])
     html = client.get(BASE).content.decode()

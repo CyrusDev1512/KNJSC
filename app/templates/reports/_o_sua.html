@@ -1,0 +1,4 @@
+{% comment %}Ô sửa của một báo cáo đã nộp và Xem trước chỉ số — dùng chung trang Sửa báo cáo và hộp sửa mở từ nút ✎ trên
+Báo cáo tổng hợp (ADR-050). Cần: cac_o, bm, cac_cot_tinh, tien_co_dinh.{% endcomment %}
+<div class="the-than bm bm-ngang">{% for o in cac_o %}{% include "forms_builder/_truong_nhap.html" %}{% endfor %}</div>
+{% include "reports/_xem_truoc_chi_so.html" %}

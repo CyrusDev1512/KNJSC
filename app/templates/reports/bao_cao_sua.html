@@ -7,7 +7,7 @@
 {% for error in loi %}<div class="bao bao-xau" role="alert">{{ error }}</div>{% endfor %}
 <form method="post" class="the">
 {% csrf_token %}<input type="hidden" name="version" value="{{ version }}">
-<div class="the-than bm bm-ngang">{% for o in cac_o %}{% include "forms_builder/_truong_nhap.html" %}{% endfor %}</div>
+{% include "reports/_o_sua.html" %}
 <div class="the-chan"><a class="nut" href="{% url 'bao_cao_xem' bao_cao.pk %}">Quay lại báo cáo</a><button class="nut nut-chinh" type="submit">Lưu chỉnh sửa</button></div>
 </form>
 {% endblock %}

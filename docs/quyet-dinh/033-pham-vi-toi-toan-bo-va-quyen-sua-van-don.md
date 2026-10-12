@@ -156,3 +156,14 @@ hẹp trong phạm vi quyền sẵn có, không mở thêm dòng: Marketing vẫ
 và Thống kê đi theo cùng tham số `cua_toi`, nên đổi theo. Lựa chọn Tôi / Toàn bộ vẫn nhớ trên trình
 duyệt theo tài khoản và bảng như trước.
 
+## Bổ sung 10.10.2026 — Sale staff và CSKH không có nút Tôi / Toàn bộ
+
+Chủ dự án thử ở local: Sale staff bấm "Toàn bộ" tưởng sẽ thấy mọi vận đơn của công ty, nhưng vẫn chỉ
+thấy đơn của mình. Quyền đó đúng — Sale staff chỉ thấy đơn mình lên, mình đứng đơn hoặc được giao CSKH;
+CSKH chỉ thấy dòng được giao — nên với hai vai này "Toàn bộ" không thêm dòng nào so với "Tôi" và chỉ gây
+nhầm.
+
+Chốt (chủ dự án chọn): **ẩn nút với Sale staff và CSKH**. Vận đơn, Sale Leader và Manager, Admin, Kế toán
+giữ nút như bổ sung 28.09. Quyết định ở một chỗ: `assignment_service.only_own_rows`, theo đúng các nhánh
+của `scope_condition`. `config.myScope` tắt theo, nên lựa chọn "Tôi" đã nhớ trên trình duyệt không còn tự
+thêm `cua_toi=1`; tham số đó gõ tay vẫn chỉ thu hẹp trong phạm vi. Quyền xem và sửa không đổi.

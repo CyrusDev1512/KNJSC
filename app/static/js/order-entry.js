@@ -36,6 +36,17 @@
   updateCurrency();
   document.addEventListener('htmx:afterSwap', updateCurrency);
   let timer, pending, generation = 0;
+  // Không tính được tóm tắt thì nói rõ vì sao (AC-6.14): hết phiên, tài khoản không lên đơn được, máy chủ lỗi.
+  // Mất mạng do loi-mang.js đổi thành lời tiếng Việt (error.matMang).
+  async function summaryText(response) {
+    if (response.redirected) return 'Phiên đăng nhập đã hết — tải lại trang để đăng nhập lại.';
+    if (response.status === 403)
+      return 'Tài khoản đang đăng nhập không lên đơn được, hoặc vừa đăng nhập lại ở tab khác — tải lại trang.';
+    const data = await response.json().catch(() => null);
+    if (response.ok && data) return `${data.lines} dòng · ${data.quantity} sản phẩm · Tổng ${data.total} ${data.currency}`;
+    if (data && data.error) return data.error;
+    return 'Máy chủ đang lỗi hoặc đang khởi động lại — chưa tính được tóm tắt. Thử lại sau ít phút.';
+  }
   function preview(form) {
     const version = ++generation;
     clearTimeout(timer);
@@ -49,15 +60,12 @@
           method: 'POST', body: new FormData(form), signal: pending.signal,
           headers: {'X-CSRFToken': form.elements.csrfmiddlewaretoken.value}
         });
-        if (response.redirected) throw new Error('Phiên đăng nhập đã hết.');
-        const data = await response.json();
+        const text = await summaryText(response);
         if (version !== generation || !form.isConnected) return;
-        output.textContent = response.ok
-          ? `${data.lines} dòng · ${data.quantity} sản phẩm · Tổng ${data.total} ${data.currency}`
-          : data.error || 'Không tính được tóm tắt.';
+        output.textContent = text;
       } catch (error) {
         if (error.name !== 'AbortError' && version === generation)
-          output.textContent = 'Không tải được tóm tắt. Kiểm tra kết nối hoặc đăng nhập lại.';
+          output.textContent = error.matMang ? error.message : 'Chưa tính được tóm tắt. Thử lại sau ít phút.';
       }
     }, 350);
   }

@@ -11,7 +11,7 @@ from django.views.decorators.http import require_GET, require_POST
 from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.services import grant_service
-from orders.services.assignment_service import can_assign
+from orders.services.assignment_service import can_assign, only_own_rows
 from .services import master_grid_service as service, grid_service, row_mutations, sidebar_service, tree_service
 
 
@@ -185,10 +185,11 @@ def shell(request, table):
     grid = grid_service.build_grid(request.user, request.GET, table=table)
     month = tree_service.month_of_params(request.GET, grid.columns)
     qs, chips = _query_va_chip(request, grid)
+    # Nút Tôi / Toàn bộ: bảng vận đơn, trừ vai chỉ thấy dòng của mình (Sale staff, CSKH — ADR-033 bổ sung 10.10.2026)
+    pham_vi_toi = is_waybill_table(table) and not only_own_rows(request.user)
     return render(request, 'crm/master_grid.html', {
         'waybill_profile': is_waybill_table(table),
-        # Nút Tôi / Toàn bộ: chỉ người có cột phụ trách trong bảng vận đơn (ADR-033)
-        'pham_vi_toi': is_waybill_table(table),
+        'pham_vi_toi': pham_vi_toi,
         'payment_documents_enabled': getattr(settings, 'PAYMENT_DOCUMENTS_ENABLED', False),
         'grid_root_class':'mg-root mg-waybill-master' if is_waybill_table(table) else 'mg-root',
         'thang_dang_xem':month, 'bang': table, 'luoi': grid, 'qs_giu': qs.urlencode(), 'chips': chips,
@@ -209,7 +210,7 @@ def shell(request, table):
                    'productColumns': [c.code for c in grid.columns
                                       if c.code.startswith(dispatch_service.PRODUCT_COLUMN_PREFIX)],
                    'deliveryViewVersion': table.delivery_view_version,
-                   'myScope': is_waybill_table(table),
+                   'myScope': pham_vi_toi,
                    'canCreate':row_mutations.can_create(request.user,table),
                    # Xoá dòng chỉ Admin (ADR-049); máy chủ vẫn kiểm từng dòng
                    'canDelete':row_mutations.can_delete(request.user,table),
