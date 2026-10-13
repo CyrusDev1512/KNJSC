@@ -39,7 +39,7 @@
 | `crm/tests/test_kn_oms.py` | **15/15 đạt** (thêm AC-51.9) |
 | `core/tests/test_giao_dien.py` (soát lớp CSS theo năm tệp trang nạp), `tests/test_truy_vet.py` | Đạt. Bộ đếm docs/06: 398 tiêu chí, 362 trên 385 |
 | `manage.py check` (test, bangtinh); `makemigrations --check` | Không lỗi; "No changes detected" |
-| Toàn bộ trừ trình duyệt: `pytest -m "not trinh_duyet" -rf` | Đang chạy lượt cuối trên mã này; số ghi ở commit sau |
+| Toàn bộ trừ trình duyệt: `pytest -m "not trinh_duyet" -rf` | **3.207 đạt, 7 bỏ qua, 0 đỏ** (110 bài trình duyệt tách riêng); thêm đúng 1 bài so với 3.206 của #112 (AC-51.9 phía máy chủ) |
 
 ## 3. Rà kết thúc theo `craft-floor` (thủ công, không engine)
 

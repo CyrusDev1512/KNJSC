@@ -21,7 +21,10 @@
   - thêm một mã bán chạy chỉ còn khoảng 5 ngày bán để Kho có gợi ý nhập thật;
   - mã vận đơn toàn số từ 12 chữ số có dấu `'` trong CSV để Excel không đổi thành số mũ;
   - nhãn nhóm thanh bên, đường dẫn đạt 4,48:1 (dưới 4,5) — token chung KN CRM, trang chủ KN CRM y hệt; chưa sửa.
-- **Kiểm:** xem biên bản (bài mới, toàn phần, trình duyệt, tương phản, tràn ngang).
+- **Kiểm:**
+  - bài trình duyệt AC-51.10 → 51.14 viết trước (5/5 đỏ); sau khi làm `test_kn_oms_e2e.py` 11/11, chạy 3 lần liền;
+  - `pytest -m "not trinh_duyet"`: 3.207 đạt, 7 bỏ qua, 0 đỏ;
+  - quét 320 → 1440 px × 6 màn: 0 px tràn; hệ thống thật 16/16.
 - **Còn nợ:** gộp #112 trước rồi PR này; chặng 2 ở máy mình; sau đó `main` và VPS; không có migration.
 
 [Biên bản](kiem-chung-kn-oms-thiet-ke-lai-20261013.md).
