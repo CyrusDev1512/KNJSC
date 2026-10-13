@@ -6,10 +6,11 @@
 - nguồn Sale/MKT ở Thống kê mở Báo cáo tổng hợp KN ERP đúng nguồn, đúng kỳ; Vận đơn giữ lưới; bảng khác không có nút;
 - kiểm: 3.177 đạt, 0 đỏ; 12 tài khoản trên hệ thống thật, 0 nút hỏng; đóng vai 26/26.
 
+**13.10:** chủ dự án bảo gộp `main`: #110 vào `Staging`, rồi `Staging` → `main`.
+
 **To do:**
-- chủ dự án gộp vào `Staging`;
-- thử ở máy mình: Bàn điều hành → nguồn Báo cáo Marketing / Sale → "Mở dữ liệu";
-- gộp `main`, phát hành VPS (không migration).
+- phát hành VPS khi chủ dự án bảo (không migration);
+- chủ dự án thử ở máy khi tiện: Bàn điều hành → nguồn Báo cáo Marketing / Sale → "Mở dữ liệu".
 
 ## 12.10.2026 — Kiểm `Staging` rồi gộp `main` (#106, #107)
 

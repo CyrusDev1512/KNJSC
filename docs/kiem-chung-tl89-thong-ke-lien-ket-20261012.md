@@ -79,5 +79,7 @@ mỗi trang 6 lần (bỏ lần đầu), 2 lượt.
 
 - **Chặng 2:** chủ dự án thử ở máy mình. Bật hệ thống, vào KN CRM → Bàn điều hành, chọn nguồn Báo cáo Marketing hoặc
   Báo cáo Sale, bấm "Mở dữ liệu". Phải sang KN ERP, vẫn đăng nhập, đúng báo cáo, đúng khoảng ngày.
+  - 13.10 chủ dự án bảo gộp `main` khi chưa thử, nên thay bằng mục 3 và 4.
+  - Thử mà thấy sai thì sửa ở một nhánh mới, đi qua `Staging` như mọi thay đổi khác.
 - **Safari, Firefox, máy Windows thật:** máy ảo chỉ có Chromium.
 - **Hai tên miền thật trên VPS:** chỉ kiểm bằng bài kiểm (`MAIN_APP_URL` tên miền thật). Chưa phát hành.

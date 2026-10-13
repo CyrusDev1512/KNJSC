@@ -15,7 +15,13 @@
   - hệ thống thật, 12 tài khoản: 66 trang Thống kê, 114 nút, 20 đích ERP và 32 đích lưới đều 200, đúng nguồn, đúng kỳ;
     quét liên kết 937 lượt, 0 trả lời 4xx/5xx (lượt cũ: 404 với 9 tài khoản);
   - đóng vai trình duyệt 26/26; số truy vấn trang Thống kê giữ nguyên ở 3 vai × 5 trang.
-- **Còn nợ:** chặng 2 (chủ dự án bấm thử ở máy mình); phát hành VPS cùng lượt sau.
+- **13.10.2026, chủ dự án:** "gộp vào main đi".
+  - Đi đúng đường: #110 vào `Staging`, rồi PR `Staging` → `main`, cả hai gộp bằng merge commit.
+  - Trước khi gộp, `Staging` và `main` cùng tree `4ef7bfe`. Vì vậy `main` nhận đúng mã đã kiểm ở trên.
+  - Chặng 2 (người thử ở máy mình) chưa làm, vì chủ dự án bảo gộp luôn. Thay bằng phần đóng vai và kiểm HTTP ngày 12.10,
+    chạy trên đúng mã này.
+- **Còn nợ:** phát hành VPS (chặng 4) khi chủ dự án bảo, do phiên có SSH làm; không có migration. Chủ dự án bấm thử khi
+  tiện.
 
 [Biên bản](kiem-chung-tl89-thong-ke-lien-ket-20261012.md).
 
