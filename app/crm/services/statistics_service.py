@@ -75,11 +75,12 @@ def build(records, request=None):
 
 
 def source_tables(user):
-    """Mọi bảng đang hoạt động trong phạm vi, kể cả bảng chưa đủ cấu hình thống kê."""
+    """Mọi bảng đang hoạt động trong phạm vi, kể cả bảng chưa đủ cấu hình thống kê. Lấy sẵn nguồn báo cáo ERP
+    để nút "Mở dữ liệu" biết đích (AC-40.9) mà không thêm truy vấn mỗi bảng."""
     return list(
         TableDef.objects.in_scope(user)
         .filter(is_active=True)
-        .select_related("department")
+        .select_related("department", "erp_report")
         .prefetch_related("columns")
         .order_by("name", "id")
     )
@@ -161,7 +162,7 @@ def default_sources(user, tables):
     return selected
 
 
-def _unavailable(table, profile):
+def _unavailable(table, profile, date_from, date_to):
     logger.exception(
         "Không dựng được thống kê profile %s cho bảng %s", profile, table.code,
     )
@@ -181,7 +182,8 @@ def _unavailable(table, profile):
         "aov": [],
         "charts": [],
         "insights": [],
-        "open_url": f"/bang-tinh/{table.code}/",
+        # Cùng luật với nút "Mở dữ liệu" (AC-40.9); không biết cột ngày nên lưới vận đơn mở không lọc như trước
+        "open_url": statistics_profiles.source_url(table, None, date_from, date_to),
         "message": "Phần số liệu này tạm chưa khả dụng. Các nguồn còn lại vẫn được hiển thị.",
         "orders": None,
         "time_rows": [],
@@ -197,7 +199,7 @@ def build_dashboard(user, table, date_from, date_to, *, records=None, summary=Fa
             summary=summary,
         )
     except Exception:  # Một profile lỗi không làm mất cả bàn điều hành.
-        return _unavailable(table, profile)
+        return _unavailable(table, profile, date_from, date_to)
 
 
 def _picked_overview_sources(user, tables, params, request=None):

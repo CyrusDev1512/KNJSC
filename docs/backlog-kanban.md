@@ -1,14 +1,27 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 12.10.2026 — Sửa TL-89: nút của Thống kê KN CRM (AC-40.9)
+
+**Finished local (nhánh `claude/knerp-erp-chinh-sua-hfi7w8`, PR nháp về `Staging`):**
+- nguồn Sale/MKT ở Thống kê mở Báo cáo tổng hợp KN ERP đúng nguồn, đúng kỳ; Vận đơn giữ lưới; bảng khác không có nút;
+- kiểm: 3.177 đạt, 0 đỏ; 12 tài khoản trên hệ thống thật, 0 nút hỏng; đóng vai 26/26.
+
+**13.10:** chủ dự án bảo gộp `main`: #110 vào `Staging`, rồi `Staging` → `main`.
+
+**To do:**
+- phát hành VPS khi chủ dự án bảo (không migration);
+- chủ dự án thử ở máy khi tiện: Bàn điều hành → nguồn Báo cáo Marketing / Sale → "Mở dữ liệu".
+
 ## 12.10.2026 — Kiểm `Staging` rồi gộp `main` (#106, #107)
 
 **Finished local:** kiểm toàn diện `Staging` `cc26520`: unit, cấu hình, cập nhật từ `main`, smoke, e2e, đóng vai. Đạt để gộp
 `main`.
 
+**Finished:** gộp `Staging` → `main` (#109, 12.10).
+
 **To do:**
-- gộp `Staging` → `main` (chủ dự án đã bảo 12.10);
 - phát hành VPS khi chủ dự án bảo (phiên có SSH, không có migration);
-- sửa TL-89 (liên kết chết ở Thống kê CRM).
+- sửa TL-89: xong ở nhánh, xem thẻ trên.
 
 **Far plan:** thử Safari, Firefox, Windows.
 
