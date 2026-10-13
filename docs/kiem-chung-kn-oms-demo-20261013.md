@@ -24,11 +24,11 @@
 |---|---|
 | `crm/tests/test_kn_oms.py` (AC-51.1 → 51.4) trước khi có view, template, tệp tĩnh | Đỏ, đúng chỗ thiếu |
 | Cùng tệp sau khi làm | **14/14 đạt.** 10 vai khác Admin (gồm Leader, Manager Vận đơn, CEO) mỗi vai một bài 403 + nhật ký; chưa đăng nhập về `/dang-nhap/?next=/oms/`; POST 405; thanh bên; ERP 404 |
-| `tests/e2e/test_kn_oms_e2e.py` (AC-51.5 → 51.8), đồng hồ trình duyệt đóng băng, font Google chặn | **5/5 đạt, chạy 3 lần liền** (30,8 s · 30,9 s · 32,3 s); chạy lại lần 4 sau ba sửa trình bày cuối: xem mục 6 |
+| `tests/e2e/test_kn_oms_e2e.py` (AC-51.5 → 51.8), đồng hồ trình duyệt đóng băng, font Google chặn | **5/5 đạt, chạy 3 lần liền** (30,8 s · 30,9 s · 32,3 s); lần 4 sau ba sửa trình bày cuối: xem mục 6 |
 | `core/tests/test_giao_dien.py` | Đỏ 1 bài (`kn_oms.html` dùng lớp không có trong CSS chung) trước `CSS_RIENG`; sau đó đạt hết, kể cả bài chú thích CSS chạy thêm trên `oms.css` |
 | Bài canh: `test_khoi`, `test_ma_tran_quyen_hai_dich_vu`, `test_lien_ket_khong_cut`, `test_khung_crm`, `test_truy_vet` | Đạt hết. `test_truy_vet` khớp bộ đếm mới: 392 tiêu chí, 356 trên 379 |
 | `manage.py check` (test, bangtinh); `makemigrations --check` | Không lỗi; "No changes detected" |
-| Toàn bộ trừ trình duyệt: `pytest -m "not trinh_duyet" -rs` | Xem mục 6 |
+| Toàn bộ trừ trình duyệt: `pytest -m "not trinh_duyet" -rs` | **3.206 đạt, 7 bỏ qua, 0 đỏ** (mục 6) |
 
 ## 3. Vấn đề tìm ra khi kiểm, đã sửa
 
@@ -75,8 +75,8 @@ Chromium 1366 × 768, ngôn ngữ vi-VN, đồng hồ thật. Không có lỗi J
 
 | Kiểm | Kết quả |
 |---|---|
-| Toàn bộ trừ trình duyệt, có Redis: `pytest -m "not trinh_duyet" -rs` | Đang chạy lúc đẩy bản biên bản này; kết quả ghi ở lần đẩy kế tiếp |
-| `tests/e2e/test_kn_oms_e2e.py` lần 4, trên mã cuối | Chạy sau lượt trên (cùng DB kiểm thử, không chạy song song) |
+| Toàn bộ trừ trình duyệt, có Redis: `pytest -m "not trinh_duyet" -rs` | **3.206 đạt, 7 bỏ qua, 0 đỏ**, 12 phút 25 giây. Lượt 12.10 là 3.177; thêm 29 bài: 14 bài KN OMS, 8 bài giao diện tự sinh cho template mới và `oms.css`, 7 bài `test_khoi` tự sinh cho đường dẫn mới (6 vai và người chưa đăng nhập). 7 bài bỏ qua là bài kiểm tải như mọi lượt |
+| `tests/e2e/test_kn_oms_e2e.py` lần 4, trên mã cuối | **5/5 đạt**, 32,7 s |
 
 ## 7. Chưa kiểm
 

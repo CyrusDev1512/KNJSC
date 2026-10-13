@@ -14,7 +14,7 @@
   - **Không đụng:** model, migration, settings, dữ liệu thật. Trang không gọi máy chủ.
 - **Kiểm:**
   - bài mới: 14 bài quyền và 5 bài trình duyệt (chạy 3 lần liền);
-  - `pytest -m "not trinh_duyet"`: xem biên bản;
+  - `pytest -m "not trinh_duyet"`: 3.206 đạt, 7 bỏ qua, 0 đỏ (thêm 29 bài so với 12.10);
   - đi thử trên hệ thống thật với `quantri`, `sale.staff` và KN ERP.
 - **Sửa thêm trong lúc kiểm** (chi tiết ở biên bản):
   - Lãi theo page: 8/11 page lỗ, nay đúng 2 page;
