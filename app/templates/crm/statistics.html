@@ -62,7 +62,7 @@
         {% for insight in dashboard.insights %}
         <li class="is-{{ insight.tone }}">
           <div><h3>{{ insight.situation }}</h3><p>{{ insight.evidence }}</p><small>Nguồn: {{ insight.source }}</small></div>
-          <a class="nut" href="{{ insight.href }}">Mở dữ liệu</a>
+          {% if insight.href %}<a class="nut" href="{{ insight.href }}">Mở dữ liệu</a>{% endif %}
         </li>
         {% endfor %}
       </ol>
@@ -81,7 +81,7 @@
           </dl>
           <a href="?nguon={{ section.source_code }}&tu={{ date_from|date:'Y-m-d' }}&den={{ date_to|date:'Y-m-d' }}">Xem chuyên sâu</a>
         {% else %}
-          <p>{{ section.message }}</p><a href="{{ section.open_url }}">Mở bảng nguồn</a>
+          <p>{{ section.message }}</p>{% if section.open_url %}<a href="{{ section.open_url }}">Mở bảng nguồn</a>{% endif %}
         {% endif %}
       </article>
       {% empty %}
@@ -110,7 +110,7 @@
         {% endfor %}
       </section>
       {% else %}
-      <section class="exec-error"><h2>Phần số liệu tạm chưa khả dụng</h2><p>{{ dashboard.message }}</p><a href="{{ dashboard.open_url }}">Mở bảng nguồn</a></section>
+      <section class="exec-error"><h2>Phần số liệu tạm chưa khả dụng</h2><p>{{ dashboard.message }}</p>{% if dashboard.open_url %}<a href="{{ dashboard.open_url }}">Mở bảng nguồn</a>{% endif %}</section>
       {% endif %}
     {% endif %}
 

@@ -4,10 +4,12 @@ from datetime import date, timedelta
 from decimal import Decimal
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.db import connection
 from django.db.models import Count, DateField, DecimalField, F, Sum, TextField, Value
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Cast, NullIf, TruncMonth, TruncWeek
+from django.urls import reverse
 
 from core.money import MONEY_DECIMAL_PLACES, MONEY_MAX_DIGITS
 from forms_builder.meaning import Meaning
@@ -113,6 +115,17 @@ def _records_for(records, has_date, date_from, date_to):
 
 
 def source_url(table, date_column, date_from, date_to, extra=None):
+    """Đích của nút "Mở dữ liệu" (AC-40.9). KN CRM chỉ phục vụ bảng vận đơn (ADR-040): bảng vận đơn mở lưới lọc
+    đúng kỳ; bảng có Báo cáo tổng hợp KN ERP (nguồn Sale/MKT) mở màn đó của đúng nguồn, cùng kỳ; bảng khác trả
+    chuỗi rỗng để giao diện ẩn nút. Địa chỉ ERP theo cấu hình — view đổi theo host đang mở (AC-1.10)."""
+    if not is_waybill_table(table):
+        erp = (getattr(settings, "MAIN_APP_URL", "") or "").rstrip("/")
+        if not erp or getattr(table, "erp_report", None) is None:
+            return ""
+        params = {"nguon": table.code}
+        if date_from is not None and date_to is not None:
+            params.update(tu=date_from.isoformat(), den=date_to.isoformat())
+        return erp + reverse("bao_cao_tong_hop", urlconf="knjsc.urls") + "?" + urlencode(params)
     params = {}
     if date_column is not None:
         params[f"f_{date_column.code}__lon_bang"] = date_from.isoformat()
