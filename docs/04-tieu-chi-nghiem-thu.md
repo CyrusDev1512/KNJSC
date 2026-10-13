@@ -810,3 +810,22 @@ nguyên. Quyền sửa ở máy chủ không đổi (`can_amend`, ADR-032).
 | AC-50.9 | Trình duyệt: bấm ✎ mở hộp, con trỏ ở ô đầu, gõ số tự chèn dấu chấm, Xem trước chỉ số tính ngay; Lưu → hộp đóng, báo "Đã lưu", ô của dòng, TỔNG CỘNG ngày và TỔNG CỘNG toàn kỳ đổi đúng mà không tải lại trang, dòng sáng lên, focus về ✎; Escape chỉ đóng hộp; 409 trong trình duyệt nạp số mới, tô vàng ô bị đổi, Lưu lại được; không lỗi console | ADR-050 | Tự động (trình duyệt) |
 | AC-50.10 | Điện thoại 390 px: ✎ nằm trong ô STT đứng yên, hộp sửa chiếm cả màn hình, trang không cuộn ngang, Huỷ đóng hộp, không lỗi console | ADR-050 | Tự động (trình duyệt) |
 | AC-50.11 | Lưu trong hộp gặp lỗi thì báo ngay trong hộp, giữ số vừa gõ, không báo "Đã lưu", không ghi gì: mất mạng (hay quá 30 giây không trả lời), máy chủ lỗi 5xx, bị từ chối 403, báo cáo vừa bị bỏ (404), hết phiên. Đang lưu thì ✕ và Huỷ khoá, Escape không đóng hộp; lưu xong mới đóng, đúng một lần sửa | ADR-050 | Tự động (trình duyệt) |
+
+## 51. KN OMS — bản demo dữ liệu giả, chỉ Admin — ADR-051
+
+Chủ dự án 13.10.2026: "mockup + 1 2 3 làm sang một site khác từ KN CRM có thể mở KN OMS để có mockup + 1 2 3". Chốt:
+đường dẫn riêng `/oms/` trong KN CRM, chỉ Admin, toàn bộ dữ liệu giả sinh trong trình duyệt (không model, không
+migration, không gọi máy chủ).
+[ADR-051](quyet-dinh/051-kn-oms-ban-demo.md);
+[biên bản](kiem-chung-kn-oms-demo-20261013.md).
+
+| Mã | Đạt khi | Yêu cầu | Kiểm bằng |
+|---|---|---|---|
+| AC-51.1 | Admin mở `/oms/` trên KN CRM: 200, khung riêng "KN OMS" không có thanh bên KN CRM, dải "Dữ liệu giả", đủ sáu màn, nút "← Về KN CRM"; nạp `oms.css`/`oms.js` có số phiên bản; nền theo khoá `knjsc-nen`; không thêm dòng nhật ký; JS không gọi `fetch` hay XHR | ADR-051 | Tự động |
+| AC-51.2 | Mười vai khác Admin (Sale staff/leader/manager, MKT staff/manager, Vận đơn staff/leader/manager, Kế toán, CEO) gọi `/oms/` nhận 403 "Bạn không có quyền truy cập" và đúng một dòng nhật ký từ chối cho `/oms/`; chưa đăng nhập thì về `/dang-nhap/?next=/oms/`; POST nhận 405 | ADR-051 | Tự động |
+| AC-51.3 | Thanh bên KN CRM của Admin có đúng một mục "KN OMS", đứng sau Nhật ký, mở tab mới (`target="_blank" rel="noopener"`); vai khác không thấy mục, trang chủ không có liên kết `/oms/` | ADR-051 | Tự động |
+| AC-51.4 | KN ERP không có `/oms/` (404) và không có liên kết tới đó; tên `kn_oms` chỉ có ở URLconf KN CRM | ADR-051, AC-1.12 | Tự động |
+| AC-51.5 | Trình duyệt: bấm "KN OMS" ở thanh bên mở tab mới `/oms/`; nền đồng bộ hai chiều với KN CRM; Báo đơn (lọc đơn tắc, ngăn kéo có khối Thanh toán, Esc trả con trỏ về dòng), Kho (nhập kho vào sổ), Kênh (lọc nền tảng, page mất kết nối) chạy; `#màn` mở đúng màn, nút Lùi về màn trước; "Đặt lại demo" về đúng dữ liệu đầu; không lỗi JS, không gọi máy chủ ngoài trang và tệp tĩnh; điện thoại 390 px cả sáu màn không tràn ngang, không bảng nào phải cuộn ngang | ADR-051 | Tự động (trình duyệt) |
+| AC-51.6 | Trình duyệt, Công nợ: KPI và tiền sàn tách theo từng loại tiền, không có ₫; lọc tuổi nợ trên 30 ngày đúng; khớp tiền về theo gợi ý thì đơn thành Đã thanh toán + Đã về TK, cả ở ngăn kéo Báo đơn; khớp tay một khoản lệch; nhắc khách tăng số lần và ghi vào hành trình; ghi nhận tiền báo lỗi khi gõ chữ hay quá số còn phải thu, số hợp lệ thành Thanh toán 1 phần; đơn page vừa giao sau "Cập nhật từ hãng" vào Công nợ đúng số báo trong thông báo | ADR-051 | Tự động (trình duyệt) |
+| AC-51.7 | Trình duyệt, Khách rủi ro: bốn chip mẫu ra đúng mức (Cao, Thấp, Cần chú ý, Chưa có đơn); gõ số hai kiểu đều ra cùng một khách; danh sách xếp theo mức rủi ro, SĐT vẫn che; Chặn lên đơn đổi nhãn ở danh sách và thẻ; có khối "Cách tính" năm luật | ADR-051 | Tự động (trình duyệt) |
+| AC-51.8 | Trình duyệt, Lãi theo page: đúng hai page lỗ (KN Beauty Japan, KN Beauty LazMall) ở cả 30 và 7 ngày; thiếu tỉ giá KRW thì báo, nhập tỉ giá thì số đổi theo, tỉ giá sai thì báo lỗi và giữ số cũ; thác chi phí sáu bước (page Facebook) hay bảy bước (gian hàng sàn), kết ở Lãi; theo sản phẩm chín dòng lãi gộp, theo thị trường bảy dòng; đổi kỳ thì số đổi | ADR-051 | Tự động (trình duyệt) |
