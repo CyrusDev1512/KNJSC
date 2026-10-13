@@ -1,5 +1,31 @@
 # Backlog
 
+## 13.10.2026 — KN OMS thiết kế lại theo Solarpunk Office, làm sâu sáu màn (ADR-051 bổ sung, AC-51.9 → 51.14)
+
+- **Chủ dự án:** "dùng impeccable để design lại UI, sau đó nâng cấp tính năng".
+  - Đã chốt: chỉ KN OMS; theo Solarpunk Office như KN CRM; làm sâu sáu màn đang có; vẫn dữ liệu giả.
+  - Nhánh riêng `claude/kn-oms-thiet-ke-lai` tách từ `claude/kn-oms-demo` (#112), PR nháp riêng; #112 giữ nguyên.
+- **Đã làm — thiết kế lại** (Impeccable thủ công: `operate`, `craft-floor`; không engine):
+  - nạp bốn tệp CSS của KN CRM rồi mới `oms.css`; bỏ bảng màu chép tay; khung theo markup KN CRM;
+  - dải "DEMO" thành nhãn "Dữ liệu giả" trên thanh trên; 22 ô KPI to thành dải chỉ số phẳng; tiêu đề một câu;
+  - bỏ viền trái 3–4 px; Ghi nhận tiền, Phiếu kho, Thêm kênh vào ngăn kéo, bỏ hộp thoại;
+  - cột bảng sắp lại theo bề rộng đo được: không màn nào tràn ngang từ 320 tới 1440 px.
+- **Đã làm — làm sâu sáu màn:**
+  - Báo đơn, Công nợ: lọc ngày (chip và ô Từ–Đến DD/MM/YYYY), "Xuất danh sách" ra CSV cho Excel tiếng Việt;
+  - Công nợ: chọn nhiều đơn, "Nhắc N đơn", "Xuất N đơn";
+  - Khách rủi ro: dòng thời gian của khách; chặn lên đơn phải ghi lý do;
+  - Kho: đủ bán và gợi ý nhập đủ 30 ngày, tính riêng từng kho; Kênh: so với 7 ngày trước;
+  - Lãi theo page: biểu đồ lãi theo ngày có bảng số, đi bằng phím mũi tên; ô Lãi bằng tổng các ngày.
+- **Lựa chọn tự quyết, ghi lại để xem sau:**
+  - "7 ngày" ở Báo đơn, Kênh, Lãi theo page là 7 ngày lịch giờ Việt Nam (trước đây Kênh và Lãi lùi 7 × 24 giờ);
+  - thêm một mã bán chạy chỉ còn khoảng 5 ngày bán để Kho có gợi ý nhập thật;
+  - mã vận đơn toàn số từ 12 chữ số có dấu `'` trong CSV để Excel không đổi thành số mũ;
+  - nhãn nhóm thanh bên, đường dẫn đạt 4,48:1 (dưới 4,5) — token chung KN CRM, trang chủ KN CRM y hệt; chưa sửa.
+- **Kiểm:** xem biên bản (bài mới, toàn phần, trình duyệt, tương phản, tràn ngang).
+- **Còn nợ:** gộp #112 trước rồi PR này; chặng 2 ở máy mình; sau đó `main` và VPS; không có migration.
+
+[Biên bản](kiem-chung-kn-oms-thiet-ke-lai-20261013.md).
+
 ## 13.10.2026 — KN OMS: bản demo dữ liệu giả trong KN CRM, chỉ Admin (ADR-051, AC-51.1 → 51.8)
 
 - **Chủ dự án:** "mockup + 1 2 3 làm sang một site khác từ KN CRM có thể mở KN OMS để có mockup + 1 2 3".

@@ -1852,6 +1852,7 @@ const ACT = {
 };
 document.addEventListener('click', e => {
   if (e.target.closest('#nut-nav')) return moBen(!$('#oms-ben').classList.contains('mo'));
+  if ($('#oms-ben').classList.contains('mo') && !e.target.closest('#oms-ben')) moBen(false);   // điện thoại: bấm ra ngoài thì đóng
   // Ô tích chọn đơn: không mở ngăn kéo; bấm vào khoảng trống quanh ô cũng tích
   const oChon = e.target.closest('.oms-o-chon');
   if (oChon) { if (e.target.tagName !== 'INPUT') $('input', oChon).click(); return; }

@@ -65,6 +65,8 @@ svg.ic{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-wid
 .oms-chip:hover{border-color:var(--rule-strong);color:var(--ink)}
 .oms-chip[aria-pressed="true"]{background:var(--sp-selected);border-color:var(--rule-strong);color:var(--ink)}
 .oms-chip .dem{color:var(--ink-3);font-weight:500;font-variant-numeric:tabular-nums}
+/* Trên nền vàng của mục đang chọn, chữ phụ dùng --ink-2: --ink-3 ở đó chỉ đạt 4,26:1 (sáng), 3,95:1 (tối) */
+.oms-chip[aria-pressed="true"] .dem,.oms-kpi .o-so[aria-pressed="true"] .phu,.sp-oms table.bang tr.dang-mo .oms-mo,.oms-thanh-chon .oms-mo{color:var(--ink-2)}
 .cham{display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--c)}
 .sp-oms .loc .o-tim{flex:1 1 200px}
 .link{padding:0;border:0;background:none;color:var(--accent);font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}

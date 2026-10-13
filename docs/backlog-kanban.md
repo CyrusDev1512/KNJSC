@@ -1,5 +1,18 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 13.10.2026 — KN OMS thiết kế lại theo Solarpunk Office, làm sâu sáu màn (ADR-051 bổ sung, AC-51.9 → 51.14)
+
+**Finished local (nhánh `claude/kn-oms-thiet-ke-lai`, tách từ `claude/kn-oms-demo`, PR nháp riêng về `Staging`):**
+- diện mạo KN CRM: nạp bốn tệp CSS của KN CRM, khung kính, dải chỉ số phẳng, biểu mẫu vào ngăn kéo, bỏ viền trái;
+- làm sâu: lọc ngày, xuất CSV, chọn nhiều đơn ở Công nợ, dòng thời gian khách, chặn phải ghi lý do, đủ bán và gợi ý nhập,
+  so 7 ngày trước, biểu đồ lãi theo ngày;
+- vẫn dữ liệu giả; KN CRM, KN ERP không đổi; không model, không migration.
+
+**To do:**
+- gộp #112 vào `Staging` trước, rồi mới tới PR này;
+- chặng 2: thử ở máy mình theo kịch bản trong PR;
+- sau đó `main` và VPS; không có migration.
+
 ## 13.10.2026 — KN OMS: bản demo dữ liệu giả trong KN CRM, chỉ Admin (ADR-051, AC-51.1 → 51.8)
 
 **Finished local (nhánh `claude/kn-oms-demo`, PR nháp về `Staging`):**
