@@ -1,6 +1,6 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 12.10.2026 (TL-89: nút Thống kê KN CRM của nguồn Sale/MKT sang Báo cáo tổng hợp ERP, AC-40.9); 10.10.2026 (ADR-050 Admin sửa lần nộp ngay trên Báo cáo tổng hợp); 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
+> Cập nhật 13.10.2026 (kế hoạch kiểm thử toàn diện `docs/08`: ma trận phân hệ, kiểm tay Chặng 2 theo vùng, phân tích lọt lưới, lộ trình P0/P1/P2); 12.10.2026 (TL-89: nút Thống kê KN CRM của nguồn Sale/MKT sang Báo cáo tổng hợp ERP, AC-40.9); 10.10.2026 (ADR-050 Admin sửa lần nộp ngay trên Báo cáo tổng hợp); 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
 > `main` → VPS**; Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền, nhánh việc gộp xong là
 > xoá); 25.09.2026 (ADR-043 bổ sung: một ô Team duy nhất trên form báo cáo); 24.09 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
 > chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
@@ -96,7 +96,8 @@ nhánh claude/<tên-việc>  →  Staging  →  (kiểm kỹ ở máy local)  �
 nói mã làm đúng thứ nó được viết để làm. Chặng này hỏi câu khác: *mở lên dùng thử
 thì có đúng như mong đợi không.* Bật bằng `KN JSC.bat` (Windows) hoặc
 `./scripts/cap-nhat-local.sh`, mở KN ERP `127.0.0.1:8020` và KN CRM `127.0.0.1:8021`,
-đi lại đúng thao tác mà thay đổi này đụng tới. Nhiều lỗi nặng nhất của dự án
+đi lại đúng thao tác mà thay đổi này đụng tới — danh sách theo vùng ở
+`docs/08-ke-hoach-kiem-thu/06-kiem-tay-chang-2.md`. Nhiều lỗi nặng nhất của dự án
 (TL-02, TL-19, TL-41) đều là loại bài kiểm xanh nhưng người dùng gặp ngay.
 
 **Phát hành VPS chỉ đi từ `main`.** Không phát hành từ `Staging`, từ nhánh việc, hay
@@ -418,6 +419,7 @@ của lưới KN CRM (ADR-014), không phải của Bảng dữ liệu.
 | Đụng tới phân quyền | `docs/03-thiet-ke-ky-thuat.md` mục 3; ADR-020, 033 cho vận đơn |
 | Viết truy vấn | `docs/03-thiet-ke-ky-thuat.md` mục 5 |
 | Viết kiểm thử | `docs/04-tieu-chi-nghiem-thu.md` — tìm mã AC tương ứng |
+| Chọn bài kiểm cần viết, lập kế hoạch kiểm thử, kiểm tay Chặng 2 | `docs/08-ke-hoach-kiem-thu-toan-dien.md` (mục 9 lộ trình P0/P1/P2) và thư mục `docs/08-ke-hoach-kiem-thu/` |
 | Đụng lưới CRM | ADR-021, 027, 033, 039; `crm/services/master_grid_service.py`, `static/js/master-grid.js` |
 | Đụng Báo cáo tổng hợp hay Bảng dữ liệu | ADR-035, 038, 040; `reports/services/activity_service.py`, `reports/aggregations.py`, `reports/layout.py`, `reports/screen.py` |
 | Đụng vận đơn | ADR-018, 020, 025, 031, 033, 036; `orders/services/waybill_service.py`, `orders/services/assignment_service.py` |
