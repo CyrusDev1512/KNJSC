@@ -69,7 +69,7 @@ tính sẵn ở Python.
             {% endfor %}
           </details>
         {% else %}
-          <a class="{{ muc.lop }}" href="{{ muc.href }}" {% if muc.new_tab %}target="_blank" rel="noopener"{% endif %} {% if muc.current %}aria-current="page"{% endif %}><span class="ic">{{ muc.icon }}</span><span class="crm-nav-nhan">{{ muc.label }}</span></a>
+          <a class="{{ muc.lop }}" href="{{ muc.href }}" {% if muc.new_tab %}target="_blank" rel="noopener" title="Mở trong tab mới"{% endif %} {% if muc.current %}aria-current="page"{% endif %}><span class="ic">{{ muc.icon }}</span><span class="crm-nav-nhan">{{ muc.label }}</span></a>
         {% endif %}
       {% endfor %}
     </nav>
