@@ -68,12 +68,24 @@ svg.ic{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-wid
 .cham{display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--c)}
 .sp-oms .loc .o-tim{flex:1 1 200px}
 .link{padding:0;border:0;background:none;color:var(--accent);font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+/* Lọc ngày: chip nhanh trong dải lọc, nhãn cùng kiểu nhãn .loc của KN CRM; lỗi ngày chiếm trọn một hàng dưới các ô */
+.loc .oms-truong-chip{flex:0 1 auto}
+.oms-nhan-loc{color:var(--ink-3);font-family:var(--font-ma);font-size:var(--fs-xs);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.oms-truong-chip .oms-chips{min-height:40px;align-items:center}
+.oms-loi-loc{flex-basis:100%;margin:0}
+.oms-loi-loc:empty{display:none}
+/* Chọn nhiều đơn ở Công nợ: cột ô tích và thanh thao tác ngay trên bảng, không hộp thoại */
+.sp-oms table.bang .oms-o-chon{width:36px;padding-inline:12px 4px;cursor:pointer}
+.oms-o-chon input{width:16px;height:16px;margin:0;vertical-align:middle;accent-color:var(--accent);cursor:pointer}
+.oms-thanh-chon{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px 18px;border-bottom:1px solid var(--rule);background:var(--sp-selected)}
+.oms-thanh-chon b{margin-right:auto;font-size:13.5px}
 
 /* Bảng: table.bang của KN CRM; OMS thêm dòng bấm được, số canh phải dạng tabular, cột ẩn theo bề ngang khung */
 .cq{container-type:inline-size}
 .sp-oms table.bang td{font-variant-numeric:tabular-nums}
 .sp-oms table.bang thead th,.sp-oms table.bang tbody td{padding-inline:12px}
 .sp-oms table.bang td.phai{white-space:nowrap}
+.sp-oms table.bang td.phai .oms-mo{white-space:normal}
 .sp-oms table.bang tbody tr:first-child td{border-top:0}
 tr.bam{cursor:pointer}
 tr.bam:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
@@ -92,8 +104,11 @@ td.trong .link{margin-left:6px}
 @container (max-width:940px){.an-l{display:none}}
 .chi-hep,.chi-s{display:none}
 .ten-sp{min-width:180px}
-@container (max-width:660px){.an-m{display:none}.chi-hep{display:block}.sp-oms table.bang thead th,.sp-oms table.bang tbody td{padding-inline:10px}}
+@container (max-width:700px){.an-m{display:none}.chi-hep{display:block}.sp-oms table.bang thead th,.sp-oms table.bang tbody td{padding-inline:10px}}
 @container (max-width:520px){.an-s{display:none}.chi-s{display:block}.sp-oms table.bang thead th{white-space:normal}.sp-oms table.bang thead th,.sp-oms table.bang tbody td{padding-inline:7px}.cq .chip,.cq .oms-mo.nw,.cq .muc{white-space:normal}.cq .mono{font-size:12px}.cq .vach{width:48px}.cq .ten-sp{min-width:110px}}
+/* Nhãn thanh toán dưới số tiền: một dòng, chỉ bẻ khi khung bảng hẹp hơn 310 px (màn dưới 350 px) */
+.cq .chi-hep .chip{white-space:nowrap}
+@container (max-width:310px){.cq .chi-hep .chip{white-space:normal}}
 
 /* Nhãn trạng thái: .chip của KN CRM; OMS thêm màu thông tin (đang giao, thanh toán một phần) */
 .chip-tin{background:var(--info-soft);color:var(--info)}
@@ -261,6 +276,12 @@ td.trong .link{margin-left:6px}
 .cach-tinh summary{cursor:pointer;font-weight:600}
 .cach-tinh ul{margin:6px 0 0;padding-left:18px}
 .cach-tinh li{margin:2px 0}
+details.oms-ghi-bang{display:block}
+.oms-chan{display:grid;gap:10px;margin-top:12px}
+.oms-ly-do-chan{margin:10px 0 0;padding:9px 12px;border-radius:12px;background:var(--surface);font-size:13.5px;overflow-wrap:anywhere}
+.kenh-so-sanh{color:var(--ink-2);font-size:12.5px}
+.kenh-so-sanh .len{color:var(--good);font-weight:600}
+.kenh-so-sanh .xuong{color:var(--critical);font-weight:600}
 
 /* Lãi theo page */
 .ti-gia{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px 12px}
@@ -276,3 +297,15 @@ td.trong .link{margin-left:6px}
 .thac li.ket.am .vach-thac i{background:var(--critical)}
 .thac li.ket{padding-top:8px;border-top:1px solid var(--rule-strong);font-weight:700}
 .nhan-xet{margin-top:14px}
+/* Biểu đồ lãi theo ngày: khuôn SVG của màn Thống kê KN CRM, thêm đường 0; điểm âm đỏ, điểm đang xem to hơn */
+.oms-xu{display:block;width:100%;height:auto;overflow:visible}
+.oms-xu:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px}
+.oms-xu-truc{stroke:var(--rule-strong);stroke-width:1}
+.oms-xu-duong{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.oms-xu circle{fill:var(--accent);stroke:var(--surface);stroke-width:1.5;cursor:pointer}
+.oms-xu circle.am{fill:var(--critical)}
+.oms-xu circle.dang-chon{r:7;stroke:var(--ink);stroke-width:2}
+.oms-xu-so{fill:var(--ink-2);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.oms-xu-ngay{fill:var(--ink-3);font-size:11px;font-variant-numeric:tabular-nums}
+#lp-xu-diem{min-height:1.5em;color:var(--ink-2);font-size:13px;font-variant-numeric:tabular-nums}
+.sp-oms .the-dau .phai .o-nhap{max-width:220px}

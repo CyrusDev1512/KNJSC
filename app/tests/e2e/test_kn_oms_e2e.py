@@ -1,4 +1,4 @@
-"""AC-51.5 → AC-51.9 — KN OMS chạy trong trình duyệt thật (ADR-051, chủ dự án 13.10.2026).
+"""AC-51.5 → AC-51.14 — KN OMS chạy trong trình duyệt thật (ADR-051, chủ dự án 13.10.2026).
 
 Trang không gọi máy chủ: mọi số liệu sinh trong trình duyệt từ hạt giống cố định. Đồng hồ trình duyệt đóng băng ở một
 mốc (`clock.set_fixed_time`, bộ đếm giờ vẫn chạy) nên lần nào dữ liệu cũng như nhau; font Google bị chặn để bài không
@@ -216,7 +216,7 @@ def test_cong_no_tien_theo_loai_khop_nhac_ghi_nhan(live_server, trang, dang_nhap
     dau.locator('[data-act="cn-nhac"]').click()
     hang = trang.locator(f'#cn-than tr[data-don="{don_nhac}"]')
     expect(hang).to_contain_text(f"Đã nhắc {(int(cu.group(1)) if cu else 0) + 1} lần")
-    hang.locator("td").first.click()
+    hang.locator("td").nth(1).click()
     expect(trang.locator("#ngan .dong-tg")).to_contain_text("Nhắc khách thanh toán lần")
     trang.keyboard.press("Escape")
 
@@ -268,6 +268,8 @@ def test_khach_rui_ro_chip_mau_tim_so_va_chan_len_don(live_server, trang, dang_n
 
     trang.click('[data-act="rr-mau"][data-mau="hoan"]')
     the.locator('[data-act="rr-danh-dau"][data-gia-tri="chan"]').click()
+    trang.fill("#chan-ly-do", "Hoàn 2 đơn liên tiếp")
+    trang.click('#f-chan button[type="submit"]')
     expect(trang.locator('#rr-ds tr[data-khach="KH-90002"]')).to_contain_text("Chặn lên đơn")
     expect(trang.locator('#rr-loc [data-loc="chan"] .dem')).to_have_text("1")
     expect(the.locator(".nen-lam")).to_contain_text("Đang chặn lên đơn")
@@ -372,8 +374,10 @@ def test_dien_mao_kn_crm_va_bieu_mau_trong_ngan_keo(live_server, trang, dang_nha
     for man in MAN:
         oms.goto(f"{live_server.url}/oms/#{MAN[man]}")
         _cho_man(oms, man)
+        # Ô lịch gốc của ô ngày dùng chung (date-inputs.js) ẩn hẳn: trong suốt, 1 px — không tính
         day = oms.evaluate("""() => Array.from(document.querySelectorAll('body *')).filter(el => {
-            const s = getComputedStyle(el);
+            const s = getComputedStyle(el), r = el.getBoundingClientRect();
+            if (parseFloat(s.opacity) === 0 || r.width <= 2) return false;
             return parseFloat(s.borderLeftWidth) > 1 || parseFloat(s.borderRightWidth) > 1; }).map(el => el.className)""")
         assert not day, (man, day)
 
@@ -407,7 +411,7 @@ def test_dien_mao_kn_crm_va_bieu_mau_trong_ngan_keo(live_server, trang, dang_nha
     _cho_man(oms, "congno")
     hang = oms.locator("#cn-than tr[data-don]").first
     don = hang.get_attribute("data-don")
-    hang.locator("td").first.click()
+    hang.locator("td").nth(1).click()
     expect(oms.locator("#ngan-tieu-de")).to_have_text(don)
     oms.click('#ngan .khoi-tt [data-act="cn-ghi"]')
     expect(oms.locator("#ngan #f-ghi-tien")).to_be_visible()
@@ -419,4 +423,258 @@ def test_dien_mao_kn_crm_va_bieu_mau_trong_ngan_keo(live_server, trang, dang_nha
     expect(oms.locator("#ngan-tieu-de")).to_have_text(don)
     oms.keyboard.press("Escape")
     expect(oms.locator("#ngan")).to_be_hidden()
+    assert not loi, loi
+
+
+def _dem_don(page, khung):
+    """Số dòng khớp bộ lọc, đọc từ dòng phân trang ("184 đơn · trang 1/8")."""
+    return int(re.match(r"([\d.]+) ", page.locator(f"{khung} span").first.inner_text()).group(1).replace(".", ""))
+
+
+def _tai_csv(page, nut):
+    with page.expect_download() as tai:
+        page.click(nut)
+    tep = tai.value
+    with open(tep.path(), "rb") as f:
+        tho = f.read()
+    return tep.suggested_filename, tho
+
+
+def _doc_csv(tho):
+    assert tho.startswith(b"\xef\xbb\xbf"), "thiếu BOM UTF-8"
+    chu = tho[3:].decode("utf-8")
+    assert "\r\n" in chu and "\n" not in chu.replace("\r\n", ""), "xuống dòng phải là CRLF"
+    dong = [d.split(";") for d in chu.split("\r\n") if d]
+    return dong[0], dong[1:]
+
+
+def _go_ngay(page, o, ngay):
+    page.fill(o, ngay)
+    page.press(o, "Tab")
+
+
+def test_loc_ngay_va_xuat_danh_sach(live_server, trang, dang_nhap, kn_crm, nguoi_dung):
+    """AC-51.10 — Báo đơn lọc theo ngày lên đơn: chip Hôm nay, 7 ngày, 30 ngày, Tất cả và ô Từ–Đến DD/MM/YYYY lọc đúng;
+    ngày sai hay Từ sau Đến thì báo lỗi, giữ bộ lọc cũ; Công nợ lọc theo ngày giao; "Xuất danh sách" tải CSV đúng các
+    dòng đang lọc: UTF-8 có BOM, phân cách chấm phẩy, xuống dòng CRLF, tiền một cột kèm cột loại tiền, ô bắt đầu bằng
+    + - = @ có dấu nháy đơn đứng trước để Excel không chạy như công thức"""
+    loi = _mo_oms(trang, live_server, dang_nhap, nguoi_dung["admin"], "baodon")
+    tat_ca = _dem_don(trang, "#bd-trang")
+    hang = trang.locator("#bd-than tr[data-don]")
+    trang.click('#bd-ngay [data-ngay="hom-nay"]')
+    assert {r.get_attribute("data-ngay") for r in hang.all()} == {"2026-10-13"}
+    trang.click('#bd-ngay [data-ngay="7"]')
+    bay = _dem_don(trang, "#bd-trang")
+    assert 0 < bay < tat_ca and min(r.get_attribute("data-ngay") for r in hang.all()) >= "2026-10-07"
+
+    # Từ–Đến theo DD/MM/YYYY; chip về trạng thái không chọn
+    _go_ngay(trang, "#bd-tu", "01/10/2026")
+    _go_ngay(trang, "#bd-den", "05/10/2026")
+    expect(trang.locator('#bd-ngay [data-ngay="7"]')).to_have_attribute("aria-pressed", "false")
+    ngay = [r.get_attribute("data-ngay") for r in hang.all()]
+    assert ngay and all("2026-10-01" <= x <= "2026-10-05" for x in ngay), ngay
+    khoang = _dem_don(trang, "#bd-trang")
+
+    # Ngày sai, Từ sau Đến: báo lỗi, bộ lọc cũ giữ nguyên
+    _go_ngay(trang, "#bd-tu", "32/10/2026")
+    expect(trang.locator("#bd-ngay-loi")).to_contain_text("DD/MM/YYYY")
+    assert _dem_don(trang, "#bd-trang") == khoang
+    _go_ngay(trang, "#bd-tu", "06/10/2026")
+    expect(trang.locator("#bd-ngay-loi")).to_contain_text("Từ ngày")
+    assert _dem_don(trang, "#bd-trang") == khoang
+    _go_ngay(trang, "#bd-tu", "01/10/2026")
+    expect(trang.locator("#bd-ngay-loi")).to_be_empty()
+
+    # Xuất đúng các dòng đang lọc (mọi trang), thêm lọc thị trường US
+    trang.select_option("#bd-mkt", "US")
+    so_dong = _dem_don(trang, "#bd-trang")
+    ten, tho = _tai_csv(trang, '[data-act="bd-xuat"]')
+    assert ten == "kn-oms-bao-don-20261013.csv"
+    dau, dong = _doc_csv(tho)
+    assert dau[:2] == ["Mã đơn", "Ngày lên đơn"] and "Tổng tiền" in dau and "Loại tiền" in dau
+    assert len(dong) == so_dong
+    i_tien, i_loai, i_sdt = dau.index("Tổng tiền"), dau.index("Loại tiền"), dau.index("SĐT")
+    assert {d[i_loai] for d in dong} == {"USD"}
+    assert all(re.fullmatch(r"\d+,\d{2}", d[i_tien]) for d in dong), [d[i_tien] for d in dong]
+    assert all(d[i_sdt].startswith("'+1") for d in dong), [d[i_sdt] for d in dong]
+    assert all("2026-10-01" <= "-".join(reversed(d[1].split("/"))) <= "2026-10-05" for d in dong)
+
+    # Công nợ: lọc theo ngày giao, xuất đúng các dòng đang lọc
+    trang.click('.nav-muc[data-view="congno"]')
+    _cho_man(trang, "congno")
+    _go_ngay(trang, "#cn-tu", "15/09/2026")
+    _go_ngay(trang, "#cn-den", "30/09/2026")
+    giao = [r.get_attribute("data-giao") for r in trang.locator("#cn-than tr[data-don]").all()]
+    assert giao and all("2026-09-15" <= x <= "2026-09-30" for x in giao), giao
+    so_no = _dem_don(trang, "#cn-trang")
+    ten, tho = _tai_csv(trang, '[data-act="cn-xuat"]')
+    assert ten == "kn-oms-cong-no-20261013.csv"
+    dau, dong = _doc_csv(tho)
+    assert len(dong) == so_no and "Còn phải thu" in dau and "Loại tiền" in dau
+    assert not loi, loi
+
+
+def test_cong_no_chon_nhieu_nhac_va_xuat(live_server, trang, dang_nhap, kn_crm, nguoi_dung):
+    """AC-51.11 — Công nợ chọn nhiều đơn: ô chọn tất cả chỉ chọn các dòng đang lọc; thanh thao tác ghi đúng số đơn đã
+    chọn; "Nhắc N đơn" tăng đúng một lần nhắc ở từng đơn đã chọn và ghi vào hành trình, đơn không chọn giữ nguyên;
+    "Xuất N đơn" tải đúng các đơn đã chọn; bỏ chọn hết thì thanh thao tác ẩn"""
+    loi = _mo_oms(trang, live_server, dang_nhap, nguoi_dung["admin"], "congno")
+    thanh = trang.locator("#cn-thanh-chon")
+    expect(thanh).to_be_hidden()
+    trang.click('#cn-tuoi [data-tuoi="15-30"]')
+    doi_chung = trang.locator("#cn-than tr[data-don]").first
+    ma_doi_chung, chu_doi_chung = doi_chung.get_attribute("data-don"), doi_chung.inner_text()
+
+    trang.click('#cn-tuoi [data-tuoi=">30"]')
+    hang = trang.locator("#cn-than tr[data-don]")
+    ma = [r.get_attribute("data-don") for r in hang.all()]
+    nhac = {m: int((re.search(r"Đã nhắc (\d+) lần", trang.locator(f'#cn-than tr[data-don="{m}"]').inner_text())
+                    or [0, 0])[1]) for m in ma}
+    trang.check("#cn-chon-het")
+    expect(thanh).to_be_visible()
+    expect(thanh).to_contain_text(f"Đã chọn {len(ma)} đơn")
+    _, tho = _tai_csv(trang, '[data-act="cn-xuat-chon"]')
+    _, dong = _doc_csv(tho)
+    assert sorted(d[0] for d in dong) == sorted(ma)
+
+    trang.click('[data-act="cn-nhac-chon"]')
+    expect(trang.locator("#thong-bao")).to_contain_text(f"Đã nhắc {len(ma)} khách")
+    expect(thanh).to_be_hidden()
+    for m in ma:
+        expect(trang.locator(f'#cn-than tr[data-don="{m}"]')).to_contain_text(f"Đã nhắc {nhac[m] + 1} lần")
+    trang.locator(f'#cn-than tr[data-don="{ma[0]}"] td').nth(1).click()
+    expect(trang.locator("#ngan .dong-tg li").first).to_contain_text("Nhắc khách thanh toán lần")
+    trang.keyboard.press("Escape")
+    trang.click('#cn-tuoi [data-tuoi="15-30"]')
+    assert trang.locator(f'#cn-than tr[data-don="{ma_doi_chung}"]').inner_text() == chu_doi_chung
+
+    # Chọn một dòng rồi bỏ: thanh thao tác hiện rồi ẩn; bấm ô chọn không mở ngăn kéo
+    o = trang.locator('#cn-than tr[data-don] input[type="checkbox"]').first
+    o.check()
+    expect(thanh).to_contain_text("Đã chọn 1 đơn")
+    expect(trang.locator("#ngan")).to_be_hidden()
+    o.uncheck()
+    expect(thanh).to_be_hidden()
+    assert not loi, loi
+
+
+def test_dong_thoi_gian_khach_va_chan_can_ly_do(live_server, trang, dang_nhap, kn_crm, nguoi_dung):
+    """AC-51.12 — Ngăn kéo khách có dòng thời gian gộp mọi đơn, mới nhất trước, có lên đơn, giao, vắng, hoàn, nhắc nợ,
+    thu tiền, đánh dấu; Chặn lên đơn phải ghi lý do — để trống thì báo lỗi, không chặn; lý do hiện ở thẻ cảnh báo và ở
+    dòng thời gian"""
+    loi = _mo_oms(trang, live_server, dang_nhap, nguoi_dung["admin"], "congno")
+    # Khách còn nợ (KH-90003): nhắc rồi ghi nhận 1 USD cho đơn còn nợ
+    trang.fill("#cn-q", "Lê Phương Thảo")
+    hang = trang.locator("#cn-than tr[data-don]").first
+    hang.locator('[data-act="cn-nhac"]').click()
+    hang.locator('[data-act="cn-ghi"]').click()
+    trang.fill("#gt-so", "1")
+    trang.click('#f-ghi-tien button[type="submit"]')
+    expect(trang.locator("#ngan")).to_be_hidden()
+
+    trang.click('.nav-muc[data-view="ruiro"]')
+    _cho_man(trang, "ruiro")
+    trang.click('[data-act="rr-mau"][data-mau="no"]')
+    the = trang.locator("#rr-the .rr-the")
+    the.locator('[data-act="rr-danh-dau"][data-gia-tri="chan"]').click()
+    trang.click('#f-chan button[type="submit"]')
+    expect(trang.locator("#chan-loi")).to_contain_text("Ghi lý do")
+    expect(trang.locator('#rr-loc [data-loc="chan"] .dem')).to_have_text("0")
+    trang.fill("#chan-ly-do", "Nợ quá hạn, hứa trả nhiều lần")
+    trang.click('#f-chan button[type="submit"]')
+    expect(the).to_contain_text("Lý do chặn: Nợ quá hạn, hứa trả nhiều lần")
+    expect(trang.locator('#rr-loc [data-loc="chan"] .dem')).to_have_text("1")
+
+    the.locator('[data-act="mo-khach"]').click()
+    dong = trang.locator("#ngan .dong-tg li")
+    expect(dong.first).to_contain_text("Chặn lên đơn — lý do: Nợ quá hạn, hứa trả nhiều lần")
+    chu = "\n".join(dong.all_inner_texts())
+    for su_kien in ("Kéo về CRM", "Đã giao thành công", "Nhắc khách thanh toán", "Ghi nhận tay"):
+        assert su_kien in chu, su_kien
+    moc = [int(x) for x in trang.locator("#ngan .dong-tg li").evaluate_all("ds => ds.map(li => li.dataset.t)")]
+    assert moc == sorted(moc, reverse=True)
+    trang.keyboard.press("Escape")
+
+    # Khách hoàn 2 lần: dòng thời gian có vắng và hoàn
+    trang.click('[data-act="rr-mau"][data-mau="hoan"]')
+    the.locator('[data-act="mo-khach"]').click()
+    chu = "\n".join(trang.locator("#ngan .dong-tg li").all_inner_texts())
+    assert "khách vắng" in chu and "chuyển hoàn" in chu
+    assert not loi, loi
+
+
+def test_kho_du_ban_goi_y_nhap_va_kenh_so_7_ngay_truoc(live_server, trang, dang_nhap, kn_crm, nguoi_dung):
+    """AC-51.13 — Kho: mỗi sản phẩm có Đủ bán = có thể bán ÷ (số đã xuất cho đơn trong 7 ngày ÷ 7), làm tròn xuống, và
+    gợi ý nhập = 30 ngày × tốc độ xuất − có thể bán − đang về, làm tròn lên, không âm, tính riêng từng kho (xem tất cả
+    kho thì dòng nêu kho cần nhập nhất); Phiếu kho mở từ dòng điền sẵn số gợi ý và đúng kho; Kênh: thẻ so số đơn và
+    doanh số 7 ngày với 7 ngày trước, khớp số đơn lọc theo kênh và ngày ở Báo đơn"""
+    loi = _mo_oms(trang, live_server, dang_nhap, nguoi_dung["admin"], "kho")
+    hang = trang.locator("#kho-than tr[data-sp]")
+    co_goi_y = None
+    for kho in ("HN", "US", "PH", ""):
+        trang.click(f'#kho-tab [data-wh="{kho}"]')
+        for r in hang.all():
+            if kho:
+                assert r.get_attribute("data-kho-xet") == kho
+            cb, ve, x7 = (int(r.get_attribute(a)) for a in ("data-cb-kho", "data-ve-kho", "data-xuat7"))
+            du, goi = r.get_attribute("data-du-ban"), int(r.get_attribute("data-goi-y"))
+            if x7:
+                assert int(du) == max(0, cb * 7 // x7), (kho, r.get_attribute("data-sp"), cb, x7, du)
+                assert goi == max(0, -(-(30 * x7 - 7 * (cb + ve)) // 7)), (kho, r.get_attribute("data-sp"), cb, ve, x7, goi)
+            else:
+                assert du == "" and goi == 0
+            if goi and not kho:
+                co_goi_y = (r, goi, r.get_attribute("data-kho-xet"))
+    assert co_goi_y, "dữ liệu mẫu phải có ít nhất một sản phẩm cần nhập"
+    co_goi_y[0].locator('[data-act="mo-phieu"]').click()
+    expect(trang.locator("#p-sl")).to_have_value(str(co_goi_y[1]))
+    expect(trang.locator("#p-kho")).to_have_value(co_goi_y[2])
+    trang.keyboard.press("Escape")
+
+    trang.click('.nav-muc[data-view="kenh"]')
+    _cho_man(trang, "kenh")
+    the = trang.locator('#kn-luoi article[data-kenh="fb-us"]')
+    bay, truoc = int(the.get_attribute("data-don7")), int(the.get_attribute("data-don7-truoc"))
+    expect(the).to_contain_text("So với 7 ngày trước")
+    trang.click('.nav-muc[data-view="baodon"]')
+    _cho_man(trang, "baodon")
+    trang.select_option("#bd-kenh", "fb-us")
+    trang.click('#bd-ngay [data-ngay="7"]')
+    assert _dem_don(trang, "#bd-trang") == bay
+    _go_ngay(trang, "#bd-tu", "30/09/2026")
+    _go_ngay(trang, "#bd-den", "06/10/2026")
+    assert _dem_don(trang, "#bd-trang") == truoc
+    assert not loi, loi
+
+
+def test_lai_bieu_do_xu_huong(live_server, trang, dang_nhap, kn_crm, nguoi_dung):
+    """AC-51.14 — Lãi theo page có biểu đồ lãi theo ngày: có tiêu đề, dừng được bằng Tab và đi từng ngày bằng phím mũi
+    tên; bảng số đối chiếu có đúng số ngày của kỳ; tổng các ngày bằng ô Lãi của kỳ; đổi kỳ hay chọn một page thì biểu
+    đồ và bảng đổi theo, tổng của page khớp cột Lãi của page đó"""
+    loi = _mo_oms(trang, live_server, dang_nhap, nguoi_dung["admin"], "lai")
+    hinh = trang.locator("#lp-xu-hinh svg")
+    expect(hinh.locator("title").first).to_contain_text("Lãi theo ngày")
+    expect(hinh).to_have_attribute("tabindex", "0")
+    ngay = trang.locator("#lp-xu-bang tbody tr[data-ngay]")
+
+    def tong():
+        return sum(int(x) for x in ngay.evaluate_all("ds => ds.map(r => r.dataset.lai)"))
+
+    expect(ngay).to_have_count(30)
+    assert tong() == int(trang.locator('#lp-kpi [data-loc="lai"]').get_attribute("data-so"))
+    hinh.focus()
+    trang.keyboard.press("End")
+    expect(trang.locator("#lp-xu-diem")).to_contain_text("13/10/2026")
+    trang.keyboard.press("ArrowLeft")
+    expect(trang.locator("#lp-xu-diem")).to_contain_text("12/10/2026")
+    expect(trang.locator("#lp-xu-diem")).to_contain_text("₫")
+
+    trang.click('[data-act="lp-ky"][data-ky="7"]')
+    expect(ngay).to_have_count(7)
+    expect(trang.locator("#lp-xu-hinh svg circle")).to_have_count(7)
+    assert tong() == int(trang.locator('#lp-kpi [data-loc="lai"]').get_attribute("data-so"))
+    trang.select_option("#lp-xu-page", "fb-us")
+    expect(trang.locator("#lp-xu-hinh svg title").first).to_contain_text("KN Beauty US")
+    lai_page = int(trang.locator('#lp-than tr[data-lai="fb-us"]').get_attribute("data-lai-vnd"))
+    assert abs(tong() - lai_page) <= 7, (tong(), lai_page)
     assert not loi, loi
