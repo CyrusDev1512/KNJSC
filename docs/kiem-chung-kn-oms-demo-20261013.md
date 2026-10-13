@@ -77,6 +77,9 @@ Chromium 1366 × 768, ngôn ngữ vi-VN, đồng hồ thật. Không có lỗi J
 |---|---|
 | Toàn bộ trừ trình duyệt, có Redis: `pytest -m "not trinh_duyet" -rs` | **3.206 đạt, 7 bỏ qua, 0 đỏ**, 12 phút 25 giây. Lượt 12.10 là 3.177; thêm 29 bài: 14 bài KN OMS, 8 bài giao diện tự sinh cho template mới và `oms.css`, 7 bài `test_khoi` tự sinh cho đường dẫn mới (6 vai và người chưa đăng nhập). 7 bài bỏ qua là bài kiểm tải như mọi lượt |
 | `tests/e2e/test_kn_oms_e2e.py` lần 4, trên mã cuối | **5/5 đạt**, 32,7 s |
+| Bài trình duyệt lượt 1 như CI: `pytest tests/e2e -m trinh_duyet -rs -o faulthandler_timeout=120` | 62 đạt, 2 bỏ qua, **9 đỏ, không do PR này**: cả 9 ở `test_pha_luoi_ghi_chu.py` (lưới ghi chú KN CRM, dùng `base_bang_tinh.html`, PR không đụng), chỉ trượt ở `assert not loi_js` vì `ERR_CERT_AUTHORITY_INVALID` — proxy máy ảo chặn phông Google, như các biên bản trước. Chạy chính tệp đó trên `Staging` gốc `ca56f10` (git worktree): đỏ y hệt 9 bài |
+| Bài trình duyệt lượt 2 như CI: `pytest -m trinh_duyet --ignore=tests/e2e -rs` | 22 đạt, 9 bỏ qua (bài cần Chrome host hay máy chủ riêng, như mọi lượt), 0 đỏ |
+| CI GitHub trên `a793c3a` (mã cuối) | **Xanh cả hai việc**: `pytest (bộ chính)` và `pytest e2e (Chromium)` |
 
 ## 7. Chưa kiểm
 
