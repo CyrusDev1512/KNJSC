@@ -818,10 +818,12 @@ Chủ dự án 13.10.2026: "mockup + 1 2 3 làm sang một site khác từ KN CR
 migration, không gọi máy chủ).
 [ADR-051](quyet-dinh/051-kn-oms-ban-demo.md);
 [biên bản](kiem-chung-kn-oms-demo-20261013.md).
+Cùng ngày, chủ dự án bảo thiết kế lại KN OMS theo Solarpunk Office của KN CRM rồi làm sâu sáu màn, vẫn dữ liệu giả
+(AC-51.9 → 51.14, [biên bản](kiem-chung-kn-oms-thiet-ke-lai-20261013.md)).
 
 | Mã | Đạt khi | Yêu cầu | Kiểm bằng |
 |---|---|---|---|
-| AC-51.1 | Admin mở `/oms/` trên KN CRM: 200, khung riêng "KN OMS" không có thanh bên KN CRM, dải "Dữ liệu giả", đủ sáu màn, nút "← Về KN CRM"; nạp `oms.css`/`oms.js` có số phiên bản; nền theo khoá `knjsc-nen`; không thêm dòng nhật ký; JS không gọi `fetch` hay XHR | ADR-051 | Tự động |
+| AC-51.1 | Admin mở `/oms/` trên KN CRM: 200, khung riêng "KN OMS" không có thanh bên KN CRM, nhãn "Dữ liệu giả", đủ sáu màn, nút "← Về KN CRM"; nạp `oms.css`/`oms.js` có số phiên bản; nền theo khoá `knjsc-nen`; không thêm dòng nhật ký; JS không gọi `fetch` hay XHR | ADR-051 | Tự động |
 | AC-51.2 | Mười vai khác Admin (Sale staff/leader/manager, MKT staff/manager, Vận đơn staff/leader/manager, Kế toán, CEO) gọi `/oms/` nhận 403 "Bạn không có quyền truy cập" và đúng một dòng nhật ký từ chối cho `/oms/`; chưa đăng nhập thì về `/dang-nhap/?next=/oms/`; POST nhận 405 | ADR-051 | Tự động |
 | AC-51.3 | Thanh bên KN CRM của Admin có đúng một mục "KN OMS", đứng sau Nhật ký, mở tab mới (`target="_blank" rel="noopener"`); vai khác không thấy mục, trang chủ không có liên kết `/oms/` | ADR-051 | Tự động |
 | AC-51.4 | KN ERP không có `/oms/` (404) và không có liên kết tới đó; tên `kn_oms` chỉ có ở URLconf KN CRM | ADR-051, AC-1.12 | Tự động |
@@ -829,3 +831,4 @@ migration, không gọi máy chủ).
 | AC-51.6 | Trình duyệt, Công nợ: KPI và tiền sàn tách theo từng loại tiền, không có ₫; lọc tuổi nợ trên 30 ngày đúng; khớp tiền về theo gợi ý thì đơn thành Đã thanh toán + Đã về TK, cả ở ngăn kéo Báo đơn; khớp tay một khoản lệch; nhắc khách tăng số lần và ghi vào hành trình; ghi nhận tiền báo lỗi khi gõ chữ hay quá số còn phải thu, số hợp lệ thành Thanh toán 1 phần; đơn page vừa giao sau "Cập nhật từ hãng" vào Công nợ đúng số báo trong thông báo | ADR-051 | Tự động (trình duyệt) |
 | AC-51.7 | Trình duyệt, Khách rủi ro: bốn chip mẫu ra đúng mức (Cao, Thấp, Cần chú ý, Chưa có đơn); gõ số hai kiểu đều ra cùng một khách; danh sách xếp theo mức rủi ro, SĐT vẫn che; Chặn lên đơn đổi nhãn ở danh sách và thẻ; có khối "Cách tính" năm luật | ADR-051 | Tự động (trình duyệt) |
 | AC-51.8 | Trình duyệt, Lãi theo page: đúng hai page lỗ (KN Beauty Japan, KN Beauty LazMall) ở cả 30 và 7 ngày; thiếu tỉ giá KRW thì báo, nhập tỉ giá thì số đổi theo, tỉ giá sai thì báo lỗi và giữ số cũ; thác chi phí sáu bước (page Facebook) hay bảy bước (gian hàng sàn), kết ở Lãi; theo sản phẩm chín dòng lãi gộp, theo thị trường bảy dòng; đổi kỳ thì số đổi | ADR-051 | Tự động (trình duyệt) |
+| AC-51.9 | KN OMS mang đúng diện mạo Solarpunk của KN CRM: nạp bốn tệp kiểu dáng của KN CRM cùng thứ tự rồi mới tới `oms.css`, `oms.css` không khai lại biến màu, bo góc, đổ bóng của KN CRM; trình duyệt so với trang chủ KN CRM ở cả nền sáng và tối thấy cùng màu nền, ảnh nền, thanh bên kính, thanh trên, mặt đọc, nút chính, chữ tiêu đề; không phần tử nào có viền trái hay phải dày hơn 1 px; Ghi nhận tiền, Phiếu kho, Thêm kênh mở trong ngăn kéo bên phải, trang không còn hộp thoại; Huỷ hay Esc ở biểu mẫu mở từ ngăn kéo đơn thì quay về ngăn kéo đó | ADR-051, ADR-028 | Tự động |

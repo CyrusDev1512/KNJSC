@@ -1,4 +1,4 @@
-"""AC-51.5 → AC-51.8 — KN OMS chạy trong trình duyệt thật (ADR-051, chủ dự án 13.10.2026).
+"""AC-51.5 → AC-51.9 — KN OMS chạy trong trình duyệt thật (ADR-051, chủ dự án 13.10.2026).
 
 Trang không gọi máy chủ: mọi số liệu sinh trong trình duyệt từ hạt giống cố định. Đồng hồ trình duyệt đóng băng ở một
 mốc (`clock.set_fixed_time`, bộ đếm giờ vẫn chạy) nên lần nào dữ liệu cũng như nhau; font Google bị chặn để bài không
@@ -58,7 +58,7 @@ def _mo_oms(page, live_server, dang_nhap, admin, man="baodon"):
 
 
 def _so_kpi(page, khung, loc):
-    return int(page.locator(f'{khung} [data-loc="{loc}"] .kpi-so').inner_text().replace(".", ""))
+    return int(page.locator(f'{khung} [data-loc="{loc}"] .gia-tri').inner_text().replace(".", ""))
 
 
 def test_mo_tu_thanh_ben_nen_dong_bo_ba_man_cu_va_dat_lai(live_server, trang, dang_nhap, kn_crm, nguoi_dung):
@@ -109,13 +109,13 @@ def test_mo_tu_thanh_ben_nen_dong_bo_ba_man_cu_va_dat_lai(live_server, trang, da
     oms.click('.nav-muc[data-view="kho"]')
     _cho_man(oms, "kho")
     expect(oms).to_have_url(f"{live_server.url}/oms/#kho")
-    ton = oms.locator("#kho-kpi .kpi-o").first.inner_text()
+    ton = oms.locator("#kho-kpi .o-so").first.inner_text()
     oms.click('#v-kho header [data-act="mo-phieu"][data-loai="nhap"]')
     oms.fill("#p-sl", "50")
     oms.click('#f-phieu button[type="submit"]')
     expect(oms.locator("#thong-bao")).to_contain_text("Đã nhập 50")
     expect(oms.locator("#kho-so tbody tr").first).to_contain_text("+50")
-    assert oms.locator("#kho-kpi .kpi-o").first.inner_text() != ton
+    assert oms.locator("#kho-kpi .o-so").first.inner_text() != ton
 
     # Kênh: lọc TikTok Shop còn hai gian hàng; page Nhật mất kết nối, ngăn kéo có nút Kết nối lại
     oms.click('.nav-muc[data-view="kenh"]')
@@ -146,7 +146,7 @@ def test_mo_tu_thanh_ben_nen_dong_bo_ba_man_cu_va_dat_lai(live_server, trang, da
     expect(oms.locator("#thong-bao")).to_contain_text("Đã đặt lại dữ liệu demo")
     assert oms.locator("#bd-than").inner_text() == dau_bao_don
     oms.click('.nav-muc[data-view="kho"]')
-    assert oms.locator("#kho-kpi .kpi-o").first.inner_text() == ton
+    assert oms.locator("#kho-kpi .o-so").first.inner_text() == ton
     assert not loi, loi
     assert not ngoai, f"KN OMS gọi máy chủ: {ngoai}"
 
@@ -160,7 +160,7 @@ def test_dien_thoai_390_sau_man_khong_tran_ngang(live_server, trang_dien_thoai, 
         _cho_man(trang, view)
         tran = trang.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
         assert tran <= 0, f"màn {view} tràn ngang {tran}px"
-        bang = trang.evaluate(f"Array.from(document.querySelectorAll('#v-{view} .cuon')).map(c => c.scrollWidth - c.clientWidth)")
+        bang = trang.evaluate(f"Array.from(document.querySelectorAll('#v-{view} .bang-cuon')).map(c => c.scrollWidth - c.clientWidth)")
         assert all(x <= 0 for x in bang), f"bảng màn {view} phải cuộn ngang: {bang}"
     assert not loi, loi
 
@@ -230,7 +230,7 @@ def test_cong_no_tien_theo_loai_khop_nhac_ghi_nhan(live_server, trang, dang_nhap
     expect(trang.locator("#gt-loi")).to_contain_text("lớn hơn số còn phải thu")
     trang.fill("#gt-so", "1")
     trang.click('#f-ghi-tien button[type="submit"]')
-    expect(trang.locator("#hop")).to_be_hidden()
+    expect(trang.locator("#ngan")).to_be_hidden()
     expect(hang).to_contain_text("Thanh toán 1 phần")
 
     # Đơn page vừa giao sau "Cập nhật từ hãng" vào Công nợ đúng số đơn báo trong thông báo
@@ -272,7 +272,7 @@ def test_khach_rui_ro_chip_mau_tim_so_va_chan_len_don(live_server, trang, dang_n
     expect(trang.locator('#rr-loc [data-loc="chan"] .dem')).to_have_text("1")
     expect(the.locator(".nen-lam")).to_contain_text("Đang chặn lên đơn")
     expect(the.locator('[data-gia-tri="chan"]')).to_have_attribute("aria-pressed", "true")
-    expect(trang.locator(".cach-tinh li")).to_have_count(5)
+    expect(trang.locator("#v-ruiro .cach-tinh li")).to_have_count(5)
     assert not loi, loi
 
 
@@ -284,12 +284,12 @@ def test_lai_theo_page_lo_ti_gia_thac_va_cach_xem(live_server, trang, dang_nhap,
     lo = trang.locator('#lp-than tr[data-lo="1"]')
     assert sorted(r.get_attribute("data-lai") for r in lo.all()) == ["fb-jp", "lz-ph"]
     expect(trang.locator('#lp-kpi [data-loc="lo"]')).to_contain_text("KN Beauty Japan")
-    ds30 = trang.locator('#lp-kpi [data-loc="ds"] .kpi-so').inner_text()
+    ds30 = trang.locator('#lp-kpi [data-loc="ds"] .gia-tri').inner_text()
     trang.click('[data-act="lp-ky"][data-ky="7"]')
-    expect(trang.locator('#lp-kpi [data-loc="ds"] .kpi-so')).not_to_have_text(ds30)
+    expect(trang.locator('#lp-kpi [data-loc="ds"] .gia-tri')).not_to_have_text(ds30)
     assert sorted(r.get_attribute("data-lai") for r in lo.all()) == ["fb-jp", "lz-ph"]
     trang.click('[data-act="lp-ky"][data-ky="30"]')
-    expect(trang.locator('#lp-kpi [data-loc="ds"] .kpi-so')).to_have_text(ds30)
+    expect(trang.locator('#lp-kpi [data-loc="ds"] .gia-tri')).to_have_text(ds30)
 
     # Thiếu tỉ giá KRW → báo; nhập 18 ₫ thì page Hàn có lãi và doanh số tổng đổi
     han = trang.locator('#lp-than tr[data-lai="fb-kr"]')
@@ -298,15 +298,15 @@ def test_lai_theo_page_lo_ti_gia_thac_va_cach_xem(live_server, trang, dang_nhap,
     trang.fill("#lp-tg-KRW", "18")
     trang.press("#lp-tg-KRW", "Tab")
     expect(han).not_to_contain_text("Thiếu tỉ giá")
-    expect(trang.locator('#lp-kpi [data-loc="ds"] .kpi-so')).not_to_have_text(ds30)
-    ds_co_krw = trang.locator('#lp-kpi [data-loc="ds"] .kpi-so').inner_text()
+    expect(trang.locator('#lp-kpi [data-loc="ds"] .gia-tri')).not_to_have_text(ds30)
+    ds_co_krw = trang.locator('#lp-kpi [data-loc="ds"] .gia-tri').inner_text()
 
     # Tỉ giá sai: báo lỗi, ô về số cũ, số liệu giữ nguyên
     trang.fill("#lp-tg-USD", "abc")
     trang.press("#lp-tg-USD", "Tab")
     expect(trang.locator("#lp-tg-loi")).to_contain_text("Tỉ giá USD phải là số nguyên dương")
     expect(trang.locator("#lp-tg-USD")).to_have_value("25.500")
-    assert trang.locator('#lp-kpi [data-loc="ds"] .kpi-so').inner_text() == ds_co_krw
+    assert trang.locator('#lp-kpi [data-loc="ds"] .gia-tri').inner_text() == ds_co_krw
 
     # Thác chi phí: page Facebook sáu bước, gian hàng sàn thêm phí sàn; bước cuối là Lãi
     for page_id, so_buoc in (("fb-us", 6), ("lz-ph", 7)):
@@ -322,4 +322,101 @@ def test_lai_theo_page_lo_ti_gia_thac_va_cach_xem(live_server, trang, dang_nhap,
     expect(trang.locator("#lp-ghi")).to_contain_text("lãi gộp")
     trang.click('[data-act="lp-xem"][data-xem="tt"]')
     expect(trang.locator("#lp-than tr")).to_have_count(7)
+    assert not loi, loi
+
+
+#: (bộ chọn ở trang chủ KN CRM, bộ chọn ở KN OMS, giả phần tử, thuộc tính so)
+SO_DIEN_MAO = [
+    ("body", "body", None, ("background-color", "color", "font-family")),
+    ("body", "body", "::before", ("background-image", "opacity")),
+    ("#thanh-ben", "#oms-ben", None, ("background-color", "border-top-left-radius", "border-top-color", "backdrop-filter",
+                                     "box-shadow", "width")),
+    (".topbar", ".topbar", None, ("background-color", "border-top-left-radius", "border-top-color", "min-height")),
+    (".noi-dung", ".noi-dung", None, ("background-color", "border-top-left-radius", "border-top-color", "padding-top",
+                                      "box-shadow")),
+    (".trang-dau .nut-chinh", "#bd-hoi", None, ("background-color", "color", "border-top-left-radius", "font-weight",
+                                                "min-height")),
+    (".trang-dau h1", "#v-baodon .trang-dau h1", None, ("font-family", "font-size", "font-weight", "color")),
+    ('.nav-muc[aria-current="page"]', '.nav-muc[aria-current="page"]', None, ("background-color", "color",
+                                                                               "border-top-left-radius")),
+]
+
+
+def _kieu(page, chon, gia, ten):
+    return page.evaluate("([c, g, t]) => { const s = getComputedStyle(document.querySelector(c), g);"
+                         " return Object.fromEntries(t.map(x => [x, s.getPropertyValue(x)])); }", [chon, gia, list(ten)])
+
+
+def test_dien_mao_kn_crm_va_bieu_mau_trong_ngan_keo(live_server, trang, dang_nhap, kn_crm, nguoi_dung):
+    """AC-51.9 — KN OMS cùng diện mạo Solarpunk với trang chủ KN CRM ở cả nền sáng và tối (nền, ảnh nền, thanh bên kính,
+    thanh trên, mặt đọc, nút chính, chữ tiêu đề, mục đang chọn); không phần tử nào có viền trái hay phải dày hơn 1 px;
+    Ghi nhận tiền, Phiếu kho, Thêm kênh mở trong ngăn kéo bên phải, không có hộp thoại nào khác; Huỷ và Esc ở biểu mẫu
+    mở từ ngăn kéo đơn thì quay về ngăn kéo đó"""
+    dispatch_service.ensure_waybill_table(actor=nguoi_dung["admin"])
+    _chuan_bi(trang.context)
+    loi = []
+    trang.on("pageerror", lambda e: loi.append(str(e)))
+    dang_nhap(trang, nguoi_dung["admin"])
+    oms = trang.context.new_page()
+    oms.on("pageerror", lambda e: loi.append(str(e)))
+    for nen in ("light", "dark"):
+        trang.evaluate(f"localStorage.setItem('knjsc-nen', '{nen}')")
+        trang.goto(f"{live_server.url}/")
+        oms.goto(f"{live_server.url}/oms/#bao-don")
+        _cho_man(oms, "baodon")
+        expect(oms.locator("html")).to_have_attribute("data-theme", nen)
+        for crm, rieng, gia, ten in SO_DIEN_MAO:
+            assert _kieu(trang, crm, gia, ten) == _kieu(oms, rieng, gia, ten), (nen, crm, rieng, gia)
+    assert "solarpunk-office.webp" in _kieu(oms, "body", "::before", ("background-image",))["background-image"]
+
+    for man in MAN:
+        oms.goto(f"{live_server.url}/oms/#{MAN[man]}")
+        _cho_man(oms, man)
+        day = oms.evaluate("""() => Array.from(document.querySelectorAll('body *')).filter(el => {
+            const s = getComputedStyle(el);
+            return parseFloat(s.borderLeftWidth) > 1 || parseFloat(s.borderRightWidth) > 1; }).map(el => el.className)""")
+        assert not day, (man, day)
+
+    # Ba biểu mẫu đều ở ngăn kéo bên phải; trang không có hộp thoại nào khác
+    oms.goto(f"{live_server.url}/oms/#kho")
+    _cho_man(oms, "kho")
+    oms.click('#v-kho header [data-act="mo-phieu"][data-loai="chuyen"]')
+    expect(oms.locator("#ngan #f-phieu")).to_be_visible()
+    expect(oms.locator('#ngan input[name="loai"][value="chuyen"]')).to_be_checked()
+    expect(oms.locator("#p-kho2")).to_be_visible()
+    oms.keyboard.press("Escape")
+    expect(oms.locator("#ngan")).to_be_hidden()
+    oms.goto(f"{live_server.url}/oms/#kenh-ban")
+    _cho_man(oms, "kenh")
+    oms.click('[data-act="them-kenh"]')
+    expect(oms.locator("#ngan #f-kenh")).to_be_visible()
+    expect(oms.locator("#k-ten")).to_be_focused()
+    oms.click('#f-kenh button[type="submit"]')
+    expect(oms.locator("#k-loi")).to_contain_text("Nhập tên page")
+    oms.fill("#k-ten", "KN Beauty Canada 2")
+    oms.click('#f-kenh button[type="submit"]')
+    expect(oms.locator("#ngan-tieu-de")).to_have_text("KN Beauty Canada 2")
+    expect(oms.locator("#ngan")).to_contain_text("Đã kết nối", timeout=5_000)
+    oms.keyboard.press("Escape")
+    expect(oms.locator("#kn-luoi article")).to_have_count(12)
+    assert oms.locator("#hop, dialog, .hop").count() == 0
+    assert oms.locator('[role="dialog"]').count() == 1
+
+    # Ghi nhận tiền mở từ ngăn kéo đơn: Huỷ và Esc quay về ngăn kéo đơn, Esc lần nữa mới đóng
+    oms.goto(f"{live_server.url}/oms/#cong-no")
+    _cho_man(oms, "congno")
+    hang = oms.locator("#cn-than tr[data-don]").first
+    don = hang.get_attribute("data-don")
+    hang.locator("td").first.click()
+    expect(oms.locator("#ngan-tieu-de")).to_have_text(don)
+    oms.click('#ngan .khoi-tt [data-act="cn-ghi"]')
+    expect(oms.locator("#ngan #f-ghi-tien")).to_be_visible()
+    expect(oms.locator("#gt-so")).to_be_focused()
+    oms.click('#f-ghi-tien [data-act="huy-form"]')
+    expect(oms.locator("#ngan-tieu-de")).to_have_text(don)
+    oms.click('#ngan .khoi-tt [data-act="cn-ghi"]')
+    oms.keyboard.press("Escape")
+    expect(oms.locator("#ngan-tieu-de")).to_have_text(don)
+    oms.keyboard.press("Escape")
+    expect(oms.locator("#ngan")).to_be_hidden()
     assert not loi, loi
