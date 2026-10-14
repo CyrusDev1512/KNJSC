@@ -294,10 +294,12 @@ def test_het_phien_len_don_giu_form_dang_nhap_lai_ra_mot_don(live_server, trang,
     f.locator("[name=phone]").press_sequentially("5")
     trang.wait_for_selector("#nhac-khach .het-phien-o", timeout=8_000)
     assert HET_PHIEN in trang.locator("#nhac-khach .het-phien-o").text_content()
-    # Rời ô điện thoại trước (ô mất focus thì tra khách chạy lại), rồi gỡ lời nổi cũ: lời nổi sau đó phải do chính Lưu đơn
-    with trang.expect_response(lambda r: "kiem-khach" in r.url, timeout=8_000):
-        f.locator("[name=customer_name]").focus()
+    # Rời ô điện thoại thì tra khách chạy lại (`change`) và dựng lại lời nổi. Gỡ lời nổi, rời ô, chờ lời nổi của lượt đó
+    # hiện trên trang rồi mới gỡ (chờ phản hồi mạng chưa đủ: htmx có thể chưa xử lý xong), để lời nổi sau đó do chính Lưu đơn
     trang.evaluate("document.querySelector('.het-phien-noi')?.remove()")
+    f.locator("[name=customer_name]").focus()
+    trang.wait_for_selector(".het-phien-noi", timeout=8_000)
+    trang.evaluate("document.querySelector('.het-phien-noi').remove()")
 
     f.locator("button[type=submit]").click()
     trang.wait_for_selector("#vd-entry > .het-phien-o", timeout=8_000)
