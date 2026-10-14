@@ -133,3 +133,23 @@ def test_nap_khach_mau_cung_di_duong_xoa_theo_lo(dong_gia, nguoi_dung, monkeypat
     # Dòng PERF-* của fixture không bị xoá lây
     assert DataRecord.all_objects.filter(
         table=bang, data__ma_don__startswith=seed_perf.PERF_PREFIX).count() == 5
+
+
+def test_seed_perf_tu_choi_khi_debug_tat_khong_xoa_khong_nap(dong_gia, nguoi_dung, settings):
+    """TL-98 · P0-16 — DEBUG tắt mà không ghi rõ `--dong-y-chay-that` thì `seed_perf` từ chối trước cả bước
+    `--xoa-cu`: dòng giả, chi tiết, phân công và dòng thật còn nguyên (khoá đã có nhưng chưa có bài)"""
+    from django.core.management import call_command
+    from django.core.management.base import CommandError
+
+    DataRecord.objects.create(table=dong_gia, created_by=nguoi_dung["admin"], department=dong_gia.department,
+                              data={"ma_don": "DH-00001", "ten_khach": "Khách thật"})
+    tong = DataRecord.all_objects.count()
+    settings.DEBUG = False
+
+    with pytest.raises(CommandError, match="DEBUG"):
+        call_command("seed_perf", "--xoa-cu", "--so-dong", "3")
+
+    assert DataRecord.all_objects.filter(table=dong_gia, data__ma_don__startswith=seed_perf.PERF_PREFIX).count() == 5
+    assert DataRecord.all_objects.count() == tong
+    assert WaybillItem._base_manager.filter(record__table=dong_gia).exists()
+    assert WaybillAssignment.objects.filter(record__table=dong_gia).exists()
