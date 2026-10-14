@@ -1,4 +1,4 @@
-"""Đọc lại chuỗi số do máy gửi — TL-03 · P0-3 (ADR-051).
+"""Đọc lại chuỗi số do máy gửi — TL-03 · P0-3 (ADR-052).
 
 Số tiền lưu trong JSON dạng chuỗi máy: dấu chấm là thập phân ("0.125"). Trước đây mọi đường đưa chuỗi đó trở lại
 (hoàn tác trên lưới, đổi kiểu cột, sửa nhãn cột Tiền) đều đi qua `parse_money` — bộ đọc chữ người Việt gõ, nơi

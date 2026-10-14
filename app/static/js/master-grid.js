@@ -897,7 +897,7 @@
     return lost.size?'Có dòng đã mất quyền xem. Nháp trên dòng đó được gỡ; nháp còn quyền được giữ. Kiểm tra trước khi bấm Thử lại.':text+' Nháp vẫn được giữ vì bạn còn quyền xem.';
   }
   // Số tiền, số thập phân lưu dạng chuỗi máy "0.125" (chấm là thập phân). Ô nhập và bản sao chép hiện kiểu Việt
-  // "0,125": máy chủ đọc chữ người gõ theo luật Việt (chấm ngăn nghìn), nên dán lại ở đâu cũng đúng số (TL-03, ADR-051)
+  // "0,125": máy chủ đọc chữ người gõ theo luật Việt (chấm ngăn nghìn), nên dán lại ở đâu cũng đúng số (TL-03, ADR-052)
   function soViet(c,value){
     return c&&['decimal','money'].includes(c.type)&&typeof value==='string'&&/^-?\d+\.\d+$/.test(value)?value.replace('.',','):value;
   }

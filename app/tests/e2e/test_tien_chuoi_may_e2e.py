@@ -1,4 +1,4 @@
-"""Lưới tiền không nhân nghìn khi hoàn tác, chép dán — TL-03 · P0-3 (ADR-051), trình duyệt thật ở KN CRM.
+"""Lưới tiền không nhân nghìn khi hoàn tác, chép dán — TL-03 · P0-3 (ADR-052), trình duyệt thật ở KN CRM.
 
 Số tiền lưu dạng chuỗi máy "0.125". Trước đây ô sửa hiện nguyên "0.125", Ctrl+Z gửi lại "0.125" như chữ người gõ,
 chép một ô rồi dán cũng vậy — máy chủ đọc theo luật Việt (chấm ngăn nghìn) thành 125.

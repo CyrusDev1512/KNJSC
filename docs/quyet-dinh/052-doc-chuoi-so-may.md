@@ -1,4 +1,4 @@
-# ADR-051 — Tách bộ đọc chuỗi số máy khỏi bộ đọc chữ người gõ
+# ADR-052 — Tách bộ đọc chuỗi số máy khỏi bộ đọc chữ người gõ
 
 | Mục | Nội dung |
 |---|---|
