@@ -100,6 +100,13 @@ EXPORT_SYNC_MAX_ROWS = 2_000             # trên mức này thì xuất chạy n
 EXPORT_FILE_TTL_HOURS = 24               # NFR-16 — tệp xuất giữ 24 giờ
 BACKUP_KEEP = 30                         # NFR-15 — giữ tối đa 30 bản sao lưu
 JOB_STALE_MINUTES = 15                   # chờ quá lâu nghĩa là worker không chạy
+#: pg_dump vài chục nghìn dòng mất vài giây; quá mức này là có chuyện
+BACKUP_TIMEOUT_SECONDS = 30 * 60
+#: Tác vụ ĐANG CHẠY mà `updated_at` đứng yên quá ngưỡng nghĩa là worker đã chết giữa chừng (TL-23). Ngưỡng
+#: phải dài hơn khoảng im lặng dài nhất của tác vụ thật: một lô tính lại 1.000 dòng, một lượt dựng tệp xuất
+JOB_RUNNING_STALE_MINUTES = 2 * JOB_STALE_MINUTES
+#: Sao lưu: pg_dump được phép im lặng tới BACKUP_TIMEOUT_SECONDS, nên chỉ coi là kẹt sau mốc đó thêm một nhịp canh
+JOB_RUNNING_STALE_MINUTES_BACKUP = BACKUP_TIMEOUT_SECONDS // 60 + JOB_STALE_MINUTES
 IMPORT_ERROR_LIST_MAX = 200              # số dòng lỗi lưu chi tiết vào tác vụ
 HEADER_SCAN_ROWS = 10                    # dò hàng tiêu đề trong bấy nhiêu hàng đầu
 GRID_PAGE_SIZE = 100                     # Bảng tính vận đơn — dòng mỗi trang
