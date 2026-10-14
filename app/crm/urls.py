@@ -8,7 +8,7 @@ là cây thư mục (ADR-015).
 from django.urls import path
 from orders import views as order_views
 
-from . import lifecycle_views
+from . import lifecycle_views, oms_views
 from . import views, waybill_views, assignment_views, master_views, statistics_views, payment_views
 
 
@@ -28,6 +28,8 @@ urlpatterns = [
     path("van-don/len-don/kiem-khach/", order_views.kiem_khach, name="kiem_khach"),
     path("van-don/len-don/san-pham-moi/", order_views.san_pham_moi, name="san_pham_moi"),
     path('thong-ke/', statistics_views.overview, name='crm_statistics'),
+    # KN OMS: bản demo dữ liệu giả, chỉ Admin (ADR-051). Chỉ ở KN CRM — đặt ở core/urls.py thì ERP cũng có
+    path('oms/', oms_views.kn_oms, name='kn_oms'),
     path('bang-tinh/<slug:code>/du-lieu/', master_views.data, name='master_data'),
     path('bang-tinh/<slug:code>/luu-json/', master_views.save, name='master_save'),
     path('bang-tinh/<slug:code>/bo-chi-tiet/', master_views.clear_details, name='master_clear_details'),
