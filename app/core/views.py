@@ -19,7 +19,7 @@ from .forms import LoginForm
 from .models import AuditLog, BackgroundJob
 from .navigation import NAVIGATION
 from .pagination import PAGE_SIZES, page_size, paginate
-from .permissions import assert_admin
+from .permissions import assert_admin, assert_django_admin
 from .services import auth_service
 
 
@@ -49,10 +49,28 @@ class LoginView(auth_views.LoginView):
 
 
 class LogoutView(auth_views.LogoutView):
-    def dispatch(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
+        # Ghi ở post(), không ở dispatch(): GET trả 405 mà không đăng xuất, không được để lại dòng đăng xuất giả
+        # trong nhật ký không sửa được (BR-6, TL-93)
         if request.user.is_authenticated:
             auth_service.note_logout(request.user, request)
-        return super().dispatch(request, *args, **kwargs)
+        return super().post(request, *args, **kwargs)
+
+
+def quan_tri_dang_nhap(request):
+    """`/quan-tri/login/` — trang quản trị Django dùng chung cửa đăng nhập của hệ thống (TL-93): không có form,
+    không bao giờ kiểm mật khẩu, nên khoá tạm 5 lần sai, nhật ký và mốc phiên (P4) của `/dang-nhap/` áp cho cả
+    quản trị viên. Người đã đăng nhập mà không phải quản trị viên nhận 403 có nhật ký — chuyển về `/dang-nhap/`
+    thì LoginView (redirect_authenticated_user) đẩy lại đây, thành vòng chuyển hướng."""
+    from django.contrib import admin
+    from django.contrib.auth import REDIRECT_FIELD_NAME
+    from django.contrib.auth.views import redirect_to_login
+    from django.urls import reverse
+
+    if not request.user.is_authenticated:
+        return redirect_to_login(request.GET.get(REDIRECT_FIELD_NAME) or reverse("admin:index"))
+    assert_django_admin(request.user, request)
+    return redirect("admin:index")
 
 
 class PasswordChangeView(auth_views.PasswordChangeView):
