@@ -72,3 +72,24 @@ def test_khong_duoc_dung_objects_filter_de_vuot_pham_vi(nguoi_dung, probes):
     qs = ScopeProbe.objects.in_scope(nguoi_dung["manager_sale"])
     assert probes["cua_mkt"] not in list(qs)
     assert probes["cua_staff_2"] in list(qs)
+
+
+def test_assert_business_write_chan_giam_doc_va_ghi_nhat_ky(nguoi_dung, rf):
+    """AC-3.7 — Giám đốc gọi thẳng đường ghi nghiệp vụ thì bị từ chối và có đúng một dòng Từ chối mang đường dẫn
+    (FR-3.5, AC-44.6); tầng dịch vụ gọi không kèm request thì vẫn chặn nhưng không ghi, để view gọi lại tự ghi một lần
+    (don_bo, xoá dòng lưới) — không ghi đôi; Manager và Kế toán đi qua không ghi gì (P0-2, TL-91)"""
+    from core.constants import AuditAction
+    from core.permissions import assert_business_write
+
+    ceo = nguoi_dung["ceo"]
+    tu_choi = AuditLog.objects.filter(action=AuditAction.DENIED, actor=ceo)
+    with pytest.raises(OutOfScopeError):
+        assert_business_write(ceo, rf.post("/bang/moi/"))
+    assert tu_choi.count() == 1 and tu_choi.get().target_id == "/bang/moi/"
+    with pytest.raises(OutOfScopeError):
+        assert_business_write(ceo)
+    assert tu_choi.count() == 1
+    truoc = AuditLog.objects.count()
+    for ai in ("manager_sale", "staff_kt"):
+        assert_business_write(nguoi_dung[ai], rf.post("/bang/moi/"))
+    assert AuditLog.objects.count() == truoc

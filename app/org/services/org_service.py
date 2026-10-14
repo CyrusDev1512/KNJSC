@@ -27,6 +27,9 @@ def create_department(*, name, code, actor=None, request=None):
 
 @transaction.atomic
 def create_team(*, name, department, leader=None, actor=None, request=None):
+    ho_so = getattr(leader, "profile", None)
+    if ho_so is not None and ho_so.department_id != department.id:
+        raise BusinessError(f"Trưởng nhóm {ho_so} không thuộc bộ phận {department}.", code="truong_nhom_sai_bo_phan")
     team = Team.objects.create(name=name, department=department, leader=leader)
     record(AuditAction.CREATE, actor=actor, target=team,
            detail=f"Tạo team {name} thuộc {department}", request=request)

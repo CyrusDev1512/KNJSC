@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import FileResponse
+from django.http import FileResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 
@@ -19,7 +19,7 @@ from .forms import LoginForm
 from .models import AuditLog, BackgroundJob
 from .navigation import NAVIGATION
 from .pagination import PAGE_SIZES, page_size, paginate
-from .permissions import assert_admin
+from .permissions import assert_admin, assert_django_admin
 from .services import auth_service
 
 
@@ -49,10 +49,28 @@ class LoginView(auth_views.LoginView):
 
 
 class LogoutView(auth_views.LogoutView):
-    def dispatch(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
+        # Ghi ở post(), không ở dispatch(): GET trả 405 mà không đăng xuất, không được để lại dòng đăng xuất giả
+        # trong nhật ký không sửa được (BR-6, TL-93)
         if request.user.is_authenticated:
             auth_service.note_logout(request.user, request)
-        return super().dispatch(request, *args, **kwargs)
+        return super().post(request, *args, **kwargs)
+
+
+def quan_tri_dang_nhap(request):
+    """`/quan-tri/login/` — trang quản trị Django dùng chung cửa đăng nhập của hệ thống (TL-93): không có form,
+    không bao giờ kiểm mật khẩu, nên khoá tạm 5 lần sai, nhật ký và mốc phiên (P4) của `/dang-nhap/` áp cho cả
+    quản trị viên. Người đã đăng nhập mà không phải quản trị viên nhận 403 có nhật ký — chuyển về `/dang-nhap/`
+    thì LoginView (redirect_authenticated_user) đẩy lại đây, thành vòng chuyển hướng."""
+    from django.contrib import admin
+    from django.contrib.auth import REDIRECT_FIELD_NAME
+    from django.contrib.auth.views import redirect_to_login
+    from django.urls import reverse
+
+    if not request.user.is_authenticated:
+        return redirect_to_login(request.GET.get(REDIRECT_FIELD_NAME) or reverse("admin:index"))
+    assert_django_admin(request.user, request)
+    return redirect("admin:index")
 
 
 class PasswordChangeView(auth_views.PasswordChangeView):
@@ -185,3 +203,17 @@ def tac_vu_tai(request, pk):
         return redirect("tac_vu_xem", pk=pk)
     ten = job.summary.get("file_name") or duong_dan.name
     return FileResponse(open(duong_dan, "rb"), as_attachment=True, filename=ten)
+
+
+def csrf_failure(request, reason=""):
+    """CSRF_FAILURE_VIEW. Yêu cầu từ trang KN CRM (fetch và htmx đều mang mã người mở trang) hay thân JSON nhận 403 JSON
+    `code: "csrf"` để trang giữ nháp và báo đúng thay vì coi là mất quyền; trang đó lấy mã mới lúc gửi nên bấm Thử lại là
+    được. Form HTML thường và htmx của KN ERP (không lấy mã mới, Thử lại vô ích) vẫn nhận trang 403 của Django như ADR-030
+    (ADR-053)."""
+    from django.views.csrf import csrf_failure as trang_mac_dinh
+
+    from .middleware import HEADER_NGUOI_MO_TRANG, PHIEN_CSRF
+
+    if request.headers.get(HEADER_NGUOI_MO_TRANG) is not None or request.content_type == "application/json":
+        return JsonResponse({"error": PHIEN_CSRF, "code": "csrf"}, status=403)
+    return trang_mac_dinh(request, reason=reason)

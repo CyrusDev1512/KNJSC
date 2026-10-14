@@ -61,11 +61,10 @@ def delivery_leader(make_user, departments):
 
 
 @pytest.fixture
-def cskh_staff(make_user):
+def cskh_staff(make_user, departments):
     """CSKH là vai duy nhất còn phạm vi theo phân công và chỉ xem — dùng cho các
     bài "mất phân công thì mất quyền" sau ADR-033."""
-    from org.models import Department
-    return make_user('care_person', Rank.STAFF, Department.objects.create(code='cskh', name='CSKH'))
+    return make_user('care_person', Rank.STAFF, departments['cskh'])
 
 
 def assign_rows(user, rows, **changes):

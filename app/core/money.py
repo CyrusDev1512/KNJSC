@@ -27,6 +27,9 @@ MONEY_MAX_INTEGER_DIGITS = MONEY_MAX_DIGITS - MONEY_DECIMAL_PLACES
 #: Sau khi bỏ dấu ngăn nghìn: chỉ chữ số và một dấu thập phân. `Decimal` nhận cả "NaN", "Infinity", "1e400" —
 #: những thứ đó không phải số người Việt gõ, và cơ sở dữ liệu từ chối thành trang lỗi 500 (AC-9.7)
 _CHI_CHU_SO = re.compile(r"\d+(\.\d+)?")
+#: Chuỗi số máy sinh ra (`str(Decimal)` của giá trị đã lưu): dấu chấm là thập phân, không nhóm nghìn; số mũ chỉ âm
+#: (`str(Decimal("0.0000001"))` là "1E-7") — số mũ dương không phải số tiền (AC-9.7, ADR-052)
+_CHUOI_MAY = re.compile(r"-?\d+(\.\d+)?([eE]-\d+)?")
 
 
 def money_field(verbose_name, **kwargs):
@@ -93,6 +96,24 @@ def parse_money(text):
         raise InvalidOperation(text)
     so = check_amount(Decimal(chuoi), text)
     return -so if am else so
+
+
+def parse_stored_number(value):
+    """Đọc lại số **máy** gửi về — giá trị đã lưu, hoàn tác trên lưới, đổi kiểu cột (TL-03, ADR-052).
+
+    Khác `parse_money` (chữ người gõ, chấm ngăn nghìn): ở đây dấu chấm luôn là dấu thập phân, "0.125" là 0,125
+    chứ không phải 125. Không nhận nhóm nghìn, phẩy hay chữ — chuỗi máy không bao giờ có; gặp là lỗi, không đoán.
+    Trả `Decimal` giữ nguyên dạng (str(kết quả) bằng chuỗi vào) để ô "không đổi" nhận ra là không đổi.
+    Ném `InvalidOperation` (hoặc `BusinessError` khi quá dài — `check_amount`).
+    """
+    if isinstance(value, bool):
+        raise InvalidOperation(value)
+    if isinstance(value, (int, float, Decimal)):
+        return check_amount(Decimal(str(value)), value)
+    chuoi = str(value).strip()
+    if not _CHUOI_MAY.fullmatch(chuoi):
+        raise InvalidOperation(value)
+    return check_amount(Decimal(chuoi), value)
 
 
 def check_amount(so, text=None):

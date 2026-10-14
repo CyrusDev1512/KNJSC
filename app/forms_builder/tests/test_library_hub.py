@@ -44,8 +44,11 @@ def test_only_active_tab_queries_documents(client, nguoi_dung, monkeypatch):
     assert client.get('/bieu-mau/?tab=forms').status_code == 200
 
 
-def test_navigation_groups_and_crm_button(client, nguoi_dung):
+def test_navigation_groups_and_crm_button(client, nguoi_dung, departments):
     from core.navigation import visible_navigation
+    # "Nộp báo cáo ngày" chỉ hiện khi có biểu mẫu báo cáo ngày (chủ dự án 13–14.10, P0-2)
+    table = TableDef.objects.create(name='Bảng menu', code='hub_menu', department=departments['sale'])
+    FormDef.objects.create(name='Biểu mẫu menu', code='hub_menu_form', table=table, department=departments['sale'])
     groups = visible_navigation(nguoi_dung['admin'])
     assert [(g['label'], [m['label'] for m in g['items']]) for g in groups] == [
         ('Tổng quan', ['Tổng quan','Bảng tin']),

@@ -36,13 +36,15 @@
   updateCurrency();
   document.addEventListener('htmx:afterSwap', updateCurrency);
   let timer, pending, generation = 0;
-  // Không tính được tóm tắt thì nói rõ vì sao (AC-6.14): hết phiên, tài khoản không lên đơn được, máy chủ lỗi.
-  // Mất mạng do loi-mang.js đổi thành lời tiếng Việt (error.matMang).
+  // Không tính được tóm tắt thì nói rõ vì sao (AC-6.14): hết phiên, đổi người ở tab khác, mã bảo mật lệch, tài khoản
+  // không lên đơn được, máy chủ lỗi. Mất mạng do loi-mang.js đổi thành lời tiếng Việt (error.matMang). Không bảo tải lại
+  // trang: tải lại là mất chữ đã điền; đăng nhập lại ở tab mới rồi sửa một ô là tóm tắt tính lại (ADR-053).
   async function summaryText(response) {
-    if (response.redirected) return 'Phiên đăng nhập đã hết — tải lại trang để đăng nhập lại.';
-    if (response.status === 403)
-      return 'Tài khoản đang đăng nhập không lên đơn được, hoặc vừa đăng nhập lại ở tab khác — tải lại trang.';
     const data = await response.json().catch(() => null);
+    const session = window.KNJSC_SESSION?.sessionError(response, data);
+    if (session) return session.message;
+    if (response.redirected) return 'Phiên đăng nhập đã hết — thay đổi chưa được lưu; dữ liệu đã điền vẫn giữ.';
+    if (response.status === 403) return 'Tài khoản đang đăng nhập không lên đơn được — dữ liệu đã điền vẫn giữ.';
     if (response.ok && data) return `${data.lines} dòng · ${data.quantity} sản phẩm · Tổng ${data.total} ${data.currency}`;
     if (data && data.error) return data.error;
     return 'Máy chủ đang lỗi hoặc đang khởi động lại — chưa tính được tóm tắt. Thử lại sau ít phút.';
@@ -97,14 +99,24 @@
         method: 'POST', body: new URLSearchParams({nhan_moi: name.value}),
         headers: {'X-CSRFToken': form.elements.csrfmiddlewaretoken.value, 'Accept': 'application/json'}
       });
-      if (response.redirected) throw new Error('Phiên đăng nhập đã hết.');
-      if (!response.ok) throw new Error(await response.text());
-      const data = await response.json();
+      const isJson = (response.headers.get('Content-Type') || '').includes('application/json');
+      const data = isJson ? await response.json().catch(() => null) : null;
+      const session = window.KNJSC_SESSION?.sessionError(response, data);
+      if (session) throw session;
+      if (response.redirected) throw new Error('Phiên đăng nhập đã hết — sản phẩm chưa được tạo.');
+      if (!response.ok) {
+        // Không bao giờ in nguyên trang HTML (trang 403, trang lỗi) vào ô kết quả
+        const text = !data && response.status === 400 ? (await response.text()).trim() : '';
+        throw new Error(data?.error || (text && !text.startsWith('<') ? text
+          : response.status === 403 ? 'Tài khoản đang đăng nhập không tạo được sản phẩm.' : 'Chưa tạo được sản phẩm.'));
+      }
+      if (!data) throw new Error('Chưa tạo được sản phẩm.');
       form.querySelectorAll('select[name=product]').forEach(select => select.add(new Option(data.name, data.code)));
       output.textContent = 'Đã tạo sản phẩm. Có thể chọn trong danh sách.';
       name.value = '';
     } catch (error) {
       output.textContent = error.message || 'Chưa tạo được sản phẩm.';
+      if (error.session && window.KNJSC_SESSION) output.append(' ', window.KNJSC_SESSION.help(error));
     } finally { button.disabled = false; }
   });
 

@@ -6,6 +6,8 @@ nghiệp vụ nằm ở services/ (điều cấm 2).
 Mọi danh sách lấy dữ liệu qua `objects.in_scope(user)` — không viết điều
 kiện lọc quyền ở đây (quy tắc 11).
 """
+from contextlib import contextmanager
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
@@ -17,8 +19,9 @@ from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from core.audit import record_denied
 from core.constants import Rank
-from core.exceptions import BusinessError
+from core.exceptions import BusinessError, OutOfScopeError
 from core.pagination import pagination_context
 from core.permissions import assert_rank, has_rank, is_admin
 
@@ -118,13 +121,20 @@ def nhan_su_sua(request, pk):
     """Admin sửa hồ sơ; cấp quản lý chỉ xem và đặt lại mật khẩu."""
     request.nav_current = "nhan_su"
     if request.method == "POST":
-        with locked_target(request.user, pk) as (actor, profile):
-            assert_rank(actor, Rank.ADMIN, request)
+        # Kiểm trước khi vào giao dịch khoá: từ chối bên trong thì dòng Từ chối bị huỷ cùng giao dịch (P0-2)
+        assert_rank(request.user, Rank.ADMIN, request)
+        with _ghi_tu_choi_sau_khoa(request), locked_target(request.user, pk) as (actor, profile):
+            if not has_rank(actor, Rank.ADMIN):     # kiểm lại trên bản vừa khoá (vừa bị hạ cấp)
+                raise OutOfScopeError()
             before = account_service.snapshot_profile(profile)
             form = SuaHoSoForm(request.POST, instance=profile)
             if form.is_valid():
-                account_service.update_profile(profile, form.cleaned_data, before=before,
-                                               actor=actor, request=request)
+                try:
+                    account_service.update_profile(profile, form.cleaned_data, before=before,
+                                                   actor=actor, request=request)
+                except BusinessError as loi:        # Admin hoạt động cuối cùng (TL-94)
+                    form.add_error(None, str(loi))
+                    return _account_screen(request, profile, profile_form=form)
                 messages.success(request, f"Đã cập nhật hồ sơ {profile}.")
                 return redirect("nhan_su")
             return _account_screen(request, profile, profile_form=form)
@@ -132,11 +142,22 @@ def nhan_su_sua(request, pk):
     return _account_screen(request, profile)
 
 
+@contextmanager
+def _ghi_tu_choi_sau_khoa(request):
+    """Từ chối bật ra trong `locked_target` (tranh chấp: vừa bị hạ cấp, bị khoá, người đích vừa đổi cấp) thì dòng Từ chối
+    ghi bên trong bị huỷ theo giao dịch. Bọc NGOÀI khối khoá để ghi sau khi giao dịch đã đóng (FR-3.5, P0-2)."""
+    try:
+        yield
+    except OutOfScopeError:
+        record_denied(request.user, request.path, request)
+        raise
+
+
 def _manageable_profile(request, pk, *, allow_admin_self=False):
     profile = get_object_or_404(UserProfile.objects.alive().select_related(
         "user", "department", "team"), pk=pk)
     if not (allow_admin_self and is_admin(request.user)):
-        AccountPolicy(request.user).require(profile)
+        AccountPolicy(request.user).require(profile, request)
     return profile
 
 
@@ -162,8 +183,9 @@ def nhan_su_dat_lai_mat_khau(request, pk):
     form = SetPasswordForm(profile.user, request.POST)
     if form.is_valid():
         try:
-            reset_account_password(pk, form.cleaned_data["new_password1"],
-                                   actor=request.user, request=request)
+            with _ghi_tu_choi_sau_khoa(request):
+                reset_account_password(pk, form.cleaned_data["new_password1"],
+                                       actor=request.user, request=request)
         except ValidationError as error:
             form.add_error(None, error)
         else:
@@ -178,7 +200,8 @@ def nhan_su_xoa(request, pk):
     profile = _manageable_profile(request, pk)
     if request.method == "POST" and request.POST.get("confirm") == "yes":
         try:
-            delete_account(pk, actor=request.user, request=request)
+            with _ghi_tu_choi_sau_khoa(request):
+                delete_account(pk, actor=request.user, request=request)
         except BusinessError as error:
             messages.error(request, str(error))
         else:
@@ -194,8 +217,9 @@ def nhan_su_doi_trang_thai(request, pk):
     if request.method != "POST":
         return redirect("nhan_su")
 
-    with locked_target(request.user, pk) as (actor, ho_so):
-        assert_rank(actor, Rank.ADMIN, request)
+    with _ghi_tu_choi_sau_khoa(request), locked_target(request.user, pk) as (actor, ho_so):
+        if not has_rank(actor, Rank.ADMIN):         # kiểm lại trên bản vừa khoá
+            raise OutOfScopeError()
         if ho_so.user_id == actor.pk:
             messages.error(request, "Không tự khoá tài khoản của chính mình được.")
             return redirect("nhan_su")

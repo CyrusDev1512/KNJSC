@@ -150,8 +150,9 @@ def test_nap_du_lieu_day_du_giu_id_va_chay_lai_an_toan(du_lieu_nap, nguoi_dung):
 @override_settings(DEBUG=True)
 def test_thieu_nhan_su_van_don_thi_khong_thay_doi_gi(du_lieu_nap, nguoi_dung):
     table, rows, outside = du_lieu_nap
-    nguoi_dung["staff_vd"].is_active = False
-    nguoi_dung["staff_vd"].save(update_fields=["is_active"])
+    # Mọi người của bộ phận Vận đơn trong fixture (Staff, Leader, Manager) nghỉ việc
+    from django.contrib.auth import get_user_model
+    get_user_model().objects.filter(profile__department__code="van-don").update(is_active=False)
     before = list(DataRecord.objects.filter(table=table).values_list("pk", "data"))
 
     with pytest.raises(CommandError, match="nhân sự Vận đơn"):
@@ -177,3 +178,21 @@ def test_loi_giua_luot_thi_rollback_toan_bo(du_lieu_nap, monkeypatch):
 
     assert list(DataRecord.objects.filter(table=table).values_list("pk", "data")) == before
     assert not WaybillAssignment.objects.exists()
+
+
+@override_settings(DEBUG=False)
+def test_tu_choi_khi_debug_tat_khong_ghi_gi(du_lieu_nap):
+    """TL-98 · P0-16 — DEBUG tắt thì `nap_du_lieu_van_don` từ chối (không có cờ thoát), kể cả `--dry-run`;
+    bảng vận đơn, phân công, nhật ký nhập, đơn ERP không đổi (khoá đã có nhưng chưa có bài)"""
+    table, _, _ = du_lieu_nap
+    anh_chup = list(DataRecord.all_objects.filter(table=table).order_by("pk").values_list("pk", "data"))
+    dem_erp = (Customer.objects.count(), Order.objects.count(), OrderLine.objects.count())
+
+    for dry_run in (False, True):
+        with pytest.raises(CommandError, match="DEBUG"):
+            call_command("nap_du_lieu_van_don", tong_so=5, seed=20260911, dry_run=dry_run)
+
+    assert list(DataRecord.all_objects.filter(table=table).order_by("pk").values_list("pk", "data")) == anh_chup
+    assert not WaybillAssignment.objects.exists()
+    assert not AuditLog.objects.filter(action=AuditAction.IMPORT).exists()
+    assert (Customer.objects.count(), Order.objects.count(), OrderLine.objects.count()) == dem_erp

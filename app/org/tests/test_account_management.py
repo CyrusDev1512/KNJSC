@@ -309,7 +309,9 @@ def test_ceo_reads_company_records_but_cannot_mutate_or_configure(client, actors
         tables.append((table, column, row))
     table, column, row = tables[0]
     client.force_login(ceo)
-    assert client.get("/admin/").status_code in (302, 404)
+    r = client.get("/quan-tri/")              # trang quản trị Django chỉ quản trị viên (TL-93)
+    assert r.status_code == 302 and r["Location"].startswith("/quan-tri/login/")
+    assert client.get(r["Location"]).status_code == 403
     assert client.get(reverse("nhan_su")).status_code == 200
     for name, args in (("bang_cot", [table.code]), ("bang_moi", []), ("bieu_mau_moi", [])):
         assert client.post(reverse(name, args=args), {}).status_code == 403
@@ -396,3 +398,103 @@ def test_django_admin_cannot_reintroduce_ceo_flags_or_restore_deleted_profile(ac
     delete_account(stale_profile.pk, actor=actors["admin"])
     with pytest.raises(Http404):
         admin.site._registry[UserProfile].save_model(request, stale_profile, None, True)
+
+
+# ══ Admin hoạt động cuối cùng — TL-94 · P0-9 ═════════════════════════
+
+def _la_admin_that(user):
+    """make_user không bật is_staff/is_superuser cho Admin; tài khoản thật thì có (ADR-044)."""
+    user.is_staff = user.is_superuser = True
+    user.save(update_fields=["is_staff", "is_superuser"])
+    return user
+
+
+def test_admin_cuoi_khong_tu_ha_cap_qua_sua_ho_so(client, nguoi_dung, departments):
+    """AC-2.3 — Admin hoạt động duy nhất tự đổi cấp bậc của mình ở Sửa hồ sơ thì bị chặn kèm lời báo, hồ sơ, cờ quản
+    trị và phiên giữ nguyên — hệ thống không bao giờ còn 0 Admin (ADR-044, TL-94)"""
+    from core.constants import AuditAction
+    from core.models import AuditLog
+
+    admin = _la_admin_that(nguoi_dung["admin"])
+    ho_so = admin.profile
+    epoch, so_nhat_ky = ho_so.session_epoch, AuditLog.objects.filter(action=AuditAction.UPDATE).count()
+    client.force_login(admin)
+    r = client.post(reverse("nhan_su_sua", args=[ho_so.pk]), {
+        "full_name": ho_so.full_name, "rank": Rank.MANAGER, "department": departments["sale"].pk})
+
+    assert r.status_code == 200 and "Admin hoạt động cuối cùng" in r.content.decode()
+    ho_so.refresh_from_db()
+    admin.refresh_from_db()
+    assert ho_so.rank == Rank.ADMIN and admin.is_staff and admin.is_superuser
+    assert ho_so.session_epoch == epoch
+    assert AuditLog.objects.filter(action=AuditAction.UPDATE).count() == so_nhat_ky
+
+
+@pytest.mark.parametrize("ai", ["chinh_minh", "admin_kia"])
+def test_admin_ha_cap_duoc_khi_con_admin_khac(client, actors, departments, ai):
+    """AC-2.3 — Còn Admin hoạt động khác thì vẫn hạ cấp được, cả tự hạ cấp mình lẫn hạ Admin kia; cờ quản trị bị gỡ,
+    phiên mất hiệu lực (bài khoá chiều cho phép, TL-94)"""
+    admin, kia = _la_admin_that(actors["admin"]), _la_admin_that(actors["other_admin"])
+    dich = admin if ai == "chinh_minh" else kia
+    epoch = dich.profile.session_epoch
+    client.force_login(admin)
+    r = client.post(reverse("nhan_su_sua", args=[dich.profile.pk]), {
+        "full_name": dich.profile.full_name, "rank": Rank.MANAGER, "department": departments["sale"].pk})
+    assert r.status_code == 302
+    dich.refresh_from_db()
+    dich.profile.refresh_from_db()
+    assert dich.profile.rank == Rank.MANAGER and not dich.is_staff and not dich.is_superuser
+    assert dich.profile.session_epoch > epoch
+
+
+def test_dich_vu_chan_ha_cap_va_khoa_admin_cuoi(make_user, db):
+    """AC-2.3 — Tầng dịch vụ tự giữ luật Admin cuối: `update_profile`, `set_rank`, `lock_account` lên Admin hoạt động
+    duy nhất đều bị từ chối, dữ liệu giữ nguyên; đổi họ tên không truyền ảnh chụp vẫn chạy; còn Admin khác thì khoá
+    được (TL-94)"""
+    from core.exceptions import BusinessError
+    from org.services import account_service
+
+    duy_nhat = _la_admin_that(make_user("only_admin", Rank.ADMIN))
+    p = duy_nhat.profile
+    for goi in (lambda: account_service.update_profile(p, {"rank": Rank.MANAGER}),
+                lambda: account_service.set_rank(p, Rank.MANAGER),
+                lambda: account_service.lock_account(p)):
+        with pytest.raises(BusinessError, match="Admin hoạt động cuối cùng"):
+            goi()
+    p.refresh_from_db()
+    duy_nhat.refresh_from_db()
+    assert p.rank == Rank.ADMIN and duy_nhat.is_active
+    account_service.update_profile(p, {"full_name": "Đổi tên"})
+    kia = _la_admin_that(make_user("admin_kia", Rank.ADMIN))
+    account_service.lock_account(kia.profile)
+    kia.refresh_from_db()
+    assert not kia.is_active
+
+
+@pytest.mark.parametrize("duong,du_lieu", [
+    ("dat-lai-mat-khau", {"new_password1": "Mat-khau-tranh-chap-1", "new_password2": "Mat-khau-tranh-chap-1"}),
+    ("xoa", {"confirm": "yes"}),
+])
+def test_tu_choi_trong_khoi_khoa_van_co_mot_dong_tu_choi(client, nguoi_dung, monkeypatch, duong, du_lieu):
+    """AC-3.7 — Tranh chấp: lần kiểm đầu qua, nhưng bản hồ sơ vừa khoá đã ngoài quyền (vừa đổi bộ phận hay cấp bậc) thì
+    403, đúng một dòng Từ chối dù dòng ghi trong giao dịch khoá bị huỷ, mật khẩu và hồ sơ không đổi (FR-3.5, P0-2)"""
+    from core.constants import AuditAction
+    from core.models import AuditLog
+    from org.services import account_management
+
+    goc, lan = account_management.AccountPolicy.can_manage, []
+
+    def chi_lan_dau(self, profile):
+        lan.append(1)
+        return len(lan) == 1 and goc(self, profile)
+
+    monkeypatch.setattr(account_management.AccountPolicy, "can_manage", chi_lan_dau)
+    quan_ly, nhan_vien = nguoi_dung["manager_sale"], nguoi_dung["staff_sale_1"]
+    mat_khau = nhan_vien.password
+    client.force_login(quan_ly)
+    r = client.post(f"/nhan-su/{nhan_vien.profile.pk}/{duong}/", du_lieu)
+    assert r.status_code == 403 and len(lan) == 2
+    assert AuditLog.objects.filter(action=AuditAction.DENIED, actor=quan_ly).count() == 1
+    nhan_vien.refresh_from_db()
+    nhan_vien.profile.refresh_from_db()
+    assert nhan_vien.password == mat_khau and nhan_vien.profile.deleted_at is None

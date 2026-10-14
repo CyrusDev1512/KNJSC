@@ -94,6 +94,33 @@ def test_cap_bac_quyet_dinh_do_rong_pham_vi(nguoi_dung):
     assert get_user_scope(nguoi_dung["admin"]).all_departments is True
 
 
+def test_fixture_chung_du_vai_co_luat_rieng(nguoi_dung, departments):
+    """AC-3.1 tới AC-3.8, AC-33.6 — Fixture chung có đủ các vai mang luật riêng: CEO (ADR-044), CSKH (ADR-033),
+    Leader và Manager Vận đơn (phân công), Kế toán (ADR-038); mỗi vai rơi đúng nhánh luật của nó, cả chiều được
+    lẫn chiều không. Thiếu vai thì bài nào cần nó lại tự dựng riêng và các bài lặp mọi vai bỏ sót nó (TL-90)."""
+    from orders.services import assignment_service
+    from org.services.org_service import is_accountant
+
+    assert departments["cskh"].code == "cskh"
+    ceo, cskh = nguoi_dung["ceo"], nguoi_dung["cskh"]
+    leader_vd, manager_vd = nguoi_dung["leader_vd"], nguoi_dung["manager_vd"]
+    assert (ceo.profile.rank, ceo.profile.department_id) == (Rank.CEO, None)
+    assert (cskh.profile.rank, cskh.profile.department) == (Rank.STAFF, departments["cskh"])
+    assert (leader_vd.profile.rank, leader_vd.profile.department) == (Rank.LEADER, departments["vd"])
+    assert (manager_vd.profile.rank, manager_vd.profile.department) == (Rank.MANAGER, departments["vd"])
+    ten = [u.username for u in nguoi_dung.values()]
+    assert len(ten) == len(set(ten))
+
+    pham_vi_ceo = get_user_scope(ceo)
+    assert pham_vi_ceo.all_departments is True and pham_vi_ceo.is_admin is False
+    assert assignment_service.only_own_rows(cskh) is True
+    assert assignment_service.only_own_rows(leader_vd) is False
+    assert assignment_service.can_assign(leader_vd) and assignment_service.can_assign(manager_vd)
+    for vai in ("cskh", "ceo", "staff_vd"):
+        assert not assignment_service.can_assign(nguoi_dung[vai]), vai
+    assert is_accountant(nguoi_dung["staff_kt"]) and not is_accountant(ceo)
+
+
 def test_ban_ghi_da_xoa_khong_con_trong_pham_vi(nguoi_dung, probes):
     """AC-9.1 — Bản ghi bị đánh dấu xoá không xuất hiện trong danh sách"""
     probes["cua_staff_1"].delete(by=nguoi_dung["manager_sale"])
@@ -101,3 +128,43 @@ def test_ban_ghi_da_xoa_khong_con_trong_pham_vi(nguoi_dung, probes):
     assert "Của staff sale 1" not in thay
     # Nhưng vẫn còn trong cơ sở dữ liệu, không xoá cứng
     assert ScopeProbe.all_objects.filter(pk=probes["cua_staff_1"].pk).exists()
+
+
+def test_leader_chi_co_pham_vi_team_cung_bo_phan(nguoi_dung, teams, probes, departments, make_user):
+    """AC-3.3 — Phạm vi Leader chỉ gồm team cùng bộ phận với mình: Leader Marketing lỡ là trưởng team Sale không thấy
+    bản ghi của team đó, vẫn thấy bản ghi của mình (TL-95)"""
+    from django.contrib.auth import get_user_model
+
+    from org.models import Team
+
+    leader_mkt = make_user("leader_mkt_x", Rank.LEADER, departments["mkt"])
+    Team.objects.filter(pk=teams["sale2"].pk).update(leader=leader_mkt)
+    ScopeProbe.objects.create(title="Của leader mkt", created_by=leader_mkt, department=departments["mkt"])
+    thay = tieu_de(ScopeProbe.objects.in_scope(get_user_model().objects.get(pk=leader_mkt.pk)))
+    assert "Của staff sale 2" not in thay and "Của leader mkt" in thay
+
+
+def test_manager_khong_co_bo_phan_bi_tu_choi_khong_nhan_danh_sach_rong(client, nguoi_dung, settings):
+    """AC-3.6 — Manager bị gỡ bộ phận không nhận danh sách rỗng mà bị từ chối 403 kèm lời "chưa được gán bộ phận" ở
+    KN ERP lẫn KN CRM (không lỗi 500); Manager có bộ phận vẫn thấy người của mình (FR-3.5, TL-96)"""
+    from django.contrib.auth import get_user_model
+
+    from org.models import UserProfile
+
+    UserProfile.objects.filter(pk=nguoi_dung["manager_sale"].profile.pk).update(department=None)
+    ql = get_user_model().objects.get(pk=nguoi_dung["manager_sale"].pk)
+    with pytest.raises(NoProfileError):
+        get_user_scope(ql)
+    client.raise_request_exception = False
+    client.force_login(ql)
+    r = client.get("/nhan-su/")
+    assert r.status_code == 403 and "chưa được gán bộ phận" in r.content.decode()
+    settings.ROOT_URLCONF = "knjsc.urls_bangtinh"
+    for duong in ("/", "/thu-muc/"):
+        r = client.get(duong)
+        assert r.status_code == 403 and "chưa được gán bộ phận" in r.content.decode(), duong
+
+    settings.ROOT_URLCONF = "knjsc.urls"
+    client.force_login(nguoi_dung["manager_mkt"])
+    r = client.get("/nhan-su/")
+    assert r.status_code == 200 and "Staff Mkt" in r.content.decode()

@@ -212,6 +212,8 @@ def save(user, table, payload, *, request=None):
                 or not isinstance(cell.get('column'), str) or 'old' not in cell or 'value' not in cell
                 or isinstance(cell['value'], (dict, list)) or isinstance(cell['old'], (dict, list))):
             raise BusinessError('Ô thiếu định danh hoặc giá trị hợp lệ.')
+        if 'machine' in cell and type(cell['machine']) is not bool:
+            raise BusinessError('Ô thiếu định danh hoặc giá trị hợp lệ.')
         if cell.get('property', 'value') not in ('value', 'fs', 'c', 'bg'):
             raise BusinessError('Thuộc tính định dạng không được hỗ trợ.')
         key = (cell['id'], cell['column'], cell.get('property', 'value'))
@@ -279,7 +281,14 @@ def save(user, table, payload, *, request=None):
         if not record_service.same_value(current, c['old']):
             conflicts.append({**c, 'current': current, 'name': column.name})
         if prop == 'value':
-            changes.append((row, column.code, c['value']))
+            raw = c['value']
+            if c.get('machine') is True:
+                # Giá trị máy gửi lại (hoàn tác, làm lại): "0.125" là 0,125, không theo luật chữ người gõ (TL-03)
+                try:
+                    raw = record_service.stored_number(column, raw)
+                except BusinessError as loi:
+                    raise record_service.CellError(str(loi), pk=row.pk, code=c['column']) from loi
+            changes.append((row, column.code, raw))
         else:
             record_service.normalise_style({prop: c['value']})
             styles.append(c)

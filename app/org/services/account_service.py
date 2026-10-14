@@ -18,7 +18,7 @@ from core.permissions import assert_rank
 
 from ..models import UserProfile
 from . import staff_code_service
-from .account_management import require_live_profile
+from .account_management import require_live_profile, require_other_active_admin
 
 
 @sensitive_variables('password', 'temporary')
@@ -144,6 +144,8 @@ def update_profile(profile, changes, *, before=None, actor=None, request=None):
     """
     require_live_profile(profile)
     goc = before if before is not None else snapshot_profile(profile, changes.keys())
+    if "rank" in changes:
+        _giu_admin_cuoi(profile, goc.get("rank", profile.rank), changes["rank"])
     da_doi = []
     for ten, moi in changes.items():
         cu = goc.get(ten)
@@ -177,11 +179,18 @@ def update_profile(profile, changes, *, before=None, actor=None, request=None):
     return profile
 
 
+def _giu_admin_cuoi(profile, cu, moi):
+    if (cu == Rank.ADMIN or profile.user.is_superuser) and moi != Rank.ADMIN:
+        require_other_active_admin(
+            profile, "Không hạ cấp được Admin hoạt động cuối cùng. Hãy tạo hoặc nâng một Admin khác trước.")
+
+
 @transaction.atomic
 def set_rank(profile, rank, *, actor=None, request=None):
     """Đổi cấp bậc. Phiên đang mở mất hiệu lực ngay (P4)."""
     require_live_profile(profile)
     cu = profile.rank
+    _giu_admin_cuoi(profile, cu, rank)
     profile.rank = rank
     profile.save(update_fields=["rank"])
     # Lên hoặc xuống khỏi Admin thì quyền vào trang quản trị đổi theo
@@ -201,6 +210,8 @@ def set_rank(profile, rank, *, actor=None, request=None):
 def lock_account(profile, *, actor=None, request=None):
     """Khoá tài khoản. Phiên đang mở mất hiệu lực ngay (P4)."""
     require_live_profile(profile)
+    if profile.rank == Rank.ADMIN or profile.user.is_superuser:
+        require_other_active_admin(profile, "Không khoá được Admin hoạt động cuối cùng.")
     profile.user.is_active = False
     profile.user.save(update_fields=["is_active"])
     profile.invalidate_sessions()

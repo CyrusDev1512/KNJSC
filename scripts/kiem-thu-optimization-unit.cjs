@@ -1,18 +1,23 @@
 const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
 const source=fs.readFileSync(require.resolve('../app/static/js/master-grid.js'),'utf8');
-const ctx={Error,URL};vm.createContext(ctx);
+const ctx={Error,URL,state:{}};vm.createContext(ctx);
 vm.runInContext(source.slice(source.indexOf('  async function json('),source.indexOf('  function layout('))+';this.parse=json;',ctx);
 (async()=>{
-  await assert.rejects(ctx.parse({ok:true,redirected:true,url:'http://localhost/dang-nhap/?next=grid',headers:{get:()=> 'text/html'},json:async()=>({})}),e=>e.status===403,'Hết phiên/khóa tài khoản phải đi đường gỡ dữ liệu đã mất quyền');
+  await assert.rejects(ctx.parse({ok:true,redirected:true,url:'http://localhost/dang-nhap/?next=grid',headers:{get:()=> 'text/html'},json:async()=>({})}),e=>e.status===401&&e.code==='het_phien'&&e.session===true,'Hết phiên giữ nháp, không đi đường gỡ quyền (ADR-053)');
+  await assert.rejects(ctx.parse({ok:true,redirected:true,url:'http://localhost/doi-mat-khau/',headers:{get:()=> 'text/html'},json:async()=>({})}),e=>e.code==='doi_mat_khau'&&e.session===true,'Bắt đổi mật khẩu là lỗi phiên riêng');
+  await assert.rejects(ctx.parse({ok:false,status:403,headers:{get:()=> 'application/json'},json:async()=>({error:'Mã bảo mật',code:'csrf'})}),e=>e.status===401&&e.session===true,'CSRF lệch (JSON code csrf) là lỗi phiên');
+  await assert.rejects(ctx.parse({ok:false,status:409,headers:{get:()=> 'application/json'},json:async()=>({error:'Tài khoản vừa đăng nhập khác người mở trang — nháp không được lưu',code:'nguoi_dung_doi'})}),e=>e.status===409&&e.session===true,'Đổi người là lỗi phiên, giữ mã 409');
+  await assert.rejects(ctx.parse({ok:false,status:403,headers:{get:()=> 'text/html'},json:async()=>({})}),e=>e.status===403&&!e.session,'403 trang HTML (mất hồ sơ, ngoài phạm vi) vẫn đi đường mất quyền');
+  await assert.rejects(ctx.parse({ok:false,status:403,headers:{get:()=> 'application/json'},json:async()=>({error:'Bạn không còn quyền sửa các dòng này.'})}),e=>e.status===403&&!e.session,'403 JSON mất quyền giữ nguyên');
   await assert.rejects(ctx.parse({ok:false,status:503,headers:{get:()=> 'text/html'},json:async()=>({})}),e=>e.status===503,'Lỗi mạng/server giữ nguyên nháp');
-  assert.deepEqual(await ctx.parse({ok:true,redirected:false,headers:{get:()=> 'application/json'},json:async()=>({protocol:2})}),{protocol:2});
+  ctx.state.sessionLost=true;assert.deepEqual(await ctx.parse({ok:true,redirected:false,headers:{get:()=> 'application/json'},json:async()=>({protocol:2})}),{protocol:2});assert.equal(ctx.state.sessionLost,false,'Phản hồi JSON hợp lệ mở lại lượt hỏi');
   console.log('PASS quyền mất phiên, phân biệt lỗi server và JSON hợp lệ');
   const state={generation:0,pending:new Map(),cache:new Map(),cursors:new Map(),version:'',queryToken:'q',revision:9};
   let observed=0;
   const grid={state,config:{protocol:2,dataUrl:'/data'},BLOCK:100,CACHE:10,AbortController,URLSearchParams,query:new URLSearchParams(),
     fetch:async()=>({protocol:2,revision:8,query_token:'q',version:'v',metadata_version:'m',total:0,columns:[],rows:[]}),json:async x=>x,
     updateGeometry:fn=>fn(),geometry:{total:0,at:()=>0},viewport:{scrollTop:0,clientHeight:900},HEADER:54,
-    ensureDrafts:()=>{},working:{observe:()=>observed++},layout:()=>{},repaint:()=>{}};
+    ensureDrafts:()=>{},working:{observe:()=>observed++},layout:()=>{},repaint:()=>{},doChieuCaoTheoLo:()=>{},caoDong:()=>28,rowResize:null,rowAt:()=>null};
   vm.createContext(grid);
   vm.runInContext(source.slice(source.indexOf('  async function loadBlock('),source.indexOf('  function element('))+';this.load=loadBlock;',grid);
   await grid.load(0);
@@ -20,6 +25,12 @@ vm.runInContext(source.slice(source.indexOf('  async function json('),source.ind
   assert.equal(state.cache.size,0);
   grid.fetch=async()=>({protocol:2,revision:9,query_token:'q',version:'v',metadata_version:'m',total:0,columns:[],rows:[]});
   await grid.load(0);assert.equal(state.cache.size,1);
+  // 409 đổi người khi tải khối (ADR-053): không vào vòng invalidate → tải lại → 409 (bão yêu cầu), báo lỗi phiên một lần
+  let vong=0,phien=0;state.cache.clear();state.conflicts=[];
+  Object.assign(grid,{message(){},element:()=>({}),$:()=>({append(){}}),invalidate(){vong++;},clearAccess(){},sessionNotice(){phien++;},prefetchFailed:new Set()});
+  grid.fetch=async()=>{throw Object.assign(Error('Tài khoản vừa đăng nhập khác người mở trang — nháp không được lưu'),{status:409,code:'nguoi_dung_doi',session:true});};
+  await grid.load(0).catch(()=>{});
+  assert.equal(vong,0,'409 đổi người không gọi invalidate (không thành vòng yêu cầu)');assert.equal(phien,1,'Báo lỗi phiên đúng một lần');
   console.log('PASS phản hồi khối đến muộn sau polling');
   const polling={state:{busy:false,generation:0,queryToken:'q',revision:1,cache:new Map()},config:{syncUrl:'/sync'},document:{hidden:false},
     working:{pending:()=>[],observe:()=>{}},canvas:{querySelectorAll:()=>[]},query:new URLSearchParams(),csrf:'test',json:async x=>x,updateRows:()=>{}};

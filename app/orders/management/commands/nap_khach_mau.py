@@ -23,7 +23,6 @@ import time
 from datetime import date, timedelta
 from decimal import Decimal
 
-from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 from django.db.models import Count
@@ -224,9 +223,9 @@ class Command(BaseCommand):
         parser.add_argument("--dong-y-chay-that", action="store_true", dest="dong_y")
 
     def handle(self, *args, **o):
-        if not settings.DEBUG and not o["dong_y"]:
-            raise CommandError("DEBUG đang tắt — dữ liệu giả không dành cho máy chủ thật. "
-                               "Chắc chắn thì thêm --dong-y-chay-that.")
+        from core.management.commands.seed_perf import chan_khi_debug_tat
+
+        chan_khi_debug_tat(o["dong_y"])
         if not 0 <= o["ti_le"] < 1:
             raise CommandError("--ti-le-mua-lai phải từ 0 tới dưới 1.")
         from org.models import UserProfile

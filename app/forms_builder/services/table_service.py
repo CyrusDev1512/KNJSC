@@ -13,8 +13,10 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
+from decimal import InvalidOperation
 
 from django.db import OperationalError, connection, transaction
+from django.db.models import ProtectedError
 
 from core.audit import record
 from core.exceptions import BusinessError
@@ -24,7 +26,7 @@ from core.permissions import assert_business_write
 
 from ..meaning import FieldType
 from .. import record_policies
-from ..models import DERIVED_FIELDS, ColumnDef, DataRecord, TableDef
+from ..models import DERIVED_FIELDS, NUMERIC_TYPES, ColumnDef, DataRecord, TableDef
 
 logger = logging.getLogger(__name__)
 RECOMPUTE_RETRIES = 3
@@ -121,6 +123,7 @@ def update_column(column, changes, *, actor=None, request=None):
     if policy:
         policy.assert_column_change(column, changes)
     da_doi, phai_tinh_lai = [], False
+    kieu_cu = column.field_type
     for ten in COLUMN_FIELDS:
         if ten not in changes:
             continue
@@ -137,7 +140,7 @@ def update_column(column, changes, *, actor=None, request=None):
 
     column.full_clean()
     if "field_type" in changes and not column.is_computed:
-        doi_kieu = _chuyen_kieu(column)
+        doi_kieu = _chuyen_kieu(column, kieu_cu)
         phai_tinh_lai = phai_tinh_lai or doi_kieu
     column.save()
 
@@ -154,19 +157,31 @@ def update_column(column, changes, *, actor=None, request=None):
     return column
 
 
-def _chuyen_kieu(column):
+def _chuyen_kieu(column, kieu_cu=None):
     """Đổi kiểu cột: thử chuyển mọi giá trị cũ sang kiểu mới (AC-8.11), kể cả dòng đã xoá.
 
     Còn giá trị không chuyển được thì từ chối cả lượt, nêu số dòng và vài ví dụ để người quản lý sửa ô trước. Chuyển
-    được hết thì ghi lại các ô có dạng đổi ("1.500" → 1500), cột tách đi theo. Trả về có ghi dòng nào không."""
+    được hết thì ghi lại các ô có dạng đổi ("1.500" → 1500), cột tách đi theo. Trả về có ghi dòng nào không.
+
+    Giá trị đã lưu của cột số là chuỗi máy ("0.125"): đọc bằng `parse_stored_number`, không theo luật chữ người gõ —
+    không thì sửa nhãn cột Tiền (Sửa cột luôn gửi kèm kiểu) nhân nghìn cả cột (TL-03). Kiểu cũ là Chữ thì vẫn là chữ
+    người gõ."""
+    from core.money import parse_stored_number
+
     from .record_service import parse_value, save_rows
     ma = column.code
     gia_tri = list(DataRecord.all_objects.filter(table=column.table, data__has_key=ma)
                    .values_list("pk", f"data__{ma}"))
     moi, hong = {}, []
     for pk, cu in gia_tri:
+        raw = cu
+        if kieu_cu in NUMERIC_TYPES and isinstance(cu, str):
+            try:
+                raw = parse_stored_number(cu)
+            except (InvalidOperation, BusinessError):
+                raw = cu            # để kiểu mới quyết định: hỏng thì vào danh sách từ chối
         try:
-            sau = parse_value(column, cu)
+            sau = parse_value(column, raw)
         except BusinessError:
             hong.append(cu)
             continue
@@ -197,12 +212,18 @@ def remove_column(column, *, actor=None, request=None):
     Xoá định nghĩa cột, nhưng **không** xoá giá trị đã nhập trong JSON — dữ
     liệu người dùng gõ vào không tự biến mất (tinh thần BR-4). Cột không còn
     hiển thị, và gán lại đúng tên kỹ thuật đó thì dữ liệu cũ hiện trở lại.
+
+    Luật bỏ cột nằm ở đây cho mọi cửa (lưới, màn Cột ở 8020/8021): cột khoá, vế của cột tính sẵn, cột đang
+    nhận dữ liệu từ biểu mẫu, cột hệ thống của bảng vận đơn thì `BusinessError` (TL-13).
     """
-    policy = record_policies.for_table(column.table)
-    if policy:
-        policy.assert_column_change(column)
+    ly_do = removable_reason(column)
+    if ly_do:
+        raise BusinessError(ly_do)
     bang, ma = column.table, column.code
-    column.delete()
+    try:
+        column.delete()
+    except ProtectedError as loi:      # vừa có biểu mẫu nối vào giữa lúc kiểm và lúc xoá
+        raise BusinessError(f'"{column.name}" đang nhận dữ liệu từ biểu mẫu — tải lại trang.') from loi
     schedule_resync(bang, actor=actor)
     record(
         AuditAction.DELETE, actor=actor, target=bang,
@@ -307,8 +328,8 @@ def insert_columns(table, *, count=1, anchor=None, after=True, actor=None, reque
 
 
 def removable_reason(column):
-    """Vì sao không bỏ được cột này ngay trên lưới; trống nghĩa là bỏ được.
-    Cột khoá và cột đang là vế của một cột tính sẵn thì giữ."""
+    """Vì sao không bỏ được cột này; trống nghĩa là bỏ được. Cột khoá, cột đang là vế của một cột tính sẵn,
+    cột đang nhận dữ liệu từ biểu mẫu và cột hệ thống của profile bảng (vận đơn) thì giữ — AC-11.22."""
     policy = record_policies.for_table(column.table)
     if policy:
         try:
@@ -323,6 +344,14 @@ def removable_reason(column):
     ]
     if dung_o:
         return f'"{column.name}" đang là vế của cột tính sẵn {", ".join(dung_o)}.'
+    # Biểu mẫu luôn cùng bộ phận với bảng (FormDef.clean) nên nêu tên không lộ gì ra ngoài
+    bieu_mau = sorted({
+        f.name + ("" if f.is_active else " (đã ngừng dùng)")
+        for f in (l.form_field.form for l in column.links.select_related("form_field__form"))
+    })
+    if bieu_mau:
+        return (f'"{column.name}" đang nhận dữ liệu từ biểu mẫu {", ".join(bieu_mau)} — bỏ trường đó khỏi '
+                "biểu mẫu (hoặc nối sang cột khác) rồi mới bỏ cột.")
     return ""
 
 

@@ -570,7 +570,6 @@ def test_o_chi_doc_bi_cat_bam_dup_phong_to(live_server, trang, dang_nhap, kn_crm
     chọn; bấm đúp thì Ô PHỒNG TO tại chỗ hiện đủ chữ, KHÔNG mở ô nhập; bấm chỗ khác
     thì thu về"""
     from core.constants import Rank
-    from org.models import Department
     from orders.models import WaybillAssignment
     from orders.services import assignment_service
 
@@ -578,8 +577,7 @@ def test_o_chi_doc_bi_cat_bam_dup_phong_to(live_server, trang, dang_nhap, kn_crm
     ten_dai = "Nguyễn Thị Rất Dài " * 6
     dong[0].data["ten_khach"] = ten_dai
     dong[0].save(update_fields=["data"])
-    care = make_user("care_person", Rank.STAFF,
-                     Department.objects.create(code="cskh", name="CSKH"))
+    care = make_user("care_person", Rank.STAFF, departments["cskh"])
     leader = make_user("vd_leader", Rank.LEADER, departments["vd"])
     phien_ban = (WaybillAssignment.objects.filter(record=dong[0])
                  .values_list("version", flat=True).first() or 0)

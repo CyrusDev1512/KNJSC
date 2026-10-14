@@ -84,6 +84,15 @@ def _kiem_sua_cau_truc(request, bang_hien):
         raise OutOfScopeError("Chỉ quản lý của bộ phận sở hữu bảng mới sửa được cột.")
 
 
+def _kiem_cap_quyen(request, doi_tuong):
+    """Cấp, thu quyền bảng hay biểu mẫu, và sửa biểu mẫu: Manager của bộ phận sở hữu hoặc Admin (FR-8.4, ADR-015 mục
+    5). Thấy được nhờ quyền Xem/Điền, Kế toán hay dòng vận đơn thì 403 có nhật ký (TL-01). Gọi SAU khi lấy đối tượng
+    qua phạm vi, để ngoài phạm vi vẫn 404 không lộ đối tượng có tồn tại."""
+    if not grant_service.can_grant(request.user, doi_tuong):
+        record_denied(request.user, request.path, request)
+        raise OutOfScopeError("Chỉ Manager của bộ phận sở hữu mới cấp, thu quyền hay sửa được mục này.")
+
+
 # ══ QUẢN LÝ BẢNG ══════════════════════════════════════════════════
 
 @login_required
@@ -118,7 +127,7 @@ def bang(request):
 @login_required
 def bang_moi(request):
     """Tạo bảng mới — FR-8.1; Leader trở lên (ADR-015)."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     request.nav_current = "bang"
     assert_rank(request.user, Rank.LEADER, request)
 
@@ -141,7 +150,7 @@ def bang_moi(request):
 @login_required
 def bang_cot(request, code):
     """Thêm và sửa cột của một bảng — quản lý của bộ phận sở hữu (ADR-015)."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     request.nav_current = "bang"
     assert_rank(request.user, Rank.LEADER, request)
     bang_hien = _lay_bang(request, code)
@@ -171,12 +180,18 @@ def bang_cot(request, code):
             messages.success(request, f"Đã thêm cột {cot.name}." + _bao_tinh_lai(cot))
         return redirect("bang_cot", code=bang_hien.code)
 
+    return _trang_cot(request, bang_hien, form, dang_sua)
+
+
+def _trang_cot(request, bang_hien, form=None, dang_sua=None, status=200):
+    """Trang Cột của một bảng — dùng lại khi thao tác bị từ chối để hiện lời báo ngay trên trang."""
+    request.nav_current = "bang"
     return render(request, "forms_builder/bang_cot.html", {
-        "bang": bang_hien, "form": form, "dang_sua": dang_sua,
+        "bang": bang_hien, "form": form or ColumnForm(table=bang_hien), "dang_sua": dang_sua,
         "cac_cot": bang_hien.columns.order_by("order", "id"),
         "form_quyen": GrantForm(cho_bang=True),
         "cac_quyen": grant_service.grants_of_table(bang_hien),
-    })
+    }, status=status)
 
 
 def _bao_tinh_lai(cot):
@@ -197,7 +212,12 @@ def bang_xoa_cot(request, code, pk):
     _kiem_sua_cau_truc(request, bang_hien)
     cot = get_object_or_404(ColumnDef, pk=pk, table=bang_hien)
     ten = cot.name
-    table_service.remove_column(cot, actor=request.user, request=request)
+    try:
+        table_service.remove_column(cot, actor=request.user, request=request)
+    except BusinessError as loi:
+        # Cột khoá, vế công thức, nối biểu mẫu, cột hệ thống vận đơn: báo đỏ, cột còn nguyên (TL-13)
+        messages.error(request, str(loi))
+        return _trang_cot(request, bang_hien, status=400)
     messages.success(request, f"Đã bỏ cột {ten}.")
     return redirect("bang_cot", code=code)
 
@@ -487,9 +507,10 @@ def bang_xuat(request, code):
 @require_POST
 def bang_cap_quyen(request, code):
     """Cấp quyền xem hoặc sửa một bảng cho người ngoài bộ phận — FR-8.4."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     assert_rank(request.user, Rank.MANAGER, request)
     bang_hien = _lay_bang(request, code)
+    _kiem_cap_quyen(request, bang_hien)
 
     form = GrantForm(request.POST, cho_bang=True)
     if form.is_valid():
@@ -511,9 +532,10 @@ def bang_cap_quyen(request, code):
 @require_POST
 def bang_thu_quyen(request, code, pk):
     """Thu hồi một quyền đã cấp trên bảng."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     assert_rank(request.user, Rank.MANAGER, request)
     bang_hien = _lay_bang(request, code)
+    _kiem_cap_quyen(request, bang_hien)
     quyen = get_object_or_404(Grant, pk=pk, table=bang_hien)
     grant_service.revoke(quyen, actor=request.user, request=request)
     messages.success(request, "Đã thu quyền.")
@@ -574,6 +596,9 @@ def bieu_mau(request):
         "duoc_dien": not is_company_reader(request.user),
     }
     boi_canh.update(pagination_context(request, ds, "biểu mẫu"))
+    # Nút Sửa chỉ ở biểu mẫu người xem quản lý được — biểu mẫu chỉ được cấp Điền thì không (TL-01, như TL-78)
+    for bm in boi_canh["trang"]:
+        bm.duoc_sua = grant_service.can_grant(request.user, bm)
     boi_canh.update(active_tab="forms", can_manage_forms=can_manage,
                    qs_loc=filter_query(tab="forms", tim=tim))
     return render(request, "forms_builder/library_hub.html", boi_canh)
@@ -582,7 +607,7 @@ def bieu_mau(request):
 @login_required
 def bieu_mau_moi(request):
     """Tạo biểu mẫu mới, chọn bảng đích — FR-8.1, FR-8.3."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     request.nav_current = "bieu_mau"
     assert_rank(request.user, Rank.MANAGER, request)
 
@@ -606,10 +631,11 @@ def bieu_mau_moi(request):
 @login_required
 def bieu_mau_sua(request, code):
     """Trình tạo biểu mẫu: thêm trường, nối cột đích, phân quyền."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     request.nav_current = "bieu_mau"
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
+    _kiem_cap_quyen(request, bm)
 
     sua_pk = request.GET.get("truong")
     dang_sua = None
@@ -653,9 +679,10 @@ def bieu_mau_sua(request, code):
 @require_POST
 def bieu_mau_bo_truong(request, code, pk):
     """Bỏ một trường khỏi biểu mẫu. Không đụng tới dữ liệu đã nhập — FR-8.5."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
+    _kiem_cap_quyen(request, bm)
     truong = get_object_or_404(FormField, pk=pk, form=bm)
     ten = truong.field.name
     form_service.remove_field(truong, actor=request.user, request=request)
@@ -666,7 +693,7 @@ def bieu_mau_bo_truong(request, code, pk):
 @login_required
 def truong_moi(request):
     """Thêm một định nghĩa trường vào thư viện dùng chung của bộ phận."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     request.nav_current = "bieu_mau"
     assert_rank(request.user, Rank.MANAGER, request)
 
@@ -696,9 +723,10 @@ def truong_moi(request):
 @require_POST
 def bieu_mau_cap_quyen(request, code):
     """Cấp quyền điền biểu mẫu cho người ngoài bộ phận — FR-8.4."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
+    _kiem_cap_quyen(request, bm)
 
     form = GrantForm(request.POST, cho_bang=False)
     if form.is_valid():
@@ -720,9 +748,10 @@ def bieu_mau_cap_quyen(request, code):
 @require_POST
 def bieu_mau_thu_quyen(request, code, pk):
     """Thu hồi quyền điền biểu mẫu."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
+    _kiem_cap_quyen(request, bm)
     quyen = get_object_or_404(Grant, pk=pk, form=bm)
     grant_service.revoke(quyen, actor=request.user, request=request)
     messages.success(request, "Đã thu quyền.")
@@ -742,6 +771,7 @@ def bieu_mau_dien(request, code):
     bm = _lay_bieu_mau(request, code)
 
     if not grant_service.can_fill(request.user, bm):
+        record_denied(request.user, request.path, request)
         raise OutOfScopeError("Bạn không được phân quyền điền biểu mẫu này.")
     if not bm.is_active:
         raise OutOfScopeError("Biểu mẫu này đã ngừng dùng.")

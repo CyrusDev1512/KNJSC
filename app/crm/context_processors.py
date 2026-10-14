@@ -19,7 +19,15 @@ def khung_crm(request):
     if settings.ROOT_URLCONF != "knjsc.urls_bangtinh":
         return {"khung": KHUNG_ERP, "logo": LOGO_ERP}
     if not request.user.is_authenticated:
-        return {"khung": KHUNG_CRM, "logo": LOGO_CRM}
+        return {"khung": KHUNG_CRM, "logo": LOGO_CRM, "csrf_cookie": settings.CSRF_COOKIE_NAME}
+    from core.exceptions import NoProfileError
+
     from .navigation import build
 
-    return {"khung": KHUNG_CRM, "logo": LOGO_CRM, "crm_nav": build(request.user, getattr(request, "nav_current", ""))}
+    try:
+        nav = build(request.user, getattr(request, "nav_current", ""))
+    except NoProfileError:
+        # Như khung_chung của ERP: trang từ chối vẫn vẽ được, không thành lỗi 500 (TL-96)
+        nav = ()
+    # Tên cookie CSRF cho het-phien.js lấy mã mới lúc gửi (ADR-053); không truy vấn
+    return {"khung": KHUNG_CRM, "logo": LOGO_CRM, "crm_nav": nav, "csrf_cookie": settings.CSRF_COOKIE_NAME}

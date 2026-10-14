@@ -13,11 +13,23 @@
     if (cls) node.className = cls;
     return node;
   };
+  // Hết phiên, đổi mật khẩu, mã bảo mật lệch, đổi người: không gọi là mất quyền, không xoá chữ đang gõ (ADR-053)
+  let sessionLost = false;
   async function json(url, options = {}) {
     const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', ...options});
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Không tải được chứng từ.');
+    const isJson = (response.headers.get('Content-Type') || '').includes('application/json');
+    const data = isJson ? await response.json().catch(() => null) : null;
+    const session = window.KNJSC_SESSION?.sessionError(response, data)
+      || (response.redirected ? Object.assign(new Error('Phiên đăng nhập đã hết — thay đổi chưa được lưu.'), {session: true, code: 'het_phien'}) : null);
+    if (session) { sessionLost = true; throw session; }
+    if (!response.ok) throw new Error(data?.error || 'Không tải được chứng từ.');
+    if (!data) throw new Error('Phản hồi của máy chủ không hợp lệ — chưa lưu. Thử lại.');
+    sessionLost = false;
     return data;
+  }
+  function showError(box, e) {
+    box.textContent = e.message;
+    if (e.session && window.KNJSC_SESSION) box.append(' ', window.KNJSC_SESSION.help(e));
   }
   function close() {
     generation++;
@@ -67,7 +79,10 @@
       if (doc.can_manage) renderEdit(doc);
       exit.focus();
     } catch (error) {
-      if (version === generation) viewer.replaceChildren(element('p', error.message), button('Đóng', close));
+      if (version !== generation) return;
+      const note = element('p');
+      showError(note, error);
+      viewer.replaceChildren(note, button('Đóng', close));
     }
   }
   function renderEdit(doc) {
@@ -100,7 +115,7 @@
         document.dispatchEvent(new CustomEvent('payment-changed', {detail: {record: doc.record}}));
         window.dispatchEvent(new CustomEvent('master-refresh'));
         await open(doc.id);
-      } catch (e) { error.textContent = e.message; }
+      } catch (e) { showError(error, e); }
     }
     form.addEventListener('submit', event => {event.preventDefault(); submit('edit');});
     if (!doc.deleted) form.append(button('Lưu thay đổi', () => {if (form.reportValidity()) submit('edit');}));
@@ -133,14 +148,23 @@
     if (exit) exit.closest('dialog').close();
   }, true);
   setInterval(async () => {
-    if (!current || document.hidden) return;
+    if (!current || document.hidden || sessionLost) return;
     const id = current.id, version = generation;
     try { await json(`${base}${id}/`); }
     catch (e) {
-      if (generation === version) {
-        current = null;
-        viewer.replaceChildren(element('p', e.message), button('Đóng', close));
+      if (generation !== version) return;
+      if (e.session) {
+        // Giữ nguyên hộp và form đang gõ; chỉ báo ở đầu hộp. Lượt hỏi dừng tới khi một yêu cầu khác về hợp lệ
+        let box = viewer.querySelector(':scope > .payment-error');   // ô lỗi của form nằm trong <details> có thể đang gập
+        if (!box) {
+          box = element('p', '', 'payment-error'); box.setAttribute('role', 'alert');
+          viewer.prepend(box);
+        }
+        showError(box, e);
+        return;
       }
+      current = null;
+      viewer.replaceChildren(element('p', e.message), button('Đóng', close));
     }
   }, 8000);
   const createForm = document.querySelector('#payment-create-form');
@@ -158,11 +182,11 @@
     }
     document.querySelector('[data-payment-create]').addEventListener('click', () => {
       document.querySelector('#payment-create').showModal();
-      search().catch(e => {createForm.querySelector('.payment-error').textContent = e.message;});
+      search().catch(e => showError(createForm.querySelector('.payment-error'), e));
     });
     let timer;
     document.querySelector('#payment-row-search').addEventListener('input', () => {
-      clearTimeout(timer); timer = setTimeout(() => search().catch(e => {createForm.querySelector('.payment-error').textContent = e.message;}), 250);
+      clearTimeout(timer); timer = setTimeout(() => search().catch(e => showError(createForm.querySelector('.payment-error'), e)), 250);
     });
     createForm.addEventListener('submit', async event => {
       event.preventDefault();
@@ -172,7 +196,7 @@
         document.querySelector('#payment-create').close();
         createForm.reset(); createForm.elements.operation.value = crypto.randomUUID();
         await open(doc.id);
-      } catch (e) {createForm.querySelector('.payment-error').textContent = e.message;}
+      } catch (e) {showError(createForm.querySelector('.payment-error'), e);}
       finally {submit.disabled = false;}
     });
   }

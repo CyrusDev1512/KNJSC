@@ -201,8 +201,9 @@ rem tu nap lai ma nhu runserver nen khoi dong lai
 if defined MA_DOI (
   echo Cap nhat cau truc du lieu theo ma moi ...
   %COMPOSE% exec -T web python manage.py migrate --noinput
-  if errorlevel 1 goto :loi
+  if errorlevel 1 goto :loi_cau_truc
   %COMPOSE% exec -T web python manage.py tao_bang_van_don
+  if errorlevel 1 goto :loi_cau_truc
   %COMPOSE% restart worker beat
   set "CAU_HINH_BAO_CAO=1"
   if not exist "storage" mkdir "storage"
@@ -238,6 +239,15 @@ if "%LAN_DAU%"=="1" (
 )
 timeout /t 5
 exit /b 0
+
+rem Cap nhat cau truc hong: KHONG ghi dau vet de lan sau chay lai buoc nay. Giu dau
+rem vet cu (khong xoa) de lan sau con so duoc requirements/Dockerfile ma dung lai image
+:loi_cau_truc
+echo.
+echo CAP NHAT CAU TRUC DU LIEU KHONG XONG - xem loi ngay tren.
+echo Chua ghi dau vet storage\.kn-jsc-lan-truoc, lan sau nhay dup se chay lai buoc nay.
+echo Chup man hinh cua so nay gui nguoi ho tro.
+goto :loi
 
 :loi
 pause

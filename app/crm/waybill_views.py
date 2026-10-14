@@ -1,4 +1,5 @@
 """Trang lên đơn riêng, chi tiết và thống kê vận đơn — ADR-018, ADR-019."""
+from core.audit import record_denied
 from core.permissions import assert_business_write
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -53,7 +54,7 @@ def item_context(items=None):
 @login_required
 @require_http_methods(["GET", "POST"])
 def create_order(request):
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     assert_departments(request.user, SALES_ONLY, request)
     form = WaybillOrderForm(request.POST if request.method == "POST" else None, actor=request.user)
     error, success, items = "", "", None
@@ -103,6 +104,7 @@ def detail(request, pk):
               "unit_price": str(i.unit_price), "paid_amount": str(i.paid_amount)} for i in stored]
     if request.method == "POST":
         if not editable:
+            record_denied(request.user, request.path, request)
             raise OutOfScopeError()
         try:
             items = read_items(request.POST)

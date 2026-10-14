@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from core.audit import record_denied
 from core.constants import Rank
 from core.exceptions import BusinessError, OutOfScopeError
-from core.permissions import assert_rank
+from core.permissions import assert_business_write, assert_rank
 from org.models import Department
 
 from .forms import TaiLenForm
@@ -33,6 +33,7 @@ def tai_lieu(request):
 def tai_lieu_tai_len(request):
     """Tải tệp hoặc thêm liên kết — Manager trở lên (FR-9.2)."""
     request.nav_current = "bieu_mau"
+    assert_business_write(request.user, request)   # Giám đốc chỉ xem (ADR-044): 403 có nhật ký ngay, không hiện form
     assert_rank(request.user, Rank.MANAGER, request)
     cac_muc = DocumentCategory.objects.in_scope(request.user).select_related("department")
     form = TaiLenForm(request.POST or None, request.FILES or None, cac_muc=cac_muc)
@@ -55,6 +56,7 @@ def tai_lieu_tai_len(request):
 @require_POST
 def tai_lieu_muc_moi(request):
     """Thêm mục — Manager cho bộ phận mình, Admin cả mục toàn công ty (FR-9.1)."""
+    assert_business_write(request.user, request)   # Giám đốc chỉ xem (ADR-044): 403 có nhật ký ngay, không hiện form
     assert_rank(request.user, Rank.MANAGER, request)
     ma_bp = request.POST.get("department", "").strip()
     if ma_bp and not ma_bp.isdigit():
