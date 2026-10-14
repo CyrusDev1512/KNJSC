@@ -9,6 +9,7 @@ Phạm vi quyền đi qua Custom Manager (quy tắc 11): danh sách bảng qua
 `TableDef.objects.in_scope`, số liệu qua `DataRecord.objects.in_scope`. Gọi
 `?nguon=` ra ngoài danh sách đó là 403, không phải danh sách rỗng (quy tắc 8).
 """
+from dataclasses import replace
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -21,7 +22,7 @@ from core.constants import AuditAction
 from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.models import DataRecord, TableDef
 
-from .. import aggregations, marketing
+from .. import aggregations, layout, marketing
 
 #: Cách nhóm hợp lệ trên URL. "thi-truong" có mặt ở thanh tab nhưng chưa có
 #: số liệu — hoãn theo Q36, chờ chốt backlog N9.
@@ -141,31 +142,80 @@ def product_choices(scoped_qs, table):
     )
 
 
+def _money_by_currency(result, i, cot):
+    """Ô tiền theo từng loại tiền của dòng TỔNG CỘNG: "4.321 USD · 2.234 CAD" — không bao giờ cộng hai loại
+    tiền (ADR-046, TL-92)."""
+    phan = [f"{aggregations.format_number(raw[i], cot.decimals)} {layout.currency_label(tien)}"
+            for tien, raw in aggregations.total_rows(result) if raw[i] is not None]
+    return " · ".join(phan) or "—"
+
+
 def _headline(result):
     """Bốn ô số đầu trang, lấy từ chính dòng tổng cộng — không truy vấn thêm.
 
     Ưu tiên các cột theo thứ tự cột của bảng; bảng không có cột số nào thì
-    hiện mỗi ô Số dòng.
+    hiện mỗi ô Số dòng. Nguồn tách loại tiền thì ô tiền ghi theo từng loại tiền.
     """
     o = []
-    for cot in result.columns:
+    for i, cot in enumerate(result.columns):
         if cot.kind == "share":
             continue
-        gia_tri = result.totals.get(
-            f"c_{cot.code}" if cot.kind == "sum" else cot.code)
-        text = aggregations.format_number(gia_tri, cot.decimals)
+        if result.currency_key and cot.money and cot.kind == "sum":
+            text = _money_by_currency(result, i, cot)
+        else:
+            gia_tri = result.totals.get(
+                f"c_{cot.code}" if cot.kind == "sum" else cot.code)
+            text = aggregations.format_number(gia_tri, cot.decimals)
+            text = text + cot.suffix if text != "—" else text
         o.append({
-            "nhan": cot.label,
-            "gia_tri": text + cot.suffix if text != "—" else text,
-            "code": cot.code, "kind": cot.kind,
+            "nhan": cot.label, "gia_tri": text,
+            "code": cot.code, "kind": cot.kind, "money": cot.money,
         })
         if len(o) == 4:
             break
     if not o:
         o = [{"nhan": "Số dòng",
               "gia_tri": aggregations.format_number(result.totals.get("so_dong", 0)),
-              "code": "so_dong", "kind": "sum"}]
+              "code": "so_dong", "kind": "sum", "money": False}]
     return o
+
+
+def currency_note(result):
+    """Chú thích đơn vị khi nguồn tách loại tiền (AC-46.1, 46.2): số giữ đúng như đã nhập, không quy đổi;
+    cảnh báo khi có dòng chưa có loại tiền. Đọc từ tổng theo loại tiền đã có — không tốn truy vấn."""
+    if not result.currency_key:
+        return {"label": "", "warning": ""}
+    thieu = sum(s.get("so_dong") or 0 for s in result.currency_sums if not s.get(result.currency_key))
+    return {
+        "label": ("Số tiền giữ đúng như đã nhập, không quy đổi tỉ giá; mỗi dòng một loại tiền, "
+                  "TỔNG CỘNG tách theo loại tiền."),
+        "warning": (f"{thieu} dòng chưa có loại tiền: cộng riêng ở nhóm “{layout.UNKNOWN_CURRENCY}”, "
+                    "không vào loại tiền nào. Điền Loại tiền cho các dòng đó ở bảng nguồn.") if thieu else "",
+    }
+
+
+def currency_visible(result, columns):
+    """Có hiện cột Loại tiền không: nguồn tách loại tiền, trừ bảng Marketing — chủ dự án chọn ẩn cột Loại
+    tiền của báo cáo MKT (AC-47.6); dòng TỔNG CỘNG vẫn tách theo loại tiền."""
+    return bool(result.currency_key) and not marketing.is_marketing(columns)
+
+
+def display_rows(page_items, result):
+    """Các dòng của một trang để hiện, kèm nhãn loại tiền của dòng khi nguồn tách loại tiền."""
+    rows = aggregations.finish_rows(page_items, result)
+    if result.currency_key:
+        for row, item in zip(rows, page_items):
+            row["tien"] = layout.currency_label(item.get(result.currency_key))
+    return rows
+
+
+def total_lines(result, so_nhom):
+    """Các dòng TỔNG CỘNG ở chân bảng: một dòng như cũ, hoặc mỗi loại tiền một dòng "Tổng cộng · USD"."""
+    if not result.currency_key:
+        return [{"label": f"Tổng cộng · {so_nhom} {result.unit}", "currency": None,
+                 "cells": aggregations.total_cells(result)}]
+    return [layout.total_row("single", result, tien, raw, label="Tổng cộng")
+            for tien, raw in aggregations.total_rows(result)]
 
 
 def build_context(user, table, *, tab, date_from, date_to, product,
@@ -174,10 +224,12 @@ def build_context(user, table, *, tab, date_from, date_to, product,
 
     Một queryset phạm vi dùng chung cho mọi truy vấn của lượt này (quy tắc
     11); dòng nhóm lấy về dạng danh sách có trần `MAX_GROUPS` để cắt trang
-    trong bộ nhớ.
+    trong bộ nhớ. Bảng có cột Loại tiền thì loại tiền là một chiều nhóm và
+    TỔNG CỘNG tách theo loại tiền như bản mới (ADR-046, TL-92).
     """
     scoped = DataRecord.objects.in_scope(user)
     columns = list(table.columns.all())
+    tien = aggregations.currency_column_expression(columns)
     # Dòng tổng cộng tính từ chính các dòng nhóm đã lấy về (SUM kết hợp
     # được) — đỡ một lệnh aggregate; chỉ khi chạm trần MAX_GROUPS mới phải
     # cộng bằng lệnh riêng cho khỏi thiếu nhóm
@@ -185,54 +237,78 @@ def build_context(user, table, *, tab, date_from, date_to, product,
         table, scoped,
         group_key=GROUP_OF_TAB[tab], columns=columns,
         date_from=date_from, date_to=date_to, product=product,
-        with_totals=False,
+        with_totals=False, currency_expression=tien,
     )
     result = marketing.adapt(result, columns)
     cac_nhom = []
     if result.ok:
         cac_nhom = list(result.rows[:MAX_GROUPS + 1])
+        loc = {"columns": columns, "date_from": date_from, "date_to": date_to, "product": product}
         if len(cac_nhom) > MAX_GROUPS:
             cac_nhom = cac_nhom[:MAX_GROUPS]
-            totals = aggregations.totals_only(
-                table, scoped, columns=columns,
-                date_from=date_from, date_to=date_to, product=product,
-            )
+            totals = aggregations.totals_only(table, scoped, **loc)
+            currency_sums = (aggregations.currency_totals_only(table, scoped, currency_expression=tien, **loc)
+                             if tien is not None else ())
         else:
             totals = aggregations.totals_from_rows(cac_nhom, result)
-        result = marketing.with_totals(result, totals)
+            currency_sums = aggregations.currency_sums_from_rows(cac_nhom, result)
+        result = marketing.with_totals(replace(result, currency_sums=currency_sums), totals)
     boi_canh = {
         "kq": result,
         "o_so": _headline(result) if result.ok else [],
         "cac_nhom": cac_nhom,
         "cac_san_pham": product_choices(scoped, table),
+        "cot_tien": result.ok and currency_visible(result, columns),
+        "ghi_chu_tien": currency_note(result) if result.ok else {"label": "", "warning": ""},
     }
     if with_compare and result.ok:
         boi_canh["o_so"] = _compare(
             table, scoped, columns, boi_canh["o_so"], result,
-            date_from=date_from, date_to=date_to, product=product,
+            date_from=date_from, date_to=date_to, product=product, currency_expression=tien,
         )
     return boi_canh
 
 
-def _compare(table, scoped_qs, columns, headline, result, *, date_from, date_to, product):
+def _compare(table, scoped_qs, columns, headline, result, *, date_from, date_to, product,
+             currency_expression=None):
     """Gắn phụ chú "so với kỳ trước" vào các ô số: kỳ liền trước cùng độ dài.
 
     Chỉ chạy khi người dùng chủ động gửi khoảng lọc — tốn đúng một lệnh truy
     vấn; nếu màn hình chạm trần 10 lệnh (AC-10.2) thì đây là lệnh bỏ đầu tiên.
+    Nguồn tách loại tiền: cột đếm cộng qua các loại tiền rồi so; cột tiền chỉ so
+    khi hai kỳ cùng đúng một loại tiền — không trừ USD cho CAD (ADR-046, TL-92).
     """
     do_dai = (date_to - date_from).days + 1
     truoc_den = date_from - timedelta(days=1)
     truoc_tu = truoc_den - timedelta(days=do_dai - 1)
-    tong_truoc = aggregations.totals_only(
-        table, scoped_qs, columns=columns,
-        date_from=truoc_tu, date_to=truoc_den, product=product,
-    )
+    loc = {"columns": columns, "date_from": truoc_tu, "date_to": truoc_den, "product": product}
+    if result.currency_key and currency_expression is not None:
+        theo_tien = aggregations.currency_totals_only(
+            table, scoped_qs, currency_expression=currency_expression, **loc)
+        tong_truoc = {}
+        for dong in theo_tien:
+            for khoa, gia_tri in dong.items():
+                if (khoa == "so_dong" or khoa.startswith("c_")) and gia_tri is not None:
+                    tong_truoc[khoa] = (tong_truoc.get(khoa) or Decimal("0")) + gia_tri
+        tien_truoc = {d[result.currency_key] or "" for d in theo_tien}
+        tien_nay = [t for t, _ in result.currency_totals]
+        mot_tien = tien_nay[0] if len(tien_nay) == 1 and tien_truoc <= set(tien_nay) else None
+        hien_tien = dict(result.currency_totals).get(mot_tien, {}) if mot_tien is not None else {}
+    else:
+        tong_truoc = aggregations.totals_only(table, scoped_qs, **loc)
+        mot_tien, hien_tien = None, None
     for o in headline:
         if o["kind"] != "sum":
             continue
         khoa = "so_dong" if o["code"] == "so_dong" else f"c_{o['code']}"
+        if hien_tien is not None and o.get("money"):
+            if mot_tien is None:
+                o["phu"] = {"chieu": "", "text": "nhiều loại tiền, không so", "khong_so": True}
+                continue
+            hien = hien_tien.get(khoa) or Decimal("0")
+        else:
+            hien = result.totals.get(khoa) or Decimal("0")
         truoc = tong_truoc.get(khoa) or Decimal("0")
-        hien = result.totals.get(khoa) or Decimal("0")
         lech = Decimal(hien) - Decimal(truoc)
         if lech > 0:
             o["phu"] = {"chieu": "len", "text": "+" + aggregations.format_number(lech, 2)}
@@ -257,6 +333,7 @@ def build_export(user, table, *, tab, date_from, date_to, product, request=None)
         table, DataRecord.objects.in_scope(user),
         group_key=GROUP_OF_TAB[tab], columns=columns,
         date_from=date_from, date_to=date_to, product=product,
+        currency_expression=aggregations.currency_column_expression(columns),
     )
     if not result.ok:
         raise BusinessError("Bảng nguồn không có cột phù hợp để thống kê theo cách này.")
@@ -276,4 +353,6 @@ def build_export(user, table, *, tab, date_from, date_to, product, request=None)
                 f"{date_from or '…'} đến {date_to or '…'}, {so_nhom} dòng nhóm"),
         request=request,
     )
-    return marketing.adapt(result, columns)
+    adapted = marketing.adapt(result, columns)
+    # Bảng không phải Marketing cũng phải qua bước dựng TỔNG CỘNG theo loại tiền (TL-92)
+    return marketing.with_totals(adapted, adapted.totals)
