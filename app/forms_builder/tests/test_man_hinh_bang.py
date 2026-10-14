@@ -332,6 +332,9 @@ def test_bo_cot_mang_nhan_thi_cot_tach_duoc_don_sach(bang_sale, nguoi_dung):
     bg = _dong(bang_sale, nguoi_dung["manager_sale"], doanh_thu="500", so_luong=1)
     assert bg.val_revenue == Decimal("500.00")
 
+    # Doanh thu đang là vế của Giá đơn vị: bỏ cột tính sẵn trước (TL-13 — không bỏ được vế còn dùng)
+    table_service.remove_column(
+        bang_sale.columns.get(code="gia_dv"), actor=nguoi_dung["manager_sale"])
     table_service.remove_column(
         bang_sale.columns.get(code="doanh_thu"), actor=nguoi_dung["manager_sale"])
 

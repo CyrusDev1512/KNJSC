@@ -311,6 +311,11 @@ def derived_grid_cells(changes, confirmations):
 
 
 def assert_column_change(column, changes=None):
+    """Cột chuẩn giữ cấu trúc; bỏ cột (`changes=None`) thì từ chối cả cột theo tệp vận đơn thật (9 cột EXTRA,
+    cột số lượng `sl_*`) — đã có Ẩn cột thay thế (ADR-039). Một luật cho mọi cửa bỏ cột (TL-13)."""
+    if changes is None and _theo_tep_that(column.code):
+        raise BusinessError(f'"{column.name}" là cột theo tệp vận đơn thật, hệ thống quản lý. '
+                            "Không cần thì ẩn cột với cả công ty.")
     if column.code not in {c[1] for c in COLUMNS}:
         return
     structural = {"code", "field_type", "meaning", "is_computed", "required", "is_key", "options"}
@@ -672,3 +677,10 @@ def grid_extras(rows, columns):
     bills = metadata([row.pk for row in rows]) if rows and any(c.code == 'bill' for c in columns) else {}
     return {row.pk:{'detail_url':reverse('waybill_detail', args=[row.pk]),
         'cells':{'bill':{'payments':bills.get(row.pk, {'count':0, 'links':[]})}}} for row in rows}
+
+
+def _theo_tep_that(code):
+    # Nhập muộn: dispatch_service nhập module này ở đầu tệp (vòng nhập)
+    from .dispatch_service import EXTRA_COLUMNS, is_product_column
+
+    return code in {c[1] for c in EXTRA_COLUMNS} or is_product_column(code)
