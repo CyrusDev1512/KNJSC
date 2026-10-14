@@ -134,6 +134,85 @@ def test_het_phien_khi_bam_htmx_thi_bao_trinh_duyet_chuyen_trang(client, nguoi_d
     assert tra_loi.content == b""
 
 
+TRANG_DANG_XEM = "http://testserver/bang-tinh/van_don/?trang=2"
+
+
+@pytest.mark.parametrize("urlconf,phuong_thuc,duong_dan", [
+    ("knjsc.urls_bangtinh", "post", "/van-don/len-don/"),
+    ("knjsc.urls_bangtinh", "get", "/van-don/chi-tiet/999999/"),
+    ("knjsc.urls_bangtinh", "post", "/van-don/chi-tiet/999999/"),
+    ("knjsc.urls_bangtinh", "get", "/bang-tinh/van_don/loc/ten_khach/"),
+    ("knjsc.urls", "get", "/bang-tin/"),
+    ("knjsc.urls", "post", "/bang-tin/999999/thich/"),
+])
+def test_chua_dang_nhap_bam_htmx_nhan_hx_redirect_ve_trang_dang_xem(client, settings, urlconf, phuong_thuc, duong_dan):
+    """AC-1.1 — TL-18: yêu cầu HTMX khi phiên đã mất (đăng xuất ở tab khác, bị khoá) nhận HX-Redirect về đăng nhập,
+    next là trang đang xem chứ không phải đường HTMX, thân rỗng — không nhận 302 để htmx dán cả trang đăng nhập vào
+    khung (P0-14)"""
+    from urllib.parse import parse_qs, urlsplit
+
+    settings.ROOT_URLCONF = urlconf
+    r = getattr(client, phuong_thuc)(duong_dan, HTTP_HX_REQUEST="true", HTTP_HX_CURRENT_URL=TRANG_DANG_XEM)
+    assert r.status_code == 200 and r.content == b""
+    dich = urlsplit(r["HX-Redirect"])
+    assert dich.path == "/dang-nhap/" and parse_qs(dich.query)["next"] == ["/bang-tinh/van_don/?trang=2"]
+
+
+@pytest.mark.parametrize("trang", [None, "https://ngoai.example/evil", "http://testserver//ngoai.example/x", "javascript:alert(1)",
+                                   "http://testserver/\\ngoai.example/x", "http://testserver/dang-nhap/?next=/x"])
+def test_htmx_chua_dang_nhap_khong_mang_next_la(client, settings, trang):
+    """AC-1.1 — TL-18: thiếu HX-Current-URL, hay trang gửi lên là host lạ, đường bắt đầu bằng '//' hay '/\\', lược đồ
+    lạ, chính trang đăng nhập thì HX-Redirect chỉ là trang đăng nhập, không mang next trỏ ra ngoài, vào đường HTMX hay
+    vòng về trang đăng nhập (P0-14)"""
+    settings.ROOT_URLCONF = "knjsc.urls_bangtinh"
+    them = {"HTTP_HX_CURRENT_URL": trang} if trang else {}
+    r = client.get("/van-don/chi-tiet/1/", HTTP_HX_REQUEST="true", **them)
+    assert r.status_code == 200 and r["HX-Redirect"] == "/dang-nhap/"
+
+
+def test_da_dang_nhap_hay_khong_phai_htmx_thi_khong_doi(client, nguoi_dung, settings):
+    """AC-1.1 — TL-18: chỉ yêu cầu HTMX khi chưa đăng nhập mới đổi. Đã đăng nhập thì HTMX vẫn nhận mảnh HTML, không có
+    HX-Redirect; yêu cầu thường và fetch JSON của lưới (không có HX-Request) chưa đăng nhập vẫn 302 về đăng nhập (P0-14)"""
+    settings.ROOT_URLCONF = "knjsc.urls_bangtinh"
+    r = client.get("/van-don/chi-tiet/1/")
+    assert r.status_code == 302 and r["Location"].startswith("/dang-nhap/?next=")
+    r = client.post("/bang-tinh/van_don/luu-json/", {"cells": []}, content_type="application/json")
+    assert r.status_code == 302 and r["Location"].startswith("/dang-nhap/")
+    settings.ROOT_URLCONF = "knjsc.urls"
+    client.force_login(nguoi_dung["staff_sale_1"])
+    r = client.get("/bang-tin/", HTTP_HX_REQUEST="true", HTTP_HX_CURRENT_URL="http://testserver/bang-tin/")
+    assert r.status_code == 200 and "HX-Redirect" not in r and r.content
+
+
+def test_htmx_bi_buoc_doi_mat_khau_nhan_hx_redirect(client, nguoi_dung):
+    """AC-1.5 — TL-18: người phải đổi mật khẩu bấm nút HTMX thì trình duyệt được bảo chuyển sang đổi mật khẩu
+    (HX-Redirect, thân rỗng), không dán trang đó vào chỗ nút; yêu cầu thường vẫn 302"""
+    user = nguoi_dung["staff_sale_1"]
+    user.profile.must_change_password = True
+    user.profile.save(update_fields=["must_change_password"])
+    client.force_login(user)
+    r = client.get("/bang-tin/", HTTP_HX_REQUEST="true", HTTP_HX_CURRENT_URL="http://testserver/bang-tin/")
+    assert r.status_code == 200 and r["HX-Redirect"] == "/doi-mat-khau/" and r.content == b""
+    assert client.get("/bang-tin/")["Location"] == "/doi-mat-khau/"
+
+
+def test_tai_khoan_bi_khoa_bam_htmx_nhan_hx_redirect(client, nguoi_dung, settings):
+    """AC-1.6 — TL-18: tài khoản bị khoá khi đang mở lưới, yêu cầu HTMX kế tiếp bị từ chối bằng HX-Redirect về đăng
+    nhập (next là trang đang xem), không 302 kèm trang đăng nhập"""
+    from urllib.parse import parse_qs, urlsplit
+
+    settings.ROOT_URLCONF = "knjsc.urls_bangtinh"
+    user = nguoi_dung["staff_vd"]
+    client.force_login(user)
+    user.is_active = False
+    user.save(update_fields=["is_active"])
+    r = client.get("/bang-tinh/van_don/loc/ten_khach/", HTTP_HX_REQUEST="true",
+                   HTTP_HX_CURRENT_URL="http://testserver/bang-tinh/van_don/")
+    assert r.status_code == 200 and r.content == b""
+    dich = urlsplit(r["HX-Redirect"])
+    assert dich.path == "/dang-nhap/" and parse_qs(dich.query)["next"] == ["/bang-tinh/van_don/"]
+
+
 def test_con_trong_60_phut_thi_van_vao_duoc(client, nguoi_dung, settings):
     """AC-1.4 — Chưa quá ngưỡng thì phiên vẫn còn hiệu lực"""
     client.post("/dang-nhap/", {

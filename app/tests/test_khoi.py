@@ -142,3 +142,17 @@ def test_moi_duong_dan_goi_tu_trang_nguoi_khac_tra_409(client, nguoi_dung, urlco
         for phuong_thuc, kq in (("GET", client.get(duong_dan, **ma)), ("POST", client.post(duong_dan, {}, **ma))):
             assert kq.status_code == 409, f"{phuong_thuc} {ten} ({duong_dan}) trả {kq.status_code}"
             assert kq.json()["code"] == "nguoi_dung_doi", f"{phuong_thuc} {ten}"
+
+
+@pytest.mark.parametrize("urlconf,ten,duong_dan", CAC_DUONG_DAN, ids=lambda x: str(x))
+def test_chua_dang_nhap_goi_htmx_thi_khong_nhan_302(client, urlconf, ten, duong_dan):
+    """AC-1.1 — TL-18: gọi bằng HTMX khi chưa đăng nhập thì mọi đường dẫn trả HX-Redirect về trang đăng nhập (hoặc 405),
+    không trả 302 — htmx đi theo 302 rồi dán cả trang đăng nhập vào khung. Màn hình mới thêm cũng tự được kiểm (P0-14)"""
+    with override_settings(ROOT_URLCONF=urlconf):
+        kq = client.get(duong_dan, HTTP_HX_REQUEST="true")
+    if ten.startswith('payment_') and not settings.PAYMENT_DOCUMENTS_ENABLED:
+        assert kq.status_code == 404
+        return
+    assert kq.status_code in (200, 405), f"{ten} ({duong_dan}) trả {kq.status_code} cho HTMX chưa đăng nhập"
+    if kq.status_code == 200:
+        assert kq["HX-Redirect"].startswith("/dang-nhap/") and kq.content == b"", ten
