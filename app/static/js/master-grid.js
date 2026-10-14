@@ -829,6 +829,8 @@
     apLaiChieuCao(rows.map(r=>r.id));   // dòng vừa lưu về hay người khác vừa sửa: đo lại chiều cao (AC-11.44)
   }
   async function saveAll(explicit=true) {
+    // Đã biết mất phiên: không lối tự động nào (hẹn giờ, online, tự lưu) gửi lại lượt cũ; chỉ Thử lại/Lưu (explicit) gửi
+    if(!explicit&&state.sessionLost&&state.retry){refreshStatus();return;}
     if(state.rowRetry){if(!explicit){refreshStatus();return;}const t=state.rowRetry;await (t.step.deletedRows?travelDeleted(t.step,t.redo,t.fresh):travelCreated(t.step,t.redo));return;}
     if(explicit&&!finishEditor())return;
     if(state.busy||state.conflicts.length||state.unavailable)return;

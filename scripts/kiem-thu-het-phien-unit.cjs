@@ -32,6 +32,7 @@ vm.createContext(ctx);vm.runInContext(src,ctx);
   assert.equal(S.sessionError({redirected:false,ok:false,status:403},{code:'csrf',error:'Mã bảo mật của trang không còn khớp'}).code,'csrf');
   assert.equal(S.sessionError({redirected:false,ok:false,status:403},{error:'Bạn không còn quyền'}),null,'403 mất quyền không phải lỗi phiên');
   assert.equal(S.sessionError({redirected:false,ok:true,status:200},{code:'csrf',name:'CSRF'}),null,'Phản hồi 200 có khoá code (mã sản phẩm "csrf") không phải lỗi phiên');
+  assert.equal(S.sessionError({redirected:false,ok:true,status:200},{code:'nguoi_dung_doi',name:'Người dùng đổi'}),null,'Phản hồi 200 có code "nguoi_dung_doi" cũng không phải lỗi phiên');
   // htmx: phần tử gửi bị tách khỏi trang thì sự kiện không nổi lên document — nghe ngay trên phần tử; nổi lên rồi thì không xử lý lần hai
   const eltNghe={},elt={addEventListener:(n,f)=>{eltNghe[n]=f;}};
   listeners['htmx:configRequest']({detail:{elt,headers:{},verb:'get',parameters:{}}});

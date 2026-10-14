@@ -62,6 +62,10 @@ const cut=(a,b)=>src.slice(src.indexOf(a),src.indexOf(b));
   s.fetch=async()=>{throw Object.assign(Error('Máy chủ lỗi'),{status:502});};
   await s.saveAll(true);assert.equal(timers,0,'Đang mất phiên: lỗi 5xx cũng không hẹn tự thử lại');
   s.state.sessionLost=false;await s.saveAll(true);assert.equal(timers,1,'Phiên còn: lỗi 5xx vẫn tự thử lại như cũ');
+  // Đã biết mất phiên mà lượt cũ còn: lối tự động (saveAll(false)) không gửi; bấm Thử lại (explicit) gửi đúng lượt cũ
+  s.fetch=async(u,o)=>{ops.push(JSON.parse(o.body).operation);throw Object.assign(Error('Máy chủ lỗi'),{status:502});};
+  const truoc=ops.length;s.state.sessionLost=true;s.state.saveError=false;
+  await s.saveAll(false);assert.equal(ops.length,truoc,'Mất phiên: lối tự động không gửi lại lượt cũ');
   // 4b. Lưu bị 403 rồi lượt kiểm quyền dòng gặp hết phiên: không clearAccess (không gỡ nháp), báo lỗi phiên
   const save2=cut('  async function saveAll(','  function soViet(');
   let xoa=0;const bao2=[];
