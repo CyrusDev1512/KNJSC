@@ -20,6 +20,13 @@ def khung_crm(request):
         return {"khung": KHUNG_ERP, "logo": LOGO_ERP}
     if not request.user.is_authenticated:
         return {"khung": KHUNG_CRM, "logo": LOGO_CRM}
+    from core.exceptions import NoProfileError
+
     from .navigation import build
 
-    return {"khung": KHUNG_CRM, "logo": LOGO_CRM, "crm_nav": build(request.user, getattr(request, "nav_current", ""))}
+    try:
+        nav = build(request.user, getattr(request, "nav_current", ""))
+    except NoProfileError:
+        # Như khung_chung của ERP: trang từ chối vẫn vẽ được, không thành lỗi 500 (TL-96)
+        nav = ()
+    return {"khung": KHUNG_CRM, "logo": LOGO_CRM, "crm_nav": nav}

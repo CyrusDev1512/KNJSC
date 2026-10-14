@@ -212,3 +212,73 @@ def test_tong_quan_vao_duoc_voi_moi_cap_bac(client, nguoi_dung):
     for khoa in ("staff_sale_1", "leader_sale_1", "manager_sale", "admin"):
         client.force_login(nguoi_dung[khoa])
         assert client.get("/").status_code == 200, khoa
+
+
+# ══ Trưởng nhóm cùng bộ phận, hồ sơ phải có bộ phận — TL-95, TL-96 · P0-9 ═══
+
+def test_tao_team_tu_choi_truong_nhom_khac_bo_phan(client, nguoi_dung, departments, make_user):
+    """AC-2.2 — Tạo team: trưởng nhóm phải cùng bộ phận với team, chọn Leader bộ phận khác thì báo lỗi dưới ô Trưởng
+    nhóm và không tạo; chọn Leader đúng bộ phận thì tạo được (TL-95)"""
+    from org.forms import TeamForm
+    from org.models import Team
+
+    leader_mkt = make_user("leader_mkt_x", Rank.LEADER, departments["mkt"])
+    client.force_login(nguoi_dung["admin"])
+    goi = {"tm-name": "Sale 9", "tm-department": departments["sale"].pk, "tm-leader": leader_mkt.pk,
+           "tm-is_active": "on", "tao_team": "1"}
+    r = client.post("/bo-phan/", goi)
+    assert r.status_code == 200 and "không thuộc" in r.content.decode()
+    assert not Team.objects.filter(name="Sale 9").exists()
+    form = TeamForm({k.removeprefix("tm-"): v for k, v in goi.items() if k.startswith("tm-")})
+    assert not form.is_valid() and "leader" in form.errors
+
+    r = client.post("/bo-phan/", {**goi, "tm-leader": nguoi_dung["leader_sale_1"].pk})
+    assert r.status_code == 302
+    assert Team.objects.get(name="Sale 9").leader == nguoi_dung["leader_sale_1"]
+
+
+def test_leader_khac_bo_phan_lam_truong_team_khong_quan_ly_duoc_staff(client, nguoi_dung, teams, departments, make_user):
+    """AC-3.3 — Leader bộ phận khác lỡ là trưởng một team (dữ liệu cũ, trang quản trị) không có phạm vi trên team đó:
+    không thấy, không mở hồ sơ, không đặt lại mật khẩu, không xoá người của team; Leader đúng bộ phận vẫn làm được
+    (TL-95 — trước đây đặt lại được mật khẩu, xoá được)"""
+    from django.contrib.auth import get_user_model
+
+    from org.models import Team
+    from org.services.account_management import AccountPolicy
+
+    leader_mkt = make_user("leader_mkt_x", Rank.LEADER, departments["mkt"])
+    Team.objects.filter(pk=teams["sale2"].pk).update(leader=leader_mkt)
+    nan_nhan = nguoi_dung["staff_sale_2"]
+    doc_lai = get_user_model().objects.get(pk=leader_mkt.pk)
+    assert "staff_sale_2" not in ten(UserProfile.objects.in_scope(doc_lai))
+    assert not AccountPolicy(doc_lai).can_manage(nan_nhan.profile)
+
+    hash_cu = nan_nhan.password
+    mat_khau = {"new_password1": "MatKhauMoi-2026!", "new_password2": "MatKhauMoi-2026!"}
+    client.force_login(leader_mkt)
+    assert client.get(f"/nhan-su/{nan_nhan.profile.pk}/sua/").status_code == 403
+    assert client.post(f"/nhan-su/{nan_nhan.profile.pk}/dat-lai-mat-khau/", mat_khau).status_code == 403
+    assert client.post(f"/nhan-su/{nan_nhan.profile.pk}/xoa/", {"confirm": "yes"}).status_code == 403
+    nan_nhan.refresh_from_db()
+    nan_nhan.profile.refresh_from_db()
+    assert nan_nhan.password == hash_cu and nan_nhan.profile.deleted_at is None
+
+    client.force_login(nguoi_dung["leader_sale_1"])
+    assert client.post(f"/nhan-su/{nguoi_dung['staff_sale_1'].profile.pk}/dat-lai-mat-khau/", mat_khau).status_code == 302
+
+
+def test_sua_ho_so_bat_buoc_bo_phan_tru_admin_va_ceo(client, nguoi_dung, departments):
+    """AC-2.3 — Sửa hồ sơ bắt buộc chọn bộ phận như Tạo tài khoản: Staff, Leader, Manager để trống bộ phận thì không
+    lưu; Giám đốc và Quản trị viên không bắt buộc (ADR-044, TL-96)"""
+    from org.forms import SuaHoSoForm
+
+    ql = nguoi_dung["manager_sale"].profile
+    for cap in (Rank.STAFF, Rank.LEADER, Rank.MANAGER):
+        assert not SuaHoSoForm({"full_name": "X", "rank": cap, "department": ""}, instance=ql).is_valid(), cap
+    for cap in (Rank.CEO, Rank.ADMIN):
+        assert SuaHoSoForm({"full_name": "X", "rank": cap, "department": ""}, instance=ql).is_valid(), cap
+    client.force_login(nguoi_dung["admin"])
+    r = client.post(f"/nhan-su/{ql.pk}/sua/", {"full_name": ql.full_name, "rank": Rank.MANAGER, "department": ""})
+    assert r.status_code == 200
+    ql.refresh_from_db()
+    assert ql.department == departments["sale"]

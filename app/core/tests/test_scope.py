@@ -128,3 +128,43 @@ def test_ban_ghi_da_xoa_khong_con_trong_pham_vi(nguoi_dung, probes):
     assert "Của staff sale 1" not in thay
     # Nhưng vẫn còn trong cơ sở dữ liệu, không xoá cứng
     assert ScopeProbe.all_objects.filter(pk=probes["cua_staff_1"].pk).exists()
+
+
+def test_leader_chi_co_pham_vi_team_cung_bo_phan(nguoi_dung, teams, probes, departments, make_user):
+    """AC-3.3 — Phạm vi Leader chỉ gồm team cùng bộ phận với mình: Leader Marketing lỡ là trưởng team Sale không thấy
+    bản ghi của team đó, vẫn thấy bản ghi của mình (TL-95)"""
+    from django.contrib.auth import get_user_model
+
+    from org.models import Team
+
+    leader_mkt = make_user("leader_mkt_x", Rank.LEADER, departments["mkt"])
+    Team.objects.filter(pk=teams["sale2"].pk).update(leader=leader_mkt)
+    ScopeProbe.objects.create(title="Của leader mkt", created_by=leader_mkt, department=departments["mkt"])
+    thay = tieu_de(ScopeProbe.objects.in_scope(get_user_model().objects.get(pk=leader_mkt.pk)))
+    assert "Của staff sale 2" not in thay and "Của leader mkt" in thay
+
+
+def test_manager_khong_co_bo_phan_bi_tu_choi_khong_nhan_danh_sach_rong(client, nguoi_dung, settings):
+    """AC-3.6 — Manager bị gỡ bộ phận không nhận danh sách rỗng mà bị từ chối 403 kèm lời "chưa được gán bộ phận" ở
+    KN ERP lẫn KN CRM (không lỗi 500); Manager có bộ phận vẫn thấy người của mình (FR-3.5, TL-96)"""
+    from django.contrib.auth import get_user_model
+
+    from org.models import UserProfile
+
+    UserProfile.objects.filter(pk=nguoi_dung["manager_sale"].profile.pk).update(department=None)
+    ql = get_user_model().objects.get(pk=nguoi_dung["manager_sale"].pk)
+    with pytest.raises(NoProfileError):
+        get_user_scope(ql)
+    client.raise_request_exception = False
+    client.force_login(ql)
+    r = client.get("/nhan-su/")
+    assert r.status_code == 403 and "chưa được gán bộ phận" in r.content.decode()
+    settings.ROOT_URLCONF = "knjsc.urls_bangtinh"
+    for duong in ("/", "/thu-muc/"):
+        r = client.get(duong)
+        assert r.status_code == 403 and "chưa được gán bộ phận" in r.content.decode(), duong
+
+    settings.ROOT_URLCONF = "knjsc.urls"
+    client.force_login(nguoi_dung["manager_mkt"])
+    r = client.get("/nhan-su/")
+    assert r.status_code == 200 and "Staff Mkt" in r.content.decode()

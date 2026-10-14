@@ -159,11 +159,12 @@ class UserProfile(TimestampedModel, SoftDeleteModel):
 
     # ── Giao ước với core.scope ────────────────────────────────────
     def scope_team_ids(self):
-        """Các team người này phụ trách. Chỉ Leader mới có."""
+        """Các team người này phụ trách. Chỉ Leader mới có, và chỉ team cùng bộ phận với mình: Leader lỡ là trưởng
+        team bộ phận khác (dữ liệu cũ, trang quản trị, đổi bộ phận) không có phạm vi trên team đó (TL-95)."""
         if self.rank != Rank.LEADER:
             return ()
         return tuple(
-            Team.objects.filter(leader_id=self.user_id).values_list("id", flat=True)
+            Team.objects.filter(leader_id=self.user_id, department_id=self.department_id).values_list("id", flat=True)
         )
 
     # ── Vô hiệu phiên đang mở ──────────────────────────────────────
