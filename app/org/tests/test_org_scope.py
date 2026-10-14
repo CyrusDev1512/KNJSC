@@ -138,9 +138,14 @@ def test_gan_nguoi_vao_team_lam_mat_phien(client, nguoi_dung, teams, departments
 
 # ══ Thanh điều hướng ═══════════════════════════════════════════
 
-def test_thanh_dieu_huong_an_muc_ngoai_quyen(nguoi_dung):
+def test_thanh_dieu_huong_an_muc_ngoai_quyen(nguoi_dung, departments):
     """AC-3.6 — Thanh điều hướng chỉ hiện mục người dùng có quyền vào"""
     from core.navigation import visible_navigation
+    from forms_builder.models import FormDef, TableDef
+
+    # "Nộp báo cáo ngày" chỉ hiện khi bộ phận có biểu mẫu báo cáo ngày (chủ dự án 13–14.10, P0-2)
+    bang = TableDef.objects.create(name="Bảng Sale", code="bang_menu_sale", department=departments["sale"])
+    FormDef.objects.create(name="Báo cáo Sale", code="bc_menu_sale", table=bang, department=departments["sale"])
 
     def cac_ma(user):
         return {m["code"] for nhom in visible_navigation(user) for m in nhom["items"]}

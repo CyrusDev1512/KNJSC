@@ -162,7 +162,11 @@ def _marketing(user, params):
         data["state"] = "empty"
     else:
         data["state"] = "ready"
-        data["metrics"] = list(zip([c.label for c in result.columns], aggregations.total_cells(result)))
+        if result.currency_key:
+            # Nguồn chưa cấu hình mà có cột Loại tiền: mỗi loại tiền một cột, không cộng lẫn (AC-46.7, TL-92)
+            data.update(_metrics_by_currency(result))
+        else:
+            data["metrics"] = list(zip([c.label for c in result.columns], aggregations.total_cells(result)))
     return data
 
 

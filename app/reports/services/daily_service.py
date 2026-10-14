@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from core.audit import record
 from core.constants import AuditAction
-from core.exceptions import BusinessError
+from core.exceptions import BusinessError, NoProfileError
 from forms_builder.services import form_service, grant_service
 
 from ..models import DailyReport
@@ -357,6 +357,22 @@ def forms_for(user):
             .filter(is_active=True)
             .select_related("department", "table", "table__erp_report")
             .order_by("name"))
+
+
+def can_submit_reports(user):
+    """Có hiện mục "Nộp báo cáo ngày" (và nút Nộp báo cáo ở Lịch sử) không — chủ dự án chốt 13–14.10.2026.
+
+    Giám đốc không có luồng nộp (ADR-044). Người khác thấy mục khi có ít nhất một biểu mẫu báo cáo ngày trong phạm vi:
+    Kế toán hiện chưa có biểu mẫu nên không còn mục dẫn tới trang trống; Manager tạo biểu mẫu thì mục tự hiện lại.
+    Chỉ là ẩn cho đỡ rối — `bao_cao_ngay` vẫn tự kiểm. Hồ sơ chưa đủ để tính phạm vi (P0-9) thì không hiện."""
+    from forms_builder.models import FormDef
+
+    if is_company_reader(user):
+        return False
+    try:
+        return FormDef.objects.filter(is_active=True).any_in_scope(user)
+    except NoProfileError:
+        return False
 
 
 def already_submitted(form, user, report_date):

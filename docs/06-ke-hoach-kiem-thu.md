@@ -13,6 +13,10 @@
 > Tài liệu này trả lời: **kiểm cái gì, bằng cách nào, ai kiểm, và thế nào là đạt.**
 > `docs/04` định nghĩa *thế nào là xong*; tài liệu này định nghĩa *làm sao biết
 > là đã xong*.
+>
+> **Kế hoạch toàn diện 13.10.2026:** [`docs/08-ke-hoach-kiem-thu-toan-dien.md`](08-ke-hoach-kiem-thu-toan-dien.md)
+> — ma trận phân hệ × loại kiểm thử, góc nhìn người dùng và QA, kiểm tay Chặng 2 theo vùng,
+> sổ tay gỡ lỗi, phân tích lọt lưới các lỗi TL, lộ trình P0/P1/P2. Chín tầng ở đây vẫn giữ nguyên.
 
 ---
 
@@ -36,8 +40,8 @@ liệu, và dữ liệu đã lộ thì không thu hồi được.*
 | | Số |
 |---|---|
 | Tiêu chí nghiệm thu trong `docs/04` | **398** — 385 tự động, 13 thủ công (02.10: thêm AC-43.6; AC-22.24, 22.25, 22.26; AC-36.9, 36.10; 03.10: AC-47.1 → 47.6, AC-42.15, 42.16, AC-48.1 → 48.7; 04.10: AC-4.11, AC-40.5 → 40.7; AC-42.17, AC-47.7; 06.10: AC-4.12, AC-6.11, AC-7.14, AC-7.15, AC-10.12, AC-9.6 → 9.8, AC-10.13 → 10.15, AC-1.9, AC-22.27, AC-21.16, AC-21.17, AC-10.16, AC-1.10, AC-1.11, AC-1.12, AC-6.12, AC-7.16, AC-8.11, AC-36.11 → 36.14; 07.10: AC-10.17 → 10.26, AC-42.18 → 42.21; 08.10: AC-21.18, 21.19, AC-6.13; AC-21.20, AC-36.15, 36.16, AC-40.8; 10.10: AC-6.14; AC-50.1 → 50.11; 12.10: AC-40.9; 13.10: AC-51.1 → 51.14) |
-| Tiêu chí tự động đã có bài kiểm | **362 trên 385** |
-| Tiêu chí tự động còn hoãn | **23**, đều thuộc phần đang làm hoặc chờ chốt — xem bảng cuối tệp |
+| Tiêu chí tự động đã có bài kiểm | **367 trên 385** |
+| Tiêu chí tự động còn hoãn | **18**, đều thuộc phần đang làm hoặc chờ chốt — xem bảng cuối tệp |
 | Bao phủ dòng mã | khoảng 85% |
 
 Ba con số đầu **có bài kiểm canh** — `app/tests/test_truy_vet.py` đọc chính
@@ -139,11 +143,11 @@ Ba trong bốn lỗi đó **không sập trang, không báo lỗi, không làm b
 
 ## Tiêu chí còn hoãn
 
-24 tiêu chí tự động chưa có bài kiểm. Danh sách này nằm trong
+18 tiêu chí tự động chưa có bài kiểm. Danh sách này nằm trong
 `tests/test_truy_vet.py`, biến `HOAN`, và **rỗng dần theo tiến độ**
 — thêm mã vào đó bắt buộc ghi lý do và giai đoạn.
 
-Mười tám mã mới thêm không phải là bài kiểm bị bỏ: ba mục AC-24, AC-26, AC-27
+Mười ba mã của ba mục AC-24, AC-26, AC-27 không phải là bài kiểm bị bỏ: chúng
 là **tiêu chí của việc đang làm**, chính `docs/04` ghi rõ "đang kiểm chứng" và
 "điều kiện nghiệm thu, không phải kết quả đã đạt". Chúng vào danh sách hoãn để
 bài truy vết đếm đúng, chứ không phải để lờ đi.
@@ -152,7 +156,7 @@ bài truy vết đếm đúng, chứ không phải để lờ đi.
 |---|---|
 | `AC-5.1` | Bốn cách nhóm mới chạy ba — tab thị trường chờ chốt nguồn số liệu, backlog **N9** và **Q36** |
 | `AC-24.2` → `AC-24.5`, `AC-24.7` | CRM-Optimization đang kiểm chứng — ADR-024, Giai đoạn 7K; hai mã đo trên Chrome thật và đo tải 30 phút chạy tay khi phát hành |
-| `AC-26.1` → `AC-26.6` | Chứng từ thanh toán mới ghi tiêu chí, chưa làm — ADR-025, backlog chờ làm |
+| `AC-26.6` | Phần Chrome thật của chứng từ thanh toán chỉ chạy khi bật `KN_PAYMENT_BROWSER=1`, CI chưa chạy — ADR-025, backlog chờ làm; `AC-26.1` → `AC-26.5` đã có bài kiểm (P0-10, 14.10) |
 | `AC-27.1`, `AC-27.2`, `AC-27.4` → `AC-27.8` | Lưới dùng chung và vòng đời bảng đang làm — ADR-027, Giai đoạn 7K; `AC-27.3` đã có bài kiểm |
 | `AC-11.10`, `AC-11.20` | Bàn phím và hoàn tác **vẫn chạy**; bài kiểm nằm ở `scripts/kiem-thu-master-ui.cjs` và `kiem-thu-shared-grid.cjs`, chạy bằng Chrome thật nên `pytest` không đếm được |
 | `AC-11.25` | Ô địa chỉ hiện `A1:C3` đúng ở lưới mới; phần gõ địa chỉ để nhảy ô chưa rà lại |
@@ -244,7 +248,7 @@ Ghi ra để không tự lừa mình:
 
 | # | Thiếu | Vì sao chưa làm |
 |---|---|---|
-| 1 | Không có gì chạy kiểm thử tự động khi đẩy mã lên kho | Người dùng chốt chưa dựng, vì backlog **V2** còn để ngỏ ai vận hành sau bàn giao |
+| 1 | ~~Không có gì chạy kiểm thử tự động khi đẩy mã lên kho~~ | **Đã có từ 23.09.2026:** `.github/workflows/ci.yml` chạy pytest (bộ chính và e2e Chromium) trên mọi PR và mọi lần đẩy lên `Staging`, `main`. Các mục khác của bảng này còn cũ chỗ nào: xem `docs/08-ke-hoach-kiem-thu-toan-dien.md` mục 9.4 |
 | 2 | Đo tải 50 người và kiểm tải 100 người / 100 nghìn khách mới chạy trên máy phát triển (máy ảo 4 nhân), chưa chạy trên máy chủ thật | Máy chủ chưa có — Giai đoạn 8; `scripts/kiem-tai-kn-crm.*` chạy lại được trên bất kỳ máy có Docker, kết quả trên máy cá nhân chỉ để so tương đối |
 | 3 | Bài trình duyệt thật (Playwright) và hiệu năng 50.000 dòng không chạy trong container `web` | Image không có Chromium và `pytest` mặc định bỏ dấu `cham`; chạy trên máy phát triển — backlog **K19** |
 | 4 | Chưa kiểm khả năng đọc màn hình cho người khiếm thị | Không có yêu cầu nào nêu, chưa hỏi người dùng |

@@ -189,7 +189,8 @@ def test_delivery_query_budget(client,delivery_source,nguoi_dung,django_assert_m
     client.force_login(nguoi_dung["leader_sale_1"])
     params={"nguon":delivery_source.table.code,"tu":"2026-08-01","den":"2026-08-31"}
     client.get("/bao-cao/tong-hop/",params)
-    with django_assert_max_num_queries(10):
+    # 11 = 10 cũ + một truy vấn có biểu mẫu báo cáo ngày cho mục menu "Nộp báo cáo ngày" (P0-2, chủ dự án 13–14.10)
+    with django_assert_max_num_queries(11):
         assert client.get("/bao-cao/tong-hop/",params).status_code==200
 
 

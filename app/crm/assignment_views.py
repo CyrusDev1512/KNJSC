@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.models import DataRecord
 from orders.constants import waybill_condition
@@ -14,6 +15,7 @@ from orders.services import assignment_service as service
 @require_http_methods(['GET', 'POST'])
 def assignment(request):
     if not service.can_assign(request.user):
+        record_denied(request.user, request.path, request)
         raise OutOfScopeError()
     try:
         if request.method == 'POST':

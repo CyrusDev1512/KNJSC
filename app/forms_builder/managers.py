@@ -152,6 +152,20 @@ class FormDefQuerySet(ScopedQuerySet):
             Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
         )
 
+    def any_in_scope(self, user):
+        """Có ít nhất một biểu mẫu trong phạm vi không — cùng phạm vi với `in_scope`, nhưng hỏi phần bộ phận trước
+        (một truy vấn) và chỉ đọc quyền cấp khi phần đó rỗng. Mục menu "Nộp báo cáo ngày" hỏi câu này ở mọi trang ERP
+        nên không được kéo theo truy vấn quyền cấp cho Sale, Marketing, Vận đơn (P0-2)."""
+        from .models import GrantAction
+        from .services import grant_service
+
+        if apply_department_scope(self, user, field="department_id").exists():
+            return True
+        if get_user_scope(user).all_departments:
+            return False
+        duoc_cap = grant_service.granted_form_ids(user, GrantAction.FILL)
+        return bool(duoc_cap) and self.filter(pk__in=duoc_cap).exists()
+
 
 class FormDefManager(models.Manager.from_queryset(FormDefQuerySet)):
     """Loại sẵn biểu mẫu đã đánh dấu xoá."""

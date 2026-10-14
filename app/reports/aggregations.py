@@ -23,12 +23,13 @@ Ba điều cần biết khi đọc:
 Nhóm theo thị trường cố ý chưa có — người dùng hoãn ngày 03.09.2026 (Q36),
 chờ chốt nguồn số liệu ở backlog N9.
 """
+import unicodedata
 from dataclasses import dataclass, field, replace
 from decimal import Decimal
 
-from django.db.models import Count, DecimalField, F, Sum
+from django.db.models import CharField, Count, DecimalField, F, Sum, Value
 from django.db.models.fields.json import KeyTextTransform
-from django.db.models.functions import Cast
+from django.db.models.functions import Cast, Coalesce
 
 from core.money import MONEY_DECIMAL_PLACES, MONEY_MAX_DIGITS, currency_rank, currency_rank_expression
 from forms_builder.meaning import (
@@ -168,6 +169,26 @@ def _sum_exprs(sum_cols):
 #: Khoá của loại tiền và hạng xếp của nó trong dict dòng khi nhóm theo loại tiền (ADR-046)
 CURRENCY_KEY = "loai_tien"
 CURRENCY_RANK_KEY = "hang_tien"
+
+
+#: Tên cột Loại tiền của bảng chưa có nguồn báo cáo — cùng luật với Thống kê KN CRM
+#: (`crm/services/statistics_profiles._currency_column`: tên "Loại tiền" hoặc mã `loai_tien`)
+CURRENCY_COLUMN_NAME = "loại tiền"
+
+
+def json_currency_expression(code):
+    """Loại tiền của từng dòng đọc từ khoá JSON `code`; trống là "" (nhóm "Chưa rõ") — ADR-046."""
+    return Coalesce(KeyTextTransform(code, "data"), Value(""), output_field=CharField())
+
+
+def currency_column_expression(columns):
+    """Biểu thức loại tiền của bảng **chưa có nguồn báo cáo** (bản cũ): có cột tên "Loại tiền" hoặc mã
+    `loai_tien` thì tách loại tiền như bản mới, không thì None — không tách, một dòng tổng như cũ (TL-92)."""
+    goc = [c for c in columns if not c.is_computed]
+    ten = lambda c: " ".join(unicodedata.normalize("NFC", c.name).casefold().split())  # noqa: E731
+    cot = (next((c for c in goc if ten(c) == CURRENCY_COLUMN_NAME), None)
+           or next((c for c in goc if c.code == CURRENCY_KEY), None))
+    return json_currency_expression(cot.code) if cot is not None else None
 
 
 def _recomputable(columns, sum_cols):
@@ -343,6 +364,20 @@ def totals_only(table, scoped_qs, *, date_from=None, date_to=None, product="",
         {c.code: totals[_alias(c.code)] for c in sum_cols},
     ))
     return totals
+
+
+def currency_totals_only(table, scoped_qs, *, currency_expression, date_from=None, date_to=None, product="",
+                         columns=None):
+    """Tổng thô theo từng loại tiền `({loai_tien, hang_tien, so_dong, c_*}, …)` — một lệnh truy vấn, cùng khuôn
+    với `totals_only`; dùng khi không có sẵn dòng nhóm trong bộ nhớ (kỳ trước, quá trần MAX_GROUPS)."""
+    cols = list(columns) if columns is not None else list(table.columns.all())
+    qs = apply_filters(
+        scoped_qs.filter(table=table), labeled_columns(cols),
+        date_from=date_from, date_to=date_to, product=product,
+    )
+    tien = {CURRENCY_KEY: currency_expression, CURRENCY_RANK_KEY: currency_rank_expression(currency_expression)}
+    return tuple(qs.order_by().values(**tien).annotate(so_dong=Count("id"), **_sum_exprs(_sum_columns(cols)))
+                 .order_by(CURRENCY_RANK_KEY, CURRENCY_KEY))
 
 
 def summarize_in_memory(table, scoped_qs, *, limit, **kwargs):

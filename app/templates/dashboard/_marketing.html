@@ -9,7 +9,8 @@
     <div class="truong"><label for="mkt-den">Đến ngày</label><input class="o-nhap" id="mkt-den" type="date" name="mkt_den" value="{{ m.end|date:'Y-m-d' }}"></div>
     <button class="nut nut-chinh" type="submit">Áp dụng bộ lọc</button>
   </form>
-  {% if m.state == 'ready' %}<div class="bang-cuon"><table class="bang"><thead><tr>{% for label,value in m.metrics %}<th>{{ label }}</th>{% endfor %}</tr></thead><tbody><tr>{% for label,value in m.metrics %}<td>{{ value }}</td>{% endfor %}</tr></tbody></table></div>
+  {% if m.state == 'ready' and m.currencies %}<div class="bang-cuon dashboard-metrics-cuon" tabindex="0" role="region" aria-label="Chỉ tiêu theo loại tiền"><table class="dashboard-metrics-bang"><thead><tr><th scope="col">Chỉ tiêu</th>{% for t in m.currencies %}<th scope="col">{{ t }}</th>{% endfor %}</tr></thead><tbody>{% for label,values in m.metrics %}<tr><th scope="row">{{ label }}</th>{% for value in values %}<td>{{ value }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
+  {% elif m.state == 'ready' %}<div class="bang-cuon"><table class="bang"><thead><tr>{% for label,value in m.metrics %}<th>{{ label }}</th>{% endfor %}</tr></thead><tbody><tr>{% for label,value in m.metrics %}<td>{{ value }}</td>{% endfor %}</tr></tbody></table></div>
   {% elif m.state == 'empty' %}<p>Chưa có dữ liệu Marketing trong khoảng ngày này.</p>
   {% elif m.state == 'no_source' %}<p>Chưa có nguồn báo cáo Marketing trong phạm vi của bạn.</p>
   {% elif m.state == 'invalid_source' %}<p>Nguồn đã chọn không khả dụng trong phạm vi của bạn.</p>
