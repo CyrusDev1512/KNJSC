@@ -12,8 +12,10 @@ người cùng lúc chắc chắn chậm hơn. Gọi thẳng view qua `django.te
 `--lan` lần, lấy **trung vị**; mỗi lần đếm số lệnh truy vấn và lệnh chậm nhất.
 Ngưỡng theo `core.constants` (PERF_READ_P95_MS, PERF_WRITE_P95_MS, …).
 
-Các lệnh ghi (lưu ô, dòng mới, định dạng) sửa thật dữ liệu giả PERF-* — chạy
-trên dữ liệu `seed_perf`, không chạy trên dữ liệu thật.
+Các lệnh ghi (lưu ô, dòng mới, định dạng) sửa thật dữ liệu: lệnh chỉ chọn dòng
+giả `PERF-*` do `seed_perf` sinh để ghi, có dưới `SO_DONG_DICH_TOI_THIEU` dòng
+thì dừng trước khi đo. DEBUG tắt thì từ chối như mọi lệnh dữ liệu giả, trừ khi
+ghi rõ `--dong-y-chay-that` (TL-98).
 """
 import os
 import platform
@@ -26,6 +28,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
+from django.http import QueryDict
 from django.test import Client, override_settings
 from django.test.utils import CaptureQueriesContext
 
@@ -33,8 +36,15 @@ from core.constants import (
     GRID_FORMAT_CELLS_MAX, PERF_POLL_P95_MS, PERF_READ_P95_MS, PERF_RECOMPUTE_SECONDS,
     PERF_WRITE_P95_MS,
 )
-from core.management.commands.seed_perf import SALE_TABLE_CODE
+from core.management.commands.seed_perf import PERF_PREFIX, SALE_TABLE_CODE, chan_khi_debug_tat
 from forms_builder.models import DataRecord, TableDef
+
+#: Lệnh ghi chỉ đụng dòng PERF-*: lấy tối đa chừng này dòng làm đích, ít hơn mức tối thiểu (lượt dán 500 ô)
+#: thì dừng — không bao giờ ghi vào dòng thật (TL-98)
+SO_DONG_DICH_TOI_DA = 5_000
+SO_DONG_DICH_TOI_THIEU = 500
+#: Lượt sửa 20 ô Số lượng của bảng Sale đo tải
+SO_O_SALE = 20
 
 DOC = "đọc"
 GHI = "ghi"
@@ -88,6 +98,8 @@ class Command(BaseCommand):
         parser.add_argument("--nguoi-sale", default="sale.manager", dest="nguoi_sale",
                             help="Tài khoản Sale đo bảng perf_sale (Staff chỉ thấy dòng mình tạo nên mặc định là Manager)")
         parser.add_argument("--quan-ly-sale", default="sale.manager", dest="quan_ly_sale")
+        parser.add_argument("--dong-y-chay-that", action="store_true", dest="dong_y",
+                            help="Cho phép chạy khi DEBUG tắt. Chỉ dùng khi biết chắc mình làm gì.")
 
     # ── Khung đo ──
     def _do(self, ten, nhom, ham, *, lan=None, giai_thich=False):
@@ -130,6 +142,7 @@ class Command(BaseCommand):
 
     # ── Chạy ──
     def handle(self, *args, **o):
+        chan_khi_debug_tat(o["dong_y"])
         from crm.services import grid_service, tree_service
         from forms_builder.services import export_service, table_service
         from orders.constants import WAYBILL_TABLE_CODE
@@ -149,7 +162,14 @@ class Command(BaseCommand):
             raise CommandError(f"Bảng vận đơn chỉ có {so_dong} dòng — chạy `manage.py seed_perf` trước.")
 
         rng = random.Random(7)
-        pk_vd = list(DataRecord.objects.in_scope(nguoi).filter(table=van_don).order_by("-pk").values_list("pk", flat=True)[:5000])
+        pk_vd = list(DataRecord.objects.in_scope(nguoi)
+                     .filter(table=van_don, data__ma_don__startswith=PERF_PREFIX)
+                     .order_by("-pk").values_list("pk", flat=True)[:SO_DONG_DICH_TOI_DA])
+        if len(pk_vd) < SO_DONG_DICH_TOI_THIEU:
+            raise CommandError(
+                f"Chỉ có {len(pk_vd)} dòng giả {PERF_PREFIX}* trong phạm vi {nguoi.username} — các lệnh ghi của "
+                f"phép đo chỉ được đụng dòng giả (cần ít nhất {SO_DONG_DICH_TOI_THIEU}). "
+                "Chạy `manage.py seed_perf` trước.")
         hom_nay = date.today()
         thang = tree_service.Month(hom_nay.year, hom_nay.month)
         loc_thang = f"f_ngay__lon_bang={thang.first.isoformat()}&f_ngay__nho_bang={thang.last.isoformat()}"
@@ -192,7 +212,8 @@ class Command(BaseCommand):
                 return du_lieu
             self._do("luu-o 1 ô", GHI, self._post(c, f"{goc}luu-o/", luu_o(1)))
             self._do("luu-o 20 ô (kéo điền)", GHI, self._post(c, f"{goc}luu-o/", luu_o(20)))
-            self._do("luu-o 500 ô (dán)", GHI, self._post(c, f"{goc}luu-o/", luu_o(500)))
+            self._do(f"luu-o {SO_DONG_DICH_TOI_THIEU} ô (dán)", GHI,
+                     self._post(c, f"{goc}luu-o/", luu_o(SO_DONG_DICH_TOI_THIEU)))
             self._do("dong-moi (thêm một dòng)", GHI, self._post(c, f"{goc}dong-moi/", lambda: {
                 "ma_don": f"PERF-DO-{rng.randrange(10**7):07d}", "ngay": hom_nay.isoformat(),
                 "ten_khach": "Khách đo tải", "so_dien_thoai": f"403{rng.randrange(10**7):07d}",
@@ -203,19 +224,27 @@ class Command(BaseCommand):
             }))
 
             # ── Bảng Sale có cột tính sẵn ──
-            if bang_sale is not None:
+            pk_sale = [] if bang_sale is None else list(
+                DataRecord.objects.in_scope(nguoi_sale)
+                .filter(table=bang_sale, data__ma_don__startswith=PERF_PREFIX)
+                .values_list("pk", flat=True)[:2000])
+            if bang_sale is not None and len(pk_sale) < SO_O_SALE:
+                # seed_perf --xoa-cu giữ bảng Sale nhưng xoá hết dòng: bỏ qua thay vì lấy mẫu từ danh sách rỗng
+                self.stdout.write(f"  Bỏ qua {bang_sale.code}: chỉ có {len(pk_sale)} dòng {PERF_PREFIX}* "
+                                  "— chạy `seed_perf --bang-sale` nếu cần đo.")
+            elif bang_sale is not None:
                 cs = Client()
                 cs.force_login(nguoi_sale)
                 goc_sale = f"/bang-tinh/{bang_sale.code}/"
-                pk_sale = list(DataRecord.objects.in_scope(nguoi_sale).filter(table=bang_sale).values_list("pk", flat=True)[:2000])
                 self._do("Lưới perf_sale mặc định (có cột tính sẵn)", DOC, self._get(cs, goc_sale), giai_thich=gt)
-                self._do("luu-o 20 ô Số lượng → tính lại Doanh thu", GHI, self._post(cs, f"{goc_sale}luu-o/", lambda: {
-                    "o": [f"{pk}:so_luong" for pk in rng.sample(pk_sale, 20)],
-                    "gt": [str(rng.randrange(1, 9)) for _ in range(20)],
+                self._do(f"luu-o {SO_O_SALE} ô Số lượng → tính lại Doanh thu", GHI, self._post(cs, f"{goc_sale}luu-o/", lambda: {
+                    "o": [f"{pk}:so_luong" for pk in rng.sample(pk_sale, SO_O_SALE)],
+                    "gt": [str(rng.randrange(1, 9)) for _ in range(SO_O_SALE)],
                 }))
 
             # ── Nền ──
-            luoi = grid_service.build_grid(nguoi, {}, table=van_don)
+            # QueryDict, không phải dict: build_grid gọi params.getlist với bảng vận đơn (gãy từ cfecde6)
+            luoi = grid_service.build_grid(nguoi, QueryDict(), table=van_don)
             ds_xuat = luoi.queryset.order_by("-pk")[:50_000]
             def xuat():
                 wb = export_service.build_workbook(ds_xuat, luoi.columns, title=van_don.name)
