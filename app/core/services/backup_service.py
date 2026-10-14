@@ -23,6 +23,7 @@ import subprocess
 from pathlib import Path
 
 from django.conf import settings
+from django.db import DatabaseError
 from django.utils import timezone
 
 from ..alerts import bao_nguoi_van_hanh
@@ -80,9 +81,11 @@ def pg_dump_command(target):
 
 
 def pg_restore_command(source):
-    """Phục hồi **đè lên** cơ sở dữ liệu hiện tại — `--clean` xoá bảng cũ trước."""
+    """Phục hồi **đè lên** cơ sở dữ liệu hiện tại — `--clean` xoá bảng cũ trước. `--single-transaction` (gồm cả
+    `--exit-on-error`): trọn gói hoặc huỷ toàn bộ, nên tệp cụt, quá giờ hay lỗi giữa chừng không để CSDL dở dang
+    (bảng đã xoá, dữ liệu nạp một nửa, mất chỉ mục và trigger — TL-97)."""
     return [
-        "pg_restore", "--no-password", "--clean", "--if-exists", "--no-owner",
+        "pg_restore", "--no-password", "--clean", "--if-exists", "--single-transaction", "--no-owner",
         "--no-privileges", *_connection_args(), str(source),
     ]
 
@@ -239,23 +242,36 @@ def run_restore(duong_dan, *, actor=None, runner=None):
     """Phục hồi **đè** cơ sở dữ liệu từ một bản sao lưu — NFR-10.
 
     Chỉ gọi từ lệnh `phuc_hoi` sau khi người vận hành xác nhận. Kiểm tệp trước
-    khi đụng vào cơ sở dữ liệu; ghi nhật ký cả khi thành công lẫn thất bại.
+    khi đụng vào cơ sở dữ liệu; ghi nhật ký cả khi thành công lẫn thất bại —
+    mọi lỗi (tệp hỏng, thiếu pg_restore, quá giờ, pg_restore báo lỗi) thành
+    `BackupError` tiếng Việt kèm một dòng "Phục hồi THẤT BẠI" (TL-97).
     """
     runner = runner or subprocess.run
     duong_dan = Path(duong_dan)
-    verify_file(duong_dan)
     try:
-        kq = runner(
-            pg_restore_command(duong_dan), env=command_env(),
-            capture_output=True, text=True, timeout=BACKUP_TIMEOUT_SECONDS,
-        )
-    except FileNotFoundError as loi:
-        raise BackupError("Không tìm thấy lệnh pg_restore — image phải cài postgresql-client.") from loi
-    if kq.returncode != 0:
-        thong_bao = f"pg_restore trả mã lỗi {kq.returncode}: {_gon_loi(kq.stderr)}"
-        record(AuditAction.BACKUP, actor=actor, target=("restore", duong_dan.name),
-               detail=f"Phục hồi THẤT BẠI từ {duong_dan.name}")
-        raise BackupError(thong_bao)
+        verify_file(duong_dan)
+        try:
+            kq = runner(
+                pg_restore_command(duong_dan), env=command_env(),
+                capture_output=True, text=True, timeout=BACKUP_TIMEOUT_SECONDS,
+            )
+        except FileNotFoundError as loi:
+            raise BackupError("Không tìm thấy lệnh pg_restore — image phải cài postgresql-client.") from loi
+        except subprocess.TimeoutExpired as loi:
+            raise BackupError(f"pg_restore chạy quá {BACKUP_TIMEOUT_SECONDS // 60} phút, đã dừng; "
+                              "cơ sở dữ liệu giữ nguyên như trước khi chạy.") from loi
+        if kq.returncode != 0:
+            raise BackupError(f"pg_restore trả mã lỗi {kq.returncode}: {_gon_loi(kq.stderr)}")
+    except (BackupError, OSError) as loi:
+        if not isinstance(loi, BackupError):
+            loi = BackupError(f"Không đọc được tệp sao lưu: {scrub(loi)}")
+        try:
+            record(AuditAction.BACKUP, actor=actor, target=("restore", duong_dan.name),
+                   detail=f"Phục hồi THẤT BẠI từ {duong_dan.name}")
+        except DatabaseError:
+            # Ghi nhật ký hỏng (CSDL mất kết nối) không được che lỗi phục hồi thật
+            logger.error("Không ghi được nhật ký phục hồi thất bại cho %s", duong_dan.name)
+        raise loi
     record(AuditAction.BACKUP, actor=actor, target=("restore", duong_dan.name),
            detail=f"Phục hồi thành công từ {duong_dan.name}")
     return duong_dan

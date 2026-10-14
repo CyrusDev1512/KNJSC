@@ -207,6 +207,80 @@ def test_lenh_sao_luu_bang_tay(thu_muc_sao_luu, db_gia, capsys):
             call_command("sao_luu")
 
 
+# ══ Phục hồi gặp lỗi — TL-97 · P0-15 ═══════════════════════════════
+
+def _nhat_ky_phuc_hoi():
+    return AuditLog.objects.filter(action=AuditAction.BACKUP, target_type="restore").order_by("-pk").first()
+
+
+def test_phuc_hoi_qua_gio_bao_loi_tieng_viet_va_ghi_nhat_ky_that_bai(thu_muc_sao_luu, db_gia):
+    """NFR-10 — pg_restore chạy quá giờ thì báo lỗi tiếng Việt (không traceback), có dòng nhật ký "Phục hồi THẤT BẠI",
+    không lộ mật khẩu (TL-97)"""
+    _tao_ban(thu_muc_sao_luu, 1)
+    tep = backup_service.resolve_backup()
+
+    def _qua_gio(cmd, **kw):
+        raise subprocess.TimeoutExpired(cmd, backup_service.BACKUP_TIMEOUT_SECONDS)
+
+    with pytest.raises(backup_service.BackupError, match="quá 30 phút") as loi:
+        backup_service.run_restore(tep, runner=_qua_gio)
+    nk = _nhat_ky_phuc_hoi()
+    assert nk is not None and "Phục hồi THẤT BẠI" in nk.detail and nk.target_id == tep.name
+    assert MAT_KHAU_GIA not in str(loi.value) and MAT_KHAU_GIA not in nk.detail
+
+
+def test_phuc_hoi_thieu_pg_restore_ghi_nhat_ky_that_bai(thu_muc_sao_luu, db_gia):
+    """NFR-10 — Máy thiếu pg_restore thì báo rõ phải cài postgresql-client và vẫn ghi "Phục hồi THẤT BẠI" (TL-97)"""
+    _tao_ban(thu_muc_sao_luu, 1)
+
+    def _thieu(cmd, **kw):
+        raise FileNotFoundError("pg_restore")
+
+    with pytest.raises(backup_service.BackupError, match="postgresql-client"):
+        backup_service.run_restore(backup_service.resolve_backup(), runner=_thieu)
+    assert "Phục hồi THẤT BẠI" in _nhat_ky_phuc_hoi().detail
+
+
+def test_phuc_hoi_tep_hong_khong_dung_vao_csdl_va_ghi_nhat_ky(thu_muc_sao_luu, db_gia):
+    """NFR-10 — Tệp sao lưu hỏng (sai chữ ký) bị từ chối trước khi đụng cơ sở dữ liệu, vẫn có dòng nhật ký (TL-97)"""
+    thu_muc_sao_luu.mkdir(parents=True, exist_ok=True)
+    tep = thu_muc_sao_luu / "knjsc-20260801-020000.dump"
+    tep.write_bytes(b"KHONG" + b"\0" * 4096)
+    goi = mock.Mock(side_effect=_pg_dump_gia())
+    with pytest.raises(backup_service.BackupError, match="PGDMP"):
+        backup_service.run_restore(tep, runner=goi)
+    assert goi.call_count == 0
+    assert "Phục hồi THẤT BẠI" in _nhat_ky_phuc_hoi().detail
+
+
+def test_lenh_phuc_hoi_qua_gio_bao_command_error_khong_traceback(thu_muc_sao_luu, db_gia):
+    """NFR-10 — Lệnh `phuc_hoi` quá giờ thì kết thúc bằng câu tiếng Việt "Phục hồi THẤT BẠI", không traceback (TL-97)"""
+    _tao_ban(thu_muc_sao_luu, 2)
+    qua_gio = subprocess.TimeoutExpired("pg_restore", backup_service.BACKUP_TIMEOUT_SECONDS)
+    with mock.patch.object(subprocess, "run", side_effect=qua_gio):
+        with pytest.raises(CommandError, match="Phục hồi THẤT BẠI.*quá 30 phút") as loi:
+            call_command("phuc_hoi", "knjsc-20260802-020000.dump", "--toi-chac-chan")
+    assert MAT_KHAU_GIA not in str(loi.value)
+
+
+def test_lenh_phuc_hoi_chay_tron_mot_giao_dich(db_gia):
+    """NFR-10 — pg_restore chạy trọn trong một giao dịch: hỏng giữa chừng thì cơ sở dữ liệu giữ nguyên, không để dở
+    (`--single-transaction`, đã duyệt cùng kế hoạch P0; TL-97)"""
+    lenh = backup_service.pg_restore_command(Path("/tmp/x.dump"))
+    assert "--single-transaction" in lenh and lenh[-1] == "/tmp/x.dump" and MAT_KHAU_GIA not in " ".join(lenh)
+
+
+def test_pg_dump_qua_gio_thi_that_bai_co_nhat_ky(thu_muc_sao_luu, db_gia):
+    """NFR-19 — pg_dump quá giờ thì tác vụ THẤT BẠI, có nhật ký và thư, không để tệp dở (bài khoá, TL-97)"""
+    def _qua_gio(cmd, **kw):
+        raise subprocess.TimeoutExpired(cmd, backup_service.BACKUP_TIMEOUT_SECONDS)
+
+    job = backup_service.run_backup(runner=_qua_gio)
+    assert job.status == JobStatus.FAILED and "quá 30 phút" in job.error
+    assert "THẤT BẠI" in AuditLog.objects.filter(action=AuditAction.BACKUP).latest("pk").detail
+    assert len(mail.outbox) == 1 and not list(thu_muc_sao_luu.glob("*.part"))
+
+
 # ══ Tác vụ định kỳ khác ═══════════════════════════════════════════
 
 def test_tac_vu_cho_qua_15_phut_bi_danh_dau_ket(nguoi_dung):
@@ -394,3 +468,137 @@ def test_pg_dump_that_ra_tep_hop_le(thu_muc_sao_luu):
     assert job.status == JobStatus.DONE, job.error
     tep = thu_muc_sao_luu / job.summary["file_name"]
     assert tep.read_bytes()[:5] == b"PGDMP" and tep.stat().st_size > 1024
+
+
+# ══ Sao lưu rồi phục hồi thật vào cơ sở dữ liệu tạm — TL-97 · P0-15 ══
+
+CO_PG = pytest.mark.skipif(shutil.which("pg_dump") is None or shutil.which("pg_restore") is None,
+                           reason="máy này không có pg_dump/pg_restore")
+
+
+@pytest.fixture
+def csdl_tam(transactional_db):
+    """Một cơ sở dữ liệu rỗng cạnh CSDL kiểm thử để phục hồi vào — không bao giờ đụng CSDL phát triển."""
+    import uuid
+
+    from django.db import connection
+
+    goc = connection.settings_dict["NAME"]
+    assert goc.startswith("test_"), goc
+    ten = f"{goc}_ph_{uuid.uuid4().hex[:8]}"
+    with connection.cursor() as c:
+        c.execute(f'CREATE DATABASE "{ten}"')
+    try:
+        yield ten
+    finally:
+        with connection.cursor() as c:
+            c.execute(f'DROP DATABASE IF EXISTS "{ten}" WITH (FORCE)')
+
+
+def _ket_noi(ten):
+    import psycopg
+    from django.db import connection
+
+    d = connection.settings_dict
+    return psycopg.connect(dbname=ten, host=d.get("HOST") or "localhost", port=d.get("PORT") or 5432,
+                           user=d.get("USER"), password=d.get("PASSWORD"), autocommit=True)
+
+
+def _so_lieu(cur):
+    """Số dòng mọi bảng, dấu vân tay dữ liệu bảng động, trigger, chỉ mục, extension."""
+    cur.execute("SELECT table_name FROM information_schema.tables "
+                "WHERE table_schema='public' AND table_type='BASE TABLE' ORDER BY 1")
+    bang = [r[0] for r in cur.fetchall()]
+    dem = {}
+    for b in bang:
+        cur.execute(f'SELECT count(*) FROM "{b}"')
+        dem[b] = cur.fetchone()[0]
+    cur.execute("SELECT md5(coalesce(string_agg(data::text, '|' ORDER BY id), '')) FROM forms_builder_datarecord")
+    van_tay = cur.fetchone()[0]
+    cur.execute("SELECT count(*) FROM pg_trigger WHERE NOT tgisinternal")
+    trigger = cur.fetchone()[0]
+    cur.execute("SELECT count(*) FROM pg_indexes WHERE schemaname='public'")
+    chi_muc = cur.fetchone()[0]
+    cur.execute("SELECT string_agg(extname, ',' ORDER BY extname) FROM pg_extension")
+    return {"dem": dem, "van_tay": van_tay, "trigger": trigger, "chi_muc": chi_muc, "ext": cur.fetchone()[0]}
+
+
+def _so_lieu_cua(ten):
+    with _ket_noi(ten) as k, k.cursor() as c:
+        return _so_lieu(c)
+
+
+def _khop(dich, nguon):
+    """Đích khớp nguồn: mọi bảng cùng số dòng — riêng tác vụ nền đích có thể thêm tác vụ sao lưu đang chạy lúc chụp."""
+    assert {k: v for k, v in dich["dem"].items() if k != "core_backgroundjob"} == \
+        {k: v for k, v in nguon["dem"].items() if k != "core_backgroundjob"}
+    assert dich["dem"]["core_backgroundjob"] >= nguon["dem"]["core_backgroundjob"]
+    assert {k: dich[k] for k in ("van_tay", "trigger", "chi_muc", "ext")} == \
+        {k: nguon[k] for k in ("van_tay", "trigger", "chi_muc", "ext")}
+
+
+@pytest.mark.cham
+@CO_PG
+def test_sao_luu_roi_phuc_hoi_that_vao_csdl_tam_giu_nguyen_du_lieu(thu_muc_sao_luu, csdl_tam, nguoi_dung, monkeypatch):
+    """NFR-10 — Sao lưu thật rồi phục hồi thật bằng lệnh `phuc_hoi` (AC-10.5, phần máy làm được): CSDL đích có đủ
+    mọi bảng, đúng từng dòng (chữ Việt, số tiền), trigger, chỉ mục, extension; phục hồi đè lên CSDL đã bị sửa thì
+    trả về đúng như bản sao lưu (đường `--clean` thật, TL-97)"""
+    from django.db import connection
+
+    from forms_builder.models import DataRecord, TableDef
+
+    bang = TableDef.objects.create(name="Thu chi", code="thu_chi_ph", department=nguoi_dung["staff_sale_1"].profile.department)
+    DataRecord.objects.create(table=bang, department=bang.department, created_by=nguoi_dung["staff_sale_1"],
+                              data={"ten": "Nguyễn Văn Ân", "loai_tien": "CAD", "tien": "1234.50"})
+    with connection.cursor() as c:
+        nguon = _so_lieu(c)
+
+    job = backup_service.run_backup()
+    assert job.status == JobStatus.DONE, job.error
+    monkeypatch.setattr(backup_service, "_db", lambda: {**connection.settings_dict, "NAME": csdl_tam})
+    call_command("phuc_hoi", job.summary["file_name"], "--toi-chac-chan")
+    _khop(_so_lieu_cua(csdl_tam), nguon)
+
+    with _ket_noi(csdl_tam) as k, k.cursor() as c:
+        c.execute("UPDATE forms_builder_datarecord SET data = data || '{\"ten\": \"bị sửa\"}'::jsonb")
+        c.execute("DELETE FROM django_session")
+    call_command("phuc_hoi", job.summary["file_name"], "--toi-chac-chan")
+    _khop(_so_lieu_cua(csdl_tam), nguon)
+    assert "Phục hồi thành công" in _nhat_ky_phuc_hoi().detail
+
+
+@pytest.mark.cham
+@CO_PG
+def test_phuc_hoi_tep_cut_giua_chung_khong_de_lai_csdl_do_dang(thu_muc_sao_luu, csdl_tam, nguoi_dung, monkeypatch):
+    """NFR-10 — Bản sao lưu cụt giữa phần dữ liệu (mục lục còn nguyên): phục hồi báo THẤT BẠI và CSDL đích giữ y như
+    trước — đủ dòng, đủ trigger, đủ chỉ mục (trọn một giao dịch, TL-97)"""
+    import uuid
+
+    from django.db import connection
+
+    from forms_builder.models import DataRecord, TableDef
+
+    bang = TableDef.objects.create(name="Đầy", code="day_ph", department=nguoi_dung["staff_sale_1"].profile.department)
+    DataRecord.objects.bulk_create([DataRecord(table=bang, department=bang.department,
+                                               data={"x": uuid.uuid4().hex * 10}) for _ in range(3000)])
+    job = backup_service.run_backup()
+    assert job.status == JobStatus.DONE, job.error
+    tot = thu_muc_sao_luu / job.summary["file_name"]
+    monkeypatch.setattr(backup_service, "_db", lambda: {**connection.settings_dict, "NAME": csdl_tam})
+    backup_service.run_restore(tot)
+    truoc = _so_lieu_cua(csdl_tam)
+
+    cut = thu_muc_sao_luu / "knjsc-20260801-030000.dump"
+    noi_dung = tot.read_bytes()
+    for ti_le in (0.5, 0.6, 0.7, 0.8, 0.9):
+        cut.write_bytes(noi_dung[:int(len(noi_dung) * ti_le)])
+        if subprocess.run(["pg_restore", "--list", str(cut)], capture_output=True).returncode == 0:
+            break
+    else:
+        pytest.fail("Không cắt được bản sao lưu ở phần dữ liệu (mục lục luôn hỏng)")
+
+    with pytest.raises(backup_service.BackupError):
+        backup_service.run_restore(cut)
+    sau = _so_lieu_cua(csdl_tam)
+    assert sau == truoc
+    assert "Phục hồi THẤT BẠI" in _nhat_ky_phuc_hoi().detail
