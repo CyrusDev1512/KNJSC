@@ -104,8 +104,10 @@ const cut=(a,b)=>src.slice(src.indexOf(a),src.indexOf(b));
     cellHistory:{hidden:false},$:()=>({close(){},replaceChildren(){}}),repaint(){}};
   vm.createContext(h);vm.runInContext(cut('  function holdForSession(text){','  function sessionNotice(error){')+';globalThis.hold=holdForSession;',h);
   h.hold('Phiên…');
-  assert.deepEqual([...h.state.cache.keys()],[0],'Khối có nháp trong stale vẫn hiện, khối không nháp bỏ');
-  assert.equal(h.state.stale,null);assert.equal(h.state.sessionHold,'Phiên…');
+  assert.deepEqual([...h.state.stale.keys()],[0],'Khối có nháp trong stale vẫn hiện, khối không nháp bỏ');
+  assert.equal(h.state.cache.size,0,'Không đưa khối của thứ tự cũ sang bộ đệm (sau đăng nhập lại phải tải khối mới)');
+  assert.equal(h.state.sessionHold,'Phiên…');
+  h.state.stale=new Map([[1,{rows:[{id:200}]}]]);h.hold('Phiên…');assert.equal(h.state.stale,null,'Không còn khối có nháp thì bỏ stale');
   // 9. sessionNotice: huỷ hẹn tự thử lại; chưa có nút nào (ẩn cột, bỏ chi tiết) thì có Tiếp tục; lời cũ thiếu câu hết phiên thì thêm
   const them=[];let huy=0;const hop={hidden:true,textContent:'Không đổi được cột.',querySelector:()=>null,append:(...x)=>them.push(...x)};
   const sn={state:{saveError:false,rowRetry:null,conflicts:[]},holdForSession(){},clearTimeout(){huy++;},element:(t,c,x)=>({textContent:x}),$:()=>hop,refresh(){},message(){}};

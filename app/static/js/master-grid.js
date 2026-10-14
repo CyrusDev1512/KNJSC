@@ -1334,9 +1334,9 @@
     for(const c of state.retry?.payload.cells||[])keep.add(c.id);
     if(state.draft)keep.add(state.draft.id);
     state.pending.forEach(p=>p.controller.abort());state.pending.clear();
-    // Tải lại mềm dồn khối vào stale: khối có nháp ở đó cũng phải giữ trên màn hình
-    for(const [number,block] of state.stale||[])if(!state.cache.has(number)&&block.rows.some(row=>row&&keep.has(row.id)))state.cache.set(number,block);
-    state.stale=null;
+    // Tải lại mềm dồn khối vào stale: giữ ngay trong stale khối có nháp để còn hiện (rowAt đọc stale khi cache trống).
+    // Không đưa sang cache: stale có thể theo thứ tự cũ (vừa sắp xếp), coi là mới thì sau khi đăng nhập lại lưới dùng khối sai
+    if(state.stale){for(const [number,block] of [...state.stale])if(!block.rows.some(row=>row&&keep.has(row.id)))state.stale.delete(number);if(!state.stale.size)state.stale=null;}
     for(const [number,block] of [...state.cache])if(!block.rows.some(row=>row&&keep.has(row.id)))state.cache.delete(number);
     state.historyId=null;reader.hidden=true;reader.querySelector('div').textContent='';cellHistory.hidden=true;
     $('mg-history').close();$('mg-history-body').replaceChildren();
