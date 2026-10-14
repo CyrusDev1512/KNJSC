@@ -20,6 +20,7 @@ from django.core.management.base import CommandError
 from django.test import override_settings
 
 from core.constants import Rank
+from core.management.commands.du_lieu_mau import TAI_KHOAN
 from forms_builder.models import DataRecord, FormDef, TableDef
 from orders.constants import WAYBILL_TABLE_CODE
 from orders.models import Product
@@ -55,7 +56,7 @@ def test_may_trong_chay_xong_thi_dang_nhap_duoc(client):
     assert not get_user_model().objects.exists()
     _chay()
 
-    assert get_user_model().objects.count() == 12
+    assert get_user_model().objects.count() == len(TAI_KHOAN) == 16
     kq = client.post("/dang-nhap/", {
         "username": "quantri", "password": "matkhaucuatoi",
     })
@@ -65,32 +66,59 @@ def test_may_trong_chay_xong_thi_dang_nhap_duoc(client):
 def test_dung_du_co_cau_to_chuc():
     """FR-2.1, FR-2.2 — Ba bộ phận nghiệp vụ, ba team (Sale 1, Sale 2, MKT 1 — ADR-043), mỗi team một trưởng nhóm
 
-    Kế toán là bộ phận thứ tư, do `org/0004` tạo sẵn khi migrate (ADR-025 —
-    chứng từ thanh toán), không phải do `du_lieu_mau` dựng, và chưa có nhân sự
-    mẫu. Khẳng định đủ bốn để bài kiểm đỏ nếu ai đó lỡ xoá nó.
+    Kế toán do `org/0004` tạo sẵn khi migrate (ADR-025 — chứng từ thanh toán),
+    `du_lieu_mau` chỉ thêm nhân sự mẫu `kt.staff`; CSKH do `du_lieu_mau` dựng
+    (TL-90). Khẳng định đủ năm để bài kiểm đỏ nếu ai đó lỡ xoá một bộ phận.
+    Không thêm team: vd.leader chưa làm trưởng nhóm.
     """
     _chay()
 
     assert set(Department.objects.values_list("code", flat=True)) == {
-        "sale", "marketing", "van-don", "ke-toan"}
+        "sale", "marketing", "van-don", "ke-toan", "cskh"}
     assert Team.objects.count() == 3
     assert all(t.leader_id is not None for t in Team.objects.all()), (
         "Team chưa có trưởng nhóm thì không thử được phạm vi quyền của Leader"
     )
 
 
-def test_du_bon_cap_bac_de_thu_pham_vi_quyen():
-    """AC-3.1 tới AC-3.8 — Có đủ bốn cấp bậc ở cả ba bộ phận để thử phân quyền"""
+def test_du_nam_cap_bac_de_thu_pham_vi_quyen():
+    """AC-3.1 tới AC-3.8 — Có đủ năm cấp bậc (cả CEO) ở các bộ phận để thử phân quyền"""
     from org.models import UserProfile
 
     _chay()
     cap_bac = set(UserProfile.objects.values_list("rank", flat=True))
-    assert cap_bac == {Rank.STAFF, Rank.LEADER, Rank.MANAGER, Rank.ADMIN}
+    assert cap_bac == {Rank.STAFF, Rank.LEADER, Rank.MANAGER, Rank.CEO, Rank.ADMIN}
 
-    for ma in ("sale", "marketing", "van-don"):
-        assert UserProfile.objects.filter(department__code=ma).count() >= 2, (
-            f"Bộ phận {ma} cần ít nhất hai người để thử phạm vi quyền"
+    for ma, it_nhat in (("sale", 2), ("marketing", 2), ("van-don", 2), ("ke-toan", 1), ("cskh", 1)):
+        assert UserProfile.objects.filter(department__code=ma).count() >= it_nhat, (
+            f"Bộ phận {ma} cần ít nhất {it_nhat} người để thử phạm vi quyền"
         )
+
+
+def test_du_tai_khoan_mau_cho_vai_co_luat_rieng(client):
+    """AC-3.1 tới AC-3.8, AC-33.6 — Máy mới có sẵn tài khoản cho bốn vai mang luật riêng: Kế toán (ADR-038),
+    CSKH (ADR-033), Leader Vận đơn (phân công) và Giám đốc (AC-21.17, ADR-044); người kiểm tay không phải
+    nhờ quản trị viên tạo (TL-90)."""
+    from orders.services import assignment_service
+    from org.services.org_service import is_accountant
+    from core.scope import get_user_scope
+
+    _chay()
+    for ten_dn, ma_bp, cap_bac in (("kt.staff", "ke-toan", Rank.STAFF), ("cskh.staff", "cskh", Rank.STAFF),
+                                   ("vd.leader", "van-don", Rank.LEADER), ("giamdoc", None, Rank.CEO)):
+        ho_so = UserProfile.objects.select_related("department").get(user__username=ten_dn)
+        assert (ho_so.department.code if ho_so.department else None, ho_so.rank) == (ma_bp, cap_bac), ten_dn
+        assert ho_so.must_change_password is False, ten_dn
+        assert client.login(username=ten_dn, password="matkhaucuatoi"), ten_dn
+
+    nguoi = {h.user.username: h.user for h in UserProfile.objects.select_related("user")}
+    assert is_accountant(nguoi["kt.staff"])
+    assert assignment_service.only_own_rows(nguoi["cskh.staff"])
+    assert assignment_service.can_assign(nguoi["vd.leader"])
+    giam_doc = nguoi["giamdoc"]
+    pham_vi = get_user_scope(giam_doc)
+    assert pham_vi.all_departments is True and pham_vi.is_admin is False
+    assert giam_doc.is_staff is False and giam_doc.is_superuser is False
 
 
 def test_so_lieu_mau_dung_bang_tep_that_cua_khach_hang():
@@ -118,17 +146,21 @@ def test_dung_du_bang_bieu_mau_va_san_pham():
 
 
 def test_chay_lai_khong_tao_trung():
-    """Lệnh chạy lại nhiều lần được, không sinh bản ghi trùng"""
+    """Lệnh chạy lại nhiều lần được, không sinh bản ghi trùng (cả tài khoản — TL-90)"""
+    from django.contrib.auth import get_user_model
+
+    def _dem():
+        return (Department.objects.count(), Team.objects.count(),
+                TableDef.objects.count(), DataRecord.objects.count(),
+                Product.objects.count(), FormDef.objects.count(),
+                get_user_model().objects.count(), UserProfile.all_objects.count())
+
     _chay()
-    dem = (Department.objects.count(), Team.objects.count(),
-           TableDef.objects.count(), DataRecord.objects.count(),
-           Product.objects.count(), FormDef.objects.count())
+    dem = _dem()
 
     ra = _chay()
 
-    assert (Department.objects.count(), Team.objects.count(),
-            TableDef.objects.count(), DataRecord.objects.count(),
-            Product.objects.count(), FormDef.objects.count()) == dem
+    assert _dem() == dem
     assert "khong co gi moi" in ra, (
         "Chạy lần hai vẫn báo có tạo thứ gì đó — bản báo cáo nói sai"
     )
@@ -160,7 +192,7 @@ def test_van_chay_duoc_khi_ghi_ro_la_co_y():
     _chay(dong_y_chay_that=True)
 
     from django.contrib.auth import get_user_model
-    assert get_user_model().objects.count() == 12
+    assert get_user_model().objects.count() == len(TAI_KHOAN) == 16
 
 
 def test_san_pham_mau_khop_danh_muc_va_co_mau():

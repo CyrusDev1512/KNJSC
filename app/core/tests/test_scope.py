@@ -94,6 +94,33 @@ def test_cap_bac_quyet_dinh_do_rong_pham_vi(nguoi_dung):
     assert get_user_scope(nguoi_dung["admin"]).all_departments is True
 
 
+def test_fixture_chung_du_vai_co_luat_rieng(nguoi_dung, departments):
+    """AC-3.1 tới AC-3.8, AC-33.6 — Fixture chung có đủ các vai mang luật riêng: CEO (ADR-044), CSKH (ADR-033),
+    Leader và Manager Vận đơn (phân công), Kế toán (ADR-038); mỗi vai rơi đúng nhánh luật của nó, cả chiều được
+    lẫn chiều không. Thiếu vai thì bài nào cần nó lại tự dựng riêng và các bài lặp mọi vai bỏ sót nó (TL-90)."""
+    from orders.services import assignment_service
+    from org.services.org_service import is_accountant
+
+    assert departments["cskh"].code == "cskh"
+    ceo, cskh = nguoi_dung["ceo"], nguoi_dung["cskh"]
+    leader_vd, manager_vd = nguoi_dung["leader_vd"], nguoi_dung["manager_vd"]
+    assert (ceo.profile.rank, ceo.profile.department_id) == (Rank.CEO, None)
+    assert (cskh.profile.rank, cskh.profile.department) == (Rank.STAFF, departments["cskh"])
+    assert (leader_vd.profile.rank, leader_vd.profile.department) == (Rank.LEADER, departments["vd"])
+    assert (manager_vd.profile.rank, manager_vd.profile.department) == (Rank.MANAGER, departments["vd"])
+    ten = [u.username for u in nguoi_dung.values()]
+    assert len(ten) == len(set(ten))
+
+    pham_vi_ceo = get_user_scope(ceo)
+    assert pham_vi_ceo.all_departments is True and pham_vi_ceo.is_admin is False
+    assert assignment_service.only_own_rows(cskh) is True
+    assert assignment_service.only_own_rows(leader_vd) is False
+    assert assignment_service.can_assign(leader_vd) and assignment_service.can_assign(manager_vd)
+    for vai in ("cskh", "ceo", "staff_vd"):
+        assert not assignment_service.can_assign(nguoi_dung[vai]), vai
+    assert is_accountant(nguoi_dung["staff_kt"]) and not is_accountant(ceo)
+
+
 def test_ban_ghi_da_xoa_khong_con_trong_pham_vi(nguoi_dung, probes):
     """AC-9.1 — Bản ghi bị đánh dấu xoá không xuất hiện trong danh sách"""
     probes["cua_staff_1"].delete(by=nguoi_dung["manager_sale"])
