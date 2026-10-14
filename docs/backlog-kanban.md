@@ -1,5 +1,15 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 14.10.2026 — Sửa AC-10.12: lời báo mất mạng bị tra khách xoá oan (TL-100)
+
+**Finished local (nhánh `claude/sua-loi-mang-ac-10-12`, PR nháp về `Staging`):**
+- `loi-mang.js`: yêu cầu GET hỏng không giành chỗ của yêu cầu ghi đang hỏng;
+- bài e2e mới ép đúng thứ tự xấu: đỏ trên mã cũ, xanh sau khi vá; `test_mat_mang_e2e.py` 5 lần liền, mỗi lần 4/4.
+
+**To do:**
+- chủ dự án duyệt, gộp vào `Staging`;
+- TL-71 vẫn mở.
+
 ## 14.10.2026 — Gộp KN OMS (#112, #114) vào `Staging`
 
 **Finished:**

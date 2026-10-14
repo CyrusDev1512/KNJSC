@@ -1,5 +1,28 @@
 # Backlog
 
+## 14.10.2026 — Lời báo mất mạng không còn bị tra khách xoá oan (AC-10.12, TL-100)
+
+- **Chủ dự án:** "sửa luôn lỗi AC-10.12 đi". Lỗi lộ ra khi CI `Staging` đỏ sau lúc gộp KN OMS. Trước khi sửa, đã gửi chủ
+  dự án kịch bản thử `Staging`: 16 bước KN OMS và 5 bước phần dùng chung.
+- **Lỗi:**
+  - Bấm Lưu đơn lúc mất mạng thì tra khách (GET, chạy khi ô điện thoại mất focus) cũng hỏng.
+  - `loi-mang.js` chỉ nhớ phần tử hỏng sau cùng. Nên nếu tra khách hỏng sau, lần tra khách thành công kế tiếp xoá lời
+    báo, dù đơn chưa lưu.
+- **Đã sửa:**
+  - `nhoHong`: yêu cầu GET hỏng không giành chỗ của phần tử hỏng còn đang trên trang. Không đổi luồng thao tác hay
+    quyền.
+  - Bài e2e mới ép đúng thứ tự xấu: đỏ trên mã cũ, xanh sau khi vá.
+- **Kiểm:**
+  - `test_mat_mang_e2e.py` chạy 5 lần liền, mỗi lần 4/4;
+  - hệ thống thật: trước khi vá lời báo mất, sau khi vá lời báo còn;
+  - `pytest -m "not trinh_duyet"`: 3.207 đạt, 7 bỏ qua, 0 đỏ;
+  - e2e hai lượt như CI: 69 và 22 đạt. 9 bài đỏ là 9 bài font Google có sẵn của máy ảo.
+- **Còn nợ:**
+  - chủ dự án duyệt, gộp vào `Staging`;
+  - TL-71 (bài đo lưới 1000 dòng treo trên CI) vẫn mở, đã ghi thêm số chẩn đoán vào `docs/test-log.md`.
+
+[Biên bản](kiem-chung-sua-loi-mang-ac-10-12-20261014.md).
+
 ## 14.10.2026 — Kiểm cây sau gộp, gộp KN OMS (#112, #114) vào `Staging`
 
 - **Chủ dự án:** "kiểm thử kĩ tất cả rồi gộp PR 112 + 114 + oms vào staging".
