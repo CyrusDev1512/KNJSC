@@ -83,15 +83,24 @@ def reset_account_password(profile_id, password, *, actor, request=None):
         return reset_password(profile, password, actor=current_actor, request=request)
 
 
+def require_other_active_admin(profile, message):
+    """Chặn thao tác làm hệ thống mất Admin hoạt động cuối cùng (xoá, hạ cấp, khoá — ADR-044, TL-94). Admin là cấp bậc
+    ADMIN hoặc superuser, chưa xoá, đang hoạt động. Chỉ an toàn khi chạy đồng thời nếu gọi trong `locked_target`
+    (khoá mọi Admin theo thứ tự id)."""
+    if not profile.user.is_active:
+        return
+    con_lai = get_user_model().objects.filter(
+        profile__deleted_at__isnull=True, is_active=True,
+    ).filter(Q(profile__rank=Rank.ADMIN) | Q(is_superuser=True)).exclude(pk=profile.user_id)
+    if not con_lai.exists():
+        raise BusinessError(message, code="admin_cuoi")
+
+
 def delete_account(profile_id, *, actor, request=None):
     with locked_target(actor, profile_id) as (current_actor, profile):
         AccountPolicy(current_actor).require(profile)
         if profile.rank == Rank.ADMIN or profile.user.is_superuser:
-            admins = get_user_model().objects.filter(
-                profile__deleted_at__isnull=True, is_active=True,
-            ).filter(Q(profile__rank=Rank.ADMIN) | Q(is_superuser=True))
-            if profile.user.is_active and admins.count() <= 1:
-                raise BusinessError("Không được xóa Admin hoạt động cuối cùng.")
+            require_other_active_admin(profile, "Không được xóa Admin hoạt động cuối cùng.")
         profile.deleted_at = timezone.now()
         profile.deleted_by = current_actor
         profile.invalidate_sessions()

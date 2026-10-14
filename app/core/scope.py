@@ -98,6 +98,9 @@ def _compute_user_scope(user):
     ) | granted_departments
 
     if rank == Rank.MANAGER:
+        if not department_ids:
+            # Manager bị gỡ bộ phận: từ chối, không trả danh sách rỗng (FR-3.5, quy tắc 8 — TL-96)
+            raise NoProfileError("Tài khoản chưa được gán bộ phận. Liên hệ quản trị viên.")
         return Scope(user_id=user.pk, rank=rank, department_ids=department_ids)
 
     if rank == Rank.LEADER:

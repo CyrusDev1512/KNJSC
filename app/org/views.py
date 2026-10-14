@@ -123,8 +123,12 @@ def nhan_su_sua(request, pk):
             before = account_service.snapshot_profile(profile)
             form = SuaHoSoForm(request.POST, instance=profile)
             if form.is_valid():
-                account_service.update_profile(profile, form.cleaned_data, before=before,
-                                               actor=actor, request=request)
+                try:
+                    account_service.update_profile(profile, form.cleaned_data, before=before,
+                                                   actor=actor, request=request)
+                except BusinessError as loi:        # Admin hoạt động cuối cùng (TL-94)
+                    form.add_error(None, str(loi))
+                    return _account_screen(request, profile, profile_form=form)
                 messages.success(request, f"Đã cập nhật hồ sơ {profile}.")
                 return redirect("nhan_su")
             return _account_screen(request, profile, profile_form=form)
