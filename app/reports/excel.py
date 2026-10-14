@@ -12,10 +12,10 @@ from openpyxl.styles import Font
 
 from core.excel import neutralise_formulas
 
-from . import aggregations
+from . import aggregations, layout
 
 
-def build_workbook(title, result, subtitle="", blocks=None):
+def build_workbook(title, result, subtitle="", blocks=None, show_currency=None):
     """Một sheet: tiêu đề, dòng phụ, bảng số liệu, dòng cuối là tổng cộng. Có `blocks` (Báo cáo tổng
     hợp, ADR-042/046) thì xuất theo khối như màn hình — mọi cách xem, chế độ và loại tiền; không có
     `blocks` là đường cũ của báo cáo theo bảng (`summary_service`)."""
@@ -37,7 +37,10 @@ def build_workbook(title, result, subtitle="", blocks=None):
     show_leader = show_person or getattr(result, 'show_leader', False)
     # Cột danh tính đi kèm cột nhóm, cùng thứ tự với màn hình (ADR-035)
     after = (['STT', 'Nhân sự'] if show_person else []) + (['Leader'] if show_leader else [])
-    ws.append((['Team'] if show_team else []) + [result.group_label] + after + [c.label for c in result.columns])
+    # Nguồn tách loại tiền (TL-92): cột Loại tiền sau cột danh tính — trừ khi màn hình ẩn nó (MKT, AC-47.6)
+    tien = bool(result.currency_key) if show_currency is None else show_currency and bool(result.currency_key)
+    ws.append((['Team'] if show_team else []) + [result.group_label] + after + (['Loại tiền'] if tien else [])
+              + [c.label for c in result.columns])
     for o in ws[ws.max_row]:
         o.font = dam
 
@@ -52,17 +55,26 @@ def build_workbook(title, result, subtitle="", blocks=None):
         if show_person and nhom != ngay_truoc:
             ngay_truoc, stt = nhom, 0
             ws.append(([''] if show_team else []) + [f"Tổng ngày {aggregations.format_group(nhom, result)}"]
-                      + [''] * len(after) + tong_ngay[nhom])
+                      + [''] * len(after) + ([''] if tien else []) + tong_ngay[nhom])
             for o in ws[ws.max_row]:
                 o.font = dam
         stt += 1
         identity = ([stt, item['person_name']] if show_person else []) + ([item['leader_name'] or '—'] if show_leader else [])
-        ws.append(([item['team_name']] if show_team else []) + [aggregations.format_group(nhom, result)] + identity + cells)
+        o_tien = [layout.currency_label(item.get(result.currency_key))] if tien else []
+        ws.append(([item['team_name']] if show_team else []) + [aggregations.format_group(nhom, result)] + identity
+                  + o_tien + cells)
         so_nhom += 1
 
-    ws.append(([''] if show_team else []) + [f"Tổng cộng · {so_nhom} {result.unit}"] + [''] * len(after) + aggregations.total_values(result))
-    for o in ws[ws.max_row]:
-        o.font = dam
+    if not result.currency_key:
+        ws.append(([''] if show_team else []) + [f"Tổng cộng · {so_nhom} {result.unit}"] + [''] * len(after)
+                  + aggregations.total_values(result))
+        _dam(ws, dam)
+    for ma, raw in (aggregations.total_rows(result) if result.currency_key else ()):
+        # Mỗi loại tiền một dòng TỔNG CỘNG, số thô đúng như nhập — không cộng hai loại tiền (ADR-046)
+        nhan = layout.currency_label(ma)
+        ws.append(([''] if show_team else []) + [f"Tổng cộng · {nhan}"] + [''] * len(after)
+                  + ([nhan] if tien else []) + list(raw))
+        _dam(ws, dam)
 
     return neutralise_formulas(wb)
 

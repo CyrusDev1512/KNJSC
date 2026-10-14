@@ -248,9 +248,7 @@ def currency_expression(source):
     """Loại tiền của từng dòng báo cáo — cột ánh xạ `currency` (tự điền theo Thị trường khi nộp);
     trống thì là "" (nhóm "Chưa rõ"). Nguồn không ánh xạ Loại tiền → None: không tách loại tiền."""
     code = (source.columns or {}).get("currency")
-    if not code:
-        return None
-    return Coalesce(KeyTextTransform(code, "data"), Value(""), output_field=CharField())
+    return aggregations.json_currency_expression(code) if code else None
 
 
 def project_metrics(result, source):
