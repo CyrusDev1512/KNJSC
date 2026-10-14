@@ -127,7 +127,7 @@ def bang(request):
 @login_required
 def bang_moi(request):
     """Tạo bảng mới — FR-8.1; Leader trở lên (ADR-015)."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     request.nav_current = "bang"
     assert_rank(request.user, Rank.LEADER, request)
 
@@ -150,7 +150,7 @@ def bang_moi(request):
 @login_required
 def bang_cot(request, code):
     """Thêm và sửa cột của một bảng — quản lý của bộ phận sở hữu (ADR-015)."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     request.nav_current = "bang"
     assert_rank(request.user, Rank.LEADER, request)
     bang_hien = _lay_bang(request, code)
@@ -496,7 +496,7 @@ def bang_xuat(request, code):
 @require_POST
 def bang_cap_quyen(request, code):
     """Cấp quyền xem hoặc sửa một bảng cho người ngoài bộ phận — FR-8.4."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     assert_rank(request.user, Rank.MANAGER, request)
     bang_hien = _lay_bang(request, code)
     _kiem_cap_quyen(request, bang_hien)
@@ -521,7 +521,7 @@ def bang_cap_quyen(request, code):
 @require_POST
 def bang_thu_quyen(request, code, pk):
     """Thu hồi một quyền đã cấp trên bảng."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     assert_rank(request.user, Rank.MANAGER, request)
     bang_hien = _lay_bang(request, code)
     _kiem_cap_quyen(request, bang_hien)
@@ -596,7 +596,7 @@ def bieu_mau(request):
 @login_required
 def bieu_mau_moi(request):
     """Tạo biểu mẫu mới, chọn bảng đích — FR-8.1, FR-8.3."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     request.nav_current = "bieu_mau"
     assert_rank(request.user, Rank.MANAGER, request)
 
@@ -620,7 +620,7 @@ def bieu_mau_moi(request):
 @login_required
 def bieu_mau_sua(request, code):
     """Trình tạo biểu mẫu: thêm trường, nối cột đích, phân quyền."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     request.nav_current = "bieu_mau"
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
@@ -668,7 +668,7 @@ def bieu_mau_sua(request, code):
 @require_POST
 def bieu_mau_bo_truong(request, code, pk):
     """Bỏ một trường khỏi biểu mẫu. Không đụng tới dữ liệu đã nhập — FR-8.5."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
     _kiem_cap_quyen(request, bm)
@@ -682,7 +682,7 @@ def bieu_mau_bo_truong(request, code, pk):
 @login_required
 def truong_moi(request):
     """Thêm một định nghĩa trường vào thư viện dùng chung của bộ phận."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     request.nav_current = "bieu_mau"
     assert_rank(request.user, Rank.MANAGER, request)
 
@@ -712,7 +712,7 @@ def truong_moi(request):
 @require_POST
 def bieu_mau_cap_quyen(request, code):
     """Cấp quyền điền biểu mẫu cho người ngoài bộ phận — FR-8.4."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
     _kiem_cap_quyen(request, bm)
@@ -737,7 +737,7 @@ def bieu_mau_cap_quyen(request, code):
 @require_POST
 def bieu_mau_thu_quyen(request, code, pk):
     """Thu hồi quyền điền biểu mẫu."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
     _kiem_cap_quyen(request, bm)
@@ -760,6 +760,7 @@ def bieu_mau_dien(request, code):
     bm = _lay_bieu_mau(request, code)
 
     if not grant_service.can_fill(request.user, bm):
+        record_denied(request.user, request.path, request)
         raise OutOfScopeError("Bạn không được phân quyền điền biểu mẫu này.")
     if not bm.is_active:
         raise OutOfScopeError("Biểu mẫu này đã ngừng dùng.")

@@ -44,8 +44,15 @@ def can_manage_business(user, minimum=Rank.MANAGER):
     return not is_company_reader(user) and has_rank(user, minimum)
 
 
-def assert_business_write(user):
+def assert_business_write(user, request=None):
+    """Giám đốc đọc toàn công ty nhưng không ghi nghiệp vụ (ADR-044).
+
+    View gọi kèm `request` thì lần từ chối có một dòng Từ chối trong Nhật ký (FR-3.5, AC-3.7). Tầng dịch vụ gọi
+    **không** kèm request thì vẫn chặn nhưng không ghi: view gọi lại tự ghi một lần sau khi bắt lỗi (`don_bo`, nhánh xoá
+    dòng của `master_views.save`), ghi ở đây nữa là ghi đôi."""
     if is_company_reader(user):
+        if request is not None:
+            record_denied(user, getattr(request, "path", ""), request)
         raise OutOfScopeError("Giám đốc có quyền xem; không có quyền sửa nghiệp vụ này.")
 
 

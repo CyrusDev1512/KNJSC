@@ -467,3 +467,32 @@ def test_dich_vu_chan_ha_cap_va_khoa_admin_cuoi(make_user, db):
     account_service.lock_account(kia.profile)
     kia.refresh_from_db()
     assert not kia.is_active
+
+
+@pytest.mark.parametrize("duong,du_lieu", [
+    ("dat-lai-mat-khau", {"new_password1": "Mat-khau-tranh-chap-1", "new_password2": "Mat-khau-tranh-chap-1"}),
+    ("xoa", {"confirm": "yes"}),
+])
+def test_tu_choi_trong_khoi_khoa_van_co_mot_dong_tu_choi(client, nguoi_dung, monkeypatch, duong, du_lieu):
+    """AC-3.7 — Tranh chấp: lần kiểm đầu qua, nhưng bản hồ sơ vừa khoá đã ngoài quyền (vừa đổi bộ phận hay cấp bậc) thì
+    403, đúng một dòng Từ chối dù dòng ghi trong giao dịch khoá bị huỷ, mật khẩu và hồ sơ không đổi (FR-3.5, P0-2)"""
+    from core.constants import AuditAction
+    from core.models import AuditLog
+    from org.services import account_management
+
+    goc, lan = account_management.AccountPolicy.can_manage, []
+
+    def chi_lan_dau(self, profile):
+        lan.append(1)
+        return len(lan) == 1 and goc(self, profile)
+
+    monkeypatch.setattr(account_management.AccountPolicy, "can_manage", chi_lan_dau)
+    quan_ly, nhan_vien = nguoi_dung["manager_sale"], nguoi_dung["staff_sale_1"]
+    mat_khau = nhan_vien.password
+    client.force_login(quan_ly)
+    r = client.post(f"/nhan-su/{nhan_vien.profile.pk}/{duong}/", du_lieu)
+    assert r.status_code == 403 and len(lan) == 2
+    assert AuditLog.objects.filter(action=AuditAction.DENIED, actor=quan_ly).count() == 1
+    nhan_vien.refresh_from_db()
+    nhan_vien.profile.refresh_from_db()
+    assert nhan_vien.password == mat_khau and nhan_vien.profile.deleted_at is None

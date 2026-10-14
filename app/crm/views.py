@@ -150,7 +150,7 @@ def _chon_bang(request, *, tieu_de, mo_ta, duoc, url_name, nhan_nut, rong_mo_ta)
 def nhap_tep(request):
     """Mục Nhập tệp trên sidebar — Leader trở lên (ADR-015): chọn bảng rồi vào
     luồng nhập 4 bước của forms_builder chạy ngay trong KN CRM."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     request.nav_current = "nhap_tep"
     assert_rank(request.user, Rank.LEADER, request)
     return _chon_bang(
@@ -164,7 +164,7 @@ def nhap_tep(request):
 def cap_quyen(request):
     """Mục Cấp quyền trên sidebar — Manager (ADR-015): chọn bảng của bộ phận
     mình rồi vào màn Cột kèm cấp quyền của forms_builder, ngay trong KN CRM."""
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     request.nav_current = "cap_quyen"
     assert_rank(request.user, Rank.MANAGER, request)
     return _chon_bang(
