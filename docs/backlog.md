@@ -1,5 +1,86 @@
 # Backlog
 
+## 14.10.2026 — Kiểm cây sau gộp, gộp KN OMS (#112, #114) vào `Staging`
+
+- **Chủ dự án:** "kiểm thử kĩ tất cả rồi gộp PR 112 + 114 + oms vào staging".
+  - "oms" là chính hai PR KN OMS. Không có PR hay nhánh OMS thứ ba.
+- **Cây đem kiểm:** gộp thử `Staging` + #112 + #114 ở máy. Cây ra trùng đúng cây của #114.
+- **Kiểm:**
+  - cấu hình, `check --deploy` như lúc phát hành, migration, tệp tĩnh, rà diff: 0 lỗi;
+  - sửa một dòng trống thừa ở cuối ADR-051;
+  - `pytest -m "not trinh_duyet"`: 3.207 đạt, 7 bỏ qua, 0 đỏ;
+  - e2e hai lượt như CI: 68 và 22 đạt. 9 bài đỏ của `test_pha_luoi_ghi_chu.py` đỏ y hệt trên `Staging` gốc, do font
+    Google qua proxy máy ảo;
+  - bài KN OMS chạy 3 lần liền: mỗi lần 15/15 và 11/11;
+  - hệ thống thật: kịch bản KN OMS 16/16; quyền `/oms/` đúng với cả 14 tài khoản, ở cả KN CRM và KN ERP; quét liên
+    kết theo 4 vai, 209 trang, 0 lỗi; tràn ngang 0 px; tương phản như 13.10.
+- **Gộp:** #112 rồi #114 vào `Staging` bằng merge commit; xoá các nhánh đã gộp.
+- **Còn nợ:**
+  - chặng 2: thử trên `Staging` ở máy mình, theo kịch bản 16 bước gửi ngày 13.10;
+  - sau đó lên `main` và VPS; không có migration;
+  - #113 xung đột ở `CLAUDE.md`, `docs/backlog.md`; #126 xung đột ở `docs/06`. Phiên của từng PR tự gộp `Staging`
+    mới vào và giải; 11 PR còn lại (#115 → #125) gộp sạch.
+
+[Biên bản](kiem-chung-gop-kn-oms-staging-20261014.md).
+
+## 13.10.2026 — KN OMS thiết kế lại theo Solarpunk Office, làm sâu sáu màn (ADR-051 bổ sung, AC-51.9 → 51.14)
+
+- **Chủ dự án:** "dùng impeccable để design lại UI, sau đó nâng cấp tính năng".
+  - Đã chốt: chỉ KN OMS; theo Solarpunk Office như KN CRM; làm sâu sáu màn đang có; vẫn dữ liệu giả.
+  - Nhánh riêng `claude/kn-oms-thiet-ke-lai` tách từ `claude/kn-oms-demo` (#112), PR nháp riêng; #112 giữ nguyên.
+- **Đã làm — thiết kế lại** (Impeccable thủ công: `operate`, `craft-floor`; không engine):
+  - nạp bốn tệp CSS của KN CRM rồi mới `oms.css`; bỏ bảng màu chép tay; khung theo markup KN CRM;
+  - dải "DEMO" thành nhãn "Dữ liệu giả" trên thanh trên; 22 ô KPI to thành dải chỉ số phẳng; tiêu đề một câu;
+  - bỏ viền trái 3–4 px; Ghi nhận tiền, Phiếu kho, Thêm kênh vào ngăn kéo, bỏ hộp thoại;
+  - cột bảng sắp lại theo bề rộng đo được: không màn nào tràn ngang từ 320 tới 1440 px.
+- **Đã làm — làm sâu sáu màn:**
+  - Báo đơn, Công nợ: lọc ngày (chip và ô Từ–Đến DD/MM/YYYY), "Xuất danh sách" ra CSV cho Excel tiếng Việt;
+  - Công nợ: chọn nhiều đơn, "Nhắc N đơn", "Xuất N đơn";
+  - Khách rủi ro: dòng thời gian của khách; chặn lên đơn phải ghi lý do;
+  - Kho: đủ bán và gợi ý nhập đủ 30 ngày, tính riêng từng kho; Kênh: so với 7 ngày trước;
+  - Lãi theo page: biểu đồ lãi theo ngày có bảng số, đi bằng phím mũi tên; ô Lãi bằng tổng các ngày.
+- **Lựa chọn tự quyết, ghi lại để xem sau:**
+  - "7 ngày" ở Báo đơn, Kênh, Lãi theo page là 7 ngày lịch giờ Việt Nam (trước đây Kênh và Lãi lùi 7 × 24 giờ);
+  - thêm một mã bán chạy chỉ còn khoảng 5 ngày bán để Kho có gợi ý nhập thật;
+  - mã vận đơn toàn số từ 12 chữ số có dấu `'` trong CSV để Excel không đổi thành số mũ;
+  - nhãn nhóm thanh bên, đường dẫn đạt 4,48:1 (dưới 4,5) — token chung KN CRM, trang chủ KN CRM y hệt; chưa sửa.
+- **Kiểm:**
+  - bài trình duyệt AC-51.10 → 51.14 viết trước (5/5 đỏ); sau khi làm `test_kn_oms_e2e.py` 11/11, chạy 3 lần liền;
+  - `pytest -m "not trinh_duyet"`: 3.207 đạt, 7 bỏ qua, 0 đỏ;
+  - quét 320 → 1440 px × 6 màn: 0 px tràn; hệ thống thật 16/16.
+- **Còn nợ:** gộp #112 trước rồi PR này; chặng 2 ở máy mình; sau đó `main` và VPS; không có migration.
+
+[Biên bản](kiem-chung-kn-oms-thiet-ke-lai-20261013.md).
+
+## 13.10.2026 — KN OMS: bản demo dữ liệu giả trong KN CRM, chỉ Admin (ADR-051, AC-51.1 → 51.8)
+
+- **Chủ dự án:** "mockup + 1 2 3 làm sang một site khác từ KN CRM có thể mở KN OMS để có mockup + 1 2 3".
+  - "Mockup" là [mockup tương tác](https://claude.ai/artifact/PtHzbv73q4kdaQrJSijEWk) gồm Báo đơn, Kho, Kênh bán & Page.
+  - "1 2 3" là ba đề xuất: Công nợ & đối soát, Cảnh báo khách rủi ro, Lãi theo page.
+  - Chủ dự án chốt: đường dẫn riêng `/oms/` trong KN CRM, chỉ Admin, toàn bộ dữ liệu giả.
+- **Đã làm:**
+  - **Lối vào:** `/oms/` chỉ có ở KN CRM. Mục "KN OMS" cuối thanh bên chỉ Admin thấy, mở tab mới. Vai khác gọi thẳng nhận
+    403 có nhật ký; KN ERP trả 404.
+  - **Trang:** đứng riêng, sáu màn, mỗi màn một địa chỉ `#…`. Nền dùng chung với KN CRM. Có nút "Đặt lại demo".
+  - **Dữ liệu:** sinh trong trình duyệt từ hạt giống cố định, nên ba màn cũ ra y như mockup.
+  - **Không đụng:** model, migration, settings, dữ liệu thật. Trang không gọi máy chủ.
+- **Kiểm:**
+  - bài mới: 14 bài quyền và 5 bài trình duyệt (chạy 3 lần liền);
+  - `pytest -m "not trinh_duyet"`: 3.206 đạt, 7 bỏ qua, 0 đỏ (thêm 29 bài so với 12.10);
+  - đi thử trên hệ thống thật với `quantri`, `sale.staff` và KN ERP.
+- **Sửa thêm trong lúc kiểm** (chi tiết ở biên bản):
+  - Lãi theo page: 8/11 page lỗ, nay đúng 2 page;
+  - bảng tràn ngang: nay 0 px ở mọi màn và mọi cỡ;
+  - "Cập nhật từ hãng" lần đầu không có đơn nào giao xong.
+- **Còn nợ:**
+  - chủ dự án duyệt và gộp PR nháp vào `Staging`;
+  - chặng 2: thử ở máy mình (`KN JSC.bat`, `quantri`, KN CRM → KN OMS);
+  - sau đó mới lên `main` và VPS; không có migration.
+- **Ghi lại để xem sau:** mọi ngưỡng, phí, giá vốn, cước, quảng cáo, tỉ giá ở KN OMS là số minh hoạ. Làm thật màn nào cũng
+  cần ADR riêng và lời đáp H7.
+
+[Biên bản](kiem-chung-kn-oms-demo-20261013.md).
+
 ## 13.10.2026 — Kế hoạch kiểm thử toàn diện (`docs/08`)
 
 - **Chủ dự án:** "lập một kế hoạch test toàn diện và đầy đủ, bao quát toàn bộ hệ thống"; chọn tài liệu mới `docs/08`,

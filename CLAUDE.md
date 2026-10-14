@@ -1,6 +1,6 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 13.10.2026 (kế hoạch kiểm thử toàn diện `docs/08`: ma trận phân hệ, kiểm tay Chặng 2 theo vùng, phân tích lọt lưới, lộ trình P0/P1/P2); 12.10.2026 (TL-89: nút Thống kê KN CRM của nguồn Sale/MKT sang Báo cáo tổng hợp ERP, AC-40.9); 10.10.2026 (ADR-050 Admin sửa lần nộp ngay trên Báo cáo tổng hợp); 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
+> Cập nhật 13.10.2026 (ADR-051: KN OMS, bản demo dữ liệu giả ở `/oms/` của KN CRM, chỉ Admin; bổ sung cùng ngày: diện mạo Solarpunk như KN CRM, làm sâu sáu màn; kế hoạch kiểm thử toàn diện `docs/08`: ma trận phân hệ, kiểm tay Chặng 2 theo vùng, phân tích lọt lưới, lộ trình P0/P1/P2); 12.10.2026 (TL-89: nút Thống kê KN CRM của nguồn Sale/MKT sang Báo cáo tổng hợp ERP, AC-40.9); 10.10.2026 (ADR-050 Admin sửa lần nộp ngay trên Báo cáo tổng hợp); 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
 > `main` → VPS**; Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền, nhánh việc gộp xong là
 > xoá); 25.09.2026 (ADR-043 bổ sung: một ô Team duy nhất trên form báo cáo); 24.09 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
 > chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
@@ -233,6 +233,13 @@ Lưới `/bang-tinh/<mã bảng>/` toàn màn hình, chỉ lưới có nút ← 
 không về ERP (ADR-012, 015). **Leader như Manager trong bộ phận mình**
 (`grant_service._quan_ly_bo_phan`), cấp quyền cho người khác vẫn Manager.
 Bài kiểm của `crm/tests` chạy ở URLconf 8021 nhờ `crm/tests/conftest.py`.
+
+**KN OMS** (ADR-051, 13.10) là bản demo cho chủ dự án trình bày, không phải tính năng thật:
+- `/oms/` chỉ có ở KN CRM, chỉ Admin. Mục cuối thanh bên mở tab mới; vai khác nhận 403 có nhật ký.
+- Trang đứng riêng `crm/kn_oms.html` nạp bốn tệp CSS của KN CRM rồi `oms.css`, cùng `oms.js`; khung và thành phần theo KN CRM.
+- Sáu màn: mockup cộng Công nợ, Khách rủi ro, Lãi theo page; lọc ngày, xuất CSV, biểu đồ lãi theo ngày (AC-51.9 → 51.14).
+- Dữ liệu giả sinh trong trình duyệt: không model, không gọi máy chủ.
+- Bài soát lớp CSS soát trang này theo đúng năm tệp nó nạp (bảng `CSS_RIENG`).
 
 **Lưới là một bộ duy nhất cho mọi bảng** (ADR-021, 027): `templates/crm/master_grid.html`
 + `static/js/master-grid.js` (cùng `master-working-copy.js`, `master-row-geometry.js`,

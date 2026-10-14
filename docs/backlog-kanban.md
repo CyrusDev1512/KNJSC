@@ -1,5 +1,44 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 14.10.2026 — Gộp KN OMS (#112, #114) vào `Staging`
+
+**Finished:**
+- kiểm cây sau gộp (trùng đúng cây #114): pytest 3.207 đạt, 0 đỏ; e2e 68 và 22 đạt, 9 bài đỏ có sẵn y hệt `Staging`
+  gốc; bài KN OMS 3 lần đạt; hệ thống thật 16/16; quyền đúng với 14 tài khoản; 209 trang 0 lỗi;
+- gộp #112 rồi #114 vào `Staging` bằng merge commit; xoá nhánh đã gộp.
+
+**To do:**
+- chặng 2: thử trên `Staging` ở máy mình theo kịch bản 16 bước;
+- sau đó `main` và VPS; không có migration.
+
+## 13.10.2026 — KN OMS thiết kế lại theo Solarpunk Office, làm sâu sáu màn (ADR-051 bổ sung, AC-51.9 → 51.14)
+
+**Finished local (nhánh `claude/kn-oms-thiet-ke-lai`, tách từ `claude/kn-oms-demo`, PR nháp riêng về `Staging`):**
+- diện mạo KN CRM: nạp bốn tệp CSS của KN CRM, khung kính, dải chỉ số phẳng, biểu mẫu vào ngăn kéo, bỏ viền trái;
+- làm sâu: lọc ngày, xuất CSV, chọn nhiều đơn ở Công nợ, dòng thời gian khách, chặn phải ghi lý do, đủ bán và gợi ý nhập,
+  so 7 ngày trước, biểu đồ lãi theo ngày;
+- vẫn dữ liệu giả; KN CRM, KN ERP không đổi; không model, không migration.
+
+**14.10:** gộp vào `Staging` (#114, sau #112).
+
+**To do:**
+- chặng 2: thử trên `Staging` ở máy mình theo kịch bản trong PR;
+- sau đó `main` và VPS; không có migration.
+
+## 13.10.2026 — KN OMS: bản demo dữ liệu giả trong KN CRM, chỉ Admin (ADR-051, AC-51.1 → 51.8)
+
+**Finished local (nhánh `claude/kn-oms-demo`, PR nháp về `Staging`):**
+- `/oms/` chỉ ở KN CRM, chỉ Admin. Mục cuối thanh bên mở tab mới; vai khác 403 có nhật ký; ERP 404.
+- Sáu màn: Báo đơn, Kho, Kênh bán & Page của mockup cùng Công nợ & đối soát, Khách rủi ro, Lãi theo page.
+- Dữ liệu giả sinh trong trình duyệt: không model, không migration, không gọi máy chủ.
+- Kiểm: 14 bài quyền, 5 bài trình duyệt chạy 3 lần liền; đi thử trên hệ thống thật 9/9.
+
+**14.10:** gộp vào `Staging` (#112).
+
+**To do:**
+- chặng 2: thử trên `Staging` ở máy mình (`KN JSC.bat`, `quantri`, KN CRM → KN OMS);
+- sau đó `main` và VPS; không có migration.
+
 ## 12.10.2026 — Sửa TL-89: nút của Thống kê KN CRM (AC-40.9)
 
 **Finished local (nhánh `claude/knerp-erp-chinh-sua-hfi7w8`, PR nháp về `Staging`):**

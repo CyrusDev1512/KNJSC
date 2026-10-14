@@ -16,7 +16,7 @@ from orders.constants import is_waybill_table
 from django.urls import NoReverseMatch, reverse
 
 from core.constants import Rank
-from core.permissions import has_rank, can_manage_business, in_departments, is_company_reader
+from core.permissions import has_rank, can_manage_business, in_departments, is_admin, is_company_reader
 from core.navigation import SALES_ONLY
 
 
@@ -93,4 +93,7 @@ def build(user, current=""):
     # Trang Nhật ký chỉ Admin mở được (quyết định 25.09, AC-44.2) — mục cũng chỉ Admin thấy (AC-40.5)
     if has_rank(user, Rank.ADMIN) and (u := _url("nhat_ky")) is not None:
         muc.append(CrmNavItem("nhat_ky", "Nhật ký", u, "≡", current == "nhat_ky"))
+    # KN OMS: bản demo dữ liệu giả, mở tab mới — chỉ Admin, cùng điều kiện với view (ADR-051, AC-51.3)
+    if is_admin(user) and (u := _url("kn_oms")) is not None:
+        muc.append(CrmNavItem("kn_oms", "KN OMS", u, "⧉", new_tab=True))
     return muc
