@@ -13,6 +13,10 @@
 > Tài liệu này trả lời: **kiểm cái gì, bằng cách nào, ai kiểm, và thế nào là đạt.**
 > `docs/04` định nghĩa *thế nào là xong*; tài liệu này định nghĩa *làm sao biết
 > là đã xong*.
+>
+> **Kế hoạch toàn diện 13.10.2026:** [`docs/08-ke-hoach-kiem-thu-toan-dien.md`](08-ke-hoach-kiem-thu-toan-dien.md)
+> — ma trận phân hệ × loại kiểm thử, góc nhìn người dùng và QA, kiểm tay Chặng 2 theo vùng,
+> sổ tay gỡ lỗi, phân tích lọt lưới các lỗi TL, lộ trình P0/P1/P2. Chín tầng ở đây vẫn giữ nguyên.
 
 ---
 
@@ -244,7 +248,7 @@ Ghi ra để không tự lừa mình:
 
 | # | Thiếu | Vì sao chưa làm |
 |---|---|---|
-| 1 | Không có gì chạy kiểm thử tự động khi đẩy mã lên kho | Người dùng chốt chưa dựng, vì backlog **V2** còn để ngỏ ai vận hành sau bàn giao |
+| 1 | ~~Không có gì chạy kiểm thử tự động khi đẩy mã lên kho~~ | **Đã có từ 23.09.2026:** `.github/workflows/ci.yml` chạy pytest (bộ chính và e2e Chromium) trên mọi PR và mọi lần đẩy lên `Staging`, `main`. Các mục khác của bảng này còn cũ chỗ nào: xem `docs/08-ke-hoach-kiem-thu-toan-dien.md` mục 9.4 |
 | 2 | Đo tải 50 người và kiểm tải 100 người / 100 nghìn khách mới chạy trên máy phát triển (máy ảo 4 nhân), chưa chạy trên máy chủ thật | Máy chủ chưa có — Giai đoạn 8; `scripts/kiem-tai-kn-crm.*` chạy lại được trên bất kỳ máy có Docker, kết quả trên máy cá nhân chỉ để so tương đối |
 | 3 | Bài trình duyệt thật (Playwright) và hiệu năng 50.000 dòng không chạy trong container `web` | Image không có Chromium và `pytest` mặc định bỏ dấu `cham`; chạy trên máy phát triển — backlog **K19** |
 | 4 | Chưa kiểm khả năng đọc màn hình cho người khiếm thị | Không có yêu cầu nào nêu, chưa hỏi người dùng |

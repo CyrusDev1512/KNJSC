@@ -110,6 +110,32 @@
 
 [Biên bản](kiem-chung-kn-oms-demo-20261013.md).
 
+## 13.10.2026 — Kế hoạch kiểm thử toàn diện (`docs/08`)
+
+- **Chủ dự án:** "lập một kế hoạch test toàn diện và đầy đủ, bao quát toàn bộ hệ thống"; chọn tài liệu mới `docs/08`,
+  giao bằng nhánh + PR nháp về `Staging`.
+- **Làm thế nào:** chỉ đọc mã, không chạy đo nào. 63 agent: 8 bản đồ phân hệ, mỗi bản đồ bị một agent khác cố bác bỏ;
+  kiểm kê 154 đường dẫn ERP/CRM × quyền; kiểm kê 30 phép tính tiền/số kèm oracle; phân tích lọt lưới 87 mục TL trên mã
+  hôm nay; 11 agent viết; 2 vòng phản biện (33 rồi 30 mục thiếu/sai, đã sửa theo phần).
+- **Ra gì:** `docs/08-ke-hoach-kiem-thu-toan-dien.md` (mục lục, bốn trục phân loại, lộ trình, rủi ro còn lại) và 10 tệp ở
+  `docs/08-ke-hoach-kiem-thu/`: môi trường và chặng, ma trận phân hệ × loại kiểm thử, ba nhóm bộ kiểm xuyên suốt, góc nhìn
+  người dùng, góc nhìn QA, kiểm tay Chặng 2 theo vùng, sổ tay gỡ lỗi, phân tích lọt lưới. Toàn văn 640 KB nên tách tệp;
+  tách đúng vị trí tiêu đề, không sửa chữ nào (đã đối chiếu lại).
+- **Số chính:** 197 lỗ hổng kiểm thử đã xác minh (41 lỗ hổng bị bác bỏ vì thật ra đã có bài); 23 lỗi TL còn sống trong mã
+  hôm nay; 34 mục TL chưa có bài hồi quy; lộ trình 3 việc chuẩn bị, 17 P0, 29 P1, 19 P2.
+- **Đáng nhớ:** 29/48 lỗi có mã từ 18.09 bị bắt **sau** CI (chủ dự án thử 18, diễn tập VPS 7, kiểm Staging 4); tầng rò
+  nhiều nhất là rà đặc tả (bài kiểm làm đúng một đặc tả sai); đợt săn lỗi 06.10 bắt 23 lỗi trong một ngày; bốn lỗi nặng
+  còn sống: TL-01, TL-03, TL-18, TL-82.
+- **Kiểm:** 258 mã AC, 44 ADR, 81 mã TL được nhắc — 0 mã bịa (TL-37, TL-59 là chỗ nói "không có", TL-90 là số kế tiếp);
+  0 liên kết Markdown hỏng; lấy mẫu 6 khẳng định tới số dòng đều đúng, lệch ≤ 2 dòng; `pytest tests/test_truy_vet.py
+  core/tests/test_chuyen_doi.py tests/test_dong_bo_skill.py`: 52 đạt.
+- **Sửa kèm:** `docs/06` gạch dòng "chưa có CI" ở mục "Việc còn thiếu", trỏ sang `docs/08`; `CLAUDE.md` ba dòng trỏ
+  (dòng Cập nhật, câu Chặng 2, bảng "Đọc gì trước khi làm").
+- **Chưa làm (cố ý):** chưa viết bài kiểm nào, chưa sửa lỗi nào — đây là kế hoạch. Chưa dọn bảng cũ `docs/test-log.md`
+  (`docs/08` mục 8.8), chưa sửa `docs/07` và `docs/05` phần A (mục 9.4).
+- **Chờ chủ dự án:** 9 quyết định chặn P0/P1 ở `docs/08` mục 9.5 — nặng nhất là luật đọc chuỗi tiền `0.125` do máy gửi lại
+  (chặn P0-3, P0-5).
+
 ## 12.10.2026 — Sửa TL-89: nút của Thống kê KN CRM (AC-40.9)
 
 - **Chủ dự án:** "sửa TL-89 đi", chọn đích Báo cáo tổng hợp KN ERP.
