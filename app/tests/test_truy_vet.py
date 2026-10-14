@@ -42,14 +42,10 @@ HOAN = {
     "AC-24.4": "CRM-Optimization đang kiểm chứng — ADR-024, Giai đoạn 7K",
     "AC-24.5": "Đo trên Chrome thật, chưa tự động hoá — ADR-024, Giai đoạn 7K",
     "AC-24.7": "Bài đo tải dài 30 phút, chạy tay khi phát hành — ADR-024, Giai đoạn 7K",
-    # ADR-025 — chứng từ thanh toán. Mục AC-26 trong `docs/04` mới là bảng hai
-    # cột, chưa có bài kiểm nào mang mã AC-26.
-    "AC-26.1": "Chứng từ thanh toán mới ghi tiêu chí — ADR-025, backlog chờ làm",
-    "AC-26.2": "Chứng từ thanh toán mới ghi tiêu chí — ADR-025, backlog chờ làm",
-    "AC-26.3": "Chứng từ thanh toán mới ghi tiêu chí — ADR-025, backlog chờ làm",
-    "AC-26.4": "Chứng từ thanh toán mới ghi tiêu chí — ADR-025, backlog chờ làm",
-    "AC-26.5": "Chứng từ thanh toán mới ghi tiêu chí — ADR-025, backlog chờ làm",
-    "AC-26.6": "Kiểm trên Chrome thật, chưa tự động hoá — ADR-025, backlog chờ làm",
+    # ADR-025 — chứng từ thanh toán. AC-26.1 → 26.5 đã có bài kiểm ở
+    # `crm/tests/test_payment_documents.py` (P0-10, 14.10). AC-26.6 là phần Chrome
+    # thật: `test_payment_browser_server.py` chỉ chạy khi bật KN_PAYMENT_BROWSER=1.
+    "AC-26.6": "Chrome thật chỉ chạy khi KN_PAYMENT_BROWSER=1, CI chưa chạy — ADR-025, backlog chờ làm",
     # ADR-027 tự ghi ở mục 27: "Đây là tiêu chí, chưa phải nhãn hoàn thành".
     # AC-27.3 đã có bài kiểm, bảy mã còn lại thì chưa.
     "AC-27.1": "Lưới dùng chung đang làm — ADR-027, Giai đoạn 7K",
