@@ -15,6 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 
 from django.db import OperationalError, connection, transaction
+from django.db.models import ProtectedError
 
 from core.audit import record
 from core.exceptions import BusinessError
@@ -197,12 +198,18 @@ def remove_column(column, *, actor=None, request=None):
     Xoá định nghĩa cột, nhưng **không** xoá giá trị đã nhập trong JSON — dữ
     liệu người dùng gõ vào không tự biến mất (tinh thần BR-4). Cột không còn
     hiển thị, và gán lại đúng tên kỹ thuật đó thì dữ liệu cũ hiện trở lại.
+
+    Luật bỏ cột nằm ở đây cho mọi cửa (lưới, màn Cột ở 8020/8021): cột khoá, vế của cột tính sẵn, cột đang
+    nhận dữ liệu từ biểu mẫu, cột hệ thống của bảng vận đơn thì `BusinessError` (TL-13).
     """
-    policy = record_policies.for_table(column.table)
-    if policy:
-        policy.assert_column_change(column)
+    ly_do = removable_reason(column)
+    if ly_do:
+        raise BusinessError(ly_do)
     bang, ma = column.table, column.code
-    column.delete()
+    try:
+        column.delete()
+    except ProtectedError as loi:      # vừa có biểu mẫu nối vào giữa lúc kiểm và lúc xoá
+        raise BusinessError(f'"{column.name}" đang nhận dữ liệu từ biểu mẫu — tải lại trang.') from loi
     schedule_resync(bang, actor=actor)
     record(
         AuditAction.DELETE, actor=actor, target=bang,
@@ -307,8 +314,8 @@ def insert_columns(table, *, count=1, anchor=None, after=True, actor=None, reque
 
 
 def removable_reason(column):
-    """Vì sao không bỏ được cột này ngay trên lưới; trống nghĩa là bỏ được.
-    Cột khoá và cột đang là vế của một cột tính sẵn thì giữ."""
+    """Vì sao không bỏ được cột này; trống nghĩa là bỏ được. Cột khoá, cột đang là vế của một cột tính sẵn,
+    cột đang nhận dữ liệu từ biểu mẫu và cột hệ thống của profile bảng (vận đơn) thì giữ — AC-11.22."""
     policy = record_policies.for_table(column.table)
     if policy:
         try:
@@ -323,6 +330,14 @@ def removable_reason(column):
     ]
     if dung_o:
         return f'"{column.name}" đang là vế của cột tính sẵn {", ".join(dung_o)}.'
+    # Biểu mẫu luôn cùng bộ phận với bảng (FormDef.clean) nên nêu tên không lộ gì ra ngoài
+    bieu_mau = sorted({
+        f.name + ("" if f.is_active else " (đã ngừng dùng)")
+        for f in (l.form_field.form for l in column.links.select_related("form_field__form"))
+    })
+    if bieu_mau:
+        return (f'"{column.name}" đang nhận dữ liệu từ biểu mẫu {", ".join(bieu_mau)} — bỏ trường đó khỏi '
+                "biểu mẫu (hoặc nối sang cột khác) rồi mới bỏ cột.")
     return ""
 
 
