@@ -22,7 +22,7 @@ CLAUDE.md quy định bốn chặng, theo đúng thứ tự: `claude/<tên-việ
 | Nguồn dữ liệu | Lệnh / vị trí | Dùng ở chặng | Lưu ý bắt buộc |
 |---|---|---|---|
 | DB pytest riêng | Tự tạo `test_*` theo `--ds=knjsc.settings.test` (`app/pytest.ini`). `STORAGE_DIR`, `BACKUP_DIR`, `EXPORT_DIR` nằm trong thư mục tạm `knjsc-kiem-thu-*`. Celery eager có lan lỗi. Email locmem. Hasher MD5 | 1a, 1b, 3 | **Không chạy hai pytest cùng lúc** trên một DB kiểm thử. Cache `crm` là RedisCache mà CI không có Redis, nên mọi bài không tự đè `CACHES` đều đi nhánh "Redis tắt". Chỉ ba tệp đè sang LocMem: `crm/tests/test_optimization.py`, `test_khoi_luoi_dem.py`, `test_thong_ke_lien_ket_nguon.py` |
-| Fixture gốc | `app/conftest.py`: fixture `nguoi_dung` có 11 tài khoản (`staff_sale_1`, `staff_sale_1b`, `staff_sale_2`, `leader_sale_1`, `leader_sale_2`, `manager_sale`, `staff_mkt`, `manager_mkt`, `staff_vd`, `staff_kt`, `admin`), mật khẩu `matkhau-kiem-thu-1`. Kèm `departments`, `teams`, `probes` | 1a, 1b | **Thiếu** CEO, CSKH, Leader MKT, Leader/Manager VĐ, Leader/Manager Kế toán. CEO phải tự dựng ở 10 tệp. `leader_vd`/`manager_vd` tự dựng ở 6 tệp: `crm/tests/test_lien_ket_khong_cut.py`, `crm/tests/test_chi_admin_xoa_dong.py`, `forms_builder/tests/test_pham_vi_bang_nhanh.py`, `tests/test_hieu_nang.py`, `tests/e2e/test_dien_thoai.py`, `core/tests/test_ma_tran_quyen_hai_dich_vu.py` |
+| Fixture gốc | `app/conftest.py`: fixture `nguoi_dung` có 15 tài khoản (`staff_sale_1`, `staff_sale_1b`, `staff_sale_2`, `leader_sale_1`, `leader_sale_2`, `manager_sale`, `staff_mkt`, `manager_mkt`, `staff_vd`, `staff_kt`, `admin`, và từ #118: `ceo`, `cskh`, `leader_vd`, `manager_vd`), mật khẩu `matkhau-kiem-thu-1`. Kèm `departments`, `teams`, `probes` | 1a, 1b | **Thiếu** CEO, CSKH, Leader MKT, Leader/Manager VĐ, Leader/Manager Kế toán. CEO phải tự dựng ở 10 tệp. `leader_vd`/`manager_vd` tự dựng ở 6 tệp: `crm/tests/test_lien_ket_khong_cut.py`, `crm/tests/test_chi_admin_xoa_dong.py`, `forms_builder/tests/test_pham_vi_bang_nhanh.py`, `tests/test_hieu_nang.py`, `tests/e2e/test_dien_thoai.py`, `core/tests/test_ma_tran_quyen_hai_dich_vu.py` |
 | Tài khoản mẫu và dữ liệu nền local | Chạy **đúng thứ tự**: 1) `migrate` → `tao_bang_van_don` (bảng động `van_don`, quyết định 001). 2) `du_lieu_mau`. 3) `configure_erp_reports`. 4) `configure_delivery_daily_report`. Nếu configure chạy trước `du_lieu_mau` thì nó bỏ qua bảng chưa có mà không báo lỗi, và Báo cáo tổng hợp lặng lẽ rơi về bản cũ (ADR-022, tệp `022-bao-cao-hoat-dong-erp.md`, chưa xác minh tệp nào trong hai tệp 022). Launcher và `cap-nhat-local.*` đã làm theo thứ tự này | 2, 4a | `du_lieu_mau` bị chặn khi DEBUG tắt (trừ khi có `--dong-y-chay-that`). Chạy lại thì **đặt lại mật khẩu và mở khoá** tài khoản mẫu. `cap_nhat_mat_khau_mau` bỏ qua khi DEBUG tắt |
 | Vận đơn mẫu | `manage.py nap_du_lieu_van_don`: đúng 10.000 dòng mẫu `MAU-*`, có chi tiết, thanh toán, phân công. Có `--tong-so`, `--seed`, `--dry-run` | 2 | Bị chặn khi DEBUG tắt. Khoá này **chưa có bài kiểm** (`orders/tests/test_nap_du_lieu_van_don.py` chỉ chạy với DEBUG=True) |
 | Khách mẫu khối lớn | `manage.py nap_khach_mau --so-khach 300000`: 375.000 dòng `KH-*`, 20% mua lại (AC-10.9). Xoá bằng `--xoa-cu`, xoá theo lô có `lock_timeout` (AC-10.10) | 2, 4a (đo tải) | Bị chặn khi DEBUG tắt. Có bài `orders/tests/test_nap_khach_mau.py` |
@@ -50,14 +50,14 @@ CLAUDE.md quy định bốn chặng, theo đúng thứ tự: `claude/<tên-việ
 | Sale Staff | `sale.staff` (Sale 1), `sale.staff2` (Sale 2) | `staff_sale_1`, `staff_sale_1b`, `staff_sale_2` | Hai người khác team không thấy báo cáo của nhau |
 | Sale Staff mới | `sale.moi`, bị buộc đổi mật khẩu ở lần đầu | `make_user(..., must_change_password=True)` | ForcePasswordChangeMiddleware, AC-1.5 |
 | MKT Manager / Leader / Staff | `mkt.manager`, `mkt.leader` (MKT 1), `mkt.staff` (MKT 1) | `manager_mkt`, `staff_mkt` (fixture không có Leader MKT) | Nộp báo cáo, ADR-043, ADR-047 |
-| VĐ Manager / Staff | `vd.manager`, `vd.staff` | `staff_vd` (fixture không có Manager hay Leader VĐ) | Lưới `van_don` ở 8021, CAS 409, phân công |
-| VĐ Leader | **Không có** | Không có (6 tệp tự dựng, xem 1.2) | ❌ thiếu cho kiểm tay |
-| Kế toán | **Không có** | `staff_kt` (chỉ Staff) | ❌ thiếu cho kiểm tay ADR-038 |
-| CSKH | **Không có**. Fixture `departments` cũng không có bộ phận `cskh` | Không có | ❌ thiếu cho AC-33.6 |
-| CEO | **Không có** | Không có (10 tệp tự dựng `Rank.CEO`) | ❌ thiếu cho kiểm tay ADR-044 (CEO chỉ đọc lưới) |
+| VĐ Manager / Staff | `vd.manager`, `vd.staff` | `staff_vd`, `leader_vd`, `manager_vd` (từ #118) | Lưới `van_don` ở 8021, CAS 409, phân công |
+| VĐ Leader | `vd.leader` (từ #118) | `leader_vd` (từ #118; vài tệp cũ vẫn tự dựng) | Có |
+| Kế toán | `kt.staff` (từ #118) | `staff_kt` (chỉ Staff) | Có |
+| CSKH | `cskh.staff` (từ #118; `du_lieu_mau` và fixture `departments` tạo bộ phận `cskh`) | `cskh` (từ #118) | Có |
+| CEO | `giamdoc` (từ #118) | `ceo` (từ #118; vài tệp cũ vẫn tự dựng `Rank.CEO`) | Có |
 | Người chưa đăng nhập | — | client không đăng nhập | Chuyển về `/dang-nhap/` (AC-1.1) |
 
-Muốn thêm tài khoản CEO, Kế toán, CSKH, VĐ Leader vào `du_lieu_mau` và `docs/tai-khoan-mau.md` thì chủ dự án phải chốt trước. Hiện chưa xác minh có cách nào khác để tạo các vai này ngoài màn hình Nhân sự.
+Bốn vai CEO, Kế toán, CSKH, VĐ Leader đã có trong `du_lieu_mau`, `docs/tai-khoan-mau.md` và fixture từ #118 (chủ dự án duyệt cùng kế hoạch đợt P0, 13.10.2026).
 
 ### 1.4 Lệnh chạy
 

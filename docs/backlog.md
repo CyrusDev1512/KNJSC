@@ -1,5 +1,56 @@
 # Backlog
 
+## 14.10.2026 — Đợt kiểm thử P0: bài đỏ trước, sửa sau (TL-90 → TL-99, TL-101 → TL-104)
+
+- **Chủ dự án:** duyệt kế hoạch đợt P0 (`docs/08` mục 9).
+  - Mỗi việc một nhánh `claude/p0-…` và một PR nháp về `Staging`.
+  - Mỗi việc viết bài đỏ trên mã hiện tại trước, chạy để chắc là đỏ, rồi mới sửa cho xanh.
+- **Quyết định chủ dự án (13–14.10):**
+  - **Chuỗi tiền:** số máy gửi lại đọc dấu chấm là thập phân; chữ người gõ giữ luật Việt (ADR-052).
+  - **`/quan-tri/`:** dùng chung cửa đăng nhập, Admin sai 5 lần cũng bị khoá; giữ ít nhất 2 Admin.
+  - **Manager mất bộ phận:** 403 kèm câu báo.
+  - **Kế toán:** ẩn mục "Nộp báo cáo ngày" vì hiện chưa có chức năng kế toán; gõ thẳng địa chỉ thì thấy câu báo.
+  - **P0-14:**
+    - hết phiên thì giữ nháp;
+    - đăng nhập lại rồi bấm là lưu được;
+    - đổi người thì 409 "Tài khoản vừa đăng nhập khác người mở trang — nháp không được lưu";
+    - ADR-053 sửa một điều khoản của ADR-030.
+- **Ra gì:** 14 PR nháp (#115 → #127 và #129, xem `docs/backlog-kanban.md` mục 14.10), cộng PR tổng kết này.
+
+  #128 (TL-100, lời báo mất mạng) là của phiên khác, không thuộc đợt này; đã gộp vào `Staging` 14.10, mục ngay dưới.
+
+  Mỗi PR ghi lệnh và kết quả đỏ trước khi sửa, xanh sau khi sửa, cùng thứ tự gộp.
+- **Phát hiện thêm**, đã sửa trong PR của việc đó:
+  - P0-3: sửa nhãn cột Tiền làm nhân nghìn cả cột;
+  - P0-2: dòng Từ chối ghi trong giao dịch `locked_target` bị huỷ theo; 404 không nhật ký trên đối tượng vai đó thấy được.
+  - P0-14 (rà đối kháng, 19 chỗ sửa): `HX-Current-URL` hỏng ra 500; Thử lại xoá dòng sau lỗi phiên thì lưới trống mãi;
+    lượt xoá dòng còn treo vẫn báo "Đã lưu"; lỗi phiên nhả lượt lưu chưa rõ kết quả (mất chống ghi đôi); tự thử lại 5xx
+    sau khi mất phiên; năm chỗ bài kiểm có thể xanh giả. Chi tiết ở biên bản `docs/kiem-chung-p0-14-het-phien-20261014.md`
+    (đi cùng #129).
+- **Số ADR:** kế hoạch cấp ADR-051 cho P0-3, nhưng số này đã thuộc KN OMS (#112). P0-3 nhận ADR-052, P0-14 nhận ADR-053.
+- **Gộp Staging mới (KN OMS):**
+  - #126 xung đột bộ đếm `docs/06`: đếm lại thành 367 trên 385, hoãn 18;
+  - #113 xung đột `CLAUDE.md`, `docs/backlog.md`;
+  - #127 thêm xếp loại đường `/oms/`.
+
+  Các PR khác gộp sạch.
+- **Kiểm:**
+  - mỗi PR chạy bộ chính đầy đủ, ví dụ #127 sau khi gộp Staging: 3.447 đạt, 7 bỏ qua, 0 đỏ;
+  - e2e liên quan;
+  - rà đối kháng bằng workflow cho P0-2 (6 phát hiện xác nhận, đã sửa) và P0-14 (16 phát hiện cộng các điểm bỏ bớt;
+    người kiểm lại xác nhận 10, bác 6; sửa 19 chỗ, chỉ bỏ một bản sửa);
+  - #129: bộ chính 3.527 đạt, 0 đỏ; 8 bài e2e mới đỏ 8/8 trên mã cũ, đạt nhiều lượt liền sau khi sửa; CI xanh.
+- **Còn nợ** (mỗi mục giữ nguyên lý do chưa làm):
+  - P0-5, P0-6, P0-11, P0-12: chờ `docs/08` mục 9.5;
+  - TL-101, TL-102, TL-103, TL-104: mở;
+  - P0-3 Bước 2, 3: chờ duyệt;
+  - P0-15 phần VPS và K30: cần VPS, đổi phạm vi vận hành;
+  - diễn tập P0-13: cần compose production;
+  - kiểm tay launcher trên Windows;
+  - chặng 2 sau khi gộp: riêng P0-14 có kịch bản ở biên bản của #129 (hai tab, Lên đơn, Chi tiết, phân công, chứng
+    từ, khoá tài khoản, ERP);
+  - VPS sau khi gộp P0-14: kiểm không còn cookie CSRF host-only trùng tên trên hai hostname (ADR-053).
+
 ## 14.10.2026 — Lời báo mất mạng không còn bị tra khách xoá oan (AC-10.12, TL-100)
 
 - **Chủ dự án:** "sửa luôn lỗi AC-10.12 đi". Lỗi lộ ra khi CI `Staging` đỏ sau lúc gộp KN OMS. Trước khi sửa, đã gửi chủ

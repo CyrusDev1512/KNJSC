@@ -1,5 +1,62 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 14.10.2026 — Đợt kiểm thử P0: bài đỏ trước, sửa sau (TL-90 → TL-99, TL-101 → TL-104)
+
+Làm theo lộ trình `docs/08` mục 9. Mỗi việc một nhánh `claude/p0-…` và một PR nháp về `Staging`. Mỗi việc viết bài kiểm
+**đỏ** trên mã hiện tại trước, chạy để chắc là đỏ, rồi mới sửa cho xanh. Chưa PR nào được gộp. Chủ dự án gộp theo thứ tự
+ghi trong từng PR ("gộp sau #…").
+
+**Lỗi cũ đã sửa ở đợt này**: xem cột Trạng thái ở bảng "Lỗi theo thứ tự nghiêm trọng" phía dưới.
+- TL-01 (#122)
+- TL-03 (#124)
+- TL-13 (#120)
+- TL-23 (#117)
+- TL-02 và TL-18 (#129)
+
+**Mã mới:**
+
+| Mã | Mức | Việc | Lỗi, trước khi sửa | Trạng thái |
+|---|---|---|---|---|
+| TL-90 | Hạ tầng | Chuẩn bị | Fixture `nguoi_dung` không có Giám đốc, CSKH, Leader và Manager Vận đơn, nên mọi bài lặp theo vai bỏ sót bốn vai có luật riêng. `du_lieu_mau` thiếu `giamdoc` (CEO), `kt.staff`, `cskh.staff`, `vd.leader` (`vd.manager` có từ trước) | Đã sửa #118 |
+| TL-91 | S2 | P0-2 | Giám đốc và Kế toán gọi thẳng đường ghi thì nhận 403 mà Nhật ký không có dòng Từ chối (40 bài đỏ). Giám đốc vào được form Tài liệu, Tài nguyên. Kế toán thấy mục "Nộp báo cáo ngày" dẫn tới trang trống | Đã sửa #127 |
+| TL-92 | S2 | P0-4 | Báo cáo tổng hợp bản cũ (nguồn chưa cấu hình) cộng lẫn USD với CAD vào một ô Tổng | Đã sửa #119 |
+| TL-93 | S2 | P0-8 | `/quan-tri/` có cửa đăng nhập riêng của Django, không bị khoá sau 5 lần sai | Đã sửa #121 |
+| TL-94 | S1 | P0-9 | Admin duy nhất tự hạ cấp được, hệ thống mất hết Admin; `set_rank`, `lock_account` không chặn; hai Admin cùng lúc tự hạ cấp đều qua | Đã sửa #125 |
+| TL-95 | S2 | P0-9 | Chọn được trưởng nhóm bộ phận khác. `scope_team_ids` không lọc theo bộ phận, nên Leader Marketing làm trưởng một team Sale thấy, đặt lại mật khẩu và xoá được Staff Sale | Đã sửa #125 |
+| TL-96 | S2 | P0-9 | Sửa hồ sơ không bắt chọn bộ phận. Manager bị gỡ bộ phận nhận danh sách rỗng thay vì bị từ chối (nay là 403 kèm "Tài khoản chưa được gán bộ phận. Liên hệ quản trị viên.") | Đã sửa #125 |
+| TL-97 | S2 | P0-15 | Phục hồi bản sao lưu hỏng giữa chừng để dở dữ liệu; lỗi không có nhật ký, báo tiếng Anh | Đã sửa #123 (`pg_restore --single-transaction`) |
+| TL-98 | S2 | P0-16 | `do_hieu_nang` chạy được khi DEBUG tắt và ghi vào dòng thật | Đã sửa #116 |
+| TL-99 | S2 | P0-17 | `KN JSC.bat` và `cap-nhat-local.bat` vẫn ghi mốc và mở trình duyệt khi `migrate` hay `tao_bang_van_don` lỗi | Đã sửa #115; kiểm tay TC-1…TC-6 trên Windows chưa làm |
+| TL-101 | S3 | (ngoài P0-7) | Sửa cột qua `update_column` (đổi kiểu cột mà còn giá trị không chuyển được) ném `BusinessError` không được bắt ở view, ra 500 | **Mở** |
+| TL-102 | S3 | (ngoài P0-16) | `tests/perf/locustfile.py` ghi vào dòng thật, không chỉ dòng `PERF-*` | **Mở** |
+| TL-103 | S3 | (ngoài P0-1) | Truy vấn Grant không lọc bản ghi đã xoá mềm | **Mở** |
+| TL-104 | S3 | (ngoài P0-14) | POST `multipart/form-data` (không phải JSON) vào `/van-don/phan-cong/` ra 500 `RawPostDataException`: `crm/assignment_views.py` đọc `request.body` sau khi `UnicodeNFCMiddleware` đã phân tích `request.POST` từ luồng (form urlencoded thì không lỗi vì Django giữ thân). Chỉ gặp khi gọi thẳng đường dẫn, giao diện luôn gửi JSON. Lộ ra lúc bài quét 409 của P0-14 POST `{}` vào mọi đường dẫn | **Mở** |
+
+- **P0-10** (#126) không có lỗi còn sống nên không cấp mã TL: cờ `PAYMENT_DOCUMENTS_ENABLED` đang tắt, đọc mã cả 7
+  nhánh đều đúng. PR chỉ thêm bài khoá và gỡ AC-26.1 → 26.5 khỏi HOAN.
+- **TL-100** không thuộc đợt này: phiên khác dùng cho lỗi lời báo mất mạng bị tra khách xoá oan (AC-10.12, #128).
+
+**Phát hiện thêm trong lúc làm**, đã sửa trong PR của việc đó:
+- P0-3: sửa nhãn hay màu một cột Tiền nhân nghìn cả cột, kể cả dòng đã xoá.
+- P0-2:
+  - dòng Từ chối ghi trong giao dịch `locked_target` bị huỷ theo giao dịch;
+  - xoá bảng và sửa báo cáo trả 404 không có nhật ký, dù vai đó thấy được đối tượng.
+
+**Chưa sửa, ghi lại:**
+- Giám đốc không bộ phận bấm Tạo việc thì tầng dịch vụ báo "Người làm hoặc người tạo phải thuộc một bộ phận" — đã có trong P2-11 (`docs/08`).
+- Theo đọc mã: vai không thấy bảng vận đơn gọi `du-lieu`, `lich-su`, `quyen-dong` thì nhận 403 không có nhật ký. Đã thêm vào P1-22 (`docs/08`).
+- Ba script Node đỏ sẵn trên `Staging`, không có trong CI. Lỗi nằm ở script: mã lưới gọi các hàm đo chiều cao ô ghi chú
+  tự giãn (AC-11.44, 24.09) mà script chưa có hàm giả thay cho chúng.
+  - `kiem-thu-master-conflict-unit.cjs` báo `apLaiChieuCao is not defined`.
+  - `kiem-thu-master-queue-unit.cjs` báo `1 !== 2`. Lượt lưu đầu ném lỗi thiếu `apLaiChieuCao`, nên lượt sau không gửi.
+  - PR này thêm hàm giả `apLaiChieuCao` cho hai script trên. Cả hai đạt trên `Staging` và trên mã của #129.
+  - `kiem-thu-optimization-unit.cjs` báo `message is not defined`. #129 đã sửa script này, nên PR này không đụng tới.
+- `reports/tests/test_o_nhap_so_e2e.py` chạy chung một phiên với `tests/e2e` thì báo "Sync API inside the asyncio loop",
+  chạy riêng thì xanh. CI không chạy tệp này.
+
+**Đổi số ADR:** kế hoạch cấp ADR-051 cho P0-3, nhưng ADR-051 đã thuộc KN OMS (#112). P0-3 nhận **ADR-052**, P0-14 nhận
+**ADR-053**.
+
 ## 14.10.2026 — CI `Staging` sau khi gộp KN OMS: hai bài e2e chập chờn (TL-100, TL-71)
 
 **TL-100 (đóng) — mức vừa, Lên đơn (AC-10.12):**
@@ -1224,13 +1281,13 @@ lỗi nào dưới đây có bài kiểm; mỗi lỗi khi sửa phải kèm mộ
 
 | Mã | Mức | Lỗi | Ở đâu | Tái hiện | Blocker | Ảnh hưởng hệ thống | Nhánh | Phát hiện | Trạng thái |
 |---|---|---|---|---|---|---|---|---|---|
-| TL-01 | S1 | Manager bộ phận khác **tự cấp quyền Sửa** cho mình hoặc team trên bảng chỉ được cấp Xem; thu hồi được cả quyền bộ phận chủ đã cấp | `forms_builder/views.py` `bang_cap_quyen`, `bang_thu_quyen` (gắn 8021 ở `knjsc/urls_bangtinh.py`): chỉ `assert_rank(MANAGER)` + `_lay_bang` qua `in_scope` (gồm bảng được cấp), không kiểm cùng bộ phận như `bang_cot` | Sale cấp Xem `don_sale` cho `mkt.manager`; `mkt.manager` mở `/bang/don_sale/cot/` → Cấp quyền cho chính mình, action Sửa → sửa/xoá dòng của Sale | Chặn nghiệm thu phân quyền `docs/07` §3 và AC-8.x | Lộ quyền ghi chéo bộ phận; nhật ký ghi như thao tác hợp lệ | cả hai | 07.09 rà mã | Mới |
-| TL-02 | S1 | **Hết phiên 60 phút** rồi dán, kéo điền, xoá dòng, định dạng: máy chủ trả 302 → trang đăng nhập 200, JS coi là thành công → "✓ Đã lưu", ghi bước hoàn tác, xoá dòng khỏi màn hình, báo "Đã xoá N dòng" | `core/middleware.py` `SessionTimeoutMiddleware` (302, không `HX-Redirect`); `static/js/bang-tinh-o.js` luu-o `ok = 2xx`, `xoaHang` `status === 200`; poll `hoiMoiNhat` nuốt lỗi JSON | Mở lưới, để yên 61 phút, dán 500 ô | Chặn nghiệm thu `docs/07` §3.3; cùng gốc TL-18 | Mất dữ liệu người dùng vừa nhập, không một lời báo | cả hai | 07.09 rà mã (TL-18 từ ảnh 07.09) | Mới |
-| TL-03 | S1 | **Số có ≥ 3 chữ số lẻ bị nhân nghìn**: `parse_money` coi dấu chấm không theo sau 1–2 chữ số là ngăn nghìn → `0.125` → `125`, `12.345` → `12345`. Xảy ra khi Enter không sửa gì, dán, kéo điền, hoàn tác, lọc theo ô | `core/money.py` `parse_money`; `forms_builder/services/record_service.py` `parse_value` (MONEY/DECIMAL); JS gửi `data-goc` thô | Ô tiền có `0.125` (nhập từ Excel) → bấm vào, Enter → thành `125` | Chặn nghiệm thu số liệu tiền (BR-8) | Sai dữ liệu tiền âm thầm, nhật ký ghi như người dùng cố ý | cả hai | 07.09 rà mã, đã kiểm lại mã | Mới |
+| TL-01 | S1 | Manager bộ phận khác **tự cấp quyền Sửa** cho mình hoặc team trên bảng chỉ được cấp Xem; thu hồi được cả quyền bộ phận chủ đã cấp | `forms_builder/views.py` `bang_cap_quyen`, `bang_thu_quyen` (gắn 8021 ở `knjsc/urls_bangtinh.py`): chỉ `assert_rank(MANAGER)` + `_lay_bang` qua `in_scope` (gồm bảng được cấp), không kiểm cùng bộ phận như `bang_cot` | Sale cấp Xem `don_sale` cho `mkt.manager`; `mkt.manager` mở `/bang/don_sale/cot/` → Cấp quyền cho chính mình, action Sửa → sửa/xoá dòng của Sale | Chặn nghiệm thu phân quyền `docs/07` §3 và AC-8.x | Lộ quyền ghi chéo bộ phận; nhật ký ghi như thao tác hợp lệ | cả hai | 07.09 rà mã | Đã sửa ở #122 (P0-1, nháp, chờ gộp) |
+| TL-02 | S1 | **Hết phiên 60 phút** rồi dán, kéo điền, xoá dòng, định dạng: máy chủ trả 302 → trang đăng nhập 200, JS coi là thành công → "✓ Đã lưu", ghi bước hoàn tác, xoá dòng khỏi màn hình, báo "Đã xoá N dòng" | `core/middleware.py` `SessionTimeoutMiddleware` (302, không `HX-Redirect`); `static/js/bang-tinh-o.js` luu-o `ok = 2xx`, `xoaHang` `status === 200`; poll `hoiMoiNhat` nuốt lỗi JSON. **Lưới mới (rà lại 14.10, `bang-tinh-o.js` đã bỏ):** `master-grid.js` `json()` coi trang đăng nhập là 403 → `clearAccess` xoá nháp ở `saveAll` (qua `retainReadableDrafts`), `poll`, `loadBlock`; `travel*` bỏ nút Thử lại xoá dòng; `datAnCot` coi trang đăng nhập là thành công rồi tải lại trang | Mở lưới, để yên 61 phút, dán 500 ô | Chặn nghiệm thu `docs/07` §3.3; cùng gốc TL-18 | Mất dữ liệu người dùng vừa nhập, không một lời báo | cả hai | 07.09 rà mã (TL-18 từ ảnh 07.09) | Đã sửa ở #129 (P0-14, ADR-053: lưới giữ nháp, không tự gửi lại; đăng nhập lại rồi Thử lại là lưu; nháp, chờ gộp) |
+| TL-03 | S1 | **Số có ≥ 3 chữ số lẻ bị nhân nghìn**: `parse_money` coi dấu chấm không theo sau 1–2 chữ số là ngăn nghìn → `0.125` → `125`, `12.345` → `12345`. Xảy ra khi Enter không sửa gì, dán, kéo điền, hoàn tác, lọc theo ô | `core/money.py` `parse_money`; `forms_builder/services/record_service.py` `parse_value` (MONEY/DECIMAL); JS gửi `data-goc` thô | Ô tiền có `0.125` (nhập từ Excel) → bấm vào, Enter → thành `125` | Chặn nghiệm thu số liệu tiền (BR-8) | Sai dữ liệu tiền âm thầm, nhật ký ghi như người dùng cố ý | cả hai | 07.09 rà mã, đã kiểm lại mã | Đã sửa Bước 1 ở #124 (P0-3, ADR-052: số máy gửi lại đọc dấu chấm là thập phân; nháp, chờ gộp). Bước 2 (siết chữ người gõ, ô chữ `0.125` trong tệp vẫn ra 125) và Bước 3 chờ duyệt |
 | TL-04 | S2 | **Lọc khoảng cột tiền/ngày với chuỗi lạ → 500**: bộ lọc chỉ bắt `FieldError, ValueError, TypeError`, bỏ sót `ValidationError` của cột tách | `forms_builder/query.py` `build` / áp `f_<cột>__lon_bang` lên `val_revenue`, `val_date` | Hộp lọc cột Doanh thu, gõ `1.000.000` hoặc `1,5` vào Từ/Đến → trang trắng | — | Trang trắng 500 cho người dùng gõ số kiểu Việt | cả hai | 07.09 rà mã | Mới |
 | TL-22 | S1 | **PR21: làm lại giao dịch sau deadlock không ghi gì mà vẫn 200**. Lần đầu đã gán giá trị mới vào đối tượng; lần hai `_dat_o` thấy "không đổi" → `update_cells` trả 0, không `bulk_save`, không nhật ký; view vẽ lại từ bộ nhớ nên màn hình như đã lưu | `crm/views.py` `bang_tinh_luu_o` hàm `luu()`; `forms_builder/services/record_service.py` `_dat_o`, `update_cells` | Worker đang tính lại cột trên bảng vận đơn, Leader dán 500 ô cùng lô → Postgres huỷ phía web → làm lại → mất 500 ô | **Chặn gộp PR #21** | Mất dữ liệu đúng trong tình huống PR tạo ra (tính lại nền song song với dán ô) | PR21 | 07.09 rà mã | Mới |
-| TL-23 | S2 | **PR21: job "Tính lại cột" kẹt RUNNING** khi worker chết (khởi động lại, hết bộ nhớ) → `moi-nhat/` trả tiến độ mãi → JS không bao giờ nạp lại → mọi tab của bảng hiện "Đang tính lại cột…" vĩnh viễn, không thấy người khác sửa | `core/tasks.py` `danh_dau_tac_vu_ket` chỉ xử lý PENDING; `table_service.recompute_job_of`; `bang-tinh-o.js` poll | Bắt đầu tính lại 100.000 dòng, `docker compose restart worker` | Chặn gộp PR #21 | Bảng ngừng tự cập nhật cho mọi người, không thoát được kể cả sửa cột lần nữa | PR21 | 07.09 rà mã | Mới |
-| TL-18 | S2 | Sau hết phiên, HTMX dán **cả trang đăng nhập vào ô/dòng** đang sửa | `core/middleware.py` (302), không chỗ nào xử lý `HX-Redirect`/401 cho HTMX | Để yên 61 phút, bấm đúp một ô | K28 | Lưới hỏng hình, người dùng không hiểu chuyện gì | cả hai | 07.09 ảnh anh/chị gửi | Mới |
+| TL-23 | S2 | **PR21: job "Tính lại cột" kẹt RUNNING** khi worker chết (khởi động lại, hết bộ nhớ) → `moi-nhat/` trả tiến độ mãi → JS không bao giờ nạp lại → mọi tab của bảng hiện "Đang tính lại cột…" vĩnh viễn, không thấy người khác sửa | `core/tasks.py` `danh_dau_tac_vu_ket` chỉ xử lý PENDING; `table_service.recompute_job_of`; `bang-tinh-o.js` poll | Bắt đầu tính lại 100.000 dòng, `docker compose restart worker` | Chặn gộp PR #21 | Bảng ngừng tự cập nhật cho mọi người, không thoát được kể cả sửa cột lần nữa | PR21 | 07.09 rà mã | Đã sửa ở #117 (P0-13, nháp, chờ gộp) |
+| TL-18 | S2 | Sau hết phiên, HTMX dán **cả trang đăng nhập vào ô/dòng** đang sửa | `core/middleware.py` (302), không chỗ nào xử lý `HX-Redirect`/401 cho HTMX | Để yên 61 phút, bấm đúp một ô | K28 | Lưới hỏng hình, người dùng không hiểu chuyện gì | cả hai | 07.09 ảnh anh/chị gửi | Đã sửa ở #129 (P0-14, ADR-053: HTMX nhận `HX-Redirect`, `het-phien.js` không dán mà báo ngay chỗ đích; nháp, chờ gộp) |
 | TL-19 | S2 | Máy chủ trả **400** (giá trị sai kiểu, thiếu cột bắt buộc) nhưng thanh trên báo **"✓ Đã lưu"** vì `htmx:beforeSwap` đặt `isError=false` cho 400 | `static/js/bang-tinh.js` `htmx:beforeSwap`, `htmx:afterRequest` | Gõ chữ vào cột Số Mess của dòng trống, rời ô | K28 | Người dùng tin đã lưu; thực tế không có dòng | cả hai | 07.09 video anh/chị, tái hiện Playwright | Mới |
 | TL-20 | S2 | **Lời báo lỗi `.o-loi-chu` có trong DOM nhưng bị giấu**: đặt tuyệt đối dưới ô và bị lưới cắt; ô không đỏ vì `--critical-soft` không có trong khung lưới | `templates/crm/_dong_moi.html`, `_o_sua.html`; `static/css/bang-tinh.css` `.o-loi-chu`, `td.o-loi` | Như TL-19 | K28 | Không có phản hồi khi nhập sai | cả hai | 07.09 video, tái hiện | Mới |
 | TL-21 | S3 | **Tiêu đề bảng ngoài vận đơn màu vàng đồng** (`#b8952b`) do áp kiểu "sheet nhỏ" của demo cho mọi bảng; yêu cầu gốc: ô trắng, tiêu đề xanh, chỉ ô cảnh báo mới vàng/đỏ | `static/css/bang-tinh.css` `.luoi-vd table.bang thead tr.bt-hang-ten th.bt-ten-cot` (vàng) vs `.bt-luoi-xanh` (xanh) | Mở Báo cáo Marketing | K28 | Sai yêu cầu thiết kế, màn hình vàng khè | cả hai | 07.09 ảnh anh/chị | Mới |
@@ -1242,7 +1299,7 @@ lỗi nào dưới đây có bài kiểm; mỗi lỗi khi sửa phải kèm mộ
 | TL-10 | S3 | **Cột tiền không mang nhãn Doanh thu sắp xếp và lọc khoảng theo chuỗi** (`"999" > "1234.50"`), khoảng rơi về so bằng | `forms_builder/query.py` (JSON `data__<code>`), tiền lưu dạng chuỗi | Sắp cột CPQC | — | Thứ tự sai, lọc khoảng vô hiệu | cả hai | 07.09 rà mã | Mới |
 | TL-11 | S3 | **Trang chủ và trang chọn bảng đếm cả dòng ngoài phạm vi và dòng đã xoá** (`Count("records")` qua quan hệ ngược); cây thư mục đếm đúng → hai số mâu thuẫn | `crm/services/tong_quan_service.py`; `crm/views.py` `_chon_bang` | Staff mở trang chủ, so với cây thư mục | — | Lộ số dòng ngoài phạm vi; số liệu lệch | cả hai | 07.09 rà mã | Mới |
 | TL-12 | S4 | **Xoá 2.000 dòng ≈ 6.000 truy vấn** trong một yêu cầu: `delete_record` từng dòng, mỗi dòng `save()` lấy lại cột và ghi nhật ký | `crm/views.py` `bang_tinh_xoa_dong`; `core/models.py` `SoftDeleteModel.delete` | Chọn 2.000 dòng → xoá | — | Chậm, có thể quá thời gian gunicorn | cả hai | 07.09 rà mã | Mới |
-| TL-13 | S2 | **Màn Sửa cột cho bỏ cột hệ thống của bảng vận đơn** (Số điện thoại, Mã đơn, Trạng thái) — menu chuột phải có rào, màn này không | `forms_builder/views.py` `bang_xoa_cot` (không kiểm `GRID_ORDER`/`sl_`) | Sửa cột bảng vận đơn → Bỏ "Số điện thoại" | — | Lọc trùng, cột khoá, tô màu dòng, đẩy đơn từ ERP hỏng | cả hai | 07.09 rà mã | Mới |
+| TL-13 | S2 | **Màn Sửa cột cho bỏ cột hệ thống của bảng vận đơn** (Số điện thoại, Mã đơn, Trạng thái) — menu chuột phải có rào, màn này không | `forms_builder/views.py` `bang_xoa_cot` (không kiểm `GRID_ORDER`/`sl_`) | Sửa cột bảng vận đơn → Bỏ "Số điện thoại" | — | Lọc trùng, cột khoá, tô màu dòng, đẩy đơn từ ERP hỏng | cả hai | 07.09 rà mã | Đã sửa ở #120 (P0-7, nháp, chờ gộp) |
 | TL-14 | S3 | **Dán vượt trang tạo dòng mới** thay vì ghi tiếp vào trang sau → dòng trùng | `static/js/bang-tinh-o.js` dán | Dán 150 dòng lên trang 100 dòng | — | Dữ liệu trùng | cả hai | 07.09 rà mã | Mới |
 | TL-15 | S3 | **Định dạng ô ngoài phạm vi bị bỏ qua lặng lẽ** thay vì 403 | `crm/views.py` `bang_tinh_dinh_dang` (`if pk in ban_ghi_theo_pk`) | POST `dinh-dang/` với pk ngoài phạm vi | — | Trái quy tắc 8; giao diện vẫn "Đã lưu" | cả hai | 07.09 rà mã | Mới |
 | TL-16 | S3 | **Sửa một ô ghi cả dòng** (không `update_fields`): hai người sửa hai ô cùng dòng trong cùng khoảnh khắc thì người sau ghi đè | `forms_builder/services/record_service.py` `update_cell` | Hai tab sửa hai ô cùng dòng cùng lúc | — | Mất một ô | cả hai | 07.09 rà mã | Mới |

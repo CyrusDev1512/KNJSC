@@ -1,5 +1,51 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 14.10.2026 — Đợt kiểm thử P0: bài đỏ trước, sửa sau (TL-90 → TL-99, TL-101 → TL-104)
+
+**Finished (nhánh việc + PR nháp về `Staging`, chưa gộp):**
+- Chuẩn bị (TL-90): #118
+- P0-17 (TL-99): #115
+- P0-16 (TL-98): #116
+- P0-13 (TL-23): #117
+- P0-4 (TL-92): #119
+- P0-7 (TL-13): #120
+- P0-8 (TL-93): #121
+- P0-1 (TL-01): #122
+- P0-15 (TL-97): #123
+- P0-3 (TL-03, ADR-052): #124
+- P0-9 (TL-94/95/96): #125
+- P0-10 (không lỗi, không cấp mã TL): #126
+- P0-2 (TL-91): #127
+- P0-14 (TL-18/02, ADR-053): #129
+
+Mọi PR xanh CI, trừ những PR còn đang chạy CI khi ghi mục này. #128 (TL-100) là của phiên khác, không thuộc đợt này; đã gộp vào
+`Staging` 14.10.
+
+**To do (chủ dự án):**
+- gộp theo thứ tự ghi trong từng PR:
+  - #118 trước;
+  - #117 rồi #123;
+  - #122 và #125 trước #127;
+  - #124 và #125 trước #129;
+  - #126 sau #118;
+- PR tổng kết này gộp cuối;
+- chặng 2 theo `docs/08-ke-hoach-kiem-thu/06-kiem-tay-chang-2.md`:
+  - hết phiên giữa lúc gõ (P0-14: hai tab, Lên đơn, Chi tiết, phân công, chứng từ, khoá tài khoản, ERP — biên bản của
+    #129 mục 4);
+  - `/quan-tri/` sai 6 lần;
+  - tiền `0.125`;
+  - đăng nhập bốn tài khoản mẫu mới ở 8020 và 8021;
+- trước VPS chạy các câu SQL chỉ đọc ghi trong thân PR: #125 (Manager không bộ phận, trưởng nhóm khác bộ phận), #124
+  (tiền ≥ 3 chữ số lẻ), #122 (Grant do người ngoài bộ phận cấp), #121 (`is_staff` không hồ sơ).
+
+**To do (việc sau):**
+- P0-5, P0-6, P0-11, P0-12: chờ `docs/08` mục 9.5;
+- TL-101, TL-102, TL-103, TL-104: mở;
+- P0-3 Bước 2, 3;
+- P0-15 phần VPS và K30;
+- diễn tập P0-13;
+- kiểm tay launcher TC-1…TC-6 trên Windows.
+
 ## 14.10.2026 — Sửa AC-10.12: lời báo mất mạng bị tra khách xoá oan (TL-100)
 
 **Finished local (nhánh `claude/sua-loi-mang-ac-10-12`, PR nháp về `Staging`):**
@@ -760,12 +806,12 @@ Xếp theo thứ tự nên làm. Mỗi dòng một PR nhỏ, có ảnh trước/
 
 | Ưu tiên | Việc | Liên quan | Nhánh đích | Ghi chú |
 |---|---|---|---|---|
-| P0 | Chặn Manager bộ phận khác tự cấp quyền Sửa qua màn Cấp quyền / Thu quyền | TL-01 | `main` | Lộ quyền; bài kiểm phải có chiều bị từ chối |
-| P0 | Hết phiên 60 phút: mọi yêu cầu HTMX/fetch phải về màn đăng nhập, không báo "Đã lưu" | TL-02, TL-18 | `main` | Mất dữ liệu âm thầm; cùng gốc với "trang đăng nhập rơi vào ô" |
-| P0 | Số ≥ 3 chữ số lẻ bị nhân nghìn khi Enter, dán, kéo điền, hoàn tác | TL-03 | `main` | Sai dữ liệu tiền âm thầm |
+| P0 | Chặn Manager bộ phận khác tự cấp quyền Sửa qua màn Cấp quyền / Thu quyền | TL-01 | `main` | Lộ quyền; bài kiểm phải có chiều bị từ chối. **Đã sửa ở #122 (14.10, nháp)** |
+| P0 | Hết phiên 60 phút: mọi yêu cầu HTMX/fetch phải về màn đăng nhập, không báo "Đã lưu" | TL-02, TL-18 | `main` | Mất dữ liệu âm thầm; cùng gốc với "trang đăng nhập rơi vào ô" **Đã sửa ở #129 (14.10, nháp, ADR-053)** |
+| P0 | Số ≥ 3 chữ số lẻ bị nhân nghìn khi Enter, dán, kéo điền, hoàn tác | TL-03 | `main` | Sai dữ liệu tiền âm thầm. **Bước 1 đã sửa ở #124 (14.10, nháp)**; Bước 2, 3 chờ duyệt |
 | P0 | Lọc khoảng cột tiền/ngày với chuỗi lạ trả 500 | TL-04 | `main` | Trang trắng |
 | P0 | Thanh trên báo "Đã lưu" khi máy chủ trả 400; lời báo lỗi bị CSS giấu | TL-19, TL-20 | `main` | K28 — anh/chị gặp trong video 07.09 |
-| P0 | PR #21: làm lại giao dịch sau deadlock mất dữ liệu; job tính lại kẹt RUNNING làm lưới ngừng cập nhật | TL-22, TL-23 | `claude/kiem-tai-kn-crm` | **PR #21 không gộp cho tới khi xong hai dòng này** |
+| P0 | PR #21: làm lại giao dịch sau deadlock mất dữ liệu; job tính lại kẹt RUNNING làm lưới ngừng cập nhật | TL-22, TL-23 | `claude/kiem-tai-kn-crm` | **PR #21 không gộp cho tới khi xong hai dòng này** **TL-23 đã sửa ở #117 (14.10, nháp)** |
 | P1 | Cột Trùng có tác dụng: có ở Vận đơn DB, chuẩn hoá số điện thoại, đếm cả lịch sử, bấm để xem, lọc và tô màu | TL-35, TL-36 | `main` | Chờ anh/chị chốt 1 trong các ý ở backlog 16.09 |
 | P1 | Tiêu đề bảng ngoài vận đơn màu vàng → xanh; ô trắng; chỉ ô cảnh báo mới vàng/đỏ | TL-21 | `main` | K28; yêu cầu gốc của anh/chị |
 | P1 | Khôi phục dòng bỏ qua phạm vi quyền | TL-05 | `main` | Quy tắc 11 |
@@ -773,7 +819,7 @@ Xếp theo thứ tự nên làm. Mỗi dòng một PR nhỏ, có ảnh trước/
 | P1 | Sau khi chính mình lưu, lưới tự nạp lại và báo "Có dữ liệu mới"; dòng mới không khớp bộ lọc biến mất | TL-08 | `main` | |
 | P1 | Sắp xếp không ổn định giữa các trang | TL-09 | `main` | |
 | P1 | Cột tiền không mang nhãn Doanh thu sắp xếp và lọc theo chuỗi | TL-10 | `main` | |
-| P1 | Màn Sửa cột cho bỏ cột hệ thống của bảng vận đơn | TL-13 | `main` | |
+| P1 | Màn Sửa cột cho bỏ cột hệ thống của bảng vận đơn | TL-13 | `main` | **Đã sửa ở #120 (14.10, nháp)** |
 | P1 | Nghiệm thu bấm tay theo `docs/07` một đợt (V4, V5) | — | — | Việc của anh/chị, sau khi các P0 xong |
 | P2 | Hoàn tác ghi đè sửa đổi của người khác không cảnh báo | TL-07 | `main` | |
 | P2 | Trang chủ và trang chọn bảng đếm cả dòng ngoài phạm vi và dòng đã xoá | TL-11 | `main` | |
@@ -785,7 +831,7 @@ Xếp theo thứ tự nên làm. Mỗi dòng một PR nhỏ, có ảnh trước/
 | P2 | PR #21: chỉ luu-o có làm lại khi deadlock; không gộp job tính lại; lỗi một lô không dừng các lô còn lại; `do_hieu_nang` đo tính lại không ghi; docstring lệch mã | TL-24 → TL-28, TL-31, TL-32 | `claude/kiem-tai-kn-crm` | Sau TL-22/23 |
 | P2 | Chạy `scripts/kiem-tai-kn-crm.*` trên máy anh/chị và máy chủ thật, ghi số vào `docs/06` | K27 | — | Sau khi PR #21 gộp |
 | P3 | Tệp tĩnh không được phục vụ khi chạy gunicorn (không nginx, không whitenoise) | TL-29 | `main` | Giai đoạn 8 sẽ có nginx |
-| P3 | Script kiểm tải chạy `du_lieu_mau` nên đặt lại mật khẩu 12 tài khoản mẫu | TL-30 | `claude/kiem-tai-kn-crm` | |
+| P3 | Script kiểm tải chạy `du_lieu_mau` nên đặt lại mật khẩu các tài khoản mẫu (16 từ #118) | TL-30 | `claude/kiem-tai-kn-crm` | |
 | P3 | `tests/test_hieu_nang.py` vẫn xfail vì ngân sách 10 truy vấn | K24, TL-33 | `main` | Sau K27 lưới còn 13 |
 
 ## In progress

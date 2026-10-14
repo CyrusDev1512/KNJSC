@@ -5,12 +5,12 @@
 Cách đọc bảng:
 - Mọi ca trong mục này nhìn từ phía **người dùng**. Loại kiểm thử mặc định là e2e hành trình; ca nào khác loại thì ghi rõ trong cột.
 - Cột "Tự động hoá" ghi hai thứ: hiện đã có tệp kiểm nào, và mức nên đạt (**Tự động / Bán tự động / Thủ công**).
-- Tài khoản kiểm tay lấy từ `docs/tai-khoan-mau.md` (`du_lieu_mau`, 12 tài khoản, mật khẩu `matkhaucuatoi`). Tài khoản cho bài máy lấy từ fixture `nguoi_dung` trong `app/conftest.py`.
+- Tài khoản kiểm tay lấy từ `docs/tai-khoan-mau.md` (`du_lieu_mau`, 16 tài khoản từ 14.10.2026, mật khẩu `matkhaucuatoi`). Tài khoản cho bài máy lấy từ fixture `nguoi_dung` trong `app/conftest.py`.
 - ERP chạy ở cổng 8020, CRM ở cổng 8021.
 
-**Chuẩn bị chung (P0, Thủ công).** `du_lieu_mau` chỉ tạo Admin, Sale, MKT và VĐ Staff/Manager (`core/management/commands/du_lieu_mau.py` dòng 48–60). Nó **không** tạo CEO, Kế toán, CSKH hay `vd.leader`, nên `quantri` phải tự tạo các tài khoản này qua `/nhan-su/moi/` trước khi kiểm bốn vai đó. Thêm hai điểm cần biết:
+**Chuẩn bị chung.** Từ #118 (14.10.2026) `du_lieu_mau` tạo đủ bốn vai từng thiếu: `giamdoc` (CEO), `kt.staff` (Kế toán), `cskh.staff` (CSKH), `vd.leader`. Fixture `nguoi_dung` có thêm `ceo`, `cskh`, `leader_vd`, `manager_vd`. Máy dựng trước 14.10 thì chạy lại `du_lieu_mau` (xem `docs/tai-khoan-mau.md`).
 - Bộ phận `ke-toan` có sẵn từ migration `org/0004`.
-- Bộ phận `cskh` được mã nhắc tới (`orders/services/assignment_service.py` dòng 14 và 78), nhưng không thấy migration nào tạo. Nơi tạo bộ phận này **chưa xác minh**, tạm thời tạo tay ở `/bo-phan/`.
+- Bộ phận `cskh` do `du_lieu_mau` và fixture `departments` tạo (#118).
 
 ### 4.1. Sale Staff (`sale.staff`; bài máy dùng `staff_sale_1`)
 
@@ -86,7 +86,7 @@ Cách đọc bảng:
 | 12 | Gõ tiếng Việt bằng bộ gõ thật trên lưới (loại: kiểm tay tương thích trình duyệt và hệ điều hành) | Lưới, ô Tên khách và ô tìm kiếm | Gõ "Nguyễn Ngọc Ánh" bằng **Unikey** và **EVKey** (Windows, Chrome/Edge) và **Telex của macOS** (Safari), bấm Enter, tải lại: ô lưu đúng chữ đã ghép xong, không rớt hay lặp chữ. Từ máy khác hệ điều hành gõ "Ngọc Ánh" vào ô tìm kiếm thì ra đúng dòng (AC-9.6) | Bấm Enter, Tab hoặc Ctrl+S **giữa lúc đang ghép chữ**: lưới không được chốt ô hay chuyển ô. `master-grid.js` bỏ qua phím khi `isComposing` hoặc `keyCode===229` (dòng 995, 1006, 1283) và đặt `state.composing` ở `compositionstart` (dòng 984). Gõ nhanh kiểu Unikey (xoá lùi rồi thay chữ có dấu) | — | Hồi quy giả lập đã có: `crm/tests/test_chu_viet_mot_dang.py` (NFD/NFC, 4 bài), `scripts/kiem-thu-shared-grid.cjs` dòng 50 và `scripts/kiem-thu-master-ui.cjs` dòng 65 (giả lập sự kiện, chạy tay). Bộ gõ thật: **Chưa kiểm** theo `docs/kiem-chung-san-loi-go-tieng-viet-20261006.md` mục "Chưa kiểm" và `docs/kiem-chung-master-nine.md`. Mức: Thủ công | P0 |
 | 13 | Rời trang khi còn nháp | Lưới: đóng tab, F5, bấm liên kết thanh bên, gõ URL khác | Trình duyệt hiện hộp hỏi "Rời trang?" khi còn ô đang gõ dở khác giá trị cũ, còn lượt đang gửi, còn lượt chờ thử lại (`state.retry`, `state.rowRetry`) hoặc lưới đang bận (listener `beforeunload` ở `master-grid.js` dòng 1261). Không có nháp thì rời trang không bị hỏi. Đòi hỏi của docs/07 mục "Nghiệm thu chín hạng mục" | Mở ô rồi gõ lại đúng giá trị cũ: không hỏi | Mất mạng, sửa 1 ô (lượt chờ thử lại), bấm F5: phải bị hỏi. Chọn "Ở lại" thì nháp còn nguyên | Chưa có bài nào kiểm `beforeunload`. Playwright bắt được qua sự kiện `dialog` loại `beforeunload` (đóng trang với `run_before_unload=True`). Mức: Tự động | P1 |
 
-### 4.6. Vận đơn Leader (`vd.leader` phải tạo tay; bài máy: không có fixture dùng chung, xem ghi chú dưới bảng)
+### 4.6. Vận đơn Leader (`vd.leader`; bài máy: `leader_vd` từ #118, xem ghi chú dưới bảng)
 
 Ghi chú tài khoản bài máy: `app/crm/tests/conftest.py` chỉ có fixture `dich_vu_kn_crm` (autouse, đặt URLconf 8021). Fixture `nguoi_dung` trong `app/conftest.py` không có VĐ Leader. Người dùng VĐ cấp Leader/Manager được dựng riêng trong từng tệp:
 
@@ -107,7 +107,7 @@ Khi viết bài mới cho vai này, nên gom thành một fixture dùng chung (v
 | 6 | Đặt lại mật khẩu cho `vd.staff` | `/nhan-su/` | Leader chỉ quản lý Staff trong team mình, mà `vd.staff` mẫu có team = None, nên Leader **không** thấy. Cần gán team trước khi kiểm | — | — | Thủ công | P2 |
 | 7 | Thử xoá bảng | `/bang-tinh/van_don/xoa-bang/` | Bị từ chối (chỉ Manager của bộ phận sở hữu hoặc Admin, ADR-027) | — | — | Tự động | P2 |
 
-### 4.7. CSKH (tài khoản thuộc bộ phận `cskh` phải tạo tay)
+### 4.7. CSKH (`cskh.staff`; bài máy: `cskh`)
 
 | # | Bước | Màn hình / URL | Kết quả mong đợi | Dữ liệu bẩn / thao tác sai | Sự cố | Tự động hoá | Ưu tiên |
 |---|---|---|---|---|---|---|---|
@@ -148,7 +148,7 @@ Khi viết bài mới cho vai này, nên gom thành một fixture dùng chung (v
 | 12 | Trang quản trị Django | `/quan-tri/` | Admin vào được. Sai 6 lần ở `/quan-tri/login/`: ghi lại có nhật ký và có bị khoá hay không | — | — | Thủ công | P1 |
 | 13 | Để yên quá 60 phút rồi bấm Thích | `/bang-tin/` | Trình duyệt chuyển hẳn về trang đăng nhập (AC-1.4) | — | Hết phiên | `core/tests/test_ra_soat.py` (HTTP). E2E: chưa có | P1 |
 
-### 4.10. CEO (tài khoản Rank.CEO phải tạo tay)
+### 4.10. CEO (`giamdoc`; bài máy: `ceo`)
 
 | # | Bước | Màn hình / URL | Kết quả mong đợi | Dữ liệu bẩn / thao tác sai | Sự cố | Tự động hoá | Ưu tiên |
 |---|---|---|---|---|---|---|---|

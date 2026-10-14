@@ -135,6 +135,31 @@ Mỗi ca kiểm có một vị trí trên bốn trục:
 | P0-16 | **Lệnh nguy hiểm với dữ liệu**: `do_hieu_nang` không có khoá DEBUG và ghi vào 5.000 dòng thật mới nhất; khoá DEBUG của `seed_perf` và `nap_du_lieu_van_don` chưa có bài | core, orders | Đơn vị lệnh quản trị | QA / TĐ | 2 giờ | Đè ghi chú của khách thật trên DB local đã nạp dữ liệu thật | Sửa mã, thêm khoá cho `do_hieu_nang` |
 | P0-17 | `scripts/cap-nhat-local.bat` và `KN JSC.bat`: không kiểm `errorlevel` sau `migrate` và `tao_bang_van_don`, rồi vẫn ghi `storage/.kn-jsc-lan-truoc` | Vận hành local | Kiểm tĩnh + TC Windows | QA / TC | 2 giờ | Lặp lại sự cố 06.09.2026 (ProgrammingError, Bảng tính 404) | Máy Windows |
 
+#### Trạng thái đợt P0 (14.10.2026)
+
+Mỗi việc làm theo một vòng: viết bài **đỏ** trên mã hiện tại, chạy để chắc là đỏ, sửa cho **xanh**, rồi mở PR nháp về
+`Staging`. Chưa PR nào được gộp. Số TL mới và lỗi phát hiện thêm ghi ở `docs/test-log.md`, mục 14.10.2026.
+
+| # | Trạng thái | PR |
+|---|---|---|
+| 0.1, 0.2 | Xong: thêm bốn vai vào fixture, bốn tài khoản mẫu `giamdoc`, `vd.leader`, `kt.staff`, `cskh.staff` (TL-90) | #118 |
+| 0.3 | Đã chốt bốn quyết định: luật chuỗi tiền máy và chữ người gõ, Kế toán ẩn mục Nộp báo cáo ngày, P0-14 lưu lại được và chặn 409 khi đổi người, `/quan-tri/` khoá chung. Trong 9.5 mới chốt một phần câu đầu (luật chuỗi tiền); tám câu còn lại, cùng phần ngoại tệ và giới hạn số lẻ của câu đầu, vẫn mở | — |
+| P0-1 | Xong (TL-01) | #122 |
+| P0-2 | Xong (TL-91): quét 154 đường, 4 vai, đúng một dòng Từ chối | #127 |
+| P0-3 | Xong Bước 1 (TL-03, ADR-052); Bước 2, 3 chờ duyệt | #124 |
+| P0-4 | Xong (TL-92) | #119 |
+| P0-5, P0-6 | Chưa làm: chờ 9.5 | — |
+| P0-7 | Xong (TL-13) | #120 |
+| P0-8 | Xong (TL-93) | #121 |
+| P0-9 | Xong (TL-94, 95, 96) | #125 |
+| P0-10 | Không có lỗi còn sống (không cấp mã TL); thêm bài khoá, AC-26.1 → 26.5 ra khỏi HOAN | #126 |
+| P0-11, P0-12 | Chưa làm: chờ 9.5 | — |
+| P0-13 | Xong (TL-23); diễn tập kill worker/heavy chưa làm | #117 |
+| P0-14 | Xong (TL-18, TL-02, ADR-053) | #129 |
+| P0-15 | Xong phần mã (TL-97); phần VPS và K30 chưa làm | #123 |
+| P0-16 | Xong (TL-98) | #116 |
+| P0-17 | Xong phần mã (TL-99); kiểm tay TC-1…TC-6 trên Windows chưa làm | #115 |
+
 ### 9.2 P1: làm sau P0 (rủi ro vừa, hoặc là nền cho CI tin cậy)
 
 | # | Việc | Phân hệ | Loại | Góc nhìn / Cách chạy | Công sức | Vì sao | Phụ thuộc |
@@ -160,7 +185,7 @@ Mỗi ca kiểm có một vị trí trên bốn trục:
 | P1-19 | `X-Forwarded-For` không phải IP làm việc ghi nhật ký ra 500 và cho giả IP (`core/audit.py _client_ip`) | core | Đơn vị + HTTP (fuzz header) | QA / TĐ | 1 giờ | Gặp ở Local và Staging khi truy cập thẳng 8020/8021. Production có nginx đè header | Không |
 | P1-20 | Tệp tĩnh thiếu `?v=` (6 chỗ ở `crm/master_grid.html`, `payments.html`, `waybill_entry.html`): viết bài quét template | crm | Hồi quy cấu hình | QA / TĐ | 1 giờ | Cùng gốc với TL-80 và AC-10.11: trình duyệt giữ JS cũ sau phát hành | Không |
 | P1-21 | Poll `moi-nhat/` mỗi 8 giây giữ phiên sống mãi (FR-1.3, AC-1.4): bài patch thời gian | core, crm | Phân quyền phiên | QA / TĐ | 2 giờ | Máy bỏ quên với tab lưới đang mở thì không bao giờ hết phiên | 0.3 (cần ADR: poll có tính là thao tác không) |
-| P1-22 | Sửa bài cũ: `test_khoi` (bỏ chấp nhận 200 với vai không đủ quyền, dùng pk/code thật, thêm vai `ceo`/`staff_kt`); `test_truy_vet` (không tính bài luôn skip như AC-20.6, không tính docstring cấp module); bài thứ tự mặc định có giá trị trùng | Hạ tầng kiểm thử | Meta | QA / TĐ | 0,5 phiên | Chỉ số "348/371 AC có bài" đang phồng. Bài khói không bắt được view quên `in_scope` | 0.1 |
+| P1-22 | Sửa bài cũ: `test_khoi` (bỏ chấp nhận 200 với vai không đủ quyền, dùng pk/code thật, thêm vai `ceo`/`staff_kt`); `test_truy_vet` (không tính bài luôn skip như AC-20.6, không tính docstring cấp module); bài thứ tự mặc định có giá trị trùng. Bổ sung 14.10 (từ #127): vai không thấy bảng vận đơn gọi `du-lieu`, `lich-su`, `quyen-dong` nhận 403 nhưng không có dòng Từ chối (`master_grid_service.table_for`) | Hạ tầng kiểm thử | Meta | QA / TĐ | 0,5 phiên | Chỉ số "348/371 AC có bài" đang phồng. Bài khói không bắt được view quên `in_scope` | 0.1 |
 | P1-23 | Bài phụ thuộc ngày thật (23 tệp; TL-70 đã đỏ ngày 01.10): gom về một helper giả `timezone.now` bằng `monkeypatch`; thêm ca biên cuối tháng theo giờ Việt Nam (bảng xếp hạng `month_range`) | Hạ tầng, culture | Hồi quy thời gian | QA / TĐ | 0,5 phiên | Đỏ theo ngày, chặn gộp | `freezegun`/`time-machine` là thư viện mới, phải xin duyệt. Dùng `monkeypatch` thì không cần |
 | P1-24 | Thưởng sao chạy lại khi hạng tháng trước đổi (`award_monthly_stars` get_or_create); đơn KRW làm bảng rỗng (nhánh `bao_nguoi_van_hanh` chưa có bài) | culture | Tích hợp | QA / TĐ | 2 giờ | Sổ sao chỉ ghi thêm nên ghi sai là không sửa được. Ở local, entrypoint chạy lệnh này mỗi lần bật máy | Không |
 | P1-25 | Hiệu năng trên VPS theo đúng mốc AC-24.7/AC-27.8: 100k/300k dòng × 10/20 người, ấm 60 giây + đo 300 giây; nếu đạt thì chạy 300k/20 người/30 phút (đọc/lọc/lịch sử p95 ≤ 1 s, lưu ô ≤ 0,5 s, 2.000 ô ≤ 5 s), đo lại định kỳ. Kèm TL-83 (`kiem_tra_du_lieu` hết RAM ở 100k dòng, đo bằng tracemalloc dấu `cham`) và TL-33 (đo `du-lieu/` có lọc và `?trung=1` ở 50k dòng, thay cho trang khung) | crm, orders, vận hành | Hiệu năng | QA / BTĐ | 1 phiên + phiên VPS | Biên bản 16.09 vượt cả ba ngưỡng (5.043 / 2.341 / 3.868 ms). p95 sau phát hành chỉ có 7–52 mẫu. Mốc 20 người và bài 30 phút chưa từng chạy (AC-24.7, AC-27.8 đang ở HOAN) | Cần VPS. `locust` đã có trong `app/requirements-dev.txt`; kịch bản có sẵn ở `scripts/order-code-check/locust_mixed.py`, `scripts/crm-update-perf/endurance.ps1` (chưa xác minh còn khớp lưới hiện tại) |
@@ -191,7 +216,7 @@ Mỗi ca kiểm có một vị trí trên bốn trục:
 | P2-16 | Cache Redis "crm" chỉ có ở production: chạy Chặng 2 kèm `CRM_CACHE_URL`; kiểm `KN JSC.bat` dựng lại image khi `LAN_TRUOC` hỏng | vận hành | BTĐ / TC Windows | QA | 0,5 phiên | Đường làm mất hiệu lực cache (AC-10.26) chưa từng được kiểm tay | Máy Windows |
 | P2-17 | Bật các bài trình duyệt đang phải bật biến môi trường (`SHARED_LOGIN_BROWSER`, `ACCOUNT_BROWSER`, `*_browser_server.py`) trong một job CI riêng hoặc chạy định kỳ | Hạ tầng CI | e2e | QA / BTĐ → TĐ | 0,5 phiên | Cookie domain, CSRF hai hostname, giao diện chứng từ AC-26.6 thực chất đang là kiểm tay | Bài cần thư mục `/evidence` |
 | P2-18 | TL-71: theo dõi bài 18 (`test_do_hieu_nang_1000_dong_ghi_chu_400`), chạy lặp nhiều lần để tái hiện gốc lỗi | Hạ tầng CI | Độ ổn định | QA / BTĐ | Theo dõi | Bài treo là chặn gộp; chưa biết gốc lỗi | Không |
-| P2-19 | TL-27 (phương pháp đo của `do_hieu_nang`), TL-29 (gunicorn local không phục vụ `/static/`), TL-30 (script kiểm tải đặt lại mật khẩu 12 tài khoản mẫu): thêm cảnh báo và bài khói | Công cụ | Rà công cụ | QA / TC | 2 giờ | Số đo sai; người kiểm bất ngờ bị đổi mật khẩu | Không |
+| P2-19 | TL-27 (phương pháp đo của `do_hieu_nang`), TL-29 (gunicorn local không phục vụ `/static/`), TL-30 (script kiểm tải đặt lại mật khẩu các tài khoản mẫu): thêm cảnh báo và bài khói | Công cụ | Rà công cụ | QA / TC | 2 giờ | Số đo sai; người kiểm bất ngờ bị đổi mật khẩu | Không |
 
 ### 9.4 Dọn tài liệu kiểm thử (làm cùng P1, vì người nghiệm thu đọc những tệp này)
 
@@ -209,7 +234,7 @@ Mỗi ca kiểm có một vị trí trên bốn trục:
 
 | Câu hỏi | Chặn việc | Căn cứ |
 |---|---|---|
-| Luật đọc chuỗi tiền: '0.125' do máy gửi lại thì là 0,125 hay 125? Ngoại tệ USD/CAD có đọc theo luật riêng không? Có giới hạn số chữ số lẻ khi lưu không? | P0-3, P0-5 | TL-03, `core/money.py`, ADR-046 |
+| Luật đọc chuỗi tiền: '0.125' do máy gửi lại thì là 0,125 hay 125? Ngoại tệ USD/CAD có đọc theo luật riêng không? Có giới hạn số chữ số lẻ khi lưu không? **Đã chốt 13.10.2026 phần chuỗi máy:** số máy gửi lại đọc dấu chấm là thập phân, chữ người gõ giữ luật Việt (ADR-052, P0-3). Ngoại tệ và giới hạn số lẻ vẫn mở | P0-3, P0-5 | TL-03, `core/money.py`, ADR-046 |
 | Đổi Thị trường khi sửa báo cáo Sale: đổi luôn loại tiền, giữ loại tiền, hay đòi xác nhận? | P0-6 | `reports/services/daily_service.py` amend |
 | CRM có được xoá/khôi phục bảng thường không (ADR-040)? | P0-11, H-27.4 | `crm/lifecycle_views.py`; `crm/tests/test_table_lifecycle.py` |
 | Manager Sale thấy dòng vận đơn nào: theo đơn gốc hay theo dòng của mình? | P0-12 | ADR-033 bổ sung 10.10 |
@@ -219,7 +244,7 @@ Mỗi ca kiểm có một vị trí trên bốn trục:
 | Cách nhóm theo thị trường của báo cáo tổng hợp lấy số liệu từ đâu (đang hoãn từ 03.09.2026, "hỏi lại sau")? | H-5.1 | AC-5.1, `docs/backlog.md` N9, Q36 |
 | Menu chuột phải Xoá/Chèn (AC-11.21) và phần "gõ địa chỉ + Enter để nhảy ô" (AC-11.25): bỏ hay làm lại trong lưới mới? Lưu ý chuột phải hiện đã dùng để mở Lịch sử ô (AC-21.13) | H-11.21, H-11.25 | `test_truy_vet.py` HOAN; `master-grid.js` dòng 1228, 1233 |
 
-### 9.6 Phân loại lại 23 mã đang hoãn (`HOAN` trong `app/tests/test_truy_vet.py`)
+### 9.6 Phân loại lại 23 mã đang hoãn (`HOAN` trong `app/tests/test_truy_vet.py`; còn 18 sau #126)
 
 Mã việc **H-x.y** ứng với mã AC. Một bài chỉ được tính cho **một** mã, vì `MA_TRONG_DOCSTRING` chỉ đọc mã đứng ngay đầu docstring. Vì vậy, bài đã mang mã khác thì phải tách thành bài riêng.
 
@@ -235,7 +260,7 @@ Mã việc **H-x.y** ứng với mã AC. Một bài chỉ được tính cho **m
 | H-24.4 | AC-24.4: v1/v2 cùng giữ CAS, nguyên tử, Undo, replay; biên nhận không nhân lịch sử, kể cả khi tắt cờ | Có bài biên nhận đồng thời ở `crm/tests/test_master_grid.py` (mang mã khác) | Bài riêng mang AC-24.4: replay hai lần, tắt cờ v2, so số `GridCellHistory` | QA / TĐ | P1 | P0-3 |
 | H-24.5 | AC-24.5: sticky lệch ≤ 1 CSS px, UI p95 ≤ 100 ms với ≥ 100 mẫu, Chrome 1440/1280/390 | Chưa có | Đo trên Chrome thật, lưu số thô vào `docs/kiem-chung-*.md` | QA / BTĐ | P2 | P1-29 |
 | H-24.7 | AC-24.7: tải 100k/300k × 10/20, bản cuối 300k/20/30 phút | Biên bản 300k/10 người 16.09 (vượt ngưỡng) | Chạy đủ ma trận trên VPS | QA / BTĐ | P1 | P1-25 |
-| H-26.1…26.6 | AC-26.1–26.6: kho chứng từ thanh toán | Có bài trình duyệt AC-26.6 phải bật biến môi trường | Xem P0-10; AC-26.6 xem P2-17 | QA / TĐ, BTĐ | P0 | P0-10, P2-17 |
+| H-26.1…26.6 | AC-26.1–26.6: kho chứng từ thanh toán | Có bài trình duyệt AC-26.6 phải bật biến môi trường. **#126 (P0-10):** AC-26.1 → 26.5 có bài khoá, ra khỏi HOAN | AC-26.6 xem P2-17 | QA / TĐ, BTĐ | P0 | P0-10, P2-17 |
 | H-27.1 | AC-27.1: mọi bảng động dùng chung shell/JSON/virtual grid; ERP chỉ đọc; Vận đơn mới giữ Lên đơn/Bill/phân công | Chưa có bài mang mã | Bài quét registry renderer + bài HTTP ERP chỉ đọc (ADR-014) | QA / TĐ | P2 | P0-2 |
 | H-27.2 | AC-27.2: CAS hai đầu vào đồng thời; ô khoá hoặc sai kiểu làm cả lượt rollback, báo đúng vị trí | Chưa có bài mang mã | Bài hai luồng (`ThreadPoolExecutor`) + lượt dán có một ô sai kiểu | QA / TĐ | P1 | P0-3 |
 | H-27.4 | AC-27.4: Manager đúng bộ phận/Admin xoá khi gõ đúng tên, khôi phục giữ ID; Staff/Leader/Grant bị từ chối; Vận đơn mới được bảo vệ | **Đã có** `crm/tests/test_table_lifecycle.py` (4 bài, chưa mang mã AC) | Gắn AC-27.4 vào docstring rồi gỡ khỏi HOAN, **sau khi** chốt ADR-040 ở 9.5: hiện bài khẳng định 302 qua `/bang-tinh/…/xoa-bang/`, trùng đúng lỗ P0-11 | QA / TĐ | P0 | P0-11, 9.5 |

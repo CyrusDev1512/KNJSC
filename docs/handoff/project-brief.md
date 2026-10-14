@@ -77,7 +77,7 @@ docker compose -f deploy/docker-compose.yml exec web python manage.py configure_
 ```
 
 Cơ sở dữ liệu không theo kho mã, nên máy mới dựng xong là **không có tài khoản nào để
-đăng nhập** — `du_lieu_mau` tạo 12 tài khoản, danh sách ở `docs/tai-khoan-mau.md`. Hai lệnh
+đăng nhập** — `du_lieu_mau` tạo 16 tài khoản, danh sách ở `docs/tai-khoan-mau.md`. Hai lệnh
 `configure_*` sinh metadata nguồn báo cáo; thiếu chúng thì Báo cáo tổng hợp **lặng lẽ** rơi
 về bản tổng quát cũ, không báo lỗi. Chúng bỏ qua bảng chưa tồn tại mà không báo, nên chạy
 trước `du_lieu_mau` là chạy hụt. Bảng vận đơn thì `deploy/entrypoint.sh` tự lo bằng

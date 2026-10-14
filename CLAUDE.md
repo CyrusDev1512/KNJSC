@@ -1,6 +1,6 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 13.10.2026 (ADR-051: KN OMS, bản demo dữ liệu giả ở `/oms/` của KN CRM, chỉ Admin; bổ sung cùng ngày: diện mạo Solarpunk như KN CRM, làm sâu sáu màn; kế hoạch kiểm thử toàn diện `docs/08`: ma trận phân hệ, kiểm tay Chặng 2 theo vùng, phân tích lọt lưới, lộ trình P0/P1/P2); 12.10.2026 (TL-89: nút Thống kê KN CRM của nguồn Sale/MKT sang Báo cáo tổng hợp ERP, AC-40.9); 10.10.2026 (ADR-050 Admin sửa lần nộp ngay trên Báo cáo tổng hợp); 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
+> Cập nhật 14.10.2026 (đợt P0, 14 PR nháp về `Staging`, chưa gộp: ADR-052 chuỗi số máy, ADR-053 hết phiên ở KN CRM giữ nháp và chặn đổi người, 16 tài khoản mẫu); 13.10.2026 (ADR-051: KN OMS, bản demo dữ liệu giả ở `/oms/` của KN CRM, chỉ Admin; bổ sung cùng ngày: diện mạo Solarpunk như KN CRM, làm sâu sáu màn; kế hoạch kiểm thử toàn diện `docs/08`: ma trận phân hệ, kiểm tay Chặng 2 theo vùng, phân tích lọt lưới, lộ trình P0/P1/P2); 12.10.2026 (TL-89: nút Thống kê KN CRM của nguồn Sale/MKT sang Báo cáo tổng hợp ERP, AC-40.9); 10.10.2026 (ADR-050 Admin sửa lần nộp ngay trên Báo cáo tổng hợp); 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
 > `main` → VPS**; Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền, nhánh việc gộp xong là
 > xoá); 25.09.2026 (ADR-043 bổ sung: một ô Team duy nhất trên form báo cáo); 24.09 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
 > chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
@@ -157,7 +157,7 @@ docker compose -f deploy/docker-compose.yml exec web python manage.py configure_
 
 **Vì sao cần lệnh thứ hai.** Cơ sở dữ liệu không theo kho mã, nên máy mới dựng
 xong là hệ thống trống, **không có tài khoản nào để đăng nhập**. `du_lieu_mau`
-tạo 12 tài khoản ba bộ phận bốn cấp bậc, bảng Báo cáo Marketing, biểu mẫu, sản
+tạo 16 tài khoản năm bộ phận (Sale, Marketing, Vận đơn, Kế toán, CSKH) năm cấp bậc (cả Giám đốc), bảng Báo cáo Marketing, biểu mẫu, sản
 phẩm và dữ liệu mẫu cho nhóm Nội bộ. Danh sách tài khoản kèm mật khẩu ở
 `docs/tai-khoan-mau.md`; `quantri` vào được trang quản trị Django ở `/quan-tri/`.
 
@@ -233,6 +233,11 @@ Lưới `/bang-tinh/<mã bảng>/` toàn màn hình, chỉ lưới có nút ← 
 không về ERP (ADR-012, 015). **Leader như Manager trong bộ phận mình**
 (`grant_service._quan_ly_bo_phan`), cấp quyền cho người khác vẫn Manager.
 Bài kiểm của `crm/tests` chạy ở URLconf 8021 nhờ `crm/tests/conftest.py`.
+**Hết phiên ở KN CRM** (ADR-053, P0-14): hai khung KN CRM nạp `static/js/het-phien.js` ngay sau `loi-mang.js` — mọi
+`fetch`/htmx cùng nguồn mang `X-KNJSC-User` (người mở trang) và lấy mã CSRF mới trong cookie lúc gửi; người khác đăng
+nhập thì `core.middleware.PageOwnerMiddleware` trả 409 `nguoi_dung_doi` trước mọi view; HTMX hết phiên nhận
+`HX-Redirect` và trang báo ngay chỗ đích, không dán trang đăng nhập; lưới giữ nháp, không tự gửi lại. Màn hình KN CRM
+mới dùng `fetch`/htmx phải kế thừa hai khung đó; `CSRF_COOKIE_HTTPONLY` phải để False.
 
 **KN OMS** (ADR-051, 13.10) là bản demo cho chủ dự án trình bày, không phải tính năng thật:
 - `/oms/` chỉ có ở KN CRM, chỉ Admin. Mục cuối thanh bên mở tab mới; vai khác nhận 403 có nhật ký.
