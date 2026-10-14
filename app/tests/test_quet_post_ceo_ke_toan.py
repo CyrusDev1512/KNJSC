@@ -120,6 +120,8 @@ CHI_DOC = {
     (CRM, "waybill_preview"): Duong(payload=lambda w: w.don_moi),
     (CRM, "don_xem"): Duong(_k(code=lambda w: w.don.code)), (CRM, "kiem_khach"): Duong(),
     (CRM, "crm_statistics"): Duong(), (CRM, "waybill_statistics"): Duong(),
+    # KN OMS: bản demo dữ liệu giả, chỉ Admin, chỉ nhận GET (ADR-051) — POST là 405, không ghi gì
+    (CRM, "kn_oms"): Duong(),
     (CRM, "master_data"): Duong(_k(code="van_don")), (CRM, "master_history"): Duong(_k(code="van_don")),
     (CRM, "master_scope"): Duong(_k(code="van_don"), lambda w: {"ids": [r.pk for r in w.dong]}, json=True),
     (CRM, "master_sync"): Duong(_k(code="van_don"), lambda w: {}, json=True),
