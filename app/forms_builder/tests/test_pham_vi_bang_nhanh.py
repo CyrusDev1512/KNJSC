@@ -58,7 +58,7 @@ def the_gioi(nguoi_dung, departments, make_user, settings):
     sp = {"massage": Product.objects.create(name="Máy", code="may", group=nhom)}
     _len_don(nguoi_dung["staff_sale_1"], sp)                                     # dòng + đơn do Sale tạo
     don2 = _len_don(admin, sp, phone="0911", seller=nguoi_dung["staff_sale_2"])       # Admin lên đơn, Sale đứng đơn
-    cskh = make_user("cskh_x", Rank.STAFF, Department.objects.create(code="cskh", name="CSKH"))
+    cskh = make_user("cskh_x", Rank.STAFF, departments["cskh"])
     WaybillAssignment.objects.create(record=don2.record, care=cskh)
     dong = DataRecord.objects.create(table=vd2, department=vd2.department, data={"ma_don": "X"},
                                      created_by=nguoi_dung["staff_mkt"])

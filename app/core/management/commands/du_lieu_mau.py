@@ -24,19 +24,21 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
-from core.constants import Rank
+from core.constants import ACCOUNTING_DEPARTMENT_CODE, Rank
 from orders.constants import WAYBILL_DEPARTMENT_CODE, WAYBILL_DEPARTMENT_NAME
 from reports.constants import CUSTOMER_SEGMENT_DEFAULTS
 
 #: Mật khẩu chung cho mọi tài khoản mẫu. Chỉ dùng ở máy phát triển.
 MAT_KHAU_MAU = "matkhaucuatoi"
 
-#: Ba bộ phận. Bộ phận Vận đơn lấy tên từ `orders.constants` để khớp với
-#: lệnh `tao_bang_van_don`.
+#: Bốn bộ phận lệnh tự dựng. Bộ phận Vận đơn lấy tên từ `orders.constants` để
+#: khớp với lệnh `tao_bang_van_don`. CSKH chỉ xem dòng vận đơn được giao (ADR-033).
+#: Kế toán không nằm ở đây: `org/0004` tạo sẵn khi migrate, lệnh chỉ lấy lại.
 BO_PHAN = [
     ("Sale", "sale"),
     ("Marketing", "marketing"),
     (WAYBILL_DEPARTMENT_NAME, WAYBILL_DEPARTMENT_CODE),
+    ("CSKH", "cskh"),
 ]
 
 #: Ba team: hai của Sale đủ để thử phạm vi quyền của Leader; MKT 1 để dropdown Team trên form
@@ -58,6 +60,12 @@ TAI_KHOAN = [
     ("mkt.staff",    "Phạm Minh Anh", Rank.STAFF,   "marketing", "MKT 1",  False),
     ("vd.manager",   "Bùi Kim Chi",   Rank.MANAGER, "van-don",   None,     False),
     ("vd.staff",     "Hoàng Văn Tú",  Rank.STAFF,   "van-don",   None,     False),
+    # Bốn vai mang luật riêng, để kiểm tay không phải nhờ quản trị viên tạo (TL-90).
+    # vd.leader không làm trưởng nhóm: lập team "VĐ 1" sẽ đổi team của vd.staff trên máy đã dựng
+    ("kt.staff",     "Đặng Thị Mai",  Rank.STAFF,   ACCOUNTING_DEPARTMENT_CODE, None, False),
+    ("cskh.staff",   "Lâm Ngọc Yến",  Rank.STAFF,   "cskh",      None,     False),
+    ("vd.leader",    "Hồ Văn Phúc",   Rank.LEADER,  "van-don",   None,     False),
+    ("giamdoc",      "Trịnh Minh Đức", Rank.CEO,    None,        None,     False),
 ]
 
 #: Bảng Báo cáo Marketing, dựng đúng theo sheet BC MKT trong tệp thật.
@@ -223,6 +231,7 @@ class Command(BaseCommand):
                        "thiệp sinh nhật": 0, "mục tài nguyên": 0, "tài nguyên": 0}
         self.dat_lai_mat_khau = 0
         self.da_xoa = []
+        self.thieu_bo_phan = []
 
         bo_phan = self._bo_phan()
         team = self._team(bo_phan)
@@ -251,6 +260,10 @@ class Command(BaseCommand):
             bp, moi = Department.objects.get_or_create(code=ma, defaults={"name": ten})
             ket_qua[ma] = bp
             self.da_tao["bộ phận"] += int(moi)
+        # Kế toán do migrate tạo; đã bị xoá trên máy này thì không dựng lại (mã unique, get_or_create sẽ vỡ)
+        ke_toan = Department.objects.filter(code=ACCOUNTING_DEPARTMENT_CODE).first()
+        if ke_toan is not None:
+            ket_qua[ACCOUNTING_DEPARTMENT_CODE] = ke_toan
         return ket_qua
 
     def _team(self, bo_phan):
@@ -297,6 +310,10 @@ class Command(BaseCommand):
                         ho_so.save(update_fields=["team"])
                     self.dat_lai_mat_khau += 1
                 ket_qua[ten_dn] = co_san
+                continue
+            if ma_bp and bo_phan.get(ma_bp) is None:
+                # Bộ phận đã bị xoá trên máy này: không tạo tài khoản lơ lửng không bộ phận
+                self.thieu_bo_phan.append(ten_dn)
                 continue
 
             ho_so = account_service.create_account(
@@ -547,6 +564,9 @@ class Command(BaseCommand):
         if self.da_xoa:
             self.stdout.write(self.style.WARNING(
                 "Bo qua tai khoan mau da xoa (khong mo lai): " + ", ".join(self.da_xoa)))
+        if self.thieu_bo_phan:
+            self.stdout.write(self.style.WARNING(
+                "Bo qua tai khoan mau vi bo phan da xoa: " + ", ".join(self.thieu_bo_phan)))
         self.stdout.write(
             f"Hien co: {TableDef.objects.count()} bang, "
             f"{DataRecord.objects.count()} dong, {len(nguoi)} tai khoan")
@@ -555,6 +575,7 @@ class Command(BaseCommand):
                           + self.mat_khau)
         self.stdout.write("")
         for ten_dn, ho_ten, cap_bac, ma_bp, _, _ in TAI_KHOAN:
-            ghi_chu = "  (da xoa)" if ten_dn in self.da_xoa else ""
+            ghi_chu = ("  (da xoa)" if ten_dn in self.da_xoa
+                       else "  (bo qua)" if ten_dn in self.thieu_bo_phan else "")
             self.stdout.write(
                 f"  {ten_dn:14} {cap_bac:8} {ma_bp or 'moi bo phan':12} {ho_ten}{ghi_chu}")
