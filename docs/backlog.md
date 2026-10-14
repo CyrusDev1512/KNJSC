@@ -17,8 +17,14 @@
   - hệ thống thật: trước khi vá lời báo mất, sau khi vá lời báo còn;
   - `pytest -m "not trinh_duyet"`: 3.207 đạt, 7 bỏ qua, 0 đỏ;
   - e2e hai lượt như CI: 69 và 22 đạt. 9 bài đỏ là 9 bài font Google có sẵn của máy ảo.
+- **Kiểm trước khi gộp** (chủ dự án: "test kĩ rồi gộp #128 vào staging"):
+  - bài mất mạng 10 lần liền, rồi 5 lần khi máy bận: lần nào cũng 4/4;
+  - nhánh lỗi 5xx và luồng thường trên hệ thống thật: đạt;
+  - quét liên kết 209 trang: 0 lỗi;
+  - pytest 3.207 đạt, 0 đỏ; e2e như CI đạt (9 bài font có sẵn của máy ảo).
+  Gộp vào `Staging`.
 - **Còn nợ:**
-  - chủ dự án duyệt, gộp vào `Staging`;
+  - chặng 2: thử Lên đơn lúc mất mạng ở máy mình;
   - TL-71 (bài đo lưới 1000 dòng treo trên CI) vẫn mở, đã ghi thêm số chẩn đoán vào `docs/test-log.md`.
 
 [Biên bản](kiem-chung-sua-loi-mang-ac-10-12-20261014.md).

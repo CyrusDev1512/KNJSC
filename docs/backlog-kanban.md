@@ -6,8 +6,11 @@
 - `loi-mang.js`: yêu cầu GET hỏng không giành chỗ của yêu cầu ghi đang hỏng;
 - bài e2e mới ép đúng thứ tự xấu: đỏ trên mã cũ, xanh sau khi vá; `test_mat_mang_e2e.py` 5 lần liền, mỗi lần 4/4.
 
+**14.10:** kiểm kỹ trước khi gộp: bài mất mạng 10 lần, rồi 5 lần khi máy bận, 4/4 mỗi lần; nhánh lỗi 5xx; quét 209 trang;
+pytest, e2e đạt. Gộp vào `Staging` (#128).
+
 **To do:**
-- chủ dự án duyệt, gộp vào `Staging`;
+- chặng 2: thử Lên đơn lúc mất mạng ở máy mình;
 - TL-71 vẫn mở.
 
 ## 14.10.2026 — Gộp KN OMS (#112, #114) vào `Staging`

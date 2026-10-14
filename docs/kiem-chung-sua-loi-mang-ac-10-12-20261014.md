@@ -56,3 +56,25 @@
   `docs/test-log.md`.
 - **Chặng 2:** chủ dự án thử ở máy mình. Cách thử: bấm Lưu đơn lúc tắt mạng, bật lại mạng rồi sửa số điện thoại. Lời báo
   phải còn tới khi Lưu đơn thành công.
+
+## 5. Kiểm trước khi gộp (chủ dự án: "test kĩ rồi gộp #128 vào staging")
+
+Kiểm trên đầu nhánh `09f3559`. Gộp thử `Staging` `f5c888e` với #128 bằng `--no-ff` thì ra cây `e967a34`, trùng đúng cây
+của #128.
+
+`loi-mang.js` được nạp ở cả bốn khung trang của KN ERP và KN CRM, nên phần kiểm không chỉ dừng ở Lên đơn.
+
+| Kiểm | Kết quả |
+|---|---|
+| `node --check`, `git diff --check`, `check` với settings test, dev, bangtinh, `makemigrations --check`; rà diff | 0 lỗi; "No changes detected". Không có khoá, IP, thư viện mới hay migration |
+| `test_mat_mang_e2e.py` 10 lần liền | **4/4 cả 10 lần** (28–35 giây mỗi lần) |
+| Cùng tệp đó, 5 lần trong lúc máy bận: 3 tiến trình vòng lặp chiếm 3/4 nhân, tải trung bình 4,1. Đây là cách giả máy CI chậm, nơi bài cũ từng đỏ | **4/4 cả 5 lần** |
+| Nhánh lỗi 5xx trên hệ thống thật (`page.route` trả mã 500): Lưu đơn 500, sau đó tra khách 500, rồi tra khách thành công | Lời báo "Máy chủ đang gặp lỗi (mã 500)" **còn** |
+| Chỉ tra khách 500, rồi tra khách thành công | Lời báo **tắt**, như trước |
+| Luồng thường trên hệ thống thật (`sale.staff`, `vd.staff`) | Đạt cả 5 ca: dựng lại cuộc đua thì lời báo còn; mất mạng bấm Lưu thì có lời báo, có mạng lại bấm Lưu thì lời báo tắt và thêm đúng 1 đơn; nút × đóng được; lưới mất mạng báo "Lỗi lưu" bằng tiếng Việt, có mạng lại thì tự lưu "Đã lưu", 0 lỗi JS |
+| Quét liên kết KN CRM và KN ERP × `quantri`, `sale.manager`, `sale.staff`, `vd.staff` | 35 và 174 trang: 0 lỗi JS, 0 trả lời 5xx, nhật ký máy chủ 0 traceback. Sáu lượt mở không phải trang (tệp mẫu tải về, liên kết Google Docs của tài liệu mẫu) giống lượt 14.10 trước |
+| `pytest -m "not trinh_duyet"` | **3.207 đạt, 7 bỏ qua, 0 đỏ** |
+| e2e hai lượt như CI | 69 đạt và 22 đạt. 9 bài đỏ đúng là 9 bài font Google có sẵn của máy ảo, không có lỗi nào khác |
+| CI của #128 trên `09f3559` | Xanh cả hai việc |
+
+**Kết luận:** đạt, gộp.
