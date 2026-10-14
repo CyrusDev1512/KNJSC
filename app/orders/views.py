@@ -13,7 +13,7 @@ from django.views.decorators.http import require_POST, require_GET
 from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
 from core.navigation import SALES_ONLY
-from core.permissions import assert_departments, assert_rank, is_admin
+from core.permissions import assert_business_write, assert_departments, assert_rank, is_admin
 
 from .models import Product
 from .services import order_service, product_service
@@ -35,6 +35,7 @@ def san_pham_moi(request):
     Chỉ Leader trở lên của bộ phận Sale (`product_service.CREATE_RANK`; màn hình này là
     của Sale). Trả về các `<option>` mới với sản phẩm vừa thêm được chọn sẵn.
     """
+    assert_business_write(request.user, request)   # Giám đốc gắn Sale vẫn chỉ xem (ADR-044), như Lên đơn
     assert_departments(request.user, SALES_ONLY, request)
     assert_rank(request.user, product_service.CREATE_RANK, request)
     try:

@@ -2,12 +2,13 @@
 from pathlib import Path
 
 from django.conf import settings
+from django.utils.functional import SimpleLazyObject
 
 from .lien_ket import crm_url
 from .exceptions import NoProfileError
 from .navigation import visible_navigation
 from .scope import get_user_scope
-from .permissions import has_rank, is_admin, is_crm_request, is_company_reader
+from .permissions import has_rank, is_admin, is_crm_request
 from .constants import Rank
 
 
@@ -48,14 +49,18 @@ def khung_chung(request):
         # Chỉ nuốt đúng lỗi này, để thanh điều hướng vẫn vẽ được trên trang
         # từ chối. Mọi lỗi khác phải nổi lên, không được che.
         scope = None
+    # Mục "Nộp báo cáo ngày" theo biểu mẫu có thật (chủ dự án 13–14.10): một truy vấn (Kế toán hai), tính lười và một lần
+    # cho cả menu lẫn nút ở Lịch sử. KN CRM không có trang nộp báo cáo nên không hỏi
+    from reports.services.daily_service import can_submit_reports
+    nop_bao_cao = False if is_crm_request(request) else SimpleLazyObject(lambda: can_submit_reports(request.user))
     return {
         "crm_app_url": crm_url(request),
-        "nav_groups": visible_navigation(request.user),
+        "nav_groups": SimpleLazyObject(lambda: visible_navigation(request.user, can_submit_reports=bool(nop_bao_cao))),
         "nav_current": getattr(request, "nav_current", ""),
         "scope": scope,
         "can_open_tables": is_crm_request(request) or has_rank(request.user, Rank.MANAGER),
         "can_list_jobs": is_crm_request(request) or is_admin(request.user),
-        "can_submit_reports": not is_company_reader(request.user),
+        "can_submit_reports": nop_bao_cao,
         "profile": getattr(request.user, "profile", None),
         "phien_ban_tinh": phien_ban_hien_tai(),
     }

@@ -46,14 +46,16 @@ def bao_cao_ngay(request):
     Biểu mẫu đổi theo bộ phận: danh sách lấy qua `FormDef.objects.in_scope`
     nên mỗi bộ phận chỉ thấy biểu mẫu của mình (AC-4.1).
     """
+    from core.audit import record_denied
     from core.permissions import assert_business_write
-    assert_business_write(request.user)
+    assert_business_write(request.user, request)
     request.nav_current = "bao_cao_ngay"
 
     cac_bieu_mau = list(daily_service.forms_for(request.user))
     ma_chon = request.POST.get("bieu_mau") or request.GET.get("bieu_mau")
     bm = next((f for f in cac_bieu_mau if f.code == ma_chon), None)
     if ma_chon and bm is None:
+        record_denied(request.user, request.get_full_path(), request)
         raise OutOfScopeError("Biểu mẫu không thuộc phạm vi của bạn.")
     if bm is None and cac_bieu_mau:
         bm = cac_bieu_mau[0]
@@ -406,6 +408,9 @@ def bao_cao_sua(request, pk):
     lỗi; 409 trả phần form đã nạp số mới nhất và phiên bản mới, ô bị đổi so với lúc mở hộp (ô ẩn `goc-…`) tô vàng."""
     report = get_object_or_404(daily_service.history(request.user), pk=pk)
     if not daily_service.can_amend(request.user, report):
+        # Thấy báo cáo mà không được sửa (Giám đốc, người nộp): vẫn 404 như AC-50.4 nhưng có dòng Từ chối (FR-3.5, P0-2)
+        from core.audit import record_denied
+        record_denied(request.user, request.get_full_path(), request)
         raise Http404('Báo cáo không thuộc phạm vi được sửa.')
     khung = request.GET.get('khung') == '1'
     lan = request.GET.get('lan', '')   # "Lần N" của dòng bảng vừa bấm ✎ — chỉ là nhãn đầu hộp

@@ -9,7 +9,7 @@ from django.http import Http404
 from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
 
-from core.audit import record
+from core.audit import record, record_denied
 from core.constants import AuditAction, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.scope import get_user_scope
@@ -42,8 +42,13 @@ class AccountPolicy:
         return (rank == Rank.LEADER and target_rank == Rank.STAFF
                 and profile.team_id in self.scope.team_ids)
 
-    def require(self, profile):
+    def require(self, profile, request=None):
+        """View gọi kèm `request` thì lần từ chối có dòng Từ chối (FR-3.5). Bước kiểm lại trong `locked_target`
+        (`reset_account_password`, `delete_account`) gọi không kèm request: dòng ghi trong giao dịch đó sẽ bị huỷ khi
+        raise, nên view ghi sau khi giao dịch đóng (`org.views._ghi_tu_choi_sau_khoa`)."""
         if not self.can_manage(profile):
+            if request is not None:
+                record_denied(self.actor, request.path, request)
             raise OutOfScopeError("Bạn không có quyền quản lý tài khoản này.")
 
 

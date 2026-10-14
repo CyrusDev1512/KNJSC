@@ -59,6 +59,8 @@ def save(request, code):
             # Xoá dòng chỉ Admin (ADR-049): ghi nhật ký từ chối sau khi giao dịch của lượt ghi đã huỷ
             record_denied(request.user, request.path, request)
             return JsonResponse({'error': 'Chỉ Quản trị mới xoá hay khôi phục được dòng.'}, status=403)
+        # Nhánh chung cũng ghi (FR-3.5), sau khi giao dịch của lượt ghi đã huỷ — tách khỏi nhánh xoá dòng để không ghi đôi
+        record_denied(request.user, request.path, request)
         return JsonResponse({'error': 'Bạn không còn quyền sửa các dòng này.'}, status=403)
     except BusinessError as exc:
         return JsonResponse({'error': str(exc), 'code':exc.code,
@@ -89,6 +91,7 @@ def clear_details(request, code):
         return JsonResponse({'rows': service.serialize(fresh.order_by('pk'), columns, request.user),
                              'latest': service.latest_stamp(request.user, table)})
     except OutOfScopeError:
+        record_denied(request.user, request.path, request)
         return JsonResponse({'error': 'Bạn không còn quyền sửa các dòng này.'}, status=403)
     except BusinessError as exc:
         return JsonResponse({'error': str(exc)}, status=409 if exc.code == 'conflict' else 400)
