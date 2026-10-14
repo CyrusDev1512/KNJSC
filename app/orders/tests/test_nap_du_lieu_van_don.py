@@ -150,8 +150,9 @@ def test_nap_du_lieu_day_du_giu_id_va_chay_lai_an_toan(du_lieu_nap, nguoi_dung):
 @override_settings(DEBUG=True)
 def test_thieu_nhan_su_van_don_thi_khong_thay_doi_gi(du_lieu_nap, nguoi_dung):
     table, rows, outside = du_lieu_nap
-    nguoi_dung["staff_vd"].is_active = False
-    nguoi_dung["staff_vd"].save(update_fields=["is_active"])
+    # Mọi người của bộ phận Vận đơn trong fixture (Staff, Leader, Manager) nghỉ việc
+    from django.contrib.auth import get_user_model
+    get_user_model().objects.filter(profile__department__code="van-don").update(is_active=False)
     before = list(DataRecord.objects.filter(table=table).values_list("pk", "data"))
 
     with pytest.raises(CommandError, match="nhân sự Vận đơn"):

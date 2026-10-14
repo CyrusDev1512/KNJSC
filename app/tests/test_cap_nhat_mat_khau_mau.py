@@ -39,7 +39,7 @@ def test_updates_all_samples_preserves_flags_and_other_accounts(settings, client
     other.user.refresh_from_db()
     assert other.user.password == other_hash
     assert client.login(username="quantri", password="matkhaucuatoi")
-    assert AuditLog.objects.filter(target_type=UPDATE_KEY).count() == 12
+    assert AuditLog.objects.filter(target_type=UPDATE_KEY).count() == len(TAI_KHOAN)
     assert not AuditLog.objects.filter(detail__contains="matkhaucuatoi").exists()
 
 
