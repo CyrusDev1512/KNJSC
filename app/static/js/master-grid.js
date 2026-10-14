@@ -521,12 +521,13 @@
     }
     // Bộ nhập dùng D/M/Y; ngày giờ giữ giá trị ISO/múi giờ khi gửi lưu.
     else {input=element(c.type==='long_text'?'textarea':'input','o-nhap');if(c.type==='date')input.type='date';else if(c.type==='datetime')input.setAttribute('data-date-time','');else if(['integer','decimal','money'].includes(c.type))input.inputMode='decimal';}
-    input.name='value';input.setAttribute('aria-label',c.name);input.value=value.value??'';
+    input.name='value';input.setAttribute('aria-label',c.name);input.value=soViet(c,value.value)??'';
     $('mg-input').replaceChildren(input);
     window.KNDate?.enhance(input);
     if(options.length&&c.choice_strict===false){const suggestions=element('datalist','');suggestions.id='mg-choice-suggestions';for(const value of options)suggestions.append(new Option(value,value));input.setAttribute('list',suggestions.id);$('mg-input').append(suggestions);}
     // Chỉ giữ bản nháp khi đã tạo xong trình nhập; lỗi mở một ô không khóa cả lưới.
-    state.draft={id:row.id,column:c.code,old:value.value,cur};
+    // `shown`: chữ ô nhập hiện lúc mở (tiền hiện "0,125" kiểu Việt) — Enter mà không sửa thì không gửi gì (TL-03)
+    state.draft={id:row.id,column:c.code,old:value.value,shown:input.value,cur};
     editor.hidden=false;
     const cell=$(`mg-${row.id}-${c.code}`);if(cell){const style=getComputedStyle(cell);editor.style.font=style.font;editor.style.color=style.color;editor.style.backgroundColor=style.backgroundColor;}
     positionEditor();input.focus({preventScroll:true});
@@ -637,7 +638,7 @@
     return {...original,value,style,class:classes,display};
   }
   function refreshStatus() {
-    const currentChanged=state.draft&&!same(editor.elements.value?.value,state.draft.old);
+    const currentChanged=state.draft&&!same(editor.elements.value?.value,state.draft.shown??state.draft.old);
     const count=working.count;
     status(state.conflicts.length?'Xung đột':state.busy?'Đang lưu':state.saveError?'Lỗi lưu':count||currentChanged||state.retry?'Chưa lưu':'Đã lưu');
     $('mg-conflict-button').textContent=`Xung đột (${state.conflicts.length})`;
@@ -648,7 +649,7 @@
     if(!state.draft)return true;if(state.composing)return false;
     const d=state.draft;
     if(!discard&&editor.elements.value&&!editor.elements.value.reportValidity())return false;
-    if(!discard){try{const changed=working.stage([{id:d.id,column:d.column,old:d.old,value:editor.elements.value.value}]);if(changed&&state.errorStatus===400)state.saveError=false;if(changed)apLaiChieuCao([d.id]);}
+    if(!discard&&!same(editor.elements.value?.value,d.shown??d.old)){try{const changed=working.stage([{id:d.id,column:d.column,old:d.old,value:editor.elements.value.value}]);if(changed&&state.errorStatus===400)state.saveError=false;if(changed)apLaiChieuCao([d.id]);}
       catch(error){message(error.message,true);return false;}}
     state.draft=null;editor.hidden=true;refreshStatus();if(discard)repaintSelection();else repaint();scheduleSave();return true;
   }
@@ -895,12 +896,17 @@
     invalidate();
     return lost.size?'Có dòng đã mất quyền xem. Nháp trên dòng đó được gỡ; nháp còn quyền được giữ. Kiểm tra trước khi bấm Thử lại.':text+' Nháp vẫn được giữ vì bạn còn quyền xem.';
   }
+  // Số tiền, số thập phân lưu dạng chuỗi máy "0.125" (chấm là thập phân). Ô nhập và bản sao chép hiện kiểu Việt
+  // "0,125": máy chủ đọc chữ người gõ theo luật Việt (chấm ngăn nghìn), nên dán lại ở đâu cũng đúng số (TL-03, ADR-051)
+  function soViet(c,value){
+    return c&&['decimal','money'].includes(c.type)&&typeof value==='string'&&/^-?\d+\.\d+$/.test(value)?value.replace('.',','):value;
+  }
   async function copy() {
     const cells=await rangeCells();if(!cells.length)return;
     const rows=[],table=document.createElement('table');let r=-1,tr;
     for(const cell of cells){
       if(cell.r!==r){rows.push([]);r=cell.r;tr=table.insertRow();}
-      const value=String(cell.value??''),td=tr.insertCell();
+      const value=String(soViet(state.visible[cell.c],cell.value)??''),td=tr.insertCell();
       rows.at(-1).push(/[\t\n\r"]/.test(value)?'"'+value.replaceAll('"','""')+'"':value);
       // HTML clipboard gợi ý ô văn bản cho Excel; textContent không nhận HTML từ dữ liệu.
       td.setAttribute('style',(typeof cell.value==='string'?'mso-number-format:"\\@";':'')+'white-space:pre-wrap;');
@@ -1259,7 +1265,7 @@
   $('mg-conflict-button').onclick=showConflicts;
   if($('mg-delete-rows'))$('mg-delete-rows').onclick=()=>{closeMore();safe(deleteRows)();};
   window.addEventListener('beforeunload',e=>{
-    if(working.count||state.retry||state.rowRetry||state.busy||(state.draft&&!same(editor.elements.value?.value,state.draft.old))){e.preventDefault();e.returnValue='';}
+    if(working.count||state.retry||state.rowRetry||state.busy||(state.draft&&!same(editor.elements.value?.value,state.draft.shown??state.draft.old))){e.preventDefault();e.returnValue='';}
   });
   window.addEventListener('online',()=>{if(state.retry&&!state.busy&&!state.conflicts.length){state.retryCount=0;saveAll(false);}});
   document.addEventListener('pointerdown',e=>{

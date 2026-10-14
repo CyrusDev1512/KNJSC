@@ -16,3 +16,12 @@ console.log('PASS working copy: staging, undo/redo, save acknowledgement, unknow
 
 const normalized=new Copy();normalized.stage([c('old ','new')]);normalized.acknowledge(normalized.pending(),[{id:1,cells:{text:{value:'new'}}}]);normalized.travel();normalized.acknowledge(normalized.pending(),[{id:1,cells:{text:{value:'old'}}}]);normalized.travel(true);assert.equal(normalized.pending()[0].value,'new');
 console.log('PASS history after server normalization');
+
+// TL-03: hoàn tác, làm lại gửi lại chuỗi máy kèm cờ machine — máy chủ không đọc "0.125" theo luật Việt (thành 125).
+const may=new Copy(),m=(old,value)=>({id:1,column:'tien',old,value});
+may.stage([m('0.125','0,126')]);let goi=may.pending();assert.equal(goi[0].machine,undefined);
+may.hold(goi);may.acknowledge(goi,[{id:1,cells:{tien:{value:'0.126'}}}]);
+may.travel();goi=may.pending();assert.deepEqual([goi[0].value,goi[0].machine],['0.125',true]);
+may.hold(goi);may.acknowledge(goi,[{id:1,cells:{tien:{value:'0.125'}}}]);
+may.travel(true);goi=may.pending();assert.deepEqual([goi[0].value,goi[0].machine],['0.126',true]);
+console.log('PASS machine flag: undo/redo after server normalization');
