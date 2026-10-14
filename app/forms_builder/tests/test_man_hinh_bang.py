@@ -439,3 +439,37 @@ def test_danh_sach_bang_chi_hien_nut_cot_cho_bang_quan_ly_duoc(client, bang_sale
         assert nut_cot in client.get("/bang/").content.decode(), ai
     client.force_login(nguoi_dung["leader_sale_1"])
     assert client.get("/bang/").status_code == 403
+
+
+def test_quan_ly_duoc_cap_xem_khong_tu_cap_hay_thu_quyen_bang(client, bang_sale, nguoi_dung):
+    """AC-3.7 — Manager bộ phận khác được cấp Xem bảng vẫn xem được, nhưng gọi thẳng cấp quyền cho mình hay thu quyền
+    của chủ bảng thì 403 có nhật ký; người ngoài phạm vi 404; chủ bảng và Admin cấp, thu được (TL-01)"""
+    from core.constants import AuditAction
+    from core.models import AuditLog
+    from forms_builder.models import Grant, GrantAction
+    from forms_builder.services import grant_service
+
+    chu, ke = nguoi_dung["manager_sale"], nguoi_dung["manager_mkt"]
+    grant_service.grant(table=bang_sale, user=ke, action=GrantAction.VIEW, actor=chu)
+    quyen_chu = grant_service.grant(table=bang_sale, user=nguoi_dung["staff_mkt"], action=GrantAction.EDIT, actor=chu)
+    so_quyen, tu_choi = Grant.objects.count(), AuditLog.objects.filter(action=AuditAction.DENIED).count()
+
+    client.force_login(ke)
+    assert client.get("/bang/don_sale/").status_code == 200
+    assert client.post("/bang/don_sale/cap-quyen/", {"user": ke.pk, "action": "edit"}).status_code == 403
+    assert client.post(f"/bang/don_sale/thu-quyen/{quyen_chu.pk}/").status_code == 403
+    quyen_chu.refresh_from_db()
+    assert quyen_chu.deleted_at is None and Grant.objects.count() == so_quyen
+    assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == tu_choi + 2
+
+    client.force_login(nguoi_dung["manager_vd"])                       # không được cấp gì: không lộ bảng có tồn tại
+    assert client.post("/bang/don_sale/cap-quyen/", {"user": ke.pk, "action": "edit"}).status_code == 404
+
+    client.force_login(chu)
+    assert client.post("/bang/don_sale/cap-quyen/", {"user": nguoi_dung["staff_mkt"].pk, "action": "view"}).status_code == 302
+    assert Grant.objects.latest("pk").granted_by == chu
+    assert client.post(f"/bang/don_sale/thu-quyen/{quyen_chu.pk}/").status_code == 302
+    quyen_chu.refresh_from_db()
+    assert quyen_chu.deleted_at is not None
+    client.force_login(nguoi_dung["admin"])
+    assert client.post("/bang/don_sale/cap-quyen/", {"user": nguoi_dung["staff_mkt"].pk, "action": "edit"}).status_code == 302

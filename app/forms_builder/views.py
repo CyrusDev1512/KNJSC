@@ -84,6 +84,15 @@ def _kiem_sua_cau_truc(request, bang_hien):
         raise OutOfScopeError("Chỉ quản lý của bộ phận sở hữu bảng mới sửa được cột.")
 
 
+def _kiem_cap_quyen(request, doi_tuong):
+    """Cấp, thu quyền bảng hay biểu mẫu, và sửa biểu mẫu: Manager của bộ phận sở hữu hoặc Admin (FR-8.4, ADR-015 mục
+    5). Thấy được nhờ quyền Xem/Điền, Kế toán hay dòng vận đơn thì 403 có nhật ký (TL-01). Gọi SAU khi lấy đối tượng
+    qua phạm vi, để ngoài phạm vi vẫn 404 không lộ đối tượng có tồn tại."""
+    if not grant_service.can_grant(request.user, doi_tuong):
+        record_denied(request.user, request.path, request)
+        raise OutOfScopeError("Chỉ Manager của bộ phận sở hữu mới cấp, thu quyền hay sửa được mục này.")
+
+
 # ══ QUẢN LÝ BẢNG ══════════════════════════════════════════════════
 
 @login_required
@@ -490,6 +499,7 @@ def bang_cap_quyen(request, code):
     assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bang_hien = _lay_bang(request, code)
+    _kiem_cap_quyen(request, bang_hien)
 
     form = GrantForm(request.POST, cho_bang=True)
     if form.is_valid():
@@ -514,6 +524,7 @@ def bang_thu_quyen(request, code, pk):
     assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bang_hien = _lay_bang(request, code)
+    _kiem_cap_quyen(request, bang_hien)
     quyen = get_object_or_404(Grant, pk=pk, table=bang_hien)
     grant_service.revoke(quyen, actor=request.user, request=request)
     messages.success(request, "Đã thu quyền.")
@@ -574,6 +585,9 @@ def bieu_mau(request):
         "duoc_dien": not is_company_reader(request.user),
     }
     boi_canh.update(pagination_context(request, ds, "biểu mẫu"))
+    # Nút Sửa chỉ ở biểu mẫu người xem quản lý được — biểu mẫu chỉ được cấp Điền thì không (TL-01, như TL-78)
+    for bm in boi_canh["trang"]:
+        bm.duoc_sua = grant_service.can_grant(request.user, bm)
     boi_canh.update(active_tab="forms", can_manage_forms=can_manage,
                    qs_loc=filter_query(tab="forms", tim=tim))
     return render(request, "forms_builder/library_hub.html", boi_canh)
@@ -610,6 +624,7 @@ def bieu_mau_sua(request, code):
     request.nav_current = "bieu_mau"
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
+    _kiem_cap_quyen(request, bm)
 
     sua_pk = request.GET.get("truong")
     dang_sua = None
@@ -656,6 +671,7 @@ def bieu_mau_bo_truong(request, code, pk):
     assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
+    _kiem_cap_quyen(request, bm)
     truong = get_object_or_404(FormField, pk=pk, form=bm)
     ten = truong.field.name
     form_service.remove_field(truong, actor=request.user, request=request)
@@ -699,6 +715,7 @@ def bieu_mau_cap_quyen(request, code):
     assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
+    _kiem_cap_quyen(request, bm)
 
     form = GrantForm(request.POST, cho_bang=False)
     if form.is_valid():
@@ -723,6 +740,7 @@ def bieu_mau_thu_quyen(request, code, pk):
     assert_business_write(request.user)
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
+    _kiem_cap_quyen(request, bm)
     quyen = get_object_or_404(Grant, pk=pk, form=bm)
     grant_service.revoke(quyen, actor=request.user, request=request)
     messages.success(request, "Đã thu quyền.")
