@@ -520,3 +520,63 @@ def test_bieu_mau_he_thong_khong_co_nguoi_tao(client, bieu_mau, nguoi_dung):
     response = client.get("/bieu-mau/")
     assert response.status_code == 200
     assert bieu_mau.name in response.content.decode()
+
+
+def test_quan_ly_bo_phan_khac_co_quyen_dien_khong_quan_ly_duoc_bieu_mau(client, bieu_mau, truong_mkt, nguoi_dung):
+    """AC-3.7 — Manager bộ phận khác được cấp Điền một biểu mẫu chỉ điền được: mở trang Sửa, thêm, bỏ trường, cấp hay
+    thu quyền đều 403 có nhật ký; danh sách không hiện nút Sửa; chủ biểu mẫu và Admin vẫn làm được (TL-01, FR-8.4)"""
+    from forms_builder.models import Grant, GrantAction
+
+    chu, ke = nguoi_dung["manager_mkt"], nguoi_dung["manager_sale"]
+    grant_service.grant(form=bieu_mau, user=ke, action=GrantAction.FILL, actor=chu)
+    quyen_chu = grant_service.grant(form=bieu_mau, user=nguoi_dung["staff_sale_1"], action=GrantAction.FILL, actor=chu)
+    so_truong, so_quyen = bieu_mau.fields.count(), Grant.objects.count()
+    tu_choi = AuditLog.objects.filter(action=AuditAction.DENIED).count()
+    goc = f"/bieu-mau/{bieu_mau.code}/"
+
+    client.force_login(ke)
+    assert client.get(f"{goc}dien/").status_code == 200
+    assert client.get(f"{goc}sua/").status_code == 403
+    assert client.post(f"{goc}sua/", {"field": truong_mkt["ghi_chu"].pk}).status_code == 403
+    assert client.post(f"{goc}bo-truong/{bieu_mau.fields.first().pk}/").status_code == 403
+    assert client.post(f"{goc}cap-quyen/", {"user": nguoi_dung["staff_sale_2"].pk, "action": "fill"}).status_code == 403
+    assert client.post(f"{goc}thu-quyen/{quyen_chu.pk}/").status_code == 403
+    quyen_chu.refresh_from_db()
+    assert quyen_chu.deleted_at is None
+    assert (bieu_mau.fields.count(), Grant.objects.count()) == (so_truong, so_quyen)
+    assert AuditLog.objects.filter(action=AuditAction.DENIED).count() == tu_choi + 5
+    danh_sach = client.get("/bieu-mau/?tab=forms").content.decode()
+    assert f'href="{goc}dien/"' in danh_sach and f'href="{goc}sua/"' not in danh_sach
+
+    client.force_login(chu)
+    assert client.get(f"{goc}sua/").status_code == 200
+    assert f'href="{goc}sua/"' in client.get("/bieu-mau/?tab=forms").content.decode()
+    assert client.post(f"{goc}cap-quyen/", {"user": nguoi_dung["staff_sale_2"].pk, "action": "fill"}).status_code == 302
+    client.force_login(nguoi_dung["admin"])
+    assert client.get(f"{goc}sua/").status_code == 200
+
+
+def test_dich_vu_cap_thu_quyen_chi_manager_bo_phan_so_huu(bang_mkt, bieu_mau, nguoi_dung, make_user, departments):
+    """FR-8.4 — Tầng dịch vụ `grant()`/`revoke()` tự áp luật: chỉ Manager bộ phận sở hữu (hoặc Admin) cấp, thu quyền
+    bảng và biểu mẫu; Manager bộ phận khác (kể cả đã có quyền Xem) và Leader bị từ chối, quyền của chủ còn nguyên
+    (TL-01)"""
+    from core.constants import Rank
+    from core.exceptions import OutOfScopeError
+    from forms_builder.models import GrantAction
+
+    chu, ke = nguoi_dung["manager_mkt"], nguoi_dung["manager_sale"]
+    grant_service.grant(table=bang_mkt, user=ke, action=GrantAction.VIEW, actor=chu)
+    quyen_chu = grant_service.grant(table=bang_mkt, user=nguoi_dung["staff_sale_1"], action=GrantAction.EDIT, actor=chu)
+    leader_mkt = make_user("leader_mkt_thu", Rank.LEADER, departments["mkt"])
+    for goi in (
+        lambda: grant_service.grant(table=bang_mkt, user=ke, action=GrantAction.EDIT, actor=ke),
+        lambda: grant_service.grant(form=bieu_mau, user=nguoi_dung["staff_sale_2"], action=GrantAction.FILL, actor=ke),
+        lambda: grant_service.revoke(quyen_chu, actor=ke),
+        lambda: grant_service.grant(table=bang_mkt, user=leader_mkt, action=GrantAction.EDIT, actor=leader_mkt),
+    ):
+        with pytest.raises(OutOfScopeError):
+            goi()
+    quyen_chu.refresh_from_db()
+    assert quyen_chu.deleted_at is None
+    grant_service.grant(table=bang_mkt, user=nguoi_dung["staff_sale_2"], action=GrantAction.VIEW, actor=nguoi_dung["admin"])
+    grant_service.revoke(quyen_chu, actor=chu)
