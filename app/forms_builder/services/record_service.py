@@ -20,11 +20,11 @@ from django.utils import timezone
 from core.audit import record
 from core.constants import CELL_TEXT_MAX_CHARS, AuditAction
 from core.exceptions import BusinessError
-from core.money import check_amount, parse_money
+from core.money import check_amount, parse_money, parse_stored_number
 
 from .. import choice_registry, record_policies
 from ..meaning import FieldType
-from ..models import DataRecord
+from ..models import NUMERIC_TYPES, DataRecord
 
 #: Giá trị người dùng gõ vào được hiểu là "đúng"
 #: Ngày số của Excel: ngày 0 là 30/12/1899; trần 2.958.466 là 31/12/9999 — số lớn hơn không phải ngày
@@ -136,6 +136,19 @@ def parse_value(column, raw, *, choices=None):
             f'của cột "{column.name}".'
         )
     return str(raw)
+
+
+def stored_number(column, raw):
+    """Giá trị máy gửi lại cho một ô (cờ `machine` trên lưới — hoàn tác, làm lại): cột số đọc chuỗi bằng
+    `parse_stored_number` (dấu chấm là thập phân, TL-03) rồi đưa `Decimal` qua `parse_value` như số thật; cột khác
+    giữ nguyên. Sai dạng thì `BusinessError` cùng mẫu lời của `parse_value`."""
+    if column.field_type not in NUMERIC_TYPES or not isinstance(raw, str) or not raw.strip():
+        return raw
+    try:
+        return parse_stored_number(raw)
+    except InvalidOperation:
+        raise BusinessError(
+            f'Giá trị "{raw}" không đúng kiểu {FieldType(column.field_type).label} của cột "{column.name}".')
 
 
 def _thieu_bat_buoc(columns, values):

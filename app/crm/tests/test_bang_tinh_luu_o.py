@@ -137,3 +137,64 @@ def test_update_cells_dich_vu_mot_giao_dich(bang_sale, nguoi_dung):
     d1.refresh_from_db()
     assert d1.data["khach"] == "A"
     assert record_service.update_cells([(d1, "khach", "A1"), (d2, "khach", "B1")], actor=nv, columns=cot) == 2
+
+
+# ══ Chuỗi máy gửi lại không bị nhân nghìn — TL-03 ═══════════════════
+
+def _luu_o(client, bang, cells, kind="edit"):
+    return client.post(f"/bang-tinh/{bang.code}/luu-json/", {"operation": str(uuid.uuid4()), "cells": cells,
+                       "kind": kind}, content_type="application/json")
+
+
+@SUA_DUOC
+def test_luu_json_chuoi_may_hoan_tac_giu_dung_so(client, bang_sale, nguoi_dung):
+    """AC-9.7 — Hoàn tác trên lưới gửi lại đúng chuỗi máy đã lưu ("0.125", cờ `machine`): máy chủ đọc dấu chấm là
+    thập phân, giữ 0,125; gửi lại đúng số đang có thì không đổi, không ghi nhật ký; dòng ngoài phạm vi vẫn 403
+    (TL-03 — trước đây thành 125)"""
+    from crm.models import GridCellHistory
+
+    nv = nguoi_dung["staff_sale_1"]
+    d = _dong(bang_sale, nv, khach="A", doanh_thu="5")
+    client.force_login(nv)
+    kq = _luu_o(client, bang_sale, [{"id": d.pk, "column": "doanh_thu", "old": "5", "value": "0.125",
+                                     "machine": True}], kind="undo")
+    assert kq.status_code == 200, kq.content
+    d.refresh_from_db()
+    assert d.data["doanh_thu"] == "0.125"
+
+    nhat_ky, lich_su = AuditLog.objects.count(), GridCellHistory.objects.count()
+    kq = _luu_o(client, bang_sale, [{"id": d.pk, "column": "doanh_thu", "old": "0.125", "value": "0.125",
+                                     "machine": True}], kind="redo")
+    assert kq.status_code == 200
+    d.refresh_from_db()
+    assert d.data["doanh_thu"] == "0.125"
+    assert (AuditLog.objects.count(), GridCellHistory.objects.count()) == (nhat_ky, lich_su)
+
+    client.force_login(nguoi_dung["staff_sale_2"])
+    kq = _luu_o(client, bang_sale, [{"id": d.pk, "column": "doanh_thu", "old": "0.125", "value": "9.5",
+                                     "machine": True}], kind="undo")
+    assert kq.status_code == 403
+    d.refresh_from_db()
+    assert d.data["doanh_thu"] == "0.125"
+
+
+@SUA_DUOC
+def test_luu_json_chu_nguoi_go_van_theo_luat_viet_va_co_may_sai_bi_tu_choi(client, bang_sale, nguoi_dung):
+    """AC-9.7 — Không có cờ `machine` là chữ người gõ, giữ luật Việt ("1.234" = 1234, "0,125" = 0,125); số JSON đọc
+    nguyên trạng; cờ `machine` không phải true/false hay chuỗi máy sai dạng thì 400, không ô nào đổi (TL-03)"""
+    nv = nguoi_dung["staff_sale_1"]
+    d = _dong(bang_sale, nv, khach="A", doanh_thu="5")
+    client.force_login(nv)
+    for gia_tri, ky_vong in (("1.234", "1234"), ("0,125", "0.125"), (0.125, "0.125")):
+        cu = DataRecord.objects.get(pk=d.pk).data["doanh_thu"]
+        assert _luu_o(client, bang_sale, [{"id": d.pk, "column": "doanh_thu", "old": cu, "value": gia_tri}]).status_code == 200
+        assert DataRecord.objects.get(pk=d.pk).data["doanh_thu"] == ky_vong, gia_tri
+
+    kq = _luu_o(client, bang_sale, [{"id": d.pk, "column": "doanh_thu", "old": "0.125", "value": "1",
+                                     "machine": "co"}])
+    assert kq.status_code == 400 and "Ô thiếu định danh" in kq.json()["error"]
+    kq = _luu_o(client, bang_sale, [{"id": d.pk, "column": "doanh_thu", "old": "0.125", "value": "1.234,5",
+                                     "machine": True}], kind="undo")
+    assert kq.status_code == 400 and "Doanh thu" in kq.json()["error"]
+    assert kq.json()["cell"]["column"] == "doanh_thu"
+    assert DataRecord.objects.get(pk=d.pk).data["doanh_thu"] == "0.125"

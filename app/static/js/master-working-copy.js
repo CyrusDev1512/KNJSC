@@ -3,6 +3,9 @@
   'use strict';
   const same=(a,b)=>String(a??'')===String(b??'');
   const key=c=>`${c.id}:${c.column}:${c.property||'value'}`;
+  // Cờ `machine`: giá trị là chuỗi máy chủ trả về ("0.125" — chấm là thập phân), không phải chữ người gõ. Hoàn tác,
+  // làm lại gửi lại giá trị cũ kèm cờ để máy chủ không đọc theo luật Việt mà nhân nghìn (TL-03). Chỉ đặt khi true.
+  const flag=(o,name,on)=>{if(on)o[name]=true;else delete o[name];return o;};
   class MasterWorkingCopy {
     constructor(track=false){this.track=track;this.entries=new Map();this.undo=[];this.redo=[];this.held=new Set();this.count=0;this.rowVersions=new Map();}
     remap(mapping, rows, operation){
@@ -38,15 +41,15 @@
         for(const property of ['value','fs','c','bg']){
           const k=key({id:row.id,column,property}),e=this.entries.get(k);
           const value=property==='value'?cell.value:cell.style?.[property]??null;
-          if(e&&same(e.old,e.value)&&!this.held.has(k)&&!same(e.value,value)){e.old=e.value=value;this.touch(row.id);}
+          if(e&&same(e.old,e.value)&&!this.held.has(k)&&!same(e.value,value)){e.old=e.value=value;flag(e,'machine',true);this.touch(row.id);}
         }
       }
     }
     stage(cells,record=true){
       const changes=new Map(),step=[];
       for(const c of cells){
-        const k=key(c),identity={id:c.id,column:c.column,...(c.property?{property:c.property}:{})},e={...(changes.get(k)||this.entries.get(k)||{...identity,old:c.old,value:c.old})};
-        if(!same(e.value,c.value)){step.push({...identity,old:e.value,value:c.value});e.value=c.value;changes.set(k,e);}
+        const k=key(c),identity={id:c.id,column:c.column,...(c.property?{property:c.property}:{})},e={...(changes.get(k)||this.entries.get(k)||{...identity,old:c.old,value:c.old,machine:true})};
+        if(!same(e.value,c.value)){step.push(flag(flag({...identity,old:e.value,value:c.value},'oldMachine',e.machine),'machine',c.machine));e.value=c.value;flag(e,'machine',c.machine);changes.set(k,e);}
       }
       const combined=new Map([...this.entries,...changes]);
       const count=[...combined.values()].filter(e=>!same(e.old,e.value)).length;
@@ -59,7 +62,7 @@
     travel(redo=false){
       const source=redo?this.redo:this.undo,step=source.at(-1);if(!step)return;
       for(const c of step){const current=this.entries.get(key(c));if(!current||!same(current.value,redo?c.old:c.value))throw Error('Không thể hoàn tác vì ô đã thay đổi. Phần đang làm được giữ nguyên.');}
-      this.stage(step.map(c=>({...c,value:redo?c.value:c.old})),false);
+      this.stage(step.map(c=>({...c,value:redo?c.value:c.old,machine:redo?c.machine:c.oldMachine})),false);
       source.pop();(redo?this.undo:this.redo).push(step);this.prune();
     }
     hold(cells){cells.forEach(c=>this.held.add(key(c)));}
@@ -67,11 +70,11 @@
       const byId=new Map(rows.map(row=>[row.id,row]));
       for(const c of cells){
         const k=key(c),e=this.entries.get(k),cell=byId.get(c.id).cells[c.column],value=c.property&&c.property!=='value'?cell.style?.[c.property]??null:cell.value;
-        if(e){if(same(e.value,c.value))e.value=value;e.old=value;this.touch(c.id);}
+        if(e){if(same(e.value,c.value)){e.value=value;flag(e,'machine',true);}e.old=value;this.touch(c.id);}
         if(!same(value,c.value))for(const step of [...this.undo,...this.redo])for(const cell of step){
           if(key(cell)!==k)continue;
-          if(same(cell.old,c.value))cell.old=value;
-          if(same(cell.value,c.value))cell.value=value;
+          if(same(cell.old,c.value)){cell.old=value;cell.oldMachine=true;}
+          if(same(cell.value,c.value)){cell.value=value;cell.machine=true;}
         }
         this.held.delete(k);
       }
@@ -79,7 +82,7 @@
     }
     release(cells){cells.forEach(c=>this.held.delete(key(c)));this.prune();}
     resolve(conflicts, choices){
-      for(const c of conflicts){const e=this.entries.get(key(c));if(!e)continue;e.old=c.current;if(choices.get(key(c))==='server')e.value=c.current;this.touch(c.id);}
+      for(const c of conflicts){const e=this.entries.get(key(c));if(!e)continue;e.old=c.current;if(choices.get(key(c))==='server'){e.value=c.current;flag(e,'machine',true);}this.touch(c.id);}
       // Mốc trước/sau cũ không còn hợp lệ sau khi đối chiếu server.
       this.undo=[];this.redo=[];this.count=this.pending().length;this.prune();
     }
