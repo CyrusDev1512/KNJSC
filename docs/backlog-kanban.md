@@ -1,5 +1,18 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 13.10.2026 — KN OMS: bản demo dữ liệu giả trong KN CRM, chỉ Admin (ADR-051, AC-51.1 → 51.8)
+
+**Finished local (nhánh `claude/kn-oms-demo`, PR nháp về `Staging`):**
+- `/oms/` chỉ ở KN CRM, chỉ Admin. Mục cuối thanh bên mở tab mới; vai khác 403 có nhật ký; ERP 404.
+- Sáu màn: Báo đơn, Kho, Kênh bán & Page của mockup cùng Công nợ & đối soát, Khách rủi ro, Lãi theo page.
+- Dữ liệu giả sinh trong trình duyệt: không model, không migration, không gọi máy chủ.
+- Kiểm: 14 bài quyền, 5 bài trình duyệt chạy 3 lần liền; đi thử trên hệ thống thật 9/9.
+
+**To do:**
+- chủ dự án duyệt, gộp PR vào `Staging`;
+- chặng 2: thử ở máy mình (`KN JSC.bat`, `quantri`, KN CRM → KN OMS);
+- sau đó `main` và VPS; không có migration.
+
 ## 12.10.2026 — Sửa TL-89: nút của Thống kê KN CRM (AC-40.9)
 
 **Finished local (nhánh `claude/knerp-erp-chinh-sua-hfi7w8`, PR nháp về `Staging`):**

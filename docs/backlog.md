@@ -1,5 +1,34 @@
 # Backlog
 
+## 13.10.2026 — KN OMS: bản demo dữ liệu giả trong KN CRM, chỉ Admin (ADR-051, AC-51.1 → 51.8)
+
+- **Chủ dự án:** "mockup + 1 2 3 làm sang một site khác từ KN CRM có thể mở KN OMS để có mockup + 1 2 3".
+  - "Mockup" là [mockup tương tác](https://claude.ai/artifact/PtHzbv73q4kdaQrJSijEWk) gồm Báo đơn, Kho, Kênh bán & Page.
+  - "1 2 3" là ba đề xuất: Công nợ & đối soát, Cảnh báo khách rủi ro, Lãi theo page.
+  - Chủ dự án chốt: đường dẫn riêng `/oms/` trong KN CRM, chỉ Admin, toàn bộ dữ liệu giả.
+- **Đã làm:**
+  - **Lối vào:** `/oms/` chỉ có ở KN CRM. Mục "KN OMS" cuối thanh bên chỉ Admin thấy, mở tab mới. Vai khác gọi thẳng nhận
+    403 có nhật ký; KN ERP trả 404.
+  - **Trang:** đứng riêng, sáu màn, mỗi màn một địa chỉ `#…`. Nền dùng chung với KN CRM. Có nút "Đặt lại demo".
+  - **Dữ liệu:** sinh trong trình duyệt từ hạt giống cố định, nên ba màn cũ ra y như mockup.
+  - **Không đụng:** model, migration, settings, dữ liệu thật. Trang không gọi máy chủ.
+- **Kiểm:**
+  - bài mới: 14 bài quyền và 5 bài trình duyệt (chạy 3 lần liền);
+  - `pytest -m "not trinh_duyet"`: 3.206 đạt, 7 bỏ qua, 0 đỏ (thêm 29 bài so với 12.10);
+  - đi thử trên hệ thống thật với `quantri`, `sale.staff` và KN ERP.
+- **Sửa thêm trong lúc kiểm** (chi tiết ở biên bản):
+  - Lãi theo page: 8/11 page lỗ, nay đúng 2 page;
+  - bảng tràn ngang: nay 0 px ở mọi màn và mọi cỡ;
+  - "Cập nhật từ hãng" lần đầu không có đơn nào giao xong.
+- **Còn nợ:**
+  - chủ dự án duyệt và gộp PR nháp vào `Staging`;
+  - chặng 2: thử ở máy mình (`KN JSC.bat`, `quantri`, KN CRM → KN OMS);
+  - sau đó mới lên `main` và VPS; không có migration.
+- **Ghi lại để xem sau:** mọi ngưỡng, phí, giá vốn, cước, quảng cáo, tỉ giá ở KN OMS là số minh hoạ. Làm thật màn nào cũng
+  cần ADR riêng và lời đáp H7.
+
+[Biên bản](kiem-chung-kn-oms-demo-20261013.md).
+
 ## 12.10.2026 — Sửa TL-89: nút của Thống kê KN CRM (AC-40.9)
 
 - **Chủ dự án:** "sửa TL-89 đi", chọn đích Báo cáo tổng hợp KN ERP.

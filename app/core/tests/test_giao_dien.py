@@ -27,6 +27,12 @@ CAC_TEP_CSS = [
     GOC / "static" / "css" / "dashboard.css",
 ]
 
+#: Trang đứng riêng không nạp kiểu dáng dùng chung: lớp của nó soát theo đúng tệp nó nạp.
+#: Không thêm vào CAC_TEP_CSS — thêm vào đó thì lớp của trang này "khai hộ" cho mọi template khác.
+CSS_RIENG = {
+    "crm/kn_oms.html": GOC / "static" / "css" / "oms.css",   # KN OMS, bản demo (ADR-051)
+}
+
 #: Lớp chỉ dùng làm móc cho JavaScript, cố ý không có kiểu dáng.
 #: Thêm vào đây phải kèm lý do, không phải chỗ để giấu lỗi gõ sai.
 MOC_JAVASCRIPT = {
@@ -79,17 +85,21 @@ def _bo_chu_thich(css):
     return con_lai.split("/*")[0] if "/*" in con_lai else con_lai
 
 
+def _lop_trong_css(tep):
+    """Mọi tên lớp khai trong một tệp kiểu dáng, ngoài chú thích."""
+    return set(re.findall(r"\.([a-zA-Z][\w-]*)", _bo_chu_thich(tep.read_text(encoding="utf-8"))))
+
+
 def _lop_da_khai():
     """Mọi tên lớp đã khai trong các tệp kiểu dáng dùng chung, ngoài chú thích."""
     da_khai = set()
     for tep in [*CAC_TEP_CSS, Path(__file__).resolve().parents[2] / "static/css/master-grid.css",
                 Path(__file__).resolve().parents[2] / 'static/css/payments.css']:
-        da_khai |= set(re.findall(r"\.([a-zA-Z][\w-]*)",
-                                  _bo_chu_thich(tep.read_text(encoding="utf-8"))))
+        da_khai |= _lop_trong_css(tep)
     return da_khai
 
 
-@pytest.mark.parametrize("tep", CAC_TEP_CSS, ids=lambda t: t.name)
+@pytest.mark.parametrize("tep", [*CAC_TEP_CSS, *CSS_RIENG.values()], ids=lambda t: t.name)
 def test_khong_chu_thich_css_nao_nuot_luat(tep):
     """AC-11.41 — Không chú thích CSS nào nuốt luật: quên `*/` ở dòng tiêu đề mục thì mọi
     luật tới chú thích kế tiếp bị bỏ qua, tệp vẫn hợp lệ nên không ai biết"""
@@ -193,9 +203,10 @@ def test_moi_lop_css_dung_trong_template_deu_ton_tai(tep):
     Bài này đỏ nếu ai đó gõ sai tên lớp hoặc dùng lớp chưa được định nghĩa.
     Không có nó thì giao diện hỏng âm thầm, vì Django trả 200 như thường.
     """
+    rieng = CSS_RIENG.get(tep.relative_to(THU_MUC_TEMPLATE).as_posix())
     thieu = sorted(
         _lop_trong_tep(tep)
-        - _lop_da_khai()
+        - (_lop_trong_css(rieng) if rieng else _lop_da_khai())
         - _lop_khai_trong_template(tep)
         - MOC_JAVASCRIPT
     )
