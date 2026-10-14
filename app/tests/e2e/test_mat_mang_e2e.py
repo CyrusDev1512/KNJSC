@@ -91,7 +91,9 @@ def test_loi_bao_chua_luu_khong_bi_yeu_cau_khac_xoa(live_server, trang, dang_nha
     f.locator("[name=quantity]").first.fill("1")
     f.locator("[name=unit_price]").first.fill("10")
     f.locator("[name=phone]").fill("0901000222")
-    trang.wait_for_timeout(1_000)                      # tra khách lần đầu chạy xong lúc còn mạng
+    # Lần tra khách theo tên (chạy khi rời ô tên) xong lúc còn mạng. Tra theo số chỉ chạy khi rời ô số, tức lúc bấm nút
+    # đã mất mạng: nó hỏng cùng lần Lưu đơn, thứ tự hai lỗi không cố định — bài dưới ép thứ tự xấu (TL-100)
+    trang.wait_for_timeout(1_000)
     trang.context.set_offline(True)
     f.locator("button[type=submit]").click()
     bao = trang.locator(".loi-mang-noi")
@@ -107,3 +109,52 @@ def test_loi_bao_chua_luu_khong_bi_yeu_cau_khac_xoa(live_server, trang, dang_nha
     f.locator("button[type=submit]").click()
     assert _cho_db(trang, lambda: Order.objects.count() == 1)
     trang.locator(".loi-mang-noi").wait_for(state="detached", timeout=8_000)
+
+
+# Ghi thứ tự các yêu cầu HTMX gửi hỏng: "form" là Lưu đơn, tên ô (phone…) là tra khách chạy ngầm
+_GHI_LOI_GUI = """
+window.__loiGui = [];
+document.addEventListener('htmx:sendError', function (e) {
+  var el = e.detail && e.detail.elt;
+  window.__loiGui.push(!el ? '?' : el.tagName === 'FORM' ? 'form' : (el.name || el.tagName));
+});
+"""
+
+
+def test_loi_bao_con_khi_tra_khach_hong_sau_luu_don(live_server, trang, dang_nhap, kn_crm, setup, nguoi_dung):  # noqa: F811
+    """AC-10.12 — Lên đơn: lần tra khách hỏng tới SAU lần Lưu đơn hỏng (thứ tự máy CI chậm gặp ngày 14.10.2026, TL-100)
+    thì lần tra khách thành công kế tiếp vẫn không xoá lời báo "Mất kết nối mạng…", vì đơn chưa lưu; Lưu đơn thành công
+    thì lời báo tắt và ra đúng một đơn"""
+    trang.add_init_script(_GHI_LOI_GUI)
+    dang_nhap(trang, nguoi_dung["staff_sale_1"])
+    trang.goto(f"{live_server.url}/van-don/len-don/")
+    f = trang.locator("form:has([name=customer_name])")
+    f.locator("[name=customer_name]").fill("Khách Đua Mạng")
+    f.locator("[name=market]").select_option("us")
+    f.locator("[name=payment_method]").select_option(index=1)
+    f.locator("[name=product]").first.select_option(setup[2][0].code)
+    f.locator("[name=quantity]").first.fill("1")
+    f.locator("[name=unit_price]").first.fill("10")
+    f.locator("[name=phone]").fill("0901000444")
+    trang.wait_for_load_state("networkidle")
+    trang.context.set_offline(True)
+    f.locator("button[type=submit]").click()
+    trang.wait_for_function("() => window.__loiGui.includes('form')", timeout=8_000)
+    # Còn mất mạng: tra khách thêm một lần, hỏng tới sau lần Lưu đơn
+    f.locator("[name=phone]").dispatch_event("change")
+    trang.wait_for_function(
+        "() => window.__loiGui.lastIndexOf('phone') > window.__loiGui.lastIndexOf('form')", timeout=8_000)
+    bao = trang.locator(".loi-mang-noi")
+    assert bao.is_visible()
+    trang.context.set_offline(False)
+    with trang.expect_response(lambda r: "kiem-khach" in r.url and r.ok, timeout=8_000):
+        f.locator("[name=phone]").fill("0901000555")
+        f.locator("[name=phone]").dispatch_event("change")
+    trang.wait_for_timeout(300)
+    assert bao.is_visible(), f"lời báo chưa lưu biến mất sau khi tra khách xong (thứ tự lỗi: {trang.evaluate('window.__loiGui')})"
+    assert not Order.objects.exists()
+    f.locator("button[type=submit]").click()
+    assert _cho_db(trang, lambda: Order.objects.count() == 1)
+    trang.locator(".loi-mang-noi").wait_for(state="detached", timeout=8_000)
+    trang.wait_for_timeout(1_000)
+    assert Order.objects.count() == 1

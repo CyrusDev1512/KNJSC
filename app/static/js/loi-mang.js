@@ -60,12 +60,18 @@
   // và người dùng tưởng đơn đã lưu
   var hong = null;
   function phanTu(e) { return e.detail && e.detail.elt; }
-  document.addEventListener('htmx:sendError', function (e) { hong = phanTu(e); bao(MAT_MANG); });
-  document.addEventListener('htmx:timeout', function (e) { hong = phanTu(e); bao(MAT_MANG); });
+  // Yêu cầu đọc chạy ngầm (tra khách) hỏng sau một yêu cầu ghi đang hỏng thì không giành chỗ của nó: nếu không, lần tra
+  // khách thành công kế tiếp xoá lời báo dù đơn chưa lưu (TL-100: thứ tự hai lỗi mạng đảo nhau trên máy CI chậm)
+  function nhoHong(e) {
+    var cfg = e.detail && e.detail.requestConfig;
+    if (!hong || !hong.isConnected || !(cfg && cfg.verb === 'get')) hong = phanTu(e);
+  }
+  document.addEventListener('htmx:sendError', function (e) { nhoHong(e); bao(MAT_MANG); });
+  document.addEventListener('htmx:timeout', function (e) { nhoHong(e); bao(MAT_MANG); });
   document.addEventListener('htmx:responseError', function (e) {
     var ma = e.detail && e.detail.xhr ? e.detail.xhr.status : 0;
     if (ma >= 500) {
-      hong = phanTu(e);
+      nhoHong(e);
       bao('Máy chủ đang gặp lỗi (mã ' + ma + '). Dữ liệu trên màn hình vẫn giữ; thử lại sau ít phút, ' +
         'lặp lại thì báo quản trị.');
     }
