@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Ngày | 13.10.2026 |
-| Trạng thái | Xong trên máy ảo 13.10.2026, PR nháp về `Staging`. Chưa gộp, chưa phát hành VPS |
+| Trạng thái | Xong trên máy ảo 13.10.2026, PR nháp về `Staging`. Chưa gộp, chưa phát hành VPS. Bổ sung cùng ngày: thiết kế lại theo Solarpunk Office và làm sâu sáu màn (mục cuối), PR nháp riêng |
 | Thay thế / bổ sung | Không thay ADR nào. Không đổi phạm vi giai đoạn 1: kho, công nợ, khách rủi ro, lãi theo page vẫn chưa làm thật; câu hỏi H7 (ai ghi nhận tiền) vẫn mở |
 
 ## Bối cảnh
@@ -38,7 +38,7 @@ Mockup lúc đó chỉ là một trang artifact, chưa nằm trong hệ thống.
    - Mục ở thanh bên khai trong `crm/navigation.py`, đứng cuối sau Nhật ký.
      - Điều kiện `is_admin`, giống hệt view.
      - `new_tab=True`: `target="_blank" rel="noopener"`, title "Mở trong tab mới".
-2. **Trang đứng riêng, không kế thừa khung KN CRM.**
+2. **Trang đứng riêng, không kế thừa khung KN CRM.** (Bổ sung 13.10: nay nạp CSS và dùng markup khung của KN CRM, xem mục cuối.)
    - `templates/crm/kn_oms.html` không `extends`. Trang có:
      - thanh bên KN OMS, ba nhóm: Đơn hàng · Hàng hoá · Kinh doanh;
      - dải "Dữ liệu giả";
@@ -109,3 +109,53 @@ Mockup lúc đó chỉ là một trang artifact, chưa nằm trong hệ thống.
   - Bộ đếm: AC-51.1 → AC-51.8.
   - Bài kiểm: `crm/tests/test_kn_oms.py`, `tests/e2e/test_kn_oms_e2e.py`.
   - Biên bản: `docs/kiem-chung-kn-oms-demo-20261013.md`.
+
+## Bổ sung 13.10.2026 — thiết kế lại theo Solarpunk Office, làm sâu sáu màn (AC-51.9 → 51.14)
+
+Chủ dự án: "dùng impeccable để design lại UI, sau đó nâng cấp tính năng". Chủ dự án chốt bốn câu hỏi:
+
+| Câu hỏi | Chốt |
+|---|---|
+| Phạm vi | Chỉ KN OMS. KN CRM và KN ERP giữ nguyên |
+| Diện mạo | Theo Solarpunk Office như KN CRM (ADR-028) |
+| Tính năng | Làm sâu sáu màn đang có |
+| Dữ liệu | Vẫn dữ liệu giả; mục 3 và 6 ở trên giữ nguyên |
+
+Impeccable dùng đúng cách dự án cho phép: chỉ hướng dẫn thủ công (`operate`, `craft-floor`), không chạy engine, hook hay
+agent. Hồ sơ mặt ở `.agents/design-state/surfaces/app-templates-crm-kn-oms-html.md`.
+
+1. **Mượn nguyên diện mạo KN CRM, không chép giá trị.**
+   - `kn_oms.html` nạp đúng bốn tệp của `crm/base_crm.html`, cùng thứ tự: `tokens.css`, `main.css`, `crm-frame.css`,
+     `solarpunk.css`. Sau cùng mới tới `oms.css`.
+   - `oms.css` bỏ bảng màu chép tay. Chỉ còn biến KN CRM chưa có: màu thông tin, màu năm nền tảng, chữ trên nền đậm,
+     lớp phủ. Đổi màu ở `solarpunk.css` thì KN OMS đổi theo.
+   - Khung theo markup KN CRM: `body.sp-crm`, thanh bên kính `crm-nav`, thanh trên có đường dẫn, mặt đọc `noi-dung`,
+     ảnh nền `solarpunk-office.webp`. Thanh bên là sáu màn OMS, không phải thanh bên KN CRM (`#thanh-ben` vẫn không có).
+   - Thành phần chung dùng kiểu KN CRM: `.nut`, `.o-nhap`, `.truong`, `.loc`, `.the`, `.bang-hop`, `table.bang`,
+     `.chip`, `.bao`, `.phan-trang`. Lớp riêng của OMS mà trùng tên với lớp chung thì đổi sang tiền tố `oms-`
+     (vd `.mo` của KN CRM là "thanh bên đang mở").
+   - `CSS_RIENG` của bài soát lớp nay là danh sách năm tệp trang này nạp.
+2. **Sửa sáu lỗi của bản đầu** (rà theo `craft-floor`):
+   - dải "DEMO" thành nhãn "Dữ liệu giả" trên thanh trên;
+   - 22 ô KPI số to ở năm màn thành một dải phẳng ngăn vạch mảnh như trang chủ KN CRM, vẫn bấm để lọc;
+   - đoạn giới thiệu 182–290 ký tự thành một câu; phần giải thích dài vào khối "Cách tính";
+   - bỏ viền trái 3–4 px ở thẻ rủi ro và khoản tiền về;
+   - Ghi nhận tiền, Phiếu kho, Thêm kênh rời hộp thoại, vào ngăn kéo bên phải;
+   - bảng trống chỉ cách gỡ lọc; chữ phụ trên nền đang chọn đủ tương phản 4,5:1.
+3. **Làm sâu sáu màn**, vẫn sinh trong trình duyệt:
+   - **Báo đơn:** lọc ngày lên đơn (Hôm nay, 7, 30 ngày, Tất cả; ô Từ–Đến DD/MM/YYYY qua `date-inputs.js` dùng chung).
+     "Xuất danh sách" ra CSV các dòng đang lọc.
+   - **Công nợ:** lọc ngày giao; chọn nhiều đơn rồi "Nhắc N đơn", "Xuất N đơn"; xuất danh sách.
+   - **CSV:** cho Excel tiếng Việt. UTF-8 có BOM, phân cách `;`, CRLF. Tiền một cột kèm cột loại tiền. Ô mở đầu bằng
+     `= + - @` hay dãy số từ 12 chữ số có dấu `'`. Tạo bằng Blob, không gọi máy chủ.
+   - **Khách rủi ro:** ngăn kéo khách có dòng thời gian gộp mọi đơn và mọi lần đánh dấu. Chặn lên đơn phải ghi lý do.
+   - **Kho:** đủ bán và gợi ý nhập đủ 30 ngày, theo số xuất cho đơn 7 ngày, tính riêng từng kho. Phiếu kho điền sẵn.
+   - **Kênh:** thẻ so với 7 ngày trước. Biểu đồ 14 ngày dừng được bằng Tab, có bảng số đối chiếu.
+   - **Lãi theo page:** biểu đồ lãi theo ngày (khuôn SVG của màn Thống kê, thêm đường 0), chọn page, phím mũi tên, bảng
+     số. Ô Lãi của kỳ bằng đúng tổng các ngày.
+4. **"7 ngày" là 7 ngày lịch giờ Việt Nam** (hôm nay và 6 ngày trước) ở Báo đơn, Kênh và kỳ của Lãi theo page. Trước đây
+   Kênh và Lãi tính lùi 7 × 24 giờ từ lúc mở trang. Đổi để số đơn của thẻ kênh khớp chip "7 ngày" ở Báo đơn, và để lãi
+   từng ngày cộng lại đúng bằng lãi cả kỳ. Tốc độ xuất ở Kho vẫn là 7 × 24 giờ.
+5. **Dữ liệu giả thêm một chỗ cố ý:** mã xuất cho đơn nhiều nhất 7 ngày qua (trừ ba chỗ thiếu, sắp hết đã có và hàng
+   đang về) chỉ còn khoảng 5 ngày bán, để Kho có gợi ý nhập thật. Không rút số ngẫu nhiên nên dữ liệu khác không lệch.
+6. **Bộ đếm:** AC-51.9 → 51.14. Biên bản: `docs/kiem-chung-kn-oms-thiet-ke-lai-20261013.md`.

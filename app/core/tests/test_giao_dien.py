@@ -27,10 +27,12 @@ CAC_TEP_CSS = [
     GOC / "static" / "css" / "dashboard.css",
 ]
 
-#: Trang đứng riêng không nạp kiểu dáng dùng chung: lớp của nó soát theo đúng tệp nó nạp.
-#: Không thêm vào CAC_TEP_CSS — thêm vào đó thì lớp của trang này "khai hộ" cho mọi template khác.
+#: Trang đứng riêng không kế thừa base: lớp của nó soát theo đúng các tệp nó nạp.
+#: Không thêm tệp riêng vào CAC_TEP_CSS — thêm vào đó thì lớp của trang này "khai hộ" cho mọi template khác.
 CSS_RIENG = {
-    "crm/kn_oms.html": GOC / "static" / "css" / "oms.css",   # KN OMS, bản demo (ADR-051)
+    # KN OMS, bản demo (ADR-051): bốn tệp của crm/base_crm.html rồi oms.css
+    "crm/kn_oms.html": [GOC / "static" / "css" / ten for ten in
+                        ("tokens.css", "main.css", "crm-frame.css", "solarpunk.css", "oms.css")],
 }
 
 #: Lớp chỉ dùng làm móc cho JavaScript, cố ý không có kiểu dáng.
@@ -99,7 +101,8 @@ def _lop_da_khai():
     return da_khai
 
 
-@pytest.mark.parametrize("tep", [*CAC_TEP_CSS, *CSS_RIENG.values()], ids=lambda t: t.name)
+@pytest.mark.parametrize("tep", list(dict.fromkeys([*CAC_TEP_CSS, *(t for ds in CSS_RIENG.values() for t in ds)])),
+                         ids=lambda t: t.name)
 def test_khong_chu_thich_css_nao_nuot_luat(tep):
     """AC-11.41 — Không chú thích CSS nào nuốt luật: quên `*/` ở dòng tiêu đề mục thì mọi
     luật tới chú thích kế tiếp bị bỏ qua, tệp vẫn hợp lệ nên không ai biết"""
@@ -206,7 +209,7 @@ def test_moi_lop_css_dung_trong_template_deu_ton_tai(tep):
     rieng = CSS_RIENG.get(tep.relative_to(THU_MUC_TEMPLATE).as_posix())
     thieu = sorted(
         _lop_trong_tep(tep)
-        - (_lop_trong_css(rieng) if rieng else _lop_da_khai())
+        - (set().union(*map(_lop_trong_css, rieng)) if rieng else _lop_da_khai())
         - _lop_khai_trong_template(tep)
         - MOC_JAVASCRIPT
     )

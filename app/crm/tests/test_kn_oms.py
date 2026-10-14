@@ -44,7 +44,7 @@ def _tep_tinh(ten):
 
 
 def test_admin_mo_kn_oms_khung_rieng(client, nguoi_dung):
-    """AC-51.1 — Admin mở /oms/ trên KN CRM: 200, khung riêng "KN OMS" không có thanh bên KN CRM, dải DEMO dữ liệu giả,
+    """AC-51.1 — Admin mở /oms/ trên KN CRM: 200, khung riêng "KN OMS" không có thanh bên KN CRM, nhãn Dữ liệu giả,
     đủ sáu màn, nút về KN CRM; nạp oms.css/oms.js có số phiên bản; nền theo khoá knjsc-nen của KN CRM; máy chủ không
     đọc ghi dữ liệu nghiệp vụ, JS không gọi máy chủ"""
     client.force_login(nguoi_dung["admin"])
@@ -67,6 +67,43 @@ def test_admin_mo_kn_oms_khung_rieng(client, nguoi_dung):
     assert "knjsc-nen" in js and "kn-demo-che-do" not in js
     assert "fetch(" not in js and "XMLHttpRequest" not in js
     assert ':root[data-theme="dark"]' in css
+
+
+#: Bốn tệp kiểu dáng của crm/base_crm.html, đúng thứ tự KN CRM nạp
+CSS_CRM = ("tokens.css", "main.css", "crm-frame.css", "solarpunk.css")
+#: Biến của KN CRM mà oms.css không được khai lại: khai lại là KN OMS lệch màu, lệch bo góc với KN CRM
+BIEN_CRM = ("--plane", "--surface", "--surface-2", "--surface-3", "--ink", "--ink-2", "--ink-3", "--rule", "--rule-strong",
+            "--accent", "--accent-hover", "--accent-soft", "--accent-ink", "--good", "--good-soft", "--warn", "--warn-soft",
+            "--critical", "--critical-soft", "--serious", "--serious-soft", "--r-sm", "--r-md", "--r-lg", "--shadow-1",
+            "--shadow-2", "--font-van", "--font-ma", "--sp-glass", "--sp-edge", "--sp-selected")
+
+
+def _tep_css(html):
+    return re.findall(r'href="/static/css/([\w-]+\.css)\?v=\d+"', html)
+
+
+def test_kn_oms_mang_dien_mao_kn_crm(client, nguoi_dung):
+    """AC-51.9 — KN OMS nạp bốn tệp kiểu dáng của KN CRM đúng thứ tự KN CRM nạp rồi mới tới oms.css; khung theo markup
+    KN CRM (body sp-crm, thanh bên kính crm-nav, thanh trên có đường dẫn, mặt đọc noi-dung); oms.css không khai lại biến
+    màu, bo góc, đổ bóng của KN CRM và không có viền trái hay phải dày hơn 1 px; trang không còn hộp thoại"""
+    client.force_login(nguoi_dung["admin"])
+    html = client.get("/oms/").content.decode()
+    trang_chu = client.get("/")
+    assert trang_chu.status_code == 200
+    assert [t for t in _tep_css(trang_chu.content.decode()) if t in CSS_CRM] == list(CSS_CRM)
+    assert _tep_css(html) == [*CSS_CRM, "oms.css"]
+    assert '<body class="sp-crm sp-oms">' in html
+    for moc in ('class="nav crm-nav"', 'class="topbar"', 'class="duong-dan"', 'class="noi-dung"', 'id="nut-nav"'):
+        assert moc in html, moc
+    assert 'id="hop"' not in html and "<dialog" not in html
+    css = re.sub(r"/\*.*?\*/", "", _tep_tinh("css/oms.css"), flags=re.S)
+    for bien in BIEN_CRM:
+        assert not re.search(rf"{re.escape(bien)}\s*:", css), f"oms.css khai lại {bien} của KN CRM"
+    for vien in re.finditer(r"border-(?:left|right|inline-start|inline-end)(?:-width)?\s*:\s*([^;}]*)", css):
+        day = re.search(r"(\d*\.?\d+)px", vien.group(1))
+        assert not day or float(day.group(1)) <= 1, f"viền một bên dày hơn 1 px: {vien.group(0)}"
+    js = _tep_tinh("js/oms.js")
+    assert "moHop" not in js and "#hop" not in js
 
 
 @pytest.mark.parametrize("vai", KHONG_PHAI_ADMIN)
