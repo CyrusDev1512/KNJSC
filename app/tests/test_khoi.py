@@ -130,3 +130,15 @@ def test_khong_duong_dan_nao_no(client, nguoi_dung, vai_tro, urlconf, ten, duong
     assert kq.status_code in MA_CHAP_NHAN, (
         f"{vai_tro} gọi {ten} ({duong_dan}) nhận {kq.status_code}"
     )
+
+
+@pytest.mark.parametrize("urlconf,ten,duong_dan", CAC_DUONG_DAN, ids=lambda x: str(x))
+def test_moi_duong_dan_goi_tu_trang_nguoi_khac_tra_409(client, nguoi_dung, urlconf, ten, duong_dan):
+    """AC-3.7 — ADR-053: gọi thẳng mọi đường dẫn của cả hai dịch vụ kèm mã người mở trang khác người đang đăng nhập
+    (GET và POST) đều nhận 409 nguoi_dung_doi trước khi view chạy — kể cả đường dẫn thêm sau này"""
+    client.force_login(nguoi_dung["admin"])
+    ma = {"HTTP_X_KNJSC_USER": str(nguoi_dung["staff_vd"].pk)}
+    with override_settings(ROOT_URLCONF=urlconf):
+        for phuong_thuc, kq in (("GET", client.get(duong_dan, **ma)), ("POST", client.post(duong_dan, {}, **ma))):
+            assert kq.status_code == 409, f"{phuong_thuc} {ten} ({duong_dan}) trả {kq.status_code}"
+            assert kq.json()["code"] == "nguoi_dung_doi", f"{phuong_thuc} {ten}"

@@ -1,4 +1,4 @@
-{% load static %}<!doctype html>
+{% load static knjsc %}<!doctype html>
 <html lang="vi">
 <head>
 <meta charset="utf-8">
@@ -23,6 +23,7 @@
 {% block dau_trang %}{% endblock %}
 <link rel="stylesheet" href="{% static 'css/solarpunk.css' %}?v={{ phien_ban_tinh }}">
 <script src="{% static 'js/loi-mang.js' %}?v={{ phien_ban_tinh }}" defer></script>
+<script src="{% static 'js/het-phien.js' %}?v={{ phien_ban_tinh }}" data-nguoi="{% if user.is_authenticated %}{{ user.pk }}{% endif %}" data-ma="{% if user.is_authenticated %}{{ user|ma }}{% endif %}" data-dang-nhap="{% url 'dang_nhap' %}" data-doi-mat-khau="{% url 'doi_mat_khau' %}" data-csrf-cookie="{{ csrf_cookie }}" defer></script>
 <script src="{% static 'js/date-inputs.js' %}?v={{ phien_ban_tinh }}" defer></script>
 </head>
 <body class="bt-than sp-grid">

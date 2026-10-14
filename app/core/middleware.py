@@ -1,7 +1,8 @@
 """Middleware của core.
 
-Bốn việc: hết phiên khi không thao tác, buộc đổi mật khẩu lần đầu, chặn
-trình duyệt lưu lại trang có dữ liệu, và đưa chữ người dùng gửi lên về dạng NFC.
+Năm việc: hết phiên khi không thao tác, buộc đổi mật khẩu lần đầu, chặn
+trình duyệt lưu lại trang có dữ liệu, đưa chữ người dùng gửi lên về dạng NFC,
+và chặn trang KN CRM của người khác (ADR-053).
 """
 import json
 import time
@@ -20,9 +21,39 @@ from .htmx import is_htmx
 # Những đường dẫn luôn cho qua, nếu không sẽ chuyển hướng vòng tròn
 EXEMPT_PREFIXES = ("/dang-nhap", "/dang-xuat", "/doi-mat-khau", "/static", "/media")
 
+#: Header mang mã người mở trang (pk) — het-phien.js gắn vào mọi fetch và htmx cùng nguồn của hai khung KN CRM (ADR-053)
+HEADER_NGUOI_MO_TRANG = "X-KNJSC-User"
+#: Lời khi trang do người A mở mà phiên hiện là người B — chủ dự án 14.10.2026 (ADR-053)
+NGUOI_DUNG_DOI = "Tài khoản vừa đăng nhập khác người mở trang — nháp không được lưu"
+#: Lời khi mã CSRF của yêu cầu từ trang KN CRM không khớp (core.views.csrf_failure, ADR-053)
+PHIEN_CSRF = ("Mã bảo mật của trang không còn khớp — thay đổi chưa được lưu, dữ liệu trên màn hình vẫn giữ. "
+              "Bấm Thử lại; vẫn lỗi thì đăng nhập lại ở tab mới.")
+
 
 def _is_exempt(path):
     return any(path.startswith(p) for p in EXEMPT_PREFIXES)
+
+
+class PageOwnerMiddleware:
+    """Trang KN CRM do người A mở mà phiên hiện là người B: 409 `nguoi_dung_doi`, view không chạy (ADR-053).
+
+    Trang lấy mã CSRF mới lúc gửi (het-phien.js) nên đăng nhập lại rồi bấm Thử lại là gửi được; chốt này giữ cho nháp
+    của A không ghi dưới tên B và trang của A không đọc theo phạm vi của B (lượt hỏi, kiểm quyền dòng sẽ gỡ nháp của A).
+    Chỉ xét yêu cầu mang header; ẩn danh để login_required xử lý. Đứng trước SessionTimeoutMiddleware: 409 không ghi
+    `last_seen_at`, không gia hạn phiên của B. Không thêm truy vấn. Header không phải kiểm quyền — quyền theo request.user."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        ma = request.headers.get(HEADER_NGUOI_MO_TRANG)
+        if ma is not None and request.user.is_authenticated and ma != str(request.user.pk):
+            response = JsonResponse({"error": NGUOI_DUNG_DOI, "code": "nguoi_dung_doi"}, status=409)
+            add_never_cache_headers(response)      # đứng trước NoCacheForAuthenticated nên tự gắn
+            if is_htmx(request):
+                response["HX-Reswap"] = "none"
+            return response
+        return self.get_response(request)
 
 
 def _ve_dang_nhap(request, ly_do):
