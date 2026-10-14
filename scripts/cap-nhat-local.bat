@@ -96,7 +96,9 @@ goto :doi_web
 rem Ma moi vao container qua thu muc gan ngoai, container khong dung lai nen
 rem migrate trong entrypoint khong chay lai - goi tuong minh
 %COMPOSE% exec -T web python manage.py migrate --noinput
+if errorlevel 1 goto :loi_cau_truc
 %COMPOSE% exec -T web python manage.py tao_bang_van_don
+if errorlevel 1 goto :loi_cau_truc
 rem Ghi commit vua migrate de KN JSC.bat lan sau biet ma khong doi, khoi migrate lai
 if not exist "storage" mkdir "storage"
 for /f %%h in ('git rev-parse HEAD 2^>nul') do >"storage\.kn-jsc-lan-truoc" echo %%h
@@ -110,6 +112,13 @@ echo.
 echo Xong - mo http://localhost:8020 (KN ERP) va http://localhost:8021/ (KN CRM, bang tinh)
 pause
 exit /b 0
+
+rem Cap nhat cau truc hong: khong ghi dau vet, khong nap du lieu mau, khong mo trinh duyet
+:loi_cau_truc
+echo.
+echo CAP NHAT CAU TRUC DU LIEU KHONG XONG - xem loi ngay tren. Chua ghi dau vet, chua nap du lieu mau.
+echo Sua xong thi chay lai scripts\cap-nhat-local.bat - tep nay luon chay lai buoc nay.
+goto :loi
 
 :loi
 pause
