@@ -45,8 +45,12 @@ ghi trong từng PR ("gộp sau #…").
 **Chưa sửa, ghi lại:**
 - Giám đốc không bộ phận bấm Tạo việc thì tầng dịch vụ báo "Người làm hoặc người tạo phải thuộc một bộ phận" — đã có trong P2-11 (`docs/08`).
 - Theo đọc mã: vai không thấy bảng vận đơn gọi `du-lieu`, `lich-su`, `quyen-dong` thì nhận 403 không có nhật ký. Đã thêm vào P1-22 (`docs/08`).
-- Hai script Node `kiem-thu-master-conflict-unit.cjs` (`apLaiChieuCao is not defined`) và `kiem-thu-master-queue-unit.cjs`
-  (`1 !== 2`) đỏ sẵn trên `Staging`. Không có trong CI.
+- Ba script Node đỏ sẵn trên `Staging`, không có trong CI. Lỗi nằm ở script: mã lưới gọi các hàm đo chiều cao ô ghi chú
+  tự giãn (AC-11.44, 24.09) mà script chưa có hàm giả thay cho chúng.
+  - `kiem-thu-master-conflict-unit.cjs` báo `apLaiChieuCao is not defined`.
+  - `kiem-thu-master-queue-unit.cjs` báo `1 !== 2`. Lượt lưu đầu ném lỗi thiếu `apLaiChieuCao`, nên lượt sau không gửi.
+  - PR này thêm hàm giả `apLaiChieuCao` cho hai script trên. Cả hai đạt trên `Staging` và trên mã của #129.
+  - `kiem-thu-optimization-unit.cjs` báo `message is not defined`. #129 đã sửa script này, nên PR này không đụng tới.
 - `reports/tests/test_o_nhap_so_e2e.py` chạy chung một phiên với `tests/e2e` thì báo "Sync API inside the asyncio loop",
   chạy riêng thì xanh. CI không chạy tệp này.
 
