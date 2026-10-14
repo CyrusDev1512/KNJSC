@@ -57,6 +57,34 @@ ghi trong từng PR ("gộp sau #…").
 **Đổi số ADR:** kế hoạch cấp ADR-051 cho P0-3, nhưng ADR-051 đã thuộc KN OMS (#112). P0-3 nhận **ADR-052**, P0-14 nhận
 **ADR-053**.
 
+## 14.10.2026 — CI `Staging` sau khi gộp KN OMS: hai bài e2e chập chờn (TL-100, TL-71)
+
+**TL-100 (đóng) — mức vừa, Lên đơn (AC-10.12):**
+- **Lỗi:** bấm Lưu đơn lúc mất mạng có khi mất lời báo "Mất kết nối mạng…", dù đơn chưa lưu. Người dùng tưởng đơn đã
+  lưu.
+- **Gốc:**
+  - Lúc bấm nút, ô điện thoại mất focus, nên tra khách (GET, `hx-trigger: change…` ở `crm/waybill_forms.py`) chạy cùng
+    lần Lưu đơn (POST). Mất mạng thì cả hai cùng hỏng.
+  - `static/js/loi-mang.js` chỉ nhớ phần tử hỏng sau cùng (`hong`). Nếu tra khách hỏng tới sau, `hong` là ô điện thoại,
+    và lần tra khách thành công kế tiếp gọi `tat()`.
+- **Gặp ở đâu:** CI `Staging` `f5c888e` (14.10), ở lượt chạy lại, `test_loi_bao_chua_luu_khong_bi_yeu_cau_khac_xoa` đỏ.
+  - Cùng cây đó xanh ở CI của #114 và ở máy ảo: hai lỗi mạng chỉ đảo thứ tự trên máy chậm.
+  - Lỗi có từ lúc làm AC-10.12 (06.10), không do KN OMS.
+- **Đã sửa:**
+  - Thêm `nhoHong(e)`: một yêu cầu GET hỏng không giành chỗ của phần tử hỏng còn đang trên trang.
+  - Bài mới `test_loi_bao_con_khi_tra_khach_hong_sau_luu_don` ép đúng thứ tự xấu. Trên mã cũ bài đỏ, thứ tự lỗi ghi
+    được là `phone, form, phone`. Sau khi vá, bài xanh.
+  - [Biên bản](kiem-chung-sua-loi-mang-ac-10-12-20261014.md).
+
+**TL-71 (vẫn mở) — tái diễn ở CI `Staging` `f5c888e`, lượt 1:**
+- `test_do_hieu_nang_1000_dong_ghi_chu_400` quá hạn 75 giây.
+- Chẩn đoán của `_chay_co_han`:
+  - tab không sập;
+  - CPU trong 2 giây: renderer 0,02, GPU 0,01, browser 0;
+  - ngăn xếp JS: "không dừng được trong 3 giây — luồng chính kẹt ngoài JS".
+- Lượt chạy lại, bài này đạt sau 9,4 giây.
+- Chưa sửa: gốc lỗi vẫn chưa rõ.
+
 ## 12.10.2026 — Kiểm `Staging` `cc26520` trước khi gộp `main` (TL-89, đã sửa cùng ngày)
 
 **TL-89 (đóng) — mức nhẹ, Thống kê KN CRM:**

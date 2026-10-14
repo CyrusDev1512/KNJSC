@@ -18,7 +18,8 @@
 - P0-2 (TL-91): #127
 - P0-14 (TL-18/02, ADR-053): #129
 
-Mọi PR xanh CI, trừ những PR còn đang chạy CI khi ghi mục này. #128 (TL-100) là của phiên khác, không thuộc đợt này.
+Mọi PR xanh CI, trừ những PR còn đang chạy CI khi ghi mục này. #128 (TL-100) là của phiên khác, không thuộc đợt này; đã gộp vào
+`Staging` 14.10.
 
 **To do (chủ dự án):**
 - gộp theo thứ tự ghi trong từng PR:
@@ -44,6 +45,19 @@ Mọi PR xanh CI, trừ những PR còn đang chạy CI khi ghi mục này. #128
 - P0-15 phần VPS và K30;
 - diễn tập P0-13;
 - kiểm tay launcher TC-1…TC-6 trên Windows.
+
+## 14.10.2026 — Sửa AC-10.12: lời báo mất mạng bị tra khách xoá oan (TL-100)
+
+**Finished local (nhánh `claude/sua-loi-mang-ac-10-12`, PR nháp về `Staging`):**
+- `loi-mang.js`: yêu cầu GET hỏng không giành chỗ của yêu cầu ghi đang hỏng;
+- bài e2e mới ép đúng thứ tự xấu: đỏ trên mã cũ, xanh sau khi vá; `test_mat_mang_e2e.py` 5 lần liền, mỗi lần 4/4.
+
+**14.10:** kiểm kỹ trước khi gộp: bài mất mạng 10 lần, rồi 5 lần khi máy bận, 4/4 mỗi lần; nhánh lỗi 5xx; quét 209 trang;
+pytest, e2e đạt. Gộp vào `Staging` (#128).
+
+**To do:**
+- chặng 2: thử Lên đơn lúc mất mạng ở máy mình;
+- TL-71 vẫn mở.
 
 ## 14.10.2026 — Gộp KN OMS (#112, #114) vào `Staging`
 

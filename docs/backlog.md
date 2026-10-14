@@ -17,7 +17,7 @@
     - ADR-053 sửa một điều khoản của ADR-030.
 - **Ra gì:** 14 PR nháp (#115 → #127 và #129, xem `docs/backlog-kanban.md` mục 14.10), cộng PR tổng kết này.
 
-  #128 (TL-100, lời báo mất mạng) là của phiên khác, không thuộc đợt này.
+  #128 (TL-100, lời báo mất mạng) là của phiên khác, không thuộc đợt này; đã gộp vào `Staging` 14.10, mục ngay dưới.
 
   Mỗi PR ghi lệnh và kết quả đỏ trước khi sửa, xanh sau khi sửa, cùng thứ tự gộp.
 - **Phát hiện thêm**, đã sửa trong PR của việc đó:
@@ -50,6 +50,35 @@
   - chặng 2 sau khi gộp: riêng P0-14 có kịch bản ở biên bản của #129 (hai tab, Lên đơn, Chi tiết, phân công, chứng
     từ, khoá tài khoản, ERP);
   - VPS sau khi gộp P0-14: kiểm không còn cookie CSRF host-only trùng tên trên hai hostname (ADR-053).
+
+## 14.10.2026 — Lời báo mất mạng không còn bị tra khách xoá oan (AC-10.12, TL-100)
+
+- **Chủ dự án:** "sửa luôn lỗi AC-10.12 đi". Lỗi lộ ra khi CI `Staging` đỏ sau lúc gộp KN OMS. Trước khi sửa, đã gửi chủ
+  dự án kịch bản thử `Staging`: 16 bước KN OMS và 5 bước phần dùng chung.
+- **Lỗi:**
+  - Bấm Lưu đơn lúc mất mạng thì tra khách (GET, chạy khi ô điện thoại mất focus) cũng hỏng.
+  - `loi-mang.js` chỉ nhớ phần tử hỏng sau cùng. Nên nếu tra khách hỏng sau, lần tra khách thành công kế tiếp xoá lời
+    báo, dù đơn chưa lưu.
+- **Đã sửa:**
+  - `nhoHong`: yêu cầu GET hỏng không giành chỗ của phần tử hỏng còn đang trên trang. Không đổi luồng thao tác hay
+    quyền.
+  - Bài e2e mới ép đúng thứ tự xấu: đỏ trên mã cũ, xanh sau khi vá.
+- **Kiểm:**
+  - `test_mat_mang_e2e.py` chạy 5 lần liền, mỗi lần 4/4;
+  - hệ thống thật: trước khi vá lời báo mất, sau khi vá lời báo còn;
+  - `pytest -m "not trinh_duyet"`: 3.207 đạt, 7 bỏ qua, 0 đỏ;
+  - e2e hai lượt như CI: 69 và 22 đạt. 9 bài đỏ là 9 bài font Google có sẵn của máy ảo.
+- **Kiểm trước khi gộp** (chủ dự án: "test kĩ rồi gộp #128 vào staging"):
+  - bài mất mạng 10 lần liền, rồi 5 lần khi máy bận: lần nào cũng 4/4;
+  - nhánh lỗi 5xx và luồng thường trên hệ thống thật: đạt;
+  - quét liên kết 209 trang: 0 lỗi;
+  - pytest 3.207 đạt, 0 đỏ; e2e như CI đạt (9 bài font có sẵn của máy ảo).
+  Gộp vào `Staging`.
+- **Còn nợ:**
+  - chặng 2: thử Lên đơn lúc mất mạng ở máy mình;
+  - TL-71 (bài đo lưới 1000 dòng treo trên CI) vẫn mở, đã ghi thêm số chẩn đoán vào `docs/test-log.md`.
+
+[Biên bản](kiem-chung-sua-loi-mang-ac-10-12-20261014.md).
 
 ## 14.10.2026 — Kiểm cây sau gộp, gộp KN OMS (#112, #114) vào `Staging`
 
