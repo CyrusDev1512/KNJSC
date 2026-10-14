@@ -312,7 +312,12 @@ trong Excel. Cột kiểu *Chọn một* có sổ danh sách (`choice_registry`)
 trị phải nằm trong sổ — nhập không phân biệt hoa thường.
 
 Tác vụ *Chờ xử lý* quá 15 phút không ai nhận → đánh dấu **kẹt**, ghi nhật
-ký, thư cho người vận hành (worker không chạy).
+ký, thư cho người vận hành (worker không chạy). Tác vụ *Đang chạy* mà không báo
+tiến độ quá 30 phút (sao lưu 45 phút, vì `pg_dump` được im tới 30 phút) cũng bị
+đánh dấu kẹt: worker chết giữa chừng. Tiến độ đã làm giữ nguyên, có lời báo tiếng
+Việt, một dòng nhật ký, một thư; tác vụ tính lại thì thư nhắc `kiem_tra_du_lieu
+--sua`. Tác vụ đang bị worker còn sống khoá thì bỏ qua (`skip_locked`). Bảng có tác
+vụ đã kẹt thì xoá được. Ngưỡng ở `core/constants.py` (TL-23, P0-13).
 
 ### 4.5. Xuất tệp Excel — FR-7.6, ADR-002
 

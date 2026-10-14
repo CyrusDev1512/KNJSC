@@ -17,6 +17,7 @@ Ghi chú nhanh cho máy phát triển. Toàn bộ tài khoản dưới đây do 
 | Tên đăng nhập | Mã nhân sự | Mật khẩu | Vai trò |
 |---|---|---|---|
 | `quantri` | `VIENQT` | `matkhaucuatoi` | Admin — thấy và sửa được mọi bộ phận, vào được trang quản trị Django |
+| `giamdoc` | `DUCTM` | `matkhaucuatoi` | Giám đốc (CEO, ADR-044) — xem mọi bộ phận, **không** ghi nghiệp vụ: không nộp báo cáo, không sửa ô, không cấp quyền; vẫn đặt lại mật khẩu, xoá tài khoản cấp dưới, đăng bài, giao việc cho mình (thêm 14.10.2026) |
 
 ---
 
@@ -47,7 +48,19 @@ thuộc team nào. Form nộp báo cáo có dropdown Team lấy từ đây.
 | Tên đăng nhập | Mã nhân sự | Mật khẩu | Cấp bậc | Họ tên |
 |---|---|---|---|---|
 | `vd.manager` | `CHIBK` | `matkhaucuatoi` | Manager | Bùi Kim Chi |
+| `vd.leader` | `PHUCHV` | `matkhaucuatoi` | Leader | Hồ Văn Phúc — phân công được dòng vận đơn (ADR-020); không làm trưởng nhóm team nào (thêm 14.10.2026) |
 | `vd.staff` | `TUHV` | `matkhaucuatoi` | Staff | Hoàng Văn Tú |
+
+## Kế toán và CSKH (thêm 14.10.2026)
+
+| Tên đăng nhập | Mã nhân sự | Mật khẩu | Bộ phận | Cấp bậc | Họ tên |
+|---|---|---|---|---|---|
+| `kt.staff` | `MAIDT` | `matkhaucuatoi` | Kế toán | Staff | Đặng Thị Mai — xem và sửa mọi báo cáo (ADR-038), không bỏ báo cáo của người khác; chưa có biểu mẫu báo cáo ngày nên không có mục "Nộp báo cáo ngày" |
+| `cskh.staff` | `YENLN` | `matkhaucuatoi` | CSKH | Staff | Lâm Ngọc Yến — chỉ thấy dòng vận đơn được giao chăm sóc, chỉ xem (ADR-033) |
+
+Máy đã dựng **trước 14.10.2026** chưa có bốn tài khoản `giamdoc`, `vd.leader`, `kt.staff`, `cskh.staff`: chạy
+`du_lieu_mau` một lần (lệnh đặt lại mật khẩu các tài khoản mẫu đã có — xem mục dưới). `cap_nhat_mat_khau_mau` không
+tạo tài khoản còn thiếu.
 
 ---
 
@@ -59,6 +72,7 @@ thuộc team nào. Form nộp báo cáo có dropdown Team lấy từ đây.
 | Leader | Toàn bộ team mình phụ trách |
 | Manager | Toàn bộ bộ phận |
 | Admin | Mọi bộ phận, cộng trang quản trị Django |
+| Giám đốc (CEO) | Xem mọi bộ phận như Admin nhưng không ghi nghiệp vụ; gọi thẳng đường ghi thì 403 kèm dòng Từ chối trong Nhật ký (P0-2) |
 
 Muốn thử phân quyền thì đăng nhập `sale.staff` và `sale.staff2`: hai người
 khác team, không thấy báo cáo của nhau. `sale.leader` thấy cả `sale.staff`
@@ -104,7 +118,7 @@ cùng máy dùng chung database; hai máy chạy Docker riêng có database riê
 
 Sau khi cập nhật nhánh có thay đổi này, mở `KN JSC.bat` như bình thường: launcher
 kéo code của nhánh đang đứng, khởi động hệ thống rồi gọi `cap_nhat_mat_khau_mau`.
-Lệnh đổi 12 tài khoản mẫu đã có sang mật khẩu chung ở trên **một lần trên mỗi
+Lệnh đổi các tài khoản mẫu đã có (16 tài khoản từ 14.10.2026) sang mật khẩu chung ở trên **một lần trên mỗi
 database**, đánh dấu riêng từng tài khoản trong audit. Máy mới nhận mật khẩu này
 khi tạo dữ liệu mẫu. Không tạo tài khoản còn thiếu hoặc nạp đơn/báo cáo bằng bước
 cập nhật mật khẩu; không đổi quyền hoặc cờ buộc đổi mật khẩu của tài khoản.

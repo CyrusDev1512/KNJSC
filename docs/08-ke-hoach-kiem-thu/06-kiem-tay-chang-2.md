@@ -12,9 +12,9 @@ Chặng 2 là lúc người thật bật hệ thống trên máy local và dùng
 | Việc | Cách làm | Ghi chú |
 |---|---|---|
 | Bật hệ thống | Windows: nháy đúp `KN JSC.bat`. Linux/Mac: `./scripts/cap-nhat-local.sh` | Mở KN ERP `http://127.0.0.1:8020` và KN CRM `http://127.0.0.1:8021` |
-| Dữ liệu mẫu | `python manage.py du_lieu_mau`, sau đó `configure_erp_reports` và `configure_delivery_daily_report` | `du_lieu_mau` chỉ chạy khi DEBUG. Mỗi lần chạy, mật khẩu được đặt lại và phiên của 12 tài khoản mẫu bị huỷ (TL-30) |
+| Dữ liệu mẫu | `python manage.py du_lieu_mau`, sau đó `configure_erp_reports` và `configure_delivery_daily_report` | `du_lieu_mau` chỉ chạy khi DEBUG. Mỗi lần chạy, mật khẩu được đặt lại và phiên của 16 tài khoản mẫu bị huỷ (TL-30) |
 | Mật khẩu chung | `matkhaucuatoi` (docs/tai-khoan-mau.md) | `sale.moi` dùng để thử buộc đổi mật khẩu |
-| Tài khoản còn thiếu | Đăng nhập `quantri`, tạo ở `/nhan-su/moi/` các vai CEO (cấp Giám đốc), Kế toán, CSKH, Leader Vận đơn | Dữ liệu mẫu không có các vai này. Chưa xác minh có bộ phận CSKH trong org: CSKH là vai phân công trên vận đơn (`phu_trach_cskh`) |
+| Bốn vai thêm từ #118 | `giamdoc` (CEO), `kt.staff` (Kế toán), `cskh.staff` (CSKH), `vd.leader` | Có sẵn trong `du_lieu_mau` từ 14.10.2026. Máy dựng trước đó thì chạy lại `du_lieu_mau` |
 | Hai tài khoản cùng lúc | Mở hai trình duyệt khác nhau, hoặc hai hồ sơ trình duyệt | Trên 127.0.0.1, ERP 8020 và CRM 8021 **dùng chung cookie** (TL-86). Đăng nhập tài khoản khác ở một tab là tab kia đổi người theo |
 | Theo dõi lỗi | Để mở `docker compose -f deploy/docker-compose.yml logs -f web bangtinh worker` và DevTools (Console, Network) | Thấy traceback hoặc lỗi JS đỏ thì ghi "không đạt", kể cả khi màn hình trông vẫn đúng |
 
@@ -67,7 +67,7 @@ Gói nào cũng ngầm hiểu: góc nhìn **Người dùng**, cách **Thủ côn
 | K1-5 | `sale.manager`, `sale.leader2` | Đặt lại mật khẩu cho `sale.leader2`: lần đầu gõ hai ô khác nhau, sau đó gõ đúng | Lần sai: báo lỗi, ô trống, không hiện lại mật khẩu. Lần đúng: báo "Đã đặt lại mật khẩu"; phiên của `sale.leader2` bị đẩy ra; đăng nhập mật khẩu mới không bị buộc đổi | Chức năng · P1 |
 | K1-6 | `quantri` | Tạo "Lê Thưởng Thuận", để trống mã và tên đăng nhập; F5 trang kết quả; tạo thêm một người cùng tên | Ô Mã tự điền `THUANLT`, hiện mật khẩu tạm 16 ký tự, F5 không hiện lại mật khẩu; người thứ hai được mã `THUANLT2` | Chức năng · P1 |
 | K1-7 | `quantri` | Xoá `sale.staff2`: bấm Xoá khi chưa tích ô, rồi tích ô và xác nhận | Chưa tích thì không xoá. Tích rồi thì biến khỏi Nhân sự; báo cáo và đơn cũ vẫn hiện `HANGLT`; đăng nhập `sale.staff2` báo lời chung (BR-4) | Chức năng · P1 |
-| K1-8 | CEO (tự tạo) | Xem menu; mở `/nhat-ky/`, `/quan-tri/`, `/bang/`, `/nhan-su/`; gõ vào một ô lưới CRM | Không có nhóm Quản trị, không có "Nộp báo cáo ngày"; `/nhat-ky/` và `/quan-tri/` bị chặn; `/bang/` và `/nhan-su/` mở được; ô lưới bị từ chối (ADR-044) | Phân quyền · P0 |
+| K1-8 | `giamdoc` (CEO) | Xem menu; mở `/nhat-ky/`, `/quan-tri/`, `/bang/`, `/nhan-su/`; gõ vào một ô lưới CRM | Không có nhóm Quản trị, không có "Nộp báo cáo ngày"; `/nhat-ky/` và `/quan-tri/` bị chặn; `/bang/` và `/nhan-su/` mở được; ô lưới bị từ chối (ADR-044) | Phân quyền · P0 |
 | K1-9 | `quantri` | Tạo team "Sale 3" thuộc Sale ở Bộ phận và team | Team hiện ngay trong danh sách và trong ô Team của Sửa hồ sơ (AC-2.4). Thử chọn trưởng nhóm `mkt.leader`: **ghi nhận** có bị chặn không (G10) | Chức năng · P1 |
 | K1-10 | `vd.staff` | Đặt `SESSION_IDLE_TIMEOUT_SECONDS=120` trong `.env`, chờ 3 phút rồi gõ một ô lưới | Báo hết phiên, không hiện "Đã lưu". **Ghi nhận** phiên có tự gia hạn nhờ poll 8 giây không (G6) | Phiên · P0 |
 | K1-11 | `quantri`, `sale.manager` | `quantri` mở `/ma-tran-quyen/` và `/tac-vu/`; `sale.manager` gọi thẳng hai URL đó | `quantri` 200, `sale.manager` 403 tiếng Việt. **Ghi nhận** dòng "Nộp báo cáo ngày" cột Giám đốc đang hiện ✓ sai (G12) | Phân quyền · P1 |
@@ -82,7 +82,7 @@ Gói nào cũng ngầm hiểu: góc nhìn **Người dùng**, cách **Thủ côn
 | K2-2 | `mkt.manager` | Bấm tiêu đề cột CPQC hai lần, lật trang 2 | Chỉ khối bảng đổi (không tải lại trang), URL có `?sap=…&chieu=giam`, không có dòng lặp (AC-7.13) | Giao diện · P1 |
 | K2-3 | `mkt.manager` | Cột CPQC: đặt màu vàng và ngưỡng "Đỏ khi lớn hơn 400000000"; thử đặt ngưỡng cho cột chữ | Bảng tô đúng; cột chữ báo lỗi rõ (AC-8.9) | Chức năng · P2 |
 | K2-4 | `mkt.manager` | Bật bộ lọc, Xuất Excel; nhập lại chính tệp đó | Đúng số dòng và thứ tự, không có cột ẩn, ô bắt đầu `=` là chữ; xem trước đúng ánh xạ; tác vụ "không có dòng lỗi" (AC-7.7, AC-7.14) | Chức năng · P0 |
-| K2-5 | `mkt.manager` | Nhập tệp có ô tiền `0.125` và `1.234,5` (định dạng chữ) | **Không** thành 125 (TL-03). Thấy 125 thì chặn phát hành | Dữ liệu · P0 |
+| K2-5 | `mkt.manager` | Nhập tệp có ô tiền `0.125` và `1.234,5` (định dạng chữ) | **Ghi nhận**, không chặn: #124 (ADR-052) mới sửa Bước 1 — số máy gửi lại (hoàn tác, dán từ lưới, ô sửa); ô chữ `0.125` trong tệp vẫn đọc theo luật người gõ ra 125 cho tới khi làm Bước 2 (chờ duyệt). `1.234,5` phải ra 1234,5 | Dữ liệu · P0 |
 | K2-6 | `mkt.manager` | Nhập tệp `.exe` đổi đuôi `.xlsx`; tệp lớn hơn 10 MB; tệp thiếu cột bắt buộc | Hai tệp đầu bị từ chối; tệp thiếu cột báo tên cột (AC-7.8, AC-7.9) | Bảo mật · P1 |
 | K2-7 | `sale.manager`, `mkt.manager` | `sale.manager` cấp quyền Xem bảng Sale cho `mkt.manager` | Phiên `mkt.manager` bị đăng xuất (AC-1.6); đăng nhập lại thấy bảng ở chế độ Xem | Phân quyền · P0 |
 | K2-8 | `mkt.manager` | POST thẳng `/bang/<bảng Sale>/cap-quyen/`, tự cấp quyền Sửa cho mình (DevTools/curl có CSRF) | **Phải 403**. Mã hiện tại cho qua (TL-01). Còn qua được thì chặn phát hành | Bảo mật · P0 (QA, bán tự động) |
