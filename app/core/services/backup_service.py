@@ -27,7 +27,7 @@ from django.utils import timezone
 
 from ..alerts import bao_nguoi_van_hanh
 from ..audit import record
-from ..constants import BACKUP_KEEP, AuditAction, JobKind, JobStatus
+from ..constants import BACKUP_KEEP, BACKUP_TIMEOUT_SECONDS, AuditAction, JobKind, JobStatus
 from ..exceptions import BusinessError
 from ..excel import format_size
 from ..models import BackgroundJob
@@ -41,8 +41,6 @@ PART_SUFFIX = ".part"
 PGDMP_MAGIC = b"PGDMP"
 #: Một bản sao lưu của cơ sở dữ liệu thật không thể nhỏ hơn mức này
 BACKUP_MIN_BYTES = 1024
-#: pg_dump vài chục nghìn dòng mất vài giây; quá mức này là có chuyện
-BACKUP_TIMEOUT_SECONDS = 30 * 60
 
 
 class BackupError(BusinessError):
@@ -195,9 +193,14 @@ def run_backup(*, actor=None, runner=None, title="Sao lưu hằng đêm"):
                    + (f", xoá {len(da_xoa)} bản cũ" if da_xoa else ""),
         )
         logger.info("Sao lưu xong: %s (%s)", ten, format_size(co))
-    except (BackupError, OSError) as loi:
+    except Exception as loi:  # noqa: BLE001 — lỗi nào cũng phải đóng tác vụ và báo, không để "Đang chạy" mãi (TL-23)
         tam.unlink(missing_ok=True)
-        thong_bao = scrub(loi)
+        if isinstance(loi, (BackupError, OSError)):
+            thong_bao = scrub(loi)
+        else:
+            # Lỗi lạ: chỉ ghi tên lớp lỗi, không chép thông điệp thô (có thể chứa mật khẩu — điều cấm 6)
+            thong_bao = (f"Sao lưu thất bại vì lỗi hệ thống ({type(loi).__name__}). "
+                         "Xem nhật ký máy chủ, rồi chạy lại.")
         job.mark_failed(thong_bao)
         # Nhật ký hoạt động chỉ ghi sự kiện; lý do (có thể chứa chữ "password"
         # từ pg_dump) nằm ở tác vụ và thư — bộ lọc nhật ký sẽ lược nó đi

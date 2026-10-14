@@ -229,6 +229,105 @@ def test_tac_vu_cho_qua_15_phut_bi_danh_dau_ket(nguoi_dung):
     assert len(mail.outbox) == 1 and "kẹt" in mail.outbox[0].subject
 
 
+@pytest.mark.parametrize("kind", [JobKind.RECOMPUTE, JobKind.IMPORT, JobKind.EXPORT, JobKind.BACKUP])
+def test_tac_vu_dang_chay_im_lang_qua_nguong_bi_danh_dau_ket(nguoi_dung, kind):
+    """AC-9.2 — Tác vụ ĐANG CHẠY mà không có tiến độ quá ngưỡng (worker chết giữa chừng — TL-23) → STALE kèm
+    lời báo, giữ tiến độ đã làm, một dòng nhật ký, thư cảnh báo; tác vụ còn nhịp trong ngưỡng không bị đụng"""
+    from core.constants import JOB_RUNNING_STALE_MINUTES, JOB_RUNNING_STALE_MINUTES_BACKUP
+    from core.tasks import danh_dau_tac_vu_ket
+
+    nguong = JOB_RUNNING_STALE_MINUTES_BACKUP if kind == JobKind.BACKUP else JOB_RUNNING_STALE_MINUTES
+    ket, con_song = (BackgroundJob.objects.create(
+        kind=kind, status=JobStatus.RUNNING, created_by=nguoi_dung["manager_sale"], title=ten,
+        target_type="table", progress=40_000, total=100_000) for ten in ("Chết giữa chừng", "Đang chạy tốt"))
+    BackgroundJob.objects.filter(pk=ket.pk).update(updated_at=timezone.now() - timedelta(minutes=nguong + 1))
+    BackgroundJob.objects.filter(pk=con_song.pk).update(updated_at=timezone.now() - timedelta(minutes=nguong - 1))
+
+    assert danh_dau_tac_vu_ket.delay().get() == 1
+    ket.refresh_from_db()
+    con_song.refresh_from_db()
+    assert ket.status == JobStatus.STALE and "worker" in ket.error
+    assert ket.finished_at is not None and ket.progress == 40_000
+    assert con_song.status == JobStatus.RUNNING
+    assert AuditLog.objects.filter(target_type="job", target_id=str(ket.pk)).count() == 1
+    assert not AuditLog.objects.filter(target_type="job", target_id=str(con_song.pk)).exists()
+    assert len(mail.outbox) == 1 and "kẹt" in mail.outbox[0].subject
+    assert f"#{ket.pk} " in mail.outbox[0].body and f"#{con_song.pk} " not in mail.outbox[0].body
+
+
+def test_nguong_ket_dai_hon_khoang_im_lang_that():
+    """AC-9.2 — Ngưỡng kẹt của tác vụ đang chạy dài hơn khoảng im lặng thật: sao lưu được phép im tới trần
+    pg_dump, tính lại 100.000 dòng đo 19–28 giây (ADR-016) — tác vụ còn sống không bị đánh kẹt (TL-23)"""
+    from core.constants import (
+        BACKUP_TIMEOUT_SECONDS, JOB_RUNNING_STALE_MINUTES, JOB_RUNNING_STALE_MINUTES_BACKUP,
+        PERF_RECOMPUTE_SECONDS,
+    )
+
+    assert JOB_RUNNING_STALE_MINUTES_BACKUP * 60 > BACKUP_TIMEOUT_SECONDS
+    assert JOB_RUNNING_STALE_MINUTES * 60 > PERF_RECOMPUTE_SECONDS * 10
+    assert backup_service.BACKUP_TIMEOUT_SECONDS == BACKUP_TIMEOUT_SECONDS
+
+
+@pytest.mark.django_db(transaction=True)
+def test_tac_vu_dang_giu_khoa_khong_bi_danh_ket_nham(nguoi_dung):
+    """AC-9.2 — Tác vụ nhập còn sống giữ khoá dòng tác vụ trong giao dịch (nhịp tiến độ chưa commit) thì lượt
+    canh bỏ qua, không treo, không đánh kẹt nhầm; thả khoá rồi mới bị đánh kẹt (TL-23)"""
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+
+    from django.db import connections, transaction
+
+    from core.constants import JOB_RUNNING_STALE_MINUTES
+    from core.tasks import danh_dau_tac_vu_ket
+
+    job = BackgroundJob.objects.create(kind=JobKind.IMPORT, status=JobStatus.RUNNING, title="Nhập dài")
+    BackgroundJob.objects.filter(pk=job.pk).update(
+        updated_at=timezone.now() - timedelta(minutes=JOB_RUNNING_STALE_MINUTES + 1))
+    held, release = threading.Event(), threading.Event()
+
+    def giu_khoa():
+        try:
+            with transaction.atomic():
+                list(BackgroundJob.objects.select_for_update().filter(pk=job.pk))
+                held.set()
+                assert release.wait(8)
+        finally:
+            connections.close_all()
+
+    with ThreadPoolExecutor(1) as pool:
+        h = pool.submit(giu_khoa)
+        assert held.wait(5)
+        assert danh_dau_tac_vu_ket() == 0
+        job.refresh_from_db()
+        assert job.status == JobStatus.RUNNING and not mail.outbox
+        release.set()
+        h.result(5)
+
+    assert danh_dau_tac_vu_ket() == 1
+    job.refresh_from_db()
+    assert job.status == JobStatus.STALE
+
+
+def test_sao_luu_gap_loi_la_van_dong_tac_vu_va_bao(thu_muc_sao_luu, db_gia, caplog):
+    """NFR-19 — Sao lưu gặp lỗi lạ (không phải lỗi pg_dump) vẫn đóng tác vụ THẤT BẠI, xoá tệp dở, ghi nhật ký,
+    gửi thư, không ném ra ngoài và không lộ mật khẩu — trước đây tác vụ nằm "Đang chạy" mãi (TL-23)"""
+    def _hong(cmd, **kw):
+        Path(cmd[cmd.index("--file") + 1]).write_bytes(b"PGDMP" + b"\0" * 100)
+        raise RuntimeError(f"hỏng {MAT_KHAU_GIA}")
+
+    truoc = backup_service.list_backups()
+    job = backup_service.run_backup(runner=_hong)
+
+    job.refresh_from_db()
+    assert job.status == JobStatus.FAILED and job.error and MAT_KHAU_GIA not in job.error
+    assert not list(thu_muc_sao_luu.glob("*.part"))
+    assert "THẤT BẠI" in AuditLog.objects.filter(action=AuditAction.BACKUP).latest("pk").detail
+    assert len(mail.outbox) == 1 and "THẤT BẠI" in mail.outbox[0].subject
+    assert MAT_KHAU_GIA not in mail.outbox[0].body and MAT_KHAU_GIA not in caplog.text
+    assert backup_service.list_backups() == truoc
+    assert not BackgroundJob.objects.filter(kind=JobKind.BACKUP, status=JobStatus.RUNNING).exists()
+
+
 def test_don_tep_qua_24_gio(settings, tmp_path, nguoi_dung):
     """NFR-16 — Tệp xuất và tệp nhập chờ quá 24 giờ bị xoá, tệp mới giữ, tác vụ bỏ dở bị đóng"""
     import os
