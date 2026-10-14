@@ -37,9 +37,9 @@
 - **Kiểm:**
   - mỗi PR chạy bộ chính đầy đủ, ví dụ #127 sau khi gộp Staging: 3.447 đạt, 7 bỏ qua, 0 đỏ;
   - e2e liên quan;
-  - rà đối kháng bằng workflow cho P0-2 (6 phát hiện xác nhận, đã sửa) và P0-14 (16 phát hiện cộng các điểm bỏ bớt,
-    sửa 19 chỗ, 1 bị bác);
-  - #129: bộ chính 3.527 đạt, 0 đỏ; 8 bài e2e mới đỏ 8/8 trên mã cũ, đạt nhiều lượt liền sau khi sửa.
+  - rà đối kháng bằng workflow cho P0-2 (6 phát hiện xác nhận, đã sửa) và P0-14 (16 phát hiện cộng các điểm bỏ bớt;
+    người kiểm lại xác nhận 10, bác 6; sửa 19 chỗ, chỉ bỏ một bản sửa);
+  - #129: bộ chính 3.527 đạt, 0 đỏ; 8 bài e2e mới đỏ 8/8 trên mã cũ, đạt nhiều lượt liền sau khi sửa; CI xanh.
 - **Còn nợ** (mỗi mục giữ nguyên lý do chưa làm):
   - P0-5, P0-6, P0-11, P0-12: chờ `docs/08` mục 9.5;
   - TL-101, TL-102, TL-103, TL-104: mở;
