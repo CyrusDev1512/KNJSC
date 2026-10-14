@@ -1,5 +1,28 @@
 # Backlog
 
+## 14.10.2026 — Kiểm cây sau gộp, gộp KN OMS (#112, #114) vào `Staging`
+
+- **Chủ dự án:** "kiểm thử kĩ tất cả rồi gộp PR 112 + 114 + oms vào staging".
+  - "oms" là chính hai PR KN OMS. Không có PR hay nhánh OMS thứ ba.
+- **Cây đem kiểm:** gộp thử `Staging` + #112 + #114 ở máy. Cây ra trùng đúng cây của #114.
+- **Kiểm:**
+  - cấu hình, `check --deploy` như lúc phát hành, migration, tệp tĩnh, rà diff: 0 lỗi;
+  - sửa một dòng trống thừa ở cuối ADR-051;
+  - `pytest -m "not trinh_duyet"`: 3.207 đạt, 7 bỏ qua, 0 đỏ;
+  - e2e hai lượt như CI: 68 và 22 đạt. 9 bài đỏ của `test_pha_luoi_ghi_chu.py` đỏ y hệt trên `Staging` gốc, do font
+    Google qua proxy máy ảo;
+  - bài KN OMS chạy 3 lần liền: mỗi lần 15/15 và 11/11;
+  - hệ thống thật: kịch bản KN OMS 16/16; quyền `/oms/` đúng với cả 14 tài khoản, ở cả KN CRM và KN ERP; quét liên
+    kết theo 4 vai, 209 trang, 0 lỗi; tràn ngang 0 px; tương phản như 13.10.
+- **Gộp:** #112 rồi #114 vào `Staging` bằng merge commit; xoá các nhánh đã gộp.
+- **Còn nợ:**
+  - chặng 2: thử trên `Staging` ở máy mình, theo kịch bản 16 bước gửi ngày 13.10;
+  - sau đó lên `main` và VPS; không có migration;
+  - #113 xung đột ở `CLAUDE.md`, `docs/backlog.md`; #126 xung đột ở `docs/06`. Phiên của từng PR tự gộp `Staging`
+    mới vào và giải; 11 PR còn lại (#115 → #125) gộp sạch.
+
+[Biên bản](kiem-chung-gop-kn-oms-staging-20261014.md).
+
 ## 13.10.2026 — KN OMS thiết kế lại theo Solarpunk Office, làm sâu sáu màn (ADR-051 bổ sung, AC-51.9 → 51.14)
 
 - **Chủ dự án:** "dùng impeccable để design lại UI, sau đó nâng cấp tính năng".

@@ -159,4 +159,3 @@ agent. Hồ sơ mặt ở `.agents/design-state/surfaces/app-templates-crm-kn-om
 5. **Dữ liệu giả thêm một chỗ cố ý:** mã xuất cho đơn nhiều nhất 7 ngày qua (trừ ba chỗ thiếu, sắp hết đã có và hàng
    đang về) chỉ còn khoảng 5 ngày bán, để Kho có gợi ý nhập thật. Không rút số ngẫu nhiên nên dữ liệu khác không lệch.
 6. **Bộ đếm:** AC-51.9 → 51.14. Biên bản: `docs/kiem-chung-kn-oms-thiet-ke-lai-20261013.md`.
-
