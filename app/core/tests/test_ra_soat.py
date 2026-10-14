@@ -159,11 +159,12 @@ def test_chua_dang_nhap_bam_htmx_nhan_hx_redirect_ve_trang_dang_xem(client, sett
 
 
 @pytest.mark.parametrize("trang", [None, "https://ngoai.example/evil", "http://testserver//ngoai.example/x", "javascript:alert(1)",
-                                   "http://testserver/\\ngoai.example/x", "http://testserver/dang-nhap/?next=/x"])
+                                   "http://testserver/\\ngoai.example/x", "http://testserver/dang-nhap/?next=/x",
+                                   "http://[/", "http://testserver]/x"])
 def test_htmx_chua_dang_nhap_khong_mang_next_la(client, settings, trang):
     """AC-1.1 — TL-18: thiếu HX-Current-URL, hay trang gửi lên là host lạ, đường bắt đầu bằng '//' hay '/\\', lược đồ
-    lạ, chính trang đăng nhập thì HX-Redirect chỉ là trang đăng nhập, không mang next trỏ ra ngoài, vào đường HTMX hay
-    vòng về trang đăng nhập (P0-14)"""
+    lạ, chính trang đăng nhập, chuỗi hỏng không phân tích được thì HX-Redirect chỉ là trang đăng nhập, không mang next
+    trỏ ra ngoài, vào đường HTMX hay vòng về trang đăng nhập, và không bao giờ 500 (P0-14)"""
     settings.ROOT_URLCONF = "knjsc.urls_bangtinh"
     them = {"HTTP_HX_CURRENT_URL": trang} if trang else {}
     r = client.get("/van-don/chi-tiet/1/", HTTP_HX_REQUEST="true", **them)

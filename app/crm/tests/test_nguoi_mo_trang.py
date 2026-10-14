@@ -227,22 +227,41 @@ def test_dang_nhap_lai_ma_csrf_moi_cung_nguoi_luu_duoc_nguoi_khac_409(feedback, 
     assert cot.is_hidden is False
 
 
-def test_ma_bao_mat_lech_tu_trang_crm_tra_json_form_thuong_van_trang_403(feedback, nguoi_dung):  # noqa: F811
-    """AC-21.4 — ADR-053: mã CSRF lệch từ fetch/htmx của trang KN CRM trả 403 JSON code csrf (lưới giữ nháp, báo
-    đúng); form HTML thường vẫn nhận trang 403 của Django như ADR-030"""
-    vd = nguoi_dung["staff_vd"]
+def test_ma_bao_mat_lech_tu_trang_crm_tra_json_form_thuong_van_trang_403(feedback, nguoi_dung, chung_tu):  # noqa: F811
+    """AC-21.4 — ADR-053: mã CSRF lệch từ fetch/htmx của trang KN CRM (mang mã người mở trang, dù thân là JSON, form hay
+    FormData) hay từ thân JSON trả 403 JSON code csrf (lưới, chứng từ giữ nháp, báo đúng); form HTML thường và htmx không
+    mang mã người mở trang (KN ERP) vẫn nhận trang 403 CSRF của Django như ADR-030; không ghi gì"""
+    vd, admin = nguoi_dung["staff_vd"], nguoi_dung["admin"]
     row = feedback[2][0]
-    c = Client(enforce_csrf_checks=True)
-    c.force_login(vd)
-    assert c.get(BASE).status_code == 200
     sai = "x" * 32
+    tao = Client()
+    tao.force_login(admin)
+    pk = create_document(tao, row).json()["id"]
+    c = Client(enforce_csrf_checks=True)
+    c.force_login(admin)
+    assert c.get(BASE).status_code == 200
+    ma = _ma(admin)
+    truoc = _anh_chup(feedback[2])
+    csrf = {"error": PHIEN_CSRF, "code": "csrf"}
 
-    r = _luu(c, row, "X", HTTP_X_CSRFTOKEN=sai, **_ma(vd))
-    assert r.status_code == 403 and r.json() == {"error": PHIEN_CSRF, "code": "csrf"}
-    r = c.post(f"/van-don/chi-tiet/{row.pk}/", {"product": [], "csrfmiddlewaretoken": sai}, HTTP_HX_REQUEST="true")
-    assert r.status_code == 403 and r.json()["code"] == "csrf"
-    r = c.post(BASE + "an-cot/", {"cot": ["thanh_pho"], "an": "1", "csrfmiddlewaretoken": sai})
-    assert r.status_code == 403 and "application/json" not in r["Content-Type"]
+    # Mang mã người mở trang: JSON (lưới), form urlencoded (ẩn cột), FormData (sửa chứng từ), htmx (Chi tiết)
+    assert _luu(c, row, "X", HTTP_X_CSRFTOKEN=sai, **ma).json() == csrf
+    r = c.post(BASE + "an-cot/", {"cot": ["thanh_pho"], "an": "1", "csrfmiddlewaretoken": sai}, **ma)
+    assert r.status_code == 403 and r.json() == csrf
+    r = c.post(f"/chung-tu-thanh-toan/{pk}/sua/", {"version": 1, "action": "edit", "reference": "DOI",
+                                                  "csrfmiddlewaretoken": sai}, **ma)
+    assert r.status_code == 403 and r.json() == csrf
+    r = c.post(f"/van-don/chi-tiet/{row.pk}/", {"product": [], "csrfmiddlewaretoken": sai}, HTTP_HX_REQUEST="true", **ma)
+    assert r.status_code == 403 and r.json() == csrf
+    # Thân JSON không mang mã người mở trang (trang chưa nạp het-phien.js): vẫn JSON để lưới không coi là mất quyền
+    r = _luu(c, row, "X", HTTP_X_CSRFTOKEN=sai)
+    assert r.status_code == 403 and r.json() == csrf
+
+    # Form HTML thường và htmx không mang mã người mở trang (KN ERP): trang 403 CSRF của Django, không JSON
+    for r in (c.post(BASE + "an-cot/", {"cot": ["thanh_pho"], "an": "1", "csrfmiddlewaretoken": sai}),
+              c.post(f"/van-don/chi-tiet/{row.pk}/", {"product": [], "csrfmiddlewaretoken": sai}, HTTP_HX_REQUEST="true")):
+        assert r.status_code == 403 and "application/json" not in r["Content-Type"] and b"CSRF" in r.content
+    assert _anh_chup(feedback[2]) == truoc
 
 
 def _the_het_phien(html):

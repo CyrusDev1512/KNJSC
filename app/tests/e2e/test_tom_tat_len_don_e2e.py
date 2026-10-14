@@ -21,7 +21,11 @@ TOM_TAT = "**/van-don/len-don/tom-tat/"
 def _cho_tom_tat(trang, chu):
     trang.wait_for_function(
         "chu => document.querySelector('[data-order-summary]').textContent.includes(chu)", arg=chu, timeout=8_000)
-    return trang.locator("[data-order-summary]").text_content()
+    tom_tat = trang.locator("[data-order-summary]").text_content()
+    # Không ca nào bảo tải lại trang: tải lại là mất chữ đã điền (ADR-053). Câu hết phiên có "đừng tải lại hay đóng
+    # trang" — lời dặn ngược lại, nên kiểm đúng cụm của hai câu cũ
+    assert "tải lại trang" not in tom_tat, tom_tat
+    return tom_tat
 
 
 def test_tom_tat_bao_ro_tung_truong_hop(live_server, trang, dang_nhap, kn_crm, setup, nguoi_dung):  # noqa: F811
@@ -72,5 +76,4 @@ def test_tom_tat_bao_ro_tung_truong_hop(live_server, trang, dang_nhap, kn_crm, s
     trang.context.clear_cookies(name="sessionid")
     go_lai("14")
     assert "Phiên đăng nhập đã hết" in _cho_tom_tat(trang, "Phiên đăng nhập đã hết")
-    assert "tải lại trang" not in trang.locator("[data-order-summary]").text_content()
     assert not loi_js, loi_js

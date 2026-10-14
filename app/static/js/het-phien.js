@@ -40,8 +40,9 @@
       if (p === PWD) return mark(new Error(PWD_TEXT), 'doi_mat_khau');
       if (p === LOGIN) return mark(new Error(EXPIRED), 'het_phien');
     }
-    if (data && data.code === 'csrf') return mark(new Error(data.error || CSRF_TEXT), 'csrf');
-    if (data && data.code === 'nguoi_dung_doi') return mark(new Error(data.error), 'nguoi_dung_doi');
+    // Chỉ phản hồi lỗi: phản hồi 200 cũng có thể mang khoá `code` (mã sản phẩm vừa tạo là "csrf")
+    if (response.status === 403 && data && data.code === 'csrf') return mark(new Error(data.error || CSRF_TEXT), 'csrf');
+    if (response.status === 409 && data && data.code === 'nguoi_dung_doi') return mark(new Error(data.error), 'nguoi_dung_doi');
     return null;
   }
   // Cách làm tiếp. Đổi người thì chỉ lời dẫn: trang đăng nhập đưa thẳng người đang đăng nhập về lưới (ADR-030)
@@ -92,6 +93,10 @@
 
   // (1)(2) htmx
   document.addEventListener('htmx:configRequest', function (e) {
+    // Phần tử bị tách khỏi trang trước khi phản hồi về (ô tìm của hộp lọc bị thay) thì htmx:beforeOnLoad không nổi lên
+    // document và htmx sẽ theo HX-Redirect chuyển cả trang: nghe thêm ngay trên phần tử, một lần cho mỗi phần tử
+    var elt = e.detail && e.detail.elt;
+    if (elt && !elt.__hetPhien) { elt.__hetPhien = true; elt.addEventListener('htmx:beforeOnLoad', beforeOnLoad); }
     if (!USER) return;
     var c = e.detail;
     c.headers['X-KNJSC-User'] = USER;
@@ -121,8 +126,8 @@
   }
   function noteIn(target, error) {
     if (!target || target === document.body || target === document.documentElement || !target.isConnected) return;
-    var p = document.createElement('p');
-    p.className = 'het-phien-o'; p.setAttribute('role', 'alert');
+    var p = document.createElement('div');
+    p.className = 'bao bao-xau het-phien-o'; p.setAttribute('role', 'alert');
     p.textContent = error.message + ' ';
     if (error.session) p.appendChild(help(error));
     if (target.querySelector('input, select, textarea')) {
@@ -130,6 +135,7 @@
       if (cu) cu.remove();
       target.insertBefore(p, target.firstChild);
     } else target.replaceChildren(p);
+    if (p.scrollIntoView) p.scrollIntoView({block: 'nearest'});
   }
   var hong = null;   // phần tử có yêu cầu hỏng: chỉ khi chính nó gửi lại thành công mới tắt lời nổi (như loi-mang.js)
   function notify(error, elt) {
@@ -154,7 +160,9 @@
     if (error.session) chu.appendChild(help(error));
     hong = elt || null;
   }
-  document.addEventListener('htmx:beforeOnLoad', function (e) {
+  function beforeOnLoad(e) {
+    if (e.__hetPhien) return;              // đã xử lý ở chính phần tử, sự kiện nổi lên document thì bỏ qua
+    e.__hetPhien = true;
     var xhr = e.detail && e.detail.xhr;
     if (!xhr) return;
     var error = htmxError(xhr);
@@ -163,7 +171,8 @@
     var target = e.detail.target, dlg = target && target.closest && target.closest('dialog');
     noteIn(target, error);
     if (!(dlg && dlg.open)) notify(error, e.detail.elt);
-  });
+  }
+  document.addEventListener('htmx:beforeOnLoad', beforeOnLoad);
   document.addEventListener('htmx:afterRequest', function (e) {
     if (!e.detail || !e.detail.successful) return;
     if (!hong || e.detail.elt === hong || !hong.isConnected) {

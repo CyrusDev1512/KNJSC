@@ -294,10 +294,15 @@ def test_het_phien_len_don_giu_form_dang_nhap_lai_ra_mot_don(live_server, trang,
     f.locator("[name=phone]").press_sequentially("5")
     trang.wait_for_selector("#nhac-khach .het-phien-o", timeout=8_000)
     assert HET_PHIEN in trang.locator("#nhac-khach .het-phien-o").text_content()
+    # Rời ô điện thoại trước (ô mất focus thì tra khách chạy lại), rồi gỡ lời nổi cũ: lời nổi sau đó phải do chính Lưu đơn
+    with trang.expect_response(lambda r: "kiem-khach" in r.url, timeout=8_000):
+        f.locator("[name=customer_name]").focus()
+    trang.evaluate("document.querySelector('.het-phien-noi')?.remove()")
 
     f.locator("button[type=submit]").click()
     trang.wait_for_selector("#vd-entry > .het-phien-o", timeout=8_000)
     assert HET_PHIEN in trang.locator("#vd-entry > .het-phien-o").text_content()
+    trang.wait_for_selector(".het-phien-noi", timeout=8_000)
     assert HET_PHIEN in trang.locator(".het-phien-noi").text_content()
     assert trang.locator("input[name=password]").count() == 0
     assert f.locator("[name=customer_name]").input_value() == "Khách Hết Phiên"
@@ -326,6 +331,8 @@ def test_dang_nhap_tai_khoan_khac_bam_luu_don_bi_chan(live_server, trang, dang_n
     tin = bao.text_content()
     assert "Tài khoản vừa đăng nhập khác người mở trang" in tin and employee_code(sale) in tin, tin
     assert bao.locator("a[href^='/dang-nhap/']").count() == 0
+    trang.wait_for_selector(".het-phien-noi", timeout=8_000)
+    assert "Tài khoản vừa đăng nhập khác người mở trang" in trang.locator(".het-phien-noi").text_content()
     assert f.locator("[name=customer_name]").input_value() == "Khách Hết Phiên"
     assert Order.objects.count() == 0
     assert not SubmissionReceipt.objects.filter(kind="order").exists()
@@ -375,10 +382,11 @@ def test_het_phien_sua_chung_tu_khong_mat_chu(live_server, trang, dang_nhap, fee
     trang.locator(f"[data-payment-id='{pk}']").first.click()
     trang.locator(".payment-dialog details summary").click()
     trang.locator(".payment-dialog input[name=note]").fill("Ghi chú đang gõ")
+    _dang_xuat_ngam(trang, live_server)
+    # Đếm từ sau khi đăng xuất: một lượt hỏi thành công ngay trước đó không được tính
     dem = {"n": 0}
     trang.on("requestfinished", lambda r: dem.__setitem__("n", dem["n"] + 1)
              if r.url.rstrip("/").endswith(f"/chung-tu-thanh-toan/{pk}") else None)
-    _dang_xuat_ngam(trang, live_server)
     _dang_hien(trang)
     assert _cho(trang, lambda: dem["n"] >= 1, han=15.0), "lượt hỏi chứng từ không chạy"
     bao = trang.locator(".payment-dialog > .payment-error")

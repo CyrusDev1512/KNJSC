@@ -75,7 +75,10 @@ def _trang_dang_xem(request):
     tho = request.headers.get("HX-Current-URL", "")
     if not tho:
         return ""
-    phan = urlsplit(tho)
+    try:
+        phan = urlsplit(tho)
+    except ValueError:          # chuỗi hỏng kiểu 'http://[/' (IPv6 dở): bỏ next, không được thành 500
+        return ""
     if phan.scheme not in ("", "http", "https") or (phan.netloc and phan.netloc != request.get_host()):
         return ""
     if not phan.path.startswith("/") or phan.path.startswith("//"):

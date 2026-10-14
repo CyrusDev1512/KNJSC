@@ -188,15 +188,14 @@ def tac_vu_tai(request, pk):
 
 
 def csrf_failure(request, reason=""):
-    """CSRF_FAILURE_VIEW. Yêu cầu từ trang KN CRM (mang mã người mở trang), htmx hay thân JSON nhận 403 JSON
-    `code: "csrf"` để trang giữ nháp và báo đúng thay vì coi là mất quyền; form HTML thường vẫn nhận trang 403 của Django
-    như ADR-030 (ADR-053)."""
+    """CSRF_FAILURE_VIEW. Yêu cầu từ trang KN CRM (fetch và htmx đều mang mã người mở trang) hay thân JSON nhận 403 JSON
+    `code: "csrf"` để trang giữ nháp và báo đúng thay vì coi là mất quyền; trang đó lấy mã mới lúc gửi nên bấm Thử lại là
+    được. Form HTML thường và htmx của KN ERP (không lấy mã mới, Thử lại vô ích) vẫn nhận trang 403 của Django như ADR-030
+    (ADR-053)."""
     from django.views.csrf import csrf_failure as trang_mac_dinh
 
-    from .htmx import is_htmx
     from .middleware import HEADER_NGUOI_MO_TRANG, PHIEN_CSRF
 
-    if (request.headers.get(HEADER_NGUOI_MO_TRANG) is not None or is_htmx(request)
-            or request.content_type == "application/json"):
+    if request.headers.get(HEADER_NGUOI_MO_TRANG) is not None or request.content_type == "application/json":
         return JsonResponse({"error": PHIEN_CSRF, "code": "csrf"}, status=403)
     return trang_mac_dinh(request, reason=reason)

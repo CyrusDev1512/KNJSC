@@ -25,6 +25,12 @@ vm.runInContext(source.slice(source.indexOf('  async function json('),source.ind
   assert.equal(state.cache.size,0);
   grid.fetch=async()=>({protocol:2,revision:9,query_token:'q',version:'v',metadata_version:'m',total:0,columns:[],rows:[]});
   await grid.load(0);assert.equal(state.cache.size,1);
+  // 409 đổi người khi tải khối (ADR-053): không vào vòng invalidate → tải lại → 409 (bão yêu cầu), báo lỗi phiên một lần
+  let vong=0,phien=0;state.cache.clear();state.conflicts=[];
+  Object.assign(grid,{message(){},element:()=>({}),$:()=>({append(){}}),invalidate(){vong++;},clearAccess(){},sessionNotice(){phien++;},prefetchFailed:new Set()});
+  grid.fetch=async()=>{throw Object.assign(Error('Tài khoản vừa đăng nhập khác người mở trang — nháp không được lưu'),{status:409,code:'nguoi_dung_doi',session:true});};
+  await grid.load(0).catch(()=>{});
+  assert.equal(vong,0,'409 đổi người không gọi invalidate (không thành vòng yêu cầu)');assert.equal(phien,1,'Báo lỗi phiên đúng một lần');
   console.log('PASS phản hồi khối đến muộn sau polling');
   const polling={state:{busy:false,generation:0,queryToken:'q',revision:1,cache:new Map()},config:{syncUrl:'/sync'},document:{hidden:false},
     working:{pending:()=>[],observe:()=>{}},canvas:{querySelectorAll:()=>[]},query:new URLSearchParams(),csrf:'test',json:async x=>x,updateRows:()=>{}};
