@@ -1,5 +1,34 @@
 # Backlog
 
+## 14.10.2026 — Rà sau khi gộp đợt P0: rà ngữ nghĩa giữa các PR, diễn tập chặng 2 bằng máy (TL-105 → TL-111)
+
+- **Chủ dự án:** "kiểm tiếp đi, chưa xong đâu đúng không". Trước đó mới kiểm từng PR so với `Staging`.
+- **Làm gì:**
+  - Dựng cây gộp thử: `Staging` cộng đủ 16 PR. Cây này trùng từng tệp với `Staging` `03e5d99` sau khi gộp.
+  - Rà ngữ nghĩa giữa các PR bằng workflow: năm nhóm, mỗi phát hiện có người kiểm lại cố bác.
+  - Diễn tập chặng 2 bằng máy: hai cặp máy chủ ERP/CRM thật, Playwright, khoảng 40 bước.
+  - #131 (phiên khác) đã ghi chính lần gộp; mục này không lặp.
+- **Kiểm** trên cây gộp thử:
+  - bộ chính 3.852 đạt, 0 đỏ;
+  - e2e 79 + 30 đạt, 0 đỏ;
+  - sao lưu và phục hồi thật 3/3; Node 12/12;
+  - `check --deploy` 0 cảnh báo.
+- **Kết quả:** không lỗi mã nào chỉ lộ khi gộp. Mọi bước của đợt P0 đạt trên máy chủ thật.
+  - Lỗi mới, ghi ở `docs/test-log.md`, chưa sửa:
+    - TL-105 (#117): phục hồi xong thì báo Kẹt nhầm.
+    - TL-106 (#125): Manager mất bộ phận làm log `ERROR`, 403 không có nhật ký, lưới nhận HTML, trang 403 không có lối ra.
+    - TL-107 (#120): tải lại trang sau khi bỏ cột bị từ chối thì ra 405.
+    - TL-108: nhật ký khoá tạm bị lược chữ và ghi lặp.
+    - TL-109, TL-110: Thống kê mất `nguon`, mất bộ lọc.
+    - TL-111: kho chứng từ 403 không có nhật ký.
+  - Sửa tài liệu cũ: câu "chưa gộp" ở test-log và `docs/08`; `giamdoc` không giao việc được; các câu `docs/08` còn tả
+    hành vi trước P0.
+- **Còn nợ:**
+  - chủ dự án duyệt cách sửa TL-105 → TL-111;
+  - chặng 2 bằng `KN JSC.bat`;
+  - xoá nhánh theo lệnh ở #131.
+- [Biên bản](kiem-chung-p0-ra-soat-sau-gop-20261014.md).
+
 ## 14.10.2026 — Đợt kiểm thử P0: bài đỏ trước, sửa sau (TL-90 → TL-99, TL-101 → TL-104)
 
 - **Chủ dự án:** duyệt kế hoạch đợt P0 (`docs/08` mục 9).
