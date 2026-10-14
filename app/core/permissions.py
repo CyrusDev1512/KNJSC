@@ -94,6 +94,15 @@ def assert_admin(user, request=None):
         raise OutOfScopeError()
 
 
+def assert_django_admin(user, request=None):
+    """Trang quản trị Django: đúng điều kiện `AdminSite.has_permission` (is_active và is_staff — ADR-044). Không
+    xét cấp bậc qua `get_rank`: hồ sơ Admin mà is_staff tắt sẽ lọt qua rồi rơi vào vòng chuyển hướng (TL-93)."""
+    if not (user.is_active and user.is_staff):
+        dich = getattr(request, "GET", {}).get("next") or getattr(request, "path", "")
+        record_denied(user, dich, request)
+        raise OutOfScopeError("Trang quản trị chỉ dành cho quản trị viên.")
+
+
 def assert_departments(user, codes, request=None):
     """Chặn nếu người này không thuộc bộ phận được phép vào màn hình.
 

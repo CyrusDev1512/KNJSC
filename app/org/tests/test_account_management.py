@@ -309,7 +309,9 @@ def test_ceo_reads_company_records_but_cannot_mutate_or_configure(client, actors
         tables.append((table, column, row))
     table, column, row = tables[0]
     client.force_login(ceo)
-    assert client.get("/admin/").status_code in (302, 404)
+    r = client.get("/quan-tri/")              # trang quản trị Django chỉ quản trị viên (TL-93)
+    assert r.status_code == 302 and r["Location"].startswith("/quan-tri/login/")
+    assert client.get(r["Location"]).status_code == 403
     assert client.get(reverse("nhan_su")).status_code == 200
     for name, args in (("bang_cot", [table.code]), ("bang_moi", []), ("bieu_mau_moi", [])):
         assert client.post(reverse(name, args=args), {}).status_code == 403

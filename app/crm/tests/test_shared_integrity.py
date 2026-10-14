@@ -96,6 +96,28 @@ def test_pending_writer_blocks_delete(generic,nguoi_dung,kind):
     assert DataRecord.objects.filter(pk=row.pk).exists()
 
 
+@pytest.mark.parametrize('kind',[JobKind.IMPORT,JobKind.RECOMPUTE])
+def test_tac_vu_ghi_ket_khong_chan_xoa_bang_mai(generic,nguoi_dung,kind):
+    """ADR-027 — Tác vụ ghi đang chạy chặn xoá bảng; worker chết giữa chừng thì lượt canh đánh kẹt và bảng xoá
+    mềm được, không bị chặn mãi (TL-23)"""
+    from datetime import timedelta
+    from django.utils import timezone
+    from core.constants import AuditAction, JOB_RUNNING_STALE_MINUTES
+    from core.models import AuditLog
+    from core.tasks import danh_dau_tac_vu_ket
+    from forms_builder.models import TableDef
+    table,row=generic;admin=nguoi_dung['admin']
+    job=BackgroundJob.objects.create(kind=kind,status=JobStatus.RUNNING,target_type='table',target_id=table.code,title='Test',created_by=admin)
+    with pytest.raises(BusinessError,match=str(job.pk)):life.delete(admin,table,table.name)
+    BackgroundJob.objects.filter(pk=job.pk).update(updated_at=timezone.now()-timedelta(minutes=JOB_RUNNING_STALE_MINUTES+1))
+    # Xoá không tự bỏ qua tác vụ theo giờ: chỉ lượt canh mới đóng nó
+    with pytest.raises(BusinessError,match=str(job.pk)):life.delete(admin,table,table.name)
+    danh_dau_tac_vu_ket()
+    life.delete(admin,table,table.name)
+    assert TableDef.all_objects.get(pk=table.pk).deleted_at is not None
+    assert AuditLog.objects.filter(action=AuditAction.DELETE,detail__contains='Xóa mềm bảng').exists()
+
+
 @pytest.mark.django_db(transaction=True)
 def test_concurrent_inputs_recompute_from_locked_row(calculated,nguoi_dung):
     table,row=calculated;user=nguoi_dung['staff_mkt'];barrier=threading.Barrier(2)

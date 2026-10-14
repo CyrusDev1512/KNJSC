@@ -27,7 +27,7 @@ from core.submission import new_key as new_submission_key
 
 from forms_builder.services import form_service
 
-from . import aggregations, excel, marketing
+from . import excel, marketing
 from .services import daily_service, summary_service
 
 
@@ -261,9 +261,10 @@ def bao_cao_tong_hop(request):
             # Cắt trang trên danh sách nhóm đã lấy về — xem MAX_GROUPS
             boi_canh.update(pagination_context(
                 request, boi_canh.pop("cac_nhom"), ten_don_vi=kq.unit))
-            boi_canh["cac_dong"] = aggregations.finish_rows(
+            boi_canh["cac_dong"] = summary_service.display_rows(
                 list(boi_canh["trang"].object_list), kq)
-            boi_canh["dong_tong"] = aggregations.total_cells(kq)
+            boi_canh["cac_dong_tong"] = summary_service.total_lines(
+                kq, boi_canh["page_obj"].paginator.count)
 
     return render(request, "reports/bao_cao_tong_hop.html", boi_canh)
 
@@ -296,9 +297,12 @@ def bao_cao_tong_hop_xuat(request):
         return redirect("bao_cao_tong_hop")
 
     nhan_tab = dict(summary_service.TABS)[tham_so["tab"]]
+    ghi_chu = summary_service.currency_note(kq)
     wb = excel.build_workbook(
         f"{bang.name} — {nhan_tab}", kq,
-        subtitle=f"Từ {tham_so['tu']:%d.%m.%Y} đến {tham_so['den']:%d.%m.%Y}",
+        subtitle=" · ".join(p for p in (f"Từ {tham_so['tu']:%d.%m.%Y} đến {tham_so['den']:%d.%m.%Y}",
+                                        ghi_chu["warning"] or ghi_chu["label"]) if p),
+        show_currency=summary_service.currency_visible(kq, list(bang.columns.all())),
     )
     dem = BytesIO()
     wb.save(dem)

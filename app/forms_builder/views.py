@@ -180,12 +180,18 @@ def bang_cot(request, code):
             messages.success(request, f"Đã thêm cột {cot.name}." + _bao_tinh_lai(cot))
         return redirect("bang_cot", code=bang_hien.code)
 
+    return _trang_cot(request, bang_hien, form, dang_sua)
+
+
+def _trang_cot(request, bang_hien, form=None, dang_sua=None, status=200):
+    """Trang Cột của một bảng — dùng lại khi thao tác bị từ chối để hiện lời báo ngay trên trang."""
+    request.nav_current = "bang"
     return render(request, "forms_builder/bang_cot.html", {
-        "bang": bang_hien, "form": form, "dang_sua": dang_sua,
+        "bang": bang_hien, "form": form or ColumnForm(table=bang_hien), "dang_sua": dang_sua,
         "cac_cot": bang_hien.columns.order_by("order", "id"),
         "form_quyen": GrantForm(cho_bang=True),
         "cac_quyen": grant_service.grants_of_table(bang_hien),
-    })
+    }, status=status)
 
 
 def _bao_tinh_lai(cot):
@@ -206,7 +212,12 @@ def bang_xoa_cot(request, code, pk):
     _kiem_sua_cau_truc(request, bang_hien)
     cot = get_object_or_404(ColumnDef, pk=pk, table=bang_hien)
     ten = cot.name
-    table_service.remove_column(cot, actor=request.user, request=request)
+    try:
+        table_service.remove_column(cot, actor=request.user, request=request)
+    except BusinessError as loi:
+        # Cột khoá, vế công thức, nối biểu mẫu, cột hệ thống vận đơn: báo đỏ, cột còn nguyên (TL-13)
+        messages.error(request, str(loi))
+        return _trang_cot(request, bang_hien, status=400)
     messages.success(request, f"Đã bỏ cột {ten}.")
     return redirect("bang_cot", code=code)
 

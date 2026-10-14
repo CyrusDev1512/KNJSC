@@ -29,7 +29,6 @@ from core.navigation import SALES_ONLY
 from forms_builder.models import DataRecord, Folder, TableDef
 from forms_builder.services import export_service, folder_service, grant_service, table_service
 from orders.constants import WAYBILL_TABLE_CODE, is_waybill_table
-from orders.services import dispatch_service
 from org.models import Department
 
 from .services import catalog, grid_service, master_grid_service, tong_quan_service, tree_service
@@ -325,7 +324,8 @@ def bang_tinh_them_cot(request, code):
 def bang_tinh_xoa_cot(request, code):
     """Bỏ các cột đã chọn — menu chuột phải, Manager của bộ phận sở hữu hoặc
     Admin. Giá trị đã nhập vẫn nằm trong bản ghi (BR-4); cột khoá, cột là vế
-    của cột tính sẵn và cột hệ thống của bảng vận đơn thì từ chối."""
+    của cột tính sẵn, cột đang nhận dữ liệu từ biểu mẫu và cột hệ thống của bảng
+    vận đơn thì từ chối."""
     bang = _bang(request, code)
     _kiem_quan_ly_cot(request, bang)
     ma = [m for m in dict.fromkeys(request.POST.getlist("cot")) if m]
@@ -334,17 +334,17 @@ def bang_tinh_xoa_cot(request, code):
     cac = list(bang.columns.filter(code__in=ma))
     if len(cac) != len(ma):
         return _bao_loi(request, "Có cột không còn trong bảng — tải lại trang.")
+    # Báo lý do trước khi khoá bảng; `remove_column` vẫn tự áp cùng luật (TL-13)
     for c in cac:
         ly_do = table_service.removable_reason(c)
-        if not ly_do and grid_service.is_waybill(bang) and (
-            c.code in {cot[1] for cot in dispatch_service.WAYBILL_COLUMNS} or c.code.startswith(dispatch_service.PRODUCT_COLUMN_PREFIX)
-        ):
-            ly_do = f'"{c.name}" là cột theo tệp vận đơn thật, hệ thống quản lý.'
         if ly_do:
             return _bao_loi(request, ly_do)
-    with transaction.atomic():
-        for c in cac:
-            table_service.remove_column(c, actor=request.user, request=request)
+    try:
+        with transaction.atomic():
+            for c in cac:
+                table_service.remove_column(c, actor=request.user, request=request)
+    except BusinessError as loi:
+        return _bao_loi(request, str(loi))
     return JsonResponse({"da_bo": ma})
 
 

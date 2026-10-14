@@ -272,6 +272,14 @@ DELETE_BATCH_SIZE = 2_000
 DELETE_LOCK_TIMEOUT_MS = 30_000
 
 
+def chan_khi_debug_tat(dong_y):
+    """Khoá dùng chung của các lệnh dữ liệu giả và đo hiệu năng (seed_perf, nap_khach_mau, do_hieu_nang):
+    DEBUG tắt thì từ chối, trừ khi người chạy ghi rõ `--dong-y-chay-that` (TL-98)."""
+    if not settings.DEBUG and not dong_y:
+        raise CommandError("DEBUG đang tắt — dữ liệu giả không dành cho máy chủ thật. "
+                           "Chắc chắn thì thêm --dong-y-chay-that.")
+
+
 def delete_fake_records(ds, *, on_progress=None):
     """Xoá cứng **theo lô** các dòng giả của một queryset `DataRecord`, kèm chi tiết
     sản phẩm và phân công của chúng — đường xoá dùng chung cho `seed_perf` lẫn
@@ -379,9 +387,7 @@ class Command(BaseCommand):
         parser.add_argument("--dong-y-chay-that", action="store_true", dest="dong_y")
 
     def handle(self, *args, **o):
-        if not settings.DEBUG and not o["dong_y"]:
-            raise CommandError("DEBUG đang tắt — dữ liệu giả không dành cho máy chủ thật. "
-                               "Chắc chắn thì thêm --dong-y-chay-that.")
+        chan_khi_debug_tat(o["dong_y"])
         from org.models import UserProfile
         from orders.services import dispatch_service
 
