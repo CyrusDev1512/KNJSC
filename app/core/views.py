@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import FileResponse
+from django.http import FileResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 
@@ -203,3 +203,17 @@ def tac_vu_tai(request, pk):
         return redirect("tac_vu_xem", pk=pk)
     ten = job.summary.get("file_name") or duong_dan.name
     return FileResponse(open(duong_dan, "rb"), as_attachment=True, filename=ten)
+
+
+def csrf_failure(request, reason=""):
+    """CSRF_FAILURE_VIEW. Yêu cầu từ trang KN CRM (fetch và htmx đều mang mã người mở trang) hay thân JSON nhận 403 JSON
+    `code: "csrf"` để trang giữ nháp và báo đúng thay vì coi là mất quyền; trang đó lấy mã mới lúc gửi nên bấm Thử lại là
+    được. Form HTML thường và htmx của KN ERP (không lấy mã mới, Thử lại vô ích) vẫn nhận trang 403 của Django như ADR-030
+    (ADR-053)."""
+    from django.views.csrf import csrf_failure as trang_mac_dinh
+
+    from .middleware import HEADER_NGUOI_MO_TRANG, PHIEN_CSRF
+
+    if request.headers.get(HEADER_NGUOI_MO_TRANG) is not None or request.content_type == "application/json":
+        return JsonResponse({"error": PHIEN_CSRF, "code": "csrf"}, status=403)
+    return trang_mac_dinh(request, reason=reason)
