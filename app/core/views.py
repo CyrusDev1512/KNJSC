@@ -214,6 +214,17 @@ def _wants_json(request):
     return request.headers.get(HEADER_NGUOI_MO_TRANG) is not None or request.content_type == "application/json"
 
 
+def json_body(request):
+    """Thân JSON của một yêu cầu fetch. Thân không phải JSON (form thường, multipart — gọi thẳng đường dẫn) thì ném
+    ValueError để view trả 400 như mọi thân hỏng: đọc `request.body` sau khi UnicodeNFCMiddleware đã đọc luồng
+    multipart thì Django ném RawPostDataException thành 500 (TL-104)."""
+    import json
+
+    if request.content_type != "application/json":
+        raise ValueError("Thân yêu cầu không phải JSON")
+    return json.loads(request.body)
+
+
 def csrf_failure(request, reason=""):
     """CSRF_FAILURE_VIEW. Yêu cầu từ trang KN CRM (fetch và htmx đều mang mã người mở trang) hay thân JSON nhận 403 JSON
     `code: "csrf"` để trang giữ nháp và báo đúng thay vì coi là mất quyền; trang đó lấy mã mới lúc gửi nên bấm Thử lại là
