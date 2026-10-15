@@ -696,7 +696,7 @@
     query=params;const url=config.filterUrl+(params.size?'?'+params:'');
     if(push)history.pushState({},'',url);
     $('mg-search').elements.tim.value=params.get('tim')||'';
-    document.querySelectorAll('[data-query-link]').forEach(a=>{const u=new URL(a.href);u.search=params.toString();a.href=u.href;});
+    document.querySelectorAll('[data-query-link]').forEach(a=>{a.href=hrefTruyVan(a.href,a.dataset.queryBase,params);});
     if(onlyOrder){
       // Chỉ đổi thứ tự (bấm tiêu đề cột, AC-21.12): cùng bộ dòng nên đi đường tải lại mềm —
       // dòng đang hiện giữ tới khi khối mới về, giữ cuộn ngang và chiều cao dòng, mũi tên đổi
@@ -709,6 +709,13 @@
     // Chỉ lấy chip đang lọc (và panel Bộ lọc nếu đã mở) — mảnh nhỏ `bo-loc/`, không tải lại cả trang lưới (mục b).
     loadFilters(!!$('mg-filters').dataset.loaded);
     syncScopeButtons();repaint();return true;
+  }
+  // Link mang bộ lọc lưới (Thống kê, Tải Excel): truy vấn = tham số riêng của link (`data-query-base`) + bộ lọc đang áp.
+  // Link Thống kê khai `nguon=<mã bảng>` ở đó; thay trọn `search` thì Tôi/Tìm/lọc xoá mất nguồn (TL-109). Khoá riêng thắng.
+  function hrefTruyVan(href,base,params){
+    const u=new URL(href),p=new URLSearchParams(base||''),rieng=new Set(p.keys());
+    for(const [k,v] of params)if(!rieng.has(k))p.append(k,v);
+    u.search=p.toString();return u.href;
   }
   // Panel Bộ lọc tải khi người dùng mở lần đầu (mục a, 07.10.2026): mở lưới không phải đếm theo sản phẩm, thị trường…
   function loadFilters(panel){
