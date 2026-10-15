@@ -1,8 +1,10 @@
 """Đi từ lưới Vận đơn sang Thống kê mà không rơi bộ lọc — TL-109, TL-110 (rà sau khi gộp đợt P0, 14.10.2026).
 
 TL-109: `navigate()` của lưới thay trọn phần truy vấn của mọi link `[data-query-link]`, nên sau Tôi/Tìm nút Thống kê
-mất `nguon=van_don` và mở Bàn điều hành tổng hợp. Phải kiểm bằng trình duyệt thật: link do JS dựng lại.
+mất `nguon=van_don` và mở Bàn điều hành tổng hợp. TL-110: Áp dụng ở Thống kê chỉ gửi nguồn, kỳ, cách nhóm nên bộ lọc
+lưới rơi mất. Phải kiểm bằng trình duyệt thật: link do JS dựng lại, ô ngày do JS đổi định dạng.
 """
+from datetime import date, timedelta
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -63,4 +65,36 @@ def test_link_thong_ke_giu_nguon_sau_toi_va_tim(live_server, trang, dang_nhap, k
     q = parse_qs(urlsplit(trang.url).query)
     assert q.get("nguon") == ["van_don"] and q.get("cua_toi") == ["1"], trang.url
     assert trang.locator("#exec-nguon").input_value() == "van_don"
+    assert not loi_js, loi_js
+
+
+def test_ap_dung_o_thong_ke_giu_bo_loc_va_doi_nguon_thi_bo(live_server, trang, dang_nhap, kn_crm, feedback,
+                                                           nguoi_dung, delivery_leader):  # noqa: F811
+    """AC-22.8 — Thống kê mở từ lưới với Tôi: đổi Từ ngày rồi Áp dụng vẫn lọc Tôi (địa chỉ giữ cua_toi=1, không lộ
+    loc_nguon), trang ghi "Đang lọc theo lưới: Của tôi"; chọn nguồn Tổng hợp rồi Áp dụng thì bỏ bộ lọc lưới (TL-110)"""
+    _, _, rows = feedback
+    nhan_vien = nguoi_dung["staff_vd"]
+    assign_rows(delivery_leader, [rows[0]], delivery=nhan_vien.pk)
+    loi_js = []
+    trang.on("pageerror", lambda e: loi_js.append(str(e)))
+    dang_nhap(trang, nhan_vien)
+    trang.goto(f"{live_server.url}/thong-ke/?nguon=van_don&cua_toi=1")
+    dau_thang_truoc = (date.today().replace(day=1) - timedelta(days=1)).replace(day=1)
+    tu_iso = dau_thang_truoc.isoformat()
+    # Ô ngày là ô chữ DD/MM/YYYY (date-inputs.js, ADR-032); giá trị gửi đi vẫn là ISO
+    trang.fill("#exec-tu", dau_thang_truoc.strftime("%d/%m/%Y"))
+    trang.get_by_role("button", name="Áp dụng", exact=True).click()
+    trang.wait_for_url(lambda u: f"tu={tu_iso}" in u)
+    q = parse_qs(urlsplit(trang.url).query)
+    assert q.get("cua_toi") == ["1"], f"Áp dụng bỏ rơi Tôi: {trang.url}"
+    assert "loc_nguon" not in q and q.get("nguon") == ["van_don"], trang.url
+    bao = trang.locator("#exec-loc-luoi")
+    assert bao.count() == 1 and "Của tôi" in bao.inner_text()
+
+    trang.select_option("#exec-nguon", value="")
+    trang.get_by_role("button", name="Áp dụng", exact=True).click()
+    trang.wait_for_url(lambda u: "nguon=van_don" not in u)
+    q = parse_qs(urlsplit(trang.url).query)
+    assert "cua_toi" not in q and "loc_nguon" not in q, trang.url
+    assert trang.locator("#exec-loc-luoi").count() == 0
     assert not loi_js, loi_js
