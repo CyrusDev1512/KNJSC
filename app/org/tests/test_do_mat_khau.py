@@ -15,9 +15,18 @@ from core.constants import AuditAction
 from core.models import AuditLog
 
 
+def _dong_khoa_tam(user):
+    """Dòng nhật ký khoá tạm của một tài khoản — lọc theo hành động và người, không theo chữ (chữ có thể bị lược)."""
+    return AuditLog.objects.filter(action=AuditAction.PERMISSION, actor=user, target_type="UserProfile")
+
+
+def _chu_khoa(settings):
+    return f"Khoá tạm {settings.LOGIN_LOCK_MINUTES} phút do đăng nhập sai {settings.LOGIN_MAX_FAILED} lần"
+
+
 @pytest.mark.django_db(transaction=True)
 def test_dang_nhap_sai_cung_luc_khong_vuot_gioi_han(nguoi_dung, settings):
-    """AC-1.9 — 20 lần đăng nhập sai gửi cùng lúc vào một tài khoản: máy chủ thử mật khẩu nhiều nhất 5 lần, các lần còn lại báo đang bị khoá tạm; tài khoản bị khoá"""
+    """AC-1.9 — 20 lần đăng nhập sai gửi cùng lúc vào một tài khoản: máy chủ thử mật khẩu nhiều nhất 5 lần, các lần còn lại báo đang bị khoá tạm; tài khoản bị khoá; nhật ký có đúng một dòng Khoá tạm (TL-108)"""
     so_luong = 20
     cho = threading.Barrier(so_luong)
     ket_qua = []
@@ -41,6 +50,7 @@ def test_dang_nhap_sai_cung_luc_khong_vuot_gioi_han(nguoi_dung, settings):
     profile = nguoi_dung["staff_sale_1"].profile
     profile.refresh_from_db()
     assert profile.locked_until is not None
+    assert list(_dong_khoa_tam(nguoi_dung["staff_sale_1"]).values_list("detail", flat=True)) == [_chu_khoa(settings)]
 
 
 @pytest.mark.django_db
@@ -53,7 +63,8 @@ def test_lan_thu_thu_nam_dung_mat_khau_van_vao_duoc(client, nguoi_dung, settings
     profile = nguoi_dung["staff_sale_1"].profile
     profile.refresh_from_db()
     assert profile.failed_login_count == 0 and profile.locked_until is None
-    assert not AuditLog.objects.filter(action=AuditAction.PERMISSION, detail__startswith="Khoá tạm").exists()
+    # Lần thứ 5 đúng mật khẩu: khoá đặt lúc giữ chỗ rồi gỡ ngay khi vào được — không phải lần khoá thật, không ghi
+    assert not _dong_khoa_tam(nguoi_dung["staff_sale_1"]).exists()
 
 
 @pytest.mark.django_db
@@ -63,3 +74,18 @@ def test_bao_khoa_dung_so_phut(client, nguoi_dung, settings):
         client.post("/dang-nhap/", {"username": "staff_sale_1", "password": "sai"})
     r = client.post("/dang-nhap/", {"username": "staff_sale_1", "password": "sai"})
     assert f"thử lại sau {settings.LOGIN_LOCK_MINUTES} phút" in r.content.decode()
+
+
+@pytest.mark.django_db
+def test_khoa_tam_ghi_dung_mot_dong_nhat_ky_doc_duoc(client, nguoi_dung, settings):
+    """AC-1.2 — Sai mật khẩu 5 lần thì khoá tạm, nhật ký có đúng một dòng "Khoá tạm 15 phút do đăng nhập sai 5 lần" đọc
+    được, không bị lược; thử thêm 2 lần trong lúc khoá (một lần gõ đúng) vẫn ghi Đăng nhập thất bại nhưng không ghi thêm
+    dòng khoá (TL-108)"""
+    nv = nguoi_dung["staff_sale_1"]
+    for i in range(settings.LOGIN_MAX_FAILED):
+        client.post("/dang-nhap/", {"username": "staff_sale_1", "password": f"sai-{i}"})
+    client.post("/dang-nhap/", {"username": "staff_sale_1", "password": "sai-nua"})
+    r = client.post("/dang-nhap/", {"username": "staff_sale_1", "password": "matkhau-kiem-thu-1"})
+    assert "bị khoá tạm" in r.content.decode()
+    assert list(_dong_khoa_tam(nv).values_list("detail", flat=True)) == [_chu_khoa(settings)]
+    assert AuditLog.objects.filter(action=AuditAction.LOGIN_FAILED, actor=nv).count() == settings.LOGIN_MAX_FAILED + 2

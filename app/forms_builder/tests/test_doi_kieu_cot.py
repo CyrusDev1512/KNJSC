@@ -111,3 +111,56 @@ def test_doi_kieu_tien_sang_so_nguyen_doc_dung_chuoi_may(bang_tien, nguoi_dung):
     d = record_service.create_record(bang_tien, {"ti_le": Decimal("0.125")}, actor=ql)
     table_service.update_column(so, {"field_type": FieldType.MONEY}, actor=ql)
     assert DataRecord.objects.get(pk=d.pk).data["ti_le"] == "0.125"
+
+
+
+def _form_cot(cot, **doi):
+    form = {"name": cot.name, "code": cot.code, "field_type": cot.field_type, "meaning": cot.meaning or "",
+            "order": cot.order, "compute_decimals": 2, "compute_op": "", "compute_left": "", "compute_right": ""}
+    if cot.required:
+        form["required"] = "on"
+    form.update(doi)
+    return {k: v for k, v in form.items() if v is not None}
+
+
+def test_man_cot_doi_kieu_bi_tu_choi_bao_loi_khong_ra_500(client, bang, nguoi_dung):
+    """AC-8.11 — Đổi kiểu cột qua màn Cột KN ERP mà còn giá trị không chuyển được: trang Cột hiện lại với lời báo
+    "Không đổi được kiểu cột" trong khung "Chưa lưu được" (mã 400), không ra lỗi 500; cột giữ kiểu cũ, tên cũ, dữ liệu
+    không đổi (TL-101)"""
+    client.raise_request_exception = False
+    ql = nguoi_dung["manager_sale"]
+    d = _dong(bang, ql, "abc")
+    goc = bang.columns.get(code="sl")
+    client.force_login(ql)
+    r = client.post(f"/bang/{bang.code}/cot/?cot={goc.pk}", _form_cot(goc, name="Số lượng mới", field_type="integer"))
+    assert r.status_code == 400, r.status_code
+    html = r.content.decode()
+    assert "Chưa lưu được" in html and "Không đổi được kiểu cột" in html
+    goc.refresh_from_db()
+    assert (goc.field_type, goc.name) == (FieldType.TEXT, "Số lượng")
+    d.refresh_from_db()
+    assert d.data["sl"] == "abc"
+
+
+def test_man_cot_crm_doi_cau_truc_cot_chuan_van_don_bao_loi_khong_ra_500(client, settings, nguoi_dung):
+    """AC-8.11 — Màn Cột KN CRM (bảng vận đơn): đổi cấu trúc (Bắt buộc nhập) một cột chuẩn của Vận đơn bị từ chối bằng lời báo "Cột chuẩn
+    của Vận đơn" ngay trên trang (mã 400), không ra lỗi 500; cột giữ nguyên (TL-101)"""
+    from orders.constants import ACTIVE_WAYBILL_TABLE_CODE
+    from orders.services import dispatch_service
+
+    settings.ROOT_URLCONF = "knjsc.urls_bangtinh"
+    settings.BANGTINH_URL = ""
+    settings.GRID_ONLY_TABLES = set()
+    client.raise_request_exception = False
+    admin = nguoi_dung["admin"]
+    dispatch_service.ensure_waybill_table(actor=admin)
+    bang_vd = TableDef.objects.get(code=ACTIVE_WAYBILL_TABLE_CODE)
+    cot = bang_vd.columns.get(code="so_dien_thoai")
+    kieu_cu = cot.field_type
+    client.force_login(admin)
+    r = client.post(f"/bang/{bang_vd.code}/cot/?cot={cot.pk}", _form_cot(cot, required=None if cot.required else "on"))
+    assert r.status_code == 400, r.status_code
+    assert "Cột chuẩn của Vận đơn" in r.content.decode()
+    bat_buoc = cot.required
+    cot.refresh_from_db()
+    assert (cot.field_type, cot.required) == (kieu_cu, bat_buoc)

@@ -154,6 +154,21 @@ def qs_without(params, exclude=()):
     return q.urlencode()
 
 
+#: Khoá trạng thái lưới ngoài `f_<cột>` — đúng những khoá `build_grid` đọc. Thống kê mang chúng qua Áp dụng và bỏ chúng
+#: khi đổi nguồn (TL-110): thêm tham số lọc mới cho lưới thì thêm vào đây (bài kiểm khẳng định mỗi khoá đổi được lưới).
+GRID_STATE_PARAMS = frozenset({"tim", MY_SCOPE_PARAM, PRODUCT_PARAM, "trung", "sap", "chieu"})
+
+
+def is_grid_param(key):
+    """Khoá này là trạng thái lưới (bộ lọc cột, tìm, Tôi, sản phẩm, trùng, sắp xếp)?"""
+    return key.startswith("f_") or key in GRID_STATE_PARAMS
+
+
+def grid_params(params):
+    """Các cặp `(khoá, giá trị)` trạng thái lưới trên URL, giữ thứ tự và giá trị lặp."""
+    return [(k, v) for k in params.keys() if is_grid_param(k) for v in params.getlist(k)]
+
+
 def display_columns(table, columns=None):
     """Cột theo thứ tự hiển thị. Bảng vận đơn: theo tệp thật, cột sản phẩm
     chèn vào chỗ đánh dấu, cột lạ xếp cuối. Bảng khác: theo thứ tự tạo cột.

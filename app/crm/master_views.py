@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
+from core.views import json_body
 from forms_builder.services import grant_service
 from orders.services.assignment_service import can_assign, only_own_rows
 from .services import master_grid_service as service, grid_service, row_mutations, sidebar_service, tree_service
@@ -52,7 +53,7 @@ def save(request, code):
     payload = None
     try:
         table = service.table_for(request.user, code)
-        payload = json.loads(request.body)
+        payload = json_body(request)
         return JsonResponse(service.save(request.user, table, payload, request=request))
     except OutOfScopeError:
         if isinstance(payload, dict) and payload.get('kind') in row_mutations.DELETE_KINDS:
@@ -81,7 +82,7 @@ def clear_details(request, code):
         table = service.table_for(request.user, code)
         if not is_waybill_table(table):
             raise BusinessError('Bảng này không có Chi tiết sản phẩm.')
-        rows = waybill_service.clear_items(request.user, table, json.loads(request.body).get('cells'),
+        rows = waybill_service.clear_items(request.user, table, json_body(request).get('cells'),
                                            request=request)
         columns = grid_service.display_columns(table)
         for column in columns:
@@ -117,7 +118,7 @@ def scope(request, code):
     from forms_builder.models import DataRecord
     try:
         table = service.table_for(request.user, code)
-        ids = json.loads(request.body).get('ids')
+        ids = json_body(request).get('ids')
         if not isinstance(ids, list) or len(ids)>4000 or any(type(pk) is not int or pk<1 for pk in ids):
             raise ValueError
         return JsonResponse({'visible': list(DataRecord.objects.in_scope(request.user, table=table).filter(pk__in=ids).values_list('pk',flat=True))})
@@ -140,7 +141,7 @@ def sync(request,code):
         with transaction.atomic():
             if not already_atomic:
                 with connection.cursor() as cursor:cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
-            return JsonResponse(optimization.sync(request.user,table,json.loads(request.body)))
+            return JsonResponse(optimization.sync(request.user,table,json_body(request)))
     except OutOfScopeError:return JsonResponse({'error':'Bạn không còn quyền xem bảng.'},status=403)
     except BusinessError as exc:return JsonResponse({'error':str(exc)},status=409 if exc.code=='conflict' else 400)
     except (ValueError,TypeError,AttributeError):return JsonResponse({'error':'Dữ liệu đồng bộ không hợp lệ.'},status=400)

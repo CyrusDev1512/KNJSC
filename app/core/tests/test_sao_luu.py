@@ -281,6 +281,95 @@ def test_pg_dump_qua_gio_thi_that_bai_co_nhat_ky(thu_muc_sao_luu, db_gia):
     assert len(mail.outbox) == 1 and not list(thu_muc_sao_luu.glob("*.part"))
 
 
+
+# ══ Phục hồi xong đóng tác vụ sao lưu của bản chụp — TL-105 ═══════
+
+def _ban_chup_dang_chay(phut, *, kind=JobKind.BACKUP, title="Sao lưu hằng đêm"):
+    """Một dòng tác vụ như nằm trong bản chụp: Đang chạy, tạo và nhịp cuối cách đây `phut` phút."""
+    job = BackgroundJob.objects.create(kind=kind, status=JobStatus.RUNNING, title=title, target_type="database")
+    luc = timezone.now() - timedelta(minutes=phut)
+    BackgroundJob.objects.filter(pk=job.pk).update(created_at=luc, updated_at=luc, started_at=luc)
+    return job
+
+
+def test_phuc_hoi_xong_dong_tac_vu_sao_luu_cua_ban_chup_luot_canh_khong_bao_ket(thu_muc_sao_luu, db_gia):
+    """TL-105 · Bản chụp mang tác vụ sao lưu của chính nó ở trạng thái Đang chạy (run_backup đánh Đang chạy trước
+    pg_dump). Phục hồi xong thì tác vụ đó Xong: ghi chú tệp đã phục hồi, giờ xong theo giờ ghi tệp, không mở đường tải
+    tệp, một dòng nhật ký; lượt canh sau đó không đánh Kẹt, không gửi thư"""
+    import os
+
+    from core.constants import JOB_RUNNING_STALE_MINUTES_BACKUP as NGUONG
+    from core.tasks import danh_dau_tac_vu_ket
+
+    _tao_ban(thu_muc_sao_luu, 1)
+    tep = backup_service.resolve_backup()
+    chup = _ban_chup_dang_chay(NGUONG + 15)                       # bắt đầu 60 phút trước
+    ghi_luc = timezone.now() - timedelta(minutes=NGUONG + 14)     # tệp ghi xong 59 phút trước
+    os.utime(tep, (ghi_luc.timestamp(), ghi_luc.timestamp()))
+    backup_service.run_restore(tep, runner=_pg_dump_gia())
+    chup.refresh_from_db()
+    assert chup.status == JobStatus.DONE, "tác vụ ghi ra tệp vừa phục hồi vẫn Đang chạy — lượt canh sẽ báo Kẹt nhầm"
+    assert chup.summary["file_name"] == tep.name and chup.summary["note"] == f"Đóng sau phục hồi từ {tep.name}"
+    assert abs(chup.finished_at - ghi_luc) < timedelta(seconds=1)
+    assert chup.result_path == ""
+    nhat_ky = AuditLog.objects.filter(target_type="job", target_id=str(chup.pk))
+    assert nhat_ky.count() == 1 and tep.name in nhat_ky.get().detail
+    assert "Phục hồi thành công" in _nhat_ky_phuc_hoi().detail
+    assert danh_dau_tac_vu_ket() == 0 and len(mail.outbox) == 0
+
+
+def test_phuc_hoi_chi_dong_tac_vu_sinh_ra_ban_chup_viec_khac_van_bi_canh(thu_muc_sao_luu, db_gia):
+    """TL-105 · Phục hồi chỉ đóng tác vụ sao lưu mới nhất của bản chụp (tác vụ ghi ra tệp). Tác vụ nhập Đang chạy trong
+    bản chụp và tác vụ sao lưu cũ hơn còn Đang chạy (không biết kết quả) vẫn bị lượt canh đánh Kẹt, báo thư như trước;
+    sao lưu bắt đầu trong lúc phục hồi không bị đụng; phục hồi thất bại thì không đóng gì"""
+    from core.constants import JOB_RUNNING_STALE_MINUTES_BACKUP as NGUONG
+    from core.tasks import danh_dau_tac_vu_ket
+
+    _tao_ban(thu_muc_sao_luu, 1)
+    tep = backup_service.resolve_backup()
+    nhap = _ban_chup_dang_chay(NGUONG + 5, kind=JobKind.IMPORT, title="Nhập dở")
+    cu = _ban_chup_dang_chay(NGUONG + 30, title="Sao lưu cũ")
+    chup = _ban_chup_dang_chay(NGUONG + 1)                        # mới nhất = tác vụ ghi ra tệp
+    with pytest.raises(backup_service.BackupError):
+        backup_service.run_restore(tep, runner=_pg_dump_gia(returncode=1, stderr="hong"))
+    assert set(BackgroundJob.objects.filter(status=JobStatus.RUNNING).values_list("pk", flat=True)) == \
+        {nhap.pk, cu.pk, chup.pk}
+
+    moi = []
+
+    def _co_sao_luu_moi(cmd, **kw):     # một lần sao lưu thật bắt đầu trong lúc pg_restore chạy
+        moi.append(BackgroundJob.objects.create(kind=JobKind.BACKUP, status=JobStatus.RUNNING,
+                                                title="Sao lưu vừa bắt đầu"))
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    backup_service.run_restore(tep, runner=_co_sao_luu_moi)
+    assert BackgroundJob.objects.get(pk=chup.pk).status == JobStatus.DONE
+    assert danh_dau_tac_vu_ket() == 2
+    tt = dict(BackgroundJob.objects.values_list("pk", "status"))
+    assert tt[nhap.pk] == tt[cu.pk] == JobStatus.STALE
+    assert tt[moi[0].pk] == JobStatus.RUNNING and tt[chup.pk] == JobStatus.DONE
+    assert len(mail.outbox) == 1
+    than = mail.outbox[0].body
+    assert f"#{nhap.pk} " in than and f"#{cu.pk} " in than and f"#{chup.pk} " not in than
+
+
+def test_phuc_hoi_loi_o_buoc_dong_tac_vu_khong_thanh_traceback(thu_muc_sao_luu, db_gia, monkeypatch):
+    """TL-105 · Bước đóng tác vụ sau phục hồi là phụ: nó hỏng thì phục hồi vẫn thành công (pg_restore đã xong), không
+    traceback cho người vận hành (giữ hợp đồng TL-97); tác vụ để nguyên cho lượt canh báo như trước"""
+    from core.constants import JOB_RUNNING_STALE_MINUTES_BACKUP as NGUONG
+
+    _tao_ban(thu_muc_sao_luu, 1)
+    tep = backup_service.resolve_backup()
+    chup = _ban_chup_dang_chay(NGUONG + 1)
+
+    def _hong(*a, **kw):
+        raise RuntimeError("hỏng giả")
+
+    monkeypatch.setattr(BackgroundJob, "mark_done", _hong)
+    assert backup_service.run_restore(tep, runner=_pg_dump_gia()) == tep
+    assert "Phục hồi thành công" in _nhat_ky_phuc_hoi().detail
+    assert BackgroundJob.objects.get(pk=chup.pk).status == JobStatus.RUNNING
+
 # ══ Tác vụ định kỳ khác ═══════════════════════════════════════════
 
 def test_tac_vu_cho_qua_15_phut_bi_danh_dau_ket(nguoi_dung):
@@ -602,3 +691,33 @@ def test_phuc_hoi_tep_cut_giua_chung_khong_de_lai_csdl_do_dang(thu_muc_sao_luu, 
     sau = _so_lieu_cua(csdl_tam)
     assert sau == truoc
     assert "Phục hồi THẤT BẠI" in _nhat_ky_phuc_hoi().detail
+
+
+@pytest.mark.cham
+@CO_PG
+@pytest.mark.django_db(transaction=True)
+def test_phuc_hoi_de_len_chinh_csdl_dang_chay_dong_tac_vu_sao_luu_cua_ban_chup(thu_muc_sao_luu):
+    """TL-105 · Sao lưu thật rồi phục hồi thật đè lên chính CSDL đang dùng, đúng hình VPS (lệnh và ORM cùng một CSDL,
+    kết nối Django đã mở từ trước `--clean`): tác vụ sao lưu trong bản chụp về Đang chạy rồi được đóng Xong kèm ghi
+    chú, không còn tác vụ sao lưu nào chờ hay chạy cho lượt canh đánh Kẹt, một dòng nhật ký đóng tác vụ"""
+    from django.db import connection
+
+    assert connection.settings_dict["NAME"].startswith("test_")
+    assert backup_service._db()["NAME"] == connection.settings_dict["NAME"]   # đè lên CSDL kiểm thử, không bao giờ CSDL thật
+    job = backup_service.run_backup()
+    assert job.status == JobStatus.DONE, job.error
+    tep = thu_muc_sao_luu / job.summary["file_name"]
+    with connection.cursor() as c:   # còn kết nối khác giữ giao dịch thì pg_restore chờ khoá: báo rõ thay vì treo
+        c.execute("SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() "
+                  "AND pid <> pg_backend_pid() AND state LIKE 'idle in transaction%%'")
+        assert c.fetchone()[0] == 0, "còn kết nối giữ giao dịch trên CSDL kiểm thử — pg_restore sẽ chờ khoá"
+
+    def co_han(cmd, **kw):
+        return subprocess.run(cmd, **{**kw, "timeout": 300})
+
+    backup_service.run_restore(tep, runner=co_han)
+    job.refresh_from_db()            # đọc bằng kết nối đã mở trước --clean
+    assert job.status == JobStatus.DONE and job.summary.get("note") == f"Đóng sau phục hồi từ {tep.name}"
+    assert not BackgroundJob.objects.active().filter(kind=JobKind.BACKUP).exists()
+    assert AuditLog.objects.filter(target_type="job", target_id=str(job.pk)).count() == 1
+    assert "Phục hồi thành công" in _nhat_ky_phuc_hoi().detail

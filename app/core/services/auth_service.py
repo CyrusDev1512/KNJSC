@@ -51,11 +51,13 @@ def reserve_attempt(user):
 
     Khoá dòng hồ sơ nên các lần thử cùng lúc xếp hàng: lần thứ `LOGIN_MAX_FAILED` đặt khoá, các lần sau thấy khoá và
     không được kiểm mật khẩu. Lần giữ chỗ thành công rồi đăng nhập đúng thì `note_successful_login` xoá cả bộ đếm lẫn
-    khoá — sai 4 lần rồi lần thứ 5 đúng vẫn vào được như trước (AC-1.2, AC-1.9).
+    khoá — sai 4 lần rồi lần thứ 5 đúng vẫn vào được như trước (AC-1.2, AC-1.9). Lần giữ chỗ nào chính nó đặt khoá thì
+    đánh dấu `just_locked` trên hồ sơ người gọi giữ: chỉ lần thử đó, nếu sai mật khẩu, mới ghi "Khoá tạm" (TL-108).
     """
     profile = _profile_of(user)
     if profile is None:
         return True
+    profile.just_locked = False
     gioi_han = getattr(settings, "LOGIN_MAX_FAILED", 5)
     phut_khoa = getattr(settings, "LOGIN_LOCK_MINUTES", 15)
     with transaction.atomic():
@@ -72,11 +74,19 @@ def reserve_attempt(user):
             cot.append("locked_until")
         hs.save(update_fields=cot)
     profile.locked_until, profile.failed_login_count = hs.locked_until, hs.failed_login_count
+    profile.just_locked = "locked_until" in cot
     return True
 
 
-def note_failed_login(username, request=None):
-    """Ghi nhật ký một lần đăng nhập sai; lần sai này làm tài khoản bị khoá thì ghi thêm "Khoá tạm".
+def locked_by_attempt(user):
+    """Lần `reserve_attempt(user)` vừa rồi có chính nó đặt khoá tạm không. Đọc dấu trên hồ sơ người gọi giữ, không đọc
+    lại CSDL: đọc lại thì lần bị chặn trong lúc khoá cũng thấy "bộ đếm 0, đang khoá" và ghi lặp dòng khoá (TL-108)."""
+    return bool(getattr(_profile_of(user), "just_locked", False))
+
+
+def note_failed_login(username, request=None, locked_user=None):
+    """Ghi nhật ký một lần đăng nhập sai; lần thử này chính nó đặt khoá (`locked_user`, do LoginForm chuyển sang) thì
+    ghi thêm đúng một dòng "Khoá tạm" — lần bị chặn vì đang khoá chỉ ghi "Đăng nhập thất bại" (TL-108).
 
     Bộ đếm đã tăng ở `reserve_attempt` trước khi kiểm mật khẩu. Không được để lộ ra giao diện tài khoản có tồn tại hay
     không.
@@ -89,16 +99,17 @@ def note_failed_login(username, request=None):
         detail="Đăng nhập thất bại",
         request=request,
     )
-    profile = _profile_of(user)
+    profile = _profile_of(locked_user)
     if profile is None:
         return
-    profile.refresh_from_db(fields=["failed_login_count", "locked_until"])
-    if profile.failed_login_count == 0 and is_locked(user):
+    profile.refresh_from_db(fields=["locked_until"])
+    if is_locked(locked_user):   # lần đăng nhập đúng chen vào giữa đã mở khoá thì không ghi
         gioi_han = getattr(settings, "LOGIN_MAX_FAILED", 5)
         phut_khoa = getattr(settings, "LOGIN_LOCK_MINUTES", 15)
         record(
-            AuditAction.PERMISSION, actor=user, target=profile,
-            detail=f"Khoá tạm {phut_khoa} phút do sai mật khẩu {gioi_han} lần",
+            AuditAction.PERMISSION, actor=locked_user, target=profile,
+            # Không viết chữ "mật khẩu": audit._scrub lược cả dòng (SENSITIVE_KEYS)
+            detail=f"Khoá tạm {phut_khoa} phút do đăng nhập sai {gioi_han} lần",
             request=request,
         )
 

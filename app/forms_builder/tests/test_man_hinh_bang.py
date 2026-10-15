@@ -476,3 +476,37 @@ def test_quan_ly_duoc_cap_xem_khong_tu_cap_hay_thu_quyen_bang(client, bang_sale,
     assert quyen_chu.deleted_at is not None
     client.force_login(nguoi_dung["admin"])
     assert client.post("/bang/don_sale/cap-quyen/", {"user": nguoi_dung["staff_mkt"].pk, "action": "edit"}).status_code == 302
+
+
+def test_quyen_da_thu_khong_con_hien_va_khong_thu_lan_hai(client, bang_sale, nguoi_dung, departments):
+    """AC-3.7 — Quyền đã thu (xoá mềm) không còn trong danh sách quyền của bảng và biểu mẫu; gọi thẳng thu quyền lần
+    hai thì 404, không ghi đè mốc thu lần đầu, không thêm nhật ký; quyền còn hiệu lực vẫn hiện (TL-103)"""
+    from core.constants import AuditAction
+    from core.models import AuditLog
+    from forms_builder.models import GrantAction
+    from forms_builder.services import form_service, grant_service
+
+    chu = nguoi_dung["manager_sale"]
+    con = grant_service.grant(table=bang_sale, user=nguoi_dung["staff_mkt"], action=GrantAction.VIEW, actor=chu)
+    thu = grant_service.grant(table=bang_sale, user=nguoi_dung["manager_mkt"], action=GrantAction.VIEW, actor=chu)
+    grant_service.revoke(thu, actor=chu)
+    assert list(grant_service.grants_of_table(bang_sale).values_list("pk", flat=True)) == [con.pk]
+
+    bm = form_service.create_form(name="BM thử TL-103", code="bm_tl103", department=departments["sale"],
+                                  table=bang_sale, actor=chu)
+    thu_bm = grant_service.grant(form=bm, user=nguoi_dung["staff_mkt"], action=GrantAction.FILL, actor=chu)
+    grant_service.revoke(thu_bm, actor=chu)
+    assert not grant_service.grants_of_form(bm).exists()
+
+    thu.refresh_from_db()
+    thu_bm.refresh_from_db()
+    moc, moc_bm = thu.deleted_at, thu_bm.deleted_at
+    so_nhat_ky = AuditLog.objects.filter(action=AuditAction.PERMISSION).count()
+    client.force_login(chu)
+    assert client.post(f"/bang/{bang_sale.code}/thu-quyen/{thu.pk}/").status_code == 404
+    assert client.post(f"/bieu-mau/{bm.code}/thu-quyen/{thu_bm.pk}/").status_code == 404
+    thu.refresh_from_db()
+    thu_bm.refresh_from_db()
+    assert (thu.deleted_at, thu_bm.deleted_at) == (moc, moc_bm)
+    assert AuditLog.objects.filter(action=AuditAction.PERMISSION).count() == so_nhat_ky
+    assert client.post(f"/bang/{bang_sale.code}/thu-quyen/{con.pk}/").status_code == 302   # quyền còn hiệu lực thu được

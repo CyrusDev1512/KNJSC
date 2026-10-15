@@ -88,6 +88,11 @@
 .exec-warning p,
 .exec-empty p,
 .exec-history-note { margin-block: 0; }
+/* Dòng "Đang lọc theo lưới" (TL-110): mỗi nhãn là link bỏ riêng bộ lọc đó; chip cột ẩn giữ tông cảnh báo như ở lưới */
+.exec-loc-luoi { margin-bottom: 18px; }
+.exec-loc-luoi a { display: inline-block; margin-inline-start: 8px; }
+.exec-loc-luoi a.mg-chip-an { font-weight: 600; color: #8a6100; }
+:root:not([data-theme="light"]) .exec-loc-luoi a.mg-chip-an { color: var(--warn); }
 
 .exec-briefing {
   margin-bottom: 20px;

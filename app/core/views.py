@@ -38,7 +38,7 @@ class LoginView(auth_views.LoginView):
         return response
 
     def form_invalid(self, form):
-        auth_service.note_failed_login(form.data.get("username", ""), self.request)
+        auth_service.note_failed_login(form.data.get("username", ""), self.request, locked_user=form.locked_user)
         return super().form_invalid(form)
 
     def get_context_data(self, **kwargs):
@@ -205,6 +205,26 @@ def tac_vu_tai(request, pk):
     return FileResponse(open(duong_dan, "rb"), as_attachment=True, filename=ten)
 
 
+def _wants_json(request):
+    """Người gọi đợi JSON: fetch và htmx của hai khung KN CRM mang mã người mở trang (het-phien.js gắn X-KNJSC-User), hoặc
+    thân gửi lên là JSON. Một luật cho lỗi mã bảo mật (ADR-053) và lỗi chưa gán bộ phận (TL-106); header chỉ để chọn
+    dạng trả lời, không phải kiểm quyền."""
+    from .middleware import HEADER_NGUOI_MO_TRANG
+
+    return request.headers.get(HEADER_NGUOI_MO_TRANG) is not None or request.content_type == "application/json"
+
+
+def json_body(request):
+    """Thân JSON của một yêu cầu fetch. Thân không phải JSON (form thường, multipart — gọi thẳng đường dẫn) thì ném
+    ValueError để view trả 400 như mọi thân hỏng: đọc `request.body` sau khi UnicodeNFCMiddleware đã đọc luồng
+    multipart thì Django ném RawPostDataException thành 500 (TL-104)."""
+    import json
+
+    if request.content_type != "application/json":
+        raise ValueError("Thân yêu cầu không phải JSON")
+    return json.loads(request.body)
+
+
 def csrf_failure(request, reason=""):
     """CSRF_FAILURE_VIEW. Yêu cầu từ trang KN CRM (fetch và htmx đều mang mã người mở trang) hay thân JSON nhận 403 JSON
     `code: "csrf"` để trang giữ nháp và báo đúng thay vì coi là mất quyền; trang đó lấy mã mới lúc gửi nên bấm Thử lại là
@@ -212,8 +232,29 @@ def csrf_failure(request, reason=""):
     (ADR-053)."""
     from django.views.csrf import csrf_failure as trang_mac_dinh
 
-    from .middleware import HEADER_NGUOI_MO_TRANG, PHIEN_CSRF
+    from .middleware import PHIEN_CSRF
 
-    if request.headers.get(HEADER_NGUOI_MO_TRANG) is not None or request.content_type == "application/json":
+    if _wants_json(request):
         return JsonResponse({"error": PHIEN_CSRF, "code": "csrf"}, status=403)
     return trang_mac_dinh(request, reason=reason)
+
+
+def permission_denied(request, exception=None):
+    """handler403 của cả hai URLconf (knjsc/urls.py, knjsc/urls_bangtinh.py) — TL-106.
+
+    Chỗ kiểm qua core.permissions.assert_* hay tự gọi record_denied đã ghi Từ chối trước khi ném; ghi cho mọi
+    PermissionDenied ở đây thì những chỗ đó ghi đôi, mà bài quét POST đòi đúng một dòng. Vẫn còn vài đường 403 chưa ghi
+    gì (đường đọc JSON của lưới, phân công GET, chi tiết vận đơn — biên bản 15.10 mục 7), để việc riêng. Riêng
+    NoProfileError (Manager mất bộ phận, tài khoản chưa có hồ sơ — P0-9) nổ từ core.scope ở bất kỳ truy vấn có phạm vi
+    nào và không chỗ nào ghi trước khi ném, nên ghi đúng một dòng ở đây, sau khi giao dịch của view đã huỷ. Người gọi đợi JSON (lưới KN CRM) nhận {error, code} để báo đúng lời;
+    mở trang thường nhận trang 403 như cũ."""
+    from django.views import defaults
+
+    from .audit import record_denied
+    from .exceptions import NoProfileError
+
+    if isinstance(exception, NoProfileError):
+        record_denied(getattr(request, "user", None), request.path, request)
+        if _wants_json(request):
+            return JsonResponse({"error": exception.message, "code": exception.code}, status=403)
+    return defaults.permission_denied(request, exception)

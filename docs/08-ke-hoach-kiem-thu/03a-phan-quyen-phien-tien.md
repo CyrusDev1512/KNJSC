@@ -77,7 +77,7 @@ Cột "Bài hiện có" ghi bài từ chối đang có. Ô ghi **không** nghĩa
 | Xác thực | `doi_mat_khau` — `/doi-mat-khau/` — GET/POST | **không** | Chưa đăng nhập → 302 `/dang-nhap/?next=` | P1 |
 | Xác thực | `dang_nhap` — `/dang-nhap/` | sai mật khẩu 200, khoá tạm | Đăng nhập rồi GET → 302 (`redirect_authenticated_user`); `next` ngoài host ở ERP | P2 |
 | Xác thực | `dang_xuat` — `/dang-xuat/` — POST | POST 302, thiếu CSRF 403 | GET → 405 và phiên còn nguyên | P2 |
-| Django admin | `/quan-tri/` (cả cây) | **không**: `test_account_management.py:312` gọi `/admin/`, đường không tồn tại ở ERP | Staff, Leader, Manager, CEO, KT → 302 về `/quan-tri/login/`; Admin 200 | P0 |
+| Django admin | `/quan-tri/` (cả cây) | `core/tests/test_quan_tri_dang_nhap.py::test_trang_quan_tri_django_chi_admin` (mọi cấp bậc, #121) | Đã có: Staff, Leader, Manager, CEO, KT → 302 về `/quan-tri/login/` rồi 403, có một dòng DENIED; Admin 200 | P0 |
 | Tổng quan | `tong_quan` — `/` | chỉ chưa đăng nhập | Số liệu không chứa dòng ngoài phạm vi, kiểm qua HTTP cho từng vai | P2 |
 | Bảng dữ liệu | `bang_xoa_cot` — `/bang/<code>/cot/<pk>/bo/` — POST | chỉ chưa đăng nhập | Staff, Leader 403; Manager bộ phận khác 404/403; CEO 403; cột không đổi | P0 |
 | Bảng dữ liệu | `bang_cap_quyen` — `/bang/<code>/cap-quyen/` — POST | chỉ chưa đăng nhập (bài Leader nằm ở URLconf CRM) | Staff, Leader 403; CEO 403; Manager bộ phận khác: xem TL-01 (§3.1.9) | P0 |
@@ -156,7 +156,7 @@ Có kiểm từ chối nhưng thiếu vai CEO, ghi riêng:
 | L4 | `_chi_bang_van_don` chạy `get_object_or_404` trước `login_required` | `app/knjsc/urls_bangtinh.py` | Chưa đăng nhập → luôn 302 |
 | L5 | `don_bo` (CRM) từ chối bằng 302 kèm thông báo và DENIED, không phải 403 | `orders/views.py don_bo`, ADR-049 | Giữ 302, nhưng bài phải khẳng định đơn còn nguyên và có DENIED; hoặc đổi sang 403 |
 | L6 | Trang tác vụ ở CRM hiện liên kết "Mọi tác vụ" dẫn tới trang 403 | `core/context_processors.py khung_chung` (`can_list_jobs = is_crm_request(...) or ...`) | Ẩn liên kết (AC-44.4) |
-| L7 | `bang_cap_quyen` / `bang_thu_quyen` không kiểm bộ phận sở hữu | TL-01 (`docs/test-log.md`, trạng thái "Mới"). Đã đọc lại `app/forms_builder/views.py:488-518`: chỉ có `assert_business_write`, `assert_rank(MANAGER)`, `_lay_bang`; `grant_service.grant/revoke` không kiểm thêm | 403 + DENIED (§3.1.9) |
+| L7 | `bang_cap_quyen` / `bang_thu_quyen` không kiểm bộ phận sở hữu | TL-01 (`docs/test-log.md`). Trước #122, `app/forms_builder/views.py:488-518` chỉ có `assert_business_write`, `assert_rank(MANAGER)`, `_lay_bang`. Đã sửa ở #122, có bài ở cả hai dịch vụ | 403 + DENIED (§3.1.9) |
 | L8 | `/van-don/thong-ke/` (liên kết cũ) gate bằng `table_for` bảng vận đơn, còn trang đích `/thong-ke/` mở cho mọi vai. Sale nhận 403 ở liên kết cũ | `app/crm/waybill_views.py statistics` (dòng 124–131); `docs/kiem-chung-database-phan-quyen-20261006.md` dòng 22 ("Ghi nhận, chưa sửa") | Chốt một trong hai: (a) Sale → 302 như các vai khác, rồi trang đích tự lọc nguồn bằng `resolve_source`; (b) giữ 403 và ghi rõ là có chủ ý. Chưa xác minh `/thong-ke/?nguon=van_don` trả gì với Sale |
 
 #### 3.1.8 Thiết kế bài kiểm tham số hoá cho ma trận
@@ -208,13 +208,13 @@ Có kiểm từ chối nhưng thiếu vai CEO, ghi riêng:
 | E3 | ERP GET `/nhan-su/moi/` | 302 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 200 | Bài |
 | E4 | ERP GET `/bang/` | 302 | 403 | 403 | 200 | 403 | 403 | 200 | 403 | 403 | 200 | 403 | 403 | 200 | 200 | Bài + Guard |
 | E5 | ERP GET `/bang/<vận đơn>/nhap/` | 302 | 403 | 403 | 404¹ | 403 | 403 | 404¹ | 403 | 403 | 200 | 403 | 403 | 403¹ | 200 | Bài (chấp nhận 403/404) + Chốt L1 |
-| E6 | ERP POST `/bang/don_sale/cap-quyen/` | 302 | 403 | 403 | 302 | 403 | 403 | **403** (hiện 302, TL-01) | 403 | 403 | 404 | 403 | 403 | 403 | 302 | Guard + TL-01 |
+| E6 | ERP POST `/bang/don_sale/cap-quyen/` | 302 | 403 | 403 | 302 | 403 | 403 | **403** (TL-01, sửa ở #122) | 403 | 403 | 404 | 403 | 403 | 403 | 302 | Guard + TL-01 |
 | E7 | ERP GET `/len-don/` | 302 | 302→CRM | 302→CRM | 302→CRM | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403¹ | 302→CRM | Bài (5 vai) + Guard |
 | E8 | ERP GET `/don-hang/` | 302 | 302 | 302 | 302 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403¹ | 302 | Guard (chưa có bài 403) |
 | E9 | ERP GET `/bao-cao/` | 302 | 200 | 200 | 200 | 200 | 200 | 200 | 200 | 200 | 200 | 200¹ | 200¹ | 403 | 200 | Bài + Guard |
 | E10 | ERP GET `/bao-cao/da-bo/` | 302 | 403 | 403 | 200 | 403 | 403 | 200 | 403 | 403 | 200 | 403 | 403 | ¹ | 200 | Bài + Guard |
 | E11 | ERP GET `/doi-mat-khau/` | 302 | 200 | 200 | 200 | 200 | 200 | 200 | 200 | 200 | 200 | 200 | 200 | 200 | 200 | Bài (trừ CĐN) |
-| E12 | ERP GET `/quan-tri/` | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 200 | Guard (chưa có bài) |
+| E12 | ERP GET `/quan-tri/` | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 302² | 200 | Bài (`core/tests/test_quan_tri_dang_nhap.py`, #121) |
 | C1 | CRM GET `/bang-tinh/<vận đơn>/` | 302 | 302→Lên đơn | 302→Lên đơn | 302→Lên đơn | 403 | 403 | 403 | 200 | 200 | 200 | ¹ | 200¹ | 200 | 200 | Bài (5 vai) + Guard |
 | C2 | CRM GET `/bang-tinh/shared_marketing/` (bảng thường) | 302 | 404 | 404 | 404 | 404 | 404 | 404 | 404 | 404 | 404 | 404 | 404 | 404 | 404 | Bài (ADR-040) |
 | C3 | CRM GET `/bang-tinh/shared_marketing/du-lieu/` | 302 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | 403 | Bài |
@@ -232,14 +232,14 @@ Có kiểm từ chối nhưng thiếu vai CEO, ghi riêng:
 | C15 | CRM GET `/van-don/thong-ke/?tu=…&den=…` | 302 | 403⁴ | 403⁴ | 403⁴ | 403 | 403 | 403 | 302⁵ | 302⁵ | 302⁵ | ¹ | ¹ | ¹ | 302⁵ | Biên bản 06.10 (Sale) + Guard (`table_for`) + Chốt L8 |
 
 ¹ Chưa xác minh: phụ thuộc `in_scope` của bảng hoặc đơn với vai đó, hoặc `assert_departments` với CEO không có bộ phận. Phải chạy thử để chốt một mã rồi mới đưa vào `KY_VONG`.
-² Về `/quan-tri/login/?next=/quan-tri/` (Django admin, chỉ `is_staff`; theo ADR-044, CEO không có `is_staff`).
+² Về `/quan-tri/login/?next=/quan-tri/` (Django admin, chỉ `is_staff`; theo ADR-044, CEO không có `is_staff`). Từ #121 trang đó không còn form: chưa đăng nhập thì chuyển tiếp sang `/dang-nhap/?next=/quan-tri/`, đã đăng nhập mà không phải Admin thì 403 kèm một dòng DENIED.
 ³ Người lên đơn trong phạm vi: đơn vẫn còn, có thêm 1 dòng DENIED (`app/orders/tests/test_bo_don_chi_admin.py`).
 ⁴ Hành vi hiện tại theo `docs/kiem-chung-database-phan-quyen-20261006.md` dòng 22, chưa có bài pytest. Mã cuối cùng phụ thuộc L8.
 ⁵ `Location` phải là `/thong-ke/?tu=…&den=…&nguon=van_don` (giữ query cũ, nối `nguon=van_don`).
 
 #### 3.1.9 Ca riêng TL-01: Manager bộ phận khác tự cấp quyền Sửa
 
-Bối cảnh: `docs/test-log.md` TL-01 (S1, "Mới"). `bang_cap_quyen` / `bang_thu_quyen` chỉ có `assert_rank(MANAGER)` + `_lay_bang` (in_scope gồm cả bảng được cấp Xem), không kiểm `grant_service.can_manage_columns` như `bang_cot`. Ở CRM, bảng phải thoả `waybill_condition` thì mới qua được `_chi_bang_van_don`.
+Bối cảnh: `docs/test-log.md` TL-01 (S1, đã sửa ở #122; đoạn này tả mã trước #122). `bang_cap_quyen` / `bang_thu_quyen` chỉ có `assert_rank(MANAGER)` + `_lay_bang` (in_scope gồm cả bảng được cấp Xem), không kiểm `grant_service.can_manage_columns` như `bang_cot`. Ở CRM, bảng phải thoả `waybill_condition` thì mới qua được `_chi_bang_van_don`.
 
 | Bước | ERP (`knjsc.urls`, bảng thường `don_sale` của Sale) | CRM (`knjsc.urls_bangtinh`, bảng Sale có `workflow="waybill"`) |
 |---|---|---|
@@ -252,7 +252,7 @@ Bối cảnh: `docs/test-log.md` TL-01 (S1, "Mới"). `bang_cap_quyen` / `bang_t
 | Đối chứng (P1) | `manager_mkt` khi chưa được cấp Xem → 404 | → 404 |
 | Đối chứng (P1) | CEO → 403 (`assert_business_write`); Leader → 403 | như ERP |
 
-Hiện dự kiến ca 1–4 đỏ. Làm theo hướng TDD: viết bài đỏ trước, rồi sửa view (thêm `_kiem_sua_cau_truc` / `can_manage_columns`). Đóng TL-01 khi bài xanh ở cả hai dịch vụ.
+Trước #122 ca 1–4 đỏ. #122 đã sửa view và thêm bài ở cả hai dịch vụ (`forms_builder/tests/test_man_hinh_bang.py`, `core/tests/test_ma_tran_quyen_hai_dich_vu.py`). Làm theo hướng TDD: viết bài đỏ trước, rồi sửa view (thêm `_kiem_sua_cau_truc` / `can_manage_columns`). Đóng TL-01 khi bài xanh ở cả hai dịch vụ.
 
 #### 3.1.10 Danh sách ca kiểm 3.1
 
@@ -299,8 +299,8 @@ Hiện dự kiến ca 1–4 đỏ. Làm theo hướng TDD: viết bài đỏ tr�
 | Cookie cũ `sessionid`, `next` ngoài host | `test_shared_login.py::test_old_cookie_and_unsafe_redirect_are_not_used` | — | ✔ | `next` ngoài host ở ERP chưa xác minh. Bài tự gán `SESSION_COOKIE_NAME='knjsc_session_v2'` trong `settings`, nên chỉ chứng minh logic khi tên đã đổi, không chứng minh cấu hình triển khai có đổi tên |
 | Tên cookie ở production | `test_shared_login.py` (dòng 14–18) chỉ kiểm settings đọc đúng biến khi bài tự đặt biến | ✘ | ✘ | Chưa có gì bắt được việc `.env` VPS thiếu `SESSION_COOKIE_NAME`/`CSRF_COOKIE_NAME`. Khi thiếu, `base.py` rơi về `sessionid`/`csrftoken`, cookie cũ được dùng lại, lệch ADR-030 mà không có cảnh báo. `config/.env.example` còn mặc định `sessionid`. core.E001 và `check --deploy` không kiểm tên |
 | CSRF đăng nhập, đăng xuất | `test_shared_login.py::test_csrf_and_first_password_change_still_required` (đăng nhập thiếu CSRF 403 ở ERP; đăng xuất khác origin 403 ở CRM) | ✔ | ✔ | — |
-| Đăng xuất | như dòng đầu (POST 302, bên kia mất phiên) | ✔ | ✔ | Chưa khẳng định nhật ký LOGOUT; GET `/dang-xuat/` → 405 và phiên còn |
-| Khoá tạm sau 5 lần sai | `org/tests/test_account.py`, `org/tests/test_do_mat_khau.py` (đồng thời) | ✔ | ✘ | CRM chưa có bài sai mật khẩu hay khoá tạm. `/quan-tri/login/` đi vòng qua khoá tạm, nhật ký và `auth_epoch` (chưa chạy xác minh) |
+| Đăng xuất | như dòng đầu (POST 302, bên kia mất phiên) | ✔ | ✔ | Từ #121 có bài (`core/tests/test_quan_tri_dang_nhap.py`): đúng một dòng LOGOUT; GET `/dang-xuat/` → 405 và phiên còn |
+| Khoá tạm sau 5 lần sai | `org/tests/test_account.py`, `org/tests/test_do_mat_khau.py` (đồng thời) | ✔ | ✘ | CRM chưa có bài sai mật khẩu hay khoá tạm. `/quan-tri/login/` nay chuyển về `/dang-nhap/` nên chịu chung khoá tạm, nhật ký và `auth_epoch` (#121, `core/tests/test_quan_tri_dang_nhap.py`) |
 | Hết phiên 60 phút, yêu cầu thường | `core/tests/test_ra_soat.py::test_het_phien_sau_60_phut_khong_thao_tac`; `test_shared_login.py::test_shared_session_invalidated[timeout]` (đăng nhập ERP, hết hạn thấy ở CRM) | ✔ | ✔ | — |
 | Hết phiên, yêu cầu HTMX | `test_ra_soat.py::test_het_phien_khi_bam_htmx_thi_bao_trinh_duyet_chuyen_trang` (`HX-Redirect`) | ✔ | ✘ | Chưa có bài HTMX dưới URLconf CRM (`waybill_detail`, `waybill_create`, `bang_tinh_loc_cot`) |
 | Hết phiên giữa lúc ghi lưới (fetch JSON) | `scripts/kiem-thu-optimization-unit.cjs` dòng 6 (hàm `parse` gặp `redirected` + `/dang-nhap/` → status 403); chạy tay, **không có trong CI** | — | ◐ | Chưa có pytest hay e2e cho ca: ghi `luu-json` khi hết phiên → không báo "Đã lưu", DB không đổi, bản nháp còn |
@@ -344,7 +344,7 @@ Ký hiệu: ✔ có bài; ◐ có một phần; ✘ không có; — không áp d
 | PH-17 | Không lưu đệm trang khi đã đăng nhập | `force_login`, GET `/` và `/nhan-su/` (ERP), `/thu-muc/` (CRM) → `Cache-Control` có no-cache, no-store, must-revalidate, max-age=0; `/static/` không bị gắn header này | Người dùng | HTTP | Tự động | P2 | NFR-4 |
 | PH-18 | Bật bài trình duyệt đăng nhập chung trong CI | Đặt `SHARED_LOGIN_BROWSER=1`, `ACCOUNT_BROWSER=1` và thư mục `/evidence` trong job e2e của `.github/workflows/ci.yml`, hoặc ghi lý do không bật | QA | E2E | Tự động | P2 | ADR-030 |
 | PH-19 | Kiểm tay trên Staging hai tên miền | Đăng nhập ở ERP, bấm KN CRM thì không phải đăng nhập lại. Đăng xuất ở CRM, F5 ở ERP thì về trang đăng nhập. DevTools: cookie phiên tên đúng `knjsc_session_v2`, cookie CSRF tên `knjsc_csrf_v2` (ADR-030; nếu thấy `sessionid`/`csrftoken` thì `.env` thiếu biến → ghi lỗi, xem PH-21), Domain là tên miền cha, Secure, HttpOnly, Lax. Back rồi Submit form cũ sau khi đăng nhập lại → 403 CSRF, không ghi gì. Để yên 61 phút rồi bấm đúp một ô lưới và bấm Lưu khung chi tiết → về trang đăng nhập, không nhét trang đăng nhập vào ô | Người dùng | E2E thủ công | Thủ công | P1 | ADR-030, AC-1.10, AC-1.11, TL-02, TL-18 |
-| PH-20 | Kiểm tay `/quan-tri/` trên Staging | CEO và `sale.manager` mở `/quan-tri/` → trang đăng nhập quản trị, không thấy model. Cửa sổ ẩn danh: 6 lần sai với `quantri` tại `/quan-tri/login/`, xem `/nhat-ky/?hanh_dong=login_failed`. Ghi kết quả vào biên bản `docs/kiem-chung-dien-tap-phat-hanh-staging-20261008.md` mục 11 (hiện chỉ có Staff) | Người dùng | E2E thủ công | Thủ công | P1 | Điều cấm 12, FR-1.2 |
+| PH-20 | Kiểm tay `/quan-tri/` trên Staging | CEO và `sale.manager` mở `/quan-tri/` → 302 sang `/quan-tri/login/` rồi 403, có một dòng DENIED (#121), không thấy model. Cửa sổ ẩn danh: `/quan-tri/login/` chuyển về `/dang-nhap/`; 6 lần sai với `quantri` ở đó thì bị khoá tạm 15 phút, xem `/nhat-ky/?hanh_dong=login_failed`. Ghi kết quả vào biên bản `docs/kiem-chung-dien-tap-phat-hanh-staging-20261008.md` mục 11 (hiện chỉ có Staff) | Người dùng | E2E thủ công | Thủ công | P1 | Điều cấm 12, FR-1.2 |
 | PH-21 | Tên cookie phiên ở production không rơi về mặc định | (a) Tự động: với `knjsc.settings.prod` (và `bangtinh` khi `BANGTINH_GOC=prod`), khi ERP và CRM ở hai tên miền mà `SESSION_COOKIE_NAME == 'sessionid'` hoặc `CSRF_COOKIE_NAME == 'csrftoken'` thì `check --deploy` phải báo lỗi. Hiện core.E001 chỉ kiểm domain, nên đây là kiểm tra cần thêm, viết bài đỏ trước theo TDD. Mở rộng `core/tests/test_kiem_cau_hinh.py`. (b) Bán tự động trước phát hành: đọc `.env` VPS (không in giá trị bí mật), xác nhận có `SESSION_COOKIE_NAME=knjsc_session_v2`, `CSRF_COOKIE_NAME=knjsc_csrf_v2`. Bổ sung vào bước 0 của `deploy/production/README.md` (hiện chỉ ghi "đủ hai cookie domain"). Đối chiếu với các ca cấu hình nền tảng PLAT-03, PLAT-34 ở phần khác (chưa xác minh nội dung hai mã này trong phần này) | QA | Cấu hình triển khai | Tự động + Bán tự động | P1 | ADR-030, AC-1.11, `app/knjsc/settings/base.py:187-189`, `app/knjsc/settings/prod.py`, `deploy/production/compose.yml`, `config/.env.example` |
 
 ---

@@ -150,6 +150,26 @@ def test_assignment_endpoint_versions_and_audit(feedback, nguoi_dung, delivery_l
     assert not audits.filter(detail__contains='09000000').exists()
 
 
+def test_duong_json_nhan_form_thuong_tra_400_khong_ra_500(feedback, nguoi_dung, delivery_leader, client):
+    """TL-104 · Các đường chỉ nhận JSON (phân công vận đơn; lưu ô, bỏ chi tiết, đọc quyền dòng của lưới) mà nhận thân
+    dạng form (multipart, như gọi thẳng đường dẫn) thì trả 400 kèm lời tiếng Việt, không ra 500
+    RawPostDataException; không ghi gì. Gửi JSON đúng như giao diện vẫn chạy (NFR-6)"""
+    from core.models import AuditLog
+    from orders.models import WaybillAssignment
+
+    client.raise_request_exception = False
+    client.force_login(delivery_leader)
+    goc = f'/bang-tinh/{feedback[0].code}/'
+    truoc = (AuditLog.objects.count(), WaybillAssignment.objects.count())
+    for duong in ('/van-don/phan-cong/', goc + 'luu-json/', goc + 'bo-chi-tiet/', goc + 'quyen-dong/'):
+        r = client.post(duong, {'versions': '1', 'ids': '1'})        # client gửi multipart mặc định
+        assert r.status_code == 400, (duong, r.status_code)
+        assert r.json().get('error'), duong
+    assert (AuditLog.objects.count(), WaybillAssignment.objects.count()) == truoc
+    r = client.post(goc + 'quyen-dong/', {'ids': [feedback[2][0].pk]}, content_type='application/json')
+    assert r.status_code == 200 and r.json()['visible'] == [feedback[2][0].pk]
+
+
 @pytest.mark.parametrize('value', [True, 1.5, '1.5', '9' * 100])
 def test_assignment_rejects_non_integer_account(feedback, delivery_leader, value):
     with pytest.raises(BusinessError):

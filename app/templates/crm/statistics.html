@@ -27,8 +27,10 @@
       <select id="exec-group" name="group">{% for code,label in groups %}<option value="{{ code }}"{% if code == group %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     </label>
     {% endif %}
+    {% for k, v in giu_loc %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
     <button class="nut nut-chinh" type="submit">Áp dụng</button>
   </form>
+  {% if chips %}<p id="exec-loc-luoi" class="exec-history-note exec-loc-luoi">Đang lọc theo lưới:{% include 'crm/_master_chips.html' %}<a href="?{{ bo_loc_luoi }}">Bỏ lọc lưới</a></p>{% endif %}
 
   {% if date_errors %}
   <section class="exec-error" role="alert">

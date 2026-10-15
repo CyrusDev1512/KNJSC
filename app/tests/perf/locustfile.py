@@ -17,6 +17,10 @@ mã 1 — đúng câu chữ của AC-10.1 *"không có yêu cầu nào quá 3 gi
 
 Bảng tính chạy ở dịch vụ riêng: đặt `BANGTINH_HOST` (mặc định
 `http://localhost:8021`) để vai Vận đơn gọi đúng chỗ.
+
+**Chỉ đụng dữ liệu giả** (TL-102, như P0-16 cho `do_hieu_nang`): vai Vận đơn chỉ mở và sửa
+dòng `PERF-*` (`seed_perf` tạo); vai Sale chỉ lên đơn thật khi đặt `KNJSC_TAI_LEN_DON=1`
+trên máy thử, vì đơn mới không mang mã `PERF-*` nên `seed_perf --xoa` không dọn được.
 """
 import os
 import random
@@ -28,6 +32,10 @@ from locust import HttpUser, between, events, task
 MAT_KHAU = os.environ.get("KNJSC_MAT_KHAU", "matkhaucuatoi")
 BANGTINH_HOST = os.environ.get("BANGTINH_HOST", "http://localhost:8021")
 NGUONG_P99_MS = 3000
+#: Tiền tố mã đơn của dòng giả — đúng `seed_perf.PERF_PREFIX` (kịch bản chạy ngoài Django nên không import được)
+PERF_PREFIX = "PERF-"
+#: Biến môi trường bật lên đơn thật cho máy thử (TL-102)
+BIEN_LEN_DON_THAT = "KNJSC_TAI_LEN_DON"
 TRANG_THAI = ["Đã lên đơn", "Đang giao", "Đã nhận hàng", "Hẹn lại"]
 
 
@@ -56,6 +64,8 @@ class NguoiSale(HttpUser):
 
     @task(1)
     def len_don(self):
+        if os.environ.get(BIEN_LEN_DON_THAT) != "1":   # đơn thật không dọn được bằng seed_perf --xoa (TL-102)
+            return
         token = _csrf(self.client, "/len-don/")
         so = random.randrange(10_000_000, 99_999_999)
         self.client.post("/len-don/", {
@@ -79,7 +89,9 @@ class NguoiVanDon(HttpUser):
     @task(4)
     def mo_luoi(self):
         trang_thai = random.choice(TRANG_THAI)
-        kq = self.client.get("/bang-tinh/van_don/du-lieu/", params={"f_trang_thai_vc__trong": trang_thai}, name="/bang-tinh/van_don/du-lieu/?loc")
+        kq = self.client.get("/bang-tinh/van_don/du-lieu/", params={"f_trang_thai_vc__trong": trang_thai,
+                                                                   "f_ma_don__bat_dau": PERF_PREFIX},
+                             name="/bang-tinh/van_don/du-lieu/?loc")
         self.o = kq.json().get("rows", []) if kq.status_code == 200 else []
 
     @task(2)
@@ -90,7 +102,9 @@ class NguoiVanDon(HttpUser):
     def sua_o(self):
         if not self.o:
             return
-        editable = [row for row in self.o if row["cells"].get("trang_thai_vc", {}).get("editable")]
+        # Chỉ sửa dòng giả `PERF-*`, không bao giờ vận đơn thật (TL-102)
+        editable = [row for row in self.o if row["cells"].get("trang_thai_vc", {}).get("editable")
+                    and str(row["cells"].get("ma_don", {}).get("value") or "").startswith(PERF_PREFIX)]
         if not editable:
             return
         row = random.choice(editable)
