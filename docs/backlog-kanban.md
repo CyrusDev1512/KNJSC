@@ -8,11 +8,22 @@
 - TL-111 (S4)
 - Biên bản `docs/bien-ban-kiem-thu-tong-hop-20261015.md` (gộp test log và các đợt trước)
 
-**To do (chủ dự án):** gộp #131 → #132 → PR này; chặng 2 theo biên bản mục 9.
+**To do (chủ dự án):** gộp #132 → #133 (#131 đã vào `Staging` 15.10); chặng 2 theo biên bản mục 9.
 
 **To do (máy):** TL-112 (`locustfile_kn_crm.py` chỉ đụng `PERF-*`); rà lại 27 mã cũ trên lưới mới, bắt đầu TL-22.
 
 **Far Plan:** TL-80 → TL-85 (cần VPS); P1, P2 của `docs/08`.
+
+## 14.10.2026 — Gộp 16 PR đợt P0 vào `Staging`
+
+**Finished:**
+- kiểm cây gộp thử 16 PR: pytest 3.852 đạt, 0 đỏ; e2e đạt (9 bài font có sẵn của máy ảo); hệ thống thật 8 vai;
+- gộp đủ 16 PR theo thứ tự; `Staging` `03e5d99` có đúng cây đã kiểm;
+- CLAUDE.md: nhánh nền khớp AGENTS.md và GitHub (PR nháp riêng).
+
+**To do:**
+- chủ dự án xoá 17 nhánh đã gộp (một lệnh), quyết nhánh `claude/phat-hanh-vps-e979323`;
+- chặng 2 trên `Staging`; sau đó `main` và VPS.
 
 ## 14.10.2026 — Đợt kiểm thử P0: bài đỏ trước, sửa sau (TL-90 → TL-99, TL-101 → TL-104)
 

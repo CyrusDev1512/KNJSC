@@ -1,6 +1,6 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 14.10.2026 (đợt P0, 14 PR nháp về `Staging`, chưa gộp: ADR-052 chuỗi số máy, ADR-053 hết phiên ở KN CRM giữ nháp và chặn đổi người, 16 tài khoản mẫu); 13.10.2026 (ADR-051: KN OMS, bản demo dữ liệu giả ở `/oms/` của KN CRM, chỉ Admin; bổ sung cùng ngày: diện mạo Solarpunk như KN CRM, làm sâu sáu màn; kế hoạch kiểm thử toàn diện `docs/08`: ma trận phân hệ, kiểm tay Chặng 2 theo vùng, phân tích lọt lưới, lộ trình P0/P1/P2); 12.10.2026 (TL-89: nút Thống kê KN CRM của nguồn Sale/MKT sang Báo cáo tổng hợp ERP, AC-40.9); 10.10.2026 (ADR-050 Admin sửa lần nộp ngay trên Báo cáo tổng hợp); 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
+> Cập nhật 14.10.2026 (đợt P0 đã gộp vào `Staging`: #113, #115 → #127, #129, #130 — ADR-052 chuỗi số máy, ADR-053 hết phiên ở KN CRM giữ nháp và chặn đổi người, 16 tài khoản mẫu; danh sách bốn nhánh nền khớp AGENTS.md và GitHub: `PHASE-1`, `UI-SOLAR-PUNK`); 13.10.2026 (ADR-051: KN OMS, bản demo dữ liệu giả ở `/oms/` của KN CRM, chỉ Admin; bổ sung cùng ngày: diện mạo Solarpunk như KN CRM, làm sâu sáu màn; kế hoạch kiểm thử toàn diện `docs/08`: ma trận phân hệ, kiểm tay Chặng 2 theo vùng, phân tích lọt lưới, lộ trình P0/P1/P2); 12.10.2026 (TL-89: nút Thống kê KN CRM của nguồn Sale/MKT sang Báo cáo tổng hợp ERP, AC-40.9); 10.10.2026 (ADR-050 Admin sửa lần nộp ngay trên Báo cáo tổng hợp); 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
 > `main` → VPS**; Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền, nhánh việc gộp xong là
 > xoá); 25.09.2026 (ADR-043 bổ sung: một ô Team duy nhất trên form báo cáo); 24.09 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
 > chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
@@ -42,11 +42,18 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
   dung y hệt nên phát hành từ nhánh nào cũng ra cùng image; chuyển xong thì mọi phát
   hành đi từ `main`. VPS hiện là môi trường thử nghiệm, chưa có khách.
 - `codex/crm-update-solar-ui` đã **đổi tên thành `Staging`** (nhánh gom code chạy thử trước
-  khi vào `main`). Hai nhánh lưu trữ `CRM-UPDATE` và `codex/ui-solarpunk` đóng băng, giữ đến
-  cuối, có tag `luu-tru/*` đóng dấu.
-- **Chỉ giữ bốn nhánh nền** trên GitHub (chủ dự án chốt 02.10.2026): `main`, `Staging`,
-  `CRM-UPDATE`, `codex/ui-solarpunk`. Nhánh việc (`claude/…`, `codex/…`) gộp xong là **xoá
-  ngay**; không để nhánh đã gộp nằm lại. Mỗi lần gộp PR làm đủ ba bước:
+  khi vào `main`). Hai nhánh lưu trữ cũ `CRM-UPDATE` và `codex/ui-solarpunk` nay chỉ còn là tag
+  `luu-tru/CRM-UPDATE-20260914` và `luu-tru/ui-solarpunk-20260914`, không còn là nhánh.
+- **Chỉ giữ bốn nhánh nền** trên GitHub (chủ dự án chốt 02.10.2026; tên đối chiếu với GitHub
+  14.10.2026, khớp AGENTS.md):
+  - `main`;
+  - `Staging`;
+  - `PHASE-1`: có khoá bảo vệ, dừng ở `7f8fb82` ngày 02.10;
+  - `UI-SOLAR-PUNK`: trùng tag `luu-tru/ui-solarpunk-20260914`.
+
+  Tên nhánh nền trên GitHub khác tài liệu thì báo chủ dự án, không coi là nhánh thừa. Nhánh
+  việc (`claude/…`, `codex/…`) gộp xong là **xoá ngay**; không để nhánh đã gộp nằm lại. Mỗi lần
+  gộp PR làm đủ ba bước:
   1. Xoá nhánh vừa gộp: `git push origin --delete <nhánh>`.
   2. Rà nhánh thừa: `git fetch --prune origin`, rồi với mỗi nhánh ngoài bốn nhánh nền mà
      `git rev-list --count origin/main..origin/<nhánh>` bằng 0 (đã nằm trọn trong `main`) thì xoá
