@@ -1,5 +1,23 @@
 # Backlog
 
+## 15.10.2026 — Sửa nốt 11 lỗi TL-101 → TL-111; biên bản kiểm thử tổng hợp
+
+- **Chủ dự án:** duyệt cách sửa TL-105 → TL-111, rồi "sửa nốt lỗi đã phát hiện, ghi lại thành một biên bản test (gộp
+  test log và các vấn đề trước đây), commit".
+- **Làm gì:** nhánh `claude/sua-tl105-111` (tách từ #132), mỗi lỗi một commit, mỗi lỗi bài đỏ trên mã cũ trước khi sửa.
+  - S2: TL-109 link Thống kê giữ `nguon`; TL-110 Áp dụng ở Thống kê giữ bộ lọc lưới, đổi nguồn thì bỏ, có dòng "Đang
+    lọc theo lưới".
+  - S3: TL-106 `handler403` chung (chưa gán bộ phận: một dòng Từ chối, JSON cho lưới, nút Đăng xuất); TL-105 phục hồi
+    xong đóng tác vụ sao lưu của bản chụp; TL-107 màn Cột Post/Redirect/Get; TL-101 đổi kiểu cột báo lỗi thay vì 500;
+    TL-108 nhật ký khoá tạm đọc được, ghi một lần; TL-103 quyền đã thu không còn hiện; TL-104 đường JSON nhận form
+    thường trả 400; TL-102 `locustfile.py` chỉ đụng dòng `PERF-*`.
+  - S4: TL-111 kho chứng từ ghi Từ chối cho mỗi lần 403.
+  - Biên bản gộp mọi đợt kiểm thử và sổ lỗi TL-01 → TL-112: `docs/bien-ban-kiem-thu-tong-hop-20261015.md`.
+- **Kiểm:** số đạt/đỏ của từng bộ ở biên bản mục 2.
+- **Mới:** TL-112 (S3) `locustfile_kn_crm.py` cũng sửa dòng thật; chưa sửa.
+- **Còn nợ:** chặng 2 bằng tay (biên bản mục 9); 27 mã cũ "cần rà lại" trên lưới mới (nặng nhất TL-22, S1); TL-80 →
+  TL-85 cần máy có SSH tới VPS; TL-71; P0-5, P0-6, P0-11, P0-12 chờ chủ dự án quyết; P1, P2 chưa làm.
+
 ## 14.10.2026 — Rà sau khi gộp đợt P0: rà ngữ nghĩa giữa các PR, diễn tập chặng 2 bằng máy (TL-105 → TL-111)
 
 - **Chủ dự án:** "kiểm tiếp đi, chưa xong đâu đúng không". Trước đó mới kiểm từng PR so với `Staging`.
