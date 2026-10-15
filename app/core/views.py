@@ -38,7 +38,7 @@ class LoginView(auth_views.LoginView):
         return response
 
     def form_invalid(self, form):
-        auth_service.note_failed_login(form.data.get("username", ""), self.request)
+        auth_service.note_failed_login(form.data.get("username", ""), self.request, locked_user=form.locked_user)
         return super().form_invalid(form)
 
     def get_context_data(self, **kwargs):
