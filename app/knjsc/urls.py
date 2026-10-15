@@ -29,3 +29,6 @@ urlpatterns = [
     path("", include("culture.urls")),
     path("", include("resources.urls")),
 ]
+
+# Trang 403 chung của hai dịch vụ: lỗi chưa gán bộ phận có dòng Từ chối, đường JSON nhận JSON (TL-106)
+handler403 = "core.views.permission_denied"

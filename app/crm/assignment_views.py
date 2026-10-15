@@ -6,6 +6,7 @@ from django.views.decorators.http import require_http_methods
 
 from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
+from core.views import json_body
 from forms_builder.models import DataRecord
 from orders.constants import waybill_condition
 from orders.services import assignment_service as service
@@ -19,7 +20,7 @@ def assignment(request):
         raise OutOfScopeError()
     try:
         if request.method == 'POST':
-            data = json.loads(request.body)
+            data = json_body(request)
             if not isinstance(data, dict):
                 raise BusinessError('Dữ liệu phân công không hợp lệ.')
             result = service.assign(request.user, data.get('versions'), data.get('changes'), request=request)

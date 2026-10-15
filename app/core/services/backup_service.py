@@ -20,10 +20,11 @@ nên màn hình Tổng quan của Admin và trang Tác vụ nền đều thấy 
 import logging
 import os
 import subprocess
+from datetime import datetime
 from pathlib import Path
 
 from django.conf import settings
-from django.db import DatabaseError
+from django.db import DatabaseError, transaction
 from django.utils import timezone
 
 from ..alerts import bao_nguoi_van_hanh
@@ -238,18 +239,51 @@ def resolve_backup(ten=None):
     return duong_dan
 
 
+def _dong_tac_vu_cua_ban_chup(duong_dan, co, moc, *, actor=None):
+    """Đóng tác vụ sao lưu đã ghi ra chính tệp vừa phục hồi — TL-105.
+
+    `run_backup` đánh Đang chạy và commit trước `pg_dump`, nên bản chụp nào cũng mang dòng tác vụ của chính nó ở trạng
+    thái Đang chạy, `updated_at` cũ; để nguyên thì lượt canh 15 phút đánh Kẹt và gửi thư báo nhầm. Dòng đó là dòng sao
+    lưu mới nhất của bản chụp, và kết quả của nó đã chắc: tệp vừa qua `verify_file` và `pg_restore` trọn một giao
+    dịch. Nên đánh Xong, giờ xong là giờ ghi tệp (kẹp trong khoảng bắt đầu → bây giờ), không gửi thư, một dòng nhật ký.
+
+    Không đặt `result_path`: `tac_vu_tai` không kiểm tác vụ không phải xuất tệp, đặt vào là cho tải nguyên bản sao lưu
+    qua web. Không đụng: dòng tạo từ `moc` trở đi (sao lưu thật bắt đầu trong lúc phục hồi), sao lưu cũ hơn hay Chờ xử
+    lý trong bản chụp (không biết kết quả), tác vụ loại khác (việc của chúng không có trong CSDL đã phục hồi) — lượt canh
+    vẫn báo chúng như cũ. Dòng mới nhất đã Xong thì không làm gì; mỗi lần phục hồi thật đưa dòng Đang chạy trở lại nên
+    lại được đóng.
+    """
+    with transaction.atomic():
+        job = (BackgroundJob.objects.select_for_update()
+               .filter(kind=JobKind.BACKUP, created_at__lt=moc).order_by("-created_at", "-pk").first())
+        # Kiểm trạng thái sau khi khoá: lượt canh vừa đánh Kẹt thì thôi, không đóng đè
+        if job is None or job.status != JobStatus.RUNNING or job.updated_at >= moc:
+            return None
+        bay_gio = timezone.now()
+        ghi_luc = datetime.fromtimestamp(duong_dan.stat().st_mtime, tz=timezone.get_current_timezone())
+        xong_luc = max(job.started_at or ghi_luc, min(ghi_luc, bay_gio))
+        job.mark_done(summary={"file_name": duong_dan.name, "bytes": co, "size": format_size(co),
+                               "note": f"Đóng sau phục hồi từ {duong_dan.name}"},
+                      finished_at=xong_luc)
+        record(AuditAction.UPDATE, actor=actor, target=("job", job.pk),
+               detail=f"Đóng tác vụ sao lưu sau phục hồi từ {duong_dan.name}: bản chụp ghi tác vụ này Đang chạy")
+    return job
+
 def run_restore(duong_dan, *, actor=None, runner=None):
     """Phục hồi **đè** cơ sở dữ liệu từ một bản sao lưu — NFR-10.
 
     Chỉ gọi từ lệnh `phuc_hoi` sau khi người vận hành xác nhận. Kiểm tệp trước
     khi đụng vào cơ sở dữ liệu; ghi nhật ký cả khi thành công lẫn thất bại —
     mọi lỗi (tệp hỏng, thiếu pg_restore, quá giờ, pg_restore báo lỗi) thành
-    `BackupError` tiếng Việt kèm một dòng "Phục hồi THẤT BẠI" (TL-97).
+    `BackupError` tiếng Việt kèm một dòng "Phục hồi THẤT BẠI" (TL-97). Phục hồi xong thì đóng tác vụ sao lưu sinh
+    ra tệp, để lượt canh không báo kẹt nhầm (TL-105).
     """
     runner = runner or subprocess.run
     duong_dan = Path(duong_dan)
+    # Mốc trước khi đụng CSDL: dòng tạo trước mốc mà còn trong bảng sau phục hồi là dòng của bản chụp
+    moc = timezone.now()
     try:
-        verify_file(duong_dan)
+        co = verify_file(duong_dan)
         try:
             kq = runner(
                 pg_restore_command(duong_dan), env=command_env(),
@@ -274,4 +308,9 @@ def run_restore(duong_dan, *, actor=None, runner=None):
         raise loi
     record(AuditAction.BACKUP, actor=actor, target=("restore", duong_dan.name),
            detail=f"Phục hồi thành công từ {duong_dan.name}")
+    try:
+        _dong_tac_vu_cua_ban_chup(duong_dan, co, moc, actor=actor)
+    except Exception:
+        # Bước phụ: pg_restore đã xong nên không biến phục hồi thành traceback (TL-97); tác vụ để nguyên cho lượt canh
+        logger.exception("Không đóng được tác vụ sao lưu của bản chụp sau phục hồi %s", duong_dan.name)
     return duong_dan

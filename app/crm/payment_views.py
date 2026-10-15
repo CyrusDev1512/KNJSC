@@ -13,6 +13,7 @@ from django.http import FileResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
+from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
 from forms_builder.models import DataRecord
 from orders.services import payment_service as service
@@ -29,6 +30,9 @@ def documents_enabled(view):
 
 
 def errors(view):
+    """Lỗi của tầng dịch vụ thành JSON. Mỗi lần 403 ghi đúng một dòng Từ chối (FR-3.5, TL-111): payment_service và
+    waybill_service.row_for chỉ ném OutOfScopeError, không ghi, nên ghi ở đây — một chỗ cho cả sáu đường, sau khi giao
+    dịch của lượt ghi đã huỷ. Ghi `request.path`, không kèm chuỗi truy vấn."""
     @wraps(view)
     def wrapped(request, *args, **kwargs):
         try:
@@ -36,6 +40,7 @@ def errors(view):
             response['Cache-Control'] = 'private, no-store'
             return response
         except OutOfScopeError:
+            record_denied(request.user, request.path, request)
             return JsonResponse({'error': 'Bạn không còn quyền truy cập chứng từ này.'}, status=403)
         except BusinessError as exc:
             return JsonResponse({'error': str(exc)}, status=409 if exc.code == 'conflict' else 400)

@@ -25,6 +25,9 @@ class LoginForm(AuthenticationForm):
         widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
     )
 
+    #: Người mà chính lần thử này chạm giới hạn và đặt khoá tạm; LoginView chuyển cho note_failed_login (TL-108)
+    locked_user = None
+
     def clean(self):
         username = self.cleaned_data.get("username")
         if username:
@@ -35,4 +38,6 @@ class LoginForm(AuthenticationForm):
                 raise forms.ValidationError(
                     f"Tài khoản đang bị khoá tạm. Vui lòng thử lại sau {phut} phút."
                 )
+            if nguoi_dung and auth_service.locked_by_attempt(nguoi_dung):
+                self.locked_user = nguoi_dung
         return super().clean()

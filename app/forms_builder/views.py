@@ -164,27 +164,37 @@ def bang_cot(request, code):
         dang_sua = get_object_or_404(ColumnDef, pk=sua_pk, table=bang_hien)
 
     form = ColumnForm(request.POST or None, instance=dang_sua, table=bang_hien)
+    status = 200
     if request.method == "POST" and form.is_valid():
         d = form.cleaned_data
-        if dang_sua:
-            # ModelForm đã ghi giá trị mới vào `dang_sua` lúc kiểm, nên đưa
-            # bản gốc từ cơ sở dữ liệu vào dịch vụ — không thì dịch vụ so
-            # "cũ với mới" thấy giống nhau và lặng lẽ không lưu gì
-            goc = ColumnDef.objects.get(pk=dang_sua.pk)
-            table_service.update_column(
-                goc, d, actor=request.user, request=request)
-            messages.success(request, f"Đã sửa cột {goc.name}." + _bao_tinh_lai(goc))
+        try:
+            if dang_sua:
+                # ModelForm đã ghi giá trị mới vào `dang_sua` lúc kiểm, nên đưa
+                # bản gốc từ cơ sở dữ liệu vào dịch vụ — không thì dịch vụ so
+                # "cũ với mới" thấy giống nhau và lặng lẽ không lưu gì
+                goc = ColumnDef.objects.get(pk=dang_sua.pk)
+                table_service.update_column(
+                    goc, d, actor=request.user, request=request)
+                messages.success(request, f"Đã sửa cột {goc.name}." + _bao_tinh_lai(goc))
+            else:
+                cot = table_service.add_column(
+                    bang_hien, actor=request.user, request=request, **d)
+                messages.success(request, f"Đã thêm cột {cot.name}." + _bao_tinh_lai(cot))
+        except BusinessError as loi:
+            # Đổi kiểu mà giá trị cũ không chuyển được, đổi cấu trúc cột chuẩn Vận đơn…: báo trong khung "Chưa lưu được",
+            # giữ chữ đã gõ, cột không đổi — không để lỗi nghiệp vụ thành 500 (TL-101)
+            form.add_error(None, str(loi))
+            if dang_sua:   # tiêu đề "Sửa cột …" đọc lại tên đã lưu, không lấy tên vừa gõ mà chưa lưu được
+                dang_sua = ColumnDef.objects.get(pk=dang_sua.pk)
+            status = 400
         else:
-            cot = table_service.add_column(
-                bang_hien, actor=request.user, request=request, **d)
-            messages.success(request, f"Đã thêm cột {cot.name}." + _bao_tinh_lai(cot))
-        return redirect("bang_cot", code=bang_hien.code)
+            return redirect("bang_cot", code=bang_hien.code)
 
-    return _trang_cot(request, bang_hien, form, dang_sua)
+    return _trang_cot(request, bang_hien, form, dang_sua, status=status)
 
 
 def _trang_cot(request, bang_hien, form=None, dang_sua=None, status=200):
-    """Trang Cột của một bảng — dùng lại khi thao tác bị từ chối để hiện lời báo ngay trên trang."""
+    """Trang Cột của một bảng (form thêm/sửa cột, danh sách cột, quyền)."""
     request.nav_current = "bang"
     return render(request, "forms_builder/bang_cot.html", {
         "bang": bang_hien, "form": form or ColumnForm(table=bang_hien), "dang_sua": dang_sua,
@@ -215,10 +225,11 @@ def bang_xoa_cot(request, code, pk):
     try:
         table_service.remove_column(cot, actor=request.user, request=request)
     except BusinessError as loi:
-        # Cột khoá, vế công thức, nối biểu mẫu, cột hệ thống vận đơn: báo đỏ, cột còn nguyên (TL-13)
+        # Cột khoá, vế công thức, nối biểu mẫu, cột hệ thống vận đơn: báo đỏ, cột còn nguyên (TL-13). Chuyển về màn Cột
+        # như mọi thao tác khác của màn này; hiện trang ngay ở địa chỉ POST thì tải lại trang ra 405 trắng (TL-107)
         messages.error(request, str(loi))
-        return _trang_cot(request, bang_hien, status=400)
-    messages.success(request, f"Đã bỏ cột {ten}.")
+    else:
+        messages.success(request, f"Đã bỏ cột {ten}.")
     return redirect("bang_cot", code=code)
 
 
@@ -536,7 +547,7 @@ def bang_thu_quyen(request, code, pk):
     assert_rank(request.user, Rank.MANAGER, request)
     bang_hien = _lay_bang(request, code)
     _kiem_cap_quyen(request, bang_hien)
-    quyen = get_object_or_404(Grant, pk=pk, table=bang_hien)
+    quyen = get_object_or_404(Grant.objects.alive(), pk=pk, table=bang_hien)   # đã thu thì 404, không thu lần hai (TL-103)
     grant_service.revoke(quyen, actor=request.user, request=request)
     messages.success(request, "Đã thu quyền.")
     return redirect("bang_cot", code=code)
@@ -752,7 +763,7 @@ def bieu_mau_thu_quyen(request, code, pk):
     assert_rank(request.user, Rank.MANAGER, request)
     bm = _lay_bieu_mau(request, code)
     _kiem_cap_quyen(request, bm)
-    quyen = get_object_or_404(Grant, pk=pk, form=bm)
+    quyen = get_object_or_404(Grant.objects.alive(), pk=pk, form=bm)   # đã thu thì 404, không thu lần hai (TL-103)
     grant_service.revoke(quyen, actor=request.user, request=request)
     messages.success(request, "Đã thu quyền.")
     return redirect("bieu_mau_sua", code=code)

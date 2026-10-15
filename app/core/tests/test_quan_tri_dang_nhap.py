@@ -58,6 +58,12 @@ def test_quan_tri_dang_khoa_tam_khong_vao_duoc(client, quan_tri, settings):
     client.post("/quan-tri/login/", {"username": "quan_tri", "password": MAT_KHAU, "next": "/quan-tri/"})
     assert "_auth_user_id" not in client.session
     assert client.get("/quan-tri/").status_code == 302
+    client.post("/dang-nhap/?next=/quan-tri/", {"username": "quan_tri", "password": MAT_KHAU})   # đúng mà đang khoá
+    assert "_auth_user_id" not in client.session
+    # Nhật ký: đúng một dòng khoá đọc được dù đã thử thêm trong lúc khoá (TL-108)
+    khoa = AuditLog.objects.filter(action=AuditAction.PERMISSION, actor=quan_tri, target_type="UserProfile")
+    assert list(khoa.values_list("detail", flat=True)) == [
+        f"Khoá tạm {settings.LOGIN_LOCK_MINUTES} phút do đăng nhập sai {settings.LOGIN_MAX_FAILED} lần"]
 
     quan_tri.profile.locked_until = timezone.now() - timezone.timedelta(minutes=1)
     quan_tri.profile.save(update_fields=["locked_until"])

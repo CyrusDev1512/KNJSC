@@ -329,12 +329,12 @@ def revoke(quyen, *, actor=None, request=None):
 
 
 def grants_of_table(table):
-    """Các quyền đang có hiệu lực trên một bảng, để hiện lên màn hình."""
-    return (Grant.objects.filter(table=table)
+    """Các quyền đang có hiệu lực trên một bảng, để hiện lên màn hình — quyền đã thu (xoá mềm) không hiện (TL-103)."""
+    return (Grant.objects.alive().filter(table=table)
             .select_related("user", "team", "granted_by").order_by("-created_at"))
 
 
 def grants_of_form(form):
-    """Các quyền đang có hiệu lực trên một biểu mẫu."""
-    return (Grant.objects.filter(form=form)
+    """Các quyền đang có hiệu lực trên một biểu mẫu — quyền đã thu không hiện (TL-103)."""
+    return (Grant.objects.alive().filter(form=form)
             .select_related("user", "team", "granted_by").order_by("-created_at"))
