@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from core.models import AuditLog
+from core.scope import get_user_scope
 from forms_builder.models import DataRecord, TableDef
 from orders.constants import waybill_condition
 
@@ -129,6 +130,10 @@ def _hoat_dong(user):
 
 
 def tong_quan(user):
+    # Hỏi phạm vi trước như Tổng quan KN ERP: không suy ra được phạm vi (Manager mất bộ phận — NoProfileError, P0-9)
+    # thì cả trang 403 qua handler403, không để ba khối nuốt lỗi rồi ghi ERROR kèm traceback (TL-106). Phạm vi đệm trên
+    # user nên các khối không hỏi lại.
+    get_user_scope(user)
     nho = {}        # số đếm từng bảng, hai khối dùng chung
     return {
         "so_lieu": _khoi("so_lieu", lambda: _so_lieu(user, nho)),
