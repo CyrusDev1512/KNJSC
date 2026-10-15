@@ -213,9 +213,9 @@ class BackgroundJob(TimestampedModel):
             self.total = total
         self.save(update_fields=["progress", "total", "updated_at"])
 
-    def mark_done(self, summary=None, result_path=""):
+    def mark_done(self, summary=None, result_path="", *, finished_at=None):
         self.status = JobStatus.DONE
-        self.finished_at = timezone.now()
+        self.finished_at = finished_at or timezone.now()
         if summary is not None:
             self.summary = {**self.summary, **summary}
         if result_path:
