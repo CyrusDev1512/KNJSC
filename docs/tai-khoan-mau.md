@@ -17,7 +17,7 @@ Ghi chú nhanh cho máy phát triển. Toàn bộ tài khoản dưới đây do 
 | Tên đăng nhập | Mã nhân sự | Mật khẩu | Vai trò |
 |---|---|---|---|
 | `quantri` | `VIENQT` | `matkhaucuatoi` | Admin — thấy và sửa được mọi bộ phận, vào được trang quản trị Django |
-| `giamdoc` | `DUCTM` | `matkhaucuatoi` | Giám đốc (CEO, ADR-044) — xem mọi bộ phận, **không** ghi nghiệp vụ: không nộp báo cáo, không sửa ô, không cấp quyền; vẫn đặt lại mật khẩu, xoá tài khoản cấp dưới, đăng bài, giao việc cho mình (thêm 14.10.2026) |
+| `giamdoc` | `DUCTM` | `matkhaucuatoi` | Giám đốc (CEO, ADR-044) — xem mọi bộ phận, **không** ghi nghiệp vụ: không nộp báo cáo, không sửa ô, không cấp quyền; vẫn đặt lại mật khẩu, xoá tài khoản cấp dưới, đăng bài (thêm 14.10.2026) |
 
 ---
 

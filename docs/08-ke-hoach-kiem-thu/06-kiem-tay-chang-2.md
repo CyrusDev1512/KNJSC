@@ -61,7 +61,7 @@ Gói nào cũng ngầm hiểu: góc nhìn **Người dùng**, cách **Thủ côn
 | # | Tài khoản | Thao tác | Kết quả mong đợi | Loại · Ưu tiên |
 |---|---|---|---|---|
 | K1-1 | `sale.moi` | Gõ tên đăng nhập viết HOA `SALE.MOI`; mở `/bao-cao/`; đổi mật khẩu; mở 8021 | Vào được, bị chuyển về `/doi-mat-khau/` (kể cả khi mở `/bao-cao/`). Đổi xong thì vào Tổng quan, 8021 không hỏi đăng nhập | Chức năng · P0 |
-| K1-2 | `sale.staff`, `quantri` | Gõ sai mật khẩu 5 lần, lần 6 gõ đúng. Sau đó `quantri` mở `/nhat-ky/?hanh_dong=login_failed` | Báo "Tài khoản đang bị khoá tạm. Vui lòng thử lại sau 15 phút."; nhật ký có 5 dòng và một dòng "Khoá tạm 15 phút" | Bảo mật · P0 |
+| K1-2 | `sale.staff`, `quantri` | Gõ sai mật khẩu 5 lần, lần 6 gõ đúng. Sau đó `quantri` mở `/nhat-ky/?hanh_dong=login_failed` | Báo "Tài khoản đang bị khoá tạm. Vui lòng thử lại sau 15 phút."; nhật ký có 5 dòng và một dòng "Khoá tạm 15 phút" (hiện chưa đạt: TL-108) | Bảo mật · P0 |
 | K1-3 | `sale.staff` (đang mở 8020 và 8021), `quantri` (trình duyệt khác) | `quantri` đổi Team của `sale.staff` sang Sale 2 rồi Lưu | Bấm bất kỳ đâu ở cả hai cổng đều về `/dang-nhap/?doi_quyen=1`, có lời "Quyền của bạn vừa thay đổi" | Bảo mật/phiên · P0 |
 | K1-4 | `sale.leader` | Mở `/nhan-su/`; mở Sửa của `sale.staff`; gõ thẳng `/nhan-su/<pk sale.staff2>/sua/` | Chỉ thấy team Sale 1 và chính mình; có form Đặt lại mật khẩu, không có ô Cấp bậc; URL của `sale.staff2` trả 403 | Phân quyền · P0 |
 | K1-5 | `sale.manager`, `sale.leader2` | Đặt lại mật khẩu cho `sale.leader2`: lần đầu gõ hai ô khác nhau, sau đó gõ đúng | Lần sai: báo lỗi, ô trống, không hiện lại mật khẩu. Lần đúng: báo "Đã đặt lại mật khẩu"; phiên của `sale.leader2` bị đẩy ra; đăng nhập mật khẩu mới không bị buộc đổi | Chức năng · P1 |
@@ -72,7 +72,7 @@ Gói nào cũng ngầm hiểu: góc nhìn **Người dùng**, cách **Thủ côn
 | K1-10 | `vd.staff` | Đặt `SESSION_IDLE_TIMEOUT_SECONDS=120` trong `.env`, chờ 3 phút rồi gõ một ô lưới | Báo hết phiên, không hiện "Đã lưu". **Ghi nhận** phiên có tự gia hạn nhờ poll 8 giây không (G6) | Phiên · P0 |
 | K1-11 | `quantri`, `sale.manager` | `quantri` mở `/ma-tran-quyen/` và `/tac-vu/`; `sale.manager` gọi thẳng hai URL đó | `quantri` 200, `sale.manager` 403 tiếng Việt. **Ghi nhận** dòng "Nộp báo cáo ngày" cột Giám đốc đang hiện ✓ sai (G12) | Phân quyền · P1 |
 | K1-12 | `sale.staff` | Đăng xuất, bấm nút Lùi | Không thấy dữ liệu trang trước | Bảo mật · P1 |
-| K1-13 | `quantri` | `/quan-tri/login/` ở cửa sổ ẩn danh: 6 lần sai. Trên DB local có sao lưu: tự hạ cấp bậc của mình | **Ghi nhận** có khoá hay không (G1) và có chặn tự hạ cấp không (G2). Không được để tài khoản đang bị khoá đăng nhập được ở `/quan-tri/` | Bảo mật · P1 (QA) |
+| K1-13 | `quantri` | `/quan-tri/login/` ở cửa sổ ẩn danh: trang chuyển về `/dang-nhap/` (#121); gõ sai 6 lần ở đó. Trên DB local có sao lưu: tự hạ cấp bậc của mình | Bị khoá tạm 15 phút như K1-2; tài khoản đang bị khoá không vào được `/quan-tri/`. **Ghi nhận** có chặn tự hạ cấp không (G2) | Bảo mật · P1 (QA) |
 
 #### K2. Bảng dữ liệu ERP, biểu mẫu, nhập/xuất, cấp quyền (forms_builder)
 
@@ -85,7 +85,7 @@ Gói nào cũng ngầm hiểu: góc nhìn **Người dùng**, cách **Thủ côn
 | K2-5 | `mkt.manager` | Nhập tệp có ô tiền `0.125` và `1.234,5` (định dạng chữ) | **Ghi nhận**, không chặn: #124 (ADR-052) mới sửa Bước 1 — số máy gửi lại (hoàn tác, dán từ lưới, ô sửa); ô chữ `0.125` trong tệp vẫn đọc theo luật người gõ ra 125 cho tới khi làm Bước 2 (chờ duyệt). `1.234,5` phải ra 1234,5 | Dữ liệu · P0 |
 | K2-6 | `mkt.manager` | Nhập tệp `.exe` đổi đuôi `.xlsx`; tệp lớn hơn 10 MB; tệp thiếu cột bắt buộc | Hai tệp đầu bị từ chối; tệp thiếu cột báo tên cột (AC-7.8, AC-7.9) | Bảo mật · P1 |
 | K2-7 | `sale.manager`, `mkt.manager` | `sale.manager` cấp quyền Xem bảng Sale cho `mkt.manager` | Phiên `mkt.manager` bị đăng xuất (AC-1.6); đăng nhập lại thấy bảng ở chế độ Xem | Phân quyền · P0 |
-| K2-8 | `mkt.manager` | POST thẳng `/bang/<bảng Sale>/cap-quyen/`, tự cấp quyền Sửa cho mình (DevTools/curl có CSRF) | **Phải 403**. Mã hiện tại cho qua (TL-01). Còn qua được thì chặn phát hành | Bảo mật · P0 (QA, bán tự động) |
+| K2-8 | `mkt.manager` | POST thẳng `/bang/<bảng Sale>/cap-quyen/`, tự cấp quyền Sửa cho mình (DevTools/curl có CSRF) | **Phải 403** (TL-01 đã sửa ở #122) | Bảo mật · P0 (QA, bán tự động) |
 | K2-9 | `sale.manager`, `mkt.manager` | Thu quyền vừa cấp | `mkt.manager` không còn thấy bảng (404). **Ghi nhận**: "Ai xem được bảng này" có còn liệt kê quyền đã thu không | Phân quyền · P1 |
 | K2-10 | `mkt.manager` | `/bieu-mau/?tab=forms` → `bc_mkt_ngay`: nối trường thư viện vào cột cùng kiểu; nối trường chữ vào cột số; bỏ trường | Cùng kiểu thì lưu được; trường chữ vào cột số báo "không ghi được vào cột … kiểu …" (AC-8.6); bỏ trường thì dữ liệu cũ còn (AC-8.5) | Chức năng · P1 |
 | K2-11 | `mkt.staff` | `/bieu-mau/bc_mkt_ngay/dien/`; bỏ trống trường bắt buộc; gửi đúng; GET `/bieu-mau/?tab=forms` | Ô Marketer chỉ đọc, mang mã mình; thiếu trường thì không gửi được; gửi đúng thêm một dòng; `?tab=forms` trả 403 (AC-4.6, AC-8.2) | Phân quyền · P1 |
@@ -164,7 +164,7 @@ Gói nào cũng ngầm hiểu: góc nhìn **Người dùng**, cách **Thủ côn
 | K6-7 | `sale.leader` | `/cong-viec/?tab=pham_vi`; đặt hạn sai `31/31/2026`; Gỡ việc không phải mình tạo | Thấy việc của `sale.staff`, không thấy của `sale.staff2`; hạn sai báo lỗi dưới ô, chữ còn; Gỡ trả 403 | Phân quyền · P1 |
 | K6-8 | `vd.staff`, `sale.leader` | `/van-hoa/`: `vd.staff` xem; `sale.leader` ghi nhận `sale.staff` kèm lời nhắn, rồi gửi lời nhắn rỗng | `vd.staff` thấy bảng xếp hạng (tên, số đơn, tổng VND), không thấy mã đơn, không có form. `sale.leader` chỉ chọn được người team Sale 1; ghi nhận xong thì `/van-hoa/thanh-vien/<mã>/` thêm 1 sao; lời nhắn rỗng báo đúng ô | Chức năng · P1 |
 | K6-9 | `mkt.manager`, `quantri` | `/tai-nguyen/moi/`: SIM ghi chú "OTP 483920"; sửa trạng thái sang Hỏng; `quantri` xem Nhật ký | OTP bị chặn; nhật ký có "Trạng thái: … → Hỏng" nhưng không có nội dung ghi chú (FR-13.4, `_scrub`) | Bảo mật · P0 |
-| K6-10 | `sale.staff`, CEO | `sale.staff` lọc mục BM, tìm "via", gọi `/tai-nguyen/moi/`; CEO mở `/tai-nguyen/moi/`, `/tai-lieu/tai-len/` rồi Lưu | `sale.staff` lọc và tìm được, `/moi/` trả 403. CEO: **ghi nhận** có hiện form không (kỳ vọng không); Lưu trả 403; `/cong-viec/` thấy mọi bộ phận nhưng không có nút đổi trạng thái; đăng được bài Bảng tin | Phân quyền · P1 |
+| K6-10 | `sale.staff`, CEO | `sale.staff` lọc mục BM, tìm "via", gọi `/tai-nguyen/moi/`; CEO mở `/tai-nguyen/moi/`, `/tai-lieu/tai-len/` | `sale.staff` lọc và tìm được, `/moi/` trả 403. CEO: cả hai trang trả 403 ngay ở GET, không hiện form, mỗi lần một dòng DENIED (#127); `/cong-viec/` thấy mọi bộ phận nhưng không có nút đổi trạng thái; đăng được bài Bảng tin | Phân quyền · P1 |
 | K6-11 | `quantri` (vận hành) | Chạy `thiep_sinh_nhat` và `thuong_sao_thang` hai lần liền | Lần hai in "0 thiep moi", "0 dong sao moi"; Nhật ký có dòng thưởng sao ghi tỉ giá | Tác vụ nền · P1 (bán tự động) |
 | K6-12 | `sale.staff`, màn 390px | `/bang-tin/` (Thích, bình luận), lướt `/cong-viec/`, `/van-hoa/`, `/tai-nguyen/` | Thanh bên nằm dưới bài, không có thanh cuộn ngang (AC-13.6) | Giao diện · P1 |
 

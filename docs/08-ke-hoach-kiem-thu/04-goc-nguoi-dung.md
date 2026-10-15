@@ -88,14 +88,14 @@ Cách đọc bảng:
 
 ### 4.6. Vận đơn Leader (`vd.leader`; bài máy: `leader_vd` từ #118, xem ghi chú dưới bảng)
 
-Ghi chú tài khoản bài máy: `app/crm/tests/conftest.py` chỉ có fixture `dich_vu_kn_crm` (autouse, đặt URLconf 8021). Fixture `nguoi_dung` trong `app/conftest.py` không có VĐ Leader. Người dùng VĐ cấp Leader/Manager được dựng riêng trong từng tệp:
+Ghi chú tài khoản bài máy: `app/crm/tests/conftest.py` chỉ có fixture `dich_vu_kn_crm` (autouse, đặt URLconf 8021). Từ #118 fixture `nguoi_dung` trong `app/conftest.py` có `leader_vd` (tên đăng nhập `truong_nhom_vd`) và `manager_vd` (`quan_ly_vd`). Các tệp cũ dưới đây vẫn tự dựng Leader/Manager VĐ:
 
 | Tên biến | Tệp dựng riêng |
 |---|---|
 | `leader_vd` | `core/tests/test_ma_tran_quyen_hai_dich_vu.py`, `crm/tests/test_chi_admin_xoa_dong.py`, `forms_builder/tests/test_pham_vi_bang_nhanh.py` |
 | `manager_vd` | `core/tests/test_ma_tran_quyen_hai_dich_vu.py`, `crm/tests/test_chi_admin_xoa_dong.py`, `crm/tests/test_lien_ket_khong_cut.py`, `tests/test_hieu_nang.py`, `tests/e2e/test_dien_thoai.py` |
 
-Khi viết bài mới cho vai này, nên gom thành một fixture dùng chung (ví dụ trong `app/conftest.py`) để khỏi dựng lại lần thứ bảy.
+Bài mới cho vai này dùng `nguoi_dung["leader_vd"]`, `nguoi_dung["manager_vd"]`, không dựng thêm.
 
 | # | Bước | Màn hình / URL | Kết quả mong đợi | Dữ liệu bẩn / thao tác sai | Sự cố | Tự động hoá | Ưu tiên |
 |---|---|---|---|---|---|---|---|
@@ -145,7 +145,7 @@ Khi viết bài mới cho vai này, nên gom thành một fixture dùng chung (v
 | 9 | Nộp báo cáo thay team | `/bao-cao/` (có dropdown Team) | `DailyReport.department` khớp với form. Manager Sale thấy, sửa được (ADR-043) | — | — | Tự động | P1 |
 | 10 | Tạo bảng hoặc trường ở ERP | `/bang/moi/`, `/bieu-mau/truong-moi/` | Không 500. Hiện tại `quantri` có department=None nên `full_clean` lỗi (P1) | — | — | Bài HTTP đỏ | P1 |
 | 11 | Vòng đời bảng | `/bang-da-xoa/`, `…/xoa-bang/`, `…/khoi-phuc-bang/` | Xoá và khôi phục được. Bảng còn biểu mẫu thì lời báo phải chỉ ra lối thoát (AC-27.5) | — | — | Bán tự động | P2 |
-| 12 | Trang quản trị Django | `/quan-tri/` | Admin vào được. Sai 6 lần ở `/quan-tri/login/`: ghi lại có nhật ký và có bị khoá hay không | — | — | Thủ công | P1 |
+| 12 | Trang quản trị Django | `/quan-tri/` | Admin vào được. `/quan-tri/login/` chuyển về `/dang-nhap/` (cửa đăng nhập chung, #121). Sai 6 lần ở đó thì bị khoá tạm; đang khoá thì không vào được `/quan-tri/` | — | — | Thủ công | P1 |
 | 13 | Để yên quá 60 phút rồi bấm Thích | `/bang-tin/` | Trình duyệt chuyển hẳn về trang đăng nhập (AC-1.4) | — | Hết phiên | `core/tests/test_ra_soat.py` (HTTP). E2E: chưa có | P1 |
 
 ### 4.10. CEO (`giamdoc`; bài máy: `ceo`)
@@ -158,9 +158,9 @@ Khi viết bài mới cho vai này, nên gom thành một fixture dùng chung (v
 | 4 | Thử Lên đơn, tạo bảng, cấp quyền | `/van-don/len-don/`, `/bang/moi/`, `/cap-quyen/` | 403 (`assert_business_write`) | — | — | Tự động | P1 |
 | 5 | Nhân sự, đặt lại mật khẩu | `/nhan-su/` | Thấy toàn công ty. Đặt lại được cho Manager, Leader, Staff, không được cho Admin (ADR-044) | — | — | Tự động | P1 |
 | 6 | Báo cáo | `/bao-cao/<pk>/`, `/sua/`, `/bo/`, `/tong-hop/` | Xem được. Sửa trả 404, bỏ bị từ chối. Tổng hợp toàn công ty | — | — | Tự động | P1 |
-| 7 | Nội bộ | `/bang-tin/`, `/cong-viec/`, `/van-hoa/`, `/tai-lieu/tai-len/`, `/tai-nguyen/moi/` | Đăng bài được. Ghim và ghi nhận trả 403. Việc chỉ giao cho mình. Tải tài liệu lên: GET mở được form nhưng POST trả 403 không ghi DENIED. Tài nguyên cũng vậy | CEO không có bộ phận tạo việc: hiện báo lỗi "phải thuộc một bộ phận" (P2). Lọc việc theo người không có ô chọn mà trả danh sách rỗng (P2) | — | Tự động | P2 |
+| 7 | Nội bộ | `/bang-tin/`, `/cong-viec/`, `/van-hoa/`, `/tai-lieu/tai-len/`, `/tai-nguyen/moi/` | Đăng bài được. Ghim và ghi nhận trả 403. Việc chỉ giao cho mình. Tải tài liệu lên: GET trả 403 ngay, có một dòng DENIED (#127). Tài nguyên cũng vậy | CEO không có bộ phận tạo việc: hiện báo lỗi "phải thuộc một bộ phận" (P2). Lọc việc theo người không có ô chọn mà trả danh sách rỗng (P2) | — | Tự động | P2 |
 | 8 | Bảng dữ liệu ERP | `/bang/` | Theo RANK_LEVEL CEO=35 thì vượt `assert_rank(MANAGER)`, nhưng **chưa xác minh** bằng bài kiểm | — | — | Tự động | P2 |
-| 9 | Trang quản trị Django | `/quan-tri/` (Staging) | Bị chuyển sang trang đăng nhập quản trị, không thấy model nào | — | — | Thủ công | P1 |
+| 9 | Trang quản trị Django | `/quan-tri/` (Staging) | 302 sang `/quan-tri/login/` rồi 403, có một dòng DENIED (#121). Không thấy model nào | — | — | Thủ công | P1 |
 
 ### 4.11. Đối chiếu `docs/07-kich-ban-nghiem-thu.md` (bản ngày 03.09.2026)
 
@@ -228,8 +228,8 @@ Mục 4 "Vận hành" nhìn từ phía **người vận hành** (chủ dự án 
 | Đặt lại mật khẩu theo ma trận ADR-044 | ADR-044 | 4.2 bước 1, 4.10 bước 5 |
 | Sự cố khi có nháp: hết phiên, đổi quyền, hai tab 409, `schema_changed`, gửi lại cùng UUID | TL-02, TL-18, TL-86, AC-21.3, AC-27.6 | 4.5 bước 2 và 3 |
 | Bộ gõ tiếng Việt thật (Unikey, EVKey, Telex macOS) trên lưới và tìm khác hệ điều hành | AC-9.6, `docs/kiem-chung-san-loi-go-tieng-viet-20261006.md` mục "Chưa kiểm" | 4.5 bước 12 |
-| Tài khoản mẫu cho CEO, Kế toán, CSKH, VĐ Leader trong `du_lieu_mau` và `docs/tai-khoan-mau.md` | `du_lieu_mau.py` dòng 48–60 | Chuẩn bị chung (cần chủ dự án chốt) |
-| Fixture dùng chung cho VĐ Leader/Manager (hiện dựng riêng ở 6 tệp) | `app/crm/tests/conftest.py` chỉ có `dich_vu_kn_crm` | 4.6 (ghi chú tài khoản bài máy) |
+| Tài khoản mẫu cho CEO, Kế toán, CSKH, VĐ Leader trong `du_lieu_mau` và `docs/tai-khoan-mau.md` | `du_lieu_mau.py` dòng 64–68 | Chuẩn bị chung (có từ #118) |
+| Fixture dùng chung cho VĐ Leader/Manager (có từ #118; bài cũ vẫn tự dựng ở 6 tệp) | `app/conftest.py` fixture `nguoi_dung` | 4.6 (ghi chú tài khoản bài máy) |
 
 ### Các tệp quan trọng để thực hiện
 - /home/user/KNJSC/docs/07-kich-ban-nghiem-thu.md
