@@ -1,5 +1,22 @@
 # Backlog
 
+## 15.10.2026 — Rà PR và nhánh hơn `main`; đưa biên bản phát hành VPS 09.10 vào repo
+
+- **Chủ dự án:** "kiểm tra tất cả các pr và các nhánh có ahead so với main". Rà trên GitHub, chỉ đọc.
+- **`Staging`** hơn `main` 69 commit: 16 PR đợt P0 (#115 → #130) và tài liệu #131. `main` chỉ hơn ở các commit gộp, không có
+  nội dung riêng.
+- **#132 và #133 (PR nháp) xung đột tài liệu với `Staging` sau khi #131 được gộp.**
+  - Tệp xung đột: `docs/backlog.md`; riêng #133 thêm `docs/backlog-kanban.md`.
+  - #133 đã chứa trọn #132.
+  - Để phiên đang giữ hai PR tự gỡ.
+- **Biên bản phát hành VPS ngày 09.10 (`e979323-main-r2`)** chỉ nằm ở nhánh `claude/phat-hanh-vps-e979323`, vì hôm đó lệnh tạo
+  PR bị từ chối do thiếu quyền. Lượt này đưa biên bản vào repo qua nhánh `claude/bien-ban-vps-20261009`.
+- **18 nhánh đã gộp vào `Staging` mà chưa xoá.** Máy ảo bị chặn xoá nhánh, nên đã đưa chủ dự án lệnh xoá.
+- **Còn nợ:**
+  - chủ dự án chạy lệnh xoá nhánh;
+  - gộp PR biên bản;
+  - sau khi gộp thì xoá `claude/phat-hanh-vps-e979323`.
+
 ## 15.10.2026 — Sửa nốt 11 lỗi TL-101 → TL-111; biên bản kiểm thử tổng hợp
 
 - **Chủ dự án:** duyệt cách sửa TL-105 → TL-111, rồi "sửa nốt lỗi đã phát hiện, ghi lại thành một biên bản test (gộp
@@ -365,6 +382,22 @@
   - vai khác vẫn tạo được dòng trống bằng phím Delete, vì chỉ Admin được xoá dòng.
 
 [PR #106](https://github.com/CyrusDev1512/KNJSC/pull/106). Nhánh `claude/an-nut-toan-bo-sale-cskh`.
+
+## 09.10.2026 — VPS đã chuyển sang main e979323; hoàn tất kiểm chính và theo dõi
+
+- Chủ dự án xác nhận local đạt và duyệt bảo trì ngay. VPS đã chạy
+  `knjsc-app:e979323-main-r2`; tag đầu lỗi quyền entrypoint không được phát hành.
+- Diễn tập nâng cấp/quay lui/tiến lại đạt; backup cuối phục hồi khớp 51 bảng.
+  Ba migration, cấu hình và static đã áp; 44 dòng giữ ID, 11 nhãn tiền MKT đổi VND
+  đúng migration. Không seed hay đổi số tiền/người/ngày nộp.
+- Bảo trì 11:04:01–11:06:26 VN. PostgreSQL đã `log_min_error_statement=panic`
+  (TL-82); năm ứng dụng cùng image mới. Static trên hai domain khớp image.
+- Đủ 15 phút theo dõi: không 5xx/restart/OOM; Admin kiểm nộp MKT/Sale, lịch sử,
+  tổng hợp/XLSX, lên đơn/lưu ô, lọc/toàn màn hình và hoàn tác dòng cuối. Bản thử đã
+  xóa mềm. Các vai khác và ca chưa kiểm trên VPS được ghi riêng trong biên bản.
+- Giữ nợ TL-83, hai đơn mồ côi baseline và các hạng mục ngoài phạm vi.
+
+[Biên bản và giới hạn kiểm chứng](kiem-chung-phat-hanh-vps-20261009.md).
 
 ## 09.10.2026 — `Staging` vào `main` (#104); gộp #101; hoà giải #102 với #103
 

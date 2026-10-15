@@ -36,6 +36,10 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
 
 ### Nhánh và nơi mã đang chạy
 
+- **Kiểm trực tiếp 09.10.2026:** VPS đã chuyển sang `main e979323`, image
+  `knjsc-app:e979323-main-r2`; xem [biên bản và giới hạn nghiệm thu](docs/kiem-chung-phat-hanh-vps-20261009.md).
+  Đây là mốc ghi nhận, vẫn phải đối chiếu runtime trước lần phát hành tiếp theo.
+
 - **Nhánh chuẩn là `main`** (từ 24.09.2026): `main` đã fast-forward bằng
   `codex/crm-update-solar-ui`, hai nhánh trùng nhau tại `ddb9b64` (trọn 11 PR gộp 24.09).
   Máy chủ dự án có thể còn đứng ở nhánh codex cho tới khi Codex `checkout main` — nội
