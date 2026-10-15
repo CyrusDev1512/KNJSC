@@ -1,5 +1,16 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 14.10.2026 — Gộp 16 PR đợt P0 vào `Staging`
+
+**Finished:**
+- kiểm cây gộp thử 16 PR: pytest 3.852 đạt, 0 đỏ; e2e đạt (9 bài font có sẵn của máy ảo); hệ thống thật 8 vai;
+- gộp đủ 16 PR theo thứ tự; `Staging` `03e5d99` có đúng cây đã kiểm;
+- CLAUDE.md: nhánh nền khớp AGENTS.md và GitHub (PR nháp riêng).
+
+**To do:**
+- chủ dự án xoá 17 nhánh đã gộp (một lệnh), quyết nhánh `claude/phat-hanh-vps-e979323`;
+- chặng 2 trên `Staging`; sau đó `main` và VPS.
+
 ## 14.10.2026 — Đợt kiểm thử P0: bài đỏ trước, sửa sau (TL-90 → TL-99, TL-101 → TL-104)
 
 **Finished (nhánh việc + PR nháp về `Staging`, chưa gộp):**

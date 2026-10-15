@@ -1,5 +1,29 @@
 # Backlog
 
+## 14.10.2026 — Gộp 16 PR đợt P0 vào `Staging`; CLAUDE.md khớp nhánh nền trên GitHub
+
+- **Chủ dự án:** xem tình hình nhánh rồi chọn hai việc: "Gộp các PR P0 theo thứ tự", "Sửa CLAUDE.md nhánh nền".
+- **Kiểm trên cây gộp thử** (`Staging` `b2b0198` + 16 PR theo thứ tự):
+  - không xung đột, không migration, không thư viện mới;
+  - `check`, `check --deploy` cho ERP và CRM: 0 lỗi;
+  - pytest 3.852 đạt, 0 đỏ;
+  - e2e 70 và 30 đạt; 9 bài font có sẵn của máy ảo đỏ;
+  - 6 script kiểm JS chạy bằng Node: PASS;
+  - hệ thống thật: KN OMS 16/16; quyền `/oms/` đúng với 18 tài khoản; ADR-053 đổi người thì 409; quét 424 trang theo
+    8 vai, 0 lỗi.
+- **Gộp:** #118, #117, #113, #115, #116, #119, #120, #121, #124, #126, #122, #125, #123, #127, #129, #130.
+  - #127, #129, #130 bị GitHub báo xung đột vì có nhiều gốc chung với `Staging` (merge-base chéo). Em gộp `Staging`
+    vào chính nhánh đó, kiểm cây trùng bản đã kiểm, chờ CI xanh rồi mới gộp.
+  - `Staging` `03e5d99` có đúng cây đã kiểm.
+- **CLAUDE.md:** danh sách bốn nhánh nền nay là `main`, `Staging`, `PHASE-1`, `UI-SOLAR-PUNK`, khớp AGENTS.md và
+  GitHub. Sửa luôn dòng đầu tệp, chỗ còn ghi "chưa gộp".
+- **Còn nợ:**
+  - xoá 17 nhánh đã gộp: máy ảo bị chặn, nên chủ dự án chạy một lệnh;
+  - `claude/phat-hanh-vps-e979323` còn 2 commit tài liệu phát hành VPS chưa vào `Staging`, chờ chủ dự án quyết;
+  - chặng 2 trên `Staging`, bật bằng `KN JSC.bat` vì launcher có đổi (#115).
+
+[Biên bản](kiem-chung-gop-p0-staging-20261014.md).
+
 ## 14.10.2026 — Đợt kiểm thử P0: bài đỏ trước, sửa sau (TL-90 → TL-99, TL-101 → TL-104)
 
 - **Chủ dự án:** duyệt kế hoạch đợt P0 (`docs/08` mục 9).
