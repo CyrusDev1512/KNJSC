@@ -222,3 +222,10 @@ về Staging; không tự merge. Không chứa thông tin kết nối SSH hoặc
 Nhánh tài liệu đã push; lệnh tạo PR nháp bị GitHub từ chối:
 `GraphQL: must be a collaborator (createPullRequest)`. Chưa có PR được tạo;
 bàn giao liên kết nhánh và đường so sánh về Staging để chủ dự án tạo PR nháp.
+
+## Đưa vào repo (15.10.2026)
+
+- Nhánh `claude/phat-hanh-vps-e979323` không mở được PR vì lỗi quyền ghi ở trên, nên tới 15.10 biên bản này vẫn nằm ngoài
+  `Staging` và `main`.
+- Lượt rà nhánh ngày 15.10 chuyển hai commit sang nhánh `claude/bien-ban-vps-20261009`, tách từ `Staging`. Nội dung biên bản
+  giữ nguyên; các mục ngày 09.10 ở backlog, kanban, test-log được chèn vào đúng thứ tự ngày.

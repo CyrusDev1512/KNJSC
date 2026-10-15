@@ -1,5 +1,22 @@
 # Backlog
 
+## 15.10.2026 — Rà PR và nhánh hơn `main`; đưa biên bản phát hành VPS 09.10 vào repo
+
+- **Chủ dự án:** "kiểm tra tất cả các pr và các nhánh có ahead so với main". Rà trên GitHub, chỉ đọc.
+- **`Staging`** hơn `main` 69 commit: 16 PR đợt P0 (#115 → #130) và tài liệu #131. `main` chỉ hơn ở các commit gộp, không có
+  nội dung riêng.
+- **#132 và #133 (PR nháp) xung đột tài liệu với `Staging` sau khi #131 được gộp.**
+  - Tệp xung đột: `docs/backlog.md`; riêng #133 thêm `docs/backlog-kanban.md`.
+  - #133 đã chứa trọn #132.
+  - Để phiên đang giữ hai PR tự gỡ.
+- **Biên bản phát hành VPS ngày 09.10 (`e979323-main-r2`)** chỉ nằm ở nhánh `claude/phat-hanh-vps-e979323`, vì hôm đó lệnh tạo
+  PR bị từ chối do thiếu quyền. Lượt này đưa biên bản vào repo qua nhánh `claude/bien-ban-vps-20261009`.
+- **18 nhánh đã gộp vào `Staging` mà chưa xoá.** Máy ảo bị chặn xoá nhánh, nên đã đưa chủ dự án lệnh xoá.
+- **Còn nợ:**
+  - chủ dự án chạy lệnh xoá nhánh;
+  - gộp PR biên bản;
+  - sau khi gộp thì xoá `claude/phat-hanh-vps-e979323`.
+
 ## 14.10.2026 — Gộp 16 PR đợt P0 vào `Staging`; CLAUDE.md khớp nhánh nền trên GitHub
 
 - **Chủ dự án:** xem tình hình nhánh rồi chọn hai việc: "Gộp các PR P0 theo thứ tự", "Sửa CLAUDE.md nhánh nền".
