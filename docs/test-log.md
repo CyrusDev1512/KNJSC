@@ -32,13 +32,13 @@ Làm trên cây gộp thử `Staging` `b2b0198` + 16 PR. Cây đó trùng từng
 
 | Mã | Mức | Lỗi | Chỗ sai | Tái hiện | Do | Trạng thái |
 |---|---|---|---|---|---|---|
-| TL-105 | S3 | Phục hồi xong thì lượt canh 15 phút đánh **Kẹt** tác vụ "Sao lưu hằng đêm" nằm sẵn trong bản chụp và gửi thư "tác vụ nền kẹt" cho người vận hành; khối Sao lưu ở Tổng quan Admin hiện đỏ. Báo nhầm, không mất dữ liệu | `core/services/backup_service.py` `run_backup` đánh `mark_running()` và commit **trước** `pg_dump`, nên bản chụp luôn có dòng đó ở trạng thái Đang chạy; `core/tasks.py` `danh_dau_tac_vu_ket` (từ #117) đánh kẹt tác vụ sao lưu Đang chạy quá 45 phút | Sao lưu, chờ hơn 45 phút, `phuc_hoi` bản đó, chờ lượt canh | #117 | Đã sửa trên `claude/sua-tl105-111` (`ffcdc99`, 15.10), chờ gộp `Staging` |
-| TL-106 | S3 | Manager mất bộ phận: (1) mở Trang chủ CRM thì log có 3 dòng `ERROR` kèm traceback cho một lần 403 bình thường; (2) mọi lần 403 này không có dòng Từ chối trong khi trang 403 ghi "đã được ghi vào nhật ký"; (3) `luu-json`, `du-lieu` của lưới nhận trang 403 HTML nên lưới chỉ báo "Không tải được dữ liệu"; (4) trang 403 chỉ có nút "Về Tổng quan" dẫn sang một 403 khác, không có Đăng xuất | `crm/services/tong_quan_service.py` `_khoi` bắt mọi `Exception` bằng `logger.exception`; `NoProfileError` (#125) không qua `record_denied`; `crm/master_views.py` | Gỡ bộ phận của `vd.manager` (dữ liệu cũ hay `/quan-tri/`), đăng nhập, mở CRM `/` và lưới | #125 | Đã sửa trên `claude/sua-tl105-111` (`b6893aa`, 15.10), chờ gộp `Staging` |
-| TL-107 | S3 | Bỏ cột bị từ chối (400, lời đỏ đúng) nhưng URL đứng ở `…/cot/<pk>/bo/`; tải lại trang thì ra 405 trắng | `forms_builder/views.py` `bang_xoa_cot` trả `_trang_cot(..., status=400)` ngay ở URL POST | ERP màn Cột, bỏ cột khoá, F5 | #120 | Đã sửa trên `claude/sua-tl105-111` (`ad58859`, 15.10), chờ gộp `Staging` |
-| TL-108 | S3 | Nhật ký khoá tạm không đọc được và ghi lặp: dòng "Khoá tạm 15 phút do sai mật khẩu 5 lần" bị lược thành "[đã lược bỏ vì chứa dữ liệu nhạy cảm]"; mỗi lần thử trong lúc khoá lại ghi thêm một dòng khoá. Bài `org/tests/test_do_mat_khau.py:56` (không có dòng "Khoá tạm") xanh vì chính việc lược chữ, không phải vì không ghi | `core/audit.py` `SENSITIVE_KEYS` có "mật khẩu"; `core/services/auth_service.py` `note_failed_login` | `sale.staff` sai mật khẩu 5 lần, thử thêm 2 lần, `quantri` mở `/nhat-ky/?hanh_dong=login_failed` | Có từ trước | Đã sửa trên `claude/sua-tl105-111` (`cd0f39c`, 15.10), chờ gộp `Staging` |
-| TL-109 | S2 | Lưới Vận đơn: sau Tôi/Toàn bộ hay Tìm, nút **Thống kê** mất `nguon=van_don` và mở Bàn điều hành tổng hợp (Doanh số · VND) thay vì thống kê Vận đơn | `static/js/master-grid.js` `navigate()` đặt `u.search = params` cho mọi `[data-query-link]`, xoá `nguon` của link Thống kê (`templates/crm/master_grid.html:17`) | `kt.staff` mở lưới `van_don`, bấm Tôi, bấm Thống kê | Có từ trước | Đã sửa trên `claude/sua-tl105-111` (`a37ac24`, 15.10), chờ gộp `Staging` |
-| TL-110 | S2 | Trang Thống kê: bấm **Áp dụng** thì bỏ `cua_toi`, `tim`, bộ lọc cột; số nhảy sang toàn bảng mà trang không báo | `templates/crm/statistics.html` form `exec-controls` chỉ có `nguon`, `tu`, `den`, `group`; không có ô ẩn cho bộ lọc đang áp | Từ lưới (Tôi hay Tìm) sang Thống kê, đổi kỳ, Áp dụng | Có từ trước | Đã sửa trên `claude/sua-tl105-111` (`211d41d`, 15.10), chờ gộp `Staging` |
-| TL-111 | S4 | Kho chứng từ thanh toán (cờ `PAYMENT_DOCUMENTS_ENABLED` đang tắt): bật cờ thì các lần 403 ở tạo, sửa, đơn chứng từ không có dòng Từ chối | `crm/payment_views.py` `errors()` trả JSON 403 khi gặp `OutOfScopeError`, không gọi `record_denied` | Bật cờ, Giám đốc POST `/chung-tu-thanh-toan/tao/` | Có từ trước | Đã sửa trên `claude/sua-tl105-111` (`36f8b4d`, 15.10), chờ gộp `Staging` |
+| TL-105 | S3 | Phục hồi xong thì lượt canh 15 phút đánh **Kẹt** tác vụ "Sao lưu hằng đêm" nằm sẵn trong bản chụp và gửi thư "tác vụ nền kẹt" cho người vận hành; khối Sao lưu ở Tổng quan Admin hiện đỏ. Báo nhầm, không mất dữ liệu | `core/services/backup_service.py` `run_backup` đánh `mark_running()` và commit **trước** `pg_dump`, nên bản chụp luôn có dòng đó ở trạng thái Đang chạy; `core/tasks.py` `danh_dau_tac_vu_ket` (từ #117) đánh kẹt tác vụ sao lưu Đang chạy quá 45 phút | Sao lưu, chờ hơn 45 phút, `phuc_hoi` bản đó, chờ lượt canh | #117 | Đã sửa #133 (`ffcdc99`), đã gộp `Staging` 15.10, chờ chặng 2 |
+| TL-106 | S3 | Manager mất bộ phận: (1) mở Trang chủ CRM thì log có 3 dòng `ERROR` kèm traceback cho một lần 403 bình thường; (2) mọi lần 403 này không có dòng Từ chối trong khi trang 403 ghi "đã được ghi vào nhật ký"; (3) `luu-json`, `du-lieu` của lưới nhận trang 403 HTML nên lưới chỉ báo "Không tải được dữ liệu"; (4) trang 403 chỉ có nút "Về Tổng quan" dẫn sang một 403 khác, không có Đăng xuất | `crm/services/tong_quan_service.py` `_khoi` bắt mọi `Exception` bằng `logger.exception`; `NoProfileError` (#125) không qua `record_denied`; `crm/master_views.py` | Gỡ bộ phận của `vd.manager` (dữ liệu cũ hay `/quan-tri/`), đăng nhập, mở CRM `/` và lưới | #125 | Đã sửa #133 (`b6893aa`), đã gộp `Staging` 15.10, chờ chặng 2 |
+| TL-107 | S3 | Bỏ cột bị từ chối (400, lời đỏ đúng) nhưng URL đứng ở `…/cot/<pk>/bo/`; tải lại trang thì ra 405 trắng | `forms_builder/views.py` `bang_xoa_cot` trả `_trang_cot(..., status=400)` ngay ở URL POST | ERP màn Cột, bỏ cột khoá, F5 | #120 | Đã sửa #133 (`ad58859`), đã gộp `Staging` 15.10, chờ chặng 2 |
+| TL-108 | S3 | Nhật ký khoá tạm không đọc được và ghi lặp: dòng "Khoá tạm 15 phút do sai mật khẩu 5 lần" bị lược thành "[đã lược bỏ vì chứa dữ liệu nhạy cảm]"; mỗi lần thử trong lúc khoá lại ghi thêm một dòng khoá. Bài `org/tests/test_do_mat_khau.py:56` (không có dòng "Khoá tạm") xanh vì chính việc lược chữ, không phải vì không ghi | `core/audit.py` `SENSITIVE_KEYS` có "mật khẩu"; `core/services/auth_service.py` `note_failed_login` | `sale.staff` sai mật khẩu 5 lần, thử thêm 2 lần, `quantri` mở `/nhat-ky/?hanh_dong=login_failed` | Có từ trước | Đã sửa #133 (`cd0f39c`), đã gộp `Staging` 15.10, chờ chặng 2 |
+| TL-109 | S2 | Lưới Vận đơn: sau Tôi/Toàn bộ hay Tìm, nút **Thống kê** mất `nguon=van_don` và mở Bàn điều hành tổng hợp (Doanh số · VND) thay vì thống kê Vận đơn | `static/js/master-grid.js` `navigate()` đặt `u.search = params` cho mọi `[data-query-link]`, xoá `nguon` của link Thống kê (`templates/crm/master_grid.html:17`) | `kt.staff` mở lưới `van_don`, bấm Tôi, bấm Thống kê | Có từ trước | Đã sửa #133 (`a37ac24`), đã gộp `Staging` 15.10, chờ chặng 2 |
+| TL-110 | S2 | Trang Thống kê: bấm **Áp dụng** thì bỏ `cua_toi`, `tim`, bộ lọc cột; số nhảy sang toàn bảng mà trang không báo | `templates/crm/statistics.html` form `exec-controls` chỉ có `nguon`, `tu`, `den`, `group`; không có ô ẩn cho bộ lọc đang áp | Từ lưới (Tôi hay Tìm) sang Thống kê, đổi kỳ, Áp dụng | Có từ trước | Đã sửa #133 (`211d41d`), đã gộp `Staging` 15.10, chờ chặng 2 |
+| TL-111 | S4 | Kho chứng từ thanh toán (cờ `PAYMENT_DOCUMENTS_ENABLED` đang tắt): bật cờ thì các lần 403 ở tạo, sửa, đơn chứng từ không có dòng Từ chối | `crm/payment_views.py` `errors()` trả JSON 403 khi gặp `OutOfScopeError`, không gọi `record_denied` | Bật cờ, Giám đốc POST `/chung-tu-thanh-toan/tao/` | Có từ trước | Đã sửa #133 (`36f8b4d`), đã gộp `Staging` 15.10, chờ chặng 2 |
 
 ## 14.10.2026 — Đợt kiểm thử P0: bài đỏ trước, sửa sau (TL-90 → TL-99, TL-101 → TL-104)
 
@@ -67,10 +67,10 @@ chưa làm. Kết quả rà sau khi gộp và lỗi mới ở mục ngay trên (
 | TL-97 | S2 | P0-15 | Phục hồi bản sao lưu hỏng giữa chừng để dở dữ liệu; lỗi không có nhật ký, báo tiếng Anh | Đã sửa #123 (`pg_restore --single-transaction`) |
 | TL-98 | S2 | P0-16 | `do_hieu_nang` chạy được khi DEBUG tắt và ghi vào dòng thật | Đã sửa #116 |
 | TL-99 | S2 | P0-17 | `KN JSC.bat` và `cap-nhat-local.bat` vẫn ghi mốc và mở trình duyệt khi `migrate` hay `tao_bang_van_don` lỗi | Đã sửa #115; kiểm tay TC-1…TC-6 trên Windows chưa làm |
-| TL-101 | S3 | (ngoài P0-7) | Sửa cột qua `update_column` (đổi kiểu cột mà còn giá trị không chuyển được) ném `BusinessError` không được bắt ở view, ra 500 | Đã sửa trên `claude/sua-tl105-111` (`fc938a7`, 15.10), chờ gộp `Staging` |
-| TL-102 | S3 | (ngoài P0-16) | `tests/perf/locustfile.py` ghi vào dòng thật, không chỉ dòng `PERF-*` | Đã sửa trên `claude/sua-tl105-111` (`cbe3b50`, 15.10), chờ gộp `Staging` |
-| TL-103 | S3 | (ngoài P0-1) | Truy vấn Grant không lọc bản ghi đã xoá mềm | Đã sửa trên `claude/sua-tl105-111` (`3e48a8c`, 15.10), chờ gộp `Staging` |
-| TL-104 | S3 | (ngoài P0-14) | POST `multipart/form-data` (không phải JSON) vào `/van-don/phan-cong/` ra 500 `RawPostDataException`: `crm/assignment_views.py` đọc `request.body` sau khi `UnicodeNFCMiddleware` đã phân tích `request.POST` từ luồng (form urlencoded thì không lỗi vì Django giữ thân). Chỉ gặp khi gọi thẳng đường dẫn, giao diện luôn gửi JSON. Lộ ra lúc bài quét 409 của P0-14 POST `{}` vào mọi đường dẫn | Đã sửa trên `claude/sua-tl105-111` (`64ca888`, 15.10), chờ gộp `Staging` |
+| TL-101 | S3 | (ngoài P0-7) | Sửa cột qua `update_column` (đổi kiểu cột mà còn giá trị không chuyển được) ném `BusinessError` không được bắt ở view, ra 500 | Đã sửa #133 (`fc938a7`), đã gộp `Staging` 15.10, chờ chặng 2 |
+| TL-102 | S3 | (ngoài P0-16) | `tests/perf/locustfile.py` ghi vào dòng thật, không chỉ dòng `PERF-*` | Đã sửa #133 (`cbe3b50`), đã gộp `Staging` 15.10, chờ chặng 2 |
+| TL-103 | S3 | (ngoài P0-1) | Truy vấn Grant không lọc bản ghi đã xoá mềm | Đã sửa #133 (`3e48a8c`), đã gộp `Staging` 15.10, chờ chặng 2 |
+| TL-104 | S3 | (ngoài P0-14) | POST `multipart/form-data` (không phải JSON) vào `/van-don/phan-cong/` ra 500 `RawPostDataException`: `crm/assignment_views.py` đọc `request.body` sau khi `UnicodeNFCMiddleware` đã phân tích `request.POST` từ luồng (form urlencoded thì không lỗi vì Django giữ thân). Chỉ gặp khi gọi thẳng đường dẫn, giao diện luôn gửi JSON. Lộ ra lúc bài quét 409 của P0-14 POST `{}` vào mọi đường dẫn | Đã sửa #133 (`64ca888`), đã gộp `Staging` 15.10, chờ chặng 2 |
 
 - **P0-10** (#126) không có lỗi còn sống nên không cấp mã TL: cờ `PAYMENT_DOCUMENTS_ENABLED` đang tắt, đọc mã cả 7
   nhánh đều đúng. PR chỉ thêm bài khoá và gỡ AC-26.1 → 26.5 khỏi HOAN.
@@ -200,12 +200,12 @@ Diễn tập trên máy ảo giống VPS: nginx HTTPS hai tên miền, 2 lõi, R
 Diễn tập cũng gặp `kiem_tra_du_lieu` hỏng (`ProgrammingError: column val_order_code does not exist`) khi
 `forms_builder/0017` chưa áp. Lỗi này trùng gốc với **TL-76** ở phần dưới, ghi chung ở đó.
 
-**TL-80 (mở, quy trình) — mức cao, quay lui:** cách quay lui của biên bản 29.09 (đổi image, `collectstatic` bằng image cũ)
+**TL-80 (đã sửa quy trình, áp ở lượt phát hành VPS 09.10.2026) — mức cao, quay lui:** cách quay lui của biên bản 29.09 (đổi image, `collectstatic` bằng image cũ)
 chép 0 tệp static, vì `collectstatic` so theo giờ sửa tệp. 7 tệp JS/CSS vẫn bản mới trên server cũ, mở panel Bộ lọc thì 404
 và lỗi JS. Tiến lại sau quay lui cũng sót theo chiều ngược. **Cách sửa:** luôn dùng `collectstatic --noinput --clear`
 (README đã ghi).
 
-**TL-81 (mở, quy trình) — mức cao, phát hành:** theo thứ tự README thì code cũ chạy trên schema mới cho tới `up -d`:
+**TL-81 (đã sửa quy trình, áp ở lượt phát hành VPS 09.10.2026) — mức cao, phát hành:** theo thứ tự README thì code cũ chạy trên schema mới cho tới `up -d`:
 - trùng mã đơn lọt ràng buộc (code cũ ghi khoá rỗng), đổi mã để khoá cũ nằm lại;
 - báo cáo MKT lưu CAD/USD, trái ADR-047;
 - sau `configure_erp_reports` mới, nộp MKT bằng bản cũ hỏng.
@@ -216,14 +216,14 @@ và lỗi JS. Tiến lại sau quay lui cũng sót theo chiều ngược. **Các
 (giá trị nằm trong câu) vào log, gồm cả nội dung ô. **Cách sửa:** thêm `-c log_min_error_statement=panic` vào lệnh `db`.
 Việc của phiên phát hành, vì VPS có thể đè lệnh `db` trong `compose.vps.yml`.
 
-**TL-83 (mở) — mức vừa, công cụ:** ở 100.000 dòng, `kiem_tra_du_lieu` chạy bằng `exec` trong container crm (640 MiB, dùng
+**TL-83 (mở; tạm chạy trong container riêng, đã dùng ở lượt phát hành 09.10.2026) — mức vừa, công cụ:** ở 100.000 dòng, `kiem_tra_du_lieu` chạy bằng `exec` trong container crm (640 MiB, dùng
 chung với gunicorn) bị diệt vì hết RAM; chạy riêng cần khoảng 410 MiB. **Tạm thời:** chạy bằng `docker compose run --rm`.
 Đọc theo lô để sau.
 
-**TL-84 (mở, quy trình) — mức vừa:** `up -d crm erp worker heavy beat proxy` theo README tạo lại container `db` khi `.env`
+**TL-84 (đã sửa quy trình, áp ở lượt phát hành VPS 09.10.2026) — mức vừa:** `up -d crm erp worker heavy beat proxy` theo README tạo lại container `db` khi `.env`
 đổi (DB tắt 3 s). **Cách sửa:** `up -d --no-deps crm erp worker heavy beat`, rồi reload nginx.
 
-**TL-85 (mở, quy trình) — mức vừa:** `BANGTINH_GOC` gõ sai (khác đúng `prod`) thì CRM chạy `DEBUG=True` mà
+**TL-85 (đã sửa quy trình, áp ở lượt phát hành VPS 09.10.2026) — mức vừa:** `BANGTINH_GOC` gõ sai (khác đúng `prod`) thì CRM chạy `DEBUG=True` mà
 `check --deploy` vẫn thoát 0. **Cách sửa:** chạy `check --deploy --fail-level WARNING` trên crm và erp (README đã ghi).
 
 ## 08.10.2026 — Kiểm toàn diện `Staging` `450b6da` trước khi gộp `main` (TL-76 → TL-78, đã sửa cùng ngày)
