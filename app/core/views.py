@@ -242,10 +242,11 @@ def csrf_failure(request, reason=""):
 def permission_denied(request, exception=None):
     """handler403 của cả hai URLconf (knjsc/urls.py, knjsc/urls_bangtinh.py) — TL-106.
 
-    Mọi lần từ chối khác đã tự ghi Từ chối ngay chỗ kiểm (core.permissions.assert_*, record_denied ở view); ghi lại ở
-    đây là ghi đôi, mà bài quét POST đòi đúng một dòng. Riêng NoProfileError (Manager mất bộ phận, tài khoản chưa có hồ
-    sơ — P0-9) nổ từ core.scope ở bất kỳ truy vấn có phạm vi nào và không chỗ nào ghi trước khi ném, nên ghi đúng một
-    dòng ở đây, sau khi giao dịch của view đã huỷ. Người gọi đợi JSON (lưới KN CRM) nhận {error, code} để báo đúng lời;
+    Chỗ kiểm qua core.permissions.assert_* hay tự gọi record_denied đã ghi Từ chối trước khi ném; ghi cho mọi
+    PermissionDenied ở đây thì những chỗ đó ghi đôi, mà bài quét POST đòi đúng một dòng. Vẫn còn vài đường 403 chưa ghi
+    gì (đường đọc JSON của lưới, phân công GET, chi tiết vận đơn — biên bản 15.10 mục 7), để việc riêng. Riêng
+    NoProfileError (Manager mất bộ phận, tài khoản chưa có hồ sơ — P0-9) nổ từ core.scope ở bất kỳ truy vấn có phạm vi
+    nào và không chỗ nào ghi trước khi ném, nên ghi đúng một dòng ở đây, sau khi giao dịch của view đã huỷ. Người gọi đợi JSON (lưới KN CRM) nhận {error, code} để báo đúng lời;
     mở trang thường nhận trang 403 như cũ."""
     from django.views import defaults
 
