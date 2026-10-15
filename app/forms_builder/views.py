@@ -184,7 +184,7 @@ def bang_cot(request, code):
 
 
 def _trang_cot(request, bang_hien, form=None, dang_sua=None, status=200):
-    """Trang Cột của một bảng — dùng lại khi thao tác bị từ chối để hiện lời báo ngay trên trang."""
+    """Trang Cột của một bảng (form thêm/sửa cột, danh sách cột, quyền)."""
     request.nav_current = "bang"
     return render(request, "forms_builder/bang_cot.html", {
         "bang": bang_hien, "form": form or ColumnForm(table=bang_hien), "dang_sua": dang_sua,
@@ -215,10 +215,11 @@ def bang_xoa_cot(request, code, pk):
     try:
         table_service.remove_column(cot, actor=request.user, request=request)
     except BusinessError as loi:
-        # Cột khoá, vế công thức, nối biểu mẫu, cột hệ thống vận đơn: báo đỏ, cột còn nguyên (TL-13)
+        # Cột khoá, vế công thức, nối biểu mẫu, cột hệ thống vận đơn: báo đỏ, cột còn nguyên (TL-13). Chuyển về màn Cột
+        # như mọi thao tác khác của màn này; hiện trang ngay ở địa chỉ POST thì tải lại trang ra 405 trắng (TL-107)
         messages.error(request, str(loi))
-        return _trang_cot(request, bang_hien, status=400)
-    messages.success(request, f"Đã bỏ cột {ten}.")
+    else:
+        messages.success(request, f"Đã bỏ cột {ten}.")
     return redirect("bang_cot", code=code)
 
 

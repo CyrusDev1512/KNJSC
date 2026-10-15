@@ -238,8 +238,9 @@ def _bo_cot(client, cua, bang, ma):
 @pytest.mark.parametrize("urlconf,cua", CUA_BO_COT)
 def test_bo_cot_cung_mot_luat_o_moi_cua(client, settings, cot_bo_thu, nguoi_dung, urlconf, cua, bang_ten, ma, loi):
     """AC-11.22 — Cùng một luật bỏ cột ở mọi cửa (lưới, màn Cột ở 8020 và 8021): cột chuẩn và cột theo tệp
-    vận đơn thật, cột khoá, vế của cột tính sẵn, cột đang nhận dữ liệu từ biểu mẫu bị từ chối 400 kèm lời
-    báo; cột còn nguyên, cột tách của dòng cũ không mất, không có nhật ký bỏ cột (TL-13)"""
+    vận đơn thật, cột khoá, vế của cột tính sẵn, cột đang nhận dữ liệu từ biểu mẫu bị từ chối kèm lời báo — lưới
+    trả 400, màn Cột chuyển về màn Cột với lời đỏ (TL-107); cột còn nguyên, cột tách của dòng cũ không mất, không có
+    nhật ký bỏ cột (TL-13)"""
     settings.ROOT_URLCONF = urlconf
     client.raise_request_exception = False
     bang, nguoi = cot_bo_thu(bang_ten)
@@ -249,13 +250,34 @@ def test_bo_cot_cung_mot_luat_o_moi_cua(client, settings, cot_bo_thu, nguoi_dung
 
     kq = _bo_cot(client, cua, bang, ma)
 
-    assert kq.status_code == 400, kq.status_code
-    assert loi in kq.content.decode()
+    if cua == "luoi":
+        assert kq.status_code == 400, kq.status_code
+        assert loi in kq.content.decode()
+    else:   # màn Cột: Post/Redirect/Get, lời đỏ hiện ở màn Cột (đọc từ messages, không dò cả trang — TL-107)
+        assert kq.status_code == 302 and kq.url == f"/bang/{bang.code}/cot/", kq.status_code
+        assert any(loi in str(m) for m in client.get(kq.url).context["messages"]), loi
     assert bang.columns.filter(code=ma).exists()
     if d is not None:
         d.refresh_from_db()
         assert d.val_revenue == truoc
     assert not AuditLog.objects.filter(detail__startswith=f"Bỏ cột {ma} ").exists()
+
+
+@pytest.mark.parametrize("urlconf", ["knjsc.urls_bangtinh", "knjsc.urls"])
+def test_bo_cot_bi_tu_choi_o_man_cot_tai_lai_khong_ra_405(client, settings, bang_sale, nguoi_dung, urlconf):
+    """AC-11.22 — Màn Cột (8020 và 8021) từ chối bỏ cột thì chuyển về màn Cột kèm lời đỏ (Post/Redirect/Get): trình
+    duyệt đứng ở màn Cột nên tải lại trang ra 200 và lời báo không hiện lại, không còn 405 trắng ở …/cot/<pk>/bo/; cột
+    còn nguyên (TL-107)"""
+    settings.ROOT_URLCONF = urlconf
+    client.force_login(nguoi_dung["manager_sale"])
+    khoa = bang_sale.columns.get(code="khach")
+    kq = client.post(f"/bang/{bang_sale.code}/cot/{khoa.pk}/bo/", follow=True)
+    assert [ma for _, ma in kq.redirect_chain] == [302], kq.status_code
+    assert kq.request["PATH_INFO"] == f"/bang/{bang_sale.code}/cot/" and kq.status_code == 200
+    assert any("cột khoá" in str(m) for m in kq.context["messages"])
+    tai_lai = client.get(kq.request["PATH_INFO"])
+    assert tai_lai.status_code == 200 and not list(tai_lai.context["messages"])
+    assert bang_sale.columns.filter(code="khach").exists()
 
 
 @SUA_DUOC
