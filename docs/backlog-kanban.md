@@ -1,5 +1,15 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 15.10.2026 — Rà lại 27 mã cũ trên mã hiện tại
+
+**Finished:** rà 27 mã TL-04 → TL-33: 7 hết (đóng), 12 còn một phần, 8 còn nguyên; 12 lỗi mới TL-113 → TL-124
+(`docs/kiem-chung-ra-27-ma-cu-20261015.md`). Bảng "To do" cũ bên dưới (07.09) đã lỗi thời với các mã này; trạng thái đúng ở biên bản.
+
+**To do (chủ dự án):** chốt phạm vi vận đơn của Sale Leader/Manager (TL-116, TL-117); duyệt cách sửa đợt A/B/C.
+
+**To do (máy, sau khi duyệt):** đợt A: TL-113 (S1, + TL-14), TL-32 (S2), TL-114, TL-10, TL-04; đợt B: TL-06, 09, 11, 12, 20,
+25, 112, 115, 118, 122, 123; đợt C: S4 còn lại (TL-08, 19, 24, 26 → 31, 33, 119 → 121, 124).
+
 ## 15.10.2026 — Sửa nốt TL-101 → TL-111; biên bản kiểm thử tổng hợp
 
 **Finished (nhánh `claude/sua-tl105-111`, #133, đã gộp `Staging` 15.10):**

@@ -1,7 +1,7 @@
 # Biên bản kiểm thử tổng hợp — 15.10.2026
 
 Biên bản này gộp sổ lỗi `docs/test-log.md` và các đợt kiểm thử trước đây vào một chỗ: tiến độ kiểm thử toàn hệ thống,
-lượt sửa 15.10, sổ lỗi đầy đủ TL-01 → TL-112 kèm mức và trạng thái, các việc còn lại. `docs/test-log.md` vẫn giữ làm
+lượt sửa 15.10, sổ lỗi đầy đủ TL-01 → TL-124 kèm mức và trạng thái, các việc còn lại. `docs/test-log.md` vẫn giữ làm
 sổ chi tiết (cách tái hiện, chỗ sai, lệnh đã chạy của từng mã), vì CLAUDE.md, `docs/08` và các biên bản dẫn tới đó.
 
 | Mục | Giá trị |
@@ -24,7 +24,7 @@ sổ chi tiết (cách tái hiện, chỗ sai, lệnh đã chạy của từng m
 | Lộ trình P0 (`docs/08` mục 9.1) | `████████░░` 76% | 13/17 | P0-5, P0-6, P0-11, P0-12 chờ chủ dự án quyết (`docs/08` mục 9.5) |
 | Lộ trình P1 | `░░░░░░░░░░` 0% | 0/29 | Chưa làm |
 | Lộ trình P2 | `░░░░░░░░░░` 0% | 0/19 | Chưa làm |
-| Lỗi đã ghi (TL-01 → TL-112) đã sửa | `███████░░░` 71% | 76/107 | Đã gộp `Staging`: 60 trước 15.10, 11 của #133, cộng TL-80/81/82/84/85 sửa ở lượt phát hành VPS 09.10 (#134) |
+| Lỗi đã ghi (TL-01 → TL-124) đã đóng | `███████░░░` 70% | 83/119 | 76 đã sửa (60 trước 15.10, 11 của #133, TL-80/81/82/84/85 ở lượt phát hành 09.10) + 7 hết trên lưới mới (rà 15.10). 27 mã cũ đã rà xong, thêm 12 mã mới |
 | Chặng 2 kiểm tay ở local | `░░░░░░░░░░` 0% | — | Phần của chủ dự án; diễn tập bằng máy 14.10 (40 bước) đã đạt |
 | Chặng 3 (`main`) và chặng 4 (VPS) | `░░░░░░░░░░` 0% | — | Chờ chặng 2 |
 
@@ -69,16 +69,16 @@ chưa sửa vì ngoài phạm vi đã duyệt.
 ## 4. Sổ lỗi đầy đủ
 
 TL-37 → TL-40 và TL-59 không được dùng. Trạng thái: **Đã sửa** (đã gộp `Staging`, hay đã áp trên VPS với mã quy trình),
-**Mở**, **Cần rà lại** (ghi trên lưới HTMX cũ 07.09, lưới đó đã thay hẳn theo ADR-021, 027; phải rà lại trên
-lưới mới trước khi sửa), **Không sửa**.
+**Hết trên lưới mới** (rà 15.10: hậu quả không còn trên mã hiện tại, đóng), **Mở**, **Không sửa**. 27 mã "Cần rà lại" đã
+rà xong 15.10: `docs/kiem-chung-ra-27-ma-cu-20261015.md`.
 
 | Trạng thái | Số mã |
 |---|---|
 | Đã sửa (đã gộp `Staging` hay đã áp trên VPS) | 76 |
-| Mở | 3 |
-| Cần rà lại | 27 |
+| Hết trên lưới mới (rà 15.10) | 7 |
+| Mở | 35 (3 cũ + 20 sau rà + 12 mới) |
 | Không sửa | 1 |
-| **Tổng** | **107** |
+| **Tổng** | **119** |
 
 ### 4.1 TL-01 → TL-36: rà lưới HTMX cũ (05–07.09.2026)
 
@@ -87,36 +87,36 @@ lưới mới trước khi sửa), **Không sửa**.
 | TL-01 | S1 | Manager bộ phận khác tự cấp quyền Sửa cho mình trên bảng chỉ được Xem | Đã sửa #122 (P0-1) |
 | TL-02 | S1 | Hết phiên 60 phút mà lưới vẫn báo "Đã lưu", mất nháp | Đã sửa #129 (P0-14, ADR-053) |
 | TL-03 | S1 | Số có từ 3 chữ số lẻ bị nhân nghìn (`0.125` thành `125`) | Đã sửa bước 1 #124 (P0-3, ADR-052) |
-| TL-04 | S2 | Lọc khoảng cột tiền/ngày với chuỗi lạ ra 500 | Cần rà lại |
-| TL-05 | S2 | Khôi phục dòng bỏ qua phạm vi quyền | Cần rà lại |
-| TL-06 | S2 | Ô gặp 403/500 kẹt "đang lưu", tự cập nhật dừng | Cần rà lại |
-| TL-07 | S3 | Hoàn tác ghi đè sửa của người khác không cảnh báo | Cần rà lại |
-| TL-08 | S3 | Tự lưu xong lưới nạp lại cả bảng, báo "có dữ liệu mới" nhầm | Cần rà lại |
-| TL-09 | S3 | Sắp xếp không ổn định giữa các trang | Cần rà lại |
-| TL-10 | S3 | Cột tiền không nhãn sắp xếp và lọc theo chuỗi | Cần rà lại |
-| TL-11 | S3 | Trang chủ đếm cả dòng ngoài phạm vi và dòng đã xoá | Cần rà lại |
-| TL-12 | S4 | Xoá 2.000 dòng tốn khoảng 6.000 truy vấn | Cần rà lại |
+| TL-04 | S2 | Lọc khoảng cột tiền/ngày với chuỗi lạ ra 500 | Mở — còn một phần, S3 (rà 15.10) |
+| TL-05 | S2 | Khôi phục dòng bỏ qua phạm vi quyền | Hết trên lưới mới (rà 15.10) |
+| TL-06 | S2 | Ô gặp 403/500 kẹt "đang lưu", tự cập nhật dừng | Mở — còn một phần, S3 (rà 15.10) |
+| TL-07 | S3 | Hoàn tác ghi đè sửa của người khác không cảnh báo | Hết trên lưới mới (rà 15.10) |
+| TL-08 | S3 | Tự lưu xong lưới nạp lại cả bảng, báo "có dữ liệu mới" nhầm | Mở — còn một phần, S4 (rà 15.10) |
+| TL-09 | S3 | Sắp xếp không ổn định giữa các trang | Mở — còn một phần (Bảng dữ liệu ERP), S3 (rà 15.10) |
+| TL-10 | S3 | Cột tiền không nhãn sắp xếp và lọc theo chuỗi | Mở — còn nguyên, S3 (rà 15.10) |
+| TL-11 | S3 | Trang chủ đếm cả dòng ngoài phạm vi và dòng đã xoá | Mở — còn một phần (ERP), S3 (rà 15.10) |
+| TL-12 | S4 | Xoá 2.000 dòng tốn khoảng 6.000 truy vấn | Mở — còn nguyên, nâng S3 (rà 15.10) |
 | TL-13 | S2 | Màn Sửa cột cho bỏ cột hệ thống của bảng vận đơn | Đã sửa #120 (P0-7) |
-| TL-14 | S3 | Dán vượt trang tạo dòng mới thay vì ghi tiếp | Cần rà lại |
-| TL-15 | S3 | Định dạng ô ngoài phạm vi bị bỏ qua lặng lẽ thay vì 403 | Cần rà lại |
-| TL-16 | S3 | Sửa một ô ghi cả dòng, hai người cùng dòng ghi đè nhau | Cần rà lại |
-| TL-17 | S3 | Sửa một ô không vẽ lại cột tính sẵn của dòng | Cần rà lại |
+| TL-14 | S3 | Dán vượt trang tạo dòng mới thay vì ghi tiếp | Mở — phần còn lại là TL-113 (rà 15.10) |
+| TL-15 | S3 | Định dạng ô ngoài phạm vi bị bỏ qua lặng lẽ thay vì 403 | Hết trên lưới mới (rà 15.10) |
+| TL-16 | S3 | Sửa một ô ghi cả dòng, hai người cùng dòng ghi đè nhau | Hết trên lưới mới (rà 15.10) |
+| TL-17 | S3 | Sửa một ô không vẽ lại cột tính sẵn của dòng | Hết trên lưới mới (rà 15.10) |
 | TL-18 | S2 | Hết phiên, HTMX dán cả trang đăng nhập vào ô đang sửa | Đã sửa #129 (P0-14) |
-| TL-19 | S2 | Máy chủ trả 400 mà lưới báo "Đã lưu" | Cần rà lại |
-| TL-20 | S2 | Lời báo lỗi của ô bị giấu dưới ô | Cần rà lại |
-| TL-21 | S3 | Tiêu đề bảng ngoài vận đơn màu vàng đồng | Cần rà lại |
-| TL-22 | S1 | Làm lại giao dịch sau deadlock không ghi gì mà vẫn trả 200 | Cần rà lại |
+| TL-19 | S2 | Máy chủ trả 400 mà lưới báo "Đã lưu" | Mở — còn một phần, S4 (rà 15.10) |
+| TL-20 | S2 | Lời báo lỗi của ô bị giấu dưới ô | Mở — còn một phần, S3 (rà 15.10) |
+| TL-21 | S3 | Tiêu đề bảng ngoài vận đơn màu vàng đồng | Hết trên lưới mới (rà 15.10) |
+| TL-22 | S1 | Làm lại giao dịch sau deadlock không ghi gì mà vẫn trả 200 | Hết trên lưới mới (rà 15.10) |
 | TL-23 | S2 | Tác vụ "Tính lại cột" kẹt Đang chạy khi worker chết | Đã sửa #117 (P0-13) |
-| TL-24 | S3 | Chỉ lưu ô có làm lại khi deadlock; thao tác khác có thể 500 | Cần rà lại |
-| TL-25 | S3 | Không gộp tác vụ tính lại; sửa công thức hai lần có thể để lô cũ | Cần rà lại |
-| TL-26 | S4 | Lỗi ở một lô tính lại không dừng các lô còn lại | Cần rà lại |
-| TL-27 | S4 | `do_hieu_nang` đo tính lại trên dữ liệu đã đồng bộ | Cần rà lại |
-| TL-28 | S4 | `moi-nhat/` không lọc theo phạm vi từng người | Cần rà lại |
-| TL-29 | S4 | Tệp tĩnh không phục vụ khi chạy gunicorn trong kiểm tải | Cần rà lại |
-| TL-30 | S4 | Script kiểm tải đặt lại mật khẩu mẫu, xoá cứng dòng PERF | Cần rà lại |
-| TL-31 | S4 | Docstring nhắc bài kiểm không tồn tại | Cần rà lại |
-| TL-32 | S4 | JSON ngày có giờ làm hỏng cả lô `bulk_save` | Cần rà lại |
-| TL-33 | S4 | `test_hieu_nang` xfail vì ngân sách truy vấn | Cần rà lại |
+| TL-24 | S3 | Chỉ lưu ô có làm lại khi deadlock; thao tác khác có thể 500 | Mở — còn một phần, S4 (rà 15.10) |
+| TL-25 | S3 | Không gộp tác vụ tính lại; sửa công thức hai lần có thể để lô cũ | Mở — còn nguyên, S3 (rà 15.10) |
+| TL-26 | S4 | Lỗi ở một lô tính lại không dừng các lô còn lại | Mở — còn một phần, S4 (rà 15.10) |
+| TL-27 | S4 | `do_hieu_nang` đo tính lại trên dữ liệu đã đồng bộ | Mở — còn nguyên, S4 (rà 15.10) |
+| TL-28 | S4 | `moi-nhat/` không lọc theo phạm vi từng người | Mở — còn nguyên (chỉ tài liệu), S4 (rà 15.10) |
+| TL-29 | S4 | Tệp tĩnh không phục vụ khi chạy gunicorn trong kiểm tải | Mở — còn nguyên, S4 (rà 15.10) |
+| TL-30 | S4 | Script kiểm tải đặt lại mật khẩu mẫu, xoá cứng dòng PERF | Mở — còn nguyên, S4 (rà 15.10) |
+| TL-31 | S4 | Docstring nhắc bài kiểm không tồn tại | Mở — còn một phần (tài liệu), S4 (rà 15.10) |
+| TL-32 | S4 | JSON ngày có giờ làm hỏng cả lô `bulk_save` | Mở — còn nguyên, nâng S2 (rà 15.10) |
+| TL-33 | S4 | `test_hieu_nang` xfail vì ngân sách truy vấn | Mở — còn một phần, S4 (rà 15.10) |
 | TL-34 | S2 | Đổi cột tính sẵn trên bảng lớn chạy đồng bộ trong yêu cầu | Đã sửa ở PR21 (ADR-016; sổ còn ghi "chưa gộp" từ 07.09) |
 | TL-35 | S2 | Cột Trùng chỉ có ở bảng vận đơn cũ | Đã sửa (đóng 18.09, ADR-036 một bảng) |
 | TL-36 | S2 | Trùng đếm theo số điện thoại đúng như gõ | Đã sửa (đóng 22.09) |
@@ -202,16 +202,36 @@ lưới mới trước khi sửa), **Không sửa**.
 | TL-111 | S4 | Kho chứng từ 403 không có nhật ký | Đã sửa #133 (`36f8b4d`) |
 | TL-112 | S3 | `locustfile_kn_crm.py` sửa ô, định dạng, dán, xoá trên dòng thật (chỉ thêm dòng là `PERF-*`) | **Mở** (mới 15.10) |
 
+### 4.4 TL-113 → TL-124: rà lại 27 mã cũ (15.10.2026)
+
+Chi tiết, bằng chứng chạy và cách sửa đề xuất: `docs/kiem-chung-ra-27-ma-cu-20261015.md` mục 3, 5.
+
+| Mã | Mức | Lỗi | Trạng thái |
+|---|---|---|---|
+| TL-113 | S1 | Sau khi tự lưu, lưới bỏ so phiên bản khối: dán vắt khối mất một giá trị mà vẫn "Đã lưu" | **Mở** |
+| TL-114 | S3 | Mốc trả về khi lưu là mốc cả bảng: sửa của người khác ngay trước lượt lưu bị nuốt tới khi tải lại | **Mở** |
+| TL-115 | S3 | Sửa SĐT cho trùng dòng khác: ô Trùng của dòng kia không cập nhật | **Mở** |
+| TL-116 | S3 | Manager Sale thấy ít dòng vận đơn hơn Leader Sale (0 nếu tự chưa lên đơn) | **Mở** — chờ chủ dự án chốt phạm vi |
+| TL-117 | S3 | Sale Leader/Manager chưa lên đơn: trang chủ "Bảng 0" mà có dòng, không mở được lưới | **Mở** — cùng gốc TL-116 |
+| TL-118 | S3 | Tính lại cột N+1 `TableDef`, chậm khoảng 14 lần | **Mở** |
+| TL-119 | S4 | Lưu gặp 5xx thì lời báo của đường đọc; deadlock ra 500 HTML | **Mở** |
+| TL-120 | S4 | Lọc `1e200000` ra 400 HTML, lưới đứng "Đang tải…" | **Mở** |
+| TL-121 | S4 | `moi-nhat/` trả `tinh_lai.total` của cả bảng | **Mở** |
+| TL-122 | S4 | Route `xoa-cot/`, `them-cot/` cũ còn sống | **Mở** |
+| TL-123 | S4 | Bỏ cột chữ thường vẫn tính lại cả bảng | **Mở** |
+| TL-124 | S4 | Bộ kiểm tải AC-10.8 gọi đường cũ, không chạy được trên lưới mới | **Mở** — cùng tệp TL-112 |
+
 ## 5. Lỗi chưa xong theo mức nghiêm trọng
 
 | Mức | Mã | Trạng thái | Việc tiếp theo |
 |---|---|---|---|
-| S1 | TL-22 | Cần rà lại | Rà trên lưới mới: `luu-json` có làm lại sau deadlock không và có ghi đúng không |
-| S2 | TL-04, TL-05, TL-06, TL-19, TL-20 | Cần rà lại | Lượt rà riêng trên lưới mới; TL-06, TL-19, TL-20 thuộc renderer HTMX đã bỏ, nhiều khả năng đã hết |
+| S1 | TL-113 (+ phần còn lại TL-14) | Mở | Đợt sửa A: giữ so phiên bản khối sau khi tự lưu |
+| S2 | TL-32 | Mở | Đợt sửa A: `_normalise` nhận ngày kèm giờ |
 | Vừa | TL-83 | Mở | Sửa `kiem_tra_du_lieu` đọc theo lô; làm được ở máy ảo. Tạm thời chạy bằng `docker compose run --rm` |
-| S3 | TL-112 | Mở | Sửa như TL-102: chỉ đụng dòng `PERF-*` |
-| S3 | TL-07, TL-08, TL-09, TL-10, TL-11, TL-14, TL-15, TL-16, TL-17, TL-21, TL-24, TL-25 | Cần rà lại | Lượt rà riêng |
-| S4 | TL-12, TL-26 → TL-33 | Cần rà lại | Lượt rà riêng |
+| S3 | TL-04, TL-10, TL-114 | Mở | Đợt sửa A (sai số liệu) |
+| S3 | TL-06, TL-09, TL-11, TL-12, TL-20, TL-25, TL-115, TL-118, TL-112 | Mở | Đợt sửa B |
+| S3 | TL-116, TL-117 | Mở | Chờ chủ dự án chốt phạm vi vận đơn của Sale Leader/Manager |
+| S4 | TL-08, TL-19, TL-24, TL-26 → TL-31, TL-33, TL-119 → TL-124 | Mở | Đợt sửa C (công cụ, tài liệu) |
 | — | TL-71 | Mở | Bài e2e chập chờn: chẩn đoán đã có trong bài, chờ lần tái diễn có ngăn xếp |
 | Vừa | TL-88 | Không sửa | Sổ lỗi ghi "không sửa mã" (10.10); xem lại nếu chủ dự án muốn đổi cách đếm |
 
@@ -231,6 +251,7 @@ lưới mới trước khi sửa), **Không sửa**.
 | 14.10 | CI `Staging` sau gộp KN OMS; đợt P0: 16 PR, bài đỏ trước sửa sau, gộp `Staging` | TL-90 → TL-104, TL-100 | `docs/kiem-chung-gop-kn-oms-staging-20261014.md`, `docs/kiem-chung-p0-14-het-phien-20261014.md`, `docs/kiem-chung-gop-p0-staging-20261014.md` |
 | 14.10 | Rà sau gộp: gộp thử 16 PR, rà ngữ nghĩa, diễn tập chặng 2 bằng máy | TL-105 → TL-111 | `docs/kiem-chung-p0-ra-soat-sau-gop-20261014.md` |
 | 15.10 | Lượt sửa 11 lỗi và biên bản tổng hợp này | TL-101 → TL-112 | Tệp này |
+| 15.10 | Rà lại 27 mã cũ trên mã hiện tại: 7 hết, 20 còn, 12 lỗi mới | TL-113 → TL-124 | `docs/kiem-chung-ra-27-ma-cu-20261015.md` |
 
 ## 7. Việc ghi lại, chưa cấp mã
 
@@ -254,7 +275,6 @@ Thấy khi làm lượt 15.10, ngoài phạm vi đã duyệt; không đổi hàn
 - 13 AC kiểm tay (`docs/04` cột "Thủ công") và 18 AC đang hoãn.
 - Phần cần VPS hay Windows: kiểm tay launcher TC-1 → TC-6 (TL-99); diễn tập tắt worker giữa chừng. TL-80 → TL-85 đã
   đóng ở lượt phát hành 09.10 trừ TL-83 (biên bản `docs/kiem-chung-phat-hanh-vps-20261009.md`).
-- 27 mã "Cần rà lại".
 - `scripts/kiem-thu-statistics-labels.cjs` và các script trình duyệt khác chạy tay, không chạy ở lượt này.
 
 ## 9. Chặng 2 cho lượt sửa này

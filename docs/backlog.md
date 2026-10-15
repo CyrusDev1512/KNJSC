@@ -1,5 +1,17 @@
 # Backlog
 
+## 15.10.2026 — Rà lại 27 mã cũ TL-04 → TL-33 trên mã hiện tại
+
+- **Chủ dự án:** "đã xoá nhánh xong, rà lại 27 mã cũ đi"; rồi "làm một biên bản chứa nhật ký hoạt động + push lên git".
+- **Làm gì:** chỉ rà, không sửa mã. `Staging` `2d5fb04`, workflow 15 agent (7 rà, 7 phản biện, 1 soát), bài nháp pytest và
+  Playwright chạy thật, ba kết luận nặng nhất tự chạy lại. Biên bản kèm nhật ký hoạt động:
+  `docs/kiem-chung-ra-27-ma-cu-20261015.md`.
+- **Kết quả:** 7 hết trên lưới mới (TL-05, 07, 15, 16, 17, 21, 22; trong đó TL-22 S1); 12 còn một phần; 8 còn nguyên.
+  12 lỗi mới TL-113 → TL-124. Nặng nhất **TL-113 (S1)**: sau khi tự lưu, dán vắt khối có thể mất một giá trị mà vẫn "Đã lưu".
+  Sổ lỗi nay 119 mã: 83 đã đóng, 35 mở, 1 không sửa.
+- **Còn nợ:** chủ dự án chốt phạm vi vận đơn của Sale Leader/Manager (TL-116, TL-117); duyệt cách sửa ba đợt A/B/C ở mục 5
+  biên bản; xoá thư mục nháp `app/_ra_soat_tmp/` khi sửa xong (không vào git).
+
 ## 15.10.2026 — Gộp #132, #133, #134 vào `Staging`; đồng bộ trạng thái TL-80 → TL-85
 
 - **Chủ dự án:** "gộp #132 và #133 + 134", xoá nhánh biên bản phát hành VPS, "đồng bộ tài liệu TL-80 → TL-85 luôn".
