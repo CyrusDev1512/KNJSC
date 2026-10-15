@@ -164,23 +164,33 @@ def bang_cot(request, code):
         dang_sua = get_object_or_404(ColumnDef, pk=sua_pk, table=bang_hien)
 
     form = ColumnForm(request.POST or None, instance=dang_sua, table=bang_hien)
+    status = 200
     if request.method == "POST" and form.is_valid():
         d = form.cleaned_data
-        if dang_sua:
-            # ModelForm đã ghi giá trị mới vào `dang_sua` lúc kiểm, nên đưa
-            # bản gốc từ cơ sở dữ liệu vào dịch vụ — không thì dịch vụ so
-            # "cũ với mới" thấy giống nhau và lặng lẽ không lưu gì
-            goc = ColumnDef.objects.get(pk=dang_sua.pk)
-            table_service.update_column(
-                goc, d, actor=request.user, request=request)
-            messages.success(request, f"Đã sửa cột {goc.name}." + _bao_tinh_lai(goc))
+        try:
+            if dang_sua:
+                # ModelForm đã ghi giá trị mới vào `dang_sua` lúc kiểm, nên đưa
+                # bản gốc từ cơ sở dữ liệu vào dịch vụ — không thì dịch vụ so
+                # "cũ với mới" thấy giống nhau và lặng lẽ không lưu gì
+                goc = ColumnDef.objects.get(pk=dang_sua.pk)
+                table_service.update_column(
+                    goc, d, actor=request.user, request=request)
+                messages.success(request, f"Đã sửa cột {goc.name}." + _bao_tinh_lai(goc))
+            else:
+                cot = table_service.add_column(
+                    bang_hien, actor=request.user, request=request, **d)
+                messages.success(request, f"Đã thêm cột {cot.name}." + _bao_tinh_lai(cot))
+        except BusinessError as loi:
+            # Đổi kiểu mà giá trị cũ không chuyển được, đổi cấu trúc cột chuẩn Vận đơn…: báo trong khung "Chưa lưu được",
+            # giữ chữ đã gõ, cột không đổi — không để lỗi nghiệp vụ thành 500 (TL-101)
+            form.add_error(None, str(loi))
+            if dang_sua:   # tiêu đề "Sửa cột …" đọc lại tên đã lưu, không lấy tên vừa gõ mà chưa lưu được
+                dang_sua = ColumnDef.objects.get(pk=dang_sua.pk)
+            status = 400
         else:
-            cot = table_service.add_column(
-                bang_hien, actor=request.user, request=request, **d)
-            messages.success(request, f"Đã thêm cột {cot.name}." + _bao_tinh_lai(cot))
-        return redirect("bang_cot", code=bang_hien.code)
+            return redirect("bang_cot", code=bang_hien.code)
 
-    return _trang_cot(request, bang_hien, form, dang_sua)
+    return _trang_cot(request, bang_hien, form, dang_sua, status=status)
 
 
 def _trang_cot(request, bang_hien, form=None, dang_sua=None, status=200):
