@@ -477,3 +477,65 @@ def test_tat_co_thi_chung_tu_va_anh_that_deu_404(client, feedback, nguoi_dung, s
     r = client.get(anh)
     assert r.status_code == 200
     b''.join(r.streaming_content)
+
+
+def _tu_choi(nguoi):
+    from core.constants import AuditAction
+    from core.models import AuditLog
+    return list(AuditLog.objects.filter(action=AuditAction.DENIED, actor=nguoi).order_by('pk')
+                .values_list('target_id', flat=True))
+
+
+def test_moi_lan_403_o_kho_chung_tu_ghi_dung_mot_dong_tu_choi(client, feedback, nguoi_dung):
+    """AC-26.2 — Mỗi lần kho chứng từ trả 403 (Giám đốc tạo, sửa, lấy danh sách dòng; người ngoài phạm vi xem chi tiết,
+    ảnh, lọc theo dòng; ảnh của chứng từ đã xoá kể cả với Admin) có đúng một dòng Từ chối của đúng người, ghi đường dẫn
+    không kèm chuỗi truy vấn; lời báo 403 giữ nguyên (FR-3.5, TL-111)"""
+    row = feedback[2][0]
+    admin = nguoi_dung['admin']
+    client.force_login(admin)
+    pk = create_document(client, row).json()['id']
+    anh = client.get(f'/chung-tu-thanh-toan/{pk}/').json()['images'][0]['url']
+
+    ceo = nguoi_dung['ceo']
+    client.force_login(ceo)
+    r = create_document(client, row, reference='CEO')
+    assert r.status_code == 403 and r.json()['error'] == 'Bạn không còn quyền truy cập chứng từ này.'
+    assert client.post(f'/chung-tu-thanh-toan/{pk}/sua/', {'version': 1, 'action': 'edit',
+                                                           'reference': 'CEO'}).status_code == 403
+    assert client.get('/chung-tu-thanh-toan/don/').status_code == 403
+    assert _tu_choi(ceo) == ['/chung-tu-thanh-toan/tao/', f'/chung-tu-thanh-toan/{pk}/sua/',
+                             '/chung-tu-thanh-toan/don/']
+
+    ngoai = nguoi_dung['staff_mkt']
+    client.force_login(ngoai)
+    assert client.get(f'/chung-tu-thanh-toan/{pk}/').status_code == 403
+    assert client.get(anh).status_code == 403
+    assert client.get(f'/chung-tu-thanh-toan/?record={row.pk}&json=1').status_code == 403
+    assert _tu_choi(ngoai) == [f'/chung-tu-thanh-toan/{pk}/', anh, '/chung-tu-thanh-toan/']
+
+    client.force_login(admin)
+    assert client.post(f'/chung-tu-thanh-toan/{pk}/sua/', {'version': 1, 'action': 'delete'}).status_code == 200
+    assert client.get(anh).status_code == 403
+    assert _tu_choi(admin) == [anh]
+
+
+def test_kho_chung_tu_duoc_phep_va_loi_du_lieu_khong_ghi_tu_choi(client, feedback, nguoi_dung):
+    """AC-26.2 — Vai được phép tạo, xem, xem ảnh, sửa, lấy danh sách dòng, lọc theo dòng (Admin, Vận đơn; Giám đốc chỉ
+    xem) và các lỗi không phải quyền (400 dữ liệu, 409 xung đột phiên bản) không sinh dòng Từ chối nào (FR-3.5, TL-111)"""
+    row = feedback[2][0]
+    admin, vd, ceo = nguoi_dung['admin'], nguoi_dung['staff_vd'], nguoi_dung['ceo']
+    client.force_login(vd)
+    pk = create_document(client, row).json()['id']
+    assert client.get('/chung-tu-thanh-toan/don/').status_code == 200
+    assert client.get(f'/chung-tu-thanh-toan/?record={row.pk}&json=1').status_code == 200
+    assert create_document(client, row, reference=' 000123 ').status_code == 400          # trùng Ref
+    client.force_login(admin)
+    anh = client.get(f'/chung-tu-thanh-toan/{pk}/').json()['images'][0]['url']
+    assert client.get(anh).status_code == 200
+    assert client.post(f'/chung-tu-thanh-toan/{pk}/sua/', {'version': 1, 'action': 'edit',
+                                                           'reference': 'NEW'}).status_code == 200
+    assert client.post(f'/chung-tu-thanh-toan/{pk}/sua/', {'version': 1, 'action': 'delete'}).status_code == 409
+    assert client.get('/chung-tu-thanh-toan/?record=abc&json=1').status_code == 400
+    client.force_login(ceo)
+    assert client.get(f'/chung-tu-thanh-toan/{pk}/').status_code == 200
+    assert _tu_choi(admin) == _tu_choi(vd) == _tu_choi(ceo) == []
