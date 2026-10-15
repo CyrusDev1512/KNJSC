@@ -1,5 +1,16 @@
 # Backlog
 
+## 15.10.2026 — Gộp #132, #133, #134 vào `Staging`; đồng bộ trạng thái TL-80 → TL-85
+
+- **Chủ dự án:** "gộp #132 và #133 + 134", xoá nhánh biên bản phát hành VPS, "đồng bộ tài liệu TL-80 → TL-85 luôn".
+- **Gộp** (merge commit, CI xanh từng PR): #132 → #133 → #134. #134 xung đột ở `docs/backlog.md` sau khi #133 vào;
+  đã gộp `Staging` vào nhánh #134, giữ đủ hai mục, CI chạy lại trước khi gộp.
+- **Đồng bộ tài liệu** (biên bản lượt phát hành 09.10, #134): TL-80, TL-81, TL-84, TL-85 đã sửa quy trình
+  (`collectstatic --clear`, dừng app trước `migrate`, `--no-deps`, `check --deploy --fail-level WARNING`); TL-82 đã sửa
+  cấu hình VPS (`log_min_error_statement=panic`); TL-83 còn mở, tạm chạy trong container riêng. Biên bản tổng hợp nay
+  76/107 mã đã sửa, 3 mở (TL-71, TL-83, TL-112), 27 cần rà lại, 1 không sửa. Các mã TL-101 → TL-111 ghi đã gộp.
+- **Còn nợ:** xoá nhánh đã gộp (máy ảo bị chặn xoá, chủ dự án chạy một lệnh); chặng 2 bằng tay.
+
 ## 15.10.2026 — Rà PR và nhánh hơn `main`; đưa biên bản phát hành VPS 09.10 vào repo
 
 - **Chủ dự án:** "kiểm tra tất cả các pr và các nhánh có ahead so với main". Rà trên GitHub, chỉ đọc.
@@ -32,8 +43,9 @@
   - Biên bản gộp mọi đợt kiểm thử và sổ lỗi TL-01 → TL-112: `docs/bien-ban-kiem-thu-tong-hop-20261015.md`.
 - **Kiểm:** số đạt/đỏ của từng bộ ở biên bản mục 2.
 - **Mới:** TL-112 (S3) `locustfile_kn_crm.py` cũng sửa dòng thật; chưa sửa.
-- **Còn nợ:** chặng 2 bằng tay (biên bản mục 9); 27 mã cũ "cần rà lại" trên lưới mới (nặng nhất TL-22, S1); TL-80 →
-  TL-85 cần máy có SSH tới VPS; TL-71; P0-5, P0-6, P0-11, P0-12 chờ chủ dự án quyết; P1, P2 chưa làm.
+- **Còn nợ:** chặng 2 bằng tay (biên bản mục 9); 27 mã cũ "cần rà lại" trên lưới mới (nặng nhất TL-22, S1); TL-83
+  (đọc theo lô; TL-80/81/82/84/85 đã đóng ở lượt phát hành 09.10, #134); TL-71; P0-5, P0-6, P0-11, P0-12 chờ chủ dự án
+  quyết; P1, P2 chưa làm.
 
 ## 14.10.2026 — Rà sau khi gộp đợt P0: rà ngữ nghĩa giữa các PR, diễn tập chặng 2 bằng máy (TL-105 → TL-111)
 

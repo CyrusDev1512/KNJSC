@@ -7,7 +7,7 @@ sổ chi tiết (cách tái hiện, chỗ sai, lệnh đã chạy của từng m
 | Mục | Giá trị |
 |---|---|
 | Người làm | Claude Code (máy ảo trên web), chủ dự án yêu cầu 15.10.2026 |
-| Nhánh | `claude/sua-tl105-111`, tách từ `claude/p0-ra-soat-sau-gop` (#132), PR nháp về `Staging` |
+| Nhánh | `claude/sua-tl105-111` ([#133](https://github.com/CyrusDev1512/KNJSC/pull/133)), đã gộp `Staging` 15.10.2026 cùng #132 và #134 |
 | Môi trường | Máy ảo: PostgreSQL 16, Python venv của dự án, Chromium qua Playwright 1.56, `pg_dump`/`pg_restore` 16. Không có VPS, không có máy Windows |
 | Mức nghiêm trọng | S1 sai tiền, mất dữ liệu, lộ quyền · S2 sai số liệu hay chặn việc · S3 sai nhưng có đường vòng · S4 nhẹ. Các mã TL-41 → TL-89 ghi theo mức cũ Cao / Vừa / Nhẹ |
 
@@ -24,7 +24,7 @@ sổ chi tiết (cách tái hiện, chỗ sai, lệnh đã chạy của từng m
 | Lộ trình P0 (`docs/08` mục 9.1) | `████████░░` 76% | 13/17 | P0-5, P0-6, P0-11, P0-12 chờ chủ dự án quyết (`docs/08` mục 9.5) |
 | Lộ trình P1 | `░░░░░░░░░░` 0% | 0/29 | Chưa làm |
 | Lộ trình P2 | `░░░░░░░░░░` 0% | 0/19 | Chưa làm |
-| Lỗi đã ghi (TL-01 → TL-112) đã sửa | `███████░░░` 67% | 71/107 | 60 đã gộp `Staging`, 11 sửa trên nhánh này chờ gộp |
+| Lỗi đã ghi (TL-01 → TL-112) đã sửa | `███████░░░` 71% | 76/107 | Đã gộp `Staging`: 60 trước 15.10, 11 của #133, cộng TL-80/81/82/84/85 sửa ở lượt phát hành VPS 09.10 (#134) |
 | Chặng 2 kiểm tay ở local | `░░░░░░░░░░` 0% | — | Phần của chủ dự án; diễn tập bằng máy 14.10 (40 bước) đã đạt |
 | Chặng 3 (`main`) và chặng 4 (VPS) | `░░░░░░░░░░` 0% | — | Chờ chặng 2 |
 
@@ -68,15 +68,14 @@ chưa sửa vì ngoài phạm vi đã duyệt.
 
 ## 4. Sổ lỗi đầy đủ
 
-TL-37 → TL-40 và TL-59 không được dùng. Trạng thái: **Đã sửa** (đã gộp `Staging`), **Sửa chờ gộp** (sửa trên nhánh
-này), **Mở**, **Cần rà lại** (ghi trên lưới HTMX cũ 07.09, lưới đó đã thay hẳn theo ADR-021, 027; phải rà lại trên
+TL-37 → TL-40 và TL-59 không được dùng. Trạng thái: **Đã sửa** (đã gộp `Staging`, hay đã áp trên VPS với mã quy trình),
+**Mở**, **Cần rà lại** (ghi trên lưới HTMX cũ 07.09, lưới đó đã thay hẳn theo ADR-021, 027; phải rà lại trên
 lưới mới trước khi sửa), **Không sửa**.
 
 | Trạng thái | Số mã |
 |---|---|
-| Đã sửa (đã gộp `Staging`) | 60 |
-| Sửa chờ gộp (nhánh này) | 11 |
-| Mở | 8 |
+| Đã sửa (đã gộp `Staging` hay đã áp trên VPS) | 76 |
+| Mở | 3 |
 | Cần rà lại | 27 |
 | Không sửa | 1 |
 | **Tổng** | **107** |
@@ -164,12 +163,12 @@ lưới mới trước khi sửa), **Không sửa**.
 | TL-77 | Nhẹ | Admin xoá dòng khi lưới lọc còn đúng dòng đó | Đã sửa |
 | TL-78 | Nhẹ | Manager Sale thấy nút Cột của bảng vận đơn | Đã sửa |
 | TL-79 | Vừa | Ô chữ dạng tổ hợp (NFD) bị báo xung đột 409 | Đã sửa |
-| TL-80 | Cao | Quay lui VPS: static mới chạy trên server cũ | **Mở** (quy trình VPS) |
-| TL-81 | Cao | Phát hành: code cũ chạy trên schema mới cho tới `up -d` | **Mở** (quy trình VPS) |
-| TL-82 | Vừa | Postgres trên VPS ghi nguyên câu UPDATE khi trùng mã đơn | **Mở** (cấu hình VPS) |
-| TL-83 | Vừa | `kiem_tra_du_lieu` tốn bộ nhớ ở 100.000 dòng | **Mở** |
-| TL-84 | Vừa | `up -d` theo README tạo lại container DB khi `.env` đổi | **Mở** (quy trình VPS) |
-| TL-85 | Vừa | `BANGTINH_GOC` gõ sai thì CRM chạy DEBUG=True | **Mở** (cấu hình VPS) |
+| TL-80 | Cao | Quay lui VPS: static mới chạy trên server cũ | Đã sửa quy trình: `collectstatic --clear`; quay lui và tiến lại đạt ở lượt phát hành 09.10 (#134) |
+| TL-81 | Cao | Phát hành: code cũ chạy trên schema mới cho tới `up -d` | Đã sửa quy trình: dừng mọi app trước `migrate`; áp ở lượt phát hành 09.10 (#134) |
+| TL-82 | Vừa | Postgres trên VPS ghi nguyên câu UPDATE khi trùng mã đơn | Đã sửa cấu hình VPS 09.10: `log_min_error_statement=panic` (#134) |
+| TL-83 | Vừa | `kiem_tra_du_lieu` tốn bộ nhớ ở 100.000 dòng | **Mở** — tạm chạy trong container riêng (đã dùng 09.10); chưa đọc theo lô |
+| TL-84 | Vừa | `up -d` theo README tạo lại container DB khi `.env` đổi | Đã sửa quy trình: `up -d --no-deps`; áp ở lượt phát hành 09.10 (#134) |
+| TL-85 | Vừa | `BANGTINH_GOC` gõ sai thì CRM chạy DEBUG=True | Đã sửa quy trình: `check --deploy --fail-level WARNING` cho CRM và ERP; áp ở lượt phát hành 09.10 (#134) |
 | TL-86 | Nhẹ | Tóm tắt Lên đơn chỉ có một câu lỗi chung | Đã sửa |
 | TL-87 | Nhẹ | Sale staff bấm "Toàn bộ" vẫn chỉ thấy đơn của mình | Đã sửa |
 | TL-88 | Vừa | Số dòng ở thư mục CRM lớn hơn số dòng có nội dung | Không sửa mã |
@@ -190,17 +189,17 @@ lưới mới trước khi sửa), **Không sửa**.
 | TL-98 | S2 | `do_hieu_nang` chạy được khi DEBUG tắt và ghi dòng thật | Đã sửa #116 (P0-16) |
 | TL-99 | S2 | Launcher vẫn mở trình duyệt khi `migrate` lỗi | Đã sửa #115 (P0-17); kiểm tay trên Windows chưa làm |
 | TL-100 | Vừa | Lời báo mất mạng ở Lên đơn bị tra khách xoá oan | Đã sửa #128 |
-| TL-101 | S3 | Màn Cột đổi kiểu cột bị từ chối ra 500 | Sửa chờ gộp `fc938a7` |
-| TL-102 | S3 | `locustfile.py` sửa vận đơn thật, lên đơn thật | Sửa chờ gộp `cbe3b50` |
-| TL-103 | S3 | Danh sách quyền hiện quyền đã thu; thu lần hai ghi đè | Sửa chờ gộp `3e48a8c` |
-| TL-104 | S3 | Gửi form thường vào đường JSON ra 500 | Sửa chờ gộp `64ca888` |
-| TL-105 | S3 | Phục hồi xong báo "tác vụ kẹt" nhầm | Sửa chờ gộp `ffcdc99` |
-| TL-106 | S3 | Manager mất bộ phận: log ERROR, 403 không nhật ký, lưới nhận HTML, không có Đăng xuất | Sửa chờ gộp `b6893aa` |
-| TL-107 | S3 | Bỏ cột bị từ chối, mở lại ra 405 | Sửa chờ gộp `ad58859` |
-| TL-108 | S3 | Nhật ký khoá tạm bị lược chữ, ghi lặp | Sửa chờ gộp `cd0f39c` |
-| TL-109 | S2 | Nút Thống kê trên lưới mất `nguon` | Sửa chờ gộp `a37ac24` |
-| TL-110 | S2 | Áp dụng ở Thống kê mất bộ lọc lưới | Sửa chờ gộp `211d41d` |
-| TL-111 | S4 | Kho chứng từ 403 không có nhật ký | Sửa chờ gộp `36f8b4d` |
+| TL-101 | S3 | Màn Cột đổi kiểu cột bị từ chối ra 500 | Đã sửa #133 (`fc938a7`) |
+| TL-102 | S3 | `locustfile.py` sửa vận đơn thật, lên đơn thật | Đã sửa #133 (`cbe3b50`) |
+| TL-103 | S3 | Danh sách quyền hiện quyền đã thu; thu lần hai ghi đè | Đã sửa #133 (`3e48a8c`) |
+| TL-104 | S3 | Gửi form thường vào đường JSON ra 500 | Đã sửa #133 (`64ca888`) |
+| TL-105 | S3 | Phục hồi xong báo "tác vụ kẹt" nhầm | Đã sửa #133 (`ffcdc99`) |
+| TL-106 | S3 | Manager mất bộ phận: log ERROR, 403 không nhật ký, lưới nhận HTML, không có Đăng xuất | Đã sửa #133 (`b6893aa`) |
+| TL-107 | S3 | Bỏ cột bị từ chối, mở lại ra 405 | Đã sửa #133 (`ad58859`) |
+| TL-108 | S3 | Nhật ký khoá tạm bị lược chữ, ghi lặp | Đã sửa #133 (`cd0f39c`) |
+| TL-109 | S2 | Nút Thống kê trên lưới mất `nguon` | Đã sửa #133 (`a37ac24`) |
+| TL-110 | S2 | Áp dụng ở Thống kê mất bộ lọc lưới | Đã sửa #133 (`211d41d`) |
+| TL-111 | S4 | Kho chứng từ 403 không có nhật ký | Đã sửa #133 (`36f8b4d`) |
 | TL-112 | S3 | `locustfile_kn_crm.py` sửa ô, định dạng, dán, xoá trên dòng thật (chỉ thêm dòng là `PERF-*`) | **Mở** (mới 15.10) |
 
 ## 5. Lỗi chưa xong theo mức nghiêm trọng
@@ -208,9 +207,8 @@ lưới mới trước khi sửa), **Không sửa**.
 | Mức | Mã | Trạng thái | Việc tiếp theo |
 |---|---|---|---|
 | S1 | TL-22 | Cần rà lại | Rà trên lưới mới: `luu-json` có làm lại sau deadlock không và có ghi đúng không |
-| Cao | TL-80, TL-81 | Mở | Sửa dãy phát hành và quay lui ở `deploy/production/README.md`, diễn tập lại trên máy có SSH tới VPS (Codex hay Claude Code CLI) |
 | S2 | TL-04, TL-05, TL-06, TL-19, TL-20 | Cần rà lại | Lượt rà riêng trên lưới mới; TL-06, TL-19, TL-20 thuộc renderer HTMX đã bỏ, nhiều khả năng đã hết |
-| Vừa | TL-82, TL-83, TL-84, TL-85 | Mở | TL-82, TL-84, TL-85 cần VPS; TL-83 sửa được ở máy ảo |
+| Vừa | TL-83 | Mở | Sửa `kiem_tra_du_lieu` đọc theo lô; làm được ở máy ảo. Tạm thời chạy bằng `docker compose run --rm` |
 | S3 | TL-112 | Mở | Sửa như TL-102: chỉ đụng dòng `PERF-*` |
 | S3 | TL-07, TL-08, TL-09, TL-10, TL-11, TL-14, TL-15, TL-16, TL-17, TL-21, TL-24, TL-25 | Cần rà lại | Lượt rà riêng |
 | S4 | TL-12, TL-26 → TL-33 | Cần rà lại | Lượt rà riêng |
@@ -227,6 +225,7 @@ lưới mới trước khi sửa), **Không sửa**.
 | 23.09–07.10 | Phản hồi chủ dự án, CI, Báo cáo tổng hợp | TL-60 → TL-75 | `docs/test-log.md`; `docs/kiem-chung-*-202609*.md`, `-202610*.md` |
 | 06.10 | Săn lỗi 10 hướng (bảo mật, đồng thời, đột biến, fuzz, tiền, gõ tiếng Việt…) | Ghi ở từng biên bản | `docs/kiem-chung-san-loi-*-20261006.md` |
 | 08.10 | Kiểm toàn diện `Staging` `450b6da`; diễn tập phát hành VPS | TL-76 → TL-85 | `docs/kiem-chung-staging-len-main-20261008.md`, `docs/kiem-chung-dien-tap-phat-hanh-staging-20261008.md` |
+| 09.10 | Phát hành `e979323-main-r2` lên VPS: diễn tập trên dữ liệu phục hồi, quay lui rồi tiến lại, 15 phút theo dõi | Đóng TL-80/81/82/84/85 | `docs/kiem-chung-phat-hanh-vps-20261009.md` (#134) |
 | 10–12.10 | Phản hồi local; Thống kê CRM | TL-86 → TL-89 | `docs/kiem-chung-tl89-thong-ke-lien-ket-20261012.md` |
 | 13.10 | Kế hoạch kiểm thử toàn diện (lộ trình P0/P1/P2) | — | `docs/08-ke-hoach-kiem-thu-toan-dien.md` (#113) |
 | 14.10 | CI `Staging` sau gộp KN OMS; đợt P0: 16 PR, bài đỏ trước sửa sau, gộp `Staging` | TL-90 → TL-104, TL-100 | `docs/kiem-chung-gop-kn-oms-staging-20261014.md`, `docs/kiem-chung-p0-14-het-phien-20261014.md`, `docs/kiem-chung-gop-p0-staging-20261014.md` |
@@ -253,7 +252,8 @@ Thấy khi làm lượt 15.10, ngoài phạm vi đã duyệt; không đổi hàn
 
 - Chặng 2 kiểm tay ở local (`KN JSC.bat` hay `./scripts/cap-nhat-local.sh`): chưa ai làm cho đợt P0 lẫn lượt này.
 - 13 AC kiểm tay (`docs/04` cột "Thủ công") và 18 AC đang hoãn.
-- Phần cần VPS hay Windows: TL-80 → TL-85; kiểm tay launcher TC-1 → TC-6 (TL-99); diễn tập tắt worker giữa chừng.
+- Phần cần VPS hay Windows: kiểm tay launcher TC-1 → TC-6 (TL-99); diễn tập tắt worker giữa chừng. TL-80 → TL-85 đã
+  đóng ở lượt phát hành 09.10 trừ TL-83 (biên bản `docs/kiem-chung-phat-hanh-vps-20261009.md`).
 - 27 mã "Cần rà lại".
 - `scripts/kiem-thu-statistics-labels.cjs` và các script trình duyệt khác chạy tay, không chạy ở lượt này.
 

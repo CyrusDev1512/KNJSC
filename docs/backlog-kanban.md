@@ -2,17 +2,17 @@
 
 ## 15.10.2026 — Sửa nốt TL-101 → TL-111; biên bản kiểm thử tổng hợp
 
-**Finished (nhánh `claude/sua-tl105-111`, PR nháp về `Staging`, chưa gộp):**
+**Finished (nhánh `claude/sua-tl105-111`, #133, đã gộp `Staging` 15.10):**
 - TL-109, TL-110 (S2): Thống kê giữ nguồn và bộ lọc lưới
 - TL-106, TL-105, TL-107, TL-101, TL-108, TL-103, TL-104, TL-102 (S3)
 - TL-111 (S4)
 - Biên bản `docs/bien-ban-kiem-thu-tong-hop-20261015.md` (gộp test log và các đợt trước)
 
-**To do (chủ dự án):** gộp #132 → #133 (#131 đã vào `Staging` 15.10); chặng 2 theo biên bản mục 9.
+**To do (chủ dự án):** chặng 2 theo biên bản mục 9 (#132, #133, #134 đã gộp `Staging` 15.10).
 
 **To do (máy):** TL-112 (`locustfile_kn_crm.py` chỉ đụng `PERF-*`); rà lại 27 mã cũ trên lưới mới, bắt đầu TL-22.
 
-**Far Plan:** TL-80 → TL-85 (cần VPS); P1, P2 của `docs/08`.
+**Far Plan:** TL-83 `kiem_tra_du_lieu` đọc theo lô (TL-80/81/82/84/85 đã đóng ở lượt phát hành 09.10); P1, P2 của `docs/08`.
 
 ## 14.10.2026 — Gộp 16 PR đợt P0 vào `Staging`
 
