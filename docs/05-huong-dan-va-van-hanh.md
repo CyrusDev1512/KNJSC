@@ -715,6 +715,14 @@ Máy chủ thật thì làm theo thứ tự dưới đây:
 **Sao lưu ngay bây giờ:** `scripts/backup.sh` (Windows: chạy lệnh trong tệp
 đó bằng PowerShell). Trước mỗi lần cập nhật hệ thống nên chạy một lần.
 
+**Phiên bản công cụ:** image dùng `postgresql-client-16` từ kho PGDG có chữ ký,
+phù hợp với server PostgreSQL 16 trong Compose. Dockerfile kiểm major của cả
+`pg_dump` và `pg_restore` khi build; không dùng client mặc định theo distro.
+Khi nâng major server phải cập nhật và diễn tập lại cặp công cụ này. Client 17
+dump được server 16 nhưng có thể sinh `SET transaction_timeout`, khiến restore
+về 16 thất bại. Build image mới không sửa những dump cũ đã tạo bởi client 17;
+giữ chúng, tạo backup mới và phục hồi thử vào database riêng trước khi phát hành.
+
 **Phục hồi — đè lên dữ liệu hiện tại:**
 
 ```

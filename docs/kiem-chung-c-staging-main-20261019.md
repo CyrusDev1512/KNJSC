@@ -40,6 +40,15 @@ CI mới trên commit merge Staging và trên PR nhánh C phải được đọc
 
 ## Chặng kiểm tay còn thiếu
 
+### Lỗi chặn phát hiện khi kiểm tay: ô có dấu sửa gần đây lệch hàng
+
+- Chủ dự án báo không sửa được Ghi chú khi dùng `quantri` trên preview local.
+- Tái hiện trực tiếp trên Chromium với tài khoản Admin mẫu: ô Ghi chú được server cho sửa, nhưng bấm đúp không mở editor.
+- Ô có lớp `mg-moi-sua` và không ghim bị CSS `position:relative` ghi đè định vị absolute của lưới. Đo trực tiếp: hàng ở top157, ô của hàng đó ở top185; lệch đúng 28px. `elementFromPoint` tại phần chữ nhìn thấy trả về hàng kế tiếp, không phải ô Ghi chú.
+- Quy tắc ở `app/static/css/master-grid.css` đã có trên main (nguồn commit `bea5d51c` ngày 28.09); không kết luận lỗi mới do #137.
+- Bài E2E lịch sử ô hiện có kiểm lớp đánh dấu, chưa chứng minh ô không ghim có dấu vẫn nhận bấm và sửa được.
+- **Chặn đưa lên main:** đề xuất bỏ ghi đè vị trí, giữ dấu góc và quyền; thêm hồi quy nhiều dòng có dấu, hình học/hit-test, sửa/lưu/tải lại trên desktop và 390px. Đang chờ duyệt cách sửa; chưa sửa mã ứng dụng.
+
 Chủ dự án xác nhận ngày 19.10: mới lướt qua local, chưa biết nên kiểm gì. Đây **chưa phải xác nhận kiểm tay đạt**.
 
 Kịch bản ngắn dùng dữ liệu mẫu local:
@@ -55,7 +64,142 @@ Máy kiểm các ca lỗi kỹ thuật; chủ dự án xác nhận trải nghi�
 
 1. Nhánh C → PR nháp về Staging; chỉ gộp khi CI đạt theo phê duyệt có điều kiện của chủ dự án.
 2. Chỉ sau xác nhận kiểm tay đạt: Staging → PR về main, kiểm CI và gộp.
-3. Đồng bộ Staging tới commit đã gộp trên main theo fast-forward (không thêm mã, không force), để hai ref cùng commit theo yêu cầu chủ dự án; dừng nếu có thay đổi từ phiên khác.
+3. Nếu cần đồng bộ lịch sử, mở PR main → Staging; không push thẳng. Hai nhánh phải cùng nội dung mã, không bắt buộc cùng SHA. Dừng nếu có thay đổi từ phiên khác.
 4. Xoá nhánh C đã hoàn tất, giữ bốn nhánh nền. Không đụng PR #136 đang mở hoặc đưa nhánh chưa duyệt vào lượt này.
 
 Biên bản này ghi tình trạng chuẩn bị, không chứng nhận các bước gộp ở trên đã xảy ra. Kết quả thực tế phải đối chiếu ref/PR khi thực hiện.
+
+## Kiểm lại trên bản sạch ngày 19.10.2026 — CHẶN MERGE
+
+Mục này bổ sung và giới hạn các kết luận phía trên. Mốc kiểm là C
+`1ba9a59a47102c88864f02e6b21ab7a43d275855`; remote Staging/main vẫn ở các SHA
+đầu biên bản khi bắt đầu lượt kiểm. Dùng git archive toàn repository, không lấy
+thay đổi chưa commit. Preview ERP 18062/CRM 18063 phục vụ bản trích xuất sạch.
+Hash nội dung HTTP của master-grid.js, report-filters.js và master-grid.css
+khớp tệp trong bản trích xuất đang chạy.
+
+### Kết quả ba nhóm CI chạy local
+
+| Lệnh (từ app, settings test, database riêng) | Kết quả thực tế |
+|---|---|
+| `pytest -m "not trinh_duyet"` | 3.923 đạt, **3 lỗi**, 7 skip, 132 deselected; 666,18 giây |
+| `pytest tests/e2e -m trinh_duyet` | 91 đạt, 2 skip; 489,13 giây |
+| `pytest -m trinh_duyet --ignore=tests/e2e` | 30 đạt, 9 skip, 3.933 deselected; 258,62 giây |
+
+Ba lỗi thuộc core/tests/test_sao_luu.py: phục hồi vào database tạm, phục hồi
+dump cắt giữa chừng và phục hồi đè database test đang chạy. Log cho thấy
+`unrecognized configuration parameter "transaction_timeout"`; pg_dump/pg_restore
+trong image test là 17.11, server test là 16.14. Đây là chênh phiên bản môi trường
+đã xác minh, chưa sửa môi trường hoặc chạy lại; **không tính ba bài này là đạt**.
+
+18 skip gồm fixture/kiểm tải riêng, 300k không bật, ca dòng trống không áp dụng
+và bài cần Chrome host/proxy/server riêng. Nhóm trình duyệt còn lại có một cảnh
+báo dọn database test khi còn một kết nối; chưa xử lý. Không thay skip bằng đạt.
+Log và JUnit XML đầy đủ lưu local trong
+`storage/test-results/premerge-20261019/final-results/` (ngoài Git).
+
+### Ghi chú: kết luận chính xác hơn
+
+- Admin, nhiều hàng liền nhau, ô ID 6 có dấu cam: bấm đúp không mở editor;
+  hàng top 157, ô top 185, hit-test trả hàng kế tiếp.
+- **Cùng ô ID 6, cùng phiên bản và tài khoản, lọc còn một hàng: bấm đúp mở được.**
+  Vì vậy không được kết luận mọi ô có dấu cam đều không sửa được.
+- Admin, ô không dấu cam ID 1004: nhập hai dòng có nhãn QA-20261019, tự lưu,
+  reload và đối chiếu database giữ nguyên nội dung.
+- Vận đơn vd.staff: chọn ô bằng bàn phím/F2, sửa ID 6 và lưu thành công;
+  đã đối chiếu database. Chưa lấy thao tác này thay cho nghiệm thu bấm đúp đầy đủ.
+- Ảnh: `admin-note-blocked.png`, `admin-orange-one-row-opens.png`,
+  `admin-note-saved-reloaded.png` trong thư mục bằng chứng local trên.
+- Đối chứng lịch sử bằng bản sạch trên cùng fixture hiện tại: a0313be mở được;
+  bea5d51 không mở; main 3bfa9e6, trước PR137 2d5fb04 và C cũng tái hiện.
+  Quy tắc CSS xuất hiện 28.09 không chứng minh người dùng đã gặp lỗi hôm đó.
+  Kết quả trước đây dùng worktree bẩn không được dùng làm đối chứng lịch sử.
+  Chưa xác minh trực tiếp bản VPS hiện tại; không kết luận VPS đang lỗi.
+
+### Worker và dữ liệu thử
+
+Đã backup database fixture trước ghi, SHA256 dump:
+`4E31D1558660096603B1464AFE93A28F69235382E89F8094A5D24334A2D72028`.
+Backup chỉ lưu local, chưa dùng nó để tuyên bố phục hồi thử thành công.
+Redis/worker riêng, không beat; email dùng locmem. Hai job thật qua worker:
+
+- Export job 1 của vd.staff: done, 1 dòng, có file; chủ sở hữu và Admin tải 200,
+  Sale Staff/Leader/Manager và CEO bị 404 khi đổi sang ID này.
+- Recompute job 2: done; bảng QA riêng ID 4, dòng ID 1006, 10/2 → 5.00.
+  Harness chỉ hạ ngưỡng chọn async ở tiến trình gửi để dùng fixture nhỏ;
+  worker thực thi bình thường. Không phải phép đo tải hay nghiệm thu giới hạn lớn.
+
+Hai ô ghi chú thử có nhãn QA; không sửa dữ liệu nghiệp vụ. Các fixture và log
+worker giữ local. Trước đó biên bản nói chưa chạy worker; phần này thay thế nhận
+định đó cho lượt kiểm mới. Chưa chứng nhận đủ tất cả trạng thái file lỗi/hết hạn.
+
+### Phần chưa nghiệm thu và quyết định dừng
+
+Chưa hoàn tất toàn bộ ma trận thao tác tay ở 1440/1366/390 và zoom 125%/200%,
+toàn bộ vai trò, chứng từ/thư viện/OMS và các luồng báo cáo. Form Vận đơn trên
+fixture báo chưa có mẫu: kiểm mã lệnh cho thấy cần cấu hình mẫu báo cáo ngày
+Vận đơn riêng; chưa chạy lệnh đó trong lượt này, chưa coi đây là lỗi sản phẩm.
+Các test tự động đạt không thay cho các mục thao tác tay còn thiếu.
+
+**Không merge PR138, không mở/gộp Staging → main, không xoá nhánh C.**
+Lỗi bấm đúp nhiều hàng vẫn là chốt chặn; ba lỗi môi trường backup cũng chưa đạt.
+Chủ dự án chưa xác nhận kiểm tay đạt. Không sửa mã ứng dụng, không triển khai VPS.
+Chỉ cập nhật tài liệu local; chưa commit/push phần tài liệu lượt này vì điều kiện
+chuyển sang giai đoạn merge chưa đạt. Chưa phê duyệt cách sửa mới.
+
+## Lượt sửa tiếp theo cùng ngày — chủ dự án đã duyệt
+
+Yêu cầu tiếp theo “sửa các lỗi đó trước” cho phép sửa tối thiểu và kiểm lại;
+thay thế trạng thái chưa duyệt sửa phía trên. Không mặc nhiên cho merge/VPS.
+
+- Thêm hồi quy vào `test_lich_su_o_tren_luoi.py`, chạy trước khi sửa CSS:
+  đỏ với hình học thực tế `{cell: 185, row: 157}`. Bản ghi lấy ID fixture,
+  hai hàng liên tiếp được người khác sửa qua service thật để có dấu cam.
+- Bỏ duy nhất `.mg-cell.mg-moi-sua:not(.mg-pinned){position:relative}`.
+  Pseudo-element dấu cam vẫn định vị trong ô absolute/sticky hiện có.
+  Không thay quyền, nội dung, chiều cao tự động, sự kiện hoặc logic lưu.
+- Cả file lịch sử ô đạt **7/7**, không skip, 51,174 giây; bốn ca mới kết hợp
+  Admin/Vận đơn với 1366/390 px. Chỉ bấm đúp tại điểm hit-test đúng ô, không
+  force-click; sửa hai hàng, đối chiếu database đúng ID và reload còn nội dung.
+- Bản preview 18062/18063 đã nhận CSS sửa; hash CSS qua HTTP khớp tệp đang chạy.
+  Preview từ đây là SHA 1ba9a59 cộng diff CSS trên, không còn tuyên bố nguyên SHA sạch.
+- Backup: container test đã cài `postgresql-client-16`, chạy nhóm bằng
+  `PATH=/usr/lib/postgresql/16/bin:/usr/local/bin:/usr/bin:/bin`.
+  `pg_dump` và `pg_restore` đều 16.15, server 16.14: **35/35 đạt**, không skip,
+  14,854 giây. Không nới assertion hoặc bỏ `--single-transaction`.
+  Mã backup/Dockerfile không đổi. Khi dựng lại container test phải chọn client
+  cùng major; image mặc định còn dùng package theo distro, chưa được khắc phục
+  ở bước đóng gói. Không suy rằng backup VPS đã được kiểm hoặc sửa.
+
+Các log mới: `backup-fixed.log/xml`, `notes-fixed.log/xml`; ảnh hồi quy
+`ghi-chu-dau-cam-{admin,staff_vd}-{1366,390}.png`, lưu ngoài Git.
+Hồi quy bổ sung `test_ghi_chu_tu_gian_dong.py` và `test_pha_luoi_ghi_chu.py`:
+**21 đạt, 1 skip** (ca dòng trống không có dòng/quyền thêm dòng trong fixture).
+Không lỗi mới; log/XML `notes-regression` lưu cùng bộ bằng chứng. Không chạy 300k.
+Chưa chạy lại toàn bộ ba nhóm CI trên một commit mới, chưa xác nhận kiểm tay của
+chủ dự án; không chuyển trạng thái thành đủ điều kiện merge.
+
+## Lượt sửa Dockerfile cùng ngày — thay giới hạn chỉ sửa môi trường test
+
+Chủ dự án yêu cầu sửa Dockerfile và kiểm trước merge. Đã thay client theo distro
+bằng `postgresql-client-16` từ PGDG dùng signed-by; cố định base Trixie và PATH
+binary 16. Bước build kiểm major cả pg_dump/pg_restore. Giữ cập nhật patch 16.x,
+không nâng server hoặc thay service backup. Hướng dẫn vận hành đã ghi rằng
+image mới không tự sửa dump cũ tạo bởi client 17.
+
+Build từ archive HEAD cộng đúng diff CSS, test và Dockerfile của lượt sửa:
+
+| Image local | Image ID | Kiểm chứng |
+|---|---|---|
+| `knjsc-backup16-test:20261019` (`INSTALL_DEV=1`) | `sha256:88af6d9a1af94473473c631bda88bbc5e768f97fb19893fda4fadf565b70a582` | 35/35 bài backup đạt, không skip |
+| `knjsc-backup16-prod:20261019` (`INSTALL_DEV=0`) | `sha256:01f62c27441401bb9c0b4b65cca40d5c65b42663a10d553e71ba62c8d85f7040` | dump/restore thật và Django check đạt |
+
+Không cài thêm công cụ hoặc override PATH sau build. Các lệnh qua entrypoint
+với RUN_MIGRATIONS=0, uid 1000; công cụ đều 16.15, PostgreSQL test 16.14.
+Smoke production tạo hai DB QA riêng, giữ đúng chữ Việt/xuống dòng/numeric và
+primary key sau restore, rồi dọn hai DB QA đó. Không chạm DB preview/nghiệp vụ.
+Không chỉ liệt kê dump để kết luận phục hồi đạt.
+
+Đã kiểm diff; ứng dụng chỉ có thay đổi CSS/test ghi chú được duyệt từ lượt trước.
+Không phát hành, không tự đưa image mới vào các dịch vụ đang chạy. Không merge
+PR138 hoặc hai nhánh nền; kiểm tay và CI commit cuối vẫn là các chốt còn thiếu.

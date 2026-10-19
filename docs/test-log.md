@@ -1,5 +1,46 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 19.10.2026 — Dockerfile cố định công cụ backup PostgreSQL 16
+
+Theo phê duyệt tiếp theo, sửa Dockerfile thay cho cách chỉnh container test.
+Base Python 3.12 slim Trixie, package `postgresql-client-16` từ PGDG có chữ ký;
+PATH trong image chọn binary 16, build kiểm major của cả hai công cụ.
+Không sửa service backup, không bỏ single-transaction, không đổi schema.
+
+- Build `INSTALL_DEV=1` và `INSTALL_DEV=0` đều thành công.
+- Image mới chạy `pytest core/tests/test_sao_luu.py -q -rs`: **35 đạt,
+  không lỗi/skip**. Không bind mount code hoặc override PATH; dùng DB test riêng.
+- Image production (không pytest) chạy dump/restore thật vào hai database QA
+  tạm: giữ đúng chuỗi Unicode/xuống dòng, primary key và numeric 123456.78.
+  Dọn đúng hai database QA trong finally; chạy bằng uid 1000. Django check đạt.
+- Công cụ 16.15, server test 16.14. Log/XML và harness ngoài Git:
+  `storage/test-results/premerge-20261019/backup-image16.*`,
+  `build-backup16*.log`, `production-backup-smoke.py`.
+
+Kết quả này thay giới hạn image mặc định chưa sửa ở mục trước. Không chạy lại
+toàn bộ suite cho thay đổi đóng gói; hồi quy UI của lượt trước vẫn ghi riêng.
+Chưa commit/push/merge/VPS và chưa có xác nhận kiểm tay mới.
+
+## 19.10.2026 — Sửa Ghi chú có dấu cam và môi trường backup trên C
+
+Chủ dự án duyệt sửa sau lượt kiểm chặn merge. Bài hồi quy mới trước sửa đỏ:
+ô top 185, hàng top 157. Bỏ riêng `position:relative` ở ô không ghim có dấu cam.
+Nhóm lịch sử ô đạt 7/7, không skip; gồm Admin/Vận đơn, 1366/390 px, hai hàng
+liền nhau, chuột thật, nhập/lưu đúng ID và reload. Giữ dấu cam, quyền và autosave.
+
+35/35 bài `core/tests/test_sao_luu.py` đạt khi PATH chọn pg_dump/pg_restore 16.15
+với server 16.14. Chỉ cài client cùng major trong container test; không đổi
+service backup, database thật, Dockerfile hoặc dependency ứng dụng. Đây không
+phải bằng chứng image build mặc định đã được sửa: Dockerfile hiện vẫn cài client
+theo distro, có thể lấy 17; dựng lại môi trường test phải chọn client 16 như biên bản.
+Chưa triển khai hoặc xác nhận công cụ backup trên VPS.
+
+Log/XML: `storage/test-results/premerge-20261019/` ngoài Git. Kết quả hồi quy bổ sung
+và giới hạn nghiệm thu ghi tại [biên bản C](kiem-chung-c-staging-main-20261019.md).
+Hai file E2E ghi chú tự giãn và phá lưới: 21 đạt, 1 skip vì fixture không có dòng
+trống/quyền thêm dòng; không chạy kiểm tải 300k. Tổng lượt sửa: 63 đạt, 1 skip
+(35 backup + 7 lịch sử ô + 21 hồi quy ghi chú); không thay kết quả toàn suite trước đó.
+
 ## 19.10.2026 — Kiểm trước đồng bộ main, nhánh C
 
 PR #137 đã gộp Staging `ed7795b`. CI trên mã PR: 3.926 server, 121 browser đạt; 18 skip và một cảnh báo dọn DB.

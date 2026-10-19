@@ -12,8 +12,59 @@ from crm.tests.test_master_grid import write
 from crm.tests.test_waybill_feedback import feedback  # noqa: F401  (fixture dùng lại)
 
 from .conftest import chup
+from .ghi_chu_helpers import ghi_chu_nhin_thay
 
 pytestmark = [pytest.mark.django_db(transaction=True), pytest.mark.trinh_duyet, pytest.mark.cham]
+
+
+@pytest.mark.parametrize("vai", ["admin", "staff_vd"])
+@pytest.mark.parametrize("rong", [1366, 390])
+def test_bam_dup_ghi_chu_co_dau_cam_luu_dung_hang(
+        live_server, trang, dang_nhap, kn_crm, feedback, nguoi_dung,
+        make_user, departments, vai, rong):
+    """AC-21.13 — Dấu sửa gần đây không làm hàng bên dưới nhận cú bấm của ô."""
+    bang, _, dong = feedback
+    khac = make_user("vd_sua_ghi_chu", Rank.STAFF, departments["vd"])
+    client = Client()
+    client.force_login(khac)
+    for i, row in enumerate(dong):
+        assert write(client, row, column="ghi_chu", old=row.data.get("ghi_chu"),
+                     value=f"Ghi chú mẫu {i}").status_code == 200
+    trang.set_viewport_size({"width": rong, "height": 844})
+    dang_nhap(trang, nguoi_dung[vai])
+    url = f"{live_server.url}/bang-tinh/{bang.code}/"
+    trang.goto(url)
+    trang.wait_for_selector(".mg-cell[data-id]")
+    for i, row in enumerate(dong):
+        selector = f".mg-cell[data-code='ghi_chu'][data-id='{row.pk}']"
+        trang.wait_for_function("""s => {
+            if (document.querySelector(s)) return true;
+            document.getElementById('mg-viewport').scrollLeft += 150;
+            return false;
+        }""", arg=selector, timeout=5000)
+        geometry = trang.locator(selector).evaluate("""e => ({
+            cell: e.getBoundingClientRect().top,
+            row: e.closest('.mg-row').getBoundingClientRect().top
+        })""")
+        assert abs(geometry["cell"] - geometry["row"]) < 1, geometry
+        point = ghi_chu_nhin_thay(trang, row.pk, f"Ghi chú mẫu {i}")
+        assert trang.locator(selector).evaluate("e => e.classList.contains('mg-moi-sua')")
+        # Chuột thật tại phần ô nhìn thấy, không force-click hoặc phát sự kiện giả.
+        trang.mouse.dblclick(point["point"]["x"], point["point"]["y"])
+        editor = trang.locator("#mg-editor textarea")
+        editor.wait_for(state="visible", timeout=5000)
+        assert editor.input_value() == f"Ghi chú mẫu {i}"
+        value = f"QA {vai} dòng {i}\nĐã kiểm lưu"
+        editor.fill(value)
+        with trang.expect_response(lambda r: r.request.method == "POST" and "/bang-tinh/" in r.url):
+            editor.press("Control+Enter")
+        # Chờ phản hồi lưu và đối chiếu đúng ID, không chỉ nhìn nhãn Đã lưu.
+        row.refresh_from_db()
+        assert row.data["ghi_chu"] == value
+        trang.reload()
+        trang.wait_for_selector(".mg-cell[data-id]")
+        ghi_chu_nhin_thay(trang, row.pk, value)
+    chup(trang, f"ghi-chu-dau-cam-{vai}-{rong}")
 
 
 @pytest.fixture

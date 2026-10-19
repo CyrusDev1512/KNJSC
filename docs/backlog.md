@@ -2,6 +2,29 @@
 
 ## 19.10.2026 — Nhánh C kiểm chứng trước khi đồng bộ main
 
+**Cập nhật Dockerfile theo yêu cầu tiếp theo:** đã cố định Debian Trixie và client
+PostgreSQL 16 từ PGDG có chữ ký; build chặn sai major. Cả image test và
+`INSTALL_DEV=0` build đạt; 35/35 bài backup đạt trên image mới, không sửa PATH
+sau build. Image production cũng dump/restore dữ liệu giả thành công bằng user
+thường. Thay thế giới hạn “chỉ sửa container test” của lượt trước; chưa phát hành,
+chưa merge hoặc coi toàn bộ ma trận kiểm tay đã đạt.
+
+**Cập nhật sau khi chủ dự án duyệt sửa:** đã bỏ một quy tắc CSS làm lệch ô,
+giữ dấu cam và quyền sửa. Hồi quy lịch sử ô: 7 đạt, gồm Admin/Vận đơn ở 1366/390 px,
+bấm đúp hai hàng liền nhau → lưu → đối chiếu ID → reload. Trước sửa bài mới đỏ
+vì ô top 185, hàng top 157. Bộ backup: 35 đạt với client PostgreSQL 16 trong
+container test; không đổi mã backup hoặc Dockerfile. Chưa merge, chưa nghiệm thu
+toàn bộ ma trận và chưa có xác nhận kiểm tay mới. Các kết quả đỏ dưới đây là lịch sử.
+
+**Lỗi được tái hiện, chặn gộp main:** Admin bấm đúp ô Ghi chú có dấu sửa gần đây ở cột không ghim không mở khi có nhiều hàng liền nhau.
+Lọc còn một hàng thì cùng ô đó mở được; không kết luận mọi ô dấu cam đều lỗi.
+Đo thấy ô lệch xuống một hàng, hàng sau che vùng bấm. Bản sạch main cũng tái hiện trên fixture hiện tại;
+không suy ngày người dùng bắt đầu gặp lỗi hoặc tình trạng VPS từ kết quả này. Chưa sửa mã.
+Lượt kiểm sạch C 1ba9a59: 3.923 test chính đạt, 3 lỗi backup do client PostgreSQL 17/server 16;
+91 E2E và 30 bài trình duyệt còn lại đạt, tổng 18 skip. Chưa hoàn tất ma trận kiểm tay;
+PR138 và các bước gộp tiếp tục bị chặn. Worker riêng đã kiểm xuất/tính lại bằng fixture nhỏ.
+Chi tiết trong biên bản nhánh C bên dưới. CI xanh không thay kết quả kiểm tay này.
+
 PR #137 đã gộp vào Staging `ed7795b`; mục bàn giao trước đó bên dưới được thay thế về trạng thái gộp.
 Đang chuẩn bị `codex/kiem-chung-c-staging-main`; main/VPS chưa cập nhật.
 Chủ dự án mới lướt local, chưa xác nhận kiểm tay đạt. Bằng chứng, giới hạn và kịch bản kiểm tay:
