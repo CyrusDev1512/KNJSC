@@ -1,5 +1,18 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 19.10.2026 — PR #136, lỗi tồn đọng và Manager đọc đơn/vận đơn toàn công ty
+
+**Đã sửa và kiểm bằng máy trên local; bàn giao qua PR nháp về Staging theo yêu cầu 19.10.2026. Chờ kiểm tay và duyệt gộp; chưa phát hành.** Nhánh kết hợp `codex/tl136-kiem-thu-tong-hop`.
+Đã xử lý theo nhóm nguyên nhân, giữ phần đã sửa: khối/poll; kiểu lọc/sắp/ngày; nháp/lỗi lưu;
+số đếm theo quyền; xoá/tính lại theo lô; công cụ kiểm tải và tài liệu. Manager chỉ mở phạm vi **đọc đơn/vận đơn**,
+không mở quyền sửa, báo cáo hay Quản trị. Leader giữ nguyên.
+
+Chi tiết TL, trước/sau, bằng chứng RED/đạt, giới hạn và kiểm tay:
+[Biên bản 19.10](kiem-chung-pr136-ton-dong-20261019.md).
+Mục này thay trạng thái các mã thuộc phạm vi đó trong ghi chép lịch sử bên dưới **cho bản local này**;
+không coi chúng đã có trên Staging/main/VPS. TL-71/83 và phần Leader117 không thuộc đợt này.
+
+
 ## 15.10.2026 — Sửa nốt TL-101 → TL-111; biên bản kiểm thử tổng hợp
 
 **Finished (nhánh `claude/sua-tl105-111`, #133, đã gộp `Staging` 15.10):**

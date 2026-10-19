@@ -334,7 +334,7 @@ def clear(on_progress=None):
     tong = 0
     for ds in (
         DataRecord.all_objects.filter(table__code=WAYBILL_TABLE_CODE, data__ma_don__startswith=PERF_PREFIX),
-        DataRecord.all_objects.filter(table__code=SALE_TABLE_CODE),
+        DataRecord.all_objects.filter(table__code=SALE_TABLE_CODE, data__ma_don__startswith=PERF_PREFIX),
     ):
         goc = tong
         bao = None if on_progress is None else (

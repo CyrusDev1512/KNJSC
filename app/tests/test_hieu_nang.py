@@ -80,12 +80,17 @@ def _vao_lam(client, nguoi):
     client.get("/dang-nhap/")
 
 
-def _bam_gio(client, duong_dan, django_assert_max_num_queries):
-    with django_assert_max_num_queries(10):
+def _bam_gio(client, duong_dan, django_assert_max_num_queries, *, json_grid=False):
+    # HTML không tải dòng; JSON có scope, snapshot/cache và metadata riêng (AC-10.26).
+    with django_assert_max_num_queries(15 if json_grid else 10):
         bat_dau = time.monotonic()
         kq = client.get(duong_dan)
         mat = time.monotonic() - bat_dau
     assert kq.status_code == 200, duong_dan
+    if json_grid:
+        body=kq.json()
+        assert 'rows' in body and 'total' in body
+        assert len(body['rows']) <= 300
     return mat
 
 
@@ -106,15 +111,15 @@ def test_bang_tinh_50000_dong_co_loc_duoi_2_giay(client, du_lieu_lon, django_ass
     """AC-7.1 — Bảng tính trên 50.000 dòng, có hai bộ lọc và cột Lọc trùng, trang đầu dưới 2 giây"""
     with override_settings(ROOT_URLCONF="knjsc.urls_bangtinh", GRID_ONLY_TABLES=set()):
         _vao_lam(client, du_lieu_lon["vd"])
-        mat = _bam_gio(client, "/bang-tinh/", django_assert_max_num_queries)
+        mat = _bam_gio(client, "/bang-tinh/van_don/du-lieu/", django_assert_max_num_queries, json_grid=True)
         assert mat < PERF_PAGE_SECONDS, f"lưới không lọc mất {mat:.2f}s"
         mat = _bam_gio(
             client,
-            "/bang-tinh/?f_trang_thai_vc__trong=%C4%90ang%20giao&f_ten_khach__chua=Taylor&sap=ngay",
-            django_assert_max_num_queries,
+            "/bang-tinh/van_don/du-lieu/?f_trang_thai_vc__trong=%C4%90ang%20giao&f_ten_khach__chua=Taylor&sap=ngay",
+            django_assert_max_num_queries, json_grid=True,
         )
         assert mat < PERF_PAGE_SECONDS, f"lưới có lọc mất {mat:.2f}s"
         mat = _bam_gio(client, "/bang-tinh/van_don/loc/trang_thai_vc/", django_assert_max_num_queries)
         assert mat < PERF_PAGE_SECONDS, f"hộp lọc cột mất {mat:.2f}s"
-        mat = _bam_gio(client, "/bang-tinh/?trung=1", django_assert_max_num_queries)
+        mat = _bam_gio(client, "/bang-tinh/van_don/du-lieu/?trung=1", django_assert_max_num_queries, json_grid=True)
         assert mat < PERF_PAGE_SECONDS, f"lọc chỉ số trùng mất {mat:.2f}s"

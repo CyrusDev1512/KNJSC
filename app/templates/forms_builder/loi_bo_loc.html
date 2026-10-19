@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block tieu_de %}Bộ lọc không hợp lệ{% endblock %}
+{% block ten_trang %}Bộ lọc không hợp lệ{% endblock %}
+{% block noi_dung %}
+<p role="alert">{{ loi }}</p>
+<p>Chưa áp dụng hoặc xuất dữ liệu với bộ lọc này.</p>
+<a class="nut" href="{{ bo_loc_url }}">Mở lại bảng, bỏ bộ lọc</a>
+{% endblock %}

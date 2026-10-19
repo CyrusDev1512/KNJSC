@@ -538,6 +538,37 @@ def delete_record(ban_ghi, *, actor=None, request=None):
     return ban_ghi
 
 
+def set_deleted_locked(rows, *, deleted, actor, request=None):
+    """Nội bộ lưới: caller đã khoá vòng đời, khoá dòng, kiểm scope/CAS/quyền xoá cả tập.
+
+    Không áp đường nhanh cho policy chưa có hook theo lô. Không sửa JSON/cột tách;
+    ràng buộc mã đơn vẫn chặn toàn lượt khôi phục và giao dịch ngoài giữ nguyên tử.
+    """
+    from core.audit import record_many
+    from django.db import connection
+    from django.utils import timezone
+    if not connection.in_atomic_block:
+        raise RuntimeError('Đổi trạng thái dòng phải nằm trong giao dịch đã khoá.')
+    if not rows:
+        return
+    table = rows[0].table
+    policy = record_policies.for_table(table)
+    if policy and not hasattr(policy, 'after_bulk_deleted'):
+        for row in rows:
+            (delete_record if deleted else restore_record)(row, actor=actor, request=request)
+        return
+    now = timezone.now()
+    for row in rows:
+        row.deleted_at = now if deleted else None
+        row.deleted_by = actor if deleted else None
+    save_rows(rows, fields=['deleted_at', 'deleted_by'])
+    record_many(AuditAction.DELETE if deleted else AuditAction.UPDATE, rows, actor=actor,
+        detail=(lambda row:f'Xoá dòng khỏi bảng {table.code}') if deleted else
+               (lambda row:f'Khôi phục dòng đã xoá của bảng {table.code}'), request=request)
+    if policy:
+        policy.after_bulk_deleted(rows, deleted=deleted, actor=actor, request=request)
+
+
 def _hien(gia_tri):
     """Giá trị rỗng hiện thành dấu gạch cho nhật ký dễ đọc."""
     return "—" if gia_tri in (None, "") else str(gia_tri)

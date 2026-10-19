@@ -216,7 +216,7 @@ def can_edit_record(user, record_obj):
 
 
 def can_edit_visible_record(user, record_obj):
-    """Chỉ gọi cho dòng đã lấy từ in_scope trong cùng request đọc; không dùng ở đường ghi."""
+    """Chỉ gọi sau kiểm in_scope; đường ghi phải khoá dòng và lấy cờ báo cáo trong cùng giao dịch."""
     if is_company_reader(user):
         return False
     if is_submitted_report(record_obj):

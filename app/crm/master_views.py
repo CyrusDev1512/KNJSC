@@ -5,6 +5,7 @@ import json
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.db import OperationalError
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
@@ -12,8 +13,19 @@ from core.audit import record_denied
 from core.exceptions import BusinessError, OutOfScopeError
 from core.views import json_body
 from forms_builder.services import grant_service
+from forms_builder.filter_views import filter_errors
 from orders.services.assignment_service import can_assign, only_own_rows
 from .services import master_grid_service as service, grid_service, row_mutations, sidebar_service, tree_service
+
+
+def retryable_save_error(exc):
+    """Chỉ các giao dịch đã bị PostgreSQL huỷ mới được thông báo thử lại."""
+    if getattr(exc.__cause__, 'sqlstate', None) not in {'40P01', '40001', '55P03'}:
+        raise exc
+    response = JsonResponse({'error': 'Lượt lưu chưa hoàn tất do dữ liệu đang được xử lý. Nháp được giữ để thử lại.',
+                             'code': 'retryable_save'}, status=503)
+    response['Retry-After'] = '1'
+    return response
 
 
 @login_required
@@ -55,6 +67,8 @@ def save(request, code):
         table = service.table_for(request.user, code)
         payload = json_body(request)
         return JsonResponse(service.save(request.user, table, payload, request=request))
+    except OperationalError as exc:
+        return retryable_save_error(exc)
     except OutOfScopeError:
         if isinstance(payload, dict) and payload.get('kind') in row_mutations.DELETE_KINDS:
             # Xoá dòng chỉ Admin (ADR-049): ghi nhật ký từ chối sau khi giao dịch của lượt ghi đã huỷ
@@ -91,6 +105,8 @@ def clear_details(request, code):
                                            .filter(pk__in=[r.pk for r in rows]).select_related('table'))
         return JsonResponse({'rows': service.serialize(fresh.order_by('pk'), columns, request.user),
                              'latest': service.latest_stamp(request.user, table)})
+    except OperationalError as exc:
+        return retryable_save_error(exc)
     except OutOfScopeError:
         record_denied(request.user, request.path, request)
         return JsonResponse({'error': 'Bạn không còn quyền sửa các dòng này.'}, status=403)
@@ -159,6 +175,7 @@ def _query_va_chip(request, grid):
     return qs, chips
 
 
+@filter_errors
 def filters(request, table):
     """Chip "đang lọc" và (khi `panel=1`) nội dung panel Bộ lọc của lưới — một mảnh HTML, không có dòng dữ liệu.
 
@@ -182,6 +199,7 @@ def filters(request, table):
     return response
 
 
+@filter_errors
 def shell(request, table):
     from django.conf import settings
     from .services import optimization, row_mutations

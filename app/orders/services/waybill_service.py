@@ -103,6 +103,23 @@ def after_restore(row, *, actor=None, request=None):
            detail=f"Khôi phục đơn {don.code} theo dòng vận đơn", request=request)
 
 
+def after_bulk_deleted(rows, *, deleted, actor=None, request=None):
+    """Đơn gốc đi cùng trạng thái dòng; caller đã khoá và kiểm quyền toàn lượt."""
+    from core.audit import record_many
+    from orders.models import Order
+    from django.utils import timezone
+    orders = list(Order.all_objects.filter(record_id__in=[r.pk for r in rows],
+        deleted_at__isnull=deleted).select_for_update().order_by('pk'))
+    if not orders:
+        return
+    now = timezone.now()
+    Order.all_objects.filter(pk__in=[o.pk for o in orders]).update(
+        deleted_at=now if deleted else None, deleted_by=actor if deleted else None, updated_at=now)
+    record_many(AuditAction.DELETE if deleted else AuditAction.UPDATE, orders, actor=actor,
+        detail=(lambda o:f'Bỏ đơn {o.code} theo dòng vận đơn vừa xoá') if deleted else
+               (lambda o:f'Khôi phục đơn {o.code} theo dòng vận đơn'), request=request)
+
+
 def register():
     # Một bảng duy nhất (ADR-036): đăng ký theo mã `van_don` và theo workflow.
     record_policies.register(WAYBILL_TABLE_CODE, sys.modules[__name__])

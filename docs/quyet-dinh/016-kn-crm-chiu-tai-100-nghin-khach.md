@@ -6,6 +6,28 @@
 | Ngày | 07.09.2026 |
 | Liên quan | ADR-001 (cột tách), ADR-006 (cột tính sẵn), ADR-011 (lưới như KN Demo), NFR-1, NFR-2, AC-10.8, AC-11.35, AC-11.36, backlog K27 |
 
+## Bổ sung 19.10.2026 — lưới JSON và công cụ kiểm hiện hành
+
+Phần số đo ngày 07.09 bên dưới là **lịch sử của renderer cũ**, không phải bằng chứng tải cho bản hiện tại.
+Đợt xử lý PR #136 giữ ngưỡng đã chốt, thay hợp đồng kiểm bằng JSON/CAS, biên nhận và lịch sử ô
+(AC-11.36). `cell_html`, URL ghi ô HTMX và kịch bản kiểm tải gọi các đường đã bỏ không dùng để nghiệm thu.
+
+- Phiên khối được giữ qua ACK; dán vùng cần đủ ID duy nhất trước khi tạo nháp. ACK riêng không nuốt mốc
+  đồng bộ thay đổi của người khác; phản hồi poll cũ không được thay vùng vừa sửa.
+- Mốc `moi-nhat/` là watermark toàn bảng không chứa dữ liệu. Số dòng hiển thị phải theo quyền;
+  tín hiệu tính lại công khai chỉ trả ID tác vụ, không trả tổng/tiến độ toàn bảng.
+- Tính lại đọc cấu hình từng lô dưới khoá chung; thay cột dùng khoá độc quyền. Lỗi dừng nhận thêm lô.
+  Giữ một yêu cầu PENDING, vẫn xếp lượt kế nếu job đang chạy. Không coi sort danh sách VALUES là bảo đảm
+  thứ tự khoá của PostgreSQL; đường ghi dùng khoá dòng hiện có và lỗi tranh chấp tạm thời có thể thử lại.
+- Runner `scripts/kiem-tai-kn-crm.py` dùng `deploy/compose.loadtest.yml`, database/volume riêng,
+  gunicorn và static từ cùng mã nguồn. `--giu-du-lieu` không seed, xoá hoặc đặt lại mật khẩu.
+  Chỉ ghi dòng PERF-*; mọi HTTP lỗi đều được tính. Smoke không chấm SLA.
+- Công cụ hiện kiểm đọc/lọc/poll/sửa/dán/định dạng. Không tuyên bố đã đo lên đơn, xoá/khôi phục,
+  cấu hình/tính lại song song hoặc 300.000 dòng. Lệnh `do_hieu_nang` kiểm kết quả tính lại trên fixture
+  riêng, một luồng để đếm đủ SQL; không đại diện tải worker song song.
+
+Bằng chứng và các phần chưa kiểm: [biên bản 19.10](../kiem-chung-pr136-ton-dong-20261019.md).
+
 ## Bối cảnh
 
 Anh/chị yêu cầu kiểm thử KN CRM ở cỡ **hàng triệu ô, 100 nghìn khách**, rồi mô phỏng

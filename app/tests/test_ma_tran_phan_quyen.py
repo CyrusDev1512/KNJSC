@@ -69,7 +69,7 @@ MA_TRAN = {
     },
     "Bảng vận đơn": {
         "staff_sale_1": TU_CHOI, "leader_sale_1": TU_CHOI,
-        "manager_sale": TU_CHOI, "staff_vd": TU_CHOI, None: CHUYEN_DANG_NHAP,
+        "manager_sale": VAO_DUOC, "staff_vd": TU_CHOI, None: CHUYEN_DANG_NHAP,
     },
     "Quản lý biểu mẫu": {
         "staff_sale_1": TU_CHOI, "leader_sale_1": TU_CHOI,
@@ -82,7 +82,7 @@ MA_TRAN = {
     },
     "Bảng tính vận đơn": {
         "staff_sale_1": CHUYEN_LEN_DON, "leader_sale_1": CHUYEN_LEN_DON,
-        "manager_sale": CHUYEN_LEN_DON, "staff_vd": VAO_DUOC, None: CHUYEN_DANG_NHAP,
+        "manager_sale": VAO_DUOC, "staff_vd": VAO_DUOC, None: CHUYEN_DANG_NHAP,
     },
     # Dòng thêm 17.09.2026 — ADR-023 biến `/bieu-mau/` thành thư viện hai tab:
     # tab Tài liệu mở cho mọi người, tab Biểu mẫu vẫn chỉ Manager trở lên. Giữ

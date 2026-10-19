@@ -340,9 +340,7 @@ def bang_tinh_xoa_cot(request, code):
         if ly_do:
             return _bao_loi(request, ly_do)
     try:
-        with transaction.atomic():
-            for c in cac:
-                table_service.remove_column(c, actor=request.user, request=request)
+        table_service.remove_columns(bang, cac, actor=request.user, request=request)
     except BusinessError as loi:
         return _bao_loi(request, str(loi))
     return JsonResponse({"da_bo": ma})
@@ -350,9 +348,9 @@ def bang_tinh_xoa_cot(request, code):
 
 @login_required
 def bang_tinh_moi_nhat(request, code):
-    """Mốc mới nhất của bảng trong phạm vi người xem — lưới hỏi mỗi
+    """Mốc toàn bảng đã kiểm quyền mở, không chứa dữ liệu — lưới hỏi mỗi
     `GRID_POLL_SECONDS` giây để tự cập nhật khi người khác sửa (ADR-011).
-    Chỉ có thời điểm sửa gần nhất, số cột và tiến độ tác vụ tính lại cột (nếu
+    Chỉ có thời điểm sửa gần nhất, số cột và ID tác vụ tính lại cột (nếu
     có, ADR-016) — không có dữ liệu. Không đếm dòng: thêm, xoá mềm, khôi phục
     đều đổi `updated_at` (kể cả dòng đã xoá, nên lấy trên `all_objects`), mà
     COUNT(*) là quét cả bảng 100 tab × mỗi 8 giây (K27).

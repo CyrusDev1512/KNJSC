@@ -17,6 +17,17 @@ from orders.services import dispatch_service, product_service
 pytestmark = pytest.mark.django_db
 
 
+def test_xoa_perf_sale_giu_dong_nhap_tay(nguoi_dung, departments):
+    """AC-10.10 — Tên bảng perf_sale không chứng minh mọi dòng trong đó là dữ liệu giả (TL-30)."""
+    from forms_builder.models import TableDef
+    table = TableDef.objects.create(code=seed_perf.SALE_TABLE_CODE, name='Bảng đo', department=departments['sale'])
+    real = DataRecord.objects.create(table=table, data={'ma_don':'DH-THAT'})
+    fake = DataRecord.objects.create(table=table, data={'ma_don':'PERF-001'})
+    seed_perf.clear()
+    assert DataRecord.objects.filter(pk=real.pk).exists()
+    assert not DataRecord.objects.filter(pk=fake.pk).exists()
+
+
 @pytest.fixture
 def dong_gia(nguoi_dung, settings):
     """Năm dòng mang mã `PERF-*` trên bảng vận đơn, dòng đầu có chi tiết và phân công —

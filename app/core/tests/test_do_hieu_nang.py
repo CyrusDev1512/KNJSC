@@ -6,9 +6,8 @@ chọn dòng để ghi là "5.000 dòng mới nhất trong phạm vi" — trên 
 là dòng khách thật. Nay: DEBUG tắt thì từ chối trừ khi ghi rõ `--dong-y-chay-that`; lệnh
 ghi chỉ đụng dòng `PERF-*` do `seed_perf` sinh, thiếu thì dừng trước khi đo.
 
-Phần gọi HTTP được thay bằng hàm giả (`bo_do_that`): điều bài kiểm là lệnh chọn dòng nào
-và chặn ở đâu, không phải tốc độ view; ba đường ghi cũ `luu-o/`, `dinh-dang/`, `dong-moi/`
-còn trả 409 từ 18.09 (cfecde6), nối lại phần ghi là việc riêng (TL-27).
+Các bài chọn phạm vi dùng hàm giả (`bo_do_that`); bài JSON gọi endpoint thật để
+kiểm hợp đồng CAS hiện hành. Không dùng thời gian của nhóm này làm kết quả kiểm tải.
 """
 import pytest
 from django.core.management import call_command
@@ -55,11 +54,42 @@ def bo_do_that(monkeypatch):
 
 
 def _pk_da_ghi(payload):
-    return {int(o.split(":")[0]) for _, du_lieu in payload for o in du_lieu.get("o", [])}
+    return {cell['id'] for _, du_lieu in payload for cell in du_lieu.get('cells', [])}
+
+
+def test_do_hieu_nang_goi_duong_json_thuc(bang_do, nguoi_dung, settings, tmp_path, monkeypatch):
+    """AC-10.8 — Lệnh đo thực sự ghi JSON, không còn gọi các endpoint 409 cũ (TL-27)."""
+    settings.DEBUG=True
+    _tao_dong(bang_do,nguoi_dung['admin'],PERF_PREFIX,1000)
+    monkeypatch.setattr(do_hieu_nang.Command,'_get',lambda *a,**k:lambda:None)
+    # Xuất lớn không thuộc bài hồi quy đường ghi này.
+    from forms_builder.services import export_service
+    monkeypatch.setattr(export_service,'build_workbook',lambda *a,**k:type('Book',(),{'save':lambda *a:None})())
+    call_command('do_hieu_nang',*THAM_SO)
+    assert DataRecord.objects.filter(table=bang_do,data__ghi_chu__startswith='đo tải').exists()
 
 
 def _anh_chup(pks):
     return list(DataRecord.all_objects.filter(pk__in=pks).order_by("pk").values_list("pk", "data", "style"))
+
+
+def test_do_tinh_lai_co_ghi_that_va_kiem_ket_qua(bang_do, nguoi_dung):
+    """AC-10.8 — Không chấm phép tính lại no-op: ô fixture bị làm cũ rồi được tính đúng."""
+    from forms_builder.models import ColumnDef
+    bang_do.workflow = ''
+    bang_do.save(update_fields=['workflow'])
+    ColumnDef.objects.create(table=bang_do, code='perf_double', name='Gấp đôi',
+        field_type='decimal', is_computed=True, compute_op='add', compute_left='so_luong', compute_right='so_luong')
+    row = DataRecord.objects.create(table=bang_do, department=bang_do.department,
+        created_by=nguoi_dung['admin'], data={'ma_don':'PERF-RECOMPUTE', 'so_luong':2, 'perf_double':'4.00'})
+    command = do_hieu_nang.Command()
+    command.lan = 1
+    command.ket_qua = []
+    command._recompute(bang_do)
+    row.refresh_from_db()
+    assert row.data['perf_double'] == '4.00'
+    assert len(command.ket_qua) == 1
+    assert command.ket_qua[0].so_truy_van > 0
 
 
 def test_do_hieu_nang_tu_choi_khi_debug_tat(bang_do, settings, tmp_path, django_assert_num_queries):
