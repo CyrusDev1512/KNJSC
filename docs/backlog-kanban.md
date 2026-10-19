@@ -1,5 +1,11 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 19.10.2026 — Nhánh C chuẩn bị đồng bộ main
+
+**Đã gộp Staging:** PR #137 tại `ed7795b`. **Đang làm:** kiểm chứng nhánh C.
+**Chờ:** chủ dự án kiểm tay local; chưa đưa lên main/VPS.
+Xem [biên bản nhánh C](kiem-chung-c-staging-main-20261019.md); mục cũ bên dưới giữ lịch sử.
+
 ## 19.10.2026 — PR #136, lỗi tồn đọng và Manager đọc đơn/vận đơn toàn công ty
 
 **Đã sửa và kiểm bằng máy trên local; bàn giao qua PR nháp về Staging theo yêu cầu 19.10.2026. Chờ kiểm tay và duyệt gộp; chưa phát hành.** Nhánh kết hợp `codex/tl136-kiem-thu-tong-hop`.

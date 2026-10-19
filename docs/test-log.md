@@ -1,5 +1,12 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 19.10.2026 — Kiểm trước đồng bộ main, nhánh C
+
+PR #137 đã gộp Staging `ed7795b`. CI trên mã PR: 3.926 server, 121 browser đạt; 18 skip và một cảnh báo dọn DB.
+Kiểm lại local: 369 server và 10 browser đạt. Đây là các lượt độc lập, không cộng thành số test duy nhất.
+Đã khắc phục cấu hình preview thiếu ReportSource bằng lệnh chuẩn; chưa có xác nhận kiểm tay đạt của chủ dự án.
+Chi tiết và giới hạn: [biên bản nhánh C](kiem-chung-c-staging-main-20261019.md). Không đóng thêm TL ngoài phạm vi.
+
 ## 19.10.2026 — PR #136, lỗi tồn đọng và Manager đọc đơn/vận đơn toàn công ty
 
 **Đã sửa và kiểm bằng máy trên local; bàn giao qua PR nháp về Staging theo yêu cầu 19.10.2026. Chờ kiểm tay và duyệt gộp; chưa phát hành.** Nhánh kết hợp `codex/tl136-kiem-thu-tong-hop`.

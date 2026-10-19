@@ -1,5 +1,12 @@
 # Backlog
 
+## 19.10.2026 — Nhánh C kiểm chứng trước khi đồng bộ main
+
+PR #137 đã gộp vào Staging `ed7795b`; mục bàn giao trước đó bên dưới được thay thế về trạng thái gộp.
+Đang chuẩn bị `codex/kiem-chung-c-staging-main`; main/VPS chưa cập nhật.
+Chủ dự án mới lướt local, chưa xác nhận kiểm tay đạt. Bằng chứng, giới hạn và kịch bản kiểm tay:
+[Biên bản nhánh C](kiem-chung-c-staging-main-20261019.md).
+
 ## 19.10.2026 — PR #136, lỗi tồn đọng và Manager đọc đơn/vận đơn toàn công ty
 
 **Đã sửa và kiểm bằng máy trên local; bàn giao qua PR nháp về Staging theo yêu cầu 19.10.2026. Chờ kiểm tay và duyệt gộp; chưa phát hành.** Nhánh kết hợp `codex/tl136-kiem-thu-tong-hop`.
