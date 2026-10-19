@@ -46,6 +46,20 @@ def record(action, actor=None, target=None, detail="", request=None, actor_label
 
     `target` có thể là một model đã lưu, hoặc một cặp (loại, mã).
     """
+    entry = _entry(action, actor, target, detail, request, actor_label)
+    entry.save()
+    return entry
+
+
+def record_many(action, targets, *, actor=None, detail, request=None):
+    """Audit từng đối tượng theo lô, cùng luật lọc dữ liệu nhạy cảm với record()."""
+    label = employee_code(actor)
+    return AuditLog.objects.bulk_create([
+        _entry(action, actor, target, detail(target), request, label) for target in targets
+    ], batch_size=1000)
+
+
+def _entry(action, actor, target, detail, request, actor_label):
     target_type, target_id = "", ""
     if target is not None:
         if isinstance(target, (tuple, list)) and len(target) == 2:
@@ -57,7 +71,7 @@ def record(action, actor=None, target=None, detail="", request=None, actor_label
     if not actor_label and actor is not None:
         actor_label = employee_code(actor)
 
-    return AuditLog.objects.create(
+    return AuditLog(
         actor=actor if getattr(actor, "pk", None) else None,
         actor_label=actor_label[:150],
         action=action,

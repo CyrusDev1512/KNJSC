@@ -167,3 +167,17 @@ Chốt (chủ dự án chọn): **ẩn nút với Sale staff và CSKH**. Vận �
 giữ nút như bổ sung 28.09. Quyết định ở một chỗ: `assignment_service.only_own_rows`, theo đúng các nhánh
 của `scope_condition`. `config.myScope` tắt theo, nên lựa chọn "Tôi" đã nhớ trên trình duyệt không còn tự
 thêm `cua_toi=1`; tham số đó gõ tay vẫn chỉ thu hẹp trong phạm vi. Quyền xem và sửa không đổi.
+
+## Bổ sung 19.10.2026 — Manager đọc đơn hàng/vận đơn toàn công ty
+
+Chủ dự án xác nhận “Chỉ toàn bộ đơn hàng/vận đơn” khi làm rõ câu “Manager không có gì không thể thấy”.
+Quyết định này thay phạm vi đọc Manager trong các mục trước của ADR này, không thay phạm vi các vai khác.
+
+- Manager của mọi bộ phận xem toàn bộ đơn gốc và dòng vận đơn, kể cả chưa tự lên đơn nào.
+- Định nghĩa bảng cũng phải nhìn thấy để mở thư mục/lưới. Lọc Tôi/Toàn bộ vẫn chỉ thu hẹp tập được đọc.
+- Báo cáo, tài liệu và dữ liệu nghiệp vụ khác vẫn theo phạm vi hiện hành. Quản trị chỉ dành Admin.
+- Quyền đọc không cấp thêm quyền sửa ô, phân công, nhập, cấu hình bảng hoặc bỏ đơn.
+- Dùng cùng phạm vi đọc cho lưới, xuất, thống kê và chi tiết. ERP tiếp tục chỉ đọc.
+- Quy tắc Leader không đổi trong bổ sung này; vấn đề bảng không hiện khi Leader chưa tự lên đơn cần xử lý riêng.
+
+Triển khai local trên `codex/manager-xem-toan-bo-don`; chưa gộp hoặc phát hành. Kết quả thực tế ở test-log.

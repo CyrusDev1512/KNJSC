@@ -149,6 +149,9 @@ class Customer(TimestampedModel):
 
 class OrderQuerySet(ScopedQuerySet):
     def in_scope(self, user):
+        from .permissions import can_view_company_orders
+        if can_view_company_orders(user):
+            return self
         original = super().in_scope(user)
         return self.filter(models.Q(pk__in=original.values('pk')) | models.Q(seller=user))
 

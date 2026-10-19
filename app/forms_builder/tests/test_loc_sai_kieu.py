@@ -1,4 +1,4 @@
-"""Bộ lọc cột trên URL sai kiểu bị bỏ qua, không lỗi 500 — AC-10.16 (săn lỗi 06.10.2026, fuzz).
+"""Bộ lọc cột trên URL sai kiểu bị từ chối, không lỗi 500 — AC-10.16 (bổ sung 19.10.2026).
 
 Fuzz Bảng dữ liệu: `?f_ngay=-1`, `?f_ngay=2026-13-45`, `?f_doanh_thu=aaa` là **lỗi 500** (`ValidationError` khi ép
 về ngày hay số cho cột tách `val_date`, `val_revenue`). `apply_filters` vốn hứa "tham số do người dùng gõ, không tin
@@ -15,14 +15,19 @@ pytestmark = pytest.mark.django_db
 
 @pytest.mark.parametrize("tham_so", ["f_ngay=-1", "f_ngay=2026-13-45", "f_ngay=NaN", "f_ngay__lon_bang=abc",
                                      "f_doanh_thu=aaa", "f_doanh_thu__nho_bang=1e309", "f_so_luong=x"])
-def test_loc_sai_kieu_bo_qua_khong_500(client, bang_sale, nguoi_dung, tham_so):  # noqa: F811
-    """AC-10.16 — Bộ lọc cột ngày, tiền, số nguyên nhận giá trị sai kiểu trên URL: trang vẫn mở (200), bộ lọc đó bị bỏ qua — cả ở Bảng dữ liệu lẫn Xuất tệp"""
+def test_loc_sai_kieu_chan_khong_500(client, bang_sale, nguoi_dung, tham_so):  # noqa: F811
+    """AC-10.16 — Không âm thầm bỏ bộ lọc: đọc trả lỗi rõ, xuất từ chối tạo file và có lời báo."""
     quan_ly = nguoi_dung["manager_sale"]
     record_service.create_record(bang_sale, {"ngay": "2026-08-01", "khach": "A", "doanh_thu": "1", "so_luong": 1},
                                  actor=quan_ly)
     client.force_login(quan_ly)
-    assert client.get(f"/bang/don_sale/?{tham_so}").status_code == 200
-    assert client.get(f"/bang/don_sale/xuat/?{tham_so}").status_code == 200
+    response = client.get(f"/bang/don_sale/?{tham_so}")
+    assert response.status_code == 400
+    assert "Bộ lọc cột" in response.content.decode()
+    exported = client.get(f"/bang/don_sale/xuat/?{tham_so}", follow=True)
+    assert exported.redirect_chain
+    assert "Bộ lọc cột" in exported.content.decode()
+    assert "spreadsheet" not in exported["Content-Type"]
 
 
 def test_trang_cot_ma_cot_la_404_khong_500(client, bang_sale, nguoi_dung):  # noqa: F811

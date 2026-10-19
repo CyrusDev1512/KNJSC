@@ -167,6 +167,8 @@ riêng của Claude có sẵn trong môi trường Codex.
 - Cấp bậc tách khỏi bộ phận: Staff theo bản thân, Leader theo team, Manager theo
   bộ phận, Admin toàn hệ thống. Kiểm tra quyền phía server trên mọi đường đọc/ghi,
   nhập/xuất và thống kê; dùng manager/service phạm vi hiện có. Không chỉ ẩn nút UI.
+  Ngoại lệ đọc chốt 19.10.2026: Manager xem toàn bộ đơn hàng/vận đơn của công ty;
+  không mở rộng sang báo cáo/dữ liệu khác, quyền sửa hoặc menu Quản trị. Xem bổ sung ADR-033.
 - Giữ ngoại lệ đã chốt như bảng dùng chung và dữ liệu nội bộ toàn công ty;
   không siết hoặc mở quyền đồng loạt. Leader có một số thao tác như Manager ở CRM
   không có nghĩa được xem toàn bộ phận hoặc tự cấp quyền như Manager.

@@ -43,7 +43,7 @@
     $('mg-message').textContent = text; $('mg-message').hidden = !text;
     $('mg-message').classList.toggle('mg-error', error);
   };
-  const status = text => { $('bt-trang-thai').textContent = text; };
+  const status = text => { $('bt-trang-thai').textContent = text; $('bt-trang-thai').classList.toggle('bt-can-chu-y',text!=='Đã lưu'); };
   function persist() { try { localStorage.setItem(key, JSON.stringify(preferences));return true; } catch (_) {return false;} }
   function updateGeometry(change) {
     const anchor=geometry.at(viewport.scrollTop),offset=viewport.scrollTop-geometry.top(anchor);
@@ -61,7 +61,7 @@
       throw error;
     }
     const data=isJson?await response.json().catch(()=>({})):{};
-    if (!response.ok) { const error = new Error(data.error || 'Không tải được dữ liệu. Kiểm tra kết nối hoặc quyền truy cập.'); error.status = response.status; error.code=data.code; error.cell = data.cell; error.conflicts=data.conflicts||[]; error.currencyConfirmations=data.currency_confirmations;
+    if (!response.ok) { const error = new Error(data.error || 'Yêu cầu chưa được xác nhận. Kiểm tra kết nối hoặc quyền truy cập rồi thử lại.'); error.status = response.status; error.code=data.code; error.cell = data.cell; error.conflicts=data.conflicts||[]; error.currencyConfirmations=data.currency_confirmations;
       // Mã bảo mật lệch (core.views.csrf_failure) hay trang của người khác (409): lỗi phiên, không phải mất quyền — ADR-053
       if(data.code==='csrf'){error.status=401;error.session=true;}
       if(data.code==='nguoi_dung_doi')error.session=true;
@@ -238,7 +238,7 @@
       }
       error.handled=true;
       if(error.session&&(state.saveError||state.rowRetry||state.conflicts.length)){sessionNotice(error);throw error;}
-      state.lastError = error.message; message(error.message, true);
+      state.lastError = error.message; message(error.message, true);refreshStatus();
       const retry=element('button','nut','Tải lại vùng đang xem');retry.onclick=()=>{state.lastError='';message();invalidate();};$('mg-message').append(retry);
       if(error.session)sessionNotice(error);
       throw error;
@@ -366,7 +366,7 @@
     for (let r = start; r < end; r++) {
       const row = rowAt(r), line = element('div','mg-row'+(row?.class?' '+row.class:''));line.setAttribute('role','row');line.setAttribute('aria-rowindex',r+2);
       const rowHeight=geometry.height(r);
-      const paint={row,working,local:working.revision(row?.id),layout:headerKey,height:rowHeight,top:geometry.top(r)};
+      const paint={row,working,local:working.revision(row?.id),layout:headerKey,height:rowHeight,top:geometry.top(r),invalid:state.invalidCell};
       const previous=oldRows.get(String(r+2)),old=previous?._paint;
       line._paint=paint;
       if((scrollOnly||config.renderOptimized)&&old&&Object.keys(paint).every(k=>paint[k]===old[k])){
@@ -405,6 +405,7 @@
           }
         }
         if(row) {cell.dataset.id=row.id;cell.id=`mg-${row.id}-${c.code}`;}
+        if(row&&state.invalidCell?.id===row.id&&state.invalidCell.column===c.code){cell.setAttribute('aria-invalid','true');cell.title=state.invalidCell.message;}
         cell.setAttribute('role','gridcell');cell.setAttribute('aria-colindex',c.i+2);cell.setAttribute('aria-selected',!!selected(r,c.i));
         if(selected(r,c.i))for(const [side,on] of Object.entries({top:r===state.selection.r1,bottom:r===state.selection.r2,left:c.i===state.selection.c1,right:c.i===state.selection.c2}))if(on)cell.classList.add('mg-edge-'+side);
         if(value&&!value.editable) cell.setAttribute('aria-readonly','true');
@@ -654,7 +655,7 @@
   function refreshStatus() {
     const currentChanged=state.draft&&!same(editor.elements.value?.value,state.draft.shown??state.draft.old);
     const count=working.count;
-    status(state.conflicts.length?'Xung đột':state.busy?'Đang lưu':state.saveError||state.rowRetry?'Lỗi lưu':count||currentChanged||state.retry?'Chưa lưu':'Đã lưu');
+    status(state.conflicts.length?'Xung đột':state.busy?'Đang lưu':state.saveError||state.rowRetry||state.actionError?'Lỗi lưu':count||currentChanged||state.retry?'Chưa lưu':state.lastError?'Không tải được dữ liệu':'Đã lưu');
     $('mg-conflict-button').textContent=`Xung đột (${state.conflicts.length})`;
     $('mg-save').disabled=state.busy||!(count||currentChanged||state.retry||state.rowRetry);
     $('mg-save').title=count?`${count} ô chờ lưu, gồm cả ô ngoài bộ lọc đang xem`:'Lưu dữ liệu (Ctrl+S)';
@@ -766,8 +767,8 @@
       const result=await fetch(config.saveUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(payload)}).then(json);
       working.stage(cells,false);working.acknowledge(cells,result.rows||[]);
       for(const row of result.row_results||[]){const item=step.createdRows.find(r=>r.id===row.id);if(item)item.version=row.version;}
-      state.rowRetry=null;(redo?working.redo:working.undo).pop();(redo?working.undo:working.redo).push(step);invalidate();scheduleSave();
-    }catch(error){if(error.status&&error.status<500&&!error.session)state.rowRetry=null;message(error.message,true);if(state.rowRetry){const retry=element('button','nut','Thử lại hoàn tác');retry.onclick=()=>travelCreated(step,redo);$('mg-message').append(retry);}if(error.session)sessionNotice(error);}finally{state.busy=false;refreshStatus();}
+      state.rowRetry=null;state.actionError='';(redo?working.redo:working.undo).pop();(redo?working.undo:working.redo).push(step);invalidate();scheduleSave();
+    }catch(error){state.actionError=error.message;if(error.status&&error.status<500&&!error.session)state.rowRetry=null;message(error.message,true);if(state.rowRetry){const retry=element('button','nut','Thử lại hoàn tác');retry.onclick=()=>travelCreated(step,redo);$('mg-message').append(retry);}if(error.session)sessionNotice(error);}finally{state.busy=false;refreshStatus();}
   }
   // Xoá dòng — chỉ Admin (ADR-049, chủ dự án 08.10.2026). Máy chủ kiểm lại từng dòng; ở đây chỉ hiện nút đúng người.
   // Một lượt `delete_rows`/`restore_rows` qua luu-json: biên nhận chống lặp, so phiên bản từng dòng (409 nếu vừa đổi).
@@ -815,13 +816,13 @@
     try{
       const result=await fetch(config.saveUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(payload)}).then(json);
       for(const row of result.row_results||[]){const item=step.deletedRows.find(r=>r.id===row.id);if(item)item.version=row.version;}
-      state.rowRetry=null;
+      state.rowRetry=null;state.actionError='';
       if(fresh){working.undo.push(step);if(working.undo.length>100)working.undo.shift();working.redo=[];}
       else{(redo?working.redo:working.undo).pop();(redo?working.undo:working.redo).push(step);}
       const n=step.deletedRows.length.toLocaleString('vi-VN');
       state.notice=redo?`Đã xoá ${n} dòng. Ctrl+Z để khôi phục.`:`Đã khôi phục ${n} dòng.`;
       invalidate();message(state.notice);scheduleSave();
-    }catch(error){if(error.status&&error.status<500&&!error.session)state.rowRetry=null;message(error.message,true);if(state.rowRetry){const retry=element('button','nut',redo?'Thử lại xoá dòng':'Thử lại khôi phục');retry.onclick=()=>travelDeleted(step,redo,fresh);$('mg-message').append(retry);}if(error.session)sessionNotice(error);}finally{state.busy=false;refreshStatus();}
+    }catch(error){state.actionError=error.message;if(error.status&&error.status<500&&!error.session)state.rowRetry=null;message(error.message,true);if(state.rowRetry){const retry=element('button','nut',redo?'Thử lại xoá dòng':'Thử lại khôi phục');retry.onclick=()=>travelDeleted(step,redo,fresh);$('mg-message').append(retry);}if(error.session)sessionNotice(error);}finally{state.busy=false;refreshStatus();}
   }
   function scheduleSave(){
     if(state.saveError||state.conflicts.length||!working.count)return;
@@ -832,7 +833,9 @@
     const byId=new Map(rows.map(r=>[r.id,r]));
     for(const block of state.cache.values())block.rows=block.rows.map(r=>byId.has(r.id)?(partial?{...r,cells:{...r.cells,...byId.get(r.id).cells}}:byId.get(r.id)):r);
     // Request đã bắt đầu trước lượt lưu không được ghi đè kết quả vừa xác nhận.
-    state.generation++;state.pending.forEach(p=>p.controller.abort());state.pending.clear();if(config.protocol!==2)state.version='';
+    // Cache còn giữ thứ tự của phiên cũ: phải giữ version để khối chưa tải nhận
+    // 409 thay vì ghép vị trí từ hai phiên rồi co 100 ô thành 99 (TL-113).
+    state.generation++;state.pending.forEach(p=>p.controller.abort());state.pending.clear();
     apLaiChieuCao(rows.map(r=>r.id));   // dòng vừa lưu về hay người khác vừa sửa: đo lại chiều cao (AC-11.44)
   }
   async function saveAll(explicit=true) {
@@ -866,8 +869,10 @@
         }
         working.acknowledgeRowVersions(rows);
         working.acknowledge(payload.cells,rows);working.observe(rows);state.retry=null;state.retryCount=0;state.currencyConfirmations=null;
-        if(data.latest)state.poll=JSON.stringify(data.latest);
-        updateRows(rows,data.protocol===2);state.lastError='';
+        // ACK chỉ xác nhận các ô của lượt này, không chứng minh cache đã nhận mọi
+        // thay đổi của người khác nằm trong mốc toàn bảng (TL-114/115).
+        state.needsSync=true;
+        updateRows(rows,data.protocol===2);state.lastError='';state.invalidCell=null;state.actionError='';
         if(state.notice){message(state.notice);state.notice='';}
         // Dòng nối tại chỗ thì không hiện thanh thông báo: thanh này đẩy cả lưới xuống 33 px
         // rồi rút lại ở lần lưu sau — chính là cú giật khi gõ liên tiếp nhiều dòng.
@@ -889,16 +894,22 @@
       if(error.status===403||error.status===404){
         state.saveError=true;
         try{error.message=await retainReadableDrafts(error.message);}
-        catch(e){if(!e.session){clearAccess(error.message);return;}error.message=e.message;error.status=e.status;error.code=e.code;error.session=true;}
+        catch(e){
+          if(!e.session&&(e.status===403||e.status===404)){clearAccess(error.message);return;}
+          if(e.session){error.message=e.message;error.status=e.status;error.code=e.code;error.session=true;}
+          else error.message+=' Chưa kiểm tra lại được quyền do lỗi kết nối. Nháp được giữ để thử lại.';
+        }
       }
       state.conflicts=error.conflicts||[];
       // Lỗi phiên (chưa tới view): giữ đúng lượt cũ và mã lượt — lượt trước có thể đã ghi (5xx, mất mạng) nên thử lại phải dùng lại biên nhận
       if(error.status&&error.status<500&&state.retry&&!error.session){working.release(state.retry.payload.cells);state.retry=null;}
       state.saveError=true;
       state.errorStatus=error.status||0;
-      const position=error.cell?.id?`Dòng #${error.cell.id}, cột ${error.cell.column}: `:'';message(position+error.message,true);if(error.session)sessionNotice(error);
+      state.invalidCell=error.status===400&&error.cell?.id?{...error.cell,message:error.message}:null;
+      const column=state.columns.find(c=>c.code===error.cell?.column);
+      const position=column?`Cột ${column.name}: `:'';message(position+error.message,true);if(error.session)sessionNotice(error);
       const retry=element('button','nut','Thử lại'),discard=element('button','nut','Bỏ bản nháp');
-      retry.onclick=()=>{state.retryCount=0;saveAll();};discard.onclick=()=>{working=new window.KNJSCWorkingCopy(!!config.renderOptimized);state.retry=null;state.conflicts=[];state.saveError=false;state.lastError='';message();invalidate();refreshStatus();};
+      retry.onclick=()=>{state.retryCount=0;saveAll();};discard.onclick=()=>{working=new window.KNJSCWorkingCopy(!!config.renderOptimized);state.retry=null;state.conflicts=[];state.saveError=false;state.lastError='';state.invalidCell=null;message();invalidate();refreshStatus();};
       if(state.conflicts.length){const open=element('button','nut','Đối chiếu xung đột');open.onclick=showConflicts;$('mg-message').append(open);}
       else $('mg-message').append(retry);
       if(error.code==='schema_changed'){const reload=element('button','nut','Tải lại cấu trúc, giữ nháp');reload.onclick=async()=>{invalidate(false);await loadBlock(0);state.editSchema=state.schemaVersion;state.retry=null;state.saveError=false;message('Đã tải cấu trúc mới. Kiểm tra nháp theo mã cột trước khi bấm Thử lại.');$('mg-message').append(retry);};$('mg-message').append(reload);}
@@ -963,8 +974,9 @@
     if(start.c+width>state.visible.length||(!config.canCreate&&start.r+data.length>state.persistedTotal))throw Error('Vùng dán vượt cuối bảng; không tự tạo đơn hoặc cột mới.');
     ensureDrafts(Math.max(1,start.r+data.length-state.persistedTotal));updateGeometry(()=>geometry.resize(state.total));
     if(data.some(r=>r.length!==width))throw Error('Dữ liệu dán có số cột không đồng đều.');
-    const gen=state.generation,cells=[];
+    const gen=state.generation,cells=[],seen=new Set();
     for(let i=0;i<data.length;i++){const b=await loadBlock(Math.floor((start.r+i)/BLOCK));if(gen!==state.generation||!b)throw Error('Dữ liệu đã đổi, chọn lại vùng dán.');const row=rowAt(start.r+i);
+      if(!row||seen.has(row.id)){invalidate();throw Error('Dữ liệu đã đổi, chọn lại vùng dán.');}seen.add(row.id);
       for(let j=0;j<width;j++){const c=state.visible[start.c+j],v=cellValue(row,c.code);if(!v.editable)throw Error(`Ô ${columnLetter(start.c+j)}${start.r+i+1} bị khóa; chưa dán ô nào.`);if(/^\s*=/.test(data[i][j]))throw Error('Không nhập công thức; hãy dán giá trị từ Excel.');cells.push({id:row.id,column:c.code,old:v.value,value:data[i][j]});}}
     await submit(cells,'paste');
   }
@@ -1006,9 +1018,9 @@
     try{
       const data=await fetch(config.clearDetailsUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
         body:JSON.stringify({operation:crypto.randomUUID(),cells:details.map(c=>({id:c.id,column:c.column,old:c.old}))})}).then(json);
-      if(data.latest)state.poll=JSON.stringify(data.latest);
-      invalidate(false);return true;
-    }catch(error){message(error.message,true);if(error.session)sessionNotice(error);return false;}
+      state.needsSync=true;
+      state.actionError='';invalidate(false);return true;
+    }catch(error){state.actionError=error.message;message(error.message,true);if(error.session)sessionNotice(error);return false;}
     finally{refreshStatus();}
   }
   const safe=fn=>(...args)=>Promise.resolve().then(()=>fn(...args)).catch(e=>{if(!e.handled)message(e.message,true);});
@@ -1384,10 +1396,11 @@
   }
   async function poll(){
     if(document.hidden||state.busy||state.unavailable||state.sessionLost)return;
+    const generation=state.generation;
     try{
       if(config.syncUrl){
         if(!state.queryToken)return;
-        const generation=state.generation,ids=new Set(working.pending().map(c=>c.id));
+        const ids=new Set(working.pending().map(c=>c.id));
         if(state.draft)ids.add(state.draft.id);if(state.historyId)ids.add(state.historyId);
         for(const block of state.cache.values())block.rows.forEach(row=>ids.add(row.id));
         const visible=[...new Set([...canvas.querySelectorAll('.mg-cell[data-id]')].map(cell=>Number(cell.dataset.id)))].filter(id=>id>0).slice(0,100);
@@ -1408,17 +1421,19 @@
         return;
       }
       const data=await fetch(config.filterUrl+'moi-nhat/').then(json),stamp=JSON.stringify(data);
+      if(generation!==state.generation||state.busy)return;
       if(reloadForViewMode(data))return;
       // Kiểm quyền từng dòng đang giữ chỉ khi mốc đổi (mục d, 07.10.2026): dòng ra khỏi phạm vi luôn kèm mốc đổi (đổi
       // phân công cũng chạm `updated_at`). Thêm một lượt dự phòng mỗi 10 lần hỏi cho đổi phạm vi không chạm dòng (đổi
       // team của người khác). Máy chủ vẫn chặn mọi lần đọc/ghi ngoài phạm vi; lượt này chỉ để dọn nháp và bộ đệm sớm.
       state.scopeTick=(state.scopeTick||0)+1;
-      if(state.poll===stamp&&state.scopeTick%10!==0)return;
+      if(state.poll===stamp&&!state.needsSync&&state.scopeTick%10!==0)return;
       const ids=new Set(working.pending().map(c=>c.id));
       if(state.draft)ids.add(state.draft.id);if(state.historyId)ids.add(state.historyId);
       for(const block of state.cache.values())block.rows.forEach(r=>ids.add(r.id));
       for(const id of ids)if(id<1)ids.delete(id);
       if(ids.size){const check=await fetch(config.scopeUrl,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({ids:[...ids]})}).then(json),visible=new Set(check.visible),lost=new Set([...ids].filter(id=>!visible.has(id)));
+        if(generation!==state.generation||state.busy)return;
         if(lost.size){
           const interrupted=working.pending().some(c=>lost.has(c.id))||state.retry?.payload.cells.some(c=>lost.has(c.id));
           if(interrupted){clearTimeout(saveTimer);firstQueued=0;state.saveError=true;state.errorStatus=403;working.release(state.retry?.payload.cells||[]);state.retry=null;}
@@ -1427,8 +1442,9 @@
           if(interrupted&&working.count){const retry=element('button','nut','Thử lại');retry.onclick=()=>{state.retryCount=0;saveAll();};$('mg-message').append(retry);}refreshStatus();}
         if(lost.size){reader.querySelector('div').textContent='';$('vd-detail')?.close();$('vd-detail-body')?.replaceChildren();}
       }
-      if(state.poll&&state.poll!==stamp)refreshSoft();state.poll=stamp;
+      if((state.poll&&state.poll!==stamp)||state.needsSync)refreshSoft();state.poll=stamp;state.needsSync=false;
     }catch(e){
+      if(generation!==state.generation||state.busy)return;
       if(e.session){
         // Lượt hỏi gặp hết phiên/đổi người: không gỡ nháp, không đè lời lưu đang chờ xử lý; dừng hỏi tới khi có phản hồi hợp lệ (ADR-053)
         if(!state.saveError&&!state.rowRetry&&!state.conflicts.length){

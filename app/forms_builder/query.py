@@ -13,9 +13,14 @@ ghép sai thì hoặc nổ, hoặc tệ hơn là trả nhầm dữ liệu.
 đưa queryset vào đây (quy tắc 11).
 """
 from orders.constants import is_waybill_table
+from datetime import date, datetime
+from decimal import InvalidOperation
 from django.conf import settings
 from django.core.exceptions import FieldError, ValidationError
-from django.db.models import Q
+from django.db.models import Q, BooleanField, Case, DecimalField, Func, Value, When
+from django.db.models.fields.json import KeyTextTransform
+from core.exceptions import BusinessError
+from core.money import parse_money, parse_stored_number
 
 from .meaning import COLUMN_OF
 
@@ -39,11 +44,54 @@ OPERATORS = {
 #: cùng tên (`f_cot__trong=a&f_cot__trong=b`)
 LIST_OPERATORS = {"trong"}
 
-#: Cột tách nhận được phép so sánh số; cột JSON thì so sánh chuỗi là chính,
-#: vì giá trị trong JSON không có kiểu ổn định.
+#: Cột tiền/số thập phân JSON được ép numeric có kiểm tra trước khi so sánh.
 NUMERIC_OPERATORS = {"gt", "gte", "lt", "lte"}
 #: Kiểu cột JSON mà phép so sánh khoảng vẫn đúng
-JSON_RANGE_TYPES = {"integer", "date", "datetime"}
+JSON_RANGE_TYPES = {"integer", "decimal", "money", "date", "datetime"}
+
+
+class InvalidFilter(BusinessError):
+    """Bộ lọc đã biết nhưng giá trị sai: không được âm thầm bỏ lọc."""
+
+
+def _numeric_path(queryset, column):
+    """JSON số lưu chuỗi máy: numeric không làm tròn, dữ liệu cũ sai kiểu không gây 500.
+
+    PostgreSQL 16 kiểm khả năng ép kiểu trước CAST; không đặt trần precision mới cho dữ liệu đã lưu.
+    """
+    name = f"_kn_number_{column.pk}"
+    text = KeyTextTransform(column.code, "data")
+    valid = Func(text, Value("numeric"), function="pg_input_is_valid", output_field=BooleanField())
+    number = Func(text, template="(%(expressions)s)::numeric", output_field=DecimalField())
+    finite = Q(**{f"data__{column.code}__regex": r"^[+-]?[0-9]+([.][0-9]+)?([eE][+-]?[0-9]+)?$"})
+    return queryset.alias(**{name: Case(When(Q(valid) & finite, then=number), default=None, output_field=DecimalField())}), name
+
+
+def _filter_value(column, path, value, operator):
+    """Chữ người gõ và giá trị máy trong danh sách chọn đi hai bộ đọc riêng (ADR-052)."""
+    kind = "money" if path == "val_revenue" else "date" if path == "val_date" else column.field_type
+    def one(raw):
+        try:
+            if kind in ("money", "decimal"):
+                value = parse_stored_number(raw) if operator == "in" else parse_money(raw)
+                if value is None:
+                    raise ValueError
+                return value
+            if kind == "integer":
+                text = str(raw).strip().replace(".", "").replace(" ", "")
+                if len(text) > 20:
+                    raise ValueError
+                return int(text)
+            if kind == "date":
+                text = str(raw).strip()
+                return (datetime.strptime(text, "%d/%m/%Y").date() if "/" in text else date.fromisoformat(text)).isoformat()
+            if kind == "datetime":
+                text = str(raw).strip()
+                return (datetime.strptime(text, "%d/%m/%Y %H:%M") if "/" in text else datetime.fromisoformat(text)).isoformat()
+            return raw
+        except (ValueError, TypeError, InvalidOperation, BusinessError):
+            raise InvalidFilter(f'Bộ lọc cột "{column.name}" không hợp lệ. Kiểm tra ngày hoặc số đã nhập.') from None
+    return [one(v) for v in value] if isinstance(value, (list, tuple)) else one(value)
 
 
 class ColumnMap:
@@ -92,8 +140,8 @@ def apply_filters(queryset, column_map, filters):
     """Lọc theo nhiều cột.
 
     `filters` là dict `{tên_cột: giá_trị}` hoặc `{tên_cột__phép_so_sánh: giá_trị}`.
-    Cột lạ và phép so sánh lạ đều bị bỏ qua, không ném lỗi — tham số trên URL
-    do người dùng gõ, không tin được.
+    Cột/phép lạ bị bỏ qua. Giá trị sai của cột đã biết bị từ chối rõ ràng,
+    không được âm thầm mở rộng kết quả và tệp xuất.
     """
     for khoa, gia_tri in (filters or {}).items():
         if gia_tri in (None, ""):
@@ -134,7 +182,9 @@ def apply_filters(queryset, column_map, filters):
             queryset = queryset.filter(condition)
             continue
         if phep in ("blank", "nonblank"):
-            trong = Q(**{f"{duong_dan}__isnull": True}) | Q(**{duong_dan: ""})
+            trong = Q(**{f"{duong_dan}__isnull": True})
+            if duong_dan not in ("val_date", "val_revenue"):
+                trong |= Q(**{duong_dan: ""})
             queryset = queryset.filter(trong) if phep == "blank" else queryset.exclude(trong)
             continue
         if phep == "in":
@@ -142,12 +192,13 @@ def apply_filters(queryset, column_map, filters):
             if not gia_tri:
                 continue
         cot = column_map.by_code.get(code)
+        gia_tri = _filter_value(cot, duong_dan, gia_tri, phep)
+        numeric_json = not column_map.is_indexed(code) and cot.field_type in ("money", "decimal")
+        if numeric_json:
+            queryset, duong_dan = _numeric_path(queryset, cot)
         if not column_map.is_indexed(code):
-            # Giá trị trong JSON giữ kiểu lúc lưu: số nguyên là số thật, nên
-            # tham số chuỗi trên URL phải ép về số mới khớp được
-            gia_tri = _ep_kieu_json(cot, gia_tri)
-            # So sánh khoảng trên JSON chỉ tin được với số nguyên (jsonb so số)
-            # và ngày ISO (so chuỗi đúng thứ tự); còn lại rơi về so bằng
+            # JSON số nguyên/ngày giữ kiểu đã chuẩn hoá; tiền/số thập phân dùng
+            # biểu thức numeric ở trên. Cột chữ giữ phép bằng khi yêu cầu khoảng.
             if phep in NUMERIC_OPERATORS and cot.field_type not in JSON_RANGE_TYPES:
                 phep = "exact"
         try:
@@ -157,20 +208,8 @@ def apply_filters(queryset, column_map, filters):
                 queryset = queryset.filter(data__contains={code: gia_tri})
             queryset = queryset.filter(**{f"{duong_dan}__{phep}": gia_tri})
         except (FieldError, ValidationError, ValueError, TypeError):
-            # ValidationError: giá trị sai kiểu cho cột tách ngày/tiền (`?f_ngay=-1`) — trước đây là lỗi 500 (AC-10.16)
-            continue
+            raise InvalidFilter(f'Bộ lọc cột "{cot.name}" không hợp lệ.') from None
     return queryset
-
-
-def _ep_kieu_json(cot, gia_tri):
-    if cot is None or cot.field_type != "integer":
-        return gia_tri
-    def _mot(v):
-        try:
-            return int(str(v).strip())
-        except (ValueError, TypeError):
-            return v
-    return [_mot(v) for v in gia_tri] if isinstance(gia_tri, list) else _mot(gia_tri)
 
 
 def read_filters(params, columns):
@@ -229,8 +268,11 @@ def apply_sort(queryset, column_map, sort_code, descending=False):
     """
     duong_dan = column_map.path(sort_code) if sort_code else None
     if not duong_dan:
-        return queryset.order_by("-created_at")
-    return queryset.order_by(f"{'-' if descending else ''}{duong_dan}")
+        return queryset.order_by("-created_at", "pk")
+    column = column_map.by_code[sort_code]
+    if not column_map.is_indexed(sort_code) and column.field_type in ("money", "decimal"):
+        queryset, duong_dan = _numeric_path(queryset, column)
+    return queryset.order_by(f"{'-' if descending else ''}{duong_dan}", "pk")
 
 
 def build(queryset, table, *, filters=None, search="", sort=None, descending=False,

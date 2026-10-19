@@ -12,7 +12,7 @@ người cùng lúc chắc chắn chậm hơn. Gọi thẳng view qua `django.te
 `--lan` lần, lấy **trung vị**; mỗi lần đếm số lệnh truy vấn và lệnh chậm nhất.
 Ngưỡng theo `core.constants` (PERF_READ_P95_MS, PERF_WRITE_P95_MS, …).
 
-Các lệnh ghi (lưu ô, dòng mới, định dạng) sửa thật dữ liệu: lệnh chỉ chọn dòng
+Các lệnh ghi (lưu ô, định dạng) sửa thật dữ liệu: lệnh chỉ chọn dòng
 giả `PERF-*` do `seed_perf` sinh để ghi, có dưới `SO_DONG_DICH_TOI_THIEU` dòng
 thì dừng trước khi đo. DEBUG tắt thì từ chối như mọi lệnh dữ liệu giả, trừ khi
 ghi rõ `--dong-y-chay-that` (TL-98).
@@ -22,6 +22,8 @@ import platform
 import random
 import statistics
 import time
+import uuid
+from unittest.mock import patch
 from datetime import date
 
 from django.conf import settings
@@ -134,7 +136,7 @@ class Command(BaseCommand):
 
     def _post(self, client, duong_dan, du_lieu, ma=200):
         def ham():
-            r = client.post(duong_dan, du_lieu() if callable(du_lieu) else du_lieu)
+            r = client.post(duong_dan, du_lieu() if callable(du_lieu) else du_lieu, content_type="application/json")
             if r.status_code != ma:
                 raise CommandError(f"POST {duong_dan} trả {r.status_code}, mong {ma}: "
                                    + r.content.decode("utf-8", "replace")[:300])
@@ -186,15 +188,15 @@ class Command(BaseCommand):
             self._do("Trang chủ KN CRM /", DOC, self._get(c, "/"), giai_thich=gt)
             self._do("Thư mục /thu-muc/ (cây Quý ▸ Tháng)", DOC, self._get(c, "/thu-muc/"), giai_thich=gt)
             self._do("Lưới vận đơn mặc định", DOC, self._get(c, goc), giai_thich=gt)
-            self._do("Lưới lọc tháng hiện tại", DOC, self._get(c, f"{goc}?{loc_thang}"), giai_thich=gt)
-            self._do("Lưới trang 500", DOC, self._get(c, f"{goc}?trang=500"), giai_thich=gt)
-            self._do("Sắp xếp theo Tên khách (cột tách)", DOC, self._get(c, f"{goc}?sap=ten_khach"), giai_thich=gt)
-            self._do("Sắp xếp theo Thành phố (khoá JSON)", DOC, self._get(c, f"{goc}?sap=thanh_pho&chieu=giam"), giai_thich=gt)
-            self._do("Tìm nhanh `tim=Taylor`", DOC, self._get(c, f"{goc}?tim=Taylor"), giai_thich=gt)
+            self._do("Lưới lọc tháng hiện tại", DOC, self._get(c, f"{goc}du-lieu/?{loc_thang}"), giai_thich=gt)
+            self._do("Khối ở vị trí 49.900", DOC, self._get(c, f"{goc}du-lieu/?offset=49900"), giai_thich=gt)
+            self._do("Sắp xếp theo Tên khách (cột tách)", DOC, self._get(c, f"{goc}du-lieu/?sap=ten_khach"), giai_thich=gt)
+            self._do("Sắp xếp theo Thành phố (khoá JSON)", DOC, self._get(c, f"{goc}du-lieu/?sap=thanh_pho&chieu=giam"), giai_thich=gt)
+            self._do("Tìm nhanh `tim=Taylor`", DOC, self._get(c, f"{goc}du-lieu/?tim=Taylor"), giai_thich=gt)
             self._do("Lọc trạng thái + chứa chữ + sắp xếp", DOC,
-                     self._get(c, f"{goc}?f_trang_thai_vc__trong=%C4%90ang%20giao&f_ten_khach__chua=Taylor&sap=ngay"),
+                     self._get(c, f"{goc}du-lieu/?f_trang_thai_vc__trong=%C4%90ang%20giao&f_ten_khach__chua=Taylor&sap=ngay"),
                      giai_thich=gt)
-            self._do("Chỉ dòng trùng `trung=1`", DOC, self._get(c, f"{goc}?trung=1"), giai_thich=gt)
+            self._do("Chỉ dòng trùng `trung=1`", DOC, self._get(c, f"{goc}du-lieu/?trung=1"), giai_thich=gt)
             self._do("Hộp lọc Trạng thái VC (cột tách)", DOC, self._get(c, f"{goc}loc/trang_thai_vc/"), giai_thich=gt)
             self._do("Hộp lọc Thành phố (khoá JSON)", DOC, self._get(c, f"{goc}loc/thanh_pho/"), giai_thich=gt)
             self._do("Hộp lọc Tên khách (cột tách, 86 nghìn giá trị)", DOC, self._get(c, f"{goc}loc/ten_khach/"), giai_thich=gt)
@@ -204,43 +206,22 @@ class Command(BaseCommand):
             self._do("tree_service.build (trang thư mục)", DOC,
                      lambda: tree_service.build(nguoi), giai_thich=gt)
 
-            # ── Ghi ──
-            def luu_o(n):
-                def du_lieu():
-                    pks = rng.sample(pk_vd, n)
-                    return {"o": [f"{pk}:ghi_chu" for pk in pks], "gt": [f"đo tải {rng.randrange(9999)}" for _ in pks]}
-                return du_lieu
-            self._do("luu-o 1 ô", GHI, self._post(c, f"{goc}luu-o/", luu_o(1)))
-            self._do("luu-o 20 ô (kéo điền)", GHI, self._post(c, f"{goc}luu-o/", luu_o(20)))
-            self._do(f"luu-o {SO_DONG_DICH_TOI_THIEU} ô (dán)", GHI,
-                     self._post(c, f"{goc}luu-o/", luu_o(SO_DONG_DICH_TOI_THIEU)))
-            self._do("dong-moi (thêm một dòng)", GHI, self._post(c, f"{goc}dong-moi/", lambda: {
-                "ma_don": f"PERF-DO-{rng.randrange(10**7):07d}", "ngay": hom_nay.isoformat(),
-                "ten_khach": "Khách đo tải", "so_dien_thoai": f"403{rng.randrange(10**7):07d}",
-                "thanh_pho": "Calgary", "gia_tien": "120", "trang_thai_vc": "Đã lên đơn", "_stt": "2",
-            }))
-            self._do(f"dinh-dang {min(100, GRID_FORMAT_CELLS_MAX)} ô đậm", GHI, self._post(c, f"{goc}dinh-dang/", lambda: {
-                "o": [f"{pk}:ghi_chu" for pk in rng.sample(pk_vd, 100)], "b": "1",
-            }))
-
-            # ── Bảng Sale có cột tính sẵn ──
-            pk_sale = [] if bang_sale is None else list(
-                DataRecord.objects.in_scope(nguoi_sale)
-                .filter(table=bang_sale, data__ma_don__startswith=PERF_PREFIX)
-                .values_list("pk", flat=True)[:2000])
-            if bang_sale is not None and len(pk_sale) < SO_O_SALE:
-                # seed_perf --xoa-cu giữ bảng Sale nhưng xoá hết dòng: bỏ qua thay vì lấy mẫu từ danh sách rỗng
-                self.stdout.write(f"  Bỏ qua {bang_sale.code}: chỉ có {len(pk_sale)} dòng {PERF_PREFIX}* "
-                                  "— chạy `seed_perf --bang-sale` nếu cần đo.")
-            elif bang_sale is not None:
-                cs = Client()
-                cs.force_login(nguoi_sale)
-                goc_sale = f"/bang-tinh/{bang_sale.code}/"
-                self._do("Lưới perf_sale mặc định (có cột tính sẵn)", DOC, self._get(cs, goc_sale), giai_thich=gt)
-                self._do(f"luu-o {SO_O_SALE} ô Số lượng → tính lại Doanh thu", GHI, self._post(cs, f"{goc_sale}luu-o/", lambda: {
-                    "o": [f"{pk}:so_luong" for pk in rng.sample(pk_sale, SO_O_SALE)],
-                    "gt": [str(rng.randrange(1, 9)) for _ in range(SO_O_SALE)],
-                }))
+            # ── Ghi JSON/CAS hiện hành, đọc old mới cho từng lượt ──
+            def payload(n, formatting=False):
+                def make():
+                    ids = rng.sample(pk_vd, n)
+                    rows = DataRecord.objects.filter(pk__in=ids, data__ma_don__startswith=PERF_PREFIX)
+                    return {"operation": str(uuid.uuid4()), "kind": "format" if formatting else "paste",
+                        "cells": [{"id": r.pk, "column": "ghi_chu", "property": "fs" if formatting else "value",
+                                   "old": r.style.get("ghi_chu", {}).get("fs") if formatting else r.data.get("ghi_chu"),
+                                   "value": rng.choice([12,13,14]) if formatting else f"đo tải {uuid.uuid4().hex}"}
+                                  for r in rows]}
+                return make
+            for n in (1, 20, SO_DONG_DICH_TOI_THIEU):
+                self._do(f"luu-json {n} ô", GHI, self._post(c, f"{goc}luu-json/", payload(n)))
+            self._do("luu-json định dạng 100 ô", GHI,
+                     self._post(c, f"{goc}luu-json/", payload(100, True)))
+            self.stdout.write("Không đo dong-moi/ và sửa perf_sale qua CRM: các đường này đã được thay thế.")
 
             # ── Nền ──
             # QueryDict, không phải dict: build_grid gọi params.getlist với bảng vận đơn (gãy từ cfecde6)
@@ -251,21 +232,49 @@ class Command(BaseCommand):
                 wb.save(os.devnull)
             self._do("Xuất Excel 50.000 dòng (worker nền)", NEN, xuat, lan=1)
 
-            # ── Tính lại cột tính sẵn (Manager đổi công thức) ──
-            if bang_sale is not None:
-                kq = self._do(f"Tính lại cột tính sẵn perf_sale ({_so(DataRecord.all_objects.filter(table=bang_sale).count())} dòng)",
-                              TINH, lambda: table_service.resync_table(bang_sale), lan=1)
-                kq.ghi_chu = "resync_table đồng bộ trong request"
-            if not o["bo_tinh_lai_lon"]:
-                kq = self._do(f"Tính lại cột tách bảng vận đơn ({_so(so_dong)} dòng)",
-                              TINH, lambda: table_service.resync_table(van_don), lan=1)
-                kq.ghi_chu = "cùng đường resync_table — cỡ khi Manager thêm cột tính sẵn vào bảng vận đơn"
+            # Không chấm một lượt no-op là tính lại thành công. Fixture chỉ dành cho DB kiểm tải.
+            if bang_sale is not None and not o["bo_tinh_lai_lon"]:
+                self._recompute(bang_sale)
+            else:
+                self.stdout.write("Tính lại: CHƯA ĐO (không có fixture hoặc đã chọn bỏ).")
+
 
         tong_giay = time.monotonic() - bat_dau_tat_ca
         tep = self._ghi_bao_cao(o["nhan"], so_dong, tong_giay)
         so_hong = sum(1 for k in self.ket_qua if k.dat is False)
         self.stdout.write(self.style.SUCCESS(f"\nĐã ghi {tep} — {len(self.ket_qua)} đường, "
                                              f"{so_hong} KHÔNG ĐẠT, tổng {tong_giay:.0f} giây."))
+
+    def _recompute(self, table):
+        """Chuẩn bị số tính sai có chủ đích ngoài thời gian đo, kiểm lại từng kết quả."""
+        from django.db.models import F, Func, Value, JSONField
+        from forms_builder.services import table_service
+        name = str(settings.DATABASES['default']['NAME'])
+        if name != 'knjsc_loadtest' and not name.startswith('test_'):
+            raise CommandError("Tính lại chỉ chạy trên database kiểm thử riêng.")
+        rows = DataRecord.all_objects.filter(table=table)
+        if rows.exclude(data__ma_don__startswith=PERF_PREFIX).exists():
+            raise CommandError("Bảng tính lại có dòng không phải PERF-*; không sửa.")
+        columns = list(table.columns.all())
+        computed = [c for c in columns if c.is_computed]
+        if not computed or not rows.exists():
+            self.stdout.write("Tính lại: CHƯA ĐO (không có ô tính).")
+            return
+        # Chỉ fixture riêng; tạo công việc ghi thật trước khi bắt đầu bấm giờ.
+        expr = F('data')
+        for col in computed:
+            expr = Func(expr, Value('{'+col.code+'}'), Value('"__PERF_STALE__"'),
+                        function='jsonb_set', output_field=JSONField())
+        rows.update(data=expr)
+        with patch.object(table_service, 'RECOMPUTE_THREADS', 1):
+            result = self._do(f"Tính lại {rows.count()} dòng — một luồng", TINH,
+                              lambda: table_service.resync_table(table), lan=1)
+        for row in rows.iterator(chunk_size=1000):
+            for col in computed:
+                expected = col.compute(row.data)
+                if row.data.get(col.code) != (None if expected is None else str(expected)):
+                    raise CommandError("Tính lại trả kết quả sai.")
+        result.ghi_chu = "Fixture PERF riêng có ô sai trước đo; một luồng để đếm đủ SQL, không đại diện tải worker song song."
 
     # ── Báo cáo ──
     def _may(self):

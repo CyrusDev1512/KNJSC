@@ -114,7 +114,7 @@ def test_chi_quan_ly_bang_duoc_an_cot(client, luoi, nguoi_dung):
     bang, products, _ = luoi
     ma = "thanh_pho"
 
-    for vai, ma_loi in (("staff_vd", 403), ("staff_sale_1", 403), ("manager_mkt", 404)):
+    for vai, ma_loi in (("staff_vd", 403), ("staff_sale_1", 403), ("manager_mkt", 403)):
         client.force_login(nguoi_dung[vai])
         kq = client.post(URL, {"cot": [ma], "an": "1"})
         assert kq.status_code == ma_loi, vai

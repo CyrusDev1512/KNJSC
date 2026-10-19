@@ -20,7 +20,7 @@ DELETE_KINDS = {'delete_rows': 'delete', 'restore_rows': 'restore'}
 
 def can_delete(user, table):
     """Lưới có mục "Xoá dòng" không — ADR-049 (chủ dự án 08.10.2026): chỉ Admin, bảng sửa được ở dịch vụ này.
-    Từng dòng vẫn kiểm lại ở `remove` qua `grant_service.can_delete_record`."""
+    Từng dòng vẫn kiểm lại phạm vi và khoá báo cáo ở `remove`."""
     return user.is_active and is_admin(user) and not grant_service.is_grid_only(table)
 
 
@@ -39,7 +39,9 @@ def remove(user, table, kind, actions, receipt, *, replay=False, request=None):
     visible=set(DataRecord.all_objects.in_scope(user,table=table).filter(pk__in=ids).values_list('pk',flat=True))
     if visible!=set(ids) or len(rows)!=len(ids):raise OutOfScopeError()
     by_id={r.pk:r for r in rows}
-    if any(not grant_service.can_delete_record(user,r) for r in rows):raise OutOfScopeError()
+    # can_delete đã kiểm Admin; scope cả tập vừa kiểm ở trên, cờ báo cáo lấy cùng
+    # truy vấn khoá dòng. Không lặp lại một truy vấn scope cho mỗi dòng.
+    if any(not grant_service.can_edit_visible_record(user,r) for r in rows):raise OutOfScopeError()
     if replay:return None
     deleted=DELETE_KINDS[kind]=='delete'
     history=[]
@@ -47,10 +49,9 @@ def remove(user, table, kind, actions, receipt, *, replay=False, request=None):
         row=by_id[action['id']]
         if row.updated_at.isoformat()!=action.get('version') or (row.deleted_at is not None)==deleted:
             raise BusinessError('Dòng đã thay đổi. Tải lại vùng đang xem rồi chọn lại dòng cần xoá.',code='conflict')
+    record_service.set_deleted_locked(rows, deleted=deleted, actor=user, request=request)
     for action in actions:
         row=by_id[action['id']]
-        if deleted:record_service.delete_record(row,actor=user,request=request)
-        else:record_service.restore_record(row,actor=user,request=request)
         history.append(GridCellHistory(record=row,receipt=receipt,column='__row__',property='value',
                                        before=not deleted,after=deleted))
     GridCellHistory.objects.bulk_create(history)

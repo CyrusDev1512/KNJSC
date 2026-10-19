@@ -11,7 +11,7 @@ from .lifecycle_service import writing
 import logging
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from datetime import date, datetime
 from decimal import InvalidOperation
 
@@ -30,6 +30,19 @@ from ..models import DERIVED_FIELDS, NUMERIC_TYPES, ColumnDef, DataRecord, Table
 
 logger = logging.getLogger(__name__)
 RECOMPUTE_RETRIES = 3
+
+
+def _schema_lock(table, *, shared=False):
+    """Lô tính đọc cấu trúc dưới khoá chia sẻ; sửa cấu trúc giữ khoá độc quyền.
+
+    Khác khoá vòng đời: các lô vẫn chạy song song, nhưng không ghi công thức cũ
+    sau khi thay cấu trúc đã hoàn tất. Cả hai đều lấy sau khoá vòng đời bảng.
+    """
+    if not connection.in_atomic_block:
+        raise RuntimeError('Khoá cấu trúc phải nằm trong giao dịch.')
+    fn = 'pg_advisory_xact_lock_shared' if shared else 'pg_advisory_xact_lock'
+    with connection.cursor() as cursor:
+        cursor.execute(f'SELECT {fn}(%s, %s)', [0x4B4E5343, table.pk])
 
 
 @transaction.atomic
@@ -99,6 +112,7 @@ def add_column(table, *, actor=None, request=None, **fields):
     `DataRecord` (ADR-001). Bản ghi đã có sẽ được đồng bộ ngay, nếu không thì
     lọc theo cột đó sẽ bỏ sót toàn bộ dữ liệu cũ.
     """
+    _schema_lock(table)
     cot = ColumnDef(table=table, **{k: v for k, v in fields.items() if k in COLUMN_FIELDS})
     if not cot.order:
         cot.order = _thu_tu_ke_tiep(table)
@@ -119,6 +133,8 @@ def add_column(table, *, actor=None, request=None, **fields):
 @writing
 def update_column(column, changes, *, actor=None, request=None):
     """Sửa một cột. Đổi công thức thì tính lại toàn bộ bản ghi cũ."""
+    _schema_lock(column.table)
+    column.refresh_from_db()
     policy = record_policies.for_table(column.table)
     if policy:
         policy.assert_column_change(column, changes)
@@ -198,6 +214,7 @@ def _chuyen_kieu(column, kieu_cu=None):
     for i in range(0, len(pks), RECOMPUTE_BATCH):
         lo = list(DataRecord.all_objects.select_for_update().filter(pk__in=pks[i:i + RECOMPUTE_BATCH]).order_by("pk"))
         for ban_ghi in lo:
+            ban_ghi.table = column.table
             ban_ghi.data[ma] = moi[ban_ghi.pk]
             ban_ghi.sync_indexed_columns(cot)
         save_rows(lo)
@@ -216,20 +233,35 @@ def remove_column(column, *, actor=None, request=None):
     Luật bỏ cột nằm ở đây cho mọi cửa (lưới, màn Cột ở 8020/8021): cột khoá, vế của cột tính sẵn, cột đang
     nhận dữ liệu từ biểu mẫu, cột hệ thống của bảng vận đơn thì `BusinessError` (TL-13).
     """
-    ly_do = removable_reason(column)
-    if ly_do:
-        raise BusinessError(ly_do)
-    bang, ma = column.table, column.code
-    try:
-        column.delete()
-    except ProtectedError as loi:      # vừa có biểu mẫu nối vào giữa lúc kiểm và lúc xoá
-        raise BusinessError(f'"{column.name}" đang nhận dữ liệu từ biểu mẫu — tải lại trang.') from loi
-    schedule_resync(bang, actor=actor)
-    record(
-        AuditAction.DELETE, actor=actor, target=bang,
-        detail=f"Bỏ cột {ma} khỏi bảng {bang.code}", request=request,
-    )
-    return bang
+    return remove_columns(column.table, [column], actor=actor, request=request)
+
+
+@transaction.atomic
+@writing
+def remove_columns(table, columns, *, actor=None, request=None):
+    """Kiểm cả tập trước khi bỏ, ghi audit từng cột, chỉ đồng bộ nhãn một lần."""
+    _schema_lock(table)
+    ids = {c.pk for c in columns}
+    current = list(table.columns.filter(pk__in=ids))
+    if len(current) != len(ids):
+        raise BusinessError('Có cột không còn trong bảng — tải lại trang.')
+    for col in current:
+        col.table = table
+        reason = removable_reason(col)
+        if reason:
+            raise BusinessError(reason)
+    resync = any(c.meaning for c in current)
+    for col in current:
+        code = col.code
+        try:
+            col.delete()
+        except ProtectedError as exc:
+            raise BusinessError(f'"{col.name}" đang nhận dữ liệu từ biểu mẫu — tải lại trang.') from exc
+        record(AuditAction.DELETE, actor=actor, target=table,
+               detail=f'Bỏ cột {code} khỏi bảng {table.code}', request=request)
+    if resync:
+        schedule_resync(table, actor=actor)
+    return table
 
 
 def visible_columns(columns):
@@ -379,7 +411,6 @@ def resync_table(table, *, batch=RECOMPUTE_BATCH, on_progress=None):
     from .lifecycle_service import available, lock
     available(table)
 
-    cot = list(table.columns.all())
     pks = list(DataRecord.all_objects.filter(table=table).order_by("pk").values_list("pk", flat=True))
     da_sua = 0
     khoa = threading.Lock()
@@ -389,10 +420,13 @@ def resync_table(table, *, batch=RECOMPUTE_BATCH, on_progress=None):
             try:
                 with transaction.atomic():
                     lock(table)
+                    _schema_lock(table, shared=True)
+                    cot = list(table.columns.all())
                     # Khoá theo thứ tự khoá chính, cùng chiều với `bulk_save` của người đang dán ô
                     lo = list(DataRecord.all_objects.select_for_update().filter(pk__in=pks[i:i + batch]).order_by("pk"))
                     doi, cot_doi = [], set()
                     for ban_ghi in lo:
+                        ban_ghi.table = table
                         truoc = (dict(ban_ghi.data), *(getattr(ban_ghi, c) for c in DERIVED_FIELDS))
                         ban_ghi.apply_computed_columns(cot)
                         ban_ghi.sync_indexed_columns(cot)
@@ -429,8 +463,32 @@ def resync_table(table, *, batch=RECOMPUTE_BATCH, on_progress=None):
             finally:
                 connection.close()                     # mỗi luồng một kết nối riêng, đóng khi xong
         with ThreadPoolExecutor(max_workers=RECOMPUTE_THREADS) as pool:
-            for n in pool.map(chay, dau_lo):
-                bao(n)
+            pending, iterator = set(), iter(dau_lo)
+            for _ in range(RECOMPUTE_THREADS):
+                index = next(iterator, None)
+                if index is not None:
+                    pending.add(pool.submit(chay, index))
+            error = None
+            while pending:
+                done, pending = wait(pending, return_when=FIRST_COMPLETED)
+                for future in done:
+                    if future.cancelled():
+                        continue
+                    try:
+                        bao(future.result())
+                    except Exception as exc:
+                        error = error or exc
+                if error:
+                    for future in pending:
+                        future.cancel()
+                    # Đợi các lô đã chạy và ghi nhận phần thật sự hoàn tất, không nhận lô mới.
+                    continue
+                for _ in done:
+                    index = next(iterator, None)
+                    if index is not None:
+                        pending.add(pool.submit(chay, index))
+            if error:
+                raise error
     else:
         for i in dau_lo:
             bao(mot_lo(i))
@@ -469,12 +527,18 @@ def resync_if_changed(table, before, *, actor=None):
     return schedule_resync(table, actor=actor) or True
 
 
+@transaction.atomic
 def schedule_resync(table, *, actor=None):
     """Tính lại cột của bảng: ngay tại chỗ khi bảng có tới `RECOMPUTE_SYNC_MAX_ROWS`
     dòng, còn không thì giao **tác vụ nền** (ADR-016) — cột hiện ngay, giá trị
     điền dần, lưới báo "đang tính" qua `moi-nhat/`, Manager không phải đợi và
     worker web không bị chiếm hàng phút. Trả về `BackgroundJob` nếu chạy nền,
     None nếu đã tính xong tại chỗ."""
+    TableDef.all_objects.select_for_update().get(pk=table.pk)
+    pending = BackgroundJob.objects.filter(kind=JobKind.RECOMPUTE, target_type='table',
+        target_id=table.code, status=JobStatus.PENDING).order_by('pk').first()
+    if pending:
+        return pending
     so_dong = DataRecord.all_objects.filter(table=table).count()
     if so_dong <= RECOMPUTE_SYNC_MAX_ROWS:
         resync_table(table)
@@ -492,12 +556,12 @@ def schedule_resync(table, *, actor=None):
 
 
 def recompute_job_of(table):
-    """Tác vụ tính lại đang chờ hoặc đang chạy của bảng — để lưới báo tiến độ."""
+    """Chỉ báo có tác vụ; tổng/tiến độ toàn bảng không thuộc phạm vi mọi người xem lưới."""
     return (
         BackgroundJob.objects.filter(
             kind=JobKind.RECOMPUTE, target_type="table", target_id=table.code,
             status__in=[JobStatus.PENDING, JobStatus.RUNNING],
-        ).order_by("-pk").values("pk", "progress", "total").first()
+        ).order_by("-pk").values("pk").first()
     )
 
 

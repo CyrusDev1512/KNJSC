@@ -2,7 +2,7 @@
 
 Bài đo tải thật nằm ở `manage.py do_hieu_nang` và `tests/perf/locustfile_kn_crm.py`
 (AC-10.8, thủ công). Ở đây chỉ khoá **hình dạng** của các đường đã sửa: số lệnh
-truy vấn không phình theo số ô, URL ô ghép chuỗi khớp `reverse()`, cột Trùng
+truy vấn không phình theo số ô, URL lưu JSON khớp `reverse()`, cột Trùng
 đếm đúng theo trang, tính lại cột chạy nền trên bảng lớn.
 """
 import pytest
@@ -103,7 +103,7 @@ def test_tinh_lai_ket_thi_moi_nhat_thoi_bao_dang_tinh(client, bang_mkt, nguoi_du
                                         target_type="table", target_id=bang_mkt.code, total=5, progress=2)
     BackgroundJob.objects.filter(pk=dang.pk).update(
         updated_at=timezone.now() - timedelta(minutes=JOB_RUNNING_STALE_MINUTES + 1))
-    assert client.get(f"{goc}moi-nhat/").json()["tinh_lai"] == {"pk": dang.pk, "progress": 2, "total": 5}
+    assert client.get(f"{goc}moi-nhat/").json()["tinh_lai"] == {"pk": dang.pk}
 
     danh_dau_tac_vu_ket()
 
@@ -140,7 +140,7 @@ def test_tinh_lai_cot_bang_lon_chay_nen(client, bang_mkt, nguoi_dung, monkeypatc
     assert client.get(f"{goc}moi-nhat/").json()["tinh_lai"] is None
     dang = BackgroundJob.objects.create(kind=JobKind.RECOMPUTE, status=JobStatus.RUNNING, created_by=ql,
                                         target_type="table", target_id=bang_mkt.code, total=5, progress=2)
-    assert client.get(f"{goc}moi-nhat/").json()["tinh_lai"] == {"pk": dang.pk, "progress": 2, "total": 5}
+    assert client.get(f"{goc}moi-nhat/").json()["tinh_lai"] == {"pk": dang.pk}
     dang.mark_done()
     assert client.get(f"{goc}moi-nhat/").json()["tinh_lai"] is None
 

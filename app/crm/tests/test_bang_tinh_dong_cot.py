@@ -131,7 +131,7 @@ def test_bo_cot_giu_gia_tri_va_tu_choi_cot_khoa_cot_tinh(client, bang_sale, bang
 
 
 def test_phan_quyen_chen_bo_cot_ba_cap_bac(client, bang_sale, nguoi_dung):
-    """AC-11.22 — Staff không chèn hay bỏ cột (403 có nhật ký); Manager bộ phận khác 404; Leader, Manager của bộ phận sở hữu và Admin thì được (ADR-015)"""
+    """AC-11.22 — Staff và Manager chỉ đọc bảng vận đơn bị chặn sửa cột (403); quản lý bộ phận sở hữu và Admin được."""
     truoc = AuditLog.objects.filter(action=AuditAction.DENIED).count()
     for ai in ("staff_sale_1",):
         client.force_login(nguoi_dung[ai])
@@ -144,7 +144,7 @@ def test_phan_quyen_chen_bo_cot_ba_cap_bac(client, bang_sale, nguoi_dung):
     assert client.post(f"/bang-tinh/{bang_sale.code}/xoa-cot/", {"cot": ["cot_moi_1"]}).status_code == 200
     assert not bang_sale.columns.filter(code="cot_moi_1").exists()
     client.force_login(nguoi_dung["manager_mkt"])
-    assert client.post(f"/bang-tinh/{bang_sale.code}/them-cot/", {"so": 1}).status_code == 404
+    assert client.post(f"/bang-tinh/{bang_sale.code}/them-cot/", {"so": 1}).status_code == 403
     client.force_login(nguoi_dung["admin"])
     assert client.post(f"/bang-tinh/{bang_sale.code}/them-cot/", {"canh": "khach", "so": 1}).status_code == 200
     assert bang_sale.columns.filter(code="cot_moi_1").exists()
@@ -166,7 +166,7 @@ def test_insert_columns_dich_vu(bang_sale, nguoi_dung):
 # ══ Mốc mới nhất để tự cập nhật — AC-11.26 ════════════════════════
 
 def test_moi_nhat_tra_moc_trong_pham_vi(client, bang_sale, nguoi_dung):
-    """AC-11.26 — `moi-nhat/` trả mốc sửa gần nhất và số cột **trong phạm vi người xem**, không có dữ liệu, không đếm dòng; đổi ô, xoá mềm, thêm dòng đều đổi mốc; bộ phận khác 404; chưa đăng nhập thì chuyển về đăng nhập"""
+    """AC-11.26 — `moi-nhat/` trả mốc sửa gần nhất toàn bảng đã kiểm quyền mở và số cột, không có dữ liệu, không đếm dòng; đổi ô, xoá mềm, thêm dòng đều đổi mốc; bộ phận khác 404; chưa đăng nhập thì chuyển về đăng nhập"""
     nv, nv_b = nguoi_dung["staff_sale_1"], nguoi_dung["staff_sale_1b"]
     d1 = _dong(bang_sale, nv, khach="A", doanh_thu="10", so_luong="1")
     _dong(bang_sale, nv_b, khach="B", doanh_thu="10", so_luong="1")

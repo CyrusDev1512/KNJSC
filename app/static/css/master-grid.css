@@ -30,6 +30,7 @@
 .mg-row-resize:hover,.mg-row-resize:focus-visible {background:color-mix(in srgb,var(--accent) 40%,transparent)}
 .mg-resizing-row,.mg-resizing-row * {cursor:row-resize!important;user-select:none!important}
 .mg-cell.mg-current {outline:2px solid #2563eb;outline-offset:-2px;z-index:1}
+.mg-cell[aria-invalid="true"] {outline:2px solid var(--critical,#b42318);outline-offset:-2px}
 .mg-cell.mg-current.mg-pinned {z-index:3}
 .mg-pinned {z-index:2;background:var(--surface)}.mg-heading.mg-pinned{z-index:7;background:var(--surface-2)}
 .mg-heading {border-right:1px solid var(--rule-strong);border-bottom:1px solid var(--rule-strong);background:var(--surface-2);user-select:none}

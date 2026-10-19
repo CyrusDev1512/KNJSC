@@ -299,3 +299,4 @@ html.crm-gon .crm-thu-gon { transform: rotate(180deg); }
 .bt-dang-tinh::before { content: "⟳ "; }
 
 @media(max-width:720px){.bt-trang-thai{display:none}.bt-tieu-de{max-width:120px}}
+@media(max-width:720px){.bt-trang-thai.bt-can-chu-y{display:inline-block;white-space:normal;max-width:110px}}

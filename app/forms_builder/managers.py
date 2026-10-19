@@ -58,6 +58,9 @@ class TableDefQuerySet(ScopedQuerySet):
         dieu_kien = (Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
                      # Kế toán: bảng vận đơn (ADR-025) và bảng có nguồn báo cáo (ADR-038)
                      | ((waybill_condition("") | Q(erp_report__isnull=False)) & Q(Exists(accounting))))
+        from orders.permissions import can_view_company_orders
+        if can_view_company_orders(user):
+            dieu_kien |= waybill_condition("")
         qua_dong = _bang_van_don_qua_dong(user)
         if qua_dong is not None:
             dieu_kien |= qua_dong
@@ -103,7 +106,7 @@ class TableDefManager(models.Manager.from_queryset(TableDefQuerySet)):
 
 def record_count_scope(user):
     from .models import DataRecord
-    return ~waybill_condition("") | Q(records__pk__in=DataRecord.objects.in_scope(user).values('pk'))
+    return Q(records__pk__in=DataRecord.objects.in_scope(user).values('pk'))
 
 
 class AllTableDefManager(models.Manager.from_queryset(TableDefQuerySet)):

@@ -30,6 +30,7 @@ from core.audit import record_denied
 from core.permissions import assert_rank, has_rank, is_admin
 
 from . import query, styling
+from .filter_views import filter_errors
 from .forms import (
     ColumnForm, FieldDefForm, FormFieldForm, FormForm, GrantForm, TableForm,
 )
@@ -241,6 +242,7 @@ def _doc_bo_loc(request, cac_cot):
 
 
 @login_required
+@filter_errors
 def bang_xem(request, code):
     """Xem, lọc, sắp xếp và phân trang một bảng — FR-7.1 tới FR-7.4. Chỉ xem, không sửa ô (ADR-014)."""
     request.nav_current = "bang"

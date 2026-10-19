@@ -598,8 +598,8 @@ class DataRecord(ScopedModel):
         from django.db import connection
         from django.utils import timezone
 
-        # Ghi theo thứ tự khoá chính để hai lệnh ghi cùng lúc (dán ô, worker tính
-        # lại) khoá dòng cùng chiều — khác chiều là deadlock (K27)
+        # Thứ tự đầu vào ổn định; UPDATE FROM không bảo đảm thứ tự khoá của planner.
+        # Đường ghi đồng thời phải SELECT FOR UPDATE ORDER BY pk trước khi gọi.
         records = sorted(records, key=lambda r: r.pk)
         if not records:
             return 0
@@ -692,7 +692,18 @@ def _normalise(gia_tri, cot_dich):
     if cot_dich == "val_revenue":
         return _to_decimal(gia_tri)
     if cot_dich == "val_date":
-        return gia_tri            # Django tự phân tích chuỗi ngày dạng ISO
+        from datetime import date, datetime
+        from django.utils import timezone
+        from core.exceptions import BusinessError
+        try:
+            value = gia_tri if isinstance(gia_tri, (date, datetime)) else datetime.fromisoformat(str(gia_tri))
+            if isinstance(value, datetime):
+                if timezone.is_aware(value):
+                    value = timezone.localtime(value, timezone.get_default_timezone())
+                return value.date()
+            return value
+        except (ValueError, TypeError):
+            raise BusinessError("Giá trị Ngày không hợp lệ; kiểm tra cột mang nhãn Ngày.") from None
     return str(gia_tri)[:200]
 
 

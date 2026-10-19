@@ -50,7 +50,8 @@ def test_manager_tao_doi_ten_xoa_thu_muc_va_chuyen_bang(client, cac_bang, depart
     # Thanh bên: có thư mục (trống) và mục không thư mục chứa hai bảng
     kq = client.get("/bang-tinh/don_sale/")
     cay = {(t.name if t else None): [b.code for b in bs] for t, bs in folder_service.tree(kq.wsgi_request.user)}
-    assert cay["Sale 2026"] == [] and set(cay[None]) == {"don_sale", "khach_sale"}
+    # Cả ba bảng đạo cụ đều workflow=waybill nên Manager đọc được dù khác bộ phận.
+    assert cay["Sale 2026"] == [] and set(cay[None]) == {"don_sale", "khach_sale", "bc_mkt"}
     html = kq.content.decode()
 
     # Trùng tên → báo lỗi, không tạo thêm
@@ -67,7 +68,7 @@ def test_manager_tao_doi_ten_xoa_thu_muc_va_chuyen_bang(client, cac_bang, depart
     cac_bang["sale"].refresh_from_db()
     assert cac_bang["sale"].folder == thu_muc
     cay = {(t.name if t else None): [b.code for b in bs] for t, bs in folder_service.tree(client.get("/bang-tinh/don_sale/").wsgi_request.user)}
-    assert cay["Sale 2026"] == ["don_sale"] and cay[None] == ["khach_sale"]
+    assert cay["Sale 2026"] == ["don_sale"] and set(cay[None]) == {"khach_sale", "bc_mkt"}
     # Bỏ ra ngoài rồi xếp lại
     client.post("/bang-tinh/don_sale/chuyen-thu-muc/", {"folder": ""})
     cac_bang["sale"].refresh_from_db()
@@ -133,11 +134,11 @@ def test_thu_muc_theo_bo_phan_va_cap_bac(client, cac_bang, departments, nguoi_du
     client.post("/bang-tinh/don_sale/chuyen-thu-muc/", {"folder": ""})
     tm_sale.name = "Sale 2026"; tm_sale.save(update_fields=["name"])
 
-    # Manager Marketing: thư mục Sale ngoài phạm vi → 404; bảng Sale ngoài phạm vi → 404
+    # Manager Marketing: thư mục Sale ngoài phạm vi → 404; bảng vận đơn đọc được nhưng không chuyển thư mục → 403
     client.force_login(nguoi_dung["manager_mkt"])
     assert client.post(f"/bang-tinh/thu-muc/{tm_sale.pk}/sua/", {"name": "x", "ve": "bc_mkt"}).status_code == 404
     assert client.post(f"/bang-tinh/thu-muc/{tm_sale.pk}/xoa/", {"ve": "bc_mkt"}).status_code == 404
-    assert client.post("/bang-tinh/don_sale/chuyen-thu-muc/", {"folder": tm_mkt.pk}).status_code == 404
+    assert client.post("/bang-tinh/don_sale/chuyen-thu-muc/", {"folder": tm_mkt.pk}).status_code == 403
     # nhưng làm được với thư mục và bảng của mình
     assert client.post("/bang-tinh/bc_mkt/chuyen-thu-muc/", {"folder": tm_mkt.pk}).status_code == 302
     cac_bang["mkt"].refresh_from_db()
