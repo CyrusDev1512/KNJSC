@@ -1,5 +1,25 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 19.10.2026 — Điều tra TL-71, chưa sửa nguyên nhân
+
+CI run 39230146457 trên e3249f0: bộ chính 3.926 đạt/7 skip; E2E 94 đạt,
+1 lỗi/2 skip; nhóm browser còn lại không chạy vì bước trước thất bại.
+Lỗi `test_do_hieu_nang_1000_dong_ghi_chu_400`: không nhận console kết quả trong
+75 giây; không ghi sự kiện crash, CPU lấy mẫu 2 giây gần 0. Chuỗi “kẹt ngoài JS”
+do helper tự suy khi Debugger.pause không trả lời, chưa phải kết luận nguyên nhân.
+
+Điều tra local bằng plugin tạm ngoài Git: 1 lượt chỉ thu trace và 3 lượt có thêm
+tiến độ/tín hiệu định kỳ đều đi hết 211 bước cuộn, chưa tái hiện timeout. Chạy
+đúng 22 ca đầu theo thứ tự CI cũng đạt. Playwright 1.56.0, Chromium 141.0.7390.37;
+local Debian khác runner Ubuntu 24.04, chưa xem là môi trường tương đương hoàn toàn.
+Các lượt này không thay CI đỏ và không chứng minh TL-71 hết lỗi.
+
+Chủ dự án cho phép commit/push chẩn đoán và chạy CI: chỉ thêm trace, log mạng,
+console, lỗi trang/crash, tiến độ mỗi 20 bước và heartbeat 2 giây vào bài này.
+Không sửa ứng dụng, không tăng timeout, không nới ngưỡng hoặc bỏ bài. Bằng chứng
+nằm trong artifact `anh-e2e/tl71` của workflow hiện hành. Local kiểm phần chẩn
+đoán mới: 1 đạt, trace và events.jsonl được tạo. **TL-71 vẫn mở, chưa được merge.**
+
 ## 19.10.2026 — Dockerfile cố định công cụ backup PostgreSQL 16
 
 Theo phê duyệt tiếp theo, sửa Dockerfile thay cho cách chỉnh container test.
