@@ -230,5 +230,10 @@ Sau sửa, chạy nguyên `tests/test_hieu_nang.py` trên Docker/database test r
 Biên bản rà 27 mã của #136 được giữ tại
 `docs/kiem-chung-ra-27-ma-cu-20261015.md`. Mã sửa từ kết quả rà đã vào Staging
 qua #137; không gộp ngược các trạng thái backlog cũ đang conflict từ #136.
-Kết quả test sau sửa và CI commit cuối phải được ghi tiếp trước khi merge #138.
+
+CI commit cuối, run `39368415465`, đạt: bộ chính **3.926 đạt, 7 skip,
+136 deselected** trong 776 giây; E2E Chromium đạt, riêng nhóm trình duyệt còn
+lại **30 đạt, 9 skip, 3.933 deselected** trong 222,38 giây. PR #138 đã gộp
+vào `Staging` tại `a48b26a`; PR #136 đã đóng là bản lịch sử bị thay thế và hai
+nhánh PR đã xóa. Kết quả này thay bước chờ CI/PR nêu ở mục 4 phía trên.
 Chặng kiểm tay vẫn là điều kiện riêng trước khi đưa Staging sang main.

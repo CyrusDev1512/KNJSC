@@ -17,7 +17,12 @@
 - Sau sửa, chạy nguyên module trên Docker/database test riêng: **2/2 đạt**;
   call lần lượt 0,75 và 0,67 giây, tổng 31,08 giây. Hai cảnh báo chỉ là
   `.pytest_cache` trong bind mount không ghi được, không ảnh hưởng kết quả.
-  CI commit cuối vẫn phải đạt trước khi gọi #138 đủ điều kiện gộp.
+- CI commit cuối, run `39368415465`: bộ chính **3.926 đạt, 7 skip,
+  136 deselected** trong 776 giây; job E2E Chromium đạt. Nhóm trình duyệt còn
+  lại **30 đạt, 9 skip, 3.933 deselected** trong 222,38 giây. Các bài skip yêu
+  cầu Chrome host/database hoặc fixture kiểm tải riêng, không phải lỗi mới.
+- PR #138 đã gộp vào `Staging` tại `a48b26a`; PR #136 đã đóng là bản lịch sử
+  bị thay thế. Chưa kiểm tay để đưa `Staging` sang `main` và chưa phát hành VPS.
 
 ## 20.10.2026 — Chẩn đoán bộ chính CI trước khi gộp C
 

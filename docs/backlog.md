@@ -16,8 +16,11 @@
   lấy theo [biên bản sửa tồn đọng](kiem-chung-pr136-ton-dong-20261019.md).
   #136 được đóng là bản ghi lịch sử bị #137 và nhánh C thay thế, không gộp các
   dòng backlog cũ đang xung đột trở lại.
-- **Còn nợ:** CI commit cuối của #138 phải xanh trước khi gộp `Staging`; chặng
-  kiểm tay local trước khi đưa `Staging` sang `main`. `main`/VPS chưa cập nhật.
+- **Đã hoàn tất:** CI run `39368415465` trên commit cuối đạt **3.926 test bộ
+  chính** và toàn bộ job E2E Chromium; PR #138 đã gộp vào `Staging` tại
+  `a48b26a`. PR #136 đã đóng là bản lịch sử bị thay thế; hai nhánh PR đã xóa.
+- **Còn nợ:** chủ dự án kiểm tay local trước khi đưa `Staging` sang `main`.
+  `main`/VPS chưa cập nhật.
 
 ## 19.10.2026 — Nhánh C kiểm chứng trước khi đồng bộ main
 
