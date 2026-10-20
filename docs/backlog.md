@@ -1,5 +1,54 @@
 # Backlog
 
+## 20.10.2026 — Hoàn tất nhánh C sau CI đỏ và khép biên bản #136
+
+- CI PR #138 chạy đủ bộ đã chỉ ra một lỗi thật của **fixture đo hiệu năng**:
+  fixture gọi thẳng `seed_perf.run()` để bulk insert 50.000 dòng nhưng không
+  `ANALYZE`, khác lệnh `seed_perf` dùng khi đo thật vốn luôn `VACUUM ANALYZE`.
+  Runner GitHub vì thiếu thống kê chọn kế hoạch sai cho `?trung=1`, mất
+  412,05 giây; cùng mã trên local có thống kê đạt 0,63 giây cho cả bài lưới.
+- Cách sửa: fixture chạy `ANALYZE forms_builder_datarecord` sau khi nạp và trước
+  khi bấm giờ. Không đổi truy vấn sản phẩm, không thêm chỉ mục/migration,
+  không nới ngưỡng 2 giây.
+- Rà 27 mã cũ đã hoàn tất ở #136; mã sửa tương ứng đã vào `Staging` qua #137.
+  Giữ biên bản ngày 15.10 tại
+  [kiểm chứng rà 27 mã](kiem-chung-ra-27-ma-cu-20261015.md), còn trạng thái mới
+  lấy theo [biên bản sửa tồn đọng](kiem-chung-pr136-ton-dong-20261019.md).
+  #136 được đóng là bản ghi lịch sử bị #137 và nhánh C thay thế, không gộp các
+  dòng backlog cũ đang xung đột trở lại.
+- **Còn nợ:** CI commit cuối của #138 phải xanh trước khi gộp `Staging`; chặng
+  kiểm tay local trước khi đưa `Staging` sang `main`. `main`/VPS chưa cập nhật.
+
+## 19.10.2026 — Nhánh C kiểm chứng trước khi đồng bộ main
+
+**Cập nhật Dockerfile theo yêu cầu tiếp theo:** đã cố định Debian Trixie và client
+PostgreSQL 16 từ PGDG có chữ ký; build chặn sai major. Cả image test và
+`INSTALL_DEV=0` build đạt; 35/35 bài backup đạt trên image mới, không sửa PATH
+sau build. Image production cũng dump/restore dữ liệu giả thành công bằng user
+thường. Thay thế giới hạn “chỉ sửa container test” của lượt trước; chưa phát hành,
+chưa merge hoặc coi toàn bộ ma trận kiểm tay đã đạt.
+
+**Cập nhật sau khi chủ dự án duyệt sửa:** đã bỏ một quy tắc CSS làm lệch ô,
+giữ dấu cam và quyền sửa. Hồi quy lịch sử ô: 7 đạt, gồm Admin/Vận đơn ở 1366/390 px,
+bấm đúp hai hàng liền nhau → lưu → đối chiếu ID → reload. Trước sửa bài mới đỏ
+vì ô top 185, hàng top 157. Bộ backup: 35 đạt với client PostgreSQL 16 trong
+container test; không đổi mã backup hoặc Dockerfile. Chưa merge, chưa nghiệm thu
+toàn bộ ma trận và chưa có xác nhận kiểm tay mới. Các kết quả đỏ dưới đây là lịch sử.
+
+**Lỗi được tái hiện, chặn gộp main:** Admin bấm đúp ô Ghi chú có dấu sửa gần đây ở cột không ghim không mở khi có nhiều hàng liền nhau.
+Lọc còn một hàng thì cùng ô đó mở được; không kết luận mọi ô dấu cam đều lỗi.
+Đo thấy ô lệch xuống một hàng, hàng sau che vùng bấm. Bản sạch main cũng tái hiện trên fixture hiện tại;
+không suy ngày người dùng bắt đầu gặp lỗi hoặc tình trạng VPS từ kết quả này. Chưa sửa mã.
+Lượt kiểm sạch C 1ba9a59: 3.923 test chính đạt, 3 lỗi backup do client PostgreSQL 17/server 16;
+91 E2E và 30 bài trình duyệt còn lại đạt, tổng 18 skip. Chưa hoàn tất ma trận kiểm tay;
+PR138 và các bước gộp tiếp tục bị chặn. Worker riêng đã kiểm xuất/tính lại bằng fixture nhỏ.
+Chi tiết trong biên bản nhánh C bên dưới. CI xanh không thay kết quả kiểm tay này.
+
+PR #137 đã gộp vào Staging `ed7795b`; mục bàn giao trước đó bên dưới được thay thế về trạng thái gộp.
+Đang chuẩn bị `codex/kiem-chung-c-staging-main`; main/VPS chưa cập nhật.
+Chủ dự án mới lướt local, chưa xác nhận kiểm tay đạt. Bằng chứng, giới hạn và kịch bản kiểm tay:
+[Biên bản nhánh C](kiem-chung-c-staging-main-20261019.md).
+
 ## 19.10.2026 — PR #136, lỗi tồn đọng và Manager đọc đơn/vận đơn toàn công ty
 
 **Đã sửa và kiểm bằng máy trên local; bàn giao qua PR nháp về Staging theo yêu cầu 19.10.2026. Chờ kiểm tay và duyệt gộp; chưa phát hành.** Nhánh kết hợp `codex/tl136-kiem-thu-tong-hop`.

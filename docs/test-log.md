@@ -1,5 +1,113 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 20.10.2026 — CI #138: fixture 50.000 dòng thiếu thống kê PostgreSQL
+
+- Run `39365309926`: E2E Chromium đạt; bộ chính **1 lỗi, 3.925 đạt,
+  7 skip, 136 deselected**. Lỗi duy nhất là
+  `test_bang_tinh_50000_dong_co_loc_duoi_2_giay`: `?trung=1` mất
+  **412,05 giây**, ngưỡng 2 giây.
+- Chạy riêng đúng test trên Docker local trước sửa: đạt; call 4,44 giây cho bốn
+  request. Chạy nguyên module đúng thứ tự CI: **2/2 đạt**, call lần lượt 0,99
+  giây và 0,63 giây. Vì vậy không kết luận truy vấn sản phẩm luôn mất 412 giây.
+- Nguyên nhân fixture: `seed_perf` dùng như management command luôn
+  `VACUUM ANALYZE`, còn fixture gọi thẳng `run()` sau bulk insert nên runner
+  sạch chưa có thống kê. Auto-analyze local chạy kịp, runner CI thì không.
+- Sửa fixture chạy `ANALYZE forms_builder_datarecord` trước phép đo. Giữ nguyên
+  truy vấn, dữ liệu, quyền, ngân sách truy vấn và ngưỡng 2 giây.
+- Sau sửa, chạy nguyên module trên Docker/database test riêng: **2/2 đạt**;
+  call lần lượt 0,75 và 0,67 giây, tổng 31,08 giây. Hai cảnh báo chỉ là
+  `.pytest_cache` trong bind mount không ghi được, không ảnh hưởng kết quả.
+  CI commit cuối vẫn phải đạt trước khi gọi #138 đủ điều kiện gộp.
+
+## 20.10.2026 — Chẩn đoán bộ chính CI trước khi gộp C
+
+Chủ dự án duyệt triển khai bước điều tra. Run 39232655662 ở 361550f:
+nhóm E2E 95 đạt/2 skip, browser khác 30 đạt/9 skip; bộ chính bị huỷ vì
+vượt 20 phút ở 76%, có một F từ nhóm đầu nhưng không có traceback cuối.
+Không gọi CI đạt và không quy timeout bộ chính cho TL-71.
+
+Bật tên từng bài, traceback ngắn ngay khi setup/call/teardown thất bại,
+faulthandler sau 120 giây cho bộ chính. Giữ giới hạn job 20 phút, toàn bộ
+bài kiểm và assertion; không thêm dependency hoặc sửa ứng dụng.
+Hook in lỗi chỉ bật khi KN_CI_DIAGNOSTICS=1.
+
+Kiểm hook bằng probe riêng ngoài repo ứng dụng, pytest 8.3.4: cố ý gây
+lỗi setup, call, teardown rồi chạy một bài đạt. Bật/tắt chẩn đoán đều giữ
+exit 1 và kết quả 1 failed, 2 passed, 2 errors; chỉ khi bật mới in ngay đủ
+ba traceback, bài sau lỗi vẫn chạy. Đây là kiểm cơ chế chẩn đoán, không
+phải kết quả suite ứng dụng. Log trong storage/test-results/premerge-20261020/.
+
+TL-71 vẫn mở. Đối chứng vòng cuộn cũ ngày 19.10 hoàn tất nhưng p95 127,4 ms
+vượt ngưỡng 100 ms; tách khỏi timeout 75 giây. Chưa merge hoặc cập nhật VPS.
+
+## 19.10.2026 — Điều tra TL-71, chưa sửa nguyên nhân
+
+CI run 39230146457 trên e3249f0: bộ chính 3.926 đạt/7 skip; E2E 94 đạt,
+1 lỗi/2 skip; nhóm browser còn lại không chạy vì bước trước thất bại.
+Lỗi `test_do_hieu_nang_1000_dong_ghi_chu_400`: không nhận console kết quả trong
+75 giây; không ghi sự kiện crash, CPU lấy mẫu 2 giây gần 0. Chuỗi “kẹt ngoài JS”
+do helper tự suy khi Debugger.pause không trả lời, chưa phải kết luận nguyên nhân.
+
+Điều tra local bằng plugin tạm ngoài Git: 1 lượt chỉ thu trace và 3 lượt có thêm
+tiến độ/tín hiệu định kỳ đều đi hết 211 bước cuộn, chưa tái hiện timeout. Chạy
+đúng 22 ca đầu theo thứ tự CI cũng đạt. Playwright 1.56.0, Chromium 141.0.7390.37;
+local Debian khác runner Ubuntu 24.04, chưa xem là môi trường tương đương hoàn toàn.
+Các lượt này không thay CI đỏ và không chứng minh TL-71 hết lỗi.
+
+Chủ dự án cho phép commit/push chẩn đoán và chạy CI: chỉ thêm trace, log mạng,
+console, lỗi trang/crash, tiến độ mỗi 20 bước và heartbeat 2 giây vào bài này.
+Không sửa ứng dụng, không tăng timeout, không nới ngưỡng hoặc bỏ bài. Bằng chứng
+nằm trong artifact `anh-e2e/tl71` của workflow hiện hành. Local kiểm phần chẩn
+đoán mới: 1 đạt, trace và events.jsonl được tạo. **TL-71 vẫn mở, chưa được merge.**
+
+## 19.10.2026 — Dockerfile cố định công cụ backup PostgreSQL 16
+
+Theo phê duyệt tiếp theo, sửa Dockerfile thay cho cách chỉnh container test.
+Base Python 3.12 slim Trixie, package `postgresql-client-16` từ PGDG có chữ ký;
+PATH trong image chọn binary 16, build kiểm major của cả hai công cụ.
+Không sửa service backup, không bỏ single-transaction, không đổi schema.
+
+- Build `INSTALL_DEV=1` và `INSTALL_DEV=0` đều thành công.
+- Image mới chạy `pytest core/tests/test_sao_luu.py -q -rs`: **35 đạt,
+  không lỗi/skip**. Không bind mount code hoặc override PATH; dùng DB test riêng.
+- Image production (không pytest) chạy dump/restore thật vào hai database QA
+  tạm: giữ đúng chuỗi Unicode/xuống dòng, primary key và numeric 123456.78.
+  Dọn đúng hai database QA trong finally; chạy bằng uid 1000. Django check đạt.
+- Công cụ 16.15, server test 16.14. Log/XML và harness ngoài Git:
+  `storage/test-results/premerge-20261019/backup-image16.*`,
+  `build-backup16*.log`, `production-backup-smoke.py`.
+
+Kết quả này thay giới hạn image mặc định chưa sửa ở mục trước. Không chạy lại
+toàn bộ suite cho thay đổi đóng gói; hồi quy UI của lượt trước vẫn ghi riêng.
+Chưa commit/push/merge/VPS và chưa có xác nhận kiểm tay mới.
+
+## 19.10.2026 — Sửa Ghi chú có dấu cam và môi trường backup trên C
+
+Chủ dự án duyệt sửa sau lượt kiểm chặn merge. Bài hồi quy mới trước sửa đỏ:
+ô top 185, hàng top 157. Bỏ riêng `position:relative` ở ô không ghim có dấu cam.
+Nhóm lịch sử ô đạt 7/7, không skip; gồm Admin/Vận đơn, 1366/390 px, hai hàng
+liền nhau, chuột thật, nhập/lưu đúng ID và reload. Giữ dấu cam, quyền và autosave.
+
+35/35 bài `core/tests/test_sao_luu.py` đạt khi PATH chọn pg_dump/pg_restore 16.15
+với server 16.14. Chỉ cài client cùng major trong container test; không đổi
+service backup, database thật, Dockerfile hoặc dependency ứng dụng. Đây không
+phải bằng chứng image build mặc định đã được sửa: Dockerfile hiện vẫn cài client
+theo distro, có thể lấy 17; dựng lại môi trường test phải chọn client 16 như biên bản.
+Chưa triển khai hoặc xác nhận công cụ backup trên VPS.
+
+Log/XML: `storage/test-results/premerge-20261019/` ngoài Git. Kết quả hồi quy bổ sung
+và giới hạn nghiệm thu ghi tại [biên bản C](kiem-chung-c-staging-main-20261019.md).
+Hai file E2E ghi chú tự giãn và phá lưới: 21 đạt, 1 skip vì fixture không có dòng
+trống/quyền thêm dòng; không chạy kiểm tải 300k. Tổng lượt sửa: 63 đạt, 1 skip
+(35 backup + 7 lịch sử ô + 21 hồi quy ghi chú); không thay kết quả toàn suite trước đó.
+
+## 19.10.2026 — Kiểm trước đồng bộ main, nhánh C
+
+PR #137 đã gộp Staging `ed7795b`. CI trên mã PR: 3.926 server, 121 browser đạt; 18 skip và một cảnh báo dọn DB.
+Kiểm lại local: 369 server và 10 browser đạt. Đây là các lượt độc lập, không cộng thành số test duy nhất.
+Đã khắc phục cấu hình preview thiếu ReportSource bằng lệnh chuẩn; chưa có xác nhận kiểm tay đạt của chủ dự án.
+Chi tiết và giới hạn: [biên bản nhánh C](kiem-chung-c-staging-main-20261019.md). Không đóng thêm TL ngoài phạm vi.
+
 ## 19.10.2026 — PR #136, lỗi tồn đọng và Manager đọc đơn/vận đơn toàn công ty
 
 **Đã sửa và kiểm bằng máy trên local; bàn giao qua PR nháp về Staging theo yêu cầu 19.10.2026. Chờ kiểm tay và duyệt gộp; chưa phát hành.** Nhánh kết hợp `codex/tl136-kiem-thu-tong-hop`.

@@ -84,11 +84,18 @@ jobs:
 
       - name: pytest
         working-directory: app
+        env:
+          KN_CI_DIAGNOSTICS: "1"
         # `--ds=knjsc.settings.test` đã nằm trong addopts của pytest.ini.
         # **Không thêm `-q`**: pytest.ini đã có một cái, thêm nữa thành `-qq`
         # và mất luôn dòng tổng kết "N passed" trong log.
         # `-rs` in lý do từng bài bỏ qua — bỏ qua không phải là đã kiểm.
-        run: pytest -m "not trinh_duyet" -rs --durations=10
+        # Chẩn đoán lượt 39232655662: đã có F nhưng hết 20 phút trước tổng kết.
+        # In tên bài và traceback ngay khi lỗi; stack sau 120s chỉ để chẩn đoán,
+        # không huỷ bài, tăng timeout hay thay điều kiện đạt.
+        run: >-
+          pytest -m "not trinh_duyet" -vv -rs --durations=10
+          --tb=short -o faulthandler_timeout=120
 
   # ── Bài trình duyệt thật ────────────────────────────────────────
   e2e:
