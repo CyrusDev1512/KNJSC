@@ -7,6 +7,7 @@ Chậm — đánh dấu `cham`, bỏ qua khi cần vòng lặp nhanh.
 import time
 
 import pytest
+from django.db import connection
 from django.test import override_settings
 
 from core.constants import PERF_PAGE_SECONDS, PERF_TABLE_ROWS
@@ -47,6 +48,13 @@ def du_lieu_lon(django_db_setup, django_db_blocker):
             Product.objects.create(name=ten, code=ma, group=nhom)
         bat_dau = time.monotonic()
         tao = seed_perf.run(n=PERF_TABLE_ROWS, actor=admin)
+        # `seed_perf` chạy như management command luôn VACUUM ANALYZE trước khi
+        # đo. Fixture gọi thẳng `run()` nên database CI vừa bulk insert 50.000
+        # dòng chưa có thống kê và đôi lúc PostgreSQL chọn kế hoạch lồng cực
+        # chậm cho bộ lọc Trùng. ANALYZE được phép trong transaction, giữ bài
+        # đo tương đương lệnh thật mà không nới ngưỡng hay che truy vấn chậm.
+        with connection.cursor() as cursor:
+            cursor.execute("ANALYZE forms_builder_datarecord")
         yield {"vd": nv, "manager_vd": manager, "admin": admin, "tao": tao, "giay_sinh": time.monotonic() - bat_dau}
         seed_perf.clear()
         Product.objects.all().delete()
@@ -80,12 +88,17 @@ def _vao_lam(client, nguoi):
     client.get("/dang-nhap/")
 
 
-def _bam_gio(client, duong_dan, django_assert_max_num_queries):
-    with django_assert_max_num_queries(10):
+def _bam_gio(client, duong_dan, django_assert_max_num_queries, *, json_grid=False):
+    # HTML không tải dòng; JSON có scope, snapshot/cache và metadata riêng (AC-10.26).
+    with django_assert_max_num_queries(15 if json_grid else 10):
         bat_dau = time.monotonic()
         kq = client.get(duong_dan)
         mat = time.monotonic() - bat_dau
     assert kq.status_code == 200, duong_dan
+    if json_grid:
+        body=kq.json()
+        assert 'rows' in body and 'total' in body
+        assert len(body['rows']) <= 300
     return mat
 
 
@@ -106,15 +119,15 @@ def test_bang_tinh_50000_dong_co_loc_duoi_2_giay(client, du_lieu_lon, django_ass
     """AC-7.1 — Bảng tính trên 50.000 dòng, có hai bộ lọc và cột Lọc trùng, trang đầu dưới 2 giây"""
     with override_settings(ROOT_URLCONF="knjsc.urls_bangtinh", GRID_ONLY_TABLES=set()):
         _vao_lam(client, du_lieu_lon["vd"])
-        mat = _bam_gio(client, "/bang-tinh/", django_assert_max_num_queries)
+        mat = _bam_gio(client, "/bang-tinh/van_don/du-lieu/", django_assert_max_num_queries, json_grid=True)
         assert mat < PERF_PAGE_SECONDS, f"lưới không lọc mất {mat:.2f}s"
         mat = _bam_gio(
             client,
-            "/bang-tinh/?f_trang_thai_vc__trong=%C4%90ang%20giao&f_ten_khach__chua=Taylor&sap=ngay",
-            django_assert_max_num_queries,
+            "/bang-tinh/van_don/du-lieu/?f_trang_thai_vc__trong=%C4%90ang%20giao&f_ten_khach__chua=Taylor&sap=ngay",
+            django_assert_max_num_queries, json_grid=True,
         )
         assert mat < PERF_PAGE_SECONDS, f"lưới có lọc mất {mat:.2f}s"
         mat = _bam_gio(client, "/bang-tinh/van_don/loc/trang_thai_vc/", django_assert_max_num_queries)
         assert mat < PERF_PAGE_SECONDS, f"hộp lọc cột mất {mat:.2f}s"
-        mat = _bam_gio(client, "/bang-tinh/?trung=1", django_assert_max_num_queries)
+        mat = _bam_gio(client, "/bang-tinh/van_don/du-lieu/?trung=1", django_assert_max_num_queries, json_grid=True)
         assert mat < PERF_PAGE_SECONDS, f"lọc chỉ số trùng mất {mat:.2f}s"

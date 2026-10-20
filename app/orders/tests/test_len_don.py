@@ -454,10 +454,10 @@ def test_leader_thay_don_ca_team(bang_van_don, san_pham, teams, nguoi_dung):
     assert thay.filter(created_by=nguoi_dung["staff_sale_1"]).exists()
 
 
-def test_manager_khong_thay_don_bo_phan_khac(bang_van_don, san_pham, nguoi_dung):
-    """AC-3.5 — Manager không thấy đơn của bộ phận khác"""
+def test_manager_thay_don_bo_phan_khac(bang_van_don, san_pham, nguoi_dung):
+    """AC-3.4 — Ngoại lệ chốt 19.10.2026: Manager xem đơn toàn công ty."""
     _len_don(nguoi_dung["staff_sale_1"], san_pham)
-    assert not order_service.orders_of(nguoi_dung["manager_mkt"]).exists()
+    assert order_service.orders_of(nguoi_dung["manager_mkt"]).exists()
 
 
 def test_goi_thang_don_ngoai_pham_vi_bi_chan(client, bang_van_don, san_pham, nguoi_dung):

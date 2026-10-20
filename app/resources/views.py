@@ -13,7 +13,7 @@ from django.views.decorators.http import require_POST
 from core.constants import Rank
 from core.exceptions import BusinessError
 from core.pagination import filter_query, pagination_context
-from core.permissions import assert_rank
+from core.permissions import assert_business_write, assert_rank
 from org.models import Department
 
 from .constants import STATUS_CHIP, ResourceStatus
@@ -81,6 +81,7 @@ def tai_nguyen(request):
 def tai_nguyen_moi(request):
     """Thêm tài nguyên — Manager trở lên (FR-13.3)."""
     request.nav_current = "tai_nguyen"
+    assert_business_write(request.user, request)   # Giám đốc chỉ xem (ADR-044): 403 có nhật ký ngay, không hiện form
     assert_rank(request.user, Rank.MANAGER, request)
     form = _form(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -103,6 +104,7 @@ def tai_nguyen_moi(request):
 def tai_nguyen_sua(request, pk):
     """Sửa tài nguyên — Manager trở lên; nhật ký ghi trường đổi (FR-13.3)."""
     request.nav_current = "tai_nguyen"
+    assert_business_write(request.user, request)   # Giám đốc chỉ xem (ADR-044): 403 có nhật ký ngay, không hiện form
     assert_rank(request.user, Rank.MANAGER, request)
     tn = get_object_or_404(resource_service.resources_qs(), pk=pk)
     form = _form(
@@ -130,6 +132,7 @@ def tai_nguyen_sua(request, pk):
 @require_POST
 def tai_nguyen_go(request, pk):
     """Gỡ tài nguyên — Manager trở lên, xoá mềm (FR-13.3)."""
+    assert_business_write(request.user, request)   # Giám đốc chỉ xem (ADR-044): 403 có nhật ký ngay, không hiện form
     assert_rank(request.user, Rank.MANAGER, request)
     tn = get_object_or_404(Resource.objects, pk=pk)
     resource_service.delete_resource(tn, actor=request.user, request=request)
@@ -141,6 +144,7 @@ def tai_nguyen_go(request, pk):
 @require_POST
 def tai_nguyen_muc_moi(request):
     """Thêm mục — Manager trở lên (FR-13.1)."""
+    assert_business_write(request.user, request)   # Giám đốc chỉ xem (ADR-044): 403 có nhật ký ngay, không hiện form
     assert_rank(request.user, Rank.MANAGER, request)
     try:
         muc = resource_service.create_category(

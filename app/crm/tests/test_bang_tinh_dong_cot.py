@@ -131,7 +131,7 @@ def test_bo_cot_giu_gia_tri_va_tu_choi_cot_khoa_cot_tinh(client, bang_sale, bang
 
 
 def test_phan_quyen_chen_bo_cot_ba_cap_bac(client, bang_sale, nguoi_dung):
-    """AC-11.22 — Staff không chèn hay bỏ cột (403 có nhật ký); Manager bộ phận khác 404; Leader, Manager của bộ phận sở hữu và Admin thì được (ADR-015)"""
+    """AC-11.22 — Staff và Manager chỉ đọc bảng vận đơn bị chặn sửa cột (403); quản lý bộ phận sở hữu và Admin được."""
     truoc = AuditLog.objects.filter(action=AuditAction.DENIED).count()
     for ai in ("staff_sale_1",):
         client.force_login(nguoi_dung[ai])
@@ -144,7 +144,7 @@ def test_phan_quyen_chen_bo_cot_ba_cap_bac(client, bang_sale, nguoi_dung):
     assert client.post(f"/bang-tinh/{bang_sale.code}/xoa-cot/", {"cot": ["cot_moi_1"]}).status_code == 200
     assert not bang_sale.columns.filter(code="cot_moi_1").exists()
     client.force_login(nguoi_dung["manager_mkt"])
-    assert client.post(f"/bang-tinh/{bang_sale.code}/them-cot/", {"so": 1}).status_code == 404
+    assert client.post(f"/bang-tinh/{bang_sale.code}/them-cot/", {"so": 1}).status_code == 403
     client.force_login(nguoi_dung["admin"])
     assert client.post(f"/bang-tinh/{bang_sale.code}/them-cot/", {"canh": "khach", "so": 1}).status_code == 200
     assert bang_sale.columns.filter(code="cot_moi_1").exists()
@@ -166,7 +166,7 @@ def test_insert_columns_dich_vu(bang_sale, nguoi_dung):
 # ══ Mốc mới nhất để tự cập nhật — AC-11.26 ════════════════════════
 
 def test_moi_nhat_tra_moc_trong_pham_vi(client, bang_sale, nguoi_dung):
-    """AC-11.26 — `moi-nhat/` trả mốc sửa gần nhất và số cột **trong phạm vi người xem**, không có dữ liệu, không đếm dòng; đổi ô, xoá mềm, thêm dòng đều đổi mốc; bộ phận khác 404; chưa đăng nhập thì chuyển về đăng nhập"""
+    """AC-11.26 — `moi-nhat/` trả mốc sửa gần nhất toàn bảng đã kiểm quyền mở và số cột, không có dữ liệu, không đếm dòng; đổi ô, xoá mềm, thêm dòng đều đổi mốc; bộ phận khác 404; chưa đăng nhập thì chuyển về đăng nhập"""
     nv, nv_b = nguoi_dung["staff_sale_1"], nguoi_dung["staff_sale_1b"]
     d1 = _dong(bang_sale, nv, khach="A", doanh_thu="10", so_luong="1")
     _dong(bang_sale, nv_b, khach="B", doanh_thu="10", so_luong="1")
@@ -186,3 +186,141 @@ def test_moi_nhat_tra_moc_trong_pham_vi(client, bang_sale, nguoi_dung):
     assert client.get(f"/bang-tinh/{bang_sale.code}/moi-nhat/").status_code == 404
     client.logout()
     assert client.get(f"/bang-tinh/{bang_sale.code}/moi-nhat/").status_code == 302
+
+
+# ══ Một luật bỏ cột ở mọi cửa — AC-11.22, TL-13 ═══════════════════
+
+#: Ba cửa bỏ cột: (URLconf, kiểu) — lưới 8021 và màn Cột ở 8021 và 8020
+CUA_BO_COT = [("knjsc.urls_bangtinh", "luoi"), ("knjsc.urls_bangtinh", "man_cot"), ("knjsc.urls", "man_cot")]
+#: (bảng, mã cột, chữ phải có trong lời báo)
+COT_KHONG_BO_DUOC = [
+    ("bang_vd", "so_dien_thoai", "Cột chuẩn của Vận đơn"),
+    ("bang_vd", "email", "tệp vận đơn thật"),
+    ("bang_vd", "sl_thu", "tệp vận đơn thật"),
+    ("bang_sale", "khach", "cột khoá"),
+    ("bang_sale", "doanh_thu", "cột tính sẵn"),
+    ("bang_sale", "ghi_chu_noi", "Biểu mẫu thử"),
+]
+
+
+@pytest.fixture
+def cot_bo_thu(request, nguoi_dung, departments):
+    """Bảng theo tham số, kèm cột `sl_thu` (bảng vận đơn) hoặc cột `ghi_chu_noi` đang nhận dữ liệu từ
+    một biểu mẫu (bảng Sale) — chỉ dựng bảng cần cho ca đó."""
+    from forms_builder.models import FieldDef
+    from forms_builder.services import form_service
+
+    def _dung(ten_bang):
+        bang = request.getfixturevalue(ten_bang)
+        if ten_bang == "bang_vd":
+            ColumnDef.objects.create(table=bang, name="SL Thử", code="sl_thu", field_type=FieldType.INTEGER, order=99)
+            return bang, nguoi_dung["admin"]
+        ql = nguoi_dung["manager_sale"]
+        cot = ColumnDef.objects.create(table=bang, name="Ghi chú nội bộ", code="ghi_chu_noi",
+                                       field_type=FieldType.TEXT, order=9)
+        bm = form_service.create_form(name="Biểu mẫu thử", code="bm_thu", department=departments["sale"],
+                                      table=bang, actor=ql)
+        truong = FieldDef.objects.create(name="Ghi chú", code="ghi_chu", field_type=FieldType.TEXT,
+                                         department=departments["sale"])
+        form_service.add_field(bm, truong, column=cot, actor=ql)
+        return bang, ql
+    return _dung
+
+
+def _bo_cot(client, cua, bang, ma):
+    if cua == "luoi":
+        return client.post(f"/bang-tinh/{bang.code}/xoa-cot/", {"cot": [ma]})
+    return client.post(f"/bang/{bang.code}/cot/{bang.columns.get(code=ma).pk}/bo/")
+
+
+@SUA_DUOC
+@pytest.mark.parametrize("bang_ten,ma,loi", COT_KHONG_BO_DUOC)
+@pytest.mark.parametrize("urlconf,cua", CUA_BO_COT)
+def test_bo_cot_cung_mot_luat_o_moi_cua(client, settings, cot_bo_thu, nguoi_dung, urlconf, cua, bang_ten, ma, loi):
+    """AC-11.22 — Cùng một luật bỏ cột ở mọi cửa (lưới, màn Cột ở 8020 và 8021): cột chuẩn và cột theo tệp
+    vận đơn thật, cột khoá, vế của cột tính sẵn, cột đang nhận dữ liệu từ biểu mẫu bị từ chối kèm lời báo — lưới
+    trả 400, màn Cột chuyển về màn Cột với lời đỏ (TL-107); cột còn nguyên, cột tách của dòng cũ không mất, không có
+    nhật ký bỏ cột (TL-13)"""
+    settings.ROOT_URLCONF = urlconf
+    client.raise_request_exception = False
+    bang, nguoi = cot_bo_thu(bang_ten)
+    d = _dong(bang, nguoi, khach="A", doanh_thu="10", so_luong="2") if bang_ten == "bang_sale" else None
+    truoc = d.val_revenue if d is not None else None
+    client.force_login(nguoi)
+
+    kq = _bo_cot(client, cua, bang, ma)
+
+    if cua == "luoi":
+        assert kq.status_code == 400, kq.status_code
+        assert loi in kq.content.decode()
+    else:   # màn Cột: Post/Redirect/Get, lời đỏ hiện ở màn Cột (đọc từ messages, không dò cả trang — TL-107)
+        assert kq.status_code == 302 and kq.url == f"/bang/{bang.code}/cot/", kq.status_code
+        assert any(loi in str(m) for m in client.get(kq.url).context["messages"]), loi
+    assert bang.columns.filter(code=ma).exists()
+    if d is not None:
+        d.refresh_from_db()
+        assert d.val_revenue == truoc
+    assert not AuditLog.objects.filter(detail__startswith=f"Bỏ cột {ma} ").exists()
+
+
+@pytest.mark.parametrize("urlconf", ["knjsc.urls_bangtinh", "knjsc.urls"])
+def test_bo_cot_bi_tu_choi_o_man_cot_tai_lai_khong_ra_405(client, settings, bang_sale, nguoi_dung, urlconf):
+    """AC-11.22 — Màn Cột (8020 và 8021) từ chối bỏ cột thì chuyển về màn Cột kèm lời đỏ (Post/Redirect/Get): trình
+    duyệt đứng ở màn Cột nên tải lại trang ra 200 và lời báo không hiện lại, không còn 405 trắng ở …/cot/<pk>/bo/; cột
+    còn nguyên (TL-107)"""
+    settings.ROOT_URLCONF = urlconf
+    client.force_login(nguoi_dung["manager_sale"])
+    khoa = bang_sale.columns.get(code="khach")
+    kq = client.post(f"/bang/{bang_sale.code}/cot/{khoa.pk}/bo/", follow=True)
+    assert [ma for _, ma in kq.redirect_chain] == [302], kq.status_code
+    assert kq.request["PATH_INFO"] == f"/bang/{bang_sale.code}/cot/" and kq.status_code == 200
+    assert any("cột khoá" in str(m) for m in kq.context["messages"])
+    tai_lai = client.get(kq.request["PATH_INFO"])
+    assert tai_lai.status_code == 200 and not list(tai_lai.context["messages"])
+    assert bang_sale.columns.filter(code="khach").exists()
+
+
+@SUA_DUOC
+def test_remove_column_tu_choi_cot_khong_bo_duoc(cot_bo_thu, nguoi_dung):
+    """AC-11.22 — Tầng dịch vụ `remove_column` tự áp luật bỏ cột (mọi cửa sau này cũng qua luật):
+    cột khoá, vế công thức, cột nối biểu mẫu, cột theo tệp vận đơn thật ném BusinessError, cột còn nguyên;
+    `removable_reason` của cột thường vẫn trống (TL-13)"""
+    from core.exceptions import BusinessError
+
+    sale, ql = cot_bo_thu("bang_sale")
+    vd, admin = cot_bo_thu("bang_vd")
+    for bang, ma, nguoi, loi in ((sale, "khach", ql, "cột khoá"), (sale, "doanh_thu", ql, "cột tính sẵn"),
+                                 (sale, "ghi_chu_noi", ql, "Biểu mẫu thử"), (vd, "email", admin, "tệp vận đơn thật"),
+                                 (vd, "sl_thu", admin, "tệp vận đơn thật")):
+        cot = bang.columns.get(code=ma)
+        assert loi in table_service.removable_reason(cot), ma
+        with pytest.raises(BusinessError, match=loi):
+            table_service.remove_column(cot, actor=nguoi)
+        assert bang.columns.filter(code=ma).exists(), ma
+    thuong = ColumnDef.objects.create(table=sale, name="Ghi chú thêm", code="ghi_chu_them",
+                                      field_type=FieldType.TEXT, order=10)
+    assert table_service.removable_reason(thuong) == ""
+
+
+@SUA_DUOC
+@pytest.mark.parametrize("urlconf,cua", CUA_BO_COT)
+def test_bo_cot_thuong_duoc_o_moi_cua_giu_gia_tri(client, settings, bang_sale, nguoi_dung, urlconf, cua):
+    """AC-11.22 — Chiều cho phép: cột thường bỏ được ở mọi cửa, giá trị đã nhập vẫn nằm trong bản ghi (BR-4),
+    có nhật ký (bài khoá, TL-13)"""
+    settings.ROOT_URLCONF = urlconf
+    ql = nguoi_dung["manager_sale"]
+    ColumnDef.objects.create(table=bang_sale, name="Ghi chú thêm", code="ghi_chu_them",
+                             field_type=FieldType.TEXT, order=9)
+    d = _dong(bang_sale, ql, khach="A", ghi_chu_them="giữ lại")
+    client.force_login(ql)
+
+    kq = _bo_cot(client, cua, bang_sale, "ghi_chu_them")
+
+    if cua == "luoi":
+        assert kq.status_code == 200 and kq.json()["da_bo"] == ["ghi_chu_them"]
+    else:
+        assert kq.status_code == 302 and kq.url.endswith(f"/bang/{bang_sale.code}/cot/")
+    assert not bang_sale.columns.filter(code="ghi_chu_them").exists()
+    d.refresh_from_db()
+    assert d.data["ghi_chu_them"] == "giữ lại"
+    assert AuditLog.objects.filter(detail__startswith="Bỏ cột ghi_chu_them").exists()

@@ -18,7 +18,7 @@
 | Mục | Nội dung |
 |---|---|
 | Người kiểm | Anh/chị chủ dự án, cộng một người mỗi bộ phận Sale, Marketing, Vận đơn nếu có |
-| Dữ liệu | `manage.py du_lieu_mau` (12 tài khoản, mật khẩu in ra cuối lệnh) và tệp `docs/tham-khao/vandon-mau.xlsx` |
+| Dữ liệu | `manage.py du_lieu_mau` (16 tài khoản, mật khẩu in ra cuối lệnh) và tệp `docs/tham-khao/vandon-mau.xlsx` |
 | Máy | Máy cá nhân đã `scripts/cap-nhat-local` — mở `localhost:8020` và `localhost:8021/bang-tinh/` |
 | Thời gian | Khoảng **2 giờ** cho ba vai, thêm **30 phút** cho phần vận hành |
 | Ghi kết quả | Đánh ☐ → ☑ ngay trong tệp này, hoặc chụp màn hình vào `storage/e2e/` |

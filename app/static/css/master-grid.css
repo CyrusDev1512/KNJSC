@@ -30,6 +30,7 @@
 .mg-row-resize:hover,.mg-row-resize:focus-visible {background:color-mix(in srgb,var(--accent) 40%,transparent)}
 .mg-resizing-row,.mg-resizing-row * {cursor:row-resize!important;user-select:none!important}
 .mg-cell.mg-current {outline:2px solid #2563eb;outline-offset:-2px;z-index:1}
+.mg-cell[aria-invalid="true"] {outline:2px solid var(--critical,#b42318);outline-offset:-2px}
 .mg-cell.mg-current.mg-pinned {z-index:3}
 .mg-pinned {z-index:2;background:var(--surface)}.mg-heading.mg-pinned{z-index:7;background:var(--surface-2)}
 .mg-heading {border-right:1px solid var(--rule-strong);border-bottom:1px solid var(--rule-strong);background:var(--surface-2);user-select:none}
@@ -186,7 +187,6 @@
 
 :where(.mg-row.dong-xau) .mg-cell {background:var(--critical-soft)}
 /* Lịch sử từng ô (AC-21.13): ô bị người khác sửa trong 24 giờ có dấu góc; ô ghim vốn sticky nên đã là khung định vị */
-.mg-cell.mg-moi-sua:not(.mg-pinned){position:relative}
 .mg-cell.mg-moi-sua::after{content:'';position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 8px 8px 0;border-color:transparent #d97706 transparent transparent;pointer-events:none}
 .mg-cell-history>.mg-close{position:absolute;top:6px;right:6px}.mg-cell-history .mg-cell-history-list{display:grid}.mg-cell-history .mg-history-item pre{margin:6px 0 0}.mg-cell-history .mg-history-item:last-of-type{border-bottom:0}.mg-cell-history-more{justify-self:start;margin-top:8px}
 

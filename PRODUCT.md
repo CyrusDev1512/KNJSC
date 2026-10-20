@@ -103,7 +103,7 @@ theo thị trường mới.
 
 - Tệp vận đơn thật đã ẩn danh: `docs/tham-khao/vandon-mau.xlsx`.
 - Mười ảnh chụp bảng tính KN Demo mà chủ dự án muốn giống: `docs/tham-khao/kn-demo/`.
-- Dữ liệu mẫu: lệnh `du_lieu_mau` tạo 12 tài khoản, bảng Báo cáo Marketing với số liệu thật, biểu mẫu và sản phẩm; danh sách ở `docs/tai-khoan-mau.md`.
+- Dữ liệu mẫu: lệnh `du_lieu_mau` tạo 16 tài khoản (từ 14.10.2026 thêm Giám đốc, Leader Vận đơn, Kế toán, CSKH), bảng Báo cáo Marketing với số liệu thật, biểu mẫu và sản phẩm; danh sách ở `docs/tai-khoan-mau.md`.
 - Không có: lời khách hàng, nghiên cứu người dùng chính thức, số liệu hiệu quả sau khi dùng. Không bịa những thứ này.
 
 ## Product Principles

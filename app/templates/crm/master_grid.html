@@ -14,7 +14,7 @@
     <button class="nut" id="mg-format-button">Định dạng</button>
     <button class="nut" id="mg-undo" title="Ctrl+Z" disabled>Hoàn tác</button><button class="nut" id="mg-redo" title="Ctrl+Y" disabled>Làm lại</button>
 
-    <a class="nut" data-query-link href="{% url 'crm_statistics' %}?nguon={{ bang.code }}{% if qs_giu %}&amp;{{ qs_giu }}{% endif %}" title="Xem thống kê với bộ lọc này">Thống kê</a>
+    <a class="nut" data-query-link data-query-base="nguon={{ bang.code }}" href="{% url 'crm_statistics' %}?nguon={{ bang.code }}{% if qs_giu %}&amp;{{ qs_giu }}{% endif %}" title="Xem thống kê với bộ lọc này">Thống kê</a>
     <div class="mg-more-wrap">
       <button class="nut" id="mg-more-button" aria-label="Thao tác khác" aria-expanded="false" aria-controls="mg-more">…</button>
       <div id="mg-more" class="mg-more" hidden>
@@ -59,8 +59,8 @@
 {% csrf_token %}
 {% endblock %}
 {% block cuoi_trang %}
-{% if waybill_profile and payment_documents_enabled %}<link rel="stylesheet" href="{% static 'css/payments.css' %}">
-<script src="{% static 'js/payments.js' %}" defer></script>{% endif %}
+{% if waybill_profile and payment_documents_enabled %}<link rel="stylesheet" href="{% static 'css/payments.css' %}?v={{ phien_ban_tinh }}">
+<script src="{% static 'js/payments.js' %}?v={{ phien_ban_tinh }}" defer></script>{% endif %}
 {% if can_assign %}{% include 'crm/_assignment.html' %}{% endif %}
 <script src="{% static 'js/master-row-geometry.js' %}?v={{ phien_ban_tinh }}" defer></script>
 <script src="{% static 'js/master-working-copy.js' %}?v={{ phien_ban_tinh }}" defer></script>

@@ -1,6 +1,6 @@
 # Hướng dẫn cho AI hỗ trợ viết mã
 
-> Cập nhật 12.10.2026 (TL-89: nút Thống kê KN CRM của nguồn Sale/MKT sang Báo cáo tổng hợp ERP, AC-40.9); 10.10.2026 (ADR-050 Admin sửa lần nộp ngay trên Báo cáo tổng hợp); 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
+> Cập nhật 14.10.2026 (đợt P0 đã gộp vào `Staging`: #113, #115 → #127, #129, #130 — ADR-052 chuỗi số máy, ADR-053 hết phiên ở KN CRM giữ nháp và chặn đổi người, 16 tài khoản mẫu; danh sách bốn nhánh nền khớp AGENTS.md và GitHub: `PHASE-1`, `UI-SOLAR-PUNK`); 13.10.2026 (ADR-051: KN OMS, bản demo dữ liệu giả ở `/oms/` của KN CRM, chỉ Admin; bổ sung cùng ngày: diện mạo Solarpunk như KN CRM, làm sâu sáu màn; kế hoạch kiểm thử toàn diện `docs/08`: ma trận phân hệ, kiểm tay Chặng 2 theo vùng, phân tích lọt lưới, lộ trình P0/P1/P2); 12.10.2026 (TL-89: nút Thống kê KN CRM của nguồn Sale/MKT sang Báo cáo tổng hợp ERP, AC-40.9); 10.10.2026 (ADR-050 Admin sửa lần nộp ngay trên Báo cáo tổng hợp); 08.10.2026 (dãy phát hành VPS và quay lui theo lượt diễn tập); 02.10.2026 (**đường đi của một thay đổi: nhánh việc → `Staging` → kiểm tay ở local →
 > `main` → VPS**; Claude Code CLI được phát hành VPS; chỉ giữ bốn nhánh nền, nhánh việc gộp xong là
 > xoá); 25.09.2026 (ADR-043 bổ sung: một ô Team duy nhất trên form báo cáo); 24.09 (ADR-043 form Nộp báo cáo ngày; `main` đã fast-forward bằng `codex/crm-update-solar-ui` — nhánh
 > chuẩn từ nay là `main`; gộp 11 PR: ADR-040/041/042, khoá SĐT, lọc cột ẩn, ghi chú tự
@@ -36,17 +36,28 @@ dự án (H7 quyền nhập tiền còn mở). `docs/daily-tasks.md` là việc 
 
 ### Nhánh và nơi mã đang chạy
 
+- **Kiểm trực tiếp 09.10.2026:** VPS đã chuyển sang `main e979323`, image
+  `knjsc-app:e979323-main-r2`; xem [biên bản và giới hạn nghiệm thu](docs/kiem-chung-phat-hanh-vps-20261009.md).
+  Đây là mốc ghi nhận, vẫn phải đối chiếu runtime trước lần phát hành tiếp theo.
+
 - **Nhánh chuẩn là `main`** (từ 24.09.2026): `main` đã fast-forward bằng
   `codex/crm-update-solar-ui`, hai nhánh trùng nhau tại `ddb9b64` (trọn 11 PR gộp 24.09).
   Máy chủ dự án có thể còn đứng ở nhánh codex cho tới khi Codex `checkout main` — nội
   dung y hệt nên phát hành từ nhánh nào cũng ra cùng image; chuyển xong thì mọi phát
   hành đi từ `main`. VPS hiện là môi trường thử nghiệm, chưa có khách.
 - `codex/crm-update-solar-ui` đã **đổi tên thành `Staging`** (nhánh gom code chạy thử trước
-  khi vào `main`). Hai nhánh lưu trữ `CRM-UPDATE` và `codex/ui-solarpunk` đóng băng, giữ đến
-  cuối, có tag `luu-tru/*` đóng dấu.
-- **Chỉ giữ bốn nhánh nền** trên GitHub (chủ dự án chốt 02.10.2026): `main`, `Staging`,
-  `CRM-UPDATE`, `codex/ui-solarpunk`. Nhánh việc (`claude/…`, `codex/…`) gộp xong là **xoá
-  ngay**; không để nhánh đã gộp nằm lại. Mỗi lần gộp PR làm đủ ba bước:
+  khi vào `main`). Hai nhánh lưu trữ cũ `CRM-UPDATE` và `codex/ui-solarpunk` nay chỉ còn là tag
+  `luu-tru/CRM-UPDATE-20260914` và `luu-tru/ui-solarpunk-20260914`, không còn là nhánh.
+- **Chỉ giữ bốn nhánh nền** trên GitHub (chủ dự án chốt 02.10.2026; tên đối chiếu với GitHub
+  14.10.2026, khớp AGENTS.md):
+  - `main`;
+  - `Staging`;
+  - `PHASE-1`: có khoá bảo vệ, dừng ở `7f8fb82` ngày 02.10;
+  - `UI-SOLAR-PUNK`: trùng tag `luu-tru/ui-solarpunk-20260914`.
+
+  Tên nhánh nền trên GitHub khác tài liệu thì báo chủ dự án, không coi là nhánh thừa. Nhánh
+  việc (`claude/…`, `codex/…`) gộp xong là **xoá ngay**; không để nhánh đã gộp nằm lại. Mỗi lần
+  gộp PR làm đủ ba bước:
   1. Xoá nhánh vừa gộp: `git push origin --delete <nhánh>`.
   2. Rà nhánh thừa: `git fetch --prune origin`, rồi với mỗi nhánh ngoài bốn nhánh nền mà
      `git rev-list --count origin/main..origin/<nhánh>` bằng 0 (đã nằm trọn trong `main`) thì xoá
@@ -96,7 +107,8 @@ nhánh claude/<tên-việc>  →  Staging  →  (kiểm kỹ ở máy local)  �
 nói mã làm đúng thứ nó được viết để làm. Chặng này hỏi câu khác: *mở lên dùng thử
 thì có đúng như mong đợi không.* Bật bằng `KN JSC.bat` (Windows) hoặc
 `./scripts/cap-nhat-local.sh`, mở KN ERP `127.0.0.1:8020` và KN CRM `127.0.0.1:8021`,
-đi lại đúng thao tác mà thay đổi này đụng tới. Nhiều lỗi nặng nhất của dự án
+đi lại đúng thao tác mà thay đổi này đụng tới — danh sách theo vùng ở
+`docs/08-ke-hoach-kiem-thu/06-kiem-tay-chang-2.md`. Nhiều lỗi nặng nhất của dự án
 (TL-02, TL-19, TL-41) đều là loại bài kiểm xanh nhưng người dùng gặp ngay.
 
 **Phát hành VPS chỉ đi từ `main`.** Không phát hành từ `Staging`, từ nhánh việc, hay
@@ -156,7 +168,7 @@ docker compose -f deploy/docker-compose.yml exec web python manage.py configure_
 
 **Vì sao cần lệnh thứ hai.** Cơ sở dữ liệu không theo kho mã, nên máy mới dựng
 xong là hệ thống trống, **không có tài khoản nào để đăng nhập**. `du_lieu_mau`
-tạo 12 tài khoản ba bộ phận bốn cấp bậc, bảng Báo cáo Marketing, biểu mẫu, sản
+tạo 16 tài khoản năm bộ phận (Sale, Marketing, Vận đơn, Kế toán, CSKH) năm cấp bậc (cả Giám đốc), bảng Báo cáo Marketing, biểu mẫu, sản
 phẩm và dữ liệu mẫu cho nhóm Nội bộ. Danh sách tài khoản kèm mật khẩu ở
 `docs/tai-khoan-mau.md`; `quantri` vào được trang quản trị Django ở `/quan-tri/`.
 
@@ -232,6 +244,18 @@ Lưới `/bang-tinh/<mã bảng>/` toàn màn hình, chỉ lưới có nút ← 
 không về ERP (ADR-012, 015). **Leader như Manager trong bộ phận mình**
 (`grant_service._quan_ly_bo_phan`), cấp quyền cho người khác vẫn Manager.
 Bài kiểm của `crm/tests` chạy ở URLconf 8021 nhờ `crm/tests/conftest.py`.
+**Hết phiên ở KN CRM** (ADR-053, P0-14): hai khung KN CRM nạp `static/js/het-phien.js` ngay sau `loi-mang.js` — mọi
+`fetch`/htmx cùng nguồn mang `X-KNJSC-User` (người mở trang) và lấy mã CSRF mới trong cookie lúc gửi; người khác đăng
+nhập thì `core.middleware.PageOwnerMiddleware` trả 409 `nguoi_dung_doi` trước mọi view; HTMX hết phiên nhận
+`HX-Redirect` và trang báo ngay chỗ đích, không dán trang đăng nhập; lưới giữ nháp, không tự gửi lại. Màn hình KN CRM
+mới dùng `fetch`/htmx phải kế thừa hai khung đó; `CSRF_COOKIE_HTTPONLY` phải để False.
+
+**KN OMS** (ADR-051, 13.10) là bản demo cho chủ dự án trình bày, không phải tính năng thật:
+- `/oms/` chỉ có ở KN CRM, chỉ Admin. Mục cuối thanh bên mở tab mới; vai khác nhận 403 có nhật ký.
+- Trang đứng riêng `crm/kn_oms.html` nạp bốn tệp CSS của KN CRM rồi `oms.css`, cùng `oms.js`; khung và thành phần theo KN CRM.
+- Sáu màn: mockup cộng Công nợ, Khách rủi ro, Lãi theo page; lọc ngày, xuất CSV, biểu đồ lãi theo ngày (AC-51.9 → 51.14).
+- Dữ liệu giả sinh trong trình duyệt: không model, không gọi máy chủ.
+- Bài soát lớp CSS soát trang này theo đúng năm tệp nó nạp (bảng `CSS_RIENG`).
 
 **Lưới là một bộ duy nhất cho mọi bảng** (ADR-021, 027): `templates/crm/master_grid.html`
 + `static/js/master-grid.js` (cùng `master-working-copy.js`, `master-row-geometry.js`,
@@ -418,6 +442,7 @@ của lưới KN CRM (ADR-014), không phải của Bảng dữ liệu.
 | Đụng tới phân quyền | `docs/03-thiet-ke-ky-thuat.md` mục 3; ADR-020, 033 cho vận đơn |
 | Viết truy vấn | `docs/03-thiet-ke-ky-thuat.md` mục 5 |
 | Viết kiểm thử | `docs/04-tieu-chi-nghiem-thu.md` — tìm mã AC tương ứng |
+| Chọn bài kiểm cần viết, lập kế hoạch kiểm thử, kiểm tay Chặng 2 | `docs/08-ke-hoach-kiem-thu-toan-dien.md` (mục 9 lộ trình P0/P1/P2) và thư mục `docs/08-ke-hoach-kiem-thu/` |
 | Đụng lưới CRM | ADR-021, 027, 033, 039; `crm/services/master_grid_service.py`, `static/js/master-grid.js` |
 | Đụng Báo cáo tổng hợp hay Bảng dữ liệu | ADR-035, 038, 040; `reports/services/activity_service.py`, `reports/aggregations.py`, `reports/layout.py`, `reports/screen.py` |
 | Đụng vận đơn | ADR-018, 020, 025, 031, 033, 036; `orders/services/waybill_service.py`, `orders/services/assignment_service.py` |

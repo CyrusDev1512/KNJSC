@@ -24,6 +24,7 @@ Các trường hợp, đúng đặc tả đã chốt:
 """
 import json
 import time
+from urllib.parse import urlsplit
 
 import pytest
 from playwright.sync_api import Error as LoiPlaywright
@@ -31,7 +32,7 @@ from playwright.sync_api import Error as LoiPlaywright
 from crm.tests.test_waybill_feedback import feedback  # noqa: F401  (fixture dùng lại)
 from forms_builder.models import DataRecord
 
-from .conftest import chup
+from .conftest import chup, THU_MUC_ANH
 from .ghi_chu_helpers import bam_ghi_chu, ghi_chu_nhin_thay
 
 pytestmark = [pytest.mark.django_db(transaction=True), pytest.mark.trinh_duyet, pytest.mark.cham]
@@ -76,6 +77,10 @@ DAU_KET_QUA = "__kq_co_han:"
 #: thái trang để bài đỏ có chỗ lần: vị trí cuộn, ô chưa có dòng, yêu cầu mạng dở, rAF còn chạy không (TL-71)
 CUON_HET_BANG = """async (han_ms) => {
     const vp = document.getElementById('mg-viewport');
+    const diagnostic = () => ({time: performance.now(), scrollTop: vp.scrollTop,
+        scrollHeight: vp.scrollHeight, visibility: document.visibilityState});
+    console.log('TL71_START', JSON.stringify(diagnostic()));
+    const heartbeat = setInterval(() => console.log('TL71_HEARTBEAT', JSON.stringify(diagnostic())), 2000);
     const han = performance.now() + han_ms;
     const ngu = ms => new Promise(r => setTimeout(r, ms));
     const doi_ve = () => Promise.race([
@@ -103,6 +108,7 @@ CUON_HET_BANG = """async (han_ms) => {
     const cuon = async () => {
         while (!het_bang() && buoc < 600 && performance.now() < han) {
             vp.scrollTop += vp.clientHeight; buoc++;
+            if (buoc % 20 === 0) console.log('TL71_STEP', buoc, JSON.stringify(diagnostic()));
             await doi_ve();
             const t0 = performance.now();
             while (!du_lieu_ve() && performance.now() - t0 < 8000 && performance.now() < han) await ngu(16);
@@ -112,6 +118,8 @@ CUON_HET_BANG = """async (han_ms) => {
     try {
         return await Promise.race([cuon(), ngu(han_ms + 5000).then(trang_thai)]);
     } finally {
+        clearInterval(heartbeat);
+        console.log('TL71_FINALLY', JSON.stringify(diagnostic()));
         window.fetch = goc;
     }
 }"""
@@ -570,7 +578,6 @@ def test_o_chi_doc_bi_cat_bam_dup_phong_to(live_server, trang, dang_nhap, kn_crm
     chọn; bấm đúp thì Ô PHỒNG TO tại chỗ hiện đủ chữ, KHÔNG mở ô nhập; bấm chỗ khác
     thì thu về"""
     from core.constants import Rank
-    from org.models import Department
     from orders.models import WaybillAssignment
     from orders.services import assignment_service
 
@@ -578,8 +585,7 @@ def test_o_chi_doc_bi_cat_bam_dup_phong_to(live_server, trang, dang_nhap, kn_crm
     ten_dai = "Nguyễn Thị Rất Dài " * 6
     dong[0].data["ten_khach"] = ten_dai
     dong[0].save(update_fields=["data"])
-    care = make_user("care_person", Rank.STAFF,
-                     Department.objects.create(code="cskh", name="CSKH"))
+    care = make_user("care_person", Rank.STAFF, departments["cskh"])
     leader = make_user("vd_leader", Rank.LEADER, departments["vd"])
     phien_ban = (WaybillAssignment.objects.filter(record=dong[0])
                  .values_list("version", flat=True).first() or 0)
@@ -620,8 +626,46 @@ def _phan_tram(so, p):
     return so[min(len(so) - 1, int(round(p * (len(so) - 1))))] if so else None
 
 
+@pytest.fixture
+def tl71_trace(trang):
+    """Chẩn đoán tạm được duyệt: giữ bằng chứng CI, không thay điều kiện đạt."""
+    output = THU_MUC_ANH / "tl71"
+    output.mkdir(parents=True, exist_ok=True)
+    start = time.monotonic()
+    stream = (output / "events.jsonl").open("w", encoding="utf-8")
+
+    def record(kind, value):
+        stream.write(json.dumps({"t": round(time.monotonic() - start, 3),
+                                 "kind": kind, "value": value}, ensure_ascii=False) + "\n")
+        stream.flush()
+
+    listeners = {
+        "console": lambda m: record("console", {"type": m.type, "text": m.text[:2500]}),
+        "pageerror": lambda e: record("pageerror", str(e)),
+        "crash": lambda _: record("crash", True),
+        "request": lambda r: record("request", urlsplit(r.url).path),
+        "response": lambda r: record("response", {"path": urlsplit(r.url).path, "status": r.status}),
+        "requestfailed": lambda r: record("requestfailed", {"path": urlsplit(r.url).path,
+                                                           "failure": r.failure}),
+    }
+    for event, handler in listeners.items():
+        trang.on(event, handler)
+    record("browser", trang.context.browser.version)
+    trang.context.tracing.start(screenshots=False, snapshots=True, sources=False)
+    try:
+        yield
+    finally:
+        try:
+            trang.context.tracing.stop(path=str(output / "trace.zip"))
+            record("trace_saved", True)
+        finally:
+            for event, handler in listeners.items():
+                trang.remove_listener(event, handler)
+            stream.close()
+
+
 def test_do_hieu_nang_1000_dong_ghi_chu_400(live_server, trang, dang_nhap,
-                                            kn_crm, feedback, nguoi_dung, capsys):  # noqa: F811
+                                            kn_crm, feedback, nguoi_dung, capsys, tl71_trace):  # noqa: F811
     """AC-11.44 — 1000 dòng, dòng nào cũng có ghi chú 400 ký tự khác nhau: cuộn hết bảng,
     mỗi khối 100 dòng đo chiều cao một lượt; p95 một lượt dưới ngưỡng đỏ 100 ms, ghi số
     vào biên bản kiểm chứng"""

@@ -85,7 +85,8 @@ def test_ngoai_bo_phan_van_don_bi_tu_choi_moi_duong_dan(client, du_lieu, nguoi_d
         "/bang-tinh/van_don/", "/bang-tinh/van_don/loc/trang_thai_vc/",
         f"/bang-tinh/van_don/o/{pk}/ghi_chu/", "/bang-tinh/van_don/xuat/",
     ]
-    for ma in ("staff_sale_1", "leader_sale_1", "manager_sale", "staff_mkt", "manager_mkt"):
+    # Manager được đọc toàn bộ vận đơn từ 19.10.2026; ca đọc/ghi của Manager kiểm riêng.
+    for ma in ("staff_sale_1", "leader_sale_1", "staff_mkt"):
         client.force_login(nguoi_dung[ma])
         for duong in cac_duong:
             kq = client.get(duong)

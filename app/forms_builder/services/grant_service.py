@@ -16,7 +16,8 @@ Hai loại câu hỏi, hai cách trả lời khác nhau:
 - *Ai điền biểu mẫu nào* — phép kiểm ở view, dùng `can_fill`. Không phải chuyện
   queryset, và phải chạy **trước** khi đọc dữ liệu (P1, FR-3.6)
 """
-from core.permissions import assert_business_write
+from core.exceptions import OutOfScopeError
+from core.permissions import assert_business_write, can_manage_business
 from core.permissions import is_company_reader
 from orders.constants import is_waybill_table
 from django.conf import settings
@@ -94,7 +95,7 @@ def granted_form_ids(user, action=GrantAction.FILL):
 #: Cấp bậc được coi là "quản lý của bộ phận" — ADR-015. Người dùng chốt
 #: 06.09.2026: Leader được như Manager trong bộ phận mình (thư mục, cột, tạo
 #: bảng, nhập tệp, sửa và xoá dòng của người khác); riêng cấp quyền cho người
-#: khác vẫn là việc của Manager (`bang_cap_quyen`, `grant()`).
+#: khác vẫn là việc của Manager (`can_grant`, dùng ở `grant()`/`revoke()` và các view cấp quyền).
 QUAN_LY_BO_PHAN = (Rank.LEADER, Rank.MANAGER, Rank.ADMIN)
 
 
@@ -194,6 +195,13 @@ def can_manage_columns(user, table):
     return _quan_ly_bo_phan(user, table.department_id)
 
 
+def can_grant(user, doi_tuong):
+    """Ai cấp, thu quyền trên bảng hay biểu mẫu này, và quản lý biểu mẫu (sửa, thêm, bỏ trường): Admin hoặc Manager
+    của bộ phận sở hữu — FR-8.4, ADR-015 mục 5. **Thấy được** (quyền Xem/Điền, Kế toán ADR-025, Sale có dòng vận đơn
+    ADR-033) không có nghĩa là quản lý được (TL-01). Áp cho cả TableDef lẫn FormDef (cùng có `department_id`)."""
+    return can_manage_business(user, Rank.MANAGER) and _quan_ly_bo_phan(user, doi_tuong.department_id)
+
+
 def can_edit_record(user, record_obj):
     """Người này sửa được dòng dữ liệu kia không — FR-7.4.
 
@@ -208,7 +216,7 @@ def can_edit_record(user, record_obj):
 
 
 def can_edit_visible_record(user, record_obj):
-    """Chỉ gọi cho dòng đã lấy từ in_scope trong cùng request đọc; không dùng ở đường ghi."""
+    """Chỉ gọi sau kiểm in_scope; đường ghi phải khoá dòng và lấy cờ báo cáo trong cùng giao dịch."""
     if is_company_reader(user):
         return False
     if is_submitted_report(record_obj):
@@ -279,6 +287,9 @@ def grant(*, table=None, form=None, user=None, team=None, action,
           actor=None, request=None):
     """Cấp quyền riêng cho một người hoặc một team."""
     assert_business_write(actor)
+    doi_tuong = table if table is not None else form
+    if doi_tuong is not None and not can_grant(actor, doi_tuong):
+        raise OutOfScopeError("Chỉ Manager của bộ phận sở hữu mới cấp quyền được.")
     quyen = Grant(
         table=table, form=form, user=user, team=team,
         action=action, granted_by=actor,
@@ -301,6 +312,8 @@ def grant(*, table=None, form=None, user=None, team=None, action,
 def revoke(quyen, *, actor=None, request=None):
     """Thu hồi một quyền đã cấp. Đánh dấu xoá, không xoá cứng (BR-4)."""
     assert_business_write(actor)
+    if not can_grant(actor, quyen.table or quyen.form):
+        raise OutOfScopeError("Chỉ Manager của bộ phận sở hữu mới thu quyền được.")
     mo_ta = str(quyen)
     quyen.delete(by=actor)
 
@@ -316,12 +329,12 @@ def revoke(quyen, *, actor=None, request=None):
 
 
 def grants_of_table(table):
-    """Các quyền đang có hiệu lực trên một bảng, để hiện lên màn hình."""
-    return (Grant.objects.filter(table=table)
+    """Các quyền đang có hiệu lực trên một bảng, để hiện lên màn hình — quyền đã thu (xoá mềm) không hiện (TL-103)."""
+    return (Grant.objects.alive().filter(table=table)
             .select_related("user", "team", "granted_by").order_by("-created_at"))
 
 
 def grants_of_form(form):
-    """Các quyền đang có hiệu lực trên một biểu mẫu."""
-    return (Grant.objects.filter(form=form)
+    """Các quyền đang có hiệu lực trên một biểu mẫu — quyền đã thu không hiện (TL-103)."""
+    return (Grant.objects.alive().filter(form=form)
             .select_related("user", "team", "granted_by").order_by("-created_at"))

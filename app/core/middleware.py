@@ -1,18 +1,21 @@
 """Middleware của core.
 
-Bốn việc: hết phiên khi không thao tác, buộc đổi mật khẩu lần đầu, chặn
-trình duyệt lưu lại trang có dữ liệu, và đưa chữ người dùng gửi lên về dạng NFC.
+Năm việc: hết phiên khi không thao tác, buộc đổi mật khẩu lần đầu, chặn
+trình duyệt lưu lại trang có dữ liệu, đưa chữ người dùng gửi lên về dạng NFC,
+và chặn trang KN CRM của người khác (ADR-053).
 """
 import json
 import time
 import unicodedata
+from urllib.parse import urlencode, urlsplit
 
 from django.conf import settings
 from django.contrib.auth import logout
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, resolve_url
 from django.urls import reverse
 from django.utils.cache import add_never_cache_headers
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from .alerts import bao_het_dia, la_het_dia
 from .htmx import is_htmx
@@ -20,9 +23,39 @@ from .htmx import is_htmx
 # Những đường dẫn luôn cho qua, nếu không sẽ chuyển hướng vòng tròn
 EXEMPT_PREFIXES = ("/dang-nhap", "/dang-xuat", "/doi-mat-khau", "/static", "/media")
 
+#: Header mang mã người mở trang (pk) — het-phien.js gắn vào mọi fetch và htmx cùng nguồn của hai khung KN CRM (ADR-053)
+HEADER_NGUOI_MO_TRANG = "X-KNJSC-User"
+#: Lời khi trang do người A mở mà phiên hiện là người B — chủ dự án 14.10.2026 (ADR-053)
+NGUOI_DUNG_DOI = "Tài khoản vừa đăng nhập khác người mở trang — nháp không được lưu"
+#: Lời khi mã CSRF của yêu cầu từ trang KN CRM không khớp (core.views.csrf_failure, ADR-053)
+PHIEN_CSRF = ("Mã bảo mật của trang không còn khớp — thay đổi chưa được lưu, dữ liệu trên màn hình vẫn giữ. "
+              "Bấm Thử lại; vẫn lỗi thì đăng nhập lại ở tab mới.")
+
 
 def _is_exempt(path):
     return any(path.startswith(p) for p in EXEMPT_PREFIXES)
+
+
+class PageOwnerMiddleware:
+    """Trang KN CRM do người A mở mà phiên hiện là người B: 409 `nguoi_dung_doi`, view không chạy (ADR-053).
+
+    Trang lấy mã CSRF mới lúc gửi (het-phien.js) nên đăng nhập lại rồi bấm Thử lại là gửi được; chốt này giữ cho nháp
+    của A không ghi dưới tên B và trang của A không đọc theo phạm vi của B (lượt hỏi, kiểm quyền dòng sẽ gỡ nháp của A).
+    Chỉ xét yêu cầu mang header; ẩn danh để login_required xử lý. Đứng trước SessionTimeoutMiddleware: 409 không ghi
+    `last_seen_at`, không gia hạn phiên của B. Không thêm truy vấn. Header không phải kiểm quyền — quyền theo request.user."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        ma = request.headers.get(HEADER_NGUOI_MO_TRANG)
+        if ma is not None and request.user.is_authenticated and ma != str(request.user.pk):
+            response = JsonResponse({"error": NGUOI_DUNG_DOI, "code": "nguoi_dung_doi"}, status=409)
+            add_never_cache_headers(response)      # đứng trước NoCacheForAuthenticated nên tự gắn
+            if is_htmx(request):
+                response["HX-Reswap"] = "none"
+            return response
+        return self.get_response(request)
 
 
 def _ve_dang_nhap(request, ly_do):
@@ -35,16 +68,59 @@ def _ve_dang_nhap(request, ly_do):
     return redirect(url)
 
 
+def _trang_dang_xem(request):
+    """Trang người dùng đang mở khi htmx gửi yêu cầu (header `HX-Current-URL`), chỉ lấy đường và tham số. Host lạ, đường
+    bắt đầu bằng '//', lược đồ lạ hay chính trang đăng nhập thì bỏ — không mang next trỏ ra ngoài hay vòng về đăng nhập
+    (LoginView vẫn kiểm next thêm một lần)."""
+    tho = request.headers.get("HX-Current-URL", "")
+    if not tho:
+        return ""
+    try:
+        phan = urlsplit(tho)
+    except ValueError:          # chuỗi hỏng kiểu 'http://[/' (IPv6 dở): bỏ next, không được thành 500
+        return ""
+    if phan.scheme not in ("", "http", "https") or (phan.netloc and phan.netloc != request.get_host()):
+        return ""
+    if not phan.path.startswith("/") or phan.path.startswith("//"):
+        return ""
+    trang = phan.path + (f"?{phan.query}" if phan.query else "")
+    # Đường kiểu '/\host' lọt qua kiểm tra trên (trình duyệt coi '\' như '/'); next vòng về trang đăng nhập thì bỏ
+    if trang.startswith(resolve_url(settings.LOGIN_URL)) or not url_has_allowed_host_and_scheme(
+            trang, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        return ""
+    return trang
+
+
+def _htmx_ve_dang_nhap(request):
+    """HTMX gặp trang đăng nhập (phiên đã mất ở tab khác, bị khoá): bảo trình duyệt chuyển trang bằng `HX-Redirect`,
+    next là trang đang xem chứ không phải đường HTMX; thân rỗng nên htmx không có gì để dán vào khung (TL-18, P0-14).
+    Khung KN CRM không chuyển trang mà báo ngay chỗ đích (`het-phien.js`, ADR-053); ERP chuyển cả trang như cũ."""
+    trang = _trang_dang_xem(request)
+    dich = settings.LOGIN_URL + (f"?{urlencode({'next': trang})}" if trang else "")
+    return HttpResponse(status=200, headers={"HX-Redirect": dich})
+
+
+def _dich_chuyen_phien(response):
+    """302 về trang đăng nhập hay đổi mật khẩu thì trả đường đó, không thì None."""
+    if response.status_code != 302:
+        return None
+    duong = urlsplit(response.get("Location", "")).path
+    return duong if duong in (resolve_url(settings.LOGIN_URL), reverse("doi_mat_khau")) else None
+
+
 class SessionTimeoutMiddleware:
     """Phiên hết hạn hoặc mất hiệu lực.
 
-    Hai việc:
+    Ba việc:
 
     1. Hết phiên sau một khoảng không thao tác.
     2. Nguyên tắc P4 — đổi quyền hoặc khoá tài khoản thì phiên đang mở mất
        hiệu lực **ngay**, không đợi lần đăng nhập sau. Hồ sơ nhân sự giữ một
        số mốc `session_epoch`, tăng lên mỗi lần đổi quyền. Phiên nào mang
        mốc cũ thì bị đẩy ra.
+    3. HTMX bị chuyển về đăng nhập hay đổi mật khẩu (302 của `login_required`,
+       `ForcePasswordChangeMiddleware`) nhận `HX-Redirect`, thân rỗng — không để
+       htmx đi theo 302 rồi dán cả trang đó vào khung (TL-18, ADR-053).
     """
 
     #: Chỉ ghi lại dấu thời gian khi đã trôi quá ngần này giây. Ghi ở mọi yêu
@@ -73,7 +149,14 @@ class SessionTimeoutMiddleware:
 
             if last is None or now - last >= self.GHI_LAI_SAU:
                 request.session["last_seen_at"] = now
-        return self.get_response(request)
+        response = self.get_response(request)
+        # Chưa đăng nhập (đăng xuất ở tab khác, bị khoá) hay bị buộc đổi mật khẩu: HTMX nhận HX-Redirect, không 302 (TL-18)
+        dich = _dich_chuyen_phien(response) if is_htmx(request) else None
+        if dich == resolve_url(settings.LOGIN_URL):
+            return _htmx_ve_dang_nhap(request)
+        if dich:
+            return HttpResponse(status=200, headers={"HX-Redirect": dich})
+        return response
 
 
 class ForcePasswordChangeMiddleware:

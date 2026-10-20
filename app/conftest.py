@@ -1,7 +1,7 @@
 """Dữ liệu mẫu dùng chung cho mọi bài kiểm thử.
 
-Dựng đủ chín vai trò của ma trận phân quyền: ba bộ phận nhân ba cấp bậc,
-cộng một quản trị viên.
+Dựng các vai của ma trận phân quyền: ba bộ phận nghiệp vụ nhân các cấp bậc (Marketing chưa có Leader),
+cộng các vai mang luật riêng — Kế toán, CSKH, Leader và Manager Vận đơn, CEO — và quản trị viên.
 """
 import gc
 import os
@@ -14,6 +14,19 @@ from django.contrib.auth import get_user_model
 
 from core.constants import Rank
 from tests.live_server_requests import LIVE_SERVER_REQUESTS
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Giữ traceback ngay lúc lỗi trên CI, kể cả job bị huỷ trước tổng kết."""
+    outcome = yield
+    report = outcome.get_result()
+    if os.environ.get("KN_CI_DIAGNOSTICS") == "1" and report.failed:
+        terminal = item.config.pluginmanager.getplugin("terminalreporter")
+        if terminal is not None:
+            terminal.write_sep("=", f"CI failure: {report.nodeid} [{report.when}]")
+            terminal.write_line(report.longreprtext)
+            terminal.flush()
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -83,6 +96,9 @@ def departments(db):
         # Kế toán – Kiểm soát nội bộ (org/0004, ADR-038): xem và sửa mọi báo cáo
         # Migration org/0004 đã tạo sẵn Kế toán trong DB kiểm thử → lấy lại, không tạo trùng
         "kt": Department.objects.get_or_create(code="ke-toan", defaults={"name": "Kế toán"})[0],
+        # CSKH chỉ thấy dòng vận đơn được giao chăm sóc (ADR-033). get_or_create như Kế toán: bài nào dựng
+        # sẵn bộ phận này trước fixture cũng không vỡ vì mã và tên đều unique
+        "cskh": Department.objects.get_or_create(code="cskh", defaults={"name": "CSKH"})[0],
     }
 
 
@@ -124,7 +140,12 @@ def teams(db, departments, make_user):
 
 @pytest.fixture
 def nguoi_dung(db, departments, teams, make_user):
-    """Chín vai trò cộng quản trị viên và một nhân viên Kế toán (ADR-038)."""
+    """Mười lăm tài khoản: ba bộ phận nghiệp vụ, Kế toán (ADR-038), CSKH (ADR-033), Leader và Manager
+    Vận đơn (phân công), CEO không bộ phận (ADR-044), quản trị viên.
+
+    Tên đăng nhập của bốn vai thêm sau (`ceo`, `cskh`, `truong_nhom_vd`, `quan_ly_vd`) cố ý khác các tên mà
+    bài cũ còn tự dựng (`leader_vd`, `manager_vd`, `vd_leader`…) — username unique. Quản trị viên phải là
+    hồ sơ tạo sau cùng: Bảng tin xếp "thành viên mới" theo giờ tạo (AC-13.5)."""
     return {
         "staff_sale_1": make_user("staff_sale_1", Rank.STAFF, departments["sale"], teams["sale1"]),
         "staff_sale_1b": make_user("staff_sale_1b", Rank.STAFF, departments["sale"], teams["sale1"]),
@@ -136,6 +157,10 @@ def nguoi_dung(db, departments, teams, make_user):
         "manager_mkt": make_user("manager_mkt", Rank.MANAGER, departments["mkt"]),
         "staff_vd": make_user("staff_vd", Rank.STAFF, departments["vd"]),
         "staff_kt": make_user("staff_kt", Rank.STAFF, departments["kt"]),
+        "cskh": make_user("cskh", Rank.STAFF, departments["cskh"]),
+        "leader_vd": make_user("truong_nhom_vd", Rank.LEADER, departments["vd"]),
+        "manager_vd": make_user("quan_ly_vd", Rank.MANAGER, departments["vd"]),
+        "ceo": make_user("ceo", Rank.CEO),
         "admin": make_user("quan_tri", Rank.ADMIN),
     }
 

@@ -614,7 +614,10 @@ và tệp cấu hình.
    là được; chip đỏ thì mở Tác vụ nền đọc lý do, chạy lại `scripts/backup.sh`
    và xem mục B7. Người vận hành cũng nhận thư khi sao lưu hỏng (biến
    `OPERATOR_EMAILS`)
-3. Nhìn ô **Tác vụ nền**: có tác vụ "kẹt" nghĩa là worker không chạy — xem B5
+3. Nhìn ô **Tác vụ nền**: có tác vụ "kẹt" nghĩa là worker không chạy hay đã chết
+   giữa chừng — xem B5. Tác vụ bị đánh kẹt khi *Chờ xử lý* quá 15 phút, hoặc *Đang
+   chạy* mà không có tiến độ quá 30 phút (sao lưu 45 phút); kèm một thư và một dòng
+   nhật ký. Tác vụ tính lại bị kẹt thì chạy `kiem_tra_du_lieu --sua`
 4. Nếu hệ thống không mở được, xem mục B5
 5. Bảng tin: hồ sơ có người sinh nhật hôm nay mà sau 06:00 không thấy thiệp
    thì `beat` không chạy — xem B5. Máy để bàn tắt đêm thì `beat` không có lúc
@@ -669,6 +672,9 @@ Docker Desktop và chờ nó sẵn sàng, kéo mã mới, dựng lại container
 bảng vận đơn duy nhất **Vận đơn mới** (ADR-036), nạp dữ liệu mẫu (kể cả đặt lại đúng mật khẩu in ra cho tài khoản mẫu
 có sẵn) rồi mở trình duyệt. Muốn xem một nhánh khác thì truyền tên nhánh:
 `scripts\cap-nhat-local.bat <tên nhánh>`. Dừng ở bước nào thì in rõ bước đó.
+Cập nhật cấu trúc (`migrate`, `tao_bang_van_don`) lỗi thì script dừng hẳn: không
+ghi mốc `storage/.kn-jsc-lan-truoc`, không nạp dữ liệu mẫu, không mở trình duyệt;
+lần chạy sau làm lại đúng bước đó (TL-99, P0-17).
 
 Máy chủ thật thì làm theo thứ tự dưới đây:
 
@@ -704,10 +710,18 @@ Máy chủ thật thì làm theo thứ tự dưới đây:
 | Mã hoá | Bản sao lưu mã hoá trước khi rời khỏi máy chủ | Chưa có trong hệ thống — mã hoá khi chép ra ngoài (Giai đoạn 8) |
 | Thử phục hồi | Mỗi quý một lần | Xem dưới |
 | Tệp tài liệu | `storage/tai-lieu/` **không** nằm trong `pg_dump` | Chép thư mục đó đi cùng bản sao lưu; phục hồi thì chép lại — backlog K30 |
-| Bản sao lưu cũ hơn mã | Bản dựng trước khi có nhóm Nội bộ vẫn phục hồi được | Lần bật kế tiếp `entrypoint.sh` chạy `migrate` tạo bảng còn thiếu; tài liệu, bài, việc, ghi nhận sau mốc sao lưu thì mất theo bản |
+| Bản sao lưu cũ hơn mã | Bản dựng trước khi có nhóm Nội bộ vẫn phục hồi được | Lần bật kế tiếp `entrypoint.sh` chạy `migrate` tạo bảng còn thiếu; tài liệu, bài, việc, ghi nhận sau mốc sao lưu thì mất theo bản. Phục hồi chạy trọn một giao dịch: vướng khoá ngoại hay ràng buộc thì cả lượt bị huỷ, CSDL giữ nguyên, không còn "phục hồi được một phần" (P0-15) |
 
 **Sao lưu ngay bây giờ:** `scripts/backup.sh` (Windows: chạy lệnh trong tệp
 đó bằng PowerShell). Trước mỗi lần cập nhật hệ thống nên chạy một lần.
+
+**Phiên bản công cụ:** image dùng `postgresql-client-16` từ kho PGDG có chữ ký,
+phù hợp với server PostgreSQL 16 trong Compose. Dockerfile kiểm major của cả
+`pg_dump` và `pg_restore` khi build; không dùng client mặc định theo distro.
+Khi nâng major server phải cập nhật và diễn tập lại cặp công cụ này. Client 17
+dump được server 16 nhưng có thể sinh `SET transaction_timeout`, khiến restore
+về 16 thất bại. Build image mới không sửa những dump cũ đã tạo bởi client 17;
+giữ chúng, tạo backup mới và phục hồi thử vào database riêng trước khi phát hành.
 
 **Phục hồi — đè lên dữ liệu hiện tại:**
 
@@ -719,7 +733,10 @@ scripts/restore.sh knjsc-20260903-020000.dump --toi-chac-chan
 
 Script dừng worker, beat và Bảng tính trong lúc phục hồi rồi bật lại. Không
 có cờ `--toi-chac-chan` thì không bao giờ ghi gì. Mỗi lần phục hồi ghi một
-dòng nhật ký.
+dòng nhật ký. Phục hồi là một giao dịch (`pg_restore --single-transaction`):
+tệp cụt hay lỗi giữa chừng thì cả lượt huỷ, CSDL giữ nguyên. Mọi lỗi (tệp hỏng,
+máy thiếu `pg_restore`, chạy quá 30 phút) báo tiếng Việt kèm đúng một dòng
+"Phục hồi THẤT BẠI" (TL-97, P0-15).
 
 **Bản sao lưu chưa từng được phục hồi thử thì chưa được tính là bản sao lưu.**
 Mỗi quý: sao lưu, sửa một ô, phục hồi, kiểm ô đó trở về giá trị cũ.

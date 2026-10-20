@@ -129,7 +129,7 @@ def test_direct_routes_permissions_both_directions(client, setup, departments, m
     data = form_data(setup[2])
     assert client.post(ENTRY, data).status_code == 200
     expected = 200 if rank == Rank.ADMIN else 403
-    assert client.get(detail).status_code == expected
+    assert client.get(detail).status_code == (200 if rank == Rank.MANAGER else expected)
     assert get_stats(client).status_code == 200  # Sale vừa tạo đơn được xem/thống kê đơn của mình.
     post = {**form_data(setup[2]), "paid_amount": ["1.00", "0.00"], "version": row.updated_at.isoformat()}
     assert client.post(detail, post).status_code == expected

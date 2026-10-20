@@ -11,6 +11,17 @@ from core.money import format_money
 pytestmark = pytest.mark.django_db
 
 
+def test_audit_theo_lo_giu_danh_tinh_va_loc_chi_tiet(nguoi_dung):
+    """AC-9.2 — Audit hàng loạt có đủ từng dòng và cùng cơ chế lọc bí mật."""
+    actor = nguoi_dung['admin']
+    result = audit.record_many(AuditAction.DELETE, [('DataRecord', 1), ('DataRecord', 2)],
+        actor=actor, detail=lambda target: 'token=secret-test' if target[1] == 1 else 'Bỏ dòng thử')
+    assert len(result) == 2
+    assert all(row.actor_id == actor.pk and row.actor_label for row in result)
+    assert 'secret-test' not in result[0].detail
+    assert result[1].detail == 'Bỏ dòng thử'
+
+
 def test_ghi_duoc_mot_dong_nhat_ky(nguoi_dung):
     """AC-9.2 — Ghi được hành động vào nhật ký"""
     ban_ghi = audit.record(

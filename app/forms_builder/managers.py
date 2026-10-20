@@ -58,6 +58,9 @@ class TableDefQuerySet(ScopedQuerySet):
         dieu_kien = (Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
                      # Kế toán: bảng vận đơn (ADR-025) và bảng có nguồn báo cáo (ADR-038)
                      | ((waybill_condition("") | Q(erp_report__isnull=False)) & Q(Exists(accounting))))
+        from orders.permissions import can_view_company_orders
+        if can_view_company_orders(user):
+            dieu_kien |= waybill_condition("")
         qua_dong = _bang_van_don_qua_dong(user)
         if qua_dong is not None:
             dieu_kien |= qua_dong
@@ -103,7 +106,7 @@ class TableDefManager(models.Manager.from_queryset(TableDefQuerySet)):
 
 def record_count_scope(user):
     from .models import DataRecord
-    return ~waybill_condition("") | Q(records__pk__in=DataRecord.objects.in_scope(user).values('pk'))
+    return Q(records__pk__in=DataRecord.objects.in_scope(user).values('pk'))
 
 
 class AllTableDefManager(models.Manager.from_queryset(TableDefQuerySet)):
@@ -151,6 +154,20 @@ class FormDefQuerySet(ScopedQuerySet):
         return self.filter(
             Q(pk__in=trong_bo_phan.values("pk")) | Q(pk__in=duoc_cap)
         )
+
+    def any_in_scope(self, user):
+        """Có ít nhất một biểu mẫu trong phạm vi không — cùng phạm vi với `in_scope`, nhưng hỏi phần bộ phận trước
+        (một truy vấn) và chỉ đọc quyền cấp khi phần đó rỗng. Mục menu "Nộp báo cáo ngày" hỏi câu này ở mọi trang ERP
+        nên không được kéo theo truy vấn quyền cấp cho Sale, Marketing, Vận đơn (P0-2)."""
+        from .models import GrantAction
+        from .services import grant_service
+
+        if apply_department_scope(self, user, field="department_id").exists():
+            return True
+        if get_user_scope(user).all_departments:
+            return False
+        duoc_cap = grant_service.granted_form_ids(user, GrantAction.FILL)
+        return bool(duoc_cap) and self.filter(pk__in=duoc_cap).exists()
 
 
 class FormDefManager(models.Manager.from_queryset(FormDefQuerySet)):

@@ -50,15 +50,16 @@ def test_nhat_ky_chi_admin_thay(client, he_thong):
 
 def test_khong_co_bang_van_don_thi_khong_co_lien_ket_bang_tinh(client, he_thong):
     """AC-40.6 — Người không có bảng vận đơn nào trong phạm vi (Marketing) không thấy "Bảng tính" ở thanh bên và trang chủ KN CRM; người có bảng vận đơn vẫn thấy và mở được; trang Nhập tệp, Cấp quyền không còn nút "+ Tạo bảng" (ADR-040)"""
-    client.force_login(he_thong["manager_mkt"])
+    client.force_login(he_thong["staff_mkt"])
     html = client.get("/").content.decode()
     assert 'href="/thu-muc/"' not in html and "Mở Bảng tính" not in html
     assert client.get("/thu-muc/").status_code == 404        # quyền không đổi
 
-    client.force_login(he_thong["staff_vd"])
-    html = client.get("/").content.decode()
-    assert 'href="/thu-muc/"' in _sidebar(html) and "Mở Bảng tính" in html
-    assert client.get("/thu-muc/").status_code == 200
+    for role in ("staff_vd", "manager_mkt", "manager_sale"):
+        client.force_login(he_thong[role])
+        html = client.get("/").content.decode()
+        assert 'href="/thu-muc/"' in _sidebar(html) and "Mở Bảng tính" in html
+        assert client.get("/thu-muc/").status_code == 200
 
     for ai, trang in (("manager_vd", "/nhap-tep/"), ("manager_vd", "/cap-quyen/"),
                       ("leader_mkt", "/nhap-tep/"), ("admin", "/cap-quyen/")):

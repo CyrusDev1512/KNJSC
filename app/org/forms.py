@@ -63,13 +63,7 @@ class TaoTaiKhoanForm(forms.Form):
 
     def clean(self):
         du_lieu = super().clean()
-        team, bo_phan = du_lieu.get("team"), du_lieu.get("department")
-        if team and bo_phan and team.department_id != bo_phan.id:
-            raise forms.ValidationError(
-                f"Team {team} thuộc bộ phận {team.department}, không thuộc {bo_phan}."
-            )
-        if du_lieu.get("rank") not in (Rank.ADMIN, Rank.CEO) and not bo_phan:
-            raise forms.ValidationError("Phải chọn bộ phận, trừ khi cấp bậc là Giám đốc hoặc Quản trị viên.")
+        _kiem_bo_phan_va_team(du_lieu)
         if "staff_code" in du_lieu and "username" in du_lieu and du_lieu.get("full_name"):
             if not du_lieu["staff_code"]:
                 du_lieu["staff_code"] = staff_code_service.suggest(
@@ -126,11 +120,7 @@ class SuaHoSoForm(forms.ModelForm):
 
     def clean(self):
         du_lieu = super().clean()
-        team, bo_phan = du_lieu.get("team"), du_lieu.get("department")
-        if team and bo_phan and team.department_id != bo_phan.id:
-            raise forms.ValidationError(
-                f"Team {team} thuộc bộ phận {team.department}, không thuộc {bo_phan}."
-            )
+        _kiem_bo_phan_va_team(du_lieu)       # bộ phận bắt buộc như lúc tạo tài khoản (TL-96)
         return du_lieu
 
 
@@ -139,6 +129,18 @@ class BoPhanForm(forms.ModelForm):
         model = Department
         fields = ("name", "code", "is_active")
         labels = {"name": "Tên bộ phận", "code": "Mã", "is_active": "Đang hoạt động"}
+
+
+def _kiem_bo_phan_va_team(du_lieu):
+    """Một luật cho Tạo tài khoản và Sửa hồ sơ: team phải thuộc bộ phận đã chọn; mọi cấp bậc trừ Giám đốc và Quản
+    trị viên phải có bộ phận (ADR-044) — Manager không bộ phận thì không suy ra được phạm vi (TL-96)."""
+    team, bo_phan = du_lieu.get("team"), du_lieu.get("department")
+    if team and bo_phan and team.department_id != bo_phan.id:
+        raise forms.ValidationError(
+            f"Team {team} thuộc bộ phận {team.department}, không thuộc {bo_phan}."
+        )
+    if du_lieu.get("rank") not in (Rank.ADMIN, Rank.CEO) and not bo_phan:
+        raise forms.ValidationError("Phải chọn bộ phận, trừ khi cấp bậc là Giám đốc hoặc Quản trị viên.")
 
 
 class TeamForm(forms.ModelForm):
@@ -159,3 +161,12 @@ class TeamForm(forms.ModelForm):
             profile__rank=Rank.LEADER, profile__deleted_at__isnull=True, is_active=True,
         ).select_related("profile")
         self.fields["leader"].empty_label = "Chưa có trưởng nhóm"
+
+    def clean(self):
+        du_lieu = super().clean()
+        truong, bo_phan = du_lieu.get("leader"), du_lieu.get("department")
+        ho_so = getattr(truong, "profile", None)
+        if truong and bo_phan and ho_so is not None and ho_so.department_id != bo_phan.id:
+            # Gắn vào ô Trưởng nhóm: trang Bộ phận chỉ in lỗi theo ô (TL-95)
+            self.add_error("leader", f"Trưởng nhóm {ho_so} thuộc bộ phận {ho_so.department or '—'}, không thuộc {bo_phan}.")
+        return du_lieu

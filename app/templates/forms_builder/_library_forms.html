@@ -57,7 +57,7 @@
             <td class="phai">
               <div class="hang" style="gap:var(--sp-2);justify-content:flex-end">
                 {% if duoc_dien %}<a class="nut nut-nho nut-chinh" href="{% url 'bieu_mau_dien' bm.code %}">Điền</a>{% endif %}
-                {% if duoc_sua %}
+                {% if bm.duoc_sua %}
                   <a class="nut nut-nho" href="{% url 'bieu_mau_sua' bm.code %}">Sửa</a>
                 {% endif %}
               </div>

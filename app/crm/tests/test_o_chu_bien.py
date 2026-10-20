@@ -57,7 +57,11 @@ def test_tao_thu_muc_ma_bo_phan_la_404_khong_500(client, nguoi_dung):
 
 @pytest.mark.parametrize("tham_so", ["f_ngay__lon_bang=2026-13-45", "f_ngay__nho_bang=NaN", "f_ngay__lon_bang=١٢٣"])
 def test_luoi_loc_ngay_sai_kieu_khong_500(client, feedback, nguoi_dung, tham_so):  # noqa: F811
-    """AC-10.16 — Lưới Vận đơn mở với bộ lọc ngày sai kiểu trên URL (khung trang và khối dữ liệu): 200, bộ lọc bị bỏ qua"""
+    """AC-10.16 — Bộ lọc ngày sai trả 400 rõ ràng ở HTML/JSON, không 500 hoặc bỏ lọc lặng lẽ (TL-04)."""
     client.force_login(nguoi_dung["admin"])
-    assert client.get(f"/bang-tinh/van_don/?{tham_so}").status_code == 200
-    assert client.get(f"/bang-tinh/van_don/du-lieu/?offset=0&limit=100&{tham_so}").status_code == 200
+    shell = client.get(f"/bang-tinh/van_don/?{tham_so}")
+    assert shell.status_code == 400
+    assert 'Bộ lọc cột' in shell.content.decode()
+    data = client.get(f"/bang-tinh/van_don/du-lieu/?offset=0&limit=100&{tham_so}")
+    assert data.status_code == 400
+    assert 'Bộ lọc cột' in data.json()['error']

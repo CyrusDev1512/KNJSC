@@ -12,7 +12,7 @@ from django.conf import settings
 from django.urls import NoReverseMatch, reverse
 
 from .constants import Rank
-from .permissions import has_rank, in_departments, is_admin, is_company_reader
+from .permissions import has_rank, in_departments, is_admin
 
 #: Lên đơn là chức năng của bộ phận Sale — `docs/04` mục 3 ghi rõ Vận đơn
 #: bị từ chối ở màn hình này.
@@ -98,8 +98,13 @@ NAVIGATION = (
 )
 
 
-def visible_navigation(user):
-    """Các nhóm và mục người này được vào. Nhóm rỗng thì bỏ luôn."""
+def visible_navigation(user, *, can_submit_reports=None):
+    """Các nhóm và mục người này được vào. Nhóm rỗng thì bỏ luôn.
+
+    `can_submit_reports`: khung trang đã tính sẵn thì truyền vào để mỗi trang chỉ hỏi một lần; bỏ trống thì tự tính."""
+    if can_submit_reports is None:
+        from reports.services.daily_service import can_submit_reports as _co_bieu_mau
+        can_submit_reports = _co_bieu_mau(user)
     ket_qua = []
     for group in NAVIGATION:
         items = [
@@ -108,7 +113,7 @@ def visible_navigation(user):
             for m in group.items
             if has_rank(user, m.min_rank) and in_departments(user, m.departments)
             and (m.min_rank != Rank.ADMIN or is_admin(user))
-            and (m.code != 'bao_cao_ngay' or not is_company_reader(user))
+            and (m.code != 'bao_cao_ngay' or can_submit_reports)
             and not (m.exclude_departments and in_departments(user, m.exclude_departments))
             and (href := m.href())
         ]

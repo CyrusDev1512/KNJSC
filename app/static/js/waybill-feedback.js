@@ -3,10 +3,17 @@
 (() => {
   'use strict';
   async function responseJSON(response) {
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || 'Không thực hiện được. Kiểm tra quyền và thử tải lại.');
+    const S = window.KNJSC_SESSION, isJson = (response.headers.get('Content-Type') || '').includes('application/json');
+    const data = isJson ? await response.json().catch(() => null) : null;
+    // Hết phiên, phải đổi mật khẩu, mã bảo mật lệch, đổi người: chưa lưu gì, không đóng ô chọn như đã lưu (TL-18, ADR-053)
+    const session = S?.sessionError(response, data);
+    if (session) throw session;
+    if (response.redirected) throw Object.assign(new Error('Phiên đăng nhập đã hết — thay đổi chưa được lưu.'), {session: true, code: 'het_phien'});
+    if (!response.ok) throw new Error(data?.error || 'Không thực hiện được. Kiểm tra quyền và thử tải lại.');
+    if (!data) throw new Error('Phản hồi của máy chủ không hợp lệ — chưa lưu. Thử lại.');
     return data;
   }
+  const help = error => { if (error.session && window.KNJSC_SESSION) note.append(' ', window.KNJSC_SESSION.help(error)); };
   // Phân công ngay trong ô (AC-21.15): bấm đúp/Enter/F2 ô "Phụ trách …" mở ô chọn đè đúng ô, như
   // "Trạng thái vận chuyển". Chọn bằng chuột là lưu; dùng phím mũi tên thì Enter mới lưu. Vẫn qua
   // endpoint phân công (quyền + CAS theo phiên bản), không ghi vào JSON của ô.
@@ -39,6 +46,7 @@
       window.dispatchEvent(new CustomEvent('master-refresh'));
     } catch (error) {
       note.textContent = `Chưa lưu: ${error.message}`;
+      help(error);
     } finally { saving = false; picker.disabled = false; }
   }
   window.addEventListener('master-assignment-cell', async event => {
@@ -55,7 +63,7 @@
       picker.replaceChildren(new Option('— Chưa gán —', ''), ...choices.map(c => new Option(c.label, String(c.id))));
       picker.value = target.current; picker.disabled = false; cellBox.dataset.ready = '1';
       requestAnimationFrame(() => picker.focus());
-    } catch (error) { if (mine === serial) note.textContent = error.message; }
+    } catch (error) { if (mine === serial) { note.textContent = error.message; help(error); } }
   });
   picker.addEventListener('keydown', event => {
     if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(); }

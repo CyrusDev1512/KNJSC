@@ -29,7 +29,7 @@
         <div class="phu">
           {% if o.phu.chieu %}<span class="{{ o.phu.chieu }}">{{ o.phu.text }}</span>
           {% else %}{{ o.phu.text }}{% endif %}
-          so với kỳ trước
+          {% if not o.phu.khong_so %}so với kỳ trước{% endif %}
         </div>
       {% endif %}
     </div>
@@ -111,6 +111,7 @@
         <thead>
           <tr>
             <th>{{ kq.group_label }}</th>
+            {% if cot_tien %}<th>Loại tiền</th>{% endif %}
             {% for c in kq.columns %}<th class="phai">{{ c.label }}</th>{% endfor %}
           </tr>
         </thead>
@@ -119,25 +120,36 @@
             <tr>
               {% if kq.group_is_date %}<td class="ma-o">{{ d.nhom }}</td>
               {% else %}<td>{{ d.nhom }}</td>{% endif %}
+              {% if cot_tien %}<td>{{ d.tien }}</td>{% endif %}
               {% for o in d.cells %}<td class="tien">{{ o }}</td>{% endfor %}
             </tr>
           {% empty %}
-            <tr><td colspan="{{ kq.columns|length|add:1 }}">
+            <tr><td colspan="{% if cot_tien %}{{ kq.columns|length|add:2 }}{% else %}{{ kq.columns|length|add:1 }}{% endif %}">
               {% include "components/rong.html" with rong_tieu_de="Không có dòng nào trong khoảng lọc" rong_mo_ta="Nới khoảng ngày hoặc bỏ bớt bộ lọc rồi thử lại." %}
             </td></tr>
           {% endfor %}
         </tbody>
         {% if cac_dong %}
         <tfoot>
+          {# Nguồn tách loại tiền: mỗi loại tiền một dòng TỔNG CỘNG, không cộng hai loại tiền (ADR-046) #}
+          {% for t in cac_dong_tong %}
           <tr>
-            <td>Tổng cộng · {{ page_obj.paginator.count }} {{ kq.unit }}</td>
-            {% for o in dong_tong %}<td class="tien">{{ o }}</td>{% endfor %}
+            <td>{{ t.label }}</td>
+            {% if cot_tien %}<td>{{ t.currency }}</td>{% endif %}
+            {% for o in t.cells %}<td class="tien">{{ o }}</td>{% endfor %}
           </tr>
+          {% endfor %}
         </tfoot>
         {% endif %}
       </table>
     </div>
 
+    {% if ghi_chu_tien.label %}
+    <p class="nho" style="margin:var(--sp-2) var(--sp-4)">{{ ghi_chu_tien.label }}</p>
+    {% endif %}
+    {% if ghi_chu_tien.warning %}
+    <p class="nho" role="note" style="margin:var(--sp-2) var(--sp-4)">{{ ghi_chu_tien.warning }}</p>
+    {% endif %}
     <p class="nho mo-nhat" style="margin:var(--sp-2) var(--sp-4)">
       Mọi lần xuất Excel đều ghi vào nhật ký — nguyên tắc P5.
     </p>

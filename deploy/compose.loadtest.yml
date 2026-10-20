@@ -1,0 +1,45 @@
+# Môi trường kiểm tải riêng. Không dùng volume, cổng hay database của local nghiệp vụ.
+name: knjsc-loadtest
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: knjsc_loadtest
+      POSTGRES_USER: loadtest
+      POSTGRES_PASSWORD: local-loadtest-only
+    volumes: [loadtest_db:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U loadtest -d knjsc_loadtest]
+      interval: 2s
+      retries: 30
+  redis:
+    image: redis:7-alpine
+  crm:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args: {INSTALL_DEV: "1"}
+    command: gunicorn tests.perf.local_load_wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 4 --timeout 120
+    environment:
+      RUN_MIGRATIONS: "0"
+      DJANGO_SETTINGS_MODULE: knjsc.settings.dev
+      DJANGO_SECRET_KEY: local-loadtest-only-not-production
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,crm,testserver
+      POSTGRES_HOST: db
+      POSTGRES_DB: knjsc_loadtest
+      POSTGRES_USER: loadtest
+      POSTGRES_PASSWORD: local-loadtest-only
+      REDIS_URL: redis://redis:6379/0
+      KNJSC_PERF_ISOLATED: "1"
+      STORAGE_DIR: /storage
+    volumes:
+      - ../app:/app:ro
+      - loadtest_storage:/storage
+      - ../storage/perf:/results
+    ports: ["127.0.0.1:18061:8000"]
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_started}
+volumes:
+  loadtest_db:
+  loadtest_storage:

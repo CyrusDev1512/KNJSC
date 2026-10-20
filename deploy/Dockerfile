@@ -1,16 +1,26 @@
 # syntax=docker/dockerfile:1
-FROM python:3.12-slim
+FROM python:3.12-slim-trixie
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1
 
-# Múi giờ, thư viện cho psycopg, và postgresql-client để có pg_dump/pg_restore
-# cho sao lưu (docs/03 mục 8). Bản client của Debian trixie là 17, đọc và ghi
-# được cơ sở dữ liệu PostgreSQL 16.
+# Giữ client cùng major với server PostgreSQL 16 trong Compose.
+# Client 17 có thể dump server 16 nhưng dump chứa SET transaction_timeout,
+# khiến phục hồi lại server 16 thất bại. Dùng kho PGDG có chữ ký, không lấy
+# gói postgresql-client mặc định thay đổi theo phiên bản Debian.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends tzdata libpq5 postgresql-client \
+    && apt-get install -y --no-install-recommends ca-certificates tzdata libpq5 \
+    && python -c "import urllib.request; urllib.request.urlretrieve('https://www.postgresql.org/media/keys/ACCC4CF8.asc', '/usr/share/keyrings/postgresql.asc')" \
+    && echo 'deb [signed-by=/usr/share/keyrings/postgresql.asc] https://apt.postgresql.org/pub/repos/apt trixie-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends postgresql-client-16 \
     && rm -rf /var/lib/apt/lists/*
+
+# Gọi đúng binary ngay cả khi image về sau có thêm client major khác.
+ENV PATH="/usr/lib/postgresql/16/bin:${PATH}"
+RUN pg_dump --version | grep -E '^pg_dump \(PostgreSQL\) 16\.' \
+    && pg_restore --version | grep -E '^pg_restore \(PostgreSQL\) 16\.'
 
 WORKDIR /app
 

@@ -20,11 +20,11 @@ from django.utils import timezone
 from core.audit import record
 from core.constants import CELL_TEXT_MAX_CHARS, AuditAction
 from core.exceptions import BusinessError
-from core.money import check_amount, parse_money
+from core.money import check_amount, parse_money, parse_stored_number
 
 from .. import choice_registry, record_policies
 from ..meaning import FieldType
-from ..models import DataRecord
+from ..models import NUMERIC_TYPES, DataRecord
 
 #: Giá trị người dùng gõ vào được hiểu là "đúng"
 #: Ngày số của Excel: ngày 0 là 30/12/1899; trần 2.958.466 là 31/12/9999 — số lớn hơn không phải ngày
@@ -136,6 +136,19 @@ def parse_value(column, raw, *, choices=None):
             f'của cột "{column.name}".'
         )
     return str(raw)
+
+
+def stored_number(column, raw):
+    """Giá trị máy gửi lại cho một ô (cờ `machine` trên lưới — hoàn tác, làm lại): cột số đọc chuỗi bằng
+    `parse_stored_number` (dấu chấm là thập phân, TL-03) rồi đưa `Decimal` qua `parse_value` như số thật; cột khác
+    giữ nguyên. Sai dạng thì `BusinessError` cùng mẫu lời của `parse_value`."""
+    if column.field_type not in NUMERIC_TYPES or not isinstance(raw, str) or not raw.strip():
+        return raw
+    try:
+        return parse_stored_number(raw)
+    except InvalidOperation:
+        raise BusinessError(
+            f'Giá trị "{raw}" không đúng kiểu {FieldType(column.field_type).label} của cột "{column.name}".')
 
 
 def _thieu_bat_buoc(columns, values):
@@ -523,6 +536,37 @@ def delete_record(ban_ghi, *, actor=None, request=None):
     if policy and hasattr(policy, "after_delete"):
         policy.after_delete(ban_ghi, actor=actor, request=request)
     return ban_ghi
+
+
+def set_deleted_locked(rows, *, deleted, actor, request=None):
+    """Nội bộ lưới: caller đã khoá vòng đời, khoá dòng, kiểm scope/CAS/quyền xoá cả tập.
+
+    Không áp đường nhanh cho policy chưa có hook theo lô. Không sửa JSON/cột tách;
+    ràng buộc mã đơn vẫn chặn toàn lượt khôi phục và giao dịch ngoài giữ nguyên tử.
+    """
+    from core.audit import record_many
+    from django.db import connection
+    from django.utils import timezone
+    if not connection.in_atomic_block:
+        raise RuntimeError('Đổi trạng thái dòng phải nằm trong giao dịch đã khoá.')
+    if not rows:
+        return
+    table = rows[0].table
+    policy = record_policies.for_table(table)
+    if policy and not hasattr(policy, 'after_bulk_deleted'):
+        for row in rows:
+            (delete_record if deleted else restore_record)(row, actor=actor, request=request)
+        return
+    now = timezone.now()
+    for row in rows:
+        row.deleted_at = now if deleted else None
+        row.deleted_by = actor if deleted else None
+    save_rows(rows, fields=['deleted_at', 'deleted_by'])
+    record_many(AuditAction.DELETE if deleted else AuditAction.UPDATE, rows, actor=actor,
+        detail=(lambda row:f'Xoá dòng khỏi bảng {table.code}') if deleted else
+               (lambda row:f'Khôi phục dòng đã xoá của bảng {table.code}'), request=request)
+    if policy:
+        policy.after_bulk_deleted(rows, deleted=deleted, actor=actor, request=request)
 
 
 def _hien(gia_tri):

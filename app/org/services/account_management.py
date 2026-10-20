@@ -9,7 +9,7 @@ from django.http import Http404
 from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
 
-from core.audit import record
+from core.audit import record, record_denied
 from core.constants import AuditAction, Rank
 from core.exceptions import BusinessError, OutOfScopeError
 from core.scope import get_user_scope
@@ -42,8 +42,13 @@ class AccountPolicy:
         return (rank == Rank.LEADER and target_rank == Rank.STAFF
                 and profile.team_id in self.scope.team_ids)
 
-    def require(self, profile):
+    def require(self, profile, request=None):
+        """View gọi kèm `request` thì lần từ chối có dòng Từ chối (FR-3.5). Bước kiểm lại trong `locked_target`
+        (`reset_account_password`, `delete_account`) gọi không kèm request: dòng ghi trong giao dịch đó sẽ bị huỷ khi
+        raise, nên view ghi sau khi giao dịch đóng (`org.views._ghi_tu_choi_sau_khoa`)."""
         if not self.can_manage(profile):
+            if request is not None:
+                record_denied(self.actor, request.path, request)
             raise OutOfScopeError("Bạn không có quyền quản lý tài khoản này.")
 
 
@@ -83,15 +88,24 @@ def reset_account_password(profile_id, password, *, actor, request=None):
         return reset_password(profile, password, actor=current_actor, request=request)
 
 
+def require_other_active_admin(profile, message):
+    """Chặn thao tác làm hệ thống mất Admin hoạt động cuối cùng (xoá, hạ cấp, khoá — ADR-044, TL-94). Admin là cấp bậc
+    ADMIN hoặc superuser, chưa xoá, đang hoạt động. Chỉ an toàn khi chạy đồng thời nếu gọi trong `locked_target`
+    (khoá mọi Admin theo thứ tự id)."""
+    if not profile.user.is_active:
+        return
+    con_lai = get_user_model().objects.filter(
+        profile__deleted_at__isnull=True, is_active=True,
+    ).filter(Q(profile__rank=Rank.ADMIN) | Q(is_superuser=True)).exclude(pk=profile.user_id)
+    if not con_lai.exists():
+        raise BusinessError(message, code="admin_cuoi")
+
+
 def delete_account(profile_id, *, actor, request=None):
     with locked_target(actor, profile_id) as (current_actor, profile):
         AccountPolicy(current_actor).require(profile)
         if profile.rank == Rank.ADMIN or profile.user.is_superuser:
-            admins = get_user_model().objects.filter(
-                profile__deleted_at__isnull=True, is_active=True,
-            ).filter(Q(profile__rank=Rank.ADMIN) | Q(is_superuser=True))
-            if profile.user.is_active and admins.count() <= 1:
-                raise BusinessError("Không được xóa Admin hoạt động cuối cùng.")
+            require_other_active_admin(profile, "Không được xóa Admin hoạt động cuối cùng.")
         profile.deleted_at = timezone.now()
         profile.deleted_by = current_actor
         profile.invalidate_sessions()

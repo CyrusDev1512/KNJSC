@@ -1,5 +1,156 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 20.10.2026 — Hoàn tất PR #138 và dọn #136
+
+**Finished:** fixture hiệu năng 50.000 dòng đã chạy `ANALYZE` giống đường đo
+thật. CI run `39368415465` đạt bộ chính và E2E Chromium; PR #138 đã gộp vào
+`Staging` tại `a48b26a`. Rà 27 mã cũ ở #136 được giữ làm lịch sử, phần sửa đã
+vào qua #137; #136 đã đóng và hai nhánh PR đã xóa.
+
+**To do:** chủ dự án kiểm tay local trước `Staging` → `main`; chưa phát hành VPS.
+
+## 19.10.2026 — Nhánh C chuẩn bị đồng bộ main
+
+**Đã gộp Staging:** PR #137 tại `ed7795b`. **Đang làm:** kiểm chứng nhánh C.
+**Chờ:** chủ dự án kiểm tay local; chưa đưa lên main/VPS.
+Xem [biên bản nhánh C](kiem-chung-c-staging-main-20261019.md); mục cũ bên dưới giữ lịch sử.
+
+## 19.10.2026 — PR #136, lỗi tồn đọng và Manager đọc đơn/vận đơn toàn công ty
+
+**Đã sửa và kiểm bằng máy trên local; bàn giao qua PR nháp về Staging theo yêu cầu 19.10.2026. Chờ kiểm tay và duyệt gộp; chưa phát hành.** Nhánh kết hợp `codex/tl136-kiem-thu-tong-hop`.
+Đã xử lý theo nhóm nguyên nhân, giữ phần đã sửa: khối/poll; kiểu lọc/sắp/ngày; nháp/lỗi lưu;
+số đếm theo quyền; xoá/tính lại theo lô; công cụ kiểm tải và tài liệu. Manager chỉ mở phạm vi **đọc đơn/vận đơn**,
+không mở quyền sửa, báo cáo hay Quản trị. Leader giữ nguyên.
+
+Chi tiết TL, trước/sau, bằng chứng RED/đạt, giới hạn và kiểm tay:
+[Biên bản 19.10](kiem-chung-pr136-ton-dong-20261019.md).
+Mục này thay trạng thái các mã thuộc phạm vi đó trong ghi chép lịch sử bên dưới **cho bản local này**;
+không coi chúng đã có trên Staging/main/VPS. TL-71/83 và phần Leader117 không thuộc đợt này.
+
+
+## 15.10.2026 — Sửa nốt TL-101 → TL-111; biên bản kiểm thử tổng hợp
+
+**Finished (nhánh `claude/sua-tl105-111`, #133, đã gộp `Staging` 15.10):**
+- TL-109, TL-110 (S2): Thống kê giữ nguồn và bộ lọc lưới
+- TL-106, TL-105, TL-107, TL-101, TL-108, TL-103, TL-104, TL-102 (S3)
+- TL-111 (S4)
+- Biên bản `docs/bien-ban-kiem-thu-tong-hop-20261015.md` (gộp test log và các đợt trước)
+
+**To do (chủ dự án):** chặng 2 theo biên bản mục 9 (#132, #133, #134 đã gộp `Staging` 15.10).
+
+**To do (máy):** TL-112 (`locustfile_kn_crm.py` chỉ đụng `PERF-*`); rà lại 27 mã cũ trên lưới mới, bắt đầu TL-22.
+
+**Far Plan:** TL-83 `kiem_tra_du_lieu` đọc theo lô (TL-80/81/82/84/85 đã đóng ở lượt phát hành 09.10); P1, P2 của `docs/08`.
+
+## 14.10.2026 — Gộp 16 PR đợt P0 vào `Staging`
+
+**Finished:**
+- kiểm cây gộp thử 16 PR: pytest 3.852 đạt, 0 đỏ; e2e đạt (9 bài font có sẵn của máy ảo); hệ thống thật 8 vai;
+- gộp đủ 16 PR theo thứ tự; `Staging` `03e5d99` có đúng cây đã kiểm;
+- CLAUDE.md: nhánh nền khớp AGENTS.md và GitHub (PR nháp riêng).
+
+**To do:**
+- chủ dự án xoá 17 nhánh đã gộp (một lệnh), quyết nhánh `claude/phat-hanh-vps-e979323`;
+- chặng 2 trên `Staging`; sau đó `main` và VPS.
+
+## 14.10.2026 — Đợt kiểm thử P0: bài đỏ trước, sửa sau (TL-90 → TL-99, TL-101 → TL-104)
+
+**Finished (nhánh việc + PR nháp về `Staging`, chưa gộp):**
+- Chuẩn bị (TL-90): #118
+- P0-17 (TL-99): #115
+- P0-16 (TL-98): #116
+- P0-13 (TL-23): #117
+- P0-4 (TL-92): #119
+- P0-7 (TL-13): #120
+- P0-8 (TL-93): #121
+- P0-1 (TL-01): #122
+- P0-15 (TL-97): #123
+- P0-3 (TL-03, ADR-052): #124
+- P0-9 (TL-94/95/96): #125
+- P0-10 (không lỗi, không cấp mã TL): #126
+- P0-2 (TL-91): #127
+- P0-14 (TL-18/02, ADR-053): #129
+
+Mọi PR xanh CI, trừ những PR còn đang chạy CI khi ghi mục này. #128 (TL-100) là của phiên khác, không thuộc đợt này; đã gộp vào
+`Staging` 14.10.
+
+**To do (chủ dự án):**
+- gộp theo thứ tự ghi trong từng PR:
+  - #118 trước;
+  - #117 rồi #123;
+  - #122 và #125 trước #127;
+  - #124 và #125 trước #129;
+  - #126 sau #118;
+- PR tổng kết này gộp cuối;
+- chặng 2 theo `docs/08-ke-hoach-kiem-thu/06-kiem-tay-chang-2.md`:
+  - hết phiên giữa lúc gõ (P0-14: hai tab, Lên đơn, Chi tiết, phân công, chứng từ, khoá tài khoản, ERP — biên bản của
+    #129 mục 4);
+  - `/quan-tri/` sai 6 lần;
+  - tiền `0.125`;
+  - đăng nhập bốn tài khoản mẫu mới ở 8020 và 8021;
+- trước VPS chạy các câu SQL chỉ đọc ghi trong thân PR: #125 (Manager không bộ phận, trưởng nhóm khác bộ phận), #124
+  (tiền ≥ 3 chữ số lẻ), #122 (Grant do người ngoài bộ phận cấp), #121 (`is_staff` không hồ sơ).
+
+**To do (việc sau):**
+- P0-5, P0-6, P0-11, P0-12: chờ `docs/08` mục 9.5;
+- TL-101, TL-102, TL-103, TL-104: mở;
+- P0-3 Bước 2, 3;
+- P0-15 phần VPS và K30;
+- diễn tập P0-13;
+- kiểm tay launcher TC-1…TC-6 trên Windows.
+
+## 14.10.2026 — Sửa AC-10.12: lời báo mất mạng bị tra khách xoá oan (TL-100)
+
+**Finished local (nhánh `claude/sua-loi-mang-ac-10-12`, PR nháp về `Staging`):**
+- `loi-mang.js`: yêu cầu GET hỏng không giành chỗ của yêu cầu ghi đang hỏng;
+- bài e2e mới ép đúng thứ tự xấu: đỏ trên mã cũ, xanh sau khi vá; `test_mat_mang_e2e.py` 5 lần liền, mỗi lần 4/4.
+
+**14.10:** kiểm kỹ trước khi gộp: bài mất mạng 10 lần, rồi 5 lần khi máy bận, 4/4 mỗi lần; nhánh lỗi 5xx; quét 209 trang;
+pytest, e2e đạt. Gộp vào `Staging` (#128).
+
+**To do:**
+- chặng 2: thử Lên đơn lúc mất mạng ở máy mình;
+- TL-71 vẫn mở.
+
+## 14.10.2026 — Gộp KN OMS (#112, #114) vào `Staging`
+
+**Finished:**
+- kiểm cây sau gộp (trùng đúng cây #114): pytest 3.207 đạt, 0 đỏ; e2e 68 và 22 đạt, 9 bài đỏ có sẵn y hệt `Staging`
+  gốc; bài KN OMS 3 lần đạt; hệ thống thật 16/16; quyền đúng với 14 tài khoản; 209 trang 0 lỗi;
+- gộp #112 rồi #114 vào `Staging` bằng merge commit; xoá nhánh đã gộp.
+
+**To do:**
+- chặng 2: thử trên `Staging` ở máy mình theo kịch bản 16 bước;
+- sau đó `main` và VPS; không có migration.
+
+## 13.10.2026 — KN OMS thiết kế lại theo Solarpunk Office, làm sâu sáu màn (ADR-051 bổ sung, AC-51.9 → 51.14)
+
+**Finished local (nhánh `claude/kn-oms-thiet-ke-lai`, tách từ `claude/kn-oms-demo`, PR nháp riêng về `Staging`):**
+- diện mạo KN CRM: nạp bốn tệp CSS của KN CRM, khung kính, dải chỉ số phẳng, biểu mẫu vào ngăn kéo, bỏ viền trái;
+- làm sâu: lọc ngày, xuất CSV, chọn nhiều đơn ở Công nợ, dòng thời gian khách, chặn phải ghi lý do, đủ bán và gợi ý nhập,
+  so 7 ngày trước, biểu đồ lãi theo ngày;
+- vẫn dữ liệu giả; KN CRM, KN ERP không đổi; không model, không migration.
+
+**14.10:** gộp vào `Staging` (#114, sau #112).
+
+**To do:**
+- chặng 2: thử trên `Staging` ở máy mình theo kịch bản trong PR;
+- sau đó `main` và VPS; không có migration.
+
+## 13.10.2026 — KN OMS: bản demo dữ liệu giả trong KN CRM, chỉ Admin (ADR-051, AC-51.1 → 51.8)
+
+**Finished local (nhánh `claude/kn-oms-demo`, PR nháp về `Staging`):**
+- `/oms/` chỉ ở KN CRM, chỉ Admin. Mục cuối thanh bên mở tab mới; vai khác 403 có nhật ký; ERP 404.
+- Sáu màn: Báo đơn, Kho, Kênh bán & Page của mockup cùng Công nợ & đối soát, Khách rủi ro, Lãi theo page.
+- Dữ liệu giả sinh trong trình duyệt: không model, không migration, không gọi máy chủ.
+- Kiểm: 14 bài quyền, 5 bài trình duyệt chạy 3 lần liền; đi thử trên hệ thống thật 9/9.
+
+**14.10:** gộp vào `Staging` (#112).
+
+**To do:**
+- chặng 2: thử trên `Staging` ở máy mình (`KN JSC.bat`, `quantri`, KN CRM → KN OMS);
+- sau đó `main` và VPS; không có migration.
+
 ## 12.10.2026 — Sửa TL-89: nút của Thống kê KN CRM (AC-40.9)
 
 **Finished local (nhánh `claude/knerp-erp-chinh-sua-hfi7w8`, PR nháp về `Staging`):**
@@ -39,6 +190,20 @@
 - gộp `main`, phát hành VPS (không migration).
 
 **Far plan:** thử Safari, Firefox, Windows; đo một năm dữ liệu.
+
+## 09.10.2026 — Phát hành main e979323
+
+**Finished:** build r2, diễn tập nâng/quay lui/tiến lại, backup/restore cuối,
+chuyển năm ứng dụng, ba migration, static, PostgreSQL panic và kiểm hàng đợi.
+Bảo trì 2 phút 25 giây. Không đổi mã nguồn.
+
+**Finished:** theo dõi đủ 15 phút, không 5xx/restart/OOM; Admin kiểm các luồng
+báo cáo, tổng hợp/XLSX và lên đơn/lưu ô/hoàn tác trên domain thật. Bản thử đã xóa
+mềm. Giới hạn vai trò và các ca chưa thao tác trên VPS ghi trong biên bản.
+Tài liệu trên `claude/phat-hanh-vps-e979323`, PR nháp về Staging, không tự gộp.
+
+**To do ngoài lượt này:** TL-83 đọc kiểm toàn vẹn theo lô; xử lý hai đơn mồ côi
+chỉ khi có quyết định dữ liệu riêng. [Biên bản](kiem-chung-phat-hanh-vps-20261009.md).
 
 ## 08.10.2026 — Diễn tập phát hành Staging lên VPS (TL-79 → TL-85)
 
@@ -708,12 +873,12 @@ Xếp theo thứ tự nên làm. Mỗi dòng một PR nhỏ, có ảnh trước/
 
 | Ưu tiên | Việc | Liên quan | Nhánh đích | Ghi chú |
 |---|---|---|---|---|
-| P0 | Chặn Manager bộ phận khác tự cấp quyền Sửa qua màn Cấp quyền / Thu quyền | TL-01 | `main` | Lộ quyền; bài kiểm phải có chiều bị từ chối |
-| P0 | Hết phiên 60 phút: mọi yêu cầu HTMX/fetch phải về màn đăng nhập, không báo "Đã lưu" | TL-02, TL-18 | `main` | Mất dữ liệu âm thầm; cùng gốc với "trang đăng nhập rơi vào ô" |
-| P0 | Số ≥ 3 chữ số lẻ bị nhân nghìn khi Enter, dán, kéo điền, hoàn tác | TL-03 | `main` | Sai dữ liệu tiền âm thầm |
+| P0 | Chặn Manager bộ phận khác tự cấp quyền Sửa qua màn Cấp quyền / Thu quyền | TL-01 | `main` | Lộ quyền; bài kiểm phải có chiều bị từ chối. **Đã sửa ở #122 (14.10, nháp)** |
+| P0 | Hết phiên 60 phút: mọi yêu cầu HTMX/fetch phải về màn đăng nhập, không báo "Đã lưu" | TL-02, TL-18 | `main` | Mất dữ liệu âm thầm; cùng gốc với "trang đăng nhập rơi vào ô" **Đã sửa ở #129 (14.10, nháp, ADR-053)** |
+| P0 | Số ≥ 3 chữ số lẻ bị nhân nghìn khi Enter, dán, kéo điền, hoàn tác | TL-03 | `main` | Sai dữ liệu tiền âm thầm. **Bước 1 đã sửa ở #124 (14.10, nháp)**; Bước 2, 3 chờ duyệt |
 | P0 | Lọc khoảng cột tiền/ngày với chuỗi lạ trả 500 | TL-04 | `main` | Trang trắng |
 | P0 | Thanh trên báo "Đã lưu" khi máy chủ trả 400; lời báo lỗi bị CSS giấu | TL-19, TL-20 | `main` | K28 — anh/chị gặp trong video 07.09 |
-| P0 | PR #21: làm lại giao dịch sau deadlock mất dữ liệu; job tính lại kẹt RUNNING làm lưới ngừng cập nhật | TL-22, TL-23 | `claude/kiem-tai-kn-crm` | **PR #21 không gộp cho tới khi xong hai dòng này** |
+| P0 | PR #21: làm lại giao dịch sau deadlock mất dữ liệu; job tính lại kẹt RUNNING làm lưới ngừng cập nhật | TL-22, TL-23 | `claude/kiem-tai-kn-crm` | **PR #21 không gộp cho tới khi xong hai dòng này** **TL-23 đã sửa ở #117 (14.10, nháp)** |
 | P1 | Cột Trùng có tác dụng: có ở Vận đơn DB, chuẩn hoá số điện thoại, đếm cả lịch sử, bấm để xem, lọc và tô màu | TL-35, TL-36 | `main` | Chờ anh/chị chốt 1 trong các ý ở backlog 16.09 |
 | P1 | Tiêu đề bảng ngoài vận đơn màu vàng → xanh; ô trắng; chỉ ô cảnh báo mới vàng/đỏ | TL-21 | `main` | K28; yêu cầu gốc của anh/chị |
 | P1 | Khôi phục dòng bỏ qua phạm vi quyền | TL-05 | `main` | Quy tắc 11 |
@@ -721,7 +886,7 @@ Xếp theo thứ tự nên làm. Mỗi dòng một PR nhỏ, có ảnh trước/
 | P1 | Sau khi chính mình lưu, lưới tự nạp lại và báo "Có dữ liệu mới"; dòng mới không khớp bộ lọc biến mất | TL-08 | `main` | |
 | P1 | Sắp xếp không ổn định giữa các trang | TL-09 | `main` | |
 | P1 | Cột tiền không mang nhãn Doanh thu sắp xếp và lọc theo chuỗi | TL-10 | `main` | |
-| P1 | Màn Sửa cột cho bỏ cột hệ thống của bảng vận đơn | TL-13 | `main` | |
+| P1 | Màn Sửa cột cho bỏ cột hệ thống của bảng vận đơn | TL-13 | `main` | **Đã sửa ở #120 (14.10, nháp)** |
 | P1 | Nghiệm thu bấm tay theo `docs/07` một đợt (V4, V5) | — | — | Việc của anh/chị, sau khi các P0 xong |
 | P2 | Hoàn tác ghi đè sửa đổi của người khác không cảnh báo | TL-07 | `main` | |
 | P2 | Trang chủ và trang chọn bảng đếm cả dòng ngoài phạm vi và dòng đã xoá | TL-11 | `main` | |
@@ -733,7 +898,7 @@ Xếp theo thứ tự nên làm. Mỗi dòng một PR nhỏ, có ảnh trước/
 | P2 | PR #21: chỉ luu-o có làm lại khi deadlock; không gộp job tính lại; lỗi một lô không dừng các lô còn lại; `do_hieu_nang` đo tính lại không ghi; docstring lệch mã | TL-24 → TL-28, TL-31, TL-32 | `claude/kiem-tai-kn-crm` | Sau TL-22/23 |
 | P2 | Chạy `scripts/kiem-tai-kn-crm.*` trên máy anh/chị và máy chủ thật, ghi số vào `docs/06` | K27 | — | Sau khi PR #21 gộp |
 | P3 | Tệp tĩnh không được phục vụ khi chạy gunicorn (không nginx, không whitenoise) | TL-29 | `main` | Giai đoạn 8 sẽ có nginx |
-| P3 | Script kiểm tải chạy `du_lieu_mau` nên đặt lại mật khẩu 12 tài khoản mẫu | TL-30 | `claude/kiem-tai-kn-crm` | |
+| P3 | Script kiểm tải chạy `du_lieu_mau` nên đặt lại mật khẩu các tài khoản mẫu (16 từ #118) | TL-30 | `claude/kiem-tai-kn-crm` | |
 | P3 | `tests/test_hieu_nang.py` vẫn xfail vì ngân sách 10 truy vấn | K24, TL-33 | `main` | Sau K27 lưới còn 13 |
 
 ## In progress

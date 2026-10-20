@@ -2,7 +2,7 @@
 
 Bài đo tải thật nằm ở `manage.py do_hieu_nang` và `tests/perf/locustfile_kn_crm.py`
 (AC-10.8, thủ công). Ở đây chỉ khoá **hình dạng** của các đường đã sửa: số lệnh
-truy vấn không phình theo số ô, URL ô ghép chuỗi khớp `reverse()`, cột Trùng
+truy vấn không phình theo số ô, URL lưu JSON khớp `reverse()`, cột Trùng
 đếm đúng theo trang, tính lại cột chạy nền trên bảng lớn.
 """
 import pytest
@@ -84,6 +84,33 @@ def test_dan_500_o_va_moi_nhat_ngan_sach_truy_van(client, bang_vd, nguoi_dung, d
     assert kq.status_code == 200 and "so" not in kq.json()
 
 
+def test_tinh_lai_ket_thi_moi_nhat_thoi_bao_dang_tinh(client, bang_mkt, nguoi_dung):
+    """AC-11.35 — Tác vụ tính lại chết giữa chừng (worker dừng) thì sau lượt canh `moi-nhat/` thôi báo tiến độ,
+    không báo "đang tính lại" mãi (TL-23)"""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from core.constants import JOB_RUNNING_STALE_MINUTES
+    from core.tasks import danh_dau_tac_vu_ket
+
+    ql = nguoi_dung["manager_mkt"]
+    bang_mkt.workflow = "waybill"
+    bang_mkt.save(update_fields=["workflow"])
+    client.force_login(ql)
+    goc = f"/bang-tinh/{bang_mkt.code}/"
+    dang = BackgroundJob.objects.create(kind=JobKind.RECOMPUTE, status=JobStatus.RUNNING, created_by=ql,
+                                        target_type="table", target_id=bang_mkt.code, total=5, progress=2)
+    BackgroundJob.objects.filter(pk=dang.pk).update(
+        updated_at=timezone.now() - timedelta(minutes=JOB_RUNNING_STALE_MINUTES + 1))
+    assert client.get(f"{goc}moi-nhat/").json()["tinh_lai"] == {"pk": dang.pk}
+
+    danh_dau_tac_vu_ket()
+
+    assert client.get(f"{goc}moi-nhat/").json()["tinh_lai"] is None
+    assert table_service.recompute_job_of(bang_mkt) is None
+
+
 def test_tinh_lai_cot_bang_lon_chay_nen(client, bang_mkt, nguoi_dung, monkeypatch):
     """AC-11.35 — Đổi cột tính sẵn trên bảng nhiều hơn RECOMPUTE_SYNC_MAX_ROWS dòng thì tính lại ở tác vụ nền (BackgroundJob "Tính lại cột"): cột hiện ngay, `moi-nhat/` báo tiến độ khi đang chạy, giá trị đúng khi xong; bảng nhỏ tính ngay không có tác vụ"""
     ql = nguoi_dung["manager_mkt"]
@@ -113,7 +140,7 @@ def test_tinh_lai_cot_bang_lon_chay_nen(client, bang_mkt, nguoi_dung, monkeypatc
     assert client.get(f"{goc}moi-nhat/").json()["tinh_lai"] is None
     dang = BackgroundJob.objects.create(kind=JobKind.RECOMPUTE, status=JobStatus.RUNNING, created_by=ql,
                                         target_type="table", target_id=bang_mkt.code, total=5, progress=2)
-    assert client.get(f"{goc}moi-nhat/").json()["tinh_lai"] == {"pk": dang.pk, "progress": 2, "total": 5}
+    assert client.get(f"{goc}moi-nhat/").json()["tinh_lai"] == {"pk": dang.pk}
     dang.mark_done()
     assert client.get(f"{goc}moi-nhat/").json()["tinh_lai"] is None
 

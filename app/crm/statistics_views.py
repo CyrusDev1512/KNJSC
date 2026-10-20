@@ -2,7 +2,7 @@ from datetime import date
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from core.lien_ket import theo_host_dang_mo
@@ -11,6 +11,9 @@ from orders.services import waybill_service
 
 from .services import grid_service, statistics_service, statistics_cache
 
+
+#: Ô ẩn của form Bàn điều hành: nguồn mà bộ lọc lưới đang mang thuộc về (TL-110)
+LOC_NGUON = "loc_nguon"
 
 GROUPS = (
     ("total", "Tổng hợp"),
@@ -132,9 +135,25 @@ def _paginate_charts(request, dashboard):
         chart["page_url"] = f"?{base}&{key}=" if base else f"?{key}="
 
 
+def _bo_loc_doi_nguon(params):
+    """Áp dụng gửi kèm bộ lọc lưới (ô ẩn) và `loc_nguon`. Cùng nguồn thì giữ; đổi nguồn thì bỏ: `f_*`, Tìm, Tôi của bảng
+    này vô nghĩa ở bảng kia, giữ lại là lọc lặng lẽ bảng mới (TL-110). Trả truy vấn đã bỏ `loc_nguon` để địa chỉ, khoá
+    bộ đệm và link phân trang không mang nó; None khi URL không có `loc_nguon`."""
+    if LOC_NGUON not in params:
+        return None
+    sach = params.copy()
+    sach.pop(LOC_NGUON, None)
+    if (params.get(LOC_NGUON) or "").strip() != (params.get("nguon") or "").strip():
+        for key in [k for k in sach if grid_service.is_grid_param(k)]:
+            del sach[key]
+    return sach.urlencode()
+
 @login_required
 @statistics_cache.snapshot
 def overview(request):
+    sach = _bo_loc_doi_nguon(request.GET)
+    if sach is not None:
+        return redirect(f"{request.path}?{sach}" if sach else request.path)
     request.nav_current = "statistics"
     tables = statistics_service.source_tables(request.user)
     sources = statistics_service.describe_sources(tables)
@@ -203,12 +222,23 @@ def overview(request):
             for profile in ("marketing", "sale", "waybill")
         },
     })
+    loc = grid_service.grid_params(params) if table is not None else []
+    if loc:
+        # Áp dụng mang bộ lọc lưới bằng ô ẩn, kèm nguồn chúng thuộc về; cả khi ngày sai để sửa ngày không mất lọc (TL-110)
+        context["giu_loc"] = [(LOC_NGUON, source_code), *loc]
+        context["bo_loc_luoi"] = grid_service.qs_without(params, {k for k, _ in loc})
     if grid is not None:
         context["luoi"] = grid
-        chips = []
-        for key, label, an in grid.chips:
+
+        def bo(key):
             chip_params = params.copy()
             chip_params.pop(key, None)
-            chips.append((label, "?" + chip_params.urlencode(), an))
+            return "?" + chip_params.urlencode()
+        # Tôi, Tìm, Chỉ dòng trùng có nút hay ô riêng trên lưới nên không thành chip ở đó; ở Thống kê phải đọc được
+        chips = [(nhan, bo(key), False) for key, nhan, bat in (
+            (grid_service.MY_SCOPE_PARAM, "Của tôi", grid.my_scope),
+            ("tim", f"Tìm “{grid.search}”", bool(grid.search)),
+            ("trung", "Chỉ dòng trùng", grid.duplicates_only)) if bat]
+        chips += [(label, bo(key), an) for key, label, an in grid.chips]
         context["chips"] = chips
     return render(request, "crm/statistics.html", context)

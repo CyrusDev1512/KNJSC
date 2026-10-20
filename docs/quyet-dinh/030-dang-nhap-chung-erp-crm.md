@@ -25,10 +25,15 @@ domain mẹ và toàn bộ subdomain thuộc phạm vi tin cậy.
 - Đăng xuất một bên vô hiệu phiên chung tại request tiếp theo bên kia. Đổi tài
   khoản phải đăng xuất trước. Form cũ sau đăng nhập lại có CSRF cũ bị từ chối;
   không tự gửi lại thao tác ghi.
+  > Sửa bởi [ADR-053](053-trang-crm-giu-nhap-khi-het-phien.md) (14.10.2026): trang KN CRM (lưới, Lên đơn, Chi tiết,
+  > phân công, chứng từ) lấy mã CSRF mới lúc gửi, vẫn không tự gửi lại; người khác đăng nhập thì 409. Form HTML
+  > thường giữ điều khoản trên.
 - Giữ timeout không hoạt động 60 phút, mốc hoạt động dùng chung, auth epoch,
   tài khoản bị khóa, đổi mật khẩu và bắt đổi mật khẩu lần đầu như hiện tại.
 - Không đổi quyền nghiệp vụ, URL, form đăng nhập, schema hoặc dependency;
   không truyền session qua URL/localStorage, không thêm middleware/truy vấn.
+  > ADR-053 thêm một middleware không truy vấn (`PageOwnerMiddleware`), bước đổi 302 thành `HX-Redirect` cho HTMX
+  > và `CSRF_FAILURE_VIEW`.
 
 ## Vận hành và quay lui
 

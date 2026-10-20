@@ -103,6 +103,23 @@ def after_restore(row, *, actor=None, request=None):
            detail=f"Khôi phục đơn {don.code} theo dòng vận đơn", request=request)
 
 
+def after_bulk_deleted(rows, *, deleted, actor=None, request=None):
+    """Đơn gốc đi cùng trạng thái dòng; caller đã khoá và kiểm quyền toàn lượt."""
+    from core.audit import record_many
+    from orders.models import Order
+    from django.utils import timezone
+    orders = list(Order.all_objects.filter(record_id__in=[r.pk for r in rows],
+        deleted_at__isnull=deleted).select_for_update().order_by('pk'))
+    if not orders:
+        return
+    now = timezone.now()
+    Order.all_objects.filter(pk__in=[o.pk for o in orders]).update(
+        deleted_at=now if deleted else None, deleted_by=actor if deleted else None, updated_at=now)
+    record_many(AuditAction.DELETE if deleted else AuditAction.UPDATE, orders, actor=actor,
+        detail=(lambda o:f'Bỏ đơn {o.code} theo dòng vận đơn vừa xoá') if deleted else
+               (lambda o:f'Khôi phục đơn {o.code} theo dòng vận đơn'), request=request)
+
+
 def register():
     # Một bảng duy nhất (ADR-036): đăng ký theo mã `van_don` và theo workflow.
     record_policies.register(WAYBILL_TABLE_CODE, sys.modules[__name__])
@@ -311,6 +328,11 @@ def derived_grid_cells(changes, confirmations):
 
 
 def assert_column_change(column, changes=None):
+    """Cột chuẩn giữ cấu trúc; bỏ cột (`changes=None`) thì từ chối cả cột theo tệp vận đơn thật (9 cột EXTRA,
+    cột số lượng `sl_*`) — đã có Ẩn cột thay thế (ADR-039). Một luật cho mọi cửa bỏ cột (TL-13)."""
+    if changes is None and _theo_tep_that(column.code):
+        raise BusinessError(f'"{column.name}" là cột theo tệp vận đơn thật, hệ thống quản lý. '
+                            "Không cần thì ẩn cột với cả công ty.")
     if column.code not in {c[1] for c in COLUMNS}:
         return
     structural = {"code", "field_type", "meaning", "is_computed", "required", "is_key", "options"}
@@ -672,3 +694,10 @@ def grid_extras(rows, columns):
     bills = metadata([row.pk for row in rows]) if rows and any(c.code == 'bill' for c in columns) else {}
     return {row.pk:{'detail_url':reverse('waybill_detail', args=[row.pk]),
         'cells':{'bill':{'payments':bills.get(row.pk, {'count':0, 'links':[]})}}} for row in rows}
+
+
+def _theo_tep_that(code):
+    # Nhập muộn: dispatch_service nhập module này ở đầu tệp (vòng nhập)
+    from .dispatch_service import EXTRA_COLUMNS, is_product_column
+
+    return code in {c[1] for c in EXTRA_COLUMNS} or is_product_column(code)

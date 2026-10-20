@@ -19,7 +19,16 @@
       </div>
     </div>
     <hr class="ke">
-    <a class="nut nut-chinh" href="/">Về Tổng quan</a>
+    <div class="hang-nut">
+      <a class="nut nut-chinh" href="/">Về Tổng quan</a>
+      {% if user.is_authenticated %}
+      {# Lối ra khi chính Tổng quan cũng bị từ chối (chưa gán bộ phận): /dang-nhap/ đẩy người đã đăng nhập về "/" — TL-106 #}
+      <form method="post" action="{% url 'dang_xuat' %}">
+        {% csrf_token %}
+        <button class="nut" type="submit">Đăng xuất</button>
+      </form>
+      {% endif %}
+    </div>
   </div>
 </div>
 {% endblock %}

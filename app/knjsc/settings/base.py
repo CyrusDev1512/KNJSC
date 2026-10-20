@@ -77,7 +77,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # Ba middleware của core, phải nằm sau AuthenticationMiddleware
+    # Bốn middleware của core, phải nằm sau AuthenticationMiddleware. PageOwner đứng trước SessionTimeout: trang KN CRM
+    # của người khác nhận 409 mà không gia hạn phiên người đang đăng nhập (ADR-053)
+    "core.middleware.PageOwnerMiddleware",
     "core.middleware.SessionTimeoutMiddleware",
     "core.middleware.ForcePasswordChangeMiddleware",
     "core.middleware.NoCacheForAuthenticatedMiddleware",
@@ -187,6 +189,8 @@ SESSION_COOKIE_DOMAIN = env("SESSION_COOKIE_DOMAIN", "").strip() or None
 SESSION_COOKIE_NAME = env("SESSION_COOKIE_NAME", "sessionid")
 CSRF_COOKIE_DOMAIN = env("CSRF_COOKIE_DOMAIN", "").strip() or None
 CSRF_COOKIE_NAME = env("CSRF_COOKIE_NAME", "csrftoken")
+# Không bật CSRF_COOKIE_HTTPONLY: het-phien.js đọc mã mới trong cookie lúc gửi sau khi đăng nhập lại (ADR-053)
+CSRF_FAILURE_VIEW = "core.views.csrf_failure"
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True

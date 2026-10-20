@@ -1,6 +1,7 @@
 """ADR-033 — Nhân viên Vận đơn xem và sửa toàn bảng; nút Tôi / Toàn bộ lọc theo
 cột phụ trách của bộ phận mình; bỏ Chế độ xem bảng (ADR-026) và Chế độ Xem/Chỉnh sửa.
 """
+import re
 import uuid
 
 import pytest
@@ -118,6 +119,18 @@ def test_cua_toi_reaches_excel_export_and_statistics(client, feedback, nguoi_dun
     assert client.get('/thong-ke/', {'nguon': 'van_don'}).context['summary']['orders'] == 2
     assert client.get('/thong-ke/', {'nguon': 'van_don', 'cua_toi': '1'}).context['summary']['orders'] == 1
 
+
+def test_link_thong_ke_khai_nguon_rieng_cho_js(client, feedback, nguoi_dung):
+    """AC-33.4 — Nút Thống kê của lưới Vận đơn mang `nguon=van_don` cùng bộ lọc đang áp và khai riêng
+    `data-query-base="nguon=van_don"`, để JS lưới (Tôi/Toàn bộ, Tìm, lọc cột) dựng lại link mà không xoá nguồn; Tải
+    Excel không có phần riêng (TL-109)."""
+    client.force_login(nguoi_dung['staff_vd'])
+    html = client.get(BASE + '?cua_toi=1&tim=Kh').content.decode()
+    link = re.search(r'<a [^>]*>Thống kê</a>', html).group(0)
+    assert 'data-query-base="nguon=van_don"' in link, link
+    assert 'href="/thong-ke/?nguon=van_don&amp;cua_toi=1&amp;tim=Kh"' in link, link
+    excel = re.search(r'<a [^>]*>Tải Excel</a>', html).group(0)
+    assert 'data-query-base' not in excel, excel
 
 def test_delivery_view_mode_removed(client, feedback, nguoi_dung):
     """AC-33.5 — Trang Chế độ xem bảng không còn; `TableDef` không còn

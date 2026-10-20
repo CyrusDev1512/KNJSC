@@ -19,9 +19,10 @@ def test_menu_va_url_quan_tri(client, make_user, rank):
 
 
 @pytest.mark.parametrize('rank', list(Rank))
-def test_bang_du_lieu_erp_gioi_han_manager(client, make_user, rank):
+def test_bang_du_lieu_erp_gioi_han_manager(client, make_user, departments, rank):
     """AC-44.3 — Mọi cửa Bảng dữ liệu ERP chặn cấp dưới Manager."""
-    user = make_user('user', rank)
+    # Cấp bậc dưới Giám đốc phải có bộ phận: Manager không bộ phận bị từ chối ở mọi màn (TL-96)
+    user = make_user('user', rank, None if rank in (Rank.ADMIN, Rank.CEO) else departments['sale'])
     codes = {i['code'] for g in visible_navigation(user) for i in g['items']}
     allowed = rank in (Rank.MANAGER, 'ceo', Rank.ADMIN)
     assert ('bang' in codes) == allowed
@@ -44,13 +45,14 @@ def test_leader_crm_khong_bi_chan_bo_sung(client, nguoi_dung, departments):
 
 
 @pytest.mark.parametrize('rank', [rank for rank in Rank if rank != Rank.ADMIN])
-def test_tac_vu_ca_nhan_van_tai_duoc_khong_mo_tac_vu_nguoi_khac(client, make_user, settings, rank):
+def test_tac_vu_ca_nhan_van_tai_duoc_khong_mo_tac_vu_nguoi_khac(client, make_user, settings, departments, rank):
     """AC-44.4 — Tải tác vụ cá nhân vẫn được, ngoài chủ sở hữu bị từ chối."""
     from pathlib import Path
     from core.models import BackgroundJob
     from core.constants import JobKind, JobStatus
-    user = make_user('chu_file', rank)
-    other = make_user('nguoi_khac', rank)
+    bo_phan = None if rank == Rank.CEO else departments['sale']        # Manager không bộ phận bị từ chối (TL-96)
+    user = make_user('chu_file', rank, bo_phan)
+    other = make_user('nguoi_khac', rank, bo_phan)
     Path(settings.STORAGE_DIR, 'report-test.csv').write_text('test\n', encoding='utf-8')
     job = BackgroundJob.objects.create(kind=JobKind.EXPORT, status=JobStatus.DONE,
         created_by=user, target_type='report', result_path='report-test.csv')

@@ -42,7 +42,7 @@ services:
     restart: unless-stopped
     # Mặc định runserver (nạp lại mã khi sửa). Đo tải hay chạy thật thì đặt
     # KNJSC_LENH_WEB="gunicorn knjsc.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 4 --worker-class gthread --keep-alive 5"
-    # (như Dockerfile) — scripts/kiem-tai-kn-crm.* tự làm việc này.
+    # (như Dockerfile). Runner kiểm tải dùng compose.loadtest.yml riêng, không đổi web ở đây.
     command: ${KNJSC_LENH_WEB:-python manage.py runserver 0.0.0.0:8000}
     environment: &moi_truong
       DJANGO_SETTINGS_MODULE: knjsc.settings.dev
@@ -140,7 +140,7 @@ services:
     restart: unless-stopped
     # Mặc định runserver (nạp lại mã khi sửa). Đo tải hay chạy thật thì đặt
     # KNJSC_LENH_WEB="gunicorn knjsc.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 4 --worker-class gthread --keep-alive 5"
-    # (như Dockerfile) — scripts/kiem-tai-kn-crm.* tự làm việc này.
+    # (như Dockerfile). Runner kiểm tải dùng compose.loadtest.yml riêng, không đổi web ở đây.
     command: ${KNJSC_LENH_WEB:-python manage.py runserver 0.0.0.0:8000}
     environment:
       <<: *moi_truong

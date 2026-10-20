@@ -72,3 +72,29 @@ def test_migration_roundtrip_preserves_accounts_and_loses_deletion_mark(make_use
         executor.migrate(executor.loader.graph.leaf_nodes())
     assert UserProfile.objects.get(user_id=target.pk).deleted_at is None
     assert not get_user_model().objects.get(pk=target.pk).is_active
+
+
+def test_hai_admin_cung_tu_ha_cap_van_con_mot_admin(make_user):
+    """AC-2.3 — Hai Admin cùng lúc tự hạ cấp: đúng một lượt qua, còn đúng một Admin hoạt động (TL-94)"""
+    from core.exceptions import BusinessError
+    from org.services import account_service
+    from org.services.account_management import locked_target
+
+    one, two = (make_user(ten, Rank.ADMIN) for ten in ("admin_one", "admin_two"))
+    for u in (one, two):
+        u.is_staff = u.is_superuser = True
+        u.save(update_fields=["is_staff", "is_superuser"])
+
+    def tu_ha(user):
+        def goi():
+            try:
+                with locked_target(user, user.profile.pk) as (a, p):
+                    account_service.update_profile(p, {"rank": Rank.MANAGER},
+                                                   before=account_service.snapshot_profile(p), actor=a)
+            except BusinessError:
+                raise OutOfScopeError()
+        return goi
+
+    assert sorted(run_pair([tu_ha(one), tu_ha(two)])) == ["denied", "ok"]
+    from django.contrib.auth import get_user_model
+    assert get_user_model().objects.filter(profile__rank=Rank.ADMIN, is_active=True).count() == 1

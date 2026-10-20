@@ -2,6 +2,6 @@
 {% load static %}
 {% block tieu_de %}Lên đơn · KN CRM{% endblock %}
 {% block ten_bang %}<h1>Lên đơn</h1>{% endblock %}
-{% block dau_trang %}<link rel="stylesheet" href="{% static 'css/waybill.css' %}">{% endblock %}
+{% block dau_trang %}<link rel="stylesheet" href="{% static 'css/waybill.css' %}?v={{ phien_ban_tinh }}">{% endblock %}
 {% block noi_dung %}<main class="vd-page"><section class="vd-section"><h2>Lên đơn</h2>{% include "crm/_waybill_entry.html" %}</section></main>{% endblock %}
-{% block cuoi_trang %}<script src="{% static 'js/waybill.js' %}" defer></script><script src="{% static 'js/order-entry.js' %}" defer></script>{% endblock %}
+{% block cuoi_trang %}<script src="{% static 'js/waybill.js' %}?v={{ phien_ban_tinh }}" defer></script><script src="{% static 'js/order-entry.js' %}?v={{ phien_ban_tinh }}" defer></script>{% endblock %}

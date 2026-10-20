@@ -17,6 +17,17 @@ from orders.services import dispatch_service, product_service
 pytestmark = pytest.mark.django_db
 
 
+def test_xoa_perf_sale_giu_dong_nhap_tay(nguoi_dung, departments):
+    """AC-10.10 — Tên bảng perf_sale không chứng minh mọi dòng trong đó là dữ liệu giả (TL-30)."""
+    from forms_builder.models import TableDef
+    table = TableDef.objects.create(code=seed_perf.SALE_TABLE_CODE, name='Bảng đo', department=departments['sale'])
+    real = DataRecord.objects.create(table=table, data={'ma_don':'DH-THAT'})
+    fake = DataRecord.objects.create(table=table, data={'ma_don':'PERF-001'})
+    seed_perf.clear()
+    assert DataRecord.objects.filter(pk=real.pk).exists()
+    assert not DataRecord.objects.filter(pk=fake.pk).exists()
+
+
 @pytest.fixture
 def dong_gia(nguoi_dung, settings):
     """Năm dòng mang mã `PERF-*` trên bảng vận đơn, dòng đầu có chi tiết và phân công —
@@ -133,3 +144,23 @@ def test_nap_khach_mau_cung_di_duong_xoa_theo_lo(dong_gia, nguoi_dung, monkeypat
     # Dòng PERF-* của fixture không bị xoá lây
     assert DataRecord.all_objects.filter(
         table=bang, data__ma_don__startswith=seed_perf.PERF_PREFIX).count() == 5
+
+
+def test_seed_perf_tu_choi_khi_debug_tat_khong_xoa_khong_nap(dong_gia, nguoi_dung, settings):
+    """TL-98 · P0-16 — DEBUG tắt mà không ghi rõ `--dong-y-chay-that` thì `seed_perf` từ chối trước cả bước
+    `--xoa-cu`: dòng giả, chi tiết, phân công và dòng thật còn nguyên (khoá đã có nhưng chưa có bài)"""
+    from django.core.management import call_command
+    from django.core.management.base import CommandError
+
+    DataRecord.objects.create(table=dong_gia, created_by=nguoi_dung["admin"], department=dong_gia.department,
+                              data={"ma_don": "DH-00001", "ten_khach": "Khách thật"})
+    tong = DataRecord.all_objects.count()
+    settings.DEBUG = False
+
+    with pytest.raises(CommandError, match="DEBUG"):
+        call_command("seed_perf", "--xoa-cu", "--so-dong", "3")
+
+    assert DataRecord.all_objects.filter(table=dong_gia, data__ma_don__startswith=seed_perf.PERF_PREFIX).count() == 5
+    assert DataRecord.all_objects.count() == tong
+    assert WaybillItem._base_manager.filter(record__table=dong_gia).exists()
+    assert WaybillAssignment.objects.filter(record__table=dong_gia).exists()

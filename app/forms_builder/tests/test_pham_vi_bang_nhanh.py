@@ -58,7 +58,7 @@ def the_gioi(nguoi_dung, departments, make_user, settings):
     sp = {"massage": Product.objects.create(name="Máy", code="may", group=nhom)}
     _len_don(nguoi_dung["staff_sale_1"], sp)                                     # dòng + đơn do Sale tạo
     don2 = _len_don(admin, sp, phone="0911", seller=nguoi_dung["staff_sale_2"])       # Admin lên đơn, Sale đứng đơn
-    cskh = make_user("cskh_x", Rank.STAFF, Department.objects.create(code="cskh", name="CSKH"))
+    cskh = make_user("cskh_x", Rank.STAFF, departments["cskh"])
     WaybillAssignment.objects.create(record=don2.record, care=cskh)
     dong = DataRecord.objects.create(table=vd2, department=vd2.department, data={"ma_don": "X"},
                                      created_by=nguoi_dung["staff_mkt"])
@@ -73,7 +73,10 @@ def test_pham_vi_bang_moi_trung_cach_cu_moi_vai(the_gioi):
     `TableDef.objects.in_scope` trùng đúng cách tính cũ; Sale thấy bảng vận đơn qua dòng mình tạo, đơn mình bán, phân
     công chăm sóc; CSKH qua phân công"""
     for ten, user in the_gioi.items():
-        assert set(TableDef.objects.in_scope(user).values_list("pk", flat=True)) == _cu(user), ten
+        expected = _cu(user)
+        if get_user_scope(user).rank == Rank.MANAGER:
+            expected |= set(TableDef.objects.filter(waybill_condition("")).values_list("pk", flat=True))
+        assert set(TableDef.objects.in_scope(user).values_list("pk", flat=True)) == expected, ten
     assert TableDef.objects.get(code="vd_mkt").pk in _cu(the_gioi["leader_sale_2"])
     assert TableDef.objects.get(code="van_don").pk in _cu(the_gioi["cskh"])
 
@@ -119,7 +122,13 @@ def test_pham_vi_dong_sale_cskh_trung_cach_cu(the_gioi):
     for ten, user in the_gioi.items():
         for tat_ca in (False, True):
             ql = DataRecord.all_objects if tat_ca else DataRecord.objects
-            assert set(ql.in_scope(user).values_list("pk", flat=True)) == _dong_cu(user, tat_ca=tat_ca), ten
+            expected = _dong_cu(user, tat_ca=tat_ca)
+            company = set()
+            if get_user_scope(user).rank == Rank.MANAGER:
+                company = set(ql.filter(waybill_condition(), table__is_active=True,
+                                       table__deleted_at__isnull=True).values_list("pk", flat=True))
+            assert set(ql.in_scope(user).values_list("pk", flat=True)) == expected | company, ten
             for b in cac_bang:
-                assert set(ql.in_scope(user, table=b).values_list("pk", flat=True)) == _dong_cu(user, b, tat_ca), (ten, b.code)
+                extra = company & set(ql.filter(table=b).values_list("pk", flat=True))
+                assert set(ql.in_scope(user, table=b).values_list("pk", flat=True)) == _dong_cu(user, b, tat_ca) | extra, (ten, b.code)
     assert _dong_cu(the_gioi["staff_sale_2"]) and _dong_cu(the_gioi["cskh"])     # thế giới có đủ các nhánh

@@ -20,14 +20,16 @@ nên màn hình Tổng quan của Admin và trang Tác vụ nền đều thấy 
 import logging
 import os
 import subprocess
+from datetime import datetime
 from pathlib import Path
 
 from django.conf import settings
+from django.db import DatabaseError, transaction
 from django.utils import timezone
 
 from ..alerts import bao_nguoi_van_hanh
 from ..audit import record
-from ..constants import BACKUP_KEEP, AuditAction, JobKind, JobStatus
+from ..constants import BACKUP_KEEP, BACKUP_TIMEOUT_SECONDS, AuditAction, JobKind, JobStatus
 from ..exceptions import BusinessError
 from ..excel import format_size
 from ..models import BackgroundJob
@@ -41,8 +43,6 @@ PART_SUFFIX = ".part"
 PGDMP_MAGIC = b"PGDMP"
 #: Một bản sao lưu của cơ sở dữ liệu thật không thể nhỏ hơn mức này
 BACKUP_MIN_BYTES = 1024
-#: pg_dump vài chục nghìn dòng mất vài giây; quá mức này là có chuyện
-BACKUP_TIMEOUT_SECONDS = 30 * 60
 
 
 class BackupError(BusinessError):
@@ -82,9 +82,11 @@ def pg_dump_command(target):
 
 
 def pg_restore_command(source):
-    """Phục hồi **đè lên** cơ sở dữ liệu hiện tại — `--clean` xoá bảng cũ trước."""
+    """Phục hồi **đè lên** cơ sở dữ liệu hiện tại — `--clean` xoá bảng cũ trước. `--single-transaction` (gồm cả
+    `--exit-on-error`): trọn gói hoặc huỷ toàn bộ, nên tệp cụt, quá giờ hay lỗi giữa chừng không để CSDL dở dang
+    (bảng đã xoá, dữ liệu nạp một nửa, mất chỉ mục và trigger — TL-97)."""
     return [
-        "pg_restore", "--no-password", "--clean", "--if-exists", "--no-owner",
+        "pg_restore", "--no-password", "--clean", "--if-exists", "--single-transaction", "--no-owner",
         "--no-privileges", *_connection_args(), str(source),
     ]
 
@@ -195,9 +197,14 @@ def run_backup(*, actor=None, runner=None, title="Sao lưu hằng đêm"):
                    + (f", xoá {len(da_xoa)} bản cũ" if da_xoa else ""),
         )
         logger.info("Sao lưu xong: %s (%s)", ten, format_size(co))
-    except (BackupError, OSError) as loi:
+    except Exception as loi:  # noqa: BLE001 — lỗi nào cũng phải đóng tác vụ và báo, không để "Đang chạy" mãi (TL-23)
         tam.unlink(missing_ok=True)
-        thong_bao = scrub(loi)
+        if isinstance(loi, (BackupError, OSError)):
+            thong_bao = scrub(loi)
+        else:
+            # Lỗi lạ: chỉ ghi tên lớp lỗi, không chép thông điệp thô (có thể chứa mật khẩu — điều cấm 6)
+            thong_bao = (f"Sao lưu thất bại vì lỗi hệ thống ({type(loi).__name__}). "
+                         "Xem nhật ký máy chủ, rồi chạy lại.")
         job.mark_failed(thong_bao)
         # Nhật ký hoạt động chỉ ghi sự kiện; lý do (có thể chứa chữ "password"
         # từ pg_dump) nằm ở tác vụ và thư — bộ lọc nhật ký sẽ lược nó đi
@@ -232,27 +239,78 @@ def resolve_backup(ten=None):
     return duong_dan
 
 
+def _dong_tac_vu_cua_ban_chup(duong_dan, co, moc, *, actor=None):
+    """Đóng tác vụ sao lưu đã ghi ra chính tệp vừa phục hồi — TL-105.
+
+    `run_backup` đánh Đang chạy và commit trước `pg_dump`, nên bản chụp nào cũng mang dòng tác vụ của chính nó ở trạng
+    thái Đang chạy, `updated_at` cũ; để nguyên thì lượt canh 15 phút đánh Kẹt và gửi thư báo nhầm. Dòng đó là dòng sao
+    lưu mới nhất của bản chụp, và kết quả của nó đã chắc: tệp vừa qua `verify_file` và `pg_restore` trọn một giao
+    dịch. Nên đánh Xong, giờ xong là giờ ghi tệp (kẹp trong khoảng bắt đầu → bây giờ), không gửi thư, một dòng nhật ký.
+
+    Không đặt `result_path`: `tac_vu_tai` không kiểm tác vụ không phải xuất tệp, đặt vào là cho tải nguyên bản sao lưu
+    qua web. Không đụng: dòng tạo từ `moc` trở đi (sao lưu thật bắt đầu trong lúc phục hồi), sao lưu cũ hơn hay Chờ xử
+    lý trong bản chụp (không biết kết quả), tác vụ loại khác (việc của chúng không có trong CSDL đã phục hồi) — lượt canh
+    vẫn báo chúng như cũ. Dòng mới nhất đã Xong thì không làm gì; mỗi lần phục hồi thật đưa dòng Đang chạy trở lại nên
+    lại được đóng.
+    """
+    with transaction.atomic():
+        job = (BackgroundJob.objects.select_for_update()
+               .filter(kind=JobKind.BACKUP, created_at__lt=moc).order_by("-created_at", "-pk").first())
+        # Kiểm trạng thái sau khi khoá: lượt canh vừa đánh Kẹt thì thôi, không đóng đè
+        if job is None or job.status != JobStatus.RUNNING or job.updated_at >= moc:
+            return None
+        bay_gio = timezone.now()
+        ghi_luc = datetime.fromtimestamp(duong_dan.stat().st_mtime, tz=timezone.get_current_timezone())
+        xong_luc = max(job.started_at or ghi_luc, min(ghi_luc, bay_gio))
+        job.mark_done(summary={"file_name": duong_dan.name, "bytes": co, "size": format_size(co),
+                               "note": f"Đóng sau phục hồi từ {duong_dan.name}"},
+                      finished_at=xong_luc)
+        record(AuditAction.UPDATE, actor=actor, target=("job", job.pk),
+               detail=f"Đóng tác vụ sao lưu sau phục hồi từ {duong_dan.name}: bản chụp ghi tác vụ này Đang chạy")
+    return job
+
 def run_restore(duong_dan, *, actor=None, runner=None):
     """Phục hồi **đè** cơ sở dữ liệu từ một bản sao lưu — NFR-10.
 
     Chỉ gọi từ lệnh `phuc_hoi` sau khi người vận hành xác nhận. Kiểm tệp trước
-    khi đụng vào cơ sở dữ liệu; ghi nhật ký cả khi thành công lẫn thất bại.
+    khi đụng vào cơ sở dữ liệu; ghi nhật ký cả khi thành công lẫn thất bại —
+    mọi lỗi (tệp hỏng, thiếu pg_restore, quá giờ, pg_restore báo lỗi) thành
+    `BackupError` tiếng Việt kèm một dòng "Phục hồi THẤT BẠI" (TL-97). Phục hồi xong thì đóng tác vụ sao lưu sinh
+    ra tệp, để lượt canh không báo kẹt nhầm (TL-105).
     """
     runner = runner or subprocess.run
     duong_dan = Path(duong_dan)
-    verify_file(duong_dan)
+    # Mốc trước khi đụng CSDL: dòng tạo trước mốc mà còn trong bảng sau phục hồi là dòng của bản chụp
+    moc = timezone.now()
     try:
-        kq = runner(
-            pg_restore_command(duong_dan), env=command_env(),
-            capture_output=True, text=True, timeout=BACKUP_TIMEOUT_SECONDS,
-        )
-    except FileNotFoundError as loi:
-        raise BackupError("Không tìm thấy lệnh pg_restore — image phải cài postgresql-client.") from loi
-    if kq.returncode != 0:
-        thong_bao = f"pg_restore trả mã lỗi {kq.returncode}: {_gon_loi(kq.stderr)}"
-        record(AuditAction.BACKUP, actor=actor, target=("restore", duong_dan.name),
-               detail=f"Phục hồi THẤT BẠI từ {duong_dan.name}")
-        raise BackupError(thong_bao)
+        co = verify_file(duong_dan)
+        try:
+            kq = runner(
+                pg_restore_command(duong_dan), env=command_env(),
+                capture_output=True, text=True, timeout=BACKUP_TIMEOUT_SECONDS,
+            )
+        except FileNotFoundError as loi:
+            raise BackupError("Không tìm thấy lệnh pg_restore — image phải cài postgresql-client.") from loi
+        except subprocess.TimeoutExpired as loi:
+            raise BackupError(f"pg_restore chạy quá {BACKUP_TIMEOUT_SECONDS // 60} phút, đã dừng; "
+                              "cơ sở dữ liệu giữ nguyên như trước khi chạy.") from loi
+        if kq.returncode != 0:
+            raise BackupError(f"pg_restore trả mã lỗi {kq.returncode}: {_gon_loi(kq.stderr)}")
+    except (BackupError, OSError) as loi:
+        if not isinstance(loi, BackupError):
+            loi = BackupError(f"Không đọc được tệp sao lưu: {scrub(loi)}")
+        try:
+            record(AuditAction.BACKUP, actor=actor, target=("restore", duong_dan.name),
+                   detail=f"Phục hồi THẤT BẠI từ {duong_dan.name}")
+        except DatabaseError:
+            # Ghi nhật ký hỏng (CSDL mất kết nối) không được che lỗi phục hồi thật
+            logger.error("Không ghi được nhật ký phục hồi thất bại cho %s", duong_dan.name)
+        raise loi
     record(AuditAction.BACKUP, actor=actor, target=("restore", duong_dan.name),
            detail=f"Phục hồi thành công từ {duong_dan.name}")
+    try:
+        _dong_tac_vu_cua_ban_chup(duong_dan, co, moc, actor=actor)
+    except Exception:
+        # Bước phụ: pg_restore đã xong nên không biến phục hồi thành traceback (TL-97); tác vụ để nguyên cho lượt canh
+        logger.exception("Không đóng được tác vụ sao lưu của bản chụp sau phục hồi %s", duong_dan.name)
     return duong_dan
