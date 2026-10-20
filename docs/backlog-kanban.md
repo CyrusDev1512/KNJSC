@@ -1,5 +1,16 @@
 # Bảng việc — To do / In progress / Finished / Far Plan
 
+## 20.10.2026 — Hoàn tất PR #138 và dọn #136
+
+**In progress:** sửa fixture hiệu năng 50.000 dòng để chạy `ANALYZE` giống
+đường đo thật; chạy lại bộ chính và E2E trên commit cuối của #138.
+
+**Finished:** rà 27 mã cũ ở #136; phần sửa đã vào `Staging` qua #137. Biên bản
+15.10 được giữ làm lịch sử, không gộp lại các trạng thái backlog cũ đang conflict.
+
+**To do:** CI #138 xanh → gộp #138 vào `Staging` → đóng #136 và xóa hai nhánh
+việc. Chặng kiểm tay local vẫn bắt buộc trước `Staging` → `main`; chưa phát hành VPS.
+
 ## 19.10.2026 — Nhánh C chuẩn bị đồng bộ main
 
 **Đã gộp Staging:** PR #137 tại `ed7795b`. **Đang làm:** kiểm chứng nhánh C.

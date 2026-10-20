@@ -203,3 +203,32 @@ Không chỉ liệt kê dump để kết luận phục hồi đạt.
 Đã kiểm diff; ứng dụng chỉ có thay đổi CSS/test ghi chú được duyệt từ lượt trước.
 Không phát hành, không tự đưa image mới vào các dịch vụ đang chạy. Không merge
 PR138 hoặc hai nhánh nền; kiểm tay và CI commit cuối vẫn là các chốt còn thiếu.
+
+## Kiểm lại CI ngày 20.10 — fixture hiệu năng thiếu ANALYZE
+
+CI PR #138 run `39365309926` đã chạy tới cuối thay vì bị huỷ. E2E Chromium đạt;
+bộ chính có **1 lỗi, 3.925 đạt, 7 skip, 136 deselected**. Lỗi duy nhất là
+`tests/test_hieu_nang.py::test_bang_tinh_50000_dong_co_loc_duoi_2_giay`:
+bộ lọc `?trung=1` mất 412,05 giây, vượt ngưỡng 2 giây.
+
+Đối chứng Docker local trên cùng commit trước sửa:
+
+- chạy riêng test lưới: đạt; bốn request cộng 4,44 giây;
+- chạy nguyên module đúng thứ tự CI: 2/2 đạt; call 0,99 và 0,63 giây.
+
+Khác biệt đã xác định ở khâu chuẩn bị: management command `seed_perf` luôn
+`VACUUM ANALYZE` sau bulk insert, còn fixture module gọi thẳng `run()` rồi đo.
+Database CI mới chưa có thống kê nên PostgreSQL có thể chọn kế hoạch lồng rất
+chậm; local auto-analyze kịp nên không tái hiện. Fixture được sửa để chạy
+`ANALYZE forms_builder_datarecord` trước khi bấm giờ. Không đổi truy vấn sản
+phẩm, dữ liệu, quyền, số truy vấn hoặc ngưỡng 2 giây.
+
+Sau sửa, chạy nguyên `tests/test_hieu_nang.py` trên Docker/database test riêng:
+**2/2 đạt**, call lần lượt 0,75 và 0,67 giây, tổng 31,08 giây. Hai cảnh báo
+`.pytest_cache` do quyền bind mount không ảnh hưởng phép đo hoặc kết quả test.
+
+Biên bản rà 27 mã của #136 được giữ tại
+`docs/kiem-chung-ra-27-ma-cu-20261015.md`. Mã sửa từ kết quả rà đã vào Staging
+qua #137; không gộp ngược các trạng thái backlog cũ đang conflict từ #136.
+Kết quả test sau sửa và CI commit cuối phải được ghi tiếp trước khi merge #138.
+Chặng kiểm tay vẫn là điều kiện riêng trước khi đưa Staging sang main.

@@ -7,6 +7,7 @@ Chậm — đánh dấu `cham`, bỏ qua khi cần vòng lặp nhanh.
 import time
 
 import pytest
+from django.db import connection
 from django.test import override_settings
 
 from core.constants import PERF_PAGE_SECONDS, PERF_TABLE_ROWS
@@ -47,6 +48,13 @@ def du_lieu_lon(django_db_setup, django_db_blocker):
             Product.objects.create(name=ten, code=ma, group=nhom)
         bat_dau = time.monotonic()
         tao = seed_perf.run(n=PERF_TABLE_ROWS, actor=admin)
+        # `seed_perf` chạy như management command luôn VACUUM ANALYZE trước khi
+        # đo. Fixture gọi thẳng `run()` nên database CI vừa bulk insert 50.000
+        # dòng chưa có thống kê và đôi lúc PostgreSQL chọn kế hoạch lồng cực
+        # chậm cho bộ lọc Trùng. ANALYZE được phép trong transaction, giữ bài
+        # đo tương đương lệnh thật mà không nới ngưỡng hay che truy vấn chậm.
+        with connection.cursor() as cursor:
+            cursor.execute("ANALYZE forms_builder_datarecord")
         yield {"vd": nv, "manager_vd": manager, "admin": admin, "tao": tao, "giay_sinh": time.monotonic() - bat_dau}
         seed_perf.clear()
         Product.objects.all().delete()

@@ -1,5 +1,24 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 20.10.2026 — CI #138: fixture 50.000 dòng thiếu thống kê PostgreSQL
+
+- Run `39365309926`: E2E Chromium đạt; bộ chính **1 lỗi, 3.925 đạt,
+  7 skip, 136 deselected**. Lỗi duy nhất là
+  `test_bang_tinh_50000_dong_co_loc_duoi_2_giay`: `?trung=1` mất
+  **412,05 giây**, ngưỡng 2 giây.
+- Chạy riêng đúng test trên Docker local trước sửa: đạt; call 4,44 giây cho bốn
+  request. Chạy nguyên module đúng thứ tự CI: **2/2 đạt**, call lần lượt 0,99
+  giây và 0,63 giây. Vì vậy không kết luận truy vấn sản phẩm luôn mất 412 giây.
+- Nguyên nhân fixture: `seed_perf` dùng như management command luôn
+  `VACUUM ANALYZE`, còn fixture gọi thẳng `run()` sau bulk insert nên runner
+  sạch chưa có thống kê. Auto-analyze local chạy kịp, runner CI thì không.
+- Sửa fixture chạy `ANALYZE forms_builder_datarecord` trước phép đo. Giữ nguyên
+  truy vấn, dữ liệu, quyền, ngân sách truy vấn và ngưỡng 2 giây.
+- Sau sửa, chạy nguyên module trên Docker/database test riêng: **2/2 đạt**;
+  call lần lượt 0,75 và 0,67 giây, tổng 31,08 giây. Hai cảnh báo chỉ là
+  `.pytest_cache` trong bind mount không ghi được, không ảnh hưởng kết quả.
+  CI commit cuối vẫn phải đạt trước khi gọi #138 đủ điều kiện gộp.
+
 ## 20.10.2026 — Chẩn đoán bộ chính CI trước khi gộp C
 
 Chủ dự án duyệt triển khai bước điều tra. Run 39232655662 ở 361550f:
