@@ -17,6 +17,19 @@ from tests.live_server_requests import LIVE_SERVER_REQUESTS
 
 
 @pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Giữ traceback ngay lúc lỗi trên CI, kể cả job bị huỷ trước tổng kết."""
+    outcome = yield
+    report = outcome.get_result()
+    if os.environ.get("KN_CI_DIAGNOSTICS") == "1" and report.failed:
+        terminal = item.config.pluginmanager.getplugin("terminalreporter")
+        if terminal is not None:
+            terminal.write_sep("=", f"CI failure: {report.nodeid} [{report.when}]")
+            terminal.write_line(report.longreprtext)
+            terminal.flush()
+
+
+@pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_protocol(item, nextitem):
     """TL-71 — Bài đứng quá `faulthandler_timeout` (CI đặt cho hai bước e2e): ngoài ngăn xếp các luồng do
     faulthandler in, in thêm ngăn xếp các greenlet. Playwright đồng bộ chạy thân bài trong một greenlet, nên

@@ -1,5 +1,26 @@
 # Nhật ký kiểm thử — lỗi cần sửa
 
+## 20.10.2026 — Chẩn đoán bộ chính CI trước khi gộp C
+
+Chủ dự án duyệt triển khai bước điều tra. Run 39232655662 ở 361550f:
+nhóm E2E 95 đạt/2 skip, browser khác 30 đạt/9 skip; bộ chính bị huỷ vì
+vượt 20 phút ở 76%, có một F từ nhóm đầu nhưng không có traceback cuối.
+Không gọi CI đạt và không quy timeout bộ chính cho TL-71.
+
+Bật tên từng bài, traceback ngắn ngay khi setup/call/teardown thất bại,
+faulthandler sau 120 giây cho bộ chính. Giữ giới hạn job 20 phút, toàn bộ
+bài kiểm và assertion; không thêm dependency hoặc sửa ứng dụng.
+Hook in lỗi chỉ bật khi KN_CI_DIAGNOSTICS=1.
+
+Kiểm hook bằng probe riêng ngoài repo ứng dụng, pytest 8.3.4: cố ý gây
+lỗi setup, call, teardown rồi chạy một bài đạt. Bật/tắt chẩn đoán đều giữ
+exit 1 và kết quả 1 failed, 2 passed, 2 errors; chỉ khi bật mới in ngay đủ
+ba traceback, bài sau lỗi vẫn chạy. Đây là kiểm cơ chế chẩn đoán, không
+phải kết quả suite ứng dụng. Log trong storage/test-results/premerge-20261020/.
+
+TL-71 vẫn mở. Đối chứng vòng cuộn cũ ngày 19.10 hoàn tất nhưng p95 127,4 ms
+vượt ngưỡng 100 ms; tách khỏi timeout 75 giây. Chưa merge hoặc cập nhật VPS.
+
 ## 19.10.2026 — Điều tra TL-71, chưa sửa nguyên nhân
 
 CI run 39230146457 trên e3249f0: bộ chính 3.926 đạt/7 skip; E2E 94 đạt,
